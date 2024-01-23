@@ -1,5 +1,5 @@
 import {
-  bufferToHex,
+  bytesToHex as bufferToHex,
   privateToAddress,
   toChecksumAddress,
 } from "@nomicfoundation/ethereumjs-util";

@@ -9,7 +9,7 @@ export async function retrieveCommon(
   if (provider["_node"] === undefined) {
     await provider["_init"]();
   }
-  const common = provider["_node"]?.["_vm"]._common;
+  const common = provider["_node"]?.["_vm"].common;
   if (common === undefined) {
     throw new Error("Failed to retrieve common from HardhatNetworkProvider");
   }

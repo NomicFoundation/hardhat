@@ -201,7 +201,7 @@ describe("Eth module", function () {
               { common }
             ).sign(pk);
 
-            const rawTx = `0x${tx.serialize().toString("hex")}`;
+            const rawTx = `0x${Buffer.from(tx.serialize()).toString("hex")}`;
             return client
               .request({
                 method: "POST",

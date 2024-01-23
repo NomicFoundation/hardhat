@@ -1,4 +1,7 @@
-import { bufferToHex, zeroAddress } from "@nomicfoundation/ethereumjs-util";
+import {
+  bytesToHex as bufferToHex,
+  zeroAddress,
+} from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 import { Client } from "undici";
 
@@ -689,7 +692,7 @@ describe("Eth module", function () {
             await assertTransactionFailure(
               this.provider,
               txParams,
-              `Known transaction: ${bufferToHex(hash)}`
+              `Known transaction: ${hash}`
             );
           });
 

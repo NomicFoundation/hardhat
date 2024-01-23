@@ -15,7 +15,7 @@ export async function putGenesisBlock(
   { initialDate, blockGasLimit: initialBlockGasLimit }: LocalNodeConfig,
   stateTrie: Trie,
   hardfork: HardforkName,
-  initialMixHash: Buffer,
+  initialMixHash: Uint8Array,
   initialBaseFee?: bigint
 ) {
   const initialBlockTimestamp =

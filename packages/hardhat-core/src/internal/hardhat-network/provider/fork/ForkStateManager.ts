@@ -1,14 +1,18 @@
-import { StateManager } from "@nomicfoundation/ethereumjs-statemanager";
+import {
+  EVMStateManagerInterface,
+  Proof,
+  StorageRange,
+} from "@nomicfoundation/ethereumjs-common";
 import {
   Account,
   bigIntToHex,
-  bufferToBigInt,
+  bytesToBigInt,
   Address,
   bytesToHex as bufferToHex,
   equalsBytes,
   KECCAK256_NULL,
   toBytes,
-  unpadBuffer,
+  unpadBytes,
 } from "@nomicfoundation/ethereumjs-util";
 import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 
@@ -26,8 +30,13 @@ import {
   makeEmptyAccountState,
 } from "./AccountState";
 
-const encodeStorageKey = (address: Buffer, position: Buffer): string => {
-  return `${address.toString("hex")}${unpadBuffer(position).toString("hex")}`;
+const encodeStorageKey = (
+  address: Uint8Array,
+  position: Uint8Array
+): string => {
+  return `${Buffer.from(address).toString("hex")}${Buffer.from(
+    unpadBytes(position)
+  ).toString("hex")}`;
 };
 
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
@@ -43,15 +52,27 @@ const notCheckpointedError = (method: string) =>
 const notSupportedError = (method: string) =>
   new Error(`${method} is not supported when forking from remote network`);
 
-export class ForkStateManager implements StateManager {
+export class ForkStateManager implements EVMStateManagerInterface {
   private _state: State = ImmutableMap<string, ImmutableRecord<AccountState>>();
   private _initialStateRoot: string = randomHash();
   private _stateRoot: string = this._initialStateRoot;
   private _stateRootToState: Map<string, State> = new Map();
-  private _originalStorageCache: Map<string, Buffer> = new Map();
+  private _originalStorageCache: Map<string, Uint8Array> = new Map();
   private _stateCheckpoints: string[] = [];
   private _contextBlockNumber = this._forkBlockNumber;
   private _contextChanged = false;
+
+  public originalStorageCache: {
+    get(address: Address, key: Uint8Array): Promise<Uint8Array>;
+    clear(): void;
+  } = {
+    get: async (_address: Address, _key: Uint8Array): Promise<Uint8Array> => {
+      throw new Error("Method not implemented.");
+    },
+    clear: (): void => {
+      throw new Error("Method not implemented.");
+    },
+  };
 
   constructor(
     private readonly _jsonRpcClient: JsonRpcClient,
@@ -60,6 +81,24 @@ export class ForkStateManager implements StateManager {
     this._state = ImmutableMap<string, ImmutableRecord<AccountState>>();
 
     this._stateRootToState.set(this._initialStateRoot, this._state);
+  }
+  public dumpStorageRange(
+    _address: Address,
+    _startKey: bigint,
+    _limit: number
+  ): Promise<StorageRange> {
+    throw new Error("Method not implemented.");
+  }
+  public getProof(
+    _address: Address,
+    _storageSlots?: Uint8Array[] | undefined
+  ): Promise<Proof> {
+    throw new Error("Method not implemented.");
+  }
+  public shallowCopy(
+    _downlevelCaches?: boolean | undefined
+  ): EVMStateManagerInterface {
+    return this;
   }
 
   public async initializeGenesisAccounts(genesisAccounts: GenesisAccount[]) {
@@ -113,13 +152,13 @@ export class ForkStateManager implements StateManager {
     const localBalance = localAccount?.get("balance");
     const localCode = localAccount?.get("code");
 
-    let nonce: Buffer | bigint | undefined =
+    let nonce: Uint8Array | bigint | undefined =
       localNonce !== undefined ? toBytes(localNonce) : undefined;
 
-    let balance: Buffer | bigint | undefined =
+    let balance: Uint8Array | bigint | undefined =
       localBalance !== undefined ? toBytes(localBalance) : undefined;
 
-    let code: Buffer | undefined =
+    let code: Uint8Array | undefined =
       localCode !== undefined ? toBytes(localCode) : undefined;
 
     if (balance === undefined || nonce === undefined || code === undefined) {
@@ -163,7 +202,7 @@ export class ForkStateManager implements StateManager {
     this._state = this._state.set(hexAddress, account);
   }
 
-  public async getContractCode(address: Address): Promise<Buffer> {
+  public async getContractCode(address: Address): Promise<Uint8Array> {
     const localCode = this._state.get(address.toString())?.get("code");
     if (localCode !== undefined) {
       return toBytes(localCode);
@@ -179,8 +218,8 @@ export class ForkStateManager implements StateManager {
 
   public async getContractStorage(
     address: Address,
-    key: Buffer
-  ): Promise<Buffer> {
+    key: Uint8Array
+  ): Promise<Uint8Array> {
     if (key.length !== 32) {
       throw new Error("Storage key must be 32 bytes long");
     }
@@ -200,11 +239,11 @@ export class ForkStateManager implements StateManager {
 
     const remoteValue = await this._jsonRpcClient.getStorageAt(
       address,
-      bufferToBigInt(key),
+      bytesToBigInt(key),
       this._contextBlockNumber
     );
 
-    return unpadBuffer(remoteValue);
+    return unpadBytes(remoteValue);
   }
 
   public async putContractStorage(
@@ -220,7 +259,7 @@ export class ForkStateManager implements StateManager {
       throw new Error("Storage value cannot be longer than 32 bytes");
     }
 
-    const unpaddedValue = unpadBuffer(value);
+    const unpaddedValue = unpadBytes(value);
 
     const hexAddress = address.toString();
     let account = this._state.get(hexAddress) ?? makeAccountState();
@@ -270,7 +309,7 @@ export class ForkStateManager implements StateManager {
     await this.setStateRoot(toBytes(checkpointedRoot));
   }
 
-  public async getStateRoot(): Promise<Buffer> {
+  public async getStateRoot(): Promise<Uint8Array> {
     if (this._stateRootToState.get(this._stateRoot) !== this._state) {
       this._stateRoot = randomHash();
       this._stateRootToState.set(this._stateRoot, this._state);
@@ -278,7 +317,7 @@ export class ForkStateManager implements StateManager {
     return toBytes(this._stateRoot);
   }
 
-  public async setStateRoot(stateRoot: Buffer): Promise<void> {
+  public async setStateRoot(stateRoot: Uint8Array): Promise<void> {
     this._setStateRoot(stateRoot);
   }
 
@@ -316,9 +355,9 @@ export class ForkStateManager implements StateManager {
   }
 
   public setBlockContext(
-    stateRoot: Buffer,
+    stateRoot: Uint8Array,
     blockNumber: bigint,
-    irregularState?: Buffer
+    irregularState?: Uint8Array
   ) {
     if (this._stateCheckpoints.length !== 0) {
       throw checkpointedError("setBlockContext");
@@ -346,7 +385,7 @@ export class ForkStateManager implements StateManager {
     // because the VM does it before executing a message anyway.
   }
 
-  public restoreForkBlockContext(stateRoot: Buffer) {
+  public restoreForkBlockContext(stateRoot: Uint8Array) {
     if (this._stateCheckpoints.length !== 0) {
       throw checkpointedError("restoreForkBlockContext");
     }
@@ -377,8 +416,8 @@ export class ForkStateManager implements StateManager {
 
   public async getOriginalContractStorage(
     address: Address,
-    key: Buffer
-  ): Promise<Buffer> {
+    key: Uint8Array
+  ): Promise<Uint8Array> {
     const storageKey = encodeStorageKey(Buffer.from(address.toBytes()), key);
     const cachedValue = this._originalStorageCache.get(storageKey);
     if (cachedValue !== undefined) {
@@ -408,7 +447,7 @@ export class ForkStateManager implements StateManager {
     this._state = this._state.set(hexAddress, localAccount);
   }
 
-  private _setStateRoot(stateRoot: Buffer) {
+  private _setStateRoot(stateRoot: Uint8Array) {
     const newRoot = bufferToHex(stateRoot);
     const state = this._stateRootToState.get(newRoot);
     if (state === undefined) {

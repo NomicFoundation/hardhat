@@ -92,8 +92,8 @@ export class ModulesLogger {
 
   public logBlockFromAutomine(
     result: MineBlockResult,
-    codes: Buffer[],
-    txHashToHighlight: Buffer
+    codes: Uint8Array[],
+    txHashToHighlight: Uint8Array
   ) {
     const { block, blockResult, traces } = result;
     const { results } = blockResult;
@@ -568,7 +568,7 @@ export class ModulesLogger {
   private _logTxInsideBlock(
     tx: TypedTransaction,
     txTrace: GatherTracesResult,
-    code: Buffer,
+    code: Uint8Array,
     txGasUsed: bigint,
     {
       highlightTxHash,
@@ -640,7 +640,7 @@ export class ModulesLogger {
 
   private _logContractAndFunctionName(
     trace: MessageTrace | undefined,
-    code: Buffer,
+    code: Uint8Array,
     {
       printNonContractCalled = false,
     }: { printNonContractCalled?: boolean } = {}

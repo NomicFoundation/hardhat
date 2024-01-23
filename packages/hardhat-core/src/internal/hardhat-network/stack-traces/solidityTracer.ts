@@ -1,4 +1,5 @@
-import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
+import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/cjs/exceptions";
+import { equalsBytes } from "@nomicfoundation/ethereumjs-util";
 import { ReturnData } from "../provider/return-data";
 
 import {
@@ -80,7 +81,7 @@ export class SolidityTracer {
       // reverts if a call fails, and most contracts are in solidity
       if (
         subtrace.error !== undefined &&
-        trace.returnData.equals(subtrace.returnData)
+        equalsBytes(trace.returnData, subtrace.returnData)
       ) {
         let unrecognizedEntry: SolidityStackTraceEntry;
 

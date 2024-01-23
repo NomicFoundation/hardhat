@@ -1,9 +1,19 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
+import {
+  BlockchainInterface,
+  BlockchainEvents,
+} from "@nomicfoundation/ethereumjs-blockchain";
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
-import { Address, equalsBytes } from "@nomicfoundation/ethereumjs-util";
+import {
+  FeeMarketEIP1559TxData,
+  TypedTransaction,
+} from "@nomicfoundation/ethereumjs-tx";
+import {
+  Address,
+  AsyncEventEmitter,
+  equalsBytes,
+} from "@nomicfoundation/ethereumjs-util";
 
-import { FeeMarketEIP1559TxData } from "@nomicfoundation/ethereumjs-tx/dist/types";
 import { RpcBlockWithTransactions } from "../../../core/jsonrpc/types/output/block";
 import { RpcTransactionReceipt } from "../../../core/jsonrpc/types/output/receipt";
 import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
@@ -35,6 +45,7 @@ export class ForkBlockchain
   implements HardhatBlockchainInterface
 {
   private _latestBlockNumber = this._forkBlockNumber;
+  public events?: AsyncEventEmitter<BlockchainEvents> | undefined;
 
   constructor(
     private _jsonRpcClient: JsonRpcClient,
@@ -42,6 +53,22 @@ export class ForkBlockchain
     common: Common
   ) {
     super(common);
+  }
+
+  public getIteratorHead(_name?: string | undefined): Promise<Block> {
+    throw new Error("Method not implemented.");
+  }
+
+  public setIteratorHead(_tag: string, _headHash: Uint8Array): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  public getCanonicalHeadBlock(): Promise<Block> {
+    throw new Error("Method not implemented.");
+  }
+
+  public shallowCopy(): BlockchainInterface {
+    return this;
   }
 
   public getLatestBlockNumber(): bigint {

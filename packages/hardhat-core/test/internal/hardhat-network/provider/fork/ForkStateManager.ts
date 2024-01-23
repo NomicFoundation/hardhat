@@ -1,10 +1,10 @@
 import {
   Account,
-  bufferToBigInt,
-  bufferToHex,
+  bytesToBigInt as bufferToBigInt,
+  bytesToHex as bufferToHex,
   KECCAK256_NULL,
-  toBuffer,
-  unpadBuffer,
+  toBytes,
+  unpadBytes as unpadBuffer,
 } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 import sinon from "sinon";
@@ -25,6 +25,10 @@ import {
   NULL_BYTES_32,
   WETH_ADDRESS,
 } from "../../helpers/constants";
+
+function toBuffer(x: Parameters<typeof toBytes>[0]) {
+  return Buffer.from(toBytes(x));
+}
 
 describe("ForkStateManager", () => {
   let client: JsonRpcClient;
@@ -75,8 +79,10 @@ describe("ForkStateManager", () => {
 
       assert.isTrue(account.balance > 0n);
       assert.isTrue(account.nonce === 1n);
-      assert.isTrue(account.codeHash.equals(codeHash));
-      assert.isNotTrue(account.storageRoot.equals(Buffer.from([])));
+      assert.isTrue(Buffer.from(account.codeHash).equals(codeHash));
+      assert.isNotTrue(
+        Buffer.from(account.storageRoot).equals(Buffer.from([]))
+      );
     });
 
     it("can get non-existent account", async () => {
@@ -84,8 +90,10 @@ describe("ForkStateManager", () => {
 
       assert.isTrue(account.balance === 0n);
       assert.isTrue(account.nonce === 0n);
-      assert.isTrue(account.codeHash.equals(KECCAK256_NULL));
-      assert.isNotTrue(account.storageRoot.equals(Buffer.from([])));
+      assert.isTrue(Buffer.from(account.codeHash).equals(KECCAK256_NULL));
+      assert.isNotTrue(
+        Buffer.from(account.storageRoot).equals(Buffer.from([]))
+      );
     });
 
     it("works with accounts created locally", async () => {
@@ -105,8 +113,10 @@ describe("ForkStateManager", () => {
       const account = await fsm.getAccount(address);
       assert.isTrue(account.nonce === 1n);
       assert.isTrue(account.balance === 2n);
-      assert.isTrue(account.codeHash.equals(codeHash));
-      assert.isNotTrue(account.storageRoot.equals(Buffer.from([])));
+      assert.isTrue(Buffer.from(account.codeHash).equals(codeHash));
+      assert.isNotTrue(
+        Buffer.from(account.storageRoot).equals(Buffer.from([]))
+      );
     });
 
     it("works with accounts modified locally", async () => {
@@ -116,8 +126,10 @@ describe("ForkStateManager", () => {
 
       assert.isTrue(account.balance > 0);
       assert.isTrue(account.nonce === 1n);
-      assert.isTrue(account.codeHash.equals(keccak256(code)));
-      assert.isNotTrue(account.storageRoot.equals(Buffer.from([])));
+      assert.isTrue(Buffer.from(account.codeHash).equals(keccak256(code)));
+      assert.isNotTrue(
+        Buffer.from(account.storageRoot).equals(Buffer.from([]))
+      );
     });
   });
 
@@ -133,7 +145,7 @@ describe("ForkStateManager", () => {
 
       assert.isTrue(account.nonce === 69n);
       assert.isTrue(account.balance === 420n);
-      assert.isTrue(account.codeHash.equals(KECCAK256_NULL));
+      assert.isTrue(Buffer.from(account.codeHash).equals(KECCAK256_NULL));
     });
 
     it("can change balance and nonce", async () => {
@@ -151,7 +163,9 @@ describe("ForkStateManager", () => {
       const updatedAccount = await fsm.getAccount(WETH_ADDRESS);
       assert.equal(updatedAccount.nonce, increasedNonce);
       assert.equal(updatedAccount.balance, increasedBalance);
-      assert.isTrue(updatedAccount.codeHash.equals(account.codeHash));
+      assert.isTrue(
+        Buffer.from(updatedAccount.codeHash).equals(account.codeHash)
+      );
     });
 
     it("can change the code stored if the codeHash is the hash of null", async () => {
@@ -162,7 +176,7 @@ describe("ForkStateManager", () => {
       await fsm.putAccount(WETH_ADDRESS, toPut);
 
       const wethContract = await fsm.getAccount(WETH_ADDRESS);
-      assert.isTrue(wethContract.codeHash.equals(KECCAK256_NULL));
+      assert.isTrue(Buffer.from(wethContract.codeHash).equals(KECCAK256_NULL));
     });
   });
 
@@ -177,16 +191,20 @@ describe("ForkStateManager", () => {
 
       assert.isTrue(account.balance > 0);
       assert.isTrue(account.nonce === 1n);
-      assert.isTrue(account.codeHash.equals(codeHash));
-      assert.isNotTrue(account.storageRoot.equals(Buffer.from([])));
+      assert.isTrue(Buffer.from(account.codeHash).equals(codeHash));
+      assert.isNotTrue(
+        Buffer.from(account.storageRoot).equals(Buffer.from([]))
+      );
 
       await fsm.deleteAccount(WETH_ADDRESS);
       account = await fsm.getAccount(WETH_ADDRESS);
 
       assert.isTrue(account.balance === 0n);
       assert.isTrue(account.nonce === 0n);
-      assert.isTrue(account.codeHash.equals(KECCAK256_NULL));
-      assert.isNotTrue(account.storageRoot.equals(Buffer.from([])));
+      assert.isTrue(Buffer.from(account.codeHash).equals(KECCAK256_NULL));
+      assert.isNotTrue(
+        Buffer.from(account.storageRoot).equals(Buffer.from([]))
+      );
     });
 
     it("can delete non-existent account", async () => {
@@ -195,8 +213,10 @@ describe("ForkStateManager", () => {
 
       assert.isTrue(account.balance === 0n);
       assert.isTrue(account.nonce === 0n);
-      assert.isTrue(account.codeHash.equals(KECCAK256_NULL));
-      assert.isNotTrue(account.storageRoot.equals(Buffer.from([])));
+      assert.isTrue(Buffer.from(account.codeHash).equals(KECCAK256_NULL));
+      assert.isNotTrue(
+        Buffer.from(account.storageRoot).equals(Buffer.from([]))
+      );
     });
   });
 
@@ -237,7 +257,7 @@ describe("ForkStateManager", () => {
       );
       const fsmCode = await fsm.getContractCode(DAI_ADDRESS);
 
-      assert.isTrue(fsmCode.equals(code));
+      assert.isTrue(Buffer.from(fsmCode).equals(code));
     });
 
     it("can get code of an account modified locally", async () => {
@@ -252,7 +272,7 @@ describe("ForkStateManager", () => {
       );
       const fsmCode = await fsm.getContractCode(DAI_ADDRESS);
 
-      assert.isTrue(fsmCode.equals(code));
+      assert.isTrue(Buffer.from(fsmCode).equals(code));
     });
   });
 
@@ -263,7 +283,7 @@ describe("ForkStateManager", () => {
       await fsm.putContractCode(DAI_ADDRESS, code);
       const fsmCode = await fsm.getContractCode(DAI_ADDRESS);
 
-      assert.isTrue(fsmCode.equals(code));
+      assert.isTrue(Buffer.from(fsmCode).equals(code));
     });
 
     it("can set code of an existing account", async () => {
@@ -277,7 +297,7 @@ describe("ForkStateManager", () => {
       const code = toBuffer("0xfeedface");
       await fsm.putContractCode(address, code);
       const fsmCode = await fsm.getContractCode(address);
-      assert.isTrue(fsmCode.equals(code));
+      assert.isTrue(Buffer.from(fsmCode).equals(code));
     });
   });
 
@@ -294,7 +314,7 @@ describe("ForkStateManager", () => {
         DAI_TOTAL_SUPPLY_STORAGE_POSITION
       );
 
-      assert.isTrue(fsmValue.equals(unpadBuffer(remoteValue)));
+      assert.isTrue(Buffer.from(fsmValue).equals(unpadBuffer(remoteValue)));
     });
   });
 
@@ -310,7 +330,7 @@ describe("ForkStateManager", () => {
         DAI_TOTAL_SUPPLY_STORAGE_POSITION
       );
 
-      assert.isTrue(fsmValue.equals(unpadBuffer(remoteValue)));
+      assert.isTrue(Buffer.from(fsmValue).equals(unpadBuffer(remoteValue)));
     });
 
     it("caches original storage value on first call and returns it for subsequent calls", async () => {
@@ -319,7 +339,7 @@ describe("ForkStateManager", () => {
         DAI_ADDRESS,
         DAI_TOTAL_SUPPLY_STORAGE_POSITION
       );
-      assert.isNotTrue(originalValue.equals(newValue));
+      assert.isNotTrue(Buffer.from(originalValue).equals(newValue));
 
       await fsm.putContractStorage(
         DAI_ADDRESS,
@@ -331,7 +351,7 @@ describe("ForkStateManager", () => {
         DAI_ADDRESS,
         DAI_TOTAL_SUPPLY_STORAGE_POSITION
       );
-      assert.isTrue(cachedValue.equals(originalValue));
+      assert.isTrue(Buffer.from(cachedValue).equals(originalValue));
     });
 
     it("retains original storage value after setStateRoot call", async () => {
@@ -356,7 +376,7 @@ describe("ForkStateManager", () => {
         DAI_ADDRESS,
         DAI_TOTAL_SUPPLY_STORAGE_POSITION
       );
-      assert.isTrue(cachedValue.equals(originalValue));
+      assert.isTrue(Buffer.from(cachedValue).equals(originalValue));
     });
   });
 
@@ -374,7 +394,7 @@ describe("ForkStateManager", () => {
         DAI_TOTAL_SUPPLY_STORAGE_POSITION
       );
 
-      assert.isTrue(fsmValue.equals(value));
+      assert.isTrue(Buffer.from(fsmValue).equals(value));
     });
 
     it("can set storage value of an existing account", async () => {
@@ -395,7 +415,7 @@ describe("ForkStateManager", () => {
         address,
         toBuffer(`0x${"0".repeat(63)}1`)
       );
-      assert.isTrue(fsmValue.equals(value));
+      assert.isTrue(Buffer.from(fsmValue).equals(value));
     });
   });
 
@@ -445,7 +465,7 @@ describe("ForkStateManager", () => {
       const beforeRoot = await fsm.getStateRoot();
       await fsm.commit();
       const afterRoot = await fsm.getStateRoot();
-      assert.isTrue(afterRoot.equals(beforeRoot));
+      assert.isTrue(Buffer.from(afterRoot).equals(beforeRoot));
     });
 
     it("removes the latest state root from the stack", async () => {
@@ -472,7 +492,7 @@ describe("ForkStateManager", () => {
       await fsm.putContractCode(randomAddress(), toBuffer("0xdeadbeef"));
       await fsm.revert();
       const stateRoot = await fsm.getStateRoot();
-      assert.isTrue(stateRoot.equals(initialRoot));
+      assert.isTrue(Buffer.from(stateRoot).equals(initialRoot));
     });
 
     it("does not revert more than one checkpoint back", async () => {
@@ -483,7 +503,7 @@ describe("ForkStateManager", () => {
       await fsm.putContractCode(address, toBuffer("0xfeedface"));
       await fsm.revert();
       const code = await fsm.getContractCode(address);
-      assert.isTrue(code.equals(toBuffer("0xdeadbeef")));
+      assert.isTrue(Buffer.from(code).equals(toBuffer("0xdeadbeef")));
     });
 
     it("removes the latest state root from the stack", async () => {
@@ -512,7 +532,7 @@ describe("ForkStateManager", () => {
         DAI_ADDRESS,
         DAI_TOTAL_SUPPLY_STORAGE_POSITION
       );
-      assert.isNotTrue(value.equals(NULL_BYTES_32));
+      assert.isNotTrue(Buffer.from(value).equals(NULL_BYTES_32));
       await fsm.clearContractStorage(DAI_ADDRESS);
       const clearedValue = await fsm.getContractStorage(
         DAI_ADDRESS,
@@ -534,20 +554,20 @@ describe("ForkStateManager", () => {
   describe("getStateRoot", () => {
     it("returns current state root", async () => {
       const root = await fsm.getStateRoot();
-      assert.isNotTrue(root.equals(toBuffer([])));
+      assert.isNotTrue(Buffer.from(root).equals(toBuffer([])));
     });
 
     it("returns the same state root if no storage was modified", async () => {
       const root1 = await fsm.getStateRoot();
       const root2 = await fsm.getStateRoot();
-      assert.isTrue(root1.equals(root2));
+      assert.isTrue(Buffer.from(root1).equals(root2));
     });
 
     it("returns a different state root after storage modification", async () => {
       const root1 = await fsm.getStateRoot();
       await fsm.putContractCode(randomAddress(), toBuffer("0xdeadbeef"));
       const root2 = await fsm.getStateRoot();
-      assert.isNotTrue(root1.equals(root2));
+      assert.isNotTrue(Buffer.from(root1).equals(root2));
     });
   });
 
@@ -566,20 +586,26 @@ describe("ForkStateManager", () => {
       const afterRoot = await fsm.getStateRoot();
       await fsm.setStateRoot(beforeRoot);
       const restoredRoot = await fsm.getStateRoot();
-      assert.isTrue(restoredRoot.equals(beforeRoot));
-      assert.isNotTrue(afterRoot.equals(beforeRoot));
+      assert.isTrue(Buffer.from(restoredRoot).equals(beforeRoot));
+      assert.isNotTrue(Buffer.from(afterRoot).equals(beforeRoot));
     });
 
     it("allows to change the state", async () => {
       const beforeRoot = await fsm.getStateRoot();
       const address = randomAddress();
-      assert.isTrue((await fsm.getContractCode(address)).equals(toBuffer([])));
+      assert.isTrue(
+        Buffer.from(await fsm.getContractCode(address)).equals(toBuffer([]))
+      );
       await fsm.putContractCode(address, toBuffer("0xdeadbeef"));
       assert.isTrue(
-        (await fsm.getContractCode(address)).equals(toBuffer("0xdeadbeef"))
+        Buffer.from(await fsm.getContractCode(address)).equals(
+          toBuffer("0xdeadbeef")
+        )
       );
       await fsm.setStateRoot(beforeRoot);
-      assert.isTrue((await fsm.getContractCode(address)).equals(toBuffer([])));
+      assert.isTrue(
+        Buffer.from(await fsm.getContractCode(address)).equals(toBuffer([]))
+      );
     });
   });
 
@@ -630,7 +656,7 @@ describe("ForkStateManager", () => {
         DAI_ADDRESS,
         DAI_TOTAL_SUPPLY_STORAGE_POSITION
       );
-      assert.isNotTrue(originalValue.equals(newValue));
+      assert.isNotTrue(Buffer.from(originalValue).equals(newValue));
 
       // Important: putContractStorage is implemented without position length checks in
       // FSM, whereas getOriginalContractStorage uses underlying StateManager (which checks).
@@ -646,7 +672,7 @@ describe("ForkStateManager", () => {
         DAI_ADDRESS,
         DAI_TOTAL_SUPPLY_STORAGE_POSITION
       );
-      assert.isTrue(freshValue.equals(newValue));
+      assert.isTrue(Buffer.from(freshValue).equals(newValue));
     });
   });
 

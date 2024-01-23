@@ -107,6 +107,7 @@
     "@nomicfoundation/ethereumjs-trie": "6.0.4",
     "@nomicfoundation/ethereumjs-tx": "5.0.4",
     "@nomicfoundation/ethereumjs-util": "9.0.4",
+    "@nomicfoundation/ethereumjs-verkle": "0.0.2",
     "@nomicfoundation/ethereumjs-vm": "7.0.4",
     "@nomicfoundation/solidity-analyzer": "^0.1.0",
     "@sentry/node": "^5.18.1",

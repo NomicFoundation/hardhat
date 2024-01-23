@@ -16,7 +16,8 @@ export function makeCommon({
       networkId,
     },
     {
-      hardfork,
+      // ethereumjs uses this name for the merge hardfork
+      hardfork: hardfork === "merge" ? "mergeForkIdTransition" : hardfork,
       ...otherSettings,
     }
   );

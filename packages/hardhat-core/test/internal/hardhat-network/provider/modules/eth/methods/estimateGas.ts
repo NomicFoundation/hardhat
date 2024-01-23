@@ -5,7 +5,7 @@ import { Client } from "undici";
 import {
   AccessListEIP2930Transaction,
   FeeMarketEIP1559Transaction,
-  Transaction,
+  LegacyTransaction,
 } from "@nomicfoundation/ethereumjs-tx";
 
 import {
@@ -291,7 +291,8 @@ describe("Eth module", function () {
                 const firstArg = call.firstArg;
                 assert.isTrue("gasPrice" in firstArg);
 
-                const tx: Transaction | AccessListEIP2930Transaction = firstArg;
+                const tx: LegacyTransaction | AccessListEIP2930Transaction =
+                  firstArg;
                 assert.isTrue(tx.gasPrice === gasPrice);
               });
 

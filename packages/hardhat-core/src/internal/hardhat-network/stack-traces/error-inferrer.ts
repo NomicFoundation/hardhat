@@ -1,6 +1,7 @@
 /* eslint "@typescript-eslint/no-non-null-assertion": "error" */
-import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
+import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/cjs/exceptions";
+import { equalsBytes } from "@nomicfoundation/ethereumjs-util";
 import semver from "semver";
 
 import { assertHardhatInvariant } from "../../core/errors";
@@ -539,7 +540,7 @@ export class ErrorInferrer {
       return;
     }
 
-    const rawReturnData = returnData.value.toString("hex");
+    const rawReturnData = Buffer.from(returnData.value).toString("hex");
     let errorMessage = `reverted with an unrecognized custom error (return data: 0x${rawReturnData})`;
 
     for (const customError of trace.bytecode.contract.customErrors) {
@@ -1623,7 +1624,7 @@ export class ErrorInferrer {
   ): boolean {
     const call = trace.steps[callSubtraceStepIndex] as MessageTrace;
 
-    if (!trace.returnData.equals(call.returnData)) {
+    if (!equalsBytes(trace.returnData, call.returnData)) {
       return false;
     }
 
@@ -1679,7 +1680,7 @@ export class ErrorInferrer {
       return false;
     }
 
-    if (!trace.returnData.equals(subtrace.returnData)) {
+    if (!equalsBytes(trace.returnData, subtrace.returnData)) {
       return false;
     }
 
@@ -1730,7 +1731,7 @@ export class ErrorInferrer {
     return this._failsRightAfterCall(trace, callStepIndex);
   }
 
-  private _isPanicReturnData(returnData: Buffer): boolean {
+  private _isPanicReturnData(returnData: Uint8Array): boolean {
     return new ReturnData(returnData).isPanicReturnData();
   }
 }

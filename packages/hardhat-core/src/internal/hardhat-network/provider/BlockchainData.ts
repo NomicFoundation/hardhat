@@ -52,23 +52,23 @@ export class BlockchainData {
     return this._blocksByNumber.get(blockNumber);
   }
 
-  public getBlockByHash(blockHash: Buffer) {
+  public getBlockByHash(blockHash: Uint8Array) {
     return this._blocksByHash.get(bufferToHex(blockHash));
   }
 
-  public getBlockByTransactionHash(transactionHash: Buffer) {
+  public getBlockByTransactionHash(transactionHash: Uint8Array) {
     return this._blocksByTransactions.get(bufferToHex(transactionHash));
   }
 
-  public getTransaction(transactionHash: Buffer) {
+  public getTransaction(transactionHash: Uint8Array) {
     return this._transactions.get(bufferToHex(transactionHash));
   }
 
-  public getTransactionReceipt(transactionHash: Buffer) {
+  public getTransactionReceipt(transactionHash: Uint8Array) {
     return this._transactionReceipts.get(bufferToHex(transactionHash));
   }
 
-  public getTotalDifficulty(blockHash: Buffer) {
+  public getTotalDifficulty(blockHash: Uint8Array) {
     return this._totalDifficulty.get(bufferToHex(blockHash));
   }
 

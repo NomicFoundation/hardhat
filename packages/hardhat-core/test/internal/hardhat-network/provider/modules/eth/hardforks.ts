@@ -2,9 +2,9 @@ import { Common } from "@nomicfoundation/ethereumjs-common";
 import {
   AccessListEIP2930Transaction,
   FeeMarketEIP1559Transaction,
-  Transaction,
+  TransactionFactory,
 } from "@nomicfoundation/ethereumjs-tx";
-import { toBuffer } from "@nomicfoundation/ethereumjs-util";
+import { toBytes } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 
 import {
@@ -62,7 +62,7 @@ describe("Eth module - hardfork dependant tests", function () {
   );
 
   function getSampleSignedTx(common: Common) {
-    const tx = Transaction.fromTxData(
+    const tx = TransactionFactory.fromTxData(
       {
         to: "0x1111111111111111111111111111111111111111",
         gasLimit: 21000,
@@ -1001,20 +1001,20 @@ describe("Eth module - hardfork dependant tests", function () {
     const TEST_FUNCTION_SELECTOR = "0x29e99f07";
     const MAX_GAS_TO_FORWARD_THAT_FAILS_WITHOUT_ACCESS_LIST = 70605;
     const WRITE_STORAGE_KEYS = [
-      bufferToRpcData(toBuffer(0), 32),
-      bufferToRpcData(toBuffer(1), 32),
-      bufferToRpcData(toBuffer(2), 32),
-      bufferToRpcData(toBuffer(3), 32),
-      bufferToRpcData(toBuffer(4), 32),
-      bufferToRpcData(toBuffer(5), 32),
-      bufferToRpcData(toBuffer(6), 32),
-      bufferToRpcData(toBuffer(7), 32),
-      bufferToRpcData(toBuffer(8), 32),
-      bufferToRpcData(toBuffer(9), 32),
-      bufferToRpcData(toBuffer(10), 32),
-      bufferToRpcData(toBuffer(11), 32),
-      bufferToRpcData(toBuffer(12), 32),
-      bufferToRpcData(toBuffer(13), 32),
+      bufferToRpcData(toBytes(0), 32),
+      bufferToRpcData(toBytes(1), 32),
+      bufferToRpcData(toBytes(2), 32),
+      bufferToRpcData(toBytes(3), 32),
+      bufferToRpcData(toBytes(4), 32),
+      bufferToRpcData(toBytes(5), 32),
+      bufferToRpcData(toBytes(6), 32),
+      bufferToRpcData(toBytes(7), 32),
+      bufferToRpcData(toBytes(8), 32),
+      bufferToRpcData(toBytes(9), 32),
+      bufferToRpcData(toBytes(10), 32),
+      bufferToRpcData(toBytes(11), 32),
+      bufferToRpcData(toBytes(12), 32),
+      bufferToRpcData(toBytes(13), 32),
     ];
 
     function abiEncodeUint(uint: number) {
@@ -1741,7 +1741,7 @@ describe("Eth module - hardfork dependant tests", function () {
               "0x0",
             ]);
 
-            const tx = Transaction.fromTxData(
+            const tx = TransactionFactory.fromTxData(
               {
                 gasLimit: txData.gas,
                 gasPrice: txData.gasPrice,
@@ -1749,7 +1749,7 @@ describe("Eth module - hardfork dependant tests", function () {
               },
               {
                 common: this.common,
-                disableMaxInitCodeSizeCheck: true,
+                allowUnlimitedInitCodeSize: true,
               }
             );
 
@@ -1838,7 +1838,7 @@ describe("Eth module - hardfork dependant tests", function () {
               "0x0",
             ]);
 
-            const tx = Transaction.fromTxData(
+            const tx = TransactionFactory.fromTxData(
               {
                 gasLimit: txData.gas,
                 gasPrice: txData.gasPrice,
@@ -1846,7 +1846,7 @@ describe("Eth module - hardfork dependant tests", function () {
               },
               {
                 common: this.common,
-                disableMaxInitCodeSizeCheck: true,
+                allowUnlimitedInitCodeSize: true,
               }
             );
 

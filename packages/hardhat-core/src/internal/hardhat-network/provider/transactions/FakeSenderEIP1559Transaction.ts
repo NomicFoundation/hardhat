@@ -1,15 +1,12 @@
 import * as rlp from "@nomicfoundation/ethereumjs-rlp";
-import { FeeMarketEIP1559Transaction } from "@nomicfoundation/ethereumjs-tx";
 import {
+  FeeMarketEIP1559Transaction,
   FeeMarketEIP1559TxData,
-  FeeMarketEIP1559ValuesArray,
+  TransactionType,
   TxOptions,
-} from "@nomicfoundation/ethereumjs-tx/dist/types";
-import {
-  Address,
-  arrToBufArr,
-  bufferToInt,
-} from "@nomicfoundation/ethereumjs-util";
+  TxValuesArray,
+} from "@nomicfoundation/ethereumjs-tx";
+import { Address, bytesToInt } from "@nomicfoundation/ethereumjs-util";
 
 import {
   InternalError,
@@ -33,7 +30,7 @@ export class FakeSenderEIP1559Transaction extends FeeMarketEIP1559Transaction {
   }
 
   public static fromSerializedTx(
-    _serialized: Buffer,
+    _serialized: Uint8Array,
     _opts?: TxOptions
   ): never {
     throw new InternalError(
@@ -42,7 +39,7 @@ export class FakeSenderEIP1559Transaction extends FeeMarketEIP1559Transaction {
   }
 
   public static fromRlpSerializedTx(
-    _serialized: Buffer,
+    _serialized: Uint8Array,
     _opts?: TxOptions
   ): never {
     throw new InternalError(
@@ -51,7 +48,7 @@ export class FakeSenderEIP1559Transaction extends FeeMarketEIP1559Transaction {
   }
 
   public static fromValuesArray(
-    _values: FeeMarketEIP1559ValuesArray,
+    _values: TxValuesArray[TransactionType.FeeMarketEIP1559],
     _opts?: TxOptions
   ): never {
     throw new InternalError(
@@ -61,7 +58,7 @@ export class FakeSenderEIP1559Transaction extends FeeMarketEIP1559Transaction {
 
   public static fromSenderAndRlpSerializedTx(
     sender: Address,
-    serialized: Buffer,
+    serialized: Uint8Array,
     opts?: TxOptions
   ) {
     if (serialized[0] !== 2) {
@@ -70,7 +67,7 @@ export class FakeSenderEIP1559Transaction extends FeeMarketEIP1559Transaction {
       );
     }
 
-    const values = arrToBufArr(rlp.decode(serialized.slice(1)));
+    const values = rlp.decode(serialized.slice(1));
 
     checkIsFeeMarketEIP1559ValuesArray(values);
 
@@ -79,7 +76,7 @@ export class FakeSenderEIP1559Transaction extends FeeMarketEIP1559Transaction {
 
   public static fromSenderAndValuesArray(
     sender: Address,
-    values: FeeMarketEIP1559ValuesArray,
+    values: TxValuesArray[TransactionType.FeeMarketEIP1559],
     opts: TxOptions = {}
   ): FakeSenderEIP1559Transaction {
     const [
@@ -107,11 +104,11 @@ export class FakeSenderEIP1559Transaction extends FeeMarketEIP1559Transaction {
         gasLimit,
         to: to !== undefined && to.length > 0 ? to : undefined,
         value,
-        data: data ?? Buffer.from([]),
+        data: data ?? Uint8Array.from([]),
         accessList: accessList ?? [],
-        v: v !== undefined ? bufferToInt(v) : undefined, // EIP1559 supports v's with value 0 (empty Buffer)
-        r: r !== undefined && r.length !== 0 ? bufferToInt(r) : undefined,
-        s: s !== undefined && s.length !== 0 ? bufferToInt(s) : undefined,
+        v: v !== undefined ? bytesToInt(v) : undefined, // EIP1559 supports v's with value 0 (empty Buffer)
+        r: r !== undefined && r.length !== 0 ? bytesToInt(r) : undefined,
+        s: s !== undefined && s.length !== 0 ? bytesToInt(s) : undefined,
       },
       opts
     );
@@ -133,7 +130,7 @@ export class FakeSenderEIP1559Transaction extends FeeMarketEIP1559Transaction {
         r: data.r ?? fakeSignature.r,
         s: data.s ?? fakeSignature.s,
       },
-      { ...opts, freeze: false, disableMaxInitCodeSizeCheck: true }
+      { ...opts, freeze: false, allowUnlimitedInitCodeSize: true }
     );
 
     this._sender = sender;
@@ -153,13 +150,13 @@ export class FakeSenderEIP1559Transaction extends FeeMarketEIP1559Transaction {
     );
   }
 
-  public _processSignature(_v: bigint, _r: Buffer, _s: Buffer): never {
+  public _processSignature(_v: bigint, _r: Uint8Array, _s: Uint8Array): never {
     throw new InternalError(
       "`_processSignature` is not implemented in FakeSenderEIP1559Transaction"
     );
   }
 
-  public sign(_privateKey: Buffer): never {
+  public sign(_privateKey: Uint8Array): never {
     throw new InternalError(
       "`sign` is not implemented in FakeSenderEIP1559Transaction"
     );
@@ -190,10 +187,12 @@ export class FakeSenderEIP1559Transaction extends FeeMarketEIP1559Transaction {
 
 function checkIsFeeMarketEIP1559ValuesArray(
   values: unknown
-): asserts values is FeeMarketEIP1559ValuesArray {
+): asserts values is TxValuesArray[TransactionType.FeeMarketEIP1559] {
   if (!Array.isArray(values)) {
     throw new InvalidArgumentsError(
-      `Invalid deserialized tx. Expected a Buffer[], but got '${values as any}'`
+      `Invalid deserialized tx. Expected a Uint8Array[], but got '${
+        values as any
+      }'`
     );
   }
 
@@ -215,9 +214,9 @@ function checkIsFeeMarketEIP1559ValuesArray(
         );
       }
     } else {
-      if (!Buffer.isBuffer(values[i])) {
+      if (!(values[i] instanceof Uint8Array)) {
         throw new InvalidArgumentsError(
-          `Invalid deserialized tx. Expected a Buffer in position ${i}, but got '${value}'`
+          `Invalid deserialized tx. Expected a Uint8Array in position ${i}, but got '${value}'`
         );
       }
     }

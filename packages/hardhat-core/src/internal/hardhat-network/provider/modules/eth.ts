@@ -1,7 +1,7 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import {
-  Transaction,
+  LegacyTransaction,
   TransactionFactory,
   TypedTransaction,
 } from "@nomicfoundation/ethereumjs-tx";
@@ -381,7 +381,9 @@ export class EthModule extends Base {
     await this._runHardhatNetworkMessageTraceHooks(trace, true);
 
     if (error !== undefined && this._throwOnCallFailures) {
-      const callReturnData = trace?.returnData.toString("hex") ?? "";
+      const callReturnData = Buffer.from(trace?.returnData ?? []).toString(
+        "hex"
+      );
       (error as any).data = `0x${callReturnData}`;
 
       throw error;
@@ -457,7 +459,9 @@ export class EthModule extends Base {
         error
       );
 
-      const callReturnData = trace?.returnData.toString("hex") ?? "";
+      const callReturnData = Buffer.from(trace?.returnData ?? []).toString(
+        "hex"
+      );
       (error as any).data = `0x${callReturnData}`;
 
       throw error;
@@ -975,7 +979,7 @@ export class EthModule extends Base {
     try {
       tx = TransactionFactory.fromSerializedData(rawTx, {
         common: this._common,
-        disableMaxInitCodeSizeCheck: true,
+        allowUnlimitedInitCodeSize: true,
       });
 
       this._validateEip3860MaxInitCodeSize(tx.to?.toBytes(), tx.data);
@@ -1019,7 +1023,7 @@ export class EthModule extends Base {
       throw new InvalidArgumentsError("Invalid Signature");
     }
 
-    if (tx instanceof Transaction) {
+    if (tx instanceof LegacyTransaction) {
       this._validateEip155HardforkRequirement(tx);
     }
 
@@ -1508,7 +1512,9 @@ export class EthModule extends Base {
     if (trace.error !== undefined && this._throwOnTransactionFailures) {
       const e = trace.error;
 
-      const returnData = trace.trace?.returnData.toString("hex") ?? "";
+      const returnData = Buffer.from(trace.trace?.returnData ?? []).toString(
+        "hex"
+      );
       (e as any).data = `0x${returnData}`;
       (e as any).transactionHash = bufferToRpcData(tx.hash());
 
@@ -1694,7 +1700,7 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
   }
 
   // TODO: Find a better place for this
-  private _validateEip155HardforkRequirement(tx: Transaction) {
+  private _validateEip155HardforkRequirement(tx: LegacyTransaction) {
     // 27 and 28 are only valid for non-EIP-155 legacy txs
     if (tx.v === 27n || tx.v === 28n) {
       return;
@@ -1709,7 +1715,7 @@ You can use them by running Hardhat Network with 'hardfork' ${EIP155_MIN_HARDFOR
 
   private _validateEip3860MaxInitCodeSize(
     to: Uint8Array | undefined,
-    data: Buffer
+    data: Uint8Array
   ) {
     if (!this._common.gteHardfork(EIP3860_MIN_HARDFORK)) {
       // this check is only relevant after shanghai

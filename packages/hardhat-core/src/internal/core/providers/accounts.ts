@@ -248,8 +248,8 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     transactionRequest: RpcTransactionRequest,
     chainId: number,
     privateKey: Buffer
-  ): Promise<Buffer> {
-    const { AccessListEIP2930Transaction, Transaction } = await import(
+  ): Promise<Uint8Array> {
+    const { AccessListEIP2930Transaction, LegacyTransaction } = await import(
       "@nomicfoundation/ethereumjs-tx"
     );
 
@@ -291,7 +291,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
         { common }
       );
     } else {
-      transaction = Transaction.fromTxData(txData, { common });
+      transaction = LegacyTransaction.fromTxData(txData, { common });
     }
 
     const signedTransaction = transaction.sign(privateKey);

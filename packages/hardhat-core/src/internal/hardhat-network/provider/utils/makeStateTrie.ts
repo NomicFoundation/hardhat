@@ -1,7 +1,7 @@
 import { Trie } from "@nomicfoundation/ethereumjs-trie";
 import {
   Account,
-  intToBuffer,
+  intToBytes,
   setLengthLeft,
 } from "@nomicfoundation/ethereumjs-util";
 
@@ -20,7 +20,7 @@ export async function makeStateTrie(genesisAccounts: GenesisAccount[]) {
   // Mimic precompiles activation
   for (let i = 1; i <= 8; i++) {
     await stateTrie.put(
-      setLengthLeft(intToBuffer(i), 20),
+      setLengthLeft(intToBytes(i), 20),
       new Account().serialize()
     );
   }

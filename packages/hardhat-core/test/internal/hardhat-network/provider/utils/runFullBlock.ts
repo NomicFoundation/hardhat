@@ -33,11 +33,10 @@ export async function runFullBlock(
 
   const rpcBlock = await forkClient.getBlockByNumber(blockToRun, true);
 
-  const hardfork = remoteCommon.getHardforkByBlockNumber(
-    blockToRun,
-    undefined,
-    rpcBlock?.timestamp
-  );
+  const hardfork = remoteCommon.getHardforkBy({
+    blockNumber: blockToRun,
+    timestamp: rpcBlock?.timestamp,
+  });
 
   if (rpcBlock === null) {
     assert.fail();

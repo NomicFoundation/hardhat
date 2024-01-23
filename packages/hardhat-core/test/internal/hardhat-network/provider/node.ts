@@ -1,10 +1,10 @@
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import { TxData, TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
+import { LegacyTxData, TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import { assert } from "chai";
 import {
   Address,
-  bufferToHex,
-  toBuffer,
+  bytesToHex as bufferToHex,
+  toBytes,
 } from "@nomicfoundation/ethereumjs-util";
 import { ethers } from "ethers";
 import sinon from "sinon";
@@ -41,6 +41,10 @@ import {
 } from "../helpers/providers";
 import { sleep } from "../helpers/sleep";
 import { runFullBlock } from "./utils/runFullBlock";
+
+function toBuffer(x: Parameters<typeof toBytes>[0]) {
+  return Buffer.from(toBytes(x));
+}
 
 interface ForkedBlock {
   networkName: string;
@@ -84,7 +88,7 @@ describe("HardhatNode", () => {
   const gasPrice = 20;
   let node: HardhatNode;
   let createTestTransaction: (
-    txData: TxData & { from: string }
+    txData: LegacyTxData & { from: string }
   ) => FakeSenderTransaction;
 
   beforeEach(async () => {
