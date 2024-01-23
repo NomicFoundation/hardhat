@@ -1,3 +1,4 @@
+pub mod debug;
 /// Ethereum RPC request types
 pub mod eth;
 /// Hardhat RPC request types

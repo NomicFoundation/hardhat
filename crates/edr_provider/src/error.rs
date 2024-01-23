@@ -9,8 +9,8 @@ use edr_evm::{
     blockchain::BlockchainError,
     hex,
     state::{AccountOverrideConversionError, StateError},
-    Halt, MineBlockError, MinerTransactionError, OutOfGasError, TransactionCreationError,
-    TransactionError,
+    DebugTraceError, Halt, MineBlockError, MinerTransactionError, OutOfGasError,
+    TransactionCreationError, TransactionError,
 };
 use ethers_core::types::transaction::eip712::Eip712Error;
 
@@ -45,6 +45,8 @@ pub enum ProviderError {
     #[error(transparent)]
     Creation(#[from] CreationError),
     #[error(transparent)]
+    DebugTrace(#[from] DebugTraceError<BlockchainError, StateError>),
+    #[error(transparent)]
     Eip712Error(#[from] Eip712Error),
     #[error("{0}")]
     InvalidArgument(String),
@@ -75,6 +77,9 @@ pub enum ProviderError {
     },
     #[error("{0}")]
     InvalidInput(String),
+    /// Transaction hash doesn't exist on the blockchain.
+    #[error("Transaction hash '{0}' doesn't exist on the blockchain.")]
+    InvalidTransactionHash(B256),
     /// Invalid transaction index
     #[error("Transaction index '{0}' is too large")]
     InvalidTransactionIndex(U256),
@@ -169,53 +174,58 @@ pub enum ProviderError {
 
 impl From<ProviderError> for jsonrpc::Error {
     fn from(value: ProviderError) -> Self {
+        const INVALID_INPUT: i16 = -32000;
+        const INTERNAL_ERROR: i16 = -32603;
+        const INVALID_PARAMS: i16 = -32602;
+
         #[allow(clippy::match_same_arms)]
         let code = match &value {
-            ProviderError::AccountOverrideConversionError(_) => -32000,
-            ProviderError::AutoMineGasPriceTooLow { .. } => -32000,
-            ProviderError::AutoMineMaxFeeTooLow { .. } => -32000,
-            ProviderError::AutoMineNonceTooHigh { .. } => -32000,
-            ProviderError::AutoMineNonceTooLow { .. } => -32000,
-            ProviderError::AutoMinePriorityFeeTooLow { .. } => -32000,
-            ProviderError::Blockchain(_) => -32000,
-            ProviderError::Creation(_) => -32000,
-            ProviderError::Eip712Error(_) => -32000,
-            ProviderError::InvalidArgument(_) => -32602,
-            ProviderError::InvalidBlockNumberOrHash { .. } => -32000,
-            ProviderError::InvalidBlockTag { .. } => -32602,
-            ProviderError::InvalidChainId { .. } => -32602,
-            ProviderError::InvalidDropTransactionHash(_) => -32602,
-            ProviderError::InvalidFilterSubscriptionType { .. } => -32602,
-            ProviderError::InvalidInput(_) => -32000,
-            ProviderError::InvalidTransactionIndex(_) => -32602,
-            ProviderError::InvalidTransactionInput(_) => -32000,
-            ProviderError::InvalidTransactionType(_) => -32602,
-            ProviderError::MemPoolUpdate(_) => -32000,
-            ProviderError::MineBlock(_) => -32000,
-            ProviderError::MinerTransactionError(_) => -32000,
-            // Internal error code
-            ProviderError::RpcClientError(_) => -32603,
-            ProviderError::RpcVersion(_) => -32000,
-            ProviderError::RunTransaction(_) => -32000,
-            ProviderError::Serialization(_) => -32000,
-            ProviderError::SetAccountNonceLowerThanCurrent { .. } => -32000,
-            ProviderError::SetAccountNonceWithPendingTransactions => -32603,
-            ProviderError::SetMinGasPriceUnsupported => -32000,
-            ProviderError::SetNextBlockBaseFeePerGasUnsupported { .. } => -32000,
-            ProviderError::SetNextPrevRandaoUnsupported { .. } => -32000,
-            ProviderError::Signature(_) => -32000,
-            ProviderError::State(_) => -32000,
-            ProviderError::SystemTime(_) => -32000,
-            ProviderError::TimestampLowerThanPrevious { .. } => -32000,
-            ProviderError::TimestampEqualsPrevious { .. } => -32000,
-            ProviderError::TransactionFailed(_) => -32000,
-            ProviderError::TransactionCreationError(_) => -32000,
-            ProviderError::TryFromIntError(_) => -32000,
-            ProviderError::Unimplemented(_) => -32000,
-            ProviderError::UnknownAddress { .. } => -32000,
-            ProviderError::UnmetHardfork { .. } => -32602,
-            ProviderError::UnsupportedAccessListParameter { .. } => -32602,
-            ProviderError::UnsupportedEIP1559Parameters { .. } => -32602,
+            ProviderError::AccountOverrideConversionError(_) => INVALID_INPUT,
+            ProviderError::AutoMineGasPriceTooLow { .. } => INVALID_INPUT,
+            ProviderError::AutoMineMaxFeeTooLow { .. } => INVALID_INPUT,
+            ProviderError::AutoMineNonceTooHigh { .. } => INVALID_INPUT,
+            ProviderError::AutoMineNonceTooLow { .. } => INVALID_INPUT,
+            ProviderError::AutoMinePriorityFeeTooLow { .. } => INVALID_INPUT,
+            ProviderError::Blockchain(_) => INVALID_INPUT,
+            ProviderError::Creation(_) => INVALID_INPUT,
+            ProviderError::DebugTrace(_) => INTERNAL_ERROR,
+            ProviderError::Eip712Error(_) => INVALID_INPUT,
+            ProviderError::InvalidArgument(_) => INVALID_PARAMS,
+            ProviderError::InvalidBlockNumberOrHash { .. } => INVALID_INPUT,
+            ProviderError::InvalidBlockTag { .. } => INVALID_PARAMS,
+            ProviderError::InvalidChainId { .. } => INVALID_PARAMS,
+            ProviderError::InvalidDropTransactionHash(_) => INVALID_PARAMS,
+            ProviderError::InvalidFilterSubscriptionType { .. } => INVALID_PARAMS,
+            ProviderError::InvalidInput(_) => INVALID_INPUT,
+            ProviderError::InvalidTransactionHash { .. } => INVALID_PARAMS,
+            ProviderError::InvalidTransactionIndex(_) => INVALID_PARAMS,
+            ProviderError::InvalidTransactionInput(_) => INVALID_INPUT,
+            ProviderError::InvalidTransactionType(_) => INVALID_PARAMS,
+            ProviderError::MemPoolUpdate(_) => INVALID_INPUT,
+            ProviderError::MineBlock(_) => INVALID_INPUT,
+            ProviderError::MinerTransactionError(_) => INVALID_INPUT,
+            ProviderError::RpcClientError(_) => INTERNAL_ERROR,
+            ProviderError::RpcVersion(_) => INVALID_INPUT,
+            ProviderError::RunTransaction(_) => INVALID_INPUT,
+            ProviderError::Serialization(_) => INVALID_INPUT,
+            ProviderError::SetAccountNonceLowerThanCurrent { .. } => INVALID_INPUT,
+            ProviderError::SetAccountNonceWithPendingTransactions => INTERNAL_ERROR,
+            ProviderError::SetMinGasPriceUnsupported => INVALID_INPUT,
+            ProviderError::SetNextBlockBaseFeePerGasUnsupported { .. } => INVALID_INPUT,
+            ProviderError::SetNextPrevRandaoUnsupported { .. } => INVALID_INPUT,
+            ProviderError::Signature(_) => INVALID_INPUT,
+            ProviderError::State(_) => INVALID_INPUT,
+            ProviderError::SystemTime(_) => INVALID_INPUT,
+            ProviderError::TimestampLowerThanPrevious { .. } => INVALID_INPUT,
+            ProviderError::TimestampEqualsPrevious { .. } => INVALID_INPUT,
+            ProviderError::TransactionFailed(_) => INVALID_INPUT,
+            ProviderError::TransactionCreationError(_) => INVALID_INPUT,
+            ProviderError::TryFromIntError(_) => INVALID_INPUT,
+            ProviderError::Unimplemented(_) => INVALID_INPUT,
+            ProviderError::UnknownAddress { .. } => INVALID_INPUT,
+            ProviderError::UnmetHardfork { .. } => INVALID_PARAMS,
+            ProviderError::UnsupportedAccessListParameter { .. } => INVALID_PARAMS,
+            ProviderError::UnsupportedEIP1559Parameters { .. } => INVALID_PARAMS,
         };
 
         let data = match &value {

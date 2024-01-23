@@ -13,6 +13,7 @@ use std::{
 };
 
 use edr_eth::{
+    block::BlobGas,
     log::FilterLog,
     receipt::BlockReceipt,
     remote::{
@@ -32,14 +33,16 @@ use edr_evm::{
     },
     calculate_next_base_fee,
     db::StateRef,
-    mempool, mine_block,
+    debug_trace_transaction, execution_result_to_debug_result, mempool, mine_block,
     state::{
         AccountModifierFn, IrregularState, StateDiff, StateError, StateOverride, StateOverrides,
         SyncState,
     },
-    Account, AccountInfo, Block, Bytecode, CfgEnv, ExecutionResult, HashMap, HashSet, MemPool,
+    Account, AccountInfo, BlobExcessGasAndPrice, Block, BlockEnv, Bytecode, CfgEnv,
+    DebugTraceConfig, DebugTraceResult, ExecutionResult, HashMap, HashSet, MemPool,
     MineBlockResult, MineBlockResultAndState, MineOrdering, OrderedTransaction, PendingTransaction,
-    RandomHashGenerator, StorageSlot, SyncBlock, TxEnv, KECCAK_EMPTY,
+    RandomHashGenerator, ResultAndState, StorageSlot, SyncBlock, TracerEip3155,
+    TransactionCreationError, TxEnv, KECCAK_EMPTY,
 };
 use ethers_core::types::transaction::eip712::{Eip712, TypedData};
 use gas::gas_used_ratio;
@@ -52,7 +55,7 @@ use tokio::runtime;
 use self::account::{create_accounts, InitialAccounts};
 use crate::{
     data::{
-        call::RunCallArgs,
+        call::{run_call, RunCallArgs},
         gas::{compute_rewards, BinarySearchEstimationArgs, CheckGasLimitArgs},
     },
     error::TransactionFailure,
@@ -429,6 +432,115 @@ impl ProviderData {
 
     pub fn coinbase(&self) -> Address {
         self.beneficiary
+    }
+
+    pub fn debug_trace_transaction(
+        &self,
+        transaction_hash: &B256,
+        trace_config: DebugTraceConfig,
+    ) -> Result<DebugTraceResult, ProviderError> {
+        let block = self
+            .blockchain
+            .block_by_transaction_hash(transaction_hash)?
+            .ok_or_else(|| ProviderError::InvalidTransactionHash(*transaction_hash))?;
+
+        let header = block.header();
+        let block_spec = Some(BlockSpec::Number(header.number));
+
+        let cfg_env = self.create_evm_config(block_spec.as_ref())?;
+
+        let transactions = block
+            .transactions()
+            .iter()
+            .map(|tx| {
+                PendingTransaction::new(cfg_env.spec_id, tx.clone()).or_else(|original_err| {
+                    // If we cannot recover the sender address from the signature, see if
+                    // if it's a fake signature for an impersonated account.
+                    match original_err {
+                        TransactionCreationError::Signature(_) => {
+                            // HACK: the fake signer puts the sender address as the `r` value.
+                            let maybe_fake_address =
+                                Address::from_slice(&tx.signature().r.to_be_bytes::<32>()[12..]);
+                            if self.impersonated_accounts.contains(&maybe_fake_address) {
+                                PendingTransaction::with_caller(
+                                    cfg_env.spec_id,
+                                    tx.clone(),
+                                    maybe_fake_address,
+                                )
+                                .map_err(|_err| original_err)
+                            } else {
+                                Err(original_err)
+                            }
+                        }
+                        _ => Err(original_err),
+                    }
+                })
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+
+        let prev_block_number = block.header().number - 1;
+        let prev_block_spec = Some(BlockSpec::Number(prev_block_number));
+
+        self.execute_in_block_context(
+            prev_block_spec.as_ref(),
+            |blockchain, _prev_block, state| {
+                let block_env = BlockEnv {
+                    number: U256::from(header.number),
+                    coinbase: header.beneficiary,
+                    timestamp: U256::from(header.timestamp),
+                    gas_limit: U256::from(header.gas_limit),
+                    basefee: header.base_fee_per_gas.unwrap_or_default(),
+                    difficulty: U256::from(header.difficulty),
+                    prevrandao: if cfg_env.spec_id >= SpecId::MERGE {
+                        Some(header.mix_hash)
+                    } else {
+                        None
+                    },
+                    blob_excess_gas_and_price: header
+                        .blob_gas
+                        .as_ref()
+                        .map(|BlobGas { excess_gas, .. }| BlobExcessGasAndPrice::new(*excess_gas)),
+                };
+
+                debug_trace_transaction(
+                    blockchain,
+                    state.clone(),
+                    cfg_env,
+                    trace_config,
+                    block_env,
+                    transactions,
+                    transaction_hash,
+                )
+                .map_err(ProviderError::DebugTrace)
+            },
+        )?
+    }
+
+    pub fn debug_trace_call(
+        &self,
+        transaction: PendingTransaction,
+        block_spec: Option<&BlockSpec>,
+        trace_config: DebugTraceConfig,
+    ) -> Result<DebugTraceResult, ProviderError> {
+        let cfg_env = self.create_evm_config(block_spec)?;
+
+        let tx_env: TxEnv = transaction.into();
+
+        let mut tracer = TracerEip3155::new(trace_config);
+
+        self.execute_in_block_context(block_spec, |blockchain, block, state| {
+            let ResultAndState { result, .. } = run_call(RunCallArgs {
+                blockchain,
+                header: block.header(),
+                state: &state,
+                state_overrides: &StateOverrides::default(),
+                cfg_env: cfg_env.clone(),
+                tx_env: tx_env.clone(),
+                inspector: Some(&mut tracer),
+            })?;
+
+            Ok(execution_result_to_debug_result(result, tracer))
+        })?
     }
 
     /// Estimate the gas cost of a transaction. Matches Hardhat behavior.
