@@ -123,12 +123,12 @@ impl edr_provider::Logger for Logger {
         self.collector.log_interval_mined(spec_id, mining_result);
     }
 
-    fn log_hardhat_mined(
+    fn log_mined_block(
         &mut self,
         spec_id: edr_eth::SpecId,
         mining_results: Vec<edr_provider::DebugMineBlockResult<Self::BlockchainError>>,
     ) {
-        self.collector.log_hardhat_mined(spec_id, mining_results);
+        self.collector.log_mined_blocks(spec_id, mining_results);
     }
 
     fn log_send_transaction(
@@ -153,6 +153,8 @@ impl edr_provider::Logger for Logger {
 
     fn print_method_logs(&mut self, method: &str, error: Option<&ProviderError>) {
         if let Some(error) = error {
+            self.collector.state = LoggingState::Empty;
+
             if matches!(error, ProviderError::UnsupportedMethod { .. }) {
                 self.collector
                     .print::<false>(Color::Red.paint(error.to_string()));
@@ -319,7 +321,7 @@ impl LogCollector {
         });
     }
 
-    fn log_hardhat_mined(
+    fn log_mined_blocks(
         &mut self,
         spec_id: edr_eth::SpecId,
         mining_results: Vec<edr_provider::DebugMineBlockResult<BlockchainError>>,

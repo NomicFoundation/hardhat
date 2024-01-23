@@ -35,7 +35,7 @@ pub trait Logger {
         let _result = result;
     }
 
-    fn log_hardhat_mined(
+    fn log_mined_block(
         &mut self,
         spec_id: edr_eth::SpecId,
         results: Vec<DebugMineBlockResult<Self::BlockchainError>>,

@@ -18,9 +18,11 @@ pub fn handle_mine_request(
     timestamp: Option<U64OrUsize>,
 ) -> Result<String, ProviderError> {
     let timestamp: Option<u64> = timestamp.map(U64OrUsize::into);
-    let _mine_block_result = data.mine_and_commit_block(timestamp)?;
+    let mine_block_result = data.mine_and_commit_block(timestamp)?;
 
-    // log_block(&mine_block_result)?;
+    let spec_id = data.spec_id();
+    data.logger_mut()
+        .log_mined_block(spec_id, vec![mine_block_result]);
 
     Ok(String::from("0"))
 }
