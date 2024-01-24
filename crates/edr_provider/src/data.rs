@@ -2184,7 +2184,6 @@ mod tests {
     use edr_eth::transaction::{Eip155TransactionRequest, TransactionKind, TransactionRequest};
     use edr_evm::hex;
     use edr_test_utils::env::get_alchemy_url;
-    use parking_lot::Mutex;
     use serde_json::json;
     use tempfile::TempDir;
 
@@ -2198,11 +2197,9 @@ mod tests {
     };
 
     #[derive(Clone, Default)]
-    struct DebugLogger {
-        console_log_inputs: Arc<Mutex<Vec<Bytes>>>,
-    }
+    struct NoopLogger;
 
-    impl Logger for DebugLogger {
+    impl Logger for NoopLogger {
         type BlockchainError = BlockchainError;
 
         fn is_enabled(&self) -> bool {
@@ -2219,7 +2216,6 @@ mod tests {
         _cache_dir: TempDir,
         _runtime: runtime::Runtime,
         config: ProviderConfig,
-        console_log_inputs: Arc<Mutex<Vec<Bytes>>>,
         provider_data: ProviderData,
         impersonated_account: Address,
     }
@@ -2243,9 +2239,7 @@ mod tests {
                 forked,
             );
 
-            let logger = Box::<DebugLogger>::default();
-            let console_log_inputs = logger.console_log_inputs.clone();
-
+            let logger = Box::<NoopLogger>::default();
             let subscription_callback = Box::new(|_| ());
 
             let runtime = runtime::Builder::new_multi_thread()
@@ -2268,14 +2262,9 @@ mod tests {
                 _cache_dir: cache_dir,
                 _runtime: runtime,
                 config,
-                console_log_inputs,
                 provider_data,
                 impersonated_account,
             })
-        }
-
-        fn console_log_calls(&self) -> Vec<Bytes> {
-            self.console_log_inputs.lock().clone()
         }
 
         fn dummy_transaction_request(&self, nonce: Option<u64>) -> TransactionRequestAndSender {
@@ -2515,8 +2504,6 @@ mod tests {
             expected_call_data,
         } = deploy_console_log_contract(&mut fixture.provider_data)?;
 
-        assert_eq!(fixture.console_log_calls().len(), 0);
-
         let signed_transaction = fixture
             .provider_data
             .sign_transaction_request(transaction)?;
@@ -2529,9 +2516,9 @@ mod tests {
             .provider_data
             .mine_block(block_timestamp, Some(prevrandao))?;
 
-        let console_log_calls = result.console_log_inputs;
-        assert_eq!(console_log_calls.len(), 1);
-        assert_eq!(console_log_calls[0], expected_call_data);
+        let console_log_inputs = result.console_log_inputs;
+        assert_eq!(console_log_inputs.len(), 1);
+        assert_eq!(console_log_inputs[0], expected_call_data);
 
         Ok(())
     }
@@ -2544,8 +2531,6 @@ mod tests {
             expected_call_data,
         } = deploy_console_log_contract(&mut fixture.provider_data)?;
 
-        assert_eq!(fixture.console_log_calls().len(), 0);
-
         let pending_transaction = fixture
             .provider_data
             .sign_transaction_request(transaction)?;
@@ -2556,9 +2541,9 @@ mod tests {
             &StateOverrides::default(),
         )?;
 
-        let console_log_calls = result.console_log_inputs;
-        assert_eq!(console_log_calls.len(), 1);
-        assert_eq!(console_log_calls[0], expected_call_data);
+        let console_log_inputs = result.console_log_inputs;
+        assert_eq!(console_log_inputs.len(), 1);
+        assert_eq!(console_log_inputs[0], expected_call_data);
 
         Ok(())
     }
