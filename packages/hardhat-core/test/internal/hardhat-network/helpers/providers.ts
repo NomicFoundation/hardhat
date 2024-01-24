@@ -8,7 +8,7 @@ import {
   HardhatNetworkMempoolConfig,
   HardhatNetworkMiningConfig,
 } from "../../../../src/types";
-import { ALCHEMY_URL, INFURA_URL, EDR_BINARY } from "../../../setup";
+import { ALCHEMY_URL, INFURA_URL } from "../../../setup";
 
 import { useProvider, UseProviderOptions } from "./useProvider";
 
@@ -189,24 +189,6 @@ if (INFURA_URL !== undefined) {
         useJsonRpc: false,
         loggerEnabled: true,
         forkConfig: { jsonRpcUrl: url, blockNumber: options.forkBlockNumber },
-        ...options,
-      });
-    },
-  });
-}
-
-if (EDR_BINARY !== undefined) {
-  PROVIDERS.push({
-    name: "EDR",
-    isFork: false,
-    isJsonRpc: true,
-    networkId: DEFAULT_NETWORK_ID,
-    chainId: DEFAULT_CHAIN_ID,
-    useProvider: (options: UseProviderOptions = {}) => {
-      useProvider({
-        useJsonRpc: true,
-        edrBinary: EDR_BINARY,
-        loggerEnabled: true,
         ...options,
       });
     },
