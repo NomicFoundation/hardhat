@@ -129,19 +129,6 @@ export class ConsoleLogger {
     }
 
     return logs;
-
-    // if (consoleLogs === undefined) {
-    //   console.log("");
-    //   return;
-    // }
-
-    // // special case for console.log()
-    // if (consoleLogs.length === 0) {
-    //   console.log("");
-    //   return;
-    // }
-
-    // console.log(util.format(consoleLogs[0], ...consoleLogs.slice(1)));
   }
 
   private _maybeConsoleLog(calldata: Buffer): ConsoleLogs | undefined {

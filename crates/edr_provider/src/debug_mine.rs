@@ -8,11 +8,6 @@ use edr_evm::{
     ExecutionResult, LocalBlock, MineBlockResultAndState, SyncBlock,
 };
 
-/// A trait for subscribing to `console.log` calls.
-pub trait ConsoleLogCallback: Debug {
-    fn on_console_log(&mut self, call_input: Bytes);
-}
-
 /// The result of mining a block, including the state, in debug mode. This
 /// result needs to be inserted into the blockchain to be persistent.
 pub struct DebugMineBlockResultAndState<StateErrorT> {
