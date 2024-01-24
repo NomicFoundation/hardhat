@@ -109,7 +109,7 @@ pub fn execution_result_to_debug_result(
     }
 }
 
-/// Config options for `debug_trace_transaction`
+/// Config options for `debug_traceTransaction`
 #[derive(Debug, Default, Clone)]
 pub struct DebugTraceConfig {
     /// Disable storage trace.
@@ -120,25 +120,34 @@ pub struct DebugTraceConfig {
     pub disable_stack: bool,
 }
 
+/// Debug trace error.
 #[derive(Debug, thiserror::Error)]
 pub enum DebugTraceError<BlockchainErrorT, StateErrorT> {
     /// Invalid hardfork spec argument.
     #[error("Invalid spec id: {spec_id:?}. `debug_traceTransaction` is not supported prior to Spurious Dragon")]
-    InvalidSpecId { spec_id: SpecId },
+    InvalidSpecId {
+        /// The hardfork.
+        spec_id: SpecId,
+    },
     /// Invalid transaction hash argument.
     #[error("Transaction hash {transaction_hash} not found in block {block_number}")]
     InvalidTransactionHash {
+        /// The transaction hash.
         transaction_hash: B256,
+        /// The block number.
         block_number: U256,
     },
+    /// Signature error.
     #[error(transparent)]
     SignatureError(#[from] SignatureError),
+    /// Transaction error.
     #[error(transparent)]
     TransactionError(#[from] TransactionError<BlockchainErrorT, StateErrorT>),
 }
 
 /// Result of a `debug_traceTransaction` call.
 #[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct DebugTraceResult {
     /// Whether transaction was executed successfully.
     pub pass: bool,
@@ -147,6 +156,7 @@ pub struct DebugTraceResult {
     /// Return values of the function.
     pub output: Option<Bytes>,
     /// The EIP-3155 debug logs.
+    #[serde(rename = "structLogs")]
     pub logs: Vec<DebugTraceLogItem>,
 }
 
@@ -156,6 +166,7 @@ pub struct DebugTraceResult {
 /// The `opName`, `error`, `memory` and `storage` optional fields are supported
 /// as well.
 #[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct DebugTraceLogItem {
     /// Program Counter
     pub pc: u64,
@@ -166,6 +177,7 @@ pub struct DebugTraceLogItem {
     /// Gas cost of this operation as hex number.
     pub gas_cost: String,
     /// Array of all values (hex numbers) on the stack
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub stack: Option<Vec<String>>,
     /// Depth of the call stack
     pub depth: u64,
@@ -174,10 +186,13 @@ pub struct DebugTraceLogItem {
     /// Name of the operation.
     pub op_name: String,
     /// Description of an error.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
     /// Array of all allocated values as hex strings.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub memory: Option<Vec<String>>,
     /// Map of all stored values with keys and values encoded as hex strings.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub storage: Option<HashMap<String, String>>,
 }
 

@@ -800,10 +800,15 @@ export function edrRpcDebugTraceToHardhat(
     structLogs.shift();
   }
 
+  let returnValue = rpcDebugTrace.output?.toString("hex") ?? "";
+  if (returnValue === "0x") {
+    returnValue = "";
+  }
+
   return {
     failed: !rpcDebugTrace.pass,
     gas: Number(rpcDebugTrace.gasUsed),
-    returnValue: rpcDebugTrace.output?.toString("hex") ?? "",
+    returnValue,
     structLogs,
   };
 }

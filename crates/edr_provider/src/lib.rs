@@ -33,7 +33,7 @@ use self::{
     interval::IntervalMiner,
     requests::{eth, hardhat},
 };
-use crate::data::SyncInspectorCallbacks;
+use crate::{data::SyncInspectorCallbacks, requests::debug};
 
 /// A JSON-RPC provider for Ethereum.
 ///
@@ -295,6 +295,16 @@ impl Provider {
             }
             MethodInvocation::EvmSnapshot(()) => {
                 eth::handle_snapshot_request(data).and_then(to_json)
+            }
+
+            // debug_* methods
+            MethodInvocation::DebugTraceTransaction(transaction_hash, config) => {
+                debug::handle_debug_trace_transaction(data, transaction_hash, config)
+                    .and_then(to_json)
+            }
+            MethodInvocation::DebugTraceCall(call_request, block_spec, config) => {
+                debug::handle_debug_trace_call(data, call_request, block_spec, config)
+                    .and_then(to_json)
             }
 
             // hardhat_* methods

@@ -112,7 +112,7 @@ impl Transaction {
 
     /// Returns whether the transaction is a legacy transaction.
     pub fn is_legacy(&self) -> bool {
-        self.transaction_type == Some(0) && (self.v == 27 || self.v == 28)
+        matches!(self.transaction_type, None | Some(0)) && matches!(self.v, 27 | 28)
     }
 }
 
