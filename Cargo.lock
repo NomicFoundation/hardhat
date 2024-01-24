@@ -1113,7 +1113,6 @@ dependencies = [
  "serde",
  "serde_json",
  "sha3",
- "strum",
  "tempfile",
  "thiserror",
  "tokio",

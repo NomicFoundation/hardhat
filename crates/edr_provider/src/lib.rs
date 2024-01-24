@@ -154,8 +154,8 @@ impl Provider {
         request: MethodInvocation,
     ) -> Result<serde_json::Value, ProviderError> {
         let method_name = if data.logger_mut().is_enabled() {
-            let method_name = request.to_string();
-            if PRIVATE_RPC_METHODS.contains(method_name.as_str()) {
+            let method_name = request.method_name();
+            if PRIVATE_RPC_METHODS.contains(method_name) {
                 None
             } else {
                 Some(method_name)
@@ -395,10 +395,10 @@ impl Provider {
         };
 
         if let Some(method_name) = method_name {
-            // Only print errors for `hardhat_intervalMine`
+            // Skip printing for `hardhat_intervalMine` unless it is an error
             if method_name != "hardhat_intervalMine" || result.is_err() {
                 data.logger_mut()
-                    .print_method_logs(method_name.as_str(), result.as_ref().err());
+                    .print_method_logs(method_name, result.as_ref().err());
             }
         }
 
