@@ -2,7 +2,7 @@
 #![allow(dead_code, clippy::unused_self)]
 
 use dyn_clone::DynClone;
-use edr_evm::{trace::Trace, ExecutableTransaction};
+use edr_evm::ExecutableTransaction;
 
 use crate::{
     data::{CallResult, EstimateGasFailure},
@@ -70,100 +70,11 @@ pub trait Logger {
         let _mining_results = mining_results;
     }
 
-    /// Returns the logs of the previous request.
-    fn previous_request_logs(&self) -> Vec<String>;
-
-    /// Returns the raw traces of the previous request, if any.
-    fn previous_request_raw_traces(&self) -> Option<Vec<Trace>>;
-
     /// Prints the collected logs, which correspond to the method with the
     /// provided name.
     ///
     /// Adds an empty line at the end.
     fn print_method_logs(&mut self, method: &str, error: Option<&ProviderError>);
-
-    // /// Whethers the logger is printing logs to the CLI.
-    // fn is_printing(&self) -> bool;
-
-    // /// Logs the result of auto-mining a block.
-    // fn log_block_from_automine(
-    //     &mut self,
-    //     result: MineBlockResult<Self::BlockchainError>,
-    //     contracts: Vec<Bytecode>,
-    //     transaction_hash_to_highlight: &B256,
-    // );
-
-    // /// Logs the result of mining a block.
-    // fn log_mined_block(
-    //     &mut self,
-    //     result: MineBlockResult<Self::BlockchainError>,
-    //     contracts: Vec<Bytecode>,
-    // );
-
-    // /// Logs an empty hardhat-mined block.
-    // fn log_empty_hardhat_mined_block(&mut self, block_number: u64,
-    // base_fee_per_gas: Option<u64>);
-
-    // /// Logs a single transaction.
-    // fn log_single_transaction(
-    //     &mut self,
-    //     block: &dyn SyncBlock<Error = Self::BlockchainError>,
-    //     transaction: &SignedTransaction,
-    //     code: &Bytecode,
-    //     gas_used: u64,
-    //     trace: &Trace,
-    // );
-
-    // /// Logs the currently sent transaction.
-    // fn log_currently_sent_transaction(
-    //     &mut self,
-    //     block: &dyn SyncBlock<Error = Self::BlockchainError>,
-    //     transaction: &SignedTransaction,
-    //     code: &Bytecode,
-    //     gas_used: u64,
-    //     trace: &Trace,
-    // );
-
-    // /// Logs the trace of an `eth_estimateGas` call.
-    // fn log_estimate_gas_trace(
-    //     &mut self,
-    //     transaction: &TransactionRequest,
-    //     code: &Bytecode,
-    //     gas_used: u64,
-    //     trace: &Trace,
-    //     console_log_messages: Vec<String>,
-    // );
-
-    // /// Logs the trace of an `eth_call` call.
-    // fn log_call_trace(
-    //     &mut self,
-    //     transaction: &TransactionRequest,
-    //     code: &Bytecode,
-    //     trace: &Trace,
-    //     console_log_messages: Vec<String>,
-    //     error: Option<ProviderError>,
-    // );
-
-    // /// Logs an empty line.
-    // fn log_empty_line(&self);
-
-    // /// Print an error message.
-    // fn print_error_message(&self, message: &str);
-
-    // /// Prints a warning message.
-    // fn print_warning_message(&self, message: &str);
-
-    // /// Prints a failed method.
-    // fn print_failed_method(&self, method: &str);
-
-    // /// Prints a method.
-    // fn print_method(&self, method: &str);
-
-    // /// Prints all accumulated logs. Returns whether there were any logs.
-    // fn print_logs(&self) -> bool;
-
-    // /// Prints an empty line.
-    // fn print_empty_line(&self);
 }
 
 pub trait SyncLogger: Logger + DynClone + Send + Sync {}

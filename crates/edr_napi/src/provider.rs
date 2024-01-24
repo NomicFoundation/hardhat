@@ -11,7 +11,6 @@ use self::config::ProviderConfig;
 use crate::{
     logger::{Logger, LoggerConfig},
     subscribe::SubscriberCallback,
-    transaction::result::map_trace_messages,
 };
 
 /// A JSON-RPC provider for Ethereum.
@@ -105,40 +104,5 @@ impl Provider {
 
         serde_json::to_string(&response)
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
-    }
-
-    #[napi]
-    pub async fn get_previous_request_logs(&self) -> napi::Result<Vec<String>> {
-        let provider = self.provider.clone();
-
-        runtime::Handle::current()
-            .spawn_blocking(move || provider.previous_request_logs())
-            .await
-            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
-    }
-
-    #[napi(
-        ts_return_type = "Promise<Array<Array<TracingMessage | TracingStep | TracingMessageResult>> | null>"
-    )]
-    pub fn get_previous_request_raw_traces(&self, env: Env) -> napi::Result<JsObject> {
-        let provider = self.provider.clone();
-
-        let (deferred, promise) = env.create_deferred()?;
-        let _traces = runtime::Handle::current().spawn_blocking(move || {
-            let traces = provider.previous_request_raw_traces();
-
-            deferred.resolve(|env| {
-                traces
-                    .map(|traces| {
-                        traces
-                            .into_iter()
-                            .map(|trace| map_trace_messages(&env, &trace.messages))
-                            .collect::<napi::Result<Vec<_>>>()
-                    })
-                    .transpose()
-            });
-        });
-
-        Ok(promise)
     }
 }

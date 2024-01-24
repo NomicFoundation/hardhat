@@ -888,10 +888,6 @@ impl ProviderData {
         Ok(true)
     }
 
-    pub fn logger(&self) -> &dyn SyncLogger<BlockchainError = BlockchainError> {
-        self.logger.as_ref()
-    }
-
     pub fn logger_mut(&mut self) -> &mut dyn SyncLogger<BlockchainError = BlockchainError> {
         &mut *self.logger
     }
@@ -2214,14 +2210,6 @@ mod tests {
         }
 
         fn set_is_enabled(&mut self, _is_enabled: bool) {}
-
-        fn previous_request_logs(&self) -> Vec<String> {
-            Vec::new()
-        }
-
-        fn previous_request_raw_traces(&self) -> Option<Vec<edr_evm::trace::Trace>> {
-            None
-        }
 
         fn print_method_logs(&mut self, _method: &str, _error: Option<&ProviderError>) {}
     }

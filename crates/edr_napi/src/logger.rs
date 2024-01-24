@@ -177,16 +177,6 @@ impl edr_provider::Logger for Logger {
             .log_send_transaction(spec_id, transaction, mining_results);
     }
 
-    fn previous_request_logs(&self) -> Vec<String> {
-        // TODO
-        Vec::new()
-    }
-
-    fn previous_request_raw_traces(&self) -> Option<Vec<edr_evm::trace::Trace>> {
-        // TODO
-        None
-    }
-
     fn print_method_logs(&mut self, method: &str, error: Option<&ProviderError>) {
         if let Some(error) = error {
             self.collector.state = LoggingState::Empty;

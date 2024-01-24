@@ -15,7 +15,7 @@ pub mod test_utils;
 
 use std::sync::Arc;
 
-use edr_evm::{blockchain::BlockchainError, trace::Trace, HashSet};
+use edr_evm::{blockchain::BlockchainError, HashSet};
 use lazy_static::lazy_static;
 use logger::SyncLogger;
 use parking_lot::Mutex;
@@ -131,16 +131,6 @@ impl Provider {
         let mut data = self.data.lock();
         data.logger_mut()
             .print_method_logs(method_name, Some(error));
-    }
-
-    pub fn previous_request_logs(&self) -> Vec<String> {
-        let data = self.data.lock();
-        data.logger().previous_request_logs()
-    }
-
-    pub fn previous_request_raw_traces(&self) -> Option<Vec<Trace>> {
-        let data = self.data.lock();
-        data.logger().previous_request_raw_traces()
     }
 
     /// Handles a batch of JSON requests for an execution provider.
