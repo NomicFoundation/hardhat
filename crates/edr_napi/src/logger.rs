@@ -250,6 +250,8 @@ impl LogCollector {
                     .create_array_with_length(ctx.value.inputs.len())
                     .and_then(|mut inputs| {
                         for (idx, input) in ctx.value.inputs.into_iter().enumerate() {
+                            // SAFETY: The input is guaranteed to be valid for the lifetime of the
+                            // JS buffer.
                             unsafe {
                                 ctx.env.create_buffer_with_borrowed_data(
                                     input.as_ptr(),
@@ -284,6 +286,8 @@ impl LogCollector {
             |ctx: ThreadSafeCallContext<ContractAndFunctionNameCall>| {
                 // Buffer
                 let code = ctx.value.code;
+                // SAFETY: The code is guaranteed to be valid for the lifetime of the
+                // JS buffer.
                 let code = unsafe {
                     ctx.env.create_buffer_with_borrowed_data(
                         code.as_ptr(),
@@ -298,6 +302,8 @@ impl LogCollector {
 
                 // Option<Buffer>
                 let calldata = if let Some(calldata) = ctx.value.calldata {
+                    // SAFETY: The calldata is guaranteed to be valid for the lifetime of the
+                    // JS buffer.
                     unsafe {
                         ctx.env.create_buffer_with_borrowed_data(
                             calldata.as_ptr(),
