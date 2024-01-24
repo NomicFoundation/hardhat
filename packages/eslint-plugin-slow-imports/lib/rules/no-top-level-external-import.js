@@ -5,7 +5,7 @@
 "use strict";
 const fs = require("node:fs");
 const { isBuiltin } = require("node:module");
-const resolve = require("eslint-module-utils/resolve").default;
+const { relative } = require("eslint-module-utils/resolve");
 const parse = require("eslint-module-utils/parse").default;
 const visit = require("eslint-module-utils/visit").default;
 const { visitModules } = require("../helpers/module-visitor");
@@ -45,6 +45,8 @@ module.exports = {
     messages: {
       ENFORCE_DYNAMIC_IMPORT:
         "This import transitively imports the slow dependency '{{dependency}}' in file '{{filename}}' at line {{line}}",
+      CANNOT_RESOLVE_MODULE:
+        "Unable to resolve the absolute module path. This is likely an error in the rule configuration or the file paths.",
     },
   },
 
@@ -80,9 +82,20 @@ module.exports = {
       }
 
       if (!isExternalModule(modulePath)) {
-        const absoluteModulePath = resolve(modulePath, context);
+        const absoluteModulePath = relative(
+          modulePath,
+          filename,
+          context.settings
+        );
 
-        if (!absoluteModulePath || traversed.has(absoluteModulePath)) {
+        if (!absoluteModulePath) {
+          context.report({
+            node: originalNode,
+            messageId: "CANNOT_RESOLVE_MODULE",
+          });
+        }
+
+        if (traversed.has(absoluteModulePath)) {
           return {};
         }
 
