@@ -455,7 +455,7 @@ impl ProviderData {
             .map(|tx| {
                 PendingTransaction::new(cfg_env.spec_id, tx.clone()).or_else(|original_err| {
                     // If we cannot recover the sender address from the signature, see if
-                    // if it's a fake signature for an impersonated account.
+                    // it's a fake signature for an impersonated account.
                     match original_err {
                         TransactionCreationError::Signature(_) => {
                             // HACK: the fake signer puts the sender address as the `r` value.
