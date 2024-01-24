@@ -18,7 +18,7 @@ pub use crate::{
     block::*,
     debug_trace::{
         debug_trace_transaction, execution_result_to_debug_result, DebugTraceConfig,
-        DebugTraceLogItem, DebugTraceResult, TracerEip3155,
+        DebugTraceError, DebugTraceLogItem, DebugTraceResult, TracerEip3155,
     },
     evm::SyncInspector,
     inspector::*,

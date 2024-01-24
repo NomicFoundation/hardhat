@@ -13,6 +13,7 @@ use std::{
 };
 
 use edr_eth::{
+    block::BlobGas,
     log::FilterLog,
     receipt::BlockReceipt,
     remote::{
@@ -32,15 +33,16 @@ use edr_evm::{
     },
     calculate_next_base_fee,
     db::StateRef,
-    mempool, mine_block,
+    debug_trace_transaction, execution_result_to_debug_result, mempool, mine_block,
     state::{
         AccountModifierFn, IrregularState, StateDiff, StateError, StateOverride, StateOverrides,
         SyncState,
     },
     trace::{Trace, TraceCollector},
-    Account, AccountInfo, Block, Bytecode, CfgEnv, DualInspector, ExecutableTransaction,
-    ExecutionResult, HashMap, HashSet, MemPool, MineOrdering, OrderedTransaction,
-    RandomHashGenerator, StorageSlot, SyncBlock, TxEnv, KECCAK_EMPTY,
+    Account, AccountInfo, BlobExcessGasAndPrice, Block, BlockEnv, Bytecode, CfgEnv,
+    DebugTraceConfig, DebugTraceResult, DualInspector, ExecutableTransaction, ExecutionResult,
+    HashMap, HashSet, MemPool, MineOrdering, OrderedTransaction, RandomHashGenerator,
+    ResultAndState, StorageSlot, SyncBlock, TracerEip3155, TxEnv, KECCAK_EMPTY,
 };
 use ethers_core::types::transaction::eip712::{Eip712, TypedData};
 use gas::gas_used_ratio;
@@ -54,10 +56,10 @@ use self::{
 };
 use crate::{
     data::{
-        call::RunCallArgs,
+        call::{run_call, RunCallArgs},
         gas::{compute_rewards, BinarySearchEstimationArgs, CheckGasLimitArgs},
     },
-    debug::{DebugMineBlockResult, DebugMineBlockResultAndState},
+    debug_mine::{DebugMineBlockResult, DebugMineBlockResultAndState},
     error::TransactionFailure,
     filter::{bloom_contains_log_filter, filter_logs, Filter, FilterData, LogFilter},
     logger::SyncLogger,
@@ -449,6 +451,88 @@ impl ProviderData {
 
     pub fn coinbase(&self) -> Address {
         self.beneficiary
+    }
+
+    pub fn debug_trace_transaction(
+        &self,
+        transaction_hash: &B256,
+        trace_config: DebugTraceConfig,
+    ) -> Result<DebugTraceResult, ProviderError> {
+        let block = self
+            .blockchain
+            .block_by_transaction_hash(transaction_hash)?
+            .ok_or_else(|| ProviderError::InvalidTransactionHash(*transaction_hash))?;
+
+        let header = block.header();
+        let block_spec = Some(BlockSpec::Number(header.number));
+
+        let cfg_env = self.create_evm_config(block_spec.as_ref())?;
+
+        let transactions = block.transactions().to_vec();
+
+        let prev_block_number = block.header().number - 1;
+        let prev_block_spec = Some(BlockSpec::Number(prev_block_number));
+
+        self.execute_in_block_context(
+            prev_block_spec.as_ref(),
+            |blockchain, _prev_block, state| {
+                let block_env = BlockEnv {
+                    number: U256::from(header.number),
+                    coinbase: header.beneficiary,
+                    timestamp: U256::from(header.timestamp),
+                    gas_limit: U256::from(header.gas_limit),
+                    basefee: header.base_fee_per_gas.unwrap_or_default(),
+                    difficulty: U256::from(header.difficulty),
+                    prevrandao: if cfg_env.spec_id >= SpecId::MERGE {
+                        Some(header.mix_hash)
+                    } else {
+                        None
+                    },
+                    blob_excess_gas_and_price: header
+                        .blob_gas
+                        .as_ref()
+                        .map(|BlobGas { excess_gas, .. }| BlobExcessGasAndPrice::new(*excess_gas)),
+                };
+
+                debug_trace_transaction(
+                    blockchain,
+                    state.clone(),
+                    cfg_env,
+                    trace_config,
+                    block_env,
+                    transactions,
+                    transaction_hash,
+                )
+                .map_err(ProviderError::DebugTrace)
+            },
+        )?
+    }
+
+    pub fn debug_trace_call(
+        &self,
+        transaction: ExecutableTransaction,
+        block_spec: Option<&BlockSpec>,
+        trace_config: DebugTraceConfig,
+    ) -> Result<DebugTraceResult, ProviderError> {
+        let cfg_env = self.create_evm_config(block_spec)?;
+
+        let tx_env: TxEnv = transaction.into();
+
+        let mut tracer = TracerEip3155::new(trace_config);
+
+        self.execute_in_block_context(block_spec, |blockchain, block, state| {
+            let ResultAndState { result, .. } = run_call(RunCallArgs {
+                blockchain,
+                header: block.header(),
+                state: &state,
+                state_overrides: &StateOverrides::default(),
+                cfg_env: cfg_env.clone(),
+                tx_env: tx_env.clone(),
+                inspector: Some(&mut tracer),
+            })?;
+
+            Ok(execution_result_to_debug_result(result, tracer))
+        })?
     }
 
     /// Estimate the gas cost of a transaction. Matches Hardhat behavior.

@@ -6,7 +6,7 @@ use edr_evm::{trace::Trace, ExecutableTransaction};
 
 use crate::{
     data::{CallResult, EstimateGasFailure},
-    debug::DebugMineBlockResult,
+    debug_mine::DebugMineBlockResult,
     ProviderError,
 };
 

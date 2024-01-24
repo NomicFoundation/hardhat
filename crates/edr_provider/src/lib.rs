@@ -1,6 +1,6 @@
 mod config;
 mod data;
-mod debug;
+mod debug_mine;
 mod error;
 mod filter;
 mod interval;
@@ -25,7 +25,7 @@ use tokio::runtime;
 pub use self::{
     config::*,
     data::{CallResult, EstimateGasFailure},
-    debug::DebugMineBlockResult,
+    debug_mine::DebugMineBlockResult,
     error::{ProviderError, TransactionFailure, TransactionFailureReason},
     logger::Logger,
     requests::{
@@ -39,6 +39,7 @@ use self::{
     interval::IntervalMiner,
     requests::{eth, hardhat},
 };
+use crate::requests::debug;
 
 lazy_static! {
     pub static ref PRIVATE_RPC_METHODS: HashSet<&'static str> = {
@@ -330,6 +331,16 @@ impl Provider {
             }
             MethodInvocation::EvmSnapshot(()) => {
                 eth::handle_snapshot_request(data).and_then(to_json)
+            }
+
+            // debug_* methods
+            MethodInvocation::DebugTraceTransaction(transaction_hash, config) => {
+                debug::handle_debug_trace_transaction(data, transaction_hash, config)
+                    .and_then(to_json)
+            }
+            MethodInvocation::DebugTraceCall(call_request, block_spec, config) => {
+                debug::handle_debug_trace_call(data, call_request, block_spec, config)
+                    .and_then(to_json)
             }
 
             // hardhat_* methods

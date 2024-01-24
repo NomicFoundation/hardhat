@@ -11,7 +11,10 @@ use edr_eth::{
 use ethers_core::types::transaction::eip712::TypedData;
 
 use super::serde::RpcAddress;
-use crate::requests::hardhat::rpc_types::{CompilerInput, CompilerOutput, ResetProviderConfig};
+use crate::requests::{
+    debug::DebugTraceConfig,
+    hardhat::rpc_types::{CompilerInput, CompilerOutput, ResetProviderConfig},
+};
 
 mod optional_block_spec {
     use super::BlockSpec;
@@ -319,6 +322,17 @@ pub enum MethodInvocation {
     #[serde(rename = "evm_snapshot", with = "edr_eth::serde::empty_params")]
     #[strum(serialize = "evm_snapshot")]
     EvmSnapshot(()),
+
+    // debug_traceTransaction
+    #[serde(rename = "debug_traceCall")]
+    DebugTraceCall(
+        CallRequest,
+        #[serde(default)] Option<BlockSpec>,
+        #[serde(default)] Option<DebugTraceConfig>,
+    ),
+    // debug_traceTransaction
+    #[serde(rename = "debug_traceTransaction")]
+    DebugTraceTransaction(B256, #[serde(default)] Option<DebugTraceConfig>),
 
     /// hardhat_addCompilationResult
     #[serde(rename = "hardhat_addCompilationResult")]
