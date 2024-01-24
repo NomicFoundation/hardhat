@@ -68,6 +68,9 @@ pub enum ProviderError {
     /// The transaction with the provided hash was already mined.
     #[error("Transaction {0} cannot be dropped because it's already mined")]
     InvalidDropTransactionHash(B256),
+    /// The EIP-155 transaction was signed with another chain ID
+    #[error("Trying to send an incompatible EIP-155 transaction, signed for another chain.")]
+    InvalidEip155TransactionChainId,
     /// Invalid filter subscription type
     #[error("Subscription {filter_id} is not a {expected:?} subscription, but a {actual:?} subscription")]
     InvalidFilterSubscriptionType {
@@ -197,6 +200,7 @@ impl From<ProviderError> for jsonrpc::Error {
             ProviderError::InvalidBlockTag { .. } => INVALID_PARAMS,
             ProviderError::InvalidChainId { .. } => INVALID_PARAMS,
             ProviderError::InvalidDropTransactionHash(_) => INVALID_PARAMS,
+            ProviderError::InvalidEip155TransactionChainId => INVALID_PARAMS,
             ProviderError::InvalidFilterSubscriptionType { .. } => INVALID_PARAMS,
             ProviderError::InvalidInput(_) => INVALID_INPUT,
             ProviderError::InvalidTransactionHash { .. } => INVALID_PARAMS,

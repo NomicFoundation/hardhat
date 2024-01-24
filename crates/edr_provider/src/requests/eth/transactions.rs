@@ -440,13 +440,12 @@ fn validate_send_raw_transaction_request(
     if let Some(tx_chain_id) = signed_transaction.chain_id() {
         let expected = data.chain_id();
         if tx_chain_id != expected {
-            let message = if signed_transaction.is_eip155() {
-                "Trying to send an incompatible EIP-155 transaction, signed for another chain."
-                    .to_string()
+            let error = if signed_transaction.is_eip155() {
+                ProviderError::InvalidEip155TransactionChainId
             } else {
-                format!("Trying to send a raw transaction with an invalid chainId. The expected chainId is {expected}")
+                ProviderError::InvalidArgument(format!("Trying to send a raw transaction with an invalid chainId. The expected chainId is {expected}"))
             };
-            return Err(ProviderError::InvalidArgument(message));
+            return Err(error);
         }
     }
 

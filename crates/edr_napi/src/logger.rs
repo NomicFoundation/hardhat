@@ -196,9 +196,7 @@ impl edr_provider::Logger for Logger {
                         logger.print::<false>(&error_message);
                     });
 
-                    let is_eip_155_error = matches!(error, ProviderError::InvalidInput(_))
-                        && error_message.contains("EIP1555");
-                    if is_eip_155_error {
+                    if matches!(error, ProviderError::InvalidEip155TransactionChainId) {
                         self.collector.indented(|logger| {
                             logger.print::<false>(Color::Yellow.paint(
                                 "If you are using MetaMask, you can learn how to fix this error here: https://hardhat.org/metamask-issue"
