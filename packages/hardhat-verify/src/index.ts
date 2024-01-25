@@ -271,7 +271,7 @@ subtask(TASK_VERIFY_VERIFY)
   .setAction(
     async (
       { address, constructorArguments, libraries, contract }: VerifySubtaskArgs,
-      { run }
+      { run, config }
     ) => {
       // This can only happen if the subtask is invoked from within Hardhat by a user script or another task.
       if (!Array.isArray(constructorArguments)) {
@@ -282,11 +282,21 @@ subtask(TASK_VERIFY_VERIFY)
         throw new InvalidLibrariesError();
       }
 
-      await run(TASK_VERIFY_ETHERSCAN, {
-        address,
-        constructorArgsParams: constructorArguments,
-        libraries,
-        contract,
-      });
+      if (config.etherscan.enabled) {
+        await run(TASK_VERIFY_ETHERSCAN, {
+          address,
+          constructorArgsParams: constructorArguments,
+          libraries,
+          contract,
+        });
+      }
+
+      if (config.sourcify.enabled) {
+        await run(TASK_VERIFY_SOURCIFY, {
+          address,
+          libraries,
+          contract,
+        });
+      }
     }
   );
