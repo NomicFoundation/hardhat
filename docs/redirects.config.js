@@ -100,9 +100,9 @@ const customRedirects = [
     permanent: false,
   },
   {
-    source: "/solidity-survey-2022",
+    source: "/solidity-survey-2023",
     destination:
-      "https://cryptpad.fr/form/#/2/form/view/HuPIRv4gvziSV0dPV1SJncKzYJXTVc8LGCaMfLUoj2c/",
+      "https://cryptpad.fr/form/#/2/form/view/pV-DdryeJoYUWvW+gXsFaMNynEY7t5mUsgeD1urgwSE",
     permanent: false,
   },
   {
@@ -307,6 +307,12 @@ const customRedirects = [
   {
     source: "/hardhat-runner/plugins/nomiclabs-hardhat-ethers",
     destination: "/hardhat-runner/plugins/nomicfoundation-hardhat-ethers",
+    permanent: false,
+  },
+  {
+    source: "/release/:version",
+    destination:
+      "https://github.com/NomicFoundation/hardhat/releases/tag/hardhat%40:version",
     permanent: false,
   },
   ...loadErrorRedirects(),

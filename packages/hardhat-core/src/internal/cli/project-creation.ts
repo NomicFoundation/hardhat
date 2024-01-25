@@ -7,10 +7,7 @@ import { assertHardhatInvariant, HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 import { getRecommendedGitIgnore } from "../core/project-structure";
 import { getAllFilesMatching } from "../util/fs-utils";
-import {
-  hasConsentedTelemetry,
-  writeTelemetryConsent,
-} from "../util/global-dir";
+import { hasConsentedTelemetry } from "../util/global-dir";
 import { fromEntries } from "../util/lang";
 import {
   getPackageJson,
@@ -18,13 +15,14 @@ import {
   PackageJson,
 } from "../util/packageInfo";
 import { pluralize } from "../util/strings";
+import { isRunningOnCiServer } from "../util/ci-detection";
 import {
   confirmRecommendedDepsInstallation,
-  confirmTelemetryConsent,
   confirmProjectCreation,
 } from "./prompt";
 import { emoji } from "./emoji";
 import { Dependencies, PackageManager } from "./types";
+import { requestTelemetryConsent } from "./analytics";
 
 enum Action {
   CREATE_JAVASCRIPT_PROJECT_ACTION = "Create a JavaScript project",
@@ -362,6 +360,20 @@ function showStarOnGitHubMessage() {
   console.log(chalk.cyan("     https://github.com/NomicFoundation/hardhat"));
 }
 
+export function showSoliditySurveyMessage() {
+  if (new Date() > new Date("2024-01-07 23:39")) {
+    // the survey has finished
+    return;
+  }
+
+  console.log();
+  console.log(
+    chalk.cyan(
+      "Please take a moment to complete the 2023 Solidity Survey: https://hardhat.org/solidity-survey-2023"
+    )
+  );
+}
+
 export async function createProject() {
   printAsciiLogo();
 
@@ -407,6 +419,7 @@ export async function createProject() {
 
     console.log();
     showStarOnGitHubMessage();
+    showSoliditySurveyMessage();
 
     return;
   }
@@ -448,13 +461,10 @@ export async function createProject() {
 
   if (
     process.env.HARDHAT_DISABLE_TELEMETRY_PROMPT !== "true" &&
+    !isRunningOnCiServer() &&
     hasConsentedTelemetry() === undefined
   ) {
-    const telemetryConsent = await confirmTelemetryConsent();
-
-    if (telemetryConsent !== undefined) {
-      writeTelemetryConsent(telemetryConsent);
-    }
+    await requestTelemetryConsent();
   }
 
   await copySampleProject(projectRoot, action, isEsm);
@@ -512,6 +522,7 @@ export async function createProject() {
   console.log("See the README.md file for some example tasks you can run");
   console.log();
   showStarOnGitHubMessage();
+  showSoliditySurveyMessage();
 }
 
 async function canInstallRecommendedDeps() {
@@ -557,12 +568,8 @@ async function doesNpmAutoInstallPeerDependencies() {
 async function installRecommendedDependencies(dependencies: Dependencies) {
   console.log("");
 
-  // The reason we don't quote the dependencies here is because they are going
-  // to be used in child_process.spawn, which doesn't require escaping string,
-  // and can actually fail if you do.
   const installCmd = await getRecommendedDependenciesInstallationCommand(
-    dependencies,
-    false
+    dependencies
   );
   return installDependencies(installCmd[0], installCmd.slice(1));
 }
@@ -600,11 +607,10 @@ async function installDependencies(
 }
 
 async function getRecommendedDependenciesInstallationCommand(
-  dependencies: Dependencies,
-  quoteDependencies = true
+  dependencies: Dependencies
 ): Promise<string[]> {
-  const deps = Object.entries(dependencies).map(([name, version]) =>
-    quoteDependencies ? `"${name}@${version}"` : `${name}@${version}`
+  const deps = Object.entries(dependencies).map(
+    ([name, version]) => `"${name}@${version}"`
   );
 
   if (await isYarnProject()) {

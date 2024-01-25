@@ -1,5 +1,18 @@
 # hardhat
 
+## 2.19.4
+
+### Patch Changes
+
+- 7aea77e49: Report telemetry consent response to Google Analytics
+
+## 2.19.3
+
+### Patch Changes
+
+- 3f282db50: Added support for solc 0.8.23
+- fa2f0fba7: Added a temporary message about the 2023 Solidtiy Developer Survey
+
 ## 2.19.2
 
 ### Patch Changes

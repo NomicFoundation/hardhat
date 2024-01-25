@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-viem",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Hardhat plugin for viem",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-viem",
   "repository": "github:nomicfoundation/hardhat",
