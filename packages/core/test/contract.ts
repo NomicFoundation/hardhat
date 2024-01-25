@@ -777,6 +777,81 @@ m.contract(..., { id: "MyUniqueId"})`
       );
     });
 
+    it("should validate a module parameter with a default value that is an AccountRuntimeValue", async () => {
+      const fakerArtifact: Artifact = {
+        ...fakeArtifact,
+        abi: [
+          {
+            inputs: [
+              {
+                internalType: "address",
+                name: "p",
+                type: "address",
+              },
+            ],
+            stateMutability: "payable",
+            type: "constructor",
+          },
+        ],
+      };
+
+      const module = buildModule("Module1", (m) => {
+        const p = m.getParameter("p", m.getAccount(1));
+        const contract1 = m.contract("Test", [p]);
+
+        return { contract1 };
+      });
+
+      const [future] = getFuturesFromModule(module);
+
+      await assert.isFulfilled(
+        validateNamedContractDeployment(
+          future as any,
+          setupMockArtifactResolver({ Test: fakerArtifact }),
+          {},
+          []
+        )
+      );
+    });
+
+    it("should not validate a module parameter with a default value that is an AccountRuntimeValue for a negative index", async () => {
+      const fakerArtifact: Artifact = {
+        ...fakeArtifact,
+        abi: [
+          {
+            inputs: [
+              {
+                internalType: "address",
+                name: "p",
+                type: "address",
+              },
+            ],
+            stateMutability: "payable",
+            type: "constructor",
+          },
+        ],
+      };
+
+      const module = buildModule("Module1", (m) => {
+        const p = m.getParameter("p", m.getAccount(-1));
+        const contract1 = m.contract("Test", [p]);
+
+        return { contract1 };
+      });
+
+      const [future] = getFuturesFromModule(module);
+
+      assertValidationError(
+        await validateNamedContractDeployment(
+          future as any,
+          setupMockArtifactResolver({ Test: fakerArtifact }),
+          {},
+          []
+        ),
+        "Account index cannot be a negative number"
+      );
+    });
+
     it("should not validate a negative account index", async () => {
       const module = buildModule("Module1", (m) => {
         const account = m.getAccount(-1);

@@ -919,6 +919,93 @@ m.staticCall(..., { id: "MyUniqueId"})`
       );
     });
 
+    it("should validate a module parameter with a default value that is an AccountRuntimeValue", async () => {
+      const fakerArtifact: Artifact = {
+        ...fakeArtifact,
+        abi: [
+          {
+            inputs: [
+              {
+                internalType: "address",
+                name: "b",
+                type: "address",
+              },
+            ],
+            name: "test",
+            outputs: [],
+            stateMutability: "pure",
+            type: "function",
+          },
+        ],
+      };
+
+      const module = buildModule("Module1", (m) => {
+        const p = m.getParameter("p", m.getAccount(1));
+
+        const another = m.contract("Another", fakerArtifact, []);
+        m.staticCall(another, "test", [p]);
+
+        return { another };
+      });
+
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.STATIC_CALL
+      );
+
+      await assert.isFulfilled(
+        validateNamedStaticCall(
+          future as any,
+          setupMockArtifactResolver({ Another: fakeArtifact }),
+          {},
+          []
+        )
+      );
+    });
+
+    it("should validate a module parameter with a default value that is an AccountRuntimeValue for a negative index", async () => {
+      const fakerArtifact: Artifact = {
+        ...fakeArtifact,
+        abi: [
+          {
+            inputs: [
+              {
+                internalType: "address",
+                name: "b",
+                type: "address",
+              },
+            ],
+            name: "test",
+            outputs: [],
+            stateMutability: "pure",
+            type: "function",
+          },
+        ],
+      };
+
+      const module = buildModule("Module1", (m) => {
+        const p = m.getParameter("p", m.getAccount(-1));
+
+        const another = m.contract("Another", fakerArtifact, []);
+        m.staticCall(another, "test", [p]);
+
+        return { another };
+      });
+
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.STATIC_CALL
+      );
+
+      assertValidationError(
+        await validateNamedStaticCall(
+          future as any,
+          setupMockArtifactResolver({ Test: fakerArtifact }),
+          {},
+          []
+        ),
+        "Account index cannot be a negative number"
+      );
+    });
+
     it("should not validate a negative account index", async () => {
       const fakerArtifact: Artifact = {
         ...fakeArtifact,

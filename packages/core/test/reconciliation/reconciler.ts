@@ -219,6 +219,53 @@ describe("Reconciliation", () => {
         },
       ]);
     });
+
+    it("should reconcile an unchanged ModuleParameter<AccountRuntimeValue>", async () => {
+      const moduleDefinition = buildModule("Module1", (m) => {
+        const accountParam3 = m.getParameter("account3", m.getAccount(3));
+        const contract1 = m.contract("Contract1", [accountParam3]);
+
+        return { contract1 };
+      });
+
+      const reconiliationResult = await reconcile(
+        moduleDefinition,
+        createDeploymentState({
+          ...exampleDeploymentState,
+          futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
+          status: ExecutionStatus.STARTED,
+          constructorArgs: [exampleAccounts[3]],
+        })
+      );
+
+      assert.deepStrictEqual(reconiliationResult.reconciliationFailures, []);
+    });
+
+    it("should flag as unreconsiliable a changed ModuleParameter<AccountRuntimeValue> where the history indicates a different account", async () => {
+      const moduleDefinition = buildModule("Module1", (m) => {
+        const accountParam2 = m.getParameter("account2", m.getAccount(2));
+        const contract1 = m.contract("Contract1", [accountParam2]);
+
+        return { contract1 };
+      });
+
+      const reconiliationResult = await reconcile(
+        moduleDefinition,
+        createDeploymentState({
+          ...exampleDeploymentState,
+          futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
+          status: ExecutionStatus.STARTED,
+          constructorArgs: [exampleAccounts[3]],
+        })
+      );
+
+      assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+        {
+          futureId: "Module1#Contract1",
+          failure: `Argument at index 0 has been changed`,
+        },
+      ]);
+    });
   });
 
   describe("dependencies", () => {

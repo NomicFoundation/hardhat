@@ -11,6 +11,7 @@ import { ERRORS } from "../../errors-list";
 import { validateContractConstructorArgsLength } from "../../execution/abi";
 import { validateLibraryNames } from "../../execution/libraries";
 import {
+  filterToAccountRuntimeValues,
   retrieveNestedRuntimeValues,
   validateAccountRuntimeValue,
 } from "../utils";
@@ -52,7 +53,7 @@ export async function validateNamedContractDeployment(
   const runtimeValues = retrieveNestedRuntimeValues(future.constructorArgs);
   const moduleParams = runtimeValues.filter(isModuleParameterRuntimeValue);
   const accountParams = [
-    ...runtimeValues.filter(isAccountRuntimeValue),
+    ...filterToAccountRuntimeValues(runtimeValues),
     ...(isAccountRuntimeValue(future.from) ? [future.from] : []),
   ];
 

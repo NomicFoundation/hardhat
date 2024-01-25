@@ -804,7 +804,7 @@ export class IgnitionModuleDeserializer {
               )
             ? (this._deserializeModuleParameterRuntimeValue(
                 serializedFuture.address
-              ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid valus
+              ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid values
             : serializedFuture.address,
           serializedFuture.artifact
         );
@@ -839,7 +839,7 @@ export class IgnitionModuleDeserializer {
             : this._isSerializedModuleParameterRuntimeValue(serializedFuture.to)
             ? (this._deserializeModuleParameterRuntimeValue(
                 serializedFuture.to
-              ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid valus
+              ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid values
             : this._isSerializedAccountRuntimeValue(serializedFuture.to)
             ? this._deserializeAccountRuntimeValue(serializedFuture.to)
             : serializedFuture.to,
@@ -897,10 +897,24 @@ export class IgnitionModuleDeserializer {
   ): ModuleParameterRuntimeValue<ModuleParameterType> {
     let defaultValue: ModuleParameterType | undefined;
     if (serialized.defaultValue !== undefined) {
-      // We cast here because we receive an `unknow`, but we known it came from serializing a ModuleParameterType
-      defaultValue = this._jsonParseWithBigint(
+      // We cast here because we receive an `unknown`, but we known it came from
+      // serializing a ModuleParameterType
+      const parsedDefaultValue = this._jsonParseWithBigint(
         serialized.defaultValue
-      ) as ModuleParameterType;
+      );
+
+      if (
+        typeof parsedDefaultValue === "object" &&
+        parsedDefaultValue !== null &&
+        "accountIndex" in parsedDefaultValue &&
+        typeof parsedDefaultValue.accountIndex === "number"
+      ) {
+        defaultValue = new AccountRuntimeValueImplementation(
+          parsedDefaultValue.accountIndex
+        );
+      } else {
+        defaultValue = parsedDefaultValue as ModuleParameterType;
+      }
     }
 
     return new ModuleParameterRuntimeValueImplementation(

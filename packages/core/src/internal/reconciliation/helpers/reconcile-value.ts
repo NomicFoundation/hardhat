@@ -1,6 +1,6 @@
 import {
-  ContractDeploymentFuture,
   ContractCallFuture,
+  ContractDeploymentFuture,
   NamedArtifactContractDeploymentFuture,
   SendDataFuture,
 } from "../../../types/module";
@@ -32,7 +32,8 @@ export function reconcileValue(
   const resolvedValue = resolveValue(
     future.value,
     context.deploymentParameters,
-    context.deploymentState
+    context.deploymentState,
+    context.accounts
   );
 
   return compare(future, "Value", exState.value, resolvedValue);

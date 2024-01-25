@@ -1,5 +1,9 @@
 import { IgnitionError } from "../../errors";
-import { isFuture, isRuntimeValue } from "../../type-guards";
+import {
+  isAccountRuntimeValue,
+  isFuture,
+  isRuntimeValue,
+} from "../../type-guards";
 import {
   AccountRuntimeValue,
   ArgumentType,
@@ -27,6 +31,22 @@ export function validateAccountRuntimeValue(
   }
 
   return errors;
+}
+
+export function filterToAccountRuntimeValues(
+  runtimeValues: RuntimeValue[]
+): AccountRuntimeValue[] {
+  return runtimeValues
+    .map((rv) => {
+      if (isAccountRuntimeValue(rv)) {
+        return rv;
+      } else if (isAccountRuntimeValue(rv.defaultValue)) {
+        return rv.defaultValue;
+      } else {
+        return undefined;
+      }
+    })
+    .filter((rv): rv is AccountRuntimeValue => rv !== undefined);
 }
 
 export function retrieveNestedRuntimeValues(

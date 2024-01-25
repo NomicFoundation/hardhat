@@ -13,6 +13,7 @@ import {
   validateFunctionArgumentParamType,
 } from "../../execution/abi";
 import {
+  filterToAccountRuntimeValues,
   retrieveNestedRuntimeValues,
   validateAccountRuntimeValue,
 } from "../utils";
@@ -64,7 +65,7 @@ export async function validateNamedStaticCall(
   const runtimeValues = retrieveNestedRuntimeValues(future.args);
   const moduleParams = runtimeValues.filter(isModuleParameterRuntimeValue);
   const accountParams = [
-    ...runtimeValues.filter(isAccountRuntimeValue),
+    ...filterToAccountRuntimeValues(runtimeValues),
     ...(isAccountRuntimeValue(future.from) ? [future.from] : []),
   ];
 

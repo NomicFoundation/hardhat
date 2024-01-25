@@ -55,7 +55,8 @@ export async function buildInitializeMessageFor(
             value: resolveValue(
               future.value,
               deploymentParameters,
-              deploymentState
+              deploymentState,
+              accounts
             ),
             from: resolveFutureFrom(future.from, accounts, defaultSender),
           }
@@ -103,7 +104,8 @@ export async function buildInitializeMessageFor(
             value: resolveValue(
               future.value,
               deploymentParameters,
-              deploymentState
+              deploymentState,
+              accounts
             ),
             from: resolveFutureFrom(future.from, accounts, defaultSender),
           }
@@ -150,7 +152,8 @@ export async function buildInitializeMessageFor(
             contractAddress: resolveAddressLike(
               future.address,
               deploymentState,
-              deploymentParameters
+              deploymentParameters,
+              accounts
             ),
             artifactId: future.id,
           }
@@ -204,7 +207,8 @@ export async function buildInitializeMessageFor(
             value: resolveValue(
               future.value,
               deploymentParameters,
-              deploymentState
+              deploymentState,
+              accounts
             ),
             data: future.data ?? "0x",
             from: resolveFutureFrom(future.from, accounts, defaultSender),

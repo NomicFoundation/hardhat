@@ -622,6 +622,17 @@ describe("stored deployment serializer", () => {
 
       assertSerializableModuleIn(module);
     });
+
+    it("should support ModuleParameterRuntimeValue with AccountRuntimeValue default value as arguments", () => {
+      const module = buildModule("Module", (m) => {
+        const p = m.getParameter("p", m.getAccount(1));
+        const contract1 = m.contract("Contract1", [p]);
+
+        return { contract1 };
+      });
+
+      assertSerializableModuleIn(module);
+    });
   });
 });
 

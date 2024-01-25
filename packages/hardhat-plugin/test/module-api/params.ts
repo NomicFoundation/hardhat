@@ -82,6 +82,52 @@ describe("module parameters", () => {
 
     assert.equal(await result.greeter.read.getGreeting(), "NotExample");
   });
+
+  it("should be able to retrieve a default AccountRuntimeValue", async function () {
+    const moduleDefinition = buildModule("WithDefaultAccountModule", (m) => {
+      const newOwner = m.getParameter("newOwner", m.getAccount(1));
+
+      const ownerContract = m.contract("Owner", [], { from: m.getAccount(0) });
+
+      m.call(ownerContract, "setOwner", [newOwner]);
+
+      return { ownerContract };
+    });
+
+    const result = await this.hre.ignition.deploy(moduleDefinition);
+
+    const v = (await result.ownerContract.read.owner()) as string;
+
+    const accounts = await this.hre.network.provider.send("eth_accounts");
+
+    assert.equal(v.toLowerCase(), accounts[1]);
+  });
+
+  it("should be able to override a default AccountRuntimeValue", async function () {
+    const moduleDefinition = buildModule("WithDefaultAccountModule", (m) => {
+      const newOwner = m.getParameter("newOwner", m.getAccount(1));
+
+      const ownerContract = m.contract("Owner", [], { from: m.getAccount(0) });
+
+      m.call(ownerContract, "setOwner", [newOwner]);
+
+      return { ownerContract };
+    });
+
+    const accounts = await this.hre.network.provider.send("eth_accounts");
+
+    const result = await this.hre.ignition.deploy(moduleDefinition, {
+      parameters: {
+        WithDefaultAccountModule: {
+          newOwner: accounts[2],
+        },
+      },
+    });
+
+    const v = (await result.ownerContract.read.owner()) as string;
+
+    assert.equal(v.toLowerCase(), accounts[2]);
+  });
 });
 
 describe("params validation", () => {

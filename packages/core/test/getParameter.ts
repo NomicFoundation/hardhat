@@ -3,7 +3,7 @@ import { assert } from "chai";
 
 import { buildModule } from "../src/build-module";
 import { ModuleParameterRuntimeValueImplementation } from "../src/internal/module";
-import { ModuleParameterType } from "../src/types/module";
+import { SolidityParameterType } from "../src/types/module";
 
 import { assertInstanceOf } from "./helpers";
 
@@ -61,7 +61,7 @@ describe("getParameter", () => {
     });
 
     it("Should accept arrays as deafult", () => {
-      const defaultValue: ModuleParameterType = [1, "dos", 3n, false];
+      const defaultValue: SolidityParameterType = [1, "dos", 3n, false];
       const mod = buildModule("MyModule", (m) => {
         const p = m.getParameter("p", defaultValue);
 
@@ -77,7 +77,7 @@ describe("getParameter", () => {
     });
 
     it("Should accept objects as deafult", () => {
-      const defaultValue: ModuleParameterType = { a: 1, b: "dos", c: 3n };
+      const defaultValue: SolidityParameterType = { a: 1, b: "dos", c: 3n };
       const mod = buildModule("MyModule", (m) => {
         const p = m.getParameter("p", defaultValue);
 
@@ -93,7 +93,7 @@ describe("getParameter", () => {
     });
 
     it("Should accept complex combinations as default", () => {
-      const defaultValue: ModuleParameterType = {
+      const defaultValue: SolidityParameterType = {
         arr: [123, { a: [{ o: true }] }],
       };
       const mod = buildModule("MyModule", (m) => {
@@ -108,6 +108,24 @@ describe("getParameter", () => {
       assertInstanceOf(param, ModuleParameterRuntimeValueImplementation);
       assert.equal(param.name, "p");
       assert.deepEqual(param.defaultValue, defaultValue);
+    });
+
+    it("should accept account runtime values as default", () => {
+      const mod = buildModule("MyModule", (m) => {
+        const p = m.getParameter("p", m.getAccount(1));
+
+        const contract = m.contract("Contract", [p]);
+
+        return { contract };
+      });
+
+      const param = mod.results.contract.constructorArgs[0];
+      assertInstanceOf(param, ModuleParameterRuntimeValueImplementation);
+      assert.equal(param.name, "p");
+      assert.deepEqual(param.defaultValue, {
+        accountIndex: 1,
+        type: "ACCOUNT",
+      });
     });
   });
 });

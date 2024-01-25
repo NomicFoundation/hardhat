@@ -1,7 +1,11 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { ArgumentType, SolidityParameterType } from "../../src";
+import {
+  ArgumentType,
+  SolidityParameterType,
+  isAccountRuntimeValue,
+} from "../../src";
 import {
   AccountRuntimeValueImplementation,
   ModuleParameterRuntimeValueImplementation,
@@ -25,7 +29,15 @@ describe("Arg resolution", () => {
           _kind: "ModuleParameterRuntimeValue",
           moduleId: mprv.moduleId,
           name: mprv.name,
-          defaultValue: mprv.defaultValue ?? "na",
+          defaultValue:
+            mprv.defaultValue === undefined
+              ? "na"
+              : isAccountRuntimeValue(mprv.defaultValue)
+              ? {
+                  _kind: "AccountRuntimeValue",
+                  accountIndex: mprv.defaultValue.accountIndex,
+                }
+              : mprv.defaultValue,
         }),
         bigint: (bi) => `${bi.toString()}n`,
         future: (f) => ({ _kind: "FutureToken", futureId: f.id }),

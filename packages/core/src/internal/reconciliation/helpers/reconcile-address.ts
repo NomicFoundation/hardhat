@@ -19,7 +19,8 @@ export function reconcileAddress(
   const resolvedAddress = resolveAddressLike(
     future.address,
     context.deploymentState,
-    context.deploymentParameters
+    context.deploymentParameters,
+    context.accounts
   );
 
   return compare(future, "Address", exState.contractAddress, resolvedAddress);
