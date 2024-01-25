@@ -7,6 +7,7 @@
     "dev": "vite --force",
     "build": "tsc && vite build",
     "test": "mocha --loader=ts-node/esm --recursive \"test/**/*.ts\"",
+    "test:coverage": "nyc mocha --loader=ts-node/esm --recursive \"test/**/*.ts\"",
     "regenerate-deployment-example": "node ./scripts/generate-example-deployment-json.js",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
