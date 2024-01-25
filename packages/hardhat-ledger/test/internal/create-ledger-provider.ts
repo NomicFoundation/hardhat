@@ -21,15 +21,45 @@ describe("createLedgerProvider", () => {
       "0xe149ff2797adc146aa2d68d3df3e819c3c38e762",
       "0x343fe45cd2d785a5f2e97a00de8436f9c42ef444",
     ];
-    const config = { ledgerAccounts } as NetworkConfig;
+    const config = {
+      ledgerOptions: { accounts: ledgerAccounts },
+    } as NetworkConfig;
     const ledgerProvider = createLedgerProvider(mockedProvider, config);
 
     assert.deepEqual(ledgerProvider.options.accounts, ledgerAccounts);
+    // Did not pass a derivation function, so should be undefined
+    assert.equal(ledgerProvider.options.derivationFunction, undefined);
+  });
+
+  it("should pass the ledgerLegacyDerivationPath from the config to the LedgerProvider", () => {
+    const ledgerAccounts = [
+      "0x704ad3adfa9eae2be46c907ef5325d0fabe17353",
+      "0xf4416d306caa15dd4cdf4cd882cd764a6b2aa9b2",
+      "0xe149ff2797adc146aa2d68d3df3e819c3c38e762",
+      "0x343fe45cd2d785a5f2e97a00de8436f9c42ef444",
+    ];
+    const derivationFunction = (accountNumber: number) => {
+      return `44'/60'/${accountNumber}'/0/0`;
+    };
+    const config = {
+      ledgerOptions: {
+        accounts: ledgerAccounts,
+        derivationFunction,
+      },
+    } as NetworkConfig;
+    const ledgerProvider = createLedgerProvider(mockedProvider, config);
+
+    assert.deepEqual(
+      ledgerProvider.options.derivationFunction,
+      derivationFunction
+    );
   });
 
   it("should pass the provider to the LedgerProvider", async () => {
     const config = {
-      ledgerAccounts: ["0xf4416d306caa15dd4cdf4cd882cd764a6b2aa9b2"],
+      ledgerOptions: {
+        accounts: ["0xf4416d306caa15dd4cdf4cd882cd764a6b2aa9b2"],
+      },
     } as NetworkConfig;
     const ledgerProvider = createLedgerProvider(mockedProvider, config);
     const requestStub = sinon.stub(mockedProvider, "request");
@@ -45,7 +75,9 @@ describe("createLedgerProvider", () => {
     const withSpinnerSpy = sinon.spy(spinners, "withSpinners");
 
     const config = {
-      ledgerAccounts: ["0xe149ff2797adc146aa2d68d3df3e819c3c38e762"],
+      ledgerOptions: {
+        accounts: ["0xe149ff2797adc146aa2d68d3df3e819c3c38e762"],
+      },
     } as NetworkConfig;
     const ledgerProvider = createLedgerProvider(mockedProvider, config);
 

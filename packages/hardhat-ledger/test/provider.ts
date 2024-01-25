@@ -144,6 +144,7 @@ describe("LedgerProvider", () => {
         accounts,
         openTimeout: 1000,
         connectionTimeout: 5432,
+        derivationFunction: (index: number) => `m/44'/60'/${index}'/0/`,
       };
       const newProvider = new LedgerProvider(options, mockedProvider);
       await newProvider.init();
