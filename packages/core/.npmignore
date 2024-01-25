@@ -6,10 +6,11 @@ coverage/
 .nycrc
 .prettierignore
 .prettierrc
+src/
 !dist
+!dist/src
 dist/test
 dist/test-integrations
 test/
-src/
 temp
 test-integrations/

@@ -7,7 +7,6 @@ post-build.js
 .nycrc
 .prettierignore
 .prettierrc
-!dist
 dist/test
 src/
 test/

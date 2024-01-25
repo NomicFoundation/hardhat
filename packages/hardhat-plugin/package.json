@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ignition",
-  "version": "0.13.1",
+  "version": "0.13.2",
   "license": "MIT",
   "author": "Nomic Foundation",
   "homepage": "https://hardhat.org",
@@ -18,13 +18,6 @@
   ],
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
-  "files": [
-    "dist/src/",
-    "src/",
-    "LICENSE",
-    "README.md",
-    "CHANGELOG.md"
-  ],
   "exports": {
     ".": "./dist/src/index.js",
     "./modules": "./dist/src/modules.js",
@@ -66,8 +59,8 @@
     "hardhat": "^2.18.0"
   },
   "dependencies": {
-    "@nomicfoundation/ignition-core": "^0.13.1",
-    "@nomicfoundation/ignition-ui": "^0.13.1",
+    "@nomicfoundation/ignition-core": "^0.13.2",
+    "@nomicfoundation/ignition-ui": "^0.13.2",
     "chalk": "^4.0.0",
     "debug": "^4.3.2",
     "fs-extra": "^10.0.0",

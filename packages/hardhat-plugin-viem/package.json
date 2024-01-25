@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ignition-viem",
-  "version": "0.13.1",
+  "version": "0.13.2",
   "license": "MIT",
   "author": "Nomic Foundation",
   "homepage": "https://hardhat.org",
@@ -19,13 +19,6 @@
   ],
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
-  "files": [
-    "dist/src/",
-    "src/",
-    "LICENSE",
-    "README.md",
-    "CHANGELOG.md"
-  ],
   "scripts": {
     "prebuild": "ts-node ./scripts/compile-test-fixture-projects.ts",
     "build": "tsc --build",
@@ -47,9 +40,9 @@
     "@types/sinon": "^10.0.13"
   },
   "peerDependencies": {
-    "@nomicfoundation/hardhat-ignition": "^0.13.1",
+    "@nomicfoundation/hardhat-ignition": "^0.13.2",
     "@nomicfoundation/hardhat-viem": "^1.0.0",
-    "@nomicfoundation/ignition-core": "^0.13.1",
+    "@nomicfoundation/ignition-core": "^0.13.2",
     "hardhat": "^2.18.0",
     "viem": "^1.18.1"
   }
