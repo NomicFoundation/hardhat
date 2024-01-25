@@ -10,7 +10,10 @@ use edr_eth::{
 };
 use edr_evm::{state::StateOverrides, ExecutableTransaction};
 
-use crate::{data::ProviderData, requests::validation::validate_call_request, ProviderError};
+use crate::{
+    data::ProviderData, requests::validation::validate_call_request, ProviderError,
+    TransactionFailure,
+};
 
 pub fn handle_call_request<LoggerErrorT: Debug>(
     data: &mut ProviderData<LoggerErrorT>,
@@ -31,9 +34,15 @@ pub fn handle_call_request<LoggerErrorT: Debug>(
         .log_call(spec_id, &transaction, &result)
         .map_err(ProviderError::Logger)?;
 
-    let (_gas_used, output) = result.execution_result?;
+    if data.bail_on_call_failure() {
+        if let Some(call_failure) =
+            TransactionFailure::from_execution_result(&result.execution_result, transaction.hash())
+        {
+            return Err(ProviderError::TransactionFailed(call_failure));
+        }
+    }
 
-    Ok(output)
+    Ok(result.execution_result.into_output().unwrap_or_default())
 }
 
 pub(crate) fn resolve_call_request<LoggerErrorT: Debug>(

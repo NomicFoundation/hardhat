@@ -99,7 +99,7 @@ pub(crate) mod tests {
 
         let deploy_tx_hash = provider_data
             .send_transaction(signed_transaction)?
-            .sent_transaction_result?;
+            .transaction_hash;
 
         let deploy_receipt = provider_data
             .transaction_receipt(&deploy_tx_hash)?

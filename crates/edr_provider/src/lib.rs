@@ -25,9 +25,9 @@ use tokio::runtime;
 
 pub use self::{
     config::*,
-    data::{CallResult, EstimateGasFailure},
+    data::CallResult,
     debug_mine::DebugMineBlockResult,
-    error::{ProviderError, TransactionFailure, TransactionFailureReason},
+    error::{EstimateGasFailure, ProviderError, TransactionFailure, TransactionFailureReason},
     logger::Logger,
     requests::{
         hardhat::rpc_types as hardhat_rpc_types, InvalidRequestReason, MethodInvocation,

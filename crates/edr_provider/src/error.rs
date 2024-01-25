@@ -1,4 +1,4 @@
-use core::fmt::Debug;
+use core::fmt::{Debug, Display};
 use std::{num::TryFromIntError, time::SystemTimeError};
 
 use alloy_sol_types::{ContractError, SolInterface};
@@ -10,6 +10,7 @@ use edr_evm::{
     blockchain::BlockchainError,
     hex,
     state::{AccountOverrideConversionError, StateError},
+    trace::Trace,
     DebugTraceError, ExecutionResult, Halt, MineBlockError, MinerTransactionError, OutOfGasError,
     TransactionCreationError, TransactionError,
 };
@@ -49,6 +50,9 @@ pub enum ProviderError<LoggerErrorT> {
     DebugTrace(#[from] DebugTraceError<BlockchainError, StateError>),
     #[error(transparent)]
     Eip712Error(#[from] Eip712Error),
+    /// A transaction error occurred while estimating gas.
+    #[error(transparent)]
+    EstimateGasTransactionFailure(#[from] EstimateGasFailure),
     #[error("{0}")]
     InvalidArgument(String),
     /// Block number or hash doesn't exist in blockchain
@@ -199,6 +203,7 @@ impl<LoggerErrorT: Debug> From<ProviderError<LoggerErrorT>> for jsonrpc::Error {
             ProviderError::Creation(_) => INVALID_INPUT,
             ProviderError::DebugTrace(_) => INTERNAL_ERROR,
             ProviderError::Eip712Error(_) => INVALID_INPUT,
+            ProviderError::EstimateGasTransactionFailure(_) => INVALID_INPUT,
             ProviderError::InvalidArgument(_) => INVALID_PARAMS,
             ProviderError::InvalidBlockNumberOrHash { .. } => INVALID_INPUT,
             ProviderError::InvalidBlockTag { .. } => INVALID_PARAMS,
@@ -241,7 +246,11 @@ impl<LoggerErrorT: Debug> From<ProviderError<LoggerErrorT>> for jsonrpc::Error {
         };
 
         let data = match &value {
-            ProviderError::TransactionFailed(transaction_failure) => Some(
+            ProviderError::EstimateGasTransactionFailure(EstimateGasFailure {
+                transaction_failure,
+                ..
+            })
+            | ProviderError::TransactionFailed(transaction_failure) => Some(
                 serde_json::to_value(transaction_failure).expect("transaction_failure to json"),
             ),
             _ => None,
@@ -264,6 +273,20 @@ impl<LoggerErrorT: Debug> From<ProviderError<LoggerErrorT>> for jsonrpc::Error {
             message,
             data,
         }
+    }
+}
+
+/// Failure that occurred while estimating gas.
+#[derive(Debug, thiserror::Error)]
+pub struct EstimateGasFailure {
+    pub console_log_inputs: Vec<Bytes>,
+    pub trace: Trace,
+    pub transaction_failure: TransactionFailure,
+}
+
+impl Display for EstimateGasFailure {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.transaction_failure)
     }
 }
 

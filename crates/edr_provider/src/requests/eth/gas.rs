@@ -37,17 +37,15 @@ pub fn handle_estimate_gas<LoggerErrorT: Debug>(
         &StateOverrides::default(),
     )?;
 
-    let result = data.estimate_gas(transaction.clone(), &block_spec)?;
-
-    if let Err(failure) = &result {
+    let result = data.estimate_gas(transaction.clone(), &block_spec);
+    if let Err(ProviderError::EstimateGasTransactionFailure(failure)) = &result {
         let spec_id = data.spec_id();
         data.logger_mut()
             .log_estimate_gas_failure(spec_id, &transaction, failure)
             .map_err(ProviderError::Logger)?;
     }
 
-    let gas_limit = result.map_err(|failure| failure.transaction_failure)?;
-
+    let gas_limit = result?;
     Ok(U64::from(gas_limit))
 }
 

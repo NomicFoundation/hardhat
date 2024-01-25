@@ -7,9 +7,7 @@ use dyn_clone::DynClone;
 use edr_evm::ExecutableTransaction;
 
 use crate::{
-    data::{CallResult, EstimateGasFailure},
-    debug_mine::DebugMineBlockResult,
-    ProviderError,
+    data::CallResult, debug_mine::DebugMineBlockResult, error::EstimateGasFailure, ProviderError,
 };
 
 pub trait Logger {

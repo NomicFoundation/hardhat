@@ -5,7 +5,7 @@ use edr_eth::{block::Header, reward_percentile::RewardPercentile, B256, U256};
 use edr_evm::{
     blockchain::{BlockchainError, SyncBlockchain},
     state::{StateError, StateOverrides, SyncState},
-    CfgEnv, ExecutionResult, Halt, ResultAndState, SyncBlock, TxEnv,
+    CfgEnv, ExecutionResult, Halt, SyncBlock, TxEnv,
 };
 use itertools::Itertools;
 
@@ -45,7 +45,7 @@ pub(super) fn check_gas_limit<LoggerErrorT: Debug>(
 
     tx_env.gas_limit = gas_limit;
 
-    let ResultAndState { result, .. } = call::run_call(RunCallArgs {
+    let result = call::run_call(RunCallArgs {
         blockchain,
         header,
         state,

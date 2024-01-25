@@ -21,7 +21,7 @@ use crate::{
         validate_eip3860_max_initcode_size, validate_post_merge_block_tags,
         validate_transaction_and_call_request, validate_transaction_spec,
     },
-    ProviderError,
+    ProviderError, TransactionFailure,
 };
 
 const FIRST_HARDFORK_WITH_TRANSACTION_TYPE: SpecId = SpecId::BERLIN;
@@ -393,7 +393,8 @@ fn send_raw_transaction_and_log<LoggerErrorT: Debug>(
     signed_transaction: ExecutableTransaction,
 ) -> Result<B256, ProviderError<LoggerErrorT>> {
     let SendTransactionResult {
-        sent_transaction_result,
+        transaction_hash,
+        transaction_result,
         mining_results,
     } = data.send_transaction(signed_transaction.clone())?;
 
@@ -402,7 +403,16 @@ fn send_raw_transaction_and_log<LoggerErrorT: Debug>(
         .log_send_transaction(spec_id, &signed_transaction, mining_results)
         .map_err(ProviderError::Logger)?;
 
-    let transaction_hash = sent_transaction_result?;
+    if data.bail_on_transaction_failure() {
+        let transaction_failure = transaction_result.and_then(|result| {
+            TransactionFailure::from_execution_result(&result, &transaction_hash)
+        });
+
+        if let Some(transaction_failure) = transaction_failure {
+            return Err(ProviderError::TransactionFailed(transaction_failure));
+        }
+    }
+
     Ok(transaction_hash)
 }
 

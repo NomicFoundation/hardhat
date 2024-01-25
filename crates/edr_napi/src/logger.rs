@@ -11,7 +11,7 @@ use edr_evm::{
     trace::TraceMessage,
     ExecutableTransaction, ExecutionResult, SyncBlock,
 };
-use edr_provider::ProviderError;
+use edr_provider::{ProviderError, TransactionFailure};
 use itertools::izip;
 use napi::{Env, JsFunction, NapiRaw, Status};
 use napi_derive::napi;
@@ -410,8 +410,10 @@ impl LogCollector {
 
             logger.log_console_log_messages(console_log_inputs);
 
-            if let Err(transaction_failure) = execution_result {
-                logger.log_transaction_failure(transaction_failure);
+            if let Some(transaction_failure) =
+                TransactionFailure::from_execution_result(execution_result, transaction.hash())
+            {
+                logger.log_transaction_failure(&transaction_failure);
             }
         });
     }

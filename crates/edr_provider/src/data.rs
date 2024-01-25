@@ -41,8 +41,8 @@ use edr_evm::{
     trace::{Trace, TraceCollector},
     Account, AccountInfo, BlobExcessGasAndPrice, Block, BlockEnv, Bytecode, CfgEnv,
     DebugTraceConfig, DebugTraceResult, DualInspector, ExecutableTransaction, ExecutionResult,
-    HashMap, HashSet, MemPool, MineOrdering, OrderedTransaction, RandomHashGenerator,
-    ResultAndState, StorageSlot, SyncBlock, TracerEip3155, TxEnv, KECCAK_EMPTY,
+    HashMap, HashSet, MemPool, MineOrdering, OrderedTransaction, RandomHashGenerator, StorageSlot,
+    SyncBlock, TracerEip3155, TxEnv, KECCAK_EMPTY,
 };
 use ethers_core::types::transaction::eip712::{Eip712, TypedData};
 use gas::gas_used_ratio;
@@ -60,7 +60,7 @@ use crate::{
         gas::{compute_rewards, BinarySearchEstimationArgs, CheckGasLimitArgs},
     },
     debug_mine::{DebugMineBlockResult, DebugMineBlockResultAndState},
-    error::TransactionFailure,
+    error::{EstimateGasFailure, TransactionFailure},
     filter::{bloom_contains_log_filter, filter_logs, Filter, FilterData, LogFilter},
     logger::SyncLogger,
     pending::BlockchainWithPending,
@@ -76,18 +76,14 @@ const DEFAULT_INITIAL_BASE_FEE_PER_GAS: u64 = 1_000_000_000;
 #[derive(Clone)]
 pub struct CallResult {
     pub console_log_inputs: Vec<Bytes>,
-    pub execution_result: Result<(u64, Bytes), TransactionFailure>,
+    pub execution_result: ExecutionResult,
     pub trace: Trace,
-}
-
-pub struct EstimateGasFailure {
-    pub console_log_inputs: Vec<Bytes>,
-    pub trace: Trace,
-    pub transaction_failure: TransactionFailure,
 }
 
 pub struct SendTransactionResult {
-    pub sent_transaction_result: Result<B256, TransactionFailure>,
+    pub transaction_hash: B256,
+    /// Present if the transaction was auto-mined.
+    pub transaction_result: Option<ExecutionResult>,
     pub mining_results: Vec<DebugMineBlockResult<BlockchainError>>,
 }
 
@@ -341,6 +337,16 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         filter_id
     }
 
+    /// Whether the provider is configured to bail on call failures.
+    pub fn bail_on_call_failure(&self) -> bool {
+        self.initial_config.bail_on_call_failure
+    }
+
+    /// Whether the provider is configured to bail on transaction failures.
+    pub fn bail_on_transaction_failure(&self) -> bool {
+        self.initial_config.bail_on_transaction_failure
+    }
+
     /// Fetch a block by block spec.
     /// Returns `None` if the block spec is `pending`.
     /// Returns `ProviderError::InvalidBlockSpec` error if the block spec is a
@@ -525,7 +531,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         let mut tracer = TracerEip3155::new(trace_config);
 
         self.execute_in_block_context(block_spec, |blockchain, block, state| {
-            let ResultAndState { result, .. } = run_call(RunCallArgs {
+            let result = run_call(RunCallArgs {
                 blockchain,
                 header: block.header(),
                 state: &state,
@@ -544,7 +550,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         &self,
         transaction: ExecutableTransaction,
         block_spec: &BlockSpec,
-    ) -> Result<Result<u64, EstimateGasFailure>, ProviderError<LoggerErrorT>> {
+    ) -> Result<u64, ProviderError<LoggerErrorT>> {
         let cfg_env = self.create_evm_config(Some(block_spec))?;
         // Minimum gas cost that is required for transaction to be included in
         // a block
@@ -563,31 +569,34 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             // Measure the gas used by the transaction with optional limit from call request
             // defaulting to block limit. Report errors from initial call as if from
             // `eth_call`.
-            let result = call::run_call_and_handle_errors(
-                RunCallArgs {
-                    blockchain,
-                    header,
-                    state: &state,
-                    state_overrides: &state_overrides,
-                    cfg_env: cfg_env.clone(),
-                    tx_env: tx_env.clone(),
-                    inspector: Some(&mut inspector),
-                },
-                &transaction_hash,
-            )?;
+            let result = call::run_call(RunCallArgs {
+                blockchain,
+                header,
+                state: &state,
+                state_overrides: &state_overrides,
+                cfg_env: cfg_env.clone(),
+                tx_env: tx_env.clone(),
+                inspector: Some(&mut inspector),
+            })?;
 
-            let (debug_inspector, tracer) = inspector.into_parts();
-
-            let (mut initial_estimation, _) = match result {
-                Ok(result) => result,
-                Err(transaction_failure) => {
-                    return Ok(Err(EstimateGasFailure {
-                        console_log_inputs: debug_inspector.into_console_log_encoded_messages(),
-                        trace: tracer.into_trace(),
-                        transaction_failure,
-                    }))
+            let mut initial_estimation = match result {
+                ExecutionResult::Success { gas_used, .. } => Ok(gas_used),
+                ExecutionResult::Revert { output, .. } => {
+                    Err(TransactionFailure::revert(output, transaction_hash))
                 }
-            };
+                ExecutionResult::Halt { reason, .. } => {
+                    Err(TransactionFailure::halt(reason, transaction_hash))
+                }
+            }
+            .map_err(|transaction_failure| {
+                let (debug_inspector, tracer) = inspector.into_parts();
+
+                EstimateGasFailure {
+                    console_log_inputs: debug_inspector.into_console_log_encoded_messages(),
+                    trace: tracer.into_trace(),
+                    transaction_failure,
+                }
+            })?;
 
             // Ensure that the initial estimation is at least the minimum cost + 1.
             if initial_estimation <= minimum_cost {
@@ -608,7 +617,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
 
             // Return the initial estimation if it was successful
             if result {
-                return Ok(Ok(initial_estimation));
+                return Ok(initial_estimation);
             }
 
             // Correct the initial estimation if the transaction failed with the actually
@@ -626,7 +635,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 upper_bound: header.gas_limit,
             })?;
 
-            Ok(Ok(estimation))
+            Ok(estimation)
         })?
     }
 
@@ -1235,25 +1244,21 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         state_overrides: &StateOverrides,
     ) -> Result<CallResult, ProviderError<LoggerErrorT>> {
         let cfg_env = self.create_evm_config(block_spec)?;
-        let transaction_hash = *transaction.hash();
         let tx_env = transaction.into();
 
         self.execute_in_block_context(block_spec, |blockchain, block, state| {
             let mut inspector =
                 DualInspector::new(EvmInspector::default(), TraceCollector::default());
 
-            let execution_result = call::run_call_and_handle_errors(
-                RunCallArgs {
-                    blockchain,
-                    header: block.header(),
-                    state: &state,
-                    state_overrides,
-                    cfg_env,
-                    tx_env,
-                    inspector: Some(&mut inspector),
-                },
-                &transaction_hash,
-            )?;
+            let execution_result = call::run_call(RunCallArgs {
+                blockchain,
+                header: block.header(),
+                state: &state,
+                state_overrides,
+                cfg_env,
+                tx_env,
+                inspector: Some(&mut inspector),
+            })?;
 
             let (debug_inspector, tracer) = inspector.into_parts();
 
@@ -1310,61 +1315,54 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 })?;
 
         let mut mining_results = Vec::new();
-        let sent_transaction_result = if let Some(snapshot_id) = snapshot_id {
-            let transaction_result = loop {
-                let result = self.mine_and_commit_block(None).map_err(|error| {
-                    println!("error: {error:?}");
-                    self.revert_to_snapshot(snapshot_id);
+        let transaction_result = snapshot_id
+            .map(
+                |snapshot_id| -> Result<ExecutionResult, ProviderError<LoggerErrorT>> {
+                    let transaction_result = loop {
+                        let result = self.mine_and_commit_block(None).map_err(|error| {
+                            self.revert_to_snapshot(snapshot_id);
 
-                    error
-                })?;
+                            error
+                        })?;
 
-                let transaction_result = result.block.transactions().iter().enumerate().find_map(
-                    |(idx, transaction)| {
-                        if *transaction.hash() == transaction_hash {
-                            Some(result.transaction_results[idx].clone())
-                        } else {
-                            None
+                        let transaction_result =
+                            result.block.transactions().iter().enumerate().find_map(
+                                |(idx, transaction)| {
+                                    if *transaction.hash() == transaction_hash {
+                                        Some(result.transaction_results[idx].clone())
+                                    } else {
+                                        None
+                                    }
+                                },
+                            );
+
+                        mining_results.push(result);
+
+                        if let Some(transaction_result) = transaction_result {
+                            break transaction_result;
                         }
-                    },
-                );
+                    };
 
-                mining_results.push(result);
+                    while self.mem_pool.has_pending_transactions() {
+                        let result = self.mine_and_commit_block(None).map_err(|error| {
+                            self.revert_to_snapshot(snapshot_id);
 
-                if let Some(transaction_result) = transaction_result {
-                    break transaction_result;
-                }
-            };
+                            error
+                        })?;
 
-            while self.mem_pool.has_pending_transactions() {
-                let result = self.mine_and_commit_block(None).map_err(|error| {
-                    self.revert_to_snapshot(snapshot_id);
+                        mining_results.push(result);
+                    }
 
-                    error
-                })?;
+                    self.snapshots.remove(&snapshot_id);
 
-                mining_results.push(result);
-            }
-
-            self.snapshots.remove(&snapshot_id);
-
-            match transaction_result {
-                ExecutionResult::Success { .. } => Ok(transaction_hash),
-                ExecutionResult::Revert { output, .. } => {
-                    Err(TransactionFailure::revert(output, transaction_hash))
-                }
-                ExecutionResult::Halt { reason, .. } => {
-                    self.revert_to_snapshot(snapshot_id);
-
-                    Err(TransactionFailure::halt(reason, transaction_hash))
-                }
-            }
-        } else {
-            Ok(transaction_hash)
-        };
+                    Ok(transaction_result)
+                },
+            )
+            .transpose()?;
 
         Ok(SendTransactionResult {
-            sent_transaction_result,
+            transaction_hash,
+            transaction_result,
             mining_results,
         })
     }
