@@ -1,3 +1,4 @@
+use core::fmt::Debug;
 use std::iter;
 
 use edr_eth::{
@@ -14,24 +15,24 @@ use crate::{
     ProviderError,
 };
 
-pub fn handle_get_filter_changes_request(
-    data: &mut ProviderData,
+pub fn handle_get_filter_changes_request<LoggerErrorT: Debug>(
+    data: &mut ProviderData<LoggerErrorT>,
     filter_id: U256,
-) -> Result<Option<FilteredEvents>, ProviderError> {
+) -> Result<Option<FilteredEvents>, ProviderError<LoggerErrorT>> {
     Ok(data.get_filter_changes(&filter_id))
 }
 
-pub fn handle_get_filter_logs_request(
-    data: &mut ProviderData,
+pub fn handle_get_filter_logs_request<LoggerErrorT: Debug>(
+    data: &mut ProviderData<LoggerErrorT>,
     filter_id: U256,
-) -> Result<Option<Vec<LogOutput>>, ProviderError> {
+) -> Result<Option<Vec<LogOutput>>, ProviderError<LoggerErrorT>> {
     data.get_filter_logs(&filter_id)
 }
 
-pub fn handle_get_logs_request(
-    data: &ProviderData,
+pub fn handle_get_logs_request<LoggerErrorT: Debug>(
+    data: &ProviderData<LoggerErrorT>,
     filter_options: LogFilterOptions,
-) -> Result<Vec<LogOutput>, ProviderError> {
+) -> Result<Vec<LogOutput>, ProviderError<LoggerErrorT>> {
     // Hardhat integration tests expect validation in this order.
     if let Some(from_block) = &filter_options.from_block {
         validate_post_merge_block_tags(data.spec_id(), from_block)?;
@@ -47,40 +48,43 @@ pub fn handle_get_logs_request(
         ));
     }
 
-    let filter = validate_filter_criteria::<true>(data, filter_options)?;
+    let filter = validate_filter_criteria::<true, LoggerErrorT>(data, filter_options)?;
     data.logs(filter)
         .map(|logs| logs.iter().map(LogOutput::from).collect())
 }
 
-pub fn handle_new_block_filter_request(data: &mut ProviderData) -> Result<U256, ProviderError> {
+pub fn handle_new_block_filter_request<LoggerErrorT: Debug>(
+    data: &mut ProviderData<LoggerErrorT>,
+) -> Result<U256, ProviderError<LoggerErrorT>> {
     data.add_block_filter::<false>()
 }
 
-pub fn handle_new_log_filter_request(
-    data: &mut ProviderData,
+pub fn handle_new_log_filter_request<LoggerErrorT: Debug>(
+    data: &mut ProviderData<LoggerErrorT>,
     filter_criteria: LogFilterOptions,
-) -> Result<U256, ProviderError> {
-    let filter_criteria = validate_filter_criteria::<false>(data, filter_criteria)?;
+) -> Result<U256, ProviderError<LoggerErrorT>> {
+    let filter_criteria = validate_filter_criteria::<false, LoggerErrorT>(data, filter_criteria)?;
     data.add_log_filter::<false>(filter_criteria)
 }
 
-pub fn handle_new_pending_transaction_filter_request(
-    data: &mut ProviderData,
-) -> Result<U256, ProviderError> {
+pub fn handle_new_pending_transaction_filter_request<LoggerErrorT: Debug>(
+    data: &mut ProviderData<LoggerErrorT>,
+) -> Result<U256, ProviderError<LoggerErrorT>> {
     Ok(data.add_pending_transaction_filter::<false>())
 }
 
-pub fn handle_subscribe_request(
-    data: &mut ProviderData,
+pub fn handle_subscribe_request<LoggerErrorT: Debug>(
+    data: &mut ProviderData<LoggerErrorT>,
     subscription_type: SubscriptionType,
     filter_criteria: Option<LogFilterOptions>,
-) -> Result<U256, ProviderError> {
+) -> Result<U256, ProviderError<LoggerErrorT>> {
     match subscription_type {
         SubscriptionType::Logs => {
             let filter_criteria = filter_criteria.ok_or_else(|| {
                 ProviderError::InvalidArgument("Missing params argument".to_string())
             })?;
-            let filter_criteria = validate_filter_criteria::<false>(data, filter_criteria)?;
+            let filter_criteria =
+                validate_filter_criteria::<false, LoggerErrorT>(data, filter_criteria)?;
             data.add_log_filter::<true>(filter_criteria)
         }
         SubscriptionType::NewHeads => data.add_block_filter::<true>(),
@@ -90,28 +94,28 @@ pub fn handle_subscribe_request(
     }
 }
 
-pub fn handle_uninstall_filter_request(
-    data: &mut ProviderData,
+pub fn handle_uninstall_filter_request<LoggerErrorT: Debug>(
+    data: &mut ProviderData<LoggerErrorT>,
     filter_id: U256,
-) -> Result<bool, ProviderError> {
+) -> Result<bool, ProviderError<LoggerErrorT>> {
     Ok(data.remove_filter(&filter_id))
 }
 
-pub fn handle_unsubscribe_request(
-    data: &mut ProviderData,
+pub fn handle_unsubscribe_request<LoggerErrorT: Debug>(
+    data: &mut ProviderData<LoggerErrorT>,
     filter_id: U256,
-) -> Result<bool, ProviderError> {
+) -> Result<bool, ProviderError<LoggerErrorT>> {
     Ok(data.remove_subscription(&filter_id))
 }
 
-fn validate_filter_criteria<const SHOULD_RESOLVE_LATEST: bool>(
-    data: &ProviderData,
+fn validate_filter_criteria<const SHOULD_RESOLVE_LATEST: bool, LoggerErrorT: Debug>(
+    data: &ProviderData<LoggerErrorT>,
     filter: LogFilterOptions,
-) -> Result<LogFilter, ProviderError> {
-    fn normalize_block_spec(
-        data: &ProviderData,
+) -> Result<LogFilter, ProviderError<LoggerErrorT>> {
+    fn normalize_block_spec<LoggerErrorT: Debug>(
+        data: &ProviderData<LoggerErrorT>,
         block_spec: Option<BlockSpec>,
-    ) -> Result<Option<u64>, ProviderError> {
+    ) -> Result<Option<u64>, ProviderError<LoggerErrorT>> {
         if let Some(block_spec) = &block_spec {
             validate_post_merge_block_tags(data.spec_id(), block_spec)?;
         }

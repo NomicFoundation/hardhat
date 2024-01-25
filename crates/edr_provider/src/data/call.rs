@@ -1,3 +1,5 @@
+use core::fmt::Debug;
+
 use edr_eth::{
     block::{BlobGas, Header},
     Bytes, SpecId, B256, U256,
@@ -22,7 +24,9 @@ pub(super) struct RunCallArgs<'a> {
 }
 
 /// Execute a transaction as a call. Returns the gas used and the output.
-pub(super) fn run_call(args: RunCallArgs<'_>) -> Result<ResultAndState, ProviderError> {
+pub(super) fn run_call<LoggerErrorT: Debug>(
+    args: RunCallArgs<'_>,
+) -> Result<ResultAndState, ProviderError<LoggerErrorT>> {
     let RunCallArgs {
         blockchain,
         header,
@@ -64,10 +68,10 @@ pub(super) fn run_call(args: RunCallArgs<'_>) -> Result<ResultAndState, Provider
 }
 
 /// Execute a transaction as a call. Returns the gas used and the output.
-pub(super) fn run_call_and_handle_errors(
+pub(super) fn run_call_and_handle_errors<LoggerErrorT: Debug>(
     run_call_args: RunCallArgs<'_>,
     transaction_hash: &B256,
-) -> Result<Result<(u64, Bytes), TransactionFailure>, ProviderError> {
+) -> Result<Result<(u64, Bytes), TransactionFailure>, ProviderError<LoggerErrorT>> {
     let result = run_call(run_call_args)?;
 
     let execution_result = match result.result {

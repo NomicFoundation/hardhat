@@ -108,6 +108,12 @@ enum LogLine {
     WithTitle(String, String),
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum LoggerError {
+    #[error("Failed to print line")]
+    PrintLine,
+}
+
 #[derive(Clone)]
 pub struct Logger {
     collector: LogCollector,
@@ -124,6 +130,8 @@ impl Logger {
 impl edr_provider::Logger for Logger {
     type BlockchainError = BlockchainError;
 
+    type LoggerError = LoggerError;
+
     fn is_enabled(&self) -> bool {
         self.collector.is_enabled
     }
@@ -137,8 +145,10 @@ impl edr_provider::Logger for Logger {
         spec_id: edr_eth::SpecId,
         transaction: &ExecutableTransaction,
         result: &edr_provider::CallResult,
-    ) {
+    ) -> Result<(), Self::LoggerError> {
         self.collector.log_call(spec_id, transaction, result);
+
+        Ok(())
     }
 
     fn log_estimate_gas_failure(
@@ -146,25 +156,29 @@ impl edr_provider::Logger for Logger {
         spec_id: edr_eth::SpecId,
         transaction: &ExecutableTransaction,
         failure: &edr_provider::EstimateGasFailure,
-    ) {
+    ) -> Result<(), Self::LoggerError> {
         self.collector
             .log_estimate_gas(spec_id, transaction, failure);
+
+        Ok(())
     }
 
     fn log_interval_mined(
         &mut self,
         spec_id: edr_eth::SpecId,
         mining_result: &edr_provider::DebugMineBlockResult<Self::BlockchainError>,
-    ) {
-        self.collector.log_interval_mined(spec_id, mining_result);
+    ) -> Result<(), Self::LoggerError> {
+        self.collector.log_interval_mined(spec_id, mining_result)
     }
 
     fn log_mined_block(
         &mut self,
         spec_id: edr_eth::SpecId,
         mining_results: Vec<edr_provider::DebugMineBlockResult<Self::BlockchainError>>,
-    ) {
+    ) -> Result<(), Self::LoggerError> {
         self.collector.log_mined_blocks(spec_id, mining_results);
+
+        Ok(())
     }
 
     fn log_send_transaction(
@@ -172,49 +186,56 @@ impl edr_provider::Logger for Logger {
         spec_id: edr_eth::SpecId,
         transaction: &edr_evm::ExecutableTransaction,
         mining_results: Vec<edr_provider::DebugMineBlockResult<Self::BlockchainError>>,
-    ) {
+    ) -> Result<(), Self::LoggerError> {
         self.collector
             .log_send_transaction(spec_id, transaction, mining_results);
+
+        Ok(())
     }
 
-    fn print_method_logs(&mut self, method: &str, error: Option<&ProviderError>) {
+    fn print_method_logs(
+        &mut self,
+        method: &str,
+        error: Option<&ProviderError<LoggerError>>,
+    ) -> Result<(), Self::LoggerError> {
         if let Some(error) = error {
             self.collector.state = LoggingState::Empty;
 
             if matches!(error, ProviderError::UnsupportedMethod { .. }) {
                 self.collector
-                    .print::<false>(Color::Red.paint(error.to_string()));
+                    .print::<false>(Color::Red.paint(error.to_string()))?;
             } else {
-                self.collector.print::<false>(Color::Red.paint(method));
-                self.collector.print_logs();
+                self.collector.print::<false>(Color::Red.paint(method))?;
+                self.collector.print_logs()?;
 
                 if !matches!(error, ProviderError::TransactionFailed(_)) {
-                    self.collector.print_empty_line();
+                    self.collector.print_empty_line()?;
 
                     let error_message = error.to_string();
-                    self.collector.indented(|logger| {
-                        logger.print::<false>(&error_message);
-                    });
+                    self.collector
+                        .try_indented(|logger| logger.print::<false>(&error_message))?;
 
                     if matches!(error, ProviderError::InvalidEip155TransactionChainId) {
-                        self.collector.indented(|logger| {
+                        self.collector.try_indented(|logger| {
                             logger.print::<false>(Color::Yellow.paint(
                                 "If you are using MetaMask, you can learn how to fix this error here: https://hardhat.org/metamask-issue"
-                            ));
-                        });
+                            ))
+                        })?;
                     }
                 }
 
-                self.collector.print_empty_line();
+                self.collector.print_empty_line()?;
             }
         } else {
-            self.collector.print_method(method);
+            self.collector.print_method(method)?;
 
-            let printed = self.collector.print_logs();
+            let printed = self.collector.print_logs()?;
             if printed {
-                self.collector.print_empty_line();
+                self.collector.print_empty_line()?;
             }
         }
+
+        Ok(())
     }
 }
 
@@ -473,7 +494,7 @@ impl LogCollector {
         &mut self,
         spec_id: edr_eth::SpecId,
         mining_result: &edr_provider::DebugMineBlockResult<BlockchainError>,
-    ) {
+    ) -> Result<(), LoggerError> {
         let block_header = mining_result.block.header();
         let block_number = block_header.number;
 
@@ -484,7 +505,7 @@ impl LogCollector {
             if let Some(empty_blocks_range_start) = empty_blocks_range_start {
                 self.print::<true>(format!(
                     "Mined empty block range #{empty_blocks_range_start} to #{block_number}"
-                ));
+                ))?;
             } else {
                 let base_fee = if let Some(base_fee) = block_header.base_fee_per_gas.as_ref() {
                     format!(" with base fee {base_fee}")
@@ -492,7 +513,7 @@ impl LogCollector {
                     String::new()
                 };
 
-                self.print::<false>(format!("Mined empty block #{block_number}{base_fee}"));
+                self.print::<false>(format!("Mined empty block #{block_number}{base_fee}"))?;
             }
 
             self.state = LoggingState::IntervalMining {
@@ -503,13 +524,15 @@ impl LogCollector {
         } else {
             self.log_interval_mined_block(spec_id, mining_result);
 
-            self.print::<false>(format!("Mined block #{block_number}"));
+            self.print::<false>(format!("Mined block #{block_number}"))?;
 
-            let printed = self.print_logs();
+            let printed = self.print_logs()?;
             if printed {
-                self.print_empty_line();
+                self.print_empty_line()?;
             }
         }
+
+        Ok(())
     }
 
     pub fn log_send_transaction(
@@ -606,6 +629,17 @@ impl LogCollector {
         self.indentation += 2;
         display_fn(self);
         self.indentation -= 2;
+    }
+
+    fn try_indented(
+        &mut self,
+        display_fn: impl FnOnce(&mut Self) -> Result<(), LoggerError>,
+    ) -> Result<(), LoggerError> {
+        self.indentation += 2;
+        let result = display_fn(self);
+        self.indentation -= 2;
+
+        result
     }
 
     fn log(&mut self, message: impl ToString) {
@@ -1124,9 +1158,9 @@ impl LogCollector {
         });
     }
 
-    fn print<const REPLACE: bool>(&mut self, message: impl ToString) {
+    fn print<const REPLACE: bool>(&mut self, message: impl ToString) -> Result<(), LoggerError> {
         if !self.is_enabled {
-            return;
+            return Ok(());
         }
 
         let formatted = self.format(message);
@@ -1135,17 +1169,21 @@ impl LogCollector {
             .print_line_fn
             .call((formatted, REPLACE), ThreadsafeFunctionCallMode::Blocking);
 
-        assert_eq!(status, napi::Status::Ok);
+        if status == napi::Status::Ok {
+            Ok(())
+        } else {
+            Err(LoggerError::PrintLine)
+        }
     }
 
-    fn print_empty_line(&mut self) {
-        self.print::<false>("");
+    fn print_empty_line(&mut self) -> Result<(), LoggerError> {
+        self.print::<false>("")
     }
 
-    fn print_logs(&mut self) -> bool {
+    fn print_logs(&mut self) -> Result<bool, LoggerError> {
         let logs = std::mem::take(&mut self.logs);
         if logs.is_empty() {
-            return false;
+            return Ok(false);
         }
 
         for log in logs {
@@ -1157,25 +1195,25 @@ impl LogCollector {
                 }
             };
 
-            self.print::<false>(line);
+            self.print::<false>(line)?;
         }
 
-        true
+        Ok(true)
     }
 
-    fn print_method(&mut self, method: &str) {
+    fn print_method(&mut self, method: &str) -> Result<(), LoggerError> {
         if let Some(collapsed_method) = self.collapsed_method(method) {
             collapsed_method.count += 1;
 
             let line = format!("{method} ({count})", count = collapsed_method.count);
-            self.print::<true>(Color::Green.paint(line));
+            self.print::<true>(Color::Green.paint(line))
         } else {
             self.state = LoggingState::CollapsingMethod(CollapsedMethod {
                 count: 1,
                 method: method.to_string(),
             });
 
-            self.print::<false>(Color::Green.paint(method));
+            self.print::<false>(Color::Green.paint(method))
         }
     }
 

@@ -1,3 +1,5 @@
+use core::fmt::Debug;
+
 use edr_eth::{
     remote::{eth::CallRequest, BlockSpec},
     B256,
@@ -11,11 +13,11 @@ use crate::{
     ProviderError,
 };
 
-pub fn handle_debug_trace_transaction(
-    data: &ProviderData,
+pub fn handle_debug_trace_transaction<LoggerErrorT: Debug>(
+    data: &ProviderData<LoggerErrorT>,
     transaction_hash: B256,
     config: Option<DebugTraceConfig>,
-) -> Result<DebugTraceResult, ProviderError> {
+) -> Result<DebugTraceResult, ProviderError<LoggerErrorT>> {
     data.debug_trace_transaction(
         &transaction_hash,
         config.map(Into::into).unwrap_or_default(),
@@ -28,12 +30,12 @@ pub fn handle_debug_trace_transaction(
     })
 }
 
-pub fn handle_debug_trace_call(
-    data: &ProviderData,
+pub fn handle_debug_trace_call<LoggerErrorT: Debug>(
+    data: &ProviderData<LoggerErrorT>,
     call_request: CallRequest,
     block_spec: Option<BlockSpec>,
     config: Option<DebugTraceConfig>,
-) -> Result<DebugTraceResult, ProviderError> {
+) -> Result<DebugTraceResult, ProviderError<LoggerErrorT>> {
     validate_call_request(data.spec_id(), &call_request, &block_spec)?;
 
     let transaction = resolve_call_request(

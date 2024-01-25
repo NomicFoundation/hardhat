@@ -1,3 +1,4 @@
+use core::fmt::Debug;
 use std::sync::Arc;
 
 use edr_eth::{
@@ -25,11 +26,11 @@ use crate::{
 
 const FIRST_HARDFORK_WITH_TRANSACTION_TYPE: SpecId = SpecId::BERLIN;
 
-pub fn handle_get_transaction_by_block_hash_and_index(
-    data: &ProviderData,
+pub fn handle_get_transaction_by_block_hash_and_index<LoggerErrorT: Debug>(
+    data: &ProviderData<LoggerErrorT>,
     block_hash: B256,
     index: U256,
-) -> Result<Option<remote::eth::Transaction>, ProviderError> {
+) -> Result<Option<remote::eth::Transaction>, ProviderError<LoggerErrorT>> {
     let index = rpc_index_to_usize(&index)?;
 
     data.block_by_hash(&block_hash)?
@@ -38,11 +39,11 @@ pub fn handle_get_transaction_by_block_hash_and_index(
         .transpose()
 }
 
-pub fn handle_get_transaction_by_block_spec_and_index(
-    data: &ProviderData,
+pub fn handle_get_transaction_by_block_spec_and_index<LoggerErrorT: Debug>(
+    data: &ProviderData<LoggerErrorT>,
     block_spec: PreEip1898BlockSpec,
     index: U256,
-) -> Result<Option<remote::eth::Transaction>, ProviderError> {
+) -> Result<Option<remote::eth::Transaction>, ProviderError<LoggerErrorT>> {
     validate_post_merge_block_tags(data.spec_id(), &block_spec)?;
 
     let index = rpc_index_to_usize(&index)?;
@@ -64,9 +65,9 @@ pub fn handle_get_transaction_by_block_spec_and_index(
     .transpose()
 }
 
-pub fn handle_pending_transactions(
-    data: &ProviderData,
-) -> Result<Vec<remote::eth::Transaction>, ProviderError> {
+pub fn handle_pending_transactions<LoggerErrorT: Debug>(
+    data: &ProviderData<LoggerErrorT>,
+) -> Result<Vec<remote::eth::Transaction>, ProviderError<LoggerErrorT>> {
     let spec_id = data.spec_id();
     data.pending_transactions()
         .map(|pending_transaction| {
@@ -80,25 +81,27 @@ pub fn handle_pending_transactions(
         .collect()
 }
 
-fn rpc_index_to_usize(index: &U256) -> Result<usize, ProviderError> {
+fn rpc_index_to_usize<LoggerErrorT: Debug>(
+    index: &U256,
+) -> Result<usize, ProviderError<LoggerErrorT>> {
     index
         .try_into()
         .map_err(|_err| ProviderError::InvalidTransactionIndex(*index))
 }
 
-pub fn handle_get_transaction_by_hash(
-    data: &ProviderData,
+pub fn handle_get_transaction_by_hash<LoggerErrorT: Debug>(
+    data: &ProviderData<LoggerErrorT>,
     transaction_hash: B256,
-) -> Result<Option<remote::eth::Transaction>, ProviderError> {
+) -> Result<Option<remote::eth::Transaction>, ProviderError<LoggerErrorT>> {
     data.transaction_by_hash(&transaction_hash)?
         .map(|tx| transaction_to_rpc_result(tx, data.spec_id()))
         .transpose()
 }
 
-pub fn handle_get_transaction_receipt(
-    data: &ProviderData,
+pub fn handle_get_transaction_receipt<LoggerErrorT: Debug>(
+    data: &ProviderData<LoggerErrorT>,
     transaction_hash: B256,
-) -> Result<Option<Arc<BlockReceipt>>, ProviderError> {
+) -> Result<Option<Arc<BlockReceipt>>, ProviderError<LoggerErrorT>> {
     data.transaction_receipt(&transaction_hash)
 }
 
@@ -120,10 +123,10 @@ fn transaction_from_block(
         })
 }
 
-pub fn transaction_to_rpc_result(
+pub fn transaction_to_rpc_result<LoggerErrorT: Debug>(
     transaction_and_block: TransactionAndBlock,
     spec_id: SpecId,
-) -> Result<remote::eth::Transaction, ProviderError> {
+) -> Result<remote::eth::Transaction, ProviderError<LoggerErrorT>> {
     fn gas_price_for_post_eip1559(
         signed_transaction: &SignedTransaction,
         block: Option<&Arc<dyn SyncBlock<Error = BlockchainError>>>,
@@ -227,10 +230,10 @@ pub fn transaction_to_rpc_result(
     })
 }
 
-pub fn handle_send_transaction_request(
-    data: &mut ProviderData,
+pub fn handle_send_transaction_request<LoggerErrorT: Debug>(
+    data: &mut ProviderData<LoggerErrorT>,
     transaction_request: EthTransactionRequest,
-) -> Result<B256, ProviderError> {
+) -> Result<B256, ProviderError<LoggerErrorT>> {
     validate_send_transaction_request(data, &transaction_request)?;
 
     let transaction_request = resolve_transaction_request(data, transaction_request)?;
@@ -239,10 +242,10 @@ pub fn handle_send_transaction_request(
     send_raw_transaction_and_log(data, signed_transaction)
 }
 
-pub fn handle_send_raw_transaction_request(
-    data: &mut ProviderData,
+pub fn handle_send_raw_transaction_request<LoggerErrorT: Debug>(
+    data: &mut ProviderData<LoggerErrorT>,
     raw_transaction: Bytes,
-) -> Result<B256, ProviderError> {
+) -> Result<B256, ProviderError<LoggerErrorT>> {
     let mut raw_transaction: &[u8] = raw_transaction.as_ref();
     let signed_transaction =
         SignedTransaction::decode(&mut raw_transaction).map_err(|err| match err {
@@ -260,17 +263,17 @@ pub fn handle_send_raw_transaction_request(
     send_raw_transaction_and_log(data, pending_transaction)
 }
 
-fn resolve_transaction_request(
-    data: &ProviderData,
+fn resolve_transaction_request<LoggerErrorT: Debug>(
+    data: &ProviderData<LoggerErrorT>,
     transaction_request: EthTransactionRequest,
-) -> Result<TransactionRequestAndSender, ProviderError> {
+) -> Result<TransactionRequestAndSender, ProviderError<LoggerErrorT>> {
     const DEFAULT_MAX_PRIORITY_FEE_PER_GAS: u64 = 1_000_000_000;
 
     /// # Panics
     ///
     /// Panics if `data.spec_id()` is less than `SpecId::LONDON`.
-    fn calculate_max_fee_per_gas(
-        data: &ProviderData,
+    fn calculate_max_fee_per_gas<LoggerErrorT: Debug>(
+        data: &ProviderData<LoggerErrorT>,
         max_priority_fee_per_gas: U256,
     ) -> Result<U256, BlockchainError> {
         let base_fee_per_gas = data
@@ -385,10 +388,10 @@ fn resolve_transaction_request(
     })
 }
 
-fn send_raw_transaction_and_log(
-    data: &mut ProviderData,
+fn send_raw_transaction_and_log<LoggerErrorT: Debug>(
+    data: &mut ProviderData<LoggerErrorT>,
     signed_transaction: ExecutableTransaction,
-) -> Result<B256, ProviderError> {
+) -> Result<B256, ProviderError<LoggerErrorT>> {
     let SendTransactionResult {
         sent_transaction_result,
         mining_results,
@@ -396,16 +399,17 @@ fn send_raw_transaction_and_log(
 
     let spec_id = data.spec_id();
     data.logger_mut()
-        .log_send_transaction(spec_id, &signed_transaction, mining_results);
+        .log_send_transaction(spec_id, &signed_transaction, mining_results)
+        .map_err(ProviderError::Logger)?;
 
     let transaction_hash = sent_transaction_result?;
     Ok(transaction_hash)
 }
 
-fn validate_send_transaction_request(
-    data: &ProviderData,
+fn validate_send_transaction_request<LoggerErrorT: Debug>(
+    data: &ProviderData<LoggerErrorT>,
     request: &EthTransactionRequest,
-) -> Result<(), ProviderError> {
+) -> Result<(), ProviderError<LoggerErrorT>> {
     if let Some(chain_id) = request.chain_id {
         let expected = data.chain_id();
         if chain_id != expected {
@@ -428,10 +432,10 @@ fn validate_send_transaction_request(
     validate_transaction_and_call_request(data.spec_id(), request)
 }
 
-fn validate_send_raw_transaction_request(
-    data: &ProviderData,
+fn validate_send_raw_transaction_request<LoggerErrorT: Debug>(
+    data: &ProviderData<LoggerErrorT>,
     signed_transaction: &SignedTransaction,
-) -> Result<(), ProviderError> {
+) -> Result<(), ProviderError<LoggerErrorT>> {
     // Validate signature
     let _ = signed_transaction
         .recover()

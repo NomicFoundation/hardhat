@@ -1,3 +1,5 @@
+use core::fmt::Debug;
+
 use edr_eth::{
     access_list::AccessListItem,
     remote::{eth::CallRequest, BlockSpec, BlockTag, PreEip1898BlockSpec},
@@ -75,10 +77,10 @@ impl<'data> From<&'data SignedTransaction> for SpecValidationData<'data> {
     }
 }
 
-pub fn validate_transaction_spec(
+pub fn validate_transaction_spec<LoggerErrorT: Debug>(
     spec_id: SpecId,
     data: SpecValidationData<'_>,
-) -> Result<(), ProviderError> {
+) -> Result<(), ProviderError<LoggerErrorT>> {
     let SpecValidationData {
         gas_price,
         max_fee_per_gas,
@@ -128,11 +130,11 @@ pub fn validate_transaction_spec(
     Ok(())
 }
 
-pub fn validate_call_request(
+pub fn validate_call_request<LoggerErrorT: Debug>(
     spec_id: SpecId,
     call_request: &CallRequest,
     block_spec: &Option<BlockSpec>,
-) -> Result<(), ProviderError> {
+) -> Result<(), ProviderError<LoggerErrorT>> {
     if let Some(ref block_spec) = block_spec {
         validate_post_merge_block_tags(spec_id, block_spec)?;
     }
@@ -143,10 +145,10 @@ pub fn validate_call_request(
     )
 }
 
-pub fn validate_transaction_and_call_request<'a>(
+pub fn validate_transaction_and_call_request<'a, LoggerErrorT: Debug>(
     spec_id: SpecId,
     validation_data: impl Into<SpecValidationData<'a>>,
-) -> Result<(), ProviderError> {
+) -> Result<(), ProviderError<LoggerErrorT>> {
     validate_transaction_spec(spec_id, validation_data.into()).map_err(|err| match err {
         ProviderError::UnsupportedAccessListParameter {
             minimum_hardfork, ..
@@ -166,12 +168,12 @@ You can use them by running Hardhat Network with 'hardfork' {minimum_hardfork:?}
     })
 }
 
-pub fn validate_eip3860_max_initcode_size(
+pub fn validate_eip3860_max_initcode_size<LoggerErrorT: Debug>(
     spec_id: SpecId,
     allow_unlimited_contract_code_size: bool,
     to: &Option<Address>,
     data: &Bytes,
-) -> Result<(), ProviderError> {
+) -> Result<(), ProviderError<LoggerErrorT>> {
     if spec_id < SpecId::SHANGHAI || to.is_some() || allow_unlimited_contract_code_size {
         return Ok(());
     }
@@ -217,10 +219,10 @@ impl<'a> From<ValidationBlockSpec<'a>> for BlockSpec {
     }
 }
 
-pub fn validate_post_merge_block_tags<'a>(
+pub fn validate_post_merge_block_tags<'a, LoggerErrorT: Debug>(
     hardfork: SpecId,
     block_spec: impl Into<ValidationBlockSpec<'a>>,
-) -> Result<(), ProviderError> {
+) -> Result<(), ProviderError<LoggerErrorT>> {
     let block_spec: ValidationBlockSpec<'a> = block_spec.into();
 
     if hardfork < SpecId::MERGE {

@@ -1,3 +1,4 @@
+use core::fmt::Debug;
 use std::{num::TryFromIntError, time::SystemTimeError};
 
 use alloy_sol_types::{ContractError, SolInterface};
@@ -17,7 +18,7 @@ use ethers_core::types::transaction::eip712::Eip712Error;
 use crate::data::CreationError;
 
 #[derive(Debug, thiserror::Error)]
-pub enum ProviderError {
+pub enum ProviderError<LoggerErrorT> {
     /// Account override conversion error.
     #[error(transparent)]
     AccountOverrideConversionError(#[from] AccountOverrideConversionError),
@@ -91,6 +92,9 @@ pub enum ProviderError {
     InvalidTransactionInput(String),
     #[error("Invalid transaction type {0}.")]
     InvalidTransactionType(u8),
+    /// An error occurred while logging.
+    #[error("Failed to log: {0:?}")]
+    Logger(LoggerErrorT),
     /// An error occurred while updating the mem pool.
     #[error(transparent)]
     MemPoolUpdate(StateError),
@@ -177,8 +181,8 @@ pub enum ProviderError {
     UnsupportedMethod { method_name: String },
 }
 
-impl From<ProviderError> for jsonrpc::Error {
-    fn from(value: ProviderError) -> Self {
+impl<LoggerErrorT: Debug> From<ProviderError<LoggerErrorT>> for jsonrpc::Error {
+    fn from(value: ProviderError<LoggerErrorT>) -> Self {
         const INVALID_INPUT: i16 = -32000;
         const INTERNAL_ERROR: i16 = -32603;
         const INVALID_PARAMS: i16 = -32602;
@@ -207,6 +211,7 @@ impl From<ProviderError> for jsonrpc::Error {
             ProviderError::InvalidTransactionIndex(_) => INVALID_PARAMS,
             ProviderError::InvalidTransactionInput(_) => INVALID_INPUT,
             ProviderError::InvalidTransactionType(_) => INVALID_PARAMS,
+            ProviderError::Logger(_) => INTERNAL_ERROR,
             ProviderError::MemPoolUpdate(_) => INVALID_INPUT,
             ProviderError::MineBlock(_) => INVALID_INPUT,
             ProviderError::MinerTransactionError(_) => INVALID_INPUT,

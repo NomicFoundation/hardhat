@@ -37,6 +37,8 @@ impl<DatabaseErrorT> Inspector<DatabaseErrorT> for EvmInspector {
 #[cfg(test)]
 pub(crate) mod tests {
 
+    use core::fmt::Debug;
+
     use anyhow::Context;
     use edr_eth::{
         transaction::{
@@ -54,8 +56,8 @@ pub(crate) mod tests {
         pub expected_call_data: Bytes,
     }
 
-    pub fn deploy_console_log_contract(
-        provider_data: &mut ProviderData,
+    pub fn deploy_console_log_contract<LoggerErrorT: Debug + Send + Sync + 'static>(
+        provider_data: &mut ProviderData<LoggerErrorT>,
     ) -> anyhow::Result<ConsoleLogTransaction> {
         // Compiled with solc 0.8.17, without optimizations
         /*

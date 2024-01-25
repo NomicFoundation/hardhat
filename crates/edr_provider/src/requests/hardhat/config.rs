@@ -1,3 +1,5 @@
+use core::fmt::Debug;
+
 use edr_eth::{Address, B256, U256};
 
 use crate::{
@@ -6,11 +8,15 @@ use crate::{
     ProviderError,
 };
 
-pub fn handle_get_automine_request(data: &ProviderData) -> Result<bool, ProviderError> {
+pub fn handle_get_automine_request<LoggerErrorT: Debug>(
+    data: &ProviderData<LoggerErrorT>,
+) -> Result<bool, ProviderError<LoggerErrorT>> {
     Ok(data.is_auto_mining())
 }
 
-pub fn handle_metadata_request(data: &ProviderData) -> Result<Metadata, ProviderError> {
+pub fn handle_metadata_request<LoggerErrorT: Debug>(
+    data: &ProviderData<LoggerErrorT>,
+) -> Result<Metadata, ProviderError<LoggerErrorT>> {
     Ok(Metadata {
         client_version: client_version(),
         chain_id: data.chain_id(),
@@ -21,37 +27,37 @@ pub fn handle_metadata_request(data: &ProviderData) -> Result<Metadata, Provider
     })
 }
 
-pub fn handle_set_coinbase_request(
-    data: &mut ProviderData,
+pub fn handle_set_coinbase_request<LoggerErrorT: Debug>(
+    data: &mut ProviderData<LoggerErrorT>,
     coinbase: Address,
-) -> Result<bool, ProviderError> {
+) -> Result<bool, ProviderError<LoggerErrorT>> {
     data.set_coinbase(coinbase);
 
     Ok(true)
 }
 
-pub fn handle_set_min_gas_price(
-    data: &mut ProviderData,
+pub fn handle_set_min_gas_price<LoggerErrorT: Debug>(
+    data: &mut ProviderData<LoggerErrorT>,
     min_gas_price: U256,
-) -> Result<bool, ProviderError> {
+) -> Result<bool, ProviderError<LoggerErrorT>> {
     data.set_min_gas_price(min_gas_price)?;
 
     Ok(true)
 }
 
-pub fn handle_set_next_block_base_fee_per_gas_request(
-    data: &mut ProviderData,
+pub fn handle_set_next_block_base_fee_per_gas_request<LoggerErrorT: Debug>(
+    data: &mut ProviderData<LoggerErrorT>,
     base_fee_per_gas: U256,
-) -> Result<bool, ProviderError> {
+) -> Result<bool, ProviderError<LoggerErrorT>> {
     data.set_next_block_base_fee_per_gas(base_fee_per_gas)?;
 
     Ok(true)
 }
 
-pub fn handle_set_prev_randao_request(
-    data: &mut ProviderData,
+pub fn handle_set_prev_randao_request<LoggerErrorT: Debug>(
+    data: &mut ProviderData<LoggerErrorT>,
     prev_randao: B256,
-) -> Result<bool, ProviderError> {
+) -> Result<bool, ProviderError<LoggerErrorT>> {
     data.set_next_prev_randao(prev_randao)?;
 
     Ok(true)

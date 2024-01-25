@@ -13,6 +13,7 @@ mod subscribe;
 #[cfg(test)]
 pub mod test_utils;
 
+use core::fmt::Debug;
 use std::sync::Arc;
 
 use edr_evm::{blockchain::BlockchainError, HashSet};
@@ -69,7 +70,7 @@ lazy_static! {
 ///
 /// fn to_response(
 ///     id: jsonrpc::Id,
-///     result: Result<serde_json::Value, ProviderError>,
+///     result: Result<serde_json::Value, ProviderError<LoggerErrorT>,
 /// ) -> jsonrpc::Response<serde_json::Value> { let data = match result {
 ///   Ok(result) => jsonrpc::ResponseData::Success { result }, Err(error) =>
 ///   jsonrpc::ResponseData::Error { error: jsonrpc::Error { code: -32000,
@@ -82,18 +83,18 @@ lazy_static! {
 ///     }
 /// }
 /// ```
-pub struct Provider {
-    data: Arc<Mutex<ProviderData>>,
+pub struct Provider<LoggerErrorT: Debug> {
+    data: Arc<Mutex<ProviderData<LoggerErrorT>>>,
     /// Interval miner runs in the background, if enabled.
-    interval_miner: Arc<Mutex<Option<IntervalMiner>>>,
+    interval_miner: Arc<Mutex<Option<IntervalMiner<LoggerErrorT>>>>,
     runtime: runtime::Handle,
 }
 
-impl Provider {
+impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
     /// Constructs a new instance.
     pub fn new(
         runtime: runtime::Handle,
-        logger: Box<dyn SyncLogger<BlockchainError = BlockchainError>>,
+        logger: Box<dyn SyncLogger<BlockchainError = BlockchainError, LoggerError = LoggerErrorT>>,
         subscriber_callback: Box<dyn SyncSubscriberCallback>,
         config: ProviderConfig,
     ) -> Result<Self, CreationError> {
@@ -118,7 +119,7 @@ impl Provider {
     pub fn handle_request(
         &self,
         request: ProviderRequest,
-    ) -> Result<serde_json::Value, ProviderError> {
+    ) -> Result<serde_json::Value, ProviderError<LoggerErrorT>> {
         let mut data = self.data.lock();
 
         match request {
@@ -127,18 +128,23 @@ impl Provider {
         }
     }
 
-    pub fn log_failed_deserialization(&self, method_name: &str, error: &ProviderError) {
+    pub fn log_failed_deserialization(
+        &self,
+        method_name: &str,
+        error: &ProviderError<LoggerErrorT>,
+    ) -> Result<(), ProviderError<LoggerErrorT>> {
         let mut data = self.data.lock();
         data.logger_mut()
-            .print_method_logs(method_name, Some(error));
+            .print_method_logs(method_name, Some(error))
+            .map_err(ProviderError::Logger)
     }
 
     /// Handles a batch of JSON requests for an execution provider.
     fn handle_batch_request(
         &self,
-        data: &mut ProviderData,
+        data: &mut ProviderData<LoggerErrorT>,
         request: Vec<MethodInvocation>,
-    ) -> Result<serde_json::Value, ProviderError> {
+    ) -> Result<serde_json::Value, ProviderError<LoggerErrorT>> {
         let mut results = Vec::new();
 
         for req in request {
@@ -150,9 +156,9 @@ impl Provider {
 
     fn handle_single_request(
         &self,
-        data: &mut ProviderData,
+        data: &mut ProviderData<LoggerErrorT>,
         request: MethodInvocation,
-    ) -> Result<serde_json::Value, ProviderError> {
+    ) -> Result<serde_json::Value, ProviderError<LoggerErrorT>> {
         let method_name = if data.logger_mut().is_enabled() {
             let method_name = request.method_name();
             if PRIVATE_RPC_METHODS.contains(method_name) {
@@ -398,7 +404,8 @@ impl Provider {
             // Skip printing for `hardhat_intervalMine` unless it is an error
             if method_name != "hardhat_intervalMine" || result.is_err() {
                 data.logger_mut()
-                    .print_method_logs(method_name, result.as_ref().err());
+                    .print_method_logs(method_name, result.as_ref().err())
+                    .map_err(ProviderError::Logger)?;
             }
         }
 
@@ -406,6 +413,8 @@ impl Provider {
     }
 }
 
-fn to_json<T: serde::Serialize>(value: T) -> Result<serde_json::Value, ProviderError> {
+fn to_json<T: serde::Serialize, LoggerErrorT: Debug>(
+    value: T,
+) -> Result<serde_json::Value, ProviderError<LoggerErrorT>> {
     serde_json::to_value(value).map_err(ProviderError::Serialization)
 }

@@ -1,3 +1,4 @@
+use core::fmt::Debug;
 use std::sync::Arc;
 
 use edr_eth::{
@@ -19,11 +20,11 @@ pub enum HashOrTransaction {
     Transaction(eth::Transaction),
 }
 
-pub fn handle_get_block_by_hash_request(
-    data: &ProviderData,
+pub fn handle_get_block_by_hash_request<LoggerErrorT: Debug>(
+    data: &ProviderData<LoggerErrorT>,
     block_hash: B256,
     transaction_detail_flag: bool,
-) -> Result<Option<eth::Block<HashOrTransaction>>, ProviderError> {
+) -> Result<Option<eth::Block<HashOrTransaction>>, ProviderError<LoggerErrorT>> {
     data.block_by_hash(&block_hash)?
         .map(|block| {
             let total_difficulty = data.total_difficulty_by_hash(block.hash())?;
@@ -39,11 +40,11 @@ pub fn handle_get_block_by_hash_request(
         .transpose()
 }
 
-pub fn handle_get_block_by_number_request(
-    data: &ProviderData,
+pub fn handle_get_block_by_number_request<LoggerErrorT: Debug>(
+    data: &ProviderData<LoggerErrorT>,
     block_spec: PreEip1898BlockSpec,
     transaction_detail_flag: bool,
-) -> Result<Option<eth::Block<HashOrTransaction>>, ProviderError> {
+) -> Result<Option<eth::Block<HashOrTransaction>>, ProviderError<LoggerErrorT>> {
     block_by_number(data, &block_spec.into())?
         .map(
             |BlockByNumberResult {
@@ -63,19 +64,19 @@ pub fn handle_get_block_by_number_request(
         .transpose()
 }
 
-pub fn handle_get_block_transaction_count_by_hash_request(
-    data: &ProviderData,
+pub fn handle_get_block_transaction_count_by_hash_request<LoggerErrorT: Debug>(
+    data: &ProviderData<LoggerErrorT>,
     block_hash: B256,
-) -> Result<Option<U64>, ProviderError> {
+) -> Result<Option<U64>, ProviderError<LoggerErrorT>> {
     Ok(data
         .block_by_hash(&block_hash)?
         .map(|block| U64::from(block.transactions().len())))
 }
 
-pub fn handle_get_block_transaction_count_by_block_number(
-    data: &ProviderData,
+pub fn handle_get_block_transaction_count_by_block_number<LoggerErrorT: Debug>(
+    data: &ProviderData<LoggerErrorT>,
     block_spec: PreEip1898BlockSpec,
-) -> Result<Option<U64>, ProviderError> {
+) -> Result<Option<U64>, ProviderError<LoggerErrorT>> {
     Ok(block_by_number(data, &block_spec.into())?
         .map(|BlockByNumberResult { block, .. }| U64::from(block.transactions().len())))
 }
@@ -91,10 +92,10 @@ struct BlockByNumberResult {
     pub total_difficulty: Option<U256>,
 }
 
-fn block_by_number(
-    data: &ProviderData,
+fn block_by_number<LoggerErrorT: Debug>(
+    data: &ProviderData<LoggerErrorT>,
     block_spec: &BlockSpec,
-) -> Result<Option<BlockByNumberResult>, ProviderError> {
+) -> Result<Option<BlockByNumberResult>, ProviderError<LoggerErrorT>> {
     validate_post_merge_block_tags(data.spec_id(), block_spec)?;
 
     match data.block_by_block_spec(block_spec) {
@@ -128,13 +129,13 @@ fn block_by_number(
     }
 }
 
-fn block_to_rpc_output(
+fn block_to_rpc_output<LoggerErrorT: Debug>(
     spec_id: SpecId,
     block: Arc<dyn SyncBlock<Error = BlockchainError>>,
     pending: bool,
     total_difficulty: Option<U256>,
     transaction_detail_flag: bool,
-) -> Result<eth::Block<HashOrTransaction>, ProviderError> {
+) -> Result<eth::Block<HashOrTransaction>, ProviderError<LoggerErrorT>> {
     let header = block.header();
 
     let transactions: Vec<HashOrTransaction> = if transaction_detail_flag {

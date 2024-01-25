@@ -9,14 +9,14 @@ use napi_derive::napi;
 
 use self::config::ProviderConfig;
 use crate::{
-    logger::{Logger, LoggerConfig},
+    logger::{Logger, LoggerConfig, LoggerError},
     subscribe::SubscriberCallback,
 };
 
 /// A JSON-RPC provider for Ethereum.
 #[napi]
 pub struct Provider {
-    provider: Arc<edr_provider::Provider>,
+    provider: Arc<edr_provider::Provider<LoggerError>>,
 }
 
 #[napi]
@@ -67,9 +67,11 @@ impl Provider {
                 // HACK: We need to log failed deserialization attempts when they concern input
                 // validation.
                 if let Some((method_name, provider_error)) = reason.provider_error() {
-                    runtime::Handle::current()
+                    // Ignore potential failure of logging, as returning the original error is more
+                    // important
+                    let _result = runtime::Handle::current()
                         .spawn_blocking(move || {
-                            provider.log_failed_deserialization(&method_name, &provider_error);
+                            provider.log_failed_deserialization(&method_name, &provider_error)
                         })
                         .await
                         .map_err(|error| {

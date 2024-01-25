@@ -1,3 +1,5 @@
+use core::fmt::Debug;
+
 use edr_eth::{
     remote::{eth::CallRequest, BlockSpec, StateOverrideOptions},
     transaction::{
@@ -10,12 +12,12 @@ use edr_evm::{state::StateOverrides, ExecutableTransaction};
 
 use crate::{data::ProviderData, requests::validation::validate_call_request, ProviderError};
 
-pub fn handle_call_request(
-    data: &mut ProviderData,
+pub fn handle_call_request<LoggerErrorT: Debug>(
+    data: &mut ProviderData<LoggerErrorT>,
     request: CallRequest,
     block_spec: Option<BlockSpec>,
     state_overrides: Option<StateOverrideOptions>,
-) -> Result<Bytes, ProviderError> {
+) -> Result<Bytes, ProviderError<LoggerErrorT>> {
     validate_call_request(data.spec_id(), &request, &block_spec)?;
 
     let state_overrides =
@@ -25,19 +27,21 @@ pub fn handle_call_request(
     let result = data.run_call(transaction.clone(), block_spec.as_ref(), &state_overrides)?;
 
     let spec_id = data.spec_id();
-    data.logger_mut().log_call(spec_id, &transaction, &result);
+    data.logger_mut()
+        .log_call(spec_id, &transaction, &result)
+        .map_err(ProviderError::Logger)?;
 
     let (_gas_used, output) = result.execution_result?;
 
     Ok(output)
 }
 
-pub(crate) fn resolve_call_request(
-    data: &ProviderData,
+pub(crate) fn resolve_call_request<LoggerErrorT: Debug>(
+    data: &ProviderData<LoggerErrorT>,
     request: CallRequest,
     block_spec: Option<&BlockSpec>,
     state_overrides: &StateOverrides,
-) -> Result<ExecutableTransaction, ProviderError> {
+) -> Result<ExecutableTransaction, ProviderError<LoggerErrorT>> {
     let CallRequest {
         from,
         to,
