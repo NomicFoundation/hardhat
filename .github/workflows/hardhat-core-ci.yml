@@ -318,8 +318,8 @@ jobs:
         uses: auguwu/clippy-action@1.3.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          check-args: --workspace --all-targets --all-features
-          deny: [warnings]
+          all-features: true
+          check-args: --workspace --all-targets --all-features -- -Dwarnings
 
   edr-docs:
     name: Build EDR Docs
