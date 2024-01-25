@@ -319,7 +319,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           all-features: true
-          check-args: --workspace --all-targets --all-features -- -Dwarnings
+          check-args: --workspace --all-targets -- -Dwarnings
 
   edr-docs:
     name: Build EDR Docs
