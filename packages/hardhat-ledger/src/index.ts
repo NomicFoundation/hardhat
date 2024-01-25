@@ -7,8 +7,9 @@ export * from "./errors";
 extendConfig((config, userConfig) => {
   // set ledgerAccounts to the user configured value, or to [] if there isn't any
   for (const networkName of Object.keys(config.networks)) {
-    config.networks[networkName].ledgerAccounts =
-      userConfig.networks?.[networkName]?.ledgerAccounts ?? [];
+    config.networks[networkName].ledgerOptions = userConfig.networks?.[
+      networkName
+    ]?.ledgerOptions ?? { accounts: [] };
   }
 });
 
