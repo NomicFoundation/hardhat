@@ -12,6 +12,9 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     name: Run E2E tests on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    env:
+      # TODO: remove this once the pnpm Windows bug is fixed
+      IS_WINDOWS: ${{ matrix.os == 'windows-latest' }}
     steps:
       - uses: actions/checkout@v2
       - uses: pnpm/action-setup@v2
