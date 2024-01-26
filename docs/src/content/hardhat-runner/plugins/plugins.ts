@@ -867,10 +867,9 @@ const communityPlugins: IPlugin[] = [
     name: "@dgma/hardhat-sol-bundler",
     author: "Dogma Labs",
     authorUrl: "https://github.com/dgma",
-    description:
-      "Build and deploy only changed smartcontracts",
+    description: "Build and deploy only changed smartcontracts",
     tags: ["deployment", "diff deployment", "ethers.js", "proxy"],
-  }
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
