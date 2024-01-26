@@ -68,7 +68,7 @@ for pkg_manager in $pkg_managers; do
     continue
   fi
 
-  printf "\n\n[e2e] Running tests with package manager '$pkg_manager' and package runner '$pkg_runner'"
+  printf "\n\n[e2e] Running tests with package manager '$pkg_manager' and package runner '$pkg_runner'\n"
 
   # pkg_manager, javascript, cjs
   echo "[e2e] Testing: $pkg_manager, javascript, cjs"
