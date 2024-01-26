@@ -1,4 +1,5 @@
-import cloneDeep from "lodash/cloneDeep";
+import type { LoDashStatic } from "lodash";
+
 import path from "path";
 import semver from "semver";
 
@@ -62,6 +63,7 @@ export function resolveConfig(
   userConfigPath: string,
   userConfig: HardhatUserConfig
 ): HardhatConfig {
+  const cloneDeep = require("lodash/cloneDeep") as LoDashStatic["cloneDeep"];
   userConfig = cloneDeep(userConfig);
 
   return {
@@ -77,6 +79,7 @@ export function resolveConfig(
 function resolveNetworksConfig(
   networksConfig: NetworksUserConfig = {}
 ): NetworksConfig {
+  const cloneDeep = require("lodash/cloneDeep") as LoDashStatic["cloneDeep"];
   const hardhatNetworkConfig = networksConfig[HARDHAT_NETWORK_NAME];
 
   const localhostNetworkConfig =
@@ -128,6 +131,7 @@ function normalizeHexString(str: string): string {
 function resolveHardhatNetworkConfig(
   hardhatNetworkConfig: HardhatNetworkUserConfig = {}
 ): HardhatNetworkConfig {
+  const cloneDeep = require("lodash/cloneDeep") as LoDashStatic["cloneDeep"];
   const clonedDefaultHardhatNetworkParams = cloneDeep(
     defaultHardhatNetworkParams
   );
@@ -246,6 +250,7 @@ function isHdAccountsConfig(
 function resolveHttpNetworkConfig(
   networkConfig: HttpNetworkUserConfig
 ): HttpNetworkConfig {
+  const cloneDeep = require("lodash/cloneDeep") as LoDashStatic["cloneDeep"];
   const accounts: HttpNetworkAccountsConfig =
     networkConfig.accounts === undefined
       ? defaultHttpNetworkParams.accounts
@@ -427,6 +432,7 @@ function resolveCompiler(compiler: SolcUserConfig): SolcConfig {
 }
 
 function resolveMochaConfig(userConfig: HardhatUserConfig): Mocha.MochaOptions {
+  const cloneDeep = require("lodash/cloneDeep") as LoDashStatic["cloneDeep"];
   return {
     ...cloneDeep(defaultMochaOptions),
     ...userConfig.mocha,

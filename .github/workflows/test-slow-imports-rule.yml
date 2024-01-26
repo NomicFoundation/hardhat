@@ -32,7 +32,7 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Add slow import
-        run: echo 'import "lodash";' >> src/internal/constants.ts
+        run: echo 'import "lodash";' >> src/internal/core/config/config-resolution.ts
       - name: Build
         run: pnpm build
       - name: Run eslint

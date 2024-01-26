@@ -1,7 +1,7 @@
 import type EthersT from "ethers";
+import type OrdinalT from "ordinal";
 
 import { AssertionError } from "chai";
-import ordinal from "ordinal";
 
 import {
   ASSERTION_ABORTED,
@@ -191,6 +191,7 @@ export async function revertedWithCustomErrorWithArgs(
   expectedArgs: any[],
   ssfi: Ssfi
 ) {
+  const ordinal = require("ordinal") as typeof OrdinalT;
   const negated = false; // .withArgs cannot be negated
   const assert = buildAssert(negated, ssfi);
 

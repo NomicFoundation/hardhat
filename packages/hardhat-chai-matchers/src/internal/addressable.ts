@@ -1,4 +1,4 @@
-import { isAddress, isAddressable } from "ethers";
+import type EthersT from "ethers";
 
 export function supportAddressable(
   Assertion: Chai.AssertionStatic,
@@ -26,6 +26,7 @@ function override(
 // so we are looking for a sync way of getting the address. If an address was recovered, it is returned as a string,
 // otherwise undefined is returned.
 function tryGetAddressSync(value: any): string | undefined {
+  const { isAddress, isAddressable } = require("ethers") as typeof EthersT;
   if (isAddress(value)) {
     return value;
   } else if (isAddressable(value)) {
