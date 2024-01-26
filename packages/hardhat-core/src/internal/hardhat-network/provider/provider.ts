@@ -1,4 +1,9 @@
-import type { Provider as EdrProviderT, SubscriptionEvent } from "@ignored/edr";
+import type {
+  Provider as EdrProviderT,
+  RawTrace,
+  Response,
+  SubscriptionEvent,
+} from "@ignored/edr";
 import type {
   Artifacts,
   BoundExperimentalHardhatNetworkMessageTraceHook,
@@ -45,6 +50,10 @@ import {
   initializeVmTraceDecoder,
 } from "../stack-traces/vm-trace-decoder";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/constants";
+import { encodeSolidityStackTrace } from "../stack-traces/solidity-errors";
+import { SolidityStackTrace } from "../stack-traces/solidity-stack-trace";
+import { SolidityTracer } from "../stack-traces/solidityTracer";
+import { VMTracer } from "../stack-traces/vm-tracer";
 
 import { getPackageJson } from "../../util/packageInfo";
 import { MiningTimer } from "./MiningTimer";
@@ -405,6 +414,8 @@ export class EdrProviderWrapper
   extends EventEmitter
   implements EIP1193Provider
 {
+  private _failedStackTraces = 0;
+
   private constructor(
     private readonly _provider: EdrProviderT,
     private readonly _eventAdapter: EdrProviderEventAdapter,
@@ -551,6 +562,10 @@ export class EdrProviderWrapper
       return this._addCompilationResultAction(
         ...this._addCompilationResultParams(params)
       );
+    } else if (args.method === "hardhat_getStackTraceFailuresCount") {
+      return this._getStackTraceFailuresCountAction(
+        ...this._getStackTraceFailuresCountParams(params)
+      );
     }
 
     const stringifiedArgs = JSON.stringify({
@@ -558,18 +573,31 @@ export class EdrProviderWrapper
       params,
     });
 
-    const response = JSON.parse(
-      await this._provider.handleRequest(stringifiedArgs)
+    const responseObject: Response = await this._provider.handleRequest(
+      stringifiedArgs
     );
+    const response = JSON.parse(responseObject.json);
 
     if (isErrorResponse(response)) {
       let error;
-      if (response.error.code === InvalidArgumentsError.CODE) {
-        error = new InvalidArgumentsError(response.error.message);
+
+      const rawTrace = responseObject.trace;
+      if (rawTrace !== null) {
+        const stackTrace = await this._rawTraceToSolidityStackTrace(rawTrace);
+        if (stackTrace !== undefined) {
+          error = encodeSolidityStackTrace(response.error.message, stackTrace);
+        }
       } else {
-        error = new ProviderError(response.error.message, response.error.code);
+        if (response.error.code === InvalidArgumentsError.CODE) {
+          error = new InvalidArgumentsError(response.error.message);
+        } else {
+          error = new ProviderError(
+            response.error.message,
+            response.error.code
+          );
+        }
+        error.data = response.error.data;
       }
-      error.data = response.error.data;
 
       // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw error;
@@ -658,6 +686,53 @@ export class EdrProviderWrapper
     }
 
     return true;
+  }
+
+  private _getStackTraceFailuresCountParams(params: any[]): [] {
+    return validateParams(params);
+  }
+
+  private _getStackTraceFailuresCountAction(): number {
+    return this._failedStackTraces;
+  }
+
+  private async _rawTraceToSolidityStackTrace(
+    rawTrace: RawTrace
+  ): Promise<SolidityStackTrace | undefined> {
+    const trace = rawTrace.trace();
+    const vmTracer = new VMTracer(this._common, false);
+
+    for (const traceItem of trace) {
+      if ("pc" in traceItem) {
+        await vmTracer.addStep(traceItem);
+      } else if ("executionResult" in traceItem) {
+        await vmTracer.addAfterMessage(traceItem.executionResult);
+      } else {
+        await vmTracer.addBeforeMessage(traceItem);
+      }
+    }
+
+    let vmTrace = vmTracer.getLastTopLevelMessageTrace();
+    const vmTracerError = vmTracer.getLastError();
+
+    if (vmTrace !== undefined) {
+      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
+    }
+
+    try {
+      if (vmTrace === undefined || vmTracerError !== undefined) {
+        throw vmTracerError;
+      }
+
+      const solidityTracer = new SolidityTracer();
+      return solidityTracer.getStackTrace(vmTrace);
+    } catch (err) {
+      this._failedStackTraces += 1;
+      log(
+        "Could not generate stack trace. Please report this to help us improve Hardhat.\n",
+        err
+      );
+    }
   }
 }
 

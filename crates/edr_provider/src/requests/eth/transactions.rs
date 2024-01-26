@@ -404,8 +404,8 @@ fn send_raw_transaction_and_log<LoggerErrorT: Debug>(
         .map_err(ProviderError::Logger)?;
 
     if data.bail_on_transaction_failure() {
-        let transaction_failure = transaction_result.and_then(|result| {
-            TransactionFailure::from_execution_result(&result, &transaction_hash)
+        let transaction_failure = transaction_result.and_then(|(result, trace)| {
+            TransactionFailure::from_execution_result(&result, &transaction_hash, &trace)
         });
 
         if let Some(transaction_failure) = transaction_failure {

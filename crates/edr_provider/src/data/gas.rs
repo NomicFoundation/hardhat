@@ -5,6 +5,7 @@ use edr_eth::{block::Header, reward_percentile::RewardPercentile, B256, U256};
 use edr_evm::{
     blockchain::{BlockchainError, SyncBlockchain},
     state::{StateError, StateOverrides, SyncState},
+    trace::TraceCollector,
     CfgEnv, ExecutionResult, Halt, SyncBlock, TxEnv,
 };
 use itertools::Itertools;
@@ -45,6 +46,8 @@ pub(super) fn check_gas_limit<LoggerErrorT: Debug>(
 
     tx_env.gas_limit = gas_limit;
 
+    let mut tracer = TraceCollector::default();
+
     let result = call::run_call(RunCallArgs {
         blockchain,
         header,
@@ -52,14 +55,16 @@ pub(super) fn check_gas_limit<LoggerErrorT: Debug>(
         state_overrides,
         cfg_env,
         tx_env,
-        inspector: None,
+        inspector: Some(&mut tracer),
     })?;
 
     match result {
         ExecutionResult::Success { .. } => Ok(true),
         ExecutionResult::Halt { reason, .. } => match reason {
             Halt::OutOfFund | Halt::OutOfGas(_) => Ok(false),
-            _ => Err(TransactionFailure::halt(reason, *transaction_hash).into()),
+            _ => {
+                Err(TransactionFailure::halt(reason, *transaction_hash, tracer.into_trace()).into())
+            }
         },
         ExecutionResult::Revert { .. } => Ok(false),
     }

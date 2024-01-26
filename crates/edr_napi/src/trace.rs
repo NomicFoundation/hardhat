@@ -1,9 +1,9 @@
-use std::mem;
+use std::{mem, sync::Arc};
 
 use edr_eth::{Address, Bytes};
 use edr_evm::{trace::BeforeMessage, Bytecode, OPCODE_JUMPMAP};
 use napi::{
-    bindgen_prelude::{BigInt, Buffer},
+    bindgen_prelude::{BigInt, Buffer, Either3},
     Env, JsBuffer, JsBufferValue,
 };
 use napi_derive::napi;
@@ -199,4 +199,37 @@ pub struct TracingMessageResult {
     /// Execution result
     #[napi(readonly)]
     pub execution_result: ExecutionResult,
+}
+
+#[napi]
+pub struct RawTrace {
+    inner: Arc<edr_evm::trace::Trace>,
+}
+
+impl RawTrace {
+    pub fn new(inner: Arc<edr_evm::trace::Trace>) -> Self {
+        Self { inner }
+    }
+}
+
+#[napi]
+impl RawTrace {
+    #[napi]
+    pub fn trace(
+        &self,
+        env: Env,
+    ) -> napi::Result<Vec<Either3<TracingMessage, TracingStep, TracingMessageResult>>> {
+        self.inner
+            .messages
+            .iter()
+            .map(|message| match message {
+                edr_evm::trace::TraceMessage::Before(message) => {
+                    TracingMessage::new(&env, message).map(Either3::A)
+                }
+                edr_evm::trace::TraceMessage::Step(step) => Ok(Either3::B(TracingStep::new(step))),
+                edr_evm::trace::TraceMessage::After(result) => ExecutionResult::new(&env, result)
+                    .map(|execution_result| Either3::C(TracingMessageResult { execution_result })),
+            })
+            .collect::<napi::Result<_>>()
+    }
 }
