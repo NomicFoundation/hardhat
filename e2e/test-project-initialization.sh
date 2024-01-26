@@ -63,6 +63,11 @@ for pkg_manager in $pkg_managers; do
     pkg_runner="npx"
   fi
 
+  if [ "$pkg_manager" = "pnpm" ] && [ "$IS_WINDOWS" = "true" ]; then
+    # TODO: There is a bug with pnpm on Windows; the HH installation runs twice. Skip pnpm on Windows for the moment.
+    continue
+  fi
+
   echo -e "\n\n[e2e] Running tests with package manager '$pkg_manager' and package runner '$pkg_runner'"
 
   # pkg_manager, javascript, cjs
