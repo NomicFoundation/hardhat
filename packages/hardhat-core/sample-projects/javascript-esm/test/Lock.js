@@ -24,7 +24,7 @@ describe("Lock", function () {
     const [owner, otherAccount] = await ethers.getSigners();
 
     const { lock } = await ignition.deploy(LockModule, {
-      parameters: { Lock: { lockedAmount, unlockTime } },
+      parameters: { LockModule: { lockedAmount, unlockTime } },
     });
 
     return { lock, unlockTime, lockedAmount, owner, otherAccount };

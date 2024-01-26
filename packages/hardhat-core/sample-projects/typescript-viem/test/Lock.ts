@@ -22,7 +22,7 @@ describe("Lock", function () {
     const [owner, otherAccount] = await hre.viem.getWalletClients();
 
     const { lock } = await hre.ignition.deploy(LockModule, {
-      parameters: { Lock: { lockedAmount, unlockTime } },
+      parameters: { LockModule: { lockedAmount, unlockTime } },
     });
 
     const publicClient = await hre.viem.getPublicClient();
