@@ -1027,9 +1027,6 @@ importers:
       '@nomicfoundation/hardhat-ethers':
         specifier: workspace:^3.0.0
         version: link:../hardhat-ethers
-      '@nomicfoundation/hardhat-ignition':
-        specifier: ^0.13.0
-        version: 0.13.0(@nomicfoundation/hardhat-verify@packages+hardhat-verify)(hardhat@packages+hardhat-core)
       '@nomicfoundation/hardhat-ignition-ethers':
         specifier: ^0.13.0
         version: 0.13.0(@nomicfoundation/hardhat-ethers@packages+hardhat-ethers)(@nomicfoundation/hardhat-ignition@0.13.0)(@nomicfoundation/ignition-core@0.13.0)(ethers@6.7.0)(hardhat@packages+hardhat-core)
@@ -1121,6 +1118,9 @@ importers:
       '@nomicfoundation/eslint-plugin-slow-imports':
         specifier: workspace:^
         version: link:../eslint-plugin-slow-imports
+      '@nomicfoundation/hardhat-ignition-viem':
+        specifier: ^0.13.0
+        version: 0.13.0(@nomicfoundation/hardhat-ignition@0.13.0)(@nomicfoundation/hardhat-viem@packages+hardhat-viem)(@nomicfoundation/ignition-core@0.13.0)(hardhat@packages+hardhat-core)(viem@1.15.1)
       '@nomicfoundation/hardhat-network-helpers':
         specifier: workspace:^1.0.0
         version: link:../hardhat-network-helpers
@@ -3143,6 +3143,22 @@ packages:
       '@nomicfoundation/ignition-core': 0.13.0
       ethers: 6.7.0
       hardhat: link:packages/hardhat-core
+    dev: true
+
+  /@nomicfoundation/hardhat-ignition-viem@0.13.0(@nomicfoundation/hardhat-ignition@0.13.0)(@nomicfoundation/hardhat-viem@packages+hardhat-viem)(@nomicfoundation/ignition-core@0.13.0)(hardhat@packages+hardhat-core)(viem@1.15.1):
+    resolution: {integrity: sha512-dHGA81vOmBD9jemOYJ02be1/iUHCP4HGFS+r39QlsHZ64asVFBnZBoMXyC9m6R2t0Uih57ghgtbWkxQS/luRgQ==}
+    peerDependencies:
+      '@nomicfoundation/hardhat-ignition': ^0.13.0
+      '@nomicfoundation/hardhat-viem': ^1.0.0
+      '@nomicfoundation/ignition-core': ^0.13.0
+      hardhat: ^2.18.0
+      viem: ^1.18.1
+    dependencies:
+      '@nomicfoundation/hardhat-ignition': 0.13.0(@nomicfoundation/hardhat-verify@packages+hardhat-verify)(hardhat@packages+hardhat-core)
+      '@nomicfoundation/hardhat-viem': link:packages/hardhat-viem
+      '@nomicfoundation/ignition-core': 0.13.0
+      hardhat: link:packages/hardhat-core
+      viem: 1.15.1(typescript@5.0.4)
     dev: true
 
   /@nomicfoundation/hardhat-ignition@0.13.0(@nomicfoundation/hardhat-verify@packages+hardhat-verify)(hardhat@packages+hardhat-core):
