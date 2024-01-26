@@ -57,7 +57,7 @@ module.exports = {
     function visitor(filename, originalNode, node) {
       const modulePath = node.value;
       if (ignoreModules.has(modulePath) || isBuiltin(modulePath)) {
-        return {};
+        return;
       }
 
       function detectTopLevelExternalDependency(path) {
@@ -93,10 +93,11 @@ module.exports = {
             node: originalNode,
             messageId: "CANNOT_RESOLVE_MODULE",
           });
+          return;
         }
 
         if (traversed.has(absoluteModulePath)) {
-          return {};
+          return;
         }
 
         traversed.add(absoluteModulePath);
