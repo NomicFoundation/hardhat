@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Added logic to implement a mutex that works when multiple processes are running. Currently, the mutex is used to handle the download of compilers.
+Fixed a race condition that occurred when multiple Hardhat processes ran a compilation at the same time.
