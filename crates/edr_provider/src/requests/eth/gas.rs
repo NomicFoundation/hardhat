@@ -38,15 +38,19 @@ pub fn handle_estimate_gas<LoggerErrorT: Debug>(
     )?;
 
     let result = data.estimate_gas(transaction.clone(), &block_spec);
-    if let Err(ProviderError::EstimateGasTransactionFailure(failure)) = &result {
+    if let Err(ProviderError::EstimateGasTransactionFailure(failure)) = result {
         let spec_id = data.spec_id();
         data.logger_mut()
-            .log_estimate_gas_failure(spec_id, &transaction, failure)
+            .log_estimate_gas_failure(spec_id, &transaction, &failure)
             .map_err(ProviderError::Logger)?;
-    }
 
-    let gas_limit = result?;
-    Ok(U64::from(gas_limit))
+        Err(ProviderError::TransactionFailed(
+            failure.transaction_failure,
+        ))
+    } else {
+        let gas_limit = result?;
+        Ok(U64::from(gas_limit))
+    }
 }
 
 pub fn handle_fee_history<LoggerErrorT: Debug>(

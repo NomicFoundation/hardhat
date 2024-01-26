@@ -702,8 +702,6 @@ export class Provider {
   static withConfig(config: ProviderConfig, loggerConfig: LoggerConfig, subscriberCallback: (event: SubscriptionEvent) => void): Promise<Provider>
   /**Handles a JSON-RPC request and returns a JSON-RPC response. */
   handleRequest(jsonRequest: string): Promise<string>
-  getPreviousRequestLogs(): Promise<Array<string>>
-  getPreviousRequestRawTraces(): Promise<Array<Array<TracingMessage | TracingStep | TracingMessageResult>> | null>
 }
 export class Receipt {
   /**Returns the hash of the block the receipt is included in. */
