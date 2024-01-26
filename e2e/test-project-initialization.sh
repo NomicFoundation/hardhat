@@ -21,6 +21,15 @@ create_package_json() {
 EOF
 }
 
+assert_no_empty_files() {
+  for file in $(find . -maxdepth 1 -type f); do
+    if [ ! -s $file ]; then
+      echo "File $file is empty, this should not happen"
+      exit 1
+    fi
+  done
+}
+
 # build hardhat-core
 echo "[e2e] Building and packing hardhat-core"
 cd ../packages/hardhat-core
@@ -63,6 +72,7 @@ for pkg_manager in $pkg_managers; do
   create_package_json
   $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
   HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS=true $pkg_runner hardhat init
+  assert_no_empty_files
   $pkg_runner hardhat compile
   $pkg_runner hardhat test
   cd -
@@ -76,6 +86,7 @@ for pkg_manager in $pkg_managers; do
   mv esm-package.json package.json
   $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
   HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS=true $pkg_runner hardhat init
+  assert_no_empty_files
   $pkg_runner hardhat compile
   $pkg_runner hardhat test
   cd -
@@ -87,6 +98,7 @@ for pkg_manager in $pkg_managers; do
   create_package_json
   $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
   HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS=true $pkg_runner hardhat init
+  assert_no_empty_files
   $pkg_runner hardhat compile
   $pkg_runner hardhat test
   cd -
@@ -114,6 +126,7 @@ for pkg_manager in $pkg_managers; do
   create_package_json
   $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
   HARDHAT_CREATE_TYPESCRIPT_VIEM_PROJECT_WITH_DEFAULTS=true $pkg_runner hardhat init
+  assert_no_empty_files
   $pkg_runner hardhat compile
   $pkg_runner hardhat test
   cd -
