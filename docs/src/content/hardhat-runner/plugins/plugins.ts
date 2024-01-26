@@ -863,6 +863,13 @@ const communityPlugins: IPlugin[] = [
       "Display different signatures that have the methods, events and errors of your contracts by console",
     tags: ["functions", "errors", "events", "tooling", "selectorss"],
   },
+  {
+    name: "@dgma/hardhat-sol-bundler",
+    author: "Dogma Labs",
+    authorUrl: "https://github.com/dgma",
+    description: "Build and deploy only changed smartcontracts",
+    tags: ["deployment", "diff deployment", "ethers.js", "proxy"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
