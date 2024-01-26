@@ -31,7 +31,7 @@ export class MultiProcessMutex {
   }
 
   public async use<T>(f: () => Promise<T>): Promise<T> {
-    log(`Starting mutex process withy mutex file '${this._mutexFilePath}'`);
+    log(`Starting mutex process with mutex file '${this._mutexFilePath}'`);
 
     while (true) {
       if (await this._tryToAcquireMutex()) {

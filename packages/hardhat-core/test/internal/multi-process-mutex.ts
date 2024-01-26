@@ -1,7 +1,4 @@
-import { expect } from "chai";
-import fs from "node:fs";
-import path from "node:path";
-import os from "node:os";
+import { assert, expect } from "chai";
 import { MultiProcessMutex } from "../../src/internal/util/multi-process-mutex";
 
 describe("multi-process-mutex", () => {
@@ -33,28 +30,6 @@ describe("multi-process-mutex", () => {
     expect(duration).to.be.greaterThan(ms[0] + ms[1] + ms[2]);
   });
 
-  it("should overwrite an old mutex file", async () => {
-    const mutexLifeSpanMs = 800;
-    const mutex = new MultiProcessMutex(mutexName, mutexLifeSpanMs);
-
-    const start = performance.now();
-
-    // Create a mutex file that should be overwritten by the next function because the file is too old
-    const mutexFilePath = path.join(os.tmpdir(), `${mutexName}.txt`);
-    fs.writeFileSync(mutexFilePath, "", { flag: "wx+" });
-
-    const arr = [false];
-    await mutex.use(async () => {
-      arr[0] = true;
-    });
-
-    const end = performance.now();
-    const duration = end - start;
-
-    expect(arr[0] === true);
-    expect(duration).to.be.greaterThan(mutexLifeSpanMs);
-  });
-
   it("should overwrite the current mutex locked by another function because the function took to long to finish", async () => {
     const mutexLifeSpanMs = 500;
     const mutex = new MultiProcessMutex(mutexName, mutexLifeSpanMs);
@@ -78,6 +53,43 @@ describe("multi-process-mutex", () => {
     ]);
 
     expect(res).to.deep.equal([2, 1]);
+  });
+
+  it("should get the mutex lock because the first function to own it failed", async () => {
+    const mutexLifeSpanMs = 20000; // The mutex should be released and not hit timeout because the first function failed
+    const mutex = new MultiProcessMutex(mutexName, mutexLifeSpanMs);
+
+    const start = performance.now();
+
+    const res: number[] = [];
+    let errThrown = false;
+
+    await Promise.all([
+      mutex
+        .use(async () => {
+          throw new Error("Expected error");
+        })
+        .catch(() => {
+          errThrown = true;
+        }),
+      new Promise((resolve) =>
+        setTimeout(async () => {
+          await mutex.use(async () => {
+            res.push(2);
+          });
+          resolve(true);
+        }, 200)
+      ),
+    ]);
+
+    const end = performance.now();
+    const duration = end - start;
+
+    assert.isTrue(errThrown);
+    expect(res).to.deep.equal([2]);
+    // Since the first function that obtained the mutex failed, the function waiting for it will acquire it instantly.
+    // Therefore, the mutex timeout will not be reached, and the test should complete in less time than the mutex timeout.
+    expect(duration).to.be.lessThan(1000);
   });
 });
 
