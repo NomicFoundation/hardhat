@@ -47,7 +47,7 @@ mkdir $TESTS_DIR
 # store the path to hardhat-core so it can be used in the tmp folder
 HARDHAT_CORE_FOLDER_PATH="$(pwd)/../packages/hardhat-core"
 
-echo -e "[e2e] Starting e2e initialization tests in $TESTS_DIR\n\n"
+printf "[e2e] Starting e2e initialization tests in $TESTS_DIR\n\n"
 
 pkg_managers="npm pnpm yarn"
 
@@ -68,7 +68,7 @@ for pkg_manager in $pkg_managers; do
     continue
   fi
 
-  echo -e "\n\n[e2e] Running tests with package manager '$pkg_manager' and package runner '$pkg_runner'"
+  printf "\n\n[e2e] Running tests with package manager '$pkg_manager' and package runner '$pkg_runner'"
 
   # pkg_manager, javascript, cjs
   echo "[e2e] Testing: $pkg_manager, javascript, cjs"
@@ -154,7 +154,7 @@ for pkg_manager in $pkg_managers; do
 
 done
 
-echo -e "\n[e2e] All tests passed\n"
+printf "\n[e2e] All tests passed\n"
 
 # remove the temporary directory
 rm -fr $TESTS_DIR

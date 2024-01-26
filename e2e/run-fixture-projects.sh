@@ -28,10 +28,10 @@ cp helpers.sh $FIXTURE_PROJECTS_DIR/helpers.sh
 HARDHAT_CORE_FOLDER_PATH="$(pwd)/../packages/hardhat-core"
 
 # run all the e2e tests in the temporary directory
-echo -e "[e2e] Running tests in $FIXTURE_PROJECTS_DIR\n\n"
+printf "[e2e] Running tests in $FIXTURE_PROJECTS_DIR\n\n"
 
 # log version of each package manager
-echo -e "[e2e] Package manager version: npm version $(npm --version)\n\n"
+printf "[e2e] Package manager version: npm version $(npm --version)\n\n"
 
 for dir in ${FIXTURE_PROJECTS_DIR}/*; do
   if [ -d "$dir" ]; then
@@ -53,11 +53,11 @@ for dir in ${FIXTURE_PROJECTS_DIR}/*; do
     ./test.sh
     cd -
 
-    echo -e "[e2e] Finished test in $dir\n\n"
+    printf "[e2e] Finished test in $dir\n\n"
   fi
 done
 
-echo -e "\n[e2e] All tests passed\n"
+printf "\n[e2e] All tests passed\n"
 
 # remove the temporary directory
 rm -fr $FIXTURE_PROJECTS_DIR
