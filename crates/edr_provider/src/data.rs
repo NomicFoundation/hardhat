@@ -38,29 +38,31 @@ use edr_evm::{
         AccountModifierFn, IrregularState, StateDiff, StateError, StateOverride, StateOverrides,
         SyncState,
     },
+    trace::{Trace, TraceCollector},
     Account, AccountInfo, BlobExcessGasAndPrice, Block, BlockEnv, Bytecode, CfgEnv,
-    DebugTraceConfig, DebugTraceResult, ExecutionResult, HashMap, HashSet, MemPool,
-    MineBlockResult, MineBlockResultAndState, MineOrdering, OrderedTransaction, PendingTransaction,
-    RandomHashGenerator, ResultAndState, StorageSlot, SyncBlock, TracerEip3155,
-    TransactionCreationError, TxEnv, KECCAK_EMPTY,
+    DebugTraceConfig, DebugTraceResult, DualInspector, ExecutableTransaction, ExecutionResult,
+    HashMap, HashSet, MemPool, MineOrdering, OrderedTransaction, RandomHashGenerator, StorageSlot,
+    SyncBlock, TracerEip3155, TxEnv, KECCAK_EMPTY,
 };
 use ethers_core::types::transaction::eip712::{Eip712, TypedData};
 use gas::gas_used_ratio;
 use indexmap::IndexMap;
-use inspector::EvmInspector;
-pub use inspector::{InspectorCallbacks, SyncInspectorCallbacks};
 use lazy_static::lazy_static;
 use tokio::runtime;
 
-use self::account::{create_accounts, InitialAccounts};
+use self::{
+    account::{create_accounts, InitialAccounts},
+    inspector::EvmInspector,
+};
 use crate::{
     data::{
         call::{run_call, RunCallArgs},
         gas::{compute_rewards, BinarySearchEstimationArgs, CheckGasLimitArgs},
     },
-    error::TransactionFailure,
+    debug_mine::{DebugMineBlockResult, DebugMineBlockResultAndState},
+    error::{EstimateGasFailure, TransactionFailure},
     filter::{bloom_contains_log_filter, filter_logs, Filter, FilterData, LogFilter},
-    logger::Logger,
+    logger::SyncLogger,
     pending::BlockchainWithPending,
     requests::hardhat::rpc_types::{ForkConfig, ForkMetadata},
     snapshot::Snapshot,
@@ -69,6 +71,21 @@ use crate::{
 };
 
 const DEFAULT_INITIAL_BASE_FEE_PER_GAS: u64 = 1_000_000_000;
+
+/// The result of executing an `eth_call`.
+#[derive(Clone)]
+pub struct CallResult {
+    pub console_log_inputs: Vec<Bytes>,
+    pub execution_result: ExecutionResult,
+    pub trace: Trace,
+}
+
+pub struct SendTransactionResult {
+    pub transaction_hash: B256,
+    /// Present if the transaction was auto-mined.
+    pub transaction_result: Option<ExecutionResult>,
+    pub mining_results: Vec<DebugMineBlockResult<BlockchainError>>,
+}
 
 #[derive(Debug, thiserror::Error)]
 pub enum CreationError {
@@ -94,7 +111,7 @@ struct BlockContext {
     pub state: Box<dyn SyncState<StateError>>,
 }
 
-pub struct ProviderData {
+pub struct ProviderData<LoggerErrorT: Debug> {
     runtime_handle: runtime::Handle,
     initial_config: ProviderConfig,
     blockchain: Box<dyn SyncBlockchain<BlockchainError, StateError>>,
@@ -121,16 +138,15 @@ pub struct ProviderData {
     local_accounts: IndexMap<Address, k256::SecretKey>,
     filters: HashMap<U256, Filter>,
     last_filter_id: U256,
-    logger: Logger,
+    logger: Box<dyn SyncLogger<BlockchainError = BlockchainError, LoggerError = LoggerErrorT>>,
     impersonated_accounts: HashSet<Address>,
-    callbacks: Box<dyn SyncInspectorCallbacks>,
     subscriber_callback: Box<dyn SyncSubscriberCallback>,
 }
 
-impl ProviderData {
+impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
     pub fn new(
         runtime_handle: runtime::Handle,
-        callbacks: Box<dyn SyncInspectorCallbacks>,
+        logger: Box<dyn SyncLogger<BlockchainError = BlockchainError, LoggerError = LoggerErrorT>>,
         subscriber_callback: Box<dyn SyncSubscriberCallback>,
         config: ProviderConfig,
     ) -> Result<Self, CreationError> {
@@ -182,9 +198,8 @@ impl ProviderData {
             local_accounts,
             filters: HashMap::default(),
             last_filter_id: U256::ZERO,
-            logger: Logger::new(false),
+            logger,
             impersonated_accounts: HashSet::new(),
-            callbacks,
             subscriber_callback,
         })
     }
@@ -195,7 +210,7 @@ impl ProviderData {
 
         let mut reset_instance = Self::new(
             self.runtime_handle.clone(),
-            self.callbacks.clone(),
+            self.logger.clone(),
             self.subscriber_callback.clone(),
             config,
         )?;
@@ -228,8 +243,8 @@ impl ProviderData {
         &self,
         address: Address,
         block_spec: Option<&BlockSpec>,
-    ) -> Result<U256, ProviderError> {
-        self.execute_in_block_context::<Result<U256, ProviderError>>(
+    ) -> Result<U256, ProviderError<LoggerErrorT>> {
+        self.execute_in_block_context::<Result<U256, ProviderError<LoggerErrorT>>>(
             block_spec,
             move |_blockchain, _block, state| {
                 Ok(state
@@ -271,7 +286,9 @@ impl ProviderData {
     }
 
     /// Adds a filter for new blocks to the provider.
-    pub fn add_block_filter<const IS_SUBSCRIPTION: bool>(&mut self) -> Result<U256, ProviderError> {
+    pub fn add_block_filter<const IS_SUBSCRIPTION: bool>(
+        &mut self,
+    ) -> Result<U256, ProviderError<LoggerErrorT>> {
         let block_hash = *self.last_block()?.hash();
 
         let filter_id = self.next_filter_id();
@@ -287,7 +304,7 @@ impl ProviderData {
     pub fn add_log_filter<const IS_SUBSCRIPTION: bool>(
         &mut self,
         criteria: LogFilter,
-    ) -> Result<U256, ProviderError> {
+    ) -> Result<U256, ProviderError<LoggerErrorT>> {
         let logs = self
             .blockchain
             .logs(
@@ -320,6 +337,16 @@ impl ProviderData {
         filter_id
     }
 
+    /// Whether the provider is configured to bail on call failures.
+    pub fn bail_on_call_failure(&self) -> bool {
+        self.initial_config.bail_on_call_failure
+    }
+
+    /// Whether the provider is configured to bail on transaction failures.
+    pub fn bail_on_transaction_failure(&self) -> bool {
+        self.initial_config.bail_on_transaction_failure
+    }
+
     /// Fetch a block by block spec.
     /// Returns `None` if the block spec is `pending`.
     /// Returns `ProviderError::InvalidBlockSpec` error if the block spec is a
@@ -329,7 +356,8 @@ impl ProviderData {
     pub fn block_by_block_spec(
         &self,
         block_spec: &BlockSpec,
-    ) -> Result<Option<Arc<dyn SyncBlock<Error = BlockchainError>>>, ProviderError> {
+    ) -> Result<Option<Arc<dyn SyncBlock<Error = BlockchainError>>>, ProviderError<LoggerErrorT>>
+    {
         let result = match block_spec {
             BlockSpec::Number(block_number) => Some(
                 self.blockchain
@@ -384,7 +412,7 @@ impl ProviderData {
     fn block_number_by_block_spec(
         &self,
         block_spec: &BlockSpec,
-    ) -> Result<Option<u64>, ProviderError> {
+    ) -> Result<Option<u64>, ProviderError<LoggerErrorT>> {
         let block_number = match block_spec {
             BlockSpec::Number(number) => Some(*number),
             BlockSpec::Tag(BlockTag::Earliest) => Some(0),
@@ -420,7 +448,8 @@ impl ProviderData {
     pub fn block_by_hash(
         &self,
         block_hash: &B256,
-    ) -> Result<Option<Arc<dyn SyncBlock<Error = BlockchainError>>>, ProviderError> {
+    ) -> Result<Option<Arc<dyn SyncBlock<Error = BlockchainError>>>, ProviderError<LoggerErrorT>>
+    {
         self.blockchain
             .block_by_hash(block_hash)
             .map_err(ProviderError::Blockchain)
@@ -438,7 +467,7 @@ impl ProviderData {
         &self,
         transaction_hash: &B256,
         trace_config: DebugTraceConfig,
-    ) -> Result<DebugTraceResult, ProviderError> {
+    ) -> Result<DebugTraceResult, ProviderError<LoggerErrorT>> {
         let block = self
             .blockchain
             .block_by_transaction_hash(transaction_hash)?
@@ -449,34 +478,7 @@ impl ProviderData {
 
         let cfg_env = self.create_evm_config(block_spec.as_ref())?;
 
-        let transactions = block
-            .transactions()
-            .iter()
-            .map(|tx| {
-                PendingTransaction::new(cfg_env.spec_id, tx.clone()).or_else(|original_err| {
-                    // If we cannot recover the sender address from the signature, see if
-                    // it's a fake signature for an impersonated account.
-                    match original_err {
-                        TransactionCreationError::Signature(_) => {
-                            // HACK: the fake signer puts the sender address as the `r` value.
-                            let maybe_fake_address =
-                                Address::from_slice(&tx.signature().r.to_be_bytes::<32>()[12..]);
-                            if self.impersonated_accounts.contains(&maybe_fake_address) {
-                                PendingTransaction::with_caller(
-                                    cfg_env.spec_id,
-                                    tx.clone(),
-                                    maybe_fake_address,
-                                )
-                                .map_err(|_err| original_err)
-                            } else {
-                                Err(original_err)
-                            }
-                        }
-                        _ => Err(original_err),
-                    }
-                })
-            })
-            .collect::<Result<Vec<_>, _>>()?;
+        let transactions = block.transactions().to_vec();
 
         let prev_block_number = block.header().number - 1;
         let prev_block_spec = Some(BlockSpec::Number(prev_block_number));
@@ -518,10 +520,10 @@ impl ProviderData {
 
     pub fn debug_trace_call(
         &self,
-        transaction: PendingTransaction,
+        transaction: ExecutableTransaction,
         block_spec: Option<&BlockSpec>,
         trace_config: DebugTraceConfig,
-    ) -> Result<DebugTraceResult, ProviderError> {
+    ) -> Result<DebugTraceResult, ProviderError<LoggerErrorT>> {
         let cfg_env = self.create_evm_config(block_spec)?;
 
         let tx_env: TxEnv = transaction.into();
@@ -529,7 +531,7 @@ impl ProviderData {
         let mut tracer = TracerEip3155::new(trace_config);
 
         self.execute_in_block_context(block_spec, |blockchain, block, state| {
-            let ResultAndState { result, .. } = run_call(RunCallArgs {
+            let result = run_call(RunCallArgs {
                 blockchain,
                 header: block.header(),
                 state: &state,
@@ -546,9 +548,9 @@ impl ProviderData {
     /// Estimate the gas cost of a transaction. Matches Hardhat behavior.
     pub fn estimate_gas(
         &self,
-        transaction: PendingTransaction,
+        transaction: ExecutableTransaction,
         block_spec: &BlockSpec,
-    ) -> Result<u64, ProviderError> {
+    ) -> Result<u64, ProviderError<LoggerErrorT>> {
         let cfg_env = self.create_evm_config(Some(block_spec))?;
         // Minimum gas cost that is required for transaction to be included in
         // a block
@@ -559,23 +561,42 @@ impl ProviderData {
         let state_overrides = StateOverrides::default();
 
         self.execute_in_block_context(Some(block_spec), |blockchain, block, state| {
+            let mut inspector =
+                DualInspector::new(EvmInspector::default(), TraceCollector::default());
+
             let header = block.header();
 
             // Measure the gas used by the transaction with optional limit from call request
             // defaulting to block limit. Report errors from initial call as if from
             // `eth_call`.
-            let (mut initial_estimation, _) = call::run_call_and_handle_errors(
-                RunCallArgs {
-                    blockchain,
-                    header,
-                    state: &state,
-                    state_overrides: &state_overrides,
-                    cfg_env: cfg_env.clone(),
-                    tx_env: tx_env.clone(),
-                    inspector: None,
-                },
-                &transaction_hash,
-            )?;
+            let result = call::run_call(RunCallArgs {
+                blockchain,
+                header,
+                state: &state,
+                state_overrides: &state_overrides,
+                cfg_env: cfg_env.clone(),
+                tx_env: tx_env.clone(),
+                inspector: Some(&mut inspector),
+            })?;
+
+            let mut initial_estimation = match result {
+                ExecutionResult::Success { gas_used, .. } => Ok(gas_used),
+                ExecutionResult::Revert { output, .. } => {
+                    Err(TransactionFailure::revert(output, transaction_hash))
+                }
+                ExecutionResult::Halt { reason, .. } => {
+                    Err(TransactionFailure::halt(reason, transaction_hash))
+                }
+            }
+            .map_err(|transaction_failure| {
+                let (debug_inspector, tracer) = inspector.into_parts();
+
+                EstimateGasFailure {
+                    console_log_inputs: debug_inspector.into_console_log_encoded_messages(),
+                    trace: tracer.into_trace(),
+                    transaction_failure,
+                }
+            })?;
 
             // Ensure that the initial estimation is at least the minimum cost + 1.
             if initial_estimation <= minimum_cost {
@@ -602,7 +623,7 @@ impl ProviderData {
             // Correct the initial estimation if the transaction failed with the actually
             // used gas limit. This can happen if the execution logic is based
             // on the available gas.
-            gas::binary_search_estimation(BinarySearchEstimationArgs {
+            let estimation = gas::binary_search_estimation(BinarySearchEstimationArgs {
                 blockchain,
                 header,
                 state: &state,
@@ -612,7 +633,9 @@ impl ProviderData {
                 transaction_hash: &transaction_hash,
                 lower_bound: initial_estimation,
                 upper_bound: header.gas_limit,
-            })
+            })?;
+
+            Ok(estimation)
         })?
     }
 
@@ -622,7 +645,7 @@ impl ProviderData {
         block_count: u64,
         newest_block_spec: &BlockSpec,
         percentiles: Option<Vec<RewardPercentile>>,
-    ) -> Result<FeeHistoryResult, ProviderError> {
+    ) -> Result<FeeHistoryResult, ProviderError<LoggerErrorT>> {
         if self.spec_id() < SpecId::LONDON {
             return Err(ProviderError::UnmetHardfork {
                 actual: self.spec_id(),
@@ -644,7 +667,7 @@ impl ProviderData {
         let last_block_number = newest_block_number + 1;
 
         let pending_block = if last_block_number >= pending_block_number {
-            let MineBlockResultAndState { block, .. } = self.mine_pending_block()?;
+            let DebugMineBlockResultAndState { block, .. } = self.mine_pending_block()?;
             Some(block)
         } else {
             None
@@ -771,7 +794,7 @@ impl ProviderData {
         Ok(result)
     }
 
-    pub fn gas_price(&self) -> Result<U256, ProviderError> {
+    pub fn gas_price(&self) -> Result<U256, ProviderError<LoggerErrorT>> {
         const PRE_EIP_1559_GAS_PRICE: u64 = 8_000_000_000;
         const SUGGESTED_PRIORITY_FEE_PER_GAS: u64 = 1_000_000_000;
 
@@ -787,7 +810,7 @@ impl ProviderData {
         &self,
         address: Address,
         block_spec: Option<&BlockSpec>,
-    ) -> Result<Bytes, ProviderError> {
+    ) -> Result<Bytes, ProviderError<LoggerErrorT>> {
         self.execute_in_block_context(block_spec, move |_blockchain, _block, state| {
             let code = state
                 .basic(address)?
@@ -811,7 +834,7 @@ impl ProviderData {
     pub fn get_filter_logs(
         &mut self,
         filter_id: &U256,
-    ) -> Result<Option<Vec<LogOutput>>, ProviderError> {
+    ) -> Result<Option<Vec<LogOutput>>, ProviderError<LoggerErrorT>> {
         self.filters
             .get_mut(filter_id)
             .map(|filter| {
@@ -833,8 +856,8 @@ impl ProviderData {
         address: Address,
         index: U256,
         block_spec: Option<&BlockSpec>,
-    ) -> Result<U256, ProviderError> {
-        self.execute_in_block_context::<Result<U256, ProviderError>>(
+    ) -> Result<U256, ProviderError<LoggerErrorT>> {
+        self.execute_in_block_context::<Result<U256, ProviderError<LoggerErrorT>>>(
             block_spec,
             move |_blockchain, _block, state| Ok(state.storage(address, index)?),
         )?
@@ -844,8 +867,8 @@ impl ProviderData {
         &self,
         address: Address,
         block_spec: Option<&BlockSpec>,
-    ) -> Result<u64, ProviderError> {
-        self.execute_in_block_context::<Result<u64, ProviderError>>(
+    ) -> Result<u64, ProviderError<LoggerErrorT>> {
+        self.execute_in_block_context::<Result<u64, ProviderError<LoggerErrorT>>>(
             block_spec,
             move |_blockchain, _block, state| {
                 let nonce = state
@@ -870,36 +893,23 @@ impl ProviderData {
         &self.instance_id
     }
 
-    pub fn interval_mine(&mut self) -> Result<bool, ProviderError> {
+    pub fn interval_mine(&mut self) -> Result<bool, ProviderError<LoggerErrorT>> {
         let result = self.mine_and_commit_block(None)?;
 
-        let header = result.block.header();
-        let is_empty = result.block.transactions().is_empty();
-        if is_empty {
-            self.logger.print_interval_mined_block_number(
-                header.number,
-                is_empty,
-                header.base_fee_per_gas,
-            );
-        } else {
-            log::error!("TODO: interval_mine: log mined block");
-
-            self.logger
-                .print_interval_mined_block_number(header.number, is_empty, None);
-
-            if self.logger.print_logs() {
-                self.logger.print_empty_line();
-            }
-        }
+        self.logger
+            .log_interval_mined(self.spec_id(), &result)
+            .map_err(ProviderError::Logger)?;
 
         Ok(true)
     }
 
-    pub fn logger(&self) -> &Logger {
-        &self.logger
+    pub fn logger_mut(
+        &mut self,
+    ) -> &mut dyn SyncLogger<BlockchainError = BlockchainError, LoggerError = LoggerErrorT> {
+        &mut *self.logger
     }
 
-    pub fn logs(&self, filter: LogFilter) -> Result<Vec<FilterLog>, ProviderError> {
+    pub fn logs(&self, filter: LogFilter) -> Result<Vec<FilterLog>, ProviderError<LoggerErrorT>> {
         self.blockchain
             .logs(
                 filter.from_block,
@@ -936,7 +946,7 @@ impl ProviderData {
     pub fn mine_and_commit_block(
         &mut self,
         timestamp: Option<u64>,
-    ) -> Result<MineBlockResult<BlockchainError>, ProviderError> {
+    ) -> Result<DebugMineBlockResult<BlockchainError>, ProviderError<LoggerErrorT>> {
         let (block_timestamp, new_offset) = self.next_block_timestamp(timestamp)?;
         let prevrandao = if self.blockchain.spec_id() >= SpecId::MERGE {
             Some(self.prev_randao_generator.next_value())
@@ -1006,11 +1016,14 @@ impl ProviderData {
 
         self.state = result.state;
 
-        Ok(MineBlockResult {
+        let result = DebugMineBlockResult {
             block: block_and_total_difficulty.block,
             transaction_results: result.transaction_results,
             transaction_traces: result.transaction_traces,
-        })
+            console_log_inputs: result.console_log_inputs,
+        };
+
+        Ok(result)
     }
 
     /// Mines `number_of_blocks` blocks with the provided `interval` between
@@ -1019,7 +1032,7 @@ impl ProviderData {
         &mut self,
         number_of_blocks: u64,
         interval: u64,
-    ) -> Result<Vec<MineBlockResult<BlockchainError>>, ProviderError> {
+    ) -> Result<Vec<DebugMineBlockResult<BlockchainError>>, ProviderError<LoggerErrorT>> {
         // There should be at least 2 blocks left for the reservation to work,
         // because we always mine a block after it. But here we use a bigger
         // number to err on the side of safety.
@@ -1029,11 +1042,11 @@ impl ProviderData {
             return Ok(Vec::new());
         }
 
-        let mine_block_with_interval = |data: &mut ProviderData,
+        let mine_block_with_interval = |data: &mut ProviderData<LoggerErrorT>,
                                         mined_blocks: &mut Vec<
-            MineBlockResult<BlockchainError>,
+            DebugMineBlockResult<BlockchainError>,
         >|
-         -> Result<(), ProviderError> {
+         -> Result<(), ProviderError<LoggerErrorT>> {
             let previous_timestamp = mined_blocks
                 .last()
                 .expect("at least one block was mined")
@@ -1135,7 +1148,7 @@ impl ProviderData {
         address: &Address,
         block_spec: Option<&BlockSpec>,
         state_overrides: &StateOverrides,
-    ) -> Result<u64, ProviderError> {
+    ) -> Result<u64, ProviderError<LoggerErrorT>> {
         state_overrides
             .account_override(address)
             .and_then(|account_override| account_override.nonce)
@@ -1160,7 +1173,7 @@ impl ProviderData {
             )
     }
 
-    pub fn pending_transactions(&self) -> impl Iterator<Item = &PendingTransaction> {
+    pub fn pending_transactions(&self) -> impl Iterator<Item = &ExecutableTransaction> {
         self.mem_pool.transactions()
     }
 
@@ -1226,44 +1239,50 @@ impl ProviderData {
 
     pub fn run_call(
         &self,
-        transaction: PendingTransaction,
+        transaction: ExecutableTransaction,
         block_spec: Option<&BlockSpec>,
         state_overrides: &StateOverrides,
-    ) -> Result<Bytes, ProviderError> {
+    ) -> Result<CallResult, ProviderError<LoggerErrorT>> {
         let cfg_env = self.create_evm_config(block_spec)?;
-        let transaction_hash = *transaction.hash();
         let tx_env = transaction.into();
 
         self.execute_in_block_context(block_spec, |blockchain, block, state| {
-            let mut inspector = self.evm_inspector();
+            let mut inspector =
+                DualInspector::new(EvmInspector::default(), TraceCollector::default());
 
-            let (_, output) = call::run_call_and_handle_errors(
-                RunCallArgs {
-                    blockchain,
-                    header: block.header(),
-                    state: &state,
-                    state_overrides,
-                    cfg_env,
-                    tx_env,
-                    inspector: Some(&mut inspector),
-                },
-                &transaction_hash,
-            )?;
+            let execution_result = call::run_call(RunCallArgs {
+                blockchain,
+                header: block.header(),
+                state: &state,
+                state_overrides,
+                cfg_env,
+                tx_env,
+                inspector: Some(&mut inspector),
+            })?;
 
-            Ok(output)
+            let (debug_inspector, tracer) = inspector.into_parts();
+
+            Ok(CallResult {
+                console_log_inputs: debug_inspector.into_console_log_encoded_messages(),
+                execution_result,
+                trace: tracer.into_trace(),
+            })
         })?
     }
 
     pub fn transaction_receipt(
         &self,
         transaction_hash: &B256,
-    ) -> Result<Option<Arc<BlockReceipt>>, ProviderError> {
+    ) -> Result<Option<Arc<BlockReceipt>>, ProviderError<LoggerErrorT>> {
         self.blockchain
             .receipt_by_transaction_hash(transaction_hash)
             .map_err(ProviderError::Blockchain)
     }
 
-    pub fn set_min_gas_price(&mut self, min_gas_price: U256) -> Result<(), ProviderError> {
+    pub fn set_min_gas_price(
+        &mut self,
+        min_gas_price: U256,
+    ) -> Result<(), ProviderError<LoggerErrorT>> {
         if self.spec_id() >= SpecId::LONDON {
             return Err(ProviderError::SetMinGasPriceUnsupported);
         }
@@ -1273,10 +1292,10 @@ impl ProviderData {
         Ok(())
     }
 
-    pub fn send_raw_transaction(
+    pub fn send_transaction(
         &mut self,
-        signed_transaction: PendingTransaction,
-    ) -> Result<B256, ProviderError> {
+        signed_transaction: ExecutableTransaction,
+    ) -> Result<SendTransactionResult, ProviderError<LoggerErrorT>> {
         let snapshot_id = if self.is_auto_mining {
             self.validate_auto_mine_transaction(&signed_transaction)?;
 
@@ -1285,71 +1304,67 @@ impl ProviderData {
             None
         };
 
-        let tx_hash = self
-            .add_pending_transaction(signed_transaction)
-            .map_err(|error| {
-                if let Some(snapshot_id) = snapshot_id {
-                    self.revert_to_snapshot(snapshot_id);
-                }
-
-                error
-            })?;
-
-        if let Some(snapshot_id) = snapshot_id {
-            let transaction_result = loop {
-                let result = self.mine_and_commit_block(None).map_err(|error| {
-                    self.revert_to_snapshot(snapshot_id);
+        let transaction_hash =
+            self.add_pending_transaction(signed_transaction)
+                .map_err(|error| {
+                    if let Some(snapshot_id) = snapshot_id {
+                        self.revert_to_snapshot(snapshot_id);
+                    }
 
                     error
                 })?;
 
-                let transaction_result = result.block.transactions().iter().enumerate().find_map(
-                    |(idx, transaction)| {
-                        if *transaction.hash() == tx_hash {
-                            Some(result.transaction_results[idx].clone())
-                        } else {
-                            None
+        let mut mining_results = Vec::new();
+        let transaction_result = snapshot_id
+            .map(
+                |snapshot_id| -> Result<ExecutionResult, ProviderError<LoggerErrorT>> {
+                    let transaction_result = loop {
+                        let result = self.mine_and_commit_block(None).map_err(|error| {
+                            self.revert_to_snapshot(snapshot_id);
+
+                            error
+                        })?;
+
+                        let transaction_result =
+                            result.block.transactions().iter().enumerate().find_map(
+                                |(idx, transaction)| {
+                                    if *transaction.hash() == transaction_hash {
+                                        Some(result.transaction_results[idx].clone())
+                                    } else {
+                                        None
+                                    }
+                                },
+                            );
+
+                        mining_results.push(result);
+
+                        if let Some(transaction_result) = transaction_result {
+                            break transaction_result;
                         }
-                    },
-                );
+                    };
 
-                if let Some(transaction_result) = transaction_result {
-                    break transaction_result;
-                }
-            };
+                    while self.mem_pool.has_pending_transactions() {
+                        let result = self.mine_and_commit_block(None).map_err(|error| {
+                            self.revert_to_snapshot(snapshot_id);
 
-            while self.mem_pool.has_pending_transactions() {
-                self.mine_and_commit_block(None).map_err(|error| {
-                    self.revert_to_snapshot(snapshot_id);
+                            error
+                        })?;
 
-                    error
-                })?;
-            }
+                        mining_results.push(result);
+                    }
 
-            self.snapshots.remove(&snapshot_id);
+                    self.snapshots.remove(&snapshot_id);
 
-            match transaction_result {
-                ExecutionResult::Success { .. } => (),
-                ExecutionResult::Revert { output, .. } => {
-                    return Err(TransactionFailure::revert(output, tx_hash).into());
-                }
-                ExecutionResult::Halt { reason, .. } => {
-                    self.revert_to_snapshot(snapshot_id);
+                    Ok(transaction_result)
+                },
+            )
+            .transpose()?;
 
-                    return Err(TransactionFailure::halt(reason, tx_hash).into());
-                }
-            }
-        }
-
-        Ok(tx_hash)
-    }
-
-    pub fn send_transaction(
-        &mut self,
-        transaction_request: TransactionRequestAndSender,
-    ) -> Result<B256, ProviderError> {
-        let signed_transaction = self.sign_transaction_request(transaction_request)?;
-        self.send_raw_transaction(signed_transaction)
+        Ok(SendTransactionResult {
+            transaction_hash,
+            transaction_result,
+            mining_results,
+        })
     }
 
     /// Sets whether the miner should mine automatically.
@@ -1357,7 +1372,11 @@ impl ProviderData {
         self.is_auto_mining = enabled;
     }
 
-    pub fn set_balance(&mut self, address: Address, balance: U256) -> Result<(), ProviderError> {
+    pub fn set_balance(
+        &mut self,
+        address: Address,
+        balance: U256,
+    ) -> Result<(), ProviderError<LoggerErrorT>> {
         let account_info = self.state.modify_account(
             address,
             AccountModifierFn::new(Box::new(move |account_balance, _, _| {
@@ -1388,13 +1407,20 @@ impl ProviderData {
     }
 
     /// Sets the gas limit used for mining new blocks.
-    pub fn set_block_gas_limit(&mut self, gas_limit: u64) -> Result<(), ProviderError> {
+    pub fn set_block_gas_limit(
+        &mut self,
+        gas_limit: u64,
+    ) -> Result<(), ProviderError<LoggerErrorT>> {
         self.mem_pool
             .set_block_gas_limit(&self.state, gas_limit)
             .map_err(ProviderError::State)
     }
 
-    pub fn set_code(&mut self, address: Address, code: Bytes) -> Result<(), ProviderError> {
+    pub fn set_code(
+        &mut self,
+        address: Address,
+        code: Bytes,
+    ) -> Result<(), ProviderError<LoggerErrorT>> {
         let code = Bytecode::new_raw(code.clone());
         let default_code = code.clone();
         let irregular_code = code.clone();
@@ -1439,7 +1465,7 @@ impl ProviderData {
     pub fn set_next_block_base_fee_per_gas(
         &mut self,
         base_fee_per_gas: U256,
-    ) -> Result<(), ProviderError> {
+    ) -> Result<(), ProviderError<LoggerErrorT>> {
         let spec_id = self.spec_id();
         if spec_id < SpecId::LONDON {
             return Err(ProviderError::SetNextBlockBaseFeePerGasUnsupported { spec_id });
@@ -1451,7 +1477,10 @@ impl ProviderData {
     }
 
     /// Set the next block timestamp.
-    pub fn set_next_block_timestamp(&mut self, timestamp: u64) -> Result<u64, ProviderError> {
+    pub fn set_next_block_timestamp(
+        &mut self,
+        timestamp: u64,
+    ) -> Result<u64, ProviderError<LoggerErrorT>> {
         let latest_block = self.blockchain.last_block()?;
         let latest_block_header = latest_block.header();
 
@@ -1471,7 +1500,10 @@ impl ProviderData {
     }
 
     /// Sets the next block's prevrandao.
-    pub fn set_next_prev_randao(&mut self, prev_randao: B256) -> Result<(), ProviderError> {
+    pub fn set_next_prev_randao(
+        &mut self,
+        prev_randao: B256,
+    ) -> Result<(), ProviderError<LoggerErrorT>> {
         let spec_id = self.spec_id();
         if spec_id < SpecId::MERGE {
             return Err(ProviderError::SetNextPrevRandaoUnsupported { spec_id });
@@ -1482,7 +1514,11 @@ impl ProviderData {
         Ok(())
     }
 
-    pub fn set_nonce(&mut self, address: Address, nonce: u64) -> Result<(), ProviderError> {
+    pub fn set_nonce(
+        &mut self,
+        address: Address,
+        nonce: u64,
+    ) -> Result<(), ProviderError<LoggerErrorT>> {
         if mempool::has_transactions(&self.mem_pool) {
             return Err(ProviderError::SetAccountNonceWithPendingTransactions);
         }
@@ -1531,7 +1567,7 @@ impl ProviderData {
         address: Address,
         index: U256,
         value: U256,
-    ) -> Result<(), ProviderError> {
+    ) -> Result<(), ProviderError<LoggerErrorT>> {
         self.state.set_account_storage_slot(address, index, value)?;
 
         let old_value = self.state.set_account_storage_slot(address, index, value)?;
@@ -1560,7 +1596,11 @@ impl ProviderData {
         Ok(())
     }
 
-    pub fn sign(&self, address: &Address, message: Bytes) -> Result<Signature, ProviderError> {
+    pub fn sign(
+        &self,
+        address: &Address,
+        message: Bytes,
+    ) -> Result<Signature, ProviderError<LoggerErrorT>> {
         match self.local_accounts.get(address) {
             Some(secret_key) => Ok(Signature::new(&message[..], secret_key)?),
             None => Err(ProviderError::UnknownAddress { address: *address }),
@@ -1571,7 +1611,7 @@ impl ProviderData {
         &self,
         address: &Address,
         message: &TypedData,
-    ) -> Result<Signature, ProviderError> {
+    ) -> Result<Signature, ProviderError<LoggerErrorT>> {
         match self.local_accounts.get(address) {
             Some(secret_key) => {
                 let hash: B256 = message.encode_eip712()?.into();
@@ -1589,7 +1629,10 @@ impl ProviderData {
         self.impersonated_accounts.remove(&address)
     }
 
-    pub fn total_difficulty_by_hash(&self, hash: &B256) -> Result<Option<U256>, ProviderError> {
+    pub fn total_difficulty_by_hash(
+        &self,
+        hash: &B256,
+    ) -> Result<Option<U256>, ProviderError<LoggerErrorT>> {
         self.blockchain
             .total_difficulty_by_hash(hash)
             .map_err(ProviderError::Blockchain)
@@ -1600,9 +1643,9 @@ impl ProviderData {
     pub fn transaction_by_hash(
         &self,
         hash: &B256,
-    ) -> Result<Option<TransactionAndBlock>, ProviderError> {
+    ) -> Result<Option<TransactionAndBlock>, ProviderError<LoggerErrorT>> {
         let transaction = if let Some(tx) = self.mem_pool.transaction_by_hash(hash) {
-            let signed_transaction = tx.pending().transaction().clone();
+            let signed_transaction = tx.pending().as_inner().clone();
 
             Some(TransactionAndBlock {
                 signed_transaction,
@@ -1622,6 +1665,7 @@ impl ProviderData {
                 .transactions()
                 .get(tx_index)
                 .expect("Transaction index must be valid, since it's from the receipt.")
+                .as_inner()
                 .clone();
 
             Some(TransactionAndBlock {
@@ -1641,8 +1685,8 @@ impl ProviderData {
 
     fn add_pending_transaction(
         &mut self,
-        transaction: PendingTransaction,
-    ) -> Result<B256, ProviderError> {
+        transaction: ExecutableTransaction,
+    ) -> Result<B256, ProviderError<LoggerErrorT>> {
         let transaction_hash = *transaction.hash();
 
         // Handles validation
@@ -1663,11 +1707,11 @@ impl ProviderData {
 
         Ok(transaction_hash)
     }
-    fn evm_inspector(&self) -> EvmInspector<'_> {
-        EvmInspector::new(&*self.callbacks)
-    }
 
-    fn create_evm_config(&self, block_spec: Option<&BlockSpec>) -> Result<CfgEnv, ProviderError> {
+    fn create_evm_config(
+        &self,
+        block_spec: Option<&BlockSpec>,
+    ) -> Result<CfgEnv, ProviderError<LoggerErrorT>> {
         let block_number = block_spec
             .map(|block_spec| self.block_number_by_block_spec(block_spec))
             .transpose()?
@@ -1700,7 +1744,7 @@ impl ProviderData {
             Arc<dyn SyncBlock<Error = BlockchainError>>,
             Box<dyn SyncState<StateError>>,
         ) -> T,
-    ) -> Result<T, ProviderError> {
+    ) -> Result<T, ProviderError<LoggerErrorT>> {
         let (context, blockchain) = if let Some(context) = self.context_by_block_spec(block_spec)? {
             (context, None)
         } else {
@@ -1736,13 +1780,13 @@ impl ProviderData {
         &self,
         timestamp: u64,
         prevrandao: Option<B256>,
-    ) -> Result<MineBlockResultAndState<StateError>, ProviderError> {
+    ) -> Result<DebugMineBlockResultAndState<StateError>, ProviderError<LoggerErrorT>> {
         // TODO: https://github.com/NomicFoundation/edr/issues/156
         let reward = U256::ZERO;
 
         let evm_config = self.create_evm_config(None)?;
 
-        let mut inspector = self.evm_inspector();
+        let mut inspector = EvmInspector::default();
 
         let result = mine_block(
             &*self.blockchain,
@@ -1760,11 +1804,16 @@ impl ProviderData {
             Some(&mut inspector),
         )?;
 
-        Ok(result)
+        Ok(DebugMineBlockResultAndState::new(
+            result,
+            inspector.into_console_log_encoded_messages(),
+        ))
     }
 
     /// Mines a pending block, without modifying any values.
-    pub fn mine_pending_block(&self) -> Result<MineBlockResultAndState<StateError>, ProviderError> {
+    pub fn mine_pending_block(
+        &self,
+    ) -> Result<DebugMineBlockResultAndState<StateError>, ProviderError<LoggerErrorT>> {
         let (block_timestamp, _new_offset) = self.next_block_timestamp(None)?;
 
         // Mining a pending block shouldn't affect the mix hash.
@@ -1778,7 +1827,7 @@ impl ProviderData {
     fn next_block_timestamp(
         &self,
         timestamp: Option<u64>,
-    ) -> Result<(u64, Option<i64>), ProviderError> {
+    ) -> Result<(u64, Option<i64>), ProviderError<LoggerErrorT>> {
         let latest_block = self.blockchain.last_block()?;
         let latest_block_header = latest_block.header();
 
@@ -1833,16 +1882,16 @@ impl ProviderData {
         }
     }
 
-    fn sign_transaction_request(
+    pub fn sign_transaction_request(
         &self,
         transaction_request: TransactionRequestAndSender,
-    ) -> Result<PendingTransaction, ProviderError> {
+    ) -> Result<ExecutableTransaction, ProviderError<LoggerErrorT>> {
         let TransactionRequestAndSender { request, sender } = transaction_request;
 
         if self.impersonated_accounts.contains(&sender) {
             let signed_transaction = request.fake_sign(&sender);
 
-            Ok(PendingTransaction::with_caller(
+            Ok(ExecutableTransaction::with_caller(
                 self.blockchain.spec_id(),
                 signed_transaction,
                 sender,
@@ -1854,7 +1903,7 @@ impl ProviderData {
                 .ok_or(ProviderError::UnknownAddress { address: sender })?;
 
             let signed_transaction = request.sign(secret_key)?;
-            Ok(PendingTransaction::new(
+            Ok(ExecutableTransaction::new(
                 self.blockchain.spec_id(),
                 signed_transaction,
             )?)
@@ -1864,7 +1913,7 @@ impl ProviderData {
     fn context_by_block_spec(
         &self,
         block_spec: Option<&BlockSpec>,
-    ) -> Result<Option<BlockContext>, ProviderError> {
+    ) -> Result<Option<BlockContext>, ProviderError<LoggerErrorT>> {
         let block = if let Some(block_spec) = block_spec {
             if let Some(block) = self.block_by_block_spec(block_spec)? {
                 block
@@ -1890,8 +1939,8 @@ impl ProviderData {
 
     fn validate_auto_mine_transaction(
         &self,
-        transaction: &PendingTransaction,
-    ) -> Result<(), ProviderError> {
+        transaction: &ExecutableTransaction,
+    ) -> Result<(), ProviderError<LoggerErrorT>> {
         let next_nonce = self.account_next_nonce(transaction.caller())?;
 
         match transaction.nonce().cmp(&next_nonce) {
@@ -2171,33 +2220,54 @@ lazy_static! {
 
 #[cfg(test)]
 mod tests {
+    use std::convert::Infallible;
+
     use anyhow::Context;
     use edr_eth::transaction::{Eip155TransactionRequest, TransactionKind, TransactionRequest};
     use edr_evm::hex;
     use edr_test_utils::env::get_alchemy_url;
-    use parking_lot::Mutex;
     use serde_json::json;
     use tempfile::TempDir;
 
     use super::*;
     use crate::{
-        data::inspector::tests::{
-            deploy_console_log_contract, ConsoleLogTransaction, InspectorCallbacksStub,
-        },
+        data::inspector::tests::{deploy_console_log_contract, ConsoleLogTransaction},
         test_utils::{
             create_test_config_with_impersonated_accounts_and_fork, one_ether, FORK_BLOCK_NUMBER,
         },
-        ProviderConfig,
+        Logger, ProviderConfig,
     };
+
+    #[derive(Clone, Default)]
+    struct NoopLogger;
+
+    impl Logger for NoopLogger {
+        type BlockchainError = BlockchainError;
+
+        type LoggerError = Infallible;
+
+        fn is_enabled(&self) -> bool {
+            true
+        }
+
+        fn set_is_enabled(&mut self, _is_enabled: bool) {}
+
+        fn print_method_logs(
+            &mut self,
+            _method: &str,
+            _error: Option<&ProviderError<Infallible>>,
+        ) -> Result<(), Infallible> {
+            Ok(())
+        }
+    }
 
     struct ProviderTestFixture {
         // We need to keep the tempdir and runtime alive for the duration of the test
         _cache_dir: TempDir,
         _runtime: runtime::Runtime,
         config: ProviderConfig,
-        provider_data: ProviderData,
+        provider_data: ProviderData<Infallible>,
         impersonated_account: Address,
-        console_log_calls: Arc<Mutex<Vec<Bytes>>>,
     }
 
     impl ProviderTestFixture {
@@ -2219,9 +2289,7 @@ mod tests {
                 forked,
             );
 
-            let callbacks = Box::<InspectorCallbacksStub>::default();
-            let console_log_calls = callbacks.console_log_calls.clone();
-
+            let logger = Box::<NoopLogger>::default();
             let subscription_callback = Box::new(|_| ());
 
             let runtime = runtime::Builder::new_multi_thread()
@@ -2232,7 +2300,7 @@ mod tests {
 
             let mut provider_data = ProviderData::new(
                 runtime.handle().clone(),
-                callbacks,
+                logger,
                 subscription_callback,
                 config.clone(),
             )?;
@@ -2246,12 +2314,7 @@ mod tests {
                 config,
                 provider_data,
                 impersonated_account,
-                console_log_calls,
             })
-        }
-
-        fn console_log_calls(&self) -> Vec<Bytes> {
-            self.console_log_calls.lock().clone()
         }
 
         fn dummy_transaction_request(&self, nonce: Option<u64>) -> TransactionRequestAndSender {
@@ -2280,14 +2343,14 @@ mod tests {
                 .expect("there are local accounts")
         }
 
-        fn impersonated_dummy_transaction(&self) -> anyhow::Result<PendingTransaction> {
+        fn impersonated_dummy_transaction(&self) -> anyhow::Result<ExecutableTransaction> {
             let mut transaction = self.dummy_transaction_request(None);
             transaction.sender = self.impersonated_account;
 
             Ok(self.provider_data.sign_transaction_request(transaction)?)
         }
 
-        fn signed_dummy_transaction(&self) -> anyhow::Result<PendingTransaction> {
+        fn signed_dummy_transaction(&self) -> anyhow::Result<ExecutableTransaction> {
             let transaction = self.dummy_transaction_request(None);
             Ok(self.provider_data.sign_transaction_request(transaction)?)
         }
@@ -2363,7 +2426,7 @@ mod tests {
 
     fn test_add_pending_transaction(
         fixture: &mut ProviderTestFixture,
-        transaction: PendingTransaction,
+        transaction: ExecutableTransaction,
     ) -> anyhow::Result<()> {
         let filter_id = fixture
             .provider_data
@@ -2491,19 +2554,21 @@ mod tests {
             expected_call_data,
         } = deploy_console_log_contract(&mut fixture.provider_data)?;
 
-        assert_eq!(fixture.console_log_calls().len(), 0);
+        let signed_transaction = fixture
+            .provider_data
+            .sign_transaction_request(transaction)?;
 
         fixture.provider_data.set_auto_mining(false);
-        fixture.provider_data.send_transaction(transaction)?;
+        fixture.provider_data.send_transaction(signed_transaction)?;
         let (block_timestamp, _) = fixture.provider_data.next_block_timestamp(None)?;
         let prevrandao = fixture.provider_data.prev_randao_generator.next_value();
-        fixture
+        let result = fixture
             .provider_data
             .mine_block(block_timestamp, Some(prevrandao))?;
 
-        let console_log_calls = fixture.console_log_calls();
-        assert_eq!(console_log_calls.len(), 1);
-        assert_eq!(console_log_calls[0], expected_call_data);
+        let console_log_inputs = result.console_log_inputs;
+        assert_eq!(console_log_inputs.len(), 1);
+        assert_eq!(console_log_inputs[0], expected_call_data);
 
         Ok(())
     }
@@ -2516,18 +2581,19 @@ mod tests {
             expected_call_data,
         } = deploy_console_log_contract(&mut fixture.provider_data)?;
 
-        assert_eq!(fixture.console_log_calls().len(), 0);
-
         let pending_transaction = fixture
             .provider_data
             .sign_transaction_request(transaction)?;
-        fixture
-            .provider_data
-            .run_call(pending_transaction, None, &StateOverrides::default())?;
 
-        let console_log_calls = fixture.console_log_calls();
-        assert_eq!(console_log_calls.len(), 1);
-        assert_eq!(console_log_calls[0], expected_call_data);
+        let result = fixture.provider_data.run_call(
+            pending_transaction,
+            None,
+            &StateOverrides::default(),
+        )?;
+
+        let console_log_inputs = result.console_log_inputs;
+        assert_eq!(console_log_inputs.len(), 1);
+        assert_eq!(console_log_inputs[0], expected_call_data);
 
         Ok(())
     }

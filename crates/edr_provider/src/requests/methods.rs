@@ -396,6 +396,92 @@ pub enum MethodInvocation {
     StopImpersonatingAccount(RpcAddress),
 }
 
+impl MethodInvocation {
+    /// Retrieves the instance's method name.
+    pub fn method_name(&self) -> &'static str {
+        match self {
+            MethodInvocation::Accounts(_) => "eth_accounts",
+            MethodInvocation::BlockNumber(_) => "eth_blockNumber",
+            MethodInvocation::Call(_, _, _) => "eth_call",
+            MethodInvocation::ChainId(_) => "eth_chainId",
+            MethodInvocation::Coinbase(_) => "eth_coinbase",
+            MethodInvocation::EstimateGas(_, _) => "eth_estimateGas",
+            MethodInvocation::FeeHistory(_, _, _) => "eth_feeHistory",
+            MethodInvocation::GasPrice(_) => "eth_gasPrice",
+            MethodInvocation::GetBalance(_, _) => "eth_getBalance",
+            MethodInvocation::GetBlockByNumber(_, _) => "eth_getBlockByNumber",
+            MethodInvocation::GetBlockByHash(_, _) => "eth_getBlockByHash",
+            MethodInvocation::GetBlockTransactionCountByHash(_) => {
+                "eth_getBlockTransactionCountByHash"
+            }
+            MethodInvocation::GetBlockTransactionCountByNumber(_) => {
+                "eth_getBlockTransactionCountByNumber"
+            }
+            MethodInvocation::GetCode(_, _) => "eth_getCode",
+            MethodInvocation::GetFilterChanges(_) => "eth_getFilterChanges",
+            MethodInvocation::GetFilterLogs(_) => "eth_getFilterLogs",
+            MethodInvocation::GetLogs(_) => "eth_getLogs",
+            MethodInvocation::GetStorageAt(_, _, _) => "eth_getStorageAt",
+            MethodInvocation::GetTransactionByBlockHashAndIndex(_, _) => {
+                "eth_getTransactionByBlockHashAndIndex"
+            }
+            MethodInvocation::GetTransactionByBlockNumberAndIndex(_, _) => {
+                "eth_getTransactionByBlockNumberAndIndex"
+            }
+            MethodInvocation::GetTransactionByHash(_) => "eth_getTransactionByHash",
+            MethodInvocation::GetTransactionCount(_, _) => "eth_getTransactionCount",
+            MethodInvocation::GetTransactionReceipt(_) => "eth_getTransactionReceipt",
+            MethodInvocation::Mining(_) => "eth_mining",
+            MethodInvocation::NetListening(_) => "net_listening",
+            MethodInvocation::NetPeerCount(_) => "net_peerCount",
+            MethodInvocation::NetVersion(_) => "net_version",
+            MethodInvocation::NewBlockFilter(_) => "eth_newBlockFilter",
+            MethodInvocation::NewFilter(_) => "eth_newFilter",
+            MethodInvocation::NewPendingTransactionFilter(_) => "eth_newPendingTransactionFilter",
+            MethodInvocation::PendingTransactions(_) => "eth_pendingTransactions",
+            MethodInvocation::SendRawTransaction(_) => "eth_sendRawTransaction",
+            MethodInvocation::SendTransaction(_) => "eth_sendTransaction",
+            MethodInvocation::Sign(_, _) => "eth_sign",
+            MethodInvocation::SignTypedDataV4(_, _) => "eth_signTypedData_v4",
+            MethodInvocation::Subscribe(_, _) => "eth_subscribe",
+            MethodInvocation::Syncing(_) => "eth_syncing",
+            MethodInvocation::UninstallFilter(_) => "eth_uninstallFilter",
+            MethodInvocation::Unsubscribe(_) => "eth_unsubscribe",
+            MethodInvocation::Web3ClientVersion(_) => "web3_clientVersion",
+            MethodInvocation::Web3Sha3(_) => "web3_sha3",
+            MethodInvocation::EvmIncreaseTime(_) => "evm_increaseTime",
+            MethodInvocation::EvmMine(_) => "evm_mine",
+            MethodInvocation::EvmRevert(_) => "evm_revert",
+            MethodInvocation::EvmSetAutomine(_) => "evm_setAutomine",
+            MethodInvocation::EvmSetBlockGasLimit(_) => "evm_setBlockGasLimit",
+            MethodInvocation::EvmSetIntervalMining(_) => "evm_setIntervalMining",
+            MethodInvocation::EvmSetNextBlockTimestamp(_) => "evm_setNextBlockTimestamp",
+            MethodInvocation::EvmSnapshot(_) => "evm_snapshot",
+            MethodInvocation::DebugTraceCall(_, _, _) => "debug_traceCall",
+            MethodInvocation::DebugTraceTransaction(_, _) => "debug_traceTransaction",
+            MethodInvocation::AddCompilationResult(_, _, _) => "hardhat_addCompilationResult",
+            MethodInvocation::DropTransaction(_) => "hardhat_dropTransaction",
+            MethodInvocation::GetAutomine(_) => "hardhat_getAutomine",
+            MethodInvocation::GetStackTraceFailuresCount(_) => "hardhat_getStackTraceFailuresCount",
+            MethodInvocation::ImpersonateAccount(_) => "hardhat_impersonateAccount",
+            MethodInvocation::IntervalMine(_) => "hardhat_intervalMine",
+            MethodInvocation::Metadata(_) => "hardhat_metadata",
+            MethodInvocation::Mine(_, _) => "hardhat_mine",
+            MethodInvocation::Reset(_) => "hardhat_reset",
+            MethodInvocation::SetBalance(_, _) => "hardhat_setBalance",
+            MethodInvocation::SetCode(_, _) => "hardhat_setCode",
+            MethodInvocation::SetCoinbase(_) => "hardhat_setCoinbase",
+            MethodInvocation::SetLoggingEnabled(_) => "hardhat_setLoggingEnabled",
+            MethodInvocation::SetMinGasPrice(_) => "hardhat_setMinGasPrice",
+            MethodInvocation::SetNextBlockBaseFeePerGas(_) => "hardhat_setNextBlockBaseFeePerGas",
+            MethodInvocation::SetNonce(_, _) => "hardhat_setNonce",
+            MethodInvocation::SetPrevRandao(_) => "hardhat_setPrevRandao",
+            MethodInvocation::SetStorageAt(_, _, _) => "hardhat_setStorageAt",
+            MethodInvocation::StopImpersonatingAccount(_) => "hardhat_stopImpersonatingAccount",
+        }
+    }
+}
+
 /// an input that can be either a single usize or an array of two usize values
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]

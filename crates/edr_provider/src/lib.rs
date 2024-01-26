@@ -1,5 +1,6 @@
 mod config;
 mod data;
+mod debug_mine;
 mod error;
 mod filter;
 mod interval;
@@ -12,16 +13,22 @@ mod subscribe;
 #[cfg(test)]
 pub mod test_utils;
 
+use core::fmt::Debug;
 use std::sync::Arc;
 
+use edr_evm::{blockchain::BlockchainError, HashSet};
+use lazy_static::lazy_static;
+use logger::SyncLogger;
 use parking_lot::Mutex;
 use requests::eth::handle_set_interval_mining;
 use tokio::runtime;
 
 pub use self::{
     config::*,
-    data::InspectorCallbacks,
-    error::ProviderError,
+    data::CallResult,
+    debug_mine::DebugMineBlockResult,
+    error::{EstimateGasFailure, ProviderError, TransactionFailure, TransactionFailureReason},
+    logger::Logger,
     requests::{
         hardhat::rpc_types as hardhat_rpc_types, InvalidRequestReason, MethodInvocation,
         OneUsizeOrTwo, ProviderRequest, U64OrUsize,
@@ -33,7 +40,18 @@ use self::{
     interval::IntervalMiner,
     requests::{eth, hardhat},
 };
-use crate::{data::SyncInspectorCallbacks, requests::debug};
+use crate::requests::debug;
+
+lazy_static! {
+    pub static ref PRIVATE_RPC_METHODS: HashSet<&'static str> = {
+        [
+            "hardhat_getStackTraceFailuresCount",
+            "hardhat_setLoggingEnabled",
+        ]
+        .into_iter()
+        .collect()
+    };
+}
 
 /// A JSON-RPC provider for Ethereum.
 ///
@@ -52,7 +70,7 @@ use crate::{data::SyncInspectorCallbacks, requests::debug};
 ///
 /// fn to_response(
 ///     id: jsonrpc::Id,
-///     result: Result<serde_json::Value, ProviderError>,
+///     result: Result<serde_json::Value, ProviderError<LoggerErrorT>,
 /// ) -> jsonrpc::Response<serde_json::Value> { let data = match result {
 ///   Ok(result) => jsonrpc::ResponseData::Success { result }, Err(error) =>
 ///   jsonrpc::ResponseData::Error { error: jsonrpc::Error { code: -32000,
@@ -65,27 +83,22 @@ use crate::{data::SyncInspectorCallbacks, requests::debug};
 ///     }
 /// }
 /// ```
-pub struct Provider {
-    data: Arc<Mutex<ProviderData>>,
+pub struct Provider<LoggerErrorT: Debug> {
+    data: Arc<Mutex<ProviderData<LoggerErrorT>>>,
     /// Interval miner runs in the background, if enabled.
-    interval_miner: Arc<Mutex<Option<IntervalMiner>>>,
+    interval_miner: Arc<Mutex<Option<IntervalMiner<LoggerErrorT>>>>,
     runtime: runtime::Handle,
 }
 
-impl Provider {
+impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
     /// Constructs a new instance.
     pub fn new(
         runtime: runtime::Handle,
-        callbacks: Box<dyn SyncInspectorCallbacks>,
+        logger: Box<dyn SyncLogger<BlockchainError = BlockchainError, LoggerError = LoggerErrorT>>,
         subscriber_callback: Box<dyn SyncSubscriberCallback>,
         config: ProviderConfig,
     ) -> Result<Self, CreationError> {
-        let data = ProviderData::new(
-            runtime.clone(),
-            callbacks,
-            subscriber_callback,
-            config.clone(),
-        )?;
+        let data = ProviderData::new(runtime.clone(), logger, subscriber_callback, config.clone())?;
         let data = Arc::new(Mutex::new(data));
 
         let interval_miner = config
@@ -106,11 +119,8 @@ impl Provider {
     pub fn handle_request(
         &self,
         request: ProviderRequest,
-    ) -> Result<serde_json::Value, ProviderError> {
+    ) -> Result<serde_json::Value, ProviderError<LoggerErrorT>> {
         let mut data = self.data.lock();
-
-        // TODO: resolve deserialization defaults using data
-        // Will require changes to `ProviderRequest` to receive `json_serde::Value`
 
         match request {
             ProviderRequest::Single(request) => self.handle_single_request(&mut data, request),
@@ -118,12 +128,23 @@ impl Provider {
         }
     }
 
+    pub fn log_failed_deserialization(
+        &self,
+        method_name: &str,
+        error: &ProviderError<LoggerErrorT>,
+    ) -> Result<(), ProviderError<LoggerErrorT>> {
+        let mut data = self.data.lock();
+        data.logger_mut()
+            .print_method_logs(method_name, Some(error))
+            .map_err(ProviderError::Logger)
+    }
+
     /// Handles a batch of JSON requests for an execution provider.
     fn handle_batch_request(
         &self,
-        data: &mut ProviderData,
+        data: &mut ProviderData<LoggerErrorT>,
         request: Vec<MethodInvocation>,
-    ) -> Result<serde_json::Value, ProviderError> {
+    ) -> Result<serde_json::Value, ProviderError<LoggerErrorT>> {
         let mut results = Vec::new();
 
         for req in request {
@@ -135,12 +156,23 @@ impl Provider {
 
     fn handle_single_request(
         &self,
-        data: &mut ProviderData,
+        data: &mut ProviderData<LoggerErrorT>,
         request: MethodInvocation,
-    ) -> Result<serde_json::Value, ProviderError> {
+    ) -> Result<serde_json::Value, ProviderError<LoggerErrorT>> {
+        let method_name = if data.logger_mut().is_enabled() {
+            let method_name = request.method_name();
+            if PRIVATE_RPC_METHODS.contains(method_name) {
+                None
+            } else {
+                Some(method_name)
+            }
+        } else {
+            None
+        };
+
         // TODO: Remove the lint override once all methods have been implemented
         #[allow(clippy::match_same_arms)]
-        match request {
+        let result = match request {
             // eth_* method
             MethodInvocation::Accounts(()) => eth::handle_accounts_request(data).and_then(to_json),
             MethodInvocation::BlockNumber(()) => {
@@ -344,9 +376,9 @@ impl Provider {
             MethodInvocation::SetCoinbase(coinbase) => {
                 hardhat::handle_set_coinbase_request(data, coinbase).and_then(to_json)
             }
-            MethodInvocation::SetLoggingEnabled(_) => Err(ProviderError::Unimplemented(
-                "SetLoggingEnabled".to_string(),
-            )),
+            MethodInvocation::SetLoggingEnabled(is_enabled) => {
+                hardhat::handle_set_logging_enabled_request(data, is_enabled).and_then(to_json)
+            }
             MethodInvocation::SetMinGasPrice(min_gas_price) => {
                 hardhat::handle_set_min_gas_price(data, min_gas_price).and_then(to_json)
             }
@@ -366,10 +398,23 @@ impl Provider {
             MethodInvocation::StopImpersonatingAccount(address) => {
                 hardhat::handle_stop_impersonating_account_request(data, *address).and_then(to_json)
             }
+        };
+
+        if let Some(method_name) = method_name {
+            // Skip printing for `hardhat_intervalMine` unless it is an error
+            if method_name != "hardhat_intervalMine" || result.is_err() {
+                data.logger_mut()
+                    .print_method_logs(method_name, result.as_ref().err())
+                    .map_err(ProviderError::Logger)?;
+            }
         }
+
+        result
     }
 }
 
-fn to_json<T: serde::Serialize>(value: T) -> Result<serde_json::Value, ProviderError> {
+fn to_json<T: serde::Serialize, LoggerErrorT: Debug>(
+    value: T,
+) -> Result<serde_json::Value, ProviderError<LoggerErrorT>> {
     serde_json::to_value(value).map_err(ProviderError::Serialization)
 }

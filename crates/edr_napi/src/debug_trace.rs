@@ -37,7 +37,7 @@ pub async fn debug_trace_transaction(
     let block_env = BlockEnv::try_from(block_config)?;
     let transaction_hash = TryCast::<B256>::try_cast(transaction_hash)?;
 
-    let transactions: Vec<edr_evm::PendingTransaction> =
+    let transactions: Vec<edr_evm::ExecutableTransaction> =
         transactions.into_iter().map(|tx| (*tx).clone()).collect();
 
     let blockchain = (*blockchain).clone();

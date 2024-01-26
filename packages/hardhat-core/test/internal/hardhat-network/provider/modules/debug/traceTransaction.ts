@@ -3,7 +3,6 @@ import _ from "lodash";
 
 import { defaultHardhatNetworkParams } from "../../../../../../src/internal/core/config/default-config";
 import { BackwardsCompatibilityProviderAdapter } from "../../../../../../src/internal/core/providers/backwards-compatibility";
-import { ModulesLogger } from "../../../../../../src/internal/hardhat-network/provider/modules/logger";
 import { ForkConfig } from "../../../../../../src/internal/hardhat-network/provider/node-types";
 import { RpcDebugTraceOutput } from "../../../../../../src/internal/hardhat-network/provider/output";
 import { createHardhatNetworkProvider } from "../../../../../../src/internal/hardhat-network/provider/provider";
@@ -239,8 +238,6 @@ describe("Debug module", function () {
         blockNumber: 11_954_000,
       };
 
-      const logger = new ModulesLogger(false);
-
       const hardhatNetworkProvider = await createHardhatNetworkProvider(
         {
           hardfork: "muirGlacier",
@@ -261,7 +258,9 @@ describe("Debug module", function () {
           allowBlocksWithSameTimestamp: false,
           enableTransientStorage: false,
         },
-        logger
+        {
+          enabled: false,
+        }
       );
 
       provider = new BackwardsCompatibilityProviderAdapter(
@@ -364,8 +363,6 @@ describe("Debug module", function () {
         blockNumber: 15_204_358,
       };
 
-      const logger = new ModulesLogger(false);
-
       const hardhatNetworkProvider = await createHardhatNetworkProvider(
         {
           hardfork: DEFAULT_HARDFORK,
@@ -386,7 +383,9 @@ describe("Debug module", function () {
           allowBlocksWithSameTimestamp: false,
           enableTransientStorage: false,
         },
-        logger
+        {
+          enabled: false,
+        }
       );
 
       provider = new BackwardsCompatibilityProviderAdapter(

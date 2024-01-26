@@ -1,3 +1,4 @@
+use core::fmt::Debug;
 use std::{
     ops::{Deref, DerefMut},
     str::FromStr,
@@ -6,6 +7,8 @@ use std::{
 use edr_eth::{Address, Bytes, U256, U64};
 use ethers_core::types::transaction::eip712::TypedData;
 use serde::{Deserialize, Deserializer, Serialize};
+
+use crate::ProviderError;
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 #[repr(transparent)]
@@ -40,20 +43,36 @@ const STORAGE_VALUE_INVALID_LENGTH_ERROR_MESSAGE: &str =
 const UNSUPPORTED_METHOD: &str = "unknown variant";
 
 pub enum InvalidRequestReason<'a> {
-    UnsupportedMethod { method_name: &'a str },
-    InvalidStorageKey { error_message: &'a str },
-    InvalidStorageValue { error_message: &'a str },
-    InvalidJson { error_message: &'a str },
+    UnsupportedMethod {
+        method_name: &'a str,
+    },
+    InvalidStorageKey {
+        method_name: &'a str,
+        error_message: &'a str,
+    },
+    InvalidStorageValue {
+        method_name: &'a str,
+        error_message: &'a str,
+    },
+    InvalidJson {
+        error_message: &'a str,
+    },
 }
 
 impl<'a> InvalidRequestReason<'a> {
     pub fn new(json_request: &'a str, error_message: &'a str) -> Self {
-        if error_message.starts_with(STORAGE_KEY_TOO_LARGE_ERROR_MESSAGE) {
-            return InvalidRequestReason::InvalidStorageKey { error_message };
-        } else if error_message.starts_with(STORAGE_VALUE_INVALID_LENGTH_ERROR_MESSAGE) {
-            return InvalidRequestReason::InvalidStorageValue { error_message };
-        } else if error_message.starts_with(UNSUPPORTED_METHOD) {
-            if let Ok(request) = serde_json::from_str::<UnsupportedRequest<'a>>(json_request) {
+        if let Ok(request) = serde_json::from_str::<RequestWithMethod<'a>>(json_request) {
+            if error_message.starts_with(STORAGE_KEY_TOO_LARGE_ERROR_MESSAGE) {
+                return InvalidRequestReason::InvalidStorageKey {
+                    method_name: request.method,
+                    error_message,
+                };
+            } else if error_message.starts_with(STORAGE_VALUE_INVALID_LENGTH_ERROR_MESSAGE) {
+                return InvalidRequestReason::InvalidStorageValue {
+                    method_name: request.method,
+                    error_message,
+                };
+            } else if error_message.starts_with(UNSUPPORTED_METHOD) {
                 return InvalidRequestReason::UnsupportedMethod {
                     method_name: request.method,
                 };
@@ -77,15 +96,41 @@ impl<'a> InvalidRequestReason<'a> {
             InvalidRequestReason::UnsupportedMethod { method_name } => {
                 format!("Method {method_name} is not supported")
             }
-            InvalidRequestReason::InvalidStorageKey { error_message }
-            | InvalidRequestReason::InvalidStorageValue { error_message }
+            InvalidRequestReason::InvalidStorageKey { error_message, .. }
+            | InvalidRequestReason::InvalidStorageValue { error_message, .. }
             | InvalidRequestReason::InvalidJson { error_message } => (*error_message).into(),
+        }
+    }
+
+    /// Converts the invalid request reason into a provider error.
+    pub fn provider_error<LoggerErrorT: Debug>(
+        &self,
+    ) -> Option<(String, ProviderError<LoggerErrorT>)> {
+        match self {
+            InvalidRequestReason::InvalidJson { .. } => None,
+            InvalidRequestReason::InvalidStorageKey {
+                error_message,
+                method_name,
+            }
+            | InvalidRequestReason::InvalidStorageValue {
+                error_message,
+                method_name,
+            } => Some((
+                (*method_name).to_string(),
+                ProviderError::InvalidInput((*error_message).to_string()),
+            )),
+            InvalidRequestReason::UnsupportedMethod { method_name } => Some((
+                (*method_name).to_string(),
+                ProviderError::UnsupportedMethod {
+                    method_name: (*method_name).to_string(),
+                },
+            )),
         }
     }
 }
 
 #[derive(Clone, Debug, Deserialize)]
-struct UnsupportedRequest<'a> {
+struct RequestWithMethod<'a> {
     method: &'a str,
 }
 

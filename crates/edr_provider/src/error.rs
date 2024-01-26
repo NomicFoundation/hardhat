@@ -1,3 +1,4 @@
+use core::fmt::{Debug, Display};
 use std::{num::TryFromIntError, time::SystemTimeError};
 
 use alloy_sol_types::{ContractError, SolInterface};
@@ -9,7 +10,8 @@ use edr_evm::{
     blockchain::BlockchainError,
     hex,
     state::{AccountOverrideConversionError, StateError},
-    DebugTraceError, Halt, MineBlockError, MinerTransactionError, OutOfGasError,
+    trace::Trace,
+    DebugTraceError, ExecutionResult, Halt, MineBlockError, MinerTransactionError, OutOfGasError,
     TransactionCreationError, TransactionError,
 };
 use ethers_core::types::transaction::eip712::Eip712Error;
@@ -17,7 +19,7 @@ use ethers_core::types::transaction::eip712::Eip712Error;
 use crate::data::CreationError;
 
 #[derive(Debug, thiserror::Error)]
-pub enum ProviderError {
+pub enum ProviderError<LoggerErrorT> {
     /// Account override conversion error.
     #[error(transparent)]
     AccountOverrideConversionError(#[from] AccountOverrideConversionError),
@@ -48,6 +50,9 @@ pub enum ProviderError {
     DebugTrace(#[from] DebugTraceError<BlockchainError, StateError>),
     #[error(transparent)]
     Eip712Error(#[from] Eip712Error),
+    /// A transaction error occurred while estimating gas.
+    #[error(transparent)]
+    EstimateGasTransactionFailure(#[from] EstimateGasFailure),
     #[error("{0}")]
     InvalidArgument(String),
     /// Block number or hash doesn't exist in blockchain
@@ -68,6 +73,9 @@ pub enum ProviderError {
     /// The transaction with the provided hash was already mined.
     #[error("Transaction {0} cannot be dropped because it's already mined")]
     InvalidDropTransactionHash(B256),
+    /// The EIP-155 transaction was signed with another chain ID
+    #[error("Trying to send an incompatible EIP-155 transaction, signed for another chain.")]
+    InvalidEip155TransactionChainId,
     /// Invalid filter subscription type
     #[error("Subscription {filter_id} is not a {expected:?} subscription, but a {actual:?} subscription")]
     InvalidFilterSubscriptionType {
@@ -88,6 +96,9 @@ pub enum ProviderError {
     InvalidTransactionInput(String),
     #[error("Invalid transaction type {0}.")]
     InvalidTransactionType(u8),
+    /// An error occurred while logging.
+    #[error("Failed to log: {0:?}")]
+    Logger(LoggerErrorT),
     /// An error occurred while updating the mem pool.
     #[error(transparent)]
     MemPoolUpdate(StateError),
@@ -170,10 +181,12 @@ pub enum ProviderError {
         current_hardfork: SpecId,
         minimum_hardfork: SpecId,
     },
+    #[error("{method_name} - Method not supported")]
+    UnsupportedMethod { method_name: String },
 }
 
-impl From<ProviderError> for jsonrpc::Error {
-    fn from(value: ProviderError) -> Self {
+impl<LoggerErrorT: Debug> From<ProviderError<LoggerErrorT>> for jsonrpc::Error {
+    fn from(value: ProviderError<LoggerErrorT>) -> Self {
         const INVALID_INPUT: i16 = -32000;
         const INTERNAL_ERROR: i16 = -32603;
         const INVALID_PARAMS: i16 = -32602;
@@ -190,17 +203,20 @@ impl From<ProviderError> for jsonrpc::Error {
             ProviderError::Creation(_) => INVALID_INPUT,
             ProviderError::DebugTrace(_) => INTERNAL_ERROR,
             ProviderError::Eip712Error(_) => INVALID_INPUT,
+            ProviderError::EstimateGasTransactionFailure(_) => INVALID_INPUT,
             ProviderError::InvalidArgument(_) => INVALID_PARAMS,
             ProviderError::InvalidBlockNumberOrHash { .. } => INVALID_INPUT,
             ProviderError::InvalidBlockTag { .. } => INVALID_PARAMS,
             ProviderError::InvalidChainId { .. } => INVALID_PARAMS,
             ProviderError::InvalidDropTransactionHash(_) => INVALID_PARAMS,
+            ProviderError::InvalidEip155TransactionChainId => INVALID_PARAMS,
             ProviderError::InvalidFilterSubscriptionType { .. } => INVALID_PARAMS,
             ProviderError::InvalidInput(_) => INVALID_INPUT,
             ProviderError::InvalidTransactionHash { .. } => INVALID_PARAMS,
             ProviderError::InvalidTransactionIndex(_) => INVALID_PARAMS,
             ProviderError::InvalidTransactionInput(_) => INVALID_INPUT,
             ProviderError::InvalidTransactionType(_) => INVALID_PARAMS,
+            ProviderError::Logger(_) => INTERNAL_ERROR,
             ProviderError::MemPoolUpdate(_) => INVALID_INPUT,
             ProviderError::MineBlock(_) => INVALID_INPUT,
             ProviderError::MinerTransactionError(_) => INVALID_INPUT,
@@ -226,10 +242,15 @@ impl From<ProviderError> for jsonrpc::Error {
             ProviderError::UnmetHardfork { .. } => INVALID_PARAMS,
             ProviderError::UnsupportedAccessListParameter { .. } => INVALID_PARAMS,
             ProviderError::UnsupportedEIP1559Parameters { .. } => INVALID_PARAMS,
+            ProviderError::UnsupportedMethod { .. } => -32004,
         };
 
         let data = match &value {
-            ProviderError::TransactionFailed(transaction_failure) => Some(
+            ProviderError::EstimateGasTransactionFailure(EstimateGasFailure {
+                transaction_failure,
+                ..
+            })
+            | ProviderError::TransactionFailed(transaction_failure) => Some(
                 serde_json::to_value(transaction_failure).expect("transaction_failure to json"),
             ),
             _ => None,
@@ -255,9 +276,23 @@ impl From<ProviderError> for jsonrpc::Error {
     }
 }
 
+/// Failure that occurred while estimating gas.
+#[derive(Debug, thiserror::Error)]
+pub struct EstimateGasFailure {
+    pub console_log_inputs: Vec<Bytes>,
+    pub trace: Trace,
+    pub transaction_failure: TransactionFailure,
+}
+
+impl Display for EstimateGasFailure {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.transaction_failure)
+    }
+}
+
 /// Wrapper around [`revm_primitives::Halt`] to convert error messages to match
 /// Hardhat.
-#[derive(Debug, thiserror::Error, serde::Serialize)]
+#[derive(Clone, Debug, thiserror::Error, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionFailure {
     pub reason: TransactionFailureReason,
@@ -266,6 +301,19 @@ pub struct TransactionFailure {
 }
 
 impl TransactionFailure {
+    pub fn from_execution_result(
+        execution_result: &ExecutionResult,
+        transaction_hash: &B256,
+    ) -> Option<Self> {
+        match execution_result {
+            ExecutionResult::Success { .. } => None,
+            ExecutionResult::Revert { output, .. } => {
+                Some(Self::revert(output.clone(), *transaction_hash))
+            }
+            ExecutionResult::Halt { reason, .. } => Some(Self::halt(*reason, *transaction_hash)),
+        }
+    }
+
     pub fn revert(output: Bytes, transaction_hash: B256) -> Self {
         let data = format!("0x{}", hex::encode(output.as_ref()));
         Self {
@@ -308,7 +356,7 @@ impl std::fmt::Display for TransactionFailure {
     }
 }
 
-#[derive(Debug, serde::Serialize)]
+#[derive(Clone, Debug, serde::Serialize)]
 pub enum TransactionFailureReason {
     Inner(Halt),
     OpcodeNotFound,

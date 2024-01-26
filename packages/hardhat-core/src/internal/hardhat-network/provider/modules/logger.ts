@@ -31,11 +31,11 @@ interface PrintOptions {
   collapseHardhatMinedBlock?: boolean;
 }
 
-function printLine(line: string) {
+export function printLine(line: string) {
   console.log(line);
 }
 
-function replaceLastLine(newLine: string) {
+export function replaceLastLine(newLine: string) {
   if (process.stdout.isTTY === true) {
     process.stdout.write(
       // eslint-disable-next-line prefer-template
@@ -49,6 +49,12 @@ function replaceLastLine(newLine: string) {
   } else {
     process.stdout.write(`${newLine}\n`);
   }
+}
+
+export interface LoggerConfig {
+  enabled: boolean;
+  printLineFn?: (line: string) => void;
+  replaceLastLineFn?: (line: string) => void;
 }
 
 /**

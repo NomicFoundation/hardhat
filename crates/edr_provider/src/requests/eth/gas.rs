@@ -1,3 +1,5 @@
+use core::fmt::Debug;
+
 use edr_eth::{
     remote::{
         eth::{CallRequest, FeeHistoryResult},
@@ -17,11 +19,11 @@ use crate::{
     ProviderError,
 };
 
-pub fn handle_estimate_gas(
-    data: &ProviderData,
+pub fn handle_estimate_gas<LoggerErrorT: Debug>(
+    data: &mut ProviderData<LoggerErrorT>,
     call_request: CallRequest,
     block_spec: Option<BlockSpec>,
-) -> Result<U64, ProviderError> {
+) -> Result<U64, ProviderError<LoggerErrorT>> {
     validate_call_request(data.spec_id(), &call_request, &block_spec)?;
 
     // Matching Hardhat behavior in defaulting to "pending" instead of "latest" for
@@ -35,17 +37,28 @@ pub fn handle_estimate_gas(
         &StateOverrides::default(),
     )?;
 
-    let gas_limit = data.estimate_gas(transaction, &block_spec)?;
+    let result = data.estimate_gas(transaction.clone(), &block_spec);
+    if let Err(ProviderError::EstimateGasTransactionFailure(failure)) = result {
+        let spec_id = data.spec_id();
+        data.logger_mut()
+            .log_estimate_gas_failure(spec_id, &transaction, &failure)
+            .map_err(ProviderError::Logger)?;
 
-    Ok(U64::from(gas_limit))
+        Err(ProviderError::TransactionFailed(
+            failure.transaction_failure,
+        ))
+    } else {
+        let gas_limit = result?;
+        Ok(U64::from(gas_limit))
+    }
 }
 
-pub fn handle_fee_history(
-    data: &ProviderData,
+pub fn handle_fee_history<LoggerErrorT: Debug>(
+    data: &ProviderData<LoggerErrorT>,
     block_count: U256,
     newest_block: BlockSpec,
     reward_percentiles: Option<Vec<f64>>,
-) -> Result<FeeHistoryResult, ProviderError> {
+) -> Result<FeeHistoryResult, ProviderError<LoggerErrorT>> {
     if data.spec_id() < SpecId::LONDON {
         return Err(ProviderError::InvalidInput(
             "eth_feeHistory is disabled. It only works with the London hardfork or a later one."

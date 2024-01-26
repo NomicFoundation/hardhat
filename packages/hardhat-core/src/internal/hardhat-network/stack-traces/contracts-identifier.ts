@@ -5,7 +5,6 @@ import {
   zeroOutAddresses,
   zeroOutSlices,
 } from "./library-utils";
-import { EvmMessageTrace, isCreateTrace } from "./message-trace";
 import { Bytecode } from "./model";
 import { getOpcodeLength, Opcode } from "./opcodes";
 
@@ -100,12 +99,11 @@ export class ContractsIdentifier {
     this._cache.clear();
   }
 
-  public getBytecodeFromMessageTrace(
-    trace: EvmMessageTrace
+  public getBytecodeForCall(
+    code: Buffer,
+    isCreate: boolean
   ): Bytecode | undefined {
-    const normalizedCode = normalizeLibraryRuntimeBytecodeIfNecessary(
-      trace.code
-    );
+    const normalizedCode = normalizeLibraryRuntimeBytecodeIfNecessary(code);
 
     let normalizedCodeHex: string | undefined;
     if (this._enableCache) {
@@ -117,7 +115,7 @@ export class ContractsIdentifier {
       }
     }
 
-    const result = this._searchBytecode(trace, normalizedCode);
+    const result = this._searchBytecode(isCreate, normalizedCode);
 
     if (this._enableCache) {
       if (result !== undefined) {
@@ -129,7 +127,7 @@ export class ContractsIdentifier {
   }
 
   private _searchBytecode(
-    trace: EvmMessageTrace,
+    isCreate: boolean,
     code: Buffer,
     normalizeLibraries = true,
     trie = this._trie,
@@ -159,7 +157,7 @@ export class ContractsIdentifier {
     // We take advantage of this last observation, and just return the bytecode that exactly
     // matched the searchResult (sub)trie that we got.
     if (
-      isCreateTrace(trace) &&
+      isCreate &&
       searchResult.match !== undefined &&
       searchResult.match.isDeployment
     ) {
@@ -186,7 +184,7 @@ export class ContractsIdentifier {
         );
 
         const normalizedResult = this._searchBytecode(
-          trace,
+          isCreate,
           normalizedCode,
           false,
           searchResult,

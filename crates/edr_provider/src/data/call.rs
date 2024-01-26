@@ -1,15 +1,17 @@
+use core::fmt::Debug;
+
 use edr_eth::{
     block::{BlobGas, Header},
-    Bytes, SpecId, B256, U256,
+    SpecId, U256,
 };
 use edr_evm::{
     blockchain::{BlockchainError, SyncBlockchain},
     guaranteed_dry_run,
     state::{StateError, StateOverrides, SyncState},
-    BlobExcessGasAndPrice, BlockEnv, CfgEnv, ExecutionResult, ResultAndState, SyncInspector, TxEnv,
+    BlobExcessGasAndPrice, BlockEnv, CfgEnv, ExecutionResult, SyncInspector, TxEnv,
 };
 
-use crate::{error::TransactionFailure, ProviderError};
+use crate::ProviderError;
 
 pub(super) struct RunCallArgs<'a> {
     pub blockchain: &'a dyn SyncBlockchain<BlockchainError, StateError>,
@@ -22,7 +24,9 @@ pub(super) struct RunCallArgs<'a> {
 }
 
 /// Execute a transaction as a call. Returns the gas used and the output.
-pub(super) fn run_call(args: RunCallArgs<'_>) -> Result<ResultAndState, ProviderError> {
+pub(super) fn run_call<LoggerErrorT: Debug>(
+    args: RunCallArgs<'_>,
+) -> Result<ExecutionResult, ProviderError<LoggerErrorT>> {
     let RunCallArgs {
         blockchain,
         header,
@@ -60,25 +64,8 @@ pub(super) fn run_call(args: RunCallArgs<'_>) -> Result<ResultAndState, Provider
         block,
         inspector,
     )
-    .map_err(ProviderError::RunTransaction)
-}
-
-/// Execute a transaction as a call. Returns the gas used and the output.
-pub(super) fn run_call_and_handle_errors(
-    run_call_args: RunCallArgs<'_>,
-    transaction_hash: &B256,
-) -> Result<(u64, Bytes), ProviderError> {
-    let result = run_call(run_call_args)?;
-
-    match result.result {
-        ExecutionResult::Success {
-            gas_used, output, ..
-        } => Ok((gas_used, output.into_data())),
-        ExecutionResult::Revert { output, .. } => {
-            Err(TransactionFailure::revert(output, *transaction_hash).into())
-        }
-        ExecutionResult::Halt { reason, .. } => {
-            Err(TransactionFailure::halt(reason, *transaction_hash).into())
-        }
-    }
+    .map_or_else(
+        |error| Err(ProviderError::RunTransaction(error)),
+        |result| Ok(result.result),
+    )
 }

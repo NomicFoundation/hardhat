@@ -30,6 +30,11 @@ import { isErrorResponse } from "../../core/providers/http";
 import { getHardforkName } from "../../util/hardforks";
 import { Mutex } from "../../vendor/await-semaphore";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
+import { ContractsIdentifier } from "../stack-traces/contracts-identifier";
+import {
+  VmTraceDecoder,
+  initializeVmTraceDecoder,
+} from "../stack-traces/vm-trace-decoder";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/constants";
 
 import { getPackageJson } from "../../util/packageInfo";
@@ -38,7 +43,12 @@ import { DebugModule } from "./modules/debug";
 import { EthModule } from "./modules/eth";
 import { EvmModule } from "./modules/evm";
 import { HardhatModule } from "./modules/hardhat";
-import { ModulesLogger } from "./modules/logger";
+import {
+  LoggerConfig,
+  ModulesLogger,
+  printLine,
+  replaceLastLine,
+} from "./modules/logger";
 import { PersonalModule } from "./modules/personal";
 import { NetModule } from "./modules/net";
 import { Web3Module } from "./modules/web3";
@@ -272,7 +282,7 @@ class HardhatNetworkProvider extends EventEmitter implements EIP1193Provider {
 
     const nodeConfig = getNodeConfig(
       this._config,
-      await this._makeTracingConfig()
+      await makeTracingConfig(this._artifacts)
     );
 
     const [common, node] = await HardhatNode.create(nodeConfig);
@@ -313,38 +323,6 @@ class HardhatNetworkProvider extends EventEmitter implements EIP1193Provider {
     this._personalModule = new PersonalModule(node);
 
     this._forwardNodeEvents(node);
-  }
-
-  private async _makeTracingConfig(): Promise<TracingConfig | undefined> {
-    if (this._artifacts !== undefined) {
-      const buildInfos = [];
-
-      const buildInfoFiles = await this._artifacts.getBuildInfoPaths();
-
-      try {
-        for (const buildInfoFile of buildInfoFiles) {
-          const buildInfo = await fsExtra.readJson(buildInfoFile);
-          if (semver.gte(buildInfo.solcVersion, FIRST_SOLC_VERSION_SUPPORTED)) {
-            buildInfos.push(buildInfo);
-          }
-        }
-
-        return {
-          buildInfos,
-        };
-      } catch (error) {
-        console.warn(
-          chalk.yellow(
-            "Stack traces engine could not be initialized. Run Hardhat with --verbose to learn more."
-          )
-        );
-
-        log(
-          "Solidity stack traces disabled: Failed to read solc's input and output files. Please report this to help us improve Hardhat.\n",
-          error
-        );
-      }
-    }
   }
 
   private _makeMiningTimer(): MiningTimer {
@@ -421,14 +399,22 @@ export class EdrProviderWrapper
   private constructor(
     private readonly _provider: EdrProviderT,
     private readonly _eventAdapter: EdrProviderEventAdapter,
+    private readonly _vmTraceDecoder: VmTraceDecoder,
     // The common configuration for EthereumJS VM is not used by EDR, but tests expect it as part of the provider.
-    private readonly _common: Common
+    private readonly _common: Common,
+    tracingConfig?: TracingConfig
   ) {
     super();
+
+    if (tracingConfig !== undefined) {
+      initializeVmTraceDecoder(this._vmTraceDecoder, tracingConfig);
+    }
   }
 
   public static async create(
-    config: HardhatNetworkProviderConfig
+    config: HardhatNetworkProviderConfig,
+    loggerConfig: LoggerConfig,
+    artifacts?: Artifacts
   ): Promise<EdrProviderWrapper> {
     const { Provider } =
       require("@ignored/edr") as typeof import("@ignored/edr");
@@ -454,6 +440,12 @@ export class EdrProviderWrapper
     // To accomodate construction ordering, we need an adapter to forward events
     // from the EdrProvider callback to the wrapper's listener
     const eventAdapter = new EdrProviderEventAdapter();
+
+    const printLineFn = loggerConfig.printLineFn ?? printLine;
+    const replaceLastLineFn = loggerConfig.replaceLastLineFn ?? replaceLastLine;
+
+    const contractsIdentifier = new ContractsIdentifier();
+    const vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
 
     const provider = await Provider.withConfig(
       {
@@ -491,10 +483,28 @@ export class EdrProviderWrapper
         },
         networkId: BigInt(config.networkId),
       },
-      (message: Buffer) => {
-        const consoleLogger = new ConsoleLogger();
-
-        consoleLogger.log(message);
+      {
+        enable: loggerConfig.enabled,
+        decodeConsoleLogInputsCallback: (inputs: Buffer[]) => {
+          const consoleLogger = new ConsoleLogger();
+          return consoleLogger.getDecodedLogs(inputs);
+        },
+        getContractAndFunctionNameCallback: (
+          code: Buffer,
+          calldata?: Buffer
+        ) => {
+          return vmTraceDecoder.getContractAndFunctionNamesForCall(
+            code,
+            calldata
+          );
+        },
+        printLineCallback: (message: string, replace: boolean) => {
+          if (replace) {
+            replaceLastLineFn(message);
+          } else {
+            printLineFn(message);
+          }
+        },
       },
       (event: SubscriptionEvent) => {
         eventAdapter.emit("ethEvent", event);
@@ -502,7 +512,13 @@ export class EdrProviderWrapper
     );
 
     const common = makeCommon(getNodeConfig(config));
-    const wrapper = new EdrProviderWrapper(provider, eventAdapter, common);
+    const wrapper = new EdrProviderWrapper(
+      provider,
+      eventAdapter,
+      vmTraceDecoder,
+      common,
+      await makeTracingConfig(artifacts)
+    );
 
     // Pass through all events from the provider
     eventAdapter.addListener(
@@ -585,7 +601,7 @@ async function clientVersion(edrClientVersion: string): Promise<string> {
 
 export async function createHardhatNetworkProvider(
   hardhatNetworkProviderConfig: HardhatNetworkProviderConfig,
-  logger: ModulesLogger,
+  loggerConfig: LoggerConfig,
   artifacts?: Artifacts
 ): Promise<EIP1193Provider> {
   let eip1193Provider: EIP1193Provider;
@@ -594,13 +610,19 @@ export async function createHardhatNetworkProvider(
 
   if (vmModeEnvVar === "edr") {
     eip1193Provider = await EdrProviderWrapper.create(
-      hardhatNetworkProviderConfig
+      hardhatNetworkProviderConfig,
+      loggerConfig,
+      artifacts
     );
   } else if (vmModeEnvVar === "ethereumjs" || vmModeEnvVar === "dual") {
     // Dual mode will internally use the ethereumjs and EDR adapters
     eip1193Provider = new HardhatNetworkProvider(
       hardhatNetworkProviderConfig,
-      logger,
+      new ModulesLogger(
+        loggerConfig.enabled,
+        loggerConfig.printLineFn,
+        loggerConfig.replaceLastLineFn
+      ),
       artifacts
     );
   } else {
@@ -611,4 +633,38 @@ export async function createHardhatNetworkProvider(
   }
 
   return eip1193Provider;
+}
+
+async function makeTracingConfig(
+  artifacts: Artifacts | undefined
+): Promise<TracingConfig | undefined> {
+  if (artifacts !== undefined) {
+    const buildInfos = [];
+
+    const buildInfoFiles = await artifacts.getBuildInfoPaths();
+
+    try {
+      for (const buildInfoFile of buildInfoFiles) {
+        const buildInfo = await fsExtra.readJson(buildInfoFile);
+        if (semver.gte(buildInfo.solcVersion, FIRST_SOLC_VERSION_SUPPORTED)) {
+          buildInfos.push(buildInfo);
+        }
+      }
+
+      return {
+        buildInfos,
+      };
+    } catch (error) {
+      console.warn(
+        chalk.yellow(
+          "Stack traces engine could not be initialized. Run Hardhat with --verbose to learn more."
+        )
+      );
+
+      log(
+        "Solidity stack traces disabled: Failed to read solc's input and output files. Please report this to help us improve Hardhat.\n",
+        error
+      );
+    }
+  }
 }

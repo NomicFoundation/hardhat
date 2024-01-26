@@ -1,3 +1,5 @@
+use core::fmt::Debug;
+
 use edr_eth::{
     remote::{eth::CallRequest, BlockSpec, StateOverrideOptions},
     transaction::{
@@ -6,31 +8,49 @@ use edr_eth::{
     },
     Bytes, SpecId, U256,
 };
-use edr_evm::{state::StateOverrides, PendingTransaction};
+use edr_evm::{state::StateOverrides, ExecutableTransaction};
 
-use crate::{data::ProviderData, requests::validation::validate_call_request, ProviderError};
+use crate::{
+    data::ProviderData, requests::validation::validate_call_request, ProviderError,
+    TransactionFailure,
+};
 
-pub fn handle_call_request(
-    data: &ProviderData,
+pub fn handle_call_request<LoggerErrorT: Debug>(
+    data: &mut ProviderData<LoggerErrorT>,
     request: CallRequest,
     block_spec: Option<BlockSpec>,
     state_overrides: Option<StateOverrideOptions>,
-) -> Result<Bytes, ProviderError> {
+) -> Result<Bytes, ProviderError<LoggerErrorT>> {
     validate_call_request(data.spec_id(), &request, &block_spec)?;
 
     let state_overrides =
         state_overrides.map_or(Ok(StateOverrides::default()), StateOverrides::try_from)?;
 
     let transaction = resolve_call_request(data, request, block_spec.as_ref(), &state_overrides)?;
-    data.run_call(transaction, block_spec.as_ref(), &state_overrides)
+    let result = data.run_call(transaction.clone(), block_spec.as_ref(), &state_overrides)?;
+
+    let spec_id = data.spec_id();
+    data.logger_mut()
+        .log_call(spec_id, &transaction, &result)
+        .map_err(ProviderError::Logger)?;
+
+    if data.bail_on_call_failure() {
+        if let Some(call_failure) =
+            TransactionFailure::from_execution_result(&result.execution_result, transaction.hash())
+        {
+            return Err(ProviderError::TransactionFailed(call_failure));
+        }
+    }
+
+    Ok(result.execution_result.into_output().unwrap_or_default())
 }
 
-pub(crate) fn resolve_call_request(
-    data: &ProviderData,
+pub(crate) fn resolve_call_request<LoggerErrorT: Debug>(
+    data: &ProviderData<LoggerErrorT>,
     request: CallRequest,
     block_spec: Option<&BlockSpec>,
     state_overrides: &StateOverrides,
-) -> Result<PendingTransaction, ProviderError> {
+) -> Result<ExecutableTransaction, ProviderError<LoggerErrorT>> {
     let CallRequest {
         from,
         to,
@@ -95,6 +115,6 @@ pub(crate) fn resolve_call_request(
     };
 
     let transaction = transaction.fake_sign(&from);
-    PendingTransaction::with_caller(data.spec_id(), transaction, from)
+    ExecutableTransaction::with_caller(data.spec_id(), transaction, from)
         .map_err(ProviderError::TransactionCreationError)
 }

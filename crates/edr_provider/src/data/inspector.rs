@@ -1,45 +1,29 @@
-use std::fmt::Debug;
+use core::fmt::Debug;
 
-use dyn_clone::DynClone;
 use edr_eth::Bytes;
 use edr_evm::{CallInputs, EVMData, Gas, Inspector, InstructionResult};
 
 use crate::data::CONSOLE_ADDRESS;
 
-pub trait InspectorCallbacks {
-    /// Calls to `console.*` from Solidity
-    fn console(&self, call_input: Bytes);
+#[derive(Debug, Default)]
+pub(super) struct EvmInspector {
+    console_log_encoded_messages: Vec<Bytes>,
 }
 
-pub trait SyncInspectorCallbacks: InspectorCallbacks + Debug + DynClone + Send + Sync {}
-
-impl<T> SyncInspectorCallbacks for T where T: InspectorCallbacks + Debug + DynClone + Send + Sync {}
-
-impl Clone for Box<dyn SyncInspectorCallbacks> {
-    fn clone(&self) -> Self {
-        dyn_clone::clone_box(&**self)
+impl EvmInspector {
+    pub fn into_console_log_encoded_messages(self) -> Vec<Bytes> {
+        self.console_log_encoded_messages
     }
 }
 
-#[derive(Debug)]
-pub(super) struct EvmInspector<'callbacks> {
-    callbacks: &'callbacks dyn SyncInspectorCallbacks,
-}
-
-impl<'callbacks> EvmInspector<'callbacks> {
-    pub fn new(callbacks: &'callbacks dyn SyncInspectorCallbacks) -> Self {
-        Self { callbacks }
-    }
-}
-
-impl<'callbacks, DatabaseErrorT> Inspector<DatabaseErrorT> for EvmInspector<'callbacks> {
+impl<DatabaseErrorT> Inspector<DatabaseErrorT> for EvmInspector {
     fn call(
         &mut self,
         _data: &mut EVMData<'_, DatabaseErrorT>,
         inputs: &mut CallInputs,
     ) -> (InstructionResult, Gas, Bytes) {
         if inputs.contract == *CONSOLE_ADDRESS {
-            self.callbacks.console(inputs.input.clone());
+            self.console_log_encoded_messages.push(inputs.input.clone());
         }
 
         (
@@ -52,7 +36,8 @@ impl<'callbacks, DatabaseErrorT> Inspector<DatabaseErrorT> for EvmInspector<'cal
 
 #[cfg(test)]
 pub(crate) mod tests {
-    use std::sync::Arc;
+
+    use core::fmt::Debug;
 
     use anyhow::Context;
     use edr_eth::{
@@ -63,28 +48,16 @@ pub(crate) mod tests {
         Bytes, U256,
     };
     use edr_evm::hex;
-    use parking_lot::Mutex;
 
-    use crate::data::{InspectorCallbacks, ProviderData};
-
-    #[derive(Clone, Debug, Default)]
-    pub struct InspectorCallbacksStub {
-        pub console_log_calls: Arc<Mutex<Vec<Bytes>>>,
-    }
-
-    impl InspectorCallbacks for InspectorCallbacksStub {
-        fn console(&self, call_input: Bytes) {
-            self.console_log_calls.lock().push(call_input);
-        }
-    }
+    use crate::data::ProviderData;
 
     pub struct ConsoleLogTransaction {
         pub transaction: TransactionRequestAndSender,
         pub expected_call_data: Bytes,
     }
 
-    pub fn deploy_console_log_contract(
-        provider_data: &mut ProviderData,
+    pub fn deploy_console_log_contract<LoggerErrorT: Debug + Send + Sync + 'static>(
+        provider_data: &mut ProviderData<LoggerErrorT>,
     ) -> anyhow::Result<ConsoleLogTransaction> {
         // Compiled with solc 0.8.17, without optimizations
         /*
@@ -118,10 +91,15 @@ pub(crate) mod tests {
             .next()
             .context("should have accounts")?;
 
-        let deploy_tx_hash = provider_data.send_transaction(TransactionRequestAndSender {
-            request: deploy_tx,
-            sender,
-        })?;
+        let signed_transaction =
+            provider_data.sign_transaction_request(TransactionRequestAndSender {
+                request: deploy_tx,
+                sender,
+            })?;
+
+        let deploy_tx_hash = provider_data
+            .send_transaction(signed_transaction)?
+            .transaction_hash;
 
         let deploy_receipt = provider_data
             .transaction_receipt(&deploy_tx_hash)?

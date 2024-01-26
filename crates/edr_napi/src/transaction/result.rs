@@ -3,7 +3,7 @@ use std::mem;
 use edr_eth::Address;
 use edr_evm::Bytes;
 use napi::{
-    bindgen_prelude::{BigInt, Buffer, Either3, FromNapiValue, ToNapiValue},
+    bindgen_prelude::{BigInt, Buffer, Either3},
     Either, Env, JsBuffer, JsBufferValue,
 };
 use napi_derive::napi;

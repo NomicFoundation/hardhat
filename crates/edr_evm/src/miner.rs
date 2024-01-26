@@ -14,8 +14,8 @@ use crate::{
     mempool::OrderedTransaction,
     state::{StateDiff, SyncState},
     trace::Trace,
-    BlockBuilder, BlockTransactionError, BuildBlockResult, LocalBlock, MemPool, PendingTransaction,
-    SyncBlock,
+    BlockBuilder, BlockTransactionError, BuildBlockResult, ExecutableTransaction, LocalBlock,
+    MemPool, SyncBlock,
 };
 
 /// The result of mining a block, after having been committed to the blockchain.
@@ -27,6 +27,16 @@ pub struct MineBlockResult<BlockchainErrorT> {
     pub transaction_results: Vec<ExecutionResult>,
     /// Transaction traces
     pub transaction_traces: Vec<Trace>,
+}
+
+impl<BlockchainErrorT> Clone for MineBlockResult<BlockchainErrorT> {
+    fn clone(&self) -> Self {
+        Self {
+            block: self.block.clone(),
+            transaction_results: self.transaction_results.clone(),
+            transaction_traces: self.transaction_traces.clone(),
+        }
+    }
 }
 
 /// The result of mining a block, including the state. This result needs to be
@@ -132,7 +142,7 @@ where
         let comparator: Box<MineOrderComparator> = match mine_ordering {
             MineOrdering::Fifo => Box::new(|lhs, rhs| lhs.order_id().cmp(&rhs.order_id())),
             MineOrdering::Priority => Box::new(move |lhs, rhs| {
-                let effective_miner_fee = |transaction: &PendingTransaction| {
+                let effective_miner_fee = |transaction: &ExecutableTransaction| {
                     let max_fee_per_gas = transaction.gas_price();
                     let max_priority_fee_per_gas = transaction
                         .max_priority_fee_per_gas()

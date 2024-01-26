@@ -1,11 +1,13 @@
+use core::fmt::Debug;
+
 use edr_eth::B256;
 
 use crate::{data::ProviderData, ProviderError};
 
-pub fn handle_drop_transaction(
-    data: &mut ProviderData,
+pub fn handle_drop_transaction<LoggerErrorT: Debug>(
+    data: &mut ProviderData<LoggerErrorT>,
     transaction_hash: B256,
-) -> Result<bool, ProviderError> {
+) -> Result<bool, ProviderError<LoggerErrorT>> {
     let was_removed = data.remove_pending_transaction(&transaction_hash).is_some();
     if was_removed {
         return Ok(true);

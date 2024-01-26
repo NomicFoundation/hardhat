@@ -11,6 +11,7 @@ mod config;
 mod context;
 mod debug_trace;
 mod log;
+mod logger;
 mod mempool;
 pub mod miner;
 mod provider;

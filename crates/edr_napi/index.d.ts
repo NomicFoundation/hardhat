@@ -212,6 +212,19 @@ export interface ExecutionLog {
   topics: Array<Buffer>
   data: Buffer
 }
+export interface ContractAndFunctionName {
+  /** The contract name. */
+  contractName: string
+  /** The function name. Only present for calls. */
+  functionName?: string
+}
+export interface LoggerConfig {
+  /** Whether to enable the logger. */
+  enable: boolean
+  decodeConsoleLogInputsCallback: (inputs: Buffer[]) => string[]
+  getContractAndFunctionNameCallback: (code: Buffer, calldata?: Buffer) => ContractAndFunctionName
+  printLineCallback: (message: string, replace: boolean) => void
+}
 /**The type of ordering to use when selecting blocks to mine. */
 export const enum MineOrdering {
   /**Insertion order */
@@ -686,7 +699,7 @@ export class MineBlockResult {
 /** A JSON-RPC provider for Ethereum. */
 export class Provider {
   /**Constructs a new provider with the provided configuration. */
-  static withConfig(config: ProviderConfig, consoleLogCallback: (message: Buffer) => void, subscriberCallback: (event: SubscriptionEvent) => void): Promise<Provider>
+  static withConfig(config: ProviderConfig, loggerConfig: LoggerConfig, subscriberCallback: (event: SubscriptionEvent) => void): Promise<Provider>
   /**Handles a JSON-RPC request and returns a JSON-RPC response. */
   handleRequest(jsonRequest: string): Promise<string>
 }

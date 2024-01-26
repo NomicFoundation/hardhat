@@ -7,7 +7,7 @@ use revm::{
     primitives::{AccountInfo, HashMap},
 };
 
-use crate::PendingTransaction;
+use crate::ExecutableTransaction;
 
 /// An iterator over pending transactions.
 pub struct PendingTransactions<ComparatorT>
@@ -44,10 +44,10 @@ impl<ComparatorT> Iterator for PendingTransactions<ComparatorT>
 where
     ComparatorT: Fn(&OrderedTransaction, &OrderedTransaction) -> Ordering,
 {
-    type Item = PendingTransaction;
+    type Item = ExecutableTransaction;
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    fn next(&mut self) -> Option<PendingTransaction> {
+    fn next(&mut self) -> Option<ExecutableTransaction> {
         let (to_be_removed, next) = self
             .transactions
             .iter_mut()
@@ -135,7 +135,7 @@ pub enum MinerTransactionError<SE> {
 #[derive(Clone, Debug)]
 pub struct OrderedTransaction {
     order_id: usize,
-    transaction: PendingTransaction,
+    transaction: ExecutableTransaction,
 }
 
 impl OrderedTransaction {
@@ -145,7 +145,7 @@ impl OrderedTransaction {
     }
 
     /// Retrieves the pending transaction.
-    pub fn pending(&self) -> &PendingTransaction {
+    pub fn pending(&self) -> &ExecutableTransaction {
         &self.transaction
     }
 
@@ -232,7 +232,7 @@ impl MemPool {
     /// Retrieves an iterator for all transactions in the instance. Pending
     /// transactions are followed by future transactions, grouped by sender
     /// in order of insertion.
-    pub fn transactions(&self) -> impl Iterator<Item = &PendingTransaction> {
+    pub fn transactions(&self) -> impl Iterator<Item = &ExecutableTransaction> {
         self.pending_transactions
             .values()
             .chain(self.future_transactions.values())
@@ -257,7 +257,7 @@ impl MemPool {
     pub fn add_transaction<S: StateRef + ?Sized>(
         &mut self,
         state: &S,
-        transaction: PendingTransaction,
+        transaction: ExecutableTransaction,
     ) -> Result<(), MinerTransactionError<S::Error>> {
         let transaction_gas_limit = transaction.gas_limit();
         if transaction_gas_limit > self.block_gas_limit {
@@ -282,7 +282,7 @@ impl MemPool {
         }
 
         // We need to validate funds at this stage to avoid DOS
-        let max_upfront_cost = transaction.transaction().upfront_cost();
+        let max_upfront_cost = transaction.as_inner().upfront_cost();
         if max_upfront_cost > sender.balance {
             return Err(MinerTransactionError::InsufficientFunds {
                 max_upfront_cost,
@@ -359,7 +359,7 @@ impl MemPool {
         S::Error: Debug,
     {
         fn is_valid_tx(
-            transaction: &PendingTransaction,
+            transaction: &ExecutableTransaction,
             block_gas_limit: u64,
             sender: &AccountInfo,
         ) -> bool {
@@ -546,8 +546,8 @@ pub fn has_transactions(mem_pool: &MemPool) -> bool {
 }
 
 fn validate_replacement_transaction<StateError>(
-    old_transaction: &PendingTransaction,
-    new_transaction: &PendingTransaction,
+    old_transaction: &ExecutableTransaction,
+    new_transaction: &ExecutableTransaction,
 ) -> Result<(), MinerTransactionError<StateError>> {
     let min_new_max_fee_per_gas = min_new_fee(old_transaction.gas_price());
     if new_transaction.gas_price() < min_new_max_fee_per_gas {

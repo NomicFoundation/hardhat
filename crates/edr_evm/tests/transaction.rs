@@ -7,12 +7,12 @@ mod alchemy {
             $(
                 paste::item! {
                     #[tokio::test]
-                    async fn [<test_transaction_remote_ $name _hash>]() {
+                    async fn [<transaction_remote_ $name _hash>]() {
                         use edr_eth::{
                             remote::{RpcClient, PreEip1898BlockSpec},
-                            transaction::SignedTransaction,
-                            Address, B256
+                            B256
                         };
+                        use edr_evm::ExecutableTransaction;
                         use edr_test_utils::env::get_alchemy_url;
                         use tempfile::TempDir;
 
@@ -30,13 +30,9 @@ mod alchemy {
                             .map(|transaction| transaction.hash)
                             .collect();
 
-                        let (transactions, _callers): (Vec<SignedTransaction>, Vec<Address>) =
-                            itertools::process_results(
-                                block.transactions.into_iter().map(TryInto::try_into),
-                                #[allow(clippy::redundant_closure_for_method_calls)]
-                                |iter| iter.unzip(),
-                            )
-                            .expect("Conversion must succeed, as we're not retrieving a pending block");
+                        let transactions =
+                                block.transactions.into_iter().map(ExecutableTransaction::try_from).collect::<Result<Vec<_>, _>>()
+                                    .expect("Conversion must succeed, as we're not retrieving a pending block");
 
                         for (index, transaction) in transactions.iter().enumerate() {
                             assert_eq!(transaction_hashes[index], *transaction.hash());

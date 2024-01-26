@@ -1,3 +1,4 @@
+use core::fmt::Debug;
 use std::sync::Arc;
 
 use parking_lot::Mutex;
@@ -6,23 +7,23 @@ use tokio::{runtime, sync::oneshot, task::JoinHandle};
 use crate::{data::ProviderData, IntervalConfig, ProviderError};
 
 /// Type for interval mining on a separate thread.
-pub struct IntervalMiner {
-    inner: Option<Inner>,
+pub struct IntervalMiner<LoggerErrorT: Debug> {
+    inner: Option<Inner<LoggerErrorT>>,
     runtime: runtime::Handle,
 }
 
 /// Inner type for interval mining on a separate thread, required for
 /// implementation of `Drop`.
-struct Inner {
+struct Inner<LoggerErrorT: Debug> {
     cancellation_sender: oneshot::Sender<()>,
-    background_task: JoinHandle<Result<(), ProviderError>>,
+    background_task: JoinHandle<Result<(), ProviderError<LoggerErrorT>>>,
 }
 
-impl IntervalMiner {
+impl<LoggerErrorT: Debug + Send + Sync + 'static> IntervalMiner<LoggerErrorT> {
     pub fn new(
         runtime: runtime::Handle,
         config: IntervalConfig,
-        data: Arc<Mutex<ProviderData>>,
+        data: Arc<Mutex<ProviderData<LoggerErrorT>>>,
     ) -> Self {
         let (cancellation_sender, mut cancellation_receiver) = oneshot::channel();
         let background_task = runtime.spawn(async move {
@@ -58,7 +59,7 @@ impl IntervalMiner {
     }
 }
 
-impl Drop for IntervalMiner {
+impl<LoggerErrorT: Debug> Drop for IntervalMiner<LoggerErrorT> {
     fn drop(&mut self) {
         if let Some(Inner {
             cancellation_sender,

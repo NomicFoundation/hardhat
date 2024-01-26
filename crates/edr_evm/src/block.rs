@@ -5,16 +5,14 @@ mod remote;
 use std::{fmt::Debug, sync::Arc};
 
 use auto_impl::auto_impl;
-use edr_eth::{
-    block, receipt::BlockReceipt, remote::eth, transaction::SignedTransaction,
-    withdrawal::Withdrawal, Address, B256, U256,
-};
+use edr_eth::{block, receipt::BlockReceipt, remote::eth, withdrawal::Withdrawal, B256, U256};
 
 pub use self::{
     builder::{BlockBuilder, BlockBuilderCreationError, BlockTransactionError, BuildBlockResult},
     local::LocalBlock,
     remote::{CreationError as RemoteBlockCreationError, RemoteBlock},
 };
+use crate::ExecutableTransaction;
 
 /// Trait for implementations of an Ethereum block.
 #[auto_impl(Arc)]
@@ -35,10 +33,7 @@ pub trait Block: Debug {
     fn rlp_size(&self) -> u64;
 
     /// Returns the block's transactions.
-    fn transactions(&self) -> &[SignedTransaction];
-
-    /// Returns the caller addresses of the block's transactions.
-    fn transaction_callers(&self) -> &[Address];
+    fn transactions(&self) -> &[ExecutableTransaction];
 
     /// Returns the receipts of the block's transactions.
     fn transaction_receipts(&self) -> Result<Vec<Arc<BlockReceipt>>, Self::Error>;

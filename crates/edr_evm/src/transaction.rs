@@ -1,4 +1,5 @@
-mod pending;
+mod detailed;
+mod executable;
 
 use std::fmt::Debug;
 
@@ -8,7 +9,7 @@ use revm::{
     primitives::{EVMError, InvalidHeader, InvalidTransaction},
 };
 
-pub use self::pending::PendingTransaction;
+pub use self::{detailed::*, executable::*};
 
 /// Invalid transaction error
 #[derive(Debug, thiserror::Error)]

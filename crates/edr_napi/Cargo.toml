@@ -7,7 +7,9 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
+ansi_term = { version = "0.12.1", default-features = false }
 crossbeam-channel = { version = "0.5.6", default-features = false }
+itertools = { version = "0.12.0", default-features = false }
 k256 = { version = "0.13.1", default-features = false, features = ["arithmetic", "ecdsa", "pkcs8", "precomputed-tables", "std"] }
 # when napi is pinned, be sure to pin napi-derive to the same version
 # The `async` feature ensures that a tokio runtime is available
@@ -18,6 +20,7 @@ edr_evm = { version = "0.2.0-dev", path = "../edr_evm" }
 edr_eth = { version = "0.2.0-dev", path = "../edr_eth" }
 edr_provider = { version = "0.2.0-dev", path = "../edr_provider" }
 serde_json = { version = "1.0.85", default-features = false, features = ["alloc"] }
+thiserror = { version = "1.0.37", default-features = false }
 tracing = { version = "0.1.37", default-features = false, features = ["std"] }
 tracing-flame = { version = "0.2.0", default-features = false, features = ["smallvec"] }
 tracing-subscriber = { version = "0.3.16", default-features = false, features = ["ansi", "env-filter", "fmt", "parking_lot", "smallvec", "std"] }
