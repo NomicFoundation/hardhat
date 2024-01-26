@@ -2,6 +2,8 @@ import type { Provider as EdrProviderT, SubscriptionEvent } from "@ignored/edr";
 import type {
   Artifacts,
   BoundExperimentalHardhatNetworkMessageTraceHook,
+  CompilerInput,
+  CompilerOutput,
   EIP1193Provider,
   EthSubscription,
   HardhatNetworkChainsConfig,
@@ -13,12 +15,18 @@ import chalk from "chalk";
 import debug from "debug";
 import { EventEmitter } from "events";
 import fsExtra from "fs-extra";
+import * as t from "io-ts";
 import semver from "semver";
 
 import {
   HARDHAT_NETWORK_RESET_EVENT,
   HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
 } from "../../constants";
+import {
+  rpcCompilerInput,
+  rpcCompilerOutput,
+} from "../../core/jsonrpc/types/input/solc";
+import { validateParams } from "../../core/jsonrpc/types/input/validation";
 import {
   InvalidArgumentsError,
   InvalidInputError,
@@ -29,6 +37,7 @@ import {
 import { isErrorResponse } from "../../core/providers/http";
 import { getHardforkName } from "../../util/hardforks";
 import { Mutex } from "../../vendor/await-semaphore";
+import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { ContractsIdentifier } from "../stack-traces/contracts-identifier";
 import {
@@ -530,9 +539,23 @@ export class EdrProviderWrapper
   }
 
   public async request(args: RequestArguments): Promise<unknown> {
+    if (args.params !== undefined && !Array.isArray(args.params)) {
+      throw new InvalidInputError(
+        "Hardhat Network doesn't support JSON-RPC params sent as an object"
+      );
+    }
+
+    const params = args.params ?? [];
+
+    if (args.method === "hardhat_addCompilationResult") {
+      return this._addCompilationResultAction(
+        ...this._addCompilationResultParams(params)
+      );
+    }
+
     const stringifiedArgs = JSON.stringify({
       method: args.method,
-      params: args.params ?? [],
+      params,
     });
 
     const response = JSON.parse(
@@ -590,6 +613,51 @@ export class EdrProviderWrapper
     };
 
     this.emit("message", message);
+  }
+
+  private _addCompilationResultParams(
+    params: any[]
+  ): [string, CompilerInput, CompilerOutput] {
+    return validateParams(
+      params,
+      t.string,
+      rpcCompilerInput,
+      rpcCompilerOutput
+    );
+  }
+
+  private async _addCompilationResultAction(
+    solcVersion: string,
+    compilerInput: CompilerInput,
+    compilerOutput: CompilerOutput
+  ): Promise<boolean> {
+    let bytecodes;
+    try {
+      bytecodes = createModelsAndDecodeBytecodes(
+        solcVersion,
+        compilerInput,
+        compilerOutput
+      );
+    } catch (error) {
+      console.warn(
+        chalk.yellow(
+          "The Hardhat Network tracing engine could not be updated. Run Hardhat with --verbose to learn more."
+        )
+      );
+
+      log(
+        "ContractsIdentifier failed to be updated. Please report this to help us improve Hardhat.\n",
+        error
+      );
+
+      return false;
+    }
+
+    for (const bytecode of bytecodes) {
+      this._vmTraceDecoder.addBytecode(bytecode);
+    }
+
+    return true;
   }
 }
 
