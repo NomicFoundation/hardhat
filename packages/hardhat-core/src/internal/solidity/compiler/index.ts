@@ -79,14 +79,6 @@ export class NativeCompiler implements ICompiler {
     // Logic to make sure that solc default import callback is not being used.
     // If solcVersion is not defined or <= 0.6.8, do not add extra args.
     if (this._solcVersion !== undefined) {
-      if (semver.parse(this._solcVersion) === null) {
-        throw new HardhatError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
-          value: this._solcVersion,
-          name: "_solcVersion",
-          type: "string",
-        });
-      }
-
       if (semver.gte(this._solcVersion, "0.8.22")) {
         // version >= 0.8.22
         args.push("--no-import-callback");
