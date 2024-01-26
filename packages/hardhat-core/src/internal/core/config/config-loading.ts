@@ -1,5 +1,4 @@
 import type StackTraceParserT from "stacktrace-parser";
-import type { ConfigValidationT } from "./config-validation";
 
 import chalk from "chalk";
 import debug from "debug";
@@ -69,7 +68,7 @@ export function loadConfigAndTasks(
   }
 ): { resolvedConfig: HardhatConfig; userConfig: HardhatUserConfig } {
   const { validateConfig, validateResolvedConfig } =
-    require("./config-validation") as ConfigValidationT;
+    require("./config-validation") as typeof import("./config-validation");
   let configPath =
     hardhatArguments !== undefined ? hardhatArguments.config : undefined;
 

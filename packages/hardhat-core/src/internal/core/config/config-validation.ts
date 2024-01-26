@@ -21,11 +21,6 @@ import { hardforkGte, HardforkName } from "../../util/hardforks";
 import { HardhatNetworkChainUserConfig } from "../../../types/config";
 import { defaultHardhatNetworkParams } from "./default-config";
 
-export interface ConfigValidationT {
-  validateConfig: typeof validateConfig;
-  validateResolvedConfig: typeof validateResolvedConfig;
-}
-
 function stringify(v: any): string {
   if (typeof v === "function") {
     const { getFunctionName } = require("io-ts/lib") as {
