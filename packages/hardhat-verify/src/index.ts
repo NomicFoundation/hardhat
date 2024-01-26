@@ -259,9 +259,7 @@ subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)
   );
 
 /**
- * This subtask is used for backwards compatibility.
- * TODO [remove-verify-subtask]: if you're going to remove this subtask,
- * update TASK_VERIFY_ETHERSCAN and TASK_VERIFY_ETHERSCAN_RESOLVE_ARGUMENTS accordingly
+ * This subtask is used to programmatically verify a contract on Etherscan or Sourcify.
  */
 subtask(TASK_VERIFY_VERIFY)
   .addOptionalParam("address")
