@@ -2,7 +2,7 @@
 
 After [compiling your contracts](./compile-contracts.md), the next step is to write some tests to verify that they work as intended.
 
-This guide explains our recommended approach for testing contracts in Hardhat. It relies on [ethers](https://docs.ethers.org/v6/) to connect to [Hardhat Network](/hardhat-network) and on [Hardhat Ignition](/ignition), [Mocha](https://mochajs.org/), and [Chai](https://www.chaijs.com/) for the tests. It also uses our custom [Chai matchers](/hardhat-chai-matchers) and our [Hardhat Network Helpers](/hardhat-network-helpers) to make it easier to write clean test code. These packages are part of the Hardhat Toolbox plugin; if you followed the previous guides, you should already have them installed.
+This guide explains our recommended approach for testing contracts in Hardhat. It relies on [ethers](https://docs.ethers.org/v6/) to connect to [Hardhat Network](/hardhat-network), [Hardhat Ignition](/ignition) to deploy the contracts and [Mocha](https://mochajs.org/) and [Chai](https://www.chaijs.com/) for the tests. It also uses our custom [Chai matchers](/hardhat-chai-matchers) and our [Hardhat Network Helpers](/hardhat-network-helpers) to make it easier to write clean test code. These packages are part of the Hardhat Toolbox plugin; if you followed the previous guides, you should already have them installed.
 
 While this is our recommended test setup, Hardhat is flexible: you can customize the approach or take a completely different path with other tools.
 
@@ -27,11 +27,11 @@ For our first test we’ll deploy the `Lock` contract and assert that the unlock
 ```tsx
 import { expect } from "chai";
 import hre from "hardhat";
-import { buildModule } from "@nomicfoundation/hardhat-toolbox";
+import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 // We define a module in the test file here, but you can also `import` it.
-const LockModule = buildModule("Lock", (m) => {
+const LockModule = buildModule("LockModule", (m) => {
   const lockedAmount = m.getParameter("lockedAmount");
   const unlockTime = m.getParameter("unlockTime");
 
@@ -44,14 +44,14 @@ const LockModule = buildModule("Lock", (m) => {
 
 describe("Lock", function () {
   it("Should set the right unlockTime", async function () {
-    const lockedAmount = 1_000_000_000;
+    const lockedAmount = 1_000_000_000n;
     const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
     const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
 
     // deploy a lock contract where funds can be withdrawn
     // one year in the future
     const { lock } = await hre.ignition.deploy(LockModule, {
-      parameters: { Lock: { lockedAmount, unlockTime } },
+      parameters: { LockModule: { lockedAmount, unlockTime } },
     });
 
     // assert that the value is correct
@@ -71,7 +71,7 @@ const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 const { time } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 
 // We define a module in the test file here, but you can also `require` it.
-const LockModule = buildModule("Lock", (m) => {
+const LockModule = buildModule("LockModule", (m) => {
   const lockedAmount = m.getParameter("lockedAmount");
   const unlockTime = m.getParameter("unlockTime");
 
@@ -84,14 +84,14 @@ const LockModule = buildModule("Lock", (m) => {
 
 describe("Lock", function () {
   it("Should set the right unlockTime", async function () {
-    const lockedAmount = 1_000_000_000;
+    const lockedAmount = 1_000_000_000n;
     const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
     const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
 
     // deploy a lock contract where funds can be withdrawn
     // one year in the future
     const { lock } = await hre.ignition.deploy(LockModule, {
-      parameters: { Lock: { lockedAmount, unlockTime } },
+      parameters: { LockModule: { lockedAmount, unlockTime } },
     });
 
     // assert that the value is correct
@@ -104,7 +104,7 @@ describe("Lock", function () {
 
 ::::
 
-First we import the things we are going to use: the [`expect`](https://www.chaijs.com/api/bdd/) function from `chai` to write our assertions, the [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md) (`hre`), the [`buildModule`](/ignition/docs/guides/creating-modules) function from Hardhat Ignition to deploy and interact with our contracts, and the [network helpers](/hardhat-network-helpers) to interact with the Hardhat Network. After that we use the `describe` and `it` functions, which are global Mocha functions used to describe and group your tests. (You can read more about Mocha [here](https://mochajs.org/#getting-started).)
+First we import the things we are going to use: the [`expect`](https://www.chaijs.com/api/bdd/) function from `chai` to write our assertions, the [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md) (`hre`), the [`buildModule`](/ignition/docs/guides/creating-modules) function from Hardhat Ignition to deploy our contracts, and the [network helpers](/hardhat-network-helpers) to interact with the Hardhat Network. After that we use the `describe` and `it` functions, which are global Mocha functions used to describe and group your tests. (You can read more about Mocha [here](https://mochajs.org/#getting-started).)
 
 Before we write our actual test, we define an Ignition module to deploy our contract using the `buildModule` function. For brevity, we define our module in the test file here, but the recommended way to define your Ignition modules is in separate files. You can read more about creating Ignition modules in the [Hardhat Ignition docs](/ignition/docs/guides/creating-modules).
 
