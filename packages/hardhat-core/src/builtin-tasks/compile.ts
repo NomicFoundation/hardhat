@@ -685,7 +685,7 @@ subtask(TASK_COMPILE_SOLIDITY_RUN_SOLC)
       solcPath: string;
       solcVersion?: string;
     }) => {
-      if (solcVersion !== undefined && semver.valid(solcVersion)) {
+      if (solcVersion !== undefined && semver.valid(solcVersion) === null) {
         throw new HardhatError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
           value: solcVersion,
           name: "solcVersion",
