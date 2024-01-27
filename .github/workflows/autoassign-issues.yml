@@ -1,0 +1,60 @@
+name: Issue autoassignment
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  assign-new-issue:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            // each user has a chance of (p - (previousP ?? 0)) to be assigned
+            const potentialAssignees = [
+              ["fvictorio", 0.5],
+              ["schaable", 0.75],
+              ["ChristopherDedominici", 1.0],
+            ];
+
+            let assignee;
+            const r = Math.random();
+            console.log("r:", r);
+            for (const [username, p] of potentialAssignees) {
+              if (r < p) {
+                assignee = username;
+                break;
+              }
+            }
+
+            if (assignee === undefined) {
+              throw new Error("An assignee should've been set");
+            }
+
+            console.log("assignee:", assignee);
+
+            console.log("Fetch issue", context.issue.number);
+            const issue = await github.rest.issues.get({
+              owner: context.issue.owner,
+              repo: context.issue.repo,
+              issue_number: context.issue.number,
+            });
+
+            console.log("Author association:", issue.data.author_association);
+            const isCollaborator = ["OWNER", "MEMBER", "COLLABORATOR"].includes(
+              issue.data.author_association
+            );
+            console.log("Is collaborator?", isCollaborator);
+
+            // we only assign triage issues from external users
+            if (!isCollaborator) {
+              await github.rest.issues.addAssignees({
+                owner: context.issue.owner,
+                repo: context.issue.repo,
+                issue_number: context.issue.number,
+                assignees: [assignee],
+              });
+            }

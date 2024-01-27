@@ -1,0 +1,3 @@
+Error HH12: Trying to use a non-local installation of Hardhat, which is not supported.
+Please install Hardhat locally using npm or Yarn, and try again.
+For more info go to https://hardhat.org/HH12 or run Hardhat with --show-stack-traces
