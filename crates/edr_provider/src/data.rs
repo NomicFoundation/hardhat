@@ -13,7 +13,7 @@ use std::{
 };
 
 use edr_eth::{
-    block::BlobGas,
+    block::{miner_reward, BlobGas},
     log::FilterLog,
     receipt::BlockReceipt,
     remote::{
@@ -1785,9 +1785,6 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         timestamp: u64,
         prevrandao: Option<B256>,
     ) -> Result<DebugMineBlockResultAndState<StateError>, ProviderError<LoggerErrorT>> {
-        // TODO: https://github.com/NomicFoundation/edr/issues/156
-        let reward = U256::ZERO;
-
         let evm_config = self.create_evm_config(None)?;
 
         let mut inspector = EvmInspector::default();
@@ -1802,7 +1799,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             self.min_gas_price,
             // TODO: make this configurable (https://github.com/NomicFoundation/edr/issues/111)
             MineOrdering::Fifo,
-            reward,
+            miner_reward(evm_config.spec_id).unwrap_or(U256::ZERO),
             self.next_block_base_fee_per_gas,
             prevrandao,
             Some(&mut inspector),

@@ -7,6 +7,7 @@
 mod difficulty;
 mod options;
 mod reorg;
+mod reward;
 
 use std::sync::OnceLock;
 
@@ -20,6 +21,7 @@ pub use self::{
         block_time, is_safe_block_number, largest_safe_block_number, safe_block_depth,
         IsSafeBlockNumberArgs, LargestSafeBlockNumberArgs,
     },
+    reward::miner_reward,
 };
 use crate::{
     transaction::SignedTransaction,
