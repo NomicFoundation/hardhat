@@ -586,6 +586,7 @@ export class EdrProviderWrapper
         const stackTrace = await this._rawTraceToSolidityStackTrace(rawTrace);
         if (stackTrace !== undefined) {
           error = encodeSolidityStackTrace(response.error.message, stackTrace);
+          error.message = response.error.message;
         }
       } else {
         if (response.error.code === InvalidArgumentsError.CODE) {
