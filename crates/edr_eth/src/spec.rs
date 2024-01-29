@@ -10,6 +10,11 @@ pub struct HardforkActivations {
 }
 
 impl HardforkActivations {
+    /// Constructs a new instance with the provided hardforks.
+    pub fn new(hardforks: Vec<(u64, SpecId)>) -> Self {
+        Self { hardforks }
+    }
+
     /// Creates a new instance for a new chain with the provided [`SpecId`].
     pub fn with_spec_id(spec_id: SpecId) -> Self {
         Self {

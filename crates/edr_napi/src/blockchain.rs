@@ -170,7 +170,7 @@ impl Blockchain {
                     rpc_client,
                     fork_block_number,
                     state_root_generator,
-                    hardfork_activation_overrides,
+                    &hardfork_activation_overrides,
                 ))
                 .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()));
 

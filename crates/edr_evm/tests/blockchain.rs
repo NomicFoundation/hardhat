@@ -42,7 +42,7 @@ async fn create_forked_dummy_blockchain() -> Box<dyn SyncBlockchain<BlockchainEr
             Arc::new(Mutex::new(RandomHashGenerator::with_seed(
                 edr_defaults::STATE_ROOT_HASH_SEED,
             ))),
-            HashMap::new(),
+            &HashMap::new(),
         )
         .await
         .expect("Failed to construct forked blockchain"),

@@ -234,6 +234,13 @@ export const enum MineOrdering {
 }
 /** Mines a block using as many transactions as can fit in it. */
 export function mineBlock(blockchain: Blockchain, state: State, memPool: MemPool, config: ConfigOptions, timestamp: bigint, beneficiary: Buffer, minGasPrice: bigint, mineOrdering: MineOrdering, reward: bigint, baseFee?: bigint | undefined | null, prevrandao?: Buffer | undefined | null, tracer?: Tracer | undefined | null): Promise<MineBlockResult>
+/** Configuration for a chain */
+export interface ChainConfig {
+  /** The chain ID */
+  chainId: bigint
+  /** The chain's supported hardforks */
+  hardforks: Array<HardforkActivation>
+}
 /** Configuration for forking a blockchain */
 export interface ForkConfig {
   /** The URL of the JSON-RPC endpoint to fork from */
@@ -243,6 +250,13 @@ export interface ForkConfig {
    * used.
    */
   blockNumber?: bigint
+}
+/** Configuration for a hardfork activation */
+export interface HardforkActivation {
+  /** The block number at which the hardfork is activated */
+  blockNumber: bigint
+  /** The activated hardfork */
+  specId: SpecId
 }
 /** Configuration for the provider's mempool. */
 export interface MemPoolConfig {
@@ -274,6 +288,8 @@ export interface ProviderConfig {
   cacheDir?: string
   /** The chain ID of the blockchain */
   chainId: bigint
+  /** The configuration for chains */
+  chains: Array<ChainConfig>
   /** The address of the coinbase */
   coinbase: Buffer
   /**

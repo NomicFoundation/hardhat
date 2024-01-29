@@ -41,8 +41,8 @@ use edr_evm::{
     trace::{Trace, TraceCollector},
     Account, AccountInfo, BlobExcessGasAndPrice, Block, BlockEnv, Bytecode, CfgEnv,
     DebugTraceConfig, DebugTraceResult, DualInspector, ExecutableTransaction, ExecutionResult,
-    HashMap, HashSet, MemPool, MineOrdering, OrderedTransaction, RandomHashGenerator, StorageSlot,
-    SyncBlock, TracerEip3155, TxEnv, KECCAK_EMPTY,
+    HashMap, HashSet, MemPool, OrderedTransaction, RandomHashGenerator, StorageSlot, SyncBlock,
+    TracerEip3155, TxEnv, KECCAK_EMPTY,
 };
 use ethers_core::types::transaction::eip712::{Eip712, TypedData};
 use gas::gas_used_ratio;
@@ -1797,8 +1797,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             timestamp,
             self.beneficiary,
             self.min_gas_price,
-            // TODO: make this configurable (https://github.com/NomicFoundation/edr/issues/111)
-            MineOrdering::Fifo,
+            self.initial_config.mining.mem_pool.order,
             miner_reward(evm_config.spec_id).unwrap_or(U256::ZERO),
             self.next_block_base_fee_per_gas,
             prevrandao,
@@ -2050,8 +2049,7 @@ fn create_blockchain_and_state(
                 RpcClient::new(&fork_config.json_rpc_url, config.cache_dir.clone()),
                 fork_config.block_number,
                 state_root_generator.clone(),
-                // TODO: make hardfork activations configurable (https://github.com/NomicFoundation/edr/issues/111)
-                HashMap::new(),
+                &config.chains,
             ))
         })?;
 
