@@ -180,7 +180,7 @@ function validateInput(
 
     if (args.length > 0) {
       throw new Error(
-        ".revertedWithCustomError expcts only 2 arguments, the contract and the error name, arguments should be asserted in .withArgs"
+        "`.revertedWithCustomError` expects only two arguments: the contract and the error name. Arguments should be asserted with the `.withArgs` helper."
       );
     }
 

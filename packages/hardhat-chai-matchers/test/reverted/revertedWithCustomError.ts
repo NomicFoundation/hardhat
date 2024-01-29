@@ -458,14 +458,18 @@ describe("INTEGRATION: Reverted with custom error", function () {
       });
 
       it("extra arguments", async function () {
-        expect(() => {
-          const assertExtraArguments = expect(
+        expect(() =>
+          expect(
             matchers.revertWithSomeCustomError()
-          ).to.be.revertedWithCustomError as (...args: any[]) => any;
-          assertExtraArguments(matchers, "SomeCustomError", "extraArgument");
-        }).to.throw(
+          ).to.be.revertedWithCustomError(
+            matchers,
+            "SomeCustomError",
+            // @ts-expect-error
+            "extraArgument"
+          )
+        ).to.throw(
           Error,
-          ".revertedWithCustomError expcts only 2 arguments, the contract and the error name, arguments should be asserted in .withArgs"
+          "`.revertedWithCustomError` expects only two arguments: the contract and the error name. Arguments should be asserted with the `.withArgs` helper."
         );
       });
     });
