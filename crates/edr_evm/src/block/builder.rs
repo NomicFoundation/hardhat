@@ -27,9 +27,14 @@ use crate::{
     ExecutableTransaction,
 };
 
+const DAO_EXTRA_DATA: &[u8] = b"dao-hard-fork";
+
 /// An error caused during construction of a block builder.
 #[derive(Debug, thiserror::Error)]
 pub enum BlockBuilderCreationError {
+    /// The extra data is invalid for a DAO hardfork.
+    #[error("extraData should be dao-hard-fork")]
+    DaoHardforkInvalidData,
     /// Unsupported hardfork. Hardforks older than Byzantium are not supported
     #[error("Unsupported hardfork: {0:?}. Hardforks older than Byzantium are not supported.")]
     UnsupportedHardfork(SpecId),
@@ -110,6 +115,7 @@ impl BlockBuilder {
         cfg: CfgEnv,
         parent: &Header,
         options: BlockOptions,
+        dao_hardfork_activation_block: Option<u64>,
     ) -> Result<Self, BlockBuilderCreationError> {
         if cfg.spec_id < SpecId::BYZANTIUM {
             return Err(BlockBuilderCreationError::UnsupportedHardfork(cfg.spec_id));
@@ -123,21 +129,17 @@ impl BlockBuilder {
 
         let header = PartialHeader::new(cfg.spec_id, options, Some(parent));
 
-        // TODO: Validate DAO extra data
-        // if (this._common.hardforkIsActiveOnBlock(Hardfork.Dao, this.number) ===
-        // false) {     return
-        // }
-        // const DAOActivationBlock = this._common.hardforkBlock(Hardfork.Dao)
-        // if (DAOActivationBlock === null || this.number < DAOActivationBlock) {
-        //     return
-        // }
-        // const DAO_ExtraData = Buffer.from('64616f2d686172642d666f726b', 'hex')
-        // const DAO_ForceExtraDataRange = BigInt(9)
-        // const drift = this.number - DAOActivationBlock
-        // if (drift <= DAO_ForceExtraDataRange &&
-        // !this.extraData.equals(DAO_ExtraData)) {     const msg =
-        // this._errorMsg("extraData should be 'dao-hard-fork'")     throw new
-        // Error(msg) }
+        if let Some(dao_hardfork_activation_block) = dao_hardfork_activation_block {
+            const DAO_FORCE_EXTRA_DATA_RANGE: u64 = 9;
+
+            let drift = header.number - dao_hardfork_activation_block;
+            if cfg.spec_id >= SpecId::DAO_FORK
+                && drift <= DAO_FORCE_EXTRA_DATA_RANGE
+                && *header.extra_data != DAO_EXTRA_DATA
+            {
+                return Err(BlockBuilderCreationError::DaoHardforkInvalidData);
+            }
+        }
 
         Ok(Self {
             cfg,
@@ -163,14 +165,6 @@ impl BlockBuilder {
     pub fn gas_remaining(&self) -> u64 {
         self.header.gas_limit - self.gas_used()
     }
-
-    // fn miner_reward(num_ommers: u64) -> U256 {
-    //     // TODO: This is the LONDON block reward. Did it change?
-    //     const BLOCK_REWARD: u64 = 2 * 10u64.pow(18);
-    //     const NIBLING_REWARD: u64 = BLOCK_REWARD / 32;
-
-    //     U256::from(BLOCK_REWARD + num_ommers * NIBLING_REWARD)
-    // }
 
     /// Adds a pending transaction to
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
@@ -380,5 +374,76 @@ impl BlockBuilder {
             block,
             state_diff: self.state_diff,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use edr_eth::Bytes;
+
+    #[test]
+    fn dao_hardfork_has_extra_data() {
+        use edr_eth::block::BlockOptions;
+
+        use super::*;
+
+        const DUMMY_DAO_HARDFORK_BLOCK_NUMBER: u64 = 3;
+
+        // Create a random block header
+        let header = Header {
+            number: DUMMY_DAO_HARDFORK_BLOCK_NUMBER - 1,
+            ..Header::default()
+        };
+
+        let mut cfg = CfgEnv::default();
+        cfg.spec_id = SpecId::BYZANTIUM;
+
+        let block_options = BlockOptions {
+            number: Some(DUMMY_DAO_HARDFORK_BLOCK_NUMBER),
+            extra_data: Some(Bytes::from(DAO_EXTRA_DATA)),
+            ..BlockOptions::default()
+        };
+
+        let block_builder = BlockBuilder::new(
+            cfg,
+            &header,
+            block_options,
+            Some(DUMMY_DAO_HARDFORK_BLOCK_NUMBER),
+        );
+        assert!(block_builder.is_ok());
+    }
+
+    #[test]
+    fn dao_hardfork_missing_extra_data() {
+        use edr_eth::block::BlockOptions;
+
+        use super::*;
+
+        const DUMMY_DAO_HARDFORK_BLOCK_NUMBER: u64 = 3;
+
+        // Create a random block header
+        let header = Header {
+            number: DUMMY_DAO_HARDFORK_BLOCK_NUMBER - 1,
+            ..Header::default()
+        };
+
+        let mut cfg = CfgEnv::default();
+        cfg.spec_id = SpecId::BYZANTIUM;
+
+        let block_options = BlockOptions {
+            number: Some(DUMMY_DAO_HARDFORK_BLOCK_NUMBER),
+            ..BlockOptions::default()
+        };
+
+        let block_builder = BlockBuilder::new(
+            cfg,
+            &header,
+            block_options,
+            Some(DUMMY_DAO_HARDFORK_BLOCK_NUMBER),
+        );
+        assert!(matches!(
+            block_builder,
+            Err(BlockBuilderCreationError::DaoHardforkInvalidData)
+        ));
     }
 }

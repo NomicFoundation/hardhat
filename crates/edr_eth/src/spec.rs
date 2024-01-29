@@ -36,6 +36,14 @@ impl HardforkActivations {
             .find(|(hardfork_number, _)| block_number >= *hardfork_number)
             .map(|entry| entry.1)
     }
+
+    /// Retrieves the block number at which the provided hardfork was activated.
+    pub fn hardfork_activation(&self, spec_id: SpecId) -> Option<u64> {
+        self.hardforks
+            .iter()
+            .find(|(_, id)| *id == spec_id)
+            .map(|(block, _)| *block)
+    }
 }
 
 impl From<&[(u64, SpecId)]> for HardforkActivations {

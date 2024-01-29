@@ -120,6 +120,7 @@ pub struct ProviderData<LoggerErrorT: Debug> {
     pub irregular_state: IrregularState,
     mem_pool: MemPool,
     beneficiary: Address,
+    dao_activation_block: Option<u64>,
     min_gas_price: U256,
     prev_randao_generator: RandomHashGenerator,
     block_time_offset_seconds: i64,
@@ -174,6 +175,11 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         let is_auto_mining = config.mining.auto_mine;
         let min_gas_price = config.min_gas_price;
 
+        let dao_activation_block = config
+            .chains
+            .get(&config.chain_id)
+            .and_then(|config| config.hardfork_activation(SpecId::DAO_FORK));
+
         Ok(Self {
             runtime_handle,
             initial_config: config,
@@ -182,6 +188,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             irregular_state,
             mem_pool: MemPool::new(block_gas_limit),
             beneficiary,
+            dao_activation_block,
             min_gas_price,
             prev_randao_generator,
             block_time_offset_seconds,
@@ -1801,6 +1808,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             miner_reward(evm_config.spec_id).unwrap_or(U256::ZERO),
             self.next_block_base_fee_per_gas,
             prevrandao,
+            self.dao_activation_block,
             Some(&mut inspector),
         )?;
 

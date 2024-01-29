@@ -198,7 +198,7 @@ impl Header {
             timestamp: partial_header.timestamp,
             extra_data: partial_header.extra_data,
             mix_hash: partial_header.mix_hash,
-            nonce: B64::from(partial_header.nonce),
+            nonce: partial_header.nonce,
             base_fee_per_gas: partial_header.base_fee,
             withdrawals_root: partial_header.withdrawals_root,
             blob_gas: partial_header.blob_gas,

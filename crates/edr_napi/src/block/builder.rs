@@ -49,7 +49,7 @@ impl BlockBuilder {
         let blockchain = (*blockchain).clone();
         let state = (*state_manager).clone();
 
-        edr_evm::BlockBuilder::new(config, &parent, block).map_or_else(
+        edr_evm::BlockBuilder::new(config, &parent, block, None).map_or_else(
             |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
             |builder| {
                 Ok(Self {
