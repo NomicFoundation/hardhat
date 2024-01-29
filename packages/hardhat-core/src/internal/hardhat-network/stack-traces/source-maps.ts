@@ -76,12 +76,11 @@ function uncompressSourcemaps(compressedSourcemap: string): SourceMap[] {
 function addUnmappedInstructions(
   instructions: Instruction[],
   bytecode: Buffer,
-  bytesIndex: number
 ) {
   const lastInstrPc = instructions[instructions.length - 1].pc;
-  let nextPc = lastInstrPc + 1;
+  let bytesIndex = lastInstrPc + 1;
 
-  while (bytecode[nextPc] !== Opcode.INVALID) {
+  while (bytecode[bytesIndex] !== Opcode.INVALID) {
     const opcode = bytecode[nextPc];
     let pushData: Buffer | undefined;
 
@@ -95,10 +94,10 @@ function addUnmappedInstructions(
       ? JumpType.INTERNAL_JUMP
       : JumpType.NOT_JUMP;
 
-    const instruction = new Instruction(nextPc, opcode, jumpType, pushData);
+    const instruction = new Instruction(bytesIndex, opcode, jumpType, pushData);
     instructions.push(instruction);
 
-    nextPc += 1 + pushDataLenth;
+    bytesIndex += getOpcodeLength(opcode);
   }
 }
 
@@ -161,7 +160,7 @@ export function decodeInstructions(
 
   // See: https://github.com/ethereum/solidity/issues/9133
   if (isDeployment) {
-    addUnmappedInstructions(instructions, bytecode, bytesIndex);
+    addUnmappedInstructions(instructions, bytecode);
   }
 
   return instructions;
