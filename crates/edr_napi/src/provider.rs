@@ -110,7 +110,14 @@ impl Provider {
 
         let trace = if let Err(edr_provider::ProviderError::TransactionFailed(failure)) = &response
         {
-            Some(Arc::new(failure.trace.clone()))
+            if matches!(
+                failure.reason,
+                edr_provider::TransactionFailureReason::OutOfGas(_)
+            ) {
+                None
+            } else {
+                Some(Arc::new(failure.trace.clone()))
+            }
         } else {
             None
         };

@@ -582,12 +582,18 @@ export class EdrProviderWrapper
       let error;
 
       const rawTrace = responseObject.trace;
+      let stackTrace: SolidityStackTrace | undefined;
       if (rawTrace !== null) {
-        const stackTrace = await this._rawTraceToSolidityStackTrace(rawTrace);
-        if (stackTrace !== undefined) {
-          error = encodeSolidityStackTrace(response.error.message, stackTrace);
-          error.message = response.error.message;
-        }
+        stackTrace = await this._rawTraceToSolidityStackTrace(rawTrace);
+      }
+
+      if (stackTrace !== undefined) {
+        error = encodeSolidityStackTrace(response.error.message, stackTrace);
+        error.message = response.error.message;
+        (error as any).data = {
+          data: response.error.data?.data,
+          ...(error as any).data,
+        };
       } else {
         if (response.error.code === InvalidArgumentsError.CODE) {
           error = new InvalidArgumentsError(response.error.message);
