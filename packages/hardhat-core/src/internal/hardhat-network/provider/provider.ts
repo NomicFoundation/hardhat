@@ -589,7 +589,6 @@ export class EdrProviderWrapper
 
       if (stackTrace !== undefined) {
         error = encodeSolidityStackTrace(response.error.message, stackTrace);
-        error.message = response.error.message;
         (error as any).data = {
           data: response.error.data?.data,
           ...(error as any).data,
