@@ -8,6 +8,7 @@ use std::{
 };
 
 use futures::stream::StreamExt;
+pub use hyper::{http::Error as HttpError, HeaderMap};
 use itertools::{izip, Itertools};
 use reqwest::Client as HttpClient;
 use reqwest_middleware::{ClientBuilder as HttpClientBuilder, ClientWithMiddleware};
@@ -168,12 +169,21 @@ impl RpcClient {
     /// Create a new instance, given a remote node URL.
     /// The cache directory is the global EDR cache directory configured by the
     /// user.
-    pub fn new(url: &str, cache_dir: PathBuf) -> Self {
+    pub fn new(url: &str, cache_dir: PathBuf, headers: Option<HeaderMap>) -> Self {
         let retry_policy = ExponentialBackoff::builder()
             .retry_bounds(MIN_RETRY_INTERVAL, MAX_RETRY_INTERVAL)
             .backoff_exponent(BACKOFF_EXPONENT)
             .build_with_total_retry_duration(TOTAL_RETRY_DURATION);
-        let client = HttpClientBuilder::new(HttpClient::new())
+
+        let mut client = HttpClient::builder();
+        if let Some(headers) = headers {
+            client = client.default_headers(headers);
+        }
+        let client = client
+            .build()
+            .expect("Default construction nor setting default headers can cause an error");
+
+        let client = HttpClientBuilder::new(client)
             .with(RetryTransientMiddleware::new_with_policy_and_strategy(
                 retry_policy,
                 RetryStrategy,
@@ -1075,7 +1085,7 @@ mod tests {
         fn new(url: &str) -> Self {
             let tempdir = TempDir::new().unwrap();
             Self {
-                client: RpcClient::new(url, tempdir.path().into()),
+                client: RpcClient::new(url, tempdir.path().into(), None),
                 cache_dir: tempdir,
             }
         }
@@ -1091,14 +1101,14 @@ mod tests {
 
     #[test]
     fn get_ids_zero() {
-        let client = RpcClient::new("http://localhost:8545", PathBuf::new());
+        let client = RpcClient::new("http://localhost:8545", PathBuf::new(), None);
         let ids = client.get_ids(0);
         assert!(ids.is_empty());
     }
 
     #[test]
     fn get_ids_more() {
-        let client = RpcClient::new("http://localhost:8545", PathBuf::new());
+        let client = RpcClient::new("http://localhost:8545", PathBuf::new(), None);
         let count = 11;
         let ids = client.get_ids(count);
         assert_eq!(ids.len(), 11);
@@ -1155,7 +1165,7 @@ mod tests {
         impl TestRpcClient {
             fn new_with_dir(url: &str, cache_dir: TempDir) -> Self {
                 Self {
-                    client: RpcClient::new(url, cache_dir.path().into()),
+                    client: RpcClient::new(url, cache_dir.path().into(), None),
                     cache_dir,
                 }
             }

@@ -115,7 +115,7 @@ mod tests {
             .into_string()
             .expect("couldn't convert OsString into a String");
 
-        let rpc_client = RpcClient::new(&alchemy_url, tempdir.path().to_path_buf());
+        let rpc_client = RpcClient::new(&alchemy_url, tempdir.path().to_path_buf(), None);
 
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");

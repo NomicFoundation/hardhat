@@ -32,7 +32,14 @@ pub struct ForkConfig {
     /// The block number to fork from. If not provided, the latest safe block is
     /// used.
     pub block_number: Option<BigInt>,
-    // TODO: add http_headers,
+    /// The HTTP headers to use when making requests to the JSON-RPC endpoint
+    pub http_headers: Option<Vec<HttpHeader>>,
+}
+
+#[napi(object)]
+pub struct HttpHeader {
+    pub name: String,
+    pub value: String,
 }
 
 /// Configuration for a hardfork activation
@@ -115,11 +122,17 @@ impl TryFrom<ForkConfig> for edr_provider::hardhat_rpc_types::ForkConfig {
 
     fn try_from(value: ForkConfig) -> Result<Self, Self::Error> {
         let block_number: Option<u64> = value.block_number.map(TryCast::try_cast).transpose()?;
+        let http_headers = value.http_headers.map(|http_headers| {
+            http_headers
+                .into_iter()
+                .map(|HttpHeader { name, value }| (name, value))
+                .collect()
+        });
 
         Ok(Self {
             json_rpc_url: value.json_rpc_url,
             block_number,
-            http_headers: None,
+            http_headers,
         })
     }
 }

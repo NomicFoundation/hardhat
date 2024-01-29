@@ -17,6 +17,7 @@ use edr_eth::{
     log::FilterLog,
     receipt::BlockReceipt,
     remote::{
+        client::{HeaderMap, HttpError},
         eth::FeeHistoryResult,
         filter::{FilteredEvents, LogOutput, SubscriptionType},
         BlockSpec, BlockTag, Eip1898BlockSpec, RpcClient, RpcClientError,
@@ -96,6 +97,8 @@ pub enum CreationError {
     /// An error that occurred while constructing a forked blockchain.
     #[error(transparent)]
     ForkedBlockchainCreation(#[from] ForkedCreationError),
+    #[error("Invalid HTTP header name: {0}")]
+    InvalidHttpHeaders(HttpError),
     /// Invalid initial date
     #[error("The initial date configuration value {0:?} is before the UNIX epoch")]
     InvalidInitialDate(SystemTime),
@@ -2049,12 +2052,22 @@ fn create_blockchain_and_state(
             RandomHashGenerator::with_seed(edr_defaults::STATE_ROOT_HASH_SEED),
         ));
 
+        let http_headers = fork_config
+            .http_headers
+            .as_ref()
+            .map(|headers| HeaderMap::try_from(headers).map_err(CreationError::InvalidHttpHeaders))
+            .transpose()?;
+
         let blockchain = tokio::task::block_in_place(|| {
             runtime.block_on(ForkedBlockchain::new(
                 runtime.clone(),
                 Some(config.chain_id),
                 config.hardfork,
-                RpcClient::new(&fork_config.json_rpc_url, config.cache_dir.clone()),
+                RpcClient::new(
+                    &fork_config.json_rpc_url,
+                    config.cache_dir.clone(),
+                    http_headers.clone(),
+                ),
                 fork_config.block_number,
                 state_root_generator.clone(),
                 &config.chains,
@@ -2063,7 +2076,11 @@ fn create_blockchain_and_state(
 
         let fork_block_number = blockchain.last_block_number();
 
-        let rpc_client = RpcClient::new(&fork_config.json_rpc_url, config.cache_dir.clone());
+        let rpc_client = RpcClient::new(
+            &fork_config.json_rpc_url,
+            config.cache_dir.clone(),
+            http_headers,
+        );
 
         if !genesis_accounts.is_empty() {
             let genesis_addresses = genesis_accounts.keys().cloned().collect::<Vec<_>>();

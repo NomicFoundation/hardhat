@@ -1,4 +1,4 @@
-use edr_eth::HashMap;
+use std::collections::HashMap;
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct ResetProviderConfig {

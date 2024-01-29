@@ -534,7 +534,7 @@ mod tests {
                             use crate::{remote::RpcClient, B256};
 
                             let tempdir = TempDir::new().unwrap();
-                            let client = RpcClient::new(&get_alchemy_url(), tempdir.path().into());
+                            let client = RpcClient::new(&get_alchemy_url(), tempdir.path().into(), None);
 
                             let transaction_hash = B256::from_slice(&hex::decode($transaction_hash).unwrap());
 

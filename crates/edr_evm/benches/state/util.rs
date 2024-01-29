@@ -56,6 +56,7 @@ impl EdrStates {
                     .into_string()
                     .unwrap(),
                 cache_dir.path().to_path_buf(),
+                None,
             ));
 
             let block = runtime
