@@ -66,8 +66,11 @@ export function encodeSolidityStackTrace(
     if (previousStack !== undefined) {
       stack = previousStack;
     } else {
-      // We remove Hardhat Network related stack traces
-      stack.splice(0, 3);
+      const deleteCount =
+        process.env.HARDHAT_EXPERIMENTAL_VM_MODE === "edr" ? 1 : 3;
+
+      // We remove error management related stack traces
+      stack.splice(0, deleteCount);
     }
 
     for (const entry of stackTrace) {
