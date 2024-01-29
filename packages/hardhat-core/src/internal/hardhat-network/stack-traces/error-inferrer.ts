@@ -1000,7 +1000,7 @@ export class ErrorInferrer {
     }
 
     const lastStep = trace.steps[trace.steps.length - 1];
-    if (!isEvmStep(lastStep)) {
+    if (lastStep === undefined || !isEvmStep(lastStep)) {
       return false;
     }
 
