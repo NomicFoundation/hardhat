@@ -11,9 +11,7 @@ use napi::{
 };
 use napi_derive::napi;
 
-use crate::{
-    account::GenesisAccount, block::BlobGas, cast::TryCast, config::SpecId, miner::MineOrdering,
-};
+use crate::{account::GenesisAccount, block::BlobGas, cast::TryCast, config::SpecId};
 
 /// Configuration for a chain
 #[napi(object)]
@@ -49,6 +47,15 @@ pub struct HardforkActivation {
     pub block_number: BigInt,
     /// The activated hardfork
     pub spec_id: SpecId,
+}
+
+#[napi(string_enum)]
+#[doc = "The type of ordering to use when selecting blocks to mine."]
+pub enum MineOrdering {
+    #[doc = "Insertion order"]
+    Fifo,
+    #[doc = "Effective miner fee"]
+    Priority,
 }
 
 /// Configuration for the provider's mempool.
@@ -141,6 +148,15 @@ impl From<MemPoolConfig> for edr_provider::MemPoolConfig {
     fn from(value: MemPoolConfig) -> Self {
         Self {
             order: value.order.into(),
+        }
+    }
+}
+
+impl From<MineOrdering> for edr_evm::MineOrdering {
+    fn from(value: MineOrdering) -> Self {
+        match value {
+            MineOrdering::Fifo => Self::Fifo,
+            MineOrdering::Priority => Self::Priority,
         }
     }
 }

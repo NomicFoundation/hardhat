@@ -1,14 +1,13 @@
 use std::{mem, sync::Arc};
 
-use edr_eth::{Address, Bytes};
-use edr_evm::{trace::BeforeMessage, Bytecode, OPCODE_JUMPMAP};
+use edr_evm::{trace::BeforeMessage, OPCODE_JUMPMAP};
 use napi::{
     bindgen_prelude::{BigInt, Buffer, Either3},
     Env, JsBuffer, JsBufferValue,
 };
 use napi_derive::napi;
 
-use crate::{cast::TryCast, transaction::result::ExecutionResult};
+use crate::result::ExecutionResult;
 
 #[napi(object)]
 pub struct TracingMessage {
@@ -96,38 +95,6 @@ impl TracingMessage {
     }
 }
 
-impl TryCast<BeforeMessage> for TracingMessage {
-    type Error = napi::Error;
-
-    fn try_cast(self) -> napi::Result<BeforeMessage> {
-        let to = self.to.map(|to| Address::from_slice(to.as_ref()));
-        let data = Bytes::copy_from_slice(self.data.into_value()?.as_ref());
-        let value = BigInt::try_cast(self.value)?;
-        let code_address = self
-            .code_address
-            .map(|code_address| Address::from_slice(code_address.as_ref()));
-        let code = self
-            .code
-            .map::<napi::Result<_>, _>(|code| {
-                Ok(Bytecode::new_raw(Bytes::copy_from_slice(
-                    code.into_value()?.as_ref(),
-                )))
-            })
-            .transpose()?;
-
-        Ok(BeforeMessage {
-            depth: self.depth as usize,
-            caller: Address::from_slice(self.caller.as_ref()),
-            to,
-            gas_limit: BigInt::try_cast(self.gas_limit)?,
-            data,
-            value,
-            code_address,
-            code,
-        })
-    }
-}
-
 #[napi(object)]
 pub struct TracingStep {
     /// Call depth
@@ -142,33 +109,6 @@ pub struct TracingStep {
     /// The top entry on the stack. None if the stack is empty.
     #[napi(readonly)]
     pub stack_top: Option<BigInt>,
-    // /// The return value of the step
-    // #[napi(readonly)]
-    // pub return_value: u8,
-    // /// The amount of gas that was used by the step
-    // #[napi(readonly)]
-    // pub gas_cost: BigInt,
-    // /// The amount of gas that was refunded by the step
-    // #[napi(readonly)]
-    // pub gas_refunded: BigInt,
-    // /// The amount of gas left
-    // #[napi(readonly)]
-    // pub gas_left: BigInt,
-    // /// The stack
-    // #[napi(readonly)]
-    // pub stack: Vec<BigInt>,
-    // /// The memory
-    // #[napi(readonly)]
-    // pub memory: Buffer,
-    // /// The contract being executed
-    // #[napi(readonly)]
-    // pub contract: Account,
-    // /// The address of the contract
-    // #[napi(readonly)]
-    // pub contract_address: Buffer,
-    // /// The address of the code being executed
-    // #[napi(readonly)]
-    // pub code_address: Buffer,
 }
 
 impl TracingStep {
@@ -183,13 +123,6 @@ impl TracingStep {
                 sign_bit: false,
                 words: v.into_limbs().to_vec(),
             }),
-            // gas_cost: BigInt::from(0u64),
-            // gas_refunded: BigInt::from(0u64),
-            // gas_left: BigInt::from(0u64),
-            // stack: Vec::new(),
-            // memory: Buffer::from(Vec::new()),
-            // contract: Account::from(step.contract),
-            // contract_address: Buffer::from(step.contract_address.to_vec()),
         }
     }
 }
