@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-chai-matchers
 
+## 2.0.4
+
+### Patch Changes
+
+- ffb301f14: Improved loading performance
+
 ## 2.0.3
 
 ### Patch Changes
