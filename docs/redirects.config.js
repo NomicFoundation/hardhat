@@ -259,7 +259,7 @@ const customRedirects = [
   },
   {
     source:
-      "/guides/:slug(waffle-testing|truffle-testing|truffle-migration|ganache-tests)",
+      "/guides/:slug(waffle-testing|truffle-testing|truffle-migration|ganache-tests|using-custom-solc)",
     destination: "/hardhat-runner/docs/other-guides/:slug",
     permanent: false,
   },

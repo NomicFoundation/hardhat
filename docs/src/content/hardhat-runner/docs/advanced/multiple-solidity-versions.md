@@ -42,3 +42,9 @@ Keep in mind that:
 
 - Overrides are full compiler configurations, so if you have any additional settings you're using you should set them for the override as well.
 - You have to use forward slashes (`/`) even if you are on Windows.
+
+:::tip
+
+Hardhat also provides support for using a Custom Solidity Compiler by overriding the `TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD` subtask, learn more from the [Using a Custom Solidity Compiler guide](/guides/using-custom-solc.md).
+
+:::

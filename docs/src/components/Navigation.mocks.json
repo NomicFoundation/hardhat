@@ -74,6 +74,10 @@
         "href": "/guides/truffle-migration"
       },
       {
+        "label": "Using a Custom Solidity Compiler",
+        "href": "/guides/using-custom-solc"
+      },
+      {
         "label": "Deploying your contracts",
         "href": "/guides/deploying"
       },
