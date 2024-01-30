@@ -627,6 +627,12 @@ export class EdrProviderWrapper
       throw error;
     }
 
+    if (args.method === "hardhat_reset") {
+      this.emit(HARDHAT_NETWORK_RESET_EVENT);
+    } else if (args.method === "evm_revert") {
+      this.emit(HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT);
+    }
+
     // Override EDR version string with Hardhat version string with EDR backend,
     // e.g. `HardhatNetwork/2.19.0/@nomicfoundation/edr/0.2.0-dev`
     if (args.method === "web3_clientVersion") {
