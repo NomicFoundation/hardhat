@@ -410,9 +410,11 @@ impl LogCollector {
 
             logger.log_console_log_messages(console_log_inputs);
 
-            if let Some(transaction_failure) =
-                TransactionFailure::from_execution_result(execution_result, transaction.hash())
-            {
+            if let Some(transaction_failure) = TransactionFailure::from_execution_result(
+                execution_result,
+                transaction.hash(),
+                trace,
+            ) {
                 logger.log_transaction_failure(&transaction_failure);
             }
         });
@@ -426,14 +428,13 @@ impl LogCollector {
     ) {
         let edr_provider::EstimateGasFailure {
             console_log_inputs,
-            trace,
             transaction_failure,
         } = result;
 
         self.state = LoggingState::Empty;
 
         self.indented(|logger| {
-            logger.log_contract_and_function_name::<true>(spec_id, trace);
+            logger.log_contract_and_function_name::<true>(spec_id, &transaction_failure.trace);
 
             logger.log_with_title("From", format!("0x{:x}", transaction.caller()));
             if let Some(to) = transaction.to() {
@@ -776,8 +777,11 @@ impl LogCollector {
 
             logger.log_console_log_messages(console_log_inputs);
 
-            let transaction_failure =
-                edr_provider::TransactionFailure::from_execution_result(result, transaction_hash);
+            let transaction_failure = edr_provider::TransactionFailure::from_execution_result(
+                result,
+                transaction_hash,
+                trace,
+            );
 
             if let Some(transaction_failure) = transaction_failure {
                 logger.log_transaction_failure(&transaction_failure);
@@ -1152,6 +1156,7 @@ impl LogCollector {
             let transaction_failure = edr_provider::TransactionFailure::from_execution_result(
                 transaction_result,
                 transaction_hash,
+                trace,
             );
 
             if let Some(transaction_failure) = transaction_failure {

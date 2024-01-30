@@ -11,6 +11,7 @@ use self::config::ProviderConfig;
 use crate::{
     logger::{Logger, LoggerConfig, LoggerError},
     subscribe::SubscriberCallback,
+    trace::RawTrace,
 };
 
 /// A JSON-RPC provider for Ethereum.
@@ -56,7 +57,7 @@ impl Provider {
 
     #[doc = "Handles a JSON-RPC request and returns a JSON-RPC response."]
     #[napi]
-    pub async fn handle_request(&self, json_request: String) -> napi::Result<String> {
+    pub async fn handle_request(&self, json_request: String) -> napi::Result<Response> {
         let provider = self.provider.clone();
         let request = match serde_json::from_str(&json_request) {
             Ok(request) => request,
@@ -88,12 +89,17 @@ impl Provider {
                     },
                 };
 
-                return serde_json::to_string(&response).map_err(|error| {
-                    napi::Error::new(
-                        Status::InvalidArg,
-                        format!("Invalid JSON `{json_request}` due to: {error}"),
-                    )
-                });
+                return serde_json::to_string(&response)
+                    .map_err(|error| {
+                        napi::Error::new(
+                            Status::InvalidArg,
+                            format!("Invalid JSON `{json_request}` due to: {error}"),
+                        )
+                    })
+                    .map(|json_response| Response {
+                        json: json_response,
+                        trace: None,
+                    });
             }
         };
 
@@ -102,9 +108,50 @@ impl Provider {
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
 
+        let trace = if let Err(edr_provider::ProviderError::TransactionFailed(failure)) = &response
+        {
+            if matches!(
+                failure.reason,
+                edr_provider::TransactionFailureReason::OutOfGas(_)
+            ) {
+                None
+            } else {
+                Some(Arc::new(failure.trace.clone()))
+            }
+        } else {
+            None
+        };
+
         let response = jsonrpc::ResponseData::from(response);
 
         serde_json::to_string(&response)
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
+            .map(|json_response| Response {
+                json: json_response,
+                trace,
+            })
+    }
+}
+
+#[napi]
+pub struct Response {
+    json: String,
+    /// When a transaction fails to execute, the provider returns a trace of the
+    /// transaction.
+    trace: Option<Arc<edr_evm::trace::Trace>>,
+}
+
+#[napi]
+impl Response {
+    #[napi(getter)]
+    pub fn json(&self) -> String {
+        self.json.clone()
+    }
+
+    #[napi(getter)]
+    pub fn trace(&self) -> Option<RawTrace> {
+        self.trace
+            .as_ref()
+            .map(|trace| RawTrace::new(trace.clone()))
     }
 }

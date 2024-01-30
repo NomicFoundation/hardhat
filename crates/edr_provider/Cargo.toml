@@ -11,6 +11,7 @@ edr_eth = { version = "0.2.0-dev", path = "../edr_eth" }
 edr_evm = { version = "0.2.0-dev", path = "../edr_evm" }
 ethers-core = {  version = "2.0.12" , features = ["eip712"]}
 indexmap = { version = "2.0.0", default-features = false, features = ["std"] }
+itertools = { version = "0.12.0", default-features = false, features = ["use_alloc"] }
 k256 = { version = "0.13.1", default-features = false, features = ["arithmetic", "ecdsa", "pkcs8", "precomputed-tables", "std"] }
 lazy_static = { version = "1.4.0", default-features = false }
 log = { version = "0.4.20", default-features = false }
@@ -21,7 +22,6 @@ serde_json = { version = "1.0.89" }
 sha3 = { version = "0.10.6", default-features = false }
 thiserror = { version = "1.0.37", default-features = false }
 tokio = { version = "1.21.2", default-features = false, features = ["macros"] }
-itertools = "0.11.0"
 
 [dev-dependencies]
 anyhow = "1.0.75"

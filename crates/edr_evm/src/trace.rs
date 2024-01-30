@@ -22,7 +22,7 @@ pub enum TraceMessage {
 }
 
 /// Temporary before message type for handling traces
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct BeforeMessage {
     /// Call depth
     pub depth: usize,

@@ -280,7 +280,6 @@ impl<LoggerErrorT: Debug> From<ProviderError<LoggerErrorT>> for jsonrpc::Error {
 #[derive(Debug, thiserror::Error)]
 pub struct EstimateGasFailure {
     pub console_log_inputs: Vec<Bytes>,
-    pub trace: Trace,
     pub transaction_failure: TransactionFailure,
 }
 
@@ -297,6 +296,8 @@ impl Display for EstimateGasFailure {
 pub struct TransactionFailure {
     pub reason: TransactionFailureReason,
     pub data: Option<String>,
+    #[serde(skip)]
+    pub trace: Trace,
     pub transaction_hash: B256,
 }
 
@@ -304,26 +305,32 @@ impl TransactionFailure {
     pub fn from_execution_result(
         execution_result: &ExecutionResult,
         transaction_hash: &B256,
+        trace: &Trace,
     ) -> Option<Self> {
         match execution_result {
             ExecutionResult::Success { .. } => None,
-            ExecutionResult::Revert { output, .. } => {
-                Some(Self::revert(output.clone(), *transaction_hash))
+            ExecutionResult::Revert { output, .. } => Some(Self::revert(
+                output.clone(),
+                *transaction_hash,
+                trace.clone(),
+            )),
+            ExecutionResult::Halt { reason, .. } => {
+                Some(Self::halt(*reason, *transaction_hash, trace.clone()))
             }
-            ExecutionResult::Halt { reason, .. } => Some(Self::halt(*reason, *transaction_hash)),
         }
     }
 
-    pub fn revert(output: Bytes, transaction_hash: B256) -> Self {
+    pub fn revert(output: Bytes, transaction_hash: B256, trace: Trace) -> Self {
         let data = format!("0x{}", hex::encode(output.as_ref()));
         Self {
             reason: TransactionFailureReason::Revert(output),
             data: Some(data),
+            trace,
             transaction_hash,
         }
     }
 
-    pub fn halt(halt: Halt, tx_hash: B256) -> Self {
+    pub fn halt(halt: Halt, tx_hash: B256, trace: Trace) -> Self {
         let reason = match halt {
             Halt::OpcodeNotFound | Halt::InvalidFEOpcode => {
                 TransactionFailureReason::OpcodeNotFound
@@ -335,6 +342,7 @@ impl TransactionFailure {
         Self {
             reason,
             data: None,
+            trace,
             transaction_hash: tx_hash,
         }
     }

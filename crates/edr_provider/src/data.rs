@@ -47,6 +47,7 @@ use edr_evm::{
 use ethers_core::types::transaction::eip712::{Eip712, TypedData};
 use gas::gas_used_ratio;
 use indexmap::IndexMap;
+use itertools::izip;
 use lazy_static::lazy_static;
 use tokio::runtime;
 
@@ -83,7 +84,7 @@ pub struct CallResult {
 pub struct SendTransactionResult {
     pub transaction_hash: B256,
     /// Present if the transaction was auto-mined.
-    pub transaction_result: Option<ExecutionResult>,
+    pub transaction_result: Option<(ExecutionResult, Trace)>,
     pub mining_results: Vec<DebugMineBlockResult<BlockchainError>>,
 }
 
@@ -579,23 +580,24 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 inspector: Some(&mut inspector),
             })?;
 
+            let (debug_inspector, tracer) = inspector.into_parts();
+
             let mut initial_estimation = match result {
                 ExecutionResult::Success { gas_used, .. } => Ok(gas_used),
-                ExecutionResult::Revert { output, .. } => {
-                    Err(TransactionFailure::revert(output, transaction_hash))
-                }
-                ExecutionResult::Halt { reason, .. } => {
-                    Err(TransactionFailure::halt(reason, transaction_hash))
-                }
+                ExecutionResult::Revert { output, .. } => Err(TransactionFailure::revert(
+                    output,
+                    transaction_hash,
+                    tracer.into_trace(),
+                )),
+                ExecutionResult::Halt { reason, .. } => Err(TransactionFailure::halt(
+                    reason,
+                    transaction_hash,
+                    tracer.into_trace(),
+                )),
             }
-            .map_err(|transaction_failure| {
-                let (debug_inspector, tracer) = inspector.into_parts();
-
-                EstimateGasFailure {
-                    console_log_inputs: debug_inspector.into_console_log_encoded_messages(),
-                    trace: tracer.into_trace(),
-                    transaction_failure,
-                }
+            .map_err(|transaction_failure| EstimateGasFailure {
+                console_log_inputs: debug_inspector.into_console_log_encoded_messages(),
+                transaction_failure,
             })?;
 
             // Ensure that the initial estimation is at least the minimum cost + 1.
@@ -1317,7 +1319,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         let mut mining_results = Vec::new();
         let transaction_result = snapshot_id
             .map(
-                |snapshot_id| -> Result<ExecutionResult, ProviderError<LoggerErrorT>> {
+                |snapshot_id| -> Result<(ExecutionResult, Trace), ProviderError<LoggerErrorT>> {
                     let transaction_result = loop {
                         let result = self.mine_and_commit_block(None).map_err(|error| {
                             self.revert_to_snapshot(snapshot_id);
@@ -1325,16 +1327,18 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                             error
                         })?;
 
-                        let transaction_result =
-                            result.block.transactions().iter().enumerate().find_map(
-                                |(idx, transaction)| {
-                                    if *transaction.hash() == transaction_hash {
-                                        Some(result.transaction_results[idx].clone())
-                                    } else {
-                                        None
-                                    }
-                                },
-                            );
+                        let transaction_result = izip!(
+                            result.block.transactions().iter(),
+                            result.transaction_results.iter(),
+                            result.transaction_traces.iter()
+                        )
+                        .find_map(|(transaction, result, trace)| {
+                            if *transaction.hash() == transaction_hash {
+                                Some((result.clone(), trace.clone()))
+                            } else {
+                                None
+                            }
+                        });
 
                         mining_results.push(result);
 

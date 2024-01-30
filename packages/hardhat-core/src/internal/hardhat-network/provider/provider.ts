@@ -1,7 +1,14 @@
-import type { Provider as EdrProviderT, SubscriptionEvent } from "@ignored/edr";
+import type {
+  Provider as EdrProviderT,
+  RawTrace,
+  Response,
+  SubscriptionEvent,
+} from "@ignored/edr";
 import type {
   Artifacts,
   BoundExperimentalHardhatNetworkMessageTraceHook,
+  CompilerInput,
+  CompilerOutput,
   EIP1193Provider,
   EthSubscription,
   HardhatNetworkChainsConfig,
@@ -13,12 +20,18 @@ import chalk from "chalk";
 import debug from "debug";
 import { EventEmitter } from "events";
 import fsExtra from "fs-extra";
+import * as t from "io-ts";
 import semver from "semver";
 
 import {
   HARDHAT_NETWORK_RESET_EVENT,
   HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
 } from "../../constants";
+import {
+  rpcCompilerInput,
+  rpcCompilerOutput,
+} from "../../core/jsonrpc/types/input/solc";
+import { validateParams } from "../../core/jsonrpc/types/input/validation";
 import {
   InvalidArgumentsError,
   InvalidInputError,
@@ -29,6 +42,7 @@ import {
 import { isErrorResponse } from "../../core/providers/http";
 import { getHardforkName } from "../../util/hardforks";
 import { Mutex } from "../../vendor/await-semaphore";
+import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { ContractsIdentifier } from "../stack-traces/contracts-identifier";
 import {
@@ -36,6 +50,10 @@ import {
   initializeVmTraceDecoder,
 } from "../stack-traces/vm-trace-decoder";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/constants";
+import { encodeSolidityStackTrace } from "../stack-traces/solidity-errors";
+import { SolidityStackTrace } from "../stack-traces/solidity-stack-trace";
+import { SolidityTracer } from "../stack-traces/solidityTracer";
+import { VMTracer } from "../stack-traces/vm-tracer";
 
 import { getPackageJson } from "../../util/packageInfo";
 import { MiningTimer } from "./MiningTimer";
@@ -396,6 +414,8 @@ export class EdrProviderWrapper
   extends EventEmitter
   implements EIP1193Provider
 {
+  private _failedStackTraces = 0;
+
   private constructor(
     private readonly _provider: EdrProviderT,
     private readonly _eventAdapter: EdrProviderEventAdapter,
@@ -530,23 +550,62 @@ export class EdrProviderWrapper
   }
 
   public async request(args: RequestArguments): Promise<unknown> {
+    if (args.params !== undefined && !Array.isArray(args.params)) {
+      throw new InvalidInputError(
+        "Hardhat Network doesn't support JSON-RPC params sent as an object"
+      );
+    }
+
+    const params = args.params ?? [];
+
+    if (args.method === "hardhat_addCompilationResult") {
+      return this._addCompilationResultAction(
+        ...this._addCompilationResultParams(params)
+      );
+    } else if (args.method === "hardhat_getStackTraceFailuresCount") {
+      return this._getStackTraceFailuresCountAction(
+        ...this._getStackTraceFailuresCountParams(params)
+      );
+    }
+
     const stringifiedArgs = JSON.stringify({
       method: args.method,
-      params: args.params ?? [],
+      params,
     });
 
-    const response = JSON.parse(
-      await this._provider.handleRequest(stringifiedArgs)
+    const responseObject: Response = await this._provider.handleRequest(
+      stringifiedArgs
     );
+    const response = JSON.parse(responseObject.json);
 
     if (isErrorResponse(response)) {
       let error;
-      if (response.error.code === InvalidArgumentsError.CODE) {
-        error = new InvalidArgumentsError(response.error.message);
-      } else {
-        error = new ProviderError(response.error.message, response.error.code);
+
+      const rawTrace = responseObject.trace;
+      let stackTrace: SolidityStackTrace | undefined;
+      if (rawTrace !== null) {
+        stackTrace = await this._rawTraceToSolidityStackTrace(rawTrace);
       }
-      error.data = response.error.data;
+
+      if (stackTrace !== undefined) {
+        error = encodeSolidityStackTrace(response.error.message, stackTrace);
+        // Pass data and transaction hash from the original error
+        (error as any).data = {
+          data: response.error.data?.data,
+          transactionHash: response.error.data?.transactionHash,
+          ...(error as any).data,
+        };
+      } else {
+        if (response.error.code === InvalidArgumentsError.CODE) {
+          error = new InvalidArgumentsError(response.error.message);
+        } else {
+          error = new ProviderError(
+            response.error.message,
+            response.error.code
+          );
+        }
+        error.data = response.error.data;
+      }
 
       // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw error;
@@ -590,6 +649,98 @@ export class EdrProviderWrapper
     };
 
     this.emit("message", message);
+  }
+
+  private _addCompilationResultParams(
+    params: any[]
+  ): [string, CompilerInput, CompilerOutput] {
+    return validateParams(
+      params,
+      t.string,
+      rpcCompilerInput,
+      rpcCompilerOutput
+    );
+  }
+
+  private async _addCompilationResultAction(
+    solcVersion: string,
+    compilerInput: CompilerInput,
+    compilerOutput: CompilerOutput
+  ): Promise<boolean> {
+    let bytecodes;
+    try {
+      bytecodes = createModelsAndDecodeBytecodes(
+        solcVersion,
+        compilerInput,
+        compilerOutput
+      );
+    } catch (error) {
+      console.warn(
+        chalk.yellow(
+          "The Hardhat Network tracing engine could not be updated. Run Hardhat with --verbose to learn more."
+        )
+      );
+
+      log(
+        "ContractsIdentifier failed to be updated. Please report this to help us improve Hardhat.\n",
+        error
+      );
+
+      return false;
+    }
+
+    for (const bytecode of bytecodes) {
+      this._vmTraceDecoder.addBytecode(bytecode);
+    }
+
+    return true;
+  }
+
+  private _getStackTraceFailuresCountParams(params: any[]): [] {
+    return validateParams(params);
+  }
+
+  private _getStackTraceFailuresCountAction(): number {
+    return this._failedStackTraces;
+  }
+
+  private async _rawTraceToSolidityStackTrace(
+    rawTrace: RawTrace
+  ): Promise<SolidityStackTrace | undefined> {
+    const trace = rawTrace.trace();
+    const vmTracer = new VMTracer(this._common, false);
+
+    for (const traceItem of trace) {
+      if ("pc" in traceItem) {
+        await vmTracer.addStep(traceItem);
+      } else if ("executionResult" in traceItem) {
+        await vmTracer.addAfterMessage(traceItem.executionResult);
+      } else {
+        await vmTracer.addBeforeMessage(traceItem);
+      }
+    }
+
+    let vmTrace = vmTracer.getLastTopLevelMessageTrace();
+    const vmTracerError = vmTracer.getLastError();
+
+    if (vmTrace !== undefined) {
+      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
+    }
+
+    try {
+      if (vmTrace === undefined || vmTracerError !== undefined) {
+        throw vmTracerError;
+      }
+
+      const solidityTracer = new SolidityTracer();
+      return solidityTracer.getStackTrace(vmTrace);
+    } catch (err) {
+      this._failedStackTraces += 1;
+      log(
+        "Could not generate stack trace. Please report this to help us improve Hardhat.\n",
+        err
+      );
+    }
   }
 }
 

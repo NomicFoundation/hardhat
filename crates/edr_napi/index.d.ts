@@ -701,7 +701,11 @@ export class Provider {
   /**Constructs a new provider with the provided configuration. */
   static withConfig(config: ProviderConfig, loggerConfig: LoggerConfig, subscriberCallback: (event: SubscriptionEvent) => void): Promise<Provider>
   /**Handles a JSON-RPC request and returns a JSON-RPC response. */
-  handleRequest(jsonRequest: string): Promise<string>
+  handleRequest(jsonRequest: string): Promise<Response>
+}
+export class Response {
+  get json(): string
+  get trace(): RawTrace | null
 }
 export class Receipt {
   /**Returns the hash of the block the receipt is included in. */
@@ -796,6 +800,9 @@ export class State {
    * value.
    */
   setAccountStorageSlot(address: Buffer, index: bigint, value: bigint): Promise<bigint>
+}
+export class RawTrace {
+  trace(): Array<TracingMessage | TracingStep | TracingMessageResult>
 }
 export class Tracer {
   constructor(callbacks: TracingCallbacks)

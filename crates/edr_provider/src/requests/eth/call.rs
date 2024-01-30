@@ -35,9 +35,11 @@ pub fn handle_call_request<LoggerErrorT: Debug>(
         .map_err(ProviderError::Logger)?;
 
     if data.bail_on_call_failure() {
-        if let Some(call_failure) =
-            TransactionFailure::from_execution_result(&result.execution_result, transaction.hash())
-        {
+        if let Some(call_failure) = TransactionFailure::from_execution_result(
+            &result.execution_result,
+            transaction.hash(),
+            &result.trace,
+        ) {
             return Err(ProviderError::TransactionFailed(call_failure));
         }
     }
