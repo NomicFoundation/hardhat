@@ -110,6 +110,14 @@ export async function sendTransaction(
     }
   );
 
+  // If the transaction failed during simulation, we need to revert the nonce allocation
+  if (
+    result.type === ExecutionResultType.STRATEGY_SIMULATION_ERROR ||
+    result.type === ExecutionResultType.SIMULATION_ERROR
+  ) {
+    nonceManager.revertNonce(exState.from);
+  }
+
   if (result.type === TRANSACTION_SENT_TYPE) {
     transactionTrackingTimer.addTransaction(result.transaction.hash);
 

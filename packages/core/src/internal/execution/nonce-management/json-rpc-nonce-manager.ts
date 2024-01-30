@@ -16,6 +16,14 @@ export interface NonceManager {
    * interrupted.
    */
   getNextNonce(sender: string): Promise<number>;
+
+  /**
+   * Reverts the last nonce allocation for a given sender.
+   *
+   * This method is used when a nonce has been allocated,
+   * but the transaction fails during simulation and is not sent.
+   */
+  revertNonce(sender: string): void;
 }
 
 /**
@@ -52,5 +60,9 @@ export class JsonRpcNonceManager implements NonceManager {
     this._maxUsedNonce[sender] = expectedNonce;
 
     return expectedNonce;
+  }
+
+  public revertNonce(sender: string): void {
+    this._maxUsedNonce[sender] -= 1;
   }
 }
