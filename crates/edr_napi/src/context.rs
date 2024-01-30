@@ -5,7 +5,6 @@ use edr_evm::RandomHashGenerator;
 use napi::{bindgen_prelude::Buffer, Status};
 use napi_derive::napi;
 use parking_lot::Mutex;
-use tracing_subscriber::{prelude::*, EnvFilter, Registry};
 
 use crate::cast::TryCast;
 
@@ -50,46 +49,17 @@ impl EdrContext {
 #[derive(Debug)]
 pub struct Context {
     pub state_root_generator: Arc<Mutex<RandomHashGenerator>>,
-    #[cfg(feature = "tracing")]
-    _tracing_write_guard: tracing_flame::FlushGuard<std::io::BufWriter<std::fs::File>>,
 }
 
 impl Context {
     /// Creates a new [`Context`] instance. Should only be called once!
     pub fn new() -> io::Result<Self> {
-        let fmt_layer = tracing_subscriber::fmt::layer()
-            .with_file(true)
-            .with_line_number(true)
-            .with_thread_ids(true)
-            .with_target(false)
-            .with_level(true)
-            .with_filter(EnvFilter::from_default_env());
-
-        let subscriber = Registry::default().with(fmt_layer);
-
-        #[cfg(feature = "tracing")]
-        let (flame_layer, guard) = {
-            let (flame_layer, guard) =
-                tracing_flame::FlameLayer::with_file("tracing.folded").unwrap();
-
-            let flame_layer = flame_layer.with_empty_samples(false);
-            (flame_layer, guard)
-        };
-
-        #[cfg(feature = "tracing")]
-        let subscriber = subscriber.with(flame_layer);
-
-        tracing::subscriber::set_global_default(subscriber)
-            .expect("Could not set global default tracing subscriber");
-
         let state_root_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed(
             edr_defaults::STATE_ROOT_HASH_SEED,
         )));
 
         Ok(Self {
             state_root_generator,
-            #[cfg(feature = "tracing")]
-            _tracing_write_guard: guard,
         })
     }
 }

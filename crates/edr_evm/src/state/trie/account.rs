@@ -124,7 +124,7 @@ impl AccountTrie {
 
     /// Retrieves an account corresponding to the specified address from the
     /// state.
-    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
     pub fn account(&self, address: &Address) -> Option<BasicAccount> {
         let state_trie = Trie::from(
             self.state_trie_db.clone(),
@@ -167,7 +167,7 @@ impl AccountTrie {
     }
 
     /// Commits changes to the state.
-    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
     pub fn commit(&mut self, changes: &HashMap<Address, Account>) {
         let mut state_trie = Trie::from(
             self.state_trie_db.clone(),
@@ -231,7 +231,7 @@ impl AccountTrie {
     }
 
     /// Sets the provided account at the specified address.
-    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
     pub fn set_account(&mut self, address: &Address, account_info: &AccountInfo) {
         let mut state_trie = Trie::from(
             self.state_trie_db.clone(),
@@ -259,7 +259,7 @@ impl AccountTrie {
 
     /// Helper function for setting the account at the specified address into
     /// the provided state trie.
-    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(state_trie)))]
     fn set_account_in(
         address: &Address,
         account_info: &AccountInfo,
@@ -275,7 +275,7 @@ impl AccountTrie {
     }
 
     /// Removes the account at the specified address, if it exists.
-    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
     pub fn remove_account(&mut self, address: &Address) -> Option<BasicAccount> {
         let mut state_trie = Trie::from(
             self.state_trie_db.clone(),
@@ -293,7 +293,10 @@ impl AccountTrie {
 
     /// Helper function for removing the account at the specified address from
     /// the provided state trie and storage tries, if it exists.
-    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(skip(state_trie, storage_trie_dbs))
+    )]
     fn remove_account_in(
         address: &Address,
         state_trie: &mut Trie,
@@ -312,7 +315,7 @@ impl AccountTrie {
     }
 
     /// Serializes the state using ordering of addresses and storage indices.
-    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
     pub fn serialize(&self) -> String {
         #[derive(serde::Serialize)]
         struct StateAccount {
@@ -385,7 +388,7 @@ impl AccountTrie {
     /// value.
     ///
     /// Returns the old storage slot value.
-    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
     pub fn set_account_storage_slot(
         &mut self,
         address: &Address,
@@ -450,7 +453,7 @@ impl AccountTrie {
 
     /// Helper function for setting the storage slot at the specified address
     /// and index to the provided value.
-    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(storage_trie)))]
     fn set_account_storage_slot_in(
         index: &U256,
         value: &U256,
@@ -477,20 +480,20 @@ impl AccountTrie {
     }
 
     /// Retrieves the trie's state root.
-    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
     pub fn state_root(&self) -> B256 {
         self.state_root
     }
 
     /// Retrieves the storage root of the account at the specified address.
-    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
     pub fn storage_root(&self, address: &Address) -> Option<B256> {
         self.storage_trie_dbs.get(address).map(|(_db, root)| *root)
     }
 }
 
 impl Clone for AccountTrie {
-    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
     fn clone(&self) -> Self {
         let state_trie_db = Arc::new((*self.state_trie_db).clone());
 

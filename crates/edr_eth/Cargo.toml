@@ -15,10 +15,9 @@ itertools = { version = "0.10.5", default-features = false, features = ["use_all
 k256 = { version = "0.13.1", default-features = false, features = ["arithmetic", "ecdsa", "pkcs8",] }
 log = { version = "0.4.17", default-features = false }
 reqwest = { version = "0.11", features = ["blocking", "json"] }
-# We need the git versions pending the release of `RetryableStrategy`
-# https://github.com/TrueLayer/reqwest-middleware/blob/main/reqwest-retry/CHANGELOG.md#unreleased
-reqwest-middleware = { git = "https://github.com/TrueLayer/reqwest-middleware", rev = "a54319a", default-features = false }
-reqwest-retry = { git = "https://github.com/TrueLayer/reqwest-middleware", rev = "a54319a", default-features = false }
+reqwest-middleware = { version = "0.2.4", default-features = false }
+reqwest-retry = { version = "0.3.0", default-features = false }
+reqwest-tracing = { version = "0.4.7", default-features = false, optional = true }
 revm-primitives = { git = "https://github.com/Wodann/revm", rev = "d6fea43", version = "1.3", default-features = false }
 # revm-primitives = { path = "../../../revm/crates/primitives", version = "1.3", default-features = false }
 serde = { version = "1.0.147", default-features = false, features = ["derive"], optional = true }
@@ -26,8 +25,10 @@ serde_json = { version = "1.0.89", optional = true }
 sha3 = { version = "0.10.8", default-features = false }
 thiserror = { version = "1.0.37", default-features = false }
 tokio = { version = "1.21.2", default-features = false, features = ["fs", "sync"] }
+tracing = { version = "0.1.37", features = ["attributes", "std"], optional = true }
 triehash = { version = "0.8.4", default-features = false }
 uuid = { version = "1.4.1", default-features = false, features = ["v4"]}
+url = "2.4.1"
 
 [dev-dependencies]
 anyhow = "1.0.75"
@@ -45,4 +46,5 @@ walkdir = { version = "2.3.3", default-features =  false }
 default = ["std"]
 serde = ["dep:serde", "alloy-primitives/serde", "revm-primitives/serde", "serde_json"]
 std = ["alloy-primitives/std", "futures/std", "hash256-std-hasher/std", "hash-db/std", "hex/std", "itertools/use_std", "k256/std", "k256/precomputed-tables", "revm-primitives/std", "serde?/std", "sha3/std", "triehash/std", "uuid/std"]
+tracing = ["dep:tracing", "reqwest-tracing"]
 test-remote = ["serde"]

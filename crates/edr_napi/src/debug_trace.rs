@@ -22,7 +22,7 @@ use crate::{
 
 /// Get trace output for `debug_traceTransaction`
 #[napi]
-#[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+#[tracing::instrument(skip_all)]
 pub async fn debug_trace_transaction(
     blockchain: &Blockchain,
     state: &State,
@@ -65,7 +65,7 @@ pub async fn debug_trace_transaction(
 
 /// Get trace output for `debug_traceTransaction`
 #[napi]
-#[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+#[tracing::instrument(skip_all)]
 pub async fn debug_trace_call(
     blockchain: &Blockchain,
     state: &State,

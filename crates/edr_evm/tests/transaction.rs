@@ -17,7 +17,7 @@ mod alchemy {
                         use tempfile::TempDir;
 
                         let tempdir = TempDir::new().unwrap();
-                        let client = RpcClient::new(&get_alchemy_url(), tempdir.path().into(), None);
+                        let client = RpcClient::new(&get_alchemy_url(), tempdir.path().into(), None).expect("url ok");
 
                         let block = client
                             .get_block_by_number_with_transaction_data(PreEip1898BlockSpec::Number($block_number))

@@ -160,7 +160,8 @@ impl Blockchain {
 
         let (deferred, promise) = env.create_deferred()?;
         runtime.clone().spawn_blocking(move || {
-            let rpc_client = RpcClient::new(&remote_url, cache_dir, None);
+            // Panicking as this code is expected to be removed soon
+            let rpc_client = RpcClient::new(&remote_url, cache_dir, None).expect("url ok");
             let result = runtime
                 .clone()
                 .block_on(edr_evm::blockchain::ForkedBlockchain::new(

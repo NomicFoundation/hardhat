@@ -1,5 +1,6 @@
 mod block_spec;
 mod cacheable_method_invocation;
+mod chain_id;
 /// an Ethereum JSON-RPC client
 pub mod client;
 /// ethereum objects as specifically used in the JSON-RPC interface

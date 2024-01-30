@@ -132,7 +132,8 @@ mod tests {
     async fn no_cache_for_unsafe_block_number() {
         let tempdir = tempfile::tempdir().expect("can create tempdir");
 
-        let rpc_client = RpcClient::new(&get_alchemy_url(), tempdir.path().to_path_buf(), None);
+        let rpc_client =
+            RpcClient::new(&get_alchemy_url(), tempdir.path().to_path_buf(), None).expect("url ok");
 
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");

@@ -4,7 +4,7 @@ use edr_eth::{
     block::{largest_safe_block_number, safe_block_depth, LargestSafeBlockNumberArgs},
     log::FilterLog,
     receipt::BlockReceipt,
-    remote::{BlockSpec, RpcClient, RpcClientError},
+    remote::{client::ForkMetadata, BlockSpec, RpcClient, RpcClientError},
     spec::{chain_hardfork_activations, chain_name, HardforkActivations},
     Address, B256, U256,
 };
@@ -99,15 +99,11 @@ impl ForkedBlockchain {
         state_root_generator: Arc<Mutex<RandomHashGenerator>>,
         hardfork_activation_overrides: &HashMap<ChainId, HardforkActivations>,
     ) -> Result<Self, CreationError> {
-        let (remote_chain_id, network_id, latest_block_number) = tokio::join!(
-            rpc_client.chain_id(),
-            rpc_client.network_id(),
-            rpc_client.block_number()
-        );
-
-        let remote_chain_id = remote_chain_id?;
-        let network_id = network_id?;
-        let latest_block_number = latest_block_number?;
+        let ForkMetadata {
+            chain_id: remote_chain_id,
+            network_id,
+            latest_block_number,
+        } = rpc_client.fetch_fork_metadata().await?;
 
         let safe_block_number = largest_safe_block_number(LargestSafeBlockNumberArgs {
             chain_id: remote_chain_id,

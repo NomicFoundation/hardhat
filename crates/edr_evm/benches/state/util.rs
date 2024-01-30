@@ -50,14 +50,17 @@ impl EdrStates {
             use edr_evm::RandomHashGenerator;
             use parking_lot::Mutex;
 
-            let rpc_client = Arc::new(RpcClient::new(
-                &std::env::var_os("ALCHEMY_URL")
-                    .expect("ALCHEMY_URL environment variable not defined")
-                    .into_string()
-                    .unwrap(),
-                cache_dir.path().to_path_buf(),
-                None,
-            ));
+            let rpc_client = Arc::new(
+                RpcClient::new(
+                    &std::env::var_os("ALCHEMY_URL")
+                        .expect("ALCHEMY_URL environment variable not defined")
+                        .into_string()
+                        .unwrap(),
+                    cache_dir.path().to_path_buf(),
+                    None,
+                )
+                .expect("url ok"),
+            );
 
             let block = runtime
                 .block_on(

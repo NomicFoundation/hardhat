@@ -1021,6 +1021,7 @@ dependencies = [
  "reqwest",
  "reqwest-middleware",
  "reqwest-retry",
+ "reqwest-tracing",
  "revm-primitives 1.3.0",
  "serde",
  "serde_json",
@@ -1029,7 +1030,9 @@ dependencies = [
  "tempfile",
  "thiserror",
  "tokio",
+ "tracing",
  "triehash",
+ "url",
  "uuid",
  "walkdir",
 ]
@@ -1078,6 +1081,7 @@ dependencies = [
  "edr_provider",
  "itertools 0.12.0",
  "k256",
+ "lazy_static",
  "napi",
  "napi-build",
  "napi-derive",
@@ -1118,6 +1122,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "toml 0.5.11",
+ "tracing",
 ]
 
 [[package]]
@@ -1946,6 +1951,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "matchit"
+version = "0.7.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0e7465ac9959cc2b1404e8e2367b43684a6d13790fe23056cc8c6c5a6b7bcb94"
+
+[[package]]
 name = "memchr"
 version = "2.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2751,8 +2762,9 @@ dependencies = [
 
 [[package]]
 name = "reqwest-middleware"
-version = "0.2.3"
-source = "git+https://github.com/TrueLayer/reqwest-middleware?rev=a54319a#a54319a9d65926c899440e5970c04592f30ed048"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "88a3e86aa6053e59030e7ce2d2a3b258dd08fc2d337d52f73f6cb480f5858690"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2765,8 +2777,9 @@ dependencies = [
 
 [[package]]
 name = "reqwest-retry"
-version = "0.2.2"
-source = "git+https://github.com/TrueLayer/reqwest-middleware?rev=a54319a#a54319a9d65926c899440e5970c04592f30ed048"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9af20b65c2ee9746cc575acb6bd28a05ffc0d15e25c992a8f4462d8686aacb4f"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2786,10 +2799,26 @@ dependencies = [
 ]
 
 [[package]]
-name = "retry-policies"
-version = "0.1.2"
+name = "reqwest-tracing"
+version = "0.4.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e09bbcb5003282bcb688f0bae741b278e9c7e8f378f561522c9806c58e075d9b"
+checksum = "5a0152176687dd5cfe7f507ac1cb1a491c679cfe483afd133a7db7aaea818bb3"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "getrandom",
+ "matchit",
+ "reqwest",
+ "reqwest-middleware",
+ "task-local-extensions",
+ "tracing",
+]
+
+[[package]]
+name = "retry-policies"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "17dd00bff1d737c40dbcd47d4375281bf4c17933f9eef0a185fc7bacca23ecbd"
 dependencies = [
  "anyhow",
  "chrono",
@@ -3773,9 +3802,9 @@ dependencies = [
 
 [[package]]
 name = "tracing-subscriber"
-version = "0.3.17"
+version = "0.3.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "30a651bc37f915e81f087d86e62a18eec5f79550c7faff886f7090b4ea757c77"
+checksum = "ad0f048c97dbd9faa9b7df56362b8ebcaa52adb06b498c050d2f4e32f90a7a8b"
 dependencies = [
  "matchers",
  "nu-ansi-term",
