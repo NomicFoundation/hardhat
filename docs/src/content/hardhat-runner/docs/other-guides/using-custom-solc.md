@@ -50,4 +50,4 @@ module.exports = {
 To learn more about the
 
 - `subtask` function, check the [Subtask](/hardhat-runner/docs/advanced/create-task#subtasks) section of the documentation.
-- `runSuper` function, check the [Extending Tasks](/hardhat-runner/docs/advanced/create-task#the--runsuper--function) section of the documentation.
+- `runSuper` function, check the [Overriding Tasks](/hardhat-runner/docs/advanced/create-task#overriding-tasks) section of the documentation.
