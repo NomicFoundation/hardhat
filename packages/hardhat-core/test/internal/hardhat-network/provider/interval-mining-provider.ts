@@ -1,11 +1,11 @@
 import { assert } from "chai";
-import sinon from "sinon";
 
 import { rpcQuantityToNumber } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { ALCHEMY_URL } from "../../../setup";
 import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
 import { setCWD } from "../helpers/cwd";
 import { INTERVAL_MINING_PROVIDERS } from "../helpers/providers";
+import { sleep } from "../helpers/sleep";
 
 describe("Interval mining provider", function () {
   INTERVAL_MINING_PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -13,8 +13,8 @@ describe("Interval mining provider", function () {
 
     describe(`${name} provider`, function () {
       const safeBlockInThePast = 11_200_000;
-      const blockTime = 10000;
-      let clock: sinon.SinonFakeTimers;
+      const blockTime = 100;
+      const blockWaitTime = blockTime + 10;
 
       const getBlockNumber = async () => {
         return rpcQuantityToNumber(
@@ -22,16 +22,8 @@ describe("Interval mining provider", function () {
         );
       };
 
-      beforeEach(() => {
-        clock = sinon.useFakeTimers({
-          now: Date.now(),
-          toFake: ["Date", "setTimeout", "clearTimeout"],
-        });
-      });
-
       afterEach(async function () {
         await this.provider.send("evm_setIntervalMining", [0]);
-        clock.restore();
       });
 
       setCWD();
@@ -41,10 +33,10 @@ describe("Interval mining provider", function () {
         it("starts interval mining automatically", async function () {
           const firstBlock = await getBlockNumber(); // this triggers provider initialization
 
-          await clock.tickAsync(blockTime);
+          await sleep(blockWaitTime);
           const secondBlock = await getBlockNumber();
 
-          await clock.tickAsync(blockTime);
+          await sleep(blockWaitTime);
           const thirdBlock = await getBlockNumber();
 
           assert.equal(secondBlock, firstBlock + 1);
@@ -63,7 +55,7 @@ describe("Interval mining provider", function () {
           it("starts interval mining", async function () {
             const firstBlock = await getBlockNumber();
 
-            await clock.tickAsync(blockTime);
+            await sleep(blockWaitTime);
             const secondBlockBeforeReset = await getBlockNumber();
 
             await this.provider.send("hardhat_reset", [
@@ -75,10 +67,10 @@ describe("Interval mining provider", function () {
               },
             ]);
 
-            await clock.tickAsync(blockTime);
+            await sleep(blockWaitTime);
             const secondBlockAfterReset = await getBlockNumber();
 
-            await clock.tickAsync(blockTime);
+            await sleep(blockWaitTime);
             const thirdBlock = await getBlockNumber();
 
             assert.equal(secondBlockBeforeReset, firstBlock + 1);
@@ -91,15 +83,15 @@ describe("Interval mining provider", function () {
           it("starts interval mining", async function () {
             const firstBlock = await getBlockNumber();
 
-            await clock.tickAsync(blockTime);
+            await sleep(blockWaitTime);
             const secondBlockBeforeReset = await getBlockNumber();
 
             await this.provider.send("hardhat_reset");
 
-            await clock.tickAsync(blockTime);
+            await sleep(blockWaitTime);
             const secondBlockAfterReset = await getBlockNumber();
 
-            await clock.tickAsync(blockTime);
+            await sleep(blockWaitTime);
             const thirdBlock = await getBlockNumber();
 
             assert.equal(secondBlockBeforeReset, firstBlock + 1);

@@ -250,6 +250,12 @@ export interface ForkConfig {
    * used.
    */
   blockNumber?: bigint
+  /** The HTTP headers to use when making requests to the JSON-RPC endpoint */
+  httpHeaders?: Array<HttpHeader>
+}
+export interface HttpHeader {
+  name: string
+  value: string
 }
 /** Configuration for a hardfork activation */
 export interface HardforkActivation {

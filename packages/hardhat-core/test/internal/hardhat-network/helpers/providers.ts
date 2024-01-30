@@ -94,7 +94,7 @@ export const INTERVAL_MINING_PROVIDERS = [
         loggerEnabled: true,
         mining: {
           auto: false,
-          interval: 10000,
+          interval: 100,
           mempool: DEFAULT_MEMPOOL_CONFIG,
         },
         ...options,
@@ -111,7 +111,7 @@ export const INTERVAL_MINING_PROVIDERS = [
         loggerEnabled: true,
         mining: {
           auto: false,
-          interval: 10000,
+          interval: 100,
           mempool: DEFAULT_MEMPOOL_CONFIG,
         },
         ...options,
@@ -156,7 +156,7 @@ if (ALCHEMY_URL !== undefined) {
         forkConfig: { jsonRpcUrl: url, blockNumber: options.forkBlockNumber },
         mining: {
           auto: false,
-          interval: 10000,
+          interval: 100,
           mempool: DEFAULT_MEMPOOL_CONFIG,
         },
         ...options,
