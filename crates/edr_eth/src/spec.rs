@@ -10,6 +10,11 @@ pub struct HardforkActivations {
 }
 
 impl HardforkActivations {
+    /// Constructs a new instance with the provided hardforks.
+    pub fn new(hardforks: Vec<(u64, SpecId)>) -> Self {
+        Self { hardforks }
+    }
+
     /// Creates a new instance for a new chain with the provided [`SpecId`].
     pub fn with_spec_id(spec_id: SpecId) -> Self {
         Self {
@@ -30,6 +35,14 @@ impl HardforkActivations {
             .rev()
             .find(|(hardfork_number, _)| block_number >= *hardfork_number)
             .map(|entry| entry.1)
+    }
+
+    /// Retrieves the block number at which the provided hardfork was activated.
+    pub fn hardfork_activation(&self, spec_id: SpecId) -> Option<u64> {
+        self.hardforks
+            .iter()
+            .find(|(_, id)| *id == spec_id)
+            .map(|(block, _)| *block)
     }
 }
 

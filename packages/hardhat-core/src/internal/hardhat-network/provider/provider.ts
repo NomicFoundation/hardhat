@@ -476,6 +476,22 @@ export class EdrProviderWrapper
         bailOnTransactionFailure: config.throwOnTransactionFailures,
         blockGasLimit: BigInt(config.blockGasLimit),
         chainId: BigInt(config.chainId),
+        chains: Array.from(config.chains, ([chainId, hardforkConfig]) => {
+          return {
+            chainId: BigInt(chainId),
+            hardforks: Array.from(
+              hardforkConfig.hardforkHistory,
+              ([hardfork, blockNumber]) => {
+                return {
+                  blockNumber: BigInt(blockNumber),
+                  specId: ethereumsjsHardforkToEdrSpecId(
+                    getHardforkName(hardfork)
+                  ),
+                };
+              }
+            ),
+          };
+        }),
         cacheDir: config.forkCachePath,
         coinbase: Buffer.from(coinbase.slice(2), "hex"),
         fork,

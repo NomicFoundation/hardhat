@@ -13,10 +13,11 @@ use std::{
 };
 
 use edr_eth::{
-    block::BlobGas,
+    block::{miner_reward, BlobGas},
     log::FilterLog,
     receipt::BlockReceipt,
     remote::{
+        client::{HeaderMap, HttpError},
         eth::FeeHistoryResult,
         filter::{FilteredEvents, LogOutput, SubscriptionType},
         BlockSpec, BlockTag, Eip1898BlockSpec, RpcClient, RpcClientError,
@@ -41,8 +42,8 @@ use edr_evm::{
     trace::{Trace, TraceCollector},
     Account, AccountInfo, BlobExcessGasAndPrice, Block, BlockEnv, Bytecode, CfgEnv,
     DebugTraceConfig, DebugTraceResult, DualInspector, ExecutableTransaction, ExecutionResult,
-    HashMap, HashSet, MemPool, MineOrdering, OrderedTransaction, RandomHashGenerator, StorageSlot,
-    SyncBlock, TracerEip3155, TxEnv, KECCAK_EMPTY,
+    HashMap, HashSet, MemPool, OrderedTransaction, RandomHashGenerator, StorageSlot, SyncBlock,
+    TracerEip3155, TxEnv, KECCAK_EMPTY,
 };
 use ethers_core::types::transaction::eip712::{Eip712, TypedData};
 use gas::gas_used_ratio;
@@ -96,6 +97,8 @@ pub enum CreationError {
     /// An error that occurred while constructing a forked blockchain.
     #[error(transparent)]
     ForkedBlockchainCreation(#[from] ForkedCreationError),
+    #[error("Invalid HTTP header name: {0}")]
+    InvalidHttpHeaders(HttpError),
     /// Invalid initial date
     #[error("The initial date configuration value {0:?} is before the UNIX epoch")]
     InvalidInitialDate(SystemTime),
@@ -120,6 +123,7 @@ pub struct ProviderData<LoggerErrorT: Debug> {
     pub irregular_state: IrregularState,
     mem_pool: MemPool,
     beneficiary: Address,
+    dao_activation_block: Option<u64>,
     min_gas_price: U256,
     prev_randao_generator: RandomHashGenerator,
     block_time_offset_seconds: i64,
@@ -174,6 +178,11 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         let is_auto_mining = config.mining.auto_mine;
         let min_gas_price = config.min_gas_price;
 
+        let dao_activation_block = config
+            .chains
+            .get(&config.chain_id)
+            .and_then(|config| config.hardfork_activation(SpecId::DAO_FORK));
+
         Ok(Self {
             runtime_handle,
             initial_config: config,
@@ -182,6 +191,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             irregular_state,
             mem_pool: MemPool::new(block_gas_limit),
             beneficiary,
+            dao_activation_block,
             min_gas_price,
             prev_randao_generator,
             block_time_offset_seconds,
@@ -1785,9 +1795,6 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         timestamp: u64,
         prevrandao: Option<B256>,
     ) -> Result<DebugMineBlockResultAndState<StateError>, ProviderError<LoggerErrorT>> {
-        // TODO: https://github.com/NomicFoundation/edr/issues/156
-        let reward = U256::ZERO;
-
         let evm_config = self.create_evm_config(None)?;
 
         let mut inspector = EvmInspector::default();
@@ -1800,11 +1807,11 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             timestamp,
             self.beneficiary,
             self.min_gas_price,
-            // TODO: make this configurable (https://github.com/NomicFoundation/edr/issues/111)
-            MineOrdering::Fifo,
-            reward,
+            self.initial_config.mining.mem_pool.order,
+            miner_reward(evm_config.spec_id).unwrap_or(U256::ZERO),
             self.next_block_base_fee_per_gas,
             prevrandao,
+            self.dao_activation_block,
             Some(&mut inspector),
         )?;
 
@@ -2045,22 +2052,35 @@ fn create_blockchain_and_state(
             RandomHashGenerator::with_seed(edr_defaults::STATE_ROOT_HASH_SEED),
         ));
 
+        let http_headers = fork_config
+            .http_headers
+            .as_ref()
+            .map(|headers| HeaderMap::try_from(headers).map_err(CreationError::InvalidHttpHeaders))
+            .transpose()?;
+
         let blockchain = tokio::task::block_in_place(|| {
             runtime.block_on(ForkedBlockchain::new(
                 runtime.clone(),
                 Some(config.chain_id),
                 config.hardfork,
-                RpcClient::new(&fork_config.json_rpc_url, config.cache_dir.clone()),
+                RpcClient::new(
+                    &fork_config.json_rpc_url,
+                    config.cache_dir.clone(),
+                    http_headers.clone(),
+                ),
                 fork_config.block_number,
                 state_root_generator.clone(),
-                // TODO: make hardfork activations configurable (https://github.com/NomicFoundation/edr/issues/111)
-                HashMap::new(),
+                &config.chains,
             ))
         })?;
 
         let fork_block_number = blockchain.last_block_number();
 
-        let rpc_client = RpcClient::new(&fork_config.json_rpc_url, config.cache_dir.clone());
+        let rpc_client = RpcClient::new(
+            &fork_config.json_rpc_url,
+            config.cache_dir.clone(),
+            http_headers,
+        );
 
         if !genesis_accounts.is_empty() {
             let genesis_addresses = genesis_accounts.keys().cloned().collect::<Vec<_>>();

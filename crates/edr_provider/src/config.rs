@@ -1,13 +1,15 @@
 use std::{path::PathBuf, time::SystemTime};
 
-use edr_eth::{block::BlobGas, AccountInfo, Address, HashMap, SpecId, B256, U256};
-use edr_evm::MineOrdering;
+use edr_eth::{
+    block::BlobGas, spec::HardforkActivations, AccountInfo, Address, HashMap, SpecId, B256, U256,
+};
+use edr_evm::{alloy_primitives::ChainId, MineOrdering};
 use rand::Rng;
 
 use crate::{requests::hardhat::rpc_types::ForkConfig, OneUsizeOrTwo};
 
 /// Configuration for interval mining.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum IntervalConfig {
     Fixed(u64),
     Range { min: u64, max: u64 },
@@ -36,7 +38,7 @@ impl From<OneUsizeOrTwo> for IntervalConfig {
 }
 
 /// Configuration for the provider's mempool.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct MemPoolConfig {
     pub order: MineOrdering,
 }
@@ -61,7 +63,8 @@ pub struct ProviderConfig {
     pub bail_on_transaction_failure: bool,
     pub block_gas_limit: u64,
     pub cache_dir: PathBuf,
-    pub chain_id: u64,
+    pub chain_id: ChainId,
+    pub chains: HashMap<ChainId, HardforkActivations>,
     pub coinbase: Address,
     pub fork: Option<ForkConfig>,
     // Genesis accounts in addition to accounts. Useful for adding impersonated accounts for tests.

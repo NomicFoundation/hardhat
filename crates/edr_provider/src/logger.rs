@@ -1,6 +1,3 @@
-// TODO: Remove once stubs have been implemented.
-#![allow(dead_code, clippy::unused_self)]
-
 use core::fmt::Debug;
 
 use dyn_clone::DynClone;

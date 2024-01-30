@@ -21,7 +21,7 @@ mod remote {
                         use edr_eth::{remote::{RpcClient, PreEip1898BlockSpec}, trie::ordered_trie_root};
                         use edr_test_utils::env::get_alchemy_url;
 
-                        let client = RpcClient::new(&get_alchemy_url(), CACHE_DIR.path().into());
+                        let client = RpcClient::new(&get_alchemy_url(), CACHE_DIR.path().into(), None);
 
                         let block = client
                             .get_block_by_number_with_transaction_data(PreEip1898BlockSpec::Number($block_number))

@@ -55,7 +55,7 @@ pub struct MineBlockResultAndState<StateErrorT> {
 }
 
 /// The type of ordering to use when selecting blocks to mine.
-#[derive(Debug, Clone)]
+#[derive(Clone, Copy, Debug)]
 pub enum MineOrdering {
     /// Insertion order
     Fifo,
@@ -99,6 +99,7 @@ pub fn mine_block<BlockchainErrorT, StateErrorT>(
     reward: U256,
     base_fee: Option<U256>,
     prevrandao: Option<B256>,
+    dao_hardfork_activation_block: Option<u64>,
     inspector: Option<&mut dyn SyncInspector<BlockchainErrorT, StateErrorT>>,
 ) -> Result<MineBlockResultAndState<StateErrorT>, MineBlockError<BlockchainErrorT, StateErrorT>>
 where
@@ -133,6 +134,7 @@ where
             base_fee,
             ..Default::default()
         },
+        dao_hardfork_activation_block,
     )?;
 
     let mut pending_transactions = {

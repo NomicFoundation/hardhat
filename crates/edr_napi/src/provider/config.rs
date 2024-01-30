@@ -15,6 +15,15 @@ use crate::{
     account::GenesisAccount, block::BlobGas, cast::TryCast, config::SpecId, miner::MineOrdering,
 };
 
+/// Configuration for a chain
+#[napi(object)]
+pub struct ChainConfig {
+    /// The chain ID
+    pub chain_id: BigInt,
+    /// The chain's supported hardforks
+    pub hardforks: Vec<HardforkActivation>,
+}
+
 /// Configuration for forking a blockchain
 #[napi(object)]
 pub struct ForkConfig {
@@ -23,7 +32,23 @@ pub struct ForkConfig {
     /// The block number to fork from. If not provided, the latest safe block is
     /// used.
     pub block_number: Option<BigInt>,
-    // TODO: add http_headers,
+    /// The HTTP headers to use when making requests to the JSON-RPC endpoint
+    pub http_headers: Option<Vec<HttpHeader>>,
+}
+
+#[napi(object)]
+pub struct HttpHeader {
+    pub name: String,
+    pub value: String,
+}
+
+/// Configuration for a hardfork activation
+#[napi(object)]
+pub struct HardforkActivation {
+    /// The block number at which the hardfork is activated
+    pub block_number: BigInt,
+    /// The activated hardfork
+    pub spec_id: SpecId,
 }
 
 /// Configuration for the provider's mempool.
@@ -63,6 +88,8 @@ pub struct ProviderConfig {
     pub cache_dir: Option<String>,
     /// The chain ID of the blockchain
     pub chain_id: BigInt,
+    /// The configuration for chains
+    pub chains: Vec<ChainConfig>,
     /// The address of the coinbase
     pub coinbase: Buffer,
     /// The configuration for forking a blockchain. If not provided, a local
@@ -95,11 +122,17 @@ impl TryFrom<ForkConfig> for edr_provider::hardhat_rpc_types::ForkConfig {
 
     fn try_from(value: ForkConfig) -> Result<Self, Self::Error> {
         let block_number: Option<u64> = value.block_number.map(TryCast::try_cast).transpose()?;
+        let http_headers = value.http_headers.map(|http_headers| {
+            http_headers
+                .into_iter()
+                .map(|HttpHeader { name, value }| (name, value))
+                .collect()
+        });
 
         Ok(Self {
             json_rpc_url: value.json_rpc_url,
             block_number,
-            http_headers: None,
+            http_headers,
         })
     }
 }
@@ -147,6 +180,35 @@ impl TryFrom<ProviderConfig> for edr_provider::ProviderConfig {
     type Error = napi::Error;
 
     fn try_from(value: ProviderConfig) -> Result<Self, Self::Error> {
+        let chains = value
+            .chains
+            .into_iter()
+            .map(
+                |ChainConfig {
+                     chain_id,
+                     hardforks,
+                 }| {
+                    let hardforks = hardforks
+                        .into_iter()
+                        .map(
+                            |HardforkActivation {
+                                 block_number,
+                                 spec_id,
+                             }| {
+                                let block_number = block_number.try_cast()?;
+                                let spec_id = spec_id.try_into()?;
+
+                                Ok((block_number, spec_id))
+                            },
+                        )
+                        .collect::<napi::Result<Vec<_>>>()?;
+
+                    let chain_id = chain_id.try_cast()?;
+                    Ok((chain_id, edr_eth::spec::HardforkActivations::new(hardforks)))
+                },
+            )
+            .collect::<napi::Result<_>>()?;
+
         Ok(Self {
             accounts: value
                 .genesis_accounts
@@ -164,6 +226,7 @@ impl TryFrom<ProviderConfig> for edr_provider::ProviderConfig {
                     .unwrap_or(String::from(edr_defaults::CACHE_DIR)),
             ),
             chain_id: value.chain_id.try_cast()?,
+            chains,
             coinbase: Address::from_slice(value.coinbase.as_ref()),
             fork: value.fork.map(TryInto::try_into).transpose()?,
             genesis_accounts: HashMap::new(),

@@ -160,7 +160,7 @@ impl Blockchain {
 
         let (deferred, promise) = env.create_deferred()?;
         runtime.clone().spawn_blocking(move || {
-            let rpc_client = RpcClient::new(&remote_url, cache_dir);
+            let rpc_client = RpcClient::new(&remote_url, cache_dir, None);
             let result = runtime
                 .clone()
                 .block_on(edr_evm::blockchain::ForkedBlockchain::new(
@@ -170,7 +170,7 @@ impl Blockchain {
                     rpc_client,
                     fork_block_number,
                     state_root_generator,
-                    hardfork_activation_overrides,
+                    &hardfork_activation_overrides,
                 ))
                 .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()));
 

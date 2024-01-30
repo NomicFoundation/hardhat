@@ -30,7 +30,7 @@ async fn create_forked_dummy_blockchain() -> Box<dyn SyncBlockchain<BlockchainEr
     use parking_lot::Mutex;
 
     let cache_dir = CACHE_DIR.path().into();
-    let rpc_client = RpcClient::new(&get_alchemy_url(), cache_dir);
+    let rpc_client = RpcClient::new(&get_alchemy_url(), cache_dir, None);
 
     Box::new(
         ForkedBlockchain::new(
@@ -42,7 +42,7 @@ async fn create_forked_dummy_blockchain() -> Box<dyn SyncBlockchain<BlockchainEr
             Arc::new(Mutex::new(RandomHashGenerator::with_seed(
                 edr_defaults::STATE_ROOT_HASH_SEED,
             ))),
-            HashMap::new(),
+            &HashMap::new(),
         )
         .await
         .expect("Failed to construct forked blockchain"),

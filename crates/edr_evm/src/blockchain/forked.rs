@@ -11,7 +11,7 @@ use edr_eth::{
 use parking_lot::Mutex;
 use revm::{
     db::BlockHashRef,
-    primitives::{HashMap, HashSet, SpecId},
+    primitives::{alloy_primitives::ChainId, HashMap, HashSet, SpecId},
 };
 use tokio::runtime;
 
@@ -97,7 +97,7 @@ impl ForkedBlockchain {
         rpc_client: RpcClient,
         fork_block_number: Option<u64>,
         state_root_generator: Arc<Mutex<RandomHashGenerator>>,
-        hardfork_activation_overrides: HashMap<u64, HardforkActivations>,
+        hardfork_activation_overrides: &HashMap<ChainId, HardforkActivations>,
     ) -> Result<Self, CreationError> {
         let (remote_chain_id, network_id, latest_block_number) = tokio::join!(
             rpc_client.chain_id(),
@@ -138,13 +138,12 @@ impl ForkedBlockchain {
         let hardfork_activations = hardfork_activation_overrides
             .get(&remote_chain_id)
             .or_else(|| chain_hardfork_activations(remote_chain_id))
-            .cloned()
             .and_then(|hardfork_activations| {
                 // Ignore empty hardfork activations
                 if hardfork_activations.is_empty() {
                     None
                 } else {
-                    Some(hardfork_activations)
+                    Some(hardfork_activations.clone())
                 }
             });
 

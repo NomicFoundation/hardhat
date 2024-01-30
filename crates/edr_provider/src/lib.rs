@@ -170,8 +170,6 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
             None
         };
 
-        // TODO: Remove the lint override once all methods have been implemented
-        #[allow(clippy::match_same_arms)]
         let result = match request {
             // eth_* method
             MethodInvocation::Accounts(()) => eth::handle_accounts_request(data).and_then(to_json),

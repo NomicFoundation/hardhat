@@ -78,6 +78,7 @@ pub async fn mine_block(
             reward,
             base_fee,
             prevrandao,
+            None,
             // WORKAROUND: limiting the scope of the mutable borrow of `tracer` to this
             // block
             if let Some(tracer) = &mut tracer {
