@@ -317,7 +317,7 @@ LockModule#Lock - 0x5FbDB2315678afecb367f032d93F642f64180aa3
 
 ::::
 
-To learn more about Hardhat Ignition, check out the [Hardhat Ignition documentation](/ignition).
+To learn more check out the [Hardhat Ignition documentation](/ignition).
 
 ### Connecting a wallet or Dapp to Hardhat Network
 
@@ -332,16 +332,16 @@ Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/
 
 This will expose a JSON-RPC interface to Hardhat Network. To use it connect your wallet or application to `http://127.0.0.1:8545`.
 
-If you want to connect Hardhat to this node, for example to run a deployment script against it, you simply need to run it using `--network localhost`.
+If you want to connect Hardhat to this node, for example to run a deployment against it, you simply need to run it using `--network localhost`.
 
-To try this, start a node with `npx hardhat node` and re-run the deployment script using the `network` option:
+To try this, start a node with `npx hardhat node` and re-run the deployment using the `network` option:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
 :::tab{value="TypeScript"}
 
 ```
-npx hardhat run scripts/deploy.ts --network localhost
+npx hardhat ignition deploy ./ignition/modules/LockModule.ts --network localhost
 ```
 
 :::
@@ -349,7 +349,7 @@ npx hardhat run scripts/deploy.ts --network localhost
 :::tab{value="JavaScript"}
 
 ```
-npx hardhat run scripts/deploy.js --network localhost
+npx hardhat ignition deploy ./ignition/modules/LockModule.js --network localhost
 ```
 
 :::
