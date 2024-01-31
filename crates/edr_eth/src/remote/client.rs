@@ -14,6 +14,7 @@ use itertools::{izip, Itertools};
 use reqwest::Client as HttpClient;
 use reqwest_middleware::{ClientBuilder as HttpClientBuilder, ClientWithMiddleware};
 use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
+#[cfg(feature = "tracing")]
 use reqwest_tracing::TracingMiddleware;
 use revm_primitives::{Bytecode, KECCAK_EMPTY};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -191,6 +192,12 @@ impl RpcClient {
             .build()
             .expect("Default construction nor setting default headers can cause an error");
 
+        #[cfg(feature = "tracing")]
+        let client = HttpClientBuilder::new(client)
+            .with(TracingMiddleware::default())
+            .with(RetryTransientMiddleware::new_with_policy(retry_policy))
+            .build();
+        #[cfg(not(feature = "tracing"))]
         let client = HttpClientBuilder::new(client)
             .with(TracingMiddleware::default())
             .with(RetryTransientMiddleware::new_with_policy(retry_policy))
