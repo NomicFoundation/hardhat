@@ -1,15 +1,15 @@
 mod config;
 
-use std::sync::{Arc, Once};
+use std::sync::Arc;
 
 use edr_eth::remote::jsonrpc;
 use edr_provider::InvalidRequestReason;
 use napi::{tokio::runtime, Env, JsFunction, JsObject, Status};
 use napi_derive::napi;
-use tracing_subscriber::{fmt::format::FmtSpan, layer::SubscriberExt, EnvFilter, Layer, Registry};
 
 use self::config::ProviderConfig;
 use crate::{
+    context::EdrContext,
     logger::{Logger, LoggerConfig, LoggerError},
     subscribe::SubscriberCallback,
     trace::RawTrace,
@@ -21,34 +21,18 @@ pub struct Provider {
     provider: Arc<edr_provider::Provider<LoggerError>>,
 }
 
-static START: Once = Once::new();
-
 #[napi]
 impl Provider {
     #[doc = "Constructs a new provider with the provided configuration."]
     #[napi(ts_return_type = "Promise<Provider>")]
     pub fn with_config(
         env: Env,
+        // We take the context as argument to ensure that tracing is initialized properly.
+        _context: &EdrContext,
         config: ProviderConfig,
         logger_config: LoggerConfig,
         #[napi(ts_arg_type = "(event: SubscriptionEvent) => void")] subscriber_callback: JsFunction,
     ) -> napi::Result<JsObject> {
-        START.call_once(|| {
-            let fmt_layer = tracing_subscriber::fmt::layer()
-                .with_file(true)
-                .with_line_number(true)
-                .with_thread_ids(true)
-                .with_target(false)
-                .with_level(true)
-                .with_span_events(FmtSpan::CLOSE)
-                .with_filter(EnvFilter::from_default_env());
-
-            let subscriber = Registry::default().with(fmt_layer);
-
-            tracing::subscriber::set_global_default(subscriber)
-                .expect("Could not set global default tracing subscriber");
-        });
-
         let config = edr_provider::ProviderConfig::try_from(config)?;
         let runtime = runtime::Handle::current();
 

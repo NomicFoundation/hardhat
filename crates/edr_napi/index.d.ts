@@ -721,7 +721,7 @@ export class MineBlockResult {
 /** A JSON-RPC provider for Ethereum. */
 export class Provider {
   /**Constructs a new provider with the provided configuration. */
-  static withConfig(config: ProviderConfig, loggerConfig: LoggerConfig, subscriberCallback: (event: SubscriptionEvent) => void): Promise<Provider>
+  static withConfig(context: EdrContext, config: ProviderConfig, loggerConfig: LoggerConfig, subscriberCallback: (event: SubscriptionEvent) => void): Promise<Provider>
   /**Handles a JSON-RPC request and returns a JSON-RPC response. */
   handleRequest(jsonRequest: string): Promise<Response>
 }
