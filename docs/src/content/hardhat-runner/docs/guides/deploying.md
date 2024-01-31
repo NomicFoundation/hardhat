@@ -54,10 +54,6 @@ As general rule, you can target any network from your Hardhat config using:
 npx hardhat ignition deploy ./ignition/modules/LockModule.js --network <your-network>
 ```
 
-Alternatively, you can also deploy to an ephemeral instance of the Hardhat Network by running the command without the `--network` parameter:
+If no network is specified, Hardhat Ignition will run against an in-memory instance of the Hardhat Network.
 
-```
-npx hardhat ignition deploy ./ignition/modules/LockModule.js
-```
-
-Read more about Hardhat Ignition in the [Ignition documentation](/ignition).
+Read more about Hardhat Ignition in the [Hardhat Ignition documentation](/ignition).
