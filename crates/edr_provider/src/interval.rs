@@ -32,7 +32,7 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> IntervalMiner<LoggerErrorT> {
 
                 tokio::select! {
                     _ = &mut cancellation_receiver => return Ok(()),
-                    _ = tokio::time::sleep(std::time::Duration::from_secs(delay)) => {
+                    _ = tokio::time::sleep(std::time::Duration::from_millis(delay)) => {
                         let data = data.clone();
 
                         runtime::Handle::current().spawn_blocking(move ||{
