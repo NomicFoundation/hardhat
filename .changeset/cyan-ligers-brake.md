@@ -3,4 +3,4 @@
 "@nomicfoundation/hardhat-toolbox-viem": major
 ---
 
-Include Hardhat Ignition in the toolbox.
+Include Hardhat Ignition among the toolbox plugins.
