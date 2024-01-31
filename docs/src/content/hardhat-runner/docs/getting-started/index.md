@@ -259,11 +259,11 @@ Inside the `ignition/modules` folder you will find a file with the following cod
 
 ::::
 
-You can deploy it using `npx hardhat ignition deploy ./ignition/modules/LockModule.ts`:
-
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
 :::tab{value="TypeScript"}
+
+You can deploy it using `npx hardhat ignition deploy ./ignition/modules/LockModule.ts`:
 
 ```
 $ npx hardhat ignition deploy ./ignition/modules/LockModule.ts
@@ -289,6 +289,8 @@ LockModule#Lock - 0x5FbDB2315678afecb367f032d93F642f64180aa3
 :::
 
 :::tab{value="JavaScript"}
+
+You can deploy it using `npx hardhat ignition deploy ./ignition/modules/LockModule.js`:
 
 ```
 $ npx hardhat ignition deploy ./ignition/modules/LockModule.js
