@@ -1,6 +1,6 @@
 mod cached;
 
-use std::{backtrace::Backtrace, sync::Arc};
+use std::sync::Arc;
 
 pub use cached::CachedRemoteState;
 use edr_eth::{
@@ -69,8 +69,6 @@ impl StateRef for RemoteState {
 
     #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
     fn basic(&self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
-        tracing::trace!("{}", Backtrace::force_capture());
-
         Ok(Some(tokio::task::block_in_place(move || {
             self.runtime
                 .block_on(
