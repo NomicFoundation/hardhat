@@ -1,10 +1,10 @@
 import type EthersT from "ethers";
 import type { Contract, Transaction } from "ethers";
 import type { AssertWithSsfi, Ssfi } from "../utils";
+import type OrdinalT from "ordinal";
 
 import { AssertionError } from "chai";
 import util from "util";
-import ordinal from "ordinal";
 
 import { buildAssert } from "../utils";
 import { ASSERTION_ABORTED, EMIT_MATCHER } from "./constants";
@@ -156,6 +156,7 @@ function assertArgsArraysEqual(
   ssfi: Ssfi
 ) {
   const ethers = require("ethers") as typeof EthersT;
+  const ordinal = require("ordinal") as typeof OrdinalT;
   const parsedLog = (
     chaiUtils.flag(context, "contract").interface as Interface
   ).parseLog(log);
@@ -225,7 +226,7 @@ function assertArgsArraysEqual(
           true
         ).to.not.equal(
           expectedArgs[index],
-          "The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion should be the actual event argument (the pre-image of the hash). You provided the hash itself. Please supply the the actual event argument (the pre-image of the hash) instead."
+          "The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion should be the actual event argument (the pre-image of the hash). You provided the hash itself. Please supply the actual event argument (the pre-image of the hash) instead."
         );
         const expectedArgBytes = ethers.isHexString(expectedArgs[index])
           ? ethers.getBytes(expectedArgs[index])

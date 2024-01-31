@@ -1,5 +1,15 @@
 # hardhat
 
+## 2.19.5
+
+### Patch Changes
+
+- 125cbad3d: Added a notification when a new Hardhat version is available
+- ffb301f14: Improved loading performance
+- 1c6373a5b: Fixed a bug during project initialization when using yarn or pnpm
+- 15a0d2e6c: Fixed a race condition that occurred when multiple Hardhat processes ran a compilation at the same time.
+- 8f677ea9f: Added a fix to prevent submitting transactions with 0 priority fee (thanks @itsdevbear!)
+
 ## 2.19.4
 
 ### Patch Changes

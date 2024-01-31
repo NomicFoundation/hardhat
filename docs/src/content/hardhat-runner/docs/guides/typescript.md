@@ -53,7 +53,7 @@ To be able to write your tests in TypeScript, you also need these packages:
 :::tab{value="npm 7+"}
 
 ```
-npm install --save-dev chai @types/node @types/mocha @types/chai
+npm install --save-dev chai@4 @types/node @types/mocha @types/chai@4
 ```
 
 :::
@@ -61,7 +61,7 @@ npm install --save-dev chai @types/node @types/mocha @types/chai
 :::tab{value="npm 6"}
 
 ```
-npm install --save-dev chai @types/node @types/mocha @types/chai
+npm install --save-dev chai@4 @types/node @types/mocha @types/chai@4
 ```
 
 :::
@@ -69,7 +69,7 @@ npm install --save-dev chai @types/node @types/mocha @types/chai
 :::tab{value=yarn}
 
 ```
-yarn add --dev chai @types/node @types/mocha @types/chai
+yarn add --dev chai@4 @types/node @types/mocha @types/chai@4
 ```
 
 :::

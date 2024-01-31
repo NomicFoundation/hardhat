@@ -1,4 +1,5 @@
-import { isAddress, isAddressable } from "ethers";
+import type EthersT from "ethers";
+
 import { tryDereference } from "./typed";
 
 export function supportAddressable(
@@ -27,6 +28,8 @@ function override(
 // so we are looking for a sync way of getting the address. If an address was recovered, it is returned as a string,
 // otherwise undefined is returned.
 function tryGetAddressSync(value: any): string | undefined {
+  const { isAddress, isAddressable } = require("ethers") as typeof EthersT;
+
   value = tryDereference(value, "address");
   if (isAddressable(value)) {
     value = (value as any).address ?? (value as any).target;

@@ -568,12 +568,8 @@ async function doesNpmAutoInstallPeerDependencies() {
 async function installRecommendedDependencies(dependencies: Dependencies) {
   console.log("");
 
-  // The reason we don't quote the dependencies here is because they are going
-  // to be used in child_process.spawn, which doesn't require escaping string,
-  // and can actually fail if you do.
   const installCmd = await getRecommendedDependenciesInstallationCommand(
-    dependencies,
-    false
+    dependencies
   );
   return installDependencies(installCmd[0], installCmd.slice(1));
 }
@@ -611,11 +607,10 @@ async function installDependencies(
 }
 
 async function getRecommendedDependenciesInstallationCommand(
-  dependencies: Dependencies,
-  quoteDependencies = true
+  dependencies: Dependencies
 ): Promise<string[]> {
-  const deps = Object.entries(dependencies).map(([name, version]) =>
-    quoteDependencies ? `"${name}@${version}"` : `${name}@${version}`
+  const deps = Object.entries(dependencies).map(
+    ([name, version]) => `"${name}@${version}"`
   );
 
   if (await isYarnProject()) {
