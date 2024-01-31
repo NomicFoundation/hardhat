@@ -264,6 +264,7 @@ impl RpcClient {
         Ok(path)
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip_all))]
     async fn read_response_from_cache(
         &self,
         cache_key: &ReadCacheKey,
@@ -464,6 +465,7 @@ impl RpcClient {
         Ok(())
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip_all))]
     async fn send_request_body(
         &self,
         request_body: &SerializedRequest,
@@ -481,6 +483,7 @@ impl RpcClient {
             .map_err(RpcClientError::CorruptedResponse)
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip_all))]
     fn get_ids(&self, count: u64) -> Vec<Id> {
         let start = self.next_id.fetch_add(count, Ordering::Relaxed);
         let end = start + count;
@@ -527,7 +530,11 @@ impl RpcClient {
 
         if let Some(cached_response) = self.try_from_cache(read_cache_key.as_ref()).await? {
             match cached_response.parse().await {
-                Ok(result) => return Ok(result),
+                Ok(result) => {
+                    #[cfg(feature = "tracing")]
+                    tracing::trace!("Cache hit: {}", method.name());
+                    return Ok(result);
+                }
                 Err(error) => match error {
                     // In case of an invalid response from cache, we log it and continue to the
                     // remote call.
@@ -545,6 +552,9 @@ impl RpcClient {
             }
         };
 
+        #[cfg(feature = "tracing")]
+        tracing::trace!("Cache miss: {}", method.name());
+
         let result: T = self
             .send_request_body(&request)
             .await
@@ -558,6 +568,7 @@ impl RpcClient {
 
     // We have two different `call` methods to avoid creating recursive async
     // functions as the cached path calls `eth_chainId` without caching.
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip_all))]
     async fn call_without_cache<T: DeserializeOwned>(
         &self,
         method: RequestMethod,
@@ -577,6 +588,7 @@ impl RpcClient {
         self.batch_call_with_resolver(methods, |_| None).await
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip_all))]
     async fn batch_call_with_resolver(
         &self,
         methods: &[RequestMethod],
@@ -596,54 +608,71 @@ impl RpcClient {
         let mut id_to_index = HashMap::<&Id, usize>::new();
         for (index, (id, method, cache_response)) in izip!(&ids, methods, &results).enumerate() {
             if cache_response.is_none() {
+                #[cfg(feature = "tracing")]
+                tracing::trace!("Cache miss: {}", method.name());
+
                 let request = Self::serialize_request_with_id(method, id.clone())?;
                 requests.push(request);
                 id_to_index.insert(id, index);
+            } else {
+                #[cfg(feature = "tracing")]
+                tracing::trace!("Cache hit: {}", method.name());
             }
         }
 
-        let request_body = SerializedRequest(
-            serde_json::to_value(&requests).map_err(RpcClientError::InvalidJsonRequest)?,
-        );
-        let remote_response = self.send_request_body(&request_body).await?;
-        let remote_responses: Vec<jsonrpc::Response<serde_json::Value>> =
-            Self::parse_response_str(&remote_response)?;
+        // Don't send empty request
+        if requests.is_empty() {
+            Ok(results
+                .into_iter()
+                .enumerate()
+                .map(|(_index, result)| {
+                    result.expect("If there are no requests to send, there must be a cached response for each method invocation")
+                })
+                .collect())
+        } else {
+            let request_body = SerializedRequest(
+                serde_json::to_value(&requests).map_err(RpcClientError::InvalidJsonRequest)?,
+            );
+            let remote_response = self.send_request_body(&request_body).await?;
+            let remote_responses: Vec<jsonrpc::Response<serde_json::Value>> =
+                Self::parse_response_str(&remote_response)?;
 
-        for response in remote_responses {
-            let index = id_to_index
-                // Remove to make sure no duplicate ids in response
-                .remove(&response.id)
-                .ok_or_else(|| RpcClientError::InvalidId {
-                    response: remote_response.clone(),
-                    id: response.id,
-                })?;
-
-            let result =
-                response
-                    .data
-                    .into_result()
-                    .map_err(|error| RpcClientError::JsonRpcError {
-                        error,
-                        request: request_body.to_json_string(),
+            for response in remote_responses {
+                let index = id_to_index
+                    // Remove to make sure no duplicate ids in response
+                    .remove(&response.id)
+                    .ok_or_else(|| RpcClientError::InvalidId {
+                        response: remote_response.clone(),
+                        id: response.id,
                     })?;
 
-            self.try_write_response_to_cache(&methods[index], &result, &resolve_block_number)
-                .await?;
+                let result =
+                    response
+                        .data
+                        .into_result()
+                        .map_err(|error| RpcClientError::JsonRpcError {
+                            error,
+                            request: request_body.to_json_string(),
+                        })?;
 
-            results[index] = Some(ResponseValue::Remote(result));
-        }
+                self.try_write_response_to_cache(&methods[index], &result, &resolve_block_number)
+                    .await?;
 
-        results
-            .into_iter()
-            .enumerate()
-            .map(|(index, result)| {
-                result.ok_or_else(|| RpcClientError::MissingResponse {
-                    method: Box::new(methods[index].clone()),
-                    id: ids[index].clone(),
-                    response: remote_response.clone(),
+                results[index] = Some(ResponseValue::Remote(result));
+            }
+
+            results
+                .into_iter()
+                .enumerate()
+                .map(|(index, result)| {
+                    result.ok_or_else(|| RpcClientError::MissingResponse {
+                        method: Box::new(methods[index].clone()),
+                        id: ids[index].clone(),
+                        response: remote_response.clone(),
+                    })
                 })
-            })
-            .collect()
+                .collect()
+        }
     }
 
     /// Calls `eth_blockNumber` and returns the block number.

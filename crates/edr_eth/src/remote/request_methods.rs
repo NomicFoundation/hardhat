@@ -98,3 +98,23 @@ pub enum RequestMethod {
     #[serde(rename = "net_version", with = "crate::serde::empty_params")]
     NetVersion(()),
 }
+
+impl RequestMethod {
+    pub fn name(&self) -> &'static str {
+        match self {
+            Self::BlockNumber(_) => "eth_blockNumber",
+            Self::FeeHistory(_, _, _) => "eth_feeHistory",
+            Self::ChainId(_) => "eth_chainId",
+            Self::GetBalance(_, _) => "eth_getBalance",
+            Self::GetBlockByNumber(_, _) => "eth_getBlockByNumber",
+            Self::GetBlockByHash(_, _) => "eth_getBlockByHash",
+            Self::GetCode(_, _) => "eth_getCode",
+            Self::GetLogs(_) => "eth_getLogs",
+            Self::GetStorageAt(_, _, _) => "eth_getStorageAt",
+            Self::GetTransactionByHash(_) => "eth_getTransactionByHash",
+            Self::GetTransactionCount(_, _) => "eth_getTransactionCount",
+            Self::GetTransactionReceipt(_) => "eth_getTransactionReceipt",
+            Self::NetVersion(_) => "net_version",
+        }
+    }
+}
