@@ -67,7 +67,7 @@ impl RemoteState {
 impl StateRef for RemoteState {
     type Error = StateError;
 
-    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
     fn basic(&self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
         Ok(Some(tokio::task::block_in_place(move || {
             self.runtime
@@ -79,11 +79,12 @@ impl StateRef for RemoteState {
         })?))
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
     fn code_by_hash(&self, code_hash: B256) -> Result<Bytecode, Self::Error> {
         Err(StateError::InvalidCodeHash(code_hash))
     }
 
-    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
     fn storage(&self, address: Address, index: U256) -> Result<U256, Self::Error> {
         Ok(tokio::task::block_in_place(move || {
             self.runtime
@@ -115,7 +116,8 @@ mod tests {
             .into_string()
             .expect("couldn't convert OsString into a String");
 
-        let rpc_client = RpcClient::new(&alchemy_url, tempdir.path().to_path_buf(), None);
+        let rpc_client =
+            RpcClient::new(&alchemy_url, tempdir.path().to_path_buf(), None).expect("url ok");
 
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");

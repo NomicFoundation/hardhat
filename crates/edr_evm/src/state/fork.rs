@@ -231,7 +231,8 @@ mod tests {
             let tempdir = tempfile::tempdir().expect("can create tempdir");
 
             let runtime = runtime::Handle::current();
-            let rpc_client = RpcClient::new(&get_alchemy_url(), tempdir.path().to_path_buf(), None);
+            let rpc_client = RpcClient::new(&get_alchemy_url(), tempdir.path().to_path_buf(), None)
+                .expect("url ok");
 
             let block = rpc_client
                 .get_block_by_number(PreEip1898BlockSpec::Number(FORK_BLOCK))

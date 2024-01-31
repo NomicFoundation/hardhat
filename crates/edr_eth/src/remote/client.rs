@@ -1,5 +1,6 @@
 use std::{
     collections::{HashMap, VecDeque},
+    fmt::Debug,
     io,
     path::{Path, PathBuf},
     sync::atomic::{AtomicU64, Ordering},
@@ -12,12 +13,11 @@ pub use hyper::{http::Error as HttpError, HeaderMap};
 use itertools::{izip, Itertools};
 use reqwest::Client as HttpClient;
 use reqwest_middleware::{ClientBuilder as HttpClientBuilder, ClientWithMiddleware};
-use reqwest_retry::{
-    policies::ExponentialBackoff, RetryTransientMiddleware, Retryable, RetryableStrategy,
-};
+use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
+#[cfg(feature = "tracing")]
+use reqwest_tracing::TracingMiddleware;
 use revm_primitives::{Bytecode, KECCAK_EMPTY};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use sha3::{digest::FixedOutput, Digest, Sha3_256};
 use tokio::sync::{OnceCell, RwLock};
 use uuid::Uuid;
 
@@ -37,6 +37,7 @@ use crate::{
             try_read_cache_key, try_write_cache_key, CacheKeyForSymbolicBlockTag,
             CacheKeyForUncheckedBlockNumber, ReadCacheKey, ResolvedSymbolicTag, WriteCacheKey,
         },
+        chain_id::chain_id_from_url,
         eth::FeeHistoryResult,
         jsonrpc::Id,
     },
@@ -47,10 +48,10 @@ use crate::{
 const RPC_CACHE_DIR: &str = "rpc_cache";
 const TMP_DIR: &str = "tmp";
 // Retry parameters for rate limited requests.
-const BACKOFF_EXPONENT: u32 = 2;
+const EXPONENT_BASE: u32 = 2;
 const MIN_RETRY_INTERVAL: Duration = Duration::from_secs(1);
 const MAX_RETRY_INTERVAL: Duration = Duration::from_secs(16);
-const TOTAL_RETRY_DURATION: Duration = Duration::from_secs(60);
+const MAX_RETRIES: u32 = 7;
 
 /// Specialized error types
 #[derive(Debug, thiserror::Error)]
@@ -90,6 +91,10 @@ pub enum RpcClientError {
         /// The invalid id
         id: Id,
     },
+
+    /// Invalid URL format
+    #[error(transparent)]
+    InvalidUrl(#[from] url::ParseError),
 
     /// A response is missing from a batch request.
     #[error("Missing response for method: '{method:?}' for request id: '{id:?}' in batch request")]
@@ -156,7 +161,7 @@ pub struct Request<RequestMethod> {
 /// it with local nodes.
 #[derive(Debug)]
 pub struct RpcClient {
-    url: String,
+    url: url::Url,
     chain_id: OnceCell<u64>,
     cached_block_number: RwLock<Option<CachedBlockNumber>>,
     client: ClientWithMiddleware,
@@ -169,11 +174,15 @@ impl RpcClient {
     /// Create a new instance, given a remote node URL.
     /// The cache directory is the global EDR cache directory configured by the
     /// user.
-    pub fn new(url: &str, cache_dir: PathBuf, headers: Option<HeaderMap>) -> Self {
+    pub fn new(
+        url: &str,
+        cache_dir: PathBuf,
+        headers: Option<HeaderMap>,
+    ) -> Result<Self, RpcClientError> {
         let retry_policy = ExponentialBackoff::builder()
             .retry_bounds(MIN_RETRY_INTERVAL, MAX_RETRY_INTERVAL)
-            .backoff_exponent(BACKOFF_EXPONENT)
-            .build_with_total_retry_duration(TOTAL_RETRY_DURATION);
+            .base(EXPONENT_BASE)
+            .build_with_max_retries(MAX_RETRIES);
 
         let mut client = HttpClient::builder();
         if let Some(headers) = headers {
@@ -183,11 +192,14 @@ impl RpcClient {
             .build()
             .expect("Default construction nor setting default headers can cause an error");
 
+        #[cfg(feature = "tracing")]
         let client = HttpClientBuilder::new(client)
-            .with(RetryTransientMiddleware::new_with_policy_and_strategy(
-                retry_policy,
-                RetryStrategy,
-            ))
+            .with(TracingMiddleware::default())
+            .with(RetryTransientMiddleware::new_with_policy(retry_policy))
+            .build();
+        #[cfg(not(feature = "tracing"))]
+        let client = HttpClientBuilder::new(client)
+            .with(RetryTransientMiddleware::new_with_policy(retry_policy))
             .build();
 
         let rpc_cache_dir = cache_dir.join(RPC_CACHE_DIR);
@@ -196,15 +208,15 @@ impl RpcClient {
         // fail.
         let tmp_dir = rpc_cache_dir.join(TMP_DIR);
 
-        RpcClient {
-            url: url.to_string(),
+        Ok(RpcClient {
+            url: url.parse()?,
             chain_id: OnceCell::new(),
             cached_block_number: RwLock::new(None),
             client,
             next_id: AtomicU64::new(0),
             rpc_cache_dir: cache_dir.join(RPC_CACHE_DIR),
             tmp_dir,
-        }
+        })
     }
 
     fn parse_response_str<T: DeserializeOwned>(response: &str) -> Result<T, RpcClientError> {
@@ -230,19 +242,21 @@ impl RpcClient {
             })
     }
 
-    fn hash_bytes(input: &[u8]) -> String {
-        let hasher = Sha3_256::new_with_prefix(input);
-        hex::encode(hasher.finalize_fixed())
-    }
-
     async fn make_cache_path(&self, cache_key: &str) -> Result<PathBuf, RpcClientError> {
         let chain_id = self.chain_id().await?;
 
-        // TODO We should use a human readable name for the chain id
-        // Tracking issue: <https://github.com/NomicFoundation/edr/issues/172>
-        let directory = self
-            .rpc_cache_dir
-            .join(Self::hash_bytes(&chain_id.to_le_bytes()));
+        let host = self.url.host_str().unwrap_or("unknown-host");
+        let remote = if let Some(port) = self.url.port() {
+            // Include the port if it's not the default port for the protocol.
+            format!("{host}_{port}")
+        } else {
+            host.to_string()
+        };
+
+        // We use different directories for each remote node, to avoid storing invalid
+        // data in case the remote is forked chain which can happen with remotes
+        // running locally.
+        let directory = self.rpc_cache_dir.join(remote).join(chain_id.to_string());
 
         ensure_cache_directory(&directory, cache_key).await?;
 
@@ -293,21 +307,31 @@ impl RpcClient {
         }
     }
 
-    /// Caches a block number for the duration of the block time of the chain.
-    async fn cached_block_number(&self) -> Result<u64, RpcClientError> {
+    async fn maybe_cached_block_number(&self) -> Result<Option<u64>, RpcClientError> {
         let cached_block_number = { self.cached_block_number.read().await.clone() };
 
         if let Some(cached_block_number) = cached_block_number {
             let delta = block_time(self.chain_id().await?);
             if cached_block_number.timestamp.elapsed() < delta {
-                return Ok(cached_block_number.block_number);
+                return Ok(Some(cached_block_number.block_number));
             }
+        }
+
+        Ok(None)
+    }
+
+    /// Caches a block number for the duration of the block time of the chain.
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
+    async fn cached_block_number(&self) -> Result<u64, RpcClientError> {
+        if let Some(cached_block_number) = self.maybe_cached_block_number().await? {
+            return Ok(cached_block_number);
         }
 
         // Caches the block number as side effect.
         self.block_number().await
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
     async fn validate_block_number(
         &self,
         safety_checker: CacheKeyForUncheckedBlockNumber,
@@ -623,6 +647,7 @@ impl RpcClient {
     }
 
     /// Calls `eth_blockNumber` and returns the block number.
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
     pub async fn block_number(&self) -> Result<u64, RpcClientError> {
         let block_number = self
             .call_without_cache::<U64>(RequestMethod::BlockNumber(()))
@@ -637,6 +662,7 @@ impl RpcClient {
     }
 
     /// Whether the block number should be cached based on its depth.
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
     pub async fn is_cacheable_block_number(
         &self,
         block_number: u64,
@@ -652,19 +678,25 @@ impl RpcClient {
     }
 
     /// Calls `eth_chainId` and returns the chain ID.
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
     pub async fn chain_id(&self) -> Result<u64, RpcClientError> {
         let chain_id = *self
             .chain_id
             .get_or_try_init(|| async {
-                self.call_without_cache::<U64>(RequestMethod::ChainId(()))
-                    .await
-                    .map(|chain_id| chain_id.as_limbs()[0])
+                if let Some(chain_id) = chain_id_from_url(&self.url) {
+                    Ok(chain_id)
+                } else {
+                    self.call_without_cache::<U64>(RequestMethod::ChainId(()))
+                        .await
+                        .map(|chain_id| chain_id.as_limbs()[0])
+                }
             })
             .await?;
         Ok(chain_id)
     }
 
     /// Calls `eth_feeHistory` and returns the fee history.
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
     pub async fn fee_history(
         &self,
         block_count: u64,
@@ -679,8 +711,76 @@ impl RpcClient {
         .await
     }
 
+    /// Fetch the latest block number, chain id and network id in a batch call.
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
+    pub async fn fetch_fork_metadata(&self) -> Result<ForkMetadata, RpcClientError> {
+        let mut inputs = vec![RequestMethod::NetVersion(())];
+
+        let maybe_block_number = self.maybe_cached_block_number().await?;
+        if maybe_block_number.is_none() {
+            inputs.push(RequestMethod::BlockNumber(()));
+        }
+
+        // Only request the chain id if we don't have it yet.
+        let mut maybe_chain_id_from_url = None;
+        if !self.chain_id.initialized() {
+            maybe_chain_id_from_url = chain_id_from_url(&self.url);
+            if maybe_chain_id_from_url.is_none() {
+                inputs.push(RequestMethod::ChainId(()));
+            }
+        };
+
+        let mut results = self.batch_call(inputs.as_slice()).await?.into_iter();
+        let expect = "batch call returns results for all calls on success";
+
+        let network_id = results.next().expect(expect).parse::<U64>().await?;
+
+        let block_number = if let Some(block_number) = maybe_block_number {
+            block_number
+        } else {
+            let block_number = results
+                .next()
+                .expect(expect)
+                .parse::<U64>()
+                .await?
+                .as_limbs()[0];
+            {
+                let mut write_guard = self.cached_block_number.write().await;
+                *write_guard = Some(CachedBlockNumber::new(block_number));
+            }
+            block_number
+        };
+
+        let chain_id = *self
+            .chain_id
+            .get_or_try_init(|| async {
+                if let Some(chain_id) = maybe_chain_id_from_url {
+                    Ok(chain_id)
+                } else {
+                    // It's possible that the chain id was initialized in-between, but it's not
+                    // possible that the chain id was initialized prior to our
+                    // call, and it isn't initialized now, therefore we must've requested
+                    // the chain id as well.
+                    results
+                        .next()
+                        .expect(expect)
+                        .parse::<U64>()
+                        .await
+                        .map(|chain_id| chain_id.as_limbs()[0])
+                }
+            })
+            .await?;
+
+        Ok(ForkMetadata {
+            chain_id,
+            network_id: network_id.as_limbs()[0],
+            latest_block_number: block_number,
+        })
+    }
+
     /// Submit a consolidated batch of RPC method invocations in order to obtain
     /// the set of data contained in [`AccountInfo`].
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
     pub async fn get_account_info(
         &self,
         address: &Address,
@@ -694,6 +794,7 @@ impl RpcClient {
     }
 
     /// Fetch account infos for multiple addresses in a batch call.
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
     pub async fn get_account_infos(
         &self,
         addresses: &[Address],
@@ -736,6 +837,7 @@ impl RpcClient {
     }
 
     /// Calls `eth_getBlockByHash` and returns the transaction's hash.
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
     pub async fn get_block_by_hash(
         &self,
         hash: &B256,
@@ -744,6 +846,7 @@ impl RpcClient {
     }
 
     /// Calls `eth_getBlockByHash` and returns the transaction's data.
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
     pub async fn get_block_by_hash_with_transaction_data(
         &self,
         hash: &B256,
@@ -752,6 +855,7 @@ impl RpcClient {
     }
 
     /// Calls `eth_getBlockByNumber` and returns the transaction's hash.
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
     pub async fn get_block_by_number(
         &self,
         spec: PreEip1898BlockSpec,
@@ -764,6 +868,7 @@ impl RpcClient {
     }
 
     /// Calls `eth_getBlockByNumber` and returns the transaction's data.
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
     pub async fn get_block_by_number_with_transaction_data(
         &self,
         spec: PreEip1898BlockSpec,
@@ -776,6 +881,7 @@ impl RpcClient {
     }
 
     /// Calls `eth_getLogs` using a starting and ending block (inclusive).
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
     pub async fn get_logs_by_range(
         &self,
         from_block: BlockSpec,
@@ -794,6 +900,7 @@ impl RpcClient {
     }
 
     /// Calls `eth_getTransactionByHash`.
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
     pub async fn get_transaction_by_hash(
         &self,
         tx_hash: &B256,
@@ -803,6 +910,7 @@ impl RpcClient {
     }
 
     /// Calls `eth_getTransactionCount`.
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
     pub async fn get_transaction_count(
         &self,
         address: &Address,
@@ -813,6 +921,7 @@ impl RpcClient {
     }
 
     /// Calls `eth_getTransactionReceipt`.
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
     pub async fn get_transaction_receipt(
         &self,
         tx_hash: &B256,
@@ -822,9 +931,10 @@ impl RpcClient {
     }
 
     /// Methods for retrieving multiple transaction receipts in one batch
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
     pub async fn get_transaction_receipts(
         &self,
-        hashes: impl IntoIterator<Item = &B256>,
+        hashes: impl IntoIterator<Item = &B256> + Debug,
     ) -> Result<Option<Vec<BlockReceipt>>, RpcClientError> {
         let requests: Vec<RequestMethod> = hashes
             .into_iter()
@@ -844,6 +954,7 @@ impl RpcClient {
     }
 
     /// Calls `eth_getStorageAt`.
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
     pub async fn get_storage_at(
         &self,
         address: &Address,
@@ -855,6 +966,7 @@ impl RpcClient {
     }
 
     /// Calls `net_version`.
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
     pub async fn network_id(&self) -> Result<u64, RpcClientError> {
         self.call::<U64>(RequestMethod::NetVersion(()))
             .await
@@ -914,6 +1026,17 @@ impl ResponseValue {
     }
 }
 
+/// Metadata about a forked chain.
+#[derive(Clone, Debug)]
+pub struct ForkMetadata {
+    /// Chain id as returned by `eth_chainId`
+    pub chain_id: u64,
+    /// Network id as returned by `net_version`
+    pub network_id: u64,
+    /// The latest block number as returned by `eth_blockNumber`
+    pub latest_block_number: u64,
+}
+
 #[derive(Debug, Clone)]
 struct CachedBlockNumber {
     block_number: u64,
@@ -956,102 +1079,6 @@ async fn ensure_cache_directory(
         })
 }
 
-struct RetryStrategy;
-
-impl RetryableStrategy for RetryStrategy {
-    fn handle(
-        &self,
-        res: &Result<reqwest::Response, reqwest_middleware::Error>,
-    ) -> Option<Retryable> {
-        match res {
-            Ok(success) => reqwest_retry::default_on_request_success(success),
-            Err(error) => on_request_failure(error),
-        }
-    }
-}
-
-// Adapted from <https://github.com/TrueLayer/reqwest-middleware/blob/a54319a9d65926c899440e5970c04592f30ed048/reqwest-retry/src/retryable_strategy.rs#L134>
-// under the MIT license.
-// With the difference that we don't retry on connection errors as it leads to
-// retrying invalid domains.
-fn on_request_failure(error: &reqwest_middleware::Error) -> Option<Retryable> {
-    use reqwest_middleware::Error;
-
-    match error {
-        // If something fails in the middleware we're screwed.
-        Error::Middleware(_) => Some(Retryable::Fatal),
-        Error::Reqwest(error) => {
-            if error.is_timeout() {
-                Some(Retryable::Transient)
-            } else if error.is_body()
-                || error.is_decode()
-                || error.is_builder()
-                || error.is_redirect()
-            {
-                Some(Retryable::Fatal)
-            } else if error.is_request() {
-                // It seems that hyper::Error(IncompleteMessage) is not correctly handled by
-                // reqwest. Here we check if the Reqwest error was originated by
-                // hyper and map it consistently.
-                if let Some(hyper_error) = get_source_error_type::<hyper::Error>(&error) {
-                    // The hyper::Error(IncompleteMessage) is raised if the HTTP response is well
-                    // formatted but does not contain all the bytes.
-                    // This can happen when the server has started sending back the response but the
-                    // connection is cut halfway thorugh. We can safely retry
-                    // the call, hence marking this error as [`Retryable::Transient`].
-                    // Instead hyper::Error(Canceled) is raised when the connection is
-                    // gracefully closed on the server side.
-                    if hyper_error.is_incomplete_message() || hyper_error.is_canceled() {
-                        Some(Retryable::Transient)
-
-                        // Try and downcast the hyper error to io::Error if that
-                        // is the underlying error, and
-                        // try and classify it.
-                    } else if let Some(io_error) = get_source_error_type::<io::Error>(hyper_error) {
-                        Some(classify_io_error(io_error))
-                    } else {
-                        Some(Retryable::Fatal)
-                    }
-                } else {
-                    Some(Retryable::Fatal)
-                }
-            } else {
-                // We omit checking if error.is_status() since we check that already.
-                // However, if Response::error_for_status is used the status will still
-                // remain in the response object.
-                None
-            }
-        }
-    }
-}
-
-// From <https://github.com/TrueLayer/reqwest-middleware/blob/a54319a9d65926c899440e5970c04592f30ed048/reqwest-retry/src/retryable_strategy.rs#L189>
-// under the MIT license.
-fn classify_io_error(error: &io::Error) -> Retryable {
-    match error.kind() {
-        io::ErrorKind::ConnectionReset | io::ErrorKind::ConnectionAborted => Retryable::Transient,
-        _ => Retryable::Fatal,
-    }
-}
-
-/// Downcasts the given err source into T.
-/// From <https://github.com/TrueLayer/reqwest-middleware/blob/a54319a9d65926c899440e5970c04592f30ed048/reqwest-retry/src/retryable_strategy.rs#L200>
-/// under the MIT license.
-fn get_source_error_type<T: std::error::Error + 'static>(
-    err: &dyn std::error::Error,
-) -> Option<&T> {
-    let mut source = err.source();
-
-    while let Some(err) = source {
-        if let Some(err) = err.downcast_ref::<T>() {
-            return Some(err);
-        }
-
-        source = err.source();
-    }
-    None
-}
-
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[repr(transparent)]
 #[serde(transparent)]
@@ -1085,7 +1112,7 @@ mod tests {
         fn new(url: &str) -> Self {
             let tempdir = TempDir::new().unwrap();
             Self {
-                client: RpcClient::new(url, tempdir.path().into(), None),
+                client: RpcClient::new(url, tempdir.path().into(), None).expect("url ok"),
                 cache_dir: tempdir,
             }
         }
@@ -1101,14 +1128,14 @@ mod tests {
 
     #[test]
     fn get_ids_zero() {
-        let client = RpcClient::new("http://localhost:8545", PathBuf::new(), None);
+        let client = RpcClient::new("http://localhost:8545", PathBuf::new(), None).expect("url ok");
         let ids = client.get_ids(0);
         assert!(ids.is_empty());
     }
 
     #[test]
     fn get_ids_more() {
-        let client = RpcClient::new("http://localhost:8545", PathBuf::new(), None);
+        let client = RpcClient::new("http://localhost:8545", PathBuf::new(), None).expect("url ok");
         let count = 11;
         let ids = client.get_ids(count);
         assert_eq!(ids.len(), 11);
@@ -1152,7 +1179,7 @@ mod tests {
     mod alchemy {
         use std::fs::File;
 
-        use edr_test_utils::env::{get_alchemy_url, get_infura_url};
+        use edr_test_utils::env::get_alchemy_url;
         use futures::future::join_all;
         use walkdir::WalkDir;
 
@@ -1163,13 +1190,6 @@ mod tests {
         const MAX_BLOCK_NUMBER: u64 = u64::MAX >> 1;
 
         impl TestRpcClient {
-            fn new_with_dir(url: &str, cache_dir: TempDir) -> Self {
-                Self {
-                    client: RpcClient::new(url, cache_dir.path().into(), None),
-                    cache_dir,
-                }
-            }
-
             fn files_in_cache(&self) -> Vec<PathBuf> {
                 let mut files = Vec::new();
                 for entry in WalkDir::new(&self.cache_dir)
@@ -1858,37 +1878,6 @@ mod tests {
                 .expect("should have succeeded");
 
             assert_eq!(version, 1);
-        }
-
-        #[tokio::test]
-        async fn switching_provider_doesnt_invalidate_cache() {
-            let alchemy_url = get_alchemy_url();
-            let infura_url = get_infura_url();
-            let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
-                .expect("failed to parse address");
-            let block_spec = Some(BlockSpec::Number(16220843));
-
-            let alchemy_client = TestRpcClient::new(&alchemy_url);
-            let total_supply = alchemy_client
-                .get_storage_at(&dai_address, U256::from(1), block_spec.clone())
-                .await
-                .expect("should have succeeded");
-            let alchemy_cached_files = alchemy_client.files_in_cache();
-            assert_eq!(alchemy_cached_files.len(), 1);
-
-            let infura_client = TestRpcClient::new_with_dir(&infura_url, alchemy_client.cache_dir);
-            infura_client
-                .get_storage_at(&dai_address, U256::from(1), block_spec)
-                .await
-                .expect("should have succeeded");
-            let infura_cached_files = infura_client.files_in_cache();
-            assert_eq!(alchemy_cached_files, infura_cached_files);
-
-            let mut file = File::open(&infura_cached_files[0]).expect("failed to open file");
-            let cached_result: Option<U256> =
-                serde_json::from_reader(&mut file).expect("failed to parse");
-
-            assert_eq!(total_supply, cached_result);
         }
 
         #[tokio::test]

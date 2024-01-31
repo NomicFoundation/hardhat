@@ -86,6 +86,7 @@ import {
   ethereumsjsHardforkToEdrSpecId,
 } from "./utils/convertToEdr";
 import { makeCommon } from "./utils/makeCommon";
+import { getGlobalEdrContext } from "./context/edr";
 
 const log = debug("hardhat:core:hardhat-network:provider");
 
@@ -468,6 +469,7 @@ export class EdrProviderWrapper
     const vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
 
     const provider = await Provider.withConfig(
+      getGlobalEdrContext(),
       {
         allowBlocksWithSameTimestamp:
           config.allowBlocksWithSameTimestamp ?? false,

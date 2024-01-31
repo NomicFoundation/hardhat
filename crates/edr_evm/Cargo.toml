@@ -40,7 +40,7 @@ tempfile = "3.7.1"
 [features]
 bench-once = []           # limits the benchmark variants to one
 test-remote = []
-tracing = ["dep:tracing"]
+tracing = ["dep:tracing", "edr_eth/tracing"]
 
 [[bench]]
 name = "database_commit"

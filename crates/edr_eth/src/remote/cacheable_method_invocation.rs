@@ -25,8 +25,7 @@ pub(super) fn try_write_cache_key(method: &RequestMethod) -> Option<WriteCacheKe
 /// Potentially cacheable Ethereum JSON-RPC methods.
 #[derive(Clone, Debug)]
 enum CacheableRequestMethod<'a> {
-    /// eth_chainId
-    ChainId,
+    /// eth_feeHistory
     FeeHistory {
         block_count: &'a U256,
         newest_block: CacheableBlockSpec<'a>,
@@ -90,7 +89,6 @@ impl<'a> CacheableRequestMethod<'a> {
         match Hasher::new().hash_method(&self) {
             Err(SymbolicBlogTagError) => WriteCacheKey::needs_block_number(self),
             Ok(hasher) => match self {
-                CacheableRequestMethod::ChainId => Some(WriteCacheKey::finalize(hasher)),
                 CacheableRequestMethod::FeeHistory {
                     block_count: _,
                     newest_block,
@@ -154,7 +152,6 @@ impl<'a> TryFrom<&'a RequestMethod> for CacheableRequestMethod<'a> {
 
     fn try_from(value: &'a RequestMethod) -> Result<Self, Self::Error> {
         match value {
-            RequestMethod::ChainId(_) => Ok(CacheableRequestMethod::ChainId),
             RequestMethod::FeeHistory(block_count, newest_block, reward_percentiles) => {
                 Ok(CacheableRequestMethod::FeeHistory {
                     block_count,
@@ -209,7 +206,9 @@ impl<'a> TryFrom<&'a RequestMethod> for CacheableRequestMethod<'a> {
             RequestMethod::NetVersion(_) => Ok(CacheableRequestMethod::NetVersion),
 
             // Explicit to make sure if a new method is added, it is not forgotten here.
-            RequestMethod::BlockNumber(_) => {
+            // Chain id is not cacheable since a remote might change its chain id e.g. if it's a
+            // forked node running on localhost.
+            RequestMethod::BlockNumber(_) | RequestMethod::ChainId(_) => {
                 Err(MethodNotCacheableError::RequestMethod(value.clone()))
             }
         }
@@ -695,7 +694,6 @@ impl Hasher {
         let this = self.hash_u8(method.cache_key_variant());
 
         let this = match method {
-            CacheableRequestMethod::ChainId => this,
             CacheableRequestMethod::FeeHistory {
                 block_count,
                 newest_block,
@@ -794,12 +792,12 @@ impl<T> CacheKeyVariant for Option<T> {
 impl<'a> CacheKeyVariant for &'a CacheableRequestMethod<'a> {
     fn cache_key_variant(&self) -> u8 {
         match self {
-            CacheableRequestMethod::ChainId => 0,
+            // The commented out methods have been removed as they're not currently in use by the
+            // RPC client. If they're added back, they should keep their old variant
+            // number. CacheableRequestMethod::ChainId => 0,
             CacheableRequestMethod::GetBalance { .. } => 1,
             CacheableRequestMethod::GetBlockByNumber { .. } => 2,
             CacheableRequestMethod::GetBlockByHash { .. } => 3,
-            // These methods have been removed as they're not currently in use by the RPC client.
-            // If they're added back, they should keep their old variant number.
             // CacheableRequestMethod::GetBlockTransactionCountByHash { .. } => 4,
             // CacheableRequestMethod::GetBlockTransactionCountByNumber { .. } => 5,
             CacheableRequestMethod::GetCode { .. } => 6,
@@ -899,14 +897,6 @@ mod test {
             .finalize();
 
         assert_ne!(hash_one, hash_two);
-    }
-
-    #[test]
-    fn test_no_arguments_keys_not_equal() {
-        let key_one = CacheableRequestMethod::ChainId.read_cache_key().unwrap();
-        let key_two = CacheableRequestMethod::NetVersion.read_cache_key().unwrap();
-
-        assert_ne!(key_one, key_two);
     }
 
     #[test]
