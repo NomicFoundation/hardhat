@@ -199,7 +199,6 @@ impl RpcClient {
             .build();
         #[cfg(not(feature = "tracing"))]
         let client = HttpClientBuilder::new(client)
-            .with(TracingMiddleware::default())
             .with(RetryTransientMiddleware::new_with_policy(retry_policy))
             .build();
 
