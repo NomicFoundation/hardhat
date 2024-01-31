@@ -54,6 +54,6 @@ As general rule, you can target any network from your Hardhat config using:
 npx hardhat ignition deploy ./ignition/modules/LockModule.js --network <your-network>
 ```
 
-If no network is specified, Hardhat Ignition will run against an in-memory instance of the Hardhat Network.
+If no network is specified, Hardhat Ignition will run against an in-memory instance of Hardhat Network.
 
 Read more about Hardhat Ignition in the [Hardhat Ignition documentation](/ignition).
