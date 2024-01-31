@@ -715,10 +715,7 @@ impl RpcClient {
     /// Fetch the latest block number, chain id and network id in a batch call.
     #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
     pub async fn fetch_fork_metadata(&self) -> Result<ForkMetadata, RpcClientError> {
-        let mut inputs = vec![
-            RequestMethod::NetVersion(()),
-            RequestMethod::BlockNumber(()),
-        ];
+        let mut inputs = vec![RequestMethod::NetVersion(())];
 
         let maybe_block_number = self.maybe_cached_block_number().await?;
         if maybe_block_number.is_none() {
