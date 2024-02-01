@@ -1,6 +1,6 @@
 # Deploying your contracts
 
-To deploy your contracts, you can use [Hardhat Ignition](/ignition), our declarative deployment system. You can find a sample Hardhat Ignition module inside the `ignition/modules` directory of the sample project:
+To deploy your contracts, you can use [Hardhat Ignition](/ignition), our declarative deployment system. You can deploy the `Lock` contract from the sample project by specifying a deployment with an Ignition Module file like this:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
