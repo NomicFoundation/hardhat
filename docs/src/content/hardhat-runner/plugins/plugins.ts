@@ -870,6 +870,15 @@ const communityPlugins: IPlugin[] = [
     description: "Build and deploy only changed smartcontracts",
     tags: ["deployment", "diff deployment", "ethers.js", "proxy"],
   },
+  {
+    name: "@bonadocs/docgen",
+    author: "Bonadocs",
+    npmPackage: "@bonadocs/docgen",
+    authorUrl: "https://github.com/bonadocs",
+    description:
+      "Generate a beautiful and interactive documentation website for your project in seconds",
+    tags: ["Documentation", "NatSpec"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
