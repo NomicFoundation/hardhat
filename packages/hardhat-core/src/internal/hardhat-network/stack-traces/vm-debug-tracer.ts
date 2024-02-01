@@ -10,12 +10,12 @@ import {
   toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
 
-import { EventEmitter } from "events";
 import { assertHardhatInvariant } from "../../core/errors";
 import { RpcDebugTracingConfig } from "../../core/jsonrpc/types/input/debugTraceTransaction";
 import { InvalidInputError } from "../../core/providers/errors";
 import { RpcDebugTraceOutput, RpcStructLog } from "../provider/output";
 import * as BigIntUtils from "../../util/bigint";
+import { finishUpload, uploadStructLogs } from "./rumblefish-upload-to-s3";
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 interface StructLog {
@@ -49,7 +49,6 @@ function isStructLog(
 
 const EMPTY_MEMORY_WORD = "0".repeat(64);
 
-export const structLogsEmitter = new EventEmitter();
 export class VMDebugTracer {
   private _lastTrace?: RpcDebugTraceOutput;
   private _config: RpcDebugTracingConfig;
@@ -167,9 +166,8 @@ export class VMDebugTracer {
         this._messages.length > 0,
         "Step handler should be called after at least one beforeMessage handler"
       );
-
       const structLog = await this._stepToStructLog(step);
-      structLogsEmitter.emit("structLog", structLog);
+      await uploadStructLogs(structLog);
       // this._messages[this._messages.length - 1].structLogs.push(structLog);
     } catch (e: any) {
       // errors thrown in event handlers are lost, so we save this error to
@@ -218,7 +216,7 @@ export class VMDebugTracer {
       returnValue: result.execResult.returnValue.toString("hex"),
       structLogs: rpcStructLogs,
     };
-    structLogsEmitter.emit("finish");
+    await finishUpload(this._lastTrace);
     next();
   }
 

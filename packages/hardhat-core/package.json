@@ -1,6 +1,6 @@
 {
   "name": "@rumblefishdev/hardhat",
-  "version": "0.19.101",
+  "version": "0.19.104",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "homepage": "https://hardhat.org",
@@ -54,6 +54,7 @@
     "console.sol"
   ],
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.315.0",
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
     "@types/async-eventemitter": "^0.2.1",
@@ -96,6 +97,7 @@
     "typescript": "~5.0.0"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.315.0",
     "@ethersproject/abi": "^5.1.2",
     "@metamask/eth-sig-util": "^4.0.0",
     "@nomicfoundation/ethereumjs-block": "5.0.2",
