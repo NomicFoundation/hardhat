@@ -49,6 +49,7 @@ export function assertArgsArraysEqual(
   expectedArgs: any[],
   actualArgs: any[],
   tag: string,
+  assertionType: "event" | "error",
   assert: AssertWithSsfi,
   ssfi: Ssfi
 ) {
@@ -57,6 +58,7 @@ export function assertArgsArraysEqual(
       Assertion,
       expectedArgs,
       actualArgs,
+      assertionType,
       assert,
       ssfi
     );
@@ -70,6 +72,7 @@ export function assertArgsArraysEqualNested(
   Assertion: Chai.AssertionStatic,
   expectedArgs: any[],
   actualArgs: any[],
+  assertionType: "event" | "error",
   assert: AssertWithSsfi,
   ssfi: Ssfi
 ) {
@@ -110,11 +113,18 @@ export function assertArgsArraysEqualNested(
           Assertion,
           expectedArg,
           actualArg,
+          assertionType,
           assert,
           ssfi
         );
       } else {
         if (actualArg.hash !== undefined && actualArg._isIndexed === true) {
+          if (assertionType !== "event")
+            assert(
+              false,
+              "Should not get here. Please open an issue about that"
+            );
+
           new Assertion(actualArg.hash, undefined, ssfi, true).to.not.equal(
             expectedArg,
             "The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion should be the actual event argument (the pre-image of the hash). You provided the hash itself. Please supply the actual event argument (the pre-image of the hash) instead."

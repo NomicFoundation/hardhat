@@ -169,6 +169,7 @@ const tryAssertArgsArraysEqual = (
       expectedArgs,
       parsedLog.args,
       `"${eventName}" event`,
+      "event",
       assert,
       ssfi
     );
@@ -188,6 +189,7 @@ const tryAssertArgsArraysEqual = (
           expectedArgs,
           parsedLog.args,
           `"${eventName}" event`,
+          "event",
           assert,
           ssfi
         );

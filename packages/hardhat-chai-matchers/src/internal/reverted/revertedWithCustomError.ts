@@ -219,6 +219,7 @@ export async function revertedWithCustomErrorWithArgs(
     expectedArgs,
     actualArgs,
     `"${customError.name}" custom error`,
+    "error",
     assert,
     ssfi
   );
