@@ -5,6 +5,7 @@ use edr_eth::{
     Address, B256, B64, U256,
 };
 use revm::primitives::{CfgEnv, ExecutionResult, InvalidTransaction, SpecId};
+use serde::Serialize;
 
 use crate::{
     block::BlockBuilderCreationError,
@@ -55,7 +56,7 @@ pub struct MineBlockResultAndState<StateErrorT> {
 }
 
 /// The type of ordering to use when selecting blocks to mine.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize)]
 pub enum MineOrdering {
     /// Insertion order
     Fifo,

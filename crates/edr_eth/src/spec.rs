@@ -1,9 +1,11 @@
 use std::sync::OnceLock;
 
+use serde::Serialize;
+
 use crate::{HashMap, SpecId};
 
 /// A struct that stores the hardforks for a chain.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct HardforkActivations {
     /// (Start block number -> SpecId) mapping
     hardforks: Vec<(u64, SpecId)>,

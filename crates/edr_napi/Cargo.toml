@@ -26,6 +26,8 @@ tracing-flame = { version = "0.2.0", default-features = false, features = ["smal
 tracing-subscriber = { version = "0.3.18", default-features = false, features = ["ansi", "env-filter", "fmt", "parking_lot", "smallvec", "std"] }
 parking_lot = { version = "0.12.1", default-features = false }
 lazy_static = { version = "1.4.0", features = [] }
+uuid = { version = "1.4.1", features = ["v4"] }
+serde = { version = "1.0.189", features = ["derive"] }
 
 [target.x86_64-unknown-linux-gnu.dependencies]
 openssl-sys = { version = "0.9.93", features = ["vendored"] }

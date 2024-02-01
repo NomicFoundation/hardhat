@@ -1,11 +1,16 @@
 mod config;
 
-use std::sync::Arc;
+use std::{
+    path::PathBuf,
+    sync::{atomic::AtomicUsize, Arc},
+};
 
 use edr_eth::remote::jsonrpc;
-use edr_provider::InvalidRequestReason;
+use edr_provider::{InvalidRequestReason, ProviderRequest};
 use napi::{tokio::runtime, Env, JsFunction, JsObject, Status};
 use napi_derive::napi;
+use serde::Serialize;
+use uuid::Uuid;
 
 use self::config::ProviderConfig;
 use crate::{
@@ -15,10 +20,14 @@ use crate::{
     trace::RawTrace,
 };
 
+const SCENARIO_DIR_ENV: &str = "EDR_SCENARIO_DIR";
+
 /// A JSON-RPC provider for Ethereum.
 #[napi]
 pub struct Provider {
     provider: Arc<edr_provider::Provider<LoggerError>>,
+    id: Uuid,
+    request_counter: AtomicUsize,
 }
 
 #[napi]
@@ -36,6 +45,18 @@ impl Provider {
         let config = edr_provider::ProviderConfig::try_from(config)?;
         let runtime = runtime::Handle::current();
 
+        let id = Uuid::new_v4();
+        if let Some(scenario_dir) = scenario_directory(&id) {
+            std::fs::create_dir_all(&scenario_dir)?;
+            let config = ScenarioConfig {
+                provider_config: &config,
+                logger_enabled: logger_config.enable,
+            };
+            // Save provider config to scenario dir
+            let config_path = scenario_dir.join("config.json");
+            std::fs::write(config_path, serde_json::to_string_pretty(&config)?)?;
+        }
+
         let logger = Box::new(Logger::new(&env, logger_config)?);
         let subscriber_callback = SubscriberCallback::new(&env, subscriber_callback)?;
         let subscriber_callback = Box::new(move |event| subscriber_callback.call(event));
@@ -48,6 +69,8 @@ impl Provider {
                     |provider| {
                         Ok(Provider {
                             provider: Arc::new(provider),
+                            id,
+                            request_counter: AtomicUsize::new(0),
                         })
                     },
                 );
@@ -106,6 +129,18 @@ impl Provider {
             }
         };
 
+        if let Some(scenario_dir) = scenario_directory(&self.id) {
+            let count = self
+                .request_counter
+                .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+            let name = match &request {
+                ProviderRequest::Single(r) => r.method_name().into(),
+                ProviderRequest::Batch(reqs) => format!("batch_request_len_{}", reqs.len()),
+            };
+            let request_path = scenario_dir.join(format!("{count:05}_{name}.json"));
+            std::fs::write(request_path, serde_json::to_string_pretty(&request)?)?;
+        }
+
         let response = runtime::Handle::current()
             .spawn_blocking(move || provider.handle_request(request))
             .await
@@ -134,6 +169,17 @@ impl Provider {
                 trace,
             })
     }
+}
+
+fn scenario_directory(id: &Uuid) -> Option<PathBuf> {
+    let scenario_dir = std::path::PathBuf::from(std::env::var(SCENARIO_DIR_ENV).ok()?);
+    Some(scenario_dir.join(id.to_string()))
+}
+
+#[derive(Clone, Debug, Serialize)]
+struct ScenarioConfig<'a> {
+    provider_config: &'a edr_provider::ProviderConfig,
+    logger_enabled: bool,
 }
 
 #[napi]

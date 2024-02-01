@@ -11,7 +11,7 @@ use std::fmt;
 
 use ::serde::{
     de::{self, MapAccess, SeqAccess, Visitor},
-    Deserialize, Deserializer,
+    Deserialize, Deserializer, Serialize,
 };
 pub use edr_eth::remote::client::Request as RpcRequest;
 
@@ -21,7 +21,8 @@ pub use crate::requests::{
 };
 
 /// JSON-RPC request for the provider.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
+#[serde(untagged)]
 pub enum ProviderRequest {
     /// A single JSON-RPC request
     Single(MethodInvocation),
