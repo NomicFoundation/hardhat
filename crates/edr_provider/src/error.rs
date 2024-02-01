@@ -399,10 +399,13 @@ fn revert_error(output: &Bytes) -> String {
             }
         }
         Err(decode_error) => match decode_error {
-            alloy_sol_types::Error::TypeCheckFail { .. } => {
+            alloy_sol_types::Error::TypeCheckFail { .. }
+            | alloy_sol_types::Error::UnknownSelector { .. } => {
                 format!("VM Exception while processing transaction: reverted with an unrecognized custom error (return data: 0x{})", hex::encode(output))
             }
-            _ => unreachable!("Since we are not validating, no other error can occur"),
+            _ => unreachable!(
+                "Since we are not validating, no other error can occur: {decode_error:?}"
+            ),
         },
     }
 }
