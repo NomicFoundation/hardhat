@@ -218,7 +218,7 @@ export class VMDebugTracer {
       returnValue: result.execResult.returnValue.toString("hex"),
       structLogs: rpcStructLogs,
     };
-
+    structLogsEmitter.emit("finish");
     next();
   }
 
