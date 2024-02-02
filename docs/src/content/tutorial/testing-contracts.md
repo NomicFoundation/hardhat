@@ -56,7 +56,7 @@ const TokenModule = buildModule("TokenModule", (m) => {
 });
 ```
 
-This is a Hardhat Ignition module. It's a way to deploy smart contracts in your Hardhat project. In this case, we're defining a module that deploys a single contract, our token `Token`. We're defining it here inline in the test file, but you can also define it in a separate file within the `./ignition/modules` directory. We'll go in depth with Hardhat Ignition modules in the [deploying to a live network](./deploying-to-a-live-network.md) section. For now it's enough to know that this module will deploy our token contract.
+This is a Hardhat Ignition module. It's a way to deploy smart contracts in your Hardhat project. In this case, we're defining a module that deploys a single contract, our token `Token`. We're defining it here inline in the test file, but you can also define it in a separate file within the `./ignition/modules` directory. We'll discuss Hardhat Ignition modules in depth in the [deploying to a live network](./deploying-to-a-live-network.md) section. For now it's enough to know that this module will deploy our token contract.
 
 ```js
 const [owner] = await ethers.getSigners();
@@ -80,12 +80,12 @@ To learn more about `Signer`, you can look at the [Signers documentation](https:
 const { token } = await ignition.deploy(TokenModule);
 ```
 
-Calling `ignition.deploy(TokenModule)` will start the deployment of our token contract, and return a `Promise` that resolves to an object containing the `Contract` we returned from `TestModule`. This contract is the object that has a method for each of your smart contract functions.
+Calling `await ignition.deploy(TokenModule)` will deploy an instance the `Token` contract and return it as the results from `TestModule`. This contract (i.e. `token`) is an `ethers` contract instance and has methods for each of `Token` contract's functions.
 
-Similar to `ethers`, `ignition` is available in the global scope. If you like your code always being explicit, you can add this line at the top:
+Similarly to `ethers`, `ignition` is available in the global scope. You can expand the Hardhat require line at the top of your test file to make it explicit:
 
 ```js
-const { ignition } = require("hardhat");
+const { ignition, ethers } = require("hardhat");
 ```
 
 Once the contract is deployed, we can call our contract methods on `token`. Here we get the balance of the owner account by calling the contract's `balanceOf()` method.
@@ -94,7 +94,7 @@ Once the contract is deployed, we can call our contract methods on `token`. Here
 const ownerBalance = await token.balanceOf(owner.address);
 ```
 
-Recall that the account that deploys the token gets its entire supply. By default, `Contract` instances are connected to the first signer. This means that the account in the `owner` variable executed the deployment, and `balanceOf()` should return the entire supply amount.
+Recall that the account that deploys the token gets its entire supply. By default, an Ignition module is deployed with the first Hardhat account which matches the first returned Signer. This means that the account in the `owner` variable executed the deployment, and `balanceOf()` should return the entire supply amount.
 
 ```js
 expect(await token.totalSupply()).to.equal(ownerBalance);
