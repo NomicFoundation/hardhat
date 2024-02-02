@@ -30,7 +30,6 @@ import hre from "hardhat";
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
-// We define a module in the test file here, but you can also `import` it.
 const LockModule = buildModule("LockModule", (m) => {
   const lockedAmount = m.getParameter("lockedAmount");
   const unlockTime = m.getParameter("unlockTime");
@@ -70,7 +69,6 @@ const hre = require("hardhat");
 const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 const { time } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 
-// We define a module in the test file here, but you can also `require` it.
 const LockModule = buildModule("LockModule", (m) => {
   const lockedAmount = m.getParameter("lockedAmount");
   const unlockTime = m.getParameter("unlockTime");
@@ -202,7 +200,7 @@ describe("Lock", function () {
     unlockTime = (await helpers.time.latest()) + ONE_YEAR_IN_SECS;
 
     const result = await hre.ignition.deploy(LockModule, {
-      parameters: { Lock: { lockedAmount, unlockTime } },
+      parameters: { LockModule: { lockedAmount, unlockTime } },
     });
 
     lock = result.lock;
@@ -229,7 +227,7 @@ describe("Lock", function () {
     unlockTime = (await helpers.time.latest()) + ONE_YEAR_IN_SECS;
 
     const result = await hre.ignition.deploy(LockModule, {
-      parameters: { Lock: { lockedAmount, unlockTime } },
+      parameters: { LockModule: { lockedAmount, unlockTime } },
     });
 
     lock = result.lock;
@@ -269,7 +267,7 @@ describe("Lock", function () {
     const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
 
     const { lock } = await hre.ignition.deploy(LockModule, {
-      parameters: { Lock: { lockedAmount, unlockTime } },
+      parameters: { LockModule: { lockedAmount, unlockTime } },
     });
 
     return { lock, unlockTime, lockedAmount };
