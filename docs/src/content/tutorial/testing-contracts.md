@@ -16,7 +16,6 @@ Let's start with the code below. We'll explain it next, but for now paste this i
 const { expect } = require("chai");
 const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 
-// We define a module in the test file here, but you can also `require` it.
 const TokenModule = buildModule("TokenModule", (m) => {
   const token = m.contract("Token");
 
@@ -27,10 +26,10 @@ describe("Token contract", function () {
   it("Deployment should assign the total supply of tokens to the owner", async function () {
     const [owner] = await ethers.getSigners();
 
-    const { token: hardhatToken } = await ignition.deploy(TokenModule);
+    const { token } = await ignition.deploy(TokenModule);
 
-    const ownerBalance = await hardhatToken.balanceOf(owner.address);
-    expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
+    const ownerBalance = await token.balanceOf(owner.address);
+    expect(await token.totalSupply()).to.equal(ownerBalance);
   });
 });
 ```
@@ -50,15 +49,14 @@ $ npx hardhat test
 This means the test passed. Let's now explain each line:
 
 ```js
-// We define a module in the test file here, but you can also `require` it.
 const TokenModule = buildModule("TokenModule", (m) => {
-  const hardhatToken = m.contract("Token");
+  const token = m.contract("Token");
 
-  return { hardhatToken };
+  return { token };
 });
 ```
 
-This is a Hardhat Ignition module. It's a way to deploy and interact with smart contracts in your Hardhat project. In this case, we're defining a module that contains a single contract, our token. We're defining it here in the test file, but you can also define it in a separate file and `require` it. We'll go more in depth with Hardhat Ignition modules in the [deploying to a live network](./deploying-to-a-live-network.md) section. For now it's enough to know that this module will deploy our token contract.
+This is a Hardhat Ignition module. It's a way to deploy smart contracts in your Hardhat project. In this case, we're defining a module that deploys a single contract, our token `Token`. We're defining it here inline in the test file, but you can also define it in a separate file within the `./ignition/modules` directory. We'll go in depth with Hardhat Ignition modules in the [deploying to a live network](./deploying-to-a-live-network.md) section. For now it's enough to know that this module will deploy our token contract.
 
 ```js
 const [owner] = await ethers.getSigners();
@@ -79,7 +77,7 @@ To learn more about `Signer`, you can look at the [Signers documentation](https:
 :::
 
 ```js
-const { hardhatToken } = await ignition.deploy(TokenModule);
+const { token } = await ignition.deploy(TokenModule);
 ```
 
 Calling `ignition.deploy(TokenModule)` will start the deployment of our token contract, and return a `Promise` that resolves to an object containing the `Contract` we returned from `TestModule`. This contract is the object that has a method for each of your smart contract functions.
@@ -90,16 +88,16 @@ Similar to `ethers`, `ignition` is available in the global scope. If you like yo
 const { ignition } = require("hardhat");
 ```
 
-Once the contract is deployed, we can call our contract methods on `hardhatToken`. Here we get the balance of the owner account by calling the contract's `balanceOf()` method.
+Once the contract is deployed, we can call our contract methods on `token`. Here we get the balance of the owner account by calling the contract's `balanceOf()` method.
 
 ```js
-const ownerBalance = await hardhatToken.balanceOf(owner.address);
+const ownerBalance = await token.balanceOf(owner.address);
 ```
 
 Recall that the account that deploys the token gets its entire supply. By default, `Contract` instances are connected to the first signer. This means that the account in the `owner` variable executed the deployment, and `balanceOf()` should return the entire supply amount.
 
 ```js
-expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
+expect(await token.totalSupply()).to.equal(ownerBalance);
 ```
 
 Here we're again using our `Contract` instance to call a smart contract function in our Solidity code. `totalSupply()` returns the token's supply amount and we're checking that it's equal to `ownerBalance`, as it should be.
@@ -119,15 +117,15 @@ describe("Token contract", function () {
   it("Should transfer tokens between accounts", async function() {
     const [owner, addr1, addr2] = await ethers.getSigners();
 
-    const { hardhatToken } = await ignition.deploy(TokenModule);
+    const { token } = await ignition.deploy(TokenModule);
 
     // Transfer 50 tokens from owner to addr1
-    await hardhatToken.transfer(addr1.address, 50);
-    expect(await hardhatToken.balanceOf(addr1.address)).to.equal(50);
+    await token.transfer(addr1.address, 50);
+    expect(await token.balanceOf(addr1.address)).to.equal(50);
 
     // Transfer 50 tokens from addr1 to addr2
-    await hardhatToken.connect(addr1).transfer(addr2.address, 50);
-    expect(await hardhatToken.balanceOf(addr2.address)).to.equal(50);
+    await token.connect(addr1).transfer(addr2.address, 50);
+    expect(await token.balanceOf(addr2.address)).to.equal(50);
   });
 });
 ```
@@ -146,43 +144,43 @@ const { expect } = require("chai");
 
 // We define a module in the test file here, but you can also `require` it.
 const TokenModule = buildModule("TokenModule", (m) => {
-  const hardhatToken = m.contract("Token");
+  const token = m.contract("Token");
 
-  return { hardhatToken };
+  return { token };
 });
 
 describe("Token contract", function () {
   async function deployTokenFixture() {
     const [owner, addr1, addr2] = await ethers.getSigners();
 
-    const { hardhatToken } = await ignition.deploy(TokenModule);
+    const { token } = await ignition.deploy(TokenModule);
 
     // Fixtures can return anything you consider useful for your tests
-    return { hardhatToken, owner, addr1, addr2 };
+    return { token, owner, addr1, addr2 };
   }
 
   it("Should assign the total supply of tokens to the owner", async function () {
-    const { hardhatToken, owner } = await loadFixture(deployTokenFixture);
+    const { token, owner } = await loadFixture(deployTokenFixture);
 
-    const ownerBalance = await hardhatToken.balanceOf(owner.address);
-    expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
+    const ownerBalance = await token.balanceOf(owner.address);
+    expect(await token.totalSupply()).to.equal(ownerBalance);
   });
 
   it("Should transfer tokens between accounts", async function () {
-    const { hardhatToken, owner, addr1, addr2 } = await loadFixture(
+    const { token, owner, addr1, addr2 } = await loadFixture(
       deployTokenFixture
     );
 
     // Transfer 50 tokens from owner to addr1
     await expect(
-      hardhatToken.transfer(addr1.address, 50)
-    ).to.changeTokenBalances(hardhatToken, [owner, addr1], [-50, 50]);
+      token.transfer(addr1.address, 50)
+    ).to.changeTokenBalances(token, [owner, addr1], [-50, 50]);
 
     // Transfer 50 tokens from addr1 to addr2
     // We use .connect(signer) to send a transaction from another account
     await expect(
-      hardhatToken.connect(addr1).transfer(addr2.address, 50)
-    ).to.changeTokenBalances(hardhatToken, [addr1, addr2], [-50, 50]);
+      token.connect(addr1).transfer(addr2.address, 50)
+    ).to.changeTokenBalances(token, [addr1, addr2], [-50, 50]);
   });
 });
 ```
@@ -232,10 +230,10 @@ describe("Token contract", function () {
 
     // To deploy our contract, we just have to call ignition.deploy with our
     // imported Hardhat Ignition module.
-    const { hardhatToken } = await ignition.deploy(TokenModule);
+    const { token } = await ignition.deploy(TokenModule);
 
     // Fixtures can return anything you consider useful for your tests
-    return { hardhatToken, owner, addr1, addr2 };
+    return { token, owner, addr1, addr2 };
   }
 
   // You can nest describe calls to create subsections.
@@ -247,71 +245,71 @@ describe("Token contract", function () {
     it("Should set the right owner", async function () {
       // We use loadFixture to setup our environment, and then assert that
       // things went well
-      const { hardhatToken, owner } = await loadFixture(deployTokenFixture);
+      const { token, owner } = await loadFixture(deployTokenFixture);
 
       // `expect` receives a value and wraps it in an assertion object. These
       // objects have a lot of utility methods to assert values.
 
       // This test expects the owner variable stored in the contract to be
       // equal to our Signer's owner.
-      expect(await hardhatToken.owner()).to.equal(owner.address);
+      expect(await token.owner()).to.equal(owner.address);
     });
 
     it("Should assign the total supply of tokens to the owner", async function () {
-      const { hardhatToken, owner } = await loadFixture(deployTokenFixture);
-      const ownerBalance = await hardhatToken.balanceOf(owner.address);
-      expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
+      const { token, owner } = await loadFixture(deployTokenFixture);
+      const ownerBalance = await token.balanceOf(owner.address);
+      expect(await token.totalSupply()).to.equal(ownerBalance);
     });
   });
 
   describe("Transactions", function () {
     it("Should transfer tokens between accounts", async function () {
-      const { hardhatToken, owner, addr1, addr2 } = await loadFixture(
+      const { token, owner, addr1, addr2 } = await loadFixture(
         deployTokenFixture
       );
       // Transfer 50 tokens from owner to addr1
       await expect(
-        hardhatToken.transfer(addr1.address, 50)
-      ).to.changeTokenBalances(hardhatToken, [owner, addr1], [-50, 50]);
+        token.transfer(addr1.address, 50)
+      ).to.changeTokenBalances(token, [owner, addr1], [-50, 50]);
 
       // Transfer 50 tokens from addr1 to addr2
       // We use .connect(signer) to send a transaction from another account
       await expect(
-        hardhatToken.connect(addr1).transfer(addr2.address, 50)
-      ).to.changeTokenBalances(hardhatToken, [addr1, addr2], [-50, 50]);
+        token.connect(addr1).transfer(addr2.address, 50)
+      ).to.changeTokenBalances(token, [addr1, addr2], [-50, 50]);
     });
 
     it("Should emit Transfer events", async function () {
-      const { hardhatToken, owner, addr1, addr2 } = await loadFixture(
+      const { token, owner, addr1, addr2 } = await loadFixture(
         deployTokenFixture
       );
 
       // Transfer 50 tokens from owner to addr1
-      await expect(hardhatToken.transfer(addr1.address, 50))
-        .to.emit(hardhatToken, "Transfer")
+      await expect(token.transfer(addr1.address, 50))
+        .to.emit(token, "Transfer")
         .withArgs(owner.address, addr1.address, 50);
 
       // Transfer 50 tokens from addr1 to addr2
       // We use .connect(signer) to send a transaction from another account
-      await expect(hardhatToken.connect(addr1).transfer(addr2.address, 50))
-        .to.emit(hardhatToken, "Transfer")
+      await expect(token.connect(addr1).transfer(addr2.address, 50))
+        .to.emit(token, "Transfer")
         .withArgs(addr1.address, addr2.address, 50);
     });
 
     it("Should fail if sender doesn't have enough tokens", async function () {
-      const { hardhatToken, owner, addr1 } = await loadFixture(
+      const { token, owner, addr1 } = await loadFixture(
         deployTokenFixture
       );
-      const initialOwnerBalance = await hardhatToken.balanceOf(owner.address);
+      const initialOwnerBalance = await token.balanceOf(owner.address);
 
       // Try to send 1 token from addr1 (0 tokens) to owner.
       // `require` will evaluate false and revert the transaction.
       await expect(
-        hardhatToken.connect(addr1).transfer(owner.address, 1)
+        token.connect(addr1).transfer(owner.address, 1)
       ).to.be.revertedWith("Not enough tokens");
 
       // Owner balance shouldn't have changed.
-      expect(await hardhatToken.balanceOf(owner.address)).to.equal(
+      expect(await token.balanceOf(owner.address)).to.equal(
         initialOwnerBalance
       );
     });
