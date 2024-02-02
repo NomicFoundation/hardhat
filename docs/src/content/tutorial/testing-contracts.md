@@ -172,9 +172,11 @@ describe("Token contract", function () {
     );
 
     // Transfer 50 tokens from owner to addr1
-    await expect(
-      token.transfer(addr1.address, 50)
-    ).to.changeTokenBalances(token, [owner, addr1], [-50, 50]);
+    await expect(token.transfer(addr1.address, 50)).to.changeTokenBalances(
+      token,
+      [owner, addr1],
+      [-50, 50]
+    );
 
     // Transfer 50 tokens from addr1 to addr2
     // We use .connect(signer) to send a transaction from another account
@@ -268,9 +270,11 @@ describe("Token contract", function () {
         deployTokenFixture
       );
       // Transfer 50 tokens from owner to addr1
-      await expect(
-        token.transfer(addr1.address, 50)
-      ).to.changeTokenBalances(token, [owner, addr1], [-50, 50]);
+      await expect(token.transfer(addr1.address, 50)).to.changeTokenBalances(
+        token,
+        [owner, addr1],
+        [-50, 50]
+      );
 
       // Transfer 50 tokens from addr1 to addr2
       // We use .connect(signer) to send a transaction from another account
@@ -297,9 +301,7 @@ describe("Token contract", function () {
     });
 
     it("Should fail if sender doesn't have enough tokens", async function () {
-      const { token, owner, addr1 } = await loadFixture(
-        deployTokenFixture
-      );
+      const { token, owner, addr1 } = await loadFixture(deployTokenFixture);
       const initialOwnerBalance = await token.balanceOf(owner.address);
 
       // Try to send 1 token from addr1 (0 tokens) to owner.
