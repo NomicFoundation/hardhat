@@ -5,7 +5,6 @@ use edr_eth::{
     HashMap, SpecId, U256,
 };
 use edr_evm::{alloy_primitives::U160, KECCAK_EMPTY};
-use edr_test_utils::env::get_alchemy_url;
 
 use super::*;
 use crate::{config::MiningConfig, requests::hardhat::rpc_types::ForkConfig};
@@ -21,7 +20,7 @@ pub const FORK_BLOCK_NUMBER: u64 = 18_725_000;
 
 /// Constructs a test config with a single account with 1 ether
 pub fn create_test_config(cache_dir: PathBuf) -> ProviderConfig {
-    create_test_config_with_impersonated_accounts_and_fork(cache_dir, vec![], false)
+    create_test_config_with_impersonated_accounts_and_fork(cache_dir, vec![], None)
 }
 
 pub fn one_ether() -> U256 {
@@ -31,7 +30,7 @@ pub fn one_ether() -> U256 {
 pub fn create_test_config_with_impersonated_accounts_and_fork(
     cache_dir: PathBuf,
     impersonated_accounts: Vec<Address>,
-    forked: bool,
+    fork: Option<ForkConfig>,
 ) -> ProviderConfig {
     let genesis_accounts = impersonated_accounts
         .into_iter()
@@ -45,17 +44,6 @@ pub fn create_test_config_with_impersonated_accounts_and_fork(
             (address, account_info)
         })
         .collect();
-
-    let fork = if forked {
-        Some(ForkConfig {
-            json_rpc_url: get_alchemy_url(),
-            // Random recent block for better cache consistency
-            block_number: Some(FORK_BLOCK_NUMBER),
-            http_headers: None,
-        })
-    } else {
-        None
-    };
 
     ProviderConfig {
         accounts: vec![

@@ -4,12 +4,7 @@ mod gas;
 mod inspector;
 
 use std::{
-    cmp,
-    cmp::Ordering,
-    collections::BTreeMap,
-    fmt::Debug,
-    sync::Arc,
-    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
+    cmp, cmp::Ordering, collections::BTreeMap, fmt::Debug, path::PathBuf, sync::Arc, time::{Duration, Instant, SystemTime, UNIX_EPOCH}
 };
 
 use edr_eth::{
@@ -2247,7 +2242,7 @@ mod tests {
     use std::convert::Infallible;
 
     use anyhow::Context;
-    use edr_eth::transaction::{Eip155TransactionRequest, TransactionKind, TransactionRequest};
+    use edr_eth::{spec::chain_hardfork_activations, transaction::{Eip155TransactionRequest, TransactionKind, TransactionRequest}};
     use edr_evm::hex;
     use edr_test_utils::env::get_alchemy_url;
     use serde_json::json;
@@ -2255,11 +2250,9 @@ mod tests {
 
     use super::*;
     use crate::{
-        data::inspector::tests::{deploy_console_log_contract, ConsoleLogTransaction},
-        test_utils::{
+        data::inspector::tests::{deploy_console_log_contract, ConsoleLogTransaction}, test_utils::{
             create_test_config_with_impersonated_accounts_and_fork, one_ether, FORK_BLOCK_NUMBER,
-        },
-        Logger, ProviderConfig,
+        }, Logger, MiningConfig, ProviderConfig
     };
 
     #[derive(Clone, Default)]
@@ -2295,24 +2288,40 @@ mod tests {
     }
 
     impl ProviderTestFixture {
-        pub(crate) fn new() -> anyhow::Result<Self> {
-            Self::new_with_config(false)
+        pub(crate) fn new_local() -> anyhow::Result<Self> {
+            Self::with_fork(None)
         }
 
-        pub(crate) fn new_forked() -> anyhow::Result<Self> {
-            Self::new_with_config(true)
+        pub(crate) fn new_forked(url: Option<String>) -> anyhow::Result<Self> {
+            let fork_url = url.unwrap_or(get_alchemy_url());
+            Self::with_fork(Some(fork_url))
         }
 
-        fn new_with_config(forked: bool) -> anyhow::Result<Self> {
+        fn with_fork(fork: Option<String>) -> anyhow::Result<Self> {
+            let fork = if let Some(json_rpc_url) = fork {
+                Some(ForkConfig {
+                    json_rpc_url,
+                    // Random recent block for better cache consistency
+                    block_number: Some(FORK_BLOCK_NUMBER),
+                    http_headers: None,
+                })
+            } else {
+                None
+            };
+
             let cache_dir = TempDir::new()?;
 
             let impersonated_account = Address::random();
             let config = create_test_config_with_impersonated_accounts_and_fork(
                 cache_dir.path().to_path_buf(),
                 vec![impersonated_account],
-                forked,
+                fork,
             );
 
+            Self::new(cache_dir, config)
+        }
+
+        fn new(cache_dir: TempDir, config: ProviderConfig) -> anyhow::Result<Self> {
             let logger = Box::<NoopLogger>::default();
             let subscription_callback = Box::new(|_| ());
 
@@ -2382,7 +2391,7 @@ mod tests {
 
     #[test]
     fn test_local_account_balance() -> anyhow::Result<()> {
-        let fixture = ProviderTestFixture::new()?;
+        let fixture = ProviderTestFixture::new_local()?;
 
         let account = *fixture
             .provider_data
@@ -2403,7 +2412,7 @@ mod tests {
 
     #[test]
     fn test_local_account_balance_forked() -> anyhow::Result<()> {
-        let fixture = ProviderTestFixture::new_forked()?;
+        let fixture = ProviderTestFixture::new_forked(None)?;
 
         let account = *fixture
             .provider_data
@@ -2424,7 +2433,7 @@ mod tests {
 
     #[test]
     fn test_sign_transaction_request() -> anyhow::Result<()> {
-        let fixture = ProviderTestFixture::new()?;
+        let fixture = ProviderTestFixture::new_local()?;
 
         let transaction = fixture.signed_dummy_transaction()?;
         let recovered_address = transaction.recover()?;
@@ -2439,7 +2448,7 @@ mod tests {
 
     #[test]
     fn test_sign_transaction_request_impersonated_account() -> anyhow::Result<()> {
-        let fixture = ProviderTestFixture::new()?;
+        let fixture = ProviderTestFixture::new_local()?;
 
         let transaction = fixture.impersonated_dummy_transaction()?;
 
@@ -2482,7 +2491,7 @@ mod tests {
 
     #[test]
     fn add_pending_transaction() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new()?;
+        let mut fixture = ProviderTestFixture::new_local()?;
         let transaction = fixture.signed_dummy_transaction()?;
 
         test_add_pending_transaction(&mut fixture, transaction)
@@ -2490,7 +2499,7 @@ mod tests {
 
     #[test]
     fn add_pending_transaction_from_impersonated_account() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new()?;
+        let mut fixture = ProviderTestFixture::new_local()?;
         let transaction = fixture.impersonated_dummy_transaction()?;
 
         test_add_pending_transaction(&mut fixture, transaction)
@@ -2498,7 +2507,7 @@ mod tests {
 
     #[test]
     fn block_by_block_spec_earliest() -> anyhow::Result<()> {
-        let fixture = ProviderTestFixture::new()?;
+        let fixture = ProviderTestFixture::new_local()?;
 
         let block_spec = BlockSpec::Tag(BlockTag::Earliest);
 
@@ -2514,7 +2523,7 @@ mod tests {
 
     #[test]
     fn block_by_block_spec_finalized_safe_latest() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new()?;
+        let mut fixture = ProviderTestFixture::new_local()?;
 
         // Mine a block to make sure we're not getting the genesis block
         fixture.provider_data.mine_and_commit_block(None)?;
@@ -2539,7 +2548,7 @@ mod tests {
 
     #[test]
     fn block_by_block_spec_pending() -> anyhow::Result<()> {
-        let fixture = ProviderTestFixture::new()?;
+        let fixture = ProviderTestFixture::new_local()?;
 
         let block_spec = BlockSpec::Tag(BlockTag::Pending);
 
@@ -2552,7 +2561,7 @@ mod tests {
 
     #[test]
     fn chain_id() -> anyhow::Result<()> {
-        let fixture = ProviderTestFixture::new()?;
+        let fixture = ProviderTestFixture::new_local()?;
 
         let chain_id = fixture.provider_data.chain_id();
         assert_eq!(chain_id, fixture.config.chain_id);
@@ -2562,7 +2571,7 @@ mod tests {
 
     #[test]
     fn chain_id_fork_mode() -> anyhow::Result<()> {
-        let fixture = ProviderTestFixture::new_forked()?;
+        let fixture = ProviderTestFixture::new_forked(None)?;
 
         let chain_id = fixture.provider_data.chain_id();
         assert_eq!(chain_id, fixture.config.chain_id);
@@ -2572,7 +2581,7 @@ mod tests {
 
     #[test]
     fn console_log_mine_block() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new()?;
+        let mut fixture = ProviderTestFixture::new_local()?;
         let ConsoleLogTransaction {
             transaction,
             expected_call_data,
@@ -2599,7 +2608,7 @@ mod tests {
 
     #[test]
     fn console_log_run_call() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new()?;
+        let mut fixture = ProviderTestFixture::new_local()?;
         let ConsoleLogTransaction {
             transaction,
             expected_call_data,
@@ -2624,7 +2633,7 @@ mod tests {
 
     #[test]
     fn next_filter_id() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new()?;
+        let mut fixture = ProviderTestFixture::new_local()?;
 
         let mut prev_filter_id = fixture.provider_data.last_filter_id;
         for _ in 0..10 {
@@ -2636,9 +2645,34 @@ mod tests {
         Ok(())
     }
 
+    fn run_full_block(url: String, block_number: u64) -> anyhow::Result<()> {
+        let hardfork = chain_hardfork_activations(chain_id)
+        let config = ProviderConfig {
+            network_id: 1,
+            ..ProviderConfig::default()
+        };
+
+        let fixture = ProviderTestFixture::new_forked(Some(url))?;
+
+        let block_spec = BlockSpec::Number(block_number);
+        let block = fixture
+            .provider_data
+            .block_by_block_spec(&block_spec)?
+            .context("block should exist")?;
+
+        let block_hash = block.hash();
+        let block_json = reqwest::blocking::get(&format!("{}/block/{}", url, block_hash))?
+            .json::<serde_json::Value>()?;
+
+        let block_number_json = block_json["number"].as_str().unwrap();
+        assert_eq!(block_number_json, hex::encode(block_number));
+
+        Ok(())
+    }
+
     #[test]
     fn set_balance_updates_mem_pool() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new()?;
+        let mut fixture = ProviderTestFixture::new_local()?;
 
         let transaction = {
             let mut request = fixture.dummy_transaction_request(None);
@@ -2670,7 +2704,7 @@ mod tests {
 
     #[test]
     fn transaction_by_invalid_hash() -> anyhow::Result<()> {
-        let fixture = ProviderTestFixture::new()?;
+        let fixture = ProviderTestFixture::new_local()?;
 
         let non_existing_tx = fixture.provider_data.transaction_by_hash(&B256::ZERO)?;
 
@@ -2681,7 +2715,7 @@ mod tests {
 
     #[test]
     fn pending_transaction_by_hash() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new()?;
+        let mut fixture = ProviderTestFixture::new_local()?;
 
         let transaction_request = fixture.signed_dummy_transaction()?;
         let transaction_hash = fixture
@@ -2703,7 +2737,7 @@ mod tests {
 
     #[test]
     fn transaction_by_hash() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new()?;
+        let mut fixture = ProviderTestFixture::new_local()?;
 
         let transaction_request = fixture.signed_dummy_transaction()?;
         let transaction_hash = fixture
@@ -2736,7 +2770,7 @@ mod tests {
 
     #[test]
     fn reset_local_to_forking() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new()?;
+        let mut fixture = ProviderTestFixture::new_local()?;
 
         let fork_config = Some(ForkConfig {
             json_rpc_url: get_alchemy_url(),
@@ -2764,7 +2798,7 @@ mod tests {
 
     #[test]
     fn reset_forking_to_local() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new_forked()?;
+        let mut fixture = ProviderTestFixture::new_forked(None)?;
 
         // We're fetching a specific block instead of the last block number for the
         // forked blockchain, because the last block number query cannot be
@@ -2783,7 +2817,7 @@ mod tests {
 
     #[test]
     fn sign_typed_data_v4() -> anyhow::Result<()> {
-        let fixture = ProviderTestFixture::new()?;
+        let fixture = ProviderTestFixture::new_local()?;
 
         // This test was taken from the `eth_signTypedData` example from the
         // EIP-712 specification via Hardhat.

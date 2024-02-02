@@ -9,7 +9,6 @@ import { ForkStateManager } from "../../../../../src/internal/hardhat-network/pr
 import { rpcToBlockData } from "../../../../../src/internal/hardhat-network/provider/fork/rpcToBlockData";
 import { makeForkClient } from "../../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { RunTxResult } from "../../../../../src/internal/hardhat-network/provider/vm/vm-adapter";
-import { HardhatNode } from "../../../../../src/internal/hardhat-network/provider/node";
 import { ForkedNodeConfig } from "../../../../../src/internal/hardhat-network/provider/node-types";
 import { EthereumJSAdapter } from "../../../../../src/internal/hardhat-network/provider/vm/ethereumjs";
 import { FORK_TESTS_CACHE_PATH } from "../../helpers/constants";
