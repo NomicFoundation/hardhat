@@ -62,7 +62,11 @@ pub async fn execute(directory_path: &Path, max_count: Option<usize>) -> anyhow:
             jsonrpc::ResponseData::Success { .. } => success += 1,
             jsonrpc::ResponseData::Error { .. } => failure += 1,
         }
-        bar.inc(1)
+        if i % 100 == 0 {
+            bar.inc(100)
+        } else if i == count - 1 {
+            bar.inc((count % 100) as u64);
+        }
     }
 
     let elapsed = start.elapsed();
