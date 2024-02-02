@@ -1,4 +1,3 @@
-// ./ignition/LockModule.js
 import { buildModule } from "@nomicfoundation/hardhat-toolbox";
 
 const currentTimestampInSeconds = Math.round(new Date(2023, 0, 1) / 1000);
