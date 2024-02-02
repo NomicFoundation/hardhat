@@ -19,7 +19,7 @@ pub fn handle_chain_id_request<LoggerErrorT: Debug>(
 }
 
 pub fn handle_get_transaction_count_request<LoggerErrorT: Debug>(
-    data: &ProviderData<LoggerErrorT>,
+    data: &mut ProviderData<LoggerErrorT>,
     address: Address,
     block_spec: Option<BlockSpec>,
 ) -> Result<U256, ProviderError<LoggerErrorT>> {

@@ -8,6 +8,7 @@ use std::{
     cmp::Ordering,
     collections::BTreeMap,
     fmt::Debug,
+    num::NonZeroUsize,
     sync::Arc,
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
@@ -50,6 +51,7 @@ use gas::gas_used_ratio;
 use indexmap::IndexMap;
 use itertools::izip;
 use lazy_static::lazy_static;
+use lru::LruCache;
 use tokio::runtime;
 
 use self::{
@@ -73,6 +75,7 @@ use crate::{
 };
 
 const DEFAULT_INITIAL_BASE_FEE_PER_GAS: u64 = 1_000_000_000;
+const MAX_CACHED_BLOCK_CONTEXTS: usize = 1000;
 
 /// The result of executing an `eth_call`.
 #[derive(Clone)]
@@ -146,6 +149,7 @@ pub struct ProviderData<LoggerErrorT: Debug> {
     logger: Box<dyn SyncLogger<BlockchainError = BlockchainError, LoggerError = LoggerErrorT>>,
     impersonated_accounts: HashSet<Address>,
     subscriber_callback: Box<dyn SyncSubscriberCallback>,
+    block_context_cache: LruCache<u64, BlockContext>,
 }
 
 impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
@@ -212,6 +216,9 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             logger,
             impersonated_accounts: HashSet::new(),
             subscriber_callback,
+            block_context_cache: LruCache::new(
+                NonZeroUsize::new(MAX_CACHED_BLOCK_CONTEXTS).expect("constant is non-zero"),
+            ),
         })
     }
 
@@ -251,7 +258,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
     }
 
     pub fn balance(
-        &self,
+        &mut self,
         address: Address,
         block_spec: Option<&BlockSpec>,
     ) -> Result<U256, ProviderError<LoggerErrorT>> {
@@ -476,7 +483,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
 
     #[tracing::instrument(level = "trace", skip(self))]
     pub fn debug_trace_transaction(
-        &self,
+        &mut self,
         transaction_hash: &B256,
         trace_config: DebugTraceConfig,
     ) -> Result<DebugTraceResult, ProviderError<LoggerErrorT>> {
@@ -531,7 +538,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
     }
 
     pub fn debug_trace_call(
-        &self,
+        &mut self,
         transaction: ExecutableTransaction,
         block_spec: Option<&BlockSpec>,
         trace_config: DebugTraceConfig,
@@ -546,7 +553,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             let result = run_call(RunCallArgs {
                 blockchain,
                 header: block.header(),
-                state: &state,
+                state,
                 state_overrides: &StateOverrides::default(),
                 cfg_env: cfg_env.clone(),
                 tx_env: tx_env.clone(),
@@ -559,7 +566,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
 
     /// Estimate the gas cost of a transaction. Matches Hardhat behavior.
     pub fn estimate_gas(
-        &self,
+        &mut self,
         transaction: ExecutableTransaction,
         block_spec: &BlockSpec,
     ) -> Result<u64, ProviderError<LoggerErrorT>> {
@@ -584,7 +591,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             let result = call::run_call(RunCallArgs {
                 blockchain,
                 header,
-                state: &state,
+                state,
                 state_overrides: &state_overrides,
                 cfg_env: cfg_env.clone(),
                 tx_env: tx_env.clone(),
@@ -620,7 +627,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             let result = gas::check_gas_limit(CheckGasLimitArgs {
                 blockchain,
                 header,
-                state: &state,
+                state,
                 state_overrides: &state_overrides,
                 cfg_env: cfg_env.clone(),
                 tx_env: tx_env.clone(),
@@ -639,7 +646,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             let estimation = gas::binary_search_estimation(BinarySearchEstimationArgs {
                 blockchain,
                 header,
-                state: &state,
+                state,
                 state_overrides: &state_overrides,
                 cfg_env: cfg_env.clone(),
                 tx_env: tx_env.clone(),
@@ -820,7 +827,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
     }
 
     pub fn get_code(
-        &self,
+        &mut self,
         address: Address,
         block_spec: Option<&BlockSpec>,
     ) -> Result<Bytes, ProviderError<LoggerErrorT>> {
@@ -865,7 +872,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
     }
 
     pub fn get_storage_at(
-        &self,
+        &mut self,
         address: Address,
         index: U256,
         block_spec: Option<&BlockSpec>,
@@ -877,7 +884,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
     }
 
     pub fn get_transaction_count(
-        &self,
+        &mut self,
         address: Address,
         block_spec: Option<&BlockSpec>,
     ) -> Result<u64, ProviderError<LoggerErrorT>> {
@@ -1157,7 +1164,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
     }
 
     pub fn nonce(
-        &self,
+        &mut self,
         address: &Address,
         block_spec: Option<&BlockSpec>,
         state_overrides: &StateOverrides,
@@ -1251,7 +1258,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
     }
 
     pub fn run_call(
-        &self,
+        &mut self,
         transaction: ExecutableTransaction,
         block_spec: Option<&BlockSpec>,
         state_overrides: &StateOverrides,
@@ -1266,7 +1273,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             let execution_result = call::run_call(RunCallArgs {
                 blockchain,
                 header: block.header(),
-                state: &state,
+                state,
                 state_overrides,
                 cfg_env,
                 tx_env,
@@ -1752,16 +1759,32 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
     }
 
     fn execute_in_block_context<T>(
-        &self,
+        &mut self,
         block_spec: Option<&BlockSpec>,
         function: impl FnOnce(
             &dyn SyncBlockchain<BlockchainError, StateError>,
-            Arc<dyn SyncBlock<Error = BlockchainError>>,
-            Box<dyn SyncState<StateError>>,
+            &Arc<dyn SyncBlock<Error = BlockchainError>>,
+            &Box<dyn SyncState<StateError>>,
         ) -> T,
     ) -> Result<T, ProviderError<LoggerErrorT>> {
-        let (context, blockchain) = if let Some(context) = self.context_by_block_spec(block_spec)? {
-            (context, None)
+        let maybe_block_number = self
+            .block_number_by_block_spec(block_spec.unwrap_or(&BlockSpec::Tag(BlockTag::Latest)))?;
+        if let Some(block_number) = maybe_block_number {
+            // We cannot use `LruCache::try_get_or_insert`, because it needs &mut self, but
+            // we would need &self in the callback to construct the context.
+            if !self.block_context_cache.contains(&block_number) {
+                let context = self
+                    .context_by_block_spec(block_spec)?
+                    .expect("If block spec is pending, block number is None");
+                self.block_context_cache.push(block_number, context);
+            }
+
+            let context = self.block_context_cache.get(&block_number).expect(
+                "We put the context into cache if it wasn't there and we have exclusive \
+                        access to the cache due to &mut self so it can't have disappeared",
+            );
+
+            Ok(function(&*self.blockchain, &context.block, &context.state))
         } else {
             let result = self.mine_pending_block()?;
 
@@ -1777,17 +1800,8 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 state: result.state,
             };
 
-            (context, Some(blockchain))
-        };
-
-        let blockchain = blockchain
-            .as_ref()
-            .map_or(&*self.blockchain, |blockchain| blockchain);
-
-        // Execute function in the requested block context.
-        let result = function(blockchain, context.block, context.state);
-
-        Ok(result)
+            Ok(function(&blockchain, &context.block, &context.state))
+        }
     }
 
     /// Mine a block at a specific timestamp
@@ -2385,7 +2399,7 @@ mod tests {
 
     #[test]
     fn test_local_account_balance() -> anyhow::Result<()> {
-        let fixture = ProviderTestFixture::new()?;
+        let mut fixture = ProviderTestFixture::new()?;
 
         let account = *fixture
             .provider_data
@@ -2406,7 +2420,7 @@ mod tests {
 
     #[test]
     fn test_local_account_balance_forked() -> anyhow::Result<()> {
-        let fixture = ProviderTestFixture::new_forked()?;
+        let mut fixture = ProviderTestFixture::new_forked()?;
 
         let account = *fixture
             .provider_data
@@ -2549,6 +2563,27 @@ mod tests {
         let block = fixture.provider_data.block_by_block_spec(&block_spec)?;
 
         assert!(block.is_none());
+
+        Ok(())
+    }
+
+    // Make sure executing a transaction in a pending block context doesn't panic.
+    #[test]
+    fn execute_in_block_context_pending() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new()?;
+
+        let block_spec = Some(BlockSpec::Tag(BlockTag::Pending));
+
+        let mut value = 0;
+        let _ =
+            fixture
+                .provider_data
+                .execute_in_block_context(block_spec.as_ref(), |_, _, _| {
+                    value += 1;
+                    Ok::<(), ProviderError<Infallible>>(())
+                })?;
+
+        assert_eq!(value, 1);
 
         Ok(())
     }
