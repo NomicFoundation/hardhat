@@ -63,7 +63,7 @@ pub async fn execute(directory_path: &Path, max_count: Option<usize>) -> anyhow:
             jsonrpc::ResponseData::Error { .. } => failure += 1,
         }
         if i % 100 == 0 {
-            bar.inc(100)
+            bar.inc(100);
         } else if i == count - 1 {
             bar.inc((count % 100) as u64);
         }
@@ -82,7 +82,7 @@ pub async fn execute(directory_path: &Path, max_count: Option<usize>) -> anyhow:
 }
 
 fn load_requests(directory_path: &Path) -> anyhow::Result<Vec<ProviderRequest>> {
-    println!("Loading requests from {:?}", directory_path);
+    println!("Loading requests from {directory_path:?}");
     let mut requests: Vec<(usize, ProviderRequest)> = walkdir::WalkDir::new(directory_path)
         .into_iter()
         .par_bridge()
