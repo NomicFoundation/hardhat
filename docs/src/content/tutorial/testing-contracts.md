@@ -80,7 +80,7 @@ To learn more about `Signer`, you can look at the [Signers documentation](https:
 const { token } = await ignition.deploy(TokenModule);
 ```
 
-Calling `await ignition.deploy(TokenModule)` will deploy an instance the `Token` contract and return it as the results from `TestModule`. This contract (i.e. `token`) is an `ethers` contract instance and has methods for each of `Token` contract's functions.
+Calling `await ignition.deploy(TokenModule)` will deploy an instance the `Token` contract and return it as the results from `TestModule`. This contract (i.e. the `token` property of the result) is an `ethers` contract instance that acts as a proxy for the on-chain contract and has methods for each of `Token` contract's functions.
 
 Similarly to `ethers`, `ignition` is available in the global scope. You can expand the Hardhat require line at the top of your test file to make it explicit:
 
