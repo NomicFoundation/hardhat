@@ -9,7 +9,8 @@ async function main() {
   assert(taskNames.includes("verify"));
   assert(taskNames.includes("coverage"));
   assert(taskNames.includes("typechain"));
-  // TODO: bring back
+  // TODO: Ignition isn't appearing the task list,
+  // though it is imported as part of the toolbox
   // assert(taskNames.includes("ignition"));
 }
 
