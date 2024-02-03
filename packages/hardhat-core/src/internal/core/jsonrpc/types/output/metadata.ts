@@ -28,5 +28,8 @@ export interface HardhatMetadata {
 
     // The hash of the block that the network forked from.
     forkBlockHash: string;
+
+    // The json rpc URL of the network that is being forked.
+    forkUrl: string;
   };
 }
