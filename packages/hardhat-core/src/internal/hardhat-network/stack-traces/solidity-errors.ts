@@ -249,7 +249,7 @@ function getMessageFromLastStackTraceEntry(
       return `Transaction reverted: function returned an unexpected amount of data`;
 
     case StackTraceEntryType.NONCONTRACT_ACCOUNT_CALLED_ERROR:
-      return `Transaction reverted: function call to a non-contract account`;
+      return `Transaction reverted: function call to a non-contract account ${stackTraceEntry.address}`;
 
     case StackTraceEntryType.CALL_FAILED_ERROR:
       return `Transaction reverted: function call failed to execute`;

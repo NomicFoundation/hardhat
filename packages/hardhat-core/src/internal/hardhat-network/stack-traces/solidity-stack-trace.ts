@@ -2,6 +2,8 @@ import { ReturnData } from "../provider/return-data";
 
 import { ContractFunctionType } from "./model";
 
+
+
 export enum StackTraceEntryType {
   CALLSTACK_ENTRY,
   UNRECOGNIZED_CREATE_CALLSTACK_ENTRY,
@@ -137,6 +139,7 @@ export interface ReturndataSizeErrorStackTraceEntry {
 export interface NonContractAccountCalledErrorStackTraceEntry {
   type: StackTraceEntryType.NONCONTRACT_ACCOUNT_CALLED_ERROR;
   sourceReference: SourceReference;
+  address:Buffer;
 }
 
 export interface CallFailedErrorStackTraceEntry {
