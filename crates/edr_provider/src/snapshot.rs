@@ -5,9 +5,11 @@ use edr_evm::{
     state::{IrregularState, StateError, SyncState},
     MemPool, RandomHashGenerator,
 };
+use lru::LruCache;
 
 pub struct Snapshot {
     pub block_number: u64,
+    pub block_state_cache: LruCache<u64, Box<dyn SyncState<StateError>>>,
     pub block_time_offset_seconds: i64,
     pub coinbase: Address,
     pub irregular_state: IrregularState,

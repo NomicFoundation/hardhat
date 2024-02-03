@@ -4,6 +4,7 @@ mod gas;
 mod inspector;
 
 use std::{
+    borrow::Cow,
     cmp,
     cmp::Ordering,
     collections::BTreeMap,
@@ -113,11 +114,6 @@ pub enum CreationError {
     RpcClient(#[from] RpcClientError),
 }
 
-struct BlockContext {
-    pub block: Arc<dyn SyncBlock<Error = BlockchainError>>,
-    pub state: Box<dyn SyncState<StateError>>,
-}
-
 pub struct ProviderData<LoggerErrorT: Debug> {
     runtime_handle: runtime::Handle,
     initial_config: ProviderConfig,
@@ -149,7 +145,7 @@ pub struct ProviderData<LoggerErrorT: Debug> {
     logger: Box<dyn SyncLogger<BlockchainError = BlockchainError, LoggerError = LoggerErrorT>>,
     impersonated_accounts: HashSet<Address>,
     subscriber_callback: Box<dyn SyncSubscriberCallback>,
-    block_context_cache: LruCache<u64, BlockContext>,
+    block_state_cache: LruCache<u64, Box<dyn SyncState<StateError>>>,
 }
 
 impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
@@ -216,7 +212,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             logger,
             impersonated_accounts: HashSet::new(),
             subscriber_callback,
-            block_context_cache: LruCache::new(
+            block_state_cache: LruCache::new(
                 NonZeroUsize::new(MAX_CACHED_BLOCK_CONTEXTS).expect("constant is non-zero"),
             ),
         })
@@ -948,6 +944,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
 
         let snapshot = Snapshot {
             block_number: self.blockchain.last_block_number(),
+            block_state_cache: self.block_state_cache.clone(),
             block_time_offset_seconds: self.block_time_offset_seconds,
             coinbase: self.beneficiary,
             irregular_state: self.irregular_state.clone(),
@@ -1222,6 +1219,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         if let Some(snapshot) = removed_snapshots.remove(&snapshot_id) {
             let Snapshot {
                 block_number,
+                block_state_cache,
                 block_time_offset_seconds,
                 coinbase,
                 irregular_state,
@@ -1232,6 +1230,8 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 state,
                 time,
             } = snapshot;
+
+            self.block_state_cache = block_state_cache;
 
             // We compute a new offset such that:
             // now + new_offset == snapshot_date + old_offset
@@ -1767,25 +1767,41 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             &Box<dyn SyncState<StateError>>,
         ) -> T,
     ) -> Result<T, ProviderError<LoggerErrorT>> {
-        let maybe_block_number = self
-            .block_number_by_block_spec(block_spec.unwrap_or(&BlockSpec::Tag(BlockTag::Latest)))?;
-        if let Some(block_number) = maybe_block_number {
-            // We cannot use `LruCache::try_get_or_insert`, because it needs &mut self, but
-            // we would need &self in the callback to construct the context.
-            if !self.block_context_cache.contains(&block_number) {
-                let context = self
-                    .context_by_block_spec(block_spec)?
-                    .expect("If block spec is pending, block number is None");
-                self.block_context_cache.push(block_number, context);
-            }
-
-            let context = self.block_context_cache.get(&block_number).expect(
-                "We put the context into cache if it wasn't there and we have exclusive \
-                        access to the cache due to &mut self so it can't have disappeared",
-            );
-
-            Ok(function(&*self.blockchain, &context.block, &context.state))
+        let block = if let Some(block_spec) = block_spec {
+            self.block_by_block_spec(block_spec)?
         } else {
+            Some(self.blockchain.last_block()?)
+        };
+
+        if let Some(block) = block {
+            let block_header = block.header();
+            let block_number = block_header.number;
+
+            // Avoid caching of states that may contain state overrides
+            let can_cache = self.irregular_state.state_overrides().is_empty();
+
+            let contextual_state = if can_cache && self.block_state_cache.contains(&block_number) {
+                // We cannot use `LruCache::try_get_or_insert`, because it needs &mut self, but
+                // we would need &self in the callback to construct the context.
+                Cow::Borrowed(self.block_state_cache.get(&block_number).expect(
+                    "We put the state into cache if it wasn't there and we have exclusive \
+                                access to the cache due to &mut self so it can't have disappeared",
+                ))
+            } else {
+                let context = self
+                    .blockchain
+                    .state_at_block_number(block_number, self.irregular_state.state_overrides())?;
+
+                if can_cache {
+                    self.block_state_cache.push(block_number, context.clone());
+                }
+
+                Cow::Owned(context)
+            };
+
+            Ok(function(&*self.blockchain, &block, &contextual_state))
+        } else {
+            // Block spec is pending
             let result = self.mine_pending_block()?;
 
             let blockchain =
@@ -1795,12 +1811,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 .last_block()
                 .expect("The pending block is the last block");
 
-            let context = BlockContext {
-                block,
-                state: result.state,
-            };
-
-            Ok(function(&blockchain, &context.block, &context.state))
+            Ok(function(&blockchain, &block, &result.state))
         }
     }
 
@@ -1934,33 +1945,6 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 signed_transaction,
             )?)
         }
-    }
-
-    fn context_by_block_spec(
-        &self,
-        block_spec: Option<&BlockSpec>,
-    ) -> Result<Option<BlockContext>, ProviderError<LoggerErrorT>> {
-        let block = if let Some(block_spec) = block_spec {
-            if let Some(block) = self.block_by_block_spec(block_spec)? {
-                block
-            } else {
-                // Block spec is pending
-                return Ok(None);
-            }
-        } else {
-            self.blockchain.last_block()?
-        };
-
-        let block_header = block.header();
-
-        let contextual_state = self
-            .blockchain
-            .state_at_block_number(block_header.number, self.irregular_state.state_overrides())?;
-
-        Ok(Some(BlockContext {
-            block,
-            state: contextual_state,
-        }))
     }
 
     fn validate_auto_mine_transaction(
