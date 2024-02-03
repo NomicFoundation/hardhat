@@ -373,7 +373,7 @@ describe("Eth module", function () {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 data: "0xAA",
               },
-              "VM Exception while processing transaction: invalid opcode"
+              "invalid opcode"
             );
 
             // Out of gas. This a deployment transaction that pushes 0x00 multiple times
@@ -420,7 +420,7 @@ describe("Eth module", function () {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 data: "0x6080604052348015600f57600080fd5b506040517ffbd8bc9c00000000000000000000000000000000000000000000000000000000815260040160405180910390fdfe",
               },
-              "VM Exception while processing transaction: reverted with an unrecognized custom error (return data: 0xfbd8bc9c)"
+              "reverted with an unrecognized custom error (return data: 0xfbd8bc9c)"
             );
 
             // This deploys a contract that divides by zero in its contstructor:
@@ -430,7 +430,7 @@ describe("Eth module", function () {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 data: "0x6080604052348015600f57600080fd5b5060006001601c91906021565b506084565b6000602a82604b565b9150603383604b565b925082604057603f6055565b5b828204905092915050565b6000819050919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601260045260246000fd5b603f8060916000396000f3fe6080604052600080fdfea26469706673582212208c4325ab2d6243893246d7f86891a2b8fad695c73555169ce9c8b4faebb42cac64736f6c63430008070033",
               },
-              "VM Exception while processing transaction: reverted with panic code 0x12 (Division or modulo division by zero)"
+              "reverted with panic code 0x12 (Division or modulo division by zero)"
             );
 
             // This deploys a contract that induces an invalid opcode in its constructor:
@@ -440,7 +440,7 @@ describe("Eth module", function () {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 data: "0x6080604052348015600f57600080fd5b50336000600181548110601e57fe5b9060005260206000200160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550603f8060736000396000f3fe6080604052600080fdfea264697066735822122030b617dfc8dcad16dee465096971a42c88e1814350c1c5bc2a33165078e4f50f64736f6c634300060c0033",
               },
-              "VM Exception while processing transaction: invalid opcode"
+              "invalid opcode"
             );
           });
 
