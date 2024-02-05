@@ -133,7 +133,7 @@ describe(".to.emit (contract events)", () => {
               .withArgs(2)
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            'Error in "WithUintArg" event: Error in the 1st argument assertion: expected 1 to equal 2. The numerical values of the given "bigint" and "number" inputs were compared, and they differed'
+            'Error in "WithUintArg" event: Error in the 1st argument assertion: expected 1 to equal 2.'
           );
         });
 
@@ -391,7 +391,7 @@ describe(".to.emit (contract events)", () => {
               .withArgs([3, 4])
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `Error in "WithUintArray" event: Error in the 1st argument assertion: Error in the 1st argument assertion: expected 1 to equal 3. The numerical values of the given "bigint" and "number" inputs were compared, and they differed`
+            `Error in "WithUintArray" event: Error in the 1st argument assertion: Error in the 1st argument assertion: expected 1 to equal 3.`
           );
         });
 
@@ -495,7 +495,7 @@ describe(".to.emit (contract events)", () => {
               .withArgs([3, 4])
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            'Error in "WithStructArg" event: Error in the 1st argument assertion: Error in the 1st argument assertion: expected 1 to equal 3. The numerical values of the given "bigint" and "number" inputs were compared, and they differed'
+            'Error in "WithStructArg" event: Error in the 1st argument assertion: Error in the 1st argument assertion: expected 1 to equal 3.'
           );
         });
       });
@@ -514,7 +514,7 @@ describe(".to.emit (contract events)", () => {
               .withArgs(2, 2)
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            'Error in "WithTwoUintArgs" event: Error in the 1st argument assertion: expected 1 to equal 2. The numerical values of the given "bigint" and "number" inputs were compared, and they differed'
+            'Error in "WithTwoUintArgs" event: Error in the 1st argument assertion: expected 1 to equal 2'
           );
         });
 
@@ -525,7 +525,7 @@ describe(".to.emit (contract events)", () => {
               .withArgs(1, 1)
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            'Error in "WithTwoUintArgs" event: Error in the 2nd argument assertion: expected 2 to equal 1. The numerical values of the given "bigint" and "number" inputs were compared, and they differed'
+            'Error in "WithTwoUintArgs" event: Error in the 2nd argument assertion: expected 2 to equal 1.'
           );
         });
 
@@ -684,7 +684,7 @@ describe(".to.emit (contract events)", () => {
                 .and.to.emit(contract, "WithStringArg")
             ).to.be.eventually.rejectedWith(
               AssertionError,
-              'Error in "WithUintArg" event: Error in the 1st argument assertion: expected 1 to equal 2. The numerical values of the given "bigint" and "number" inputs were compared, and they differed'
+              'Error in "WithUintArg" event: Error in the 1st argument assertion: expected 1 to equal 2.'
             );
           });
 

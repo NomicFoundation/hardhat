@@ -16,7 +16,7 @@ import { anyUint, anyValue } from "../../src/withArgs";
 import { MatchersContract } from "../contracts";
 
 describe("INTEGRATION: Reverted with custom error", function () {
-  describe.skip("with the in-process hardhat network", function () {
+  describe("with the in-process hardhat network", function () {
     useEnvironment("hardhat-project");
 
     runTests();
@@ -237,7 +237,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
               .withArgs(2)
           ).to.be.rejectedWith(
             AssertionError,
-            'Error in "CustomErrorWithUint" custom error: Error in the 1st argument assertion: expected 1 to equal 2. The numerical values of the given "bigint" and "number" inputs were compared, and they differed'
+            'Error in "CustomErrorWithUint" custom error: Error in the 1st argument assertion: expected 1 to equal 2.'
           );
         });
       });
@@ -264,7 +264,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
               .withArgs(2, "foo")
           ).to.be.rejectedWith(
             AssertionError,
-            'Error in "CustomErrorWithUintAndString" custom error: Error in the 1st argument assertion: expected 1 to equal 2. The numerical values of the given "bigint" and "number" inputs were compared, and they differed'
+            'Error in "CustomErrorWithUintAndString" custom error: Error in the 1st argument assertion: expected 1 to equal 2.'
           );
         });
 
@@ -282,7 +282,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
           );
         });
 
-        it("Should if first prefdicate fails", async function () {
+        it("Should fail if first predicate throws", async function () {
           await expect(
             expect(matchers.revertWithCustomErrorWithUintAndString(1, "foo"))
               .to.be.revertedWithCustomError(
@@ -300,7 +300,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
       });
 
       describe("different number of arguments", function () {
-        it("Should reject if expected less arguments", async function () {
+        it("Should reject if expected fewer arguments", async function () {
           await expect(
             expect(matchers.revertWithCustomErrorWithUintAndString(1, "s"))
               .to.be.revertedWithCustomError(
@@ -343,7 +343,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
               .withArgs([3, 2])
           ).to.be.rejectedWith(
             AssertionError,
-            'Error in "CustomErrorWithPair" custom error: Error in the 1st argument assertion: Error in the 1st argument assertion: expected 1 to equal 3. The numerical values of the given "bigint" and "number" inputs were compared, and they differed'
+            'Error in "CustomErrorWithPair" custom error: Error in the 1st argument assertion: Error in the 1st argument assertion: expected 1 to equal 3.'
           );
         });
       });

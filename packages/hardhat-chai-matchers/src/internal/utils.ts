@@ -55,7 +55,7 @@ export function assertArgsArraysEqual(
   ssfi: Ssfi
 ) {
   try {
-    assertArgsArraysEqualNested(
+    innerAssertArgsArraysEqual(
       Assertion,
       expectedArgs,
       actualArgs,
@@ -69,7 +69,7 @@ export function assertArgsArraysEqual(
   }
 }
 
-export function assertArgsArraysEqualNested(
+export function innerAssertArgsArraysEqual(
   Assertion: Chai.AssertionStatic,
   expectedArgs: any[],
   actualArgs: any[],
@@ -77,77 +77,91 @@ export function assertArgsArraysEqualNested(
   assert: AssertWithSsfi,
   ssfi: Ssfi
 ) {
-  const ethers = require("ethers") as typeof EthersT;
   assert(
     actualArgs.length === expectedArgs.length,
     `Expected arguments array to have length ${expectedArgs.length}, but it has ${actualArgs.length}`
   );
   for (const [index, expectedArg] of expectedArgs.entries()) {
-    const actualArg = actualArgs[index];
     try {
-      if (typeof expectedArg === "function") {
-        try {
-          if (expectedArg(actualArg) === true) continue;
-        } catch (e: any) {
-          assert(
-            false,
-            `The predicate threw when called: ${e.message}`
-            // no need for a negated message, since we disallow mixing .not. with
-            // .withArgs
-          );
-        }
-        assert(
-          false,
-          `The predicate did not return true`
-          // no need for a negated message, since we disallow mixing .not. with
-          // .withArgs
-        );
-      } else if (expectedArg instanceof Uint8Array) {
-        new Assertion(actualArg, undefined, ssfi, true).equal(
-          ethers.hexlify(expectedArg)
-        );
-      } else if (
-        expectedArg?.length !== undefined &&
-        typeof expectedArg !== "string"
-      ) {
-        assertArgsArraysEqualNested(
-          Assertion,
-          expectedArg,
-          actualArg,
-          assertionType,
-          assert,
-          ssfi
-        );
-      } else {
-        if (actualArg.hash !== undefined && actualArg._isIndexed === true) {
-          if (assertionType !== "event")
-            assert(
-              false,
-              "Should not get here. Please open an issue about that"
-            );
-
-          new Assertion(actualArg.hash, undefined, ssfi, true).to.not.equal(
-            expectedArg,
-            "The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion should be the actual event argument (the pre-image of the hash). You provided the hash itself. Please supply the actual event argument (the pre-image of the hash) instead."
-          );
-          const expectedArgBytes = ethers.isHexString(expectedArg)
-            ? ethers.getBytes(expectedArg)
-            : ethers.toUtf8Bytes(expectedArg);
-          const expectedHash = ethers.keccak256(expectedArgBytes);
-          new Assertion(actualArg.hash, undefined, ssfi, true).to.equal(
-            expectedHash,
-            `The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion was hashed to produce ${expectedHash}. The actual hash and the expected hash ${actualArg.hash} did not match`
-          );
-        } else {
-          new Assertion(actualArg, undefined, ssfi, true).equal(expectedArg);
-        }
-      }
+      innerAssertArgEqual(
+        Assertion,
+        expectedArg,
+        actualArgs[index],
+        assertionType,
+        assert,
+        ssfi
+      );
     } catch (err: any) {
       const ordinal = require("ordinal") as typeof OrdinalT;
       err.message = `Error in the ${ordinal(index + 1)} argument assertion: ${
         err.message
       }`;
       throw err;
+    }
+  }
+}
+
+function innerAssertArgEqual(
+  Assertion: Chai.AssertionStatic,
+  expectedArg: any,
+  actualArg: any,
+  assertionType: "event" | "error",
+  assert: AssertWithSsfi,
+  ssfi: Ssfi
+) {
+  const ethers = require("ethers") as typeof EthersT;
+  if (typeof expectedArg === "function") {
+    try {
+      if (expectedArg(actualArg) === true) return;
+    } catch (e: any) {
+      assert(
+        false,
+        `The predicate threw when called: ${e.message}`
+        // no need for a negated message, since we disallow mixing .not. with
+        // .withArgs
+      );
+    }
+    assert(
+      false,
+      `The predicate did not return true`
+      // no need for a negated message, since we disallow mixing .not. with
+      // .withArgs
+    );
+  } else if (expectedArg instanceof Uint8Array) {
+    new Assertion(actualArg, undefined, ssfi, true).equal(
+      ethers.hexlify(expectedArg)
+    );
+  } else if (
+    expectedArg?.length !== undefined &&
+    typeof expectedArg !== "string"
+  ) {
+    innerAssertArgsArraysEqual(
+      Assertion,
+      expectedArg,
+      actualArg,
+      assertionType,
+      assert,
+      ssfi
+    );
+  } else {
+    if (actualArg.hash !== undefined && actualArg._isIndexed === true) {
+      if (assertionType !== "event")
+        assert(false, "Should not get here. Please open an issue about that");
+
+      new Assertion(actualArg.hash, undefined, ssfi, true).to.not.equal(
+        expectedArg,
+        "The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion should be the actual event argument (the pre-image of the hash). You provided the hash itself. Please supply the actual event argument (the pre-image of the hash) instead."
+      );
+      const expectedArgBytes = ethers.isHexString(expectedArg)
+        ? ethers.getBytes(expectedArg)
+        : ethers.toUtf8Bytes(expectedArg);
+      const expectedHash = ethers.keccak256(expectedArgBytes);
+      new Assertion(actualArg.hash, undefined, ssfi, true).to.equal(
+        expectedHash,
+        `The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion was hashed to produce ${expectedHash}. The actual hash and the expected hash ${actualArg.hash} did not match`
+      );
+    } else {
+      new Assertion(actualArg, undefined, ssfi, true).equal(expectedArg);
     }
   }
 }
