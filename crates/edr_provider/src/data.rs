@@ -1847,7 +1847,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             i64::try_from(SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs())
                 .expect("timestamp too large");
 
-        let (mut block_timestamp, new_offset) = if let Some(timestamp) = timestamp {
+        let (mut block_timestamp, mut new_offset) = if let Some(timestamp) = timestamp {
             timestamp.checked_sub(latest_block_header.timestamp).ok_or(
                 ProviderError::TimestampLowerThanPrevious {
                     proposed: timestamp,
@@ -1873,6 +1873,9 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             && !self.allow_blocks_with_same_timestamp;
         if timestamp_needs_increase {
             block_timestamp += 1;
+            if new_offset.is_none() {
+                new_offset = Some(self.block_time_offset_seconds + 1);
+            }
         }
 
         Ok((block_timestamp, new_offset))
