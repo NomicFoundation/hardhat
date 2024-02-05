@@ -295,7 +295,7 @@ impl Display for EstimateGasFailure {
 #[serde(rename_all = "camelCase")]
 pub struct TransactionFailure {
     pub reason: TransactionFailureReason,
-    pub data: Option<String>,
+    pub data: String,
     #[serde(skip)]
     pub trace: Trace,
     pub transaction_hash: B256,
@@ -324,7 +324,7 @@ impl TransactionFailure {
         let data = format!("0x{}", hex::encode(output.as_ref()));
         Self {
             reason: TransactionFailureReason::Revert(output),
-            data: Some(data),
+            data,
             trace,
             transaction_hash,
         }
@@ -341,7 +341,7 @@ impl TransactionFailure {
 
         Self {
             reason,
-            data: None,
+            data: "0x".to_string(),
             trace,
             transaction_hash: tx_hash,
         }
