@@ -8,7 +8,7 @@ import { promisify } from "util";
 import { download } from "../../util/download";
 import { assertHardhatInvariant, HardhatError } from "../../core/errors";
 import { ERRORS } from "../../core/errors-list";
-import { Mutex } from "../../vendor/await-semaphore";
+import { MultiProcessMutex } from "../../util/multi-process-mutex";
 
 const log = debug("hardhat:core:solidity:downloader");
 
@@ -126,7 +126,7 @@ export class CompilerDownloader implements ICompilerDownloader {
   }
 
   public static defaultCompilerListCachePeriod = 3_600_00;
-  private readonly _mutex = new Mutex();
+  private readonly _mutex = new MultiProcessMutex("compiler-download");
 
   /**
    * Use CompilerDownloader.getConcurrencySafeDownloader instead

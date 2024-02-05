@@ -674,9 +674,26 @@ subtask(TASK_COMPILE_SOLIDITY_RUN_SOLCJS)
 subtask(TASK_COMPILE_SOLIDITY_RUN_SOLC)
   .addParam("input", undefined, undefined, types.any)
   .addParam("solcPath", undefined, undefined, types.string)
+  .addOptionalParam("solcVersion", undefined, undefined, types.string)
   .setAction(
-    async ({ input, solcPath }: { input: CompilerInput; solcPath: string }) => {
-      const compiler = new NativeCompiler(solcPath);
+    async ({
+      input,
+      solcPath,
+      solcVersion,
+    }: {
+      input: CompilerInput;
+      solcPath: string;
+      solcVersion?: string;
+    }) => {
+      if (solcVersion !== undefined && semver.valid(solcVersion) === null) {
+        throw new HardhatError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+          value: solcVersion,
+          name: "solcVersion",
+          type: "string",
+        });
+      }
+
+      const compiler = new NativeCompiler(solcPath, solcVersion);
 
       return compiler.compile(input);
     }
@@ -740,6 +757,7 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_SOLC)
         output = await run(TASK_COMPILE_SOLIDITY_RUN_SOLC, {
           input,
           solcPath: solcBuild.compilerPath,
+          solcVersion,
         });
       }
 

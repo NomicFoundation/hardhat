@@ -1,8 +1,12 @@
 import type { HardhatConfig as HardhatConfigT } from "../../../types";
+import type {
+  Context,
+  ValidationError,
+  getFunctionName as getFunctionNameT,
+} from "io-ts/lib";
+import type { Reporter } from "io-ts/lib/Reporter";
 
 import * as t from "io-ts";
-import { Context, getFunctionName, ValidationError } from "io-ts/lib";
-import { Reporter } from "io-ts/lib/Reporter";
 
 import {
   HARDHAT_MEMPOOL_SUPPORTED_ORDERS,
@@ -19,6 +23,9 @@ import { defaultHardhatNetworkParams } from "./default-config";
 
 function stringify(v: any): string {
   if (typeof v === "function") {
+    const { getFunctionName } = require("io-ts/lib") as {
+      getFunctionName: typeof getFunctionNameT;
+    };
     return getFunctionName(v);
   }
   if (typeof v === "number" && !isFinite(v)) {

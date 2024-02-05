@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-viem
 
+## 1.0.3
+
+### Patch Changes
+
+- ffb301f14: Improved loading performance
+
 ## 1.0.2
 
 ### Patch Changes

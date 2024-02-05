@@ -1,10 +1,10 @@
 import type EthersT from "ethers";
 import type { Contract, Transaction } from "ethers";
 import type { AssertWithSsfi, Ssfi } from "../utils";
+import type OrdinalT from "ordinal";
 
 import { AssertionError } from "chai";
 import util from "util";
-import ordinal from "ordinal";
 
 import { buildAssert } from "../utils";
 import { ASSERTION_ABORTED, EMIT_MATCHER } from "./constants";
@@ -156,6 +156,7 @@ function assertArgsArraysEqual(
   ssfi: Ssfi
 ) {
   const ethers = require("ethers") as typeof EthersT;
+  const ordinal = require("ordinal") as typeof OrdinalT;
   const parsedLog = (
     chaiUtils.flag(context, "contract").interface as Interface
   ).parseLog(log);
