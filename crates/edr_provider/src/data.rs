@@ -171,6 +171,12 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             next_block_base_fee_per_gas,
         } = create_blockchain_and_state(runtime_handle.clone(), &config, genesis_accounts)?;
 
+        let mut block_state_cache = LruCache::new(
+            NonZeroUsize::new(MAX_CACHED_BLOCK_CONTEXTS).expect("constant is non-zero"),
+        );
+
+        block_state_cache.push(blockchain.last_block_number(), state.clone());
+
         let allow_blocks_with_same_timestamp = config.allow_blocks_with_same_timestamp;
         let allow_unlimited_contract_size = config.allow_unlimited_contract_size;
         let beneficiary = config.coinbase;
@@ -212,9 +218,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             logger,
             impersonated_accounts: HashSet::new(),
             subscriber_callback,
-            block_state_cache: LruCache::new(
-                NonZeroUsize::new(MAX_CACHED_BLOCK_CONTEXTS).expect("constant is non-zero"),
-            ),
+            block_state_cache,
         })
     }
 
@@ -1031,16 +1035,16 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         // Remove outdated filters
         self.filters.retain(|_, filter| !filter.has_expired());
 
+        self.block_state_cache
+            .push(block.header().number, result.state.clone());
         self.state = result.state;
 
-        let result = DebugMineBlockResult {
+        Ok(DebugMineBlockResult {
             block: block_and_total_difficulty.block,
             transaction_results: result.transaction_results,
             transaction_traces: result.transaction_traces,
             console_log_inputs: result.console_log_inputs,
-        };
-
-        Ok(result)
+        })
     }
 
     /// Mines `number_of_blocks` blocks with the provided `interval` between
@@ -1399,7 +1403,8 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         address: Address,
         balance: U256,
     ) -> Result<(), ProviderError<LoggerErrorT>> {
-        let account_info = self.state.modify_account(
+        let mut state = self.state.clone();
+        let account_info = state.modify_account(
             address,
             AccountModifierFn::new(Box::new(move |account_balance, _, _| {
                 *account_balance = balance;
@@ -1414,16 +1419,19 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             },
         )?;
 
-        let block_number = self.blockchain.last_block_number();
-        let state_root = self.state.state_root()?;
+        let state_root = state.state_root()?;
 
+        self.mem_pool.update(&state)?;
+
+        let block_number = self.blockchain.last_block_number();
         self.irregular_state
             .state_override_at_block_number(block_number)
             .or_insert_with(|| StateOverride::with_state_root(state_root))
             .diff
             .apply_account_change(address, account_info.clone());
 
-        self.mem_pool.update(&self.state)?;
+        self.block_state_cache.push(block_number, state.clone());
+        self.state = state;
 
         Ok(())
     }
@@ -1447,7 +1455,8 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         let default_code = code.clone();
         let irregular_code = code.clone();
 
-        let mut account_info = self.state.modify_account(
+        let mut state = self.state.clone();
+        let mut account_info = state.modify_account(
             address,
             AccountModifierFn::new(Box::new(move |_, _, account_code| {
                 *account_code = Some(code.clone());
@@ -1466,14 +1475,17 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         // irregular state.
         account_info.code = Some(irregular_code.clone());
 
-        let block_number = self.blockchain.last_block_number();
-        let state_root = self.state.state_root()?;
+        let state_root = state.state_root()?;
 
+        let block_number = self.blockchain.last_block_number();
         self.irregular_state
             .state_override_at_block_number(block_number)
             .or_insert_with(|| StateOverride::with_state_root(state_root))
             .diff
             .apply_account_change(address, account_info.clone());
+
+        self.block_state_cache.push(block_number, state.clone());
+        self.state = state;
 
         Ok(())
     }
@@ -1557,7 +1569,8 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             });
         }
 
-        let account_info = self.state.modify_account(
+        let mut state = self.state.clone();
+        let account_info = state.modify_account(
             address,
             AccountModifierFn::new(Box::new(move |_, account_nonce, _| *account_nonce = nonce)),
             &|| {
@@ -1570,16 +1583,19 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             },
         )?;
 
-        let block_number = self.blockchain.last_block_number();
-        let state_root = self.state.state_root()?;
+        let state_root = state.state_root()?;
 
+        self.mem_pool.update(&state)?;
+
+        let block_number = self.blockchain.last_block_number();
         self.irregular_state
             .state_override_at_block_number(block_number)
             .or_insert_with(|| StateOverride::with_state_root(state_root))
             .diff
             .apply_account_change(address, account_info.clone());
 
-        self.mem_pool.update(&self.state)?;
+        self.block_state_cache.push(block_number, state.clone());
+        self.state = state;
 
         Ok(())
     }
@@ -1590,30 +1606,34 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         index: U256,
         value: U256,
     ) -> Result<(), ProviderError<LoggerErrorT>> {
-        self.state.set_account_storage_slot(address, index, value)?;
+        let mut state = self.state.clone();
+        state.set_account_storage_slot(address, index, value)?;
 
-        let old_value = self.state.set_account_storage_slot(address, index, value)?;
+        let old_value = state.set_account_storage_slot(address, index, value)?;
 
         let slot = StorageSlot::new_changed(old_value, value);
-        let account_info = self.state.basic(address).and_then(|mut account_info| {
+        let account_info = state.basic(address).and_then(|mut account_info| {
             // Retrieve the code if it's not empty. This is needed for the irregular state.
             if let Some(account_info) = &mut account_info {
                 if account_info.code_hash != KECCAK_EMPTY {
-                    account_info.code = Some(self.state.code_by_hash(account_info.code_hash)?);
+                    account_info.code = Some(state.code_by_hash(account_info.code_hash)?);
                 }
             }
 
             Ok(account_info)
         })?;
 
-        let block_number = self.blockchain.last_block_number();
-        let state_root = self.state.state_root()?;
+        let state_root = state.state_root()?;
 
+        let block_number = self.blockchain.last_block_number();
         self.irregular_state
             .state_override_at_block_number(block_number)
             .or_insert_with(|| StateOverride::with_state_root(state_root))
             .diff
             .apply_storage_change(address, index, slot, account_info);
+
+        self.block_state_cache.push(block_number, state.clone());
+        self.state = state;
 
         Ok(())
     }
@@ -1777,26 +1797,22 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             let block_header = block.header();
             let block_number = block_header.number;
 
-            // Avoid caching of states that may contain state overrides
-            let can_cache = self.irregular_state.state_overrides().is_empty();
-
-            let contextual_state = if can_cache && self.block_state_cache.contains(&block_number) {
+            let contextual_state = if self.block_state_cache.contains(&block_number) {
                 // We cannot use `LruCache::try_get_or_insert`, because it needs &mut self, but
-                // we would need &self in the callback to construct the context.
-                Cow::Borrowed(self.block_state_cache.get(&block_number).expect(
-                    "We put the state into cache if it wasn't there and we have exclusive \
-                                access to the cache due to &mut self so it can't have disappeared",
-                ))
+                // we would need &self in the callback to reference the blockchain.
+                Cow::Borrowed(
+                    self.block_state_cache
+                        .get(&block_number)
+                        .expect("We checked that the state is in the cache"),
+                )
             } else {
-                let context = self
+                let state = self
                     .blockchain
                     .state_at_block_number(block_number, self.irregular_state.state_overrides())?;
 
-                if can_cache {
-                    self.block_state_cache.push(block_number, context.clone());
-                }
+                self.block_state_cache.push(block_number, state.clone());
 
-                Cow::Owned(context)
+                Cow::Owned(state)
             };
 
             Ok(function(&*self.blockchain, &block, &contextual_state))
