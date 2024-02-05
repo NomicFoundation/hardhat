@@ -624,8 +624,8 @@ importers:
         specifier: ^6.27.13
         version: 6.28.3
       '@nomicfoundation/ethereumjs-util':
-        specifier: 9.0.2
-        version: 9.0.2
+        specifier: 9.0.4
+        version: 9.0.4
       chalk:
         specifier: ^2.4.2
         version: 2.4.2
@@ -2084,23 +2084,6 @@ packages:
       to-fast-properties: 2.0.0
     dev: true
 
-  /@chainsafe/as-sha256@0.3.1:
-    resolution: {integrity: sha512-hldFFYuf49ed7DAakWVXSJODuq3pzJEguD8tQ7h+sGkM18vja+OFoJI9krnGmgzyuZC2ETX0NOIcCTy31v2Mtg==}
-    dev: false
-
-  /@chainsafe/persistent-merkle-tree@0.5.0:
-    resolution: {integrity: sha512-l0V1b5clxA3iwQLXP40zYjyZYospQLZXzBVIhhr9kDg/1qHZfzzHw0jj4VPBijfYCArZDlPkRi1wZaV2POKeuw==}
-    dependencies:
-      '@chainsafe/as-sha256': 0.3.1
-    dev: false
-
-  /@chainsafe/ssz@0.10.2:
-    resolution: {integrity: sha512-/NL3Lh8K+0q7A3LsiFq09YXS9fPE+ead2rr7vM2QK8PLzrNsw3uqrif9bpRX5UxgeRjM+vYi+boCM3+GM4ovXg==}
-    dependencies:
-      '@chainsafe/as-sha256': 0.3.1
-      '@chainsafe/persistent-merkle-tree': 0.5.0
-    dev: false
-
   /@changesets/apply-release-plan@7.0.0:
     resolution: {integrity: sha512-vfi69JR416qC9hWmFGSxj7N6wA5J222XNBmezSVATPWDVPIF7gkd4d8CpbEbXmRWbVrkoli3oerGS6dcL/BGsQ==}
     dependencies:
@@ -3034,12 +3017,6 @@ packages:
       - supports-color
     dev: false
 
-  /@nomicfoundation/ethereumjs-rlp@5.0.2:
-    resolution: {integrity: sha512-QwmemBc+MMsHJ1P1QvPl8R8p2aPvvVcKBbvHnQOKBpBztEo0omN0eaob6FeZS/e3y9NSe+mfu3nNFBHszqkjTA==}
-    engines: {node: '>=14'}
-    hasBin: true
-    dev: false
-
   /@nomicfoundation/ethereumjs-rlp@5.0.4:
     resolution: {integrity: sha512-8H1S3s8F6QueOc/X92SdrA4RDenpiAEqMg5vJH99kcQaCy/a3Q6fgseo75mgWlbanGJXSlAPtnCeG9jvfTYXlw==}
     engines: {node: '>=18'}
@@ -3094,15 +3071,6 @@ packages:
       '@nomicfoundation/ethereumjs-common': 4.0.4
       '@nomicfoundation/ethereumjs-rlp': 5.0.4
       '@nomicfoundation/ethereumjs-util': 9.0.4
-      ethereum-cryptography: 0.1.3
-    dev: false
-
-  /@nomicfoundation/ethereumjs-util@9.0.2:
-    resolution: {integrity: sha512-4Wu9D3LykbSBWZo8nJCnzVIYGvGCuyiYLIJa9XXNVt1q1jUzHdB+sJvx95VGCpPkCT+IbLecW6yfzy3E1bQrwQ==}
-    engines: {node: '>=14'}
-    dependencies:
-      '@chainsafe/ssz': 0.10.2
-      '@nomicfoundation/ethereumjs-rlp': 5.0.2
       ethereum-cryptography: 0.1.3
     dev: false
 
