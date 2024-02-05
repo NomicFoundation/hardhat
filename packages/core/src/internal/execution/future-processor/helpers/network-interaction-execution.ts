@@ -133,6 +133,11 @@ export async function sendTransactionForOnchainInteraction(
   try {
     gasLimit = await client.estimateGas(estimateGasPrams);
   } catch (error) {
+    // We remove the fees before simulating the transaction since we weren't able to estimate gas
+    // and otherwise geth will try to use the block gas limit as `gas`, and most accounts don't
+    // have enough balance to pay for that.
+    const { fees: _fees, ...paramsWithoutFees } = estimateGasPrams;
+
     // If the gas estimation failed, we simulate the transaction to get information
     // about why it failed.
     //
@@ -140,7 +145,7 @@ export async function sendTransactionForOnchainInteraction(
     // too broad and make the assertion below fail. We could try to catch only
     // estimation errors.
     const failedEstimateGasSimulationResult = await client.call(
-      estimateGasPrams, // TODO: we need to set a gas limit here, or the simulation could fail due to a lack of funds
+      paramsWithoutFees,
       "pending"
     );
 
