@@ -1,5 +1,6 @@
 import type EthersT from "ethers";
-import ordinal from "ordinal";
+import type OrdinalT from "ordinal";
+
 import { AssertWithSsfi, Ssfi } from "../utils";
 import { PREVIOUS_MATCHER_NAME } from "./constants";
 import {
@@ -142,6 +143,7 @@ export function assertArgsArraysEqualNested(
         }
       }
     } catch (err: any) {
+      const ordinal = require("ordinal") as typeof OrdinalT;
       err.message = `Error in the ${ordinal(index + 1)} argument assertion: ${
         err.message
       }`;
