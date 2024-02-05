@@ -3,7 +3,6 @@ import { assert } from "chai";
 import sinon from "sinon";
 
 import {
-  bufferToRpcData,
   numberToRpcQuantity,
   rpcDataToBigInt,
   rpcQuantityToBigInt,

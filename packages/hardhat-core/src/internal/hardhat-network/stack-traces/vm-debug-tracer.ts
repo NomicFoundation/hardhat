@@ -1,3 +1,4 @@
+import { Journal } from "@nomicfoundation/ethereumjs-evm/dist/cjs/journal";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import { AfterTxEvent, VM } from "@nomicfoundation/ethereumjs-vm";
 import {
@@ -17,7 +18,6 @@ import { RpcDebugTracingConfig } from "../../core/jsonrpc/types/input/debugTrace
 import { InvalidInputError } from "../../core/providers/errors";
 import { RpcDebugTraceOutput, RpcStructLog } from "../provider/output";
 import * as BigIntUtils from "../../util/bigint";
-import { Journal } from "@nomicfoundation/ethereumjs-evm/dist/cjs/journal";
 
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 

@@ -1,7 +1,4 @@
-import {
-  bytesToHex as bufferToHex,
-  zeroAddress,
-} from "@nomicfoundation/ethereumjs-util";
+import { zeroAddress } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 import { Client } from "undici";
 
