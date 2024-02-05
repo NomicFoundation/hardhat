@@ -97,7 +97,6 @@
     "typescript": "~5.0.0"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.315.0",
     "@ethersproject/abi": "^5.1.2",
     "@metamask/eth-sig-util": "^4.0.0",
     "@nomicfoundation/ethereumjs-block": "5.0.2",
@@ -148,6 +147,7 @@
     "ws": "^7.4.6"
   },
   "peerDependencies": {
+    "@aws-sdk/client-s3": "^3.315.0",
     "ts-node": "*",
     "typescript": "*"
   },
