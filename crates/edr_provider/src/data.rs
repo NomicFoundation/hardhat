@@ -4,7 +4,12 @@ mod gas;
 mod inspector;
 
 use std::{
-    cmp, cmp::Ordering, collections::BTreeMap, fmt::Debug, path::PathBuf, sync::Arc, time::{Duration, Instant, SystemTime, UNIX_EPOCH}
+    cmp,
+    cmp::Ordering,
+    collections::BTreeMap,
+    fmt::Debug,
+    sync::Arc,
+    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
 use edr_eth::{
@@ -2241,8 +2246,12 @@ lazy_static! {
 mod tests {
     use std::convert::Infallible;
 
-    use anyhow::Context;
-    use edr_eth::{spec::chain_hardfork_activations, transaction::{Eip155TransactionRequest, TransactionKind, TransactionRequest}};
+    use anyhow::{anyhow, Context};
+    use edr_eth::{
+        remote::PreEip1898BlockSpec,
+        spec::chain_hardfork_activations,
+        transaction::{Eip155TransactionRequest, TransactionKind, TransactionRequest},
+    };
     use edr_evm::hex;
     use edr_test_utils::env::get_alchemy_url;
     use serde_json::json;
@@ -2250,9 +2259,9 @@ mod tests {
 
     use super::*;
     use crate::{
-        data::inspector::tests::{deploy_console_log_contract, ConsoleLogTransaction}, test_utils::{
-            create_test_config_with_impersonated_accounts_and_fork, one_ether, FORK_BLOCK_NUMBER,
-        }, Logger, MiningConfig, ProviderConfig
+        data::inspector::tests::{deploy_console_log_contract, ConsoleLogTransaction},
+        test_utils::{create_test_config_with_fork, one_ether, FORK_BLOCK_NUMBER},
+        Logger, MemPoolConfig, MiningConfig, ProviderConfig,
     };
 
     #[derive(Clone, Default)]
@@ -2310,20 +2319,25 @@ mod tests {
             };
 
             let cache_dir = TempDir::new()?;
-
-            let impersonated_account = Address::random();
-            let config = create_test_config_with_impersonated_accounts_and_fork(
-                cache_dir.path().to_path_buf(),
-                vec![impersonated_account],
-                fork,
-            );
+            let config = create_test_config_with_fork(cache_dir.path().to_path_buf(), fork);
 
             Self::new(cache_dir, config)
         }
 
-        fn new(cache_dir: TempDir, config: ProviderConfig) -> anyhow::Result<Self> {
+        fn new(cache_dir: TempDir, mut config: ProviderConfig) -> anyhow::Result<Self> {
             let logger = Box::<NoopLogger>::default();
             let subscription_callback = Box::new(|_| ());
+
+            let impersonated_account = Address::random();
+            config.genesis_accounts.insert(
+                impersonated_account,
+                AccountInfo {
+                    balance: one_ether(),
+                    nonce: 0,
+                    code: None,
+                    code_hash: KECCAK_EMPTY,
+                },
+            );
 
             let runtime = runtime::Builder::new_multi_thread()
                 .worker_threads(1)
@@ -2337,9 +2351,6 @@ mod tests {
                 subscription_callback,
                 config.clone(),
             )?;
-            provider_data
-                .impersonated_accounts
-                .insert(impersonated_account);
 
             Ok(Self {
                 _cache_dir: cache_dir,
@@ -2645,14 +2656,58 @@ mod tests {
         Ok(())
     }
 
-    fn run_full_block(url: String, block_number: u64) -> anyhow::Result<()> {
-        let hardfork = chain_hardfork_activations(chain_id)
-        let config = ProviderConfig {
-            network_id: 1,
-            ..ProviderConfig::default()
+    async fn run_full_block(url: String, block_number: u64, chain_id: u64) -> anyhow::Result<()> {
+        let cache_dir = TempDir::new()?;
+
+        let replay_block = {
+            let client = RpcClient::new(&url, cache_dir.path().to_path_buf(), None);
+
+            client
+                .get_block_by_number_with_transaction_data(PreEip1898BlockSpec::Number(block_number))
+                .await?
+                
         };
 
-        let fixture = ProviderTestFixture::new_forked(Some(url))?;
+        let block_gas_limit = replay_block.gas_limit;
+
+        let hardfork_activations =
+            chain_hardfork_activations(chain_id).ok_or(anyhow!("Unsupported chain id"))?;
+
+        let hardfork = hardfork_activations
+            .hardfork_at_block_number(block_number)
+            .ok_or(anyhow!("Unsupported block number"))?;
+
+        let default_config = create_test_config_with_fork(
+            cache_dir.path().to_path_buf(),
+            Some(ForkConfig {
+                json_rpc_url: url,
+                block_number: Some(block_number - 1),
+                http_headers: None,
+            }),
+        );
+
+        let config = ProviderConfig {
+            block_gas_limit,
+            chain_id,
+            coinbase: Address::ZERO,
+            hardfork,
+            mining: MiningConfig {
+                auto_mine: false,
+                interval: None,
+                mem_pool: MemPoolConfig::default(),
+            },
+            network_id: 1,
+            ..default_config
+        };
+
+        let fixture = ProviderTestFixture::new(cache_dir, config)?;
+
+        for 
+
+        let fork_block = fixture
+            .provider_data
+            .block_by_block_spec(&BlockSpec::Number(block_number))?
+            .expect("Fork block must exist");
 
         let block_spec = BlockSpec::Number(block_number);
         let block = fixture
@@ -2661,11 +2716,6 @@ mod tests {
             .context("block should exist")?;
 
         let block_hash = block.hash();
-        let block_json = reqwest::blocking::get(&format!("{}/block/{}", url, block_hash))?
-            .json::<serde_json::Value>()?;
-
-        let block_number_json = block_json["number"].as_str().unwrap();
-        assert_eq!(block_number_json, hex::encode(block_number));
 
         Ok(())
     }
