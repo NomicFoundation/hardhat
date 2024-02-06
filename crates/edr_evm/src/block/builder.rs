@@ -8,7 +8,7 @@ use edr_eth::{
     log::{add_log_to_bloom, Log},
     receipt::{TransactionReceipt, TypedReceipt, TypedReceiptData},
     transaction::SignedTransaction,
-    trie::ordered_trie_root,
+    trie::{ordered_trie_root, KECCAK_NULL_RLP},
     Address, Bloom, U256,
 };
 use revm::{
@@ -166,6 +166,11 @@ impl BlockBuilder {
         self.header.gas_limit - self.gas_used()
     }
 
+    /// Retrieves the header of the block builder.
+    pub fn header(&self) -> &PartialHeader {
+        &self.header
+    }
+
     /// Adds a pending transaction to
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn add_transaction<BlockchainErrorT, StateErrorT>(
@@ -279,7 +284,7 @@ impl BlockBuilder {
                     SignedTransaction::Eip1559(_) => TypedReceiptData::Eip1559 { status },
                     SignedTransaction::Eip4844(_) => TypedReceiptData::Eip4844 { status },
                 },
-                spec_id: self.cfg.spec_id,
+                spec_id: Some(self.cfg.spec_id),
             },
             transaction_hash: *transaction.hash(),
             transaction_index: self.transactions.len() as u64,
@@ -303,7 +308,6 @@ impl BlockBuilder {
         mut self,
         state: &mut StateT,
         rewards: Vec<(Address, U256)>,
-        timestamp: Option<u64>,
     ) -> Result<BuildBlockResult, StateErrorT>
     where
         StateT: SyncState<StateErrorT> + ?Sized,
@@ -334,10 +338,6 @@ impl BlockBuilder {
             self.header.gas_limit = gas_limit;
         }
 
-        self.header.state_root = state
-            .state_root()
-            .expect("Must be able to calculate state root");
-
         self.header.logs_bloom = {
             let mut logs_bloom = Bloom::ZERO;
             self.receipts.iter().for_each(|receipt| {
@@ -352,9 +352,15 @@ impl BlockBuilder {
                 .map(|receipt| alloy_rlp::encode(&**receipt)),
         );
 
-        if let Some(timestamp) = timestamp {
-            self.header.timestamp = timestamp;
-        } else if self.header.timestamp == 0 {
+        // Only set the state root if it wasn't specified during construction
+        if self.header.state_root == KECCAK_NULL_RLP {
+            self.header.state_root = state
+                .state_root()
+                .expect("Must be able to calculate state root");
+        }
+
+        // Only set the timestamp if it wasn't specified during construction
+        if self.header.timestamp == 0 {
             self.header.timestamp = SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .expect("Current time must be after unix epoch")

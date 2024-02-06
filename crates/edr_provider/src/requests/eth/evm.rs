@@ -1,6 +1,6 @@
 use core::fmt::Debug;
 
-use edr_eth::U64;
+use edr_eth::{block::BlockOptions, U64};
 
 use crate::{data::ProviderData, requests::methods::U64OrUsize, ProviderError};
 
@@ -18,8 +18,10 @@ pub fn handle_mine_request<LoggerErrorT: Debug>(
     data: &mut ProviderData<LoggerErrorT>,
     timestamp: Option<U64OrUsize>,
 ) -> Result<String, ProviderError<LoggerErrorT>> {
-    let timestamp: Option<u64> = timestamp.map(U64OrUsize::into);
-    let mine_block_result = data.mine_and_commit_block(timestamp)?;
+    let mine_block_result = data.mine_and_commit_block(BlockOptions {
+        timestamp: timestamp.map(U64OrUsize::into),
+        ..BlockOptions::default()
+    })?;
 
     let spec_id = data.spec_id();
     data.logger_mut()

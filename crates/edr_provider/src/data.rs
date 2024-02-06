@@ -13,7 +13,7 @@ use std::{
 };
 
 use edr_eth::{
-    block::{miner_reward, BlobGas},
+    block::{calculate_next_base_fee, miner_reward, BlobGas, BlockOptions},
     log::FilterLog,
     receipt::BlockReceipt,
     remote::{
@@ -32,7 +32,6 @@ use edr_evm::{
         Blockchain, BlockchainError, ForkedBlockchain, ForkedCreationError, LocalBlockchain,
         LocalCreationError, SyncBlockchain,
     },
-    calculate_next_base_fee,
     db::StateRef,
     debug_trace_transaction, execution_result_to_debug_result, mempool, mine_block,
     state::{
@@ -906,7 +905,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
     }
 
     pub fn interval_mine(&mut self) -> Result<bool, ProviderError<LoggerErrorT>> {
-        let result = self.mine_and_commit_block(None)?;
+        let result = self.mine_and_commit_block(BlockOptions::default())?;
 
         self.logger
             .log_interval_mined(self.spec_id(), &result)
@@ -957,16 +956,25 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
 
     pub fn mine_and_commit_block(
         &mut self,
-        timestamp: Option<u64>,
+        mut options: BlockOptions,
     ) -> Result<DebugMineBlockResult<BlockchainError>, ProviderError<LoggerErrorT>> {
-        let (block_timestamp, new_offset) = self.next_block_timestamp(timestamp)?;
-        let prevrandao = if self.blockchain.spec_id() >= SpecId::MERGE {
-            Some(self.prev_randao_generator.next_value())
-        } else {
-            None
-        };
+        let (block_timestamp, new_offset) = self.next_block_timestamp(options.timestamp)?;
+        options.timestamp = Some(block_timestamp);
 
-        let result = self.mine_block(block_timestamp, prevrandao)?;
+        if options.mix_hash.is_none() && self.blockchain.spec_id() >= SpecId::MERGE {
+            options.mix_hash = Some(self.prev_randao_generator.next_value());
+        }
+
+        let result = self.mine_block(options)?;
+
+        let block_and_total_difficulty = self
+            .blockchain
+            .insert_block(result.block, result.state_diff)
+            .map_err(ProviderError::Blockchain)?;
+
+        self.mem_pool
+            .update(&result.state)
+            .map_err(ProviderError::MemPoolUpdate)?;
 
         if let Some(new_offset) = new_offset {
             self.block_time_offset_seconds = new_offset;
@@ -978,14 +986,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         // Reset next block time stamp
         self.next_block_timestamp.take();
 
-        let block_and_total_difficulty = self
-            .blockchain
-            .insert_block(result.block, result.state_diff)
-            .map_err(ProviderError::Blockchain)?;
-
-        self.mem_pool
-            .update(&result.state)
-            .map_err(ProviderError::MemPoolUpdate)?;
+        self.prev_randao_generator.generate_next();
 
         let block = &block_and_total_difficulty.block;
         for (filter_id, filter) in self.filters.iter_mut() {
@@ -1054,23 +1055,27 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             return Ok(Vec::new());
         }
 
-        let mine_block_with_interval = |data: &mut ProviderData<LoggerErrorT>,
-                                        mined_blocks: &mut Vec<
-            DebugMineBlockResult<BlockchainError>,
-        >|
-         -> Result<(), ProviderError<LoggerErrorT>> {
-            let previous_timestamp = mined_blocks
-                .last()
-                .expect("at least one block was mined")
-                .block
-                .header()
-                .timestamp;
+        let mine_block_with_interval =
+            |data: &mut ProviderData<LoggerErrorT>,
+             mined_blocks: &mut Vec<DebugMineBlockResult<BlockchainError>>|
+             -> Result<(), ProviderError<LoggerErrorT>> {
+                let previous_timestamp = mined_blocks
+                    .last()
+                    .expect("at least one block was mined")
+                    .block
+                    .header()
+                    .timestamp;
 
-            let mined_block = data.mine_and_commit_block(Some(previous_timestamp + interval))?;
-            mined_blocks.push(mined_block);
+                let options = BlockOptions {
+                    timestamp: Some(previous_timestamp + interval),
+                    ..BlockOptions::default()
+                };
 
-            Ok(())
-        };
+                let mined_block = data.mine_and_commit_block(options)?;
+                mined_blocks.push(mined_block);
+
+                Ok(())
+            };
 
         // Limit the pre-allocated capacity based on the minimum reservable number of
         // blocks to avoid too large allocations.
@@ -1080,7 +1085,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         );
 
         // we always mine the first block, and we don't apply the interval for it
-        mined_blocks.push(self.mine_and_commit_block(None)?);
+        mined_blocks.push(self.mine_and_commit_block(BlockOptions::default())?);
 
         while u64::try_from(mined_blocks.len()).expect("usize cannot be larger than u128")
             < number_of_blocks
@@ -1110,8 +1115,12 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 .reserve_blocks(remaining_blocks - 1, interval)?;
 
             let previous_timestamp = self.blockchain.last_block()?.header().timestamp;
+            let options = BlockOptions {
+                timestamp: Some(previous_timestamp + interval),
+                ..BlockOptions::default()
+            };
 
-            let mined_block = self.mine_and_commit_block(Some(previous_timestamp + interval))?;
+            let mined_block = self.mine_and_commit_block(options)?;
             mined_blocks.push(mined_block);
         }
 
@@ -1331,11 +1340,13 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             .map(
                 |snapshot_id| -> Result<(ExecutionResult, Trace), ProviderError<LoggerErrorT>> {
                     let transaction_result = loop {
-                        let result = self.mine_and_commit_block(None).map_err(|error| {
-                            self.revert_to_snapshot(snapshot_id);
+                        let result = self
+                            .mine_and_commit_block(BlockOptions::default())
+                            .map_err(|error| {
+                                self.revert_to_snapshot(snapshot_id);
 
-                            error
-                        })?;
+                                error
+                            })?;
 
                         let transaction_result = izip!(
                             result.block.transactions().iter(),
@@ -1358,11 +1369,13 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                     };
 
                     while self.mem_pool.has_pending_transactions() {
-                        let result = self.mine_and_commit_block(None).map_err(|error| {
-                            self.revert_to_snapshot(snapshot_id);
+                        let result = self
+                            .mine_and_commit_block(BlockOptions::default())
+                            .map_err(|error| {
+                                self.revert_to_snapshot(snapshot_id);
 
-                            error
-                        })?;
+                                error
+                            })?;
 
                         mining_results.push(result);
                     }
@@ -1789,12 +1802,20 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         Ok(result)
     }
 
-    /// Mine a block at a specific timestamp
+    /// Mine a block using the provided options. If an option has not been
+    /// specified, it will be set using the provider's configuration values.
     fn mine_block(
         &self,
-        timestamp: u64,
-        prevrandao: Option<B256>,
+        mut options: BlockOptions,
     ) -> Result<DebugMineBlockResultAndState<StateError>, ProviderError<LoggerErrorT>> {
+        options.base_fee = options.base_fee.or(self.next_block_base_fee_per_gas);
+        options.beneficiary = Some(options.beneficiary.unwrap_or(self.beneficiary));
+        options.gas_limit = Some(
+            options
+                .gas_limit
+                .unwrap_or_else(|| self.mem_pool.block_gas_limit()),
+        );
+
         let evm_config = self.create_evm_config(None)?;
 
         let mut inspector = EvmInspector::default();
@@ -1804,13 +1825,10 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             self.state.clone(),
             &self.mem_pool,
             &evm_config,
-            timestamp,
-            self.beneficiary,
+            options,
             self.min_gas_price,
             self.initial_config.mining.mem_pool.order,
             miner_reward(evm_config.spec_id).unwrap_or(U256::ZERO),
-            self.next_block_base_fee_per_gas,
-            prevrandao,
             self.dao_activation_block,
             Some(&mut inspector),
         )?;
@@ -1828,9 +1846,10 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         let (block_timestamp, _new_offset) = self.next_block_timestamp(None)?;
 
         // Mining a pending block shouldn't affect the mix hash.
-        let prevrandao = None;
-
-        self.mine_block(block_timestamp, prevrandao)
+        self.mine_block(BlockOptions {
+            timestamp: Some(block_timestamp),
+            ..BlockOptions::default()
+        })
     }
 
     /// Get the timestamp for the next block.
@@ -2191,7 +2210,7 @@ fn create_blockchain_and_state(
                     .expect("initial date must be after UNIX epoch")
                     .as_secs()
             }),
-            Some(prev_randao_generator.next_value()),
+            Some(prev_randao_generator.generate_next()),
             config.initial_base_fee_per_gas,
             config.initial_blob_gas.clone(),
             config.initial_parent_beacon_block_root,
@@ -2246,12 +2265,8 @@ lazy_static! {
 mod tests {
     use std::convert::Infallible;
 
-    use anyhow::{anyhow, Context};
-    use edr_eth::{
-        remote::PreEip1898BlockSpec,
-        spec::chain_hardfork_activations,
-        transaction::{Eip155TransactionRequest, TransactionKind, TransactionRequest},
-    };
+    use anyhow::Context;
+    use edr_eth::transaction::{Eip155TransactionRequest, TransactionKind, TransactionRequest};
     use edr_evm::hex;
     use edr_test_utils::env::get_alchemy_url;
     use serde_json::json;
@@ -2261,7 +2276,7 @@ mod tests {
     use crate::{
         data::inspector::tests::{deploy_console_log_contract, ConsoleLogTransaction},
         test_utils::{create_test_config_with_fork, one_ether, FORK_BLOCK_NUMBER},
-        Logger, MemPoolConfig, MiningConfig, ProviderConfig,
+        Logger, ProviderConfig,
     };
 
     #[derive(Clone, Default)]
@@ -2307,16 +2322,14 @@ mod tests {
         }
 
         fn with_fork(fork: Option<String>) -> anyhow::Result<Self> {
-            let fork = if let Some(json_rpc_url) = fork {
-                Some(ForkConfig {
+            let fork = fork.map(|json_rpc_url| {
+                ForkConfig {
                     json_rpc_url,
                     // Random recent block for better cache consistency
                     block_number: Some(FORK_BLOCK_NUMBER),
                     http_headers: None,
-                })
-            } else {
-                None
-            };
+                }
+            });
 
             let cache_dir = TempDir::new()?;
             let config = create_test_config_with_fork(cache_dir.path().to_path_buf(), fork);
@@ -2351,6 +2364,8 @@ mod tests {
                 subscription_callback,
                 config.clone(),
             )?;
+
+            provider_data.impersonate_account(impersonated_account);
 
             Ok(Self {
                 _cache_dir: cache_dir,
@@ -2537,7 +2552,9 @@ mod tests {
         let mut fixture = ProviderTestFixture::new_local()?;
 
         // Mine a block to make sure we're not getting the genesis block
-        fixture.provider_data.mine_and_commit_block(None)?;
+        fixture
+            .provider_data
+            .mine_and_commit_block(BlockOptions::default())?;
         let last_block_number = fixture.provider_data.last_block_number();
         // Sanity check
         assert!(last_block_number > 0);
@@ -2606,9 +2623,11 @@ mod tests {
         fixture.provider_data.send_transaction(signed_transaction)?;
         let (block_timestamp, _) = fixture.provider_data.next_block_timestamp(None)?;
         let prevrandao = fixture.provider_data.prev_randao_generator.next_value();
-        let result = fixture
-            .provider_data
-            .mine_block(block_timestamp, Some(prevrandao))?;
+        let result = fixture.provider_data.mine_block(BlockOptions {
+            timestamp: Some(block_timestamp),
+            mix_hash: Some(prevrandao),
+            ..BlockOptions::default()
+        })?;
 
         let console_log_inputs = result.console_log_inputs;
         assert_eq!(console_log_inputs.len(), 1);
@@ -2652,70 +2671,6 @@ mod tests {
             assert!(prev_filter_id < filter_id);
             prev_filter_id = filter_id;
         }
-
-        Ok(())
-    }
-
-    async fn run_full_block(url: String, block_number: u64, chain_id: u64) -> anyhow::Result<()> {
-        let cache_dir = TempDir::new()?;
-
-        let replay_block = {
-            let client = RpcClient::new(&url, cache_dir.path().to_path_buf(), None);
-
-            client
-                .get_block_by_number_with_transaction_data(PreEip1898BlockSpec::Number(block_number))
-                .await?
-                
-        };
-
-        let block_gas_limit = replay_block.gas_limit;
-
-        let hardfork_activations =
-            chain_hardfork_activations(chain_id).ok_or(anyhow!("Unsupported chain id"))?;
-
-        let hardfork = hardfork_activations
-            .hardfork_at_block_number(block_number)
-            .ok_or(anyhow!("Unsupported block number"))?;
-
-        let default_config = create_test_config_with_fork(
-            cache_dir.path().to_path_buf(),
-            Some(ForkConfig {
-                json_rpc_url: url,
-                block_number: Some(block_number - 1),
-                http_headers: None,
-            }),
-        );
-
-        let config = ProviderConfig {
-            block_gas_limit,
-            chain_id,
-            coinbase: Address::ZERO,
-            hardfork,
-            mining: MiningConfig {
-                auto_mine: false,
-                interval: None,
-                mem_pool: MemPoolConfig::default(),
-            },
-            network_id: 1,
-            ..default_config
-        };
-
-        let fixture = ProviderTestFixture::new(cache_dir, config)?;
-
-        for 
-
-        let fork_block = fixture
-            .provider_data
-            .block_by_block_spec(&BlockSpec::Number(block_number))?
-            .expect("Fork block must exist");
-
-        let block_spec = BlockSpec::Number(block_number);
-        let block = fixture
-            .provider_data
-            .block_by_block_spec(&block_spec)?
-            .context("block should exist")?;
-
-        let block_hash = block.hash();
 
         Ok(())
     }
@@ -2794,7 +2749,9 @@ mod tests {
             .provider_data
             .add_pending_transaction(transaction_request)?;
 
-        let results = fixture.provider_data.mine_and_commit_block(None)?;
+        let results = fixture
+            .provider_data
+            .mine_and_commit_block(BlockOptions::default())?;
 
         // Make sure transaction was mined successfully.
         assert!(results
@@ -2922,5 +2879,118 @@ mod tests {
         assert_eq!(hex::decode(expected_signature)?, signature.to_vec(),);
 
         Ok(())
+    }
+
+    mod remote {
+        use anyhow::anyhow;
+        use edr_eth::{remote::PreEip1898BlockSpec, spec::chain_hardfork_activations};
+        use edr_evm::RemoteBlock;
+
+        use super::*;
+        use crate::{MemPoolConfig, MiningConfig};
+
+        #[tokio::test(flavor = "multi_thread")]
+        async fn full_byzantium_block_mainnet() -> anyhow::Result<()> {
+            const BLOCK_NUMBER: u64 = 4_370_001;
+            const CHAIN_ID: u64 = 1;
+
+            let url = get_alchemy_url();
+            run_full_block(url, BLOCK_NUMBER, CHAIN_ID).await
+        }
+
+        async fn run_full_block(
+            url: String,
+            block_number: u64,
+            chain_id: u64,
+        ) -> anyhow::Result<()> {
+            let cache_dir = TempDir::new()?;
+
+            let replay_block = {
+                let rpc_client = RpcClient::new(&url, cache_dir.path().to_path_buf(), None);
+
+                let block = rpc_client
+                    .get_block_by_number_with_transaction_data(PreEip1898BlockSpec::Number(
+                        block_number,
+                    ))
+                    .await?;
+
+                RemoteBlock::new(block, Arc::new(rpc_client), runtime::Handle::current())?
+            };
+
+            let replay_header = replay_block.header();
+            let block_gas_limit = replay_header.gas_limit;
+
+            let hardfork_activations =
+                chain_hardfork_activations(chain_id).ok_or(anyhow!("Unsupported chain id"))?;
+
+            let hardfork = hardfork_activations
+                .hardfork_at_block_number(block_number)
+                .ok_or(anyhow!("Unsupported block number"))?;
+
+            let default_config = create_test_config_with_fork(
+                cache_dir.path().to_path_buf(),
+                Some(ForkConfig {
+                    json_rpc_url: url,
+                    block_number: Some(block_number - 1),
+                    http_headers: None,
+                }),
+            );
+
+            let config = ProviderConfig {
+                block_gas_limit,
+                chain_id,
+                coinbase: replay_header.beneficiary,
+                hardfork,
+                mining: MiningConfig {
+                    auto_mine: false,
+                    interval: None,
+                    mem_pool: MemPoolConfig::default(),
+                },
+                network_id: 1,
+                ..default_config
+            };
+
+            let mut fixture = ProviderTestFixture::new(cache_dir, config)?;
+
+            // Ensure we'll get the same prevrandao
+            fixture
+                .provider_data
+                .prev_randao_generator
+                .set_next(replay_header.mix_hash);
+
+            for transaction in replay_block.transactions() {
+                fixture
+                    .provider_data
+                    .add_pending_transaction(transaction.clone())?;
+            }
+
+            let mined_block = fixture.provider_data.mine_and_commit_block(BlockOptions {
+                extra_data: Some(replay_header.extra_data.clone()),
+                mix_hash: Some(replay_header.mix_hash),
+                nonce: Some(replay_header.nonce),
+                state_root: Some(replay_header.state_root),
+                timestamp: Some(replay_header.timestamp),
+                ..BlockOptions::default()
+            })?;
+
+            let mined_header = mined_block.block.header();
+
+            // If the receipts' root is different, do a manual check of the receipts to find
+            // the cause
+            if mined_header.receipts_root != replay_header.receipts_root {
+                mined_block
+                    .block
+                    .transaction_receipts()?
+                    .into_iter()
+                    .zip(replay_block.transaction_receipts()?.into_iter())
+                    .for_each(|(mined_receipt, replay_receipt)| {
+                        assert_eq!(mined_receipt, replay_receipt);
+                    });
+            }
+
+            assert_eq!(mined_header, replay_header);
+
+            Ok(())
+        }
     }
 }

@@ -1,10 +1,7 @@
 use std::{cmp::Ordering, fmt::Debug, sync::Arc};
 
-use edr_eth::{
-    block::{BlockOptions, Header},
-    Address, B256, B64, U256,
-};
-use revm::primitives::{CfgEnv, ExecutionResult, InvalidTransaction, SpecId};
+use edr_eth::{block::BlockOptions, U256};
+use revm::primitives::{CfgEnv, ExecutionResult, InvalidTransaction};
 
 use crate::{
     block::BlockBuilderCreationError,
@@ -92,13 +89,10 @@ pub fn mine_block<BlockchainErrorT, StateErrorT>(
     mut state: Box<dyn SyncState<StateErrorT>>,
     mem_pool: &MemPool,
     cfg: &CfgEnv,
-    timestamp: u64,
-    beneficiary: Address,
+    options: BlockOptions,
     min_gas_price: U256,
     mine_ordering: MineOrdering,
     reward: U256,
-    base_fee: Option<U256>,
-    prevrandao: Option<B256>,
     dao_hardfork_activation_block: Option<u64>,
     inspector: Option<&mut dyn SyncInspector<BlockchainErrorT, StateErrorT>>,
 ) -> Result<MineBlockResultAndState<StateErrorT>, MineBlockError<BlockchainErrorT, StateErrorT>>
@@ -111,29 +105,11 @@ where
         .map_err(MineBlockError::Blockchain)?;
 
     let parent_header = parent_block.header();
-    let base_fee = if cfg.spec_id >= SpecId::LONDON {
-        Some(base_fee.unwrap_or_else(|| calculate_next_base_fee(parent_header)))
-    } else {
-        None
-    };
 
     let mut block_builder = BlockBuilder::new(
         cfg.clone(),
         parent_header,
-        BlockOptions {
-            beneficiary: Some(beneficiary),
-            number: Some(parent_header.number + 1),
-            gas_limit: Some(mem_pool.block_gas_limit()),
-            timestamp: Some(timestamp),
-            mix_hash: prevrandao,
-            nonce: Some(if cfg.spec_id >= SpecId::MERGE {
-                B64::ZERO
-            } else {
-                B64::from(66u64)
-            }),
-            base_fee,
-            ..Default::default()
-        },
+        options,
         dao_hardfork_activation_block,
     )?;
 
@@ -141,6 +117,7 @@ where
         type MineOrderComparator =
             dyn Fn(&OrderedTransaction, &OrderedTransaction) -> Ordering + Send;
 
+        let base_fee = block_builder.header().base_fee;
         let comparator: Box<MineOrderComparator> = match mine_ordering {
             MineOrdering::Fifo => Box::new(|lhs, rhs| lhs.order_id().cmp(&rhs.order_id())),
             MineOrdering::Priority => Box::new(move |lhs, rhs| {
@@ -208,9 +185,10 @@ where
         }
     }
 
+    let beneficiary = block_builder.header().beneficiary;
     let rewards = vec![(beneficiary, reward)];
     let BuildBlockResult { block, state_diff } = block_builder
-        .finalize(&mut state, rewards, None)
+        .finalize(&mut state, rewards)
         .map_err(MineBlockError::BlockFinalize)?;
 
     Ok(MineBlockResultAndState {
@@ -220,85 +198,4 @@ where
         transaction_results: results,
         transaction_traces: traces,
     })
-}
-
-/// Calculates the next base fee for a post-London block, given the parent's
-/// header.
-///
-/// # Panics
-///
-/// Panics if the parent header does not contain a base fee.
-pub fn calculate_next_base_fee(parent: &Header) -> U256 {
-    let elasticity = 2;
-    let base_fee_max_change_denominator = U256::from(8);
-
-    let parent_gas_target = parent.gas_limit / elasticity;
-    let parent_base_fee = parent
-        .base_fee_per_gas
-        .expect("Post-London headers must contain a baseFee");
-
-    match parent.gas_used.cmp(&parent_gas_target) {
-        std::cmp::Ordering::Less => {
-            let gas_used_delta = parent_gas_target - parent.gas_used;
-
-            let delta = parent_base_fee * U256::from(gas_used_delta)
-                / U256::from(parent_gas_target)
-                / base_fee_max_change_denominator;
-
-            parent_base_fee.saturating_sub(delta)
-        }
-        std::cmp::Ordering::Equal => parent_base_fee,
-        std::cmp::Ordering::Greater => {
-            let gas_used_delta = parent.gas_used - parent_gas_target;
-
-            let delta = parent_base_fee * U256::from(gas_used_delta)
-                / U256::from(parent_gas_target)
-                / base_fee_max_change_denominator;
-
-            parent_base_fee + delta.max(U256::from(1))
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use itertools::izip;
-
-    use super::*;
-
-    #[test]
-    fn test_calculate_next_base_fee() {
-        let base_fee = [
-            1000000000, 1000000000, 1000000000, 1072671875, 1059263476, 1049238967, 1049238967, 0,
-            1, 2,
-        ];
-        let gas_used = [
-            10000000, 10000000, 10000000, 9000000, 10001000, 0, 10000000, 10000000, 10000000,
-            10000000,
-        ];
-        let gas_limit = [
-            10000000, 12000000, 14000000, 10000000, 14000000, 2000000, 18000000, 18000000,
-            18000000, 18000000,
-        ];
-        let next_base_fee = [
-            1125000000, 1083333333, 1053571428, 1179939062, 1116028649, 918084097, 1063811730, 1,
-            2, 3,
-        ];
-
-        for (base_fee, gas_used, gas_limit, next_base_fee) in
-            izip!(base_fee, gas_used, gas_limit, next_base_fee)
-        {
-            let parent_header = Header {
-                base_fee_per_gas: Some(U256::from(base_fee)),
-                gas_used,
-                gas_limit,
-                ..Default::default()
-            };
-
-            assert_eq!(
-                U256::from(next_base_fee),
-                calculate_next_base_fee(&parent_header)
-            );
-        }
-    }
 }

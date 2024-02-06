@@ -278,8 +278,8 @@ impl PartialHeader {
             parent_hash,
             beneficiary: options.beneficiary.unwrap_or_default(),
             state_root: options.state_root.unwrap_or(KECCAK_NULL_RLP),
-            receipts_root: options.receipts_root.unwrap_or(KECCAK_NULL_RLP),
-            logs_bloom: options.logs_bloom.unwrap_or_default(),
+            receipts_root: KECCAK_NULL_RLP,
+            logs_bloom: Bloom::default(),
             difficulty: options.difficulty.unwrap_or_else(|| {
                 if spec_id >= SpecId::MERGE {
                     U256::ZERO
@@ -295,10 +295,20 @@ impl PartialHeader {
             timestamp,
             extra_data: options.extra_data.unwrap_or_default(),
             mix_hash: options.mix_hash.unwrap_or_default(),
-            nonce: options.nonce.unwrap_or_default(),
+            nonce: options.nonce.unwrap_or_else(|| {
+                if spec_id >= SpecId::MERGE {
+                    B64::ZERO
+                } else {
+                    B64::from(66u64)
+                }
+            }),
             base_fee: options.base_fee.or_else(|| {
                 if spec_id >= SpecId::LONDON {
-                    Some(U256::from(7))
+                    Some(if let Some(parent) = &parent {
+                        calculate_next_base_fee(parent)
+                    } else {
+                        U256::from(7)
+                    })
                 } else {
                     None
                 }
@@ -389,12 +399,88 @@ impl From<Header> for PartialHeader {
     }
 }
 
+/// Calculates the next base fee for a post-London block, given the parent's
+/// header.
+///
+/// # Panics
+///
+/// Panics if the parent header does not contain a base fee.
+pub fn calculate_next_base_fee(parent: &Header) -> U256 {
+    let elasticity = 2;
+    let base_fee_max_change_denominator = U256::from(8);
+
+    let parent_gas_target = parent.gas_limit / elasticity;
+    let parent_base_fee = parent
+        .base_fee_per_gas
+        .expect("Post-London headers must contain a baseFee");
+
+    match parent.gas_used.cmp(&parent_gas_target) {
+        std::cmp::Ordering::Less => {
+            let gas_used_delta = parent_gas_target - parent.gas_used;
+
+            let delta = parent_base_fee * U256::from(gas_used_delta)
+                / U256::from(parent_gas_target)
+                / base_fee_max_change_denominator;
+
+            parent_base_fee.saturating_sub(delta)
+        }
+        std::cmp::Ordering::Equal => parent_base_fee,
+        std::cmp::Ordering::Greater => {
+            let gas_used_delta = parent.gas_used - parent_gas_target;
+
+            let delta = parent_base_fee * U256::from(gas_used_delta)
+                / U256::from(parent_gas_target)
+                / base_fee_max_change_denominator;
+
+            parent_base_fee + delta.max(U256::from(1))
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
 
+    use itertools::izip;
+
     use super::*;
     use crate::trie::KECCAK_RLP_EMPTY_ARRAY;
+
+    #[test]
+    fn test_calculate_next_base_fee() {
+        let base_fee = [
+            1000000000, 1000000000, 1000000000, 1072671875, 1059263476, 1049238967, 1049238967, 0,
+            1, 2,
+        ];
+        let gas_used = [
+            10000000, 10000000, 10000000, 9000000, 10001000, 0, 10000000, 10000000, 10000000,
+            10000000,
+        ];
+        let gas_limit = [
+            10000000, 12000000, 14000000, 10000000, 14000000, 2000000, 18000000, 18000000,
+            18000000, 18000000,
+        ];
+        let next_base_fee = [
+            1125000000, 1083333333, 1053571428, 1179939062, 1116028649, 918084097, 1063811730, 1,
+            2, 3,
+        ];
+
+        for (base_fee, gas_used, gas_limit, next_base_fee) in
+            izip!(base_fee, gas_used, gas_limit, next_base_fee)
+        {
+            let parent_header = Header {
+                base_fee_per_gas: Some(U256::from(base_fee)),
+                gas_used,
+                gas_limit,
+                ..Default::default()
+            };
+
+            assert_eq!(
+                U256::from(next_base_fee),
+                calculate_next_base_fee(&parent_header)
+            );
+        }
+    }
 
     #[test]
     fn header_rlp_roundtrip() {

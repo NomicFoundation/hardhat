@@ -103,7 +103,7 @@ mod test {
                 logs_bloom: Bloom::default(),
                 logs: vec![],
                 data: TypedReceiptData::Eip1559 { status: 1 },
-                spec_id: SpecId::LATEST,
+                spec_id: Some(SpecId::LATEST),
             },
             transaction_hash: B256::default(),
             transaction_index: 5,
