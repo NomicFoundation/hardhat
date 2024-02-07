@@ -230,6 +230,16 @@ await hre.run("verify:verify", {
 
 If the verification is not successful, an error will be thrown.
 
+Note that the `"verify:verify"` subtask will *always* run the etherscan verifier, even when you have the following in your hardhat config file:
+
+```js
+etherscan: {
+  enabled: false,
+}
+```
+
+If you wish to run the sourcify verifier only, use the `"verify:sourcify"` subtask instead.
+
 #### Providing libraries from a script or task
 
 If your contract has libraries with undetectable addresses, you may pass the libraries parameter with a dictionary specifying them:
