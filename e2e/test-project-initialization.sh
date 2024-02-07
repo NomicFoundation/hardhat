@@ -64,7 +64,7 @@ for pkg_manager in $pkg_managers; do
   fi
 
   if [ "$pkg_manager" = "pnpm" ] && [ "$IS_WINDOWS" = "true" ]; then
-    # TODO: There is a bug with pnpm on Windows; the HH installation runs twice. Skip pnpm on Windows for the moment.
+    # TODO: There is a bug with pnpm on Windows; the HH initialization runs twice. Skip pnpm on Windows for the moment.
     continue
   fi
 
