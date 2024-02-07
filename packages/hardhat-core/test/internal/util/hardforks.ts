@@ -43,6 +43,8 @@ describe("Hardfork utils", function () {
       assert.equal("arrowGlacier", HardforkName.ARROW_GLACIER);
       assert.equal("grayGlacier", HardforkName.GRAY_GLACIER);
       assert.equal("merge", HardforkName.MERGE);
+      assert.equal("shanghai", HardforkName.SHANGHAI);
+      assert.equal("cancun", HardforkName.CANCUN);
     });
   });
 
