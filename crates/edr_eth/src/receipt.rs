@@ -34,7 +34,8 @@ pub struct TypedReceipt<LogT> {
     pub data: TypedReceiptData,
     /// The currently active hardfork in the local blockchain. Hack for
     /// serialization. Not included in the serialized representation.
-    pub spec_id: Option<SpecId>,
+    /// Assumes remote runs latest hardfork.
+    pub spec_id: SpecId,
 }
 
 impl<LogT: PartialEq> PartialEq for TypedReceipt<LogT> {
@@ -55,11 +56,7 @@ impl<LogT: serde::Serialize> Serialize for TypedReceipt<LogT> {
     where
         S: Serializer,
     {
-        let spec_id = self.spec_id.ok_or(serde::ser::Error::custom(
-            "The chain ID must be specified for serialization",
-        ))?;
-
-        let num_fields = if spec_id >= SpecId::BERLIN { 5 } else { 4 };
+        let num_fields = if self.spec_id >= SpecId::BERLIN { 5 } else { 4 };
         let mut state = serializer.serialize_struct("TypedReceipt", num_fields)?;
 
         state.serialize_field("cumulativeGasUsed", &U64::from(self.cumulative_gas_used))?;
@@ -78,7 +75,7 @@ impl<LogT: serde::Serialize> Serialize for TypedReceipt<LogT> {
             }
         }
 
-        if spec_id >= SpecId::BERLIN {
+        if self.spec_id >= SpecId::BERLIN {
             let tx_type = self.transaction_type();
             state.serialize_field("type", &U64::from(tx_type))?;
         }
@@ -278,7 +275,7 @@ where
                     logs_bloom,
                     logs,
                     data,
-                    spec_id: None,
+                    spec_id: SpecId::LATEST,
                 })
             }
         }
@@ -353,7 +350,7 @@ where
                 logs_bloom: Bloom::decode(buf)?,
                 logs: Vec::<LogT>::decode(buf)?,
                 data,
-                spec_id: None,
+                spec_id: SpecId::LATEST,
             };
 
             let consumed = started_len - buf.len();
@@ -477,7 +474,7 @@ mod tests {
                                 },
                             ],
                             data: $receipt_data,
-                            spec_id: Some(SpecId::LATEST),
+                            spec_id: SpecId::LATEST,
                         }
                     }
 
@@ -555,6 +552,7 @@ mod tests {
                             let decoded = TypedReceipt::<Log>::decode(&mut expected.as_slice()).unwrap();
                             let receipt = TypedReceipt {
                                 data: receipt.inner.inner.data,
+                                spec_id: SpecId::LATEST,
                                 cumulative_gas_used: receipt.inner.inner.cumulative_gas_used,
                                 logs_bloom: receipt.inner.inner.logs_bloom,
                                 logs: receipt.inner.inner.logs.into_iter().map(|log| {
@@ -564,8 +562,7 @@ mod tests {
                                         topics: log.topics,
                                         data: log.data,
                                     }
-                                }).collect(),
-                                spec_id: None,
+                            }).collect(),
                             };
 
                             assert_eq!(decoded, receipt);
