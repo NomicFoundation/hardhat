@@ -46,7 +46,7 @@ const ETHERS_PROJECT_DEPENDENCIES: Dependencies = {
 };
 
 const VIEM_PROJECT_DEPENDENCIES: Dependencies = {
-  "@nomicfoundation/hardhat-toolbox-viem": "^2.0.0",
+  "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
 };
 
 const PEER_DEPENDENCIES: Dependencies = {
@@ -68,8 +68,8 @@ const ETHERS_PEER_DEPENDENCIES: Dependencies = {
 };
 
 const VIEM_PEER_DEPENDENCIES: Dependencies = {
-  "@nomicfoundation/hardhat-viem": "^1.0.0",
-  viem: "^1.15.1",
+  "@nomicfoundation/hardhat-viem": "^2.0.0",
+  viem: "^2.7.6",
 };
 
 const TYPESCRIPT_DEPENDENCIES: Dependencies = {};

@@ -68,7 +68,7 @@
     "solidity-coverage": "^0.8.1",
     "ts-node": "^10.8.0",
     "typescript": "~5.0.4",
-    "viem": "^1.15.1"
+    "viem": "^2.7.6"
   },
   "peerDependencies": {
     "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
@@ -84,7 +84,7 @@
     "solidity-coverage": "^0.8.1",
     "ts-node": ">=8.0.0",
     "typescript": "~5.0.4",
-    "viem": "^1.15.1"
+    "viem": "^2.7.6"
   },
   "bugs": {
     "url": "https://github.com/nomicfoundation/hardhat/issues"

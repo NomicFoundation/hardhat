@@ -64,10 +64,10 @@ describe("Integration tests", function () {
         const fromAddress = fromWalletClient.account.address;
         const toAddress = toWalletClient.account.address;
 
-        const fromBalanceBefore: bigint = await publicClient.getBalance({
+        const fromBalanceBefore = await publicClient.getBalance({
           address: fromAddress,
         });
-        const toBalanceBefore: bigint = await publicClient.getBalance({
+        const toBalanceBefore = await publicClient.getBalance({
           address: toAddress,
         });
 
@@ -79,10 +79,10 @@ describe("Integration tests", function () {
         const receipt = await publicClient.waitForTransactionReceipt({ hash });
         const transactionFee = receipt.gasUsed * receipt.effectiveGasPrice;
 
-        const fromBalanceAfter: bigint = await publicClient.getBalance({
+        const fromBalanceAfter = await publicClient.getBalance({
           address: fromAddress,
         });
-        const toBalanceAfter: bigint = await publicClient.getBalance({
+        const toBalanceAfter = await publicClient.getBalance({
           address: toAddress,
         });
 
@@ -92,6 +92,7 @@ describe("Integration tests", function () {
           fromBalanceAfter,
           fromBalanceBefore - etherAmount - transactionFee
         );
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
         assert.equal(toBalanceAfter, toBalanceBefore + etherAmount);
       });
 

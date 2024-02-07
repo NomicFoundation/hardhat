@@ -2,6 +2,7 @@ import type * as viemT from "viem";
 import type { ArtifactsMap } from "hardhat/types/artifacts";
 
 export type PublicClient = viemT.PublicClient<viemT.Transport, viemT.Chain>;
+
 export type WalletClient = viemT.WalletClient<
   viemT.Transport,
   viemT.Chain,
@@ -42,8 +43,10 @@ export type GetContractReturnType<
   TAbi extends viemT.Abi | readonly unknown[] = viemT.Abi
 > = viemT.GetContractReturnType<
   TAbi,
-  PublicClient,
-  WalletClient,
+  {
+    public: PublicClient;
+    wallet: WalletClient;
+  },
   viemT.Address
 >;
 
