@@ -2409,8 +2409,11 @@ mod tests {
             Ok(self.provider_data.sign_transaction_request(transaction)?)
         }
 
-        fn signed_dummy_transaction(&self) -> anyhow::Result<ExecutableTransaction> {
-            let transaction = self.dummy_transaction_request(None);
+        fn signed_dummy_transaction(
+            &self,
+            nonce: Option<u64>,
+        ) -> anyhow::Result<ExecutableTransaction> {
+            let transaction = self.dummy_transaction_request(nonce);
             Ok(self.provider_data.sign_transaction_request(transaction)?)
         }
     }
@@ -2461,7 +2464,7 @@ mod tests {
     fn test_sign_transaction_request() -> anyhow::Result<()> {
         let fixture = ProviderTestFixture::new_local()?;
 
-        let transaction = fixture.signed_dummy_transaction()?;
+        let transaction = fixture.signed_dummy_transaction(None)?;
         let recovered_address = transaction.recover()?;
 
         assert!(fixture
@@ -2518,7 +2521,7 @@ mod tests {
     #[test]
     fn add_pending_transaction() -> anyhow::Result<()> {
         let mut fixture = ProviderTestFixture::new_local()?;
-        let transaction = fixture.signed_dummy_transaction()?;
+        let transaction = fixture.signed_dummy_transaction(None)?;
 
         test_add_pending_transaction(&mut fixture, transaction)
     }
@@ -2676,6 +2679,39 @@ mod tests {
     }
 
     #[test]
+    fn pending_transactions_returns_pending_and_queued() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new_local().unwrap();
+
+        let transaction1 = fixture.signed_dummy_transaction(Some(0))?;
+        fixture
+            .provider_data
+            .add_pending_transaction(transaction1.clone())?;
+
+        let transaction2 = fixture.signed_dummy_transaction(Some(2))?;
+        fixture
+            .provider_data
+            .add_pending_transaction(transaction2.clone())?;
+
+        let transaction3 = fixture.signed_dummy_transaction(Some(3))?;
+        fixture
+            .provider_data
+            .add_pending_transaction(transaction3.clone())?;
+
+        let pending_transactions = fixture
+            .provider_data
+            .pending_transactions()
+            .cloned()
+            .collect::<Vec<_>>();
+
+        assert_eq!(
+            pending_transactions,
+            vec![transaction1, transaction2, transaction3]
+        );
+
+        Ok(())
+    }
+
+    #[test]
     fn set_balance_updates_mem_pool() -> anyhow::Result<()> {
         let mut fixture = ProviderTestFixture::new_local()?;
 
@@ -2722,7 +2758,7 @@ mod tests {
     fn pending_transaction_by_hash() -> anyhow::Result<()> {
         let mut fixture = ProviderTestFixture::new_local()?;
 
-        let transaction_request = fixture.signed_dummy_transaction()?;
+        let transaction_request = fixture.signed_dummy_transaction(None)?;
         let transaction_hash = fixture
             .provider_data
             .add_pending_transaction(transaction_request)?;
@@ -2744,7 +2780,7 @@ mod tests {
     fn transaction_by_hash() -> anyhow::Result<()> {
         let mut fixture = ProviderTestFixture::new_local()?;
 
-        let transaction_request = fixture.signed_dummy_transaction()?;
+        let transaction_request = fixture.signed_dummy_transaction(None)?;
         let transaction_hash = fixture
             .provider_data
             .add_pending_transaction(transaction_request)?;
