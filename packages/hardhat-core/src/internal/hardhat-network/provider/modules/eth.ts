@@ -1260,13 +1260,20 @@ export class EthModule extends Base {
   private async _rpcTransactionRequestToNodeTransactionParams(
     rpcTx: RpcTransactionRequest
   ): Promise<TransactionParams> {
+    let data: Buffer = toBuffer([]);
+    if (rpcTx.input !== undefined) {
+      data = rpcTx.input;
+    } else if (rpcTx.data !== undefined) {
+      data = rpcTx.data;
+    }
+
     const baseParams = {
       to: rpcTx.to,
       from: rpcTx.from,
       gasLimit:
         rpcTx.gas !== undefined ? rpcTx.gas : this._node.getBlockGasLimit(),
       value: rpcTx.value !== undefined ? rpcTx.value : 0n,
-      data: rpcTx.data !== undefined ? rpcTx.data : toBuffer([]),
+      data,
       nonce:
         rpcTx.nonce !== undefined
           ? rpcTx.nonce
