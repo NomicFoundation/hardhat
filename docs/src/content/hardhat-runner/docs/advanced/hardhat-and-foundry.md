@@ -78,14 +78,14 @@ If you have an existing Foundry project and you want to use Hardhat in it, follo
 
 First, if you don't have a `package.json` already in your project, create one with `npm init`.
 
-Then install Hardhat and the [`@nomicfoundation/hardhat-foundry`](/hardhat-runner/plugins/nomicfoundation-hardhat-foundry) and [`@nomicfoundation/hardhat-toolbox`](/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox) plugins:
+Then install Hardhat, the [Hardhat Toolbox](/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox), and the [`@nomicfoundation/hardhat-foundry`](/hardhat-runner/plugins/nomicfoundation-hardhat-foundry) plugin:
 
 ::::tabsgroup{options="npm 7+,npm 6,yarn"}
 
 :::tab{value="npm 7+"}
 
 ```
-npm install --save-dev @nomicfoundation/hardhat-foundry @nomicfoundation/hardhat-toolbox
+npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-foundry
 ```
 
 :::
@@ -93,7 +93,7 @@ npm install --save-dev @nomicfoundation/hardhat-foundry @nomicfoundation/hardhat
 :::tab{value="npm 6"}
 
 ```
-npm install --save-dev @nomicfoundation/hardhat-foundry @nomicfoundation/hardhat-toolbox
+npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-foundry
 ```
 
 :::
@@ -101,7 +101,7 @@ npm install --save-dev @nomicfoundation/hardhat-foundry @nomicfoundation/hardhat
 :::tab{value=yarn}
 
 ```
-yarn add --dev hardhat @nomicfoundation/hardhat-foundry @nomicfoundation/hardhat-toolbox
+yarn add --dev hardhat @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-foundry
 ```
 
 :::
