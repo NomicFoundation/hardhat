@@ -2261,9 +2261,14 @@ lazy_static! {
 mod tests {
     use std::convert::Infallible;
 
-    use anyhow::Context;
-    use edr_eth::transaction::{Eip155TransactionRequest, TransactionKind, TransactionRequest};
-    use edr_evm::hex;
+    use alloy_sol_types::{sol, SolCall};
+    use anyhow::{anyhow, Context};
+    use edr_eth::{
+        remote::{eth::CallRequest, PreEip1898BlockSpec},
+        spec::chain_hardfork_activations,
+        transaction::{Eip155TransactionRequest, TransactionKind, TransactionRequest},
+    };
+    use edr_evm::{hex, MineOrdering, RemoteBlock, TransactionError};
     use edr_test_utils::env::get_alchemy_url;
     use serde_json::json;
     use tempfile::TempDir;
@@ -2271,8 +2276,9 @@ mod tests {
     use super::*;
     use crate::{
         data::inspector::tests::{deploy_console_log_contract, ConsoleLogTransaction},
+        requests::eth::resolve_call_request,
         test_utils::{create_test_config_with_fork, one_ether, FORK_BLOCK_NUMBER},
-        Logger, ProviderConfig,
+        Logger, MemPoolConfig, MiningConfig, ProviderConfig,
     };
 
     #[derive(Clone, Default)]
@@ -2376,10 +2382,15 @@ mod tests {
             })
         }
 
-        fn dummy_transaction_request(&self, nonce: Option<u64>) -> TransactionRequestAndSender {
+        fn dummy_transaction_request(
+            &self,
+            local_account_index: usize,
+            gas_limit: u64,
+            nonce: Option<u64>,
+        ) -> TransactionRequestAndSender {
             let request = TransactionRequest::Eip155(Eip155TransactionRequest {
                 kind: TransactionKind::Call(Address::ZERO),
-                gas_limit: 100_000,
+                gas_limit,
                 gas_price: U256::from(42_000_000_000_u64),
                 value: U256::from(1),
                 input: Bytes::default(),
@@ -2389,21 +2400,26 @@ mod tests {
 
             TransactionRequestAndSender {
                 request,
-                sender: self.first_local_account(),
+                sender: self.nth_local_account(local_account_index),
             }
         }
 
-        fn first_local_account(&self) -> Address {
+        /// Retrieves the nth local account.
+        ///
+        /// # Panics
+        ///
+        /// Panics if there are not enough local accounts
+        fn nth_local_account(&self, index: usize) -> Address {
             *self
                 .provider_data
                 .local_accounts
                 .keys()
-                .next()
-                .expect("there are local accounts")
+                .nth(index)
+                .expect("the requested local account does not exist")
         }
 
         fn impersonated_dummy_transaction(&self) -> anyhow::Result<ExecutableTransaction> {
-            let mut transaction = self.dummy_transaction_request(None);
+            let mut transaction = self.dummy_transaction_request(0, 30_000, None);
             transaction.sender = self.impersonated_account;
 
             Ok(self.provider_data.sign_transaction_request(transaction)?)
@@ -2411,9 +2427,10 @@ mod tests {
 
         fn signed_dummy_transaction(
             &self,
+            local_account_index: usize,
             nonce: Option<u64>,
         ) -> anyhow::Result<ExecutableTransaction> {
-            let transaction = self.dummy_transaction_request(nonce);
+            let transaction = self.dummy_transaction_request(local_account_index, 30_000, nonce);
             Ok(self.provider_data.sign_transaction_request(transaction)?)
         }
     }
@@ -2464,7 +2481,7 @@ mod tests {
     fn test_sign_transaction_request() -> anyhow::Result<()> {
         let fixture = ProviderTestFixture::new_local()?;
 
-        let transaction = fixture.signed_dummy_transaction(None)?;
+        let transaction = fixture.signed_dummy_transaction(0, None)?;
         let recovered_address = transaction.recover()?;
 
         assert!(fixture
@@ -2521,7 +2538,7 @@ mod tests {
     #[test]
     fn add_pending_transaction() -> anyhow::Result<()> {
         let mut fixture = ProviderTestFixture::new_local()?;
-        let transaction = fixture.signed_dummy_transaction(None)?;
+        let transaction = fixture.signed_dummy_transaction(0, None)?;
 
         test_add_pending_transaction(&mut fixture, transaction)
     }
@@ -2665,6 +2682,428 @@ mod tests {
     }
 
     #[test]
+    fn mine_and_commit_block_empty() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new_local()?;
+
+        let previous_block_number = fixture.provider_data.last_block_number();
+
+        let result = fixture
+            .provider_data
+            .mine_and_commit_block(BlockOptions::default())?;
+        assert!(result.block.transactions().is_empty());
+
+        let current_block_number = fixture.provider_data.last_block_number();
+        assert_eq!(current_block_number, previous_block_number + 1);
+
+        Ok(())
+    }
+
+    #[test]
+    fn mine_and_commit_block_single_transaction() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new_local()?;
+
+        let transaction = fixture.signed_dummy_transaction(0, None)?;
+        let expected = transaction.value();
+        let receiver = transaction
+            .to()
+            .expect("Dummy transaction should have a receiver");
+
+        fixture.provider_data.add_pending_transaction(transaction)?;
+
+        let result = fixture
+            .provider_data
+            .mine_and_commit_block(BlockOptions::default())?;
+
+        assert_eq!(result.block.transactions().len(), 1);
+
+        let balance = fixture
+            .provider_data
+            .balance(receiver, Some(&BlockSpec::latest()))?;
+
+        assert_eq!(balance, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn mine_and_commit_block_two_transactions_different_senders() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new_local()?;
+
+        let transaction1 = fixture.signed_dummy_transaction(0, None)?;
+        let transaction2 = fixture.signed_dummy_transaction(1, None)?;
+
+        let receiver = transaction1
+            .to()
+            .expect("Dummy transaction should have a receiver");
+
+        let expected = transaction1.value() + transaction2.value();
+
+        fixture
+            .provider_data
+            .add_pending_transaction(transaction1)?;
+        fixture
+            .provider_data
+            .add_pending_transaction(transaction2)?;
+
+        let result = fixture
+            .provider_data
+            .mine_and_commit_block(BlockOptions::default())?;
+
+        assert_eq!(result.block.transactions().len(), 2);
+
+        let balance = fixture
+            .provider_data
+            .balance(receiver, Some(&BlockSpec::latest()))?;
+
+        assert_eq!(balance, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn mine_and_commit_block_two_transactions_same_sender() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new_local()?;
+
+        let transaction1 = fixture.signed_dummy_transaction(0, Some(0))?;
+        let transaction2 = fixture.signed_dummy_transaction(0, Some(1))?;
+
+        let receiver = transaction1
+            .to()
+            .expect("Dummy transaction should have a receiver");
+
+        let expected = transaction1.value() + transaction2.value();
+
+        fixture
+            .provider_data
+            .add_pending_transaction(transaction1)?;
+        fixture
+            .provider_data
+            .add_pending_transaction(transaction2)?;
+
+        let result = fixture
+            .provider_data
+            .mine_and_commit_block(BlockOptions::default())?;
+
+        assert_eq!(result.block.transactions().len(), 2);
+
+        let balance = fixture
+            .provider_data
+            .balance(receiver, Some(&BlockSpec::latest()))?;
+
+        assert_eq!(balance, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn mine_and_commit_block_removes_mined_transactions() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new_local()?;
+
+        let transaction = fixture.signed_dummy_transaction(0, None)?;
+
+        fixture
+            .provider_data
+            .add_pending_transaction(transaction.clone())?;
+
+        let num_pending_transactions = fixture.provider_data.pending_transactions().count();
+        assert_eq!(num_pending_transactions, 1);
+
+        let result = fixture
+            .provider_data
+            .mine_and_commit_block(BlockOptions::default())?;
+
+        assert_eq!(result.block.transactions().len(), 1);
+
+        let num_pending_transactions = fixture.provider_data.pending_transactions().count();
+        assert_eq!(num_pending_transactions, 0);
+
+        Ok(())
+    }
+
+    #[test]
+    fn mine_and_commit_block_leaves_unmined_transactions() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new_local()?;
+        fixture.provider_data.set_block_gas_limit(55_000)?;
+
+        // Actual gas usage is 21_000
+        let transaction1 = fixture.signed_dummy_transaction(0, Some(0))?;
+        let transaction3 = fixture.signed_dummy_transaction(0, Some(1))?;
+
+        // Too expensive to mine
+        let transaction2 = {
+            let request = fixture.dummy_transaction_request(1, 40_000, None);
+            fixture.provider_data.sign_transaction_request(request)?
+        };
+
+        fixture
+            .provider_data
+            .add_pending_transaction(transaction1.clone())?;
+        fixture
+            .provider_data
+            .add_pending_transaction(transaction2.clone())?;
+        fixture
+            .provider_data
+            .add_pending_transaction(transaction3.clone())?;
+
+        let pending_transactions = fixture
+            .provider_data
+            .pending_transactions()
+            .cloned()
+            .collect::<Vec<_>>();
+
+        assert!(pending_transactions.contains(&transaction1));
+        assert!(pending_transactions.contains(&transaction2));
+        assert!(pending_transactions.contains(&transaction3));
+
+        let result = fixture
+            .provider_data
+            .mine_and_commit_block(BlockOptions::default())?;
+
+        // Check that only the first and third transactions were mined
+        assert_eq!(result.block.transactions().len(), 2);
+        assert!(fixture
+            .provider_data
+            .transaction_receipt(transaction1.hash())?
+            .is_some());
+        assert!(fixture
+            .provider_data
+            .transaction_receipt(transaction3.hash())?
+            .is_some());
+
+        // Check that the second transaction is still pending
+        let pending_transactions = fixture
+            .provider_data
+            .pending_transactions()
+            .cloned()
+            .collect::<Vec<_>>();
+
+        assert_eq!(pending_transactions, vec![transaction2]);
+
+        Ok(())
+    }
+
+    #[test]
+    fn mine_and_commit_block_fifo_ordering() -> anyhow::Result<()> {
+        let cache_dir = TempDir::new()?;
+        let default_config = create_test_config_with_fork(cache_dir.path().to_path_buf(), None);
+        let config = ProviderConfig {
+            mining: MiningConfig {
+                mem_pool: MemPoolConfig {
+                    order: MineOrdering::Fifo,
+                },
+                ..default_config.mining
+            },
+            ..default_config
+        };
+
+        let runtime = runtime::Builder::new_multi_thread()
+            .worker_threads(1)
+            .enable_all()
+            .thread_name("provider-data-test")
+            .build()?;
+
+        let mut fixture = ProviderTestFixture::new(runtime, cache_dir, config)?;
+
+        let transaction1 = fixture.signed_dummy_transaction(0, None)?;
+        let transaction2 = fixture.signed_dummy_transaction(1, None)?;
+
+        fixture
+            .provider_data
+            .add_pending_transaction(transaction1.clone())?;
+        fixture
+            .provider_data
+            .add_pending_transaction(transaction2.clone())?;
+
+        let result = fixture
+            .provider_data
+            .mine_and_commit_block(BlockOptions::default())?;
+
+        assert_eq!(result.block.transactions().len(), 2);
+
+        let receipt1 = fixture
+            .provider_data
+            .transaction_receipt(transaction1.hash())?
+            .expect("receipt should exist");
+
+        assert_eq!(receipt1.transaction_index, 0);
+
+        let receipt2 = fixture
+            .provider_data
+            .transaction_receipt(transaction2.hash())?
+            .expect("receipt should exist");
+
+        assert_eq!(receipt2.transaction_index, 1);
+
+        Ok(())
+    }
+
+    #[test]
+    fn mine_and_commit_block_correct_gas_used() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new_local()?;
+
+        let transaction1 = fixture.signed_dummy_transaction(0, None)?;
+        let transaction2 = fixture.signed_dummy_transaction(1, None)?;
+
+        fixture
+            .provider_data
+            .add_pending_transaction(transaction1.clone())?;
+        fixture
+            .provider_data
+            .add_pending_transaction(transaction2.clone())?;
+
+        let result = fixture
+            .provider_data
+            .mine_and_commit_block(BlockOptions::default())?;
+
+        let receipt1 = fixture
+            .provider_data
+            .transaction_receipt(transaction1.hash())?
+            .expect("receipt should exist");
+        let receipt2 = fixture
+            .provider_data
+            .transaction_receipt(transaction2.hash())?
+            .expect("receipt should exist");
+
+        assert_eq!(receipt1.gas_used, 21_000);
+        assert_eq!(receipt2.gas_used, 21_000);
+        assert_eq!(
+            result.block.header().gas_used,
+            receipt1.gas_used + receipt2.gas_used
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn mine_and_commit_block_rewards_miner() -> anyhow::Result<()> {
+        let cache_dir = TempDir::new()?;
+        let default_config = create_test_config_with_fork(cache_dir.path().to_path_buf(), None);
+        let config = ProviderConfig {
+            hardfork: SpecId::BERLIN,
+            ..default_config
+        };
+
+        let runtime = runtime::Builder::new_multi_thread()
+            .worker_threads(1)
+            .enable_all()
+            .thread_name("provider-data-test")
+            .build()?;
+
+        let mut fixture = ProviderTestFixture::new(runtime, cache_dir, config)?;
+
+        let miner = fixture.provider_data.beneficiary;
+        let previous_miner_balance = fixture
+            .provider_data
+            .balance(miner, Some(&BlockSpec::latest()))?;
+
+        let transaction = fixture.signed_dummy_transaction(0, None)?;
+        fixture
+            .provider_data
+            .add_pending_transaction(transaction.clone())?;
+
+        fixture
+            .provider_data
+            .mine_and_commit_block(BlockOptions::default())?;
+
+        let miner_balance = fixture
+            .provider_data
+            .balance(miner, Some(&BlockSpec::latest()))?;
+
+        assert!(miner_balance > previous_miner_balance);
+
+        Ok(())
+    }
+
+    #[test]
+    fn mine_and_commit_blocks_increases_block_number() -> anyhow::Result<()> {
+        const NUM_MINED_BLOCKS: u64 = 10;
+
+        let mut fixture = ProviderTestFixture::new_local()?;
+
+        let previous_block_number = fixture.provider_data.last_block_number();
+
+        fixture
+            .provider_data
+            .mine_and_commit_blocks(NUM_MINED_BLOCKS, 1)?;
+
+        assert_eq!(
+            fixture.provider_data.last_block_number(),
+            previous_block_number + NUM_MINED_BLOCKS
+        );
+        assert_eq!(
+            fixture.provider_data.last_block()?.header().number,
+            previous_block_number + NUM_MINED_BLOCKS
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn mine_and_commit_blocks_works_with_snapshots() -> anyhow::Result<()> {
+        const NUM_MINED_BLOCKS: u64 = 10;
+
+        let mut fixture = ProviderTestFixture::new_local()?;
+
+        let transaction1 = fixture.signed_dummy_transaction(0, None)?;
+        let transaction2 = fixture.signed_dummy_transaction(1, None)?;
+
+        let original_block_number = fixture.provider_data.last_block_number();
+
+        fixture
+            .provider_data
+            .add_pending_transaction(transaction1.clone())?;
+
+        let snapshot_id = fixture.provider_data.make_snapshot();
+        assert_eq!(
+            fixture.provider_data.last_block_number(),
+            original_block_number
+        );
+
+        // Mine block after snapshot
+        fixture
+            .provider_data
+            .mine_and_commit_blocks(NUM_MINED_BLOCKS, 1)?;
+
+        assert_eq!(
+            fixture.provider_data.last_block_number(),
+            original_block_number + NUM_MINED_BLOCKS
+        );
+
+        let reverted = fixture.provider_data.revert_to_snapshot(snapshot_id);
+        assert!(reverted);
+
+        assert_eq!(
+            fixture.provider_data.last_block_number(),
+            original_block_number
+        );
+
+        fixture
+            .provider_data
+            .mine_and_commit_blocks(NUM_MINED_BLOCKS, 1)?;
+
+        let block_number_before_snapshot = fixture.provider_data.last_block_number();
+
+        // Mine block before snapshot
+        let snapshot_id = fixture.provider_data.make_snapshot();
+
+        fixture
+            .provider_data
+            .add_pending_transaction(transaction2.clone())?;
+
+        fixture.provider_data.mine_and_commit_blocks(1, 1)?;
+
+        let reverted = fixture.provider_data.revert_to_snapshot(snapshot_id);
+        assert!(reverted);
+
+        assert_eq!(
+            fixture.provider_data.last_block_number(),
+            block_number_before_snapshot
+        );
+
+        Ok(())
+    }
+
+    #[test]
     fn next_filter_id() -> anyhow::Result<()> {
         let mut fixture = ProviderTestFixture::new_local()?;
 
@@ -2682,17 +3121,17 @@ mod tests {
     fn pending_transactions_returns_pending_and_queued() -> anyhow::Result<()> {
         let mut fixture = ProviderTestFixture::new_local().unwrap();
 
-        let transaction1 = fixture.signed_dummy_transaction(Some(0))?;
+        let transaction1 = fixture.signed_dummy_transaction(0, Some(0))?;
         fixture
             .provider_data
             .add_pending_transaction(transaction1.clone())?;
 
-        let transaction2 = fixture.signed_dummy_transaction(Some(2))?;
+        let transaction2 = fixture.signed_dummy_transaction(0, Some(2))?;
         fixture
             .provider_data
             .add_pending_transaction(transaction2.clone())?;
 
-        let transaction3 = fixture.signed_dummy_transaction(Some(3))?;
+        let transaction3 = fixture.signed_dummy_transaction(0, Some(3))?;
         fixture
             .provider_data
             .add_pending_transaction(transaction3.clone())?;
@@ -2715,13 +3154,7 @@ mod tests {
     fn set_balance_updates_mem_pool() -> anyhow::Result<()> {
         let mut fixture = ProviderTestFixture::new_local()?;
 
-        let transaction = {
-            let mut request = fixture.dummy_transaction_request(None);
-            request.sender = fixture.impersonated_account;
-
-            fixture.provider_data.sign_transaction_request(request)?
-        };
-
+        let transaction = fixture.impersonated_dummy_transaction()?;
         let transaction_hash = fixture.provider_data.add_pending_transaction(transaction)?;
 
         assert!(fixture
@@ -2758,7 +3191,7 @@ mod tests {
     fn pending_transaction_by_hash() -> anyhow::Result<()> {
         let mut fixture = ProviderTestFixture::new_local()?;
 
-        let transaction_request = fixture.signed_dummy_transaction(None)?;
+        let transaction_request = fixture.signed_dummy_transaction(0, None)?;
         let transaction_hash = fixture
             .provider_data
             .add_pending_transaction(transaction_request)?;
@@ -2780,7 +3213,7 @@ mod tests {
     fn transaction_by_hash() -> anyhow::Result<()> {
         let mut fixture = ProviderTestFixture::new_local()?;
 
-        let transaction_request = fixture.signed_dummy_transaction(None)?;
+        let transaction_request = fixture.signed_dummy_transaction(0, None)?;
         let transaction_hash = fixture
             .provider_data
             .add_pending_transaction(transaction_request)?;
@@ -2917,15 +3350,7 @@ mod tests {
         Ok(())
     }
 
-    mod remote {
-        use anyhow::anyhow;
-        use edr_eth::{remote::PreEip1898BlockSpec, spec::chain_hardfork_activations};
-        use edr_evm::{MineOrdering, RemoteBlock};
-
-        use super::*;
-        use crate::{MemPoolConfig, MiningConfig};
-
-        macro_rules! impl_full_block_tests {
+    macro_rules! impl_full_block_tests {
             ($(
                 $name:ident => {
                     block_number: $block_number:expr,
@@ -2945,123 +3370,270 @@ mod tests {
             }
         }
 
-        impl_full_block_tests! {
-            mainnet_byzantium => {
-                block_number: 4_370_001,
-                chain_id: 1,
-                url: get_alchemy_url(),
-            },
-            mainnet_constantinople => {
-                block_number: 7_280_001,
-                chain_id: 1,
-                url: get_alchemy_url(),
-            },
-            mainnet_istanbul => {
-                block_number: 9_069_001,
-                chain_id: 1,
-                url: get_alchemy_url(),
-            },
-            mainnet_muir_glacier => {
-                block_number: 9_300_077,
-                chain_id: 1,
-                url: get_alchemy_url(),
-            },
-            mainnet_shanghai => {
-                block_number: 17_050_001,
-                chain_id: 1,
-                url: get_alchemy_url(),
-            },
-            // This block has both EIP-2930 and EIP-1559 transactions
-            goerli_merge => {
-                block_number: 7_728_449,
-                chain_id: 5,
-                url: get_alchemy_url().replace("mainnet", "goerli"),
-            },
-            sepolia_shanghai => {
-                block_number: 3_095_000,
-                chain_id: 11_155_111,
-                url: get_alchemy_url().replace("mainnet", "sepolia"),
-            },
-        }
+    #[test]
+    fn run_call_in_hardfork_context() -> anyhow::Result<()> {
+        sol! { function Hello() public pure returns (string); }
 
-        fn run_full_block(url: String, block_number: u64, chain_id: u64) -> anyhow::Result<()> {
-            let runtime = runtime::Builder::new_multi_thread()
-                .worker_threads(1)
-                .enable_all()
-                .thread_name("provider-data-test")
-                .build()?;
+        fn assert_decoded_output(result: ExecutionResult) -> anyhow::Result<()> {
+            let output = result.into_output().expect("Call must have output");
+            let decoded = HelloCall::abi_decode_returns(output.as_ref(), false)?;
 
-            let cache_dir = TempDir::new()?;
-            let replay_block = {
-                let rpc_client = RpcClient::new(&url, cache_dir.path().to_path_buf(), None);
-
-                let block =
-                    runtime.block_on(rpc_client.get_block_by_number_with_transaction_data(
-                        PreEip1898BlockSpec::Number(block_number),
-                    ))?;
-
-                RemoteBlock::new(block, Arc::new(rpc_client), runtime.handle().clone())?
-            };
-
-            let hardfork_activations =
-                chain_hardfork_activations(chain_id).ok_or(anyhow!("Unsupported chain id"))?;
-
-            let hardfork = hardfork_activations
-                .hardfork_at_block_number(block_number)
-                .ok_or(anyhow!("Unsupported block number"))?;
-
-            let default_config = create_test_config_with_fork(
-                cache_dir.path().to_path_buf(),
-                Some(ForkConfig {
-                    json_rpc_url: url,
-                    block_number: Some(block_number - 1),
-                    http_headers: None,
-                }),
-            );
-
-            let replay_header = replay_block.header();
-            let block_gas_limit = replay_header.gas_limit;
-
-            let config = ProviderConfig {
-                block_gas_limit,
-                chain_id,
-                coinbase: replay_header.beneficiary,
-                hardfork,
-                mining: MiningConfig {
-                    auto_mine: false,
-                    interval: None,
-                    mem_pool: MemPoolConfig {
-                        // Use first-in, first-out to replay the transaction in the exact same order
-                        order: MineOrdering::Fifo,
-                    },
-                },
-                network_id: 1,
-                ..default_config
-            };
-
-            let mut fixture = ProviderTestFixture::new(runtime, cache_dir, config)?;
-
-            for transaction in replay_block.transactions() {
-                fixture
-                    .provider_data
-                    .add_pending_transaction(transaction.clone())?;
-            }
-
-            let mined_block = fixture.provider_data.mine_and_commit_block(BlockOptions {
-                extra_data: Some(replay_header.extra_data.clone()),
-                mix_hash: Some(replay_header.mix_hash),
-                nonce: Some(replay_header.nonce),
-                parent_beacon_block_root: replay_header.parent_beacon_block_root,
-                state_root: Some(replay_header.state_root),
-                timestamp: Some(replay_header.timestamp),
-                withdrawals_root: replay_header.withdrawals_root,
-                ..BlockOptions::default()
-            })?;
-
-            let mined_header = mined_block.block.header();
-            assert_eq!(mined_header, replay_header);
-
+            assert_eq!(decoded._0, "Hello World");
             Ok(())
         }
+
+        /// Executes a call to method `Hello` on contract `HelloWorld`,
+        /// deployed to mainnet.
+        ///
+        /// Should return a string `"Hello World"`.
+        fn call_hello_world_contract(
+            data: &ProviderData<Infallible>,
+            block_spec: BlockSpec,
+            request: CallRequest,
+        ) -> Result<CallResult, ProviderError<Infallible>> {
+            let state_overrides = StateOverrides::default();
+
+            let transaction =
+                resolve_call_request(data, request, Some(&block_spec), &state_overrides)?;
+
+            data.run_call(transaction, Some(&block_spec), &state_overrides)
+        }
+
+        const EIP_1559_ACTIVATION_BLOCK: u64 = 12_965_000;
+        const HELLO_WORLD_CONTRACT_ADDRESS: &str = "0xe36613A299bA695aBA8D0c0011FCe95e681f6dD3";
+
+        let hello_world_contract_address: Address = HELLO_WORLD_CONTRACT_ADDRESS.parse()?;
+        let hello_world_contract_call = HelloCall::new(());
+
+        let runtime = runtime::Builder::new_multi_thread()
+            .worker_threads(1)
+            .enable_all()
+            .thread_name("provider-data-test")
+            .build()?;
+
+        let cache_dir = TempDir::new()?;
+
+        let default_config = create_test_config_with_fork(
+            cache_dir.path().to_path_buf(),
+            Some(ForkConfig {
+                json_rpc_url: get_alchemy_url(),
+                block_number: Some(EIP_1559_ACTIVATION_BLOCK),
+                http_headers: None,
+            }),
+        );
+
+        let config = ProviderConfig {
+            block_gas_limit: 1_000_000,
+            chain_id: 1,
+            coinbase: Address::ZERO,
+            hardfork: SpecId::LONDON,
+            network_id: 1,
+            ..default_config
+        };
+
+        let mut fixture = ProviderTestFixture::new(runtime, cache_dir, config)?;
+
+        let default_call = CallRequest {
+            from: Some(fixture.nth_local_account(0)),
+            to: Some(hello_world_contract_address),
+            gas: Some(1_000_000),
+            value: Some(U256::ZERO),
+            data: Some(hello_world_contract_call.abi_encode().into()),
+            ..CallRequest::default()
+        };
+
+        // Should accept post-EIP-1559 gas semantics when running in the context of a
+        // post-EIP-1559 block
+        let result = call_hello_world_contract(
+            &fixture.provider_data,
+            BlockSpec::Number(EIP_1559_ACTIVATION_BLOCK),
+            CallRequest {
+                max_fee_per_gas: Some(U256::ZERO),
+                ..default_call.clone()
+            },
+        )?;
+
+        assert_decoded_output(result.execution_result)?;
+
+        // Should accept pre-EIP-1559 gas semantics when running in the context of a
+        // pre-EIP-1559 block
+        let result = call_hello_world_contract(
+            &fixture.provider_data,
+            BlockSpec::Number(EIP_1559_ACTIVATION_BLOCK - 1),
+            CallRequest {
+                gas_price: Some(U256::ZERO),
+                ..default_call.clone()
+            },
+        )?;
+
+        assert_decoded_output(result.execution_result)?;
+
+        // Should throw when given post-EIP-1559 gas semantics and when running in the
+        // context of a pre-EIP-1559 block
+        let result = call_hello_world_contract(
+            &fixture.provider_data,
+            BlockSpec::Number(EIP_1559_ACTIVATION_BLOCK - 1),
+            CallRequest {
+                max_fee_per_gas: Some(U256::ZERO),
+                ..default_call.clone()
+            },
+        );
+
+        assert!(matches!(
+            result,
+            Err(ProviderError::RunTransaction(
+                TransactionError::Eip1559Unsupported
+            ))
+        ));
+
+        // Should accept pre-EIP-1559 gas semantics when running in the context of a
+        // post-EIP-1559 block
+        let result = call_hello_world_contract(
+            &fixture.provider_data,
+            BlockSpec::Number(EIP_1559_ACTIVATION_BLOCK),
+            CallRequest {
+                gas_price: Some(U256::ZERO),
+                ..default_call.clone()
+            },
+        )?;
+
+        assert_decoded_output(result.execution_result)?;
+
+        // Should support a historical call in the context of a block added via
+        // `mine_and_commit_blocks`
+        let previous_block_number = fixture.provider_data.last_block_number();
+
+        fixture.provider_data.mine_and_commit_blocks(100, 1)?;
+
+        let result = call_hello_world_contract(
+            &fixture.provider_data,
+            BlockSpec::Number(previous_block_number + 50),
+            CallRequest {
+                max_fee_per_gas: Some(U256::ZERO),
+                ..default_call
+            },
+        )?;
+
+        assert_decoded_output(result.execution_result)?;
+
+        Ok(())
+    }
+
+    impl_full_block_tests! {
+        mainnet_byzantium => {
+            block_number: 4_370_001,
+            chain_id: 1,
+            url: get_alchemy_url(),
+        },
+        mainnet_constantinople => {
+            block_number: 7_280_001,
+            chain_id: 1,
+            url: get_alchemy_url(),
+        },
+        mainnet_istanbul => {
+            block_number: 9_069_001,
+            chain_id: 1,
+            url: get_alchemy_url(),
+        },
+        mainnet_muir_glacier => {
+            block_number: 9_300_077,
+            chain_id: 1,
+            url: get_alchemy_url(),
+        },
+        mainnet_shanghai => {
+            block_number: 17_050_001,
+            chain_id: 1,
+            url: get_alchemy_url(),
+        },
+        // This block has both EIP-2930 and EIP-1559 transactions
+        goerli_merge => {
+            block_number: 7_728_449,
+            chain_id: 5,
+            url: get_alchemy_url().replace("mainnet", "goerli"),
+        },
+        sepolia_shanghai => {
+            block_number: 3_095_000,
+            chain_id: 11_155_111,
+            url: get_alchemy_url().replace("mainnet", "sepolia"),
+        },
+    }
+
+    fn run_full_block(url: String, block_number: u64, chain_id: u64) -> anyhow::Result<()> {
+        let runtime = runtime::Builder::new_multi_thread()
+            .worker_threads(1)
+            .enable_all()
+            .thread_name("provider-data-test")
+            .build()?;
+
+        let cache_dir = TempDir::new()?;
+        let replay_block = {
+            let rpc_client = RpcClient::new(&url, cache_dir.path().to_path_buf(), None);
+
+            let block = runtime.block_on(rpc_client.get_block_by_number_with_transaction_data(
+                PreEip1898BlockSpec::Number(block_number),
+            ))?;
+
+            RemoteBlock::new(block, Arc::new(rpc_client), runtime.handle().clone())?
+        };
+
+        let hardfork_activations =
+            chain_hardfork_activations(chain_id).ok_or(anyhow!("Unsupported chain id"))?;
+
+        let hardfork = hardfork_activations
+            .hardfork_at_block_number(block_number)
+            .ok_or(anyhow!("Unsupported block number"))?;
+
+        let default_config = create_test_config_with_fork(
+            cache_dir.path().to_path_buf(),
+            Some(ForkConfig {
+                json_rpc_url: url,
+                block_number: Some(block_number - 1),
+                http_headers: None,
+            }),
+        );
+
+        let replay_header = replay_block.header();
+        let block_gas_limit = replay_header.gas_limit;
+
+        let config = ProviderConfig {
+            block_gas_limit,
+            chain_id,
+            coinbase: replay_header.beneficiary,
+            hardfork,
+            mining: MiningConfig {
+                auto_mine: false,
+                interval: None,
+                mem_pool: MemPoolConfig {
+                    // Use first-in, first-out to replay the transaction in the exact same order
+                    order: MineOrdering::Fifo,
+                },
+            },
+            network_id: 1,
+            ..default_config
+        };
+
+        let mut fixture = ProviderTestFixture::new(runtime, cache_dir, config)?;
+
+        for transaction in replay_block.transactions() {
+            fixture
+                .provider_data
+                .add_pending_transaction(transaction.clone())?;
+        }
+
+        let mined_block = fixture.provider_data.mine_and_commit_block(BlockOptions {
+            extra_data: Some(replay_header.extra_data.clone()),
+            mix_hash: Some(replay_header.mix_hash),
+            nonce: Some(replay_header.nonce),
+            parent_beacon_block_root: replay_header.parent_beacon_block_root,
+            state_root: Some(replay_header.state_root),
+            timestamp: Some(replay_header.timestamp),
+            withdrawals_root: replay_header.withdrawals_root,
+            ..BlockOptions::default()
+        })?;
+
+        let mined_header = mined_block.block.header();
+        assert_eq!(mined_header, replay_header);
+
+        Ok(())
     }
 }
