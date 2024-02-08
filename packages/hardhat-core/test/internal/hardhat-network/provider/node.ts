@@ -1,4 +1,3 @@
-import { Common } from "@nomicfoundation/ethereumjs-common";
 import { TxData, TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import { assert } from "chai";
 import {
@@ -40,7 +39,6 @@ import {
   DEFAULT_NETWORK_ID,
 } from "../helpers/providers";
 import { sleep } from "../helpers/sleep";
-import { runFullBlock } from "./utils/runFullBlock";
 
 interface ForkedBlock {
   networkName: string;
@@ -693,70 +691,6 @@ describe("HardhatNode", () => {
         });
       });
     });
-  });
-
-  describe("full block", function () {
-    if (ALCHEMY_URL === undefined) {
-      return;
-    }
-
-    const forkedBlocks: ForkedBlock[] = [
-      // We don't run this test against spurious dragon because
-      // its receipts contain the state root, and we can't compute it
-      {
-        networkName: "mainnet",
-        url: ALCHEMY_URL,
-        blockToRun: 4370001n,
-        chainId: 1,
-      },
-      {
-        networkName: "mainnet",
-        url: ALCHEMY_URL,
-        blockToRun: 7280001n,
-        chainId: 1,
-      },
-      {
-        networkName: "mainnet",
-        url: ALCHEMY_URL,
-        blockToRun: 9069001n,
-        chainId: 1,
-      },
-      {
-        networkName: "mainnet",
-        url: ALCHEMY_URL,
-        blockToRun: 9300077n,
-        chainId: 1,
-      },
-      {
-        networkName: "mainnet",
-        url: ALCHEMY_URL,
-        blockToRun: 17_050_001n, // post-shanghai
-        chainId: 1,
-      },
-      {
-        networkName: "goerli",
-        url: ALCHEMY_URL.replace("mainnet", "goerli"),
-        blockToRun: 7728449n, // this block has both EIP-2930 and EIP-1559 txs
-        chainId: 5,
-      },
-      {
-        networkName: "sepolia",
-        url: ALCHEMY_URL.replace("alchemyapi.io", "g.alchemy.com") // temporary fix until we fix our github secret
-          .replace("mainnet", "sepolia"),
-        blockToRun: 3095000n, // this block is post-shanghai
-        chainId: 11155111,
-      },
-    ];
-
-    for (const { url, blockToRun, networkName, chainId } of forkedBlocks) {
-      const remoteCommon = new Common({ chain: chainId });
-
-      it(`should run ${networkName} block ${blockToRun} and produce the same results`, async function () {
-        this.timeout(240000);
-
-        await runFullBlock(url, blockToRun, chainId, remoteCommon);
-      });
-    }
   });
 
   describe("mineBlocks", function () {

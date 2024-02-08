@@ -17,10 +17,6 @@ export interface BlockOptions {
   beneficiary?: Buffer
   /** The state's root hash */
   stateRoot?: Buffer
-  /** The receipts' root hash */
-  receiptsRoot?: Buffer
-  /** The logs' bloom */
-  logsBloom?: Buffer
   /** The block's difficulty */
   difficulty?: bigint
   /** The block's number */

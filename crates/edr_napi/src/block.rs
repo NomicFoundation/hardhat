@@ -1,4 +1,4 @@
-use edr_eth::{Address, Bloom, Bytes, B256, B64};
+use edr_eth::{Address, Bytes, B256, B64};
 use napi::bindgen_prelude::{BigInt, Buffer};
 use napi_derive::napi;
 
@@ -12,10 +12,6 @@ pub struct BlockOptions {
     pub beneficiary: Option<Buffer>,
     /// The state's root hash
     pub state_root: Option<Buffer>,
-    /// The receipts' root hash
-    pub receipts_root: Option<Buffer>,
-    /// The logs' bloom
-    pub logs_bloom: Option<Buffer>,
     /// The block's difficulty
     pub difficulty: Option<BigInt>,
     /// The block's number
@@ -56,13 +52,6 @@ impl TryFrom<BlockOptions> for edr_eth::block::BlockOptions {
                 .state_root
                 .map(TryCast::<B256>::try_cast)
                 .transpose()?,
-            receipts_root: value
-                .receipts_root
-                .map(TryCast::<B256>::try_cast)
-                .transpose()?,
-            logs_bloom: value
-                .logs_bloom
-                .map(|logs_bloom| Bloom::from_slice(&logs_bloom)),
             difficulty: value
                 .difficulty
                 .map_or(Ok(None), |difficulty| difficulty.try_cast().map(Some))?,

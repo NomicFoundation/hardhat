@@ -140,9 +140,13 @@ fn rinkeby_config() -> &'static ChainConfig {
 }
 
 const GOERLI_HARDFORKS: &[(u64, SpecId)] = &[
+    (0, SpecId::PETERSBURG),
     (1_561_651, SpecId::ISTANBUL),
     (4_460_644, SpecId::BERLIN),
     (5_062_605, SpecId::LONDON),
+    (7_382_818, SpecId::MERGE),
+    (8_656_123, SpecId::SHANGHAI),
+    (10_388_176, SpecId::CANCUN),
 ];
 
 fn goerli_config() -> &'static ChainConfig {
@@ -180,6 +184,45 @@ fn kovan_config() -> &'static ChainConfig {
     })
 }
 
+const HOLESKY_HARDFORKS: &[(u64, SpecId)] = &[
+    (0, SpecId::MERGE),
+    (6_698, SpecId::SHANGHAI),
+    (894_733, SpecId::CANCUN),
+];
+
+fn holesky_config() -> &'static ChainConfig {
+    static CONFIG: OnceLock<ChainConfig> = OnceLock::new();
+
+    CONFIG.get_or_init(|| {
+        let hardfork_activations = HOLESKY_HARDFORKS.into();
+
+        ChainConfig {
+            name: "holesky".to_string(),
+            hardfork_activations,
+        }
+    })
+}
+
+const SEPOLIA_HARDFORKS: &[(u64, SpecId)] = &[
+    (0, SpecId::LONDON),
+    (1_450_409, SpecId::MERGE),
+    (2_990_908, SpecId::SHANGHAI),
+    (5_187_023, SpecId::CANCUN),
+];
+
+fn sepolia_config() -> &'static ChainConfig {
+    static CONFIG: OnceLock<ChainConfig> = OnceLock::new();
+
+    CONFIG.get_or_init(|| {
+        let hardfork_activations = SEPOLIA_HARDFORKS.into();
+
+        ChainConfig {
+            name: "sepolia".to_string(),
+            hardfork_activations,
+        }
+    })
+}
+
 fn chain_configs() -> &'static HashMap<u64, &'static ChainConfig> {
     static CONFIGS: OnceLock<HashMap<u64, &'static ChainConfig>> = OnceLock::new();
 
@@ -190,6 +233,8 @@ fn chain_configs() -> &'static HashMap<u64, &'static ChainConfig> {
         hardforks.insert(4, rinkeby_config());
         hardforks.insert(5, goerli_config());
         hardforks.insert(42, kovan_config());
+        hardforks.insert(17_000, holesky_config());
+        hardforks.insert(11_155_111, sepolia_config());
 
         hardforks
     })

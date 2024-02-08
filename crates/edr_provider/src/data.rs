@@ -2162,20 +2162,16 @@ fn create_blockchain_and_state(
         };
 
         let next_block_base_fee_per_gas = if config.hardfork >= SpecId::LONDON {
-            if let Some(base_fee) = config.initial_base_fee_per_gas {
-                Some(base_fee)
-            } else {
-                let previous_base_fee = blockchain
-                    .last_block()
-                    .map_err(CreationError::Blockchain)?
-                    .header()
-                    .base_fee_per_gas;
+            let previous_base_fee = blockchain
+                .last_block()
+                .map_err(CreationError::Blockchain)?
+                .header()
+                .base_fee_per_gas;
 
-                if previous_base_fee.is_none() {
-                    Some(U256::from(DEFAULT_INITIAL_BASE_FEE_PER_GAS))
-                } else {
-                    None
-                }
+            if previous_base_fee.is_none() {
+                Some(U256::from(DEFAULT_INITIAL_BASE_FEE_PER_GAS))
+            } else {
+                None
             }
         } else {
             None
@@ -2334,10 +2330,20 @@ mod tests {
             let cache_dir = TempDir::new()?;
             let config = create_test_config_with_fork(cache_dir.path().to_path_buf(), fork);
 
-            Self::new(cache_dir, config)
+            let runtime = runtime::Builder::new_multi_thread()
+                .worker_threads(1)
+                .enable_all()
+                .thread_name("provider-data-test")
+                .build()?;
+
+            Self::new(runtime, cache_dir, config)
         }
 
-        fn new(cache_dir: TempDir, mut config: ProviderConfig) -> anyhow::Result<Self> {
+        fn new(
+            runtime: tokio::runtime::Runtime,
+            cache_dir: TempDir,
+            mut config: ProviderConfig,
+        ) -> anyhow::Result<Self> {
             let logger = Box::<NoopLogger>::default();
             let subscription_callback = Box::new(|_| ());
 
@@ -2351,12 +2357,6 @@ mod tests {
                     code_hash: KECCAK_EMPTY,
                 },
             );
-
-            let runtime = runtime::Builder::new_multi_thread()
-                .worker_threads(1)
-                .enable_all()
-                .thread_name("provider-data-test")
-                .build()?;
 
             let mut provider_data = ProviderData::new(
                 runtime.handle().clone(),
@@ -2884,41 +2884,88 @@ mod tests {
     mod remote {
         use anyhow::anyhow;
         use edr_eth::{remote::PreEip1898BlockSpec, spec::chain_hardfork_activations};
-        use edr_evm::RemoteBlock;
+        use edr_evm::{MineOrdering, RemoteBlock};
 
         use super::*;
         use crate::{MemPoolConfig, MiningConfig};
 
-        #[tokio::test(flavor = "multi_thread")]
-        async fn full_byzantium_block_mainnet() -> anyhow::Result<()> {
-            const BLOCK_NUMBER: u64 = 4_370_001;
-            const CHAIN_ID: u64 = 1;
-
-            let url = get_alchemy_url();
-            run_full_block(url, BLOCK_NUMBER, CHAIN_ID).await
+        macro_rules! impl_full_block_tests {
+            ($(
+                $name:ident => {
+                    block_number: $block_number:expr,
+                    chain_id: $chain_id:expr,
+                    url: $url:expr,
+                },
+            )+) => {
+                $(
+                    paste::item! {
+                        #[test]
+                        fn [<full_block_ $name>]() -> anyhow::Result<()> {
+                            let url = $url;
+                            run_full_block(url, $block_number, $chain_id)
+                        }
+                    }
+                )+
+            }
         }
 
-        async fn run_full_block(
-            url: String,
-            block_number: u64,
-            chain_id: u64,
-        ) -> anyhow::Result<()> {
-            let cache_dir = TempDir::new()?;
+        impl_full_block_tests! {
+            mainnet_byzantium => {
+                block_number: 4_370_001,
+                chain_id: 1,
+                url: get_alchemy_url(),
+            },
+            mainnet_constantinople => {
+                block_number: 7_280_001,
+                chain_id: 1,
+                url: get_alchemy_url(),
+            },
+            mainnet_istanbul => {
+                block_number: 9_069_001,
+                chain_id: 1,
+                url: get_alchemy_url(),
+            },
+            mainnet_muir_glacier => {
+                block_number: 9_300_077,
+                chain_id: 1,
+                url: get_alchemy_url(),
+            },
+            mainnet_shanghai => {
+                block_number: 17_050_001,
+                chain_id: 1,
+                url: get_alchemy_url(),
+            },
+            // This block has both EIP-2930 and EIP-1559 transactions
+            goerli_merge => {
+                block_number: 7_728_449,
+                chain_id: 5,
+                url: get_alchemy_url().replace("mainnet", "goerli"),
+            },
+            sepolia_shanghai => {
+                block_number: 3_095_000,
+                chain_id: 11_155_111,
+                url: get_alchemy_url().replace("mainnet", "sepolia"),
+            },
+        }
 
+        fn run_full_block(url: String, block_number: u64, chain_id: u64) -> anyhow::Result<()> {
+            let runtime = runtime::Builder::new_multi_thread()
+                .worker_threads(1)
+                .enable_all()
+                .thread_name("provider-data-test")
+                .build()?;
+
+            let cache_dir = TempDir::new()?;
             let replay_block = {
                 let rpc_client = RpcClient::new(&url, cache_dir.path().to_path_buf(), None);
 
-                let block = rpc_client
-                    .get_block_by_number_with_transaction_data(PreEip1898BlockSpec::Number(
-                        block_number,
-                    ))
-                    .await?;
+                let block =
+                    runtime.block_on(rpc_client.get_block_by_number_with_transaction_data(
+                        PreEip1898BlockSpec::Number(block_number),
+                    ))?;
 
-                RemoteBlock::new(block, Arc::new(rpc_client), runtime::Handle::current())?
+                RemoteBlock::new(block, Arc::new(rpc_client), runtime.handle().clone())?
             };
-
-            let replay_header = replay_block.header();
-            let block_gas_limit = replay_header.gas_limit;
 
             let hardfork_activations =
                 chain_hardfork_activations(chain_id).ok_or(anyhow!("Unsupported chain id"))?;
@@ -2936,6 +2983,9 @@ mod tests {
                 }),
             );
 
+            let replay_header = replay_block.header();
+            let block_gas_limit = replay_header.gas_limit;
+
             let config = ProviderConfig {
                 block_gas_limit,
                 chain_id,
@@ -2944,19 +2994,16 @@ mod tests {
                 mining: MiningConfig {
                     auto_mine: false,
                     interval: None,
-                    mem_pool: MemPoolConfig::default(),
+                    mem_pool: MemPoolConfig {
+                        // Use first-in, first-out to replay the transaction in the exact same order
+                        order: MineOrdering::Fifo,
+                    },
                 },
                 network_id: 1,
                 ..default_config
             };
 
-            let mut fixture = ProviderTestFixture::new(cache_dir, config)?;
-
-            // Ensure we'll get the same prevrandao
-            fixture
-                .provider_data
-                .prev_randao_generator
-                .set_next(replay_header.mix_hash);
+            let mut fixture = ProviderTestFixture::new(runtime, cache_dir, config)?;
 
             for transaction in replay_block.transactions() {
                 fixture
@@ -2968,26 +3015,14 @@ mod tests {
                 extra_data: Some(replay_header.extra_data.clone()),
                 mix_hash: Some(replay_header.mix_hash),
                 nonce: Some(replay_header.nonce),
+                parent_beacon_block_root: replay_header.parent_beacon_block_root,
                 state_root: Some(replay_header.state_root),
                 timestamp: Some(replay_header.timestamp),
+                withdrawals_root: replay_header.withdrawals_root,
                 ..BlockOptions::default()
             })?;
 
             let mined_header = mined_block.block.header();
-
-            // If the receipts' root is different, do a manual check of the receipts to find
-            // the cause
-            if mined_header.receipts_root != replay_header.receipts_root {
-                mined_block
-                    .block
-                    .transaction_receipts()?
-                    .into_iter()
-                    .zip(replay_block.transaction_receipts()?.into_iter())
-                    .for_each(|(mined_receipt, replay_receipt)| {
-                        assert_eq!(mined_receipt, replay_receipt);
-                    });
-            }
-
             assert_eq!(mined_header, replay_header);
 
             Ok(())

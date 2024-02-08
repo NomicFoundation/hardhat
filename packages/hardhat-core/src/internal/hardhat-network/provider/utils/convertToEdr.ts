@@ -142,8 +142,6 @@ export function ethereumjsHeaderDataToEdrBlockOptions(
     parentHash: fromBufferLike(headerData.parentHash),
     beneficiary: fromBufferLike(headerData.coinbase),
     stateRoot: fromBufferLike(headerData.stateRoot),
-    receiptsRoot: fromBufferLike(headerData.receiptTrie),
-    logsBloom: fromBufferLike(headerData.logsBloom),
     difficulty: fromBigIntLike(headerData.difficulty),
     number: fromBigIntLike(headerData.number),
     gasLimit: fromBigIntLike(headerData.gasLimit),
