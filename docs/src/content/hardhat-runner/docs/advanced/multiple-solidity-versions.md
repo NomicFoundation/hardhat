@@ -45,6 +45,6 @@ Keep in mind that:
 
 :::tip
 
-Hardhat also provides a way to use a custom Solidity compiler. Learn more from the [Using a custom Solidity compiler guide](/guides/using-custom-solc.md).
+Hardhat also provides a way to use a custom Solidity compiler. Learn more from the [Using a custom Solidity compiler guide](/other-guides/using-custom-solc.md).
 
 :::
