@@ -4,7 +4,6 @@ mod gas;
 mod inspector;
 
 use std::{
-    borrow::Cow,
     cmp,
     cmp::Ordering,
     collections::BTreeMap,
@@ -76,7 +75,7 @@ use crate::{
 };
 
 const DEFAULT_INITIAL_BASE_FEE_PER_GAS: u64 = 1_000_000_000;
-const MAX_CACHED_BLOCK_CONTEXTS: usize = 1000;
+const MAX_CACHED_STATES: usize = 2048;
 
 /// The result of executing an `eth_call`.
 #[derive(Clone)]
@@ -118,7 +117,6 @@ pub struct ProviderData<LoggerErrorT: Debug> {
     runtime_handle: runtime::Handle,
     initial_config: ProviderConfig,
     blockchain: Box<dyn SyncBlockchain<BlockchainError, StateError>>,
-    state: Box<dyn SyncState<StateError>>,
     pub irregular_state: IrregularState,
     mem_pool: MemPool,
     beneficiary: Address,
@@ -145,7 +143,11 @@ pub struct ProviderData<LoggerErrorT: Debug> {
     logger: Box<dyn SyncLogger<BlockchainError = BlockchainError, LoggerError = LoggerErrorT>>,
     impersonated_accounts: HashSet<Address>,
     subscriber_callback: Box<dyn SyncSubscriberCallback>,
-    block_state_cache: LruCache<u64, Box<dyn SyncState<StateError>>>,
+    // We need the Arc to let us avoid returning references to the cache entries which need &mut
+    // self to get.
+    block_state_cache: LruCache<StateId, Arc<Box<dyn SyncState<StateError>>>>,
+    current_state_id: StateId,
+    block_number_to_state_id: BTreeMap<u64, StateId>,
 }
 
 impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
@@ -171,11 +173,13 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             next_block_base_fee_per_gas,
         } = create_blockchain_and_state(runtime_handle.clone(), &config, genesis_accounts)?;
 
-        let mut block_state_cache = LruCache::new(
-            NonZeroUsize::new(MAX_CACHED_BLOCK_CONTEXTS).expect("constant is non-zero"),
-        );
+        let mut block_state_cache =
+            LruCache::new(NonZeroUsize::new(MAX_CACHED_STATES).expect("constant is non-zero"));
+        let mut block_number_to_state_id = BTreeMap::new();
 
-        block_state_cache.push(blockchain.last_block_number(), state.clone());
+        let current_state_id = StateId::default();
+        block_state_cache.push(current_state_id, Arc::new(state));
+        block_number_to_state_id.insert(blockchain.last_block_number(), current_state_id);
 
         let allow_blocks_with_same_timestamp = config.allow_blocks_with_same_timestamp;
         let allow_unlimited_contract_size = config.allow_unlimited_contract_size;
@@ -193,7 +197,6 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             runtime_handle,
             initial_config: config,
             blockchain,
-            state,
             irregular_state,
             mem_pool: MemPool::new(block_gas_limit),
             beneficiary,
@@ -219,6 +222,8 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             impersonated_accounts: HashSet::new(),
             subscriber_callback,
             block_state_cache,
+            current_state_id,
+            block_number_to_state_id,
         })
     }
 
@@ -240,8 +245,12 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
 
     /// Retrieves the last pending nonce of the account corresponding to the
     /// provided address, if it exists.
-    pub fn account_next_nonce(&self, address: &Address) -> Result<u64, StateError> {
-        mempool::account_next_nonce(&self.mem_pool, &self.state, address)
+    pub fn account_next_nonce(
+        &mut self,
+        address: &Address,
+    ) -> Result<u64, ProviderError<LoggerErrorT>> {
+        let state = self.current_state()?;
+        mempool::account_next_nonce(&self.mem_pool, &*state, address).map_err(Into::into)
     }
 
     pub fn accounts(&self) -> impl Iterator<Item = &Address> {
@@ -661,7 +670,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
 
     // Matches Hardhat implementation
     pub fn fee_history(
-        &self,
+        &mut self,
         block_count: u64,
         newest_block_spec: &BlockSpec,
         percentiles: Option<Vec<RewardPercentile>>,
@@ -948,7 +957,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
 
         let snapshot = Snapshot {
             block_number: self.blockchain.last_block_number(),
-            block_state_cache: self.block_state_cache.clone(),
+            block_number_to_state_id: self.block_number_to_state_id.clone(),
             block_time_offset_seconds: self.block_time_offset_seconds,
             coinbase: self.beneficiary,
             irregular_state: self.irregular_state.clone(),
@@ -956,7 +965,6 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             next_block_base_fee_per_gas: self.next_block_base_fee_per_gas,
             next_block_timestamp: self.next_block_timestamp,
             prev_randao_generator: self.prev_randao_generator.clone(),
-            state: self.state.clone(),
             time: Instant::now(),
         };
         self.snapshots.insert(id, snapshot);
@@ -1035,9 +1043,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         // Remove outdated filters
         self.filters.retain(|_, filter| !filter.has_expired());
 
-        self.block_state_cache
-            .push(block.header().number, result.state.clone());
-        self.state = result.state;
+        self.add_state_to_cache(result.state, block.header().number);
 
         Ok(DebugMineBlockResult {
             block: block_and_total_difficulty.block,
@@ -1177,7 +1183,6 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 || {
                     if matches!(block_spec, Some(BlockSpec::Tag(BlockTag::Pending))) {
                         self.account_next_nonce(address)
-                            .map_err(ProviderError::State)
                     } else {
                         self.execute_in_block_context(
                             block_spec,
@@ -1223,7 +1228,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         if let Some(snapshot) = removed_snapshots.remove(&snapshot_id) {
             let Snapshot {
                 block_number,
-                block_state_cache,
+                block_number_to_state_id,
                 block_time_offset_seconds,
                 coinbase,
                 irregular_state,
@@ -1231,11 +1236,10 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 next_block_base_fee_per_gas,
                 next_block_timestamp,
                 prev_randao_generator,
-                state,
                 time,
             } = snapshot;
 
-            self.block_state_cache = block_state_cache;
+            self.block_number_to_state_id = block_number_to_state_id;
 
             // We compute a new offset such that:
             // now + new_offset == snapshot_date + old_offset
@@ -1253,7 +1257,6 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             self.next_block_base_fee_per_gas = next_block_base_fee_per_gas;
             self.next_block_timestamp = next_block_timestamp;
             self.prev_randao_generator = prev_randao_generator;
-            self.state = state;
 
             true
         } else {
@@ -1403,8 +1406,8 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         address: Address,
         balance: U256,
     ) -> Result<(), ProviderError<LoggerErrorT>> {
-        let mut state = self.state.clone();
-        let account_info = state.modify_account(
+        let mut modified_state = (*self.current_state()?).clone();
+        let account_info = modified_state.modify_account(
             address,
             AccountModifierFn::new(Box::new(move |account_balance, _, _| {
                 *account_balance = balance;
@@ -1419,9 +1422,9 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             },
         )?;
 
-        let state_root = state.state_root()?;
+        let state_root = modified_state.state_root()?;
 
-        self.mem_pool.update(&state)?;
+        self.mem_pool.update(&modified_state)?;
 
         let block_number = self.blockchain.last_block_number();
         self.irregular_state
@@ -1430,8 +1433,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             .diff
             .apply_account_change(address, account_info.clone());
 
-        self.block_state_cache.push(block_number, state.clone());
-        self.state = state;
+        self.add_state_to_cache(modified_state, block_number);
 
         Ok(())
     }
@@ -1441,8 +1443,9 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         &mut self,
         gas_limit: u64,
     ) -> Result<(), ProviderError<LoggerErrorT>> {
+        let state = self.current_state()?;
         self.mem_pool
-            .set_block_gas_limit(&self.state, gas_limit)
+            .set_block_gas_limit(&*state, gas_limit)
             .map_err(ProviderError::State)
     }
 
@@ -1455,8 +1458,9 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         let default_code = code.clone();
         let irregular_code = code.clone();
 
-        let mut state = self.state.clone();
-        let mut account_info = state.modify_account(
+        // We clone to automatically revert in case of subsequent errors.
+        let mut modified_state = (*self.current_state()?).clone();
+        let mut account_info = modified_state.modify_account(
             address,
             AccountModifierFn::new(Box::new(move |_, _, account_code| {
                 *account_code = Some(code.clone());
@@ -1475,7 +1479,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         // irregular state.
         account_info.code = Some(irregular_code.clone());
 
-        let state_root = state.state_root()?;
+        let state_root = modified_state.state_root()?;
 
         let block_number = self.blockchain.last_block_number();
         self.irregular_state
@@ -1484,8 +1488,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             .diff
             .apply_account_change(address, account_info.clone());
 
-        self.block_state_cache.push(block_number, state.clone());
-        self.state = state;
+        self.add_state_to_cache(modified_state, block_number);
 
         Ok(())
     }
@@ -1558,7 +1561,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         }
 
         let previous_nonce = self
-            .state
+            .current_state()?
             .basic(address)?
             .map_or(0, |account| account.nonce);
 
@@ -1569,8 +1572,9 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             });
         }
 
-        let mut state = self.state.clone();
-        let account_info = state.modify_account(
+        // We clone to automatically revert in case of subsequent errors.
+        let mut modified_state = (*self.current_state()?).clone();
+        let account_info = modified_state.modify_account(
             address,
             AccountModifierFn::new(Box::new(move |_, account_nonce, _| *account_nonce = nonce)),
             &|| {
@@ -1583,19 +1587,18 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             },
         )?;
 
-        let state_root = state.state_root()?;
+        let state_root = modified_state.state_root()?;
 
-        self.mem_pool.update(&state)?;
+        self.mem_pool.update(&modified_state)?;
 
-        let block_number = self.blockchain.last_block_number();
+        let block_number = self.last_block_number();
         self.irregular_state
             .state_override_at_block_number(block_number)
             .or_insert_with(|| StateOverride::with_state_root(state_root))
             .diff
             .apply_account_change(address, account_info.clone());
 
-        self.block_state_cache.push(block_number, state.clone());
-        self.state = state;
+        self.add_state_to_cache(modified_state, block_number);
 
         Ok(())
     }
@@ -1606,7 +1609,8 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         index: U256,
         value: U256,
     ) -> Result<(), ProviderError<LoggerErrorT>> {
-        let mut state = self.state.clone();
+        // We clone to automatically revert in case of subsequent errors.
+        let mut state = (*self.current_state()?).clone();
         state.set_account_storage_slot(address, index, value)?;
 
         let old_value = state.set_account_storage_slot(address, index, value)?;
@@ -1632,8 +1636,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             .diff
             .apply_storage_change(address, index, slot, account_info);
 
-        self.block_state_cache.push(block_number, state.clone());
-        self.state = state;
+        self.add_state_to_cache(state, block_number);
 
         Ok(())
     }
@@ -1731,8 +1734,9 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
     ) -> Result<B256, ProviderError<LoggerErrorT>> {
         let transaction_hash = *transaction.hash();
 
+        let state = self.current_state()?;
         // Handles validation
-        self.mem_pool.add_transaction(&self.state, transaction)?;
+        self.mem_pool.add_transaction(&*state, transaction)?;
 
         for (filter_id, filter) in self.filters.iter_mut() {
             if let FilterData::NewPendingTransactions(events) = &mut filter.data {
@@ -1797,23 +1801,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             let block_header = block.header();
             let block_number = block_header.number;
 
-            let contextual_state = if self.block_state_cache.contains(&block_number) {
-                // We cannot use `LruCache::try_get_or_insert`, because it needs &mut self, but
-                // we would need &self in the callback to reference the blockchain.
-                Cow::Borrowed(
-                    self.block_state_cache
-                        .get(&block_number)
-                        .expect("We checked that the state is in the cache"),
-                )
-            } else {
-                let state = self
-                    .blockchain
-                    .state_at_block_number(block_number, self.irregular_state.state_overrides())?;
-
-                self.block_state_cache.push(block_number, state.clone());
-
-                Cow::Owned(state)
-            };
+            let contextual_state = self.get_or_compute_state(block_number)?;
 
             Ok(function(&*self.blockchain, &block, &contextual_state))
         } else {
@@ -1833,7 +1821,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
 
     /// Mine a block at a specific timestamp
     fn mine_block(
-        &self,
+        &mut self,
         timestamp: u64,
         prevrandao: Option<B256>,
     ) -> Result<DebugMineBlockResultAndState<StateError>, ProviderError<LoggerErrorT>> {
@@ -1841,9 +1829,11 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
 
         let mut inspector = EvmInspector::default();
 
+        let state_to_be_modified = (*self.current_state()?).clone();
+
         let result = mine_block(
             &*self.blockchain,
-            self.state.clone(),
+            state_to_be_modified,
             &self.mem_pool,
             &evm_config,
             timestamp,
@@ -1865,7 +1855,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
 
     /// Mines a pending block, without modifying any values.
     pub fn mine_pending_block(
-        &self,
+        &mut self,
     ) -> Result<DebugMineBlockResultAndState<StateError>, ProviderError<LoggerErrorT>> {
         let (block_timestamp, _new_offset) = self.next_block_timestamp(None)?;
 
@@ -1964,10 +1954,10 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
     }
 
     fn validate_auto_mine_transaction(
-        &self,
+        &mut self,
         transaction: &ExecutableTransaction,
     ) -> Result<(), ProviderError<LoggerErrorT>> {
-        let next_nonce = self.account_next_nonce(transaction.caller())?;
+        let next_nonce = { self.account_next_nonce(transaction.caller())? };
 
         match transaction.nonce().cmp(&next_nonce) {
             Ordering::Less => {
@@ -2017,6 +2007,60 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         }
 
         Ok(())
+    }
+
+    fn current_state(
+        &mut self,
+    ) -> Result<Arc<Box<dyn SyncState<StateError>>>, ProviderError<LoggerErrorT>> {
+        self.get_or_compute_state(self.last_block_number())
+    }
+
+    fn get_or_compute_state(
+        &mut self,
+        block_number: u64,
+    ) -> Result<Arc<Box<dyn SyncState<StateError>>>, ProviderError<LoggerErrorT>> {
+        if let Some(state_id) = self.block_number_to_state_id.get(&block_number) {
+            // We cannot use `LruCache::try_get_or_insert`, because it needs &mut self, but
+            // we would need &self in the callback to reference the blockchain.
+            if let Some(state) = self.block_state_cache.get(state_id) {
+                return Ok(state.clone());
+            }
+        };
+
+        let state = self
+            .blockchain
+            .state_at_block_number(block_number, self.irregular_state.state_overrides())?;
+        let state_id = self.add_state_to_cache(state, block_number);
+        Ok(self
+            .block_state_cache
+            .get(&state_id)
+            // State must exist, since we just inserted it, and we have exclusive access to
+            // the cache due to &mut self.
+            .expect("State must exist")
+            .clone())
+    }
+
+    fn add_state_to_cache(
+        &mut self,
+        state: Box<dyn SyncState<StateError>>,
+        block_number: u64,
+    ) -> StateId {
+        let state_id = self.current_state_id.increment();
+        self.block_state_cache.push(state_id, Arc::new(state));
+        self.block_number_to_state_id.insert(block_number, state_id);
+        state_id
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
+#[repr(transparent)]
+pub(crate) struct StateId(u64);
+
+impl StateId {
+    /// Increment the current state id and return the incremented id.
+    fn increment(&mut self) -> Self {
+        self.0 += 1;
+        *self
     }
 }
 

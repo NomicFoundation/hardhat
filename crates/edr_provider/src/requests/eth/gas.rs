@@ -54,7 +54,7 @@ pub fn handle_estimate_gas<LoggerErrorT: Debug>(
 }
 
 pub fn handle_fee_history<LoggerErrorT: Debug>(
-    data: &ProviderData<LoggerErrorT>,
+    data: &mut ProviderData<LoggerErrorT>,
     block_count: U256,
     newest_block: BlockSpec,
     reward_percentiles: Option<Vec<f64>>,
