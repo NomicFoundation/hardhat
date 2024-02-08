@@ -506,30 +506,64 @@ describe("Eth module - hardfork dependant tests", function () {
   });
 
   describe("Block formatting", function () {
-    describe("When running EIP-1559", function () {
-      for (const hardfork of ["london", "arrowGlacier"]) {
-        useProviderAndCommon(hardfork);
-        it(`Should have a baseFeePerGas field when ${hardfork} is activated`, async function () {
+    describe("EIP-1559 - london", () => {
+      describe("When running EIP-1559", function () {
+        for (const hardfork of ["london", "arrowGlacier"]) {
+          useProviderAndCommon(hardfork);
+          it(`Should have a baseFeePerGas field when ${hardfork} is activated`, async function () {
+            const block: RpcBlockOutput = await this.provider.send(
+              "eth_getBlockByNumber",
+              ["latest", false]
+            );
+
+            assert.isDefined(block.baseFeePerGas);
+          });
+        }
+      });
+
+      describe("When not running EIP-1559", function () {
+        useProviderAndCommon("berlin");
+
+        it("Should not have a baseFeePerGas field", async function () {
           const block: RpcBlockOutput = await this.provider.send(
             "eth_getBlockByNumber",
             ["latest", false]
           );
 
-          assert.isDefined(block.baseFeePerGas);
+          assert.isUndefined(block.baseFeePerGas);
         });
-      }
+      });
     });
 
-    describe("When not running EIP-1559", function () {
-      useProviderAndCommon("berlin");
+    describe("EIP-4844 - cancun", () => {
+      describe("When running EIP-4844", function () {
+        useProviderAndCommon("cancun");
 
-      it("Should not have a baseFeePerGas field", async function () {
-        const block: RpcBlockOutput = await this.provider.send(
-          "eth_getBlockByNumber",
-          ["latest", false]
-        );
+        it("Should have the parentBeaconBlockRoot and the blob fields", async function () {
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
 
-        assert.isUndefined(block.baseFeePerGas);
+          assert.isDefined(block.parentBeaconBlockRoot);
+          assert.isDefined(block.blobGasUsed);
+          assert.isDefined(block.excessBlobGas);
+        });
+      });
+
+      describe("When not running EIP-4844", function () {
+        useProviderAndCommon("shanghai");
+
+        it("Should not have the parentBeaconBlockRoot and the blob fields", async function () {
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          assert.isUndefined(block.parentBeaconBlockRoot);
+          assert.isUndefined(block.blobGasUsed);
+          assert.isUndefined(block.excessBlobGas);
+        });
       });
     });
   });
