@@ -456,6 +456,22 @@ describe("INTEGRATION: Reverted with custom error", function () {
           "sender doesn't have enough funds to send tx"
         );
       });
+
+      it("extra arguments", async function () {
+        expect(() =>
+          expect(
+            matchers.revertWithSomeCustomError()
+          ).to.be.revertedWithCustomError(
+            matchers,
+            "SomeCustomError",
+            // @ts-expect-error
+            "extraArgument"
+          )
+        ).to.throw(
+          Error,
+          "`.revertedWithCustomError` expects only two arguments: the contract and the error name. Arguments should be asserted with the `.withArgs` helper."
+        );
+      });
     });
 
     describe("stack traces", function () {

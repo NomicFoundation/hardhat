@@ -65,6 +65,16 @@ describe(".to.emit (contract events)", () => {
       );
     });
 
+    it("Should fail when matcher is called with too many arguments", async function () {
+      await expect(
+        // @ts-expect-error
+        expect(contract.emitUint(1)).not.to.emit(contract, "WithoutArgs", 1)
+      ).to.be.eventually.rejectedWith(
+        Error,
+        "`.emit` expects only two arguments: the contract and the event name. Arguments should be asserted with the `.withArgs` helper."
+      );
+    });
+
     it("Should detect events without arguments", async function () {
       await expect(contract.emitWithoutArgs()).to.emit(contract, "WithoutArgs");
     });
