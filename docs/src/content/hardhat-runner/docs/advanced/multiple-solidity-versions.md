@@ -45,6 +45,6 @@ Keep in mind that:
 
 :::tip
 
-Hardhat also provides support for using a Custom Solidity Compiler by overriding the `TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD` subtask, learn more from the [Using a Custom Solidity Compiler guide](/guides/using-custom-solc.md).
+Hardhat also provides a way to use a custom Solidity compiler. Learn more from the [Using a custom Solidity compiler guide](/guides/using-custom-solc.md).
 
 :::
