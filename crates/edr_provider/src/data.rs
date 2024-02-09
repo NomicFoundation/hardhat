@@ -3364,26 +3364,6 @@ mod tests {
         Ok(())
     }
 
-    macro_rules! impl_full_block_tests {
-            ($(
-                $name:ident => {
-                    block_number: $block_number:expr,
-                    chain_id: $chain_id:expr,
-                    url: $url:expr,
-                },
-            )+) => {
-                $(
-                    paste::item! {
-                        #[test]
-                        fn [<full_block_ $name>]() -> anyhow::Result<()> {
-                            let url = $url;
-                            run_full_block(url, $block_number, $chain_id)
-                        }
-                    }
-                )+
-            }
-        }
-
     #[test]
     fn run_call_in_hardfork_context() -> anyhow::Result<()> {
         sol! { function Hello() public pure returns (string); }
@@ -3531,6 +3511,26 @@ mod tests {
         assert_decoded_output(result.execution_result)?;
 
         Ok(())
+    }
+
+    macro_rules! impl_full_block_tests {
+        ($(
+            $name:ident => {
+                block_number: $block_number:expr,
+                chain_id: $chain_id:expr,
+                url: $url:expr,
+            },
+        )+) => {
+            $(
+                paste::item! {
+                    #[test]
+                    fn [<full_block_ $name>]() -> anyhow::Result<()> {
+                        let url = $url;
+                        run_full_block(url, $block_number, $chain_id)
+                    }
+                }
+            )+
+        }
     }
 
     impl_full_block_tests! {
