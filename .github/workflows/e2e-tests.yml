@@ -12,6 +12,16 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     name: Run E2E tests on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    env:
+      # TODO: the e2e tests fail on windows when pnpm is used,
+      # for what we think is a bug in pnpm. We set this env
+      # variable to skip that combination until we find a solution.
+      #
+      # The failure is caused by `pnpm hardhat init` executing
+      # `hardhat init` twice on windows, which results in the
+      # second execution failing because `hardhat init` cannot
+      # be run on an existing project.
+      IS_WINDOWS: ${{ matrix.os == 'windows-latest' }}
     steps:
       - uses: actions/checkout@v2
       - uses: pnpm/action-setup@v2

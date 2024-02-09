@@ -33,7 +33,8 @@ export function supportRevertedWithCustomError(
     function (
       this: any,
       contract: EthersT.BaseContract,
-      expectedCustomErrorName: string
+      expectedCustomErrorName: string,
+      ...args: any[]
     ) {
       // capture negated flag before async code executes; see buildAssert's jsdoc
       const negated = this.__flags.negate;
@@ -41,7 +42,8 @@ export function supportRevertedWithCustomError(
       const { iface, expectedCustomError } = validateInput(
         this._obj,
         contract,
-        expectedCustomErrorName
+        expectedCustomErrorName,
+        args
       );
 
       preventAsyncMatcherChaining(
@@ -149,7 +151,8 @@ export function supportRevertedWithCustomError(
 function validateInput(
   obj: any,
   contract: EthersT.BaseContract,
-  expectedCustomErrorName: string
+  expectedCustomErrorName: string,
+  args: any[]
 ): { iface: EthersT.Interface; expectedCustomError: EthersT.ErrorFragment } {
   try {
     // check the case where users forget to pass the contract as the first
@@ -173,6 +176,12 @@ function validateInput(
     if (expectedCustomError === null) {
       throw new Error(
         `The given contract doesn't have a custom error named '${expectedCustomErrorName}'`
+      );
+    }
+
+    if (args.length > 0) {
+      throw new Error(
+        "`.revertedWithCustomError` expects only two arguments: the contract and the error name. Arguments should be asserted with the `.withArgs` helper."
       );
     }
 

@@ -43,7 +43,12 @@ export function supportEmit(
 ) {
   Assertion.addMethod(
     EMIT_MATCHER,
-    function (this: any, contract: Contract, eventName: string) {
+    function (
+      this: any,
+      contract: Contract,
+      eventName: string,
+      ...args: any[]
+    ) {
       // capture negated flag before async code executes; see buildAssert's jsdoc
       const negated = this.__flags.negate;
       const tx = this._obj;
@@ -81,6 +86,13 @@ export function supportEmit(
             `The contract target should be a string`
           );
         }
+
+        if (args.length > 0) {
+          throw new Error(
+            "`.emit` expects only two arguments: the contract and the event name. Arguments should be asserted with the `.withArgs` helper."
+          );
+        }
+
         this.logs = receipt.logs
           .filter((log) => log.topics.includes(topic))
           .filter(
