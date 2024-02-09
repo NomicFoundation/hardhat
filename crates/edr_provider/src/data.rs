@@ -999,10 +999,12 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
 
                         let mut filtered_logs = filter_logs(new_logs, criteria);
                         if filter.is_subscription {
-                            (self.subscriber_callback)(SubscriptionEvent {
-                                filter_id: *filter_id,
-                                result: SubscriptionEventData::Logs(filtered_logs.clone()),
-                            });
+                            for log in filtered_logs {
+                                (self.subscriber_callback)(SubscriptionEvent {
+                                    filter_id: *filter_id,
+                                    result: SubscriptionEventData::Log(log.clone()),
+                                });
+                            }
                         } else {
                             logs.append(&mut filtered_logs);
                         }
