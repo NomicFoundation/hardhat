@@ -16,6 +16,7 @@ export async function putGenesisBlock(
   stateTrie: Trie,
   hardfork: HardforkName,
   initialMixHash: Uint8Array,
+  initialParentBeaconBlockRoot: Uint8Array,
   initialBaseFee?: bigint
 ) {
   const initialBlockTimestamp =
@@ -24,6 +25,7 @@ export async function putGenesisBlock(
       : getCurrentTimestamp();
 
   const isPostMerge = hardforkGte(hardfork, HardforkName.MERGE);
+  const isPostCancun = hardforkGte(hardfork, HardforkName.CANCUN);
 
   const header: HeaderData = {
     timestamp: `0x${initialBlockTimestamp.toString(16)}`,
@@ -36,6 +38,10 @@ export async function putGenesisBlock(
 
   if (isPostMerge) {
     header.mixHash = initialMixHash;
+  }
+
+  if (isPostCancun) {
+    header.parentBeaconBlockRoot = initialParentBeaconBlockRoot;
   }
 
   if (initialBaseFee !== undefined) {

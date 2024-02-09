@@ -40,6 +40,7 @@ import {
   DEFAULT_NETWORK_ID,
 } from "../helpers/providers";
 import { sleep } from "../helpers/sleep";
+import { bufferToRpcData } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { runFullBlock } from "./utils/runFullBlock";
 
 function toBuffer(x: Parameters<typeof toBytes>[0]) {
@@ -1373,6 +1374,64 @@ describe("HardhatNode", () => {
         );
 
         assert.isUndefined(estimateGasResult.error);
+      });
+    });
+
+    describe("cancun hardfork", function () {
+      describe("parentBeaconBlockRoot property", function () {
+        beforeEach(async () => {
+          [, node] = await HardhatNode.create({
+            ...config,
+            hardfork: "cancun",
+          });
+        });
+
+        it("should have the parentBeaconBlockRoot property only after cancun", async () => {
+          [, node] = await HardhatNode.create({
+            ...config,
+            hardfork: "shanghai",
+          });
+
+          const block = await node.getBlockByNumber(0n);
+
+          assert.isUndefined(block!.header.parentBeaconBlockRoot);
+        });
+
+        it("should have a non empty parentBeaconBlockRoot in the genesis block and the value should be an expected one", async () => {
+          const block = await node.getBlockByNumber(0n);
+
+          assert.equal(
+            bufferToRpcData(block!.header.parentBeaconBlockRoot!),
+            "0xdd8876ba5af271ae9d93ececb192d6a7b4e6094ca5999756336279fd796b8619"
+          );
+        });
+
+        it("should have different parentBeaconBlockRoot values in different blocks", async () => {
+          const block1 = await node.getBlockByNumber(0n);
+          const parentBeaconBlockRoot1 = bufferToRpcData(
+            block1!.header.parentBeaconBlockRoot!
+          );
+
+          await node.mineBlock();
+
+          const block2 = await node.getBlockByNumber(1n);
+          const parentBeaconBlockRoot2 = bufferToRpcData(
+            block2!.header.parentBeaconBlockRoot!
+          );
+
+          assert.notEqual(parentBeaconBlockRoot1, parentBeaconBlockRoot2);
+        });
+
+        it("should have the parentBeaconBlockRoot value different from the mixhash value", async () => {
+          const block = await node.getBlockByNumber(0n);
+
+          const mixHash = bufferToRpcData(block!.header.mixHash);
+          const parentBeaconBlockRoot = bufferToRpcData(
+            block!.header.parentBeaconBlockRoot!
+          );
+
+          assert.notEqual(parentBeaconBlockRoot, mixHash);
+        });
       });
     });
   });

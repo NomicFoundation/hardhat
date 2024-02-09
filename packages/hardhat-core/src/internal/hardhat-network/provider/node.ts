@@ -174,6 +174,10 @@ export class HardhatNode extends EventEmitter {
 
     const hardfork = getHardforkName(config.hardfork);
     const mixHashGenerator = RandomBufferGenerator.create("randomMixHashSeed");
+    const parentBeaconBlockRootGenerator = RandomBufferGenerator.create(
+      "randomParentBeaconBlockRootSeed"
+    );
+
     let forkClient: JsonRpcClient | undefined;
 
     const common = makeCommon(config);
@@ -255,6 +259,7 @@ export class HardhatNode extends EventEmitter {
         stateTrie,
         hardfork,
         mixHashGenerator.next(),
+        parentBeaconBlockRootGenerator.next(),
         genesisBlockBaseFeePerGas
       );
 
@@ -304,6 +309,7 @@ export class HardhatNode extends EventEmitter {
       hardfork,
       hardforkActivations,
       mixHashGenerator,
+      parentBeaconBlockRootGenerator,
       allowUnlimitedContractSize,
       allowBlocksWithSameTimestamp,
       tracingConfig,
@@ -392,6 +398,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     public readonly hardfork: HardforkName,
     private readonly _hardforkActivations: HardforkHistoryConfig,
     private _mixHashGenerator: RandomBufferGenerator,
+    private _parentBeaconBlockRootGenerator: RandomBufferGenerator,
     public readonly allowUnlimitedContractSize: boolean,
     private _allowBlocksWithSameTimestamp: boolean,
     tracingConfig?: TracingConfig,
@@ -1068,6 +1075,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         this.getUserProvidedNextBlockBaseFeePerGas(),
       coinbase: this.getCoinbaseAddress().toString(),
       mixHashGenerator: this._mixHashGenerator.clone(),
+      parentBeaconBlockRootGenerator:
+        this._parentBeaconBlockRootGenerator.clone(),
     };
 
     this._irregularStatesByBlockNumber = new Map(
@@ -1124,6 +1133,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     this._coinbase = snapshot.coinbase;
 
     this._mixHashGenerator = snapshot.mixHashGenerator;
+    this._parentBeaconBlockRootGenerator =
+      snapshot.parentBeaconBlockRootGenerator;
 
     // We delete this and the following snapshots, as they can only be used
     // once in Ganache
@@ -1850,6 +1861,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
     if (this.isPostMergeHardfork()) {
       headerData.mixHash = this._getNextMixHash();
+    }
+
+    if (this.isPostCancunHardfork()) {
+      headerData.parentBeaconBlockRoot = this._getNextParentBeaconBlockRoot();
     }
 
     headerData.baseFeePerGas = await this.getNextBlockBaseFeePerGas();
@@ -2724,6 +2739,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return hardforkGte(this.hardfork, HardforkName.MERGE);
   }
 
+  public isPostCancunHardfork(): boolean {
+    return hardforkGte(this.hardfork, HardforkName.CANCUN);
+  }
+
   public setPrevRandao(prevRandao: Buffer): void {
     this._mixHashGenerator.setNext(prevRandao);
   }
@@ -2777,6 +2796,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   private _getNextMixHash(): Uint8Array {
     return this._mixHashGenerator.next();
+  }
+
+  private _getNextParentBeaconBlockRoot(): Uint8Array {
+    return this._parentBeaconBlockRootGenerator.next();
   }
 
   private async _getEstimateGasFeePriceFields(

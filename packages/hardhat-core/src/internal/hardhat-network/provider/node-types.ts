@@ -131,6 +131,7 @@ export interface Snapshot {
   userProvidedNextBlockBaseFeePerGas: bigint | undefined;
   coinbase: string;
   mixHashGenerator: RandomBufferGenerator;
+  parentBeaconBlockRootGenerator: RandomBufferGenerator;
 }
 
 export type SendTransactionResult =
