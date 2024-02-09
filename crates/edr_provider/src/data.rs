@@ -2258,27 +2258,17 @@ lazy_static! {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod test_utils {
     use std::convert::Infallible;
 
-    use alloy_sol_types::{sol, SolCall};
-    use anyhow::{anyhow, Context};
-    use edr_eth::{
-        remote::{eth::CallRequest, PreEip1898BlockSpec},
-        spec::chain_hardfork_activations,
-        transaction::{Eip155TransactionRequest, TransactionKind, TransactionRequest},
-    };
-    use edr_evm::{hex, MineOrdering, RemoteBlock, TransactionError};
+    use edr_eth::transaction::{Eip155TransactionRequest, TransactionKind, TransactionRequest};
     use edr_test_utils::env::get_alchemy_url;
-    use serde_json::json;
     use tempfile::TempDir;
 
     use super::*;
     use crate::{
-        data::inspector::tests::{deploy_console_log_contract, ConsoleLogTransaction},
-        requests::eth::resolve_call_request,
         test_utils::{create_test_config_with_fork, one_ether, FORK_BLOCK_NUMBER},
-        Logger, MemPoolConfig, MiningConfig, ProviderConfig,
+        Logger, ProviderConfig,
     };
 
     #[derive(Clone, Default)]
@@ -2304,13 +2294,13 @@ mod tests {
         }
     }
 
-    struct ProviderTestFixture {
+    pub(crate) struct ProviderTestFixture {
         // We need to keep the tempdir and runtime alive for the duration of the test
         _cache_dir: TempDir,
         _runtime: runtime::Runtime,
-        config: ProviderConfig,
-        provider_data: ProviderData<Infallible>,
-        impersonated_account: Address,
+        pub config: ProviderConfig,
+        pub provider_data: ProviderData<Infallible>,
+        pub impersonated_account: Address,
     }
 
     impl ProviderTestFixture {
@@ -2345,7 +2335,7 @@ mod tests {
             Self::new(runtime, cache_dir, config)
         }
 
-        fn new(
+        pub fn new(
             runtime: tokio::runtime::Runtime,
             cache_dir: TempDir,
             mut config: ProviderConfig,
@@ -2382,7 +2372,7 @@ mod tests {
             })
         }
 
-        fn dummy_transaction_request(
+        pub fn dummy_transaction_request(
             &self,
             local_account_index: usize,
             gas_limit: u64,
@@ -2409,7 +2399,7 @@ mod tests {
         /// # Panics
         ///
         /// Panics if there are not enough local accounts
-        fn nth_local_account(&self, index: usize) -> Address {
+        pub fn nth_local_account(&self, index: usize) -> Address {
             *self
                 .provider_data
                 .local_accounts
@@ -2418,14 +2408,14 @@ mod tests {
                 .expect("the requested local account does not exist")
         }
 
-        fn impersonated_dummy_transaction(&self) -> anyhow::Result<ExecutableTransaction> {
+        pub fn impersonated_dummy_transaction(&self) -> anyhow::Result<ExecutableTransaction> {
             let mut transaction = self.dummy_transaction_request(0, 30_000, None);
             transaction.sender = self.impersonated_account;
 
             Ok(self.provider_data.sign_transaction_request(transaction)?)
         }
 
-        fn signed_dummy_transaction(
+        pub fn signed_dummy_transaction(
             &self,
             local_account_index: usize,
             nonce: Option<u64>,
@@ -2434,6 +2424,30 @@ mod tests {
             Ok(self.provider_data.sign_transaction_request(transaction)?)
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::convert::Infallible;
+
+    use alloy_sol_types::{sol, SolCall};
+    use anyhow::{anyhow, Context};
+    use edr_eth::{
+        remote::{eth::CallRequest, PreEip1898BlockSpec},
+        spec::chain_hardfork_activations,
+    };
+    use edr_evm::{hex, MineOrdering, RemoteBlock, TransactionError};
+    use edr_test_utils::env::get_alchemy_url;
+    use serde_json::json;
+    use tempfile::TempDir;
+
+    use super::{test_utils::ProviderTestFixture, *};
+    use crate::{
+        data::inspector::tests::{deploy_console_log_contract, ConsoleLogTransaction},
+        requests::eth::resolve_call_request,
+        test_utils::{create_test_config_with_fork, one_ether, FORK_BLOCK_NUMBER},
+        MemPoolConfig, MiningConfig, ProviderConfig,
+    };
 
     #[test]
     fn test_local_account_balance() -> anyhow::Result<()> {

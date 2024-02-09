@@ -1,10 +1,10 @@
-use std::{path::PathBuf, time::SystemTime};
+use std::{convert::Infallible, path::PathBuf, time::SystemTime};
 
 use edr_eth::{
     block::BlobGas, signature::secret_key_from_str, trie::KECCAK_NULL_RLP, Address, HashMap,
     SpecId, U256,
 };
-use edr_evm::alloy_primitives::U160;
+use edr_evm::{alloy_primitives::U160, Block};
 
 use super::*;
 use crate::{config::MiningConfig, requests::hardhat::rpc_types::ForkConfig};
@@ -67,4 +67,18 @@ pub fn create_test_config_with_fork(
         network_id: 123,
         cache_dir,
     }
+}
+
+/// Retrieves the pending base fee per gas from the provider data.
+pub fn pending_base_fee(
+    data: &ProviderData<Infallible>,
+) -> Result<U256, ProviderError<Infallible>> {
+    let block = data.mine_pending_block()?.block;
+
+    let base_fee = block
+        .header()
+        .base_fee_per_gas
+        .unwrap_or_else(|| U256::from(1));
+
+    Ok(base_fee)
 }
