@@ -13,10 +13,11 @@ use edr_eth::{
     },
     Bytes, SpecId, B256, U256,
 };
-use edr_evm::{blockchain::BlockchainError, ExecutableTransaction, SyncBlock};
+use edr_evm::{blockchain::BlockchainError, trace::Trace, ExecutableTransaction, SyncBlock};
 
 use crate::{
     data::{BlockDataForTransaction, ProviderData, SendTransactionResult, TransactionAndBlock},
+    error::TransactionFailureWithTraces,
     requests::validation::{
         validate_eip3860_max_initcode_size, validate_post_merge_block_tags,
         validate_transaction_and_call_request, validate_transaction_spec,
@@ -233,7 +234,7 @@ pub fn transaction_to_rpc_result<LoggerErrorT: Debug>(
 pub fn handle_send_transaction_request<LoggerErrorT: Debug>(
     data: &mut ProviderData<LoggerErrorT>,
     transaction_request: EthTransactionRequest,
-) -> Result<B256, ProviderError<LoggerErrorT>> {
+) -> Result<(B256, Vec<Trace>), ProviderError<LoggerErrorT>> {
     validate_send_transaction_request(data, &transaction_request)?;
 
     let transaction_request = resolve_transaction_request(data, transaction_request)?;
@@ -245,7 +246,7 @@ pub fn handle_send_transaction_request<LoggerErrorT: Debug>(
 pub fn handle_send_raw_transaction_request<LoggerErrorT: Debug>(
     data: &mut ProviderData<LoggerErrorT>,
     raw_transaction: Bytes,
-) -> Result<B256, ProviderError<LoggerErrorT>> {
+) -> Result<(B256, Vec<Trace>), ProviderError<LoggerErrorT>> {
     let mut raw_transaction: &[u8] = raw_transaction.as_ref();
     let signed_transaction =
         SignedTransaction::decode(&mut raw_transaction).map_err(|err| match err {
@@ -391,7 +392,7 @@ fn resolve_transaction_request<LoggerErrorT: Debug>(
 fn send_raw_transaction_and_log<LoggerErrorT: Debug>(
     data: &mut ProviderData<LoggerErrorT>,
     signed_transaction: ExecutableTransaction,
-) -> Result<B256, ProviderError<LoggerErrorT>> {
+) -> Result<(B256, Vec<Trace>), ProviderError<LoggerErrorT>> {
     let SendTransactionResult {
         transaction_hash,
         transaction_result,
@@ -400,20 +401,27 @@ fn send_raw_transaction_and_log<LoggerErrorT: Debug>(
 
     let spec_id = data.spec_id();
     data.logger_mut()
-        .log_send_transaction(spec_id, &signed_transaction, mining_results)
+        .log_send_transaction(spec_id, &signed_transaction, &mining_results)
         .map_err(ProviderError::Logger)?;
+
+    let traces = mining_results
+        .into_iter()
+        .flat_map(|result| result.transaction_traces)
+        .collect();
 
     if data.bail_on_transaction_failure() {
         let transaction_failure = transaction_result.and_then(|(result, trace)| {
             TransactionFailure::from_execution_result(&result, &transaction_hash, &trace)
         });
 
-        if let Some(transaction_failure) = transaction_failure {
-            return Err(ProviderError::TransactionFailed(transaction_failure));
+        if let Some(failure) = transaction_failure {
+            return Err(ProviderError::TransactionFailed(
+                TransactionFailureWithTraces { failure, traces },
+            ));
         }
     }
 
-    Ok(transaction_hash)
+    Ok((transaction_hash, traces))
 }
 
 fn validate_send_transaction_request<LoggerErrorT: Debug>(

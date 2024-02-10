@@ -375,7 +375,8 @@ export class Provider {
 }
 export class Response {
   get json(): string
-  get trace(): RawTrace | null
+  get solidityTrace(): RawTrace | null
+  get traces(): Array<RawTrace>
 }
 export class RawTrace {
   trace(): Array<TracingMessage | TracingStep | TracingMessageResult>

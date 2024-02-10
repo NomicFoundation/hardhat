@@ -58,7 +58,7 @@ pub trait Logger {
     fn log_mined_block(
         &mut self,
         spec_id: edr_eth::SpecId,
-        results: Vec<DebugMineBlockResult<Self::BlockchainError>>,
+        results: &[DebugMineBlockResult<Self::BlockchainError>],
     ) -> Result<(), Self::LoggerError> {
         let _spec_id = spec_id;
         let _results = results;
@@ -70,7 +70,7 @@ pub trait Logger {
         &mut self,
         spec_id: edr_eth::SpecId,
         transaction: &ExecutableTransaction,
-        mining_results: Vec<DebugMineBlockResult<Self::BlockchainError>>,
+        mining_results: &[DebugMineBlockResult<Self::BlockchainError>],
     ) -> Result<(), Self::LoggerError> {
         let _spec_id = spec_id;
         let _transaction = transaction;

@@ -1,6 +1,7 @@
 use core::fmt::Debug;
 
 use edr_eth::{block::BlockOptions, U64};
+use edr_evm::trace::Trace;
 
 use crate::{data::ProviderData, requests::methods::U64OrUsize, ProviderError};
 
@@ -17,18 +18,21 @@ pub fn handle_increase_time_request<LoggerErrorT: Debug>(
 pub fn handle_mine_request<LoggerErrorT: Debug>(
     data: &mut ProviderData<LoggerErrorT>,
     timestamp: Option<U64OrUsize>,
-) -> Result<String, ProviderError<LoggerErrorT>> {
+) -> Result<(String, Vec<Trace>), ProviderError<LoggerErrorT>> {
     let mine_block_result = data.mine_and_commit_block(BlockOptions {
         timestamp: timestamp.map(U64OrUsize::into),
         ..BlockOptions::default()
     })?;
 
+    let traces = mine_block_result.transaction_traces.clone();
+
     let spec_id = data.spec_id();
     data.logger_mut()
-        .log_mined_block(spec_id, vec![mine_block_result])
+        .log_mined_block(spec_id, &[mine_block_result])
         .map_err(ProviderError::Logger)?;
 
-    Ok(String::from("0"))
+    let result = String::from("0");
+    Ok((result, traces))
 }
 
 pub fn handle_revert_request<LoggerErrorT: Debug>(

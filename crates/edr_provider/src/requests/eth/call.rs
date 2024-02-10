@@ -8,7 +8,7 @@ use edr_eth::{
     },
     Bytes, SpecId, U256,
 };
-use edr_evm::{state::StateOverrides, ExecutableTransaction};
+use edr_evm::{state::StateOverrides, trace::Trace, ExecutableTransaction};
 
 use crate::{
     data::ProviderData, requests::validation::validate_call_request, ProviderError,
@@ -20,7 +20,7 @@ pub fn handle_call_request<LoggerErrorT: Debug>(
     request: CallRequest,
     block_spec: Option<BlockSpec>,
     state_overrides: Option<StateOverrideOptions>,
-) -> Result<Bytes, ProviderError<LoggerErrorT>> {
+) -> Result<(Bytes, Trace), ProviderError<LoggerErrorT>> {
     validate_call_request(data.spec_id(), &request, &block_spec)?;
 
     let state_overrides =
@@ -35,16 +35,22 @@ pub fn handle_call_request<LoggerErrorT: Debug>(
         .map_err(ProviderError::Logger)?;
 
     if data.bail_on_call_failure() {
-        if let Some(call_failure) = TransactionFailure::from_execution_result(
+        if let Some(failure) = TransactionFailure::from_execution_result(
             &result.execution_result,
             transaction.hash(),
             &result.trace,
         ) {
-            return Err(ProviderError::TransactionFailed(call_failure));
+            return Err(ProviderError::TransactionFailed(
+                crate::error::TransactionFailureWithTraces {
+                    failure,
+                    traces: vec![result.trace],
+                },
+            ));
         }
     }
 
-    Ok(result.execution_result.into_output().unwrap_or_default())
+    let output = result.execution_result.into_output().unwrap_or_default();
+    Ok((output, result.trace))
 }
 
 pub(crate) fn resolve_call_request<LoggerErrorT: Debug>(

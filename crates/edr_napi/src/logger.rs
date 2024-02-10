@@ -174,7 +174,7 @@ impl edr_provider::Logger for Logger {
     fn log_mined_block(
         &mut self,
         spec_id: edr_eth::SpecId,
-        mining_results: Vec<edr_provider::DebugMineBlockResult<Self::BlockchainError>>,
+        mining_results: &[edr_provider::DebugMineBlockResult<Self::BlockchainError>],
     ) -> Result<(), Self::LoggerError> {
         self.collector.log_mined_blocks(spec_id, mining_results);
 
@@ -185,7 +185,7 @@ impl edr_provider::Logger for Logger {
         &mut self,
         spec_id: edr_eth::SpecId,
         transaction: &edr_evm::ExecutableTransaction,
-        mining_results: Vec<edr_provider::DebugMineBlockResult<Self::BlockchainError>>,
+        mining_results: &[edr_provider::DebugMineBlockResult<Self::BlockchainError>],
     ) -> Result<(), Self::LoggerError> {
         self.collector
             .log_send_transaction(spec_id, transaction, mining_results);
@@ -434,7 +434,10 @@ impl LogCollector {
         self.state = LoggingState::Empty;
 
         self.indented(|logger| {
-            logger.log_contract_and_function_name::<true>(spec_id, &transaction_failure.trace);
+            logger.log_contract_and_function_name::<true>(
+                spec_id,
+                &transaction_failure.failure.solidity_trace,
+            );
 
             logger.log_with_title("From", format!("0x{:x}", transaction.caller()));
             if let Some(to) = transaction.to() {
@@ -444,7 +447,7 @@ impl LogCollector {
 
             logger.log_console_log_messages(console_log_inputs);
 
-            logger.log_transaction_failure(transaction_failure);
+            logger.log_transaction_failure(&transaction_failure.failure);
         });
     }
 
@@ -467,10 +470,10 @@ impl LogCollector {
     pub fn log_mined_blocks(
         &mut self,
         spec_id: edr_eth::SpecId,
-        mining_results: Vec<edr_provider::DebugMineBlockResult<BlockchainError>>,
+        mining_results: &[edr_provider::DebugMineBlockResult<BlockchainError>],
     ) {
         let num_results = mining_results.len();
-        for (idx, mining_result) in mining_results.into_iter().enumerate() {
+        for (idx, mining_result) in mining_results.iter().enumerate() {
             let state = std::mem::take(&mut self.state);
             let empty_blocks_range_start = state.into_hardhat_mining();
 
@@ -542,7 +545,7 @@ impl LogCollector {
         &mut self,
         spec_id: edr_eth::SpecId,
         transaction: &edr_evm::ExecutableTransaction,
-        mining_results: Vec<edr_provider::DebugMineBlockResult<BlockchainError>>,
+        mining_results: &[edr_provider::DebugMineBlockResult<BlockchainError>],
     ) {
         if !mining_results.is_empty() {
             self.state = LoggingState::Empty;
@@ -564,7 +567,7 @@ impl LogCollector {
 
             if mining_results.len() > 1 {
                 self.log_multiple_blocks_warning();
-                self.log_auto_mined_block_results(spec_id, &mining_results, transaction.hash());
+                self.log_auto_mined_block_results(spec_id, mining_results, transaction.hash());
                 self.log_currently_sent_transaction(
                     spec_id,
                     sent_block_result,
@@ -576,7 +579,7 @@ impl LogCollector {
                 let transactions = result.block.transactions();
                 if transactions.len() > 1 {
                     self.log_multiple_transactions_warning();
-                    self.log_auto_mined_block_results(spec_id, &mining_results, transaction.hash());
+                    self.log_auto_mined_block_results(spec_id, mining_results, transaction.hash());
                     self.log_currently_sent_transaction(
                         spec_id,
                         sent_block_result,
@@ -1001,7 +1004,7 @@ impl LogCollector {
     fn log_hardhat_mined_block(
         &mut self,
         spec_id: edr_eth::SpecId,
-        result: edr_provider::DebugMineBlockResult<BlockchainError>,
+        result: &edr_provider::DebugMineBlockResult<BlockchainError>,
     ) {
         let edr_provider::DebugMineBlockResult {
             block,
@@ -1018,12 +1021,12 @@ impl LogCollector {
 
         self.indented(|logger| {
             if transactions.is_empty() {
-                logger.log_empty_block(&block);
+                logger.log_empty_block(block);
             } else {
-                logger.log_block_number(&block);
+                logger.log_block_number(block);
 
                 logger.indented(|logger| {
-                    logger.log_block_hash(&block);
+                    logger.log_block_hash(block);
 
                     logger.indented(|logger| {
                         logger.log_base_fee(block.header().base_fee_per_gas.as_ref());
@@ -1037,9 +1040,9 @@ impl LogCollector {
                             logger.log_block_transaction(
                                 spec_id,
                                 transaction,
-                                &result,
-                                &trace,
-                                &console_log_inputs,
+                                result,
+                                trace,
+                                console_log_inputs,
                                 false,
                             );
 

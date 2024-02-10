@@ -53,6 +53,7 @@ use tokio::runtime;
 
 use self::{
     account::{create_accounts, InitialAccounts},
+    gas::{BinarySearchEstimationResult, CheckGasResult},
     inspector::EvmInspector,
 };
 use crate::{
@@ -61,7 +62,7 @@ use crate::{
         gas::{compute_rewards, BinarySearchEstimationArgs, CheckGasLimitArgs},
     },
     debug_mine::{DebugMineBlockResult, DebugMineBlockResultAndState},
-    error::{EstimateGasFailure, TransactionFailure},
+    error::{EstimateGasFailure, TransactionFailure, TransactionFailureWithTraces},
     filter::{bloom_contains_log_filter, filter_logs, Filter, FilterData, LogFilter},
     logger::SyncLogger,
     pending::BlockchainWithPending,
@@ -74,11 +75,17 @@ use crate::{
 const DEFAULT_INITIAL_BASE_FEE_PER_GAS: u64 = 1_000_000_000;
 
 /// The result of executing an `eth_call`.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct CallResult {
     pub console_log_inputs: Vec<Bytes>,
     pub execution_result: ExecutionResult,
     pub trace: Trace,
+}
+
+#[derive(Clone)]
+pub struct EstimateGasResult {
+    pub estimation: u64,
+    pub traces: Vec<Trace>,
 }
 
 pub struct SendTransactionResult {
@@ -560,7 +567,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         &self,
         transaction: ExecutableTransaction,
         block_spec: &BlockSpec,
-    ) -> Result<u64, ProviderError<LoggerErrorT>> {
+    ) -> Result<EstimateGasResult, ProviderError<LoggerErrorT>> {
         let cfg_env = self.create_evm_config(Some(block_spec))?;
         // Minimum gas cost that is required for transaction to be included in
         // a block
@@ -590,23 +597,27 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             })?;
 
             let (debug_inspector, tracer) = inspector.into_parts();
+            let trace = tracer.into_trace();
 
             let mut initial_estimation = match result {
                 ExecutionResult::Success { gas_used, .. } => Ok(gas_used),
                 ExecutionResult::Revert { output, .. } => Err(TransactionFailure::revert(
                     output,
                     transaction_hash,
-                    tracer.into_trace(),
+                    trace.clone(),
                 )),
                 ExecutionResult::Halt { reason, .. } => Err(TransactionFailure::halt(
                     reason,
                     transaction_hash,
-                    tracer.into_trace(),
+                    trace.clone(),
                 )),
             }
-            .map_err(|transaction_failure| EstimateGasFailure {
+            .map_err(|failure| EstimateGasFailure {
                 console_log_inputs: debug_inspector.into_console_log_encoded_messages(),
-                transaction_failure,
+                transaction_failure: TransactionFailureWithTraces {
+                    traces: vec![failure.solidity_trace.clone()],
+                    failure,
+                },
             })?;
 
             // Ensure that the initial estimation is at least the minimum cost + 1.
@@ -614,39 +625,49 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 initial_estimation = minimum_cost + 1;
             }
 
+            let mut traces = vec![trace];
+
             // Test if the transaction would be successful with the initial estimation
-            let result = gas::check_gas_limit(CheckGasLimitArgs {
+            let CheckGasResult { success, trace } = gas::check_gas_limit(CheckGasLimitArgs {
                 blockchain,
                 header,
                 state: &state,
                 state_overrides: &state_overrides,
                 cfg_env: cfg_env.clone(),
                 tx_env: tx_env.clone(),
-                transaction_hash: &transaction_hash,
                 gas_limit: initial_estimation,
             })?;
 
+            traces.push(trace);
+
             // Return the initial estimation if it was successful
-            if result {
-                return Ok(initial_estimation);
+            if success {
+                return Ok(EstimateGasResult {
+                    estimation: initial_estimation,
+                    traces,
+                });
             }
 
             // Correct the initial estimation if the transaction failed with the actually
             // used gas limit. This can happen if the execution logic is based
             // on the available gas.
-            let estimation = gas::binary_search_estimation(BinarySearchEstimationArgs {
+            let BinarySearchEstimationResult {
+                estimation,
+                traces: mut estimation_traces,
+            } = gas::binary_search_estimation(BinarySearchEstimationArgs {
                 blockchain,
                 header,
                 state: &state,
                 state_overrides: &state_overrides,
                 cfg_env: cfg_env.clone(),
                 tx_env: tx_env.clone(),
-                transaction_hash: &transaction_hash,
                 lower_bound: initial_estimation,
                 upper_bound: header.gas_limit,
             })?;
 
-            Ok(estimation)
+            traces.append(&mut estimation_traces);
+
+            Ok(EstimateGasResult { estimation, traces })
         })?
     }
 

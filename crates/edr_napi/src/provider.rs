@@ -97,38 +97,53 @@ impl Provider {
                         )
                     })
                     .map(|json_response| Response {
+                        solidity_trace: None,
                         json: json_response,
-                        trace: None,
+                        traces: Vec::new(),
                     });
             }
         };
 
-        let response = runtime::Handle::current()
+        let mut response = runtime::Handle::current()
             .spawn_blocking(move || provider.handle_request(request))
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
 
-        let trace = if let Err(edr_provider::ProviderError::TransactionFailed(failure)) = &response
-        {
-            if matches!(
-                failure.reason,
-                edr_provider::TransactionFailureReason::OutOfGas(_)
-            ) {
-                None
+        // We can take the solidity trace as it won't be used for anything else
+        let solidity_trace = response.as_mut().err().and_then(|error| {
+            if let edr_provider::ProviderError::TransactionFailed(failure) = error {
+                if matches!(
+                    failure.failure.reason,
+                    edr_provider::TransactionFailureReason::OutOfGas(_)
+                ) {
+                    None
+                } else {
+                    Some(Arc::new(std::mem::take(
+                        &mut failure.failure.solidity_trace,
+                    )))
+                }
             } else {
-                Some(Arc::new(failure.trace.clone()))
+                None
             }
-        } else {
-            None
+        });
+
+        // We can take the traces as they won't be used for anything else
+        let traces = match &mut response {
+            Ok(response) => std::mem::take(&mut response.traces),
+            Err(edr_provider::ProviderError::TransactionFailed(failure)) => {
+                std::mem::take(&mut failure.traces)
+            }
+            Err(_) => Vec::new(),
         };
 
-        let response = jsonrpc::ResponseData::from(response);
+        let response = jsonrpc::ResponseData::from(response.map(|response| response.result));
 
         serde_json::to_string(&response)
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
             .map(|json_response| Response {
+                solidity_trace,
                 json: json_response,
-                trace,
+                traces: traces.into_iter().map(Arc::new).collect(),
             })
     }
 }
@@ -138,7 +153,9 @@ pub struct Response {
     json: String,
     /// When a transaction fails to execute, the provider returns a trace of the
     /// transaction.
-    trace: Option<Arc<edr_evm::trace::Trace>>,
+    solidity_trace: Option<Arc<edr_evm::trace::Trace>>,
+    /// This may contain zero or more traces, depending on the (batch) request
+    traces: Vec<Arc<edr_evm::trace::Trace>>,
 }
 
 #[napi]
@@ -149,9 +166,17 @@ impl Response {
     }
 
     #[napi(getter)]
-    pub fn trace(&self) -> Option<RawTrace> {
-        self.trace
+    pub fn solidity_trace(&self) -> Option<RawTrace> {
+        self.solidity_trace
             .as_ref()
             .map(|trace| RawTrace::new(trace.clone()))
+    }
+
+    #[napi(getter)]
+    pub fn traces(&self) -> Vec<RawTrace> {
+        self.traces
+            .iter()
+            .map(|trace| RawTrace::new(trace.clone()))
+            .collect()
     }
 }

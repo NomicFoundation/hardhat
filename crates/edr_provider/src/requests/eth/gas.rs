@@ -8,7 +8,7 @@ use edr_eth::{
     reward_percentile::RewardPercentile,
     SpecId, U256, U64,
 };
-use edr_evm::{state::StateOverrides, ExecutableTransaction};
+use edr_evm::{state::StateOverrides, trace::Trace, ExecutableTransaction};
 
 use super::resolve_call_request_inner;
 use crate::{
@@ -21,7 +21,7 @@ pub fn handle_estimate_gas<LoggerErrorT: Debug>(
     data: &mut ProviderData<LoggerErrorT>,
     call_request: CallRequest,
     block_spec: Option<BlockSpec>,
-) -> Result<U64, ProviderError<LoggerErrorT>> {
+) -> Result<(U64, Vec<Trace>), ProviderError<LoggerErrorT>> {
     validate_call_request(data.spec_id(), &call_request, &block_spec)?;
 
     // Matching Hardhat behavior in defaulting to "pending" instead of "latest" for
@@ -42,8 +42,8 @@ pub fn handle_estimate_gas<LoggerErrorT: Debug>(
             failure.transaction_failure,
         ))
     } else {
-        let gas_limit = result?;
-        Ok(U64::from(gas_limit))
+        let result = result?;
+        Ok((U64::from(result.estimation), result.traces))
     }
 }
 

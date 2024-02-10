@@ -1,8 +1,11 @@
 import type {
   Provider as EdrProviderT,
+  ExecutionResult,
   RawTrace,
   Response,
   SubscriptionEvent,
+  TracingMessage,
+  TracingStep,
 } from "@ignored/edr";
 import type {
   Artifacts,
@@ -101,7 +104,7 @@ interface HardhatNetworkProviderConfig {
   enableTransientStorage: boolean;
 }
 
-function getNodeConfig(
+export function getNodeConfig(
   config: HardhatNetworkProviderConfig,
   tracingConfig?: TracingConfig
 ): NodeConfig {
@@ -128,6 +131,12 @@ function getNodeConfig(
   };
 }
 
+export interface RawTraceCallbacks {
+  onStep?: (messageTrace: TracingStep) => Promise<void>;
+  onBeforeMessage?: (messageTrace: TracingMessage) => Promise<void>;
+  onAfterMessage?: (messageTrace: ExecutionResult) => Promise<void>;
+}
+
 class EdrProviderEventAdapter extends EventEmitter {}
 
 export class EdrProviderWrapper
@@ -140,6 +149,7 @@ export class EdrProviderWrapper
     private readonly _provider: EdrProviderT,
     private readonly _eventAdapter: EdrProviderEventAdapter,
     private readonly _vmTraceDecoder: VmTraceDecoder,
+    private readonly _rawTraceCallbacks: RawTraceCallbacks,
     // The common configuration for EthereumJS VM is not used by EDR, but tests expect it as part of the provider.
     private readonly _common: Common,
     tracingConfig?: TracingConfig
@@ -154,7 +164,8 @@ export class EdrProviderWrapper
   public static async create(
     config: HardhatNetworkProviderConfig,
     loggerConfig: LoggerConfig,
-    artifacts?: Artifacts
+    rawTraceCallbacks: RawTraceCallbacks,
+    tracingConfig?: TracingConfig
   ): Promise<EdrProviderWrapper> {
     const { Provider } =
       require("@ignored/edr") as typeof import("@ignored/edr");
@@ -272,8 +283,9 @@ export class EdrProviderWrapper
       provider,
       eventAdapter,
       vmTraceDecoder,
+      rawTraceCallbacks,
       common,
-      await makeTracingConfig(artifacts)
+      tracingConfig
     );
 
     // Pass through all events from the provider
@@ -314,13 +326,35 @@ export class EdrProviderWrapper
     );
     const response = JSON.parse(responseObject.json);
 
+    const rawTraces = responseObject.traces;
+    for (const rawTrace of rawTraces) {
+      const trace = rawTrace.trace();
+      for (const traceItem of trace) {
+        if ("pc" in traceItem) {
+          if (this._rawTraceCallbacks.onStep !== undefined) {
+            await this._rawTraceCallbacks.onStep(traceItem);
+          }
+        } else if ("executionResult" in traceItem) {
+          if (this._rawTraceCallbacks.onAfterMessage !== undefined) {
+            await this._rawTraceCallbacks.onAfterMessage(
+              traceItem.executionResult
+            );
+          }
+        } else {
+          if (this._rawTraceCallbacks.onBeforeMessage !== undefined) {
+            await this._rawTraceCallbacks.onBeforeMessage(traceItem);
+          }
+        }
+      }
+    }
+
     if (isErrorResponse(response)) {
       let error;
 
-      const rawTrace = responseObject.trace;
+      const solidityTrace = responseObject.solidityTrace;
       let stackTrace: SolidityStackTrace | undefined;
-      if (rawTrace !== null) {
-        stackTrace = await this._rawTraceToSolidityStackTrace(rawTrace);
+      if (solidityTrace !== null) {
+        stackTrace = await this._rawTraceToSolidityStackTrace(solidityTrace);
       }
 
       if (stackTrace !== undefined) {
@@ -449,9 +483,9 @@ export class EdrProviderWrapper
   private async _rawTraceToSolidityStackTrace(
     rawTrace: RawTrace
   ): Promise<SolidityStackTrace | undefined> {
-    const trace = rawTrace.trace();
     const vmTracer = new VMTracer(this._common, false);
 
+    const trace = rawTrace.trace();
     for (const traceItem of trace) {
       if ("pc" in traceItem) {
         await vmTracer.addStep(traceItem);
@@ -500,7 +534,8 @@ export async function createHardhatNetworkProvider(
   return EdrProviderWrapper.create(
     hardhatNetworkProviderConfig,
     loggerConfig,
-    artifacts
+    {},
+    await makeTracingConfig(artifacts)
   );
 }
 

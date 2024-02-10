@@ -1,4 +1,4 @@
-use core::fmt::{Debug, Display};
+use core::fmt::Debug;
 use std::{num::TryFromIntError, time::SystemTimeError};
 
 use alloy_sol_types::{ContractError, SolInterface};
@@ -158,7 +158,7 @@ pub enum ProviderError<LoggerErrorT> {
     /// `eth_sendTransaction` failed and
     /// [`ProviderConfig::bail_on_call_failure`] was enabled
     #[error(transparent)]
-    TransactionFailed(#[from] TransactionFailure),
+    TransactionFailed(#[from] TransactionFailureWithTraces),
     /// Failed to convert an integer type
     #[error("Could not convert the integer argument, due to: {0}")]
     TryFromIntError(#[from] TryFromIntError),
@@ -251,7 +251,8 @@ impl<LoggerErrorT: Debug> From<ProviderError<LoggerErrorT>> for jsonrpc::Error {
                 ..
             })
             | ProviderError::TransactionFailed(transaction_failure) => Some(
-                serde_json::to_value(transaction_failure).expect("transaction_failure to json"),
+                serde_json::to_value(&transaction_failure.failure)
+                    .expect("transaction_failure to json"),
             ),
             _ => None,
         };
@@ -259,7 +260,7 @@ impl<LoggerErrorT: Debug> From<ProviderError<LoggerErrorT>> for jsonrpc::Error {
         let message = match &value {
             ProviderError::TransactionFailed(inner)
                 if matches!(
-                    inner.reason,
+                    inner.failure.reason,
                     TransactionFailureReason::Inner(Halt::CreateContractSizeLimit)
                 ) =>
             {
@@ -280,12 +281,24 @@ impl<LoggerErrorT: Debug> From<ProviderError<LoggerErrorT>> for jsonrpc::Error {
 #[derive(Debug, thiserror::Error)]
 pub struct EstimateGasFailure {
     pub console_log_inputs: Vec<Bytes>,
-    pub transaction_failure: TransactionFailure,
+    pub transaction_failure: TransactionFailureWithTraces,
 }
 
-impl Display for EstimateGasFailure {
+impl std::fmt::Display for EstimateGasFailure {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.transaction_failure)
+    }
+}
+
+#[derive(Clone, Debug, thiserror::Error)]
+pub struct TransactionFailureWithTraces {
+    pub failure: TransactionFailure,
+    pub traces: Vec<Trace>,
+}
+
+impl std::fmt::Display for TransactionFailureWithTraces {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.failure)
     }
 }
 
@@ -297,7 +310,7 @@ pub struct TransactionFailure {
     pub reason: TransactionFailureReason,
     pub data: Option<String>,
     #[serde(skip)]
-    pub trace: Trace,
+    pub solidity_trace: Trace,
     pub transaction_hash: B256,
 }
 
@@ -305,32 +318,34 @@ impl TransactionFailure {
     pub fn from_execution_result(
         execution_result: &ExecutionResult,
         transaction_hash: &B256,
-        trace: &Trace,
+        solidity_trace: &Trace,
     ) -> Option<Self> {
         match execution_result {
             ExecutionResult::Success { .. } => None,
             ExecutionResult::Revert { output, .. } => Some(Self::revert(
                 output.clone(),
                 *transaction_hash,
-                trace.clone(),
+                solidity_trace.clone(),
             )),
-            ExecutionResult::Halt { reason, .. } => {
-                Some(Self::halt(*reason, *transaction_hash, trace.clone()))
-            }
+            ExecutionResult::Halt { reason, .. } => Some(Self::halt(
+                *reason,
+                *transaction_hash,
+                solidity_trace.clone(),
+            )),
         }
     }
 
-    pub fn revert(output: Bytes, transaction_hash: B256, trace: Trace) -> Self {
+    pub fn revert(output: Bytes, transaction_hash: B256, solidity_trace: Trace) -> Self {
         let data = format!("0x{}", hex::encode(output.as_ref()));
         Self {
             reason: TransactionFailureReason::Revert(output),
             data: Some(data),
-            trace,
+            solidity_trace,
             transaction_hash,
         }
     }
 
-    pub fn halt(halt: Halt, tx_hash: B256, trace: Trace) -> Self {
+    pub fn halt(halt: Halt, tx_hash: B256, solidity_trace: Trace) -> Self {
         let reason = match halt {
             Halt::OpcodeNotFound | Halt::InvalidFEOpcode => {
                 TransactionFailureReason::OpcodeNotFound
@@ -342,7 +357,7 @@ impl TransactionFailure {
         Self {
             reason,
             data: None,
-            trace,
+            solidity_trace,
             transaction_hash: tx_hash,
         }
     }

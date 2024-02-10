@@ -50,6 +50,7 @@ export interface ForkedNodeConfig extends CommonConfig {
 
 export interface TracingConfig {
   buildInfos?: BuildInfo[];
+  ignoreContracts?: boolean;
 }
 
 export type IntervalMiningConfig = number | [number, number];
