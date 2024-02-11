@@ -27,7 +27,7 @@ impl SubscriberCallback {
                     .and_then(|filter_id| event.set_named_property("filterId", filter_id))?;
 
                 let result = match ctx.value.result {
-                    edr_provider::SubscriptionEventData::Log(log) => ctx.env.to_js_value(&log),
+                    edr_provider::SubscriptionEventData::Logs(logs) => ctx.env.to_js_value(&logs),
                     edr_provider::SubscriptionEventData::NewHeads(block) => {
                         let block = eth::Block::<B256>::from(block);
                         ctx.env.to_js_value(&block)

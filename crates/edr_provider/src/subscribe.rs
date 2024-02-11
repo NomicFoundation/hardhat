@@ -12,7 +12,7 @@ pub struct SubscriptionEvent {
 /// Subscription event data.
 #[derive(Clone, Debug)]
 pub enum SubscriptionEventData {
-    Log(LogOutput),
+    Logs(Vec<LogOutput>),
     NewHeads(BlockAndTotalDifficulty<BlockchainError>),
     NewPendingTransactions(B256),
 }
