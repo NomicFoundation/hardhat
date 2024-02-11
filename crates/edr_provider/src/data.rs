@@ -1121,8 +1121,14 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 mine_block_with_interval(self, &mut mined_blocks)?;
             }
         } else {
+            let current_state = (*self.current_state()?).clone();
+
             self.blockchain
                 .reserve_blocks(remaining_blocks - 1, interval)?;
+
+            // Ensure there is a cache entry for the last reserved block, to avoid
+            // recomputation
+            self.add_state_to_cache(current_state, self.last_block_number());
 
             let previous_timestamp = self.blockchain.last_block()?.header().timestamp;
 
@@ -1610,24 +1616,24 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         value: U256,
     ) -> Result<(), ProviderError<LoggerErrorT>> {
         // We clone to automatically revert in case of subsequent errors.
-        let mut state = (*self.current_state()?).clone();
-        state.set_account_storage_slot(address, index, value)?;
+        let mut modified_state = (*self.current_state()?).clone();
+        modified_state.set_account_storage_slot(address, index, value)?;
 
-        let old_value = state.set_account_storage_slot(address, index, value)?;
+        let old_value = modified_state.set_account_storage_slot(address, index, value)?;
 
         let slot = StorageSlot::new_changed(old_value, value);
-        let account_info = state.basic(address).and_then(|mut account_info| {
+        let account_info = modified_state.basic(address).and_then(|mut account_info| {
             // Retrieve the code if it's not empty. This is needed for the irregular state.
             if let Some(account_info) = &mut account_info {
                 if account_info.code_hash != KECCAK_EMPTY {
-                    account_info.code = Some(state.code_by_hash(account_info.code_hash)?);
+                    account_info.code = Some(modified_state.code_by_hash(account_info.code_hash)?);
                 }
             }
 
             Ok(account_info)
         })?;
 
-        let state_root = state.state_root()?;
+        let state_root = modified_state.state_root()?;
 
         let block_number = self.blockchain.last_block_number();
         self.irregular_state
@@ -1636,7 +1642,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             .diff
             .apply_storage_change(address, index, slot, account_info);
 
-        self.add_state_to_cache(state, block_number);
+        self.add_state_to_cache(modified_state, block_number);
 
         Ok(())
     }
@@ -2102,8 +2108,6 @@ fn create_blockchain_and_state(
     config: &ProviderConfig,
     mut genesis_accounts: HashMap<Address, Account>,
 ) -> Result<BlockchainAndState, CreationError> {
-    let mut irregular_state = IrregularState::default();
-
     let mut prev_randao_generator = RandomHashGenerator::with_seed(edr_defaults::MIX_HASH_SEED);
 
     if let Some(fork_config) = &config.fork {
@@ -2143,6 +2147,7 @@ fn create_blockchain_and_state(
         )
         .expect("url ok");
 
+        let mut irregular_state = IrregularState::default();
         if !genesis_accounts.is_empty() {
             let genesis_addresses = genesis_accounts.keys().cloned().collect::<Vec<_>>();
             let genesis_account_infos = tokio::task::block_in_place(|| {
@@ -2258,6 +2263,7 @@ fn create_blockchain_and_state(
             config.initial_parent_beacon_block_root,
         )?;
 
+        let irregular_state = IrregularState::default();
         let state = blockchain
             .state_at_block_number(0, irregular_state.state_overrides())
             .expect("Genesis state must exist");
@@ -2700,6 +2706,48 @@ mod tests {
         let console_log_inputs = result.console_log_inputs;
         assert_eq!(console_log_inputs.len(), 1);
         assert_eq!(console_log_inputs[0], expected_call_data);
+
+        Ok(())
+    }
+
+    #[test]
+    fn mine_and_commit_block_empty() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new()?;
+
+        let result = fixture.provider_data.mine_and_commit_block(None)?;
+
+        let cached_state = fixture
+            .provider_data
+            .get_or_compute_state(result.block.header().number)?;
+
+        let calculated_state = fixture.provider_data.blockchain.state_at_block_number(
+            fixture.provider_data.last_block_number(),
+            fixture.provider_data.irregular_state.state_overrides(),
+        )?;
+
+        assert_eq!(cached_state.state_root()?, calculated_state.state_root()?);
+
+        Ok(())
+    }
+
+    #[test]
+    fn mine_and_commit_blocks_empty() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new()?;
+
+        fixture
+            .provider_data
+            .mine_and_commit_blocks(1_000_000_000, 1)?;
+
+        let cached_state = fixture
+            .provider_data
+            .get_or_compute_state(fixture.provider_data.last_block_number())?;
+
+        let calculated_state = fixture.provider_data.blockchain.state_at_block_number(
+            fixture.provider_data.last_block_number(),
+            fixture.provider_data.irregular_state.state_overrides(),
+        )?;
+
+        assert_eq!(cached_state.state_root()?, calculated_state.state_root()?);
 
         Ok(())
     }
