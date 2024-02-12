@@ -20,7 +20,7 @@ describe("hardhat-toolbox-viem", function () {
     useEnvironment("with-gas-reporter-config");
 
     it("Should not crash while loading the HRE", async function () {
-      assert.isTrue(this.env !== undefined && this.env !== null);
+      assert.isDefined(this.env);
     });
   });
 });
