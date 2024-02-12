@@ -2189,16 +2189,20 @@ fn create_blockchain_and_state(
         };
 
         let next_block_base_fee_per_gas = if config.hardfork >= SpecId::LONDON {
-            let previous_base_fee = blockchain
-                .last_block()
-                .map_err(CreationError::Blockchain)?
-                .header()
-                .base_fee_per_gas;
-
-            if previous_base_fee.is_none() {
-                Some(U256::from(DEFAULT_INITIAL_BASE_FEE_PER_GAS))
+            if let Some(base_fee) = config.initial_base_fee_per_gas {
+                Some(base_fee)
             } else {
-                None
+                let previous_base_fee = blockchain
+                    .last_block()
+                    .map_err(CreationError::Blockchain)?
+                    .header()
+                    .base_fee_per_gas;
+
+                if previous_base_fee.is_none() {
+                    Some(U256::from(DEFAULT_INITIAL_BASE_FEE_PER_GAS))
+                } else {
+                    None
+                }
             }
         } else {
             None
@@ -3641,6 +3645,7 @@ mod tests {
             chain_id,
             coinbase: replay_header.beneficiary,
             hardfork,
+            initial_base_fee_per_gas: None,
             mining: MiningConfig {
                 auto_mine: false,
                 interval: None,
