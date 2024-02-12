@@ -92,7 +92,6 @@ describe("Integration tests", function () {
           fromBalanceAfter,
           fromBalanceBefore - etherAmount - transactionFee
         );
-        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
         assert.equal(toBalanceAfter, toBalanceBefore + etherAmount);
       });
 
