@@ -1083,6 +1083,7 @@ dependencies = [
  "itertools 0.12.0",
  "k256",
  "lazy_static",
+ "log",
  "napi",
  "napi-build",
  "napi-derive",

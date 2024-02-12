@@ -1,8 +1,12 @@
 use core::fmt::Debug;
 use std::sync::Arc;
 
-use parking_lot::Mutex;
-use tokio::{runtime, sync::oneshot, task::JoinHandle};
+use tokio::{
+    runtime,
+    sync::{oneshot, Mutex},
+    task::JoinHandle,
+    time::Instant,
+};
 
 use crate::{data::ProviderData, IntervalConfig, ProviderError};
 
@@ -27,23 +31,28 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> IntervalMiner<LoggerErrorT> {
     ) -> Self {
         let (cancellation_sender, mut cancellation_receiver) = oneshot::channel();
         let background_task = runtime.spawn(async move {
+            let mut now = Instant::now();
             loop {
                 let delay = config.generate_interval();
+                let deadline = now + std::time::Duration::from_millis(delay);
 
                 tokio::select! {
                     _ = &mut cancellation_receiver => return Ok(()),
-                    _ = tokio::time::sleep(std::time::Duration::from_millis(delay)) => {
-                        let data = data.clone();
+                    _ = tokio::time::sleep_until(deadline) => {
+                        tokio::select! {
+                            // Check whether the interval miner needs to be destroyed
+                            _ = &mut cancellation_receiver => return Ok(()),
+                            mut data = data.lock() => {
+                                now = Instant::now();
 
-                        runtime::Handle::current().spawn_blocking(move ||{
-                            let mut data = data.lock();
-                            if let Err(error) = data.interval_mine() {
-                                log::error!("Unexpected error while performing interval mining: {error}");
-                                return Err(error);
+                                if let Err(error) = data.interval_mine() {
+                                    log::error!("Unexpected error while performing interval mining: {error}");
+                                    return Err(error);
+                                }
+
+                                Result::<(), ProviderError<LoggerErrorT>>::Ok(())
                             }
-
-                            Ok(())
-                        }).await.expect("Failed to join interval mining task")
+                        }
                     },
                 }?;
             }
@@ -70,9 +79,7 @@ impl<LoggerErrorT: Debug> Drop for IntervalMiner<LoggerErrorT> {
                 .send(())
                 .expect("Failed to send cancellation signal");
 
-            let _result = self
-                .runtime
-                .block_on(task)
+            let _result = tokio::task::block_in_place(move || self.runtime.block_on(task))
                 .expect("Failed to join interval mininig task");
         }
     }

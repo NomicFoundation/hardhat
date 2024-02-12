@@ -20,8 +20,8 @@ use edr_evm::{blockchain::BlockchainError, HashSet};
 use lazy_static::lazy_static;
 use logger::SyncLogger;
 use parking_lot::Mutex;
-use requests::eth::handle_set_interval_mining;
-use tokio::runtime;
+use requests::{eth::handle_set_interval_mining, hardhat::rpc_types::ResetProviderConfig};
+use tokio::{runtime, sync::Mutex as AsyncMutex};
 
 pub use self::{
     config::*,
@@ -84,8 +84,9 @@ lazy_static! {
 /// }
 /// ```
 pub struct Provider<LoggerErrorT: Debug> {
-    data: Arc<Mutex<ProviderData<LoggerErrorT>>>,
-    /// Interval miner runs in the background, if enabled.
+    data: Arc<AsyncMutex<ProviderData<LoggerErrorT>>>,
+    /// Interval miner runs in the background, if enabled. It holds the data
+    /// mutex, so
     interval_miner: Arc<Mutex<Option<IntervalMiner<LoggerErrorT>>>>,
     runtime: runtime::Handle,
 }
@@ -99,7 +100,7 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
         config: ProviderConfig,
     ) -> Result<Self, CreationError> {
         let data = ProviderData::new(runtime.clone(), logger, subscriber_callback, config.clone())?;
-        let data = Arc::new(Mutex::new(data));
+        let data = Arc::new(AsyncMutex::new(data));
 
         let interval_miner = config
             .mining
@@ -116,11 +117,11 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
         })
     }
 
-    pub fn handle_request(
+    pub async fn handle_request(
         &self,
         request: ProviderRequest,
     ) -> Result<serde_json::Value, ProviderError<LoggerErrorT>> {
-        let mut data = self.data.lock();
+        let mut data = self.data.lock().await;
 
         match request {
             ProviderRequest::Single(request) => self.handle_single_request(&mut data, request),
@@ -128,12 +129,12 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
         }
     }
 
-    pub fn log_failed_deserialization(
+    pub async fn log_failed_deserialization(
         &self,
         method_name: &str,
         error: &ProviderError<LoggerErrorT>,
     ) -> Result<(), ProviderError<LoggerErrorT>> {
-        let mut data = self.data.lock();
+        let mut data = self.data.lock().await;
         data.logger_mut()
             .print_method_logs(method_name, Some(error))
             .map_err(ProviderError::Logger)
@@ -362,9 +363,7 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
             MethodInvocation::Mine(number_of_blocks, interval) => {
                 hardhat::handle_mine(data, number_of_blocks, interval).and_then(to_json)
             }
-            MethodInvocation::Reset(config) => {
-                hardhat::handle_reset(data, config).and_then(to_json)
-            }
+            MethodInvocation::Reset(config) => self.reset(data, config).and_then(to_json),
             MethodInvocation::SetBalance(address, balance) => {
                 hardhat::handle_set_balance(data, address, balance).and_then(to_json)
             }
@@ -408,6 +407,23 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
         }
 
         result
+    }
+
+    fn reset(
+        &self,
+        data: &mut ProviderData<LoggerErrorT>,
+        config: Option<ResetProviderConfig>,
+    ) -> Result<bool, ProviderError<LoggerErrorT>> {
+        let mut interval_miner = self.interval_miner.lock();
+        interval_miner.take();
+
+        data.reset(config.and_then(|c| c.forking))?;
+
+        *interval_miner = data.mining_config().interval.as_ref().map(|config| {
+            IntervalMiner::new(self.runtime.clone(), config.clone(), self.data.clone())
+        });
+
+        Ok(true)
     }
 }
 

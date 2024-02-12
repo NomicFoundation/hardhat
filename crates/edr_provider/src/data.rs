@@ -70,7 +70,7 @@ use crate::{
     pending::BlockchainWithPending,
     requests::hardhat::rpc_types::{ForkConfig, ForkMetadata},
     snapshot::Snapshot,
-    ProviderConfig, ProviderError, SubscriptionEvent, SubscriptionEventData,
+    MiningConfig, ProviderConfig, ProviderError, SubscriptionEvent, SubscriptionEventData,
     SyncSubscriberCallback,
 };
 
@@ -1869,6 +1869,10 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         let prevrandao = None;
 
         self.mine_block(block_timestamp, prevrandao)
+    }
+
+    pub fn mining_config(&self) -> &MiningConfig {
+        &self.initial_config.mining
     }
 
     /// Get the timestamp for the next block.
