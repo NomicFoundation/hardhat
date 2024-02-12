@@ -66,11 +66,8 @@ export function encodeSolidityStackTrace(
     if (previousStack !== undefined) {
       stack = previousStack;
     } else {
-      const deleteCount =
-        process.env.HARDHAT_EXPERIMENTAL_VM_MODE === "edr" ? 1 : 3;
-
       // We remove error management related stack traces
-      stack.splice(0, deleteCount);
+      stack.splice(0, 1);
     }
 
     for (const entry of stackTrace) {
