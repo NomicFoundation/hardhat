@@ -40,7 +40,6 @@ import {
   DEFAULT_NETWORK_ID,
 } from "../helpers/providers";
 import { sleep } from "../helpers/sleep";
-import { bufferToRpcData } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { runFullBlock } from "./utils/runFullBlock";
 
 function toBuffer(x: Parameters<typeof toBytes>[0]) {
