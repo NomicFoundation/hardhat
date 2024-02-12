@@ -6,12 +6,15 @@ async function main() {
 
   // check that the expected tasks are there
   const taskNames = Object.keys(tasks);
+
   assert(taskNames.includes("verify"));
   assert(taskNames.includes("coverage"));
   assert(taskNames.includes("typechain"));
-  // TODO: Ignition isn't appearing the task list,
-  // though it is imported as part of the toolbox
-  // assert(taskNames.includes("ignition"));
+
+  // check that the expected scopes are there
+  const scopeNames = Object.keys(scopes);
+  assert(scopeNames.includes("vars"));
+  assert(scopeNames.includes("ignition"));
 }
 
 main()
