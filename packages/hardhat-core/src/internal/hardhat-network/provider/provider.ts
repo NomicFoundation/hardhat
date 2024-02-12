@@ -609,9 +609,8 @@ export class EdrProviderWrapper
         error = encodeSolidityStackTrace(response.error.message, stackTrace);
         // Pass data and transaction hash from the original error
         (error as any).data = {
-          data: response.error.data?.data,
-          transactionHash: response.error.data?.transactionHash,
-          ...(error as any).data,
+          data: response.error.data?.data ?? undefined,
+          transactionHash: response.error.data?.transactionHash ?? undefined,
         };
       } else {
         if (response.error.code === InvalidArgumentsError.CODE) {
