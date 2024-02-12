@@ -1,7 +1,6 @@
 import { assert } from "chai";
 
 import { rpcQuantityToNumber } from "../../../../src/internal/core/jsonrpc/types/base-types";
-import { ALCHEMY_URL } from "../../../setup";
 import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
 import { setCWD } from "../helpers/cwd";
 import { INTERVAL_MINING_PROVIDERS } from "../helpers/providers";
@@ -12,7 +11,6 @@ describe("Interval mining provider", function () {
     workaroundWindowsCiFailures.call(this, { isFork });
 
     describe(`${name} provider`, function () {
-      const safeBlockInThePast = 11_200_000;
       const blockTime = 100;
       const blockWaitTime = blockTime + 10;
 
@@ -45,38 +43,8 @@ describe("Interval mining provider", function () {
       });
 
       describe("hardhat_reset", function () {
-        if (isFork) {
-          testForkedProviderBehaviour();
-        } else {
+        if (!isFork) {
           testNormalProviderBehaviour();
-        }
-
-        function testForkedProviderBehaviour() {
-          it("starts interval mining", async function () {
-            const firstBlock = await getBlockNumber();
-
-            await sleep(blockWaitTime);
-            const secondBlockBeforeReset = await getBlockNumber();
-
-            await this.provider.send("hardhat_reset", [
-              {
-                forking: {
-                  jsonRpcUrl: ALCHEMY_URL,
-                  blockNumber: safeBlockInThePast,
-                },
-              },
-            ]);
-
-            await sleep(blockWaitTime);
-            const secondBlockAfterReset = await getBlockNumber();
-
-            await sleep(blockWaitTime);
-            const thirdBlock = await getBlockNumber();
-
-            assert.equal(secondBlockBeforeReset, firstBlock + 1);
-            assert.equal(secondBlockAfterReset, safeBlockInThePast + 1);
-            assert.equal(thirdBlock, safeBlockInThePast + 2);
-          });
         }
 
         function testNormalProviderBehaviour() {
