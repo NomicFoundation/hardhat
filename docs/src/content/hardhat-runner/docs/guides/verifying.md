@@ -125,7 +125,7 @@ Next, you can write a basic Hardhat Ignition module to deploy your contract:
 
 :::tab{value=TypeScript}
 
-```
+```ts
 // ignition/modules/LockModule.ts
 import { buildModule } from "@nomicfoundation/hardhat-ignition";
 
@@ -140,7 +140,7 @@ export default buildModule("LockModule", (m) => {
 
 :::tab{value=JavaScript}
 
-```
+```js
 // ignition/modules/LockModule.js
 const { buildModule } = require("@nomicfoundation/hardhat-ignition");
 
