@@ -480,6 +480,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         self.beneficiary
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     pub fn debug_trace_transaction(
         &self,
         transaction_hash: &B256,
@@ -1886,7 +1887,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             i64::try_from(SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs())
                 .expect("timestamp too large");
 
-        let (mut block_timestamp, new_offset) = if let Some(timestamp) = timestamp {
+        let (mut block_timestamp, mut new_offset) = if let Some(timestamp) = timestamp {
             timestamp.checked_sub(latest_block_header.timestamp).ok_or(
                 ProviderError::TimestampLowerThanPrevious {
                     proposed: timestamp,
@@ -1912,6 +1913,9 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             && !self.allow_blocks_with_same_timestamp;
         if timestamp_needs_increase {
             block_timestamp += 1;
+            if new_offset.is_none() {
+                new_offset = Some(self.block_time_offset_seconds + 1);
+            }
         }
 
         Ok((block_timestamp, new_offset))
@@ -2107,7 +2111,8 @@ fn create_blockchain_and_state(
                     &fork_config.json_rpc_url,
                     config.cache_dir.clone(),
                     http_headers.clone(),
-                ),
+                )
+                .expect("url ok"),
                 fork_config.block_number,
                 state_root_generator.clone(),
                 &config.chains,
@@ -2120,7 +2125,8 @@ fn create_blockchain_and_state(
             &fork_config.json_rpc_url,
             config.cache_dir.clone(),
             http_headers,
-        );
+        )
+        .expect("url ok");
 
         if !genesis_accounts.is_empty() {
             let genesis_addresses = genesis_accounts.keys().cloned().collect::<Vec<_>>();
@@ -3602,7 +3608,7 @@ mod tests {
 
         let cache_dir = TempDir::new()?;
         let replay_block = {
-            let rpc_client = RpcClient::new(&url, cache_dir.path().to_path_buf(), None);
+            let rpc_client = RpcClient::new(&url, cache_dir.path().to_path_buf(), None)?;
 
             let block = runtime.block_on(rpc_client.get_block_by_number_with_transaction_data(
                 PreEip1898BlockSpec::Number(block_number),

@@ -16,7 +16,7 @@ use crate::{
 };
 
 /// Get trace output for `debug_traceTransaction`
-#[cfg_attr(feature = "tracing", tracing::instrument)]
+#[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
 pub fn debug_trace_transaction<BlockchainErrorT, StateErrorT>(
     blockchain: &dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
     // Take ownership of the state so that we can apply throw-away modifications on it

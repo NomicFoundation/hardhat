@@ -308,7 +308,7 @@ impl std::fmt::Display for TransactionFailureWithTraces {
 #[serde(rename_all = "camelCase")]
 pub struct TransactionFailure {
     pub reason: TransactionFailureReason,
-    pub data: Option<String>,
+    pub data: String,
     #[serde(skip)]
     pub solidity_trace: Trace,
     pub transaction_hash: B256,
@@ -339,7 +339,7 @@ impl TransactionFailure {
         let data = format!("0x{}", hex::encode(output.as_ref()));
         Self {
             reason: TransactionFailureReason::Revert(output),
-            data: Some(data),
+            data,
             solidity_trace,
             transaction_hash,
         }
@@ -356,7 +356,7 @@ impl TransactionFailure {
 
         Self {
             reason,
-            data: None,
+            data: "0x".to_string(),
             solidity_trace,
             transaction_hash: tx_hash,
         }
@@ -414,10 +414,13 @@ fn revert_error(output: &Bytes) -> String {
             }
         }
         Err(decode_error) => match decode_error {
-            alloy_sol_types::Error::TypeCheckFail { .. } => {
+            alloy_sol_types::Error::TypeCheckFail { .. }
+            | alloy_sol_types::Error::UnknownSelector { .. } => {
                 format!("VM Exception while processing transaction: reverted with an unrecognized custom error (return data: 0x{})", hex::encode(output))
             }
-            _ => unreachable!("Since we are not validating, no other error can occur"),
+            _ => format!(
+                "Internal: Since we are not validating, this error should not occur: {decode_error:?}"
+            ),
         },
     }
 }

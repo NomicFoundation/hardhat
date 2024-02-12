@@ -1,13 +1,4 @@
 import type {
-  Provider as EdrProviderT,
-  ExecutionResult,
-  RawTrace,
-  Response,
-  SubscriptionEvent,
-  TracingMessage,
-  TracingStep,
-} from "@ignored/edr";
-import type {
   Artifacts,
   BoundExperimentalHardhatNetworkMessageTraceHook,
   CompilerInput,
@@ -18,6 +9,16 @@ import type {
   RequestArguments,
 } from "../../../types";
 
+import {
+  EdrContext,
+  Provider as EdrProviderT,
+  ExecutionResult,
+  RawTrace,
+  Response,
+  SubscriptionEvent,
+  TracingMessage,
+  TracingStep,
+} from "@ignored/edr";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import chalk from "chalk";
 import debug from "debug";
@@ -78,6 +79,17 @@ const log = debug("hardhat:core:hardhat-network:provider");
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 export const DEFAULT_COINBASE = "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e";
+let _globalEdrContext: EdrContext | undefined;
+
+// Lazy initialize the global EDR context.
+export function getGlobalEdrContext(): EdrContext {
+  if (_globalEdrContext === undefined) {
+    // Only one is allowed to exist
+    _globalEdrContext = new EdrContext();
+  }
+
+  return _globalEdrContext;
+}
 
 interface HardhatNetworkProviderConfig {
   hardfork: string;
@@ -199,6 +211,7 @@ export class EdrProviderWrapper
     const vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
 
     const provider = await Provider.withConfig(
+      getGlobalEdrContext(),
       {
         allowBlocksWithSameTimestamp:
           config.allowBlocksWithSameTimestamp ?? false,
@@ -361,9 +374,8 @@ export class EdrProviderWrapper
         error = encodeSolidityStackTrace(response.error.message, stackTrace);
         // Pass data and transaction hash from the original error
         (error as any).data = {
-          data: response.error.data?.data,
-          transactionHash: response.error.data?.transactionHash,
-          ...(error as any).data,
+          data: response.error.data?.data ?? undefined,
+          transactionHash: response.error.data?.transactionHash ?? undefined,
         };
       } else {
         if (response.error.code === InvalidArgumentsError.CODE) {
@@ -403,9 +415,11 @@ export class EdrProviderWrapper
 
   private _ethEventListener(event: SubscriptionEvent) {
     const subscription = `0x${event.filterId.toString(16)}`;
-    const result = event.result;
-    this._emitLegacySubscriptionEvent(subscription, result);
-    this._emitEip1193SubscriptionEvent(subscription, result);
+    const results = Array.isArray(event.result) ? event.result : [event.result];
+    for (const result of results) {
+      this._emitLegacySubscriptionEvent(subscription, result);
+      this._emitEip1193SubscriptionEvent(subscription, result);
+    }
   }
 
   private _emitLegacySubscriptionEvent(subscription: string, result: any) {

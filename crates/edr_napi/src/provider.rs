@@ -9,6 +9,7 @@ use napi_derive::napi;
 
 use self::config::ProviderConfig;
 use crate::{
+    context::EdrContext,
     logger::{Logger, LoggerConfig, LoggerError},
     subscribe::SubscriberCallback,
     trace::RawTrace,
@@ -26,6 +27,8 @@ impl Provider {
     #[napi(ts_return_type = "Promise<Provider>")]
     pub fn with_config(
         env: Env,
+        // We take the context as argument to ensure that tracing is initialized properly.
+        _context: &EdrContext,
         config: ProviderConfig,
         logger_config: LoggerConfig,
         #[napi(ts_arg_type = "(event: SubscriptionEvent) => void")] subscriber_callback: JsFunction,
