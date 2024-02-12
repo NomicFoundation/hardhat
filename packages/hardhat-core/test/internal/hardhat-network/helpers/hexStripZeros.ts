@@ -1,10 +1,3 @@
-import {
-  addHexPrefix,
-  unpadBytes,
-  toBytes,
-  bytesToHex,
-} from "@nomicfoundation/ethereumjs-util";
-
 export function hexStripZeros(hexString: string) {
-  return addHexPrefix(bytesToHex(unpadBytes(toBytes(hexString))));
+  return hexString === "0x0" ? "0x0" : hexString.replace(/^0x0+/, "0x");
 }
