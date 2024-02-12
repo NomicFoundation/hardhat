@@ -1,6 +1,5 @@
 import { Block, HeaderData } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import { Trie } from "@nomicfoundation/ethereumjs-trie";
 import { bytesToHex as bufferToHex } from "@nomicfoundation/ethereumjs-util";
 
 import { dateToTimestampSeconds } from "../../../util/date";
@@ -13,7 +12,7 @@ export async function putGenesisBlock(
   blockchain: HardhatBlockchain,
   common: Common,
   { initialDate, blockGasLimit: initialBlockGasLimit }: LocalNodeConfig,
-  stateTrie: Trie,
+  stateRoot: Uint8Array,
   hardfork: HardforkName,
   initialMixHash: Uint8Array,
   initialParentBeaconBlockRoot: Uint8Array,
@@ -33,7 +32,7 @@ export async function putGenesisBlock(
     difficulty: isPostMerge ? 0 : 1,
     nonce: isPostMerge ? "0x0000000000000000" : "0x0000000000000042",
     extraData: "0x1234",
-    stateRoot: bufferToHex(stateTrie.root()),
+    stateRoot: bufferToHex(stateRoot),
   };
 
   if (isPostMerge) {

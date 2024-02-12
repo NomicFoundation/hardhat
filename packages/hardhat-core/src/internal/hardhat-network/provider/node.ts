@@ -250,13 +250,6 @@ export class HardhatNode extends EventEmitter {
     } else {
       const stateTrie = await makeStateTrie(genesisAccounts);
 
-      if (hardforkGte(hardfork, HardforkName.CANCUN)) {
-        await stateTrie.put(
-          Address.fromString(BEACON_ROOT_ADDRESS).toBytes(),
-          new Account().serialize()
-        );
-      }
-
       stateManager = new DefaultStateManager({
         trie: stateTrie,
       });
@@ -282,7 +275,7 @@ export class HardhatNode extends EventEmitter {
         hardhatBlockchain,
         common,
         config,
-        stateTrie,
+        await stateManager.getStateRoot(),
         hardfork,
         mixHashGenerator.next(),
         parentBeaconBlockRootGenerator.next(),
