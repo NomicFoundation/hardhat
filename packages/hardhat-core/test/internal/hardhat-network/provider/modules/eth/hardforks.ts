@@ -506,32 +506,30 @@ describe("Eth module - hardfork dependant tests", function () {
   });
 
   describe("Block formatting", function () {
-    describe("EIP-1559 - london", () => {
-      describe("When running EIP-1559", function () {
-        for (const hardfork of ["london", "arrowGlacier"]) {
-          useProviderAndCommon(hardfork);
-          it(`Should have a baseFeePerGas field when ${hardfork} is activated`, async function () {
-            const block: RpcBlockOutput = await this.provider.send(
-              "eth_getBlockByNumber",
-              ["latest", false]
-            );
-
-            assert.isDefined(block.baseFeePerGas);
-          });
-        }
-      });
-
-      describe("When not running EIP-1559", function () {
-        useProviderAndCommon("berlin");
-
-        it("Should not have a baseFeePerGas field", async function () {
+    describe("When running EIP-1559", function () {
+      for (const hardfork of ["london", "arrowGlacier"]) {
+        useProviderAndCommon(hardfork);
+        it(`Should have a baseFeePerGas field when ${hardfork} is activated`, async function () {
           const block: RpcBlockOutput = await this.provider.send(
             "eth_getBlockByNumber",
             ["latest", false]
           );
 
-          assert.isUndefined(block.baseFeePerGas);
+          assert.isDefined(block.baseFeePerGas);
         });
+      }
+    });
+
+    describe("When not running EIP-1559", function () {
+      useProviderAndCommon("berlin");
+
+      it("Should not have a baseFeePerGas field", async function () {
+        const block: RpcBlockOutput = await this.provider.send(
+          "eth_getBlockByNumber",
+          ["latest", false]
+        );
+
+        assert.isUndefined(block.baseFeePerGas);
       });
     });
   });
