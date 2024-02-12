@@ -534,38 +534,6 @@ describe("Eth module - hardfork dependant tests", function () {
         });
       });
     });
-
-    describe("EIP-4844 - cancun", () => {
-      describe("When running EIP-4844", function () {
-        useProviderAndCommon("cancun");
-
-        it("Should have the parentBeaconBlockRoot and the blob fields", async function () {
-          const block: RpcBlockOutput = await this.provider.send(
-            "eth_getBlockByNumber",
-            ["latest", false]
-          );
-
-          assert.isDefined(block.parentBeaconBlockRoot);
-          assert.isDefined(block.blobGasUsed);
-          assert.isDefined(block.excessBlobGas);
-        });
-      });
-
-      describe("When not running EIP-4844", function () {
-        useProviderAndCommon("shanghai");
-
-        it("Should not have the parentBeaconBlockRoot and the blob fields", async function () {
-          const block: RpcBlockOutput = await this.provider.send(
-            "eth_getBlockByNumber",
-            ["latest", false]
-          );
-
-          assert.isUndefined(block.parentBeaconBlockRoot);
-          assert.isUndefined(block.blobGasUsed);
-          assert.isUndefined(block.excessBlobGas);
-        });
-      });
-    });
   });
 
   describe("Transaction and receipt output formatting", function () {
@@ -1944,6 +1912,103 @@ describe("Eth module - hardfork dependant tests", function () {
           assert.isDefined(block.withdrawals);
           assert.isDefined(block.withdrawalsRoot);
         });
+      });
+    });
+  });
+
+  describe("cancun hardfork", function () {
+    describe("pre-cancun hardfork", function () {
+      useProviderAndCommon("shanghai");
+
+      it("should not have the parentBeaconBlockRoot and the blob fields", async function () {
+        const block = await this.provider.send("eth_getBlockByNumber", [
+          "latest",
+          false,
+        ]);
+
+        assert.isUndefined(block.parentBeaconBlockRoot);
+        assert.isUndefined(block.blobGasUsed);
+        assert.isUndefined(block.excessBlobGas);
+      });
+
+      it("should not have a bytecode in the beacon root address", async function () {
+        const BEACON_ROOT_ADDRESS =
+          "0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02";
+
+        const code = await this.provider.send("eth_getCode", [
+          BEACON_ROOT_ADDRESS,
+        ]);
+
+        assert.equal(code, "0x");
+      });
+    });
+
+    describe("post-cancun hardfork", function () {
+      useProviderAndCommon("cancun");
+
+      it("should have the parentBeaconBlockRoot and the blob fields", async function () {
+        const block = await this.provider.send("eth_getBlockByNumber", [
+          "latest",
+          false,
+        ]);
+
+        assert.isDefined(block.parentBeaconBlockRoot);
+        assert.isDefined(block.blobGasUsed);
+        assert.isDefined(block.excessBlobGas);
+      });
+
+      it("should have a non empty parentBeaconBlockRoot in the genesis block and the value should be an expected one", async function () {
+        const block = await this.provider.send("eth_getBlockByNumber", [
+          numberToRpcQuantity(0),
+          false,
+        ]);
+
+        assert.equal(
+          block.parentBeaconBlockRoot,
+          "0xdd8876ba5af271ae9d93ececb192d6a7b4e6094ca5999756336279fd796b8619"
+        );
+      });
+
+      it("should have different parentBeaconBlockRoot values in different blocks", async function () {
+        const block1 = await this.provider.send("eth_getBlockByNumber", [
+          numberToRpcQuantity(0),
+          false,
+        ]);
+
+        await this.provider.send("evm_mine", []);
+
+        const block2 = await this.provider.send("eth_getBlockByNumber", [
+          numberToRpcQuantity(1),
+          false,
+        ]);
+
+        assert.notEqual(
+          block1.parentBeaconBlockRoot,
+          block2.parentBeaconBlockRoot
+        );
+      });
+
+      it("should have the parentBeaconBlockRoot value different from the mixhash value", async function () {
+        const block = await this.provider.send("eth_getBlockByNumber", [
+          "latest",
+          false,
+        ]);
+
+        assert.notEqual(block.mixHash, block.parentBeaconBlockRoot);
+      });
+
+      it("should have a specific bytecode in the beacon root address (starting from genesis block)", async function () {
+        const BEACON_ROOT_ADDRESS =
+          "0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02";
+        const BEACON_ROOT_BYTECODE =
+          "0x3373fffffffffffffffffffffffffffffffffffffffe14604d57602036146024575f5ffd5b5f35801560495762001fff810690815414603c575f5ffd5b62001fff01545f5260205ff35b5f5ffd5b62001fff42064281555f359062001fff015500";
+
+        const code = await this.provider.send("eth_getCode", [
+          BEACON_ROOT_ADDRESS,
+          numberToRpcQuantity(0),
+        ]);
+
+        assert.equal(code, BEACON_ROOT_BYTECODE);
       });
     });
   });

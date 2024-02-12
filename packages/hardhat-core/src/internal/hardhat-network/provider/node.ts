@@ -134,6 +134,10 @@ import { RandomBufferGenerator } from "./utils/random";
 
 type ExecResult = EVMResult["execResult"];
 
+const BEACON_ROOT_ADDRESS = "0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02";
+const BEACON_ROOT_BYTECODE =
+  "0x3373fffffffffffffffffffffffffffffffffffffffe14604d57602036146024575f5ffd5b5f35801560495762001fff810690815414603c575f5ffd5b62001fff01545f5260205ff35b5f5ffd5b62001fff42064281555f359062001fff015500";
+
 const log = debug("hardhat:core:hardhat-network:node");
 
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
@@ -206,6 +210,14 @@ export class HardhatNode extends EventEmitter {
         forkBlockNumber
       );
       await forkStateManager.initializeGenesisAccounts(genesisAccounts);
+
+      if (hardforkGte(hardfork, HardforkName.CANCUN)) {
+        await forkStateManager.putContractCode(
+          Address.fromString(BEACON_ROOT_ADDRESS),
+          Buffer.from(toBytes(BEACON_ROOT_BYTECODE))
+        );
+      }
+
       stateManager = forkStateManager;
 
       blockchain = new ForkBlockchain(forkClient, forkBlockNumber, common);
@@ -238,9 +250,23 @@ export class HardhatNode extends EventEmitter {
     } else {
       const stateTrie = await makeStateTrie(genesisAccounts);
 
+      if (hardforkGte(hardfork, HardforkName.CANCUN)) {
+        await stateTrie.put(
+          Address.fromString(BEACON_ROOT_ADDRESS).toBytes(),
+          new Account().serialize()
+        );
+      }
+
       stateManager = new DefaultStateManager({
         trie: stateTrie,
       });
+
+      if (hardforkGte(hardfork, HardforkName.CANCUN)) {
+        await stateManager.putContractCode(
+          Address.fromString(BEACON_ROOT_ADDRESS),
+          Buffer.from(toBytes(BEACON_ROOT_BYTECODE))
+        );
+      }
 
       const hardhatBlockchain = new HardhatBlockchain(common);
 
