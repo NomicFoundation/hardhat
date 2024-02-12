@@ -65,7 +65,7 @@ jobs:
           args: check --feature-powerset --no-dev-deps
 
   test-core:
-    name: Test core (${{ matrix.os }}, Node ${{ matrix.node }}, ${{ matrix.vm }})
+    name: Test core (${{ matrix.os }}, Node ${{ matrix.node }})
     runs-on: ${{ matrix.os }}
     needs: check-edr
     strategy:
@@ -75,7 +75,6 @@ jobs:
         # disable until actions/virtual-environments#4896 is fixed
         # os: ["macos-latest", "ubuntu-latest", "windows-latest"]
         os: ["ubuntu-latest", "windows-latest"]
-        vm: ["dual", "ethereumjs", "edr"]
     steps:
       - uses: actions/checkout@v3
 
@@ -113,13 +112,12 @@ jobs:
         env:
           INFURA_URL: ${{ secrets.INFURA_URL }}
           ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
-          HARDHAT_EXPERIMENTAL_VM_MODE: ${{ matrix.vm }}
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
         run: pnpm test:except-provider
 
   test-provider:
-    name: Test provider (${{ matrix.os }}, Node ${{ matrix.node }}, ${{ matrix.vm }})
+    name: Test provider (${{ matrix.os }}, Node ${{ matrix.node }})
     runs-on: ${{ matrix.os }}
     needs: check-edr
     strategy:
@@ -129,7 +127,6 @@ jobs:
         # disable until actions/virtual-environments#4896 is fixed
         # os: ["macos-latest", "ubuntu-latest", "windows-latest"]
         os: ["ubuntu-latest", "windows-latest"]
-        vm: ["dual", "ethereumjs", "edr"]
     steps:
       - uses: actions/checkout@v3
 
@@ -174,7 +171,6 @@ jobs:
         env:
           INFURA_URL: ${{ secrets.INFURA_URL }}
           ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
-          HARDHAT_EXPERIMENTAL_VM_MODE: ${{ matrix.vm }}
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
         run: pnpm test:provider
