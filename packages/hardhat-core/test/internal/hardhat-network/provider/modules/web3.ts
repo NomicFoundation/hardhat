@@ -22,15 +22,9 @@ describe("Web3 module", function () {
       describe("web3_clientVersion", async function () {
         it("Should return the right value", async function () {
           const res = await this.provider.send("web3_clientVersion");
-          const expectedEthereumJSVersion =
-            /^HardhatNetwork\/.*\/@nomicfoundation\/ethereumjs-vm/;
           const expectedEDRVersion =
             /^HardhatNetwork\/.*\/@nomicfoundation\/edr/;
-          const expected =
-            this.isEdr() === true
-              ? expectedEDRVersion
-              : expectedEthereumJSVersion;
-          assert.match(res, expected);
+          assert.match(res, expectedEDRVersion);
         });
       });
 

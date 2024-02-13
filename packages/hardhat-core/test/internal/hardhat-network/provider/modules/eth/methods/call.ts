@@ -605,7 +605,7 @@ describe("Eth module", function () {
                 },
               ],
               // TODO: https://github.com/NomicFoundation/edr/issues/104
-              isEdrProvider(this.provider)
+              this.isEdr
                 ? undefined
                 : `Errors encountered in param 2: Invalid value "0xce9efd622e568b3a21b19532c77fc76c93c34b" supplied to : { [K in address]: stateOverrideOptions } | undefined/0xce9efd622e568b3a21b19532c77fc76c93c34b: address`
             );
@@ -633,7 +633,7 @@ describe("Eth module", function () {
                 },
               ],
               // TODO: https://github.com/NomicFoundation/edr/issues/104
-              isEdrProvider(this.provider)
+              this.isEdr
                 ? undefined
                 : `Errors encountered in param 2: Invalid value "0x00000000000000000000000000000000000000000000000000000000000002" supplied to : { [K in address]: stateOverrideOptions } | undefined/0xce9efd622e568b3a21b19532c77fc76c93c34bd4: stateOverrideOptions/stateDiff: { [K in Storage slot hex string]: Storage slot } | undefined/0x00000000000000000000000000000000000000000000000000000000000002: Storage slot hex string`
             );
@@ -748,10 +748,10 @@ describe("Eth module", function () {
                       },
                     },
                   ],
-                  isEdrProvider(this.provider)
+                  this.isEdr
                     ? undefined
                     : "The 'balance' property should occupy a maximum of 32 bytes (balance=115792089237316195423570985008687907853269984665640564039457584007913129639936).",
-                  isEdrProvider(this.provider)
+                  this.isEdr
                     ? InvalidArgumentsError.CODE
                     : InvalidInputError.CODE
                 );
@@ -911,10 +911,10 @@ describe("Eth module", function () {
                       },
                     },
                   ],
-                  isEdrProvider(this.provider)
+                  this.isEdr
                     ? undefined
                     : "The 'nonce' property should occupy a maximum of 8 bytes (nonce=18446744073709551616).",
-                  isEdrProvider(this.provider)
+                  this.isEdr
                     ? InvalidArgumentsError.CODE
                     : InvalidInputError.CODE
                 );
