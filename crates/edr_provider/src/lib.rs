@@ -21,7 +21,7 @@ use lazy_static::lazy_static;
 use logger::SyncLogger;
 use parking_lot::Mutex;
 use requests::{eth::handle_set_interval_mining, hardhat::rpc_types::ResetProviderConfig};
-use tokio::{runtime, sync::Mutex as AsyncMutex};
+use tokio::{runtime, sync::Mutex as AsyncMutex, task};
 
 pub use self::{
     config::*,
@@ -118,11 +118,12 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
         })
     }
 
-    pub async fn handle_request(
+    /// Blocking method to handle a request.
+    pub fn handle_request(
         &self,
         request: ProviderRequest,
     ) -> Result<serde_json::Value, ProviderError<LoggerErrorT>> {
-        let mut data = self.data.lock().await;
+        let mut data = task::block_in_place(|| self.runtime.block_on(self.data.lock()));
 
         match request {
             ProviderRequest::Single(request) => self.handle_single_request(&mut data, request),
@@ -130,12 +131,13 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
         }
     }
 
-    pub async fn log_failed_deserialization(
+    /// Blocking method to log a failed deserialization.
+    pub fn log_failed_deserialization(
         &self,
         method_name: &str,
         error: &ProviderError<LoggerErrorT>,
     ) -> Result<(), ProviderError<LoggerErrorT>> {
-        let mut data = self.data.lock().await;
+        let mut data = task::block_in_place(|| self.runtime.block_on(self.data.lock()));
         data.logger_mut()
             .print_method_logs(method_name, Some(error))
             .map_err(ProviderError::Logger)
