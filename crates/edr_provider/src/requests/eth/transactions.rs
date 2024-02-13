@@ -2,9 +2,8 @@ use core::fmt::Debug;
 use std::sync::Arc;
 
 use edr_eth::{
-    receipt::BlockReceipt,
-    remote,
-    remote::PreEip1898BlockSpec,
+    receipt::{BlockReceipt, TransactionReceipt},
+    remote::{self, PreEip1898BlockSpec},
     rlp::Decodable,
     transaction::{
         Eip1559TransactionRequest, Eip155TransactionRequest, Eip2930TransactionRequest,
@@ -103,7 +102,24 @@ pub fn handle_get_transaction_receipt<LoggerErrorT: Debug>(
     data: &ProviderData<LoggerErrorT>,
     transaction_hash: B256,
 ) -> Result<Option<Arc<BlockReceipt>>, ProviderError<LoggerErrorT>> {
-    data.transaction_receipt(&transaction_hash)
+    let receipt = data.transaction_receipt(&transaction_hash)?;
+
+    // The JSON-RPC layer should not return the gas price as effective gas price for
+    // receipts in pre-London hardforks.
+    if let Some(receipt) = receipt.as_ref() {
+        if data.spec_id() < SpecId::LONDON && receipt.effective_gas_price.is_some() {
+            return Ok(Some(Arc::new(BlockReceipt {
+                inner: TransactionReceipt {
+                    effective_gas_price: None,
+                    ..receipt.inner.clone()
+                },
+                block_hash: receipt.block_hash,
+                block_number: receipt.block_number,
+            })));
+        }
+    }
+
+    Ok(receipt)
 }
 
 fn transaction_from_block(
