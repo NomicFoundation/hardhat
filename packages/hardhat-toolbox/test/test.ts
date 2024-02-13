@@ -20,10 +20,7 @@ describe("hardhat-toolbox", function () {
     useEnvironment("with-gas-reporter-config");
 
     it("Should not crash while loading the HRE", function () {
-      assert.isTrue(
-        this.env !== undefined && this.env !== null,
-        "The environment should be loaded"
-      );
+      assert.isDefined(this.env, "The environment should be loaded");
     });
   });
 
