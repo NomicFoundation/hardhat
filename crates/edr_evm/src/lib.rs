@@ -22,7 +22,7 @@ pub use crate::{
     },
     evm::SyncInspector,
     inspector::*,
-    mempool::{MemPool, MinerTransactionError, OrderedTransaction},
+    mempool::{MemPool, MemPoolAddTransactionError, OrderedTransaction},
     miner::*,
     random::RandomHashGenerator,
     runtime::{dry_run, guaranteed_dry_run, run, SyncDatabase},

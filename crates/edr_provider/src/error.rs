@@ -11,8 +11,8 @@ use edr_evm::{
     hex,
     state::{AccountOverrideConversionError, StateError},
     trace::Trace,
-    DebugTraceError, ExecutionResult, Halt, MineBlockError, MinerTransactionError, OutOfGasError,
-    TransactionCreationError, TransactionError,
+    DebugTraceError, ExecutionResult, Halt, MemPoolAddTransactionError, MineBlockError,
+    OutOfGasError, TransactionCreationError, TransactionError,
 };
 use ethers_core::types::transaction::eip712::Eip712Error;
 
@@ -99,15 +99,15 @@ pub enum ProviderError<LoggerErrorT> {
     /// An error occurred while logging.
     #[error("Failed to log: {0:?}")]
     Logger(LoggerErrorT),
+    /// An error occurred while adding a pending transaction to the mem pool.
+    #[error(transparent)]
+    MemPoolAddTransaction(#[from] MemPoolAddTransactionError<StateError>),
     /// An error occurred while updating the mem pool.
     #[error(transparent)]
     MemPoolUpdate(StateError),
     /// An error occurred while mining a block.
     #[error(transparent)]
     MineBlock(#[from] MineBlockError<BlockchainError, StateError>),
-    /// An error occurred while adding a pending transaction to the mem pool.
-    #[error(transparent)]
-    MinerTransactionError(#[from] MinerTransactionError<StateError>),
     /// Rpc client error
     #[error(transparent)]
     RpcClientError(#[from] RpcClientError),
@@ -217,9 +217,9 @@ impl<LoggerErrorT: Debug> From<ProviderError<LoggerErrorT>> for jsonrpc::Error {
             ProviderError::InvalidTransactionInput(_) => INVALID_INPUT,
             ProviderError::InvalidTransactionType(_) => INVALID_PARAMS,
             ProviderError::Logger(_) => INTERNAL_ERROR,
+            ProviderError::MemPoolAddTransaction(_) => INVALID_INPUT,
             ProviderError::MemPoolUpdate(_) => INVALID_INPUT,
             ProviderError::MineBlock(_) => INVALID_INPUT,
-            ProviderError::MinerTransactionError(_) => INVALID_INPUT,
             ProviderError::RpcClientError(_) => INTERNAL_ERROR,
             ProviderError::RpcVersion(_) => INVALID_INPUT,
             ProviderError::RunTransaction(_) => INVALID_INPUT,

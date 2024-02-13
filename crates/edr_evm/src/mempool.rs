@@ -79,7 +79,7 @@ where
 
 /// An error that can occur when adding a transaction to the mempool.
 #[derive(Debug, thiserror::Error)]
-pub enum MinerTransactionError<SE> {
+pub enum MemPoolAddTransactionError<SE> {
     /// Transaction gas limit exceeds block gas limit.
     #[error("Transaction gas limit is {transaction_gas_limit} and exceeds block gas limit of {block_gas_limit}")]
     ExceedsBlockGasLimit {
@@ -114,7 +114,7 @@ pub enum MinerTransactionError<SE> {
     #[error(transparent)]
     State(#[from] SE),
     /// Replacement transaction has underpriced max fee per gas.
-    #[error("Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least 0x{min_new_max_fee_per_gas:x} is necessary to replace the existing transaction with nonce {transaction_nonce}.")]
+    #[error("Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least {min_new_max_fee_per_gas} is necessary to replace the existing transaction with nonce {transaction_nonce}.")]
     ReplacementMaxFeePerGasTooLow {
         /// The minimum new max fee per gas
         min_new_max_fee_per_gas: U256,
@@ -122,7 +122,7 @@ pub enum MinerTransactionError<SE> {
         transaction_nonce: u64,
     },
     /// Replacement transaction has underpriced max priority fee per gas.
-    #[error("Replacement transaction underpriced. A gasPrice/maxPriorityFeePerGas of at least 0x{min_new_max_priority_fee_per_gas} is necessary to replace the existing transaction with nonce {transaction_nonce}.")]
+    #[error("Replacement transaction underpriced. A gasPrice/maxPriorityFeePerGas of at least {min_new_max_priority_fee_per_gas} is necessary to replace the existing transaction with nonce {transaction_nonce}.")]
     ReplacementMaxPriorityFeePerGasTooLow {
         /// The minimum new max priority fee per gas
         min_new_max_priority_fee_per_gas: U256,
@@ -229,6 +229,16 @@ impl MemPool {
         })
     }
 
+    /// Retrieves an iterator for all future transactions.
+    pub fn future_transactions(&self) -> impl Iterator<Item = &OrderedTransaction> {
+        self.future_transactions.values().flatten()
+    }
+
+    /// Retrieves an iterator for all pending transactions.
+    pub fn pending_transactions(&self) -> impl Iterator<Item = &OrderedTransaction> {
+        self.pending_transactions.values().flatten()
+    }
+
     /// Retrieves an iterator for all transactions in the instance. Pending
     /// transactions are followed by future transactions, grouped by sender
     /// in order of insertion.
@@ -258,24 +268,24 @@ impl MemPool {
         &mut self,
         state: &S,
         transaction: ExecutableTransaction,
-    ) -> Result<(), MinerTransactionError<S::Error>> {
+    ) -> Result<(), MemPoolAddTransactionError<S::Error>> {
         let transaction_gas_limit = transaction.gas_limit();
         if transaction_gas_limit > self.block_gas_limit {
-            return Err(MinerTransactionError::ExceedsBlockGasLimit {
+            return Err(MemPoolAddTransactionError::ExceedsBlockGasLimit {
                 block_gas_limit: self.block_gas_limit,
                 transaction_gas_limit,
             });
         }
 
         if self.hash_to_transaction.contains_key(transaction.hash()) {
-            return Err(MinerTransactionError::TransactionAlreadyExists {
+            return Err(MemPoolAddTransactionError::TransactionAlreadyExists {
                 transaction_hash: *transaction.hash(),
             });
         }
 
         let sender = state.basic(*transaction.caller())?.unwrap_or_default();
         if transaction.nonce() < sender.nonce {
-            return Err(MinerTransactionError::NonceTooLow {
+            return Err(MemPoolAddTransactionError::NonceTooLow {
                 transaction_nonce: transaction.nonce(),
                 sender_nonce: sender.nonce,
             });
@@ -284,7 +294,7 @@ impl MemPool {
         // We need to validate funds at this stage to avoid DOS
         let max_upfront_cost = transaction.as_inner().upfront_cost();
         if max_upfront_cost > sender.balance {
-            return Err(MinerTransactionError::InsufficientFunds {
+            return Err(MemPoolAddTransactionError::InsufficientFunds {
                 max_upfront_cost,
                 sender_balance: sender.balance,
             });
@@ -440,7 +450,7 @@ impl MemPool {
     fn insert_pending_transaction<StateError>(
         &mut self,
         transaction: OrderedTransaction,
-    ) -> Result<(), MinerTransactionError<StateError>> {
+    ) -> Result<(), MemPoolAddTransactionError<StateError>> {
         let mut pending_transactions = self.pending_transactions.entry(*transaction.caller());
 
         // Check whether an existing transaction can be replaced
@@ -494,7 +504,7 @@ impl MemPool {
     fn insert_future_transaction<StateError>(
         &mut self,
         transaction: OrderedTransaction,
-    ) -> Result<(), MinerTransactionError<StateError>> {
+    ) -> Result<(), MemPoolAddTransactionError<StateError>> {
         let mut future_transactions = self.future_transactions.entry(*transaction.caller());
 
         // Check whether an existing transaction can be replaced
@@ -548,10 +558,10 @@ pub fn has_transactions(mem_pool: &MemPool) -> bool {
 fn validate_replacement_transaction<StateError>(
     old_transaction: &ExecutableTransaction,
     new_transaction: &ExecutableTransaction,
-) -> Result<(), MinerTransactionError<StateError>> {
+) -> Result<(), MemPoolAddTransactionError<StateError>> {
     let min_new_max_fee_per_gas = min_new_fee(old_transaction.gas_price());
     if new_transaction.gas_price() < min_new_max_fee_per_gas {
-        return Err(MinerTransactionError::ReplacementMaxFeePerGasTooLow {
+        return Err(MemPoolAddTransactionError::ReplacementMaxFeePerGasTooLow {
             min_new_max_fee_per_gas,
             transaction_nonce: old_transaction.nonce(),
         });
@@ -569,7 +579,7 @@ fn validate_replacement_transaction<StateError>(
         < min_new_max_priority_fee_per_gas
     {
         return Err(
-            MinerTransactionError::ReplacementMaxPriorityFeePerGasTooLow {
+            MemPoolAddTransactionError::ReplacementMaxPriorityFeePerGasTooLow {
                 min_new_max_priority_fee_per_gas,
                 transaction_nonce: old_transaction.nonce(),
             },

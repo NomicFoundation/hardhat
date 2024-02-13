@@ -17,11 +17,7 @@ import {
   RpcLogOutput,
   RpcReceiptOutput,
 } from "../../../../src/internal/hardhat-network/provider/output";
-import {
-  OrderedTransaction,
-  SerializedTransaction,
-} from "../../../../src/internal/hardhat-network/provider/PoolState";
-import { serializeTransaction } from "../../../../src/internal/hardhat-network/provider/mem-pool/hardhat";
+import { OrderedTransaction } from "../../../../src/internal/hardhat-network/provider/PoolState";
 import { FakeSenderTransaction } from "../../../../src/internal/hardhat-network/provider/transactions/FakeSenderTransaction";
 import { FakeSenderAccessListEIP2930Transaction } from "../../../../src/internal/hardhat-network/provider/transactions/FakeSenderAccessListEIP2930Transaction";
 import { FakeSenderEIP1559Transaction } from "../../../../src/internal/hardhat-network/provider/transactions/FakeSenderEIP1559Transaction";
@@ -33,13 +29,7 @@ export function createTestTransaction(data: TxData = {}) {
   return tx.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
 }
 
-export function createUnsignedTestTransaction(data: TxData = {}) {
-  const tx = new Transaction({ to: randomAddress(), ...data });
-
-  return tx;
-}
-
-export function createTestFakeTransaction(
+function createTestFakeTransaction(
   data: (TxData | FeeMarketEIP1559TxData | AccessListEIP2930TxData) & {
     from?: AddressLike;
   } = {}
@@ -116,13 +106,6 @@ export function createTestOrderedTransaction({
     orderId,
     data: createTestFakeTransaction(rest),
   };
-}
-
-export function createTestSerializedTransaction(
-  data: OrderedTxData
-): SerializedTransaction {
-  const tx = createTestOrderedTransaction(data);
-  return serializeTransaction(tx);
 }
 
 export function createTestReceipt(
