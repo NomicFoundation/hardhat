@@ -152,9 +152,7 @@ Open your contract and add a comment with something unique, like your GitHub's u
 contract Lock {
 ```
 
-To run the deployment we will leverage the Ignition module `LockModule` that
-we created in the [Deploying your contracts](./deploying.md) guide. Run the deployment
-using Hardhat Ignition and the newly added Sepolia network:
+To run the deployment we will leverage the Ignition module `LockModule` that we created in the [Deploying your contracts](./deploying.md) guide. Run the deployment using Hardhat Ignition and the newly added Sepolia network:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
