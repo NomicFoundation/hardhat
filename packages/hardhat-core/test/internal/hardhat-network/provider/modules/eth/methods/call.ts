@@ -44,7 +44,6 @@ import {
   InvalidArgumentsError,
   InvalidInputError,
 } from "../../../../../../../src/internal/core/providers/errors";
-import { isEdrProvider } from "../../../../helpers/isEdrProvider";
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork, chainId }) => {

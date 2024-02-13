@@ -37,7 +37,6 @@ import {
 import { HardhatMetadata } from "../../../../../src/internal/core/jsonrpc/types/output/metadata";
 import { useFixtureProject } from "../../../../helpers/project";
 import { useEnvironment } from "../../../../helpers/environment";
-import { isEdrProvider } from "../../helpers/isEdrProvider";
 
 describe("Hardhat module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
