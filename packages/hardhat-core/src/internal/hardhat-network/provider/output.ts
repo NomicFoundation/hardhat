@@ -42,6 +42,11 @@ export interface RpcBlockOutput {
   baseFeePerGas?: string;
   withdrawals?: RpcWithdrawalItem[];
   withdrawalsRoot?: string;
+
+  // Only present after Cancun hard-fork
+  parentBeaconBlockRoot?: string | null;
+  blobGasUsed?: string | null;
+  excessBlobGas?: string | null;
 }
 
 export type RpcTransactionOutput =
@@ -211,7 +216,29 @@ export function getRpcBlock(
     output.withdrawalsRoot = bufferToRpcData(block.header.withdrawalsRoot);
   }
 
+  addCancunPropertiesIfPresent(output, block, pending);
+
   return output;
+}
+
+function addCancunPropertiesIfPresent(
+  output: RpcBlockOutput,
+  block: Block,
+  pending: boolean
+) {
+  if (block.header.parentBeaconBlockRoot !== undefined) {
+    output.parentBeaconBlockRoot = pending
+      ? null
+      : bufferToRpcData(block.header.parentBeaconBlockRoot, 32);
+  }
+
+  if (block.header.blobGasUsed !== undefined) {
+    output.blobGasUsed = numberToRpcQuantity(block.header.blobGasUsed);
+  }
+
+  if (block.header.excessBlobGas !== undefined) {
+    output.excessBlobGas = numberToRpcQuantity(block.header.excessBlobGas);
+  }
 }
 
 export function getRpcTransaction(

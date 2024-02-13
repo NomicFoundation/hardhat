@@ -134,6 +134,10 @@ import { RandomBufferGenerator } from "./utils/random";
 
 type ExecResult = EVMResult["execResult"];
 
+const BEACON_ROOT_ADDRESS = "0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02";
+const BEACON_ROOT_BYTECODE =
+  "0x3373fffffffffffffffffffffffffffffffffffffffe14604d57602036146024575f5ffd5b5f35801560495762001fff810690815414603c575f5ffd5b62001fff01545f5260205ff35b5f5ffd5b62001fff42064281555f359062001fff015500";
+
 const log = debug("hardhat:core:hardhat-network:node");
 
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
@@ -174,6 +178,10 @@ export class HardhatNode extends EventEmitter {
 
     const hardfork = getHardforkName(config.hardfork);
     const mixHashGenerator = RandomBufferGenerator.create("randomMixHashSeed");
+    const parentBeaconBlockRootGenerator = RandomBufferGenerator.create(
+      "randomParentBeaconBlockRootSeed"
+    );
+
     let forkClient: JsonRpcClient | undefined;
 
     const common = makeCommon(config);
@@ -202,6 +210,14 @@ export class HardhatNode extends EventEmitter {
         forkBlockNumber
       );
       await forkStateManager.initializeGenesisAccounts(genesisAccounts);
+
+      if (hardforkGte(hardfork, HardforkName.CANCUN)) {
+        await forkStateManager.putContractCode(
+          Address.fromString(BEACON_ROOT_ADDRESS),
+          Buffer.from(toBytes(BEACON_ROOT_BYTECODE))
+        );
+      }
+
       stateManager = forkStateManager;
 
       blockchain = new ForkBlockchain(forkClient, forkBlockNumber, common);
@@ -238,6 +254,13 @@ export class HardhatNode extends EventEmitter {
         trie: stateTrie,
       });
 
+      if (hardforkGte(hardfork, HardforkName.CANCUN)) {
+        await stateManager.putContractCode(
+          Address.fromString(BEACON_ROOT_ADDRESS),
+          Buffer.from(toBytes(BEACON_ROOT_BYTECODE))
+        );
+      }
+
       const hardhatBlockchain = new HardhatBlockchain(common);
 
       const genesisBlockBaseFeePerGas = hardforkGte(
@@ -252,9 +275,10 @@ export class HardhatNode extends EventEmitter {
         hardhatBlockchain,
         common,
         config,
-        stateTrie,
+        await stateManager.getStateRoot(),
         hardfork,
         mixHashGenerator.next(),
+        parentBeaconBlockRootGenerator.next(),
         genesisBlockBaseFeePerGas
       );
 
@@ -304,6 +328,7 @@ export class HardhatNode extends EventEmitter {
       hardfork,
       hardforkActivations,
       mixHashGenerator,
+      parentBeaconBlockRootGenerator,
       allowUnlimitedContractSize,
       allowBlocksWithSameTimestamp,
       tracingConfig,
@@ -392,6 +417,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     public readonly hardfork: HardforkName,
     private readonly _hardforkActivations: HardforkHistoryConfig,
     private _mixHashGenerator: RandomBufferGenerator,
+    private _parentBeaconBlockRootGenerator: RandomBufferGenerator,
     public readonly allowUnlimitedContractSize: boolean,
     private _allowBlocksWithSameTimestamp: boolean,
     tracingConfig?: TracingConfig,
@@ -1068,6 +1094,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         this.getUserProvidedNextBlockBaseFeePerGas(),
       coinbase: this.getCoinbaseAddress().toString(),
       mixHashGenerator: this._mixHashGenerator.clone(),
+      parentBeaconBlockRootGenerator:
+        this._parentBeaconBlockRootGenerator.clone(),
     };
 
     this._irregularStatesByBlockNumber = new Map(
@@ -1124,6 +1152,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     this._coinbase = snapshot.coinbase;
 
     this._mixHashGenerator = snapshot.mixHashGenerator;
+    this._parentBeaconBlockRootGenerator =
+      snapshot.parentBeaconBlockRootGenerator;
 
     // We delete this and the following snapshots, as they can only be used
     // once in Ganache
@@ -1852,6 +1882,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       headerData.mixHash = this._getNextMixHash();
     }
 
+    if (this.isPostCancunHardfork()) {
+      headerData.parentBeaconBlockRoot = this._getNextParentBeaconBlockRoot();
+    }
+
     headerData.baseFeePerGas = await this.getNextBlockBaseFeePerGas();
 
     const blockBuilder = await this._vm.buildBlock({
@@ -2560,6 +2594,31 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         );
       }
 
+      // If this VM is running without cancun, but the block has cancun fields,
+      // we remove them from the block
+      if (
+        !this.isCancunBlock(blockNumberOrPending) &&
+        blockContext.header.blobGasUsed !== undefined
+      ) {
+        blockContext = Block.fromBlockData(
+          {
+            ...blockContext,
+            header: {
+              ...blockContext.header,
+              blobGasUsed: undefined,
+              excessBlobGas: undefined,
+              parentBeaconBlockRoot: undefined,
+            },
+          },
+          {
+            freeze: false,
+            common: this._vm.common,
+
+            skipConsensusFormatValidation: true,
+          }
+        );
+      }
+
       // NOTE: This is a workaround of both an @nomicfoundation/ethereumjs-vm limitation, and
       //   a bug in Hardhat Network.
       //
@@ -2720,8 +2779,25 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return this._vm.common.gteHardfork("shanghai");
   }
 
+  public isCancunBlock(blockNumberOrPending?: bigint | "pending"): boolean {
+    if (
+      blockNumberOrPending !== undefined &&
+      blockNumberOrPending !== "pending"
+    ) {
+      return this._vm.common.hardforkGteHardfork(
+        this._selectHardfork(blockNumberOrPending),
+        "cancun"
+      );
+    }
+    return this._vm.common.gteHardfork("cancun");
+  }
+
   public isPostMergeHardfork(): boolean {
     return hardforkGte(this.hardfork, HardforkName.MERGE);
+  }
+
+  public isPostCancunHardfork(): boolean {
+    return hardforkGte(this.hardfork, HardforkName.CANCUN);
   }
 
   public setPrevRandao(prevRandao: Buffer): void {
@@ -2777,6 +2853,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   private _getNextMixHash(): Uint8Array {
     return this._mixHashGenerator.next();
+  }
+
+  private _getNextParentBeaconBlockRoot(): Uint8Array {
+    return this._parentBeaconBlockRootGenerator.next();
   }
 
   private async _getEstimateGasFeePriceFields(
@@ -2863,7 +2943,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       );
     }
 
-    return hardfork;
+    return hardfork === "merge" ? "mergeForkIdTransition" : hardfork;
   }
 
   private _getCommonForTracing(networkId: number, blockNumber: bigint): Common {
