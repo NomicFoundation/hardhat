@@ -2594,6 +2594,31 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         );
       }
 
+      // If this VM is running without cancun, but the block has cancun fields,
+      // we remove them from the block
+      if (
+        !this.isCancunBlock(blockNumberOrPending) &&
+        blockContext.header.blobGasUsed !== undefined
+      ) {
+        blockContext = Block.fromBlockData(
+          {
+            ...blockContext,
+            header: {
+              ...blockContext.header,
+              blobGasUsed: undefined,
+              excessBlobGas: undefined,
+              parentBeaconBlockRoot: undefined,
+            },
+          },
+          {
+            freeze: false,
+            common: this._vm.common,
+
+            skipConsensusFormatValidation: true,
+          }
+        );
+      }
+
       // NOTE: This is a workaround of both an @nomicfoundation/ethereumjs-vm limitation, and
       //   a bug in Hardhat Network.
       //
@@ -2752,6 +2777,19 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       );
     }
     return this._vm.common.gteHardfork("shanghai");
+  }
+
+  public isCancunBlock(blockNumberOrPending?: bigint | "pending"): boolean {
+    if (
+      blockNumberOrPending !== undefined &&
+      blockNumberOrPending !== "pending"
+    ) {
+      return this._vm.common.hardforkGteHardfork(
+        this._selectHardfork(blockNumberOrPending),
+        "cancun"
+      );
+    }
+    return this._vm.common.gteHardfork("cancun");
   }
 
   public isPostMergeHardfork(): boolean {
