@@ -2905,7 +2905,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       );
     }
 
-    return hardfork;
+    return hardfork === "merge" ? "mergeForkIdTransition" : hardfork;
   }
 
   private _getCommonForTracing(networkId: number, blockNumber: bigint): Common {

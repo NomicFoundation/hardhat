@@ -46,7 +46,7 @@ export async function runFullBlock(
     automine: true,
     chainId,
     networkId: 1,
-    hardfork,
+    hardfork: hardfork === "paris" ? "merge" : hardfork,
     forkConfig,
     forkCachePath: FORK_TESTS_CACHE_PATH,
     blockGasLimit: Number(rpcBlock.gasLimit),

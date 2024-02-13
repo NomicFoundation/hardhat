@@ -298,7 +298,8 @@ export class ForkBlockchain
     if (rpcBlock.baseFeePerGas === undefined) {
       common.setHardfork("berlin");
     } else if (rpcBlock.withdrawals === undefined) {
-      common.setHardfork("merge");
+      // ethereumjs uses this name for the merge hardfork
+      common.setHardfork("mergeForkIdTransition");
     } else {
       common.setHardfork("shanghai");
     }
