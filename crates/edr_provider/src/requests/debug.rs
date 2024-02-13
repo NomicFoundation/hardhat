@@ -14,7 +14,7 @@ use crate::{
 };
 
 pub fn handle_debug_trace_transaction<LoggerErrorT: Debug>(
-    data: &ProviderData<LoggerErrorT>,
+    data: &mut ProviderData<LoggerErrorT>,
     transaction_hash: B256,
     config: Option<DebugTraceConfig>,
 ) -> Result<DebugTraceResult, ProviderError<LoggerErrorT>> {
@@ -31,7 +31,7 @@ pub fn handle_debug_trace_transaction<LoggerErrorT: Debug>(
 }
 
 pub fn handle_debug_trace_call<LoggerErrorT: Debug>(
-    data: &ProviderData<LoggerErrorT>,
+    data: &mut ProviderData<LoggerErrorT>,
     call_request: CallRequest,
     block_spec: Option<BlockSpec>,
     config: Option<DebugTraceConfig>,

@@ -48,7 +48,7 @@ pub fn handle_call_request<LoggerErrorT: Debug>(
 }
 
 pub(crate) fn resolve_call_request<LoggerErrorT: Debug>(
-    data: &ProviderData<LoggerErrorT>,
+    data: &mut ProviderData<LoggerErrorT>,
     request: CallRequest,
     block_spec: Option<&BlockSpec>,
     state_overrides: &StateOverrides,

@@ -44,6 +44,7 @@ import {
   TracingMessage,
   SuccessReason,
   IntervalRange,
+  Eip4844SignedTransaction,
 } from "@ignored/edr";
 import { fromBigIntLike, toHex } from "../../../util/bigint";
 import { HardforkName, hardforkGte } from "../../../util/hardforks";
@@ -672,10 +673,35 @@ export function edrSignedTransactionToEthereumJSTypedTransaction(
   transaction:
     | LegacySignedTransaction
     | Eip2930SignedTransaction
-    | Eip1559SignedTransaction,
+    | Eip1559SignedTransaction
+    | Eip4844SignedTransaction,
   caller: Address
 ): TypedTransaction {
-  if (isEip1559SignedTransaction(transaction)) {
+  if (isEip4844SignedTransaction(transaction)) {
+    // TODO: https://github.com/NomicFoundation/edr/issues/289
+    // Add proper support for EIP-4844
+    const fakeTransaction = new FakeSenderEIP1559Transaction(caller, {
+      maxPriorityFeePerGas: transaction.maxPriorityFeePerGas,
+      maxFeePerGas: transaction.maxFeePerGas,
+      chainId: transaction.chainId,
+      accessList: transaction.accessList.map((value, _index, _array) => {
+        return [value.address, value.storageKeys];
+      }),
+      nonce: transaction.nonce,
+      gasLimit: transaction.gasLimit,
+      to: transaction.to,
+      value: transaction.value,
+      data: transaction.input,
+      v: BigInt(transaction.oddYParity),
+      r: transaction.r,
+      s: transaction.s,
+    });
+
+    // Overwrite transaction type
+    (fakeTransaction as any)._type = 3;
+
+    return fakeTransaction;
+  } else if (isEip1559SignedTransaction(transaction)) {
     return new FakeSenderEIP1559Transaction(caller, {
       maxPriorityFeePerGas: transaction.maxPriorityFeePerGas,
       maxFeePerGas: transaction.maxFeePerGas,
@@ -730,6 +756,7 @@ function isLegacySignedTransaction(
     | LegacySignedTransaction
     | Eip2930SignedTransaction
     | Eip1559SignedTransaction
+    | Eip4844SignedTransaction
 ): transaction is LegacySignedTransaction {
   // Only need to check for one unique field
   return "signature" in transaction;
@@ -740,9 +767,13 @@ function isEip1559SignedTransaction(
     | LegacySignedTransaction
     | Eip2930SignedTransaction
     | Eip1559SignedTransaction
+    | Eip4844SignedTransaction
 ): transaction is Eip1559SignedTransaction {
   // Only need to check for one unique field
-  return "maxPriorityFeePerGas" in transaction;
+  return (
+    !isEip4844SignedTransaction(transaction) &&
+    "maxPriorityFeePerGas" in transaction
+  );
 }
 
 function isEip2930SignedTransaction(
@@ -750,11 +781,22 @@ function isEip2930SignedTransaction(
     | LegacySignedTransaction
     | Eip2930SignedTransaction
     | Eip1559SignedTransaction
+    | Eip4844SignedTransaction
 ): transaction is Eip2930SignedTransaction {
   // Only need to check for one unique field
   return (
     !isEip1559SignedTransaction(transaction) && "oddYParity" in transaction
   );
+}
+
+function isEip4844SignedTransaction(
+  transaction:
+    | LegacySignedTransaction
+    | Eip2930SignedTransaction
+    | Eip1559SignedTransaction
+    | Eip4844SignedTransaction
+): transaction is Eip4844SignedTransaction {
+  return "maxFeePerBlobGas" in transaction;
 }
 
 export function edrRpcDebugTraceToHardhat(

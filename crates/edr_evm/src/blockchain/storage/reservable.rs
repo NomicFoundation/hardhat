@@ -150,7 +150,7 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
             previous_base_fee_per_gas: previous_base_fee,
             previous_state_root,
             previous_total_difficulty,
-            previous_diff_index: self.state_diffs.len(),
+            previous_diff_index: self.state_diffs.len() - 1,
             spec_id,
         };
 
