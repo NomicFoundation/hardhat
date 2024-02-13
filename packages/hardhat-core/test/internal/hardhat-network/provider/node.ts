@@ -1379,7 +1379,7 @@ describe("HardhatNode", () => {
 
   describe("Transient storage", function () {
     const TLOAD_DEPLOYMENT_BYTECODE = "0x60FF5c"; // PUSH1 FF TLOAD
-    const TSTORE_DEPLOYMENT_BYTECODE = "0x60FF60FF5d"; // PUSH1 FF TLOAD
+    const TSTORE_DEPLOYMENT_BYTECODE = "0x60FF60FF5d"; // PUSH1 FF PUSH1 FF TSTORE
 
     const nodeConfig: LocalNodeConfig = {
       automine: true,
