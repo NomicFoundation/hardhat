@@ -86,7 +86,8 @@ lazy_static! {
 pub struct Provider<LoggerErrorT: Debug> {
     data: Arc<AsyncMutex<ProviderData<LoggerErrorT>>>,
     /// Interval miner runs in the background, if enabled. It holds the data
-    /// mutex, so
+    /// mutex, so it needs to internally check for cancellation/self-destruction
+    /// while async-awaiting the lock to avoid a deadlock.
     interval_miner: Arc<Mutex<Option<IntervalMiner<LoggerErrorT>>>>,
     runtime: runtime::Handle,
 }
