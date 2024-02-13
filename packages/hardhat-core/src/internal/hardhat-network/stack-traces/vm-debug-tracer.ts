@@ -342,7 +342,7 @@ export class VMDebugTracer {
 
     let gasCost = step.opcode.fee;
 
-    let op = step.opcode.name;
+    let op = step.opcode.name === "KECCAK256" ? "SHA3" : step.opcode.name;
     let error: object | undefined;
 
     const storage: Storage = {};
