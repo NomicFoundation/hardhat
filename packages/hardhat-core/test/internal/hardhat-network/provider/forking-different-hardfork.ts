@@ -17,6 +17,12 @@ const TOTAL_SUPPLY_SELECTOR = "0x18160ddd";
 const SHANGHAI_HARDFORK_BLOCK_NUMBER = 17_034_870;
 const MERGE_HARDFORK_BLOCK_NUMBER = 15_537_394;
 
+// this block should have a non-empty list of withdrawals
+const BLOCK_WITH_WITHDRAWALS = 17_034_920;
+
+const BLOCK_WITH_WITHDRAWALS_EXPECTED_ROOT =
+  "0x23bf85b92f3a2695d13463d84de157c3f43d0fe201348d638693fcfa87734d5e";
+
 describe("Forking a block with a different hardfork", function () {
   FORKED_PROVIDERS.forEach(({ rpcProvider, useProvider }) => {
     workaroundWindowsCiFailures.call(this, { isFork: true });
@@ -76,6 +82,30 @@ describe("Forking a block with a different hardfork", function () {
                 5022305384218217259061852351n
               );
             });
+
+            it("should have shanghai fields in blocks before and after the fork", async function () {
+              await this.provider.send("hardhat_mine", []);
+              await this.provider.send("hardhat_mine", []);
+
+              const blockBeforeFork = await this.provider.send(
+                "eth_getBlockByNumber",
+                [numberToRpcQuantity(BLOCK_WITH_WITHDRAWALS), false]
+              );
+
+              const blockAfterFork = await this.provider.send(
+                "eth_getBlockByNumber",
+                [numberToRpcQuantity(forkBlockNumber + 1), false]
+              );
+
+              assert.equal(
+                blockBeforeFork.withdrawalsRoot,
+                BLOCK_WITH_WITHDRAWALS_EXPECTED_ROOT
+              );
+              assert.isNotEmpty(blockBeforeFork.withdrawals);
+
+              assert.isDefined(blockAfterFork.withdrawalsRoot);
+              assert.isDefined(blockAfterFork.withdrawals);
+            });
           });
 
           describe("forking a 'merge' block", function () {
@@ -83,6 +113,7 @@ describe("Forking a block with a different hardfork", function () {
 
             useProvider({
               forkBlockNumber,
+              hardfork,
             });
 
             it("should mine transactions", async function () {
@@ -124,6 +155,26 @@ describe("Forking a block with a different hardfork", function () {
                 rpcDataToBigInt(daiSupply),
                 6378560137543824474512862351n
               );
+            });
+
+            it("should have shanghai fields in blocks after the fork but not before", async function () {
+              await this.provider.send("hardhat_mine", []);
+              await this.provider.send("hardhat_mine", []);
+
+              const blockBeforeFork = await this.provider.send(
+                "eth_getBlockByNumber",
+                [numberToRpcQuantity(forkBlockNumber - 1), false]
+              );
+
+              const blockAfterFork = await this.provider.send(
+                "eth_getBlockByNumber",
+                [numberToRpcQuantity(forkBlockNumber + 1), false]
+              );
+
+              assert.isUndefined(blockBeforeFork.withdrawalsRoot);
+              assert.isUndefined(blockBeforeFork.withdrawals);
+              assert.isDefined(blockAfterFork.withdrawalsRoot);
+              assert.isDefined(blockAfterFork.withdrawals);
             });
           });
         });
@@ -179,6 +230,30 @@ describe("Forking a block with a different hardfork", function () {
                 5022305384218217259061852351n
               );
             });
+
+            it("should have shanghai fields in blocks before the fork but not after", async function () {
+              await this.provider.send("hardhat_mine", []);
+              await this.provider.send("hardhat_mine", []);
+
+              const blockBeforeFork = await this.provider.send(
+                "eth_getBlockByNumber",
+                [numberToRpcQuantity(BLOCK_WITH_WITHDRAWALS), false]
+              );
+
+              const blockAfterFork = await this.provider.send(
+                "eth_getBlockByNumber",
+                [numberToRpcQuantity(forkBlockNumber + 1), false]
+              );
+
+              assert.equal(
+                blockBeforeFork.withdrawalsRoot,
+                BLOCK_WITH_WITHDRAWALS_EXPECTED_ROOT
+              );
+              assert.isNotEmpty(blockBeforeFork.withdrawals);
+
+              assert.isUndefined(blockAfterFork.withdrawalsRoot);
+              assert.isUndefined(blockAfterFork.withdrawals);
+            });
           });
 
           describe("forking a 'merge' block", function () {
@@ -186,6 +261,7 @@ describe("Forking a block with a different hardfork", function () {
 
             useProvider({
               forkBlockNumber,
+              hardfork,
             });
 
             it("should mine transactions", async function () {
@@ -227,6 +303,26 @@ describe("Forking a block with a different hardfork", function () {
                 rpcDataToBigInt(daiSupply),
                 6378560137543824474512862351n
               );
+            });
+
+            it("shouldn't have shanghai fields in blocks before or after the fork", async function () {
+              await this.provider.send("hardhat_mine", []);
+              await this.provider.send("hardhat_mine", []);
+
+              const blockBeforeFork = await this.provider.send(
+                "eth_getBlockByNumber",
+                [numberToRpcQuantity(forkBlockNumber - 1), false]
+              );
+
+              const blockAfterFork = await this.provider.send(
+                "eth_getBlockByNumber",
+                [numberToRpcQuantity(forkBlockNumber + 1), false]
+              );
+
+              assert.isUndefined(blockBeforeFork.withdrawalsRoot);
+              assert.isUndefined(blockBeforeFork.withdrawals);
+              assert.isUndefined(blockAfterFork.withdrawalsRoot);
+              assert.isUndefined(blockAfterFork.withdrawals);
             });
           });
         });
