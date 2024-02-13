@@ -6,7 +6,7 @@ This guide explains where you can use ESM in your Hardhat project and how to do 
 
 ## Hardhat support for ES modules
 
-You can write your scripts and tests as both CommonJS and ES modules. However, your Hardhat config, and any file imported by it, **must** be CommonJS modules.
+You can write your tests as both CommonJS and ES modules. However, your Hardhat config, and any file imported by it, **must** be CommonJS modules.
 
 If your package uses ESM by default (that is, you have [`"type": "module"`](https://nodejs.org/api/packages.html#type) in your `package.json`), then your Hardhat config file must be named `hardhat.config.cjs`.
 
@@ -101,7 +101,7 @@ Welcome to Hardhat v{HARDHAT_VERSION}
   Quit
 ```
 
-Select the `Create a JavaScript project` option. This will initialize a Hardhat project where the scripts and tests are ES modules, and where the configuration has a `.cjs` extension.
+Select the `Create a JavaScript project` option. This will initialize a Hardhat project where the tests are ES modules, and where the configuration has a `.cjs` extension.
 
 ### Migrating a project to ESM
 
@@ -109,11 +109,11 @@ If you have an existing Hardhat project and you want to convert it into an ESM p
 
 1. Edit your `package.json` and add a `"type": "module"` entry.
 2. Rename your `hardhat.config.js` file to `hardhat.config.cjs`.
-3. Migrate all your scripts and tests from CommonJS to ESM. Alternatively, you can rename them to have a `.cjs` extension instead of `.js`.
+3. Migrate all your tests from CommonJS to ESM. Alternatively, you can rename them to have a `.cjs` extension instead of `.js`.
 
 ### Adding ESM files to an existing Hardhat project
 
-It's also possible to write ESM scripts and tests without making your whole project ESM by default. To do this, just create your scripts and tests with an `.mjs` extension.
+It's also possible to write ESM tests without making your whole project ESM by default. To do this, just create your scripts and tests with an `.mjs` extension.
 
 ## ESM and TypeScript projects
 

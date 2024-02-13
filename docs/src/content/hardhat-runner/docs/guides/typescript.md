@@ -90,7 +90,7 @@ drwxr-xr-x    3 pato  wheel      96 Oct 20 12:50 contracts/
 drwxr-xr-x  434 pato  wheel   13888 Oct 20 12:52 node_modules/
 -rw-r--r--    1 pato  wheel  604835 Oct 20 12:52 package-lock.json
 -rw-r--r--    1 pato  wheel     460 Oct 20 12:52 package.json
-drwxr-xr-x    3 pato  wheel      96 Oct 20 12:50 scripts/
+drwxr-xr-x    3 pato  wheel      96 Oct 20 12:50 ignition/modules/
 drwxr-xr-x    3 pato  wheel      96 Oct 20 12:50 test/
 ```
 
@@ -118,7 +118,7 @@ Finally, you need to create a [`tsconfig.json`](https://www.typescriptlang.org/d
 
 <<< @/../packages/hardhat-core/sample-projects/typescript/tsconfig.json
 
-And that's really all it takes. Now you can write your config, tests, tasks and scripts in TypeScript.
+And that's really all it takes. Now you can write your config, tests and tasks in TypeScript.
 
 ## Type-checking your project
 
@@ -128,11 +128,11 @@ For example, if you run `npx hardhat test` and one of your tests has a compilati
 
 Since type-checking adds significant overhead, we recommend to do it only in your CI or in pre-commit/pre-push hooks.
 
-## Writing tests and scripts in TypeScript
+## Writing tests in TypeScript
 
 When using JavaScript, all the properties in the [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md) are injected into the global scope. When using TypeScript nothing will be available in the global scope and you will need to import everything explicitly using, for example, `import { ethers } from "hardhat"`.
 
-Follow the [Getting started guide](../getting-started/index.md) and create a TypeScript project for a complete example on how to write tests and scripts using TypeScript.
+Follow the [Getting started guide](../getting-started/index.md) and create a TypeScript project for a complete example on how to write tests using TypeScript.
 
 ## Type-safe smart contract interactions
 
@@ -157,7 +157,7 @@ Typescript allows defining custom [path mappings](https://www.typescriptlang.org
 }
 ```
 
-To support this option when running Hardhat tests or scripts, you need to install the package [`tsconfig-paths`](https://www.npmjs.com/package/tsconfig-paths) and register it in your `hardhat.config.ts`:
+To support this option when running Hardhat tests, you need to install the package [`tsconfig-paths`](https://www.npmjs.com/package/tsconfig-paths) and register it in your `hardhat.config.ts`:
 
 ```typescript
 import { HardhatUserConfig } from "hardhat/config";
@@ -172,9 +172,9 @@ const config: HardhatUserConfig = {
 export default config;
 ```
 
-## Running your tests and scripts directly with `ts-node`
+## Running your tests directly with `ts-node`
 
-When running Hardhat scripts without the CLI, you need to use `ts-node`'s [`--files` flag](https://www.npmjs.com/package/ts-node#help-my-types-are-missing).
+When running Hardhat tests without the CLI, you need to use `ts-node`'s [`--files` flag](https://www.npmjs.com/package/ts-node#help-my-types-are-missing).
 
 This can also be enabled with `TS_NODE_FILES=true`.
 
