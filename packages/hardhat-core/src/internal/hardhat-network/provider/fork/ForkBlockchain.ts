@@ -300,8 +300,10 @@ export class ForkBlockchain
     } else if (rpcBlock.withdrawals === undefined) {
       // ethereumjs uses this name for the merge hardfork
       common.setHardfork("mergeForkIdTransition");
-    } else {
+    } else if (rpcBlock.parentBeaconBlockRoot === undefined) {
       common.setHardfork("shanghai");
+    } else {
+      common.setHardfork("cancun");
     }
 
     // we don't include the transactions to add our own custom tx objects,
