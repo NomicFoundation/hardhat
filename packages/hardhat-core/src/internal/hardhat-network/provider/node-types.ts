@@ -81,7 +81,8 @@ export interface CallParams {
 export type TransactionParams =
   | LegacyTransactionParams
   | AccessListTransactionParams
-  | EIP1559TransactionParams;
+  | EIP1559TransactionParams
+  | BlobTransactionParams;
 
 interface BaseTransactionParams {
   // `to` should be undefined for contract creation
@@ -110,6 +111,11 @@ export interface EIP1559TransactionParams extends BaseTransactionParams {
   accessList: AccessListBufferItem[];
   maxFeePerGas: bigint;
   maxPriorityFeePerGas: bigint;
+}
+
+export interface BlobTransactionParams extends EIP1559TransactionParams {
+  blobs: Uint8Array[];
+  blobVersionedHashes: Uint8Array[];
 }
 
 export interface FilterParams {
