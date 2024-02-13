@@ -41,7 +41,7 @@ pub fn handle_get_transaction_by_block_hash_and_index<LoggerErrorT: Debug>(
 }
 
 pub fn handle_get_transaction_by_block_spec_and_index<LoggerErrorT: Debug>(
-    data: &ProviderData<LoggerErrorT>,
+    data: &mut ProviderData<LoggerErrorT>,
     block_spec: PreEip1898BlockSpec,
     index: U256,
 ) -> Result<Option<remote::eth::Transaction>, ProviderError<LoggerErrorT>> {
@@ -265,7 +265,7 @@ pub fn handle_send_raw_transaction_request<LoggerErrorT: Debug>(
 }
 
 fn resolve_transaction_request<LoggerErrorT: Debug>(
-    data: &ProviderData<LoggerErrorT>,
+    data: &mut ProviderData<LoggerErrorT>,
     transaction_request: EthTransactionRequest,
 ) -> Result<TransactionRequestAndSender, ProviderError<LoggerErrorT>> {
     const DEFAULT_MAX_PRIORITY_FEE_PER_GAS: u64 = 1_000_000_000;

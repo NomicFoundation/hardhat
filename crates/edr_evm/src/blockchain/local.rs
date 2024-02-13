@@ -395,3 +395,69 @@ impl BlockHashRef for LocalBlockchain {
             .ok_or(BlockchainError::UnknownBlockNumber)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use edr_eth::{AccountInfo, HashMap};
+    use revm::primitives::{Account, AccountStatus};
+
+    use super::*;
+    use crate::state::IrregularState;
+
+    #[test]
+    fn compute_state_after_reserve() -> anyhow::Result<()> {
+        let address1 = Address::random();
+        let accounts = vec![(
+            address1,
+            AccountInfo {
+                balance: U256::from(1_000_000_000u64),
+                ..AccountInfo::default()
+            },
+        )];
+
+        let genesis_diff = accounts
+            .iter()
+            .map(|(address, info)| {
+                (
+                    *address,
+                    Account {
+                        info: info.clone(),
+                        storage: HashMap::new(),
+                        status: AccountStatus::Created | AccountStatus::Touched,
+                    },
+                )
+            })
+            .collect::<HashMap<_, _>>()
+            .into();
+
+        let mut blockchain = LocalBlockchain::new(
+            genesis_diff,
+            123,
+            SpecId::SHANGHAI,
+            6_000_000,
+            None,
+            Some(B256::random()),
+            None,
+            Some(BlobGas::default()),
+            Some(B256::random()),
+        )
+        .unwrap();
+
+        let irregular_state = IrregularState::default();
+        let expected = blockchain.state_at_block_number(0, irregular_state.state_overrides())?;
+
+        blockchain.reserve_blocks(1_000_000_000, 1)?;
+
+        let actual =
+            blockchain.state_at_block_number(1_000_000_000, irregular_state.state_overrides())?;
+
+        assert_eq!(actual.state_root().unwrap(), expected.state_root().unwrap());
+
+        for (address, expected) in accounts {
+            let actual_account = actual.basic(address)?.expect("account should exist");
+            assert_eq!(actual_account, expected);
+        }
+
+        Ok(())
+    }
+}

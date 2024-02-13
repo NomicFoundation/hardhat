@@ -71,7 +71,7 @@ pub fn create_test_config_with_fork(
 
 /// Retrieves the pending base fee per gas from the provider data.
 pub fn pending_base_fee(
-    data: &ProviderData<Infallible>,
+    data: &mut ProviderData<Infallible>,
 ) -> Result<U256, ProviderError<Infallible>> {
     let block = data.mine_pending_block()?.block;
 

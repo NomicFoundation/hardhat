@@ -48,7 +48,7 @@ pub fn handle_estimate_gas<LoggerErrorT: Debug>(
 }
 
 pub fn handle_fee_history<LoggerErrorT: Debug>(
-    data: &ProviderData<LoggerErrorT>,
+    data: &mut ProviderData<LoggerErrorT>,
     block_count: U256,
     newest_block: BlockSpec,
     reward_percentiles: Option<Vec<f64>>,
@@ -101,7 +101,7 @@ The reward percentiles should be in non-decreasing order, but the percentile num
 }
 
 fn resolve_estimate_gas_request<LoggerErrorT: Debug>(
-    data: &ProviderData<LoggerErrorT>,
+    data: &mut ProviderData<LoggerErrorT>,
     request: CallRequest,
     block_spec: &BlockSpec,
     state_overrides: &StateOverrides,
@@ -157,10 +157,10 @@ mod tests {
 
     #[test]
     fn resolve_estimate_gas_request_with_default_max_priority_fee() -> anyhow::Result<()> {
-        let fixture = ProviderTestFixture::new_local()?;
+        let mut fixture = ProviderTestFixture::new_local()?;
 
         let max_fee_per_gas =
-            pending_base_fee(&fixture.provider_data)?.max(U256::from(10_000_000_000u64));
+            pending_base_fee(&mut fixture.provider_data)?.max(U256::from(10_000_000_000u64));
 
         let request = CallRequest {
             from: Some(fixture.nth_local_account(0)),
@@ -170,7 +170,7 @@ mod tests {
         };
 
         let resolved = resolve_estimate_gas_request(
-            &fixture.provider_data,
+            &mut fixture.provider_data,
             request,
             &BlockSpec::pending(),
             &StateOverrides::default(),
@@ -204,7 +204,7 @@ mod tests {
         };
 
         let resolved = resolve_estimate_gas_request(
-            &fixture.provider_data,
+            &mut fixture.provider_data,
             request,
             &BlockSpec::pending(),
             &StateOverrides::default(),
@@ -245,7 +245,7 @@ mod tests {
         };
 
         let resolved = resolve_estimate_gas_request(
-            &fixture.provider_data,
+            &mut fixture.provider_data,
             request,
             &BlockSpec::Tag(BlockTag::Latest),
             &StateOverrides::default(),
@@ -283,7 +283,7 @@ mod tests {
         };
 
         let resolved = resolve_estimate_gas_request(
-            &fixture.provider_data,
+            &mut fixture.provider_data,
             request,
             &BlockSpec::pending(),
             &StateOverrides::default(),

@@ -312,24 +312,22 @@ impl BlockBuilder {
         StateErrorT: Debug + Send,
     {
         for (address, reward) in rewards {
-            state.modify_account(
-                address,
-                AccountModifierFn::new(Box::new(move |balance, _nonce, _code| {
-                    *balance += reward;
-                })),
-                &|| {
-                    Ok(AccountInfo {
-                        code: None,
-                        ..AccountInfo::default()
-                    })
-                },
-            )?;
+            if reward > U256::ZERO {
+                let account_info = state.modify_account(
+                    address,
+                    AccountModifierFn::new(Box::new(move |balance, _nonce, _code| {
+                        *balance += reward;
+                    })),
+                    &|| {
+                        Ok(AccountInfo {
+                            code: None,
+                            ..AccountInfo::default()
+                        })
+                    },
+                )?;
 
-            let account_info = state
-                .basic(address)?
-                .expect("Account must exist after modification");
-
-            self.state_diff.apply_account_change(address, account_info);
+                self.state_diff.apply_account_change(address, account_info);
+            }
         }
 
         if let Some(gas_limit) = self.parent_gas_limit {

@@ -2,15 +2,7 @@ use core::fmt::Debug;
 
 use edr_eth::{Address, Bytes, U256};
 
-use crate::{data::ProviderData, requests::hardhat::rpc_types::ResetProviderConfig, ProviderError};
-
-pub fn handle_reset<LoggerErrorT: Debug>(
-    data: &mut ProviderData<LoggerErrorT>,
-    config: Option<ResetProviderConfig>,
-) -> Result<bool, ProviderError<LoggerErrorT>> {
-    data.reset(config.and_then(|c| c.forking))?;
-    Ok(true)
-}
+use crate::{data::ProviderData, ProviderError};
 
 pub fn handle_set_balance<LoggerErrorT: Debug>(
     data: &mut ProviderData<LoggerErrorT>,

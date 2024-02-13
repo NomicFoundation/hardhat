@@ -350,6 +350,35 @@ describe("Eth module", function () {
           assert.equal(tx.from, "0x84467283e3663522a02574288291a9d0f9c968c2");
         });
 
+        it("should get a blob transaction from goerli", async function () {
+          if (!isFork || ALCHEMY_URL === undefined) {
+            this.skip();
+          }
+          const goerliUrl = ALCHEMY_URL.replace("mainnet", "goerli");
+
+          // If "mainnet" is not present the replacement failed so we skip the test
+          if (goerliUrl === ALCHEMY_URL) {
+            this.skip();
+          }
+
+          await this.provider.send("hardhat_reset", [
+            {
+              forking: {
+                jsonRpcUrl: goerliUrl,
+                // Cancun block
+                blockNumber: 10527489,
+              },
+            },
+          ]);
+
+          const tx = await this.provider.send("eth_getTransactionByHash", [
+            // blob transaction
+            "0x0190ab719774b0ed612789072e399157537845383c2d2445a9929784a098a5c9",
+          ]);
+
+          assert.equal(tx.from, "0xa1d6cf9ed782555a0572cc08380ee3b68a1df449");
+        });
+
         it("should return access list transactions", async function () {
           const firstBlockNumber = rpcQuantityToNumber(
             await this.provider.send("eth_blockNumber")

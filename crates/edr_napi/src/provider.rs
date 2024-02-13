@@ -73,14 +73,12 @@ impl Provider {
                 if let Some((method_name, provider_error)) = reason.provider_error() {
                     // Ignore potential failure of logging, as returning the original error is more
                     // important
-                    let _result = runtime::Handle::current()
-                        .spawn_blocking(move || {
-                            provider.log_failed_deserialization(&method_name, &provider_error)
-                        })
+                    if let Err(error) = provider
+                        .log_failed_deserialization(&method_name, &provider_error)
                         .await
-                        .map_err(|error| {
-                            napi::Error::new(Status::GenericFailure, error.to_string())
-                        })?;
+                    {
+                        log::error!("Failed to log deserialization error: {error}");
+                    }
                 }
 
                 let data = serde_json::from_str(&json_request).ok();
@@ -108,7 +106,7 @@ impl Provider {
         };
 
         let mut response = runtime::Handle::current()
-            .spawn_blocking(move || provider.handle_request(request))
+            .spawn(async move { provider.handle_request(request).await })
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
 

@@ -41,7 +41,7 @@ pub fn handle_get_block_by_hash_request<LoggerErrorT: Debug>(
 }
 
 pub fn handle_get_block_by_number_request<LoggerErrorT: Debug>(
-    data: &ProviderData<LoggerErrorT>,
+    data: &mut ProviderData<LoggerErrorT>,
     block_spec: PreEip1898BlockSpec,
     transaction_detail_flag: bool,
 ) -> Result<Option<eth::Block<HashOrTransaction>>, ProviderError<LoggerErrorT>> {
@@ -74,7 +74,7 @@ pub fn handle_get_block_transaction_count_by_hash_request<LoggerErrorT: Debug>(
 }
 
 pub fn handle_get_block_transaction_count_by_block_number<LoggerErrorT: Debug>(
-    data: &ProviderData<LoggerErrorT>,
+    data: &mut ProviderData<LoggerErrorT>,
     block_spec: PreEip1898BlockSpec,
 ) -> Result<Option<U64>, ProviderError<LoggerErrorT>> {
     Ok(block_by_number(data, &block_spec.into())?
@@ -93,7 +93,7 @@ struct BlockByNumberResult {
 }
 
 fn block_by_number<LoggerErrorT: Debug>(
-    data: &ProviderData<LoggerErrorT>,
+    data: &mut ProviderData<LoggerErrorT>,
     block_spec: &BlockSpec,
 ) -> Result<Option<BlockByNumberResult>, ProviderError<LoggerErrorT>> {
     validate_post_merge_block_tags(data.spec_id(), block_spec)?;

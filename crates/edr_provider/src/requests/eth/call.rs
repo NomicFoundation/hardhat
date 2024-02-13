@@ -54,7 +54,7 @@ pub fn handle_call_request<LoggerErrorT: Debug>(
 }
 
 pub(crate) fn resolve_call_request<LoggerErrorT: Debug>(
-    data: &ProviderData<LoggerErrorT>,
+    data: &mut ProviderData<LoggerErrorT>,
     request: CallRequest,
     block_spec: Option<&BlockSpec>,
     state_overrides: &StateOverrides,
@@ -78,7 +78,7 @@ pub(crate) fn resolve_call_request<LoggerErrorT: Debug>(
 }
 
 pub(crate) fn resolve_call_request_inner<LoggerErrorT: Debug>(
-    data: &ProviderData<LoggerErrorT>,
+    data: &mut ProviderData<LoggerErrorT>,
     request: CallRequest,
     block_spec: Option<&BlockSpec>,
     state_overrides: &StateOverrides,
@@ -166,9 +166,9 @@ mod tests {
 
     #[test]
     fn resolve_call_request_inner_with_gas_price() -> anyhow::Result<()> {
-        let fixture = ProviderTestFixture::new_local()?;
+        let mut fixture = ProviderTestFixture::new_local()?;
 
-        let pending_base_fee = pending_base_fee(&fixture.provider_data)?;
+        let pending_base_fee = pending_base_fee(&mut fixture.provider_data)?;
 
         let request = CallRequest {
             from: Some(fixture.nth_local_account(0)),
@@ -178,7 +178,7 @@ mod tests {
         };
 
         let resolved = resolve_call_request_inner(
-            &fixture.provider_data,
+            &mut fixture.provider_data,
             request,
             Some(&BlockSpec::pending()),
             &StateOverrides::default(),
@@ -193,9 +193,9 @@ mod tests {
 
     #[test]
     fn resolve_call_request_inner_with_max_fee_and_max_priority_fee() -> anyhow::Result<()> {
-        let fixture = ProviderTestFixture::new_local()?;
+        let mut fixture = ProviderTestFixture::new_local()?;
 
-        let max_fee_per_gas = pending_base_fee(&fixture.provider_data)?;
+        let max_fee_per_gas = pending_base_fee(&mut fixture.provider_data)?;
         let max_priority_fee_per_gas = Some(max_fee_per_gas / U256::from(2));
 
         let request = CallRequest {
@@ -207,7 +207,7 @@ mod tests {
         };
 
         let resolved = resolve_call_request_inner(
-            &fixture.provider_data,
+            &mut fixture.provider_data,
             request,
             Some(&BlockSpec::pending()),
             &StateOverrides::default(),
