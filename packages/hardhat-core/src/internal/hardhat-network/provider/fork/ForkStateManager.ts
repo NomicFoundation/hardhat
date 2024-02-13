@@ -66,11 +66,11 @@ export class ForkStateManager implements EVMStateManagerInterface {
     get(address: Address, key: Uint8Array): Promise<Uint8Array>;
     clear(): void;
   } = {
-    get: async (_address: Address, _key: Uint8Array): Promise<Uint8Array> => {
-      return new Uint8Array();
+    get: async (address: Address, key: Uint8Array): Promise<Uint8Array> => {
+      return this.getOriginalContractStorage(address, key);
     },
     clear: (): void => {
-      // do nothing
+      this.clearOriginalStorageCache();
     },
   };
 
