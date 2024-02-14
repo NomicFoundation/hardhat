@@ -1,12 +1,14 @@
-use edr_eth::{
-    transaction::{Eip1559TransactionRequest, Eip155TransactionRequest, TransactionKind},
-    AccountInfo, Address, Bytes, HashMap, SpecId, U256,
-};
+#![cfg(feature = "test-utils")]
+
+use edr_eth::{AccountInfo, Address, U256};
 use edr_evm::{
-    mempool::MemPool,
-    state::{AccountModifierFn, AccountTrie, StateDebug, StateError, TrieState},
-    ExecutableTransaction, MemPoolAddTransactionError, OrderedTransaction,
-    TransactionCreationError,
+    state::{AccountModifierFn, StateDebug},
+    test_utils::{
+        dummy_eip1559_transaction, dummy_eip155_transaction, dummy_eip155_transaction_with_limit,
+        dummy_eip155_transaction_with_price, dummy_eip155_transaction_with_price_limit_and_value,
+        MemPoolTestFixture,
+    },
+    MemPoolAddTransactionError, OrderedTransaction,
 };
 
 #[test]
@@ -803,120 +805,4 @@ fn update_removes_transactions_with_insufficient_balance() -> anyhow::Result<()>
     assert_eq!(future_transactions.len(), 0);
 
     Ok(())
-}
-
-struct MemPoolTestFixture {
-    mem_pool: MemPool,
-    state: TrieState,
-}
-
-impl MemPoolTestFixture {
-    fn with_accounts(accounts: &[(Address, AccountInfo)]) -> Self {
-        let accounts = accounts.iter().cloned().collect::<HashMap<_, _>>();
-        let trie = AccountTrie::with_accounts(&accounts);
-
-        MemPoolTestFixture {
-            mem_pool: MemPool::new(10_000_000u64),
-            state: TrieState::with_accounts(trie),
-        }
-    }
-
-    fn add_transaction(
-        &mut self,
-        transaction: ExecutableTransaction,
-    ) -> Result<(), MemPoolAddTransactionError<StateError>> {
-        self.mem_pool.add_transaction(&self.state, transaction)
-    }
-
-    fn set_block_gas_limit(&mut self, block_gas_limit: u64) -> Result<(), StateError> {
-        self.mem_pool
-            .set_block_gas_limit(&self.state, block_gas_limit)
-    }
-
-    fn update(&mut self) -> Result<(), StateError> {
-        self.mem_pool.update(&self.state)
-    }
-}
-
-fn dummy_eip155_transaction(
-    caller: Address,
-    nonce: u64,
-) -> Result<ExecutableTransaction, TransactionCreationError> {
-    dummy_eip155_transaction_with_price(caller, nonce, U256::ZERO)
-}
-
-fn dummy_eip155_transaction_with_price(
-    caller: Address,
-    nonce: u64,
-    gas_price: U256,
-) -> Result<ExecutableTransaction, TransactionCreationError> {
-    dummy_eip155_transaction_with_price_and_limit(caller, nonce, gas_price, 30_000)
-}
-
-fn dummy_eip155_transaction_with_limit(
-    caller: Address,
-    nonce: u64,
-    gas_limit: u64,
-) -> Result<ExecutableTransaction, TransactionCreationError> {
-    dummy_eip155_transaction_with_price_and_limit(caller, nonce, U256::ZERO, gas_limit)
-}
-
-fn dummy_eip155_transaction_with_price_and_limit(
-    caller: Address,
-    nonce: u64,
-    gas_price: U256,
-    gas_limit: u64,
-) -> Result<ExecutableTransaction, TransactionCreationError> {
-    dummy_eip155_transaction_with_price_limit_and_value(
-        caller,
-        nonce,
-        gas_price,
-        gas_limit,
-        U256::ZERO,
-    )
-}
-
-fn dummy_eip155_transaction_with_price_limit_and_value(
-    caller: Address,
-    nonce: u64,
-    gas_price: U256,
-    gas_limit: u64,
-    value: U256,
-) -> Result<ExecutableTransaction, TransactionCreationError> {
-    let from = Address::random();
-    let request = Eip155TransactionRequest {
-        nonce,
-        gas_price,
-        gas_limit,
-        kind: TransactionKind::Call(from),
-        value,
-        input: Bytes::new(),
-        chain_id: 123,
-    };
-    let transaction = request.fake_sign(&caller);
-
-    ExecutableTransaction::with_caller(SpecId::LATEST, transaction.into(), caller)
-}
-
-fn dummy_eip1559_transaction(
-    caller: Address,
-    nonce: u64,
-    max_fee_per_gas: U256,
-    max_priority_fee_per_gas: U256,
-) -> Result<ExecutableTransaction, TransactionCreationError> {
-    let from = Address::random();
-    let request = Eip1559TransactionRequest {
-        chain_id: 123,
-        nonce,
-        max_priority_fee_per_gas,
-        max_fee_per_gas,
-        gas_limit: 30_000,
-        kind: TransactionKind::Call(from),
-        value: U256::ZERO,
-        input: Bytes::new(),
-        access_list: Vec::new(),
-    };
-    let transaction = request.fake_sign(&caller);
-
-    ExecutableTransaction::with_caller(SpecId::LATEST, transaction.into(), caller)
 }

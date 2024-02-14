@@ -32,8 +32,8 @@ tracing = { version = "0.1.37", features = ["attributes", "std"], optional = tru
 [dev-dependencies]
 anyhow = "1.0.75"
 criterion = { version = "0.4.0", default-features = false, features = ["cargo_bench_support", "html_reports", "plotters"] }
-lazy_static = "1.4.0"
 edr_test_utils = { version = "0.2.0-dev", path = "../edr_test_utils" }
+lazy_static = "1.4.0"
 paste = { version = "1.0.14", default-features = false }
 serial_test = "2.0.0"
 tempfile = "3.7.1"
@@ -41,6 +41,7 @@ tempfile = "3.7.1"
 [features]
 bench-once = []           # limits the benchmark variants to one
 test-remote = []
+test-utils = []
 tracing = ["dep:tracing", "edr_eth/tracing"]
 
 [[bench]]
