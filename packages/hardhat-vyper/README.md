@@ -58,7 +58,7 @@ module.exports = {
 };
 ```
 
-You can also configure multiple versions of the Vyper compiler together with the compiler settings properties evmVersion (supported starting from Vyper 0.3.8) and optimize (supported starting from Vyper 0.3.10).
+You can also configure multiple versions of the Vyper compiler, as well as the compiler settings evmVersion (available from Vyper 0.3.8) and optimize (available from Vyper 0.3.10)
 
 ```js
 module.exports = {
