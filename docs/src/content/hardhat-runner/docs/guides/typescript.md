@@ -118,7 +118,7 @@ Finally, you need to create a [`tsconfig.json`](https://www.typescriptlang.org/d
 
 <<< @/../packages/hardhat-core/sample-projects/typescript/tsconfig.json
 
-And that's really all it takes. Now you can write your config, tests and tasks in TypeScript.
+And that's really all it takes. Now you can write your config, tests, tasks and Ignition modules in TypeScript.
 
 ## Type-checking your project
 
