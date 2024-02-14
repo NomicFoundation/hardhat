@@ -4,7 +4,7 @@ module.exports = {
   vyper: {
     compilers: [
       {
-        version: "0.3.9",
+        version: "0.3.7",
         settings: {
           evmVersion: "paris",
           optimize: "gas",

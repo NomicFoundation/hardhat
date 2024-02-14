@@ -1,4 +1,4 @@
-# @version 0.3.9
+# @version 0.3.7
 
 @external
 def test() -> int128:

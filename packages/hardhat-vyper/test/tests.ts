@@ -63,10 +63,10 @@ describe("Vyper plugin", function () {
       useEnvironment();
 
       it("should fail the compilation, invalid settings", async function () {
-        // compiler version is set to 0.3.9, which does not support the setting 'optimize'
+        // compiler version is set to 0.3.7, which does not support the settings 'evmVersion' and 'optimize'
         await expect(this.env.run(TASK_COMPILE)).to.be.rejectedWith(
           Error,
-          /unrecognized arguments: --optimize/
+          /--evm-version paris --optimize gas/
         );
       });
     });
