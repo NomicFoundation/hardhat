@@ -265,14 +265,12 @@ subtask(TASK_COMPILE_VYPER)
       const unmatchedFiles: ResolvedFile[] = [];
 
       for (const file of resolvedFiles) {
-        const settings = versionsToSettings[file.content.versionPragma];
-
         const hasChanged = vyperFilesCache.hasFileChanged(
           file.absolutePath,
           file.contentHash,
           {
             version: file.content.versionPragma,
-            ...(settings !== undefined ? { settings } : {}),
+            settings: versionsToSettings[file.content.versionPragma] ?? {},
           }
         );
 
@@ -314,7 +312,7 @@ ${list}`
       }
 
       for (const [vyperVersion, files] of Object.entries(versionGroups)) {
-        const settings = versionsToSettings[vyperVersion];
+        const settings = versionsToSettings[vyperVersion] ?? {};
 
         const vyperBuild: VyperBuild = await run(TASK_COMPILE_VYPER_GET_BUILD, {
           quiet,
@@ -350,7 +348,7 @@ ${list}`
             sourceName: file.sourceName,
             vyperConfig: {
               version,
-              ...(settings !== undefined ? { settings } : {}),
+              settings,
             },
             versionPragma: file.content.versionPragma,
             artifacts: [artifact.contractName],

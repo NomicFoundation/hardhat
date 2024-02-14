@@ -1,8 +1,8 @@
 export type VyperUserConfig = string | VyperConfig | MultiVyperConfig;
 
 export interface VyperSettings {
-  evmVersion: string;
-  optimize: "gas" | "codesize" | "none";
+  evmVersion?: string;
+  optimize?: "gas" | "codesize" | "none";
 }
 
 export interface VyperConfig {

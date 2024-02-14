@@ -8,14 +8,14 @@ export class Compiler {
    *
    * @param inputPaths array of paths to contracts to be compiled
    */
-  public async compile(inputPaths: string[], settings?: VyperSettings) {
+  public async compile(inputPaths: string[], settings: VyperSettings = {}) {
     const output: string = await new Promise((resolve, reject) => {
       let settingsStr =
-        settings?.evmVersion !== undefined
+        settings.evmVersion !== undefined
           ? `--evm-version ${settings.evmVersion} `
           : "";
       settingsStr +=
-        settings?.optimize !== undefined
+        settings.optimize !== undefined
           ? `--optimize ${String(settings.optimize)} `
           : "";
 
