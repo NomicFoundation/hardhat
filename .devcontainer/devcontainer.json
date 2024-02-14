@@ -28,6 +28,7 @@
         "vadimcn.vscode-lldb"
       ],
       "settings": {
+        "rust-analyzer.cargo.features": "all",
         "rust-analyzer.rustfmt.extraArgs": [
           "+nightly"
         ]

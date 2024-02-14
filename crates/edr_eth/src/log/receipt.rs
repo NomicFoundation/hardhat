@@ -34,7 +34,7 @@ impl alloy_rlp::Encodable for ReceiptLog {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "serde"))]
 mod tests {
     use std::str::FromStr;
 

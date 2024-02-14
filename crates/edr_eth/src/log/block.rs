@@ -72,7 +72,7 @@ impl alloy_rlp::Encodable for FullBlockLog {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "serde"))]
 mod tests {
     use std::str::FromStr;
 

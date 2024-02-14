@@ -295,15 +295,14 @@ impl Blockchain for ForkedBlockchain {
             let (to_block, mut local_logs) = if to_block <= self.fork_block_number {
                 (to_block, Vec::new())
             } else {
-                (
-                    self.fork_block_number,
-                    self.local_storage.logs(
-                        self.fork_block_number + 1,
-                        to_block,
-                        addresses,
-                        normalized_topics,
-                    )?,
-                )
+                let local_logs = self.local_storage.logs(
+                    self.fork_block_number + 1,
+                    to_block,
+                    addresses,
+                    normalized_topics,
+                )?;
+
+                (self.fork_block_number, local_logs)
             };
 
             let mut remote_logs = tokio::task::block_in_place(move || {
