@@ -238,6 +238,19 @@ function resolveHardhatNetworkConfig(
     delete config.initialBaseFeePerGas;
   }
 
+  if (
+    hardhatNetworkConfig.enableTransientStorage === true &&
+    hardhatNetworkConfig.hardfork === undefined
+  ) {
+    config.hardfork = "cancun";
+  }
+  if (
+    hardhatNetworkConfig.enableTransientStorage === false &&
+    hardhatNetworkConfig.hardfork === undefined
+  ) {
+    config.hardfork = "shanghai";
+  }
+
   return config;
 }
 

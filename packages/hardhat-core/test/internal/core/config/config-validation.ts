@@ -1814,6 +1814,69 @@ describe("Config validation", function () {
         }, ERRORS.GENERAL.INVALID_CONFIG);
       });
     });
+
+    describe("enableTransientStorage", function () {
+      it("should fail if enableTransientStorage is enabled and the hardfork is not cancun", async function () {
+        expectHardhatError(
+          () =>
+            validateConfig({
+              networks: {
+                hardhat: {
+                  hardfork: "shanghai",
+                  enableTransientStorage: true,
+                },
+              },
+            }),
+          ERRORS.GENERAL.INVALID_CONFIG
+        );
+      });
+
+      it("should fail if enableTransientStorage is disabled and the hardfork is cancun", async function () {
+        expectHardhatError(
+          () =>
+            validateConfig({
+              networks: {
+                hardhat: {
+                  hardfork: "cancun",
+                  enableTransientStorage: false,
+                },
+              },
+            }),
+          ERRORS.GENERAL.INVALID_CONFIG
+        );
+      });
+
+      it("shouldn't fail if only the hardfork or only enableTransientStorage are set", async function () {
+        validateConfig({
+          networks: {
+            hardhat: {
+              hardfork: "shanghai",
+            },
+          },
+        });
+        validateConfig({
+          networks: {
+            hardhat: {
+              hardfork: "cancun",
+            },
+          },
+        });
+        validateConfig({
+          networks: {
+            hardhat: {
+              enableTransientStorage: true,
+            },
+          },
+        });
+        validateConfig({
+          networks: {
+            hardhat: {
+              enableTransientStorage: false,
+            },
+          },
+        });
+      });
+    });
   });
 
   describe("Resolved Config validation", function () {
