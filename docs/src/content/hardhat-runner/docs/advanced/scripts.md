@@ -49,7 +49,7 @@ Now run the script:
 node scripts/accounts.js
 ```
 
-By accessing the [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md) at the top, you are allowed to run the script in a standalone fashion. This is useful for building more complex tools that leverage Hardhat's functionality.
+By accessing the [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md) at the top, you are allowed to run the script in a standalone fashion.
 
 ### Hardhat arguments
 
