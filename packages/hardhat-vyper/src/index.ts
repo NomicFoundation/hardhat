@@ -1,7 +1,7 @@
 import type { Artifacts as ArtifactsImpl } from "hardhat/internal/artifacts";
 import type { Artifacts } from "hardhat/types/artifacts";
 import type { VyperFilesCache as VyperFilesCacheT } from "./cache";
-import type { VyperOutput, VyperBuild } from "./types";
+import type { VyperOutput, VyperBuild, VyperSettings } from "./types";
 import type { ResolvedFile } from "./resolver";
 
 import * as os from "os";
@@ -188,13 +188,18 @@ subtask(TASK_COMPILE_VYPER_RUN_BINARY)
     async ({
       inputPaths,
       vyperPath,
+      settings,
     }: {
       inputPaths: string[];
       vyperPath: string;
+      settings?: VyperSettings;
     }): Promise<VyperOutput> => {
       const compiler = new Compiler(vyperPath);
 
-      const { version, ...contracts } = await compiler.compile(inputPaths);
+      const { version, ...contracts } = await compiler.compile(
+        inputPaths,
+        settings
+      );
 
       return {
         version,
@@ -249,14 +254,26 @@ subtask(TASK_COMPILE_VYPER)
         ({ version }) => version
       );
 
+      const versionsToSettings = Object.fromEntries(
+        config.vyper.compilers.map(({ version, settings }) => [
+          version,
+          settings,
+        ])
+      );
+
       const versionGroups: Record<string, ResolvedFile[]> = {};
       const unmatchedFiles: ResolvedFile[] = [];
 
       for (const file of resolvedFiles) {
+        const settings = versionsToSettings[file.content.versionPragma];
+
         const hasChanged = vyperFilesCache.hasFileChanged(
           file.absolutePath,
           file.contentHash,
-          { version: file.content.versionPragma }
+          {
+            version: file.content.versionPragma,
+            ...(settings !== undefined ? { settings } : {}),
+          }
         );
 
         if (!hasChanged) continue;
@@ -266,8 +283,7 @@ subtask(TASK_COMPILE_VYPER)
           file.content.versionPragma
         );
 
-        // check if there are files that don't match any configured compiler
-        // version
+        // check if there are files that don't match any configured compiler version
         if (maxSatisfyingVersion === null) {
           unmatchedFiles.push(file);
           continue;
@@ -298,6 +314,8 @@ ${list}`
       }
 
       for (const [vyperVersion, files] of Object.entries(versionGroups)) {
+        const settings = versionsToSettings[vyperVersion];
+
         const vyperBuild: VyperBuild = await run(TASK_COMPILE_VYPER_GET_BUILD, {
           quiet,
           vyperVersion,
@@ -312,6 +330,7 @@ ${list}`
           {
             inputPaths: files.map(({ absolutePath }) => absolutePath),
             vyperPath: vyperBuild.compilerPath,
+            settings,
           }
         );
 
@@ -329,7 +348,10 @@ ${list}`
             lastModificationDate: file.lastModificationDate.valueOf(),
             contentHash: file.contentHash,
             sourceName: file.sourceName,
-            vyperConfig: { version },
+            vyperConfig: {
+              version,
+              ...(settings !== undefined ? { settings } : {}),
+            },
             versionPragma: file.content.versionPragma,
             artifacts: [artifact.contractName],
           });

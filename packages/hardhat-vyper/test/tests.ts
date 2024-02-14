@@ -5,6 +5,7 @@ import path from "path";
 
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 
+import fs from "node:fs";
 import { VYPER_FILES_CACHE_FILENAME } from "../src/constants";
 import {
   useEnvironment,
@@ -41,6 +42,86 @@ describe("Vyper plugin", function () {
 
       assertFileExists(path.join("artifacts", "contracts", "A.vy", "A.json"));
       assertFileExists(path.join("artifacts", "contracts", "B.vy", "B.json"));
+    });
+  });
+
+  describe("vyper settings", function () {
+    describe("compilation with different settings", function () {
+      useFixtureProject("compilation-with-vyper-settings");
+      useEnvironment();
+
+      it("should compile and emit artifacts", async function () {
+        await this.env.run(TASK_COMPILE);
+
+        assertFileExists(path.join("artifacts", "contracts", "A.vy", "A.json"));
+        assertFileExists(path.join("artifacts", "contracts", "B.vy", "B.json"));
+      });
+    });
+
+    describe("compilation with wrong settings", function () {
+      useFixtureProject("compilation-with-vyper-settings-failure");
+      useEnvironment();
+
+      it("should fail the compilation, invalid settings", async function () {
+        // compiler version is set to 0.3.9, which does not support the setting 'optimize'
+        await expect(this.env.run(TASK_COMPILE)).to.be.rejectedWith(
+          Error,
+          /unrecognized arguments: --optimize/
+        );
+      });
+    });
+  });
+
+  describe("caching mechanism", function () {
+    describe("caching mechanism without vyper settings", function () {
+      useFixtureProject("compilation-single-file");
+      useEnvironment();
+
+      it("should not re-compile the contract because of the cache", async function () {
+        await this.env.run(TASK_COMPILE);
+
+        const stats1 = fs.statSync(
+          path.join("artifacts", "contracts", "A.vy", "A.json")
+        );
+
+        // it should not compile again so the contract should not be modified
+        await this.env.run(TASK_COMPILE);
+
+        const stats2 = fs.statSync(
+          path.join("artifacts", "contracts", "A.vy", "A.json")
+        );
+
+        assert.equal(stats1.mtimeMs, stats2.mtimeMs);
+      });
+    });
+
+    describe("caching mechanism with vyper settings", function () {
+      useFixtureProject("compilation-with-vyper-settings");
+      useEnvironment();
+
+      it("should not re-compile the contract because of the cache", async function () {
+        await this.env.run(TASK_COMPILE);
+
+        const stats1A = fs.statSync(
+          path.join("artifacts", "contracts", "A.vy", "A.json")
+        );
+        const stats1B = fs.statSync(
+          path.join("artifacts", "contracts", "B.vy", "B.json")
+        );
+
+        // it should not compile again so the contracts should not be modified
+        await this.env.run(TASK_COMPILE);
+
+        const stats2A = fs.statSync(
+          path.join("artifacts", "contracts", "A.vy", "A.json")
+        );
+        const stats2B = fs.statSync(
+          path.join("artifacts", "contracts", "B.vy", "B.json")
+        );
+
+        assert.equal(stats1A.mtimeMs, stats2A.mtimeMs);
+        assert.equal(stats1B.mtimeMs, stats2B.mtimeMs);
+      });
     });
   });
 
