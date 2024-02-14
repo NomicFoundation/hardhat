@@ -114,7 +114,7 @@ After that, initialize a Hardhat project with `npx hardhat init`. Choose the "Cr
 require("@nomicfoundation/hardhat-foundry");
 ```
 
-You should now be able to compile your project with Hardhat and to add Hardhat tests.
+You should now be able to compile your project with Hardhat and to add Hardhat scripts and tests.
 
 ## Working with a combined setup
 
