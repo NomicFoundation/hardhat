@@ -1,15 +1,5 @@
 import { Transaction, TxData } from "@nomicfoundation/ethereumjs-tx";
-import {
-  Address,
-  AddressLike,
-  bufferToHex,
-  toBuffer,
-} from "@nomicfoundation/ethereumjs-util";
-
-import {
-  AccessListEIP2930TxData,
-  FeeMarketEIP1559TxData,
-} from "@nomicfoundation/ethereumjs-tx/dist/types";
+import { bufferToHex, toBuffer } from "@nomicfoundation/ethereumjs-util";
 
 import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { randomAddress } from "../../../../src/internal/hardhat-network/provider/utils/random";
@@ -17,95 +7,12 @@ import {
   RpcLogOutput,
   RpcReceiptOutput,
 } from "../../../../src/internal/hardhat-network/provider/output";
-import { OrderedTransaction } from "../../../../src/internal/hardhat-network/provider/PoolState";
-import { FakeSenderTransaction } from "../../../../src/internal/hardhat-network/provider/transactions/FakeSenderTransaction";
-import { FakeSenderAccessListEIP2930Transaction } from "../../../../src/internal/hardhat-network/provider/transactions/FakeSenderAccessListEIP2930Transaction";
-import { FakeSenderEIP1559Transaction } from "../../../../src/internal/hardhat-network/provider/transactions/FakeSenderEIP1559Transaction";
 import { DEFAULT_ACCOUNTS } from "./providers";
 
 export function createTestTransaction(data: TxData = {}) {
   const tx = new Transaction({ to: randomAddress(), ...data });
 
   return tx.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
-}
-
-function createTestFakeTransaction(
-  data: (TxData | FeeMarketEIP1559TxData | AccessListEIP2930TxData) & {
-    from?: AddressLike;
-  } = {}
-) {
-  const from = data.from ?? randomAddress();
-  const fromAddress = Buffer.isBuffer(from)
-    ? new Address(from)
-    : typeof from === "string"
-    ? Address.fromString(from)
-    : from;
-
-  if (
-    "gasPrice" in data &&
-    ("maxFeePerGas" in data || "maxPriorityFeePerGas" in data)
-  ) {
-    throw new Error(
-      "Invalid test fake transaction being created: both gasPrice and EIP-1559 params received"
-    );
-  }
-
-  if ("maxFeePerGas" in data !== "maxPriorityFeePerGas" in data) {
-    throw new Error(
-      "Invalid test fake transaction being created: both EIP-1559 params should be provided, or none of them"
-    );
-  }
-
-  const type =
-    data.type !== undefined
-      ? data.type
-      : "maxFeePerGas" in data || "maxPriorityFeePerGas" in data
-      ? 2n
-      : "accessList" in data
-      ? 1n
-      : 0n;
-
-  const dataWithDefaults = {
-    to: randomAddress(),
-    nonce: 1,
-    gasLimit: 30000,
-    ...data,
-  };
-
-  if (type === 0n) {
-    return new FakeSenderTransaction(fromAddress, dataWithDefaults);
-  }
-
-  if (type === 1n) {
-    return new FakeSenderAccessListEIP2930Transaction(
-      fromAddress,
-      dataWithDefaults
-    );
-  }
-
-  return new FakeSenderEIP1559Transaction(fromAddress, {
-    ...dataWithDefaults,
-    gasPrice: undefined,
-  });
-}
-
-type OrderedTxData = (
-  | TxData
-  | FeeMarketEIP1559TxData
-  | AccessListEIP2930TxData
-) & {
-  from?: AddressLike;
-  orderId: number;
-};
-
-export function createTestOrderedTransaction({
-  orderId,
-  ...rest
-}: OrderedTxData): OrderedTransaction {
-  return {
-    orderId,
-    data: createTestFakeTransaction(rest),
-  };
 }
 
 export function createTestReceipt(

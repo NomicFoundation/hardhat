@@ -14,7 +14,6 @@ import {
   BlockOptions,
   ExecutionResult,
   SpecId,
-  ExecutionLog,
   MineOrdering,
   TracingMessage,
   SuccessReason,
@@ -32,8 +31,6 @@ import {
 import { IntervalMiningConfig, MempoolOrder } from "../node-types";
 import { RpcDebugTraceOutput, RpcStructLog } from "../output";
 import { Exit, ExitCode } from "../vm/exit";
-import { RunTxResult } from "../vm/vm-adapter";
-import { Bloom } from "./bloom";
 
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
@@ -183,17 +180,6 @@ export function ethereumjsMempoolOrderToEdrMineOrdering(
   }
 }
 
-function edrLogsToBloom(logs: ExecutionLog[]): Bloom {
-  const bloom = new Bloom();
-  for (const log of logs) {
-    bloom.add(log.address);
-    for (const topic of log.topics) {
-      bloom.add(topic);
-    }
-  }
-  return bloom;
-}
-
 function getCreatedAddress(result: ExecutionResult): Address | undefined {
   const address =
     isSuccessResult(result.result) && isCreateOutput(result.result.output)
@@ -326,32 +312,6 @@ export function ethereumjsEvmResultToEdrResult(
       };
     }
   }
-}
-
-export function edrResultToRunTxResult(
-  edrResult: ExecutionResult,
-  blockGasUsed: bigint
-): RunTxResult {
-  const exit = getExit(edrResult);
-
-  const bloom = isSuccessResult(edrResult.result)
-    ? edrLogsToBloom(edrResult.result.logs)
-    : new Bloom(undefined);
-
-  return {
-    gasUsed: edrResult.result.gasUsed,
-    createdAddress: getCreatedAddress(edrResult),
-    exit,
-    returnValue: getReturnValue(edrResult),
-    bloom,
-    receipt: {
-      // Receipts have a 0 as status on error
-      status: exit.isError() ? 0 : 1,
-      cumulativeBlockGasUsed: blockGasUsed,
-      bitvector: bloom.bitvector,
-      logs: getLogs(edrResult) ?? [],
-    },
-  };
 }
 
 export function edrRpcDebugTraceToHardhat(

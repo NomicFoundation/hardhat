@@ -1,12 +1,8 @@
-import type { ReturnData } from "./return-data";
-import type { RunBlockResult } from "./vm/vm-adapter";
-
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Address } from "@nomicfoundation/ethereumjs-util";
 
 import { HARDHAT_MEMPOOL_SUPPORTED_ORDERS } from "../../constants";
 import { BuildInfo, HardhatNetworkChainsConfig } from "../../../types";
-import { MessageTrace } from "../stack-traces/message-trace";
 
 export type NodeConfig = LocalNodeConfig | ForkedNodeConfig;
 
@@ -131,31 +127,6 @@ export interface Snapshot {
   userProvidedNextBlockBaseFeePerGas: bigint | undefined;
   coinbase: Address;
   nextPrevRandao: Buffer;
-}
-
-export type SendTransactionResult =
-  | string
-  | MineBlockResult
-  | MineBlockResult[];
-
-export interface MineBlockResult {
-  block: Block;
-  blockResult: RunBlockResult;
-  traces: GatherTracesResult[];
-}
-
-export interface RunCallResult extends GatherTracesResult {
-  result: ReturnData;
-}
-
-export interface EstimateGasResult extends GatherTracesResult {
-  estimation: bigint;
-}
-
-export interface GatherTracesResult {
-  trace: MessageTrace | undefined;
-  error?: Error;
-  consoleLogMessages: string[];
 }
 
 export interface FeeHistory {
