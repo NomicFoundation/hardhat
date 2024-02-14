@@ -21,9 +21,11 @@ It's backed by the `@ethereumjs/vm` EVM implementation, the same one used by gan
 
 By default, if you're using Hardhat, then you're already using Hardhat Network.
 
-When Hardhat executes your tests or tasks, an in-process Hardhat Network node is started automatically, and all of Hardhat's plugins (ethers.js, web3.js, Waffle, Truffle, etc) will connect directly to this node's provider.
+When Hardhat executes your tests, scripts or tasks, an in-process Hardhat Network node is started automatically, and all of Hardhat's plugins (ethers.js, web3.js, Waffle, Truffle, etc) will connect directly to this node's provider.
 
-There's no need to make any changes to your tests.
+There's no need to make any changes to your tests or scripts.
+
+Hardhat Network is simply another network. If you wanted to be explicit, you could run, for example, `npx hardhat ignition deploy ./ignition/modules/MyModule.ts --network hardhat`.
 
 ### Running stand-alone in order to support wallets and other software
 
