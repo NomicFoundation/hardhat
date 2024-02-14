@@ -2,11 +2,11 @@
 
 ## Overview
 
-The Hardhat Runtime Environment, or HRE for short, is an object containing all the functionality that Hardhat exposes when running a task or test. In reality, Hardhat _is_ the HRE.
+The Hardhat Runtime Environment, or HRE for short, is an object containing all the functionality that Hardhat exposes when running a task, test or script. In reality, Hardhat _is_ the HRE.
 
 When you require Hardhat (`const hardhat = require("hardhat")`) you're getting an instance of the HRE.
 
-During initialization, the Hardhat configuration file essentially constructs a list of things to be added to the HRE. This includes tasks, configs and plugins. Then when tasks or tests run, the HRE is always present and available to access anything that is contained in it.
+During initialization, the Hardhat configuration file essentially constructs a list of things to be added to the HRE. This includes tasks, configs and plugins. Then when tasks, tests or scripts run, the HRE is always present and available to access anything that is contained in it.
 
 The HRE has a role of centralizing coordination across all Hardhat components. This architecture allows for plugins to inject functionality that becomes available everywhere the HRE is accessible.
 
@@ -14,17 +14,17 @@ The HRE has a role of centralizing coordination across all Hardhat components. T
 
 By default, the HRE gives you programmatic access to the task runner and the config system, and exports an [EIP1193-compatible](https://eips.ethereum.org/EIPS/eip-1193) Ethereum provider.
 
-Plugins can extend the HRE. For example, [hardhat-ethers](https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-ethers) adds an Ethers.js instance to it, making it available to tasks and tests.
+Plugins can extend the HRE. For example, [hardhat-ethers](https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-ethers) adds an Ethers.js instance to it, making it available to tasks, tests and scripts.
 
 ### As global variables
 
-Before running a task or test, Hardhat injects the HRE into the global scope, turning all of its fields into global variables. When the task execution is completed, these global variables are removed, restoring their original value, if they had one.
+Before running a task, test or script, Hardhat injects the HRE into the global scope, turning all of its fields into global variables. When the task execution is completed, these global variables are removed, restoring their original value, if they had one.
 
 ### Explicitly
 
-Not everyone likes magic global variables, and Hardhat doesn't force you to use them. Everything can be done explicitly in tasks and tests.
+Not everyone likes magic global variables, and Hardhat doesn't force you to use them. Everything can be done explicitly in tasks, tests and scripts.
 
-When writing tests, you can use `require("hardhat")` to import the HRE. You can read more about this in [Accessing the HRE from outside a task](#accessing-the-hre-from-outside-a-task).
+When writing tests or scripts, you can use `require("hardhat")` to import the HRE. You can read more about this in [Accessing the HRE from outside a task](#accessing-the-hre-from-outside-a-task).
 
 You can import the config API explicitly when defining your tasks, and receive the HRE explicitly as an argument to your actions. You can read more about this in [Creating your own tasks](./create-task.md).
 
