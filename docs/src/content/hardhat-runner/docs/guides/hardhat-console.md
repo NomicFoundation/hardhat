@@ -11,7 +11,7 @@ Type ".help" for more information.
 
 The `compile` task will be called before opening the console prompt, but you can skip this with the `--no-compile` parameter.
 
-The execution environment for the console is the same as for tasks, scripts and tests. This means the configuration has been processed, and the [Hardhat Runtime Environment] has been initialized and injected into the global scope.
+The execution environment for the console is the same as for tasks and tests. This means the configuration has been processed, and the [Hardhat Runtime Environment] has been initialized and injected into the global scope.
 
 For example, you'll have access in the global scope to the `config` object:
 

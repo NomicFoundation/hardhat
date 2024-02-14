@@ -65,7 +65,7 @@ If you are using Windows, we **strongly recommend** using [WSL 2](https://docs.m
 
 :::
 
-We will explore the basics of creating a Hardhat project with a sample contract, tests of that contract, and a script to deploy it.
+We will explore the basics of creating a Hardhat project with a sample contract, tests of that contract, and a Hardhat Ignition module to deploy it.
 
 To create the sample project, run `npx hardhat init` in your project folder:
 
@@ -321,7 +321,7 @@ To learn more check out the [Hardhat Ignition documentation](/ignition).
 
 ### Connecting a wallet or Dapp to Hardhat Network
 
-By default, Hardhat will spin up a new in-memory instance of Hardhat Network on startup. It's also possible to run Hardhat Network in a standalone fashion so that external clients can connect to it. This could be a wallet, your Dapp front-end, or a script.
+By default, Hardhat will spin up a new in-memory instance of Hardhat Network on startup. It's also possible to run Hardhat Network in a standalone fashion so that external clients can connect to it. This could be a wallet, your Dapp front-end, or a Hardhat Ignition deployment.
 
 To run Hardhat Network in this way, run `npx hardhat node`:
 
