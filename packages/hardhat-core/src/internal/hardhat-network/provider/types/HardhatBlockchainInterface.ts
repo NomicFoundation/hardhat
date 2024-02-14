@@ -9,17 +9,17 @@ export interface HardhatBlockchainInterface extends BlockchainInterface {
   reserveBlocks(
     count: bigint,
     interval: bigint,
-    previousBlockStateRoot: Buffer,
+    previousBlockStateRoot: Uint8Array,
     previousBlockTotalDifficulty: bigint,
     previousBlockBaseFeePerGas: bigint | undefined
   ): void;
   deleteLaterBlocks(block: Block): void;
-  getBlockByTransactionHash(transactionHash: Buffer): Promise<Block | null>;
+  getBlockByTransactionHash(transactionHash: Uint8Array): Promise<Block | null>;
   getLatestBlock(): Promise<Block>;
   getLatestBlockNumber(): bigint;
   getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]>;
-  getTotalDifficulty(blockHash: Buffer): Promise<bigint>;
+  getTotalDifficulty(blockHash: Uint8Array): Promise<bigint>;
   getTransactionReceipt(
-    transactionHash: Buffer
+    transactionHash: Uint8Array
   ): Promise<RpcReceiptOutput | null>;
 }

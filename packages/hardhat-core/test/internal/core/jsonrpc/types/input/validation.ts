@@ -1,4 +1,4 @@
-import { toBuffer } from "@nomicfoundation/ethereumjs-util";
+import { toBytes } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 import * as t from "io-ts";
 
@@ -10,6 +10,10 @@ import {
 import { optionalRpcNewBlockTag } from "../../../../../../src/internal/core/jsonrpc/types/input/blockTag";
 import { validateParams } from "../../../../../../src/internal/core/jsonrpc/types/input/validation";
 import { InvalidArgumentsError } from "../../../../../../src/internal/core/providers/errors";
+
+function toBuffer(x: Parameters<typeof toBytes>[0]) {
+  return Buffer.from(toBytes(x));
+}
 
 describe("validateParams", function () {
   describe("0-arguments", function () {

@@ -1,4 +1,4 @@
-import { toBuffer } from "@nomicfoundation/ethereumjs-util";
+import { toBytes } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 
 import { bufferToRpcData } from "../../../../../src/internal/core/jsonrpc/types/base-types";
@@ -6,6 +6,10 @@ import { keccak256 } from "../../../../../src/internal/util/keccak";
 import { workaroundWindowsCiFailures } from "../../../../utils/workaround-windows-ci-failures";
 import { setCWD } from "../../helpers/cwd";
 import { PROVIDERS } from "../../helpers/providers";
+
+function toBuffer(x: Parameters<typeof toBytes>[0]) {
+  return Buffer.from(toBytes(x));
+}
 
 describe("Web3 module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {

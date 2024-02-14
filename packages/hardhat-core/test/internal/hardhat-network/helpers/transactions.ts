@@ -1,7 +1,7 @@
-import { Transaction } from "@nomicfoundation/ethereumjs-tx";
+import { LegacyTransaction } from "@nomicfoundation/ethereumjs-tx";
 import {
-  bufferToHex,
-  toBuffer,
+  bytesToHex as bufferToHex,
+  toBytes,
   zeroAddress,
 } from "@nomicfoundation/ethereumjs-util";
 
@@ -18,6 +18,10 @@ import {
 } from "./providers";
 import { getPendingBaseFeePerGas } from "./getPendingBaseFeePerGas";
 import { retrieveCommon } from "./retrieveCommon";
+
+function toBuffer(x: Parameters<typeof toBytes>[0]) {
+  return Buffer.from(toBytes(x));
+}
 
 export async function deployContract(
   provider: EthereumProvider,
@@ -99,7 +103,7 @@ export async function getSignedTxHash(
   txParams: TransactionParams,
   signerAccountIndex: number
 ) {
-  const txToSign = new Transaction(txParams, {
+  const txToSign = new LegacyTransaction(txParams, {
     common: await retrieveCommon(hardhatNetworkProvider),
   });
 

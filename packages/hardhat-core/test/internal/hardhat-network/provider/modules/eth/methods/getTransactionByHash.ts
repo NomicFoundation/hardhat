@@ -1,10 +1,9 @@
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import { Transaction } from "@nomicfoundation/ethereumjs-tx";
+import { LegacyTransaction } from "@nomicfoundation/ethereumjs-tx";
 import {
-  bigIntToBuffer,
-  bufferToHex,
+  bytesToHex as bufferToHex,
   setLengthLeft,
-  toBuffer,
+  toBytes,
   zeroAddress,
 } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
@@ -40,6 +39,10 @@ import {
   getSignedTxHash,
   sendTransactionFromTxParams,
 } from "../../../../helpers/transactions";
+
+function toBuffer(x: Parameters<typeof toBytes>[0]) {
+  return Buffer.from(toBytes(x));
+}
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -233,11 +236,13 @@ describe("Eth module", function () {
             data: "0xbeef",
           };
 
-          const tx = new Transaction(txParams, { common });
+          const tx = new LegacyTransaction(txParams, { common });
 
           const signedTx = tx.sign(privateKey);
 
-          const rawTx = `0x${signedTx.serialize().toString("hex")}`;
+          const rawTx = `0x${Buffer.from(signedTx.serialize()).toString(
+            "hex"
+          )}`;
 
           const txHash = await this.provider.send("eth_sendRawTransaction", [
             rawTx,
@@ -276,12 +281,12 @@ describe("Eth module", function () {
           // Also equalize left padding (signedTx has a leading 0)
           assert.equal(
             toBuffer(fetchedTx.r).toString("hex"),
-            bigIntToBuffer(signedTx.r!).toString("hex")
+            toBuffer(signedTx.r!).toString("hex")
           );
 
           assert.equal(
             toBuffer(fetchedTx.s).toString("hex"),
-            bigIntToBuffer(signedTx.s!).toString("hex")
+            toBuffer(signedTx.s!).toString("hex")
           );
         });
 

@@ -33,11 +33,10 @@ export async function runFullBlock(
 
   const rpcBlock = await forkClient.getBlockByNumber(blockToRun, true);
 
-  const hardfork = remoteCommon.getHardforkByBlockNumber(
-    blockToRun,
-    undefined,
-    rpcBlock?.timestamp
-  );
+  const hardfork = remoteCommon.getHardforkBy({
+    blockNumber: blockToRun,
+    timestamp: rpcBlock?.timestamp,
+  });
 
   if (rpcBlock === null) {
     assert.fail();
@@ -47,7 +46,7 @@ export async function runFullBlock(
     automine: true,
     chainId,
     networkId: 1,
-    hardfork,
+    hardfork: hardfork === "paris" ? "merge" : hardfork,
     forkConfig,
     forkCachePath: FORK_TESTS_CACHE_PATH,
     blockGasLimit: Number(rpcBlock.gasLimit),

@@ -1,13 +1,16 @@
+import { Journal } from "@nomicfoundation/ethereumjs-evm/dist/cjs/journal";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import { AfterTxEvent, VM } from "@nomicfoundation/ethereumjs-vm";
-import { EVMResult } from "@nomicfoundation/ethereumjs-evm";
-import { InterpreterStep } from "@nomicfoundation/ethereumjs-evm/dist/interpreter";
-import { Message } from "@nomicfoundation/ethereumjs-evm/dist/message";
+import {
+  EVMResult,
+  InterpreterStep,
+  Message,
+} from "@nomicfoundation/ethereumjs-evm";
 import {
   Address,
-  bufferToBigInt,
+  bytesToBigInt,
   setLengthLeft,
-  toBuffer,
+  toBytes,
 } from "@nomicfoundation/ethereumjs-util";
 
 import { assertHardhatInvariant } from "../../core/errors";
@@ -232,7 +235,7 @@ export class VMDebugTracer {
     this._lastTrace = {
       gas: Number(result.totalGasSpent),
       failed: result.execResult.exceptionError !== undefined,
-      returnValue: result.execResult.returnValue.toString("hex"),
+      returnValue: Buffer.from(result.execResult.returnValue).toString("hex"),
       structLogs: rpcStructLogs,
     };
 
@@ -339,7 +342,7 @@ export class VMDebugTracer {
 
     let gasCost = step.opcode.fee;
 
-    let op = step.opcode.name;
+    let op = step.opcode.name === "KECCAK256" ? "SHA3" : step.opcode.name;
     let error: object | undefined;
 
     const storage: Storage = {};
@@ -347,7 +350,7 @@ export class VMDebugTracer {
     if (step.opcode.name === "SLOAD") {
       const address = step.address;
       const [keyBuffer] = this._getFromStack(stack, 1);
-      const key: Buffer = setLengthLeft(keyBuffer, 32);
+      const key: Uint8Array = setLengthLeft(keyBuffer, 32);
 
       const storageValue = await this._getContractStorage(address, key);
 
@@ -360,8 +363,8 @@ export class VMDebugTracer {
       storage[key] = storageValue;
     } else if (step.opcode.name === "REVERT") {
       const [offsetBuffer, lengthBuffer] = this._getFromStack(stack, 2);
-      const length = bufferToBigInt(lengthBuffer);
-      const offset = bufferToBigInt(offsetBuffer);
+      const length = bytesToBigInt(lengthBuffer);
+      const offset = bytesToBigInt(offsetBuffer);
 
       const [gasIncrease, addedWords] = this._memoryExpansion(
         BigInt(memory.length),
@@ -375,7 +378,7 @@ export class VMDebugTracer {
       }
     } else if (step.opcode.name === "CREATE2") {
       const [, , memoryUsedBuffer] = this._getFromStack(stack, 3);
-      const memoryUsed = bufferToBigInt(memoryUsedBuffer);
+      const memoryUsed = bytesToBigInt(memoryUsedBuffer);
       const sha3ExtraCost =
         BigIntUtils.divUp(memoryUsed, 32n) * this._sha3WordGas();
       gasCost += Number(sha3ExtraCost);
@@ -387,7 +390,7 @@ export class VMDebugTracer {
       // this is a port of what geth does to compute the
       // gasCost of a *CALL step, with some simplifications
       // because we don't support pre-spuriousDragon hardforks
-      let valueBuffer = Buffer.from([]);
+      let valueBuffer = Uint8Array.from([]);
       let [
         callCostBuffer,
         recipientAddressBuffer,
@@ -410,16 +413,16 @@ export class VMDebugTracer {
         ] = this._getFromStack(stack, 7);
       }
 
-      const callCost = bufferToBigInt(callCostBuffer);
+      const callCost = bytesToBigInt(callCostBuffer);
 
-      const value = bufferToBigInt(valueBuffer);
+      const value = bytesToBigInt(valueBuffer);
 
       const memoryLength = BigInt(memory.length);
-      const inBN = bufferToBigInt(inBuffer);
-      const inSizeBN = bufferToBigInt(inSizeBuffer);
+      const inBN = bytesToBigInt(inBuffer);
+      const inSizeBN = bytesToBigInt(inSizeBuffer);
       const inPosition = inSizeBN === 0n ? inSizeBN : inBN + inSizeBN;
-      const outBN = bufferToBigInt(outBuffer);
-      const outSizeBN = bufferToBigInt(outSizeBuffer);
+      const outBN = bytesToBigInt(outBuffer);
+      const outSizeBN = bytesToBigInt(outSizeBuffer);
       const outPosition = outSizeBN === 0n ? outSizeBN : outBN + outSizeBN;
       const memSize = inPosition > outPosition ? inPosition : outPosition;
       const toAddress = new Address(recipientAddressBuffer.slice(-20));
@@ -473,42 +476,46 @@ export class VMDebugTracer {
   }
 
   private _memoryGas(): bigint {
-    return this._vm._common.param("gasPrices", "memory");
+    return this._vm.common.param("gasPrices", "memory");
   }
 
   private _sha3WordGas(): bigint {
-    return this._vm._common.param("gasPrices", "sha3Word");
+    return this._vm.common.param("gasPrices", "sha3Word");
   }
 
   private _callConstantGas(): bigint {
-    if (this._vm._common.gteHardfork("berlin")) {
-      return this._vm._common.param("gasPrices", "warmstorageread");
+    if (this._vm.common.gteHardfork("berlin")) {
+      return this._vm.common.param("gasPrices", "warmstorageread");
     }
 
-    return this._vm._common.param("gasPrices", "call");
+    return this._vm.common.param("gasPrices", "call");
   }
 
   private _callNewAccountGas(): bigint {
-    return this._vm._common.param("gasPrices", "callNewAccount");
+    return this._vm.common.param("gasPrices", "callNewAccount");
   }
 
   private _callValueTransferGas(): bigint {
-    return this._vm._common.param("gasPrices", "callValueTransfer");
+    return this._vm.common.param("gasPrices", "callValueTransfer");
   }
 
   private _quadCoeffDiv(): bigint {
-    return this._vm._common.param("gasPrices", "quadCoeffDiv");
+    return this._vm.common.param("gasPrices", "quadCoeffDiv");
   }
 
-  private _isAddressEmpty(address: Address): Promise<boolean> {
-    return this._vm.stateManager.accountIsEmpty(address);
+  private async _isAddressEmpty(address: Address): Promise<boolean> {
+    const account = await this._vm.stateManager.getAccount(address);
+    return account?.isEmpty() ?? true;
   }
 
-  private _getContractStorage(address: Address, key: Buffer): Promise<Buffer> {
+  private _getContractStorage(
+    address: Address,
+    key: Uint8Array
+  ): Promise<Uint8Array> {
     return this._vm.stateManager.getContractStorage(address, key);
   }
 
-  private _getContractCode(address: Address): Promise<Buffer> {
+  private _getContractCode(address: Address): Promise<Uint8Array> {
     return this._vm.stateManager.getContractCode(address);
   }
 
@@ -520,12 +527,16 @@ export class VMDebugTracer {
     callCost: bigint
   ): Promise<bigint> {
     // The available gas is reduced when the address is cold
-    if (this._vm._common.gteHardfork("berlin")) {
-      const isWarmed = this._vm.eei.isWarmedAddress(address.toBuffer());
+    if (this._vm.common.gteHardfork("berlin")) {
+      const journal = this._vm.evm.journal;
+      if (!(journal instanceof Journal)) {
+        throw new Error("evm.journal is not an instance of Journal");
+      }
+      const isWarmed = journal.isWarmedAddress(address.toBytes());
 
       const coldCost =
-        this._vm._common.param("gasPrices", "coldaccountaccess") -
-        this._vm._common.param("gasPrices", "warmstorageread");
+        this._vm.common.param("gasPrices", "coldaccountaccess") -
+        this._vm.common.param("gasPrices", "warmstorageread");
 
       // This comment is copied verbatim from geth:
       // The WarmStorageReadCostEIP2929 (100) is already deducted in the form of a constant cost, so
@@ -596,12 +607,12 @@ export class VMDebugTracer {
     return [0n, 0n];
   }
 
-  private _getFromStack(stack: string[], count: number): Buffer[] {
+  private _getFromStack(stack: string[], count: number): Uint8Array[] {
     return stack
       .slice(-count)
       .reverse()
       .map((value) => `0x${value}`)
-      .map(toBuffer);
+      .map(toBytes);
   }
 
   private _memoryFee(words: bigint): bigint {
@@ -614,6 +625,6 @@ export class VMDebugTracer {
   }
 }
 
-function toWord(b: Buffer): string {
-  return b.toString("hex").padStart(64, "0");
+function toWord(b: Uint8Array): string {
+  return Buffer.from(b).toString("hex").padStart(64, "0");
 }

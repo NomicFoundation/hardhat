@@ -1,16 +1,13 @@
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import * as rlp from "@nomicfoundation/ethereumjs-rlp";
-import { AccessListEIP2930Transaction } from "@nomicfoundation/ethereumjs-tx";
 import {
+  AccessListEIP2930Transaction,
   AccessListEIP2930TxData,
-  AccessListEIP2930ValuesArray,
+  TransactionType,
   TxOptions,
-} from "@nomicfoundation/ethereumjs-tx/dist/types";
-import {
-  Address,
-  arrToBufArr,
-  bufferToInt,
-} from "@nomicfoundation/ethereumjs-util";
+  TxValuesArray,
+} from "@nomicfoundation/ethereumjs-tx";
+import { Address, bytesToInt } from "@nomicfoundation/ethereumjs-util";
 
 import {
   InternalError,
@@ -34,7 +31,7 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
   }
 
   public static fromSerializedTx(
-    _serialized: Buffer,
+    _serialized: Uint8Array,
     _opts?: TxOptions
   ): never {
     throw new InternalError(
@@ -43,7 +40,7 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
   }
 
   public static fromRlpSerializedTx(
-    _serialized: Buffer,
+    _serialized: Uint8Array,
     _opts?: TxOptions
   ): never {
     throw new InternalError(
@@ -52,7 +49,7 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
   }
 
   public static fromValuesArray(
-    _values: AccessListEIP2930ValuesArray,
+    _values: TxValuesArray[TransactionType.AccessListEIP2930],
     _opts?: TxOptions
   ): never {
     throw new InternalError(
@@ -62,7 +59,7 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
 
   public static fromSenderAndRlpSerializedTx(
     sender: Address,
-    serialized: Buffer,
+    serialized: Uint8Array,
     opts?: TxOptions
   ) {
     if (serialized[0] !== 1) {
@@ -71,7 +68,7 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
       );
     }
 
-    const values = arrToBufArr(rlp.decode(serialized.slice(1)));
+    const values = rlp.decode(serialized.slice(1));
 
     checkIsAccessListEIP2930ValuesArray(values);
 
@@ -80,7 +77,7 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
 
   public static fromSenderAndValuesArray(
     sender: Address,
-    values: AccessListEIP2930ValuesArray,
+    values: TxValuesArray[TransactionType.AccessListEIP2930],
     opts: TxOptions = {}
   ): FakeSenderAccessListEIP2930Transaction {
     const [
@@ -106,11 +103,11 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
         gasLimit,
         to: to !== undefined && to.length > 0 ? to : undefined,
         value,
-        data: data ?? Buffer.from([]),
+        data: data ?? Uint8Array.from([]),
         accessList: accessList ?? [],
-        v: v !== undefined ? bufferToInt(v) : undefined, // EIP2930 supports v's with value 0 (empty Buffer)
-        r: r !== undefined && r.length !== 0 ? bufferToInt(r) : undefined,
-        s: s !== undefined && s.length !== 0 ? bufferToInt(s) : undefined,
+        v: v !== undefined ? bytesToInt(v) : undefined, // EIP2930 supports v's with value 0 (empty Buffer)
+        r: r !== undefined && r.length !== 0 ? bytesToInt(r) : undefined,
+        s: s !== undefined && s.length !== 0 ? bytesToInt(s) : undefined,
       },
       opts
     );
@@ -134,7 +131,7 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
         r: data.r ?? fakeSignature.r,
         s: data.s ?? fakeSignature.s,
       },
-      { ...opts, freeze: false, disableMaxInitCodeSizeCheck: true }
+      { ...opts, freeze: false, allowUnlimitedInitCodeSize: true }
     );
 
     this.common = this._getCommon(opts?.common);
@@ -155,13 +152,13 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
     );
   }
 
-  public _processSignature(_v: bigint, _r: Buffer, _s: Buffer): never {
+  public _processSignature(_v: bigint, _r: Uint8Array, _s: Uint8Array): never {
     throw new InternalError(
       "`_processSignature` is not implemented in FakeSenderAccessListEIP2930Transaction"
     );
   }
 
-  public sign(_privateKey: Buffer): never {
+  public sign(_privateKey: Uint8Array): never {
     throw new InternalError(
       "`sign` is not implemented in FakeSenderAccessListEIP2930Transaction"
     );
@@ -192,10 +189,12 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
 
 function checkIsAccessListEIP2930ValuesArray(
   values: unknown
-): asserts values is AccessListEIP2930ValuesArray {
+): asserts values is TxValuesArray[TransactionType.AccessListEIP2930] {
   if (!Array.isArray(values)) {
     throw new InvalidArgumentsError(
-      `Invalid deserialized tx. Expected a Buffer[], but got '${values as any}'`
+      `Invalid deserialized tx. Expected a Uint8Array[], but got '${
+        values as any
+      }'`
     );
   }
 
@@ -217,9 +216,9 @@ function checkIsAccessListEIP2930ValuesArray(
         );
       }
     } else {
-      if (!Buffer.isBuffer(values[i])) {
+      if (!(values[i] instanceof Uint8Array)) {
         throw new InvalidArgumentsError(
-          `Invalid deserialized tx. Expected a Buffer in position ${i}, but got '${value}'`
+          `Invalid deserialized tx. Expected a Uint8Array in position ${i}, but got '${value}'`
         );
       }
     }

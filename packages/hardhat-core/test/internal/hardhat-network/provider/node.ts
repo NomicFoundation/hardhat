@@ -1,10 +1,10 @@
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import { TxData, TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
+import { LegacyTxData, TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import { assert } from "chai";
 import {
   Address,
-  bufferToHex,
-  toBuffer,
+  bytesToHex as bufferToHex,
+  toBytes,
 } from "@nomicfoundation/ethereumjs-util";
 import { ethers } from "ethers";
 import sinon from "sinon";
@@ -41,6 +41,10 @@ import {
 } from "../helpers/providers";
 import { sleep } from "../helpers/sleep";
 import { runFullBlock } from "./utils/runFullBlock";
+
+function toBuffer(x: Parameters<typeof toBytes>[0]) {
+  return Buffer.from(toBytes(x));
+}
 
 interface ForkedBlock {
   networkName: string;
@@ -84,7 +88,7 @@ describe("HardhatNode", () => {
   const gasPrice = 20;
   let node: HardhatNode;
   let createTestTransaction: (
-    txData: TxData & { from: string }
+    txData: LegacyTxData & { from: string }
   ) => FakeSenderTransaction;
 
   beforeEach(async () => {
@@ -1097,7 +1101,7 @@ describe("HardhatNode", () => {
       automine: true,
       chainId: 1,
       networkId: 1,
-      hardfork: "london",
+      hardfork: "",
       blockGasLimit: 1_000_000,
       minGasPrice: 0n,
       genesisAccounts: DEFAULT_ACCOUNTS,
@@ -1105,140 +1109,27 @@ describe("HardhatNode", () => {
       mempoolOrder: "priority",
       coinbase: "0x0000000000000000000000000000000000000000",
       allowBlocksWithSameTimestamp: false,
-      enableTransientStorage: false,
+      enableTransientStorage: true,
     };
 
-    describe("When not enabled and on a fork that doesn't support it", function () {
-      it("Should revert if trying to run TLOAD in a tx", async function () {
-        const [, hardhatNode] = await HardhatNode.create(nodeConfig);
-
-        const tx = createTestTransaction({
-          nonce: 0,
-          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-          to: undefined,
-          data: TLOAD_DEPLOYMENT_BYTECODE,
-          gasLimit: 1_000_000n,
-          gasPrice: 10n ** 9n,
-        });
-
-        const transactionResult = await hardhatNode.sendTransaction(tx);
-
-        if (
-          typeof transactionResult === "string" ||
-          Array.isArray(transactionResult)
-        ) {
-          assert.fail("Expected a MineBlockResult");
-        }
-
-        const error = transactionResult.traces[0].error;
-        assert.isDefined(error);
-        assert.include(error!.message, "invalid opcode");
-      });
-
-      it("Should revert if trying to run TSTORE in a tx", async function () {
-        const [, hardhatNode] = await HardhatNode.create(nodeConfig);
-
-        const tx = createTestTransaction({
-          nonce: 0,
-          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-          to: undefined,
-          data: TSTORE_DEPLOYMENT_BYTECODE,
-          gasLimit: 1_000_000n,
-          gasPrice: 10n ** 9n,
-        });
-
-        const transactionResult = await hardhatNode.sendTransaction(tx);
-
-        if (
-          typeof transactionResult === "string" ||
-          Array.isArray(transactionResult)
-        ) {
-          assert.fail("Expected a MineBlockResult");
-        }
-
-        const error = transactionResult.traces[0].error;
-        assert.isDefined(error);
-        assert.include(error!.message, "invalid opcode");
-      });
-
-      it("Should revert if trying to run TLOAD in a call", async function () {
-        const [, hardhatNode] = await HardhatNode.create(nodeConfig);
-
-        const callResult = await hardhatNode.runCall(
-          {
-            to: undefined,
-            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
-            data: toBuffer(TLOAD_DEPLOYMENT_BYTECODE),
-            value: 0n,
-            gasLimit: 1_000_000n,
-          },
-          0n
+    describe("When on a fork that doesn't support it", function () {
+      it("Should revert when trying to create the node", async function () {
+        await expectErrorAsync(
+          async () =>
+            HardhatNode.create({
+              ...nodeConfig,
+              hardfork: "london",
+            }),
+          /Transient storage is not compatible with hardfork "london"./
         );
-
-        assert.isDefined(callResult.error);
-        assert.include(callResult.error!.message, "invalid opcode");
-      });
-
-      it("Should revert if trying to run TSTORE in a call", async function () {
-        const [, hardhatNode] = await HardhatNode.create(nodeConfig);
-
-        const callResult = await hardhatNode.runCall(
-          {
-            to: undefined,
-            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
-            data: toBuffer(TSTORE_DEPLOYMENT_BYTECODE),
-            value: 0n,
-            gasLimit: 1_000_000n,
-          },
-          0n
-        );
-
-        assert.isDefined(callResult.error);
-        assert.include(callResult.error!.message, "invalid opcode");
-      });
-
-      it("Should revert if trying to run TLOAD in a gasEstimate", async function () {
-        const [, hardhatNode] = await HardhatNode.create(nodeConfig);
-
-        const estimateGasResult = await hardhatNode.estimateGas(
-          {
-            to: undefined,
-            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
-            data: toBuffer(TLOAD_DEPLOYMENT_BYTECODE),
-            value: 0n,
-            gasLimit: 1_000_000n,
-          },
-          0n
-        );
-
-        assert.isDefined(estimateGasResult.error);
-        assert.include(estimateGasResult.error!.message, "invalid opcode");
-      });
-
-      it("Should revert if trying to run TSTORE in a gasEstimate", async function () {
-        const [, hardhatNode] = await HardhatNode.create(nodeConfig);
-
-        const estimateGasResult = await hardhatNode.estimateGas(
-          {
-            to: undefined,
-            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
-            data: toBuffer(TSTORE_DEPLOYMENT_BYTECODE),
-            value: 0n,
-            gasLimit: 1_000_000n,
-          },
-          0n
-        );
-
-        assert.isDefined(estimateGasResult.error);
-        assert.include(estimateGasResult.error!.message, "invalid opcode");
       });
     });
 
-    describe("When enabled", function () {
+    describe("When on a fork that supports it", function () {
       it("Should not revert if trying to run TLOAD in a tx", async function () {
         const [, hardhatNode] = await HardhatNode.create({
           ...nodeConfig,
-          enableTransientStorage: true,
+          hardfork: "cancun",
         });
 
         const tx = createTestTransaction({
@@ -1266,7 +1157,7 @@ describe("HardhatNode", () => {
       it("Should not revert if trying to run TSTORE in a tx", async function () {
         const [, hardhatNode] = await HardhatNode.create({
           ...nodeConfig,
-          enableTransientStorage: true,
+          hardfork: "cancun",
         });
 
         const tx = createTestTransaction({
@@ -1294,7 +1185,7 @@ describe("HardhatNode", () => {
       it("Should not revert if trying to run TLOAD in a call", async function () {
         const [, hardhatNode] = await HardhatNode.create({
           ...nodeConfig,
-          enableTransientStorage: true,
+          hardfork: "cancun",
         });
 
         const callResult = await hardhatNode.runCall(
@@ -1314,7 +1205,7 @@ describe("HardhatNode", () => {
       it("Should revert if trying to run TSTORE in a call", async function () {
         const [, hardhatNode] = await HardhatNode.create({
           ...nodeConfig,
-          enableTransientStorage: true,
+          hardfork: "cancun",
         });
 
         const callResult = await hardhatNode.runCall(
@@ -1334,7 +1225,7 @@ describe("HardhatNode", () => {
       it("Should not revert if trying to run TLOAD in a gasEstimate", async function () {
         const [, hardhatNode] = await HardhatNode.create({
           ...nodeConfig,
-          enableTransientStorage: true,
+          hardfork: "cancun",
         });
 
         const estimateGasResult = await hardhatNode.estimateGas(
@@ -1354,7 +1245,7 @@ describe("HardhatNode", () => {
       it("Should not revert if trying to run TSTORE in a gasEstimate", async function () {
         const [, hardhatNode] = await HardhatNode.create({
           ...nodeConfig,
-          enableTransientStorage: true,
+          hardfork: "cancun",
         });
 
         const estimateGasResult = await hardhatNode.estimateGas(
@@ -1362,6 +1253,632 @@ describe("HardhatNode", () => {
             to: undefined,
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
             data: toBuffer(TSTORE_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isUndefined(estimateGasResult.error);
+      });
+    });
+  });
+
+  describe("Transient storage", function () {
+    const TLOAD_DEPLOYMENT_BYTECODE = "0x60FF5c"; // PUSH1 FF TLOAD
+    const TSTORE_DEPLOYMENT_BYTECODE = "0x60FF60FF5d"; // PUSH1 FF PUSH1 FF TSTORE
+
+    const nodeConfig: LocalNodeConfig = {
+      automine: true,
+      chainId: 1,
+      networkId: 1,
+      hardfork: "",
+      blockGasLimit: 1_000_000,
+      minGasPrice: 0n,
+      genesisAccounts: DEFAULT_ACCOUNTS,
+      chains: defaultHardhatNetworkParams.chains,
+      mempoolOrder: "priority",
+      coinbase: "0x0000000000000000000000000000000000000000",
+      allowBlocksWithSameTimestamp: false,
+      enableTransientStorage: false,
+    };
+
+    describe("When in a pre-cancun hardfork", function () {
+      it("Should revert if trying to run TLOAD in a tx", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          hardfork: "shanghai",
+        });
+
+        const tx = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: undefined,
+          data: TLOAD_DEPLOYMENT_BYTECODE,
+          gasLimit: 1_000_000n,
+          gasPrice: 10n ** 9n,
+        });
+
+        const transactionResult = await hardhatNode.sendTransaction(tx);
+
+        if (
+          typeof transactionResult === "string" ||
+          Array.isArray(transactionResult)
+        ) {
+          assert.fail("Expected a MineBlockResult");
+        }
+
+        const error = transactionResult.traces[0].error;
+        assert.isDefined(error);
+        assert.include(error!.message, "invalid opcode");
+      });
+
+      it("Should revert if trying to run TSTORE in a tx", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          hardfork: "shanghai",
+        });
+
+        const tx = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: undefined,
+          data: TSTORE_DEPLOYMENT_BYTECODE,
+          gasLimit: 1_000_000n,
+          gasPrice: 10n ** 9n,
+        });
+
+        const transactionResult = await hardhatNode.sendTransaction(tx);
+
+        if (
+          typeof transactionResult === "string" ||
+          Array.isArray(transactionResult)
+        ) {
+          assert.fail("Expected a MineBlockResult");
+        }
+
+        const error = transactionResult.traces[0].error;
+        assert.isDefined(error);
+        assert.include(error!.message, "invalid opcode");
+      });
+
+      it("Should revert if trying to run TLOAD in a call", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          hardfork: "shanghai",
+        });
+
+        const callResult = await hardhatNode.runCall(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(TLOAD_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isDefined(callResult.error);
+        assert.include(callResult.error!.message, "invalid opcode");
+      });
+
+      it("Should revert if trying to run TSTORE in a call", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          hardfork: "shanghai",
+        });
+
+        const callResult = await hardhatNode.runCall(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(TSTORE_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isDefined(callResult.error);
+        assert.include(callResult.error!.message, "invalid opcode");
+      });
+
+      it("Should revert if trying to run TLOAD in a gasEstimate", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          hardfork: "shanghai",
+        });
+
+        const estimateGasResult = await hardhatNode.estimateGas(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(TLOAD_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isDefined(estimateGasResult.error);
+        assert.include(estimateGasResult.error!.message, "invalid opcode");
+      });
+
+      it("Should revert if trying to run TSTORE in a gasEstimate", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          hardfork: "shanghai",
+        });
+
+        const estimateGasResult = await hardhatNode.estimateGas(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(TSTORE_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isDefined(estimateGasResult.error);
+        assert.include(estimateGasResult.error!.message, "invalid opcode");
+      });
+    });
+
+    describe("When in the cancun hardfork", function () {
+      it("Should not revert if trying to run TLOAD in a tx", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          hardfork: "cancun",
+        });
+
+        const tx = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: undefined,
+          data: TLOAD_DEPLOYMENT_BYTECODE,
+          gasLimit: 1_000_000n,
+          gasPrice: 10n ** 9n,
+        });
+
+        const transactionResult = await hardhatNode.sendTransaction(tx);
+
+        if (
+          typeof transactionResult === "string" ||
+          Array.isArray(transactionResult)
+        ) {
+          assert.fail("Expected a MineBlockResult");
+        }
+
+        const error = transactionResult.traces[0].error;
+        assert.isUndefined(error);
+      });
+
+      it("Should not revert if trying to run TSTORE in a tx", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          hardfork: "cancun",
+        });
+
+        const tx = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: undefined,
+          data: TSTORE_DEPLOYMENT_BYTECODE,
+          gasLimit: 1_000_000n,
+          gasPrice: 10n ** 9n,
+        });
+
+        const transactionResult = await hardhatNode.sendTransaction(tx);
+
+        if (
+          typeof transactionResult === "string" ||
+          Array.isArray(transactionResult)
+        ) {
+          assert.fail("Expected a MineBlockResult");
+        }
+
+        const error = transactionResult.traces[0].error;
+        assert.isUndefined(error);
+      });
+
+      it("Should not revert if trying to run TLOAD in a call", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          hardfork: "cancun",
+        });
+
+        const callResult = await hardhatNode.runCall(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(TLOAD_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isUndefined(callResult.error);
+      });
+
+      it("Should revert if trying to run TSTORE in a call", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          hardfork: "cancun",
+        });
+
+        const callResult = await hardhatNode.runCall(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(TSTORE_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isUndefined(callResult.error);
+      });
+
+      it("Should not revert if trying to run TLOAD in a gasEstimate", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          hardfork: "cancun",
+        });
+
+        const estimateGasResult = await hardhatNode.estimateGas(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(TLOAD_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isUndefined(estimateGasResult.error);
+      });
+
+      it("Should not revert if trying to run TSTORE in a gasEstimate", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          hardfork: "cancun",
+        });
+
+        const estimateGasResult = await hardhatNode.estimateGas(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(TSTORE_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isUndefined(estimateGasResult.error);
+      });
+    });
+  });
+
+  describe("Memory copying instruction", function () {
+    const MCOPY_DEPLOYMENT_BYTECODE = "0x6001600160015e"; // PUSH1 01 PUSH1 01 PUSH1 01 MCOPY
+
+    const nodeConfig: LocalNodeConfig = {
+      automine: true,
+      chainId: 1,
+      networkId: 1,
+      hardfork: "",
+      blockGasLimit: 1_000_000,
+      minGasPrice: 0n,
+      genesisAccounts: DEFAULT_ACCOUNTS,
+      chains: defaultHardhatNetworkParams.chains,
+      mempoolOrder: "priority",
+      coinbase: "0x0000000000000000000000000000000000000000",
+      allowBlocksWithSameTimestamp: false,
+      enableTransientStorage: false,
+    };
+
+    describe("When in a pre-cancun hardfork", function () {
+      it("Should revert if trying to run MCOPY in a tx", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          hardfork: "shanghai",
+        });
+
+        const tx = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: undefined,
+          data: MCOPY_DEPLOYMENT_BYTECODE,
+          gasLimit: 1_000_000n,
+          gasPrice: 10n ** 9n,
+        });
+
+        const transactionResult = await hardhatNode.sendTransaction(tx);
+
+        if (
+          typeof transactionResult === "string" ||
+          Array.isArray(transactionResult)
+        ) {
+          assert.fail("Expected a MineBlockResult");
+        }
+
+        const error = transactionResult.traces[0].error;
+        assert.isDefined(error);
+        assert.include(error!.message, "invalid opcode");
+      });
+
+      it("Should revert if trying to run MCOPY in a call", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          hardfork: "shanghai",
+        });
+
+        const callResult = await hardhatNode.runCall(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(MCOPY_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isDefined(callResult.error);
+        assert.include(callResult.error!.message, "invalid opcode");
+      });
+
+      it("Should revert if trying to run MCOPY in a gasEstimate", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          hardfork: "shanghai",
+        });
+
+        const estimateGasResult = await hardhatNode.estimateGas(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(MCOPY_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isDefined(estimateGasResult.error);
+        assert.include(estimateGasResult.error!.message, "invalid opcode");
+      });
+    });
+
+    describe("When in the cancun hardfork", function () {
+      it("Should not revert if trying to run MCOPY in a tx", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          hardfork: "cancun",
+        });
+
+        const tx = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: undefined,
+          data: MCOPY_DEPLOYMENT_BYTECODE,
+          gasLimit: 1_000_000n,
+          gasPrice: 10n ** 9n,
+        });
+
+        const transactionResult = await hardhatNode.sendTransaction(tx);
+
+        if (
+          typeof transactionResult === "string" ||
+          Array.isArray(transactionResult)
+        ) {
+          assert.fail("Expected a MineBlockResult");
+        }
+
+        const error = transactionResult.traces[0].error;
+        assert.isUndefined(error);
+      });
+
+      it("Should not revert if trying to run MCOPY in a call", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          hardfork: "cancun",
+        });
+
+        const callResult = await hardhatNode.runCall(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(MCOPY_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isUndefined(callResult.error);
+      });
+
+      it("Should not revert if trying to run MCOPY in a gasEstimate", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          hardfork: "cancun",
+        });
+
+        const estimateGasResult = await hardhatNode.estimateGas(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(MCOPY_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isUndefined(estimateGasResult.error);
+      });
+    });
+  });
+
+  describe("BLOBBASEFEE instruction", function () {
+    const BLOBBASEFEE_DEPLOYMENT_BYTECODE = "0x4a"; // BLOBBASEFEE
+
+    const nodeConfig: LocalNodeConfig = {
+      automine: true,
+      chainId: 1,
+      networkId: 1,
+      hardfork: "",
+      blockGasLimit: 1_000_000,
+      minGasPrice: 0n,
+      genesisAccounts: DEFAULT_ACCOUNTS,
+      chains: defaultHardhatNetworkParams.chains,
+      mempoolOrder: "priority",
+      coinbase: "0x0000000000000000000000000000000000000000",
+      allowBlocksWithSameTimestamp: false,
+      enableTransientStorage: false,
+    };
+
+    describe("When in a pre-cancun hardfork", function () {
+      it("Should revert if trying to run BLOBBASEFEE in a tx", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          hardfork: "shanghai",
+        });
+
+        const tx = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: undefined,
+          data: BLOBBASEFEE_DEPLOYMENT_BYTECODE,
+          gasLimit: 1_000_000n,
+          gasPrice: 10n ** 9n,
+        });
+
+        const transactionResult = await hardhatNode.sendTransaction(tx);
+
+        if (
+          typeof transactionResult === "string" ||
+          Array.isArray(transactionResult)
+        ) {
+          assert.fail("Expected a MineBlockResult");
+        }
+
+        const error = transactionResult.traces[0].error;
+        assert.isDefined(error);
+        assert.include(error!.message, "invalid opcode");
+      });
+
+      it("Should revert if trying to run BLOBBASEFEE in a call", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          hardfork: "shanghai",
+        });
+
+        const callResult = await hardhatNode.runCall(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(BLOBBASEFEE_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isDefined(callResult.error);
+        assert.include(callResult.error!.message, "invalid opcode");
+      });
+
+      it("Should revert if trying to run BLOBBASEFEE in a gasEstimate", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          hardfork: "shanghai",
+        });
+
+        const estimateGasResult = await hardhatNode.estimateGas(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(BLOBBASEFEE_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isDefined(estimateGasResult.error);
+        assert.include(estimateGasResult.error!.message, "invalid opcode");
+      });
+    });
+
+    describe("When in the cancun hardfork", function () {
+      it("Should not revert if trying to run BLOBBASEFEE in a tx", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          hardfork: "cancun",
+        });
+
+        const tx = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: undefined,
+          data: BLOBBASEFEE_DEPLOYMENT_BYTECODE,
+          gasLimit: 1_000_000n,
+          gasPrice: 10n ** 9n,
+        });
+
+        const transactionResult = await hardhatNode.sendTransaction(tx);
+
+        if (
+          typeof transactionResult === "string" ||
+          Array.isArray(transactionResult)
+        ) {
+          assert.fail("Expected a MineBlockResult");
+        }
+
+        const error = transactionResult.traces[0].error;
+        assert.isUndefined(error);
+      });
+
+      it("Should not revert if trying to run BLOBBASEFEE in a call", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          hardfork: "cancun",
+        });
+
+        const callResult = await hardhatNode.runCall(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(BLOBBASEFEE_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isUndefined(callResult.error);
+      });
+
+      it("Should not revert if trying to run BLOBBASEFEE in a gasEstimate", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          hardfork: "cancun",
+        });
+
+        const estimateGasResult = await hardhatNode.estimateGas(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(BLOBBASEFEE_DEPLOYMENT_BYTECODE),
             value: 0n,
             gasLimit: 1_000_000n,
           },

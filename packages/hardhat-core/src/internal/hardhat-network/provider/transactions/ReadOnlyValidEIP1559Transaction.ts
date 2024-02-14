@@ -1,14 +1,13 @@
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import {
   FeeMarketEIP1559Transaction,
+  TransactionType,
   TxOptions,
+  TxValuesArray,
 } from "@nomicfoundation/ethereumjs-tx";
 import { Address } from "@nomicfoundation/ethereumjs-util";
 
-import {
-  FeeMarketEIP1559TxData,
-  FeeMarketEIP1559ValuesArray,
-} from "@nomicfoundation/ethereumjs-tx/src/types";
+import { FeeMarketEIP1559TxData } from "@nomicfoundation/ethereumjs-tx/src/types";
 import { InternalError } from "../../../core/providers/errors";
 import * as BigIntUtils from "../../../util/bigint";
 
@@ -28,7 +27,7 @@ export class ReadOnlyValidEIP1559Transaction extends FeeMarketEIP1559Transaction
   }
 
   public static fromSerializedTx(
-    _serialized: Buffer,
+    _serialized: Uint8Array,
     _opts?: TxOptions
   ): never {
     throw new InternalError(
@@ -37,7 +36,7 @@ export class ReadOnlyValidEIP1559Transaction extends FeeMarketEIP1559Transaction
   }
 
   public static fromRlpSerializedTx(
-    _serialized: Buffer,
+    _serialized: Uint8Array,
     _opts?: TxOptions
   ): never {
     throw new InternalError(
@@ -46,7 +45,7 @@ export class ReadOnlyValidEIP1559Transaction extends FeeMarketEIP1559Transaction
   }
 
   public static fromValuesArray(
-    _values: FeeMarketEIP1559ValuesArray,
+    _values: TxValuesArray[TransactionType.FeeMarketEIP1559],
     _opts?: TxOptions
   ): never {
     throw new InternalError(
@@ -70,7 +69,7 @@ export class ReadOnlyValidEIP1559Transaction extends FeeMarketEIP1559Transaction
 
     super(data, {
       freeze: false,
-      disableMaxInitCodeSizeCheck: true,
+      allowUnlimitedInitCodeSize: true,
       common: fakeCommon,
     });
 

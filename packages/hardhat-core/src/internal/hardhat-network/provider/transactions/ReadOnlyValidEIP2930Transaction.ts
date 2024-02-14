@@ -2,8 +2,9 @@ import { Common } from "@nomicfoundation/ethereumjs-common";
 import {
   AccessListEIP2930Transaction,
   AccessListEIP2930TxData,
-  AccessListEIP2930ValuesArray,
+  TransactionType,
   TxOptions,
+  TxValuesArray,
 } from "@nomicfoundation/ethereumjs-tx";
 import { Address } from "@nomicfoundation/ethereumjs-util";
 
@@ -27,7 +28,7 @@ export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transactio
   }
 
   public static fromSerializedTx(
-    _serialized: Buffer,
+    _serialized: Uint8Array,
     _opts?: TxOptions
   ): never {
     throw new InternalError(
@@ -36,7 +37,7 @@ export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transactio
   }
 
   public static fromRlpSerializedTx(
-    _serialized: Buffer,
+    _serialized: Uint8Array,
     _opts?: TxOptions
   ): never {
     throw new InternalError(
@@ -45,7 +46,7 @@ export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transactio
   }
 
   public static fromValuesArray(
-    _values: AccessListEIP2930ValuesArray,
+    _values: TxValuesArray[TransactionType.AccessListEIP2930],
     _opts?: TxOptions
   ): never {
     throw new InternalError(
@@ -69,7 +70,7 @@ export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transactio
 
     super(data, {
       freeze: false,
-      disableMaxInitCodeSizeCheck: true,
+      allowUnlimitedInitCodeSize: true,
       common: fakeCommon,
     });
 

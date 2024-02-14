@@ -1,6 +1,9 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
-import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
+import {
+  bytesToHex as bufferToHex,
+  equalsBytes,
+} from "@nomicfoundation/ethereumjs-util";
 import ansiEscapes from "ansi-escapes";
 import chalk, { Chalk } from "chalk";
 import util from "util";
@@ -89,8 +92,8 @@ export class ModulesLogger {
 
   public logBlockFromAutomine(
     result: MineBlockResult,
-    codes: Buffer[],
-    txHashToHighlight: Buffer
+    codes: Uint8Array[],
+    txHashToHighlight: Uint8Array
   ) {
     const { block, blockResult, traces } = result;
     const { results } = blockResult;
@@ -113,7 +116,7 @@ export class ModulesLogger {
           const txTrace = traces[i];
           const code = codes[i];
 
-          const highlightTxHash = tx.hash().equals(txHashToHighlight);
+          const highlightTxHash = equalsBytes(tx.hash(), txHashToHighlight);
 
           this._logTxInsideBlock(tx, txTrace, code, txGasUsed, {
             highlightTxHash,
@@ -216,8 +219,8 @@ export class ModulesLogger {
 
       this._logWithTitle("Transaction", txHash);
 
-      this._logTxFrom(tx.getSenderAddress().toBuffer());
-      this._logTxTo(tx.to?.toBuffer(), txTrace.trace);
+      this._logTxFrom(Buffer.from(tx.getSenderAddress().toBytes()));
+      this._logTxTo(tx.to?.toBytes(), txTrace.trace);
       this._logTxValue(tx.value);
       this._logWithTitle("Gas used", `${txGasUsed} of ${tx.gasLimit}`);
 
@@ -251,8 +254,8 @@ export class ModulesLogger {
 
       this._logWithTitle("Transaction", txHash);
 
-      this._logTxFrom(tx.getSenderAddress().toBuffer());
-      this._logTxTo(tx.to?.toBuffer(), txTrace.trace);
+      this._logTxFrom(tx.getSenderAddress().toBytes());
+      this._logTxTo(tx.to?.toBytes(), txTrace.trace);
       this._logTxValue(tx.value);
       this._logWithTitle("Gas used", `${txGasUsed} of ${tx.gasLimit}`);
 
@@ -565,7 +568,7 @@ export class ModulesLogger {
   private _logTxInsideBlock(
     tx: TypedTransaction,
     txTrace: GatherTracesResult,
-    code: Buffer,
+    code: Uint8Array,
     txGasUsed: bigint,
     {
       highlightTxHash,
@@ -586,8 +589,8 @@ export class ModulesLogger {
 
     this._indent(() => {
       this._logContractAndFunctionName(txTrace.trace, code);
-      this._logTxFrom(tx.getSenderAddress().toBuffer());
-      this._logTxTo(tx.to?.toBuffer(), txTrace.trace);
+      this._logTxFrom(tx.getSenderAddress().toBytes());
+      this._logTxTo(tx.to?.toBytes(), txTrace.trace);
       this._logTxValue(tx.value);
       this._logWithTitle("Gas used", `${txGasUsed} of ${tx.gasLimit}`);
 
@@ -637,7 +640,7 @@ export class ModulesLogger {
 
   private _logContractAndFunctionName(
     trace: MessageTrace | undefined,
-    code: Buffer,
+    code: Uint8Array,
     {
       printNonContractCalled = false,
     }: { printNonContractCalled?: boolean } = {}
@@ -721,7 +724,7 @@ export class ModulesLogger {
     this._methodCollapsedCount = 0;
   }
 
-  private _logTxTo(to: Buffer | undefined, trace?: MessageTrace) {
+  private _logTxTo(to: Uint8Array | undefined, trace?: MessageTrace) {
     if (trace !== undefined && isCreateTrace(trace)) {
       return;
     }
@@ -740,7 +743,7 @@ export class ModulesLogger {
     this._logWithTitle("Value", weiToHumanReadableString(value));
   }
 
-  private _logTxFrom(from: Buffer) {
+  private _logTxFrom(from: Uint8Array) {
     this._logWithTitle("From", bufferToHex(from));
   }
 

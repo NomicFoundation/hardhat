@@ -2,7 +2,7 @@ import type { BigIntLike } from "@nomicfoundation/ethereumjs-util";
 
 import {
   AccessListEIP2930TxData,
-  TxData,
+  LegacyTxData,
 } from "@nomicfoundation/ethereumjs-tx";
 
 import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
@@ -17,7 +17,7 @@ interface FeeMarketEIP1559TxData extends AccessListEIP2930TxData {
 
 export function rpcToTxData(
   rpcTransaction: RpcTransaction
-): TxData | AccessListEIP2930TxData | FeeMarketEIP1559TxData {
+): LegacyTxData | AccessListEIP2930TxData | FeeMarketEIP1559TxData {
   const isEip1559 = rpcTransaction.type === 2n;
 
   return {

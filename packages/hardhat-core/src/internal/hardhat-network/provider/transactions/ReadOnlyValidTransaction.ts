@@ -1,5 +1,9 @@
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import { Transaction, TxData, TxOptions } from "@nomicfoundation/ethereumjs-tx";
+import {
+  LegacyTransaction,
+  LegacyTxData,
+  TxOptions,
+} from "@nomicfoundation/ethereumjs-tx";
 import { Address } from "@nomicfoundation/ethereumjs-util";
 
 import { InternalError } from "../../../core/providers/errors";
@@ -20,15 +24,15 @@ import { InternalError } from "../../../core/providers/errors";
  * This class doesn't use its Common instance, so there's no need to provide
  * one.
  */
-export class ReadOnlyValidTransaction extends Transaction {
-  public static fromTxData(_txData: TxData, _opts?: TxOptions): never {
+export class ReadOnlyValidTransaction extends LegacyTransaction {
+  public static fromTxData(_txData: LegacyTxData, _opts?: TxOptions): never {
     throw new InternalError(
       "`fromTxData` is not implemented in ReadOnlyValidTransaction"
     );
   }
 
   public static fromSerializedTx(
-    _serialized: Buffer,
+    _serialized: Uint8Array,
     _opts?: TxOptions
   ): never {
     throw new InternalError(
@@ -37,7 +41,7 @@ export class ReadOnlyValidTransaction extends Transaction {
   }
 
   public static fromRlpSerializedTx(
-    _serialized: Buffer,
+    _serialized: Uint8Array,
     _opts?: TxOptions
   ): never {
     throw new InternalError(
@@ -45,7 +49,10 @@ export class ReadOnlyValidTransaction extends Transaction {
     );
   }
 
-  public static fromValuesArray(_values: Buffer[], _opts?: TxOptions): never {
+  public static fromValuesArray(
+    _values: Uint8Array[],
+    _opts?: TxOptions
+  ): never {
     throw new InternalError(
       "`fromRlpSerializedTx` is not implemented in ReadOnlyValidTransaction"
     );
@@ -55,8 +62,8 @@ export class ReadOnlyValidTransaction extends Transaction {
 
   private readonly _sender: Address;
 
-  constructor(sender: Address, data: TxData = {}) {
-    super(data, { freeze: false, disableMaxInitCodeSizeCheck: true });
+  constructor(sender: Address, data: LegacyTxData = {}) {
+    super(data, { freeze: false, allowUnlimitedInitCodeSize: true });
 
     this.common = this._getCommon();
     this._sender = sender;

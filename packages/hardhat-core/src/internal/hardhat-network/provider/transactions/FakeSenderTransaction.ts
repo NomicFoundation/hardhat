@@ -1,7 +1,11 @@
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import * as rlp from "@nomicfoundation/ethereumjs-rlp";
-import { Transaction, TxData, TxOptions } from "@nomicfoundation/ethereumjs-tx";
-import { Address, arrToBufArr } from "@nomicfoundation/ethereumjs-util";
+import {
+  LegacyTransaction,
+  LegacyTxData,
+  TxOptions,
+} from "@nomicfoundation/ethereumjs-tx";
+import { Address } from "@nomicfoundation/ethereumjs-util";
 
 import {
   InternalError,
@@ -20,15 +24,15 @@ import { makeFakeSignature } from "../utils/makeFakeSignature";
  * The sender's private key is never recovered from the signature. Instead,
  * the sender's address is received as parameter.
  */
-export class FakeSenderTransaction extends Transaction {
-  public static fromTxData(_txData: TxData, _opts?: TxOptions): never {
+export class FakeSenderTransaction extends LegacyTransaction {
+  public static fromTxData(_txData: LegacyTxData, _opts?: TxOptions): never {
     throw new InternalError(
       "`fromTxData` is not implemented in FakeSenderTransaction"
     );
   }
 
   public static fromSerializedTx(
-    _serialized: Buffer,
+    _serialized: Uint8Array,
     _opts?: TxOptions
   ): never {
     throw new InternalError(
@@ -37,7 +41,7 @@ export class FakeSenderTransaction extends Transaction {
   }
 
   public static fromRlpSerializedTx(
-    _serialized: Buffer,
+    _serialized: Uint8Array,
     _opts?: TxOptions
   ): never {
     throw new InternalError(
@@ -45,7 +49,10 @@ export class FakeSenderTransaction extends Transaction {
     );
   }
 
-  public static fromValuesArray(_values: Buffer[], _opts?: TxOptions): never {
+  public static fromValuesArray(
+    _values: Uint8Array[],
+    _opts?: TxOptions
+  ): never {
     throw new InternalError(
       "`fromRlpSerializedTx` is not implemented in FakeSenderTransaction"
     );
@@ -53,10 +60,10 @@ export class FakeSenderTransaction extends Transaction {
 
   public static fromSenderAndRlpSerializedTx(
     sender: Address,
-    serialized: Buffer,
+    serialized: Uint8Array,
     opts?: TxOptions
   ) {
-    const values = arrToBufArr(rlp.decode(serialized));
+    const values = rlp.decode(serialized);
 
     checkIsFlatBufferArray(values);
 
@@ -65,7 +72,7 @@ export class FakeSenderTransaction extends Transaction {
 
   public static fromSenderAndValuesArray(
     sender: Address,
-    values: Buffer[],
+    values: Uint8Array[],
     opts?: TxOptions
   ) {
     if (values.length !== 6 && values.length !== 9) {
@@ -97,7 +104,7 @@ export class FakeSenderTransaction extends Transaction {
 
   private readonly _sender: Address;
 
-  constructor(sender: Address, data: TxData = {}, opts?: TxOptions) {
+  constructor(sender: Address, data: LegacyTxData = {}, opts?: TxOptions) {
     const fakeSignature = makeFakeSignature(data, sender);
 
     super(
@@ -107,7 +114,7 @@ export class FakeSenderTransaction extends Transaction {
         r: data.r ?? fakeSignature.r,
         s: data.s ?? fakeSignature.s,
       },
-      { ...opts, freeze: false, disableMaxInitCodeSizeCheck: true }
+      { ...opts, freeze: false, allowUnlimitedInitCodeSize: true }
     );
 
     this.common = this._getCommon(opts?.common);
@@ -188,17 +195,21 @@ FakeSenderTransactionPrototype._processSignature = function () {
   );
 };
 
-function checkIsFlatBufferArray(values: unknown): asserts values is Buffer[] {
+function checkIsFlatBufferArray(
+  values: unknown
+): asserts values is Uint8Array[] {
   if (!Array.isArray(values)) {
     throw new InvalidArgumentsError(
-      `Invalid deserialized tx. Expected a Buffer[], but got '${values as any}'`
+      `Invalid deserialized tx. Expected a Uint8Array[], but got '${
+        values as any
+      }'`
     );
   }
 
   for (const [i, value] of values.entries()) {
-    if (!Buffer.isBuffer(value)) {
+    if (!(value instanceof Uint8Array)) {
       throw new InvalidArgumentsError(
-        `Invalid deserialized tx. Expected a Buffer in position ${i}, but got '${value}'`
+        `Invalid deserialized tx. Expected a Uint8Array in position ${i}, but got '${value}'`
       );
     }
   }

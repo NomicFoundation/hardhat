@@ -1,9 +1,19 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
+import {
+  BlockchainInterface,
+  BlockchainEvents,
+} from "@nomicfoundation/ethereumjs-blockchain";
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
-import { Address } from "@nomicfoundation/ethereumjs-util";
+import {
+  FeeMarketEIP1559TxData,
+  TypedTransaction,
+} from "@nomicfoundation/ethereumjs-tx";
+import {
+  Address,
+  AsyncEventEmitter,
+  equalsBytes,
+} from "@nomicfoundation/ethereumjs-util";
 
-import { FeeMarketEIP1559TxData } from "@nomicfoundation/ethereumjs-tx/dist/types";
 import { RpcBlockWithTransactions } from "../../../core/jsonrpc/types/output/block";
 import { RpcTransactionReceipt } from "../../../core/jsonrpc/types/output/receipt";
 import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
@@ -35,6 +45,7 @@ export class ForkBlockchain
   implements HardhatBlockchainInterface
 {
   private _latestBlockNumber = this._forkBlockNumber;
+  public events?: AsyncEventEmitter<BlockchainEvents> | undefined;
 
   constructor(
     private _jsonRpcClient: JsonRpcClient,
@@ -42,6 +53,22 @@ export class ForkBlockchain
     common: Common
   ) {
     super(common);
+  }
+
+  public getIteratorHead(_name?: string | undefined): Promise<Block> {
+    throw new Error("Method not implemented.");
+  }
+
+  public setIteratorHead(_tag: string, _headHash: Uint8Array): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  public getCanonicalHeadBlock(): Promise<Block> {
+    throw new Error("Method not implemented.");
+  }
+
+  public shallowCopy(): BlockchainInterface {
+    return this;
   }
 
   public getLatestBlockNumber(): bigint {
@@ -87,7 +114,7 @@ export class ForkBlockchain
     // Thus, we avoid this check for the first block after the fork.
     if (blockNumber > this._forkBlockNumber + 1n) {
       const parent = await this.getLatestBlock();
-      if (!block.header.parentHash.equals(parent.hash())) {
+      if (!equalsBytes(block.header.parentHash, parent.hash())) {
         throw new Error("Invalid parent hash");
       }
     }
@@ -118,7 +145,10 @@ export class ForkBlockchain
   public deleteLaterBlocks(block: Block): void {
     const blockNumber = block.header.number;
     const savedBlock = this._data.getBlockByNumber(blockNumber);
-    if (savedBlock === undefined || !savedBlock.hash().equals(block.hash())) {
+    if (
+      savedBlock === undefined ||
+      !equalsBytes(savedBlock.hash(), block.hash())
+    ) {
       throw new Error("Invalid block");
     }
 
@@ -268,9 +298,12 @@ export class ForkBlockchain
     if (rpcBlock.baseFeePerGas === undefined) {
       common.setHardfork("berlin");
     } else if (rpcBlock.withdrawals === undefined) {
-      common.setHardfork("merge");
-    } else {
+      // ethereumjs uses this name for the merge hardfork
+      common.setHardfork("mergeForkIdTransition");
+    } else if (rpcBlock.parentBeaconBlockRoot === undefined) {
       common.setHardfork("shanghai");
+    } else {
+      common.setHardfork("cancun");
     }
 
     // we don't include the transactions to add our own custom tx objects,

@@ -498,6 +498,25 @@ export function getValidationErrors(config: any): string[] {
           }
         });
       }
+
+      if (hardhatNetwork.hardfork !== undefined) {
+        if (
+          !hardforkGte(hardhatNetwork.hardfork, HardforkName.CANCUN) &&
+          hardhatNetwork.enableTransientStorage === true
+        ) {
+          errors.push(
+            `'enableTransientStorage' cannot be enabled if the hardfork is explicitly set to a pre-cancun value. If you want to use transient storage, use 'cancun' as the hardfork.`
+          );
+        }
+        if (
+          hardforkGte(hardhatNetwork.hardfork, HardforkName.CANCUN) &&
+          hardhatNetwork.enableTransientStorage === false
+        ) {
+          errors.push(
+            `'enableTransientStorage' cannot be disabled if the hardfork is explicitly set to cancun or later. If you want to disable transient storage, use a hardfork before 'cancun'.`
+          );
+        }
+      }
     }
 
     for (const [networkName, netConfig] of Object.entries<any>(

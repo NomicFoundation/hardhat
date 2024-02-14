@@ -1,15 +1,15 @@
-import { Transaction, TxData } from "@nomicfoundation/ethereumjs-tx";
-import {
-  Address,
-  AddressLike,
-  bufferToHex,
-  toBuffer,
-} from "@nomicfoundation/ethereumjs-util";
-
 import {
   AccessListEIP2930TxData,
   FeeMarketEIP1559TxData,
-} from "@nomicfoundation/ethereumjs-tx/dist/types";
+  LegacyTransaction as Transaction,
+  LegacyTxData as TxData,
+} from "@nomicfoundation/ethereumjs-tx";
+import {
+  Address,
+  AddressLike,
+  bytesToHex as bufferToHex,
+  toBytes,
+} from "@nomicfoundation/ethereumjs-util";
 
 import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { randomAddress } from "../../../../src/internal/hardhat-network/provider/utils/random";
@@ -26,6 +26,10 @@ import { serializeTransaction } from "../../../../src/internal/hardhat-network/p
 import { FakeSenderAccessListEIP2930Transaction } from "../../../../src/internal/hardhat-network/provider/transactions/FakeSenderAccessListEIP2930Transaction";
 import { FakeSenderEIP1559Transaction } from "../../../../src/internal/hardhat-network/provider/transactions/FakeSenderEIP1559Transaction";
 import { DEFAULT_ACCOUNTS } from "./providers";
+
+function toBuffer(x: Parameters<typeof toBytes>[0]) {
+  return Buffer.from(toBytes(x));
+}
 
 export function createTestTransaction(data: TxData = {}) {
   const tx = new Transaction({ to: randomAddress(), ...data });
@@ -45,11 +49,12 @@ export function createTestFakeTransaction(
   } = {}
 ) {
   const from = data.from ?? randomAddress();
-  const fromAddress = Buffer.isBuffer(from)
-    ? new Address(from)
-    : typeof from === "string"
-    ? Address.fromString(from)
-    : from;
+  const fromAddress =
+    from instanceof Uint8Array
+      ? new Address(from)
+      : typeof from === "string"
+      ? Address.fromString(from)
+      : from;
 
   if (
     "gasPrice" in data &&

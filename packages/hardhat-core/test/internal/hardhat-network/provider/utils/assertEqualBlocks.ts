@@ -4,7 +4,7 @@ import {
   PostByzantiumTxReceipt,
 } from "@nomicfoundation/ethereumjs-vm";
 import { assert } from "chai";
-import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
+import { bytesToHex as bufferToHex } from "@nomicfoundation/ethereumjs-util";
 
 import { numberToRpcQuantity } from "../../../../../src/internal/core/jsonrpc/types/base-types";
 import { RpcBlockWithTransactions } from "../../../../../src/internal/core/jsonrpc/types/output/block";
@@ -18,7 +18,9 @@ export async function assertEqualBlocks(
   expectedBlock: RpcBlockWithTransactions,
   forkClient: JsonRpcClient
 ) {
-  const localReceiptRoot = block.header.receiptTrie.toString("hex");
+  const localReceiptRoot = Buffer.from(block.header.receiptTrie).toString(
+    "hex"
+  );
   const remoteReceiptRoot = expectedBlock.receiptsRoot.toString("hex");
 
   // We do some manual comparisons here to understand why the root of the receipt tries differ.

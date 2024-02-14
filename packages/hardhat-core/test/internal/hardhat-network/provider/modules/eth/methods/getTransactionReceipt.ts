@@ -1,4 +1,7 @@
-import { bufferToHex, toBuffer } from "@nomicfoundation/ethereumjs-util";
+import {
+  bytesToHex as bufferToHex,
+  toBytes,
+} from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 
 import {
@@ -27,6 +30,10 @@ import {
   deployContract,
   getSignedTxHash,
 } from "../../../../helpers/transactions";
+
+function toBuffer(x: Parameters<typeof toBytes>[0]) {
+  return Buffer.from(toBytes(x));
+}
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {

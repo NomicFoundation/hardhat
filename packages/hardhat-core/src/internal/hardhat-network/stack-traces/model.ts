@@ -1,4 +1,4 @@
-import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
+import { bytesToHex as bufferToHex } from "@nomicfoundation/ethereumjs-util";
 
 import { AbiHelpers } from "../../util/abi-helpers";
 
@@ -212,7 +212,7 @@ export class Contract {
   }
 
   public getFunctionFromSelector(
-    selector: Buffer
+    selector: Uint8Array
   ): ContractFunction | undefined {
     return this._selectorHexToFunction.get(bufferToHex(selector));
   }
@@ -261,7 +261,7 @@ export class ContractFunction {
     public readonly contract?: Contract,
     public readonly visibility?: ContractFunctionVisibility,
     public readonly isPayable?: boolean,
-    public selector?: Buffer,
+    public selector?: Uint8Array,
     public readonly paramTypes?: any[]
   ) {
     if (contract !== undefined && !contract.location.contains(location)) {
@@ -269,7 +269,7 @@ export class ContractFunction {
     }
   }
 
-  public isValidCalldata(calldata: Buffer): boolean {
+  public isValidCalldata(calldata: Uint8Array): boolean {
     if (this.paramTypes === undefined) {
       // if we don't know the param types, we just assume that the call is valid
       return true;
@@ -294,7 +294,7 @@ export class CustomError {
   }
 
   private constructor(
-    public readonly selector: Buffer,
+    public readonly selector: Uint8Array,
     public readonly name: string,
     public readonly paramTypes: any[]
   ) {}

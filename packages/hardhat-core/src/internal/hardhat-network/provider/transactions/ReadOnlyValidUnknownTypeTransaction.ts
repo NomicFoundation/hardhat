@@ -1,5 +1,9 @@
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import { Transaction, TxData, TxOptions } from "@nomicfoundation/ethereumjs-tx";
+import {
+  LegacyTransaction,
+  LegacyTxData,
+  TxOptions,
+} from "@nomicfoundation/ethereumjs-tx";
 import { Address } from "@nomicfoundation/ethereumjs-util";
 
 import { InternalError } from "../../../core/providers/errors";
@@ -10,15 +14,15 @@ import { InternalError } from "../../../core/providers/errors";
  * This class is like `ReadOnlyValidTransaction` but for
  * a transaction with an unknown tx type.
  */
-export class ReadOnlyValidUnknownTypeTransaction extends Transaction {
-  public static fromTxData(_txData: TxData, _opts?: TxOptions): never {
+export class ReadOnlyValidUnknownTypeTransaction extends LegacyTransaction {
+  public static fromTxData(_txData: LegacyTxData, _opts?: TxOptions): never {
     throw new InternalError(
       "`fromTxData` is not implemented in ReadOnlyValidUnknownTypeTransaction"
     );
   }
 
   public static fromSerializedTx(
-    _serialized: Buffer,
+    _serialized: Uint8Array,
     _opts?: TxOptions
   ): never {
     throw new InternalError(
@@ -27,7 +31,7 @@ export class ReadOnlyValidUnknownTypeTransaction extends Transaction {
   }
 
   public static fromRlpSerializedTx(
-    _serialized: Buffer,
+    _serialized: Uint8Array,
     _opts?: TxOptions
   ): never {
     throw new InternalError(
@@ -35,7 +39,10 @@ export class ReadOnlyValidUnknownTypeTransaction extends Transaction {
     );
   }
 
-  public static fromValuesArray(_values: Buffer[], _opts?: TxOptions): never {
+  public static fromValuesArray(
+    _values: Uint8Array[],
+    _opts?: TxOptions
+  ): never {
     throw new InternalError(
       "`fromRlpSerializedTx` is not implemented in ReadOnlyValidUnknownTypeTransaction"
     );
@@ -46,8 +53,8 @@ export class ReadOnlyValidUnknownTypeTransaction extends Transaction {
   private readonly _sender: Address;
   private readonly _actualType: number;
 
-  constructor(sender: Address, type: number, data: TxData = {}) {
-    super(data, { freeze: false, disableMaxInitCodeSizeCheck: true });
+  constructor(sender: Address, type: number, data: LegacyTxData = {}) {
+    super(data, { freeze: false, allowUnlimitedInitCodeSize: true });
 
     this.common = this._getCommon();
     this._sender = sender;

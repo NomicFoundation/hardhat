@@ -12,6 +12,11 @@ describe("Default config", function () {
     }
 
     for (const hardfork of Object.values(HardforkName)) {
+      if (hardfork === HardforkName.CANCUN) {
+        // temporarily skipped until Cancun is enabled in mainnet
+        continue;
+      }
+
       const hardforkHistoryEntry =
         mainnetChainConfig.hardforkHistory.get(hardfork);
       assert.isDefined(

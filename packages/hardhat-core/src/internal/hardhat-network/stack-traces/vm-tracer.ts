@@ -1,10 +1,10 @@
 import {
   EVMResult,
   getActivePrecompiles,
+  InterpreterStep,
+  Message,
 } from "@nomicfoundation/ethereumjs-evm";
-import { InterpreterStep } from "@nomicfoundation/ethereumjs-evm/dist/interpreter";
-import { Message } from "@nomicfoundation/ethereumjs-evm/dist/message";
-import { Address, bufferToBigInt } from "@nomicfoundation/ethereumjs-util";
+import { Address, bytesToBigInt } from "@nomicfoundation/ethereumjs-util";
 import { VM } from "@nomicfoundation/ethereumjs-vm";
 import { assertHardhatInvariant } from "../../core/errors";
 
@@ -19,18 +19,20 @@ import {
 
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
-const DUMMY_RETURN_DATA = Buffer.from([]);
+const DUMMY_RETURN_DATA = Uint8Array.from([]);
 const DUMMY_GAS_USED = 0n;
 
 export class VMTracer {
   private _messageTraces: MessageTrace[] = [];
   private _enabled = false;
   private _lastError: Error | undefined;
-  private _maxPrecompileNumber = getActivePrecompiles(this._vm._common).size;
+  private _maxPrecompileNumber = getActivePrecompiles(this._vm.common).size;
 
   constructor(
     private readonly _vm: VM,
-    private readonly _getContractCode: (address: Address) => Promise<Buffer>,
+    private readonly _getContractCode: (
+      address: Address
+    ) => Promise<Uint8Array>,
     private readonly _throwErrors = true
   ) {
     this._beforeMessageHandler = this._beforeMessageHandler.bind(this);
@@ -114,7 +116,7 @@ export class VMTracer {
 
       if (message.to === undefined) {
         const createTrace: CreateMessageTrace = {
-          code: message.data,
+          code: new Uint8Array(message.data),
           steps: [],
           value: message.value,
           returnData: DUMMY_RETURN_DATA,
@@ -126,12 +128,12 @@ export class VMTracer {
 
         trace = createTrace;
       } else {
-        const toAsBigInt = bufferToBigInt(message.to.toBuffer());
+        const toAsBigInt = bytesToBigInt(message.to.toBytes());
 
         if (toAsBigInt > 0 && toAsBigInt <= this._maxPrecompileNumber) {
           const precompileTrace: PrecompileMessageTrace = {
             precompile: Number(toAsBigInt),
-            calldata: message.data,
+            calldata: new Uint8Array(message.data),
             value: message.value,
             returnData: DUMMY_RETURN_DATA,
             depth: message.depth,
@@ -146,15 +148,15 @@ export class VMTracer {
 
           const callTrace: CallMessageTrace = {
             code,
-            calldata: message.data,
+            calldata: new Uint8Array(message.data),
             steps: [],
             value: message.value,
             returnData: DUMMY_RETURN_DATA,
-            address: message.to.toBuffer(),
+            address: message.to.toBytes(),
             numberOfSubtraces: 0,
             depth: message.depth,
             gasUsed: DUMMY_GAS_USED,
-            codeAddress: codeAddress.toBuffer(),
+            codeAddress: codeAddress.toBytes(),
           };
 
           trace = callTrace;
@@ -227,7 +229,7 @@ export class VMTracer {
       trace.gasUsed = result.execResult.executionGasUsed;
 
       if (isCreateTrace(trace)) {
-        trace.deployedContract = result?.createdAddress?.toBuffer();
+        trace.deployedContract = result?.createdAddress?.toBytes();
       }
 
       if (this._messageTraces.length > 1) {
