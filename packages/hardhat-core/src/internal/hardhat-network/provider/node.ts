@@ -1,7 +1,6 @@
 import { Block, HeaderData } from "@nomicfoundation/ethereumjs-block";
 import {
   Common,
-  CustomCommonOpts,
   EVMStateManagerInterface,
 } from "@nomicfoundation/ethereumjs-common";
 import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/cjs/exceptions";
@@ -2555,6 +2554,11 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
       originalCommon = (this._vm as any).common;
 
+      assertTransientStorageCompatibility(
+        this._enableTransientStorage,
+        this._vm.common.hardfork() as HardforkName
+      );
+
       (this._vm as any).common = Common.custom(
         {
           chainId:
@@ -2566,7 +2570,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         },
         {
           hardfork: this._selectHardfork(blockContext.header.number),
-          ...this._getTransientStorageSettings(),
         }
       );
 
@@ -2947,6 +2950,11 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   private _getCommonForTracing(networkId: number, blockNumber: bigint): Common {
+    assertTransientStorageCompatibility(
+      this._enableTransientStorage,
+      this._vm.common.hardfork() as HardforkName
+    );
+
     try {
       const common = Common.custom(
         {
@@ -2955,7 +2963,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         },
         {
           hardfork: this._selectHardfork(BigInt(blockNumber)),
-          ...this._getTransientStorageSettings(),
         }
       );
 
@@ -2966,12 +2973,15 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       );
     }
   }
+}
 
-  private _getTransientStorageSettings(): Partial<CustomCommonOpts> {
-    if (this._enableTransientStorage) {
-      return { eips: [1153] };
-    }
-
-    return {};
+export function assertTransientStorageCompatibility(
+  enableTransientStorage: boolean,
+  hardfork: HardforkName
+) {
+  if (enableTransientStorage && !hardforkGte(hardfork, HardforkName.CANCUN)) {
+    throw new InternalError(
+      `Transient storage is not compatible with hardfork "${hardfork}". To use transient storage, set the hardfork to "cancun" or later.`
+    );
   }
 }
