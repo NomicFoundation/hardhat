@@ -1,4 +1,4 @@
-import { BasicExecutionStrategy } from "../../../src/internal/execution/basic-execution-strategy";
+import { BasicStrategy } from "../../../src/basic-execution-strategy";
 import { FutureProcessor } from "../../../src/internal/execution/future-processor/future-processor";
 import {
   Block,
@@ -24,13 +24,13 @@ import {
   setupMockDeploymentLoader,
 } from "../../helpers";
 
-export function setupFutureProcessor(
+export async function setupFutureProcessor(
   sendTransaction: (transactionParams: TransactionParams) => Promise<string>,
   transactions: { [key: string]: TransactionReceipt }
-): {
+): Promise<{
   processor: FutureProcessor;
   storedDeployedAddresses: { [key: string]: string };
-} {
+}> {
   const storedDeployedAddresses: { [key: string]: string } = {};
 
   const mockDeploymentLoader = setupMockDeploymentLoader(
@@ -40,9 +40,8 @@ export function setupFutureProcessor(
 
   const mockArtifactResolver = setupMockArtifactResolver();
 
-  const basicExecutionStrategy = new BasicExecutionStrategy(
-    mockDeploymentLoader.loadArtifact
-  );
+  const basicExecutionStrategy = new BasicStrategy();
+  await basicExecutionStrategy.init(mockDeploymentLoader.loadArtifact);
 
   const mockJsonRpcClient = setupMockJsonRpcClient(
     sendTransaction,

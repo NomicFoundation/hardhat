@@ -1,8 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import {
-  DeploymentStrategyType,
-  buildModule,
-} from "@nomicfoundation/ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -14,9 +11,9 @@ import { waitForPendingTxs } from "../test-helpers/wait-for-pending-txs";
 
 describe("create2", function () {
   const EXPECTED_FOO_CREATE2_ADDRESS =
-    "0xc95c2ba05118C1b0D2e9DEC8802c358483F87FBA";
+    "0xA666fE62aA1fD2A7e7C08F81Eba3f55F459A9002";
   const EXPECTED_BAR_CREATE2_ADDRESS =
-    "0x3175cBAd3Ab8afCDf7f90c2Acf7fD3E11304310B";
+    "0xF44091a604c7Ed92441Ea695c0f41C522466b4D3";
 
   const moduleDefinition = buildModule("FooModule", (m) => {
     // Use a known bytecode to ensure the same address is generated
@@ -41,7 +38,7 @@ describe("create2", function () {
       ].forEach((accountAddress) => {
         it(`should deploy a contract from account <${accountAddress}> using the createX factory to the expected address`, async function () {
           const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
-            strategy: DeploymentStrategyType.CREATE2,
+            strategy: "create2",
             defaultSender: accountAddress,
           });
 
@@ -67,7 +64,7 @@ describe("create2", function () {
             return { foo };
           }),
           {
-            strategy: DeploymentStrategyType.CREATE2,
+            strategy: "create2",
           }
         );
 
@@ -95,7 +92,7 @@ describe("create2", function () {
               return { foo };
             }),
             {
-              strategy: DeploymentStrategyType.CREATE2,
+              strategy: "create2",
             }
           ),
           /Simulating the transaction failed with error: Reverted with custom error FailedContractCreation/
@@ -110,7 +107,7 @@ describe("create2", function () {
         assert.equal(this.hre.network.config.chainId, 88888);
         await assert.isRejected(
           this.hre.ignition.deploy(moduleDefinition, {
-            strategy: DeploymentStrategyType.CREATE2,
+            strategy: "create2",
           }),
           /CreateX not deployed on current network 88888/
         );
@@ -123,7 +120,7 @@ describe("create2", function () {
 
     it("should deploy a createX factory then use it to deploy the given contract", async function () {
       const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
-        strategy: DeploymentStrategyType.CREATE2,
+        strategy: "create2",
       });
 
       await waitForPendingTxs(this.hre, 1, deployPromise);
@@ -140,7 +137,7 @@ describe("create2", function () {
     it("should use an existing createX factory to deploy the given contract", async function () {
       // Run create2 once deploying the factory
       const firstDeployPromise = this.hre.ignition.deploy(moduleDefinition, {
-        strategy: DeploymentStrategyType.CREATE2,
+        strategy: "create2",
       });
 
       await waitForPendingTxs(this.hre, 1, firstDeployPromise);
@@ -156,7 +153,7 @@ describe("create2", function () {
           return { bar };
         }),
         {
-          strategy: DeploymentStrategyType.CREATE2,
+          strategy: "create2",
         }
       );
 

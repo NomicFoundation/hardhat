@@ -8,8 +8,6 @@ import { EphemeralDeploymentLoader } from "./internal/deployment-loader/ephemera
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader";
 import { DeploymentLoader } from "./internal/deployment-loader/types";
 import { ERRORS } from "./internal/errors-list";
-import { BasicExecutionStrategy } from "./internal/execution/basic-execution-strategy";
-import { Create2ExecutionStrategy } from "./internal/execution/create2-execution-strategy";
 import { EIP1193JsonRpcClient } from "./internal/execution/jsonrpc-client";
 import { equalAddresses } from "./internal/execution/utils/address";
 import { getDefaultSender } from "./internal/execution/utils/get-default-sender";
@@ -48,7 +46,7 @@ export async function deploy<
   deploymentParameters,
   accounts,
   defaultSender: givenDefaultSender,
-  strategy = DeploymentStrategyType.BASIC,
+  strategy: executionStrategy,
 }: {
   config?: Partial<DeployConfig>;
   artifactResolver: ArtifactResolver;
@@ -63,7 +61,7 @@ export async function deploy<
   deploymentParameters: DeploymentParameters;
   accounts: string[];
   defaultSender?: string;
-  strategy?: DeploymentStrategyType;
+  strategy: DeploymentStrategyType;
 }): Promise<DeploymentResult> {
   if (executionEventListener !== undefined) {
     executionEventListener.setModuleId({
@@ -73,7 +71,7 @@ export async function deploy<
 
     executionEventListener.setStrategy({
       type: ExecutionEventType.SET_STRATEGY,
-      strategy,
+      strategy: executionStrategy.name,
     });
   }
 
@@ -104,7 +102,9 @@ export async function deploy<
 
   const jsonRpcClient = new EIP1193JsonRpcClient(provider);
 
-  const executionStrategy = setupStrategy(strategy, deploymentLoader, provider);
+  await executionStrategy.init((artifactId) =>
+    deploymentLoader.loadArtifact(artifactId)
+  );
 
   const isAutominedNetwork = await checkAutominedNetwork(provider);
 
@@ -156,21 +156,4 @@ function _resolveDefaultSender(
   }
 
   return defaultSender;
-}
-
-function setupStrategy(
-  strategyName: DeploymentStrategyType,
-  deploymentLoader: DeploymentLoader,
-  provider: EIP1193Provider
-) {
-  switch (strategyName) {
-    case DeploymentStrategyType.BASIC:
-      return new BasicExecutionStrategy((artifactId) =>
-        deploymentLoader.loadArtifact(artifactId)
-      );
-    case DeploymentStrategyType.CREATE2:
-      return new Create2ExecutionStrategy(provider, (artifactId) =>
-        deploymentLoader.loadArtifact(artifactId)
-      );
-  }
 }

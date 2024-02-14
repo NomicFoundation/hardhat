@@ -24,7 +24,7 @@ describe("future processor", () => {
           exampleAddress
         );
 
-      const { processor, storedDeployedAddresses } = setupFutureProcessor(
+      const { processor, storedDeployedAddresses } = await setupFutureProcessor(
         (() => {}) as any,
         {}
       );

@@ -1,4 +1,3 @@
-import { DeploymentStrategyType } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 import chalk from "chalk";
 import path from "path";
@@ -21,7 +20,7 @@ describe("ui - calculate starting message display", () => {
     isResumed: null,
     maxFeeBumps: 0,
     gasBumps: {},
-    strategy: DeploymentStrategyType.BASIC,
+    strategy: "basic",
   };
 
   it("should display the deploying module message", () => {
@@ -45,7 +44,7 @@ describe("ui - calculate starting message display", () => {
 
     const actualText = calculateDeployingModulePanel({
       ...exampleState,
-      strategy: DeploymentStrategyType.CREATE2,
+      strategy: "create2",
     });
 
     assert.equal(actualText, expectedText);

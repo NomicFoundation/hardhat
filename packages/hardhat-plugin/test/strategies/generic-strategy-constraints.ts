@@ -1,14 +1,11 @@
-import {
-  DeploymentStrategyType,
-  buildModule,
-} from "@nomicfoundation/ignition-core";
+import { StrategyConfig, buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { mineBlock } from "../test-helpers/mine-block";
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project";
 import { waitForPendingTxs } from "../test-helpers/wait-for-pending-txs";
 
-const strategies = ["basic", "create2"];
+const strategies: Array<keyof StrategyConfig> = ["basic", "create2"];
 
 describe("strategies - generic constraints", function () {
   strategies.forEach((strategy) => {
@@ -23,7 +20,7 @@ describe("strategies - generic constraints", function () {
         });
 
         const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
-          strategy: strategyNameToType(strategy),
+          strategy,
         });
 
         await waitForPendingTxs(this.hre, 1, deployPromise);
@@ -45,7 +42,7 @@ describe("strategies - generic constraints", function () {
         });
 
         const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
-          strategy: strategyNameToType(strategy),
+          strategy,
         });
 
         await waitForPendingTxs(this.hre, 2, deployPromise);
@@ -70,7 +67,7 @@ describe("strategies - generic constraints", function () {
         });
 
         const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
-          strategy: strategyNameToType(strategy),
+          strategy,
         });
 
         await waitForPendingTxs(this.hre, 1, deployPromise);
@@ -106,7 +103,7 @@ describe("strategies - generic constraints", function () {
         });
 
         const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
-          strategy: strategyNameToType(strategy),
+          strategy,
         });
 
         await waitForPendingTxs(this.hre, 1, deployPromise);
@@ -152,7 +149,7 @@ describe("strategies - generic constraints", function () {
         const contractAtPromise = this.hre.ignition.deploy(
           contractAtDefinition,
           {
-            strategy: strategyNameToType(strategy),
+            strategy,
           }
         );
 
@@ -177,7 +174,7 @@ describe("strategies - generic constraints", function () {
         });
 
         const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
-          strategy: strategyNameToType(strategy),
+          strategy,
         });
 
         await waitForPendingTxs(this.hre, 1, deployPromise);
@@ -209,7 +206,7 @@ describe("strategies - generic constraints", function () {
         });
 
         const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
-          strategy: strategyNameToType(strategy),
+          strategy,
         });
 
         await waitForPendingTxs(this.hre, 1, deployPromise);
@@ -228,14 +225,3 @@ describe("strategies - generic constraints", function () {
     });
   });
 });
-
-function strategyNameToType(strategyName: string): DeploymentStrategyType {
-  switch (strategyName) {
-    case "basic":
-      return DeploymentStrategyType.BASIC;
-    case "create2":
-      return DeploymentStrategyType.CREATE2;
-    default:
-      throw new Error(`Unknown strategy name: ${strategyName}`);
-  }
-}

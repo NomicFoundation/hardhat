@@ -6,14 +6,14 @@ import {
   executeOnchainInteractionRequest,
   executeStaticCallRequest,
   getStaticCallExecutionStateResultValue,
-} from "./execution-strategy-helpers";
-import { ExecutionResultType } from "./types/execution-result";
+} from "./internal/execution/execution-strategy-helpers";
+import { ExecutionResultType } from "./internal/execution/types/execution-result";
 import {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "./types/execution-state";
+} from "./internal/execution/types/execution-state";
 import {
   CallStrategyGenerator,
   DeploymentStrategyGenerator,
@@ -22,26 +22,35 @@ import {
   OnchainInteractionResponseType,
   SendDataStrategyGenerator,
   StaticCallStrategyGenerator,
-} from "./types/execution-strategy";
-import { NetworkInteractionType } from "./types/network-interaction";
+} from "./internal/execution/types/execution-strategy";
+import { NetworkInteractionType } from "./internal/execution/types/network-interaction";
+import { assertIgnitionInvariant } from "./internal/utils/assertions";
 
 /**
  * The most basic execution strategy, which sends a single transaction
  * for each deployment, call, and send data, and a single static call
  * per static call execution.
+ *
+ * @beta
  */
-export class BasicExecutionStrategy implements ExecutionStrategy {
+export class BasicStrategy implements ExecutionStrategy {
   public readonly name: string = "basic";
+  private _loadArtifact: LoadArtifactFunction | undefined;
 
-  constructor(private readonly _loadArtifact: LoadArtifactFunction) {}
+  constructor() {}
 
-  public async init(): Promise<void> {
-    // Nothing to do
+  public async init(_loadArtifact: LoadArtifactFunction): Promise<void> {
+    this._loadArtifact = _loadArtifact;
   }
 
   public async *executeDeployment(
     executionState: DeploymentExecutionState
   ): DeploymentStrategyGenerator {
+    assertIgnitionInvariant(
+      this._loadArtifact !== undefined,
+      "loadArtifact not initialized"
+    );
+
     const artifact = await this._loadArtifact(executionState.artifactId);
 
     const transactionOrResult = yield* executeOnchainInteractionRequest(
@@ -87,6 +96,11 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
   public async *executeCall(
     executionState: CallExecutionState
   ): CallStrategyGenerator {
+    assertIgnitionInvariant(
+      this._loadArtifact !== undefined,
+      "loadArtifact not initialized"
+    );
+
     const artifact = await this._loadArtifact(executionState.artifactId);
 
     const transactionOrResult = yield* executeOnchainInteractionRequest(
@@ -153,6 +167,11 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
   public async *executeStaticCall(
     executionState: StaticCallExecutionState
   ): StaticCallStrategyGenerator {
+    assertIgnitionInvariant(
+      this._loadArtifact !== undefined,
+      "loadArtifact not initialized"
+    );
+
     const artifact = await this._loadArtifact(executionState.artifactId);
 
     const decodedResultOrError = yield* executeStaticCallRequest(

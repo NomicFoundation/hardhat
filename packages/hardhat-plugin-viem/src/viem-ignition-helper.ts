@@ -3,6 +3,7 @@ import type { GetContractReturnType } from "@nomicfoundation/hardhat-viem/types"
 import {
   HardhatArtifactResolver,
   errorDeploymentResultToExceptionMessage,
+  resolveStrategy,
 } from "@nomicfoundation/hardhat-ignition/helpers";
 import {
   ContractAtFuture,
@@ -20,6 +21,7 @@ import {
   NamedArtifactContractAtFuture,
   NamedArtifactContractDeploymentFuture,
   NamedArtifactLibraryDeploymentFuture,
+  StrategyConfig,
   SuccessfulDeploymentResult,
   deploy,
   isContractFuture,
@@ -56,7 +58,8 @@ export class ViemIgnitionHelper {
   public async deploy<
     ModuleIdT extends string,
     ContractNameT extends string,
-    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
+    StrategyT extends keyof StrategyConfig = "basic"
   >(
     ignitionModule: IgnitionModule<
       ModuleIdT,
@@ -67,14 +70,20 @@ export class ViemIgnitionHelper {
       parameters = {},
       config: perDeployConfig = {},
       defaultSender = undefined,
+      strategy: strategyName,
+      strategyConfig,
     }: {
       parameters?: DeploymentParameters;
       config?: Partial<DeployConfig>;
       defaultSender?: string;
+      strategy?: StrategyT;
+      strategyConfig?: StrategyConfig[StrategyT];
     } = {
       parameters: {},
       config: {},
       defaultSender: undefined,
+      strategy: undefined,
+      strategyConfig: undefined,
     }
   ): Promise<
     IgnitionModuleResultsToViemContracts<ContractNameT, IgnitionModuleResultsT>
@@ -90,6 +99,8 @@ export class ViemIgnitionHelper {
       ...perDeployConfig,
     };
 
+    const strategy = resolveStrategy(strategyName, this._hre, strategyConfig);
+
     const result = await deploy({
       config: resolvedConfig,
       provider: this._provider,
@@ -99,6 +110,7 @@ export class ViemIgnitionHelper {
       deploymentParameters: parameters,
       accounts,
       defaultSender,
+      strategy,
     });
 
     if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {

@@ -98,8 +98,6 @@ export class ExecutionEngine {
 
     const futures = getFuturesFromModule(module);
 
-    await this._executionStrategy.init();
-
     for (const batch of batches) {
       this._emitBeginNextBatchEvent();
 

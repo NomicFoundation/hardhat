@@ -1,9 +1,6 @@
 import { ethers } from "ethers";
 
-import { NomicIgnitionPluginError } from "../../errors";
-import { EIP1193Provider } from "../../types/provider";
-import { assertIgnitionInvariant } from "../utils/assertions";
-
+import { NomicIgnitionPluginError } from "./errors";
 import {
   decodeArtifactCustomError,
   decodeArtifactFunctionCallResult,
@@ -13,16 +10,19 @@ import {
   executeStaticCallRequest,
   getEventArgumentFromReceipt,
   getStaticCallExecutionStateResultValue,
-} from "./execution-strategy-helpers";
-import { EIP1193JsonRpcClient } from "./jsonrpc-client";
-import { createxArtifact, presignedTx } from "./strategy/createx-artifact";
-import { ExecutionResultType } from "./types/execution-result";
+} from "./internal/execution/execution-strategy-helpers";
+import { EIP1193JsonRpcClient } from "./internal/execution/jsonrpc-client";
+import {
+  createxArtifact,
+  presignedTx,
+} from "./internal/execution/strategy/createx-artifact";
+import { ExecutionResultType } from "./internal/execution/types/execution-result";
 import {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "./types/execution-state";
+} from "./internal/execution/types/execution-state";
 import {
   CallStrategyGenerator,
   DeploymentStrategyGenerator,
@@ -31,8 +31,10 @@ import {
   OnchainInteractionResponseType,
   SendDataStrategyGenerator,
   StaticCallStrategyGenerator,
-} from "./types/execution-strategy";
-import { NetworkInteractionType } from "./types/network-interaction";
+} from "./internal/execution/types/execution-strategy";
+import { NetworkInteractionType } from "./internal/execution/types/network-interaction";
+import { assertIgnitionInvariant } from "./internal/utils/assertions";
+import { EIP1193Provider } from "./types/provider";
 
 // v0.1.0
 const CREATE_X_ADDRESS = "0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed";
@@ -45,19 +47,23 @@ const CREATE_X_PRESIGNED_DEPLOYER_ADDRESS =
  * The most basic execution strategy, which sends a single transaction
  * for each deployment, call, and send data, and a single static call
  * per static call execution.
+ *
+ * @beta
  */
-export class Create2ExecutionStrategy implements ExecutionStrategy {
+export class Create2Strategy implements ExecutionStrategy {
   public readonly name: string = "create2";
   private readonly client: EIP1193JsonRpcClient;
+  private readonly salt: string;
+  private _loadArtifact: LoadArtifactFunction | undefined;
 
-  constructor(
-    provider: EIP1193Provider,
-    private readonly _loadArtifact: LoadArtifactFunction
-  ) {
+  constructor(provider: EIP1193Provider, options: { salt: string }) {
     this.client = new EIP1193JsonRpcClient(provider);
+    this.salt = options.salt;
   }
 
-  public async init(): Promise<void> {
+  public async init(_loadArtifact: LoadArtifactFunction): Promise<void> {
+    this._loadArtifact = _loadArtifact;
+
     // Check if CreateX is deployed on the current network
     const result = await this.client.getCode(CREATE_X_ADDRESS);
 
@@ -88,8 +94,13 @@ export class Create2ExecutionStrategy implements ExecutionStrategy {
   public async *executeDeployment(
     executionState: DeploymentExecutionState
   ): DeploymentStrategyGenerator {
+    assertIgnitionInvariant(
+      this._loadArtifact !== undefined,
+      "loadArtifact not initialized"
+    );
+
     const artifact = await this._loadArtifact(executionState.artifactId);
-    const salt = ethers.id("test");
+    const salt = ethers.id(this.salt);
 
     const bytecodeToDeploy = encodeArtifactDeploymentData(
       artifact,
@@ -150,6 +161,11 @@ export class Create2ExecutionStrategy implements ExecutionStrategy {
   public async *executeCall(
     executionState: CallExecutionState
   ): CallStrategyGenerator {
+    assertIgnitionInvariant(
+      this._loadArtifact !== undefined,
+      "loadArtifact not initialized"
+    );
+
     const artifact = await this._loadArtifact(executionState.artifactId);
 
     const transactionOrResult = yield* executeOnchainInteractionRequest(
@@ -216,6 +232,11 @@ export class Create2ExecutionStrategy implements ExecutionStrategy {
   public async *executeStaticCall(
     executionState: StaticCallExecutionState
   ): StaticCallStrategyGenerator {
+    assertIgnitionInvariant(
+      this._loadArtifact !== undefined,
+      "loadArtifact not initialized"
+    );
+
     const artifact = await this._loadArtifact(executionState.artifactId);
 
     const decodedResultOrError = yield* executeStaticCallRequest(

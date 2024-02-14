@@ -1,4 +1,4 @@
-import { DeploymentResult, DeploymentStrategyType } from "./deploy";
+import { DeploymentResult } from "./deploy";
 
 /**
  * Events emitted by the execution engine to allow tracking
@@ -375,7 +375,7 @@ export interface SetModuleIdEvent {
  */
 export interface SetStrategyEvent {
   type: ExecutionEventType.SET_STRATEGY;
-  strategy: DeploymentStrategyType;
+  strategy: string;
 }
 
 /**

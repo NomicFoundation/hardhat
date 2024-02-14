@@ -216,7 +216,7 @@ export interface ExecutionStrategy {
    */
   name: string;
 
-  init: () => Promise<void>;
+  init: (_loadArtifact: LoadArtifactFunction) => Promise<void>;
 
   /**
    * Executes a deployment execution state.

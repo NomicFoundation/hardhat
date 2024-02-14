@@ -1,18 +1,19 @@
 import {
   HardhatArtifactResolver,
   errorDeploymentResultToExceptionMessage,
+  resolveStrategy,
 } from "@nomicfoundation/hardhat-ignition/helpers";
 import {
   DeployConfig,
   DeploymentParameters,
   DeploymentResultType,
-  DeploymentStrategyType,
   EIP1193Provider,
   Future,
   IgnitionModule,
   IgnitionModuleResult,
   NamedArtifactContractAtFuture,
   NamedArtifactContractDeploymentFuture,
+  StrategyConfig,
   SuccessfulDeploymentResult,
   deploy,
   isContractFuture,
@@ -64,7 +65,8 @@ export class EthersIgnitionHelper {
   public async deploy<
     ModuleIdT extends string,
     ContractNameT extends string,
-    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
+    StrategyT extends keyof StrategyConfig = "basic"
   >(
     ignitionModule: IgnitionModule<
       ModuleIdT,
@@ -75,17 +77,20 @@ export class EthersIgnitionHelper {
       parameters = {},
       config: perDeployConfig = {},
       defaultSender = undefined,
-      strategy = DeploymentStrategyType.BASIC,
+      strategy: strategyName,
+      strategyConfig,
     }: {
       parameters?: DeploymentParameters;
       config?: Partial<DeployConfig>;
       defaultSender?: string;
-      strategy?: DeploymentStrategyType;
+      strategy?: StrategyT;
+      strategyConfig?: StrategyConfig[StrategyT];
     } = {
       parameters: {},
       config: {},
       defaultSender: undefined,
-      strategy: DeploymentStrategyType.BASIC,
+      strategy: undefined,
+      strategyConfig: undefined,
     }
   ): Promise<
     IgnitionModuleResultsTToEthersContracts<
@@ -103,6 +108,8 @@ export class EthersIgnitionHelper {
       ...this._config,
       ...perDeployConfig,
     };
+
+    const strategy = resolveStrategy(strategyName, this._hre, strategyConfig);
 
     const result = await deploy({
       config: resolvedConfig,

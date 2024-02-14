@@ -1,3 +1,6 @@
+import { BasicStrategy } from "../basic-execution-strategy";
+import { Create2Strategy } from "../create2-execution-strategy";
+
 import { ModuleParameters } from "./module";
 
 /**
@@ -210,18 +213,20 @@ export interface DeploymentParameters {
 }
 
 /**
- * An enumeration of the different types of deployment strategies.
+ * The different types of deployment strategies.
  *
  * @beta
  */
-export enum DeploymentStrategyType {
-  /**
-   * The basic deployment strategy.
-   */
-  BASIC = "basic",
+export type DeploymentStrategyType = Create2Strategy | BasicStrategy;
 
-  /**
-   * The create2 deployment strategy.
-   */
-  CREATE2 = "create2",
+/**
+ * The config options for the deployment strategies.
+ *
+ * @beta
+ */
+export interface StrategyConfig {
+  basic: {};
+  create2: {
+    salt: string;
+  };
 }

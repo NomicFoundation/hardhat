@@ -38,7 +38,7 @@ describe("future processor", () => {
           exampleAccounts[0]
         );
 
-      const { processor, storedDeployedAddresses } = setupFutureProcessor(
+      const { processor, storedDeployedAddresses } = await setupFutureProcessor(
         async (_transactionParams: TransactionParams) => {
           return exampleTxHash;
         },

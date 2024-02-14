@@ -5,12 +5,12 @@ import {
   DeployConfig,
   DeploymentParameters,
   DeploymentResultType,
-  DeploymentStrategyType,
   EIP1193Provider,
   Future,
   IgnitionModule,
   IgnitionModuleResult,
   isContractFuture,
+  StrategyConfig,
   SuccessfulDeploymentResult,
 } from "@nomicfoundation/ignition-core";
 import { HardhatPluginError } from "hardhat/plugins";
@@ -19,6 +19,7 @@ import { createPublicClient, custom, getContract } from "viem";
 import { hardhat } from "viem/chains";
 
 import { HardhatArtifactResolver } from "../../src/hardhat-artifact-resolver";
+import { resolveStrategy } from "../../src/helpers";
 import { errorDeploymentResultToExceptionMessage } from "../../src/utils/error-deployment-result-to-exception-message";
 
 export type IgnitionModuleResultsTToViemContracts<
@@ -56,7 +57,8 @@ export class TestIgnitionHelper {
   public async deploy<
     ModuleIdT extends string,
     ContractNameT extends string,
-    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
+    StrategyT extends keyof StrategyConfig = "basic"
   >(
     ignitionModule: IgnitionModule<
       ModuleIdT,
@@ -66,12 +68,14 @@ export class TestIgnitionHelper {
     {
       parameters = {},
       config: perDeployConfig = {},
-      strategy = DeploymentStrategyType.BASIC,
+      strategy: strategyName,
+      strategyConfig,
       defaultSender = undefined,
     }: {
       parameters?: DeploymentParameters;
       config?: Partial<DeployConfig>;
-      strategy?: DeploymentStrategyType;
+      strategy?: StrategyT;
+      strategyConfig?: StrategyConfig[StrategyT];
       defaultSender?: string;
     } = {
       parameters: {},
@@ -90,6 +94,8 @@ export class TestIgnitionHelper {
       ...this._config,
       ...perDeployConfig,
     };
+
+    const strategy = resolveStrategy(strategyName, this._hre, strategyConfig);
 
     const result = await deploy({
       config: resolvedConfig,

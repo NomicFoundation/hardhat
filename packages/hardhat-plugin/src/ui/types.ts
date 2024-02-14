@@ -1,7 +1,4 @@
-import {
-  DeploymentResult,
-  DeploymentStrategyType,
-} from "@nomicfoundation/ignition-core";
+import { DeploymentResult } from "@nomicfoundation/ignition-core";
 
 export enum UiFutureStatusType {
   UNSTARTED = "UNSTARTED",
@@ -67,7 +64,7 @@ export interface UiState {
   isResumed: boolean | null;
   maxFeeBumps: number;
   gasBumps: Record<string, number>;
-  strategy: DeploymentStrategyType | null;
+  strategy: string | null;
 }
 
 export interface AddressMap {

@@ -2,7 +2,7 @@
 import "hardhat/types/config";
 import "hardhat/types/runtime";
 
-import { DeployConfig } from "@nomicfoundation/ignition-core";
+import { DeployConfig, StrategyConfig } from "@nomicfoundation/ignition-core";
 
 declare module "hardhat/types/config" {
   export interface ProjectPathsUserConfig {
@@ -14,10 +14,14 @@ declare module "hardhat/types/config" {
   }
 
   export interface HardhatUserConfig {
-    ignition?: Partial<DeployConfig>;
+    ignition?: Partial<DeployConfig> & {
+      strategyConfig?: Partial<StrategyConfig>;
+    };
   }
 
   export interface HardhatConfig {
-    ignition: Partial<DeployConfig>;
+    ignition: Partial<DeployConfig> & {
+      strategyConfig?: Partial<StrategyConfig>;
+    };
   }
 }
