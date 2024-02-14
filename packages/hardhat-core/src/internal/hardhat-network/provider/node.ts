@@ -9,6 +9,7 @@ import {
   FeeMarketEIP1559Transaction,
   LegacyTransaction,
   TypedTransaction,
+  BlobEIP4844Transaction,
 } from "@nomicfoundation/ethereumjs-tx";
 import {
   Address,
@@ -489,7 +490,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     if (pk !== undefined) {
       let tx: TypedTransaction;
 
-      if ("maxFeePerGas" in txParams) {
+      if ("blobs" in txParams) {
+        tx = BlobEIP4844Transaction.fromTxData(txParams, {
+          common: this._vm.common,
+          allowUnlimitedInitCodeSize: true,
+        });
+      } else if ("maxFeePerGas" in txParams) {
         tx = FeeMarketEIP1559Transaction.fromTxData(txParams, {
           common: this._vm.common,
           allowUnlimitedInitCodeSize: true,

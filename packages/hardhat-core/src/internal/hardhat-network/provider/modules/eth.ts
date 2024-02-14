@@ -1650,6 +1650,15 @@ export class EthModule extends Base {
     rpcRequest: RpcCallRequest | RpcTransactionRequest
   ) {
     if (
+      rpcRequest.blobs !== undefined ||
+      rpcRequest.blobVersionedHashes !== undefined
+    ) {
+      throw new InvalidInputError(
+        `An EIP-4844 (shard blob) transaction was received, but Hardhat doesn't have support for them yet.`
+      );
+    }
+
+    if (
       (rpcRequest.maxFeePerGas !== undefined ||
         rpcRequest.maxPriorityFeePerGas !== undefined) &&
       !this._common.gteHardfork(EIP1559_MIN_HARDFORK)
@@ -1741,6 +1750,12 @@ Enable the 'allowUnlimitedContractSize' option to allow init codes of any length
   }
 
   private _validateRawTransactionHardforkRequirements(rawTx: Buffer) {
+    if (rawTx[0] <= 0x7f && rawTx[0] === 3) {
+      throw new InvalidInputError(
+        `An EIP-4844 (shard blob) transaction was received, but Hardhat doesn't have support for them yet.`
+      );
+    }
+
     if (rawTx[0] <= 0x7f && rawTx[0] !== 1 && rawTx[0] !== 2) {
       throw new InvalidArgumentsError(`Invalid transaction type ${rawTx[0]}.
 
