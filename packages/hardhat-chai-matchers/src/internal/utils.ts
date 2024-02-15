@@ -69,7 +69,7 @@ export function assertArgsArraysEqual(
   }
 }
 
-export function innerAssertArgsArraysEqual(
+function innerAssertArgsArraysEqual(
   Assertion: Chai.AssertionStatic,
   expectedArgs: any[],
   actualArgs: any[],
