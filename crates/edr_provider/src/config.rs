@@ -26,14 +26,17 @@ impl IntervalConfig {
     }
 }
 
-impl From<OneUsizeOrTwo> for IntervalConfig {
-    fn from(value: OneUsizeOrTwo) -> Self {
+impl TryFrom<OneUsizeOrTwo> for IntervalConfig {
+    type Error = ();
+
+    fn try_from(value: OneUsizeOrTwo) -> Result<Self, Self::Error> {
         match value {
-            OneUsizeOrTwo::One(value) => Self::Fixed(value as u64),
-            OneUsizeOrTwo::Two([min, max]) => Self::Range {
+            OneUsizeOrTwo::One(0) => Err(()),
+            OneUsizeOrTwo::One(value) => Ok(Self::Fixed(value as u64)),
+            OneUsizeOrTwo::Two([min, max]) => Ok(Self::Range {
                 min: min as u64,
                 max: max as u64,
-            },
+            }),
         }
     }
 }

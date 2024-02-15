@@ -609,9 +609,8 @@ export class EdrProviderWrapper
         error = encodeSolidityStackTrace(response.error.message, stackTrace);
         // Pass data and transaction hash from the original error
         (error as any).data = {
-          data: response.error.data?.data,
-          transactionHash: response.error.data?.transactionHash,
-          ...(error as any).data,
+          data: response.error.data?.data ?? undefined,
+          transactionHash: response.error.data?.transactionHash ?? undefined,
         };
       } else {
         if (response.error.code === InvalidArgumentsError.CODE) {
@@ -651,9 +650,11 @@ export class EdrProviderWrapper
 
   private _ethEventListener(event: SubscriptionEvent) {
     const subscription = `0x${event.filterId.toString(16)}`;
-    const result = event.result;
-    this._emitLegacySubscriptionEvent(subscription, result);
-    this._emitEip1193SubscriptionEvent(subscription, result);
+    const results = Array.isArray(event.result) ? event.result : [event.result];
+    for (const result of results) {
+      this._emitLegacySubscriptionEvent(subscription, result);
+      this._emitEip1193SubscriptionEvent(subscription, result);
+    }
   }
 
   private _emitLegacySubscriptionEvent(subscription: string, result: any) {

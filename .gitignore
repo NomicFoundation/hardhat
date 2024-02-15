@@ -112,4 +112,4 @@ Brewfile.lock.json
 # Performance profiling application
 .clinic
 
-benchmark-scenarios
+benchmark-scenarios/

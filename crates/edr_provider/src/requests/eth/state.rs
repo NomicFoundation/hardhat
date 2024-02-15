@@ -7,7 +7,7 @@ use crate::{
 };
 
 pub fn handle_get_balance_request<LoggerErrorT: Debug>(
-    data: &ProviderData<LoggerErrorT>,
+    data: &mut ProviderData<LoggerErrorT>,
     address: Address,
     block_spec: Option<BlockSpec>,
 ) -> Result<U256, ProviderError<LoggerErrorT>> {
@@ -19,7 +19,7 @@ pub fn handle_get_balance_request<LoggerErrorT: Debug>(
 }
 
 pub fn handle_get_code_request<LoggerErrorT: Debug>(
-    data: &ProviderData<LoggerErrorT>,
+    data: &mut ProviderData<LoggerErrorT>,
     address: Address,
     block_spec: Option<BlockSpec>,
 ) -> Result<Bytes, ProviderError<LoggerErrorT>> {
@@ -31,7 +31,7 @@ pub fn handle_get_code_request<LoggerErrorT: Debug>(
 }
 
 pub fn handle_get_storage_at_request<LoggerErrorT: Debug>(
-    data: &ProviderData<LoggerErrorT>,
+    data: &mut ProviderData<LoggerErrorT>,
     address: Address,
     index: U256,
     block_spec: Option<BlockSpec>,
