@@ -137,7 +137,7 @@ impl Provider {
                 ProviderRequest::Single(r) => r.method_name().into(),
                 ProviderRequest::Batch(reqs) => format!("batch_request_len_{}", reqs.len()),
             };
-            let request_path = scenario_dir.join(format!("{count:05}_{name}.json"));
+            let request_path = scenario_dir.join(format!("{count:08}_{name}.json"));
             std::fs::write(request_path, serde_json::to_string_pretty(&request)?)?;
         }
 
