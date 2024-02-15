@@ -96,7 +96,6 @@ impl<SuccessT: Serialize, ErrorT: Into<Error>> From<Result<SuccessT, ErrorT>>
 /// included. This member is used to correlate the context between the two
 /// objects.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[serde(untagged)]
 pub enum Id {
     /// Numeric id

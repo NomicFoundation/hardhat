@@ -120,7 +120,6 @@ pub enum ReceiptConversionError {
 
 /// block object returned by `eth_getBlockBy*`
 #[derive(Debug, Default, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
 #[serde(rename_all = "camelCase")]
 pub struct Block<TX> {
     /// Hash of the block
