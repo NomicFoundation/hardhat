@@ -225,8 +225,10 @@ async function innerGetContractAt(
   const viem = await import("viem");
   const contract = viem.getContract({
     address,
-    publicClient,
-    walletClient,
+    client: {
+      public: publicClient,
+      wallet: walletClient,
+    },
     abi: contractAbi,
   });
 
