@@ -145,8 +145,11 @@ function innerAssertArgEqual(
     );
   } else {
     if (actualArg.hash !== undefined && actualArg._isIndexed === true) {
-      if (assertionType !== "event")
-        assert(false, "Should not get here. Please open an issue about that");
+      if (assertionType !== "event") {
+        throw new Error(
+          "Should not get an indexed event when the assertion type is not event. Please open an issue about this."
+        );
+      }
 
       new Assertion(actualArg.hash, undefined, ssfi, true).to.not.equal(
         expectedArg,
