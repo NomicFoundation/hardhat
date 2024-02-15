@@ -24,7 +24,7 @@ const client = await hre.viem.getPublicClient({
   ...
 });
 
-You can find a list of supported networks here: https://viem.sh/docs/clients/chains.html`
+You can find a list of supported networks here: https://github.com/wevm/viem/blob/main/src/chains/index.ts`
     );
   }
 }
@@ -40,7 +40,7 @@ const client = await hre.viem.getPublicClient({
   ...
 });
 
-You can find a list of supported networks here: https://viem.sh/docs/clients/chains.html`
+You can find a list of supported networks here: https://github.com/wevm/viem/blob/main/src/chains/index.ts`
     );
   }
 }
