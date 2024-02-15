@@ -1,5 +1,8 @@
 import { ArtifactResolver } from "../../types/artifact";
-import { DeploymentParameters } from "../../types/deploy";
+import {
+  DeploymentParameters,
+  DeploymentStrategyType,
+} from "../../types/deploy";
 import {
   ExecutionEventListener,
   ExecutionEventType,
@@ -24,7 +27,6 @@ import { getNonceSyncMessages } from "./nonce-management/get-nonce-sync-messages
 import { JsonRpcNonceManager } from "./nonce-management/json-rpc-nonce-manager";
 import { TransactionTrackingTimer } from "./transaction-tracking-timer";
 import { DeploymentState } from "./types/deployment-state";
-import { ExecutionStrategy } from "./types/execution-strategy";
 
 /**
  * This class is used to execute a module to completion, returning the new
@@ -34,7 +36,7 @@ export class ExecutionEngine {
   constructor(
     private readonly _deploymentLoader: DeploymentLoader,
     private readonly _artifactResolver: ArtifactResolver,
-    private readonly _executionStrategy: ExecutionStrategy,
+    private readonly _executionStrategy: DeploymentStrategyType,
     private readonly _jsonRpcClient: JsonRpcClient,
     private readonly _executionEventListener:
       | ExecutionEventListener

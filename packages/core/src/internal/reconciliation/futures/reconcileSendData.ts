@@ -4,6 +4,7 @@ import { SendDataExecutionState } from "../../execution/types/execution-state";
 import { compare } from "../helpers/compare";
 import { reconcileData } from "../helpers/reconcile-data";
 import { reconcileFrom } from "../helpers/reconcile-from";
+import { reconcileStrategy } from "../helpers/reconcile-strategy";
 import { reconcileValue } from "../helpers/reconcile-value";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 
@@ -40,6 +41,11 @@ export function reconcileSendData(
   }
 
   result = reconcileData(future, executionState, context);
+  if (result !== undefined) {
+    return result;
+  }
+
+  result = reconcileStrategy(future, executionState, context);
   if (result !== undefined) {
     return result;
   }

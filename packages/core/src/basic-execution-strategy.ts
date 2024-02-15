@@ -34,7 +34,8 @@ import { assertIgnitionInvariant } from "./internal/utils/assertions";
  * @beta
  */
 export class BasicStrategy implements ExecutionStrategy {
-  public readonly name: string = "basic";
+  public readonly name = "basic" as const;
+  public readonly config: {} = {};
   private _loadArtifact: LoadArtifactFunction | undefined;
 
   constructor() {}

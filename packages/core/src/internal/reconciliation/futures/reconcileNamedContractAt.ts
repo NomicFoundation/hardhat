@@ -3,6 +3,7 @@ import { ContractAtExecutionState } from "../../execution/types/execution-state"
 import { reconcileAddress } from "../helpers/reconcile-address";
 import { reconcileArtifacts } from "../helpers/reconcile-artifacts";
 import { reconcileContractName } from "../helpers/reconcile-contract-name";
+import { reconcileStrategy } from "../helpers/reconcile-strategy";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 
 export async function reconcileNamedContractAt(
@@ -21,6 +22,11 @@ export async function reconcileNamedContractAt(
   }
 
   result = reconcileAddress(future, executionState, context);
+  if (result !== undefined) {
+    return result;
+  }
+
+  result = reconcileStrategy(future, executionState, context);
   if (result !== undefined) {
     return result;
   }

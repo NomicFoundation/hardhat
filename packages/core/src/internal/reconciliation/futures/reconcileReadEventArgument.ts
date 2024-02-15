@@ -2,6 +2,7 @@ import { ReadEventArgumentFuture } from "../../../types/module";
 import { resolveAddressForContractFuture } from "../../execution/future-processor/helpers/future-resolvers";
 import { ReadEventArgumentExecutionState } from "../../execution/types/execution-state";
 import { compare } from "../helpers/compare";
+import { reconcileStrategy } from "../helpers/reconcile-strategy";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 
 export function reconcileReadEventArgument(
@@ -51,6 +52,11 @@ export function reconcileReadEventArgument(
     executionState.nameOrIndex,
     future.nameOrIndex
   );
+  if (result !== undefined) {
+    return result;
+  }
+
+  result = reconcileStrategy(future, executionState, context);
   if (result !== undefined) {
     return result;
   }

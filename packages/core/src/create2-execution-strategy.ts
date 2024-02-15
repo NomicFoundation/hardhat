@@ -51,14 +51,15 @@ const CREATE_X_PRESIGNED_DEPLOYER_ADDRESS =
  * @beta
  */
 export class Create2Strategy implements ExecutionStrategy {
-  public readonly name: string = "create2";
+  public readonly name = "create2" as const;
   private readonly client: EIP1193JsonRpcClient;
-  private readonly salt: string;
   private _loadArtifact: LoadArtifactFunction | undefined;
 
-  constructor(provider: EIP1193Provider, options: { salt: string }) {
+  constructor(
+    provider: EIP1193Provider,
+    public readonly config: { salt: string }
+  ) {
     this.client = new EIP1193JsonRpcClient(provider);
-    this.salt = options.salt;
   }
 
   public async init(_loadArtifact: LoadArtifactFunction): Promise<void> {
@@ -100,7 +101,7 @@ export class Create2Strategy implements ExecutionStrategy {
     );
 
     const artifact = await this._loadArtifact(executionState.artifactId);
-    const salt = ethers.id(this.salt);
+    const salt = ethers.id(this.config.salt);
 
     const bytecodeToDeploy = encodeArtifactDeploymentData(
       artifact,

@@ -216,6 +216,11 @@ export interface ExecutionStrategy {
    */
   name: string;
 
+  /**
+   * The configuration options for the strategy.
+   */
+  config: {};
+
   init: (_loadArtifact: LoadArtifactFunction) => Promise<void>;
 
   /**

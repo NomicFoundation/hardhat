@@ -79,6 +79,7 @@ export interface DeploymentExecutionStateInitializeMessage {
   futureId: string;
   futureType: DeploymentExecutionStateFutureTypes;
   strategy: string;
+  strategyConfig: Record<string, any>;
   dependencies: string[];
   artifactId: string;
   contractName: string;
@@ -98,6 +99,7 @@ export interface CallExecutionStateInitializeMessage {
   type: JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE;
   futureId: string;
   strategy: string;
+  strategyConfig: Record<string, any>;
   dependencies: string[];
   artifactId: string;
   contractAddress: string;
@@ -117,6 +119,7 @@ export interface StaticCallExecutionStateInitializeMessage {
   type: JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE;
   futureId: string;
   strategy: string;
+  strategyConfig: Record<string, any>;
   dependencies: string[];
   artifactId: string;
   contractAddress: string;
@@ -136,6 +139,7 @@ export interface SendDataExecutionStateInitializeMessage {
   type: JournalMessageType.SEND_DATA_EXECUTION_STATE_INITIALIZE;
   futureId: string;
   strategy: string;
+  strategyConfig: Record<string, any>;
   dependencies: string[];
   to: string;
   data: string;
@@ -154,6 +158,7 @@ export interface ContractAtExecutionStateInitializeMessage {
   futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT | FutureType.CONTRACT_AT;
   futureId: string;
   strategy: string;
+  strategyConfig: Record<string, any>;
   dependencies: string[];
   artifactId: string;
   contractName: string;
@@ -164,6 +169,7 @@ export interface ReadEventArgExecutionStateInitializeMessage {
   type: JournalMessageType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE;
   futureId: string;
   strategy: string;
+  strategyConfig: Record<string, any>;
   dependencies: string[];
   artifactId: string;
   eventName: string;
