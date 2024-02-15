@@ -40,6 +40,7 @@ describe("DeploymentStateReducer", () => {
         type: JournalMessageType.SEND_DATA_EXECUTION_STATE_INITIALIZE,
         futureId: "SendData1",
         strategy: "basic",
+        strategyConfig: {},
         dependencies: [],
         to: exampleAddress,
         data: "fake-data",

@@ -13,5 +13,10 @@ module.exports = {
     blockPollingInterval: 100,
     timeBeforeBumpingFees: 60 * 1000,
     maxFeeBumps: 2,
+    strategyConfig: {
+      create2: {
+        salt: "custom-salt",
+      },
+    },
   },
 };

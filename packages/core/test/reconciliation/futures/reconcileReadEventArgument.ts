@@ -27,6 +27,7 @@ describe("Reconciliation - read event argument", () => {
     type: ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE,
     futureType: FutureType.READ_EVENT_ARGUMENT,
     strategy: "basic",
+    strategyConfig: {},
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     artifactId: "./artifact.json",
@@ -43,6 +44,7 @@ describe("Reconciliation - read event argument", () => {
     type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     strategy: "basic",
+    strategyConfig: {},
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     networkInteractions: [],
@@ -352,6 +354,90 @@ describe("Reconciliation - read event argument", () => {
       {
         futureId: "Module#Contract2",
         failure: "Argument at index 0 has been changed",
+      },
+    ]);
+  });
+
+  it("should find changes to strategy name unreconciliable", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const contract = m.contract("Contract");
+
+      m.readEventArgument(contract, "event1", "argument1", {
+        id: "ReadEvent",
+      });
+
+      return { contract };
+    });
+
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Module#Contract",
+          futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
+          status: ExecutionStatus.SUCCESS,
+          contractName: "Contract",
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: exampleAddress,
+          },
+        },
+        {
+          ...exampleReadArgState,
+          id: "Module#ReadEvent",
+          status: ExecutionStatus.STARTED,
+          strategy: "create2",
+        }
+      )
+    );
+
+    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+      {
+        futureId: "Module#ReadEvent",
+        failure: 'Strategy changed from "create2" to "basic"',
+      },
+    ]);
+  });
+
+  it("should find changes to strategy config unreconciliable", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const contract = m.contract("Contract");
+
+      m.readEventArgument(contract, "event1", "argument1", {
+        id: "ReadEvent",
+      });
+
+      return { contract };
+    });
+
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Module#Contract",
+          futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
+          status: ExecutionStatus.SUCCESS,
+          contractName: "Contract",
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: exampleAddress,
+          },
+        },
+        {
+          ...exampleReadArgState,
+          id: "Module#ReadEvent",
+          status: ExecutionStatus.STARTED,
+          strategyConfig: { salt: "value" },
+        }
+      )
+    );
+
+    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+      {
+        futureId: "Module#ReadEvent",
+        failure: 'Strategy config changed from {"salt":"value"} to {}',
       },
     ]);
   });

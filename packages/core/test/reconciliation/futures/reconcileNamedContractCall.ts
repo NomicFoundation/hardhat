@@ -28,6 +28,7 @@ describe("Reconciliation - named contract call", () => {
     type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     strategy: "basic",
+    strategyConfig: {},
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     networkInteractions: [],
@@ -44,6 +45,7 @@ describe("Reconciliation - named contract call", () => {
     type: ExecutionSateType.CALL_EXECUTION_STATE,
     futureType: FutureType.CONTRACT_CALL,
     strategy: "basic",
+    strategyConfig: {},
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     networkInteractions: [],
@@ -327,6 +329,86 @@ describe("Reconciliation - named contract call", () => {
       {
         futureId: "Module#config",
         failure: `From account has been changed from ${oneAddress} to ${twoAddress}`,
+      },
+    ]);
+  });
+
+  it("should find changes to strategy name unreconciliable", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const contract1 = m.contract("Contract1");
+
+      m.call(contract1, "function1", [], { id: "config" });
+
+      return { contract1 };
+    });
+
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Module#Contract1",
+          status: ExecutionStatus.SUCCESS,
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: differentAddress,
+          },
+        },
+        {
+          ...exampleContractCallState,
+          id: "Module#config",
+          futureType: FutureType.CONTRACT_CALL,
+          status: ExecutionStatus.STARTED,
+          functionName: "function1",
+          strategy: "create2",
+        }
+      )
+    );
+
+    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+      {
+        futureId: "Module#config",
+        failure: 'Strategy changed from "create2" to "basic"',
+      },
+    ]);
+  });
+
+  it("should find changes to strategy config unreconciliable", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const contract1 = m.contract("Contract1");
+
+      m.call(contract1, "function1", [], { id: "config" });
+
+      return { contract1 };
+    });
+
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Module#Contract1",
+          status: ExecutionStatus.SUCCESS,
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: differentAddress,
+          },
+        },
+        {
+          ...exampleContractCallState,
+          id: "Module#config",
+          futureType: FutureType.CONTRACT_CALL,
+          status: ExecutionStatus.STARTED,
+          functionName: "function1",
+          strategyConfig: { salt: "value" },
+        }
+      )
+    );
+
+    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+      {
+        futureId: "Module#config",
+        failure: 'Strategy config changed from {"salt":"value"} to {}',
       },
     ]);
   });

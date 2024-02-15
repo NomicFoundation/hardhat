@@ -67,7 +67,7 @@ import {
 describe("buildInitializeMessageFor", () => {
   const differentAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
   const libraryAddress = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
-  const basicStrategy = { name: "basic" } as any;
+  const basicStrategy = { name: "basic", config: {} } as any;
 
   let namedContractDeployment: NamedArtifactContractDeploymentFuture<string>;
   let anotherNamedContractDeployment: NamedArtifactContractDeploymentFuture<string>;
@@ -342,6 +342,10 @@ describe("buildInitializeMessageFor", () => {
         assert.equal(message.strategy, "basic");
       });
 
+      it("should record the strategy config", () => {
+        assert.deepEqual(message.strategyConfig, {});
+      });
+
       it("should copy across the dependencies", async () => {
         assert.deepStrictEqual(message.dependencies, [
           "MyModule:AnotherContract",
@@ -392,6 +396,7 @@ describe("buildInitializeMessageFor", () => {
           futureId: "MyModule:ArtifactContract",
           futureType: FutureType.CONTRACT_DEPLOYMENT,
           strategy: "basic",
+          strategyConfig: {},
           dependencies: ["MyModule:AnotherContract", "MyModule:SafeMath"],
           artifactId: "MyModule:ArtifactContract",
           constructorArgs: [
@@ -431,6 +436,7 @@ describe("buildInitializeMessageFor", () => {
           futureId: "MyModule:NamedLibrary",
           futureType: FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT,
           strategy: "basic",
+          strategyConfig: {},
           dependencies: ["MyModule:SafeMath"],
           artifactId: "MyModule:NamedLibrary",
           constructorArgs: [],
@@ -463,6 +469,7 @@ describe("buildInitializeMessageFor", () => {
           futureId: "MyModule:ArtifactLibrary",
           futureType: FutureType.LIBRARY_DEPLOYMENT,
           strategy: "basic",
+          strategyConfig: {},
           dependencies: ["MyModule:SafeMath"],
           artifactId: "MyModule:ArtifactLibrary",
           constructorArgs: [],
@@ -565,6 +572,7 @@ describe("buildInitializeMessageFor", () => {
           type: JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE,
           futureId: "MyModule:Call",
           strategy: "basic",
+          strategyConfig: {},
           dependencies: ["MyModule:AnotherContract", "MyModule:SafeMath"],
           artifactId: "MyModule:AnotherContract",
           contractAddress: differentAddress,
@@ -598,6 +606,7 @@ describe("buildInitializeMessageFor", () => {
           type: JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE,
           futureId: "MyModule:StaticCall",
           strategy: "basic",
+          strategyConfig: {},
           dependencies: ["MyModule:AnotherContract", "MyModule:SafeMath"],
           artifactId: "MyModule:AnotherContract",
           contractAddress: differentAddress,
@@ -632,6 +641,7 @@ describe("buildInitializeMessageFor", () => {
           futureId: "MyModule:NamedContractAt",
           futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
           strategy: "basic",
+          strategyConfig: {},
           dependencies: [],
           artifactId: "MyModule:NamedContractAt",
           contractAddress: differentAddress,
@@ -659,6 +669,7 @@ describe("buildInitializeMessageFor", () => {
           futureId: "MyModule:ArtifactContractAt",
           futureType: FutureType.CONTRACT_AT,
           strategy: "basic",
+          strategyConfig: {},
           dependencies: [],
           artifactId: "MyModule:ArtifactContractAt",
           contractAddress: differentAddress,
@@ -697,6 +708,7 @@ describe("buildInitializeMessageFor", () => {
           futureId: "MyModule:NamedContractAt",
           futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
           strategy: "basic",
+          strategyConfig: {},
           dependencies: [],
           artifactId: "MyModule:NamedContractAt",
           contractAddress: differentAddress,
@@ -727,6 +739,7 @@ describe("buildInitializeMessageFor", () => {
           futureId: "MyModule:NamedContractAt",
           futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
           strategy: "basic",
+          strategyConfig: {},
           dependencies: [],
           artifactId: "MyModule:NamedContractAt",
           contractAddress: differentAddress,
@@ -773,6 +786,7 @@ describe("buildInitializeMessageFor", () => {
           futureId: "MyModule:SecondNamedContractAt",
           futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
           strategy: "basic",
+          strategyConfig: {},
           dependencies: [],
           artifactId: "MyModule:SecondNamedContractAt",
           contractAddress: differentAddress,
@@ -818,6 +832,7 @@ describe("buildInitializeMessageFor", () => {
           futureId: "MyModule:NamedContractAt",
           futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
           strategy: "basic",
+          strategyConfig: {},
           dependencies: [],
           artifactId: "MyModule:NamedContractAt",
           contractName: "NamedContractAt",
@@ -866,6 +881,7 @@ describe("buildInitializeMessageFor", () => {
           futureId: "MyModule:NamedContractAt",
           futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
           strategy: "basic",
+          strategyConfig: {},
           dependencies: [],
           artifactId: "MyModule:NamedContractAt",
           contractName: "NamedContractAt",
@@ -895,6 +911,7 @@ describe("buildInitializeMessageFor", () => {
         type: JournalMessageType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE,
         futureId: "MyModule:ReadEventArg",
         strategy: "basic",
+        strategyConfig: {},
         dependencies: [],
         artifactId: "MyModule:AnotherContract",
         eventName: "event1",
@@ -927,6 +944,7 @@ describe("buildInitializeMessageFor", () => {
         type: JournalMessageType.SEND_DATA_EXECUTION_STATE_INITIALIZE,
         futureId: "MyModule:SendData",
         strategy: "basic",
+        strategyConfig: {},
         dependencies: [],
         to: exampleAccounts[4],
         data: "fake-data",

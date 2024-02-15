@@ -29,6 +29,7 @@ describe("DeploymentStateReducer", () => {
         futureId: "ContractAt1",
         futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
         strategy: "basic",
+        strategyConfig: {},
         dependencies: [],
         artifactId: "ContractAt1",
         contractName: "ContractAt1",

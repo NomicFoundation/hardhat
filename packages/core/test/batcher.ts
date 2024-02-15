@@ -17,6 +17,7 @@ describe("batcher", () => {
     type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     strategy: "basic",
+    strategyConfig: {},
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     networkInteractions: [],

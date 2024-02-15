@@ -26,6 +26,7 @@ describe("Reconciliation - artifact library", () => {
     type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     strategy: "basic",
+    strategyConfig: {},
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     networkInteractions: [],
@@ -183,6 +184,66 @@ describe("Reconciliation - artifact library", () => {
       {
         futureId: "Module#Example",
         failure: `From account has been changed from ${oneAddress} to ${twoAddress}`,
+      },
+    ]);
+  });
+
+  it("should find changes to strategy name unreconciliable", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const library1 = m.library("Library1", mockArtifact, {
+        id: "Example",
+      });
+
+      return { contract1: library1 };
+    });
+
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState({
+        ...exampleDeploymentState,
+        id: "Module#Example",
+        futureType: FutureType.LIBRARY_DEPLOYMENT,
+        status: ExecutionStatus.STARTED,
+        contractName: "Library1",
+        strategy: "create2",
+      })
+    );
+
+    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+      {
+        futureId: "Module#Example",
+        failure: 'Strategy changed from "create2" to "basic"',
+      },
+    ]);
+  });
+
+  it("should find changes to strategy config unreconciliable", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const library1 = m.library("Library1", mockArtifact, {
+        id: "Example",
+      });
+
+      return { contract1: library1 };
+    });
+
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState({
+        ...exampleDeploymentState,
+        id: "Module#Example",
+        futureType: FutureType.LIBRARY_DEPLOYMENT,
+        status: ExecutionStatus.STARTED,
+        contractName: "Library1",
+        strategyConfig: {
+          salt: "value",
+        },
+      })
+    );
+
+    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+      {
+        futureId: "Module#Example",
+        failure: 'Strategy config changed from {"salt":"value"} to {}',
       },
     ]);
   });

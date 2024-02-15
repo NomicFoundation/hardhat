@@ -28,6 +28,7 @@ describe("Reconciliation - named static call", () => {
     type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     strategy: "basic",
+    strategyConfig: {},
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     networkInteractions: [],
@@ -44,6 +45,7 @@ describe("Reconciliation - named static call", () => {
     type: ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
     futureType: FutureType.STATIC_CALL,
     strategy: "basic",
+    strategyConfig: {},
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     networkInteractions: [],
@@ -422,6 +424,86 @@ describe("Reconciliation - named static call", () => {
       {
         futureId: "Module#Contract2",
         failure: "Argument at index 0 has been changed",
+      },
+    ]);
+  });
+
+  it("should find changes to strategy name unreconciliable", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const contract1 = m.contract("Contract1");
+
+      m.staticCall(contract1, "function1", [], 0, { id: "config" });
+
+      return { contract1 };
+    });
+
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Module#Contract1",
+          status: ExecutionStatus.SUCCESS,
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: exampleAddress,
+          },
+        },
+        {
+          ...exampleStaticCallState,
+          id: "Module#config",
+          status: ExecutionStatus.STARTED,
+          contractAddress: exampleAddress,
+          functionName: "function1",
+          strategy: "create2",
+        }
+      )
+    );
+
+    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+      {
+        futureId: "Module#config",
+        failure: 'Strategy changed from "create2" to "basic"',
+      },
+    ]);
+  });
+
+  it("should find changes to strategy config unreconciliable", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const contract1 = m.contract("Contract1");
+
+      m.staticCall(contract1, "function1", [], 0, { id: "config" });
+
+      return { contract1 };
+    });
+
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Module#Contract1",
+          status: ExecutionStatus.SUCCESS,
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: exampleAddress,
+          },
+        },
+        {
+          ...exampleStaticCallState,
+          id: "Module#config",
+          status: ExecutionStatus.STARTED,
+          contractAddress: exampleAddress,
+          functionName: "function1",
+          strategyConfig: { salt: "value" },
+        }
+      )
+    );
+
+    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+      {
+        futureId: "Module#config",
+        failure: 'Strategy config changed from {"salt":"value"} to {}',
       },
     ]);
   });

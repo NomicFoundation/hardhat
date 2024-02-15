@@ -126,7 +126,9 @@ export async function reconcile(
   deploymentState: DeploymentState,
   deploymentLoader: DeploymentLoader = new MockDeploymentLoader(),
   artifactLoader: ArtifactResolver = new MockArtifactResolver(),
-  deploymentParameters: DeploymentParameters = {}
+  deploymentParameters: DeploymentParameters = {},
+  strategy: string = "basic",
+  strategyConfig: Record<string, any> = {}
 ): Promise<ReconciliationResult> {
   const reconiliationResult = Reconciler.reconcile(
     ignitionModule,
@@ -135,7 +137,9 @@ export async function reconcile(
     exampleAccounts,
     deploymentLoader,
     artifactLoader,
-    getDefaultSender(exampleAccounts)
+    getDefaultSender(exampleAccounts),
+    strategy,
+    strategyConfig
   );
 
   return reconiliationResult;

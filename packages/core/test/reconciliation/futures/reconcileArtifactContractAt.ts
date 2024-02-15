@@ -28,6 +28,7 @@ describe("Reconciliation - artifact contract at", () => {
     type: ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
     futureType: FutureType.CONTRACT_AT,
     strategy: "basic",
+    strategyConfig: {},
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     contractName: "Contract1",
@@ -40,6 +41,7 @@ describe("Reconciliation - artifact contract at", () => {
     type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     strategy: "basic",
+    strategyConfig: {},
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     artifactId: "Example",
@@ -56,6 +58,7 @@ describe("Reconciliation - artifact contract at", () => {
     type: ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
     futureType: FutureType.STATIC_CALL,
     strategy: "basic",
+    strategyConfig: {},
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     contractAddress: exampleAddress,
@@ -205,6 +208,74 @@ describe("Reconciliation - artifact contract at", () => {
         futureId: "Module#Factory",
         failure:
           "Address has been changed from 0xBA12222222228d8Ba445958a75a0704d566BF2C8 to 0x1F98431c8aD98523631AE4a59f267346ea31F984",
+      },
+    ]);
+  });
+
+  it("should find changes to strategy name unreconciliable", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const contract1 = m.contractAt(
+        "Contract1",
+        mockArtifact,
+        exampleAddress,
+        {
+          id: "Factory",
+        }
+      );
+
+      return { contract1 };
+    });
+
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState({
+        ...exampleContractAtState,
+        id: "Module#Factory",
+        futureType: FutureType.CONTRACT_AT,
+        status: ExecutionStatus.STARTED,
+        strategy: "create2",
+      })
+    );
+
+    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+      {
+        futureId: "Module#Factory",
+        failure: 'Strategy changed from "create2" to "basic"',
+      },
+    ]);
+  });
+
+  it("should find changes to strategy config unreconciliable", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const contract1 = m.contractAt(
+        "Contract1",
+        mockArtifact,
+        exampleAddress,
+        {
+          id: "Factory",
+        }
+      );
+
+      return { contract1 };
+    });
+
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState({
+        ...exampleContractAtState,
+        id: "Module#Factory",
+        futureType: FutureType.CONTRACT_AT,
+        status: ExecutionStatus.STARTED,
+        strategyConfig: {
+          salt: "value",
+        },
+      })
+    );
+
+    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+      {
+        futureId: "Module#Factory",
+        failure: 'Strategy config changed from {"salt":"value"} to {}',
       },
     ]);
   });

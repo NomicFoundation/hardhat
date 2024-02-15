@@ -14,6 +14,8 @@ describe("create2", function () {
     "0xA666fE62aA1fD2A7e7C08F81Eba3f55F459A9002";
   const EXPECTED_BAR_CREATE2_ADDRESS =
     "0xF44091a604c7Ed92441Ea695c0f41C522466b4D3";
+  const EXPECTED_CUSTOM_SALT_FOO_CREATE2_ADDRESS =
+    "0x50eB50b4b4D5222c3C3B89b9Bb37BD903a359425";
 
   const moduleDefinition = buildModule("FooModule", (m) => {
     // Use a known bytecode to ensure the same address is generated
@@ -97,6 +99,28 @@ describe("create2", function () {
           ),
           /Simulating the transaction failed with error: Reverted with custom error FailedContractCreation/
         );
+      });
+
+      it("should deploy with a custom salt", async function () {
+        const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
+          strategy: "create2",
+          strategyConfig: {
+            salt: "custom-salt",
+          },
+        });
+
+        await waitForPendingTxs(this.hre, 1, deployPromise);
+        await mineBlock(this.hre);
+
+        const result = await deployPromise;
+
+        assert.equal(
+          result.foo.address,
+          EXPECTED_CUSTOM_SALT_FOO_CREATE2_ADDRESS
+        );
+
+        assert.equal(this.hre.network.config.chainId, 1);
+        assert.equal(await result.foo.read.x(), Number(1));
       });
     });
 

@@ -24,6 +24,7 @@ describe("Reconciliation - send data", () => {
     type: ExecutionSateType.SEND_DATA_EXECUTION_STATE,
     futureType: FutureType.SEND_DATA,
     strategy: "basic",
+    strategyConfig: {},
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     networkInteractions: [],
@@ -219,6 +220,56 @@ describe("Reconciliation - send data", () => {
       {
         futureId: "Module#test_send",
         failure: `From account has been changed from ${exampleAddress} to ${differentAddress}`,
+      },
+    ]);
+  });
+
+  it("should find changes to strategy name unreconciliable", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      m.send("test_send", exampleAddress, 0n, "example_data");
+
+      return {};
+    });
+
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState({
+        ...exampleSendState,
+        id: "Module#test_send",
+        status: ExecutionStatus.STARTED,
+        strategy: "create2",
+      })
+    );
+
+    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+      {
+        futureId: "Module#test_send",
+        failure: 'Strategy changed from "create2" to "basic"',
+      },
+    ]);
+  });
+
+  it("should find changes to strategy config unreconciliable", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      m.send("test_send", exampleAddress, 0n, "example_data");
+
+      return {};
+    });
+
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState({
+        ...exampleSendState,
+        id: "Module#test_send",
+        status: ExecutionStatus.STARTED,
+        strategyConfig: { salt: "value" },
+      })
+    );
+
+    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+      {
+        futureId: "Module#test_send",
+        failure: 'Strategy config changed from {"salt":"value"} to {}',
       },
     ]);
   });

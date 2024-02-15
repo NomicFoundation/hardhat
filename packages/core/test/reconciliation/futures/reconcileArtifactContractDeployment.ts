@@ -26,6 +26,7 @@ describe("Reconciliation - artifact contract", () => {
     futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
     strategy: "basic",
+    strategyConfig: {},
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     networkInteractions: [],
@@ -251,6 +252,62 @@ describe("Reconciliation - artifact contract", () => {
       {
         futureId: "Module#Example",
         failure: `From account has been changed from ${oneAddress} to ${twoAddress}`,
+      },
+    ]);
+  });
+
+  it("should find changes to strategy name unreconciliable", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const contract1 = m.contract("Contract1", mockArtifact, [], {
+        id: "Example",
+      });
+
+      return { contract1 };
+    });
+
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState({
+        ...exampleDeploymentState,
+        id: "Module#Example",
+        futureType: FutureType.CONTRACT_DEPLOYMENT,
+        status: ExecutionStatus.STARTED,
+        strategy: "create2",
+      })
+    );
+
+    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+      {
+        futureId: "Module#Example",
+        failure: 'Strategy changed from "create2" to "basic"',
+      },
+    ]);
+  });
+
+  it("should find changes to strategy config unreconciliable", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const contract1 = m.contract("Contract1", mockArtifact, [], {
+        id: "Example",
+      });
+
+      return { contract1 };
+    });
+
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState({
+        ...exampleDeploymentState,
+        id: "Module#Example",
+        futureType: FutureType.CONTRACT_DEPLOYMENT,
+        status: ExecutionStatus.STARTED,
+        strategyConfig: { salt: "value" },
+      })
+    );
+
+    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+      {
+        futureId: "Module#Example",
+        failure: 'Strategy config changed from {"salt":"value"} to {}',
       },
     ]);
   });

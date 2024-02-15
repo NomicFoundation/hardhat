@@ -1,7 +1,8 @@
 /* eslint-disable import/no-unused-modules */
 
-import { DeployConfig, buildModule } from "@nomicfoundation/ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
+import { HardhatConfig } from "hardhat/types";
 
 import { KeyListOf } from "./test-helpers/type-helper";
 import { useEphemeralIgnitionProject } from "./test-helpers/use-ignition-project";
@@ -10,7 +11,7 @@ describe("config", () => {
   describe("loading", () => {
     useEphemeralIgnitionProject("with-config");
 
-    let loadedOptions: Partial<DeployConfig>;
+    let loadedOptions: Partial<HardhatConfig["ignition"]>;
 
     beforeEach(function () {
       loadedOptions = this.hre.config.ignition;
@@ -32,11 +33,18 @@ describe("config", () => {
       assert.equal(loadedOptions.maxFeeBumps, 2);
     });
 
+    it("should apply strategyConfig", async function () {
+      assert.deepStrictEqual(loadedOptions.strategyConfig, {
+        create2: { salt: "custom-salt" },
+      });
+    });
+
     it("should only have known config", () => {
-      const configOptions: KeyListOf<DeployConfig> = [
+      const configOptions: KeyListOf<HardhatConfig["ignition"]> = [
         "blockPollingInterval",
         "maxFeeBumps",
         "requiredConfirmations",
+        "strategyConfig",
         "timeBeforeBumpingFees",
       ];
 

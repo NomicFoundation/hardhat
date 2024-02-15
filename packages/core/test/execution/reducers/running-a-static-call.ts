@@ -34,6 +34,7 @@ describe("DeploymentStateReducer", () => {
         type: JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE,
         futureId: "StaticCall1",
         strategy: "basic",
+        strategyConfig: {},
         dependencies: [],
         artifactId: "Contract1",
         contractAddress: exampleAddress,

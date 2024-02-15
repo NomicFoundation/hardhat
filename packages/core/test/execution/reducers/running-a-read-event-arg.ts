@@ -26,6 +26,7 @@ describe("DeploymentStateReducer", () => {
         type: JournalMessageType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE,
         futureId: "ReadEventArg1",
         strategy: "basic",
+        strategyConfig: {},
         dependencies: [],
         artifactId: "ReadEventArg1",
         eventName: "event1",

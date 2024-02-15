@@ -36,6 +36,7 @@ describe("wipe", () => {
     from: exampleAddress,
     libraries: {},
     strategy: "basic",
+    strategyConfig: {},
     value: 0n,
   };
 
@@ -51,6 +52,7 @@ describe("wipe", () => {
     from: exampleAddress,
     libraries: {},
     strategy: "basic",
+    strategyConfig: {},
     value: 0n,
   };
 

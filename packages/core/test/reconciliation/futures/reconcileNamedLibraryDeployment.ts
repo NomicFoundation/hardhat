@@ -26,6 +26,7 @@ describe("Reconciliation - named library", () => {
     type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     strategy: "basic",
+    strategyConfig: {},
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     networkInteractions: [],
@@ -178,6 +179,60 @@ describe("Reconciliation - named library", () => {
       {
         futureId: "Module#Library",
         failure: `From account has been changed from ${oneAddress} to ${twoAddress}`,
+      },
+    ]);
+  });
+
+  it("should find changes to strategy name unreconciliable", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const library = m.library("Library", { id: "Library" });
+
+      return { library };
+    });
+
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState({
+        ...exampleDeploymentState,
+        id: "Module#Library",
+        futureType: FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT,
+        status: ExecutionStatus.STARTED,
+        contractName: "Library",
+        strategy: "create2",
+      })
+    );
+
+    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+      {
+        futureId: "Module#Library",
+        failure: 'Strategy changed from "create2" to "basic"',
+      },
+    ]);
+  });
+
+  it("should find changes to strategy config unreconciliable", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const library = m.library("Library", { id: "Library" });
+
+      return { library };
+    });
+
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState({
+        ...exampleDeploymentState,
+        id: "Module#Library",
+        futureType: FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT,
+        status: ExecutionStatus.STARTED,
+        contractName: "Library",
+        strategyConfig: { salt: "value" },
+      })
+    );
+
+    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+      {
+        futureId: "Module#Library",
+        failure: 'Strategy config changed from {"salt":"value"} to {}',
       },
     ]);
   });
