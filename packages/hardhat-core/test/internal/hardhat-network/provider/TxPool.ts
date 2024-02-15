@@ -1,13 +1,13 @@
-import { Common } from "@nomicfoundation/ethereumjs-common";
 import {
-  StateManager,
-  DefaultStateManager,
-} from "@nomicfoundation/ethereumjs-statemanager";
+  Common,
+  EVMStateManagerInterface,
+} from "@nomicfoundation/ethereumjs-common";
+import { DefaultStateManager } from "@nomicfoundation/ethereumjs-statemanager";
 import {
   Account,
   Address,
-  bufferToHex,
-  toBuffer,
+  bytesToHex as bufferToHex,
+  toBytes,
 } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 
@@ -28,9 +28,13 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
 } from "../helpers/providers";
 
+function toBuffer(x: Parameters<typeof toBytes>[0]) {
+  return Buffer.from(toBytes(x));
+}
+
 describe("Tx Pool", () => {
   const blockGasLimit = 10_000_000n;
-  let stateManager: StateManager;
+  let stateManager: EVMStateManagerInterface;
   let txPool: TxPool;
 
   beforeEach(() => {
@@ -688,7 +692,7 @@ describe("Tx Pool", () => {
 
       await txPool.addTransaction(tx);
 
-      const txFromTxPool = txPool.getTransactionByHash(tx.hash());
+      const txFromTxPool = txPool.getTransactionByHash(Buffer.from(tx.hash()));
 
       assert.deepEqual(txFromTxPool?.data.raw, tx.raw);
     });
@@ -703,7 +707,7 @@ describe("Tx Pool", () => {
 
       await txPool.addTransaction(tx);
 
-      const txFromTxPool = txPool.getTransactionByHash(tx.hash());
+      const txFromTxPool = txPool.getTransactionByHash(Buffer.from(tx.hash()));
 
       assert.deepEqual(txFromTxPool?.data.raw, tx.raw);
     });
@@ -719,7 +723,9 @@ describe("Tx Pool", () => {
 
       await txPool.addTransaction(signedTx);
 
-      const oldTxFromTxPool = txPool.getTransactionByHash(signedTx.hash());
+      const oldTxFromTxPool = txPool.getTransactionByHash(
+        Buffer.from(signedTx.hash())
+      );
 
       assert.deepEqual(oldTxFromTxPool!.data.raw(), signedTx.raw());
 
@@ -733,7 +739,9 @@ describe("Tx Pool", () => {
 
       await txPool.updatePendingAndQueued();
 
-      const actualTxFromTxPool = txPool.getTransactionByHash(signedTx.hash());
+      const actualTxFromTxPool = txPool.getTransactionByHash(
+        Buffer.from(signedTx.hash())
+      );
 
       assert.isUndefined(actualTxFromTxPool);
     });
@@ -749,7 +757,9 @@ describe("Tx Pool", () => {
 
       await txPool.addTransaction(signedTx);
 
-      const oldTxFromTxPool = txPool.getTransactionByHash(signedTx.hash());
+      const oldTxFromTxPool = txPool.getTransactionByHash(
+        Buffer.from(signedTx.hash())
+      );
 
       assert.deepEqual(oldTxFromTxPool!.data.raw(), signedTx.raw());
 
@@ -763,7 +773,9 @@ describe("Tx Pool", () => {
 
       await txPool.updatePendingAndQueued();
 
-      const actualTxFromTxPool = txPool.getTransactionByHash(signedTx.hash());
+      const actualTxFromTxPool = txPool.getTransactionByHash(
+        Buffer.from(signedTx.hash())
+      );
 
       assert.isUndefined(actualTxFromTxPool);
     });

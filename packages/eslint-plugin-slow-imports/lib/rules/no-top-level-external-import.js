@@ -3,8 +3,8 @@
  * @author Nomic Foundation
  */
 "use strict";
-const fs = require("node:fs");
-const { isBuiltin } = require("node:module");
+const fs = require("fs");
+const { isBuiltin } = require("module");
 const { relative } = require("eslint-module-utils/resolve");
 const parse = require("eslint-module-utils/parse").default;
 const visit = require("eslint-module-utils/visit").default;

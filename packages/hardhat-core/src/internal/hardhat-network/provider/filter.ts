@@ -1,4 +1,7 @@
-import { bufferToHex, toBuffer } from "@nomicfoundation/ethereumjs-util";
+import {
+  bytesToHex as bufferToHex,
+  toBytes,
+} from "@nomicfoundation/ethereumjs-util";
 import { Bloom } from "@nomicfoundation/ethereumjs-vm";
 
 import { RpcLogOutput } from "./output";
@@ -14,8 +17,8 @@ export enum Type {
 export interface FilterCriteria {
   fromBlock: bigint;
   toBlock: bigint;
-  addresses: Buffer[];
-  normalizedTopics: Array<Array<Buffer | null> | null>;
+  addresses: Uint8Array[];
+  normalizedTopics: Array<Array<Uint8Array | null> | null>;
 }
 
 export interface Filter {
@@ -30,8 +33,8 @@ export interface Filter {
 
 export function bloomFilter(
   bloom: Bloom,
-  addresses: Buffer[],
-  normalizedTopics: Array<Array<Buffer | null> | null>
+  addresses: Uint8Array[],
+  normalizedTopics: Array<Array<Uint8Array | null> | null>
 ): boolean {
   if (addresses.length > 0) {
     let included = false;
@@ -84,7 +87,7 @@ export function filterLogs(
 
     if (
       criteria.addresses.length !== 0 &&
-      !includes(criteria.addresses, toBuffer(log.address))
+      !includes(criteria.addresses, toBytes(log.address))
     ) {
       continue;
     }
@@ -99,7 +102,7 @@ export function filterLogs(
   return filteredLogs;
 }
 
-export function includes(addresses: Buffer[], a: Buffer): boolean {
+export function includes(addresses: Uint8Array[], a: Uint8Array): boolean {
   for (const address of addresses) {
     if (Buffer.compare(address, a) === 0) {
       return true;
@@ -110,7 +113,7 @@ export function includes(addresses: Buffer[], a: Buffer): boolean {
 }
 
 export function topicMatched(
-  normalizedTopics: Array<Array<Buffer | null> | null>,
+  normalizedTopics: Array<Array<Uint8Array | null> | null>,
   logTopics: string[]
 ): boolean {
   for (let i = 0; i < normalizedTopics.length; i++) {

@@ -1,7 +1,7 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
-import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
+import { bytesToHex as bufferToHex } from "@nomicfoundation/ethereumjs-util";
 import { Bloom } from "@nomicfoundation/ethereumjs-vm";
 
 import { assertHardhatInvariant } from "../../core/errors";
@@ -52,23 +52,23 @@ export class BlockchainData {
     return this._blocksByNumber.get(blockNumber);
   }
 
-  public getBlockByHash(blockHash: Buffer) {
+  public getBlockByHash(blockHash: Uint8Array) {
     return this._blocksByHash.get(bufferToHex(blockHash));
   }
 
-  public getBlockByTransactionHash(transactionHash: Buffer) {
+  public getBlockByTransactionHash(transactionHash: Uint8Array) {
     return this._blocksByTransactions.get(bufferToHex(transactionHash));
   }
 
-  public getTransaction(transactionHash: Buffer) {
+  public getTransaction(transactionHash: Uint8Array) {
     return this._transactions.get(bufferToHex(transactionHash));
   }
 
-  public getTransactionReceipt(transactionHash: Buffer) {
+  public getTransactionReceipt(transactionHash: Uint8Array) {
     return this._transactionReceipts.get(bufferToHex(transactionHash));
   }
 
-  public getTotalDifficulty(blockHash: Buffer) {
+  public getTotalDifficulty(blockHash: Uint8Array) {
     return this._totalDifficulty.get(bufferToHex(blockHash));
   }
 

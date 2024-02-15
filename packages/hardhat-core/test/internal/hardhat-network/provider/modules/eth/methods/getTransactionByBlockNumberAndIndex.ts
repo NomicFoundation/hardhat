@@ -1,4 +1,4 @@
-import { toBuffer, zeroAddress } from "@nomicfoundation/ethereumjs-util";
+import { toBytes, zeroAddress } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 
 import { numberToRpcQuantity } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
@@ -25,6 +25,10 @@ import {
   sendTransactionFromTxParams,
   sendTxToZeroAddress,
 } from "../../../../helpers/transactions";
+
+function toBuffer(x: Parameters<typeof toBytes>[0]) {
+  return Buffer.from(toBytes(x));
+}
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {

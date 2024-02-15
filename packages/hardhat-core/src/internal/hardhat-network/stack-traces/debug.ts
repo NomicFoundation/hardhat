@@ -1,4 +1,4 @@
-import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
+import { bytesToHex as bufferToHex } from "@nomicfoundation/ethereumjs-util";
 import chalk from "chalk";
 
 import {

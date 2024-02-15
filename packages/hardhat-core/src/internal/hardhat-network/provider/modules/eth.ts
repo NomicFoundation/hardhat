@@ -1,11 +1,16 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import {
-  Transaction,
+  LegacyTransaction,
   TransactionFactory,
   TypedTransaction,
 } from "@nomicfoundation/ethereumjs-tx";
-import { Address, toBuffer, toRpcSig } from "@nomicfoundation/ethereumjs-util";
+import {
+  Address,
+  equalsBytes,
+  toBytes,
+  toRpcSig,
+} from "@nomicfoundation/ethereumjs-util";
 import * as t from "io-ts";
 import cloneDeep from "lodash/cloneDeep";
 import { BoundExperimentalHardhatNetworkMessageTraceHook } from "../../../../types";
@@ -376,7 +381,9 @@ export class EthModule extends Base {
     await this._runHardhatNetworkMessageTraceHooks(trace, true);
 
     if (error !== undefined && this._throwOnCallFailures) {
-      const callReturnData = trace?.returnData.toString("hex") ?? "";
+      const callReturnData = Buffer.from(trace?.returnData ?? []).toString(
+        "hex"
+      );
       (error as any).data = `0x${callReturnData}`;
 
       throw error;
@@ -452,7 +459,9 @@ export class EthModule extends Base {
         error
       );
 
-      const callReturnData = trace?.returnData.toString("hex") ?? "";
+      const callReturnData = Buffer.from(trace?.returnData ?? []).toString(
+        "hex"
+      );
       (error as any).data = `0x${callReturnData}`;
 
       throw error;
@@ -819,7 +828,7 @@ export class EthModule extends Base {
     }
 
     const index = block.transactions.findIndex((btx) =>
-      btx.hash().equals(hash)
+      equalsBytes(btx.hash(), hash)
     );
     const tx = block.transactions[index];
     if (tx === undefined) {
@@ -970,10 +979,10 @@ export class EthModule extends Base {
     try {
       tx = TransactionFactory.fromSerializedData(rawTx, {
         common: this._common,
-        disableMaxInitCodeSizeCheck: true,
+        allowUnlimitedInitCodeSize: true,
       });
 
-      this._validateEip3860MaxInitCodeSize(tx.to?.toBuffer(), tx.data);
+      this._validateEip3860MaxInitCodeSize(tx.to?.toBytes(), tx.data);
     } catch (error) {
       // This section of the code is incredibly dependant of TransactionFactory.fromSerializedData
       // AccessListEIP2930Transaction.fromSerializedTx and Transaction.fromSerializedTx
@@ -1014,7 +1023,7 @@ export class EthModule extends Base {
       throw new InvalidArgumentsError("Invalid Signature");
     }
 
-    if (tx instanceof Transaction) {
+    if (tx instanceof LegacyTransaction) {
       this._validateEip155HardforkRequirement(tx);
     }
 
@@ -1266,7 +1275,7 @@ export class EthModule extends Base {
       gasLimit:
         rpcTx.gas !== undefined ? rpcTx.gas : this._node.getBlockGasLimit(),
       value: rpcTx.value !== undefined ? rpcTx.value : 0n,
-      data: rpcTx.data !== undefined ? rpcTx.data : toBuffer([]),
+      data: rpcTx.data !== undefined ? rpcTx.data : toBytes([]),
       nonce:
         rpcTx.nonce !== undefined
           ? rpcTx.nonce
@@ -1503,7 +1512,9 @@ export class EthModule extends Base {
     if (trace.error !== undefined && this._throwOnTransactionFailures) {
       const e = trace.error;
 
-      const returnData = trace.trace?.returnData.toString("hex") ?? "";
+      const returnData = Buffer.from(trace.trace?.returnData ?? []).toString(
+        "hex"
+      );
       (e as any).data = `0x${returnData}`;
       (e as any).transactionHash = bufferToRpcData(tx.hash());
 
@@ -1611,7 +1622,7 @@ export class EthModule extends Base {
       const transactions = result.block.transactions;
       for (let i = 0; i < transactions.length; i++) {
         const blockTx = transactions[i];
-        if (blockTx.hash().equals(tx.hash())) {
+        if (equalsBytes(blockTx.hash(), tx.hash())) {
           return [result, i];
         }
       }
@@ -1638,6 +1649,15 @@ export class EthModule extends Base {
   private _validateTransactionAndCallRequest(
     rpcRequest: RpcCallRequest | RpcTransactionRequest
   ) {
+    if (
+      rpcRequest.blobs !== undefined ||
+      rpcRequest.blobVersionedHashes !== undefined
+    ) {
+      throw new InvalidInputError(
+        `An EIP-4844 (shard blob) transaction was received, but Hardhat doesn't have support for them yet.`
+      );
+    }
+
     if (
       (rpcRequest.maxFeePerGas !== undefined ||
         rpcRequest.maxPriorityFeePerGas !== undefined) &&
@@ -1689,7 +1709,7 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
   }
 
   // TODO: Find a better place for this
-  private _validateEip155HardforkRequirement(tx: Transaction) {
+  private _validateEip155HardforkRequirement(tx: LegacyTransaction) {
     // 27 and 28 are only valid for non-EIP-155 legacy txs
     if (tx.v === 27n || tx.v === 28n) {
       return;
@@ -1703,8 +1723,8 @@ You can use them by running Hardhat Network with 'hardfork' ${EIP155_MIN_HARDFOR
   }
 
   private _validateEip3860MaxInitCodeSize(
-    to: Buffer | undefined,
-    data: Buffer
+    to: Uint8Array | undefined,
+    data: Uint8Array
   ) {
     if (!this._common.gteHardfork(EIP3860_MIN_HARDFORK)) {
       // this check is only relevant after shanghai
@@ -1730,6 +1750,12 @@ Enable the 'allowUnlimitedContractSize' option to allow init codes of any length
   }
 
   private _validateRawTransactionHardforkRequirements(rawTx: Buffer) {
+    if (rawTx[0] <= 0x7f && rawTx[0] === 3) {
+      throw new InvalidInputError(
+        `An EIP-4844 (shard blob) transaction was received, but Hardhat doesn't have support for them yet.`
+      );
+    }
+
     if (rawTx[0] <= 0x7f && rawTx[0] !== 1 && rawTx[0] !== 2) {
       throw new InvalidArgumentsError(`Invalid transaction type ${rawTx[0]}.
 

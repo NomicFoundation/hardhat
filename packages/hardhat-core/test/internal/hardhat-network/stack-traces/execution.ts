@@ -1,15 +1,22 @@
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import { Transaction, TxData } from "@nomicfoundation/ethereumjs-tx";
+import {
+  LegacyTransaction,
+  LegacyTxData,
+} from "@nomicfoundation/ethereumjs-tx";
 import {
   Account,
   Address,
   privateToAddress,
-  bigIntToBuffer,
+  toBytes,
 } from "@nomicfoundation/ethereumjs-util";
 import { VM } from "@nomicfoundation/ethereumjs-vm";
 
 import { MessageTrace } from "../../../../src/internal/hardhat-network/stack-traces/message-trace";
 import { VMTracer } from "../../../../src/internal/hardhat-network/stack-traces/vm-tracer";
+
+function toBuffer(x: Parameters<typeof toBytes>[0]) {
+  return Buffer.from(toBytes(x));
+}
 
 const abi = require("ethereumjs-abi");
 
@@ -63,9 +70,9 @@ export function encodeCall(
 
 export async function traceTransaction(
   vm: VM,
-  txData: TxData
+  txData: LegacyTxData
 ): Promise<MessageTrace> {
-  const tx = new Transaction({
+  const tx = new LegacyTransaction({
     value: 0,
     gasPrice: 10,
     nonce: await getNextPendingNonce(vm),
@@ -97,5 +104,5 @@ export async function traceTransaction(
 
 async function getNextPendingNonce(vm: VM): Promise<Buffer> {
   const acc = await vm.stateManager.getAccount(new Address(senderAddress));
-  return bigIntToBuffer(acc.nonce);
+  return toBuffer(acc?.nonce ?? 0n);
 }

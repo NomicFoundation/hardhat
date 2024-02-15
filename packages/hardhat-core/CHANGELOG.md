@@ -1,5 +1,15 @@
 # hardhat
 
+## 2.20.0
+
+### Minor Changes
+
+- 6ff0b20: Add support for the Cancun hardfork
+
+### Patch Changes
+
+- 4250635: Added support for solc 0.8.24
+
 ## 2.19.5
 
 ### Patch Changes

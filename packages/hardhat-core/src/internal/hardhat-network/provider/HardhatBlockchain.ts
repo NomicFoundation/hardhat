@@ -1,7 +1,15 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
+import {
+  BlockchainInterface,
+  BlockchainEvents,
+} from "@nomicfoundation/ethereumjs-blockchain";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
-import { zeros } from "@nomicfoundation/ethereumjs-util";
+import {
+  AsyncEventEmitter,
+  equalsBytes,
+  zeros,
+} from "@nomicfoundation/ethereumjs-util";
 
 import { BlockchainBase } from "./BlockchainBase";
 import { FilterParams } from "./node-types";
@@ -15,9 +23,26 @@ export class HardhatBlockchain
   implements HardhatBlockchainInterface
 {
   private _length = 0n;
+  public events?: AsyncEventEmitter<BlockchainEvents> | undefined;
 
   constructor(common: Common) {
     super(common);
+  }
+
+  public shallowCopy(): BlockchainInterface {
+    return this;
+  }
+
+  public getIteratorHead(_name?: string | undefined): Promise<Block> {
+    throw new Error("Method not implemented.");
+  }
+
+  public setIteratorHead(_tag: string, _headHash: Uint8Array): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  public getCanonicalHeadBlock(): Promise<Block> {
+    throw new Error("Method not implemented.");
   }
 
   public getLatestBlockNumber(): bigint {
@@ -99,10 +124,10 @@ export class HardhatBlockchain
     }
 
     if (
-      (blockNumber === 0n && !parentHash.equals(zeros(32))) ||
+      (blockNumber === 0n && !equalsBytes(parentHash, zeros(32))) ||
       (blockNumber > 0 &&
         parent !== undefined &&
-        !parentHash.equals(parent.hash()))
+        !equalsBytes(parentHash, parent.hash()))
     ) {
       throw new Error("Invalid parent hash");
     }

@@ -1,3 +1,4 @@
+import { bytesToBigInt } from "@nomicfoundation/ethereumjs-util";
 import { assertHardhatInvariant } from "../../core/errors";
 
 const { rawDecode } = require("ethereumjs-abi");
@@ -13,9 +14,9 @@ const PANIC_SELECTOR = "4e487b71";
 export class ReturnData {
   private _selector: string | undefined;
 
-  constructor(public value: Buffer) {
+  constructor(public value: Uint8Array) {
     if (value.length >= 4) {
-      this._selector = value.slice(0, 4).toString("hex");
+      this._selector = Buffer.from(value.slice(0, 4)).toString("hex");
     }
   }
 
@@ -23,12 +24,12 @@ export class ReturnData {
     return this.value.length === 0;
   }
 
-  public matchesSelector(selector: Buffer): boolean {
+  public matchesSelector(selector: Uint8Array): boolean {
     if (this._selector === undefined) {
       return false;
     }
 
-    return this._selector === selector.toString("hex");
+    return this._selector === Buffer.from(selector).toString("hex");
   }
 
   public isErrorReturnData(): boolean {
@@ -63,7 +64,7 @@ export class ReturnData {
     );
 
     // we are assuming that panic codes are smaller than Number.MAX_SAFE_INTEGER
-    const errorCode = BigInt(`0x${this.value.slice(4).toString("hex")}`);
+    const errorCode = bytesToBigInt(this.value.slice(4));
 
     return errorCode;
   }

@@ -1,7 +1,6 @@
 import { Block, HeaderData } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import { Trie } from "@nomicfoundation/ethereumjs-trie";
-import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
+import { bytesToHex as bufferToHex } from "@nomicfoundation/ethereumjs-util";
 
 import { dateToTimestampSeconds } from "../../../util/date";
 import { hardforkGte, HardforkName } from "../../../util/hardforks";
@@ -13,9 +12,10 @@ export async function putGenesisBlock(
   blockchain: HardhatBlockchain,
   common: Common,
   { initialDate, blockGasLimit: initialBlockGasLimit }: LocalNodeConfig,
-  stateTrie: Trie,
+  stateRoot: Uint8Array,
   hardfork: HardforkName,
-  initialMixHash: Buffer,
+  initialMixHash: Uint8Array,
+  initialParentBeaconBlockRoot: Uint8Array,
   initialBaseFee?: bigint
 ) {
   const initialBlockTimestamp =
@@ -24,6 +24,7 @@ export async function putGenesisBlock(
       : getCurrentTimestamp();
 
   const isPostMerge = hardforkGte(hardfork, HardforkName.MERGE);
+  const isPostCancun = hardforkGte(hardfork, HardforkName.CANCUN);
 
   const header: HeaderData = {
     timestamp: `0x${initialBlockTimestamp.toString(16)}`,
@@ -31,11 +32,15 @@ export async function putGenesisBlock(
     difficulty: isPostMerge ? 0 : 1,
     nonce: isPostMerge ? "0x0000000000000000" : "0x0000000000000042",
     extraData: "0x1234",
-    stateRoot: bufferToHex(stateTrie.root()),
+    stateRoot: bufferToHex(stateRoot),
   };
 
   if (isPostMerge) {
     header.mixHash = initialMixHash;
+  }
+
+  if (isPostCancun) {
+    header.parentBeaconBlockRoot = initialParentBeaconBlockRoot;
   }
 
   if (initialBaseFee !== undefined) {

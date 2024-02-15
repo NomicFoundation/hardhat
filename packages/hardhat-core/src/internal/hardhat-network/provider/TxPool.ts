@@ -1,13 +1,16 @@
-import { Common } from "@nomicfoundation/ethereumjs-common";
+import {
+  Common,
+  StateManagerInterface,
+} from "@nomicfoundation/ethereumjs-common";
 import {
   TransactionFactory,
   TypedTransaction,
 } from "@nomicfoundation/ethereumjs-tx";
-import { StateManager } from "@nomicfoundation/ethereumjs-statemanager";
 import {
   Address,
-  bufferToHex,
-  toBuffer,
+  bytesToHex as bufferToHex,
+  equalsBytes,
+  toBytes,
 } from "@nomicfoundation/ethereumjs-util";
 import { List as ImmutableList, Record as ImmutableRecord } from "immutable";
 
@@ -56,7 +59,7 @@ export function deserializeTransaction(
   let data;
   if (fakeFrom !== undefined) {
     const sender = Address.fromString(fakeFrom);
-    const serialization = toBuffer(rlpSerialization);
+    const serialization = toBytes(rlpSerialization);
 
     if (tx.get("txType") === 1) {
       data =
@@ -79,9 +82,9 @@ export function deserializeTransaction(
       );
     }
   } else {
-    data = TransactionFactory.fromSerializedData(toBuffer(rlpSerialization), {
+    data = TransactionFactory.fromSerializedData(toBytes(rlpSerialization), {
       common,
-      disableMaxInitCodeSizeCheck: true,
+      allowUnlimitedInitCodeSize: true,
     });
   }
 
@@ -102,7 +105,7 @@ export class TxPool {
   ) => OrderedTransaction;
 
   constructor(
-    private readonly _stateManager: StateManager,
+    private readonly _stateManager: StateManagerInterface,
     blockGasLimit: bigint,
     common: Common
   ) {
@@ -282,8 +285,8 @@ export class TxPool {
       const senderAccount = await this._stateManager.getAccount(
         Address.fromString(address)
       );
-      const senderNonce = senderAccount.nonce;
-      const senderBalance = senderAccount.balance;
+      const senderNonce = senderAccount?.nonce ?? 0n;
+      const senderBalance = senderAccount?.balance ?? 0n;
 
       let moveToQueued = false;
       for (const tx of txs) {
@@ -320,8 +323,8 @@ export class TxPool {
       const senderAccount = await this._stateManager.getAccount(
         Address.fromString(address)
       );
-      const senderNonce = senderAccount.nonce;
-      const senderBalance = senderAccount.balance;
+      const senderNonce = senderAccount?.nonce ?? 0n;
+      const senderBalance = senderAccount?.balance ?? 0n;
 
       for (const tx of txs) {
         const deserializedTx = this._deserializeTransaction(tx);
@@ -446,7 +449,7 @@ export class TxPool {
     }
 
     const senderAccount = await this._stateManager.getAccount(senderAddress);
-    const senderBalance = senderAccount.balance;
+    const senderBalance = senderAccount?.balance ?? 0n;
 
     const maxFee = "gasPrice" in tx ? tx.gasPrice : tx.maxFeePerGas;
     const txMaxUpfrontCost = tx.gasLimit * maxFee + tx.value;
@@ -495,7 +498,7 @@ export class TxPool {
     txList: SenderTransactions | undefined
   ) {
     const existingTx = txList?.find((etx) =>
-      this._deserializeTransaction(etx).data.hash().equals(tx.hash())
+      equalsBytes(this._deserializeTransaction(etx).data.hash(), tx.hash())
     );
     return existingTx !== undefined;
   }
@@ -562,7 +565,7 @@ export class TxPool {
     this._state = this._state.set("blockGasLimit", BigIntUtils.toHex(newLimit));
   }
 
-  private _deleteTransactionByHash(hash: Buffer) {
+  private _deleteTransactionByHash(hash: Uint8Array) {
     this._state = this._state.set(
       "hashToTransaction",
       this._getTransactionsByHash().delete(bufferToHex(hash))
@@ -592,7 +595,7 @@ export class TxPool {
     accountAddress: Address
   ): Promise<bigint> {
     const account = await this._stateManager.getAccount(accountAddress);
-    return account.nonce;
+    return account?.nonce ?? 0n;
   }
 
   /**

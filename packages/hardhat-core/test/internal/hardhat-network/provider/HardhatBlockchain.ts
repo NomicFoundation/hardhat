@@ -1,8 +1,9 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import {
-  BufferLike,
-  bufferToBigInt,
+  BytesLike as BufferLike,
+  bytesToBigInt as bufferToBigInt,
+  toBytes,
   zeros,
 } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
@@ -20,7 +21,7 @@ describe("HardhatBlockchain", () => {
   let blocks: Block[];
 
   function createBlock(number: number, _difficulty?: BufferLike) {
-    const difficulty = bufferToBigInt(_difficulty as Buffer);
+    const difficulty = bufferToBigInt(toBytes(_difficulty));
     const parentHash = number === 0 ? zeros(32) : blocks[number - 1].hash();
     const newBlock = Block.fromBlockData(
       {
@@ -62,7 +63,7 @@ describe("HardhatBlockchain", () => {
       const one = createBlock(1);
       await blockchain.addBlock(genesis);
       await blockchain.addBlock(one);
-      assert.equal(await blockchain.getBlock(one.hash()), one);
+      assert.equal(await blockchain.getBlock(Buffer.from(one.hash())), one);
     });
 
     it("can get existing block by number", async () => {
@@ -82,7 +83,7 @@ describe("HardhatBlockchain", () => {
     it("throws error for non-existent block", async () => {
       await assert.isRejected(blockchain.getBlock(0), "Block not found");
       await assert.isRejected(
-        blockchain.getBlock(randomHashBuffer()),
+        blockchain.getBlock(Buffer.from(randomHashBuffer())),
         "Block not found"
       );
     });
@@ -153,18 +154,18 @@ describe("HardhatBlockchain", () => {
       await blockchain.addBlock(blockTwo);
       await blockchain.addBlock(blockThree);
 
-      blockchain.deleteBlock(blockOne.hash());
+      blockchain.deleteBlock(Buffer.from(blockOne.hash()));
 
       await assert.isRejected(
-        blockchain.getBlock(blockOne.hash()),
+        blockchain.getBlock(Buffer.from(blockOne.hash())),
         "Block not found"
       );
       await assert.isRejected(
-        blockchain.getBlock(blockTwo.hash()),
+        blockchain.getBlock(Buffer.from(blockTwo.hash())),
         "Block not found"
       );
       await assert.isRejected(
-        blockchain.getBlock(blockThree.hash()),
+        blockchain.getBlock(Buffer.from(blockThree.hash())),
         "Block not found"
       );
     });
@@ -176,7 +177,7 @@ describe("HardhatBlockchain", () => {
 
       await blockchain.addBlock(blockOne);
       await blockchain.addBlock(blockTwo);
-      blockchain.deleteBlock(blockTwo.hash());
+      blockchain.deleteBlock(Buffer.from(blockTwo.hash()));
 
       assert.equal(await blockchain.getLatestBlock(), blockOne);
       await assert.isRejected(
@@ -190,15 +191,18 @@ describe("HardhatBlockchain", () => {
       const block = createBlock(0);
       const otherBlock = createBlock(0, randomHashBuffer());
       await blockchain.addBlock(block);
-      blockchain.deleteBlock(block.hash());
+      blockchain.deleteBlock(Buffer.from(block.hash()));
       await blockchain.addBlock(otherBlock);
-      assert.equal(await blockchain.getBlock(otherBlock.hash()), otherBlock);
+      assert.equal(
+        await blockchain.getBlock(Buffer.from(otherBlock.hash())),
+        otherBlock
+      );
     });
 
     it("throws when hash if non-existent block is given", async () => {
       const block = createBlock(0);
       assert.throws(
-        () => blockchain.deleteBlock(block.hash()),
+        () => blockchain.deleteBlock(Buffer.from(block.hash())),
         Error,
         "Block not found"
       );
@@ -217,13 +221,16 @@ describe("HardhatBlockchain", () => {
 
       blockchain.deleteLaterBlocks(blockOne);
 
-      assert.equal(await blockchain.getBlock(blockOne.hash()), blockOne);
+      assert.equal(
+        await blockchain.getBlock(Buffer.from(blockOne.hash())),
+        blockOne
+      );
       await assert.isRejected(
-        blockchain.getBlock(blockTwo.hash()),
+        blockchain.getBlock(Buffer.from(blockTwo.hash())),
         "Block not found"
       );
       await assert.isRejected(
-        blockchain.getBlock(blockThree.hash()),
+        blockchain.getBlock(Buffer.from(blockThree.hash())),
         "Block not found"
       );
     });
@@ -257,7 +264,7 @@ describe("HardhatBlockchain", () => {
   describe("getBlockTotalDifficulty", () => {
     it("rejects when hash of non-existent block is given", async () => {
       await assert.isRejected(
-        blockchain.getTotalDifficulty(randomHashBuffer()),
+        blockchain.getTotalDifficulty(Buffer.from(randomHashBuffer())),
         Error,
         "Block not found"
       );
@@ -266,7 +273,9 @@ describe("HardhatBlockchain", () => {
     it("can get difficulty of the genesis block", async () => {
       const genesis = createBlock(0, 1000);
       await blockchain.addBlock(genesis);
-      const difficulty = await blockchain.getTotalDifficulty(genesis.hash());
+      const difficulty = await blockchain.getTotalDifficulty(
+        Buffer.from(genesis.hash())
+      );
       assert.equal(difficulty, 1000n);
     });
 
@@ -276,7 +285,9 @@ describe("HardhatBlockchain", () => {
       await blockchain.addBlock(genesis);
       await blockchain.addBlock(second);
 
-      const difficulty = await blockchain.getTotalDifficulty(second.hash());
+      const difficulty = await blockchain.getTotalDifficulty(
+        Buffer.from(second.hash())
+      );
       assert.equal(difficulty, 3000n);
     });
 
@@ -289,9 +300,12 @@ describe("HardhatBlockchain", () => {
 
       blockchain.deleteLaterBlocks(blockOne);
 
-      assert.equal(await blockchain.getTotalDifficulty(blockOne.hash()), 1000n);
+      assert.equal(
+        await blockchain.getTotalDifficulty(Buffer.from(blockOne.hash())),
+        1000n
+      );
       await assert.isRejected(
-        blockchain.getTotalDifficulty(blockTwo.hash()),
+        blockchain.getTotalDifficulty(Buffer.from(blockTwo.hash())),
         Error,
         "Block not found"
       );
@@ -305,7 +319,7 @@ describe("HardhatBlockchain", () => {
   ) {
     it("returns undefined unknown transactions", async () => {
       const transaction = createTestTransaction();
-      assert.isUndefined(await getTransaction(transaction.hash()));
+      assert.isUndefined(await getTransaction(Buffer.from(transaction.hash())));
     });
 
     it("returns a known transaction", async () => {
@@ -316,7 +330,7 @@ describe("HardhatBlockchain", () => {
       block.transactions.push(transaction);
       await blockchain.addBlock(block);
 
-      const result = await getTransaction(transaction.hash());
+      const result = await getTransaction(Buffer.from(transaction.hash()));
       assert.equal(result, transaction);
     });
 
@@ -327,9 +341,9 @@ describe("HardhatBlockchain", () => {
       const transaction = createTestTransaction();
       block.transactions.push(transaction);
       await blockchain.addBlock(block);
-      blockchain.deleteBlock(block.hash());
+      blockchain.deleteBlock(Buffer.from(block.hash()));
 
-      assert.isUndefined(await getTransaction(transaction.hash()));
+      assert.isUndefined(await getTransaction(Buffer.from(transaction.hash())));
     });
   }
 
@@ -345,7 +359,9 @@ describe("HardhatBlockchain", () => {
     it("returns undefined for unknown transactions", async () => {
       const transaction = createTestTransaction();
       assert.equal(
-        await blockchain.getBlockByTransactionHash(transaction.hash()),
+        await blockchain.getBlockByTransactionHash(
+          Buffer.from(transaction.hash())
+        ),
         undefined
       );
     });
@@ -359,7 +375,7 @@ describe("HardhatBlockchain", () => {
       await blockchain.addBlock(block);
 
       const result = await blockchain.getBlockByTransactionHash(
-        transaction.hash()
+        Buffer.from(transaction.hash())
       );
       assert.equal(result, block);
     });
@@ -371,10 +387,12 @@ describe("HardhatBlockchain", () => {
       const transaction = createTestTransaction();
       block.transactions.push(transaction);
       await blockchain.addBlock(block);
-      blockchain.deleteBlock(block.hash());
+      blockchain.deleteBlock(Buffer.from(block.hash()));
 
       assert.equal(
-        await blockchain.getBlockByTransactionHash(transaction.hash()),
+        await blockchain.getBlockByTransactionHash(
+          Buffer.from(transaction.hash())
+        ),
         undefined
       );
     });
@@ -384,7 +402,7 @@ describe("HardhatBlockchain", () => {
     it("returns undefined for unknown transactions", async () => {
       const transaction = createTestTransaction();
       assert.equal(
-        await blockchain.getTransactionReceipt(transaction.hash()),
+        await blockchain.getTransactionReceipt(Buffer.from(transaction.hash())),
         undefined
       );
     });
@@ -399,7 +417,7 @@ describe("HardhatBlockchain", () => {
       await blockchain.addBlock(block);
 
       assert.equal(
-        await blockchain.getTransactionReceipt(transaction.hash()),
+        await blockchain.getTransactionReceipt(Buffer.from(transaction.hash())),
         undefined
       );
     });
@@ -417,7 +435,7 @@ describe("HardhatBlockchain", () => {
       blockchain.addTransactionReceipts([receipt]);
 
       assert.equal(
-        await blockchain.getTransactionReceipt(transaction.hash()),
+        await blockchain.getTransactionReceipt(Buffer.from(transaction.hash())),
         receipt
       );
     });
@@ -433,10 +451,10 @@ describe("HardhatBlockchain", () => {
 
       await blockchain.addBlock(block);
       blockchain.addTransactionReceipts([receipt]);
-      blockchain.deleteBlock(block.hash());
+      blockchain.deleteBlock(Buffer.from(block.hash()));
 
       assert.equal(
-        await blockchain.getTransactionReceipt(transaction.hash()),
+        await blockchain.getTransactionReceipt(Buffer.from(transaction.hash())),
         undefined
       );
     });

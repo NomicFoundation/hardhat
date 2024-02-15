@@ -3,7 +3,6 @@ import { assert } from "chai";
 import sinon from "sinon";
 
 import {
-  bufferToRpcData,
   numberToRpcQuantity,
   rpcDataToBigInt,
   rpcQuantityToBigInt,
@@ -1008,7 +1007,7 @@ describe("Evm module", function () {
           assert.equal(newLatestBlock.hash, initialLatestBlock.hash);
 
           const blockByHash = await this.provider.send("eth_getBlockByHash", [
-            bufferToRpcData(latestBlockBeforeReverting.hash),
+            latestBlockBeforeReverting.hash,
             false,
           ]);
           assert.isNull(blockByHash);

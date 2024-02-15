@@ -1,4 +1,7 @@
-import { Address, bufferToHex } from "@nomicfoundation/ethereumjs-util";
+import {
+  Address,
+  bytesToHex as bufferToHex,
+} from "@nomicfoundation/ethereumjs-util";
 import fsExtra from "fs-extra";
 import * as t from "io-ts";
 import path from "path";
@@ -136,7 +139,7 @@ export class JsonRpcClient {
     );
   }
 
-  public async getTransactionCount(address: Buffer, blockNumber: bigint) {
+  public async getTransactionCount(address: Uint8Array, blockNumber: bigint) {
     return this._perform(
       "eth_getTransactionCount",
       [bufferToHex(address), numberToRpcQuantity(blockNumber)],
@@ -157,8 +160,8 @@ export class JsonRpcClient {
   public async getLogs(options: {
     fromBlock: bigint;
     toBlock: bigint;
-    address?: Buffer | Buffer[];
-    topics?: Array<Array<Buffer | null> | null>;
+    address?: Uint8Array | Uint8Array[];
+    topics?: Array<Array<Uint8Array | null> | null>;
   }) {
     let address: string | string[] | undefined;
     if (options.address !== undefined) {

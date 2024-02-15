@@ -1,17 +1,16 @@
-import { TxData } from "@nomicfoundation/ethereumjs-tx";
+import {
+  AccessListEIP2930TxData,
+  FeeMarketEIP1559TxData,
+  LegacyTxData,
+} from "@nomicfoundation/ethereumjs-tx";
 import {
   AddressLike,
-  arrToBufArr,
-  bufferToBigInt,
-  bufferToHex,
+  bytesToBigInt as bufferToBigInt,
+  bytesToHex as bufferToHex,
 } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 import { randomBytes } from "crypto";
 
-import {
-  AccessListEIP2930TxData,
-  FeeMarketEIP1559TxData,
-} from "@nomicfoundation/ethereumjs-tx/dist/types";
 import { OrderedTransaction } from "../../../../src/internal/hardhat-network/provider/PoolState";
 import { TransactionQueue } from "../../../../src/internal/hardhat-network/provider/TransactionQueue";
 import { createTestOrderedTransaction } from "../helpers/blockchain";
@@ -21,7 +20,7 @@ import * as BigIntUtils from "../../../../src/internal/util/bigint";
 import { keccak256 } from "../../../../src/internal/util/keccak";
 
 type TestTxData = (
-  | TxData
+  | LegacyTxData
   | FeeMarketEIP1559TxData
   | AccessListEIP2930TxData
 ) & {
@@ -39,10 +38,10 @@ const SEED = randomBytes(8);
 let lastValue = keccak256(SEED);
 function weakRandomComparator(_left: unknown, _right: unknown) {
   lastValue = keccak256(lastValue);
-  const leftRandomId = bufferToBigInt(arrToBufArr(lastValue));
+  const leftRandomId = bufferToBigInt(lastValue);
 
   lastValue = keccak256(lastValue);
-  const rightRandomId = bufferToBigInt(arrToBufArr(lastValue));
+  const rightRandomId = bufferToBigInt(lastValue);
 
   return BigIntUtils.cmp(leftRandomId, rightRandomId);
 }

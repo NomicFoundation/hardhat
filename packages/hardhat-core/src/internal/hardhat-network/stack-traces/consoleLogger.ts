@@ -1,7 +1,7 @@
 import {
-  bufferToBigInt,
-  bufferToHex,
-  bufferToInt,
+  bytesToBigInt,
+  bytesToHex as bufferToHex,
+  bytesToInt,
   fromSigned,
 } from "@nomicfoundation/ethereumjs-util";
 import util from "util";
@@ -126,7 +126,7 @@ export class ConsoleLogger {
   }
 
   private _maybeConsoleLog(call: CallMessageTrace): ConsoleLogs | undefined {
-    const sig = bufferToInt(call.calldata.slice(0, 4));
+    const sig = bytesToInt(call.calldata.slice(0, 4));
     const parameters = call.calldata.slice(4);
 
     const types = this._consoleLogs[sig];
@@ -162,12 +162,12 @@ export class ConsoleLogger {
     }
   }
 
-  private _decode(data: Buffer, types: string[]): ConsoleLogs {
+  private _decode(data: Uint8Array, types: string[]): ConsoleLogs {
     return types.map((type, i) => {
       const position: number = i * 32;
       switch (types[i]) {
         case Uint256Ty:
-          return bufferToBigInt(
+          return bytesToBigInt(
             data.slice(position, position + REGISTER_SIZE)
           ).toString(10);
 
@@ -183,13 +183,13 @@ export class ConsoleLogger {
           return "false";
 
         case StringTy:
-          const sStart = bufferToInt(
+          const sStart = bytesToInt(
             data.slice(position, position + REGISTER_SIZE)
           );
-          const sLen = bufferToInt(data.slice(sStart, sStart + REGISTER_SIZE));
-          return data
-            .slice(sStart + REGISTER_SIZE, sStart + REGISTER_SIZE + sLen)
-            .toString();
+          const sLen = bytesToInt(data.slice(sStart, sStart + REGISTER_SIZE));
+          return Buffer.from(
+            data.slice(sStart + REGISTER_SIZE, sStart + REGISTER_SIZE + sLen)
+          ).toString();
 
         case AddressTy:
           return bufferToHex(
@@ -197,10 +197,10 @@ export class ConsoleLogger {
           );
 
         case BytesTy:
-          const bStart = bufferToInt(
+          const bStart = bytesToInt(
             data.slice(position, position + REGISTER_SIZE)
           );
-          const bLen = bufferToInt(data.slice(bStart, bStart + REGISTER_SIZE));
+          const bLen = bytesToInt(data.slice(bStart, bStart + REGISTER_SIZE));
           return bufferToHex(
             data.slice(bStart + REGISTER_SIZE, bStart + REGISTER_SIZE + bLen)
           );

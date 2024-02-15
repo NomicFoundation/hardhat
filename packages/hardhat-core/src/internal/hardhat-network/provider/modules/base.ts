@@ -1,7 +1,7 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import {
-  bufferToHex,
-  toBuffer,
+  bytesToHex as bufferToHex,
+  toBytes,
   zeroAddress,
 } from "@nomicfoundation/ethereumjs-util";
 import {
@@ -94,7 +94,7 @@ export class Base {
         rpcCall.from !== undefined
           ? rpcCall.from
           : await this._getDefaultCallFrom(),
-      data: rpcCall.data !== undefined ? rpcCall.data : toBuffer([]),
+      data: rpcCall.data !== undefined ? rpcCall.data : Buffer.from([]),
       gasLimit:
         rpcCall.gas !== undefined ? rpcCall.gas : this._node.getBlockGasLimit(),
       value: rpcCall.value !== undefined ? rpcCall.value : 0n,
@@ -148,9 +148,9 @@ export class Base {
     const localAccounts = await this._node.getLocalAccountAddresses();
 
     if (localAccounts.length === 0) {
-      return toBuffer(zeroAddress());
+      return Buffer.from(toBytes(zeroAddress()));
     }
 
-    return toBuffer(localAccounts[0]);
+    return Buffer.from(toBytes(localAccounts[0]));
   }
 }

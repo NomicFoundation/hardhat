@@ -1,4 +1,4 @@
-import { toBuffer } from "@nomicfoundation/ethereumjs-util";
+import { toBytes } from "@nomicfoundation/ethereumjs-util";
 import { VM } from "@nomicfoundation/ethereumjs-vm";
 import { assert } from "chai";
 import fs from "fs";
@@ -54,6 +54,10 @@ import {
   instantiateVm,
   traceTransaction,
 } from "./execution";
+
+function toBuffer(x: Parameters<typeof toBytes>[0]) {
+  return Buffer.from(toBytes(x));
+}
 
 interface StackFrameDescription {
   type: string;
@@ -521,7 +525,7 @@ async function runTest(
         txIndexToContract.set(txIndex, {
           file: tx.file,
           name: tx.contract,
-          address: trace.deployedContract,
+          address: Buffer.from(trace.deployedContract),
         });
       }
     } else {

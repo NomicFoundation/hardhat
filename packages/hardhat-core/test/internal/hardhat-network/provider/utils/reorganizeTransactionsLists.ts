@@ -1,4 +1,4 @@
-import { TxData } from "@nomicfoundation/ethereumjs-tx";
+import { LegacyTxData } from "@nomicfoundation/ethereumjs-tx";
 import { AddressLike } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 import { List } from "immutable";
@@ -13,7 +13,7 @@ import {
 
 function getTestTransactionFactory() {
   let orderId = 0;
-  return (data: TxData & { from?: AddressLike }) =>
+  return (data: LegacyTxData & { from?: AddressLike }) =>
     createTestSerializedTransaction({ orderId: orderId++, ...data });
 }
 
@@ -25,7 +25,9 @@ function retrieveNonce(tx: SerializedTransaction) {
 }
 
 describe("reorganizeTransactionsLists", () => {
-  let createTestTransaction: (data: TxData & { from?: AddressLike }) => any;
+  let createTestTransaction: (
+    data: LegacyTxData & { from?: AddressLike }
+  ) => any;
 
   beforeEach(() => {
     createTestTransaction = getTestTransactionFactory();

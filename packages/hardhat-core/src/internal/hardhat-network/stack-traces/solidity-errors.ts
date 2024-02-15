@@ -1,4 +1,4 @@
-import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
+import { bytesToHex as bufferToHex } from "@nomicfoundation/ethereumjs-util";
 
 import { panicErrorCodeToMessage } from "./panic-errors";
 import {
@@ -271,7 +271,9 @@ function getMessageFromLastStackTraceEntry(
       }
 
       if (!stackTraceEntry.message.isEmpty()) {
-        const returnData = stackTraceEntry.message.value.toString("hex");
+        const returnData = Buffer.from(stackTraceEntry.message.value).toString(
+          "hex"
+        );
 
         return `VM Exception while processing transaction: reverted with an unrecognized custom error (return data: 0x${returnData})`;
       }

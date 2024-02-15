@@ -61,14 +61,14 @@ export interface GenesisAccount {
   balance: string | number | bigint;
 }
 
-export type AccessListBufferItem = [Buffer, Buffer[]];
+export type AccessListBufferItem = [Uint8Array, Uint8Array[]];
 
 export interface CallParams {
-  to?: Buffer;
-  from: Buffer;
+  to?: Uint8Array;
+  from: Uint8Array;
   gasLimit: bigint;
   value: bigint;
-  data: Buffer;
+  data: Uint8Array;
   // We use this access list format because @nomicfoundation/ethereumjs-tx access list data
   // forces us to use it or stringify them
   accessList?: AccessListBufferItem[];
@@ -81,15 +81,16 @@ export interface CallParams {
 export type TransactionParams =
   | LegacyTransactionParams
   | AccessListTransactionParams
-  | EIP1559TransactionParams;
+  | EIP1559TransactionParams
+  | BlobTransactionParams;
 
 interface BaseTransactionParams {
   // `to` should be undefined for contract creation
-  to?: Buffer;
-  from: Buffer;
+  to?: Uint8Array;
+  from: Uint8Array;
   gasLimit: bigint;
   value: bigint;
-  data: Buffer;
+  data: Uint8Array;
   nonce: bigint;
 }
 
@@ -112,25 +113,31 @@ export interface EIP1559TransactionParams extends BaseTransactionParams {
   maxPriorityFeePerGas: bigint;
 }
 
+export interface BlobTransactionParams extends EIP1559TransactionParams {
+  blobs: Uint8Array[];
+  blobVersionedHashes: Uint8Array[];
+}
+
 export interface FilterParams {
   fromBlock: bigint;
   toBlock: bigint;
-  addresses: Buffer[];
-  normalizedTopics: Array<Array<Buffer | null> | null>;
+  addresses: Uint8Array[];
+  normalizedTopics: Array<Array<Uint8Array | null> | null>;
 }
 
 export interface Snapshot {
   id: number;
   date: Date;
   latestBlock: Block;
-  stateRoot: Buffer;
+  stateRoot: Uint8Array;
   txPoolSnapshotId: number;
   blockTimeOffsetSeconds: bigint;
   nextBlockTimestamp: bigint;
-  irregularStatesByBlockNumber: Map<bigint, Buffer>;
+  irregularStatesByBlockNumber: Map<bigint, Uint8Array>;
   userProvidedNextBlockBaseFeePerGas: bigint | undefined;
   coinbase: string;
   mixHashGenerator: RandomBufferGenerator;
+  parentBeaconBlockRootGenerator: RandomBufferGenerator;
 }
 
 export type SendTransactionResult =

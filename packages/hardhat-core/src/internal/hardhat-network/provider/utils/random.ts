@@ -2,7 +2,7 @@ import type EthereumjsUtilT from "@nomicfoundation/ethereumjs-util";
 import type * as UtilKeccakT from "../../../util/keccak";
 
 export class RandomBufferGenerator {
-  private constructor(private _nextValue: Buffer) {}
+  private constructor(private _nextValue: Uint8Array) {}
 
   public static create(seed: string): RandomBufferGenerator {
     const { keccak256 } = require("../../../util/keccak") as typeof UtilKeccakT;
@@ -12,7 +12,7 @@ export class RandomBufferGenerator {
     return new RandomBufferGenerator(nextValue);
   }
 
-  public next(): Buffer {
+  public next(): Uint8Array {
     const { keccak256 } = require("../../../util/keccak") as typeof UtilKeccakT;
 
     const valueToReturn = this._nextValue;
@@ -32,13 +32,13 @@ export class RandomBufferGenerator {
 }
 
 export const randomHash = () => {
-  const { bufferToHex } =
+  const { bytesToHex: bufferToHex } =
     require("@nomicfoundation/ethereumjs-util") as typeof EthereumjsUtilT;
   return bufferToHex(randomHashBuffer());
 };
 
 const generator = RandomBufferGenerator.create("seed");
-export const randomHashBuffer = (): Buffer => {
+export const randomHashBuffer = (): Uint8Array => {
   return generator.next();
 };
 
@@ -49,7 +49,7 @@ export const randomAddress = () => {
 };
 
 export const randomAddressString = () => {
-  const { bufferToHex } =
+  const { bytesToHex: bufferToHex } =
     require("@nomicfoundation/ethereumjs-util") as typeof EthereumjsUtilT;
   return bufferToHex(randomAddressBuffer());
 };
