@@ -28,6 +28,7 @@ import {
 import { compileLiteral } from "../../stack-traces/compilation";
 import { getPendingBaseFeePerGas } from "../../helpers/getPendingBaseFeePerGas";
 import { RpcBlockOutput } from "../../../../../src/internal/hardhat-network/provider/output";
+import { randomAddressString } from "../../../../../src/internal/hardhat-network/provider/utils/random";
 import * as BigIntUtils from "../../../../../src/internal/util/bigint";
 import { EXAMPLE_DIFFICULTY_CONTRACT } from "../../helpers/contracts";
 import { HardhatMetadata } from "../../../../../src/internal/core/jsonrpc/types/output/metadata";
@@ -1697,6 +1698,21 @@ describe("Hardhat module", function () {
           );
           assert.strictEqual(balancePreviousBlockAfterRevert, targetBalance1);
         });
+
+        it("should work with accounts that weren't interacted with before", async function () {
+          const targetAddress = randomAddressString();
+          await this.provider.send("hardhat_setBalance", [
+            targetAddress,
+            numberToRpcQuantity(123),
+          ]);
+
+          const resultingBalance = await this.provider.send("eth_getBalance", [
+            targetAddress,
+            "latest",
+          ]);
+
+          assert.equal(BigInt(resultingBalance), 123n);
+        });
       });
 
       describe("hardhat_setCode", function () {
@@ -1893,6 +1909,22 @@ describe("Hardhat module", function () {
           ).stateRoot;
           assert.equal(newStateRoot, oldStateRoot);
         });
+
+        it("should work with accounts that weren't interacted with before", async function () {
+          const targetAddress = randomAddressString();
+          const targetCode = "0x0123456789abcdef";
+          await this.provider.send("hardhat_setCode", [
+            targetAddress,
+            targetCode,
+          ]);
+
+          const actualCode = await this.provider.send("eth_getCode", [
+            targetAddress,
+            "latest",
+          ]);
+
+          assert.equal(actualCode, targetCode);
+        });
       });
 
       describe("hardhat_setNonce", function () {
@@ -2076,6 +2108,21 @@ describe("Hardhat module", function () {
             "Cannot set account nonce when the transaction pool is not empty"
           );
         });
+
+        it("should work with accounts that weren't interacted with before", async function () {
+          const targetAddress = randomAddressString();
+          await this.provider.send("hardhat_setNonce", [
+            targetAddress,
+            numberToRpcQuantity(123),
+          ]);
+
+          const resultingNonce = await this.provider.send(
+            "eth_getTransactionCount",
+            [targetAddress, "latest"]
+          );
+
+          assert.equal(BigInt(resultingNonce), 123n);
+        });
       });
 
       describe("hardhat_setStorageAt", function () {
@@ -2252,6 +2299,23 @@ describe("Hardhat module", function () {
             ]),
             targetStorageValue
           );
+        });
+
+        it("should work with accounts that weren't interacted with before", async function () {
+          const targetAddress = randomAddressString();
+          const targetStorageValue = 99;
+          await this.provider.send("hardhat_setStorageAt", [
+            targetAddress,
+            numberToRpcQuantity(0),
+            `0x${BigIntUtils.toEvmWord(targetStorageValue)}`,
+          ]);
+
+          const resultingStorageValue = await this.provider.send(
+            "eth_getStorageAt",
+            [targetAddress, numberToRpcStorageSlot(0), "latest"]
+          );
+
+          assert.equal(resultingStorageValue, targetStorageValue);
         });
       });
 
