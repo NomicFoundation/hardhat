@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-chai-matchers
 
+## 2.0.6
+
+### Patch Changes
+
+- 69fc3a4: Improved error messages of the `.withArgs` matcher (thanks @RenanSouza2!)
+
 ## 2.0.5
 
 ### Patch Changes
