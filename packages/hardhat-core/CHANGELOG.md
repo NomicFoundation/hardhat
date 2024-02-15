@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.20.1
+
+### Patch Changes
+
+- b519239: Fixed a bug when `hardhat_setStorageAt` was used in untouched addresses
+
 ## 2.20.0
 
 ### Minor Changes

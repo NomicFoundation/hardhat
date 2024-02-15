@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-viem
 
+## 1.0.4
+
+### Patch Changes
+
+- 29516eb: Fixed broken link in network error message (thanks @sunsetlover36!).
+
 ## 1.0.3
 
 ### Patch Changes
