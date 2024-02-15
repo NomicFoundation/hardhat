@@ -1,16 +1,7 @@
-import { Block } from "@nomicfoundation/ethereumjs-block";
-import { Address } from "@nomicfoundation/ethereumjs-util";
-
 import { HARDHAT_MEMPOOL_SUPPORTED_ORDERS } from "../../constants";
 import { BuildInfo, HardhatNetworkChainsConfig } from "../../../types";
 
 export type NodeConfig = LocalNodeConfig | ForkedNodeConfig;
-
-export function isForkedNodeConfig(
-  config: NodeConfig
-): config is ForkedNodeConfig {
-  return "forkConfig" in config && config.forkConfig !== undefined;
-}
 
 interface CommonConfig {
   automine: boolean;
@@ -60,21 +51,6 @@ export interface GenesisAccount {
 
 export type AccessListBufferItem = [Buffer, Buffer[]];
 
-export interface CallParams {
-  to?: Buffer;
-  from: Buffer;
-  gasLimit: bigint;
-  value: bigint;
-  data: Buffer;
-  // We use this access list format because @nomicfoundation/ethereumjs-tx access list data
-  // forces us to use it or stringify them
-  accessList?: AccessListBufferItem[];
-  // Fee params
-  gasPrice?: bigint;
-  maxFeePerGas?: bigint;
-  maxPriorityFeePerGas?: bigint;
-}
-
 export type TransactionParams =
   | LegacyTransactionParams
   | AccessListTransactionParams
@@ -107,31 +83,4 @@ export interface EIP1559TransactionParams extends BaseTransactionParams {
   accessList: AccessListBufferItem[];
   maxFeePerGas: bigint;
   maxPriorityFeePerGas: bigint;
-}
-
-export interface FilterParams {
-  fromBlock: bigint;
-  toBlock: bigint;
-  addresses: Buffer[];
-  normalizedTopics: Array<Array<Buffer | null> | null>;
-}
-
-export interface Snapshot {
-  id: number;
-  date: Date;
-  latestBlock: Block;
-  stateSnapshotId: number;
-  txPoolSnapshotId: number;
-  blockTimeOffsetSeconds: bigint;
-  nextBlockTimestamp: bigint;
-  userProvidedNextBlockBaseFeePerGas: bigint | undefined;
-  coinbase: Address;
-  nextPrevRandao: Buffer;
-}
-
-export interface FeeHistory {
-  oldestBlock: bigint;
-  baseFeePerGas: bigint[];
-  gasUsedRatio: number[];
-  reward?: bigint[][];
 }

@@ -632,6 +632,7 @@ async fn revert_to_block_local() -> anyhow::Result<()> {
 
         // Last block still exists
         assert_eq!(blockchain.last_block()?.hash(), last_block.hash());
+        assert_eq!(last_block.header().number, blockchain.last_block_number());
 
         assert_eq!(
             blockchain.block_by_hash(last_block.hash())?.unwrap().hash(),
