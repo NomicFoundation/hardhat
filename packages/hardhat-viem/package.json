@@ -66,12 +66,12 @@
     "sinon": "^9.0.0",
     "ts-node": "^10.8.0",
     "typescript": "~5.0.0",
-    "viem": "^1.15.1"
+    "viem": "^2.7.6"
   },
   "peerDependencies": {
     "hardhat": "^2.17.0",
     "typescript": "~5.0.0",
-    "viem": "^1.15.1"
+    "viem": "^2.7.6"
   },
   "dependencies": {
     "abitype": "^0.9.8",

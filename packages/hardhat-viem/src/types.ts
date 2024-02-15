@@ -42,8 +42,10 @@ export type GetContractReturnType<
   TAbi extends viemT.Abi | readonly unknown[] = viemT.Abi
 > = viemT.GetContractReturnType<
   TAbi,
-  PublicClient,
-  WalletClient,
+  {
+    public: PublicClient;
+    wallet: WalletClient;
+  },
   viemT.Address
 >;
 
