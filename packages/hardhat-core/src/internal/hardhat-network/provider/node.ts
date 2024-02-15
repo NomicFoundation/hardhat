@@ -1430,6 +1430,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     positionIndex: bigint,
     value: Buffer
   ) {
+    // create the account if it doesn't exist
+    const account = await this._stateManager.getAccount(address);
+    if (account === undefined) {
+      await this._stateManager.putAccount(address, new Account());
+    }
+
     await this._stateManager.putContractStorage(
       address,
       setLengthLeft(bigIntToBytes(positionIndex), 32),
