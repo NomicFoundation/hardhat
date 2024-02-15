@@ -63,6 +63,7 @@ pub(crate) fn resolve_call_request<LoggerErrorT: Debug>(
         value,
         data: input,
         access_list,
+        ..
     } = request;
 
     let chain_id = data.chain_id();
