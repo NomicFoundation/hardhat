@@ -105,10 +105,11 @@ impl ForkedBlockchain {
             latest_block_number,
         } = rpc_client.fetch_fork_metadata().await?;
 
-        let safe_block_number = largest_safe_block_number(LargestSafeBlockNumberArgs {
-            chain_id: remote_chain_id,
-            latest_block_number,
-        });
+        let recommended_block_number =
+            recommended_fork_block_number(RecommendedForkBlockNumberArgs {
+                chain_id: remote_chain_id,
+                latest_block_number,
+            });
 
         let fork_block_number = if let Some(fork_block_number) = fork_block_number {
             if fork_block_number > latest_block_number {
@@ -118,17 +119,17 @@ impl ForkedBlockchain {
                 });
             }
 
-            if fork_block_number > safe_block_number {
+            if fork_block_number > recommended_block_number {
                 let num_confirmations = latest_block_number - fork_block_number + 1;
                 let required_confirmations = safe_block_depth(remote_chain_id) + 1;
                 let missing_confirmations = required_confirmations - num_confirmations;
 
-                log::warn!("You are forking from block {fork_block_number} which has less than {required_confirmations} confirmations, and will affect Hardhat Network's performance. Please use block number {safe_block_number} or wait for the block to get {missing_confirmations} more confirmations.");
+                log::warn!("You are forking from block {fork_block_number} which has less than {required_confirmations} confirmations, and will affect Hardhat Network's performance. Please use block number {recommended_block_number} or wait for the block to get {missing_confirmations} more confirmations.");
             }
 
             fork_block_number
         } else {
-            safe_block_number
+            recommended_block_number
         };
 
         let hardfork_activations = hardfork_activation_overrides
@@ -523,5 +524,70 @@ impl BlockchainMut for ForkedBlockchain {
                 }
             }
         }
+    }
+}
+
+/// Arguments for the `recommended_fork_block_number` function.
+/// The purpose of this struct is to prevent mixing up the `u64` arguments.
+struct RecommendedForkBlockNumberArgs {
+    /// The chain id
+    pub chain_id: u64,
+    /// The latest known block number
+    pub latest_block_number: u64,
+}
+
+impl<'a> From<&'a RecommendedForkBlockNumberArgs> for LargestSafeBlockNumberArgs {
+    fn from(value: &'a RecommendedForkBlockNumberArgs) -> Self {
+        Self {
+            chain_id: value.chain_id,
+            latest_block_number: value.latest_block_number,
+        }
+    }
+}
+
+/// Determines the recommended block number for forking a specific chain based
+/// on the latest block number.
+///
+/// # Design
+///
+/// If there is no safe block number, then the latest block number will be used.
+/// This decision is based on the assumption that a forked blockchain with a
+/// `safe_block_depth` larger than the `latest_block_number` has a high
+/// probability of being a devnet.
+fn recommended_fork_block_number(args: RecommendedForkBlockNumberArgs) -> u64 {
+    largest_safe_block_number(LargestSafeBlockNumberArgs::from(&args))
+        .unwrap_or(args.latest_block_number)
+}
+
+#[cfg(test)]
+mod tests {
+    const ROPSTEN_CHAIN_ID: u64 = 3;
+
+    use super::*;
+
+    #[test]
+    fn recommended_fork_block_number_with_safe_blocks() {
+        const LATEST_BLOCK_NUMBER: u64 = 1_000;
+
+        let safe_block_depth = safe_block_depth(ROPSTEN_CHAIN_ID);
+        let args = RecommendedForkBlockNumberArgs {
+            chain_id: ROPSTEN_CHAIN_ID,
+            latest_block_number: LATEST_BLOCK_NUMBER,
+        };
+        assert_eq!(
+            recommended_fork_block_number(args),
+            LATEST_BLOCK_NUMBER - safe_block_depth
+        );
+    }
+
+    #[test]
+    fn recommended_fork_block_number_all_blocks_unsafe() {
+        const LATEST_BLOCK_NUMBER: u64 = 50;
+
+        let args = RecommendedForkBlockNumberArgs {
+            chain_id: ROPSTEN_CHAIN_ID,
+            latest_block_number: LATEST_BLOCK_NUMBER,
+        };
+        assert_eq!(recommended_fork_block_number(args), LATEST_BLOCK_NUMBER);
     }
 }

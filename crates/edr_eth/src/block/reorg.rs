@@ -11,8 +11,7 @@ const DEFAULT_SAFE_BLOCK_TIME: Duration = Duration::from_secs(1);
 /// Test whether a block number is safe from a reorg for a specific chain based
 /// on the latest block number.
 pub fn is_safe_block_number(args: IsSafeBlockNumberArgs) -> bool {
-    args.latest_block_number
-        .checked_sub(safe_block_depth(args.chain_id))
+    largest_safe_block_number((&args).into())
         .is_some_and(|safe_block_number| args.block_number <= safe_block_number)
 }
 
@@ -39,14 +38,10 @@ impl<'a> From<&'a IsSafeBlockNumberArgs> for LargestSafeBlockNumberArgs {
 /// The largest block number that is safe from a reorg for a specific chain
 /// based on the latest block number.
 ///
-/// Design choice: if latestBlock - maxReorg results in a negative number then
-/// the latest block will be used. This decision is based on the assumption
-/// that if maxReorg > latestBlock then there is a high probability that the
-/// fork is occurring on a devnet.
-pub fn largest_safe_block_number(args: LargestSafeBlockNumberArgs) -> u64 {
+/// Returns `None` if the genesis block falls within the safe block depth.
+pub fn largest_safe_block_number(args: LargestSafeBlockNumberArgs) -> Option<u64> {
     args.latest_block_number
         .checked_sub(safe_block_depth(args.chain_id))
-        .unwrap_or(args.latest_block_number)
 }
 
 /// Arguments for the `largest_safe_block_number` function.
@@ -117,7 +112,7 @@ mod tests {
         };
         assert_eq!(
             largest_safe_block_number(args),
-            LATEST_BLOCK_NUMBER - safe_block_depth
+            Some(LATEST_BLOCK_NUMBER - safe_block_depth)
         );
     }
 
@@ -129,7 +124,7 @@ mod tests {
             chain_id: ROPSTEN_CHAIN_ID,
             latest_block_number: LATEST_BLOCK_NUMBER,
         };
-        assert_eq!(largest_safe_block_number(args), LATEST_BLOCK_NUMBER);
+        assert_eq!(largest_safe_block_number(args), None);
     }
 
     #[test]
