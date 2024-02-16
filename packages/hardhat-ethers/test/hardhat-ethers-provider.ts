@@ -77,7 +77,7 @@ describe("hardhat ethers provider", function () {
 
     it("should work for impersonated accounts", async function () {
       const [s] = await this.env.ethers.getSigners();
-      const randomAddress = "0xf965cceab9374d9f961581b6e38942e45e1cfeae";
+      const randomAddress = "0e7d45f52130a5634f19346a3e5d32994ad821750";
 
       await s.sendTransaction({
         to: randomAddress,
