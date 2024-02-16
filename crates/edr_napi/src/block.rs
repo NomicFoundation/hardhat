@@ -47,7 +47,8 @@ impl TryFrom<BlockOptions> for edr_eth::block::BlockOptions {
                 .transpose()?,
             beneficiary: value
                 .beneficiary
-                .map(|coinbase| Address::from_slice(&coinbase)),
+                .map(TryCast::<Address>::try_cast)
+                .transpose()?,
             state_root: value
                 .state_root
                 .map(TryCast::<B256>::try_cast)

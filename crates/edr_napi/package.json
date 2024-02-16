@@ -26,7 +26,7 @@
     "@types/chai": "^4.2.0",
     "@types/mocha": ">=9.1.0",
     "chai": "^4.3.6",
-    "@nomicfoundation/ethereumjs-util": "9.0.3",
+    "chai-as-promised": "^7.1.1",
     "mocha": "^10.0.0",
     "typescript": "~4.5.2"
   },
@@ -41,6 +41,7 @@
     "prepublishOnly": "napi prepublish -t npm --skip-gh-release",
     "universal": "napi universal",
     "version": "napi version",
+    "pretest": "pnpm build",
     "test": "pnpm tsc && mocha --recursive \"test/**/*.ts\" --exit",
     "clean": "rm -rf @ignored/edr.node"
   }

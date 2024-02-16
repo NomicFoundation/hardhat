@@ -3,7 +3,7 @@ use std::{
     time::{Duration, SystemTime},
 };
 
-use edr_eth::{Address, HashMap};
+use edr_eth::HashMap;
 use edr_provider::AccountConfig;
 use napi::{
     bindgen_prelude::{BigInt, Buffer},
@@ -243,7 +243,7 @@ impl TryFrom<ProviderConfig> for edr_provider::ProviderConfig {
             ),
             chain_id: value.chain_id.try_cast()?,
             chains,
-            coinbase: Address::from_slice(value.coinbase.as_ref()),
+            coinbase: value.coinbase.try_cast()?,
             fork: value.fork.map(TryInto::try_into).transpose()?,
             genesis_accounts: HashMap::new(),
             hardfork: value.hardfork.try_into()?,
