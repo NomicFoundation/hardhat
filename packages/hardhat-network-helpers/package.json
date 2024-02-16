@@ -66,6 +66,6 @@
     "typescript": "~5.0.0"
   },
   "peerDependencies": {
-    "hardhat": "^2.9.5"
+    "hardhat": "workspace:^2.9.5"
   }
 }
