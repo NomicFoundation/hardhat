@@ -28,4 +28,7 @@ pub struct CallRequest {
     pub data: Option<Bytes>,
     /// warm storage access pre-payment
     pub access_list: Option<Vec<AccessListItem>>,
+    /// EIP-2718 type
+    #[cfg_attr(feature = "serde", serde(default, rename = "type"))]
+    pub transaction_type: Option<U256>,
 }

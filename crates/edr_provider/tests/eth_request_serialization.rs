@@ -38,6 +38,7 @@ fn test_serde_eth_call() {
         value: Some(U256::from(123568919)),
         data: Some(Bytes::from(&b"whatever"[..])),
         access_list: None,
+        transaction_type: None,
     };
     help_test_method_invocation_serde(MethodInvocation::Call(
         tx.clone(),
@@ -72,6 +73,7 @@ fn test_serde_eth_estimate_gas() {
         value: Some(U256::from(123568919)),
         data: Some(Bytes::from(&b"whatever"[..])),
         access_list: None,
+        transaction_type: None,
     };
     help_test_method_invocation_serde(MethodInvocation::EstimateGas(
         tx.clone(),
