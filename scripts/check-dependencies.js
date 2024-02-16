@@ -56,15 +56,9 @@ function checkPeerDepedencies(packageJson) {
       continue;
     }
 
-    const peerDep = packageJson.peerDependencies[dependency].replace(
-      /^workspace:/,
-      ""
-    );
+    const peerDep = packageJson.peerDependencies[dependency];
+    const devDep = packageJson.devDependencies[dependency];
 
-    const devDep = packageJson.devDependencies[dependency].replace(
-      /^workspace:/,
-      ""
-    );
     if (peerDep !== devDep) {
       console.error(
         `${packageJson.name} has different versions of ${dependency} as peerDependency and devDependency`
