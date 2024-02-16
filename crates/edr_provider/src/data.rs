@@ -1566,10 +1566,12 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 proposed: timestamp,
                 previous: latest_block_header.timestamp,
             }),
-            Ordering::Equal => Err(ProviderError::TimestampEqualsPrevious {
-                proposed: timestamp,
-            }),
-            Ordering::Greater => {
+            Ordering::Equal if !self.allow_blocks_with_same_timestamp => {
+                Err(ProviderError::TimestampEqualsPrevious {
+                    proposed: timestamp,
+                })
+            }
+            Ordering::Equal | Ordering::Greater => {
                 self.next_block_timestamp = Some(timestamp);
                 Ok(timestamp)
             }

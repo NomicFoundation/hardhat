@@ -403,7 +403,7 @@ describe("INTEGRATION: Reverted", function () {
           ).to.not.be.reverted
         ).to.be.eventually.rejectedWith(
           ProviderError,
-          "sender doesn't have enough funds to send tx"
+          "Sender doesn't have enough funds to send tx"
         );
       });
     });
