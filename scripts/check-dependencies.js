@@ -56,14 +56,10 @@ function checkPeerDepedencies(packageJson) {
       continue;
     }
 
-    const peerDep = packageJson.peerDependencies[dependency];
-    if (peerDep.startsWith("workspace:")) {
-      console.error(
-        `${packageJson.name} uses the workspace protocol for ${dependency}, which is a peer dependency`
-      );
-
-      success = false;
-    }
+    const peerDep = packageJson.peerDependencies[dependency].replace(
+      /^workspace:/,
+      ""
+    );
 
     const devDep = packageJson.devDependencies[dependency].replace(
       /^workspace:/,
