@@ -41,6 +41,9 @@ importers:
       '@types/mocha':
         specifier: '>=9.1.0'
         version: 10.0.1
+      '@types/node':
+        specifier: ^16.0.0
+        version: 16.18.40
       chai:
         specifier: ^4.3.6
         version: 4.3.7
