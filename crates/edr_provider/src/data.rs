@@ -2360,6 +2360,7 @@ lazy_static! {
 pub(crate) mod test_utils {
     use std::convert::Infallible;
 
+    use anyhow::anyhow;
     use edr_eth::transaction::{Eip155TransactionRequest, TransactionKind, TransactionRequest};
     use edr_test_utils::env::get_alchemy_url;
     use tempfile::TempDir;
@@ -2476,7 +2477,7 @@ pub(crate) mod test_utils {
             local_account_index: usize,
             gas_limit: u64,
             nonce: Option<u64>,
-        ) -> TransactionRequestAndSender {
+        ) -> anyhow::Result<TransactionRequestAndSender> {
             let request = TransactionRequest::Eip155(Eip155TransactionRequest {
                 kind: TransactionKind::Call(Address::ZERO),
                 gas_limit,
@@ -2487,10 +2488,8 @@ pub(crate) mod test_utils {
                 chain_id: self.config.chain_id,
             });
 
-            TransactionRequestAndSender {
-                request,
-                sender: self.nth_local_account(local_account_index),
-            }
+            let sender = self.nth_local_account(local_account_index)?;
+            Ok(TransactionRequestAndSender { request, sender })
         }
 
         /// Retrieves the nth local account.
@@ -2498,17 +2497,17 @@ pub(crate) mod test_utils {
         /// # Panics
         ///
         /// Panics if there are not enough local accounts
-        pub fn nth_local_account(&self, index: usize) -> Address {
-            *self
-                .provider_data
+        pub fn nth_local_account(&self, index: usize) -> anyhow::Result<Address> {
+            self.provider_data
                 .local_accounts
                 .keys()
                 .nth(index)
-                .expect("the requested local account does not exist")
+                .copied()
+                .ok_or(anyhow!("the requested local account does not exist"))
         }
 
         pub fn impersonated_dummy_transaction(&self) -> anyhow::Result<ExecutableTransaction> {
-            let mut transaction = self.dummy_transaction_request(0, 30_000, None);
+            let mut transaction = self.dummy_transaction_request(0, 30_000, None)?;
             transaction.sender = self.impersonated_account;
 
             Ok(self.provider_data.sign_transaction_request(transaction)?)
@@ -2519,7 +2518,7 @@ pub(crate) mod test_utils {
             local_account_index: usize,
             nonce: Option<u64>,
         ) -> anyhow::Result<ExecutableTransaction> {
-            let transaction = self.dummy_transaction_request(local_account_index, 30_000, nonce);
+            let transaction = self.dummy_transaction_request(local_account_index, 30_000, nonce)?;
             Ok(self.provider_data.sign_transaction_request(transaction)?)
         }
     }
@@ -2998,7 +2997,7 @@ mod tests {
 
         // Too expensive to mine
         let transaction2 = {
-            let request = fixture.dummy_transaction_request(1, 40_000, None);
+            let request = fixture.dummy_transaction_request(1, 40_000, None)?;
             fixture.provider_data.sign_transaction_request(request)?
         };
 
@@ -3581,7 +3580,7 @@ mod tests {
         let mut fixture = ProviderTestFixture::new(runtime, cache_dir, config)?;
 
         let default_call = CallRequest {
-            from: Some(fixture.nth_local_account(0)),
+            from: Some(fixture.nth_local_account(0)?),
             to: Some(hello_world_contract_address),
             gas: Some(1_000_000),
             value: Some(U256::ZERO),

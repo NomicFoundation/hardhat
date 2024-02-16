@@ -172,8 +172,8 @@ mod tests {
         let pending_base_fee = pending_base_fee(&mut fixture.provider_data)?;
 
         let request = CallRequest {
-            from: Some(fixture.nth_local_account(0)),
-            to: Some(fixture.nth_local_account(1)),
+            from: Some(fixture.nth_local_account(0)?),
+            to: Some(fixture.nth_local_account(1)?),
             gas_price: Some(pending_base_fee),
             ..CallRequest::default()
         };
@@ -200,8 +200,8 @@ mod tests {
         let max_priority_fee_per_gas = Some(max_fee_per_gas / U256::from(2));
 
         let request = CallRequest {
-            from: Some(fixture.nth_local_account(0)),
-            to: Some(fixture.nth_local_account(1)),
+            from: Some(fixture.nth_local_account(0)?),
+            to: Some(fixture.nth_local_account(1)?),
             max_fee_per_gas: Some(max_fee_per_gas),
             max_priority_fee_per_gas,
             ..CallRequest::default()
