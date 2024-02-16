@@ -6,7 +6,6 @@ use crate::{access_list::AccessListItem, U256};
 /// For specifying input to methods requiring a transaction object, like
 /// `eth_call` and `eth_estimateGas`
 #[derive(Clone, Debug, Default, PartialEq, serde::Deserialize, serde::Serialize)]
-#[cfg_attr(feature = "serde", serde(deny_unknown_fields))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct CallRequest {
     /// the address from which the transaction should be sent
