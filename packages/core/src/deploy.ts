@@ -9,6 +9,7 @@ import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployme
 import { DeploymentLoader } from "./internal/deployment-loader/types";
 import { ERRORS } from "./internal/errors-list";
 import { EIP1193JsonRpcClient } from "./internal/execution/jsonrpc-client";
+import { ExecutionStrategy } from "./internal/execution/types/execution-strategy";
 import { equalAddresses } from "./internal/execution/utils/address";
 import { getDefaultSender } from "./internal/execution/utils/get-default-sender";
 import { checkAutominedNetwork } from "./internal/utils/check-automined-network";
@@ -46,7 +47,7 @@ export async function deploy<
   deploymentParameters,
   accounts,
   defaultSender: givenDefaultSender,
-  strategy: executionStrategy,
+  strategy,
 }: {
   config?: Partial<DeployConfig>;
   artifactResolver: ArtifactResolver;
@@ -63,6 +64,8 @@ export async function deploy<
   defaultSender?: string;
   strategy: DeploymentStrategyType;
 }): Promise<DeploymentResult> {
+  const executionStrategy: ExecutionStrategy = strategy as ExecutionStrategy;
+
   if (executionEventListener !== undefined) {
     executionEventListener.setModuleId({
       type: ExecutionEventType.SET_MODULE_ID,

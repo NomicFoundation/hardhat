@@ -1,8 +1,5 @@
 import { ArtifactResolver } from "../../../types/artifact";
-import {
-  DeploymentParameters,
-  DeploymentStrategyType,
-} from "../../../types/deploy";
+import { DeploymentParameters } from "../../../types/deploy";
 import { Future } from "../../../types/module";
 import { DeploymentLoader } from "../../deployment-loader/types";
 import { assertIgnitionInvariant } from "../../utils/assertions";
@@ -20,6 +17,7 @@ import {
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "../types/execution-state";
+import { ExecutionStrategy } from "../types/execution-strategy";
 import { JournalMessage, JournalMessageType } from "../types/messages";
 
 import { monitorOnchainInteraction } from "./handlers/monitor-onchain-interaction";
@@ -42,7 +40,7 @@ export class FutureProcessor {
   constructor(
     private readonly _deploymentLoader: DeploymentLoader,
     private readonly _artifactResolver: ArtifactResolver,
-    private readonly _executionStrategy: DeploymentStrategyType,
+    private readonly _executionStrategy: ExecutionStrategy,
     private readonly _jsonRpcClient: JsonRpcClient,
     private readonly _transactionTrackingTimer: TransactionTrackingTimer,
     private readonly _nonceManager: NonceManager,

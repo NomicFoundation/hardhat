@@ -8,7 +8,6 @@ import {
   DeploymentParameters,
   DeploymentResult,
   DeploymentResultType,
-  DeploymentStrategyType,
   ExecutionErrorDeploymentResult,
   PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
@@ -35,6 +34,7 @@ import {
   ExecutionState,
   ExecutionStatus,
 } from "./execution/types/execution-state";
+import { ExecutionStrategy } from "./execution/types/execution-strategy";
 import { Reconciler } from "./reconciliation/reconciler";
 import { assertIgnitionInvariant } from "./utils/assertions";
 import { getFuturesFromModule } from "./utils/get-futures-from-module";
@@ -43,14 +43,12 @@ import { findStatus } from "./views/find-status";
 
 /**
  * Run an Igntition deployment.
- *
- * @beta
  */
 export class Deployer {
   constructor(
     private readonly _config: DeployConfig,
     private readonly _deploymentDir: string | undefined,
-    private readonly _executionStrategy: DeploymentStrategyType,
+    private readonly _executionStrategy: ExecutionStrategy,
     private readonly _jsonRpcClient: JsonRpcClient,
     private readonly _artifactResolver: ArtifactResolver,
     private readonly _deploymentLoader: DeploymentLoader,

@@ -29,7 +29,7 @@
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
     "@nomiclabs/eslint-plugin-hardhat-internal-rules": "^1.0.2",
-    "@microsoft/api-extractor": "7.38.3",
+    "@microsoft/api-extractor": "7.40.1",
     "@types/chai": "^4.2.22",
     "@types/chai-as-promised": "^7.1.5",
     "@types/debug": "^4.1.7",

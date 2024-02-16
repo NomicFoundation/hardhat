@@ -33,12 +33,25 @@ import { assertIgnitionInvariant } from "./internal/utils/assertions";
  *
  * @beta
  */
-export class BasicStrategy implements ExecutionStrategy {
+export class BasicStrategy {
+  public readonly name = "basic" as const;
+  constructor() {}
+}
+
+/**
+ * The implementation of basic strategy.
+ */
+class BasicStrategyImplementation
+  extends BasicStrategy
+  implements ExecutionStrategy
+{
   public readonly name = "basic" as const;
   public readonly config: {} = {};
   private _loadArtifact: LoadArtifactFunction | undefined;
 
-  constructor() {}
+  constructor() {
+    super();
+  }
 
   public async init(_loadArtifact: LoadArtifactFunction): Promise<void> {
     this._loadArtifact = _loadArtifact;
@@ -210,3 +223,11 @@ export class BasicStrategy implements ExecutionStrategy {
     };
   }
 }
+
+// TODO: Remove this hack once we are fully exposing our Strategy API.
+// We don't want to export all of the internal types and the API Extractor
+// is harsh. So we define a reduced Create2Strategy class and type, but
+// override the implementation. The reduced class is exported in a way
+// API extractor will accept, while the richer implementation will
+// actually be used.
+(this as any).BasicStrategy = BasicStrategyImplementation;

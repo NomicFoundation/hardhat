@@ -1,10 +1,8 @@
-import {
-  DeploymentParameters,
-  DeploymentStrategyType,
-} from "../../../../types/deploy";
+import { DeploymentParameters } from "../../../../types/deploy";
 import { Future, FutureType } from "../../../../types/module";
 import { DeploymentLoader } from "../../../deployment-loader/types";
 import { DeploymentState } from "../../types/deployment-state";
+import { ExecutionStrategy } from "../../types/execution-strategy";
 import {
   CallExecutionStateInitializeMessage,
   ContractAtExecutionStateInitializeMessage,
@@ -30,7 +28,7 @@ import {
 export async function buildInitializeMessageFor(
   future: Future,
   deploymentState: DeploymentState,
-  strategy: DeploymentStrategyType,
+  strategy: ExecutionStrategy,
   deploymentParameters: DeploymentParameters,
   deploymentLoader: DeploymentLoader,
   accounts: string[],

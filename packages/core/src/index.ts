@@ -1,5 +1,5 @@
-export { batches } from "./batches";
 export { BasicStrategy } from "./basic-execution-strategy";
+export { batches } from "./batches";
 export { buildModule } from "./build-module";
 export { Create2Strategy } from "./create2-execution-strategy";
 export { deploy } from "./deploy";

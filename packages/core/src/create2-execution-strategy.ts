@@ -50,16 +50,28 @@ const CREATE_X_PRESIGNED_DEPLOYER_ADDRESS =
  *
  * @beta
  */
-export class Create2Strategy implements ExecutionStrategy {
+export class Create2Strategy {
   public readonly name = "create2" as const;
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  constructor(provider: EIP1193Provider, config: { salt: string }) {}
+}
+
+/**
+ * The create2 strategy.
+ */
+class Create2StrategyImplementation
+  extends Create2Strategy
+  implements ExecutionStrategy
+{
+  public declare readonly config: { salt: string };
   private readonly client: EIP1193JsonRpcClient;
   private _loadArtifact: LoadArtifactFunction | undefined;
 
-  constructor(
-    provider: EIP1193Provider,
-    public readonly config: { salt: string }
-  ) {
+  constructor(provider: EIP1193Provider, config: { salt: string }) {
+    super(provider, config);
     this.client = new EIP1193JsonRpcClient(provider);
+    this.config = config;
   }
 
   public async init(_loadArtifact: LoadArtifactFunction): Promise<void> {
@@ -312,3 +324,11 @@ export class Create2Strategy implements ExecutionStrategy {
     }
   }
 }
+
+// TODO: Remove this hack once we are fully exposing our Strategy API.
+// We don't want to export all of the internal types and the API Extractor
+// is harsh. So we define a reduced Create2Strategy class and type, but
+// override the implementation. The reduced class is exported in a way
+// API extractor will accept, while the richer implementation will
+// actually be used.
+(this as any).Create2Strategy = Create2StrategyImplementation;
