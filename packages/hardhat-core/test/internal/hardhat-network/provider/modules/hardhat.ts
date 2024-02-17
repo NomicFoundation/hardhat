@@ -1512,8 +1512,6 @@ describe("Hardhat module", function () {
         }
       });
 
-      const isEdr = process.env.HARDHAT_EXPERIMENTAL_VM_MODE === "edr";
-
       describe("hardhat_setBalance", function () {
         it("should reject an invalid address", async function () {
           await assertInvalidArgumentsError(
@@ -1522,7 +1520,7 @@ describe("Hardhat module", function () {
             ["0x1234", "0x0"],
             // TODO: https://github.com/NomicFoundation/edr/issues/104
             `${
-              isEdr ? "" : "Errors encountered in param 0: "
+              this.isEdr ? "" : "Errors encountered in param 0: "
             }Invalid value "0x1234" supplied to : ADDRESS`
           );
         });
@@ -1534,7 +1532,7 @@ describe("Hardhat module", function () {
             [DEFAULT_ACCOUNTS_ADDRESSES[0], "xyz"],
             // TODO: https://github.com/NomicFoundation/edr/issues/104
             `${
-              isEdr ? "" : "Errors encountered in param 1: "
+              this.isEdr ? "" : "Errors encountered in param 1: "
             }Invalid value "xyz" supplied to : QUANTITY`
           );
         });
@@ -1739,7 +1737,7 @@ describe("Hardhat module", function () {
             ["0x1234", "0x0"],
             // TODO: https://github.com/NomicFoundation/edr/issues/104
             `${
-              isEdr ? "" : "Errors encountered in param 0: "
+              this.isEdr ? "" : "Errors encountered in param 0: "
             }Invalid value "0x1234" supplied to : ADDRESS`
           );
         });
@@ -1751,7 +1749,7 @@ describe("Hardhat module", function () {
             [DEFAULT_ACCOUNTS_ADDRESSES[0], "xyz"],
             // TODO: https://github.com/NomicFoundation/edr/issues/104
             `${
-              isEdr ? "" : "Errors encountered in param 1: "
+              this.isEdr ? "" : "Errors encountered in param 1: "
             }Invalid value "xyz" supplied to : DATA`
           );
         });
@@ -1968,7 +1966,7 @@ describe("Hardhat module", function () {
             ["0x1234", "0x0"],
             // TODO: https://github.com/NomicFoundation/edr/issues/104
             `${
-              isEdr ? "" : "Errors encountered in param 0: "
+              this.isEdr ? "" : "Errors encountered in param 0: "
             }Invalid value "0x1234" supplied to : ADDRESS`
           );
         });
@@ -1980,7 +1978,7 @@ describe("Hardhat module", function () {
             [DEFAULT_ACCOUNTS_ADDRESSES[0], "xyz"],
             // TODO: https://github.com/NomicFoundation/edr/issues/104
             `${
-              isEdr ? "" : "Errors encountered in param 1: "
+              this.isEdr ? "" : "Errors encountered in param 1: "
             }Invalid value "xyz" supplied to : QUANTITY`
           );
         });
@@ -2157,7 +2155,7 @@ describe("Hardhat module", function () {
             ["0x1234", numberToRpcQuantity(0), numberToRpcQuantity(99)],
             // TODO: https://github.com/NomicFoundation/edr/issues/104
             `${
-              isEdr ? "" : "Errors encountered in param 0: "
+              this.isEdr ? "" : "Errors encountered in param 0: "
             }Invalid value "0x1234" supplied to : ADDRESS`
           );
         });
@@ -2169,7 +2167,7 @@ describe("Hardhat module", function () {
             [DEFAULT_ACCOUNTS_ADDRESSES[0], "xyz", numberToRpcQuantity(99)],
             // TODO: https://github.com/NomicFoundation/edr/issues/104
             `${
-              isEdr ? "" : "Errors encountered in param 1: "
+              this.isEdr ? "" : "Errors encountered in param 1: "
             }Invalid value "xyz" supplied to : QUANTITY`
           );
         });

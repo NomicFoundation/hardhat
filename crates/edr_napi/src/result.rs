@@ -1,18 +1,12 @@
 use std::mem;
 
-use edr_eth::Address;
-use edr_evm::Bytes;
 use napi::{
     bindgen_prelude::{BigInt, Buffer, Either3},
     Either, Env, JsBuffer, JsBufferValue,
 };
 use napi_derive::napi;
 
-use crate::{
-    cast::TryCast,
-    log::ExecutionLog,
-    trace::{TracingMessage, TracingMessageResult, TracingStep},
-};
+use crate::log::ExecutionLog;
 
 /// The possible reasons for successful termination of the EVM.
 #[napi]
@@ -256,115 +250,5 @@ impl ExecutionResult {
         };
 
         Ok(Self { result })
-    }
-}
-
-impl TryCast<edr_evm::ExecutionResult> for ExecutionResult {
-    type Error = napi::Error;
-
-    fn try_cast(self) -> Result<edr_evm::ExecutionResult, Self::Error> {
-        let result = match self.result {
-            Either3::A(SuccessResult {
-                reason,
-                gas_used,
-                gas_refunded,
-                logs,
-                output,
-            }) => edr_evm::ExecutionResult::Success {
-                reason: reason.into(),
-                gas_used: gas_used.try_cast()?,
-                gas_refunded: gas_refunded.try_cast()?,
-                logs: logs
-                    .into_iter()
-                    .map(TryCast::try_cast)
-                    .collect::<Result<_, _>>()?,
-                output: match output {
-                    Either::A(CallOutput { return_value }) => edr_evm::Output::Call(
-                        Bytes::copy_from_slice(return_value.into_value()?.as_ref()),
-                    ),
-                    Either::B(CreateOutput {
-                        return_value,
-                        address,
-                    }) => edr_evm::Output::Create(
-                        Bytes::copy_from_slice(return_value.into_value()?.as_ref()),
-                        address.map(|address| Address::from_slice(address.as_ref())),
-                    ),
-                },
-            },
-            Either3::B(RevertResult { gas_used, output }) => edr_evm::ExecutionResult::Revert {
-                gas_used: gas_used.try_cast()?,
-                output: Bytes::copy_from_slice(output.into_value()?.as_ref()),
-            },
-            Either3::C(HaltResult { reason, gas_used }) => edr_evm::ExecutionResult::Halt {
-                reason: reason.into(),
-                gas_used: gas_used.try_cast()?,
-            },
-        };
-
-        Ok(result)
-    }
-}
-
-#[napi]
-pub struct TransactionResult {
-    inner: edr_evm::ExecutionResult,
-    state: Option<edr_evm::State>,
-    trace: Option<edr_evm::trace::Trace>,
-}
-
-impl TransactionResult {
-    /// Constructs a new [`TransactionResult`] instance.
-    pub fn new(
-        result: edr_evm::ExecutionResult,
-        state: Option<edr_evm::State>,
-        trace: Option<edr_evm::trace::Trace>,
-    ) -> Self {
-        Self {
-            inner: result,
-            state,
-            trace,
-        }
-    }
-}
-
-#[napi]
-impl TransactionResult {
-    #[napi(getter)]
-    pub fn result(&self, env: Env) -> napi::Result<ExecutionResult> {
-        ExecutionResult::new(&env, &self.inner)
-    }
-
-    #[napi(getter)]
-    pub fn state(&self) -> napi::Result<Option<serde_json::Value>> {
-        serde_json::to_value(&self.state)
-            .map(Some)
-            .map_err(From::from)
-    }
-
-    #[napi(getter)]
-    pub fn trace(
-        &self,
-        env: Env,
-    ) -> napi::Result<Option<Vec<Either3<TracingMessage, TracingStep, TracingMessageResult>>>> {
-        self.trace.as_ref().map_or(Ok(None), |trace| {
-            trace
-                .messages
-                .iter()
-                .map(|message| match message {
-                    edr_evm::trace::TraceMessage::Before(message) => {
-                        TracingMessage::new(&env, message).map(Either3::A)
-                    }
-                    edr_evm::trace::TraceMessage::Step(step) => {
-                        Ok(Either3::B(TracingStep::new(step)))
-                    }
-                    edr_evm::trace::TraceMessage::After(result) => {
-                        ExecutionResult::new(&env, result).map(|execution_result| {
-                            Either3::C(TracingMessageResult { execution_result })
-                        })
-                    }
-                })
-                .collect::<napi::Result<_>>()
-                .map(Some)
-        })
     }
 }

@@ -37,7 +37,7 @@ impl alloy_rlp::Encodable for BlockReceipt {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "serde"))]
 mod test {
     use assert_json_diff::assert_json_eq;
     use revm_primitives::SpecId;

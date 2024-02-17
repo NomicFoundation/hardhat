@@ -283,7 +283,7 @@ export class ConsoleLogger {
   }
 }
 
-function consoleLogToString(log: ConsoleLogs): string {
+export function consoleLogToString(log: ConsoleLogs): string {
   if (log === undefined) {
     return "";
   }

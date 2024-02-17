@@ -61,7 +61,7 @@ pub enum TransactionCreationError {
         /// The initial gas cost of a transaction
         initial_gas_cost: U256,
         /// The gas limit of the transaction
-        gas_limit: U256,
+        gas_limit: u64,
     },
     /// An error involving the transaction's signature.
     #[error(transparent)]

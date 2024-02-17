@@ -33,6 +33,7 @@ declare module "mocha" {
     logger: FakeModulesLogger;
     provider: EthereumProvider;
     hardhatNetworkProvider: EIP1193Provider;
+    isEdr: boolean;
     server?: JsonRpcServer;
     serverInfo?: { address: string; port: number };
   }
@@ -126,9 +127,7 @@ export function useProvider({
       );
     }
 
-    this.isEdr = () => {
-      return isEdrProvider(provider);
-    };
+    this.isEdr = isEdrProvider(provider);
   });
 
   afterEach("Remove provider", async function () {

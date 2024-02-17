@@ -1,11 +1,10 @@
-use std::{path::PathBuf, time::SystemTime};
+use std::{convert::Infallible, path::PathBuf, time::SystemTime};
 
 use edr_eth::{
-    block::BlobGas, signature::secret_key_from_str, trie::KECCAK_NULL_RLP, AccountInfo, Address,
-    HashMap, SpecId, U256,
+    block::BlobGas, signature::secret_key_from_str, trie::KECCAK_NULL_RLP, Address, HashMap,
+    SpecId, U256,
 };
-use edr_evm::{alloy_primitives::U160, KECCAK_EMPTY};
-use edr_test_utils::env::get_alchemy_url;
+use edr_evm::{alloy_primitives::U160, Block};
 
 use super::*;
 use crate::{config::MiningConfig, requests::hardhat::rpc_types::ForkConfig};
@@ -21,42 +20,17 @@ pub const FORK_BLOCK_NUMBER: u64 = 18_725_000;
 
 /// Constructs a test config with a single account with 1 ether
 pub fn create_test_config(cache_dir: PathBuf) -> ProviderConfig {
-    create_test_config_with_impersonated_accounts_and_fork(cache_dir, vec![], false)
+    create_test_config_with_fork(cache_dir, None)
 }
 
 pub fn one_ether() -> U256 {
     U256::from(10).pow(U256::from(18))
 }
 
-pub fn create_test_config_with_impersonated_accounts_and_fork(
+pub fn create_test_config_with_fork(
     cache_dir: PathBuf,
-    impersonated_accounts: Vec<Address>,
-    forked: bool,
+    fork: Option<ForkConfig>,
 ) -> ProviderConfig {
-    let genesis_accounts = impersonated_accounts
-        .into_iter()
-        .map(|address| {
-            let account_info = AccountInfo {
-                balance: one_ether(),
-                nonce: 0,
-                code: None,
-                code_hash: KECCAK_EMPTY,
-            };
-            (address, account_info)
-        })
-        .collect();
-
-    let fork = if forked {
-        Some(ForkConfig {
-            json_rpc_url: get_alchemy_url(),
-            // Random recent block for better cache consistency
-            block_number: Some(FORK_BLOCK_NUMBER),
-            http_headers: None,
-        })
-    } else {
-        None
-    };
-
     ProviderConfig {
         accounts: vec![
             AccountConfig {
@@ -79,7 +53,7 @@ pub fn create_test_config_with_impersonated_accounts_and_fork(
         chains: HashMap::new(),
         coinbase: Address::from(U160::from(1)),
         fork,
-        genesis_accounts,
+        genesis_accounts: HashMap::new(),
         hardfork: SpecId::LATEST,
         initial_base_fee_per_gas: Some(U256::from(1000000000)),
         initial_blob_gas: Some(BlobGas {
@@ -93,4 +67,18 @@ pub fn create_test_config_with_impersonated_accounts_and_fork(
         network_id: 123,
         cache_dir,
     }
+}
+
+/// Retrieves the pending base fee per gas from the provider data.
+pub fn pending_base_fee(
+    data: &mut ProviderData<Infallible>,
+) -> Result<U256, ProviderError<Infallible>> {
+    let block = data.mine_pending_block()?.block;
+
+    let base_fee = block
+        .header()
+        .base_fee_per_gas
+        .unwrap_or_else(|| U256::from(1));
+
+    Ok(base_fee)
 }

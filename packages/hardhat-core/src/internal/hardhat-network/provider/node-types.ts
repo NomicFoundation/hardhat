@@ -1,20 +1,7 @@
-import type { ReturnData } from "./return-data";
-import type { RunBlockResult } from "./vm/vm-adapter";
-
-import { Block } from "@nomicfoundation/ethereumjs-block";
-import { Address } from "@nomicfoundation/ethereumjs-util";
-
 import { HARDHAT_MEMPOOL_SUPPORTED_ORDERS } from "../../constants";
 import { BuildInfo, HardhatNetworkChainsConfig } from "../../../types";
-import { MessageTrace } from "../stack-traces/message-trace";
 
 export type NodeConfig = LocalNodeConfig | ForkedNodeConfig;
-
-export function isForkedNodeConfig(
-  config: NodeConfig
-): config is ForkedNodeConfig {
-  return "forkConfig" in config && config.forkConfig !== undefined;
-}
 
 interface CommonConfig {
   automine: boolean;
@@ -50,6 +37,7 @@ export interface ForkedNodeConfig extends CommonConfig {
 
 export interface TracingConfig {
   buildInfos?: BuildInfo[];
+  ignoreContracts?: boolean;
 }
 
 export type IntervalMiningConfig = number | [number, number];
@@ -62,21 +50,6 @@ export interface GenesisAccount {
 }
 
 export type AccessListBufferItem = [Buffer, Buffer[]];
-
-export interface CallParams {
-  to?: Buffer;
-  from: Buffer;
-  gasLimit: bigint;
-  value: bigint;
-  data: Buffer;
-  // We use this access list format because @nomicfoundation/ethereumjs-tx access list data
-  // forces us to use it or stringify them
-  accessList?: AccessListBufferItem[];
-  // Fee params
-  gasPrice?: bigint;
-  maxFeePerGas?: bigint;
-  maxPriorityFeePerGas?: bigint;
-}
 
 export type TransactionParams =
   | LegacyTransactionParams
@@ -110,56 +83,4 @@ export interface EIP1559TransactionParams extends BaseTransactionParams {
   accessList: AccessListBufferItem[];
   maxFeePerGas: bigint;
   maxPriorityFeePerGas: bigint;
-}
-
-export interface FilterParams {
-  fromBlock: bigint;
-  toBlock: bigint;
-  addresses: Buffer[];
-  normalizedTopics: Array<Array<Buffer | null> | null>;
-}
-
-export interface Snapshot {
-  id: number;
-  date: Date;
-  latestBlock: Block;
-  stateSnapshotId: number;
-  txPoolSnapshotId: number;
-  blockTimeOffsetSeconds: bigint;
-  nextBlockTimestamp: bigint;
-  userProvidedNextBlockBaseFeePerGas: bigint | undefined;
-  coinbase: Address;
-  nextPrevRandao: Buffer;
-}
-
-export type SendTransactionResult =
-  | string
-  | MineBlockResult
-  | MineBlockResult[];
-
-export interface MineBlockResult {
-  block: Block;
-  blockResult: RunBlockResult;
-  traces: GatherTracesResult[];
-}
-
-export interface RunCallResult extends GatherTracesResult {
-  result: ReturnData;
-}
-
-export interface EstimateGasResult extends GatherTracesResult {
-  estimation: bigint;
-}
-
-export interface GatherTracesResult {
-  trace: MessageTrace | undefined;
-  error?: Error;
-  consoleLogMessages: string[];
-}
-
-export interface FeeHistory {
-  oldestBlock: bigint;
-  baseFeePerGas: bigint[];
-  gasUsedRatio: number[];
-  reward?: bigint[][];
 }

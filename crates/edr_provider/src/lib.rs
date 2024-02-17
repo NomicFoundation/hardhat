@@ -16,7 +16,7 @@ pub mod test_utils;
 use core::fmt::Debug;
 use std::sync::Arc;
 
-use edr_evm::{blockchain::BlockchainError, HashSet};
+use edr_evm::{blockchain::BlockchainError, trace::Trace, HashSet};
 use lazy_static::lazy_static;
 use logger::SyncLogger;
 use parking_lot::Mutex;
@@ -51,6 +51,12 @@ lazy_static! {
         .into_iter()
         .collect()
     };
+}
+
+#[derive(Clone, Debug)]
+pub struct ResponseWithTraces {
+    pub result: serde_json::Value,
+    pub traces: Vec<Trace>,
 }
 
 /// A JSON-RPC provider for Ethereum.
@@ -122,7 +128,7 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
     pub fn handle_request(
         &self,
         request: ProviderRequest,
-    ) -> Result<serde_json::Value, ProviderError<LoggerErrorT>> {
+    ) -> Result<ResponseWithTraces, ProviderError<LoggerErrorT>> {
         let mut data = task::block_in_place(|| self.runtime.block_on(self.data.lock()));
 
         match request {
@@ -148,21 +154,25 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
         &self,
         data: &mut ProviderData<LoggerErrorT>,
         request: Vec<MethodInvocation>,
-    ) -> Result<serde_json::Value, ProviderError<LoggerErrorT>> {
+    ) -> Result<ResponseWithTraces, ProviderError<LoggerErrorT>> {
         let mut results = Vec::new();
+        let mut traces = Vec::new();
 
         for req in request {
-            results.push(self.handle_single_request(data, req)?);
+            let response = self.handle_single_request(data, req)?;
+            results.push(response.result);
+            traces.extend(response.traces);
         }
 
-        serde_json::to_value(results).map_err(ProviderError::Serialization)
+        let result = serde_json::to_value(results).map_err(ProviderError::Serialization)?;
+        Ok(ResponseWithTraces { result, traces })
     }
 
     fn handle_single_request(
         &self,
         data: &mut ProviderData<LoggerErrorT>,
         request: MethodInvocation,
-    ) -> Result<serde_json::Value, ProviderError<LoggerErrorT>> {
+    ) -> Result<ResponseWithTraces, ProviderError<LoggerErrorT>> {
         let method_name = if data.logger_mut().is_enabled() {
             let method_name = request.method_name();
             if PRIVATE_RPC_METHODS.contains(method_name) {
@@ -182,12 +192,13 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
             }
             MethodInvocation::Call(request, block_spec, state_overrides) => {
                 eth::handle_call_request(data, request, block_spec, state_overrides)
-                    .and_then(to_json)
+                    .and_then(to_json_with_trace)
             }
             MethodInvocation::ChainId(()) => eth::handle_chain_id_request(data).and_then(to_json),
             MethodInvocation::Coinbase(()) => eth::handle_coinbase_request(data).and_then(to_json),
             MethodInvocation::EstimateGas(call_request, block_spec) => {
-                eth::handle_estimate_gas(data, call_request, block_spec).and_then(to_json)
+                eth::handle_estimate_gas(data, call_request, block_spec)
+                    .and_then(to_json_with_traces)
             }
             MethodInvocation::FeeHistory(block_count, newest_block, reward_percentiles) => {
                 eth::handle_fee_history(data, block_count, newest_block, reward_percentiles)
@@ -270,10 +281,12 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
                 eth::handle_pending_transactions(data).and_then(to_json)
             }
             MethodInvocation::SendRawTransaction(raw_transaction) => {
-                eth::handle_send_raw_transaction_request(data, raw_transaction).and_then(to_json)
+                eth::handle_send_raw_transaction_request(data, raw_transaction)
+                    .and_then(to_json_with_traces)
             }
             MethodInvocation::SendTransaction(transaction_request) => {
-                eth::handle_send_transaction_request(data, transaction_request).and_then(to_json)
+                eth::handle_send_transaction_request(data, transaction_request)
+                    .and_then(to_json_with_traces)
             }
             MethodInvocation::Sign(message, address) => {
                 eth::handle_sign_request(data, message, address).and_then(to_json)
@@ -306,7 +319,7 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
                 eth::handle_increase_time_request(data, increment).and_then(to_json)
             }
             MethodInvocation::EvmMine(timestamp) => {
-                eth::handle_mine_request(data, timestamp).and_then(to_json)
+                eth::handle_mine_request(data, timestamp).and_then(to_json_with_traces)
             }
             MethodInvocation::EvmRevert(snapshot_id) => {
                 eth::handle_revert_request(data, snapshot_id).and_then(to_json)
@@ -357,6 +370,7 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
             MethodInvocation::ImpersonateAccount(address) => {
                 hardhat::handle_impersonate_account_request(data, *address).and_then(to_json)
             }
+            // TODO: how to return traces from interval mine to the client?
             MethodInvocation::IntervalMine(()) => {
                 hardhat::handle_interval_mine_request(data).and_then(to_json)
             }
@@ -364,7 +378,7 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
                 hardhat::handle_metadata_request(data).and_then(to_json)
             }
             MethodInvocation::Mine(number_of_blocks, interval) => {
-                hardhat::handle_mine(data, number_of_blocks, interval).and_then(to_json)
+                hardhat::handle_mine(data, number_of_blocks, interval).and_then(to_json_with_traces)
             }
             MethodInvocation::Reset(config) => self.reset(data, config).and_then(to_json),
             MethodInvocation::SetBalance(address, balance) => {
@@ -432,6 +446,33 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
 
 fn to_json<T: serde::Serialize, LoggerErrorT: Debug>(
     value: T,
-) -> Result<serde_json::Value, ProviderError<LoggerErrorT>> {
-    serde_json::to_value(value).map_err(ProviderError::Serialization)
+) -> Result<ResponseWithTraces, ProviderError<LoggerErrorT>> {
+    let response = serde_json::to_value(value).map_err(ProviderError::Serialization)?;
+
+    Ok(ResponseWithTraces {
+        result: response,
+        traces: Vec::new(),
+    })
+}
+
+fn to_json_with_trace<T: serde::Serialize, LoggerErrorT: Debug>(
+    value: (T, Trace),
+) -> Result<ResponseWithTraces, ProviderError<LoggerErrorT>> {
+    let response = serde_json::to_value(value.0).map_err(ProviderError::Serialization)?;
+
+    Ok(ResponseWithTraces {
+        result: response,
+        traces: vec![value.1],
+    })
+}
+
+fn to_json_with_traces<T: serde::Serialize, LoggerErrorT: Debug>(
+    value: (T, Vec<Trace>),
+) -> Result<ResponseWithTraces, ProviderError<LoggerErrorT>> {
+    let response = serde_json::to_value(value.0).map_err(ProviderError::Serialization)?;
+
+    Ok(ResponseWithTraces {
+        result: response,
+        traces: value.1,
+    })
 }

@@ -453,7 +453,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
           ).to.not.be.revertedWithCustomError(matchers, "SomeCustomError")
         ).to.be.eventually.rejectedWith(
           ProviderError,
-          "sender doesn't have enough funds to send tx"
+          "Sender doesn't have enough funds to send tx"
         );
       });
     });

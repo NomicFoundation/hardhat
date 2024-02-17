@@ -22,7 +22,7 @@ pub use crate::{
     },
     evm::SyncInspector,
     inspector::*,
-    mempool::{MemPool, MinerTransactionError, OrderedTransaction},
+    mempool::{MemPool, MemPoolAddTransactionError, OrderedTransaction},
     miner::*,
     random::RandomHashGenerator,
     runtime::{dry_run, guaranteed_dry_run, run, SyncDatabase},
@@ -48,6 +48,9 @@ pub mod mempool;
 mod miner;
 pub(crate) mod random;
 mod runtime;
+/// Utilities for testing
+#[cfg(any(test, feature = "test-utils"))]
+pub mod test_utils;
 mod transaction;
 
 /// Types for managing Ethereum precompiles

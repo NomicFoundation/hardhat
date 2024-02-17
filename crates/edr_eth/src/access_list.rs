@@ -63,7 +63,7 @@ impl From<AccessList> for Vec<(Address, Vec<U256>)> {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "serde"))]
 mod tests {
     use serde_json::json;
 

@@ -58,7 +58,7 @@
     "web3": "^1.0.0-beta.36"
   },
   "peerDependencies": {
-    "hardhat": "^2.0.0",
+    "hardhat": "workspace:^2.0.0",
     "web3": "^1.0.0-beta.36"
   },
   "dependencies": {

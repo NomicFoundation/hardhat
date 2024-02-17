@@ -65,7 +65,7 @@ jobs:
           args: check --feature-powerset --no-dev-deps
 
   test-core:
-    name: Test core (${{ matrix.os }}, Node ${{ matrix.node }}, ${{ matrix.vm }})
+    name: Test core (${{ matrix.os }}, Node ${{ matrix.node }})
     runs-on: ${{ matrix.os }}
     needs: check-edr
     strategy:
@@ -75,7 +75,6 @@ jobs:
         # disable until actions/virtual-environments#4896 is fixed
         # os: ["macos-latest", "ubuntu-latest", "windows-latest"]
         os: ["ubuntu-latest", "windows-latest"]
-        vm: ["dual", "ethereumjs", "edr"]
     steps:
       - uses: actions/checkout@v3
 
@@ -113,13 +112,12 @@ jobs:
         env:
           INFURA_URL: ${{ secrets.INFURA_URL }}
           ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
-          HARDHAT_EXPERIMENTAL_VM_MODE: ${{ matrix.vm }}
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
         run: pnpm test:except-provider
 
   test-provider:
-    name: Test provider (${{ matrix.os }}, Node ${{ matrix.node }}, ${{ matrix.vm }})
+    name: Test provider (${{ matrix.os }}, Node ${{ matrix.node }})
     runs-on: ${{ matrix.os }}
     needs: check-edr
     strategy:
@@ -129,7 +127,6 @@ jobs:
         # disable until actions/virtual-environments#4896 is fixed
         # os: ["macos-latest", "ubuntu-latest", "windows-latest"]
         os: ["ubuntu-latest", "windows-latest"]
-        vm: ["dual", "ethereumjs", "edr"]
     steps:
       - uses: actions/checkout@v3
 
@@ -174,55 +171,9 @@ jobs:
         env:
           INFURA_URL: ${{ secrets.INFURA_URL }}
           ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
-          HARDHAT_EXPERIMENTAL_VM_MODE: ${{ matrix.vm }}
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
         run: pnpm test:provider
-
-  test-edr-js:
-    name: Test EDR bindings (${{ matrix.os }}, Node ${{ matrix.node }})
-    runs-on: ${{ matrix.os }}
-    needs: check-edr
-    strategy:
-      fail-fast: false
-      matrix:
-        node: [18.15]
-        os: ["macos-latest", "ubuntu-latest", "windows-latest"]
-        include:
-          - RUSTFLAGS: "-Dwarnings"
-          - os: "windows-latest"
-            RUSTFLAGS: "-Dwarnings -Ctarget-feature=+crt-static"
-    defaults:
-      run:
-        working-directory: crates/edr_napi
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8
-      - uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.node }}
-          cache: pnpm
-
-      - name: Install node dependencies
-        run: pnpm install --frozen-lockfile --prefer-offline
-
-      - name: Install Rust (stable)
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          override: true
-          components: rustfmt
-
-      - uses: Swatinem/rust-cache@v2
-
-      - name: Build
-        run: pnpm build
-
-      - name: Test
-        run: pnpm test
 
   test-edr-rs:
     name: Test EDR (${{ matrix.os }})

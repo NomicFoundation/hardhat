@@ -32,18 +32,24 @@ importers:
       '@napi-rs/cli':
         specifier: ^2.16.3
         version: 2.16.5
-      '@nomicfoundation/ethereumjs-util':
-        specifier: 9.0.3
-        version: 9.0.3
       '@types/chai':
         specifier: ^4.2.0
         version: 4.3.5
+      '@types/chai-as-promised':
+        specifier: ^7.1.8
+        version: 7.1.8
       '@types/mocha':
         specifier: '>=9.1.0'
         version: 10.0.1
+      '@types/node':
+        specifier: ^16.0.0
+        version: 16.18.40
       chai:
         specifier: ^4.3.6
         version: 4.3.7
+      chai-as-promised:
+        specifier: ^7.1.1
+        version: 7.1.1(chai@4.3.7)
       mocha:
         specifier: ^10.0.0
         version: 10.2.0
@@ -1479,7 +1485,7 @@ importers:
         specifier: ^5.0.0
         version: 5.7.2
       hardhat:
-        specifier: ^2.0.4
+        specifier: workspace:^2.0.4
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -2122,6 +2128,7 @@ packages:
 
   /@chainsafe/as-sha256@0.3.1:
     resolution: {integrity: sha512-hldFFYuf49ed7DAakWVXSJODuq3pzJEguD8tQ7h+sGkM18vja+OFoJI9krnGmgzyuZC2ETX0NOIcCTy31v2Mtg==}
+    dev: false
 
   /@chainsafe/persistent-merkle-tree@0.4.2:
     resolution: {integrity: sha512-lLO3ihKPngXLTus/L7WHKaw9PnNJWizlOF1H9NNzHP6Xvh82vzg9F2bzkXhYIFshMZ2gTCEz8tq6STe7r5NDfQ==}
@@ -2133,12 +2140,14 @@ packages:
     resolution: {integrity: sha512-l0V1b5clxA3iwQLXP40zYjyZYospQLZXzBVIhhr9kDg/1qHZfzzHw0jj4VPBijfYCArZDlPkRi1wZaV2POKeuw==}
     dependencies:
       '@chainsafe/as-sha256': 0.3.1
+    dev: false
 
   /@chainsafe/ssz@0.10.2:
     resolution: {integrity: sha512-/NL3Lh8K+0q7A3LsiFq09YXS9fPE+ead2rr7vM2QK8PLzrNsw3uqrif9bpRX5UxgeRjM+vYi+boCM3+GM4ovXg==}
     dependencies:
       '@chainsafe/as-sha256': 0.3.1
       '@chainsafe/persistent-merkle-tree': 0.5.0
+    dev: false
 
   /@chainsafe/ssz@0.9.4:
     resolution: {integrity: sha512-77Qtg2N1ayqs4Bg/wvnWfg5Bta7iy7IRh8XqXh7oNMeP2HBbBwx8m6yTpA8p0EHItWPEBkgZd5S5/LSlp3GXuQ==}
@@ -3126,6 +3135,7 @@ packages:
     resolution: {integrity: sha512-5D16EqzW4TeuOgBQeq+/atcYs8Sq9eD1C3vvXzIsr+LI3riNLFsLs8Xy9rqYazTWdqI6AWHZiSWmVlijOMr5qg==}
     engines: {node: '>=14'}
     hasBin: true
+    dev: false
 
   /@nomicfoundation/ethereumjs-statemanager@2.0.3:
     resolution: {integrity: sha512-7Tqeqq36ama0JoBo4vH+opumPMi/jGctYlki82cw6myY/LMTxgeQat68v4hUMMDL8Kk+d/SToI34ekPbWGueIQ==}
@@ -3175,6 +3185,7 @@ packages:
       '@chainsafe/ssz': 0.10.2
       '@nomicfoundation/ethereumjs-rlp': 5.0.3
       ethereum-cryptography: 0.1.3
+    dev: false
 
   /@nomicfoundation/ethereumjs-vm@7.0.3:
     resolution: {integrity: sha512-uQu2emoq+YTxjzFazsDMnJKHnwxmPTb3CV+oQ/o54KnJGQ8rc0appVmiC+Yrlxf818tz6iw0tr4UigJUX4qmkg==}

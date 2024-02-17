@@ -1,4 +1,3 @@
-import { Common } from "@nomicfoundation/ethereumjs-common";
 import { toBuffer } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 import fs from "fs";
@@ -6,14 +5,12 @@ import fsExtra from "fs-extra";
 import path from "path";
 import semver from "semver";
 
+import { EdrProviderWrapper } from "../../../../src/internal/hardhat-network/provider/provider";
 import { ReturnData } from "../../../../src/internal/hardhat-network/provider/return-data";
-import { VMAdapter } from "../../../../src/internal/hardhat-network/provider/vm/vm-adapter";
-import { createModelsAndDecodeBytecodes } from "../../../../src/internal/hardhat-network/stack-traces/compiler-to-model";
 import {
-  ConsoleLogger,
   ConsoleLogs,
+  consoleLogToString,
 } from "../../../../src/internal/hardhat-network/stack-traces/consoleLogger";
-import { ContractsIdentifier } from "../../../../src/internal/hardhat-network/stack-traces/contracts-identifier";
 import {
   printMessageTrace,
   printStackTrace,
@@ -30,7 +27,9 @@ import {
 } from "../../../../src/internal/hardhat-network/stack-traces/solidity-stack-trace";
 import { SolidityTracer } from "../../../../src/internal/hardhat-network/stack-traces/solidityTracer";
 import { VmTraceDecoder } from "../../../../src/internal/hardhat-network/stack-traces/vm-trace-decoder";
+import { VMTracer } from "../../../../src/internal/hardhat-network/stack-traces/vm-tracer";
 import {
+  BuildInfo,
   CompilerInput,
   CompilerOutput,
   CompilerOutputBytecode,
@@ -38,6 +37,9 @@ import {
 import { setCWD } from "../helpers/cwd";
 
 import { SUPPORTED_SOLIDITY_VERSION_RANGE } from "../../../../src/internal/hardhat-network/stack-traces/constants";
+import { TracingConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
+import { BUILD_INFO_FORMAT_VERSION } from "../../../../src/internal/constants";
+import { FakeModulesLogger } from "../helpers/fakeLogger";
 import {
   compileFiles,
   COMPILER_DOWNLOAD_TIMEOUT,
@@ -52,7 +54,7 @@ import {
 import {
   encodeCall,
   encodeConstructorParams,
-  instantiateContext,
+  instantiateProvider,
   traceTransaction,
 } from "./execution";
 
@@ -135,11 +137,7 @@ function defineTest(
     testDefinition.solc !== undefined &&
     !semver.satisfies(compilerOptions.solidityVersion, testDefinition.solc);
 
-  // Disabled as revm and ethereumjs have slightly different outputs
-  const dualModeDifference: boolean =
-    (process.env.HARDHAT_EXPERIMENTAL_VM_MODE === undefined ||
-      process.env.HARDHAT_EXPERIMENTAL_VM_MODE === "dual") &&
-    dirPath.includes("oog-chaining");
+  dirPath.includes("oog-chaining");
 
   const func = async function (this: Mocha.Context) {
     this.timeout(TEST_TIMEOUT_MILLIS);
@@ -151,8 +149,7 @@ function defineTest(
     testDefinition.skip === true ||
     (testDefinition.skipViaIR === true &&
       compilerOptions.optimizer?.viaIR === true) ||
-    solcVersionDoesntMatch ||
-    dualModeDifference
+    solcVersionDoesntMatch
   ) {
     it.skip(desc, func);
   } else if (testDefinition.only !== undefined && testDefinition.only) {
@@ -458,7 +455,7 @@ function compareStackTraces(
   assert.lengthOf(trace, description.length);
 }
 
-function compareConsoleLogs(logs: ConsoleLogs[], expectedLogs?: ConsoleLogs[]) {
+function compareConsoleLogs(logs: string[], expectedLogs?: ConsoleLogs[]) {
   if (expectedLogs === undefined) {
     return;
   }
@@ -467,13 +464,9 @@ function compareConsoleLogs(logs: ConsoleLogs[], expectedLogs?: ConsoleLogs[]) {
 
   for (let i = 0; i < logs.length; i++) {
     const actual = logs[i];
-    const expected = expectedLogs[i];
+    const expected = consoleLogToString(expectedLogs[i]);
 
-    assert.lengthOf(actual, expected.length);
-
-    for (let j = 0; j < actual.length; j++) {
-      assert.equal(actual[j], expected[j]);
-    }
+    assert.equal(actual, expected);
   }
 }
 
@@ -489,27 +482,30 @@ async function runTest(
     compilerOptions
   );
 
-  const bytecodes = createModelsAndDecodeBytecodes(
-    compilerOptions.solidityVersion,
-    compilerInput,
-    compilerOutput
+  const buildInfo: BuildInfo = {
+    id: "stack-traces-test",
+    _format: BUILD_INFO_FORMAT_VERSION,
+    solcVersion: compilerOptions.solidityVersion,
+    solcLongVersion: compilerOptions.solidityVersion,
+    input: compilerInput,
+    output: compilerOutput,
+  };
+
+  const tracingConfig: TracingConfig = {
+    buildInfos: [buildInfo],
+    ignoreContracts: true,
+  };
+
+  const logger = new FakeModulesLogger();
+  const solidityTracer = new SolidityTracer();
+  const [provider, vmTracer] = await instantiateProvider(
+    {
+      enabled: false,
+      printLineFn: logger.printLineFn(),
+      replaceLastLineFn: logger.replaceLastLineFn(),
+    },
+    tracingConfig
   );
-
-  const contractsIdentifier = new ContractsIdentifier();
-
-  for (const bytecode of bytecodes) {
-    if (bytecode.contract.name.startsWith("Ignored")) {
-      continue;
-    }
-
-    contractsIdentifier.addBytecode(bytecode);
-  }
-
-  const vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
-  const tracer = new SolidityTracer();
-  const logger = new ConsoleLogger();
-
-  const [context, common] = await instantiateContext();
 
   const txIndexToContract: Map<number, DeployedContract> = new Map();
 
@@ -520,8 +516,8 @@ async function runTest(
       trace = await runDeploymentTransactionTest(
         txIndex,
         tx,
-        context.vm(),
-        common,
+        provider,
+        vmTracer,
         compilerOutput,
         txIndexToContract
       );
@@ -544,15 +540,16 @@ async function runTest(
       trace = await runCallTransactionTest(
         txIndex,
         tx,
-        context.vm(),
-        common,
+        provider,
+        vmTracer,
         compilerOutput,
         contract!
       );
     }
 
-    compareConsoleLogs(logger.getExecutionLogs(trace), tx.consoleLogs);
+    compareConsoleLogs(logger.lines, tx.consoleLogs);
 
+    const vmTraceDecoder = (provider as any)._vmTraceDecoder as VmTraceDecoder;
     const decodedTrace = vmTraceDecoder.tryToDecodeMessageTrace(trace);
 
     try {
@@ -574,7 +571,7 @@ async function runTest(
     }
 
     if (trace.exit.isError()) {
-      const stackTrace = tracer.getStackTrace(decodedTrace);
+      const stackTrace = solidityTracer.getStackTrace(decodedTrace);
 
       try {
         compareStackTraces(
@@ -652,8 +649,8 @@ function linkBytecode(
 async function runDeploymentTransactionTest(
   txIndex: number,
   tx: DeploymentTransaction,
-  vm: VMAdapter,
-  common: Common,
+  provider: EdrProviderWrapper,
+  vmTracer: VMTracer,
   compilerOutput: CompilerOutput,
   txIndexToContract: Map<number, DeployedContract>
 ): Promise<CreateMessageTrace> {
@@ -685,10 +682,10 @@ async function runDeploymentTransactionTest(
 
   const data = Buffer.concat([deploymentBytecode, params]);
 
-  const trace = await traceTransaction(vm, common, {
-    value: tx.value,
+  const trace = await traceTransaction(provider, vmTracer, {
+    value: tx.value !== undefined ? BigInt(tx.value) : undefined,
     data,
-    gasLimit: tx.gas,
+    gas: tx.gas !== undefined ? BigInt(tx.gas) : undefined,
   });
 
   return trace as CreateMessageTrace;
@@ -697,8 +694,8 @@ async function runDeploymentTransactionTest(
 async function runCallTransactionTest(
   txIndex: number,
   tx: CallTransaction,
-  vm: VMAdapter,
-  common: Common,
+  provider: EdrProviderWrapper,
+  vmTracer: VMTracer,
   compilerOutput: CompilerOutput,
   contract: DeployedContract
 ): Promise<CallMessageTrace> {
@@ -719,11 +716,11 @@ async function runCallTransactionTest(
     data = Buffer.from([]);
   }
 
-  const trace = await traceTransaction(vm, common, {
+  const trace = await traceTransaction(provider, vmTracer, {
     to: contract.address,
-    value: tx.value,
+    value: tx.value !== undefined ? BigInt(tx.value) : undefined,
     data,
-    gasLimit: tx.gas,
+    gas: tx.gas !== undefined ? BigInt(tx.gas) : undefined,
   });
 
   return trace as CallMessageTrace;

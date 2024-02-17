@@ -66,8 +66,8 @@
     "web3": "^0.20.0"
   },
   "peerDependencies": {
-    "@nomiclabs/hardhat-web3-legacy": "^2.0.0",
-    "hardhat": "^2.6.4",
+    "@nomiclabs/hardhat-web3-legacy": "workspace:^2.0.0",
+    "hardhat": "workspace:^2.6.4",
     "web3": "^0.20.0"
   }
 }

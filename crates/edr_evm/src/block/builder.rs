@@ -8,7 +8,7 @@ use edr_eth::{
     log::{add_log_to_bloom, Log},
     receipt::{TransactionReceipt, TypedReceipt, TypedReceiptData},
     transaction::SignedTransaction,
-    trie::ordered_trie_root,
+    trie::{ordered_trie_root, KECCAK_NULL_RLP},
     Address, Bloom, U256,
 };
 use revm::{
@@ -166,6 +166,11 @@ impl BlockBuilder {
         self.header.gas_limit - self.gas_used()
     }
 
+    /// Retrieves the header of the block builder.
+    pub fn header(&self) -> &PartialHeader {
+        &self.header
+    }
+
     /// Adds a pending transaction to
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn add_transaction<BlockchainErrorT, StateErrorT>(
@@ -243,18 +248,16 @@ impl BlockBuilder {
             None
         };
 
+        let gas_price = transaction.gas_price();
         let effective_gas_price = if blockchain.spec_id() >= SpecId::LONDON {
-            let gas_price = transaction.gas_price();
-            Some(
-                if let SignedTransaction::Eip1559(transaction) = &*transaction {
-                    block.basefee
-                        + (gas_price - block.basefee).min(transaction.max_priority_fee_per_gas)
-                } else {
-                    gas_price
-                },
-            )
+            if let SignedTransaction::Eip1559(transaction) = &*transaction {
+                block.basefee
+                    + (gas_price - block.basefee).min(transaction.max_priority_fee_per_gas)
+            } else {
+                gas_price
+            }
         } else {
-            None
+            gas_price
         };
 
         let receipt = TransactionReceipt {
@@ -287,7 +290,7 @@ impl BlockBuilder {
             to: transaction.to(),
             contract_address,
             gas_used: result.gas_used(),
-            effective_gas_price,
+            effective_gas_price: Some(effective_gas_price),
         };
         self.receipts.push(receipt);
 
@@ -303,7 +306,6 @@ impl BlockBuilder {
         mut self,
         state: &mut StateT,
         rewards: Vec<(Address, U256)>,
-        timestamp: Option<u64>,
     ) -> Result<BuildBlockResult, StateErrorT>
     where
         StateT: SyncState<StateErrorT> + ?Sized,
@@ -332,10 +334,6 @@ impl BlockBuilder {
             self.header.gas_limit = gas_limit;
         }
 
-        self.header.state_root = state
-            .state_root()
-            .expect("Must be able to calculate state root");
-
         self.header.logs_bloom = {
             let mut logs_bloom = Bloom::ZERO;
             self.receipts.iter().for_each(|receipt| {
@@ -350,9 +348,15 @@ impl BlockBuilder {
                 .map(|receipt| alloy_rlp::encode(&**receipt)),
         );
 
-        if let Some(timestamp) = timestamp {
-            self.header.timestamp = timestamp;
-        } else if self.header.timestamp == 0 {
+        // Only set the state root if it wasn't specified during construction
+        if self.header.state_root == KECCAK_NULL_RLP {
+            self.header.state_root = state
+                .state_root()
+                .expect("Must be able to calculate state root");
+        }
+
+        // Only set the timestamp if it wasn't specified during construction
+        if self.header.timestamp == 0 {
             self.header.timestamp = SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .expect("Current time must be after unix epoch")

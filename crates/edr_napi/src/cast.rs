@@ -1,4 +1,4 @@
-use edr_eth::{B256, B64, U256};
+use edr_eth::{Address, B256, B64, U256};
 use napi::{
     bindgen_prelude::{BigInt, Buffer},
     Status,
@@ -13,6 +13,20 @@ pub trait TryCast<T>: Sized {
 
     /// Performs the conversion.
     fn try_cast(self) -> Result<T, Self::Error>;
+}
+
+impl TryCast<Address> for Buffer {
+    type Error = napi::Error;
+
+    fn try_cast(self) -> std::result::Result<Address, Self::Error> {
+        if self.len() != 20 {
+            return Err(napi::Error::new(
+                Status::InvalidArg,
+                "Buffer was expected to be 20 bytes.".to_string(),
+            ));
+        }
+        Ok(Address::from_slice(&self))
+    }
 }
 
 impl TryCast<B64> for Buffer {
