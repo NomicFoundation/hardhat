@@ -1,36 +1,12 @@
-import { HeaderData as EthereumJSHeaderData } from "@nomicfoundation/ethereumjs-block";
 import {
-  EVMResult,
-  Log as EthereumJsLog,
-  Message,
-} from "@nomicfoundation/ethereumjs-evm";
-import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
-import {
-  Address,
-  BufferLike,
-  toBuffer,
-} from "@nomicfoundation/ethereumjs-util";
-import {
-  BlockOptions,
-  ExecutionResult,
   SpecId,
   MineOrdering,
-  TracingMessage,
-  SuccessReason,
   IntervalRange,
   DebugTraceResult,
 } from "@ignored/edr";
-import { fromBigIntLike } from "../../../util/bigint";
 import { HardforkName } from "../../../util/hardforks";
-import {
-  isCreateOutput,
-  isHaltResult,
-  isRevertResult,
-  isSuccessResult,
-} from "../../stack-traces/message-trace";
 import { IntervalMiningConfig, MempoolOrder } from "../node-types";
 import { RpcDebugTraceOutput, RpcStructLog } from "../output";
-import { Exit, ExitCode } from "../vm/exit";
 
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
@@ -119,38 +95,6 @@ export function edrSpecIdToEthereumHardfork(specId: SpecId): HardforkName {
   }
 }
 
-export function ethereumjsHeaderDataToEdrBlockOptions(
-  headerData?: EthereumJSHeaderData
-): BlockOptions {
-  if (headerData === undefined) {
-    return {};
-  }
-
-  // Ensure that we leave leave options undefined, as opposed to `toBuffer`
-  function fromBufferLike(bufferLike?: BufferLike): Buffer | undefined {
-    if (bufferLike === undefined) {
-      return bufferLike;
-    }
-
-    return toBuffer(bufferLike);
-  }
-
-  return {
-    parentHash: fromBufferLike(headerData.parentHash),
-    beneficiary: fromBufferLike(headerData.coinbase),
-    stateRoot: fromBufferLike(headerData.stateRoot),
-    difficulty: fromBigIntLike(headerData.difficulty),
-    number: fromBigIntLike(headerData.number),
-    gasLimit: fromBigIntLike(headerData.gasLimit),
-    timestamp: fromBigIntLike(headerData.timestamp),
-    extraData: fromBufferLike(headerData.extraData),
-    mixHash: fromBufferLike(headerData.mixHash),
-    nonce: fromBufferLike(headerData.nonce),
-    baseFee: fromBigIntLike(headerData.baseFeePerGas),
-    withdrawalsRoot: fromBufferLike(headerData.withdrawalsRoot),
-  };
-}
-
 export function ethereumjsIntervalMiningConfigToEdr(
   config: IntervalMiningConfig
 ): bigint | IntervalRange | undefined {
@@ -177,140 +121,6 @@ export function ethereumjsMempoolOrderToEdrMineOrdering(
       return MineOrdering.Fifo;
     case "priority":
       return MineOrdering.Priority;
-  }
-}
-
-function getCreatedAddress(result: ExecutionResult): Address | undefined {
-  const address =
-    isSuccessResult(result.result) && isCreateOutput(result.result.output)
-      ? result.result.output.address
-      : undefined;
-
-  return address === undefined ? undefined : new Address(address);
-}
-
-function getExit(result: ExecutionResult): Exit {
-  return isSuccessResult(result.result)
-    ? Exit.fromEdrSuccessReason(result.result.reason)
-    : isHaltResult(result.result)
-    ? Exit.fromEdrExceptionalHalt(result.result.reason)
-    : new Exit(ExitCode.REVERT);
-}
-
-function getLogs(result: ExecutionResult): EthereumJsLog[] | undefined {
-  return isSuccessResult(result.result)
-    ? result.result.logs.map((log) => {
-        return [log.address, log.topics, log.data];
-      })
-    : undefined;
-}
-
-function getReturnValue(result: ExecutionResult): Buffer {
-  return isRevertResult(result.result)
-    ? result.result.output
-    : isSuccessResult(result.result)
-    ? result.result.output.returnValue
-    : Buffer.from([]);
-}
-
-export function edrResultToEthereumjsEvmResult(
-  result: ExecutionResult
-): EVMResult {
-  const exit = getExit(result);
-
-  const gasRefund = isSuccessResult(result.result)
-    ? result.result.gasRefunded
-    : undefined;
-
-  return {
-    createdAddress: getCreatedAddress(result),
-    execResult: {
-      exceptionError: exit.getEthereumJSError(),
-      executionGasUsed: result.result.gasUsed,
-      returnValue: getReturnValue(result),
-      gasRefund,
-      logs: getLogs(result),
-    },
-  };
-}
-
-export function ethereumjsEvmResultToEdrResult(
-  result: EVMResult,
-  overrideExceptionalHalt: boolean = false
-): ExecutionResult {
-  const gasUsed = result.execResult.executionGasUsed;
-
-  if (result.execResult.exceptionError === undefined) {
-    const reason =
-      result.execResult.selfdestruct !== undefined &&
-      Object.keys(result.execResult.selfdestruct).length > 0
-        ? SuccessReason.SelfDestruct
-        : result.createdAddress !== undefined ||
-          result.execResult.returnValue.length > 0
-        ? SuccessReason.Return
-        : SuccessReason.Stop;
-
-    return {
-      result: {
-        reason,
-        gasUsed,
-        gasRefunded: result.execResult.gasRefund ?? 0n,
-        logs:
-          result.execResult.logs?.map((log) => {
-            return {
-              address: log[0],
-              topics: log[1],
-              data: log[2],
-            };
-          }) ?? [],
-        output:
-          result.createdAddress === undefined
-            ? {
-                returnValue: result.execResult.returnValue,
-              }
-            : {
-                address: result.createdAddress.toBuffer(),
-                returnValue: result.execResult.returnValue,
-              },
-      },
-    };
-  } else if (result.execResult.exceptionError.error === ERROR.REVERT) {
-    return {
-      result: {
-        gasUsed,
-        output: result.execResult.returnValue,
-      },
-    };
-  } else {
-    if (overrideExceptionalHalt) {
-      const overridenResult: any = {
-        gasUsed,
-      };
-
-      // Throw an error if reason is accessed
-      Object.defineProperty(overridenResult, "reason", {
-        get: () => {
-          throw new Error(
-            "Cannot access reason of an exceptional halt in EthereumJS mode"
-          );
-        },
-      });
-
-      return {
-        result: overridenResult,
-      };
-    } else {
-      const vmError = Exit.fromEthereumJSEvmError(
-        result.execResult.exceptionError
-      );
-
-      return {
-        result: {
-          reason: vmError.getEdrExceptionalHalt(),
-          gasUsed,
-        },
-      };
-    }
   }
 }
 
@@ -367,42 +177,5 @@ export function edrRpcDebugTraceToHardhat(
     gas: Number(rpcDebugTrace.gasUsed),
     returnValue,
     structLogs,
-  };
-}
-
-export function edrTracingMessageToEthereumjsMessage(
-  message: TracingMessage
-): Message {
-  return new Message({
-    to: message.to !== undefined ? new Address(message.to) : undefined,
-    depth: message.depth,
-    data: message.data,
-    value: message.value,
-    codeAddress:
-      message.codeAddress !== undefined
-        ? new Address(message.codeAddress)
-        : undefined,
-    code: message.code,
-    caller: new Address(message.caller),
-    gasLimit: message.gasLimit,
-  });
-}
-
-export function ethereumjsMessageToEdrTracingMessage(
-  message: Message
-): TracingMessage {
-  return {
-    to: message.to?.buf,
-    depth: message.depth,
-    data: message.data,
-    value: message.value,
-    codeAddress: message._codeAddress?.buf,
-    code:
-      // We don't support the pre-compile format in EDR
-      message.code === undefined || message.isCompiled
-        ? undefined
-        : (message.code as Buffer),
-    caller: message.caller.buf,
-    gasLimit: message.gasLimit,
   };
 }
