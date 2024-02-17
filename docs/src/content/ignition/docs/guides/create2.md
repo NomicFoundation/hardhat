@@ -90,6 +90,52 @@ This guide assumes you are using the contracts and Ignition module from the [qui
 
 :::
 
+Our last step before deploying is to add a custom salt for the deployment. This step is optional, but it's recommended to avoid any potential collisions with other deployments. You can add a custom salt via your Hardhat config:
+
+::::tabsgroup{options=TypeScript,JavaScript}
+
+:::tab{value=TypeScript}
+
+```ts
+export default {
+  // ...rest of your config...
+  ignition: {
+    strategyConfig: {
+      create2: {
+        salt: "custom-salt",
+      },
+    },
+  },
+};
+```
+
+:::
+
+:::tab{value=JavaScript}
+
+```js
+module.exports = {
+  // ...rest of your config...
+  ignition: {
+    strategyConfig: {
+      create2: {
+        salt: "custom-salt",
+      },
+    },
+  },
+};
+```
+
+:::
+
+::::
+
+:::tip
+
+To learn more about salts and how they work, as well as additional security considerations, please see the [CreateX documentation](https://github.com/pcaversaccio/createx?tab=readme-ov-file#permissioned-deploy-protection-and-cross-chain-redeploy-protection).
+
+:::
+
 You can now run the deployment with `create2` using the newly added Sepolia network:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
