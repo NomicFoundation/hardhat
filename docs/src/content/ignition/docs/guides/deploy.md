@@ -64,6 +64,17 @@ npx hardhat ignition deploy ignition/modules/Apollo.js --parameters ignition/par
 
 ::::
 
+Let's say our `Apollo` module also accepts a `rocketValue` parameter and we want to set it to `1000000000000000000` (1 ETH, in wei). This number is large enough that it should be passed as a javascript `BigInt` instead of a plain Number, however, JSON does not support `BigInt` natively. To work around this, we can use a string representation of the `BigInt` in our JSON file like so:
+
+```json
+{
+  "Apollo": {
+    "name": "Saturn V",
+    "rocketValue": "1000000000000000000n"
+  }
+}
+```
+
 ## Inspecting an existing deployment
 
 To check on the current status of a deployment, run:
