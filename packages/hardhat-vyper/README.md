@@ -58,7 +58,7 @@ module.exports = {
 };
 ```
 
-You can also configure multiple versions of the Vyper compiler, as well as the compiler settings evmVersion (available from Vyper 0.3.8) and optimize (available from Vyper 0.3.10)
+You can also configure multiple versions of the Vyper compiler, as well as the compiler settings evmVersion and optimize. See the [Vyper docs](https://docs.vyperlang.org/en/v0.3.10/compiling-a-contract.html) for more info.
 
 ```js
 module.exports = {

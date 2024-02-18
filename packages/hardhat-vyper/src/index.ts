@@ -188,16 +188,19 @@ subtask(TASK_COMPILE_VYPER_RUN_BINARY)
     async ({
       inputPaths,
       vyperPath,
+      vyperVersion,
       settings,
     }: {
       inputPaths: string[];
       vyperPath: string;
+      vyperVersion?: string;
       settings?: VyperSettings;
     }): Promise<VyperOutput> => {
       const compiler = new Compiler(vyperPath);
 
       const { version, ...contracts } = await compiler.compile(
         inputPaths,
+        vyperVersion,
         settings
       );
 
@@ -261,21 +264,13 @@ subtask(TASK_COMPILE_VYPER)
         ])
       );
 
-      const versionGroups: Record<string, ResolvedFile[]> = {};
+      const versionGroups: Record<
+        string,
+        { files: ResolvedFile[]; settings: VyperSettings }
+      > = {};
       const unmatchedFiles: ResolvedFile[] = [];
 
       for (const file of resolvedFiles) {
-        const hasChanged = vyperFilesCache.hasFileChanged(
-          file.absolutePath,
-          file.contentHash,
-          {
-            version: file.content.versionPragma,
-            settings: versionsToSettings[file.content.versionPragma] ?? {},
-          }
-        );
-
-        if (!hasChanged) continue;
-
         const maxSatisfyingVersion = semver.maxSatisfying(
           configuredVersions,
           file.content.versionPragma
@@ -287,12 +282,28 @@ subtask(TASK_COMPILE_VYPER)
           continue;
         }
 
+        const settings = versionsToSettings[maxSatisfyingVersion] ?? {};
+
+        const hasChanged = vyperFilesCache.hasFileChanged(
+          file.absolutePath,
+          file.contentHash,
+          {
+            version: maxSatisfyingVersion,
+            settings,
+          }
+        );
+
+        if (!hasChanged) continue;
+
         if (versionGroups[maxSatisfyingVersion] === undefined) {
-          versionGroups[maxSatisfyingVersion] = [file];
+          versionGroups[maxSatisfyingVersion] = {
+            files: [file],
+            settings,
+          };
           continue;
         }
 
-        versionGroups[maxSatisfyingVersion].push(file);
+        versionGroups[maxSatisfyingVersion].files.push(file);
       }
 
       if (unmatchedFiles.length > 0) {
@@ -311,9 +322,9 @@ ${list}`
         );
       }
 
-      for (const [vyperVersion, files] of Object.entries(versionGroups)) {
-        const settings = versionsToSettings[vyperVersion] ?? {};
-
+      for (const [vyperVersion, { files, settings }] of Object.entries(
+        versionGroups
+      )) {
         const vyperBuild: VyperBuild = await run(TASK_COMPILE_VYPER_GET_BUILD, {
           quiet,
           vyperVersion,
@@ -328,6 +339,7 @@ ${list}`
           {
             inputPaths: files.map(({ absolutePath }) => absolutePath),
             vyperPath: vyperBuild.compilerPath,
+            vyperVersion,
             settings,
           }
         );

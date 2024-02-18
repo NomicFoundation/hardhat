@@ -58,15 +58,94 @@ describe("Vyper plugin", function () {
       });
     });
 
-    describe("compilation with wrong settings", function () {
-      useFixtureProject("compilation-with-vyper-settings-failure");
+    describe("optimize, as boolean type, can always be set to false in versions >= 0.3.10 (flag --optimize none)", function () {
+      useFixtureProject(
+        "compilation-with-settings-option-variants/optimize-set-to-false-always-available-new-versions"
+      );
       useEnvironment();
 
-      it("should fail the compilation, invalid settings", async function () {
-        // compiler version is set to 0.3.7, which does not support the settings 'evmVersion' and 'optimize'
+      it("should compile successfully", async function () {
+        await this.env.run(TASK_COMPILE);
+        assertFileExists(path.join("artifacts", "contracts", "A.vy", "A.json"));
+      });
+    });
+
+    describe("optimize, as boolean type, can always be set to false in versions < 0.3.10 (flag --no-optimize)", function () {
+      useFixtureProject(
+        "compilation-with-settings-option-variants/optimize-set-to-false-always-available-old-versions"
+      );
+      useEnvironment();
+
+      it("should compile successfully", async function () {
+        await this.env.run(TASK_COMPILE);
+        assertFileExists(path.join("artifacts", "contracts", "A.vy", "A.json"));
+      });
+    });
+
+    describe("optimize setting set to true in supported versions", function () {
+      useFixtureProject(
+        "compilation-with-settings-option-variants/optimize-set-to-true"
+      );
+      useEnvironment();
+
+      it("should compile successfully", async function () {
+        await this.env.run(TASK_COMPILE);
+        assertFileExists(path.join("artifacts", "contracts", "A.vy", "A.json"));
+      });
+    });
+
+    describe("optimize set to true is not available for versions >= 0.3.10", function () {
+      useFixtureProject(
+        "compilation-with-settings-option-variants/optimize-true-not-available-new-versions"
+      );
+      useEnvironment();
+
+      it("should fail the compilation", async function () {
         await expect(this.env.run(TASK_COMPILE)).to.be.rejectedWith(
           Error,
-          /--evm-version paris --optimize gas/
+          "The 'optimize' setting with value 'true' is not supported for versions of the Vyper compiler older than 0.3.1 or newer than 0.3.10. You are currently using version 0.3.10."
+        );
+      });
+    });
+
+    describe("optimize set to true is not available for versions < 0.3.1", function () {
+      useFixtureProject(
+        "compilation-with-settings-option-variants/optimize-true-not-available-old-versions"
+      );
+      useEnvironment();
+
+      it("should fail the compilation", async function () {
+        await expect(this.env.run(TASK_COMPILE)).to.be.rejectedWith(
+          Error,
+          "The 'optimize' setting with value 'true' is not supported for versions of the Vyper compiler older than 0.3.1 or newer than 0.3.10. You are currently using version 0.3.0."
+        );
+      });
+    });
+
+    describe("optimize setting cannot be a string for version < 0.3.10", function () {
+      useFixtureProject(
+        "compilation-with-settings-option-variants/optimize-string-not-available-old-versions"
+      );
+      useEnvironment();
+
+      it("should fail the compilation", async function () {
+        await expect(this.env.run(TASK_COMPILE)).to.be.rejectedWith(
+          Error,
+          "The 'optimize' setting, when specified as a string value, is available only starting from the Vyper compiler version 0.3.10. You are currently using version 0.3.9."
+        );
+      });
+    });
+
+    describe("optimize setting must be a string or boolean type", function () {
+      useFixtureProject(
+        "compilation-with-settings-option-variants/optimize-invalid-type"
+      );
+      useEnvironment();
+
+      it("should fail the compilation", async function () {
+        await expect(this.env.run(TASK_COMPILE)).to.be.rejectedWith(
+          Error,
+          "The 'optimize' setting has an invalid type value. Type is: number."
         );
       });
     });
