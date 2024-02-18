@@ -141,7 +141,7 @@ describe("Integration tests", function () {
         const contract = await this.hre.viem.deployContract(
           "WithoutConstructorArgs",
           [],
-          { walletClient: secondWalletClient }
+          { client: { wallet: secondWalletClient } }
         );
 
         const owner = await contract.read.getOwner();
