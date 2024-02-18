@@ -27,16 +27,10 @@ export async function deployContract(
   constructorArgs: any[] = [],
   config: DeployContractConfig = {}
 ): Promise<GetContractReturnType> {
-  const {
-    walletClient: configWalletClient,
-    publicClient: configPublicClient,
-    confirmations,
-    ...deployContractParameters
-  } = config;
+  const { client, confirmations, ...deployContractParameters } = config;
   const [publicClient, walletClient, contractArtifact] = await Promise.all([
-    configPublicClient ?? getPublicClient(network.provider),
-    configWalletClient ??
-      getDefaultWalletClient(network.provider, network.name),
+    client?.public ?? getPublicClient(network.provider),
+    client?.wallet ?? getDefaultWalletClient(network.provider, network.name),
     artifacts.readArtifact(contractName),
   ]);
 
@@ -120,15 +114,10 @@ export async function sendDeploymentTransaction(
   contract: GetContractReturnType;
   deploymentTransaction: GetTransactionReturnType;
 }> {
-  const {
-    walletClient: configWalletClient,
-    publicClient: configPublicClient,
-    ...deployContractParameters
-  } = config;
+  const { client, ...deployContractParameters } = config;
   const [publicClient, walletClient, contractArtifact] = await Promise.all([
-    configPublicClient ?? getPublicClient(network.provider),
-    configWalletClient ??
-      getDefaultWalletClient(network.provider, network.name),
+    client?.public ?? getPublicClient(network.provider),
+    client?.wallet ?? getDefaultWalletClient(network.provider, network.name),
     artifacts.readArtifact(contractName),
   ]);
 
@@ -202,8 +191,8 @@ export async function getContractAt(
   config: GetContractAtConfig = {}
 ): Promise<GetContractReturnType> {
   const [publicClient, walletClient, contractArtifact] = await Promise.all([
-    config.publicClient ?? getPublicClient(network.provider),
-    config.walletClient ??
+    config.client?.public ?? getPublicClient(network.provider),
+    config.client?.wallet ??
       getDefaultWalletClient(network.provider, network.name),
     artifacts.readArtifact(contractName),
   ]);
