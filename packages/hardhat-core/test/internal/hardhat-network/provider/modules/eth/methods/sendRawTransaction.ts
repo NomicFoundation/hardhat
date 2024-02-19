@@ -233,11 +233,6 @@ describe("Eth module", function () {
             // TODO: Find out a better way to obtain the common here
             const provider: any = this.hardhatNetworkProvider;
 
-            if ("_init" in provider) {
-              // eslint-disable-next-line dot-notation,@typescript-eslint/dot-notation
-              await provider["_init"]();
-            }
-
             // eslint-disable-next-line dot-notation,@typescript-eslint/dot-notation
             common = provider["_common"];
           });

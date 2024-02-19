@@ -1,4 +1,3 @@
-import type { Common } from "@nomicfoundation/ethereumjs-common";
 import {
   CreateOutput,
   ExecutionResult,
@@ -6,7 +5,6 @@ import {
   TracingStep,
 } from "@ignored/edr";
 
-import { getActivePrecompiles } from "@nomicfoundation/ethereumjs-evm";
 import { bufferToBigInt } from "@nomicfoundation/ethereumjs-util";
 
 import { assertHardhatInvariant } from "../../core/errors";
@@ -35,8 +33,9 @@ export class VMTracer {
   private _lastError: Error | undefined;
   private _maxPrecompileNumber;
 
-  constructor(common: Common, private readonly _throwErrors = true) {
-    this._maxPrecompileNumber = getActivePrecompiles(common).size;
+  constructor(private readonly _throwErrors = true) {
+    // TODO: temporarily hardcoded to remove the need of using ethereumjs' common and evm here
+    this._maxPrecompileNumber = 10;
   }
 
   public getLastTopLevelMessageTrace(): MessageTrace | undefined {

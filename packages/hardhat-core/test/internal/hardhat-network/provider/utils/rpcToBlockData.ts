@@ -1,7 +1,6 @@
 import { BlockData } from "@nomicfoundation/ethereumjs-block";
 
-import { RpcBlockWithTransactions } from "../../../core/jsonrpc/types/output/block";
-
+import { RpcBlockWithTransactions } from "../../../../../src/internal/core/jsonrpc/types/output/block";
 import { rpcToTxData } from "./rpcToTxData";
 
 export function rpcToBlockData(rpcBlock: RpcBlockWithTransactions): BlockData {

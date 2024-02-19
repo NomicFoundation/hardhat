@@ -1,5 +1,6 @@
-import type { EVMResult, Message } from "@nomicfoundation/ethereumjs-evm";
 import type { Address } from "@nomicfoundation/ethereumjs-util";
+
+import type { EVMResult, Message } from "./types";
 
 export interface MinimalInterpreterStep {
   pc: number;
