@@ -42,7 +42,3 @@ Use `pnpm` to build a release version:
 cd crates/edr_napi
 pnpm build
 ```
-
-## Contributing
-
-EDR is still under development by [Nomic Foundation](https://github.com/NomicFoundation/). As such, progress is being merged with the `edr/main` branch until its first release.
