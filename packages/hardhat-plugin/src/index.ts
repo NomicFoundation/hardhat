@@ -5,7 +5,7 @@ import {
   IgnitionError,
   StatusResult,
 } from "@nomicfoundation/ignition-core";
-import { readdirSync, rm } from "fs-extra";
+import { readFile, readdirSync, rm } from "fs-extra";
 import { extendConfig, extendEnvironment, scope } from "hardhat/config";
 import {
   HardhatPluginError,
@@ -15,6 +15,7 @@ import path from "path";
 
 import "./type-extensions";
 import { calculateDeploymentStatusDisplay } from "./ui/helpers/calculate-deployment-status-display";
+import { bigintReviver } from "./utils/bigintReviver";
 import { getApiKeyAndUrls } from "./utils/getApiKeyAndUrls";
 import { resolveDeploymentId } from "./utils/resolve-deployment-id";
 import { shouldBeHardhatPluginError } from "./utils/shouldBeHardhatPluginError";
@@ -167,7 +168,7 @@ ignitionScope
             "Deploy cancelled: Cannot reset deployment on ephemeral Hardhat network"
           );
 
-          process.exit(0);
+          process.exit(1);
         } else {
           await rm(deploymentDir, { recursive: true, force: true });
         }
@@ -179,17 +180,17 @@ ignitionScope
 
       if (userModule === undefined) {
         console.warn("No Ignition modules found");
-        process.exit(0);
+        process.exit(1);
       }
 
       let parameters: DeploymentParameters | undefined;
       if (parametersInput === undefined) {
-        parameters = resolveParametersFromModuleName(
+        parameters = await resolveParametersFromModuleName(
           userModule.id,
           hre.config.paths.ignition
         );
       } else if (parametersInput.endsWith(".json")) {
-        parameters = resolveParametersFromFileName(parametersInput);
+        parameters = await resolveParametersFromFileName(parametersInput);
       } else {
         parameters = resolveParametersString(parametersInput);
       }
@@ -224,6 +225,10 @@ ignitionScope
             { scope: "ignition", task: "verify" },
             { deploymentId }
           );
+        }
+
+        if (result.type !== "SUCCESSFUL_DEPLOYMENT") {
+          process.exit(1);
         }
       } catch (e) {
         if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
@@ -266,7 +271,7 @@ ignitionScope
 
       if (userModule === undefined) {
         console.warn("No Ignition modules found");
-        process.exit(0);
+        process.exit(1);
       }
 
       try {
@@ -456,10 +461,10 @@ ignitionScope
     }
   });
 
-function resolveParametersFromModuleName(
+async function resolveParametersFromModuleName(
   moduleName: string,
   ignitionPath: string
-): DeploymentParameters | undefined {
+): Promise<DeploymentParameters | undefined> {
   const files = readdirSync(ignitionPath);
   const configFilename = `${moduleName}.config.json`;
 
@@ -468,26 +473,40 @@ function resolveParametersFromModuleName(
     : undefined;
 }
 
-function resolveParametersFromFileName(fileName: string): DeploymentParameters {
+async function resolveParametersFromFileName(
+  fileName: string
+): Promise<DeploymentParameters> {
   const filepath = path.resolve(process.cwd(), fileName);
 
   return resolveConfigPath(filepath);
 }
 
-function resolveConfigPath(filepath: string): DeploymentParameters {
+async function resolveConfigPath(
+  filepath: string
+): Promise<DeploymentParameters> {
   try {
-    return require(filepath);
-  } catch {
+    const rawFile = await readFile(filepath);
+
+    return JSON.parse(rawFile.toString(), bigintReviver);
+  } catch (e) {
+    if (e instanceof NomicLabsHardhatPluginError) {
+      throw e;
+    }
+
     console.warn(`Could not parse parameters from ${filepath}`);
-    process.exit(0);
+    process.exit(1);
   }
 }
 
 function resolveParametersString(paramString: string): DeploymentParameters {
   try {
-    return JSON.parse(paramString);
-  } catch {
+    return JSON.parse(paramString, bigintReviver);
+  } catch (e) {
+    if (e instanceof NomicLabsHardhatPluginError) {
+      throw e;
+    }
+
     console.warn(`Could not parse JSON parameters`);
-    process.exit(0);
+    process.exit(1);
   }
 }
