@@ -42,7 +42,11 @@ import {
   ProviderError,
 } from "../../core/providers/errors";
 import { isErrorResponse } from "../../core/providers/http";
-import { getHardforkName } from "../../util/hardforks";
+import {
+  HardforkName,
+  getHardforkName,
+  hardforkGte,
+} from "../../util/hardforks";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { ContractsIdentifier } from "../stack-traces/contracts-identifier";
@@ -210,6 +214,8 @@ export class EdrProviderWrapper
     const contractsIdentifier = new ContractsIdentifier();
     const vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
 
+    const hardforkName = getHardforkName(config.hardfork);
+
     const provider = await Provider.withConfig(
       getGlobalEdrContext(),
       {
@@ -239,9 +245,7 @@ export class EdrProviderWrapper
         cacheDir: config.forkCachePath,
         coinbase: Buffer.from(coinbase.slice(2), "hex"),
         fork,
-        hardfork: ethereumsjsHardforkToEdrSpecId(
-          getHardforkName(config.hardfork)
-        ),
+        hardfork: ethereumsjsHardforkToEdrSpecId(hardforkName),
         genesisAccounts: config.genesisAccounts.map((account) => {
           return {
             secretKey: account.privateKey,
@@ -253,6 +257,12 @@ export class EdrProviderWrapper
           config.initialBaseFeePerGas !== undefined
             ? BigInt(config.initialBaseFeePerGas!)
             : undefined,
+        initialBlobGas: hardforkGte(hardforkName, HardforkName.CANCUN)
+          ? {
+              gasUsed: 0n,
+              excessGas: 0n,
+            }
+          : undefined,
         minGasPrice: config.minGasPrice,
         mining: {
           autoMine: config.automine,
