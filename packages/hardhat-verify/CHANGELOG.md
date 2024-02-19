@@ -1,5 +1,12 @@
 # @nomicfoundation/hardhat-verify
 
+## 2.0.4
+
+### Patch Changes
+
+- fb673f2be: Added holesky and arbitrumSepolia, and removed arbitrumTestnet and arbitrumGoerli from hardhat-verify chains.
+- 11043e96a: Added support for programmatic verification in Sourcify
+
 ## 2.0.3
 
 ### Patch Changes

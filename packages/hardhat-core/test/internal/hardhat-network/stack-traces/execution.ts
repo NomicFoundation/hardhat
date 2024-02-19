@@ -1,8 +1,8 @@
 import {
   bigIntToHex,
-  bufferToHex,
+  bytesToHex,
   privateToAddress,
-  toBuffer,
+  toBytes,
 } from "@nomicfoundation/ethereumjs-util";
 
 import { MessageTrace } from "../../../../src/internal/hardhat-network/stack-traces/message-trace";
@@ -15,12 +15,16 @@ import { EdrProviderWrapper } from "../../../../src/internal/hardhat-network/pro
 import { VMTracer } from "../../../../src/internal/hardhat-network/stack-traces/vm-tracer";
 import { LoggerConfig } from "../../../../src/internal/hardhat-network/provider/modules/logger";
 
+function toBuffer(x: Parameters<typeof toBytes>[0]) {
+  return Buffer.from(toBytes(x));
+}
+
 const abi = require("ethereumjs-abi");
 
 const senderPrivateKey =
   "0xe331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109";
 
-const senderAddress = bufferToHex(privateToAddress(toBuffer(senderPrivateKey)));
+const senderAddress = bytesToHex(privateToAddress(toBuffer(senderPrivateKey)));
 
 export async function instantiateProvider(
   loggerConfig: LoggerConfig,
@@ -121,8 +125,8 @@ export async function traceTransaction(
       params: [
         {
           from: senderAddress,
-          data: bufferToHex(txData.data),
-          to: txData.to !== undefined ? bufferToHex(txData.to) : undefined,
+          data: bytesToHex(txData.data),
+          to: txData.to !== undefined ? bytesToHex(txData.to) : undefined,
           value: bigIntToHex(txData.value ?? 0n),
           // If the test didn't define a gasLimit, we assume 4M is enough
           gas: bigIntToHex(txData.gas ?? 4000000n),

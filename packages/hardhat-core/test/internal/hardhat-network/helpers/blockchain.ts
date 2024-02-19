@@ -1,5 +1,8 @@
-import { Transaction, TxData } from "@nomicfoundation/ethereumjs-tx";
-import { bufferToHex, toBuffer } from "@nomicfoundation/ethereumjs-util";
+import {
+  LegacyTransaction as Transaction,
+  LegacyTxData as TxData,
+} from "@nomicfoundation/ethereumjs-tx";
+import { bytesToHex, toBytes } from "@nomicfoundation/ethereumjs-util";
 
 import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { randomAddress } from "../../../../src/internal/hardhat-network/provider/utils/random";
@@ -12,7 +15,7 @@ import { DEFAULT_ACCOUNTS } from "./providers";
 export function createTestTransaction(data: TxData = {}) {
   const tx = new Transaction({ to: randomAddress(), ...data });
 
-  return tx.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+  return tx.sign(toBytes(DEFAULT_ACCOUNTS[0].privateKey));
 }
 
 export function createTestReceipt(
@@ -20,7 +23,7 @@ export function createTestReceipt(
   logs: RpcLogOutput[] = []
 ): RpcReceiptOutput {
   const receipt: any = {
-    transactionHash: bufferToHex(transaction.hash()),
+    transactionHash: bytesToHex(transaction.hash()),
     logs,
     // we ignore other properties for test purposes
   };

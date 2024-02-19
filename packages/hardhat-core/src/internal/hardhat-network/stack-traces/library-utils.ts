@@ -50,9 +50,9 @@ export function linkHexStringBytecode(
 }
 
 export function zeroOutAddresses(
-  code: Buffer,
+  code: Uint8Array,
   addressesPositions: number[]
-): Buffer {
+): Uint8Array {
   const addressesSlices = addressesPositions.map((start) => ({
     start,
     length: 20,
@@ -62,9 +62,9 @@ export function zeroOutAddresses(
 }
 
 export function zeroOutSlices(
-  code: Buffer,
+  code: Uint8Array,
   slices: Array<{ start: number; length: number }>
-): Buffer {
+): Uint8Array {
   for (const { start, length } of slices) {
     code = Buffer.concat([
       code.slice(0, start),
@@ -77,8 +77,8 @@ export function zeroOutSlices(
 }
 
 export function normalizeLibraryRuntimeBytecodeIfNecessary(
-  code: Buffer
-): Buffer {
+  code: Uint8Array
+): Uint8Array {
   // Libraries' protection normalization:
   // Solidity 0.4.20 introduced a protection to prevent libraries from being called directly.
   // This is done by modifying the code on deployment, and hard-coding the contract address.

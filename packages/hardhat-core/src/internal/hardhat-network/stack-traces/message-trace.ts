@@ -21,7 +21,7 @@ export type DecodedEvmMessageTrace =
 
 export interface BaseMessageTrace {
   value: bigint;
-  returnData: Buffer;
+  returnData: Uint8Array;
   exit: Exit;
   gasUsed: bigint;
   depth: number;
@@ -29,13 +29,13 @@ export interface BaseMessageTrace {
 
 export interface PrecompileMessageTrace extends BaseMessageTrace {
   precompile: number;
-  calldata: Buffer;
+  calldata: Uint8Array;
 }
 
 export interface BaseEvmMessageTrace extends BaseMessageTrace {
-  code: Buffer;
+  code: Uint8Array;
   value: bigint;
-  returnData: Buffer;
+  returnData: Uint8Array;
   steps: MessageTraceStep[];
   bytecode?: Bytecode;
   // The following is just an optimization: When processing this traces it's useful to know ahead of
@@ -44,13 +44,13 @@ export interface BaseEvmMessageTrace extends BaseMessageTrace {
 }
 
 export interface CreateMessageTrace extends BaseEvmMessageTrace {
-  deployedContract: Buffer | undefined;
+  deployedContract: Uint8Array | undefined;
 }
 
 export interface CallMessageTrace extends BaseEvmMessageTrace {
-  calldata: Buffer;
-  address: Buffer;
-  codeAddress: Buffer;
+  calldata: Uint8Array;
+  address: Uint8Array;
+  codeAddress: Uint8Array;
 }
 
 export interface DecodedCreateMessageTrace extends CreateMessageTrace {

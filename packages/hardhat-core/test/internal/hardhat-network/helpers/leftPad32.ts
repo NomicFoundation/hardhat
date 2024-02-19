@@ -1,8 +1,12 @@
-import { setLengthLeft, toBuffer } from "@nomicfoundation/ethereumjs-util";
+import { setLengthLeft, toBytes } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 
+function toBuffer(x: Parameters<typeof toBytes>[0]) {
+  return Buffer.from(toBytes(x));
+}
+
 export function leftPad32(value: string | Buffer | bigint): string {
-  return setLengthLeft(toBuffer(value), 32).toString("hex");
+  return Buffer.from(setLengthLeft(toBuffer(value), 32)).toString("hex");
 }
 
 describe("leftPad32", () => {

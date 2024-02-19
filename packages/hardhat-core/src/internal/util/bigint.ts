@@ -34,13 +34,13 @@ export function toEvmWord(x: bigint | number): string {
   return x.toString(16).padStart(64, "0");
 }
 
-function bufferToBigInt(x: Buffer): bigint {
-  const hex = `0x${x.toString("hex")}`;
+function bufferToBigInt(x: Uint8Array): bigint {
+  const hex = `0x${Buffer.from(x).toString("hex")}`;
   return hex === "0x" ? 0n : BigInt(hex);
 }
 
 export function fromBigIntLike(
-  x: string | number | bigint | Buffer | undefined
+  x: string | number | bigint | Uint8Array | undefined
 ): bigint | undefined {
   if (x === undefined || typeof x === "bigint") {
     return x;
@@ -48,7 +48,7 @@ export function fromBigIntLike(
   if (typeof x === "number" || typeof x === "string") {
     return BigInt(x);
   }
-  if (Buffer.isBuffer(x)) {
+  if (x instanceof Uint8Array) {
     return bufferToBigInt(x);
   }
 

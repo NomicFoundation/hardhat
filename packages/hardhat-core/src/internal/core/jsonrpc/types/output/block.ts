@@ -38,6 +38,9 @@ const baseBlockResponse = {
   baseFeePerGas: optional(rpcQuantity),
   withdrawals: optional(t.array(rpcWithdrawalItem)),
   withdrawalsRoot: optional(rpcHash),
+  parentBeaconBlockRoot: optional(rpcHash),
+  blobGasUsed: optional(rpcQuantity),
+  excessBlobGas: optional(rpcQuantity),
 };
 
 export type RpcBlock = t.TypeOf<typeof rpcBlock>;

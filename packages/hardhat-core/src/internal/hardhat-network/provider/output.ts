@@ -23,6 +23,9 @@ export interface RpcBlockOutput {
   baseFeePerGas?: string;
   withdrawals?: RpcWithdrawalItem[];
   withdrawalsRoot?: string;
+  parentBeaconBlockRoot?: string | null;
+  blobGasUsed?: string | null;
+  excessBlobGas?: string | null;
 }
 
 export type RpcTransactionOutput =

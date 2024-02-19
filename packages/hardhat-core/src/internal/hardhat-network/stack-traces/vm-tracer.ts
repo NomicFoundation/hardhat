@@ -5,7 +5,7 @@ import {
   TracingStep,
 } from "@ignored/edr";
 
-import { bufferToBigInt } from "@nomicfoundation/ethereumjs-util";
+import { bytesToBigInt } from "@nomicfoundation/ethereumjs-util";
 
 import { assertHardhatInvariant } from "../../core/errors";
 import { Exit, ExitCode } from "../provider/vm/exit";
@@ -82,7 +82,7 @@ export class VMTracer {
 
         trace = createTrace;
       } else {
-        const toAsBigInt = bufferToBigInt(message.to);
+        const toAsBigInt = bytesToBigInt(message.to);
 
         if (toAsBigInt > 0 && toAsBigInt <= this._maxPrecompileNumber) {
           const precompileTrace: PrecompileMessageTrace = {

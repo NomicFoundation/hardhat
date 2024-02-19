@@ -200,6 +200,24 @@ describe("Eth module", function () {
           assert.isTrue(BigInt(estimation) <= 100_000n);
         });
 
+        it("should reject blob transactions", async function () {
+          await assertInvalidInputError(
+            this.provider,
+            "eth_estimateGas",
+            [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+                blobs: ["0x1234"],
+                blobVersionedHashes: [
+                  "0x1234567812345678123456781234567812345678123456781234567812345678",
+                ],
+              },
+            ],
+            "An EIP-4844 (shard blob) transaction was received, but Hardhat doesn't have support for them yet."
+          );
+        });
+
         describe("Fee price fields", function () {
           describe("Running a hardfork with EIP-1559", function () {
             it("Should validate that gasPrice and maxFeePerGas & maxPriorityFeePerGas are not mixed", async function () {

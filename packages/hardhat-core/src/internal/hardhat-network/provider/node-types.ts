@@ -49,7 +49,7 @@ export interface GenesisAccount {
   balance: string | number | bigint;
 }
 
-export type AccessListBufferItem = [Buffer, Buffer[]];
+export type AccessListBufferItem = [Uint8Array, Uint8Array[]];
 
 export type TransactionParams =
   | LegacyTransactionParams
@@ -58,11 +58,11 @@ export type TransactionParams =
 
 interface BaseTransactionParams {
   // `to` should be undefined for contract creation
-  to?: Buffer;
-  from: Buffer;
+  to?: Uint8Array;
+  from: Uint8Array;
   gasLimit: bigint;
   value: bigint;
-  data: Buffer;
+  data: Uint8Array;
   nonce: bigint;
 }
 
