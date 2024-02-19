@@ -5,7 +5,7 @@ import {
   TxData,
 } from "@nomicfoundation/ethereumjs-tx";
 
-import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
+import { RpcTransaction } from "../../../../../src/internal/core/jsonrpc/types/output/transaction";
 
 // the FeeMarketEIP1559TxData interface from ethereum js also has a
 // `gasPrice?: never | null` property, which causes a compilation
