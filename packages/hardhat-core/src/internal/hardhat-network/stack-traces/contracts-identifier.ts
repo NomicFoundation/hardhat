@@ -1,4 +1,4 @@
-import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
+import { bytesToHex } from "@nomicfoundation/ethereumjs-util";
 
 import {
   normalizeLibraryRuntimeBytecodeIfNecessary,
@@ -63,7 +63,7 @@ class BytecodeTrie {
    * entire code is covered by the trie, and there's no match, we return undefined.
    */
   public search(
-    code: Buffer,
+    code: Uint8Array,
     currentCodeByte: number = 0
   ): Bytecode | BytecodeTrie | undefined {
     if (currentCodeByte > code.length) {
@@ -100,14 +100,14 @@ export class ContractsIdentifier {
   }
 
   public getBytecodeForCall(
-    code: Buffer,
+    code: Uint8Array,
     isCreate: boolean
   ): Bytecode | undefined {
     const normalizedCode = normalizeLibraryRuntimeBytecodeIfNecessary(code);
 
     let normalizedCodeHex: string | undefined;
     if (this._enableCache) {
-      normalizedCodeHex = bufferToHex(normalizedCode);
+      normalizedCodeHex = bytesToHex(normalizedCode);
       const cached = this._cache.get(normalizedCodeHex);
 
       if (cached !== undefined) {
@@ -128,7 +128,7 @@ export class ContractsIdentifier {
 
   private _searchBytecode(
     isCreate: boolean,
-    code: Buffer,
+    code: Uint8Array,
     normalizeLibraries = true,
     trie = this._trie,
     firstByteToSearch = 0
@@ -218,7 +218,7 @@ export class ContractsIdentifier {
   /**
    * Returns true if the lastByte is placed right when the metadata starts or after it.
    */
-  private _isMatchingMetadata(code: Buffer, lastByte: number): boolean {
+  private _isMatchingMetadata(code: Uint8Array, lastByte: number): boolean {
     for (let byte = 0; byte < lastByte; ) {
       const opcode = code[byte];
 

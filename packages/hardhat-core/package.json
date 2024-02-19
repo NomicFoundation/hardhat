@@ -1,6 +1,6 @@
 {
   "name": "hardhat",
-  "version": "2.19.4",
+  "version": "2.20.1",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "homepage": "https://hardhat.org",
@@ -62,7 +62,7 @@
     "console.sol"
   ],
   "devDependencies": {
-    "@nomicfoundation/ethereumjs-block": "5.0.3",
+    "@nomicfoundation/ethereumjs-block": "5.0.4",
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
     "@types/async-eventemitter": "^0.2.1",
@@ -108,9 +108,9 @@
     "@ethersproject/abi": "^5.1.2",
     "@ignored/edr": "workspace:^0.2.0-alpha.1",
     "@metamask/eth-sig-util": "^4.0.0",
-    "@nomicfoundation/ethereumjs-common": "4.0.3",
-    "@nomicfoundation/ethereumjs-tx": "5.0.3",
-    "@nomicfoundation/ethereumjs-util": "9.0.3",
+    "@nomicfoundation/ethereumjs-common": "4.0.4",
+    "@nomicfoundation/ethereumjs-tx": "5.0.4",
+    "@nomicfoundation/ethereumjs-util": "9.0.4",
     "@nomicfoundation/solidity-analyzer": "^0.1.0",
     "@sentry/node": "^5.18.1",
     "@types/bn.js": "^5.1.0",

@@ -2,9 +2,9 @@ import { Common } from "@nomicfoundation/ethereumjs-common";
 import { AccessListEIP2930Transaction } from "@nomicfoundation/ethereumjs-tx";
 import { assert } from "chai";
 import {
-  bufferToHex,
+  bytesToHex as bufferToHex,
   privateToAddress,
-  toBuffer,
+  toBytes,
 } from "@nomicfoundation/ethereumjs-util";
 
 import { ERRORS } from "../../../../src/internal/core/errors-list";
@@ -23,6 +23,10 @@ import {
   expectHardhatErrorAsync,
 } from "../../../helpers/errors";
 import { MockedProvider } from "./mocks";
+
+function toBuffer(x: Parameters<typeof toBytes>[0]) {
+  return Buffer.from(toBytes(x));
+}
 
 function privateKeyToAddress(privateKey: string): string {
   return bufferToHex(privateToAddress(toBuffer(privateKey))).toLowerCase();

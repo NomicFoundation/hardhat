@@ -44,6 +44,8 @@ export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): SpecId {
       return SpecId.Merge;
     case HardforkName.SHANGHAI:
       return SpecId.Shanghai;
+    case HardforkName.CANCUN:
+      return SpecId.Cancun;
     default:
       const _exhaustiveCheck: never = hardfork;
       throw new Error(

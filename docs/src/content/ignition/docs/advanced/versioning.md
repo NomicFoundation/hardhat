@@ -2,7 +2,7 @@
 
 Hardhat Ignition creates files for each deployment. The files are stored under the directory `./ignition/deployments/<DeploymentId>`. To understand the files created, please read our [Deployment artifacts](./deployment-artifacts.md) guide.
 
-If you want to store your deployments in version control, the recommended way is commiting the entire `./ignition/deployments` directory.
+If you want to store your deployments in version control, the recommended way is committing the entire `./ignition/deployments` directory.
 
 If you think they are too large to be committed, you should at least commit their `deployed_addresses.json` file.
 

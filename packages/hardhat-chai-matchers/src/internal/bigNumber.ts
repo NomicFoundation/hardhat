@@ -1,9 +1,5 @@
 import { AssertionError } from "chai";
-import {
-  formatNumberType,
-  isBigNumber,
-  normalizeToBigInt,
-} from "hardhat/common/bigInt";
+import { isBigNumber, normalizeToBigInt } from "hardhat/common/bigInt";
 import util from "util";
 
 export function supportBigNumber(
@@ -176,16 +172,8 @@ function overwriteBigNumberFunction(
       const actual = normalizeToBigInt(actualArg);
       this.assert(
         compare(functionName, expected, actual),
-        `expected ${expected} to ${readableName} ${actual}. The numerical values of the given "${formatNumberType(
-          expectedFlag
-        ).toString()}" and "${formatNumberType(
-          actualArg
-        ).toString()}" inputs were compared, and they differed.`,
-        `expected ${expected} to ${readableNegativeName} ${actual}. The numerical values of the given "${formatNumberType(
-          expectedFlag
-        ).toString()}" and "${formatNumberType(
-          actualArg
-        ).toString()}" inputs were compared, and they differed.`,
+        `expected ${expected} to ${readableName} ${actual}.`,
+        `expected ${expected} to ${readableNegativeName} ${actual}.`,
         actual.toString(),
         expected.toString()
       );

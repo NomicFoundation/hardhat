@@ -1,4 +1,4 @@
-import { toBuffer } from "@nomicfoundation/ethereumjs-util";
+import { toBytes } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 import fs from "fs";
 import fsExtra from "fs-extra";
@@ -526,7 +526,7 @@ async function runTest(
         txIndexToContract.set(txIndex, {
           file: tx.file,
           name: tx.contract,
-          address: trace.deployedContract,
+          address: Buffer.from(trace.deployedContract),
         });
       }
     } else {
@@ -705,7 +705,7 @@ async function runCallTransactionTest(
   let data: Buffer;
 
   if (tx.data !== undefined) {
-    data = toBuffer(tx.data);
+    data = Buffer.from(toBytes(tx.data));
   } else if (tx.function !== undefined) {
     data = encodeCall(
       compilerContract.abi,

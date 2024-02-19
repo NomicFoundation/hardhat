@@ -10,7 +10,7 @@ export class AbiHelpers {
   public static computeSelector(
     name: string,
     inputs: any[]
-  ): Buffer | undefined {
+  ): Uint8Array | undefined {
     try {
       const fragment = abi.FunctionFragment.from({
         type: "function",
@@ -26,7 +26,7 @@ export class AbiHelpers {
     }
   }
 
-  public static isValidCalldata(inputs: any[], calldata: Buffer): boolean {
+  public static isValidCalldata(inputs: any[], calldata: Uint8Array): boolean {
     try {
       abi.defaultAbiCoder.decode(inputs, calldata);
       return true;

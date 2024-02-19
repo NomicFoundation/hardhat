@@ -1,4 +1,4 @@
-import { bufferToHex, zeroAddress } from "@nomicfoundation/ethereumjs-util";
+import { zeroAddress } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 import { Client } from "undici";
 
@@ -697,7 +697,7 @@ describe("Eth module", function () {
             await assertTransactionFailure(
               this.provider,
               txParams,
-              `Known transaction: ${bufferToHex(hash)}`
+              `Known transaction: ${hash}`
             );
           });
 
@@ -1142,6 +1142,24 @@ describe("Eth module", function () {
           );
 
           assert.equal(contractBlockNumber, blockNumberBeforeTx + 1);
+        });
+
+        it("should reject blob transactions", async function () {
+          await assertInvalidInputError(
+            this.provider,
+            "eth_sendTransaction",
+            [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+                blobs: ["0x1234"],
+                blobVersionedHashes: [
+                  "0x1234567812345678123456781234567812345678123456781234567812345678",
+                ],
+              },
+            ],
+            "An EIP-4844 (shard blob) transaction was received, but Hardhat doesn't have support for them yet."
+          );
         });
       });
 

@@ -259,9 +259,7 @@ subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)
   );
 
 /**
- * This subtask is used for backwards compatibility.
- * TODO [remove-verify-subtask]: if you're going to remove this subtask,
- * update TASK_VERIFY_ETHERSCAN and TASK_VERIFY_ETHERSCAN_RESOLVE_ARGUMENTS accordingly
+ * This subtask is used to programmatically verify a contract on Etherscan or Sourcify.
  */
 subtask(TASK_VERIFY_VERIFY)
   .addOptionalParam("address")
@@ -271,7 +269,7 @@ subtask(TASK_VERIFY_VERIFY)
   .setAction(
     async (
       { address, constructorArguments, libraries, contract }: VerifySubtaskArgs,
-      { run }
+      { run, config }
     ) => {
       // This can only happen if the subtask is invoked from within Hardhat by a user script or another task.
       if (!Array.isArray(constructorArguments)) {
@@ -282,11 +280,21 @@ subtask(TASK_VERIFY_VERIFY)
         throw new InvalidLibrariesError();
       }
 
-      await run(TASK_VERIFY_ETHERSCAN, {
-        address,
-        constructorArgsParams: constructorArguments,
-        libraries,
-        contract,
-      });
+      if (config.etherscan.enabled) {
+        await run(TASK_VERIFY_ETHERSCAN, {
+          address,
+          constructorArgsParams: constructorArguments,
+          libraries,
+          contract,
+        });
+      }
+
+      if (config.sourcify.enabled) {
+        await run(TASK_VERIFY_SOURCIFY, {
+          address,
+          libraries,
+          contract,
+        });
+      }
     }
   );

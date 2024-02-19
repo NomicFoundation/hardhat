@@ -390,23 +390,23 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
   }
 
   private async _toRpcSig(signature: Signature): Promise<string> {
-    const { toRpcSig, toBuffer } = await import(
+    const { toRpcSig, toBytes } = await import(
       "@nomicfoundation/ethereumjs-util"
     );
 
     return toRpcSig(
       BigInt(signature.v - 27),
-      toBuffer(toHex(signature.r)),
-      toBuffer(toHex(signature.s))
+      toBytes(toHex(signature.r)),
+      toBytes(toHex(signature.s))
     );
   }
 
   private async _getNonce(address: Buffer): Promise<bigint> {
-    const { bufferToHex } = await import("@nomicfoundation/ethereumjs-util");
+    const { bytesToHex } = await import("@nomicfoundation/ethereumjs-util");
 
     const response = (await this._wrappedProvider.request({
       method: "eth_getTransactionCount",
-      params: [bufferToHex(address), "pending"],
+      params: [bytesToHex(address), "pending"],
     })) as string;
 
     return rpcQuantityToBigInt(response);

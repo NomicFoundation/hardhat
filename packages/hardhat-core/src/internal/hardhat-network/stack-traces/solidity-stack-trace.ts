@@ -61,7 +61,7 @@ export interface UnrecognizedCreateCallstackEntryStackTraceEntry {
 
 export interface UnrecognizedContractCallstackEntryStackTraceEntry {
   type: StackTraceEntryType.UNRECOGNIZED_CONTRACT_CALLSTACK_ENTRY;
-  address: Buffer;
+  address: Uint8Array;
   sourceReference?: undefined;
 }
 
@@ -158,7 +158,7 @@ export interface UnrecognizedCreateErrorStackTraceEntry {
 
 export interface UnrecognizedContractErrorStackTraceEntry {
   type: StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR;
-  address: Buffer;
+  address: Uint8Array;
   message: ReturnData;
   sourceReference?: undefined;
   isInvalidOpcodeError: boolean;

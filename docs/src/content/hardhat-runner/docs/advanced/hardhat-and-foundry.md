@@ -78,14 +78,14 @@ If you have an existing Foundry project and you want to use Hardhat in it, follo
 
 First, if you don't have a `package.json` already in your project, create one with `npm init`.
 
-Then install Hardhat and the [`@nomicfoundation/hardhat-foundry`](/hardhat-runner/plugins/nomicfoundation-hardhat-foundry) plugin:
+Then install Hardhat, the [Hardhat Toolbox](/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox), and the [`@nomicfoundation/hardhat-foundry`](/hardhat-runner/plugins/nomicfoundation-hardhat-foundry) plugin:
 
 ::::tabsgroup{options="npm 7+,npm 6,yarn"}
 
 :::tab{value="npm 7+"}
 
 ```
-npm install --save-dev hardhat @nomicfoundation/hardhat-foundry
+npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-foundry
 ```
 
 :::
@@ -93,7 +93,7 @@ npm install --save-dev hardhat @nomicfoundation/hardhat-foundry
 :::tab{value="npm 6"}
 
 ```
-npm install --save-dev hardhat @nomicfoundation/hardhat-foundry
+npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-foundry
 ```
 
 :::
@@ -101,7 +101,7 @@ npm install --save-dev hardhat @nomicfoundation/hardhat-foundry
 :::tab{value=yarn}
 
 ```
-yarn add --dev hardhat @nomicfoundation/hardhat-foundry
+yarn add --dev hardhat @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-foundry
 ```
 
 :::
@@ -111,6 +111,7 @@ yarn add --dev hardhat @nomicfoundation/hardhat-foundry
 After that, initialize a Hardhat project with `npx hardhat init`. Choose the "Create an empty hardhat.config.js" option, and then import the plugin in `hardhat.config.js`:
 
 ```javascript
+require("@nomicfoundation/hardhat-toolbox");
 require("@nomicfoundation/hardhat-foundry");
 ```
 
