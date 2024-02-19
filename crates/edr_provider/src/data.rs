@@ -2535,6 +2535,7 @@ mod tests {
     use edr_eth::{
         remote::{eth::CallRequest, PreEip1898BlockSpec},
         spec::chain_hardfork_activations,
+        transaction::{Eip155TransactionRequest, TransactionKind, TransactionRequest},
     };
     use edr_evm::{hex, MineOrdering, RemoteBlock, TransactionError};
     use edr_test_utils::env::get_alchemy_url;
@@ -3398,6 +3399,56 @@ mod tests {
             .is_success());
         // Sanity check that the mempool is empty.
         assert_eq!(fixture.provider_data.mem_pool.transactions().count(), 0);
+
+        let transaction_result = fixture
+            .provider_data
+            .transaction_by_hash(&transaction_hash)?
+            .context("transaction not found")?;
+
+        assert_eq!(
+            transaction_result.signed_transaction.hash(),
+            &transaction_hash
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn transaction_by_hash_for_impersonated_account() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new_local()?;
+
+        let impersonated_account: Address = "0x67091a7dd65bf4f1e95af0a479fbc782b61c129a".parse()?;
+        fixture
+            .provider_data
+            .impersonate_account(impersonated_account);
+
+        fixture
+            .provider_data
+            .set_balance(impersonated_account, one_ether())?;
+
+        let request = TransactionRequest::Eip155(Eip155TransactionRequest {
+            kind: TransactionKind::Call(Address::ZERO),
+            gas_limit: 30_000,
+            gas_price: U256::from(42_000_000_000_u64),
+            value: U256::from(1),
+            input: Bytes::default(),
+            nonce: 0,
+            chain_id: fixture.provider_data.chain_id(),
+        })
+        .fake_sign(&impersonated_account);
+        let transaction = ExecutableTransaction::with_caller(
+            fixture.provider_data.spec_id(),
+            request,
+            impersonated_account,
+        )?;
+
+        fixture.provider_data.set_auto_mining(true);
+        let SendTransactionResult {
+            transaction_hash,
+            transaction_result,
+            ..
+        } = fixture.provider_data.send_transaction(transaction)?;
+        assert!(transaction_result.is_some());
 
         let transaction_result = fixture
             .provider_data
