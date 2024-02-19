@@ -11,10 +11,7 @@ import {
   MempoolOrder,
   TracingConfig,
 } from "../../../../src/internal/hardhat-network/provider/node-types";
-import {
-  EdrProviderWrapper,
-  getNodeConfig,
-} from "../../../../src/internal/hardhat-network/provider/provider";
+import { EdrProviderWrapper } from "../../../../src/internal/hardhat-network/provider/provider";
 import { VMTracer } from "../../../../src/internal/hardhat-network/stack-traces/vm-tracer";
 import { LoggerConfig } from "../../../../src/internal/hardhat-network/provider/modules/logger";
 
