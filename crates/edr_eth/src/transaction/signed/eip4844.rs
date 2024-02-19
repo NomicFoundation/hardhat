@@ -6,7 +6,7 @@ use alloy_rlp::{RlpDecodable, RlpEncodable};
 use crate::{
     access_list::AccessList,
     signature::{Signature, SignatureError},
-    transaction::Eip4844TransactionRequest,
+    transaction::{fake_signature::recover_fake_signature, Eip4844TransactionRequest},
     utils::envelop_bytes,
     Address, Bytes, B256, U256,
 };
@@ -37,6 +37,11 @@ pub struct Eip4844SignedTransaction {
     #[rlp(skip)]
     #[cfg_attr(feature = "serde", serde(skip))]
     pub hash: OnceLock<B256>,
+    /// Whether the signed transaction is from an impersonated account.
+    #[rlp(default)]
+    #[rlp(skip)]
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub is_fake: bool,
 }
 
 impl Eip4844SignedTransaction {
@@ -60,6 +65,10 @@ impl Eip4844SignedTransaction {
             s: self.s,
             v: u64::from(self.odd_y_parity),
         };
+
+        if self.is_fake {
+            return Ok(recover_fake_signature(&signature));
+        }
 
         signature.recover(Eip4844TransactionRequest::from(self).hash())
     }
@@ -113,6 +122,7 @@ mod tests {
                 .unwrap(),
             odd_y_parity: false,
             hash: OnceLock::new(),
+            is_fake: false,
         }
     }
 

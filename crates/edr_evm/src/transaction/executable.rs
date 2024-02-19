@@ -284,6 +284,7 @@ impl TryFrom<Transaction> for ExecutableTransaction {
                             v: value.v,
                         },
                         hash: OnceLock::from(value.hash),
+                        is_fake: false,
                     })
                 } else {
                     SignedTransaction::PostEip155Legacy(Eip155SignedTransaction {
@@ -299,6 +300,7 @@ impl TryFrom<Transaction> for ExecutableTransaction {
                             v: value.v,
                         },
                         hash: OnceLock::from(value.hash),
+                        is_fake: false,
                     })
                 }
             }
@@ -320,6 +322,7 @@ impl TryFrom<Transaction> for ExecutableTransaction {
                 r: value.r,
                 s: value.s,
                 hash: OnceLock::from(value.hash),
+                is_fake: false,
             }),
             Some(2) => SignedTransaction::Eip1559(Eip1559SignedTransaction {
                 odd_y_parity: value.odd_y_parity(),
@@ -344,6 +347,7 @@ impl TryFrom<Transaction> for ExecutableTransaction {
                 r: value.r,
                 s: value.s,
                 hash: OnceLock::from(value.hash),
+                is_fake: false,
             }),
             Some(3) => SignedTransaction::Eip4844(Eip4844SignedTransaction {
                 odd_y_parity: value.odd_y_parity(),
@@ -376,6 +380,7 @@ impl TryFrom<Transaction> for ExecutableTransaction {
                 r: value.r,
                 s: value.s,
                 hash: OnceLock::from(value.hash),
+                is_fake: false,
             }),
             Some(r#type) => {
                 return Err(TransactionConversionError::UnsupportedType(r#type));

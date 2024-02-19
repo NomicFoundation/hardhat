@@ -6,7 +6,10 @@ use alloy_rlp::{RlpDecodable, RlpEncodable};
 use super::LegacySignedTransaction;
 use crate::{
     signature::{Signature, SignatureError},
-    transaction::{kind::TransactionKind, request::Eip155TransactionRequest},
+    transaction::{
+        fake_signature::recover_fake_signature, kind::TransactionKind,
+        request::Eip155TransactionRequest,
+    },
     Address, Bytes, B256, U256,
 };
 
@@ -28,6 +31,11 @@ pub struct Eip155SignedTransaction {
     #[rlp(skip)]
     #[cfg_attr(feature = "serde", serde(skip))]
     pub hash: OnceLock<B256>,
+    /// Whether the signed transaction is from an impersonated account.
+    #[rlp(default)]
+    #[rlp(skip)]
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub is_fake: bool,
 }
 
 impl Eip155SignedTransaction {
@@ -37,6 +45,9 @@ impl Eip155SignedTransaction {
 
     /// Recovers the Ethereum address which was used to sign the transaction.
     pub fn recover(&self) -> Result<Address, SignatureError> {
+        if self.is_fake {
+            return Ok(recover_fake_signature(&self.signature));
+        }
         self.signature
             .recover(Eip155TransactionRequest::from(self).hash())
     }
@@ -57,6 +68,7 @@ impl From<LegacySignedTransaction> for Eip155SignedTransaction {
             input: tx.input,
             signature: tx.signature,
             hash: tx.hash,
+            is_fake: tx.is_fake,
         }
     }
 }
