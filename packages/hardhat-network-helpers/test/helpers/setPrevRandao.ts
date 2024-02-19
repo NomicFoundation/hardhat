@@ -18,7 +18,7 @@ describe("setPrevRandao", function () {
     return BigInt(block.mixHash);
   };
 
-  it("should allow setting the next block's prevrandao", async function () {
+  it("should allow setting the next block's prevRandao", async function () {
     await hh.setPrevRandao(12345);
     await hh.mine();
 

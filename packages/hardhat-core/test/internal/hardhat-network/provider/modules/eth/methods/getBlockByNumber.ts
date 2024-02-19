@@ -14,7 +14,6 @@ import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-
 import { assertQuantity } from "../../../../helpers/assertions";
 import { setCWD } from "../../../../helpers/cwd";
 import { PROVIDERS } from "../../../../helpers/providers";
-import { retrieveForkBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 import { sendTxToZeroAddress } from "../../../../helpers/transactions";
 import { DEFAULT_COINBASE } from "../../../../../../../src/internal/hardhat-network/provider/provider";
 
@@ -29,9 +28,6 @@ describe("Eth module", function () {
     describe(`${name} provider`, function () {
       setCWD();
       useProvider({ hardfork: "london" });
-
-      const getFirstBlock = async () =>
-        isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
 
       describe("eth_getBlockByNumber", async function () {
         it("Should return the genesis block for number 0", async function () {
@@ -50,16 +46,19 @@ describe("Eth module", function () {
         });
 
         it("Should return null for unknown blocks", async function () {
-          const firstBlock = await getFirstBlock();
+          const firstBlockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
+
           const block = await this.provider.send("eth_getBlockByNumber", [
-            numberToRpcQuantity(firstBlock + 2),
+            numberToRpcQuantity(firstBlockNumber + 2),
             false,
           ]);
 
           assert.isNull(block);
 
           const block2 = await this.provider.send("eth_getBlockByNumber", [
-            numberToRpcQuantity(firstBlock + 1),
+            numberToRpcQuantity(firstBlockNumber + 1),
             true,
           ]);
 
@@ -67,7 +66,10 @@ describe("Eth module", function () {
         });
 
         it("Should return the new blocks", async function () {
-          const firstBlockNumber = await getFirstBlock();
+          const firstBlockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
+
           const firstBlock: RpcBlockOutput = await this.provider.send(
             "eth_getBlockByNumber",
             [numberToRpcQuantity(firstBlockNumber), false]
@@ -89,7 +91,10 @@ describe("Eth module", function () {
         });
 
         it("Should return the new pending block", async function () {
-          const firstBlockNumber = await getFirstBlock();
+          const firstBlockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
+
           const firstBlock: RpcBlockOutput = await this.provider.send(
             "eth_getBlockByNumber",
             [numberToRpcQuantity(firstBlockNumber), false]
@@ -112,7 +117,10 @@ describe("Eth module", function () {
         });
 
         it("should return the complete transactions if the second argument is true", async function () {
-          const firstBlockNumber = await getFirstBlock();
+          const firstBlockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
+
           const firstBlock: RpcBlockOutput = await this.provider.send(
             "eth_getBlockByNumber",
             [numberToRpcQuantity(firstBlockNumber), false]
@@ -149,7 +157,10 @@ describe("Eth module", function () {
         );
 
         async function testTotalDifficultyFork(this: Context) {
-          const forkBlockNumber = await getFirstBlock();
+          const forkBlockNumber: number = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
+
           const forkBlock: RpcBlockOutput = await this.provider.send(
             "eth_getBlockByNumber",
             [numberToRpcQuantity(forkBlockNumber), false]

@@ -3,7 +3,13 @@
 
 version: 2
 updates:
-  - package-ecosystem: "npm"
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "bump"
+  - package-ecosystem: "pnpm"
     directory: "/"
     schedule:
       interval: "daily"

@@ -1,7 +1,10 @@
 import { zeroAddress } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 
-import { numberToRpcQuantity } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
+import {
+  numberToRpcQuantity,
+  rpcQuantityToNumber,
+} from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { randomAddress } from "../../../../../../../src/internal/hardhat-network/provider/utils/random";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import { assertInvalidInputError } from "../../../../helpers/assertions";
@@ -12,7 +15,6 @@ import {
   DEFAULT_BLOCK_GAS_LIMIT,
   PROVIDERS,
 } from "../../../../helpers/providers";
-import { retrieveForkBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 import { deployContract } from "../../../../helpers/transactions";
 
 const PRECOMPILES_COUNT = 8;
@@ -28,9 +30,6 @@ describe("Eth module", function () {
     describe(`${name} provider`, function () {
       setCWD();
       useProvider();
-
-      const getFirstBlock = async () =>
-        isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
 
       describe("eth_getCode", async function () {
         it("Should return an empty buffer for non-contract accounts", async function () {
@@ -71,7 +70,10 @@ describe("Eth module", function () {
         });
 
         it("Should leverage block tag parameter", async function () {
-          const firstBlock = await getFirstBlock();
+          const firstBlockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
+
           const exampleContract = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -80,7 +82,7 @@ describe("Eth module", function () {
           assert.strictEqual(
             await this.provider.send("eth_getCode", [
               exampleContract,
-              numberToRpcQuantity(firstBlock),
+              numberToRpcQuantity(firstBlockNumber),
             ]),
             "0x"
           );
@@ -124,14 +126,16 @@ describe("Eth module", function () {
         });
 
         it("Should throw invalid input error if called in the context of a nonexistent block", async function () {
-          const firstBlock = await getFirstBlock();
-          const futureBlock = firstBlock + 1;
+          const latestBlockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
+          const futureBlock = latestBlockNumber + 1;
 
           await assertInvalidInputError(
             this.provider,
             "eth_getCode",
             [randomAddress().toString(), numberToRpcQuantity(futureBlock)],
-            `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
+            `Received invalid block tag ${futureBlock}. Latest block number is ${latestBlockNumber}`
           );
         });
       });

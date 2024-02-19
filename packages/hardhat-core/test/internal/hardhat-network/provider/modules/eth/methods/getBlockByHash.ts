@@ -8,9 +8,9 @@ import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-
 import { assertQuantity } from "../../../../helpers/assertions";
 import { setCWD } from "../../../../helpers/cwd";
 import { PROVIDERS } from "../../../../helpers/providers";
-import { retrieveForkBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 import { sendTxToZeroAddress } from "../../../../helpers/transactions";
 import { DEFAULT_COINBASE } from "../../../../../../../src/internal/hardhat-network/provider/provider";
+import { rpcQuantityToNumber } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -23,9 +23,6 @@ describe("Eth module", function () {
     describe(`${name} provider`, function () {
       setCWD();
       useProvider();
-
-      const getFirstBlock = async () =>
-        isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
 
       describe("eth_getBlockByHash", async function () {
         it("should return null for non-existing blocks", async function () {
@@ -45,7 +42,10 @@ describe("Eth module", function () {
         });
 
         it("Should return the block with transaction hashes if the second argument is false", async function () {
-          const firstBlock = await getFirstBlock();
+          const firstBlockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
+
           const txHash = await sendTxToZeroAddress(this.provider);
           const txOutput: RpcTransactionOutput = await this.provider.send(
             "eth_getTransactionByHash",
@@ -58,7 +58,7 @@ describe("Eth module", function () {
           );
 
           assert.equal(block.hash, txOutput.blockHash);
-          assertQuantity(block.number, firstBlock + 1);
+          assertQuantity(block.number, firstBlockNumber + 1);
           assert.equal(block.transactions.length, 1);
           assert.include(block.transactions as string[], txHash);
           assert.equal(block.miner, DEFAULT_COINBASE.toString());
@@ -66,7 +66,10 @@ describe("Eth module", function () {
         });
 
         it("Should return the block with the complete transactions if the second argument is true", async function () {
-          const firstBlock = await getFirstBlock();
+          const firstBlockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
+
           const txHash = await sendTxToZeroAddress(this.provider);
           const txOutput: RpcTransactionOutput = await this.provider.send(
             "eth_getTransactionByHash",
@@ -79,7 +82,7 @@ describe("Eth module", function () {
           );
 
           assert.equal(block.hash, txOutput.blockHash);
-          assertQuantity(block.number, firstBlock + 1);
+          assertQuantity(block.number, firstBlockNumber + 1);
           assert.equal(block.transactions.length, 1);
           assert.equal(block.miner, DEFAULT_COINBASE.toString());
           assert.deepEqual(

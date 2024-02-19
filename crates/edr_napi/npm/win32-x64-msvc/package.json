@@ -1,0 +1,22 @@
+{
+  "name": "@ignored/edr-win32-x64-msvc",
+  "repository": {
+    "url": "https://github.com/NomicFoundation/hardhat.git",
+    "type": "git"
+  },
+  "version": "0.2.0-alpha.1",
+  "os": [
+    "win32"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "main": "edr.win32-x64-msvc.node",
+  "files": [
+    "edr.win32-x64-msvc.node"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 18"
+  }
+}

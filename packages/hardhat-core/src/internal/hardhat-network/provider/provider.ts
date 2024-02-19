@@ -1,17 +1,30 @@
 import type {
   Artifacts,
   BoundExperimentalHardhatNetworkMessageTraceHook,
+  CompilerInput,
+  CompilerOutput,
   EIP1193Provider,
   EthSubscription,
   HardhatNetworkChainsConfig,
   RequestArguments,
 } from "../../../types";
 
+import {
+  EdrContext,
+  Provider as EdrProviderT,
+  ExecutionResult,
+  RawTrace,
+  Response,
+  SubscriptionEvent,
+  TracingMessage,
+  TracingStep,
+} from "@ignored/edr";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import chalk from "chalk";
 import debug from "debug";
 import { EventEmitter } from "events";
 import fsExtra from "fs-extra";
+import * as t from "io-ts";
 import semver from "semver";
 
 import {
@@ -19,24 +32,31 @@ import {
   HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
 } from "../../constants";
 import {
+  rpcCompilerInput,
+  rpcCompilerOutput,
+} from "../../core/jsonrpc/types/input/solc";
+import { validateParams } from "../../core/jsonrpc/types/input/validation";
+import {
+  InvalidArgumentsError,
   InvalidInputError,
-  MethodNotFoundError,
-  MethodNotSupportedError,
   ProviderError,
 } from "../../core/providers/errors";
-import { Mutex } from "../../vendor/await-semaphore";
-
+import { isErrorResponse } from "../../core/providers/http";
+import { getHardforkName } from "../../util/hardforks";
+import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
+import { ConsoleLogger } from "../stack-traces/consoleLogger";
+import { ContractsIdentifier } from "../stack-traces/contracts-identifier";
+import {
+  VmTraceDecoder,
+  initializeVmTraceDecoder,
+} from "../stack-traces/vm-trace-decoder";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/constants";
-import { MiningTimer } from "./MiningTimer";
-import { DebugModule } from "./modules/debug";
-import { EthModule } from "./modules/eth";
-import { EvmModule } from "./modules/evm";
-import { HardhatModule } from "./modules/hardhat";
-import { ModulesLogger } from "./modules/logger";
-import { PersonalModule } from "./modules/personal";
-import { NetModule } from "./modules/net";
-import { Web3Module } from "./modules/web3";
-import { HardhatNode } from "./node";
+import { encodeSolidityStackTrace } from "../stack-traces/solidity-errors";
+import { SolidityStackTrace } from "../stack-traces/solidity-stack-trace";
+import { SolidityTracer } from "../stack-traces/solidityTracer";
+import { VMTracer } from "../stack-traces/vm-tracer";
+
+import { getPackageJson } from "../../util/packageInfo";
 import {
   ForkConfig,
   GenesisAccount,
@@ -45,18 +65,31 @@ import {
   NodeConfig,
   TracingConfig,
 } from "./node-types";
+import {
+  edrRpcDebugTraceToHardhat,
+  ethereumjsIntervalMiningConfigToEdr,
+  ethereumjsMempoolOrderToEdrMineOrdering,
+  ethereumsjsHardforkToEdrSpecId,
+} from "./utils/convertToEdr";
+import { makeCommon } from "./utils/makeCommon";
+import { LoggerConfig, printLine, replaceLastLine } from "./modules/logger";
 
 const log = debug("hardhat:core:hardhat-network:provider");
-
-// Set of methods that are never logged
-const PRIVATE_RPC_METHODS = new Set([
-  "hardhat_getStackTraceFailuresCount",
-  "hardhat_setLoggingEnabled",
-]);
 
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 export const DEFAULT_COINBASE = "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e";
+let _globalEdrContext: EdrContext | undefined;
+
+// Lazy initialize the global EDR context.
+export function getGlobalEdrContext(): EdrContext {
+  if (_globalEdrContext === undefined) {
+    // Only one is allowed to exist
+    _globalEdrContext = new EdrContext();
+  }
+
+  return _globalEdrContext;
+}
 
 interface HardhatNetworkProviderConfig {
   hardfork: string;
@@ -83,295 +116,311 @@ interface HardhatNetworkProviderConfig {
   enableTransientStorage: boolean;
 }
 
-export class HardhatNetworkProvider
+export function getNodeConfig(
+  config: HardhatNetworkProviderConfig,
+  tracingConfig?: TracingConfig
+): NodeConfig {
+  return {
+    automine: config.automine,
+    blockGasLimit: config.blockGasLimit,
+    minGasPrice: config.minGasPrice,
+    genesisAccounts: config.genesisAccounts,
+    allowUnlimitedContractSize: config.allowUnlimitedContractSize,
+    tracingConfig,
+    initialBaseFeePerGas: config.initialBaseFeePerGas,
+    mempoolOrder: config.mempoolOrder,
+    hardfork: config.hardfork,
+    chainId: config.chainId,
+    networkId: config.networkId,
+    initialDate: config.initialDate,
+    forkConfig: config.forkConfig,
+    forkCachePath:
+      config.forkConfig !== undefined ? config.forkCachePath : undefined,
+    coinbase: config.coinbase ?? DEFAULT_COINBASE,
+    chains: config.chains,
+    allowBlocksWithSameTimestamp: config.allowBlocksWithSameTimestamp,
+    enableTransientStorage: config.enableTransientStorage,
+  };
+}
+
+export interface RawTraceCallbacks {
+  onStep?: (messageTrace: TracingStep) => Promise<void>;
+  onBeforeMessage?: (messageTrace: TracingMessage) => Promise<void>;
+  onAfterMessage?: (messageTrace: ExecutionResult) => Promise<void>;
+}
+
+class EdrProviderEventAdapter extends EventEmitter {}
+
+export class EdrProviderWrapper
   extends EventEmitter
   implements EIP1193Provider
 {
-  private _node?: HardhatNode;
-  private _ethModule?: EthModule;
-  private _netModule?: NetModule;
-  private _web3Module?: Web3Module;
-  private _evmModule?: EvmModule;
-  private _hardhatModule?: HardhatModule;
-  private _debugModule?: DebugModule;
-  private _personalModule?: PersonalModule;
-  private readonly _mutex = new Mutex();
-  // this field is not used here but it's used in the tests
-  private _common?: Common;
+  private _failedStackTraces = 0;
 
-  constructor(
-    private readonly _config: HardhatNetworkProviderConfig,
-    private readonly _logger: ModulesLogger,
-    private readonly _artifacts?: Artifacts
+  private constructor(
+    private readonly _provider: EdrProviderT,
+    private readonly _eventAdapter: EdrProviderEventAdapter,
+    private readonly _vmTraceDecoder: VmTraceDecoder,
+    private readonly _rawTraceCallbacks: RawTraceCallbacks,
+    // The common configuration for EthereumJS VM is not used by EDR, but tests expect it as part of the provider.
+    private readonly _common: Common,
+    tracingConfig?: TracingConfig
   ) {
     super();
+
+    if (tracingConfig !== undefined) {
+      initializeVmTraceDecoder(this._vmTraceDecoder, tracingConfig);
+    }
+  }
+
+  public static async create(
+    config: HardhatNetworkProviderConfig,
+    loggerConfig: LoggerConfig,
+    rawTraceCallbacks: RawTraceCallbacks,
+    tracingConfig?: TracingConfig
+  ): Promise<EdrProviderWrapper> {
+    const { Provider } =
+      require("@ignored/edr") as typeof import("@ignored/edr");
+
+    const coinbase = config.coinbase ?? DEFAULT_COINBASE;
+
+    let fork;
+    if (config.forkConfig !== undefined) {
+      fork = {
+        jsonRpcUrl: config.forkConfig.jsonRpcUrl,
+        blockNumber:
+          config.forkConfig.blockNumber !== undefined
+            ? BigInt(config.forkConfig.blockNumber)
+            : undefined,
+      };
+    }
+
+    const initialDate =
+      config.initialDate !== undefined
+        ? BigInt(Math.floor(config.initialDate.getTime() / 1000))
+        : undefined;
+
+    // To accomodate construction ordering, we need an adapter to forward events
+    // from the EdrProvider callback to the wrapper's listener
+    const eventAdapter = new EdrProviderEventAdapter();
+
+    const printLineFn = loggerConfig.printLineFn ?? printLine;
+    const replaceLastLineFn = loggerConfig.replaceLastLineFn ?? replaceLastLine;
+
+    const contractsIdentifier = new ContractsIdentifier();
+    const vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
+
+    const provider = await Provider.withConfig(
+      getGlobalEdrContext(),
+      {
+        allowBlocksWithSameTimestamp:
+          config.allowBlocksWithSameTimestamp ?? false,
+        allowUnlimitedContractSize: config.allowUnlimitedContractSize,
+        bailOnCallFailure: config.throwOnCallFailures,
+        bailOnTransactionFailure: config.throwOnTransactionFailures,
+        blockGasLimit: BigInt(config.blockGasLimit),
+        chainId: BigInt(config.chainId),
+        chains: Array.from(config.chains, ([chainId, hardforkConfig]) => {
+          return {
+            chainId: BigInt(chainId),
+            hardforks: Array.from(
+              hardforkConfig.hardforkHistory,
+              ([hardfork, blockNumber]) => {
+                return {
+                  blockNumber: BigInt(blockNumber),
+                  specId: ethereumsjsHardforkToEdrSpecId(
+                    getHardforkName(hardfork)
+                  ),
+                };
+              }
+            ),
+          };
+        }),
+        cacheDir: config.forkCachePath,
+        coinbase: Buffer.from(coinbase.slice(2), "hex"),
+        fork,
+        hardfork: ethereumsjsHardforkToEdrSpecId(
+          getHardforkName(config.hardfork)
+        ),
+        genesisAccounts: config.genesisAccounts.map((account) => {
+          return {
+            secretKey: account.privateKey,
+            balance: BigInt(account.balance),
+          };
+        }),
+        initialDate,
+        initialBaseFeePerGas:
+          config.initialBaseFeePerGas !== undefined
+            ? BigInt(config.initialBaseFeePerGas!)
+            : undefined,
+        minGasPrice: config.minGasPrice,
+        mining: {
+          autoMine: config.automine,
+          interval: ethereumjsIntervalMiningConfigToEdr(config.intervalMining),
+          memPool: {
+            order: ethereumjsMempoolOrderToEdrMineOrdering(config.mempoolOrder),
+          },
+        },
+        networkId: BigInt(config.networkId),
+      },
+      {
+        enable: loggerConfig.enabled,
+        decodeConsoleLogInputsCallback: (inputs: Buffer[]) => {
+          const consoleLogger = new ConsoleLogger();
+          return consoleLogger.getDecodedLogs(inputs);
+        },
+        getContractAndFunctionNameCallback: (
+          code: Buffer,
+          calldata?: Buffer
+        ) => {
+          return vmTraceDecoder.getContractAndFunctionNamesForCall(
+            code,
+            calldata
+          );
+        },
+        printLineCallback: (message: string, replace: boolean) => {
+          if (replace) {
+            replaceLastLineFn(message);
+          } else {
+            printLineFn(message);
+          }
+        },
+      },
+      (event: SubscriptionEvent) => {
+        eventAdapter.emit("ethEvent", event);
+      }
+    );
+
+    const common = makeCommon(getNodeConfig(config));
+    const wrapper = new EdrProviderWrapper(
+      provider,
+      eventAdapter,
+      vmTraceDecoder,
+      rawTraceCallbacks,
+      common,
+      tracingConfig
+    );
+
+    // Pass through all events from the provider
+    eventAdapter.addListener(
+      "ethEvent",
+      wrapper._ethEventListener.bind(wrapper)
+    );
+
+    return wrapper;
   }
 
   public async request(args: RequestArguments): Promise<unknown> {
-    const release = await this._mutex.acquire();
-
     if (args.params !== undefined && !Array.isArray(args.params)) {
       throw new InvalidInputError(
         "Hardhat Network doesn't support JSON-RPC params sent as an object"
       );
     }
 
-    try {
-      let result;
-      if (this._logger.isEnabled() && !PRIVATE_RPC_METHODS.has(args.method)) {
-        result = await this._sendWithLogging(args.method, args.params);
-      } else {
-        result = await this._send(args.method, args.params);
-      }
+    const params = args.params ?? [];
 
-      if (args.method === "hardhat_reset") {
-        this.emit(HARDHAT_NETWORK_RESET_EVENT);
-      }
-      if (args.method === "evm_revert") {
-        this.emit(HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT);
-      }
-
-      return result;
-    } finally {
-      release();
+    if (args.method === "hardhat_addCompilationResult") {
+      return this._addCompilationResultAction(
+        ...this._addCompilationResultParams(params)
+      );
+    } else if (args.method === "hardhat_getStackTraceFailuresCount") {
+      return this._getStackTraceFailuresCountAction(
+        ...this._getStackTraceFailuresCountParams(params)
+      );
     }
-  }
 
-  private async _sendWithLogging(
-    method: string,
-    params: any[] = []
-  ): Promise<any> {
-    try {
-      const result = await this._send(method, params);
-      // We log after running the method, because we want to use different
-      // colors depending on whether it failed or not
+    const stringifiedArgs = JSON.stringify({
+      method: args.method,
+      params,
+    });
 
-      // TODO: If an eth_call, eth_sendTransaction, or eth_sendRawTransaction
-      //  fails without throwing, this will be displayed in green. It's unclear
-      //  if this is correct. See Eth module's TODOs for more info.
+    const responseObject: Response = await this._provider.handleRequest(
+      stringifiedArgs
+    );
+    const response = JSON.parse(responseObject.json);
 
-      if (method !== "hardhat_intervalMine") {
-        this._logger.printMethod(method);
-
-        const printedSomething = this._logger.printLogs();
-        if (printedSomething) {
-          this._logger.printEmptyLine();
-        }
-      }
-
-      return result;
-    } catch (err) {
-      if (
-        err instanceof MethodNotFoundError ||
-        err instanceof MethodNotSupportedError
-      ) {
-        this._logger.printMethodNotSupported(method);
-
-        throw err;
-      }
-
-      this._logger.printFailedMethod(method);
-      this._logger.printLogs();
-
-      if (err instanceof Error && !this._logger.isLoggedError(err)) {
-        if (ProviderError.isProviderError(err)) {
-          this._logger.printEmptyLine();
-          this._logger.printErrorMessage(err.message);
-
-          const isEIP155Error =
-            err instanceof InvalidInputError && err.message.includes("EIP155");
-          if (isEIP155Error) {
-            this._logger.printMetaMaskWarning();
+    const rawTraces = responseObject.traces;
+    for (const rawTrace of rawTraces) {
+      const trace = rawTrace.trace();
+      for (const traceItem of trace) {
+        if ("pc" in traceItem) {
+          if (this._rawTraceCallbacks.onStep !== undefined) {
+            await this._rawTraceCallbacks.onStep(traceItem);
+          }
+        } else if ("executionResult" in traceItem) {
+          if (this._rawTraceCallbacks.onAfterMessage !== undefined) {
+            await this._rawTraceCallbacks.onAfterMessage(
+              traceItem.executionResult
+            );
           }
         } else {
-          this._logger.printUnknownError(err);
-        }
-      }
-
-      this._logger.printEmptyLine();
-
-      throw err;
-    }
-  }
-
-  private async _send(method: string, params: any[] = []): Promise<any> {
-    await this._init();
-
-    if (method.startsWith("eth_")) {
-      return this._ethModule!.processRequest(method, params);
-    }
-
-    if (method.startsWith("net_")) {
-      return this._netModule!.processRequest(method, params);
-    }
-
-    if (method.startsWith("web3_")) {
-      return this._web3Module!.processRequest(method, params);
-    }
-
-    if (method.startsWith("evm_")) {
-      return this._evmModule!.processRequest(method, params);
-    }
-
-    if (method.startsWith("hardhat_")) {
-      return this._hardhatModule!.processRequest(method, params);
-    }
-
-    if (method.startsWith("debug_")) {
-      return this._debugModule!.processRequest(method, params);
-    }
-
-    if (method.startsWith("personal_")) {
-      return this._personalModule!.processRequest(method, params);
-    }
-
-    throw new MethodNotFoundError(`Method ${method} not found`);
-  }
-
-  private async _init() {
-    if (this._node !== undefined) {
-      return;
-    }
-
-    const config: NodeConfig = {
-      automine: this._config.automine,
-      blockGasLimit: this._config.blockGasLimit,
-      minGasPrice: this._config.minGasPrice,
-      genesisAccounts: this._config.genesisAccounts,
-      allowUnlimitedContractSize: this._config.allowUnlimitedContractSize,
-      tracingConfig: await this._makeTracingConfig(),
-      initialBaseFeePerGas: this._config.initialBaseFeePerGas,
-      mempoolOrder: this._config.mempoolOrder,
-      hardfork: this._config.hardfork,
-      chainId: this._config.chainId,
-      networkId: this._config.networkId,
-      initialDate: this._config.initialDate,
-      forkConfig: this._config.forkConfig,
-      forkCachePath:
-        this._config.forkConfig !== undefined
-          ? this._config.forkCachePath
-          : undefined,
-      coinbase: this._config.coinbase ?? DEFAULT_COINBASE,
-      chains: this._config.chains,
-      allowBlocksWithSameTimestamp: this._config.allowBlocksWithSameTimestamp,
-      enableTransientStorage: this._config.enableTransientStorage,
-    };
-
-    const [common, node] = await HardhatNode.create(config);
-
-    this._common = common;
-    this._node = node;
-
-    this._ethModule = new EthModule(
-      common,
-      node,
-      this._config.throwOnTransactionFailures,
-      this._config.throwOnCallFailures,
-      this._logger,
-      this._config.experimentalHardhatNetworkMessageTraceHooks
-    );
-
-    const miningTimer = this._makeMiningTimer();
-
-    this._netModule = new NetModule(common);
-    this._web3Module = new Web3Module(node);
-    this._evmModule = new EvmModule(
-      node,
-      miningTimer,
-      this._logger,
-      this._config.allowBlocksWithSameTimestamp,
-      this._config.experimentalHardhatNetworkMessageTraceHooks
-    );
-    this._hardhatModule = new HardhatModule(
-      node,
-      (forkConfig?: ForkConfig) => this._reset(miningTimer, forkConfig),
-      (loggingEnabled: boolean) => {
-        this._logger.setEnabled(loggingEnabled);
-      },
-      this._logger,
-      this._config.experimentalHardhatNetworkMessageTraceHooks
-    );
-    this._debugModule = new DebugModule(node);
-    this._personalModule = new PersonalModule(node);
-
-    this._forwardNodeEvents(node);
-  }
-
-  private async _makeTracingConfig(): Promise<TracingConfig | undefined> {
-    if (this._artifacts !== undefined) {
-      const buildInfos = [];
-
-      const buildInfoFiles = await this._artifacts.getBuildInfoPaths();
-
-      try {
-        for (const buildInfoFile of buildInfoFiles) {
-          const buildInfo = await fsExtra.readJson(buildInfoFile);
-          if (semver.gte(buildInfo.solcVersion, FIRST_SOLC_VERSION_SUPPORTED)) {
-            buildInfos.push(buildInfo);
+          if (this._rawTraceCallbacks.onBeforeMessage !== undefined) {
+            await this._rawTraceCallbacks.onBeforeMessage(traceItem);
           }
         }
+      }
+    }
 
-        return {
-          buildInfos,
+    if (isErrorResponse(response)) {
+      let error;
+
+      const solidityTrace = responseObject.solidityTrace;
+      let stackTrace: SolidityStackTrace | undefined;
+      if (solidityTrace !== null) {
+        stackTrace = await this._rawTraceToSolidityStackTrace(solidityTrace);
+      }
+
+      if (stackTrace !== undefined) {
+        error = encodeSolidityStackTrace(response.error.message, stackTrace);
+        // Pass data and transaction hash from the original error
+        (error as any).data = {
+          data: response.error.data?.data ?? undefined,
+          transactionHash: response.error.data?.transactionHash ?? undefined,
         };
-      } catch (error) {
-        console.warn(
-          chalk.yellow(
-            "Stack traces engine could not be initialized. Run Hardhat with --verbose to learn more."
-          )
-        );
-
-        log(
-          "Solidity stack traces disabled: Failed to read solc's input and output files. Please report this to help us improve Hardhat.\n",
-          error
-        );
-      }
-    }
-  }
-
-  private _makeMiningTimer(): MiningTimer {
-    const miningTimer = new MiningTimer(
-      this._config.intervalMining,
-      async () => {
-        try {
-          await this.request({ method: "hardhat_intervalMine" });
-        } catch (e) {
-          console.error("Unexpected error calling hardhat_intervalMine:", e);
+      } else {
+        if (response.error.code === InvalidArgumentsError.CODE) {
+          error = new InvalidArgumentsError(response.error.message);
+        } else {
+          error = new ProviderError(
+            response.error.message,
+            response.error.code
+          );
         }
+        error.data = response.error.data;
       }
-    );
 
-    miningTimer.start();
-
-    return miningTimer;
-  }
-
-  private async _reset(miningTimer: MiningTimer, forkConfig?: ForkConfig) {
-    this._config.forkConfig = forkConfig;
-    if (this._node !== undefined) {
-      this._stopForwardingNodeEvents(this._node);
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+      throw error;
     }
-    this._node = undefined;
 
-    miningTimer.stop();
+    if (args.method === "hardhat_reset") {
+      this.emit(HARDHAT_NETWORK_RESET_EVENT);
+    } else if (args.method === "evm_revert") {
+      this.emit(HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT);
+    }
 
-    await this._init();
+    // Override EDR version string with Hardhat version string with EDR backend,
+    // e.g. `HardhatNetwork/2.19.0/@nomicfoundation/edr/0.2.0-dev`
+    if (args.method === "web3_clientVersion") {
+      return clientVersion(response.result);
+    } else if (
+      args.method === "debug_traceTransaction" ||
+      args.method === "debug_traceCall"
+    ) {
+      return edrRpcDebugTraceToHardhat(response.result);
+    } else {
+      return response.result;
+    }
   }
 
-  private _forwardNodeEvents(node: HardhatNode) {
-    node.addListener("ethEvent", this._ethEventListener);
+  private _ethEventListener(event: SubscriptionEvent) {
+    const subscription = `0x${event.filterId.toString(16)}`;
+    const results = Array.isArray(event.result) ? event.result : [event.result];
+    for (const result of results) {
+      this._emitLegacySubscriptionEvent(subscription, result);
+      this._emitEip1193SubscriptionEvent(subscription, result);
+    }
   }
-
-  private _stopForwardingNodeEvents(node: HardhatNode) {
-    node.removeListener("ethEvent", this._ethEventListener);
-  }
-
-  private _ethEventListener = (payload: { filterId: bigint; result: any }) => {
-    const subscription = `0x${payload.filterId.toString(16)}`;
-    const result = payload.result;
-    this._emitLegacySubscriptionEvent(subscription, result);
-    this._emitEip1193SubscriptionEvent(subscription, result);
-  };
 
   private _emitLegacySubscriptionEvent(subscription: string, result: any) {
     this.emit("notification", {
@@ -390,5 +439,150 @@ export class HardhatNetworkProvider
     };
 
     this.emit("message", message);
+  }
+
+  private _addCompilationResultParams(
+    params: any[]
+  ): [string, CompilerInput, CompilerOutput] {
+    return validateParams(
+      params,
+      t.string,
+      rpcCompilerInput,
+      rpcCompilerOutput
+    );
+  }
+
+  private async _addCompilationResultAction(
+    solcVersion: string,
+    compilerInput: CompilerInput,
+    compilerOutput: CompilerOutput
+  ): Promise<boolean> {
+    let bytecodes;
+    try {
+      bytecodes = createModelsAndDecodeBytecodes(
+        solcVersion,
+        compilerInput,
+        compilerOutput
+      );
+    } catch (error) {
+      console.warn(
+        chalk.yellow(
+          "The Hardhat Network tracing engine could not be updated. Run Hardhat with --verbose to learn more."
+        )
+      );
+
+      log(
+        "ContractsIdentifier failed to be updated. Please report this to help us improve Hardhat.\n",
+        error
+      );
+
+      return false;
+    }
+
+    for (const bytecode of bytecodes) {
+      this._vmTraceDecoder.addBytecode(bytecode);
+    }
+
+    return true;
+  }
+
+  private _getStackTraceFailuresCountParams(params: any[]): [] {
+    return validateParams(params);
+  }
+
+  private _getStackTraceFailuresCountAction(): number {
+    return this._failedStackTraces;
+  }
+
+  private async _rawTraceToSolidityStackTrace(
+    rawTrace: RawTrace
+  ): Promise<SolidityStackTrace | undefined> {
+    const vmTracer = new VMTracer(false);
+
+    const trace = rawTrace.trace();
+    for (const traceItem of trace) {
+      if ("pc" in traceItem) {
+        await vmTracer.addStep(traceItem);
+      } else if ("executionResult" in traceItem) {
+        await vmTracer.addAfterMessage(traceItem.executionResult);
+      } else {
+        await vmTracer.addBeforeMessage(traceItem);
+      }
+    }
+
+    let vmTrace = vmTracer.getLastTopLevelMessageTrace();
+    const vmTracerError = vmTracer.getLastError();
+
+    if (vmTrace !== undefined) {
+      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
+    }
+
+    try {
+      if (vmTrace === undefined || vmTracerError !== undefined) {
+        throw vmTracerError;
+      }
+
+      const solidityTracer = new SolidityTracer();
+      return solidityTracer.getStackTrace(vmTrace);
+    } catch (err) {
+      this._failedStackTraces += 1;
+      log(
+        "Could not generate stack trace. Please report this to help us improve Hardhat.\n",
+        err
+      );
+    }
+  }
+}
+
+async function clientVersion(edrClientVersion: string): Promise<string> {
+  const hardhatPackage = await getPackageJson();
+  const edrVersion = edrClientVersion.split("/")[1];
+  return `HardhatNetwork/${hardhatPackage.version}/@nomicfoundation/edr/${edrVersion}`;
+}
+
+export async function createHardhatNetworkProvider(
+  hardhatNetworkProviderConfig: HardhatNetworkProviderConfig,
+  loggerConfig: LoggerConfig,
+  artifacts?: Artifacts
+): Promise<EIP1193Provider> {
+  return EdrProviderWrapper.create(
+    hardhatNetworkProviderConfig,
+    loggerConfig,
+    {},
+    await makeTracingConfig(artifacts)
+  );
+}
+
+async function makeTracingConfig(
+  artifacts: Artifacts | undefined
+): Promise<TracingConfig | undefined> {
+  if (artifacts !== undefined) {
+    const buildInfos = [];
+
+    const buildInfoFiles = await artifacts.getBuildInfoPaths();
+
+    try {
+      for (const buildInfoFile of buildInfoFiles) {
+        const buildInfo = await fsExtra.readJson(buildInfoFile);
+        if (semver.gte(buildInfo.solcVersion, FIRST_SOLC_VERSION_SUPPORTED)) {
+          buildInfos.push(buildInfo);
+        }
+      }
+
+      return {
+        buildInfos,
+      };
+    } catch (error) {
+      console.warn(
+        chalk.yellow(
+          "Stack traces engine could not be initialized. Run Hardhat with --verbose to learn more."
+        )
+      );
+
+      log(
+        "Solidity stack traces disabled: Failed to read solc's input and output files. Please report this to help us improve Hardhat.\n",
+        error
+      );
+    }
   }
 }

@@ -8,8 +8,7 @@ import {
 import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { RpcTransactionRequestInput } from "../../../../src/internal/core/jsonrpc/types/input/transactionRequest";
 import { TransactionParams } from "../../../../src/internal/hardhat-network/provider/node-types";
-import { HardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";
-import { EthereumProvider } from "../../../../src/types";
+import { EIP1193Provider, EthereumProvider } from "../../../../src/types";
 
 import {
   DEFAULT_ACCOUNTS,
@@ -99,7 +98,7 @@ export async function sendTransactionFromTxParams(
 }
 
 export async function getSignedTxHash(
-  hardhatNetworkProvider: HardhatNetworkProvider,
+  hardhatNetworkProvider: EIP1193Provider,
   txParams: TransactionParams,
   signerAccountIndex: number
 ) {

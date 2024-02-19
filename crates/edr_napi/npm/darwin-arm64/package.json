@@ -1,0 +1,22 @@
+{
+  "name": "@ignored/edr-darwin-arm64",
+  "repository": {
+    "url": "https://github.com/NomicFoundation/hardhat.git",
+    "type": "git"
+  },
+  "version": "0.2.0-alpha.1",
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "main": "edr.darwin-arm64.node",
+  "files": [
+    "edr.darwin-arm64.node"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 18"
+  }
+}

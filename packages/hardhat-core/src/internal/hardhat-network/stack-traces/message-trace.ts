@@ -1,6 +1,12 @@
-import type { EvmError } from "@nomicfoundation/ethereumjs-evm";
-
 import type { Bytecode } from "./model";
+import type { Exit } from "../provider/vm/exit";
+import type {
+  CallOutput,
+  CreateOutput,
+  HaltResult,
+  RevertResult,
+  SuccessResult,
+} from "@ignored/edr";
 
 export type MessageTrace =
   | CreateMessageTrace
@@ -16,7 +22,7 @@ export type DecodedEvmMessageTrace =
 export interface BaseMessageTrace {
   value: bigint;
   returnData: Uint8Array;
-  error?: EvmError;
+  exit: Exit;
   gasUsed: bigint;
   depth: number;
 }
@@ -30,7 +36,6 @@ export interface BaseEvmMessageTrace extends BaseMessageTrace {
   code: Uint8Array;
   value: bigint;
   returnData: Uint8Array;
-  error?: EvmError;
   steps: MessageTraceStep[];
   bytecode?: Bytecode;
   // The following is just an optimization: When processing this traces it's useful to know ahead of
@@ -92,4 +97,35 @@ export type MessageTraceStep = MessageTrace | EvmStep;
 
 export interface EvmStep {
   pc: number;
+}
+
+export function isCallOutput(
+  output: CallOutput | CreateOutput
+): output is CallOutput {
+  return !isCreateOutput(output);
+}
+
+export function isCreateOutput(
+  output: CallOutput | CreateOutput
+): output is CreateOutput {
+  return "address" in output;
+}
+
+export function isSuccessResult(
+  result: SuccessResult | RevertResult | HaltResult
+): result is SuccessResult {
+  // Only need to check for one unique field
+  return "gasRefunded" in result;
+}
+
+export function isRevertResult(
+  result: SuccessResult | RevertResult | HaltResult
+): result is RevertResult {
+  return !("reason" in result);
+}
+
+export function isHaltResult(
+  result: SuccessResult | RevertResult | HaltResult
+): result is HaltResult {
+  return !("output" in result);
 }

@@ -1,6 +1,7 @@
-import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/cjs/exceptions";
 import { equalsBytes } from "@nomicfoundation/ethereumjs-util";
+
 import { ReturnData } from "../provider/return-data";
+import { ExitCode } from "../provider/vm/exit";
 
 import {
   ErrorInferrer,
@@ -39,7 +40,7 @@ export class SolidityTracer {
   public getStackTrace(
     maybeDecodedMessageTrace: MessageTrace
   ): SolidityStackTrace {
-    if (maybeDecodedMessageTrace.error === undefined) {
+    if (!maybeDecodedMessageTrace.exit.isError()) {
       return [];
     }
 
@@ -80,7 +81,7 @@ export class SolidityTracer {
       // This is not a very exact heuristic, but most of the time it will be right, as solidity
       // reverts if a call fails, and most contracts are in solidity
       if (
-        subtrace.error !== undefined &&
+        subtrace.exit.isError() &&
         equalsBytes(trace.returnData, subtrace.returnData)
       ) {
         let unrecognizedEntry: SolidityStackTraceEntry;
@@ -100,7 +101,7 @@ export class SolidityTracer {
       }
     }
 
-    if (trace.error?.error === ERROR.CODESIZE_EXCEEDS_MAXIMUM) {
+    if (trace.exit.kind === ExitCode.CODESIZE_EXCEEDS_MAXIMUM) {
       return [
         {
           type: StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR,
@@ -108,7 +109,7 @@ export class SolidityTracer {
       ];
     }
 
-    const isInvalidOpcodeError = trace.error?.error === ERROR.INVALID_OPCODE;
+    const isInvalidOpcodeError = trace.exit.kind === ExitCode.INVALID_OPCODE;
 
     if (isCreateTrace(trace)) {
       return [

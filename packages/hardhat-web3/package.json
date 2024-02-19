@@ -23,6 +23,7 @@
     "prettier": "prettier \"**/*.{js,md,json}\"",
     "pretest": "cd ../.. && pnpm build",
     "test": "mocha --recursive \"test/**/*.ts\" --exit && node web3-lazy-object-tests/when-accessing-web3-class.js && node web3-lazy-object-tests/when-accessing-web3-object.js && node web3-lazy-object-tests/when-requiring-web3-module.js",
+    "prebuild": "cd ../../crates/edr_napi && yarn build",
     "build": "tsc --build .",
     "prepublishOnly": "pnpm build",
     "clean": "rimraf dist"
@@ -57,7 +58,7 @@
     "web3": "^1.0.0-beta.36"
   },
   "peerDependencies": {
-    "hardhat": "^2.0.0",
+    "hardhat": "workspace:^2.0.0",
     "web3": "^1.0.0-beta.36"
   },
   "dependencies": {

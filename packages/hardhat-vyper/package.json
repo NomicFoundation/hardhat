@@ -22,6 +22,7 @@
     "prettier": "prettier \"**/*.{js,md,json}\"",
     "pretest": "cd ../.. && pnpm build",
     "test": "mocha --recursive \"test/**/*.ts\"",
+    "prebuild": "cd ../../crates/edr_napi && yarn build",
     "build": "tsc --build .",
     "prepublishOnly": "pnpm build",
     "clean": "rimraf dist"
@@ -67,6 +68,6 @@
     "typescript": "~5.0.0"
   },
   "peerDependencies": {
-    "hardhat": "^2.8.3"
+    "hardhat": "workspace:^2.8.3"
   }
 }
