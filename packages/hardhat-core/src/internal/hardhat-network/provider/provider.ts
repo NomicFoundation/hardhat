@@ -19,7 +19,6 @@ import {
   TracingMessage,
   TracingStep,
 } from "@ignored/edr";
-import { Common } from "@nomicfoundation/ethereumjs-common";
 import chalk from "chalk";
 import debug from "debug";
 import { EventEmitter } from "events";
@@ -71,7 +70,6 @@ import {
   ethereumjsMempoolOrderToEdrMineOrdering,
   ethereumsjsHardforkToEdrSpecId,
 } from "./utils/convertToEdr";
-import { makeCommon } from "./utils/makeCommon";
 import { LoggerConfig, printLine, replaceLastLine } from "./modules/logger";
 
 const log = debug("hardhat:core:hardhat-network:provider");
@@ -162,8 +160,6 @@ export class EdrProviderWrapper
     private readonly _eventAdapter: EdrProviderEventAdapter,
     private readonly _vmTraceDecoder: VmTraceDecoder,
     private readonly _rawTraceCallbacks: RawTraceCallbacks,
-    // The common configuration for EthereumJS VM is not used by EDR, but tests expect it as part of the provider.
-    private readonly _common: Common,
     tracingConfig?: TracingConfig
   ) {
     super();
@@ -291,13 +287,11 @@ export class EdrProviderWrapper
       }
     );
 
-    const common = makeCommon(getNodeConfig(config));
     const wrapper = new EdrProviderWrapper(
       provider,
       eventAdapter,
       vmTraceDecoder,
       rawTraceCallbacks,
-      common,
       tracingConfig
     );
 
@@ -497,7 +491,7 @@ export class EdrProviderWrapper
   private async _rawTraceToSolidityStackTrace(
     rawTrace: RawTrace
   ): Promise<SolidityStackTrace | undefined> {
-    const vmTracer = new VMTracer(this._common, false);
+    const vmTracer = new VMTracer(false);
 
     const trace = rawTrace.trace();
     for (const traceItem of trace) {

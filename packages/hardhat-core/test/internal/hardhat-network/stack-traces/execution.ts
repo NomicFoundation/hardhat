@@ -16,7 +16,6 @@ import {
   getNodeConfig,
 } from "../../../../src/internal/hardhat-network/provider/provider";
 import { VMTracer } from "../../../../src/internal/hardhat-network/stack-traces/vm-tracer";
-import { makeCommon } from "../../../../src/internal/hardhat-network/provider/utils/makeCommon";
 import { LoggerConfig } from "../../../../src/internal/hardhat-network/provider/modules/logger";
 
 const abi = require("ethereumjs-abi");
@@ -55,8 +54,7 @@ export async function instantiateProvider(
     enableTransientStorage: false,
   };
 
-  const common = makeCommon(getNodeConfig(config));
-  const vmTracer = new VMTracer(common, false);
+  const vmTracer = new VMTracer(false);
 
   const provider = await EdrProviderWrapper.create(
     config,
