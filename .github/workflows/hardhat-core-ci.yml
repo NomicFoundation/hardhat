@@ -3,8 +3,7 @@ name: hardhat-core CI
 on:
   push:
     branches:
-      - $default-branch
-      - "edr/main"
+      - main
     paths:
       - ".github/workflows/hardhat-core-ci.yml"
       - "rust-toolchain"
