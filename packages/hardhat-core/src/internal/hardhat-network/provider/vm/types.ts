@@ -1,44 +1,31 @@
 import type { Address } from "@nomicfoundation/ethereumjs-util";
 
-export interface ExecResult {
-  gas?: bigint;
+/**
+ * These types are minimal versions of the values returned by ethereumjs
+ * in the event listeners.
+ */
+
+export interface MinimalInterpreterStep {
+  pc: number;
+  depth: number;
+  opcode: {
+    name: string;
+  };
+  stack: bigint[];
+}
+
+export interface MinimalExecResult {
   executionGasUsed: bigint;
-  returnValue: Uint8Array;
-  selfdestruct?: Set<string>;
-  createdAddresses?: Set<string>;
-  gasRefund?: bigint;
-  blobGasUsed?: bigint;
-
-  // Commented out to simplify the types;
-  // we'll have to enable them if some plugin needs them:
-  //
-  // runState?: RunState;
-  // exceptionError?: EvmError;
-  // logs?: Log[];
 }
 
-export interface EVMResult {
-  createdAddress?: Address;
-  execResult: ExecResult;
+export interface MinimalEVMResult {
+  execResult: MinimalExecResult;
 }
 
-export interface Message {
+export interface MinimalMessage {
   to?: Address;
   value: bigint;
+  data: Uint8Array;
   caller: Address;
   gasLimit: bigint;
-  data: Uint8Array;
-  depth: number;
-  code?: Uint8Array;
-  _codeAddress?: Address;
-  isStatic: boolean;
-  isCompiled: boolean;
-  salt?: Uint8Array;
-  containerCode?: Uint8Array /** container code for EOF1 contracts - used by CODECOPY/CODESIZE */;
-  selfdestruct?: Set<string>;
-  createdAddresses?: Set<string>;
-  delegatecall: boolean;
-  authcallOrigin?: Address;
-  gasRefund: bigint; // Keeps track of the gasRefund at the start of the frame (used for journaling purposes)
-  blobVersionedHashes?: Uint8Array[];
 }

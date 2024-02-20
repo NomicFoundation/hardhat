@@ -67,12 +67,16 @@ import {
 } from "./node-types";
 import {
   edrRpcDebugTraceToHardhat,
+  edrTracingMessageResultToMinimalEVMResult,
+  edrTracingMessageToMinimalMessage,
+  edrTracingStepToMinimalInterpreterStep,
   ethereumjsIntervalMiningConfigToEdr,
   ethereumjsMempoolOrderToEdrMineOrdering,
   ethereumsjsHardforkToEdrSpecId,
 } from "./utils/convertToEdr";
 import { makeCommon } from "./utils/makeCommon";
 import { LoggerConfig, printLine, replaceLastLine } from "./modules/logger";
+import { MinimalEthereumJsVm, getMinimalEthereumJsVm } from "./vm/minimal-vm";
 
 const log = debug("hardhat:core:hardhat-network:provider");
 
@@ -159,6 +163,10 @@ export class EdrProviderWrapper
 
   private constructor(
     private readonly _provider: EdrProviderT,
+    // we add this for backwards-compatibility with plugins like solidity-coverage
+    private readonly _node: {
+      _vm: MinimalEthereumJsVm;
+    },
     private readonly _eventAdapter: EdrProviderEventAdapter,
     private readonly _vmTraceDecoder: VmTraceDecoder,
     private readonly _rawTraceCallbacks: RawTraceCallbacks,
@@ -291,9 +299,14 @@ export class EdrProviderWrapper
       }
     );
 
+    const minimalEthereumJsNode = {
+      _vm: getMinimalEthereumJsVm(provider),
+    };
+
     const common = makeCommon(getNodeConfig(config));
     const wrapper = new EdrProviderWrapper(
       provider,
+      minimalEthereumJsNode,
       eventAdapter,
       vmTraceDecoder,
       rawTraceCallbacks,
@@ -344,16 +357,28 @@ export class EdrProviderWrapper
       const trace = rawTrace.trace();
       for (const traceItem of trace) {
         if ("pc" in traceItem) {
+          this._node._vm.evm.events.emit(
+            "step",
+            edrTracingStepToMinimalInterpreterStep(traceItem)
+          );
           if (this._rawTraceCallbacks.onStep !== undefined) {
             await this._rawTraceCallbacks.onStep(traceItem);
           }
         } else if ("executionResult" in traceItem) {
+          this._node._vm.evm.events.emit(
+            "afterMessage",
+            edrTracingMessageResultToMinimalEVMResult(traceItem)
+          );
           if (this._rawTraceCallbacks.onAfterMessage !== undefined) {
             await this._rawTraceCallbacks.onAfterMessage(
               traceItem.executionResult
             );
           }
         } else {
+          this._node._vm.evm.events.emit(
+            "beforeMessage",
+            edrTracingMessageToMinimalMessage(traceItem)
+          );
           if (this._rawTraceCallbacks.onBeforeMessage !== undefined) {
             await this._rawTraceCallbacks.onBeforeMessage(traceItem);
           }

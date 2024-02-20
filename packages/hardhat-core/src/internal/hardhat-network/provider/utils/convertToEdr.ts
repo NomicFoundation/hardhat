@@ -3,10 +3,20 @@ import {
   MineOrdering,
   IntervalRange,
   DebugTraceResult,
+  TracingMessage,
+  TracingMessageResult,
+  TracingStep,
 } from "@ignored/edr";
+import { Address } from "@nomicfoundation/ethereumjs-util";
+
 import { HardforkName } from "../../../util/hardforks";
 import { IntervalMiningConfig, MempoolOrder } from "../node-types";
 import { RpcDebugTraceOutput, RpcStructLog } from "../output";
+import {
+  MinimalEVMResult,
+  MinimalInterpreterStep,
+  MinimalMessage,
+} from "../vm/types";
 
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
@@ -179,5 +189,40 @@ export function edrRpcDebugTraceToHardhat(
     gas: Number(rpcDebugTrace.gasUsed),
     returnValue,
     structLogs,
+  };
+}
+
+export function edrTracingStepToMinimalInterpreterStep(
+  step: TracingStep
+): MinimalInterpreterStep {
+  return {
+    pc: Number(step.pc),
+    depth: step.depth,
+    opcode: {
+      name: step.opcode,
+    },
+    stack: step.stackTop !== undefined ? [step.stackTop] : [],
+  };
+}
+
+export function edrTracingMessageResultToMinimalEVMResult(
+  tracingMessageResult: TracingMessageResult
+): MinimalEVMResult {
+  return {
+    execResult: {
+      executionGasUsed: tracingMessageResult.executionResult.result.gasUsed,
+    },
+  };
+}
+
+export function edrTracingMessageToMinimalMessage(
+  message: TracingMessage
+): MinimalMessage {
+  return {
+    to: message.to !== undefined ? new Address(message.to) : undefined,
+    data: message.data,
+    value: message.value,
+    caller: new Address(message.caller),
+    gasLimit: message.gasLimit,
   };
 }
