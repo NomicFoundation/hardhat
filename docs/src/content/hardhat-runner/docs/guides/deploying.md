@@ -6,13 +6,13 @@ To deploy your contracts, you can use [Hardhat Ignition](/ignition), our declara
 
 :::tab{value="TypeScript"}
 
-<<< @/../packages/hardhat-core/sample-projects/typescript/ignition/modules/LockModule.ts
+<<< @/../packages/hardhat-core/sample-projects/typescript/ignition/modules/Lock.ts
 
 :::
 
 :::tab{value="JavaScript"}
 
-<<< @/../packages/hardhat-core/sample-projects/javascript/ignition/modules/LockModule.js
+<<< @/../packages/hardhat-core/sample-projects/javascript/ignition/modules/Lock.js
 
 :::
 
@@ -33,7 +33,7 @@ You can deploy in the `localhost` network following these steps:
    :::tab{value="TypeScript"}
 
    ```
-   npx hardhat ignition deploy ./ignition/modules/LockModule.ts --network localhost
+   npx hardhat ignition deploy ./ignition/modules/Lock.ts --network localhost
    ```
 
    :::
@@ -41,7 +41,7 @@ You can deploy in the `localhost` network following these steps:
    :::tab{value="JavaScript"}
 
    ```
-   npx hardhat ignition deploy ./ignition/modules/LockModule.js --network localhost
+   npx hardhat ignition deploy ./ignition/modules/Lock.js --network localhost
    ```
 
    :::
@@ -51,7 +51,7 @@ You can deploy in the `localhost` network following these steps:
 As general rule, you can target any network from your Hardhat config using:
 
 ```
-npx hardhat ignition deploy ./ignition/modules/LockModule.js --network <your-network>
+npx hardhat ignition deploy ./ignition/modules/Lock.js --network <your-network>
 ```
 
 If no network is specified, Hardhat Ignition will run against an in-memory instance of Hardhat Network.

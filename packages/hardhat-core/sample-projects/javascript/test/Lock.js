@@ -5,7 +5,7 @@ const {
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
 
-const LockModule = require("../ignition/modules/LockModule");
+const LockModule = require("../ignition/modules/Lock");
 
 describe("Lock", function () {
   // We define a fixture to reuse the same setup in every test.
