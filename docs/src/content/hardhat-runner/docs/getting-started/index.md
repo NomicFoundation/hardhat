@@ -247,13 +247,13 @@ Inside the `ignition/modules` folder you will find a file with the following cod
 
 :::tab{value="TypeScript"}
 
-<<< @/../packages/hardhat-core/sample-projects/typescript/ignition/modules/LockModule.ts
+<<< @/../packages/hardhat-core/sample-projects/typescript/ignition/modules/Lock.ts
 
 :::
 
 :::tab{value="JavaScript"}
 
-<<< @/../packages/hardhat-core/sample-projects/javascript/ignition/modules/LockModule.js
+<<< @/../packages/hardhat-core/sample-projects/javascript/ignition/modules/Lock.js
 
 :::
 
@@ -263,10 +263,10 @@ Inside the `ignition/modules` folder you will find a file with the following cod
 
 :::tab{value="TypeScript"}
 
-You can deploy it using `npx hardhat ignition deploy ./ignition/modules/LockModule.ts`:
+You can deploy it using `npx hardhat ignition deploy ./ignition/modules/Lock.ts`:
 
 ```
-$ npx hardhat ignition deploy ./ignition/modules/LockModule.ts
+$ npx hardhat ignition deploy ./ignition/modules/Lock.ts
 Compiled 1 Solidity file successfully (evm target: paris).
 You are running Hardhat Ignition against an in-process instance of Hardhat Network.
 This will execute the deployment, but the results will be lost.
@@ -290,10 +290,10 @@ LockModule#Lock - 0x5FbDB2315678afecb367f032d93F642f64180aa3
 
 :::tab{value="JavaScript"}
 
-You can deploy it using `npx hardhat ignition deploy ./ignition/modules/LockModule.js`:
+You can deploy it using `npx hardhat ignition deploy ./ignition/modules/Lock.js`:
 
 ```
-$ npx hardhat ignition deploy ./ignition/modules/LockModule.js
+$ npx hardhat ignition deploy ./ignition/modules/Lock.js
 Compiled 1 Solidity file successfully (evm target: paris).
 You are running Hardhat Ignition against an in-process instance of Hardhat Network.
 This will execute the deployment, but the results will be lost.
@@ -341,7 +341,7 @@ To try this, start a node with `npx hardhat node` and re-run the deployment usin
 :::tab{value="TypeScript"}
 
 ```
-npx hardhat ignition deploy ./ignition/modules/LockModule.ts --network localhost
+npx hardhat ignition deploy ./ignition/modules/Lock.ts --network localhost
 ```
 
 :::
@@ -349,7 +349,7 @@ npx hardhat ignition deploy ./ignition/modules/LockModule.ts --network localhost
 :::tab{value="JavaScript"}
 
 ```
-npx hardhat ignition deploy ./ignition/modules/LockModule.js --network localhost
+npx hardhat ignition deploy ./ignition/modules/Lock.js --network localhost
 ```
 
 :::

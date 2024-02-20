@@ -230,7 +230,7 @@ const {
 // importing them into your tests, instead of writing them in the test file.
 // The reason for this is that you will be using these same Hardhat Ignition modules
 // when you're ready to deploy to live networks as well.
-const TokenModule = require("../ignition/modules/TokenModule");
+const TokenModule = require("../ignition/modules/Token");
 
 // `describe` is a Mocha function that allows you to organize your tests.
 // Having your tests organized makes debugging them easier. All Mocha

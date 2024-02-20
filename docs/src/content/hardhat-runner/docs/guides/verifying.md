@@ -159,7 +159,7 @@ To run the deployment we will leverage the Ignition module `LockModule` that we 
 :::tab{value="TypeScript"}
 
 ```shell
-npx hardhat ignition deploy ignition/modules/LockModule.ts --network sepolia --deployment-id sepolia-deployment
+npx hardhat ignition deploy ignition/modules/Lock.ts --network sepolia --deployment-id sepolia-deployment
 ```
 
 :::
@@ -167,7 +167,7 @@ npx hardhat ignition deploy ignition/modules/LockModule.ts --network sepolia --d
 :::tab{value="JavaScript"}
 
 ```shell
-npx hardhat ignition deploy ignition/modules/LockModule.js --network sepolia --deployment-id sepolia-deployment
+npx hardhat ignition deploy ignition/modules/Lock.js --network sepolia --deployment-id sepolia-deployment
 ```
 
 :::
@@ -189,7 +189,7 @@ npx hardhat ignition verify sepolia-deployment
 Alternatively, you can combine deployment and verification into one step, by invoking the `deploy` task with the `--verify` flag:
 
 ```sh
-npx hardhat ignition deploy ignition/modules/LockModule.js --network sepolia --deployment-id sepolia-deployment --verify
+npx hardhat ignition deploy ignition/modules/Lock.js --network sepolia --deployment-id sepolia-deployment --verify
 ```
 
 :::tip

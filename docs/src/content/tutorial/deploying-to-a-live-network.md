@@ -8,7 +8,7 @@ At the software level, deploying to a testnet is the same as deploying to mainne
 
 In Hardhat Ignition, deployments are defined through Ignition Modules. These modules are abstractions to describe a deployment; that is, JavaScript functions that specify what you want to deploy.
 
-Ignition modules are expected to be within the `./ignition/modules` directory. Let's create a new directory `ignition` inside the project root's directory, then, create a directory named `modules` inside of the `ignition` directory. Paste the following into a `TokenModule.js` file in that directory:
+Ignition modules are expected to be within the `./ignition/modules` directory. Let's create a new directory `ignition` inside the project root's directory, then, create a directory named `modules` inside of the `ignition` directory. Paste the following into a `Token.js` file in that directory:
 
 ```js
 const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
@@ -25,13 +25,13 @@ module.exports = TokenModule;
 To tell Hardhat to connect to a specific Ethereum network, you can use the `--network` parameter when running any task, like this:
 
 ```
-npx hardhat ignition deploy ./ignition/modules/TokenModule.js --network <network-name>
+npx hardhat ignition deploy ./ignition/modules/Token.js --network <network-name>
 ```
 
 With our current configuration, running it without the `--network` parameter would cause the code to run against an embedded instance of Hardhat Network. In this scenario, the deployment actually gets lost when Hardhat finishes running, but it's still useful to test that our deployment code works:
 
 ```
-$ npx hardhat ignition deploy ./ignition/modules/TokenModule.js
+$ npx hardhat ignition deploy ./ignition/modules/Token.js
 Compiled 1 Solidity file successfully (evm target: paris).
 You are running Hardhat Ignition against an in-process instance of Hardhat Network.
 This will execute the deployment, but the results will be lost.
@@ -151,7 +151,7 @@ You can learn more about other testnets and find links to their faucets on the [
 Finally, run:
 
 ```
-npx hardhat ignition deploy ./ignition/modules/TokenModule.js --network sepolia
+npx hardhat ignition deploy ./ignition/modules/Token.js --network sepolia
 ```
 
 If everything went well, you should see the deployed contract address.

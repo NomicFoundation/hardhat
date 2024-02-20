@@ -7,7 +7,7 @@ import chai from "chai";
 
 const { expect } = chai;
 
-import LockModule from "../ignition/modules/LockModule";
+import LockModule from "../ignition/modules/Lock";
 
 describe("Lock", function () {
   // We define a fixture to reuse the same setup in every test.

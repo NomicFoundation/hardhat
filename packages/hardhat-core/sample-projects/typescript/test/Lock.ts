@@ -6,7 +6,7 @@ import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
 import { ethers, ignition } from "hardhat";
 
-import LockModule from "../ignition/modules/LockModule";
+import LockModule from "../ignition/modules/Lock";
 
 describe("Lock", function () {
   // We define a fixture to reuse the same setup in every test.
