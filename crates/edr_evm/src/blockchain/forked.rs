@@ -16,8 +16,9 @@ use revm::{
 use tokio::runtime;
 
 use super::{
-    compute_state_at_block, remote::RemoteBlockchain, storage::ReservableSparseBlockchainStorage,
-    validate_next_block, Blockchain, BlockchainError, BlockchainMut,
+    compute_state_at_block, remote::RemoteBlockchain, storage,
+    storage::ReservableSparseBlockchainStorage, validate_next_block, Blockchain, BlockchainError,
+    BlockchainMut,
 };
 use crate::{
     state::{ForkState, StateDiff, StateError, StateOverride, SyncState},
@@ -60,6 +61,9 @@ pub enum ForkedBlockchainError {
     /// Remote blocks cannot be deleted
     #[error("Cannot delete remote block.")]
     CannotDeleteRemote,
+    /// An error that occurs when trying to insert a block into storage.
+    #[error(transparent)]
+    Insert(#[from] storage::InsertError),
     /// Rpc client error
     #[error(transparent)]
     RpcClient(#[from] RpcClientError),
@@ -194,7 +198,7 @@ impl BlockHashRef for ForkedBlockchain {
             .map(|block| Ok(*block.hash()))?
         } else {
             self.local_storage
-                .block_by_number(number)
+                .block_by_number(number)?
                 .map(|block| *block.hash())
                 .ok_or(BlockchainError::UnknownBlockNumber)
         }
@@ -235,7 +239,7 @@ impl Blockchain for ForkedBlockchain {
             })
             .map(|block| Ok(Some(block)))?
         } else {
-            Ok(self.local_storage.block_by_number(number))
+            Ok(self.local_storage.block_by_number(number)?)
         }
     }
 
@@ -271,7 +275,7 @@ impl Blockchain for ForkedBlockchain {
         if self.fork_block_number < last_block_number {
             Ok(self
                 .local_storage
-                .block_by_number(last_block_number)
+                .block_by_number(last_block_number)?
                 .expect("Block must exist since block number is less than the last block number"))
         } else {
             Ok(tokio::task::block_in_place(move || {
@@ -467,12 +471,9 @@ impl BlockchainMut for ForkedBlockchain {
 
         let total_difficulty = previous_total_difficulty + block.header().difficulty;
 
-        // SAFETY: The block number is guaranteed to be unique, so the block hash must
-        // be too.
-        let block = unsafe {
-            self.local_storage
-                .insert_block_unchecked(block, state_diff, total_difficulty)
-        };
+        let block = self
+            .local_storage
+            .insert_block(block, state_diff, total_difficulty)?;
 
         Ok(BlockAndTotalDifficulty {
             block: block.clone(),
