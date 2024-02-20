@@ -18,7 +18,7 @@ import {
   SubscriptionEvent,
   TracingMessage,
   TracingStep,
-} from "@ignored/edr";
+} from "@nomicfoundation/edr";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import chalk from "chalk";
 import debug from "debug";
@@ -180,7 +180,7 @@ export class EdrProviderWrapper
     tracingConfig?: TracingConfig
   ): Promise<EdrProviderWrapper> {
     const { Provider } =
-      require("@ignored/edr") as typeof import("@ignored/edr");
+      require("@nomicfoundation/edr") as typeof import("@nomicfoundation/edr");
 
     const coinbase = config.coinbase ?? DEFAULT_COINBASE;
 

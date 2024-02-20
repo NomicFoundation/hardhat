@@ -3,7 +3,7 @@ import {
   MineOrdering,
   IntervalRange,
   DebugTraceResult,
-} from "@ignored/edr";
+} from "@nomicfoundation/edr";
 import { HardforkName } from "../../../util/hardforks";
 import { IntervalMiningConfig, MempoolOrder } from "../node-types";
 import { RpcDebugTraceOutput, RpcStructLog } from "../output";

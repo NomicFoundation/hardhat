@@ -1,5 +1,5 @@
 {
-  "name": "@ignored/edr-linux-x64-musl",
+  "name": "@nomicfoundation/edr-linux-x64-musl",
   "repository": {
     "url": "https://github.com/NomicFoundation/hardhat.git",
     "type": "git"

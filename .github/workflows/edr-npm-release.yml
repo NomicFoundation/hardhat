@@ -426,6 +426,4 @@ jobs:
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # This will publish to the `@ignored` org on NPM.
-          # Switch to `NOMICFOUNDATION_ORG_NPM_TOKEN` to release to the @nomicfoundation org.
-          NPM_TOKEN: ${{ secrets.IGNORED_ORG_NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NOMICFOUNDATION_ORG_NPM_TOKEN }}

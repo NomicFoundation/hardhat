@@ -227,12 +227,12 @@ importers:
       '@ethersproject/abi':
         specifier: ^5.1.2
         version: 5.7.0
-      '@ignored/edr':
-        specifier: workspace:^0.2.0-alpha.1
-        version: link:../../crates/edr_napi
       '@metamask/eth-sig-util':
         specifier: ^4.0.0
         version: 4.0.1
+      '@nomicfoundation/edr':
+        specifier: workspace:^0.2.0-alpha.1
+        version: link:../../crates/edr_napi
       '@nomicfoundation/ethereumjs-common':
         specifier: 4.0.4
         version: 4.0.4
