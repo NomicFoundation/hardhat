@@ -16,7 +16,7 @@ describe("Lock", function () {
     const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
 
     const lockedAmount = parseGwei("1");
-    const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
+    const unlockTime = BigInt((await time.latest()) + ONE_YEAR_IN_SECS);
 
     // Contracts are deployed using the first signer/account by default
     const [owner, otherAccount] = await hre.viem.getWalletClients();
