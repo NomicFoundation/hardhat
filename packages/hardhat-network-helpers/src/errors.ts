@@ -17,7 +17,7 @@ export class FixtureSnapshotError extends CustomError {
     super(
       `There was an error reverting the snapshot of the fixture.
 
-This might be caused by using nested loadFixture calls in a test, for example by using multiple beforeEach calls. This is not supported yet.`,
+This might be caused by using hardhat_reset and loadFixture calls in a testcase.`,
       parent
     );
   }
