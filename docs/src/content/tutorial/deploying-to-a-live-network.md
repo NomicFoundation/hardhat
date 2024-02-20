@@ -53,35 +53,44 @@ TokenModule#Token - 0x5FbDB2315678afecb367f032d93F642f64180aa3
 
 ## Deploying to remote networks
 
-To deploy to a remote network such as mainnet or any testnet, you need to add a `network` entry to your `hardhat.config.js` file. We’ll use Sepolia for this example, but you can add any network similarly:
+To deploy to a remote network such as mainnet or any testnet, you need to add a `network` entry to your `hardhat.config.js` file. We’ll use Sepolia for this example, but you can add any network. For key storage, utilize the `configuration variables`.
+
+:::tip
+
+For more information on `vars` and configuration variables, please see our [configuration variables guide](../hardhat-runner/docs/guides/configuration-variables.md).
+
+:::
 
 ::::tabsgroup{options=Infura,Alchemy}
 
 :::tab{value=Infura}
 
-```js{5,11,15-20}
+```js{4,8,16,22-23}
 require("@nomicfoundation/hardhat-toolbox");
 
-// Go to https://infura.io, sign up, create a new API key
-// in its dashboard, and replace "KEY" with it
-const INFURA_API_KEY = "KEY";
+// Ensure your configuration variables are set before executing the script
+const { vars } = require("hardhat/config");
 
-// Replace this private key with your Sepolia account private key
+// Go to https://infura.io, sign up, create a new API key
+// in its dashboard, and add it to the configuration variables
+const INFURA_API_KEY = vars.get("INFURA_API_KEY");
+
+// Add your Sepolia account private key to the configuration variables
 // To export your private key from Coinbase Wallet, go to
 // Settings > Developer Settings > Show private key
 // To export your private key from Metamask, open Metamask and
 // go to Account Details > Export Private Key
 // Beware: NEVER put real Ether into testing accounts
-const SEPOLIA_PRIVATE_KEY = "YOUR SEPOLIA PRIVATE KEY";
+const SEPOLIA_PRIVATE_KEY = vars.get("SEPOLIA_PRIVATE_KEY");
 
 module.exports = {
-  solidity: "{RECOMMENDED_SOLC_VERSION}",
+  solidity: "0.8.24",
   networks: {
     sepolia: {
       url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,
-      accounts: [SEPOLIA_PRIVATE_KEY]
-    }
-  }
+      accounts: [SEPOLIA_PRIVATE_KEY],
+    },
+  },
 };
 ```
 
@@ -89,20 +98,23 @@ module.exports = {
 
 :::tab{value=Alchemy}
 
-```js{5,11,15-20}
+```js{4,8,16,22-23}
 require("@nomicfoundation/hardhat-toolbox");
 
-// Go to https://alchemy.com, sign up, create a new App in
-// its dashboard, and replace "KEY" with its key
-const ALCHEMY_API_KEY = "KEY";
+// Ensure your configuration variables are set before executing the script
+const { vars } = require("hardhat/config");
 
-// Replace this private key with your Sepolia account private key
+// Go to https://alchemy.com, sign up, create a new App in
+// its dashboard, and add its key to the configuration variables
+const ALCHEMY_API_KEY = vars.get("ALCHEMY_API_KEY");
+
+// Add your Sepolia account private key to the configuration variables
 // To export your private key from Coinbase Wallet, go to
 // Settings > Developer Settings > Show private key
 // To export your private key from Metamask, open Metamask and
 // go to Account Details > Export Private Key
 // Beware: NEVER put real Ether into testing accounts
-const SEPOLIA_PRIVATE_KEY = "YOUR SEPOLIA PRIVATE KEY";
+const SEPOLIA_PRIVATE_KEY = vars.get("SEPOLIA_PRIVATE_KEY");
 
 module.exports = {
   solidity: "{RECOMMENDED_SOLC_VERSION}",

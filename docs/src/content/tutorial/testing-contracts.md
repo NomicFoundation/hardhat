@@ -137,6 +137,7 @@ The two tests that we wrote begin with their setup, which in this case means dep
 You can avoid code duplication and improve the performance of your test suite by using **fixtures**. A fixture is a setup function that is run only the first time it's invoked. On subsequent invocations, instead of re-running it, Hardhat will reset the state of the network to what it was at the point after the fixture was initially executed.
 
 ```js
+const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 const {
   loadFixture,
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
@@ -192,6 +193,22 @@ Here we wrote a `deployTokenFixture` function that does the necessary setup and 
 ### Full coverage
 
 Now that we've covered the basics that you'll need for testing your contracts, here's a full test suite for the token with a lot of additional information about Mocha and how to structure your tests. We recommend reading it thoroughly.
+
+First, let's move the TokenModule code into an [Ignition module](/ignition). Let's create a new directory `ignition` inside the project root's directory, then, create a directory named `modules` inside of the `ignition` directory. Paste the following into a `TokenModule.js` file in that directory:
+
+```js
+const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
+
+const TokenModule = buildModule("TokenModule", (m) => {
+  const token = m.contract("Token");
+
+  return { token };
+});
+
+module.exports = TokenModule;
+```
+
+Then, let's use this code in the test:
 
 ```js
 // This is an example test file. Hardhat will run every *.js file in `test/`,
