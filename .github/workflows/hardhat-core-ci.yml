@@ -197,6 +197,13 @@ jobs:
           override: true
 
       - uses: Swatinem/rust-cache@v2
+        
+      - name: Cache EDR RPC cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            **/edr-cache
+          key: edr-rs-rpc-cache-v1
 
       - name: Run cargo test
         uses: actions-rs/cargo@v1
