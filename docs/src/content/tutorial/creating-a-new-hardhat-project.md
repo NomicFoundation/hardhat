@@ -85,7 +85,7 @@ npx hardhat init
 
 Select `Create an empty hardhat.config.js` with your keyboard and hit enter.
 
-```markup{16}
+```markup{17}
 $ npx hardhat init
 888    888                      888 888               888
 888    888                      888 888               888
@@ -101,7 +101,7 @@ $ npx hardhat init
 ? What do you want to do? …
   Create a JavaScript project
   Create a TypeScript project
-   Create a TypeScript project (with Viem)
+  Create a TypeScript project (with Viem)
 ❯ Create an empty hardhat.config.js
   Quit
 ```
