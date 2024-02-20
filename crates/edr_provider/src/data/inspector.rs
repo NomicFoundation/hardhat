@@ -1,18 +1,45 @@
 use core::fmt::Debug;
 
+use dyn_clone::DynClone;
 use edr_eth::Bytes;
 use edr_evm::{CallInputs, EVMData, Gas, Inspector, InstructionResult};
 
 use crate::data::CONSOLE_ADDRESS;
 
-#[derive(Debug, Default)]
+///
+pub trait SyncCallOverride: Fn(Bytes) -> Bytes + DynClone + Send + Sync {}
+
+impl<F> SyncCallOverride for F where F: Fn(Bytes) -> Bytes + DynClone + Send + Sync {}
+
+dyn_clone::clone_trait_object!(SyncCallOverride);
+
 pub(super) struct EvmInspector {
     console_log_encoded_messages: Vec<Bytes>,
+    call_override: Box<dyn SyncCallOverride>,
 }
 
 impl EvmInspector {
+    pub fn new(call_override: Box<dyn SyncCallOverride>) -> Self {
+        Self {
+            console_log_encoded_messages: Vec::new(),
+            call_override,
+        }
+    }
+
     pub fn into_console_log_encoded_messages(self) -> Vec<Bytes> {
         self.console_log_encoded_messages
+    }
+}
+
+impl Debug for EvmInspector {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("EvmInspector")
+            .field(
+                "console_log_encoded_messages",
+                &self.console_log_encoded_messages,
+            )
+            .field("call_override", &"<closure>")
+            .finish()
     }
 }
 
@@ -31,6 +58,18 @@ impl<DatabaseErrorT> Inspector<DatabaseErrorT> for EvmInspector {
             Gas::new(inputs.gas_limit),
             Bytes::new(),
         )
+    }
+
+    fn call_end(
+        &mut self,
+        _data: &mut EVMData<'_, DatabaseErrorT>,
+        _inputs: &CallInputs,
+        remaining_gas: Gas,
+        ret: InstructionResult,
+        out: Bytes,
+    ) -> (InstructionResult, Gas, Bytes) {
+        let out = (self.call_override)(out);
+        (ret, remaining_gas, out)
     }
 }
 

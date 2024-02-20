@@ -40,7 +40,7 @@ use self::{
     interval::IntervalMiner,
     requests::{eth, hardhat},
 };
-use crate::requests::debug;
+use crate::{data::SyncCallOverride, requests::debug};
 
 lazy_static! {
     pub static ref PRIVATE_RPC_METHODS: HashSet<&'static str> = {
@@ -104,9 +104,16 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
         runtime: runtime::Handle,
         logger: Box<dyn SyncLogger<BlockchainError = BlockchainError, LoggerError = LoggerErrorT>>,
         subscriber_callback: Box<dyn SyncSubscriberCallback>,
+        call_override: Box<dyn SyncCallOverride>,
         config: ProviderConfig,
     ) -> Result<Self, CreationError> {
-        let data = ProviderData::new(runtime.clone(), logger, subscriber_callback, config.clone())?;
+        let data = ProviderData::new(
+            runtime.clone(),
+            logger,
+            subscriber_callback,
+            call_override,
+            config.clone(),
+        )?;
         let data = Arc::new(AsyncMutex::new(data));
 
         let interval_miner = config
