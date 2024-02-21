@@ -40,6 +40,7 @@
     "build": "napi build --platform --release",
     "build:debug": "napi build --platform",
     "build:tracing": "napi build --release --features tracing",
+    "build:scenarios": "napi build --release --features scenarios",
     "prepublishOnly": "napi prepublish -t npm --skip-gh-release",
     "universal": "napi universal",
     "version": "napi version",

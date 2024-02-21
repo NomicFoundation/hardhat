@@ -1,15 +1,11 @@
 mod config;
 
-use std::{
-    sync::Arc,
-    time::{SystemTime, UNIX_EPOCH},
-};
+use std::sync::Arc;
 
 use edr_eth::remote::jsonrpc;
-use edr_provider::{InvalidRequestReason, ProviderRequest};
+use edr_provider::InvalidRequestReason;
 use napi::{tokio::runtime, Env, JsFunction, JsObject, Status};
 use napi_derive::napi;
-use serde::Serialize;
 
 use self::config::ProviderConfig;
 use crate::{
@@ -122,6 +118,7 @@ impl Provider {
             }
         };
 
+        #[cfg(feature = "scenarios")]
         if let Some(scenario_file) = &self.scenario_file {
             scenarios::write_request(scenario_file, &request).await?;
         }
@@ -207,17 +204,23 @@ impl Response {
 mod scenarios {
     use std::{
         fs::File,
+        io,
         io::{BufReader, Seek, Write},
         sync::Mutex,
+        time::{SystemTime, UNIX_EPOCH},
     };
 
+    use edr_provider::ProviderRequest;
     use flate2::{write::GzEncoder, Compression};
-    use napi::tokio::task::{spawn_blocking, JoinError};
+    use napi::{
+        tokio::task::{spawn_blocking, JoinError},
+        Status,
+    };
     use rand::{distributions::Alphanumeric, Rng};
     use serde::Serialize;
     use tempfile::tempfile;
 
-    use super::*;
+    use crate::provider::Provider;
 
     const SCENARIO_FILE_PREFIX: &str = "EDR_SCENARIO_PREFIX";
 
@@ -227,17 +230,21 @@ mod scenarios {
                 napi::tokio::task::block_in_place(move || {
                     let mut scenario_file =
                         scenario_file.lock().expect("Failed to lock scenario file");
+
+                    let output_name = format!("{}.gz", scenario_file.result_name);
+
                     scenario_file
                         .tempfile
                         .seek(std::io::SeekFrom::Start(0))
                         .expect("Seek failed");
                     let mut input = BufReader::new(&mut scenario_file.tempfile);
 
-                    let output = File::create(format!("{}.gz", scenario_file.result_name))
-                        .expect("Failed to create gzipped file");
+                    let output = File::create(output_name).expect("Failed to create gzipped file");
+
                     let mut encoder = GzEncoder::new(output, Compression::default());
+                    io::copy(&mut input, &mut encoder).expect("Failed to copy to Gzip");
                     encoder.finish().expect("Failed to finish Gzip");
-                })
+                });
             }
         }
     }
@@ -284,7 +291,7 @@ mod scenarios {
 
                 Ok(Some(Mutex::new(ScenarioFile {
                     tempfile: scenario_file,
-                    result_name: format!("{}_{}_{}.json", scenario_prefix, timestamp, suffix),
+                    result_name: format!("{scenario_prefix}_{timestamp}_{suffix}.json"),
                 })))
             })
             .await
