@@ -3,7 +3,7 @@ use std::{
     time::{Duration, SystemTime},
 };
 
-use edr_eth::{Address, HashMap};
+use edr_eth::HashMap;
 use edr_provider::AccountConfig;
 use napi::{
     bindgen_prelude::{BigInt, Buffer},
@@ -11,9 +11,7 @@ use napi::{
 };
 use napi_derive::napi;
 
-use crate::{
-    account::GenesisAccount, block::BlobGas, cast::TryCast, config::SpecId, miner::MineOrdering,
-};
+use crate::{account::GenesisAccount, block::BlobGas, cast::TryCast, config::SpecId};
 
 /// Configuration for a chain
 #[napi(object)]
@@ -49,6 +47,15 @@ pub struct HardforkActivation {
     pub block_number: BigInt,
     /// The activated hardfork
     pub spec_id: SpecId,
+}
+
+#[napi(string_enum)]
+#[doc = "The type of ordering to use when selecting blocks to mine."]
+pub enum MineOrdering {
+    #[doc = "Insertion order"]
+    Fifo,
+    #[doc = "Effective miner fee"]
+    Priority,
 }
 
 /// Configuration for the provider's mempool.
@@ -145,6 +152,15 @@ impl From<MemPoolConfig> for edr_provider::MemPoolConfig {
     }
 }
 
+impl From<MineOrdering> for edr_evm::MineOrdering {
+    fn from(value: MineOrdering) -> Self {
+        match value {
+            MineOrdering::Fifo => Self::Fifo,
+            MineOrdering::Priority => Self::Priority,
+        }
+    }
+}
+
 impl TryFrom<MiningConfig> for edr_provider::MiningConfig {
     type Error = napi::Error;
 
@@ -227,7 +243,7 @@ impl TryFrom<ProviderConfig> for edr_provider::ProviderConfig {
             ),
             chain_id: value.chain_id.try_cast()?,
             chains,
-            coinbase: Address::from_slice(value.coinbase.as_ref()),
+            coinbase: value.coinbase.try_cast()?,
             fork: value.fork.map(TryInto::try_into).transpose()?,
             genesis_accounts: HashMap::new(),
             hardfork: value.hardfork.try_into()?,

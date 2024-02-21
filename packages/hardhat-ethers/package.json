@@ -74,6 +74,6 @@
   },
   "peerDependencies": {
     "ethers": "^6.1.0",
-    "hardhat": "^2.0.0"
+    "hardhat": "workspace:^2.0.0"
   }
 }

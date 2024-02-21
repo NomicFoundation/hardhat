@@ -485,6 +485,7 @@ mod tests {
                         assert_eq!(TypedReceipt::<Log>::decode(&mut encoded.as_slice()).unwrap(), receipt);
                     }
 
+                    #[cfg(feature = "serde")]
                     #[test]
                     fn [<typed_receipt_serde_ $name>]() {
                         let receipt = [<typed_receipt_dummy_ $name>]();

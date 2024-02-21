@@ -1,3 +1,5 @@
+import { equalsBytes } from "@nomicfoundation/ethereumjs-util";
+
 import { ReturnData } from "../provider/return-data";
 import { ExitCode } from "../provider/vm/exit";
 
@@ -80,7 +82,7 @@ export class SolidityTracer {
       // reverts if a call fails, and most contracts are in solidity
       if (
         subtrace.exit.isError() &&
-        trace.returnData.equals(subtrace.returnData)
+        equalsBytes(trace.returnData, subtrace.returnData)
       ) {
         let unrecognizedEntry: SolidityStackTraceEntry;
 

@@ -42,3 +42,9 @@ Keep in mind that:
 
 - Overrides are full compiler configurations, so if you have any additional settings you're using you should set them for the override as well.
 - You have to use forward slashes (`/`) even if you are on Windows.
+
+:::tip
+
+Hardhat also provides a way to use a custom Solidity compiler. Learn more from the [Using a custom Solidity compiler guide](/hardhat-runner/docs/other-guides/using-custom-solc.md).
+
+:::

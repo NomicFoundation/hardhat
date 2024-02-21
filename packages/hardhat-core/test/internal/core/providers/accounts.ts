@@ -2,9 +2,9 @@ import { Common } from "@nomicfoundation/ethereumjs-common";
 import { AccessListEIP2930Transaction } from "@nomicfoundation/ethereumjs-tx";
 import { assert } from "chai";
 import {
-  bufferToHex,
+  bytesToHex as bufferToHex,
   privateToAddress,
-  toBuffer,
+  toBytes,
 } from "@nomicfoundation/ethereumjs-util";
 
 import { ERRORS } from "../../../../src/internal/core/errors-list";
@@ -22,8 +22,11 @@ import {
   expectHardhatError,
   expectHardhatErrorAsync,
 } from "../../../helpers/errors";
-import { createTestFakeTransaction } from "../../hardhat-network/helpers/blockchain";
 import { MockedProvider } from "./mocks";
+
+function toBuffer(x: Parameters<typeof toBytes>[0]) {
+  return Buffer.from(toBytes(x));
+}
 
 function privateKeyToAddress(privateKey: string): string {
   return bufferToHex(privateToAddress(toBuffer(privateKey))).toLowerCase();
@@ -813,98 +816,6 @@ describe("Sender providers", () => {
         "0x000006d4548a3ac17d72b372ae1e416bf65b8ead"
       );
     });
-  });
-});
-
-describe("Fake sender", () => {
-  // Test against test vectors to make sure transaction hash for fake
-  // sender transaction matches EDR implementation.
-
-  it("Legacy hash should match the test vector", async () => {
-    // Legacy transaction without chain id
-    const tx = createTestFakeTransaction({
-      from: "0xa5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-      to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-      // Gas limits lower than 30000 get overwritten to 30000
-      gasLimit: numberToRpcQuantity(30000),
-      gasPrice: numberToRpcQuantity(678912),
-      nonce: numberToRpcQuantity(0),
-      value: numberToRpcQuantity(1),
-    });
-
-    assert.equal(
-      tx.hash().toString("hex"),
-      "e2fea338f86a021a90028336d380e030030ff98466f13a0367061729232df0ca"
-    );
-  });
-
-  it("EIP-155 hash should match the test vector", async () => {
-    // Legacy transaction without chain id
-    const tx = createTestFakeTransaction({
-      from: "0xa5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-      to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-      // Gas limits lower than 30000 get overwritten to 30000
-      gasLimit: numberToRpcQuantity(30000),
-      gasPrice: numberToRpcQuantity(678912),
-      nonce: numberToRpcQuantity(0),
-      value: numberToRpcQuantity(1),
-    });
-
-    // Hardhat doesn't support fake EIP-155 transactions, so we make one
-    // manually for completeness. The `v` value is marked a read only, hence
-    // the ts-ignore.
-    // @ts-ignore
-    tx.v = 2 * MOCK_PROVIDER_CHAIN_ID + 35;
-
-    assert.equal(
-      tx.hash().toString("hex"),
-      "bcdd3230665912079522dfbfe605e70443c81bf78db768a688a8d8007accf14b"
-    );
-  });
-
-  it("EIP-1559 hash should match the test vector", async () => {
-    // EIP-1559 transaction
-    const tx = createTestFakeTransaction({
-      from: "0xa5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-      to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-      gasLimit: numberToRpcQuantity(30000),
-      nonce: numberToRpcQuantity(0),
-      value: numberToRpcQuantity(1),
-      chainId: numberToRpcQuantity(MOCK_PROVIDER_CHAIN_ID),
-      maxFeePerGas: numberToRpcQuantity(12),
-      maxPriorityFeePerGas: numberToRpcQuantity(2),
-    });
-
-    assert.equal(
-      tx.hash().toString("hex"),
-      "ee788ad79d536e2e5146e26b3be0bd12ee4de921c22b3295de3ee16395a015e0"
-    );
-  });
-
-  it("EIP-2930 hash should match the test vector", async () => {
-    // EIP-2930 transaction
-    const tx = createTestFakeTransaction({
-      from: "0xa5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-      to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-      gasLimit: numberToRpcQuantity(30000),
-      gasPrice: numberToRpcQuantity(1),
-      nonce: numberToRpcQuantity(0),
-      value: numberToRpcQuantity(1),
-      chainId: numberToRpcQuantity(MOCK_PROVIDER_CHAIN_ID),
-      accessList: [
-        {
-          address: "0x57d7ad4d3f0c74e3766874cf06fa1dc23c21f7e8",
-          storageKeys: [
-            "0xa50e92910457911e0e22d6dd1672f440a37b590b231d8309101255290f5394ec",
-          ],
-        },
-      ],
-    });
-
-    assert.equal(
-      tx.hash().toString("hex"),
-      "b492d4d9e60ed496eeb16e90879048bb5c70db71fee359efe6b9985f54381dae"
-    );
   });
 });
 

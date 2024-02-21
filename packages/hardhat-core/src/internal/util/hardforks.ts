@@ -1,5 +1,3 @@
-import type { Common as CommonT } from "@nomicfoundation/ethereumjs-common";
-
 import { HardforkHistoryConfig } from "../../types/config";
 import { HARDHAT_NETWORK_SUPPORTED_HARDFORKS } from "../constants";
 import { assertHardhatInvariant } from "../core/errors";
@@ -24,6 +22,7 @@ export enum HardforkName {
   GRAY_GLACIER = "grayGlacier",
   MERGE = "merge",
   SHANGHAI = "shanghai",
+  CANCUN = "cancun",
 }
 
 const HARDFORKS_ORDER: HardforkName[] = [
@@ -43,6 +42,7 @@ const HARDFORKS_ORDER: HardforkName[] = [
   HardforkName.GRAY_GLACIER,
   HardforkName.MERGE,
   HardforkName.SHANGHAI,
+  HardforkName.CANCUN,
 ];
 
 export function getHardforkName(name: string): HardforkName {
@@ -120,42 +120,4 @@ export function selectHardfork(
   }
 
   return hardfork;
-}
-
-export function validateHardforks(
-  forkBlockNumber: number | undefined,
-  common: CommonT,
-  remoteChainId: number
-): void {
-  if (!common.gteHardfork("spuriousDragon")) {
-    throw new InternalError(
-      `Invalid hardfork selected in Hardhat Network's config.
-
-The hardfork must be at least spuriousDragon, but ${common.hardfork()} was given.`
-    );
-  }
-
-  if (forkBlockNumber !== undefined) {
-    let upstreamCommon: CommonT;
-    try {
-      const { Common } =
-        require("@nomicfoundation/ethereumjs-common") as typeof import("@nomicfoundation/ethereumjs-common");
-      upstreamCommon = new Common({ chain: remoteChainId });
-    } catch {
-      // If ethereumjs doesn't have a common it will throw and we won't have
-      // info about the activation block of each hardfork, so we don't run
-      // this validation.
-      return;
-    }
-
-    upstreamCommon.setHardforkByBlockNumber(forkBlockNumber);
-
-    if (!upstreamCommon.gteHardfork("spuriousDragon")) {
-      throw new InternalError(
-        `Cannot fork ${upstreamCommon.chainName()} from block ${forkBlockNumber}.
-
-Hardhat Network's forking functionality only works with blocks from at least spuriousDragon.`
-      );
-    }
-  }
 }

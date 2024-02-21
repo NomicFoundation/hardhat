@@ -59,7 +59,7 @@ impl ExecutableTransaction {
         if transaction.gas_limit() < initial_cost {
             return Err(TransactionCreationError::InsufficientGas {
                 initial_gas_cost: U256::from(initial_cost),
-                gas_limit: U256::from(transaction.gas_limit()),
+                gas_limit: transaction.gas_limit(),
             });
         }
 
@@ -461,5 +461,78 @@ fn initial_cost(spec_id: SpecId, transaction: &SignedTransaction) -> u64 {
             transaction.kind() == TransactionKind::Create,
             access_list.as_ref().map_or(&[], |access_list| access_list),
         ),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use edr_eth::{transaction::Eip155TransactionRequest, Bytes};
+
+    use super::*;
+
+    #[test]
+    fn gas_limit_less_than_base_fee() -> anyhow::Result<()> {
+        const TOO_LOW_GAS_LIMIT: u64 = 100;
+
+        let caller = Address::random();
+
+        let request = Eip155TransactionRequest {
+            nonce: 0,
+            gas_price: U256::ZERO,
+            gas_limit: TOO_LOW_GAS_LIMIT,
+            kind: TransactionKind::Call(caller),
+            value: U256::ZERO,
+            input: Bytes::new(),
+            chain_id: 123,
+        };
+
+        let transaction = request.fake_sign(&caller);
+        let result = ExecutableTransaction::with_caller(SpecId::BERLIN, transaction.into(), caller);
+
+        let expected_gas_cost = U256::from(21_000);
+        assert!(matches!(
+            result,
+            Err(TransactionCreationError::InsufficientGas {
+                initial_gas_cost,
+                gas_limit: TOO_LOW_GAS_LIMIT,
+            }) if initial_gas_cost == expected_gas_cost
+        ));
+
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            format!("Transaction requires at least 21000 gas but got {TOO_LOW_GAS_LIMIT}")
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn create_missing_data() -> anyhow::Result<()> {
+        let caller = Address::random();
+
+        let request = Eip155TransactionRequest {
+            nonce: 0,
+            gas_price: U256::ZERO,
+            gas_limit: 30_000,
+            kind: TransactionKind::Create,
+            value: U256::ZERO,
+            input: Bytes::new(),
+            chain_id: 123,
+        };
+
+        let transaction = request.fake_sign(&caller);
+        let result = ExecutableTransaction::with_caller(SpecId::BERLIN, transaction.into(), caller);
+
+        assert!(matches!(
+            result,
+            Err(TransactionCreationError::ContractMissingData)
+        ));
+
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Contract creation without any data provided"
+        );
+
+        Ok(())
     }
 }

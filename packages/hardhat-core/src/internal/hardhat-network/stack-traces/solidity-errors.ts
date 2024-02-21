@@ -1,4 +1,4 @@
-import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
+import { bytesToHex as bufferToHex } from "@nomicfoundation/ethereumjs-util";
 
 import { panicErrorCodeToMessage } from "./panic-errors";
 import {
@@ -66,11 +66,8 @@ export function encodeSolidityStackTrace(
     if (previousStack !== undefined) {
       stack = previousStack;
     } else {
-      const deleteCount =
-        process.env.HARDHAT_EXPERIMENTAL_VM_MODE === "edr" ? 1 : 3;
-
       // We remove error management related stack traces
-      stack.splice(0, deleteCount);
+      stack.splice(0, 1);
     }
 
     for (const entry of stackTrace) {
@@ -274,7 +271,9 @@ function getMessageFromLastStackTraceEntry(
       }
 
       if (!stackTraceEntry.message.isEmpty()) {
-        const returnData = stackTraceEntry.message.value.toString("hex");
+        const returnData = Buffer.from(stackTraceEntry.message.value).toString(
+          "hex"
+        );
 
         return `VM Exception while processing transaction: reverted with an unrecognized custom error (return data: 0x${returnData})`;
       }

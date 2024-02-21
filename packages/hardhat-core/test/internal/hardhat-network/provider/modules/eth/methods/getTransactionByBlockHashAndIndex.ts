@@ -1,6 +1,6 @@
 import {
   setLengthLeft,
-  toBuffer,
+  toBytes,
   zeroAddress,
 } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
@@ -28,6 +28,10 @@ import {
   PROVIDERS,
 } from "../../../../helpers/providers";
 import { sendTransactionFromTxParams } from "../../../../helpers/transactions";
+
+function toBuffer(x: Parameters<typeof toBytes>[0]) {
+  return Buffer.from(toBytes(x));
+}
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {

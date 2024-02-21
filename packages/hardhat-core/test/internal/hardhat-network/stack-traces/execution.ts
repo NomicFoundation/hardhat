@@ -1,54 +1,80 @@
-import { Block } from "@nomicfoundation/ethereumjs-block";
-import { Common } from "@nomicfoundation/ethereumjs-common";
-import { Transaction, TxData } from "@nomicfoundation/ethereumjs-tx";
 import {
-  Account,
-  Address,
+  bigIntToHex,
+  bytesToHex,
   privateToAddress,
-  bigIntToBuffer,
+  toBytes,
 } from "@nomicfoundation/ethereumjs-util";
 
-import { VMAdapter } from "../../../../src/internal/hardhat-network/provider/vm/vm-adapter";
 import { MessageTrace } from "../../../../src/internal/hardhat-network/stack-traces/message-trace";
 import { defaultHardhatNetworkParams } from "../../../../src/internal/core/config/default-config";
-import { createContext } from "../../../../src/internal/hardhat-network/provider/vm/creation";
-import { NodeConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
-import { EthContextAdapter } from "../../../../src/internal/hardhat-network/provider/context";
+import {
+  MempoolOrder,
+  TracingConfig,
+} from "../../../../src/internal/hardhat-network/provider/node-types";
+import { EdrProviderWrapper } from "../../../../src/internal/hardhat-network/provider/provider";
+import { VMTracer } from "../../../../src/internal/hardhat-network/stack-traces/vm-tracer";
+import { LoggerConfig } from "../../../../src/internal/hardhat-network/provider/modules/logger";
+
+function toBuffer(x: Parameters<typeof toBytes>[0]) {
+  return Buffer.from(toBytes(x));
+}
 
 const abi = require("ethereumjs-abi");
 
-const senderPrivateKey = Buffer.from(
-  "e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109",
-  "hex"
-);
-const senderAddress = privateToAddress(senderPrivateKey);
+const senderPrivateKey =
+  "0xe331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109";
 
-export async function instantiateContext(): Promise<
-  [EthContextAdapter, Common]
-> {
-  const account = Account.fromAccountData({ balance: 1e15 });
+const senderAddress = bytesToHex(privateToAddress(toBuffer(senderPrivateKey)));
 
-  const config: NodeConfig = {
-    automine: true,
-    blockGasLimit: 1_000_000,
-    chainId: 1,
-    genesisAccounts: [],
+export async function instantiateProvider(
+  loggerConfig: LoggerConfig,
+  tracingConfig: TracingConfig
+): Promise<[EdrProviderWrapper, VMTracer]> {
+  const config = {
     hardfork: "shanghai",
-    minGasPrice: 0n,
+    chainId: 1,
     networkId: 1,
-    mempoolOrder: "priority",
-    coinbase: "0x0000000000000000000000000000000000000000",
+    blockGasLimit: 10_000_000,
+    minGasPrice: 0n,
+    automine: true,
+    intervalMining: 0,
+    mempoolOrder: "priority" as MempoolOrder,
     chains: defaultHardhatNetworkParams.chains,
+    genesisAccounts: [
+      {
+        privateKey: senderPrivateKey,
+        balance: 1e15,
+      },
+    ],
+    allowUnlimitedContractSize: false,
+    throwOnTransactionFailures: false,
+    throwOnCallFailures: false,
     allowBlocksWithSameTimestamp: false,
+    coinbase: "0x0000000000000000000000000000000000000000",
+    initialBaseFeePerGas: 0,
     enableTransientStorage: false,
   };
 
-  const common = new Common({ chain: "mainnet", hardfork: "shanghai" });
+  const vmTracer = new VMTracer(false);
 
-  const context = await createContext(config);
-  await context.vm().putAccount(new Address(senderAddress), account, true);
+  const provider = await EdrProviderWrapper.create(
+    config,
+    loggerConfig,
+    {
+      onStep: async (step) => {
+        await vmTracer.addStep(step);
+      },
+      onAfterMessage: async (message) => {
+        await vmTracer.addAfterMessage(message);
+      },
+      onBeforeMessage: async (message) => {
+        await vmTracer.addBeforeMessage(message);
+      },
+    },
+    tracingConfig
+  );
 
-  return [context, common];
+  return [provider, vmTracer];
 }
 
 export function encodeConstructorParams(
@@ -81,48 +107,41 @@ export function encodeCall(
   return Buffer.concat([methodId, abi.rawEncode(types, params)]);
 }
 
+export interface TxData {
+  data: Buffer;
+  to?: Buffer;
+  value?: bigint;
+  gas?: bigint;
+}
+
 export async function traceTransaction(
-  vm: VMAdapter,
-  common: Common,
+  provider: EdrProviderWrapper,
+  vmTracer: VMTracer,
   txData: TxData
 ): Promise<MessageTrace> {
-  const tx = new Transaction({
-    value: 0,
-    gasPrice: 10,
-    nonce: await getNextPendingNonce(vm),
-    ...txData,
-    // If the test didn't define a gasLimit, we assume 4M is enough
-    gasLimit: txData.gasLimit ?? 4000000,
-  });
-
-  const signedTx = tx.sign(senderPrivateKey);
-
   try {
-    const blockBuilder = await vm.createBlockBuilder(common, {
-      parentBlock: Block.fromBlockData(
-        {},
+    await provider.request({
+      method: "eth_sendTransaction",
+      params: [
         {
-          skipConsensusFormatValidation: true,
-        }
-      ),
-      headerData: {
-        gasLimit: 10_000_000n,
-      },
+          from: senderAddress,
+          data: bytesToHex(txData.data),
+          to: txData.to !== undefined ? bytesToHex(txData.to) : undefined,
+          value: bigIntToHex(txData.value ?? 0n),
+          // If the test didn't define a gasLimit, we assume 4M is enough
+          gas: bigIntToHex(txData.gas ?? 4000000n),
+          gasPrice: bigIntToHex(10n),
+        },
+      ],
     });
-    await blockBuilder.addTransaction(signedTx);
-    await blockBuilder.finalize([]);
 
-    const { trace, error } = vm.getLastTraceAndClear();
+    const trace = vmTracer.getLastTopLevelMessageTrace();
     if (trace === undefined) {
+      const error = vmTracer.getLastError();
       throw error ?? new Error("Cannot get last top level message trace");
     }
     return trace;
   } finally {
-    vm.getLastTraceAndClear();
+    vmTracer.clearLastError();
   }
-}
-
-async function getNextPendingNonce(vm: VMAdapter): Promise<Buffer> {
-  const acc = await vm.getAccount(new Address(senderAddress));
-  return bigIntToBuffer(acc.nonce);
 }

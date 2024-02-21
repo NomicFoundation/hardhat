@@ -11,7 +11,7 @@ import {
 import { EthereumProvider } from "../../../../src/types";
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { ALCHEMY_URL } from "../../../setup";
-import { rpcToBlockData } from "../../../../src/internal/hardhat-network/provider/fork/rpcToBlockData";
+import { rpcToBlockData } from "./utils/rpcToBlockData";
 
 async function getLatestBaseFeePerGas(provider: EthereumProvider) {
   const block = await provider.send("eth_getBlockByNumber", ["latest", false]);

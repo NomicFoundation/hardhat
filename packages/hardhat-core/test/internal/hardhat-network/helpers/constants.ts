@@ -1,6 +1,10 @@
 // reused from ethers.js
-import { Address, toBuffer } from "@nomicfoundation/ethereumjs-util";
+import { Address, toBytes } from "@nomicfoundation/ethereumjs-util";
 import path from "path";
+
+function toBuffer(x: Parameters<typeof toBytes>[0]) {
+  return Buffer.from(toBytes(x));
+}
 
 export const DAI_ADDRESS = Address.fromString(
   "0x6b175474e89094c44da98b954eedeac495271d0f"

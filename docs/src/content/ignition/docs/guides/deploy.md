@@ -28,7 +28,7 @@ Hardhat Ignition will figure out how to pick up from where it left off last time
 
 ## Defining parameters during deployment
 
-Ignition Modules can define [Module Parameters](./creating-modules.md#module-parameters) and use them programmatically. When you deploy a module using the `ingition deploy` task you can provide a JSON file with their values. This section will focus on providing the parameters, while the [Module Parameters section](./creating-modules.md#module-parameters) explains how to retrieve them within a module.
+Ignition Modules can define [Module Parameters](./creating-modules.md#module-parameters) and use them programmatically. When you deploy a module using the `ignition deploy` task you can provide a JSON file with their values. This section will focus on providing the parameters, while the [Module Parameters section](./creating-modules.md#module-parameters) explains how to retrieve them within a module.
 
 An example file could be called `./ignition/parameters.json` and contain the following:
 
@@ -63,6 +63,16 @@ npx hardhat ignition deploy ignition/modules/Apollo.js --parameters ignition/par
 :::
 
 ::::
+
+To pass a `bigint` as a Module parameter, you can encode it as a string. Any string parameter value that matches the regex `/d+n/` will be converted to a `bigint` before being passed to the module, for instance the `endowment` parameter in the following example:
+
+```json
+{
+  "MyModule": {
+    "endowment": "1000000000000000000n" // 1 ETH in wei
+  }
+}
+```
 
 ## Inspecting an existing deployment
 

@@ -307,7 +307,7 @@ describe("INTEGRATION: Reverted with panic", function () {
           ).to.not.be.revertedWithPanic()
         ).to.be.eventually.rejectedWith(
           ProviderError,
-          "sender doesn't have enough funds to send tx"
+          "Sender doesn't have enough funds to send tx"
         );
       });
     });

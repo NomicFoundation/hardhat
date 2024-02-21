@@ -1,16 +1,9 @@
 import { zeroAddress } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
-import sinon, { SinonSpy } from "sinon";
 import { Client } from "undici";
-import {
-  AccessListEIP2930Transaction,
-  FeeMarketEIP1559Transaction,
-  Transaction,
-} from "@nomicfoundation/ethereumjs-tx";
 
 import {
   numberToRpcQuantity,
-  rpcQuantityToBigInt,
   rpcQuantityToNumber,
 } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
@@ -20,15 +13,11 @@ import {
   EXAMPLE_REVERT_CONTRACT,
 } from "../../../../helpers/contracts";
 import { setCWD } from "../../../../helpers/cwd";
-import { getPendingBaseFeePerGas } from "../../../../helpers/getPendingBaseFeePerGas";
 import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   PROVIDERS,
 } from "../../../../helpers/providers";
 import { deployContract } from "../../../../helpers/transactions";
-import { HardhatNode } from "../../../../../../../src/internal/hardhat-network/provider/node";
-import { RpcBlockOutput } from "../../../../../../../src/internal/hardhat-network/provider/output";
-import * as BigIntUtils from "../../../../../../../src/internal/util/bigint";
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -211,6 +200,24 @@ describe("Eth module", function () {
           assert.isTrue(BigInt(estimation) <= 100_000n);
         });
 
+        it("should reject blob transactions", async function () {
+          await assertInvalidInputError(
+            this.provider,
+            "eth_estimateGas",
+            [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+                blobs: ["0x1234"],
+                blobVersionedHashes: [
+                  "0x1234567812345678123456781234567812345678123456781234567812345678",
+                ],
+              },
+            ],
+            "An EIP-4844 (shard blob) transaction was received, but Hardhat doesn't have support for them yet."
+          );
+        });
+
         describe("Fee price fields", function () {
           describe("Running a hardfork with EIP-1559", function () {
             it("Should validate that gasPrice and maxFeePerGas & maxPriorityFeePerGas are not mixed", async function () {
@@ -257,189 +264,6 @@ describe("Eth module", function () {
                 ],
                 "maxPriorityFeePerGas (2) is bigger than maxFeePerGas (1)"
               );
-            });
-
-            describe("Default values", function () {
-              const ONE_GWEI = 10n ** 9n;
-              // TODO: We test an internal method here. We should improve this.
-              // Note: We don't need to test incompatible values (e.g. gasPrice and maxFeePerGas).
-
-              let spy: SinonSpy;
-
-              beforeEach(function () {
-                if (
-                  process.env.HARDHAT_EXPERIMENTAL_VM_MODE === "edr" ||
-                  process.env.HARDHAT_EXPERIMENTAL_VM_MODE === "dual"
-                ) {
-                  this.skip();
-                }
-
-                spy = sinon.spy(
-                  HardhatNode.prototype as any,
-                  "_runTxAndRevertMutations"
-                );
-              });
-
-              afterEach(function () {
-                if (
-                  process.env.HARDHAT_EXPERIMENTAL_VM_MODE === "edr" ||
-                  process.env.HARDHAT_EXPERIMENTAL_VM_MODE === "dual"
-                ) {
-                  return;
-                }
-                spy.restore();
-              });
-
-              it("Should use a gasPrice if provided", async function () {
-                const gasPrice = await getPendingBaseFeePerGas(this.provider);
-
-                await this.provider.send("eth_estimateGas", [
-                  {
-                    from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                    to: DEFAULT_ACCOUNTS_ADDRESSES[1],
-                    gasPrice: numberToRpcQuantity(gasPrice),
-                  },
-                ]);
-
-                const call = spy.getCall(0);
-                assert.isDefined(call);
-
-                const firstArg = call.firstArg;
-                assert.isTrue("gasPrice" in firstArg);
-
-                const tx: Transaction | AccessListEIP2930Transaction = firstArg;
-                assert.isTrue(tx.gasPrice === gasPrice);
-              });
-
-              it("Should use the maxFeePerGas and maxPriorityFeePerGas if provided", async function () {
-                const maxFeePerGas = await getPendingBaseFeePerGas(
-                  this.provider
-                );
-                await this.provider.send("eth_estimateGas", [
-                  {
-                    from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                    to: DEFAULT_ACCOUNTS_ADDRESSES[1],
-                    maxFeePerGas: numberToRpcQuantity(maxFeePerGas),
-                    maxPriorityFeePerGas: numberToRpcQuantity(
-                      maxFeePerGas / 2n
-                    ),
-                  },
-                ]);
-
-                const call = spy.getCall(0);
-                assert.isDefined(call);
-
-                const firstArg = call.firstArg;
-                assert.isTrue("maxFeePerGas" in firstArg);
-
-                const tx: FeeMarketEIP1559Transaction = firstArg;
-                assert.isTrue(tx.maxFeePerGas === maxFeePerGas);
-                assert.isTrue(tx.maxPriorityFeePerGas === maxFeePerGas / 2n);
-              });
-
-              it("should use the default maxPriorityFeePerGas, 1gwei", async function () {
-                const maxFeePerGas = BigIntUtils.max(
-                  await getPendingBaseFeePerGas(this.provider),
-                  10n * ONE_GWEI
-                );
-                await this.provider.send("eth_estimateGas", [
-                  {
-                    from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                    to: DEFAULT_ACCOUNTS_ADDRESSES[1],
-                    maxFeePerGas: numberToRpcQuantity(maxFeePerGas),
-                  },
-                ]);
-
-                const call = spy.getCall(0);
-                assert.isDefined(call);
-
-                const firstArg = call.firstArg;
-                assert.isTrue("maxFeePerGas" in firstArg);
-
-                const tx: FeeMarketEIP1559Transaction = firstArg;
-                assert.isTrue(tx.maxFeePerGas === maxFeePerGas);
-                assert.isTrue(
-                  tx.maxPriorityFeePerGas === ONE_GWEI,
-                  `expected to get a maxPriorityFeePerGas of ${ONE_GWEI.toString()}, but got ${tx.maxPriorityFeePerGas.toString()}`
-                );
-              });
-
-              it("should cap the maxPriorityFeePerGas with maxFeePerGas", async function () {
-                await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
-                  "0x0",
-                ]);
-
-                await this.provider.send("eth_estimateGas", [
-                  {
-                    from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                    to: DEFAULT_ACCOUNTS_ADDRESSES[1],
-                    maxFeePerGas: numberToRpcQuantity(123),
-                  },
-                ]);
-
-                const call = spy.getCall(0);
-                assert.isDefined(call);
-
-                const firstArg = call.firstArg;
-                assert.isTrue("maxFeePerGas" in firstArg);
-
-                const tx: FeeMarketEIP1559Transaction = firstArg;
-                assert.isTrue(tx.maxFeePerGas === 123n);
-                assert.isTrue(tx.maxPriorityFeePerGas === 123n);
-              });
-
-              it("should use twice the next block's base fee as default maxFeePerGas, plus the priority fee, when the blocktag is pending", async function () {
-                await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
-                  numberToRpcQuantity(10),
-                ]);
-
-                await this.provider.send("eth_estimateGas", [
-                  {
-                    from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                    to: DEFAULT_ACCOUNTS_ADDRESSES[1],
-                    maxPriorityFeePerGas: numberToRpcQuantity(1),
-                  },
-                ]);
-
-                const call = spy.getCall(0);
-                assert.isDefined(call);
-
-                const firstArg = call.firstArg;
-                assert.isTrue("maxFeePerGas" in firstArg);
-
-                const tx: FeeMarketEIP1559Transaction = firstArg;
-                assert.isTrue(tx.maxFeePerGas === 21n);
-                assert.isTrue(tx.maxPriorityFeePerGas === 1n);
-              });
-
-              it("should use the block's base fee per gas as maxFeePerGas, plus the priority fee, when estimating in a past block", async function () {
-                const block: RpcBlockOutput = await this.provider.send(
-                  "eth_getBlockByNumber",
-                  ["latest", false]
-                );
-
-                await this.provider.send("eth_estimateGas", [
-                  {
-                    from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                    to: DEFAULT_ACCOUNTS_ADDRESSES[1],
-                    maxPriorityFeePerGas: numberToRpcQuantity(1),
-                  },
-                  "latest",
-                ]);
-
-                const call = spy.getCall(0);
-                assert.isDefined(call);
-
-                const firstArg = call.firstArg;
-                assert.isTrue("maxFeePerGas" in firstArg);
-
-                const tx: FeeMarketEIP1559Transaction = firstArg;
-                assert.isTrue(
-                  tx.maxFeePerGas ===
-                    rpcQuantityToBigInt(block.baseFeePerGas!) + 1n
-                );
-                assert.isTrue(tx.maxPriorityFeePerGas === 1n);
-              });
             });
           });
         });

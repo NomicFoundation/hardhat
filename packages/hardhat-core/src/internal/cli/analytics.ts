@@ -126,7 +126,10 @@ export class Analytics {
     }
 
     let eventParams = {};
-    if (scopeName === "ignition" && taskName === "deploy") {
+    if (
+      (scopeName === "ignition" && taskName === "deploy") ||
+      (scopeName === undefined && taskName === "deploy")
+    ) {
       eventParams = {
         scope: scopeName,
         task: taskName,

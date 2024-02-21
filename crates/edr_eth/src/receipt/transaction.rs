@@ -88,7 +88,7 @@ where
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "serde"))]
 mod test {
     use revm_primitives::SpecId;
 

@@ -585,8 +585,6 @@ describe("Eth module", function () {
             );
           });
 
-          const isEdr = process.env.HARDHAT_EXPERIMENTAL_VM_MODE === "edr";
-
           it("should throw an error because the key address used is invalid", async function () {
             await assertInvalidArgumentsError(
               this.provider,
@@ -606,7 +604,7 @@ describe("Eth module", function () {
                 },
               ],
               // TODO: https://github.com/NomicFoundation/edr/issues/104
-              isEdr
+              this.isEdr
                 ? undefined
                 : `Errors encountered in param 2: Invalid value "0xce9efd622e568b3a21b19532c77fc76c93c34b" supplied to : { [K in address]: stateOverrideOptions } | undefined/0xce9efd622e568b3a21b19532c77fc76c93c34b: address`
             );
@@ -634,7 +632,7 @@ describe("Eth module", function () {
                 },
               ],
               // TODO: https://github.com/NomicFoundation/edr/issues/104
-              isEdr
+              this.isEdr
                 ? undefined
                 : `Errors encountered in param 2: Invalid value "0x00000000000000000000000000000000000000000000000000000000000002" supplied to : { [K in address]: stateOverrideOptions } | undefined/0xce9efd622e568b3a21b19532c77fc76c93c34bd4: stateOverrideOptions/stateDiff: { [K in Storage slot hex string]: Storage slot } | undefined/0x00000000000000000000000000000000000000000000000000000000000002: Storage slot hex string`
             );
@@ -749,10 +747,12 @@ describe("Eth module", function () {
                       },
                     },
                   ],
-                  isEdr
+                  this.isEdr
                     ? undefined
                     : "The 'balance' property should occupy a maximum of 32 bytes (balance=115792089237316195423570985008687907853269984665640564039457584007913129639936).",
-                  isEdr ? InvalidArgumentsError.CODE : InvalidInputError.CODE
+                  this.isEdr
+                    ? InvalidArgumentsError.CODE
+                    : InvalidInputError.CODE
                 );
               });
             });
@@ -910,10 +910,12 @@ describe("Eth module", function () {
                       },
                     },
                   ],
-                  isEdr
+                  this.isEdr
                     ? undefined
                     : "The 'nonce' property should occupy a maximum of 8 bytes (nonce=18446744073709551616).",
-                  isEdr ? InvalidArgumentsError.CODE : InvalidInputError.CODE
+                  this.isEdr
+                    ? InvalidArgumentsError.CODE
+                    : InvalidInputError.CODE
                 );
               });
             });
@@ -1599,6 +1601,24 @@ contract C {
           }
 
           assert.equal(await getChainIdFromContract(this.provider), chainId);
+        });
+
+        it("should reject blob transactions", async function () {
+          await assertInvalidInputError(
+            this.provider,
+            "eth_call",
+            [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+                blobs: ["0x1234"],
+                blobVersionedHashes: [
+                  "0x1234567812345678123456781234567812345678123456781234567812345678",
+                ],
+              },
+            ],
+            "An EIP-4844 (shard blob) transaction was received, but Hardhat doesn't have support for them yet."
+          );
         });
 
         describe("http JSON-RPC response", function () {

@@ -1,5 +1,24 @@
 # @nomicfoundation/hardhat-chai-matchers
 
+## 2.0.6
+
+### Patch Changes
+
+- 69fc3a4: Improved error messages of the `.withArgs` matcher (thanks @RenanSouza2!)
+
+## 2.0.5
+
+### Patch Changes
+
+- 72bf9f6: Added support for Typed objects (thanks @RenanSouza2!)
+- 82bc59d: Improved how `.revertedWithCustomError` handles wrong number of arguments (thanks @RenanSouza2!)
+
+## 2.0.4
+
+### Patch Changes
+
+- ffb301f14: Improved loading performance
+
 ## 2.0.3
 
 ### Patch Changes

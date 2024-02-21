@@ -10,7 +10,6 @@ permissions:
   push:
     branches:
       - main
-      - edr/main
     tags-ignore:
       - "**"
     paths-ignore:
@@ -37,7 +36,7 @@ jobs:
           - host: windows-latest
             build: |
               pnpm build --target i686-pc-windows-msvc
-              pnpm test
+              pnpm testNoBuild
             target: i686-pc-windows-msvc
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
@@ -69,8 +68,8 @@ jobs:
               rustup target add aarch64-unknown-linux-gnu &&
               # Required to build OpenSSL
               export LDFLAGS="-L/usr/aarch64-unknown-linux-gnu/lib/gcc/aarch64-unknown-linux-gnu/4.8.5" &&
-              export CFLAGS="-fuse-ld=lld -mcrc -B/usr/aarch64-unknown-linux-gnu/lib/gcc/aarch64-unknown-linux-gnu/4.8.5 --sysroot=/usr/aarch64-unknown-linux-gnu/aarch64-unknown-linux-gnu/sysroot" &&
-              export CXXFLAGS="-fuse-ld=lld -mcrc -B/usr/aarch64-unknown-linux-gnu/lib/gcc/aarch64-unknown-linux-gnu/4.8.5 --sysroot=/usr/aarch64-unknown-linux-gnu/aarch64-unknown-linux-gnu/sysroot" &&
+              export CFLAGS="-B/usr/aarch64-unknown-linux-gnu/lib/gcc/aarch64-unknown-linux-gnu/4.8.5 --sysroot=/usr/aarch64-unknown-linux-gnu/aarch64-unknown-linux-gnu/sysroot" &&
+              export CXXFLAGS="-B/usr/aarch64-unknown-linux-gnu/lib/gcc/aarch64-unknown-linux-gnu/4.8.5 --sysroot=/usr/aarch64-unknown-linux-gnu/aarch64-unknown-linux-gnu/sysroot" &&
               pnpm run build --target aarch64-unknown-linux-gnu &&
               aarch64-unknown-linux-gnu-strip *.node
           - host: ubuntu-latest
@@ -202,7 +201,7 @@ jobs:
         run: ls -R .
         shell: bash
       - name: Test bindings
-        run: pnpm test
+        run: pnpm testNoBuild
   test-linux-x64-gnu-binding:
     name: Test bindings on Linux-x64-gnu - node@${{ matrix.node }}
     needs:
@@ -236,7 +235,7 @@ jobs:
         run: ls -R .
         shell: bash
       - name: Test bindings
-        run: docker run --rm -v $(pwd):/build -w /build/crates/edr_napi node:${{ matrix.node }} bash -c "wget -qO- 'https://unpkg.com/@pnpm/self-installer' | node; pnpm test"
+        run: docker run --rm -v $(pwd):/build -w /build/crates/edr_napi node:${{ matrix.node }} bash -c "wget -qO- 'https://unpkg.com/@pnpm/self-installer' | node; pnpm testNoBuild"
   test-linux-x64-musl-binding:
     name: Test bindings on x86_64-unknown-linux-musl - node@${{ matrix.node }}
     needs:
@@ -272,7 +271,7 @@ jobs:
         run: ls -R .
         shell: bash
       - name: Test bindings
-        run: docker run --rm -v $(pwd):/build -w /build/crates/edr_napi node:${{ matrix.node }}-alpine sh -c "wget -qO- 'https://unpkg.com/@pnpm/self-installer' | node; pnpm test"
+        run: docker run --rm -v $(pwd):/build -w /build/crates/edr_napi node:${{ matrix.node }}-alpine sh -c "wget -qO- 'https://unpkg.com/@pnpm/self-installer' | node; pnpm testNoBuild"
   test-linux-aarch64-gnu-binding:
     name: Test bindings on aarch64-unknown-linux-gnu - node@${{ matrix.node }}
     needs:
@@ -315,7 +314,7 @@ jobs:
           run: |
             wget -qO- 'https://unpkg.com/@pnpm/self-installer' | node
             set -e
-            pnpm test
+            pnpm testNoBuild
             ls -la
   test-linux-aarch64-musl-binding:
     name: Test bindings on aarch64-unknown-linux-musl - node@lts
@@ -353,7 +352,7 @@ jobs:
           run: |
             wget -qO- 'https://unpkg.com/@pnpm/self-installer' | node
             set -e
-            pnpm test
+            pnpm testNoBuild
   check_commit:
     name: Check commit
     runs-on: ubuntu-latest

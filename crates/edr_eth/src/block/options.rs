@@ -1,4 +1,4 @@
-use crate::{Address, Bloom, Bytes, B256, B64, U256};
+use crate::{Address, Bytes, B256, B64, U256};
 
 /// Data of a block header
 #[derive(Debug, Default)]
@@ -9,10 +9,6 @@ pub struct BlockOptions {
     pub beneficiary: Option<Address>,
     /// The state's root hash
     pub state_root: Option<B256>,
-    /// The receipts' root hash
-    pub receipts_root: Option<B256>,
-    /// The logs' bloom
-    pub logs_bloom: Option<Bloom>,
     /// The block's difficulty
     pub difficulty: Option<U256>,
     /// The block's number

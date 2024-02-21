@@ -106,6 +106,13 @@ export function initializeVmTraceDecoder(
       );
 
       for (const bytecode of bytecodes) {
+        if (
+          tracingConfig.ignoreContracts === true &&
+          bytecode.contract.name.startsWith("Ignored")
+        ) {
+          continue;
+        }
+
         vmTraceDecoder.addBytecode(bytecode);
       }
     }
