@@ -15,14 +15,7 @@ use edr_evm::{
     test_utils::dummy_eip155_transaction,
     HashSet, LocalBlock, Log, SpecId, SyncBlock,
 };
-use lazy_static::lazy_static;
 use serial_test::serial;
-use tempfile::TempDir;
-
-lazy_static! {
-    // Use same cache dir for all tests
-    static ref CACHE_DIR: TempDir = TempDir::new().unwrap();
-}
 
 #[cfg(feature = "test-remote")]
 const REMOTE_BLOCK_NUMBER: u64 = 10_496_585;
@@ -48,8 +41,8 @@ async fn create_forked_dummy_blockchain(
     use edr_test_utils::env::get_alchemy_url;
     use parking_lot::Mutex;
 
-    let cache_dir = CACHE_DIR.path().into();
-    let rpc_client = RpcClient::new(&get_alchemy_url(), cache_dir, None).expect("url ok");
+    let rpc_client =
+        RpcClient::new(&get_alchemy_url(), edr_defaults::CACHE_DIR.into(), None).expect("url ok");
 
     Box::new(
         ForkedBlockchain::new(
