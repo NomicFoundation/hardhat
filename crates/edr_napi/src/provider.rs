@@ -1,8 +1,8 @@
 mod config;
 
 use std::{
-    path::PathBuf,
-    sync::{atomic::AtomicUsize, Arc},
+    sync::Arc,
+    time::{SystemTime, UNIX_EPOCH},
 };
 
 use edr_eth::remote::jsonrpc;
@@ -10,7 +10,6 @@ use edr_provider::{InvalidRequestReason, ProviderRequest};
 use napi::{tokio::runtime, Env, JsFunction, JsObject, Status};
 use napi_derive::napi;
 use serde::Serialize;
-use uuid::Uuid;
 
 use self::config::ProviderConfig;
 use crate::{
@@ -20,14 +19,12 @@ use crate::{
     trace::RawTrace,
 };
 
-const SCENARIO_DIR_ENV: &str = "EDR_SCENARIO_DIR";
-
 /// A JSON-RPC provider for Ethereum.
 #[napi]
 pub struct Provider {
     provider: Arc<edr_provider::Provider<LoggerError>>,
-    id: Uuid,
-    request_counter: AtomicUsize,
+    #[cfg(feature = "scenarios")]
+    scenario_file: Option<std::sync::Mutex<scenarios::ScenarioFile>>,
 }
 
 #[napi]
@@ -45,37 +42,32 @@ impl Provider {
         let config = edr_provider::ProviderConfig::try_from(config)?;
         let runtime = runtime::Handle::current();
 
-        let id = Uuid::new_v4();
-        if let Some(scenario_dir) = scenario_directory(&id) {
-            std::fs::create_dir_all(&scenario_dir)?;
-            let config = ScenarioConfig {
-                provider_config: &config,
-                logger_enabled: logger_config.enable,
-            };
-            // Save provider config to scenario dir
-            let config_path = scenario_dir.join("config.json");
-            std::fs::write(config_path, serde_json::to_string_pretty(&config)?)?;
-        }
-
         let logger = Box::new(Logger::new(&env, logger_config)?);
         let subscriber_callback = SubscriberCallback::new(&env, subscriber_callback)?;
         let subscriber_callback = Box::new(move |event| subscriber_callback.call(event));
 
         let (deferred, promise) = env.create_deferred()?;
         runtime.clone().spawn_blocking(move || {
+            #[cfg(feature = "scenarios")]
+            let scenario_file = runtime::Handle::current().block_on(scenarios::scenario_file(
+                &config,
+                edr_provider::Logger::is_enabled(&*logger),
+            ))?;
+
             let result = edr_provider::Provider::new(runtime, logger, subscriber_callback, config)
                 .map_or_else(
                     |error| Err(napi::Error::new(Status::GenericFailure, error.to_string())),
                     |provider| {
                         Ok(Provider {
                             provider: Arc::new(provider),
-                            id,
-                            request_counter: AtomicUsize::new(0),
+                            #[cfg(feature = "scenarios")]
+                            scenario_file,
                         })
                     },
                 );
 
             deferred.resolve(|_env| result);
+            Ok::<_, napi::Error>(())
         });
 
         Ok(promise)
@@ -130,16 +122,8 @@ impl Provider {
             }
         };
 
-        if let Some(scenario_dir) = scenario_directory(&self.id) {
-            let count = self
-                .request_counter
-                .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-            let name = match &request {
-                ProviderRequest::Single(r) => r.method_name().into(),
-                ProviderRequest::Batch(reqs) => format!("batch_request_len_{}", reqs.len()),
-            };
-            let request_path = scenario_dir.join(format!("{count:08}_{name}.json"));
-            std::fs::write(request_path, serde_json::to_string_pretty(&request)?)?;
+        if let Some(scenario_file) = &self.scenario_file {
+            scenarios::write_request(scenario_file, &request).await?;
         }
 
         let mut response = runtime::Handle::current()
@@ -186,17 +170,6 @@ impl Provider {
     }
 }
 
-fn scenario_directory(id: &Uuid) -> Option<PathBuf> {
-    let scenario_dir = std::path::PathBuf::from(std::env::var(SCENARIO_DIR_ENV).ok()?);
-    Some(scenario_dir.join(id.to_string()))
-}
-
-#[derive(Clone, Debug, Serialize)]
-struct ScenarioConfig<'a> {
-    provider_config: &'a edr_provider::ProviderConfig,
-    logger_enabled: bool,
-}
-
 #[napi]
 pub struct Response {
     json: String,
@@ -227,5 +200,116 @@ impl Response {
             .iter()
             .map(|trace| RawTrace::new(trace.clone()))
             .collect()
+    }
+}
+
+#[cfg(feature = "scenarios")]
+mod scenarios {
+    use std::{
+        fs::File,
+        io::{BufReader, Seek, Write},
+        sync::Mutex,
+    };
+
+    use flate2::{write::GzEncoder, Compression};
+    use napi::tokio::task::{spawn_blocking, JoinError};
+    use rand::{distributions::Alphanumeric, Rng};
+    use serde::Serialize;
+    use tempfile::tempfile;
+
+    use super::*;
+
+    const SCENARIO_FILE_PREFIX: &str = "EDR_SCENARIO_PREFIX";
+
+    impl Drop for Provider {
+        fn drop(&mut self) {
+            if let Some(scenario_file) = self.scenario_file.take() {
+                napi::tokio::task::block_in_place(move || {
+                    let mut scenario_file =
+                        scenario_file.lock().expect("Failed to lock scenario file");
+                    scenario_file
+                        .tempfile
+                        .seek(std::io::SeekFrom::Start(0))
+                        .expect("Seek failed");
+                    let mut input = BufReader::new(&mut scenario_file.tempfile);
+
+                    let output = File::create(format!("{}.gz", scenario_file.result_name))
+                        .expect("Failed to create gzipped file");
+                    let mut encoder = GzEncoder::new(output, Compression::default());
+                    encoder.finish().expect("Failed to finish Gzip");
+                })
+            }
+        }
+    }
+
+    #[derive(Debug)]
+    pub(super) struct ScenarioFile {
+        tempfile: File,
+        result_name: String,
+    }
+
+    #[derive(Clone, Debug, Serialize)]
+    struct ScenarioConfig<'a> {
+        provider_config: &'a edr_provider::ProviderConfig,
+        logger_enabled: bool,
+    }
+
+    pub(super) async fn scenario_file(
+        provider_config: &edr_provider::ProviderConfig,
+        logger_enabled: bool,
+    ) -> Result<Option<Mutex<ScenarioFile>>, napi::Error> {
+        if let Some(scenario_prefix) = std::env::var(SCENARIO_FILE_PREFIX).ok() {
+            let timestamp = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .expect("Time went backwards")
+                .as_secs();
+            let suffix = rand::thread_rng()
+                .sample_iter(&Alphanumeric)
+                .take(4)
+                .map(char::from)
+                .collect::<String>();
+
+            let mut scenario_file = spawn_blocking(|| tempfile())
+                .await
+                .map_err(handle_join_error)??;
+
+            let config = ScenarioConfig {
+                provider_config,
+                logger_enabled,
+            };
+            let mut line = serde_json::to_string(&config)?;
+            line.push('\n');
+            spawn_blocking(move || {
+                scenario_file.write_all(line.as_bytes())?;
+
+                Ok(Some(Mutex::new(ScenarioFile {
+                    tempfile: scenario_file,
+                    result_name: format!("{}_{}_{}.json", scenario_prefix, timestamp, suffix),
+                })))
+            })
+            .await
+            .map_err(handle_join_error)?
+        } else {
+            Ok(None)
+        }
+    }
+
+    fn handle_join_error(error: JoinError) -> napi::Error {
+        napi::Error::new(Status::GenericFailure, error.to_string())
+    }
+
+    pub(super) async fn write_request(
+        scenario_file: &Mutex<ScenarioFile>,
+        request: &ProviderRequest,
+    ) -> napi::Result<()> {
+        let mut line = serde_json::to_string(request)?;
+        line.push('\n');
+        {
+            let mut scenario_file = scenario_file
+                .lock()
+                .map_err(|err| napi::Error::new(Status::GenericFailure, err.to_string()))?;
+            scenario_file.tempfile.write_all(line.as_bytes())?;
+        }
+        Ok(())
     }
 }
