@@ -956,10 +956,6 @@ describe("Eth module", function () {
                   "latest",
                 ]
               );
-              // assert.equal(
-              //   messageFromOtherContract,
-              //   encodeString("Hello from B!")
-              // );
               // Result IS overridden for call to contract B
               assert.equal(
                 messageFromOtherContract,
