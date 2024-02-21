@@ -3,7 +3,7 @@ import {
   ExecutionResult,
   TracingMessage,
   TracingStep,
-} from "@ignored/edr";
+} from "@nomicfoundation/edr";
 
 import { bytesToBigInt } from "@nomicfoundation/ethereumjs-util";
 

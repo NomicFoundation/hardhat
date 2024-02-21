@@ -226,7 +226,7 @@ impl Blockchain for LocalBlockchain {
         number: u64,
     ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>
     {
-        Ok(self.storage.block_by_number(number))
+        Ok(self.storage.block_by_number(number)?)
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
@@ -249,7 +249,7 @@ impl Blockchain for LocalBlockchain {
     ) -> Result<Arc<dyn SyncBlock<Error = Self::BlockchainError>>, Self::BlockchainError> {
         Ok(self
             .storage
-            .block_by_number(self.storage.last_block_number())
+            .block_by_number(self.storage.last_block_number())?
             .expect("Block must exist"))
     }
 
@@ -335,12 +335,9 @@ impl BlockchainMut for LocalBlockchain {
 
         let total_difficulty = previous_total_difficulty + block.header().difficulty;
 
-        // SAFETY: The block number is guaranteed to be unique, so the block hash must
-        // be too.
-        let block = unsafe {
-            self.storage
-                .insert_block_unchecked(block, state_diff, total_difficulty)
-        };
+        let block = self
+            .storage
+            .insert_block(block, state_diff, total_difficulty)?;
 
         Ok(BlockAndTotalDifficulty {
             block: block.clone(),
@@ -394,7 +391,7 @@ impl BlockHashRef for LocalBlockchain {
             u64::try_from(number).map_err(|_error| BlockchainError::BlockNumberTooLarge)?;
 
         self.storage
-            .block_by_number(number)
+            .block_by_number(number)?
             .map(|block| *block.hash())
             .ok_or(BlockchainError::UnknownBlockNumber)
     }

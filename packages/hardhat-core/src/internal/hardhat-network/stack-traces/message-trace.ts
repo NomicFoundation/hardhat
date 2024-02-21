@@ -6,7 +6,7 @@ import type {
   HaltResult,
   RevertResult,
   SuccessResult,
-} from "@ignored/edr";
+} from "@nomicfoundation/edr";
 
 export type MessageTrace =
   | CreateMessageTrace

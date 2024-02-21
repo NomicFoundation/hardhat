@@ -13,13 +13,22 @@ export type TestClient = viemT.TestClient<
   viemT.Chain
 >;
 
+export type KeyedClient =
+  | {
+      public?: PublicClient;
+      wallet: WalletClient;
+    }
+  | {
+      public: PublicClient;
+      wallet?: WalletClient;
+    };
+
 export type TestClientMode = Parameters<
   typeof viemT.createTestClient
 >[0]["mode"];
 
 export interface SendTransactionConfig {
-  walletClient?: WalletClient;
-  publicClient?: PublicClient;
+  client?: KeyedClient;
   gas?: bigint;
   gasPrice?: bigint;
   maxFeePerGas?: bigint;
@@ -34,18 +43,12 @@ export interface DeployContractConfig extends SendTransactionConfig {
 export type SendDeploymentTransactionConfig = SendTransactionConfig;
 
 export interface GetContractAtConfig {
-  walletClient?: WalletClient;
-  publicClient?: PublicClient;
+  client?: KeyedClient;
 }
 
 export type GetContractReturnType<
   TAbi extends viemT.Abi | readonly unknown[] = viemT.Abi
-> = viemT.GetContractReturnType<
-  TAbi,
-  PublicClient,
-  WalletClient,
-  viemT.Address
->;
+> = viemT.GetContractReturnType<TAbi, Required<KeyedClient>, viemT.Address>;
 
 export type GetTransactionReturnType = viemT.GetTransactionReturnType<
   viemT.Chain,

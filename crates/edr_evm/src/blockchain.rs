@@ -34,6 +34,9 @@ pub enum BlockchainError {
     /// Forked blockchain error
     #[error(transparent)]
     Forked(#[from] ForkedBlockchainError),
+    /// An error that occurs when trying to insert a block into storage.
+    #[error(transparent)]
+    Insert(#[from] storage::InsertError),
     /// Invalid block number
     #[error("Invalid block number: {actual}. Expected: {expected}.")]
     InvalidBlockNumber {

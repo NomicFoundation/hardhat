@@ -9,7 +9,7 @@ updates:
       interval: "daily"
     commit-message:
       prefix: "bump"
-  - package-ecosystem: "pnpm"
+  - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "daily"

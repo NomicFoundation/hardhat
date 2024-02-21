@@ -11,7 +11,7 @@ We follow the [Conventional Commits](https://www.conventionalcommits.org) conven
 
 ## Pull Requests
 
-When merging a pull request to `edr/main`, we employ the "squash and merge" strategy.
+When merging a pull request, we employ the "squash and merge" strategy.
 By default, the generated commit header will reuse the pull request's title.
 To this end, make sure to use the Conventional Commits convention for the pull request title as well.
 

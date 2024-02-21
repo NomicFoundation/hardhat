@@ -16,6 +16,12 @@ pub enum InsertError {
         /// The block's number
         block_number: u64,
     },
+    /// Receipt already exists
+    #[error("A receipt with transaction hash {transaction_hash} already exists.")]
+    DuplicateReceipt {
+        /// Transaction hash of duplicated receipt
+        transaction_hash: B256,
+    },
     /// Transaction already exists
     #[error("A transaction with hash {hash} already exists.")]
     DuplicateTransaction {
