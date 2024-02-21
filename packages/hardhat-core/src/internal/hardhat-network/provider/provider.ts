@@ -288,6 +288,9 @@ export class EdrProviderWrapper
       },
       (event: SubscriptionEvent) => {
         eventAdapter.emit("ethEvent", event);
+      },
+      (returnData: Buffer) => {
+        return Buffer.from([0, 1, 2, 3, 4]);
       }
     );
 
