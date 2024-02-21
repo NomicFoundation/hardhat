@@ -1140,7 +1140,7 @@ importers:
         specifier: workspace:^2.0.0
         version: link:../hardhat-verify
       '@nomicfoundation/hardhat-viem':
-        specifier: workspace:^1.0.0
+        specifier: workspace:^2.0.0
         version: link:../hardhat-viem
       '@types/chai':
         specifier: ^4.2.0
