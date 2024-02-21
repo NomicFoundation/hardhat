@@ -11,6 +11,7 @@ on:
   push:
     branches:
       - main
+      - edr/release
     tags-ignore:
       - "**"
     paths-ignore:
