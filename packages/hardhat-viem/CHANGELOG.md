@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-viem
 
+## 2.0.0
+
+### Major Changes
+
+- e4b1c07b7: Upgraded hardhat-viem to support viem@2
+
 ## 1.0.4
 
 ### Patch Changes

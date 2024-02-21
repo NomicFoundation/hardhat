@@ -6,7 +6,7 @@ use edr_eth::{
 use parking_lot::{RwLock, RwLockUpgradableReadGuard, RwLockWriteGuard};
 use revm::primitives::{HashMap, HashSet};
 
-use super::{sparse, SparseBlockchainStorage};
+use super::{sparse, InsertError, SparseBlockchainStorage};
 use crate::{state::StateDiff, Block, LocalBlock};
 
 /// A reservation for a sequence of blocks that have not yet been inserted into
@@ -225,24 +225,21 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
 impl<BlockT: Block + Clone + From<LocalBlock>> ReservableSparseBlockchainStorage<BlockT> {
     /// Retrieves the block by number, if it exists.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn block_by_number(&self, number: u64) -> Option<BlockT> {
-        self.try_fulfilling_reservation(number)
-            .or_else(|| self.storage.read().block_by_number(number).cloned())
+    pub fn block_by_number(&self, number: u64) -> Result<Option<BlockT>, InsertError> {
+        Ok(self
+            .try_fulfilling_reservation(number)?
+            .or_else(|| self.storage.read().block_by_number(number).cloned()))
     }
 
-    /// Inserts a block without checking its validity.
-    ///
-    /// # Safety
-    ///
-    /// Ensure that the instance does not contain a block with the same hash or
-    /// number, nor any transactions with the same hash.
+    /// Insert a block into the storage. Errors if a block with the same hash or
+    /// number already exists.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub unsafe fn insert_block_unchecked(
+    pub fn insert_block(
         &mut self,
         block: LocalBlock,
         state_diff: StateDiff,
         total_difficulty: U256,
-    ) -> &BlockT {
+    ) -> Result<&BlockT, InsertError> {
         self.last_block_number = block.header().number;
         self.number_to_diff_index
             .insert(self.last_block_number, self.state_diffs.len());
@@ -252,17 +249,13 @@ impl<BlockT: Block + Clone + From<LocalBlock>> ReservableSparseBlockchainStorage
         let receipts: Vec<_> = block.transaction_receipts().to_vec();
         let block = BlockT::from(block);
 
-        self.storage
-            .get_mut()
-            .insert_receipts_unchecked(receipts, block.clone());
+        self.storage.get_mut().insert_receipts(receipts)?;
 
-        self.storage
-            .get_mut()
-            .insert_block_unchecked(block, total_difficulty)
+        self.storage.get_mut().insert_block(block, total_difficulty)
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    fn try_fulfilling_reservation(&self, block_number: u64) -> Option<BlockT> {
+    fn try_fulfilling_reservation(&self, block_number: u64) -> Result<Option<BlockT>, InsertError> {
         let reservations = self.reservations.upgradable_read();
 
         reservations
@@ -321,17 +314,14 @@ impl<BlockT: Block + Clone + From<LocalBlock>> ReservableSparseBlockchainStorage
                     },
                 );
 
-                let mut storage = RwLockUpgradableReadGuard::upgrade(storage);
-
-                // SAFETY: Reservations are guaranteed to not overlap with other reservations or
-                // blocks, so the generated block must have a unique block
-                // number and thus hash.
-                unsafe {
-                    storage
-                        .insert_block_unchecked(block.into(), reservation.previous_total_difficulty)
+                {
+                    let mut storage = RwLockUpgradableReadGuard::upgrade(storage);
+                    Ok(storage
+                        .insert_block(block.into(), reservation.previous_total_difficulty)?
+                        .clone())
                 }
-                .clone()
             })
+            .transpose()
     }
 }
 

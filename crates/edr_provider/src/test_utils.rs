@@ -1,4 +1,4 @@
-use std::{convert::Infallible, path::PathBuf, time::SystemTime};
+use std::{convert::Infallible, time::SystemTime};
 
 use edr_eth::{
     block::BlobGas, signature::secret_key_from_str, trie::KECCAK_NULL_RLP, Address, HashMap,
@@ -19,18 +19,15 @@ pub const TEST_SECRET_KEY_SIGN_TYPED_DATA_V4: &str =
 pub const FORK_BLOCK_NUMBER: u64 = 18_725_000;
 
 /// Constructs a test config with a single account with 1 ether
-pub fn create_test_config(cache_dir: PathBuf) -> ProviderConfig {
-    create_test_config_with_fork(cache_dir, None)
+pub fn create_test_config() -> ProviderConfig {
+    create_test_config_with_fork(None)
 }
 
 pub fn one_ether() -> U256 {
     U256::from(10).pow(U256::from(18))
 }
 
-pub fn create_test_config_with_fork(
-    cache_dir: PathBuf,
-    fork: Option<ForkConfig>,
-) -> ProviderConfig {
+pub fn create_test_config_with_fork(fork: Option<ForkConfig>) -> ProviderConfig {
     ProviderConfig {
         accounts: vec![
             AccountConfig {
@@ -65,7 +62,7 @@ pub fn create_test_config_with_fork(
         min_gas_price: U256::ZERO,
         mining: MiningConfig::default(),
         network_id: 123,
-        cache_dir,
+        cache_dir: edr_defaults::CACHE_DIR.into(),
     }
 }
 

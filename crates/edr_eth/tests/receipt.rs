@@ -1,13 +1,6 @@
 #[cfg(feature = "test-remote")]
 mod remote {
-    use lazy_static::lazy_static;
     use serial_test::serial;
-    use tempfile::TempDir;
-
-    lazy_static! {
-        // Use same cache dir for all tests
-        static ref CACHE_DIR: TempDir = TempDir::new().unwrap();
-    }
 
     macro_rules! impl_test_remote_block_receipt_root {
         ($(
@@ -21,7 +14,7 @@ mod remote {
                         use edr_eth::{remote::{RpcClient, PreEip1898BlockSpec}, trie::ordered_trie_root};
                         use edr_test_utils::env::get_alchemy_url;
 
-                        let client = RpcClient::new(&get_alchemy_url(), CACHE_DIR.path().into(), None).expect("url ok");
+                        let client = RpcClient::new(&get_alchemy_url(), edr_defaults::CACHE_DIR.into(), None).expect("url ok");
 
                         let block = client
                             .get_block_by_number_with_transaction_data(PreEip1898BlockSpec::Number($block_number))
