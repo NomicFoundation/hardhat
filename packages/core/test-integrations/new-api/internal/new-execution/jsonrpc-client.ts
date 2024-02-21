@@ -92,6 +92,20 @@ describe("JSON-RPC client", function () {
           assert.typeOf(fees.maxPriorityFeePerGas, "bigint");
           assert.isTrue(fees.maxFeePerGas > fees.maxPriorityFeePerGas);
         });
+
+        it('Should throw if the "maxFeePerGas" exceeds the configured limit', async function () {
+          const failClient = new EIP1193JsonRpcClient(
+            this.hre.network.provider,
+            {
+              maxFeePerGasLimit: 1n,
+            }
+          );
+
+          await assert.isRejected(
+            failClient.getNetworkFees(),
+            /IGN407: The calculated max fee per gas exceeds the configured limit./
+          );
+        });
       });
     });
 

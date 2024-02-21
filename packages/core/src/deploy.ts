@@ -51,6 +51,7 @@ export async function deploy<
   defaultSender: givenDefaultSender,
   strategy,
   strategyConfig,
+  maxFeePerGasLimit,
 }: {
   config?: Partial<DeployConfig>;
   artifactResolver: ArtifactResolver;
@@ -67,6 +68,7 @@ export async function deploy<
   defaultSender?: string;
   strategy?: StrategyT;
   strategyConfig?: StrategyConfig[StrategyT];
+  maxFeePerGasLimit?: bigint;
 }): Promise<DeploymentResult> {
   const executionStrategy: ExecutionStrategy = resolveStrategy(
     strategy,
@@ -110,7 +112,9 @@ export async function deploy<
       ? new EphemeralDeploymentLoader(artifactResolver, executionEventListener)
       : new FileDeploymentLoader(deploymentDir, executionEventListener);
 
-  const jsonRpcClient = new EIP1193JsonRpcClient(provider);
+  const jsonRpcClient = new EIP1193JsonRpcClient(provider, {
+    maxFeePerGasLimit,
+  });
 
   const isAutominedNetwork = await checkAutominedNetwork(provider);
 

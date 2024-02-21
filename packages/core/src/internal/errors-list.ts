@@ -179,6 +179,10 @@ export const ERRORS = {
       message:
         "The configured base fee exceeds the block gas limit. Please reduce the configured base fee or increase the block gas limit.",
     },
+    MAX_FEE_PER_GAS_EXCEEDS_GAS_LIMIT: {
+      number: 407,
+      message: "The calculated max fee per gas exceeds the configured limit.",
+    },
   },
   RECONCILIATION: {
     INVALID_EXECUTION_STATUS: {

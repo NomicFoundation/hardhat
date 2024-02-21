@@ -13,6 +13,30 @@ declare module "hardhat/types/config" {
     ignition: string;
   }
 
+  export interface HardhatNetworkUserConfig {
+    ignition?: {
+      maxFeePerGasLimit?: bigint;
+    };
+  }
+
+  export interface HardhatNetworkConfig {
+    ignition: {
+      maxFeePerGasLimit?: bigint;
+    };
+  }
+
+  export interface HttpNetworkUserConfig {
+    ignition?: {
+      maxFeePerGasLimit?: bigint;
+    };
+  }
+
+  export interface HttpNetworkConfig {
+    ignition: {
+      maxFeePerGasLimit?: bigint;
+    };
+  }
+
   export interface HardhatUserConfig {
     ignition?: Partial<DeployConfig> & {
       strategyConfig?: Partial<StrategyConfig>;

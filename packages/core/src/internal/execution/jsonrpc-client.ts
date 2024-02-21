@@ -185,7 +185,10 @@ export interface JsonRpcClient {
  * A JsonRpcClient that uses an EIP-1193 provider to make the calls.
  */
 export class EIP1193JsonRpcClient implements JsonRpcClient {
-  constructor(private readonly _provider: EIP1193Provider) {}
+  constructor(
+    private readonly _provider: EIP1193Provider,
+    private readonly _config?: { maxFeePerGasLimit?: bigint }
+  ) {}
 
   public async getChainId(): Promise<number> {
     const response = await this._provider.request({
@@ -207,6 +210,15 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
       const maxPriorityFeePerGas = 1_000_000_000n; // 1gwei
       const maxFeePerGas =
         latestBlock.baseFeePerGas * 2n + maxPriorityFeePerGas;
+
+      if (
+        this._config?.maxFeePerGasLimit !== undefined &&
+        maxFeePerGas > this._config.maxFeePerGasLimit
+      ) {
+        throw new IgnitionError(
+          ERRORS.EXECUTION.MAX_FEE_PER_GAS_EXCEEDS_GAS_LIMIT
+        );
+      }
 
       return {
         maxFeePerGas,

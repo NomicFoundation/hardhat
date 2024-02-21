@@ -48,6 +48,14 @@ extendConfig((config, userConfig) => {
     ),
   };
 
+  Object.keys(config.networks).forEach((networkName) => {
+    const userNetworkConfig = userConfig.networks?.[networkName] ?? {};
+
+    config.networks[networkName].ignition = {
+      maxFeePerGasLimit: userNetworkConfig.ignition?.maxFeePerGasLimit,
+    };
+  });
+
   /* setup core configs */
   const userIgnitionConfig = userConfig.ignition ?? {};
 
@@ -264,6 +272,8 @@ ignitionScope
           defaultSender,
           strategy: strategyName,
           strategyConfig,
+          maxFeePerGasLimit:
+            hre.config.networks[hre.network.name]?.ignition.maxFeePerGasLimit,
         });
 
         if (result.type === "SUCCESSFUL_DEPLOYMENT" && verify) {
