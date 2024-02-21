@@ -56,7 +56,9 @@ pub async fn execute(directory_path: &Path, max_count: Option<usize>) -> anyhow:
             }
         }
         let p = provider.clone();
-        let response = task::spawn_blocking(move || p.handle_request(request)).await?;
+        let response = task::spawn_blocking(move || p.handle_request(request))
+            .await?
+            .map(|r| r.result);
         let response = jsonrpc::ResponseData::from(response);
         match response {
             jsonrpc::ResponseData::Success { .. } => success += 1,

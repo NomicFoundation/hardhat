@@ -2,6 +2,7 @@ use std::{cmp::Ordering, fmt::Debug, sync::Arc};
 
 use edr_eth::{block::BlockOptions, U256};
 use revm::primitives::{CfgEnv, ExecutionResult, InvalidTransaction};
+use serde::{Deserialize, Serialize};
 
 use crate::{
     block::BlockBuilderCreationError,
@@ -52,7 +53,7 @@ pub struct MineBlockResultAndState<StateErrorT> {
 }
 
 /// The type of ordering to use when selecting blocks to mine.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum MineOrdering {
     /// Insertion order
     Fifo,
