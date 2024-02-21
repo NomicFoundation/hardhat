@@ -2,18 +2,20 @@ use std::{
     collections::BTreeMap,
     fmt::Debug,
     num::NonZeroU64,
+    str::FromStr,
     sync::Arc,
     time::{SystemTime, UNIX_EPOCH},
 };
 
 use edr_eth::{
+    beacon::{BEACON_ROOTS_ADDRESS, BEACON_ROOTS_BYTECODE},
     block::{BlobGas, BlockOptions, PartialHeader},
     log::FilterLog,
-    Address, Bytes, B256, U256,
+    AccountInfo, Address, Bytes, B256, U256,
 };
 use revm::{
     db::BlockHashRef,
-    primitives::{HashSet, SpecId},
+    primitives::{Bytecode, HashSet, SpecId},
     DatabaseCommit,
 };
 
@@ -56,9 +58,6 @@ pub struct GenesisBlockOptions {
     pub base_fee: Option<U256>,
     /// The block's blob gas (for post-Cancun blockchains)
     pub blob_gas: Option<BlobGas>,
-    /// The hash tree root of the parent beacon block for the given execution
-    /// (for post-Cancun blockchains)
-    pub parent_beacon_block_root: Option<B256>,
 }
 
 impl From<GenesisBlockOptions> for BlockOptions {
@@ -69,7 +68,6 @@ impl From<GenesisBlockOptions> for BlockOptions {
             mix_hash: value.mix_hash,
             base_fee: value.base_fee,
             blob_gas: value.blob_gas,
-            parent_beacon_block_root: value.parent_beacon_block_root,
             ..BlockOptions::default()
         }
     }
@@ -89,12 +87,29 @@ impl LocalBlockchain {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     #[allow(clippy::too_many_arguments)]
     pub fn new(
-        genesis_diff: StateDiff,
+        mut genesis_diff: StateDiff,
         chain_id: u64,
         spec_id: SpecId,
         options: GenesisBlockOptions,
     ) -> Result<Self, CreationError> {
         const EXTRA_DATA: &[u8] = b"\x12\x34";
+
+        if spec_id >= SpecId::CANCUN {
+            let beacon_roots_address =
+                Address::from_str(BEACON_ROOTS_ADDRESS).expect("Is valid address");
+            let beacon_roots_contract = Bytecode::new_raw(
+                Bytes::from_str(BEACON_ROOTS_BYTECODE).expect("Is valid bytecode"),
+            );
+
+            genesis_diff.apply_account_change(
+                beacon_roots_address,
+                AccountInfo {
+                    code_hash: beacon_roots_contract.hash_slow(),
+                    code: Some(beacon_roots_contract),
+                    ..AccountInfo::default()
+                },
+            );
+        }
 
         let mut genesis_state = TrieState::default();
         genesis_state.commit(genesis_diff.clone().into());

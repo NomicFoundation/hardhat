@@ -128,6 +128,7 @@ pub struct ProviderData<LoggerErrorT: Debug> {
     beneficiary: Address,
     dao_activation_block: Option<u64>,
     min_gas_price: U256,
+    parent_beacon_block_root_generator: RandomHashGenerator,
     prev_randao_generator: RandomHashGenerator,
     block_time_offset_seconds: i64,
     fork_metadata: Option<ForkMetadata>,
@@ -199,6 +200,14 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             .get(&config.chain_id)
             .and_then(|config| config.hardfork_activation(SpecId::DAO_FORK));
 
+        let parent_beacon_block_root_generator = if let Some(initial_parent_beacon_block_root) =
+            &config.initial_parent_beacon_block_root
+        {
+            RandomHashGenerator::with_value(*initial_parent_beacon_block_root)
+        } else {
+            RandomHashGenerator::with_seed("randomParentBeaconBlockRootSeed")
+        };
+
         Ok(Self {
             runtime_handle,
             initial_config: config,
@@ -208,6 +217,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             beneficiary,
             dao_activation_block,
             min_gas_price,
+            parent_beacon_block_root_generator,
             prev_randao_generator,
             block_time_offset_seconds,
             fork_metadata,
@@ -984,6 +994,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             mem_pool: self.mem_pool.clone(),
             next_block_base_fee_per_gas: self.next_block_base_fee_per_gas,
             next_block_timestamp: self.next_block_timestamp,
+            parent_beacon_block_root_generator: self.parent_beacon_block_root_generator.clone(),
             prev_randao_generator: self.prev_randao_generator.clone(),
             time: Instant::now(),
         };
@@ -1024,6 +1035,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         // Reset next block time stamp
         self.next_block_timestamp.take();
 
+        self.parent_beacon_block_root_generator.generate_next();
         self.prev_randao_generator.generate_next();
 
         let block = &block_and_total_difficulty.block;
@@ -1271,6 +1283,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 mem_pool,
                 next_block_base_fee_per_gas,
                 next_block_timestamp,
+                parent_beacon_block_root_generator,
                 prev_randao_generator,
                 time,
             } = snapshot;
@@ -1292,6 +1305,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             self.mem_pool = mem_pool;
             self.next_block_base_fee_per_gas = next_block_base_fee_per_gas;
             self.next_block_timestamp = next_block_timestamp;
+            self.parent_beacon_block_root_generator = parent_beacon_block_root_generator;
             self.prev_randao_generator = prev_randao_generator;
 
             true
@@ -1877,6 +1891,12 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
 
         let evm_config = self.create_evm_config(None)?;
 
+        if evm_config.spec_id >= SpecId::CANCUN {
+            options.parent_beacon_block_root = options
+                .parent_beacon_block_root
+                .or_else(|| Some(self.parent_beacon_block_root_generator.next_value()));
+        }
+
         let mut inspector = EvmInspector::default();
 
         let state_to_be_modified = (*self.current_state()?).clone();
@@ -2316,7 +2336,6 @@ fn create_blockchain_and_state(
                 mix_hash,
                 base_fee: config.initial_base_fee_per_gas,
                 blob_gas: config.initial_blob_gas.clone(),
-                parent_beacon_block_root: config.initial_parent_beacon_block_root,
             },
         )?;
 

@@ -1886,9 +1886,23 @@ describe("Eth module - hardfork dependant tests", function () {
         assert.isDefined(block.excessBlobGas);
       });
 
-      it("should have a non empty parentBeaconBlockRoot in the genesis block and the value should be an expected one", async function () {
+      it("should have 0x0 as parentBeaconBlockRoot in the genesis block", async function () {
         const block = await this.provider.send("eth_getBlockByNumber", [
           numberToRpcQuantity(0),
+          false,
+        ]);
+
+        assert.equal(
+          block.parentBeaconBlockRoot,
+          "0x0000000000000000000000000000000000000000000000000000000000000000"
+        );
+      });
+
+      it("should have a non empty parentBeaconBlockRoot in the second block and the value should be an expected one", async function () {
+        await this.provider.send("evm_mine", []);
+
+        const block = await this.provider.send("eth_getBlockByNumber", [
+          numberToRpcQuantity(1),
           false,
         ]);
 
@@ -1899,15 +1913,17 @@ describe("Eth module - hardfork dependant tests", function () {
       });
 
       it("should have different parentBeaconBlockRoot values in different blocks", async function () {
+        await this.provider.send("evm_mine", []);
+
         const block1 = await this.provider.send("eth_getBlockByNumber", [
-          numberToRpcQuantity(0),
+          numberToRpcQuantity(1),
           false,
         ]);
 
         await this.provider.send("evm_mine", []);
 
         const block2 = await this.provider.send("eth_getBlockByNumber", [
-          numberToRpcQuantity(1),
+          numberToRpcQuantity(2),
           false,
         ]);
 
@@ -1918,6 +1934,8 @@ describe("Eth module - hardfork dependant tests", function () {
       });
 
       it("should have the parentBeaconBlockRoot value different from the mixhash value", async function () {
+        await this.provider.send("evm_mine", []);
+
         const block = await this.provider.send("eth_getBlockByNumber", [
           "latest",
           false,
