@@ -257,12 +257,6 @@ export class EdrProviderWrapper
           config.initialBaseFeePerGas !== undefined
             ? BigInt(config.initialBaseFeePerGas!)
             : undefined,
-        initialBlobGas: hardforkGte(hardforkName, HardforkName.CANCUN)
-          ? {
-              gasUsed: 0n,
-              excessGas: 0n,
-            }
-          : undefined,
         minGasPrice: config.minGasPrice,
         mining: {
           autoMine: config.automine,
