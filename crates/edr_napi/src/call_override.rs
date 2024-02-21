@@ -1,6 +1,6 @@
 use std::sync::mpsc::{channel, Sender};
 
-use edr_eth::Bytes;
+use edr_eth::{Address, Bytes};
 use napi::{bindgen_prelude::Buffer, Env, JsFunction, NapiRaw, Status};
 
 use crate::{
@@ -9,7 +9,7 @@ use crate::{
 };
 
 struct CallOverrideCall {
-    original_return_data: Bytes,
+    contract_address: Address,
     sender: Sender<napi::Result<Bytes>>,
 }
 
@@ -28,7 +28,7 @@ impl CallOverrideCallback {
             |ctx: ThreadSafeCallContext<CallOverrideCall>| {
                 let input = ctx
                     .env
-                    .create_buffer_with_data(ctx.value.original_return_data.to_vec())?
+                    .create_buffer_with_data(ctx.value.contract_address.to_vec())?
                     .into_raw();
 
                 let sender = ctx.value.sender.clone();
@@ -45,12 +45,12 @@ impl CallOverrideCallback {
     }
 
     // TODO take ref as argument
-    pub fn call_override(&self, original_return_data: Bytes) -> Bytes {
+    pub fn call_override(&self, contract_address: Address) -> Bytes {
         let (sender, receiver) = channel();
 
         let status = self.call_override_callback_fn.call(
             CallOverrideCall {
-                original_return_data,
+                contract_address,
                 sender,
             },
             ThreadsafeFunctionCallMode::Blocking,

@@ -33,7 +33,8 @@ impl Provider {
         config: ProviderConfig,
         logger_config: LoggerConfig,
         #[napi(ts_arg_type = "(event: SubscriptionEvent) => void")] subscriber_callback: JsFunction,
-        #[napi(ts_arg_type = "(return_data: Buffer) => Buffer")] call_override_callback: JsFunction,
+        #[napi(ts_arg_type = "(contract_address: Buffer) => Buffer")]
+        call_override_callback: JsFunction,
     ) -> napi::Result<JsObject> {
         let config = edr_provider::ProviderConfig::try_from(config)?;
         let runtime = runtime::Handle::current();

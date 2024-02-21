@@ -1,15 +1,15 @@
 use core::fmt::Debug;
 
 use dyn_clone::DynClone;
-use edr_eth::Bytes;
-use edr_evm::{CallInputs, EVMData, Gas, Inspector, InstructionResult};
+use edr_eth::{Address, Bytes};
+use edr_evm::{CallInputs, EVMData, Gas, Inspector, InstructionResult, TransactTo};
 
 use crate::data::CONSOLE_ADDRESS;
 
 ///
-pub trait SyncCallOverride: Fn(Bytes) -> Bytes + DynClone + Send + Sync {}
+pub trait SyncCallOverride: Fn(Address) -> Bytes + DynClone + Send + Sync {}
 
-impl<F> SyncCallOverride for F where F: Fn(Bytes) -> Bytes + DynClone + Send + Sync {}
+impl<F> SyncCallOverride for F where F: Fn(Address) -> Bytes + DynClone + Send + Sync {}
 
 dyn_clone::clone_trait_object!(SyncCallOverride);
 
@@ -46,9 +46,17 @@ impl Debug for EvmInspector {
 impl<DatabaseErrorT> Inspector<DatabaseErrorT> for EvmInspector {
     fn call(
         &mut self,
-        _data: &mut EVMData<'_, DatabaseErrorT>,
+        data: &mut EVMData<'_, DatabaseErrorT>,
         inputs: &mut CallInputs,
     ) -> (InstructionResult, Gas, Bytes) {
+        if let TransactTo::Call(target) = data.env.tx.transact_to {
+            // Only override calls to other contracts
+            if inputs.contract != target {
+                let out = (self.call_override)(inputs.contract);
+                return (InstructionResult::Return, Gas::new(inputs.gas_limit), out);
+            }
+        }
+
         if inputs.contract == *CONSOLE_ADDRESS {
             self.console_log_encoded_messages.push(inputs.input.clone());
         }
@@ -58,18 +66,6 @@ impl<DatabaseErrorT> Inspector<DatabaseErrorT> for EvmInspector {
             Gas::new(inputs.gas_limit),
             Bytes::new(),
         )
-    }
-
-    fn call_end(
-        &mut self,
-        _data: &mut EVMData<'_, DatabaseErrorT>,
-        _inputs: &CallInputs,
-        remaining_gas: Gas,
-        ret: InstructionResult,
-        out: Bytes,
-    ) -> (InstructionResult, Gas, Bytes) {
-        let out = (self.call_override)(out);
-        (ret, remaining_gas, out)
     }
 }
 

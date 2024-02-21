@@ -369,7 +369,7 @@ export class EdrContext {
 /** A JSON-RPC provider for Ethereum. */
 export class Provider {
   /**Constructs a new provider with the provided configuration. */
-  static withConfig(context: EdrContext, config: ProviderConfig, loggerConfig: LoggerConfig, subscriberCallback: (event: SubscriptionEvent) => void, callOverrideCallback: (return_data: Buffer) => Buffer): Promise<Provider>
+  static withConfig(context: EdrContext, config: ProviderConfig, loggerConfig: LoggerConfig, subscriberCallback: (event: SubscriptionEvent) => void, callOverrideCallback: (contract_address: Buffer) => Buffer): Promise<Provider>
   /**Handles a JSON-RPC request and returns a JSON-RPC response. */
   handleRequest(jsonRequest: string): Promise<Response>
 }

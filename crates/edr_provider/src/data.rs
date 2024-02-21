@@ -1316,10 +1316,14 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         let cfg_env = self.create_evm_config(block_spec)?;
         let tx_env = transaction.into();
 
-        let mut inspector = DualInspector::new(
-            EvmInspector::new(self.call_override.clone()),
-            TraceCollector::default(),
-        );
+        // let mut inspector = DualInspector::new(
+        //     EvmInspector::new(self.call_override.clone()),
+        //     TraceCollector::default(),
+        // );
+
+        // TODO we can't use dual inspector, because we want to modify sate from
+        // EvmInspector.
+        let mut inspector = EvmInspector::new(self.call_override.clone());
 
         self.execute_in_block_context(block_spec, |blockchain, block, state| {
             let execution_result = call::run_call(RunCallArgs {
@@ -1332,12 +1336,14 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 inspector: Some(&mut inspector),
             })?;
 
-            let (debug_inspector, tracer) = inspector.into_parts();
+            // let (debug_inspector, tracer) = inspector.into_parts();
 
             Ok(CallResult {
-                console_log_inputs: debug_inspector.into_console_log_encoded_messages(),
+                // console_log_inputs: debug_inspector.into_console_log_encoded_messages(),
+                console_log_inputs: inspector.into_console_log_encoded_messages(),
                 execution_result,
-                trace: tracer.into_trace(),
+                // trace: tracer.into_trace(),
+                trace: Trace::default(),
             })
         })?
     }
@@ -2454,7 +2460,7 @@ pub(crate) mod test_utils {
         ) -> anyhow::Result<Self> {
             let logger = Box::<NoopLogger>::default();
             let subscription_callback_noop = Box::new(|_| ());
-            let call_override_noop = Box::new(|result| result);
+            let call_override_noop = Box::new(|_contract_address| Bytes::default());
 
             let impersonated_account = Address::random();
             config.genesis_accounts.insert(

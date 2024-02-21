@@ -289,8 +289,13 @@ export class EdrProviderWrapper
       (event: SubscriptionEvent) => {
         eventAdapter.emit("ethEvent", event);
       },
-      (returnData: Buffer) => {
-        return Buffer.from([0, 1, 2, 3, 4]);
+      (address: Buffer) => {
+        // encodeString("Call override")
+        return Buffer.from(
+          "0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000d43616c6c206f7665727269646500000000000000000000000000000000000000",
+          "hex"
+        );
+        // return Buffer.from([]);
       }
     );
 

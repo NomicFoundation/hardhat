@@ -927,6 +927,46 @@ describe("Eth module", function () {
               return abiCoder.encode(["string"], [s]);
             }
 
+            // TODO temporary to test out call override PoC
+            it("test call override", async function () {
+              const resultGetX = await this.provider.send("eth_call", [
+                {
+                  from: deployerAddress,
+                  to: contractAAddress,
+                  data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getX,
+                },
+                "latest",
+              ]);
+              // Result is NOT overridden for call to contract A
+              assert.equal(
+                resultGetX,
+                "0x0000000000000000000000000000000000000000000000000000000000000001"
+              );
+
+              // TODO this reverts without a reason
+              const messageFromOtherContract = await this.provider.send(
+                "eth_call",
+                [
+                  {
+                    from: deployerAddress,
+                    to: contractAAddress,
+                    data: STATE_OVERRIDE_SET_CONTRACT_A.selectors
+                      .getMessageFromBContract,
+                  },
+                  "latest",
+                ]
+              );
+              // assert.equal(
+              //   messageFromOtherContract,
+              //   encodeString("Hello from B!")
+              // );
+              // Result IS overridden for call to contract B
+              assert.equal(
+                messageFromOtherContract,
+                encodeString("Call override")
+              );
+            });
+
             it("should revert the original code after that the code of contract B has been override with the code of contract C", async function () {
               const messageBefore = await this.provider.send("eth_call", [
                 {
