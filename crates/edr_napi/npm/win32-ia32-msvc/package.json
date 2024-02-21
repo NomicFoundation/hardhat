@@ -1,5 +1,5 @@
 {
-  "name": "@ignored/edr-win32-ia32-msvc",
+  "name": "@nomicfoundation/edr-win32-ia32-msvc",
   "repository": {
     "url": "https://github.com/NomicFoundation/hardhat.git",
     "type": "git"
