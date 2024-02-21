@@ -1,4 +1,5 @@
 name: EDR NPM release
+
 env:
   DEBUG: napi:*
   APP_NAME: edr
@@ -6,7 +7,7 @@ env:
 permissions:
   contents: write
   id-token: write
-"on":
+on:
   push:
     branches:
       - main
@@ -19,6 +20,8 @@ permissions:
       - .editorconfig
       - docs/**
   pull_request: null
+  workflow_dispatch:
+
 jobs:
   build:
     strategy:
