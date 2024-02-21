@@ -42,11 +42,7 @@ import {
   ProviderError,
 } from "../../core/providers/errors";
 import { isErrorResponse } from "../../core/providers/http";
-import {
-  HardforkName,
-  getHardforkName,
-  hardforkGte,
-} from "../../util/hardforks";
+import { getHardforkName } from "../../util/hardforks";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { ContractsIdentifier } from "../stack-traces/contracts-identifier";
