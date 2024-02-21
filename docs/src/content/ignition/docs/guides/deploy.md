@@ -64,13 +64,12 @@ npx hardhat ignition deploy ignition/modules/Apollo.js --parameters ignition/par
 
 ::::
 
-Let's say our `Apollo` module also accepts a `rocketValue` parameter and we want to set it to `1000000000000000000` (1 ETH, in wei). This number is large enough that it should be passed as a javascript `BigInt` instead of a plain Number, however, JSON does not support `BigInt` natively. To work around this, we can use a string representation of the `BigInt` in our JSON file like so:
+To pass a `bigint` as a Module parameter, you can encode it as a string. Any string parameter value that matches the regex `/d+n/` will be converted to a `bigint` before being passed to the module, for instance the `endownent` parameter in the following example:
 
 ```json
 {
-  "Apollo": {
-    "name": "Saturn V",
-    "rocketValue": "1000000000000000000n"
+  "MyModule": {
+    "endowment": "1000000000000000000n" // 1 ETH in wei
   }
 }
 ```
