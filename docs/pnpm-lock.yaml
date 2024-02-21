@@ -3291,7 +3291,7 @@ packages:
       file-system-cache: 1.0.5
       fs-extra: 9.1.0
       globby: 11.1.0
-      ip: 1.1.5
+      ip: 1.1.9
       lodash: 4.17.21
       node-fetch: 2.6.7
       pretty-hrtime: 1.0.3
@@ -8327,8 +8327,8 @@ packages:
       loose-envify: 1.4.0
     dev: true
 
-  /ip@1.1.5:
-    resolution: {integrity: sha512-rBtCAQAJm8A110nbwn6YdveUnuZH3WrC36IwkRXxDnq53JvXA2NVQvB7IHyKomxK1MJ4VDNw3UtFDdXQ+AvLYA==}
+  /ip@1.1.9:
+    resolution: {integrity: sha512-cyRxvOEpNHNtchU3Ln9KC/auJgup87llfQpQ+t5ghoC/UhL16SWzbueiCsdTnWmqAWl7LadfuwhlqmtOaqMHdQ==}
     dev: true
 
   /ipaddr.js@1.9.1:
