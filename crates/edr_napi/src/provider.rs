@@ -227,6 +227,7 @@ mod scenarios {
     impl Drop for Provider {
         fn drop(&mut self) {
             if let Some(scenario_file) = self.scenario_file.take() {
+                dbg!("drop");
                 napi::tokio::task::block_in_place(move || {
                     let mut scenario_file =
                         scenario_file.lock().expect("Failed to lock scenario file");
@@ -265,6 +266,7 @@ mod scenarios {
         provider_config: &edr_provider::ProviderConfig,
         logger_enabled: bool,
     ) -> Result<Option<Mutex<ScenarioFile>>, napi::Error> {
+        dbg!("scenario file");
         if let Some(scenario_prefix) = std::env::var(SCENARIO_FILE_PREFIX).ok() {
             let timestamp = SystemTime::now()
                 .duration_since(UNIX_EPOCH)
@@ -309,6 +311,7 @@ mod scenarios {
         scenario_file: &Mutex<ScenarioFile>,
         request: &ProviderRequest,
     ) -> napi::Result<()> {
+        dbg!("write request");
         let mut line = serde_json::to_string(request)?;
         line.push('\n');
         {
