@@ -8,7 +8,7 @@ use edr_eth::{
 use revm::primitives::{HashMap, HashSet};
 
 use super::InsertError;
-use crate::Block;
+use crate::{hash_map::OccupiedError, Block};
 
 /// A storage solution for storing a subset of a Blockchain's blocks in-memory.
 #[derive(Debug)]
@@ -114,7 +114,7 @@ impl<BlockT: Block + Clone + ?Sized> SparseBlockchainStorage<BlockT> {
         self.hash_to_total_difficulty.get(hash)
     }
 
-    /// Inserts a block, failing if a block with the same hash or number already
+    /// Inserts a block. Errors if a block with the same hash or number already
     /// exists.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn insert_block(
@@ -126,6 +126,7 @@ impl<BlockT: Block + Clone + ?Sized> SparseBlockchainStorage<BlockT> {
         let block_header = block.header();
 
         if self.hash_to_block.contains_key(block_hash)
+            || self.hash_to_total_difficulty.contains_key(block_hash)
             || self.number_to_block.contains_key(&block_header.number)
         {
             return Err(InsertError::DuplicateBlock {
@@ -143,24 +144,6 @@ impl<BlockT: Block + Clone + ?Sized> SparseBlockchainStorage<BlockT> {
             });
         }
 
-        // SAFETY: We already checked that the block hash and number are unique
-        Ok(unsafe { self.insert_block_unchecked(block, total_difficulty) })
-    }
-
-    /// Inserts a block without checking its validity.
-    ///
-    /// # Safety
-    ///
-    /// Ensure that the instance does not contain a block with the same hash or
-    /// number, nor any transactions with the same hash.
-    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub unsafe fn insert_block_unchecked(
-        &mut self,
-        block: BlockT,
-        total_difficulty: U256,
-    ) -> &BlockT {
-        let block_hash = block.hash();
-
         self.transaction_hash_to_block.extend(
             block
                 .transactions()
@@ -168,55 +151,59 @@ impl<BlockT: Block + Clone + ?Sized> SparseBlockchainStorage<BlockT> {
                 .map(|transaction| (*transaction.hash(), block.clone())),
         );
 
+        // We have checked that the block hash and number are not in the maps, so it's
+        // ok to use unchecked.
         self.hash_to_block
             .insert_unique_unchecked(*block_hash, block.clone());
 
         self.hash_to_total_difficulty
             .insert_unique_unchecked(*block_hash, total_difficulty);
 
-        self.number_to_block
+        Ok(self
+            .number_to_block
             .insert_unique_unchecked(block.header().number, block)
-            .1
+            .1)
     }
 
-    /// Inserts a receipt, without checking whether it already exists.
-    ///
-    /// # Safety
-    ///
-    /// Ensure that the instance does not contain a receipt with the same
-    /// transaction hash.
+    /// Inserts a receipt. Errors if it already exists.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub unsafe fn insert_receipt_unchecked(&mut self, receipt: BlockReceipt) -> &Arc<BlockReceipt> {
+    pub fn insert_receipt(
+        &mut self,
+        receipt: BlockReceipt,
+    ) -> Result<&Arc<BlockReceipt>, InsertError> {
         let receipt = Arc::new(receipt);
 
-        self.transaction_hash_to_receipt
-            .insert_unique_unchecked(receipt.transaction_hash, receipt)
-            .1
+        let receipt = self
+            .transaction_hash_to_receipt
+            .try_insert(receipt.transaction_hash, receipt)
+            .map_err(|err| {
+                let OccupiedError { value, .. } = err;
+                InsertError::DuplicateReceipt {
+                    transaction_hash: value.transaction_hash,
+                }
+            })?;
+        Ok(receipt)
     }
 
-    /// Inserts receipts, without checking whether they already exist.
-    ///
-    /// # Safety
-    ///
-    /// Ensure that the instance does not contain a receipt with the same
-    /// transaction hash as any of the inputs.
+    /// Inserts receipts. Errors if they already exist.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub unsafe fn insert_receipts_unchecked(
-        &mut self,
-        receipts: Vec<Arc<BlockReceipt>>,
-        block: BlockT,
-    ) {
+    pub fn insert_receipts(&mut self, receipts: Vec<Arc<BlockReceipt>>) -> Result<(), InsertError> {
+        if let Some(receipt) = receipts.iter().find(|receipt| {
+            self.transaction_hash_to_receipt
+                .contains_key(&receipt.transaction_hash)
+        }) {
+            return Err(InsertError::DuplicateReceipt {
+                transaction_hash: receipt.transaction_hash,
+            });
+        }
+
         self.transaction_hash_to_receipt.extend(
             receipts
                 .iter()
                 .map(|receipt| (receipt.transaction_hash, receipt.clone())),
         );
 
-        self.transaction_hash_to_block.extend(
-            receipts
-                .into_iter()
-                .map(|receipt| (receipt.transaction_hash, block.clone())),
-        );
+        Ok(())
     }
 }
 
