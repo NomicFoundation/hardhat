@@ -8,6 +8,8 @@ mod kind;
 mod request;
 mod signed;
 
+use revm_primitives::B256;
+
 pub use self::{kind::TransactionKind, request::*, signed::*};
 use crate::{access_list::AccessListItem, Address, Bytes, U256};
 
@@ -49,4 +51,8 @@ pub struct EthTransactionRequest {
     /// EIP-2718 type
     #[cfg_attr(feature = "serde", serde(default, rename = "type"))]
     pub transaction_type: Option<U256>,
+    /// Blobs (EIP-4844)
+    pub blobs: Option<Vec<Bytes>>,
+    /// Blob versioned hashes (EIP-4844)
+    pub blob_hashes: Option<Vec<B256>>,
 }

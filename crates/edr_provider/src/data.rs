@@ -30,8 +30,8 @@ use edr_eth::{
 };
 use edr_evm::{
     blockchain::{
-        Blockchain, BlockchainError, ForkedBlockchain, ForkedCreationError, LocalBlockchain,
-        LocalCreationError, SyncBlockchain,
+        Blockchain, BlockchainError, ForkedBlockchain, ForkedCreationError, GenesisBlockOptions,
+        LocalBlockchain, LocalCreationError, SyncBlockchain,
     },
     db::StateRef,
     debug_trace_transaction, execution_result_to_debug_result, mempool, mine_block,
@@ -2296,20 +2296,28 @@ fn create_blockchain_and_state(
             next_block_base_fee_per_gas,
         })
     } else {
+        let mix_hash = if config.hardfork >= SpecId::MERGE {
+            Some(prev_randao_generator.generate_next())
+        } else {
+            None
+        };
+
         let blockchain = LocalBlockchain::new(
             StateDiff::from(genesis_accounts),
             config.chain_id,
             config.hardfork,
-            config.block_gas_limit,
-            config.initial_date.map(|d| {
-                d.duration_since(UNIX_EPOCH)
-                    .expect("initial date must be after UNIX epoch")
-                    .as_secs()
-            }),
-            Some(prev_randao_generator.generate_next()),
-            config.initial_base_fee_per_gas,
-            config.initial_blob_gas.clone(),
-            config.initial_parent_beacon_block_root,
+            GenesisBlockOptions {
+                gas_limit: Some(config.block_gas_limit),
+                timestamp: config.initial_date.map(|d| {
+                    d.duration_since(UNIX_EPOCH)
+                        .expect("initial date must be after UNIX epoch")
+                        .as_secs()
+                }),
+                mix_hash,
+                base_fee: config.initial_base_fee_per_gas,
+                blob_gas: config.initial_blob_gas.clone(),
+                parent_beacon_block_root: config.initial_parent_beacon_block_root,
+            },
         )?;
 
         let irregular_state = IrregularState::default();
@@ -2535,6 +2543,7 @@ mod tests {
     use edr_eth::{
         remote::{eth::CallRequest, PreEip1898BlockSpec},
         spec::chain_hardfork_activations,
+        withdrawal::Withdrawal,
     };
     use edr_evm::{hex, MineOrdering, RemoteBlock, TransactionError};
     use edr_test_utils::env::get_alchemy_url;
@@ -3796,7 +3805,7 @@ mod tests {
             parent_beacon_block_root: replay_header.parent_beacon_block_root,
             state_root: Some(replay_header.state_root),
             timestamp: Some(replay_header.timestamp),
-            withdrawals_root: replay_header.withdrawals_root,
+            withdrawals: replay_block.withdrawals().map(<[Withdrawal]>::to_vec),
             ..BlockOptions::default()
         })?;
 

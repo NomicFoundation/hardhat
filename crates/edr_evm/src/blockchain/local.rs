@@ -7,10 +7,9 @@ use std::{
 };
 
 use edr_eth::{
-    block::{BlobGas, PartialHeader},
+    block::{BlobGas, BlockOptions, PartialHeader},
     log::FilterLog,
-    trie::KECCAK_NULL_RLP,
-    Address, Bytes, B256, B64, U256,
+    Address, Bytes, B256, U256,
 };
 use revm::{
     db::BlockHashRef,
@@ -30,12 +29,6 @@ use crate::{
 /// An error that occurs upon creation of a [`LocalBlockchain`].
 #[derive(Debug, thiserror::Error)]
 pub enum CreationError {
-    /// Missing blob gas information for post-Cancun blockchain
-    #[error("Missing blob gas information for post-Cancun blockchain")]
-    MissingBlobGas,
-    /// Missing parent beacon block root for post-Cancun blockchain
-    #[error("Missing parent beacon block root for post-Cancun blockchain")]
-    MissingParentBeaconBlockRoot,
     /// Missing prevrandao for post-merge blockchain
     #[error("Missing prevrandao for post-merge blockchain")]
     MissingPrevrandao,
@@ -48,6 +41,38 @@ pub enum InsertBlockError {
     /// Missing withdrawals for post-Shanghai blockchain
     #[error("Missing withdrawals for post-Shanghai blockchain")]
     MissingWithdrawals,
+}
+
+/// Options for creating a genesis block.
+#[derive(Default)]
+pub struct GenesisBlockOptions {
+    /// The block's gas limit
+    pub gas_limit: Option<u64>,
+    /// The block's timestamp
+    pub timestamp: Option<u64>,
+    /// The block's mix hash (or prevrandao for post-merge blockchains)
+    pub mix_hash: Option<B256>,
+    /// The block's base gas fee
+    pub base_fee: Option<U256>,
+    /// The block's blob gas (for post-Cancun blockchains)
+    pub blob_gas: Option<BlobGas>,
+    /// The hash tree root of the parent beacon block for the given execution
+    /// (for post-Cancun blockchains)
+    pub parent_beacon_block_root: Option<B256>,
+}
+
+impl From<GenesisBlockOptions> for BlockOptions {
+    fn from(value: GenesisBlockOptions) -> Self {
+        Self {
+            gas_limit: value.gas_limit,
+            timestamp: value.timestamp,
+            mix_hash: value.mix_hash,
+            base_fee: value.base_fee,
+            blob_gas: value.blob_gas,
+            parent_beacon_block_root: value.parent_beacon_block_root,
+            ..BlockOptions::default()
+        }
+    }
 }
 
 /// A blockchain consisting of locally created blocks.
@@ -67,72 +92,36 @@ impl LocalBlockchain {
         genesis_diff: StateDiff,
         chain_id: u64,
         spec_id: SpecId,
-        gas_limit: u64,
-        timestamp: Option<u64>,
-        prevrandao: Option<B256>,
-        base_fee: Option<U256>,
-        blob_gas: Option<BlobGas>,
-        parent_beacon_block_root: Option<B256>,
+        options: GenesisBlockOptions,
     ) -> Result<Self, CreationError> {
         const EXTRA_DATA: &[u8] = b"\x12\x34";
 
         let mut genesis_state = TrieState::default();
         genesis_state.commit(genesis_diff.clone().into());
 
-        let partial_header = PartialHeader {
-            state_root: genesis_state
+        if spec_id >= SpecId::MERGE && options.mix_hash.is_none() {
+            return Err(CreationError::MissingPrevrandao);
+        }
+
+        let mut options = BlockOptions::from(options);
+        options.state_root = Some(
+            genesis_state
                 .state_root()
                 .expect("TrieState is guaranteed to successfully compute the state root"),
-            receipts_root: KECCAK_NULL_RLP,
-            difficulty: if spec_id >= SpecId::MERGE {
-                U256::ZERO
-            } else {
-                U256::from(1)
-            },
-            number: 0,
-            gas_limit,
-            gas_used: 0,
-            timestamp: timestamp.unwrap_or_else(|| {
+        );
+
+        if options.timestamp.is_none() {
+            options.timestamp = Some(
                 SystemTime::now()
                     .duration_since(UNIX_EPOCH)
                     .expect("Current time must be after unix epoch")
-                    .as_secs()
-            }),
-            extra_data: Bytes::from(EXTRA_DATA),
-            mix_hash: if spec_id >= SpecId::MERGE {
-                prevrandao.ok_or(CreationError::MissingPrevrandao)?
-            } else {
-                B256::ZERO
-            },
-            nonce: if spec_id >= SpecId::MERGE {
-                B64::ZERO
-            } else {
-                B64::from(66u64)
-            },
-            base_fee: if spec_id >= SpecId::LONDON {
-                // Initial base fee from https://eips.ethereum.org/EIPS/eip-1559
-                Some(base_fee.unwrap_or(U256::from(1_000_000_000)))
-            } else {
-                None
-            },
-            withdrawals_root: if spec_id >= SpecId::SHANGHAI {
-                Some(KECCAK_NULL_RLP)
-            } else {
-                None
-            },
-            blob_gas: if spec_id >= SpecId::CANCUN {
-                Some(blob_gas.ok_or(CreationError::MissingBlobGas)?)
-            } else {
-                None
-            },
-            parent_beacon_block_root: if spec_id >= SpecId::CANCUN {
-                Some(parent_beacon_block_root.ok_or(CreationError::MissingParentBeaconBlockRoot)?)
-            } else {
-                None
-            },
-            ..PartialHeader::default()
-        };
+                    .as_secs(),
+            );
+        }
 
+        options.extra_data = Some(Bytes::from(EXTRA_DATA));
+
+        let partial_header = PartialHeader::new(spec_id, options, None);
         Ok(unsafe {
             Self::with_genesis_block_unchecked(
                 LocalBlock::empty(spec_id, partial_header),
@@ -434,12 +423,11 @@ mod tests {
             genesis_diff,
             123,
             SpecId::SHANGHAI,
-            6_000_000,
-            None,
-            Some(B256::random()),
-            None,
-            Some(BlobGas::default()),
-            Some(B256::random()),
+            GenesisBlockOptions {
+                gas_limit: Some(6_000_000),
+                mix_hash: Some(B256::random()),
+                ..GenesisBlockOptions::default()
+            },
         )
         .unwrap();
 

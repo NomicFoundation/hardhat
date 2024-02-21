@@ -1,8 +1,6 @@
 use std::{num::NonZeroU64, sync::Arc};
 
-use edr_eth::{
-    block::PartialHeader, receipt::BlockReceipt, trie::KECCAK_NULL_RLP, Address, SpecId, B256, U256,
-};
+use edr_eth::{block::PartialHeader, receipt::BlockReceipt, Address, SpecId, B256, U256};
 use parking_lot::{RwLock, RwLockUpgradableReadGuard, RwLockWriteGuard};
 use revm::primitives::{HashMap, HashSet};
 
@@ -312,11 +310,6 @@ impl<BlockT: Block + Clone + From<LocalBlock>> ReservableSparseBlockchainStorage
                         state_root: reservation.previous_state_root,
                         base_fee: reservation.previous_base_fee_per_gas,
                         timestamp,
-                        withdrawals_root: if reservation.spec_id >= SpecId::SHANGHAI {
-                            Some(KECCAK_NULL_RLP)
-                        } else {
-                            None
-                        },
                         ..PartialHeader::default()
                     },
                 );

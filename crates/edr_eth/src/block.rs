@@ -9,8 +9,6 @@ mod options;
 mod reorg;
 mod reward;
 
-use std::sync::OnceLock;
-
 use alloy_rlp::{BufMut, Decodable, RlpDecodable, RlpEncodable};
 use revm_primitives::{calc_excess_blob_gas, keccak256};
 
@@ -23,71 +21,7 @@ pub use self::{
     },
     reward::miner_reward,
 };
-use crate::{
-    transaction::SignedTransaction,
-    trie::{self, KECCAK_NULL_RLP},
-    withdrawal::Withdrawal,
-    Address, Bloom, Bytes, SpecId, B256, B64, U256,
-};
-
-/// Ethereum block
-#[derive(Clone, Debug, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Block {
-    /// The block's header
-    pub header: Header,
-    /// The block's transactions
-    pub transactions: Vec<SignedTransaction>,
-    /// The block's ommers' headers
-    pub ommers: Vec<Header>,
-    /// The block's withdrawals
-    pub withdrawals: Option<Vec<Withdrawal>>,
-    #[cfg_attr(feature = "serde", serde(skip))]
-    /// The cached block hash
-    hash: OnceLock<B256>,
-}
-
-impl Block {
-    /// Constructs a new block from the provided partial header, transactions,
-    /// and ommers.
-    pub fn new(
-        mut partial_header: PartialHeader,
-        transactions: Vec<SignedTransaction>,
-        ommers: Vec<Header>,
-        withdrawals: Option<Vec<Withdrawal>>,
-    ) -> Self {
-        let ommers_hash = keccak256(alloy_rlp::encode(&ommers));
-        let transactions_root = trie::ordered_trie_root(transactions.iter().map(alloy_rlp::encode));
-
-        if let Some(withdrawals) = withdrawals.as_ref() {
-            partial_header.withdrawals_root = Some(trie::ordered_trie_root(
-                withdrawals.iter().map(alloy_rlp::encode),
-            ));
-        }
-
-        Self {
-            header: Header::new(partial_header, ommers_hash, transactions_root),
-            transactions,
-            ommers,
-            withdrawals,
-            hash: OnceLock::new(),
-        }
-    }
-
-    /// Retrieves the block's hash.
-    pub fn hash(&self) -> &B256 {
-        self.hash.get_or_init(|| self.header.hash())
-    }
-}
-
-impl PartialEq for Block {
-    fn eq(&self, other: &Self) -> bool {
-        self.header == other.header
-            && self.transactions == other.transactions
-            && self.ommers == other.ommers
-            && self.withdrawals == other.withdrawals
-    }
-}
+use crate::{trie::KECCAK_NULL_RLP, Address, Bloom, Bytes, SpecId, B256, B64, U256};
 
 /// ethereum block header
 #[derive(Clone, Debug, Default, PartialEq, Eq, RlpDecodable, RlpEncodable)]
@@ -182,7 +116,12 @@ impl alloy_rlp::Encodable for BlobGas {
 impl Header {
     /// Constructs a header from the provided [`PartialHeader`], ommers' root
     /// hash, transactions' root hash, and withdrawals' root hash.
-    pub fn new(partial_header: PartialHeader, ommers_hash: B256, transactions_root: B256) -> Self {
+    pub fn new(
+        partial_header: PartialHeader,
+        ommers_hash: B256,
+        transactions_root: B256,
+        withdrawals_root: Option<B256>,
+    ) -> Self {
         Self {
             parent_hash: partial_header.parent_hash,
             ommers_hash,
@@ -200,7 +139,7 @@ impl Header {
             mix_hash: partial_header.mix_hash,
             nonce: partial_header.nonce,
             base_fee_per_gas: partial_header.base_fee,
-            withdrawals_root: partial_header.withdrawals_root,
+            withdrawals_root,
             blob_gas: partial_header.blob_gas,
             parent_beacon_block_root: partial_header.parent_beacon_block_root,
         }
@@ -244,8 +183,6 @@ pub struct PartialHeader {
     pub nonce: B64,
     /// BaseFee was added by EIP-1559 and is ignored in legacy headers.
     pub base_fee: Option<U256>,
-    /// WithdrawalsHash was added by EIP-4895 and is ignored in legacy headers.
-    pub withdrawals_root: Option<B256>,
     /// Blob gas was added by EIP-4844 and is ignored in older headers.
     pub blob_gas: Option<BlobGas>,
     /// The hash tree root of the parent beacon block for the given execution
@@ -307,39 +244,36 @@ impl PartialHeader {
                     Some(if let Some(parent) = &parent {
                         calculate_next_base_fee(parent)
                     } else {
-                        U256::from(7)
+                        // Initial base fee from https://eips.ethereum.org/EIPS/eip-1559
+                        U256::from(1_000_000_000)
                     })
                 } else {
                     None
                 }
             }),
-            withdrawals_root: options.withdrawals_root.or_else(|| {
-                if spec_id >= SpecId::SHANGHAI {
-                    Some(KECCAK_NULL_RLP)
+            blob_gas: options.blob_gas.or_else(|| {
+                if spec_id >= SpecId::CANCUN {
+                    let excess_gas = parent.and_then(|parent| parent.blob_gas.as_ref()).map_or(
+                        // For the first (post-fork) block, both parent.blob_gas_used and
+                        // parent.excess_blob_gas are evaluated as 0.
+                        0,
+                        |BlobGas {
+                             gas_used,
+                             excess_gas,
+                         }| calc_excess_blob_gas(*excess_gas, *gas_used),
+                    );
+
+                    Some(BlobGas {
+                        gas_used: 0,
+                        excess_gas,
+                    })
                 } else {
                     None
                 }
             }),
-            blob_gas: if spec_id >= SpecId::CANCUN {
-                let excess_gas = parent.and_then(|parent| parent.blob_gas.as_ref()).map_or(
-                    // For the first (post-fork) block, both parent.blob_gas_used and
-                    // parent.excess_blob_gas are evaluated as 0.
-                    0,
-                    |BlobGas {
-                         gas_used,
-                         excess_gas,
-                     }| calc_excess_blob_gas(*excess_gas, *gas_used),
-                );
-
-                Some(BlobGas {
-                    gas_used: 0,
-                    excess_gas,
-                })
-            } else {
-                None
-            },
             parent_beacon_block_root: options.parent_beacon_block_root.or_else(|| {
                 if spec_id >= SpecId::CANCUN {
+                    // Initial value from https://eips.ethereum.org/EIPS/eip-4788
                     Some(B256::ZERO)
                 } else {
                     None
@@ -368,7 +302,6 @@ impl Default for PartialHeader {
             mix_hash: B256::default(),
             nonce: B64::default(),
             base_fee: None,
-            withdrawals_root: None,
             blob_gas: None,
             parent_beacon_block_root: None,
         }
@@ -392,7 +325,6 @@ impl From<Header> for PartialHeader {
             mix_hash: header.mix_hash,
             nonce: header.nonce,
             base_fee: header.base_fee_per_gas,
-            withdrawals_root: header.withdrawals_root,
             blob_gas: header.blob_gas,
             parent_beacon_block_root: header.parent_beacon_block_root,
         }

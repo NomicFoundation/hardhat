@@ -39,6 +39,8 @@ fn test_serde_eth_call() {
         data: Some(Bytes::from(&b"whatever"[..])),
         access_list: None,
         transaction_type: None,
+        blobs: Some(vec![Bytes::from("0x1234")]),
+        blob_hashes: Some(vec![B256::from(U256::from(1))]),
     };
     help_test_method_invocation_serde(MethodInvocation::Call(
         tx.clone(),
@@ -74,6 +76,8 @@ fn test_serde_eth_estimate_gas() {
         data: Some(Bytes::from(&b"whatever"[..])),
         access_list: None,
         transaction_type: None,
+        blobs: None,
+        blob_hashes: None,
     };
     help_test_method_invocation_serde(MethodInvocation::EstimateGas(
         tx.clone(),
@@ -335,6 +339,8 @@ fn test_serde_eth_send_transaction() {
         access_list: None,
         max_priority_fee_per_gas: None,
         transaction_type: None,
+        blobs: Some(vec![Bytes::from("0x1234")]),
+        blob_hashes: Some(vec![B256::from(U256::from(1))]),
     }));
 }
 

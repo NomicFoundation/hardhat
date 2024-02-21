@@ -18,7 +18,7 @@ use revm::{
 use self::storage::ReservableSparseBlockchainStorage;
 pub use self::{
     forked::{CreationError as ForkedCreationError, ForkedBlockchain, ForkedBlockchainError},
-    local::{CreationError as LocalCreationError, LocalBlockchain},
+    local::{CreationError as LocalCreationError, GenesisBlockOptions, LocalBlockchain},
 };
 use crate::{
     state::{StateDiff, StateOverride, SyncState},
