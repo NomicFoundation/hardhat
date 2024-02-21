@@ -34,16 +34,16 @@
     "prepack": "npm run build"
   },
   "devDependencies": {
-    "@nomicfoundation/hardhat-viem": "^1.0.0",
+    "@nomicfoundation/hardhat-viem": "^2.0.0",
     "@types/chai": "^4.2.22",
     "@types/chai-as-promised": "^7.1.4",
     "@types/sinon": "^10.0.13"
   },
   "peerDependencies": {
     "@nomicfoundation/hardhat-ignition": "^0.13.2",
-    "@nomicfoundation/hardhat-viem": "^1.0.0",
+    "@nomicfoundation/hardhat-viem": "^2.0.0",
     "@nomicfoundation/ignition-core": "^0.13.2",
     "hardhat": "^2.18.0",
-    "viem": "^1.18.1"
+    "viem": "^2.7.6"
   }
 }

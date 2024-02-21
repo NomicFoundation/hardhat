@@ -225,8 +225,10 @@ export class ViemIgnitionHelper {
     const contract = viem.getContract({
       address: this._ensureAddressFormat(deployedContract.address),
       abi: future.artifact.abi,
-      publicClient,
-      walletClient,
+      client: {
+        public: publicClient,
+        wallet: walletClient,
+      },
     });
 
     return contract;

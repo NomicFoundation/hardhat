@@ -52,7 +52,7 @@
     "@types/sinon": "^10.0.13",
     "@nomicfoundation/hardhat-network-helpers": "1.0.9",
     "hardhat": "^2.18.0",
-    "viem": "^1.18.1"
+    "viem": "^2.7.6"
   },
   "peerDependencies": {
     "@nomicfoundation/hardhat-verify": "^2.0.1",

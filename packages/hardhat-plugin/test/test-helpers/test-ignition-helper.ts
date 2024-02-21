@@ -10,8 +10,6 @@ import {
   IgnitionModule,
   IgnitionModuleResult,
   isContractFuture,
-  NamedArtifactContractAtFuture,
-  NamedArtifactContractDeploymentFuture,
   SuccessfulDeploymentResult,
 } from "@nomicfoundation/ignition-core";
 import { HardhatPluginError } from "hardhat/plugins";
@@ -26,16 +24,17 @@ export type IgnitionModuleResultsTToViemContracts<
   ContractNameT extends string,
   IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
 > = {
-  [contract in keyof IgnitionModuleResultsT]: IgnitionModuleResultsT[contract] extends
-    | NamedArtifactContractDeploymentFuture<ContractNameT>
-    | NamedArtifactContractAtFuture<ContractNameT>
-    ? TypeChainViemContractByName<ContractNameT>
-    : GetContractReturnType;
+  [contract in keyof IgnitionModuleResultsT]: TypeChainViemContractByName;
 };
 
-// TODO: Make this work to have support for TypeChain
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export type TypeChainViemContractByName<ContractNameT> = GetContractReturnType;
+// TODO: This is a very permissive type to maintain the existing tests.
+// We should work it up to the equivalent of the Viem Ignition helper.
+// That implies solving how we get post compile type information for contracts.
+export interface TypeChainViemContractByName {
+  address: string;
+  read: any;
+  write: any;
+}
 
 export class TestIgnitionHelper {
   public type = "test";
@@ -168,7 +167,7 @@ export class TestIgnitionHelper {
         hre,
         deployedContract.contractName
       ),
-      publicClient,
+      client: { public: publicClient },
     });
 
     return contract;
