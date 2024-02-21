@@ -942,6 +942,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         &self.instance_id
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn interval_mine(&mut self) -> Result<bool, ProviderError<LoggerErrorT>> {
         let result = self.mine_and_commit_block(BlockOptions::default())?;
 
