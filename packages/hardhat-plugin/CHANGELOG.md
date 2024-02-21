@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.14.0 - 2024-02-21
+
+### Added
+
+- Support BigInt values in Module Parameter files by encoding them as strings with the format /d+n/ ([#663](https://github.com/NomicFoundation/hardhat-ignition/issues/663))
+
 ## 0.13.2 - 2024-01-25
 
 ### Fixed

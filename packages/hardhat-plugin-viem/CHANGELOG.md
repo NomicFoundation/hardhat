@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.14.0 - 2024-02-21
+
+### Added
+
+- Support BigInt values in Module Parameter files by encoding them as strings with the format /d+n/ ([#663](https://github.com/NomicFoundation/hardhat-ignition/issues/663))
+
+### Changed
+
+- Upgrade to `viem@2`, a breaking change for scripts or tests that leverage viem contract instances returned from an Ignition deploy call, see [the viem@2 migration guide for more details](https://viem.sh/docs/migration-guide#2xx-breaking-changes) ([#692](https://github.com/NomicFoundation/hardhat-ignition/issues/692))
+
 ## 0.13.2 - 2024-01-25
 
 ### Fixed
