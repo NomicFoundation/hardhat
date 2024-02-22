@@ -129,7 +129,7 @@ An example on how to add fields to the Hardhat config can be found in [`src/inde
 
 To show better stack traces to your users when an error is meant to interrupt a task's execution, please consider throwing `HardhatPluginError` errors, which can be found in `hardhat/plugins`.
 
-If your error originated in your user's code, like a test calling one of your functions, you shouldn't use `HardhatPluginError`.
+If your error originated in your user's code, like a test or script calling one of your functions, you shouldn't use `HardhatPluginError`.
 
 ### Optimizing your plugin for better startup time
 
