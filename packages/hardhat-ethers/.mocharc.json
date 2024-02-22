@@ -1,6 +1,6 @@
 {
   "require": "ts-node/register/files",
-  "file": "../common/run-with-ganache",
+  "file": "../common/run-with-hardhat",
   "ignore": ["test/fixture-projects/**/*"],
   "timeout": 10000
 }

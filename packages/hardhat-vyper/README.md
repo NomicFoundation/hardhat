@@ -72,6 +72,22 @@ module.exports = {
 
 There are no additional steps you need to take for this plugin to work.
 
+## Test directives
+
+Brownie allows you to use the test directive `#@ if mode == "test":` to specify when a portion of code should be included only for testing purposes.
+
+Example:
+
+```py
+#@ if mode == "test":
+@external
+def _mint_for_testing(_to: address, _token_id: uint256):
+    self._mint(_to, _token_id)
+#@ endif
+```
+
+We do NOT support this feature. An error will be thrown every time that, when compiling a contract, the directive `#@ if mode == "test":` is found.
+
 ### Additional notes
 
 The oldest vyper version supported by this plugin is 0.2.0. Versions older than this will not work and will throw an error.

@@ -38,11 +38,11 @@ export async function wrapWithSolidityErrorsCorrection(
     return await f();
   } catch (error: any) {
     if (error.stackTrace === undefined) {
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw error;
     }
 
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
     throw encodeSolidityStackTrace(
       error.message,
       error.stackTrace,
@@ -391,7 +391,7 @@ class SolidityCallSite implements NodeJS.CallSite {
   }
 
   public getScriptNameOrSourceURL() {
-    return null;
+    return "";
   }
 
   public getThis() {
@@ -424,5 +424,21 @@ class SolidityCallSite implements NodeJS.CallSite {
 
   public isToplevel() {
     return false;
+  }
+
+  public getScriptHash(): string {
+    return "";
+  }
+
+  public getEnclosingColumnNumber(): number {
+    return 0;
+  }
+
+  public getEnclosingLineNumber(): number {
+    return 0;
+  }
+
+  public toString(): string {
+    return "[SolidityCallSite]";
   }
 }

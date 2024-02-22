@@ -3,10 +3,11 @@ const fs = require("fs");
 
 const { keccak256 } = require("../internal/util/keccak");
 
-const functionPrefix = "\tfunction";
+const functionPrefix = "    function";
 const functionBody =
-  ") internal view {" + '\n\t\t_sendLogPayload(abi.encodeWithSignature("log(';
-const functionSuffix = "));" + "\n\t}" + "\n" + "\n";
+  ") internal pure {" +
+  '\n        _sendLogPayload(abi.encodeWithSignature("log(';
+const functionSuffix = "));" + "\n    }" + "\n" + "\n";
 
 let logger =
   "// ------------------------------------\n" +
@@ -37,29 +38,46 @@ for (let i = 1; i <= 32; i++) {
 
 const types = ["uint256", "string memory", "bool", "address"];
 
-let consoleSolFile =
-  "// SPDX-License-Identifier: MIT\n" +
-  "pragma solidity >= 0.4.22 <0.9.0;" +
-  "\n" +
-  "\n" +
-  "library console {" +
-  "\n" +
-  "\taddress constant CONSOLE_ADDRESS = address(0x000000000000000000636F6e736F6c652e6c6f67);" +
-  "\n" +
-  "\n" +
-  "\tfunction _sendLogPayload(bytes memory payload) private view {\n" +
-  "\t\tuint256 payloadLength = payload.length;\n" +
-  "\t\taddress consoleAddress = CONSOLE_ADDRESS;\n" +
-  "\t\tassembly {\n" +
-  "\t\t\tlet payloadStart := add(payload, 32)\n" +
-  "\t\t\tlet r := staticcall(gas(), consoleAddress, payloadStart, payloadLength, 0, 0)\n" +
-  "\t\t}\n" +
-  "\t}\n" +
-  "\n" +
-  "\tfunction log() internal view {\n" +
-  '\t\t_sendLogPayload(abi.encodeWithSignature("log()"));\n' +
-  "\t}\n" +
-  "\n";
+let consoleSolFile = `// SPDX-License-Identifier: MIT
+pragma solidity >=0.4.22 <0.9.0;
+
+library console {
+    address constant CONSOLE_ADDRESS =
+        0x000000000000000000636F6e736F6c652e6c6f67;
+
+    function _sendLogPayloadImplementation(bytes memory payload) internal view {
+        address consoleAddress = CONSOLE_ADDRESS;
+        /// @solidity memory-safe-assembly
+        assembly {
+            pop(
+                staticcall(
+                    gas(),
+                    consoleAddress,
+                    add(payload, 32),
+                    mload(payload),
+                    0,
+                    0
+                )
+            )
+        }
+    }
+
+    function _castToPure(
+      function(bytes memory) internal view fnIn
+    ) internal pure returns (function(bytes memory) pure fnOut) {
+        assembly {
+            fnOut := fnIn
+        }
+    }
+
+    function _sendLogPayload(bytes memory payload) internal pure {
+        _castToPure(_sendLogPayloadImplementation)(payload);
+    }
+
+    function log() internal pure {
+        _sendLogPayload(abi.encodeWithSignature("log()"));
+    }
+`;
 
 logger +=
   "\n// In order to optimize map lookup\n" +
@@ -68,7 +86,7 @@ logger +=
 
 // Add the empty log() first
 const sigInt = eutil.bufferToInt(
-  keccak256(eutil.bufArrToArr(Buffer.from("log" + "()"))).slice(0, 4)
+  keccak256(Buffer.from("log" + "()")).slice(0, 4)
 );
 logger += "  " + sigInt + ": [],\n";
 
@@ -81,10 +99,7 @@ for (let i = 0; i < singleTypes.length; i++) {
     typeAliasedInt.charAt(0).toUpperCase() + typeAliasedInt.slice(1);
 
   const sigInt = eutil.bufferToInt(
-    keccak256(eutil.bufArrToArr(Buffer.from("log" + "(" + type + ")"))).slice(
-      0,
-      4
-    )
+    keccak256(Buffer.from("log" + "(" + type + ")")).slice(0, 4)
   );
   logger +=
     "  " +
@@ -95,9 +110,7 @@ for (let i = 0; i < singleTypes.length; i++) {
     "Ty],\n";
 
   const sigIntAliasedInt = eutil.bufferToInt(
-    keccak256(
-      eutil.bufArrToArr(Buffer.from("log" + "(" + typeAliasedInt + ")"))
-    ).slice(0, 4)
+    keccak256(Buffer.from("log" + "(" + typeAliasedInt + ")")).slice(0, 4)
   );
   if (sigIntAliasedInt !== sigInt) {
     logger +=
@@ -176,17 +189,13 @@ for (let i = 0; i < maxNumberOfParameters; i++) {
 
     if (sigParams.length !== 1) {
       const sigInt = eutil.bufferToInt(
-        keccak256(
-          eutil.bufArrToArr(Buffer.from("log(" + sigParams.join(",") + ")"))
-        ).slice(0, 4)
+        keccak256(Buffer.from("log(" + sigParams.join(",") + ")")).slice(0, 4)
       );
       logger += "  " + sigInt + ": [" + constParams.join(", ") + "],\n";
 
       const sigIntAliasedInt = eutil.bufferToInt(
         keccak256(
-          eutil.bufArrToArr(
-            Buffer.from("log(" + sigParamsAliasedInt.join(",") + ")")
-          )
+          Buffer.from("log(" + sigParamsAliasedInt.join(",") + ")")
         ).slice(0, 4)
       );
       if (sigIntAliasedInt !== sigInt) {

@@ -4,7 +4,7 @@ import { numberToRpcQuantity } from "../../../core/jsonrpc/types/base-types";
 import { validateParams } from "../../../core/jsonrpc/types/input/validation";
 import { MethodNotFoundError } from "../../../core/providers/errors";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 export class NetModule {
   constructor(private readonly _common: Common) {}

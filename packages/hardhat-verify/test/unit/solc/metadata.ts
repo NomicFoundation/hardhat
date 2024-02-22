@@ -2,7 +2,7 @@ import { assert } from "chai";
 import {
   getMetadataSectionLength,
   inferCompilerVersion,
-} from "../../../src/solc/metadata";
+} from "../../../src/internal/solc/metadata";
 
 describe("Metadata Decoder", () => {
   describe("inferCompilerVersion", () => {

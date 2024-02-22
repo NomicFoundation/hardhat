@@ -2,7 +2,14 @@ import * as t from "io-ts";
 
 import { optionalOrNullable } from "../../../../util/io-ts";
 import { rpcAccessList } from "../access-list";
-import { rpcAddress, rpcData, rpcQuantity } from "../base-types";
+import {
+  rpcAddress,
+  rpcData,
+  rpcQuantity,
+  rpcStorageSlot,
+  rpcStorageSlotHexString,
+} from "../base-types";
+import { address } from "../../../config/config-validation";
 
 // Type used by eth_call and eth_estimateGas
 export const rpcCallRequest = t.type(
@@ -21,3 +28,30 @@ export const rpcCallRequest = t.type(
 );
 
 export type RpcCallRequest = t.TypeOf<typeof rpcCallRequest>;
+
+// Types used by eth_call to configure the state override set
+export const stateProperties = t.record(
+  rpcStorageSlotHexString,
+  rpcStorageSlot
+);
+
+export const stateOverrideOptions = t.type(
+  {
+    balance: optionalOrNullable(rpcQuantity),
+    nonce: optionalOrNullable(rpcQuantity),
+    code: optionalOrNullable(rpcData),
+    state: optionalOrNullable(stateProperties),
+    stateDiff: optionalOrNullable(stateProperties),
+  },
+  "stateOverrideOptions"
+);
+
+export const stateOverrideSet = t.record(address, stateOverrideOptions);
+export const optionalStateOverrideSet = optionalOrNullable(stateOverrideSet);
+
+export type StateProperties = t.TypeOf<typeof stateProperties>;
+export type StateOverrideOptions = t.TypeOf<typeof stateOverrideOptions>;
+export type StateOverrideSet = t.TypeOf<typeof stateOverrideSet>;
+export type OptionalStateOverrideSet = t.TypeOf<
+  typeof optionalStateOverrideSet
+>;

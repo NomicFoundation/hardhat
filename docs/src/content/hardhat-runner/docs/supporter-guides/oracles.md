@@ -144,7 +144,7 @@ require("@chainlink/hardhat-chainlink");
 
 ::::
 
-Then you can just expand the deployment script which will deploy the above `VRFv2Consumer` smart contract and do the VRF Managment part.
+Then you can just expand the deployment script which will deploy the above `VRFv2Consumer` smart contract and do the VRF Management part.
 
 To do so, first prepare the `hardhat.config` file for the deployment on the Goerli network:
 

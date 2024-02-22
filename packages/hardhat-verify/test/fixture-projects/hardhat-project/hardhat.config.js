@@ -1,4 +1,4 @@
-require("@nomiclabs/hardhat-ethers");
+require("@nomicfoundation/hardhat-ethers");
 
 require("../../../src/index");
 
@@ -25,6 +25,15 @@ module.exports = {
           apiURL: "https://api-hardhat.etherscan.io/api",
           browserURL: "https://hardhat.etherscan.io",
         },
+      },
+    ],
+  },
+  sourcify: {
+    enabled: false,
+    customChains: [
+      {
+        network: "hardhat",
+        chainId: 31337,
       },
     ],
   },

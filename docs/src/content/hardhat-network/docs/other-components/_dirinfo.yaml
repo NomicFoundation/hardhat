@@ -3,6 +3,8 @@ section-title: Other Hardhat components
 order:
   - href: /../../../hardhat-runner/docs
     title: Hardhat Runner
+  - href: /../../../ignition/docs
+    title: Hardhat Ignition
   - href: /../../../hardhat-vscode/docs
     title: Hardhat VSCode
   - href: /../../../hardhat-chai-matchers/docs

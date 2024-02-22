@@ -48,7 +48,7 @@ Let’s go through the process of creating one to interact with a smart contract
 
 Tasks in Hardhat are asynchronous JavaScript functions that get access to the [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md), which exposes its configuration and parameters, as well as programmatic access to other tasks and any plugin objects that may have been injected.
 
-For our example, we will use the [`@nomicfoundation/hardhat-toolbox`](/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox), which includes the [ethers.js](https://docs.ethers.io/v5/) library to interact with our contracts.
+For our example, we will use the [`@nomicfoundation/hardhat-toolbox`](/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox), which includes the [ethers.js](https://docs.ethers.org/v6/) library to interact with our contracts.
 
 ::::tabsgroup{options="npm 7+,npm 6,yarn"}
 
@@ -63,7 +63,7 @@ npm install --save-dev @nomicfoundation/hardhat-toolbox
 :::tab{value="npm 6"}
 
 ```
-npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v5 @ethersproject/abi @ethersproject/providers
+npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomicfoundation/hardhat-ethers @nomicfoundation/hardhat-verify chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v6
 ```
 
 :::
@@ -71,7 +71,7 @@ npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat
 :::tab{value="yarn"}
 
 ```
-yarn add --dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v5 @ethersproject/abi @ethersproject/providers
+yarn add --dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomicfoundation/hardhat-ethers @nomicfoundation/hardhat-verify chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v6
 ```
 
 :::
@@ -93,7 +93,7 @@ task("balance", "Prints an account's balance").setAction(async () => {});
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "0.8.9",
+  solidity: "{RECOMMENDED_SOLC_VERSION}",
 };
 ```
 
@@ -154,7 +154,7 @@ task("balance", "Prints an account's balance")
   .setAction(async (taskArgs) => {
     const balance = await ethers.provider.getBalance(taskArgs.account);
 
-    console.log(ethers.utils.formatEther(balance), "ETH");
+    console.log(ethers.formatEther(balance), "ETH");
   });
 ```
 
@@ -324,4 +324,29 @@ subtask("print", "Prints a message")
   .setAction(async (taskArgs) => {
     console.log(taskArgs.message);
   });
+```
+
+### Scoped tasks
+
+You can group tasks under a _scope_. This is useful when you have several tasks that are related to each other in some way.
+
+```js
+const myScope = scope("my-scope", "Scope description");
+
+myScope.task("my-task", "Do something")
+  .setAction(async () => { ... });
+
+myScope.task("my-other-task", "Do something else")
+  .setAction(async () => { ... });
+```
+
+In this case, you can run these tasks with `npx hardhat my-scope my-task` and `npx hardhat my-scope my-other-task`.
+
+Scoped tasks can also be run programmatically:
+
+```js
+await hre.run({
+  scope: "my-scope",
+  task: "my-task",
+});
 ```

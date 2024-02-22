@@ -342,14 +342,12 @@ describe("Eth module", function () {
       });
 
       describe("ethers.WebSocketProvider", function () {
-        let provider: ethers.providers.WebSocketProvider;
+        let provider: ethers.WebSocketProvider;
 
         beforeEach(async function () {
           if (this.serverInfo !== undefined) {
             const { address, port } = this.serverInfo;
-            provider = new ethers.providers.WebSocketProvider(
-              `ws://${address}:${port}`
-            );
+            provider = new ethers.WebSocketProvider(`ws://${address}:${port}`);
           } else {
             this.skip();
           }
@@ -375,7 +373,7 @@ describe("Eth module", function () {
           );
           await sleep(100);
 
-          const signer = provider.getSigner();
+          const signer = await provider.getSigner();
           await signer.sendTransaction({
             to: await signer.getAddress(),
           });
@@ -384,8 +382,8 @@ describe("Eth module", function () {
         });
 
         it("contract events work", async function () {
-          const signer = provider.getSigner();
-          const Factory = new ethers.ContractFactory(
+          const signer = await provider.getSigner();
+          const Factory = new ethers.ContractFactory<[], ethers.Contract>(
             EXAMPLE_CONTRACT.abi,
             EXAMPLE_CONTRACT.bytecode,
             signer

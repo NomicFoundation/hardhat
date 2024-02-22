@@ -64,7 +64,7 @@ function getOrderedTransactionHeap(
         decreasingOrderComparator(a, b)
       );
     default:
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw new InvalidInputError(
         `Invalid mempool order: ${mempoolOrder as any}`
       );
@@ -107,7 +107,7 @@ export class TransactionQueue {
 
     for (const [address, txList] of pendingTransactions) {
       if (baseFee === undefined && txList.some((tx) => tx.data.type === 2)) {
-        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+        // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
         throw new InternalError(
           "Trying to initialize and sort a mempool with an EIP-1559 tx but no base fee"
         );
@@ -135,7 +135,7 @@ export class TransactionQueue {
 
   public removeLastSenderTransactions() {
     if (this._lastTransactionSender === undefined) {
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw new InternalError(
         "TransactionQueue#removeLastSenderTransactions called before TransactionQueue#getNextTransaction"
       );

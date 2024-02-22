@@ -8,9 +8,11 @@ import {
   runFailedAsserts,
   useEnvironment,
   useEnvironmentWithNode,
+  mineSuccessfulTransaction,
 } from "../helpers";
 
 import "../../src/internal/add-chai-matchers";
+import { MatchersContract } from "../contracts";
 
 describe("INTEGRATION: Reverted with", function () {
   describe("with the in-process hardhat network", function () {
@@ -27,25 +29,15 @@ describe("INTEGRATION: Reverted with", function () {
 
   function runTests() {
     // deploy Matchers contract before each test
-    let matchers: any;
+    let matchers: MatchersContract;
 
     beforeEach("deploy matchers contract", async function () {
-      const Matchers = await this.hre.ethers.getContractFactory("Matchers");
+      const Matchers = await this.hre.ethers.getContractFactory<
+        [],
+        MatchersContract
+      >("Matchers");
       matchers = await Matchers.deploy();
     });
-
-    // helpers
-    const mineSuccessfulTransaction = async (hre: any) => {
-      await hre.network.provider.send("evm_setAutomine", [false]);
-
-      const [signer] = await hre.ethers.getSigners();
-      const tx = await signer.sendTransaction({ to: signer.address });
-
-      await hre.network.provider.send("hardhat_mine", []);
-      await hre.network.provider.send("evm_setAutomine", [true]);
-
-      return tx;
-    };
 
     describe("calling a method that succeeds", function () {
       it("successful asserts", async function () {
@@ -213,6 +205,18 @@ describe("INTEGRATION: Reverted with", function () {
         );
       });
 
+      it("non-string as expectation, subject is a rejected promise", async function () {
+        const tx = matchers.revertsWithoutReason();
+
+        expect(() =>
+          // @ts-expect-error
+          expect(tx).to.be.revertedWith(10)
+        ).to.throw(
+          TypeError,
+          "Expected the revert reason to be a string or a regular expression"
+        );
+      });
+
       it("errors that are not related to a reverted transaction", async function () {
         // use an address that almost surely doesn't have balance
         const randomPrivateKey =
@@ -221,12 +225,15 @@ describe("INTEGRATION: Reverted with", function () {
           randomPrivateKey,
           this.hre.ethers.provider
         );
+        const matchersFromSenderWithoutFunds = matchers.connect(
+          signer
+        ) as MatchersContract;
 
         // this transaction will fail because of lack of funds, not because of a
         // revert
         await expect(
           expect(
-            matchers.connect(signer).revertsWithoutReason({
+            matchersFromSenderWithoutFunds.revertsWithoutReason({
               gasLimit: 1_000_000,
             })
           ).to.not.be.revertedWith("some reason")
@@ -243,7 +250,11 @@ describe("INTEGRATION: Reverted with", function () {
         try {
           await expect(matchers.revertsWith("bar")).to.be.revertedWith("foo");
         } catch (e: any) {
-          expect(util.inspect(e)).to.include(
+          const errorString = util.inspect(e);
+          expect(errorString).to.include(
+            "Expected transaction to be reverted with reason 'foo', but it reverted with reason 'bar'"
+          );
+          expect(errorString).to.include(
             path.join("test", "reverted", "revertedWith.ts")
           );
 

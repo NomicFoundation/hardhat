@@ -14,3 +14,5 @@ jobs:
         with:
           project-url: https://github.com/orgs/NomicFoundation/projects/4
           github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
+          labeled: area:edr
+          label-operator: NOT

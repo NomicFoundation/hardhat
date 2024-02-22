@@ -182,12 +182,12 @@ describe("Eth module", function () {
             DEFAULT_ACCOUNTS_ADDRESSES[0]
           );
 
-          const abiEncoder = new ethers.utils.Interface(contractA.abi);
+          const abiEncoder = new ethers.Interface(contractA.abi);
           const filterId = await this.provider.send("eth_subscribe", [
             "logs",
             {
               address,
-              topic: abiEncoder.getEventTopic("TokensMinted"),
+              topic: abiEncoder.getEvent("TokensMinted")?.topicHash,
             },
           ]);
 

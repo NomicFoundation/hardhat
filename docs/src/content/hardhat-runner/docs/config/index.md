@@ -26,7 +26,7 @@ module.exports = {
     }
   },
   solidity: {
-    version: "0.5.15",
+    version: "{RECOMMENDED_SOLC_VERSION}",
     settings: {
       optimizer: {
         enabled: true,
@@ -62,7 +62,7 @@ module.exports = {
     }
   },
   solidity: {
-    version: "0.5.15",
+    version: "{RECOMMENDED_SOLC_VERSION}",
     settings: {
       optimizer: {
         enabled: true,
@@ -176,13 +176,13 @@ module.exports = {
 
 The `solidity` config is an optional field that can be one of the following:
 
-- A solc version to use, e.g. `"0.7.3"`.
+- A solc version to use, e.g. `"{RECOMMENDED_SOLC_VERSION}"`.
 
 - An object which describes the configuration for a single compiler. It contains the following keys:
 
   - `version`: The solc version to use.
 
-  - `settings`: An object with the same schema as the `settings` entry in the [Input JSON](https://solidity.readthedocs.io/en/v0.7.4/using-the-compiler.html#input-description).
+  - `settings`: An object with the same schema as the `settings` entry in the [Input JSON](https://docs.soliditylang.org/en/latest/using-the-compiler.html#input-description).
 
 - An object which describes multiple compilers and their respective configurations. It contains the following:
 
@@ -208,3 +208,20 @@ You can configure how your tests are run using the `mocha` entry, which accepts 
 ## Quickly integrating other tools from Hardhat's config
 
 Hardhat's config file will always run before any task, so you can use it to integrate with other tools, like importing `@babel/register`.
+
+## Default EVM Version
+
+The default EVM version is determined by solc's choice for a given compiler version. To specify a different EVM version, modify your `hardhat.config.js`:
+
+```js
+module.exports = {
+  solidity: {
+    version: "0.8.21",
+    settings: {
+      evmVersion: "shanghai",
+    },
+  },
+};
+```
+
+Since version `0.8.20`, solc's EVM default is `shanghai`, which can lead to issues in chains that don't support the `PUSH0` opcode. To address this, starting from `0.8.20` Hardhat defaults to `paris`. This value can be overridden by using the above configuration.

@@ -1,3 +1,6 @@
+// load the environment type extensions from the plugins
+import type {} from "../src/index";
+
 import { resetHardhatContext } from "hardhat/plugins-testing";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";

@@ -14,18 +14,22 @@ jobs:
     name: Test recent mainnet block
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - uses: actions/setup-node@v2
         with:
-          node-version: 14
-      - uses: actions/checkout@v2
+          node-version: 16
+          cache: "pnpm"
       - name: Install
-        run: yarn --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
-        run: yarn build
+        run: pnpm build
       - name: Run test
         env:
-          INFURA_URL: ${{ secrets.INFURA_URL }}
-        run: yarn ts-node scripts/test-recent-mainnet-block.ts
+          ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
+        run: pnpm ts-node scripts/test-recent-mainnet-block.ts
       - name: Notify failures
         if: failure()
         uses: slackapi/slack-github-action@v1.18.0

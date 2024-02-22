@@ -1,5 +1,33 @@
 # @nomicfoundation/hardhat-chai-matchers
 
+## 2.0.3
+
+### Patch Changes
+
+- dff8302aa: Added support for `Addressable` objects in `.withArgs` and `.equals` (thanks @Amxx!)
+
+## 2.0.2
+
+### Patch Changes
+
+- f324b3a33: Forbid chaining incompatible chai matchers
+
+## 2.0.1
+
+### Patch Changes
+
+- 70c2ccf12: Removed an unnecessary dependency
+
+## 2.0.0
+
+### Major Changes
+
+- 523235b83: Added support for ethers v6
+
+### Patch Changes
+
+- 06c4797a7: Fixed a problem when `.withArgs` was used with arrays with different length
+
 ## 1.0.6
 
 ### Patch Changes

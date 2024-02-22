@@ -1,3 +1,7 @@
+const {
+  slowImportsCommonIgnoredModules,
+} = require("../../config/eslint/constants");
+
 module.exports = {
   extends: [`${__dirname}/../../config/eslint/eslintrc.js`],
   parserOptions: {
@@ -15,4 +19,21 @@ module.exports = {
       },
     ],
   },
+  overrides: [
+    {
+      files: ["src/index.ts"],
+      rules: {
+        "@nomicfoundation/slow-imports/no-top-level-external-import": [
+          "error",
+          {
+            ignoreModules: [
+              ...slowImportsCommonIgnoredModules,
+              "chai",
+              "@nomiclabs/hardhat-web3-legacy",
+            ],
+          },
+        ],
+      },
+    },
+  ],
 };

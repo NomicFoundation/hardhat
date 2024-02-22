@@ -54,7 +54,7 @@ const PRIVATE_RPC_METHODS = new Set([
   "hardhat_setLoggingEnabled",
 ]);
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 export const DEFAULT_COINBASE = "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e";
 
@@ -80,6 +80,7 @@ interface HardhatNetworkProviderConfig {
   experimentalHardhatNetworkMessageTraceHooks?: BoundExperimentalHardhatNetworkMessageTraceHook[];
   forkConfig?: ForkConfig;
   forkCachePath?: string;
+  enableTransientStorage: boolean;
 }
 
 export class HardhatNetworkProvider
@@ -253,6 +254,7 @@ export class HardhatNetworkProvider
       coinbase: this._config.coinbase ?? DEFAULT_COINBASE,
       chains: this._config.chains,
       allowBlocksWithSameTimestamp: this._config.allowBlocksWithSameTimestamp,
+      enableTransientStorage: this._config.enableTransientStorage,
     };
 
     const [common, node] = await HardhatNode.create(config);

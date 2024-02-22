@@ -24,7 +24,7 @@ const hre = require("hardhat");
 
 You can get access to all your tasks and plugins. To run these scripts you simply go through node: `node script.js`.
 
-To try this out, let's look at [a fresh Hardhat project](../guides/project-setup.md). Run `npx hardhat` and go through the steps to create a JavaScript project. When you're done, your project directory should look like this:
+To try this out, let's look at [a fresh Hardhat project](../guides/project-setup.md). Run `npx hardhat init` and go through the steps to create a JavaScript project. When you're done, your project directory should look like this:
 
 ```
 $ ls -l
@@ -65,7 +65,7 @@ Lock with 1 ETH deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 
 ### Hardhat arguments
 
-You can still pass arguments to Hardhat when running a standalone script. This is done by setting environment variables. These are:
+You can still pass arguments to Hardhat when running a standalone script. This is done by setting environment variables. Some of these are:
 
 - `HARDHAT_NETWORK`: Sets the network to connect to.
 
@@ -75,4 +75,4 @@ You can still pass arguments to Hardhat when running a standalone script. This i
 
 - `HARDHAT_MAX_MEMORY`: Sets the maximum amount of memory that Hardhat can use.
 
-For example, instead of doing `npx hardhat --network localhost run script.js`, you can do `HARDHAT_NETWORK=localhost node script.js`.
+For example, instead of doing `npx hardhat --network localhost run script.js`, you can do `HARDHAT_NETWORK=localhost node script.js`. Check our [Environment variables](/hardhat-runner/docs/reference/environment-variables) reference to learn more about this.

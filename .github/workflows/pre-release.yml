@@ -2,7 +2,9 @@ name: Pre-release tests
 
 on:
   push:
-    branches: [pre-release-testing-branch]
+    branches:
+      - pre-release-testing-branch
+      - changeset-release/main
   workflow_dispatch:
 
 concurrency:
@@ -15,16 +17,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - uses: actions/setup-node@v2
         with:
-          node-version: 14
-          cache: yarn
+          node-version: 16
+          cache: "pnpm"
       - name: Install
-        run: yarn --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
-        run: yarn build
+        run: pnpm build
       - name: lint
-        run: yarn lint
+        run: pnpm lint
       - name: Cache artifacts
         uses: actions/cache@v2
         with:
@@ -36,7 +41,7 @@ jobs:
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
           NODE_OPTIONS: "--max-old-space-size=4096"
-        run: yarn test
+        run: pnpm test
       - name: Check dependency versions
         run: node scripts/check-dependencies.js
   test_fork:
@@ -47,18 +52,21 @@ jobs:
         working-directory: packages/hardhat-core
     steps:
       - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - uses: actions/setup-node@v2
         with:
-          node-version: 14
-          cache: yarn
+          node-version: 16
+          cache: "pnpm"
       - name: Install
-        run: yarn --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
       - name: Cache network requests
         uses: actions/cache@v2
         with:
           path: |
             packages/hardhat-core/test/internal/hardhat-network/provider/.hardhat_node_test_cache
-          key: hardhat-network-forking-tests-${{ hashFiles('yarn.lock') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/provider/node.ts') }}
+          key: hardhat-network-forking-tests-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/provider/node.ts') }}
       - name: Run tests
         env:
           INFURA_URL: ${{ secrets.INFURA_URL }}
@@ -67,5 +75,5 @@ jobs:
           FORCE_COLOR: 3
           NODE_OPTIONS: "--max-old-space-size=4096"
         run: |
-          yarn build
-          yarn test:forking
+          pnpm build
+          pnpm test:forking

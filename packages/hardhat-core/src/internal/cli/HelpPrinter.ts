@@ -2,6 +2,9 @@ import {
   HardhatParamDefinitions,
   ParamDefinition,
   ParamDefinitionsMap,
+  ScopeDefinition,
+  ScopesMap,
+  TaskDefinition,
   TasksMap,
 } from "../../types";
 import { HardhatError } from "../core/errors";
@@ -15,55 +18,69 @@ export class HelpPrinter {
     private readonly _executableName: string,
     private readonly _version: string,
     private readonly _hardhatParamDefinitions: HardhatParamDefinitions,
-    private readonly _tasks: TasksMap
+    private readonly _tasks: TasksMap,
+    private readonly _scopes: ScopesMap
   ) {}
 
   public printGlobalHelp(includeSubtasks = false) {
     console.log(`${this._programName} version ${this._version}\n`);
 
     console.log(
-      `Usage: ${this._executableName} [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]\n`
+      `Usage: ${this._executableName} [GLOBAL OPTIONS] [SCOPE] <TASK> [TASK OPTIONS]\n`
     );
 
     console.log("GLOBAL OPTIONS:\n");
 
-    this._printParamDetails(this._hardhatParamDefinitions);
+    let length = this._printParamDetails(this._hardhatParamDefinitions);
 
     console.log("\n\nAVAILABLE TASKS:\n");
 
-    const tasksToShow: TasksMap = {};
-    for (const [taskName, taskDefinition] of Object.entries(this._tasks)) {
-      if (includeSubtasks || !taskDefinition.isSubtask) {
-        tasksToShow[taskName] = taskDefinition;
-      }
-    }
+    length = this._printTasks(this._tasks, includeSubtasks, length);
 
-    const nameLength = Object.keys(tasksToShow)
-      .map((n) => n.length)
-      .reduce((a, b) => Math.max(a, b), 0);
+    if (Object.keys(this._scopes).length > 0) {
+      console.log("\n\nAVAILABLE TASK SCOPES:\n");
 
-    for (const name of Object.keys(tasksToShow).sort()) {
-      const { description = "" } = this._tasks[name];
-
-      console.log(`  ${name.padEnd(nameLength)}\t${description}`);
+      this._printScopes(this._scopes, length);
     }
 
     console.log("");
 
     console.log(
-      `To get help for a specific task run: npx ${this._executableName} help [task]\n`
+      `To get help for a specific task run: npx ${this._executableName} help [SCOPE] <TASK>\n`
     );
   }
 
-  public printTaskHelp(taskName: string) {
-    const taskDefinition = this._tasks[taskName];
+  public printScopeHelp(
+    scopeDefinition: ScopeDefinition,
+    includeSubtasks = false
+  ) {
+    const name = scopeDefinition.name;
+    const description = scopeDefinition.description ?? "";
 
-    if (taskDefinition === undefined) {
-      throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
-        task: taskName,
+    console.log(`${this._programName} version ${this._version}`);
+
+    console.log(
+      `\nUsage: hardhat [GLOBAL OPTIONS] ${name} <TASK> [TASK OPTIONS]`
+    );
+
+    console.log(`\nAVAILABLE TASKS:\n`);
+
+    if (this._scopes[name] === undefined) {
+      throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPE, {
+        scope: name,
       });
     }
 
+    this._printTasks(this._scopes[name].tasks, includeSubtasks);
+
+    console.log(`\n${name}: ${description}`);
+
+    console.log(
+      `\nFor global options help run: ${this._executableName} help\n`
+    );
+  }
+
+  public printTaskHelp(taskDefinition: TaskDefinition) {
     const {
       description = "",
       name,
@@ -78,8 +95,11 @@ export class HelpPrinter {
       positionalParamDefinitions
     );
 
+    const scope =
+      taskDefinition.scope !== undefined ? `${taskDefinition.scope} ` : "";
+
     console.log(
-      `Usage: ${this._executableName} [GLOBAL OPTIONS] ${name}${paramsList}${positionalParamsList}\n`
+      `Usage: ${this._executableName} [GLOBAL OPTIONS] ${scope}${name}${paramsList}${positionalParamsList}\n`
     );
 
     if (Object.keys(paramDefinitions).length > 0) {
@@ -101,6 +121,49 @@ export class HelpPrinter {
     console.log(`${name}: ${description}\n`);
 
     console.log(`For global options help run: ${this._executableName} help\n`);
+  }
+
+  private _printTasks(
+    tasksMap: TasksMap,
+    includeSubtasks: boolean,
+    length: number = 0
+  ) {
+    const taskNameList = Object.entries(tasksMap)
+      .filter(
+        ([, taskDefinition]) => includeSubtasks || !taskDefinition.isSubtask
+      )
+      .map(([taskName]) => taskName)
+      .sort();
+
+    const nameLength = taskNameList
+      .map((n) => n.length)
+      .reduce((a, b) => Math.max(a, b), length);
+
+    for (const name of taskNameList) {
+      const { description = "" } = tasksMap[name];
+
+      console.log(`  ${name.padEnd(nameLength)}\t${description}`);
+    }
+
+    return nameLength;
+  }
+
+  private _printScopes(scopesMap: ScopesMap, length: number) {
+    const scopeNamesList = Object.entries(scopesMap)
+      .map(([scopeName]) => scopeName)
+      .sort();
+
+    const nameLength = scopeNamesList
+      .map((n) => n.length)
+      .reduce((a, b) => Math.max(a, b), length);
+
+    for (const name of scopeNamesList) {
+      const { description = "" } = scopesMap[name];
+
+      console.log(`  ${name.padEnd(nameLength)}\t${description}`);
+    }
+
+    return nameLength;
   }
 
   private _getParamValueDescription<T>(paramDefinition: ParamDefinition<T>) {
@@ -162,7 +225,7 @@ export class HelpPrinter {
     return paramsList;
   }
 
-  private _printParamDetails(paramDefinitions: ParamDefinitionsMap) {
+  private _printParamDetails(paramDefinitions: ParamDefinitionsMap): number {
     const paramsNameLength = Object.keys(paramDefinitions)
       .map((n) => ArgumentsParser.paramNameToCLA(n).length)
       .reduce((a, b) => Math.max(a, b), 0);
@@ -185,6 +248,8 @@ export class HelpPrinter {
 
       console.log(msg);
     }
+
+    return paramsNameLength;
   }
 
   private _printPositionalParamDetails(

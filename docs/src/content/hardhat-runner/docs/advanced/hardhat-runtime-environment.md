@@ -51,7 +51,7 @@ This way, tests written for Hardhat are just normal Mocha tests. This enables yo
 
 The HRE only provides the core functionality that users and plugin developers need to start building on top of Hardhat. Using it to interface directly with Ethereum in your project can be somewhat harder than expected.
 
-Everything gets easier when you use higher-level libraries, like [Ethers.js](https://docs.ethers.io/) or [ethereum-waffle](https://www.npmjs.com/package/ethereum-waffle), but these libraries need some initialization to work, and that could get repetitive.
+Everything gets easier when you use higher-level libraries, like [Ethers.js](https://docs.ethers.org/v6/) or [ethereum-waffle](https://www.npmjs.com/package/ethereum-waffle), but these libraries need some initialization to work, and that could get repetitive.
 
 Hardhat lets you hook into the HRE construction, and extend it with new functionality. This way, you only have to initialize everything once, and your new features or libraries will be available everywhere the HRE is used.
 

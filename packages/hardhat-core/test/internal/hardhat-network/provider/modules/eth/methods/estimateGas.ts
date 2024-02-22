@@ -433,7 +433,7 @@ describe("Eth module", function () {
 
           // send the transaction using an http client, otherwise the wrapped
           // provider will intercept the response and throw an error
-          async function estimateGas({ from, to, data }: any) {
+          async function estimateGas({ from, to, data }: any): Promise<any> {
             return client
               .request({
                 method: "POST",

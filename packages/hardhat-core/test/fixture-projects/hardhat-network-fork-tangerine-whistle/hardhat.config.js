@@ -3,7 +3,7 @@ module.exports = {
     hardhat: {
       hardfork: "tangerineWhistle",
       forking: {
-        url: process.env.INFURA_URL,
+        url: process.env.ALCHEMY_URL,
       },
     },
   },

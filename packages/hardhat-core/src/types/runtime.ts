@@ -1,6 +1,6 @@
 import { Artifacts } from "./artifacts";
 import { HardhatConfig, HardhatUserConfig, NetworkConfig } from "./config";
-import { EthereumProvider } from "./provider";
+import { EIP1193Provider, EthereumProvider } from "./provider";
 
 /**
  * This class is used to dynamically validate task's argument types.
@@ -93,6 +93,26 @@ export interface ConfigurableTaskDefinition {
   addFlag(name: string, description?: string): this;
 }
 
+// type alias to get the overloaded function type
+// for 'task` and 'subtask'
+declare function addTask<TaskArgumentsT extends TaskArguments>(
+  name: string,
+  description?: string,
+  action?: ActionType<TaskArgumentsT>
+): ConfigurableTaskDefinition;
+declare function addTask<TaskArgumentsT extends TaskArguments>(
+  name: string,
+  action: ActionType<TaskArgumentsT>
+): ConfigurableTaskDefinition;
+type AddConfigurableTaskFunction = typeof addTask;
+
+export interface ConfigurableScopeDefinition {
+  setDescription(description: string): this;
+
+  task: AddConfigurableTaskFunction;
+  subtask: AddConfigurableTaskFunction;
+}
+
 export interface ParamDefinition<T> {
   name: string;
   defaultValue?: T;
@@ -118,6 +138,7 @@ export interface ParamDefinitionsMap {
 }
 
 export interface TaskDefinition extends ConfigurableTaskDefinition {
+  readonly scope?: string;
   readonly name: string;
   readonly description?: string;
   readonly action: ActionType<TaskArguments>;
@@ -129,6 +150,14 @@ export interface TaskDefinition extends ConfigurableTaskDefinition {
 
   readonly positionalParamDefinitions: Array<ParamDefinition<any>>;
 }
+
+export interface ScopeDefinition extends ConfigurableScopeDefinition {
+  readonly name: string;
+  readonly description?: string;
+  readonly tasks: TasksMap;
+}
+
+export type TaskIdentifier = string | { scope?: string; task: string };
 
 /**
  * @type TaskArguments {object-like} - the input arguments for a task.
@@ -188,8 +217,12 @@ export interface TasksMap {
   [name: string]: TaskDefinition;
 }
 
+export interface ScopesMap {
+  [scopeName: string]: ScopeDefinition;
+}
+
 export type RunTaskFunction = (
-  name: string,
+  taskIdentifier: TaskIdentifier,
   taskArguments?: TaskArguments,
   subtaskArguments?: SubtaskArguments
 ) => Promise<any>;
@@ -199,6 +232,7 @@ export interface HardhatRuntimeEnvironment {
   readonly userConfig: HardhatUserConfig;
   readonly hardhatArguments: HardhatArguments;
   readonly tasks: TasksMap;
+  readonly scopes: ScopesMap;
   readonly run: RunTaskFunction;
   readonly network: Network;
   readonly artifacts: Artifacts;
@@ -216,3 +250,13 @@ export interface Network {
  * modify its properties or add new ones.
  */
 export type EnvironmentExtender = (env: HardhatRuntimeEnvironment) => void;
+
+/**
+ * A function that receives a provider, crafts and returns a new one.
+ * Adding and modifying the current provider is preferred over ignoring it and returning a new instance.
+ */
+export type ProviderExtender = (
+  provider: EIP1193Provider,
+  config: HardhatConfig,
+  network: string
+) => EIP1193Provider | Promise<EIP1193Provider>;

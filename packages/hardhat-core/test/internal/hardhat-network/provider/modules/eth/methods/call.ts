@@ -1,17 +1,20 @@
 import { assert } from "chai";
 import { Client } from "undici";
 
+import { ethers } from "ethers";
 import {
   numberToRpcQuantity,
   rpcDataToNumber,
   rpcQuantityToNumber,
   rpcDataToBigInt,
   rpcQuantityToBigInt,
+  numberToRpcStorageSlot,
 } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { getCurrentTimestamp } from "../../../../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import {
   assertAddressBalance,
+  assertInvalidArgumentsError,
   assertInvalidInputError,
 } from "../../../../helpers/assertions";
 import {
@@ -19,6 +22,10 @@ import {
   EXAMPLE_CONTRACT,
   EXAMPLE_READ_CONTRACT,
   EXAMPLE_REVERT_CONTRACT,
+  STATE_OVERRIDE_SET_CONTRACT_A,
+  STATE_OVERRIDE_SET_CONTRACT_B,
+  STATE_OVERRIDE_SET_CONTRACT_C,
+  STATE_OVERRIDE_SET_CONTRACT_D,
 } from "../../../../helpers/contracts";
 import { setCWD } from "../../../../helpers/cwd";
 import {
@@ -498,6 +505,749 @@ describe("Eth module", function () {
           });
         });
 
+        describe("eth_call with state override", function () {
+          const deployerAddress = DEFAULT_ACCOUNTS_ADDRESSES[2];
+          let contractAAddress: string;
+          let contractBAddress: string;
+          let contractDAddress: string;
+
+          beforeEach(async function () {
+            // Contract A imports contract B and D, so first deploy contract B and contract D
+            contractBAddress = await deployContract(
+              this.provider,
+              `0x${STATE_OVERRIDE_SET_CONTRACT_B.bytecode.object}`
+            );
+
+            contractDAddress = await deployContract(
+              this.provider,
+              `0x${STATE_OVERRIDE_SET_CONTRACT_D.bytecode.object}`
+            );
+
+            // Contract A constructor requires the addresses of contract B and contract D.
+            // These values are encoded and appended to the data containing the bytecode of contract A
+            const abiCoder = new ethers.AbiCoder();
+            const encodedParameters = abiCoder
+              .encode(
+                ["address", "address"],
+                [contractBAddress, contractDAddress]
+              )
+              .slice(2);
+
+            contractAAddress = await deployContract(
+              this.provider,
+              `0x${STATE_OVERRIDE_SET_CONTRACT_A.bytecode.object}${encodedParameters}`
+            );
+          });
+
+          it("should call eth_call without the optional state override properties", async function () {
+            const xAndy = await this.provider.send("eth_call", [
+              {
+                from: deployerAddress,
+                to: contractAAddress,
+                data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
+              },
+              "latest",
+            ]);
+
+            assert.equal(
+              xAndy,
+              "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002"
+            );
+          });
+
+          it("should call eth_call with an empty object passed as state override properties", async function () {
+            const xAndy = await this.provider.send("eth_call", [
+              {
+                from: deployerAddress,
+                to: contractAAddress,
+                data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
+              },
+              "latest",
+              {},
+            ]);
+
+            assert.equal(
+              xAndy,
+              "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002"
+            );
+          });
+
+          it("should throw an error because the key address used is invalid", async function () {
+            await assertInvalidArgumentsError(
+              this.provider,
+              "eth_call",
+              [
+                {
+                  from: deployerAddress,
+                  to: contractAAddress,
+                  data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.senderBalance,
+                },
+                "latest",
+                {
+                  // Invalid address
+                  [deployerAddress.slice(0, -2)]: {
+                    balance: "0x0",
+                  },
+                },
+              ],
+              `Errors encountered in param 2: Invalid value "0xce9efd622e568b3a21b19532c77fc76c93c34b" supplied to : { [K in address]: stateOverrideOptions } | undefined/0xce9efd622e568b3a21b19532c77fc76c93c34b: address`
+            );
+          });
+
+          it("should throw an error because an invalid storage key is used", async function () {
+            await assertInvalidArgumentsError(
+              this.provider,
+              "eth_call",
+              [
+                {
+                  from: deployerAddress,
+                  to: contractAAddress,
+                  data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.senderBalance,
+                },
+                "latest",
+                {
+                  [deployerAddress]: {
+                    stateDiff: {
+                      // Invalid storage address (shorter than 64 chars)
+                      "0x00000000000000000000000000000000000000000000000000000000000002":
+                        "0x000000000000000000000000000000000000000000000000000000000000000c",
+                    },
+                  },
+                },
+              ],
+              `Errors encountered in param 2: Invalid value "0x00000000000000000000000000000000000000000000000000000000000002" supplied to : { [K in address]: stateOverrideOptions } | undefined/0xce9efd622e568b3a21b19532c77fc76c93c34bd4: stateOverrideOptions/stateDiff: { [K in Storage slot hex string]: Storage slot } | undefined/0x00000000000000000000000000000000000000000000000000000000000002: Storage slot hex string`
+            );
+          });
+
+          describe("balance", function () {
+            it("should override the balance and then revert it to the original value after the override", async function () {
+              const balanceBefore = await this.provider.send("eth_call", [
+                {
+                  from: deployerAddress,
+                  to: contractAAddress,
+                  data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.senderBalance,
+                },
+                "latest",
+              ]);
+
+              const overrideBalance = await this.provider.send("eth_call", [
+                {
+                  from: deployerAddress,
+                  to: contractAAddress,
+                  data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.senderBalance,
+                },
+                "latest",
+                {
+                  [deployerAddress]: {
+                    balance: "0x1",
+                  },
+                },
+              ]);
+
+              assert.equal(
+                overrideBalance,
+                "0x0000000000000000000000000000000000000000000000000000000000000001"
+              );
+              assert.notEqual(balanceBefore, overrideBalance);
+
+              const balanceAfter = await this.provider.send("eth_call", [
+                {
+                  from: deployerAddress,
+                  to: contractAAddress,
+                  data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.senderBalance,
+                },
+                "latest",
+              ]);
+
+              assert.equal(balanceAfter, balanceBefore);
+            });
+
+            it("should allow the balance property to be null without throwing an error", async function () {
+              const balanceBefore = await this.provider.send("eth_call", [
+                {
+                  from: deployerAddress,
+                  to: contractAAddress,
+                  data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.senderBalance,
+                },
+                "latest",
+              ]);
+
+              const balanceAfter = await this.provider.send("eth_call", [
+                {
+                  from: deployerAddress,
+                  to: contractAAddress,
+                  data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.senderBalance,
+                },
+                "latest",
+                {
+                  [contractAAddress]: {
+                    balance: null,
+                  },
+                },
+              ]);
+
+              assert.equal(balanceAfter, balanceBefore);
+            });
+
+            describe("test the limit value (32 bytes) for the balance", function () {
+              const maxBalance: bigint = 2n ** 256n - 1n;
+
+              it("should be successful, the balance value is the maximum allowed value", async function () {
+                await this.provider.send("eth_call", [
+                  {
+                    from: deployerAddress,
+                    to: contractAAddress,
+                    data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.senderBalance,
+                  },
+                  "latest",
+                  {
+                    [deployerAddress]: {
+                      balance: numberToRpcQuantity(maxBalance),
+                    },
+                  },
+                ]);
+              });
+
+              it("should throw an error, the balance value is too big", async function () {
+                await assertInvalidInputError(
+                  this.provider,
+                  "eth_call",
+                  [
+                    {
+                      from: deployerAddress,
+                      to: contractAAddress,
+                      data: STATE_OVERRIDE_SET_CONTRACT_A.selectors
+                        .senderBalance,
+                    },
+                    "latest",
+                    {
+                      [deployerAddress]: {
+                        balance: numberToRpcQuantity(maxBalance + 1n),
+                      },
+                    },
+                  ],
+                  "The 'balance' property should occupy a maximum of 32 bytes (balance=115792089237316195423570985008687907853269984665640564039457584007913129639936)."
+                );
+              });
+            });
+          });
+
+          describe("nonce", function () {
+            let currentDAddrNonce: bigint;
+
+            this.beforeEach(async function () {
+              // Get the nonce for the D address
+              currentDAddrNonce = rpcQuantityToBigInt(
+                await this.provider.send("eth_getTransactionCount", [
+                  contractDAddress,
+                  "latest",
+                ])
+              );
+            });
+
+            function rpcDataToAddress(hexString: string): string {
+              assert.lengthOf(hexString, 66);
+              return `0x${hexString.slice(-40)}`;
+            }
+
+            it("should not override the nonce", async function () {
+              const predictedAddress = ethers.getCreateAddress({
+                from: contractDAddress,
+                nonce: currentDAddrNonce,
+              });
+
+              const actualAddress = rpcDataToAddress(
+                await this.provider.send("eth_call", [
+                  {
+                    from: deployerAddress,
+                    to: contractDAddress,
+                    data: STATE_OVERRIDE_SET_CONTRACT_D.selectors
+                      .deployChildContract,
+                  },
+                  "latest",
+                ])
+              );
+
+              assert.equal(
+                actualAddress.toLowerCase(),
+                predictedAddress.toLowerCase()
+              );
+            });
+
+            it("should override the nonce and then revert it to the original value after the override", async function () {
+              const nonceBefore = currentDAddrNonce;
+
+              const overrideNonce = 0x1234n;
+
+              const predictedAddress = ethers.getCreateAddress({
+                from: contractDAddress,
+                nonce: overrideNonce,
+              });
+
+              const actualAddress = rpcDataToAddress(
+                await this.provider.send("eth_call", [
+                  {
+                    from: deployerAddress,
+                    to: contractDAddress,
+                    data: STATE_OVERRIDE_SET_CONTRACT_D.selectors
+                      .deployChildContract,
+                  },
+                  "latest",
+                  {
+                    [contractDAddress]: {
+                      nonce: numberToRpcQuantity(overrideNonce),
+                    },
+                  },
+                ])
+              );
+
+              assert.equal(
+                actualAddress.toLowerCase(),
+                predictedAddress.toLowerCase()
+              );
+
+              // Check that nonce has been reverted
+              const nonceAfter = rpcQuantityToBigInt(
+                await this.provider.send("eth_getTransactionCount", [
+                  contractDAddress,
+                  "latest",
+                ])
+              );
+
+              assert.equal(nonceAfter, nonceBefore);
+            });
+
+            it("should allow the nonce property to be null without throwing an error", async function () {
+              const predictedAddress = ethers.getCreateAddress({
+                from: contractDAddress,
+                nonce: currentDAddrNonce,
+              });
+
+              const actualAddress = rpcDataToAddress(
+                await this.provider.send("eth_call", [
+                  {
+                    from: deployerAddress,
+                    to: contractDAddress,
+                    data: STATE_OVERRIDE_SET_CONTRACT_D.selectors
+                      .deployChildContract,
+                  },
+                  "latest",
+                  {
+                    [contractDAddress]: { nonce: null },
+                  },
+                ])
+              );
+
+              assert.equal(
+                actualAddress.toLowerCase(),
+                predictedAddress.toLowerCase()
+              );
+            });
+
+            describe("test the limit value (8 bytes) for the nonce", function () {
+              const maxNonce: bigint = 2n ** 64n - 1n;
+
+              it("should be successful, the nonce value is the maximum allowed value", async function () {
+                await this.provider.send("eth_call", [
+                  {
+                    from: deployerAddress,
+                    to: contractAAddress,
+                    data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.senderBalance,
+                  },
+                  "latest",
+                  {
+                    [deployerAddress]: {
+                      nonce: numberToRpcQuantity(maxNonce),
+                    },
+                  },
+                ]);
+              });
+
+              it("should throw an error, the nonce value is too big", async function () {
+                await assertInvalidInputError(
+                  this.provider,
+                  "eth_call",
+                  [
+                    {
+                      from: deployerAddress,
+                      to: contractAAddress,
+                      data: STATE_OVERRIDE_SET_CONTRACT_A.selectors
+                        .senderBalance,
+                    },
+                    "latest",
+                    {
+                      [deployerAddress]: {
+                        nonce: numberToRpcQuantity(maxNonce + 1n),
+                      },
+                    },
+                  ],
+                  "The 'nonce' property should occupy a maximum of 8 bytes (nonce=18446744073709551616)."
+                );
+              });
+            });
+          });
+
+          describe("code", function () {
+            function encodeString(s: string): string {
+              const abiCoder = new ethers.AbiCoder();
+              return abiCoder.encode(["string"], [s]);
+            }
+
+            it("should revert the original code after that the code of contract B has been override with the code of contract C", async function () {
+              const messageBefore = await this.provider.send("eth_call", [
+                {
+                  from: deployerAddress,
+                  to: contractAAddress,
+                  data: STATE_OVERRIDE_SET_CONTRACT_A.selectors
+                    .getMessageFromBContract,
+                },
+                "latest",
+              ]);
+
+              assert.equal(messageBefore, encodeString("Hello from B!"));
+
+              const messageOverride = await this.provider.send("eth_call", [
+                {
+                  from: deployerAddress,
+                  to: contractAAddress,
+                  data: STATE_OVERRIDE_SET_CONTRACT_A.selectors
+                    .getMessageFromBContract,
+                },
+                "latest",
+                {
+                  [contractBAddress]: {
+                    code: `0x${STATE_OVERRIDE_SET_CONTRACT_C.bytecode.object}`,
+                  },
+                },
+              ]);
+
+              // Message should be the one from contract C
+              assert.equal(
+                messageOverride,
+                encodeString("Hello from the C contract")
+              );
+
+              const messageAfter = await this.provider.send("eth_call", [
+                {
+                  from: deployerAddress,
+                  to: contractAAddress,
+                  data: STATE_OVERRIDE_SET_CONTRACT_A.selectors
+                    .getMessageFromBContract,
+                },
+                "latest",
+              ]);
+
+              assert.equal(messageAfter, messageBefore);
+            });
+
+            it("should allow the code property to be null without throwing an error", async function () {
+              const message = await this.provider.send("eth_call", [
+                {
+                  from: deployerAddress,
+                  to: contractAAddress,
+                  data: STATE_OVERRIDE_SET_CONTRACT_A.selectors
+                    .getMessageFromBContract,
+                },
+                "latest",
+                {
+                  [contractBAddress]: {
+                    code: null,
+                  },
+                },
+              ]);
+
+              assert.equal(message, encodeString("Hello from B!"));
+            });
+          });
+
+          it("should throw an error when both the state and the stateDiff properties are defined", async function () {
+            await assertInvalidInputError(
+              this.provider,
+              "eth_call",
+              [
+                {
+                  from: deployerAddress,
+                  to: contractAAddress,
+                  data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
+                },
+                "latest",
+                {
+                  [contractAAddress]: {
+                    state: {},
+                    stateDiff: {},
+                  },
+                },
+              ],
+              "The properties 'state' and 'stateDiff' cannot be used simultaneously when configuring the state override set passed to the eth_call method."
+            );
+          });
+
+          describe("state property", function () {
+            it("should override the state: clear all the storage", async function () {
+              const storage = await this.provider.send("eth_call", [
+                {
+                  from: deployerAddress,
+                  to: contractAAddress,
+                  data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
+                },
+                "latest",
+                {
+                  [contractAAddress]: {
+                    state: {},
+                  },
+                },
+              ]);
+
+              // x and y should be overriden to 0
+              assert.equal(
+                storage,
+                "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+              );
+            });
+
+            it("should override the storage and then revert it to the original value after the override", async function () {
+              // Clear all the storage and then set the storage at slot 3 with value 0x0...0C
+              const storageBefore = await this.provider.send("eth_call", [
+                {
+                  from: deployerAddress,
+                  to: contractAAddress,
+                  data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
+                },
+                "latest",
+              ]);
+
+              assert.equal(
+                storageBefore,
+                "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002"
+              );
+
+              const storageOverride = await this.provider.send("eth_call", [
+                {
+                  from: deployerAddress,
+                  to: contractAAddress,
+                  data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
+                },
+                "latest",
+                {
+                  [contractAAddress]: {
+                    state: {
+                      // Memory slot starting at 3, location where y is stored
+                      "0x0000000000000000000000000000000000000000000000000000000000000003":
+                        "0x000000000000000000000000000000000000000000000000000000000000000c",
+                    },
+                  },
+                },
+              ]);
+
+              // x should be cleared, y should be overriden to c
+              assert.equal(
+                storageOverride,
+                "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c"
+              );
+
+              const storageAfter = await this.provider.send("eth_call", [
+                {
+                  from: deployerAddress,
+                  to: contractAAddress,
+                  data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
+                },
+                "latest",
+              ]);
+
+              assert.equal(storageAfter, storageBefore);
+            });
+
+            it("should allow the state property to be null without throwing an error", async function () {
+              const storage = await this.provider.send("eth_call", [
+                {
+                  from: deployerAddress,
+                  to: contractAAddress,
+                  data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
+                },
+                "latest",
+                {
+                  [contractAAddress]: {
+                    state: null,
+                  },
+                },
+              ]);
+
+              assert.equal(
+                storage,
+                "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002"
+              );
+            });
+          });
+
+          describe("stateDiff property", function () {
+            it("should override the storage and then revert it to the original value after the override", async function () {
+              // Override only the storage starting at slot 3 (variable y)
+              const storageBefore = await this.provider.send("eth_call", [
+                {
+                  from: deployerAddress,
+                  to: contractAAddress,
+                  data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
+                },
+                "latest",
+              ]);
+
+              assert.equal(
+                storageBefore,
+                "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002"
+              );
+
+              const storageOverride = await this.provider.send("eth_call", [
+                {
+                  from: deployerAddress,
+                  to: contractAAddress,
+                  data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
+                },
+                "latest",
+                {
+                  [contractAAddress]: {
+                    stateDiff: {
+                      // Memory slot starting at 3, location where y is stored
+                      "0x0000000000000000000000000000000000000000000000000000000000000003":
+                        "0x000000000000000000000000000000000000000000000000000000000000000c",
+                    },
+                  },
+                },
+              ]);
+
+              // x should not be override, y should be override to c
+              assert.equal(
+                storageOverride,
+                "0x0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000c"
+              );
+
+              const storageAfter = await this.provider.send("eth_call", [
+                {
+                  from: deployerAddress,
+                  to: contractAAddress,
+                  data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
+                },
+                "latest",
+              ]);
+
+              assert.equal(storageAfter, storageBefore);
+            });
+
+            it("should override both the storage starting at slot 2 (variable x), and the storage starting at slot 3 (variable y)", async function () {
+              const storage = await this.provider.send("eth_call", [
+                {
+                  from: deployerAddress,
+                  to: contractAAddress,
+                  data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
+                },
+                "latest",
+                {
+                  [contractAAddress]: {
+                    stateDiff: {
+                      // Memory slot starting at 2, location where x is stored
+                      "0x0000000000000000000000000000000000000000000000000000000000000002":
+                        "0x000000000000000000000000000000000000000000000000000000000000000c",
+                      // Memory slot starting at 3, location where y is stored
+                      "0x0000000000000000000000000000000000000000000000000000000000000003":
+                        "0x000000000000000000000000000000000000000000000000000000000000000c",
+                    },
+                  },
+                },
+              ]);
+
+              // Both x and y should be overriden
+              assert.equal(
+                storage,
+                "0x000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000c"
+              );
+            });
+
+            it("should allow the stateDiff property to be null without throwing an error", async function () {
+              const storage = await this.provider.send("eth_call", [
+                {
+                  from: deployerAddress,
+                  to: contractAAddress,
+                  data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
+                },
+                "latest",
+                {
+                  [contractAAddress]: {
+                    stateDiff: null,
+                  },
+                },
+              ]);
+
+              assert.equal(
+                storage,
+                "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002"
+              );
+            });
+          });
+
+          it("should override multiple addresses and properties at the same time", async function () {
+            const overrideSenderBalance = 0x123456789n;
+            const overrideContractABalance = 0x11223344n;
+            const overrideContractAYValue = 0x222222211111111111n;
+            const overrideContractDNonce = 0x999n;
+
+            const result = await this.provider.send("eth_call", [
+              {
+                from: deployerAddress,
+                to: contractAAddress,
+                data: STATE_OVERRIDE_SET_CONTRACT_A.selectors
+                  .deployContractAndGetMultipleBalances,
+              },
+              "latest",
+              {
+                [deployerAddress]: {
+                  balance: numberToRpcQuantity(overrideSenderBalance),
+                },
+                [contractAAddress]: {
+                  balance: numberToRpcQuantity(overrideContractABalance),
+                  // Override y variable at slot 3
+                  stateDiff: {
+                    "0x0000000000000000000000000000000000000000000000000000000000000003":
+                      numberToRpcStorageSlot(overrideContractAYValue),
+                  },
+                },
+                [contractBAddress]: {
+                  code: `0x${STATE_OVERRIDE_SET_CONTRACT_C.bytecode.object}`,
+                },
+                [contractDAddress]: {
+                  nonce: numberToRpcQuantity(overrideContractDNonce),
+                },
+              },
+            ]);
+
+            const abiCoder = new ethers.AbiCoder();
+
+            const [
+              senderBalance,
+              contractABalance,
+              contractDDeployedAddress,
+              contractBMessage,
+              contractAYValue,
+            ] = abiCoder.decode(
+              ["uint", "uint", "address", "string", "uint"],
+              result
+            );
+
+            assert.equal(senderBalance, overrideSenderBalance);
+            assert.equal(contractABalance, overrideContractABalance);
+            assert.equal(
+              contractDDeployedAddress.toLowerCase(),
+              ethers
+                .getCreateAddress({
+                  from: contractDAddress,
+                  nonce: overrideContractDNonce,
+                })
+                .toLowerCase()
+            );
+
+            assert.equal(contractBMessage, "Hello from the C contract");
+            assert.equal(contractAYValue, overrideContractAYValue);
+          });
+        });
+
         describe("Fee price fields", function () {
           let deploymentBytecode: string;
           let balanceSelector: string;
@@ -824,7 +1574,7 @@ contract C {
 
           // send the transaction using an http client, otherwise the wrapped
           // provider will intercept the response and throw an error
-          async function call({ from, to, data }: any) {
+          async function call({ from, to, data }: any): Promise<any> {
             return client
               .request({
                 method: "POST",

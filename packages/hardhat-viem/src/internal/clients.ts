@@ -13,6 +13,9 @@ import type {
   WalletClient,
 } from "../types";
 
+import { getChain, getMode, isDevelopmentNetwork } from "./chains";
+import { getAccounts } from "./accounts";
+
 /**
  * Get a PublicClient instance. This is a read-only client that can be used to
  * query the blockchain.
@@ -25,7 +28,6 @@ export async function getPublicClient(
   provider: EthereumProvider,
   publicClientConfig?: Partial<PublicClientConfig>
 ): Promise<PublicClient> {
-  const { getChain } = await import("./chains");
   const chain = publicClientConfig?.chain ?? (await getChain(provider));
   return innerGetPublicClient(provider, chain, publicClientConfig);
 }
@@ -36,7 +38,6 @@ export async function innerGetPublicClient(
   publicClientConfig?: Partial<PublicClientConfig>
 ): Promise<PublicClient> {
   const viem = await import("viem");
-  const { isDevelopmentNetwork } = await import("./chains");
   const defaultParameters = isDevelopmentNetwork(chain.id)
     ? { pollingInterval: 50, cacheTime: 0 }
     : {};
@@ -64,8 +65,6 @@ export async function getWalletClients(
   provider: EthereumProvider,
   walletClientConfig?: Partial<WalletClientConfig>
 ): Promise<WalletClient[]> {
-  const { getAccounts } = await import("./accounts");
-  const { getChain } = await import("./chains");
   const chain = walletClientConfig?.chain ?? (await getChain(provider));
   const accounts = await getAccounts(provider);
   return innerGetWalletClients(provider, chain, accounts, walletClientConfig);
@@ -78,7 +77,6 @@ export async function innerGetWalletClients(
   walletClientConfig?: Partial<WalletClientConfig>
 ): Promise<WalletClient[]> {
   const viem = await import("viem");
-  const { isDevelopmentNetwork } = await import("./chains");
   const defaultParameters = isDevelopmentNetwork(chain.id)
     ? { pollingInterval: 50, cacheTime: 0 }
     : {};
@@ -110,7 +108,6 @@ export async function getWalletClient(
   address: Address,
   walletClientConfig?: Partial<WalletClientConfig>
 ): Promise<WalletClient> {
-  const { getChain } = await import("./chains");
   const chain = walletClientConfig?.chain ?? (await getChain(provider));
   return (
     await innerGetWalletClients(provider, chain, [address], walletClientConfig)
@@ -129,7 +126,6 @@ export async function getTestClient(
   provider: EthereumProvider,
   testClientConfig?: Partial<TestClientConfig>
 ): Promise<TestClient> {
-  const { getChain, getMode } = await import("./chains");
   const chain = testClientConfig?.chain ?? (await getChain(provider));
   const mode = await getMode(provider);
   return innerGetTestClient(provider, chain, mode, testClientConfig);

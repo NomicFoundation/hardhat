@@ -1,23 +1,27 @@
 import { assert } from "chai";
 import _ from "lodash";
 
-import { defaultHardhatNetworkParams } from "../../../../../src/internal/core/config/default-config";
-import { BackwardsCompatibilityProviderAdapter } from "../../../../../src/internal/core/providers/backwards-compatibility";
-import { ModulesLogger } from "../../../../../src/internal/hardhat-network/provider/modules/logger";
-import { ForkConfig } from "../../../../../src/internal/hardhat-network/provider/node-types";
-import { RpcDebugTraceOutput } from "../../../../../src/internal/hardhat-network/provider/output";
-import { HardhatNetworkProvider } from "../../../../../src/internal/hardhat-network/provider/provider";
-import { EthereumProvider } from "../../../../../src/types";
-import { trace as mainnetPostLondonTxTrace } from "../../../../fixture-debug-traces/mainnetPostLondonTxTrace";
-import { trace as mainnetReturnsDataTrace } from "../../../../fixture-debug-traces/mainnetReturnsDataTrace";
-import { trace as mainnetReturnsDataTraceGeth } from "../../../../fixture-debug-traces/mainnetReturnsDataTraceGeth";
-import { trace as mainnetRevertTrace } from "../../../../fixture-debug-traces/mainnetRevertTrace";
-import { trace as modifiesStateTrace } from "../../../../fixture-debug-traces/modifiesStateTrace";
-import { INFURA_URL } from "../../../../setup";
-import { assertInvalidInputError } from "../../helpers/assertions";
-import { FORK_TESTS_CACHE_PATH } from "../../helpers/constants";
-import { EXAMPLE_CONTRACT } from "../../helpers/contracts";
-import { setCWD } from "../../helpers/cwd";
+import { defaultHardhatNetworkParams } from "../../../../../../src/internal/core/config/default-config";
+import { BackwardsCompatibilityProviderAdapter } from "../../../../../../src/internal/core/providers/backwards-compatibility";
+import { ModulesLogger } from "../../../../../../src/internal/hardhat-network/provider/modules/logger";
+import { ForkConfig } from "../../../../../../src/internal/hardhat-network/provider/node-types";
+import { RpcDebugTraceOutput } from "../../../../../../src/internal/hardhat-network/provider/output";
+import { HardhatNetworkProvider } from "../../../../../../src/internal/hardhat-network/provider/provider";
+import { EthereumProvider } from "../../../../../../src/types";
+import { trace as mainnetPostLondonTxTrace } from "../../../../../fixture-debug-traces/mainnetPostLondonTxTrace";
+import { trace as mainnetReturnsDataTrace } from "../../../../../fixture-debug-traces/mainnetReturnsDataTrace";
+import { trace as mainnetReturnsDataTraceGeth } from "../../../../../fixture-debug-traces/mainnetReturnsDataTraceGeth";
+import { trace as mainnetRevertTrace } from "../../../../../fixture-debug-traces/mainnetRevertTrace";
+import { trace as modifiesStateTrace } from "../../../../../fixture-debug-traces/modifiesStateTrace";
+import { trace as elongatedMemoryRegressionTestTrace } from "../../../../../fixture-debug-traces/elongatedMemoryRegressionTestTrace";
+import { ALCHEMY_URL } from "../../../../../setup";
+import {
+  assertInvalidArgumentsError,
+  assertInvalidInputError,
+} from "../../../helpers/assertions";
+import { FORK_TESTS_CACHE_PATH } from "../../../helpers/constants";
+import { EXAMPLE_CONTRACT } from "../../../helpers/contracts";
+import { setCWD } from "../../../helpers/cwd";
 import {
   DEFAULT_ACCOUNTS,
   DEFAULT_ACCOUNTS_ADDRESSES,
@@ -26,14 +30,15 @@ import {
   DEFAULT_HARDFORK,
   DEFAULT_NETWORK_ID,
   PROVIDERS,
-} from "../../helpers/providers";
-import { sendDummyTransaction } from "../../helpers/sendDummyTransaction";
-import { deployContract } from "../../helpers/transactions";
-import { assertEqualTraces } from "../utils/assertEqualTraces";
+} from "../../../helpers/providers";
+import { sendDummyTransaction } from "../../../helpers/sendDummyTransaction";
+import { deployContract } from "../../../helpers/transactions";
+import { assertEqualTraces } from "../../utils/assertEqualTraces";
+import { numberToRpcQuantity } from "../../../../../../src/internal/core/jsonrpc/types/base-types";
 
-// temporarily skipped because the latest version of ethereumjs
+// TODO: temporarily skip some of the tests because the latest version of ethereumjs
 // sometimes wrongly adds dummy empty words in the memory field
-describe.skip("Debug module", function () {
+describe("Debug module", function () {
   PROVIDERS.forEach(({ name, useProvider }) => {
     describe(`${name} provider`, function () {
       setCWD();
@@ -68,6 +73,20 @@ describe.skip("Debug module", function () {
           });
         });
 
+        it("Should throw an error when the value passed as tracer is not supported", async function () {
+          await assertInvalidArgumentsError(
+            this.provider,
+            "debug_traceTransaction",
+            [
+              "0x1234567876543234567876543456765434567aeaeaed67616732632762762373",
+              {
+                tracer: "unsupportedTracer",
+              },
+            ],
+            "Hardhat currently only supports the default tracer, so no tracer parameter should be passed."
+          );
+        });
+
         it("Should return the right values for fake sender txs", async function () {
           const impersonatedAddress =
             "0xC014BA5EC014ba5ec014Ba5EC014ba5Ec014bA5E";
@@ -80,7 +99,7 @@ describe.skip("Debug module", function () {
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               to: impersonatedAddress,
-              value: "0x100",
+              value: numberToRpcQuantity(10n ** 18n),
             },
           ]);
 
@@ -153,6 +172,28 @@ describe.skip("Debug module", function () {
           });
         });
 
+        // Regression test, see issue: https://github.com/NomicFoundation/hardhat/issues/3858
+        it("The memory property should not have additional superfluous zeros", async function () {
+          // push0 push0 mstore push0
+          const bytecode = "0x5F5F525F";
+          const address = "0x1234567890123456789012345678901234567890";
+
+          await this.provider.send("hardhat_setCode", [address, bytecode]);
+
+          const tx = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[2],
+              to: address,
+            },
+          ]);
+
+          const trace = await this.provider.send("debug_traceTransaction", [
+            tx,
+          ]);
+
+          assertEqualTraces(trace, elongatedMemoryRegressionTestTrace);
+        });
+
         describe("berlin", function () {
           useProvider({ hardfork: "berlin" });
 
@@ -191,11 +232,11 @@ describe.skip("Debug module", function () {
     let provider: EthereumProvider;
 
     beforeEach(function () {
-      if (INFURA_URL === undefined) {
+      if (ALCHEMY_URL === undefined) {
         this.skip();
       }
       const forkConfig: ForkConfig = {
-        jsonRpcUrl: INFURA_URL!,
+        jsonRpcUrl: ALCHEMY_URL!,
         blockNumber: 11_954_000,
       };
 
@@ -219,6 +260,7 @@ describe.skip("Debug module", function () {
           forkConfig,
           forkCachePath: FORK_TESTS_CACHE_PATH,
           allowBlocksWithSameTimestamp: false,
+          enableTransientStorage: false,
         },
         logger
       );
@@ -315,11 +357,11 @@ describe.skip("Debug module", function () {
     let provider: EthereumProvider;
 
     beforeEach(function () {
-      if (INFURA_URL === undefined) {
+      if (ALCHEMY_URL === undefined) {
         this.skip();
       }
       const forkConfig: ForkConfig = {
-        jsonRpcUrl: INFURA_URL!,
+        jsonRpcUrl: ALCHEMY_URL!,
         blockNumber: 15_204_358,
       };
 
@@ -343,6 +385,7 @@ describe.skip("Debug module", function () {
           forkConfig,
           forkCachePath: FORK_TESTS_CACHE_PATH,
           allowBlocksWithSameTimestamp: false,
+          enableTransientStorage: false,
         },
         logger
       );

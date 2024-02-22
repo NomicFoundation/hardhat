@@ -307,8 +307,6 @@ Parameters:
 
 - `prevRandao`: The new PREVRANDAO value to use.
 
-## Other helpers
-
 ### `reset([url], [blockNumber])`
 
 Resets the Hardhat Network. The result of calling this method depends on which arguments are provided:

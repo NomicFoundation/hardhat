@@ -1,3 +1,7 @@
+const {
+  getNextUnsupportedVersion,
+} = require("../../internal/hardhat-network/stack-traces/compilers-list");
+
 module.exports = {
   solidity: {
     compilers: [
@@ -6,7 +10,7 @@ module.exports = {
       },
     ],
     overrides: {
-      "contracts/Foo.sol": { version: "0.8.19" },
+      "contracts/Foo.sol": { version: getNextUnsupportedVersion() },
     },
   },
 };

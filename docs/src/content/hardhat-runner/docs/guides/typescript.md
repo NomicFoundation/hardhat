@@ -80,7 +80,7 @@ yarn add --dev chai @types/node @types/mocha @types/chai
 
 You can easily turn a JavaScript Hardhat config file into a TypeScript one. Let's see how this is done starting with a fresh Hardhat project.
 
-Open your terminal, go to an empty folder, run `npx hardhat`, and go through the steps to create a JavaScript project. When you're done your project directory should look something like this:
+Open your terminal, go to an empty folder, run `npx hardhat init`, and go through the steps to create a JavaScript project. When you're done your project directory should look something like this:
 
 ```
 $ ls -l

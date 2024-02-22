@@ -1,22 +1,44 @@
 import type EthersT from "ethers";
+import type {
+  Addressable,
+  BaseContract,
+  BaseContractMethod,
+  BigNumberish,
+  ContractTransactionResponse,
+} from "ethers";
 
 import { buildAssert } from "../utils";
 import { ensure } from "./calledOnContract/utils";
-import { Account, getAddressOf } from "./misc/account";
+import { getAddressOf } from "./misc/account";
+import {
+  CHANGE_TOKEN_BALANCES_MATCHER,
+  CHANGE_TOKEN_BALANCE_MATCHER,
+} from "./constants";
+import { assertIsNotNull, preventAsyncMatcherChaining } from "./utils";
 
-type TransactionResponse = EthersT.providers.TransactionResponse;
+type TransactionResponse = EthersT.TransactionResponse;
 
-interface Token extends EthersT.Contract {
-  balanceOf(address: string, overrides?: any): Promise<EthersT.BigNumber>;
-}
+export type Token = BaseContract & {
+  balanceOf: BaseContractMethod<[string], bigint, bigint>;
+  name: BaseContractMethod<[], string, string>;
+  transfer: BaseContractMethod<
+    [string, BigNumberish],
+    boolean,
+    ContractTransactionResponse
+  >;
+  symbol: BaseContractMethod<[], string, string>;
+};
 
-export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
+export function supportChangeTokenBalance(
+  Assertion: Chai.AssertionStatic,
+  chaiUtils: Chai.ChaiUtils
+) {
   Assertion.addMethod(
-    "changeTokenBalance",
+    CHANGE_TOKEN_BALANCE_MATCHER,
     function (
       this: any,
       token: Token,
-      account: Account | string,
+      account: Addressable | string,
       balanceChange: EthersT.BigNumberish
     ) {
       const ethers = require("ethers") as typeof EthersT;
@@ -29,17 +51,23 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
         subject = subject();
       }
 
-      checkToken(token, "changeTokenBalance");
+      preventAsyncMatcherChaining(
+        this,
+        CHANGE_TOKEN_BALANCE_MATCHER,
+        chaiUtils
+      );
+
+      checkToken(token, CHANGE_TOKEN_BALANCE_MATCHER);
 
       const checkBalanceChange = ([actualChange, address, tokenDescription]: [
-        EthersT.BigNumber,
+        bigint,
         string,
         string
       ]) => {
         const assert = buildAssert(negated, checkBalanceChange);
 
         assert(
-          actualChange.eq(ethers.BigNumber.from(balanceChange)),
+          actualChange === ethers.toBigInt(balanceChange),
           `Expected the balance of ${tokenDescription} tokens for "${address}" to change by ${balanceChange.toString()}, but it changed by ${actualChange.toString()}`,
           `Expected the balance of ${tokenDescription} tokens for "${address}" NOT to change by ${balanceChange.toString()}, but it did`
         );
@@ -59,11 +87,11 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
   );
 
   Assertion.addMethod(
-    "changeTokenBalances",
+    CHANGE_TOKEN_BALANCES_MATCHER,
     function (
       this: any,
       token: Token,
-      accounts: Array<Account | string>,
+      accounts: Array<Addressable | string>,
       balanceChanges: EthersT.BigNumberish[]
     ) {
       const ethers = require("ethers") as typeof EthersT;
@@ -76,13 +104,13 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
         subject = subject();
       }
 
-      checkToken(token, "changeTokenBalances");
+      preventAsyncMatcherChaining(
+        this,
+        CHANGE_TOKEN_BALANCES_MATCHER,
+        chaiUtils
+      );
 
-      if (accounts.length !== balanceChanges.length) {
-        throw new Error(
-          `The number of accounts (${accounts.length}) is different than the number of expected balance changes (${balanceChanges.length})`
-        );
-      }
+      validateInput(this._obj, token, accounts, balanceChanges);
 
       const balanceChangesPromise = Promise.all(
         accounts.map((account) => getBalanceChange(subject, token, account))
@@ -93,12 +121,12 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
         actualChanges,
         addresses,
         tokenDescription,
-      ]: [EthersT.BigNumber[], string[], string]) => {
+      ]: [bigint[], string[], string]) => {
         const assert = buildAssert(negated, checkBalanceChanges);
 
         assert(
-          actualChanges.every((change, ind) =>
-            change.eq(ethers.BigNumber.from(balanceChanges[ind]))
+          actualChanges.every(
+            (change, ind) => change === ethers.toBigInt(balanceChanges[ind])
           ),
           `Expected the balances of ${tokenDescription} tokens for ${
             addresses as any
@@ -127,12 +155,34 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
   );
 }
 
+function validateInput(
+  obj: any,
+  token: Token,
+  accounts: Array<Addressable | string>,
+  balanceChanges: EthersT.BigNumberish[]
+) {
+  try {
+    checkToken(token, CHANGE_TOKEN_BALANCES_MATCHER);
+
+    if (accounts.length !== balanceChanges.length) {
+      throw new Error(
+        `The number of accounts (${accounts.length}) is different than the number of expected balance changes (${balanceChanges.length})`
+      );
+    }
+  } catch (e) {
+    // if the input validation fails, we discard the subject since it could
+    // potentially be a rejected promise
+    Promise.resolve(obj).catch(() => {});
+    throw e;
+  }
+}
+
 function checkToken(token: unknown, method: string) {
-  if (typeof token !== "object" || token === null || !("functions" in token)) {
+  if (typeof token !== "object" || token === null || !("interface" in token)) {
     throw new Error(
       `The first argument of ${method} must be the contract instance of the token`
     );
-  } else if ((token as any).functions.balanceOf === undefined) {
+  } else if ((token as any).interface.getFunction("balanceOf") === null) {
     throw new Error("The given contract instance is not an ERC20 token");
   }
 }
@@ -140,7 +190,7 @@ function checkToken(token: unknown, method: string) {
 export async function getBalanceChange(
   transaction: TransactionResponse | Promise<TransactionResponse>,
   token: Token,
-  account: Account | string
+  account: Addressable | string
 ) {
   const ethers = require("ethers") as typeof EthersT;
   const hre = await import("hardhat");
@@ -149,6 +199,7 @@ export async function getBalanceChange(
   const txResponse = await transaction;
 
   const txReceipt = await txResponse.wait();
+  assertIsNotNull(txReceipt, "txReceipt");
   const txBlockNumber = txReceipt.blockNumber;
 
   const block = await provider.send("eth_getBlockByHash", [
@@ -172,7 +223,7 @@ export async function getBalanceChange(
     blockTag: txBlockNumber - 1,
   });
 
-  return ethers.BigNumber.from(balanceAfter).sub(balanceBefore);
+  return ethers.toBigInt(balanceAfter) - balanceBefore;
 }
 
 let tokenDescriptionsCache: Record<string, string> = {};
@@ -182,8 +233,9 @@ let tokenDescriptionsCache: Record<string, string> = {};
  * exist, the address of the token is used.
  */
 async function getTokenDescription(token: Token): Promise<string> {
-  if (tokenDescriptionsCache[token.address] === undefined) {
-    let tokenDescription = `<token at ${token.address}>`;
+  const tokenAddress = await token.getAddress();
+  if (tokenDescriptionsCache[tokenAddress] === undefined) {
+    let tokenDescription = `<token at ${tokenAddress}>`;
     try {
       tokenDescription = await token.symbol();
     } catch (e) {
@@ -192,10 +244,10 @@ async function getTokenDescription(token: Token): Promise<string> {
       } catch (e2) {}
     }
 
-    tokenDescriptionsCache[token.address] = tokenDescription;
+    tokenDescriptionsCache[tokenAddress] = tokenDescription;
   }
 
-  return tokenDescriptionsCache[token.address];
+  return tokenDescriptionsCache[tokenAddress];
 }
 
 // only used by tests

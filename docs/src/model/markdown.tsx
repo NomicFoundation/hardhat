@@ -103,6 +103,31 @@ export const withoutComments = (content: string) => {
   return content.replace(/<!--[\s\S]*?-->/gm, "");
 };
 
+export const replacePlaceholders = (content: string) => {
+  const recommendedSolcVersion = "0.8.23";
+  const latestPragma = "^0.8.0";
+  const hardhatPackageJson = fs
+    .readFileSync(
+      path.resolve(
+        __dirname,
+        "..",
+        "..",
+        "..",
+        "..",
+        "packages",
+        "hardhat-core",
+        "package.json"
+      )
+    )
+    .toString();
+  const hardhatVersion = JSON.parse(hardhatPackageJson).version;
+
+  return content
+    .replaceAll("{RECOMMENDED_SOLC_VERSION}", recommendedSolcVersion)
+    .replaceAll("{LATEST_PRAGMA}", latestPragma)
+    .replaceAll("{HARDHAT_VERSION}", hardhatVersion);
+};
+
 export const readMDFileFromPathOrIndex = (
   fileName: string
 ): { source: string; fileName: string } => {
@@ -201,7 +226,9 @@ export const generateTitleFromContent = (content: string) => {
 
 export const parseMdFile = (source: string) => {
   const { content, data } = matter(source);
-  const formattedContent = withoutComments(withInsertedCodeFromLinks(content));
+  const formattedContent = replacePlaceholders(
+    withoutComments(withInsertedCodeFromLinks(content))
+  );
 
   const tocTitle = data.title ?? generateTitleFromContent(formattedContent);
   const seoTitle = tocTitle || "Hardhat";

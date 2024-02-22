@@ -1,6 +1,11 @@
-import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+import {
+  time,
+  loadFixture,
+} from "@nomicfoundation/hardhat-toolbox/network-helpers.js";
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs.js";
-import { expect } from "chai";
+import chai from "chai";
+
+const { expect } = chai;
 
 describe("Lock", function () {
   // We define a fixture to reuse the same setup in every test.
@@ -40,7 +45,7 @@ describe("Lock", function () {
         deployOneYearLockFixture
       );
 
-      expect(await ethers.provider.getBalance(lock.address)).to.equal(
+      expect(await ethers.provider.getBalance(lock.target)).to.equal(
         lockedAmount
       );
     });

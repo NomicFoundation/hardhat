@@ -6,4 +6,5 @@ import "../../../builtin-tasks/flatten";
 import "../../../builtin-tasks/help";
 import "../../../builtin-tasks/node";
 import "../../../builtin-tasks/run";
+import "../../../builtin-tasks/vars";
 import "../../../builtin-tasks/test";

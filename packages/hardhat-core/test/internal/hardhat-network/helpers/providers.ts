@@ -126,11 +126,11 @@ export const FORKED_PROVIDERS: Array<{
   useProvider: (options?: UseProviderOptions) => void;
 }> = [];
 
-if (INFURA_URL !== undefined) {
-  const url = INFURA_URL;
+if (ALCHEMY_URL !== undefined) {
+  const url = ALCHEMY_URL;
 
   PROVIDERS.push({
-    name: "Infura Forked",
+    name: "Alchemy Forked",
     isFork: true,
     isJsonRpc: false,
     networkId: DEFAULT_NETWORK_ID,
@@ -146,7 +146,7 @@ if (INFURA_URL !== undefined) {
   });
 
   INTERVAL_MINING_PROVIDERS.push({
-    name: "Infura Forked",
+    name: "Alchemy Forked",
     isFork: true,
     isJsonRpc: false,
     useProvider: (options: UseProviderOptions = {}) => {
@@ -165,7 +165,7 @@ if (INFURA_URL !== undefined) {
   });
 
   FORKED_PROVIDERS.push({
-    rpcProvider: "Infura",
+    rpcProvider: "Alchemy",
     jsonRpcUrl: url,
     useProvider: (options: UseProviderOptions = {}) => {
       useProvider({
@@ -178,11 +178,11 @@ if (INFURA_URL !== undefined) {
   });
 }
 
-if (ALCHEMY_URL !== undefined) {
-  const url = ALCHEMY_URL;
+if (INFURA_URL !== undefined) {
+  const url = INFURA_URL;
 
   FORKED_PROVIDERS.push({
-    rpcProvider: "Alchemy",
+    rpcProvider: "Infura",
     jsonRpcUrl: url,
     useProvider: (options: UseProviderOptions = {}) => {
       useProvider({

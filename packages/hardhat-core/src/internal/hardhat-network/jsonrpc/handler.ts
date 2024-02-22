@@ -18,7 +18,7 @@ import {
   JsonRpcResponse,
 } from "../../util/jsonrpc";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 export class JsonRpcHandler {
   constructor(private readonly _provider: EIP1193Provider) {}
@@ -214,7 +214,7 @@ const _readJsonHttpRequest = async (req: IncomingMessage): Promise<any> => {
       throw new InvalidJsonInputError(`Parse error: ${error.message}`);
     }
 
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
     throw error;
   }
 
@@ -230,7 +230,7 @@ const _readWsRequest = (msg: string): JsonRpcRequest | JsonRpcRequest[] => {
       throw new InvalidJsonInputError(`Parse error: ${error.message}`);
     }
 
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
     throw error;
   }
 

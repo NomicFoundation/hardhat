@@ -16,3 +16,4 @@
 /test/internal/hardhat-network/stack-traces/test-files/**/artifacts
 /.nyc_output
 CHANGELOG.md
+!.eslintrc.js

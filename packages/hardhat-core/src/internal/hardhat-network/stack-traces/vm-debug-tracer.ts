@@ -16,7 +16,7 @@ import { InvalidInputError } from "../../core/providers/errors";
 import { RpcDebugTraceOutput, RpcStructLog } from "../provider/output";
 import * as BigIntUtils from "../../util/bigint";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 interface StructLog {
   depth: number;
@@ -280,10 +280,12 @@ export class VMDebugTracer {
           "There shouldn't be two messages one after another"
         );
 
-        // the increase in memory size of a revert is immediately
-        // reflected, so we don't treat it as a memory expansion
-        // of the previous step
-        if (structLog.op !== "REVERT") {
+        // memory opcodes reflect the expanded memory in that step,
+        // so we correct them
+        if (
+          previousStructLog.op === "MSTORE" ||
+          previousStructLog.op === "MLOAD"
+        ) {
           const memoryLengthDifference =
             structLog.memory.length - previousStructLog.memory.length;
           for (let k = 0; k < memoryLengthDifference; k++) {
@@ -315,13 +317,13 @@ export class VMDebugTracer {
   }
 
   private _getMemory(step: InterpreterStep): string[] {
-    const memory = Buffer.from(step.memory)
-      .toString("hex")
-      .match(/.{1,64}/g);
+    const rawMemory =
+      Buffer.from(step.memory)
+        .toString("hex")
+        .match(/.{1,64}/g) ?? [];
 
-    const result = memory === null ? [] : [...memory];
-
-    return result;
+    // Remove the additional non allocated memory
+    return rawMemory.slice(0, Number(step.memoryWordCount));
   }
 
   private _getStack(step: InterpreterStep): string[] {

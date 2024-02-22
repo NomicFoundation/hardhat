@@ -6,28 +6,32 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-without-yarn-lock:
-    name: Test without yarn.lock
+  test-without-pnpm-lock-yaml:
+    name: Test without pnpm-lock.yaml
     strategy:
       matrix:
         system: ["ubuntu-latest", "windows-latest"]
     runs-on: ${{ matrix.system }}
     steps:
+      - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - uses: actions/setup-node@v2
         with:
-          node-version: 14
-      - uses: actions/checkout@v2
-      - name: Delete yarn.lock
-        run: "rm yarn.lock"
+          node-version: 16
+          cache: "pnpm"
+      - name: Delete pnpm-lock.yaml
+        run: "rm pnpm-lock.yaml"
       - name: Install
-        run: yarn
+        run: pnpm install --no-frozen-lockfile
       - name: List dependencies
-        run: yarn list
+        run: pnpm list -r --depth 2
       - name: Run tests
         env:
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
-        run: yarn test || (echo "===== Retry =====" && yarn test)
+        run: pnpm test || (echo "===== Retry =====" && pnpm test)
       - name: Notify failures
         if: failure()
         uses: slackapi/slack-github-action@v1.18.0

@@ -4,7 +4,6 @@ module.exports = {
     project: "./tsconfig.json",
   },
   extends: [
-    `${__dirname}/../config/eslint/eslintrc.js`,
     "airbnb",
     "airbnb-typescript",
     "next/core-web-vitals",

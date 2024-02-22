@@ -90,8 +90,8 @@ This package provides the predicates `anyValue` and `anyUint`, but you can easil
 
 <!-- prettier-ignore -->
 ```js
-function isEven(x: BigNumber): boolean {
-  return x.mod(2).isZero();
+function isEven(x: bigint): boolean {
+  return x % 2n === 0n;
 }
 
 await expect(contract.emitUint(2))
@@ -175,7 +175,7 @@ This package enhances the standard numerical equality matchers (`equal`, `above`
 expect(await token.balanceOf(someAddress)).to.equal(1);
 ```
 
-These matchers support not just [ethers' `BigNumber`](https://docs.ethers.io/v5/single-page/#/v5/api/utils/bignumber/) and the native JavaScript `Number`, but also [`BigInt`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt), [bn.js](https://github.com/indutny/bn.js/), and [bignumber.js](https://github.com/MikeMcl/bignumber.js/).
+These matchers support not just the native JavaScript `Number`, but also [`BigInt`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt), [bn.js](https://github.com/indutny/bn.js/), and [bignumber.js](https://github.com/MikeMcl/bignumber.js/).
 
 ### Balance Changes
 
@@ -235,6 +235,10 @@ Finally, the `hexEqual` matcher accepts two hexadecimal strings and compares the
 ```js
 expect("0x00012AB").to.hexEqual("0x12ab");
 ```
+
+## Known limitations
+
+At the moment, some of these chai matchers only work correctly when Hardhat is running in [automine mode](/hardhat-network/docs/explanation/mining-modes). See [this issue](https://github.com/NomicFoundation/hardhat/issues/3203) for more details.
 
 ## Dig Deeper
 

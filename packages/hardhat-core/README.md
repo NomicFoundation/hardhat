@@ -19,7 +19,7 @@ npm install --save-dev hardhat
 Once it's installed, just run this command and follow its instructions:
 
 ```
-npx hardhat
+npx hardhat init
 ```
 
 ## Documentation

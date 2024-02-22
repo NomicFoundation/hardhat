@@ -78,7 +78,18 @@ export class Artifacts implements IArtifacts {
   }
 
   public async artifactExists(name: string): Promise<boolean> {
-    const artifactPath = await this._getArtifactPath(name);
+    let artifactPath;
+    try {
+      artifactPath = await this._getArtifactPath(name);
+    } catch (e) {
+      if (HardhatError.isHardhatError(e)) {
+        return false;
+      }
+
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+      throw e;
+    }
+
     return fsExtra.pathExists(artifactPath);
   }
 
@@ -143,14 +154,8 @@ export class Artifacts implements IArtifacts {
       return cached;
     }
 
-    const buildInfosDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
-
-    const paths = await getAllFilesMatching(
-      this._artifactsPath,
-      (f) =>
-        f.endsWith(".json") &&
-        !f.startsWith(buildInfosDir) &&
-        !f.endsWith(".dbg.json")
+    const paths = await getAllFilesMatching(this._artifactsPath, (f) =>
+      this._isArtifactPath(f)
     );
 
     const result = paths.sort();
@@ -407,6 +412,7 @@ export class Artifacts implements IArtifacts {
 
   /**
    * Returns the absolute path to the given artifact
+   * @throws {HardhatError} If the name is not fully qualified.
    */
   public formArtifactPathFromFullyQualifiedName(
     fullyQualifiedName: string
@@ -444,8 +450,6 @@ export class Artifacts implements IArtifacts {
         const buildInfoFile = await this._getBuildInfoFromDebugFile(debugFile);
         if (buildInfoFile !== undefined) {
           return path.resolve(path.dirname(debugFile), buildInfoFile);
-        } else {
-          return undefined;
         }
       })
     );
@@ -492,6 +496,11 @@ export class Artifacts implements IArtifacts {
    * If the name is fully qualified, the path is computed from it.  If not, an
    * artifact that matches the given name is searched in the existing artifacts.
    * If there is an ambiguity, an error is thrown.
+   *
+   * @throws {HardhatError} with descriptor:
+   * - {@link ERRORS.ARTIFACTS.WRONG_CASING} if the path case doesn't match the one in the filesystem.
+   * - {@link ERRORS.ARTIFACTS.MULTIPLE_FOUND} if there are multiple artifacts matching the given contract name.
+   * - {@link ERRORS.ARTIFACTS.NOT_FOUND} if the artifact is not found.
    */
   private async _getArtifactPath(name: string): Promise<string> {
     const cached = this._cache?.artifactNameToArtifactPathCache.get(name);
@@ -548,14 +557,8 @@ export class Artifacts implements IArtifacts {
       return cached;
     }
 
-    const buildInfosDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
-
-    const paths = getAllFilesMatchingSync(
-      this._artifactsPath,
-      (f) =>
-        f.endsWith(".json") &&
-        !f.startsWith(buildInfosDir) &&
-        !f.endsWith(".dbg.json")
+    const paths = getAllFilesMatchingSync(this._artifactsPath, (f) =>
+      this._isArtifactPath(f)
     );
 
     const result = paths.sort();
@@ -605,6 +608,16 @@ export class Artifacts implements IArtifacts {
     return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
   }
 
+  /**
+   * Returns the absolute path to the artifact that corresponds to the given
+   * fully qualified name.
+   * @param fullyQualifiedName The fully qualified name of the contract.
+   * @returns The absolute path to the artifact.
+   * @throws {HardhatError} with descriptor:
+   * - {@link ERRORS.CONTRACT_NAMES.INVALID_FULLY_QUALIFIED_NAME} If the name is not fully qualified.
+   * - {@link ERRORS.ARTIFACTS.WRONG_CASING} If the path case doesn't match the one in the filesystem.
+   * - {@link ERRORS.ARTIFACTS.NOT_FOUND} If the artifact is not found.
+   */
   private async _getValidArtifactPathFromFullyQualifiedName(
     fullyQualifiedName: string
   ): Promise<string> {
@@ -635,7 +648,7 @@ export class Artifacts implements IArtifacts {
         );
       }
 
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw e;
     }
   }
@@ -668,6 +681,9 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     }
   }
 
+  /**
+   * @throws {HardhatError} with a list of similar contract names.
+   */
   private _handleWrongArtifactForFullyQualifiedName(
     fullyQualifiedName: string
   ): never {
@@ -684,6 +700,9 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     });
   }
 
+  /**
+   * @throws {HardhatError} with a list of similar contract names.
+   */
   private _handleWrongArtifactForContractName(
     contractName: string,
     files: string[]
@@ -806,7 +825,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
         );
       }
 
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw e;
     }
   }
@@ -815,6 +834,12 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     return artifactPath.replace(/\.json$/, ".dbg.json");
   }
 
+  /**
+   * Gets the path to the artifact file for the given contract name.
+   * @throws {HardhatError} with descriptor:
+   * - {@link ERRORS.ARTIFACTS.NOT_FOUND} if there are no artifacts matching the given contract name.
+   * - {@link ERRORS.ARTIFACTS.MULTIPLE_FOUND} if there are multiple artifacts matching the given contract name.
+   */
   private _getArtifactPathFromFiles(
     contractName: string,
     files: string[]
@@ -859,20 +884,14 @@ Please replace "${contractName}" for the correct contract name wherever you are 
   }
 
   /**
-   * Remove the artifact file, its debug file and, if it exists, its build
-   * info file.
+   * Remove the artifact file and its debug file.
    */
   private async _removeArtifactFiles(artifactPath: string) {
     await fsExtra.remove(artifactPath);
 
     const debugFilePath = this._getDebugFilePath(artifactPath);
-    const buildInfoPath = await this._getBuildInfoFromDebugFile(debugFilePath);
 
     await fsExtra.remove(debugFilePath);
-
-    if (buildInfoPath !== undefined) {
-      await fsExtra.remove(buildInfoPath);
-    }
   }
 
   /**
@@ -902,6 +921,15 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     }
 
     return undefined;
+  }
+
+  private _isArtifactPath(file: string) {
+    return (
+      file.endsWith(".json") &&
+      file !== path.join(this._artifactsPath, "package.json") &&
+      !file.startsWith(path.join(this._artifactsPath, BUILD_INFO_DIR_NAME)) &&
+      !file.endsWith(".dbg.json")
+    );
   }
 }
 

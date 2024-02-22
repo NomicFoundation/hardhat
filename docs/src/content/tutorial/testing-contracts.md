@@ -4,7 +4,7 @@ Writing automated tests when building smart contracts is of crucial importance, 
 
 To test our contract, we are going to use Hardhat Network, a local Ethereum network designed for development. It comes built-in with Hardhat, and it's used as the default network. You don't need to setup anything to use it.
 
-In our tests we're going to use [ethers.js](https://docs.ethers.io/v5/) to interact with the Ethereum contract we built in the previous section, and we'll use [Mocha](https://mochajs.org/) as our test runner.
+In our tests we're going to use [ethers.js](https://docs.ethers.org/v6/) to interact with the Ethereum contract we built in the previous section, and we'll use [Mocha](https://mochajs.org/) as our test runner.
 
 ## Writing tests
 
@@ -19,9 +19,7 @@ describe("Token contract", function () {
   it("Deployment should assign the total supply of tokens to the owner", async function () {
     const [owner] = await ethers.getSigners();
 
-    const Token = await ethers.getContractFactory("Token");
-
-    const hardhatToken = await Token.deploy();
+    const hardhatToken = await ethers.deployContract("Token");
 
     const ownerBalance = await hardhatToken.balanceOf(owner.address);
     expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
@@ -57,21 +55,15 @@ const { ethers } = require("hardhat");
 
 :::tip
 
-To learn more about `Signer`, you can look at the [Signers documentation](https://docs.ethers.io/v5/api/signer/).
+To learn more about `Signer`, you can look at the [Signers documentation](https://docs.ethers.org/v6/api/providers/#Signer).
 
 :::
 
 ```js
-const Token = await ethers.getContractFactory("Token");
+const hardhatToken = await ethers.deployContract("Token");
 ```
 
-A `ContractFactory` in ethers.js is an abstraction used to deploy new smart contracts, so `Token` here is a factory for instances of our token contract.
-
-```js
-const hardhatToken = await Token.deploy();
-```
-
-Calling `deploy()` on a `ContractFactory` will start the deployment, and return a `Promise` that resolves to a `Contract`. This is the object that has a method for each of your smart contract functions.
+Calling `ethers.deployContract("Token")` will start the deployment of our token contract, and return a `Promise` that resolves to a `Contract`. This is the object that has a method for each of your smart contract functions.
 
 ```js
 const ownerBalance = await hardhatToken.balanceOf(owner.address);
@@ -79,7 +71,7 @@ const ownerBalance = await hardhatToken.balanceOf(owner.address);
 
 Once the contract is deployed, we can call our contract methods on `hardhatToken`. Here we get the balance of the owner account by calling the contract's `balanceOf()` method.
 
-Recall that the account that deploys the token gets its entire supply. By default, `ContractFactory` and `Contract` instances are connected to the first signer. This means that the account in the `owner` variable executed the deployment, and `balanceOf()` should return the entire supply amount.
+Recall that the account that deploys the token gets its entire supply. By default, `Contract` instances are connected to the first signer. This means that the account in the `owner` variable executed the deployment, and `balanceOf()` should return the entire supply amount.
 
 ```js
 expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
@@ -93,7 +85,7 @@ To do this we're using [Chai](https://www.chaijs.com/) which is a popular JavaSc
 
 If you need to test your code by sending a transaction from an account (or `Signer` in ethers.js terminology) other than the default one, you can use the `connect()` method on your ethers.js `Contract` object to connect it to a different account, like this:
 
-```js{18}
+```js{16}
 const { expect } = require("chai");
 
 describe("Token contract", function () {
@@ -102,9 +94,7 @@ describe("Token contract", function () {
   it("Should transfer tokens between accounts", async function() {
     const [owner, addr1, addr2] = await ethers.getSigners();
 
-    const Token = await ethers.getContractFactory("Token");
-
-    const hardhatToken = await Token.deploy();
+    const hardhatToken = await ethers.deployContract("Token");
 
     // Transfer 50 tokens from owner to addr1
     await hardhatToken.transfer(addr1.address, 50);
@@ -124,20 +114,19 @@ The two tests that we wrote begin with their setup, which in this case means dep
 You can avoid code duplication and improve the performance of your test suite by using **fixtures**. A fixture is a setup function that is run only the first time it's invoked. On subsequent invocations, instead of re-running it, Hardhat will reset the state of the network to what it was at the point after the fixture was initially executed.
 
 ```js
-const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
+const {
+  loadFixture,
+} = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { expect } = require("chai");
 
 describe("Token contract", function () {
   async function deployTokenFixture() {
-    const Token = await ethers.getContractFactory("Token");
     const [owner, addr1, addr2] = await ethers.getSigners();
 
-    const hardhatToken = await Token.deploy();
-
-    await hardhatToken.deployed();
+    const hardhatToken = await ethers.deployContract("Token");
 
     // Fixtures can return anything you consider useful for your tests
-    return { Token, hardhatToken, owner, addr1, addr2 };
+    return { hardhatToken, owner, addr1, addr2 };
   }
 
   it("Should assign the total supply of tokens to the owner", async function () {
@@ -184,7 +173,9 @@ const { expect } = require("chai");
 // We use `loadFixture` to share common setups (or fixtures) between tests.
 // Using this simplifies your tests and makes them run faster, by taking
 // advantage of Hardhat Network's snapshot functionality.
-const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
+const {
+  loadFixture,
+} = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 
 // `describe` is a Mocha function that allows you to organize your tests.
 // Having your tests organized makes debugging them easier. All Mocha
@@ -198,19 +189,18 @@ describe("Token contract", function () {
   // loadFixture to run this setup once, snapshot that state, and reset Hardhat
   // Network to that snapshot in every test.
   async function deployTokenFixture() {
-    // Get the ContractFactory and Signers here.
-    const Token = await ethers.getContractFactory("Token");
+    // Get the Signers here.
     const [owner, addr1, addr2] = await ethers.getSigners();
 
-    // To deploy our contract, we just have to call Token.deploy() and await
-    // its deployed() method, which happens once its transaction has been
+    // To deploy our contract, we just have to call ethers.deployContract and await
+    // its waitForDeployment() method, which happens once its transaction has been
     // mined.
-    const hardhatToken = await Token.deploy();
+    const hardhatToken = await ethers.deployContract("Token");
 
-    await hardhatToken.deployed();
+    await hardhatToken.waitForDeployment();
 
     // Fixtures can return anything you consider useful for your tests
-    return { Token, hardhatToken, owner, addr1, addr2 };
+    return { hardhatToken, owner, addr1, addr2 };
   }
 
   // You can nest describe calls to create subsections.
@@ -299,14 +289,14 @@ This is what the output of `npx hardhat test` should look like against the full 
 ```
 $ npx hardhat test
 
-  Token contract
+ Token contract
     Deployment
-      ✓ Should set the right owner
-      ✓ Should assign the total supply of tokens to the owner
+      ✔ Should set the right owner (889ms)
+      ✔ Should assign the total supply of tokens to the owner
     Transactions
-      ✓ Should transfer tokens between accounts (199ms)
-      ✓ Should fail if sender doesn’t have enough tokens
-      ✓ Should update balances after transfers (111ms)
+      ✔ Should transfer tokens between accounts (121ms)
+      ✔ Should emit Transfer events
+      ✔ Should fail if sender doesn't have enough tokens (74ms)
 
 
   5 passing (1s)

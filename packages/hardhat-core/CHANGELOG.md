@@ -1,5 +1,153 @@
 # hardhat
 
+## 2.19.4
+
+### Patch Changes
+
+- 7aea77e49: Report telemetry consent response to Google Analytics
+
+## 2.19.3
+
+### Patch Changes
+
+- 3f282db50: Added support for solc 0.8.23
+- fa2f0fba7: Added a temporary message about the 2023 Solidtiy Developer Survey
+
+## 2.19.2
+
+### Patch Changes
+
+- b475fc49c: Modified the artifacts cleanup logic to avoid removing a `package.json` file under the artifacts directory
+- c3aad2c55: Added support for scopes in hh autocomplete.
+- 4bc6a2726: Added experimental support for using ESM modules with TypeScript
+
+## 2.19.1
+
+### Patch Changes
+
+- 23665f399: Upgraded toolboxes versions used in project initialization
+- 106235cb0: Fixed an issue in low-traffic chains that resulted in txs using a `maxPriorityFeePerGas` of 0
+- c52a5d653: Added logic to avoid downloading the same compiler version multiple times
+- b46ccf46d: Updated the `.gitignore` files generated during project initialization to use relative paths
+
+## 2.19.0
+
+### Minor Changes
+
+- 27f3d6355: Added support for configuration variables management
+
+### Patch Changes
+
+- f2f67df3c: Added support for solc 0.8.22
+
+## 2.18.3
+
+### Patch Changes
+
+- bddfcff8d: Send GA hits for `ignition deploy` tasks
+
+## 2.18.2
+
+### Patch Changes
+
+- abca5abaf: Fixed the compiler download, which broke with the latest version of undici
+
+## 2.18.1
+
+### Patch Changes
+
+- b77b665fd: Added a viem option to the project initialization
+- 03edea678: Updated the compilation logs to include the targeted EVM versions.
+
+## 2.18.0
+
+### Minor Changes
+
+- 9412419b8: Added support for scoped tasks
+
+### Patch Changes
+
+- e95e954b4: Report issues from `@nomicfoundation` npm scope
+
+## 2.17.4
+
+### Patch Changes
+
+- 11e58f67c: Added an explicit command `hardhat init` to initialize projects, and deprecated project initialization with just `hardhat`.
+- 8388720ea: Added support for the RPC method debug_traceCall.
+
+## 2.17.3
+
+### Patch Changes
+
+- c03c710ad: Set the default evmVersion to paris for solc versions that are greater than or equal to 0.8.20.
+
+## 2.17.2
+
+### Patch Changes
+
+- ee9d2ff06: Added support for state overrides in the RPC Method eth_call
+- c00c689ae: Removed the superfluous zeros that were returned in the `memory` property when calling the `debug_traceTransaction` method.
+- 7084d32e2: Deprecated the `TASK_COMPILE_TRANSFORM_IMPORT_NAME` subtask, added a new `TASK_COMPILE_GET_REMAPPINGS` subtask, and added support for remappings in the resolver.
+- fa41db82b: Added an `enableTransientStorage` option to enable EIP-1153 opcodes
+- 8ae64478d: Fixed an issue where artifactExists would throw an error for missing artifacts.
+- 45f49ae20: Improved error message displayed when importing a directory instead of a file.
+- 3ea6c5237: Fixed a problem with receipts of remote transactions returning the wrong tx type when fetched through a fork.
+
+## 2.17.1
+
+### Patch Changes
+
+- 8f50ab814: Removed the `abort-controller` dependency as it's not longer needed. Thanks @orlandoortegajr!
+- 951906da2: Improved the flatten task to handle SPDX licenses and pragma directives more effectively.
+- e4424e3ad: Added support for solc 0.8.21
+- fff90bb6e: `console.log` now works in `pure` functions. Thanks @0age for coming up with this technique!
+- 9fe89ef96: Fixed a bug caused by nodes returning 429 responses without a `Retry-After` header (thanks @kowalski!)
+- 6390230b7: Added logic to throw an error when the debug_traceTransaction method is called with a tracer parameter that is not supported.
+
+## 2.17.0
+
+### Minor Changes
+
+- 01f1e3f7e: Dropped support for node v14 and added support for node v20
+
+### Patch Changes
+
+- 092b77140: Added logic to use the latest block as the forking block if the difference between the latest block and the max reorganization block is negative. This decision is based on the assumption that if the max reorganization block is greater than the latest block then there is a high probability that the fork is occurring on a devnet.
+- 2b0ac92a3: Fixed an issue in the compilation pipeline where a valid build-info file was mistakenly deleted
+- c0aa10c2d: Added support for solc 0.8.19 and 0.8.20
+
+## 2.16.1
+
+### Patch Changes
+
+- 68cf2a273: Fixed an issue related to compiler downloads in node v18.16.x
+
+## 2.16.0
+
+### Minor Changes
+
+- 8c5f3f3bc: Added support for extending the network provider
+
+### Patch Changes
+
+- 128b0a0de: Added a HARDHAT_DISABLE_TELEMETRY_PROMPT environment variable that can be set to `true` to prevent Hardhat from showing the telemetry consent prompt.
+- 27a5cda59: Migrated Google Universal Analytics to Google Analytics 4
+- c115dfd21: `console.sol` is now memory-safe (thanks @ZumZoom!)
+- c61fd8ac0: Added optional params to some compilation subtasks to make them more flexible (thanks @adjisb!)
+
+## 2.15.0
+
+### Minor Changes
+
+- 99995d53b: The sample projects now use the new version of the Toolbox
+
+## 2.14.1
+
+### Patch Changes
+
+- e99498638: Added block numbers for all mainnet hardforks
+
 ## 2.14.0
 
 ### Minor Changes

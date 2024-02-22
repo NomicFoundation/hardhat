@@ -22,6 +22,7 @@ export function isFullyQualifiedName(name: string): boolean {
  * Parses a fully qualified name.
  *
  * @param fullyQualifiedName It MUST be a fully qualified name.
+ * @throws {HardhatError} If the name is not fully qualified.
  */
 export function parseFullyQualifiedName(fullyQualifiedName: string): {
   sourceName: string;

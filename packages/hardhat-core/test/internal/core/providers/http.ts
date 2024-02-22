@@ -4,8 +4,6 @@ import { MockAgent, MockPool } from "undici";
 import { HttpProvider } from "../../../../src/internal/core/providers/http";
 import { SuccessfulJsonRpcResponse } from "../../../../src/internal/util/jsonrpc";
 
-import { expectErrorAsync } from "../../../helpers/errors";
-
 const TOO_MANY_REQUEST_STATUS = 429;
 
 function makeMockPool(url: string): MockPool {
@@ -40,16 +38,26 @@ describe("HttpProvider", function () {
       assert.equal(result, successResponse.result);
     });
 
-    it("should throw upon receiving a rate-limit response that lacks a retry-after header", async function () {
+    it("should retry even if the rate-limit response lacks a retry-after header", async function () {
       const mockPool = makeMockPool(url);
+      let tooManyRequestsReturned = false;
+      mockPool.intercept({ method: "POST", path: "/" }).reply(() => {
+        tooManyRequestsReturned = true;
+        return {
+          statusCode: TOO_MANY_REQUEST_STATUS,
+          data: "",
+          responseOptions: { headers: {} },
+        };
+      });
       mockPool
         .intercept({ method: "POST", path: "/" })
-        .reply(TOO_MANY_REQUEST_STATUS, {});
+        .reply(200, successResponse);
       const provider = new HttpProvider(url, networkName, {}, 20000, mockPool);
-      await expectErrorAsync(async () => {
-        await provider.request({ method: "net_version" });
-      }, `Too Many Requests error received from ${new URL(url).hostname}`);
+      const result = await provider.request({ method: "net_version" });
+      assert.equal(result, successResponse.result);
+      assert(tooManyRequestsReturned);
     });
+
     it("should retry upon receiving a rate-limit response that includes a retry-after header", async function () {
       const mockPool = makeMockPool(url);
       let tooManyRequestsReturned = false;

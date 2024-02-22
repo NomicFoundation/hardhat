@@ -1,10 +1,15 @@
 import fs from "fs";
 import path from "path";
-import sinon from "sinon";
+import sinon, { SinonStub } from "sinon";
 import { assert, expect } from "chai";
 import { TASK_CLEAN, TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { SolcConfig } from "hardhat/types/config";
-import { TASK_VERIFY, TASK_VERIFY_VERIFY } from "../../src/task-names";
+import {
+  TASK_VERIFY,
+  TASK_VERIFY_ETHERSCAN,
+  TASK_VERIFY_VERIFY,
+  TASK_VERIFY_SOURCIFY,
+} from "../../src/internal/task-names";
 import { deployContract, getRandomAddress, useEnvironment } from "../helpers";
 import {
   interceptGetStatus,
@@ -12,23 +17,37 @@ import {
   interceptVerify,
   mockEnvironment,
 } from "./mocks/etherscan";
+import {
+  interceptSourcifyIsVerified,
+  interceptSourcifyVerify,
+  mockEnvironmentSourcify,
+} from "./mocks/sourcify";
 
-import "../../src/type-extensions";
+import "../../src/internal/type-extensions";
 
 describe("verify task integration tests", () => {
   useEnvironment("hardhat-project");
   mockEnvironment();
 
+  // suppress sourcify info message
+  let consoleInfoStub: SinonStub;
+  before(() => {
+    consoleInfoStub = sinon.stub(console, "info");
+  });
+
+  // suppress warnings
+  after(() => {
+    consoleInfoStub.restore();
+  });
+
   it("should return after printing the supported networks", async function () {
     const logStub = sinon.stub(console, "log");
     const taskResponse = await this.hre.run(TASK_VERIFY, {
-      address: getRandomAddress(this.hre),
-      constructorArgsParams: [],
       listNetworks: true,
     });
 
     expect(logStub).to.be.calledOnceWith(
-      sinon.match(/Networks supported by hardhat-etherscan/)
+      sinon.match(/Networks supported by hardhat-verify/)
     );
     logStub.restore();
     assert.isUndefined(taskResponse);
@@ -40,17 +59,18 @@ describe("verify task integration tests", () => {
     // cleanup the etherscan config since we have hardhat defined as custom chain
     const originalConfig = this.hre.config.etherscan;
     this.hre.config.etherscan = {
+      enabled: true,
       apiKey: "",
       customChains: [],
     };
 
     await expect(
-      this.hre.run(TASK_VERIFY, {
+      this.hre.run(TASK_VERIFY_ETHERSCAN, {
         address,
         constructorArgsParams: [],
       })
     ).to.be.rejectedWith(
-      "The selected network is hardhat. Please select a network supported by Etherscan."
+      /The selected network is "hardhat", which is not supported for contract verification./
     );
 
     this.hre.config.etherscan = originalConfig;
@@ -65,13 +85,13 @@ describe("verify task integration tests", () => {
       const logStub = sinon.stub(console, "log");
       const address = getRandomAddress(this.hre);
 
-      const taskResponse = await this.hre.run(TASK_VERIFY, {
+      const taskResponse = await this.hre.run(TASK_VERIFY_ETHERSCAN, {
         address,
         constructorArgsParams: [],
       });
 
       expect(logStub).to.be.calledOnceWith(
-        `The contract ${address} has already been verified.
+        `The contract ${address} has already been verified on Etherscan.
 https://hardhat.etherscan.io/address/${address}#code`
       );
       logStub.restore();
@@ -134,7 +154,7 @@ https://hardhat.etherscan.io/address/${address}#code`
       const address = getRandomAddress(this.hre);
 
       await expect(
-        this.hre.run(TASK_VERIFY, {
+        this.hre.run(TASK_VERIFY_ETHERSCAN, {
           address,
           constructorArgsParams: [],
         })
@@ -153,7 +173,7 @@ https://hardhat.etherscan.io/address/${address}#code`
         ];
 
         await expect(
-          this.hre.run(TASK_VERIFY, {
+          this.hre.run(TASK_VERIFY_ETHERSCAN, {
             address: simpleContractAddress,
             constructorArgsParams: [],
           })
@@ -168,15 +188,14 @@ https://hardhat.etherscan.io/address/${address}#code`
     });
 
     describe("with deleted artifacts", () => {
-      it("should not compile the project when the noCompile is provided", async function () {
+      it("should throw if the artifacts are missing", async function () {
         await this.hre.run(TASK_CLEAN);
 
         // task will fail since we deleted all the artifacts
         await expect(
-          this.hre.run(TASK_VERIFY, {
+          this.hre.run(TASK_VERIFY_ETHERSCAN, {
             address: simpleContractAddress,
             constructorArgsParams: [],
-            noCompile: true,
           })
         ).to.be.rejectedWith(
           /The address provided as argument contains a contract, but its bytecode doesn't match any of your local contracts./
@@ -192,7 +211,7 @@ https://hardhat.etherscan.io/address/${address}#code`
 
     it("should throw if the deployed bytecode matches more than one contract", async function () {
       await expect(
-        this.hre.run(TASK_VERIFY, {
+        this.hre.run(TASK_VERIFY_ETHERSCAN, {
           address: duplicatedContractAddress,
           constructorArgsParams: [],
         })
@@ -205,7 +224,7 @@ https://hardhat.etherscan.io/address/${address}#code`
       const contractFQN = "contracts/SimpleContract.sol:NotFound";
 
       await expect(
-        this.hre.run(TASK_VERIFY, {
+        this.hre.run(TASK_VERIFY_ETHERSCAN, {
           address: simpleContractAddress,
           constructorArgsParams: [],
           contract: contractFQN,
@@ -219,7 +238,7 @@ https://hardhat.etherscan.io/address/${address}#code`
 
     it("should throw if there is an invalid address in the libraries parameter", async function () {
       await expect(
-        this.hre.run(TASK_VERIFY, {
+        this.hre.run(TASK_VERIFY_ETHERSCAN, {
           address: simpleContractAddress,
           constructorArgsParams: [],
           libraries: "invalid-libraries.js",
@@ -231,7 +250,7 @@ https://hardhat.etherscan.io/address/${address}#code`
 
     it("should throw if the specified library is not used by the contract", async function () {
       await expect(
-        this.hre.run(TASK_VERIFY, {
+        this.hre.run(TASK_VERIFY_ETHERSCAN, {
           address: bothLibsContractAddress,
           constructorArgsParams: [],
           libraries: "not-used-libraries.js",
@@ -243,7 +262,7 @@ https://hardhat.etherscan.io/address/${address}#code`
 
     it("should throw if the specified library is listed more than once in the libraries parameter", async function () {
       await expect(
-        this.hre.run(TASK_VERIFY, {
+        this.hre.run(TASK_VERIFY_ETHERSCAN, {
           address: onlyNormalLibContractAddress,
           constructorArgsParams: [],
           libraries: "duplicated-libraries.js",
@@ -255,7 +274,7 @@ https://hardhat.etherscan.io/address/${address}#code`
 
     it("should throw if deployed library address does not match the address defined in the libraries parameter", async function () {
       await expect(
-        this.hre.run(TASK_VERIFY, {
+        this.hre.run(TASK_VERIFY_ETHERSCAN, {
           address: onlyNormalLibContractAddress,
           constructorArgsParams: [],
           libraries: "mismatched-address-libraries.js",
@@ -269,7 +288,7 @@ https://hardhat.etherscan.io/address/${address}#code`
 
     it("should throw if there are undetectable libraries not specified by the libraries parameter", async function () {
       await expect(
-        this.hre.run(TASK_VERIFY, {
+        this.hre.run(TASK_VERIFY_ETHERSCAN, {
           address: bothLibsContractAddress,
           constructorArgsParams: [],
           libraries: "missing-undetectable-libraries.js",
@@ -284,12 +303,12 @@ This can occur if the library is only called in the contract constructor. The mi
     it("should throw if the verification request fails", async function () {
       // do not intercept the verifysourcecode request so it throws an error
       await expect(
-        this.hre.run(TASK_VERIFY, {
+        this.hre.run(TASK_VERIFY_ETHERSCAN, {
           address: simpleContractAddress,
           constructorArgsParams: [],
         })
       ).to.be.rejectedWith(
-        /Failed to send contract verification request.\nEndpoint URL: https:\/\/api-hardhat.etherscan.io\/api\nReason: getaddrinfo ENOTFOUND api-hardhat.etherscan.io/
+        /An unexpected error occurred during the verification process\.\nPlease report this issue to the Hardhat team\.\nError Details: getaddrinfo ENOTFOUND api-hardhat\.etherscan\.io/
       );
     });
 
@@ -297,13 +316,13 @@ This can occur if the library is only called in the contract constructor. The mi
       interceptVerify({ error: "error verifying contract" }, 500);
 
       await expect(
-        this.hre.run(TASK_VERIFY, {
+        this.hre.run(TASK_VERIFY_ETHERSCAN, {
           address: simpleContractAddress,
           constructorArgsParams: [],
         })
-      ).to.be.rejectedWith(`Failed to send contract verification request.
-Endpoint URL: https://api-hardhat.etherscan.io/api
-The HTTP server response is not ok. Status code: 500 Response text: {"error":"error verifying contract"}`);
+      ).to.be.rejectedWith(
+        /Failed to send contract verification request\.\nEndpoint URL: https:\/\/api-hardhat\.etherscan\.io\/api\n/s
+      );
     });
 
     it("should throw if the etherscan api can't find the bytecode at the contract address", async function () {
@@ -313,7 +332,7 @@ The HTTP server response is not ok. Status code: 500 Response text: {"error":"er
       });
 
       await expect(
-        this.hre.run(TASK_VERIFY, {
+        this.hre.run(TASK_VERIFY_ETHERSCAN, {
           address: simpleContractAddress,
           constructorArgsParams: [],
         })
@@ -331,7 +350,7 @@ The HTTP server response is not ok. Status code: 500 Response text: {"error":"er
       });
 
       await expect(
-        this.hre.run(TASK_VERIFY, {
+        this.hre.run(TASK_VERIFY_ETHERSCAN, {
           address: simpleContractAddress,
           constructorArgsParams: [],
         })
@@ -347,11 +366,13 @@ The HTTP server response is not ok. Status code: 500 Response text: {"error":"er
       const logStub = sinon.stub(console, "log");
 
       await expect(
-        this.hre.run(TASK_VERIFY, {
+        this.hre.run(TASK_VERIFY_ETHERSCAN, {
           address: simpleContractAddress,
           constructorArgsParams: [],
         })
-      ).to.be.rejectedWith(/Failure during etherscan status polling./);
+      ).to.be.rejectedWith(
+        /An unexpected error occurred during the verification process\.\nPlease report this issue to the Hardhat team\.\nError Details: getaddrinfo ENOTFOUND api-hardhat\.etherscan\.io/
+      );
 
       expect(logStub).to.be
         .calledOnceWith(`Successfully submitted source code for contract
@@ -370,7 +391,7 @@ for verification on the block explorer. Waiting for verification result...
       const logStub = sinon.stub(console, "log");
 
       await expect(
-        this.hre.run(TASK_VERIFY, {
+        this.hre.run(TASK_VERIFY_ETHERSCAN, {
           address: simpleContractAddress,
           constructorArgsParams: [],
         })
@@ -398,7 +419,7 @@ for verification on the block explorer. Waiting for verification result...
       const logStub = sinon.stub(console, "log");
 
       await expect(
-        this.hre.run(TASK_VERIFY, {
+        this.hre.run(TASK_VERIFY_ETHERSCAN, {
           address: simpleContractAddress,
           constructorArgsParams: [],
         })
@@ -426,7 +447,7 @@ for verification on the block explorer. Waiting for verification result...
       const logStub = sinon.stub(console, "log");
 
       await expect(
-        this.hre.run(TASK_VERIFY, {
+        this.hre.run(TASK_VERIFY_ETHERSCAN, {
           address: simpleContractAddress,
           constructorArgsParams: [],
         })
@@ -465,8 +486,8 @@ contracts/SimpleContract.sol:SimpleContract at ${simpleContractAddress}
 for verification on the block explorer. Waiting for verification result...
 `);
       expect(logStub.getCall(1)).to.be
-        .calledWith(`Successfully verified contract SimpleContract on Etherscan.
-https://hardhat.etherscan.io/address/${simpleContractAddress}#code`);
+        .calledWith(`Successfully verified contract SimpleContract on the block explorer.
+https://hardhat.etherscan.io/address/${simpleContractAddress}#code\n`);
       logStub.restore();
       assert.isUndefined(taskResponse);
     });
@@ -515,8 +536,8 @@ contracts/SimpleContract.sol:SimpleContract at ${simpleContractAddress}
 for verification on the block explorer. Waiting for verification result...
 `);
       expect(logStub.getCall(3)).to.be
-        .calledWith(`Successfully verified contract SimpleContract on Etherscan.
-https://hardhat.etherscan.io/address/${simpleContractAddress}#code`);
+        .calledWith(`Successfully verified contract SimpleContract on the block explorer.
+https://hardhat.etherscan.io/address/${simpleContractAddress}#code\n`);
       logStub.restore();
       assert.equal(verifyCallCount, 2);
       assert.equal(getStatusCallCount, 2);
@@ -543,7 +564,7 @@ https://hardhat.etherscan.io/address/${simpleContractAddress}#code`);
       const logStub = sinon.stub(console, "log");
 
       await expect(
-        this.hre.run(TASK_VERIFY, {
+        this.hre.run(TASK_VERIFY_ETHERSCAN, {
           address: bothLibsContractAddress,
           constructorArgsParams: ["50"],
           libraries: "libraries.js",
@@ -589,7 +610,6 @@ for verification on the block explorer. Waiting for verification result...
           NormalLib: normalLibAddress,
           ConstructorLib: constructorLibAddress,
         },
-        // noCompile: true,
       });
 
       assert.equal(logStub.callCount, 2);
@@ -599,8 +619,59 @@ contracts/WithLibs.sol:BothLibs at ${bothLibsContractAddress}
 for verification on the block explorer. Waiting for verification result...
 `);
       expect(logStub.getCall(1)).to.be
-        .calledWith(`Successfully verified contract BothLibs on Etherscan.
-https://hardhat.etherscan.io/address/${bothLibsContractAddress}#code`);
+        .calledWith(`Successfully verified contract BothLibs on the block explorer.
+https://hardhat.etherscan.io/address/${bothLibsContractAddress}#code\n`);
+      logStub.restore();
+      assert.isUndefined(taskResponse);
+    });
+
+    after(async function () {
+      await this.hre.run(TASK_CLEAN);
+    });
+  });
+});
+
+describe("verify task Sourcify's integration tests", () => {
+  useEnvironment("hardhat-project");
+  mockEnvironmentSourcify();
+
+  describe("with a non-verified contract", () => {
+    let simpleContractAddress: string;
+
+    before(async function () {
+      await this.hre.run(TASK_COMPILE, { force: true, quiet: true });
+      simpleContractAddress = await deployContract(
+        "SimpleContract",
+        [],
+        this.hre
+      );
+    });
+
+    it("should verify a contract on Sourcify", async function () {
+      interceptSourcifyIsVerified([
+        { address: simpleContractAddress, status: "false" },
+      ]);
+      interceptSourcifyVerify({
+        result: [
+          {
+            address: simpleContractAddress,
+            status: "perfect",
+          },
+        ],
+      });
+      const logStub = sinon.stub(console, "log");
+      // set network name to localhost to avoid the "hardhat is not supported" error
+      this.hre.network.name = "localhost";
+
+      const taskResponse = await this.hre.run(TASK_VERIFY_SOURCIFY, {
+        address: simpleContractAddress,
+        contract: "contracts/SimpleContract.sol:SimpleContract",
+      });
+
+      assert.equal(logStub.callCount, 1);
+      (expect(logStub.getCall(0)).to.be as any)
+        .calledWith(`Successfully verified contract SimpleContract on Sourcify.
+https://repo.sourcify.dev/contracts/full_match/31337/${simpleContractAddress}/`);
       logStub.restore();
       assert.isUndefined(taskResponse);
     });

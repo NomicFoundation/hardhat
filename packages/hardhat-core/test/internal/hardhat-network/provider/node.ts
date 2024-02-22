@@ -13,6 +13,7 @@ import { defaultHardhatNetworkParams } from "../../../../src/internal/core/confi
 import { HardhatNode } from "../../../../src/internal/hardhat-network/provider/node";
 import {
   ForkedNodeConfig,
+  LocalNodeConfig,
   NodeConfig,
   RunCallResult,
 } from "../../../../src/internal/hardhat-network/provider/node-types";
@@ -23,7 +24,7 @@ import {
   HardhatNetworkChainConfig,
   HardhatNetworkChainsConfig,
 } from "../../../../src/types";
-import { INFURA_URL } from "../../../setup";
+import { ALCHEMY_URL } from "../../../setup";
 import { assertQuantity } from "../helpers/assertions";
 import {
   EMPTY_ACCOUNT_ADDRESS,
@@ -78,6 +79,7 @@ describe("HardhatNode", () => {
     coinbase: "0x0000000000000000000000000000000000000000",
     chains: defaultHardhatNetworkParams.chains,
     allowBlocksWithSameTimestamp: false,
+    enableTransientStorage: false,
   };
   const gasPrice = 20;
   let node: HardhatNode;
@@ -694,7 +696,7 @@ describe("HardhatNode", () => {
   });
 
   describe("full block", function () {
-    if (INFURA_URL === undefined) {
+    if (ALCHEMY_URL === undefined) {
       return;
     }
 
@@ -703,43 +705,44 @@ describe("HardhatNode", () => {
       // its receipts contain the state root, and we can't compute it
       {
         networkName: "mainnet",
-        url: INFURA_URL,
+        url: ALCHEMY_URL,
         blockToRun: 4370001n,
         chainId: 1,
       },
       {
         networkName: "mainnet",
-        url: INFURA_URL,
+        url: ALCHEMY_URL,
         blockToRun: 7280001n,
         chainId: 1,
       },
       {
         networkName: "mainnet",
-        url: INFURA_URL,
+        url: ALCHEMY_URL,
         blockToRun: 9069001n,
         chainId: 1,
       },
       {
         networkName: "mainnet",
-        url: INFURA_URL,
+        url: ALCHEMY_URL,
         blockToRun: 9300077n,
         chainId: 1,
       },
       {
         networkName: "mainnet",
-        url: INFURA_URL,
+        url: ALCHEMY_URL,
         blockToRun: 17_050_001n, // post-shanghai
         chainId: 1,
       },
       {
         networkName: "goerli",
-        url: INFURA_URL.replace("mainnet", "goerli"),
+        url: ALCHEMY_URL.replace("mainnet", "goerli"),
         blockToRun: 7728449n, // this block has both EIP-2930 and EIP-1559 txs
         chainId: 5,
       },
       {
         networkName: "sepolia",
-        url: INFURA_URL.replace("mainnet", "sepolia"),
+        url: ALCHEMY_URL.replace("alchemyapi.io", "g.alchemy.com") // temporary fix until we fix our github secret
+          .replace("mainnet", "sepolia"),
         blockToRun: 3095000n, // this block is post-shanghai
         chainId: 11155111,
       },
@@ -844,7 +847,7 @@ describe("HardhatNode", () => {
     block: bigint,
     targetNode: HardhatNode
   ): Promise<string> {
-    const contractInterface = new ethers.utils.Interface([
+    const contractInterface = new ethers.Interface([
       "function Hello() public pure returns (string)",
     ]);
 
@@ -871,7 +874,7 @@ describe("HardhatNode", () => {
   describe("should run calls in the right hardfork context", async function () {
     this.timeout(10000);
     before(function () {
-      if (INFURA_URL === undefined) {
+      if (ALCHEMY_URL === undefined) {
         this.skip();
         return;
       }
@@ -890,7 +893,7 @@ describe("HardhatNode", () => {
       networkId: 1,
       hardfork: "london",
       forkConfig: {
-        jsonRpcUrl: INFURA_URL!,
+        jsonRpcUrl: ALCHEMY_URL!,
         blockNumber: Number(eip1559ActivationBlock),
       },
       forkCachePath: FORK_TESTS_CACHE_PATH,
@@ -901,6 +904,7 @@ describe("HardhatNode", () => {
       mempoolOrder: "priority",
       coinbase: "0x0000000000000000000000000000000000000000",
       allowBlocksWithSameTimestamp: false,
+      enableTransientStorage: false,
     };
 
     describe("when forking with a default hardfork activation history", function () {
@@ -1046,7 +1050,7 @@ describe("HardhatNode", () => {
   });
 
   it("should support a historical call in the context of a block added via mineBlocks()", async function () {
-    if (INFURA_URL === undefined) {
+    if (ALCHEMY_URL === undefined) {
       this.skip();
       return;
     }
@@ -1056,7 +1060,7 @@ describe("HardhatNode", () => {
       networkId: 1,
       hardfork: "london",
       forkConfig: {
-        jsonRpcUrl: INFURA_URL,
+        jsonRpcUrl: ALCHEMY_URL,
         blockNumber: 12965000, // eip1559ActivationBlock
       },
       forkCachePath: FORK_TESTS_CACHE_PATH,
@@ -1067,6 +1071,7 @@ describe("HardhatNode", () => {
       mempoolOrder: "priority",
       coinbase: "0x0000000000000000000000000000000000000000",
       allowBlocksWithSameTimestamp: false,
+      enableTransientStorage: false,
     };
     const [, hardhatNode] = await HardhatNode.create(nodeConfig);
 
@@ -1082,5 +1087,289 @@ describe("HardhatNode", () => {
         hardhatNode
       )
     );
+  });
+
+  describe("enableTransientStorage", function () {
+    const TLOAD_DEPLOYMENT_BYTECODE = "0x60FF5c"; // PUSH1 FF TLOAD
+    const TSTORE_DEPLOYMENT_BYTECODE = "0x60FF60FF5d"; // PUSH1 FF TLOAD
+
+    const nodeConfig: LocalNodeConfig = {
+      automine: true,
+      chainId: 1,
+      networkId: 1,
+      hardfork: "london",
+      blockGasLimit: 1_000_000,
+      minGasPrice: 0n,
+      genesisAccounts: DEFAULT_ACCOUNTS,
+      chains: defaultHardhatNetworkParams.chains,
+      mempoolOrder: "priority",
+      coinbase: "0x0000000000000000000000000000000000000000",
+      allowBlocksWithSameTimestamp: false,
+      enableTransientStorage: false,
+    };
+
+    describe("When not enabled and on a fork that doesn't support it", function () {
+      it("Should revert if trying to run TLOAD in a tx", async function () {
+        const [, hardhatNode] = await HardhatNode.create(nodeConfig);
+
+        const tx = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: undefined,
+          data: TLOAD_DEPLOYMENT_BYTECODE,
+          gasLimit: 1_000_000n,
+          gasPrice: 10n ** 9n,
+        });
+
+        const transactionResult = await hardhatNode.sendTransaction(tx);
+
+        if (
+          typeof transactionResult === "string" ||
+          Array.isArray(transactionResult)
+        ) {
+          assert.fail("Expected a MineBlockResult");
+        }
+
+        const error = transactionResult.traces[0].error;
+        assert.isDefined(error);
+        assert.include(error!.message, "invalid opcode");
+      });
+
+      it("Should revert if trying to run TSTORE in a tx", async function () {
+        const [, hardhatNode] = await HardhatNode.create(nodeConfig);
+
+        const tx = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: undefined,
+          data: TSTORE_DEPLOYMENT_BYTECODE,
+          gasLimit: 1_000_000n,
+          gasPrice: 10n ** 9n,
+        });
+
+        const transactionResult = await hardhatNode.sendTransaction(tx);
+
+        if (
+          typeof transactionResult === "string" ||
+          Array.isArray(transactionResult)
+        ) {
+          assert.fail("Expected a MineBlockResult");
+        }
+
+        const error = transactionResult.traces[0].error;
+        assert.isDefined(error);
+        assert.include(error!.message, "invalid opcode");
+      });
+
+      it("Should revert if trying to run TLOAD in a call", async function () {
+        const [, hardhatNode] = await HardhatNode.create(nodeConfig);
+
+        const callResult = await hardhatNode.runCall(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(TLOAD_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isDefined(callResult.error);
+        assert.include(callResult.error!.message, "invalid opcode");
+      });
+
+      it("Should revert if trying to run TSTORE in a call", async function () {
+        const [, hardhatNode] = await HardhatNode.create(nodeConfig);
+
+        const callResult = await hardhatNode.runCall(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(TSTORE_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isDefined(callResult.error);
+        assert.include(callResult.error!.message, "invalid opcode");
+      });
+
+      it("Should revert if trying to run TLOAD in a gasEstimate", async function () {
+        const [, hardhatNode] = await HardhatNode.create(nodeConfig);
+
+        const estimateGasResult = await hardhatNode.estimateGas(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(TLOAD_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isDefined(estimateGasResult.error);
+        assert.include(estimateGasResult.error!.message, "invalid opcode");
+      });
+
+      it("Should revert if trying to run TSTORE in a gasEstimate", async function () {
+        const [, hardhatNode] = await HardhatNode.create(nodeConfig);
+
+        const estimateGasResult = await hardhatNode.estimateGas(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(TSTORE_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isDefined(estimateGasResult.error);
+        assert.include(estimateGasResult.error!.message, "invalid opcode");
+      });
+    });
+
+    describe("When enabled", function () {
+      it("Should not revert if trying to run TLOAD in a tx", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          enableTransientStorage: true,
+        });
+
+        const tx = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: undefined,
+          data: TLOAD_DEPLOYMENT_BYTECODE,
+          gasLimit: 1_000_000n,
+          gasPrice: 10n ** 9n,
+        });
+
+        const transactionResult = await hardhatNode.sendTransaction(tx);
+
+        if (
+          typeof transactionResult === "string" ||
+          Array.isArray(transactionResult)
+        ) {
+          assert.fail("Expected a MineBlockResult");
+        }
+
+        const error = transactionResult.traces[0].error;
+        assert.isUndefined(error);
+      });
+
+      it("Should not revert if trying to run TSTORE in a tx", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          enableTransientStorage: true,
+        });
+
+        const tx = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: undefined,
+          data: TSTORE_DEPLOYMENT_BYTECODE,
+          gasLimit: 1_000_000n,
+          gasPrice: 10n ** 9n,
+        });
+
+        const transactionResult = await hardhatNode.sendTransaction(tx);
+
+        if (
+          typeof transactionResult === "string" ||
+          Array.isArray(transactionResult)
+        ) {
+          assert.fail("Expected a MineBlockResult");
+        }
+
+        const error = transactionResult.traces[0].error;
+        assert.isUndefined(error);
+      });
+
+      it("Should not revert if trying to run TLOAD in a call", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          enableTransientStorage: true,
+        });
+
+        const callResult = await hardhatNode.runCall(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(TLOAD_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isUndefined(callResult.error);
+      });
+
+      it("Should revert if trying to run TSTORE in a call", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          enableTransientStorage: true,
+        });
+
+        const callResult = await hardhatNode.runCall(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(TSTORE_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isUndefined(callResult.error);
+      });
+
+      it("Should not revert if trying to run TLOAD in a gasEstimate", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          enableTransientStorage: true,
+        });
+
+        const estimateGasResult = await hardhatNode.estimateGas(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(TLOAD_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isUndefined(estimateGasResult.error);
+      });
+
+      it("Should not revert if trying to run TSTORE in a gasEstimate", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          enableTransientStorage: true,
+        });
+
+        const estimateGasResult = await hardhatNode.estimateGas(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(TSTORE_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isUndefined(estimateGasResult.error);
+      });
+    });
   });
 });

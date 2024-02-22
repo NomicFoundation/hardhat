@@ -9,7 +9,7 @@ When running your contracts and tests on Hardhat Network you can print logging m
 This is what it looks like:
 
 ```solidity{3}
-pragma solidity ^0.8.9;
+pragma solidity {LATEST_PRAGMA};
 
 import "hardhat/console.sol";
 

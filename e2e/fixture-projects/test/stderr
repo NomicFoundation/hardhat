@@ -1,0 +1,12 @@
+An unexpected error occurred:
+TypeError: Cannot read properties of undefined (reading 'createFixture')
+    at Object.<anonymous> (C:\Users\apich\test\SimpleERC20.test.ts:6:27)
+    at Module._compile (node:internal/modules/cjs/loader:1105:14)
+    at Module.m._compile (C:\Users\apich\hardhat\node_modules\.pnpm\ts-node@10.9.1_@types+node@16.18.40_typescript@5.0.4\node_modules\ts-node\src\index.ts:1618:23)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1159:10)
+    at Object.require.extensions.<computed> [as .ts] (C:\Users\apich\hardhat\node_modules\.pnpm\ts-node@10.9.1_@types+node@16.18.40_typescript@5.0.4\node_modules\ts-node\src\index.ts:1621:12)
+    at Module.load (node:internal/modules/cjs/loader:981:32)
+    at Function.Module._load (node:internal/modules/cjs/loader:827:12)
+    at Module.require (node:internal/modules/cjs/loader:1005:19)
+    at require (node:internal/modules/cjs/helpers:102:18)
+    at C:\Users\apich\hardhat\node_modules\.pnpm\mocha@10.2.0\node_modules\mocha\lib\mocha.js:414:36

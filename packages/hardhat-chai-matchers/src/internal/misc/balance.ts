@@ -1,18 +1,20 @@
-import { Account, getAddressOf } from "./account";
+import type { Addressable } from "ethers";
+
+import { getAddressOf } from "./account";
 
 export interface BalanceChangeOptions {
   includeFee?: boolean;
 }
 
-export function getAddresses(accounts: Array<Account | string>) {
+export function getAddresses(accounts: Array<Addressable | string>) {
   return Promise.all(accounts.map((account) => getAddressOf(account)));
 }
 
 export async function getBalances(
-  accounts: Array<Account | string>,
+  accounts: Array<Addressable | string>,
   blockNumber?: number
-) {
-  const { BigNumber } = await import("ethers");
+): Promise<bigint[]> {
+  const { toBigInt } = await import("ethers");
   const hre = await import("hardhat");
   const provider = hre.ethers.provider;
 
@@ -23,7 +25,7 @@ export async function getBalances(
         address,
         `0x${blockNumber?.toString(16) ?? 0}`,
       ]);
-      return BigNumber.from(result);
+      return toBigInt(result);
     })
   );
 }

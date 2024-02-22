@@ -15,7 +15,7 @@ It runs as either an in-process or stand-alone daemon, servicing JSON-RPC and We
 
 By default, it mines a block with each transaction that it receives, in order and with no delay.
 
-It's backed by the `@ethereumjs/vm` EVM implementation, the same one used by ganache, Remix and Ethereum Studio.
+It's backed by the `@ethereumjs/vm` EVM implementation, the same one used by ganache and Remix.
 
 ## How can I use it?
 

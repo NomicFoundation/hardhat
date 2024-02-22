@@ -1,8 +1,12 @@
 # Deploying your contracts
 
-When it comes to deploying, there are no official plugins that implement a deployment system for Hardhat yet. We are working on it.
+:::tip
 
-In the meantime, we recommend deploying your smart contracts using scripts, or using [the hardhat-deploy community plugin](https://github.com/wighawag/hardhat-deploy/tree/master). You can deploy the `Lock` contract from the sample project with a deployment script like this:
+Try [Hardhat Ignition](/ignition) for your deployments! Our new declarative system for deploying smart contracts without getting caught up in execution details.
+
+:::
+
+When it comes to deploying, you can use a deployment system like [Hardhat Ignition](/ignition) or you can deploy your smart contracts using scripts. You can deploy the `Lock` contract from the sample project with a deployment script like this:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 

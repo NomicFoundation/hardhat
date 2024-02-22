@@ -33,7 +33,11 @@ describe("Compiler", () => {
         CompilerDownloader.getCompilerPlatform(),
         this.tmpDir
       );
-      await downloader.downloadCompiler(solcVersion);
+      await downloader.downloadCompiler(
+        solcVersion,
+        async () => {},
+        async () => {}
+      );
       const compilerPathResult = await downloader.getCompiler(solcVersion);
       solcPath = compilerPathResult!.compilerPath;
     });
@@ -126,7 +130,11 @@ contract A {}
 
     beforeEach(async function () {
       downloader = new CompilerDownloader(CompilerPlatform.WASM, this.tmpDir);
-      await downloader.downloadCompiler(solcVersion);
+      await downloader.downloadCompiler(
+        solcVersion,
+        async () => {},
+        async () => {}
+      );
       const compilerPathResult = await downloader.getCompiler(solcVersion);
       solcPath = compilerPathResult!.compilerPath;
     });

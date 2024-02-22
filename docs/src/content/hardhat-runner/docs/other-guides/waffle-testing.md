@@ -8,7 +8,7 @@ Read [this guide](/hardhat-runner/docs/guides/test-contracts.md) to learn about 
 
 Writing smart contract tests in Hardhat is done using JavaScript or TypeScript.
 
-In this guide, we'll show you how to use [Ethers.js](https://docs.ethers.io/), a JavaScript library to interact with Ethereum, and [Waffle](https://getwaffle.io/) a simple smart contract testing library built on top of it.
+In this guide, we'll show you how to use [Ethers.js](https://docs.ethers.org/v6/), a JavaScript library to interact with Ethereum, and [Waffle](https://getwaffle.io/) a simple smart contract testing library built on top of it.
 
 Let's see how to use it starting from an empty Hardhat project.
 
@@ -20,10 +20,10 @@ Ethers and Waffle support TypeScript. Learn how to set up Hardhat with TypeScrip
 
 ## Setting up
 
-[Install Hardhat](/hardhat-runner/docs/getting-started/index.md#installation) on an empty directory. When done, run `npx hardhat`:
+[Install Hardhat](/hardhat-runner/docs/getting-started/index.md#installation) on an empty directory. When done, run `npx hardhat init`:
 
 ```
-$ npx hardhat
+$ npx hardhat init
 888    888                      888 888               888
 888    888                      888 888               888
 888    888                      888 888               888
@@ -33,11 +33,12 @@ $ npx hardhat
 888    888 888  888 888    Y88b 888 888  888 888  888 Y88b.
 888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888
 
-Welcome to Hardhat v2.10.0
+Welcome to Hardhat v{HARDHAT_VERSION}
 
 ? What do you want to do? …
 ▸ Create a JavaScript project
   Create a TypeScript project
+  Create a TypeScript project (with Viem)
   Create an empty hardhat.config.js
   Quit
 ```
@@ -59,7 +60,7 @@ npm install --save-dev chai @nomiclabs/hardhat-waffle
 :::tab{value="npm 6"}
 
 ```
-npm install --save-dev chai @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs/hardhat-ethers ethers
+npm install --save-dev chai @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs/hardhat-ethers ethers@5
 ```
 
 :::
@@ -67,7 +68,7 @@ npm install --save-dev chai @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs
 :::tab{value="yarn"}
 
 ```
-yarn add --dev chai @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs/hardhat-ethers ethers
+yarn add --dev chai @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs/hardhat-ethers ethers@5
 ```
 
 :::
@@ -229,7 +230,7 @@ A `Signer` in Ethers.js is an object that represents an Ethereum account. It's u
 
 :::tip
 
-To learn more about `Signer`, you can look at the [Signers documentation](https://docs.ethers.io/v5/api/signer/#Wallet).
+To learn more about `Signer`, you can look at the [Signers documentation](https://docs.ethers.org/v6/api/providers/#Signer).
 
 :::
 

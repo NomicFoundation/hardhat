@@ -57,7 +57,7 @@ export interface SubmessageData {
   stepIndex: number;
 }
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 export class ErrorInferrer {
   public inferBeforeTracingCallMessage(

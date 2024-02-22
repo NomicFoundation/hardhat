@@ -19,6 +19,7 @@ import {
   TaskDefinition,
 } from "../../../src/types";
 import { expectHardhatError } from "../../helpers/errors";
+import { TASK_COMPILE } from "../../../src/builtin-tasks/task-names";
 
 describe("ArgumentsParser", () => {
   let argumentsParser: ArgumentsParser;
@@ -104,7 +105,7 @@ describe("ArgumentsParser", () => {
   });
 
   describe("hardhat arguments", () => {
-    it("should parse hardhat arguments with task", () => {
+    it("should parse hardhat arguments with compile task", () => {
       const rawCLAs: string[] = [
         "--show-stack-traces",
         "--network",
@@ -113,21 +114,22 @@ describe("ArgumentsParser", () => {
         "--task-param",
       ];
 
-      const { hardhatArguments, taskName, unparsedCLAs } =
+      const { hardhatArguments, scopeOrTaskName, allUnparsedCLAs } =
         argumentsParser.parseHardhatArguments(
           HARDHAT_PARAM_DEFINITIONS,
           envArgs,
           rawCLAs
         );
-      assert.equal(taskName, "compile");
+      assert.isTrue(scopeOrTaskName === TASK_COMPILE);
       assert.equal(hardhatArguments.showStackTraces, true);
       assert.equal(hardhatArguments.network, "local");
       assert.equal(hardhatArguments.emoji, false);
-      assert.equal(unparsedCLAs.length, 1);
-      assert.equal("--task-param", unparsedCLAs[0]);
+      assert.equal(allUnparsedCLAs.length, 2);
+      assert.equal("compile", allUnparsedCLAs[0]);
+      assert.equal("--task-param", allUnparsedCLAs[1]);
     });
 
-    it("should parse hardhat arguments after taskname", () => {
+    it("should parse hardhat arguments after compile taskname", () => {
       const rawCLAs: string[] = [
         "compile",
         "--task-param",
@@ -136,18 +138,65 @@ describe("ArgumentsParser", () => {
         "local",
       ];
 
-      const { hardhatArguments, taskName, unparsedCLAs } =
+      const { hardhatArguments, scopeOrTaskName, allUnparsedCLAs } =
         argumentsParser.parseHardhatArguments(
           HARDHAT_PARAM_DEFINITIONS,
           envArgs,
           rawCLAs
         );
-      assert.equal(taskName, "compile");
+      assert.isTrue(scopeOrTaskName === TASK_COMPILE);
       assert.equal(hardhatArguments.showStackTraces, true);
       assert.equal(hardhatArguments.network, "local");
       assert.equal(hardhatArguments.emoji, false);
-      assert.equal(unparsedCLAs.length, 1);
-      assert.equal("--task-param", unparsedCLAs[0]);
+      assert.equal(allUnparsedCLAs.length, 2);
+      assert.equal("--task-param", allUnparsedCLAs[1]);
+    });
+
+    it("should parse hardhat arguments with non-compile task", () => {
+      const rawCLAs: string[] = [
+        "--show-stack-traces",
+        "--network",
+        "local",
+        "compile2",
+        "--task-param",
+      ];
+
+      const { hardhatArguments, scopeOrTaskName, allUnparsedCLAs } =
+        argumentsParser.parseHardhatArguments(
+          HARDHAT_PARAM_DEFINITIONS,
+          envArgs,
+          rawCLAs
+        );
+      assert.isFalse(scopeOrTaskName === TASK_COMPILE);
+      assert.equal(hardhatArguments.showStackTraces, true);
+      assert.equal(hardhatArguments.network, "local");
+      assert.equal(hardhatArguments.emoji, false);
+      assert.equal(allUnparsedCLAs.length, 2);
+      assert.equal("compile2", allUnparsedCLAs[0]);
+      assert.equal("--task-param", allUnparsedCLAs[1]);
+    });
+
+    it("should parse hardhat arguments after non-compile taskname", () => {
+      const rawCLAs: string[] = [
+        "compile2",
+        "--task-param",
+        "--show-stack-traces",
+        "--network",
+        "local",
+      ];
+
+      const { hardhatArguments, scopeOrTaskName, allUnparsedCLAs } =
+        argumentsParser.parseHardhatArguments(
+          HARDHAT_PARAM_DEFINITIONS,
+          envArgs,
+          rawCLAs
+        );
+      assert.isFalse(scopeOrTaskName === TASK_COMPILE);
+      assert.equal(hardhatArguments.showStackTraces, true);
+      assert.equal(hardhatArguments.network, "local");
+      assert.equal(hardhatArguments.emoji, false);
+      assert.equal(allUnparsedCLAs.length, 2);
+      assert.equal("--task-param", allUnparsedCLAs[1]);
     });
 
     it("should fail trying to parse task arguments before taskname", () => {
@@ -236,6 +285,34 @@ describe("ArgumentsParser", () => {
             rawCLAs
           ),
         ERRORS.ARGUMENTS.REPEATED_PARAM
+      );
+    });
+
+    it("should fail to parse a hardhat argument without a value when a task is not specified", () => {
+      const rawCLAs: string[] = ["--network"];
+      expectHardhatError(
+        () =>
+          argumentsParser.parseHardhatArguments(
+            HARDHAT_PARAM_DEFINITIONS,
+            envArgs,
+            rawCLAs
+          ),
+        ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT,
+        "The '--network' parameter of task 'help' expects a value, but none was passed."
+      );
+    });
+
+    it("should fail to parse a hardhat argument without a value when a task is specified", () => {
+      const rawCLAs: string[] = ["compile", "--network"];
+      expectHardhatError(
+        () =>
+          argumentsParser.parseHardhatArguments(
+            HARDHAT_PARAM_DEFINITIONS,
+            envArgs,
+            rawCLAs
+          ),
+        ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT,
+        "The '--network' parameter of task 'compile' expects a value, but none was passed."
       );
     });
 

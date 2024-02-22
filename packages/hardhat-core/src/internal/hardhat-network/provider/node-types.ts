@@ -32,6 +32,7 @@ interface CommonConfig {
   coinbase: string;
   chains: HardhatNetworkChainsConfig;
   allowBlocksWithSameTimestamp: boolean;
+  enableTransientStorage: boolean;
 }
 
 export type LocalNodeConfig = CommonConfig;

@@ -30,11 +30,11 @@ export async function getRealPath(absolutePath: string): Promise<string> {
     return await fsPromises.realpath(path.normalize(absolutePath));
   } catch (e: any) {
     if (e.code === "ENOENT") {
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw new FileNotFoundError(absolutePath, e);
     }
 
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
     throw new FileSystemAccessError(e.message, e);
   }
 }
@@ -51,11 +51,11 @@ export function getRealPathSync(absolutePath: string): string {
     return fs.realpathSync.native(path.normalize(absolutePath));
   } catch (e: any) {
     if (e.code === "ENOENT") {
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw new FileNotFoundError(absolutePath, e);
     }
 
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
     throw new FileSystemAccessError(e.message, e);
   }
 }
@@ -148,7 +148,7 @@ export async function getFileTrueCase(
     }
   }
 
-  // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+  // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
   throw new FileNotFoundError(path.join(from, relativePath));
 }
 
@@ -182,7 +182,7 @@ export function getFileTrueCaseSync(
     }
   }
 
-  // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+  // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
   throw new FileNotFoundError(path.join(from, relativePath));
 }
 
@@ -195,11 +195,11 @@ async function readdir(absolutePathToDir: string) {
     }
 
     if (e.code === "ENOTDIR") {
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw new InvalidDirectoryError(absolutePathToDir, e);
     }
 
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
     throw new FileSystemAccessError(e.message, e);
   }
 }
@@ -213,11 +213,11 @@ function readdirSync(absolutePathToDir: string) {
     }
 
     if (e.code === "ENOTDIR") {
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw new InvalidDirectoryError(absolutePathToDir, e);
     }
 
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
     throw new FileSystemAccessError(e.message, e);
   }
 }

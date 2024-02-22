@@ -108,7 +108,7 @@ yarn add --dev hardhat @nomicfoundation/hardhat-foundry
 
 ::::
 
-After that, initialize a Hardhat project with `npx hardhat`. Choose the "Create an empty hardhat.config.js" option, and then import the plugin in `hardhat.config.js`:
+After that, initialize a Hardhat project with `npx hardhat init`. Choose the "Create an empty hardhat.config.js" option, and then import the plugin in `hardhat.config.js`:
 
 ```javascript
 require("@nomicfoundation/hardhat-foundry");

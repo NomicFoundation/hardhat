@@ -13,7 +13,7 @@ export const Pre = () => (
   <CodeBlocks.Pre className="">
     <code>
       {`
-    $ npx hardhat
+    $ npx hardhat init
     888    888                      888 888               888
     888    888                      888 888               888
     888    888                      888 888               888

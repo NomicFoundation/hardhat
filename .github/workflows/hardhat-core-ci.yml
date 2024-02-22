@@ -14,6 +14,7 @@ on:
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"
       - "config/**"
+  workflow_dispatch:
 
 defaults:
   run:
@@ -25,63 +26,99 @@ concurrency:
 
 jobs:
   test_on_windows:
-    name: Test hardhat-core on Windows with Node 14
+    name: Test hardhat-core on Windows with Node 16
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - uses: actions/setup-node@v2
         with:
-          node-version: 14
-          cache: yarn
+          node-version: 16
+          cache: "pnpm"
       - name: Install
-        run: yarn --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
-        run: yarn build
+        run: pnpm build
       - name: Run tests
         env:
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
-        run: yarn test:except-tracing
+        run: pnpm test:except-tracing
 
   test_on_macos:
-    name: Test hardhat-core on MacOS with Node 14
+    name: Test hardhat-core on MacOS with Node 16
     runs-on: macos-latest
     # disable until actions/virtual-environments#4896 is fixed
     if: ${{ false }}
     steps:
       - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - uses: actions/setup-node@v2
         with:
-          node-version: 14
-          cache: yarn
+          node-version: 16
+          cache: "pnpm"
       - name: Install
-        run: yarn --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
-        run: yarn build
+        run: pnpm build
       - name: Run tests
         env:
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
-        run: yarn test:except-tracing
+        run: pnpm test:except-tracing
 
   test_on_linux:
     name: Test hardhat-core on Ubuntu with Node ${{ matrix.node }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [14, 16, 18]
+        node: [16, 18, 20]
     steps:
       - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
-          cache: yarn
+          cache: "pnpm"
       - name: Install
-        run: yarn --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
-        run: yarn build
+        run: pnpm build
       - name: Run tests
         env:
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
-        run: yarn test:except-tracing
+        run: pnpm test:except-tracing
+
+  test_types_node:
+    name: Test different versions of @types/node
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [16, 18, 20]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+          cache: "pnpm"
+      - name: Install
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Install @types/node
+        run: pnpm add --save-dev @types/node@${{ matrix.node }}
+      - name: Build
+        run: pnpm build
+      - name: Run tests
+        env:
+          DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
+          FORCE_COLOR: 3
+        run: pnpm test:except-tracing

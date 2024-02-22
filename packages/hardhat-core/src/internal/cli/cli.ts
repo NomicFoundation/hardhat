@@ -1,7 +1,6 @@
 import chalk from "chalk";
 import debug from "debug";
 import "source-map-support/register";
-
 import {
   TASK_COMPILE,
   TASK_HELP,
@@ -23,7 +22,10 @@ import { ERRORS, getErrorCode } from "../core/errors-list";
 import { isHardhatInstalledLocallyOrLinked } from "../core/execution-mode";
 import { getEnvHardhatArguments } from "../core/params/env-variables";
 import { HARDHAT_PARAM_DEFINITIONS } from "../core/params/hardhat-params";
-import { isCwdInsideProject } from "../core/project-structure";
+import {
+  getUserConfigPath,
+  isCwdInsideProject,
+} from "../core/project-structure";
 import { Environment } from "../core/runtime-environment";
 import { loadTsNode, willRunWithTypescript } from "../core/typescript-support";
 import { Reporter } from "../sentry/reporter";
@@ -32,21 +34,21 @@ import {
   hasConsentedTelemetry,
   hasPromptedForHHVSCode,
   writePromptedForHHVSCode,
-  writeTelemetryConsent,
 } from "../util/global-dir";
 import { getPackageJson } from "../util/packageInfo";
 
 import { saveFlamegraph } from "../core/flamegraph";
-import { Analytics } from "./analytics";
+import { Analytics, requestTelemetryConsent } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
-import { createProject } from "./project-creation";
-import { confirmHHVSCodeInstallation, confirmTelemetryConsent } from "./prompt";
+import { createProject, showSoliditySurveyMessage } from "./project-creation";
+import { confirmHHVSCodeInstallation } from "./prompt";
 import {
   InstallationState,
   installHardhatVSCode,
   isHardhatVSCodeInstalled,
 } from "./hardhat-vscode-installation";
+import { handleVars } from "./vars";
 
 const log = debug("hardhat:core:cli");
 
@@ -124,15 +126,12 @@ async function main() {
 
     const argumentsParser = new ArgumentsParser();
 
-    const {
-      hardhatArguments,
-      taskName: parsedTaskName,
-      unparsedCLAs,
-    } = argumentsParser.parseHardhatArguments(
-      HARDHAT_PARAM_DEFINITIONS,
-      envVariableArguments,
-      process.argv.slice(2)
-    );
+    const { hardhatArguments, scopeOrTaskName, allUnparsedCLAs } =
+      argumentsParser.parseHardhatArguments(
+        HARDHAT_PARAM_DEFINITIONS,
+        envVariableArguments,
+        process.argv.slice(2)
+      );
 
     if (hardhatArguments.verbose) {
       Reporter.setVerbose(true);
@@ -151,25 +150,45 @@ async function main() {
       return;
     }
 
-    if (hardhatArguments.config === undefined && !isCwdInsideProject()) {
+    // ATTENTION! DEPRECATED CODE!
+    // The command `npx hardhat`, when used to create a new Hardhat project, will be removed with Hardhat V3.
+    // It will become `npx hardhat init`.
+    // The code marked with the tag #INIT-DEP can be deleted after HarhatV3 is out.
+
+    // Create a new Hardhat project
+    if (scopeOrTaskName === "init") {
+      return await createNewProject();
+    }
+    // #INIT-DEP - START OF DEPRECATED CODE
+    else {
       if (
-        process.stdout.isTTY === true ||
-        process.env.HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS !==
-          undefined ||
-        process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !==
-          undefined
+        scopeOrTaskName === undefined &&
+        hardhatArguments.config === undefined &&
+        !isCwdInsideProject()
       ) {
-        await createProject();
+        await createNewProject();
+
+        // Warning for Hardhat V3 deprecation
+        console.warn(
+          chalk.yellow.bold("\n\nDEPRECATION WARNING\n\n"),
+          chalk.yellow(
+            `Initializing a project with ${chalk.white.italic(
+              "npx hardhat"
+            )} is deprecated and will be removed in the future.\n`
+          ),
+          chalk.yellow(
+            `Please use ${chalk.white.italic("npx hardhat init")} instead.\n\n`
+          )
+        );
+
         return;
       }
+    }
+    // #INIT-DEP - END OF DEPRECATED CODE
 
-      // Many terminal emulators in windows fail to run the createProject()
-      // workflow, and don't present themselves as TTYs. If we are in this
-      // situation we throw a special error instructing the user to use WSL or
-      // powershell to initialize the project.
-      if (process.platform === "win32") {
-        throw new HardhatError(ERRORS.GENERAL.NOT_INSIDE_PROJECT_ON_WINDOWS);
-      }
+    // Tasks are only allowed inside a Hardhat project (except the init task)
+    if (hardhatArguments.config === undefined && !isCwdInsideProject()) {
+      throw new HardhatError(ERRORS.GENERAL.NOT_INSIDE_PROJECT);
     }
 
     if (
@@ -190,20 +209,32 @@ async function main() {
       }
     }
 
-    let taskName = parsedTaskName ?? TASK_HELP;
-
-    const showEmptyConfigWarning = true;
-    const showSolidityConfigWarnings = taskName === TASK_COMPILE;
-
     const ctx = HardhatContext.createHardhatContext();
+
+    if (scopeOrTaskName === "vars" && allUnparsedCLAs.length > 1) {
+      process.exit(await handleVars(allUnparsedCLAs, hardhatArguments.config));
+    }
 
     const { resolvedConfig, userConfig } = loadConfigAndTasks(
       hardhatArguments,
       {
-        showEmptyConfigWarning,
-        showSolidityConfigWarnings,
+        showEmptyConfigWarning: true,
+        showSolidityConfigWarnings: scopeOrTaskName === TASK_COMPILE,
       }
     );
+
+    const envExtenders = ctx.environmentExtenders;
+    const providerExtenders = ctx.providerExtenders;
+    const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
+    const scopesDefinitions = ctx.tasksDSL.getScopesDefinitions();
+
+    // eslint-disable-next-line prefer-const
+    let { scopeName, taskName, unparsedCLAs } =
+      argumentsParser.parseScopeAndTaskNames(
+        allUnparsedCLAs,
+        taskDefinitions,
+        scopesDefinitions
+      );
 
     let telemetryConsent: boolean | undefined = hasConsentedTelemetry();
 
@@ -212,13 +243,10 @@ async function main() {
       telemetryConsent === undefined &&
       !isHelpCommand &&
       !isRunningOnCiServer() &&
-      process.stdout.isTTY === true
+      process.stdout.isTTY === true &&
+      process.env.HARDHAT_DISABLE_TELEMETRY_PROMPT !== "true"
     ) {
-      telemetryConsent = await confirmTelemetryConsent();
-
-      if (telemetryConsent !== undefined) {
-        writeTelemetryConsent(telemetryConsent);
-      }
+      telemetryConsent = await requestTelemetryConsent();
     }
 
     const analytics = await Analytics.getInstance(telemetryConsent);
@@ -228,21 +256,37 @@ async function main() {
       Reporter.setEnabled(true);
     }
 
-    const envExtenders = ctx.extendersManager.getExtenders();
-    const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
-
-    const [abortAnalytics, hitPromise] = await analytics.sendTaskHit(taskName);
+    const [abortAnalytics, hitPromise] = await analytics.sendTaskHit(
+      scopeName,
+      taskName
+    );
 
     let taskArguments: TaskArguments;
 
     // --help is a also special case
     if (hardhatArguments.help && taskName !== TASK_HELP) {
-      taskArguments = { task: taskName };
+      // we "move" the task and scope names to the task arguments,
+      // and run the help task
+      if (scopeName !== undefined) {
+        taskArguments = { scopeOrTask: scopeName, task: taskName };
+      } else {
+        taskArguments = { scopeOrTask: taskName };
+      }
       taskName = TASK_HELP;
+      scopeName = undefined;
     } else {
-      const taskDefinition = taskDefinitions[taskName];
+      const taskDefinition = ctx.tasksDSL.getTaskDefinition(
+        scopeName,
+        taskName
+      );
 
       if (taskDefinition === undefined) {
+        if (scopeName !== undefined) {
+          throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPED_TASK, {
+            scope: scopeName,
+            task: taskName,
+          });
+        }
         throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
           task: taskName,
         });
@@ -264,9 +308,11 @@ async function main() {
       resolvedConfig,
       hardhatArguments,
       taskDefinitions,
+      scopesDefinitions,
       envExtenders,
       ctx.experimentalHardhatNetworkMessageTraceHooks,
-      userConfig
+      userConfig,
+      providerExtenders
     );
 
     ctx.setHardhatRuntimeEnvironment(env);
@@ -274,7 +320,7 @@ async function main() {
     try {
       const timestampBeforeRun = new Date().getTime();
 
-      await env.run(taskName, taskArguments);
+      await env.run({ scope: scopeName, task: taskName }, taskArguments);
 
       const timestampAfterRun = new Date().getTime();
 
@@ -306,6 +352,16 @@ async function main() {
       process.stdout.isTTY === true
     ) {
       await suggestInstallingHardhatVscode();
+
+      // we show the solidity survey message if the tests failed and only
+      // 1/3 of the time
+      if (
+        process.exitCode !== 0 &&
+        Math.random() < 0.3333 &&
+        process.env.HARDHAT_HIDE_SOLIDITY_SURVEY_MESSAGE !== "true"
+      ) {
+        showSoliditySurveyMessage();
+      }
 
       // we show the viaIR warning only if the tests failed
       if (process.exitCode !== 0) {
@@ -372,6 +428,35 @@ async function main() {
     await Reporter.close(1000);
     process.exit(1);
   }
+}
+
+async function createNewProject() {
+  if (isCwdInsideProject()) {
+    throw new HardhatError(ERRORS.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED, {
+      hardhatProjectRootPath: getUserConfigPath(),
+    });
+  }
+
+  if (
+    process.stdout.isTTY === true ||
+    process.env.HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS !== undefined ||
+    process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !== undefined ||
+    process.env.HARDHAT_CREATE_TYPESCRIPT_VIEM_PROJECT_WITH_DEFAULTS !==
+      undefined
+  ) {
+    await createProject();
+    return;
+  }
+
+  // Many terminal emulators in windows fail to run the createProject()
+  // workflow, and don't present themselves as TTYs. If we are in this
+  // situation we throw a special error instructing the user to use WSL or
+  // powershell to initialize the project.
+  if (process.platform === "win32") {
+    throw new HardhatError(ERRORS.GENERAL.NOT_INSIDE_PROJECT_ON_WINDOWS);
+  }
+
+  throw new HardhatError(ERRORS.GENERAL.NOT_IN_INTERACTIVE_SHELL);
 }
 
 main()

@@ -5,7 +5,7 @@ module.exports = {
     sourceType: "module",
   },
   rules: {
-    "@nomiclabs/hardhat-internal-rules/only-hardhat-error": "off",
+    "@nomicfoundation/hardhat-internal-rules/only-hardhat-error": "off",
     "@typescript-eslint/restrict-template-expressions": "off",
     "import/no-extraneous-dependencies": [
       "error",

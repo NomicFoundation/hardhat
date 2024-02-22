@@ -1,18 +1,19 @@
-import type {
-  providers,
-  utils as EthersUtils,
-  Contract,
-  Transaction,
-} from "ethers";
+import type EthersT from "ethers";
+import type { Contract, Transaction } from "ethers";
+import type { AssertWithSsfi, Ssfi } from "../utils";
+
 import { AssertionError } from "chai";
 import util from "util";
 import ordinal from "ordinal";
 
-import { AssertWithSsfi, buildAssert, Ssfi } from "../utils";
+import { buildAssert } from "../utils";
+import { ASSERTION_ABORTED, EMIT_MATCHER } from "./constants";
+import { HardhatChaiMatchersAssertionError } from "./errors";
+import { assertIsNotNull, preventAsyncMatcherChaining } from "./utils";
 
-type EventFragment = EthersUtils.EventFragment;
-type Interface = EthersUtils.Interface;
-type Provider = providers.Provider;
+type EventFragment = EthersT.EventFragment;
+type Interface = EthersT.Interface;
+type Provider = EthersT.Provider;
 
 export const EMIT_CALLED = "emitAssertionCalled";
 
@@ -20,7 +21,7 @@ async function waitForPendingTransaction(
   tx: Promise<Transaction> | Transaction | string,
   provider: Provider
 ) {
-  let hash: string | undefined;
+  let hash: string | null;
   if (tx instanceof Promise) {
     ({ hash } = await tx);
   } else if (typeof tx === "string") {
@@ -28,10 +29,10 @@ async function waitForPendingTransaction(
   } else {
     ({ hash } = tx);
   }
-  if (hash === undefined) {
+  if (hash === null) {
     throw new Error(`${JSON.stringify(tx)} is not a valid transaction`);
   }
-  return provider.waitForTransaction(hash);
+  return provider.getTransactionReceipt(hash);
 }
 
 export function supportEmit(
@@ -39,36 +40,49 @@ export function supportEmit(
   chaiUtils: Chai.ChaiUtils
 ) {
   Assertion.addMethod(
-    "emit",
+    EMIT_MATCHER,
     function (this: any, contract: Contract, eventName: string) {
       // capture negated flag before async code executes; see buildAssert's jsdoc
       const negated = this.__flags.negate;
       const tx = this._obj;
 
+      preventAsyncMatcherChaining(this, EMIT_MATCHER, chaiUtils, true);
+
       const promise = this.then === undefined ? Promise.resolve() : this;
 
-      const onSuccess = (receipt: providers.TransactionReceipt) => {
+      const onSuccess = (receipt: EthersT.TransactionReceipt) => {
+        // abort if the assertion chain was aborted, for example because
+        // a `.not` was combined with a `.withArgs`
+        if (chaiUtils.flag(this, ASSERTION_ABORTED) === true) {
+          return;
+        }
+
         const assert = buildAssert(negated, onSuccess);
 
-        let eventFragment: EventFragment | undefined;
+        let eventFragment: EventFragment | null = null;
         try {
           eventFragment = contract.interface.getEvent(eventName);
         } catch (e) {
           // ignore error
         }
 
-        if (eventFragment === undefined) {
+        if (eventFragment === null) {
           throw new AssertionError(
             `Event "${eventName}" doesn't exist in the contract`
           );
         }
 
-        const topic = contract.interface.getEventTopic(eventFragment);
+        const topic = eventFragment.topicHash;
+        const contractAddress = contract.target;
+        if (typeof contractAddress !== "string") {
+          throw new HardhatChaiMatchersAssertionError(
+            `The contract target should be a string`
+          );
+        }
         this.logs = receipt.logs
           .filter((log) => log.topics.includes(topic))
           .filter(
-            (log) =>
-              log.address.toLowerCase() === contract.address.toLowerCase()
+            (log) => log.address.toLowerCase() === contractAddress.toLowerCase()
           );
 
         assert(
@@ -80,9 +94,26 @@ export function supportEmit(
         chaiUtils.flag(this, "contract", contract);
       };
 
-      const derivedPromise = promise
-        .then(() => waitForPendingTransaction(tx, contract.provider))
-        .then(onSuccess);
+      const derivedPromise = promise.then(() => {
+        // abort if the assertion chain was aborted, for example because
+        // a `.not` was combined with a `.withArgs`
+        if (chaiUtils.flag(this, ASSERTION_ABORTED) === true) {
+          return;
+        }
+
+        if (contract.runner === null || contract.runner.provider === null) {
+          throw new HardhatChaiMatchersAssertionError(
+            "contract.runner.provider shouldn't be null"
+          );
+        }
+
+        return waitForPendingTransaction(tx, contract.runner.provider).then(
+          (receipt) => {
+            assertIsNotNull(receipt, "receipt");
+            return onSuccess(receipt);
+          }
+        );
+      });
 
       chaiUtils.flag(this, EMIT_CALLED, true);
 
@@ -124,11 +155,12 @@ function assertArgsArraysEqual(
   assert: AssertWithSsfi,
   ssfi: Ssfi
 ) {
-  const { utils } = require("ethers") as { utils: typeof EthersUtils };
-
-  const actualArgs = (
+  const ethers = require("ethers") as typeof EthersT;
+  const parsedLog = (
     chaiUtils.flag(context, "contract").interface as Interface
-  ).parseLog(log).args;
+  ).parseLog(log);
+  assertIsNotNull(parsedLog, "parsedLog");
+  const actualArgs = parsedLog.args;
   const eventName = chaiUtils.flag(context, "eventName");
   assert(
     actualArgs.length === expectedArgs.length,
@@ -159,7 +191,7 @@ function assertArgsArraysEqual(
       }
     } else if (expectedArgs[index] instanceof Uint8Array) {
       new Assertion(actualArgs[index], undefined, ssfi, true).equal(
-        utils.hexlify(expectedArgs[index])
+        ethers.hexlify(expectedArgs[index])
       );
     } else if (
       expectedArgs[index]?.length !== undefined &&
@@ -195,10 +227,10 @@ function assertArgsArraysEqual(
           expectedArgs[index],
           "The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion should be the actual event argument (the pre-image of the hash). You provided the hash itself. Please supply the the actual event argument (the pre-image of the hash) instead."
         );
-        const expectedArgBytes = utils.isHexString(expectedArgs[index])
-          ? utils.arrayify(expectedArgs[index])
-          : utils.toUtf8Bytes(expectedArgs[index]);
-        const expectedHash = utils.keccak256(expectedArgBytes);
+        const expectedArgBytes = ethers.isHexString(expectedArgs[index])
+          ? ethers.getBytes(expectedArgs[index])
+          : ethers.toUtf8Bytes(expectedArgs[index]);
+        const expectedHash = ethers.keccak256(expectedArgBytes);
         new Assertion(actualArgs[index].hash, undefined, ssfi, true).to.equal(
           expectedHash,
           `The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion was hashed to produce ${expectedHash}. The actual hash and the expected hash did not match`

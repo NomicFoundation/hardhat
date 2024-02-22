@@ -74,6 +74,7 @@ subtask(TASK_VERIFY_ETHERSCAN)
   .addParam("address")
   .addOptionalParam("constructorArgsParams", undefined, undefined, types.any)
   .addOptionalParam("constructorArgs")
+  // TODO: [remove-verify-subtask] change to types.inputFile
   .addOptionalParam("libraries", undefined, undefined, types.any)
   .addOptionalParam("contract")
   .setAction(async (taskArgs: VerifyTaskArgs, { config, network, run }) => {
@@ -198,6 +199,7 @@ subtask(TASK_VERIFY_ETHERSCAN_RESOLVE_ARGUMENTS)
   .addOptionalParam("address")
   .addOptionalParam("constructorArgsParams", undefined, [], types.any)
   .addOptionalParam("constructorArgs", undefined, undefined, types.inputFile)
+  // TODO: [remove-verify-subtask] change to types.inputFile
   .addOptionalParam("libraries", undefined, undefined, types.any)
   .addOptionalParam("contract")
   .setAction(
@@ -226,6 +228,7 @@ subtask(TASK_VERIFY_ETHERSCAN_RESOLVE_ARGUMENTS)
         constructorArgsModule
       );
 
+      // TODO: [remove-verify-subtask] librariesModule should always be string
       let libraries;
       if (typeof librariesModule === "object") {
         libraries = librariesModule;

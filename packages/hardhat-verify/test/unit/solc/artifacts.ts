@@ -1,11 +1,13 @@
+import type { CompilerOutputBytecode } from "hardhat/types";
+
 import { assert } from "chai";
-import { CompilerOutputBytecode } from "hardhat/types";
+
 import {
   ByteOffset,
   getCallProtectionOffsets,
   getImmutableOffsets,
   getLibraryOffsets,
-} from "../../../src/solc/artifacts";
+} from "../../../src/internal/solc/artifacts";
 
 describe("artifacts", () => {
   describe("getLibraryOffsets", () => {

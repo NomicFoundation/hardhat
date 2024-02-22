@@ -7,7 +7,6 @@ module.exports.slowImportsCommonIgnoredModules = [
   "source-map-support/register",
   "@nomicfoundation/hardhat-ethers",
   "hardhat/common",
-  "hardhat/common/bigInt",
   "hardhat/config",
   "hardhat/plugins",
   "hardhat/types",

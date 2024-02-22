@@ -4,13 +4,17 @@ module.exports = {
     es6: true,
     node: true,
   },
-  extends: ["plugin:prettier/recommended"],
+  extends: [
+    "plugin:prettier/recommended",
+    "plugin:@nomicfoundation/slow-imports/recommended",
+  ],
   parser: "@typescript-eslint/parser",
   plugins: [
-    "@nomiclabs/eslint-plugin-hardhat-internal-rules",
-    "eslint-plugin-import",
+    "@nomicfoundation/hardhat-internal-rules",
+    "import",
     "no-only-tests",
     "@typescript-eslint",
+    "@nomicfoundation/slow-imports",
   ],
   rules: {
     "@typescript-eslint/adjacent-overload-signatures": "error",
@@ -78,6 +82,12 @@ module.exports = {
         selector: ["classProperty"],
         format: ["camelCase", "UPPER_CASE"],
         leadingUnderscore: "allow",
+      },
+      {
+        selector: ["classProperty"],
+        modifiers: ["private"],
+        format: ["camelCase", "UPPER_CASE"],
+        leadingUnderscore: "require",
       },
       {
         selector: "enumMember",
@@ -191,7 +201,7 @@ module.exports = {
     "no-cond-assign": "error",
     "no-debugger": "error",
     "no-duplicate-case": "error",
-    "no-duplicate-imports": "error",
+    "@typescript-eslint/no-duplicate-imports": "error",
     "no-eval": "error",
     "no-extra-bind": "error",
     "no-new-func": "error",

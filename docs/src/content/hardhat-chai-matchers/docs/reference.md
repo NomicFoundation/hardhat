@@ -10,13 +10,12 @@ When `@nomicfoundation/hardhat-chai-matchers` is used, equality comparisons of n
 expect(await token.totalSupply()).to.equal(1_000_000);
 ```
 
-will work. These assertions don't normally work because the value returned by `totalSupply()` is an [ethers BigNumber](https://docs.ethers.io/v5/single-page/#/v5/api/utils/bignumber/), and an instance of a `BigNumber` will always be different than a plain number.
+will work. These assertions don't normally work because the value returned by `totalSupply()` is a [bigint](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt), and a bigint value will always be different than a plain number.
 
 The supported types are:
 
 - Plain javascript numbers
 - [BigInts](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt)
-- [Ethers BigNumbers](https://docs.ethers.io/v5/single-page/#/v5/api/utils/bignumber/)
 - [`bn.js`](https://github.com/indutny/bn.js/) instances
 - [`bignumber.js`](https://github.com/MikeMcl/bignumber.js/) instances
 
@@ -129,7 +128,7 @@ If the event has arguments, the `.withArgs` matcher can be added:
 
 ```ts
 await expect(token.transfer(address, 0))
-  .to.be.revertedWithCustomError(token, "InvalidTransferValue")
+  .to.emit(token, "Transfer")
   .withArgs(100);
 ```
 
@@ -204,7 +203,7 @@ Can be used after a `.emit` or a `.revertedWithCustomError` matcher to assert th
 ```ts
 // events
 await expect(token.transfer(address, 0))
-  .to.be.revertedWithCustomError(token, "InvalidTransferValue")
+  .to.emit(token, "Transfer")
   .withArgs(100);
 
 // errors
@@ -226,8 +225,8 @@ await expect(factory.create(9999))
 Predicates are just functions that return true if the value is correct, and return false if it isn't, so you can create your own predicates:
 
 ```ts
-function isEven(x: BigNumber): boolean {
-  return x.mod(2).isZero();
+function isEven(x: bigint): boolean {
+  return x % 2n === 0n;
 }
 
 await expect(token.transfer(100)).to.emit(token, "Transfer").withArgs(isEven);

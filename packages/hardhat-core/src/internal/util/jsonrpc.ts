@@ -37,7 +37,7 @@ export function parseJsonResponse(
       if (!isValidJsonResponse(response)) {
         // We are sending the proper error inside the catch part of the statement.
         // We just need to raise anything here.
-        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+        // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
         throw new Error();
       }
     }

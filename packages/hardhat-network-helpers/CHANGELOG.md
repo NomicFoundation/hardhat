@@ -1,5 +1,17 @@
 # @nomicfoundation/hardhat-network-helpers
 
+## 1.0.10
+
+### Patch Changes
+
+- 43d75470c: Added support for using network helpers on anvil network (thanks @tmigone!)
+
+## 1.0.9
+
+### Patch Changes
+
+- 9715d4195: Added support for receiving Date instances in `increaseTo` network helper (thanks @Saty248)
+
 ## 1.0.8
 
 ### Patch Changes

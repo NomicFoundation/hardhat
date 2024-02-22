@@ -1,4 +1,4 @@
-import type { BigNumber as EthersBigNumberType } from "ethers";
+import type { BigNumber as EthersBigNumberType } from "ethers-v5";
 // eslint-disable-next-line import/no-extraneous-dependencies
 import type { BigNumber as BigNumberJsType } from "bignumber.js";
 // eslint-disable-next-line import/no-extraneous-dependencies

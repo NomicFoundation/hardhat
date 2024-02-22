@@ -1,11 +1,14 @@
+import { TASK_HELP } from "../../builtin-tasks/task-names";
 import {
   CLIArgumentType,
   HardhatArguments,
   HardhatParamDefinitions,
   ParamDefinition,
   ParamDefinitionsMap,
+  ScopesMap,
   TaskArguments,
   TaskDefinition,
+  TasksMap,
 } from "../../types";
 import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
@@ -50,19 +53,20 @@ export class ArgumentsParser {
     rawCLAs: string[]
   ): {
     hardhatArguments: HardhatArguments;
-    taskName?: string;
-    unparsedCLAs: string[];
+    scopeOrTaskName: string | undefined;
+    allUnparsedCLAs: string[];
   } {
     const hardhatArguments: Partial<HardhatArguments> = {};
-    let taskName: string | undefined;
-    const unparsedCLAs: string[] = [];
+    let scopeOrTaskName: string | undefined;
+    const allUnparsedCLAs: string[] = [];
 
     for (let i = 0; i < rawCLAs.length; i++) {
       const arg = rawCLAs[i];
 
-      if (taskName === undefined) {
+      if (scopeOrTaskName === undefined) {
         if (!this._hasCLAParamNameFormat(arg)) {
-          taskName = arg;
+          scopeOrTaskName = arg;
+          allUnparsedCLAs.push(arg);
           continue;
         }
 
@@ -78,11 +82,11 @@ export class ArgumentsParser {
           i,
           hardhatParamDefinitions,
           hardhatArguments,
-          taskName
+          scopeOrTaskName
         );
       } else {
         if (!this._isCLAParamName(arg, hardhatParamDefinitions)) {
-          unparsedCLAs.push(arg);
+          allUnparsedCLAs.push(arg);
           continue;
         }
 
@@ -91,7 +95,7 @@ export class ArgumentsParser {
           i,
           hardhatParamDefinitions,
           hardhatArguments,
-          taskName
+          scopeOrTaskName
         );
       }
     }
@@ -102,9 +106,71 @@ export class ArgumentsParser {
         envVariableArguments,
         hardhatArguments
       ),
-      taskName,
-      unparsedCLAs,
+      scopeOrTaskName,
+      allUnparsedCLAs,
     };
+  }
+
+  public parseScopeAndTaskNames(
+    allUnparsedCLAs: string[],
+    taskDefinitions: TasksMap,
+    scopeDefinitions: ScopesMap
+  ): {
+    scopeName?: string;
+    taskName: string;
+    unparsedCLAs: string[];
+  } {
+    const [firstCLA, secondCLA] = allUnparsedCLAs;
+
+    if (allUnparsedCLAs.length === 0) {
+      return {
+        taskName: TASK_HELP,
+        unparsedCLAs: [],
+      };
+    } else if (allUnparsedCLAs.length === 1) {
+      if (scopeDefinitions[firstCLA] !== undefined) {
+        // this is a bit of a hack, but it's the easiest way to print
+        // the help of a scope when no task is specified
+        return {
+          taskName: TASK_HELP,
+          unparsedCLAs: [firstCLA],
+        };
+      } else if (taskDefinitions[firstCLA] !== undefined) {
+        return {
+          taskName: firstCLA,
+          unparsedCLAs: allUnparsedCLAs.slice(1),
+        };
+      } else {
+        throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
+          task: firstCLA,
+        });
+      }
+    } else {
+      const scopeDefinition = scopeDefinitions[firstCLA];
+      if (scopeDefinition !== undefined) {
+        if (scopeDefinition.tasks[secondCLA] !== undefined) {
+          return {
+            scopeName: firstCLA,
+            taskName: secondCLA,
+            unparsedCLAs: allUnparsedCLAs.slice(2),
+          };
+        } else {
+          throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPED_TASK, {
+            scope: firstCLA,
+            task: secondCLA,
+          });
+        }
+      } else if (taskDefinitions[firstCLA] !== undefined) {
+        return {
+          taskName: firstCLA,
+          unparsedCLAs: allUnparsedCLAs.slice(1),
+        };
+      } else {
+        throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
+          task: firstCLA,
+        });
+      }
+    }
   }
 
   public parseTaskArguments(
@@ -207,7 +273,7 @@ export class ArgumentsParser {
     index: number,
     paramDefinitions: ParamDefinitionsMap,
     parsedArguments: TaskArguments,
-    taskName?: string
+    scopeOrTaskName?: string
   ) {
     const claArg = rawCLAs[index];
     const paramName = ArgumentsParser.cLAToParamName(claArg);
@@ -228,7 +294,7 @@ export class ArgumentsParser {
       if (value === undefined) {
         throw new HardhatError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
           param: ArgumentsParser.paramNameToCLA(paramName),
-          task: taskName ?? "help",
+          task: scopeOrTaskName ?? "help",
         });
       }
 

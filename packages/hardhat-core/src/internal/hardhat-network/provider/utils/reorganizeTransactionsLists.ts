@@ -2,7 +2,7 @@ import { InternalError } from "../../../core/providers/errors";
 import * as BigIntUtils from "../../../util/bigint";
 import { SenderTransactions, SerializedTransaction } from "../PoolState";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 /**
  * Move as many transactions as possible from the queued list

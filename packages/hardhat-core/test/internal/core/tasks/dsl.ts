@@ -2,7 +2,10 @@ import { assert } from "chai";
 
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { TasksDSL } from "../../../../src/internal/core/tasks/dsl";
-import { expectHardhatErrorAsync } from "../../../helpers/errors";
+import {
+  expectHardhatError,
+  expectHardhatErrorAsync,
+} from "../../../helpers/errors";
 
 describe("TasksDSL", () => {
   let dsl: TasksDSL;
@@ -57,6 +60,60 @@ describe("TasksDSL", () => {
     await expectHardhatErrorAsync(
       () => task.action({}, {} as any, runSuperNop),
       ERRORS.TASK_DEFINITIONS.ACTION_NOT_SET
+    );
+  });
+
+  it("should create a scope without a description", () => {
+    const scope = dsl.scope("solidity");
+    assert.equal(scope.name, "solidity");
+    assert.isUndefined(scope.description);
+  });
+
+  it("should create a scope with a description", () => {
+    const scope = dsl.scope("solidity", "solidity tasks");
+    assert.equal(scope.name, "solidity");
+    assert.equal(scope.description, "solidity tasks");
+  });
+
+  it("should override the description of a scope without description", () => {
+    const scope = dsl.scope("solidity");
+    assert.equal(scope.name, "solidity");
+    assert.isUndefined(scope.description);
+
+    const newScope = dsl.scope("solidity", "solidity tasks");
+    assert.equal(newScope.name, "solidity");
+    assert.equal(newScope.description, "solidity tasks");
+    assert.equal(scope, newScope);
+  });
+
+  it("should override the description of a scope with a description", () => {
+    const scope = dsl.scope("solidity", "solidity tasks");
+    assert.equal(scope.name, "solidity");
+    assert.equal(scope.description, "solidity tasks");
+
+    const newScope = dsl.scope("solidity", "solidity tasks 2");
+    assert.equal(newScope.name, "solidity");
+    assert.equal(newScope.description, "solidity tasks 2");
+    assert.equal(scope, newScope);
+  });
+
+  it("should not create a scope if its name clashes with existing task", () => {
+    dsl.task("compile"); // no scope
+
+    expectHardhatError(
+      () => dsl.scope("compile"),
+      ERRORS.TASK_DEFINITIONS.TASK_SCOPE_CLASH,
+      "A clash was found while creating scope 'compile', since a task with that name already exists."
+    );
+  });
+
+  it("should not create a task if its name clashes with existing scope", () => {
+    dsl.scope("compile");
+
+    expectHardhatError(
+      () => dsl.task("compile"),
+      ERRORS.TASK_DEFINITIONS.SCOPE_TASK_CLASH,
+      "A clash was found while creating task 'compile', since a scope with that name already exists."
     );
   });
 

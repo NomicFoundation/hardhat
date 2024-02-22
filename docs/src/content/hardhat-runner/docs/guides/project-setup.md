@@ -68,10 +68,10 @@ yarn add --dev hardhat
 
 ::::
 
-If you run `npx hardhat` now, you will be shown some options to facilitate project creation:
+If you run `npx hardhat init` now, you will be shown some options to facilitate project creation:
 
 ```
-$ npx hardhat
+$ npx hardhat init
 888    888                      888 888               888
 888    888                      888 888               888
 888    888                      888 888               888
@@ -81,11 +81,12 @@ $ npx hardhat
 888    888 888  888 888    Y88b 888 888  888 888  888 Y88b.
 888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888
 
-Welcome to Hardhat v2.10.0
+Welcome to Hardhat v{HARDHAT_VERSION}
 
 ? What do you want to do? …
 ▸ Create a JavaScript project
   Create a TypeScript project
+  Create a TypeScript project (with Viem)
   Create an empty hardhat.config.js
   Quit
 ```
@@ -95,7 +96,7 @@ If you select _Create an empty hardhat.config.js_, Hardhat will create a `hardha
 ```js
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "0.8.9",
+  solidity: "{RECOMMENDED_SOLC_VERSION}",
 };
 ```
 
@@ -128,7 +129,7 @@ When it comes to testing your contracts, the sample project comes with some usef
 
 - The built-in [Hardhat Network](/hardhat-network/docs) as the development network to test on, along with the [Hardhat Network Helpers](/hardhat-network-helpers) library to manipulate this network.
 - [Mocha](https://mochajs.org/) as the test runner, [Chai](https://chaijs.com/) as the assertion library, and the [Hardhat Chai Matchers](/hardhat-chai-matchers) to extend Chai with contracts-related functionality.
-- The [`ethers.js`](https://docs.ethers.io/v5/) library to interact with the network and with contracts.
+- The [`ethers.js`](https://docs.ethers.org/v6/) library to interact with the network and with contracts.
 
 As well as other useful plugins. You can learn more about this in the [Testing contracts guide](./test-contracts.md).
 
@@ -154,7 +155,7 @@ To use a plugin, the first step is always to install it using npm or yarn, follo
 import "@nomicfoundation/hardhat-toolbox";
 
 export default {
-  solidity: "0.8.9",
+  solidity: "{RECOMMENDED_SOLC_VERSION}",
 };
 ```
 
@@ -166,7 +167,7 @@ export default {
 require("@nomicfoundation/hardhat-toolbox");
 
 module.exports = {
-  solidity: "0.8.9",
+  solidity: "{RECOMMENDED_SOLC_VERSION}",
 };
 ```
 

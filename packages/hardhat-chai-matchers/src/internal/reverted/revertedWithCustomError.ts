@@ -1,55 +1,59 @@
+import type EthersT from "ethers";
+
 import { AssertionError } from "chai";
 import ordinal from "ordinal";
 
+import {
+  ASSERTION_ABORTED,
+  REVERTED_WITH_CUSTOM_ERROR_MATCHER,
+} from "../constants";
+import { assertIsNotNull, preventAsyncMatcherChaining } from "../utils";
 import { buildAssert, Ssfi } from "../../utils";
-import { decodeReturnData, getReturnDataFromError } from "./utils";
+import {
+  decodeReturnData,
+  getReturnDataFromError,
+  resultToArray,
+} from "./utils";
 
 export const REVERTED_WITH_CUSTOM_ERROR_CALLED = "customErrorAssertionCalled";
 
 interface CustomErrorAssertionData {
-  contractInterface: any;
+  contractInterface: EthersT.Interface;
   returnData: string;
-  customError: CustomError;
+  customError: EthersT.ErrorFragment;
 }
 
 export function supportRevertedWithCustomError(
   Assertion: Chai.AssertionStatic,
-  utils: Chai.ChaiUtils
+  chaiUtils: Chai.ChaiUtils
 ) {
   Assertion.addMethod(
-    "revertedWithCustomError",
-    function (this: any, contract: any, expectedCustomErrorName: string) {
+    REVERTED_WITH_CUSTOM_ERROR_MATCHER,
+    function (
+      this: any,
+      contract: EthersT.BaseContract,
+      expectedCustomErrorName: string
+    ) {
       // capture negated flag before async code executes; see buildAssert's jsdoc
       const negated = this.__flags.negate;
 
-      // check the case where users forget to pass the contract as the first
-      // argument
-      if (typeof contract === "string" || contract?.interface === undefined) {
-        throw new TypeError(
-          "The first argument of .revertedWithCustomError must be the contract that defines the custom error"
-        );
-      }
-
-      // validate custom error name
-      if (typeof expectedCustomErrorName !== "string") {
-        throw new TypeError("Expected the custom error name to be a string");
-      }
-
-      const iface: any = contract.interface;
-
-      const expectedCustomError = findCustomErrorByName(
-        iface,
+      const { iface, expectedCustomError } = validateInput(
+        this._obj,
+        contract,
         expectedCustomErrorName
       );
 
-      // check that interface contains the given custom error
-      if (expectedCustomError === undefined) {
-        throw new Error(
-          `The given contract doesn't have a custom error named '${expectedCustomErrorName}'`
-        );
-      }
+      preventAsyncMatcherChaining(
+        this,
+        REVERTED_WITH_CUSTOM_ERROR_MATCHER,
+        chaiUtils
+      );
 
       const onSuccess = () => {
+        if (chaiUtils.flag(this, ASSERTION_ABORTED) === true) {
+          return;
+        }
+
         const assert = buildAssert(negated, onSuccess);
 
         assert(
@@ -59,6 +63,12 @@ export function supportRevertedWithCustomError(
       };
 
       const onError = (error: any) => {
+        if (chaiUtils.flag(this, ASSERTION_ABORTED) === true) {
+          return;
+        }
+
+        const { toBeHex } = require("ethers") as typeof EthersT;
+
         const assert = buildAssert(negated, onError);
 
         const returnData = getReturnDataFromError(error);
@@ -77,12 +87,12 @@ export function supportRevertedWithCustomError(
         } else if (decodedReturnData.kind === "Panic") {
           assert(
             false,
-            `Expected transaction to be reverted with custom error '${expectedCustomErrorName}', but it reverted with panic code ${decodedReturnData.code.toHexString()} (${
-              decodedReturnData.description
-            })`
+            `Expected transaction to be reverted with custom error '${expectedCustomErrorName}', but it reverted with panic code ${toBeHex(
+              decodedReturnData.code
+            )} (${decodedReturnData.description})`
           );
         } else if (decodedReturnData.kind === "Custom") {
-          if (decodedReturnData.id === expectedCustomError.id) {
+          if (decodedReturnData.id === expectedCustomError.selector) {
             // add flag with the data needed for .withArgs
             const customErrorAssertionData: CustomErrorAssertionData = {
               contractInterface: iface,
@@ -99,12 +109,9 @@ export function supportRevertedWithCustomError(
           } else {
             // try to decode the actual custom error
             // this will only work when the error comes from the given contract
-            const actualCustomError = findCustomErrorById(
-              iface,
-              decodedReturnData.id
-            );
+            const actualCustomError = iface.getError(decodedReturnData.id);
 
-            if (actualCustomError === undefined) {
+            if (actualCustomError === null) {
               assert(
                 false,
                 `Expected transaction to be reverted with custom error '${expectedCustomErrorName}', but it reverted with a different custom error`
@@ -127,7 +134,7 @@ export function supportRevertedWithCustomError(
       );
 
       // needed for .withArgs
-      utils.flag(this, REVERTED_WITH_CUSTOM_ERROR_CALLED, true);
+      chaiUtils.flag(this, REVERTED_WITH_CUSTOM_ERROR_CALLED, true);
       this.promise = derivedPromise;
 
       this.then = derivedPromise.then.bind(derivedPromise);
@@ -138,10 +145,49 @@ export function supportRevertedWithCustomError(
   );
 }
 
+function validateInput(
+  obj: any,
+  contract: EthersT.BaseContract,
+  expectedCustomErrorName: string
+): { iface: EthersT.Interface; expectedCustomError: EthersT.ErrorFragment } {
+  try {
+    // check the case where users forget to pass the contract as the first
+    // argument
+    if (typeof contract === "string" || contract?.interface === undefined) {
+      // discard subject since it could potentially be a rejected promise
+      throw new TypeError(
+        "The first argument of .revertedWithCustomError must be the contract that defines the custom error"
+      );
+    }
+
+    // validate custom error name
+    if (typeof expectedCustomErrorName !== "string") {
+      throw new TypeError("Expected the custom error name to be a string");
+    }
+
+    const iface = contract.interface;
+    const expectedCustomError = iface.getError(expectedCustomErrorName);
+
+    // check that interface contains the given custom error
+    if (expectedCustomError === null) {
+      throw new Error(
+        `The given contract doesn't have a custom error named '${expectedCustomErrorName}'`
+      );
+    }
+
+    return { iface, expectedCustomError };
+  } catch (e) {
+    // if the input validation fails, we discard the subject since it could
+    // potentially be a rejected promise
+    Promise.resolve(obj).catch(() => {});
+    throw e;
+  }
+}
+
 export async function revertedWithCustomErrorWithArgs(
   context: any,
   Assertion: Chai.AssertionStatic,
-  utils: Chai.ChaiUtils,
+  _utils: Chai.ChaiUtils,
   expectedArgs: any[],
   ssfi: Ssfi
 ) {
@@ -160,9 +206,10 @@ export async function revertedWithCustomErrorWithArgs(
   const { contractInterface, customError, returnData } =
     customErrorAssertionData;
 
-  const errorFragment = contractInterface.errors[customError.signature];
+  const errorFragment = contractInterface.getError(customError.name);
+  assertIsNotNull(errorFragment, "errorFragment");
   // We transform ether's Array-like object into an actual array as it's safer
-  const actualArgs = Array.from<any>(
+  const actualArgs = resultToArray(
     contractInterface.decodeErrorResult(errorFragment, returnData)
   );
 
@@ -209,52 +256,4 @@ export async function revertedWithCustomErrorWithArgs(
       new Assertion(actualArg).to.equal(expectedArg);
     }
   }
-}
-
-interface CustomError {
-  name: string;
-  id: string;
-  signature: string;
-}
-
-function findCustomErrorByName(
-  iface: any,
-  name: string
-): CustomError | undefined {
-  const ethers = require("ethers");
-
-  const customErrorEntry = Object.entries(iface.errors).find(
-    ([, fragment]: any) => fragment.name === name
-  );
-
-  if (customErrorEntry === undefined) {
-    return undefined;
-  }
-
-  const [customErrorSignature] = customErrorEntry;
-  const customErrorId = ethers.utils.id(customErrorSignature).slice(0, 10);
-
-  return {
-    id: customErrorId,
-    name,
-    signature: customErrorSignature,
-  };
-}
-
-function findCustomErrorById(iface: any, id: string): CustomError | undefined {
-  const ethers = require("ethers");
-
-  const customErrorEntry: any = Object.entries(iface.errors).find(
-    ([signature]: any) => ethers.utils.id(signature).slice(0, 10) === id
-  );
-
-  if (customErrorEntry === undefined) {
-    return undefined;
-  }
-
-  return {
-    id,
-    name: customErrorEntry[1].name,
-    signature: customErrorEntry[0],
-  };
 }

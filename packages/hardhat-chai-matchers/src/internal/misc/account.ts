@@ -1,21 +1,24 @@
-import type { Contract, Signer, Wallet } from "ethers";
+import type { Addressable } from "ethers";
 
 import assert from "assert";
 
-export type Account = Signer | Contract;
+import { HardhatChaiMatchersAssertionError } from "../errors";
 
-export function isAccount(account: Account): account is Contract | Wallet {
-  const ethers = require("ethers");
-  return account instanceof ethers.Contract || account instanceof ethers.Wallet;
-}
+export async function getAddressOf(
+  account: Addressable | string
+): Promise<string> {
+  const { isAddressable } = await import("ethers");
 
-export async function getAddressOf(account: Account | string) {
   if (typeof account === "string") {
     assert(/^0x[0-9a-fA-F]{40}$/.test(account), `Invalid address ${account}`);
     return account;
-  } else if (isAccount(account)) {
-    return account.address;
-  } else {
+  }
+
+  if (isAddressable(account)) {
     return account.getAddress();
   }
+
+  throw new HardhatChaiMatchersAssertionError(
+    `Expected string or addressable, got ${account as any}`
+  );
 }

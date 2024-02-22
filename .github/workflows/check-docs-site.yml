@@ -3,7 +3,8 @@ name: Check Docs Site
 on:
   push:
     branches:
-      - "fr/**"
+      - "**"
+  workflow_dispatch:
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
@@ -15,17 +16,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: yarn
+          cache: "pnpm"
       - name: Install
-        run: yarn --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
       - name: Install Docs
-        run: cd docs && yarn
+        run: cd docs && pnpm install --frozen-lockfile --prefer-offline
       - name: lint
-        run: cd docs && yarn lint
+        run: cd docs && pnpm lint
       - name: Build
-        run: cd docs && yarn build
-      - name: Storybook
-        run: cd docs && yarn build-storybook
+        run: cd docs && pnpm build

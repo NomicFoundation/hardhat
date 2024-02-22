@@ -1,3 +1,7 @@
+const {
+  getNextUnsupportedVersion,
+} = require("../../internal/hardhat-network/stack-traces/compilers-list");
+
 module.exports = {
-  solidity: "0.8.19",
+  solidity: getNextUnsupportedVersion(),
 };

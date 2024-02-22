@@ -1,12 +1,21 @@
+import type EthersT from "ethers";
+
 import { buildAssert } from "../../utils";
+import { REVERTED_MATCHER } from "../constants";
+import { assertIsNotNull, preventAsyncMatcherChaining } from "../utils";
 import { decodeReturnData, getReturnDataFromError } from "./utils";
 
-export function supportReverted(Assertion: Chai.AssertionStatic) {
-  Assertion.addProperty("reverted", function (this: any) {
+export function supportReverted(
+  Assertion: Chai.AssertionStatic,
+  chaiUtils: Chai.ChaiUtils
+) {
+  Assertion.addProperty(REVERTED_MATCHER, function (this: any) {
     // capture negated flag before async code executes; see buildAssert's jsdoc
     const negated = this.__flags.negate;
 
     const subject: unknown = this._obj;
+
+    preventAsyncMatcherChaining(this, REVERTED_MATCHER, chaiUtils);
 
     // Check if the received value can be linked to a transaction, and then
     // get the receipt of that transaction and check its status.
@@ -27,6 +36,7 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
 
         const receipt = await getTransactionReceipt(hash);
 
+        assertIsNotNull(receipt, "receipt");
         assert(
           receipt.status === 0,
           "Expected transaction to be reverted",
@@ -52,6 +62,7 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
     };
 
     const onError = (error: any) => {
+      const { toBeHex } = require("ethers") as typeof EthersT;
       const assert = buildAssert(negated, onError);
       const returnData = getReturnDataFromError(error);
       const decodedReturnData = decodeReturnData(returnData);
@@ -73,9 +84,9 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
         assert(
           true,
           undefined,
-          `Expected transaction NOT to be reverted, but it reverted with panic code ${decodedReturnData.code.toHexString()} (${
-            decodedReturnData.description
-          })`
+          `Expected transaction NOT to be reverted, but it reverted with panic code ${toBeHex(
+            decodedReturnData.code
+          )} (${decodedReturnData.description})`
         );
       } else {
         const _exhaustiveCheck: never = decodedReturnData;

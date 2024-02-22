@@ -117,7 +117,9 @@ The minimum `gasPrice` that a transaction must have. This field must not be pres
 
 The `baseFeePerGas` of the first block. Note that when forking a remote network, the "first block" is the one immediately after the block you forked from. This field must not be present if the `"hardfork"` is not `"london"` or a later one. Default value: `"1000000000"` if not forking. When forking a remote network, if the remote network uses EIP-1559, the first local block will use the right `baseFeePerGas` according to the EIP, otherwise `"10000000000"` is used.
 
-- `coinbase`: The address used as coinbase in new blocks. Default value: `"0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e"`.
+#### `coinbase`
+
+The address used as coinbase in new blocks. Default value: `"0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e"`.
 
 ### Mining modes
 
@@ -251,6 +253,50 @@ To customise it, take a look at [the configuration section](/config/index.md#har
 
 ### Standard methods
 
+#### `debug_traceCall`
+
+Traces the execution of an `eth_call` within the context of a specific block's execution. See the [Geth's documentation](https://geth.ethereum.org/docs/interacting-with-geth/rpc/ns-debug#debugtracecall) for more info.
+
+Arguments:
+
+- transaction object
+- blockTag: optional, default value is "latest"
+- traceConfig: optional object with the following properties:
+  - disableMemory: optional boolean, default value is false
+  - disableStack: optional boolean, default value is false
+  - disableStorage: optional boolean, default value is false
+
+Example without traceConfig:
+
+```js
+const result = await network.provider.send("debug_traceCall", [
+  {
+    from: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    to: "0x4b23ad35Da73fEe8154CDc8b291c814028A4E743",
+    data: "0xc0129d43",
+  },
+  "latest",
+]);
+```
+
+Example with traceConfig:
+
+```js
+const trace = await network.provider.send("debug_traceCall", [
+  {
+    from: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    to: "0x4b23ad35Da73fEe8154CDc8b291c814028A4E743",
+    data: "0xc0129d43",
+  },
+  "latest",
+  {
+    disableMemory: true,
+    disableStack: true,
+    disableStorage: true,
+  },
+]);
+```
+
 #### `debug_traceTransaction`
 
 Get debug traces of already-mined transactions.
@@ -286,6 +332,44 @@ const trace = await hre.network.provider.send("debug_traceTransaction", [
 #### `eth_blockNumber`
 
 #### `eth_call`
+
+This method allows you to simulate a transaction without actually executing it. See the [Geth's documentation](https://geth.ethereum.org/docs/interacting-with-geth/rpc/ns-eth) for more info.
+
+Example:
+
+```js
+const result = await network.provider.send("eth_call", [
+  {
+    from: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    to: "0x4b23ad35Da73fEe8154CDc8b291c814028A4E743",
+    data: "0xc0129d43",
+  },
+  "latest",
+]);
+```
+
+You can optionally pass a state override object to modify the chain before running the call:
+
+```js
+const result = await network.provider.send("eth_call", [
+  {
+    from: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    to: "0x4b23ad35Da73fEe8154CDc8b291c814028A4E743",
+    data: "0xc0129d43",
+  },
+  "latest",
+  {
+    "0x6eE6DE5a56910E5353933761305AEF6a414d97BA": {
+      balance: "0xde0b6b3a7640000",
+      nonce: "0x123",
+      stateDiff: {
+        "0x0000000000000000000000000000000000000000000000000000000000000002":
+          "0x000000000000000000000000000000000000000000000000000000000000000c",
+      },
+    },
+  },
+]);
+```
 
 #### `eth_chainId`
 

@@ -7,7 +7,7 @@ const exec = promisify(execCallback);
 
 type Remappings = Record<string, string>;
 
-let cachedRemappings: Remappings | undefined;
+let cachedRemappings: Promise<Remappings> | undefined;
 
 export class HardhatFoundryError extends NomicLabsHardhatPluginError {
   constructor(message: string, parent?: Error) {
@@ -31,35 +31,46 @@ export function getForgeConfig() {
   return JSON.parse(runCmdSync("forge config --json"));
 }
 
-export async function getRemappings() {
-  // Return remappings if they were already loaded
-  if (cachedRemappings !== undefined) {
-    return cachedRemappings;
-  }
-
-  // Get remappings from foundry
-  const remappingsTxt = await runCmd("forge remappings");
-
+export function parseRemappings(remappingsTxt: string): Remappings {
   const remappings: Remappings = {};
   const remappingLines = remappingsTxt.split(/\r\n|\r|\n/);
   for (const remappingLine of remappingLines) {
+    if (remappingLine.trim() === "") {
+      continue;
+    }
+
+    if (remappingLine.includes(":")) {
+      throw new HardhatFoundryError(
+        `Invalid remapping '${remappingLine}', remapping contexts are not allowed`
+      );
+    }
+
+    if (!remappingLine.includes("=")) {
+      throw new HardhatFoundryError(
+        `Invalid remapping '${remappingLine}', remappings without a target are not allowed`
+      );
+    }
+
     const fromTo = remappingLine.split("=");
-    if (fromTo.length !== 2) {
+
+    // if the remapping already exists, we ignore it because the first one wins
+    if (remappings[fromTo[0]] !== undefined) {
       continue;
     }
 
-    const [from, to] = fromTo;
-
-    // source names with "node_modules" in it have special treatment in hardhat core, so we skip them
-    if (to.includes("node_modules")) {
-      continue;
-    }
-
-    remappings[from] = to;
+    remappings[fromTo[0]] = fromTo[1];
   }
 
-  cachedRemappings = remappings;
   return remappings;
+}
+
+export async function getRemappings() {
+  // Get remappings only once
+  if (cachedRemappings === undefined) {
+    cachedRemappings = runCmd("forge remappings").then(parseRemappings);
+  }
+
+  return cachedRemappings;
 }
 
 export async function installDependency(dependency: string) {

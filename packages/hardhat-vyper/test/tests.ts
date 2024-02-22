@@ -1,4 +1,5 @@
-import { assert } from "chai";
+import { assert, expect, use } from "chai";
+import chaiAsPromised from "chai-as-promised";
 import * as fsExtra from "fs-extra";
 import path from "path";
 
@@ -11,6 +12,8 @@ import {
   assertFileExists,
   expectVyperErrorAsync,
 } from "./helpers";
+
+use(chaiAsPromised);
 
 describe("Vyper plugin", function () {
   beforeEach(function () {
@@ -104,6 +107,27 @@ describe("Vyper plugin", function () {
       assert.isUndefined(
         JSON.parse(JSON.stringify(this.env.artifacts.readArtifactSync("A").abi))
           .gas
+      );
+    });
+  });
+
+  describe("project should not compile", function () {
+    useFixtureProject("compilation-single-file-test-directive");
+    useEnvironment();
+
+    it("should throw an error because a test directive is present in the source file", async function () {
+      const filePath = path.join(
+        __dirname,
+        "fixture-projects",
+        "compilation-single-file-test-directive",
+        "contracts",
+        "A.vy"
+      );
+
+      await expect(this.env.run(TASK_COMPILE)).to.be.rejectedWith(
+        `We found a test directive in the file at path ${filePath}.` +
+          ` Test directives are a Brownie feature not supported by Hardhat.` +
+          ` Learn more at https://hardhat.org/hardhat-runner/plugins/nomiclabs-hardhat-vyper#test-directives`
       );
     });
   });

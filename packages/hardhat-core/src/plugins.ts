@@ -1,3 +1,4 @@
+export { ProviderWrapper } from "./internal/core/providers/wrapper";
 export {
   HardhatPluginError,
   NomicLabsHardhatPluginError,

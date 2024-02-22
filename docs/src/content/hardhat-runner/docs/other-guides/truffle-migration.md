@@ -4,7 +4,129 @@ Hardhat is a task runner that facilitates building Ethereum smart contracts. It 
 
 The bulk of Hardhat's functionality comes from plugins, and as a developer you're free to choose the ones you want to use. There are plugins for Truffle 4 and 5 that make migrating to Hardhat easy.
 
-To migrate an existing Truffle project to Hardhat there are two main things to consider: testing and deployment.
+To migrate an existing Truffle project to Hardhat you need to install the proper dependencies and adapt three parts of your project: the configuration, the tests, and the deployments.
+
+### Installation
+
+The first thing you need to do is to install Hardhat and the proper plugin. This guide assumes that you'll be using the `@nomiclabs/hardhat-truffle5` plugin.
+
+::::tabsgroup{options="npm 7+,npm 6,yarn"}
+
+:::tab{value="npm 7+"}
+
+```
+npm install --save-dev hardhat @nomiclabs/hardhat-truffle5
+```
+
+:::
+
+:::tab{value="npm 6"}
+
+```
+npm install --save-dev hardhat @nomiclabs/hardhat-truffle5 @nomiclabs/hardhat-web3 'web3@^1.0.0-beta.36'
+```
+
+:::
+
+:::tab{value=yarn}
+
+```
+yarn add --dev hardhat @nomiclabs/hardhat-truffle5 @nomiclabs/hardhat-web3 'web3@^1.0.0-beta.36'
+```
+
+:::
+
+::::
+
+### Configuration
+
+After installing the necessary dependencies, you need to create a `hardhat.config.js` file. This file is the equivalent of Truffle's `truffle-config.js` file, and it's where you configure Hardhat and its plugins. We'll be using JavaScript in this guide, but you can learn how to use Hardhat with TypeScript in [this guide](/hardhat-runner/docs/guides/typescript).
+
+Create a `hardhat.config.js` file with the following contents:
+
+```js
+require("@nomiclabs/hardhat-truffle5");
+
+module.exports = {
+  solidity: {
+    // ...
+  },
+  networks: {
+    // ...
+  },
+};
+```
+
+We'll explain how to adapt the compiler and the networks configurations. For other entries in your `truffle-config.js` file, you can compare [Truffle's](https://trufflesuite.com/docs/truffle/reference/configuration/) and [Hardhat's](/hardhat-runner/docs/config) configuration references. Keep in mind that some features might not be portable.
+
+#### Compiler configuration
+
+The compiler configuration is the easiest to migrate. You just need to copy the content of the `compilers.solc` object from your `truffle-config.js` file to the `solidity` entry in your `hardhat.config.js` file. For example, if your Truffle config is:
+
+```js
+module.exports = {
+  compilers: {
+    solc: {
+      version: "0.8.20",
+      settings: {
+        optimizer: {
+          enabled: true,
+          runs: 200,
+        },
+      },
+    },
+  },
+};
+```
+
+then your Hardhat config should be:
+
+```js
+module.exports = {
+  solidity: {
+    version: "0.8.20",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200,
+      },
+    },
+  },
+};
+```
+
+Keep in mind that only the `version` and `settings` keys are supported.
+
+#### Network configuration
+
+The network configuration is a bit more complex. You need to copy the content of the `networks` object from your `truffle-config.js` file to the `networks` entry in your `hardhat.config.js` file and adapt some fields. For example, if your Truffle config is:
+
+```js
+module.exports = {
+  networks: {
+    sepolia: {
+      host: "http://sepolia.example.com",
+      port: 8545,
+      network_id: 11155111,
+    },
+  },
+};
+```
+
+then your Hardhat config should be:
+
+```js
+module.exports = {
+  networks: {
+    sepolia: {
+      url: "http://sepolia.example.com:8545",
+      chainId: 11155111,
+    },
+  },
+};
+```
+
+Again, not every field is supported. Compare the [Truffle config reference](https://trufflesuite.com/docs/truffle/reference/configuration/#networks) and the [Hardhat config reference](/hardhat-runner/docs/config#json-rpc-based-networks) to learn more.
 
 ### Testing
 

@@ -10,22 +10,24 @@ import {
   HardhatUserConfig,
   Network,
   ParamDefinition,
+  ProviderExtender,
   RunSuperFunction,
   RunTaskFunction,
   SubtaskArguments,
   TaskArguments,
   TaskDefinition,
   TasksMap,
+  ScopesMap,
 } from "../../types";
 import { Artifacts } from "../artifacts";
 import { MessageTrace } from "../hardhat-network/stack-traces/message-trace";
-import { lazyObject } from "../util/lazy";
 
 import { getHardhatVersion } from "../util/packageInfo";
 import { analyzeModuleNotFoundError } from "./config/config-loading";
 import { HardhatError } from "./errors";
 import { ERRORS } from "./errors-list";
 import { createProvider } from "./providers/construction";
+import { LazyInitializationProviderAdapter } from "./providers/lazy-initialization";
 import { OverriddenTaskDefinition } from "./tasks/task-definitions";
 import {
   completeTaskProfile,
@@ -33,6 +35,7 @@ import {
   createTaskProfile,
   TaskProfile,
 } from "./task-profiling";
+import { parseTaskIdentifier } from "./tasks/util";
 
 const log = debug("hardhat:core:hre");
 
@@ -48,7 +51,7 @@ export class Environment implements HardhatRuntimeEnvironment {
 
   public artifacts: IArtifacts;
 
-  private readonly _extenders: EnvironmentExtender[];
+  private readonly _environmentExtenders: EnvironmentExtender[];
 
   public entryTaskProfile?: TaskProfile;
 
@@ -64,15 +67,19 @@ export class Environment implements HardhatRuntimeEnvironment {
    * @param config The hardhat's config object.
    * @param hardhatArguments The parsed hardhat's arguments.
    * @param tasks A map of tasks.
-   * @param extenders A list of extenders.
+   * @param scopes A map of scopes.
+   * @param environmentExtenders A list of environment extenders.
+   * @param providerExtenders A list of provider extenders.
    */
   constructor(
     public readonly config: HardhatConfig,
     public readonly hardhatArguments: HardhatArguments,
     public readonly tasks: TasksMap,
-    extenders: EnvironmentExtender[] = [],
+    public readonly scopes: ScopesMap,
+    environmentExtenders: EnvironmentExtender[] = [],
     experimentalHardhatNetworkMessageTraceHooks: ExperimentalHardhatNetworkMessageTraceHook[] = [],
-    public readonly userConfig: HardhatUserConfig = {}
+    public readonly userConfig: HardhatUserConfig = {},
+    providerExtenders: ProviderExtender[] = []
   ) {
     log("Creating HardhatRuntimeEnvironment");
 
@@ -91,35 +98,35 @@ export class Environment implements HardhatRuntimeEnvironment {
 
     this.artifacts = new Artifacts(config.paths.artifacts);
 
-    const provider = lazyObject(() => {
+    const provider = new LazyInitializationProviderAdapter(async () => {
       log(`Creating provider for network ${networkName}`);
       return createProvider(
+        config,
         networkName,
-        networkConfig,
-        this.config.paths,
         this.artifacts,
         experimentalHardhatNetworkMessageTraceHooks.map(
           (hook) => (trace: MessageTrace, isCallMessageTrace: boolean) =>
             hook(this, trace, isCallMessageTrace)
-        )
+        ),
+        providerExtenders
       );
     });
 
     this.network = {
       name: networkName,
-      config: config.networks[networkName],
+      config: networkConfig,
       provider,
     };
 
-    this._extenders = extenders;
+    this._environmentExtenders = environmentExtenders;
 
-    extenders.forEach((extender) => extender(this));
+    environmentExtenders.forEach((extender) => extender(this));
   }
 
   /**
    * Executes the task with the given name.
    *
-   * @param name The task's name.
+   * @param taskIdentifier The task or scoped task to be executed.
    * @param taskArguments A map of task's arguments.
    * @param subtaskArguments A map of subtasks to their arguments.
    *
@@ -127,18 +134,39 @@ export class Environment implements HardhatRuntimeEnvironment {
    * @returns a promise with the task's execution result.
    */
   public readonly run: RunTaskFunction = async (
-    name,
+    taskIdentifier,
     taskArguments = {},
     subtaskArguments = {},
     callerTaskProfile?: TaskProfile
   ) => {
-    const taskDefinition = this.tasks[name];
+    const { scope, task } = parseTaskIdentifier(taskIdentifier);
 
-    log("Running task %s", name);
+    let taskDefinition;
+    if (scope === undefined) {
+      taskDefinition = this.tasks[task];
+      log("Running task %s", task);
+    } else {
+      const scopeDefinition = this.scopes[scope];
+      if (scopeDefinition === undefined) {
+        throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPE, {
+          scope,
+        });
+      }
+
+      taskDefinition = scopeDefinition.tasks?.[task];
+      log("Running scoped task %s %s", scope, task);
+    }
 
     if (taskDefinition === undefined) {
+      if (scope !== undefined) {
+        throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPED_TASK, {
+          scope,
+          task,
+        });
+      }
+
       throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
-        task: name,
+        task,
       });
     }
 
@@ -150,7 +178,7 @@ export class Environment implements HardhatRuntimeEnvironment {
 
     let taskProfile: TaskProfile | undefined;
     if (this.hardhatArguments.flamegraph === true) {
-      taskProfile = createTaskProfile(name);
+      taskProfile = createTaskProfile(task);
 
       if (callerTaskProfile !== undefined) {
         callerTaskProfile.children.push(taskProfile);
@@ -169,7 +197,7 @@ export class Environment implements HardhatRuntimeEnvironment {
     } catch (e) {
       analyzeModuleNotFoundError(e, this.config.paths.configFile);
 
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw e;
     } finally {
       if (taskProfile !== undefined) {

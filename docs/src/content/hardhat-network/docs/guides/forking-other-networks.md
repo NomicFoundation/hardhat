@@ -167,7 +167,7 @@ await impersonatedSigner.sendTransaction(...);
 Alternatively, you can use the [`impersonateAccount`](</hardhat-network-helpers/docs/reference#impersonateaccount(address)>) helper and then obtain the signer for that address:
 
 ```js
-const helpers = require("@nomicfoundation/hardhat-network-helpers");
+const helpers = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 
 const address = "0x1234567890123456789012345678901234567890";
 await helpers.impersonateAccount(address);
@@ -183,7 +183,7 @@ Once you've got a local instance of the mainnet chain state, setting that state 
 You can reset the network with the [`reset`](</hardhat-network-helpers/docs/reference#reset([url],-[blocknumber])>) network helper:
 
 ```js
-const helpers = require("@nomicfoundation/hardhat-network-helpers");
+const helpers = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 
 await helpers.reset(url, blockNumber);
 ```

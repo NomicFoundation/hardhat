@@ -28,7 +28,7 @@ import { ReadOnlyValidUnknownTypeTransaction } from "../transactions/ReadOnlyVal
 import { rpcToBlockData } from "./rpcToBlockData";
 import { rpcToTxData } from "./rpcToTxData";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 export class ForkBlockchain
   extends BlockchainBase
@@ -348,10 +348,30 @@ export class ForkBlockchain
       return undefined;
     }
 
-    const transaction = new ReadOnlyValidTransaction(
-      new Address(rpcTransaction.from),
-      rpcToTxData(rpcTransaction)
-    );
+    let transaction: TypedTransaction;
+
+    if (rpcTransaction.type === undefined || rpcTransaction.type === 0n) {
+      transaction = new ReadOnlyValidTransaction(
+        new Address(rpcTransaction.from),
+        rpcToTxData(rpcTransaction)
+      );
+    } else if (rpcTransaction.type === 1n) {
+      transaction = new ReadOnlyValidEIP2930Transaction(
+        new Address(rpcTransaction.from),
+        rpcToTxData(rpcTransaction)
+      );
+    } else if (rpcTransaction.type === 2n) {
+      transaction = new ReadOnlyValidEIP1559Transaction(
+        new Address(rpcTransaction.from),
+        rpcToTxData(rpcTransaction) as FeeMarketEIP1559TxData
+      );
+    } else {
+      transaction = new ReadOnlyValidUnknownTypeTransaction(
+        new Address(rpcTransaction.from),
+        Number(rpcTransaction.type),
+        rpcToTxData(rpcTransaction)
+      );
+    }
 
     this._data.addTransaction(transaction);
 

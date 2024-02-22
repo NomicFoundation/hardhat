@@ -1,4 +1,5 @@
 import { VyperFilesCache } from "./cache";
+import { VyperPluginError } from "./util";
 
 interface ParsedData {
   versionPragma: string;
@@ -16,6 +17,8 @@ export class Parser {
     absolutePath: string,
     contentHash: string
   ): ParsedData {
+    this._validateTestModeNotUsed(fileContent, absolutePath);
+
     const cacheResult = this._getFromCache(absolutePath, contentHash);
 
     if (cacheResult !== null) {
@@ -29,6 +32,16 @@ export class Parser {
     this._cache.set(contentHash, result);
 
     return result;
+  }
+
+  private _validateTestModeNotUsed(fileContent: string, absolutePath: string) {
+    if (fileContent.includes('#@ if mode == "test":')) {
+      throw new VyperPluginError(
+        `We found a test directive in the file at path ${absolutePath}.` +
+          ` Test directives are a Brownie feature not supported by Hardhat.` +
+          ` Learn more at https://hardhat.org/hardhat-runner/plugins/nomiclabs-hardhat-vyper#test-directives`
+      );
+    }
   }
 
   private _getFromCache(

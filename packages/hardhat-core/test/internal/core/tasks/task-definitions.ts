@@ -1,9 +1,11 @@
 import { assert } from "chai";
+import sinon from "sinon";
 
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import * as types from "../../../../src/internal/core/params/argumentTypes";
 import {
   OverriddenTaskDefinition,
+  SimpleScopeDefinition,
   SimpleTaskDefinition,
 } from "../../../../src/internal/core/tasks/task-definitions";
 import { unsafeObjectKeys } from "../../../../src/internal/util/unsafe";
@@ -49,6 +51,49 @@ describe("SimpleTaskDefinition", () => {
 
     it("gets the right name", () => {
       assert.equal(taskDefinition.name, "name");
+    });
+
+    it("gets the right isSubtask flag", () => {
+      assert.isTrue(taskDefinition.isSubtask);
+    });
+
+    it("starts without any param defined", () => {
+      assert.deepEqual(taskDefinition.paramDefinitions, {});
+      assert.isEmpty(taskDefinition.positionalParamDefinitions);
+    });
+
+    it("starts without any description", () => {
+      assert.isUndefined(taskDefinition.description);
+    });
+
+    it("starts without any scope", () => {
+      assert.isUndefined(taskDefinition.scope);
+    });
+
+    it("starts with an action that throws", () => {
+      expectHardhatError(
+        () => taskDefinition.action({}, {} as any, runSuperNop),
+        ERRORS.TASK_DEFINITIONS.ACTION_NOT_SET
+      );
+    });
+  });
+
+  describe("construction with task identifiers", () => {
+    let taskDefinition: SimpleTaskDefinition;
+
+    before("init taskDefinition", () => {
+      taskDefinition = new SimpleTaskDefinition(
+        { scope: "scope", task: "name" },
+        true
+      );
+    });
+
+    it("gets the right name", () => {
+      assert.equal(taskDefinition.name, "name");
+    });
+
+    it("gets the right scope", () => {
+      assert.equal(taskDefinition.scope, "scope");
     });
 
     it("gets the right isSubtask flag", () => {
@@ -1098,5 +1143,74 @@ describe("OverriddenTaskDefinition", () => {
         ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_VARIADIC_PARAMS
       );
     });
+  });
+});
+
+describe("SimpleScopeDefinition", () => {
+  it("should create a scope definition without a description", async function () {
+    const scopeDefinition = new SimpleScopeDefinition(
+      "scope",
+      undefined,
+      (() => {}) as any,
+      (() => {}) as any
+    );
+
+    assert.equal(scopeDefinition.name, "scope");
+    assert.isUndefined(scopeDefinition.description);
+  });
+
+  it("should create a scope definition with a description", async function () {
+    const scopeDefinition = new SimpleScopeDefinition(
+      "scope",
+      "a description",
+      (() => {}) as any,
+      (() => {}) as any
+    );
+
+    assert.equal(scopeDefinition.name, "scope");
+    assert.equal(scopeDefinition.description, "a description");
+  });
+
+  it("should change the description with setDescription", async function () {
+    const scopeDefinition = new SimpleScopeDefinition(
+      "scope",
+      "a description",
+      (() => {}) as any,
+      (() => {}) as any
+    );
+
+    assert.equal(scopeDefinition.name, "scope");
+    assert.equal(scopeDefinition.description, "a description");
+
+    scopeDefinition.setDescription("another description");
+
+    assert.equal(scopeDefinition.description, "another description");
+  });
+
+  it("should call the right callbacks", async function () {
+    const addTask = sinon.spy();
+    const addSubtask = sinon.spy();
+
+    const scopeDefinition = new SimpleScopeDefinition(
+      "scope",
+      "a description",
+      addTask,
+      addSubtask
+    );
+
+    assert.isFalse(addTask.called);
+    assert.isFalse(addSubtask.called);
+
+    const taskAction: any = () => {};
+    scopeDefinition.task("task", taskAction);
+
+    assert.isTrue(addTask.calledOnce);
+    assert.isFalse(addSubtask.called);
+
+    const subtaskAction: any = () => {};
+    scopeDefinition.subtask("subtask", subtaskAction);
+
+    assert.isTrue(addTask.calledOnce);
+    assert.isTrue(addSubtask.calledOnce);
   });
 });

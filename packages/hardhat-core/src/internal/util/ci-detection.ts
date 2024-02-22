@@ -1,4 +1,5 @@
-import ci from "ci-info";
+import type CiInfoT from "ci-info";
+
 import os from "os";
 
 // This has been tested in:
@@ -17,6 +18,7 @@ import os from "os";
 //   - Jenkins -- Using process.env.BUILD_NUMBER
 //   - ZEIT Now -- Special case
 export function isRunningOnCiServer(): boolean {
+  const ci = require("ci-info") as typeof CiInfoT;
   return (
     ci.isCI ||
     isGithubActions() ||

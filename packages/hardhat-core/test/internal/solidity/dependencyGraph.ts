@@ -133,6 +133,7 @@ describe("Dependency Graph", function () {
       resolver = new Resolver(
         projectRoot,
         new Parser(),
+        {},
         (absolutePath: string) =>
           fsExtra.readFile(absolutePath, { encoding: "utf8" }),
         async (sourceName: string) => sourceName
@@ -279,6 +280,7 @@ describe("Dependency Graph", function () {
         localResolver = new Resolver(
           await getFixtureProjectPath(PROJECT),
           new Parser(),
+          {},
           (absolutePath: string) =>
             fsExtra.readFile(absolutePath, { encoding: "utf8" }),
           async (sourceName: string) => sourceName

@@ -21,7 +21,7 @@ import { MineBlockResult } from "../node-types";
 
 import { ModulesLogger } from "./logger";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 // Type to accept decimal or hex-encoded params (for test rpc methods only)
 const rpcQuantityOrNumber = t.union([rpcQuantity, t.number]);

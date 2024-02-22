@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { BN } from "ethereumjs-util";
-import { ethers } from "ethers";
+import { ethers } from "ethers-v5";
 
 import * as hh from "../../src";
 import { NumberLike } from "../../src/types";
