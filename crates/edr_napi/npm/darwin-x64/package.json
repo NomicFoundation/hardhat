@@ -1,5 +1,5 @@
 {
-  "name": "@ignored/edr-darwin-x64",
+  "name": "@nomicfoundation/edr-darwin-x64",
   "repository": {
     "url": "https://github.com/NomicFoundation/hardhat.git",
     "type": "git"

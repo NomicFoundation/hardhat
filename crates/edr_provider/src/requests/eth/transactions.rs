@@ -510,3 +510,67 @@ You can use them by running Hardhat Network with 'hardfork' {minimum_hardfork:?}
 
     validate_transaction_and_call_request(data.spec_id(), signed_transaction)
 }
+
+#[cfg(test)]
+mod tests {
+    use anyhow::Context;
+    use edr_eth::{
+        transaction::{Eip155TransactionRequest, TransactionKind, TransactionRequest},
+        Address, Bytes, U256,
+    };
+    use edr_evm::ExecutableTransaction;
+
+    use super::*;
+    use crate::{
+        data::{test_utils::ProviderTestFixture, SendTransactionResult},
+        test_utils::one_ether,
+    };
+
+    #[test]
+    fn transaction_by_hash_for_impersonated_account() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new_local()?;
+
+        let impersonated_account: Address = "0x20620fa0ad46516e915029c94e3c87c9cd7861ff".parse()?;
+        fixture
+            .provider_data
+            .impersonate_account(impersonated_account);
+
+        fixture
+            .provider_data
+            .set_balance(impersonated_account, one_ether())?;
+
+        let chain_id = fixture.provider_data.chain_id();
+
+        let request = TransactionRequest::Eip155(Eip155TransactionRequest {
+            kind: TransactionKind::Call(Address::ZERO),
+            gas_limit: 30_000,
+            gas_price: U256::from(42_000_000_000_u64),
+            value: U256::from(1),
+            input: Bytes::default(),
+            nonce: 0,
+            chain_id,
+        })
+        .fake_sign(&impersonated_account);
+        let transaction = ExecutableTransaction::with_caller(
+            fixture.provider_data.spec_id(),
+            request,
+            impersonated_account,
+        )?;
+
+        fixture.provider_data.set_auto_mining(true);
+        let SendTransactionResult {
+            transaction_hash,
+            transaction_result,
+            ..
+        } = fixture.provider_data.send_transaction(transaction)?;
+        assert!(transaction_result.is_some());
+
+        let rpc_transaction =
+            handle_get_transaction_by_hash(&fixture.provider_data, transaction_hash)?
+                .context("transaction not found")?;
+        assert_eq!(&rpc_transaction.from, &impersonated_account);
+        assert_eq!(&rpc_transaction.hash, &transaction_hash);
+
+        Ok(())
+    }
+}

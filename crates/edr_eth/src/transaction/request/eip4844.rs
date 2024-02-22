@@ -7,7 +7,7 @@ use k256::SecretKey;
 use crate::{
     access_list::AccessListItem,
     signature::{Signature, SignatureError},
-    transaction::{request::fake_signature::make_fake_signature, Eip4844SignedTransaction},
+    transaction::{fake_signature::make_fake_signature, Eip4844SignedTransaction},
     utils::envelop_bytes,
     Address, Bytes, B256, U256,
 };
@@ -57,6 +57,7 @@ impl Eip4844TransactionRequest {
             r: signature.r,
             s: signature.s,
             hash: OnceLock::new(),
+            is_fake: false,
         })
     }
 
@@ -79,6 +80,7 @@ impl Eip4844TransactionRequest {
             r: signature.r,
             s: signature.s,
             hash: OnceLock::new(),
+            is_fake: true,
         }
     }
 }
@@ -106,7 +108,7 @@ pub(crate) mod tests {
     use std::str::FromStr;
 
     use super::*;
-    use crate::transaction::request::fake_signature::tests::test_fake_sign_properties;
+    use crate::transaction::fake_signature::tests::test_fake_sign_properties;
 
     fn dummy_request() -> Eip4844TransactionRequest {
         // From https://github.com/ethereumjs/ethereumjs-monorepo/blob/master/packages/tx/test/eip4844.spec.ts#L68

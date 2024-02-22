@@ -33,6 +33,7 @@ url = "2.4.1"
 [dev-dependencies]
 anyhow = "1.0.75"
 assert-json-diff = "2.0.2"
+edr_defaults = { version = "0.2.0-dev", path = "../edr_defaults" }
 lazy_static = "1.4.0"
 mockito = { version = "1.0.2", default-features = false }
 paste = { version = "1.0.14", default-features = false }

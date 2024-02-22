@@ -26,6 +26,11 @@ pub(super) fn make_fake_signature<const V: usize>(sender: &Address) -> Signature
     Signature { r, s, v }
 }
 
+pub(super) fn recover_fake_signature(signature: &Signature) -> Address {
+    let address: [u8; 32] = signature.r.to_be_bytes();
+    Address::from_slice(&address.as_slice()[12..])
+}
+
 #[cfg(test)]
 pub(super) mod tests {
     macro_rules! test_fake_sign_properties {
@@ -59,6 +64,22 @@ pub(super) mod tests {
                 let hash_two = signed_transaction_two.hash();
 
                 assert_ne!(hash_one, hash_two);
+            }
+
+            #[test]
+            fn recovers_fake_sender() {
+                let transaction_request = dummy_request();
+
+                // Fails to recover with signature error if tried to ecrocver a fake signature
+                let sender: Address = "0x67091a7dd65bf4f1e95af0a479fbc782b61c129a"
+                    .parse()
+                    .expect("valid address");
+
+                let signed_transaction = transaction_request.fake_sign(&sender);
+
+                let recovered = signed_transaction.recover().expect("valid signature");
+
+                assert_eq!(recovered, sender);
             }
         };
     }

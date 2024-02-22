@@ -171,8 +171,7 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
         {
             Ok(Some({
                 let mut cache = RwLockUpgradableReadGuard::upgrade(cache).await;
-                // SAFETY: the receipt with this hash didn't exist yet, so it must be unique
-                unsafe { cache.insert_receipt_unchecked(receipt) }.clone()
+                cache.insert_receipt(receipt)?.clone()
             }))
         } else {
             Ok(None)
@@ -235,8 +234,7 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
         if is_cacheable {
             let mut remote_cache = RwLockUpgradableReadGuard::upgrade(cache).await;
 
-            // SAFETY: the block with this number didn't exist yet, so it must be unique
-            Ok(unsafe { remote_cache.insert_block_unchecked(block, total_difficulty) }.clone())
+            Ok(remote_cache.insert_block(block, total_difficulty)?.clone())
         } else {
             Ok(block)
         }

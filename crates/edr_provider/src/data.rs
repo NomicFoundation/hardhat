@@ -2379,7 +2379,6 @@ pub(crate) mod test_utils {
     use anyhow::anyhow;
     use edr_eth::transaction::{Eip155TransactionRequest, TransactionKind, TransactionRequest};
     use edr_test_utils::env::get_alchemy_url;
-    use tempfile::TempDir;
 
     use super::*;
     use crate::{
@@ -2411,8 +2410,6 @@ pub(crate) mod test_utils {
     }
 
     pub(crate) struct ProviderTestFixture {
-        // We need to keep the tempdir and runtime alive for the duration of the test
-        _cache_dir: TempDir,
         _runtime: runtime::Runtime,
         pub config: ProviderConfig,
         pub provider_data: ProviderData<Infallible>,
@@ -2439,8 +2436,7 @@ pub(crate) mod test_utils {
                 }
             });
 
-            let cache_dir = TempDir::new()?;
-            let config = create_test_config_with_fork(cache_dir.path().to_path_buf(), fork);
+            let config = create_test_config_with_fork(fork);
 
             let runtime = runtime::Builder::new_multi_thread()
                 .worker_threads(1)
@@ -2448,12 +2444,11 @@ pub(crate) mod test_utils {
                 .thread_name("provider-data-test")
                 .build()?;
 
-            Self::new(runtime, cache_dir, config)
+            Self::new(runtime, config)
         }
 
         pub fn new(
             runtime: tokio::runtime::Runtime,
-            cache_dir: TempDir,
             mut config: ProviderConfig,
         ) -> anyhow::Result<Self> {
             let logger = Box::<NoopLogger>::default();
@@ -2481,7 +2476,6 @@ pub(crate) mod test_utils {
             provider_data.impersonate_account(impersonated_account);
 
             Ok(Self {
-                _cache_dir: cache_dir,
                 _runtime: runtime,
                 config,
                 provider_data,
@@ -2554,13 +2548,14 @@ mod tests {
     use edr_evm::{hex, MineOrdering, RemoteBlock, TransactionError};
     use edr_test_utils::env::get_alchemy_url;
     use serde_json::json;
-    use tempfile::TempDir;
 
     use super::{test_utils::ProviderTestFixture, *};
     use crate::{
         data::inspector::tests::{deploy_console_log_contract, ConsoleLogTransaction},
         requests::eth::resolve_call_request,
-        test_utils::{create_test_config_with_fork, one_ether, FORK_BLOCK_NUMBER},
+        test_utils::{
+            create_test_config, create_test_config_with_fork, one_ether, FORK_BLOCK_NUMBER,
+        },
         MemPoolConfig, MiningConfig, ProviderConfig,
     };
 
@@ -3067,8 +3062,7 @@ mod tests {
 
     #[test]
     fn mine_and_commit_block_fifo_ordering() -> anyhow::Result<()> {
-        let cache_dir = TempDir::new()?;
-        let default_config = create_test_config_with_fork(cache_dir.path().to_path_buf(), None);
+        let default_config = create_test_config();
         let config = ProviderConfig {
             mining: MiningConfig {
                 mem_pool: MemPoolConfig {
@@ -3085,7 +3079,7 @@ mod tests {
             .thread_name("provider-data-test")
             .build()?;
 
-        let mut fixture = ProviderTestFixture::new(runtime, cache_dir, config)?;
+        let mut fixture = ProviderTestFixture::new(runtime, config)?;
 
         let transaction1 = fixture.signed_dummy_transaction(0, None)?;
         let transaction2 = fixture.signed_dummy_transaction(1, None)?;
@@ -3159,8 +3153,7 @@ mod tests {
 
     #[test]
     fn mine_and_commit_block_rewards_miner() -> anyhow::Result<()> {
-        let cache_dir = TempDir::new()?;
-        let default_config = create_test_config_with_fork(cache_dir.path().to_path_buf(), None);
+        let default_config = create_test_config();
         let config = ProviderConfig {
             hardfork: SpecId::BERLIN,
             ..default_config
@@ -3172,7 +3165,7 @@ mod tests {
             .thread_name("provider-data-test")
             .build()?;
 
-        let mut fixture = ProviderTestFixture::new(runtime, cache_dir, config)?;
+        let mut fixture = ProviderTestFixture::new(runtime, config)?;
 
         let miner = fixture.provider_data.beneficiary;
         let previous_miner_balance = fixture
@@ -3574,16 +3567,11 @@ mod tests {
             .thread_name("provider-data-test")
             .build()?;
 
-        let cache_dir = TempDir::new()?;
-
-        let default_config = create_test_config_with_fork(
-            cache_dir.path().to_path_buf(),
-            Some(ForkConfig {
-                json_rpc_url: get_alchemy_url(),
-                block_number: Some(EIP_1559_ACTIVATION_BLOCK),
-                http_headers: None,
-            }),
-        );
+        let default_config = create_test_config_with_fork(Some(ForkConfig {
+            json_rpc_url: get_alchemy_url(),
+            block_number: Some(EIP_1559_ACTIVATION_BLOCK),
+            http_headers: None,
+        }));
 
         let config = ProviderConfig {
             block_gas_limit: 1_000_000,
@@ -3594,7 +3582,7 @@ mod tests {
             ..default_config
         };
 
-        let mut fixture = ProviderTestFixture::new(runtime, cache_dir, config)?;
+        let mut fixture = ProviderTestFixture::new(runtime, config)?;
 
         let default_call = CallRequest {
             from: Some(fixture.nth_local_account(0)?),
@@ -3692,6 +3680,7 @@ mod tests {
         )+) => {
             $(
                 paste::item! {
+                    #[serial_test::serial]
                     #[test]
                     fn [<full_block_ $name>]() -> anyhow::Result<()> {
                         let url = $url;
@@ -3742,15 +3731,20 @@ mod tests {
     }
 
     fn run_full_block(url: String, block_number: u64, chain_id: u64) -> anyhow::Result<()> {
+        let default_config = create_test_config_with_fork(Some(ForkConfig {
+            json_rpc_url: url.clone(),
+            block_number: Some(block_number - 1),
+            http_headers: None,
+        }));
+
         let runtime = runtime::Builder::new_multi_thread()
             .worker_threads(1)
             .enable_all()
             .thread_name("provider-data-test")
             .build()?;
 
-        let cache_dir = TempDir::new()?;
         let replay_block = {
-            let rpc_client = RpcClient::new(&url, cache_dir.path().to_path_buf(), None)?;
+            let rpc_client = RpcClient::new(&url, default_config.cache_dir.clone(), None)?;
 
             let block = runtime.block_on(rpc_client.get_block_by_number_with_transaction_data(
                 PreEip1898BlockSpec::Number(block_number),
@@ -3765,15 +3759,6 @@ mod tests {
         let hardfork = hardfork_activations
             .hardfork_at_block_number(block_number)
             .ok_or(anyhow!("Unsupported block number"))?;
-
-        let default_config = create_test_config_with_fork(
-            cache_dir.path().to_path_buf(),
-            Some(ForkConfig {
-                json_rpc_url: url,
-                block_number: Some(block_number - 1),
-                http_headers: None,
-            }),
-        );
 
         let replay_header = replay_block.header();
         let block_gas_limit = replay_header.gas_limit;
@@ -3796,7 +3781,7 @@ mod tests {
             ..default_config
         };
 
-        let mut fixture = ProviderTestFixture::new(runtime, cache_dir, config)?;
+        let mut fixture = ProviderTestFixture::new(runtime, config)?;
 
         for transaction in replay_block.transactions() {
             fixture

@@ -203,7 +203,7 @@ You also have the option to set explicit dependencies between `Future` objects. 
 const token = m.contract("Token", ["My Token", "TKN", 18]);
 
 const receiver = m.contract("Receiver", [], {
-  after: token, // `receiver` is deployed after `token`
+  after: [token], // `receiver` is deployed after `token`
 });
 ```
 

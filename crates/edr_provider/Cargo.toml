@@ -29,6 +29,7 @@ lru = "0.12.2"
 anyhow = "1.0.75"
 edr_test_utils = { version = "0.2.0-dev", path = "../edr_test_utils" }
 paste = { version = "1.0.14", default-features = false }
+serial_test = "2.0.0"
 tempfile = "3.7.1"
 
 [build-dependencies]
