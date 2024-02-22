@@ -13,14 +13,14 @@ describe("scoped tasks", () => {
     // vars is a builtin scope
     assert.sameMembers(scopes, ["vars", "my-scope", "another-scope"]);
 
-    assert.equal(this.env.scopes["my-scope"].name, "my-scope");
-    assert.equal(
+    assert.strictEqual(this.env.scopes["my-scope"].name, "my-scope");
+    assert.strictEqual(
       this.env.scopes["my-scope"].description,
       "my-scope description"
     );
 
-    assert.equal(this.env.scopes["another-scope"].name, "another-scope");
-    assert.equal(
+    assert.strictEqual(this.env.scopes["another-scope"].name, "another-scope");
+    assert.strictEqual(
       this.env.scopes["another-scope"].description,
       "overridden: another-scope description"
     );
@@ -38,7 +38,7 @@ describe("scoped tasks", () => {
       task: "my-task",
     });
 
-    assert.equal(result, "my-scope/my-task");
+    assert.strictEqual(result, "my-scope/my-task");
   });
 
   it("should run overridden tasks", async function () {
@@ -47,7 +47,7 @@ describe("scoped tasks", () => {
       task: "overridden-task",
     });
 
-    assert.equal(result, "overridden: my-scope/overridden-task");
+    assert.strictEqual(result, "overridden: my-scope/overridden-task");
   });
 
   it("should run subtasks", async function () {
@@ -56,7 +56,7 @@ describe("scoped tasks", () => {
       task: "my-subtask",
     });
 
-    assert.equal(result, "my-scope/my-subtask");
+    assert.strictEqual(result, "my-scope/my-subtask");
   });
 
   it("should run overridden subtasks", async function () {
@@ -65,6 +65,6 @@ describe("scoped tasks", () => {
       task: "my-overridden-subtask",
     });
 
-    assert.equal(result, "overridden: my-scope/my-overridden-subtask");
+    assert.strictEqual(result, "overridden: my-scope/my-overridden-subtask");
   });
 });

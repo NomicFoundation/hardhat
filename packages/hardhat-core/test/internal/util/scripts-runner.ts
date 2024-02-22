@@ -17,7 +17,7 @@ describe("Scripts runner (CJS)", function () {
         runScript("./params-script.js"),
       ]);
 
-    assert.equal(statusCodeWithScriptParams, 0);
+    assert.strictEqual(statusCodeWithScriptParams, 0);
 
     // We check here that the script is correctly testing this:
     assert.notEqual(statusCodeWithNoParams, 0);
@@ -26,7 +26,7 @@ describe("Scripts runner (CJS)", function () {
   it("Should run the script to completion", async function () {
     const before = new Date();
     const status = await runScript("./async-script.js");
-    assert.equal(status, 123);
+    assert.strictEqual(status, 123);
     const after = new Date();
 
     assert.isAtLeast(after.getTime() - before.getTime(), 100);
@@ -44,7 +44,7 @@ describe("Scripts runner (CJS)", function () {
       runScript("./env-var-script.js"),
     ]);
 
-    assert.equal(
+    assert.strictEqual(
       statusCodeWithEnvVars,
       0,
       "Status code with env vars should be 0"
@@ -70,7 +70,7 @@ describe("Scripts runner (CJS)", function () {
           runScript("./successful-script.js"),
         ]);
 
-      assert.equal(statusCodeWithHardhat, 0);
+      assert.strictEqual(statusCodeWithHardhat, 0);
 
       // We check here that the script is correctly testing this:
       assert.notEqual(statusCodeWithoutHardhat, 0);
@@ -87,7 +87,7 @@ describe("Scripts runner (CJS)", function () {
         "./assert-hardhat-arguments.js"
       );
 
-      assert.equal(statusCode, 0);
+      assert.strictEqual(statusCode, 0);
     });
   });
 });
@@ -102,7 +102,7 @@ describe("Scripts runner (ESM)", function () {
         runScript("./params-script.js"),
       ]);
 
-    assert.equal(statusCodeWithScriptParams, 0);
+    assert.strictEqual(statusCodeWithScriptParams, 0);
 
     // We check here that the script is correctly testing this:
     assert.notEqual(statusCodeWithNoParams, 0);
@@ -111,7 +111,7 @@ describe("Scripts runner (ESM)", function () {
   it("Should run the script to completion", async function () {
     const before = new Date();
     const status = await runScript("./async-script.js");
-    assert.equal(status, 123);
+    assert.strictEqual(status, 123);
     const after = new Date();
 
     assert.isAtLeast(after.getTime() - before.getTime(), 100);
@@ -129,7 +129,7 @@ describe("Scripts runner (ESM)", function () {
       runScript("./env-var-script.js"),
     ]);
 
-    assert.equal(
+    assert.strictEqual(
       statusCodeWithEnvVars,
       0,
       "Status code with env vars should be 0"
@@ -155,7 +155,7 @@ describe("Scripts runner (ESM)", function () {
           runScript("./successful-script.js"),
         ]);
 
-      assert.equal(statusCodeWithHardhat, 0);
+      assert.strictEqual(statusCodeWithHardhat, 0);
 
       // We check here that the script is correctly testing this:
       assert.notEqual(statusCodeWithoutHardhat, 0);
@@ -172,7 +172,7 @@ describe("Scripts runner (ESM)", function () {
         "./assert-hardhat-arguments.js"
       );
 
-      assert.equal(statusCode, 0);
+      assert.strictEqual(statusCode, 0);
     });
   });
 });

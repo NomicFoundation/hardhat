@@ -49,7 +49,7 @@ describe("AutomaticGasProvider", () => {
 
     const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
 
-    assert.equal(tx.gas, Math.floor(FIXED_GAS_LIMIT * GAS_MULTIPLIER));
+    assert.strictEqual(tx.gas, Math.floor(FIXED_GAS_LIMIT * GAS_MULTIPLIER));
   });
 
   it("Should support different gas multipliers", async () => {
@@ -69,7 +69,7 @@ describe("AutomaticGasProvider", () => {
 
     const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
 
-    assert.equal(tx.gas, Math.floor(FIXED_GAS_LIMIT * GAS_MULTIPLIER2));
+    assert.strictEqual(tx.gas, Math.floor(FIXED_GAS_LIMIT * GAS_MULTIPLIER2));
   });
 
   it("Should have a default multiplier", async () => {
@@ -88,7 +88,7 @@ describe("AutomaticGasProvider", () => {
 
     const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
 
-    assert.equal(
+    assert.strictEqual(
       rpcQuantityToNumber(tx.gas),
       FIXED_GAS_LIMIT * DEFAULT_GAS_MULTIPLIER
     );
@@ -109,7 +109,7 @@ describe("AutomaticGasProvider", () => {
 
     const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
 
-    assert.equal(tx.gas, 567);
+    assert.strictEqual(tx.gas, 567);
   });
 
   it("Should forward the other calls", async () => {
@@ -150,7 +150,7 @@ describe("AutomaticGasPriceProvider", () => {
       });
 
       const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
-      assert.equal(tx.gasPrice, 456);
+      assert.strictEqual(tx.gasPrice, 456);
     });
 
     it("Shouldn't replace the provided maxFeePerGas and maxPriorityFeePerGas values", async () => {
@@ -168,8 +168,8 @@ describe("AutomaticGasPriceProvider", () => {
       });
 
       const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
-      assert.equal(tx.maxFeePerGas, 456);
-      assert.equal(tx.maxPriorityFeePerGas, 789);
+      assert.strictEqual(tx.maxFeePerGas, 456);
+      assert.strictEqual(tx.maxPriorityFeePerGas, 789);
     });
   });
 
@@ -207,8 +207,8 @@ describe("AutomaticGasPriceProvider", () => {
         });
 
         const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
-        assert.equal(tx.maxPriorityFeePerGas, "0x4");
-        assert.equal(tx.maxFeePerGas, "0x99");
+        assert.strictEqual(tx.maxPriorityFeePerGas, "0x4");
+        assert.strictEqual(tx.maxFeePerGas, "0x99");
       });
 
       it("Should add the reward to the maxFeePerGas if not big enough", async function () {
@@ -225,8 +225,8 @@ describe("AutomaticGasPriceProvider", () => {
         });
 
         const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
-        assert.equal(tx.maxPriorityFeePerGas, "0x4");
-        assert.equal(tx.maxFeePerGas, "0x5");
+        assert.strictEqual(tx.maxPriorityFeePerGas, "0x4");
+        assert.strictEqual(tx.maxFeePerGas, "0x5");
       });
 
       it("Should use the expected max base fee of N blocks in the future if maxFeePerGas is missing", async function () {
@@ -251,8 +251,8 @@ describe("AutomaticGasPriceProvider", () => {
         );
 
         const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
-        assert.equal(tx.maxPriorityFeePerGas, "0x1");
-        assert.equal(tx.maxFeePerGas, numberToRpcQuantity(expectedBaseFee));
+        assert.strictEqual(tx.maxPriorityFeePerGas, "0x1");
+        assert.strictEqual(tx.maxFeePerGas, numberToRpcQuantity(expectedBaseFee));
       });
     });
 
@@ -296,8 +296,8 @@ describe("AutomaticGasPriceProvider", () => {
         );
 
         const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
-        assert.equal(tx.maxFeePerGas, expectedBaseFee);
-        assert.equal(tx.maxPriorityFeePerGas, "0x1");
+        assert.strictEqual(tx.maxFeePerGas, expectedBaseFee);
+        assert.strictEqual(tx.maxPriorityFeePerGas, "0x1");
       });
     });
 
@@ -343,8 +343,8 @@ describe("AutomaticGasPriceProvider", () => {
         );
 
         const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
-        assert.equal(tx.maxFeePerGas, expectedBaseFee);
-        assert.equal(tx.maxPriorityFeePerGas, "0x12");
+        assert.strictEqual(tx.maxFeePerGas, expectedBaseFee);
+        assert.strictEqual(tx.maxPriorityFeePerGas, "0x12");
       });
     });
 
@@ -393,7 +393,7 @@ describe("AutomaticGasPriceProvider", () => {
         });
 
         const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
-        assert.equal(tx.gasPrice, FIXED_GAS_PRICE);
+        assert.strictEqual(tx.gasPrice, FIXED_GAS_PRICE);
       });
 
       it("Should use gasPrice as default maxPriorityFeePerGas, adding it to maxFeePerGas if necessary", async function () {
@@ -410,11 +410,11 @@ describe("AutomaticGasPriceProvider", () => {
         });
 
         const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
-        assert.equal(
+        assert.strictEqual(
           tx.maxPriorityFeePerGas,
           numberToRpcQuantity(FIXED_GAS_PRICE)
         );
-        assert.equal(tx.maxFeePerGas, numberToRpcQuantity(FIXED_GAS_PRICE + 1));
+        assert.strictEqual(tx.maxFeePerGas, numberToRpcQuantity(FIXED_GAS_PRICE + 1));
       });
 
       it("Should use gasPrice as default maxFeePerGas, fixing maxPriorityFee to it if necessary", async function () {
@@ -431,11 +431,11 @@ describe("AutomaticGasPriceProvider", () => {
         });
 
         const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
-        assert.equal(
+        assert.strictEqual(
           tx.maxPriorityFeePerGas,
           numberToRpcQuantity(FIXED_GAS_PRICE + 2)
         );
-        assert.equal(
+        assert.strictEqual(
           tx.maxFeePerGas,
           numberToRpcQuantity(FIXED_GAS_PRICE * 2 + 2)
         );
@@ -481,7 +481,7 @@ describe("FixedGasProvider", () => {
     });
 
     const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
-    assert.equal(tx.gas, FIXED_GAS_LIMIT);
+    assert.strictEqual(tx.gas, FIXED_GAS_LIMIT);
   });
 
   it("Shouldn't replace the provided gas", async () => {
@@ -498,7 +498,7 @@ describe("FixedGasProvider", () => {
     });
 
     const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
-    assert.equal(tx.gas, 1456);
+    assert.strictEqual(tx.gas, 1456);
   });
 
   it("Should forward direct calls to eth_estimateGas", async () => {
@@ -514,7 +514,7 @@ describe("FixedGasProvider", () => {
       ],
     });
 
-    assert.equal(estimated, MOCKED_GAS_ESTIMATION_VALUE);
+    assert.strictEqual(estimated, MOCKED_GAS_ESTIMATION_VALUE);
   });
 
   it("Should forward the other calls", async () => {
@@ -551,7 +551,7 @@ describe("FixedGasPriceProvider", () => {
     });
 
     const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
-    assert.equal(tx.gasPrice, FIXED_GAS_PRICE);
+    assert.strictEqual(tx.gasPrice, FIXED_GAS_PRICE);
   });
 
   it("Shouldn't replace the provided gasPrice", async () => {
@@ -568,13 +568,13 @@ describe("FixedGasPriceProvider", () => {
     });
 
     const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
-    assert.equal(tx.gasPrice, 14567);
+    assert.strictEqual(tx.gasPrice, 14567);
   });
 
   it("Should forward direct calls to eth_gasPrice", async () => {
     const price = await provider.request({ method: "eth_gasPrice" });
 
-    assert.equal(price, MOCKED_GAS_PRICE_VALUE);
+    assert.strictEqual(price, MOCKED_GAS_PRICE_VALUE);
   });
 
   it("Should forward the other calls", async () => {

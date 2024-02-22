@@ -21,7 +21,7 @@ describe("setBalance", function () {
   it("should allow setting the balance of a given address", async function () {
     await hh.setBalance(recipient, 1234567);
 
-    assert.equal(await getBalance(recipient), 1234567);
+    assert.strictEqual(await getBalance(recipient), 1234567);
   });
 
   describe("accepted parameter types for balance", function () {
@@ -38,7 +38,7 @@ describe("setBalance", function () {
       it(`should accept balance of type ${type}`, async function () {
         await hh.setBalance(recipient, value);
 
-        assert.equal(await getBalance(recipient), expectedBalance);
+        assert.strictEqual(await getBalance(recipient), expectedBalance);
       });
     }
 

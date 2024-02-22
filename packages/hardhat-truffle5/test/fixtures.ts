@@ -102,7 +102,7 @@ describe("Truffle fixtures support", function () {
       const Greeter = this.env.artifacts.require("Greeter");
       const greeter = await Greeter.deployed();
 
-      assert.equal(await greeter.greet(), "Hi");
+      assert.strictEqual(await greeter.greet(), "Hi");
     });
 
     it("Should give the right error on non-deployed contracts", async function () {
@@ -112,7 +112,7 @@ describe("Truffle fixtures support", function () {
       try {
         await Lib.deployed();
       } catch (error: any) {
-        assert.equal(
+        assert.strictEqual(
           error.message,
           "Trying to get deployed instance of Lib, but none was set."
         );

@@ -35,23 +35,23 @@ describe("lazy module", () => {
         };
       });
 
-      assert.equal(numberOfCalls, 0);
+      assert.strictEqual(numberOfCalls, 0);
 
       obj.a = 2;
 
-      assert.equal(numberOfCalls, 1);
+      assert.strictEqual(numberOfCalls, 1);
 
       obj.b();
 
-      assert.equal(numberOfCalls, 1);
+      assert.strictEqual(numberOfCalls, 1);
 
       delete (obj as any).a;
 
-      assert.equal(numberOfCalls, 1);
+      assert.strictEqual(numberOfCalls, 1);
 
       (obj as any).asd = 123;
 
-      assert.equal(numberOfCalls, 1);
+      assert.strictEqual(numberOfCalls, 1);
     });
 
     it("should be equivalent to the object returned by the initializer", () => {
@@ -97,7 +97,7 @@ describe("lazy module", () => {
       const obj = lazyObject(() => ({})) as any;
       obj.asd = 123;
 
-      assert.equal(obj.asd, 123);
+      assert.strictEqual(obj.asd, 123);
     });
 
     it("should trap deleteProperty correctly", () => {
@@ -109,7 +109,7 @@ describe("lazy module", () => {
 
     it("should trap get correctly", () => {
       const obj = lazyObject(() => ({ a: 1 }));
-      assert.equal(obj.a, 1);
+      assert.strictEqual(obj.a, 1);
     });
 
     it("should trap getOwnPropertyDescriptor correctly", () => {
@@ -127,7 +127,7 @@ describe("lazy module", () => {
       const proto = {};
       const obj = lazyObject(() => Object.create(proto));
 
-      assert.equal(Object.getPrototypeOf(obj), proto);
+      assert.strictEqual(Object.getPrototypeOf(obj), proto);
     });
 
     it("should trap has correctly", () => {
@@ -184,19 +184,19 @@ describe("lazy module", () => {
       obj.asd = 123;
 
       assert.deepEqual(Object.getOwnPropertyNames(obj), ["asd"]);
-      assert.equal(obj.asd, 123);
+      assert.strictEqual(obj.asd, 123);
     });
 
     it("should trap setPrototypeOf correctly", () => {
       const proto = Object.create(null);
       const obj = lazyObject(() => Object.create(proto));
-      assert.equal(Object.getPrototypeOf(obj), proto);
+      assert.strictEqual(Object.getPrototypeOf(obj), proto);
       assert.isUndefined(obj.a);
 
       const newProto = { a: 123 };
       Object.setPrototypeOf(obj, newProto);
-      assert.equal(Object.getPrototypeOf(obj), newProto);
-      assert.equal(obj.a, 123);
+      assert.strictEqual(Object.getPrototypeOf(obj), newProto);
+      assert.strictEqual(obj.a, 123);
     });
 
     it("should throw if it's used to create an object without prototype", () => {
@@ -208,7 +208,7 @@ describe("lazy module", () => {
       const realObj = { b: 3, c: { d: { e: 4 } } };
       const lazyObj = lazyObject(() => realObj);
       const depth = 1;
-      assert.equal(inspect(realObj, { depth }), inspect(lazyObj, { depth }));
+      assert.strictEqual(inspect(realObj, { depth }), inspect(lazyObj, { depth }));
     });
 
     it("should support inspecting circular objects", () => {
@@ -223,7 +223,7 @@ describe("lazy module", () => {
       // The custom inspect will not pick up on the circularity,
       // but it should at least stop at the default depth (2)
       // instead of recursing infinitely.
-      assert.equal("{ foo: Foo { val: { foo: [Foo] } } }", inspect(myLazyObj));
+      assert.strictEqual("{ foo: Foo { val: { foo: [Foo] } } }", inspect(myLazyObj));
     });
   });
 });
@@ -262,6 +262,6 @@ describe("lazy import", () => {
     (RealClass as any).dummyProperty = { b: 3, c: { d: { e: 4 } } };
     const lazyC = lazyFunction(() => RealClass);
     const depth = 1;
-    assert.equal(inspect(RealClass, { depth }), inspect(lazyC, { depth }));
+    assert.strictEqual(inspect(RealClass, { depth }), inspect(lazyC, { depth }));
   });
 });

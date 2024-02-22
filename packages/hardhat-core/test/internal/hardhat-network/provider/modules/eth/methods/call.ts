@@ -69,7 +69,7 @@ describe("Eth module", function () {
               { to: contractAddress, data: EXAMPLE_CONTRACT.selectors.i },
             ]);
 
-            assert.equal(
+            assert.strictEqual(
               result,
               "0x0000000000000000000000000000000000000000000000000000000000000000"
             );
@@ -86,7 +86,7 @@ describe("Eth module", function () {
               { to: contractAddress, data: EXAMPLE_CONTRACT.selectors.i },
             ]);
 
-            assert.equal(
+            assert.strictEqual(
               result2,
               "0x000000000000000000000000000000000000000000000000000000000000000a"
             );
@@ -104,7 +104,7 @@ describe("Eth module", function () {
               { to: contractAddress, data: EXAMPLE_CONTRACT.selectors.i, from },
             ]);
 
-            assert.equal(
+            assert.strictEqual(
               result,
               "0x0000000000000000000000000000000000000000000000000000000000000000"
             );
@@ -121,7 +121,7 @@ describe("Eth module", function () {
               { to: contractAddress, data: EXAMPLE_CONTRACT.selectors.i, from },
             ]);
 
-            assert.equal(
+            assert.strictEqual(
               result2,
               "0x000000000000000000000000000000000000000000000000000000000000000a"
             );
@@ -146,7 +146,7 @@ describe("Eth module", function () {
               },
             ]);
 
-            assert.equal(rpcDataToNumber(blockResult), firstBlockNumber + 1);
+            assert.strictEqual(rpcDataToNumber(blockResult), firstBlockNumber + 1);
 
             const timestampResult = await this.provider.send("eth_call", [
               {
@@ -155,7 +155,7 @@ describe("Eth module", function () {
               },
             ]);
 
-            assert.equal(timestampResult, timestamp);
+            assert.strictEqual(timestampResult, timestamp);
           });
 
           it("Should return an empty buffer when a non-contract account is called", async function () {
@@ -166,7 +166,7 @@ describe("Eth module", function () {
               },
             ]);
 
-            assert.equal(result, "0x");
+            assert.strictEqual(result, "0x");
           });
 
           it("Should work with blockhashes calls", async function () {
@@ -200,7 +200,7 @@ describe("Eth module", function () {
               },
             ]);
 
-            assert.equal(
+            assert.strictEqual(
               resultBlock1m,
               "0x0000000000000000000000000000000000000000000000000000000000000000"
             );
@@ -227,7 +227,7 @@ describe("Eth module", function () {
               numberToRpcQuantity(blockNumber),
             ]);
 
-            assert.equal(rpcDataToNumber(blockResult), blockNumber);
+            assert.strictEqual(rpcDataToNumber(blockResult), blockNumber);
           });
 
           it("should accept a gas limit higher than the block gas limit being used", async function () {
@@ -251,7 +251,7 @@ describe("Eth module", function () {
               numberToRpcQuantity(blockNumber),
             ]);
 
-            assert.equal(rpcDataToNumber(blockResult), blockNumber);
+            assert.strictEqual(rpcDataToNumber(blockResult), blockNumber);
 
             const blockResult2 = await this.provider.send("eth_call", [
               {
@@ -262,7 +262,7 @@ describe("Eth module", function () {
               "pending",
             ]);
 
-            assert.equal(rpcDataToNumber(blockResult2), blockNumber + 1);
+            assert.strictEqual(rpcDataToNumber(blockResult2), blockNumber + 1);
           });
 
           it("Should accept explicit nulls for optional parameter values", async function () {
@@ -270,7 +270,7 @@ describe("Eth module", function () {
             // to exercise input parameter validation, utilize the case of
             // eth_call calling into a non-contract account, which returns an
             // empty buffer.
-            assert.equal(
+            assert.strictEqual(
               await this.provider.send("eth_call", [
                 {
                   from: null,
@@ -307,7 +307,7 @@ describe("Eth module", function () {
               "latest",
             ]);
 
-            assert.equal(rpcDataToNumber(blockResult), firstBlockNumber + 1);
+            assert.strictEqual(rpcDataToNumber(blockResult), firstBlockNumber + 1);
 
             const timestampResult = await this.provider.send("eth_call", [
               {
@@ -317,7 +317,7 @@ describe("Eth module", function () {
               "latest",
             ]);
 
-            assert.equal(timestampResult, timestamp);
+            assert.strictEqual(timestampResult, timestamp);
           });
         });
 
@@ -342,7 +342,7 @@ describe("Eth module", function () {
               "pending",
             ]);
 
-            assert.equal(rpcDataToNumber(blockResult), firstBlockNumber + 2);
+            assert.strictEqual(rpcDataToNumber(blockResult), firstBlockNumber + 2);
 
             const timestampResult = await this.provider.send("eth_call", [
               {
@@ -352,7 +352,7 @@ describe("Eth module", function () {
               "pending",
             ]);
 
-            assert.equal(timestampResult, timestamp);
+            assert.strictEqual(timestampResult, timestamp);
           });
 
           it("Should be run in the context with pending transactions mined", async function () {
@@ -378,7 +378,7 @@ describe("Eth module", function () {
             ]);
 
             // result would equal "0x" if the contract wasn't deployed
-            assert.equal(
+            assert.strictEqual(
               result,
               "0x0000000000000000000000000000000000000000000000000000000000000000"
             );
@@ -398,7 +398,7 @@ describe("Eth module", function () {
               "pending",
             ]);
 
-            assert.equal(
+            assert.strictEqual(
               result2,
               "0x000000000000000000000000000000000000000000000000000000000000000a"
             );
@@ -428,7 +428,7 @@ describe("Eth module", function () {
               numberToRpcQuantity(firstBlockNumber + 1),
             ]);
 
-            assert.equal(rpcDataToNumber(blockResult), firstBlockNumber + 1);
+            assert.strictEqual(rpcDataToNumber(blockResult), firstBlockNumber + 1);
           });
 
           it("Should throw invalid input error if called in the context of a nonexistent block", async function () {
@@ -473,7 +473,7 @@ describe("Eth module", function () {
               },
             ]);
 
-            assert.equal(
+            assert.strictEqual(
               await this.provider.send("eth_call", [
                 {
                   to: contractAddress,
@@ -485,7 +485,7 @@ describe("Eth module", function () {
               "0x0000000000000000000000000000000000000000000000000000000000000000"
             );
 
-            assert.equal(
+            assert.strictEqual(
               await this.provider.send("eth_call", [
                 {
                   to: contractAddress,
@@ -506,7 +506,7 @@ describe("Eth module", function () {
               "eth_getBalance",
               [account, blockNumber]
             );
-            assert.equal(initialBalanceBeforeTx, "0x3635c9adc5dea00000");
+            assert.strictEqual(initialBalanceBeforeTx, "0x3635c9adc5dea00000");
 
             await sendTxToZeroAddress(this.provider, account);
 
@@ -514,7 +514,7 @@ describe("Eth module", function () {
               "eth_getBalance",
               [account, blockNumber]
             );
-            assert.equal(initialBalanceAfterTx, "0x3635c9adc5dea00000");
+            assert.strictEqual(initialBalanceAfterTx, "0x3635c9adc5dea00000");
           });
         });
 
@@ -562,7 +562,7 @@ describe("Eth module", function () {
               "latest",
             ]);
 
-            assert.equal(
+            assert.strictEqual(
               xAndy,
               "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002"
             );
@@ -579,7 +579,7 @@ describe("Eth module", function () {
               {},
             ]);
 
-            assert.equal(
+            assert.strictEqual(
               xAndy,
               "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002"
             );
@@ -663,7 +663,7 @@ describe("Eth module", function () {
                 },
               ]);
 
-              assert.equal(
+              assert.strictEqual(
                 overrideBalance,
                 "0x0000000000000000000000000000000000000000000000000000000000000001"
               );
@@ -678,7 +678,7 @@ describe("Eth module", function () {
                 "latest",
               ]);
 
-              assert.equal(balanceAfter, balanceBefore);
+              assert.strictEqual(balanceAfter, balanceBefore);
             });
 
             it("should allow the balance property to be null without throwing an error", async function () {
@@ -705,7 +705,7 @@ describe("Eth module", function () {
                 },
               ]);
 
-              assert.equal(balanceAfter, balanceBefore);
+              assert.strictEqual(balanceAfter, balanceBefore);
             });
 
             describe("test the limit value (32 bytes) for the balance", function () {
@@ -794,7 +794,7 @@ describe("Eth module", function () {
                 ])
               );
 
-              assert.equal(
+              assert.strictEqual(
                 actualAddress.toLowerCase(),
                 predictedAddress.toLowerCase()
               );
@@ -827,7 +827,7 @@ describe("Eth module", function () {
                 ])
               );
 
-              assert.equal(
+              assert.strictEqual(
                 actualAddress.toLowerCase(),
                 predictedAddress.toLowerCase()
               );
@@ -840,7 +840,7 @@ describe("Eth module", function () {
                 ])
               );
 
-              assert.equal(nonceAfter, nonceBefore);
+              assert.strictEqual(nonceAfter, nonceBefore);
             });
 
             it("should allow the nonce property to be null without throwing an error", async function () {
@@ -864,7 +864,7 @@ describe("Eth module", function () {
                 ])
               );
 
-              assert.equal(
+              assert.strictEqual(
                 actualAddress.toLowerCase(),
                 predictedAddress.toLowerCase()
               );
@@ -938,7 +938,7 @@ describe("Eth module", function () {
                 "latest",
               ]);
 
-              assert.equal(messageBefore, encodeString("Hello from B!"));
+              assert.strictEqual(messageBefore, encodeString("Hello from B!"));
 
               const messageOverride = await this.provider.send("eth_call", [
                 {
@@ -956,7 +956,7 @@ describe("Eth module", function () {
               ]);
 
               // Message should be the one from contract C
-              assert.equal(
+              assert.strictEqual(
                 messageOverride,
                 encodeString("Hello from the C contract")
               );
@@ -971,7 +971,7 @@ describe("Eth module", function () {
                 "latest",
               ]);
 
-              assert.equal(messageAfter, messageBefore);
+              assert.strictEqual(messageAfter, messageBefore);
             });
 
             it("should allow the code property to be null without throwing an error", async function () {
@@ -990,7 +990,7 @@ describe("Eth module", function () {
                 },
               ]);
 
-              assert.equal(message, encodeString("Hello from B!"));
+              assert.strictEqual(message, encodeString("Hello from B!"));
             });
           });
 
@@ -1033,7 +1033,7 @@ describe("Eth module", function () {
               ]);
 
               // x and y should be overriden to 0
-              assert.equal(
+              assert.strictEqual(
                 storage,
                 "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
               );
@@ -1050,7 +1050,7 @@ describe("Eth module", function () {
                 "latest",
               ]);
 
-              assert.equal(
+              assert.strictEqual(
                 storageBefore,
                 "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002"
               );
@@ -1074,7 +1074,7 @@ describe("Eth module", function () {
               ]);
 
               // x should be cleared, y should be overriden to c
-              assert.equal(
+              assert.strictEqual(
                 storageOverride,
                 "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c"
               );
@@ -1088,7 +1088,7 @@ describe("Eth module", function () {
                 "latest",
               ]);
 
-              assert.equal(storageAfter, storageBefore);
+              assert.strictEqual(storageAfter, storageBefore);
             });
 
             it("should allow the state property to be null without throwing an error", async function () {
@@ -1106,7 +1106,7 @@ describe("Eth module", function () {
                 },
               ]);
 
-              assert.equal(
+              assert.strictEqual(
                 storage,
                 "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002"
               );
@@ -1125,7 +1125,7 @@ describe("Eth module", function () {
                 "latest",
               ]);
 
-              assert.equal(
+              assert.strictEqual(
                 storageBefore,
                 "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002"
               );
@@ -1149,7 +1149,7 @@ describe("Eth module", function () {
               ]);
 
               // x should not be override, y should be override to c
-              assert.equal(
+              assert.strictEqual(
                 storageOverride,
                 "0x0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000c"
               );
@@ -1163,7 +1163,7 @@ describe("Eth module", function () {
                 "latest",
               ]);
 
-              assert.equal(storageAfter, storageBefore);
+              assert.strictEqual(storageAfter, storageBefore);
             });
 
             it("should override both the storage starting at slot 2 (variable x), and the storage starting at slot 3 (variable y)", async function () {
@@ -1189,7 +1189,7 @@ describe("Eth module", function () {
               ]);
 
               // Both x and y should be overriden
-              assert.equal(
+              assert.strictEqual(
                 storage,
                 "0x000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000c"
               );
@@ -1210,7 +1210,7 @@ describe("Eth module", function () {
                 },
               ]);
 
-              assert.equal(
+              assert.strictEqual(
                 storage,
                 "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002"
               );
@@ -1265,9 +1265,9 @@ describe("Eth module", function () {
               result
             );
 
-            assert.equal(senderBalance, overrideSenderBalance);
-            assert.equal(contractABalance, overrideContractABalance);
-            assert.equal(
+            assert.strictEqual(senderBalance, overrideSenderBalance);
+            assert.strictEqual(contractABalance, overrideContractABalance);
+            assert.strictEqual(
               contractDDeployedAddress.toLowerCase(),
               ethers
                 .getCreateAddress({
@@ -1277,8 +1277,8 @@ describe("Eth module", function () {
                 .toLowerCase()
             );
 
-            assert.equal(contractBMessage, "Hello from the C contract");
-            assert.equal(contractAYValue, overrideContractAYValue);
+            assert.strictEqual(contractBMessage, "Hello from the C contract");
+            assert.strictEqual(contractAYValue, overrideContractAYValue);
           });
         });
 
@@ -1331,7 +1331,7 @@ contract C {
                 },
               ]);
 
-              assert.equal(
+              assert.strictEqual(
                 rpcDataToBigInt(balanceResult).toString(),
                 ethBalance.toString()
               );
@@ -1351,7 +1351,7 @@ contract C {
                 },
               ]);
 
-              assert.equal(
+              assert.strictEqual(
                 rpcDataToBigInt(balanceResult),
                 ethBalance - gasLimit * gasPrice
               );
@@ -1419,7 +1419,7 @@ contract C {
                   },
                 ]);
 
-                assert.equal(
+                assert.strictEqual(
                   rpcDataToBigInt(balanceResult).toString(),
                   ethBalance.toString()
                 );
@@ -1437,7 +1437,7 @@ contract C {
 
                 // This doesn't change because the baseFeePerGas of block where we
                 // run the eth_call is 0
-                assert.equal(
+                assert.strictEqual(
                   rpcDataToBigInt(balanceResult).toString(),
                   ethBalance.toString()
                 );
@@ -1455,7 +1455,7 @@ contract C {
                 ]);
 
                 // The miner will get the priority fee
-                assert.equal(
+                assert.strictEqual(
                   rpcDataToBigInt(balanceResult),
                   ethBalance - 3n * 500_000n
                 );
@@ -1473,7 +1473,7 @@ contract C {
                 ]);
 
                 // The miner will get the gasPrice * gas as a normalized priority fee
-                assert.equal(
+                assert.strictEqual(
                   rpcDataToBigInt(balanceResult),
                   ethBalance - 6n * 500_000n
                 );
@@ -1515,7 +1515,7 @@ contract C {
               },
             ]);
 
-            assert.equal(rpcDataToNumber(senderBalance), 900_000);
+            assert.strictEqual(rpcDataToNumber(senderBalance), 900_000);
           });
 
           it("should increase the sender's balance if it's positive but not enough", async function () {
@@ -1545,7 +1545,7 @@ contract C {
               },
             ]);
 
-            assert.equal(rpcDataToNumber(senderBalance), 0);
+            assert.strictEqual(rpcDataToNumber(senderBalance), 0);
           });
 
           it("should increase the sender's balance if it's zero", async function () {
@@ -1567,7 +1567,7 @@ contract C {
               },
             ]);
 
-            assert.equal(rpcDataToNumber(senderBalance), 0);
+            assert.strictEqual(rpcDataToNumber(senderBalance), 0);
           });
         });
 
@@ -1600,7 +1600,7 @@ contract C {
             );
           }
 
-          assert.equal(await getChainIdFromContract(this.provider), chainId);
+          assert.strictEqual(await getChainIdFromContract(this.provider), chainId);
         });
 
         it("should reject blob transactions", async function () {
@@ -1675,8 +1675,8 @@ contract C {
             });
 
             assert.isDefined(response.error?.data);
-            assert.equal(response.error.message, response.error.data.message);
-            assert.equal(response.error.data.data, "0x");
+            assert.strictEqual(response.error.message, response.error.data.message);
+            assert.strictEqual(response.error.data.data, "0x");
           });
 
           it("Should return the data of a call that reverts with a reason string", async function () {
@@ -1692,8 +1692,8 @@ contract C {
             });
 
             assert.isDefined(response.error?.data);
-            assert.equal(response.error.message, response.error.data.message);
-            assert.equal(
+            assert.strictEqual(response.error.message, response.error.data.message);
+            assert.strictEqual(
               response.error.data.data,
               // Error(string) encoded with value "a reason"
               "0x08c379a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000086120726561736f6e000000000000000000000000000000000000000000000000"
@@ -1713,8 +1713,8 @@ contract C {
             });
 
             assert.isDefined(response.error?.data);
-            assert.equal(response.error.message, response.error.data.message);
-            assert.equal(
+            assert.strictEqual(response.error.message, response.error.data.message);
+            assert.strictEqual(
               response.error.data.data,
               // Panic(uint256) encoded with value 0x32 (out-of-bounds array access)
               "0x4e487b710000000000000000000000000000000000000000000000000000000000000032"
@@ -1734,8 +1734,8 @@ contract C {
             });
 
             assert.isDefined(response.error?.data);
-            assert.equal(response.error.message, response.error.data.message);
-            assert.equal(
+            assert.strictEqual(response.error.message, response.error.data.message);
+            assert.strictEqual(
               response.error.data.data,
               // MyCustomError() encoded
               "0x4e7254d6"

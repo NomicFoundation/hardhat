@@ -51,11 +51,11 @@ describe("ArgumentsParser", () => {
   });
 
   it("should transform a param name into CLA", () => {
-    assert.equal(
+    assert.strictEqual(
       ArgumentsParser.paramNameToCLA("showStackTraces"),
       "--show-stack-traces"
     );
-    assert.equal(ArgumentsParser.paramNameToCLA("version"), "--version");
+    assert.strictEqual(ArgumentsParser.paramNameToCLA("version"), "--version");
   });
 
   it("Should throw if a param name CLA isn't all lowercase", () => {
@@ -76,9 +76,9 @@ describe("ArgumentsParser", () => {
   });
 
   it("should transform CLA into a param name", () => {
-    assert.equal(ArgumentsParser.cLAToParamName("--run"), "run");
+    assert.strictEqual(ArgumentsParser.cLAToParamName("--run"), "run");
 
-    assert.equal(
+    assert.strictEqual(
       ArgumentsParser.cLAToParamName("--show-stack-traces"),
       "showStackTraces"
     );
@@ -121,12 +121,12 @@ describe("ArgumentsParser", () => {
           rawCLAs
         );
       assert.isTrue(scopeOrTaskName === TASK_COMPILE);
-      assert.equal(hardhatArguments.showStackTraces, true);
-      assert.equal(hardhatArguments.network, "local");
-      assert.equal(hardhatArguments.emoji, false);
-      assert.equal(allUnparsedCLAs.length, 2);
-      assert.equal("compile", allUnparsedCLAs[0]);
-      assert.equal("--task-param", allUnparsedCLAs[1]);
+      assert.strictEqual(hardhatArguments.showStackTraces, true);
+      assert.strictEqual(hardhatArguments.network, "local");
+      assert.strictEqual(hardhatArguments.emoji, false);
+      assert.strictEqual(allUnparsedCLAs.length, 2);
+      assert.strictEqual("compile", allUnparsedCLAs[0]);
+      assert.strictEqual("--task-param", allUnparsedCLAs[1]);
     });
 
     it("should parse hardhat arguments after compile taskname", () => {
@@ -145,11 +145,11 @@ describe("ArgumentsParser", () => {
           rawCLAs
         );
       assert.isTrue(scopeOrTaskName === TASK_COMPILE);
-      assert.equal(hardhatArguments.showStackTraces, true);
-      assert.equal(hardhatArguments.network, "local");
-      assert.equal(hardhatArguments.emoji, false);
-      assert.equal(allUnparsedCLAs.length, 2);
-      assert.equal("--task-param", allUnparsedCLAs[1]);
+      assert.strictEqual(hardhatArguments.showStackTraces, true);
+      assert.strictEqual(hardhatArguments.network, "local");
+      assert.strictEqual(hardhatArguments.emoji, false);
+      assert.strictEqual(allUnparsedCLAs.length, 2);
+      assert.strictEqual("--task-param", allUnparsedCLAs[1]);
     });
 
     it("should parse hardhat arguments with non-compile task", () => {
@@ -168,12 +168,12 @@ describe("ArgumentsParser", () => {
           rawCLAs
         );
       assert.isFalse(scopeOrTaskName === TASK_COMPILE);
-      assert.equal(hardhatArguments.showStackTraces, true);
-      assert.equal(hardhatArguments.network, "local");
-      assert.equal(hardhatArguments.emoji, false);
-      assert.equal(allUnparsedCLAs.length, 2);
-      assert.equal("compile2", allUnparsedCLAs[0]);
-      assert.equal("--task-param", allUnparsedCLAs[1]);
+      assert.strictEqual(hardhatArguments.showStackTraces, true);
+      assert.strictEqual(hardhatArguments.network, "local");
+      assert.strictEqual(hardhatArguments.emoji, false);
+      assert.strictEqual(allUnparsedCLAs.length, 2);
+      assert.strictEqual("compile2", allUnparsedCLAs[0]);
+      assert.strictEqual("--task-param", allUnparsedCLAs[1]);
     });
 
     it("should parse hardhat arguments after non-compile taskname", () => {
@@ -192,11 +192,11 @@ describe("ArgumentsParser", () => {
           rawCLAs
         );
       assert.isFalse(scopeOrTaskName === TASK_COMPILE);
-      assert.equal(hardhatArguments.showStackTraces, true);
-      assert.equal(hardhatArguments.network, "local");
-      assert.equal(hardhatArguments.emoji, false);
-      assert.equal(allUnparsedCLAs.length, 2);
-      assert.equal("--task-param", allUnparsedCLAs[1]);
+      assert.strictEqual(hardhatArguments.showStackTraces, true);
+      assert.strictEqual(hardhatArguments.network, "local");
+      assert.strictEqual(hardhatArguments.emoji, false);
+      assert.strictEqual(allUnparsedCLAs.length, 2);
+      assert.strictEqual("--task-param", allUnparsedCLAs[1]);
     });
 
     it("should fail trying to parse task arguments before taskname", () => {
@@ -228,7 +228,7 @@ describe("ArgumentsParser", () => {
       ];
 
       const hardhatArguments: TaskArguments = {};
-      assert.equal(
+      assert.strictEqual(
         0,
         argumentsParser["_parseArgumentAt"](
           rawCLAs,
@@ -237,8 +237,8 @@ describe("ArgumentsParser", () => {
           hardhatArguments
         )
       );
-      assert.equal(hardhatArguments.showStackTraces, true);
-      assert.equal(
+      assert.strictEqual(hardhatArguments.showStackTraces, true);
+      assert.strictEqual(
         2,
         argumentsParser["_parseArgumentAt"](
           rawCLAs,
@@ -247,7 +247,7 @@ describe("ArgumentsParser", () => {
           hardhatArguments
         )
       );
-      assert.equal(hardhatArguments.network, "local");
+      assert.strictEqual(hardhatArguments.network, "local");
     });
 
     it("should fail trying to parse hardhat with invalid argument", () => {
@@ -337,7 +337,7 @@ describe("ArgumentsParser", () => {
         "_parseTaskParamArguments"
       ](taskDefinition, rawCLAs);
       assert.deepEqual(paramArguments, { param: "testing", bleep: 1337 });
-      assert.equal(rawPositionalArguments.length, 0);
+      assert.strictEqual(rawPositionalArguments.length, 0);
     });
 
     it("should parse overridden tasks arguments", () => {
@@ -359,7 +359,7 @@ describe("ArgumentsParser", () => {
         overriddenFlag: true,
         overriddenOptParam: "optValue",
       });
-      assert.equal(rawPositionalArguments.length, 0);
+      assert.strictEqual(rawPositionalArguments.length, 0);
     });
 
     it("should parse task with variadic arguments", () => {

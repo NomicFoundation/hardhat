@@ -33,7 +33,7 @@ describe("Eth module", function () {
 
       describe("eth_getCode", async function () {
         it("Should return an empty buffer for non-contract accounts", async function () {
-          assert.equal(
+          assert.strictEqual(
             await this.provider.send("eth_getCode", [zeroAddress()]),
             "0x"
           );
@@ -44,7 +44,7 @@ describe("Eth module", function () {
             const precompileNumber = i.toString(16);
             const zero = zeroAddress();
 
-            assert.equal(
+            assert.strictEqual(
               await this.provider.send("eth_getCode", [
                 zero.substr(0, zero.length - precompileNumber.length) +
                   precompileNumber,
@@ -63,7 +63,7 @@ describe("Eth module", function () {
             "0x7f410000000000000000000000000000000000000000000000000000000000000060005260016000f3"
           );
 
-          assert.equal(
+          assert.strictEqual(
             await this.provider.send("eth_getCode", [contractAddress]),
             "0x41"
           );

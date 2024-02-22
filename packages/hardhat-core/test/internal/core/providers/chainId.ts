@@ -42,27 +42,27 @@ describe("ProviderWrapperWithChainId", function () {
 
     const testProvider = new TestProvider(mockedProvider);
 
-    assert.equal(mockedProvider.getTotalNumberOfCalls(), 0);
+    assert.strictEqual(mockedProvider.getTotalNumberOfCalls(), 0);
     await testProvider.getChainId();
-    assert.equal(mockedProvider.getTotalNumberOfCalls(), 1);
+    assert.strictEqual(mockedProvider.getTotalNumberOfCalls(), 1);
     await testProvider.getChainId();
-    assert.equal(mockedProvider.getTotalNumberOfCalls(), 1);
+    assert.strictEqual(mockedProvider.getTotalNumberOfCalls(), 1);
     await testProvider.getChainId();
-    assert.equal(mockedProvider.getTotalNumberOfCalls(), 1);
+    assert.strictEqual(mockedProvider.getTotalNumberOfCalls(), 1);
 
     const mockedProvider2 = new MockedProvider();
     mockedProvider2.setReturnValue("net_version", "2");
     const testProvider2 = new TestProvider(mockedProvider2);
 
-    assert.equal(mockedProvider2.getTotalNumberOfCalls(), 0);
+    assert.strictEqual(mockedProvider2.getTotalNumberOfCalls(), 0);
     await testProvider2.getChainId();
 
     // First eth_chainId is called, then net_version, hence 2
-    assert.equal(mockedProvider2.getTotalNumberOfCalls(), 2);
+    assert.strictEqual(mockedProvider2.getTotalNumberOfCalls(), 2);
     await testProvider2.getChainId();
-    assert.equal(mockedProvider2.getTotalNumberOfCalls(), 2);
+    assert.strictEqual(mockedProvider2.getTotalNumberOfCalls(), 2);
     await testProvider2.getChainId();
-    assert.equal(mockedProvider2.getTotalNumberOfCalls(), 2);
+    assert.strictEqual(mockedProvider2.getTotalNumberOfCalls(), 2);
   });
 
   it("Should use eth_chainId if supported", async function () {
@@ -72,7 +72,7 @@ describe("ProviderWrapperWithChainId", function () {
 
     const testProvider = new TestProvider(mockedProvider);
 
-    assert.equal(await testProvider.getChainId(), 1);
+    assert.strictEqual(await testProvider.getChainId(), 1);
   });
 
   it("Should use net_version if eth_chainId is not supported", async function () {
@@ -80,7 +80,7 @@ describe("ProviderWrapperWithChainId", function () {
     mockedProvider.setReturnValue("net_version", "2");
     const testProvider = new TestProvider(mockedProvider);
 
-    assert.equal(await testProvider.getChainId(), 2);
+    assert.strictEqual(await testProvider.getChainId(), 2);
   });
 
   it("Should throw if both eth_chainId and net_version fail", async function () {

@@ -35,7 +35,7 @@ describe("HttpProvider", function () {
         .reply(200, successResponse);
       const provider = new HttpProvider(url, networkName, {}, 20000, mockPool);
       const result = await provider.request({ method: "net_version" });
-      assert.equal(result, successResponse.result);
+      assert.strictEqual(result, successResponse.result);
     });
 
     it("should retry even if the rate-limit response lacks a retry-after header", async function () {
@@ -54,7 +54,7 @@ describe("HttpProvider", function () {
         .reply(200, successResponse);
       const provider = new HttpProvider(url, networkName, {}, 20000, mockPool);
       const result = await provider.request({ method: "net_version" });
-      assert.equal(result, successResponse.result);
+      assert.strictEqual(result, successResponse.result);
       assert(tooManyRequestsReturned);
     });
 
@@ -74,7 +74,7 @@ describe("HttpProvider", function () {
         .reply(200, successResponse);
       const provider = new HttpProvider(url, networkName, {}, 20000, mockPool);
       const result = await provider.request({ method: "net_version" });
-      assert.equal(result, successResponse.result);
+      assert.strictEqual(result, successResponse.result);
       assert(tooManyRequestsReturned);
     });
   });

@@ -11,7 +11,7 @@ export async function expectErrorAsync(
   try {
     await f();
   } catch (err: any) {
-    assert.equal(err.message, errorMessage);
+    assert.strictEqual(err.message, errorMessage);
   }
 }
 
@@ -28,7 +28,7 @@ describe("Solhint plugin", function () {
 
     it("return a report", async function () {
       const reports = await this.env.run("hardhat-solhint:run-solhint");
-      assert.equal(reports.length, 1);
+      assert.strictEqual(reports.length, 1);
       assert.isTrue(
         // This test is a little sloppy, but the actual number doesn't matter
         // and it was failing very often when solhint released new versions
@@ -49,8 +49,8 @@ describe("Solhint plugin", function () {
 
     it("return a report", async function () {
       const reports = await this.env.run("hardhat-solhint:run-solhint");
-      assert.equal(reports.length, 1);
-      assert.equal(reports[0].reports[0].ruleId, "max-line-length");
+      assert.strictEqual(reports.length, 1);
+      assert.strictEqual(reports[0].reports[0].ruleId, "max-line-length");
     });
   });
 

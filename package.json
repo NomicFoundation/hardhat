@@ -5,6 +5,7 @@
   "license": "SEE LICENSE IN EACH PACKAGE'S LICENSE FILE",
   "private": true,
   "devDependencies": {
+    "@ast-grep/cli": "^0.19.1",
     "@changesets/cli": "^2.16.0",
     "@open-rpc/typings": "^1.12.1",
     "hardhat": "workspace:*",
@@ -18,9 +19,9 @@
     "watch": "tsc --build --watch packages/hardhat-core/src packages/hardhat-ethers packages/hardhat-verify packages/hardhat-solhint packages/hardhat-solpp packages/hardhat-truffle4 packages/hardhat-truffle5 packages/hardhat-vyper packages/hardhat-web3 packages/hardhat-web3-v4 packages/hardhat-web3-legacy packages/hardhat-chai-matchers packages/hardhat-network-helpers packages/hardhat-toolbox packages/hardhat-foundry packages/hardhat-ledger packages/hardhat-viem packages/hardhat-toolbox-viem",
     "clean": "pnpm run --recursive clean",
     "test": "node scripts/run-tests.js",
-    "lint": "pnpm run --recursive lint && pnpm prettier --check",
+    "lint": "pnpm run --recursive lint && pnpm prettier --check && pnpm ast-grep",
     "lint:fix": "pnpm run --recursive lint:fix && pnpm prettier --write",
-    "prettier": "prettier *.md \"{docs,.github}/**/*.{md,yml,ts,js}\" \"scripts/**/*.js\""
-  },
-  "dependencies": {}
+    "prettier": "prettier *.md \"{docs,.github}/**/*.{md,yml,ts,js}\" \"scripts/**/*.js\"",
+    "ast-grep": "sg scan"
+  }
 }

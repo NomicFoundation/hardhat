@@ -43,19 +43,19 @@ describe("Config resolution", () => {
       it("should return the default config", () => {
         const config = resolveConfig(__filename, {});
         assert.lengthOf(config.solidity.compilers, 1);
-        assert.equal(
+        assert.strictEqual(
           config.solidity.compilers[0].version,
           DEFAULT_SOLC_VERSION
         );
         assert.containsAllKeys(config.networks, ["localhost"]);
         assert.isUndefined(config.solidity.compilers[0]?.settings?.evmVersion);
-        assert.equal(config.defaultNetwork, "hardhat");
+        assert.strictEqual(config.defaultNetwork, "hardhat");
 
         const hardhatNetworkConfig: HardhatNetworkConfig = config.networks
           .hardhat as HardhatNetworkConfig;
 
-        assert.equal(hardhatNetworkConfig.throwOnTransactionFailures, true);
-        assert.equal(hardhatNetworkConfig.throwOnCallFailures, true);
+        assert.strictEqual(hardhatNetworkConfig.throwOnTransactionFailures, true);
+        assert.strictEqual(hardhatNetworkConfig.throwOnCallFailures, true);
       });
     });
 
@@ -84,16 +84,16 @@ describe("Config resolution", () => {
 
       it("should return the config merged ", () => {
         assert.lengthOf(config.solidity.compilers, 1);
-        assert.equal(config.solidity.compilers[0].version, "0.5.15");
+        assert.strictEqual(config.solidity.compilers[0].version, "0.5.15");
         assert.containsAllKeys(config.networks, ["localhost", "custom"]);
-        assert.equal(config.defaultNetwork, "custom");
+        assert.strictEqual(config.defaultNetwork, "custom");
       });
 
       it("should return the config merged ", () => {
         assert.lengthOf(config.solidity.compilers, 1);
-        assert.equal(config.solidity.compilers[0].version, "0.5.15");
+        assert.strictEqual(config.solidity.compilers[0].version, "0.5.15");
         assert.containsAllKeys(config.networks, ["localhost", "custom"]);
-        assert.equal(
+        assert.strictEqual(
           (config.networks.localhost as HttpNetworkUserConfig).url,
           "http://127.0.0.1:8545"
         );
@@ -198,7 +198,7 @@ describe("Config resolution", () => {
       const { paths } = resolveConfig(__filename, {
         paths: { configFile: "asd" } as any,
       });
-      assert.equal(paths.configFile, __filename);
+      assert.strictEqual(paths.configFile, __filename);
     });
 
     it("Should return absolute paths for Hardhat paths, and leave the others as is", () => {
@@ -222,12 +222,12 @@ describe("Config resolution", () => {
         } as any,
       });
 
-      assert.equal(paths.root, "/root");
-      assert.equal((paths as any).asd, "/asd");
-      assert.equal(paths.sources, "/c");
-      assert.equal(paths.artifacts, "/a");
-      assert.equal(paths.cache, "/ca");
-      assert.equal(paths.tests, "/t");
+      assert.strictEqual(paths.root, "/root");
+      assert.strictEqual((paths as any).asd, "/asd");
+      assert.strictEqual(paths.sources, "/c");
+      assert.strictEqual(paths.artifacts, "/a");
+      assert.strictEqual(paths.cache, "/ca");
+      assert.strictEqual(paths.tests, "/t");
     });
 
     it("Should resolve the root relative to the configFile", () => {
@@ -237,7 +237,7 @@ describe("Config resolution", () => {
         },
       });
 
-      assert.equal(paths.root, path.join(__dirname, "blah"));
+      assert.strictEqual(paths.root, path.join(__dirname, "blah"));
     });
 
     it("Should resolve the rest relative to the root, except unknown values, that are left as is", () => {
@@ -253,35 +253,35 @@ describe("Config resolution", () => {
       });
 
       const root = path.join(__dirname, "blah");
-      assert.equal(paths.root, root);
-      assert.equal(paths.sources, path.join(root, "c"));
-      assert.equal(paths.artifacts, path.join(root, "a"));
-      assert.equal(paths.cache, path.join(root, "ca"));
-      assert.equal(paths.tests, path.join(root, "t"));
+      assert.strictEqual(paths.root, root);
+      assert.strictEqual(paths.sources, path.join(root, "c"));
+      assert.strictEqual(paths.artifacts, path.join(root, "a"));
+      assert.strictEqual(paths.cache, path.join(root, "ca"));
+      assert.strictEqual(paths.tests, path.join(root, "t"));
 
       assert.deepEqual((paths as any).asdf, { a: 123 });
     });
 
     it("Should have the right default values", () => {
       const { paths } = resolveConfig(__filename, {});
-      assert.equal(paths.root, __dirname);
-      assert.equal(paths.sources, path.join(__dirname, "contracts"));
-      assert.equal(paths.artifacts, path.join(__dirname, "artifacts"));
-      assert.equal(paths.cache, path.join(__dirname, "cache"));
-      assert.equal(paths.tests, path.join(__dirname, "test"));
+      assert.strictEqual(paths.root, __dirname);
+      assert.strictEqual(paths.sources, path.join(__dirname, "contracts"));
+      assert.strictEqual(paths.artifacts, path.join(__dirname, "artifacts"));
+      assert.strictEqual(paths.cache, path.join(__dirname, "cache"));
+      assert.strictEqual(paths.tests, path.join(__dirname, "test"));
     });
   });
 
   describe("Mocha config resolution", () => {
     it("Should set a default time and leave the rest as is", () => {
       const config = resolveConfig(__filename, { mocha: { bail: true } });
-      assert.equal(config.mocha.timeout, defaultMochaOptions.timeout);
+      assert.strictEqual(config.mocha.timeout, defaultMochaOptions.timeout);
       assert.isTrue(config.mocha.bail);
     });
 
     it("Should let the user override the timeout", () => {
       const config = resolveConfig(__filename, { mocha: { timeout: 1 } });
-      assert.equal(config.mocha.timeout, 1);
+      assert.strictEqual(config.mocha.timeout, 1);
     });
   });
 
@@ -343,7 +343,7 @@ describe("Config resolution", () => {
           });
 
           const configWithoutInitialDate = resolveConfig(__filename, {});
-          assert.equal(
+          assert.strictEqual(
             new Date(
               configWithoutInitialDate.networks.hardhat.initialDate
             ).valueOf(),
@@ -365,7 +365,7 @@ describe("Config resolution", () => {
           },
         });
 
-        assert.equal(
+        assert.strictEqual(
           configWithInitialDate.networks.hardhat.initialDate,
           initialDate
         );
@@ -632,7 +632,7 @@ describe("Config resolution", () => {
         it("should default to 0", function () {
           const config = resolveConfig(__filename, {});
 
-          assert.equal(config.networks.hardhat.minGasPrice, 0n);
+          assert.strictEqual(config.networks.hardhat.minGasPrice, 0n);
         });
 
         it("should accept numbers", function () {
@@ -644,7 +644,7 @@ describe("Config resolution", () => {
             },
           });
 
-          assert.equal(config.networks.hardhat.minGasPrice, 10n);
+          assert.strictEqual(config.networks.hardhat.minGasPrice, 10n);
         });
 
         it("should accept strings", function () {
@@ -656,7 +656,7 @@ describe("Config resolution", () => {
             },
           });
 
-          assert.equal(config.networks.hardhat.minGasPrice, 10n ** 11n);
+          assert.strictEqual(config.networks.hardhat.minGasPrice, 10n ** 11n);
         });
       });
 
@@ -771,7 +771,7 @@ describe("Config resolution", () => {
           },
         });
 
-        assert.equal(config.networks.hardhat.hardfork, "cancun");
+        assert.strictEqual(config.networks.hardhat.hardfork, "cancun");
       });
 
       it("should use shanghai as the hardfork when enableTransientStorage is disabled", async function () {
@@ -783,7 +783,7 @@ describe("Config resolution", () => {
           },
         });
 
-        assert.equal(config.networks.hardhat.hardfork, "shanghai");
+        assert.strictEqual(config.networks.hardhat.hardfork, "shanghai");
       });
     });
 
@@ -899,12 +899,12 @@ describe("Config resolution", () => {
       let config = resolveConfig(__filename, {
         solidity: "0.8.20",
       });
-      assert.equal(config.solidity.compilers[0]?.settings?.evmVersion, "paris");
+      assert.strictEqual(config.solidity.compilers[0]?.settings?.evmVersion, "paris");
 
       config = resolveConfig(__filename, {
         solidity: "0.8.21",
       });
-      assert.equal(config.solidity.compilers[0]?.settings?.evmVersion, "paris");
+      assert.strictEqual(config.solidity.compilers[0]?.settings?.evmVersion, "paris");
 
       config = resolveConfig(__filename, {
         solidity: {
@@ -916,8 +916,8 @@ describe("Config resolution", () => {
           },
         },
       });
-      assert.equal(config.solidity.compilers[0]?.settings?.evmVersion, "paris");
-      assert.equal(
+      assert.strictEqual(config.solidity.compilers[0]?.settings?.evmVersion, "paris");
+      assert.strictEqual(
         config.solidity.overrides["contracts/ERC20.sol"]?.settings?.evmVersion,
         "paris"
       );
@@ -960,11 +960,11 @@ describe("Config resolution", () => {
         },
       });
 
-      assert.equal(
+      assert.strictEqual(
         config.solidity.compilers[0]?.settings?.evmVersion,
         "istanbul"
       );
-      assert.equal(
+      assert.strictEqual(
         config.solidity.overrides["contracts/ERC20.sol"]?.settings?.evmVersion,
         "shanghai"
       );

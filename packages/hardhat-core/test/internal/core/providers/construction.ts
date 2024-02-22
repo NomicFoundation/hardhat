@@ -184,7 +184,7 @@ describe("Base providers wrapping", () => {
       await provider.request({ method: "eth_sendTransaction", params: [{}] });
 
       const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
-      assert.equal(tx.from, "0xa2b6816c50d49101901d93f5302a3a57e0a1281b");
+      assert.strictEqual(tx.from, "0xa2b6816c50d49101901d93f5302a3a57e0a1281b");
     });
 
     it("Should wrap without a fixed sender param, using the default one", async () => {
@@ -198,7 +198,7 @@ describe("Base providers wrapping", () => {
 
       await provider.request({ method: "eth_sendTransaction", params: [{}] });
       const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
-      assert.equal(tx.from, "0x04397ae3f38106cebdf03f963074ecfc23d509d9");
+      assert.strictEqual(tx.from, "0x04397ae3f38106cebdf03f963074ecfc23d509d9");
     });
   });
 
@@ -229,7 +229,7 @@ describe("Base providers wrapping", () => {
         params: [{ from: "0x0" }],
       });
       const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
-      assert.equal(tx.gas, numberToRpcQuantity(123));
+      assert.strictEqual(tx.gas, numberToRpcQuantity(123));
     });
 
     it("Should wrap with an auto gas provider if undefined is used", async () => {
@@ -246,7 +246,7 @@ describe("Base providers wrapping", () => {
         params: [{ from: "0x0" }],
       });
       const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
-      assert.equal(tx.gas, numberToRpcQuantity(123));
+      assert.strictEqual(tx.gas, numberToRpcQuantity(123));
     });
 
     it("Should use the gasMultiplier", async () => {
@@ -264,7 +264,7 @@ describe("Base providers wrapping", () => {
         params: [{ from: "0x0" }],
       });
       const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
-      assert.equal(
+      assert.strictEqual(
         tx.gas,
         numberToRpcQuantity(Math.floor(123 * OTHER_GAS_MULTIPLIER))
       );
@@ -285,7 +285,7 @@ describe("Base providers wrapping", () => {
         params: [{ from: "0x0" }],
       });
       const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
-      assert.equal(tx.gas, numberToRpcQuantity(678));
+      assert.strictEqual(tx.gas, numberToRpcQuantity(678));
     });
   });
 
@@ -305,7 +305,7 @@ describe("Base providers wrapping", () => {
       );
 
       const gasPrice = await provider.request({ method: "eth_gasPrice" });
-      assert.equal(gasPrice, numberToRpcQuantity(123));
+      assert.strictEqual(gasPrice, numberToRpcQuantity(123));
     });
 
     it("Should wrap with an auto gas price provider if undefined is used", async () => {
@@ -318,7 +318,7 @@ describe("Base providers wrapping", () => {
       );
 
       const gasPrice = await provider.request({ method: "eth_gasPrice" });
-      assert.equal(gasPrice, numberToRpcQuantity(123));
+      assert.strictEqual(gasPrice, numberToRpcQuantity(123));
     });
 
     it("Should wrap with a fixed gas price provider if a number is used", async () => {
@@ -336,7 +336,7 @@ describe("Base providers wrapping", () => {
         "eth_sendTransaction"
       );
 
-      assert.equal(gasPrice, numberToRpcQuantity(789));
+      assert.strictEqual(gasPrice, numberToRpcQuantity(789));
     });
   });
 

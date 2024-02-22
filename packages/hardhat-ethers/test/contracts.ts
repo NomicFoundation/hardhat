@@ -275,7 +275,7 @@ describe("contracts", function () {
 
     await incEventPromise;
 
-    assert.equal(timesCalled, 2);
+    assert.strictEqual(timesCalled, 2);
 
     await contract.off("Inc", listenerInc);
   });

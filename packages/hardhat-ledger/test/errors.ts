@@ -10,13 +10,13 @@ import {
 describe("HardhatLedgerError", () => {
   it("should set the plugin name of the error", () => {
     const error = new HardhatLedgerError("");
-    assert.equal(error.pluginName, "@nomiclabs/hardhat-ledger");
+    assert.strictEqual(error.pluginName, "@nomiclabs/hardhat-ledger");
   });
 
   it("should set the message of the error", () => {
     const message = "Some message";
     const error = new HardhatLedgerError(message);
-    assert.equal(error.message, message);
+    assert.strictEqual(error.message, message);
   });
 });
 
@@ -24,13 +24,13 @@ describe("HardhatLedgerNotControlledAddressError", () => {
   it("should set the message of the error", () => {
     const message = "Look, a message";
     const error = new HardhatLedgerNotControlledAddressError(message, "");
-    assert.equal(error.message, message);
+    assert.strictEqual(error.message, message);
   });
 
   it("should store the address", () => {
     const address = "0x3d6e2674e40ea221b4a48663d28eff77af564a50";
     const error = new HardhatLedgerNotControlledAddressError("", address);
-    assert.equal(error.address, address);
+    assert.strictEqual(error.address, address);
   });
 
   it("should detect a HardhatLedgerNotControlledAddressError", () => {
@@ -49,13 +49,13 @@ describe("HardhatLedgerDerivationPathError", () => {
   it("should set the message of the error", () => {
     const message = "Yet another message";
     const error = new HardhatLedgerDerivationPathError(message, "");
-    assert.equal(error.message, message);
+    assert.strictEqual(error.message, message);
   });
 
   it("should store the path", () => {
     const path = "44'/60'/0'/0/0";
     const error = new HardhatLedgerDerivationPathError("", path);
-    assert.equal(error.path, path);
+    assert.strictEqual(error.path, path);
   });
 
   it("should detect a HardhatLedgerDerivationPathError", () => {

@@ -307,7 +307,7 @@ function compareStackTraces(
     console.log(description);
   }
 
-  assert.equal(
+  assert.strictEqual(
     trace.length,
     description.length,
     `Expected a trace of length ${description.length} but got one with length ${trace.length}`
@@ -330,7 +330,7 @@ function compareStackTraces(
       continue;
     }
 
-    assert.equal(
+    assert.strictEqual(
       actualErrorType,
       expectedErrorType,
       `Stack trace of tx ${txIndex} entry ${i} type is incorrect: expected ${expectedErrorType}, got ${actualErrorType}`
@@ -354,13 +354,13 @@ function compareStackTraces(
     }
 
     if (expected.message !== undefined) {
-      assert.equal(
+      assert.strictEqual(
         decodedMessage,
         expected.message,
         `Stack trace of tx ${txIndex} entry ${i} have different messages`
       );
     } else {
-      assert.equal(
+      assert.strictEqual(
         decodedMessage,
         "",
         `Stack trace of tx ${txIndex} entry ${i} shouldn't have a message`
@@ -422,26 +422,26 @@ function compareStackTraces(
           assert.fail("Expected a source reference");
         }
       } else {
-        assert.equal(
+        assert.strictEqual(
           actual.sourceReference.contract,
           expected.sourceReference.contract,
           `Stack trace of tx ${txIndex} entry ${i} have different contract names`
         );
 
-        assert.equal(
+        assert.strictEqual(
           actual.sourceReference.sourceName,
           expected.sourceReference.file,
           `Stack trace of tx ${txIndex} entry ${i} have different file names`
         );
 
-        assert.equal(
+        assert.strictEqual(
           actual.sourceReference.function,
           expected.sourceReference.function,
           `Stack trace of tx ${txIndex} entry ${i} have different function names`
         );
 
         if (optimizer === undefined) {
-          assert.equal(
+          assert.strictEqual(
             actual.sourceReference!.line,
             expected.sourceReference.line,
             `Stack trace of tx ${txIndex} entry ${i} have different line numbers`
@@ -466,7 +466,7 @@ function compareConsoleLogs(logs: string[], expectedLogs?: ConsoleLogs[]) {
     const actual = logs[i];
     const expected = consoleLogToString(expectedLogs[i]);
 
-    assert.equal(actual, expected);
+    assert.strictEqual(actual, expected);
   }
 }
 

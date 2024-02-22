@@ -8,11 +8,11 @@ describe("resetWithoutFork", function () {
   useEnvironment("simple");
 
   it("should reset the non-forked network", async function () {
-    assert.equal(await hh.time.latestBlock(), 0);
+    assert.strictEqual(await hh.time.latestBlock(), 0);
     await hh.mine();
-    assert.equal(await hh.time.latestBlock(), 1);
+    assert.strictEqual(await hh.time.latestBlock(), 1);
     await hh.reset();
-    assert.equal(await hh.time.latestBlock(), 0);
+    assert.strictEqual(await hh.time.latestBlock(), 0);
   });
 
   it("should reset with a url", async function () {
@@ -53,6 +53,6 @@ describe("resetWithoutFork", function () {
     // fork an older block number
     await hh.reset(INFURA_URL, mainnetBlockNumber - 1000);
     const olderMainnetBlockNumber = await hh.time.latestBlock();
-    assert.equal(olderMainnetBlockNumber, mainnetBlockNumber - 1000);
+    assert.strictEqual(olderMainnetBlockNumber, mainnetBlockNumber - 1000);
   });
 });

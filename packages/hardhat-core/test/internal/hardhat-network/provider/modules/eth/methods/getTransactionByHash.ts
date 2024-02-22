@@ -254,38 +254,38 @@ describe("Eth module", function () {
             [txHash]
           );
 
-          assert.equal(fetchedTx.from, address);
-          assert.equal(fetchedTx.to, DEFAULT_ACCOUNTS_ADDRESSES[1]);
-          assert.equal(
+          assert.strictEqual(fetchedTx.from, address);
+          assert.strictEqual(fetchedTx.to, DEFAULT_ACCOUNTS_ADDRESSES[1]);
+          assert.strictEqual(
             rpcQuantityToBigInt(fetchedTx.value),
             rpcQuantityToBigInt(txParams.value)
           );
-          assert.equal(
+          assert.strictEqual(
             rpcQuantityToBigInt(fetchedTx.nonce),
             rpcQuantityToBigInt(txParams.nonce)
           );
-          assert.equal(
+          assert.strictEqual(
             rpcQuantityToBigInt(fetchedTx.gas),
             rpcQuantityToBigInt(txParams.gasLimit)
           );
-          assert.equal(
+          assert.strictEqual(
             rpcQuantityToBigInt(fetchedTx.gasPrice),
             rpcQuantityToBigInt(txParams.gasPrice)
           );
-          assert.equal(fetchedTx.input, txParams.data);
+          assert.strictEqual(fetchedTx.input, txParams.data);
 
           // tx.v is padded but fetchedTx.v is not, so we need to do this
           const fetchedTxV = BigInt(fetchedTx.v);
           const expectedTxV = BigInt(signedTx.v!);
-          assert.equal(fetchedTxV, expectedTxV);
+          assert.strictEqual(fetchedTxV, expectedTxV);
 
           // Also equalize left padding (signedTx has a leading 0)
-          assert.equal(
+          assert.strictEqual(
             toBuffer(fetchedTx.r).toString("hex"),
             toBuffer(signedTx.r!).toString("hex")
           );
 
-          assert.equal(
+          assert.strictEqual(
             toBuffer(fetchedTx.s).toString("hex"),
             toBuffer(signedTx.s!).toString("hex")
           );
@@ -326,7 +326,7 @@ describe("Eth module", function () {
             "0x5a4bf6970980a9381e6d6c78d96ab278035bbff58c383ffe96a0a2bbc7c02a4b",
           ]);
 
-          assert.equal(tx.from, "0x8a9d69aa686fa0f9bbdec21294f67d4d9cfb4a3e");
+          assert.strictEqual(tx.from, "0x8a9d69aa686fa0f9bbdec21294f67d4d9cfb4a3e");
         });
 
         it("should get an existing transaction from goerli", async function () {
@@ -352,7 +352,7 @@ describe("Eth module", function () {
             "0x3f0908ca1db37402b4fc18e8722dfffa9d78aa1c25b90c37dfe8c9f8a2612b2f",
           ]);
 
-          assert.equal(tx.from, "0x84467283e3663522a02574288291a9d0f9c968c2");
+          assert.strictEqual(tx.from, "0x84467283e3663522a02574288291a9d0f9c968c2");
         });
 
         it("should get a blob transaction from goerli", async function () {
@@ -381,7 +381,7 @@ describe("Eth module", function () {
             "0x0190ab719774b0ed612789072e399157537845383c2d2445a9929784a098a5c9",
           ]);
 
-          assert.equal(tx.from, "0xa1d6cf9ed782555a0572cc08380ee3b68a1df449");
+          assert.strictEqual(tx.from, "0xa1d6cf9ed782555a0572cc08380ee3b68a1df449");
         });
 
         it("should return access list transactions", async function () {

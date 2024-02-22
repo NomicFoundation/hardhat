@@ -20,9 +20,9 @@ describe("TasksDSL", () => {
 
     const task = dsl.task(taskName, description, action);
 
-    assert.equal(task.name, taskName);
-    assert.equal(task.description, description);
-    assert.equal(task.action, action);
+    assert.strictEqual(task.name, taskName);
+    assert.strictEqual(task.description, description);
+    assert.strictEqual(task.action, action);
     assert.isFalse(task.isSubtask);
   });
 
@@ -46,7 +46,7 @@ describe("TasksDSL", () => {
     const action = async () => {};
     const task = dsl.task("compile", action);
     assert.isUndefined(task.description);
-    assert.equal(task.action, action);
+    assert.strictEqual(task.action, action);
   });
 
   it("should add a task with default action", async () => {
@@ -65,36 +65,36 @@ describe("TasksDSL", () => {
 
   it("should create a scope without a description", () => {
     const scope = dsl.scope("solidity");
-    assert.equal(scope.name, "solidity");
+    assert.strictEqual(scope.name, "solidity");
     assert.isUndefined(scope.description);
   });
 
   it("should create a scope with a description", () => {
     const scope = dsl.scope("solidity", "solidity tasks");
-    assert.equal(scope.name, "solidity");
-    assert.equal(scope.description, "solidity tasks");
+    assert.strictEqual(scope.name, "solidity");
+    assert.strictEqual(scope.description, "solidity tasks");
   });
 
   it("should override the description of a scope without description", () => {
     const scope = dsl.scope("solidity");
-    assert.equal(scope.name, "solidity");
+    assert.strictEqual(scope.name, "solidity");
     assert.isUndefined(scope.description);
 
     const newScope = dsl.scope("solidity", "solidity tasks");
-    assert.equal(newScope.name, "solidity");
-    assert.equal(newScope.description, "solidity tasks");
-    assert.equal(scope, newScope);
+    assert.strictEqual(newScope.name, "solidity");
+    assert.strictEqual(newScope.description, "solidity tasks");
+    assert.strictEqual(scope, newScope);
   });
 
   it("should override the description of a scope with a description", () => {
     const scope = dsl.scope("solidity", "solidity tasks");
-    assert.equal(scope.name, "solidity");
-    assert.equal(scope.description, "solidity tasks");
+    assert.strictEqual(scope.name, "solidity");
+    assert.strictEqual(scope.description, "solidity tasks");
 
     const newScope = dsl.scope("solidity", "solidity tasks 2");
-    assert.equal(newScope.name, "solidity");
-    assert.equal(newScope.description, "solidity tasks 2");
-    assert.equal(scope, newScope);
+    assert.strictEqual(newScope.name, "solidity");
+    assert.strictEqual(newScope.description, "solidity tasks 2");
+    assert.strictEqual(scope, newScope);
   });
 
   it("should not create a scope if its name clashes with existing task", () => {
@@ -122,11 +122,11 @@ describe("TasksDSL", () => {
 
     const builtin = dsl.task("compile", "built-in", action);
     let tasks = dsl.getTaskDefinitions();
-    assert.equal(tasks.compile, builtin);
+    assert.strictEqual(tasks.compile, builtin);
 
     const custom = dsl.task("compile", "custom", action);
     tasks = dsl.getTaskDefinitions();
-    assert.equal(tasks.compile, custom);
+    assert.strictEqual(tasks.compile, custom);
   });
 
   it("should return added tasks", () => {

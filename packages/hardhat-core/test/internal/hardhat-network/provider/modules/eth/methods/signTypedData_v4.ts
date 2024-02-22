@@ -74,7 +74,7 @@ describe("Eth module", function () {
             version: SignTypedDataVersion.V4,
             data: typedMessage as any,
           });
-          assert.equal(address.toLowerCase(), recoveredAddress.toLowerCase());
+          assert.strictEqual(address.toLowerCase(), recoveredAddress.toLowerCase());
         });
 
         it("should sign a message that is JSON stringified", async function () {
@@ -88,7 +88,7 @@ describe("Eth module", function () {
             version: SignTypedDataVersion.V4,
             data: typedMessage as any,
           });
-          assert.equal(address.toLowerCase(), recoveredAddress.toLowerCase());
+          assert.strictEqual(address.toLowerCase(), recoveredAddress.toLowerCase());
         });
 
         it("should fail with an invalid JSON", async function () {

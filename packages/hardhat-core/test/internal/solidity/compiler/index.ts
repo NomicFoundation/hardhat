@@ -80,7 +80,7 @@ contract A {}
       assert.isDefined(output.sources);
       assert.isDefined(output.sources["A.sol"]);
       assert.isDefined(output.sources["A.sol"].ast);
-      assert.equal(output.sources["A.sol"].id, 0);
+      assert.strictEqual(output.sources["A.sol"].id, 0);
     });
 
     it("Shouldn't throw if there's a syntax error", async () => {
@@ -177,7 +177,7 @@ contract A {}
       assert.isDefined(output.sources);
       assert.isDefined(output.sources["A.sol"]);
       assert.isDefined(output.sources["A.sol"].ast);
-      assert.equal(output.sources["A.sol"].id, 0);
+      assert.strictEqual(output.sources["A.sol"].id, 0);
     });
 
     it("Shouldn't throw if there's a syntax error", async () => {

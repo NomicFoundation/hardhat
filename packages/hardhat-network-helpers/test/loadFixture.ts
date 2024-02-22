@@ -35,8 +35,8 @@ describe("loadFixture", function () {
 
     const blockNumberAfter = await getBlockNumber();
 
-    assert.equal(calledCount, 1);
-    assert.equal(blockNumberAfter, blockNumberBefore + 1);
+    assert.strictEqual(calledCount, 1);
+    assert.strictEqual(blockNumberAfter, blockNumberBefore + 1);
   });
 
   it("doesn't call the fixture the second time it's used", async function () {
@@ -50,16 +50,16 @@ describe("loadFixture", function () {
     const blockNumberBefore = await getBlockNumber();
 
     await loadFixture(mineBlockFixture);
-    assert.equal(calledCount, 1);
-    assert.equal(await getBlockNumber(), blockNumberBefore + 1);
+    assert.strictEqual(calledCount, 1);
+    assert.strictEqual(await getBlockNumber(), blockNumberBefore + 1);
 
     await mineBlock();
     await mineBlock();
-    assert.equal(await getBlockNumber(), blockNumberBefore + 3);
+    assert.strictEqual(await getBlockNumber(), blockNumberBefore + 3);
 
     await loadFixture(mineBlockFixture);
-    assert.equal(calledCount, 1);
-    assert.equal(await getBlockNumber(), blockNumberBefore + 1);
+    assert.strictEqual(calledCount, 1);
+    assert.strictEqual(await getBlockNumber(), blockNumberBefore + 1);
   });
 
   it("the result of the fixture is returned", async function () {
@@ -69,8 +69,8 @@ describe("loadFixture", function () {
       return 123;
     }
 
-    assert.equal(await loadFixture(mineBlockFixture), 123);
-    assert.equal(await loadFixture(mineBlockFixture), 123);
+    assert.strictEqual(await loadFixture(mineBlockFixture), 123);
+    assert.strictEqual(await loadFixture(mineBlockFixture), 123);
   });
 
   it("should take snapshot again when trying to revert to future state", async function () {
@@ -88,7 +88,7 @@ describe("loadFixture", function () {
     await loadFixture(mineTwoBlocksFixture);
     await loadFixture(mineBlockFixture);
     await loadFixture(mineTwoBlocksFixture);
-    assert.equal(calledCount, 2);
+    assert.strictEqual(calledCount, 2);
   });
 
   it("should take snapshot again when trying to revert to future state (edge case)", async function () {
@@ -113,21 +113,21 @@ describe("loadFixture", function () {
       await loadFixture(fixtureFunction);
     }
     for (let i = 0; i < fixturesFunctions.length; i++) {
-      assert.equal(calledCount.get(i), 1);
+      assert.strictEqual(calledCount.get(i), 1);
     }
 
     // we run the second fixture again, this should remove all the ones that
     // are afte rit
     await loadFixture(fixturesFunctions[1]);
-    assert.equal(calledCount.get(1), 1);
+    assert.strictEqual(calledCount.get(1), 1);
 
     // the last fixture should be run again
     await loadFixture(fixturesFunctions[15]);
-    assert.equal(calledCount.get(15), 2);
+    assert.strictEqual(calledCount.get(15), 2);
 
     // the first one shouldn't be removed
     await loadFixture(fixturesFunctions[0]);
-    assert.equal(calledCount.get(0), 1);
+    assert.strictEqual(calledCount.get(0), 1);
   });
 
   it("should throw when an anonymous regular function is used", async function () {

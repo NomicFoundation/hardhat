@@ -496,7 +496,7 @@ describe("Eth module - hardfork dependant tests", function () {
               txHash,
             ]);
 
-            assert.equal(tx.type, numberToRpcQuantity(0));
+            assert.strictEqual(tx.type, numberToRpcQuantity(0));
             assert.isUndefined(tx.chainId);
             assert.isUndefined(tx.accessList);
           });
@@ -525,8 +525,8 @@ describe("Eth module - hardfork dependant tests", function () {
               txHash,
             ]);
 
-            assert.equal(tx.type, numberToRpcQuantity(1));
-            assert.equal(
+            assert.strictEqual(tx.type, numberToRpcQuantity(1));
+            assert.strictEqual(
               tx.chainId,
               numberToRpcQuantity(this.common.chainId())
             );
@@ -553,8 +553,8 @@ describe("Eth module - hardfork dependant tests", function () {
               txHash,
             ]);
 
-            assert.equal(tx.type, numberToRpcQuantity(1));
-            assert.equal(
+            assert.strictEqual(tx.type, numberToRpcQuantity(1));
+            assert.strictEqual(
               tx.chainId,
               numberToRpcQuantity(this.common.chainId())
             );
@@ -586,17 +586,17 @@ describe("Eth module - hardfork dependant tests", function () {
               const pendingRpcTx: EIP1559RpcTransactionOutput =
                 await this.provider.send("eth_getTransactionByHash", [txHash]);
 
-              assert.equal(
+              assert.strictEqual(
                 pendingRpcTx.maxFeePerGas,
                 numberToRpcQuantity(signedTx.maxFeePerGas)
               );
 
-              assert.equal(
+              assert.strictEqual(
                 pendingRpcTx.maxPriorityFeePerGas,
                 numberToRpcQuantity(signedTx.maxPriorityFeePerGas)
               );
 
-              assert.equal(
+              assert.strictEqual(
                 pendingRpcTx.gasPrice,
                 numberToRpcQuantity(signedTx.maxFeePerGas)
               );
@@ -617,7 +617,7 @@ describe("Eth module - hardfork dependant tests", function () {
                 signedTx.maxPriorityFeePerGas
               );
 
-              assert.equal(
+              assert.strictEqual(
                 minedTx.gasPrice,
                 numberToRpcQuantity(effectiveGasPrice)
               );
@@ -684,7 +684,7 @@ describe("Eth module - hardfork dependant tests", function () {
 
           assert.isDefined(receipt.status);
           assert.isUndefined(receipt.root);
-          assert.equal(receipt.type, "0x0");
+          assert.strictEqual(receipt.type, "0x0");
         });
 
         it("Should not have an effectiveGasPrice field", async function () {
@@ -737,8 +737,8 @@ describe("Eth module - hardfork dependant tests", function () {
               maxPriorityPerGas
             );
 
-            assert.equal(receipt.type, "0x2");
-            assert.equal(
+            assert.strictEqual(receipt.type, "0x2");
+            assert.strictEqual(
               receipt.effectiveGasPrice,
               numberToRpcQuantity(effectiveGasPrice)
             );
@@ -773,8 +773,8 @@ describe("Eth module - hardfork dependant tests", function () {
               gasPrice
             );
 
-            assert.equal(receipt.type, "0x1");
-            assert.equal(
+            assert.strictEqual(receipt.type, "0x1");
+            assert.strictEqual(
               receipt.effectiveGasPrice,
               numberToRpcQuantity(effectiveGasPrice)
             );
@@ -808,8 +808,8 @@ describe("Eth module - hardfork dependant tests", function () {
               gasPrice
             );
 
-            assert.equal(receipt.type, "0x0");
-            assert.equal(
+            assert.strictEqual(receipt.type, "0x0");
+            assert.strictEqual(
               receipt.effectiveGasPrice,
               numberToRpcQuantity(effectiveGasPrice)
             );
@@ -1032,7 +1032,7 @@ describe("Eth module - hardfork dependant tests", function () {
           txHash,
         ]);
 
-        assert.equal(tx.type, numberToRpcQuantity(1));
+        assert.strictEqual(tx.type, numberToRpcQuantity(1));
       });
     });
 
@@ -1048,7 +1048,7 @@ describe("Eth module - hardfork dependant tests", function () {
             txHash,
           ]);
 
-          assert.equal(tx.type, numberToRpcQuantity(1));
+          assert.strictEqual(tx.type, numberToRpcQuantity(1));
         });
 
         it("Should use an EIP-2930 tx if an access list is sent using an impersonated account", async function () {
@@ -1074,7 +1074,7 @@ describe("Eth module - hardfork dependant tests", function () {
             txHash,
           ]);
 
-          assert.equal(tx.type, numberToRpcQuantity(1));
+          assert.strictEqual(tx.type, numberToRpcQuantity(1));
         });
       });
 
@@ -1094,7 +1094,7 @@ describe("Eth module - hardfork dependant tests", function () {
             [txHash]
           );
 
-          assert.equal(pendingTx.type, numberToRpcQuantity(1));
+          assert.strictEqual(pendingTx.type, numberToRpcQuantity(1));
 
           await this.provider.send("evm_mine", []);
 
@@ -1102,7 +1102,7 @@ describe("Eth module - hardfork dependant tests", function () {
             txHash,
           ]);
 
-          assert.equal(minedTx.type, numberToRpcQuantity(1));
+          assert.strictEqual(minedTx.type, numberToRpcQuantity(1));
         });
 
         it("Should use an EIP-2930 tx if an access list is sent using an impersonated account", async function () {
@@ -1130,7 +1130,7 @@ describe("Eth module - hardfork dependant tests", function () {
             [txHash]
           );
 
-          assert.equal(pendingTx.type, numberToRpcQuantity(1));
+          assert.strictEqual(pendingTx.type, numberToRpcQuantity(1));
 
           await this.provider.send("evm_mine", []);
 
@@ -1138,7 +1138,7 @@ describe("Eth module - hardfork dependant tests", function () {
             txHash,
           ]);
 
-          assert.equal(minedTx.type, numberToRpcQuantity(1));
+          assert.strictEqual(minedTx.type, numberToRpcQuantity(1));
         });
       });
     });
@@ -1195,7 +1195,7 @@ describe("Eth module - hardfork dependant tests", function () {
           false,
         ]);
 
-        assert.equal(
+        assert.strictEqual(
           latestBlock.mixHash,
           "0x0000000000000000000000000000000000000000000000000000000000000000"
         );
@@ -1208,7 +1208,7 @@ describe("Eth module - hardfork dependant tests", function () {
           false,
         ]);
 
-        assert.equal(
+        assert.strictEqual(
           latestBlock.mixHash,
           "0x0000000000000000000000000000000000000000000000000000000000000000"
         );
@@ -1312,8 +1312,8 @@ describe("Eth module - hardfork dependant tests", function () {
         const difficulty = BigInt(latestBlock.difficulty);
         const nonce = BigInt(latestBlock.nonce);
 
-        assert.equal(difficulty, 0n);
-        assert.equal(nonce, 0n);
+        assert.strictEqual(difficulty, 0n);
+        assert.strictEqual(nonce, 0n);
       });
 
       it("mixHash value changes from block to block", async function () {
@@ -1324,7 +1324,7 @@ describe("Eth module - hardfork dependant tests", function () {
 
         // this value and the next one are hardcoded because the mixHash is
         // pseudo-randomly generated from a fixed seed
-        assert.equal(
+        assert.strictEqual(
           latestBlock.mixHash,
           // First value with seed "randomMixHashSeed"
           "0x53c5ae3ce8eefbfad3aca77e5f4e1b19a949b04e2e5ce7a24fbb64422f14f0bf"
@@ -1338,7 +1338,7 @@ describe("Eth module - hardfork dependant tests", function () {
           false,
         ]);
 
-        assert.equal(
+        assert.strictEqual(
           latestBlock.mixHash,
           // Second value with seed "randomMixHashSeed"
           "0xf4fbfa6c8463f342eb58838d8c6b0661faf22e7076a518bf4deaddbf3fa8a112"
@@ -1369,7 +1369,7 @@ describe("Eth module - hardfork dependant tests", function () {
           false,
         ]);
 
-        assert.equal(
+        assert.strictEqual(
           latestBlock.mixHash,
           "0xf4fbfa6c8463f342eb58838d8c6b0661faf22e7076a518bf4deaddbf3fa8a112"
         );
@@ -1398,7 +1398,7 @@ describe("Eth module - hardfork dependant tests", function () {
 
         const latestBlockMixHash = BigInt(latestBlock.mixHash);
 
-        assert.equal(difficulty, latestBlockMixHash);
+        assert.strictEqual(difficulty, latestBlockMixHash);
       });
 
       it("should support the 'safe' and 'finalized' block tags in eth_getBlockByNumber", async function () {
@@ -1500,7 +1500,7 @@ describe("Eth module - hardfork dependant tests", function () {
 
           const gasUsed = rpcQuantityToBigInt(receipt.gasUsed);
 
-          assert.equal(gasUsed, 24478n);
+          assert.strictEqual(gasUsed, 24478n);
         });
       });
 
@@ -1523,7 +1523,7 @@ describe("Eth module - hardfork dependant tests", function () {
 
           const gasUsed = rpcQuantityToBigInt(receipt.gasUsed);
 
-          assert.equal(gasUsed, 166849n);
+          assert.strictEqual(gasUsed, 166849n);
         });
 
         it("should allow initcodes larger than the EIP-3860 limit", async function () {
@@ -1543,7 +1543,7 @@ describe("Eth module - hardfork dependant tests", function () {
           ]);
 
           const deployedCodeBytes = (deployedCode.length - 2) / 2;
-          assert.equal(deployedCodeBytes, maxCodeSize);
+          assert.strictEqual(deployedCodeBytes, maxCodeSize);
         });
       });
 
@@ -1589,7 +1589,7 @@ describe("Eth module - hardfork dependant tests", function () {
           // hardfork.
           // 2500 is COLD_ACCOUNT_ACCESS_COST - WARM_STORAGE_READ_COST,
           // see https://eips.ethereum.org/EIPS/eip-2929
-          assert.equal(gasUsed, 21978n);
+          assert.strictEqual(gasUsed, 21978n);
         });
 
         it("other addresses should be cold", async function () {
@@ -1615,7 +1615,7 @@ describe("Eth module - hardfork dependant tests", function () {
 
           const gasUsed = rpcQuantityToBigInt(receipt.gasUsed);
 
-          assert.equal(gasUsed, 24478n);
+          assert.strictEqual(gasUsed, 24478n);
         });
       });
 
@@ -1718,7 +1718,7 @@ describe("Eth module - hardfork dependant tests", function () {
             ]);
 
             const deployedCodeBytes = (deployedCode.length - 2) / 2;
-            assert.equal(deployedCodeBytes, maxCodeSize);
+            assert.strictEqual(deployedCodeBytes, maxCodeSize);
           });
 
           it("should allow initcodes larger than the EIP-3860 limit from impersonated accounts", async function () {
@@ -1757,7 +1757,7 @@ describe("Eth module - hardfork dependant tests", function () {
             ]);
 
             const deployedCodeBytes = (deployedCode.length - 2) / 2;
-            assert.equal(deployedCodeBytes, maxCodeSize);
+            assert.strictEqual(deployedCodeBytes, maxCodeSize);
           });
 
           it("should allow initcodes larger than the EIP-3860 limit in raw transactions", async function () {
@@ -1799,7 +1799,7 @@ describe("Eth module - hardfork dependant tests", function () {
             ]);
 
             const deployedCodeBytes = (deployedCode.length - 2) / 2;
-            assert.equal(deployedCodeBytes, maxCodeSize);
+            assert.strictEqual(deployedCodeBytes, maxCodeSize);
           });
         });
 
@@ -1827,7 +1827,7 @@ describe("Eth module - hardfork dependant tests", function () {
           // This is the same value as the test with a pre-shanghai hardfork,
           // plus the initcode word cost.
           // See https://eips.ethereum.org/EIPS/eip-3860
-          assert.equal(gasUsed, 166849n + initcodeWordCost);
+          assert.strictEqual(gasUsed, 166849n + initcodeWordCost);
         });
       });
 
@@ -1868,7 +1868,7 @@ describe("Eth module - hardfork dependant tests", function () {
           BEACON_ROOT_ADDRESS,
         ]);
 
-        assert.equal(code, "0x");
+        assert.strictEqual(code, "0x");
       });
     });
 
@@ -1892,7 +1892,7 @@ describe("Eth module - hardfork dependant tests", function () {
           false,
         ]);
 
-        assert.equal(
+        assert.strictEqual(
           block.parentBeaconBlockRoot,
           "0xdd8876ba5af271ae9d93ececb192d6a7b4e6094ca5999756336279fd796b8619"
         );
@@ -1937,7 +1937,7 @@ describe("Eth module - hardfork dependant tests", function () {
           numberToRpcQuantity(0),
         ]);
 
-        assert.equal(code, BEACON_ROOT_BYTECODE);
+        assert.strictEqual(code, BEACON_ROOT_BYTECODE);
       });
     });
   });

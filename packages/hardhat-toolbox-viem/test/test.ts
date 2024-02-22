@@ -12,7 +12,7 @@ describe("hardhat-toolbox-viem", function () {
         script: "script.js",
       });
 
-      assert.equal(process.exitCode, 0);
+      assert.strictEqual(process.exitCode, 0);
     });
   });
 

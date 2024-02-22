@@ -25,7 +25,7 @@ describe("chains", () => {
       const chain = await getChain(provider);
 
       expect(chain).to.deep.equal(chains.mainnet);
-      assert.equal(sendStub.callCount, 1);
+      assert.strictEqual(sendStub.callCount, 1);
     });
 
     it("should return the hardhat chain if the chain id is 31337 and the network is hardhat", async () => {

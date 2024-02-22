@@ -12,17 +12,17 @@ import { expectHardhatError } from "../helpers/errors";
 describe("Solidity contract names utilities", function () {
   describe("getFullyQualifiedName", function () {
     it("Returns a fully qualified name", function () {
-      assert.equal(
+      assert.strictEqual(
         getFullyQualifiedName("contract.sol", "C"),
         "contract.sol:C"
       );
 
-      assert.equal(
+      assert.strictEqual(
         getFullyQualifiedName("folder/contract.sol", "C"),
         "folder/contract.sol:C"
       );
 
-      assert.equal(
+      assert.strictEqual(
         getFullyQualifiedName("folder/a:b/contract.sol", "C"),
         "folder/a:b/contract.sol:C"
       );

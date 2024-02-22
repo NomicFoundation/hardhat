@@ -479,7 +479,7 @@ for verification on the block explorer. Waiting for verification result...
         constructorArgsParams: [],
       });
 
-      assert.equal(logStub.callCount, 2);
+      assert.strictEqual(logStub.callCount, 2);
       expect(logStub.getCall(0)).to.be
         .calledWith(`Successfully submitted source code for contract
 contracts/SimpleContract.sol:SimpleContract at ${simpleContractAddress}
@@ -519,7 +519,7 @@ https://hardhat.etherscan.io/address/${simpleContractAddress}#code\n`);
         constructorArgsParams: [],
       });
 
-      assert.equal(logStub.callCount, 4);
+      assert.strictEqual(logStub.callCount, 4);
       expect(logStub.getCall(0)).to.be
         .calledWith(`Successfully submitted source code for contract
 contracts/SimpleContract.sol:SimpleContract at ${simpleContractAddress}
@@ -539,8 +539,8 @@ for verification on the block explorer. Waiting for verification result...
         .calledWith(`Successfully verified contract SimpleContract on the block explorer.
 https://hardhat.etherscan.io/address/${simpleContractAddress}#code\n`);
       logStub.restore();
-      assert.equal(verifyCallCount, 2);
-      assert.equal(getStatusCallCount, 2);
+      assert.strictEqual(verifyCallCount, 2);
+      assert.strictEqual(getStatusCallCount, 2);
       assert.isUndefined(taskResponse);
     });
 
@@ -571,7 +571,7 @@ https://hardhat.etherscan.io/address/${simpleContractAddress}#code\n`);
         })
       ).to.be.rejectedWith(/The contract verification failed./);
 
-      assert.equal(logStub.callCount, 3);
+      assert.strictEqual(logStub.callCount, 3);
       expect(logStub.getCall(0)).to.be
         .calledWith(`Successfully submitted source code for contract
 contracts/WithLibs.sol:BothLibs at ${bothLibsContractAddress}
@@ -588,8 +588,8 @@ contracts/WithLibs.sol:BothLibs at ${bothLibsContractAddress}
 for verification on the block explorer. Waiting for verification result...
 `);
       logStub.restore();
-      assert.equal(verifyCallCount, 2);
-      assert.equal(getStatusCallCount, 2);
+      assert.strictEqual(verifyCallCount, 2);
+      assert.strictEqual(getStatusCallCount, 2);
     });
 
     it("should validate a contract using the verify:verify subtask", async function () {
@@ -612,7 +612,7 @@ for verification on the block explorer. Waiting for verification result...
         },
       });
 
-      assert.equal(logStub.callCount, 2);
+      assert.strictEqual(logStub.callCount, 2);
       expect(logStub.getCall(0)).to.be
         .calledWith(`Successfully submitted source code for contract
 contracts/WithLibs.sol:BothLibs at ${bothLibsContractAddress}
@@ -668,7 +668,7 @@ describe("verify task Sourcify's integration tests", () => {
         contract: "contracts/SimpleContract.sol:SimpleContract",
       });
 
-      assert.equal(logStub.callCount, 1);
+      assert.strictEqual(logStub.callCount, 1);
       (expect(logStub.getCall(0)).to.be as any)
         .calledWith(`Successfully verified contract SimpleContract on Sourcify.
 https://repo.sourcify.dev/contracts/full_match/31337/${simpleContractAddress}/`);

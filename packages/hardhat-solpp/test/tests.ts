@@ -15,7 +15,7 @@ export async function expectErrorAsync(
   try {
     await f();
   } catch (err: any) {
-    assert.equal(err.message, errorMessage);
+    assert.strictEqual(err.message, errorMessage);
   }
 }
 
@@ -48,9 +48,9 @@ describe("Solpp plugin", async function () {
 
     it("should load the config properly", async function () {
       assert.isDefined(this.env.config.solpp);
-      assert.equal(this.env.config.solpp!.collapseEmptyLines, false);
-      assert.equal(this.env.config.solpp!.noFlatten, true);
-      assert.equal(this.env.config.solpp!.tolerant, true);
+      assert.strictEqual(this.env.config.solpp!.collapseEmptyLines, false);
+      assert.strictEqual(this.env.config.solpp!.noFlatten, true);
+      assert.strictEqual(this.env.config.solpp!.tolerant, true);
     });
   });
 
@@ -78,7 +78,7 @@ describe("Solpp plugin", async function () {
         opts,
       });
 
-      assert.equal(paths.length, 1);
+      assert.strictEqual(paths.length, 1);
 
       const generatedContent = readFileSync(paths[0]).toString();
 

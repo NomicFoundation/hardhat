@@ -30,7 +30,7 @@ async function assertLatestBaseFeePerGas(
   const baseFeePerGas = await getLatestBaseFeePerGas(provider);
 
   assert.isDefined(baseFeePerGas);
-  assert.equal(baseFeePerGas, expectedBaseFeePerGas);
+  assert.strictEqual(baseFeePerGas, expectedBaseFeePerGas);
 }
 
 async function sendValueTransferTx(provider: EthereumProvider, sender: string) {

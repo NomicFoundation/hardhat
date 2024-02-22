@@ -488,7 +488,7 @@ describe("Eth module", function () {
                   ],
                   "sender doesn't have enough funds to send tx"
                 );
-                assert.equal(
+                assert.strictEqual(
                   rpcQuantityToNumber(
                     await this.provider.send("eth_blockNumber")
                   ),
@@ -537,7 +537,7 @@ describe("Eth module", function () {
                 );
                 const blockNumberAfter = rpcQuantityToNumber(blockAfter.number);
 
-                assert.equal(blockNumberAfter, blockNumberBefore + 3);
+                assert.strictEqual(blockNumberAfter, blockNumberBefore + 3);
                 assert.lengthOf(blockAfter.transactions, 1);
                 assert.sameDeepMembers(blockAfter.transactions, [txHash]);
               });
@@ -589,7 +589,7 @@ describe("Eth module", function () {
                   ],
                   "sender doesn't have enough funds to send tx"
                 );
-                assert.equal(
+                assert.strictEqual(
                   rpcQuantityToNumber(
                     await this.provider.send("eth_blockNumber")
                   ),
@@ -738,7 +738,7 @@ describe("Eth module", function () {
             );
 
             assert.lengthOf(pendingTxs, 1);
-            assert.equal(pendingTxs[0].hash, tx2.hash);
+            assert.strictEqual(pendingTxs[0].hash, tx2.hash);
 
             await this.provider.send("evm_mine");
             const minedBlock = await this.provider.send(
@@ -746,7 +746,7 @@ describe("Eth module", function () {
               ["latest", false]
             );
             assert.lengthOf(minedBlock.transactions, 1);
-            assert.equal(minedBlock.transactions[0], tx2.hash);
+            assert.strictEqual(minedBlock.transactions[0], tx2.hash);
           });
 
           it("Should replace queued transactions", async function () {
@@ -857,7 +857,7 @@ describe("Eth module", function () {
             );
 
             assert.lengthOf(pendingTxs, 1);
-            assert.equal(pendingTxs[0].hash, tx1.hash);
+            assert.strictEqual(pendingTxs[0].hash, tx1.hash);
 
             await this.provider.send("evm_mine");
             const minedBlock = await this.provider.send(
@@ -865,7 +865,7 @@ describe("Eth module", function () {
               ["latest", false]
             );
             assert.lengthOf(minedBlock.transactions, 1);
-            assert.equal(minedBlock.transactions[0], tx1.hash);
+            assert.strictEqual(minedBlock.transactions[0], tx1.hash);
           });
         });
 
@@ -900,11 +900,11 @@ describe("Eth module", function () {
                 [txHash]
               );
 
-              assert.equal(
+              assert.strictEqual(
                 tx.maxPriorityFeePerGas,
                 numberToRpcQuantity(ONE_GWEI)
               );
-              assert.equal(
+              assert.strictEqual(
                 tx.maxFeePerGas,
                 numberToRpcQuantity(2n * nextBlockBaseFee + ONE_GWEI)
               );
@@ -926,11 +926,11 @@ describe("Eth module", function () {
                 [txHash]
               );
 
-              assert.equal(
+              assert.strictEqual(
                 tx.maxPriorityFeePerGas,
                 numberToRpcQuantity(ONE_GWEI)
               );
-              assert.equal(tx.maxFeePerGas, numberToRpcQuantity(2n * ONE_GWEI));
+              assert.strictEqual(tx.maxFeePerGas, numberToRpcQuantity(2n * ONE_GWEI));
             });
 
             it("Should use 1gwei maxPriorityFeePerGas if maxFeePerGas is < 1gwei", async function () {
@@ -947,8 +947,8 @@ describe("Eth module", function () {
                 [txHash]
               );
 
-              assert.equal(tx.maxPriorityFeePerGas, numberToRpcQuantity(10000));
-              assert.equal(tx.maxFeePerGas, numberToRpcQuantity(10000));
+              assert.strictEqual(tx.maxPriorityFeePerGas, numberToRpcQuantity(10000));
+              assert.strictEqual(tx.maxFeePerGas, numberToRpcQuantity(10000));
             });
           });
 
@@ -967,8 +967,8 @@ describe("Eth module", function () {
                 [txHash]
               );
 
-              assert.equal(tx.maxPriorityFeePerGas, numberToRpcQuantity(1000));
-              assert.equal(
+              assert.strictEqual(tx.maxPriorityFeePerGas, numberToRpcQuantity(1000));
+              assert.strictEqual(
                 tx.maxFeePerGas,
                 numberToRpcQuantity(2n * nextBlockBaseFee + 1000n)
               );
@@ -1070,7 +1070,7 @@ describe("Eth module", function () {
             },
           ]);
 
-          assert.equal(BigInt(balanceAfter), 0n);
+          assert.strictEqual(BigInt(balanceAfter), 0n);
         });
 
         it("should use the proper chain ID", async function () {
@@ -1111,7 +1111,7 @@ describe("Eth module", function () {
           const chainId = await this.provider.send("eth_chainId");
 
           // assert:
-          assert.equal(await getChainIdFromContract(this.provider), chainId);
+          assert.strictEqual(await getChainIdFromContract(this.provider), chainId);
         });
 
         it("Should use the correct value of block.number", async function () {
@@ -1141,7 +1141,7 @@ describe("Eth module", function () {
             ])
           );
 
-          assert.equal(contractBlockNumber, blockNumberBeforeTx + 1);
+          assert.strictEqual(contractBlockNumber, blockNumberBeforeTx + 1);
         });
 
         it("should reject blob transactions", async function () {
@@ -1295,9 +1295,9 @@ describe("Eth module", function () {
             [txHash]
           );
 
-          assert.equal(receipt.from, DEFAULT_ACCOUNTS_ADDRESSES[0]);
-          assert.equal(receipt.to, contractAddress);
-          assert.equal(receipt.status, "0x0");
+          assert.strictEqual(receipt.from, DEFAULT_ACCOUNTS_ADDRESSES[0]);
+          assert.strictEqual(receipt.to, contractAddress);
+          assert.strictEqual(receipt.status, "0x0");
         });
 
         it("Should return the data of a transaction that reverts without a reason string", async function () {
@@ -1313,8 +1313,8 @@ describe("Eth module", function () {
           });
 
           assert.isDefined(response.error?.data);
-          assert.equal(response.error.message, response.error.data.message);
-          assert.equal(response.error.data.data, "0x");
+          assert.strictEqual(response.error.message, response.error.data.message);
+          assert.strictEqual(response.error.data.data, "0x");
         });
 
         it("Should return the data of a transaction that reverts with a reason string", async function () {
@@ -1330,8 +1330,8 @@ describe("Eth module", function () {
           });
 
           assert.isDefined(response.error?.data);
-          assert.equal(response.error.message, response.error.data.message);
-          assert.equal(
+          assert.strictEqual(response.error.message, response.error.data.message);
+          assert.strictEqual(
             response.error.data.data,
             // Error(string) encoded with value "a reason"
             "0x08c379a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000086120726561736f6e000000000000000000000000000000000000000000000000"
@@ -1351,8 +1351,8 @@ describe("Eth module", function () {
           });
 
           assert.isDefined(response.error?.data);
-          assert.equal(response.error.message, response.error.data.message);
-          assert.equal(
+          assert.strictEqual(response.error.message, response.error.data.message);
+          assert.strictEqual(
             response.error.data.data,
             // Panic(uint256) encoded with value 0x32 (out-of-bounds array access)
             "0x4e487b710000000000000000000000000000000000000000000000000000000000000032"
@@ -1372,8 +1372,8 @@ describe("Eth module", function () {
           });
 
           assert.isDefined(response.error?.data);
-          assert.equal(response.error.message, response.error.data.message);
-          assert.equal(
+          assert.strictEqual(response.error.message, response.error.data.message);
+          assert.strictEqual(
             response.error.data.data,
             // MyCustomError() encoded
             "0x4e7254d6"

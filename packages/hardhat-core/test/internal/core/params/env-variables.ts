@@ -13,15 +13,15 @@ import { expectHardhatError } from "../../../helpers/errors";
 // is 100% user facing.
 describe("paramNameToEnvVariable", () => {
   it("should convert camelCase to UPPER_CASE and prepend HARDHAT_", () => {
-    assert.equal(paramNameToEnvVariable("a"), "HARDHAT_A");
-    assert.equal(paramNameToEnvVariable("B"), "HARDHAT_B");
-    assert.equal(paramNameToEnvVariable("AC"), "HARDHAT_A_C");
-    assert.equal(paramNameToEnvVariable("aC"), "HARDHAT_A_C");
-    assert.equal(
+    assert.strictEqual(paramNameToEnvVariable("a"), "HARDHAT_A");
+    assert.strictEqual(paramNameToEnvVariable("B"), "HARDHAT_B");
+    assert.strictEqual(paramNameToEnvVariable("AC"), "HARDHAT_A_C");
+    assert.strictEqual(paramNameToEnvVariable("aC"), "HARDHAT_A_C");
+    assert.strictEqual(
       paramNameToEnvVariable("camelCaseRight"),
       "HARDHAT_CAMEL_CASE_RIGHT"
     );
-    assert.equal(
+    assert.strictEqual(
       paramNameToEnvVariable("somethingAB"),
       "HARDHAT_SOMETHING_A_B"
     );
@@ -33,14 +33,14 @@ describe("Env vars arguments parsing", () => {
     const args = getEnvHardhatArguments(HARDHAT_PARAM_DEFINITIONS, {
       IRRELEVANT_ENV_VAR: "123",
     });
-    assert.equal(args.help, HARDHAT_PARAM_DEFINITIONS.help.defaultValue);
-    assert.equal(args.network, HARDHAT_PARAM_DEFINITIONS.network.defaultValue);
-    assert.equal(args.emoji, HARDHAT_PARAM_DEFINITIONS.emoji.defaultValue);
-    assert.equal(
+    assert.strictEqual(args.help, HARDHAT_PARAM_DEFINITIONS.help.defaultValue);
+    assert.strictEqual(args.network, HARDHAT_PARAM_DEFINITIONS.network.defaultValue);
+    assert.strictEqual(args.emoji, HARDHAT_PARAM_DEFINITIONS.emoji.defaultValue);
+    assert.strictEqual(
       args.showStackTraces,
       HARDHAT_PARAM_DEFINITIONS.showStackTraces.defaultValue
     );
-    assert.equal(args.version, HARDHAT_PARAM_DEFINITIONS.version.defaultValue);
+    assert.strictEqual(args.version, HARDHAT_PARAM_DEFINITIONS.version.defaultValue);
   });
 
   it("Should accept values", () => {
@@ -53,13 +53,13 @@ describe("Env vars arguments parsing", () => {
       HARDHAT_HELP: "true",
     });
 
-    assert.equal(args.network, "asd");
+    assert.strictEqual(args.network, "asd");
 
     // These are not really useful, but we test them anyway
-    assert.equal(args.showStackTraces, true);
-    assert.equal(args.emoji, true);
-    assert.equal(args.version, true);
-    assert.equal(args.help, true);
+    assert.strictEqual(args.showStackTraces, true);
+    assert.strictEqual(args.emoji, true);
+    assert.strictEqual(args.version, true);
+    assert.strictEqual(args.help, true);
   });
 
   it("should throw if an invalid value is passed", () => {

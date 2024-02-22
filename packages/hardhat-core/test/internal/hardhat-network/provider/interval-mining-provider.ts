@@ -39,8 +39,8 @@ describe("Interval mining provider", function () {
           await sleep(blockWaitTime);
           const thirdBlock = await getBlockNumber();
 
-          assert.equal(secondBlock, firstBlock + 1);
-          assert.equal(thirdBlock, firstBlock + 2);
+          assert.strictEqual(secondBlock, firstBlock + 1);
+          assert.strictEqual(thirdBlock, firstBlock + 2);
         });
       });
 
@@ -73,9 +73,9 @@ describe("Interval mining provider", function () {
             await sleep(blockWaitTime);
             const thirdBlock = await getBlockNumber();
 
-            assert.equal(secondBlockBeforeReset, firstBlock + 1);
-            assert.equal(secondBlockAfterReset, safeBlockInThePast + 1);
-            assert.equal(thirdBlock, safeBlockInThePast + 2);
+            assert.strictEqual(secondBlockBeforeReset, firstBlock + 1);
+            assert.strictEqual(secondBlockAfterReset, safeBlockInThePast + 1);
+            assert.strictEqual(thirdBlock, safeBlockInThePast + 2);
           });
         }
 
@@ -94,9 +94,9 @@ describe("Interval mining provider", function () {
             await sleep(blockWaitTime);
             const thirdBlock = await getBlockNumber();
 
-            assert.equal(secondBlockBeforeReset, firstBlock + 1);
-            assert.equal(secondBlockAfterReset, firstBlock + 1);
-            assert.equal(thirdBlock, firstBlock + 2);
+            assert.strictEqual(secondBlockBeforeReset, firstBlock + 1);
+            assert.strictEqual(secondBlockAfterReset, firstBlock + 1);
+            assert.strictEqual(thirdBlock, firstBlock + 2);
           });
         }
       });

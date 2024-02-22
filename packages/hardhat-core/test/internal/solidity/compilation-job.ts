@@ -87,7 +87,7 @@ describe("Compilation jobs", function () {
 
         const compilationJob = assertIsJob(compilationJobOrError);
 
-        assert.equal(compilationJob.getSolcConfig().version, "0.5.5");
+        assert.strictEqual(compilationJob.getSolcConfig().version, "0.5.5");
         assert.sameMembers(compilationJob.getResolvedFiles(), [Foo]);
         assert.isTrue(compilationJob.emitsArtifacts(Foo));
       });
@@ -106,7 +106,7 @@ describe("Compilation jobs", function () {
 
         const compilationJob = assertIsJob(compilationJobOrError);
 
-        assert.equal(compilationJob.getSolcConfig().version, "0.6.6");
+        assert.strictEqual(compilationJob.getSolcConfig().version, "0.6.6");
         assert.sameMembers(compilationJob.getResolvedFiles(), [Foo]);
         assert.isTrue(compilationJob.emitsArtifacts(Foo));
       });
@@ -130,7 +130,7 @@ describe("Compilation jobs", function () {
 
         const compilationJob = assertIsJob(compilationJobOrError);
 
-        assert.equal(compilationJob.getSolcConfig().version, "0.5.5");
+        assert.strictEqual(compilationJob.getSolcConfig().version, "0.5.5");
         assert.sameMembers(compilationJob.getResolvedFiles(), [Foo]);
         assert.isTrue(compilationJob.emitsArtifacts(Foo));
       });
@@ -151,7 +151,7 @@ describe("Compilation jobs", function () {
           compilationJobOrError
         );
 
-        assert.equal(
+        assert.strictEqual(
           compilationJobCreationError.reason,
           CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_FOUND
         );
@@ -178,7 +178,7 @@ describe("Compilation jobs", function () {
           compilationJobOrError
         );
 
-        assert.equal(
+        assert.strictEqual(
           compilationJobCreationError.reason,
           CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION
         );
@@ -202,7 +202,7 @@ describe("Compilation jobs", function () {
 
         const compilationJob = assertIsJob(compilationJobOrError);
 
-        assert.equal(compilationJob.getSolcConfig().version, "0.5.5");
+        assert.strictEqual(compilationJob.getSolcConfig().version, "0.5.5");
         assert.sameMembers(compilationJob.getResolvedFiles(), [Foo]);
         assert.isTrue(compilationJob.emitsArtifacts(Foo));
       });
@@ -223,7 +223,7 @@ describe("Compilation jobs", function () {
 
         const compilationJob = assertIsJob(compilationJobOrError);
 
-        assert.equal(compilationJob.getSolcConfig().version, "0.5.5");
+        assert.strictEqual(compilationJob.getSolcConfig().version, "0.5.5");
         assert.sameMembers(compilationJob.getResolvedFiles(), [Foo, Bar]);
         assert.isTrue(compilationJob.emitsArtifacts(Foo));
         assert.isFalse(compilationJob.emitsArtifacts(Bar));
@@ -245,7 +245,7 @@ describe("Compilation jobs", function () {
 
         const compilationJob = assertIsJob(compilationJobOrError);
 
-        assert.equal(compilationJob.getSolcConfig().version, "0.5.5");
+        assert.strictEqual(compilationJob.getSolcConfig().version, "0.5.5");
         assert.sameMembers(compilationJob.getResolvedFiles(), [Foo]);
         assert.isTrue(compilationJob.emitsArtifacts(Foo));
       });
@@ -268,7 +268,7 @@ describe("Compilation jobs", function () {
           compilationJobOrError
         );
 
-        assert.equal(
+        assert.strictEqual(
           compilationJobCreationError.reason,
           CompilationJobCreationErrorReason.DIRECTLY_IMPORTS_INCOMPATIBLE_FILE
         );
@@ -294,7 +294,7 @@ describe("Compilation jobs", function () {
 
         const compilationJob = assertIsJob(compilationJobOrError);
 
-        assert.equal(compilationJob.getSolcConfig().version, "0.5.5");
+        assert.strictEqual(compilationJob.getSolcConfig().version, "0.5.5");
         assert.sameMembers(compilationJob.getResolvedFiles(), [Foo, Bar]);
         assert.isTrue(compilationJob.emitsArtifacts(Foo));
         assert.isFalse(compilationJob.emitsArtifacts(Bar));
@@ -320,7 +320,7 @@ describe("Compilation jobs", function () {
 
         const compilationJob = assertIsJob(compilationJobOrError);
 
-        assert.equal(compilationJob.getSolcConfig().version, "0.5.5");
+        assert.strictEqual(compilationJob.getSolcConfig().version, "0.5.5");
         assert.sameMembers(compilationJob.getResolvedFiles(), [Foo, Bar, Qux]);
         assert.isTrue(compilationJob.emitsArtifacts(Foo));
         assert.isFalse(compilationJob.emitsArtifacts(Bar));
@@ -345,7 +345,7 @@ describe("Compilation jobs", function () {
 
         const compilationJob = assertIsJob(compilationJobOrError);
 
-        assert.equal(compilationJob.getSolcConfig().version, "0.5.5");
+        assert.strictEqual(compilationJob.getSolcConfig().version, "0.5.5");
         assert.sameMembers(compilationJob.getResolvedFiles(), [Bar, Qux]);
         assert.isTrue(compilationJob.emitsArtifacts(Bar));
         assert.isFalse(compilationJob.emitsArtifacts(Qux));
@@ -369,7 +369,7 @@ describe("Compilation jobs", function () {
 
         const compilationJob = assertIsJob(compilationJobOrError);
 
-        assert.equal(compilationJob.getSolcConfig().version, "0.5.5");
+        assert.strictEqual(compilationJob.getSolcConfig().version, "0.5.5");
         assert.sameMembers(compilationJob.getResolvedFiles(), [Foo, Bar, Qux]);
         assert.isTrue(compilationJob.emitsArtifacts(Foo));
         assert.isFalse(compilationJob.emitsArtifacts(Bar));
@@ -394,7 +394,7 @@ describe("Compilation jobs", function () {
 
         const compilationJob = assertIsJob(compilationJobOrError);
 
-        assert.equal(compilationJob.getSolcConfig().version, "0.5.5");
+        assert.strictEqual(compilationJob.getSolcConfig().version, "0.5.5");
         assert.sameMembers(compilationJob.getResolvedFiles(), [Foo, Bar, Qux]);
         assert.isTrue(compilationJob.emitsArtifacts(Foo));
         assert.isFalse(compilationJob.emitsArtifacts(Bar));

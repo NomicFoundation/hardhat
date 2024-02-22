@@ -127,7 +127,7 @@ describe("Hardhat module", function () {
             [tx]
           );
 
-          assert.equal(receipt.from, impersonatedAddress.toLowerCase());
+          assert.strictEqual(receipt.from, impersonatedAddress.toLowerCase());
         });
 
         it("lets you deploy a contract from an impersonated account", async function () {
@@ -325,7 +325,7 @@ describe("Hardhat module", function () {
           await this.provider.send("hardhat_mine");
 
           const blockNumber = await getLatestBlockNumber();
-          assert.equal(blockNumber - previousBlockNumber, 1);
+          assert.strictEqual(blockNumber - previousBlockNumber, 1);
         });
 
         for (const minedBlocks of [0, 1, 2, 3, 4, 5, 10, 100, 1_000_000_000]) {
@@ -337,7 +337,7 @@ describe("Hardhat module", function () {
             ]);
 
             const blockNumber = await getLatestBlockNumber();
-            assert.equal(blockNumber - previousBlockNumber, minedBlocks);
+            assert.strictEqual(blockNumber - previousBlockNumber, minedBlocks);
           });
         }
 
@@ -350,7 +350,7 @@ describe("Hardhat module", function () {
           await this.provider.send("evm_mine");
 
           const blockNumber = await getLatestBlockNumber();
-          assert.equal(blockNumber - previousBlockNumber, 1_000_000_001);
+          assert.strictEqual(blockNumber - previousBlockNumber, 1_000_000_001);
         });
 
         it("should be able to get by hash the parent block of the last block", async function () {
@@ -379,7 +379,7 @@ describe("Hardhat module", function () {
             ]);
             assert.isNotNull(block, `expected block ${blockNumber} to exist`);
             assert.isDefined(block.number);
-            assert.equal(blockNumber, block.number);
+            assert.strictEqual(blockNumber, parseInt(block.number, 16));
 
             const parentHash = block.parentHash;
 
@@ -398,7 +398,7 @@ describe("Hardhat module", function () {
                 `expected block with hash ${parentHash} to exist`
               );
               assert.isDefined(parentBlock.number);
-              assert.equal(
+              assert.strictEqual(
                 rpcQuantityToNumber(parentBlock.number),
                 rpcQuantityToNumber(block.number) - 1
               );
@@ -476,7 +476,10 @@ describe("Hardhat module", function () {
           it("when not given any arguments", async function () {
             const latestBlockNumber = await getLatestBlockNumber();
             await this.provider.send("hardhat_mine");
-            assert.equal(await getLatestBlockNumber(), latestBlockNumber + 1);
+            assert.strictEqual(
+              await getLatestBlockNumber(),
+              latestBlockNumber + 1
+            );
           });
 
           it("when mining 1_000_000 blocks", async function () {
@@ -484,7 +487,7 @@ describe("Hardhat module", function () {
             await this.provider.send("hardhat_mine", [
               numberToRpcQuantity(1_000_000),
             ]);
-            assert.equal(
+            assert.strictEqual(
               await getLatestBlockNumber(),
               latestBlockNumber + 1_000_000
             );
@@ -512,7 +515,7 @@ describe("Hardhat module", function () {
 
             const timestampDifference = timestampBlock - timestampPreviousBlock;
 
-            assert.equal(
+            assert.strictEqual(
               timestampDifference,
               expectedDifference,
               `Expected block ${block} to have a timestamp increase of ${expectedDifference}, but got ${timestampDifference} instead`
@@ -677,7 +680,10 @@ describe("Hardhat module", function () {
               const timestampAfter = await getBlockTimestamp(
                 originalLatestBlockNumber + 1
               );
-              assert.equal(timestampAfter, originalLatestBlockTimestamp + 3600);
+              assert.strictEqual(
+                timestampAfter,
+                originalLatestBlockTimestamp + 3600
+              );
             });
 
             it("should work when 10 blocks are mined", async function () {
@@ -699,7 +705,7 @@ describe("Hardhat module", function () {
               const timestampFirstMinedBlock = await getBlockTimestamp(
                 originalLatestBlockNumber + 1
               );
-              assert.equal(
+              assert.strictEqual(
                 timestampFirstMinedBlock,
                 originalLatestBlockTimestamp + 3600
               );
@@ -709,7 +715,7 @@ describe("Hardhat module", function () {
                 const blockNumber = originalLatestBlockNumber + i;
                 const expectedTimestamp =
                   originalLatestBlockTimestamp + 3600 + (i - 1) * interval;
-                assert.equal(
+                assert.strictEqual(
                   await getBlockTimestamp(blockNumber),
                   expectedTimestamp
                 );
@@ -740,7 +746,7 @@ describe("Hardhat module", function () {
               const timestampFirstMinedBlock = await getBlockTimestamp(
                 originalLatestBlockNumber + 1
               );
-              assert.equal(
+              assert.strictEqual(
                 timestampFirstMinedBlock,
                 originalLatestBlockTimestamp + 3600
               );
@@ -750,7 +756,7 @@ describe("Hardhat module", function () {
                 const blockNumber = originalLatestBlockNumber + i;
                 const expectedTimestamp =
                   originalLatestBlockTimestamp + 3600 + (i - 1) * interval;
-                assert.equal(
+                assert.strictEqual(
                   await getBlockTimestamp(blockNumber),
                   expectedTimestamp
                 );
@@ -761,7 +767,7 @@ describe("Hardhat module", function () {
                 const blockNumber = originalLatestBlockNumber + i;
                 const expectedTimestamp =
                   originalLatestBlockTimestamp + 3600 + (i - 1) * interval;
-                assert.equal(
+                assert.strictEqual(
                   await getBlockTimestamp(blockNumber),
                   expectedTimestamp
                 );
@@ -798,12 +804,15 @@ describe("Hardhat module", function () {
 
               // Assert: check that the chosen timestamp was used
               const latestBlockNumber = await getLatestBlockNumber();
-              assert.equal(
+              assert.strictEqual(
                 latestBlockNumber,
                 originalLatestBlockNumber + blocksToMine
               );
               const timestampAfter = await getBlockTimestamp(latestBlockNumber);
-              assert.equal(timestampAfter, originalLatestBlockTimestamp + 3600);
+              assert.strictEqual(
+                timestampAfter,
+                originalLatestBlockTimestamp + 3600
+              );
 
               // Assert: check that there weren't too many blocks mined
               await assertBlockDoesntExist(
@@ -839,14 +848,14 @@ describe("Hardhat module", function () {
               // Assert: check that the chosen timestamp was used for the first
               // mined block
               const latestBlockNumber = await getLatestBlockNumber();
-              assert.equal(
+              assert.strictEqual(
                 latestBlockNumber,
                 originalLatestBlockNumber + blocksToMine
               );
               const timestampFirstBlock = await getBlockTimestamp(
                 originalLatestBlockNumber + 1
               );
-              assert.equal(
+              assert.strictEqual(
                 timestampFirstBlock,
                 originalLatestBlockTimestamp + 3600
               );
@@ -857,7 +866,7 @@ describe("Hardhat module", function () {
                 const blockNumber = originalLatestBlockNumber + i;
                 const expectedTimestamp =
                   originalLatestBlockTimestamp + 3600 + (i - 1) * interval;
-                assert.equal(
+                assert.strictEqual(
                   await getBlockTimestamp(blockNumber),
                   expectedTimestamp
                 );
@@ -897,14 +906,14 @@ describe("Hardhat module", function () {
               // Assert: check that the chosen timestamp was used for the first
               // mined block
               const latestBlockNumber = await getLatestBlockNumber();
-              assert.equal(
+              assert.strictEqual(
                 latestBlockNumber,
                 originalLatestBlockNumber + blocksToMine
               );
               const timestampFirstBlock = await getBlockTimestamp(
                 originalLatestBlockNumber + 1
               );
-              assert.equal(
+              assert.strictEqual(
                 timestampFirstBlock,
                 originalLatestBlockTimestamp + 3600
               );
@@ -914,7 +923,7 @@ describe("Hardhat module", function () {
                 const blockNumber = originalLatestBlockNumber + i;
                 const expectedTimestamp =
                   originalLatestBlockTimestamp + 3600 + (i - 1) * interval;
-                assert.equal(
+                assert.strictEqual(
                   await getBlockTimestamp(blockNumber),
                   expectedTimestamp
                 );
@@ -925,7 +934,7 @@ describe("Hardhat module", function () {
                 const blockNumber = originalLatestBlockNumber + i;
                 const expectedTimestamp =
                   originalLatestBlockTimestamp + 3600 + (i - 1) * interval;
-                assert.equal(
+                assert.strictEqual(
                   await getBlockTimestamp(blockNumber),
                   expectedTimestamp
                 );
@@ -973,7 +982,7 @@ describe("Hardhat module", function () {
               const blockBaseFeePerGas = await getBlockBaseFeePerGas(
                 originalLatestBlockNumber + i
               );
-              assert.equal(blockBaseFeePerGas, 1n);
+              assert.strictEqual(blockBaseFeePerGas, 1n);
             }
           });
         });
@@ -1024,7 +1033,7 @@ describe("Hardhat module", function () {
               block.transactions,
               `block ${expectation.block} should have transactions`
             );
-            assert.equal(
+            assert.strictEqual(
               expectation.transactionCount,
               block.transactions.length,
               `expected block ${expectation.block}'s transaction count to be ${expectation.transactionCount}, but it was ${block.transactions.length}`
@@ -1060,7 +1069,7 @@ describe("Hardhat module", function () {
 
           // Assert:
           const latestBlockNumber = await getLatestBlockNumber();
-          assert.equal(latestBlockNumber, previousLatestBlockNumber + 3);
+          assert.strictEqual(latestBlockNumber, previousLatestBlockNumber + 3);
 
           for (const expectation of [
             { block: previousLatestBlockNumber + 1, transactionCount: 3 },
@@ -1079,7 +1088,7 @@ describe("Hardhat module", function () {
               block.transactions,
               `block ${expectation.block} should have transactions`
             );
-            assert.equal(
+            assert.strictEqual(
               expectation.transactionCount,
               block.transactions.length,
               `expected block ${expectation.block}'s transaction count to be ${expectation.transactionCount}, but it was ${block.transactions.length}`
@@ -1103,7 +1112,7 @@ describe("Hardhat module", function () {
                 },
               ]);
             }
-            assert.equal(
+            assert.strictEqual(
               originalLatestBlockNumber + blockCount,
               await getLatestBlockNumber(),
               `we should have mined ${blockCount} blocks`
@@ -1119,20 +1128,20 @@ describe("Hardhat module", function () {
           it("when doing hardhat_mine before hardhat_reset", async function () {
             await runHardhatMine(1_000_000_000);
             await this.provider.send("hardhat_reset");
-            assert.equal(await getLatestBlockNumber(), 0);
+            assert.strictEqual(await getLatestBlockNumber(), 0);
             await assertBlockDoesntExist(1);
             await assertBlockDoesntExist(2);
             await assertBlockDoesntExist(1_000_000_000);
             await mineSomeTxBlocks(3);
-            assert.equal(await getLatestBlockNumber(), 3);
+            assert.strictEqual(await getLatestBlockNumber(), 3);
           });
 
           it("when doing hardhat_reset before hardhat_mine", async function () {
             await mineSomeTxBlocks(3);
             await this.provider.send("hardhat_reset");
-            assert.equal(await getLatestBlockNumber(), 0);
+            assert.strictEqual(await getLatestBlockNumber(), 0);
             await runHardhatMine(1_000_000_000);
-            assert.equal(await getLatestBlockNumber(), 1_000_000_000);
+            assert.strictEqual(await getLatestBlockNumber(), 1_000_000_000);
           });
         });
 
@@ -1156,7 +1165,7 @@ describe("Hardhat module", function () {
 
             await this.provider.send("evm_revert", [snapshotId]);
 
-            assert.equal(
+            assert.strictEqual(
               await getLatestBlockNumber(),
               latestBlockNumberBeforeSnapshot
             );
@@ -1178,14 +1187,14 @@ describe("Hardhat module", function () {
             await this.provider.send("hardhat_mine", [
               numberToRpcQuantity(1_000_000_000),
             ]);
-            assert.equal(
+            assert.strictEqual(
               await getLatestBlockNumber(),
               latestBlockNumberBeforeSnapshot + 1_000_000_000
             );
 
             await this.provider.send("evm_revert", [snapshotId]);
 
-            assert.equal(
+            assert.strictEqual(
               await getLatestBlockNumber(),
               latestBlockNumberBeforeSnapshot
             );
@@ -1207,7 +1216,7 @@ describe("Hardhat module", function () {
             await this.provider.send("hardhat_mine", [
               numberToRpcQuantity(1_000_000_000),
             ]);
-            assert.equal(
+            assert.strictEqual(
               await getLatestBlockNumber(),
               latestBlockNumberBeforeSnapshot + 1_000_000_000
             );
@@ -1221,7 +1230,7 @@ describe("Hardhat module", function () {
 
             await this.provider.send("evm_revert", [snapshotId]);
 
-            assert.equal(
+            assert.strictEqual(
               await getLatestBlockNumber(),
               latestBlockNumberBeforeSnapshot
             );
@@ -1279,7 +1288,7 @@ describe("Hardhat module", function () {
               previousBlockNumber + 10
             );
 
-            assert.equal(middleBlockDifficulty.difficulty, 0n);
+            assert.strictEqual(middleBlockDifficulty.difficulty, 0n);
           });
 
           it("reserved blocks should have consistent difficulty values", async function () {
@@ -1296,7 +1305,7 @@ describe("Hardhat module", function () {
                 previousBlockNumber + i
               );
 
-              assert.equal(
+              assert.strictEqual(
                 blockDifficulty.totalDifficulty,
                 previousBlockDifficulty.totalDifficulty +
                   blockDifficulty.difficulty
@@ -1410,7 +1419,7 @@ describe("Hardhat module", function () {
             await sinonClock.tickAsync(interval);
 
             const secondBlockBefore = await getLatestBlockNumber();
-            assert.equal(secondBlockBefore, firstBlockBefore + 1);
+            assert.strictEqual(secondBlockBefore, firstBlockBefore + 1);
 
             const result = await this.provider.send("hardhat_reset");
             assert.isTrue(result);
@@ -1420,7 +1429,7 @@ describe("Hardhat module", function () {
             await sinonClock.tickAsync(interval);
 
             const secondBlockAfter = await getLatestBlockNumber();
-            assert.equal(secondBlockAfter, firstBlockAfter);
+            assert.strictEqual(secondBlockAfter, firstBlockAfter);
           });
         });
 
@@ -1446,7 +1455,10 @@ describe("Hardhat module", function () {
                 },
               },
             ]);
-            assert.equal(await getLatestBlockNumber(), safeBlockInThePast);
+            assert.strictEqual(
+              await getLatestBlockNumber(),
+              safeBlockInThePast
+            );
           });
 
           it("can reset the forked provider to the latest block number", async function () {
@@ -1471,19 +1483,19 @@ describe("Hardhat module", function () {
 
           it("can reset the forked provider to a normal provider", async function () {
             await this.provider.send("hardhat_reset", []);
-            assert.equal(await getLatestBlockNumber(), 0);
+            assert.strictEqual(await getLatestBlockNumber(), 0);
 
             await this.provider.send("hardhat_reset", [{}]);
-            assert.equal(await getLatestBlockNumber(), 0);
+            assert.strictEqual(await getLatestBlockNumber(), 0);
           });
         }
 
         function testNormalProviderBehaviour() {
           it("can reset the provider to initial state", async function () {
             await this.provider.send("evm_mine");
-            assert.equal(await getLatestBlockNumber(), 1);
+            assert.strictEqual(await getLatestBlockNumber(), 1);
             await this.provider.send("hardhat_reset", []);
-            assert.equal(await getLatestBlockNumber(), 0);
+            assert.strictEqual(await getLatestBlockNumber(), 0);
           });
 
           it("can reset the provider with a fork config", async function () {
@@ -1495,7 +1507,10 @@ describe("Hardhat module", function () {
                 },
               },
             ]);
-            assert.equal(await getLatestBlockNumber(), safeBlockInThePast);
+            assert.strictEqual(
+              await getLatestBlockNumber(),
+              safeBlockInThePast
+            );
           });
 
           it("can reset the provider with fork config back to normal config", async function () {
@@ -1508,7 +1523,7 @@ describe("Hardhat module", function () {
               },
             ]);
             await this.provider.send("hardhat_reset", []);
-            assert.equal(await getLatestBlockNumber(), 0);
+            assert.strictEqual(await getLatestBlockNumber(), 0);
           });
         }
       });
@@ -1597,7 +1612,7 @@ describe("Hardhat module", function () {
           const newStateRoot = (
             await this.provider.send("eth_getBlockByNumber", ["latest", false])
           ).stateRoot;
-          assert.equal(newStateRoot, oldStateRoot);
+          assert.strictEqual(newStateRoot, oldStateRoot);
         });
 
         it("should get changed balance by block even after a new block is mined", async function () {
@@ -1624,7 +1639,7 @@ describe("Hardhat module", function () {
           );
 
           // Assert: Check that the balance is the one we set
-          assert.equal(balancePreviousBlock, targetBalanceHex);
+          assert.strictEqual(balancePreviousBlock, targetBalanceHex);
         });
 
         it("should fund an account and permit that account to send a transaction", async function () {
@@ -1671,7 +1686,7 @@ describe("Hardhat module", function () {
             ])
           );
 
-          assert.equal(newBalance, existingBalance + amountToBeSent);
+          assert.strictEqual(newBalance, existingBalance + amountToBeSent);
         });
 
         it("should have its effects persist across snapshot save/restore", async function () {
@@ -1723,7 +1738,7 @@ describe("Hardhat module", function () {
             "latest",
           ]);
 
-          assert.equal(BigInt(resultingBalance), 123n);
+          assert.strictEqual(BigInt(resultingBalance), 123n);
         });
       });
 
@@ -1789,7 +1804,7 @@ describe("Hardhat module", function () {
             "latest",
           ]);
 
-          assert.equal(actualCode, targetCode);
+          assert.strictEqual(actualCode, targetCode);
         });
 
         it("should, when setting code on an empty account, result in code that can actually be executed", async function () {
@@ -1801,7 +1816,7 @@ describe("Hardhat module", function () {
             `0x${contractNine.evm.deployedBytecode.object}`,
           ]);
 
-          assert.equal(
+          assert.strictEqual(
             await this.provider.send("eth_call", [
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
@@ -1820,7 +1835,7 @@ describe("Hardhat module", function () {
             `0x${contractNine.evm.deployedBytecode.object}`,
           ]);
 
-          assert.equal(
+          assert.strictEqual(
             await this.provider.send("eth_call", [
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[1],
@@ -1860,7 +1875,7 @@ describe("Hardhat module", function () {
           ]);
 
           // Assert: Verify the call to get 9.
-          assert.equal(
+          assert.strictEqual(
             await this.provider.send("eth_call", [
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
@@ -1890,7 +1905,7 @@ describe("Hardhat module", function () {
           await this.provider.send("evm_mine");
 
           // Assert: Ensure code is still there.
-          assert.equal(
+          assert.strictEqual(
             await this.provider.send("eth_getCode", [
               DEFAULT_ACCOUNTS_ADDRESSES[0],
               currentBlockNumber,
@@ -1925,7 +1940,7 @@ describe("Hardhat module", function () {
           const newStateRoot = (
             await this.provider.send("eth_getBlockByNumber", ["latest", false])
           ).stateRoot;
-          assert.equal(newStateRoot, oldStateRoot);
+          assert.strictEqual(newStateRoot, oldStateRoot);
         });
 
         it("modifying an account's code shouldn't affect another account with the same code", async function () {
@@ -1962,7 +1977,7 @@ describe("Hardhat module", function () {
             contractAddress1,
           ]);
           assert.notEqual(contractCode1.toLowerCase(), "0xff");
-          assert.equal(
+          assert.strictEqual(
             contractCode1.toLowerCase(),
             contractCode1Before.toLowerCase()
           );
@@ -1970,7 +1985,7 @@ describe("Hardhat module", function () {
           const contractCode2 = await this.provider.send("eth_getCode", [
             contractAddress2,
           ]);
-          assert.equal(contractCode2.toLowerCase(), "0xff");
+          assert.strictEqual(contractCode2.toLowerCase(), "0xff");
         });
 
         it("should work with accounts that weren't interacted with before", async function () {
@@ -1986,7 +2001,7 @@ describe("Hardhat module", function () {
             "latest",
           ]);
 
-          assert.equal(actualCode, targetCode);
+          assert.strictEqual(actualCode, targetCode);
         });
       });
 
@@ -2063,7 +2078,7 @@ describe("Hardhat module", function () {
             "eth_getTransactionCount",
             [DEFAULT_ACCOUNTS_ADDRESSES[0], "latest"]
           );
-          assert.equal(resultingNonce, targetNonce);
+          assert.strictEqual(parseInt(resultingNonce, 16), targetNonce);
         });
 
         it("should not result in a modified state root", async function () {
@@ -2091,7 +2106,7 @@ describe("Hardhat module", function () {
           const newStateRoot = (
             await this.provider.send("eth_getBlockByNumber", ["latest", false])
           ).stateRoot;
-          assert.equal(newStateRoot, oldStateRoot);
+          assert.strictEqual(newStateRoot, oldStateRoot);
         });
 
         it("should not break a subsequent transaction", async function () {
@@ -2121,9 +2136,12 @@ describe("Hardhat module", function () {
           ]);
 
           // Assert: The executed transaction should reflects the nonce we set.
-          assert.equal(
-            (await this.provider.send("eth_getTransactionByHash", [txHash]))
-              .nonce,
+          assert.strictEqual(
+            parseInt(
+              (await this.provider.send("eth_getTransactionByHash", [txHash]))
+                .nonce,
+              16
+            ),
             targetNonce
           );
         });
@@ -2158,7 +2176,7 @@ describe("Hardhat module", function () {
             "eth_getTransactionCount",
             [DEFAULT_ACCOUNTS_ADDRESSES[0], currentBlockNumber]
           );
-          assert.equal(resultingNonce, targetNonce);
+          assert.strictEqual(parseInt(resultingNonce, 16), targetNonce);
         });
 
         it("should throw when there are pending transactions", async function () {
@@ -2190,7 +2208,7 @@ describe("Hardhat module", function () {
             [targetAddress, "latest"]
           );
 
-          assert.equal(BigInt(resultingNonce), 123n);
+          assert.strictEqual(BigInt(resultingNonce), 123n);
         });
       });
 
@@ -2271,7 +2289,10 @@ describe("Hardhat module", function () {
             [DEFAULT_ACCOUNTS_ADDRESSES[0], numberToRpcStorageSlot(0), "latest"]
           );
 
-          assert.equal(resultingStorageValue, targetStorageValue);
+          assert.strictEqual(
+            parseInt(resultingStorageValue, 16),
+            targetStorageValue
+          );
         });
 
         it("should permit a contract call to read an updated storage value", async function () {
@@ -2305,7 +2326,7 @@ describe("Hardhat module", function () {
 
           // Assert: Verify that the contract retrieves the modified value.
           const abiEncoder = new ethers.Interface(storageContract.abi);
-          assert.equal(
+          assert.strictEqual(
             await this.provider.send("eth_call", [
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
@@ -2345,7 +2366,7 @@ describe("Hardhat module", function () {
           const newStateRoot = (
             await this.provider.send("eth_getBlockByNumber", ["latest", false])
           ).stateRoot;
-          assert.equal(newStateRoot, oldStateRoot);
+          assert.strictEqual(newStateRoot, oldStateRoot);
         });
 
         it("should have the storage modification persist even after a new block is mined", async function () {
@@ -2366,12 +2387,15 @@ describe("Hardhat module", function () {
           await this.provider.send("evm_mine");
 
           // Assert: Get storage by block
-          assert.equal(
-            await this.provider.send("eth_getStorageAt", [
-              DEFAULT_ACCOUNTS_ADDRESSES[0],
-              numberToRpcStorageSlot(0),
-              currentBlockNumber,
-            ]),
+          assert.strictEqual(
+            parseInt(
+              await this.provider.send("eth_getStorageAt", [
+                DEFAULT_ACCOUNTS_ADDRESSES[0],
+                numberToRpcStorageSlot(0),
+                currentBlockNumber,
+              ]),
+              16
+            ),
             targetStorageValue
           );
         });
@@ -2390,7 +2414,10 @@ describe("Hardhat module", function () {
             [targetAddress, numberToRpcStorageSlot(0), "latest"]
           );
 
-          assert.equal(resultingStorageValue, targetStorageValue);
+          assert.strictEqual(
+            parseInt(resultingStorageValue, 16),
+            targetStorageValue
+          );
         });
       });
 
@@ -2651,7 +2678,7 @@ describe("Hardhat module", function () {
             ["latest", false]
           );
 
-          assert.equal(block1.baseFeePerGas, numberToRpcQuantity(10));
+          assert.strictEqual(block1.baseFeePerGas, numberToRpcQuantity(10));
 
           await this.provider.send("evm_mine", []);
 
@@ -2756,7 +2783,7 @@ describe("Hardhat module", function () {
             "latest",
             false,
           ]);
-          assert.equal(block1.miner, cb1);
+          assert.strictEqual(block1.miner, cb1);
 
           await this.provider.send("hardhat_setCoinbase", [cb2]);
 
@@ -2765,14 +2792,14 @@ describe("Hardhat module", function () {
             "latest",
             false,
           ]);
-          assert.equal(block2.miner, cb2);
+          assert.strictEqual(block2.miner, cb2);
 
           await this.provider.send("evm_mine", []);
           const block3 = await this.provider.send("eth_getBlockByNumber", [
             "latest",
             false,
           ]);
-          assert.equal(block3.miner, cb2);
+          assert.strictEqual(block3.miner, cb2);
         });
 
         it("should be preserved in snapshots", async function () {
@@ -2787,7 +2814,7 @@ describe("Hardhat module", function () {
             "latest",
             false,
           ]);
-          assert.equal(block1.miner, cb2);
+          assert.strictEqual(block1.miner, cb2);
 
           await this.provider.send("evm_revert", [snapshot]);
 
@@ -2796,15 +2823,15 @@ describe("Hardhat module", function () {
             "latest",
             false,
           ]);
-          assert.equal(block1Again.miner, cb1);
+          assert.strictEqual(block1Again.miner, cb1);
         });
 
         it("should affect eth_coinbase", async function () {
           await this.provider.send("hardhat_setCoinbase", [cb1]);
-          assert.equal(await this.provider.send("eth_coinbase"), cb1);
+          assert.strictEqual(await this.provider.send("eth_coinbase"), cb1);
 
           await this.provider.send("hardhat_setCoinbase", [cb2]);
-          assert.equal(await this.provider.send("eth_coinbase"), cb2);
+          assert.strictEqual(await this.provider.send("eth_coinbase"), cb2);
         });
       });
 
@@ -2818,7 +2845,7 @@ describe("Hardhat module", function () {
             false,
           ]);
 
-          assert.equal(latestBlock.mixHash, expectedPrevRandao);
+          assert.strictEqual(latestBlock.mixHash, expectedPrevRandao);
         }
 
         describe("in hardforks before the merge", function () {
@@ -2873,7 +2900,7 @@ describe("Hardhat module", function () {
 
             const difficulty = BigInt(difficultyHex);
 
-            assert.equal(difficulty, 0x17n);
+            assert.strictEqual(difficulty, 0x17n);
           });
 
           it("should accept zero as a value", async function () {
@@ -3006,7 +3033,10 @@ describe("Hardhat module", function () {
             "hardhat_metadata"
           );
 
-          assert.equal(metadataBefore.instanceId, metadataAfter.instanceId);
+          assert.strictEqual(
+            metadataBefore.instanceId,
+            metadataAfter.instanceId
+          );
         });
 
         it("changes its instanceId when hardhat_reset is used", async function () {
@@ -3037,7 +3067,10 @@ describe("Hardhat module", function () {
             "hardhat_metadata"
           );
 
-          assert.equal(metadataBefore.instanceId, metadataAfter.instanceId);
+          assert.strictEqual(
+            metadataBefore.instanceId,
+            metadataAfter.instanceId
+          );
         });
 
         it("updates the block number and block hash when a new block is mined (sending a tx)", async function () {
@@ -3052,7 +3085,7 @@ describe("Hardhat module", function () {
             "hardhat_metadata"
           );
 
-          assert.equal(
+          assert.strictEqual(
             metadataAfter.latestBlockNumber,
             metadataBefore.latestBlockNumber + 1
           );
@@ -3073,7 +3106,7 @@ describe("Hardhat module", function () {
             "hardhat_metadata"
           );
 
-          assert.equal(
+          assert.strictEqual(
             metadataAfter.latestBlockNumber,
             metadataBefore.latestBlockNumber + 0x100
           );
@@ -3099,11 +3132,11 @@ describe("Hardhat module", function () {
             "hardhat_metadata"
           );
 
-          assert.equal(
+          assert.strictEqual(
             metadataBefore.forkedNetwork!.forkBlockNumber,
             metadataAfter.forkedNetwork!.forkBlockNumber
           );
-          assert.equal(
+          assert.strictEqual(
             metadataBefore.forkedNetwork!.forkBlockHash,
             metadataAfter.forkedNetwork!.forkBlockHash
           );
@@ -3121,7 +3154,7 @@ describe("Hardhat module", function () {
         "hardhat_metadata"
       );
 
-      assert.equal(metadata.chainId, 1000);
+      assert.strictEqual(metadata.chainId, 1000);
     });
   });
 });

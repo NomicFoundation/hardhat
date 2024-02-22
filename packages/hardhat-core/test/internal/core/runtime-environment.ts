@@ -158,12 +158,12 @@ describe("Environment", () => {
 
     it("should run a task correctly", async () => {
       const ret = await env.run("example");
-      assert.equal(ret, 27);
+      assert.strictEqual(ret, 27);
     });
 
     it("should run a scoped task correctly", async () => {
       const ret = await env.run({ scope: "scoped", task: "task" });
-      assert.equal(ret, 28);
+      assert.strictEqual(ret, 28);
     });
 
     it("should throw if the scope doesn't exist", async () => {
@@ -255,13 +255,13 @@ describe("Environment", () => {
         const [taskWithSpecifiedArgsCall, taskWithDefaultArgsCall] =
           taskActionSpy.getCalls();
 
-        assert.equal(
+        assert.strictEqual(
           taskWithSpecifiedArgsCall.args[0][optParamName],
           paramValue,
           "should include specified param value in task action call"
         );
 
-        assert.equal(
+        assert.strictEqual(
           taskWithDefaultArgsCall.args[0][optParamName],
           defaultValue,
           "should include default param value in task action call"
@@ -333,7 +333,7 @@ describe("Environment", () => {
     });
 
     it("should clean global state after task execution", async () => {
-      assert.equal(await env.run("example"), 27);
+      assert.strictEqual(await env.run("example"), 27);
       const globalAsAny = global as any;
       assert.isUndefined(globalAsAny.hre);
       assert.isUndefined(globalAsAny.runSuper);
@@ -347,7 +347,7 @@ describe("Environment", () => {
       tasks = dsl.getTaskDefinitions();
       scopes = dsl.getScopesDefinitions();
       const localEnv = new Environment(config, args, tasks, scopes);
-      assert.equal(await localEnv.run("example"), 28);
+      assert.strictEqual(await localEnv.run("example"), 28);
     });
 
     it("Should preserve the injected env after running a sub-task", async () => {
@@ -357,18 +357,18 @@ describe("Environment", () => {
         async ({}, hre, runSuper: any) => {
           const { run, config: theConfig, network } = hre;
           const globalAsAny = global as any;
-          assert.equal(globalAsAny.hre, hre);
-          assert.equal(globalAsAny.config, theConfig);
+          assert.strictEqual(globalAsAny.hre, hre);
+          assert.strictEqual(globalAsAny.config, theConfig);
           assert.isDefined(globalAsAny.config);
-          assert.equal(globalAsAny.runSuper, runSuper);
+          assert.strictEqual(globalAsAny.runSuper, runSuper);
           assert.isDefined(globalAsAny.network);
 
           await run("example");
 
-          assert.equal(globalAsAny.hre, hre);
-          assert.equal(globalAsAny.config, theConfig);
-          assert.equal(globalAsAny.runSuper, runSuper);
-          assert.equal(globalAsAny.network, network);
+          assert.strictEqual(globalAsAny.hre, hre);
+          assert.strictEqual(globalAsAny.config, theConfig);
+          assert.strictEqual(globalAsAny.runSuper, runSuper);
+          assert.strictEqual(globalAsAny.network, network);
         }
       );
 
@@ -386,7 +386,7 @@ describe("Environment", () => {
           await modifiedHre.run("example");
           await hre.run("example");
 
-          assert.equal(modifiedHre.newField, 123);
+          assert.strictEqual(modifiedHre.newField, 123);
         }
       );
 
@@ -404,7 +404,7 @@ describe("Environment", () => {
           await modifiedHre.run("example");
           await hre.run("example");
 
-          assert.equal(modifiedHre.network, 123);
+          assert.strictEqual(modifiedHre.network, 123);
         }
       );
 
@@ -421,14 +421,14 @@ describe("Environment", () => {
 
           await modifiedHre.run("subtask");
 
-          assert.equal(modifiedHre.newField, 123);
+          assert.strictEqual(modifiedHre.newField, 123);
         }
       );
 
       dsl.task("subtask", "description", async ({}, hre, _runSuper: any) => {
         const theHre = hre as any;
 
-        assert.equal(theHre.newField, 123);
+        assert.strictEqual(theHre.newField, 123);
       });
 
       await env.run("with-subtask");
@@ -436,8 +436,8 @@ describe("Environment", () => {
 
     it("Should define the network field correctly", () => {
       assert.isDefined(env.network);
-      assert.equal(env.network.name, "localhost");
-      assert.equal(env.network.config, config.networks.localhost);
+      assert.strictEqual(env.network.name, "localhost");
+      assert.strictEqual(env.network.config, config.networks.localhost);
     });
 
     it("Should throw if the chosen network doesn't exist", () => {
@@ -463,8 +463,8 @@ describe("Environment", () => {
         ctx.environmentExtenders
       );
 
-      assert.equal(env.network.name, "default");
-      assert.equal(env.network.config, config.networks.default);
+      assert.strictEqual(env.network.name, "default");
+      assert.strictEqual(env.network.config, config.networks.default);
     });
 
     it("should override subtask args through parent", async () => {
@@ -478,7 +478,7 @@ describe("Environment", () => {
 
       // default run
       const result1 = await env.run("parentTask");
-      assert.equal(result1.optIntParam, 123);
+      assert.strictEqual(result1.optIntParam, 123);
 
       // subtask args should get overriden
       const result2 = await env.run("parentTask", undefined, {
@@ -486,7 +486,7 @@ describe("Environment", () => {
           optIntParam: 456,
         },
       });
-      assert.equal(result2.optIntParam, 456);
+      assert.strictEqual(result2.optIntParam, 456);
     });
 
     it("should prioritize the first subtask arg", async () => {
@@ -537,7 +537,7 @@ describe("Environment", () => {
         });
 
       const resultA = await env.run("a");
-      assert.equal(resultA, "a");
+      assert.strictEqual(resultA, "a");
     });
 
     it("Should resolve default params", async () => {
@@ -553,7 +553,7 @@ describe("Environment", () => {
         });
 
       const result = await env.run("a");
-      assert.equal(result, 123);
+      assert.strictEqual(result, 123);
     });
   });
 
@@ -570,8 +570,8 @@ describe("Environment", () => {
         scopes,
         ctx.environmentExtenders
       );
-      assert.equal((env as any).__test_key, "a value");
-      assert.equal((env as any).__test_bleep(2), 4);
+      assert.strictEqual((env as any).__test_key, "a value");
+      assert.strictEqual((env as any).__test_bleep(2), 4);
     });
   });
 });

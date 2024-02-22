@@ -31,7 +31,7 @@ describe("mine", function () {
 
     await hh.mine();
 
-    assert.equal(await getBlockNumber(), blockNumberBefore + 1);
+    assert.strictEqual(await getBlockNumber(), blockNumberBefore + 1);
   });
 
   it("should mine the given number of blocks", async function () {
@@ -39,7 +39,7 @@ describe("mine", function () {
 
     await hh.mine(100);
 
-    assert.equal(await getBlockNumber(), blockNumberBefore + 100);
+    assert.strictEqual(await getBlockNumber(), blockNumberBefore + 100);
   });
 
   it("should accept an interval", async function () {
@@ -50,8 +50,8 @@ describe("mine", function () {
       interval: 600,
     });
 
-    assert.equal(await getBlockNumber(), blockNumberBefore + 100);
-    assert.equal(
+    assert.strictEqual(await getBlockNumber(), blockNumberBefore + 100);
+    assert.strictEqual(
       await getBlockTimestamp(),
       blockTimestampBefore + 1 + 99 * 600
     );
@@ -71,7 +71,7 @@ describe("mine", function () {
       it(`should accept blocks of type ${type}`, async function () {
         const blockNumberBefore = await getBlockNumber();
         await hh.mine(value);
-        assert.equal(
+        assert.strictEqual(
           await getBlockNumber(),
           blockNumberBefore + expectedMinedBlocks
         );
@@ -99,7 +99,7 @@ describe("mine", function () {
         await hh.mine(100, {
           interval: value,
         });
-        assert.equal(
+        assert.strictEqual(
           await getBlockTimestamp(),
           blockTimestampBefore + 1 + 99 * expectedInterval
         );

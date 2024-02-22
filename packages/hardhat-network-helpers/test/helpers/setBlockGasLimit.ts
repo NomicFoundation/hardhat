@@ -22,7 +22,7 @@ describe("setBlockGasLimit", function () {
     await hh.setBlockGasLimit(1234567);
     await hh.mine();
 
-    assert.equal(await getBlockGasLimit(), 1234567);
+    assert.strictEqual(await getBlockGasLimit(), 1234567);
   });
 
   describe("accepted parameter types for block gas limit", function () {
@@ -40,7 +40,7 @@ describe("setBlockGasLimit", function () {
         await hh.setBlockGasLimit(value);
         await hh.mine();
 
-        assert.equal(await getBlockGasLimit(), expectedBlockGasLimit);
+        assert.strictEqual(await getBlockGasLimit(), expectedBlockGasLimit);
       });
     }
 

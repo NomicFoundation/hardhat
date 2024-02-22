@@ -21,9 +21,9 @@ describe("time#increase", function () {
       const endBlockNumber = await hh.time.latestBlock();
       const endTimestamp = await hh.time.latest();
 
-      assert.equal(endBlockNumber, initialBlockNumber + 1);
-      assert.equal(newTimestamp, endTimestamp);
-      assert.equal(returnedTimestamp, endTimestamp);
+      assert.strictEqual(endBlockNumber, initialBlockNumber + 1);
+      assert.strictEqual(newTimestamp, endTimestamp);
+      assert.strictEqual(returnedTimestamp, endTimestamp);
       assert(endTimestamp - initialTimestamp === 10000);
     });
 
@@ -70,9 +70,9 @@ describe("time#increase", function () {
       const endBlockNumber = await hh.time.latestBlock();
       const endTimestamp = await hh.time.latest();
 
-      assert.equal(endBlockNumber, initialBlockNumber + 1);
-      assert.equal(returnedTimestamp, endTimestamp);
-      assert.equal(endTimestamp, initialTimestamp);
+      assert.strictEqual(endBlockNumber, initialBlockNumber + 1);
+      assert.strictEqual(returnedTimestamp, endTimestamp);
+      assert.strictEqual(endTimestamp, initialTimestamp);
     });
 
     it("should throw if given a negative number of seconds", async function () {

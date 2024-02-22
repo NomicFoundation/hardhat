@@ -24,7 +24,7 @@ describe("test task (CJS)", function () {
         noCompile: true,
       });
 
-      assert.equal(process.exitCode, 0);
+      assert.strictEqual(process.exitCode, 0);
       (process as any).exitCode = undefined;
     });
   });
@@ -38,7 +38,7 @@ describe("test task (CJS)", function () {
         noCompile: true,
       });
 
-      assert.equal(process.exitCode, 2);
+      assert.strictEqual(process.exitCode, 2);
       (process as any).exitCode = undefined;
     });
   });
@@ -53,7 +53,7 @@ describe("test task (CJS)", function () {
           noCompile: true,
         });
 
-        assert.equal(process.exitCode, 1);
+        assert.strictEqual(process.exitCode, 1);
         (process as any).exitCode = undefined;
       });
     });
@@ -68,7 +68,7 @@ describe("test task (CJS)", function () {
           parallel: true,
         });
 
-        assert.equal(process.exitCode, 0);
+        assert.strictEqual(process.exitCode, 0);
         (process as any).exitCode = undefined;
       });
     });
@@ -82,7 +82,7 @@ describe("test task (CJS)", function () {
           noCompile: true,
         });
 
-        assert.equal(process.exitCode, 0);
+        assert.strictEqual(process.exitCode, 0);
         (process as any).exitCode = undefined;
       });
     });
@@ -96,7 +96,7 @@ describe("test task (CJS)", function () {
           noCompile: true,
         });
 
-        assert.equal(process.exitCode, 1);
+        assert.strictEqual(process.exitCode, 1);
         (process as any).exitCode = undefined;
       });
     });
@@ -113,7 +113,7 @@ describe("test task (CJS)", function () {
           parallel: true,
         });
 
-        assert.equal(process.exitCode, 0);
+        assert.strictEqual(process.exitCode, 0);
         (process as any).exitCode = undefined;
       });
     });
@@ -129,7 +129,7 @@ describe("test task (CJS)", function () {
           noCompile: true,
         });
 
-        assert.equal(process.exitCode, 2);
+        assert.strictEqual(process.exitCode, 2);
         (process as any).exitCode = undefined;
       });
     });
@@ -144,7 +144,7 @@ describe("test task (CJS)", function () {
           bail: true,
         });
 
-        assert.equal(process.exitCode, 1);
+        assert.strictEqual(process.exitCode, 1);
         (process as any).exitCode = undefined;
       });
     });
@@ -158,7 +158,7 @@ describe("test task (CJS)", function () {
           noCompile: true,
         });
 
-        assert.equal(process.exitCode, 1);
+        assert.strictEqual(process.exitCode, 1);
         (process as any).exitCode = undefined;
       });
     });
@@ -172,7 +172,7 @@ describe("test task (CJS)", function () {
           noCompile: true,
         });
 
-        assert.equal(process.exitCode, 2);
+        assert.strictEqual(process.exitCode, 2);
         (process as any).exitCode = undefined;
       });
     });
@@ -187,7 +187,7 @@ describe("test task (CJS)", function () {
           bail: true,
         });
 
-        assert.equal(process.exitCode, 1);
+        assert.strictEqual(process.exitCode, 1);
         (process as any).exitCode = undefined;
       });
     });
@@ -203,7 +203,7 @@ describe("test task (CJS)", function () {
       });
 
       // each file has a single failing test, so the exit code should be 3
-      assert.equal(process.exitCode, 3);
+      assert.strictEqual(process.exitCode, 3);
       (process as any).exitCode = undefined;
     });
   });
@@ -241,7 +241,7 @@ describe("test task (ESM)", function () {
         noCompile: true,
       });
 
-      assert.equal(process.exitCode, 0);
+      assert.strictEqual(process.exitCode, 0);
       (process as any).exitCode = undefined;
     });
   });
@@ -255,7 +255,7 @@ describe("test task (ESM)", function () {
         noCompile: true,
       });
 
-      assert.equal(process.exitCode, 2);
+      assert.strictEqual(process.exitCode, 2);
       (process as any).exitCode = undefined;
     });
   });
@@ -270,7 +270,7 @@ describe("test task (ESM)", function () {
           noCompile: true,
         });
 
-        assert.equal(process.exitCode, 1);
+        assert.strictEqual(process.exitCode, 1);
         (process as any).exitCode = undefined;
       });
     });
@@ -285,7 +285,7 @@ describe("test task (ESM)", function () {
           parallel: true,
         });
 
-        assert.equal(process.exitCode, 0);
+        assert.strictEqual(process.exitCode, 0);
         (process as any).exitCode = undefined;
       });
     });
@@ -299,7 +299,7 @@ describe("test task (ESM)", function () {
           noCompile: true,
         });
 
-        assert.equal(process.exitCode, 0);
+        assert.strictEqual(process.exitCode, 0);
         (process as any).exitCode = undefined;
       });
     });
@@ -313,7 +313,7 @@ describe("test task (ESM)", function () {
           noCompile: true,
         });
 
-        assert.equal(process.exitCode, 1);
+        assert.strictEqual(process.exitCode, 1);
         (process as any).exitCode = undefined;
       });
     });
@@ -330,7 +330,7 @@ describe("test task (ESM)", function () {
           parallel: true,
         });
 
-        assert.equal(process.exitCode, 0);
+        assert.strictEqual(process.exitCode, 0);
         (process as any).exitCode = undefined;
       });
     });
@@ -346,7 +346,7 @@ describe("test task (ESM)", function () {
           noCompile: true,
         });
 
-        assert.equal(process.exitCode, 2);
+        assert.strictEqual(process.exitCode, 2);
         (process as any).exitCode = undefined;
       });
     });
@@ -361,7 +361,7 @@ describe("test task (ESM)", function () {
           bail: true,
         });
 
-        assert.equal(process.exitCode, 1);
+        assert.strictEqual(process.exitCode, 1);
         (process as any).exitCode = undefined;
       });
     });
@@ -375,7 +375,7 @@ describe("test task (ESM)", function () {
           noCompile: true,
         });
 
-        assert.equal(process.exitCode, 1);
+        assert.strictEqual(process.exitCode, 1);
         (process as any).exitCode = undefined;
       });
     });
@@ -389,7 +389,7 @@ describe("test task (ESM)", function () {
           noCompile: true,
         });
 
-        assert.equal(process.exitCode, 2);
+        assert.strictEqual(process.exitCode, 2);
         (process as any).exitCode = undefined;
       });
     });
@@ -404,7 +404,7 @@ describe("test task (ESM)", function () {
           bail: true,
         });
 
-        assert.equal(process.exitCode, 1);
+        assert.strictEqual(process.exitCode, 1);
         (process as any).exitCode = undefined;
       });
     });
@@ -420,7 +420,7 @@ describe("test task (ESM)", function () {
       });
 
       // each file has a single failing test, so the exit code should be 3
-      assert.equal(process.exitCode, 3);
+      assert.strictEqual(process.exitCode, 3);
       (process as any).exitCode = undefined;
     });
   });

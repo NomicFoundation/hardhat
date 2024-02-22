@@ -15,7 +15,7 @@ describe("time#advanceBlockTo", function () {
 
     const endHeight = await hh.time.latestBlock();
 
-    assert.equal(initialHeight + 3, endHeight);
+    assert.strictEqual(initialHeight + 3, endHeight);
   });
 
   it("should throw if given a number equal to the current height", async function () {
@@ -38,7 +38,7 @@ describe("time#advanceBlockTo", function () {
 
       const endHeight = await hh.time.latestBlock();
 
-      assert.equal(initialHeight + 3, endHeight);
+      assert.strictEqual(initialHeight + 3, endHeight);
     });
 
     it(`should accept an argument of type ethers's bignumber`, async function () {
@@ -48,7 +48,7 @@ describe("time#advanceBlockTo", function () {
 
       const endHeight = await hh.time.latestBlock();
 
-      assert.equal(initialHeight + 3, endHeight);
+      assert.strictEqual(initialHeight + 3, endHeight);
     });
 
     it(`should accept an argument of type hex string`, async function () {
@@ -59,7 +59,7 @@ describe("time#advanceBlockTo", function () {
 
       const endHeight = await hh.time.latestBlock();
 
-      assert.equal(initialHeight + 3, endHeight);
+      assert.strictEqual(initialHeight + 3, endHeight);
     });
 
     it(`should accept an argument of type bn.js`, async function () {
@@ -69,7 +69,7 @@ describe("time#advanceBlockTo", function () {
 
       const endHeight = await hh.time.latestBlock();
 
-      assert.equal(initialHeight + 3, endHeight);
+      assert.strictEqual(initialHeight + 3, endHeight);
     });
   });
 });

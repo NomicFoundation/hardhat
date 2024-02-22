@@ -18,7 +18,7 @@ describe("Hardhat lib", () => {
 
   it("should load task user defined task", async function () {
     assert.isDefined(this.env.tasks.example2);
-    assert.equal(await this.env.run("example2"), 28);
+    assert.strictEqual(await this.env.run("example2"), 28);
   });
 
   it("should reuse global state", async function () {
@@ -28,7 +28,7 @@ describe("Hardhat lib", () => {
     resetHardhatContext();
 
     environment = require("../../../src/internal/lib/hardhat-lib");
-    assert.equal(await environment.run("example"), 28);
+    assert.strictEqual(await environment.run("example"), 28);
     assert.isFalse(this.env === environment);
   });
 });

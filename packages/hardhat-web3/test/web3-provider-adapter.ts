@@ -90,7 +90,7 @@ describe("Web3 provider adapter", function () {
           (error: Error | null, response?: JsonRpcResponse) => {
             adaptedProvider.send(request, (error2, response2) => {
               assert.deepEqual(error2, error);
-              assert.equal(response2!.error!.message, response!.error!.message);
+              assert.strictEqual(response2!.error!.message, response!.error!.message);
               done();
             });
           }
@@ -115,7 +115,7 @@ describe("Web3 provider adapter", function () {
         adaptedProvider.send(requests, (error2, response2) => {
           assert.deepEqual(error2, error);
           assert.deepEqual(response2![0], response![0]);
-          assert.equal(
+          assert.strictEqual(
             response2![1].error!.message,
             response![1].error!.message
           );
@@ -131,7 +131,7 @@ describe("Web3 provider adapter", function () {
             .send("web3_clientVersion")
             .then((version) => {
               if (version.includes("RskJ")) {
-                assert.equal(
+                assert.strictEqual(
                   response2![1].error!.message,
                   response![1].error!.message
                 );

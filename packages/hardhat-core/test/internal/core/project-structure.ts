@@ -62,12 +62,12 @@ describe("project structure", () => {
       });
 
       it("should work from the project root", () => {
-        assert.equal(getUserConfigPath(), configPath);
+        assert.strictEqual(getUserConfigPath(), configPath);
       });
 
       it("should work from deeper inside the project", () => {
         process.chdir("contracts");
-        assert.equal(getUserConfigPath(), configPath);
+        assert.strictEqual(getUserConfigPath(), configPath);
       });
     });
   });
@@ -83,12 +83,12 @@ describe("project structure", () => {
     });
 
     it("should work from the project root", () => {
-      assert.equal(getUserConfigPath(), configPath);
+      assert.strictEqual(getUserConfigPath(), configPath);
     });
 
     it("should work from deeper inside the project", () => {
       process.chdir("contracts");
-      assert.equal(getUserConfigPath(), configPath);
+      assert.strictEqual(getUserConfigPath(), configPath);
     });
   });
 });
@@ -100,6 +100,6 @@ describe("getRecommendedGitIgnore", () => {
       "utf-8"
     );
 
-    assert.equal(await getRecommendedGitIgnore(), content);
+    assert.strictEqual(await getRecommendedGitIgnore(), content);
   });
 });

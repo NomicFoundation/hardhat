@@ -18,8 +18,8 @@ describe("clients", () => {
       const client = await innerGetPublicClient(provider, chains.mainnet);
 
       assert.isDefined(client);
-      assert.equal(client.type, "publicClient");
-      assert.equal(client.chain.id, chains.mainnet.id);
+      assert.strictEqual(client.type, "publicClient");
+      assert.strictEqual(client.chain.id, chains.mainnet.id);
     });
 
     it("should return a public client with custom parameters", async () => {
@@ -30,8 +30,8 @@ describe("clients", () => {
         cacheTime: 2000,
       });
 
-      assert.equal(client.pollingInterval, 1000);
-      assert.equal(client.cacheTime, 2000);
+      assert.strictEqual(client.pollingInterval, 1000);
+      assert.strictEqual(client.cacheTime, 2000);
     });
 
     it("should return a public client with default parameters for development networks", async () => {
@@ -39,8 +39,8 @@ describe("clients", () => {
 
       const client = await innerGetPublicClient(provider, chains.hardhat);
 
-      assert.equal(client.pollingInterval, 50);
-      assert.equal(client.cacheTime, 0);
+      assert.strictEqual(client.pollingInterval, 50);
+      assert.strictEqual(client.cacheTime, 0);
     });
   });
 
@@ -56,11 +56,11 @@ describe("clients", () => {
       assert.isArray(clients);
       assert.isNotEmpty(clients);
       clients.forEach((client) => {
-        assert.equal(client.type, "walletClient");
-        assert.equal(client.chain.id, chains.mainnet.id);
+        assert.strictEqual(client.type, "walletClient");
+        assert.strictEqual(client.chain.id, chains.mainnet.id);
       });
-      assert.equal(clients[0].account.address, "0x1");
-      assert.equal(clients[1].account.address, "0x2");
+      assert.strictEqual(clients[0].account.address, "0x1");
+      assert.strictEqual(clients[1].account.address, "0x2");
     });
 
     it("should return a list of wallet clients with custom parameters", async () => {
@@ -79,8 +79,8 @@ describe("clients", () => {
       assert.isArray(clients);
       assert.isNotEmpty(clients);
       clients.forEach((client) => {
-        assert.equal(client.pollingInterval, 1000);
-        assert.equal(client.cacheTime, 2000);
+        assert.strictEqual(client.pollingInterval, 1000);
+        assert.strictEqual(client.cacheTime, 2000);
       });
     });
 
@@ -95,8 +95,8 @@ describe("clients", () => {
       assert.isArray(clients);
       assert.isNotEmpty(clients);
       clients.forEach((client) => {
-        assert.equal(client.pollingInterval, 50);
-        assert.equal(client.cacheTime, 0);
+        assert.strictEqual(client.pollingInterval, 50);
+        assert.strictEqual(client.cacheTime, 0);
       });
     });
 
@@ -121,9 +121,9 @@ describe("clients", () => {
       );
 
       assert.isDefined(client);
-      assert.equal(client.type, "testClient");
-      assert.equal(client.chain.id, chains.hardhat.id);
-      assert.equal(client.mode, "hardhat");
+      assert.strictEqual(client.type, "testClient");
+      assert.strictEqual(client.chain.id, chains.hardhat.id);
+      assert.strictEqual(client.mode, "hardhat");
     });
 
     it("should return a test client with anvil mode", async () => {
@@ -136,9 +136,9 @@ describe("clients", () => {
       );
 
       assert.isDefined(client);
-      assert.equal(client.type, "testClient");
-      assert.equal(client.chain.id, chains.foundry.id);
-      assert.equal(client.mode, "anvil");
+      assert.strictEqual(client.type, "testClient");
+      assert.strictEqual(client.chain.id, chains.foundry.id);
+      assert.strictEqual(client.mode, "anvil");
     });
 
     it("should return a test client with custom parameters", async () => {
@@ -154,8 +154,8 @@ describe("clients", () => {
         }
       );
 
-      assert.equal(client.pollingInterval, 1000);
-      assert.equal(client.cacheTime, 2000);
+      assert.strictEqual(client.pollingInterval, 1000);
+      assert.strictEqual(client.cacheTime, 2000);
     });
 
     it("should return a test client with default parameters for development networks", async () => {
@@ -167,8 +167,8 @@ describe("clients", () => {
         "hardhat"
       );
 
-      assert.equal(client.pollingInterval, 50);
-      assert.equal(client.cacheTime, 0);
+      assert.strictEqual(client.pollingInterval, 50);
+      assert.strictEqual(client.cacheTime, 0);
     });
   });
 });

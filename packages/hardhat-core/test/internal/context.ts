@@ -67,7 +67,7 @@ describe("Hardhat context", async function () {
     useFixtureProject("config-project");
     useEnvironment();
     it("should create context and set HRE into context", async function () {
-      assert.equal(
+      assert.strictEqual(
         HardhatContext.getHardhatContext().getHardhatRuntimeEnvironment(),
         this.env
       );

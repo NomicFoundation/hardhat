@@ -57,11 +57,11 @@ describe("Eth module", function () {
             [txOutput.blockHash, false]
           );
 
-          assert.equal(block.hash, txOutput.blockHash);
+          assert.strictEqual(block.hash, txOutput.blockHash);
           assertQuantity(block.number, firstBlockNumber + 1);
-          assert.equal(block.transactions.length, 1);
+          assert.strictEqual(block.transactions.length, 1);
           assert.include(block.transactions as string[], txHash);
-          assert.equal(block.miner, DEFAULT_COINBASE.toString());
+          assert.strictEqual(block.miner, DEFAULT_COINBASE.toString());
           assert.isEmpty(block.uncles);
         });
 
@@ -81,10 +81,10 @@ describe("Eth module", function () {
             [txOutput.blockHash, true]
           );
 
-          assert.equal(block.hash, txOutput.blockHash);
+          assert.strictEqual(block.hash, txOutput.blockHash);
           assertQuantity(block.number, firstBlockNumber + 1);
-          assert.equal(block.transactions.length, 1);
-          assert.equal(block.miner, DEFAULT_COINBASE.toString());
+          assert.strictEqual(block.transactions.length, 1);
+          assert.strictEqual(block.miner, DEFAULT_COINBASE.toString());
           assert.deepEqual(
             block.transactions[0] as RpcTransactionOutput,
             txOutput

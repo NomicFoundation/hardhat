@@ -21,7 +21,7 @@ describe("Keys derivation", function () {
       const derivedPk = deriveKeyFromMnemonicAndPath(MNEMONIC, path, "");
       const address = bufferToHex(privateToAddress(derivedPk!));
 
-      assert.equal(toChecksumAddress(address), ADDRESS);
+      assert.strictEqual(toChecksumAddress(address), ADDRESS);
 
       const derivedPkWithPass = deriveKeyFromMnemonicAndPath(
         MNEMONIC,
@@ -30,7 +30,7 @@ describe("Keys derivation", function () {
       );
       const addressWithPass = bufferToHex(privateToAddress(derivedPkWithPass!));
 
-      assert.equal(toChecksumAddress(addressWithPass), ADDRESS_WITH_PASS);
+      assert.strictEqual(toChecksumAddress(addressWithPass), ADDRESS_WITH_PASS);
     });
 
     it("Should derive the right keys from '\n{mnemonic}'", function () {
@@ -40,7 +40,7 @@ describe("Keys derivation", function () {
       const derivedPk = deriveKeyFromMnemonicAndPath(mnemonic, path, "");
       const address = bufferToHex(privateToAddress(derivedPk!));
 
-      assert.equal(toChecksumAddress(address), ADDRESS);
+      assert.strictEqual(toChecksumAddress(address), ADDRESS);
 
       const derivedPkWithPass = deriveKeyFromMnemonicAndPath(
         mnemonic,
@@ -49,7 +49,7 @@ describe("Keys derivation", function () {
       );
       const addressWithPass = bufferToHex(privateToAddress(derivedPkWithPass!));
 
-      assert.equal(toChecksumAddress(addressWithPass), ADDRESS_WITH_PASS);
+      assert.strictEqual(toChecksumAddress(addressWithPass), ADDRESS_WITH_PASS);
     });
   });
   it("Should derive the right keys from '{mnemonic}\n'", function () {
@@ -59,7 +59,7 @@ describe("Keys derivation", function () {
     const derivedPk = deriveKeyFromMnemonicAndPath(mnemonic, path, "");
     const address = bufferToHex(privateToAddress(derivedPk!));
 
-    assert.equal(toChecksumAddress(address), ADDRESS);
+    assert.strictEqual(toChecksumAddress(address), ADDRESS);
 
     const derivedPkWithPass = deriveKeyFromMnemonicAndPath(
       mnemonic,
@@ -68,7 +68,7 @@ describe("Keys derivation", function () {
     );
     const addressWithPass = bufferToHex(privateToAddress(derivedPkWithPass!));
 
-    assert.equal(toChecksumAddress(addressWithPass), ADDRESS_WITH_PASS);
+    assert.strictEqual(toChecksumAddress(addressWithPass), ADDRESS_WITH_PASS);
   });
   it("Should derive the right keys from ' {mnemonic}'", function () {
     const mnemonic = ` ${MNEMONIC}`;
@@ -77,7 +77,7 @@ describe("Keys derivation", function () {
     const derivedPk = deriveKeyFromMnemonicAndPath(mnemonic, path, "");
     const address = bufferToHex(privateToAddress(derivedPk!));
 
-    assert.equal(toChecksumAddress(address), ADDRESS);
+    assert.strictEqual(toChecksumAddress(address), ADDRESS);
 
     const derivedPkWithPass = deriveKeyFromMnemonicAndPath(
       mnemonic,
@@ -86,7 +86,7 @@ describe("Keys derivation", function () {
     );
     const addressWithPass = bufferToHex(privateToAddress(derivedPkWithPass!));
 
-    assert.equal(toChecksumAddress(addressWithPass), ADDRESS_WITH_PASS);
+    assert.strictEqual(toChecksumAddress(addressWithPass), ADDRESS_WITH_PASS);
   });
   it("Should derive the right keys from '{mnemonic} '", function () {
     const mnemonic = `${MNEMONIC} `;
@@ -95,7 +95,7 @@ describe("Keys derivation", function () {
     const derivedPk = deriveKeyFromMnemonicAndPath(mnemonic, path, "");
     const address = bufferToHex(privateToAddress(derivedPk!));
 
-    assert.equal(toChecksumAddress(address), ADDRESS);
+    assert.strictEqual(toChecksumAddress(address), ADDRESS);
 
     const derivedPkWithPass = deriveKeyFromMnemonicAndPath(
       mnemonic,
@@ -104,6 +104,6 @@ describe("Keys derivation", function () {
     );
     const addressWithPass = bufferToHex(privateToAddress(derivedPkWithPass!));
 
-    assert.equal(toChecksumAddress(addressWithPass), ADDRESS_WITH_PASS);
+    assert.strictEqual(toChecksumAddress(addressWithPass), ADDRESS_WITH_PASS);
   });
 });

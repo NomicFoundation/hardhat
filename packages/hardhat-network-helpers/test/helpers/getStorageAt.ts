@@ -15,7 +15,7 @@ describe("getStorageAt", function () {
   it("should get the storage of a given address", async function () {
     await hh.setStorageAt(account, "0x1", code);
 
-    assert.equal(await hh.getStorageAt(account, "0x1"), code);
+    assert.strictEqual(await hh.getStorageAt(account, "0x1"), code);
   });
 
   describe("accepted parameter types for index", function () {
@@ -32,7 +32,7 @@ describe("getStorageAt", function () {
       it(`should accept index of type ${type}`, async function () {
         await hh.setStorageAt(account, value, code);
 
-        assert.equal(await hh.getStorageAt(account, expectedIndex), code);
+        assert.strictEqual(await hh.getStorageAt(account, expectedIndex), code);
       });
     }
   });

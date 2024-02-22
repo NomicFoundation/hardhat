@@ -33,7 +33,7 @@ async function assertFlattenedFilesResult(flattenedFiles: string) {
 
   const expected = await getExpectedSol();
 
-  assert.equal(flattenedFiles, expected);
+  assert.strictEqual(flattenedFiles, expected);
 }
 
 describe("Flatten task", () => {
@@ -47,7 +47,7 @@ describe("Flatten task", () => {
         TASK_FLATTEN_GET_FLATTENED_SOURCE
       );
 
-      assert.equal(flattenedFiles.length, 0);
+      assert.strictEqual(flattenedFiles.length, 0);
     });
   });
 
@@ -126,7 +126,7 @@ describe("Flatten task", () => {
       }
 
       for (let i = 0; i + 1 < runs; i++) {
-        assert.equal(flattenedFiles[i], flattenedFiles[i + 1]);
+        assert.strictEqual(flattenedFiles[i], flattenedFiles[i + 1]);
       }
     });
   });

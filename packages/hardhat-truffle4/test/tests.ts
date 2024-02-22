@@ -60,10 +60,10 @@ function testArtifactsFunctionality() {
     const Greeter = this.env.artifacts.require("Greeter");
     const greeter = await Greeter.new();
 
-    assert.equal(await greeter.greet(), "Hi");
+    assert.strictEqual(await greeter.greet(), "Hi");
 
     await greeter.setGreeting("Hi!!!");
-    assert.equal(await greeter.greet(), "Hi!!!");
+    assert.strictEqual(await greeter.greet(), "Hi!!!");
   });
 
   it("Should work with Contract.at", async function () {
@@ -73,10 +73,10 @@ function testArtifactsFunctionality() {
 
     assertIsContractInstance(greeterWithAt, "greet");
 
-    assert.equal(await greeterWithAt.greet(), "Hi");
+    assert.strictEqual(await greeterWithAt.greet(), "Hi");
 
     await greeterWithAt.setGreeting("Hi!!!");
-    assert.equal(await greeterWithAt.greet(), "Hi!!!");
+    assert.strictEqual(await greeterWithAt.greet(), "Hi!!!");
   });
 
   it("Should work with new Contract(addr)", async function () {
@@ -87,10 +87,10 @@ function testArtifactsFunctionality() {
 
     assertIsContractInstance(greeterWithNew, "greet");
 
-    assert.equal(await greeterWithNew.greet(), "Hi");
+    assert.strictEqual(await greeterWithNew.greet(), "Hi");
 
     await greeterWithNew.setGreeting("Hi!!!");
-    assert.equal(await greeterWithNew.greet(), "Hi!!!");
+    assert.strictEqual(await greeterWithNew.greet(), "Hi!!!");
   });
 
   it("Should provison cloned contracts", async function () {
@@ -100,10 +100,10 @@ function testArtifactsFunctionality() {
 
     assertIsContractInstance(greeter, "greet");
 
-    assert.equal(await greeter.greet(), "Hi");
+    assert.strictEqual(await greeter.greet(), "Hi");
 
     await greeter.setGreeting("Hi!!!");
-    assert.equal(await greeter.greet(), "Hi!!!");
+    assert.strictEqual(await greeter.greet(), "Hi!!!");
   });
 
   it("Should fail to deploy an unlinked contract", async function () {
@@ -130,10 +130,10 @@ function testArtifactsFunctionality() {
 
     assertIsContractInstance(usesLib, "n", "addTwo");
 
-    assert.equal((await usesLib.n()).toString(), "0");
+    assert.strictEqual((await usesLib.n()).toString(), "0");
 
     await usesLib.addTwo();
-    assert.equal((await usesLib.n()).toString(), "2");
+    assert.strictEqual((await usesLib.n()).toString(), "2");
   });
 }
 
@@ -233,7 +233,7 @@ describe("Contract function's accounts derivation", function () {
   it("Should derive the right accounts for hardhat network when contract is used in a test", async function () {
     // We run a test in the fixture project that validates this
     const result = await this.env.run("test");
-    assert.equal(result, 0);
+    assert.strictEqual(result, 0);
     process.exitCode = 0;
   });
 });

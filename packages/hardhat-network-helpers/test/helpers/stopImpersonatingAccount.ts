@@ -37,7 +37,7 @@ describe("stopImpersonatingAccount", function () {
       },
     ]);
 
-    assert.equal(await getBalance(recipient), 1);
+    assert.strictEqual(await getBalance(recipient), 1);
 
     await hh.stopImpersonatingAccount(account);
     await assert.isRejected(

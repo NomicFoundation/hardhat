@@ -25,12 +25,12 @@ describe("dropTransaction", function () {
     );
 
     // ensure tx is in mempool
-    assert.equal(pendingTxs[0].hash, txHash);
+    assert.strictEqual(pendingTxs[0].hash, txHash);
     await hh.dropTransaction(txHash);
     pendingTxs = await this.hre.network.provider.send(
       "eth_pendingTransactions"
     );
-    assert.equal(pendingTxs.length, 0);
+    assert.strictEqual(pendingTxs.length, 0);
   });
 
   describe("invalid parameters for txHash", function () {

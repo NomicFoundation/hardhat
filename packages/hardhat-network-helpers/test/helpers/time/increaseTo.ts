@@ -20,8 +20,8 @@ describe("time#increaseTo", function () {
       const endBlockNumber = await hh.time.latestBlock();
       const endTimestamp = await hh.time.latest();
 
-      assert.equal(endBlockNumber, initialBlockNumber + 1);
-      assert.equal(newTimestamp, endTimestamp);
+      assert.strictEqual(endBlockNumber, initialBlockNumber + 1);
+      assert.strictEqual(newTimestamp, endTimestamp);
       assert(endTimestamp - initialTimestamp === 10000);
     });
 
@@ -47,7 +47,7 @@ describe("time#increaseTo", function () {
 
         const endTimestamp = await hh.time.latest();
 
-        assert.equal(newTimestamp, endTimestamp);
+        assert.strictEqual(newTimestamp, endTimestamp);
         assert(endTimestamp - initialTimestamp === 3600);
       });
 
@@ -60,7 +60,7 @@ describe("time#increaseTo", function () {
 
         const endTimestamp = await hh.time.latest();
 
-        assert.equal(newTimestamp, endTimestamp);
+        assert.strictEqual(newTimestamp, endTimestamp);
         assert(endTimestamp - initialTimestamp === 3600);
       });
 
@@ -75,7 +75,7 @@ describe("time#increaseTo", function () {
 
         const endTimestamp = await hh.time.latest();
 
-        assert.equal(newTimestamp, endTimestamp);
+        assert.strictEqual(newTimestamp, endTimestamp);
         assert(endTimestamp - initialTimestamp === 3600);
       });
 
@@ -88,7 +88,7 @@ describe("time#increaseTo", function () {
 
         const endTimestamp = await hh.time.latest();
 
-        assert.equal(newTimestamp, endTimestamp);
+        assert.strictEqual(newTimestamp, endTimestamp);
         assert(endTimestamp - initialTimestamp === 3600);
       });
 
@@ -101,7 +101,7 @@ describe("time#increaseTo", function () {
 
         const endTimestamp = await hh.time.latest();
 
-        assert.equal(newTimestamp, endTimestamp);
+        assert.strictEqual(newTimestamp, endTimestamp);
         assert(endTimestamp - initialTimestamp === 3600);
       });
     });
@@ -119,8 +119,8 @@ describe("time#increaseTo", function () {
       const endBlockNumber = await hh.time.latestBlock();
       const endTimestamp = await hh.time.latest();
 
-      assert.equal(endBlockNumber, initialBlockNumber + 1);
-      assert.equal(endTimestamp, initialTimestamp);
+      assert.strictEqual(endBlockNumber, initialBlockNumber + 1);
+      assert.strictEqual(endTimestamp, initialTimestamp);
     });
 
     it("should throw if given a timestamp that is less than the current block timestamp", async function () {

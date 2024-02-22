@@ -18,7 +18,7 @@ describe("Chain Config", () => {
       const uniqueIds = [...new Set(filteredChainIds)];
 
       assert.notEqual(0, uniqueIds.length);
-      assert.equal(uniqueIds.length, filteredChainIds.length);
+      assert.strictEqual(uniqueIds.length, filteredChainIds.length);
     });
 
     it("should be sorted by chainId in ascending order", () => {

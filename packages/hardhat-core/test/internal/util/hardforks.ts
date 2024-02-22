@@ -36,15 +36,15 @@ describe("Hardfork utils", function () {
     });
 
     it("Returns the right hardfork name", function () {
-      assert.equal("spuriousDragon", HardforkName.SPURIOUS_DRAGON);
-      assert.equal("byzantium", HardforkName.BYZANTIUM);
-      assert.equal("berlin", HardforkName.BERLIN);
-      assert.equal("london", HardforkName.LONDON);
-      assert.equal("arrowGlacier", HardforkName.ARROW_GLACIER);
-      assert.equal("grayGlacier", HardforkName.GRAY_GLACIER);
-      assert.equal("merge", HardforkName.MERGE);
-      assert.equal("shanghai", HardforkName.SHANGHAI);
-      assert.equal("cancun", HardforkName.CANCUN);
+      assert.strictEqual("spuriousDragon", HardforkName.SPURIOUS_DRAGON);
+      assert.strictEqual("byzantium", HardforkName.BYZANTIUM);
+      assert.strictEqual("berlin", HardforkName.BERLIN);
+      assert.strictEqual("london", HardforkName.LONDON);
+      assert.strictEqual("arrowGlacier", HardforkName.ARROW_GLACIER);
+      assert.strictEqual("grayGlacier", HardforkName.GRAY_GLACIER);
+      assert.strictEqual("merge", HardforkName.MERGE);
+      assert.strictEqual("shanghai", HardforkName.SHANGHAI);
+      assert.strictEqual("cancun", HardforkName.CANCUN);
     });
   });
 
@@ -62,7 +62,7 @@ describe("Hardfork utils", function () {
             // see comment above
             continue;
           }
-          assert.equal(
+          assert.strictEqual(
             hardforkGte(hfa, hfb),
             common.hardforkGteHardfork(hfa, hfb)
           );

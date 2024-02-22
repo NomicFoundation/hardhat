@@ -38,7 +38,7 @@ function assertBufferContents(buff: Buffer, hexEncodedContents: string) {
     "The contents should be 0x-prefixed hex encoded"
   );
 
-  assert.equal(
+  assert.strictEqual(
     buff.toString("hex").toLowerCase(),
     hexEncodedContents.substring(2).toLowerCase()
   );
@@ -198,7 +198,7 @@ describe("JsonRpcClient", () => {
           bufferToBigInt(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
           120n
         );
-        assert.equal((fakeProvider.request as sinon.SinonStub).callCount, 2);
+        assert.strictEqual((fakeProvider.request as sinon.SinonStub).callCount, 2);
         assert.isTrue(value.equals(toBuffer(response)));
       });
 
@@ -332,7 +332,7 @@ describe("JsonRpcClient", () => {
               BLOCK_NUMBER_OF_10496585
             );
             assert.isTrue(block?.hash?.equals(BLOCK_HASH_OF_10496585));
-            assert.equal(block?.transactions.length, 192);
+            assert.strictEqual(block?.transactions.length, 192);
             assert.isTrue(
               block?.transactions.every(
                 (tx: Buffer | RpcTransaction) => tx instanceof Buffer
@@ -365,7 +365,7 @@ describe("JsonRpcClient", () => {
           it("can fetch the data with transaction hashes", async () => {
             const block = await client.getBlockByHash(BLOCK_HASH_OF_10496585);
             assert.isTrue(block?.hash?.equals(BLOCK_HASH_OF_10496585));
-            assert.equal(block?.transactions.length, 192);
+            assert.strictEqual(block?.transactions.length, 192);
             assert.isTrue(
               block?.transactions.every(
                 (tx: Buffer | RpcTransaction) => tx instanceof Buffer
@@ -441,7 +441,7 @@ describe("JsonRpcClient", () => {
             const transaction = await client.getTransactionByHash(
               Buffer.from(randomHashBuffer())
             );
-            assert.equal(transaction, null);
+            assert.strictEqual(transaction, null);
           });
         });
 
@@ -462,7 +462,7 @@ describe("JsonRpcClient", () => {
             const transaction = await client.getTransactionReceipt(
               Buffer.from(randomHashBuffer())
             );
-            assert.equal(transaction, null);
+            assert.strictEqual(transaction, null);
           });
         });
 
@@ -473,15 +473,15 @@ describe("JsonRpcClient", () => {
               toBlock: BLOCK_NUMBER_OF_10496585,
               address: toBuffer("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"),
             });
-            assert.equal(logs.length, 12);
+            assert.strictEqual(logs.length, 12);
           });
         });
 
         describe("getAccountData", () => {
           it("Should return the right data", async function () {
             const data = await client.getAccountData(DAI_ADDRESS, forkNumber);
-            assert.equal(data.balance, 0n);
-            assert.equal(data.transactionCount, 1n);
+            assert.strictEqual(data.balance, 0n);
+            assert.strictEqual(data.transactionCount, 1n);
             assert.lengthOf(data.code, DAI_CONTRACT_LENGTH);
           });
         });

@@ -20,10 +20,10 @@ describe("takeSnapshot", function () {
     const snapshot = await hh.takeSnapshot();
 
     await hh.mine();
-    assert.equal(await getBlockNumber(), blockNumberBefore + 1);
+    assert.strictEqual(await getBlockNumber(), blockNumberBefore + 1);
 
     await snapshot.restore();
-    assert.equal(await getBlockNumber(), blockNumberBefore);
+    assert.strictEqual(await getBlockNumber(), blockNumberBefore);
   });
 
   it("revert can be called more than once", async function () {
@@ -32,17 +32,17 @@ describe("takeSnapshot", function () {
     const snapshot = await hh.takeSnapshot();
 
     await hh.mine();
-    assert.equal(await getBlockNumber(), blockNumberBefore + 1);
+    assert.strictEqual(await getBlockNumber(), blockNumberBefore + 1);
 
     await snapshot.restore();
-    assert.equal(await getBlockNumber(), blockNumberBefore);
+    assert.strictEqual(await getBlockNumber(), blockNumberBefore);
 
     await hh.mine();
     await hh.mine();
-    assert.equal(await getBlockNumber(), blockNumberBefore + 2);
+    assert.strictEqual(await getBlockNumber(), blockNumberBefore + 2);
 
     await snapshot.restore();
-    assert.equal(await getBlockNumber(), blockNumberBefore);
+    assert.strictEqual(await getBlockNumber(), blockNumberBefore);
   });
 
   it("should throw if an invalid snapshot is restored", async function () {

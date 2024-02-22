@@ -83,7 +83,7 @@ describe("config loading", function () {
     it("should accept a relative path from the CWD", function () {
       const { resolvedConfig } = loadConfigAndTasks({ config: "config.js" });
 
-      assert.equal(
+      assert.strictEqual(
         resolvedConfig.paths.configFile,
         path.normalize(path.join(process.cwd(), "config.js"))
       );
@@ -95,7 +95,7 @@ describe("config loading", function () {
         config: path.join(fixtureDir, "config.js"),
       });
 
-      assert.equal(
+      assert.strictEqual(
         resolvedConfig.paths.configFile,
         path.normalize(path.join(process.cwd(), "config.js"))
       );
@@ -408,7 +408,7 @@ Hardhat plugin instead.`
         { showEmptyConfigWarning: true }
       );
 
-      assert.equal(consoleWarnStub.callCount, 1);
+      assert.strictEqual(consoleWarnStub.callCount, 1);
       assert.include(
         consoleWarnStub.args[0][0],
         "Hardhat config is returning an empty config object, check the export from the config file if this is unexpected."
@@ -427,13 +427,13 @@ Hardhat plugin instead.`
         { showSolidityConfigWarnings: true }
       );
 
-      assert.equal(consoleWarnStub.callCount, 1);
+      assert.strictEqual(consoleWarnStub.callCount, 1);
       assert.include(
         consoleWarnStub.args[0][0],
         "Solidity compiler is not configured"
       );
-      assert.equal(resolvedConfig.solidity.compilers.length, 1);
-      assert.equal(
+      assert.strictEqual(resolvedConfig.solidity.compilers.length, 1);
+      assert.strictEqual(
         resolvedConfig.solidity.compilers[0].version,
         DEFAULT_SOLC_VERSION
       );
@@ -447,7 +447,7 @@ Hardhat plugin instead.`
         { showSolidityConfigWarnings: true }
       );
 
-      assert.equal(consoleWarnStub.callCount, 1);
+      assert.strictEqual(consoleWarnStub.callCount, 1);
       assert.include(consoleWarnStub.args[0][0], "is not fully supported yet");
     });
 
@@ -459,7 +459,7 @@ Hardhat plugin instead.`
         { showSolidityConfigWarnings: true }
       );
 
-      assert.equal(consoleWarnStub.callCount, 1);
+      assert.strictEqual(consoleWarnStub.callCount, 1);
       assert.include(consoleWarnStub.args[0][0], "are not fully supported yet");
     });
 
@@ -471,7 +471,7 @@ Hardhat plugin instead.`
         { showSolidityConfigWarnings: true }
       );
 
-      assert.equal(consoleWarnStub.callCount, 1);
+      assert.strictEqual(consoleWarnStub.callCount, 1);
       assert.include(consoleWarnStub.args[0][0], "is not fully supported yet");
     });
 
@@ -483,7 +483,7 @@ Hardhat plugin instead.`
         { showSolidityConfigWarnings: true }
       );
 
-      assert.equal(consoleWarnStub.callCount, 1);
+      assert.strictEqual(consoleWarnStub.callCount, 1);
       assert.include(
         consoleWarnStub.args[0][0],
         "remappings are not currently supported"
@@ -498,7 +498,7 @@ Hardhat plugin instead.`
         { showSolidityConfigWarnings: true }
       );
 
-      assert.equal(consoleWarnStub.callCount, 1);
+      assert.strictEqual(consoleWarnStub.callCount, 1);
       assert.include(
         consoleWarnStub.args[0][0],
         "remappings are not currently supported"
@@ -513,7 +513,7 @@ Hardhat plugin instead.`
         { showSolidityConfigWarnings: true }
       );
 
-      assert.equal(consoleWarnStub.callCount, 1);
+      assert.strictEqual(consoleWarnStub.callCount, 1);
       assert.include(
         consoleWarnStub.args[0][0],
         "remappings are not currently supported"

@@ -79,7 +79,7 @@ describe("Hardhat Network special options", function () {
         parseDateString(initialDateString)
       );
 
-      assert.equal(firstBlock.timestamp, initialDate);
+      assert.strictEqual(firstBlock.timestamp, initialDate);
       // We don't know the exact timestamp of the second one, but we can cap it
       assert.isAtLeast(+secondBlock.timestamp, initialDate + 1);
       assert.isBelow(+secondBlock.timestamp, initialDate + 20);
@@ -155,7 +155,7 @@ describe("Hardhat Network special options", function () {
         [numberToRpcQuantity(0), false]
       );
 
-      assert.equal(block.miner, "0x0000000000000000000000000000000000000000");
+      assert.strictEqual(block.miner, "0x0000000000000000000000000000000000000000");
     });
 
     it("Should use the coinbase address for the new blocks", async function () {
@@ -166,7 +166,7 @@ describe("Hardhat Network special options", function () {
         [numberToRpcQuantity(1), false]
       );
 
-      assert.equal(block.miner, this.env.config.networks.hardhat.coinbase);
+      assert.strictEqual(block.miner, this.env.config.networks.hardhat.coinbase);
     });
   });
 
@@ -178,11 +178,11 @@ describe("Hardhat Network special options", function () {
       it("should generate the correct accounts", async function () {
         const [a1, a2] = await this.env.network.provider.send("eth_accounts");
 
-        assert.equal(
+        assert.strictEqual(
           a1.toLowerCase(),
           "0x57d27a673dbd70f12cbc32211c86af726683ce25"
         );
-        assert.equal(
+        assert.strictEqual(
           a2.toLowerCase(),
           "0x075d1d9101a6ed3dcdc2f41c401cf638a7bbe053"
         );
@@ -196,11 +196,11 @@ describe("Hardhat Network special options", function () {
       it("should generate the correct accounts", async function () {
         const [a1, a2] = await this.env.network.provider.send("eth_accounts");
 
-        assert.equal(
+        assert.strictEqual(
           a1.toLowerCase(),
           "0x43da4d822743814bf08648631afe7854bb57d8dc"
         );
-        assert.equal(
+        assert.strictEqual(
           a2.toLowerCase(),
           "0x1df58751bbe561bae7a82b55485c0e076748eedb"
         );

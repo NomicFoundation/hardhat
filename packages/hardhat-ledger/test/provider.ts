@@ -544,7 +544,7 @@ describe("LedgerProvider", () => {
             "0x01f864827a696464830f424094da6a52afdae5ff66aa786da68754a227331f56e36480c080a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069",
           ],
         });
-        assert.equal(tx, resultTx);
+        assert.strictEqual(tx, resultTx);
         sinon.assert.calledOnce(initSpy);
       });
     });
@@ -610,8 +610,8 @@ describe("LedgerProvider", () => {
           if (!HardhatLedgerDerivationPathError.instanceOf(error)) {
             assert.fail("Expected a DerivationPathError");
           }
-          assert.equal(error.path, errorPath);
-          assert.equal(
+          assert.strictEqual(error.path, errorPath);
+          assert.strictEqual(
             (error as HardhatLedgerDerivationPathError).message,
             `There was an error trying to derivate path ${errorPath}: "${errorMessage}". The wallet might be connected but locked or in the wrong app.`
           );
@@ -630,8 +630,8 @@ describe("LedgerProvider", () => {
           if (!HardhatLedgerDerivationPathError.instanceOf(error)) {
             assert.fail("Expected a DerivationPathError");
           }
-          assert.equal(error.path, errorPath);
-          assert.equal(
+          assert.strictEqual(error.path, errorPath);
+          assert.strictEqual(
             (error as HardhatLedgerDerivationPathError).message,
             `Could not find a valid derivation path for ${accounts[1]}. Paths from m/44'/60'/0'/0/0 to m/${errorPath} were searched.`
           );

@@ -15,24 +15,24 @@ describe("argumentTypes", () => {
       const argumentTypesMap: {
         [name: string]: ArgumentType<any>;
       } = types;
-      assert.equal(argumentTypesMap[typeName].name, typeName);
+      assert.strictEqual(argumentTypesMap[typeName].name, typeName);
     }
   });
 
   describe("string type", () => {
     it("should work with valid values", () => {
-      assert.equal(types.string.parse("arg", "asd"), "asd");
-      assert.equal(types.string.parse("arg", "asd1"), "asd1");
-      assert.equal(types.string.parse("arg", "asd 123"), "asd 123");
-      assert.equal(types.string.parse("arg", "1"), "1");
-      assert.equal(types.string.parse("arg", ""), "");
+      assert.strictEqual(types.string.parse("arg", "asd"), "asd");
+      assert.strictEqual(types.string.parse("arg", "asd1"), "asd1");
+      assert.strictEqual(types.string.parse("arg", "asd 123"), "asd 123");
+      assert.strictEqual(types.string.parse("arg", "1"), "1");
+      assert.strictEqual(types.string.parse("arg", ""), "");
     });
   });
 
   describe("boolean type", () => {
     it("should work with valid values", () => {
-      assert.equal(types.boolean.parse("arg", "true"), true);
-      assert.equal(types.boolean.parse("arg", "false"), false);
+      assert.strictEqual(types.boolean.parse("arg", "true"), true);
+      assert.strictEqual(types.boolean.parse("arg", "false"), false);
     });
 
     it("should throw the right error on invalid values", () => {
@@ -65,26 +65,26 @@ describe("argumentTypes", () => {
 
   describe("int type", () => {
     it("should work with decimal values", () => {
-      assert.equal(types.int.parse("arg", "0"), 0);
-      assert.equal(types.int.parse("arg", "1"), 1);
-      assert.equal(types.int.parse("arg", "1123"), 1123);
-      assert.equal(types.int.parse("arg", "05678"), 5678);
+      assert.strictEqual(types.int.parse("arg", "0"), 0);
+      assert.strictEqual(types.int.parse("arg", "1"), 1);
+      assert.strictEqual(types.int.parse("arg", "1123"), 1123);
+      assert.strictEqual(types.int.parse("arg", "05678"), 5678);
     });
 
     it("should work with hex values", () => {
-      assert.equal(types.int.parse("arg", "0x0"), 0);
-      assert.equal(types.int.parse("arg", "0x1"), 1);
-      assert.equal(types.int.parse("arg", "0xA"), 0xa);
-      assert.equal(types.int.parse("arg", "0xa"), 0xa);
-      assert.equal(types.int.parse("arg", "0x0a"), 0x0a);
+      assert.strictEqual(types.int.parse("arg", "0x0"), 0);
+      assert.strictEqual(types.int.parse("arg", "0x1"), 1);
+      assert.strictEqual(types.int.parse("arg", "0xA"), 0xa);
+      assert.strictEqual(types.int.parse("arg", "0xa"), 0xa);
+      assert.strictEqual(types.int.parse("arg", "0x0a"), 0x0a);
     });
 
     it("should work with decimal scientific notation", () => {
-      assert.equal(types.int.parse("arg", "1e0"), 1);
-      assert.equal(types.int.parse("arg", "1e123"), 1e123);
-      assert.equal(types.int.parse("arg", "12e0"), 12);
-      assert.equal(types.int.parse("arg", "012e1"), 120);
-      assert.equal(types.int.parse("arg", "0e12"), 0);
+      assert.strictEqual(types.int.parse("arg", "1e0"), 1);
+      assert.strictEqual(types.int.parse("arg", "1e123"), 1e123);
+      assert.strictEqual(types.int.parse("arg", "12e0"), 12);
+      assert.strictEqual(types.int.parse("arg", "012e1"), 120);
+      assert.strictEqual(types.int.parse("arg", "0e12"), 0);
     });
 
     it("should fail with incorrect values", () => {
@@ -129,36 +129,36 @@ describe("argumentTypes", () => {
 
   describe("float type", () => {
     it("should work with integer decimal values", () => {
-      assert.equal(types.float.parse("arg", "0"), 0);
-      assert.equal(types.float.parse("arg", "1"), 1);
-      assert.equal(types.float.parse("arg", "1123"), 1123);
-      assert.equal(types.float.parse("arg", "05678"), 5678);
+      assert.strictEqual(types.float.parse("arg", "0"), 0);
+      assert.strictEqual(types.float.parse("arg", "1"), 1);
+      assert.strictEqual(types.float.parse("arg", "1123"), 1123);
+      assert.strictEqual(types.float.parse("arg", "05678"), 5678);
     });
 
     it("should work with non-integer decimal values", () => {
-      assert.equal(types.float.parse("arg", "0.1"), 0.1);
-      assert.equal(types.float.parse("arg", "123.123"), 123.123);
-      assert.equal(types.float.parse("arg", ".123"), 0.123);
-      assert.equal(types.float.parse("arg", "0."), 0);
+      assert.strictEqual(types.float.parse("arg", "0.1"), 0.1);
+      assert.strictEqual(types.float.parse("arg", "123.123"), 123.123);
+      assert.strictEqual(types.float.parse("arg", ".123"), 0.123);
+      assert.strictEqual(types.float.parse("arg", "0."), 0);
     });
 
     it("should work with integer hex values", () => {
-      assert.equal(types.float.parse("arg", "0x0"), 0);
-      assert.equal(types.float.parse("arg", "0x1"), 1);
-      assert.equal(types.float.parse("arg", "0xA"), 0xa);
-      assert.equal(types.float.parse("arg", "0xa"), 0xa);
-      assert.equal(types.float.parse("arg", "0x0a"), 0x0a);
+      assert.strictEqual(types.float.parse("arg", "0x0"), 0);
+      assert.strictEqual(types.float.parse("arg", "0x1"), 1);
+      assert.strictEqual(types.float.parse("arg", "0xA"), 0xa);
+      assert.strictEqual(types.float.parse("arg", "0xa"), 0xa);
+      assert.strictEqual(types.float.parse("arg", "0x0a"), 0x0a);
     });
 
     it("should work with decimal scientific notation", () => {
-      assert.equal(types.float.parse("arg", "1e0"), 1);
-      assert.equal(types.float.parse("arg", "1e123"), 1e123);
-      assert.equal(types.float.parse("arg", "12e0"), 12);
-      assert.equal(types.float.parse("arg", "012e1"), 120);
-      assert.equal(types.float.parse("arg", "0e12"), 0);
-      assert.equal(types.float.parse("arg", "1.e123"), 1e123);
-      assert.equal(types.float.parse("arg", "1.0e123"), 1e123);
-      assert.equal(types.float.parse("arg", "1.0123e123"), 1.0123e123);
+      assert.strictEqual(types.float.parse("arg", "1e0"), 1);
+      assert.strictEqual(types.float.parse("arg", "1e123"), 1e123);
+      assert.strictEqual(types.float.parse("arg", "12e0"), 12);
+      assert.strictEqual(types.float.parse("arg", "012e1"), 120);
+      assert.strictEqual(types.float.parse("arg", "0e12"), 0);
+      assert.strictEqual(types.float.parse("arg", "1.e123"), 1e123);
+      assert.strictEqual(types.float.parse("arg", "1.0e123"), 1e123);
+      assert.strictEqual(types.float.parse("arg", "1.0123e123"), 1.0123e123);
     });
 
     it("should fail with incorrect values", () => {
@@ -212,19 +212,19 @@ describe("argumentTypes", () => {
   describe("Input file type", () => {
     it("Should return the file path if the file exists and is readable", () => {
       const output = types.inputFile.parse("A file", __filename);
-      assert.equal(output, __filename);
+      assert.strictEqual(output, __filename);
     });
 
     it("Should work with a relative path", () => {
       const relative = path.relative(process.cwd(), __filename);
       const output = types.inputFile.parse("A file", relative);
-      assert.equal(output, relative);
+      assert.strictEqual(output, relative);
     });
 
     it("Should work with an absolute path", async () => {
       const absolute = await getRealPath(__filename);
       const output = types.inputFile.parse("A file", absolute);
-      assert.equal(output, absolute);
+      assert.strictEqual(output, absolute);
     });
 
     it("Should throw if the file doesnt exist", () => {

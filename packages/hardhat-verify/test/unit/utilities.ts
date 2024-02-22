@@ -63,7 +63,7 @@ describe("Utilities", () => {
 
       assert.isTrue(errorStub.calledOnce);
       const errorMessage = errorStub.getCall(0).args[0];
-      assert.equal(
+      assert.strictEqual(
         errorMessage,
         chalk.red(
           `hardhat-verify found one or more errors during the verification process:
@@ -85,7 +85,7 @@ Sourcify error message
       const constructorArgsParams = ["1", "arg2", "false"];
       const result = await resolveConstructorArguments(constructorArgsParams);
 
-      assert.equal(constructorArgsParams, result);
+      assert.strictEqual(constructorArgsParams, result);
     });
 
     it("should return the constructor arguments exported in constructorArgsModule", async () => {
@@ -330,7 +330,7 @@ Sourcify error message
         contractName,
         constructorArguments
       );
-      assert.equal(
+      assert.strictEqual(
         encodedArguments,
         "0000000000000000000000000000000000000000000000000000000000000032"
       );
@@ -375,7 +375,7 @@ Sourcify error message
         "000000000000000000000000000000000000000000000000000000000000000b",
         "696e697469616c697a6572000000000000000000000000000000000000000000",
       ].join("");
-      assert.equal(encodedArguments, expectedArguments);
+      assert.strictEqual(encodedArguments, expectedArguments);
     });
 
     it("should correctly encode ABIv2 nested tuples", async () => {
@@ -437,7 +437,7 @@ Sourcify error message
         "0000000000000000000000000000000000000000000000000000000000000028",
         "0000000000000000000000000000000000000000000000000000000000000038",
       ].join("");
-      assert.equal(encodedArguments, expectedArguments);
+      assert.strictEqual(encodedArguments, expectedArguments);
     });
 
     it("should return an empty string when there are no constructor arguments", async () => {
@@ -455,7 +455,7 @@ Sourcify error message
         contractName,
         constructorArguments
       );
-      assert.equal(encodedArguments, "");
+      assert.strictEqual(encodedArguments, "");
     });
 
     it("should throw if there are less arguments than expected", async () => {

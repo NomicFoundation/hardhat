@@ -59,7 +59,7 @@ describe("compile task", function () {
 
       const lastSolcVersion = getLatestSupportedVersion();
 
-      assert.equal(
+      assert.strictEqual(
         userConfigSolcVersion,
         lastSolcVersion,
         `The version of solc in the user config is not the last one. Expected '${lastSolcVersion}' but got '${userConfigSolcVersion}'. Did you forget to update the test?`
@@ -259,7 +259,7 @@ describe("compile task", function () {
         }
       );
 
-      assert.equal(
+      assert.strictEqual(
         reasons,
         `The Solidity version pragma statement in these files doesn't match any of the configured compilers in your config. Change the pragma or configure additional compiler versions in your hardhat config.
 
@@ -301,7 +301,7 @@ Read about compiler configuration at https://hardhat.org/config
         }
       );
 
-      assert.equal(
+      assert.strictEqual(
         reasons,
         `The Solidity version pragma statement in these files doesn't match any of the configured compilers in your config. Change the pragma or configure additional compiler versions in your hardhat config.
 
@@ -335,7 +335,7 @@ Read about compiler configuration at https://hardhat.org/config
         }
       );
 
-      assert.equal(
+      assert.strictEqual(
         reasons,
         `The compiler version for the following files is fixed through an override in your config file to a version that is incompatible with their Solidity version pragmas.
 
@@ -374,7 +374,7 @@ Read about compiler configuration at https://hardhat.org/config
         }
       );
 
-      assert.equal(
+      assert.strictEqual(
         reasons,
         `These files import other files that use a different and incompatible version of Solidity:
 
@@ -417,7 +417,7 @@ Read about compiler configuration at https://hardhat.org/config
         }
       );
 
-      assert.equal(
+      assert.strictEqual(
         reasons,
         `These files import other files that use a different and incompatible version of Solidity:
 
@@ -464,7 +464,7 @@ Read about compiler configuration at https://hardhat.org/config
         }
       );
 
-      assert.equal(
+      assert.strictEqual(
         reasons,
         `These files import other files that use a different and incompatible version of Solidity:
 
@@ -515,7 +515,7 @@ Read about compiler configuration at https://hardhat.org/config
         }
       );
 
-      assert.equal(
+      assert.strictEqual(
         reasons,
         `These files import other files that use a different and incompatible version of Solidity:
 
@@ -559,7 +559,7 @@ Read about compiler configuration at https://hardhat.org/config
         }
       );
 
-      assert.equal(
+      assert.strictEqual(
         reasons,
         `These files depend on other files that use a different and incompatible version of Solidity:
 
@@ -605,7 +605,7 @@ Read about compiler configuration at https://hardhat.org/config
         }
       );
 
-      assert.equal(
+      assert.strictEqual(
         reasons,
         `These files depend on other files that use a different and incompatible version of Solidity:
 
@@ -656,7 +656,7 @@ Read about compiler configuration at https://hardhat.org/config
         }
       );
 
-      assert.equal(
+      assert.strictEqual(
         reasons,
         `These files depend on other files that use a different and incompatible version of Solidity:
 
@@ -712,7 +712,7 @@ Read about compiler configuration at https://hardhat.org/config
         }
       );
 
-      assert.equal(
+      assert.strictEqual(
         reasons,
         `These files depend on other files that use a different and incompatible version of Solidity:
 
@@ -743,7 +743,7 @@ Read about compiler configuration at https://hardhat.org/config
         }
       );
 
-      assert.equal(
+      assert.strictEqual(
         reasons,
         `These files and its dependencies cannot be compiled with your config. This can happen because they have incompatible Solidity pragmas, or don't match any of your configured Solidity compilers.
 
@@ -774,7 +774,7 @@ Read about compiler configuration at https://hardhat.org/config
         }
       );
 
-      assert.equal(
+      assert.strictEqual(
         reasons,
         `These files and its dependencies cannot be compiled with your config. This can happen because they have incompatible Solidity pragmas, or don't match any of your configured Solidity compilers.
 
@@ -852,7 +852,7 @@ Read about compiler configuration at https://hardhat.org/config
         }
       );
 
-      assert.equal(
+      assert.strictEqual(
         reasons,
         `The compiler version for the following files is fixed through an override in your config file to a version that is incompatible with their Solidity version pragmas.
 
@@ -937,7 +937,7 @@ Read about compiler configuration at https://hardhat.org/config
         const newBuildInfos = getBuildInfos();
         assert.lengthOf(newBuildInfos, 1);
 
-        assert.equal(newBuildInfos[0], expectedBuildInfoName);
+        assert.strictEqual(newBuildInfos[0], expectedBuildInfoName);
       }
     });
   });

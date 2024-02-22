@@ -10,8 +10,8 @@ export function assertEqualTraces(
   actual = JSON.parse(JSON.stringify(actual));
   expected = JSON.parse(JSON.stringify(expected));
 
-  assert.equal(actual.failed, expected.failed);
-  assert.equal(actual.gas, expected.gas);
+  assert.strictEqual(actual.failed, expected.failed);
+  assert.strictEqual(actual.gas, expected.gas);
 
   // geth doesn't seem to include the returnValue
   // assert.equal(actual.returnValue, expected.returnValue);
@@ -22,7 +22,7 @@ export function assertEqualTraces(
       actual.structLogs.pop();
     }
   }
-  assert.equal(actual.structLogs.length, expected.structLogs.length);
+  assert.strictEqual(actual.structLogs.length, expected.structLogs.length);
 
   // Eslint complains about not modifying `i`, but we need to modify `expectedLog`.
   // eslint-disable-next-line prefer-const

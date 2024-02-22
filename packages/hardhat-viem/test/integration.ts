@@ -54,7 +54,7 @@ describe("Integration tests", function () {
         const client = await this.hre.viem.getPublicClient();
         const blockNumber = await client.getBlockNumber();
 
-        assert.equal(blockNumber, 0n);
+        assert.strictEqual(blockNumber, 0n);
       });
 
       it("should be able to query the blockchain using the wallet client", async function () {
@@ -87,12 +87,12 @@ describe("Integration tests", function () {
         });
 
         assert.isDefined(receipt);
-        assert.equal(receipt.status, "success");
-        assert.equal(
+        assert.strictEqual(receipt.status, "success");
+        assert.strictEqual(
           fromBalanceAfter,
           fromBalanceBefore - etherAmount - transactionFee
         );
-        assert.equal(toBalanceAfter, toBalanceBefore + etherAmount);
+        assert.strictEqual(toBalanceAfter, toBalanceBefore + etherAmount);
       });
 
       it("should be able to query the blockchain using the test client", async function () {
@@ -103,7 +103,7 @@ describe("Integration tests", function () {
           blocks: 1000000,
         });
         const blockNumber = await publicClient.getBlockNumber();
-        assert.equal(blockNumber, 1000000n);
+        assert.strictEqual(blockNumber, 1000000n);
       });
     });
 
@@ -115,7 +115,7 @@ describe("Integration tests", function () {
 
         await contract.write.setData([50n]);
         const data = await contract.read.getData();
-        assert.equal(data, 50n);
+        assert.strictEqual(data, 50n);
       });
 
       it("should be able to deploy a contract with constructor args", async function () {
@@ -126,14 +126,14 @@ describe("Integration tests", function () {
         );
 
         let data = await contract.read.getData();
-        assert.equal(data, 50n);
+        assert.strictEqual(data, 50n);
 
         const owner = await contract.read.getOwner();
-        assert.equal(owner, getAddress(defaultWalletClient.account.address));
+        assert.strictEqual(owner, getAddress(defaultWalletClient.account.address));
 
         await contract.write.setData([100n]);
         data = await contract.read.getData();
-        assert.equal(data, 100n);
+        assert.strictEqual(data, 100n);
       });
 
       it("should be able to deploy a contract with a different wallet client", async function () {
@@ -145,7 +145,7 @@ describe("Integration tests", function () {
         );
 
         const owner = await contract.read.getOwner();
-        assert.equal(owner, getAddress(secondWalletClient.account.address));
+        assert.strictEqual(owner, getAddress(secondWalletClient.account.address));
       });
 
       it("should be able to deploy a contract with initial ETH", async function () {
@@ -174,8 +174,8 @@ describe("Integration tests", function () {
         });
         const transactionFee = receipt.gasUsed * receipt.effectiveGasPrice;
 
-        assert.equal(contractBalance, etherAmount);
-        assert.equal(
+        assert.strictEqual(contractBalance, etherAmount);
+        assert.strictEqual(
           ownerBalanceAfter,
           ownerBalanceBefore - etherAmount - transactionFee
         );
@@ -294,11 +294,11 @@ describe("Integration tests", function () {
           await publicClient.waitForTransactionReceipt({
             hash: deploymentTransaction.hash,
           });
-        assert.equal(contract.address, getAddress(contractAddress!));
+        assert.strictEqual(contract.address, getAddress(contractAddress!));
 
         await contract.write.setData([50n]);
         const data = await contract.read.getData();
-        assert.equal(data, 50n);
+        assert.strictEqual(data, 50n);
       });
     });
   });

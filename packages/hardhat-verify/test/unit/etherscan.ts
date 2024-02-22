@@ -78,8 +78,8 @@ describe("Etherscan", () => {
         customChains
       );
 
-      assert.equal(currentChainConfig.network, networkName);
-      assert.equal(currentChainConfig.chainId, 5000);
+      assert.strictEqual(currentChainConfig.network, networkName);
+      assert.strictEqual(currentChainConfig.chainId, 5000);
     });
 
     it("should return a built-in chain if no custom chain matches", async function () {
@@ -95,8 +95,8 @@ describe("Etherscan", () => {
         customChains
       );
 
-      assert.equal(currentChainConfig.network, networkName);
-      assert.equal(currentChainConfig.chainId, 5);
+      assert.strictEqual(currentChainConfig.network, networkName);
+      assert.strictEqual(currentChainConfig.chainId, 5);
     });
 
     it("should throw if the selected network is hardhat and it's not a added to custom chains", async () => {
@@ -142,8 +142,8 @@ describe("Etherscan", () => {
         ]
       );
 
-      assert.equal(currentChainConfig.network, networkName);
-      assert.equal(currentChainConfig.chainId, 31337);
+      assert.strictEqual(currentChainConfig.network, networkName);
+      assert.strictEqual(currentChainConfig.chainId, 31337);
     });
 
     it("should throw if there are no matches at all", async () => {
@@ -173,7 +173,7 @@ describe("Etherscan", () => {
       let etherscan = Etherscan.fromChainConfig("someApiKey", chainConfig);
       let contractUrl = etherscan.getContractUrl("someAddress");
 
-      assert.equal(contractUrl, expectedContractAddress);
+      assert.strictEqual(contractUrl, expectedContractAddress);
 
       etherscan = Etherscan.fromChainConfig("someApiKey", {
         network: "goerli",
@@ -185,7 +185,7 @@ describe("Etherscan", () => {
       });
       contractUrl = etherscan.getContractUrl("someAddress");
 
-      assert.equal(contractUrl, expectedContractAddress);
+      assert.strictEqual(contractUrl, expectedContractAddress);
     });
   });
 });

@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@ast-grep/cli':
+        specifier: ^0.19.1
+        version: 0.19.1
       '@changesets/cli':
         specifier: ^2.16.0
         version: 2.26.2
@@ -1907,6 +1910,86 @@ packages:
     dependencies:
       '@jridgewell/gen-mapping': 0.3.3
       '@jridgewell/trace-mapping': 0.3.20
+    dev: true
+
+  /@ast-grep/cli-darwin-arm64@0.19.1:
+    resolution: {integrity: sha512-+zSBGj9VRnt34gA3zx4n4k9yvYHc5mAbRFVAPeIdiXudNiufcJlqvPDu3R2ScTjnNMKcF6t5NhPEvihUu9xFrg==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [darwin]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@ast-grep/cli-darwin-x64@0.19.1:
+    resolution: {integrity: sha512-d8b1d6s8Cg6tWDhIGdaRuJt5QZJGq5Z1xdtQyPCmfz5aeHHa4OxhwlTq9ruydnJTc5kECNx3BjAekIITAbVtTQ==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [darwin]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@ast-grep/cli-linux-arm64-gnu@0.19.1:
+    resolution: {integrity: sha512-oqioHSZlAoJwsMkeA0j92yRsj2M1US9ktTAPlFu0fw8y9Sm5yXOhlmd5r4bWUXp4A4K/KU9mwcLk+B6fnSMV6Q==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@ast-grep/cli-linux-x64-gnu@0.19.1:
+    resolution: {integrity: sha512-+ZZKSycK3ioMP2o072oSMpaaj0Mm6hoAX0RhuSmWG0/laBpKc6o2PDH94MwyTUbncnTxXVxZm1mycQuZKjW7Aw==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@ast-grep/cli-win32-arm64-msvc@0.19.1:
+    resolution: {integrity: sha512-Se4JZIcH9Q/sLC2Kw8iHLPIP8ZOxwJrbKG4l5x19H6YANxTPZeGQE2TNfqMS4kiXWS1tENaVvxMjGhcsvHhg0g==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [win32]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@ast-grep/cli-win32-ia32-msvc@0.19.1:
+    resolution: {integrity: sha512-7XK/G7hHziUr5X1ASXgk5PcO4WpthkQUCE3Kln5jTx0z/6/iMVO/8dFS55s2bjoj/p1X2NMEInF905rBCJyojQ==}
+    engines: {node: '>= 10'}
+    cpu: [ia32]
+    os: [win32]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@ast-grep/cli-win32-x64-msvc@0.19.1:
+    resolution: {integrity: sha512-6/o8fz/dl3ogYvBWrXvIugBtJ/mWzQJSIA/wFGMmtRE/u02MQNwehFI/e3lajXIOSR87sZ/AoESJw7qx4Bqk8A==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [win32]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@ast-grep/cli@0.19.1:
+    resolution: {integrity: sha512-x1JOuEZEdNok/hIJOynOpz82HeGKaCxST6ldA9lZlnuaPnqB+MPO/b8Za4sGm8sj/ABzMB7tFmsQe6LgELNz7A==}
+    engines: {node: '>= 12.0.0'}
+    hasBin: true
+    requiresBuild: true
+    dependencies:
+      detect-libc: 2.0.2
+    optionalDependencies:
+      '@ast-grep/cli-darwin-arm64': 0.19.1
+      '@ast-grep/cli-darwin-x64': 0.19.1
+      '@ast-grep/cli-linux-arm64-gnu': 0.19.1
+      '@ast-grep/cli-linux-x64-gnu': 0.19.1
+      '@ast-grep/cli-win32-arm64-msvc': 0.19.1
+      '@ast-grep/cli-win32-ia32-msvc': 0.19.1
+      '@ast-grep/cli-win32-x64-msvc': 0.19.1
     dev: true
 
   /@babel/code-frame@7.22.10:
@@ -5485,7 +5568,6 @@ packages:
   /detect-libc@2.0.2:
     resolution: {integrity: sha512-UX6sGumvvqSaXgdKGUsgZWqcUyIXZ/vZTrlRT/iobiKhGL0zL4d3osHj3uqllWJK+i+sixDS/3COVEOFbupFyw==}
     engines: {node: '>=8'}
-    dev: false
 
   /detect-node@2.1.0:
     resolution: {integrity: sha512-T0NIuQpnTvFDATNuHN5roPwSBG83rFsuO+MXXH9/3N1eFbn4wcPjttvjMLEPWJ0RGUYgQE7cGgS3tNxbqCGM7g==}

@@ -162,7 +162,7 @@ describe("Source names utilities", function () {
     });
 
     it("Should return the right casing of a file", async function () {
-      assert.equal(
+      assert.strictEqual(
         await localPathToSourceName(__dirname, `${__dirname}/source-NAMES.ts`),
         "source-names.ts"
       );
@@ -171,7 +171,7 @@ describe("Source names utilities", function () {
 
   describe("localSourceNameToPath", function () {
     it("Should join the project root and the source name", function () {
-      assert.equal(
+      assert.strictEqual(
         localSourceNameToPath(__dirname, "asd/qwe"),
         path.join(__dirname, "asd/qwe")
       );
@@ -180,19 +180,19 @@ describe("Source names utilities", function () {
 
   describe("normalizeSourceName", function () {
     it("Should remove /./", function () {
-      assert.equal(normalizeSourceName("asd/./asd"), "asd/asd");
+      assert.strictEqual(normalizeSourceName("asd/./asd"), "asd/asd");
     });
 
     it("Should remove /../", function () {
-      assert.equal(normalizeSourceName("asd/a/../asd"), "asd/asd");
+      assert.strictEqual(normalizeSourceName("asd/a/../asd"), "asd/asd");
     });
 
     it("Should simplify //", function () {
-      assert.equal(normalizeSourceName("asd//asd"), "asd/asd");
+      assert.strictEqual(normalizeSourceName("asd//asd"), "asd/asd");
     });
 
     it("Should use slashes and not backslashes", function () {
-      assert.equal(normalizeSourceName("asd\\asd"), "asd/asd");
+      assert.strictEqual(normalizeSourceName("asd\\asd"), "asd/asd");
     });
   });
 
@@ -213,9 +213,9 @@ describe("Source names utilities", function () {
 
   describe("replaceBackslashes", function () {
     it("Should return the same string with / instead of \\", function () {
-      assert.equal(replaceBackslashes("\\a"), "/a");
-      assert.equal(replaceBackslashes("\\\\a"), "//a");
-      assert.equal(replaceBackslashes("/\\\\a"), "///a");
+      assert.strictEqual(replaceBackslashes("\\a"), "/a");
+      assert.strictEqual(replaceBackslashes("\\\\a"), "//a");
+      assert.strictEqual(replaceBackslashes("/\\\\a"), "///a");
     });
   });
 

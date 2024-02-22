@@ -20,8 +20,8 @@ describe("fs-utils", function () {
     useTmpDir("ts-utils");
 
     async function assertWithBoth(input: string, expected: string) {
-      assert.equal(await getRealPath(input), expected);
-      assert.equal(getRealPathSync(input), expected);
+      assert.strictEqual(await getRealPath(input), expected);
+      assert.strictEqual(getRealPathSync(input), expected);
     }
 
     it("should resolve symlinks", async function () {
@@ -102,8 +102,8 @@ describe("fs-utils", function () {
       relativePath: string,
       expected: string
     ) {
-      assert.equal(await getFileTrueCase(from, relativePath), expected);
-      assert.equal(getFileTrueCaseSync(from, relativePath), expected);
+      assert.strictEqual(await getFileTrueCase(from, relativePath), expected);
+      assert.strictEqual(getFileTrueCaseSync(from, relativePath), expected);
     }
 
     it("Should throw FileNotFoundError if not found", async function () {

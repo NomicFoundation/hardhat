@@ -52,7 +52,7 @@ export function expectHardhatError(
     f();
   } catch (error: any) {
     assert.instanceOf(error, HardhatError);
-    assert.equal(error.number, errorDescriptor.number);
+    assert.strictEqual(error.number, errorDescriptor.number);
     assert.notInclude(
       error.message,
       "%s",
@@ -104,7 +104,7 @@ export async function expectHardhatErrorAsync(
     if (!(err instanceof HardhatError)) {
       assert.fail();
     }
-    assert.equal(err.number, errorDescriptor.number);
+    assert.strictEqual(err.number, errorDescriptor.number);
     assert.notInclude(
       err.message,
       "%s",

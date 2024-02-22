@@ -36,7 +36,7 @@ describe("Eth module", function () {
             false,
           ]);
 
-          assert.equal(
+          assert.strictEqual(
             block.parentHash,
             "0x0000000000000000000000000000000000000000000000000000000000000000"
           );
@@ -83,10 +83,10 @@ describe("Eth module", function () {
           );
 
           assertQuantity(block.number, firstBlockNumber + 1);
-          assert.equal(block.transactions.length, 1);
-          assert.equal(block.parentHash, firstBlock.hash);
+          assert.strictEqual(block.transactions.length, 1);
+          assert.strictEqual(block.parentHash, firstBlock.hash);
           assert.include(block.transactions as string[], txHash);
-          assert.equal(block.miner, DEFAULT_COINBASE.toString());
+          assert.strictEqual(block.miner, DEFAULT_COINBASE.toString());
           assert.isEmpty(block.uncles);
         });
 
@@ -109,10 +109,10 @@ describe("Eth module", function () {
           );
 
           assert.isNotEmpty(block.logsBloom);
-          assert.equal(block.transactions.length, 1);
-          assert.equal(block.parentHash, firstBlock.hash);
+          assert.strictEqual(block.transactions.length, 1);
+          assert.strictEqual(block.parentHash, firstBlock.hash);
           assert.include(block.transactions as string[], txHash);
-          assert.equal(block.miner, DEFAULT_COINBASE.toString());
+          assert.strictEqual(block.miner, DEFAULT_COINBASE.toString());
           assert.isEmpty(block.uncles);
         });
 
@@ -134,16 +134,16 @@ describe("Eth module", function () {
           );
 
           assertQuantity(block.number, firstBlockNumber + 1);
-          assert.equal(block.transactions.length, 1);
-          assert.equal(block.parentHash, firstBlock.hash);
-          assert.equal(block.miner, DEFAULT_COINBASE.toString());
+          assert.strictEqual(block.transactions.length, 1);
+          assert.strictEqual(block.parentHash, firstBlock.hash);
+          assert.strictEqual(block.miner, DEFAULT_COINBASE.toString());
           assert.isEmpty(block.uncles);
 
           const txOutput = block.transactions[0] as RpcTransactionOutput;
-          assert.equal(txOutput.hash, txHash);
-          assert.equal(block.hash, txOutput.blockHash);
-          assert.equal(block.number, txOutput.blockNumber);
-          assert.equal(txOutput.transactionIndex, numberToRpcQuantity(0));
+          assert.strictEqual(txOutput.hash, txHash);
+          assert.strictEqual(block.hash, txOutput.blockHash);
+          assert.strictEqual(block.number, txOutput.blockNumber);
+          assert.strictEqual(txOutput.transactionIndex, numberToRpcQuantity(0));
 
           assert.deepEqual(
             txOutput,

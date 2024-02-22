@@ -14,7 +14,7 @@ describe("time#setNextBlockTimestamp", function () {
 
       const endHeight = await hh.time.latestBlock();
 
-      assert.equal(initialHeight, endHeight);
+      assert.strictEqual(initialHeight, endHeight);
     });
 
     it("should set the next block to the given timestamp [epoch seconds]", async function () {
@@ -27,8 +27,8 @@ describe("time#setNextBlockTimestamp", function () {
       const endHeight = await hh.time.latestBlock();
       const endTimestamp = await hh.time.latest();
 
-      assert.equal(initialHeight + 1, endHeight);
-      assert.equal(newTimestamp, endTimestamp);
+      assert.strictEqual(initialHeight + 1, endHeight);
+      assert.strictEqual(newTimestamp, endTimestamp);
     });
 
     it("should set the next block to the given timestamp [Date]", async function () {
@@ -42,8 +42,8 @@ describe("time#setNextBlockTimestamp", function () {
       const endHeight = await hh.time.latestBlock();
       const endTimestamp = await hh.time.latest();
 
-      assert.equal(initialHeight + 1, endHeight);
-      assert.equal(newTimestamp, endTimestamp);
+      assert.strictEqual(initialHeight + 1, endHeight);
+      assert.strictEqual(newTimestamp, endTimestamp);
     });
 
     it("should throw if given a timestamp that is equal to the current block timestamp", async function () {
@@ -84,8 +84,8 @@ describe("time#setNextBlockTimestamp", function () {
       const endBlockNumber = await hh.time.latestBlock();
       const endTimestamp = await hh.time.latest();
 
-      assert.equal(endBlockNumber, initialBlockNumber + 1);
-      assert.equal(endTimestamp, initialTimestamp);
+      assert.strictEqual(endBlockNumber, initialBlockNumber + 1);
+      assert.strictEqual(endTimestamp, initialTimestamp);
     });
   });
 });

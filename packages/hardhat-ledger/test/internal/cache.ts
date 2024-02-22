@@ -29,8 +29,8 @@ describe("cache", () => {
       // We need to do this by hand cause sinon does not play nice with overloads
       const args = fsStub.writeJSON.getCall(0).args;
 
-      assert.equal(args.length, 2);
-      assert.equal(args[0], cacheDir);
+      assert.strictEqual(args.length, 2);
+      assert.strictEqual(args[0], cacheDir);
       assert.deepEqual(args[1], json);
     });
   });

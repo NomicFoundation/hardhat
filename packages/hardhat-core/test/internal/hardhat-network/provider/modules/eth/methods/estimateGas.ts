@@ -73,7 +73,7 @@ describe("Eth module", function () {
             [tx]
           );
 
-          assert.equal(gasEstimate, receipt.gasUsed);
+          assert.strictEqual(gasEstimate, receipt.gasUsed);
         });
 
         it("should leverage block tag parameter", async function () {
@@ -185,7 +185,7 @@ describe("Eth module", function () {
           }
 
           const blockNumber = await this.provider.send("eth_blockNumber");
-          assert.equal(blockNumber, "0x0");
+          assert.strictEqual(blockNumber, "0x0");
 
           // We estimate the deployment of a contract that asserts that block.number > 0,
           // which would fail if the estimation was run on `latest` right after the network is initialized
@@ -322,8 +322,8 @@ describe("Eth module", function () {
             });
 
             assert.isDefined(response.error?.data);
-            assert.equal(response.error.message, response.error.data.message);
-            assert.equal(response.error.data.data, "0x");
+            assert.strictEqual(response.error.message, response.error.data.message);
+            assert.strictEqual(response.error.data.data, "0x");
           });
 
           it("Should return the data of a gas estimation that reverts with a reason string", async function () {
@@ -339,8 +339,8 @@ describe("Eth module", function () {
             });
 
             assert.isDefined(response.error?.data);
-            assert.equal(response.error.message, response.error.data.message);
-            assert.equal(
+            assert.strictEqual(response.error.message, response.error.data.message);
+            assert.strictEqual(
               response.error.data.data,
               // Error(string) encoded with value "a reason"
               "0x08c379a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000086120726561736f6e000000000000000000000000000000000000000000000000"
@@ -360,8 +360,8 @@ describe("Eth module", function () {
             });
 
             assert.isDefined(response.error?.data);
-            assert.equal(response.error.message, response.error.data.message);
-            assert.equal(
+            assert.strictEqual(response.error.message, response.error.data.message);
+            assert.strictEqual(
               response.error.data.data,
               // Panic(uint256) encoded with value 0x32 (out-of-bounds array access)
               "0x4e487b710000000000000000000000000000000000000000000000000000000000000032"
@@ -381,8 +381,8 @@ describe("Eth module", function () {
             });
 
             assert.isDefined(response.error?.data);
-            assert.equal(response.error.message, response.error.data.message);
-            assert.equal(
+            assert.strictEqual(response.error.message, response.error.data.message);
+            assert.strictEqual(
               response.error.data.data,
               // MyCustomError() encoded
               "0x4e7254d6"

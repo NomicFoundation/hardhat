@@ -387,7 +387,7 @@ describe("Evm module", function () {
           const gasLimitAfter = rpcQuantityToNumber(blockAfter.gasLimit);
 
           assert.notEqual(gasLimitBefore, gasLimitAfter);
-          assert.equal(gasLimitAfter, newBlockGasLimit);
+          assert.strictEqual(gasLimitAfter, newBlockGasLimit);
         });
 
         it("removes transactions that exceed the new block gas limit from the mempool", async function () {
@@ -417,7 +417,7 @@ describe("Evm module", function () {
           );
 
           assert.lengthOf(pendingTransactions, 1);
-          assert.equal(pendingTransactions[0].hash, tx1Hash);
+          assert.strictEqual(pendingTransactions[0].hash, tx1Hash);
         });
 
         it("pending block works after removing a pending tx (first tx is dropped)", async function () {
@@ -590,10 +590,10 @@ describe("Evm module", function () {
           const expectedGasLeft =
             DEFAULT_BLOCK_GAS_LIMIT - gasUsedUntilGasLeftCall;
 
-          assert.equal(logTx1.transactionHash, tx1Hash);
-          assert.equal(logTx2.transactionHash, tx2Hash);
-          assert.equal(rpcDataToBigInt(logTx1.data), expectedGasLeft);
-          assert.equal(rpcDataToBigInt(logTx2.data), expectedGasLeft);
+          assert.strictEqual(logTx1.transactionHash, tx1Hash);
+          assert.strictEqual(logTx2.transactionHash, tx2Hash);
+          assert.strictEqual(rpcDataToBigInt(logTx1.data), expectedGasLeft);
+          assert.strictEqual(rpcDataToBigInt(logTx2.data), expectedGasLeft);
         });
 
         it("should accept a hex string param", async function () {
@@ -638,7 +638,7 @@ describe("Evm module", function () {
             await this.provider.send("evm_mine");
 
             const currentBlock = await getBlockNumber();
-            assert.equal(currentBlock, initialBlock + 2);
+            assert.strictEqual(currentBlock, initialBlock + 2);
           });
         });
       });
@@ -656,7 +656,7 @@ describe("Evm module", function () {
           ]);
           const currentBlock = await this.provider.send("eth_blockNumber");
 
-          assert.equal(currentBlock, previousBlock);
+          assert.strictEqual(currentBlock, previousBlock);
         });
 
         it("should allow re-enabling of automine", async function () {
@@ -763,7 +763,7 @@ describe("Evm module", function () {
               await sinonClock.tickAsync(interval);
 
               const currentBlock = await getBlockNumber();
-              assert.equal(currentBlock, initialBlock + 1);
+              assert.strictEqual(currentBlock, initialBlock + 1);
             });
 
             it("should continuously mine new blocks after each interval", async function () {
@@ -772,13 +772,13 @@ describe("Evm module", function () {
               await this.provider.send("evm_setIntervalMining", [interval]);
 
               await sinonClock.tickAsync(interval);
-              assert.equal(await getBlockNumber(), initialBlock + 1);
+              assert.strictEqual(await getBlockNumber(), initialBlock + 1);
 
               await sinonClock.tickAsync(interval);
-              assert.equal(await getBlockNumber(), initialBlock + 2);
+              assert.strictEqual(await getBlockNumber(), initialBlock + 2);
 
               await sinonClock.tickAsync(interval);
-              assert.equal(await getBlockNumber(), initialBlock + 3);
+              assert.strictEqual(await getBlockNumber(), initialBlock + 3);
             });
 
             it("should mine blocks when a range is used", async function () {
@@ -788,15 +788,15 @@ describe("Evm module", function () {
 
               // no block should be mined before the min value of the range
               await sinonClock.tickAsync(3999);
-              assert.equal(await getBlockNumber(), initialBlock);
+              assert.strictEqual(await getBlockNumber(), initialBlock);
 
               // when the max value has passed, one block should'be been mined
               await sinonClock.tickAsync(1001);
-              assert.equal(await getBlockNumber(), initialBlock + 1);
+              assert.strictEqual(await getBlockNumber(), initialBlock + 1);
 
               // after another 5 seconds, another block should be mined
               await sinonClock.tickAsync(5000);
-              assert.equal(await getBlockNumber(), initialBlock + 2);
+              assert.strictEqual(await getBlockNumber(), initialBlock + 2);
             });
 
             it("should disable interval mining when 0 is passed", async function () {
@@ -805,17 +805,17 @@ describe("Evm module", function () {
               await this.provider.send("evm_setIntervalMining", [interval]);
 
               await sinonClock.tickAsync(interval);
-              assert.equal(await getBlockNumber(), initialBlock + 1);
+              assert.strictEqual(await getBlockNumber(), initialBlock + 1);
 
               await sinonClock.tickAsync(interval);
-              assert.equal(await getBlockNumber(), initialBlock + 2);
+              assert.strictEqual(await getBlockNumber(), initialBlock + 2);
 
               await this.provider.send("evm_setIntervalMining", [0]);
 
               await sinonClock.tickAsync(interval);
-              assert.equal(await getBlockNumber(), initialBlock + 2);
+              assert.strictEqual(await getBlockNumber(), initialBlock + 2);
               await sinonClock.tickAsync(interval);
-              assert.equal(await getBlockNumber(), initialBlock + 2);
+              assert.strictEqual(await getBlockNumber(), initialBlock + 2);
             });
 
             const sendTx = async (nonce: number) =>
@@ -836,7 +836,7 @@ describe("Evm module", function () {
                 ["latest", false]
               );
 
-              assert.equal(rpcQuantityToNumber(block.number), blockNumber);
+              assert.strictEqual(rpcQuantityToNumber(block.number), blockNumber);
               assert.deepEqual(block.transactions, txHashes);
             };
 
@@ -879,7 +879,7 @@ describe("Evm module", function () {
 
               const nextBlock = await getBlockNumber();
 
-              assert.equal(nextBlock, initialBlock + 1);
+              assert.strictEqual(nextBlock, initialBlock + 1);
 
               await this.provider.send("evm_setIntervalMining", [interval * 2]);
 
@@ -887,7 +887,7 @@ describe("Evm module", function () {
 
               const currentBlock = await getBlockNumber();
 
-              assert.equal(currentBlock, initialBlock + 1);
+              assert.strictEqual(currentBlock, initialBlock + 1);
             });
 
             it("should mine block with transaction after the interval", async function () {
@@ -910,7 +910,7 @@ describe("Evm module", function () {
               );
 
               assert.lengthOf(currentBlock.transactions, 1);
-              assert.equal(currentBlock.transactions[0], txHash);
+              assert.strictEqual(currentBlock.transactions[0], txHash);
 
               const txReceipt = await this.provider.send(
                 "eth_getTransactionReceipt",
@@ -929,9 +929,9 @@ describe("Evm module", function () {
           const id2: string = await this.provider.send("evm_snapshot", []);
           const id3: string = await this.provider.send("evm_snapshot", []);
 
-          assert.equal(id1, "0x1");
-          assert.equal(id2, "0x2");
-          assert.equal(id3, "0x3");
+          assert.strictEqual(id1, "0x1");
+          assert.strictEqual(id2, "0x2");
+          assert.strictEqual(id3, "0x3");
         });
 
         it("Doesn't repeat snapshot ids after revert is called", async function () {
@@ -941,9 +941,9 @@ describe("Evm module", function () {
           ]);
           const id2: string = await this.provider.send("evm_snapshot", []);
 
-          assert.equal(id1, "0x1");
+          assert.strictEqual(id1, "0x1");
           assert.isTrue(reverted);
-          assert.equal(id2, "0x2");
+          assert.strictEqual(id2, "0x2");
         });
       });
 
@@ -1005,7 +1005,7 @@ describe("Evm module", function () {
             "eth_getBlockByNumber",
             ["latest", false]
           );
-          assert.equal(newLatestBlock.hash, initialLatestBlock.hash);
+          assert.strictEqual(newLatestBlock.hash, initialLatestBlock.hash);
 
           const blockByHash = await this.provider.send("eth_getBlockByHash", [
             latestBlockBeforeReverting.hash,
@@ -1240,7 +1240,7 @@ describe("Evm module", function () {
             txParams,
           ]);
 
-          assert.equal(txHash2, txHash);
+          assert.strictEqual(txHash2, txHash);
         });
 
         it("Deletes the used snapshot and the following ones", async function () {
@@ -1369,7 +1369,7 @@ describe("Evm module", function () {
             [from]
           );
 
-          assert.equal(balanceAfterRevert, balanceBeforeTx);
+          assert.strictEqual(balanceAfterRevert, balanceBeforeTx);
         });
 
         describe.skip("tests using sinon", () => {
@@ -1401,7 +1401,7 @@ describe("Evm module", function () {
             const snapshotBlock = await mineEmptyBlock();
             const snapshotId = await this.provider.send("evm_snapshot");
 
-            assert.equal(
+            assert.strictEqual(
               rpcQuantityToNumber(snapshotBlock.timestamp),
               rpcQuantityToNumber(firstBlock.timestamp) + 100
             );
@@ -1413,7 +1413,7 @@ describe("Evm module", function () {
 
             // Check that time was correctly reverted to the snapshot time and that the new
             // block's timestamp has been incremented to avoid timestamp collision
-            assert.equal(
+            assert.strictEqual(
               rpcQuantityToNumber(afterRevertBlock.timestamp),
               rpcQuantityToNumber(snapshotBlock.timestamp) + 1
             );
@@ -1431,7 +1431,7 @@ describe("Evm module", function () {
               await this.provider.send("evm_revert", [snapshotId]);
 
               const currentBlock = await getBlockNumber();
-              assert.equal(currentBlock, initialBlock);
+              assert.strictEqual(currentBlock, initialBlock);
             });
           });
         });

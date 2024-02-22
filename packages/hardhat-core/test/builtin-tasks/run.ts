@@ -26,7 +26,7 @@ describe("run task (CJS)", function () {
       noCompile: true,
     });
 
-    assert.equal(process.exitCode, 0);
+    assert.strictEqual(process.exitCode, 0);
     (process as any).exitCode = undefined;
   });
 
@@ -42,7 +42,7 @@ describe("run task (CJS)", function () {
     await this.env.run("run", {
       script: "./successful-script.js",
     });
-    assert.equal(process.exitCode, 0);
+    assert.strictEqual(process.exitCode, 0);
     (process as any).exitCode = undefined;
 
     const artifacts = new Artifacts(path.join(process.cwd(), "artifacts"));
@@ -69,7 +69,7 @@ describe("run task (CJS)", function () {
       script: "./successful-script.js",
       noCompile: true,
     });
-    assert.equal(process.exitCode, 0);
+    assert.strictEqual(process.exitCode, 0);
     (process as any).exitCode = undefined;
 
     assert.isFalse(await fsExtra.pathExists("artifacts"));
@@ -80,7 +80,7 @@ describe("run task (CJS)", function () {
       script: "./successful-script.js",
       noCompile: true,
     });
-    assert.equal(process.exitCode, 0);
+    assert.strictEqual(process.exitCode, 0);
     (process as any).exitCode = undefined;
   });
 
@@ -112,7 +112,7 @@ describe("run task (ESM)", function () {
       noCompile: true,
     });
 
-    assert.equal(process.exitCode, 0);
+    assert.strictEqual(process.exitCode, 0);
     (process as any).exitCode = undefined;
   });
 
@@ -128,7 +128,7 @@ describe("run task (ESM)", function () {
     await this.env.run("run", {
       script: "./successful-script.js",
     });
-    assert.equal(process.exitCode, 0);
+    assert.strictEqual(process.exitCode, 0);
     (process as any).exitCode = undefined;
 
     const artifacts = new Artifacts(path.join(process.cwd(), "artifacts"));
@@ -155,7 +155,7 @@ describe("run task (ESM)", function () {
       script: "./successful-script.js",
       noCompile: true,
     });
-    assert.equal(process.exitCode, 0);
+    assert.strictEqual(process.exitCode, 0);
     (process as any).exitCode = undefined;
 
     assert.isFalse(await fsExtra.pathExists("artifacts"));
@@ -166,7 +166,7 @@ describe("run task (ESM)", function () {
       script: "./successful-script.js",
       noCompile: true,
     });
-    assert.equal(process.exitCode, 0);
+    assert.strictEqual(process.exitCode, 0);
     (process as any).exitCode = undefined;
   });
 

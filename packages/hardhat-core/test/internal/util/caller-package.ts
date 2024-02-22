@@ -10,18 +10,18 @@ describe("getClosestCallerPackage", () => {
 
   describe("When calling directly from a package", () => {
     it("Should return the package it was called from", () => {
-      assert.equal(top.callFromTopModule(), "top-level-node-project");
-      assert.equal(nested.callFromNestedModule(), "nested-node-project");
+      assert.strictEqual(top.callFromTopModule(), "top-level-node-project");
+      assert.strictEqual(nested.callFromNestedModule(), "nested-node-project");
     });
   });
 
   describe("When calling indirectly", () => {
     it("Should return the closest package from where it was called", () => {
-      assert.equal(top.callFromNestedModule(), "nested-node-project");
-      assert.equal(top.indirectlyCallFromTopModule(), "top-level-node-project");
+      assert.strictEqual(top.callFromNestedModule(), "nested-node-project");
+      assert.strictEqual(top.indirectlyCallFromTopModule(), "top-level-node-project");
 
-      assert.equal(nested.callFromTopModule(), "top-level-node-project");
-      assert.equal(
+      assert.strictEqual(nested.callFromTopModule(), "top-level-node-project");
+      assert.strictEqual(
         nested.indirectlyCallFromNestedpModule(),
         "nested-node-project"
       );

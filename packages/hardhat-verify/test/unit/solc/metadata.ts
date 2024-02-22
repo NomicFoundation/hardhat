@@ -18,8 +18,8 @@ describe("Metadata Decoder", () => {
         "hex"
       );
 
-      assert.equal(inferCompilerVersion(solc059Bytecode), "0.5.9");
-      assert.equal(inferCompilerVersion(solc0819Bytecode), "0.8.19");
+      assert.strictEqual(inferCompilerVersion(solc059Bytecode), "0.5.9");
+      assert.strictEqual(inferCompilerVersion(solc0819Bytecode), "0.8.19");
     });
 
     it("should return '<0.4.7' if it throws when decoding the metadata", () => {
@@ -31,9 +31,9 @@ describe("Metadata Decoder", () => {
         "hex"
       );
 
-      assert.equal(inferCompilerVersion(emptyBytecode), "<0.4.7");
-      assert.equal(inferCompilerVersion(noBytecode), "<0.4.7");
-      assert.equal(inferCompilerVersion(noMetadataBytecode), "<0.4.7");
+      assert.strictEqual(inferCompilerVersion(emptyBytecode), "<0.4.7");
+      assert.strictEqual(inferCompilerVersion(noBytecode), "<0.4.7");
+      assert.strictEqual(inferCompilerVersion(noMetadataBytecode), "<0.4.7");
     });
 
     it("should return '0.4.7 - 0.5.8' if it can't find a solc version in the metadata", () => {
@@ -48,8 +48,8 @@ describe("Metadata Decoder", () => {
         "hex"
       );
 
-      assert.equal(inferCompilerVersion(solc047Bytecode), "0.4.7 - 0.5.8");
-      assert.equal(inferCompilerVersion(solc058Bytecode), "0.4.7 - 0.5.8");
+      assert.strictEqual(inferCompilerVersion(solc047Bytecode), "0.4.7 - 0.5.8");
+      assert.strictEqual(inferCompilerVersion(solc058Bytecode), "0.4.7 - 0.5.8");
     });
   });
 
@@ -60,7 +60,7 @@ describe("Metadata Decoder", () => {
         "hex"
       );
 
-      assert.equal(getMetadataSectionLength(solc0819Bytecode), 53);
+      assert.strictEqual(getMetadataSectionLength(solc0819Bytecode), 53);
     });
   });
 });

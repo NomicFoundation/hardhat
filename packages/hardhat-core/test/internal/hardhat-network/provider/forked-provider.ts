@@ -100,7 +100,7 @@ describe("Forked provider", function () {
                 numberToRpcQuantity(forkBlockNumber + 1),
               ]);
 
-              assert.equal(
+              assert.strictEqual(
                 await this.provider.send("eth_call", [
                   {
                     to: contractAddress,
@@ -157,7 +157,7 @@ describe("Forked provider", function () {
                 numberToRpcQuantity(forkBlockNumber - 3),
               ]);
 
-              assert.equal(await getWrappedBalance(), balance);
+              assert.strictEqual(await getWrappedBalance(), balance);
             });
 
             it("does not affect previously added balance data", async function () {
@@ -191,7 +191,7 @@ describe("Forked provider", function () {
               const balance = await this.provider.send("eth_getBalance", [
                 EMPTY_ACCOUNT_ADDRESS.toString(),
               ]);
-              assert.equal(rpcQuantityToNumber(balance), 123);
+              assert.strictEqual(rpcQuantityToNumber(balance), 123);
             });
           });
         });
@@ -251,7 +251,7 @@ describe("Forked provider", function () {
             },
           ]);
           const balance = await getWrappedBalance();
-          assert.equal(balance, initialBalance + 100n);
+          assert.strictEqual(balance, initialBalance + 100n);
         });
       });
 
@@ -275,11 +275,11 @@ describe("Forked provider", function () {
             [transactionHash]
           );
 
-          assert.equal(transaction.from, DEFAULT_ACCOUNTS_ADDRESSES[0]);
-          assert.equal(transaction.to, DEFAULT_ACCOUNTS_ADDRESSES[1]);
-          assert.equal(transaction.value, numberToRpcQuantity(1));
-          assert.equal(transaction.gas, numberToRpcQuantity(21000));
-          assert.equal(transaction.maxFeePerGas, gasPrice);
+          assert.strictEqual(transaction.from, DEFAULT_ACCOUNTS_ADDRESSES[0]);
+          assert.strictEqual(transaction.to, DEFAULT_ACCOUNTS_ADDRESSES[1]);
+          assert.strictEqual(transaction.value, numberToRpcQuantity(1));
+          assert.strictEqual(transaction.gas, numberToRpcQuantity(21000));
+          assert.strictEqual(transaction.maxFeePerGas, gasPrice);
         });
 
         it("supports remote transactions", async function () {
@@ -288,11 +288,11 @@ describe("Forked provider", function () {
             [bufferToHex(FIRST_TX_HASH_OF_10496585)]
           );
 
-          assert.equal(
+          assert.strictEqual(
             transaction.from,
             "0x4e87582f5e48f3e505b7d3b544972399ad9f2e5f"
           );
-          assert.equal(
+          assert.strictEqual(
             transaction.to,
             "0xdac17f958d2ee523a2206206994597c13d831ec7"
           );
@@ -334,9 +334,9 @@ describe("Forked provider", function () {
             [transactionHash]
           );
 
-          assert.equal(receipt.from, DEFAULT_ACCOUNTS_ADDRESSES[0]);
-          assert.equal(receipt.to, DEFAULT_ACCOUNTS_ADDRESSES[1]);
-          assert.equal(receipt.gasUsed, numberToRpcQuantity(21000));
+          assert.strictEqual(receipt.from, DEFAULT_ACCOUNTS_ADDRESSES[0]);
+          assert.strictEqual(receipt.to, DEFAULT_ACCOUNTS_ADDRESSES[1]);
+          assert.strictEqual(receipt.gasUsed, numberToRpcQuantity(21000));
         });
 
         it("supports remote transactions", async function () {
@@ -345,11 +345,11 @@ describe("Forked provider", function () {
             [bufferToHex(FIRST_TX_HASH_OF_10496585)]
           );
 
-          assert.equal(
+          assert.strictEqual(
             receipt.from,
             "0x4e87582f5e48f3e505b7d3b544972399ad9f2e5f"
           );
-          assert.equal(
+          assert.strictEqual(
             receipt.to,
             "0xdac17f958d2ee523a2206206994597c13d831ec7"
           );
@@ -365,7 +365,7 @@ describe("Forked provider", function () {
             },
           ]);
 
-          assert.equal(logs.length, 205);
+          assert.strictEqual(logs.length, 205);
         });
       });
 
@@ -390,7 +390,7 @@ describe("Forked provider", function () {
 
           const reverted = await this.provider.send("evm_revert", [snapshotId]);
           assert.isTrue(reverted);
-          assert.equal(await getWethBalance(), initialBalance);
+          assert.strictEqual(await getWethBalance(), initialBalance);
         });
       });
 
@@ -414,7 +414,7 @@ describe("Forked provider", function () {
           const balance = await this.provider.send("eth_getBalance", [
             EMPTY_ACCOUNT_ADDRESS.toString(),
           ]);
-          assert.equal(balance, oneEtherQuantity);
+          assert.strictEqual(balance, oneEtherQuantity);
         });
 
         it("allows to impersonate a remote contract account", async function () {
@@ -459,7 +459,7 @@ describe("Forked provider", function () {
             { to: DAI_ADDRESS.toString(), data: balanceOfSelector },
           ]);
 
-          assert.equal(hexStripZeros(daiBalance), oneEtherQuantity);
+          assert.strictEqual(hexStripZeros(daiBalance), oneEtherQuantity);
         });
       });
 
@@ -513,9 +513,9 @@ describe("Forked provider", function () {
           const date = new Date(timestamp * 1000);
 
           // check that the new block date is 2021-Jan-01
-          assert.equal(date.getUTCDate(), 1);
-          assert.equal(date.getUTCMonth(), 0);
-          assert.equal(date.getUTCFullYear(), 2021);
+          assert.strictEqual(date.getUTCDate(), 1);
+          assert.strictEqual(date.getUTCMonth(), 0);
+          assert.strictEqual(date.getUTCFullYear(), 2021);
         });
       });
 
@@ -529,7 +529,7 @@ describe("Forked provider", function () {
           [txHash]
         );
 
-        assert.equal(tx.type, "0x0");
+        assert.strictEqual(tx.type, "0x0");
       });
     });
   });

@@ -724,7 +724,7 @@ describe("Artifacts class", function () {
       await storeAllArtifacts("source.sol", artifacts);
 
       const names = await artifacts.getAllFullyQualifiedNames();
-      assert.equal(names.length, Object.keys(COMPILER_OUTPUTS).length);
+      assert.strictEqual(names.length, Object.keys(COMPILER_OUTPUTS).length);
 
       const expected = [
         "source.sol:Interface",
@@ -788,8 +788,8 @@ describe("Artifacts class", function () {
         getFullyQualifiedName(sourceName, contractName)
       );
 
-      assert.equal(storedBuildInfo?.solcVersion, solcVersion);
-      assert.equal(storedBuildInfo?.solcLongVersion, solcLongVersion);
+      assert.strictEqual(storedBuildInfo?.solcVersion, solcVersion);
+      assert.strictEqual(storedBuildInfo?.solcLongVersion, solcLongVersion);
       assert.deepEqual(storedBuildInfo?.input, solcInput);
       assert.deepEqual(storedBuildInfo?.output, solcOutput);
     });
@@ -825,8 +825,8 @@ describe("Artifacts class", function () {
         getFullyQualifiedName(sourceName, contractName)
       );
 
-      assert.equal(storedBuildInfo?.solcVersion, solcVersion);
-      assert.equal(storedBuildInfo?.solcLongVersion, solcLongVersion);
+      assert.strictEqual(storedBuildInfo?.solcVersion, solcVersion);
+      assert.strictEqual(storedBuildInfo?.solcLongVersion, solcLongVersion);
       assert.deepEqual(storedBuildInfo?.input, solcInput);
       assert.deepEqual(storedBuildInfo?.output, solcOutput);
     });
@@ -952,8 +952,8 @@ describe("Artifacts class", function () {
         { ...solcInput, changed: true }
       );
 
-      assert.equal(buildInfoPath, buildInfoPath2);
-      assert.equal(buildInfoPath, buildInfoPathChangedOutput);
+      assert.strictEqual(buildInfoPath, buildInfoPath2);
+      assert.strictEqual(buildInfoPath, buildInfoPathChangedOutput);
 
       const allPaths = [
         buildInfoPath,
@@ -965,7 +965,7 @@ describe("Artifacts class", function () {
       ];
 
       // -2 because of the ones that we tested above that are equal
-      assert.equal(new Set(allPaths).size, allPaths.length - 2);
+      assert.strictEqual(new Set(allPaths).size, allPaths.length - 2);
     });
 
     it("Should be able to save build-infos with partial fields", async function () {

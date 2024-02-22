@@ -93,11 +93,11 @@ describe("Resolved file", function () {
 
   describe("getVersionedName", function () {
     it("Should give the source name if the file isn't from a library", function () {
-      assert.equal(resolvedFileWithoutLibrary.getVersionedName(), sourceName);
+      assert.strictEqual(resolvedFileWithoutLibrary.getVersionedName(), sourceName);
     });
 
     it("Should add the version if the file is from a library", function () {
-      assert.equal(
+      assert.strictEqual(
         resolvedFileWithLibrary.getVersionedName(),
         `${sourceName}@v${libraryVersion}`
       );
@@ -114,12 +114,12 @@ async function assertResolvedFileFromPath(
   const resolved = await resolverPromise;
   const absolutePath = await getRealPath(filePath);
 
-  assert.equal(resolved.sourceName, expectedSourceName);
-  assert.equal(resolved.absolutePath, absolutePath);
+  assert.strictEqual(resolved.sourceName, expectedSourceName);
+  assert.strictEqual(resolved.absolutePath, absolutePath);
   assert.deepEqual(resolved.library, libraryInfo);
 
   const { ctime } = await fsExtra.stat(absolutePath);
-  assert.equal(resolved.lastModificationDate.valueOf(), ctime.valueOf());
+  assert.strictEqual(resolved.lastModificationDate.valueOf(), ctime.valueOf());
 }
 
 describe("Resolver", function () {

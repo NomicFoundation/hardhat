@@ -61,16 +61,16 @@ describe("Local accounts provider", () => {
       method: "eth_accounts",
     })) as string[];
 
-    assert.equal(response[0], privateKeyToAddress(accounts[0]));
-    assert.equal(response[1], privateKeyToAddress(accounts[1]));
+    assert.strictEqual(response[0], privateKeyToAddress(accounts[0]));
+    assert.strictEqual(response[1], privateKeyToAddress(accounts[1]));
   });
 
   it("Should return the account addresses in eth_requestAccounts", async () => {
     const response = (await wrapper.request({
       method: "eth_requestAccounts",
     })) as string[];
-    assert.equal(response[0], privateKeyToAddress(accounts[0]));
-    assert.equal(response[1], privateKeyToAddress(accounts[1]));
+    assert.strictEqual(response[0], privateKeyToAddress(accounts[0]));
+    assert.strictEqual(response[1], privateKeyToAddress(accounts[1]));
   });
 
   it("Should throw when calling sendTransaction without gas", async () => {
@@ -194,7 +194,7 @@ describe("Local accounts provider", () => {
       "adc1a53a3ebe8c4d1f0aa06aebf2fbbe82703e5075965c65c776a9caeeff4b637f203" +
       "d65383e1ed2e22654";
 
-    assert.equal(rawTransaction, expectedRaw);
+    assert.strictEqual(rawTransaction, expectedRaw);
   });
 
   it("Should throw if trying to send from an account that isn't local", async () => {
@@ -239,7 +239,7 @@ describe("Local accounts provider", () => {
       ],
     });
 
-    assert.equal(mock.getNumberOfCalls("eth_getTransactionCount"), 1);
+    assert.strictEqual(mock.getNumberOfCalls("eth_getTransactionCount"), 1);
   });
 
   it("should send eip1559 txs if the eip1559 fields are present", async () => {
@@ -263,7 +263,7 @@ describe("Local accounts provider", () => {
     );
 
     // The tx type is encoded in the first byte, and it must be the EIP-1559 one
-    assert.equal(rawTransaction[0], 2);
+    assert.strictEqual(rawTransaction[0], 2);
   });
 
   it("should send access list transactions", async () => {
@@ -302,7 +302,7 @@ describe("Local accounts provider", () => {
       "8b2ca3daf7a06025c30f36a179a09b9952e025632a65f220ec385eccd23a" +
       "1fb952976eace481";
 
-    assert.equal(rawTransaction, expectedRaw);
+    assert.strictEqual(rawTransaction, expectedRaw);
 
     validateRawEIP2930Transaction(expectedRaw, tx);
   });
@@ -340,7 +340,7 @@ describe("Local accounts provider", () => {
       "8b2ca3daf7a06025c30f36a179a09b9952e025632a65f220ec385eccd23a" +
       "1fb952976eace481";
 
-    assert.equal(rawTransaction, expectedRaw);
+    assert.strictEqual(rawTransaction, expectedRaw);
 
     validateRawEIP2930Transaction(expectedRaw, tx);
   });
@@ -362,7 +362,7 @@ describe("Local accounts provider", () => {
         ],
       });
 
-      assert.equal(
+      assert.strictEqual(
         result,
         "0x25c349f668c90a890c84aa79a78cf6c74e96483b43ec3ed06aa8aec835477c034aa096e883cc9871aa4ffdffd9f21f6ee4aa4b70f478ad56a18971e4ec2c753e1b"
       );
@@ -385,7 +385,7 @@ describe("Local accounts provider", () => {
 
       // This test is weird because ganache encodes the v param of the signature
       // differently than the rest. It subtracts 27 from it before serializing.
-      assert.equal(
+      assert.strictEqual(
         result.slice(0, -2),
         "0x84d993fc1b54926db1b6b81544aada29f0f36850a83dc979e8bacfa87e7c7cb11689b2f4ca64697842c42bb7e0cb02dff1851b42e25e62858f27f57bd00ff74b00".slice(
           0,
@@ -409,7 +409,7 @@ describe("Local accounts provider", () => {
         ],
       })) as string;
 
-      assert.equal(
+      assert.strictEqual(
         result,
         "0x88c6ac158d40e84f519fbb48b6a1355a31202b684163f637fe5c92cc1109acbe5c79a2dd95a8aecff45756c6fc3b4fc8aef345179605bcead2916dd533fb22651b"
       );
@@ -497,7 +497,7 @@ describe("Local accounts provider", () => {
         ],
       });
 
-      assert.equal(
+      assert.strictEqual(
         result,
         "0x4355c47d63924e8a72e509b65029052eb6c299d53a04e167c5775fd466751c9d07299936d304c153f6443dfa05f40ff007d72911b6f72307f996231605b915621c"
       );
@@ -553,7 +553,7 @@ describe("Local accounts provider", () => {
         ],
       });
 
-      assert.equal(
+      assert.strictEqual(
         result,
         "0x4355c47d63924e8a72e509b65029052eb6c299d53a04e167c5775fd466751c9d07299936d304c153f6443dfa05f40ff007d72911b6f72307f996231605b915621c"
       );
@@ -612,7 +612,7 @@ describe("Local accounts provider", () => {
         ],
       });
 
-      assert.equal(
+      assert.strictEqual(
         result,
         "0x9c73dd4937a37eecab3abb54b74b6ec8e500080431d36afedb1726624587ee6710296e10c1194dded7376f13ff03ef6c9e797eb86bae16c20c57776fc69344271c"
       );
@@ -633,7 +633,7 @@ describe("Local accounts provider", () => {
         ],
       })) as string;
 
-      assert.equal(
+      assert.strictEqual(
         result,
         "0x2875e4206c9fe3b229291c81f95cc4f421e2f4d3e023f5b4041daa56ab4000977010b47a3c01036ec8a6a0872aec2ab285150f003d01b0d8da60c1cceb9154181c"
       );
@@ -657,7 +657,7 @@ describe("hdwallet provider", () => {
     const response = (await wrapper.request({
       method: "eth_accounts",
     })) as string[];
-    assert.equal(response[0], "0x4f3e91d2cacd82fffd1f33a0d26d4078401986e9");
+    assert.strictEqual(response[0], "0x4f3e91d2cacd82fffd1f33a0d26d4078401986e9");
   });
 
   it("should generate a valid address with passphrase", async () => {
@@ -666,7 +666,7 @@ describe("hdwallet provider", () => {
     const response = (await wrapper.request({
       method: "eth_accounts",
     })) as string[];
-    assert.equal(response[0], "0x6955b833d195e49c07fc56fbf0ec387325facb87");
+    assert.strictEqual(response[0], "0x6955b833d195e49c07fc56fbf0ec387325facb87");
   });
 
   it("should generate a valid address when given a different index", async () => {
@@ -674,7 +674,7 @@ describe("hdwallet provider", () => {
     const response = (await wrapper.request({
       method: "eth_accounts",
     })) as string[];
-    assert.equal(response[0], "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d");
+    assert.strictEqual(response[0], "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d");
   });
 
   it("should generate 2 accounts", async () => {
@@ -692,7 +692,7 @@ describe("hdwallet provider", () => {
       const response = (await wrapper.request({
         method: "eth_accounts",
       })) as string[];
-      assert.equal(response[0], "0x4f3e91d2cacd82fffd1f33a0d26d4078401986e9");
+      assert.strictEqual(response[0], "0x4f3e91d2cacd82fffd1f33a0d26d4078401986e9");
     });
 
     it("Should throw if the path is invalid", () => {
@@ -761,7 +761,7 @@ describe("Sender providers", () => {
 
       const params = mock.getLatestParams("eth_sendTransaction");
 
-      assert.equal(
+      assert.strictEqual(
         params[0].from,
         "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d"
       );
@@ -773,7 +773,7 @@ describe("Sender providers", () => {
 
       const params = mock.getLatestParams("eth_sendTransaction");
 
-      assert.equal(
+      assert.strictEqual(
         params[0].from,
         "0x000006d4548a3ac17d72b372ae1e416bf65b8ead"
       );
@@ -789,7 +789,7 @@ describe("Sender providers", () => {
       await wrapper.request({ method: "eth_sendTransaction", params: [tx] });
 
       const params = mock.getLatestParams("eth_sendTransaction");
-      assert.equal(
+      assert.strictEqual(
         params[0].from,
         "0x123006d4548a3ac17d72b372ae1e416bf65b8eaf"
       );
@@ -802,7 +802,7 @@ describe("Sender providers", () => {
       await wrapper.request({ method: "eth_call", params: [tx] });
 
       const params = mock.getLatestParams("eth_call");
-      assert.equal(params[0].value, "asd");
+      assert.strictEqual(params[0].value, "asd");
     });
 
     it("Should not replace transaction's from", async () => {
@@ -811,7 +811,7 @@ describe("Sender providers", () => {
 
       const params = mock.getLatestParams("eth_sendTransaction");
 
-      assert.equal(
+      assert.strictEqual(
         params[0].from,
         "0x000006d4548a3ac17d72b372ae1e416bf65b8ead"
       );
@@ -838,12 +838,12 @@ function validateRawEIP2930Transaction(rawTx: string, tx: any) {
     };
   });
 
-  assert.equal(sentTx.getSenderAddress().toString(), tx.from);
-  assert.equal(sentTx.to?.toString(), tx.to);
+  assert.strictEqual(sentTx.getSenderAddress().toString(), tx.from);
+  assert.strictEqual(sentTx.to?.toString(), tx.to);
 
-  assert.equal(numberToRpcQuantity(sentTx.gasLimit), tx.gas);
-  assert.equal(numberToRpcQuantity(sentTx.gasPrice), tx.gasPrice);
-  assert.equal(numberToRpcQuantity(sentTx.nonce), tx.nonce);
-  assert.equal(numberToRpcQuantity(sentTx.value), tx.value);
+  assert.strictEqual(numberToRpcQuantity(sentTx.gasLimit), tx.gas);
+  assert.strictEqual(numberToRpcQuantity(sentTx.gasPrice), tx.gasPrice);
+  assert.strictEqual(numberToRpcQuantity(sentTx.nonce), tx.nonce);
+  assert.strictEqual(numberToRpcQuantity(sentTx.value), tx.value);
   assert.deepEqual(accessList, tx.accessList);
 }

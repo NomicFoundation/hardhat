@@ -51,7 +51,7 @@ describe("Mining Timer", () => {
 
       const actualBlockTime = miningTimer.getBlockTime();
 
-      assert.equal(actualBlockTime, newBlockTime);
+      assert.strictEqual(actualBlockTime, newBlockTime);
     });
 
     it("sets a new block time (range)", () => {
@@ -61,7 +61,7 @@ describe("Mining Timer", () => {
 
       const actualBlockTime = miningTimer.getBlockTime();
 
-      assert.equal(actualBlockTime, newBlockTime);
+      assert.strictEqual(actualBlockTime, newBlockTime);
     });
 
     it("triggers a new loop when mining timer is running", async () => {
@@ -77,7 +77,7 @@ describe("Mining Timer", () => {
 
       const currentBlockTime = miningTimer.getBlockTime();
 
-      assert.equal(currentBlockTime, newBlockTime);
+      assert.strictEqual(currentBlockTime, newBlockTime);
       assert.isTrue(mineFunction.notCalled);
 
       await sinonClock.tickAsync(newBlockTime - 500);
@@ -169,23 +169,23 @@ describe("Mining Timer", () => {
 
       await sinonClock.tickAsync(interval);
 
-      assert.equal(callCount, 0);
+      assert.strictEqual(callCount, 0);
 
       await sinonClock.tickAsync(90);
 
-      assert.equal(callCount, 0);
+      assert.strictEqual(callCount, 0);
 
       await sinonClock.tickAsync(10);
 
-      assert.equal(callCount, 1);
+      assert.strictEqual(callCount, 1);
 
       await sinonClock.tickAsync(interval + 50);
 
-      assert.equal(callCount, 1);
+      assert.strictEqual(callCount, 1);
 
       await sinonClock.tickAsync(50);
 
-      assert.equal(callCount, 2);
+      assert.strictEqual(callCount, 2);
     });
 
     it("multiple start calls don't affect the loop", async () => {

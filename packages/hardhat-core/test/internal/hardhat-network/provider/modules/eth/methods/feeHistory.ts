@@ -307,7 +307,7 @@ describe("Eth module", function () {
               "latest",
             ]);
 
-            assert.equal(oldestBlock, numberToRpcQuantity(firstBlock + 2));
+            assert.strictEqual(oldestBlock, numberToRpcQuantity(firstBlock + 2));
 
             await this.provider.send("evm_mine", []);
             await this.provider.send("evm_mine", []);
@@ -317,7 +317,7 @@ describe("Eth module", function () {
               [numberToRpcQuantity(3), numberToRpcQuantity(firstBlock + 4)]
             );
 
-            assert.equal(oldestBlock2, numberToRpcQuantity(firstBlock + 2));
+            assert.strictEqual(oldestBlock2, numberToRpcQuantity(firstBlock + 2));
           });
 
           it("Should cap the oldestBlock in 0", async function () {
@@ -335,7 +335,7 @@ describe("Eth module", function () {
               "latest",
             ]);
 
-            assert.equal(oldestBlock, firstBlock);
+            assert.strictEqual(oldestBlock, firstBlock);
           });
         });
 
@@ -433,7 +433,7 @@ describe("Eth module", function () {
               [numberToRpcQuantity(3), numberToRpcQuantity(firstBlock + 2)]
             );
 
-            assert.equal(oldestBlock, firstBlock);
+            assert.strictEqual(oldestBlock, firstBlock);
             assert.deepEqual(baseFeePerGas, [
               numberToRpcQuantity(1_000_000_000),
               // All of them are empty blocks, so each has 7/8 the base fee of
@@ -450,7 +450,7 @@ describe("Eth module", function () {
               [numberToRpcQuantity(1), "latest"]
             );
 
-            assert.equal(oldestBlock, firstBlock);
+            assert.strictEqual(oldestBlock, firstBlock);
             assert.deepEqual(baseFeePerGas, [
               numberToRpcQuantity(1_000_000_000),
               numberToRpcQuantity(Math.ceil(1_000_000_000 * (7 / 8) ** 1)),
@@ -463,7 +463,7 @@ describe("Eth module", function () {
               [numberToRpcQuantity(1), "pending"]
             );
 
-            assert.equal(oldestBlock, numberToRpcQuantity(firstBlock + 1));
+            assert.strictEqual(oldestBlock, numberToRpcQuantity(firstBlock + 1));
             assert.deepEqual(baseFeePerGas, [
               numberToRpcQuantity(Math.ceil(1_000_000_000 * (7 / 8) ** 1)),
               numberToRpcQuantity(Math.ceil(1_000_000_000 * (7 / 8) ** 2)),

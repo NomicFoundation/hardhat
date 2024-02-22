@@ -60,7 +60,7 @@ describe("Eth module", function () {
 
           const gasDifference = gasUsedBefore - gasUsedAfter;
 
-          assert.equal(gasDifference, 17_100n);
+          assert.strictEqual(gasDifference, 17_100n);
         });
       });
     });

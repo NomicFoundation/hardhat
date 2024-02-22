@@ -22,7 +22,7 @@ describe("setNextBlockBaseFeePerGas", function () {
     await hh.setNextBlockBaseFeePerGas(1234567);
     await hh.mine();
 
-    assert.equal(await getBaseFeePerGas(), 1234567);
+    assert.strictEqual(await getBaseFeePerGas(), 1234567);
   });
 
   describe("accepted parameter types for next block's base fee per gas", function () {
@@ -40,7 +40,7 @@ describe("setNextBlockBaseFeePerGas", function () {
         await hh.setNextBlockBaseFeePerGas(value);
         await hh.mine();
 
-        assert.equal(await getBaseFeePerGas(), expectedBlockGasLimit);
+        assert.strictEqual(await getBaseFeePerGas(), expectedBlockGasLimit);
       });
     }
 

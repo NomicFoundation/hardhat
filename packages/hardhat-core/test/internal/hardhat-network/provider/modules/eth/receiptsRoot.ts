@@ -50,7 +50,7 @@ describe("Eth module", function () {
             false,
           ]);
 
-          assert.equal(
+          assert.strictEqual(
             block.receiptsRoot,
             "0x056b23fbba480696b65fe5a59b8f2148a1299103c4f57df839233af2cf4ca2d2"
           );
@@ -85,7 +85,7 @@ describe("Eth module", function () {
             false,
           ]);
 
-          assert.equal(
+          assert.strictEqual(
             block.receiptsRoot,
             "0xd95b673818fa493deec414e01e610d97ee287c9421c8eff4102b1647c1a184e4"
           );

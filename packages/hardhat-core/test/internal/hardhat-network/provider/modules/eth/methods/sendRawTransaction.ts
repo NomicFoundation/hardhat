@@ -186,7 +186,7 @@ describe("Eth module", function () {
                 [txHash]
               );
 
-              assert.equal(tx.blockNumber, null);
+              assert.strictEqual(tx.blockNumber, null);
             });
           });
         });
@@ -274,9 +274,9 @@ describe("Eth module", function () {
               [txHash]
             );
 
-            assert.equal(receipt.from, DEFAULT_ACCOUNTS_ADDRESSES[0]);
-            assert.equal(receipt.to, contractAddress);
-            assert.equal(receipt.status, "0x0");
+            assert.strictEqual(receipt.from, DEFAULT_ACCOUNTS_ADDRESSES[0]);
+            assert.strictEqual(receipt.to, contractAddress);
+            assert.strictEqual(receipt.status, "0x0");
           });
 
           it("Should return the data of a transaction that reverts without a reason string", async function () {
@@ -291,8 +291,8 @@ describe("Eth module", function () {
             });
 
             assert.isDefined(response.error?.data);
-            assert.equal(response.error.message, response.error.data.message);
-            assert.equal(response.error.data.data, "0x");
+            assert.strictEqual(response.error.message, response.error.data.message);
+            assert.strictEqual(response.error.data.data, "0x");
           });
 
           it("Should return the data of a transaction that reverts with a reason string", async function () {
@@ -308,8 +308,8 @@ describe("Eth module", function () {
             });
 
             assert.isDefined(response.error?.data);
-            assert.equal(response.error.message, response.error.data.message);
-            assert.equal(
+            assert.strictEqual(response.error.message, response.error.data.message);
+            assert.strictEqual(
               response.error.data.data,
               // Error(string) encoded with value "a reason"
               "0x08c379a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000086120726561736f6e000000000000000000000000000000000000000000000000"
@@ -328,8 +328,8 @@ describe("Eth module", function () {
             });
 
             assert.isDefined(response.error?.data);
-            assert.equal(response.error.message, response.error.data.message);
-            assert.equal(
+            assert.strictEqual(response.error.message, response.error.data.message);
+            assert.strictEqual(
               response.error.data.data,
               // Panic(uint256) encoded with value 0x32 (out-of-bounds array access)
               "0x4e487b710000000000000000000000000000000000000000000000000000000000000032"
@@ -348,8 +348,8 @@ describe("Eth module", function () {
             });
 
             assert.isDefined(response.error?.data);
-            assert.equal(response.error.message, response.error.data.message);
-            assert.equal(
+            assert.strictEqual(response.error.message, response.error.data.message);
+            assert.strictEqual(
               response.error.data.data,
               // MyCustomError() encoded
               "0x4e7254d6"

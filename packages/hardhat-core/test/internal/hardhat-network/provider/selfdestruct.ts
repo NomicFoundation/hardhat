@@ -52,8 +52,8 @@ describe("selfdestruct", function () {
             [receiverAddress]
           );
 
-          assert.equal(BigInt(contractAddressBalance), 0n);
-          assert.equal(BigInt(receiverAddressBalance), 1000n);
+          assert.strictEqual(BigInt(contractAddressBalance), 0n);
+          assert.strictEqual(BigInt(receiverAddressBalance), 1000n);
         });
 
         it("shouldn't have code or balance after selfdestructing", async function () {
@@ -84,8 +84,8 @@ describe("selfdestruct", function () {
             contractAddress,
           ]);
 
-          assert.equal(BigInt(contractBalance), 0n);
-          assert.equal(contractCode, "0x");
+          assert.strictEqual(BigInt(contractBalance), 0n);
+          assert.strictEqual(contractCode, "0x");
         });
 
         it("within the transaction, should have code after selfdestructing but no balance", async function () {
@@ -174,9 +174,9 @@ describe("selfdestruct", function () {
             [receiverAddress]
           );
 
-          assert.equal(BigInt(contractBalanceAfterTx), 0n);
-          assert.equal(contractCodeAfterTx, "0x");
-          assert.equal(BigInt(receiverAddressBalanceAfterTx), 1000n);
+          assert.strictEqual(BigInt(contractBalanceAfterTx), 0n);
+          assert.strictEqual(contractCodeAfterTx, "0x");
+          assert.strictEqual(BigInt(receiverAddressBalanceAfterTx), 1000n);
         });
 
         describe("when selfdestructing during a deployment", function () {
@@ -199,18 +199,18 @@ describe("selfdestruct", function () {
             const contractCode = await this.provider.send("eth_getCode", [
               contractAddress,
             ]);
-            assert.equal(contractCode, "0x");
+            assert.strictEqual(contractCode, "0x");
 
             const storage = await this.provider.send("eth_getStorageAt", [
               contractAddress,
               "0x0",
             ]);
-            assert.equal(BigInt(storage), 0n);
+            assert.strictEqual(BigInt(storage), 0n);
 
             const nonce = await this.provider.send("eth_getTransactionCount", [
               contractAddress,
             ]);
-            assert.equal(nonce, "0x0");
+            assert.strictEqual(nonce, "0x0");
           });
 
           it("should transfer the balance", async function () {
@@ -238,8 +238,8 @@ describe("selfdestruct", function () {
               [receiverAddress]
             );
 
-            assert.equal(BigInt(contractAddressBalance), 0n);
-            assert.equal(BigInt(receiverAddressBalance), 1000n);
+            assert.strictEqual(BigInt(contractAddressBalance), 0n);
+            assert.strictEqual(BigInt(receiverAddressBalance), 1000n);
           });
 
           it("should end with a balance of 0 if the target of the transfer is the contract itself", async function () {
@@ -260,7 +260,7 @@ describe("selfdestruct", function () {
               [contractAddress]
             );
 
-            assert.equal(BigInt(contractAddressBalance), 0n);
+            assert.strictEqual(BigInt(contractAddressBalance), 0n);
           });
         });
 
@@ -297,7 +297,7 @@ describe("selfdestruct", function () {
           const contractCode1 = await this.provider.send("eth_getCode", [
             contractAddress1,
           ]);
-          assert.equal(contractCode1, "0x");
+          assert.strictEqual(contractCode1, "0x");
 
           const contractCode2 = await this.provider.send("eth_getCode", [
             contractAddress2,
@@ -341,12 +341,12 @@ describe("selfdestruct", function () {
               contractAddress,
               "0x0",
             ]);
-            assert.equal(BigInt(storage), 1n);
+            assert.strictEqual(BigInt(storage), 1n);
 
             const nonce = await this.provider.send("eth_getTransactionCount", [
               contractAddress,
             ]);
-            assert.equal(nonce, "0x1");
+            assert.strictEqual(nonce, "0x1");
           });
 
           it("should transfer the balance", async function () {
@@ -380,8 +380,8 @@ describe("selfdestruct", function () {
               [receiverAddress]
             );
 
-            assert.equal(BigInt(contractAddressBalance), 0n);
-            assert.equal(BigInt(receiverAddressBalance), 1000n);
+            assert.strictEqual(BigInt(contractAddressBalance), 0n);
+            assert.strictEqual(BigInt(receiverAddressBalance), 1000n);
           });
 
           it("shouldn't change the balance if the target of the transfer is the contract itself", async function () {
@@ -408,7 +408,7 @@ describe("selfdestruct", function () {
               [contractAddress]
             );
 
-            assert.equal(BigInt(contractAddressBalance), 1000n);
+            assert.strictEqual(BigInt(contractAddressBalance), 1000n);
           });
         });
 
@@ -432,18 +432,18 @@ describe("selfdestruct", function () {
             const contractCode = await this.provider.send("eth_getCode", [
               contractAddress,
             ]);
-            assert.equal(contractCode, "0x");
+            assert.strictEqual(contractCode, "0x");
 
             const storage = await this.provider.send("eth_getStorageAt", [
               contractAddress,
               "0x0",
             ]);
-            assert.equal(BigInt(storage), 0n);
+            assert.strictEqual(BigInt(storage), 0n);
 
             const nonce = await this.provider.send("eth_getTransactionCount", [
               contractAddress,
             ]);
-            assert.equal(nonce, "0x0");
+            assert.strictEqual(nonce, "0x0");
           });
 
           it("should transfer the balance", async function () {
@@ -471,8 +471,8 @@ describe("selfdestruct", function () {
               [receiverAddress]
             );
 
-            assert.equal(BigInt(contractAddressBalance), 0n);
-            assert.equal(BigInt(receiverAddressBalance), 1000n);
+            assert.strictEqual(BigInt(contractAddressBalance), 0n);
+            assert.strictEqual(BigInt(receiverAddressBalance), 1000n);
           });
 
           it("should end with a balance of 0 if the target of the transfer is the contract itself", async function () {
@@ -493,7 +493,7 @@ describe("selfdestruct", function () {
               [contractAddress]
             );
 
-            assert.equal(BigInt(contractAddressBalance), 0n);
+            assert.strictEqual(BigInt(contractAddressBalance), 0n);
           });
         });
       });

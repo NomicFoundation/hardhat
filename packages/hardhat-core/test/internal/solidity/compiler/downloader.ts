@@ -161,7 +161,7 @@ describe("Compiler downloader", function () {
         async () => {}
       );
 
-      assert.equal(downloads, 3);
+      assert.strictEqual(downloads, 3);
     });
 
     it("Should throw the right error and delete the compiler if the checksum fails", async function () {

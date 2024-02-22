@@ -27,7 +27,7 @@ describe("BackwardsCompatibilityProviderAdapter", function () {
       mock.setReturnValue("m", 123);
 
       const ret = await provider.send("m");
-      assert.equal(ret, 123);
+      assert.strictEqual(ret, 123);
     });
   });
 
@@ -61,10 +61,10 @@ describe("BackwardsCompatibilityProviderAdapter", function () {
           params: [1, 2, 3],
         });
 
-        assert.equal(res.id, 123);
-        assert.equal(res.jsonrpc, "2.0");
-        assert.equal(res.result, 123456);
-        assert.equal(res.error, null);
+        assert.strictEqual(res.id, 123);
+        assert.strictEqual(res.jsonrpc, "2.0");
+        assert.strictEqual(res.result, 123456);
+        assert.isUndefined(res.error);
       });
     });
   });

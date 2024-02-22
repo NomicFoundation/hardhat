@@ -16,8 +16,8 @@ describe("time#advanceBlock", function () {
 
     const endHeight = await hh.time.latestBlock();
 
-    assert.equal(newHeight, endHeight);
-    assert.equal(initialHeight + 3, endHeight);
+    assert.strictEqual(newHeight, endHeight);
+    assert.strictEqual(initialHeight + 3, endHeight);
   });
 
   it("should throw if given a negative number", async function () {
@@ -40,8 +40,8 @@ describe("time#advanceBlock", function () {
         const newHeight = await hh.time.advanceBlock(value);
         const endHeight = await hh.time.latestBlock();
 
-        assert.equal(newHeight, endHeight);
-        assert.equal(initialHeight + 1, endHeight);
+        assert.strictEqual(newHeight, endHeight);
+        assert.strictEqual(initialHeight + 1, endHeight);
       });
     }
   });

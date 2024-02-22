@@ -50,7 +50,7 @@ export async function assertProviderError(
     }
 
     if (code !== undefined) {
-      assert.equal(error.code, code);
+      assert.strictEqual(error.code, code);
     }
 
     if (message !== undefined) {
@@ -185,7 +185,7 @@ export async function assertTransactionFailure(
         );
       }
 
-      assert.equal(error.code, code);
+      assert.strictEqual(error.code, code);
     }
 
     if (message !== undefined) {
@@ -224,19 +224,19 @@ function assertTransaction(
   blockHash?: string,
   txIndex?: number
 ) {
-  assert.equal(tx.from, bufferToHex(txParams.from));
+  assert.strictEqual(tx.from, bufferToHex(txParams.from));
   assertQuantity(tx.gas, txParams.gasLimit);
-  assert.equal(tx.hash, txHash);
-  assert.equal(tx.input, bufferToHex(txParams.data));
+  assert.strictEqual(tx.hash, txHash);
+  assert.strictEqual(tx.input, bufferToHex(txParams.data));
   assertQuantity(tx.nonce, txParams.nonce);
-  assert.equal(
+  assert.strictEqual(
     tx.to,
     txParams.to === undefined ? null : bufferToHex(txParams.to)
   );
   assertQuantity(tx.value, txParams.value);
 
   if (blockHash !== undefined) {
-    assert.equal(tx.blockHash, blockHash);
+    assert.strictEqual(tx.blockHash, blockHash);
   } else {
     assert.isNull(tx.blockHash);
   }
@@ -282,7 +282,7 @@ export function assertAccessListTransaction(
 ) {
   assertTransaction(tx, txHash, txParams, blockNumber, blockHash, txIndex);
 
-  assert.equal(tx.type, "0x1");
+  assert.strictEqual(tx.type, "0x1");
   assertQuantity(tx.gasPrice, txParams.gasPrice);
   assertEqualAccessLists(tx.accessList ?? [], txParams.accessList);
 }
@@ -297,7 +297,7 @@ export function assertEIP1559Transaction(
 ) {
   assertTransaction(tx, txHash, txParams, blockNumber, blockHash, txIndex);
 
-  assert.equal(tx.type, "0x2");
+  assert.strictEqual(tx.type, "0x2");
   assertQuantity(tx.maxFeePerGas, txParams.maxFeePerGas);
   assertQuantity(tx.maxPriorityFeePerGas, txParams.maxPriorityFeePerGas);
   assertEqualAccessLists(tx.accessList ?? [], txParams.accessList);
@@ -307,12 +307,12 @@ export function assertEqualAccessLists(
   txAccessList: RpcAccessListOutput,
   txParamsAccessList: AccessListBufferItem[]
 ) {
-  assert.equal(txAccessList.length, txParamsAccessList.length);
+  assert.strictEqual(txAccessList.length, txParamsAccessList.length);
 
   for (const [i, txAccessListItem] of txAccessList.entries()) {
     const txParamsAccessListItem = txParamsAccessList[i];
 
-    assert.equal(
+    assert.strictEqual(
       txAccessListItem.address,
       bufferToHex(txParamsAccessListItem[0])
     );
@@ -331,7 +331,7 @@ export async function assertLatestBlockNumber(
   const block = await provider.send("eth_getBlockByNumber", ["latest", false]);
 
   assert.isNotNull(block);
-  assert.equal(block.number, numberToRpcQuantity(latestBlockNumber));
+  assert.strictEqual(block.number, numberToRpcQuantity(latestBlockNumber));
 }
 
 export async function assertContractFieldEqualNumber(
@@ -348,7 +348,7 @@ export async function assertContractFieldEqualNumber(
       },
     ])
   );
-  assert.equal(value, expectedValue);
+  assert.strictEqual(value, expectedValue);
 }
 
 export async function assertAddressBalance(
@@ -359,7 +359,7 @@ export async function assertAddressBalance(
   const value = rpcQuantityToBigInt(
     await provider.send("eth_getBalance", [address])
   );
-  assert.equal(value, expectedValue);
+  assert.strictEqual(value, expectedValue);
 }
 
 export async function assertEqualCode(
@@ -369,7 +369,7 @@ export async function assertEqualCode(
 ) {
   const code1 = await provider.send("eth_getCode", [address1]);
   const code2 = await provider.send("eth_getCode", [address2]);
-  assert.equal(
+  assert.strictEqual(
     code1,
     code2,
     `Expected code in accounts ${address1} and ${address2} to be equal`

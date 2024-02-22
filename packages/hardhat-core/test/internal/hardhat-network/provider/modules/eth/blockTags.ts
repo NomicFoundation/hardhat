@@ -58,7 +58,7 @@ describe("Eth module", function () {
             [previousBlockNumber, false]
           );
 
-          assert.equal(
+          assert.strictEqual(
             await this.provider.send("eth_call", [
               {
                 to: contractAddress,
@@ -72,7 +72,7 @@ describe("Eth module", function () {
             "0x0000000000000000000000000000000000000000000000000000000000000000"
           );
 
-          assert.equal(
+          assert.strictEqual(
             await this.provider.send("eth_call", [
               {
                 to: contractAddress,
@@ -91,7 +91,7 @@ describe("Eth module", function () {
             ["latest", false]
           );
 
-          assert.equal(
+          assert.strictEqual(
             await this.provider.send("eth_call", [
               {
                 to: contractAddress,
@@ -105,7 +105,7 @@ describe("Eth module", function () {
             `0x${newState}`
           );
 
-          assert.equal(
+          assert.strictEqual(
             await this.provider.send("eth_call", [
               {
                 to: contractAddress,

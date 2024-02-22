@@ -75,11 +75,11 @@ describe("Vyper plugin", function () {
     it("Should successfully compile the contracts", async function () {
       await this.env.run(TASK_COMPILE);
 
-      assert.equal(
+      assert.strictEqual(
         this.env.artifacts.readArtifactSync("test").contractName,
         "test"
       );
-      assert.equal(
+      assert.strictEqual(
         this.env.artifacts.readArtifactSync("Greeter").contractName,
         "Greeter"
       );

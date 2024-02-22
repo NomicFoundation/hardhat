@@ -59,7 +59,7 @@ describe("provider events", function () {
       await this.env.network.provider.send("hardhat_mine");
 
       await tryUntil(() => {
-        assert.equal(listener.callCount, 1);
+        assert.strictEqual(listener.callCount, 1);
       });
     });
 
@@ -194,7 +194,7 @@ describe("provider events", function () {
       await this.env.network.provider.send("hardhat_mine", ["0x5"]);
 
       await tryUntil(() => {
-        assert.equal(blockListener.callCount, 7);
+        assert.strictEqual(blockListener.callCount, 7);
       });
 
       // remove subscription
@@ -210,13 +210,13 @@ describe("provider events", function () {
       await s.sendTransaction({ to: s });
 
       await tryUntil(() => {
-        assert.equal(blockListener.callCount, 1);
+        assert.strictEqual(blockListener.callCount, 1);
       });
 
       // shouldn't be emitted a second time
       await s.sendTransaction({ to: s });
       await sleep(100);
-      assert.equal(blockListener.callCount, 1);
+      assert.strictEqual(blockListener.callCount, 1);
     });
 
     it("should remove a listener with .off()", async function () {

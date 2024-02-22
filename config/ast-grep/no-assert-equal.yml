@@ -1,0 +1,10 @@
+id: no-assert-equal
+message: Don't use assert.equal
+severity: error
+language: TypeScript
+rule:
+  all:
+    - pattern: assert.equal
+fix: assert.strictEqual
+note: |
+  Using assert.equal doesn't use strict equality (`===`), making the assertion more fragile

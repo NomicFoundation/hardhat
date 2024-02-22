@@ -87,7 +87,7 @@ describe("Eth module", function () {
             [numberToRpcQuantity(firstBlockNumber + 2), false]
           );
 
-          assert.equal(block.transactions.length, 2);
+          assert.strictEqual(block.transactions.length, 2);
 
           const receipts = await Promise.all(
             txHashes.map(
@@ -103,12 +103,12 @@ describe("Eth module", function () {
 
           for (const receipt of receipts) {
             cumGasUsed += rpcQuantityToNumber(receipt.gasUsed);
-            assert.equal(
+            assert.strictEqual(
               cumGasUsed,
               rpcQuantityToNumber(receipt.cumulativeGasUsed)
             );
             for (const event of receipt.logs) {
-              assert.equal(
+              assert.strictEqual(
                 logIndex,
                 rpcQuantityToNumber(
                   event.logIndex === null ? "0" : event.logIndex
@@ -146,15 +146,15 @@ describe("Eth module", function () {
             [txHash]
           );
 
-          assert.equal(receipt.blockHash, block.hash);
+          assert.strictEqual(receipt.blockHash, block.hash);
           assertQuantity(receipt.blockNumber, firstBlockNumber + 2);
           assert.isNull(receipt.contractAddress);
-          assert.equal(receipt.cumulativeGasUsed, receipt.gasUsed);
-          assert.equal(receipt.from, DEFAULT_ACCOUNTS_ADDRESSES[0]);
+          assert.strictEqual(receipt.cumulativeGasUsed, receipt.gasUsed);
+          assert.strictEqual(receipt.from, DEFAULT_ACCOUNTS_ADDRESSES[0]);
           assertQuantity(receipt.status, 1);
-          assert.equal(receipt.logs.length, 1);
-          assert.equal(receipt.to, contractAddress);
-          assert.equal(receipt.transactionHash, txHash);
+          assert.strictEqual(receipt.logs.length, 1);
+          assert.strictEqual(receipt.to, contractAddress);
+          assert.strictEqual(receipt.transactionHash, txHash);
           assertQuantity(receipt.transactionIndex, 0);
 
           const log = receipt.logs[0];
@@ -162,13 +162,13 @@ describe("Eth module", function () {
           assert.isFalse(log.removed);
           assertQuantity(log.logIndex, 0);
           assertQuantity(log.transactionIndex, 0);
-          assert.equal(log.transactionHash, txHash);
-          assert.equal(log.blockHash, block.hash);
+          assert.strictEqual(log.transactionHash, txHash);
+          assert.strictEqual(log.blockHash, block.hash);
           assertQuantity(log.blockNumber, firstBlockNumber + 2);
-          assert.equal(log.address, contractAddress);
+          assert.strictEqual(log.address, contractAddress);
 
           // The new value of i is not indexed
-          assert.equal(
+          assert.strictEqual(
             log.data,
             "0x000000000000000000000000000000000000000000000000000000000000000a"
           );

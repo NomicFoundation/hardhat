@@ -52,8 +52,8 @@ describe("Eth module", function () {
             subscription
           );
 
-          assert.equal(newBlockEvent.method, "eth_subscription");
-          assert.equal(newBlockEvent.params.subscription, subscription);
+          assert.strictEqual(newBlockEvent.method, "eth_subscription");
+          assert.strictEqual(newBlockEvent.params.subscription, subscription);
         });
 
         it("Supports unsubscribe", async function () {
@@ -82,8 +82,8 @@ describe("Eth module", function () {
             subscription
           );
 
-          assert.equal(newPendingTransactionEvent.method, "eth_subscription");
-          assert.equal(
+          assert.strictEqual(newPendingTransactionEvent.method, "eth_subscription");
+          assert.strictEqual(
             newPendingTransactionEvent.params.subscription,
             subscription
           );
@@ -116,8 +116,8 @@ describe("Eth module", function () {
             subscription
           );
 
-          assert.equal(newLogEvent.method, "eth_subscription");
-          assert.equal(newLogEvent.params.subscription, subscription);
+          assert.strictEqual(newLogEvent.method, "eth_subscription");
+          assert.strictEqual(newLogEvent.params.subscription, subscription);
         });
 
         it("Supports single and batched requests", async function () {
@@ -133,7 +133,7 @@ describe("Eth module", function () {
             params: [acc1],
           });
 
-          assert.equal(balanceResponse1.id, requestId1);
+          assert.strictEqual(balanceResponse1.id, requestId1);
 
           const balanceAccount1 = rpcQuantityToBigInt(balanceResponse1.result);
           assert.isTrue(balanceAccount1 > 0);
@@ -165,7 +165,7 @@ describe("Eth module", function () {
 
           // the first request in the batch uses the same address as the one in
           // the single request, so the results should match
-          assert.equal(balanceResponse2.result, balanceResponse1.result);
+          assert.strictEqual(balanceResponse2.result, balanceResponse1.result);
 
           // it should return a valid value for the second account too
           const balanceAccount2 = rpcQuantityToBigInt(balanceResponse3.result);

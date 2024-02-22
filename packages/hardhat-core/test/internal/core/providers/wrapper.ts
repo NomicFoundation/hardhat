@@ -44,7 +44,7 @@ describe("ProviderWrapper", () => {
       provider.off("otherevent", eventHandler);
       provider.emit("otherevent"); // 3
 
-      assert.equal(callTimes, 3);
+      assert.strictEqual(callTimes, 3);
     });
   });
 

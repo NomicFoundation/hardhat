@@ -68,15 +68,15 @@ describe("Eth module", function () {
           assert.lengthOf(logs, 1);
 
           const log = logs[0];
-          assert.equal(log.removed, false);
-          assert.equal(log.logIndex, "0x0");
-          assert.equal(log.transactionIndex, "0x0");
-          assert.equal(
+          assert.strictEqual(log.removed, false);
+          assert.strictEqual(log.logIndex, "0x0");
+          assert.strictEqual(log.transactionIndex, "0x0");
+          assert.strictEqual(
             rpcQuantityToNumber(log.blockNumber),
             firstBlockNumber + 2
           );
-          assert.equal(log.address, exampleContract);
-          assert.equal(log.data, `0x${newState}`);
+          assert.strictEqual(log.address, exampleContract);
+          assert.strictEqual(log.data, `0x${newState}`);
         });
 
         it("Supports get logs with address", async function () {

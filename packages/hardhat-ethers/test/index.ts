@@ -949,7 +949,7 @@ describe("Ethers plugin", function () {
             assert.fail("Deployment transaction shouldn't be null");
           }
 
-          assert.equal(deploymentTx.gasLimit, 1_000_000n);
+          assert.strictEqual(deploymentTx.gasLimit, 1_000_000n);
         });
 
         it("should accept overrides for the deployment transaction when there are constructor args", async function () {
@@ -968,7 +968,7 @@ describe("Ethers plugin", function () {
             assert.fail("Deployment transaction shouldn't be null");
           }
 
-          assert.equal(deploymentTx.gasLimit, 1_000_000n);
+          assert.strictEqual(deploymentTx.gasLimit, 1_000_000n);
         });
 
         async function assertContract(

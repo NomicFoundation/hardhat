@@ -13,6 +13,6 @@ describe("time#latest", function () {
 
     const endTimestamp = await hh.time.latest();
 
-    assert.equal(endTimestamp, initialTimestamp + 1);
+    assert.strictEqual(endTimestamp, initialTimestamp + 1);
   });
 });

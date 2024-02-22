@@ -50,7 +50,7 @@ describe("SimpleTaskDefinition", () => {
     });
 
     it("gets the right name", () => {
-      assert.equal(taskDefinition.name, "name");
+      assert.strictEqual(taskDefinition.name, "name");
     });
 
     it("gets the right isSubtask flag", () => {
@@ -89,11 +89,11 @@ describe("SimpleTaskDefinition", () => {
     });
 
     it("gets the right name", () => {
-      assert.equal(taskDefinition.name, "name");
+      assert.strictEqual(taskDefinition.name, "name");
     });
 
     it("gets the right scope", () => {
-      assert.equal(taskDefinition.scope, "scope");
+      assert.strictEqual(taskDefinition.scope, "scope");
     });
 
     it("gets the right isSubtask flag", () => {
@@ -123,10 +123,10 @@ describe("SimpleTaskDefinition", () => {
       assert.isUndefined(taskDefinition.description);
 
       taskDefinition.setDescription("A");
-      assert.equal(taskDefinition.description, "A");
+      assert.strictEqual(taskDefinition.description, "A");
 
       taskDefinition.setDescription("B");
-      assert.equal(taskDefinition.description, "B");
+      assert.strictEqual(taskDefinition.description, "B");
     });
   });
 
@@ -136,12 +136,12 @@ describe("SimpleTaskDefinition", () => {
 
       taskDefinition.setAction(async () => 1);
       let result = await taskDefinition.action({}, {} as any, runSuperNop);
-      assert.equal(result, 1);
+      assert.strictEqual(result, 1);
 
       const obj = {};
       taskDefinition.setAction(async () => obj);
       result = await taskDefinition.action({}, {} as any, runSuperNop);
-      assert.equal(result, obj);
+      assert.strictEqual(result, obj);
     });
   });
 
@@ -297,14 +297,14 @@ describe("SimpleTaskDefinition", () => {
         it("should accept an optional positional param", () => {
           taskDefinition.addOptionalPositionalParam("asd2");
           const last = getLastPositionalParam(taskDefinition);
-          assert.equal(last.name, "asd2");
+          assert.strictEqual(last.name, "asd2");
           assert.isTrue(last.isOptional);
         });
 
         it("should accept an optional variadic positional param", () => {
           taskDefinition.addOptionalVariadicPositionalParam("asd2");
           const last = getLastPositionalParam(taskDefinition);
-          assert.equal(last.name, "asd2");
+          assert.strictEqual(last.name, "asd2");
           assert.isTrue(last.isOptional);
           assert.isTrue(last.isVariadic);
         });
@@ -444,7 +444,7 @@ describe("SimpleTaskDefinition", () => {
 
       it("should use types.string as if non type is given", () => {
         taskDefinition.addParam("p");
-        assert.equal(taskDefinition.paramDefinitions.p.type, types.string);
+        assert.strictEqual(taskDefinition.paramDefinitions.p.type, types.string);
       });
 
       it("should throw if a non-string default value is given but its type isn't set", () => {
@@ -486,7 +486,7 @@ describe("SimpleTaskDefinition", () => {
 
       it("should use types.string as if non type is given", () => {
         taskDefinition.addOptionalParam("p");
-        assert.equal(taskDefinition.paramDefinitions.p.type, types.string);
+        assert.strictEqual(taskDefinition.paramDefinitions.p.type, types.string);
       });
 
       it("should throw if a non-string default value is given but its type isn't set", () => {
@@ -550,7 +550,7 @@ describe("SimpleTaskDefinition", () => {
       it("should use types.string as if non type is given", () => {
         taskDefinition.addPositionalParam("p", "desc");
         const last = getLastPositionalParam(taskDefinition);
-        assert.equal(last.type, types.string);
+        assert.strictEqual(last.type, types.string);
       });
 
       it("should throw if a non-string default value is given but its type isn't set", () => {
@@ -620,7 +620,7 @@ describe("SimpleTaskDefinition", () => {
       it("should use types.string as if non type is given", () => {
         taskDefinition.addOptionalPositionalParam("p", "desc");
         const last = getLastPositionalParam(taskDefinition);
-        assert.equal(last.type, types.string);
+        assert.strictEqual(last.type, types.string);
       });
 
       it("should throw if a non-string default value is given but its type isn't set", () => {
@@ -691,7 +691,7 @@ describe("SimpleTaskDefinition", () => {
       it("should use types.string as if non type is given", () => {
         taskDefinition.addVariadicPositionalParam("p", "desc");
         const last = getLastPositionalParam(taskDefinition);
-        assert.equal(last.type, types.string);
+        assert.strictEqual(last.type, types.string);
       });
 
       it("should throw if a non-string default value is given but its type isn't set", () => {
@@ -800,7 +800,7 @@ describe("SimpleTaskDefinition", () => {
       it("should use types.string as if non type is given", () => {
         taskDefinition.addOptionalVariadicPositionalParam("p", "desc");
         const last = getLastPositionalParam(taskDefinition);
-        assert.equal(last.type, types.string);
+        assert.strictEqual(last.type, types.string);
       });
 
       it("should throw if a non-string default value is given but its type isn't set", () => {
@@ -936,7 +936,7 @@ describe("OverriddenTaskDefinition", () => {
 
   describe("construction", () => {
     it("should have the right name", () => {
-      assert.equal(overriddenTask.name, "t");
+      assert.strictEqual(overriddenTask.name, "t");
     });
 
     it("should set isSubtask", () => {
@@ -944,32 +944,32 @@ describe("OverriddenTaskDefinition", () => {
     });
 
     it("should set the parent task", () => {
-      assert.equal(overriddenTask.parentTaskDefinition, parentTask);
+      assert.strictEqual(overriddenTask.parentTaskDefinition, parentTask);
     });
   });
 
   describe("inherited properties", () => {
     it("should return the parent's name", () => {
-      assert.equal(overriddenTask.name, parentTask.name);
+      assert.strictEqual(overriddenTask.name, parentTask.name);
     });
 
     it("should return the parent's action", () => {
-      assert.equal(overriddenTask.action, parentTask.action);
+      assert.strictEqual(overriddenTask.action, parentTask.action);
     });
 
     it("should return the parent's description", () => {
-      assert.equal(overriddenTask.description, parentTask.description);
+      assert.strictEqual(overriddenTask.description, parentTask.description);
     });
 
     it("should return the parent's param definitions", () => {
-      assert.equal(
+      assert.strictEqual(
         overriddenTask.paramDefinitions,
         parentTask.paramDefinitions
       );
     });
 
     it("should return the parent's positional param definitions", () => {
-      assert.equal(
+      assert.strictEqual(
         overriddenTask.positionalParamDefinitions,
         parentTask.positionalParamDefinitions
       );
@@ -980,58 +980,58 @@ describe("OverriddenTaskDefinition", () => {
         overriddenTask,
         false
       );
-      assert.equal(overriddenAgain.isSubtask, false);
-      assert.equal(overriddenAgain.name, parentTask.name);
-      assert.equal(overriddenAgain.action, parentTask.action);
-      assert.equal(overriddenAgain.description, parentTask.description);
-      assert.equal(
+      assert.strictEqual(overriddenAgain.isSubtask, false);
+      assert.strictEqual(overriddenAgain.name, parentTask.name);
+      assert.strictEqual(overriddenAgain.action, parentTask.action);
+      assert.strictEqual(overriddenAgain.description, parentTask.description);
+      assert.strictEqual(
         overriddenAgain.paramDefinitions,
         parentTask.paramDefinitions
       );
-      assert.equal(
+      assert.strictEqual(
         overriddenAgain.positionalParamDefinitions,
         parentTask.positionalParamDefinitions
       );
     });
 
     it("should return overridden actions", () => {
-      assert.equal(overriddenTask.action, parentTask.action);
+      assert.strictEqual(overriddenTask.action, parentTask.action);
 
       const action2 = async () => 1;
       overriddenTask.setAction(action2);
 
-      assert.equal(overriddenTask.action, action2);
+      assert.strictEqual(overriddenTask.action, action2);
 
       const action3 = async () => 1;
       overriddenTask.setAction(action3);
 
-      assert.equal(overriddenTask.action, action3);
+      assert.strictEqual(overriddenTask.action, action3);
 
       const overriddenAgain = new OverriddenTaskDefinition(overriddenTask);
-      assert.equal(overriddenAgain.action, action3);
+      assert.strictEqual(overriddenAgain.action, action3);
 
       const action4 = async () => 1;
       overriddenAgain.setAction(action4);
 
-      assert.equal(overriddenTask.action, action3);
-      assert.equal(overriddenAgain.action, action4);
+      assert.strictEqual(overriddenTask.action, action3);
+      assert.strictEqual(overriddenAgain.action, action4);
     });
 
     it("should return overridden descriptions", () => {
-      assert.equal(overriddenTask.description, parentTask.description);
+      assert.strictEqual(overriddenTask.description, parentTask.description);
 
       overriddenTask.setDescription("d2");
-      assert.equal(overriddenTask.description, "d2");
+      assert.strictEqual(overriddenTask.description, "d2");
 
       overriddenTask.setDescription("d3");
-      assert.equal(overriddenTask.description, "d3");
+      assert.strictEqual(overriddenTask.description, "d3");
 
       const overriddenAgain = new OverriddenTaskDefinition(overriddenTask);
-      assert.equal(overriddenTask.description, "d3");
+      assert.strictEqual(overriddenTask.description, "d3");
 
       overriddenAgain.setDescription("d4");
-      assert.equal(overriddenTask.description, "d3");
-      assert.equal(overriddenAgain.description, "d4");
+      assert.strictEqual(overriddenTask.description, "d3");
+      assert.strictEqual(overriddenAgain.description, "d4");
     });
   });
 
@@ -1155,7 +1155,7 @@ describe("SimpleScopeDefinition", () => {
       (() => {}) as any
     );
 
-    assert.equal(scopeDefinition.name, "scope");
+    assert.strictEqual(scopeDefinition.name, "scope");
     assert.isUndefined(scopeDefinition.description);
   });
 
@@ -1167,8 +1167,8 @@ describe("SimpleScopeDefinition", () => {
       (() => {}) as any
     );
 
-    assert.equal(scopeDefinition.name, "scope");
-    assert.equal(scopeDefinition.description, "a description");
+    assert.strictEqual(scopeDefinition.name, "scope");
+    assert.strictEqual(scopeDefinition.description, "a description");
   });
 
   it("should change the description with setDescription", async function () {
@@ -1179,12 +1179,12 @@ describe("SimpleScopeDefinition", () => {
       (() => {}) as any
     );
 
-    assert.equal(scopeDefinition.name, "scope");
-    assert.equal(scopeDefinition.description, "a description");
+    assert.strictEqual(scopeDefinition.name, "scope");
+    assert.strictEqual(scopeDefinition.description, "a description");
 
     scopeDefinition.setDescription("another description");
 
-    assert.equal(scopeDefinition.description, "another description");
+    assert.strictEqual(scopeDefinition.description, "another description");
   });
 
   it("should call the right callbacks", async function () {

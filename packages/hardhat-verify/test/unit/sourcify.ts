@@ -19,7 +19,7 @@ describe("Sourcify", () => {
         ContractStatus.PERFECT
       );
 
-      assert.equal(contractUrl, expectedContractAddress);
+      assert.strictEqual(contractUrl, expectedContractAddress);
     });
   });
 });

@@ -61,7 +61,7 @@ describe("pweb3", () => {
 
     await test.nonConstantFunction({ from: accounts[0] });
 
-    assert.equal(await test.constantFunction(), 1);
+    assert.strictEqual(await test.constantFunction(), 1);
   });
 
   it("Should give the same result as calling web3 but promisified", (done) => {

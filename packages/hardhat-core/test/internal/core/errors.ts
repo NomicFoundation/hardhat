@@ -48,14 +48,14 @@ describe("HardhatError", () => {
   describe("Without parent error", () => {
     it("should have the right error number", () => {
       const error = new HardhatError(mockErrorDescriptor);
-      assert.equal(error.number, mockErrorDescriptor.number);
+      assert.strictEqual(error.number, mockErrorDescriptor.number);
     });
 
     it("should format the error code to 4 digits", () => {
       const error = new HardhatError(mockErrorDescriptor);
-      assert.equal(error.message.substr(0, 7), "HH123: ");
+      assert.strictEqual(error.message.substr(0, 7), "HH123: ");
 
-      assert.equal(
+      assert.strictEqual(
         new HardhatError({
           number: 1,
           message: "",
@@ -69,7 +69,7 @@ describe("HardhatError", () => {
 
     it("should have the right error message", () => {
       const error = new HardhatError(mockErrorDescriptor);
-      assert.equal(error.message, `HH123: ${mockErrorDescriptor.message}`);
+      assert.strictEqual(error.message, `HH123: ${mockErrorDescriptor.message}`);
     });
 
     it("should format the error message with the template params", () => {
@@ -83,7 +83,7 @@ describe("HardhatError", () => {
         },
         { a: "a", b: "b", c: 123 }
       );
-      assert.equal(error.message, "HH12: a b 123");
+      assert.strictEqual(error.message, "HH12: a b 123");
     });
 
     it("shouldn't have a parent", () => {
@@ -100,7 +100,7 @@ describe("HardhatError", () => {
     it("should have the right parent error", () => {
       const parent = new Error();
       const error = new HardhatError(mockErrorDescriptor, {}, parent);
-      assert.equal(error.parent, parent);
+      assert.strictEqual(error.parent, parent);
     });
 
     it("should format the error message with the template params", () => {
@@ -115,7 +115,7 @@ describe("HardhatError", () => {
         { a: "a", b: "b", c: 123 },
         new Error()
       );
-      assert.equal(error.message, "HH12: a b 123");
+      assert.strictEqual(error.message, "HH12: a b 123");
     });
 
     it("Should work with instanceof", () => {
@@ -213,7 +213,7 @@ describe("Error descriptors", () => {
       for (const [name, errorDescriptor] of Object.entries<ErrorDescriptor>(
         ERRORS[errorGroup]
       )) {
-        assert.equal(
+        assert.strictEqual(
           errorDescriptor.number,
           expectedErrorNumber,
           `ERRORS.${errorGroup}.${name}'s number is out of range`
@@ -258,8 +258,8 @@ describe("HardhatPluginError", () => {
 
         const error = new HardhatPluginError(message, parent);
 
-        assert.equal(error.message, message);
-        assert.equal(error.parent, parent);
+        assert.strictEqual(error.message, message);
+        assert.strictEqual(error.parent, parent);
       });
 
       it("Should work without a parent error", () => {
@@ -267,7 +267,7 @@ describe("HardhatPluginError", () => {
 
         const error = new HardhatPluginError(message);
 
-        assert.equal(error.message, message);
+        assert.strictEqual(error.message, message);
         assert.isUndefined(error.parent);
       });
 
@@ -278,7 +278,7 @@ describe("HardhatPluginError", () => {
         const error = new HardhatPluginError(message, parent);
 
         // This is being called from mocha, so that would be used as plugin name
-        assert.equal(error.pluginName, "mocha");
+        assert.strictEqual(error.pluginName, "mocha");
       });
 
       it("Should work with instanceof", () => {
@@ -299,9 +299,9 @@ describe("HardhatPluginError", () => {
 
         const error = new HardhatPluginError(plugin, message, parent);
 
-        assert.equal(error.pluginName, plugin);
-        assert.equal(error.message, message);
-        assert.equal(error.parent, parent);
+        assert.strictEqual(error.pluginName, plugin);
+        assert.strictEqual(error.message, message);
+        assert.strictEqual(error.parent, parent);
       });
 
       it("Should work without a parent error", () => {
@@ -310,8 +310,8 @@ describe("HardhatPluginError", () => {
 
         const error = new HardhatPluginError(plugin, message);
 
-        assert.equal(error.pluginName, plugin);
-        assert.equal(error.message, message);
+        assert.strictEqual(error.pluginName, plugin);
+        assert.strictEqual(error.message, message);
         assert.isUndefined(error.parent);
       });
 
@@ -431,12 +431,12 @@ describe("applyErrorMessageTemplate", () => {
   describe("Replacements", () => {
     describe("String values", () => {
       it("Should replace variable tags for the values", () => {
-        assert.equal(
+        assert.strictEqual(
           applyErrorMessageTemplate("asd %asd% 123 %asd%", { asd: "r" }),
           "asd r 123 r"
         );
 
-        assert.equal(
+        assert.strictEqual(
           applyErrorMessageTemplate("asd%asd% %asd% %fgh% 123", {
             asd: "r",
             fgh: "b",
@@ -444,7 +444,7 @@ describe("applyErrorMessageTemplate", () => {
           "asdr r b 123"
         );
 
-        assert.equal(
+        assert.strictEqual(
           applyErrorMessageTemplate("asd%asd% %asd% %fgh% 123", {
             asd: "r",
             fgh: "",
@@ -456,14 +456,14 @@ describe("applyErrorMessageTemplate", () => {
 
     describe("Non-string values", () => {
       it("Should replace undefined values for undefined", () => {
-        assert.equal(
+        assert.strictEqual(
           applyErrorMessageTemplate("asd %asd% 123 %asd%", { asd: undefined }),
           "asd undefined 123 undefined"
         );
       });
 
       it("Should replace null values for null", () => {
-        assert.equal(
+        assert.strictEqual(
           applyErrorMessageTemplate("asd %asd% 123 %asd%", { asd: null }),
           "asd null 123 null"
         );
@@ -475,12 +475,12 @@ describe("applyErrorMessageTemplate", () => {
         const toEmpty = { toString: () => "" };
         const toUndefined = { toString: () => undefined };
 
-        assert.equal(
+        assert.strictEqual(
           applyErrorMessageTemplate("asd %asd% 123 %asd%", { asd: toR }),
           "asd r 123 r"
         );
 
-        assert.equal(
+        assert.strictEqual(
           applyErrorMessageTemplate("asd%asd% %asd% %fgh% 123", {
             asd: toR,
             fgh: toB,
@@ -488,7 +488,7 @@ describe("applyErrorMessageTemplate", () => {
           "asdr r b 123"
         );
 
-        assert.equal(
+        assert.strictEqual(
           applyErrorMessageTemplate("asd%asd% %asd% %fgh% 123", {
             asd: toR,
             fgh: toEmpty,
@@ -496,7 +496,7 @@ describe("applyErrorMessageTemplate", () => {
           "asdr r  123"
         );
 
-        assert.equal(
+        assert.strictEqual(
           applyErrorMessageTemplate("asd%asd% %asd% %fgh% 123", {
             asd: toR,
             fgh: toUndefined,
@@ -508,11 +508,11 @@ describe("applyErrorMessageTemplate", () => {
 
     describe("%% sign", () => {
       it("Should be replaced with %", () => {
-        assert.equal(applyErrorMessageTemplate("asd%%asd", {}), "asd%asd");
+        assert.strictEqual(applyErrorMessageTemplate("asd%%asd", {}), "asd%asd");
       });
 
       it("Shouldn't apply replacements if after this one a new variable tag appears", () => {
-        assert.equal(
+        assert.strictEqual(
           applyErrorMessageTemplate("asd%%asd%% %asd%", { asd: "123" }),
           "asd%asd% 123"
         );
@@ -530,7 +530,7 @@ describe("applyErrorMessageTemplate", () => {
 
     describe("Missing variable", () => {
       it("Should work, leaving the variable tag", () => {
-        assert.equal(
+        assert.strictEqual(
           applyErrorMessageTemplate("%asd% %fgh%", { asd: "123" }),
           "123 %fgh%"
         );

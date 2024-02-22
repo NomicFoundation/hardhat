@@ -19,7 +19,7 @@ describe("setCoinbase", function () {
   it("should allow setting the coinbase", async function () {
     await hh.setCoinbase(newCoinbase);
 
-    assert.equal(
+    assert.strictEqual(
       (await getCoinbase()).toLowerCase(),
       newCoinbase.toLowerCase()
     );

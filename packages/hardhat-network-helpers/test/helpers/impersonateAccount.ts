@@ -37,6 +37,6 @@ describe("impersonateAccount", function () {
       },
     ]);
 
-    assert.equal(await getBalance(recipient), 1);
+    assert.strictEqual(await getBalance(recipient), 1);
   });
 });

@@ -12,7 +12,7 @@ export function leftPad32(value: string | Buffer | bigint): string {
 describe("leftPad32", () => {
   it("correctly pads hex strings", () => {
     const address = "0x6b175474e89094c44da98b954eedeac495271d0f";
-    assert.equal(
+    assert.strictEqual(
       leftPad32(address),
       "0000000000000000000000006b175474e89094c44da98b954eedeac495271d0f"
     );
@@ -20,7 +20,7 @@ describe("leftPad32", () => {
 
   it("correctly pads buffers", () => {
     const buffer = toBuffer("0x6b175474e89094c44da98b954eedeac495271d0f");
-    assert.equal(
+    assert.strictEqual(
       leftPad32(buffer),
       "0000000000000000000000006b175474e89094c44da98b954eedeac495271d0f"
     );
@@ -28,7 +28,7 @@ describe("leftPad32", () => {
 
   it("converts to hex and correctly pads bigints", () => {
     const bn = 10n ** 18n;
-    assert.equal(
+    assert.strictEqual(
       leftPad32(bn),
       "0000000000000000000000000000000000000000000000000de0b6b3a7640000"
     );

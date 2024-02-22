@@ -29,7 +29,7 @@ function assertDeps(
     throw Error("This should never happen. Just making TS happy.");
   }
 
-  assert.equal(resolvedDeps.length, deps.length);
+  assert.strictEqual(resolvedDeps.length, deps.length);
   assert.includeMembers(Array.from(resolvedDeps), deps);
 }
 
@@ -39,7 +39,7 @@ function assertResolvedFiles(
 ) {
   const resolvedFiles = graph.getResolvedFiles();
 
-  assert.equal(resolvedFiles.length, files.length);
+  assert.strictEqual(resolvedFiles.length, files.length);
   assert.includeMembers(resolvedFiles, files);
 }
 
@@ -299,20 +299,20 @@ describe("Dependency Graph", function () {
         const graphFiles = Array.from(graph.getResolvedFiles());
         graphFiles.sort((a, b) => a.absolutePath.localeCompare(b.absolutePath));
 
-        assert.equal(graphFiles.length, 2);
+        assert.strictEqual(graphFiles.length, 2);
 
         const [graphsA, graphsB] = graphFiles;
         assert.deepEqual(graphsA, fileA);
         assert.deepEqual(graphsB, fileB);
 
-        assert.equal(graph.getDependencies(graphsA).length, 1);
+        assert.strictEqual(graph.getDependencies(graphsA).length, 1);
 
         const graphsADep = Array.from(
           graph.getDependencies(graphsA)!.values()
         )[0];
         assert.deepEqual(graphsADep, fileB);
 
-        assert.equal(graph.getDependencies(graphsB).length, 1);
+        assert.strictEqual(graph.getDependencies(graphsB).length, 1);
 
         const graphsBDep = graph.getDependencies(graphsB)[0];
         assert.deepEqual(graphsBDep, fileA);

@@ -22,7 +22,7 @@ describe("setPrevRandao", function () {
     await hh.setPrevRandao(12345);
     await hh.mine();
 
-    assert.equal(await getPrevRandao(), 12345n);
+    assert.strictEqual(await getPrevRandao(), 12345n);
   });
 
   describe("accepted parameter types for next block's base fee per gas", function () {
@@ -44,7 +44,7 @@ describe("setPrevRandao", function () {
         await hh.setPrevRandao(value);
         await hh.mine();
 
-        assert.equal(await getPrevRandao(), expectedPrevRandao);
+        assert.strictEqual(await getPrevRandao(), expectedPrevRandao);
       });
     }
 

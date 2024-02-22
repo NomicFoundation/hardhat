@@ -27,7 +27,7 @@ describe("Personal module", function () {
             ],
           });
 
-          assert.equal(
+          assert.strictEqual(
             result,
             "0x9c73dd4937a37eecab3abb54b74b6ec8e500080431d36afedb1726624587ee6710296e10c1194dded7376f13ff03ef6c9e797eb86bae16c20c57776fc69344271c"
           );
@@ -44,7 +44,7 @@ describe("Personal module", function () {
             ],
           })) as string;
 
-          assert.equal(
+          assert.strictEqual(
             result,
             "0x2875e4206c9fe3b229291c81f95cc4f421e2f4d3e023f5b4041daa56ab4000977010b47a3c01036ec8a6a0872aec2ab285150f003d01b0d8da60c1cceb9154181c"
           );

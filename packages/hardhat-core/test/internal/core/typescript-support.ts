@@ -39,7 +39,7 @@ describe("Typescript support", function () {
 
     it("Should run ts scripts", async function () {
       await this.env.run("run", { script: "./script.ts", noCompile: true });
-      assert.equal(process.exitCode, 123);
+      assert.strictEqual(process.exitCode, 123);
       (process as any).exitCode = undefined;
     });
   });
