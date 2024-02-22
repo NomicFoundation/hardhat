@@ -7,19 +7,19 @@ use edr_evm::{CallInputs, EVMData, Gas, Inspector, InstructionResult, TransactTo
 use crate::data::CONSOLE_ADDRESS;
 
 ///
-pub trait SyncCallOverride: Fn(Address) -> Bytes + DynClone + Send + Sync {}
+pub trait SyncCallOverride: Fn(Address) -> Option<Bytes> + DynClone + Send + Sync {}
 
-impl<F> SyncCallOverride for F where F: Fn(Address) -> Bytes + DynClone + Send + Sync {}
+impl<F> SyncCallOverride for F where F: Fn(Address) -> Option<Bytes> + DynClone + Send + Sync {}
 
 dyn_clone::clone_trait_object!(SyncCallOverride);
 
 pub(super) struct EvmInspector {
     console_log_encoded_messages: Vec<Bytes>,
-    call_override: Box<dyn SyncCallOverride>,
+    call_override: Option<Box<dyn SyncCallOverride>>,
 }
 
 impl EvmInspector {
-    pub fn new(call_override: Box<dyn SyncCallOverride>) -> Self {
+    pub fn new(call_override: Option<Box<dyn SyncCallOverride>>) -> Self {
         Self {
             console_log_encoded_messages: Vec::new(),
             call_override,
@@ -50,10 +50,14 @@ impl<DatabaseErrorT> Inspector<DatabaseErrorT> for EvmInspector {
         inputs: &mut CallInputs,
     ) -> (InstructionResult, Gas, Bytes) {
         if let TransactTo::Call(target) = data.env.tx.transact_to {
-            // Only override calls to other contracts
-            if inputs.contract != target {
-                let out = (self.call_override)(inputs.contract);
-                return (InstructionResult::Return, Gas::new(inputs.gas_limit), out);
+            if let Some(call_override) = &self.call_override {
+                // Only override calls to other contracts
+                if inputs.contract != target {
+                    let out = (call_override)(inputs.contract);
+                    if let Some(out) = out {
+                        return (InstructionResult::Return, Gas::new(inputs.gas_limit), out);
+                    }
+                }
             }
         }
 

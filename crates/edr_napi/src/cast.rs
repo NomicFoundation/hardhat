@@ -126,3 +126,11 @@ impl TryCast<Bytes> for Buffer {
         Ok(Bytes::copy_from_slice(&self))
     }
 }
+
+impl TryCast<Option<Bytes>> for Option<Buffer> {
+    type Error = napi::Error;
+
+    fn try_cast(self) -> Result<Option<Bytes>, Self::Error> {
+        Ok(self.map(|buffer| Bytes::copy_from_slice(&buffer)))
+    }
+}

@@ -10,7 +10,7 @@ use crate::{
 
 struct CallOverrideCall {
     contract_address: Address,
-    sender: Sender<napi::Result<Bytes>>,
+    sender: Sender<napi::Result<Option<Bytes>>>,
 }
 
 #[derive(Clone)]
@@ -33,7 +33,11 @@ impl CallOverrideCallback {
 
                 let sender = ctx.value.sender.clone();
                 let promise = ctx.callback.call(None, &[input])?;
-                let result = await_promise::<Buffer, Bytes>(ctx.env, promise, ctx.value.sender);
+                let result = await_promise::<Option<Buffer>, Option<Bytes>>(
+                    ctx.env,
+                    promise,
+                    ctx.value.sender,
+                );
 
                 handle_error(sender, result)
             },
@@ -45,7 +49,7 @@ impl CallOverrideCallback {
     }
 
     // TODO take ref as argument
-    pub fn call_override(&self, contract_address: Address) -> Bytes {
+    pub fn call_override(&self, contract_address: Address) -> Option<Bytes> {
         let (sender, receiver) = channel();
 
         let status = self.call_override_callback_fn.call(
@@ -59,6 +63,7 @@ impl CallOverrideCallback {
         // TODO if we let third parties write callbacks we shouldn't assume they're
         // infallible.
         assert_eq!(status, Status::Ok);
+
         receiver
             .recv()
             .unwrap()

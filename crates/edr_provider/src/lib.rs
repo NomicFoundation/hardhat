@@ -16,6 +16,7 @@ pub mod test_utils;
 use core::fmt::Debug;
 use std::sync::Arc;
 
+use data::SyncCallOverride;
 use edr_evm::{blockchain::BlockchainError, trace::Trace, HashSet};
 use lazy_static::lazy_static;
 use logger::SyncLogger;
@@ -40,7 +41,7 @@ use self::{
     interval::IntervalMiner,
     requests::{eth, hardhat},
 };
-use crate::{data::SyncCallOverride, requests::debug};
+use crate::requests::debug;
 
 lazy_static! {
     pub static ref PRIVATE_RPC_METHODS: HashSet<&'static str> = {
@@ -104,14 +105,13 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
         runtime: runtime::Handle,
         logger: Box<dyn SyncLogger<BlockchainError = BlockchainError, LoggerError = LoggerErrorT>>,
         subscriber_callback: Box<dyn SyncSubscriberCallback>,
-        call_override: Box<dyn SyncCallOverride>,
         config: ProviderConfig,
     ) -> Result<Self, CreationError> {
         let data = ProviderData::new(
             runtime.clone(),
             logger,
             subscriber_callback,
-            call_override,
+            None,
             config.clone(),
         )?;
         let data = Arc::new(AsyncMutex::new(data));
@@ -129,6 +129,11 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
             interval_miner,
             runtime,
         })
+    }
+
+    pub fn set_override_callback(&self, call_override: Option<Box<dyn SyncCallOverride>>) {
+        let mut data = task::block_in_place(|| self.runtime.block_on(self.data.lock()));
+        data.set_override_callback(call_override);
     }
 
     /// Blocking method to handle a request.

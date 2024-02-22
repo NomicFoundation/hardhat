@@ -33,8 +33,6 @@ impl Provider {
         config: ProviderConfig,
         logger_config: LoggerConfig,
         #[napi(ts_arg_type = "(event: SubscriptionEvent) => void")] subscriber_callback: JsFunction,
-        #[napi(ts_arg_type = "(contract_address: Buffer) => Buffer")]
-        call_override_callback: JsFunction,
     ) -> napi::Result<JsObject> {
         let config = edr_provider::ProviderConfig::try_from(config)?;
         let runtime = runtime::Handle::current();
@@ -43,27 +41,17 @@ impl Provider {
         let subscriber_callback = SubscriberCallback::new(&env, subscriber_callback)?;
         let subscriber_callback = Box::new(move |event| subscriber_callback.call(event));
 
-        let call_override_callback = CallOverrideCallback::new(&env, call_override_callback)?;
-        let call_override_callback =
-            Box::new(move |event| call_override_callback.call_override(event));
-
         let (deferred, promise) = env.create_deferred()?;
         runtime.clone().spawn_blocking(move || {
-            let result = edr_provider::Provider::new(
-                runtime,
-                logger,
-                subscriber_callback,
-                call_override_callback,
-                config,
-            )
-            .map_or_else(
-                |error| Err(napi::Error::new(Status::GenericFailure, error.to_string())),
-                |provider| {
-                    Ok(Provider {
-                        provider: Arc::new(provider),
-                    })
-                },
-            );
+            let result = edr_provider::Provider::new(runtime, logger, subscriber_callback, config)
+                .map_or_else(
+                    |error| Err(napi::Error::new(Status::GenericFailure, error.to_string())),
+                    |provider| {
+                        Ok(Provider {
+                            provider: Arc::new(provider),
+                        })
+                    },
+                );
 
             deferred.resolve(|_env| result);
         });
@@ -161,6 +149,24 @@ impl Provider {
                 json: json_response,
                 traces: traces.into_iter().map(Arc::new).collect(),
             })
+    }
+
+    #[napi(ts_return_type = "void")]
+    pub fn set_override_callback(
+        &self,
+        env: Env,
+        #[napi(ts_arg_type = "(contract_address: Buffer) => Buffer | undefined")]
+        call_override_callback: JsFunction,
+    ) -> napi::Result<()> {
+        let provider = self.provider.clone();
+
+        let call_override_callback = CallOverrideCallback::new(&env, call_override_callback)?;
+        let call_override_callback =
+            Box::new(move |event| call_override_callback.call_override(event));
+
+        provider.set_override_callback(Some(call_override_callback));
+
+        Ok(())
     }
 }
 

@@ -151,11 +151,16 @@ export interface RawTraceCallbacks {
 
 class EdrProviderEventAdapter extends EventEmitter {}
 
+type AfterMessageCallback = (address: Buffer) => Buffer | undefined;
+
 export class EdrProviderWrapper
   extends EventEmitter
   implements EIP1193Provider
 {
   private _failedStackTraces = 0;
+
+  // temporarily added to make smock work with HH+EDR
+  private _afterMessageCallbacks: AfterMessageCallback[] = [];
 
   private constructor(
     private readonly _provider: EdrProviderT,
@@ -171,6 +176,19 @@ export class EdrProviderWrapper
     if (tracingConfig !== undefined) {
       initializeVmTraceDecoder(this._vmTraceDecoder, tracingConfig);
     }
+
+    _provider.setOverrideCallback((address: Buffer) => {
+      let overridenResult: Buffer | undefined;
+
+      for (const afterMessageCallback of this._afterMessageCallbacks) {
+        const result = afterMessageCallback(address);
+        if (result !== undefined) {
+          overridenResult = result;
+        }
+      }
+
+      return overridenResult;
+    });
   }
 
   public static async create(
@@ -288,12 +306,6 @@ export class EdrProviderWrapper
       },
       (event: SubscriptionEvent) => {
         eventAdapter.emit("ethEvent", event);
-      },
-      (address: Buffer) => {
-        return Buffer.from(
-          "0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000d43616c6c206f7665727269646500000000000000000000000000000000000000",
-          "hex"
-        );
       }
     );
 
@@ -417,6 +429,11 @@ export class EdrProviderWrapper
     } else {
       return response.result;
     }
+  }
+
+  // temporarily added to make smock work with HH+EDR
+  private _addAfterMessageCallback(callback: AfterMessageCallback) {
+    this._afterMessageCallbacks.push(callback);
   }
 
   private _ethEventListener(event: SubscriptionEvent) {

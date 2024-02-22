@@ -150,7 +150,7 @@ pub struct ProviderData<LoggerErrorT: Debug> {
     logger: Box<dyn SyncLogger<BlockchainError = BlockchainError, LoggerError = LoggerErrorT>>,
     impersonated_accounts: HashSet<Address>,
     subscriber_callback: Box<dyn SyncSubscriberCallback>,
-    call_override: Box<dyn SyncCallOverride>,
+    call_override: Option<Box<dyn SyncCallOverride>>,
     // We need the Arc to let us avoid returning references to the cache entries which need &mut
     // self to get.
     block_state_cache: LruCache<StateId, Arc<Box<dyn SyncState<StateError>>>>,
@@ -163,7 +163,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         runtime_handle: runtime::Handle,
         logger: Box<dyn SyncLogger<BlockchainError = BlockchainError, LoggerError = LoggerErrorT>>,
         subscriber_callback: Box<dyn SyncSubscriberCallback>,
-        call_override: Box<dyn SyncCallOverride>,
+        call_override: Option<Box<dyn SyncCallOverride>>,
         config: ProviderConfig,
     ) -> Result<Self, CreationError> {
         let InitialAccounts {
@@ -235,6 +235,10 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             current_state_id,
             block_number_to_state_id,
         })
+    }
+
+    pub fn set_override_callback(&mut self, call_override: Option<Box<dyn SyncCallOverride>>) {
+        self.call_override = call_override;
     }
 
     pub fn reset(&mut self, fork_config: Option<ForkConfig>) -> Result<(), CreationError> {
@@ -2460,7 +2464,6 @@ pub(crate) mod test_utils {
         ) -> anyhow::Result<Self> {
             let logger = Box::<NoopLogger>::default();
             let subscription_callback_noop = Box::new(|_| ());
-            let call_override_noop = Box::new(|_contract_address| Bytes::default());
 
             let impersonated_account = Address::random();
             config.genesis_accounts.insert(
@@ -2477,7 +2480,7 @@ pub(crate) mod test_utils {
                 runtime.handle().clone(),
                 logger,
                 subscription_callback_noop,
-                call_override_noop,
+                None,
                 config.clone(),
             )?;
 
