@@ -40,8 +40,8 @@ enum Command {
     GenExecutionApi,
     /// Execute a benchmark scenario and report statistics
     Scenario {
-        /// The path to the scenario directory
-        directory: PathBuf,
+        /// The path to the scenario file
+        path: PathBuf,
         /// The maximum number of requests to execute.
         #[clap(long, short)]
         count: Option<usize>,
@@ -62,6 +62,6 @@ async fn main() -> anyhow::Result<()> {
             iterations,
         } => benchmark::run(working_directory, &test_command, iterations),
         Command::GenExecutionApi => execution_api::generate(Mode::Overwrite),
-        Command::Scenario { directory, count } => scenario::execute(&directory, count).await,
+        Command::Scenario { path, count } => scenario::execute(&path, count).await,
     }
 }

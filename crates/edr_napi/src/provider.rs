@@ -20,7 +20,7 @@ use crate::{
 pub struct Provider {
     provider: Arc<edr_provider::Provider<LoggerError>>,
     #[cfg(feature = "scenarios")]
-    scenario_file: Option<std::sync::Mutex<scenarios::ScenarioFile>>,
+    scenario_file: Option<napi::tokio::sync::Mutex<napi::tokio::fs::File>>,
 }
 
 #[napi]
@@ -45,10 +45,11 @@ impl Provider {
         let (deferred, promise) = env.create_deferred()?;
         runtime.clone().spawn_blocking(move || {
             #[cfg(feature = "scenarios")]
-            let scenario_file = runtime::Handle::current().block_on(scenarios::scenario_file(
-                &config,
-                edr_provider::Logger::is_enabled(&*logger),
-            ))?;
+            let scenario_file =
+                runtime::Handle::current().block_on(crate::scenarios::scenario_file(
+                    &config,
+                    edr_provider::Logger::is_enabled(&*logger),
+                ))?;
 
             let result = edr_provider::Provider::new(runtime, logger, subscriber_callback, config)
                 .map_or_else(
@@ -120,7 +121,7 @@ impl Provider {
 
         #[cfg(feature = "scenarios")]
         if let Some(scenario_file) = &self.scenario_file {
-            scenarios::write_request(scenario_file, &request).await?;
+            crate::scenarios::write_request(scenario_file, &request).await?;
         }
 
         let mut response = runtime::Handle::current()
@@ -197,126 +198,5 @@ impl Response {
             .iter()
             .map(|trace| RawTrace::new(trace.clone()))
             .collect()
-    }
-}
-
-#[cfg(feature = "scenarios")]
-mod scenarios {
-    use std::{
-        fs::File,
-        io,
-        io::{BufReader, Seek, Write},
-        sync::Mutex,
-        time::{SystemTime, UNIX_EPOCH},
-    };
-
-    use edr_provider::ProviderRequest;
-    use flate2::{write::GzEncoder, Compression};
-    use napi::{
-        tokio::task::{spawn_blocking, JoinError},
-        Status,
-    };
-    use rand::{distributions::Alphanumeric, Rng};
-    use serde::Serialize;
-    use tempfile::tempfile;
-
-    use crate::provider::Provider;
-
-    const SCENARIO_FILE_PREFIX: &str = "EDR_SCENARIO_PREFIX";
-
-    impl Drop for Provider {
-        fn drop(&mut self) {
-            if let Some(scenario_file) = self.scenario_file.take() {
-                napi::tokio::task::block_in_place(move || {
-                    let mut scenario_file =
-                        scenario_file.lock().expect("Failed to lock scenario file");
-
-                    let output_name = format!("{}.gz", scenario_file.result_name);
-
-                    scenario_file
-                        .tempfile
-                        .seek(std::io::SeekFrom::Start(0))
-                        .expect("Seek failed");
-                    let mut input = BufReader::new(&mut scenario_file.tempfile);
-
-                    let output = File::create(output_name).expect("Failed to create gzipped file");
-
-                    let mut encoder = GzEncoder::new(output, Compression::default());
-                    io::copy(&mut input, &mut encoder).expect("Failed to copy to Gzip");
-                    encoder.finish().expect("Failed to finish Gzip");
-                });
-            }
-        }
-    }
-
-    #[derive(Debug)]
-    pub(super) struct ScenarioFile {
-        tempfile: File,
-        result_name: String,
-    }
-
-    #[derive(Clone, Debug, Serialize)]
-    struct ScenarioConfig<'a> {
-        provider_config: &'a edr_provider::ProviderConfig,
-        logger_enabled: bool,
-    }
-
-    pub(super) async fn scenario_file(
-        provider_config: &edr_provider::ProviderConfig,
-        logger_enabled: bool,
-    ) -> Result<Option<Mutex<ScenarioFile>>, napi::Error> {
-        if let Some(scenario_prefix) = std::env::var(SCENARIO_FILE_PREFIX).ok() {
-            let timestamp = SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .expect("Time went backwards")
-                .as_secs();
-            let suffix = rand::thread_rng()
-                .sample_iter(&Alphanumeric)
-                .take(4)
-                .map(char::from)
-                .collect::<String>();
-
-            let mut scenario_file = spawn_blocking(|| tempfile())
-                .await
-                .map_err(handle_join_error)??;
-
-            let config = ScenarioConfig {
-                provider_config,
-                logger_enabled,
-            };
-            let mut line = serde_json::to_string(&config)?;
-            line.push('\n');
-            spawn_blocking(move || {
-                scenario_file.write_all(line.as_bytes())?;
-
-                Ok(Some(Mutex::new(ScenarioFile {
-                    tempfile: scenario_file,
-                    result_name: format!("{scenario_prefix}_{timestamp}_{suffix}.json"),
-                })))
-            })
-            .await
-            .map_err(handle_join_error)?
-        } else {
-            Ok(None)
-        }
-    }
-
-    fn handle_join_error(error: JoinError) -> napi::Error {
-        napi::Error::new(Status::GenericFailure, error.to_string())
-    }
-
-    pub(super) async fn write_request(
-        scenario_file: &Mutex<ScenarioFile>,
-        request: &ProviderRequest,
-    ) -> napi::Result<()> {
-        let mut line = serde_json::to_string(request)?;
-        line.push('\n');
-        {
-            let mut scenario_file = scenario_file
-                .lock()
-                .map_err(|err| napi::Error::new(Status::GenericFailure, err.to_string()))?;
-            scenario_file.tempfile.write_all(line.as_bytes())?;
-        }
-        Ok(())
     }
 }

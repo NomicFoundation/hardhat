@@ -33,3 +33,23 @@ Generate a comparison report that will list slower tests in the candidate branch
 # From the repo root
 cargo run --bin tools compare-test-runs base-test-provider-logs.json candidate-test-provider-logs.json > comparisions.txt
 ```
+
+## Scenarios
+
+Scenarios can be used to collect and replay RPC requests which is useful for performance analysis.
+
+### Collect scenario
+
+1. Compile `edr_napi` with the `scenarios` feature
+2. Set `EDR_SCENARIO_PREFIX` to the desired prefix for the scenario file name.
+3. Execute a test suite with the `EDR_SCENARIO_PREFIX` environment variable set and the freshly compiled `edr_napi` version.
+4. The scenario file will be written to the current working directory with the desired file name prefix.
+
+### Run scenario
+
+```bash
+# From the repo root
+cargo run --bin tools --release scenario <PATH_TO_SCENARIO_FILE>
+```
+
+The reported running time excludes reading the requests from disk and parsing them.

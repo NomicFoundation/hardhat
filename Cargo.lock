@@ -760,15 +760,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "crc32fast"
-version = "1.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b3855a8a784b474f333699ef2bbca9db2c4a1f6d9088a90a2d25b1eb53111eaa"
-dependencies = [
- "cfg-if",
-]
-
-[[package]]
 name = "criterion"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1129,7 +1120,6 @@ dependencies = [
  "edr_eth",
  "edr_evm",
  "edr_provider",
- "flate2",
  "itertools 0.12.0",
  "k256",
  "lazy_static",
@@ -1142,7 +1132,6 @@ dependencies = [
  "rand",
  "serde",
  "serde_json",
- "tempfile",
  "thiserror",
  "tracing",
  "tracing-flame",
@@ -1393,16 +1382,6 @@ dependencies = [
  "rand",
  "rustc-hex",
  "static_assertions",
-]
-
-[[package]]
-name = "flate2"
-version = "1.0.28"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46303f565772937ffe1d394a4fac6f411c6013172fadde9dcdb1e147a086940e"
-dependencies = [
- "crc32fast",
- "miniz_oxide",
 ]
 
 [[package]]
@@ -3886,7 +3865,6 @@ dependencies = [
  "edr_evm",
  "edr_provider",
  "indicatif",
- "rayon",
  "reqwest",
  "serde",
  "serde_json",

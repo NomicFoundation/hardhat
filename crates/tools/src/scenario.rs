@@ -5,11 +5,12 @@ use edr_eth::remote::jsonrpc;
 use edr_evm::blockchain::BlockchainError;
 use edr_provider::{Logger, ProviderError, ProviderRequest};
 use indicatif::ProgressBar;
-use rayon::prelude::*;
 use serde::Deserialize;
-use tokio::{runtime, task};
-
-static CONFIG_FILE_NAME: &str = "config.json";
+use tokio::{
+    fs::File,
+    io::{AsyncBufReadExt, BufReader},
+    runtime, task,
+};
 
 #[derive(Clone, Debug, Deserialize)]
 struct ScenarioConfig {
@@ -17,15 +18,13 @@ struct ScenarioConfig {
     logger_enabled: bool,
 }
 
-pub async fn execute(directory_path: &Path, max_count: Option<usize>) -> anyhow::Result<()> {
-    let config_file_path = directory_path.join(CONFIG_FILE_NAME);
-    let config_file = std::fs::File::open(config_file_path)?;
-    let config: ScenarioConfig = serde_json::from_reader(config_file)?;
-    if config.logger_enabled {
-        anyhow::bail!("This scenario expects logging, but logging is not yet implemented")
-    }
+pub async fn execute(scenario_path: &Path, max_count: Option<usize>) -> anyhow::Result<()> {
+    let (config, requests) = load_requests(scenario_path).await?;
 
-    let requests = load_requests(directory_path)?;
+    if config.logger_enabled {
+        // anyhow::bail!("This scenario expects logging, but logging is not yet
+        // implemented")
+    }
 
     let logger = Box::<DisabledLogger>::default();
     let subscription_callback = Box::new(|_| ());
@@ -83,53 +82,25 @@ pub async fn execute(directory_path: &Path, max_count: Option<usize>) -> anyhow:
     Ok(())
 }
 
-fn load_requests(directory_path: &Path) -> anyhow::Result<Vec<ProviderRequest>> {
-    println!("Loading requests from {directory_path:?}");
-    let mut requests: Vec<(usize, ProviderRequest)> = walkdir::WalkDir::new(directory_path)
-        .into_iter()
-        .par_bridge()
-        .filter(|entry| {
-            entry
-                .as_ref()
-                .map(|entry| {
-                    if let Some(file_name) = entry.file_name().to_str() {
-                        file_name != CONFIG_FILE_NAME && file_name.ends_with(".json")
-                    } else {
-                        false
-                    }
-                })
-                .unwrap_or(false)
-        })
-        .map(|entry| {
-            let entry = entry?;
-            let path = entry.path();
-            let file_name = path.file_name().expect("We filtered for files");
-            let file_name = file_name.to_str().context("File name is not valid UTF-8")?;
-            let ordinal = file_name
-                .split('_')
-                .next()
-                .context("Expected method call ordinal as prefix in the filename")?;
-            let ordinal: usize = ordinal.parse().map_err(|_err| {
-                anyhow::anyhow!("Failed to parse ordinal from filename: '{}'", file_name)
-            })?;
+async fn load_requests(
+    scenario_path: &Path,
+) -> anyhow::Result<(ScenarioConfig, Vec<ProviderRequest>)> {
+    println!("Loading requests from {scenario_path:?}");
 
-            let file = std::fs::File::open(path)?;
-            let request: ProviderRequest = serde_json::from_reader(file)?;
-            Ok((ordinal, request))
-        })
-        .collect::<anyhow::Result<Vec<_>>>()?;
+    let reader = BufReader::new(File::open(scenario_path).await?);
+    let mut lines = reader.lines();
 
-    requests.sort_by(|(a, _), (b, _)| a.cmp(b));
-    if let Some(first) = requests.first() {
-        if first.0 != 0 {
-            anyhow::bail!(
-                "Expected first request to have ordinal 0, but got {}",
-                first.0
-            );
-        }
+    let first_line = lines.next_line().await?.context("Scenario file is empty")?;
+    let config: ScenarioConfig = serde_json::from_str(&first_line)?;
+
+    let mut requests: Vec<ProviderRequest> = Vec::new();
+
+    while let Some(line) = lines.next_line().await? {
+        let request: ProviderRequest = serde_json::from_str(&line)?;
+        requests.push(request);
     }
 
-    Ok(requests.into_iter().map(|(_, request)| request).collect())
+    Ok((config, requests))
 }
 
 #[derive(Clone, Default)]

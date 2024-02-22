@@ -37,7 +37,7 @@
   },
   "scripts": {
     "artifacts": "napi artifacts",
-    "build": "napi build --platform --release",
+    "build": "napi build --platform --release --features scenarios",
     "build:debug": "napi build --platform",
     "build:tracing": "napi build --release --features tracing",
     "build:scenarios": "napi build --release --features scenarios",

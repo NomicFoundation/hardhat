@@ -20,9 +20,7 @@ edr_defaults = { version = "0.2.0-dev", path = "../edr_defaults" }
 edr_evm = { version = "0.2.0-dev", path = "../edr_evm", features = ["tracing"]}
 edr_eth = { version = "0.2.0-dev", path = "../edr_eth" }
 edr_provider = { version = "0.2.0-dev", path = "../edr_provider" }
-flate2 = { version = "1.0", optional = true }
 serde_json = { version = "1.0.85", default-features = false, features = ["alloc"] }
-tempfile = { version = "3.7.1", optional = true }
 thiserror = { version = "1.0.37", default-features = false }
 tracing = { version = "0.1.37", default-features = false, features = ["std"] }
 tracing-flame = { version = "0.2.0", default-features = false, features = ["smallvec"] }
@@ -49,7 +47,7 @@ napi-build = "2.0.1"
 
 [features]
 tracing = ["edr_evm/tracing"]
-scenarios = ["flate2", "rand", "tempfile"]
+scenarios = ["rand"]
 
 [profile.release]
 lto = true

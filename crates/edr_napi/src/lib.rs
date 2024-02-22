@@ -12,6 +12,8 @@ mod log;
 mod logger;
 mod provider;
 mod result;
+#[cfg(feature = "scenarios")]
+mod scenarios;
 mod subscribe;
 mod sync;
 mod threadsafe_function;
