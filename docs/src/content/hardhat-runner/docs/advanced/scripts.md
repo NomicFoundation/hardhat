@@ -2,7 +2,7 @@
 
 In this guide we will go through the steps of creating a script with Hardhat. For a general overview of using Hardhat refer to the [Getting started guide](../getting-started/index.md).
 
-You can write your own custom scripts that can use all of Hardhat's functionality. A classic use case is writing a script that prints the list of available accounts.
+You can write your own custom scripts that can use all of Hardhat's functionality; for example, in this guide, we will work through scripts that print the list of available accounts.
 
 There are two ways of writing a script that accesses the [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md).
 
