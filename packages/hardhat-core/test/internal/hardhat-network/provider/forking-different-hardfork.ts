@@ -428,7 +428,7 @@ describe("Forking a block with a different hardfork", function () {
           });
 
           describe("forking a 'shanghai' block", function () {
-            const forkBlockNumber = CANCUN_HARDFORK_BLOCK_NUMBER - 100;
+            const forkBlockNumber = SHANGHAI_HARDFORK_BLOCK_NUMBER + 100;
 
             useProvider({
               hardfork,
@@ -592,7 +592,7 @@ describe("Forking a block with a different hardfork", function () {
           });
 
           describe("forking a 'shanghai' block", function () {
-            const forkBlockNumber = CANCUN_HARDFORK_BLOCK_NUMBER - 100;
+            const forkBlockNumber = SHANGHAI_HARDFORK_BLOCK_NUMBER + 100;
 
             useProvider({
               hardfork,
