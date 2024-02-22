@@ -4,6 +4,7 @@
 
 //! transaction related data
 
+mod fake_signature;
 mod kind;
 mod request;
 mod signed;

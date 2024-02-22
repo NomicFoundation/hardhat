@@ -7,8 +7,7 @@ use revm_primitives::keccak256;
 use crate::{
     signature::{Signature, SignatureError},
     transaction::{
-        kind::TransactionKind, request::fake_signature::make_fake_signature,
-        signed::Eip155SignedTransaction,
+        fake_signature::make_fake_signature, kind::TransactionKind, signed::Eip155SignedTransaction,
     },
     Address, Bytes, B256, U256,
 };
@@ -47,6 +46,7 @@ impl Eip155TransactionRequest {
             input: self.input,
             signature,
             hash: OnceLock::new(),
+            is_fake: false,
         })
     }
 
@@ -64,6 +64,7 @@ impl Eip155TransactionRequest {
             input: self.input,
             signature,
             hash: OnceLock::new(),
+            is_fake: true,
         }
     }
 
@@ -132,7 +133,7 @@ mod tests {
     use std::str::FromStr;
 
     use super::*;
-    use crate::transaction::request::fake_signature::tests::test_fake_sign_properties;
+    use crate::transaction::fake_signature::tests::test_fake_sign_properties;
 
     fn dummy_request() -> Eip155TransactionRequest {
         let to = Address::from_str("0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e").unwrap();

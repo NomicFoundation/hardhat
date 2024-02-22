@@ -8,7 +8,7 @@ use crate::{
     access_list::AccessListItem,
     signature::{Signature, SignatureError},
     transaction::{
-        kind::TransactionKind, request::fake_signature::make_fake_signature,
+        fake_signature::make_fake_signature, kind::TransactionKind,
         signed::Eip2930SignedTransaction,
     },
     utils::envelop_bytes,
@@ -55,6 +55,7 @@ impl Eip2930TransactionRequest {
             r: signature.r,
             s: signature.s,
             hash: OnceLock::new(),
+            is_fake: false,
         })
     }
 
@@ -75,6 +76,7 @@ impl Eip2930TransactionRequest {
             r: signature.r,
             s: signature.s,
             hash: OnceLock::new(),
+            is_fake: true,
         }
     }
 }
@@ -99,7 +101,7 @@ mod tests {
     use std::str::FromStr;
 
     use super::*;
-    use crate::transaction::request::fake_signature::tests::test_fake_sign_properties;
+    use crate::transaction::fake_signature::tests::test_fake_sign_properties;
 
     fn dummy_request() -> Eip2930TransactionRequest {
         let to = Address::from_str("0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e").unwrap();
