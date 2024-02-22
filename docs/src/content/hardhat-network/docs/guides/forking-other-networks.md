@@ -73,7 +73,7 @@ Hardhat Network will by default fork from a recent mainnet block. While this mig
 
 There are two reasons for this:
 
-- The state your tests run against may change between runs. This could cause your tests to behave differently.
+- The state your tests run against may change between runs. This could cause your tests or scripts to behave differently.
 - Pinning enables caching. Every time data is fetched from mainnet, Hardhat Network caches it on disk to speed up future access. If you don't pin the block, there's going to be new data with each new block and the cache won't be useful. We measured up to 20x speed improvements with block pinning.
 
 **You will need access to a node with archival data for this to work.** This is why we recommend [Infura] or [Alchemy], since their free plans include archival data.
