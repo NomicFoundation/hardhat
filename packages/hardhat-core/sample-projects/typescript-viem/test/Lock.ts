@@ -6,8 +6,6 @@ import { expect } from "chai";
 import hre from "hardhat";
 import { getAddress, parseGwei } from "viem";
 
-import LockModule from "../ignition/modules/Lock";
-
 describe("Lock", function () {
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
@@ -21,8 +19,8 @@ describe("Lock", function () {
     // Contracts are deployed using the first signer/account by default
     const [owner, otherAccount] = await hre.viem.getWalletClients();
 
-    const { lock } = await hre.ignition.deploy(LockModule, {
-      parameters: { LockModule: { lockedAmount, unlockTime } },
+    const lock = await hre.viem.deployContract("Lock", [unlockTime], {
+      value: lockedAmount,
     });
 
     const publicClient = await hre.viem.getPublicClient();
