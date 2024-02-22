@@ -1,17 +1,20 @@
-use std::{collections::BTreeMap, num::NonZeroU64, sync::Arc};
+use std::{collections::BTreeMap, num::NonZeroU64, str::FromStr, sync::Arc};
 
 use edr_eth::{
+    beacon::{BEACON_ROOTS_ADDRESS, BEACON_ROOTS_BYTECODE},
     block::{largest_safe_block_number, safe_block_depth, LargestSafeBlockNumberArgs},
     log::FilterLog,
     receipt::BlockReceipt,
     remote::{client::ForkMetadata, BlockSpec, RpcClient, RpcClientError},
     spec::{chain_hardfork_activations, chain_name, HardforkActivations},
-    Address, B256, U256,
+    AccountInfo, Address, Bytes, B256, U256,
 };
 use parking_lot::Mutex;
 use revm::{
     db::BlockHashRef,
-    primitives::{alloy_primitives::ChainId, HashMap, HashSet, SpecId},
+    primitives::{
+        alloy_primitives::ChainId, Account, AccountStatus, Bytecode, HashMap, HashSet, SpecId,
+    },
 };
 use tokio::runtime;
 
@@ -21,7 +24,7 @@ use super::{
     BlockchainMut,
 };
 use crate::{
-    state::{ForkState, StateDiff, StateError, StateOverride, SyncState},
+    state::{ForkState, IrregularState, StateDiff, StateError, StateOverride, SyncState},
     Block, BlockAndTotalDifficulty, LocalBlock, RandomHashGenerator, RemoteBlockCreationError,
     SyncBlock,
 };
@@ -94,12 +97,14 @@ pub struct ForkedBlockchain {
 impl ForkedBlockchain {
     /// Constructs a new instance.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+    #[allow(clippy::too_many_arguments)]
     pub async fn new(
         runtime: runtime::Handle,
         chain_id_override: Option<u64>,
         spec_id: SpecId,
         rpc_client: RpcClient,
         fork_block_number: Option<u64>,
+        irregular_state: &mut IrregularState,
         state_root_generator: Arc<Mutex<RandomHashGenerator>>,
         hardfork_activation_overrides: &HashMap<ChainId, HardforkActivations>,
     ) -> Result<Self, CreationError> {
@@ -161,6 +166,50 @@ impl ForkedBlockchain {
                     fork_block_number,
                     hardfork,
                 });
+            }
+
+            if hardfork < SpecId::CANCUN && spec_id >= SpecId::CANCUN {
+                let beacon_roots_address =
+                    Address::from_str(BEACON_ROOTS_ADDRESS).expect("Is valid address");
+                let beacon_roots_contract = Bytecode::new_raw(
+                    Bytes::from_str(BEACON_ROOTS_BYTECODE).expect("Is valid bytecode"),
+                );
+
+                let state_root = state_root_generator.lock().next_value();
+
+                irregular_state
+                    .state_override_at_block_number(fork_block_number)
+                    .and_modify(|state_override| {
+                        state_override.diff.apply_account_change(
+                            beacon_roots_address,
+                            AccountInfo {
+                                code_hash: beacon_roots_contract.hash_slow(),
+                                code: Some(beacon_roots_contract.clone()),
+                                ..AccountInfo::default()
+                            },
+                        );
+                    })
+                    .or_insert_with(|| {
+                        let accounts: HashMap<Address, Account> = [(
+                            beacon_roots_address,
+                            Account {
+                                info: AccountInfo {
+                                    code_hash: beacon_roots_contract.hash_slow(),
+                                    code: Some(beacon_roots_contract),
+                                    ..AccountInfo::default()
+                                },
+                                status: AccountStatus::Created | AccountStatus::Touched,
+                                storage: HashMap::new(),
+                            },
+                        )]
+                        .into_iter()
+                        .collect();
+
+                        StateOverride {
+                            diff: StateDiff::from(accounts),
+                            state_root,
+                        }
+                    });
             }
         }
 

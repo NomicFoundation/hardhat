@@ -36,13 +36,16 @@ async fn create_forked_dummy_blockchain(
     fork_block_number: Option<u64>,
 ) -> Box<dyn SyncBlockchain<BlockchainError, StateError>> {
     use edr_eth::remote::RpcClient;
-    use edr_evm::{blockchain::ForkedBlockchain, HashMap, RandomHashGenerator};
+    use edr_evm::{
+        blockchain::ForkedBlockchain, state::IrregularState, HashMap, RandomHashGenerator,
+    };
     use edr_test_utils::env::get_alchemy_url;
     use parking_lot::Mutex;
 
     let rpc_client =
         RpcClient::new(&get_alchemy_url(), edr_defaults::CACHE_DIR.into(), None).expect("url ok");
 
+    let mut irregular_state = IrregularState::default();
     Box::new(
         ForkedBlockchain::new(
             tokio::runtime::Handle::current().clone(),
@@ -50,6 +53,7 @@ async fn create_forked_dummy_blockchain(
             SpecId::LATEST,
             rpc_client,
             fork_block_number,
+            &mut irregular_state,
             Arc::new(Mutex::new(RandomHashGenerator::with_seed(
                 edr_defaults::STATE_ROOT_HASH_SEED,
             ))),

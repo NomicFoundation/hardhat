@@ -2190,22 +2190,27 @@ fn create_blockchain_and_state(
             .map(|headers| HeaderMap::try_from(headers).map_err(CreationError::InvalidHttpHeaders))
             .transpose()?;
 
-        let blockchain = tokio::task::block_in_place(|| {
-            runtime.block_on(ForkedBlockchain::new(
-                runtime.clone(),
-                Some(config.chain_id),
-                config.hardfork,
-                RpcClient::new(
-                    &fork_config.json_rpc_url,
-                    config.cache_dir.clone(),
-                    http_headers.clone(),
-                )
-                .expect("url ok"),
-                fork_config.block_number,
-                state_root_generator.clone(),
-                &config.chains,
-            ))
-        })?;
+        let (blockchain, mut irregular_state) =
+            tokio::task::block_in_place(|| -> Result<_, ForkedCreationError> {
+                let mut irregular_state = IrregularState::default();
+                let blockchain = runtime.block_on(ForkedBlockchain::new(
+                    runtime.clone(),
+                    Some(config.chain_id),
+                    config.hardfork,
+                    RpcClient::new(
+                        &fork_config.json_rpc_url,
+                        config.cache_dir.clone(),
+                        http_headers.clone(),
+                    )
+                    .expect("url ok"),
+                    fork_config.block_number,
+                    &mut irregular_state,
+                    state_root_generator.clone(),
+                    &config.chains,
+                ))?;
+
+                Ok((blockchain, irregular_state))
+            })?;
 
         let fork_block_number = blockchain.last_block_number();
 
@@ -2216,7 +2221,6 @@ fn create_blockchain_and_state(
         )
         .expect("url ok");
 
-        let mut irregular_state = IrregularState::default();
         if !genesis_accounts.is_empty() {
             let genesis_addresses = genesis_accounts.keys().cloned().collect::<Vec<_>>();
             let genesis_account_infos = tokio::task::block_in_place(|| {
@@ -2244,13 +2248,20 @@ fn create_blockchain_and_state(
                 });
             }
 
-            let state_root = state_root_generator.lock().next_value();
-
             irregular_state
                 .state_override_at_block_number(fork_block_number)
-                .or_insert(StateOverride {
-                    diff: StateDiff::from(genesis_accounts),
-                    state_root,
+                .and_modify(|state_override| {
+                    // No need to update the state_root, as it could only have been created by the
+                    // `ForkedBlockchain` constructor.
+                    state_override.diff.apply_diff(genesis_accounts.clone());
+                })
+                .or_insert_with(|| {
+                    let state_root = state_root_generator.lock().next_value();
+
+                    StateOverride {
+                        diff: StateDiff::from(genesis_accounts),
+                        state_root,
+                    }
                 });
         }
 
