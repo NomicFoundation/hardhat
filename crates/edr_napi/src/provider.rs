@@ -155,14 +155,16 @@ impl Provider {
     pub fn set_override_callback(
         &self,
         env: Env,
-        #[napi(ts_arg_type = "(contract_address: Buffer) => Buffer | undefined")]
+        #[napi(
+            ts_arg_type = "(contract_address: Buffer, data: Buffer) => {result: Buffer, shouldRevert: boolean, gas: bigint} | undefined"
+        )]
         call_override_callback: JsFunction,
     ) -> napi::Result<()> {
         let provider = self.provider.clone();
 
         let call_override_callback = CallOverrideCallback::new(&env, call_override_callback)?;
         let call_override_callback =
-            Box::new(move |event| call_override_callback.call_override(event));
+            Box::new(move |address, data| call_override_callback.call_override(address, data));
 
         provider.set_override_callback(Some(call_override_callback));
 

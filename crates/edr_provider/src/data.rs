@@ -1,7 +1,7 @@
 mod account;
 mod call;
 mod gas;
-mod inspector;
+pub mod inspector;
 
 use std::{
     cmp,

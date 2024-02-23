@@ -7,9 +7,23 @@ use edr_evm::{CallInputs, EVMData, Gas, Inspector, InstructionResult, TransactTo
 use crate::data::CONSOLE_ADDRESS;
 
 ///
-pub trait SyncCallOverride: Fn(Address) -> Option<Bytes> + DynClone + Send + Sync {}
 
-impl<F> SyncCallOverride for F where F: Fn(Address) -> Option<Bytes> + DynClone + Send + Sync {}
+#[derive(Debug)]
+pub struct CallOverrideCallResult {
+    pub result: Bytes,
+    pub should_revert: bool,
+    pub gas: u64,
+}
+
+pub trait SyncCallOverride:
+    Fn(Address, Bytes) -> Option<CallOverrideCallResult> + DynClone + Send + Sync
+{
+}
+
+impl<F> SyncCallOverride for F where
+    F: Fn(Address, Bytes) -> Option<CallOverrideCallResult> + DynClone + Send + Sync
+{
+}
 
 dyn_clone::clone_trait_object!(SyncCallOverride);
 
@@ -49,20 +63,23 @@ impl<DatabaseErrorT> Inspector<DatabaseErrorT> for EvmInspector {
         data: &mut EVMData<'_, DatabaseErrorT>,
         inputs: &mut CallInputs,
     ) -> (InstructionResult, Gas, Bytes) {
-        if let TransactTo::Call(target) = data.env.tx.transact_to {
-            if let Some(call_override) = &self.call_override {
-                // Only override calls to other contracts
-                if inputs.contract != target {
-                    let out = (call_override)(inputs.contract);
-                    if let Some(out) = out {
-                        return (InstructionResult::Return, Gas::new(inputs.gas_limit), out);
-                    }
-                }
-            }
-        }
-
         if inputs.contract == *CONSOLE_ADDRESS {
             self.console_log_encoded_messages.push(inputs.input.clone());
+        }
+
+        if let TransactTo::Call(_) = data.env.tx.transact_to {
+            if let Some(call_override) = &self.call_override {
+                let out = (call_override)(inputs.contract, inputs.input.clone());
+                if let Some(out) = out {
+                    let instruction_result = if out.should_revert {
+                        InstructionResult::Revert
+                    } else {
+                        InstructionResult::Return
+                    };
+
+                    return (instruction_result, Gas::new(out.gas), out.result);
+                }
+            }
         }
 
         (

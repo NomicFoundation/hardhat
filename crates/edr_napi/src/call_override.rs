@@ -1,16 +1,45 @@
 use std::sync::mpsc::{channel, Sender};
 
 use edr_eth::{Address, Bytes};
-use napi::{bindgen_prelude::Buffer, Env, JsFunction, NapiRaw, Status};
+use edr_provider::data::inspector::CallOverrideCallResult;
+use napi::{
+    bindgen_prelude::{BigInt, Buffer},
+    Env, JsFunction, NapiRaw, Status,
+};
+use napi_derive::napi;
 
 use crate::{
+    cast::TryCast,
     sync::{await_promise, handle_error},
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
 };
 
+#[napi(object)]
+struct CallOverrideCallResultBuffer {
+    pub result: Buffer,
+    pub should_revert: bool,
+    pub gas: BigInt,
+}
+
+impl TryCast<Option<CallOverrideCallResult>> for Option<CallOverrideCallResultBuffer> {
+    type Error = napi::Error;
+
+    fn try_cast(self) -> Result<Option<CallOverrideCallResult>, Self::Error> {
+        match self {
+            None => Ok(None),
+            Some(result) => Ok(Some(CallOverrideCallResult {
+                result: result.result.try_cast()?,
+                should_revert: result.should_revert,
+                gas: result.gas.try_cast()?,
+            })),
+        }
+    }
+}
+
 struct CallOverrideCall {
     contract_address: Address,
-    sender: Sender<napi::Result<Option<Bytes>>>,
+    data: Bytes,
+    sender: Sender<napi::Result<Option<CallOverrideCallResult>>>,
 }
 
 #[derive(Clone)]
@@ -26,18 +55,22 @@ impl CallOverrideCallback {
             unsafe { call_override_callback.raw() },
             0,
             |ctx: ThreadSafeCallContext<CallOverrideCall>| {
-                let input = ctx
+                let address = ctx
                     .env
                     .create_buffer_with_data(ctx.value.contract_address.to_vec())?
                     .into_raw();
 
+                let data = ctx
+                    .env
+                    .create_buffer_with_data(ctx.value.data.to_vec())?
+                    .into_raw();
+
                 let sender = ctx.value.sender.clone();
-                let promise = ctx.callback.call(None, &[input])?;
-                let result = await_promise::<Option<Buffer>, Option<Bytes>>(
-                    ctx.env,
-                    promise,
-                    ctx.value.sender,
-                );
+                let promise = ctx.callback.call(None, &[address, data])?;
+                let result = await_promise::<
+                    Option<CallOverrideCallResultBuffer>,
+                    Option<CallOverrideCallResult>,
+                >(ctx.env, promise, ctx.value.sender);
 
                 handle_error(sender, result)
             },
@@ -49,12 +82,17 @@ impl CallOverrideCallback {
     }
 
     // TODO take ref as argument
-    pub fn call_override(&self, contract_address: Address) -> Option<Bytes> {
+    pub fn call_override(
+        &self,
+        contract_address: Address,
+        data: Bytes,
+    ) -> Option<CallOverrideCallResult> {
         let (sender, receiver) = channel();
 
         let status = self.call_override_callback_fn.call(
             CallOverrideCall {
                 contract_address,
+                data,
                 sender,
             },
             ThreadsafeFunctionCallMode::Blocking,

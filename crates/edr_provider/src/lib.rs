@@ -1,5 +1,5 @@
 mod config;
-mod data;
+pub mod data;
 mod debug_mine;
 mod error;
 mod filter;
