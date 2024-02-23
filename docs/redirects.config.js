@@ -250,6 +250,11 @@ const customRedirects = [
     destination: "/hardhat-runner/docs/guides/command-line-completion",
     permanent: false,
   },
+  {
+    source: "/hardhat-runner/docs/guides/tasks-and-scripts",
+    destination: "/hardhat-runner/docs/guides/tasks",
+    permanent: false,
+  },
   // guides redirects, exceptions go first
   {
     source:
