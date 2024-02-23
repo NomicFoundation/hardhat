@@ -73,9 +73,85 @@ module.exports = {
 
 We are going to use the [Sepolia testnet](https://ethereum.org/en/developers/docs/networks/#sepolia) to deploy and verify our contract, so you need to add this network in your Hardhat config. Here we are using [Infura](https://infura.io/) to connect to the network, but you can use an alternative JSON-RPC URL like [Alchemy](https://alchemy.com/) if you want.
 
-::::tabsgroup{options=Infura,Alchemy}
+::::tabsgroup{options="Infura | Typescript,Alchemy | Typescript,Infura | Javascript,Alchemy | Javascript"}
 
-:::tab{value=Infura}
+:::tab{value="Infura | Typescript"}
+
+```ts
+// Go to https://infura.io, sign up, create a new API key
+// in its dashboard, and store it as the "INFURA_API_KEY"
+// configuration variable
+const INFURA_API_KEY = vars.get("INFURA_API_KEY");
+
+// Replace this private key with your Sepolia account private key
+// To export your private key from Coinbase Wallet, go to
+// Settings > Developer Settings > Show private key
+// To export your private key from Metamask, open Metamask and
+// go to Account Details > Export Private Key
+// Store the private key as the "SEPOLIA_PRIVATE_KEY" configuration
+// variable.
+// Beware: NEVER put real Ether into testing accounts
+const SEPOLIA_PRIVATE_KEY = vars.get("SEPOLIA_PRIVATE_KEY");
+
+const ETHERSCAN_API_KEY = vars.get("ETHERSCAN_API_KEY");
+
+export default {
+  // ...rest of your config...
+  networks: {
+    sepolia: {
+      url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,
+      accounts: [SEPOLIA_PRIVATE_KEY],
+    },
+  },
+  etherscan: {
+    apiKey: {
+      sepolia: ETHERSCAN_API_KEY,
+    },
+  },
+};
+```
+
+:::
+
+:::tab{value="Alchemy | Typescript"}
+
+```ts
+// Go to https://alchemy.com, sign up, create a new App in
+// its dashboard, and store it as the "ALCHEMY_API_KEY"
+// configuration variable
+const ALCHEMY_API_KEY = vars.get("ALCHEMY_API_KEY");
+
+// Replace this private key with your Sepolia account private key
+// To export your private key from Coinbase Wallet, go to
+// Settings > Developer Settings > Show private key
+// To export your private key from Metamask, open Metamask and
+// go to Account Details > Export Private Key
+// Store the private key as the "SEPOLIA_PRIVATE_KEY" configuration
+// variable.
+// Beware: NEVER put real Ether into testing accounts
+const SEPOLIA_PRIVATE_KEY = vars.get("SEPOLIA_PRIVATE_KEY");
+
+const ETHERSCAN_API_KEY = vars.get("ETHERSCAN_API_KEY");
+
+export default {
+  // ...rest of your config...
+  networks: {
+    sepolia: {
+      url: `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}`,
+      accounts: [SEPOLIA_PRIVATE_KEY],
+    },
+  },
+  etherscan: {
+    apiKey: {
+      sepolia: ETHERSCAN_API_KEY,
+    },
+  },
+};
+```
+
+:::
+
+:::tab{value="Infura | Javascript"}
 
 ```js
 // Go to https://infura.io, sign up, create a new API key
@@ -93,6 +169,8 @@ const INFURA_API_KEY = vars.get("INFURA_API_KEY");
 // Beware: NEVER put real Ether into testing accounts
 const SEPOLIA_PRIVATE_KEY = vars.get("SEPOLIA_PRIVATE_KEY");
 
+const ETHERSCAN_API_KEY = vars.get("ETHERSCAN_API_KEY");
+
 module.exports = {
   // ...rest of your config...
   networks: {
@@ -101,12 +179,17 @@ module.exports = {
       accounts: [SEPOLIA_PRIVATE_KEY],
     },
   },
+  etherscan: {
+    apiKey: {
+      sepolia: ETHERSCAN_API_KEY,
+    },
+  },
 };
 ```
 
 :::
 
-:::tab{value=Alchemy}
+:::tab{value="Alchemy | Javascript"}
 
 ```js
 // Go to https://alchemy.com, sign up, create a new App in
@@ -124,12 +207,19 @@ const ALCHEMY_API_KEY = vars.get("ALCHEMY_API_KEY");
 // Beware: NEVER put real Ether into testing accounts
 const SEPOLIA_PRIVATE_KEY = vars.get("SEPOLIA_PRIVATE_KEY");
 
+const ETHERSCAN_API_KEY = vars.get("ETHERSCAN_API_KEY");
+
 module.exports = {
   // ...rest of your config...
   networks: {
     sepolia: {
       url: `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}`,
       accounts: [SEPOLIA_PRIVATE_KEY],
+    },
+  },
+  etherscan: {
+    apiKey: {
+      sepolia: ETHERSCAN_API_KEY,
     },
   },
 };
@@ -188,9 +278,25 @@ npx hardhat ignition verify sepolia-deployment
 
 Alternatively, you can combine deployment and verification into one step, by invoking the `deploy` task with the `--verify` flag:
 
-```sh
-npx hardhat ignition deploy ignition/modules/Lock.js --network sepolia --deployment-id sepolia-deployment --verify
+::::tabsgroup{options="TypeScript,JavaScript"}
+
+:::tab{value="TypeScript"}
+
+```shell
+npx hardhat ignition deploy ignition/modules/Lock.ts --network sepolia --verify
 ```
+
+:::
+
+:::tab{value="JavaScript"}
+
+```shell
+npx hardhat ignition deploy ignition/modules/Lock.js --network sepolia --verify
+```
+
+:::
+
+::::
 
 :::tip
 
