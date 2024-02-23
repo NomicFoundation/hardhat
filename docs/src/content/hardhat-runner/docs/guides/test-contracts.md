@@ -10,7 +10,7 @@ While this is our recommended test setup, Hardhat is flexible: you can customize
 
 In this guide we’ll write some tests for the sample project. If you haven’t done it yet, go and [initialize it](./project-setup.md).
 
-We recommend you [use TypeScript](./typescript.md) to get better autocompletion and catch possible errors earlier. This guide will assume you are using TypeScript, but you can click the tabs of the code examples to switch their language.
+We recommend you [use TypeScript](./typescript.md) to get better autocompletion and catch possible errors earlier. This guide will assume you are using TypeScript, but you can click the tabs of the code examples to see the Javascript counterpart.
 
 The setup includes some example tests in the `test/Lock.ts` file, but ignore them for now. Instead, create a `test/my-tests.ts` file. During this guide we'll only run those, by running `npx hardhat test test/my-tests.ts`, instead of just `npx hardhat test`.
 
@@ -24,7 +24,7 @@ For our first test we’ll deploy the `Lock` contract and assert that the unlock
 
 :::tab{value="TypeScript"}
 
-```tsx
+```ts
 import { expect } from "chai";
 import hre from "hardhat";
 import { time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
@@ -37,7 +37,7 @@ describe("Lock", function () {
 
     // deploy a lock contract where funds can be withdrawn
     // one year in the future
-    const lock = await ethers.deployContract("Lock", [unlockTime], {
+    const lock = await hre.ethers.deployContract("Lock", [unlockTime], {
       value: lockedAmount,
     });
 
@@ -64,7 +64,7 @@ describe("Lock", function () {
 
     // deploy a lock contract where funds can be withdrawn
     // one year in the future
-    const lock = await ethers.deployContract("Lock", [unlockTime], {
+    const lock = await hre.ethers.deployContract("Lock", [unlockTime], {
       value: lockedAmount,
     });
 
@@ -96,7 +96,7 @@ function withdraw() public {
 
 The first statement checks that the unlock time has been reached, and the second one checks that the address calling the contract is its owner. Let’s start by writing a test for the first pre-condition:
 
-```tsx
+```ts
 it("Should revert with the right error if called too soon", async function () {
   // ...deploy the contract as before...
 
@@ -114,7 +114,7 @@ We are deploying our `Lock` contract with an unlock time of one year. If we want
 
 The solution is to simulate the passage of time. This can be done with the [`time.increaseTo`](</hardhat-network-helpers/docs/reference#increaseto(timestamp)>) network helper, which mines a new block with the given timestamp:
 
-```tsx
+```ts
 it("Should transfer the funds to the owner", async function () {
   // ...deploy the contract...
 
@@ -133,11 +133,11 @@ The second check done by the `withdraw` function is that the function was called
 
 The `ethers.getSigners()` returns an array with all the configured accounts. We can use the `.connect` method of the contract to call the function with a different account and check that the transaction reverts:
 
-```tsx
+```ts
 it("Should revert with the right error if called from another account", async function () {
   // ...deploy the contract...
 
-  const [owner, otherAccount] = await ethers.getSigners();
+  const [owner, otherAccount] = await hre.ethers.getSigners();
 
   // we increase the time of the chain to pass the first check
   await time.increaseTo(unlockTime);
@@ -161,19 +161,20 @@ In a typical Mocha test, this duplication of code is handled with a `beforeEach`
 
 :::tab{value="TypeScript"}
 
-```tsx
-import { Contract } from "ethers";
+```ts
+import hre from "hardhat";
+import { time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 describe("Lock", function () {
-  let lock: Contract;
+  let lock: any;
   let unlockTime: number;
   let lockedAmount = 1_000_000_000;
 
   beforeEach(async function () {
     const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-    unlockTime = (await helpers.time.latest()) + ONE_YEAR_IN_SECS;
+    unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
 
-    lock = await ethers.deployContract("Lock", [unlockTime], {
+    lock = await hre.ethers.deployContract("Lock", [unlockTime], {
       value: lockedAmount,
     });
   });
@@ -188,7 +189,10 @@ describe("Lock", function () {
 
 :::tab{value="JavaScript"}
 
-```tsx
+```js
+const hre = require("hardhat");
+const { time } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
+
 describe("Lock", function () {
   let lock;
   let unlockTime;
@@ -196,9 +200,9 @@ describe("Lock", function () {
 
   beforeEach(async function () {
     const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-    unlockTime = (await helpers.time.latest()) + ONE_YEAR_IN_SECS;
+    unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
 
-    lock = await ethers.deployContract("Lock", [unlockTime], {
+    lock = await hre.ethers.deployContract("Lock", [unlockTime], {
       value: lockedAmount,
     });
   });
@@ -222,13 +226,17 @@ The `loadFixture` helper in the Hardhat Network Helpers fixes both of these prob
 
 This is how our tests look like when a fixture is used:
 
-```tsx
-const { expect } = require("chai");
-const hre = require("hardhat");
-const {
-  loadFixture,
+::::tabsgroup{options="TypeScript,JavaScript"}
+
+:::tab{value="TypeScript"}
+
+```ts
+import { expect } from "chai";
+import hre from "hardhat";
+import {
   time,
-} = require("@nomicfoundation/hardhat-toolbox/network-helpers");
+  loadFixture,
+} from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 describe("Lock", function () {
   async function deployOneYearLockFixture() {
@@ -236,7 +244,7 @@ describe("Lock", function () {
     const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
     const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
 
-    const lock = await ethers.deployContract("Lock", [unlockTime], {
+    const lock = await hre.ethers.deployContract("Lock", [unlockTime], {
       value: lockedAmount,
     });
 
@@ -268,7 +276,7 @@ describe("Lock", function () {
   it("Should revert with the right error if called from another account", async function () {
     const { lock, unlockTime } = await loadFixture(deployOneYearLockFixture);
 
-    const [owner, otherAccount] = await ethers.getSigners();
+    const [owner, otherAccount] = await hre.ethers.getSigners();
 
     // we increase the time of the chain to pass the first check
     await time.increaseTo(unlockTime);
@@ -281,11 +289,78 @@ describe("Lock", function () {
 });
 ```
 
+:::
+
+:::tab{value="JavaScript"}
+
+```js
+const { expect } = require("chai");
+const hre = require("hardhat");
+const {
+  loadFixture,
+  time,
+} = require("@nomicfoundation/hardhat-toolbox/network-helpers");
+
+describe("Lock", function () {
+  async function deployOneYearLockFixture() {
+    const lockedAmount = 1_000_000_000;
+    const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
+    const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
+
+    const lock = await hre.ethers.deployContract("Lock", [unlockTime], {
+      value: lockedAmount,
+    });
+
+    return { lock, unlockTime, lockedAmount };
+  }
+
+  it("Should set the right unlockTime", async function () {
+    const { lock, unlockTime } = await loadFixture(deployOneYearLockFixture);
+
+    // assert that the value is correct
+    expect(await lock.unlockTime()).to.equal(unlockTime);
+  });
+
+  it("Should revert with the right error if called too soon", async function () {
+    const { lock } = await loadFixture(deployOneYearLockFixture);
+
+    await expect(lock.withdraw()).to.be.revertedWith("You can't withdraw yet");
+  });
+
+  it("Should transfer the funds to the owner", async function () {
+    const { lock, unlockTime } = await loadFixture(deployOneYearLockFixture);
+
+    await time.increaseTo(unlockTime);
+
+    // this will throw if the transaction reverts
+    await lock.withdraw();
+  });
+
+  it("Should revert with the right error if called from another account", async function () {
+    const { lock, unlockTime } = await loadFixture(deployOneYearLockFixture);
+
+    const [owner, otherAccount] = await hre.ethers.getSigners();
+
+    // we increase the time of the chain to pass the first check
+    await time.increaseTo(unlockTime);
+
+    // We use lock.connect() to send a transaction from another account
+    await expect(lock.connect(otherAccount).withdraw()).to.be.revertedWith(
+      "You aren't the owner"
+    );
+  });
+});
+```
+
+:::
+
+::::
+
 The fixture function can return anything you want, and the `loadFixture` helper will return it. We recommend returning an object like we did here, so you can extract only the values you care about for that test.
 
 ### Other tests
 
-There are several other things you can test, like [which events are emitted](/hardhat-chai-matchers/docs/reference#.emit) or [how the balances of the involved addresses change](/hardhat-chai-matchers/docs/reference#balance-change). Check the `test/Lock.js` file to see the other examples.
+There are several other things you can test, like [which events are emitted](/hardhat-chai-matchers/docs/reference#.emit) or [how the balances of the involved addresses change](/hardhat-chai-matchers/docs/reference#balance-change). Check the `test/Lock.ts` file to see the other examples.
 
 ### Measuring code coverage
 
