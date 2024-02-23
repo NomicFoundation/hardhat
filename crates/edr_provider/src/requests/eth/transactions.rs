@@ -72,7 +72,7 @@ pub fn handle_pending_transactions<LoggerErrorT: Debug>(
     data.pending_transactions()
         .map(|pending_transaction| {
             let transaction_and_block = TransactionAndBlock {
-                signed_transaction: pending_transaction.as_inner().clone(),
+                transaction: pending_transaction.clone(),
                 block_data: None,
                 is_pending: true,
             };
@@ -131,7 +131,7 @@ fn transaction_from_block(
         .transactions()
         .get(transaction_index)
         .map(|transaction| TransactionAndBlock {
-            signed_transaction: transaction.as_inner().clone(),
+            transaction: transaction.clone(),
             block_data: Some(BlockDataForTransaction {
                 block: block.clone(),
                 transaction_index: transaction_index.try_into().expect("usize fits into u64"),
@@ -170,10 +170,11 @@ pub fn transaction_to_rpc_result<LoggerErrorT: Debug>(
     }
 
     let TransactionAndBlock {
-        signed_transaction,
+        transaction,
         block_data,
         is_pending,
     } = transaction_and_block;
+    let signed_transaction = transaction.as_inner();
     let block = block_data.as_ref().map(|b| &b.block);
     let header = block.map(|b| b.header());
 
@@ -182,7 +183,7 @@ pub fn transaction_to_rpc_result<LoggerErrorT: Debug>(
         SignedTransaction::PostEip155Legacy(tx) => tx.gas_price,
         SignedTransaction::Eip2930(tx) => tx.gas_price,
         SignedTransaction::Eip1559(_) | SignedTransaction::Eip4844(_) => {
-            gas_price_for_post_eip1559(&signed_transaction, block)
+            gas_price_for_post_eip1559(signed_transaction, block)
         }
     };
 
@@ -224,7 +225,7 @@ pub fn transaction_to_rpc_result<LoggerErrorT: Debug>(
         block_hash,
         block_number,
         transaction_index,
-        from: signed_transaction.recover()?,
+        from: *transaction.caller(),
         to: signed_transaction.to(),
         value: signed_transaction.value(),
         gas_price,

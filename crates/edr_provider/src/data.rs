@@ -25,7 +25,7 @@ use edr_eth::{
     },
     reward_percentile::RewardPercentile,
     signature::{RecoveryMessage, Signature},
-    transaction::{SignedTransaction, TransactionRequestAndSender},
+    transaction::TransactionRequestAndSender,
     Address, Bytes, SpecId, B256, U256,
 };
 use edr_evm::{
@@ -952,6 +952,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         &self.instance_id
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn interval_mine(&mut self) -> Result<bool, ProviderError<LoggerErrorT>> {
         let result = self.mine_and_commit_block(BlockOptions::default())?;
 
@@ -1746,10 +1747,8 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         hash: &B256,
     ) -> Result<Option<TransactionAndBlock>, ProviderError<LoggerErrorT>> {
         let transaction = if let Some(tx) = self.mem_pool.transaction_by_hash(hash) {
-            let signed_transaction = tx.pending().as_inner().clone();
-
             Some(TransactionAndBlock {
-                signed_transaction,
+                transaction: tx.pending().clone(),
                 block_data: None,
                 is_pending: true,
             })
@@ -1762,15 +1761,14 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             let tx_index =
                 usize::try_from(tx_index_u64).expect("Indices cannot be larger than usize::MAX");
 
-            let signed_transaction = block
+            let transaction = block
                 .transactions()
                 .get(tx_index)
                 .expect("Transaction index must be valid, since it's from the receipt.")
-                .as_inner()
                 .clone();
 
             Some(TransactionAndBlock {
-                signed_transaction,
+                transaction,
                 block_data: Some(BlockDataForTransaction {
                     block,
                     transaction_index: tx_index_u64,
@@ -2375,8 +2373,8 @@ fn create_blockchain_and_state(
 /// The result returned by requesting a transaction.
 #[derive(Debug, Clone)]
 pub struct TransactionAndBlock {
-    /// The signed transaction.
-    pub signed_transaction: SignedTransaction,
+    /// The transaction.
+    pub transaction: ExecutableTransaction,
     /// Block data in which the transaction is found if it has been mined.
     pub block_data: Option<BlockDataForTransaction>,
     /// Whether the transaction is pending
@@ -3401,10 +3399,7 @@ mod tests {
             .transaction_by_hash(&transaction_hash)?
             .context("transaction not found")?;
 
-        assert_eq!(
-            transaction_result.signed_transaction.hash(),
-            &transaction_hash
-        );
+        assert_eq!(transaction_result.transaction.hash(), &transaction_hash);
 
         Ok(())
     }
@@ -3436,10 +3431,7 @@ mod tests {
             .transaction_by_hash(&transaction_hash)?
             .context("transaction not found")?;
 
-        assert_eq!(
-            transaction_result.signed_transaction.hash(),
-            &transaction_hash
-        );
+        assert_eq!(transaction_result.transaction.hash(), &transaction_hash);
 
         Ok(())
     }
