@@ -1,6 +1,6 @@
 {
   "name": "gas-reporter",
   "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox": "^4.0.0"
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0"
   }
 }
