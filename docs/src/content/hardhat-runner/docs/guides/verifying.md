@@ -8,7 +8,7 @@ In this guide we'll explain how to do this in the [Etherscan](https://etherscan.
 
 :::tip
 
-If you'd like to verify on Sourcify instead of Etherscan, or if you wish to verify a contract deployed outside of Hardhat Ignition, you can use the [hardhat-verify plugin](/hardhat-runner/plugins/nomicfoundation-hardhat-verify).
+If you wish to verify a contract deployed outside of Hardhat Ignition or if you'd like to verify on Sourcify instead of Etherscan, you can use the [hardhat-verify plugin](/hardhat-runner/plugins/nomicfoundation-hardhat-verify).
 
 :::
 
