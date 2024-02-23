@@ -3,14 +3,13 @@
 use std::sync::Arc;
 
 use edr_eth::{
-    block::{BlobGas, PartialHeader},
+    block::PartialHeader,
     log::FilterLog,
     receipt::{TransactionReceipt, TypedReceipt, TypedReceiptData},
-    trie::KECCAK_NULL_RLP,
     Address, Bloom, Bytes, B256, U256,
 };
 use edr_evm::{
-    blockchain::{BlockchainError, LocalBlockchain, SyncBlockchain},
+    blockchain::{BlockchainError, GenesisBlockOptions, LocalBlockchain, SyncBlockchain},
     state::{StateDiff, StateError},
     test_utils::dummy_eip155_transaction,
     HashSet, LocalBlock, Log, SpecId, SyncBlock,
@@ -37,13 +36,16 @@ async fn create_forked_dummy_blockchain(
     fork_block_number: Option<u64>,
 ) -> Box<dyn SyncBlockchain<BlockchainError, StateError>> {
     use edr_eth::remote::RpcClient;
-    use edr_evm::{blockchain::ForkedBlockchain, HashMap, RandomHashGenerator};
+    use edr_evm::{
+        blockchain::ForkedBlockchain, state::IrregularState, HashMap, RandomHashGenerator,
+    };
     use edr_test_utils::env::get_alchemy_url;
     use parking_lot::Mutex;
 
     let rpc_client =
         RpcClient::new(&get_alchemy_url(), edr_defaults::CACHE_DIR.into(), None).expect("url ok");
 
+    let mut irregular_state = IrregularState::default();
     Box::new(
         ForkedBlockchain::new(
             tokio::runtime::Handle::current().clone(),
@@ -51,6 +53,7 @@ async fn create_forked_dummy_blockchain(
             SpecId::LATEST,
             rpc_client,
             fork_block_number,
+            &mut irregular_state,
             Arc::new(Mutex::new(RandomHashGenerator::with_seed(
                 edr_defaults::STATE_ROOT_HASH_SEED,
             ))),
@@ -71,15 +74,12 @@ async fn create_dummy_blockchains() -> Vec<Box<dyn SyncBlockchain<BlockchainErro
         StateDiff::default(),
         1,
         SpecId::LATEST,
-        DEFAULT_GAS_LIMIT,
-        None,
-        Some(B256::ZERO),
-        Some(U256::from(DEFAULT_INITIAL_BASE_FEE)),
-        Some(BlobGas {
-            gas_used: 0,
-            excess_gas: 0,
-        }),
-        Some(KECCAK_NULL_RLP),
+        GenesisBlockOptions {
+            gas_limit: Some(DEFAULT_GAS_LIMIT),
+            mix_hash: Some(B256::ZERO),
+            base_fee: Some(U256::from(DEFAULT_INITIAL_BASE_FEE)),
+            ..GenesisBlockOptions::default()
+        },
     )
     .expect("Should construct without issues");
 
@@ -124,7 +124,6 @@ fn create_dummy_block_with_difficulty(
             number,
             parent_hash,
             difficulty: U256::from(difficulty),
-            withdrawals_root: Some(KECCAK_NULL_RLP),
             ..PartialHeader::default()
         },
     )
@@ -136,7 +135,6 @@ fn create_dummy_block_with_hash(spec_id: SpecId, number: u64, parent_hash: B256)
         PartialHeader {
             parent_hash,
             number,
-            withdrawals_root: Some(KECCAK_NULL_RLP),
             ..PartialHeader::default()
         },
     )

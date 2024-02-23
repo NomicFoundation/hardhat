@@ -273,6 +273,10 @@ pub fn handle_send_raw_transaction_request<LoggerErrorT: Debug>(
             err => ProviderError::InvalidArgument(err.to_string()),
         })?;
 
+    if matches!(signed_transaction, SignedTransaction::Eip4844(_)) {
+        return Err(ProviderError::Eip4844TransactionUnsupported);
+    }
+
     validate_send_raw_transaction_request(data, &signed_transaction)?;
 
     let pending_transaction = ExecutableTransaction::new(data.spec_id(), signed_transaction)?;
@@ -313,6 +317,8 @@ fn resolve_transaction_request<LoggerErrorT: Debug>(
         access_list,
         // We ignore the transaction type
         transaction_type: _transaction_type,
+        blobs: _blobs,
+        blob_hashes: _blob_hashes,
     } = transaction_request;
 
     let chain_id = chain_id.unwrap_or_else(|| data.chain_id());

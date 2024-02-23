@@ -33,8 +33,10 @@ export interface BlockOptions {
   nonce?: Buffer
   /** The block's base gas fee */
   baseFee?: bigint
-  /** The block's withdrawals root */
-  withdrawalsRoot?: Buffer
+  /** The block's withdrawals */
+  withdrawals?: Array<Withdrawal>
+  /** Blob gas was added by EIP-4844 and is ignored in older headers. */
+  blobGas?: BlobGas
   /**
    * The hash tree root of the parent beacon block for the given execution
    * block (EIP-4788).
@@ -361,6 +363,16 @@ export interface TracingStep {
 export interface TracingMessageResult {
   /** Execution result */
   readonly executionResult: ExecutionResult
+}
+export interface Withdrawal {
+  /** The index of withdrawal */
+  index: bigint
+  /** The index of the validator that generated the withdrawal */
+  validatorIndex: bigint
+  /** The recipient address for withdrawal value */
+  address: Buffer
+  /** The value contained in withdrawal */
+  amount: bigint
 }
 export class EdrContext {
   /**Creates a new [`EdrContext`] instance. Should only be called once! */

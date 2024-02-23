@@ -218,6 +218,8 @@ export class EdrProviderWrapper
     const contractsIdentifier = new ContractsIdentifier();
     const vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
 
+    const hardforkName = getHardforkName(config.hardfork);
+
     const provider = await Provider.withConfig(
       getGlobalEdrContext(),
       {
@@ -247,9 +249,7 @@ export class EdrProviderWrapper
         cacheDir: config.forkCachePath,
         coinbase: Buffer.from(coinbase.slice(2), "hex"),
         fork,
-        hardfork: ethereumsjsHardforkToEdrSpecId(
-          getHardforkName(config.hardfork)
-        ),
+        hardfork: ethereumsjsHardforkToEdrSpecId(hardforkName),
         genesisAccounts: config.genesisAccounts.map((account) => {
           return {
             secretKey: account.privateKey,

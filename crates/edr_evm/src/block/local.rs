@@ -53,7 +53,7 @@ impl LocalBlock {
 
     /// Constructs a new instance with the provided data.
     pub fn new(
-        mut partial_header: PartialHeader,
+        partial_header: PartialHeader,
         transactions: Vec<ExecutableTransaction>,
         transaction_receipts: Vec<TransactionReceipt<Log>>,
         ommers: Vec<Header>,
@@ -63,13 +63,16 @@ impl LocalBlock {
         let ommers_hash = keccak256(alloy_rlp::encode(&ommers));
         let transactions_root = trie::ordered_trie_root(transactions.iter().map(alloy_rlp::encode));
 
-        if let Some(withdrawals) = withdrawals.as_ref() {
-            partial_header.withdrawals_root = Some(trie::ordered_trie_root(
-                withdrawals.iter().map(alloy_rlp::encode),
-            ));
-        }
+        let withdrawals_root = withdrawals
+            .as_ref()
+            .map(|w| trie::ordered_trie_root(w.iter().map(alloy_rlp::encode)));
 
-        let header = Header::new(partial_header, ommers_hash, transactions_root);
+        let header = Header::new(
+            partial_header,
+            ommers_hash,
+            transactions_root,
+            withdrawals_root,
+        );
 
         let hash = header.hash();
         let transaction_receipts =

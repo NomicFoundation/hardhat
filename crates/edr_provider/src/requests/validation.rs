@@ -4,7 +4,7 @@ use edr_eth::{
     access_list::AccessListItem,
     remote::{eth::CallRequest, BlockSpec, BlockTag, PreEip1898BlockSpec},
     transaction::{EthTransactionRequest, SignedTransaction},
-    Address, SpecId, U256,
+    Address, SpecId, B256, U256,
 };
 use edr_evm::Bytes;
 
@@ -16,6 +16,8 @@ pub struct SpecValidationData<'data> {
     pub max_fee_per_gas: Option<&'data U256>,
     pub max_priority_fee_per_gas: Option<&'data U256>,
     pub access_list: Option<&'data Vec<AccessListItem>>,
+    pub blobs: Option<&'data Vec<Bytes>>,
+    pub blob_hashes: Option<&'data Vec<B256>>,
 }
 
 impl<'data> From<&'data EthTransactionRequest> for SpecValidationData<'data> {
@@ -25,6 +27,8 @@ impl<'data> From<&'data EthTransactionRequest> for SpecValidationData<'data> {
             max_fee_per_gas: value.max_fee_per_gas.as_ref(),
             max_priority_fee_per_gas: value.max_priority_fee_per_gas.as_ref(),
             access_list: value.access_list.as_ref(),
+            blobs: value.blobs.as_ref(),
+            blob_hashes: value.blob_hashes.as_ref(),
         }
     }
 }
@@ -36,6 +40,8 @@ impl<'data> From<&'data CallRequest> for SpecValidationData<'data> {
             max_fee_per_gas: value.max_fee_per_gas.as_ref(),
             max_priority_fee_per_gas: value.max_priority_fee_per_gas.as_ref(),
             access_list: value.access_list.as_ref(),
+            blobs: value.blobs.as_ref(),
+            blob_hashes: value.blob_hashes.as_ref(),
         }
     }
 }
@@ -48,30 +54,40 @@ impl<'data> From<&'data SignedTransaction> for SpecValidationData<'data> {
                 max_fee_per_gas: None,
                 max_priority_fee_per_gas: None,
                 access_list: None,
+                blobs: None,
+                blob_hashes: None,
             },
             SignedTransaction::PostEip155Legacy(tx) => Self {
                 gas_price: Some(&tx.gas_price),
                 max_fee_per_gas: None,
                 max_priority_fee_per_gas: None,
                 access_list: None,
+                blobs: None,
+                blob_hashes: None,
             },
             SignedTransaction::Eip2930(tx) => Self {
                 gas_price: Some(&tx.gas_price),
                 max_fee_per_gas: None,
                 max_priority_fee_per_gas: None,
                 access_list: Some(tx.access_list.0.as_ref()),
+                blobs: None,
+                blob_hashes: None,
             },
             SignedTransaction::Eip1559(tx) => Self {
                 gas_price: None,
                 max_fee_per_gas: Some(&tx.max_fee_per_gas),
                 max_priority_fee_per_gas: Some(&tx.max_priority_fee_per_gas),
                 access_list: Some(tx.access_list.0.as_ref()),
+                blobs: None,
+                blob_hashes: None,
             },
             SignedTransaction::Eip4844(tx) => Self {
                 gas_price: None,
                 max_fee_per_gas: Some(&tx.max_fee_per_gas),
                 max_priority_fee_per_gas: Some(&tx.max_priority_fee_per_gas),
                 access_list: Some(tx.access_list.0.as_ref()),
+                blobs: None,
+                blob_hashes: Some(tx.blob_hashes.as_ref()),
             },
         }
     }
@@ -86,6 +102,8 @@ pub fn validate_transaction_spec<LoggerErrorT: Debug>(
         max_fee_per_gas,
         max_priority_fee_per_gas,
         access_list,
+        blobs,
+        blob_hashes,
     } = data;
 
     if spec_id < SpecId::LONDON && (max_fee_per_gas.is_some() || max_priority_fee_per_gas.is_some())
@@ -125,6 +143,10 @@ pub fn validate_transaction_spec<LoggerErrorT: Debug>(
                 ));
             }
         }
+    }
+
+    if blobs.is_some() || blob_hashes.is_some() {
+        return Err(ProviderError::Eip4844TransactionUnsupported);
     }
 
     Ok(())

@@ -48,6 +48,8 @@ pub enum ProviderError<LoggerErrorT> {
     Creation(#[from] CreationError),
     #[error(transparent)]
     DebugTrace(#[from] DebugTraceError<BlockchainError, StateError>),
+    #[error("An EIP-4844 (shard blob) transaction was received, but Hardhat doesn't have support for them yet.")]
+    Eip4844TransactionUnsupported,
     #[error(transparent)]
     Eip712Error(#[from] Eip712Error),
     /// A transaction error occurred while estimating gas.
@@ -202,6 +204,7 @@ impl<LoggerErrorT: Debug> From<ProviderError<LoggerErrorT>> for jsonrpc::Error {
             ProviderError::Blockchain(_) => INVALID_INPUT,
             ProviderError::Creation(_) => INVALID_INPUT,
             ProviderError::DebugTrace(_) => INTERNAL_ERROR,
+            ProviderError::Eip4844TransactionUnsupported => INVALID_INPUT,
             ProviderError::Eip712Error(_) => INVALID_INPUT,
             ProviderError::EstimateGasTransactionFailure(_) => INVALID_INPUT,
             ProviderError::InvalidArgument(_) => INVALID_PARAMS,
