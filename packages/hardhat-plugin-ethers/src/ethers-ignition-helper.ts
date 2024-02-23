@@ -1,6 +1,7 @@
 import {
   HardhatArtifactResolver,
   errorDeploymentResultToExceptionMessage,
+  resolveDeploymentId,
 } from "@nomicfoundation/hardhat-ignition/helpers";
 import {
   DeployConfig,
@@ -20,6 +21,7 @@ import {
 import { Contract } from "ethers";
 import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+import path from "path";
 
 export type IgnitionModuleResultsTToEthersContracts<
   ContractNameT extends string,
@@ -40,16 +42,13 @@ export class EthersIgnitionHelper {
   public type = "ethers";
 
   private _provider: EIP1193Provider;
-  private _deploymentDir: string | undefined;
 
   constructor(
     private _hre: HardhatRuntimeEnvironment,
     private _config?: Partial<DeployConfig>,
-    provider?: EIP1193Provider,
-    deploymentDir?: string
+    provider?: EIP1193Provider
   ) {
     this._provider = provider ?? this._hre.network.provider;
-    this._deploymentDir = deploymentDir;
   }
 
   /**
@@ -78,18 +77,21 @@ export class EthersIgnitionHelper {
       defaultSender = undefined,
       strategy,
       strategyConfig,
+      deploymentId: givenDeploymentId = undefined,
     }: {
       parameters?: DeploymentParameters;
       config?: Partial<DeployConfig>;
       defaultSender?: string;
       strategy?: StrategyT;
       strategyConfig?: StrategyConfig[StrategyT];
+      deploymentId?: string;
     } = {
       parameters: {},
       config: {},
       defaultSender: undefined,
       strategy: undefined,
       strategyConfig: undefined,
+      deploymentId: undefined,
     }
   ): Promise<
     IgnitionModuleResultsTToEthersContracts<
@@ -115,10 +117,27 @@ export class EthersIgnitionHelper {
         strategyConfig
       );
 
+    const chainId = Number(
+      await this._hre.network.provider.request({
+        method: "eth_chainId",
+      })
+    );
+
+    const deploymentId = resolveDeploymentId(givenDeploymentId, chainId);
+
+    const deploymentDir =
+      this._hre.network.name === "hardhat"
+        ? undefined
+        : path.join(
+            this._hre.config.paths.ignition,
+            "deployments",
+            deploymentId
+          );
+
     const result = await deploy({
       config: resolvedConfig,
       provider: this._provider,
-      deploymentDir: this._deploymentDir,
+      deploymentDir,
       artifactResolver,
       ignitionModule,
       deploymentParameters: parameters,
