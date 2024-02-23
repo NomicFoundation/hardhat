@@ -24,6 +24,7 @@ export interface MinimalEVMResult {
 
 export interface MinimalMessage {
   to?: Address;
+  codeAddress?: Address;
   value: bigint;
   data: Uint8Array;
   caller: Address;

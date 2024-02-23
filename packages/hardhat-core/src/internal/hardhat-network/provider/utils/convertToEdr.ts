@@ -220,6 +220,10 @@ export function edrTracingMessageToMinimalMessage(
 ): MinimalMessage {
   return {
     to: message.to !== undefined ? new Address(message.to) : undefined,
+    codeAddress:
+      message.codeAddress !== undefined
+        ? new Address(message.codeAddress)
+        : undefined,
     data: message.data,
     value: message.value,
     caller: new Address(message.caller),
