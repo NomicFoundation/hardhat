@@ -42,7 +42,7 @@ const HARDHAT_PACKAGE_NAME = "hardhat";
 const PROJECT_DEPENDENCIES: Dependencies = {};
 
 const ETHERS_PROJECT_DEPENDENCIES: Dependencies = {
-  "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+  "@nomicfoundation/hardhat-toolbox": "^5.0.0",
 };
 
 const VIEM_PROJECT_DEPENDENCIES: Dependencies = {
