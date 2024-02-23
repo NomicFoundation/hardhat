@@ -1,5 +1,5 @@
 mod config;
-pub mod data;
+mod data;
 mod debug_mine;
 mod error;
 mod filter;
@@ -26,7 +26,7 @@ use tokio::{runtime, sync::Mutex as AsyncMutex, task};
 
 pub use self::{
     config::*,
-    data::CallResult,
+    data::{CallOverrideResult, CallResult},
     debug_mine::DebugMineBlockResult,
     error::{EstimateGasFailure, ProviderError, TransactionFailure, TransactionFailureReason},
     logger::Logger,

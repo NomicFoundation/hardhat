@@ -1,7 +1,7 @@
 mod account;
 mod call;
 mod gas;
-pub mod inspector;
+mod inspector;
 
 use std::{
     cmp,
@@ -58,7 +58,7 @@ use self::{
     gas::{BinarySearchEstimationResult, CheckGasResult},
     inspector::EvmInspector,
 };
-pub use crate::data::inspector::SyncCallOverride;
+pub use crate::data::inspector::{CallOverrideResult, SyncCallOverride};
 use crate::{
     data::{
         call::{run_call, RunCallArgs},

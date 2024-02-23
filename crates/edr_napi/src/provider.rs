@@ -156,7 +156,7 @@ impl Provider {
         &self,
         env: Env,
         #[napi(
-            ts_arg_type = "(contract_address: Buffer, data: Buffer) => {result: Buffer, shouldRevert: boolean, gas: bigint} | undefined"
+            ts_arg_type = "(contract_address: Buffer, data: Buffer) => Promise<CallOverrideResult | undefined>"
         )]
         call_override_callback: JsFunction,
     ) -> napi::Result<()> {

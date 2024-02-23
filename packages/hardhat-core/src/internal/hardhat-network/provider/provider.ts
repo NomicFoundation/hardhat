@@ -158,7 +158,9 @@ class EdrProviderEventAdapter extends EventEmitter {}
 type AfterMessageCallback = (
   address: Buffer,
   data: Buffer
-) => { result: Buffer; shouldRevert: boolean; gas: bigint } | undefined;
+) => Promise<
+  { result: Buffer; shouldRevert: boolean; gas: bigint } | undefined
+>;
 
 export class EdrProviderWrapper
   extends EventEmitter
@@ -188,11 +190,11 @@ export class EdrProviderWrapper
       initializeVmTraceDecoder(this._vmTraceDecoder, tracingConfig);
     }
 
-    _provider.setOverrideCallback((address: Buffer, data: Buffer) => {
-      let overridenResult: ReturnType<AfterMessageCallback>;
+    _provider.setOverrideCallback(async (address: Buffer, data: Buffer) => {
+      let overridenResult;
 
       for (const afterMessageCallback of this._afterMessageCallbacks) {
-        const result = afterMessageCallback(address, data);
+        const result = await afterMessageCallback(address, data);
         if (result !== undefined) {
           overridenResult = result;
         }

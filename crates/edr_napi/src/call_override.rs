@@ -1,7 +1,6 @@
 use std::sync::mpsc::{channel, Sender};
 
 use edr_eth::{Address, Bytes};
-use edr_provider::data::inspector::CallOverrideCallResult;
 use napi::{
     bindgen_prelude::{BigInt, Buffer},
     Env, JsFunction, NapiRaw, Status,
@@ -14,20 +13,21 @@ use crate::{
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
 };
 
+/// The result of executing a call override.
 #[napi(object)]
-struct CallOverrideCallResultBuffer {
+pub struct CallOverrideResult {
     pub result: Buffer,
     pub should_revert: bool,
     pub gas: BigInt,
 }
 
-impl TryCast<Option<CallOverrideCallResult>> for Option<CallOverrideCallResultBuffer> {
+impl TryCast<Option<edr_provider::CallOverrideResult>> for Option<CallOverrideResult> {
     type Error = napi::Error;
 
-    fn try_cast(self) -> Result<Option<CallOverrideCallResult>, Self::Error> {
+    fn try_cast(self) -> Result<Option<edr_provider::CallOverrideResult>, Self::Error> {
         match self {
             None => Ok(None),
-            Some(result) => Ok(Some(CallOverrideCallResult {
+            Some(result) => Ok(Some(edr_provider::CallOverrideResult {
                 result: result.result.try_cast()?,
                 should_revert: result.should_revert,
                 gas: result.gas.try_cast()?,
@@ -39,7 +39,7 @@ impl TryCast<Option<CallOverrideCallResult>> for Option<CallOverrideCallResultBu
 struct CallOverrideCall {
     contract_address: Address,
     data: Bytes,
-    sender: Sender<napi::Result<Option<CallOverrideCallResult>>>,
+    sender: Sender<napi::Result<Option<edr_provider::CallOverrideResult>>>,
 }
 
 #[derive(Clone)]
@@ -68,8 +68,8 @@ impl CallOverrideCallback {
                 let sender = ctx.value.sender.clone();
                 let promise = ctx.callback.call(None, &[address, data])?;
                 let result = await_promise::<
-                    Option<CallOverrideCallResultBuffer>,
-                    Option<CallOverrideCallResult>,
+                    Option<CallOverrideResult>,
+                    Option<edr_provider::CallOverrideResult>,
                 >(ctx.env, promise, ctx.value.sender);
 
                 handle_error(sender, result)
@@ -86,7 +86,7 @@ impl CallOverrideCallback {
         &self,
         contract_address: Address,
         data: Bytes,
-    ) -> Option<CallOverrideCallResult> {
+    ) -> Option<edr_provider::CallOverrideResult> {
         let (sender, receiver) = channel();
 
         let status = self.call_override_callback_fn.call(

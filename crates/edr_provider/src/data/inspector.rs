@@ -6,22 +6,21 @@ use edr_evm::{CallInputs, EVMData, Gas, Inspector, InstructionResult, TransactTo
 
 use crate::data::CONSOLE_ADDRESS;
 
-///
-
+/// The result of executing a call override.
 #[derive(Debug)]
-pub struct CallOverrideCallResult {
+pub struct CallOverrideResult {
     pub result: Bytes,
     pub should_revert: bool,
     pub gas: u64,
 }
 
 pub trait SyncCallOverride:
-    Fn(Address, Bytes) -> Option<CallOverrideCallResult> + DynClone + Send + Sync
+    Fn(Address, Bytes) -> Option<CallOverrideResult> + DynClone + Send + Sync
 {
 }
 
 impl<F> SyncCallOverride for F where
-    F: Fn(Address, Bytes) -> Option<CallOverrideCallResult> + DynClone + Send + Sync
+    F: Fn(Address, Bytes) -> Option<CallOverrideResult> + DynClone + Send + Sync
 {
 }
 
