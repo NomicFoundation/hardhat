@@ -71,6 +71,7 @@ pub async fn execute(scenario_path: &Path, max_count: Option<usize>) -> anyhow::
             bar.inc((count % 100) as u64);
         }
     }
+    bar.finish();
 
     let elapsed = start.elapsed();
 
