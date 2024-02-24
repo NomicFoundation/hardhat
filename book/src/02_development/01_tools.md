@@ -44,6 +44,9 @@ Scenarios can be used to collect and replay RPC requests which is useful for per
 2. Set `EDR_SCENARIO_PREFIX` to the desired prefix for the scenario file name.
 3. Execute a test suite with the `EDR_SCENARIO_PREFIX` environment variable set and the freshly compiled `edr_napi` version.
 4. The scenario file will be written to the current working directory with the desired file name prefix.
+5. Optionally, compress the scenario file `gzip -k <SCENARIO_FILE>`. (The `-k` option preserves the original file, omit it if you want it deleted.)
+
+```bash
 
 ### Run scenario
 
@@ -51,5 +54,7 @@ Scenarios can be used to collect and replay RPC requests which is useful for per
 # From the repo root
 cargo run --bin tools --release scenario <PATH_TO_SCENARIO_FILE>
 ```
+
+The scenario runner supports both compressed and uncompressed scenario files.
 
 The reported running time excludes reading the requests from disk and parsing them.
