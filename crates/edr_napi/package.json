@@ -1,6 +1,6 @@
 {
-  "name": "@ignored/edr",
-  "version": "0.2.0-alpha.1",
+  "name": "@nomicfoundation/edr",
+  "version": "0.2.0-alpha.2",
   "main": "index.js",
   "types": "index.d.ts",
   "repository": {
@@ -47,6 +47,6 @@
     "pretest": "pnpm build",
     "test": "pnpm tsc && mocha --recursive \"test/**/*.ts\" --exit",
     "testNoBuild": "pnpm tsc && mocha --recursive \"test/**/*.ts\" --exit",
-    "clean": "rm -rf @ignored/edr.node"
+    "clean": "rm -rf @nomicfoundation/edr.node"
   }
 }

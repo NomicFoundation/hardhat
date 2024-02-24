@@ -6,7 +6,7 @@ import {
   TracingMessage,
   TracingMessageResult,
   TracingStep,
-} from "@ignored/edr";
+} from "@nomicfoundation/edr";
 import { Address } from "@nomicfoundation/ethereumjs-util";
 
 import { HardforkName } from "../../../util/hardforks";

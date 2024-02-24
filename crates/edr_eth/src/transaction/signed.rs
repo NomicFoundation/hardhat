@@ -438,6 +438,7 @@ mod tests {
                     v: 1,
                 },
                 hash: OnceLock::new(),
+                is_fake: false
             }),
             post_eip155 => SignedTransaction::PostEip155Legacy(Eip155SignedTransaction {
                 nonce: 0,
@@ -452,6 +453,7 @@ mod tests {
                     v: 37,
                 },
                 hash: OnceLock::new(),
+                is_fake: false
             }),
             eip2930 => SignedTransaction::Eip2930(Eip2930SignedTransaction {
                 chain_id: 1,
@@ -466,6 +468,7 @@ mod tests {
                 s: U256::default(),
                 access_list: vec![].into(),
                 hash: OnceLock::new(),
+                is_fake: false
             }),
             eip1559 => SignedTransaction::Eip1559(Eip1559SignedTransaction {
                 chain_id: 1,
@@ -481,6 +484,7 @@ mod tests {
                 r: U256::default(),
                 s: U256::default(),
                 hash: OnceLock::new(),
+                is_fake: false
             }),
             eip4844 => SignedTransaction::Eip4844(Eip4844SignedTransaction {
                 chain_id: 1,
@@ -498,6 +502,7 @@ mod tests {
                 r: U256::default(),
                 s: U256::default(),
                 hash: OnceLock::new(),
+                is_fake: false
             }),
     }
 
@@ -527,6 +532,7 @@ mod tests {
                 .unwrap(),
             },
             hash: OnceLock::new(),
+            is_fake: false,
         });
         assert_eq!(
             expected,
@@ -555,6 +561,7 @@ mod tests {
                 .unwrap(),
             },
             hash: OnceLock::new(),
+            is_fake: false,
         });
         assert_eq!(
             expected,
@@ -583,6 +590,7 @@ mod tests {
                 .unwrap(),
             },
             hash: OnceLock::new(),
+            is_fake: false,
         });
         assert_eq!(
             expected,
@@ -608,6 +616,7 @@ mod tests {
             s: U256::from_str("0x016b83f4f980694ed2eee4d10667242b1f40dc406901b34125b008d334d47469")
                 .unwrap(),
             hash: OnceLock::new(),
+            is_fake: false,
         });
         assert_eq!(
             expected,
@@ -636,6 +645,7 @@ mod tests {
                 .unwrap(),
             },
             hash: OnceLock::new(),
+            is_fake: false,
         });
         assert_eq!(
             expected,

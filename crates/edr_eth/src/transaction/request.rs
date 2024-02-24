@@ -2,7 +2,6 @@ mod eip155;
 mod eip1559;
 mod eip2930;
 mod eip4844;
-mod fake_signature;
 mod legacy;
 
 use k256::SecretKey;

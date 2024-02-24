@@ -1,4 +1,4 @@
-import { ExceptionalHalt, SuccessReason } from "@ignored/edr";
+import { ExceptionalHalt, SuccessReason } from "@nomicfoundation/edr";
 
 export enum ExitCode {
   SUCCESS,

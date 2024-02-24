@@ -7,8 +7,7 @@ use k256::SecretKey;
 use crate::{
     signature::{Signature, SignatureError},
     transaction::{
-        kind::TransactionKind, request::fake_signature::make_fake_signature,
-        signed::LegacySignedTransaction,
+        fake_signature::make_fake_signature, kind::TransactionKind, signed::LegacySignedTransaction,
     },
     Address, Bytes, B256, U256,
 };
@@ -45,6 +44,7 @@ impl LegacyTransactionRequest {
             input: self.input,
             signature,
             hash: OnceLock::new(),
+            is_fake: false,
         })
     }
 
@@ -61,6 +61,7 @@ impl LegacyTransactionRequest {
             input: self.input,
             signature,
             hash: OnceLock::new(),
+            is_fake: true,
         }
     }
 }
@@ -83,7 +84,7 @@ mod tests {
     use std::str::FromStr;
 
     use super::*;
-    use crate::transaction::request::fake_signature::tests::test_fake_sign_properties;
+    use crate::transaction::fake_signature::tests::test_fake_sign_properties;
 
     fn dummy_request() -> LegacyTransactionRequest {
         let to = Address::from_str("0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e").unwrap();
