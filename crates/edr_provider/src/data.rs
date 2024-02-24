@@ -75,7 +75,7 @@ use crate::{
 };
 
 const DEFAULT_INITIAL_BASE_FEE_PER_GAS: u64 = 1_000_000_000;
-const MAX_CACHED_STATES: usize = 64;
+const MAX_CACHED_STATES: usize = 10;
 
 /// The result of executing an `eth_call`.
 #[derive(Clone, Debug)]
