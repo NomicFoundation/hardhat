@@ -55,7 +55,7 @@ The Hardhat provider is configured through a queue of extension functions that y
 
 These callbacks can be `async`, and they will be `await`ed until they finish, so you should be careful when adding any functionality that might take a long time to resolve.
 
-It's important to keep in mind that after all callbacks are executed, the provider will be wrapped by Hardhat's built-in extenders. This means that the object returned by `extendProvider` is not the same as the one found on `hre.network.provider`, but its funcionality is included there.
+It's important to keep in mind that after all callbacks are executed, the provider will be wrapped by Hardhat's built-in extenders. This means that the object returned by `extendProvider` is not the same as the one found on `hre.network.provider`, but its functionality is included there.
 
 For example, adding the following to `hardhat.config.js`:
 
