@@ -1,6 +1,8 @@
 # Deploying your contracts
 
-To deploy your contracts, you can use [Hardhat Ignition](/ignition), our declarative deployment system. You can deploy the `Lock` contract from the sample project by specifying a deployment with an Ignition Module file like this:
+To deploy your contracts, you can use [Hardhat Ignition](/ignition), our declarative deployment system. You can deploy the `Lock` contract from the sample project by using its accompanying Ignition module. An Ignition module is a TypeScript or JavaScript file that allows you to specify what needs to be deployed.
+
+In the sample project, the Ignition module `LockModule` which deploys the `Lock` contract, is under the `./ignition/modules` directory and looks like this:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
@@ -56,4 +58,6 @@ npx hardhat ignition deploy ./ignition/modules/Lock.js --network <your-network>
 
 If no network is specified, Hardhat Ignition will run against an in-memory instance of Hardhat Network.
 
-Read more about Hardhat Ignition in the [Hardhat Ignition documentation](/ignition).
+In the sample `LockModule` above, two module parameters are used: `unlockTime` which will default to the 1st of Jan 2030 and `lockedAmount` which will default to one Gwei. You can learn more about overriding these values by providing your own module parameters during deployment in our [Deploying a module](/ignition/docs/guides/deploy#defining-parameters-during-deployment) guide.
+
+Read more about Hardhat Ignition generally in the [Hardhat Ignition documentation](/ignition).
