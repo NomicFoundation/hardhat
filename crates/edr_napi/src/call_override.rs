@@ -1,10 +1,7 @@
 use std::sync::mpsc::{channel, Sender};
 
 use edr_eth::{Address, Bytes};
-use napi::{
-    bindgen_prelude::{BigInt, Buffer},
-    Env, JsFunction, NapiRaw, Status,
-};
+use napi::{bindgen_prelude::Buffer, Env, JsFunction, NapiRaw, Status};
 use napi_derive::napi;
 
 use crate::{
@@ -18,7 +15,6 @@ use crate::{
 pub struct CallOverrideResult {
     pub result: Buffer,
     pub should_revert: bool,
-    pub gas: BigInt,
 }
 
 impl TryCast<Option<edr_provider::CallOverrideResult>> for Option<CallOverrideResult> {
@@ -30,7 +26,6 @@ impl TryCast<Option<edr_provider::CallOverrideResult>> for Option<CallOverrideRe
             Some(result) => Ok(Some(edr_provider::CallOverrideResult {
                 result: result.result.try_cast()?,
                 should_revert: result.should_revert,
-                gas: result.gas.try_cast()?,
             })),
         }
     }

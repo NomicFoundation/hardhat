@@ -11,7 +11,6 @@ use crate::data::CONSOLE_ADDRESS;
 pub struct CallOverrideResult {
     pub result: Bytes,
     pub should_revert: bool,
-    pub gas: u64,
 }
 
 pub trait SyncCallOverride:
@@ -76,7 +75,7 @@ impl<DatabaseErrorT> Inspector<DatabaseErrorT> for EvmInspector {
                         InstructionResult::Return
                     };
 
-                    return (instruction_result, Gas::new(out.gas), out.result);
+                    return (instruction_result, Gas::new(inputs.gas_limit), out.result);
                 }
             }
         }
