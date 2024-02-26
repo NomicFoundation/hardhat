@@ -76,7 +76,6 @@ impl CallOverrideCallback {
         })
     }
 
-    // TODO take ref as argument
     pub fn call_override(
         &self,
         contract_address: Address,
@@ -93,8 +92,6 @@ impl CallOverrideCallback {
             ThreadsafeFunctionCallMode::Blocking,
         );
 
-        // TODO if we let third parties write callbacks we shouldn't assume they're
-        // infallible.
         assert_eq!(status, Status::Ok);
 
         receiver

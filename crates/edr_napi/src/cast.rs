@@ -122,7 +122,6 @@ impl TryCast<Bytes> for Buffer {
     type Error = napi::Error;
 
     fn try_cast(self) -> Result<Bytes, Self::Error> {
-        // TODO avoid copy
         Ok(Bytes::copy_from_slice(&self))
     }
 }
