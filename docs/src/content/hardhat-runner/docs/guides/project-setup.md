@@ -129,7 +129,7 @@ When it comes to testing your contracts, the sample project comes with some usef
 
 - The built-in [Hardhat Network](/hardhat-network/docs) as the development network to test on, along with the [Hardhat Network Helpers](/hardhat-network-helpers) library to manipulate this network.
 - [Mocha](https://mochajs.org/) as the test runner, [Chai](https://chaijs.com/) as the assertion library, and the [Hardhat Chai Matchers](/hardhat-chai-matchers) to extend Chai with contracts-related functionality.
-- [Hardhat Ignition](/ignition) to deploy your contracts and the [`ethers.js`](https://docs.ethers.org/v6/) library to interact with them.
+- The [`ethers.js`](https://docs.ethers.org/v6/) library to interact with the network and with contracts.
 
 As well as other useful plugins. You can learn more about this in the [Testing contracts guide](./test-contracts.md).
 
