@@ -20,6 +20,8 @@ use crate::{
 #[napi]
 pub struct Provider {
     provider: Arc<edr_provider::Provider<LoggerError>>,
+    #[cfg(feature = "scenarios")]
+    scenario_file: Option<napi::tokio::sync::Mutex<napi::tokio::fs::File>>,
 }
 
 #[napi]
@@ -43,17 +45,27 @@ impl Provider {
 
         let (deferred, promise) = env.create_deferred()?;
         runtime.clone().spawn_blocking(move || {
+            #[cfg(feature = "scenarios")]
+            let scenario_file =
+                runtime::Handle::current().block_on(crate::scenarios::scenario_file(
+                    &config,
+                    edr_provider::Logger::is_enabled(&*logger),
+                ))?;
+
             let result = edr_provider::Provider::new(runtime, logger, subscriber_callback, config)
                 .map_or_else(
                     |error| Err(napi::Error::new(Status::GenericFailure, error.to_string())),
                     |provider| {
                         Ok(Provider {
                             provider: Arc::new(provider),
+                            #[cfg(feature = "scenarios")]
+                            scenario_file,
                         })
                     },
                 );
 
             deferred.resolve(|_env| result);
+            Ok::<_, napi::Error>(())
         });
 
         Ok(promise)
@@ -107,6 +119,11 @@ impl Provider {
                     });
             }
         };
+
+        #[cfg(feature = "scenarios")]
+        if let Some(scenario_file) = &self.scenario_file {
+            crate::scenarios::write_request(scenario_file, &request).await?;
+        }
 
         let mut response = runtime::Handle::current()
             .spawn_blocking(move || provider.handle_request(request))

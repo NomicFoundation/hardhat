@@ -5,6 +5,7 @@ use clap::{Parser, Subcommand};
 mod benchmark;
 mod compare_test_runs;
 mod execution_api;
+mod scenario;
 mod update;
 
 use update::Mode;
@@ -37,9 +38,18 @@ enum Command {
     },
     /// Generate Ethereum execution API
     GenExecutionApi,
+    /// Execute a benchmark scenario and report statistics
+    Scenario {
+        /// The path to the scenario file (JSON lines or GZipped JSON lines)
+        path: PathBuf,
+        /// The maximum number of requests to execute.
+        #[clap(long, short)]
+        count: Option<usize>,
+    },
 }
 
-fn main() -> anyhow::Result<()> {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     match args.command {
         Command::CompareTestRuns {
@@ -52,5 +62,6 @@ fn main() -> anyhow::Result<()> {
             iterations,
         } => benchmark::run(working_directory, &test_command, iterations),
         Command::GenExecutionApi => execution_api::generate(Mode::Overwrite),
+        Command::Scenario { path, count } => scenario::execute(&path, count).await,
     }
 }

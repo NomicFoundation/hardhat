@@ -5,11 +5,12 @@ use edr_eth::{
 };
 use edr_evm::{alloy_primitives::ChainId, MineOrdering};
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 
 use crate::{requests::hardhat::rpc_types::ForkConfig, OneUsizeOrTwo};
 
 /// Configuration for interval mining.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum IntervalConfig {
     Fixed(u64),
     Range { min: u64, max: u64 },
@@ -41,13 +42,13 @@ impl TryFrom<OneUsizeOrTwo> for IntervalConfig {
 }
 
 /// Configuration for the provider's mempool.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct MemPoolConfig {
     pub order: MineOrdering,
 }
 
 /// Configuration for the provider's miner.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct MiningConfig {
     pub auto_mine: bool,
     pub interval: Option<IntervalConfig>,
@@ -55,7 +56,7 @@ pub struct MiningConfig {
 }
 
 /// Configuration for the provider
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ProviderConfig {
     pub allow_blocks_with_same_timestamp: bool,
     pub allow_unlimited_contract_size: bool,
@@ -83,12 +84,34 @@ pub struct ProviderConfig {
 }
 
 /// Configuration input for a single account
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct AccountConfig {
     /// the secret key of the account
+    #[serde(
+        serialize_with = "serialize_secret_key",
+        deserialize_with = "deserialize_secret_key"
+    )]
     pub secret_key: k256::SecretKey,
     /// the balance of the account
     pub balance: U256,
+}
+
+fn serialize_secret_key<S>(secret_key: &k256::SecretKey, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    let s = secret_key
+        .to_sec1_pem(k256::pkcs8::LineEnding::LF)
+        .map_err(serde::ser::Error::custom)?;
+    serializer.serialize_str(&s)
+}
+
+fn deserialize_secret_key<'de, D>(deserializer: D) -> Result<k256::SecretKey, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    k256::SecretKey::from_sec1_pem(&s).map_err(serde::de::Error::custom)
 }
 
 impl Default for MemPoolConfig {

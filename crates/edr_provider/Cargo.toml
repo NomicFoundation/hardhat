@@ -12,7 +12,7 @@ edr_evm = { version = "0.2.0-dev", path = "../edr_evm", features = ["tracing"] }
 ethers-core = {  version = "2.0.12" , features = ["eip712"]}
 indexmap = { version = "2.0.0", default-features = false, features = ["std"] }
 itertools = { version = "0.12.0", default-features = false, features = ["use_alloc"] }
-k256 = { version = "0.13.1", default-features = false, features = ["arithmetic", "ecdsa", "pkcs8", "precomputed-tables", "std"] }
+k256 = { version = "0.13.1", default-features = false, features = ["arithmetic", "ecdsa", "pem", "pkcs8", "precomputed-tables", "std"] }
 lazy_static = { version = "1.4.0", default-features = false }
 log = { version = "0.4.20", default-features = false }
 parking_lot = { version = "0.12.1", default-features = false }
