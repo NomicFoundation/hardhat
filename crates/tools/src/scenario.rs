@@ -24,8 +24,7 @@ pub async fn execute(scenario_path: &Path, max_count: Option<usize>) -> anyhow::
     let (config, requests) = load_requests(scenario_path).await?;
 
     if config.logger_enabled {
-        // anyhow::bail!("This scenario expects logging, but logging is not yet
-        // implemented")
+        anyhow::bail!("This scenario expects logging, but logging is not yet implemented")
     }
 
     let logger = Box::<DisabledLogger>::default();
