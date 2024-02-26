@@ -451,16 +451,11 @@ export class EdrProviderWrapper
 
   // temporarily added to make smock work with HH+EDR
   private _setCallOverrideCallback(callback: CallOverrideCallback) {
-    assertHardhatInvariant(
-      this._callOverrideCallback === undefined,
-      "Override callback already set"
-    );
-
     this._callOverrideCallback = callback;
 
     this._provider.setCallOverrideCallback(
       async (address: Buffer, data: Buffer) => {
-        return this._callOverrideCallback!(address, data);
+        return this._callOverrideCallback?.(address, data);
       }
     );
   }
