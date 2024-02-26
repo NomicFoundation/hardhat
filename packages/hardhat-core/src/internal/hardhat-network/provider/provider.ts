@@ -31,7 +31,6 @@ import {
   HARDHAT_NETWORK_RESET_EVENT,
   HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
 } from "../../constants";
-import { assertHardhatInvariant } from "../../core/errors";
 import {
   rpcCompilerInput,
   rpcCompilerOutput,
