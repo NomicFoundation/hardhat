@@ -37,6 +37,7 @@ cargo run --bin tools compare-test-runs base-test-provider-logs.json candidate-t
 ## Scenarios
 
 Scenarios can be used to collect and replay RPC requests which is useful for performance analysis.
+Only those requests will be collected that can be successfully deserialized.
 
 ### Collect scenario
 
