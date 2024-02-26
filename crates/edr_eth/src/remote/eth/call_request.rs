@@ -1,5 +1,5 @@
 use alloy_primitives::Bytes;
-use revm_primitives::Address;
+use revm_primitives::{Address, B256};
 
 use crate::{access_list::AccessListItem, U256};
 
@@ -30,4 +30,8 @@ pub struct CallRequest {
     /// EIP-2718 type
     #[cfg_attr(feature = "serde", serde(default, rename = "type"))]
     pub transaction_type: Option<U256>,
+    /// Blobs (EIP-4844)
+    pub blobs: Option<Vec<Bytes>>,
+    /// Blob versioned hashes (EIP-4844)
+    pub blob_hashes: Option<Vec<B256>>,
 }

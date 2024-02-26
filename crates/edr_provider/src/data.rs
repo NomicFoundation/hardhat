@@ -25,13 +25,13 @@ use edr_eth::{
     },
     reward_percentile::RewardPercentile,
     signature::{RecoveryMessage, Signature},
-    transaction::{SignedTransaction, TransactionRequestAndSender},
+    transaction::TransactionRequestAndSender,
     Address, Bytes, SpecId, B256, U256,
 };
 use edr_evm::{
     blockchain::{
-        Blockchain, BlockchainError, ForkedBlockchain, ForkedCreationError, LocalBlockchain,
-        LocalCreationError, SyncBlockchain,
+        Blockchain, BlockchainError, ForkedBlockchain, ForkedCreationError, GenesisBlockOptions,
+        LocalBlockchain, LocalCreationError, SyncBlockchain,
     },
     db::StateRef,
     debug_trace_transaction, execution_result_to_debug_result, mempool, mine_block,
@@ -76,7 +76,7 @@ use crate::{
 };
 
 const DEFAULT_INITIAL_BASE_FEE_PER_GAS: u64 = 1_000_000_000;
-const MAX_CACHED_STATES: usize = 64;
+const MAX_CACHED_STATES: usize = 10;
 
 /// The result of executing an `eth_call`.
 #[derive(Clone, Debug)]
@@ -129,6 +129,7 @@ pub struct ProviderData<LoggerErrorT: Debug> {
     beneficiary: Address,
     dao_activation_block: Option<u64>,
     min_gas_price: U256,
+    parent_beacon_block_root_generator: RandomHashGenerator,
     prev_randao_generator: RandomHashGenerator,
     block_time_offset_seconds: i64,
     fork_metadata: Option<ForkMetadata>,
@@ -202,6 +203,14 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             .get(&config.chain_id)
             .and_then(|config| config.hardfork_activation(SpecId::DAO_FORK));
 
+        let parent_beacon_block_root_generator = if let Some(initial_parent_beacon_block_root) =
+            &config.initial_parent_beacon_block_root
+        {
+            RandomHashGenerator::with_value(*initial_parent_beacon_block_root)
+        } else {
+            RandomHashGenerator::with_seed("randomParentBeaconBlockRootSeed")
+        };
+
         Ok(Self {
             runtime_handle,
             initial_config: config,
@@ -211,6 +220,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             beneficiary,
             dao_activation_block,
             min_gas_price,
+            parent_beacon_block_root_generator,
             prev_randao_generator,
             block_time_offset_seconds,
             fork_metadata,
@@ -953,6 +963,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         &self.instance_id
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn interval_mine(&mut self) -> Result<bool, ProviderError<LoggerErrorT>> {
         let result = self.mine_and_commit_block(BlockOptions::default())?;
 
@@ -995,6 +1006,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             mem_pool: self.mem_pool.clone(),
             next_block_base_fee_per_gas: self.next_block_base_fee_per_gas,
             next_block_timestamp: self.next_block_timestamp,
+            parent_beacon_block_root_generator: self.parent_beacon_block_root_generator.clone(),
             prev_randao_generator: self.prev_randao_generator.clone(),
             time: Instant::now(),
         };
@@ -1035,6 +1047,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         // Reset next block time stamp
         self.next_block_timestamp.take();
 
+        self.parent_beacon_block_root_generator.generate_next();
         self.prev_randao_generator.generate_next();
 
         let block = &block_and_total_difficulty.block;
@@ -1282,6 +1295,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 mem_pool,
                 next_block_base_fee_per_gas,
                 next_block_timestamp,
+                parent_beacon_block_root_generator,
                 prev_randao_generator,
                 time,
             } = snapshot;
@@ -1303,6 +1317,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             self.mem_pool = mem_pool;
             self.next_block_base_fee_per_gas = next_block_base_fee_per_gas;
             self.next_block_timestamp = next_block_timestamp;
+            self.parent_beacon_block_root_generator = parent_beacon_block_root_generator;
             self.prev_randao_generator = prev_randao_generator;
 
             true
@@ -1745,10 +1760,8 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         hash: &B256,
     ) -> Result<Option<TransactionAndBlock>, ProviderError<LoggerErrorT>> {
         let transaction = if let Some(tx) = self.mem_pool.transaction_by_hash(hash) {
-            let signed_transaction = tx.pending().as_inner().clone();
-
             Some(TransactionAndBlock {
-                signed_transaction,
+                transaction: tx.pending().clone(),
                 block_data: None,
                 is_pending: true,
             })
@@ -1761,15 +1774,14 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             let tx_index =
                 usize::try_from(tx_index_u64).expect("Indices cannot be larger than usize::MAX");
 
-            let signed_transaction = block
+            let transaction = block
                 .transactions()
                 .get(tx_index)
                 .expect("Transaction index must be valid, since it's from the receipt.")
-                .as_inner()
                 .clone();
 
             Some(TransactionAndBlock {
-                signed_transaction,
+                transaction,
                 block_data: Some(BlockDataForTransaction {
                     block,
                     transaction_index: tx_index_u64,
@@ -1889,6 +1901,12 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         );
 
         let evm_config = self.create_evm_config(None)?;
+
+        if evm_config.spec_id >= SpecId::CANCUN {
+            options.parent_beacon_block_root = options
+                .parent_beacon_block_root
+                .or_else(|| Some(self.parent_beacon_block_root_generator.next_value()));
+        }
 
         // TODO avoid clone
         let mut inspector = EvmInspector::new(self.call_override.clone());
@@ -2184,22 +2202,27 @@ fn create_blockchain_and_state(
             .map(|headers| HeaderMap::try_from(headers).map_err(CreationError::InvalidHttpHeaders))
             .transpose()?;
 
-        let blockchain = tokio::task::block_in_place(|| {
-            runtime.block_on(ForkedBlockchain::new(
-                runtime.clone(),
-                Some(config.chain_id),
-                config.hardfork,
-                RpcClient::new(
-                    &fork_config.json_rpc_url,
-                    config.cache_dir.clone(),
-                    http_headers.clone(),
-                )
-                .expect("url ok"),
-                fork_config.block_number,
-                state_root_generator.clone(),
-                &config.chains,
-            ))
-        })?;
+        let (blockchain, mut irregular_state) =
+            tokio::task::block_in_place(|| -> Result<_, ForkedCreationError> {
+                let mut irregular_state = IrregularState::default();
+                let blockchain = runtime.block_on(ForkedBlockchain::new(
+                    runtime.clone(),
+                    Some(config.chain_id),
+                    config.hardfork,
+                    RpcClient::new(
+                        &fork_config.json_rpc_url,
+                        config.cache_dir.clone(),
+                        http_headers.clone(),
+                    )
+                    .expect("url ok"),
+                    fork_config.block_number,
+                    &mut irregular_state,
+                    state_root_generator.clone(),
+                    &config.chains,
+                ))?;
+
+                Ok((blockchain, irregular_state))
+            })?;
 
         let fork_block_number = blockchain.last_block_number();
 
@@ -2210,7 +2233,6 @@ fn create_blockchain_and_state(
         )
         .expect("url ok");
 
-        let mut irregular_state = IrregularState::default();
         if !genesis_accounts.is_empty() {
             let genesis_addresses = genesis_accounts.keys().cloned().collect::<Vec<_>>();
             let genesis_account_infos = tokio::task::block_in_place(|| {
@@ -2238,13 +2260,20 @@ fn create_blockchain_and_state(
                 });
             }
 
-            let state_root = state_root_generator.lock().next_value();
-
             irregular_state
                 .state_override_at_block_number(fork_block_number)
-                .or_insert(StateOverride {
-                    diff: StateDiff::from(genesis_accounts),
-                    state_root,
+                .and_modify(|state_override| {
+                    // No need to update the state_root, as it could only have been created by the
+                    // `ForkedBlockchain` constructor.
+                    state_override.diff.apply_diff(genesis_accounts.clone());
+                })
+                .or_insert_with(|| {
+                    let state_root = state_root_generator.lock().next_value();
+
+                    StateOverride {
+                        diff: StateDiff::from(genesis_accounts),
+                        state_root,
+                    }
                 });
         }
 
@@ -2310,20 +2339,27 @@ fn create_blockchain_and_state(
             next_block_base_fee_per_gas,
         })
     } else {
+        let mix_hash = if config.hardfork >= SpecId::MERGE {
+            Some(prev_randao_generator.generate_next())
+        } else {
+            None
+        };
+
         let blockchain = LocalBlockchain::new(
             StateDiff::from(genesis_accounts),
             config.chain_id,
             config.hardfork,
-            config.block_gas_limit,
-            config.initial_date.map(|d| {
-                d.duration_since(UNIX_EPOCH)
-                    .expect("initial date must be after UNIX epoch")
-                    .as_secs()
-            }),
-            Some(prev_randao_generator.generate_next()),
-            config.initial_base_fee_per_gas,
-            config.initial_blob_gas.clone(),
-            config.initial_parent_beacon_block_root,
+            GenesisBlockOptions {
+                gas_limit: Some(config.block_gas_limit),
+                timestamp: config.initial_date.map(|d| {
+                    d.duration_since(UNIX_EPOCH)
+                        .expect("initial date must be after UNIX epoch")
+                        .as_secs()
+                }),
+                mix_hash,
+                base_fee: config.initial_base_fee_per_gas,
+                blob_gas: config.initial_blob_gas.clone(),
+            },
         )?;
 
         let irregular_state = IrregularState::default();
@@ -2351,8 +2387,8 @@ fn create_blockchain_and_state(
 /// The result returned by requesting a transaction.
 #[derive(Debug, Clone)]
 pub struct TransactionAndBlock {
-    /// The signed transaction.
-    pub signed_transaction: SignedTransaction,
+    /// The transaction.
+    pub transaction: ExecutableTransaction,
     /// Block data in which the transaction is found if it has been mined.
     pub block_data: Option<BlockDataForTransaction>,
     /// Whether the transaction is pending
@@ -2544,6 +2580,7 @@ mod tests {
     use edr_eth::{
         remote::{eth::CallRequest, PreEip1898BlockSpec},
         spec::chain_hardfork_activations,
+        withdrawal::Withdrawal,
     };
     use edr_evm::{hex, MineOrdering, RemoteBlock, TransactionError};
     use edr_test_utils::env::get_alchemy_url;
@@ -3377,10 +3414,7 @@ mod tests {
             .transaction_by_hash(&transaction_hash)?
             .context("transaction not found")?;
 
-        assert_eq!(
-            transaction_result.signed_transaction.hash(),
-            &transaction_hash
-        );
+        assert_eq!(transaction_result.transaction.hash(), &transaction_hash);
 
         Ok(())
     }
@@ -3412,10 +3446,7 @@ mod tests {
             .transaction_by_hash(&transaction_hash)?
             .context("transaction not found")?;
 
-        assert_eq!(
-            transaction_result.signed_transaction.hash(),
-            &transaction_hash
-        );
+        assert_eq!(transaction_result.transaction.hash(), &transaction_hash);
 
         Ok(())
     }
@@ -3796,7 +3827,7 @@ mod tests {
             parent_beacon_block_root: replay_header.parent_beacon_block_root,
             state_root: Some(replay_header.state_root),
             timestamp: Some(replay_header.timestamp),
-            withdrawals_root: replay_header.withdrawals_root,
+            withdrawals: replay_block.withdrawals().map(<[Withdrawal]>::to_vec),
             ..BlockOptions::default()
         })?;
 

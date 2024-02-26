@@ -2,7 +2,7 @@ use edr_eth::{Address, Bytes, B256, B64};
 use napi::bindgen_prelude::{BigInt, Buffer};
 use napi_derive::napi;
 
-use crate::cast::TryCast;
+use crate::{cast::TryCast, withdrawal::Withdrawal};
 
 #[napi(object)]
 pub struct BlockOptions {
@@ -28,8 +28,10 @@ pub struct BlockOptions {
     pub nonce: Option<Buffer>,
     /// The block's base gas fee
     pub base_fee: Option<BigInt>,
-    /// The block's withdrawals root
-    pub withdrawals_root: Option<Buffer>,
+    /// The block's withdrawals
+    pub withdrawals: Option<Vec<Withdrawal>>,
+    /// Blob gas was added by EIP-4844 and is ignored in older headers.
+    pub blob_gas: Option<BlobGas>,
     /// The hash tree root of the parent beacon block for the given execution
     /// block (EIP-4788).
     pub parent_beacon_block_root: Option<Buffer>,
@@ -73,9 +75,18 @@ impl TryFrom<BlockOptions> for edr_eth::block::BlockOptions {
             base_fee: value
                 .base_fee
                 .map_or(Ok(None), |basefee| basefee.try_cast().map(Some))?,
-            withdrawals_root: value
-                .withdrawals_root
-                .map(TryCast::<B256>::try_cast)
+            withdrawals: value
+                .withdrawals
+                .map(|withdrawals| {
+                    withdrawals
+                        .into_iter()
+                        .map(edr_eth::withdrawal::Withdrawal::try_from)
+                        .collect()
+                })
+                .transpose()?,
+            blob_gas: value
+                .blob_gas
+                .map(edr_eth::block::BlobGas::try_from)
                 .transpose()?,
             parent_beacon_block_root: value
                 .parent_beacon_block_root

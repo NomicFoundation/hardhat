@@ -29,34 +29,9 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> IntervalMiner<LoggerErrorT> {
         config: IntervalConfig,
         data: Arc<Mutex<ProviderData<LoggerErrorT>>>,
     ) -> Self {
-        let (cancellation_sender, mut cancellation_receiver) = oneshot::channel();
-        let background_task = runtime.spawn(async move {
-            let mut now = Instant::now();
-            loop {
-                let delay = config.generate_interval();
-                let deadline = now + std::time::Duration::from_millis(delay);
-
-                tokio::select! {
-                    _ = &mut cancellation_receiver => return Ok(()),
-                    _ = tokio::time::sleep_until(deadline) => {
-                        tokio::select! {
-                            // Check whether the interval miner needs to be destroyed
-                            _ = &mut cancellation_receiver => return Ok(()),
-                            mut data = data.lock() => {
-                                now = Instant::now();
-
-                                if let Err(error) = data.interval_mine() {
-                                    log::error!("Unexpected error while performing interval mining: {error}");
-                                    return Err(error);
-                                }
-
-                                Result::<(), ProviderError<LoggerErrorT>>::Ok(())
-                            }
-                        }
-                    },
-                }?;
-            }
-        });
+        let (cancellation_sender, cancellation_receiver) = oneshot::channel();
+        let background_task = runtime
+            .spawn(async move { interval_mining_loop(config, data, cancellation_receiver).await });
 
         Self {
             inner: Some(Inner {
@@ -68,7 +43,41 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> IntervalMiner<LoggerErrorT> {
     }
 }
 
+#[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+async fn interval_mining_loop<LoggerErrorT: Debug + Send + Sync + 'static>(
+    config: IntervalConfig,
+    data: Arc<Mutex<ProviderData<LoggerErrorT>>>,
+    mut cancellation_receiver: oneshot::Receiver<()>,
+) -> Result<(), ProviderError<LoggerErrorT>> {
+    let mut now = Instant::now();
+    loop {
+        let delay = config.generate_interval();
+        let deadline = now + std::time::Duration::from_millis(delay);
+
+        tokio::select! {
+            _ = &mut cancellation_receiver => return Ok(()),
+            _ = tokio::time::sleep_until(deadline) => {
+                tokio::select! {
+                    // Check whether the interval miner needs to be destroyed
+                    _ = &mut cancellation_receiver => return Ok(()),
+                    mut data = data.lock() => {
+                        now = Instant::now();
+
+                        if let Err(error) = data.interval_mine() {
+                            log::error!("Unexpected error while performing interval mining: {error}");
+                            return Err(error);
+                        }
+
+                        Result::<(), ProviderError<LoggerErrorT>>::Ok(())
+                    }
+                }
+            },
+        }?;
+    }
+}
+
 impl<LoggerErrorT: Debug> Drop for IntervalMiner<LoggerErrorT> {
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn drop(&mut self) {
         if let Some(Inner {
             cancellation_sender,

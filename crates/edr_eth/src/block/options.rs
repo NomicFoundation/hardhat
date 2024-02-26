@@ -1,4 +1,5 @@
-use crate::{Address, Bytes, B256, B64, U256};
+use super::BlobGas;
+use crate::{withdrawal::Withdrawal, Address, Bytes, B256, B64, U256};
 
 /// Data of a block header
 #[derive(Debug, Default)]
@@ -25,8 +26,10 @@ pub struct BlockOptions {
     pub nonce: Option<B64>,
     /// The block's base gas fee
     pub base_fee: Option<U256>,
-    /// The block's withdrawals root
-    pub withdrawals_root: Option<B256>,
+    /// The block's withdrawals
+    pub withdrawals: Option<Vec<Withdrawal>>,
+    /// Blob gas was added by EIP-4844 and is ignored in older headers.
+    pub blob_gas: Option<BlobGas>,
     /// The hash tree root of the parent beacon block for the given execution
     /// block (EIP-4788).
     pub parent_beacon_block_root: Option<B256>,

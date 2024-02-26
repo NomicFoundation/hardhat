@@ -12,10 +12,15 @@ pub struct RandomHashGenerator {
 }
 
 impl RandomHashGenerator {
-    /// Constructs a [`RandomHashGenerator`] with the specified seed.
+    /// Constructs an instance with the specified seed.
     pub fn with_seed(seed: &str) -> Self {
         let next_value = keccak256(seed.as_bytes());
 
+        Self { next_value }
+    }
+
+    /// Construct an instance with the specified next value.
+    pub fn with_value(next_value: B256) -> Self {
         Self { next_value }
     }
 

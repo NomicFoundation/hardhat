@@ -196,6 +196,7 @@ pub struct Block<TX> {
     )]
     pub excess_blob_gas: Option<u64>,
     /// Root of the parent beacon block
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_beacon_block_root: Option<B256>,
 }
 

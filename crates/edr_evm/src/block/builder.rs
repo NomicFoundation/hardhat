@@ -9,6 +9,7 @@ use edr_eth::{
     receipt::{TransactionReceipt, TypedReceipt, TypedReceiptData},
     transaction::SignedTransaction,
     trie::{ordered_trie_root, KECCAK_NULL_RLP},
+    withdrawal::Withdrawal,
     Address, Bloom, U256,
 };
 use revm::{
@@ -106,6 +107,7 @@ pub struct BlockBuilder {
     state_diff: StateDiff,
     receipts: Vec<TransactionReceipt<Log>>,
     parent_gas_limit: Option<u64>,
+    withdrawals: Option<Vec<Withdrawal>>,
 }
 
 impl BlockBuilder {
@@ -114,7 +116,7 @@ impl BlockBuilder {
     pub fn new(
         cfg: CfgEnv,
         parent: &Header,
-        options: BlockOptions,
+        mut options: BlockOptions,
         dao_hardfork_activation_block: Option<u64>,
     ) -> Result<Self, BlockBuilderCreationError> {
         if cfg.spec_id < SpecId::BYZANTIUM {
@@ -126,6 +128,14 @@ impl BlockBuilder {
         } else {
             None
         };
+
+        let withdrawals = std::mem::take(&mut options.withdrawals).or_else(|| {
+            if cfg.spec_id >= SpecId::SHANGHAI {
+                Some(Vec::new())
+            } else {
+                None
+            }
+        });
 
         let header = PartialHeader::new(cfg.spec_id, options, Some(parent));
 
@@ -148,6 +158,7 @@ impl BlockBuilder {
             state_diff: StateDiff::default(),
             receipts: Vec::new(),
             parent_gas_limit,
+            withdrawals,
         })
     }
 
@@ -369,7 +380,7 @@ impl BlockBuilder {
             self.transactions,
             self.receipts,
             Vec::new(),
-            None,
+            self.withdrawals,
         );
 
         Ok(BuildBlockResult {

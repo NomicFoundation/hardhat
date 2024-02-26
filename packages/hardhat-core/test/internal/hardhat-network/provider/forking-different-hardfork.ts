@@ -29,6 +29,8 @@ const BLOCK_WITH_WITHDRAWALS = 17_034_920;
 const BLOCK_WITH_WITHDRAWALS_EXPECTED_ROOT =
   "0x23bf85b92f3a2695d13463d84de157c3f43d0fe201348d638693fcfa87734d5e";
 
+const BEACON_ROOT_ADDRESS = "0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02";
+
 describe("Forking a block with a different hardfork", function () {
   FORKED_PROVIDERS.forEach(({ rpcProvider, useProvider }) => {
     workaroundWindowsCiFailures.call(this, { isFork: true });
@@ -415,10 +417,18 @@ describe("Forking a block with a different hardfork", function () {
               assert.equal(blockAfterFork.blobGasUsed, "0x0");
               assert.equal(blockAfterFork.excessBlobGas, "0x1400000");
             });
+
+            it("should have code in the beacon root contract", async function () {
+              const beaconRootCode = await this.provider.send("eth_getCode", [
+                BEACON_ROOT_ADDRESS,
+              ]);
+
+              assert.notEqual(beaconRootCode, "0x");
+            });
           });
 
           describe("forking a 'shanghai' block", function () {
-            const forkBlockNumber = CANCUN_HARDFORK_BLOCK_NUMBER - 100;
+            const forkBlockNumber = SHANGHAI_HARDFORK_BLOCK_NUMBER + 100;
 
             useProvider({
               hardfork,
@@ -490,6 +500,14 @@ describe("Forking a block with a different hardfork", function () {
               );
               assert.equal(blockAfterFork.blobGasUsed, "0x0");
               assert.equal(blockAfterFork.excessBlobGas, "0x0");
+            });
+
+            it("should have code in the beacon root contract", async function () {
+              const beaconRootCode = await this.provider.send("eth_getCode", [
+                BEACON_ROOT_ADDRESS,
+              ]);
+
+              assert.notEqual(beaconRootCode, "0x");
             });
           });
         });
@@ -574,7 +592,7 @@ describe("Forking a block with a different hardfork", function () {
           });
 
           describe("forking a 'shanghai' block", function () {
-            const forkBlockNumber = CANCUN_HARDFORK_BLOCK_NUMBER - 100;
+            const forkBlockNumber = SHANGHAI_HARDFORK_BLOCK_NUMBER + 100;
 
             useProvider({
               hardfork,
