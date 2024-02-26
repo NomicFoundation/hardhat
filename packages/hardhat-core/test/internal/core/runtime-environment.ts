@@ -68,7 +68,7 @@ describe("Environment", () => {
       ],
       overrides: {},
     },
-    mocha: {},
+    test: {},
   };
 
   const args: HardhatArguments = {

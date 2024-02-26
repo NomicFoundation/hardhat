@@ -46,7 +46,6 @@ import {
   defaultHdAccountsConfigParams,
   defaultHttpNetworkParams,
   defaultLocalhostNetworkParams,
-  defaultMochaOptions,
   defaultSolcOutputSelection,
 } from "./default-config";
 
@@ -72,7 +71,7 @@ export function resolveConfig(
     paths: resolveProjectPaths(userConfigPath, userConfig.paths),
     networks: resolveNetworksConfig(userConfig.networks),
     solidity: resolveSolidityConfig(userConfig),
-    mocha: resolveMochaConfig(userConfig),
+    test: userConfig.test, // TODO: is this necessary? It is included automatically above
   };
 }
 
@@ -442,14 +441,6 @@ function resolveCompiler(compiler: SolcUserConfig): SolcConfig {
   }
 
   return resolved;
-}
-
-function resolveMochaConfig(userConfig: HardhatUserConfig): Mocha.MochaOptions {
-  const cloneDeep = require("lodash/cloneDeep") as LoDashStatic["cloneDeep"];
-  return {
-    ...cloneDeep(defaultMochaOptions),
-    ...userConfig.mocha,
-  };
 }
 
 /**
