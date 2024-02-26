@@ -247,7 +247,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         })
     }
 
-    pub fn set_override_callback(&mut self, call_override: Option<Box<dyn SyncCallOverride>>) {
+    pub fn set_call_override_callback(&mut self, call_override: Option<Box<dyn SyncCallOverride>>) {
         self.call_override = call_override;
     }
 

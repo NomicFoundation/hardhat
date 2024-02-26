@@ -152,7 +152,7 @@ impl Provider {
     }
 
     #[napi(ts_return_type = "void")]
-    pub fn set_override_callback(
+    pub fn set_call_override_callback(
         &self,
         env: Env,
         #[napi(
@@ -166,7 +166,7 @@ impl Provider {
         let call_override_callback =
             Box::new(move |address, data| call_override_callback.call_override(address, data));
 
-        provider.set_override_callback(Some(call_override_callback));
+        provider.set_call_override_callback(Some(call_override_callback));
 
         Ok(())
     }

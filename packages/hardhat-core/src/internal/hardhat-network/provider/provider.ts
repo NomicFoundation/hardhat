@@ -31,6 +31,7 @@ import {
   HARDHAT_NETWORK_RESET_EVENT,
   HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
 } from "../../constants";
+import { assertHardhatInvariant } from "../../core/errors";
 import {
   rpcCompilerInput,
   rpcCompilerOutput,
@@ -155,7 +156,7 @@ export interface RawTraceCallbacks {
 
 class EdrProviderEventAdapter extends EventEmitter {}
 
-type AfterMessageCallback = (
+type CallOverrideCallback = (
   address: Buffer,
   data: Buffer
 ) => Promise<
@@ -169,7 +170,7 @@ export class EdrProviderWrapper
   private _failedStackTraces = 0;
 
   // temporarily added to make smock work with HH+EDR
-  private _afterMessageCallbacks: AfterMessageCallback[] = [];
+  private _callOverrideCallback?: CallOverrideCallback;
 
   private constructor(
     private readonly _provider: EdrProviderT,
@@ -189,19 +190,6 @@ export class EdrProviderWrapper
     if (tracingConfig !== undefined) {
       initializeVmTraceDecoder(this._vmTraceDecoder, tracingConfig);
     }
-
-    _provider.setOverrideCallback(async (address: Buffer, data: Buffer) => {
-      let overridenResult;
-
-      for (const afterMessageCallback of this._afterMessageCallbacks) {
-        const result = await afterMessageCallback(address, data);
-        if (result !== undefined) {
-          overridenResult = result;
-        }
-      }
-
-      return overridenResult;
-    });
   }
 
   public static async create(
@@ -462,8 +450,19 @@ export class EdrProviderWrapper
   }
 
   // temporarily added to make smock work with HH+EDR
-  private _addAfterMessageCallback(callback: AfterMessageCallback) {
-    this._afterMessageCallbacks.push(callback);
+  private _setCallOverrideCallback(callback: CallOverrideCallback) {
+    assertHardhatInvariant(
+      this._callOverrideCallback === undefined,
+      "Override callback already set"
+    );
+
+    this._callOverrideCallback = callback;
+
+    this._provider.setCallOverrideCallback(
+      async (address: Buffer, data: Buffer) => {
+        return this._callOverrideCallback!(address, data);
+      }
+    );
   }
 
   private _ethEventListener(event: SubscriptionEvent) {

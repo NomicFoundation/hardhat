@@ -390,7 +390,7 @@ export class Provider {
   static withConfig(context: EdrContext, config: ProviderConfig, loggerConfig: LoggerConfig, subscriberCallback: (event: SubscriptionEvent) => void): Promise<Provider>
   /**Handles a JSON-RPC request and returns a JSON-RPC response. */
   handleRequest(jsonRequest: string): Promise<Response>
-  setOverrideCallback(callOverrideCallback: (contract_address: Buffer, data: Buffer) => Promise<CallOverrideResult | undefined>): void
+  setCallOverrideCallback(callOverrideCallback: (contract_address: Buffer, data: Buffer) => Promise<CallOverrideResult | undefined>): void
 }
 export class Response {
   get json(): string
