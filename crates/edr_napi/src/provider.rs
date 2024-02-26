@@ -164,7 +164,7 @@ impl Provider {
 
         let call_override_callback = CallOverrideCallback::new(&env, call_override_callback)?;
         let call_override_callback =
-            Box::new(move |address, data| call_override_callback.call_override(address, data));
+            Arc::new(move |address, data| call_override_callback.call_override(address, data));
 
         provider.set_call_override_callback(Some(call_override_callback));
 

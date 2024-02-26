@@ -1,4 +1,5 @@
 use core::fmt::Debug;
+use std::sync::Arc;
 
 use dyn_clone::DynClone;
 use edr_eth::{Address, Bytes};
@@ -27,11 +28,11 @@ dyn_clone::clone_trait_object!(SyncCallOverride);
 
 pub(super) struct EvmInspector {
     console_log_encoded_messages: Vec<Bytes>,
-    call_override: Option<Box<dyn SyncCallOverride>>,
+    call_override: Option<Arc<dyn SyncCallOverride>>,
 }
 
 impl EvmInspector {
-    pub fn new(call_override: Option<Box<dyn SyncCallOverride>>) -> Self {
+    pub fn new(call_override: Option<Arc<dyn SyncCallOverride>>) -> Self {
         Self {
             console_log_encoded_messages: Vec::new(),
             call_override,

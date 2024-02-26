@@ -131,7 +131,7 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
         })
     }
 
-    pub fn set_call_override_callback(&self, call_override: Option<Box<dyn SyncCallOverride>>) {
+    pub fn set_call_override_callback(&self, call_override: Option<Arc<dyn SyncCallOverride>>) {
         let mut data = task::block_in_place(|| self.runtime.block_on(self.data.lock()));
         data.set_call_override_callback(call_override);
     }

@@ -151,7 +151,7 @@ pub struct ProviderData<LoggerErrorT: Debug> {
     logger: Box<dyn SyncLogger<BlockchainError = BlockchainError, LoggerError = LoggerErrorT>>,
     impersonated_accounts: HashSet<Address>,
     subscriber_callback: Box<dyn SyncSubscriberCallback>,
-    call_override: Option<Box<dyn SyncCallOverride>>,
+    call_override: Option<Arc<dyn SyncCallOverride>>,
     // We need the Arc to let us avoid returning references to the cache entries which need &mut
     // self to get.
     block_state_cache: LruCache<StateId, Arc<Box<dyn SyncState<StateError>>>>,
@@ -164,7 +164,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         runtime_handle: runtime::Handle,
         logger: Box<dyn SyncLogger<BlockchainError = BlockchainError, LoggerError = LoggerErrorT>>,
         subscriber_callback: Box<dyn SyncSubscriberCallback>,
-        call_override: Option<Box<dyn SyncCallOverride>>,
+        call_override: Option<Arc<dyn SyncCallOverride>>,
         config: ProviderConfig,
     ) -> Result<Self, CreationError> {
         let InitialAccounts {
@@ -247,7 +247,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         })
     }
 
-    pub fn set_call_override_callback(&mut self, call_override: Option<Box<dyn SyncCallOverride>>) {
+    pub fn set_call_override_callback(&mut self, call_override: Option<Arc<dyn SyncCallOverride>>) {
         self.call_override = call_override;
     }
 
@@ -1908,7 +1908,6 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 .or_else(|| Some(self.parent_beacon_block_root_generator.next_value()));
         }
 
-        // TODO avoid clone
         let mut inspector = EvmInspector::new(self.call_override.clone());
 
         let state_to_be_modified = (*self.current_state()?).clone();
