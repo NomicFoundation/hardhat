@@ -28,34 +28,6 @@ importers:
         version: 5.0.4
 
   crates/edr_napi:
-    optionalDependencies:
-      '@nomicfoundation/edr-darwin-arm64':
-        specifier: 0.2.0-alpha.2
-        version: 0.2.0-alpha.2
-      '@nomicfoundation/edr-darwin-x64':
-        specifier: 0.2.0-alpha.2
-        version: 0.2.0-alpha.2
-      '@nomicfoundation/edr-linux-arm64-gnu':
-        specifier: 0.2.0-alpha.2
-        version: 0.2.0-alpha.2
-      '@nomicfoundation/edr-linux-arm64-musl':
-        specifier: 0.2.0-alpha.2
-        version: 0.2.0-alpha.2
-      '@nomicfoundation/edr-linux-x64-gnu':
-        specifier: 0.2.0-alpha.2
-        version: 0.2.0-alpha.2
-      '@nomicfoundation/edr-linux-x64-musl':
-        specifier: 0.2.0-alpha.2
-        version: 0.2.0-alpha.2
-      '@nomicfoundation/edr-win32-arm64-msvc':
-        specifier: 0.2.0-alpha.2
-        version: 0.2.0-alpha.2
-      '@nomicfoundation/edr-win32-ia32-msvc':
-        specifier: 0.2.0-alpha.2
-        version: 0.2.0-alpha.2
-      '@nomicfoundation/edr-win32-x64-msvc':
-        specifier: 0.2.0-alpha.2
-        version: 0.2.0-alpha.2
     devDependencies:
       '@napi-rs/cli':
         specifier: ^2.16.3
@@ -3042,87 +3014,6 @@ packages:
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.15.0
-
-  /@nomicfoundation/edr-darwin-arm64@0.2.0-alpha.2:
-    resolution: {integrity: sha512-6qr+glCE0uLLuDvuI6o4cY1Ajjw3SJNQYLwp8LeV/EGodXwrQCs+tK+BwwwZFIP2xj3g+zSg6ATEDCMJZh9qDA==}
-    engines: {node: '>= 18'}
-    cpu: [arm64]
-    os: [darwin]
-    requiresBuild: true
-    dev: false
-    optional: true
-
-  /@nomicfoundation/edr-darwin-x64@0.2.0-alpha.2:
-    resolution: {integrity: sha512-pOQX8lWPKDh7Yc7qP+ROOZhOUWsVa+AkxEU1g9WynkViCTRoJibR96YVTYEWMke2rKmj5ehhHy8JbpmjrNP/XA==}
-    engines: {node: '>= 18'}
-    cpu: [x64]
-    os: [darwin]
-    requiresBuild: true
-    dev: false
-    optional: true
-
-  /@nomicfoundation/edr-linux-arm64-gnu@0.2.0-alpha.2:
-    resolution: {integrity: sha512-DeEvU/TKaew3awUEsMeIfcAs1NkNHiizHe3fa2Pm341jKbADmj75YU7ynj+B/XgKpUp1gJFTcJa4bMJjbUSCDA==}
-    engines: {node: '>= 18'}
-    cpu: [arm64]
-    os: [linux]
-    requiresBuild: true
-    dev: false
-    optional: true
-
-  /@nomicfoundation/edr-linux-arm64-musl@0.2.0-alpha.2:
-    resolution: {integrity: sha512-yCkVI+KFDLN//hFVOpZhz/EwoGh2A+IA9rUzQDWgu2v+t42mq3EOXaabjjyuOuUc0pJpuzvwsTlFw1NlC+fKnQ==}
-    engines: {node: '>= 18'}
-    cpu: [arm64]
-    os: [linux]
-    requiresBuild: true
-    dev: false
-    optional: true
-
-  /@nomicfoundation/edr-linux-x64-gnu@0.2.0-alpha.2:
-    resolution: {integrity: sha512-jyf5zulkRWBiX87ojD7gbZs1+mWHgHAfTwhqtydHxFUA2MYlwJA92dsnhSMgP+3tqeHu539HIzAPqogdXD+QWg==}
-    engines: {node: '>= 18'}
-    cpu: [x64]
-    os: [linux]
-    requiresBuild: true
-    dev: false
-    optional: true
-
-  /@nomicfoundation/edr-linux-x64-musl@0.2.0-alpha.2:
-    resolution: {integrity: sha512-oH6Ub7nEaSTXJpEvwa07FSa4BD02MPJB6+7cCHRgH7OC5OXJPdAg8d9iypX0zon8C+Zx5EEhOjwXX8wDpfpt8w==}
-    engines: {node: '>= 18'}
-    cpu: [x64]
-    os: [linux]
-    requiresBuild: true
-    dev: false
-    optional: true
-
-  /@nomicfoundation/edr-win32-arm64-msvc@0.2.0-alpha.2:
-    resolution: {integrity: sha512-8Rz8mP1m9OycB8tEbmmV6c0h42sgSxsjMDVWpdE5LgwEG02jnJgmEJHH093PyxZeiqnvFhaGo6syeiKeaH7Y/g==}
-    engines: {node: '>= 10'}
-    cpu: [arm64]
-    os: [win32]
-    requiresBuild: true
-    dev: false
-    optional: true
-
-  /@nomicfoundation/edr-win32-ia32-msvc@0.2.0-alpha.2:
-    resolution: {integrity: sha512-v/ALGz1PTo2YQw6DBTSTlxQsPzRCmBXZ7cNkSgQUNErma0DQZzjUM1qtoc4FgAv+NrHwnB/mdn7vrH01lZErIQ==}
-    engines: {node: '>= 18'}
-    cpu: [ia32]
-    os: [win32]
-    requiresBuild: true
-    dev: false
-    optional: true
-
-  /@nomicfoundation/edr-win32-x64-msvc@0.2.0-alpha.2:
-    resolution: {integrity: sha512-rHeoxApAElbHFJxkT+FhTYVoAkBdrBuO72uqWduwh3+8sWQRQIEUDUiI7TJiFu89/RIErg5yqvXzavHKXMOdAA==}
-    engines: {node: '>= 18'}
-    cpu: [x64]
-    os: [win32]
-    requiresBuild: true
-    dev: false
-    optional: true
 
   /@nomicfoundation/ethereumjs-block@5.0.4:
     resolution: {integrity: sha512-AcyacJ9eX/uPEvqsPiB+WO1ymE+kyH48qGGiGV+YTojdtas8itUTW5dehDSOXEEItWGbbzEJ4PRqnQZlWaPvDw==}
