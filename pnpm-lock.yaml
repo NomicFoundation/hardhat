@@ -5776,6 +5776,7 @@ packages:
 
   /eslint-config-prettier@8.3.0(eslint@8.47.0):
     resolution: {integrity: sha512-BgZuLUSeKzvlL/VUjx/Yb787VQ26RU3gGjA3iiFvdsp/2bMfVIWUVP7tjxtjS0e+HP409cPlPvNkQloz8C91ew==}
+    hasBin: true
     peerDependencies:
       eslint: '>=7.0.0'
     dependencies:
@@ -5785,6 +5786,7 @@ packages:
   /eslint-doc-generator@1.4.3(eslint@8.47.0)(typescript@5.0.4):
     resolution: {integrity: sha512-cn9KXE7xuKlxKi/9VbirR3cbz7W1geRObwWzZjJAnpTeNBoqA8Rj+lD8/HHHJ7PnOdaTrRyhhoYdCtxqq3U7Bw==}
     engines: {node: ^14.18.0 || ^16.0.0 || >=18.0.0}
+    hasBin: true
     peerDependencies:
       eslint: '>= 7'
     dependencies:
@@ -9709,6 +9711,7 @@ packages:
 
   /solidity-coverage@0.8.1(hardhat@packages+hardhat-core):
     resolution: {integrity: sha512-IsXuCmgofoph8gA5x93NWYoqHD1pNJBW/OfSXQsIqHL7g3n7/zKW7k9u4t9wJspJuXu+QcW3+oc/ryw7khoLzw==}
+    hasBin: true
     peerDependencies:
       hardhat: ^2.11.0
     dependencies:
@@ -10262,6 +10265,7 @@ packages:
 
   /ts-node@10.9.1(@types/node@16.18.40)(typescript@5.0.4):
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
+    hasBin: true
     peerDependencies:
       '@swc/core': '>=1.2.50'
       '@swc/wasm': '>=1.2.50'
@@ -10422,6 +10426,7 @@ packages:
 
   /typechain@8.3.1(typescript@5.0.4):
     resolution: {integrity: sha512-fA7clol2IP/56yq6vkMTR+4URF1nGjV82Wx6Rf09EsqD4tkzMAvEaqYxVFCavJm/1xaRga/oD55K+4FtuXwQOQ==}
+    hasBin: true
     peerDependencies:
       typescript: '>=4.3.0'
     dependencies:
@@ -10559,6 +10564,7 @@ packages:
 
   /update-browserslist-db@1.0.13(browserslist@4.22.1):
     resolution: {integrity: sha512-xebP81SNcPuNpPP3uzeW1NYXxI3rxyJzF3pD6sH4jE7o/IX+WtSpwnVU+qIsDPyk0d3hmFQ7mjqc6AtV604hbg==}
+    hasBin: true
     peerDependencies:
       browserslist: '>= 4.21.0'
     dependencies:
