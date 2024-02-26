@@ -92,7 +92,7 @@ impl CallOverrideCallback {
             ThreadsafeFunctionCallMode::Blocking,
         );
 
-        assert_eq!(status, Status::Ok);
+        assert_eq!(status, Status::Ok, "Call override callback failed");
 
         receiver
             .recv()
