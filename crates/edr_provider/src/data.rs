@@ -58,6 +58,7 @@ use self::{
     gas::{BinarySearchEstimationResult, CheckGasResult},
     inspector::EvmInspector,
 };
+pub use crate::data::inspector::{CallOverrideResult, SyncCallOverride};
 use crate::{
     data::{
         call::{run_call, RunCallArgs},
@@ -150,6 +151,7 @@ pub struct ProviderData<LoggerErrorT: Debug> {
     logger: Box<dyn SyncLogger<BlockchainError = BlockchainError, LoggerError = LoggerErrorT>>,
     impersonated_accounts: HashSet<Address>,
     subscriber_callback: Box<dyn SyncSubscriberCallback>,
+    call_override: Option<Arc<dyn SyncCallOverride>>,
     // We need the Arc to let us avoid returning references to the cache entries which need &mut
     // self to get.
     block_state_cache: LruCache<StateId, Arc<Box<dyn SyncState<StateError>>>>,
@@ -162,6 +164,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         runtime_handle: runtime::Handle,
         logger: Box<dyn SyncLogger<BlockchainError = BlockchainError, LoggerError = LoggerErrorT>>,
         subscriber_callback: Box<dyn SyncSubscriberCallback>,
+        call_override: Option<Arc<dyn SyncCallOverride>>,
         config: ProviderConfig,
     ) -> Result<Self, CreationError> {
         let InitialAccounts {
@@ -237,10 +240,15 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             logger,
             impersonated_accounts: HashSet::new(),
             subscriber_callback,
+            call_override,
             block_state_cache,
             current_state_id,
             block_number_to_state_id,
         })
+    }
+
+    pub fn set_call_override_callback(&mut self, call_override: Option<Arc<dyn SyncCallOverride>>) {
+        self.call_override = call_override;
     }
 
     pub fn reset(&mut self, fork_config: Option<ForkConfig>) -> Result<(), CreationError> {
@@ -251,6 +259,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             self.runtime_handle.clone(),
             self.logger.clone(),
             self.subscriber_callback.clone(),
+            self.call_override.clone(),
             config,
         )?;
 
@@ -604,10 +613,12 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
 
         let state_overrides = StateOverrides::default();
 
-        self.execute_in_block_context(Some(block_spec), |blockchain, block, state| {
-            let mut inspector =
-                DualInspector::new(EvmInspector::default(), TraceCollector::default());
+        let mut inspector = DualInspector::new(
+            TraceCollector::default(),
+            EvmInspector::new(self.call_override.clone()),
+        );
 
+        self.execute_in_block_context(Some(block_spec), |blockchain, block, state| {
             let header = block.header();
 
             // Measure the gas used by the transaction with optional limit from call request
@@ -623,7 +634,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 inspector: Some(&mut inspector),
             })?;
 
-            let (debug_inspector, tracer) = inspector.into_parts();
+            let (tracer, inspector) = inspector.into_parts();
             let trace = tracer.into_trace();
 
             let mut initial_estimation = match result {
@@ -640,7 +651,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 )),
             }
             .map_err(|failure| EstimateGasFailure {
-                console_log_inputs: debug_inspector.into_console_log_encoded_messages(),
+                console_log_inputs: inspector.into_console_log_encoded_messages(),
                 transaction_failure: TransactionFailureWithTraces {
                     traces: vec![failure.solidity_trace.clone()],
                     failure,
@@ -1324,10 +1335,12 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         let cfg_env = self.create_evm_config(block_spec)?;
         let tx_env = transaction.into();
 
-        self.execute_in_block_context(block_spec, |blockchain, block, state| {
-            let mut inspector =
-                DualInspector::new(EvmInspector::default(), TraceCollector::default());
+        let mut inspector = DualInspector::new(
+            TraceCollector::default(),
+            EvmInspector::new(self.call_override.clone()),
+        );
 
+        self.execute_in_block_context(block_spec, |blockchain, block, state| {
             let execution_result = call::run_call(RunCallArgs {
                 blockchain,
                 header: block.header(),
@@ -1338,10 +1351,10 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 inspector: Some(&mut inspector),
             })?;
 
-            let (debug_inspector, tracer) = inspector.into_parts();
+            let (tracer, inspector) = inspector.into_parts();
 
             Ok(CallResult {
-                console_log_inputs: debug_inspector.into_console_log_encoded_messages(),
+                console_log_inputs: inspector.into_console_log_encoded_messages(),
                 execution_result,
                 trace: tracer.into_trace(),
             })
@@ -1895,7 +1908,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 .or_else(|| Some(self.parent_beacon_block_root_generator.next_value()));
         }
 
-        let mut inspector = EvmInspector::default();
+        let mut inspector = EvmInspector::new(self.call_override.clone());
 
         let state_to_be_modified = (*self.current_state()?).clone();
 
@@ -2474,7 +2487,7 @@ pub(crate) mod test_utils {
             mut config: ProviderConfig,
         ) -> anyhow::Result<Self> {
             let logger = Box::<NoopLogger>::default();
-            let subscription_callback = Box::new(|_| ());
+            let subscription_callback_noop = Box::new(|_| ());
 
             let impersonated_account = Address::random();
             config.genesis_accounts.insert(
@@ -2490,7 +2503,8 @@ pub(crate) mod test_utils {
             let mut provider_data = ProviderData::new(
                 runtime.handle().clone(),
                 logger,
-                subscription_callback,
+                subscription_callback_noop,
+                None,
                 config.clone(),
             )?;
 

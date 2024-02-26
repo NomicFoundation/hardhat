@@ -59,7 +59,7 @@ export function getMinimalEthereumJsVm(
         await provider.handleRequest(
           JSON.stringify({
             method: "hardhat_setCode",
-            params: [`0x${address.toString()}`, `0x${code.toString("hex")}`],
+            params: [address.toString(), `0x${code.toString("hex")}`],
           })
         );
       },
@@ -67,10 +67,7 @@ export function getMinimalEthereumJsVm(
         const responseObject = await provider.handleRequest(
           JSON.stringify({
             method: "eth_getStorageAt",
-            params: [
-              `0x${address.toString()}`,
-              `0x${slotHash.toString("hex")}`,
-            ],
+            params: [address.toString(), `0x${slotHash.toString("hex")}`],
           })
         );
 
@@ -87,7 +84,7 @@ export function getMinimalEthereumJsVm(
           JSON.stringify({
             method: "hardhat_setStorageAt",
             params: [
-              `0x${address.toString()}`,
+              address.toString(),
               `0x${slotHash.toString("hex")}`,
               `0x${slotValue.toString("hex")}`,
             ],

@@ -16,6 +16,7 @@ pub mod test_utils;
 use core::fmt::Debug;
 use std::sync::Arc;
 
+use data::SyncCallOverride;
 use edr_evm::{blockchain::BlockchainError, trace::Trace, HashSet};
 use lazy_static::lazy_static;
 use logger::SyncLogger;
@@ -25,7 +26,7 @@ use tokio::{runtime, sync::Mutex as AsyncMutex, task};
 
 pub use self::{
     config::*,
-    data::CallResult,
+    data::{CallOverrideResult, CallResult},
     debug_mine::DebugMineBlockResult,
     error::{EstimateGasFailure, ProviderError, TransactionFailure, TransactionFailureReason},
     logger::Logger,
@@ -106,7 +107,13 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
         subscriber_callback: Box<dyn SyncSubscriberCallback>,
         config: ProviderConfig,
     ) -> Result<Self, CreationError> {
-        let data = ProviderData::new(runtime.clone(), logger, subscriber_callback, config.clone())?;
+        let data = ProviderData::new(
+            runtime.clone(),
+            logger,
+            subscriber_callback,
+            None,
+            config.clone(),
+        )?;
         let data = Arc::new(AsyncMutex::new(data));
 
         let interval_miner = config
@@ -122,6 +129,11 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
             interval_miner,
             runtime,
         })
+    }
+
+    pub fn set_call_override_callback(&self, call_override: Option<Arc<dyn SyncCallOverride>>) {
+        let mut data = task::block_in_place(|| self.runtime.block_on(self.data.lock()));
+        data.set_call_override_callback(call_override);
     }
 
     /// Blocking method to handle a request.

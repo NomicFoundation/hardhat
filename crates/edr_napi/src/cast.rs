@@ -1,4 +1,4 @@
-use edr_eth::{Address, B256, B64, U256};
+use edr_eth::{Address, Bytes, B256, B64, U256};
 use napi::{
     bindgen_prelude::{BigInt, Buffer},
     Status,
@@ -115,5 +115,21 @@ impl<T> TryCast<T> for T {
 
     fn try_cast(self) -> std::result::Result<T, Self::Error> {
         Ok(self)
+    }
+}
+
+impl TryCast<Bytes> for Buffer {
+    type Error = napi::Error;
+
+    fn try_cast(self) -> Result<Bytes, Self::Error> {
+        Ok(Bytes::copy_from_slice(&self))
+    }
+}
+
+impl TryCast<Option<Bytes>> for Option<Buffer> {
+    type Error = napi::Error;
+
+    fn try_cast(self) -> Result<Option<Bytes>, Self::Error> {
+        Ok(self.map(|buffer| Bytes::copy_from_slice(&buffer)))
     }
 }

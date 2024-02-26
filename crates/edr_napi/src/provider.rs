@@ -9,6 +9,7 @@ use napi_derive::napi;
 
 use self::config::ProviderConfig;
 use crate::{
+    call_override::CallOverrideCallback,
     context::EdrContext,
     logger::{Logger, LoggerConfig, LoggerError},
     subscribe::SubscriberCallback,
@@ -148,6 +149,26 @@ impl Provider {
                 json: json_response,
                 traces: traces.into_iter().map(Arc::new).collect(),
             })
+    }
+
+    #[napi(ts_return_type = "void")]
+    pub fn set_call_override_callback(
+        &self,
+        env: Env,
+        #[napi(
+            ts_arg_type = "(contract_address: Buffer, data: Buffer) => Promise<CallOverrideResult | undefined>"
+        )]
+        call_override_callback: JsFunction,
+    ) -> napi::Result<()> {
+        let provider = self.provider.clone();
+
+        let call_override_callback = CallOverrideCallback::new(&env, call_override_callback)?;
+        let call_override_callback =
+            Arc::new(move |address, data| call_override_callback.call_override(address, data));
+
+        provider.set_call_override_callback(Some(call_override_callback));
+
+        Ok(())
     }
 }
 

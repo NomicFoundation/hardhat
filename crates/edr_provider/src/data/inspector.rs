@@ -1,29 +1,84 @@
 use core::fmt::Debug;
+use std::sync::Arc;
 
-use edr_eth::Bytes;
-use edr_evm::{CallInputs, EVMData, Gas, Inspector, InstructionResult};
+use dyn_clone::DynClone;
+use edr_eth::{Address, Bytes};
+use edr_evm::{CallInputs, EVMData, Gas, Inspector, InstructionResult, TransactTo};
 
 use crate::data::CONSOLE_ADDRESS;
 
-#[derive(Debug, Default)]
+/// The result of executing a call override.
+#[derive(Debug)]
+pub struct CallOverrideResult {
+    pub result: Bytes,
+    pub should_revert: bool,
+}
+
+pub trait SyncCallOverride:
+    Fn(Address, Bytes) -> Option<CallOverrideResult> + DynClone + Send + Sync
+{
+}
+
+impl<F> SyncCallOverride for F where
+    F: Fn(Address, Bytes) -> Option<CallOverrideResult> + DynClone + Send + Sync
+{
+}
+
+dyn_clone::clone_trait_object!(SyncCallOverride);
+
 pub(super) struct EvmInspector {
     console_log_encoded_messages: Vec<Bytes>,
+    call_override: Option<Arc<dyn SyncCallOverride>>,
 }
 
 impl EvmInspector {
+    pub fn new(call_override: Option<Arc<dyn SyncCallOverride>>) -> Self {
+        Self {
+            console_log_encoded_messages: Vec::new(),
+            call_override,
+        }
+    }
+
     pub fn into_console_log_encoded_messages(self) -> Vec<Bytes> {
         self.console_log_encoded_messages
+    }
+}
+
+impl Debug for EvmInspector {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("EvmInspector")
+            .field(
+                "console_log_encoded_messages",
+                &self.console_log_encoded_messages,
+            )
+            .field("call_override", &"<closure>")
+            .finish()
     }
 }
 
 impl<DatabaseErrorT> Inspector<DatabaseErrorT> for EvmInspector {
     fn call(
         &mut self,
-        _data: &mut EVMData<'_, DatabaseErrorT>,
+        data: &mut EVMData<'_, DatabaseErrorT>,
         inputs: &mut CallInputs,
     ) -> (InstructionResult, Gas, Bytes) {
         if inputs.contract == *CONSOLE_ADDRESS {
             self.console_log_encoded_messages.push(inputs.input.clone());
+        }
+
+        if let TransactTo::Call(_) = data.env.tx.transact_to {
+            if let Some(call_override) = &self.call_override {
+                let out = (call_override)(inputs.contract, inputs.input.clone());
+                if let Some(out) = out {
+                    let instruction_result = if out.should_revert {
+                        InstructionResult::Revert
+                    } else {
+                        InstructionResult::Return
+                    };
+
+                    return (instruction_result, Gas::new(inputs.gas_limit), out.result);
+                }
+            }
         }
 
         (

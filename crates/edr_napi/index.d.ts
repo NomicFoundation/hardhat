@@ -58,6 +58,12 @@ export interface BlobGas {
    */
   excessGas: bigint
 }
+/** The result of executing a call override. */
+export interface CallOverrideResult {
+  result: Buffer
+  shouldRevert: boolean
+  gas: bigint
+}
 /** Identifier for the Ethereum spec. */
 export const enum SpecId {
   /** Frontier */
@@ -384,6 +390,7 @@ export class Provider {
   static withConfig(context: EdrContext, config: ProviderConfig, loggerConfig: LoggerConfig, subscriberCallback: (event: SubscriptionEvent) => void): Promise<Provider>
   /**Handles a JSON-RPC request and returns a JSON-RPC response. */
   handleRequest(jsonRequest: string): Promise<Response>
+  setCallOverrideCallback(callOverrideCallback: (contract_address: Buffer, data: Buffer) => Promise<CallOverrideResult | undefined>): void
 }
 export class Response {
   get json(): string

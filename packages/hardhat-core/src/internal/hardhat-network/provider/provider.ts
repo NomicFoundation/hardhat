@@ -155,11 +155,21 @@ export interface RawTraceCallbacks {
 
 class EdrProviderEventAdapter extends EventEmitter {}
 
+type CallOverrideCallback = (
+  address: Buffer,
+  data: Buffer
+) => Promise<
+  { result: Buffer; shouldRevert: boolean; gas: bigint } | undefined
+>;
+
 export class EdrProviderWrapper
   extends EventEmitter
   implements EIP1193Provider
 {
   private _failedStackTraces = 0;
+
+  // temporarily added to make smock work with HH+EDR
+  private _callOverrideCallback?: CallOverrideCallback;
 
   private constructor(
     private readonly _provider: EdrProviderT,
@@ -436,6 +446,17 @@ export class EdrProviderWrapper
     } else {
       return response.result;
     }
+  }
+
+  // temporarily added to make smock work with HH+EDR
+  private _setCallOverrideCallback(callback: CallOverrideCallback) {
+    this._callOverrideCallback = callback;
+
+    this._provider.setCallOverrideCallback(
+      async (address: Buffer, data: Buffer) => {
+        return this._callOverrideCallback?.(address, data);
+      }
+    );
   }
 
   private _ethEventListener(event: SubscriptionEvent) {
