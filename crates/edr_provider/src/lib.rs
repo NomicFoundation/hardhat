@@ -9,8 +9,8 @@ mod pending;
 mod requests;
 mod snapshot;
 mod subscribe;
-/// Test utilities
-#[cfg(test)]
+/// Utilities for testing
+#[cfg(any(test, feature = "test-utils"))]
 pub mod test_utils;
 
 use core::fmt::Debug;
@@ -29,7 +29,7 @@ pub use self::{
     data::{CallOverrideResult, CallResult},
     debug_mine::DebugMineBlockResult,
     error::{EstimateGasFailure, ProviderError, TransactionFailure, TransactionFailureReason},
-    logger::Logger,
+    logger::{Logger, NoopLogger},
     requests::{
         hardhat::rpc_types as hardhat_rpc_types, InvalidRequestReason, MethodInvocation,
         OneUsizeOrTwo, ProviderRequest, U64OrUsize,

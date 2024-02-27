@@ -62,7 +62,6 @@ export interface BlobGas {
 export interface CallOverrideResult {
   result: Buffer
   shouldRevert: boolean
-  gas: bigint
 }
 /** Identifier for the Ethereum spec. */
 export const enum SpecId {

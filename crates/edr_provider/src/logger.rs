@@ -1,7 +1,8 @@
 use core::fmt::Debug;
+use std::convert::Infallible;
 
 use dyn_clone::DynClone;
-use edr_evm::ExecutableTransaction;
+use edr_evm::{blockchain::BlockchainError, ExecutableTransaction};
 
 use crate::{
     data::CallResult, debug_mine::DebugMineBlockResult, error::EstimateGasFailure, ProviderError,
@@ -99,5 +100,29 @@ impl<BlockchainErrorT, LoggerErrorT> Clone
 {
     fn clone(&self) -> Self {
         dyn_clone::clone_box(&**self)
+    }
+}
+
+/// A logger that does nothing.
+#[derive(Clone, Default)]
+pub struct NoopLogger;
+
+impl Logger for NoopLogger {
+    type BlockchainError = BlockchainError;
+
+    type LoggerError = Infallible;
+
+    fn is_enabled(&self) -> bool {
+        false
+    }
+
+    fn set_is_enabled(&mut self, _is_enabled: bool) {}
+
+    fn print_method_logs(
+        &mut self,
+        _method: &str,
+        _error: Option<&ProviderError<Infallible>>,
+    ) -> Result<(), Infallible> {
+        Ok(())
     }
 }

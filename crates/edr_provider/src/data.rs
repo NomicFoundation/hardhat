@@ -2418,31 +2418,8 @@ pub(crate) mod test_utils {
     use super::*;
     use crate::{
         test_utils::{create_test_config_with_fork, one_ether, FORK_BLOCK_NUMBER},
-        Logger, ProviderConfig,
+        NoopLogger, ProviderConfig,
     };
-
-    #[derive(Clone, Default)]
-    struct NoopLogger;
-
-    impl Logger for NoopLogger {
-        type BlockchainError = BlockchainError;
-
-        type LoggerError = Infallible;
-
-        fn is_enabled(&self) -> bool {
-            true
-        }
-
-        fn set_is_enabled(&mut self, _is_enabled: bool) {}
-
-        fn print_method_logs(
-            &mut self,
-            _method: &str,
-            _error: Option<&ProviderError<Infallible>>,
-        ) -> Result<(), Infallible> {
-            Ok(())
-        }
-    }
 
     pub(crate) struct ProviderTestFixture {
         _runtime: runtime::Runtime,
@@ -2575,13 +2552,9 @@ mod tests {
     use std::convert::Infallible;
 
     use alloy_sol_types::{sol, SolCall};
-    use anyhow::{anyhow, Context};
-    use edr_eth::{
-        remote::{eth::CallRequest, PreEip1898BlockSpec},
-        spec::chain_hardfork_activations,
-        withdrawal::Withdrawal,
-    };
-    use edr_evm::{hex, MineOrdering, RemoteBlock, TransactionError};
+    use anyhow::Context;
+    use edr_eth::remote::eth::CallRequest;
+    use edr_evm::{hex, MineOrdering, TransactionError};
     use edr_test_utils::env::get_alchemy_url;
     use serde_json::json;
 
@@ -3711,10 +3684,11 @@ mod tests {
             $(
                 paste::item! {
                     #[serial_test::serial]
-                    #[test]
-                    fn [<full_block_ $name>]() -> anyhow::Result<()> {
+                    #[tokio::test(flavor = "multi_thread")]
+                    async fn [<full_block_ $name>]() -> anyhow::Result<()> {
                         let url = $url;
-                        run_full_block(url, $block_number, $chain_id)
+
+                        crate::test_utils::run_full_block(url, $block_number, $chain_id).await
                     }
                 }
             )+
@@ -3758,81 +3732,5 @@ mod tests {
             chain_id: 11_155_111,
             url: get_alchemy_url().replace("mainnet", "sepolia"),
         },
-    }
-
-    fn run_full_block(url: String, block_number: u64, chain_id: u64) -> anyhow::Result<()> {
-        let default_config = create_test_config_with_fork(Some(ForkConfig {
-            json_rpc_url: url.clone(),
-            block_number: Some(block_number - 1),
-            http_headers: None,
-        }));
-
-        let runtime = runtime::Builder::new_multi_thread()
-            .worker_threads(1)
-            .enable_all()
-            .thread_name("provider-data-test")
-            .build()?;
-
-        let replay_block = {
-            let rpc_client = RpcClient::new(&url, default_config.cache_dir.clone(), None)?;
-
-            let block = runtime.block_on(rpc_client.get_block_by_number_with_transaction_data(
-                PreEip1898BlockSpec::Number(block_number),
-            ))?;
-
-            RemoteBlock::new(block, Arc::new(rpc_client), runtime.handle().clone())?
-        };
-
-        let hardfork_activations =
-            chain_hardfork_activations(chain_id).ok_or(anyhow!("Unsupported chain id"))?;
-
-        let hardfork = hardfork_activations
-            .hardfork_at_block_number(block_number)
-            .ok_or(anyhow!("Unsupported block number"))?;
-
-        let replay_header = replay_block.header();
-        let block_gas_limit = replay_header.gas_limit;
-
-        let config = ProviderConfig {
-            block_gas_limit,
-            chain_id,
-            coinbase: replay_header.beneficiary,
-            hardfork,
-            initial_base_fee_per_gas: None,
-            mining: MiningConfig {
-                auto_mine: false,
-                interval: None,
-                mem_pool: MemPoolConfig {
-                    // Use first-in, first-out to replay the transaction in the exact same order
-                    order: MineOrdering::Fifo,
-                },
-            },
-            network_id: 1,
-            ..default_config
-        };
-
-        let mut fixture = ProviderTestFixture::new(runtime, config)?;
-
-        for transaction in replay_block.transactions() {
-            fixture
-                .provider_data
-                .add_pending_transaction(transaction.clone())?;
-        }
-
-        let mined_block = fixture.provider_data.mine_and_commit_block(BlockOptions {
-            extra_data: Some(replay_header.extra_data.clone()),
-            mix_hash: Some(replay_header.mix_hash),
-            nonce: Some(replay_header.nonce),
-            parent_beacon_block_root: replay_header.parent_beacon_block_root,
-            state_root: Some(replay_header.state_root),
-            timestamp: Some(replay_header.timestamp),
-            withdrawals: replay_block.withdrawals().map(<[Withdrawal]>::to_vec),
-            ..BlockOptions::default()
-        })?;
-
-        let mined_header = mined_block.block.header();
-        assert_eq!(mined_header, replay_header);
-
-        Ok(())
     }
 }
