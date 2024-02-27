@@ -3684,19 +3684,11 @@ mod tests {
             $(
                 paste::item! {
                     #[serial_test::serial]
-                    #[test]
-                    fn [<full_block_ $name>]() -> anyhow::Result<()> {
+                    #[tokio::test(flavor = "multi_thread")]
+                    async fn [<full_block_ $name>]() -> anyhow::Result<()> {
                         let url = $url;
 
-                        let runtime = runtime::Builder::new_multi_thread()
-                            .worker_threads(1)
-                            .enable_all()
-                            .thread_name("provider-data-test")
-                            .build()?;
-
-                        runtime.block_on(
-                            crate::test_utils::run_full_block(url, $block_number, $chain_id)
-                        )
+                        crate::test_utils::run_full_block(url, $block_number, $chain_id).await
                     }
                 }
             )+
