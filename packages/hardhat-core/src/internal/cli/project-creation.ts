@@ -57,7 +57,6 @@ const PEER_DEPENDENCIES: Dependencies = {
   "hardhat-gas-reporter": "^1.0.8",
   "solidity-coverage": "^0.8.0",
   "@nomicfoundation/hardhat-ignition": "^0.14.0",
-  "@nomicfoundation/ignition-core": "^0.14.0",
 };
 
 const ETHERS_PEER_DEPENDENCIES: Dependencies = {
