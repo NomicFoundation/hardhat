@@ -5,6 +5,7 @@ use clap::{Parser, Subcommand};
 mod benchmark;
 mod compare_test_runs;
 mod execution_api;
+mod remote_block;
 mod scenario;
 mod update;
 
@@ -38,6 +39,18 @@ enum Command {
     },
     /// Generate Ethereum execution API
     GenExecutionApi,
+    /// Replays a block from a remote node and compares it to the mined block.
+    ReplayBlock {
+        /// The URL of the remote node
+        #[clap(long, short)]
+        url: String,
+        /// The block number to replay
+        #[clap(long, short)]
+        block_number: Option<u64>,
+        /// The chain ID
+        #[clap(long, short)]
+        chain_id: u64,
+    },
     /// Execute a benchmark scenario and report statistics
     Scenario {
         /// The path to the scenario file (JSON lines or GZipped JSON lines)
@@ -62,6 +75,11 @@ async fn main() -> anyhow::Result<()> {
             iterations,
         } => benchmark::run(working_directory, &test_command, iterations),
         Command::GenExecutionApi => execution_api::generate(Mode::Overwrite),
+        Command::ReplayBlock {
+            url,
+            block_number,
+            chain_id,
+        } => remote_block::replay(url, block_number, chain_id).await,
         Command::Scenario { path, count } => scenario::execute(&path, count).await,
     }
 }

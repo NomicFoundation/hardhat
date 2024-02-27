@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 alloy-sol-types = { version = "0.5.1", default-features = false, features = ["std"]}
+anyhow = { version = "1.0.75", optional = true }
 dyn-clone = { version = "1.0.13", default-features = false }
 edr_defaults = { version = "0.2.0-dev", path = "../edr_defaults" }
 edr_eth = { version = "0.2.0-dev", path = "../edr_eth" }
@@ -35,3 +36,6 @@ tempfile = "3.7.1"
 [build-dependencies]
 cargo_toml = { version = "0.15.3", default-features = false }
 toml = { version = "0.5.9", default-features = false }
+
+[features]
+test-utils = ["anyhow"]

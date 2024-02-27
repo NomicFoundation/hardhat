@@ -1,5 +1,6 @@
 [alias]
 gen-execution-api  = "run --bin tools -- gen-execution-api"
+replay-block       = "run --bin tools -- replay-block"
 
 [target.'cfg(all())']
 rustflags = [

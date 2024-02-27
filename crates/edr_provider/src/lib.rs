@@ -9,8 +9,8 @@ mod pending;
 mod requests;
 mod snapshot;
 mod subscribe;
-/// Test utilities
-#[cfg(test)]
+/// Utilities for testing
+#[cfg(any(test, feature = "test-utils"))]
 pub mod test_utils;
 
 use core::fmt::Debug;
@@ -19,7 +19,7 @@ use std::sync::Arc;
 use data::SyncCallOverride;
 use edr_evm::{blockchain::BlockchainError, trace::Trace, HashSet};
 use lazy_static::lazy_static;
-use logger::SyncLogger;
+use logger::{NoopLogger, SyncLogger};
 use parking_lot::Mutex;
 use requests::{eth::handle_set_interval_mining, hardhat::rpc_types::ResetProviderConfig};
 use tokio::{runtime, sync::Mutex as AsyncMutex, task};
