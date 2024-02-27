@@ -29,7 +29,7 @@ jobs:
         with:
           path: |
             **/edr-cache
-          key: edr-rs-rpc-cache-v1
+          key: test-recent-mainnet-block-rpc-cache-v1
 
       - name: Run test
         uses: actions-rs/cargo@v1

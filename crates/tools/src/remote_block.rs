@@ -13,5 +13,6 @@ pub async fn replay(url: String, block_number: Option<u64>, chain_id: u64) -> an
             .map(|block_number| block_number - 20)?
     };
 
+    println!("Testing block {block_number}");
     run_full_block(url, block_number, chain_id).await
 }
