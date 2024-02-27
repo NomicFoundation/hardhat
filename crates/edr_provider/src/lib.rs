@@ -19,7 +19,7 @@ use std::sync::Arc;
 use data::SyncCallOverride;
 use edr_evm::{blockchain::BlockchainError, trace::Trace, HashSet};
 use lazy_static::lazy_static;
-use logger::{NoopLogger, SyncLogger};
+use logger::SyncLogger;
 use parking_lot::Mutex;
 use requests::{eth::handle_set_interval_mining, hardhat::rpc_types::ResetProviderConfig};
 use tokio::{runtime, sync::Mutex as AsyncMutex, task};
@@ -29,7 +29,7 @@ pub use self::{
     data::{CallOverrideResult, CallResult},
     debug_mine::DebugMineBlockResult,
     error::{EstimateGasFailure, ProviderError, TransactionFailure, TransactionFailureReason},
-    logger::Logger,
+    logger::{Logger, NoopLogger},
     requests::{
         hardhat::rpc_types as hardhat_rpc_types, InvalidRequestReason, MethodInvocation,
         OneUsizeOrTwo, ProviderRequest, U64OrUsize,
