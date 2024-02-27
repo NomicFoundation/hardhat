@@ -3721,6 +3721,13 @@ mod tests {
             chain_id: 1,
             url: get_alchemy_url(),
         },
+        // This block contains a sequence of transaction that first raise
+        // an empty account's balance and then decrease it
+        mainnet_19318016 => {
+            block_number: 19_318_016,
+            chain_id: 1,
+            url: get_alchemy_url(),
+        },
         // This block has both EIP-2930 and EIP-1559 transactions
         goerli_merge => {
             block_number: 7_728_449,
