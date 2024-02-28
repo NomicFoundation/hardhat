@@ -17,7 +17,7 @@ use edr_evm::{
 ///
 /// WORKAROUND: This struct needs to implement all sub-traits of
 /// [`SyncBlockchain`] because we cannot upcast the trait at its usage site
-/// <https://github.com/NomicFoundation/edr/issues/244>
+/// <https://github.com/NomicFoundation/edr/issues/284>
 #[derive(Debug)]
 pub(crate) struct BlockchainWithPending<'blockchain> {
     blockchain: &'blockchain dyn SyncBlockchain<BlockchainError, StateError>,
