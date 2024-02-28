@@ -2,6 +2,9 @@
 
 //! NAPI bindings for the EDR EVM
 
+#[global_allocator]
+static ALLOC: rpmalloc::RpMalloc = rpmalloc::RpMalloc;
+
 mod account;
 mod block;
 mod call_override;
