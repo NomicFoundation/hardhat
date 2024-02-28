@@ -2,19 +2,8 @@ import { Common } from "@nomicfoundation/ethereumjs-common";
 
 import { LocalNodeConfig } from "../node-types";
 import { HardforkName } from "../../../util/hardforks";
-import { assertTransientStorageCompatibility } from "../node";
 
-export function makeCommon({
-  chainId,
-  networkId,
-  hardfork,
-  enableTransientStorage,
-}: LocalNodeConfig) {
-  assertTransientStorageCompatibility(
-    enableTransientStorage,
-    hardfork as HardforkName
-  );
-
+export function makeCommon({ chainId, networkId, hardfork }: LocalNodeConfig) {
   const common = Common.custom(
     {
       chainId,

@@ -6,6 +6,7 @@ import {
   numberToRpcQuantity,
   rpcQuantityToNumber,
   rpcQuantityToBigInt,
+  rpcDataToNumber,
 } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { InvalidInputError } from "../../../../../../../src/internal/core/providers/errors";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
@@ -14,7 +15,10 @@ import {
   assertReceiptMatchesGethOne,
   assertTransactionFailure,
 } from "../../../../helpers/assertions";
-import { EXAMPLE_REVERT_CONTRACT } from "../../../../helpers/contracts";
+import {
+  EXAMPLE_BLOCK_NUMBER_CONTRACT,
+  EXAMPLE_REVERT_CONTRACT,
+} from "../../../../helpers/contracts";
 import { setCWD } from "../../../../helpers/cwd";
 import { getPendingBaseFeePerGas } from "../../../../helpers/getPendingBaseFeePerGas";
 import {
@@ -23,7 +27,6 @@ import {
   DEFAULT_BLOCK_GAS_LIMIT,
   PROVIDERS,
 } from "../../../../helpers/providers";
-import { retrieveForkBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 import { sendDummyTransaction } from "../../../../helpers/sendDummyTransaction";
 import {
   deployContract,
@@ -38,7 +41,7 @@ import {
 import { EthereumProvider } from "../../../../../../../src/types";
 
 describe("Eth module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork, isJsonRpc, chainId }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork, isJsonRpc }) => {
     if (isFork) {
       this.timeout(50000);
     }
@@ -52,15 +55,12 @@ describe("Eth module", function () {
         useProvider({ hardfork: "london" });
         useHelpers();
 
-        const getFirstBlock = async () =>
-          isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
-
         // Because of the way we are testing this (i.e. integration testing) it's almost impossible to
         // fully test this method in a reasonable amount of time. This is because it executes the core
         // of Ethereum: its state transition function.
         //
         // We have mostly test about logic added on top of that, and will add new ones whenever
-        // suitable. This is approximately the same as assuming that @nomicfoundation/ethereumjs-vm is correct, which
+        // suitable. This is approximately the same as assuming that EDR is correct, which
         // seems reasonable, and if it weren't we should address the issues there.
 
         describe("Params validation", function () {
@@ -244,7 +244,10 @@ describe("Eth module", function () {
           describe("With just from and data", function () {
             for (const toValue of [undefined, null]) {
               it(`Should work with a 'to' value of ${toValue}`, async function () {
-                const firstBlock = await getFirstBlock();
+                const firstBlockNumber = rpcQuantityToNumber(
+                  await this.provider.send("eth_blockNumber")
+                );
+
                 const hash = await this.provider.send("eth_sendTransaction", [
                   {
                     from: DEFAULT_ACCOUNTS_ADDRESSES[0],
@@ -279,7 +282,7 @@ describe("Eth module", function () {
                 assertReceiptMatchesGethOne(
                   receipt,
                   receiptFromGeth,
-                  firstBlock + 1
+                  firstBlockNumber + 1
                 );
               });
             }
@@ -449,7 +452,10 @@ describe("Eth module", function () {
               it("Should throw if the sender doesn't have enough balance as a result of mining pending transactions first", async function () {
                 const gasPrice = 10n;
 
-                const firstBlock = await getFirstBlock();
+                const firstBlockNumber = rpcQuantityToNumber(
+                  await this.provider.send("eth_blockNumber")
+                );
+
                 const wholeAccountBalance = numberToRpcQuantity(
                   DEFAULT_ACCOUNTS_BALANCES[0] - 21_000n * gasPrice
                 );
@@ -486,7 +492,7 @@ describe("Eth module", function () {
                   rpcQuantityToNumber(
                     await this.provider.send("eth_blockNumber")
                   ),
-                  firstBlock
+                  firstBlockNumber
                 );
                 assert.lengthOf(
                   await this.provider.send("eth_pendingTransactions"),
@@ -555,7 +561,9 @@ describe("Eth module", function () {
                   ]);
                 };
                 const initialBalance = DEFAULT_ACCOUNTS_BALANCES[1];
-                const firstBlock = await getFirstBlock();
+                const firstBlockNumber = rpcQuantityToNumber(
+                  await this.provider.send("eth_blockNumber")
+                );
 
                 await this.provider.send("evm_setAutomine", [false]);
                 await sendTransaction(0, 0);
@@ -585,7 +593,7 @@ describe("Eth module", function () {
                   rpcQuantityToNumber(
                     await this.provider.send("eth_blockNumber")
                   ),
-                  firstBlock
+                  firstBlockNumber
                 );
                 assert.lengthOf(
                   await this.provider.send("eth_pendingTransactions"),
@@ -1100,8 +1108,40 @@ describe("Eth module", function () {
             );
           }
 
+          const chainId = await this.provider.send("eth_chainId");
+
           // assert:
           assert.equal(await getChainIdFromContract(this.provider), chainId);
+        });
+
+        it("Should use the correct value of block.number", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_BLOCK_NUMBER_CONTRACT.bytecode.object}`
+          );
+
+          const blockNumberBeforeTx = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: `${EXAMPLE_BLOCK_NUMBER_CONTRACT.selectors.setBlockNumber}`,
+            },
+          ]);
+
+          const contractBlockNumber = rpcDataToNumber(
+            await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: `${EXAMPLE_BLOCK_NUMBER_CONTRACT.selectors.blockNumber}`,
+              },
+            ])
+          );
+
+          assert.equal(contractBlockNumber, blockNumberBeforeTx + 1);
         });
 
         it("should reject blob transactions", async function () {

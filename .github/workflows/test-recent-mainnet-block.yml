@@ -14,22 +14,31 @@ jobs:
     name: Test recent mainnet block
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: pnpm/action-setup@v2
+      - uses: actions/checkout@v3
+
+      - name: Install Rust (stable)
+        uses: actions-rs/toolchain@v1
         with:
-          version: 8
-      - uses: actions/setup-node@v2
+          profile: minimal
+          override: true
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Cache EDR RPC cache
+        uses: actions/cache@v2
         with:
-          node-version: 16
-          cache: "pnpm"
-      - name: Install
-        run: pnpm install --frozen-lockfile --prefer-offline
-      - name: Build
-        run: pnpm build
+          path: |
+            **/edr-cache
+          key: test-recent-mainnet-block-rpc-cache-v1
+
       - name: Run test
+        uses: actions-rs/cargo@v1
         env:
-          ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
-        run: pnpm ts-node scripts/test-recent-mainnet-block.ts
+          RUSTFLAGS: ${{ matrix.RUSTFLAGS }}
+        with:
+          command: replay-block
+          args: -u ${{ secrets.ALCHEMY_URL }} -c 1
+
       - name: Notify failures
         if: failure()
         uses: slackapi/slack-github-action@v1.18.0

@@ -1,7 +1,10 @@
 import { zeroAddress } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 
-import { numberToRpcQuantity } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
+import {
+  numberToRpcQuantity,
+  rpcQuantityToNumber,
+} from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import {
   assertInvalidInputError,
@@ -17,7 +20,6 @@ import {
   DEFAULT_ACCOUNTS_BALANCES,
   PROVIDERS,
 } from "../../../../helpers/providers";
-import { retrieveForkBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -30,9 +32,6 @@ describe("Eth module", function () {
     describe(`${name} provider`, function () {
       setCWD();
       useProvider();
-
-      const getFirstBlock = async () =>
-        isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
 
       describe("eth_getBalance", async function () {
         it("Should return 0 for empty accounts", async function () {
@@ -202,7 +201,10 @@ describe("Eth module", function () {
         });
 
         it("should leverage block tag parameter", async function () {
-          const firstBlock = await getFirstBlock();
+          const firstBlockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
+
           await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
@@ -224,7 +226,7 @@ describe("Eth module", function () {
           assert.strictEqual(
             await this.provider.send("eth_getBalance", [
               EMPTY_ACCOUNT_ADDRESS.toString(),
-              numberToRpcQuantity(firstBlock),
+              numberToRpcQuantity(firstBlockNumber),
             ]),
             "0x0"
           );
@@ -232,7 +234,7 @@ describe("Eth module", function () {
           assert.strictEqual(
             await this.provider.send("eth_getBalance", [
               EMPTY_ACCOUNT_ADDRESS.toString(),
-              numberToRpcQuantity(firstBlock + 1),
+              numberToRpcQuantity(firstBlockNumber + 1),
             ]),
             "0x1"
           );
@@ -246,14 +248,17 @@ describe("Eth module", function () {
         });
 
         it("Should throw invalid input error if called in the context of a nonexistent block", async function () {
-          const firstBlock = await getFirstBlock();
-          const futureBlock = firstBlock + 1;
+          const latestBlockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
+
+          const futureBlock = latestBlockNumber + 1;
 
           await assertInvalidInputError(
             this.provider,
             "eth_getBalance",
             [DEFAULT_ACCOUNTS_ADDRESSES[0], numberToRpcQuantity(futureBlock)],
-            `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
+            `Received invalid block tag ${futureBlock}. Latest block number is ${latestBlockNumber}`
           );
         });
       });

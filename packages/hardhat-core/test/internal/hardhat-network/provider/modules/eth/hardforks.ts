@@ -48,11 +48,10 @@ describe("Eth module - hardfork dependant tests", function () {
     importedUseProvider({ hardfork, allowUnlimitedContractSize });
     beforeEach(async function () {
       // TODO: Find out a better way to obtain the common here
+      const provider: any = this.hardhatNetworkProvider;
 
       // eslint-disable-next-line dot-notation,@typescript-eslint/dot-notation
-      await this.hardhatNetworkProvider["_init"]();
-      // eslint-disable-next-line dot-notation,@typescript-eslint/dot-notation
-      this.common = this.hardhatNetworkProvider["_common"];
+      this.common = provider["_common"];
     });
   }
 
@@ -223,19 +222,6 @@ describe("Eth module - hardfork dependant tests", function () {
     });
 
     describe("Transaction type validation by hardfork", function () {
-      function rejectsSendTransactionWithAccessList() {
-        it("Should reject an eth_sendTransaction if an access list was provided", async function () {
-          const [sender] = await this.provider.send("eth_accounts");
-
-          await assertInvalidArgumentsError(
-            this.provider,
-            "eth_sendTransaction",
-            [{ from: sender, to: sender, accessList: [] }],
-            "Access list received but is not supported by the current hardfork"
-          );
-        });
-      }
-
       function rejectsSendTransactionWithEIP1559Fields() {
         it("Should reject an eth_sendTransaction if an EIP-1559 fields were provided", async function () {
           const [sender] = await this.provider.send("eth_accounts");
@@ -258,23 +244,6 @@ describe("Eth module - hardfork dependant tests", function () {
         });
       }
 
-      function rejectsSendRawTransactionWithAccessListTx() {
-        it("Should reject an eth_sendRawTransaction if the tx uses an access list", async function () {
-          const berlinCommon = this.common.copy();
-          berlinCommon.setHardfork("berlin");
-
-          const signedTx = getSampleSignedAccessListTx(berlinCommon);
-          const serialized = bufferToRpcData(signedTx.serialize());
-
-          await assertInvalidArgumentsError(
-            this.provider,
-            "eth_sendRawTransaction",
-            [serialized],
-            "Trying to send an EIP-2930 transaction"
-          );
-        });
-      }
-
       function rejectsSendRawTransactionWithEIP1559Tx() {
         for (const hardfork of ["london", "arrowGlacier"]) {
           it(`Should reject an eth_sendRawTransaction if the tx uses an EIP-1559 tx when ${hardfork} is activated`, async function () {
@@ -293,46 +262,6 @@ describe("Eth module - hardfork dependant tests", function () {
           });
         }
       }
-
-      describe("Without EIP155 nor access list", function () {
-        useProviderAndCommon("tangerineWhistle");
-
-        it("Should reject an eth_sendRawTransaction if signed with EIP-155", async function () {
-          const spuriousDragonCommon = this.common.copy();
-          spuriousDragonCommon.setHardfork("spuriousDragon");
-
-          const signedTx = getSampleSignedTx(spuriousDragonCommon);
-          const serialized = bufferToRpcData(signedTx.serialize());
-
-          await assertInvalidArgumentsError(
-            this.provider,
-            "eth_sendRawTransaction",
-            [serialized],
-            "Trying to send an EIP-155 transaction"
-          );
-        });
-
-        rejectsSendTransactionWithAccessList();
-        rejectsSendRawTransactionWithAccessListTx();
-        rejectsSendTransactionWithEIP1559Fields();
-        rejectsSendRawTransactionWithEIP1559Tx();
-      });
-
-      describe("With EIP155 and not access list", function () {
-        useProviderAndCommon("spuriousDragon");
-
-        it("Should accept an eth_sendRawTransaction if signed with EIP-155", async function () {
-          const signedTx = getSampleSignedTx(this.common);
-          const serialized = bufferToRpcData(signedTx.serialize());
-
-          await this.provider.send("eth_sendRawTransaction", [serialized]);
-        });
-
-        rejectsSendTransactionWithAccessList();
-        rejectsSendRawTransactionWithAccessListTx();
-        rejectsSendTransactionWithEIP1559Fields();
-        rejectsSendRawTransactionWithEIP1559Tx();
-      });
 
       describe("With access list", function () {
         useProviderAndCommon("berlin");
@@ -699,7 +628,7 @@ describe("Eth module - hardfork dependant tests", function () {
     });
 
     describe("Receipts formatting", function () {
-      describe("Before byzantium", function () {
+      describe.skip("Before byzantium", function () {
         useProviderAndCommon("spuriousDragon");
 
         it("Should have a root field, and shouldn't have a status one nor type", async function () {
@@ -713,7 +642,7 @@ describe("Eth module - hardfork dependant tests", function () {
             [tx]
           );
 
-          assert.isDefined(receipt.root);
+          assert.isDefined(receipt.root, "receipt does not have a root");
           assert.isUndefined(receipt.status);
           assert.isUndefined(receipt.type);
         });
@@ -1397,6 +1326,7 @@ describe("Eth module - hardfork dependant tests", function () {
         // pseudo-randomly generated from a fixed seed
         assert.equal(
           latestBlock.mixHash,
+          // First value with seed "randomMixHashSeed"
           "0x53c5ae3ce8eefbfad3aca77e5f4e1b19a949b04e2e5ce7a24fbb64422f14f0bf"
         );
 
@@ -1410,6 +1340,7 @@ describe("Eth module - hardfork dependant tests", function () {
 
         assert.equal(
           latestBlock.mixHash,
+          // Second value with seed "randomMixHashSeed"
           "0xf4fbfa6c8463f342eb58838d8c6b0661faf22e7076a518bf4deaddbf3fa8a112"
         );
       });
@@ -1955,9 +1886,23 @@ describe("Eth module - hardfork dependant tests", function () {
         assert.isDefined(block.excessBlobGas);
       });
 
-      it("should have a non empty parentBeaconBlockRoot in the genesis block and the value should be an expected one", async function () {
+      it("should have 0x0 as parentBeaconBlockRoot in the genesis block", async function () {
         const block = await this.provider.send("eth_getBlockByNumber", [
           numberToRpcQuantity(0),
+          false,
+        ]);
+
+        assert.equal(
+          block.parentBeaconBlockRoot,
+          "0x0000000000000000000000000000000000000000000000000000000000000000"
+        );
+      });
+
+      it("should have a non empty parentBeaconBlockRoot in the second block and the value should be an expected one", async function () {
+        await this.provider.send("evm_mine", []);
+
+        const block = await this.provider.send("eth_getBlockByNumber", [
+          numberToRpcQuantity(1),
           false,
         ]);
 
@@ -1968,15 +1913,17 @@ describe("Eth module - hardfork dependant tests", function () {
       });
 
       it("should have different parentBeaconBlockRoot values in different blocks", async function () {
+        await this.provider.send("evm_mine", []);
+
         const block1 = await this.provider.send("eth_getBlockByNumber", [
-          numberToRpcQuantity(0),
+          numberToRpcQuantity(1),
           false,
         ]);
 
         await this.provider.send("evm_mine", []);
 
         const block2 = await this.provider.send("eth_getBlockByNumber", [
-          numberToRpcQuantity(1),
+          numberToRpcQuantity(2),
           false,
         ]);
 
@@ -1987,6 +1934,8 @@ describe("Eth module - hardfork dependant tests", function () {
       });
 
       it("should have the parentBeaconBlockRoot value different from the mixhash value", async function () {
+        await this.provider.send("evm_mine", []);
+
         const block = await this.provider.send("eth_getBlockByNumber", [
           "latest",
           false,

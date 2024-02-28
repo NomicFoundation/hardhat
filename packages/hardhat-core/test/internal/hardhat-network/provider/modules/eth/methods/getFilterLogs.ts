@@ -11,7 +11,6 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   PROVIDERS,
 } from "../../../../helpers/providers";
-import { retrieveForkBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 import { deployContract } from "../../../../helpers/transactions";
 
 describe("Eth module", function () {
@@ -26,14 +25,13 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      const getFirstBlock = async () =>
-        isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
-
       describe("eth_getFilterLogs", async function () {
-        let firstBlock: number;
+        let firstBlockNumber: number;
 
         beforeEach(async function () {
-          firstBlock = await getFirstBlock();
+          firstBlockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
         });
 
         it("Supports get filter logs", async function () {
@@ -64,7 +62,10 @@ describe("Eth module", function () {
           assert.equal(log.removed, false);
           assert.equal(log.logIndex, "0x0");
           assert.equal(log.transactionIndex, "0x0");
-          assert.equal(rpcQuantityToNumber(log.blockNumber), firstBlock + 2);
+          assert.equal(
+            rpcQuantityToNumber(log.blockNumber),
+            firstBlockNumber + 2
+          );
           assert.equal(log.address, exampleContract);
           assert.equal(log.data, `0x${newState}`);
         });
@@ -228,7 +229,7 @@ describe("Eth module", function () {
 
           const filterId = await this.provider.send("eth_newFilter", [
             {
-              fromBlock: numberToRpcQuantity(firstBlock),
+              fromBlock: numberToRpcQuantity(firstBlockNumber),
               address: exampleContract,
               topics: [
                 [
@@ -275,8 +276,8 @@ describe("Eth module", function () {
 
           const filterId = await this.provider.send("eth_newFilter", [
             {
-              fromBlock: numberToRpcQuantity(firstBlock),
-              toBlock: numberToRpcQuantity(firstBlock + 2),
+              fromBlock: numberToRpcQuantity(firstBlockNumber),
+              toBlock: numberToRpcQuantity(firstBlockNumber + 2),
               address: exampleContract,
               topics: [
                 [

@@ -1,7 +1,10 @@
 import { assert } from "chai";
 import { ethers } from "ethers";
 
-import { assertContractFieldEqualNumber } from "../helpers/assertions";
+import {
+  assertContractFieldEqualNumber,
+  assertEqualCode,
+} from "../helpers/assertions";
 import {
   CALL_SELFDESTRUCT_CONTRACT,
   SELFDESTRUCT_CONTRACT,
@@ -259,6 +262,47 @@ describe("selfdestruct", function () {
 
             assert.equal(BigInt(contractAddressBalance), 0n);
           });
+        });
+
+        it("a selfdestruct shouldn't affect another account with the same code", async function () {
+          // deploy two contracts with the same bytecode
+          const contractAddress1 = await deployContract(
+            this.provider,
+            `0x${SELFDESTRUCT_CONTRACT.bytecode.object}`,
+            DEFAULT_ACCOUNTS_ADDRESSES[0]
+          );
+          const contractAddress2 = await deployContract(
+            this.provider,
+            `0x${SELFDESTRUCT_CONTRACT.bytecode.object}`,
+            DEFAULT_ACCOUNTS_ADDRESSES[0]
+          );
+
+          await assertEqualCode(
+            this.provider,
+            contractAddress1,
+            contractAddress2
+          );
+
+          // call self-destruct in one of them
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: contractAddress1,
+              data: `${SELFDESTRUCT_CONTRACT.selectors.sd}0000000000000000000000000000000000000000000000000000000000000000`,
+            },
+          ]);
+
+          // check that the first contract doesn't have code but the second one
+          // does
+          const contractCode1 = await this.provider.send("eth_getCode", [
+            contractAddress1,
+          ]);
+          assert.equal(contractCode1, "0x");
+
+          const contractCode2 = await this.provider.send("eth_getCode", [
+            contractAddress2,
+          ]);
+          assert.notEqual(contractCode2, "0x");
         });
       });
 

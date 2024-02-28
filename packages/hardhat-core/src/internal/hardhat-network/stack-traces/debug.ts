@@ -58,8 +58,8 @@ export function printCreateTrace(trace: CreateMessageTrace, depth: number) {
     );
   }
 
-  if (trace.error !== undefined) {
-    console.log(`${margin} error: ${trace.error.error}`);
+  if (trace.exit.isError()) {
+    console.log(`${margin} error: ${trace.exit.getReason()}`);
 
     // The return data is the deployed-bytecode if there was no error, so we don't show it
     console.log(`${margin} returnData: ${bufferToHex(trace.returnData)}`);
@@ -79,8 +79,8 @@ export function printPrecompileTrace(
   console.log(`${margin} value: ${trace.value.toString(10)}`);
   console.log(`${margin} calldata: ${bufferToHex(trace.calldata)}`);
 
-  if (trace.error !== undefined) {
-    console.log(`${margin} error: ${trace.error.error}`);
+  if (trace.exit.isError()) {
+    console.log(`${margin} error: ${trace.exit.getReason()}`);
   }
 
   console.log(`${margin} returnData: ${bufferToHex(trace.returnData)}`);
@@ -104,8 +104,8 @@ export function printCallTrace(trace: CallMessageTrace, depth: number) {
   console.log(`${margin} value: ${trace.value.toString(10)}`);
   console.log(`${margin} calldata: ${bufferToHex(trace.calldata)}`);
 
-  if (trace.error !== undefined) {
-    console.log(`${margin} error: ${trace.error.error}`);
+  if (trace.exit.isError()) {
+    console.log(`${margin} error: ${trace.exit.getReason()}`);
   }
 
   console.log(`${margin} returnData: ${bufferToHex(trace.returnData)}`);

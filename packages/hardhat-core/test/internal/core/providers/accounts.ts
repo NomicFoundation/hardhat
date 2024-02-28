@@ -22,7 +22,6 @@ import {
   expectHardhatError,
   expectHardhatErrorAsync,
 } from "../../../helpers/errors";
-
 import { MockedProvider } from "./mocks";
 
 function toBuffer(x: Parameters<typeof toBytes>[0]) {

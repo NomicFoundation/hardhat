@@ -1,2 +1,3 @@
 packages:
   - "packages/*"
+  - "crates/edr_napi"

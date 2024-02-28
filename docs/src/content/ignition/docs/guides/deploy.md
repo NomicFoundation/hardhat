@@ -64,6 +64,16 @@ npx hardhat ignition deploy ignition/modules/Apollo.js --parameters ignition/par
 
 ::::
 
+To pass a `bigint` as a Module parameter, you can encode it as a string. Any string parameter value that matches the regex `/d+n/` will be converted to a `bigint` before being passed to the module, for instance the `endowment` parameter in the following example:
+
+```json
+{
+  "MyModule": {
+    "endowment": "1000000000000000000n" // 1 ETH in wei
+  }
+}
+```
+
 ## Inspecting an existing deployment
 
 To check on the current status of a deployment, run:

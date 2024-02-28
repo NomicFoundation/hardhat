@@ -11,6 +11,7 @@ import { assert } from "chai";
 import {
   numberToRpcQuantity,
   rpcQuantityToBigInt,
+  rpcQuantityToNumber,
 } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { TransactionParams } from "../../../../../../../src/internal/hardhat-network/provider/node-types";
 import {
@@ -34,7 +35,6 @@ import {
   DEFAULT_NETWORK_ID,
   PROVIDERS,
 } from "../../../../helpers/providers";
-import { retrieveForkBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 import {
   getSignedTxHash,
   sendTransactionFromTxParams,
@@ -56,9 +56,6 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      const getFirstBlock = async () =>
-        isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
-
       describe("eth_getTransactionByHash", async function () {
         it("should return null for unknown txs", async function () {
           assert.isNull(
@@ -75,7 +72,9 @@ describe("Eth module", function () {
         });
 
         it("should return the right info for the existing ones", async function () {
-          const firstBlock = await getFirstBlock();
+          const firstBlockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
           const txParams1: TransactionParams = {
             to: toBuffer(zeroAddress()),
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
@@ -92,7 +91,7 @@ describe("Eth module", function () {
           );
 
           const block = await this.provider.send("eth_getBlockByNumber", [
-            numberToRpcQuantity(firstBlock + 1),
+            numberToRpcQuantity(firstBlockNumber + 1),
             false,
           ]);
 
@@ -105,7 +104,7 @@ describe("Eth module", function () {
             tx,
             txHash,
             txParams1,
-            firstBlock + 1,
+            firstBlockNumber + 1,
             block.hash,
             0
           );
@@ -126,7 +125,7 @@ describe("Eth module", function () {
           );
 
           const block2 = await this.provider.send("eth_getBlockByNumber", [
-            numberToRpcQuantity(firstBlock + 2),
+            numberToRpcQuantity(firstBlockNumber + 2),
             false,
           ]);
 
@@ -139,14 +138,16 @@ describe("Eth module", function () {
             tx2,
             txHash2,
             txParams2,
-            firstBlock + 2,
+            firstBlockNumber + 2,
             block2.hash,
             0
           );
         });
 
         it("should return the transaction if it gets to execute and failed", async function () {
-          const firstBlock = await getFirstBlock();
+          const firstBlockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
           const txParams: TransactionParams = {
             to: undefined,
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
@@ -181,7 +182,7 @@ describe("Eth module", function () {
             txHash,
           ]);
           const block = await this.provider.send("eth_getBlockByNumber", [
-            numberToRpcQuantity(firstBlock + 1),
+            numberToRpcQuantity(firstBlockNumber + 1),
             false,
           ]);
 
@@ -189,7 +190,7 @@ describe("Eth module", function () {
             tx,
             txHash,
             txParams,
-            firstBlock + 1,
+            firstBlockNumber + 1,
             block.hash,
             0
           );
@@ -354,8 +355,39 @@ describe("Eth module", function () {
           assert.equal(tx.from, "0x84467283e3663522a02574288291a9d0f9c968c2");
         });
 
+        it("should get a blob transaction from goerli", async function () {
+          if (!isFork || ALCHEMY_URL === undefined) {
+            this.skip();
+          }
+          const goerliUrl = ALCHEMY_URL.replace("mainnet", "goerli");
+
+          // If "mainnet" is not present the replacement failed so we skip the test
+          if (goerliUrl === ALCHEMY_URL) {
+            this.skip();
+          }
+
+          await this.provider.send("hardhat_reset", [
+            {
+              forking: {
+                jsonRpcUrl: goerliUrl,
+                // Cancun block
+                blockNumber: 10527489,
+              },
+            },
+          ]);
+
+          const tx = await this.provider.send("eth_getTransactionByHash", [
+            // blob transaction
+            "0x0190ab719774b0ed612789072e399157537845383c2d2445a9929784a098a5c9",
+          ]);
+
+          assert.equal(tx.from, "0xa1d6cf9ed782555a0572cc08380ee3b68a1df449");
+        });
+
         it("should return access list transactions", async function () {
-          const firstBlock = await getFirstBlock();
+          const firstBlockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
           const txParams: TransactionParams = {
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             to: toBuffer(zeroAddress()),
@@ -384,7 +416,7 @@ describe("Eth module", function () {
             await this.provider.send("eth_getTransactionByHash", [txHash]);
 
           const block = await this.provider.send("eth_getBlockByNumber", [
-            numberToRpcQuantity(firstBlock + 1),
+            numberToRpcQuantity(firstBlockNumber + 1),
             false,
           ]);
 
@@ -392,14 +424,16 @@ describe("Eth module", function () {
             tx,
             txHash,
             txParams,
-            firstBlock + 1,
+            firstBlockNumber + 1,
             block.hash,
             0
           );
         });
 
         it("should return EIP-1559 transactions", async function () {
-          const firstBlock = await getFirstBlock();
+          const firstBlockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
           const maxFeePerGas = await getPendingBaseFeePerGas(this.provider);
           const txParams: TransactionParams = {
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
@@ -432,7 +466,7 @@ describe("Eth module", function () {
           );
 
           const block = await this.provider.send("eth_getBlockByNumber", [
-            numberToRpcQuantity(firstBlock + 1),
+            numberToRpcQuantity(firstBlockNumber + 1),
             false,
           ]);
 
@@ -440,7 +474,7 @@ describe("Eth module", function () {
             tx,
             txHash,
             txParams,
-            firstBlock + 1,
+            firstBlockNumber + 1,
             block.hash,
             0
           );

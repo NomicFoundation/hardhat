@@ -173,7 +173,7 @@ describe("INTEGRATION: Reverted without reason", function () {
           ).to.not.be.revertedWithoutReason()
         ).to.be.eventually.rejectedWith(
           ProviderError,
-          "sender doesn't have enough funds to send tx"
+          "Sender doesn't have enough funds to send tx"
         );
       });
     });

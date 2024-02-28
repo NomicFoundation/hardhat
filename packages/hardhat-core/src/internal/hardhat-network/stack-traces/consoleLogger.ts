@@ -48,7 +48,6 @@ import {
   Uint256Ty,
 } from "./logger";
 import {
-  CallMessageTrace,
   EvmMessageTrace,
   isCallTrace,
   isEvmStep,
@@ -77,18 +76,9 @@ export class ConsoleLogger {
   }
 
   public getLogMessages(maybeDecodedMessageTrace: MessageTrace): string[] {
-    return this.getExecutionLogs(maybeDecodedMessageTrace).map((log) => {
-      if (log === undefined) {
-        return "";
-      }
-
-      // special case for console.log()
-      if (log.length === 0) {
-        return "";
-      }
-
-      return util.format(log[0], ...log.slice(1));
-    });
+    return this.getExecutionLogs(maybeDecodedMessageTrace).map(
+      consoleLogToString
+    );
   }
 
   public getExecutionLogs(
@@ -113,7 +103,7 @@ export class ConsoleLogger {
         isCallTrace(messageTrace) &&
         bufferToHex(messageTrace.address) === CONSOLE_ADDRESS.toLowerCase()
       ) {
-        const log = this._maybeConsoleLog(messageTrace);
+        const log = this._maybeConsoleLog(Buffer.from(messageTrace.calldata));
         if (log !== undefined) {
           logs.push(log);
         }
@@ -125,9 +115,25 @@ export class ConsoleLogger {
     }
   }
 
-  private _maybeConsoleLog(call: CallMessageTrace): ConsoleLogs | undefined {
-    const sig = bytesToInt(call.calldata.slice(0, 4));
-    const parameters = call.calldata.slice(4);
+  /**
+   * Temporary code to print console.sol messages that come from EDR
+   */
+  public getDecodedLogs(messages: Buffer[]): string[] {
+    const logs: string[] = [];
+
+    for (const message of messages) {
+      const log = this._maybeConsoleLog(message);
+      if (log !== undefined) {
+        logs.push(consoleLogToString(log));
+      }
+    }
+
+    return logs;
+  }
+
+  private _maybeConsoleLog(calldata: Buffer): ConsoleLogs | undefined {
+    const sig = bytesToInt(calldata.slice(0, 4));
+    const parameters = calldata.slice(4);
 
     const types = this._consoleLogs[sig];
     if (types === undefined) {
@@ -162,7 +168,7 @@ export class ConsoleLogger {
     }
   }
 
-  private _decode(data: Uint8Array, types: string[]): ConsoleLogs {
+  private _decode(data: Buffer, types: string[]): ConsoleLogs {
     return types.map((type, i) => {
       const position: number = i * 32;
       switch (types[i]) {
@@ -187,9 +193,9 @@ export class ConsoleLogger {
             data.slice(position, position + REGISTER_SIZE)
           );
           const sLen = bytesToInt(data.slice(sStart, sStart + REGISTER_SIZE));
-          return Buffer.from(
-            data.slice(sStart + REGISTER_SIZE, sStart + REGISTER_SIZE + sLen)
-          ).toString();
+          return data
+            .slice(sStart + REGISTER_SIZE, sStart + REGISTER_SIZE + sLen)
+            .toString();
 
         case AddressTy:
           return bufferToHex(
@@ -275,4 +281,17 @@ export class ConsoleLogger {
       }
     });
   }
+}
+
+export function consoleLogToString(log: ConsoleLogs): string {
+  if (log === undefined) {
+    return "";
+  }
+
+  // special case for console.log()
+  if (log.length === 0) {
+    return "";
+  }
+
+  return util.format(log[0], ...log.slice(1));
 }

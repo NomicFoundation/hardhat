@@ -1,0 +1,25 @@
+{
+  "name": "@nomicfoundation/edr-linux-x64-musl",
+  "repository": {
+    "url": "https://github.com/NomicFoundation/hardhat.git",
+    "type": "git"
+  },
+  "version": "0.2.0-alpha.1",
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "main": "edr.linux-x64-musl.node",
+  "files": [
+    "edr.linux-x64-musl.node"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 18"
+  },
+  "libc": [
+    "musl"
+  ]
+}
