@@ -83,8 +83,8 @@ impl From<&FilterLog> for LogOutput {
             block_hash: Some(value.block_hash),
             block_number: Some(value.inner.block_number),
             address: value.inner.address,
-            data: value.inner.data.clone(),
-            topics: value.inner.topics.clone(),
+            data: value.inner.data.data.clone(),
+            topics: value.inner.data.topics().to_vec(),
         }
     }
 }

@@ -3,7 +3,7 @@ use std::sync::Arc;
 use alloy_rlp::RlpEncodable;
 use edr_eth::{
     block::{self, Header, PartialHeader},
-    log::{FilterLog, FullBlockLog, Log, ReceiptLog},
+    log::{FilterLog, FullBlockLog, Log, ReceiptLogData},
     receipt::{BlockReceipt, TransactionReceipt, TypedReceipt},
     trie,
     withdrawal::Withdrawal,
@@ -164,7 +164,7 @@ fn transaction_to_block_receipts(
                             .into_iter()
                             .map(|log| FilterLog {
                                 inner: FullBlockLog {
-                                    inner: ReceiptLog {
+                                    inner: ReceiptLogData {
                                         inner: log,
                                         transaction_hash: receipt.transaction_hash,
                                     },

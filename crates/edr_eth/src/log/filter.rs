@@ -45,25 +45,22 @@ mod tests {
     };
 
     #[test]
-    fn test_filter_log_serde() {
+    fn test_filter_log_serde() -> anyhow::Result<()> {
         let log = FilterLog {
             inner: FullBlockLog {
                 inner: ReceiptLog {
-                    inner: Log {
-                        address: Address::from_str("0000000000000000000000000000000000000011")
-                            .unwrap(),
-                        topics: vec![
+                    inner: Log::new_unchecked(
+                        Address::from_str("0000000000000000000000000000000000000011")?,
+                        vec![
                             B256::from_str(
                                 "000000000000000000000000000000000000000000000000000000000000dead",
-                            )
-                            .unwrap(),
+                            )?,
                             B256::from_str(
                                 "000000000000000000000000000000000000000000000000000000000000beef",
-                            )
-                            .unwrap(),
+                            )?,
                         ],
-                        data: Bytes::from(hex::decode("0100ff").unwrap()),
-                    },
+                        Bytes::from(hex::decode("0100ff")?),
+                    ),
                     transaction_hash: B256::from_str(
                         "0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a",
                     )
@@ -84,5 +81,7 @@ mod tests {
         let deserialized: FilterLog = serde_json::from_str(&serialized).unwrap();
 
         assert_eq!(log, deserialized);
+
+        Ok(())
     }
 }
