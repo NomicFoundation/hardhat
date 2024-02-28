@@ -20,7 +20,7 @@ edr_defaults = { version = "0.2.0-dev", path = "../edr_defaults" }
 edr_evm = { version = "0.2.0-dev", path = "../edr_evm", features = ["tracing"]}
 edr_eth = { version = "0.2.0-dev", path = "../edr_eth" }
 edr_provider = { version = "0.2.0-dev", path = "../edr_provider" }
-rpmalloc = { version = "0.2.2", features = ["adaptive_thread_cache", "global_cache", "thread_cache"] }
+rpmalloc = { version = "0.2.2", features = ["global_cache", "thread_cache"] }
 serde_json = { version = "1.0.85", default-features = false, features = ["alloc"] }
 thiserror = { version = "1.0.37", default-features = false }
 tracing = { version = "0.1.37", default-features = false, features = ["std"] }
