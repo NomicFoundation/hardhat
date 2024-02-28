@@ -1,3 +1,3 @@
 mod shared_map;
 
-pub use shared_map::{SharedMap, SharedMapEntry};
+pub use shared_map::SharedMap;
