@@ -475,6 +475,17 @@ Please double check your transactions' parameters.`,
 Please check that you are sending an \`address\` parameter.`,
       shouldBeReported: false,
     },
+    EMPTY_URL: {
+      number: 117,
+      message:
+        "Empty string `%value%` for network or forking URL - Expected a non-empty string.",
+      title:
+        "Empty string `%value%` for network or forking URL - Expected a non-empty string.",
+      description: `You are trying to connect to a network with an empty network or forking URL.
+
+Please check that you are sending a non-empty string for network or forking \`URL\` parameter.`,
+      shouldBeReported: false,
+    },
   },
   TASK_DEFINITIONS: {
     PARAM_AFTER_VARIADIC: {
