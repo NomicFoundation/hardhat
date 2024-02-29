@@ -35,10 +35,9 @@ jobs:
         uses: actions-rs/cargo@v1
         env:
           RUSTFLAGS: ${{ matrix.RUSTFLAGS }}
-          ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
         with:
           command: replay-block
-          args: -u $ALCHEMY_URL -c 1
+          args: -u ${{ secrets.ALCHEMY_URL }} -c 1
 
       - name: Notify failures
         if: failure()

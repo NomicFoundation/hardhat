@@ -21,7 +21,7 @@ export const UNISWAP_FACTORY_ADDRESS = Address.fromString(
 );
 
 export const EMPTY_ACCOUNT_ADDRESS = Address.fromString(
-  "0x1234567890abcdef1234567890abcdef12345678"
+  "0x246a566a96ae9fa8dcf04d4c6c094c7c492f018f"
 );
 
 // top Ether holder as of 24.08.2020
