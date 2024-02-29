@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import { subtask, task } from "hardhat/config";
 import { NomicLabsHardhatPluginError } from "hardhat/internal/core/errors";
-import { join } from "path";
+import { join, relative } from "path";
 
 function getDefaultConfig() {
   return {
@@ -43,6 +43,19 @@ async function hasConfigFile(rootDirectory: string) {
   return false;
 }
 
+function readIgnore(rootDirectory: string) {
+  try {
+    return fs
+      .readFileSync(join(rootDirectory, ".solhintignore"))
+      .toString()
+      .split("\n")
+      .map((i) => i.trim())
+      .filter(Boolean);
+  } catch (e) {
+    return [];
+  }
+}
+
 async function getSolhintConfig(rootDirectory: string) {
   let solhintConfig;
   const {
@@ -73,6 +86,14 @@ async function getSolhintConfig(rootDirectory: string) {
     );
   }
 
+  const configExcludeFiles = Array.isArray(solhintConfig.excludedFiles)
+    ? solhintConfig.excludedFiles
+    : [];
+  solhintConfig.excludedFiles = [
+    ...configExcludeFiles,
+    ...readIgnore(rootDirectory),
+  ];
+
   return solhintConfig;
 }
 
@@ -83,10 +104,19 @@ function printReport(reports: any) {
 
 subtask("hardhat-solhint:run-solhint", async (_, { config }) => {
   const { processPath } = require("solhint/lib/index");
-  return processPath(
-    join(config.paths.sources, "**", "*.sol").replace(/\\/g, "/"),
-    await getSolhintConfig(config.paths.root)
-  );
+
+  // Create a glob pattern that matches all the .sol files within the sources folder
+  const solFilesGlob = join(config.paths.sources, "**", "*.sol");
+
+  // Make glob pattern relative to Hardhat's root directory
+  // See https://github.com/kaelzhang/node-ignore/tree/5.2.4#1-pathname-should-be-a-pathrelatived-pathname
+  const relativeGlob = relative(config.paths.root, solFilesGlob);
+
+  // Fix for Windows users: replace back-slashes with forward-slashes
+  // See https://github.com/isaacs/node-glob/tree/v8.0.3#windows
+  const normalizedGlob = relativeGlob.replace(/\\/g, "/");
+
+  return processPath(normalizedGlob, await getSolhintConfig(config.paths.root));
 });
 
 task("check", async (_, { run }, runSuper) => {
