@@ -6,7 +6,7 @@ use std::{
 
 use edr_eth::{Address, Bytes, U256, U64};
 use ethers_core::types::transaction::eip712::TypedData;
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::ProviderError;
 
@@ -386,6 +386,20 @@ where
     U256::from_str(&value).map_err(|_error| error_message())
 }
 
+/// Serialize U256 with padding to make sure it's accepted by
+/// `deserialize_storage_value` which expects padded values (as opposed to the
+/// Ethereum JSON-RPC spec which expects values without padding).
+pub(crate) fn serialize_storage_value<SerializerT>(
+    value: &U256,
+    serializer: SerializerT,
+) -> Result<SerializerT::Ok, SerializerT::Error>
+where
+    SerializerT: Serializer,
+{
+    let padded = format!("0x{value:0>64x}");
+    serializer.serialize_str(&padded)
+}
+
 /// Helper function for deserializing the payload of an `eth_signTypedData_v4`
 /// request.
 pub(crate) fn deserialize_typed_data<'de, DeserializerT>(
@@ -453,5 +467,27 @@ mod tests {
             error.contains("Nonce must not be greater than or equal to 2^64."),
             "actual: {error}"
         );
+    }
+
+    #[test]
+    fn serialize_storage_value_round_trip() {
+        #[derive(Serialize, Deserialize)]
+        struct Test {
+            #[serde(deserialize_with = "deserialize_storage_value")]
+            #[serde(serialize_with = "serialize_storage_value")]
+            n: U256,
+        }
+
+        let u256_json = r#""0x313f922be1649cec058ec0f076664500c78bdc0b""#;
+        let n: U256 = serde_json::from_str(u256_json).unwrap();
+
+        let test = Test { n };
+
+        let json = serde_json::to_string(&test).unwrap();
+        assert!(json.contains("0x000000000000000000000000313f922be1649cec058ec0f076664500c78bdc0b"));
+
+        let parsed = serde_json::from_str::<Test>(&json).unwrap();
+
+        assert_eq!(parsed.n, n);
     }
 }
