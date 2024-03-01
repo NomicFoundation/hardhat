@@ -1025,7 +1025,7 @@ dependencies = [
  "reqwest-middleware",
  "reqwest-retry",
  "reqwest-tracing",
- "revm-primitives",
+ "revm-primitives 2.1.0",
  "serde",
  "serde_json",
  "serial_test",
@@ -1063,7 +1063,7 @@ dependencies = [
  "once_cell",
  "parking_lot 0.12.1",
  "paste",
- "revm",
+ "revm 6.1.0",
  "serde",
  "serde_json",
  "serial_test",
@@ -1139,7 +1139,7 @@ name = "edr_solidity"
 version = "0.2.0-dev"
 dependencies = [
  "edr_eth",
- "revm",
+ "revm 6.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -2872,15 +2872,35 @@ dependencies = [
 [[package]]
 name = "revm"
 version = "6.1.0"
+dependencies = [
+ "auto_impl",
+ "cfg-if",
+ "revm-interpreter 3.1.0",
+ "revm-precompile 4.1.0",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "revm"
+version = "6.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d35316fc02d99e42831356c71e882f5d385c77b78f64a44ae82f2f9a4b8b72f"
 dependencies = [
  "auto_impl",
  "cfg-if",
- "revm-interpreter",
- "revm-precompile",
+ "revm-interpreter 3.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "revm-precompile 4.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "revm-interpreter"
+version = "3.1.0"
+dependencies = [
+ "revm-primitives 2.1.0",
+ "serde",
 ]
 
 [[package]]
@@ -2889,8 +2909,23 @@ version = "3.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8fa10c2dc1e8f4934bdc763a2c09371bcec29e50c22e55e3eb325ee0cba09064"
 dependencies = [
- "revm-primitives",
+ "revm-primitives 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde",
+]
+
+[[package]]
+name = "revm-precompile"
+version = "4.1.0"
+dependencies = [
+ "aurora-engine-modexp",
+ "c-kzg",
+ "k256",
+ "once_cell",
+ "revm-primitives 2.1.0",
+ "ripemd",
+ "secp256k1",
+ "sha2",
+ "substrate-bn",
 ]
 
 [[package]]
@@ -2903,11 +2938,27 @@ dependencies = [
  "c-kzg",
  "k256",
  "once_cell",
- "revm-primitives",
+ "revm-primitives 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "ripemd",
  "secp256k1",
  "sha2",
  "substrate-bn",
+]
+
+[[package]]
+name = "revm-primitives"
+version = "2.1.0"
+dependencies = [
+ "alloy-primitives 0.6.3",
+ "auto_impl",
+ "bitflags 2.4.2",
+ "bitvec",
+ "c-kzg",
+ "cfg-if",
+ "enumn",
+ "hashbrown 0.14.1",
+ "hex",
+ "serde",
 ]
 
 [[package]]

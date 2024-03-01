@@ -11,10 +11,10 @@ use edr_eth::{
     Address, U256,
 };
 use revm::{
-    interpreter::gas::initial_tx_gas,
+    interpreter::gas::validate_initial_tx_gas,
     primitives::{
-        BerlinSpec, ByzantiumSpec, CreateScheme, FrontierSpec, HomesteadSpec, IstanbulSpec,
-        LatestSpec, LondonSpec, MergeSpec, PetersburgSpec, ShanghaiSpec, SpecId,
+        BerlinSpec, ByzantiumSpec, CancunSpec, CreateScheme, FrontierSpec, HomesteadSpec,
+        IstanbulSpec, LatestSpec, LondonSpec, MergeSpec, PetersburgSpec, ShanghaiSpec, SpecId,
         SpuriousDragonSpec, TangerineSpec, TransactTo, TxEnv,
     },
 };
@@ -399,69 +399,69 @@ fn initial_cost(spec_id: SpecId, transaction: &SignedTransaction) -> u64 {
         transaction.access_list().cloned().map(Into::into);
 
     match spec_id {
-        SpecId::FRONTIER | SpecId::FRONTIER_THAWING => initial_tx_gas::<FrontierSpec>(
+        SpecId::FRONTIER | SpecId::FRONTIER_THAWING => validate_initial_tx_gas::<FrontierSpec>(
             transaction.data(),
             transaction.kind() == TransactionKind::Create,
             access_list.as_ref().map_or(&[], |access_list| access_list),
         ),
-        SpecId::HOMESTEAD | SpecId::DAO_FORK => initial_tx_gas::<HomesteadSpec>(
+        SpecId::HOMESTEAD | SpecId::DAO_FORK => validate_initial_tx_gas::<HomesteadSpec>(
             transaction.data(),
             transaction.kind() == TransactionKind::Create,
             access_list.as_ref().map_or(&[], |access_list| access_list),
         ),
-        SpecId::TANGERINE => initial_tx_gas::<TangerineSpec>(
+        SpecId::TANGERINE => validate_initial_tx_gas::<TangerineSpec>(
             transaction.data(),
             transaction.kind() == TransactionKind::Create,
             access_list.as_ref().map_or(&[], |access_list| access_list),
         ),
-        SpecId::SPURIOUS_DRAGON => initial_tx_gas::<SpuriousDragonSpec>(
+        SpecId::SPURIOUS_DRAGON => validate_initial_tx_gas::<SpuriousDragonSpec>(
             transaction.data(),
             transaction.kind() == TransactionKind::Create,
             access_list.as_ref().map_or(&[], |access_list| access_list),
         ),
-        SpecId::BYZANTIUM => initial_tx_gas::<ByzantiumSpec>(
+        SpecId::BYZANTIUM => validate_initial_tx_gas::<ByzantiumSpec>(
             transaction.data(),
             transaction.kind() == TransactionKind::Create,
             access_list.as_ref().map_or(&[], |access_list| access_list),
         ),
-        SpecId::PETERSBURG | SpecId::CONSTANTINOPLE => initial_tx_gas::<PetersburgSpec>(
+        SpecId::PETERSBURG | SpecId::CONSTANTINOPLE => validate_initial_tx_gas::<PetersburgSpec>(
             transaction.data(),
             transaction.kind() == TransactionKind::Create,
             access_list.as_ref().map_or(&[], |access_list| access_list),
         ),
-        SpecId::ISTANBUL | SpecId::MUIR_GLACIER => initial_tx_gas::<IstanbulSpec>(
+        SpecId::ISTANBUL | SpecId::MUIR_GLACIER => validate_initial_tx_gas::<IstanbulSpec>(
             transaction.data(),
             transaction.kind() == TransactionKind::Create,
             access_list.as_ref().map_or(&[], |access_list| access_list),
         ),
-        SpecId::BERLIN => initial_tx_gas::<BerlinSpec>(
+        SpecId::BERLIN => validate_initial_tx_gas::<BerlinSpec>(
             transaction.data(),
             transaction.kind() == TransactionKind::Create,
             access_list.as_ref().map_or(&[], |access_list| access_list),
         ),
         SpecId::LONDON | SpecId::ARROW_GLACIER | SpecId::GRAY_GLACIER => {
-            initial_tx_gas::<LondonSpec>(
+            validate_initial_tx_gas::<LondonSpec>(
                 transaction.data(),
                 transaction.kind() == TransactionKind::Create,
                 access_list.as_ref().map_or(&[], |access_list| access_list),
             )
         }
-        SpecId::MERGE => initial_tx_gas::<MergeSpec>(
+        SpecId::MERGE => validate_initial_tx_gas::<MergeSpec>(
             transaction.data(),
             transaction.kind() == TransactionKind::Create,
             access_list.as_ref().map_or(&[], |access_list| access_list),
         ),
-        SpecId::SHANGHAI => initial_tx_gas::<ShanghaiSpec>(
+        SpecId::SHANGHAI => validate_initial_tx_gas::<ShanghaiSpec>(
             transaction.data(),
             transaction.kind() == TransactionKind::Create,
             access_list.as_ref().map_or(&[], |access_list| access_list),
         ),
-        SpecId::CANCUN => initial_tx_gas::<LatestSpec>(
+        SpecId::CANCUN => validate_initial_tx_gas::<CancunSpec>(
             transaction.data(),
             transaction.kind() == TransactionKind::Create,
             access_list.as_ref().map_or(&[], |access_list| access_list),
         ),
-        SpecId::LATEST => initial_tx_gas::<LatestSpec>(
+        SpecId::LATEST => validate_initial_tx_gas::<LatestSpec>(
             transaction.data(),
             transaction.kind() == TransactionKind::Create,
             access_list.as_ref().map_or(&[], |access_list| access_list),

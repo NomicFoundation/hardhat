@@ -1,17 +1,23 @@
-use std::{collections::HashMap, fmt::Debug};
+use std::{cell::RefCell, collections::HashMap, fmt::Debug, rc::Rc, sync::Arc};
 
 use edr_eth::{signature::SignatureError, utils::u256_to_padded_hex, B256};
 use revm::{
+    db::DatabaseComponents,
+    handler::register::{EvmHandler, EvmInstructionTables},
     inspectors::GasInspector,
-    interpreter::{opcode, CallInputs, CreateInputs, Gas, InstructionResult, Interpreter, Stack},
-    primitives::{
-        hex, Address, BlockEnv, Bytes, CfgEnv, ExecutionResult, ResultAndState, SpecId, U256,
+    interpreter::{
+        opcode::{self, BoxedInstruction},
+        CallInputs, CallOutcome, CreateInputs, CreateOutcome, InstructionResult, Interpreter,
     },
-    EVMData, Inspector, JournalEntry,
+    primitives::{
+        hex, Address, BlockEnv, Bytes, CfgEnvWithHandlerCfg, EVMError, ExecutionResult,
+        ResultAndState, SpecId, U256,
+    },
+    Database, Evm, EvmContext, FrameOrResult, FrameResult, Inspector, JournalEntry,
 };
 
 use crate::{
-    blockchain::SyncBlockchain, evm::build_evm, state::SyncState, ExecutableTransaction,
+    blockchain::SyncBlockchain, debug::GetContextData, state::SyncState, ExecutableTransaction,
     TransactionError,
 };
 
@@ -21,7 +27,7 @@ pub fn debug_trace_transaction<BlockchainErrorT, StateErrorT>(
     blockchain: &dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
     // Take ownership of the state so that we can apply throw-away modifications on it
     mut state: Box<dyn SyncState<StateErrorT>>,
-    evm_config: CfgEnv,
+    evm_config: CfgEnvWithHandlerCfg,
     trace_config: DebugTraceConfig,
     block_env: BlockEnv,
     transactions: Vec<ExecutableTransaction>,
@@ -31,46 +37,50 @@ where
     BlockchainErrorT: Debug + Send,
     StateErrorT: Debug + Send,
 {
-    if evm_config.spec_id < SpecId::SPURIOUS_DRAGON {
+    if evm_config.handler_cfg.spec_id < SpecId::SPURIOUS_DRAGON {
         // Matching Hardhat Network behaviour: https://github.com/NomicFoundation/hardhat/blob/af7e4ce6a18601ec9cd6d4aa335fa7e24450e638/packages/hardhat-core/src/internal/hardhat-network/provider/vm/ethereumjs.ts#L427
         return Err(DebugTraceError::InvalidSpecId {
-            spec_id: evm_config.spec_id,
+            spec_id: evm_config.handler_cfg.spec_id,
         });
     }
 
-    if evm_config.spec_id > SpecId::MERGE && block_env.prevrandao.is_none() {
+    if evm_config.handler_cfg.spec_id > SpecId::MERGE && block_env.prevrandao.is_none() {
         return Err(TransactionError::MissingPrevrandao.into());
     }
 
+    let mut evm_builder = Evm::builder()
+        .with_ref_db(DatabaseComponents {
+            state,
+            block_hash: blockchain,
+        })
+        .with_cfg_env_with_handler_cfg(evm_config.clone())
+        .with_block_env(block_env);
+
     for transaction in transactions {
         if transaction.hash() == transaction_hash {
-            let evm = build_evm(
-                blockchain,
-                &state,
-                evm_config,
-                transaction.into(),
-                block_env,
-            );
-            let mut tracer = TracerEip3155::new(trace_config);
-            let ResultAndState {
-                result: execution_result,
-                ..
-            } = evm
-                .inspect_ref(&mut tracer)
-                .map_err(TransactionError::from)?;
+            let tracer = TracerEip3155::new(trace_config);
+            let mut evm = Evm::builder()
+                .with_ref_db(DatabaseComponents {
+                    state,
+                    block_hash: blockchain,
+                })
+                .with_external_context(tracer)
+                .with_cfg_env_with_handler_cfg(evm_config)
+                .with_block_env(block_env)
+                .with_tx_env(transaction.into())
+                .build();
 
-            return Ok(execution_result_to_debug_result(execution_result, tracer));
+            let ResultAndState { result, .. } = evm.transact().map_err(TransactionError::from)?;
+            return Ok(execution_result_to_debug_result(result, tracer));
         } else {
-            let evm = build_evm(
-                blockchain,
-                &state,
-                evm_config.clone(),
-                transaction.into(),
-                block_env.clone(),
-            );
+            let mut evm = evm_builder.with_tx_env(transaction.into()).build();
+
             let ResultAndState { state: changes, .. } =
-                evm.transact_ref().map_err(TransactionError::from)?;
+                evm.transact().map_err(TransactionError::from)?;
+
             state.commit(changes);
+
+            evm_builder = evm.modify();
         }
     }
 
@@ -196,6 +206,164 @@ pub struct DebugTraceLogItem {
     pub storage: Option<HashMap<String, String>>,
 }
 
+fn register_eip_3155_tracer_handles<
+    'a,
+    DatabaseT: Database,
+    ContextT: GetContextData<TracerEip3155>,
+>(
+    handler: &mut EvmHandler<'a, ContextT, DatabaseT>,
+) {
+    // Every instruction inside flat table that is going to be wrapped by tracer
+    // calls.
+    let table = handler
+        .instruction_table
+        .take()
+        .expect("Handler must have instruction table");
+
+    let mut table = match table {
+        EvmInstructionTables::Plain(table) => table
+            .into_iter()
+            .map(|i| instruction_handler(i))
+            .collect::<Vec<_>>(),
+        EvmInstructionTables::Boxed(table) => table
+            .into_iter()
+            .map(|i| instruction_handler(i))
+            .collect::<Vec<_>>(),
+    };
+
+    // cast vector to array.
+    handler.instruction_table = Some(EvmInstructionTables::Boxed(
+        table.try_into().unwrap_or_else(|_| unreachable!()),
+    ));
+
+    // call and create input stack shared between handlers. They are used to share
+    // inputs in *_end Inspector calls.
+    let call_input_stack = Rc::<RefCell<Vec<_>>>::new(RefCell::new(Vec::new()));
+    let create_input_stack = Rc::<RefCell<Vec<_>>>::new(RefCell::new(Vec::new()));
+
+    // Create handler
+    let create_input_stack_inner = create_input_stack.clone();
+    let old_handle = handler.execution.create.clone();
+    handler.execution.create = Arc::new(
+        move |ctx, mut inputs| -> Result<FrameOrResult, EVMError<DatabaseT::Error>> {
+            let tracer = ctx.external.get_context_data();
+            // call tracer create to change input or return outcome.
+            if let Some(outcome) = tracer.create(&mut ctx.evm, &mut inputs) {
+                create_input_stack_inner.borrow_mut().push(inputs.clone());
+                return Ok(FrameOrResult::Result(FrameResult::Create(outcome)));
+            }
+            create_input_stack_inner.borrow_mut().push(inputs.clone());
+
+            let mut frame_or_result = old_handle(ctx, inputs);
+
+            if let Ok(FrameOrResult::Frame(frame)) = &mut frame_or_result {
+                let tracer = ctx.external.get_context_data();
+                tracer.initialize_interp(&mut frame.frame_data_mut().interpreter, &mut ctx.evm);
+            }
+            frame_or_result
+        },
+    );
+
+    // Call handler
+    let call_input_stack_inner = call_input_stack.clone();
+    let old_handle = handler.execution.call.clone();
+    handler.execution.call = Arc::new(
+        move |ctx, mut inputs| -> Result<FrameOrResult, EVMError<DatabaseT::Error>> {
+            let tracer = ctx.external.get_context_data();
+            let _mems = inputs.return_memory_offset.clone();
+            // call tracer callto change input or return outcome.
+            if let Some(outcome) = tracer.call(&mut ctx.evm, &mut inputs) {
+                call_input_stack_inner.borrow_mut().push(inputs.clone());
+                return Ok(FrameOrResult::Result(FrameResult::Call(outcome)));
+            }
+            call_input_stack_inner.borrow_mut().push(inputs.clone());
+
+            let mut frame_or_result = old_handle(ctx, inputs);
+
+            if let Ok(FrameOrResult::Frame(frame)) = &mut frame_or_result {
+                let tracer = ctx.external.get_context_data();
+                tracer.initialize_interp(&mut frame.frame_data_mut().interpreter, &mut ctx.evm);
+            }
+            frame_or_result
+        },
+    );
+
+    // call outcome
+    let call_input_stack_inner = call_input_stack.clone();
+    let old_handle = handler.execution.insert_call_outcome.clone();
+    handler.execution.insert_call_outcome =
+        Arc::new(move |ctx, frame, shared_memory, mut outcome| {
+            let tracer = ctx.external.get_context_data();
+            let call_inputs = call_input_stack_inner.borrow_mut().pop().unwrap();
+            outcome = tracer.call_end(&mut ctx.evm, &call_inputs, outcome);
+            old_handle(ctx, frame, shared_memory, outcome)
+        });
+
+    // create outcome
+    let create_input_stack_inner = create_input_stack.clone();
+    let old_handle = handler.execution.insert_create_outcome.clone();
+    handler.execution.insert_create_outcome = Arc::new(move |ctx, frame, mut outcome| {
+        let tracer = ctx.external.get_context_data();
+        let create_inputs = create_input_stack_inner.borrow_mut().pop().unwrap();
+        outcome = tracer.create_end(&mut ctx.evm, &create_inputs, outcome);
+        old_handle(ctx, frame, outcome)
+    });
+
+    // last frame outcome
+    let old_handle = handler.execution.last_frame_return.clone();
+    handler.execution.last_frame_return = Arc::new(move |ctx, frame_result| {
+        let tracer = ctx.external.get_context_data();
+        match frame_result {
+            FrameResult::Call(outcome) => {
+                let call_inputs = call_input_stack.borrow_mut().pop().unwrap();
+                *outcome = tracer.call_end(&mut ctx.evm, &call_inputs, outcome.clone());
+            }
+            FrameResult::Create(outcome) => {
+                let create_inputs = create_input_stack.borrow_mut().pop().unwrap();
+                *outcome = tracer.create_end(&mut ctx.evm, &create_inputs, outcome.clone());
+            }
+        }
+        old_handle(ctx, frame_result)
+    });
+}
+
+/// Outer closure that calls tracer for every instruction.
+fn instruction_handler<
+    'a,
+    ContextT: GetContextData<TracerEip3155>,
+    DatabaseT: Database,
+    Instruction: Fn(&mut Interpreter, &mut Evm<'a, ContextT, DatabaseT>) + 'a,
+>(
+    instruction: Instruction,
+) -> BoxedInstruction<'a, Evm<'a, ContextT, DatabaseT>> {
+    Box::new(
+        move |interpreter: &mut Interpreter, host: &mut Evm<'a, ContextT, DatabaseT>| {
+            // SAFETY: as the PC was already incremented we need to subtract 1 to preserve
+            // the old Inspector behavior.
+            interpreter.instruction_pointer = unsafe { interpreter.instruction_pointer.sub(1) };
+
+            host.context
+                .external
+                .get_context_data()
+                .step(interpreter, &mut host.context.evm);
+            if interpreter.instruction_result != InstructionResult::Continue {
+                return;
+            }
+
+            // return PC to old value
+            interpreter.instruction_pointer = unsafe { interpreter.instruction_pointer.add(1) };
+
+            // execute instruction.
+            instruction(interpreter, host);
+
+            host.context
+                .external
+                .get_context_data()
+                .step_end(interpreter, &mut host.context.evm);
+        },
+    )
+}
+
 /// An EIP-3155 compatible EVM tracer.
 /// Based on [REVM TracerEip3155](https://github.com/bluealloy/revm/blob/70cf969a25a45e3bb4e503926297d61a90c7eec5/crates/revm/src/inspector/tracer_eip3155.rs).
 /// Original licensed under the MIT license.
@@ -211,7 +379,7 @@ pub struct TracerEip3155 {
     opcode: u8,
     pc: usize,
     skip: bool,
-    stack: Stack,
+    stack: Vec<U256>,
     // Contract-specific storage
     storage: HashMap<Address, HashMap<String, String>>,
 }
@@ -224,7 +392,7 @@ impl TracerEip3155 {
             logs: Vec::default(),
             gas_inspector: GasInspector::default(),
             contract_address: Address::default(),
-            stack: Stack::new(),
+            stack: Vec::new(),
             pc: 0,
             opcode: 0,
             gas_remaining: 0,
@@ -235,15 +403,14 @@ impl TracerEip3155 {
         }
     }
 
-    fn record_log<DatabaseErrorT>(&mut self, data: &mut EVMData<'_, DatabaseErrorT>) {
-        let depth = data.journaled_state.depth();
+    fn record_log<DatabaseT: Database>(&mut self, context: &mut EvmContext<DatabaseT>) {
+        let depth = context.journaled_state.depth();
 
         let stack = if self.config.disable_stack {
             None
         } else {
             Some(
                 self.stack
-                    .data()
                     .iter()
                     .map(u256_to_padded_hex)
                     .collect::<Vec<String>>(),
@@ -260,9 +427,13 @@ impl TracerEip3155 {
             None
         } else {
             if matches!(self.opcode, opcode::SLOAD | opcode::SSTORE) {
-                let last_entry = data.journaled_state.journal.last().and_then(|v| v.last());
+                let last_entry = context
+                    .journaled_state
+                    .journal
+                    .last()
+                    .and_then(|v| v.last());
                 if let Some(JournalEntry::StorageChange { address, key, .. }) = last_entry {
-                    let value = data.journaled_state.state[address].storage[key].present_value();
+                    let value = context.journaled_state.state[address].storage[key].present_value();
                     let contract_storage = self.storage.entry(self.contract_address).or_default();
                     contract_storage.insert(u256_to_padded_hex(key), u256_to_padded_hex(&value));
                 }
@@ -317,112 +488,96 @@ impl TracerEip3155 {
         };
         self.logs.push(log_item);
     }
-}
 
-impl<DatabaseErrorT> Inspector<DatabaseErrorT> for TracerEip3155 {
-    fn initialize_interp(
+    pub fn initialize_interp<DatabaseT: Database>(
         &mut self,
         interp: &mut Interpreter,
-        data: &mut EVMData<'_, DatabaseErrorT>,
-    ) -> InstructionResult {
-        self.gas_inspector.initialize_interp(interp, data);
-        InstructionResult::Continue
+        context: &mut EvmContext<DatabaseT>,
+    ) {
+        self.gas_inspector.initialize_interp(interp, context);
     }
 
-    fn step(
+    fn step<DatabaseT: Database>(
         &mut self,
         interp: &mut Interpreter,
-        data: &mut EVMData<'_, DatabaseErrorT>,
-    ) -> InstructionResult {
+        context: &mut EvmContext<DatabaseT>,
+    ) {
         self.contract_address = interp.contract.address;
 
-        self.gas_inspector.step(interp, data);
+        self.gas_inspector.step(interp, context);
         self.gas_remaining = self.gas_inspector.gas_remaining();
 
         if !self.config.disable_stack {
-            self.stack = interp.stack.clone();
+            self.stack = interp.stack.data().clone();
         }
 
         if !self.config.disable_memory {
-            self.memory = interp.memory.data().clone();
+            self.memory = interp.shared_memory.context_memory().to_vec();
         }
 
-        self.mem_size = interp.memory.len();
+        self.mem_size = interp.shared_memory.context_memory().len();
 
         self.opcode = interp.current_opcode();
 
         self.pc = interp.program_counter();
-
-        InstructionResult::Continue
     }
 
-    fn step_end(
+    fn step_end<DatabaseT: Database>(
         &mut self,
         interp: &mut Interpreter,
-        data: &mut EVMData<'_, DatabaseErrorT>,
-        eval: InstructionResult,
-    ) -> InstructionResult {
-        self.gas_inspector.step_end(interp, data, eval);
+        context: &mut EvmContext<DatabaseT>,
+    ) {
+        self.gas_inspector.step_end(interp, context);
 
         // Omit extra return https://github.com/bluealloy/revm/pull/563
         if self.skip {
             self.skip = false;
-            return InstructionResult::Continue;
-        };
-
-        self.record_log(data);
-        InstructionResult::Continue
+        } else {
+            self.record_log(context);
+        }
     }
 
-    fn call(
+    fn call<DatabaseT: Database>(
         &mut self,
-        data: &mut EVMData<'_, DatabaseErrorT>,
+        context: &mut EvmContext<DatabaseT>,
         _inputs: &mut CallInputs,
-    ) -> (InstructionResult, Gas, Bytes) {
-        self.record_log(data);
-        (InstructionResult::Continue, Gas::new(0), Bytes::new())
+    ) -> Option<CallOutcome> {
+        self.record_log(context);
+        None
     }
 
-    fn call_end(
+    fn call_end<DatabaseT: Database>(
         &mut self,
-        data: &mut EVMData<'_, DatabaseErrorT>,
+        context: &mut EvmContext<DatabaseT>,
         inputs: &CallInputs,
-        remaining_gas: Gas,
-        ret: InstructionResult,
-        out: Bytes,
-    ) -> (InstructionResult, Gas, Bytes) {
-        self.gas_inspector
-            .call_end(data, inputs, remaining_gas, ret, out.clone());
+        outcome: CallOutcome,
+    ) -> CallOutcome {
         self.skip = true;
-        (ret, remaining_gas, out)
+        self.gas_inspector.call_end(context, inputs, outcome)
     }
 
-    fn create(
+    fn create<DatabaseT: Database>(
         &mut self,
-        data: &mut EVMData<'_, DatabaseErrorT>,
+        context: &mut EvmContext<DatabaseT>,
         _inputs: &mut CreateInputs,
-    ) -> (InstructionResult, Option<Address>, Gas, Bytes) {
-        self.record_log(data);
-        (
-            InstructionResult::Continue,
-            None,
-            Gas::new(0),
-            Bytes::default(),
-        )
+    ) -> Option<CreateOutcome> {
+        self.record_log(context);
+        None
     }
 
-    fn create_end(
+    fn create_end<DatabaseT: Database>(
         &mut self,
-        data: &mut EVMData<'_, DatabaseErrorT>,
+        context: &mut EvmContext<DatabaseT>,
         inputs: &CreateInputs,
-        ret: InstructionResult,
-        address: Option<Address>,
-        remaining_gas: Gas,
-        out: Bytes,
-    ) -> (InstructionResult, Option<Address>, Gas, Bytes) {
-        self.gas_inspector
-            .create_end(data, inputs, ret, address, remaining_gas, out.clone());
+        outcome: CreateOutcome,
+    ) -> CreateOutcome {
         self.skip = true;
-        (ret, address, remaining_gas, out)
+        self.gas_inspector.create_end(context, inputs, outcome)
+    }
+}
+
+impl GetContextData<TracerEip3155> for TracerEip3155 {
+    fn get_context_data(&mut self) -> &mut TracerEip3155 {
+        self
     }
 }

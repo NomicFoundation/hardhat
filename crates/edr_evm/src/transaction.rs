@@ -17,6 +17,9 @@ pub enum TransactionError<BE, SE> {
     /// Blockchain errors
     #[error(transparent)]
     Blockchain(#[from] BE),
+    #[error("{0}")]
+    /// Custom errors
+    Custom(String),
     /// EIP-1559 is not supported
     #[error("Cannot run transaction: EIP 1559 is not activated.")]
     Eip1559Unsupported,
@@ -45,6 +48,7 @@ where
             ) => unreachable!("error: {error:?}"),
             EVMError::Database(DatabaseComponentError::State(e)) => Self::State(e),
             EVMError::Database(DatabaseComponentError::BlockHash(e)) => Self::Blockchain(e),
+            EVMError::Custom(error) => Self::Custom(error),
         }
     }
 }

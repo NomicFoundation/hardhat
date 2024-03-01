@@ -1,17 +1,21 @@
-use std::{cmp::Ordering, fmt::Debug, sync::Arc};
+use std::{
+    cmp::Ordering,
+    fmt::Debug,
+    ops::{Deref, DerefMut},
+    sync::Arc,
+};
 
 use edr_eth::{block::BlockOptions, U256};
-use revm::primitives::{CfgEnv, ExecutionResult, InvalidTransaction};
+use revm::primitives::{CfgEnvWithHandlerCfg, ExecutionResult, InvalidTransaction};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     block::BlockBuilderCreationError,
     blockchain::SyncBlockchain,
-    evm::SyncInspector,
-    inspector::InspectorContainer,
+    debug::{DebugContext, GetContextData},
     mempool::OrderedTransaction,
     state::{StateDiff, SyncState},
-    trace::Trace,
+    trace::{Trace, TraceCollector},
     BlockBuilder, BlockTransactionError, BuildBlockResult, ExecutableTransaction, LocalBlock,
     MemPool, SyncBlock,
 };
@@ -82,20 +86,52 @@ pub enum MineBlockError<BE, SE> {
     MissingPrevrandao,
 }
 
+struct MineDebugData<DebugDataT> {
+    trace_collector: TraceCollector,
+    debug_data: Option<DebugDataT>,
+}
+
+impl<DebugDataT> Deref for MineDebugData<DebugDataT> {
+    type Target = TraceCollector;
+
+    fn deref(&self) -> &Self::Target {
+        &self.trace_collector
+    }
+}
+
+impl<DebugDataT> DerefMut for MineDebugData<DebugDataT> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.trace_collector
+    }
+}
+
+impl<DebugDataT: GetContextData<DebugDataT>> GetContextData<DebugDataT>
+    for MineDebugData<DebugDataT>
+{
+    fn get_context_data(&mut self) -> &mut DebugDataT {
+        self.debug_data
+            .as_mut()
+            .expect("GetContextData should only be used when the handler has been registered")
+            .get_context_data()
+    }
+}
+
 /// Mines a block using as many transactions as can fit in it.
 #[allow(clippy::too_many_arguments)]
 #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-pub fn mine_block<BlockchainErrorT, StateErrorT>(
+pub fn mine_block<'blockchain, 'register, 'state, DebugDataT, BlockchainErrorT, StateErrorT>(
     blockchain: &dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
     mut state: Box<dyn SyncState<StateErrorT>>,
     mem_pool: &MemPool,
-    cfg: &CfgEnv,
+    cfg: &CfgEnvWithHandlerCfg,
     options: BlockOptions,
     min_gas_price: U256,
     mine_ordering: MineOrdering,
     reward: U256,
     dao_hardfork_activation_block: Option<u64>,
-    inspector: Option<&mut dyn SyncInspector<BlockchainErrorT, StateErrorT>>,
+    debug_context: Option<
+        DebugContext<'blockchain, 'register, 'state, DebugDataT, BlockchainErrorT, StateErrorT>,
+    >,
 ) -> Result<MineBlockResultAndState<StateErrorT>, MineBlockError<BlockchainErrorT, StateErrorT>>
 where
     BlockchainErrorT: Debug + Send,
@@ -132,7 +168,16 @@ where
     let mut results = Vec::new();
     let mut traces = Vec::new();
 
-    let mut container = InspectorContainer::new(true, inspector);
+    let mut handlers = debug_context
+        .as_ref()
+        .map(|context| context.handle_registers.iter())
+        .flatten()
+        .chain();
+
+    let debug_context = DebugContext {
+
+    }
+
     while let Some(transaction) = pending_transactions.next() {
         if transaction.gas_price() < min_gas_price {
             pending_transactions.remove_caller(transaction.caller());
