@@ -10,7 +10,7 @@ Most Ethereum libraries and tools are written in JavaScript, and so is Hardhat. 
 
 ## Installing Node.js
 
-You can [skip](./creating-a-new-hardhat-project.md) this section if you already have a working Node.js `>=16.0` installation. If not, here's how to install it on Ubuntu, MacOS and Windows.
+You can [skip](./creating-a-new-hardhat-project.md) this section if you already have a working Node.js `>=18.0` installation. If not, here's how to install it on Ubuntu, MacOS and Windows.
 
 ### Linux
 
