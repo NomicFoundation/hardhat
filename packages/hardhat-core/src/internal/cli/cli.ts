@@ -228,6 +228,19 @@ async function main() {
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
     const scopesDefinitions = ctx.tasksDSL.getScopesDefinitions();
 
+    const env = new Environment(
+      resolvedConfig,
+      hardhatArguments,
+      taskDefinitions,
+      scopesDefinitions,
+      envExtenders,
+      ctx.experimentalHardhatNetworkMessageTraceHooks,
+      userConfig,
+      providerExtenders
+    );
+
+    ctx.setHardhatRuntimeEnvironment(env);
+
     // eslint-disable-next-line prefer-const
     let { scopeName, taskName, unparsedCLAs } =
       argumentsParser.parseScopeAndTaskNames(
@@ -303,19 +316,6 @@ async function main() {
         unparsedCLAs
       );
     }
-
-    const env = new Environment(
-      resolvedConfig,
-      hardhatArguments,
-      taskDefinitions,
-      scopesDefinitions,
-      envExtenders,
-      ctx.experimentalHardhatNetworkMessageTraceHooks,
-      userConfig,
-      providerExtenders
-    );
-
-    ctx.setHardhatRuntimeEnvironment(env);
 
     try {
       const timestampBeforeRun = new Date().getTime();
