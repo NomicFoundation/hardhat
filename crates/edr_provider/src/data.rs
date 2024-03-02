@@ -608,7 +608,6 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         // Minimum gas cost that is required for transaction to be included in
         // a block
         let minimum_cost = transaction.initial_cost(self.spec_id());
-        let transaction_hash = *transaction.hash();
         let tx_env: TxEnv = transaction.into();
 
         let state_overrides = StateOverrides::default();
@@ -639,16 +638,12 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
 
             let mut initial_estimation = match result {
                 ExecutionResult::Success { gas_used, .. } => Ok(gas_used),
-                ExecutionResult::Revert { output, .. } => Err(TransactionFailure::revert(
-                    output,
-                    transaction_hash,
-                    trace.clone(),
-                )),
-                ExecutionResult::Halt { reason, .. } => Err(TransactionFailure::halt(
-                    reason,
-                    transaction_hash,
-                    trace.clone(),
-                )),
+                ExecutionResult::Revert { output, .. } => {
+                    Err(TransactionFailure::revert(output, None, trace.clone()))
+                }
+                ExecutionResult::Halt { reason, .. } => {
+                    Err(TransactionFailure::halt(reason, None, trace.clone()))
+                }
             }
             .map_err(|failure| EstimateGasFailure {
                 console_log_inputs: inspector.into_console_log_encoded_messages(),
