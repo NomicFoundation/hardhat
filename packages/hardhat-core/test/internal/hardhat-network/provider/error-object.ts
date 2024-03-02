@@ -1,6 +1,7 @@
 import { TransactionFactory } from "@nomicfoundation/ethereumjs-tx";
 import { assert } from "chai";
 
+import { rpcQuantityToNumber } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
 import { EXAMPLE_REVERT_CONTRACT } from "../helpers/contracts";
 import { setCWD } from "../helpers/cwd";
@@ -81,11 +82,23 @@ describe("error object in JSON-RPC response", function () {
 
           let transactionReverted = false;
           try {
+            // don't use remote base fee
+            await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+              "0x10",
+            ]);
+
+            // build tx
+            const nonce = rpcQuantityToNumber(
+              await this.provider.send("eth_getTransactionCount", [
+                DEFAULT_ACCOUNTS_ADDRESSES[0],
+                "latest",
+              ])
+            );
             const tx = TransactionFactory.fromTxData(
               {
                 to: contractAddress,
                 data: `${EXAMPLE_REVERT_CONTRACT.selectors.revertsWithReasonString}`,
-                nonce: 1,
+                nonce,
                 gasLimit: 1_000_000,
                 gasPrice: 10_000_000_000,
               },
@@ -94,6 +107,7 @@ describe("error object in JSON-RPC response", function () {
 
             const rawTx = `0x${Buffer.from(tx.serialize()).toString("hex")}`;
 
+            // send tx
             await this.provider.send("eth_sendRawTransaction", [rawTx]);
           } catch (error: any) {
             transactionReverted = true;
