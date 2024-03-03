@@ -367,28 +367,34 @@ export class EdrProviderWrapper
       const trace = rawTrace.trace();
       for (const traceItem of trace) {
         if ("pc" in traceItem) {
-          this._node._vm.evm.events.emit(
-            "step",
-            edrTracingStepToMinimalInterpreterStep(traceItem)
-          );
+          if (this._node._vm.evm.events.listenerCount("step") > 0) {
+            this._node._vm.evm.events.emit(
+              "step",
+              edrTracingStepToMinimalInterpreterStep(traceItem)
+            );
+          }
           if (this._rawTraceCallbacks.onStep !== undefined) {
             await this._rawTraceCallbacks.onStep(traceItem);
           }
         } else if ("executionResult" in traceItem) {
-          this._node._vm.evm.events.emit(
-            "afterMessage",
-            edrTracingMessageResultToMinimalEVMResult(traceItem)
-          );
+          if (this._node._vm.evm.events.listenerCount("afterMessage") > 0) {
+            this._node._vm.evm.events.emit(
+              "afterMessage",
+              edrTracingMessageResultToMinimalEVMResult(traceItem)
+            );
+          }
           if (this._rawTraceCallbacks.onAfterMessage !== undefined) {
             await this._rawTraceCallbacks.onAfterMessage(
               traceItem.executionResult
             );
           }
         } else {
-          this._node._vm.evm.events.emit(
-            "beforeMessage",
-            edrTracingMessageToMinimalMessage(traceItem)
-          );
+          if (this._node._vm.evm.events.listenerCount("beforeMessage") > 0) {
+            this._node._vm.evm.events.emit(
+              "beforeMessage",
+              edrTracingMessageToMinimalMessage(traceItem)
+            );
+          }
           if (this._rawTraceCallbacks.onBeforeMessage !== undefined) {
             await this._rawTraceCallbacks.onBeforeMessage(traceItem);
           }
