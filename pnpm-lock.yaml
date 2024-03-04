@@ -171,7 +171,7 @@ importers:
         specifier: ^5.1.1
         version: 5.1.1
       hardhat:
-        specifier: workspace:*
+        specifier: workspace:^2.9.4
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -524,7 +524,7 @@ importers:
         specifier: ^6.1.0
         version: 6.7.0
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.0.0
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -588,7 +588,7 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.47.0)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.17.2
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -691,7 +691,7 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.47.0)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.16.0
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -770,7 +770,7 @@ importers:
         specifier: npm:ethers@5
         version: /ethers@5.7.2
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.9.5
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -849,7 +849,7 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.47.0)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.0.0
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -922,7 +922,7 @@ importers:
         specifier: ^7.0.1
         version: 7.0.1
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.0.0
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -995,7 +995,7 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.47.0)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.0.0
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -1076,7 +1076,7 @@ importers:
         specifier: ^6.4.0
         version: 6.7.0
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.11.0
         version: link:../hardhat-core
       hardhat-gas-reporter:
         specifier: ^1.0.8
@@ -1161,7 +1161,7 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.47.0)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.11.0
         version: link:../hardhat-core
       hardhat-gas-reporter:
         specifier: ^1.0.8
@@ -1249,7 +1249,7 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.47.0)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.6.4
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -1331,7 +1331,7 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.47.0)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.6.4
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -1540,7 +1540,7 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.47.0)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.17.0
         version: link:../hardhat-core
       jest-diff:
         specifier: ^29.7.0
@@ -1646,7 +1646,7 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.47.0)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.8.3
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -1710,7 +1710,7 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.47.0)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.0.0
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -1776,7 +1776,7 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.47.0)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.0.0
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -1845,7 +1845,7 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.47.0)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.0.0
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -7409,7 +7409,6 @@ packages:
     dependencies:
       is-hex-prefixed: 1.0.0
       strip-hex-prefix: 1.0.0
-    bundledDependencies: false
 
   /eventemitter3@4.0.4:
     resolution: {integrity: sha512-rlaVLnVxtxvoyLsQQFBx53YmXHDxRIzzTLbdfxqi4yocpSjAxXwkU0cScM5JgSKMqEhrZpnvQ2D9gjylR0AimQ==}
