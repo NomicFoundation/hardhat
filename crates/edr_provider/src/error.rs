@@ -327,12 +327,12 @@ impl TransactionFailure {
             ExecutionResult::Success { .. } => None,
             ExecutionResult::Revert { output, .. } => Some(Self::revert(
                 output.clone(),
-                transaction_hash.cloned(),
+                transaction_hash.copied(),
                 solidity_trace.clone(),
             )),
             ExecutionResult::Halt { reason, .. } => Some(Self::halt(
                 *reason,
-                transaction_hash.cloned(),
+                transaction_hash.copied(),
                 solidity_trace.clone(),
             )),
         }
