@@ -36,7 +36,7 @@ export interface ReconciliationContext {
   deploymentLoader: DeploymentLoader;
   defaultSender: string;
   strategy: string;
-  strategyConfig: Record<string, any>;
+  strategyConfig: Record<string, number | string>;
 }
 
 export type ReconciliationCheck = (
