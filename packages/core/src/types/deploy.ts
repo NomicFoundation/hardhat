@@ -225,7 +225,7 @@ export type DeploymentStrategyType = Create2Strategy | BasicStrategy;
  * @beta
  */
 export interface StrategyConfig {
-  basic: {};
+  basic: Record<PropertyKey, never>;
   create2: {
     salt: string;
   };

@@ -6,14 +6,17 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { presignedTx } from "../test-helpers/createX-tx";
 import { externallyLoadedContractArtifact } from "../test-helpers/externally-loaded-contract";
 import { mineBlock } from "../test-helpers/mine-block";
-import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project";
+import {
+  useEphemeralIgnitionProject,
+  useFileIgnitionProject,
+} from "../test-helpers/use-ignition-project";
 import { waitForPendingTxs } from "../test-helpers/wait-for-pending-txs";
 
 describe("create2", function () {
   const EXPECTED_FOO_CREATE2_ADDRESS =
-    "0xA666fE62aA1fD2A7e7C08F81Eba3f55F459A9002";
+    "0x82841cfc6e85e9A9FBED28FC4A236eb58D56E5b6";
   const EXPECTED_BAR_CREATE2_ADDRESS =
-    "0xF44091a604c7Ed92441Ea695c0f41C522466b4D3";
+    "0x2aCB60e63b99511B0B598e1498825c716b19769C";
   const EXPECTED_CUSTOM_SALT_FOO_CREATE2_ADDRESS =
     "0x50eB50b4b4D5222c3C3B89b9Bb37BD903a359425";
 
@@ -42,6 +45,9 @@ describe("create2", function () {
           const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
             strategy: "create2",
             defaultSender: accountAddress,
+            strategyConfig: {
+              salt: "test-salt",
+            },
           });
 
           await waitForPendingTxs(this.hre, 1, deployPromise);
@@ -67,6 +73,9 @@ describe("create2", function () {
           }),
           {
             strategy: "create2",
+            strategyConfig: {
+              salt: "test-salt",
+            },
           }
         );
 
@@ -95,6 +104,9 @@ describe("create2", function () {
             }),
             {
               strategy: "create2",
+              strategyConfig: {
+                salt: "test-salt",
+              },
             }
           ),
           /Simulating the transaction failed with error: Reverted with custom error FailedContractCreation/
@@ -132,6 +144,9 @@ describe("create2", function () {
         await assert.isRejected(
           this.hre.ignition.deploy(moduleDefinition, {
             strategy: "create2",
+            strategyConfig: {
+              salt: "test-salt",
+            },
           }),
           /CreateX not deployed on current network 88888/
         );
@@ -145,6 +160,9 @@ describe("create2", function () {
     it("should deploy a createX factory then use it to deploy the given contract", async function () {
       const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
         strategy: "create2",
+        strategyConfig: {
+          salt: "test-salt",
+        },
       });
 
       await waitForPendingTxs(this.hre, 1, deployPromise);
@@ -162,6 +180,9 @@ describe("create2", function () {
       // Run create2 once deploying the factory
       const firstDeployPromise = this.hre.ignition.deploy(moduleDefinition, {
         strategy: "create2",
+        strategyConfig: {
+          salt: "test-salt",
+        },
       });
 
       await waitForPendingTxs(this.hre, 1, firstDeployPromise);
@@ -178,6 +199,9 @@ describe("create2", function () {
         }),
         {
           strategy: "create2",
+          strategyConfig: {
+            salt: "test-salt",
+          },
         }
       );
 
@@ -191,6 +215,23 @@ describe("create2", function () {
         EXPECTED_BAR_CREATE2_ADDRESS
       );
       assert(await secondDeployResult.bar.read.isBar());
+    });
+  });
+
+  describe("config", function () {
+    useFileIgnitionProject("create2-bad-config", "attempt-bad-config");
+
+    it("should throw if a non-recognized strategy is specified", async function () {
+      await assert.isRejected(
+        this.hre.run(
+          { scope: "ignition", task: "deploy" },
+          {
+            modulePath: "./ignition/modules/MyModule.js",
+            strategy: "create2",
+          }
+        ),
+        /The create2 strategy requires a salt to be set under 'ignition.strategyConfig.create2.salt' in the Hardhat config/
+      );
     });
   });
 });

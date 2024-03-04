@@ -1,11 +1,18 @@
-import { StrategyConfig, buildModule } from "@nomicfoundation/ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { mineBlock } from "../test-helpers/mine-block";
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project";
 import { waitForPendingTxs } from "../test-helpers/wait-for-pending-txs";
 
-const strategies: Array<keyof StrategyConfig> = ["basic", "create2"];
+const strategies = ["basic", "create2"] as const;
+
+const exampleConfig = {
+  basic: {},
+  create2: {
+    salt: "test-salt",
+  },
+} as const;
 
 describe("strategies - generic constraints", function () {
   strategies.forEach((strategy) => {
@@ -21,6 +28,7 @@ describe("strategies - generic constraints", function () {
 
         const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
           strategy,
+          strategyConfig: exampleConfig[strategy],
         });
 
         await waitForPendingTxs(this.hre, 1, deployPromise);
@@ -43,6 +51,7 @@ describe("strategies - generic constraints", function () {
 
         const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
           strategy,
+          strategyConfig: exampleConfig[strategy],
         });
 
         await waitForPendingTxs(this.hre, 2, deployPromise);
@@ -68,6 +77,7 @@ describe("strategies - generic constraints", function () {
 
         const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
           strategy,
+          strategyConfig: exampleConfig[strategy],
         });
 
         await waitForPendingTxs(this.hre, 1, deployPromise);
@@ -104,6 +114,7 @@ describe("strategies - generic constraints", function () {
 
         const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
           strategy,
+          strategyConfig: exampleConfig[strategy],
         });
 
         await waitForPendingTxs(this.hre, 1, deployPromise);
@@ -150,6 +161,7 @@ describe("strategies - generic constraints", function () {
           contractAtDefinition,
           {
             strategy,
+            strategyConfig: exampleConfig[strategy],
           }
         );
 
@@ -175,6 +187,7 @@ describe("strategies - generic constraints", function () {
 
         const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
           strategy,
+          strategyConfig: exampleConfig[strategy],
         });
 
         await waitForPendingTxs(this.hre, 1, deployPromise);
@@ -207,6 +220,7 @@ describe("strategies - generic constraints", function () {
 
         const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
           strategy,
+          strategyConfig: exampleConfig[strategy],
         });
 
         await waitForPendingTxs(this.hre, 1, deployPromise);
