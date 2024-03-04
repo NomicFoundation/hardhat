@@ -44,9 +44,33 @@ const CREATE_X_PRESIGNED_DEPLOYER_ADDRESS =
   "0xeD456e05CaAb11d66C4c797dD6c1D6f9A7F352b5";
 
 /**
- * The most basic execution strategy, which sends a single transaction
- * for each deployment, call, and send data, and a single static call
- * per static call execution.
+ * The create2 strategy extends the basic strategy, for deployment it replaces
+ * a deployment transaction with a call to the CreateX factory contract
+ * with a user provided salt.
+ *
+ * If deploying to the local Hardhat node, the CreateX factory will be
+ * deployed if it does not exist. If the CreateX factory is not currently
+ * available on the remote network, an error will be thrown halting the
+ * deployment.
+ *
+ * Futures that perform calls or send data remain single transactions, and
+ * static calls remain a single static call.
+ *
+ * The strategy requires a salt is provided in the Hardhat config. The same
+ * salt will be used for all calls to CreateX.
+ *
+ * @example
+ * {
+ *   ...,
+ *   ignition: {
+ *     strategyConfig: {
+ *       create2: {
+ *         salt: "my-salt"
+ *       }
+ *     }
+ *   },
+ *   ...
+ * }
  *
  * @beta
  */
@@ -59,6 +83,11 @@ export class Create2Strategy {
 
 /**
  * The create2 strategy.
+ *
+ * The Create2StrategyImplementation is internal. It will be properly exposed
+ * in the Core API with the full Strategy API.
+ *
+ * @private
  */
 class Create2StrategyImplementation
   extends Create2Strategy

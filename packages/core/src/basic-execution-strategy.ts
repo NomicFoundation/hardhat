@@ -27,9 +27,9 @@ import { NetworkInteractionType } from "./internal/execution/types/network-inter
 import { assertIgnitionInvariant } from "./internal/utils/assertions";
 
 /**
- * The most basic execution strategy, which sends a single transaction
- * for each deployment, call, and send data, and a single static call
- * per static call execution.
+ * The basic execution strategy, which sends a single transaction
+ * for each contract deployment, call, and send data, and a single static call
+ * for each static call execution.
  *
  * @beta
  */
@@ -39,7 +39,12 @@ export class BasicStrategy {
 }
 
 /**
- * The implementation of basic strategy.
+ * The Basic strategy.
+ *
+ * The BasicStrategyImplementation is internal. It will be properly exposed
+ * in the Core API with the full Strategy API.
+ *
+ * @private
  */
 class BasicStrategyImplementation
   extends BasicStrategy
