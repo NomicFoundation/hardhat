@@ -221,7 +221,7 @@ describe("create2", function () {
   describe("config", function () {
     useFileIgnitionProject("create2-bad-config", "attempt-bad-config");
 
-    it("should throw if a non-recognized strategy is specified", async function () {
+    it("should throw if salt is not defined in Hardhat config", async function () {
       await assert.isRejected(
         this.hre.run(
           { scope: "ignition", task: "deploy" },

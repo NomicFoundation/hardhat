@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-unused-modules
 const { buildModule } = require("@nomicfoundation/ignition-core");
 
 module.exports = buildModule("MyModule", (m) => {
