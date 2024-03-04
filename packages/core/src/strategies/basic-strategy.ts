@@ -1,3 +1,4 @@
+import { DeploymentLoader } from "../internal/deployment-loader/types";
 import {
   decodeArtifactCustomError,
   decodeArtifactFunctionCallResult,
@@ -7,6 +8,7 @@ import {
   executeStaticCallRequest,
   getStaticCallExecutionStateResultValue,
 } from "../internal/execution/execution-strategy-helpers";
+import { JsonRpcClient } from "../internal/execution/jsonrpc-client";
 import { ExecutionResultType } from "../internal/execution/types/execution-result";
 import {
   CallExecutionState,
@@ -18,7 +20,6 @@ import {
   CallStrategyGenerator,
   DeploymentStrategyGenerator,
   ExecutionStrategy,
-  LoadArtifactFunction,
   OnchainInteractionResponseType,
   SendDataStrategyGenerator,
   StaticCallStrategyGenerator,
@@ -35,7 +36,11 @@ import { assertIgnitionInvariant } from "../internal/utils/assertions";
  */
 export class BasicStrategy {
   public readonly name = "basic" as const;
-  constructor() {}
+  public readonly config: Record<PropertyKey, never>;
+
+  constructor() {
+    this.config = {};
+  }
 }
 
 /**
@@ -51,26 +56,30 @@ class BasicStrategyImplementation
   implements ExecutionStrategy
 {
   public readonly name = "basic" as const;
-  public readonly config: {} = {};
-  private _loadArtifact: LoadArtifactFunction | undefined;
+  private _deploymentLoader: DeploymentLoader | undefined;
 
   constructor() {
     super();
   }
 
-  public async init(_loadArtifact: LoadArtifactFunction): Promise<void> {
-    this._loadArtifact = _loadArtifact;
+  public async init(
+    deploymentLoader: DeploymentLoader,
+    _jsonRpcClient: JsonRpcClient
+  ): Promise<void> {
+    this._deploymentLoader = deploymentLoader;
   }
 
   public async *executeDeployment(
     executionState: DeploymentExecutionState
   ): DeploymentStrategyGenerator {
     assertIgnitionInvariant(
-      this._loadArtifact !== undefined,
-      "loadArtifact not initialized"
+      this._deploymentLoader !== undefined,
+      "Strategy not initialized"
     );
 
-    const artifact = await this._loadArtifact(executionState.artifactId);
+    const artifact = await this._deploymentLoader.loadArtifact(
+      executionState.artifactId
+    );
 
     const transactionOrResult = yield* executeOnchainInteractionRequest(
       executionState.id,
@@ -116,11 +125,13 @@ class BasicStrategyImplementation
     executionState: CallExecutionState
   ): CallStrategyGenerator {
     assertIgnitionInvariant(
-      this._loadArtifact !== undefined,
-      "loadArtifact not initialized"
+      this._deploymentLoader !== undefined,
+      "Strategy not initialized"
     );
 
-    const artifact = await this._loadArtifact(executionState.artifactId);
+    const artifact = await this._deploymentLoader.loadArtifact(
+      executionState.artifactId
+    );
 
     const transactionOrResult = yield* executeOnchainInteractionRequest(
       executionState.id,
@@ -187,11 +198,13 @@ class BasicStrategyImplementation
     executionState: StaticCallExecutionState
   ): StaticCallStrategyGenerator {
     assertIgnitionInvariant(
-      this._loadArtifact !== undefined,
-      "loadArtifact not initialized"
+      this._deploymentLoader !== undefined,
+      "Strategy not initialized"
     );
 
-    const artifact = await this._loadArtifact(executionState.artifactId);
+    const artifact = await this._deploymentLoader.loadArtifact(
+      executionState.artifactId
+    );
 
     const decodedResultOrError = yield* executeStaticCallRequest(
       {

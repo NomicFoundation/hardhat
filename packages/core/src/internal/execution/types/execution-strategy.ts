@@ -1,4 +1,6 @@
 import { Artifact } from "../../../types/artifact";
+import { DeploymentLoader } from "../../deployment-loader/types";
+import { JsonRpcClient } from "../jsonrpc-client";
 
 import {
   CallExecutionResult,
@@ -221,7 +223,10 @@ export interface ExecutionStrategy {
    */
   config: {};
 
-  init: (_loadArtifact: LoadArtifactFunction) => Promise<void>;
+  init: (
+    deploymentLoader: DeploymentLoader,
+    jsonRpcClient: JsonRpcClient
+  ) => Promise<void>;
 
   /**
    * Executes a deployment execution state.

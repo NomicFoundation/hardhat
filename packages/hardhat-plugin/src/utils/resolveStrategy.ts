@@ -25,7 +25,7 @@ export function resolveStrategy(
           : hre.config.ignition.strategyConfig?.create2?.salt ??
             "default-ignition-salt";
 
-      return new Create2Strategy(hre.network.provider, { salt });
+      return new Create2Strategy({ salt });
     default:
       throw new NomicLabsHardhatPluginError(
         "hardhat-ignition",

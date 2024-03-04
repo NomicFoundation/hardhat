@@ -41,13 +41,13 @@ export async function setupFutureProcessor(
 
   const mockArtifactResolver = setupMockArtifactResolver();
 
-  const basicExecutionStrategy = new BasicStrategy() as ExecutionStrategy;
-  await basicExecutionStrategy.init(mockDeploymentLoader.loadArtifact);
-
   const mockJsonRpcClient = setupMockJsonRpcClient(
     sendTransaction,
     transactions
   );
+
+  const basicExecutionStrategy = new BasicStrategy() as ExecutionStrategy;
+  await basicExecutionStrategy.init(mockDeploymentLoader, mockJsonRpcClient);
 
   const transactionTrackingTimer = new TransactionTrackingTimer();
 

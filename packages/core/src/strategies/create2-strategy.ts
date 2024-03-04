@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 
 import { NomicIgnitionPluginError } from "../errors";
+import { DeploymentLoader } from "../internal/deployment-loader/types";
 import {
   decodeArtifactCustomError,
   decodeArtifactFunctionCallResult,
@@ -11,7 +12,7 @@ import {
   getEventArgumentFromReceipt,
   getStaticCallExecutionStateResultValue,
 } from "../internal/execution/execution-strategy-helpers";
-import { EIP1193JsonRpcClient } from "../internal/execution/jsonrpc-client";
+import { JsonRpcClient } from "../internal/execution/jsonrpc-client";
 import {
   createxArtifact,
   presignedTx,
@@ -27,14 +28,12 @@ import {
   CallStrategyGenerator,
   DeploymentStrategyGenerator,
   ExecutionStrategy,
-  LoadArtifactFunction,
   OnchainInteractionResponseType,
   SendDataStrategyGenerator,
   StaticCallStrategyGenerator,
 } from "../internal/execution/types/execution-strategy";
 import { NetworkInteractionType } from "../internal/execution/types/network-interaction";
 import { assertIgnitionInvariant } from "../internal/utils/assertions";
-import { EIP1193Provider } from "../types/provider";
 
 // v0.1.0
 const CREATE_X_ADDRESS = "0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed";
@@ -76,9 +75,11 @@ const CREATE_X_PRESIGNED_DEPLOYER_ADDRESS =
  */
 export class Create2Strategy {
   public readonly name = "create2" as const;
+  public readonly config: { salt: string };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  constructor(provider: EIP1193Provider, config: { salt: string }) {}
+  constructor(config: { salt: string }) {
+    this.config = config;
+  }
 }
 
 /**
@@ -93,21 +94,22 @@ class Create2StrategyImplementation
   extends Create2Strategy
   implements ExecutionStrategy
 {
-  public declare readonly config: { salt: string };
-  private readonly client: EIP1193JsonRpcClient;
-  private _loadArtifact: LoadArtifactFunction | undefined;
+  private _deploymentLoader: DeploymentLoader | undefined;
+  private _jsonRpcClient: JsonRpcClient | undefined;
 
-  constructor(provider: EIP1193Provider, config: { salt: string }) {
-    super(provider, config);
-    this.client = new EIP1193JsonRpcClient(provider);
-    this.config = config;
+  constructor(config: { salt: string }) {
+    super(config);
   }
 
-  public async init(_loadArtifact: LoadArtifactFunction): Promise<void> {
-    this._loadArtifact = _loadArtifact;
+  public async init(
+    deploymentLoader: DeploymentLoader,
+    jsonRpcClient: JsonRpcClient
+  ): Promise<void> {
+    this._deploymentLoader = deploymentLoader;
+    this._jsonRpcClient = jsonRpcClient;
 
     // Check if CreateX is deployed on the current network
-    const result = await this.client.getCode(CREATE_X_ADDRESS);
+    const result = await this._jsonRpcClient.getCode(CREATE_X_ADDRESS);
 
     // If CreateX factory is deployed (and bytecode matches) then nothing to do
     if (result !== "0x") {
@@ -119,7 +121,7 @@ class Create2StrategyImplementation
       return;
     }
 
-    const chainId = await this.client.getChainId();
+    const chainId = await this._jsonRpcClient.getChainId();
 
     // Otherwise if we're not on a local hardhat node, throw an error
     if (chainId !== 31337) {
@@ -130,18 +132,21 @@ class Create2StrategyImplementation
     }
 
     // On a local hardhat node, deploy the CreateX factory
-    await this._deployCreateXFactory(this.client);
+    await this._deployCreateXFactory(this._jsonRpcClient);
   }
 
   public async *executeDeployment(
     executionState: DeploymentExecutionState
   ): DeploymentStrategyGenerator {
     assertIgnitionInvariant(
-      this._loadArtifact !== undefined,
-      "loadArtifact not initialized"
+      this._deploymentLoader !== undefined && this._jsonRpcClient !== undefined,
+      "Strategy not initialized"
     );
 
-    const artifact = await this._loadArtifact(executionState.artifactId);
+    const artifact = await this._deploymentLoader.loadArtifact(
+      executionState.artifactId
+    );
+
     const salt = ethers.id(this.config.salt);
 
     const bytecodeToDeploy = encodeArtifactDeploymentData(
@@ -204,11 +209,13 @@ class Create2StrategyImplementation
     executionState: CallExecutionState
   ): CallStrategyGenerator {
     assertIgnitionInvariant(
-      this._loadArtifact !== undefined,
-      "loadArtifact not initialized"
+      this._deploymentLoader !== undefined && this._jsonRpcClient !== undefined,
+      "Strategy not initialized"
     );
 
-    const artifact = await this._loadArtifact(executionState.artifactId);
+    const artifact = await this._deploymentLoader.loadArtifact(
+      executionState.artifactId
+    );
 
     const transactionOrResult = yield* executeOnchainInteractionRequest(
       executionState.id,
@@ -275,11 +282,13 @@ class Create2StrategyImplementation
     executionState: StaticCallExecutionState
   ): StaticCallStrategyGenerator {
     assertIgnitionInvariant(
-      this._loadArtifact !== undefined,
-      "loadArtifact not initialized"
+      this._deploymentLoader !== undefined && this._jsonRpcClient !== undefined,
+      "Strategy not initialized"
     );
 
-    const artifact = await this._loadArtifact(executionState.artifactId);
+    const artifact = await this._deploymentLoader.loadArtifact(
+      executionState.artifactId
+    );
 
     const decodedResultOrError = yield* executeStaticCallRequest(
       {
@@ -320,7 +329,7 @@ class Create2StrategyImplementation
    * Within the context of a local development Hardhat chain, deploy
    * the CreateX factory contract using a presigned transaction.
    */
-  private async _deployCreateXFactory(client: EIP1193JsonRpcClient) {
+  private async _deployCreateXFactory(client: JsonRpcClient) {
     // The account that will deploy the CreateX factory needs to be funded
     // first
     await client.setBalance(
