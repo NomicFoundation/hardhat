@@ -1,21 +1,19 @@
-use std::{
-    cmp::Ordering,
-    fmt::Debug,
-    ops::{Deref, DerefMut},
-    sync::Arc,
-};
+use std::{cmp::Ordering, fmt::Debug, sync::Arc};
 
 use edr_eth::{block::BlockOptions, U256};
-use revm::primitives::{CfgEnvWithHandlerCfg, ExecutionResult, InvalidTransaction};
+use revm::{
+    db::{BlockHashRef, DatabaseComponents, WrapDatabaseRef},
+    primitives::{CfgEnvWithHandlerCfg, ExecutionResult, InvalidTransaction},
+};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     block::BlockBuilderCreationError,
-    blockchain::SyncBlockchain,
-    debug::{DebugContext, GetContextData},
+    blockchain::{Blockchain, SyncBlockchain},
+    debug::DebugContext,
     mempool::OrderedTransaction,
     state::{StateDiff, SyncState},
-    trace::{Trace, TraceCollector},
+    trace::Trace,
     BlockBuilder, BlockTransactionError, BuildBlockResult, ExecutableTransaction, LocalBlock,
     MemPool, SyncBlock,
 };
@@ -52,8 +50,6 @@ pub struct MineBlockResultAndState<StateErrorT> {
     pub state_diff: StateDiff,
     /// Transaction results
     pub transaction_results: Vec<ExecutionResult>,
-    /// Transaction traces
-    pub transaction_traces: Vec<Trace>,
 }
 
 /// The type of ordering to use when selecting blocks to mine.
@@ -86,41 +82,11 @@ pub enum MineBlockError<BE, SE> {
     MissingPrevrandao,
 }
 
-struct MineDebugData<DebugDataT> {
-    trace_collector: TraceCollector,
-    debug_data: Option<DebugDataT>,
-}
-
-impl<DebugDataT> Deref for MineDebugData<DebugDataT> {
-    type Target = TraceCollector;
-
-    fn deref(&self) -> &Self::Target {
-        &self.trace_collector
-    }
-}
-
-impl<DebugDataT> DerefMut for MineDebugData<DebugDataT> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.trace_collector
-    }
-}
-
-impl<DebugDataT: GetContextData<DebugDataT>> GetContextData<DebugDataT>
-    for MineDebugData<DebugDataT>
-{
-    fn get_context_data(&mut self) -> &mut DebugDataT {
-        self.debug_data
-            .as_mut()
-            .expect("GetContextData should only be used when the handler has been registered")
-            .get_context_data()
-    }
-}
-
 /// Mines a block using as many transactions as can fit in it.
 #[allow(clippy::too_many_arguments)]
 #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-pub fn mine_block<'blockchain, 'register, 'state, DebugDataT, BlockchainErrorT, StateErrorT>(
-    blockchain: &dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
+pub fn mine_block<BlockchainT, BlockchainErrorT, DebugDataT, StateErrorT>(
+    blockchain: BlockchainT,
     mut state: Box<dyn SyncState<StateErrorT>>,
     mem_pool: &MemPool,
     cfg: &CfgEnvWithHandlerCfg,
@@ -130,10 +96,19 @@ pub fn mine_block<'blockchain, 'register, 'state, DebugDataT, BlockchainErrorT, 
     reward: U256,
     dao_hardfork_activation_block: Option<u64>,
     debug_context: Option<
-        DebugContext<'blockchain, 'register, 'state, DebugDataT, BlockchainErrorT, StateErrorT>,
+        DebugContext<
+            WrapDatabaseRef<DatabaseComponents<&mut Box<dyn SyncState<StateErrorT>>, BlockchainT>>,
+            DebugDataT,
+        >,
     >,
-) -> Result<MineBlockResultAndState<StateErrorT>, MineBlockError<BlockchainErrorT, StateErrorT>>
+) -> Result<
+    MineBlockResultAndState<StateErrorT>,
+    MineBlockError<BlockchainT::BlockchainError, StateErrorT>,
+>
 where
+    BlockchainT: Blockchain<BlockchainError = BlockchainErrorT, StateError = StateErrorT>
+        + BlockHashRef<Error = BlockchainErrorT>
+        + Clone,
     BlockchainErrorT: Debug + Send,
     StateErrorT: Debug + Send,
 {
@@ -166,17 +141,6 @@ where
     };
 
     let mut results = Vec::new();
-    let mut traces = Vec::new();
-
-    let mut handlers = debug_context
-        .as_ref()
-        .map(|context| context.handle_registers.iter())
-        .flatten()
-        .chain();
-
-    let debug_context = DebugContext {
-
-    }
 
     while let Some(transaction) = pending_transactions.next() {
         if transaction.gas_price() < min_gas_price {
@@ -186,10 +150,10 @@ where
 
         let caller = *transaction.caller();
         match block_builder.add_transaction(
-            blockchain,
+            blockchain.clone(),
             &mut state,
             transaction,
-            container.as_dyn_inspector(),
+            debug_context,
         ) {
             Err(
                 BlockTransactionError::ExceedsBlockGasLimit
@@ -205,7 +169,6 @@ where
             }
             Ok(result) => {
                 results.push(result);
-                traces.push(container.clear_trace().unwrap());
             }
         }
     }
@@ -221,7 +184,6 @@ where
         state,
         state_diff,
         transaction_results: results,
-        transaction_traces: traces,
     })
 }
 

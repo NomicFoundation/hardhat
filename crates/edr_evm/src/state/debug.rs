@@ -37,7 +37,7 @@ impl Deref for AccountModifierFn {
 }
 
 /// A trait for debug operation on a database.
-#[auto_impl(Box)]
+#[auto_impl(&mut, Box)]
 pub trait StateDebug {
     /// The state's error type.
     type Error;

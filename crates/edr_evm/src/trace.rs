@@ -14,7 +14,8 @@ use revm::{
 
 use crate::debug::GetContextData;
 
-fn register_trace_collector_handles<
+/// Registers trace collector handles to the EVM handler.
+pub fn register_trace_collector_handles<
     'a,
     DatabaseT: Database,
     ContextT: GetContextData<TraceCollector>,
@@ -71,7 +72,7 @@ fn register_trace_collector_handles<
     handler.execution.call = Arc::new(
         move |ctx, mut inputs| -> Result<FrameOrResult, EVMError<DatabaseT::Error>> {
             let tracer = ctx.external.get_context_data();
-            tracer.call(&ctx.evm, &inputs);
+            tracer.call(&mut ctx.evm, &inputs);
 
             call_input_stack_inner.borrow_mut().push(inputs.clone());
 
@@ -258,7 +259,7 @@ impl TraceCollector {
         }
     }
 
-    fn call<DatabaseT: Database>(&mut self, data: &EvmContext<DatabaseT>, inputs: &CallInputs)
+    fn call<DatabaseT: Database>(&mut self, data: &mut EvmContext<DatabaseT>, inputs: &CallInputs)
     where
         DatabaseT::Error: Debug,
     {

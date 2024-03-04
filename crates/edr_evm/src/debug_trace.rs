@@ -48,39 +48,42 @@ where
         return Err(TransactionError::MissingPrevrandao.into());
     }
 
-    let mut evm_builder = Evm::builder()
-        .with_ref_db(DatabaseComponents {
-            state,
-            block_hash: blockchain,
-        })
-        .with_cfg_env_with_handler_cfg(evm_config.clone())
-        .with_block_env(block_env);
-
     for transaction in transactions {
         if transaction.hash() == transaction_hash {
-            let tracer = TracerEip3155::new(trace_config);
-            let mut evm = Evm::builder()
-                .with_ref_db(DatabaseComponents {
-                    state,
-                    block_hash: blockchain,
-                })
-                .with_external_context(tracer)
-                .with_cfg_env_with_handler_cfg(evm_config)
-                .with_block_env(block_env)
-                .with_tx_env(transaction.into())
-                .build();
+            let mut tracer = TracerEip3155::new(trace_config);
 
-            let ResultAndState { result, .. } = evm.transact().map_err(TransactionError::from)?;
+            let ResultAndState { result, .. } = {
+                let mut evm = Evm::builder()
+                    .with_ref_db(DatabaseComponents {
+                        state: state.as_ref(),
+                        block_hash: blockchain,
+                    })
+                    .with_external_context(&mut tracer)
+                    .with_cfg_env_with_handler_cfg(evm_config)
+                    .with_block_env(block_env)
+                    .with_tx_env(transaction.into())
+                    .build();
+
+                evm.transact().map_err(TransactionError::from)?
+            };
+
             return Ok(execution_result_to_debug_result(result, tracer));
         } else {
-            let mut evm = evm_builder.with_tx_env(transaction.into()).build();
+            let ResultAndState { state: changes, .. } = {
+                let mut evm = Evm::builder()
+                    .with_ref_db(DatabaseComponents {
+                        state: state.as_ref(),
+                        block_hash: blockchain,
+                    })
+                    .with_cfg_env_with_handler_cfg(evm_config.clone())
+                    .with_block_env(block_env.clone())
+                    .with_tx_env(transaction.into())
+                    .build();
 
-            let ResultAndState { state: changes, .. } =
-                evm.transact().map_err(TransactionError::from)?;
+                evm.transact().map_err(TransactionError::from)?
+            };
 
             state.commit(changes);
-
-            evm_builder = evm.modify();
         }
     }
 
@@ -220,7 +223,7 @@ fn register_eip_3155_tracer_handles<
         .take()
         .expect("Handler must have instruction table");
 
-    let mut table = match table {
+    let table = match table {
         EvmInstructionTables::Plain(table) => table
             .into_iter()
             .map(|i| instruction_handler(i))

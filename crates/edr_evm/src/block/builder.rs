@@ -13,20 +13,19 @@ use edr_eth::{
     Address, Bloom, U256,
 };
 use revm::{
-    db::{DatabaseComponentError, DatabaseComponents},
+    db::{BlockHashRef, DatabaseComponentError, DatabaseComponents, StateRef, WrapDatabaseRef},
     primitives::{
         AccountInfo, BlobExcessGasAndPrice, BlockEnv, CfgEnvWithHandlerCfg, EVMError,
         EnvWithHandlerCfg, ExecutionResult, InvalidHeader, InvalidTransaction, Output,
         ResultAndState, SpecId,
     },
-    Evm,
+    DatabaseCommit, Evm,
 };
 
 use super::local::LocalBlock;
 use crate::{
-    blockchain::SyncBlockchain,
     debug::DebugContext,
-    state::{AccountModifierFn, StateDiff, SyncState},
+    state::{AccountModifierFn, StateDebug, StateDiff, SyncState},
     ExecutableTransaction,
 };
 
@@ -191,24 +190,19 @@ impl BlockBuilder {
 
     /// Adds a pending transaction to
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn add_transaction<
-        'blockchain,
-        'register,
-        'state,
-        DebugDataT,
-        BlockchainErrorT,
-        StateErrorT,
-    >(
+    pub fn add_transaction<BlockchainT, DebugDataT, StateT, StateErrorT>(
         &mut self,
-        blockchain: &dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
-        state: &mut dyn SyncState<StateErrorT>,
+        blockchain: BlockchainT,
+        state: StateT,
         transaction: ExecutableTransaction,
         debug_context: Option<
-            DebugContext<'blockchain, 'register, 'state, DebugDataT, BlockchainErrorT, StateErrorT>,
+            DebugContext<WrapDatabaseRef<DatabaseComponents<StateT, BlockchainT>>, DebugDataT>,
         >,
-    ) -> Result<ExecutionResult, BlockTransactionError<BlockchainErrorT, StateErrorT>>
+    ) -> Result<ExecutionResult, BlockTransactionError<BlockchainT::Error, StateErrorT>>
     where
-        BlockchainErrorT: Debug + Send,
+        BlockchainT: BlockHashRef,
+        BlockchainT::Error: Debug + Send,
+        StateT: StateRef<Error = StateErrorT> + DatabaseCommit + StateDebug<Error = StateErrorT>,
         StateErrorT: Debug + Send,
     {
         //  transaction's gas limit cannot be greater than the remaining gas in the
@@ -217,6 +211,8 @@ impl BlockBuilder {
             return Err(BlockTransactionError::ExceedsBlockGasLimit);
         }
 
+        let spec_id = self.cfg.handler_cfg.spec_id;
+
         let block = BlockEnv {
             number: U256::from(self.header.number),
             coinbase: self.header.beneficiary,
@@ -224,7 +220,7 @@ impl BlockBuilder {
             difficulty: self.header.difficulty,
             basefee: self.header.base_fee.unwrap_or(U256::ZERO),
             gas_limit: U256::from(self.header.gas_limit),
-            prevrandao: if self.cfg.handler_cfg.spec_id >= SpecId::MERGE {
+            prevrandao: if spec_id >= SpecId::MERGE {
                 Some(self.header.mix_hash)
             } else {
                 None
@@ -235,29 +231,48 @@ impl BlockBuilder {
                 .as_ref()
                 .map(|BlobGas { excess_gas, .. }| BlobExcessGasAndPrice::new(*excess_gas)),
         };
-        let mut env = EnvWithHandlerCfg::new_with_cfg_env(self.cfg, block, transaction.into());
 
-        let mut evm_builder = Evm::builder().with_ref_db(DatabaseComponents {
-            state: &*state,
-            block_hash: blockchain,
-        });
+        let env = EnvWithHandlerCfg::new_with_cfg_env(
+            self.cfg.clone(),
+            block.clone(),
+            transaction.clone().into(),
+        );
 
-        let ResultAndState {
-            result,
-            state: state_diff,
-        } = if let Some(debug_context) = debug_context {
-            let mut evm = evm_builder
-                .with_external_context(debug_context.data)
-                .with_env_with_handler_cfg(env)
-                .append_handler_register(debug_context.handle_registers)
-                .build();
+        let (
+            ResultAndState {
+                result,
+                state: state_diff,
+            },
+            mut state,
+        ) = {
+            if let Some(debug_context) = debug_context {
+                let mut evm = Evm::builder()
+                    .with_ref_db(DatabaseComponents {
+                        state,
+                        block_hash: blockchain,
+                    })
+                    .with_external_context(debug_context.data)
+                    .with_env_with_handler_cfg(env)
+                    .append_handler_register(debug_context.register_handles_fn)
+                    .build();
 
-            evm.transact()
-        } else {
-            let mut evm = evm_builder.with_env_with_handler_cfg(env).build();
+                let result = evm.transact()?;
+                let state = evm.into_context().evm.db.0.state;
+                (result, state)
+            } else {
+                let mut evm = Evm::builder()
+                    .with_ref_db(DatabaseComponents {
+                        state,
+                        block_hash: blockchain,
+                    })
+                    .with_env_with_handler_cfg(env)
+                    .build();
 
-            evm.transact()
-        }?;
+                let result = evm.transact()?;
+                let state = evm.into_context().evm.db.0.state;
+                (result, state)
+            }
+        };
 
         self.state_diff.apply_diff(state_diff.clone());
 
@@ -286,7 +301,7 @@ impl BlockBuilder {
         };
 
         let gas_price = transaction.gas_price();
-        let effective_gas_price = if blockchain.spec_id() >= SpecId::LONDON {
+        let effective_gas_price = if spec_id >= SpecId::LONDON {
             if let SignedTransaction::Eip1559(transaction) = &*transaction {
                 block.basefee
                     + (gas_price - block.basefee).min(transaction.max_priority_fee_per_gas)
@@ -305,7 +320,7 @@ impl BlockBuilder {
                 data: match &*transaction {
                     SignedTransaction::PreEip155Legacy(_)
                     | SignedTransaction::PostEip155Legacy(_) => {
-                        if self.cfg.handler_cfg.spec_id < SpecId::BYZANTIUM {
+                        if spec_id < SpecId::BYZANTIUM {
                             TypedReceiptData::PreEip658Legacy {
                                 state_root: state
                                     .state_root()
@@ -319,7 +334,7 @@ impl BlockBuilder {
                     SignedTransaction::Eip1559(_) => TypedReceiptData::Eip1559 { status },
                     SignedTransaction::Eip4844(_) => TypedReceiptData::Eip4844 { status },
                 },
-                spec_id: self.cfg.handler_cfg.spec_id,
+                spec_id,
             },
             transaction_hash: *transaction.hash(),
             transaction_index: self.transactions.len() as u64,

@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use edr_eth::{
     account::KECCAK_EMPTY,
     remote::{AccountOverrideOptions, StateOverrideOptions},
@@ -247,34 +249,100 @@ impl TryFrom<StateOverrideOptions> for StateOverrides {
 }
 
 /// A wrapper around a state ref object that applies overrides.
-pub struct StateRefOverrider<'state, StateErrorT> {
-    overrides: &'state StateOverrides,
-    state: &'state dyn StateRef<Error = StateErrorT>,
+pub struct StateRefOverrider<'overrides, StateT> {
+    overrides: &'overrides StateOverrides,
+    state: StateT,
 }
 
-impl<'state, StateErrorT> StateRefOverrider<'state, StateErrorT> {
+impl<'overrides, StateT> StateRefOverrider<'overrides, StateT> {
     /// Creates a new state ref overrider.
     pub fn new(
-        overrides: &'state StateOverrides,
-        state: &'state dyn StateRef<Error = StateErrorT>,
-    ) -> StateRefOverrider<'state, StateErrorT> {
+        overrides: &'overrides StateOverrides,
+        state: StateT,
+    ) -> StateRefOverrider<'overrides, StateT> {
         StateRefOverrider { overrides, state }
     }
 }
 
-impl<'state, StateErrorT> StateRef for StateRefOverrider<'state, StateErrorT> {
-    type Error = StateErrorT;
+impl<'state, StateT: StateRef> StateRef for StateRefOverrider<'state, StateT> {
+    type Error = StateT::Error;
 
     fn basic(&self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
-        self.overrides.account_info(self.state, &address)
+        self.overrides.account_info(&self.state, &address)
     }
 
     fn code_by_hash(&self, code_hash: B256) -> Result<Bytecode, Self::Error> {
-        self.overrides.code_by_hash(self.state, code_hash)
+        self.overrides.code_by_hash(&self.state, code_hash)
     }
 
     fn storage(&self, address: Address, index: U256) -> Result<U256, Self::Error> {
         self.overrides
-            .account_storage_at(self.state, &address, &index)
+            .account_storage_at(&self.state, &address, &index)
     }
 }
+
+// // TODO: Remove this once trait upcasting is supported
+// // <https://github.com/NomicFoundation/edr/issues/284>
+// impl<'state, StateErrorT> Debug for StateRefOverrider<'state, StateErrorT> {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         f.debug_struct("StateRefOverrider")
+//             .field("overrides", &self.overrides)
+//             .finish()
+//     }
+// }
+
+// // TODO: Remove this once trait upcasting is supported
+// // <https://github.com/NomicFoundation/edr/issues/284>
+// impl<'state, StateErrorT> DatabaseCommit for StateRefOverrider<'state,
+// StateErrorT> {     fn commit(&mut self, changes: HashMap<Address,
+// revm::primitives::Account>) {         panic!("DatabaseCommit::commit is not
+// supported on StateRefOverrider")     }
+// }
+
+// // TODO: Remove this once trait upcasting is supported
+// // <https://github.com/NomicFoundation/edr/issues/284>
+// impl<'state, StateErrorT> StateDebug for StateRefOverrider<'state,
+// StateErrorT> {     type Error = StateErrorT;
+
+//     fn account_storage_root(&self, address: &Address) -> Result<Option<B256>,
+// Self::Error> {         panic!("StateDebug::account_storage_root is not
+// supported on StateRefOverrider")     }
+
+//     fn insert_account(
+//         &mut self,
+//         address: Address,
+//         account_info: AccountInfo,
+//     ) -> Result<(), Self::Error> {
+//         panic!("StateDebug::insert_account is not supported on
+// StateRefOverrider")     }
+
+//     fn modify_account(
+//         &mut self,
+//         address: Address,
+//         modifier: AccountModifierFn,
+//         default_account_fn: &dyn Fn() -> Result<AccountInfo, Self::Error>,
+//     ) -> Result<AccountInfo, Self::Error> {
+//         panic!("StateDebug::modify_account is not supported on
+// StateRefOverrider")     }
+
+//     fn remove_account(&mut self, address: Address) ->
+// Result<Option<AccountInfo>, Self::Error> {         panic!("
+// StateDebug::remove_account is not supported on StateRefOverrider")     }
+
+//     fn serialize(&self) -> String {
+//         panic!("StateDebug::serialize is not supported on StateRefOverrider")
+//     }
+
+//     fn set_account_storage_slot(
+//         &mut self,
+//         address: Address,
+//         index: U256,
+//         value: U256,
+//     ) -> Result<U256, Self::Error> {
+//         panic!("StateDebug::set_account_storage_slot is not supported on
+// StateRefOverrider")     }
+
+//     fn state_root(&self) -> Result<B256, Self::Error> {
+//         panic!("StateDebug::state_root is not supported on
+// StateRefOverrider")     }
+// }
