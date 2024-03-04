@@ -231,7 +231,7 @@ importers:
         specifier: ^4.0.0
         version: 4.0.1
       '@nomicfoundation/edr':
-        specifier: workspace:^0.2.0-alpha.2
+        specifier: workspace:^0.2.0
         version: link:../../crates/edr_napi
       '@nomicfoundation/ethereumjs-common':
         specifier: 4.0.4
