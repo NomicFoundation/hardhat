@@ -5,8 +5,8 @@ import type {
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 
 export function resolveStrategy(
-  strategyName: string = "basic",
   hre: HardhatRuntimeEnvironment,
+  strategyName: string = "basic",
   strategyConfigOverride: StrategyConfig[keyof StrategyConfig] = {}
 ): DeploymentStrategyType {
   const { BasicStrategy, Create2Strategy } =

@@ -99,7 +99,7 @@ export class ViemIgnitionHelper {
       ...perDeployConfig,
     };
 
-    const strategy = resolveStrategy(strategyName, this._hre, strategyConfig);
+    const strategy = resolveStrategy(this._hre, strategyName, strategyConfig);
 
     const result = await deploy({
       config: resolvedConfig,

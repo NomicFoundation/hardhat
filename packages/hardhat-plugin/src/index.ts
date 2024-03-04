@@ -112,7 +112,7 @@ ignitionScope
       const { PrettyEventHandler } = await import("./ui/pretty-event-handler");
       const { resolveStrategy } = await import("./utils/resolveStrategy");
 
-      const strategy = resolveStrategy(strategyName, hre);
+      const strategy = resolveStrategy(hre, strategyName);
 
       if (verify) {
         if (
