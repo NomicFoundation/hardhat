@@ -235,13 +235,13 @@ function _extendBaseInitWith<
   messageType: MessageT,
   future: FutureT,
   strategy: string,
-  strategyConfig: Record<string, any>,
+  strategyConfig: Record<PropertyKey, string | number>,
   extension: ExtensionT
 ): {
   type: MessageT;
   futureId: string;
   strategy: string;
-  strategyConfig: Record<string, any>;
+  strategyConfig: Record<PropertyKey, string | number>;
   dependencies: string[];
 } & ExtensionT {
   return {

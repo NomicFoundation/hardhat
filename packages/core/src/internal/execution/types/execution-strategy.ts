@@ -221,7 +221,7 @@ export interface ExecutionStrategy {
   /**
    * The configuration options for the strategy.
    */
-  config: {};
+  config: Record<PropertyKey, string | number> | Record<PropertyKey, never>;
 
   init: (
     deploymentLoader: DeploymentLoader,
