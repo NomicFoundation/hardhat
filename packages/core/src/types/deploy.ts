@@ -1,5 +1,5 @@
-import { BasicStrategy } from "../strategies/basic-execution-strategy";
-import { Create2Strategy } from "../strategies/create2-execution-strategy";
+import { BasicStrategy } from "../strategies/basic-strategy";
+import { Create2Strategy } from "../strategies/create2-strategy";
 
 import { ModuleParameters } from "./module";
 
