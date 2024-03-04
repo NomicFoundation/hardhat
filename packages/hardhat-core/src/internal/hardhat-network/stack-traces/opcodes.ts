@@ -119,7 +119,7 @@ export enum Opcode {
   UNRECOGNIZED_5C = 0x5c,
   UNRECOGNIZED_5D = 0x5d,
   UNRECOGNIZED_5E = 0x5e,
-  
+
   // Push operations
   PUSH0 = 0x5f,
   PUSH1 = 0x60,
@@ -307,7 +307,7 @@ export enum Opcode {
 }
 
 export function isPush(opcode: Opcode) {
-  return opcode >= Opcode.PUSH1 && opcode <= Opcode.PUSH32;
+  return opcode >= Opcode.PUSH0 && opcode <= Opcode.PUSH32;
 }
 
 export function isJump(opcode: Opcode) {
