@@ -1,4 +1,3 @@
-import { BasicStrategy } from "../../../src/basic-execution-strategy";
 import { FutureProcessor } from "../../../src/internal/execution/future-processor/future-processor";
 import {
   Block,
@@ -19,6 +18,7 @@ import {
 import { getDefaultSender } from "../../../src/internal/execution/utils/get-default-sender";
 import { MemoryJournal } from "../../../src/internal/journal/memory-journal";
 import { assertIgnitionInvariant } from "../../../src/internal/utils/assertions";
+import { BasicStrategy } from "../../../src/strategies/basic-execution-strategy";
 import {
   exampleAccounts,
   setupMockArtifactResolver,

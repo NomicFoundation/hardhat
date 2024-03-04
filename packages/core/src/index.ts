@@ -1,12 +1,12 @@
-export { BasicStrategy } from "./basic-execution-strategy";
 export { batches } from "./batches";
 export { buildModule } from "./build-module";
-export { Create2Strategy } from "./create2-execution-strategy";
 export { deploy } from "./deploy";
 export * from "./errors";
 export { IgnitionModuleSerializer } from "./ignition-module-serializer";
 export { formatSolidityParameter } from "./internal/formatters";
 export { status } from "./status";
+export { BasicStrategy } from "./strategies/basic-execution-strategy";
+export { Create2Strategy } from "./strategies/create2-execution-strategy";
 export * from "./type-guards";
 export * from "./types/artifact";
 export * from "./types/deploy";

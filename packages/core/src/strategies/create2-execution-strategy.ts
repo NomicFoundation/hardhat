@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 
-import { NomicIgnitionPluginError } from "./errors";
+import { NomicIgnitionPluginError } from "../errors";
 import {
   decodeArtifactCustomError,
   decodeArtifactFunctionCallResult,
@@ -10,19 +10,19 @@ import {
   executeStaticCallRequest,
   getEventArgumentFromReceipt,
   getStaticCallExecutionStateResultValue,
-} from "./internal/execution/execution-strategy-helpers";
-import { EIP1193JsonRpcClient } from "./internal/execution/jsonrpc-client";
+} from "../internal/execution/execution-strategy-helpers";
+import { EIP1193JsonRpcClient } from "../internal/execution/jsonrpc-client";
 import {
   createxArtifact,
   presignedTx,
-} from "./internal/execution/strategy/createx-artifact";
-import { ExecutionResultType } from "./internal/execution/types/execution-result";
+} from "../internal/execution/strategy/createx-artifact";
+import { ExecutionResultType } from "../internal/execution/types/execution-result";
 import {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "./internal/execution/types/execution-state";
+} from "../internal/execution/types/execution-state";
 import {
   CallStrategyGenerator,
   DeploymentStrategyGenerator,
@@ -31,10 +31,10 @@ import {
   OnchainInteractionResponseType,
   SendDataStrategyGenerator,
   StaticCallStrategyGenerator,
-} from "./internal/execution/types/execution-strategy";
-import { NetworkInteractionType } from "./internal/execution/types/network-interaction";
-import { assertIgnitionInvariant } from "./internal/utils/assertions";
-import { EIP1193Provider } from "./types/provider";
+} from "../internal/execution/types/execution-strategy";
+import { NetworkInteractionType } from "../internal/execution/types/network-interaction";
+import { assertIgnitionInvariant } from "../internal/utils/assertions";
+import { EIP1193Provider } from "../types/provider";
 
 // v0.1.0
 const CREATE_X_ADDRESS = "0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed";

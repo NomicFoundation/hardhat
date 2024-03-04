@@ -6,14 +6,14 @@ import {
   executeOnchainInteractionRequest,
   executeStaticCallRequest,
   getStaticCallExecutionStateResultValue,
-} from "./internal/execution/execution-strategy-helpers";
-import { ExecutionResultType } from "./internal/execution/types/execution-result";
+} from "../internal/execution/execution-strategy-helpers";
+import { ExecutionResultType } from "../internal/execution/types/execution-result";
 import {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "./internal/execution/types/execution-state";
+} from "../internal/execution/types/execution-state";
 import {
   CallStrategyGenerator,
   DeploymentStrategyGenerator,
@@ -22,9 +22,9 @@ import {
   OnchainInteractionResponseType,
   SendDataStrategyGenerator,
   StaticCallStrategyGenerator,
-} from "./internal/execution/types/execution-strategy";
-import { NetworkInteractionType } from "./internal/execution/types/network-interaction";
-import { assertIgnitionInvariant } from "./internal/utils/assertions";
+} from "../internal/execution/types/execution-strategy";
+import { NetworkInteractionType } from "../internal/execution/types/network-interaction";
+import { assertIgnitionInvariant } from "../internal/utils/assertions";
 
 /**
  * The basic execution strategy, which sends a single transaction
