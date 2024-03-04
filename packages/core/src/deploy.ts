@@ -105,8 +105,6 @@ export async function deploy<
 
   const jsonRpcClient = new EIP1193JsonRpcClient(provider);
 
-  await executionStrategy.init(deploymentLoader, jsonRpcClient);
-
   const isAutominedNetwork = await checkAutominedNetwork(provider);
 
   const resolvedConfig: DeployConfig = {

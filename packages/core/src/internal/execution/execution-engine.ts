@@ -74,6 +74,11 @@ export class ExecutionEngine {
       defaultSender
     );
 
+    await this._executionStrategy.init(
+      this._deploymentLoader,
+      this._jsonRpcClient
+    );
+
     const transactionTrackingTimer = new TransactionTrackingTimer();
 
     const nonceManager = new JsonRpcNonceManager(
