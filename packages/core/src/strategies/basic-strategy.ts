@@ -74,7 +74,7 @@ class BasicStrategyImplementation
   ): DeploymentStrategyGenerator {
     assertIgnitionInvariant(
       this._deploymentLoader !== undefined,
-      "Strategy not initialized"
+      `Strategy ${this.name} not initialized`
     );
 
     const artifact = await this._deploymentLoader.loadArtifact(
@@ -126,7 +126,7 @@ class BasicStrategyImplementation
   ): CallStrategyGenerator {
     assertIgnitionInvariant(
       this._deploymentLoader !== undefined,
-      "Strategy not initialized"
+      `Strategy ${this.name} not initialized`
     );
 
     const artifact = await this._deploymentLoader.loadArtifact(
@@ -199,7 +199,7 @@ class BasicStrategyImplementation
   ): StaticCallStrategyGenerator {
     assertIgnitionInvariant(
       this._deploymentLoader !== undefined,
-      "Strategy not initialized"
+      `Strategy ${this.name} not initialized`
     );
 
     const artifact = await this._deploymentLoader.loadArtifact(

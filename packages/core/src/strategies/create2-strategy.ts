@@ -140,7 +140,7 @@ class Create2StrategyImplementation
   ): DeploymentStrategyGenerator {
     assertIgnitionInvariant(
       this._deploymentLoader !== undefined && this._jsonRpcClient !== undefined,
-      "Strategy not initialized"
+      `Strategy ${this.name} not initialized`
     );
 
     const artifact = await this._deploymentLoader.loadArtifact(
@@ -210,7 +210,7 @@ class Create2StrategyImplementation
   ): CallStrategyGenerator {
     assertIgnitionInvariant(
       this._deploymentLoader !== undefined && this._jsonRpcClient !== undefined,
-      "Strategy not initialized"
+      `Strategy ${this.name} not initialized`
     );
 
     const artifact = await this._deploymentLoader.loadArtifact(
@@ -283,7 +283,7 @@ class Create2StrategyImplementation
   ): StaticCallStrategyGenerator {
     assertIgnitionInvariant(
       this._deploymentLoader !== undefined && this._jsonRpcClient !== undefined,
-      "Strategy not initialized"
+      `Strategy ${this.name} not initialized`
     );
 
     const artifact = await this._deploymentLoader.loadArtifact(
