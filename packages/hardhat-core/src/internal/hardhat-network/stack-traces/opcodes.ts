@@ -119,9 +119,9 @@ export enum Opcode {
   UNRECOGNIZED_5C = 0x5c,
   UNRECOGNIZED_5D = 0x5d,
   UNRECOGNIZED_5E = 0x5e,
-  UNRECOGNIZED_5F = 0x5f,
-
+  
   // Push operations
+  PUSH0 = 0x5f,
   PUSH1 = 0x60,
   PUSH2 = 0x61,
   PUSH3 = 0x62,
