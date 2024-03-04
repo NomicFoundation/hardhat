@@ -55,7 +55,7 @@ interface BaseExecutionState<
   type: ExecutionStateT;
   futureType: FutureTypeT;
   strategy: string; // For example, "basic" | "create2". This needs to be string if we want custom ones.
-  strategyConfig: Record<string, any>;
+  strategyConfig: Record<string, number | string>;
   status: ExecutionStatus;
   dependencies: Set<string>;
 }
