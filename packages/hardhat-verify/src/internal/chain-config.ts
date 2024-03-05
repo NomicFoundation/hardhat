@@ -140,10 +140,10 @@ export const builtinChains: ChainConfig[] = [
   },
   {
     network: "polygonZkEVMTestnet",
-    chainId: 1442,
+    chainId: 2442,
     urls: {
-      apiURL: "https://api-testnet-zkevm.polygonscan.com/api",
-      browserURL: "https://testnet-zkevm.polygonscan.com",
+      apiURL: "https://api-cardona-zkevm.polygonscan.com/api",
+      browserURL: "https://cardona-zkevm.polygonscan.com",
     },
   },
   {
