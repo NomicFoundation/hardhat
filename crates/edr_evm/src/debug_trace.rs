@@ -60,6 +60,7 @@ where
                     })
                     .with_external_context(&mut tracer)
                     .with_cfg_env_with_handler_cfg(evm_config)
+                    .append_handler_register(register_eip_3155_tracer_handles)
                     .with_block_env(block_env)
                     .with_tx_env(transaction.into())
                     .build();
@@ -210,11 +211,10 @@ pub struct DebugTraceLogItem {
 }
 
 fn register_eip_3155_tracer_handles<
-    'a,
     DatabaseT: Database,
     ContextT: GetContextData<TracerEip3155>,
 >(
-    handler: &mut EvmHandler<'a, ContextT, DatabaseT>,
+    handler: &mut EvmHandler<'_, ContextT, DatabaseT>,
 ) {
     // Every instruction inside flat table that is going to be wrapped by tracer
     // calls.
@@ -492,7 +492,7 @@ impl TracerEip3155 {
         self.logs.push(log_item);
     }
 
-    pub fn initialize_interp<DatabaseT: Database>(
+    fn initialize_interp<DatabaseT: Database>(
         &mut self,
         interp: &mut Interpreter,
         context: &mut EvmContext<DatabaseT>,

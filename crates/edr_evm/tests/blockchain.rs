@@ -172,16 +172,8 @@ fn insert_dummy_block_with_transaction(
             cumulative_gas_used: GAS_USED,
             logs_bloom: Bloom::default(),
             logs: vec![
-                Log {
-                    address: Address::random(),
-                    topics: Vec::new(),
-                    data: Bytes::new(),
-                },
-                Log {
-                    address: Address::random(),
-                    topics: Vec::new(),
-                    data: Bytes::new(),
-                },
+                Log::new_unchecked(Address::random(), Vec::new(), Bytes::new()),
+                Log::new_unchecked(Address::random(), Vec::new(), Bytes::new()),
             ],
             data: TypedReceiptData::PostEip658Legacy { status: 1 },
             spec_id: blockchain.spec_id(),
@@ -498,7 +490,7 @@ async fn logs_local() -> anyhow::Result<()> {
 
         for (log, filter_log) in expected.iter().zip(actual.iter()) {
             assert_eq!(log.address, filter_log.address);
-            assert_eq!(log.topics, filter_log.topics);
+            assert_eq!(log.topics(), filter_log.topics());
             assert_eq!(log.data, filter_log.data);
         }
     }

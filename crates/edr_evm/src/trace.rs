@@ -16,11 +16,10 @@ use crate::debug::GetContextData;
 
 /// Registers trace collector handles to the EVM handler.
 pub fn register_trace_collector_handles<
-    'a,
     DatabaseT: Database,
     ContextT: GetContextData<TraceCollector>,
 >(
-    handler: &mut EvmHandler<'a, ContextT, DatabaseT>,
+    handler: &mut EvmHandler<'_, ContextT, DatabaseT>,
 ) where
     DatabaseT::Error: Debug,
 {
@@ -31,7 +30,7 @@ pub fn register_trace_collector_handles<
         .take()
         .expect("Handler must have instruction table");
 
-    let mut table = match table {
+    let table = match table {
         EvmInstructionTables::Plain(table) => table
             .into_iter()
             .map(|i| instruction_handler(i))
@@ -56,7 +55,7 @@ pub fn register_trace_collector_handles<
     let create_input_stack_inner = create_input_stack.clone();
     let old_handle = handler.execution.create.clone();
     handler.execution.create = Arc::new(
-        move |ctx, mut inputs| -> Result<FrameOrResult, EVMError<DatabaseT::Error>> {
+        move |ctx, inputs| -> Result<FrameOrResult, EVMError<DatabaseT::Error>> {
             let tracer = ctx.external.get_context_data();
             tracer.create(&ctx.evm, &inputs);
 
@@ -70,7 +69,7 @@ pub fn register_trace_collector_handles<
     let call_input_stack_inner = call_input_stack.clone();
     let old_handle = handler.execution.call.clone();
     handler.execution.call = Arc::new(
-        move |ctx, mut inputs| -> Result<FrameOrResult, EVMError<DatabaseT::Error>> {
+        move |ctx, inputs| -> Result<FrameOrResult, EVMError<DatabaseT::Error>> {
             let tracer = ctx.external.get_context_data();
             tracer.call(&mut ctx.evm, &inputs);
 
@@ -84,7 +83,7 @@ pub fn register_trace_collector_handles<
     let call_input_stack_inner = call_input_stack.clone();
     let old_handle = handler.execution.insert_call_outcome.clone();
     handler.execution.insert_call_outcome = Arc::new(
-        move |ctx: &mut revm::Context<ContextT, DatabaseT>, frame, shared_memory, mut outcome| {
+        move |ctx: &mut revm::Context<ContextT, DatabaseT>, frame, shared_memory, outcome| {
             let call_inputs = call_input_stack_inner.borrow_mut().pop().unwrap();
 
             let tracer = ctx.external.get_context_data();
@@ -97,7 +96,7 @@ pub fn register_trace_collector_handles<
     // create outcome
     let create_input_stack_inner = create_input_stack.clone();
     let old_handle = handler.execution.insert_create_outcome.clone();
-    handler.execution.insert_create_outcome = Arc::new(move |ctx, frame, mut outcome| {
+    handler.execution.insert_create_outcome = Arc::new(move |ctx, frame, outcome| {
         let create_inputs = create_input_stack_inner.borrow_mut().pop().unwrap();
 
         let tracer = ctx.external.get_context_data();
@@ -113,11 +112,11 @@ pub fn register_trace_collector_handles<
         match frame_result {
             FrameResult::Call(outcome) => {
                 let call_inputs = call_input_stack.borrow_mut().pop().unwrap();
-                tracer.call_end(&mut ctx.evm, &call_inputs, &outcome);
+                tracer.call_end(&ctx.evm, &call_inputs, &outcome);
             }
             FrameResult::Create(outcome) => {
                 let create_inputs = create_input_stack.borrow_mut().pop().unwrap();
-                tracer.create_end(&mut ctx.evm, &create_inputs, &outcome);
+                tracer.create_end(&ctx.evm, &create_inputs, &outcome);
             }
         }
         old_handle(ctx, frame_result)

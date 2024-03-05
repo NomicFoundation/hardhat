@@ -10,7 +10,7 @@ impl<DatabaseT: Database, DebugDataT: Clone> Clone for DebugContext<DatabaseT, D
     fn clone(&self) -> Self {
         Self {
             data: self.data.clone(),
-            register_handles_fn: self.register_handles_fn.clone(),
+            register_handles_fn: self.register_handles_fn,
         }
     }
 }

@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, fmt::Debug, sync::Arc};
 
-use edr_eth::{block::BlockOptions, state, U256};
+use edr_eth::{block::BlockOptions, U256};
 use revm::{
     db::{BlockHashRef, DatabaseComponents, WrapDatabaseRef},
     primitives::{CfgEnvWithHandlerCfg, ExecutionResult, InvalidTransaction},
@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     block::BlockBuilderCreationError,
-    blockchain::{Blockchain, SyncBlockchain},
+    blockchain::Blockchain,
     debug::DebugContext,
     mempool::OrderedTransaction,
     state::{StateDiff, SyncState},
