@@ -2,6 +2,7 @@ import { DeploymentParameters } from "../../../../types/deploy";
 import { Future, FutureType } from "../../../../types/module";
 import { DeploymentLoader } from "../../../deployment-loader/types";
 import { DeploymentState } from "../../types/deployment-state";
+import { PassedStrategyConfig } from "../../types/execution-state";
 import { ExecutionStrategy } from "../../types/execution-strategy";
 import {
   CallExecutionStateInitializeMessage,
@@ -235,13 +236,13 @@ function _extendBaseInitWith<
   messageType: MessageT,
   future: FutureT,
   strategy: string,
-  strategyConfig: Record<PropertyKey, string | number>,
+  strategyConfig: PassedStrategyConfig,
   extension: ExtensionT
 ): {
   type: MessageT;
   futureId: string;
   strategy: string;
-  strategyConfig: Record<PropertyKey, string | number>;
+  strategyConfig: PassedStrategyConfig;
   dependencies: string[];
 } & ExtensionT {
   return {

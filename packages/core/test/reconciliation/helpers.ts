@@ -8,7 +8,10 @@ import {
 } from "../../src";
 import { DeploymentLoader } from "../../src/internal/deployment-loader/types";
 import { DeploymentState } from "../../src/internal/execution/types/deployment-state";
-import { ExecutionState } from "../../src/internal/execution/types/execution-state";
+import {
+  ExecutionState,
+  PassedStrategyConfig,
+} from "../../src/internal/execution/types/execution-state";
 import { JournalMessage } from "../../src/internal/execution/types/messages";
 import { getDefaultSender } from "../../src/internal/execution/utils/get-default-sender";
 import { Reconciler } from "../../src/internal/reconciliation/reconciler";
@@ -128,7 +131,7 @@ export async function reconcile(
   artifactLoader: ArtifactResolver = new MockArtifactResolver(),
   deploymentParameters: DeploymentParameters = {},
   strategy: string = "basic",
-  strategyConfig: Record<string, any> = {}
+  strategyConfig: PassedStrategyConfig = {}
 ): Promise<ReconciliationResult> {
   const reconiliationResult = Reconciler.reconcile(
     ignitionModule,
