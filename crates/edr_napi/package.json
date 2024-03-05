@@ -3,6 +3,13 @@
   "version": "0.2.0",
   "main": "index.js",
   "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "Cargo.toml",
+    "build.rs",
+    "src/"
+  ],
   "repository": {
     "url": "https://github.com/NomicFoundation/hardhat.git",
     "type": "git"
