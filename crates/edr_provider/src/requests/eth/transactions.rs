@@ -434,7 +434,7 @@ fn send_raw_transaction_and_log<LoggerErrorT: Debug>(
 
     if data.bail_on_transaction_failure() {
         let transaction_failure = transaction_result.and_then(|(result, trace)| {
-            TransactionFailure::from_execution_result(&result, &transaction_hash, &trace)
+            TransactionFailure::from_execution_result(&result, Some(&transaction_hash), &trace)
         });
 
         if let Some(failure) = transaction_failure {

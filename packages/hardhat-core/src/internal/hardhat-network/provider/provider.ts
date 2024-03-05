@@ -367,28 +367,34 @@ export class EdrProviderWrapper
       const trace = rawTrace.trace();
       for (const traceItem of trace) {
         if ("pc" in traceItem) {
-          this._node._vm.evm.events.emit(
-            "step",
-            edrTracingStepToMinimalInterpreterStep(traceItem)
-          );
+          if (this._node._vm.evm.events.listenerCount("step") > 0) {
+            this._node._vm.evm.events.emit(
+              "step",
+              edrTracingStepToMinimalInterpreterStep(traceItem)
+            );
+          }
           if (this._rawTraceCallbacks.onStep !== undefined) {
             await this._rawTraceCallbacks.onStep(traceItem);
           }
         } else if ("executionResult" in traceItem) {
-          this._node._vm.evm.events.emit(
-            "afterMessage",
-            edrTracingMessageResultToMinimalEVMResult(traceItem)
-          );
+          if (this._node._vm.evm.events.listenerCount("afterMessage") > 0) {
+            this._node._vm.evm.events.emit(
+              "afterMessage",
+              edrTracingMessageResultToMinimalEVMResult(traceItem)
+            );
+          }
           if (this._rawTraceCallbacks.onAfterMessage !== undefined) {
             await this._rawTraceCallbacks.onAfterMessage(
               traceItem.executionResult
             );
           }
         } else {
-          this._node._vm.evm.events.emit(
-            "beforeMessage",
-            edrTracingMessageToMinimalMessage(traceItem)
-          );
+          if (this._node._vm.evm.events.listenerCount("beforeMessage") > 0) {
+            this._node._vm.evm.events.emit(
+              "beforeMessage",
+              edrTracingMessageToMinimalMessage(traceItem)
+            );
+          }
           if (this._rawTraceCallbacks.onBeforeMessage !== undefined) {
             await this._rawTraceCallbacks.onBeforeMessage(traceItem);
           }
@@ -408,10 +414,9 @@ export class EdrProviderWrapper
       if (stackTrace !== undefined) {
         error = encodeSolidityStackTrace(response.error.message, stackTrace);
         // Pass data and transaction hash from the original error
-        (error as any).data = {
-          data: response.error.data?.data ?? undefined,
-          transactionHash: response.error.data?.transactionHash ?? undefined,
-        };
+        (error as any).data = response.error.data?.data ?? undefined;
+        (error as any).transactionHash =
+          response.error.data?.transactionHash ?? undefined;
       } else {
         if (response.error.code === InvalidArgumentsError.CODE) {
           error = new InvalidArgumentsError(response.error.message);
