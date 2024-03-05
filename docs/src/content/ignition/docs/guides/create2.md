@@ -2,7 +2,7 @@
 
 When deploying contracts, you may want to deploy them to a specific address. This can be useful for a variety of reasons, such as deploying a contract to the same address on multiple networks. Hardhat Ignition makes this easy by allowing you to deploy your existing Ignition modules via a `create2` deployment utilizing the [CreateX factory](https://createx.rocks/).
 
-::: tip
+:::tip
 
 As is the case when using any unaudited contract system, please be aware of the [security considerations](https://github.com/pcaversaccio/createx?tab=readme-ov-file#security-considerations) of using the CreateX factory on a mainnet network.
 
