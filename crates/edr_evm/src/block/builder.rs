@@ -48,6 +48,7 @@ pub enum BlockTransactionError<BE, SE> {
     /// Blockchain errors
     #[error(transparent)]
     BlockHash(BE),
+    /// Custom error
     #[error("{0}")]
     Custom(String),
     /// Transaction has higher gas limit than is remaining in block
@@ -198,7 +199,13 @@ impl BlockBuilder {
         debug_context: Option<
             DebugContext<WrapDatabaseRef<DatabaseComponents<StateT, BlockchainT>>, DebugDataT>,
         >,
-    ) -> Result<ExecutionResult, BlockTransactionError<BlockchainT::Error, StateErrorT>>
+    ) -> Result<
+        (ExecutionResult, StateT),
+        (
+            BlockTransactionError<BlockchainT::Error, StateErrorT>,
+            StateT,
+        ),
+    >
     where
         BlockchainT: BlockHashRef,
         BlockchainT::Error: Debug + Send,
@@ -208,7 +215,7 @@ impl BlockBuilder {
         //  transaction's gas limit cannot be greater than the remaining gas in the
         // block
         if transaction.gas_limit() > self.gas_remaining() {
-            return Err(BlockTransactionError::ExceedsBlockGasLimit);
+            return Err((BlockTransactionError::ExceedsBlockGasLimit, state));
         }
 
         let spec_id = self.cfg.handler_cfg.spec_id;
@@ -256,9 +263,15 @@ impl BlockBuilder {
                     .append_handler_register(debug_context.register_handles_fn)
                     .build();
 
-                let result = evm.transact()?;
+                let result = evm.transact();
                 let state = evm.into_context().evm.db.0.state;
-                (result, state)
+
+                match result {
+                    Ok(result) => (result, state),
+                    Err(error) => {
+                        return Err((error.into(), state));
+                    }
+                }
             } else {
                 let mut evm = Evm::builder()
                     .with_ref_db(DatabaseComponents {
@@ -268,9 +281,15 @@ impl BlockBuilder {
                     .with_env_with_handler_cfg(env)
                     .build();
 
-                let result = evm.transact()?;
+                let result = evm.transact();
                 let state = evm.into_context().evm.db.0.state;
-                (result, state)
+
+                match result {
+                    Ok(result) => (result, state),
+                    Err(error) => {
+                        return Err((error.into(), state));
+                    }
+                }
             }
         };
 
@@ -348,7 +367,7 @@ impl BlockBuilder {
 
         self.transactions.push(transaction);
 
-        Ok(result)
+        Ok((result, state))
     }
 
     /// Finalizes the block, returning the block and the callers of the

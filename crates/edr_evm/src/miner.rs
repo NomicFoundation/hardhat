@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, fmt::Debug, sync::Arc};
 
-use edr_eth::{block::BlockOptions, U256};
+use edr_eth::{block::BlockOptions, state, U256};
 use revm::{
     db::{BlockHashRef, DatabaseComponents, WrapDatabaseRef},
     primitives::{CfgEnvWithHandlerCfg, ExecutionResult, InvalidTransaction},
@@ -97,7 +97,7 @@ pub fn mine_block<BlockchainT, BlockchainErrorT, DebugDataT, StateErrorT>(
     dao_hardfork_activation_block: Option<u64>,
     debug_context: Option<
         DebugContext<
-            WrapDatabaseRef<DatabaseComponents<&mut Box<dyn SyncState<StateErrorT>>, BlockchainT>>,
+            WrapDatabaseRef<DatabaseComponents<Box<dyn SyncState<StateErrorT>>, BlockchainT>>,
             DebugDataT,
         >,
     >,
@@ -110,6 +110,7 @@ where
         + BlockHashRef<Error = BlockchainErrorT>
         + Clone,
     BlockchainErrorT: Debug + Send,
+    DebugDataT: Copy,
     StateErrorT: Debug + Send,
 {
     let parent_block = blockchain
@@ -149,26 +150,24 @@ where
         }
 
         let caller = *transaction.caller();
-        match block_builder.add_transaction(
-            blockchain.clone(),
-            &mut state,
-            transaction,
-            debug_context,
-        ) {
-            Err(
+        match block_builder.add_transaction(blockchain.clone(), state, transaction, debug_context) {
+            Err((
                 BlockTransactionError::ExceedsBlockGasLimit
                 | BlockTransactionError::InvalidTransaction(
                     InvalidTransaction::GasPriceLessThanBasefee,
                 ),
-            ) => {
+                new_state,
+            )) => {
                 pending_transactions.remove_caller(&caller);
+                state = new_state;
                 continue;
             }
-            Err(e) => {
-                return Err(MineBlockError::BlockTransaction(e));
+            Err((error, _state)) => {
+                return Err(MineBlockError::BlockTransaction(error));
             }
-            Ok(result) => {
+            Ok((result, new_state)) => {
                 results.push(result);
+                state = new_state;
             }
         }
     }
