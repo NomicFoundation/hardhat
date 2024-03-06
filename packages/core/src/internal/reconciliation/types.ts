@@ -4,8 +4,8 @@ import { Future } from "../../types/module";
 import { DeploymentLoader } from "../deployment-loader/types";
 import { DeploymentState } from "../execution/types/deployment-state";
 import {
+  ConcreteExecutionConfig,
   ExecutionState,
-  PassedStrategyConfig,
 } from "../execution/types/execution-state";
 
 export interface ReconciliationFailure {
@@ -39,7 +39,7 @@ export interface ReconciliationContext {
   deploymentLoader: DeploymentLoader;
   defaultSender: string;
   strategy: string;
-  strategyConfig: PassedStrategyConfig;
+  strategyConfig: ConcreteExecutionConfig;
 }
 
 export type ReconciliationCheck = (

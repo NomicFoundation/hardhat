@@ -6,9 +6,9 @@ import { DeploymentLoader } from "../deployment-loader/types";
 import { ERRORS } from "../errors-list";
 import { DeploymentState } from "../execution/types/deployment-state";
 import {
+  ConcreteExecutionConfig,
   ExecutionState,
   ExecutionStatus,
-  PassedStrategyConfig,
 } from "../execution/types/execution-state";
 import { AdjacencyList } from "../utils/adjacency-list";
 import { AdjacencyListConverter } from "../utils/adjacency-list-converter";
@@ -35,7 +35,7 @@ export class Reconciler {
     artifactResolver: ArtifactResolver,
     defaultSender: string,
     strategy: string,
-    strategyConfig: PassedStrategyConfig
+    strategyConfig: ConcreteExecutionConfig
   ): Promise<ReconciliationResult> {
     const reconciliationFailures = await this._reconcileEachFutureInModule(
       module,
