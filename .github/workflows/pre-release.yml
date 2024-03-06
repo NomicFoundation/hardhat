@@ -76,4 +76,4 @@ jobs:
           NODE_OPTIONS: "--max-old-space-size=4096"
         run: |
           pnpm build
-          pnpm test:forking
+          pnpm test:except-tracing
