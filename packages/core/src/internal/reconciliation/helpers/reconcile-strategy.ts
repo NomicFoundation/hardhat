@@ -14,6 +14,7 @@ import {
   CallExecutionState,
   ContractAtExecutionState,
   DeploymentExecutionState,
+  ExecutionStatus,
   ReadEventArgumentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
@@ -45,6 +46,17 @@ export function reconcileStrategy(
     | ReadEventArgumentExecutionState,
   context: ReconciliationContext
 ): ReconciliationFutureResultFailure | undefined {
+  /**
+   * If the execution was successful, we don't need to reconcile the strategy.
+   *
+   * The strategy is set per run, so reconciling already completed futures
+   * would lead to a false positive. We only want to reconcile futures that
+   * will be run again.
+   */
+  if (exState.status === ExecutionStatus.SUCCESS) {
+    return undefined;
+  }
+
   const storedStrategyName = exState.strategy;
   const newStrategyName = context.strategy;
 
