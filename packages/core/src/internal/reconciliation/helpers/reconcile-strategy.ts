@@ -67,6 +67,8 @@ export function reconcileStrategy(
     );
   }
 
+  // We may have an `undefined` strategy config when reading a journal, as
+  // some previous versions of Ignition didn't set this property
   const storedStrategyConfig = exState.strategyConfig ?? {};
   const newStrategyConfig = context.strategyConfig;
 
