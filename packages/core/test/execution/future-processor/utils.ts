@@ -8,7 +8,6 @@ import {
 } from "../../../src/internal/execution/jsonrpc-client";
 import { NonceManager } from "../../../src/internal/execution/nonce-management/json-rpc-nonce-manager";
 import { TransactionTrackingTimer } from "../../../src/internal/execution/transaction-tracking-timer";
-import { ExecutionStrategy } from "../../../src/internal/execution/types/execution-strategy";
 import {
   NetworkFees,
   RawStaticCallResult,
@@ -46,7 +45,7 @@ export async function setupFutureProcessor(
     transactions
   );
 
-  const basicExecutionStrategy = new BasicStrategy() as ExecutionStrategy;
+  const basicExecutionStrategy = new BasicStrategy();
   await basicExecutionStrategy.init(mockDeploymentLoader, mockJsonRpcClient);
 
   const transactionTrackingTimer = new TransactionTrackingTimer();

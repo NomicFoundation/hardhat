@@ -1,6 +1,3 @@
-import { BasicStrategy } from "../strategies/basic-strategy";
-import { Create2Strategy } from "../strategies/create2-strategy";
-
 import { ModuleParameters } from "./module";
 
 /**
@@ -211,13 +208,6 @@ export interface SuccessfulDeploymentResult {
 export interface DeploymentParameters {
   [moduleId: string]: ModuleParameters;
 }
-
-/**
- * The different types of deployment strategies.
- *
- * @beta
- */
-export type DeploymentStrategyType = Create2Strategy | BasicStrategy;
 
 /**
  * The config options for the deployment strategies.

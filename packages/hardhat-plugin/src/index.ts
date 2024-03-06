@@ -110,9 +110,6 @@ ignitionScope
       );
       const { loadModule } = await import("./utils/load-module");
       const { PrettyEventHandler } = await import("./ui/pretty-event-handler");
-      const { resolveStrategy } = await import("./utils/resolveStrategy");
-
-      const strategy = resolveStrategy(hre, strategyName);
 
       if (verify) {
         if (
@@ -180,6 +177,14 @@ ignitionScope
         }
       }
 
+      if (strategyName !== "basic" && strategyName !== "create2") {
+        require("hardhat/plugins") as typeof import("hardhat/plugins");
+        throw new NomicLabsHardhatPluginError(
+          "hardhat-ignition",
+          "Invalid strategy name, must be either 'basic' or 'create2'"
+        );
+      }
+
       await hre.run("compile", { quiet: true });
 
       const userModule = loadModule(hre.config.paths.ignition, modulePath);
@@ -209,6 +214,8 @@ ignitionScope
 
       const executionEventListener = new PrettyEventHandler();
 
+      const strategyConfig = hre.config.ignition.strategyConfig?.[strategyName];
+
       try {
         const result = await deploy({
           config: hre.config.ignition,
@@ -220,7 +227,8 @@ ignitionScope
           deploymentParameters: parameters ?? {},
           accounts,
           defaultSender,
-          strategy,
+          strategy: strategyName,
+          strategyConfig,
         });
 
         if (result.type === "SUCCESSFUL_DEPLOYMENT" && verify) {

@@ -230,7 +230,7 @@ describe("create2", function () {
             strategy: "create2",
           }
         ),
-        /The create2 strategy requires a salt to be set under 'ignition.strategyConfig.create2.salt' in the Hardhat config/
+        /IGN1102: Missing required strategy configuration parameter 'salt' for the strategy 'create2'/
       );
     });
   });

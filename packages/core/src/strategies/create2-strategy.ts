@@ -73,32 +73,15 @@ const CREATE_X_PRESIGNED_DEPLOYER_ADDRESS =
  *
  * @beta
  */
-export class Create2Strategy {
-  public readonly name = "create2" as const;
+export class Create2Strategy implements ExecutionStrategy {
+  public readonly name: string = "create2";
   public readonly config: { salt: string };
 
-  constructor(config: { salt: string }) {
-    this.config = config;
-  }
-}
-
-/**
- * The create2 strategy.
- *
- * The Create2StrategyImplementation is internal. It will be properly exposed
- * in the Core API with the full Strategy API.
- *
- * @private
- */
-class Create2StrategyImplementation
-  extends Create2Strategy
-  implements ExecutionStrategy
-{
   private _deploymentLoader: DeploymentLoader | undefined;
   private _jsonRpcClient: JsonRpcClient | undefined;
 
   constructor(config: { salt: string }) {
-    super(config);
+    this.config = config;
   }
 
   public async init(
@@ -362,11 +345,3 @@ class Create2StrategyImplementation
     }
   }
 }
-
-// TODO: Remove this hack once we are fully exposing our Strategy API.
-// We don't want to export all of the internal types and the API Extractor
-// is harsh. So we define a reduced Create2Strategy class and type, but
-// override the implementation. The reduced class is exported in a way
-// API extractor will accept, while the richer implementation will
-// actually be used.
-(this as any).Create2Strategy = Create2StrategyImplementation;

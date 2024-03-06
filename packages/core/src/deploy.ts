@@ -14,12 +14,13 @@ import { equalAddresses } from "./internal/execution/utils/address";
 import { getDefaultSender } from "./internal/execution/utils/get-default-sender";
 import { checkAutominedNetwork } from "./internal/utils/check-automined-network";
 import { validate } from "./internal/validation/validate";
+import { resolveStrategy } from "./strategies/resolve-strategy";
 import { ArtifactResolver } from "./types/artifact";
 import {
   DeployConfig,
   DeploymentParameters,
   DeploymentResult,
-  DeploymentStrategyType,
+  StrategyConfig,
 } from "./types/deploy";
 import {
   ExecutionEventListener,
@@ -36,7 +37,8 @@ import { EIP1193Provider } from "./types/provider";
 export async function deploy<
   ModuleIdT extends string,
   ContractNameT extends string,
-  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
+  StrategyT extends keyof StrategyConfig = "basic"
 >({
   config = {},
   artifactResolver,
@@ -48,6 +50,7 @@ export async function deploy<
   accounts,
   defaultSender: givenDefaultSender,
   strategy,
+  strategyConfig,
 }: {
   config?: Partial<DeployConfig>;
   artifactResolver: ArtifactResolver;
@@ -62,9 +65,13 @@ export async function deploy<
   deploymentParameters: DeploymentParameters;
   accounts: string[];
   defaultSender?: string;
-  strategy: DeploymentStrategyType;
+  strategy?: StrategyT;
+  strategyConfig?: StrategyConfig[StrategyT];
 }): Promise<DeploymentResult> {
-  const executionStrategy: ExecutionStrategy = strategy as ExecutionStrategy;
+  const executionStrategy: ExecutionStrategy = resolveStrategy(
+    strategy,
+    strategyConfig
+  );
 
   if (executionEventListener !== undefined) {
     executionEventListener.setModuleId({

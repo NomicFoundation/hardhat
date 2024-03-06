@@ -1,5 +1,3 @@
-import type { GetContractReturnType } from "@nomicfoundation/hardhat-viem/types";
-
 import {
   deploy,
   DeployConfig,
@@ -15,11 +13,15 @@ import {
 } from "@nomicfoundation/ignition-core";
 import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { createPublicClient, custom, getContract } from "viem";
+import {
+  createPublicClient,
+  custom,
+  getContract,
+  GetContractReturnType,
+} from "viem";
 import { hardhat } from "viem/chains";
 
 import { HardhatArtifactResolver } from "../../src/hardhat-artifact-resolver";
-import { resolveStrategy } from "../../src/helpers";
 import { errorDeploymentResultToExceptionMessage } from "../../src/utils/error-deployment-result-to-exception-message";
 
 export type IgnitionModuleResultsTToViemContracts<
@@ -95,8 +97,6 @@ export class TestIgnitionHelper {
       ...perDeployConfig,
     };
 
-    const strategy = resolveStrategy(this._hre, strategyName, strategyConfig);
-
     const result = await deploy({
       config: resolvedConfig,
       provider: this._provider,
@@ -106,7 +106,8 @@ export class TestIgnitionHelper {
       deploymentParameters: parameters,
       accounts,
       defaultSender,
-      strategy,
+      strategy: strategyName,
+      strategyConfig,
     });
 
     if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {

@@ -1,7 +1,6 @@
 import {
   HardhatArtifactResolver,
   errorDeploymentResultToExceptionMessage,
-  resolveStrategy,
 } from "@nomicfoundation/hardhat-ignition/helpers";
 import {
   DeployConfig,
@@ -77,7 +76,7 @@ export class EthersIgnitionHelper {
       parameters = {},
       config: perDeployConfig = {},
       defaultSender = undefined,
-      strategy: strategyName,
+      strategy,
       strategyConfig,
     }: {
       parameters?: DeploymentParameters;
@@ -109,7 +108,12 @@ export class EthersIgnitionHelper {
       ...perDeployConfig,
     };
 
-    const strategy = resolveStrategy(this._hre, strategyName, strategyConfig);
+    const resolvedStrategyConfig =
+      EthersIgnitionHelper._resolveStrategyConfig<StrategyT>(
+        this._hre,
+        strategy,
+        strategyConfig
+      );
 
     const result = await deploy({
       config: resolvedConfig,
@@ -121,6 +125,7 @@ export class EthersIgnitionHelper {
       accounts,
       defaultSender,
       strategy,
+      strategyConfig: resolvedStrategyConfig,
     });
 
     if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {
@@ -195,5 +200,24 @@ export class EthersIgnitionHelper {
       future.contractName,
       deployedContract.address
     );
+  }
+
+  private static _resolveStrategyConfig<StrategyT extends keyof StrategyConfig>(
+    hre: HardhatRuntimeEnvironment,
+    strategyName: StrategyT | undefined,
+    strategyConfig: StrategyConfig[StrategyT] | undefined
+  ): StrategyConfig[StrategyT] | undefined {
+    if (strategyName === undefined) {
+      return undefined;
+    }
+
+    if (strategyConfig === undefined) {
+      const fromHardhatConfig =
+        hre.config.ignition?.strategyConfig?.[strategyName];
+
+      return fromHardhatConfig;
+    }
+
+    return strategyConfig;
   }
 }

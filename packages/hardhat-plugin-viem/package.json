@@ -20,7 +20,7 @@
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
-    "prebuild": "ts-node ./scripts/compile-test-fixture-projects.ts",
+    "prebuild": "ts-node ./scripts/compile-test-fixture-project.ts create2 && ts-node ./scripts/compile-test-fixture-project.ts minimal",
     "build": "tsc --build",
     "lint": "npm run prettier -- --check && npm run eslint",
     "lint:fix": "npm run prettier -- --write && npm run eslint -- --fix",

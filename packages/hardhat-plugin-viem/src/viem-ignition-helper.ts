@@ -3,7 +3,6 @@ import type { GetContractReturnType } from "@nomicfoundation/hardhat-viem/types"
 import {
   HardhatArtifactResolver,
   errorDeploymentResultToExceptionMessage,
-  resolveStrategy,
 } from "@nomicfoundation/hardhat-ignition/helpers";
 import {
   ContractAtFuture,
@@ -70,7 +69,7 @@ export class ViemIgnitionHelper {
       parameters = {},
       config: perDeployConfig = {},
       defaultSender = undefined,
-      strategy: strategyName,
+      strategy,
       strategyConfig,
     }: {
       parameters?: DeploymentParameters;
@@ -99,7 +98,12 @@ export class ViemIgnitionHelper {
       ...perDeployConfig,
     };
 
-    const strategy = resolveStrategy(this._hre, strategyName, strategyConfig);
+    const resolvedStrategyConfig =
+      ViemIgnitionHelper._resolveStrategyConfig<StrategyT>(
+        this._hre,
+        strategy,
+        strategyConfig
+      );
 
     const result = await deploy({
       config: resolvedConfig,
@@ -111,6 +115,7 @@ export class ViemIgnitionHelper {
       accounts,
       defaultSender,
       strategy,
+      strategyConfig: resolvedStrategyConfig,
     });
 
     if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {
@@ -252,5 +257,24 @@ export class ViemIgnitionHelper {
     }
 
     return `0x${address.slice(2)}`;
+  }
+
+  private static _resolveStrategyConfig<StrategyT extends keyof StrategyConfig>(
+    hre: HardhatRuntimeEnvironment,
+    strategyName: StrategyT | undefined,
+    strategyConfig: StrategyConfig[StrategyT] | undefined
+  ): StrategyConfig[StrategyT] | undefined {
+    if (strategyName === undefined) {
+      return undefined;
+    }
+
+    if (strategyConfig === undefined) {
+      const fromHardhatConfig =
+        hre.config.ignition?.strategyConfig?.[strategyName];
+
+      return fromHardhatConfig;
+    }
+
+    return strategyConfig;
   }
 }

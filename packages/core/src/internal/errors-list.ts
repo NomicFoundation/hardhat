@@ -68,6 +68,11 @@ export const ERROR_RANGES: {
     max: 1099,
     title: "Verify errors",
   },
+  STRATEGIES: {
+    min: 1100,
+    max: 1199,
+    title: "Strategy errors",
+  },
 };
 
 /**
@@ -355,6 +360,22 @@ export const ERRORS = {
       number: 1002,
       message:
         "Verification not natively supported for chainId %chainId%. Please use a custom chain configuration to add support.",
+    },
+  },
+  STRATEGIES: {
+    UNKNOWN_STRATEGY: {
+      number: 1100,
+      message:
+        "Unknown strategy %strategyName%, must be either 'basic' or 'create2'",
+    },
+    MISSING_CONFIG: {
+      number: 1101,
+      message: "No strategy config passed for strategy '%strategyName%'",
+    },
+    MISSING_CONFIG_PARAM: {
+      number: 1102,
+      message:
+        "Missing required strategy configuration parameter '%requiredParam%' for the strategy '%strategyName%'",
     },
   },
 };
