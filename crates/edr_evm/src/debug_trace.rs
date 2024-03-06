@@ -210,7 +210,8 @@ pub struct DebugTraceLogItem {
     pub storage: Option<HashMap<String, String>>,
 }
 
-fn register_eip_3155_tracer_handles<
+/// Register EIP-3155 tracer handles.
+pub fn register_eip_3155_tracer_handles<
     DatabaseT: Database,
     ContextT: GetContextData<TracerEip3155>,
 >(
