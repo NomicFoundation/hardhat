@@ -130,8 +130,6 @@ export class Create2Strategy implements ExecutionStrategy {
       executionState.artifactId
     );
 
-    const salt = ethers.id(this.config.salt);
-
     const bytecodeToDeploy = encodeArtifactDeploymentData(
       artifact,
       executionState.constructorArgs,
@@ -147,7 +145,7 @@ export class Create2Strategy implements ExecutionStrategy {
         data: encodeArtifactFunctionCall(
           createxArtifact,
           "deployCreate2(bytes32,bytes)",
-          [salt, bytecodeToDeploy]
+          [this.config.salt, bytecodeToDeploy]
         ),
         value: executionState.value,
       },

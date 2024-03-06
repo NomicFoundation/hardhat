@@ -377,6 +377,11 @@ export const ERRORS = {
       message:
         "Missing required strategy configuration parameter '%requiredParam%' for the strategy '%strategyName%'",
     },
+    INVALID_CONFIG_PARAM: {
+      number: 1102,
+      message:
+        "Strategy configuration parameter '%paramName%' for the strategy '%strategyName%' is invalid: %reason%",
+    },
   },
 };
 

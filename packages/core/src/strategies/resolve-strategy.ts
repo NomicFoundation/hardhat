@@ -31,10 +31,26 @@ export function resolveStrategy<StrategyT extends keyof StrategyConfig>(
         });
       }
 
+      if (hexStringLengthInBytes(strategyConfig.salt) !== 32) {
+        throw new IgnitionError(ERRORS.STRATEGIES.INVALID_CONFIG_PARAM, {
+          strategyName,
+          paramName: "salt",
+          reason: "The salt must be 32 bytes in length",
+        });
+      }
+
       return new Create2Strategy({ salt: strategyConfig.salt });
     default:
       throw new IgnitionError(ERRORS.STRATEGIES.UNKNOWN_STRATEGY, {
         strategyName,
       });
   }
+}
+
+function hexStringLengthInBytes(hexString: string) {
+  const normalizedHexString = hexString.startsWith("0x")
+    ? hexString.substring(2)
+    : hexString;
+
+  return normalizedHexString.length / 2;
 }

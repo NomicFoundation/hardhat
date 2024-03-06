@@ -13,12 +13,17 @@ import {
 import { waitForPendingTxs } from "../test-helpers/wait-for-pending-txs";
 
 describe("create2", function () {
+  const example32ByteSalt =
+    "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+  const anotherExample32ByteSalt =
+    "0xabcde67890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+
   const EXPECTED_FOO_CREATE2_ADDRESS =
-    "0x82841cfc6e85e9A9FBED28FC4A236eb58D56E5b6";
+    "0xA901a97D596320CC5b4E61f6B315F6128fAfF10B";
   const EXPECTED_BAR_CREATE2_ADDRESS =
-    "0x2aCB60e63b99511B0B598e1498825c716b19769C";
+    "0x5985C19bc6ba6f9b3f9350Ba6c8156c8A9876E1a";
   const EXPECTED_CUSTOM_SALT_FOO_CREATE2_ADDRESS =
-    "0x50eB50b4b4D5222c3C3B89b9Bb37BD903a359425";
+    "0x2FbECc7173383C5878FF8EC336da0775CbF77fF7";
 
   const moduleDefinition = buildModule("FooModule", (m) => {
     // Use a known bytecode to ensure the same address is generated
@@ -46,7 +51,7 @@ describe("create2", function () {
             strategy: "create2",
             defaultSender: accountAddress,
             strategyConfig: {
-              salt: "test-salt",
+              salt: example32ByteSalt,
             },
           });
 
@@ -74,7 +79,7 @@ describe("create2", function () {
           {
             strategy: "create2",
             strategyConfig: {
-              salt: "test-salt",
+              salt: example32ByteSalt,
             },
           }
         );
@@ -105,7 +110,7 @@ describe("create2", function () {
             {
               strategy: "create2",
               strategyConfig: {
-                salt: "test-salt",
+                salt: example32ByteSalt,
               },
             }
           ),
@@ -117,7 +122,7 @@ describe("create2", function () {
         const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
           strategy: "create2",
           strategyConfig: {
-            salt: "custom-salt",
+            salt: anotherExample32ByteSalt,
           },
         });
 
@@ -145,7 +150,7 @@ describe("create2", function () {
           this.hre.ignition.deploy(moduleDefinition, {
             strategy: "create2",
             strategyConfig: {
-              salt: "test-salt",
+              salt: example32ByteSalt,
             },
           }),
           /CreateX not deployed on current network 88888/
@@ -161,7 +166,7 @@ describe("create2", function () {
       const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
         strategy: "create2",
         strategyConfig: {
-          salt: "test-salt",
+          salt: example32ByteSalt,
         },
       });
 
@@ -181,7 +186,7 @@ describe("create2", function () {
       const firstDeployPromise = this.hre.ignition.deploy(moduleDefinition, {
         strategy: "create2",
         strategyConfig: {
-          salt: "test-salt",
+          salt: example32ByteSalt,
         },
       });
 
@@ -200,7 +205,7 @@ describe("create2", function () {
         {
           strategy: "create2",
           strategyConfig: {
-            salt: "test-salt",
+            salt: example32ByteSalt,
           },
         }
       );
