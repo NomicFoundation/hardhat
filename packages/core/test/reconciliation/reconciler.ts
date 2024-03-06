@@ -725,5 +725,79 @@ describe("Reconciliation", () => {
         },
       ]);
     });
+
+    it("should pass reconciliation if the previous version did not support strategies, and the new run uses basic", async () => {
+      const moduleDefinition = buildModule("Module", (m) => {
+        const contract = m.contract("Contract", [], {
+          id: "Example",
+        });
+
+        return { contract };
+      });
+
+      // Future Example1 is fine as it has completed, but running
+      // with the basic strategy against the started but
+      // unfinished Example2 should fail
+      const reconiliationResult = await reconcile(
+        moduleDefinition,
+        createDeploymentState({
+          ...exampleDeploymentState,
+          id: "Module#Example",
+          status: ExecutionStatus.STARTED,
+          contractName: "Contract",
+          strategy: "basic",
+          strategyConfig: undefined as any, // This will be the case for the previous version of Ignition
+        }),
+        undefined,
+        undefined,
+        {},
+        "basic",
+        {}
+      );
+
+      assert.deepStrictEqual(reconiliationResult, {
+        reconciliationFailures: [],
+        missingExecutedFutures: [],
+      });
+    });
+
+    it("should fail reconciliation if the previous version did not support strategies, and the new run uses basic", async () => {
+      const moduleDefinition = buildModule("Module", (m) => {
+        const contract = m.contract("Contract", [], {
+          id: "Example",
+        });
+
+        return { contract };
+      });
+
+      // Future Example1 is fine as it has completed, but running
+      // with the basic strategy against the started but
+      // unfinished Example2 should fail
+      const reconiliationResult = await reconcile(
+        moduleDefinition,
+        createDeploymentState({
+          ...exampleDeploymentState,
+          id: "Module#Example",
+          status: ExecutionStatus.STARTED,
+          contractName: "Contract",
+          strategy: "basic",
+          strategyConfig: undefined as any, // This will be the case for the previous version of Ignition
+        }),
+        undefined,
+        undefined,
+        {},
+        "create2",
+        {
+          salt: "my-salt",
+        }
+      );
+
+      assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+        {
+          failure: 'Strategy changed from "basic" to "create2"',
+          futureId: "Module#Example",
+        },
+      ]);
+    });
   });
 });

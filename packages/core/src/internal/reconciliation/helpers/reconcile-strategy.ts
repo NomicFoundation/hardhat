@@ -67,7 +67,7 @@ export function reconcileStrategy(
     );
   }
 
-  const storedStrategyConfig = exState.strategyConfig;
+  const storedStrategyConfig = exState.strategyConfig ?? {};
   const newStrategyConfig = context.strategyConfig;
 
   const isEqual = require("lodash/isEqual") as typeof import("lodash/isEqual");
