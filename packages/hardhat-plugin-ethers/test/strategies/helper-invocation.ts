@@ -4,6 +4,9 @@ import { resetHardhatContext } from "hardhat/plugins-testing";
 import path from "path";
 
 describe("strategies - invocation via helper", () => {
+  const example32ByteSalt =
+    "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+
   describe("no Hardhat config setup", () => {
     const fixtureProjectName = "minimal";
 
@@ -34,13 +37,13 @@ describe("strategies - invocation via helper", () => {
       const result = await this.hre.ignition.deploy(moduleDefinition, {
         strategy: "create2",
         strategyConfig: {
-          salt: "test-salt",
+          salt: example32ByteSalt,
         },
       });
 
       assert.equal(
         await result.foo.getAddress(),
-        "0xDF310a91C604d3d525A999df6E01A8fFb3AEc406"
+        "0x647fB9ef6cd97537C553f6cC3c7f60395f81b410"
       );
     });
 
@@ -96,7 +99,7 @@ describe("strategies - invocation via helper", () => {
 
       assert.equal(
         await result.foo.getAddress(),
-        "0xDD35866eA6cdfC26eaaBb36b9C70A63d23992125"
+        "0x8C1c4E6Fd637C7aa7165F19beFeAEab5E53095Bf"
       );
     });
   });

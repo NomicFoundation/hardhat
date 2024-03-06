@@ -9,6 +9,9 @@ import { IgnitionModuleResultsToViemContracts } from "../../src/ignition-module-
 import { useIgnitionProject } from "../test-helpers/use-ignition-project";
 
 describe("strategies - invocation via helper", () => {
+  const example32ByteSalt =
+    "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+
   describe("no Hardhat config setup", () => {
     useIgnitionProject("minimal");
 
@@ -29,13 +32,13 @@ describe("strategies - invocation via helper", () => {
       result = await this.hre.ignition.deploy(moduleDefinition, {
         strategy: "create2",
         strategyConfig: {
-          salt: "test-salt",
+          salt: example32ByteSalt,
         },
       });
 
       assert.equal(
         result.foo.address,
-        "0xA851627726C4Cc6150AE804Bcb2BF43BBFC1B3AD"
+        "0x9318a275A28F46CA742f84402226E27463cA8050"
       );
     });
 
@@ -81,7 +84,7 @@ describe("strategies - invocation via helper", () => {
 
       assert.equal(
         result.baz.address,
-        "0x6ad123c48167C25Dc3EfC8320A5Ae3BE72B67419"
+        "0x8EFE40FAEF47066689Cb06b561F5EC63F9DeA616"
       );
     });
   });

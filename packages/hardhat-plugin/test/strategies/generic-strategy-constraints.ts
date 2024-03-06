@@ -10,7 +10,7 @@ const strategies = ["basic", "create2"] as const;
 const exampleConfig = {
   basic: {},
   create2: {
-    salt: "test-salt",
+    salt: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
   },
 } as const;
 

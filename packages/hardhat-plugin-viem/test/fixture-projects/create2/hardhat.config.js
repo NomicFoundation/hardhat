@@ -5,7 +5,7 @@ module.exports = {
   ignition: {
     strategyConfig: {
       create2: {
-        salt: "a-random-salt",
+        salt: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890aaaaaa",
       },
     },
   },
