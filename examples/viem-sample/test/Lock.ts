@@ -1,8 +1,5 @@
-import {
-  time,
-  loadFixture,
-} from "@nomicfoundation/hardhat-toolbox-viem/network-helpers";
-import { expect, assert } from "chai";
+import { loadFixture, time } from "@nomicfoundation/hardhat-network-helpers";
+import { expect } from "chai";
 import hre from "hardhat";
 
 import LockModule from "../ignition/modules/LockModule";

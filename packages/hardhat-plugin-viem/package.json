@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ignition-viem",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "license": "MIT",
   "author": "Nomic Foundation",
   "homepage": "https://hardhat.org",
@@ -41,9 +41,9 @@
     "hardhat": "2.20.0"
   },
   "peerDependencies": {
-    "@nomicfoundation/hardhat-ignition": "^0.14.0",
+    "@nomicfoundation/hardhat-ignition": "^0.15.0",
     "@nomicfoundation/hardhat-viem": "^2.0.0",
-    "@nomicfoundation/ignition-core": "^0.14.0",
+    "@nomicfoundation/ignition-core": "^0.15.0",
     "hardhat": "^2.18.0",
     "viem": "^2.7.6"
   }
