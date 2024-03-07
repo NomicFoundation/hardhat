@@ -359,6 +359,7 @@ jobs:
   check_commit:
     name: Check commit
     runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.author_association == 'OWNER' || github.event.pull_request.author_association == 'MEMBER' || github.event.pull_request.author_association == 'COLLABORATOR'
     steps:
       - uses: actions/checkout@v4
         with:
