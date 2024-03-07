@@ -1,6 +1,6 @@
 # Deploying via Create2
 
-When deploying contracts, you may want to deploy them to a specific address. This can be useful for a variety of reasons, such as deploying a contract to the same address on multiple networks. Hardhat Ignition makes this easy by allowing you to deploy your existing Ignition modules via a `create2` deployment utilizing the [CreateX factory](https://createx.rocks/).
+When deploying contracts, you may want to deploy them to a deterministic address. This can be useful for a variety of reasons, such as deploying a contract to the same address on multiple networks. Hardhat Ignition makes this easy by allowing you to deploy your existing Ignition modules via a `create2` deployment utilizing the [CreateX factory](https://createx.rocks/).
 
 :::tip
 
@@ -11,12 +11,6 @@ As is the case when using any unaudited contract system, please be aware of the 
 ## Deploying on the Sepolia testnet
 
 We are going to use the [Sepolia testnet](https://ethereum.org/en/developers/docs/networks/#sepolia) to deploy our Ignition module, so you need to add this network in your Hardhat config. Here we are using [Alchemy](https://alchemy.com/) to connect to the network.
-
-:::tip
-
-For more information on `vars` and configuration variables, please see our [configuration variables guide](../../../hardhat-runner/docs/guides/configuration-variables.md).
-
-:::
 
 ::::tabsgroup{options=TypeScript,JavaScript}
 
@@ -130,12 +124,6 @@ module.exports = {
 
 ::::
 
-:::tip
-
-To learn more about salts and how they work, as well as additional security considerations, please see the [CreateX documentation](https://github.com/pcaversaccio/createx?tab=readme-ov-file#permissioned-deploy-protection-and-cross-chain-redeploy-protection).
-
-:::
-
 You can now run the deployment with `create2` using the newly added Sepolia network:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
@@ -164,7 +152,7 @@ The `--strategy create2` flag tells Ignition to deploy the module using `create2
 Compiled 1 Solidity file successfully (evm target: paris).
 Hardhat Ignition 🚀
 
-Deploying [ Apollo ] with strategy < create2 >
+Deploying [ Apollo ] with strategy &lt; create2 &gt;
 
 Batch #1
   Executed Apollo#Rocket
