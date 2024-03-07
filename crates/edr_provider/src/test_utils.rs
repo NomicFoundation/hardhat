@@ -2,7 +2,7 @@ use std::{convert::Infallible, time::SystemTime};
 
 use anyhow::anyhow;
 use edr_eth::{
-    block::{BlobGas, BlockOptions},
+    block::{miner_reward, BlobGas, BlockOptions},
     remote::{PreEip1898BlockSpec, RpcClient},
     signature::secret_key_from_str,
     spec::chain_hardfork_activations,
@@ -10,7 +10,13 @@ use edr_eth::{
     withdrawal::Withdrawal,
     Address, HashMap, SpecId, U256,
 };
-use edr_evm::{alloy_primitives::U160, Block, MineOrdering, RemoteBlock};
+use edr_evm::{
+    alloy_primitives::U160,
+    blockchain::{Blockchain, ForkedBlockchain},
+    state::IrregularState,
+    Block, BlockBuilder, CfgEnv, CfgEnvWithHandlerCfg, DebugContext, RandomHashGenerator,
+    RemoteBlock,
+};
 
 use super::*;
 use crate::{config::MiningConfig, requests::hardhat::rpc_types::ForkConfig};
@@ -106,53 +112,75 @@ pub async fn run_full_block(url: String, block_number: u64, chain_id: u64) -> an
         RemoteBlock::new(block, Arc::new(rpc_client), runtime.clone())?
     };
 
+    let rpc_client = RpcClient::new(&url, default_config.cache_dir.clone(), None)?;
+    let mut irregular_state = IrregularState::default();
+    let state_root_generator = Arc::new(parking_lot::Mutex::new(RandomHashGenerator::with_seed(
+        edr_defaults::STATE_ROOT_HASH_SEED,
+    )));
+    let hardfork_activation_overrides = HashMap::new();
+
     let hardfork_activations =
         chain_hardfork_activations(chain_id).ok_or(anyhow!("Unsupported chain id"))?;
 
-    let hardfork = hardfork_activations
+    let spec_id = hardfork_activations
         .hardfork_at_block_number(block_number)
         .ok_or(anyhow!("Unsupported block number"))?;
 
+    let blockchain = ForkedBlockchain::new(
+        runtime.clone(),
+        Some(chain_id),
+        spec_id,
+        rpc_client,
+        Some(block_number - 1),
+        &mut irregular_state,
+        state_root_generator,
+        &hardfork_activation_overrides,
+    )
+    .await?;
+
+    let mut cfg = CfgEnv::default();
+    cfg.chain_id = chain_id;
+    cfg.disable_eip3607 = true;
+
+    let cfg = CfgEnvWithHandlerCfg::new_with_spec_id(cfg, spec_id);
+
+    let parent = blockchain.last_block()?;
     let replay_header = replay_block.header();
-    let block_gas_limit = replay_header.gas_limit;
 
-    let config = ProviderConfig {
-        block_gas_limit,
-        chain_id,
-        coinbase: replay_header.beneficiary,
-        hardfork,
-        initial_base_fee_per_gas: None,
-        mining: MiningConfig {
-            auto_mine: false,
-            interval: None,
-            mem_pool: MemPoolConfig {
-                // Use first-in, first-out to replay the transaction in the exact same order
-                order: MineOrdering::Fifo,
-            },
+    let mut builder = BlockBuilder::new(
+        cfg,
+        parent.header(),
+        BlockOptions {
+            beneficiary: Some(replay_header.beneficiary),
+            gas_limit: Some(replay_header.gas_limit),
+            extra_data: Some(replay_header.extra_data.clone()),
+            mix_hash: Some(replay_header.mix_hash),
+            nonce: Some(replay_header.nonce),
+            parent_beacon_block_root: replay_header.parent_beacon_block_root,
+            state_root: Some(replay_header.state_root),
+            timestamp: Some(replay_header.timestamp),
+            withdrawals: replay_block.withdrawals().map(<[Withdrawal]>::to_vec),
+            ..BlockOptions::default()
         },
-        network_id: 1,
-        ..default_config
-    };
+        None,
+    )?;
 
-    let logger = Box::<NoopLogger>::default();
-    let noop_subscription = Box::new(|_| ());
-
-    let mut provider_data = ProviderData::new(runtime, logger, noop_subscription, None, config)?;
+    let mut state =
+        blockchain.state_at_block_number(block_number - 1, irregular_state.state_overrides())?;
 
     for transaction in replay_block.transactions() {
-        provider_data.send_transaction(transaction.clone())?;
+        let debug_context: Option<DebugContext<_, ()>> = None;
+        let (_evm_context, result) =
+            builder.add_transaction(&blockchain, &mut state, transaction.clone(), debug_context);
+
+        result?;
     }
 
-    let mined_block = provider_data.mine_and_commit_block(BlockOptions {
-        extra_data: Some(replay_header.extra_data.clone()),
-        mix_hash: Some(replay_header.mix_hash),
-        nonce: Some(replay_header.nonce),
-        parent_beacon_block_root: replay_header.parent_beacon_block_root,
-        state_root: Some(replay_header.state_root),
-        timestamp: Some(replay_header.timestamp),
-        withdrawals: replay_block.withdrawals().map(<[Withdrawal]>::to_vec),
-        ..BlockOptions::default()
-    })?;
+    let rewards = vec![(
+        replay_header.beneficiary,
+        miner_reward(spec_id).unwrap_or(U256::ZERO),
+    )];
+    let mined_block = builder.finalize(&mut state, rewards)?;
 
     let mined_header = mined_block.block.header();
     assert_eq!(mined_header, replay_header);

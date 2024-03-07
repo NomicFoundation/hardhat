@@ -347,43 +347,68 @@ where
     Ok(result)
 }
 
-/// Helper function for deserializing the JSON-RPC data type, specialized
-/// for a storage value.
-pub(crate) fn deserialize_storage_value<'de, DeserializerT>(
-    deserializer: DeserializerT,
-) -> Result<U256, DeserializerT::Error>
-where
-    DeserializerT: Deserializer<'de>,
-{
-    let value = String::deserialize(deserializer).map_err(|error| {
-        if let Some(value) = extract_value_from_serde_json_error(error.to_string().as_str()) {
-            serde::de::Error::custom(format!(
-                "This method only supports strings but input was: {value}"
-            ))
-        } else {
-            serde::de::Error::custom(format!(
-                "Failed to deserialize quantity argument into string with error: '{error}'"
-            ))
+/// Helper module for serializing/deserializing the JSON-RPC data type,
+/// specialized for a storage value.
+pub(crate) mod storage_value {
+    use serde::Serializer;
+
+    use super::{
+        extract_value_from_serde_json_error, Deserialize, Deserializer, FromStr,
+        STORAGE_VALUE_INVALID_LENGTH_ERROR_MESSAGE, U256,
+    };
+
+    /// Helper function for deserializing the JSON-RPC data type, specialized
+    /// for a storage value.
+    pub fn deserialize<'de, DeserializerT>(
+        deserializer: DeserializerT,
+    ) -> Result<U256, DeserializerT::Error>
+    where
+        DeserializerT: Deserializer<'de>,
+    {
+        let value = String::deserialize(deserializer).map_err(|error| {
+            if let Some(value) = extract_value_from_serde_json_error(error.to_string().as_str()) {
+                serde::de::Error::custom(format!(
+                    "This method only supports strings but input was: {value}"
+                ))
+            } else {
+                serde::de::Error::custom(format!(
+                    "Failed to deserialize quantity argument into string with error: '{error}'"
+                ))
+            }
+        })?;
+
+        let error_message =
+            || serde::de::Error::custom(format!("invalid value \"{value}\" supplied to : DATA"));
+
+        if !value.starts_with("0x") {
+            return Err(error_message());
         }
-    })?;
 
-    let error_message =
-        || serde::de::Error::custom(format!("invalid value \"{value}\" supplied to : DATA"));
-
-    if !value.starts_with("0x") {
-        return Err(error_message());
-    }
-
-    // Remove 2 characters for the "0x" prefix and divide by 2 because each byte is
-    // represented by 2 hex characters.
-    let length = (value.len() - 2) / 2;
-    if length != 32 {
-        return Err(serde::de::Error::custom(format!(
+        // Remove 2 characters for the "0x" prefix and divide by 2 because each byte is
+        // represented by 2 hex characters.
+        let length = (value.len() - 2) / 2;
+        if length != 32 {
+            return Err(serde::de::Error::custom(format!(
             "{STORAGE_VALUE_INVALID_LENGTH_ERROR_MESSAGE} Received {value}, which is {length} bytes long."
         )));
+        }
+
+        U256::from_str(&value).map_err(|_error| error_message())
     }
 
-    U256::from_str(&value).map_err(|_error| error_message())
+    /// Serialize U256 with padding to make sure it's accepted by
+    /// `deserialize_storage_value` which expects padded values (as opposed to
+    /// the Ethereum JSON-RPC spec which expects values without padding).
+    pub fn serialize<SerializerT>(
+        value: &U256,
+        serializer: SerializerT,
+    ) -> Result<SerializerT::Ok, SerializerT::Error>
+    where
+        SerializerT: Serializer,
+    {
+        let padded = format!("0x{value:0>64x}");
+        serializer.serialize_str(&padded)
+    }
 }
 
 /// Helper function for deserializing the payload of an `eth_signTypedData_v4`
@@ -453,5 +478,26 @@ mod tests {
             error.contains("Nonce must not be greater than or equal to 2^64."),
             "actual: {error}"
         );
+    }
+
+    #[test]
+    fn serialize_storage_value_round_trip() {
+        #[derive(Serialize, Deserialize)]
+        struct Test {
+            #[serde(with = "storage_value")]
+            n: U256,
+        }
+
+        let u256_json = r#""0x313f922be1649cec058ec0f076664500c78bdc0b""#;
+        let n: U256 = serde_json::from_str(u256_json).unwrap();
+
+        let test = Test { n };
+
+        let json = serde_json::to_string(&test).unwrap();
+        assert!(json.contains("0x000000000000000000000000313f922be1649cec058ec0f076664500c78bdc0b"));
+
+        let parsed = serde_json::from_str::<Test>(&json).unwrap();
+
+        assert_eq!(parsed.n, n);
     }
 }

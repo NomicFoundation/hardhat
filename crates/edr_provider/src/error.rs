@@ -314,31 +314,31 @@ pub struct TransactionFailure {
     pub data: String,
     #[serde(skip)]
     pub solidity_trace: Trace,
-    pub transaction_hash: B256,
+    pub transaction_hash: Option<B256>,
 }
 
 impl TransactionFailure {
     pub fn from_execution_result(
         execution_result: &ExecutionResult,
-        transaction_hash: &B256,
+        transaction_hash: Option<&B256>,
         solidity_trace: &Trace,
     ) -> Option<Self> {
         match execution_result {
             ExecutionResult::Success { .. } => None,
             ExecutionResult::Revert { output, .. } => Some(Self::revert(
                 output.clone(),
-                *transaction_hash,
+                transaction_hash.copied(),
                 solidity_trace.clone(),
             )),
             ExecutionResult::Halt { reason, .. } => Some(Self::halt(
                 *reason,
-                *transaction_hash,
+                transaction_hash.copied(),
                 solidity_trace.clone(),
             )),
         }
     }
 
-    pub fn revert(output: Bytes, transaction_hash: B256, solidity_trace: Trace) -> Self {
+    pub fn revert(output: Bytes, transaction_hash: Option<B256>, solidity_trace: Trace) -> Self {
         let data = format!("0x{}", hex::encode(output.as_ref()));
         Self {
             reason: TransactionFailureReason::Revert(output),
@@ -348,7 +348,7 @@ impl TransactionFailure {
         }
     }
 
-    pub fn halt(halt: HaltReason, tx_hash: B256, solidity_trace: Trace) -> Self {
+    pub fn halt(halt: HaltReason, tx_hash: Option<B256>, solidity_trace: Trace) -> Self {
         let reason = match halt {
             HaltReason::OpcodeNotFound | HaltReason::InvalidFEOpcode => {
                 TransactionFailureReason::OpcodeNotFound

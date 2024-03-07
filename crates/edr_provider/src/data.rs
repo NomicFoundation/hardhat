@@ -6,6 +6,7 @@ use std::{
     cmp,
     cmp::Ordering,
     collections::BTreeMap,
+    ffi::OsString,
     fmt::Debug,
     num::NonZeroUsize,
     sync::Arc,
@@ -72,7 +73,8 @@ use crate::{
 };
 
 const DEFAULT_INITIAL_BASE_FEE_PER_GAS: u64 = 1_000_000_000;
-const MAX_CACHED_STATES: usize = 10;
+const EDR_MAX_CACHED_STATES_ENV_VAR: &str = "__EDR_MAX_CACHED_STATES";
+const DEFAULT_MAX_CACHED_STATES: usize = 10;
 
 /// The result of executing an `eth_call`.
 #[derive(Clone, Debug)]
@@ -108,6 +110,8 @@ pub enum CreationError {
     /// Invalid initial date
     #[error("The initial date configuration value {0:?} is before the UNIX epoch")]
     InvalidInitialDate(SystemTime),
+    #[error("Invalid max cached states environment variable value: '{0:?}'. Please provide a non-zero integer!")]
+    InvalidMaxCachedStates(OsString),
     /// An error that occurred while constructing a local blockchain.
     #[error(transparent)]
     LocalBlockchainCreation(#[from] LocalCreationError),
@@ -179,8 +183,19 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             next_block_base_fee_per_gas,
         } = create_blockchain_and_state(runtime_handle.clone(), &config, genesis_accounts)?;
 
-        let mut block_state_cache =
-            LruCache::new(NonZeroUsize::new(MAX_CACHED_STATES).expect("constant is non-zero"));
+        let max_cached_states = std::env::var(EDR_MAX_CACHED_STATES_ENV_VAR).map_or_else(
+            |err| match err {
+                std::env::VarError::NotPresent => {
+                    Ok(NonZeroUsize::new(DEFAULT_MAX_CACHED_STATES).expect("constant is non-zero"))
+                }
+                std::env::VarError::NotUnicode(s) => Err(CreationError::InvalidMaxCachedStates(s)),
+            },
+            |s| {
+                s.parse()
+                    .map_err(|_err| CreationError::InvalidMaxCachedStates(s.into()))
+            },
+        )?;
+        let mut block_state_cache = LruCache::new(max_cached_states);
         let mut block_number_to_state_id = BTreeMap::new();
 
         let current_state_id = StateId::default();
@@ -607,7 +622,6 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         // Minimum gas cost that is required for transaction to be included in
         // a block
         let minimum_cost = transaction.initial_cost(self.spec_id());
-        let transaction_hash = *transaction.hash();
         let tx_env: TxEnv = transaction.into();
 
         let state_overrides = StateOverrides::default();
@@ -643,7 +657,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 ExecutionResult::Success { gas_used, .. } => Ok(gas_used),
                 ExecutionResult::Revert { output, .. } => Err(TransactionFailure::revert(
                     output,
-                    transaction_hash,
+                    None,
                     trace_collector
                         .traces()
                         .first()
@@ -652,7 +666,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 )),
                 ExecutionResult::Halt { reason, .. } => Err(TransactionFailure::halt(
                     reason,
-                    transaction_hash,
+                    None,
                     trace_collector
                         .traces()
                         .first()
@@ -3735,6 +3749,13 @@ mod tests {
         },
         mainnet_shanghai => {
             block_number: 17_050_001,
+            chain_id: 1,
+            url: get_alchemy_url(),
+        },
+        // This block contains a sequence of transaction that first raise
+        // an empty account's balance and then decrease it
+        mainnet_19318016 => {
+            block_number: 19_318_016,
             chain_id: 1,
             url: get_alchemy_url(),
         },

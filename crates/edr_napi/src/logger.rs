@@ -410,11 +410,9 @@ impl LogCollector {
 
             logger.log_console_log_messages(console_log_inputs);
 
-            if let Some(transaction_failure) = TransactionFailure::from_execution_result(
-                execution_result,
-                transaction.hash(),
-                trace,
-            ) {
+            if let Some(transaction_failure) =
+                TransactionFailure::from_execution_result(execution_result, None, trace)
+            {
                 logger.log_transaction_failure(&transaction_failure);
             }
         });
@@ -782,7 +780,7 @@ impl LogCollector {
 
             let transaction_failure = edr_provider::TransactionFailure::from_execution_result(
                 result,
-                transaction_hash,
+                Some(transaction_hash),
                 trace,
             );
 
@@ -1158,7 +1156,7 @@ impl LogCollector {
 
             let transaction_failure = edr_provider::TransactionFailure::from_execution_result(
                 transaction_result,
-                transaction_hash,
+                Some(transaction_hash),
                 trace,
             );
 

@@ -1,5 +1,16 @@
 # hardhat
 
+## 2.21.0
+
+### Minor Changes
+
+- 837350e: Dropped support for node v16
+- 3df5d29: Refactored Hardhat Network to use EDR instead of ethereumjs
+
+### Patch Changes
+
+- 6b6f447: Fixes a bug in Hardhat where Post-Cancun genesis blocks did not use the mandated 0x0 parent beacon block root (https://eips.ethereum.org/EIPS/eip-4788)
+
 ## 2.20.1
 
 ### Patch Changes
