@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use revm::{
-    db::{BlockHashRef, DatabaseComponents, StateRef, WrapDatabaseRef},
+    db::{DatabaseComponents, StateRef},
     primitives::{
         BlockEnv, CfgEnvWithHandlerCfg, EnvWithHandlerCfg, ExecutionResult, ResultAndState, SpecId,
         TxEnv,
@@ -33,13 +33,10 @@ pub fn dry_run<'blockchain, 'evm, 'overrides, 'state, DebugDataT, BlockchainErro
     block: BlockEnv,
     debug_context: Option<
         DebugContext<
-            WrapDatabaseRef<
-                DatabaseComponents<
-                    StateRefOverrider<'overrides, &'evm dyn SyncState<StateErrorT>>,
-                    &'evm dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
-                >,
-            >,
+            'evm,
+            BlockchainErrorT,
             DebugDataT,
+            StateRefOverrider<'overrides, &'evm dyn SyncState<StateErrorT>>,
         >,
     >,
 ) -> Result<ResultAndState, TransactionError<BlockchainErrorT, StateErrorT>>
@@ -97,13 +94,10 @@ pub fn guaranteed_dry_run<
     block: BlockEnv,
     debug_context: Option<
         DebugContext<
-            WrapDatabaseRef<
-                DatabaseComponents<
-                    StateRefOverrider<'overrides, &'evm dyn SyncState<StateErrorT>>,
-                    &'evm dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
-                >,
-            >,
+            'evm,
+            BlockchainErrorT,
             DebugDataT,
+            StateRefOverrider<'overrides, &'evm dyn SyncState<StateErrorT>>,
         >,
     >,
 ) -> Result<ResultAndState, TransactionError<BlockchainErrorT, StateErrorT>>
@@ -128,19 +122,17 @@ where
 
 /// Runs a transaction, committing the state in the process.
 #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-pub fn run<BlockchainT, DebugDataT, StateT>(
-    blockchain: BlockchainT,
+pub fn run<'blockchain, 'evm, BlockchainErrorT, DebugDataT, StateT>(
+    blockchain: &'blockchain dyn SyncBlockchain<BlockchainErrorT, StateT::Error>,
     state: StateT,
     cfg: CfgEnvWithHandlerCfg,
     transaction: TxEnv,
     block: BlockEnv,
-    debug_context: Option<
-        DebugContext<WrapDatabaseRef<DatabaseComponents<StateT, BlockchainT>>, DebugDataT>,
-    >,
-) -> Result<ExecutionResult, TransactionError<BlockchainT::Error, StateT::Error>>
+    debug_context: Option<DebugContext<'evm, BlockchainErrorT, DebugDataT, StateT>>,
+) -> Result<ExecutionResult, TransactionError<BlockchainErrorT, StateT::Error>>
 where
-    BlockchainT: BlockHashRef,
-    BlockchainT::Error: Debug + Send,
+    'blockchain: 'evm,
+    BlockchainErrorT: Debug + Send,
     StateT: StateRef + DatabaseCommit,
     StateT::Error: Debug + Send,
 {

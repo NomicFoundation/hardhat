@@ -1,21 +1,18 @@
 use std::{cmp::Ordering, fmt::Debug, sync::Arc};
 
 use edr_eth::{block::BlockOptions, U256};
-use revm::{
-    db::{BlockHashRef, DatabaseComponents, WrapDatabaseRef},
-    primitives::{CfgEnvWithHandlerCfg, ExecutionResult, InvalidTransaction},
-};
+use revm::primitives::{CfgEnvWithHandlerCfg, ExecutionResult, InvalidTransaction};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     block::BlockBuilderCreationError,
-    blockchain::Blockchain,
+    blockchain::SyncBlockchain,
     debug::DebugContext,
     mempool::OrderedTransaction,
     state::{StateDiff, SyncState},
     trace::Trace,
-    BlockBuilder, BlockTransactionError, BuildBlockResult, ExecutableTransaction, LocalBlock,
-    MemPool, SyncBlock,
+    BlockBuilder, BlockTransactionError, BuildBlockResult, ExecutableTransaction,
+    ExecutionResultWithContext, LocalBlock, MemPool, SyncBlock,
 };
 
 /// The result of mining a block, after having been committed to the blockchain.
@@ -85,8 +82,8 @@ pub enum MineBlockError<BE, SE> {
 /// Mines a block using as many transactions as can fit in it.
 #[allow(clippy::too_many_arguments)]
 #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-pub fn mine_block<BlockchainT, BlockchainErrorT, DebugDataT, StateErrorT>(
-    blockchain: BlockchainT,
+pub fn mine_block<'blockchain, 'evm, BlockchainErrorT, DebugDataT, StateErrorT>(
+    blockchain: &'blockchain dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
     mut state: Box<dyn SyncState<StateErrorT>>,
     mem_pool: &MemPool,
     cfg: &CfgEnvWithHandlerCfg,
@@ -96,19 +93,11 @@ pub fn mine_block<BlockchainT, BlockchainErrorT, DebugDataT, StateErrorT>(
     reward: U256,
     dao_hardfork_activation_block: Option<u64>,
     mut debug_context: Option<
-        DebugContext<
-            WrapDatabaseRef<DatabaseComponents<Box<dyn SyncState<StateErrorT>>, BlockchainT>>,
-            DebugDataT,
-        >,
+        DebugContext<'evm, BlockchainErrorT, DebugDataT, Box<dyn SyncState<StateErrorT>>>,
     >,
-) -> Result<
-    MineBlockResultAndState<StateErrorT>,
-    MineBlockError<BlockchainT::BlockchainError, StateErrorT>,
->
+) -> Result<MineBlockResultAndState<StateErrorT>, MineBlockError<BlockchainErrorT, StateErrorT>>
 where
-    BlockchainT: Blockchain<BlockchainError = BlockchainErrorT, StateError = StateErrorT>
-        + BlockHashRef<Error = BlockchainErrorT>
-        + Clone,
+    'blockchain: 'evm,
     BlockchainErrorT: Debug + Send,
     StateErrorT: Debug + Send,
 {
@@ -149,8 +138,10 @@ where
         }
 
         let caller = *transaction.caller();
-        let (evm_context, result) =
-            block_builder.add_transaction(blockchain.clone(), state, transaction, debug_context);
+        let ExecutionResultWithContext {
+            result,
+            evm_context,
+        } = block_builder.add_transaction(blockchain, state, transaction, debug_context);
 
         match result {
             Err(

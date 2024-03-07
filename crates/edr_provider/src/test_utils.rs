@@ -14,8 +14,8 @@ use edr_evm::{
     alloy_primitives::U160,
     blockchain::{Blockchain, ForkedBlockchain},
     state::IrregularState,
-    Block, BlockBuilder, CfgEnv, CfgEnvWithHandlerCfg, DebugContext, RandomHashGenerator,
-    RemoteBlock,
+    Block, BlockBuilder, CfgEnv, CfgEnvWithHandlerCfg, DebugContext, ExecutionResultWithContext,
+    RandomHashGenerator, RemoteBlock,
 };
 
 use super::*;
@@ -169,9 +169,11 @@ pub async fn run_full_block(url: String, block_number: u64, chain_id: u64) -> an
         blockchain.state_at_block_number(block_number - 1, irregular_state.state_overrides())?;
 
     for transaction in replay_block.transactions() {
-        let debug_context: Option<DebugContext<_, ()>> = None;
-        let (_evm_context, result) =
-            builder.add_transaction(&blockchain, &mut state, transaction.clone(), debug_context);
+        let debug_context: Option<DebugContext<'_, _, (), _>> = None;
+        let ExecutionResultWithContext {
+            result,
+            evm_context: _,
+        } = builder.add_transaction(&blockchain, &mut state, transaction.clone(), debug_context);
 
         result?;
     }

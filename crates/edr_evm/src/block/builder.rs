@@ -13,7 +13,7 @@ use edr_eth::{
     Address, Bloom, U256,
 };
 use revm::{
-    db::{BlockHashRef, DatabaseComponentError, DatabaseComponents, StateRef, WrapDatabaseRef},
+    db::{DatabaseComponentError, DatabaseComponents, StateRef},
     primitives::{
         AccountInfo, BlobExcessGasAndPrice, BlockEnv, CfgEnvWithHandlerCfg, EVMError,
         EnvWithHandlerCfg, ExecutionResult, InvalidHeader, InvalidTransaction, Output,
@@ -24,6 +24,7 @@ use revm::{
 
 use super::local::LocalBlock;
 use crate::{
+    blockchain::SyncBlockchain,
     debug::{DebugContext, EvmContext},
     state::{AccountModifierFn, StateDebug, StateDiff, SyncState},
     ExecutableTransaction,
@@ -94,6 +95,21 @@ where
             EVMError::Custom(error) => Self::Custom(error),
         }
     }
+}
+
+/// The result of executing a transaction, along with the context in which it
+/// was executed.
+pub struct ExecutionResultWithContext<
+    'evm,
+    BlockchainErrorT,
+    StateErrorT,
+    DebugDataT,
+    StateT: StateRef,
+> {
+    /// The result of executing the transaction.
+    pub result: Result<ExecutionResult, BlockTransactionError<BlockchainErrorT, StateErrorT>>,
+    /// The context in which the transaction was executed.
+    pub evm_context: EvmContext<'evm, BlockchainErrorT, DebugDataT, StateT>,
 }
 
 /// The result of building a block, using the [`BlockBuilder`].
@@ -191,34 +207,29 @@ impl BlockBuilder {
 
     /// Adds a pending transaction to
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn add_transaction<BlockchainT, DebugDataT, StateT, StateErrorT>(
+    pub fn add_transaction<'blockchain, 'evm, BlockchainErrorT, DebugDataT, StateT, StateErrorT>(
         &mut self,
-        blockchain: BlockchainT,
+        blockchain: &'blockchain dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
         state: StateT,
         transaction: ExecutableTransaction,
-        debug_context: Option<
-            DebugContext<WrapDatabaseRef<DatabaseComponents<StateT, BlockchainT>>, DebugDataT>,
-        >,
-    ) -> (
-        EvmContext<BlockchainT, DebugDataT, StateT>,
-        Result<ExecutionResult, BlockTransactionError<BlockchainT::Error, StateErrorT>>,
-    )
+        debug_context: Option<DebugContext<'evm, BlockchainErrorT, DebugDataT, StateT>>,
+    ) -> ExecutionResultWithContext<'evm, BlockchainErrorT, StateErrorT, DebugDataT, StateT>
     where
-        BlockchainT: BlockHashRef,
-        BlockchainT::Error: Debug + Send,
+        'blockchain: 'evm,
+        BlockchainErrorT: Debug + Send,
         StateT: StateRef<Error = StateErrorT> + DatabaseCommit + StateDebug<Error = StateErrorT>,
         StateErrorT: Debug + Send,
     {
         //  transaction's gas limit cannot be greater than the remaining gas in the
         // block
         if transaction.gas_limit() > self.gas_remaining() {
-            return (
-                EvmContext {
+            return ExecutionResultWithContext {
+                result: Err(BlockTransactionError::ExceedsBlockGasLimit),
+                evm_context: EvmContext {
                     debug: debug_context,
                     state,
                 },
-                Err(BlockTransactionError::ExceedsBlockGasLimit),
-            );
+            };
         }
 
         let spec_id = self.cfg.handler_cfg.spec_id;
@@ -282,7 +293,10 @@ impl BlockBuilder {
                 match result {
                     Ok(result) => (evm_context, result),
                     Err(error) => {
-                        return (evm_context, Err(error.into()));
+                        return ExecutionResultWithContext {
+                            result: Err(error.into()),
+                            evm_context,
+                        };
                     }
                 }
             } else {
@@ -302,7 +316,10 @@ impl BlockBuilder {
                 match result {
                     Ok(result) => (evm_context, result),
                     Err(error) => {
-                        return (evm_context, Err(error.into()));
+                        return ExecutionResultWithContext {
+                            result: Err(error.into()),
+                            evm_context,
+                        };
                     }
                 }
             }
@@ -384,7 +401,10 @@ impl BlockBuilder {
 
         self.transactions.push(transaction);
 
-        (evm_context, Ok(result))
+        ExecutionResultWithContext {
+            result: Ok(result),
+            evm_context,
+        }
     }
 
     /// Finalizes the block, returning the block and the callers of the

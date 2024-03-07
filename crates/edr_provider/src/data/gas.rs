@@ -29,8 +29,8 @@ pub(super) struct CheckGasLimitArgs<'a> {
 /// Test if the transaction successfully executes with the given gas limit.
 /// Returns true on success and return false if the transaction runs out of gas
 /// or funds or reverts. Returns an error for any other halt reason.
-pub(super) fn check_gas_limit<'a, LoggerErrorT: Debug>(
-    args: CheckGasLimitArgs<'a>,
+pub(super) fn check_gas_limit<LoggerErrorT: Debug>(
+    args: CheckGasLimitArgs<'_>,
 ) -> Result<bool, ProviderError<LoggerErrorT>> {
     let CheckGasLimitArgs {
         blockchain,
@@ -76,8 +76,8 @@ pub(super) struct BinarySearchEstimationArgs<'a> {
 /// Search for a tight upper bound on the gas limit that will allow the
 /// transaction to execute. Matches Hardhat logic, except it's iterative, not
 /// recursive.
-pub(super) fn binary_search_estimation<'a, LoggerErrorT: Debug>(
-    args: BinarySearchEstimationArgs<'a>,
+pub(super) fn binary_search_estimation<LoggerErrorT: Debug>(
+    args: BinarySearchEstimationArgs<'_>,
 ) -> Result<u64, ProviderError<LoggerErrorT>> {
     const MAX_ITERATIONS: usize = 20;
 

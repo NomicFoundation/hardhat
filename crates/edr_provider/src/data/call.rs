@@ -6,7 +6,6 @@ use edr_eth::{
 };
 use edr_evm::{
     blockchain::{BlockchainError, SyncBlockchain},
-    db::{DatabaseComponents, WrapDatabaseRef},
     guaranteed_dry_run,
     state::{StateError, StateOverrides, StateRefOverrider, SyncState},
     BlobExcessGasAndPrice, BlockEnv, CfgEnvWithHandlerCfg, DebugContext, ExecutionResult, TxEnv,
@@ -26,13 +25,10 @@ where
     pub tx_env: TxEnv,
     pub debug_context: Option<
         DebugContext<
-            WrapDatabaseRef<
-                DatabaseComponents<
-                    StateRefOverrider<'a, &'evm dyn SyncState<StateError>>,
-                    &'evm dyn SyncBlockchain<BlockchainError, StateError>,
-                >,
-            >,
+            'evm,
+            BlockchainError,
             DebugDataT,
+            StateRefOverrider<'a, &'evm dyn SyncState<StateError>>,
         >,
     >,
 }
