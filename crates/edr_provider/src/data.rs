@@ -1393,10 +1393,50 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         Ok(())
     }
 
+    fn send_transaction_if_automining_with_empty_mempool(
+        &mut self,
+        signed_transaction: ExecutableTransaction,
+    ) -> Result<SendTransactionResult, ProviderError<LoggerErrorT>> {
+        self.validate_auto_mine_transaction(&signed_transaction)?;
+
+        let transaction_hash = self.add_pending_transaction(signed_transaction)?;
+        let result = self
+            .mine_and_commit_block(BlockOptions::default())
+            .map_err(|err| {
+                self.remove_pending_transaction(&transaction_hash);
+                err
+            })?;
+        let transaction_result = izip!(
+                            result.block.transactions().iter(),
+                            result.transaction_results.iter(),
+                            result.transaction_traces.iter()
+                        )
+            .find_map(|(transaction, result, trace)| {
+                if *transaction.hash() == transaction_hash {
+                    Some((result.clone(), trace.clone()))
+                } else {
+                    None
+                }
+            }).expect("Transaction must be in the block since it's validated and the mempool must've been empty");
+
+        Ok(SendTransactionResult {
+            transaction_hash,
+            transaction_result: Some(transaction_result),
+            mining_results: vec![result],
+        })
+    }
+
     pub fn send_transaction(
         &mut self,
         signed_transaction: ExecutableTransaction,
     ) -> Result<SendTransactionResult, ProviderError<LoggerErrorT>> {
+        if self.is_auto_mining
+            && !self.mem_pool.has_pending_transactions()
+            && !self.mem_pool.has_future_transactions()
+        {
+            return self.send_transaction_if_automining_with_empty_mempool(signed_transaction);
+        }
+
         let snapshot_id = if self.is_auto_mining {
             self.validate_auto_mine_transaction(&signed_transaction)?;
 
