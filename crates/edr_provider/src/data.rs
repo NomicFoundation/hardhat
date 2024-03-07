@@ -1399,8 +1399,14 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
     ) -> Result<SendTransactionResult, ProviderError<LoggerErrorT>> {
         if self.is_auto_mining {
             self.validate_auto_mine_transaction(&signed_transaction)?;
+
+            if !mempool::has_transactions(&self.mem_pool) {
+                return self.mine_and_commit_transaction(signed_transaction);
+            }
         }
 
+        // If adding a transaction to the mem pool fails, no state will have been
+        // modified
         let transaction_hash = self.add_pending_transaction(signed_transaction)?;
 
         let mut mining_results = Vec::new();
@@ -1882,6 +1888,38 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
 
             Ok(function(&blockchain, &block, &result.state))
         }
+    }
+
+    /// # Panics
+    ///
+    /// Panics if the mempool has pending transactions.
+    fn mine_and_commit_transaction(
+        &mut self,
+        signed_transaction: ExecutableTransaction,
+    ) -> Result<SendTransactionResult, ProviderError<LoggerErrorT>> {
+        debug_assert!(!mempool::has_transactions(&self.mem_pool));
+
+        let transaction_hash = self.add_pending_transaction(signed_transaction)?;
+
+        self.mine_and_commit_block(BlockOptions::default())
+            .map_or_else(
+                |error| {
+                    self.remove_pending_transaction(&transaction_hash);
+                    Err(error)
+                },
+                |result| {
+                    let transaction_result = Some((
+                        result.transaction_results[0].clone(),
+                        result.transaction_traces[0].clone(),
+                    ));
+
+                    Ok(SendTransactionResult {
+                        transaction_hash,
+                        transaction_result,
+                        mining_results: vec![result],
+                    })
+                },
+            )
     }
 
     /// Mine a block using the provided options. If an option has not been
