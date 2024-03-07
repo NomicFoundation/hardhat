@@ -2,7 +2,7 @@ name: Run a recent full block in the Hardhat Network
 
 on:
   schedule:
-    - cron: "0 0 * * *"
+    - cron: "0 */8 * * *"
   workflow_dispatch:
 
 defaults:
