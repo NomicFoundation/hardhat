@@ -6,6 +6,7 @@ pub mod storage;
 
 use std::{collections::BTreeMap, fmt::Debug, ops::Bound::Included, sync::Arc};
 
+use auto_impl::auto_impl;
 use edr_eth::{
     log::FilterLog, receipt::BlockReceipt, spec::HardforkActivations, Address, B256, U256,
 };
@@ -78,6 +79,7 @@ pub enum BlockchainError {
 }
 
 /// Trait for implementations of an Ethereum blockchain.
+#[auto_impl(&)]
 pub trait Blockchain {
     /// The blockchain's error type
     type BlockchainError;

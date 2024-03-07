@@ -313,7 +313,7 @@ export const enum ExceptionalHalt {
   /** Error on created contract that begins with EF */
   CreateContractStartingWithEF = 12,
   /** EIP-3860: Limit and meter initcode. Initcode size limit exceeded. */
-  CreateInitcodeSizeLimit = 13
+  CreateInitCodeSizeLimit = 13
 }
 /** The result when the EVM terminates due to an exceptional halt. */
 export interface HaltResult {

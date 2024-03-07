@@ -2,9 +2,9 @@ use std::{cell::RefCell, fmt::Debug, rc::Rc, sync::Arc};
 
 use edr_eth::{Address, Bytes, U256};
 use revm::{
-    handler::register::{EvmHandler, EvmInstructionTables},
+    handler::register::EvmHandler,
     interpreter::{
-        opcode::{self, BoxedInstruction},
+        opcode::{self, BoxedInstruction, InstructionTables},
         return_revert, CallInputs, CallOutcome, CreateInputs, CreateOutcome, InstructionResult,
         Interpreter, SuccessOrHalt,
     },
@@ -31,18 +31,18 @@ pub fn register_trace_collector_handles<
         .expect("Handler must have instruction table");
 
     let table = match table {
-        EvmInstructionTables::Plain(table) => table
+        InstructionTables::Plain(table) => table
             .into_iter()
             .map(|i| instruction_handler(i))
             .collect::<Vec<_>>(),
-        EvmInstructionTables::Boxed(table) => table
+        InstructionTables::Boxed(table) => table
             .into_iter()
             .map(|i| instruction_handler(i))
             .collect::<Vec<_>>(),
     };
 
     // cast vector to array.
-    handler.instruction_table = Some(EvmInstructionTables::Boxed(
+    handler.instruction_table = Some(InstructionTables::Boxed(
         table.try_into().unwrap_or_else(|_| unreachable!()),
     ));
 
@@ -112,11 +112,11 @@ pub fn register_trace_collector_handles<
         match frame_result {
             FrameResult::Call(outcome) => {
                 let call_inputs = call_input_stack.borrow_mut().pop().unwrap();
-                tracer.call_end(&ctx.evm, &call_inputs, &outcome);
+                tracer.call_transaction_end(&ctx.evm, &call_inputs, outcome);
             }
             FrameResult::Create(outcome) => {
                 let create_inputs = create_input_stack.borrow_mut().pop().unwrap();
-                tracer.create_end(&ctx.evm, &create_inputs, &outcome);
+                tracer.create_transaction_end(&ctx.evm, &create_inputs, outcome);
             }
         }
         old_handle(ctx, frame_result)
@@ -141,7 +141,7 @@ fn instruction_handler<
             host.context
                 .external
                 .get_context_data()
-                .step(interpreter, &mut host.context.evm);
+                .step(interpreter, &host.context.evm);
 
             // return PC to old value
             interpreter.instruction_pointer = unsafe { interpreter.instruction_pointer.add(1) };
@@ -240,21 +240,31 @@ impl Trace {
 
 /// Object that gathers trace information during EVM execution and can be turned
 /// into a trace upon completion.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct TraceCollector {
-    trace: Trace,
+    traces: Vec<Trace>,
     pending_before: Option<BeforeMessage>,
+    is_new_trace: bool,
 }
 
 impl TraceCollector {
     /// Converts the [`TraceCollector`] into its [`Trace`].
-    pub fn into_trace(self) -> Trace {
-        self.trace
+    pub fn into_traces(self) -> Vec<Trace> {
+        self.traces
+    }
+
+    /// Returns the traces collected so far.
+    pub fn traces(&self) -> &[Trace] {
+        &self.traces
+    }
+
+    fn current_trace_mut(&mut self) -> &mut Trace {
+        self.traces.last_mut().expect("Trace must have been added")
     }
 
     fn validate_before_message(&mut self) {
         if let Some(message) = self.pending_before.take() {
-            self.trace.add_before(message);
+            self.current_trace_mut().add_before(message);
         }
     }
 
@@ -262,6 +272,11 @@ impl TraceCollector {
     where
         DatabaseT::Error: Debug,
     {
+        if self.is_new_trace {
+            self.is_new_trace = false;
+            self.traces.push(Trace::default());
+        }
+
         self.validate_before_message();
 
         // This needs to be split into two functions to avoid borrow checker issues
@@ -350,10 +365,15 @@ impl TraceCollector {
             SuccessOrHalt::FatalExternalError => panic!("Fatal external error"),
         };
 
-        self.trace.add_after(result);
+        self.current_trace_mut().add_after(result);
     }
 
     fn create<DatabaseT: Database>(&mut self, data: &EvmContext<DatabaseT>, inputs: &CreateInputs) {
+        if self.is_new_trace {
+            self.is_new_trace = false;
+            self.traces.push(Trace::default());
+        }
+
         self.validate_before_message();
 
         self.pending_before = Some(BeforeMessage {
@@ -406,7 +426,7 @@ impl TraceCollector {
             SuccessOrHalt::FatalExternalError => panic!("Fatal external error"),
         };
 
-        self.trace.add_after(result);
+        self.current_trace_mut().add_after(result);
     }
 
     fn step<DatabaseT: Database>(&mut self, interp: &Interpreter, data: &EvmContext<DatabaseT>) {
@@ -418,12 +438,42 @@ impl TraceCollector {
         self.validate_before_message();
 
         if !skip_step {
-            self.trace.add_step(
+            self.current_trace_mut().add_step(
                 data.journaled_state.depth(),
                 interp.program_counter(),
                 interp.current_opcode(),
                 interp.stack.data().last().cloned(),
             );
+        }
+    }
+
+    fn call_transaction_end<DatabaseT: Database>(
+        &mut self,
+        data: &EvmContext<DatabaseT>,
+        inputs: &CallInputs,
+        outcome: &CallOutcome,
+    ) {
+        self.is_new_trace = true;
+        self.call_end(data, inputs, outcome);
+    }
+
+    fn create_transaction_end<DatabaseT: Database>(
+        &mut self,
+        data: &EvmContext<DatabaseT>,
+        inputs: &CreateInputs,
+        outcome: &CreateOutcome,
+    ) {
+        self.is_new_trace = true;
+        self.create_end(data, inputs, outcome);
+    }
+}
+
+impl Default for TraceCollector {
+    fn default() -> Self {
+        Self {
+            traces: Vec::new(),
+            pending_before: None,
+            is_new_trace: true,
         }
     }
 }

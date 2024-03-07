@@ -19,9 +19,9 @@ pub fn register_console_log_handles<
 ) {
     let old_handle = handler.execution.call.clone();
     handler.execution.call = Arc::new(
-        move |ctx, mut inputs| -> Result<FrameOrResult, EVMError<DatabaseT::Error>> {
+        move |ctx, inputs| -> Result<FrameOrResult, EVMError<DatabaseT::Error>> {
             if inputs.contract == CONSOLE_ADDRESS {
-                let mut collector = ctx.external.get_context_data();
+                let collector = ctx.external.get_context_data();
                 collector.record_console_log(inputs.input.clone());
             }
 

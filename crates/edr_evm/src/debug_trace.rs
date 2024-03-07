@@ -3,10 +3,10 @@ use std::{cell::RefCell, collections::HashMap, fmt::Debug, rc::Rc, sync::Arc};
 use edr_eth::{signature::SignatureError, utils::u256_to_padded_hex, B256};
 use revm::{
     db::DatabaseComponents,
-    handler::register::{EvmHandler, EvmInstructionTables},
+    handler::register::EvmHandler,
     inspectors::GasInspector,
     interpreter::{
-        opcode::{self, BoxedInstruction},
+        opcode::{self, BoxedInstruction, InstructionTables},
         CallInputs, CallOutcome, CreateInputs, CreateOutcome, InstructionResult, Interpreter,
     },
     primitives::{
@@ -225,18 +225,18 @@ pub fn register_eip_3155_tracer_handles<
         .expect("Handler must have instruction table");
 
     let table = match table {
-        EvmInstructionTables::Plain(table) => table
+        InstructionTables::Plain(table) => table
             .into_iter()
             .map(|i| instruction_handler(i))
             .collect::<Vec<_>>(),
-        EvmInstructionTables::Boxed(table) => table
+        InstructionTables::Boxed(table) => table
             .into_iter()
             .map(|i| instruction_handler(i))
             .collect::<Vec<_>>(),
     };
 
     // cast vector to array.
-    handler.instruction_table = Some(EvmInstructionTables::Boxed(
+    handler.instruction_table = Some(InstructionTables::Boxed(
         table.try_into().unwrap_or_else(|_| unreachable!()),
     ));
 

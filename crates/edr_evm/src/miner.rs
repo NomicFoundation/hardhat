@@ -95,7 +95,7 @@ pub fn mine_block<BlockchainT, BlockchainErrorT, DebugDataT, StateErrorT>(
     mine_ordering: MineOrdering,
     reward: U256,
     dao_hardfork_activation_block: Option<u64>,
-    debug_context: Option<
+    mut debug_context: Option<
         DebugContext<
             WrapDatabaseRef<DatabaseComponents<Box<dyn SyncState<StateErrorT>>, BlockchainT>>,
             DebugDataT,
@@ -110,7 +110,6 @@ where
         + BlockHashRef<Error = BlockchainErrorT>
         + Clone,
     BlockchainErrorT: Debug + Send,
-    DebugDataT: Copy,
     StateErrorT: Debug + Send,
 {
     let parent_block = blockchain
@@ -150,24 +149,28 @@ where
         }
 
         let caller = *transaction.caller();
-        match block_builder.add_transaction(blockchain.clone(), state, transaction, debug_context) {
-            Err((
+        let (evm_context, result) =
+            block_builder.add_transaction(blockchain.clone(), state, transaction, debug_context);
+
+        match result {
+            Err(
                 BlockTransactionError::ExceedsBlockGasLimit
                 | BlockTransactionError::InvalidTransaction(
                     InvalidTransaction::GasPriceLessThanBasefee,
                 ),
-                new_state,
-            )) => {
+            ) => {
                 pending_transactions.remove_caller(&caller);
-                state = new_state;
+                state = evm_context.state;
+                debug_context = evm_context.debug;
                 continue;
             }
-            Err((error, _state)) => {
+            Err(error) => {
                 return Err(MineBlockError::BlockTransaction(error));
             }
-            Ok((result, new_state)) => {
+            Ok(result) => {
                 results.push(result);
-                state = new_state;
+                state = evm_context.state;
+                debug_context = evm_context.debug;
             }
         }
     }

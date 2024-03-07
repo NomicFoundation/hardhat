@@ -24,7 +24,7 @@ use revm::{
 
 use super::local::LocalBlock;
 use crate::{
-    debug::DebugContext,
+    debug::{DebugContext, EvmContext},
     state::{AccountModifierFn, StateDebug, StateDiff, SyncState},
     ExecutableTransaction,
 };
@@ -199,13 +199,10 @@ impl BlockBuilder {
         debug_context: Option<
             DebugContext<WrapDatabaseRef<DatabaseComponents<StateT, BlockchainT>>, DebugDataT>,
         >,
-    ) -> Result<
-        (ExecutionResult, StateT),
-        (
-            BlockTransactionError<BlockchainT::Error, StateErrorT>,
-            StateT,
-        ),
-    >
+    ) -> (
+        EvmContext<BlockchainT, DebugDataT, StateT>,
+        Result<ExecutionResult, BlockTransactionError<BlockchainT::Error, StateErrorT>>,
+    )
     where
         BlockchainT: BlockHashRef,
         BlockchainT::Error: Debug + Send,
@@ -215,7 +212,13 @@ impl BlockBuilder {
         //  transaction's gas limit cannot be greater than the remaining gas in the
         // block
         if transaction.gas_limit() > self.gas_remaining() {
-            return Err((BlockTransactionError::ExceedsBlockGasLimit, state));
+            return (
+                EvmContext {
+                    debug: debug_context,
+                    state,
+                },
+                Err(BlockTransactionError::ExceedsBlockGasLimit),
+            );
         }
 
         let spec_id = self.cfg.handler_cfg.spec_id;
@@ -245,53 +248,67 @@ impl BlockBuilder {
             transaction.clone().into(),
         );
 
+        let db = DatabaseComponents {
+            state,
+            block_hash: blockchain,
+        };
+
         let (
+            mut evm_context,
             ResultAndState {
                 result,
                 state: state_diff,
             },
-            mut state,
         ) = {
             if let Some(debug_context) = debug_context {
                 let mut evm = Evm::builder()
-                    .with_ref_db(DatabaseComponents {
-                        state,
-                        block_hash: blockchain,
-                    })
+                    .with_ref_db(db)
                     .with_external_context(debug_context.data)
                     .with_env_with_handler_cfg(env)
                     .append_handler_register(debug_context.register_handles_fn)
                     .build();
 
                 let result = evm.transact();
-                let state = evm.into_context().evm.db.0.state;
+                let context = evm.into_context();
+
+                let evm_context = EvmContext {
+                    debug: Some(DebugContext {
+                        data: context.external,
+                        register_handles_fn: debug_context.register_handles_fn,
+                    }),
+                    state: context.evm.db.0.state,
+                };
 
                 match result {
-                    Ok(result) => (result, state),
+                    Ok(result) => (evm_context, result),
                     Err(error) => {
-                        return Err((error.into(), state));
+                        return (evm_context, Err(error.into()));
                     }
                 }
             } else {
                 let mut evm = Evm::builder()
-                    .with_ref_db(DatabaseComponents {
-                        state,
-                        block_hash: blockchain,
-                    })
+                    .with_ref_db(db)
                     .with_env_with_handler_cfg(env)
                     .build();
 
                 let result = evm.transact();
-                let state = evm.into_context().evm.db.0.state;
+                let context = evm.into_context();
+
+                let evm_context = EvmContext {
+                    debug: None,
+                    state: context.evm.db.0.state,
+                };
 
                 match result {
-                    Ok(result) => (result, state),
+                    Ok(result) => (evm_context, result),
                     Err(error) => {
-                        return Err((error.into(), state));
+                        return (evm_context, Err(error.into()));
                     }
                 }
             }
         };
+
+        let state = &mut evm_context.state;
 
         self.state_diff.apply_diff(state_diff.clone());
 
@@ -299,7 +316,7 @@ impl BlockBuilder {
 
         self.header.gas_used += result.gas_used();
 
-        let logs: Vec<Log> = result.logs().into_iter().map(Log::from).collect();
+        let logs = result.logs().to_vec();
         let logs_bloom = {
             let mut bloom = Bloom::ZERO;
             for log in &logs {
@@ -367,7 +384,7 @@ impl BlockBuilder {
 
         self.transactions.push(transaction);
 
-        Ok((result, state))
+        (evm_context, Ok(result))
     }
 
     /// Finalizes the block, returning the block and the callers of the

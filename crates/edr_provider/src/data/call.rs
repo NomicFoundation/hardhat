@@ -9,7 +9,7 @@ use edr_evm::{
     db::{DatabaseComponents, WrapDatabaseRef},
     guaranteed_dry_run,
     state::{StateError, StateOverrides, StateRefOverrider, SyncState},
-    BlobExcessGasAndPrice, BlockEnv, CfgEnv, DebugContext, ExecutionResult, TxEnv,
+    BlobExcessGasAndPrice, BlockEnv, CfgEnvWithHandlerCfg, DebugContext, ExecutionResult, TxEnv,
 };
 
 use crate::ProviderError;
@@ -22,7 +22,7 @@ where
     pub header: &'a Header,
     pub state: &'a dyn SyncState<StateError>,
     pub state_overrides: &'a StateOverrides,
-    pub cfg_env: CfgEnv,
+    pub cfg_env: CfgEnvWithHandlerCfg,
     pub tx_env: TxEnv,
     pub debug_context: Option<
         DebugContext<
@@ -61,7 +61,7 @@ where
         gas_limit: U256::from(header.gas_limit),
         basefee: U256::ZERO,
         difficulty: header.difficulty,
-        prevrandao: if cfg_env.spec_id >= SpecId::MERGE {
+        prevrandao: if cfg_env.handler_cfg.spec_id >= SpecId::MERGE {
             Some(header.mix_hash)
         } else {
             None

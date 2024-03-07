@@ -368,14 +368,13 @@ dependencies = [
 
 [[package]]
 name = "auto_impl"
-version = "1.1.0"
+version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fee3da8ef1276b0bee5dd1c7258010d8fffd31801447323115a25560e1327b89"
+checksum = "3c87f3f15e7794432337fc718554eaa4dc8f04c9677a950ffe366f20a162ae42"
 dependencies = [
- "proc-macro-error",
  "proc-macro2",
  "quote",
- "syn 1.0.109",
+ "syn 2.0.38",
 ]
 
 [[package]]
@@ -1025,7 +1024,7 @@ dependencies = [
  "reqwest-middleware",
  "reqwest-retry",
  "reqwest-tracing",
- "revm-primitives 2.1.0",
+ "revm-primitives 2.1.0 (git+https://github.com/Wodann/revm.git?rev=9eb4892)",
  "serde",
  "serde_json",
  "serial_test",
@@ -1063,7 +1062,7 @@ dependencies = [
  "once_cell",
  "parking_lot 0.12.1",
  "paste",
- "revm 6.1.0",
+ "revm 6.1.0 (git+https://github.com/Wodann/revm.git?rev=9eb4892)",
  "serde",
  "serde_json",
  "serial_test",
@@ -2872,18 +2871,6 @@ dependencies = [
 [[package]]
 name = "revm"
 version = "6.1.0"
-dependencies = [
- "auto_impl",
- "cfg-if",
- "revm-interpreter 3.1.0",
- "revm-precompile 4.1.0",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "revm"
-version = "6.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d35316fc02d99e42831356c71e882f5d385c77b78f64a44ae82f2f9a4b8b72f"
 dependencies = [
@@ -2896,11 +2883,17 @@ dependencies = [
 ]
 
 [[package]]
-name = "revm-interpreter"
-version = "3.1.0"
+name = "revm"
+version = "6.1.0"
+source = "git+https://github.com/Wodann/revm.git?rev=9eb4892#9eb489257fea602c337f02e711747cd3be6f2b5a"
 dependencies = [
- "revm-primitives 2.1.0",
+ "auto_impl",
+ "cfg-if",
+ "dyn-clone",
+ "revm-interpreter 3.1.0 (git+https://github.com/Wodann/revm.git?rev=9eb4892)",
+ "revm-precompile 4.1.0 (git+https://github.com/Wodann/revm.git?rev=9eb4892)",
  "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -2914,18 +2907,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "revm-precompile"
-version = "4.1.0"
+name = "revm-interpreter"
+version = "3.1.0"
+source = "git+https://github.com/Wodann/revm.git?rev=9eb4892#9eb489257fea602c337f02e711747cd3be6f2b5a"
 dependencies = [
- "aurora-engine-modexp",
- "c-kzg",
- "k256",
- "once_cell",
- "revm-primitives 2.1.0",
- "ripemd",
- "secp256k1",
- "sha2",
- "substrate-bn",
+ "revm-primitives 2.1.0 (git+https://github.com/Wodann/revm.git?rev=9eb4892)",
+ "serde",
 ]
 
 [[package]]
@@ -2946,8 +2933,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "revm-precompile"
+version = "4.1.0"
+source = "git+https://github.com/Wodann/revm.git?rev=9eb4892#9eb489257fea602c337f02e711747cd3be6f2b5a"
+dependencies = [
+ "aurora-engine-modexp",
+ "c-kzg",
+ "k256",
+ "once_cell",
+ "revm-primitives 2.1.0 (git+https://github.com/Wodann/revm.git?rev=9eb4892)",
+ "ripemd",
+ "secp256k1",
+ "sha2",
+ "substrate-bn",
+]
+
+[[package]]
 name = "revm-primitives"
 version = "2.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fecd125aad58e135e2ca5771ed6e4e7b1f05fa3a64e0dfb9cc643b7a800a8435"
 dependencies = [
  "alloy-primitives 0.6.3",
  "auto_impl",
@@ -2964,8 +2969,7 @@ dependencies = [
 [[package]]
 name = "revm-primitives"
 version = "2.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fecd125aad58e135e2ca5771ed6e4e7b1f05fa3a64e0dfb9cc643b7a800a8435"
+source = "git+https://github.com/Wodann/revm.git?rev=9eb4892#9eb489257fea602c337f02e711747cd3be6f2b5a"
 dependencies = [
  "alloy-primitives 0.6.3",
  "auto_impl",
@@ -2973,6 +2977,7 @@ dependencies = [
  "bitvec",
  "c-kzg",
  "cfg-if",
+ "dyn-clone",
  "enumn",
  "hashbrown 0.14.1",
  "hex",

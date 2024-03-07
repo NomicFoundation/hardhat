@@ -24,7 +24,7 @@ impl TryCast<Option<edr_provider::CallOverrideResult>> for Option<CallOverrideRe
         match self {
             None => Ok(None),
             Some(result) => Ok(Some(edr_provider::CallOverrideResult {
-                result: result.result.try_cast()?,
+                output: result.result.try_cast()?,
                 should_revert: result.should_revert,
             })),
         }
