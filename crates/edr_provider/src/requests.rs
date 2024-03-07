@@ -13,7 +13,6 @@ use ::serde::{
     de::{self, MapAccess, SeqAccess, Visitor},
     Deserialize, Deserializer, Serialize,
 };
-pub use edr_eth::remote::client::Request as RpcRequest;
 
 pub use crate::requests::{
     methods::{MethodInvocation, OneUsizeOrTwo, U64OrUsize},
