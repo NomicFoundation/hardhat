@@ -7,7 +7,7 @@ use revm::{
     inspectors::GasInspector,
     interpreter::{
         opcode::{self, BoxedInstruction, InstructionTables},
-        CallInputs, CallOutcome, CreateInputs, CreateOutcome, InstructionResult, Interpreter,
+        CallInputs, CallOutcome, InstructionResult, Interpreter,
     },
     primitives::{
         hex, Address, BlockEnv, Bytes, CfgEnvWithHandlerCfg, EVMError, ExecutionResult,
@@ -240,24 +240,14 @@ pub fn register_eip_3155_tracer_handles<
         table.try_into().unwrap_or_else(|_| unreachable!()),
     ));
 
-    // call and create input stack shared between handlers. They are used to share
-    // inputs in *_end Inspector calls.
+    // call input stack shared between handlers. It is used to share inputs in *_end
+    // calls.
     let call_input_stack = Rc::<RefCell<Vec<_>>>::new(RefCell::new(Vec::new()));
-    let create_input_stack = Rc::<RefCell<Vec<_>>>::new(RefCell::new(Vec::new()));
 
     // Create handler
-    let create_input_stack_inner = create_input_stack.clone();
     let old_handle = handler.execution.create.clone();
     handler.execution.create = Arc::new(
-        move |ctx, mut inputs| -> Result<FrameOrResult, EVMError<DatabaseT::Error>> {
-            let tracer = ctx.external.get_context_data();
-            // call tracer create to change input or return outcome.
-            if let Some(outcome) = tracer.create(&mut ctx.evm, &mut inputs) {
-                create_input_stack_inner.borrow_mut().push(inputs.clone());
-                return Ok(FrameOrResult::Result(FrameResult::Create(outcome)));
-            }
-            create_input_stack_inner.borrow_mut().push(inputs.clone());
-
+        move |ctx, inputs| -> Result<FrameOrResult, EVMError<DatabaseT::Error>> {
             let mut frame_or_result = old_handle(ctx, inputs);
 
             if let Ok(FrameOrResult::Frame(frame)) = &mut frame_or_result {
@@ -272,14 +262,7 @@ pub fn register_eip_3155_tracer_handles<
     let call_input_stack_inner = call_input_stack.clone();
     let old_handle = handler.execution.call.clone();
     handler.execution.call = Arc::new(
-        move |ctx, mut inputs| -> Result<FrameOrResult, EVMError<DatabaseT::Error>> {
-            let tracer = ctx.external.get_context_data();
-            let _mems = inputs.return_memory_offset.clone();
-            // call tracer callto change input or return outcome.
-            if let Some(outcome) = tracer.call(&mut ctx.evm, &mut inputs) {
-                call_input_stack_inner.borrow_mut().push(inputs.clone());
-                return Ok(FrameOrResult::Result(FrameResult::Call(outcome)));
-            }
+        move |ctx, inputs| -> Result<FrameOrResult, EVMError<DatabaseT::Error>> {
             call_input_stack_inner.borrow_mut().push(inputs.clone());
 
             let mut frame_or_result = old_handle(ctx, inputs);
@@ -303,29 +286,13 @@ pub fn register_eip_3155_tracer_handles<
             old_handle(ctx, frame, shared_memory, outcome)
         });
 
-    // create outcome
-    let create_input_stack_inner = create_input_stack.clone();
-    let old_handle = handler.execution.insert_create_outcome.clone();
-    handler.execution.insert_create_outcome = Arc::new(move |ctx, frame, mut outcome| {
-        let tracer = ctx.external.get_context_data();
-        let create_inputs = create_input_stack_inner.borrow_mut().pop().unwrap();
-        outcome = tracer.create_end(&mut ctx.evm, &create_inputs, outcome);
-        old_handle(ctx, frame, outcome)
-    });
-
     // last frame outcome
     let old_handle = handler.execution.last_frame_return.clone();
     handler.execution.last_frame_return = Arc::new(move |ctx, frame_result| {
         let tracer = ctx.external.get_context_data();
-        match frame_result {
-            FrameResult::Call(outcome) => {
-                let call_inputs = call_input_stack.borrow_mut().pop().unwrap();
-                *outcome = tracer.call_end(&mut ctx.evm, &call_inputs, outcome.clone());
-            }
-            FrameResult::Create(outcome) => {
-                let create_inputs = create_input_stack.borrow_mut().pop().unwrap();
-                *outcome = tracer.create_end(&mut ctx.evm, &create_inputs, outcome.clone());
-            }
+        if let FrameResult::Call(outcome) = frame_result {
+            let call_inputs = call_input_stack.borrow_mut().pop().unwrap();
+            *outcome = tracer.call_end(&mut ctx.evm, &call_inputs, outcome.clone());
         }
         old_handle(ctx, frame_result)
     });
@@ -346,10 +313,7 @@ fn instruction_handler<
             // the old Inspector behavior.
             interpreter.instruction_pointer = unsafe { interpreter.instruction_pointer.sub(1) };
 
-            host.context
-                .external
-                .get_context_data()
-                .step(interpreter, &mut host.context.evm);
+            host.context.external.get_context_data().step(interpreter);
             if interpreter.instruction_result != InstructionResult::Continue {
                 return;
             }
@@ -382,7 +346,6 @@ pub struct TracerEip3155 {
     mem_size: usize,
     opcode: u8,
     pc: usize,
-    skip: bool,
     stack: Vec<U256>,
     // Contract-specific storage
     storage: HashMap<Address, HashMap<String, String>>,
@@ -402,7 +365,6 @@ impl TracerEip3155 {
             gas_remaining: 0,
             memory: Vec::default(),
             mem_size: 0,
-            skip: false,
             storage: HashMap::default(),
         }
     }
@@ -501,14 +463,8 @@ impl TracerEip3155 {
         self.gas_inspector.initialize_interp(interp, context);
     }
 
-    fn step<DatabaseT: Database>(
-        &mut self,
-        interp: &mut Interpreter,
-        context: &mut EvmContext<DatabaseT>,
-    ) {
+    fn step(&mut self, interp: &mut Interpreter) {
         self.contract_address = interp.contract.address;
-
-        self.gas_inspector.step(interp, context);
         self.gas_remaining = self.gas_inspector.gas_remaining();
 
         if !self.config.disable_stack {
@@ -533,21 +489,7 @@ impl TracerEip3155 {
     ) {
         self.gas_inspector.step_end(interp, context);
 
-        // Omit extra return https://github.com/bluealloy/revm/pull/563
-        if self.skip {
-            self.skip = false;
-        } else {
-            self.record_log(context);
-        }
-    }
-
-    fn call<DatabaseT: Database>(
-        &mut self,
-        context: &mut EvmContext<DatabaseT>,
-        _inputs: &mut CallInputs,
-    ) -> Option<CallOutcome> {
         self.record_log(context);
-        None
     }
 
     fn call_end<DatabaseT: Database>(
@@ -556,27 +498,7 @@ impl TracerEip3155 {
         inputs: &CallInputs,
         outcome: CallOutcome,
     ) -> CallOutcome {
-        self.skip = true;
         self.gas_inspector.call_end(context, inputs, outcome)
-    }
-
-    fn create<DatabaseT: Database>(
-        &mut self,
-        context: &mut EvmContext<DatabaseT>,
-        _inputs: &mut CreateInputs,
-    ) -> Option<CreateOutcome> {
-        self.record_log(context);
-        None
-    }
-
-    fn create_end<DatabaseT: Database>(
-        &mut self,
-        context: &mut EvmContext<DatabaseT>,
-        inputs: &CreateInputs,
-        outcome: CreateOutcome,
-    ) -> CreateOutcome {
-        self.skip = true;
-        self.gas_inspector.create_end(context, inputs, outcome)
     }
 }
 

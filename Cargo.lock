@@ -1024,7 +1024,7 @@ dependencies = [
  "reqwest-middleware",
  "reqwest-retry",
  "reqwest-tracing",
- "revm-primitives 2.1.0 (git+https://github.com/bluealloy/revm?rev=f36f90e)",
+ "revm-primitives 2.1.0 (git+https://github.com/Wodann/revm?rev=e84e612)",
  "serde",
  "serde_json",
  "serial_test",
@@ -1062,7 +1062,7 @@ dependencies = [
  "once_cell",
  "parking_lot 0.12.1",
  "paste",
- "revm 6.1.0 (git+https://github.com/bluealloy/revm?rev=f36f90e)",
+ "revm 6.1.0 (git+https://github.com/Wodann/revm?rev=e84e612)",
  "serde",
  "serde_json",
  "serial_test",
@@ -2885,13 +2885,13 @@ dependencies = [
 [[package]]
 name = "revm"
 version = "6.1.0"
-source = "git+https://github.com/bluealloy/revm?rev=f36f90e#f36f90e5b716183e0899236aab6b00f398fc0290"
+source = "git+https://github.com/Wodann/revm?rev=e84e612#e84e612389d6abc30bce769ec7873741b50252cc"
 dependencies = [
  "auto_impl",
  "cfg-if",
  "dyn-clone",
- "revm-interpreter 3.1.0 (git+https://github.com/bluealloy/revm?rev=f36f90e)",
- "revm-precompile 4.1.0 (git+https://github.com/bluealloy/revm?rev=f36f90e)",
+ "revm-interpreter 3.1.0 (git+https://github.com/Wodann/revm?rev=e84e612)",
+ "revm-precompile 4.1.0 (git+https://github.com/Wodann/revm?rev=e84e612)",
  "serde",
  "serde_json",
 ]
@@ -2909,9 +2909,9 @@ dependencies = [
 [[package]]
 name = "revm-interpreter"
 version = "3.1.0"
-source = "git+https://github.com/bluealloy/revm?rev=f36f90e#f36f90e5b716183e0899236aab6b00f398fc0290"
+source = "git+https://github.com/Wodann/revm?rev=e84e612#e84e612389d6abc30bce769ec7873741b50252cc"
 dependencies = [
- "revm-primitives 2.1.0 (git+https://github.com/bluealloy/revm?rev=f36f90e)",
+ "revm-primitives 2.1.0 (git+https://github.com/Wodann/revm?rev=e84e612)",
  "serde",
 ]
 
@@ -2935,13 +2935,13 @@ dependencies = [
 [[package]]
 name = "revm-precompile"
 version = "4.1.0"
-source = "git+https://github.com/bluealloy/revm?rev=f36f90e#f36f90e5b716183e0899236aab6b00f398fc0290"
+source = "git+https://github.com/Wodann/revm?rev=e84e612#e84e612389d6abc30bce769ec7873741b50252cc"
 dependencies = [
  "aurora-engine-modexp",
  "c-kzg",
  "k256",
  "once_cell",
- "revm-primitives 2.1.0 (git+https://github.com/bluealloy/revm?rev=f36f90e)",
+ "revm-primitives 2.1.0 (git+https://github.com/Wodann/revm?rev=e84e612)",
  "ripemd",
  "secp256k1",
  "sha2",
@@ -2969,7 +2969,7 @@ dependencies = [
 [[package]]
 name = "revm-primitives"
 version = "2.1.0"
-source = "git+https://github.com/bluealloy/revm?rev=f36f90e#f36f90e5b716183e0899236aab6b00f398fc0290"
+source = "git+https://github.com/Wodann/revm?rev=e84e612#e84e612389d6abc30bce769ec7873741b50252cc"
 dependencies = [
  "alloy-primitives 0.6.3",
  "auto_impl",
