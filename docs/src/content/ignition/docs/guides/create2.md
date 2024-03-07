@@ -96,6 +96,7 @@ export default {
   ignition: {
     strategyConfig: {
       create2: {
+        // To learn more about salts, see the CreateX documentation
         salt: "0x0000000000000000000000000000000000000000000000000000000000000000",
       },
     },
@@ -113,6 +114,7 @@ module.exports = {
   ignition: {
     strategyConfig: {
       create2: {
+        // To learn more about salts, see the CreateX documentation
         salt: "0x0000000000000000000000000000000000000000000000000000000000000000",
       },
     },
@@ -152,7 +154,7 @@ The `--strategy create2` flag tells Ignition to deploy the module using `create2
 Compiled 1 Solidity file successfully (evm target: paris).
 Hardhat Ignition 🚀
 
-Deploying [ Apollo ] with strategy &lt; create2 &gt;
+Deploying [ Apollo ] with strategy create2
 
 Batch #1
   Executed Apollo#Rocket
