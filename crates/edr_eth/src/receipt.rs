@@ -168,6 +168,7 @@ where
             CumulativeGasUsed,
             LogsBloom,
             Logs,
+            Unknown(String),
         }
 
         struct TypedReceiptVisitor<LogT> {
@@ -239,6 +240,9 @@ where
                             }
                             logs = Some(map.next_value()?);
                         }
+                        Field::Unknown(field) => {
+                            log::warn!("Unsupported receipt field: {field}");
+                        }
                     }
                 }
 
@@ -261,7 +265,11 @@ where
                             "0x0" => TypedReceiptData::PostEip658Legacy { status },
                             "0x1" => TypedReceiptData::Eip2930 { status },
                             "0x2" => TypedReceiptData::Eip1559 { status },
-                            _ => return Err(Error::custom("unknown transaction type")),
+                            "0x3" => TypedReceiptData::Eip4844 { status },
+                            _ => {
+                                log::warn!("Unsupported receipt type: {transaction_type}. Reverting to post-EIP 155 legacy receipt");
+                                TypedReceiptData::PostEip658Legacy { status }
+                            }
                         }
                     } else {
                         TypedReceiptData::PostEip658Legacy { status }
