@@ -24,7 +24,8 @@ async function main() {
     result[scenarioResult.name] = scenarioResult.result;
   }
 
-  console.log(JSON.stringify(result, null, 2));
+  console.log(JSON.stringify(result));
+  process.exit(0);
 }
 
 async function runScenario(scenarioPath: string) {
@@ -186,5 +187,5 @@ function readFile(path: string) {
 
 main().catch((error) => {
   console.error(error);
-  process.exitCode = 1;
+  process.exit(1);
 });
