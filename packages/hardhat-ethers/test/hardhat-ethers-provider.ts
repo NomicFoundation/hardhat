@@ -4,6 +4,7 @@ import chaiAsPromised from "chai-as-promised";
 import { ExampleContract, EXAMPLE_CONTRACT } from "./example-contracts";
 import { usePersistentEnvironment } from "./environment";
 import { assertIsNotNull, assertWithin } from "./helpers";
+import { Contract, toBeHex } from "ethers";
 
 use(chaiAsPromised);
 
@@ -480,6 +481,33 @@ describe("hardhat ethers provider", function () {
         doubleValue,
         "0x0000000000000000000000000000000000000000000000000000000000000002"
       );
+    });
+  });
+
+  describe("issue 4970", function () {
+    it("issue 4970", async function () {
+      const userAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+      const amount = toBeHex("1000000", 32);
+      const usdc = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
+
+      const erc20 = new Contract(
+        usdc,
+        ["function balanceOf(uint256) public view returns (uint256)"],
+        this.env.ethers.provider
+      );
+
+      await this.env.network.provider.send("hardhat_setStorageAt", [
+        usdc,
+        "0x9",
+        amount,
+      ]);
+
+      const balance = await erc20.balanceOf(userAddress);
+
+      await this.env.network.provider.send("evm_mine", []);
+      const balanceAfterMine = await erc20.balanceOf(userAddress);
+
+      // assert.strictEqual(amount, value);
     });
   });
 
