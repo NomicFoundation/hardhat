@@ -16,22 +16,33 @@ async function main() {
   // List files in scenarios directory
   const scenarioFiles = await fs.promises.readdir(scenariosDir);
   scenarioFiles.sort();
+  let totalTime = 0;
+  let totalFailures = 0;
   for (let scenarioFile of scenarioFiles) {
     // Get the filename from the path
     const scenarioResult = await runScenario(
       path.join(scenariosDir, scenarioFile)
     );
+    totalTime += scenarioResult.result.timeMs;
+    totalFailures += scenarioResult.result.failures.length;
     result[scenarioResult.name] = scenarioResult.result;
   }
 
   console.log(JSON.stringify(result));
+
+  // Log info to stderr so that it doesn't pollute stdout where we write the result
+  console.error(
+    `Total time ${
+      Math.round(100 * (totalTime / 1000)) / 100
+    } seconds with ${totalFailures} failures.`
+  );
+
   process.exit(0);
 }
 
 async function runScenario(scenarioPath: string) {
   const { config, requests } = await loadScenario(scenarioPath);
   const name = path.basename(scenarioPath).split(".")[0];
-  // Log info to stderr so that it doesn't pollute stdout where we write the result
   console.error(`Running ${name} scenario`);
 
   const start = performance.now();
@@ -53,9 +64,9 @@ async function runScenario(scenarioPath: string) {
   const timeMs = performance.now() - start;
 
   console.error(
-    `${name} finished in ${timeMs / 1000} seconds with ${
-      failures.length
-    } failures.`
+    `${name} finished in ${
+      Math.round(100 * (timeMs / 1000)) / 100
+    } seconds with ${failures.length} failures.`
   );
 
   return {
