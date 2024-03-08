@@ -30,6 +30,7 @@ import {
   isHexString,
   resolveAddress,
   toQuantity,
+  zeroPadValue,
 } from "ethers";
 import { EthereumProvider } from "hardhat/types";
 
@@ -216,11 +217,13 @@ export class HardhatEthersProvider implements ethers.Provider {
     const resolvedBlockTag = await this._getBlockTag(blockTag);
     const rpcBlockTag = this._getRpcBlockTag(resolvedBlockTag);
 
-    return this._hardhatProvider.send("eth_getStorageAt", [
+    const storageValue = await this._hardhatProvider.send("eth_getStorageAt", [
       resolvedAddress,
       `0x${resolvedPosition.toString(16)}`,
       rpcBlockTag,
     ]);
+
+    return zeroPadValue(storageValue, 32);
   }
 
   public async estimateGas(tx: TransactionRequest): Promise<bigint> {
