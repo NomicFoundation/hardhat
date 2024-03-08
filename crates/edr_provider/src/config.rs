@@ -58,10 +58,10 @@ pub struct MiningConfig {
 /// Configuration for the provider
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ProviderConfig {
-    pub allow_blocks_with_same_timestamp: bool,
-    pub allow_unlimited_contract_size: bool,
+    pub allow_blocks_with_same_timestamp: bool, // x
+    pub allow_unlimited_contract_size: bool,    // x
     pub accounts: Vec<AccountConfig>,
-    /// Whether to return an `Err` when `eth_call` fails
+    /// Whether to return an `Err` when `eth_calll fails
     pub bail_on_call_failure: bool,
     /// Whether to return an `Err` when a `eth_sendTransaction` fails
     pub bail_on_transaction_failure: bool,
