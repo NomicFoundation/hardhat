@@ -11,7 +11,7 @@ use std::{
 use futures::stream::StreamExt;
 pub use hyper::{http::Error as HttpError, HeaderMap};
 use itertools::{izip, Itertools};
-use reqwest::Client as HttpClient;
+use reqwest::{self, Client as HttpClient};
 use reqwest_middleware::{ClientBuilder as HttpClientBuilder, ClientWithMiddleware};
 use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
 #[cfg(feature = "tracing")]
@@ -473,6 +473,7 @@ impl RpcClient {
         self.client
             .post(self.url.clone())
             .body(request_body.to_json_string())
+            .header(reqwest::header::CONTENT_TYPE, "application/json")
             .send()
             .await
             .map_err(RpcClientError::FailedToSend)?
