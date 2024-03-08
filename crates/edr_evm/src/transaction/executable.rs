@@ -251,9 +251,6 @@ pub enum TransactionConversionError {
     /// EIP-4844 transaction is missing the receiver (to) address
     #[error("Missing receiver (to) address")]
     MissingReceiverAddress,
-    /// The transaction type is not supported.
-    #[error("Unsupported type {0}")]
-    UnsupportedType(u64),
 }
 
 impl TryFrom<Transaction> for ExecutableTransaction {
@@ -383,7 +380,23 @@ impl TryFrom<Transaction> for ExecutableTransaction {
                 is_fake: false,
             }),
             Some(r#type) => {
-                return Err(TransactionConversionError::UnsupportedType(r#type));
+                log::warn!("Unsupported transaction type: {type}. Reverting to post-EIP 155 legacy transaction", );
+
+                SignedTransaction::PostEip155Legacy(Eip155SignedTransaction {
+                    nonce: value.nonce,
+                    gas_price: value.gas_price,
+                    gas_limit: value.gas.to(),
+                    kind,
+                    value: value.value,
+                    input: value.input,
+                    signature: Signature {
+                        r: value.r,
+                        s: value.s,
+                        v: value.v,
+                    },
+                    hash: OnceLock::from(value.hash),
+                    is_fake: false,
+                })
             }
         };
 
