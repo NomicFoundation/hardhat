@@ -235,6 +235,7 @@ ignitionScope
       if (userModule === undefined) {
         console.warn("No Ignition modules found");
         process.exitCode = 1;
+        return;
       }
 
       let parameters: DeploymentParameters | undefined;
@@ -332,7 +333,7 @@ ignitionScope
       if (userModule === undefined) {
         console.warn("No Ignition modules found");
         process.exitCode = 1;
-      }
+      } else {
 
       try {
         const serializedIgnitionModule =
@@ -357,6 +358,7 @@ ignitionScope
 
         throw e;
       }
+    }
 
       if (!noOpen) {
         const indexFile = path.join(
@@ -584,6 +586,8 @@ async function resolveConfigPath(
 
     console.warn(`Could not parse parameters from ${filepath}`);
     process.exitCode = 1;
+
+    throw new Error(`Failed to parse parameters from ${filepath}`);
   }
 }
 
@@ -597,5 +601,8 @@ function resolveParametersString(paramString: string): DeploymentParameters {
 
     console.warn(`Could not parse JSON parameters`);
     process.exitCode = 1;
+
+    throw new Error("Failed to parse JSON parameters");
+
   }
 }
