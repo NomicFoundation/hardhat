@@ -214,7 +214,7 @@ ignitionScope
             "Deploy cancelled: Cannot reset deployment on ephemeral Hardhat network"
           );
 
-          process.exit(1);
+          process.exitCode = 1;
         } else {
           await rm(deploymentDir, { recursive: true, force: true });
         }
@@ -234,7 +234,7 @@ ignitionScope
 
       if (userModule === undefined) {
         console.warn("No Ignition modules found");
-        process.exit(1);
+        process.exitCode = 1;
       }
 
       let parameters: DeploymentParameters | undefined;
@@ -288,7 +288,7 @@ ignitionScope
         }
 
         if (result.type !== "SUCCESSFUL_DEPLOYMENT") {
-          process.exit(1);
+          process.exitCode = 1;
         }
       } catch (e) {
         if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
@@ -331,7 +331,7 @@ ignitionScope
 
       if (userModule === undefined) {
         console.warn("No Ignition modules found");
-        process.exit(1);
+        process.exitCode = 1;
       }
 
       try {
@@ -583,7 +583,7 @@ async function resolveConfigPath(
     }
 
     console.warn(`Could not parse parameters from ${filepath}`);
-    process.exit(1);
+    process.exitCode = 1;
   }
 }
 
@@ -596,6 +596,6 @@ function resolveParametersString(paramString: string): DeploymentParameters {
     }
 
     console.warn(`Could not parse JSON parameters`);
-    process.exit(1);
+    process.exitCode = 1;
   }
 }

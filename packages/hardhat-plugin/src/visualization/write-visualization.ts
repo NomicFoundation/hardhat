@@ -18,7 +18,7 @@ export async function writeVisualization(
 
   if (!templateDirExists) {
     console.warn(`Unable to find template directory: ${templateDir}`);
-    process.exit(1);
+    process.exitCode = 1;
   }
 
   const visualizationDir = path.join(cacheDir, "visualization");
