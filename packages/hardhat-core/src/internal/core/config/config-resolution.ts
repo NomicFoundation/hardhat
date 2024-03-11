@@ -71,7 +71,7 @@ export function resolveConfig(
     paths: resolveProjectPaths(userConfigPath, userConfig.paths),
     networks: resolveNetworksConfig(userConfig.networks),
     solidity: resolveSolidityConfig(userConfig),
-    test: userConfig.test, // TODO: is this necessary? It is included automatically above
+    // test: userConfig.test, // TODO: is this necessary? It is included automatically above
   };
 }
 

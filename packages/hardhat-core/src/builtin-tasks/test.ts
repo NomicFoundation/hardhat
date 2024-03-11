@@ -13,6 +13,7 @@ import { showForkRecommendationsBannerIfNecessary } from "../internal/hardhat-ne
 import { pluralize } from "../internal/util/strings";
 import { getAllFilesMatching } from "../internal/util/fs-utils";
 
+import { RunTests } from "../types/builtin-tasks/test";
 import {
   TASK_COMPILE,
   TASK_TEST,
@@ -78,7 +79,7 @@ subtask(TASK_TEST_RUN_MOCHA_TESTS)
       },
       { config }
     ) => {
-      let runTests;
+      let runTests: RunTests;
 
       // TODO: remove
       console.debug("[DEBUG]: HH CORE: using test module");
@@ -87,7 +88,8 @@ subtask(TASK_TEST_RUN_MOCHA_TESTS)
       if (config?.test?.modulePath !== undefined) {
         runTests = (await import(config.test.modulePath)).runTests;
       } else {
-        const defaultTestPackage = "@nomicfoundation/mocha-test-plugin";
+        console.log("--------------mocha test plugin");
+        const defaultTestPackage = "@nomicfoundation/mocha-test-plugin"; // TODO
         runTests = (await import(defaultTestPackage)).runTests;
       }
 
@@ -95,8 +97,8 @@ subtask(TASK_TEST_RUN_MOCHA_TESTS)
         taskArgs.parallel,
         taskArgs.bail,
         taskArgs.testFiles,
-        taskArgs.grep,
-        config
+        config,
+        taskArgs.grep
       );
 
       return testFailures;
@@ -150,9 +152,9 @@ task(TASK_TEST, "Runs mocha tests")
 
       const files = await run(TASK_TEST_GET_TEST_FILES, { testFiles });
 
-      await run(TASK_TEST_SETUP_TEST_ENVIRONMENT);
+      await run(TASK_TEST_SETUP_TEST_ENVIRONMENT); // TODO: remove?
 
-      await run(TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS);
+      await run(TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS); // TODO: check what it does
 
       const testFailures = await run(TASK_TEST_RUN_MOCHA_TESTS, {
         testFiles: files,

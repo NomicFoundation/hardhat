@@ -14,6 +14,16 @@ import { expectHardhatErrorAsync } from "../helpers/errors";
 // calls with the same argument, and each `it` should have its own fixture
 // project.
 
+// ---------------------------- TODO
+// use predefined plugin
+// use custom plugin - script
+// use custom plugin - module
+// be sure that alle the files to tests are collected
+// be sure to pass all the args specified in the API: parallel, bail, files, config, grep
+// be sure to return the result returned by the API
+
+// --------------------------- TODO
+
 describe("test task (CJS)", function () {
   describe("default config project", function () {
     useFixtureProject("test-task/minimal-config");

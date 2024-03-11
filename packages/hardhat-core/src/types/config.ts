@@ -274,12 +274,12 @@ export interface SolidityConfig {
 // Hardhat config
 interface Test {
   modulePath?: string;
-  pathToTests?: string | string[];
-  timeout?: number;
-  parallel?: boolean;
-  bail?: boolean;
+  // pathToTests?: string | string[];
+  // timeout?: number;
+  // parallel?: boolean;
+  // bail?: boolean;
   // Here, users can insert all their custom test options, which will be used in their testing plugin
-  customTestConfig?: Record<string, any>;
+  config?: Record<string, any>;
 }
 
 export interface HardhatUserConfig {

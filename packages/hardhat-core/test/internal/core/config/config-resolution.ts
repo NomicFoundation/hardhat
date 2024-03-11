@@ -271,8 +271,8 @@ describe("Config resolution", () => {
     });
   });
 
-  describe("Mocha config resolution", () => {
-    // TODO: move these tests in the mocha-test-plugin
+  describe("Test config resolution", () => {
+    // TODO: check that test config is resolved correctly
     // it("Should set a default time and leave the rest as is", () => {
     //   const config = resolveConfig(__filename, { mocha: { bail: true } });
     //   assert.equal(config.mocha!.timeout, defaultMochaOptions.timeout);
