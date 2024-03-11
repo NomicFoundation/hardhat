@@ -166,7 +166,7 @@ Batch #2
 
 Deployed Addresses
 
-Apollo#Rocket - 0xD19BF213aD9D2026cA2bb52AFD3E4C1f597E4990
+Apollo#Rocket - 0x10D3deBd2F40F8EaB28a1d3b472a1269a12E9855
 ```
 
 Deploying this module using the `create2` strategy will deploy the contract to this same address, regardless of what network you're deploying to.
