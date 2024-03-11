@@ -50,6 +50,7 @@
     "eslint-plugin-no-only-tests": "3.0.0",
     "eslint-plugin-prettier": "3.4.0",
     "hardhat": "workspace:^2.17.0",
+    "mocha": "^10.2.0",
     "nyc": "^15.1.0",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",
@@ -57,10 +58,11 @@
     "typescript": "~5.0.0"
   },
   "peerDependencies": {
-    "hardhat": "^2.17.0"
+    "hardhat": "^2.20.2",
+    "mocha": "^10.2.0"
   },
   "dependencies": {
     "find-up": "^2.1.0",
-    "mocha": "^10.2.0"
+    "hardhat-gas-reporter": "^1.0.8"
   }
 }

@@ -2,32 +2,35 @@ import findup from "find-up";
 import { HardhatConfig } from "hardhat/types/config";
 import { readFileSync } from "node:fs";
 
-const defaultMochaOptions = {
-  // timeout: 10000,
-};
-
-// pnpm run build && pnpm unpublish hardhat --force --registry=http://localhost:4873/ && pnpm publish --registry http://localhost:4873 --no-git-checks --force
-// pnpm run build && pnpm unpublish @nomicfoundation/mocha-test-plugin --force --registry=http://localhost:4873/ && pnpm publish --registry http://localhost:4873 --no-git-checks --force
-
 let testsAlreadyRun = false;
 
 export async function runTests(
   parallel: boolean,
   bail: boolean,
-  testFiles: string[] = [],
-  grep?: string,
-  hhConfig?: HardhatConfig
+  testFiles: string[],
+  hhConfig: HardhatConfig,
+  grep?: string
 ): Promise<number> {
   // TODO: remove
-  console.debug("[DEBUG]: using mocha test module");
+  console.debug("[DEBUG]: using mocha test module - gas");
+  console.log((hhConfig as any).gasReporter.enabled);
+
+  // console.log(`parallel: ${parallel}`);
+  // console.log(`bail: ${bail}`);
+  // // console.log(`testFiles: ${testFiles}`);
+  // console.log(`grep: ${grep}`);
 
   const { default: Mocha } = await import("mocha");
   type MochaOptions = Mocha.MochaOptions;
 
+  // const mochaConfig: MochaOptions =
+  //   hhConfig.test?.config !== undefined ? { ...hhConfig.test.config } : {};
+
+  // TODO: hack for gas reporter
   const mochaConfig: MochaOptions =
-    hhConfig?.test?.customTestConfig !== undefined
-      ? { ...hhConfig.test.customTestConfig }
-      : defaultMochaOptions;
+    hhConfig.test?.config !== undefined
+      ? { ...hhConfig.test.config, ...(hhConfig as any).mocha }
+      : { ...(hhConfig as any).mocha };
 
   if (grep !== undefined) {
     mochaConfig.grep = grep;
@@ -52,6 +55,9 @@ export async function runTests(
   const mocha = new Mocha(mochaConfig);
   testFiles.forEach((file) => mocha.addFile(file));
 
+  console.log(`------timeout ${mocha.options.timeout}`);
+  console.log(`------require ${mocha.options.require}`);
+
   // if the project is of type "module" or if there's some ESM test file,
   // we call loadFilesAsync to enable Mocha's ESM support
   const projectPackageJson = await getProjectPackageJson();
@@ -72,6 +78,7 @@ export async function runTests(
 
     // This instructs Mocha to use the more verbose file loading infrastructure
     // which supports both ESM and CJS
+
     await mocha.loadFilesAsync();
   }
 
