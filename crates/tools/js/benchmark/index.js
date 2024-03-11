@@ -1,11 +1,13 @@
-import path from "path";
-import * as fs from "fs";
-import * as readline from "readline";
-import * as zlib from "zlib";
+const path = require("path");
+const fs = require("fs");
+const readline = require("readline");
+const zlib = require("zlib");
 
-import _ from "lodash";
+const { _ } = require("lodash");
 
-import { createHardhatNetworkProvider } from "hardhat/internal/hardhat-network/provider/provider";
+const {
+  createHardhatNetworkProvider,
+} = require("hardhat/internal/hardhat-network/provider/provider");
 
 const SCENARIOS_DIR = "../../scenarios/";
 
@@ -52,7 +54,7 @@ async function main() {
   process.exit(0);
 }
 
-async function runScenario(scenarioPath: string) {
+async function runScenario(scenarioPath) {
   const { config, requests } = await loadScenario(scenarioPath);
   const name = path.basename(scenarioPath).split(".")[0];
   console.error(`Running ${name} scenario`);
@@ -90,7 +92,7 @@ async function runScenario(scenarioPath: string) {
   };
 }
 
-async function loadScenario(path: string) {
+async function loadScenario(path) {
   const result = {
     requests: [],
   };
@@ -107,7 +109,7 @@ async function loadScenario(path: string) {
   return result;
 }
 
-function preprocessConfig(config: Record<string, any>) {
+function preprocessConfig(config) {
   // From https://stackoverflow.com/a/59771233
   const camelize = (obj) =>
     _.transform(obj, (acc, value, key, target) => {
@@ -182,7 +184,7 @@ function preprocessConfig(config: Record<string, any>) {
   return config;
 }
 
-function normalizeHardfork(hardfork: string) {
+function normalizeHardfork(hardfork) {
   hardfork = _.camelCase(hardfork.toLowerCase());
   if (hardfork === "frontier") {
     hardfork = "chainstart";
@@ -195,8 +197,8 @@ function normalizeHardfork(hardfork: string) {
 }
 
 // From https://stackoverflow.com/a/65015455/2650622
-function readFile(path: string) {
-  let stream: NodeJS.ReadableStream = fs.createReadStream(path);
+function readFile(path) {
+  let stream = fs.createReadStream(path);
 
   if (/\.gz$/i.test(path)) {
     stream = stream.pipe(zlib.createGunzip());

@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "description": "",
-  "main": "index.ts",
+  "main": "index.js",
   "scripts": {
-    "benchmark": "npx tsx index.ts",
+    "benchmark": "node index.js",
     "prebenchmark": "cd ../../../edr_napi/ && pnpm build && cd ../../packages/hardhat-core/ && pnpm build"
   },
   "keywords": [],
