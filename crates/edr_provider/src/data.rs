@@ -1400,6 +1400,10 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         if self.is_auto_mining {
             self.validate_auto_mine_transaction(&signed_transaction)?;
 
+            // We need to increment the snapshot id to remain backwards compatible with the
+            // old version of scenarios
+            self.next_snapshot_id += 1;
+
             if !mempool::has_transactions(&self.mem_pool) {
                 return self.mine_and_commit_transaction(signed_transaction);
             }
