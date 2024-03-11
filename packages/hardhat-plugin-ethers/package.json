@@ -36,7 +36,8 @@
     "@nomicfoundation/hardhat-ethers": "^3.0.4",
     "@types/chai": "^4.2.22",
     "@types/chai-as-promised": "^7.1.4",
-    "@types/sinon": "^10.0.13"
+    "@types/sinon": "^10.0.13",
+    "hardhat": "2.20.0"
   },
   "peerDependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.4",

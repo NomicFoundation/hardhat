@@ -48,7 +48,7 @@
   "devDependencies": {
     "@types/chai": "^4.2.22",
     "@types/chai-as-promised": "^7.1.5",
-    "hardhat": "^2.18.0"
+    "hardhat": "2.20.0"
   },
   "dependencies": {
     "@ethersproject/address": "5.6.1",

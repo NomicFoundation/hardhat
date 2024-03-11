@@ -12,7 +12,7 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-ignition-viem": "^0.14.0",
     "@nomicfoundation/hardhat-toolbox-viem": "2.0.0",
-    "hardhat": "^2.18.0",
+    "hardhat": "2.20.0",
     "prettier-plugin-solidity": "1.1.3"
   }
 }
