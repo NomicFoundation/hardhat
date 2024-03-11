@@ -10,6 +10,15 @@ import { createHardhatNetworkProvider } from "hardhat/internal/hardhat-network/p
 const SCENARIOS_DIR = "../../scenarios/";
 
 async function main() {
+  const numArgs = process.argv.length;
+  let grep = undefined;
+  if (
+    (numArgs > 2 && process.argv[numArgs - 2] === "--grep") ||
+    process.argv[numArgs - 2] === "-g"
+  ) {
+    grep = process.argv[numArgs - 1];
+  }
+
   const result = {};
   const scenariosDir = path.join(__dirname, SCENARIOS_DIR);
 
@@ -19,6 +28,9 @@ async function main() {
   let totalTime = 0;
   let totalFailures = 0;
   for (let scenarioFile of scenarioFiles) {
+    if (grep && !scenarioFile.includes(grep)) {
+      continue;
+    }
     // Get the filename from the path
     const scenarioResult = await runScenario(
       path.join(scenariosDir, scenarioFile)

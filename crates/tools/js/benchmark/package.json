@@ -5,7 +5,7 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
-    "benchmark": "npx tsx index.ts --exit",
+    "benchmark": "npx tsx index.ts",
     "prebenchmark": "cd ../../../edr_napi/ && pnpm build && cd ../../packages/hardhat-core/ && pnpm build"
   },
   "keywords": [],
