@@ -47,6 +47,7 @@ pub fn secret_key_to_address(secret_key: &str) -> Result<Address, SignatureError
 
 /// Converts a hex string to a secret key.
 pub fn secret_key_from_str(secret_key: &str) -> Result<SecretKey, SignatureError> {
+    #[cfg(feature = "std")]
     if secret_key.starts_with("-----BEGIN EC PRIVATE KEY") {
         return SecretKey::from_sec1_pem(secret_key).map_err(SignatureError::EllipticCurveError);
     }
