@@ -1,12 +1,8 @@
-import type { MochaOptions } from "mocha";
-
 import chalk from "chalk";
 import path from "path";
 
 import { HARDHAT_NETWORK_NAME } from "../internal/constants";
 import { subtask, task } from "../internal/core/config/config-env";
-import { HardhatError } from "../internal/core/errors";
-import { ERRORS } from "../internal/core/errors-list";
 import {
   isJavascriptFile,
   isRunningWithTypescript,
@@ -16,8 +12,8 @@ import { getForkCacheDirPath } from "../internal/hardhat-network/provider/utils/
 import { showForkRecommendationsBannerIfNecessary } from "../internal/hardhat-network/provider/utils/fork-recomendations-banner";
 import { pluralize } from "../internal/util/strings";
 import { getAllFilesMatching } from "../internal/util/fs-utils";
-import { getProjectPackageJson } from "../internal/util/packageInfo";
 
+import { RunTests } from "../types/builtin-tasks/test";
 import {
   TASK_COMPILE,
   TASK_TEST,
@@ -61,7 +57,6 @@ subtask(TASK_TEST_GET_TEST_FILES)
 
 subtask(TASK_TEST_SETUP_TEST_ENVIRONMENT, async () => {});
 
-let testsAlreadyRun = false;
 subtask(TASK_TEST_RUN_MOCHA_TESTS)
   .addFlag("parallel", "Run tests in parallel")
   .addFlag("bail", "Stop running tests after the first test failure")
@@ -84,59 +79,27 @@ subtask(TASK_TEST_RUN_MOCHA_TESTS)
       },
       { config }
     ) => {
-      const { default: Mocha } = await import("mocha");
+      let runTests: RunTests;
 
-      const mochaConfig: MochaOptions = { ...config.mocha };
+      // TODO: remove
+      console.debug("[DEBUG]: HH CORE: using test module");
 
-      if (taskArgs.grep !== undefined) {
-        mochaConfig.grep = taskArgs.grep;
-      }
-      if (taskArgs.bail) {
-        mochaConfig.bail = true;
-      }
-      if (taskArgs.parallel) {
-        mochaConfig.parallel = true;
-      }
-
-      if (mochaConfig.parallel === true) {
-        const mochaRequire = mochaConfig.require ?? [];
-        if (!mochaRequire.includes("hardhat/register")) {
-          mochaRequire.push("hardhat/register");
-        }
-        mochaConfig.require = mochaRequire;
+      // Load the user's custom test module, or use the default one if none is provided
+      if (config?.test?.modulePath !== undefined) {
+        runTests = (await import(config.test.modulePath)).runTests;
+      } else {
+        console.log("--------------mocha test plugin");
+        const defaultTestPackage = "@nomicfoundation/mocha-test-plugin"; // TODO
+        runTests = (await import(defaultTestPackage)).runTests;
       }
 
-      const mocha = new Mocha(mochaConfig);
-      taskArgs.testFiles.forEach((file) => mocha.addFile(file));
-
-      // if the project is of type "module" or if there's some ESM test file,
-      // we call loadFilesAsync to enable Mocha's ESM support
-      const projectPackageJson = await getProjectPackageJson();
-      const isTypeModule = projectPackageJson.type === "module";
-      const hasEsmTest = taskArgs.testFiles.some((file) =>
-        file.endsWith(".mjs")
+      const testFailures = await runTests(
+        taskArgs.parallel,
+        taskArgs.bail,
+        taskArgs.testFiles,
+        config,
+        taskArgs.grep
       );
-      if (isTypeModule || hasEsmTest) {
-        // Because of the way the ESM cache works, loadFilesAsync doesn't work
-        // correctly if used twice within the same process, so we throw an error
-        // in that case
-        if (testsAlreadyRun) {
-          throw new HardhatError(
-            ERRORS.BUILTIN_TASKS.TEST_TASK_ESM_TESTS_RUN_TWICE
-          );
-        }
-        testsAlreadyRun = true;
-
-        // This instructs Mocha to use the more verbose file loading infrastructure
-        // which supports both ESM and CJS
-        await mocha.loadFilesAsync();
-      }
-
-      const testFailures = await new Promise<number>((resolve) => {
-        mocha.run(resolve);
-      });
-
-      mocha.dispose();
 
       return testFailures;
     }
@@ -189,9 +152,9 @@ task(TASK_TEST, "Runs mocha tests")
 
       const files = await run(TASK_TEST_GET_TEST_FILES, { testFiles });
 
-      await run(TASK_TEST_SETUP_TEST_ENVIRONMENT);
+      await run(TASK_TEST_SETUP_TEST_ENVIRONMENT); // TODO: remove?
 
-      await run(TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS);
+      await run(TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS); // TODO: check what it does
 
       const testFailures = await run(TASK_TEST_RUN_MOCHA_TESTS, {
         testFiles: files,

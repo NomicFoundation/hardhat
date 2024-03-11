@@ -10,7 +10,7 @@ function hardhatConfig(): Config.HardhatConfig {
     paths: projectPathsConfig(),
     networks: networksConfig(),
     solidity: solidityConfig(),
-    mocha: {},
+    test: {},
   };
 }
 

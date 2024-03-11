@@ -152,10 +152,6 @@ export const defaultHttpNetworkParams = {
   timeout: 20000,
 };
 
-export const defaultMochaOptions: Mocha.MochaOptions = {
-  timeout: 40000,
-};
-
 export const defaultSolcOutputSelection = {
   "*": {
     "*": [
