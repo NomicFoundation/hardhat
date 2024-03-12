@@ -9,7 +9,7 @@ use std::{
 };
 
 use futures::stream::StreamExt;
-pub use hyper::{http::Error as HttpError, HeaderMap};
+pub use hyper::{header, http::Error as HttpError, HeaderMap};
 use itertools::{izip, Itertools};
 use reqwest::Client as HttpClient;
 use reqwest_middleware::{ClientBuilder as HttpClientBuilder, ClientWithMiddleware};
