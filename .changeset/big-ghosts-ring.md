@@ -2,4 +2,4 @@
 "@nomicfoundation/edr": patch
 ---
 
-Fixed #4970
+Fixed a bug in `hardhat_setStorageAt` that occured when the storage of a remote contract was modified during forking (#4970)
