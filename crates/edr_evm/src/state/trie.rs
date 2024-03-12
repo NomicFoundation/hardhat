@@ -191,12 +191,14 @@ impl StateDebug for TrieState {
         address: Address,
         index: U256,
         value: U256,
+        default_account_fn: &dyn Fn() -> Result<AccountInfo, Self::Error>,
     ) -> Result<U256, Self::Error> {
+        let old_value =
+            self.accounts
+                .set_account_storage_slot(&address, &index, &value, default_account_fn)?;
+
         // If there is no old value, return zero to signal that the slot was empty
-        Ok(self
-            .accounts
-            .set_account_storage_slot(&address, &index, &value)
-            .unwrap_or(U256::ZERO))
+        Ok(old_value.unwrap_or(U256::ZERO))
     }
 
     fn state_root(&self) -> Result<B256, Self::Error> {
