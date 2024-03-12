@@ -18,12 +18,12 @@ use edr_evm::{
     state::IrregularState,
     RandomHashGenerator,
 };
+use edr_test_utils::env::get_alchemy_url;
 use parking_lot::Mutex;
 use tokio::runtime;
 
 #[tokio::test(flavor = "multi_thread")]
-async fn test_optimism() -> anyhow::Result<()> {
-    const OPTIMISM_URL: &str = "https://optimism.drpc.org";
+async fn unknown_transaction_types() -> anyhow::Result<()> {
     const BLOCK_NUMBER_WITH_TRANSACTIONS: u64 = 117_156_000;
 
     let mut headers = HeaderMap::new();
@@ -32,7 +32,8 @@ async fn test_optimism() -> anyhow::Result<()> {
         HeaderValue::from_static("application/json"),
     );
 
-    let rpc_client = RpcClient::new(OPTIMISM_URL, CACHE_DIR.into(), Some(headers))?;
+    let url = get_alchemy_url().replace("eth-", "opt-");
+    let rpc_client = RpcClient::new(&url, CACHE_DIR.into(), Some(headers))?;
     let mut irregular_state = IrregularState::default();
     let state_root_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed("test")));
     let hardfork_activation_overrides = HashMap::new();
