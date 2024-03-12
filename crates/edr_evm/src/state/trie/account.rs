@@ -388,13 +388,17 @@ impl AccountTrie {
     /// value.
     ///
     /// Returns the old storage slot value.
-    #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
-    pub fn set_account_storage_slot(
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(skip(self, default_account_fn))
+    )]
+    pub fn set_account_storage_slot<ErrorT>(
         &mut self,
         address: &Address,
         index: &U256,
         value: &U256,
-    ) -> Option<U256> {
+        default_account_fn: &dyn Fn() -> Result<AccountInfo, ErrorT>,
+    ) -> Result<Option<U256>, ErrorT> {
         let (storage_trie_db, storage_root) =
             self.storage_trie_dbs.entry(*address).or_insert_with(|| {
                 let storage_trie_db = Arc::new(MemoryDB::new(true));
@@ -430,17 +434,19 @@ impl AccountTrie {
         .expect("Invalid state root");
 
         let hashed_address = HasherKeccak::new().digest(address.as_slice());
-        let account = state_trie.get(&hashed_address).unwrap().map_or(
+        let account = if let Some(account) = state_trie.get(&hashed_address).unwrap() {
+            let mut account = BasicAccount::decode(&mut account.as_slice()).unwrap();
+            account.storage_root = *storage_root;
+            account
+        } else {
+            let default_account = default_account_fn()?;
             BasicAccount {
+                nonce: default_account.nonce,
+                balance: default_account.balance,
                 storage_root: *storage_root,
-                ..BasicAccount::default()
-            },
-            |account| {
-                let mut account = BasicAccount::decode(&mut account.as_slice()).unwrap();
-                account.storage_root = *storage_root;
-                account
-            },
-        );
+                code_hash: default_account.code_hash,
+            }
+        };
 
         state_trie
             .insert(hashed_address, alloy_rlp::encode(account))
@@ -448,7 +454,7 @@ impl AccountTrie {
 
         self.state_root = B256::from_slice(&state_trie.root().unwrap());
 
-        old_value
+        Ok(old_value)
     }
 
     /// Helper function for setting the storage slot at the specified address
