@@ -1399,6 +1399,10 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
     ) -> Result<SendTransactionResult, ProviderError<LoggerErrorT>> {
         self.validate_auto_mine_transaction(&signed_transaction)?;
 
+        // Hack: increment snapshot id to keep ids in scenarios valid after not doing
+        // snapshots when automining with empty mempool.
+        self.next_snapshot_id += 1;
+
         let transaction_hash = self.add_pending_transaction(signed_transaction)?;
         let result = self
             .mine_and_commit_block(BlockOptions::default())
