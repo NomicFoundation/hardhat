@@ -27,8 +27,7 @@ Create a provider test execution report for the candidate branch:
 yarn build && yarn test:provider --reporter json | tee candidate-test-provider-logs.json
 ```
 
-Generate a comparison report that will list slower tests in the candidate
-branch:
+Generate a comparison report that will list slower tests in the candidate branch:
 
 ```bash
 # From the repo root

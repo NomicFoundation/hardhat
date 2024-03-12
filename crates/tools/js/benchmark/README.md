@@ -9,8 +9,7 @@ pnpm install
 pnpm run benchmark
 ```
 
-The measurements will be printed stdout as machine-readable json and to stderr
-as human-readable output.
+The measurements will be printed to stdout as machine-readable json and to stderr as human-readable output.
 
 ## Grep
 
