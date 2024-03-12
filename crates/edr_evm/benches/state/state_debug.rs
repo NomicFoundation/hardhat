@@ -349,7 +349,13 @@ fn bench_set_account_storage_slot_account_doesnt_exist(c: &mut Criterion) {
         |state, number_of_accounts| {
             let address = Address::from(U160::from(number_of_accounts + 1));
             debug_assert!(state.basic(address).unwrap().is_none());
-            let result = state.set_account_storage_slot(address, U256::from(1), U256::from(1));
+            let result =
+                state.set_account_storage_slot(address, U256::from(1), U256::from(1), &|| {
+                    Ok(AccountInfo {
+                        code: None,
+                        ..AccountInfo::default()
+                    })
+                });
             debug_assert!(result.is_ok());
         },
         &permutations::STORAGE_SCALES,
@@ -364,7 +370,13 @@ fn bench_set_account_storage_slot_account_exists(c: &mut Criterion) {
         |state, number_of_accounts| {
             let address = Address::from(U160::from(number_of_accounts));
             debug_assert!(state.basic(address).unwrap().is_some());
-            let result = state.set_account_storage_slot(address, U256::from(1), U256::from(1));
+            let result =
+                state.set_account_storage_slot(address, U256::from(1), U256::from(1), &|| {
+                    Ok(AccountInfo {
+                        code: None,
+                        ..AccountInfo::default()
+                    })
+                });
             debug_assert!(result.is_ok());
         },
         &permutations::STORAGE_SCALES,
