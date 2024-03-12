@@ -11,15 +11,25 @@ const {
 
 const SCENARIOS_DIR = "../../scenarios/";
 
+function usage() {
+  console.error("Usage: node index.js [--grep|-g <pattern>]");
+  process.exit(1);
+}
+
 async function main() {
   const numArgs = process.argv.length;
+
+  if (numArgs !== 2 && numArgs !== 4) {
+    usage();
+  }
+
   let grep = undefined;
-  if (
-    numArgs > 2 &&
-    (process.argv[numArgs - 2] === "--grep" ||
-      process.argv[numArgs - 2] === "-g")
-  ) {
-    grep = process.argv[numArgs - 1];
+  if (numArgs === 4) {
+    if (process.argv[2] !== "--grep" && process.argv[2] !== "-g") {
+      usage();
+    }
+
+    grep = process.argv[3];
   }
 
   const result = {};
