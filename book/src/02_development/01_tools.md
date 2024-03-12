@@ -47,8 +47,6 @@ Only those requests will be collected that can be successfully deserialized.
 4. The scenario file will be written to the current working directory with the desired file name prefix.
 5. Optionally, compress the scenario file `gzip -k <SCENARIO_FILE>`. (The `-k` option preserves the original file, omit it if you want it deleted.)
 
-```bash
-
 ### Run scenario
 
 ```bash
