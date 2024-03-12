@@ -26,7 +26,7 @@ async function main() {
   const scenariosDir = path.join(__dirname, SCENARIOS_DIR);
 
   // List files in scenarios directory
-  const scenarioFiles = await fs.promises.readdir(scenariosDir);
+  const scenarioFiles = fs.readdirSync(scenariosDir);
   scenarioFiles.sort();
   let totalTime = 0;
   let totalFailures = 0;
