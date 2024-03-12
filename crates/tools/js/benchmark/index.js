@@ -15,8 +15,9 @@ async function main() {
   const numArgs = process.argv.length;
   let grep = undefined;
   if (
-    numArgs > 2 && (process.argv[numArgs - 2] === "--grep" ||
-    process.argv[numArgs - 2] === "-g")
+    numArgs > 2 &&
+    (process.argv[numArgs - 2] === "--grep" ||
+      process.argv[numArgs - 2] === "-g")
   ) {
     grep = process.argv[numArgs - 1];
   }
