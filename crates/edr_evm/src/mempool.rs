@@ -335,6 +335,10 @@ impl MemPool {
                     let mut invalidated_transactions = pending_transactions.split_off(idx + 1);
                     let removed = pending_transactions.remove(idx);
 
+                    if pending_transactions.is_empty() {
+                        self.pending_transactions.remove(caller);
+                    }
+
                     self.future_transactions
                         .entry(*caller)
                         .and_modify(|transactions| {
@@ -352,7 +356,13 @@ impl MemPool {
                     .enumerate()
                     .find(|(_, transaction)| *transaction.hash() == *hash)
                 {
-                    return Some(future_transactions.remove(idx));
+                    let removed = future_transactions.remove(idx);
+
+                    if future_transactions.is_empty() {
+                        self.future_transactions.remove(caller);
+                    }
+
+                    return Some(removed);
                 }
             }
         }
