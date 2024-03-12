@@ -87,31 +87,33 @@ pub struct ProviderConfig {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct AccountConfig {
     /// the secret key of the account
-    #[serde(
-        serialize_with = "serialize_secret_key",
-        deserialize_with = "deserialize_secret_key"
-    )]
+    #[serde(with = "secret_key_serde")]
     pub secret_key: k256::SecretKey,
     /// the balance of the account
     pub balance: U256,
 }
 
-fn serialize_secret_key<S>(secret_key: &k256::SecretKey, serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: serde::Serializer,
-{
-    let s = secret_key
-        .to_sec1_pem(k256::pkcs8::LineEnding::LF)
-        .map_err(serde::ser::Error::custom)?;
-    serializer.serialize_str(&s)
-}
+mod secret_key_serde {
+    use edr_eth::signature::{secret_key_from_str, secret_key_to_str};
+    use serde::Deserialize;
 
-fn deserialize_secret_key<'de, D>(deserializer: D) -> Result<k256::SecretKey, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let s = String::deserialize(deserializer)?;
-    k256::SecretKey::from_sec1_pem(&s).map_err(serde::de::Error::custom)
+    pub(super) fn serialize<S>(
+        secret_key: &k256::SecretKey,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&secret_key_to_str(secret_key))
+    }
+
+    pub(super) fn deserialize<'de, D>(deserializer: D) -> Result<k256::SecretKey, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = <&str as Deserialize>::deserialize(deserializer)?;
+        secret_key_from_str(s).map_err(serde::de::Error::custom)
+    }
 }
 
 impl Default for MemPoolConfig {
