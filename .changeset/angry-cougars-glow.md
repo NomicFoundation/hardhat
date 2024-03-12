@@ -2,4 +2,4 @@
 "@nomicfoundation/edr": patch
 ---
 
-Fixed #4963
+Fixed a problem when forking networks with non-standard transaction types (#4963)
