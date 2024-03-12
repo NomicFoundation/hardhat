@@ -6,12 +6,12 @@ Moreover, it's EDR is a dependency for Hardhat, so in order to build Hardhat wit
 To get started, install all dependencies in the root directory:
 
 ```bash
-yarn
+pnpm install
 ```
 
 Then navigate to the Hardhat Core directory and build Hardhat with EDR:
 
 ```bash
 cd packages/hardhat-core &&
-yarn build
+pnpm build
 ```
