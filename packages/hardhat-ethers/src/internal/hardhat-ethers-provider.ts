@@ -216,7 +216,7 @@ export class HardhatEthersProvider implements ethers.Provider {
     const resolvedBlockTag = await this._getBlockTag(blockTag);
     const rpcBlockTag = this._getRpcBlockTag(resolvedBlockTag);
 
-    return await this._hardhatProvider.send("eth_getStorageAt", [
+    return this._hardhatProvider.send("eth_getStorageAt", [
       resolvedAddress,
       `0x${resolvedPosition.toString(16)}`,
       rpcBlockTag,

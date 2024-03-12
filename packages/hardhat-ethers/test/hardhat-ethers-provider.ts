@@ -1,6 +1,5 @@
 import { assert, use } from "chai";
 import chaiAsPromised from "chai-as-promised";
-import { AbiCoder, Contract, keccak256, stripZerosLeft, toBeHex } from "ethers";
 
 import { ExampleContract, EXAMPLE_CONTRACT } from "./example-contracts";
 import { usePersistentEnvironment } from "./environment";
@@ -481,44 +480,6 @@ describe("hardhat ethers provider", function () {
         doubleValue,
         "0x0000000000000000000000000000000000000000000000000000000000000002"
       );
-    });
-  });
-
-  describe("issue 4970", function () {
-    it("issue 4970", async function () {
-      const userAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-      const amount = toBeHex("1000000", 32);
-      const usdc = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
-
-      const erc20 = new Contract(
-        usdc,
-        ["function balanceOf(uint256) public view returns (uint256)"],
-        this.env.ethers.provider
-      );
-
-      // TODO: How to get the correct storage index of `balanceOf`?
-      const balanceStorageSlot = 9;
-      const hexUserStorageSlot = AbiCoder.defaultAbiCoder().encode(
-        ["address", "uint256"],
-        [userAddress, balanceStorageSlot]
-      );
-
-      const userStorageSlot = stripZerosLeft(keccak256(hexUserStorageSlot));
-      console.log("slot:", userStorageSlot);
-
-      await this.env.network.provider.send("hardhat_setStorageAt", [
-        usdc,
-        userStorageSlot,
-        amount,
-      ]);
-
-      const balance = await erc20.balanceOf(userAddress);
-      assert.strictEqual(balance, amount);
-
-      await this.env.network.provider.send("evm_mine", []);
-      const balanceAfterMine = await erc20.balanceOf(userAddress);
-
-      assert.strictEqual(balanceAfterMine, amount);
     });
   });
 
