@@ -17,14 +17,14 @@ Create a provider test execution report for the base branch:
 
 ```bash
 # From packages/hardhat-core in the base branch
-yarn build && yarn test:provider --reporter json | tee base-test-provider-logs.json
+pnpm build && pnpm test:provider -- --reporter json | tee base-test-provider-logs.json
 ```
 
 Create a provider test execution report for the candidate branch:
 
 ```bash
 # From packages/hardhat-core in the candidate branch
-yarn build && yarn test:provider --reporter json | tee candidate-test-provider-logs.json
+pnpm build && pnpm test:provider -- --reporter json | tee candidate-test-provider-logs.json
 ```
 
 Generate a comparison report that will list slower tests in the candidate branch:
@@ -48,8 +48,6 @@ Only those requests will be collected that can be successfully deserialized.
 5. Optionally, compress the scenario file `gzip -k <SCENARIO_FILE>`. (The `-k` option preserves the original file, omit it if you want it deleted.)
 
 ## Rust runner
-
-```bash
 
 ### Run scenario
 
