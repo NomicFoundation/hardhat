@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.22.0
+
+### Minor Changes
+
+- bcce371: Set cancun as the default hardfork in Hardhat network
+
 ## 2.21.0
 
 ### Minor Changes
