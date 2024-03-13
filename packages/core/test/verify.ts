@@ -125,4 +125,38 @@ describe("verify", () => {
 
     assert.isTrue(success);
   });
+
+  // The build info for the mock used in this test contains compilation info for "Lock.sol" as well,
+  // which was not part of the deployment.
+  // This test ensures that it is not included in the verification info, as well as that the other
+  // contracts in the deployment are not sent if they are not needed for the requested contract.
+  it("should yield a verify result containing only the requested contract", async () => {
+    const expectedResultMap: { [k: string]: string[] } = {
+      "contracts/TestA.sol:TestA": [
+        "contracts/TestA.sol",
+        "contracts/TestB.sol",
+        "contracts/TestC.sol",
+        "contracts/TestD.sol",
+      ],
+      "contracts/TestB.sol:TestB": [
+        "contracts/TestB.sol",
+        "contracts/TestC.sol",
+        "contracts/TestD.sol",
+      ],
+      "contracts/TestC.sol:TestC": [
+        "contracts/TestC.sol",
+        "contracts/TestD.sol",
+      ],
+      "contracts/TestD.sol:TestD": ["contracts/TestD.sol"],
+    };
+
+    const deploymentDir = path.join(__dirname, "mocks", "verify", "min-input");
+
+    for await (const [, info] of getVerificationInformation(deploymentDir)) {
+      const expectedSources = expectedResultMap[info.name];
+      const actualSources = Object.keys(JSON.parse(info.sourceCode).sources);
+
+      assert.deepEqual(actualSources, expectedSources);
+    }
+  });
 });
