@@ -21,7 +21,7 @@ once_cell = { version = "1.18.0", default-features = false, features = ["alloc",
 parking_lot = { version = "0.12.1", default-features = false }
 edr_defaults = { version = "0.2.0-dev", path = "../edr_defaults" }
 edr_eth = { version = "0.2.0-dev", path = "../edr_eth", features = ["serde"] }
-revm = { git = "https://github.com/Wodann/revm", rev = "e84e612", version = "6.1", default-features = false, features = ["dev", "serde", "std"] }
+revm = { git = "https://github.com/Wodann/revm", rev = "080d8ff", version = "7.1", default-features = false, features = ["dev", "serde"] }
 # revm = { path = "../../../revm/crates/revm", version = "6.1", default-features = false, features = ["dev", "serde", "std"] }
 serde = { version = "1.0.158", default-features = false, features = ["std"] }
 serde_json = { version = "1.0.94", default-features = false, features = ["std"] }

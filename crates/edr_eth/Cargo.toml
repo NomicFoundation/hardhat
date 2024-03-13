@@ -18,7 +18,7 @@ reqwest = { version = "0.11", features = ["blocking", "json"] }
 reqwest-middleware = { version = "0.2.4", default-features = false }
 reqwest-retry = { version = "0.3.0", default-features = false }
 reqwest-tracing = { version = "0.4.7", default-features = false, optional = true }
-revm-primitives = { git = "https://github.com/Wodann/revm", rev = "e84e612", version = "2.1", default-features = false }
+revm-primitives = { git = "https://github.com/Wodann/revm", rev = "080d8ff", version = "3.0", default-features = false }
 # revm-primitives = { path = "../../../revm/crates/primitives", version = "2.1", default-features = false }
 serde = { version = "1.0.147", default-features = false, features = ["derive"], optional = true }
 serde_json = { version = "1.0.89", optional = true }
@@ -46,6 +46,6 @@ walkdir = { version = "2.3.3", default-features =  false }
 [features]
 default = ["std"]
 serde = ["dep:serde", "alloy-primitives/serde", "revm-primitives/serde", "serde_json"]
-std = ["alloy-primitives/std", "futures/std", "hash256-std-hasher/std", "hash-db/std", "hex/std", "itertools/use_std", "k256/std", "k256/precomputed-tables", "revm-primitives/std", "serde?/std", "sha3/std", "triehash/std", "uuid/std"]
+std = ["alloy-primitives/std", "futures/std", "hash256-std-hasher/std", "hash-db/std", "hex/std", "itertools/use_std", "k256/std", "k256/precomputed-tables", "serde?/std", "sha3/std", "triehash/std", "uuid/std"]
 tracing = ["dep:tracing", "reqwest-tracing"]
 test-remote = ["serde"]

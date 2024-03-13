@@ -19,7 +19,7 @@ use revm::{
         EnvWithHandlerCfg, ExecutionResult, InvalidHeader, InvalidTransaction, Output,
         ResultAndState, SpecId,
     },
-    DatabaseCommit, Evm,
+    Context, DatabaseCommit, Evm, InnerEvmContext,
 };
 
 use super::local::LocalBlock;
@@ -280,14 +280,21 @@ impl BlockBuilder {
                     .build();
 
                 let result = evm.transact();
-                let context = evm.into_context();
+                let Context {
+                    evm:
+                        revm::EvmContext {
+                            inner: InnerEvmContext { db, .. },
+                            ..
+                        },
+                    external,
+                } = evm.into_context();
 
                 let evm_context = EvmContext {
                     debug: Some(DebugContext {
-                        data: context.external,
+                        data: external,
                         register_handles_fn: debug_context.register_handles_fn,
                     }),
-                    state: context.evm.db.0.state,
+                    state: db.0.state,
                 };
 
                 match result {
@@ -306,11 +313,18 @@ impl BlockBuilder {
                     .build();
 
                 let result = evm.transact();
-                let context = evm.into_context();
+                let Context {
+                    evm:
+                        revm::EvmContext {
+                            inner: InnerEvmContext { db, .. },
+                            ..
+                        },
+                    ..
+                } = evm.into_context();
 
                 let evm_context = EvmContext {
                     debug: None,
-                    state: context.evm.db.0.state,
+                    state: db.0.state,
                 };
 
                 match result {
