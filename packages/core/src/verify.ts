@@ -98,7 +98,7 @@ function getImportSourceNames(
   const { imports } = analyze(contractSource);
 
   const importSources = imports.map((i) =>
-    path.join(path.dirname(sourceName), i)
+    path.join(path.dirname(sourceName), i).replaceAll("\\", "/")
   );
 
   return [
