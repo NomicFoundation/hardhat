@@ -3,16 +3,7 @@
 use std::sync::Arc;
 
 use edr_defaults::CACHE_DIR;
-use edr_eth::{
-    remote::{
-        client::{
-            header::{self, HeaderValue},
-            HeaderMap,
-        },
-        RpcClient,
-    },
-    HashMap, SpecId,
-};
+use edr_eth::{remote::RpcClient, HashMap, SpecId};
 use edr_evm::{
     blockchain::{Blockchain, ForkedBlockchain},
     state::IrregularState,
@@ -26,14 +17,8 @@ use tokio::runtime;
 async fn unknown_transaction_types() -> anyhow::Result<()> {
     const BLOCK_NUMBER_WITH_TRANSACTIONS: u64 = 117_156_000;
 
-    let mut headers = HeaderMap::new();
-    headers.append(
-        header::CONTENT_TYPE,
-        HeaderValue::from_static("application/json"),
-    );
-
     let url = get_alchemy_url().replace("eth-", "opt-");
-    let rpc_client = RpcClient::new(&url, CACHE_DIR.into(), Some(headers))?;
+    let rpc_client = RpcClient::new(&url, CACHE_DIR.into(), None)?;
     let mut irregular_state = IrregularState::default();
     let state_root_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed("test")));
     let hardfork_activation_overrides = HashMap::new();
