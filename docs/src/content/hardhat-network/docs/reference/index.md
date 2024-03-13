@@ -66,7 +66,7 @@ The block gas limit to use in Hardhat Network's blockchain. Default value: `30_0
 
 #### `hardfork`
 
-This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul"`, `"muirGlacier"`, `"berlin"`, `"london"`, `"arrowGlacier"`, `"grayGlacier"`, `"merge"`, `"shanghai"` and `"cancun"`. Default value: `"shanghai"`
+This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul"`, `"muirGlacier"`, `"berlin"`, `"london"`, `"arrowGlacier"`, `"grayGlacier"`, `"merge"`, `"shanghai"` and `"cancun"`. Default value: `"cancun"`
 
 #### `throwOnTransactionFailures`
 

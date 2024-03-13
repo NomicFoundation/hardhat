@@ -59,6 +59,11 @@ pub fn secret_key_from_str(secret_key: &str) -> Result<SecretKey, SignatureError
     SecretKey::from_bytes(&secret_key).map_err(SignatureError::EllipticCurveError)
 }
 
+/// Converts a secret key to a 0x-prefixed hex string.
+pub fn secret_key_to_str(secret_key: &SecretKey) -> String {
+    format!("0x{}", hex::encode(secret_key.to_bytes().as_slice()))
+}
+
 /// An error involving a signature.
 #[derive(Debug)]
 #[cfg_attr(feature = "std", derive(thiserror::Error))]
@@ -450,5 +455,13 @@ mod tests {
 
         verify(message, hashed_message);
         verify(hashed_message, hashed_message);
+    }
+
+    #[test]
+    fn test_from_str_to_str_secret_key() {
+        let secret_key_str = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+        let secret_key = secret_key_from_str(secret_key_str).unwrap();
+        let secret_key_str_result = secret_key_to_str(&secret_key);
+        assert_eq!(secret_key_str, secret_key_str_result);
     }
 }

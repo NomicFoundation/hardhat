@@ -1,0 +1,19 @@
+{
+  "name": "benchmark",
+  "version": "1.0.0",
+  "private": true,
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "benchmark": "node index.js",
+    "prebenchmark": "cd ../../../edr_napi/ && pnpm build && cd ../../packages/hardhat-core/ && pnpm build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "hardhat": "workspace:^",
+    "lodash": "^4.17.11",
+    "tsx": "^4.7.1"
+  }
+}

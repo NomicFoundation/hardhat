@@ -109,7 +109,7 @@ impl DatabaseCommit for ForkState {
         changes.iter().for_each(|(address, account)| {
             account.storage.iter().for_each(|(index, value)| {
                 // We never need to remove zero entries as a "removed" entry means that the
-                // lookup for a value in the hybrid state succeeded.
+                // lookup for a value in the local state succeeded.
                 if value.present_value() == U256::ZERO {
                     self.removed_storage_slots.insert((*address, *index));
                 }
@@ -173,13 +173,21 @@ impl StateDebug for ForkState {
         address: Address,
         index: U256,
         value: U256,
+        default_account_fn: &dyn Fn() -> Result<AccountInfo, Self::Error>,
     ) -> Result<U256, Self::Error> {
+        // We never need to remove zero entries as a "removed" entry means that the
+        // lookup for a value in the local state succeeded.
         if value == U256::ZERO {
             self.removed_storage_slots.insert((address, index));
         }
 
         self.local_state
-            .set_account_storage_slot(address, index, value)
+            .set_account_storage_slot(address, index, value, &|| {
+                self.remote_state
+                    .lock()
+                    .basic(address)?
+                    .map_or_else(default_account_fn, Ok)
+            })
     }
 
     fn state_root(&self) -> Result<B256, Self::Error> {

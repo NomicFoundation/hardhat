@@ -6,6 +6,7 @@ import sinon from "sinon";
 import {
   numberToRpcQuantity,
   numberToRpcStorageSlot,
+  rpcDataToBigInt,
   rpcQuantityToBigInt,
   rpcQuantityToNumber,
 } from "../../../../../src/internal/core/jsonrpc/types/base-types";
@@ -2391,6 +2392,46 @@ describe("Hardhat module", function () {
           );
 
           assert.equal(resultingStorageValue, targetStorageValue);
+        });
+
+        it("should work with contracts when forking", async function () {
+          if (!isFork) {
+            this.skip();
+            return;
+          }
+
+          // USDT address
+          const address = "0xdac17f958d2ee523a2206206994597c13d831ec7";
+
+          const totalSupplyBefore = rpcDataToBigInt(
+            await this.provider.send("eth_call", [
+              {
+                to: address,
+                data: "0x18160ddd", // totalSupply()
+              },
+            ])
+          );
+
+          // this will pass as long as the total supply of USDT is not exactly 42
+          assert.notEqual(totalSupplyBefore, 42n);
+
+          // total supply is in storage slot 1, set it to 42
+          await this.provider.send("hardhat_setStorageAt", [
+            address,
+            "0x1",
+            "0x000000000000000000000000000000000000000000000000000000000000002A",
+          ]);
+
+          const totalSupplyAfter = rpcDataToBigInt(
+            await this.provider.send("eth_call", [
+              {
+                to: address,
+                data: "0x18160ddd", // totalSupply()
+              },
+            ])
+          );
+
+          assert.equal(totalSupplyAfter, 42n);
         });
       });
 

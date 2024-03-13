@@ -47,6 +47,8 @@ Only those requests will be collected that can be successfully deserialized.
 4. The scenario file will be written to the current working directory with the desired file name prefix.
 5. Optionally, compress the scenario file `gzip -k <SCENARIO_FILE>`. (The `-k` option preserves the original file, omit it if you want it deleted.)
 
+## Rust runner
+
 ### Run scenario
 
 ```bash
@@ -57,3 +59,7 @@ cargo run --bin tools --release scenario <PATH_TO_SCENARIO_FILE>
 The scenario runner supports both compressed and uncompressed scenario files.
 
 The reported running time excludes reading the requests from disk and parsing them.
+
+## JS runner
+
+Please see the [readme](../../../crates/tools/js/benchmark/README.md) for instructions.
