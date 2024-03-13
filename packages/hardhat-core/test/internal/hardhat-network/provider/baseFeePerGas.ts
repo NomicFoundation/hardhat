@@ -134,6 +134,12 @@ describe("Block's baseFeePerGas", function () {
                     delete latestBlockRpc.withdrawalsRoot;
                   }
 
+                  if (hardfork !== "cancun") {
+                    delete latestBlockRpc.blobGasUsed;
+                    delete latestBlockRpc.excessBlobGas;
+                    delete latestBlockRpc.parentBeaconBlockRoot;
+                  }
+
                   const latestBlockData = rpcToBlockData({
                     ...latestBlockRpc,
                     transactions: [],
