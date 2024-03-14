@@ -35,7 +35,7 @@ pub struct AccessListItem {
     /// Accessed address
     pub address: Address,
     /// Accessed storage keys
-    // In JSON, we have to accept null as well for storage key, but we don't want to to change the
+    // In JSON, we have to accept null as well for storage key, but we don't want to change the
     // type to Option<Vec<_>> as that's invalid in RLP.
     #[cfg_attr(
         feature = "serde",
