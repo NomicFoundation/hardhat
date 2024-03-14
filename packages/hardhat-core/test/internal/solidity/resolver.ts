@@ -173,7 +173,7 @@ describe("Resolver", function () {
         );
       });
 
-      it("Should be local if its first directory exists in the project, even it it doesn't exist", async function () {
+      it("Should be local if its first directory exists in the project, even if it doesn't exist", async function () {
         await expectHardhatErrorAsync(
           () => resolver.resolveSourceName("contracts/non-existent.sol"),
           ERRORS.RESOLVER.FILE_NOT_FOUND
