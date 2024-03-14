@@ -181,7 +181,6 @@ impl StateDebug for ForkState {
         address: Address,
         index: U256,
         value: U256,
-        default_account_fn: &dyn Fn() -> Result<AccountInfo, Self::Error>,
     ) -> Result<U256, Self::Error> {
         // We never need to remove zero entries as a "removed" entry means that the
         // lookup for a value in the local state succeeded.
@@ -190,11 +189,16 @@ impl StateDebug for ForkState {
         }
 
         self.local_state
-            .set_account_storage_slot(address, index, value, &|| {
-                self.remote_state
-                    .lock()
-                    .basic(address)?
-                    .map_or_else(default_account_fn, Ok)
+            .set_account_storage_slot_impl(address, index, value, &|| {
+                self.remote_state.lock().basic(address)?.map_or_else(
+                    || {
+                        Ok(AccountInfo {
+                            code: None,
+                            ..AccountInfo::default()
+                        })
+                    },
+                    Ok,
+                )
             })
     }
 

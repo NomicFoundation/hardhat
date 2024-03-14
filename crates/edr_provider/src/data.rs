@@ -1666,12 +1666,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
     ) -> Result<(), ProviderError<LoggerErrorT>> {
         // We clone to automatically revert in case of subsequent errors.
         let mut modified_state = (*self.current_state()?).clone();
-        let old_value = modified_state.set_account_storage_slot(address, index, value, &|| {
-            Ok(AccountInfo {
-                code: None,
-                ..AccountInfo::default()
-            })
-        })?;
+        let old_value = modified_state.set_account_storage_slot(address, index, value)?;
 
         let slot = StorageSlot::new_changed(old_value, value);
         let account_info = modified_state.basic(address).and_then(|mut account_info| {
