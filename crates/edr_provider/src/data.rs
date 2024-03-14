@@ -1490,14 +1490,6 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             AccountModifierFn::new(Box::new(move |account_balance, _, _| {
                 *account_balance = balance;
             })),
-            &|| {
-                Ok(AccountInfo {
-                    balance,
-                    nonce: 0,
-                    code: None,
-                    code_hash: KECCAK_EMPTY,
-                })
-            },
         )?;
 
         let state_root = modified_state.state_root()?;
@@ -1533,7 +1525,6 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         code: Bytes,
     ) -> Result<(), ProviderError<LoggerErrorT>> {
         let code = Bytecode::new_raw(code.clone());
-        let default_code = code.clone();
         let irregular_code = code.clone();
 
         // We clone to automatically revert in case of subsequent errors.
@@ -1543,14 +1534,6 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             AccountModifierFn::new(Box::new(move |_, _, account_code| {
                 *account_code = Some(code.clone());
             })),
-            &|| {
-                Ok(AccountInfo {
-                    balance: U256::ZERO,
-                    nonce: 0,
-                    code: Some(default_code.clone()),
-                    code_hash: KECCAK_EMPTY,
-                })
-            },
         )?;
 
         // The code was stripped from the account, so we need to re-add it for the
@@ -1657,14 +1640,6 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         let account_info = modified_state.modify_account(
             address,
             AccountModifierFn::new(Box::new(move |_, account_nonce, _| *account_nonce = nonce)),
-            &|| {
-                Ok(AccountInfo {
-                    balance: U256::ZERO,
-                    nonce,
-                    code: None,
-                    code_hash: KECCAK_EMPTY,
-                })
-            },
         )?;
 
         let state_root = modified_state.state_root()?;

@@ -507,7 +507,6 @@ fn transaction_by_hash_remove_pending_after_update() -> anyhow::Result<()> {
     fixture.state.modify_account(
         sender,
         AccountModifierFn::new(Box::new(|_balance, nonce, _code| *nonce += 1)),
-        &|| Ok(AccountInfo::default()),
     )?;
 
     fixture.update()?;
@@ -536,7 +535,6 @@ fn transaction_by_hash_remove_future_after_update() -> anyhow::Result<()> {
     fixture.state.modify_account(
         sender,
         AccountModifierFn::new(Box::new(|_balance, nonce, _code| *nonce = 2)),
-        &|| Ok(AccountInfo::default()),
     )?;
 
     fixture.update()?;
@@ -747,13 +745,11 @@ fn update_removes_transactions_with_invalid_nonce() -> anyhow::Result<()> {
     fixture.state.modify_account(
         sender1,
         AccountModifierFn::new(Box::new(|_balance, nonce, _code| *nonce = 1)),
-        &|| Ok(AccountInfo::default()),
     )?;
 
     fixture.state.modify_account(
         sender2,
         AccountModifierFn::new(Box::new(|_balance, nonce, _code| *nonce = 1)),
-        &|| Ok(AccountInfo::default()),
     )?;
 
     fixture.update()?;
@@ -793,7 +789,6 @@ fn update_removes_transactions_with_insufficient_balance() -> anyhow::Result<()>
     fixture.state.modify_account(
         sender,
         AccountModifierFn::new(Box::new(|balance, _nonce, _code| *balance = U256::ZERO)),
-        &|| Ok(AccountInfo::default()),
     )?;
 
     fixture.update()?;

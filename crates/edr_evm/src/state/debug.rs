@@ -53,15 +53,13 @@ pub trait StateDebug {
     ) -> Result<(), Self::Error>;
 
     /// Modifies the account at the specified address using the provided
-    /// function. If no account exists for the specified address, an account
-    /// will be generated using the `default_account_fn` and modified.
+    /// function.
     ///
     /// Returns the modified (or created) account.
     fn modify_account(
         &mut self,
         address: Address,
         modifier: AccountModifierFn,
-        default_account_fn: &dyn Fn() -> Result<AccountInfo, Self::Error>,
     ) -> Result<AccountInfo, Self::Error>;
 
     /// Removes and returns the account at the specified address, if it exists.
