@@ -1,5 +1,11 @@
 # @nomicfoundation/edr
 
+## 0.3.1
+
+### Patch Changes
+
+- 591b7c5: Fixed failing RPC requests for certain providers due to missing content-type header (#4992)
+
 ## 0.3.0
 
 ### Minor Changes
