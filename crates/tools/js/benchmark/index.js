@@ -3,6 +3,7 @@ const fs = require("fs");
 const readline = require("readline");
 const zlib = require("zlib");
 
+const { ArgumentParser } = require("argparse");
 const { _ } = require("lodash");
 
 const {
@@ -10,28 +11,108 @@ const {
 } = require("hardhat/internal/hardhat-network/provider/provider");
 
 const SCENARIOS_DIR = "../../scenarios/";
-
-function usage() {
-  console.error("Usage: node index.js [--grep|-g <pattern>]");
-  process.exit(1);
-}
+const SCENARIO_SNAPSHOT_NAME = "snapshot.json";
 
 async function main() {
-  const numArgs = process.argv.length;
+  const parser = new ArgumentParser({
+    description: "Scenario benchmark runner",
+  });
+  parser.add_argument("command", {
+    choices: ["benchmark", "verify", "report"],
+    help: "Whether to run a benchmark, verify that there are no regressions or create a report for `github-action-benchmark`",
+  });
+  parser.add_argument("-g", "--grep", {
+    type: "str",
+    help: "Only execute the scenarios that contain the given string",
+  });
+  parser.add_argument("-o", "--benchmark-output", {
+    type: "str",
+    default: "./benchmark-output.json",
+    help: "Where to save the benchmark output file",
+  });
+  const args = parser.parse_args();
 
-  if (numArgs !== 2 && numArgs !== 4) {
-    usage();
+  if (args.command === "benchmark") {
+    await benchmarkAllScenarios(args.benchmark_output, args.grep);
+    process.exit(0);
+  } else if (args.command === "verify") {
+    const success = await verify(args.benchmark_output);
+    process.exit(success ? 0 : 1);
+  } else if (args.command === "report") {
+    await report(args.benchmark_output);
+    process.exit(0);
   }
+}
 
-  let grep = undefined;
-  if (numArgs === 4) {
-    if (process.argv[2] !== "--grep" && process.argv[2] !== "-g") {
-      usage();
+async function report(benchmarkResultPath) {
+  const benchmarkResult = require(benchmarkResultPath);
+
+  let totalTime = 0;
+  const report = [];
+  for (let scenarioName in benchmarkResult) {
+    const scenarioResult = benchmarkResult[scenarioName];
+    report.push({
+      name: scenarioName,
+      unit: "ms",
+      value: scenarioResult.timeMs,
+    });
+    totalTime += scenarioResult.timeMs;
+  }
+  report.unshift({
+    name: "All Scenarios",
+    unit: "ms",
+    value: totalTime,
+  });
+
+  console.log(JSON.stringify(report));
+}
+
+async function verify(benchmarkResultPath) {
+  let success = true;
+  const benchmarkResult = require(benchmarkResultPath);
+  const snapshotResult = require(path.join(
+    getScenariosDir(),
+    SCENARIO_SNAPSHOT_NAME
+  ));
+
+  for (let scenarioName in snapshotResult) {
+    let snapshotFailures = new Set(snapshotResult[scenarioName].failures);
+    let benchFailures = new Set(benchmarkResult[scenarioName].failures);
+
+    if (!_.isEqual(snapshotFailures, benchFailures)) {
+      success = false;
+      const shouldFail = snapshotFailures.difference(benchFailures);
+      const shouldNotFail = benchFailures.difference(snapshotFailures);
+
+      // We're logging to stderr so that it doesn't pollute stdout where we write the result
+      console.error(`Snapshot failure for ${scenarioName}`);
+
+      if (shouldFail.size > 0) {
+        console.error(
+          `Scenario ${scenarioName} should fail at indexes ${Array.from(
+            shouldFail
+          ).sort()}`
+        );
+      }
+
+      if (shouldNotFail.size > 0) {
+        console.error(
+          `Scenario ${scenarioName} should not fail at indexes ${Array.from(
+            shouldNotFail
+          ).sort()}`
+        );
+      }
     }
-
-    grep = process.argv[3];
   }
 
+  if (success) {
+    console.error("Benchmark result matches snapshot");
+  }
+
+  return success;
+}
+
+async function benchmarkAllScenarios(outPath, grep) {
   const result = {};
   const scenariosDir = path.join(__dirname, SCENARIOS_DIR);
 
@@ -41,11 +122,11 @@ async function main() {
   let totalTime = 0;
   let totalFailures = 0;
   for (let scenarioFile of scenarioFiles) {
-    if (grep && !scenarioFile.includes(grep)) {
+    if (grep !== undefined && !scenarioFile.includes(grep)) {
       continue;
     }
     // Get the filename from the path
-    const scenarioResult = await runScenario(
+    const scenarioResult = await benchmarkScenario(
       path.join(scenariosDir, scenarioFile)
     );
     totalTime += scenarioResult.result.timeMs;
@@ -53,7 +134,7 @@ async function main() {
     result[scenarioResult.name] = scenarioResult.result;
   }
 
-  console.log(JSON.stringify(result));
+  fs.writeFileSync(outPath, JSON.stringify(result) + "\n");
 
   // Log info to stderr so that it doesn't pollute stdout where we write the result
   console.error(
@@ -62,10 +143,10 @@ async function main() {
     } seconds with ${totalFailures} failures.`
   );
 
-  process.exit(0);
+  console.error(`Benchmark results written to ${outPath}`);
 }
 
-async function runScenario(scenarioPath) {
+async function benchmarkScenario(scenarioPath) {
   const { config, requests } = await loadScenario(scenarioPath);
   const name = path.basename(scenarioPath).split(".")[0];
   console.error(`Running ${name} scenario`);
@@ -219,6 +300,10 @@ function readFile(path) {
     input: stream,
     crlfDelay: Infinity,
   });
+}
+
+function getScenariosDir() {
+  return path.join(__dirname, SCENARIOS_DIR);
 }
 
 main().catch((error) => {

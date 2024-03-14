@@ -9,12 +9,6 @@ pnpm install
 pnpm run benchmark
 ```
 
-The measurements will be printed to stdout as machine-readable json and to stderr as human-readable output.
+The measurements will be printed to stdout as machine-readable json and to stderr and saved to `./benchmark-output.json` disk as json.
 
-## Grep
-
-It's possible to grep the output to run a specific scenario:
-
-```shell
-npm run benchmark -- --grep seaport
-```
+Please see `pnpm run help` for more.

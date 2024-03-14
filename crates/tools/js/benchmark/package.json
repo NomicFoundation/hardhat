@@ -5,13 +5,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "benchmark": "node index.js",
-    "prebenchmark": "cd ../../../edr_napi/ && pnpm build && cd ../../packages/hardhat-core/ && pnpm build"
+    "benchmark": "node index.js benchmark",
+    "prebenchmark": "cd ../../../edr_napi/ && pnpm build && cd ../../packages/hardhat-core/ && pnpm build",
+    "verify": "node index.js verify",
+    "report": "node index.js report",
+    "help": "node index.js -h"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "argparse": "^2.0.1",
     "hardhat": "workspace:^",
     "lodash": "^4.17.11",
     "tsx": "^4.7.1"

@@ -1,0 +1,86 @@
+name: EDR Benchmark
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/edr-benchmark.yml"
+      - "rust-toolchain"
+      - "Cargo.lock"
+      - "Cargo.toml"
+      - "crates/**"
+  pull_request:
+    branches:
+      - "**"
+    paths:
+      - ".github/workflows/edr-benchmark.yml"
+      - "rust-toolchain"
+      - "Cargo.lock"
+      - "Cargo.toml"
+      - "crates/**"
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: crates/tools/js/benchmark
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  js-benchmark:
+    name: Run JS scenario runner benchmark
+    environment: github-action-benchmark
+    runs-on: self-hosted
+    # Only run for trusted collaborators since third-parties could run malicious code on the self-hosted benchmark runner.
+    if: github.event_name != 'pull_request' || github.event.pull_request.author_association == 'OWNER' || github.event.pull_request.author_association == 'MEMBER' || github.event.pull_request.author_association == 'COLLABORATOR'
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Install Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install Rust (stable)
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true
+
+      - name: Install package
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Run benchmark
+        run: pnpm run -s benchmark
+
+      - name: Validate regressions
+        run: pnpm run -s verify
+
+      - name: Generate report for github-action-benchmark
+        run: pnpm run -s report | tee report.json
+
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          tool: customSmallerIsBetter
+          output-file-path: crates/tools/js/benchmark/report.json
+          gh-repository: github.com/NomicFoundation/edr-benchmark-results
+          gh-pages-branch: main
+          benchmark-data-dir-path: bench
+          github-token: ${{ secrets.BENCHMARK_GITHUB_TOKEN }}
+          # Only save the data for main branch pushes. For PRs we only compare
+          auto-push: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+          # TODO calibrate
+          alert-threshold: "105%"
+          # Only fail on pull requests, don't break CI in main
+          fail-on-alert: ${{ github.event_name == 'pull_request' }}
+          # Enable Job Summary for PRs
+          summary-always: true
+          max-items-in-chart: 1000

@@ -59,6 +59,9 @@ importers:
 
   crates/tools/js/benchmark:
     dependencies:
+      argparse:
+        specifier: ^2.0.1
+        version: 2.0.1
       hardhat:
         specifier: workspace:^
         version: link:../../../../packages/hardhat-core
