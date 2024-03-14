@@ -20,7 +20,12 @@ describe("hardhat-toolbox", function () {
     useEnvironment("with-gas-reporter-config");
 
     it("Should not crash while loading the HRE", function () {
-      assert.isDefined(this.env, "The environment should be loaded");
+      // TODO: bring back assert.isDefined
+      // asserts proxying is clashing, it seems to be version related
+      assert(
+        this.env !== undefined && this.env !== null,
+        "The environment should be loaded"
+      );
     });
   });
 
