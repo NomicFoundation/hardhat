@@ -1,5 +1,12 @@
 # hardhat
 
+## 2.22.1
+
+### Patch Changes
+
+- 92d140f: Include Hardhat Ignition in the toolboxes of the starter projects
+- cfec932: Upgraded hardhat-toolbox-viem to support viem@2 in the viem sample project
+
 ## 2.22.0
 
 ### Minor Changes
