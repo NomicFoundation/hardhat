@@ -9,6 +9,7 @@ use std::{
 };
 
 use futures::stream::StreamExt;
+use hyper::header::HeaderValue;
 pub use hyper::{header, http::Error as HttpError, HeaderMap};
 use itertools::{izip, Itertools};
 use reqwest::Client as HttpClient;
@@ -177,18 +178,26 @@ impl RpcClient {
     pub fn new(
         url: &str,
         cache_dir: PathBuf,
-        headers: Option<HeaderMap>,
+        extra_headers: Option<HeaderMap>,
     ) -> Result<Self, RpcClientError> {
         let retry_policy = ExponentialBackoff::builder()
             .retry_bounds(MIN_RETRY_INTERVAL, MAX_RETRY_INTERVAL)
             .base(EXPONENT_BASE)
             .build_with_max_retries(MAX_RETRIES);
 
-        let mut client = HttpClient::builder();
-        if let Some(headers) = headers {
-            client = client.default_headers(headers);
-        }
-        let client = client
+        let mut headers = extra_headers.unwrap_or_default();
+        headers.append(
+            header::CONTENT_TYPE,
+            HeaderValue::from_static("application/json"),
+        );
+        headers.append(
+            header::USER_AGENT,
+            HeaderValue::from_str(&format!("edr {}", env!("CARGO_PKG_VERSION")))
+                .expect("Version string is valid header value"),
+        );
+
+        let client = HttpClient::builder()
+            .default_headers(headers)
             .build()
             .expect("Default construction nor setting default headers can cause an error");
 
