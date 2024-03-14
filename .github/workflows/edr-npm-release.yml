@@ -360,6 +360,7 @@ jobs:
   check_commit:
     name: Check commit
     runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.author_association == 'OWNER' || github.event.pull_request.author_association == 'MEMBER' || github.event.pull_request.author_association == 'COLLABORATOR'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -391,7 +392,7 @@ jobs:
       - test-linux-aarch64-gnu-binding
       - test-linux-aarch64-musl-binding
     # Only run workflow if the PR is merged to main and the commit message is a release commit.
-    if: ${{ needs.check_commit.outputs.match == 'true' && github.ref == 'refs/heads/main' }}
+    if: ${{ needs.check_commit.outputs.match == 'true' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/edr/release') }}
     defaults:
       run:
         working-directory: ./crates/edr_napi

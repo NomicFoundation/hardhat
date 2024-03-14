@@ -15,7 +15,7 @@ import {
 const TOTAL_SUPPLY_SELECTOR = "0x18160ddd";
 
 // mainnet hardforks
-const CANCUN_HARDFORK_BLOCK_NUMBER = -1; // TBD
+const CANCUN_HARDFORK_BLOCK_NUMBER = 19_426_589;
 const SHANGHAI_HARDFORK_BLOCK_NUMBER = 17_034_870;
 const MERGE_HARDFORK_BLOCK_NUMBER = 15_537_394;
 
@@ -336,7 +336,7 @@ describe("Forking a block with a different hardfork", function () {
         });
       });
 
-      describe.skip("before and after cancun", function () {
+      describe("before and after cancun", function () {
         describe("cancun hardfork", function () {
           const hardfork = "cancun";
 
@@ -369,7 +369,7 @@ describe("Forking a block with a different hardfork", function () {
 
               assert.equal(
                 rpcDataToBigInt(daiSupply),
-                78634811100000031000021500n
+                3199311553579684551316799022n
               );
             });
 
@@ -385,7 +385,7 @@ describe("Forking a block with a different hardfork", function () {
 
               assert.equal(
                 rpcDataToBigInt(daiSupply),
-                78634811100000031000021500n
+                3199311553579684551316799022n
               );
             });
 
@@ -405,17 +405,17 @@ describe("Forking a block with a different hardfork", function () {
 
               assert.equal(
                 blockBeforeFork.parentBeaconBlockRoot,
-                "0xaa1c8fd7476ed6519cbb694784df5038ed7b008f05e2ad40585efc6c790d69de"
+                "0xff1a9fb2f5412756e7302c1662e8ee815e41f11da51da5471c57782a5ac6139a"
               );
-              assert.equal(blockBeforeFork.blobGasUsed, "0xa0000");
-              assert.equal(blockBeforeFork.excessBlobGas, "0x13a0000");
+              assert.equal(blockBeforeFork.blobGasUsed, "0x80000");
+              assert.equal(blockBeforeFork.excessBlobGas, "0x0");
 
               assert.equal(
                 blockAfterFork.parentBeaconBlockRoot,
                 "0xdd8876ba5af271ae9d93ececb192d6a7b4e6094ca5999756336279fd796b8619"
               );
               assert.equal(blockAfterFork.blobGasUsed, "0x0");
-              assert.equal(blockAfterFork.excessBlobGas, "0x1400000");
+              assert.equal(blockAfterFork.excessBlobGas, "0x0");
             });
 
             it("should have code in the beacon root contract", async function () {
@@ -456,7 +456,7 @@ describe("Forking a block with a different hardfork", function () {
 
               assert.equal(
                 rpcDataToBigInt(daiSupply),
-                78634811100000031000021500n
+                5022305384218217259061852351n
               );
             });
 
@@ -472,7 +472,7 @@ describe("Forking a block with a different hardfork", function () {
 
               assert.equal(
                 rpcDataToBigInt(daiSupply),
-                78634811100000031000021500n
+                5022305384218217259061852351n
               );
             });
 
@@ -544,7 +544,7 @@ describe("Forking a block with a different hardfork", function () {
 
               assert.equal(
                 rpcDataToBigInt(daiSupply),
-                78634811100000031000021500n
+                3199311553579684551316799022n
               );
             });
 
@@ -560,7 +560,7 @@ describe("Forking a block with a different hardfork", function () {
 
               assert.equal(
                 rpcDataToBigInt(daiSupply),
-                78634811100000031000021500n
+                3199311553579684551316799022n
               );
             });
 
@@ -580,10 +580,10 @@ describe("Forking a block with a different hardfork", function () {
 
               assert.equal(
                 blockBeforeFork.parentBeaconBlockRoot,
-                "0xaa1c8fd7476ed6519cbb694784df5038ed7b008f05e2ad40585efc6c790d69de"
+                "0xff1a9fb2f5412756e7302c1662e8ee815e41f11da51da5471c57782a5ac6139a"
               );
-              assert.equal(blockBeforeFork.blobGasUsed, "0xa0000");
-              assert.equal(blockBeforeFork.excessBlobGas, "0x13a0000");
+              assert.equal(blockBeforeFork.blobGasUsed, "0x80000");
+              assert.equal(blockBeforeFork.excessBlobGas, "0x0");
 
               assert.isUndefined(blockAfterFork.parentBeaconBlockRoot);
               assert.isUndefined(blockAfterFork.blobGasUsed);
@@ -620,7 +620,7 @@ describe("Forking a block with a different hardfork", function () {
 
               assert.equal(
                 rpcDataToBigInt(daiSupply),
-                78634811100000031000021500n
+                5022305384218217259061852351n
               );
             });
 
@@ -636,7 +636,7 @@ describe("Forking a block with a different hardfork", function () {
 
               assert.equal(
                 rpcDataToBigInt(daiSupply),
-                78634811100000031000021500n
+                5022305384218217259061852351n
               );
             });
 

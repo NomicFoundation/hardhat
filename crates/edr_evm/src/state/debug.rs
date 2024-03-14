@@ -71,7 +71,9 @@ pub trait StateDebug {
     fn serialize(&self) -> String;
 
     /// Sets the storage slot at the specified address and index to the provided
-    /// value.
+    /// value. When updating the storage root of the provided address, if no
+    /// account exists for the specified address, an account will be generated
+    /// using the `default_account_fn` and modified.
     ///
     /// Returns the old value.
     fn set_account_storage_slot(
@@ -79,6 +81,7 @@ pub trait StateDebug {
         address: Address,
         index: U256,
         value: U256,
+        default_account_fn: &dyn Fn() -> Result<AccountInfo, Self::Error>,
     ) -> Result<U256, Self::Error>;
 
     /// Retrieves the storage root of the database.

@@ -112,4 +112,5 @@ Brewfile.lock.json
 # Performance profiling application
 .clinic
 
-benchmark-scenarios/
+# Ipython Notebook
+.ipynb_checkpoints
