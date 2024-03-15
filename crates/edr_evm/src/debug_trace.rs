@@ -1,19 +1,18 @@
-use std::{cell::RefCell, collections::HashMap, fmt::Debug, rc::Rc, sync::Arc};
+use std::{collections::HashMap, fmt::Debug, sync::Arc};
 
 use edr_eth::{signature::SignatureError, utils::u256_to_padded_hex, B256};
 use revm::{
     db::DatabaseComponents,
     handler::register::EvmHandler,
-    inspectors::GasInspector,
     interpreter::{
         opcode::{self, BoxedInstruction, InstructionTables},
-        CallInputs, CallOutcome, InstructionResult, Interpreter,
+        InstructionResult, Interpreter, InterpreterResult,
     },
     primitives::{
-        hex, Address, BlockEnv, Bytes, CfgEnvWithHandlerCfg, EVMError, ExecutionResult,
-        ResultAndState, SpecId, U256,
+        hex, Address, BlockEnv, Bytes, CfgEnvWithHandlerCfg, ExecutionResult, ResultAndState,
+        SpecId, U256,
     },
-    Database, Evm, EvmContext, FrameOrResult, FrameResult, Inspector, JournalEntry,
+    Database, Evm, EvmContext, JournalEntry,
 };
 
 use crate::{
@@ -240,61 +239,22 @@ pub fn register_eip_3155_tracer_handles<
         table.try_into().unwrap_or_else(|_| unreachable!()),
     ));
 
-    // call input stack shared between handlers. It is used to share inputs in *_end
-    // calls.
-    let call_input_stack = Rc::<RefCell<Vec<_>>>::new(RefCell::new(Vec::new()));
-
-    // Create handler
-    let old_handle = handler.execution.create.clone();
-    handler.execution.create = Arc::new(
-        move |ctx, inputs| -> Result<FrameOrResult, EVMError<DatabaseT::Error>> {
-            let mut frame_or_result = old_handle(ctx, inputs);
-
-            if let Ok(FrameOrResult::Frame(frame)) = &mut frame_or_result {
-                let tracer = ctx.external.get_context_data();
-                tracer.initialize_interp(&mut frame.frame_data_mut().interpreter, &mut ctx.evm);
-            }
-            frame_or_result
-        },
-    );
-
-    // Call handler
-    let call_input_stack_inner = call_input_stack.clone();
-    let old_handle = handler.execution.call.clone();
-    handler.execution.call = Arc::new(
-        move |ctx, inputs| -> Result<FrameOrResult, EVMError<DatabaseT::Error>> {
-            call_input_stack_inner.borrow_mut().push(inputs.clone());
-
-            let mut frame_or_result = old_handle(ctx, inputs);
-
-            if let Ok(FrameOrResult::Frame(frame)) = &mut frame_or_result {
-                let tracer = ctx.external.get_context_data();
-                tracer.initialize_interp(&mut frame.frame_data_mut().interpreter, &mut ctx.evm);
-            }
-            frame_or_result
-        },
-    );
-
     // call outcome
-    let call_input_stack_inner = call_input_stack.clone();
     let old_handle = handler.execution.insert_call_outcome.clone();
-    handler.execution.insert_call_outcome =
-        Arc::new(move |ctx, frame, shared_memory, mut outcome| {
-            let tracer = ctx.external.get_context_data();
-            let call_inputs = call_input_stack_inner.borrow_mut().pop().unwrap();
-            outcome = tracer.call_end(&mut ctx.evm, &call_inputs, outcome);
-            old_handle(ctx, frame, shared_memory, outcome)
-        });
-
-    // last frame outcome
-    let old_handle = handler.execution.last_frame_return.clone();
-    handler.execution.last_frame_return = Arc::new(move |ctx, frame_result| {
+    handler.execution.insert_call_outcome = Arc::new(move |ctx, frame, shared_memory, outcome| {
         let tracer = ctx.external.get_context_data();
-        if let FrameResult::Call(outcome) = frame_result {
-            let call_inputs = call_input_stack.borrow_mut().pop().unwrap();
-            *outcome = tracer.call_end(&mut ctx.evm, &call_inputs, outcome.clone());
-        }
-        old_handle(ctx, frame_result)
+        tracer.on_inner_frame_result(&outcome.result);
+
+        old_handle(ctx, frame, shared_memory, outcome)
+    });
+
+    // create outcome
+    let old_handle = handler.execution.insert_create_outcome.clone();
+    handler.execution.insert_create_outcome = Arc::new(move |ctx, frame, outcome| {
+        let tracer = ctx.external.get_context_data();
+        tracer.on_inner_frame_result(&outcome.result);
+
+        old_handle(ctx, frame, outcome)
     });
 }
 
@@ -333,13 +293,10 @@ fn instruction_handler<
 }
 
 /// An EIP-3155 compatible EVM tracer.
-/// Based on [REVM TracerEip3155](https://github.com/bluealloy/revm/blob/70cf969a25a45e3bb4e503926297d61a90c7eec5/crates/revm/src/inspector/tracer_eip3155.rs).
-/// Original licensed under the MIT license.
 #[derive(Debug)]
 pub struct TracerEip3155 {
     config: DebugTraceConfig,
     logs: Vec<DebugTraceLogItem>,
-    gas_inspector: GasInspector,
     contract_address: Address,
     gas_remaining: u64,
     memory: Vec<u8>,
@@ -357,7 +314,6 @@ impl TracerEip3155 {
         Self {
             config,
             logs: Vec::default(),
-            gas_inspector: GasInspector::default(),
             contract_address: Address::default(),
             stack: Vec::new(),
             pc: 0,
@@ -369,7 +325,30 @@ impl TracerEip3155 {
         }
     }
 
-    fn record_log<DatabaseT: Database>(&mut self, context: &mut EvmContext<DatabaseT>) {
+    fn step(&mut self, interp: &mut Interpreter) {
+        self.contract_address = interp.contract.address;
+        self.gas_remaining = interp.gas().remaining();
+
+        if !self.config.disable_stack {
+            self.stack = interp.stack.data().clone();
+        }
+
+        if !self.config.disable_memory {
+            self.memory = interp.shared_memory.context_memory().to_vec();
+        }
+
+        self.mem_size = interp.shared_memory.context_memory().len();
+
+        self.opcode = interp.current_opcode();
+
+        self.pc = interp.program_counter();
+    }
+
+    fn step_end<DatabaseT: Database>(
+        &mut self,
+        interp: &mut Interpreter,
+        context: &mut EvmContext<DatabaseT>,
+    ) {
         let depth = context.journaled_state.depth();
 
         let stack = if self.config.disable_stack {
@@ -424,21 +403,7 @@ impl TracerEip3155 {
             String::from,
         );
 
-        // We don't support gas computation for these opcodes yet
-        let gas_cost = if matches!(
-            self.opcode,
-            opcode::CREATE
-                | opcode::CREATE2
-                | opcode::CALL
-                | opcode::CALLCODE
-                | opcode::DELEGATECALL
-                | opcode::STATICCALL
-        ) {
-            0
-        } else {
-            self.gas_inspector.last_gas_cost()
-        };
-
+        let gas_cost = self.gas_remaining.saturating_sub(interp.gas().remaining());
         let log_item = DebugTraceLogItem {
             pc: self.pc as u64,
             op: self.opcode,
@@ -455,50 +420,12 @@ impl TracerEip3155 {
         self.logs.push(log_item);
     }
 
-    fn initialize_interp<DatabaseT: Database>(
-        &mut self,
-        interp: &mut Interpreter,
-        context: &mut EvmContext<DatabaseT>,
-    ) {
-        self.gas_inspector.initialize_interp(interp, context);
-    }
-
-    fn step(&mut self, interp: &mut Interpreter) {
-        self.contract_address = interp.contract.address;
-        self.gas_remaining = self.gas_inspector.gas_remaining();
-
-        if !self.config.disable_stack {
-            self.stack = interp.stack.data().clone();
-        }
-
-        if !self.config.disable_memory {
-            self.memory = interp.shared_memory.context_memory().to_vec();
-        }
-
-        self.mem_size = interp.shared_memory.context_memory().len();
-
-        self.opcode = interp.current_opcode();
-
-        self.pc = interp.program_counter();
-    }
-
-    fn step_end<DatabaseT: Database>(
-        &mut self,
-        interp: &mut Interpreter,
-        context: &mut EvmContext<DatabaseT>,
-    ) {
-        self.gas_inspector.step_end(interp, context);
-
-        self.record_log(context);
-    }
-
-    fn call_end<DatabaseT: Database>(
-        &mut self,
-        context: &mut EvmContext<DatabaseT>,
-        inputs: &CallInputs,
-        outcome: CallOutcome,
-    ) -> CallOutcome {
-        self.gas_inspector.call_end(context, inputs, outcome)
+    fn on_inner_frame_result(&mut self, result: &InterpreterResult) {
+        self.gas_remaining = if result.result.is_error() {
+            0
+        } else {
+            result.gas.remaining()
+        };
     }
 }
 
