@@ -90,7 +90,7 @@ pub fn guaranteed_dry_run<
     state: &'state dyn SyncState<StateErrorT>,
     state_overrides: &'overrides StateOverrides,
     mut cfg: CfgEnvWithHandlerCfg,
-    transaction: TxEnv,
+    mut transaction: TxEnv,
     block: BlockEnv,
     debug_context: Option<
         DebugContext<
@@ -109,7 +109,7 @@ where
 {
     cfg.disable_balance_check = true;
     cfg.disable_block_gas_limit = true;
-    cfg.disable_nonce_check = true;
+    transaction.nonce = None;
     dry_run(
         blockchain,
         state,

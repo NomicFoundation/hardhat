@@ -18,8 +18,7 @@ reqwest = { version = "0.11", features = ["blocking", "json"] }
 reqwest-middleware = { version = "0.2.4", default-features = false }
 reqwest-retry = { version = "0.3.0", default-features = false }
 reqwest-tracing = { version = "0.4.7", default-features = false, optional = true }
-revm-primitives = { git = "https://github.com/Wodann/revm", rev = "080d8ff", version = "3.0", default-features = false }
-# revm-primitives = { path = "../../../revm/crates/primitives", version = "2.1", default-features = false }
+revm-primitives = { version = "3.0", default-features = false }
 serde = { version = "1.0.147", default-features = false, features = ["derive"], optional = true }
 serde_json = { version = "1.0.89", optional = true }
 sha3 = { version = "0.10.8", default-features = false }
