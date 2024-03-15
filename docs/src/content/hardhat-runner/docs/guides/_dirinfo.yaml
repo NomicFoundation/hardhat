@@ -6,7 +6,7 @@ order:
   - /test-contracts
   - /deploying
   - /verifying
-  - /tasks-and-scripts
+  - /tasks
   - /hardhat-console
   - /typescript
   - /command-line-completion

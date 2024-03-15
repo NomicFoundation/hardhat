@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-toolbox",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "description": "Nomic Foundation's recommended bundle of Hardhat plugins (ethers based)",
   "repository": "github:nomicfoundation/hardhat",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-toolbox",
@@ -39,12 +39,12 @@
     "LICENSE",
     "README.md"
   ],
-  "dependencies": {},
   "devDependencies": {
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
     "@nomicfoundation/hardhat-chai-matchers": "workspace:^2.0.0",
     "@nomicfoundation/hardhat-ethers": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-ignition-ethers": "^0.15.0",
     "@nomicfoundation/hardhat-network-helpers": "workspace:^1.0.0",
     "@nomicfoundation/hardhat-verify": "workspace:^2.0.0",
     "@typechain/ethers-v6": "^0.5.0",
@@ -54,7 +54,7 @@
     "@types/node": "^18.0.0",
     "@typescript-eslint/eslint-plugin": "5.61.0",
     "@typescript-eslint/parser": "5.61.0",
-    "chai": "^4.2.0",
+    "chai": "^4.4.1",
     "eslint": "^8.44.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-import": "2.27.5",
@@ -74,6 +74,7 @@
   "peerDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "workspace:^2.0.0",
     "@nomicfoundation/hardhat-ethers": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-ignition-ethers": "^0.15.0",
     "@nomicfoundation/hardhat-network-helpers": "workspace:^1.0.0",
     "@nomicfoundation/hardhat-verify": "workspace:^2.0.0",
     "@typechain/ethers-v6": "^0.5.0",

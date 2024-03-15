@@ -12,7 +12,7 @@ Some examples of things you could achieve by creating a plugin are: running a li
 
 ## Extending the Hardhat Runtime Environment
 
-Let’s go through the process of creating a plugin that adds new functionality to the Hardhat Runtime Environment. By doing this, we make sure our new feature is available everywhere. This means your plugin users can access it from tasks, tests, scripts, and the Hardhat console.
+Let’s go through the process of creating a plugin that adds new functionality to the Hardhat Runtime Environment. By doing this, we make sure our new feature is available everywhere. This means your plugin users can access it from tasks, tests, scripts and the Hardhat console.
 
 The Hardhat Runtime Environment (HRE) is configured through a queue of extension functions that you can add to using the `extendEnvironment()` function. It receives one parameter which is a callback which will be executed after the HRE is initialized. If `extendEnvironment` is called multiple times, its callbacks will be executed in order.
 

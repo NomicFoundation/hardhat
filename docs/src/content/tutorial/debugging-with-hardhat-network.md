@@ -40,7 +40,7 @@ function transfer(address to, uint256 amount) external {
 
 The logging output will show when you run your tests:
 
-```markup{8-11,14-17}
+```markup{8-9,12-13}
 $ npx hardhat test
 
   Token contract

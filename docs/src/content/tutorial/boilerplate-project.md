@@ -48,7 +48,7 @@ npx hardhat node
 Here we just install the npm project's dependencies, and by running `npx hardhat node` we spin up an instance of Hardhat Network that you can connect to using your wallet. In a different terminal in the same directory, run:
 
 ```
-npx hardhat --network localhost run scripts/deploy.js
+npx hardhat run scripts/deploy.js --network localhost
 ```
 
 This will deploy the contract to Hardhat Network. After this completes, start the react web app:
@@ -61,7 +61,13 @@ npm run start
 
 Then open [http://127.0.0.1:3000/](http://127.0.0.1:3000/) in your browser and you should see this: ![](/front-5.png)
 
-Click the button to connect your wallet. If you are using MetaMask, make sure you have selected the `Localhost 8545` network.
+Click the button to connect your wallet.
+
+:::tip
+
+If you are using MetaMask, ensure you have configured and selected the `Localhost 8545` network.
+
+:::
 
 After connecting your wallet, you should see this:
 
@@ -73,7 +79,7 @@ What's happening here is that the frontend code to show the current wallet's bal
 npx hardhat --network localhost faucet <your address>
 ```
 
-You'll run a custom Hardhat task we included that uses the balance of the deploying account to send 100 MHT and 1 ETH to your address. This will allow you to send tokens to another address.
+You'll run a custom Hardhat task we included that uses the balance of the deploying account to send 100 MHT and 1 ETH to your address. This will allow you to send tokens to another address. The transaction might take a few seconds before updating the balance visible in the frontend.
 
 You can check out the code for the task in [`/tasks/faucet.js`](https://github.com/NomicFoundation/hardhat-boilerplate/blob/master/tasks/faucet.js), which is required from `hardhat.config.js`.
 

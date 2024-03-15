@@ -26,4 +26,4 @@ If you would like to set up the environment manually, you will need to install t
 
 - Install Rust using [rustup](https://www.rust-lang.org/tools/install)
 - [NodeJS 18](https://nodejs.org/en)
-- [Yarn](https://yarnpkg.com/getting-started/install)
+- [pnpm](https://pnpm.io/installation)

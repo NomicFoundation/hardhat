@@ -37,8 +37,8 @@ To switch modes, set the `HARDHAT_EXPERIMENTAL_VM_MODE` environment variable to 
 
 ```bash
 cd packages/hardhat-core &&
-yarn build &&
-HARDHAT_EXPERIMENTAL_VM_MODE=edr yarn test
+pnpm build &&
+HARDHAT_EXPERIMENTAL_VM_MODE=edr pnpm test
 ```
 
 Similar to EDR, Hardhat can be configured to run remote tests. This can be accomplished by setting environment variables for the API URL (including token) of Alchemy or Infura, respectively: `ALCHEMY_URL` and `INFURA_URL`.
@@ -50,7 +50,7 @@ Additionally, you can test Hardhat by using the EDR node as a provider directly.
 Specific tests can be executed by filtering with the `--grep` or `-g` flag. E.g.:
 
 ```bash
-yarn test -g "Reads from disk if available, not making any request a request"
+pnpm test -- -g "Reads from disk if available, not making any request a request"
 ```
 
 will only run the test with this specific name.
@@ -67,7 +67,7 @@ Alchemy Forked provider
 can be run by using the following command:
 
 ```bash
-yarn test -g "Alchemy Forked provider hardhat_impersonateAccount hash collisions"
+pnpm test -- -g "Alchemy Forked provider hardhat_impersonateAccount hash collisions"
 ```
 
 ### Debugging

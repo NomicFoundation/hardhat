@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-toolbox-viem",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Nomic Foundation's recommended bundle of Hardhat plugins (viem based)",
   "repository": "github:nomicfoundation/hardhat",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-toolbox-viem",
@@ -45,6 +45,7 @@
   "devDependencies": {
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
+    "@nomicfoundation/hardhat-ignition-viem": "^0.15.0",
     "@nomicfoundation/hardhat-network-helpers": "workspace:^1.0.0",
     "@nomicfoundation/hardhat-verify": "workspace:^2.0.0",
     "@nomicfoundation/hardhat-viem": "workspace:^2.0.0",
@@ -68,12 +69,13 @@
     "solidity-coverage": "^0.8.1",
     "ts-node": "^10.8.0",
     "typescript": "~5.0.4",
-    "viem": "^1.15.1"
+    "viem": "^2.7.6"
   },
   "peerDependencies": {
+    "@nomicfoundation/hardhat-ignition-viem": "^0.15.0",
     "@nomicfoundation/hardhat-network-helpers": "workspace:^1.0.0",
     "@nomicfoundation/hardhat-verify": "workspace:^2.0.0",
-    "@nomicfoundation/hardhat-viem": "workspace:^1.0.0",
+    "@nomicfoundation/hardhat-viem": "workspace:^2.0.0",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^7.1.6",
     "@types/mocha": ">=9.1.0",
@@ -83,8 +85,8 @@
     "hardhat-gas-reporter": "^1.0.8",
     "solidity-coverage": "^0.8.1",
     "ts-node": ">=8.0.0",
-    "typescript": "~5.0.4",
-    "viem": "^1.15.1"
+    "typescript": "^5.0.4",
+    "viem": "^2.7.6"
   },
   "bugs": {
     "url": "https://github.com/nomicfoundation/hardhat/issues"
