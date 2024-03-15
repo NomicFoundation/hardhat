@@ -71,7 +71,7 @@ jobs:
         with:
           tool: customSmallerIsBetter
           output-file-path: crates/tools/js/benchmark/report.json
-          gh-repository: github.com/NomicFoundation/edr-benchmark-results
+          gh-repository: github.com/nomic-foundation-automation/edr-benchmark-results
           gh-pages-branch: main
           benchmark-data-dir-path: bench
           github-token: ${{ secrets.BENCHMARK_GITHUB_TOKEN }}
