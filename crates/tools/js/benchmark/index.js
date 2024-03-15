@@ -124,6 +124,8 @@ async function benchmarkAllScenarios(outPath, grep) {
   for (let scenarioFile of scenarioFiles) {
     if (grep !== undefined && !scenarioFile.includes(grep)) {
       continue;
+    } else if (scenarioFile === SCENARIO_SNAPSHOT_NAME) {
+      continue;
     }
     // Get the filename from the path
     const scenarioResult = await benchmarkScenario(
