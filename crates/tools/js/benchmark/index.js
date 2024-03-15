@@ -1,3 +1,4 @@
+const child_process = require("child_process");
 const path = require("path");
 const fs = require("fs");
 const readline = require("readline");
@@ -33,7 +34,15 @@ async function main() {
   const args = parser.parse_args();
 
   if (args.command === "benchmark") {
-    await benchmarkAllScenarios(args.benchmark_output, args.grep);
+    if (args.grep) {
+      for (let scenarioFileName of getScenarioFileNames()) {
+        if (scenarioFileName.includes(args.grep)) {
+          await benchmarkScenario(scenarioFileName);
+        }
+      }
+    } else {
+      await benchmarkAllScenarios(args.benchmark_output);
+    }
     process.exit(0);
   } else if (args.command === "verify") {
     const success = await verify(args.benchmark_output);
@@ -112,25 +121,26 @@ async function verify(benchmarkResultPath) {
   return success;
 }
 
-async function benchmarkAllScenarios(outPath, grep) {
+async function benchmarkAllScenarios(outPath) {
   const result = {};
-  const scenariosDir = path.join(__dirname, SCENARIOS_DIR);
-
-  // List files in scenarios directory
-  const scenarioFiles = fs.readdirSync(scenariosDir);
-  scenarioFiles.sort();
   let totalTime = 0;
   let totalFailures = 0;
-  for (let scenarioFile of scenarioFiles) {
-    if (grep !== undefined && !scenarioFile.includes(grep)) {
-      continue;
-    } else if (scenarioFile === SCENARIO_SNAPSHOT_NAME) {
-      continue;
-    }
-    // Get the filename from the path
-    const scenarioResult = await benchmarkScenario(
-      path.join(scenariosDir, scenarioFile)
+  for (let scenarioFileName of getScenarioFileNames()) {
+    // Run in subprocess with grep to simulate Hardhat test runner behaviour
+    // where there is one provider per process
+    const processResult = child_process.spawnSync(
+      process.argv[0],
+      ["index.js", "benchmark", "-g", scenarioFileName],
+      {
+        shell: true,
+        timeout: 60 * 60 * 1000,
+        // Pipe stdout, proxy the rest
+        stdio: [process.stdin, "pipe", process.stderr],
+      }
     );
+
+    const scenarioResult = JSON.parse(processResult.stdout.toString());
+
     totalTime += scenarioResult.result.timeMs;
     totalFailures += scenarioResult.result.failures.length;
     result[scenarioResult.name] = scenarioResult.result;
@@ -148,9 +158,9 @@ async function benchmarkAllScenarios(outPath, grep) {
   console.error(`Benchmark results written to ${outPath}`);
 }
 
-async function benchmarkScenario(scenarioPath) {
-  const { config, requests } = await loadScenario(scenarioPath);
-  const name = path.basename(scenarioPath).split(".")[0];
+async function benchmarkScenario(scenarioFileName) {
+  const { config, requests } = await loadScenario(scenarioFileName);
+  const name = path.basename(scenarioFileName).split(".")[0];
   console.error(`Running ${name} scenario`);
 
   const start = performance.now();
@@ -177,21 +187,23 @@ async function benchmarkScenario(scenarioPath) {
     } seconds with ${failures.length} failures.`
   );
 
-  return {
+  const result = {
     name,
     result: {
       timeMs,
       failures,
     },
   };
+  console.log(JSON.stringify(result));
 }
 
-async function loadScenario(path) {
+async function loadScenario(scenarioFileName) {
   const result = {
     requests: [],
   };
   let i = 0;
-  for await (const line of readFile(path)) {
+  const filePath = path.join(getScenariosDir(), scenarioFileName);
+  for await (const line of readFile(filePath)) {
     const parsed = JSON.parse(line);
     if (i === 0) {
       result.config = preprocessConfig(parsed);
@@ -306,6 +318,13 @@ function readFile(path) {
 
 function getScenariosDir() {
   return path.join(__dirname, SCENARIOS_DIR);
+}
+
+function getScenarioFileNames() {
+  const scenariosDir = path.join(__dirname, SCENARIOS_DIR);
+  const scenarioFiles = fs.readdirSync(scenariosDir);
+  scenarioFiles.sort();
+  return scenarioFiles.filter((fileName) => fileName.endsWith(".jsonl.gz"));
 }
 
 main().catch((error) => {
