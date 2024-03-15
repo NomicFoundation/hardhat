@@ -35,7 +35,7 @@ jobs:
     environment: github-action-benchmark
     runs-on: self-hosted
     # Only run for trusted collaborators since third-parties could run malicious code on the self-hosted benchmark runner.
-    if: github.event_name != 'pull_request' || github.event.pull_request.author_association == 'OWNER' || github.event.pull_request.author_association == 'MEMBER' || github.event.pull_request.author_association == 'COLLABORATOR'
+    if: github.event.pull_request.author_association == 'OWNER' || github.event.pull_request.author_association == 'MEMBER' || github.event.pull_request.author_association == 'COLLABORATOR'
     steps:
       - uses: actions/checkout@v3
 
