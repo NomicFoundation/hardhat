@@ -140,15 +140,23 @@ impl StateDebug for ForkState {
         &mut self,
         address: Address,
         modifier: crate::state::AccountModifierFn,
-        default_account_fn: &dyn Fn() -> Result<AccountInfo, Self::Error>,
     ) -> Result<AccountInfo, Self::Error> {
-        #[allow(clippy::redundant_closure)]
-        self.local_state.modify_account(address, modifier, &|| {
-            self.remote_state
-                .lock()
-                .basic(address)?
-                .map_or_else(|| default_account_fn(), Result::Ok)
-        })
+        self.local_state.modify_account_impl(
+            address,
+            modifier,
+            &|| {
+                self.remote_state.lock().basic(address)?.map_or_else(
+                    || {
+                        Ok(AccountInfo {
+                            code: None,
+                            ..AccountInfo::default()
+                        })
+                    },
+                    Result::Ok,
+                )
+            },
+            &|code_hash| self.remote_state.lock().code_by_hash(code_hash),
+        )
     }
 
     fn remove_account(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
