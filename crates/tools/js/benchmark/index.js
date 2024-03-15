@@ -43,6 +43,7 @@ async function main() {
     } else {
       await benchmarkAllScenarios(args.benchmark_output);
     }
+    await flushStdout();
   } else if (args.command === "verify") {
     const success = await verify(args.benchmark_output);
     process.exit(success ? 0 : 1);
@@ -331,7 +332,17 @@ function getScenarioFileNames() {
   return scenarioFiles.filter((fileName) => fileName.endsWith(".jsonl.gz"));
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+async function flushStdout() {
+  return new Promise((resolve) => {
+    process.stdout.write("", resolve);
+  });
+}
+
+main()
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  })
+  .then(() => {
+    process.exit(0);
+  });
