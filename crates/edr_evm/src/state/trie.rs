@@ -42,6 +42,70 @@ impl TrieState {
             self.contracts.remove(code_hash);
         }
     }
+
+    pub(super) fn modify_account_impl(
+        &mut self,
+        address: Address,
+        modifier: super::AccountModifierFn,
+        default_account_fn: &dyn Fn() -> Result<AccountInfo, StateError>,
+        external_code_by_hash_fn: &dyn Fn(B256) -> Result<Bytecode, StateError>,
+    ) -> Result<AccountInfo, StateError> {
+        let mut account_info = match self.accounts.account(&address) {
+            Some(account) => AccountInfo::from(account),
+            None => default_account_fn()?,
+        };
+
+        // Fill the bytecode
+        if account_info.code_hash != KECCAK_EMPTY {
+            let code = match self.code_by_hash(account_info.code_hash) {
+                Ok(code) => code,
+                Err(StateError::InvalidCodeHash(code_hash)) => external_code_by_hash_fn(code_hash)?,
+                Err(err) => return Err(err),
+            };
+
+            account_info.code = Some(code);
+        }
+
+        let old_code_hash = account_info.code_hash;
+
+        modifier(
+            &mut account_info.balance,
+            &mut account_info.nonce,
+            &mut account_info.code,
+        );
+
+        let new_code = account_info.code.clone();
+        let new_code_hash = new_code.as_ref().map_or(KECCAK_EMPTY, Bytecode::hash_slow);
+        account_info.code_hash = new_code_hash;
+
+        let code_changed = new_code_hash != old_code_hash;
+        if code_changed {
+            if let Some(new_code) = new_code {
+                self.insert_code(new_code_hash, new_code);
+            }
+
+            self.remove_code(&old_code_hash);
+        }
+
+        self.accounts.set_account(&address, &account_info);
+
+        Ok(account_info)
+    }
+
+    pub(super) fn set_account_storage_slot_impl(
+        &mut self,
+        address: Address,
+        index: U256,
+        value: U256,
+        default_account_fn: &dyn Fn() -> Result<AccountInfo, StateError>,
+    ) -> Result<U256, StateError> {
+        let old_value =
+            self.accounts
+                .set_account_storage_slot(&address, &index, &value, default_account_fn)?;
+
+        // If there is no old value, return zero to signal that the slot was empty
+        Ok(old_value.unwrap_or(U256::ZERO))
+    }
 }
 
 impl Default for TrieState {
@@ -131,42 +195,18 @@ impl StateDebug for TrieState {
         &mut self,
         address: Address,
         modifier: super::AccountModifierFn,
-        default_account_fn: &dyn Fn() -> Result<AccountInfo, Self::Error>,
     ) -> Result<AccountInfo, Self::Error> {
-        let mut account_info = match self.accounts.account(&address) {
-            Some(account) => AccountInfo::from(account),
-            None => default_account_fn()?,
-        };
-
-        // Fill the bytecode
-        if account_info.code_hash != KECCAK_EMPTY {
-            account_info.code = Some(self.code_by_hash(account_info.code_hash)?);
-        }
-
-        let old_code_hash = account_info.code_hash;
-
-        modifier(
-            &mut account_info.balance,
-            &mut account_info.nonce,
-            &mut account_info.code,
-        );
-
-        let new_code = account_info.code.clone();
-        let new_code_hash = new_code.as_ref().map_or(KECCAK_EMPTY, Bytecode::hash_slow);
-        account_info.code_hash = new_code_hash;
-
-        let code_changed = new_code_hash != old_code_hash;
-        if code_changed {
-            if let Some(new_code) = new_code {
-                self.insert_code(new_code_hash, new_code);
-            }
-
-            self.remove_code(&old_code_hash);
-        }
-
-        self.accounts.set_account(&address, &account_info);
-
-        Ok(account_info)
+        self.modify_account_impl(
+            address,
+            modifier,
+            &|| {
+                Ok(AccountInfo {
+                    code: None,
+                    ..AccountInfo::default()
+                })
+            },
+            &|code_hash| Err(StateError::InvalidCodeHash(code_hash)),
+        )
     }
 
     fn remove_account(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
@@ -191,14 +231,13 @@ impl StateDebug for TrieState {
         address: Address,
         index: U256,
         value: U256,
-        default_account_fn: &dyn Fn() -> Result<AccountInfo, Self::Error>,
     ) -> Result<U256, Self::Error> {
-        let old_value =
-            self.accounts
-                .set_account_storage_slot(&address, &index, &value, default_account_fn)?;
-
-        // If there is no old value, return zero to signal that the slot was empty
-        Ok(old_value.unwrap_or(U256::ZERO))
+        self.set_account_storage_slot_impl(address, index, value, &|| {
+            Ok(AccountInfo {
+                code: None,
+                ..AccountInfo::default()
+            })
+        })
     }
 
     fn state_root(&self) -> Result<B256, Self::Error> {

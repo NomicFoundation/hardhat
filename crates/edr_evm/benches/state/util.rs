@@ -121,12 +121,6 @@ impl EdrStates {
                             address,
                             U256::from(storage_slot),
                             U256::from(account_number),
-                            &|| {
-                                Ok(AccountInfo {
-                                    code: None,
-                                    ..AccountInfo::default()
-                                })
-                            },
                         )
                         .unwrap();
                 }

@@ -125,7 +125,6 @@ fn bench_modify_account_doesnt_exist(c: &mut Criterion) {
                     *balance += U256::from(1);
                     *nonce += 1;
                 })),
-                &|| Ok(AccountInfo::default()),
             );
             debug_assert!(result.is_ok());
         },
@@ -147,7 +146,6 @@ fn bench_modify_account_exists_with_code_no_change(c: &mut Criterion) {
                     *balance += U256::from(1);
                     *nonce += 1;
                 })),
-                &|| Ok(AccountInfo::default()),
             );
             debug_assert!(result.is_ok());
         },
@@ -182,7 +180,6 @@ fn bench_modify_account_exists_with_code_changed_to_empty(c: &mut Criterion) {
                 AccountModifierFn::new(Box::new(|_balance, _nonce, code| {
                     code.take();
                 })),
-                &|| Ok(AccountInfo::default()),
             );
             debug_assert!(result.is_ok());
         },
@@ -205,7 +202,6 @@ fn bench_modify_account_exists_with_code_changed(c: &mut Criterion) {
                         Address::from(U160::from(number_of_accounts + 1)).as_slice(),
                     )));
                 })),
-                &|| Ok(AccountInfo::default()),
             );
             debug_assert!(result.is_ok());
         },
@@ -225,7 +221,6 @@ fn bench_modify_account_exists_without_code_code_changed(c: &mut Criterion) {
                     AccountModifierFn::new(Box::new(|_balance, _nonce, code| {
                         code.take();
                     })),
-                    &|| Ok(AccountInfo::default()),
                 )
                 .unwrap();
         },
@@ -239,7 +234,6 @@ fn bench_modify_account_exists_without_code_code_changed(c: &mut Criterion) {
                         Address::from(U160::from(number_of_accounts + 1)).as_slice(),
                     )));
                 })),
-                &|| Ok(AccountInfo::default()),
             );
             debug_assert!(result.is_ok());
         },
@@ -259,7 +253,6 @@ fn bench_modify_account_exists_without_code_no_code_change(c: &mut Criterion) {
                     AccountModifierFn::new(Box::new(|_balance, _nonce, code| {
                         code.take();
                     })),
-                    &|| Ok(AccountInfo::default()),
                 )
                 .unwrap();
         },
@@ -272,7 +265,6 @@ fn bench_modify_account_exists_without_code_no_code_change(c: &mut Criterion) {
                     *balance += U256::from(1);
                     *nonce += 1;
                 })),
-                &|| Ok(AccountInfo::default()),
             );
             debug_assert!(result.is_ok());
         },
@@ -322,7 +314,6 @@ fn bench_remove_account_without_code(c: &mut Criterion) {
                     AccountModifierFn::new(Box::new(|_balance, _nonce, code| {
                         code.take();
                     })),
-                    &|| Ok(AccountInfo::default()),
                 )
                 .unwrap();
         },
@@ -349,13 +340,7 @@ fn bench_set_account_storage_slot_account_doesnt_exist(c: &mut Criterion) {
         |state, number_of_accounts| {
             let address = Address::from(U160::from(number_of_accounts + 1));
             debug_assert!(state.basic(address).unwrap().is_none());
-            let result =
-                state.set_account_storage_slot(address, U256::from(1), U256::from(1), &|| {
-                    Ok(AccountInfo {
-                        code: None,
-                        ..AccountInfo::default()
-                    })
-                });
+            let result = state.set_account_storage_slot(address, U256::from(1), U256::from(1));
             debug_assert!(result.is_ok());
         },
         &permutations::STORAGE_SCALES,
@@ -370,13 +355,7 @@ fn bench_set_account_storage_slot_account_exists(c: &mut Criterion) {
         |state, number_of_accounts| {
             let address = Address::from(U160::from(number_of_accounts));
             debug_assert!(state.basic(address).unwrap().is_some());
-            let result =
-                state.set_account_storage_slot(address, U256::from(1), U256::from(1), &|| {
-                    Ok(AccountInfo {
-                        code: None,
-                        ..AccountInfo::default()
-                    })
-                });
+            let result = state.set_account_storage_slot(address, U256::from(1), U256::from(1));
             debug_assert!(result.is_ok());
         },
         &permutations::STORAGE_SCALES,

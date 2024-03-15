@@ -15,9 +15,8 @@ use edr_eth::{
 use revm::{
     db::{DatabaseComponentError, DatabaseComponents, StateRef},
     primitives::{
-        AccountInfo, BlobExcessGasAndPrice, BlockEnv, CfgEnvWithHandlerCfg, EVMError,
-        EnvWithHandlerCfg, ExecutionResult, InvalidHeader, InvalidTransaction, Output,
-        ResultAndState, SpecId,
+        BlobExcessGasAndPrice, BlockEnv, CfgEnvWithHandlerCfg, EVMError, EnvWithHandlerCfg,
+        ExecutionResult, InvalidHeader, InvalidTransaction, Output, ResultAndState, SpecId,
     },
     Context, DatabaseCommit, Evm, InnerEvmContext,
 };
@@ -440,12 +439,6 @@ impl BlockBuilder {
                     AccountModifierFn::new(Box::new(move |balance, _nonce, _code| {
                         *balance += reward;
                     })),
-                    &|| {
-                        Ok(AccountInfo {
-                            code: None,
-                            ..AccountInfo::default()
-                        })
-                    },
                 )?;
 
                 self.state_diff.apply_account_change(address, account_info);

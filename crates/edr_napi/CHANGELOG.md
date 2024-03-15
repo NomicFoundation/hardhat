@@ -1,5 +1,12 @@
 # @nomicfoundation/edr
 
+## 0.3.2
+
+### Patch Changes
+
+- b13f58a: Fixed failure when retrieving remote code during state modifications (#5000)
+- 19eeeb9: Simplified internal set_account_storage_slot API (#5001)
+
 ## 0.3.1
 
 ### Patch Changes
