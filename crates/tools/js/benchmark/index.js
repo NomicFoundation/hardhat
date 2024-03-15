@@ -43,13 +43,11 @@ async function main() {
     } else {
       await benchmarkAllScenarios(args.benchmark_output);
     }
-    process.exit(0);
   } else if (args.command === "verify") {
     const success = await verify(args.benchmark_output);
     process.exit(success ? 0 : 1);
   } else if (args.command === "report") {
     await report(args.benchmark_output);
-    process.exit(0);
   }
 }
 
@@ -136,14 +134,20 @@ async function benchmarkAllScenarios(outPath) {
         timeout: 60 * 60 * 1000,
         // Pipe stdout, proxy the rest
         stdio: [process.stdin, "pipe", process.stderr],
+        encoding: "utf-8",
       }
     );
 
-    const scenarioResult = JSON.parse(processResult.stdout.toString());
-
-    totalTime += scenarioResult.result.timeMs;
-    totalFailures += scenarioResult.result.failures.length;
-    result[scenarioResult.name] = scenarioResult.result;
+    try {
+      const scenarioResult = JSON.parse(processResult.stdout);
+      totalTime += scenarioResult.result.timeMs;
+      totalFailures += scenarioResult.result.failures.length;
+      result[scenarioResult.name] = scenarioResult.result;
+    } catch (e) {
+      console.error(e);
+      console.error(processResult.stdout.toString());
+      throw e;
+    }
   }
 
   fs.writeFileSync(outPath, JSON.stringify(result) + "\n");
