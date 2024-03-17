@@ -49,6 +49,7 @@ async function main() {
     process.exit(success ? 0 : 1);
   } else if (args.command === "report") {
     await report(args.benchmark_output);
+    await flushStdout();
   }
 }
 
