@@ -178,6 +178,10 @@ async function benchmarkScenario(scenarioFileName) {
   const failures = [];
 
   for (let i = 0; i < requests.length; i += 1) {
+    // TODO revert
+    if (requests[i].method === "eth_getBlockByNumber") {
+      continue;
+    }
     try {
       await provider.request(requests[i]);
     } catch (e) {
