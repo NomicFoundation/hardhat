@@ -33,11 +33,13 @@ async function main() {
   });
   const args = parser.parse_args();
 
+  // Make results not GC
+  let results;
   if (args.command === "benchmark") {
     if (args.grep) {
       for (let scenarioFileName of getScenarioFileNames()) {
         if (scenarioFileName.includes(args.grep)) {
-          await benchmarkScenario(scenarioFileName);
+          results = await benchmarkScenario(scenarioFileName);
         }
       }
     } else {
@@ -184,10 +186,12 @@ async function benchmarkScenario(scenarioFileName) {
   });
 
   const failures = [];
+  const rpcCallResults = [];
 
   for (let i = 0; i < requests.length; i += 1) {
     try {
-      await provider.request(requests[i]);
+      const result = await provider.request(requests[i]);
+      rpcCallResults.push(result);
     } catch (e) {
       failures.push(i);
     }
@@ -209,6 +213,9 @@ async function benchmarkScenario(scenarioFileName) {
     },
   };
   console.log(JSON.stringify(result));
+
+  // Return this to avoid gc
+  return rpcCallResults;
 }
 
 async function loadScenario(scenarioFileName) {
