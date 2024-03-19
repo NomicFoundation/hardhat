@@ -114,3 +114,6 @@ Brewfile.lock.json
 
 # Ipython Notebook
 .ipynb_checkpoints
+
+# Benchmark
+benchmark-output.json
