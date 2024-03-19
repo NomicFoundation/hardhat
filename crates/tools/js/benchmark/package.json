@@ -5,7 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "benchmark": "node --noconcurrent_sweeping --noconcurrent_recompilation index.js benchmark",
+    "benchmark": "node --noconcurrent_sweeping --noconcurrent_recompilation --max-old-space-size=28000 index.js benchmark",
     "prebenchmark": "cd ../../../edr_napi/ && pnpm build && cd ../../packages/hardhat-core/ && pnpm build",
     "verify": "node index.js verify",
     "report": "node index.js report",

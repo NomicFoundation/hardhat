@@ -133,6 +133,7 @@ async function benchmarkAllScenarios(outPath) {
       [
         "--noconcurrent_sweeping",
         "--noconcurrent_recompilation",
+        "--max-old-space-size=28000",
         "index.js",
         "benchmark",
         "-g",
