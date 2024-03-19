@@ -38,8 +38,8 @@ jobs:
     #    if: github.ref == 'refs/heads/main' || (github.event.pull_request.author_association == 'OWNER' || github.event.pull_request.author_association == 'MEMBER' || github.event.pull_request.author_association == 'COLLABORATOR')
     steps:
       - uses: actions/checkout@v3
-       
-      - name: Dump matrix context
+
+      - name: DDump matrix context
         env:
           CONTEXT: ${{ github.event.pull_request.author_association }}
         run: echo "$CONTEXT"
