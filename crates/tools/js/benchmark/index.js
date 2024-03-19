@@ -130,7 +130,14 @@ async function benchmarkAllScenarios(outPath) {
     // where there is one provider per process
     const processResult = child_process.spawnSync(
       process.argv[0],
-      ["index.js", "benchmark", "-g", scenarioFileName],
+      [
+        "--noconcurrent_sweeping",
+        "--noconcurrent_recompilation",
+        "index.js",
+        "benchmark",
+        "-g",
+        scenarioFileName,
+      ],
       {
         shell: true,
         timeout: 60 * 60 * 1000,
