@@ -94,8 +94,8 @@ async function verify(benchmarkResultPath) {
 
     if (!_.isEqual(snapshotFailures, benchFailures)) {
       success = false;
-      const shouldFail = snapshotFailures.difference(benchFailures);
-      const shouldNotFail = benchFailures.difference(snapshotFailures);
+      const shouldFail = setDifference(snapshotFailures, benchFailures);
+      const shouldNotFail = setDifference(benchFailures, snapshotFailures);
 
       // We're logging to stderr so that it doesn't pollute stdout where we write the result
       console.error(`Snapshot failure for ${scenarioName}`);
@@ -123,6 +123,11 @@ async function verify(benchmarkResultPath) {
   }
 
   return success;
+}
+
+// From https://stackoverflow.com/a/66512466
+function setDifference(a, b) {
+  return new Set(Array.from(a).filter((item) => !b.has(item)));
 }
 
 async function benchmarkAllScenarios(outPath) {
