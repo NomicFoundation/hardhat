@@ -1,4 +1,4 @@
-use revm::interpreter::opcode;
+use edr_evm::interpreter::opcode;
 
 fn is_push(opcode: u8) -> bool {
     (opcode::PUSH1..=opcode::PUSH32).contains(&opcode)

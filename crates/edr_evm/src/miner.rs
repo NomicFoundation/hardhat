@@ -1,19 +1,18 @@
 use std::{cmp::Ordering, fmt::Debug, sync::Arc};
 
 use edr_eth::{block::BlockOptions, U256};
-use revm::primitives::{CfgEnv, ExecutionResult, InvalidTransaction};
+use revm::primitives::{CfgEnvWithHandlerCfg, ExecutionResult, InvalidTransaction};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     block::BlockBuilderCreationError,
     blockchain::SyncBlockchain,
-    evm::SyncInspector,
-    inspector::InspectorContainer,
+    debug::DebugContext,
     mempool::OrderedTransaction,
     state::{StateDiff, SyncState},
     trace::Trace,
-    BlockBuilder, BlockTransactionError, BuildBlockResult, ExecutableTransaction, LocalBlock,
-    MemPool, SyncBlock,
+    BlockBuilder, BlockTransactionError, BuildBlockResult, ExecutableTransaction,
+    ExecutionResultWithContext, LocalBlock, MemPool, SyncBlock,
 };
 
 /// The result of mining a block, after having been committed to the blockchain.
@@ -48,8 +47,6 @@ pub struct MineBlockResultAndState<StateErrorT> {
     pub state_diff: StateDiff,
     /// Transaction results
     pub transaction_results: Vec<ExecutionResult>,
-    /// Transaction traces
-    pub transaction_traces: Vec<Trace>,
 }
 
 /// The type of ordering to use when selecting blocks to mine.
@@ -85,19 +82,22 @@ pub enum MineBlockError<BE, SE> {
 /// Mines a block using as many transactions as can fit in it.
 #[allow(clippy::too_many_arguments)]
 #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-pub fn mine_block<BlockchainErrorT, StateErrorT>(
-    blockchain: &dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
+pub fn mine_block<'blockchain, 'evm, BlockchainErrorT, DebugDataT, StateErrorT>(
+    blockchain: &'blockchain dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
     mut state: Box<dyn SyncState<StateErrorT>>,
     mem_pool: &MemPool,
-    cfg: &CfgEnv,
+    cfg: &CfgEnvWithHandlerCfg,
     options: BlockOptions,
     min_gas_price: U256,
     mine_ordering: MineOrdering,
     reward: U256,
     dao_hardfork_activation_block: Option<u64>,
-    inspector: Option<&mut dyn SyncInspector<BlockchainErrorT, StateErrorT>>,
+    mut debug_context: Option<
+        DebugContext<'evm, BlockchainErrorT, DebugDataT, Box<dyn SyncState<StateErrorT>>>,
+    >,
 ) -> Result<MineBlockResultAndState<StateErrorT>, MineBlockError<BlockchainErrorT, StateErrorT>>
 where
+    'blockchain: 'evm,
     BlockchainErrorT: Debug + Send,
     StateErrorT: Debug + Send,
 {
@@ -130,9 +130,7 @@ where
     };
 
     let mut results = Vec::new();
-    let mut traces = Vec::new();
 
-    let mut container = InspectorContainer::new(true, inspector);
     while let Some(transaction) = pending_transactions.next() {
         if transaction.gas_price() < min_gas_price {
             pending_transactions.remove_caller(transaction.caller());
@@ -140,12 +138,12 @@ where
         }
 
         let caller = *transaction.caller();
-        match block_builder.add_transaction(
-            blockchain,
-            &mut state,
-            transaction,
-            container.as_dyn_inspector(),
-        ) {
+        let ExecutionResultWithContext {
+            result,
+            evm_context,
+        } = block_builder.add_transaction(blockchain, state, transaction, debug_context);
+
+        match result {
             Err(
                 BlockTransactionError::ExceedsBlockGasLimit
                 | BlockTransactionError::InvalidTransaction(
@@ -153,14 +151,17 @@ where
                 ),
             ) => {
                 pending_transactions.remove_caller(&caller);
+                state = evm_context.state;
+                debug_context = evm_context.debug;
                 continue;
             }
-            Err(e) => {
-                return Err(MineBlockError::BlockTransaction(e));
+            Err(error) => {
+                return Err(MineBlockError::BlockTransaction(error));
             }
             Ok(result) => {
                 results.push(result);
-                traces.push(container.clear_trace().unwrap());
+                state = evm_context.state;
+                debug_context = evm_context.debug;
             }
         }
     }
@@ -176,7 +177,6 @@ where
         state,
         state_diff,
         transaction_results: results,
-        transaction_traces: traces,
     })
 }
 

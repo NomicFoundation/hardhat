@@ -1,14 +1,156 @@
-use std::fmt::Debug;
+use std::{cell::RefCell, fmt::Debug, rc::Rc, sync::Arc};
 
 use edr_eth::{Address, Bytes, U256};
 use revm::{
+    handler::register::EvmHandler,
     interpreter::{
-        instruction_result::SuccessOrHalt, opcode, return_revert, CallInputs, CreateInputs, Gas,
-        InstructionResult, Interpreter,
+        opcode::{self, BoxedInstruction, InstructionTables},
+        return_revert, CallInputs, CallOutcome, CreateInputs, CreateOutcome, InstructionResult,
+        Interpreter, SuccessOrHalt,
     },
-    primitives::{Bytecode, ExecutionResult, Output},
-    EVMData, Inspector,
+    primitives::{Bytecode, EVMError, ExecutionResult, Output},
+    Database, Evm, EvmContext, FrameOrResult, FrameResult,
 };
+
+use crate::debug::GetContextData;
+
+/// Registers trace collector handles to the EVM handler.
+pub fn register_trace_collector_handles<
+    DatabaseT: Database,
+    ContextT: GetContextData<TraceCollector>,
+>(
+    handler: &mut EvmHandler<'_, ContextT, DatabaseT>,
+) where
+    DatabaseT::Error: Debug,
+{
+    // Every instruction inside flat table that is going to be wrapped by tracer
+    // calls.
+    let table = handler
+        .instruction_table
+        .take()
+        .expect("Handler must have instruction table");
+
+    let table = match table {
+        InstructionTables::Plain(table) => table
+            .into_iter()
+            .map(|i| instruction_handler(i))
+            .collect::<Vec<_>>(),
+        InstructionTables::Boxed(table) => table
+            .into_iter()
+            .map(|i| instruction_handler(i))
+            .collect::<Vec<_>>(),
+    };
+
+    // cast vector to array.
+    handler.instruction_table = Some(InstructionTables::Boxed(
+        table.try_into().unwrap_or_else(|_| unreachable!()),
+    ));
+
+    // call and create input stack shared between handlers. They are used to share
+    // inputs in *_end Inspector calls.
+    let call_input_stack = Rc::<RefCell<Vec<_>>>::new(RefCell::new(Vec::new()));
+    let create_input_stack = Rc::<RefCell<Vec<_>>>::new(RefCell::new(Vec::new()));
+
+    // Create handler
+    let create_input_stack_inner = create_input_stack.clone();
+    let old_handle = handler.execution.create.clone();
+    handler.execution.create = Arc::new(
+        move |ctx, inputs| -> Result<FrameOrResult, EVMError<DatabaseT::Error>> {
+            let tracer = ctx.external.get_context_data();
+            tracer.create(&ctx.evm, &inputs);
+
+            create_input_stack_inner.borrow_mut().push(inputs.clone());
+
+            old_handle(ctx, inputs)
+        },
+    );
+
+    // Call handler
+    let call_input_stack_inner = call_input_stack.clone();
+    let old_handle = handler.execution.call.clone();
+    handler.execution.call = Arc::new(
+        move |ctx, inputs| -> Result<FrameOrResult, EVMError<DatabaseT::Error>> {
+            let tracer = ctx.external.get_context_data();
+            tracer.call(&mut ctx.evm, &inputs);
+
+            call_input_stack_inner.borrow_mut().push(inputs.clone());
+
+            old_handle(ctx, inputs)
+        },
+    );
+
+    // call outcome
+    let call_input_stack_inner = call_input_stack.clone();
+    let old_handle = handler.execution.insert_call_outcome.clone();
+    handler.execution.insert_call_outcome = Arc::new(
+        move |ctx: &mut revm::Context<ContextT, DatabaseT>, frame, shared_memory, outcome| {
+            let call_inputs = call_input_stack_inner.borrow_mut().pop().unwrap();
+
+            let tracer = ctx.external.get_context_data();
+            tracer.call_end(&ctx.evm, &call_inputs, &outcome);
+
+            old_handle(ctx, frame, shared_memory, outcome)
+        },
+    );
+
+    // create outcome
+    let create_input_stack_inner = create_input_stack.clone();
+    let old_handle = handler.execution.insert_create_outcome.clone();
+    handler.execution.insert_create_outcome = Arc::new(move |ctx, frame, outcome| {
+        let create_inputs = create_input_stack_inner.borrow_mut().pop().unwrap();
+
+        let tracer = ctx.external.get_context_data();
+        tracer.create_end(&ctx.evm, &create_inputs, &outcome);
+
+        old_handle(ctx, frame, outcome)
+    });
+
+    // last frame outcome
+    let old_handle = handler.execution.last_frame_return.clone();
+    handler.execution.last_frame_return = Arc::new(move |ctx, frame_result| {
+        let tracer = ctx.external.get_context_data();
+        match frame_result {
+            FrameResult::Call(outcome) => {
+                let call_inputs = call_input_stack.borrow_mut().pop().unwrap();
+                tracer.call_transaction_end(&ctx.evm, &call_inputs, outcome);
+            }
+            FrameResult::Create(outcome) => {
+                let create_inputs = create_input_stack.borrow_mut().pop().unwrap();
+                tracer.create_transaction_end(&ctx.evm, &create_inputs, outcome);
+            }
+        }
+        old_handle(ctx, frame_result)
+    });
+}
+
+/// Outer closure that calls tracer for every instruction.
+fn instruction_handler<
+    'a,
+    ContextT: GetContextData<TraceCollector>,
+    DatabaseT: Database,
+    Instruction: Fn(&mut Interpreter, &mut Evm<'a, ContextT, DatabaseT>) + 'a,
+>(
+    instruction: Instruction,
+) -> BoxedInstruction<'a, Evm<'a, ContextT, DatabaseT>> {
+    Box::new(
+        move |interpreter: &mut Interpreter, host: &mut Evm<'a, ContextT, DatabaseT>| {
+            // SAFETY: as the PC was already incremented we need to subtract 1 to preserve
+            // the old Inspector behavior.
+            interpreter.instruction_pointer = unsafe { interpreter.instruction_pointer.sub(1) };
+
+            host.context
+                .external
+                .get_context_data()
+                .step(interpreter, &host.context.evm);
+
+            // return PC to old value
+            interpreter.instruction_pointer = unsafe { interpreter.instruction_pointer.add(1) };
+
+            // execute instruction.
+            instruction(interpreter, host);
+        },
+    )
+}
 
 /// Stack tracing message
 #[derive(Clone, Debug)]
@@ -98,34 +240,43 @@ impl Trace {
 
 /// Object that gathers trace information during EVM execution and can be turned
 /// into a trace upon completion.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct TraceCollector {
-    trace: Trace,
+    traces: Vec<Trace>,
     pending_before: Option<BeforeMessage>,
+    is_new_trace: bool,
 }
 
 impl TraceCollector {
     /// Converts the [`TraceCollector`] into its [`Trace`].
-    pub fn into_trace(self) -> Trace {
-        self.trace
+    pub fn into_traces(self) -> Vec<Trace> {
+        self.traces
+    }
+
+    /// Returns the traces collected so far.
+    pub fn traces(&self) -> &[Trace] {
+        &self.traces
+    }
+
+    fn current_trace_mut(&mut self) -> &mut Trace {
+        self.traces.last_mut().expect("Trace must have been added")
     }
 
     fn validate_before_message(&mut self) {
         if let Some(message) = self.pending_before.take() {
-            self.trace.add_before(message);
+            self.current_trace_mut().add_before(message);
         }
     }
-}
 
-impl<DatabaseErrorT> Inspector<DatabaseErrorT> for TraceCollector
-where
-    DatabaseErrorT: Debug,
-{
-    fn call(
-        &mut self,
-        data: &mut EVMData<'_, DatabaseErrorT>,
-        inputs: &mut CallInputs,
-    ) -> (InstructionResult, Gas, edr_eth::Bytes) {
+    fn call<DatabaseT: Database>(&mut self, data: &mut EvmContext<DatabaseT>, inputs: &CallInputs)
+    where
+        DatabaseT::Error: Debug,
+    {
+        if self.is_new_trace {
+            self.is_new_trace = false;
+            self.traces.push(Trace::default());
+        }
+
         self.validate_before_message();
 
         // This needs to be split into two functions to avoid borrow checker issues
@@ -164,30 +315,27 @@ where
             code_address: Some(inputs.context.code_address),
             code: Some(code),
         });
-
-        (InstructionResult::Continue, Gas::new(0), Bytes::default())
     }
 
-    fn call_end(
+    fn call_end<DatabaseT: Database>(
         &mut self,
-        data: &mut EVMData<'_, DatabaseErrorT>,
+        data: &EvmContext<DatabaseT>,
         _inputs: &CallInputs,
-        remaining_gas: Gas,
-        ret: InstructionResult,
-        out: Bytes,
-    ) -> (InstructionResult, Gas, Bytes) {
-        match ret {
+        outcome: &CallOutcome,
+    ) {
+        match outcome.instruction_result() {
             return_revert!() if self.pending_before.is_some() => {
                 self.pending_before = None;
-                return (ret, remaining_gas, out);
+                return;
             }
             _ => (),
         }
 
         self.validate_before_message();
 
+        let ret = *outcome.instruction_result();
         let safe_ret = if ret == InstructionResult::CallTooDeep
-            || ret == InstructionResult::OutOfFund
+            || ret == InstructionResult::OutOfFunds
             || ret == InstructionResult::StateChangeDuringStaticCall
         {
             InstructionResult::Revert
@@ -198,33 +346,34 @@ where
         let result = match safe_ret.into() {
             SuccessOrHalt::Success(reason) => ExecutionResult::Success {
                 reason,
-                gas_used: remaining_gas.spend(),
-                gas_refunded: remaining_gas.refunded() as u64,
+                gas_used: outcome.gas().spend(),
+                gas_refunded: outcome.gas().refunded() as u64,
                 logs: data.journaled_state.logs.clone(),
-                output: Output::Call(out.clone()),
+                output: Output::Call(outcome.output().clone()),
             },
             SuccessOrHalt::Revert => ExecutionResult::Revert {
-                gas_used: remaining_gas.spend(),
-                output: out.clone(),
+                gas_used: outcome.gas().spend(),
+                output: outcome.output().clone(),
             },
             SuccessOrHalt::Halt(reason) => ExecutionResult::Halt {
                 reason,
-                gas_used: remaining_gas.limit(),
+                gas_used: outcome.gas().limit(),
             },
-            SuccessOrHalt::InternalContinue => panic!("Internal error: {safe_ret:?}"),
+            SuccessOrHalt::InternalContinue | SuccessOrHalt::InternalCallOrCreate => {
+                panic!("Internal error: {safe_ret:?}")
+            }
             SuccessOrHalt::FatalExternalError => panic!("Fatal external error"),
         };
 
-        self.trace.add_after(result);
-
-        (ret, remaining_gas, out)
+        self.current_trace_mut().add_after(result);
     }
 
-    fn create(
-        &mut self,
-        data: &mut EVMData<'_, DatabaseErrorT>,
-        inputs: &mut CreateInputs,
-    ) -> (InstructionResult, Option<Address>, Gas, Bytes) {
+    fn create<DatabaseT: Database>(&mut self, data: &EvmContext<DatabaseT>, inputs: &CreateInputs) {
+        if self.is_new_trace {
+            self.is_new_trace = false;
+            self.traces.push(Trace::default());
+        }
+
         self.validate_before_message();
 
         self.pending_before = Some(BeforeMessage {
@@ -237,28 +386,19 @@ where
             code_address: None,
             code: None,
         });
-
-        (
-            InstructionResult::Continue,
-            None,
-            Gas::new(0),
-            Bytes::default(),
-        )
     }
 
-    fn create_end(
+    fn create_end<DatabaseT: Database>(
         &mut self,
-        data: &mut EVMData<'_, DatabaseErrorT>,
+        data: &EvmContext<DatabaseT>,
         _inputs: &CreateInputs,
-        ret: InstructionResult,
-        address: Option<Address>,
-        remaining_gas: Gas,
-        out: Bytes,
-    ) -> (InstructionResult, Option<Address>, Gas, Bytes) {
+        outcome: &CreateOutcome,
+    ) {
         self.validate_before_message();
 
+        let ret = *outcome.instruction_result();
         let safe_ret =
-            if ret == InstructionResult::CallTooDeep || ret == InstructionResult::OutOfFund {
+            if ret == InstructionResult::CallTooDeep || ret == InstructionResult::OutOfFunds {
                 InstructionResult::Revert
             } else {
                 ret
@@ -267,33 +407,29 @@ where
         let result = match safe_ret.into() {
             SuccessOrHalt::Success(reason) => ExecutionResult::Success {
                 reason,
-                gas_used: remaining_gas.spend(),
-                gas_refunded: remaining_gas.refunded() as u64,
+                gas_used: outcome.gas().spend(),
+                gas_refunded: outcome.gas().refunded() as u64,
                 logs: data.journaled_state.logs.clone(),
-                output: Output::Create(out.clone(), address),
+                output: Output::Create(outcome.output().clone(), outcome.address),
             },
             SuccessOrHalt::Revert => ExecutionResult::Revert {
-                gas_used: remaining_gas.spend(),
-                output: out.clone(),
+                gas_used: outcome.gas().spend(),
+                output: outcome.output().clone(),
             },
             SuccessOrHalt::Halt(reason) => ExecutionResult::Halt {
                 reason,
-                gas_used: remaining_gas.limit(),
+                gas_used: outcome.gas().limit(),
             },
-            SuccessOrHalt::InternalContinue => panic!("Internal error: {safe_ret:?}"),
+            SuccessOrHalt::InternalContinue | SuccessOrHalt::InternalCallOrCreate => {
+                panic!("Internal error: {safe_ret:?}")
+            }
             SuccessOrHalt::FatalExternalError => panic!("Fatal external error"),
         };
 
-        self.trace.add_after(result);
-
-        (ret, address, remaining_gas, out)
+        self.current_trace_mut().add_after(result);
     }
 
-    fn step(
-        &mut self,
-        interp: &mut Interpreter,
-        data: &mut EVMData<'_, DatabaseErrorT>,
-    ) -> InstructionResult {
+    fn step<DatabaseT: Database>(&mut self, interp: &Interpreter, data: &EvmContext<DatabaseT>) {
         // Skip the step
         let skip_step = self.pending_before.as_ref().map_or(false, |message| {
             message.code.is_some() && interp.current_opcode() == opcode::STOP
@@ -302,14 +438,48 @@ where
         self.validate_before_message();
 
         if !skip_step {
-            self.trace.add_step(
+            self.current_trace_mut().add_step(
                 data.journaled_state.depth(),
                 interp.program_counter(),
                 interp.current_opcode(),
                 interp.stack.data().last().cloned(),
             );
         }
+    }
 
-        InstructionResult::Continue
+    fn call_transaction_end<DatabaseT: Database>(
+        &mut self,
+        data: &EvmContext<DatabaseT>,
+        inputs: &CallInputs,
+        outcome: &CallOutcome,
+    ) {
+        self.is_new_trace = true;
+        self.call_end(data, inputs, outcome);
+    }
+
+    fn create_transaction_end<DatabaseT: Database>(
+        &mut self,
+        data: &EvmContext<DatabaseT>,
+        inputs: &CreateInputs,
+        outcome: &CreateOutcome,
+    ) {
+        self.is_new_trace = true;
+        self.create_end(data, inputs, outcome);
+    }
+}
+
+impl Default for TraceCollector {
+    fn default() -> Self {
+        Self {
+            traces: Vec::new(),
+            pending_before: None,
+            is_new_trace: true,
+        }
+    }
+}
+
+impl GetContextData<TraceCollector> for TraceCollector {
+    fn get_context_data(&mut self) -> &mut TraceCollector {
+        self
     }
 }

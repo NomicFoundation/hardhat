@@ -840,9 +840,9 @@ impl LogCollector {
             if let Some(to) = before_message.to {
                 // Call
                 let is_precompile = {
-                    let num_precompiles =
-                        Precompiles::new(precompile::SpecId::from_spec_id(spec_id)).len();
-                    precompile::is_precompile(to, num_precompiles)
+                    let precompiles =
+                        Precompiles::new(precompile::PrecompileSpecId::from_spec_id(spec_id));
+                    precompiles.contains(&to)
                 };
 
                 if is_precompile {

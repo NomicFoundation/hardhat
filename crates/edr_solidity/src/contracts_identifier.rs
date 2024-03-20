@@ -3,8 +3,8 @@ mod radix_tree;
 use std::collections::HashMap;
 
 use edr_eth::Bytes;
+use edr_evm::interpreter::opcode;
 use radix_tree::RadixTree;
-use revm::interpreter::opcode;
 
 use self::radix_tree::RadixNode;
 use crate::opcodes::opcode_length;

@@ -5,4 +5,4 @@ edition = "2021"
 
 [dependencies]
 edr_eth = { version = "0.2.0-dev", path = "../edr_eth" }
-revm = { git = "https://github.com/Wodann/revm", rev = "b25b44a", version = "3.5", default-features = false, features = ["dev", "serde", "std"] }
+edr_evm = { version = "0.2.0-dev", path = "../edr_evm" }

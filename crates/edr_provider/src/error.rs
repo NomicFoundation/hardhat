@@ -11,7 +11,7 @@ use edr_evm::{
     hex,
     state::{AccountOverrideConversionError, StateError},
     trace::Trace,
-    DebugTraceError, ExecutionResult, Halt, MemPoolAddTransactionError, MineBlockError,
+    DebugTraceError, ExecutionResult, HaltReason, MemPoolAddTransactionError, MineBlockError,
     OutOfGasError, TransactionCreationError, TransactionError,
 };
 use ethers_core::types::transaction::eip712::Eip712Error;
@@ -264,7 +264,7 @@ impl<LoggerErrorT: Debug> From<ProviderError<LoggerErrorT>> for jsonrpc::Error {
             ProviderError::TransactionFailed(inner)
                 if matches!(
                     inner.failure.reason,
-                    TransactionFailureReason::Inner(Halt::CreateContractSizeLimit)
+                    TransactionFailureReason::Inner(HaltReason::CreateContractSizeLimit)
                 ) =>
             {
                 "Transaction reverted: trying to deploy a contract whose code is too large".into()
@@ -348,12 +348,12 @@ impl TransactionFailure {
         }
     }
 
-    pub fn halt(halt: Halt, tx_hash: Option<B256>, solidity_trace: Trace) -> Self {
+    pub fn halt(halt: HaltReason, tx_hash: Option<B256>, solidity_trace: Trace) -> Self {
         let reason = match halt {
-            Halt::OpcodeNotFound | Halt::InvalidFEOpcode => {
+            HaltReason::OpcodeNotFound | HaltReason::InvalidFEOpcode => {
                 TransactionFailureReason::OpcodeNotFound
             }
-            Halt::OutOfGas(error) => TransactionFailureReason::OutOfGas(error),
+            HaltReason::OutOfGas(error) => TransactionFailureReason::OutOfGas(error),
             halt => TransactionFailureReason::Inner(halt),
         };
 
@@ -384,7 +384,7 @@ impl std::fmt::Display for TransactionFailure {
 
 #[derive(Clone, Debug, serde::Serialize)]
 pub enum TransactionFailureReason {
-    Inner(Halt),
+    Inner(HaltReason),
     OpcodeNotFound,
     OutOfGas(OutOfGasError),
     Revert(Bytes),

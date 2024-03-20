@@ -1,10 +1,13 @@
 mod config;
+mod console_log;
 mod data;
 mod debug_mine;
+mod debugger;
 mod error;
 mod filter;
 mod interval;
 mod logger;
+mod mock;
 mod pending;
 mod requests;
 mod snapshot;
@@ -16,20 +19,21 @@ pub mod test_utils;
 use core::fmt::Debug;
 use std::sync::Arc;
 
-use data::SyncCallOverride;
 use edr_evm::{blockchain::BlockchainError, trace::Trace, HashSet};
 use lazy_static::lazy_static;
 use logger::SyncLogger;
+use mock::SyncCallOverride;
 use parking_lot::Mutex;
 use requests::{eth::handle_set_interval_mining, hardhat::rpc_types::ResetProviderConfig};
 use tokio::{runtime, sync::Mutex as AsyncMutex, task};
 
 pub use self::{
     config::*,
-    data::{CallOverrideResult, CallResult},
+    data::CallResult,
     debug_mine::DebugMineBlockResult,
     error::{EstimateGasFailure, ProviderError, TransactionFailure, TransactionFailureReason},
     logger::{Logger, NoopLogger},
+    mock::CallOverrideResult,
     requests::{
         hardhat::rpc_types as hardhat_rpc_types, InvalidRequestReason, MethodInvocation,
         OneUsizeOrTwo, ProviderRequest, U64OrUsize,
@@ -39,9 +43,8 @@ pub use self::{
 use self::{
     data::{CreationError, ProviderData},
     interval::IntervalMiner,
-    requests::{eth, hardhat},
+    requests::{debug, eth, hardhat},
 };
-use crate::requests::debug;
 
 lazy_static! {
     pub static ref PRIVATE_RPC_METHODS: HashSet<&'static str> = {

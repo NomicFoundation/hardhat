@@ -7,26 +7,39 @@ use edr_eth::{
 use edr_evm::{
     blockchain::{BlockchainError, SyncBlockchain},
     guaranteed_dry_run,
-    state::{StateError, StateOverrides, SyncState},
-    BlobExcessGasAndPrice, BlockEnv, CfgEnv, ExecutionResult, SyncInspector, TxEnv,
+    state::{StateError, StateOverrides, StateRefOverrider, SyncState},
+    BlobExcessGasAndPrice, BlockEnv, CfgEnvWithHandlerCfg, DebugContext, ExecutionResult, TxEnv,
 };
 
 use crate::ProviderError;
 
-pub(super) struct RunCallArgs<'a> {
+pub(super) struct RunCallArgs<'a, 'evm, DebugDataT>
+where
+    'a: 'evm,
+{
     pub blockchain: &'a dyn SyncBlockchain<BlockchainError, StateError>,
     pub header: &'a Header,
     pub state: &'a dyn SyncState<StateError>,
     pub state_overrides: &'a StateOverrides,
-    pub cfg_env: CfgEnv,
+    pub cfg_env: CfgEnvWithHandlerCfg,
     pub tx_env: TxEnv,
-    pub inspector: Option<&'a mut dyn SyncInspector<BlockchainError, StateError>>,
+    pub debug_context: Option<
+        DebugContext<
+            'evm,
+            BlockchainError,
+            DebugDataT,
+            StateRefOverrider<'a, &'evm dyn SyncState<StateError>>,
+        >,
+    >,
 }
 
 /// Execute a transaction as a call. Returns the gas used and the output.
-pub(super) fn run_call<LoggerErrorT: Debug>(
-    args: RunCallArgs<'_>,
-) -> Result<ExecutionResult, ProviderError<LoggerErrorT>> {
+pub(super) fn run_call<'a, 'evm, DebugDataT, LoggerErrorT: Debug>(
+    args: RunCallArgs<'a, 'evm, DebugDataT>,
+) -> Result<ExecutionResult, ProviderError<LoggerErrorT>>
+where
+    'a: 'evm,
+{
     let RunCallArgs {
         blockchain,
         header,
@@ -34,7 +47,7 @@ pub(super) fn run_call<LoggerErrorT: Debug>(
         state_overrides,
         cfg_env,
         tx_env,
-        inspector,
+        debug_context,
     } = args;
 
     let block = BlockEnv {
@@ -44,7 +57,7 @@ pub(super) fn run_call<LoggerErrorT: Debug>(
         gas_limit: U256::from(header.gas_limit),
         basefee: U256::ZERO,
         difficulty: header.difficulty,
-        prevrandao: if cfg_env.spec_id >= SpecId::MERGE {
+        prevrandao: if cfg_env.handler_cfg.spec_id >= SpecId::MERGE {
             Some(header.mix_hash)
         } else {
             None
@@ -62,7 +75,7 @@ pub(super) fn run_call<LoggerErrorT: Debug>(
         cfg_env,
         tx_env,
         block,
-        inspector,
+        debug_context,
     )
     .map_or_else(
         |error| Err(ProviderError::RunTransaction(error)),

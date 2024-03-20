@@ -59,7 +59,7 @@ jobs:
 
       - name: Run benchmark
         run: pnpm run -s benchmark
-      
+
       #      - name: Validate regressions
       #        run: pnpm run -s verify
 

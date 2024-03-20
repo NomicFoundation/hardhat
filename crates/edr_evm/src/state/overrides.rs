@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use edr_eth::{
     account::KECCAK_EMPTY,
     remote::{AccountOverrideOptions, StateOverrideOptions},
@@ -247,34 +249,34 @@ impl TryFrom<StateOverrideOptions> for StateOverrides {
 }
 
 /// A wrapper around a state ref object that applies overrides.
-pub struct StateRefOverrider<'state, StateErrorT> {
-    overrides: &'state StateOverrides,
-    state: &'state dyn StateRef<Error = StateErrorT>,
+pub struct StateRefOverrider<'overrides, StateT> {
+    overrides: &'overrides StateOverrides,
+    state: StateT,
 }
 
-impl<'state, StateErrorT> StateRefOverrider<'state, StateErrorT> {
+impl<'overrides, StateT> StateRefOverrider<'overrides, StateT> {
     /// Creates a new state ref overrider.
     pub fn new(
-        overrides: &'state StateOverrides,
-        state: &'state dyn StateRef<Error = StateErrorT>,
-    ) -> StateRefOverrider<'state, StateErrorT> {
+        overrides: &'overrides StateOverrides,
+        state: StateT,
+    ) -> StateRefOverrider<'overrides, StateT> {
         StateRefOverrider { overrides, state }
     }
 }
 
-impl<'state, StateErrorT> StateRef for StateRefOverrider<'state, StateErrorT> {
-    type Error = StateErrorT;
+impl<'state, StateT: StateRef> StateRef for StateRefOverrider<'state, StateT> {
+    type Error = StateT::Error;
 
     fn basic(&self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
-        self.overrides.account_info(self.state, &address)
+        self.overrides.account_info(&self.state, &address)
     }
 
     fn code_by_hash(&self, code_hash: B256) -> Result<Bytecode, Self::Error> {
-        self.overrides.code_by_hash(self.state, code_hash)
+        self.overrides.code_by_hash(&self.state, code_hash)
     }
 
     fn storage(&self, address: Address, index: U256) -> Result<U256, Self::Error> {
         self.overrides
-            .account_storage_at(self.state, &address, &index)
+            .account_storage_at(&self.state, &address, &index)
     }
 }

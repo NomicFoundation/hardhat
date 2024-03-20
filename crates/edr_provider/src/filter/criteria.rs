@@ -42,7 +42,7 @@ pub fn filter_logs<'i>(
                 .to_block
                 .map_or(true, |to_block| log.block_number <= to_block)
             && matches_address_filter(&log.address, &filter.addresses)
-            && matches_topics_filter(&log.topics, &filter.normalized_topics)
+            && matches_topics_filter(log.topics(), &filter.normalized_topics)
     })
     .map(LogOutput::from)
     .collect()

@@ -1,97 +1,53 @@
-use core::fmt::Debug;
 use std::sync::Arc;
 
-use dyn_clone::DynClone;
 use edr_eth::{Address, Bytes};
-use edr_evm::{CallInputs, EVMData, Gas, Inspector, InstructionResult, TransactTo};
+use edr_evm::{
+    address,
+    db::Database,
+    evm::{EvmHandler, FrameOrResult},
+    EVMError, GetContextData,
+};
 
-use crate::data::CONSOLE_ADDRESS;
+const CONSOLE_ADDRESS: Address = address!("000000000000000000636F6e736F6c652e6c6f67");
 
-/// The result of executing a call override.
-#[derive(Debug)]
-pub struct CallOverrideResult {
-    pub result: Bytes,
-    pub should_revert: bool,
-}
-
-pub trait SyncCallOverride:
-    Fn(Address, Bytes) -> Option<CallOverrideResult> + DynClone + Send + Sync
-{
-}
-
-impl<F> SyncCallOverride for F where
-    F: Fn(Address, Bytes) -> Option<CallOverrideResult> + DynClone + Send + Sync
-{
-}
-
-dyn_clone::clone_trait_object!(SyncCallOverride);
-
-pub(super) struct EvmInspector {
-    console_log_encoded_messages: Vec<Bytes>,
-    call_override: Option<Arc<dyn SyncCallOverride>>,
-}
-
-impl EvmInspector {
-    pub fn new(call_override: Option<Arc<dyn SyncCallOverride>>) -> Self {
-        Self {
-            console_log_encoded_messages: Vec::new(),
-            call_override,
-        }
-    }
-
-    pub fn into_console_log_encoded_messages(self) -> Vec<Bytes> {
-        self.console_log_encoded_messages
-    }
-}
-
-impl Debug for EvmInspector {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("EvmInspector")
-            .field(
-                "console_log_encoded_messages",
-                &self.console_log_encoded_messages,
-            )
-            .field("call_override", &"<closure>")
-            .finish()
-    }
-}
-
-impl<DatabaseErrorT> Inspector<DatabaseErrorT> for EvmInspector {
-    fn call(
-        &mut self,
-        data: &mut EVMData<'_, DatabaseErrorT>,
-        inputs: &mut CallInputs,
-    ) -> (InstructionResult, Gas, Bytes) {
-        if inputs.contract == *CONSOLE_ADDRESS {
-            self.console_log_encoded_messages.push(inputs.input.clone());
-        }
-
-        if let TransactTo::Call(_) = data.env.tx.transact_to {
-            if let Some(call_override) = &self.call_override {
-                let out = (call_override)(inputs.contract, inputs.input.clone());
-                if let Some(out) = out {
-                    let instruction_result = if out.should_revert {
-                        InstructionResult::Revert
-                    } else {
-                        InstructionResult::Return
-                    };
-
-                    return (instruction_result, Gas::new(inputs.gas_limit), out.result);
-                }
+/// Registers the `ConsoleLogCollector`'s handles.
+pub fn register_console_log_handles<
+    DatabaseT: Database,
+    ContextT: GetContextData<ConsoleLogCollector>,
+>(
+    handler: &mut EvmHandler<'_, ContextT, DatabaseT>,
+) {
+    let old_handle = handler.execution.call.clone();
+    handler.execution.call = Arc::new(
+        move |ctx, inputs| -> Result<FrameOrResult, EVMError<DatabaseT::Error>> {
+            if inputs.contract == CONSOLE_ADDRESS {
+                let collector = ctx.external.get_context_data();
+                collector.record_console_log(inputs.input.clone());
             }
-        }
 
-        (
-            InstructionResult::Continue,
-            Gas::new(inputs.gas_limit),
-            Bytes::new(),
-        )
+            old_handle(ctx, inputs)
+        },
+    );
+}
+
+#[derive(Default)]
+pub struct ConsoleLogCollector {
+    encoded_messages: Vec<Bytes>,
+}
+
+impl ConsoleLogCollector {
+    /// Returns the collected `console.log` messages.
+    pub fn into_encoded_messages(self) -> Vec<Bytes> {
+        self.encoded_messages
+    }
+
+    fn record_console_log(&mut self, encoded_message: Bytes) {
+        self.encoded_messages.push(encoded_message);
     }
 }
 
 #[cfg(test)]
 pub(crate) mod tests {
-
     use core::fmt::Debug;
 
     use anyhow::Context;

@@ -14,7 +14,8 @@ use edr_evm::{
     alloy_primitives::U160,
     blockchain::{Blockchain, ForkedBlockchain},
     state::IrregularState,
-    Block, BlockBuilder, CfgEnv, RandomHashGenerator, RemoteBlock,
+    Block, BlockBuilder, CfgEnv, CfgEnvWithHandlerCfg, DebugContext, ExecutionResultWithContext,
+    RandomHashGenerator, RemoteBlock,
 };
 
 use super::*;
@@ -139,8 +140,9 @@ pub async fn run_full_block(url: String, block_number: u64, chain_id: u64) -> an
 
     let mut cfg = CfgEnv::default();
     cfg.chain_id = chain_id;
-    cfg.spec_id = spec_id;
     cfg.disable_eip3607 = true;
+
+    let cfg = CfgEnvWithHandlerCfg::new_with_spec_id(cfg, spec_id);
 
     let parent = blockchain.last_block()?;
     let replay_header = replay_block.header();
@@ -167,7 +169,13 @@ pub async fn run_full_block(url: String, block_number: u64, chain_id: u64) -> an
         blockchain.state_at_block_number(block_number - 1, irregular_state.state_overrides())?;
 
     for transaction in replay_block.transactions() {
-        builder.add_transaction(&blockchain, &mut state, transaction.clone(), None)?;
+        let debug_context: Option<DebugContext<'_, _, (), _>> = None;
+        let ExecutionResultWithContext {
+            result,
+            evm_context: _,
+        } = builder.add_transaction(&blockchain, &mut state, transaction.clone(), debug_context);
+
+        result?;
     }
 
     let rewards = vec![(

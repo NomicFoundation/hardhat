@@ -1,7 +1,6 @@
 mod account;
 mod call;
 mod gas;
-mod inspector;
 
 use std::{
     cmp,
@@ -36,39 +35,36 @@ use edr_evm::{
     },
     db::StateRef,
     debug_trace_transaction, execution_result_to_debug_result, mempool, mine_block,
+    register_eip_3155_tracer_handles,
     state::{
         AccountModifierFn, IrregularState, StateDiff, StateError, StateOverride, StateOverrides,
         SyncState,
     },
-    trace::{Trace, TraceCollector},
+    trace::Trace,
     Account, AccountInfo, BlobExcessGasAndPrice, Block, BlockEnv, Bytecode, CfgEnv,
-    DebugTraceConfig, DebugTraceResult, DualInspector, ExecutableTransaction, ExecutionResult,
-    HashMap, HashSet, MemPool, OrderedTransaction, RandomHashGenerator, StorageSlot, SyncBlock,
-    TracerEip3155, TxEnv, KECCAK_EMPTY,
+    CfgEnvWithHandlerCfg, DebugContext, DebugTraceConfig, DebugTraceResult, ExecutableTransaction,
+    ExecutionResult, HashMap, HashSet, MemPool, OrderedTransaction, RandomHashGenerator,
+    StorageSlot, SyncBlock, TracerEip3155, TxEnv, KECCAK_EMPTY,
 };
 use ethers_core::types::transaction::eip712::{Eip712, TypedData};
 use gas::gas_used_ratio;
 use indexmap::IndexMap;
 use itertools::izip;
-use lazy_static::lazy_static;
 use lru::LruCache;
 use tokio::runtime;
 
-use self::{
-    account::{create_accounts, InitialAccounts},
-    gas::{BinarySearchEstimationResult, CheckGasResult},
-    inspector::EvmInspector,
-};
-pub use crate::data::inspector::{CallOverrideResult, SyncCallOverride};
+use self::account::{create_accounts, InitialAccounts};
 use crate::{
     data::{
         call::{run_call, RunCallArgs},
         gas::{compute_rewards, BinarySearchEstimationArgs, CheckGasLimitArgs},
     },
     debug_mine::{DebugMineBlockResult, DebugMineBlockResultAndState},
+    debugger::{register_debugger_handles, Debugger},
     error::{EstimateGasFailure, TransactionFailure, TransactionFailureWithTraces},
     filter::{bloom_contains_log_filter, filter_logs, Filter, FilterData, LogFilter},
     logger::SyncLogger,
+    mock::{Mocker, SyncCallOverride},
     pending::BlockchainWithPending,
     requests::hardhat::rpc_types::{ForkConfig, ForkMetadata},
     snapshot::Snapshot,
@@ -561,7 +557,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                     gas_limit: U256::from(header.gas_limit),
                     basefee: header.base_fee_per_gas.unwrap_or_default(),
                     difficulty: U256::from(header.difficulty),
-                    prevrandao: if cfg_env.spec_id >= SpecId::MERGE {
+                    prevrandao: if cfg_env.handler_cfg.spec_id >= SpecId::MERGE {
                         Some(header.mix_hash)
                     } else {
                         None
@@ -606,7 +602,10 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 state_overrides: &StateOverrides::default(),
                 cfg_env: cfg_env.clone(),
                 tx_env: tx_env.clone(),
-                inspector: Some(&mut tracer),
+                debug_context: Some(DebugContext {
+                    data: &mut tracer,
+                    register_handles_fn: register_eip_3155_tracer_handles,
+                }),
             })?;
 
             Ok(execution_result_to_debug_result(result, tracer))
@@ -627,10 +626,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
 
         let state_overrides = StateOverrides::default();
 
-        let mut inspector = DualInspector::new(
-            TraceCollector::default(),
-            EvmInspector::new(self.call_override.clone()),
-        );
+        let mut debugger = Debugger::with_mocker(Mocker::new(self.call_override.clone()));
 
         self.execute_in_block_context(Some(block_spec), |blockchain, block, state| {
             let header = block.header();
@@ -645,23 +641,41 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 state_overrides: &state_overrides,
                 cfg_env: cfg_env.clone(),
                 tx_env: tx_env.clone(),
-                inspector: Some(&mut inspector),
+                debug_context: Some(DebugContext {
+                    data: &mut debugger,
+                    register_handles_fn: register_debugger_handles,
+                }),
             })?;
 
-            let (tracer, inspector) = inspector.into_parts();
-            let trace = tracer.into_trace();
+            let Debugger {
+                console_logger,
+                mut trace_collector,
+                ..
+            } = debugger;
 
             let mut initial_estimation = match result {
                 ExecutionResult::Success { gas_used, .. } => Ok(gas_used),
-                ExecutionResult::Revert { output, .. } => {
-                    Err(TransactionFailure::revert(output, None, trace.clone()))
-                }
-                ExecutionResult::Halt { reason, .. } => {
-                    Err(TransactionFailure::halt(reason, None, trace.clone()))
-                }
+                ExecutionResult::Revert { output, .. } => Err(TransactionFailure::revert(
+                    output,
+                    None,
+                    trace_collector
+                        .traces()
+                        .first()
+                        .expect("Must have a trace")
+                        .clone(),
+                )),
+                ExecutionResult::Halt { reason, .. } => Err(TransactionFailure::halt(
+                    reason,
+                    None,
+                    trace_collector
+                        .traces()
+                        .first()
+                        .expect("Must have a trace")
+                        .clone(),
+                )),
             }
             .map_err(|failure| EstimateGasFailure {
-                console_log_inputs: inspector.into_console_log_encoded_messages(),
+                console_log_inputs: console_logger.into_encoded_messages(),
                 transaction_failure: TransactionFailureWithTraces {
                     traces: vec![failure.solidity_trace.clone()],
                     failure,
@@ -673,10 +687,8 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 initial_estimation = minimum_cost + 1;
             }
 
-            let mut traces = vec![trace];
-
             // Test if the transaction would be successful with the initial estimation
-            let CheckGasResult { success, trace } = gas::check_gas_limit(CheckGasLimitArgs {
+            let success = gas::check_gas_limit(CheckGasLimitArgs {
                 blockchain,
                 header,
                 state,
@@ -684,25 +696,21 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 cfg_env: cfg_env.clone(),
                 tx_env: tx_env.clone(),
                 gas_limit: initial_estimation,
+                trace_collector: &mut trace_collector,
             })?;
-
-            traces.push(trace);
 
             // Return the initial estimation if it was successful
             if success {
                 return Ok(EstimateGasResult {
                     estimation: initial_estimation,
-                    traces,
+                    traces: trace_collector.into_traces(),
                 });
             }
 
             // Correct the initial estimation if the transaction failed with the actually
             // used gas limit. This can happen if the execution logic is based
             // on the available gas.
-            let BinarySearchEstimationResult {
-                estimation,
-                traces: mut estimation_traces,
-            } = gas::binary_search_estimation(BinarySearchEstimationArgs {
+            let estimation = gas::binary_search_estimation(BinarySearchEstimationArgs {
                 blockchain,
                 header,
                 state,
@@ -711,10 +719,10 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 tx_env: tx_env.clone(),
                 lower_bound: initial_estimation,
                 upper_bound: header.gas_limit,
+                trace_collector: &mut trace_collector,
             })?;
 
-            traces.append(&mut estimation_traces);
-
+            let traces = trace_collector.into_traces();
             Ok(EstimateGasResult { estimation, traces })
         })?
     }
@@ -1345,10 +1353,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         let cfg_env = self.create_evm_config(block_spec)?;
         let tx_env = transaction.into();
 
-        let mut inspector = DualInspector::new(
-            TraceCollector::default(),
-            EvmInspector::new(self.call_override.clone()),
-        );
+        let mut debugger = Debugger::with_mocker(Mocker::new(self.call_override.clone()));
 
         self.execute_in_block_context(block_spec, |blockchain, block, state| {
             let execution_result = call::run_call(RunCallArgs {
@@ -1358,15 +1363,26 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 state_overrides,
                 cfg_env,
                 tx_env,
-                inspector: Some(&mut inspector),
+                debug_context: Some(DebugContext {
+                    data: &mut debugger,
+                    register_handles_fn: register_debugger_handles,
+                }),
             })?;
 
-            let (tracer, inspector) = inspector.into_parts();
+            let Debugger {
+                console_logger,
+                trace_collector,
+                ..
+            } = debugger;
+
+            let mut traces = trace_collector.into_traces();
+            // Should only have a single raw trace
+            assert_eq!(traces.len(), 1);
 
             Ok(CallResult {
-                console_log_inputs: inspector.into_console_log_encoded_messages(),
+                console_log_inputs: console_logger.into_encoded_messages(),
                 execution_result,
-                trace: tracer.into_trace(),
+                trace: traces.pop().expect("Must have a trace"),
             })
         })?
     }
@@ -1807,7 +1823,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
     fn create_evm_config(
         &self,
         block_spec: Option<&BlockSpec>,
-    ) -> Result<CfgEnv, ProviderError<LoggerErrorT>> {
+    ) -> Result<CfgEnvWithHandlerCfg, ProviderError<LoggerErrorT>> {
         let block_number = block_spec
             .map(|block_spec| self.block_number_by_block_spec(block_spec))
             .transpose()?
@@ -1819,17 +1835,16 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             self.blockchain.spec_id()
         };
 
-        let mut evm_config = CfgEnv::default();
-        evm_config.chain_id = self.blockchain.chain_id();
-        evm_config.spec_id = spec_id;
-        evm_config.limit_contract_code_size = if self.allow_unlimited_contract_size {
+        let mut cfg_env = CfgEnv::default();
+        cfg_env.chain_id = self.blockchain.chain_id();
+        cfg_env.limit_contract_code_size = if self.allow_unlimited_contract_size {
             Some(usize::MAX)
         } else {
             None
         };
-        evm_config.disable_eip3607 = true;
+        cfg_env.disable_eip3607 = true;
 
-        Ok(evm_config)
+        Ok(CfgEnvWithHandlerCfg::new_with_spec_id(cfg_env, spec_id))
     }
 
     fn execute_in_block_context<T>(
@@ -1885,32 +1900,44 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
 
         let evm_config = self.create_evm_config(None)?;
 
-        if evm_config.spec_id >= SpecId::CANCUN {
+        if evm_config.handler_cfg.spec_id >= SpecId::CANCUN {
             options.parent_beacon_block_root = options
                 .parent_beacon_block_root
                 .or_else(|| Some(self.parent_beacon_block_root_generator.next_value()));
         }
 
-        let mut inspector = EvmInspector::new(self.call_override.clone());
+        let mut debugger = Debugger::with_mocker(Mocker::new(self.call_override.clone()));
 
         let state_to_be_modified = (*self.current_state()?).clone();
 
         let result = mine_block(
-            &*self.blockchain,
+            self.blockchain.as_ref(),
             state_to_be_modified,
             &self.mem_pool,
             &evm_config,
             options,
             self.min_gas_price,
             self.initial_config.mining.mem_pool.order,
-            miner_reward(evm_config.spec_id).unwrap_or(U256::ZERO),
+            miner_reward(evm_config.handler_cfg.spec_id).unwrap_or(U256::ZERO),
             self.dao_activation_block,
-            Some(&mut inspector),
+            Some(DebugContext {
+                data: &mut debugger,
+                register_handles_fn: register_debugger_handles,
+            }),
         )?;
+
+        let Debugger {
+            console_logger,
+            trace_collector,
+            ..
+        } = debugger;
+
+        let traces = trace_collector.into_traces();
 
         Ok(DebugMineBlockResultAndState::new(
             result,
-            inspector.into_console_log_encoded_messages(),
+            traces,
+            console_logger.into_encoded_messages(),
         ))
     }
 
@@ -2384,12 +2411,6 @@ pub struct BlockDataForTransaction {
     pub transaction_index: u64,
 }
 
-lazy_static! {
-    static ref CONSOLE_ADDRESS: Address = "0x000000000000000000636F6e736F6c652e6c6f67"
-        .parse()
-        .expect("static ok");
-}
-
 #[cfg(test)]
 pub(crate) mod test_utils {
     use std::convert::Infallible;
@@ -2543,7 +2564,7 @@ mod tests {
 
     use super::{test_utils::ProviderTestFixture, *};
     use crate::{
-        data::inspector::tests::{deploy_console_log_contract, ConsoleLogTransaction},
+        console_log::tests::{deploy_console_log_contract, ConsoleLogTransaction},
         requests::eth::resolve_call_request,
         test_utils::{
             create_test_config, create_test_config_with_fork, one_ether, FORK_BLOCK_NUMBER,

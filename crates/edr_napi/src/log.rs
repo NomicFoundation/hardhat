@@ -14,12 +14,12 @@ pub struct ExecutionLog {
 impl ExecutionLog {
     pub fn new(env: &Env, log: &edr_evm::Log) -> napi::Result<Self> {
         let topics = log
-            .topics
+            .topics()
             .iter()
             .map(|topic| Buffer::from(topic.as_slice()))
             .collect();
 
-        let data = log.data.clone();
+        let data = log.data.data.clone();
         let data = unsafe {
             env.create_buffer_with_borrowed_data(
                 data.as_ptr(),

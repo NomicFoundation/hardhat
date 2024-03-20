@@ -26,10 +26,11 @@ pub struct DebugMineBlockResultAndState<StateErrorT> {
 }
 
 impl<StateErrorT> DebugMineBlockResultAndState<StateErrorT> {
-    /// Constructs a new instance from a [`MineBlockResultAndState`] and decoded
-    /// console log messages.
+    /// Constructs a new instance from a [`MineBlockResultAndState`],
+    /// transaction traces, and decoded console log messages.
     pub fn new(
         result: MineBlockResultAndState<StateErrorT>,
+        transaction_traces: Vec<Trace>,
         console_log_decoded_messages: Vec<Bytes>,
     ) -> Self {
         Self {
@@ -37,7 +38,7 @@ impl<StateErrorT> DebugMineBlockResultAndState<StateErrorT> {
             state: result.state,
             state_diff: result.state_diff,
             transaction_results: result.transaction_results,
-            transaction_traces: result.transaction_traces,
+            transaction_traces,
             console_log_inputs: console_log_decoded_messages,
         }
     }

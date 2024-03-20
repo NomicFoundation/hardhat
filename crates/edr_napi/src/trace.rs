@@ -1,6 +1,6 @@
 use std::{mem, sync::Arc};
 
-use edr_evm::{trace::BeforeMessage, OPCODE_JUMPMAP};
+use edr_evm::{interpreter::OPCODE_JUMPMAP, trace::BeforeMessage};
 use napi::{
     bindgen_prelude::{BigInt, Buffer, Either3},
     Env, JsBuffer, JsBufferValue,

@@ -470,16 +470,8 @@ mod tests {
                             cumulative_gas_used: 0xffff,
                             logs_bloom: Bloom::random(),
                             logs: vec![
-                                Log {
-                                    address: Address::random(),
-                                    topics: vec![B256::random(), B256::random()],
-                                    data: Bytes::new(),
-                                },
-                                Log {
-                                    address: Address::random(),
-                                    topics: Vec::new(),
-                                    data: Bytes::from_static(b"test"),
-                                },
+                                Log::new_unchecked(Address::random(), vec![B256::random(), B256::random()], Bytes::new()),
+                                Log::new_unchecked(Address::random(), Vec::new(), Bytes::from_static(b"test"))
                             ],
                             data: $receipt_data,
                             spec_id: SpecId::LATEST,
@@ -565,12 +557,7 @@ mod tests {
                                 cumulative_gas_used: receipt.inner.inner.cumulative_gas_used,
                                 logs_bloom: receipt.inner.inner.logs_bloom,
                                 logs: receipt.inner.inner.logs.into_iter().map(|log| {
-                                    let log = log.inner.inner.inner.clone();
-                                    Log {
-                                        address: log.address,
-                                        topics: log.topics,
-                                        data: log.data,
-                                    }
+                                    log.inner.inner.inner.clone()
                             }).collect(),
                             };
 

@@ -5,8 +5,8 @@ use edr_eth::{block::Header, reward_percentile::RewardPercentile, U256};
 use edr_evm::{
     blockchain::{BlockchainError, SyncBlockchain},
     state::{StateError, StateOverrides, SyncState},
-    trace::{Trace, TraceCollector},
-    CfgEnv, ExecutionResult, SyncBlock, TxEnv,
+    trace::{register_trace_collector_handles, TraceCollector},
+    CfgEnvWithHandlerCfg, DebugContext, ExecutionResult, SyncBlock, TxEnv,
 };
 use itertools::Itertools;
 
@@ -20,14 +20,10 @@ pub(super) struct CheckGasLimitArgs<'a> {
     pub header: &'a Header,
     pub state: &'a dyn SyncState<StateError>,
     pub state_overrides: &'a StateOverrides,
-    pub cfg_env: CfgEnv,
+    pub cfg_env: CfgEnvWithHandlerCfg,
     pub tx_env: TxEnv,
     pub gas_limit: u64,
-}
-
-pub(super) struct CheckGasResult {
-    pub success: bool,
-    pub trace: Trace,
+    pub trace_collector: &'a mut TraceCollector,
 }
 
 /// Test if the transaction successfully executes with the given gas limit.
@@ -35,7 +31,7 @@ pub(super) struct CheckGasResult {
 /// or funds or reverts. Returns an error for any other halt reason.
 pub(super) fn check_gas_limit<LoggerErrorT: Debug>(
     args: CheckGasLimitArgs<'_>,
-) -> Result<CheckGasResult, ProviderError<LoggerErrorT>> {
+) -> Result<bool, ProviderError<LoggerErrorT>> {
     let CheckGasLimitArgs {
         blockchain,
         header,
@@ -44,11 +40,10 @@ pub(super) fn check_gas_limit<LoggerErrorT: Debug>(
         cfg_env,
         mut tx_env,
         gas_limit,
+        trace_collector,
     } = args;
 
     tx_env.gas_limit = gas_limit;
-
-    let mut tracer = TraceCollector::default();
 
     let result = call::run_call(RunCallArgs {
         blockchain,
@@ -57,14 +52,13 @@ pub(super) fn check_gas_limit<LoggerErrorT: Debug>(
         state_overrides,
         cfg_env,
         tx_env,
-        inspector: Some(&mut tracer),
+        debug_context: Some(DebugContext {
+            data: trace_collector,
+            register_handles_fn: register_trace_collector_handles,
+        }),
     })?;
 
-    let success = matches!(result, ExecutionResult::Success { .. });
-    Ok(CheckGasResult {
-        success,
-        trace: tracer.into_trace(),
-    })
+    Ok(matches!(result, ExecutionResult::Success { .. }))
 }
 
 pub(super) struct BinarySearchEstimationArgs<'a> {
@@ -72,15 +66,11 @@ pub(super) struct BinarySearchEstimationArgs<'a> {
     pub header: &'a Header,
     pub state: &'a dyn SyncState<StateError>,
     pub state_overrides: &'a StateOverrides,
-    pub cfg_env: CfgEnv,
+    pub cfg_env: CfgEnvWithHandlerCfg,
     pub tx_env: TxEnv,
     pub lower_bound: u64,
     pub upper_bound: u64,
-}
-
-pub(super) struct BinarySearchEstimationResult {
-    pub estimation: u64,
-    pub traces: Vec<Trace>,
+    pub trace_collector: &'a mut TraceCollector,
 }
 
 /// Search for a tight upper bound on the gas limit that will allow the
@@ -88,7 +78,7 @@ pub(super) struct BinarySearchEstimationResult {
 /// recursive.
 pub(super) fn binary_search_estimation<LoggerErrorT: Debug>(
     args: BinarySearchEstimationArgs<'_>,
-) -> Result<BinarySearchEstimationResult, ProviderError<LoggerErrorT>> {
+) -> Result<u64, ProviderError<LoggerErrorT>> {
     const MAX_ITERATIONS: usize = 20;
 
     let BinarySearchEstimationArgs {
@@ -100,11 +90,11 @@ pub(super) fn binary_search_estimation<LoggerErrorT: Debug>(
         tx_env,
         mut lower_bound,
         mut upper_bound,
+        trace_collector,
     } = args;
 
     let mut i = 0;
 
-    let mut traces = Vec::new();
     while upper_bound - lower_bound > min_difference(lower_bound) && i < MAX_ITERATIONS {
         let mut mid = lower_bound + (upper_bound - lower_bound) / 2;
         if i == 0 {
@@ -114,7 +104,7 @@ pub(super) fn binary_search_estimation<LoggerErrorT: Debug>(
             mid = cmp::min(mid, initial_mid);
         }
 
-        let CheckGasResult { success, trace } = check_gas_limit(CheckGasLimitArgs {
+        let success = check_gas_limit(CheckGasLimitArgs {
             blockchain,
             header,
             state,
@@ -122,8 +112,8 @@ pub(super) fn binary_search_estimation<LoggerErrorT: Debug>(
             cfg_env: cfg_env.clone(),
             tx_env: tx_env.clone(),
             gas_limit: mid,
+            trace_collector,
         })?;
-        traces.push(trace);
 
         if success {
             upper_bound = mid;
@@ -134,10 +124,7 @@ pub(super) fn binary_search_estimation<LoggerErrorT: Debug>(
         i += 1;
     }
 
-    Ok(BinarySearchEstimationResult {
-        estimation: upper_bound,
-        traces,
-    })
+    Ok(upper_bound)
 }
 
 // Matches Hardhat

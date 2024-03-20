@@ -8,7 +8,10 @@ use auto_impl::auto_impl;
 use edr_eth::{block, receipt::BlockReceipt, remote::eth, withdrawal::Withdrawal, B256, U256};
 
 pub use self::{
-    builder::{BlockBuilder, BlockBuilderCreationError, BlockTransactionError, BuildBlockResult},
+    builder::{
+        BlockBuilder, BlockBuilderCreationError, BlockTransactionError, BuildBlockResult,
+        ExecutionResultWithContext,
+    },
     local::LocalBlock,
     remote::{CreationError as RemoteBlockCreationError, RemoteBlock},
 };

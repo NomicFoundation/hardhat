@@ -80,32 +80,28 @@ mod tests {
     use crate::{log::Log, Address, Bytes};
 
     #[test]
-    fn test_block_log_full_serde() {
+    fn test_block_log_full_serde() -> anyhow::Result<()> {
         let log = BlockLog::Full(FullBlockLog {
             inner: ReceiptLog {
-                inner: Log {
-                    address: Address::from_str("0000000000000000000000000000000000000011").unwrap(),
-                    topics: vec![
+                inner: Log::new_unchecked(
+                    Address::from_str("0000000000000000000000000000000000000011")?,
+                    vec![
                         B256::from_str(
                             "000000000000000000000000000000000000000000000000000000000000dead",
-                        )
-                        .unwrap(),
+                        )?,
                         B256::from_str(
                             "000000000000000000000000000000000000000000000000000000000000beef",
-                        )
-                        .unwrap(),
+                        )?,
                     ],
-                    data: Bytes::from(hex::decode("0100ff").unwrap()),
-                },
+                    Bytes::from(hex::decode("0100ff")?),
+                ),
                 transaction_hash: B256::from_str(
                     "0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a",
-                )
-                .expect("failed to parse hash from string"),
+                )?,
             },
             block_hash: B256::from_str(
                 "0x88fadbb673928c61b9ede3694ae0589ac77ae38ec90a24a6e12e83f42f18c7e8",
-            )
-            .unwrap(),
+            )?,
             block_number: 0xa74fde,
             log_index: 0x653b,
             transaction_index: 0x1f,
@@ -115,34 +111,35 @@ mod tests {
         let deserialized: BlockLog = serde_json::from_str(&serialized).unwrap();
 
         assert_eq!(log, deserialized);
+
+        Ok(())
     }
 
     #[test]
-    fn test_block_log_partial_serde() {
+    fn test_block_log_partial_serde() -> anyhow::Result<()> {
         let log = BlockLog::Partial(ReceiptLog {
-            inner: Log {
-                address: Address::from_str("0000000000000000000000000000000000000011").unwrap(),
-                topics: vec![
+            inner: Log::new_unchecked(
+                Address::from_str("0000000000000000000000000000000000000011").unwrap(),
+                vec![
                     B256::from_str(
                         "000000000000000000000000000000000000000000000000000000000000dead",
-                    )
-                    .unwrap(),
+                    )?,
                     B256::from_str(
                         "000000000000000000000000000000000000000000000000000000000000beef",
-                    )
-                    .unwrap(),
+                    )?,
                 ],
-                data: Bytes::from(hex::decode("0100ff").unwrap()),
-            },
+                Bytes::from(hex::decode("0100ff")?),
+            ),
             transaction_hash: B256::from_str(
                 "0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a",
-            )
-            .expect("failed to parse hash from string"),
+            )?,
         });
 
         let serialized = serde_json::to_string(&log).unwrap();
         let deserialized: BlockLog = serde_json::from_str(&serialized).unwrap();
 
         assert_eq!(log, deserialized);
+
+        Ok(())
     }
 }

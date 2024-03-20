@@ -236,7 +236,7 @@ pub fn logs<BlockT: Block + Clone>(
             for receipt in receipts {
                 let filtered_logs = receipt.logs.iter().filter(|log| {
                     matches_address_filter(&log.address, &addresses)
-                        && matches_topics_filter(&log.topics, topics_filter)
+                        && matches_topics_filter(log.topics(), topics_filter)
                 });
 
                 logs.extend(filtered_logs.cloned());
