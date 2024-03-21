@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.22.2
+
+### Patch Changes
+
+- 7876104: Initialize the Hardhat Runtime Environment before passing the command line arguments.
+
 ## 2.22.1
 
 ### Patch Changes
