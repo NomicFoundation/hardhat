@@ -266,28 +266,18 @@ impl LogCollector {
             0,
             |ctx: ThreadSafeCallContext<DecodeConsoleLogInputsCall>| {
                 // Bytes[]
-                let inputs = ctx
-                    .env
-                    .create_array_with_length(ctx.value.inputs.len())
-                    .and_then(|mut inputs| {
-                        for (idx, input) in ctx.value.inputs.into_iter().enumerate() {
-                            // SAFETY: The input is guaranteed to be valid for the lifetime of the
-                            // JS buffer.
-                            unsafe {
-                                ctx.env.create_buffer_with_borrowed_data(
-                                    input.as_ptr(),
-                                    input.len(),
-                                    input,
-                                    |input: Bytes, _env| {
-                                        std::mem::drop(input);
-                                    },
-                                )
+                let inputs =
+                    ctx.env
+                        .create_array_with_length(ctx.value.inputs.len())
+                        .and_then(|mut inputs| {
+                            for (idx, input) in ctx.value.inputs.into_iter().enumerate() {
+                                ctx.env.create_buffer_with_data(input.to_vec()).and_then(
+                                    |input| inputs.set_element(idx as u32, input.into_raw()),
+                                )?;
                             }
-                            .and_then(|input| inputs.set_element(idx as u32, input.into_raw()))?;
-                        }
 
-                        Ok(inputs)
-                    })?;
+                            Ok(inputs)
+                        })?;
 
                 let sender = ctx.value.sender.clone();
 
@@ -306,36 +296,16 @@ impl LogCollector {
             0,
             |ctx: ThreadSafeCallContext<ContractAndFunctionNameCall>| {
                 // Buffer
-                let code = ctx.value.code;
-                // SAFETY: The code is guaranteed to be valid for the lifetime of the
-                // JS buffer.
-                let code = unsafe {
-                    ctx.env.create_buffer_with_borrowed_data(
-                        code.as_ptr(),
-                        code.len(),
-                        code,
-                        |code: Bytes, _env| {
-                            std::mem::drop(code);
-                        },
-                    )
-                }?
-                .into_unknown();
+                let code = ctx
+                    .env
+                    .create_buffer_with_data(ctx.value.code.to_vec())?
+                    .into_unknown();
 
                 // Option<Buffer>
                 let calldata = if let Some(calldata) = ctx.value.calldata {
-                    // SAFETY: The calldata is guaranteed to be valid for the lifetime of the
-                    // JS buffer.
-                    unsafe {
-                        ctx.env.create_buffer_with_borrowed_data(
-                            calldata.as_ptr(),
-                            calldata.len(),
-                            calldata,
-                            |calldata: Bytes, _env| {
-                                std::mem::drop(calldata);
-                            },
-                        )
-                    }?
-                    .into_unknown()
+                    ctx.env
+                        .create_buffer_with_data(calldata.to_vec())?
+                        .into_unknown()
                 } else {
                     ctx.env.get_undefined()?.into_unknown()
                 };

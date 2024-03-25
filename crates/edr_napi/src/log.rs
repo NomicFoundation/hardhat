@@ -1,5 +1,3 @@
-use std::mem;
-
 use napi::{bindgen_prelude::Buffer, Env, JsBuffer, JsBufferValue};
 use napi_derive::napi;
 
@@ -19,18 +17,9 @@ impl ExecutionLog {
             .map(|topic| Buffer::from(topic.as_slice()))
             .collect();
 
-        let data = log.data.data.clone();
-        let data = unsafe {
-            env.create_buffer_with_borrowed_data(
-                data.as_ptr(),
-                data.len(),
-                data,
-                |data: edr_eth::Bytes, _env| {
-                    mem::drop(data);
-                },
-            )
-        }
-        .map(JsBufferValue::into_raw)?;
+        let data = env
+            .create_buffer_with_data(log.data.data.to_vec())
+            .map(JsBufferValue::into_raw)?;
 
         Ok(Self {
             address: Buffer::from(log.address.as_slice()),

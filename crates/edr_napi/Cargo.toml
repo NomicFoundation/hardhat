@@ -14,8 +14,8 @@ k256 = { version = "0.13.1", default-features = false, features = ["arithmetic",
 log = { version = "0.4.20", default-features = false }
 # when napi is pinned, be sure to pin napi-derive to the same version
 # The `async` feature ensures that a tokio runtime is available
-napi = { version = "2.12.4", default-features = false, features = ["async", "error_anyhow", "napi8", "serde-json"] }
-napi-derive = "2.12.3"
+napi = { version = "2.16.0", default-features = false, features = ["async", "error_anyhow", "napi8", "serde-json"] }
+napi-derive = "2.16.0"
 edr_defaults = { version = "0.2.0-dev", path = "../edr_defaults" }
 edr_evm = { version = "0.2.0-dev", path = "../edr_evm", features = ["tracing"]}
 edr_eth = { version = "0.2.0-dev", path = "../edr_eth" }

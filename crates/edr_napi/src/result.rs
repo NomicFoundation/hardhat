@@ -1,5 +1,3 @@
-use std::mem;
-
 use napi::{
     bindgen_prelude::{BigInt, Buffer, Either3},
     Either, Env, JsBuffer, JsBufferValue,
@@ -194,36 +192,19 @@ impl ExecutionResult {
                     logs,
                     output: match output {
                         edr_evm::Output::Call(return_value) => {
-                            let return_value = return_value.clone();
-                            Either::A(CallOutput {
-                                return_value: unsafe {
-                                    env.create_buffer_with_borrowed_data(
-                                        return_value.as_ptr(),
-                                        return_value.len(),
-                                        return_value,
-                                        |return_value: edr_eth::Bytes, _env| {
-                                            mem::drop(return_value);
-                                        },
-                                    )
-                                }
-                                .map(JsBufferValue::into_raw)?,
-                            })
+                            let return_value = env
+                                .create_buffer_with_data(return_value.to_vec())
+                                .map(JsBufferValue::into_raw)?;
+
+                            Either::A(CallOutput { return_value })
                         }
                         edr_evm::Output::Create(return_value, address) => {
-                            let return_value = return_value.clone();
+                            let return_value = env
+                                .create_buffer_with_data(return_value.to_vec())
+                                .map(JsBufferValue::into_raw)?;
 
                             Either::B(CreateOutput {
-                                return_value: unsafe {
-                                    env.create_buffer_with_borrowed_data(
-                                        return_value.as_ptr(),
-                                        return_value.len(),
-                                        return_value,
-                                        |return_value: edr_eth::Bytes, _env| {
-                                            mem::drop(return_value);
-                                        },
-                                    )
-                                }
-                                .map(JsBufferValue::into_raw)?,
+                                return_value,
                                 address: address.map(|address| Buffer::from(address.as_slice())),
                             })
                         }
@@ -231,20 +212,13 @@ impl ExecutionResult {
                 })
             }
             edr_evm::ExecutionResult::Revert { gas_used, output } => {
-                let output = output.clone();
+                let output = env
+                    .create_buffer_with_data(output.to_vec())
+                    .map(JsBufferValue::into_raw)?;
+
                 Either3::B(RevertResult {
                     gas_used: BigInt::from(*gas_used),
-                    output: unsafe {
-                        env.create_buffer_with_borrowed_data(
-                            output.as_ptr(),
-                            output.len(),
-                            output,
-                            |output: edr_eth::Bytes, _env| {
-                                mem::drop(output);
-                            },
-                        )
-                    }
-                    .map(JsBufferValue::into_raw)?,
+                    output,
                 })
             }
             edr_evm::ExecutionResult::Halt { reason, gas_used } => Either3::C(HaltResult {
