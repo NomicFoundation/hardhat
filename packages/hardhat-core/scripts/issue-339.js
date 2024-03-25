@@ -1,0 +1,41 @@
+const edr = require("@nomicfoundation/edr")
+
+const config = {
+  allowBlocksWithSameTimestamp: true,
+  allowUnlimitedContractSize: true,
+  bailOnCallFailure: true,
+  bailOnTransactionFailure: true,
+  blockGasLimit: 1_000_000n,
+  chainId: 31337n,
+  chains: [],
+  coinbase: Buffer.from("0000000000000000000000000000000000000000", "hex"),
+  genesisAccounts: [],
+  hardfork: edr.SpecId.Latest,
+  minGasPrice: 0n,
+  mining: {
+    autoMine: true,
+    memPool: {
+      order: edr.MineOrdering.Priority,
+    }
+  },
+  networkId: 31337n,
+}
+
+const loggerConfig = {
+  enable: true,
+  decodeConsoleLogInputsCallback: () => {},
+  getContractAndFunctionNameCallback: () => {},
+  printLineCallback: () => {},
+}
+
+async function main() {
+  const context = new edr.EdrContext()
+  const provider = edr.Provider.withConfig(context, config, loggerConfig, () => {})
+
+  console.log("main finished")
+}
+
+main().catch((e) => {
+    console.error(e);
+    process.exit(1);
+});
