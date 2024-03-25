@@ -619,7 +619,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
   public async getCode(address: string): Promise<string> {
     const result = await this._provider.request({
       method: "eth_getCode",
-      params: [address],
+      params: [address, "latest"],
     });
 
     assertResponseType("eth_getCode", result, typeof result === "string");
