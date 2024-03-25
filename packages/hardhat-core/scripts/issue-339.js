@@ -1,3 +1,4 @@
+const log = require('why-is-node-running')
 const edr = require("@nomicfoundation/edr")
 
 const config = {
@@ -23,9 +24,9 @@ const config = {
 
 const loggerConfig = {
   enable: true,
-  decodeConsoleLogInputsCallback: () => {},
-  getContractAndFunctionNameCallback: () => {},
-  printLineCallback: () => {},
+  decodeConsoleLogInputsCallback: (_inputs) => { return []; },
+  getContractAndFunctionNameCallback: (_code) => { return { contractName: "" }; },
+  printLineCallback: (_message, _replace) => {},
 }
 
 async function main() {
@@ -33,6 +34,10 @@ async function main() {
   const provider = edr.Provider.withConfig(context, config, loggerConfig, () => {})
 
   console.log("main finished")
+
+  setTimeout(function () {
+    log() // logs out active handles that are keeping node running
+  }, 1000)
 }
 
 main().catch((e) => {
