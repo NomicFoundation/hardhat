@@ -1,7 +1,4 @@
-use std::{
-    fmt::Display,
-    sync::mpsc::{channel, Sender},
-};
+use std::{fmt::Display, sync::mpsc::channel};
 
 use ansi_term::{Color, Style};
 use edr_eth::{Bytes, B256, U256};
@@ -13,14 +10,15 @@ use edr_evm::{
 };
 use edr_provider::{ProviderError, TransactionFailure};
 use itertools::izip;
-use napi::{Env, JsFunction, NapiRaw, Status};
+use napi::{
+    threadsafe_function::{
+        ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode,
+    },
+    JsFunction, Status,
+};
 use napi_derive::napi;
 
-use crate::{
-    cast::TryCast,
-    sync::{await_promise, handle_error},
-    threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
-};
+use crate::cast::TryCast;
 
 #[napi(object)]
 pub struct ContractAndFunctionName {
@@ -38,16 +36,10 @@ impl TryCast<(String, Option<String>)> for ContractAndFunctionName {
     }
 }
 
-struct DecodeConsoleLogInputsCall {
-    inputs: Vec<Bytes>,
-    sender: Sender<napi::Result<Vec<String>>>,
-}
-
 struct ContractAndFunctionNameCall {
     code: Bytes,
     /// Only present for calls.
     calldata: Option<Bytes>,
-    sender: Sender<napi::Result<(String, Option<String>)>>,
 }
 
 #[napi(object)]
@@ -120,9 +112,9 @@ pub struct Logger {
 }
 
 impl Logger {
-    pub fn new(env: &Env, config: LoggerConfig) -> napi::Result<Self> {
+    pub fn new(config: LoggerConfig) -> napi::Result<Self> {
         Ok(Self {
-            collector: LogCollector::new(env, config)?,
+            collector: LogCollector::new(config)?,
         })
     }
 }
@@ -247,30 +239,27 @@ pub struct CollapsedMethod {
 
 #[derive(Clone)]
 struct LogCollector {
-    decode_console_log_inputs_fn: ThreadsafeFunction<DecodeConsoleLogInputsCall>,
-    get_contract_and_function_name_fn: ThreadsafeFunction<ContractAndFunctionNameCall>,
+    decode_console_log_inputs_fn: ThreadsafeFunction<Vec<Bytes>, ErrorStrategy::Fatal>,
+    get_contract_and_function_name_fn:
+        ThreadsafeFunction<ContractAndFunctionNameCall, ErrorStrategy::Fatal>,
     indentation: usize,
     is_enabled: bool,
     logs: Vec<LogLine>,
-    print_line_fn: ThreadsafeFunction<(String, bool)>,
+    print_line_fn: ThreadsafeFunction<(String, bool), ErrorStrategy::Fatal>,
     state: LoggingState,
     title_length: usize,
 }
 
 impl LogCollector {
-    pub fn new(env: &Env, config: LoggerConfig) -> napi::Result<Self> {
-        let decode_console_log_inputs_fn = ThreadsafeFunction::create(
-            env.raw(),
-            // SAFETY: The callback is guaranteed to be valid for the lifetime of the tracer.
-            unsafe { config.decode_console_log_inputs_callback.raw() },
-            0,
-            |ctx: ThreadSafeCallContext<DecodeConsoleLogInputsCall>| {
-                // Bytes[]
+    pub fn new(config: LoggerConfig) -> napi::Result<Self> {
+        let decode_console_log_inputs_fn = config
+            .decode_console_log_inputs_callback
+            .create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Vec<Bytes>>| {
                 let inputs =
                     ctx.env
-                        .create_array_with_length(ctx.value.inputs.len())
+                        .create_array_with_length(ctx.value.len())
                         .and_then(|mut inputs| {
-                            for (idx, input) in ctx.value.inputs.into_iter().enumerate() {
+                            for (idx, input) in ctx.value.into_iter().enumerate() {
                                 ctx.env.create_buffer_with_data(input.to_vec()).and_then(
                                     |input| inputs.set_element(idx as u32, input.into_raw()),
                                 )?;
@@ -279,54 +268,34 @@ impl LogCollector {
                             Ok(inputs)
                         })?;
 
-                let sender = ctx.value.sender.clone();
+                Ok(vec![inputs])
+            })?;
 
-                let promise = ctx.callback.call(None, &[inputs])?;
-                let result =
-                    await_promise::<Vec<String>, Vec<String>>(ctx.env, promise, ctx.value.sender);
+        let get_contract_and_function_name_fn = config
+            .get_contract_and_function_name_callback
+            .create_threadsafe_function(
+                0,
+                |ctx: ThreadSafeCallContext<ContractAndFunctionNameCall>| {
+                    // Buffer
+                    let code = ctx
+                        .env
+                        .create_buffer_with_data(ctx.value.code.to_vec())?
+                        .into_unknown();
 
-                handle_error(sender, result)
-            },
-        )?;
+                    // Option<Buffer>
+                    let calldata = if let Some(calldata) = ctx.value.calldata {
+                        ctx.env
+                            .create_buffer_with_data(calldata.to_vec())?
+                            .into_unknown()
+                    } else {
+                        ctx.env.get_undefined()?.into_unknown()
+                    };
 
-        let get_contract_and_function_name_fn = ThreadsafeFunction::create(
-            env.raw(),
-            // SAFETY: The callback is guaranteed to be valid for the lifetime of the tracer.
-            unsafe { config.get_contract_and_function_name_callback.raw() },
-            0,
-            |ctx: ThreadSafeCallContext<ContractAndFunctionNameCall>| {
-                // Buffer
-                let code = ctx
-                    .env
-                    .create_buffer_with_data(ctx.value.code.to_vec())?
-                    .into_unknown();
+                    Ok(vec![code, calldata])
+                },
+            )?;
 
-                // Option<Buffer>
-                let calldata = if let Some(calldata) = ctx.value.calldata {
-                    ctx.env
-                        .create_buffer_with_data(calldata.to_vec())?
-                        .into_unknown()
-                } else {
-                    ctx.env.get_undefined()?.into_unknown()
-                };
-
-                let sender = ctx.value.sender.clone();
-
-                let promise = ctx.callback.call(None, &[code, calldata])?;
-                let result = await_promise::<ContractAndFunctionName, (String, Option<String>)>(
-                    ctx.env,
-                    promise,
-                    ctx.value.sender,
-                );
-
-                handle_error(sender, result)
-            },
-        )?;
-
-        let print_line_fn = ThreadsafeFunction::create(
-            env.raw(),
-            // SAFETY: The callback is guaranteed to be valid for the lifetime of the tracer.
-            unsafe { config.print_line_callback.raw() },
+        let print_line_fn = config.print_line_callback.create_threadsafe_function(
             0,
             |ctx: ThreadSafeCallContext<(String, bool)>| {
                 // String
@@ -335,9 +304,7 @@ impl LogCollector {
                 // bool
                 let replace = ctx.env.get_boolean(ctx.value.1)?;
 
-                ctx.callback
-                    .call(None, &[message.into_unknown(), replace.into_unknown()])?;
-                Ok(())
+                Ok(vec![message.into_unknown(), replace.into_unknown()])
             },
         )?;
 
@@ -569,14 +536,21 @@ impl LogCollector {
     ) -> (String, Option<String>) {
         let (sender, receiver) = channel();
 
-        let status = self.get_contract_and_function_name_fn.call(
-            ContractAndFunctionNameCall {
-                code,
-                calldata,
-                sender,
-            },
-            ThreadsafeFunctionCallMode::Blocking,
-        );
+        let status = self
+            .get_contract_and_function_name_fn
+            .call_with_return_value(
+                ContractAndFunctionNameCall { code, calldata },
+                ThreadsafeFunctionCallMode::Blocking,
+                move |result: ContractAndFunctionName| {
+                    let contract_and_function_name = result.try_cast();
+                    sender.send(contract_and_function_name).map_err(|_error| {
+                        napi::Error::new(
+                            Status::GenericFailure,
+                            "Failed to send result from get_contract_and_function_name",
+                        )
+                    })
+                },
+            );
         assert_eq!(status, Status::Ok);
 
         receiver
@@ -763,19 +737,21 @@ impl LogCollector {
     fn log_console_log_messages(&mut self, console_log_inputs: &[Bytes]) {
         let (sender, receiver) = channel();
 
-        let status = self.decode_console_log_inputs_fn.call(
-            DecodeConsoleLogInputsCall {
-                inputs: console_log_inputs.to_vec(),
-                sender,
-            },
+        let status = self.decode_console_log_inputs_fn.call_with_return_value(
+            console_log_inputs.to_vec(),
             ThreadsafeFunctionCallMode::Blocking,
+            move |decoded_inputs: Vec<String>| {
+                sender.send(decoded_inputs).map_err(|_error| {
+                    napi::Error::new(
+                        Status::GenericFailure,
+                        "Failed to send result from decode_console_log_inputs",
+                    )
+                })
+            },
         );
         assert_eq!(status, Status::Ok);
 
-        let console_log_inputs = receiver
-            .recv()
-            .unwrap()
-            .expect("Failed call to decode_console_log_inputs");
+        let console_log_inputs = receiver.recv().unwrap();
         // This is a special case, as we always want to print the console.log messages.
         // The difference is how. If we have a logger, we should use that, so that logs
         // are printed in order. If we don't, we just print the messages here.

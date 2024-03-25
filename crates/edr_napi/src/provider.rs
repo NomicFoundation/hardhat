@@ -39,8 +39,8 @@ impl Provider {
         let config = edr_provider::ProviderConfig::try_from(config)?;
         let runtime = runtime::Handle::current();
 
-        let logger = Box::new(Logger::new(&env, logger_config)?);
-        let subscriber_callback = SubscriberCallback::new(&env, subscriber_callback)?;
+        let logger = Box::new(Logger::new(logger_config)?);
+        let subscriber_callback = SubscriberCallback::new(subscriber_callback)?;
         let subscriber_callback = Box::new(move |event| subscriber_callback.call(event));
 
         let (deferred, promise) = env.create_deferred()?;
@@ -171,7 +171,6 @@ impl Provider {
     #[napi(ts_return_type = "void")]
     pub fn set_call_override_callback(
         &self,
-        env: Env,
         #[napi(
             ts_arg_type = "(contract_address: Buffer, data: Buffer) => Promise<CallOverrideResult | undefined>"
         )]
@@ -179,7 +178,7 @@ impl Provider {
     ) -> napi::Result<()> {
         let provider = self.provider.clone();
 
-        let call_override_callback = CallOverrideCallback::new(&env, call_override_callback)?;
+        let call_override_callback = CallOverrideCallback::new(call_override_callback)?;
         let call_override_callback =
             Arc::new(move |address, data| call_override_callback.call_override(address, data));
 

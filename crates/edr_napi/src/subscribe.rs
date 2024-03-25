@@ -1,22 +1,21 @@
 use edr_eth::{remote::eth, B256};
-use napi::{bindgen_prelude::BigInt, Env, JsFunction, NapiRaw};
-use napi_derive::napi;
-
-use crate::threadsafe_function::{
-    ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode,
+use napi::{
+    bindgen_prelude::BigInt,
+    threadsafe_function::{
+        ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode,
+    },
+    JsFunction,
 };
+use napi_derive::napi;
 
 #[derive(Clone)]
 pub struct SubscriberCallback {
-    inner: ThreadsafeFunction<edr_provider::SubscriptionEvent>,
+    inner: ThreadsafeFunction<edr_provider::SubscriptionEvent, ErrorStrategy::Fatal>,
 }
 
 impl SubscriberCallback {
-    pub fn new(env: &Env, subscription_event_callback: JsFunction) -> napi::Result<Self> {
-        let callback = ThreadsafeFunction::create(
-            env.raw(),
-            // SAFETY: The callback is guaranteed to be valid for the lifetime of the inspector.
-            unsafe { subscription_event_callback.raw() },
+    pub fn new(subscription_event_callback: JsFunction) -> napi::Result<Self> {
+        let callback = subscription_event_callback.create_threadsafe_function(
             0,
             |ctx: ThreadSafeCallContext<edr_provider::SubscriptionEvent>| {
                 // SubscriptionEvent
@@ -39,8 +38,7 @@ impl SubscriberCallback {
 
                 event.set_named_property("result", result)?;
 
-                ctx.callback.call(None, &[event])?;
-                Ok(())
+                Ok(vec![event])
             },
         )?;
         Ok(Self { inner: callback })

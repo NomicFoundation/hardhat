@@ -16,7 +16,5 @@ mod result;
 #[cfg(feature = "scenarios")]
 mod scenarios;
 mod subscribe;
-mod sync;
-mod threadsafe_function;
 mod trace;
 mod withdrawal;

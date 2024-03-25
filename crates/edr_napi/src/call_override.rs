@@ -1,14 +1,16 @@
-use std::sync::mpsc::{channel, Sender};
+use std::sync::mpsc::channel;
 
 use edr_eth::{Address, Bytes};
-use napi::{bindgen_prelude::Buffer, Env, JsFunction, NapiRaw, Status};
+use napi::{
+    bindgen_prelude::Buffer,
+    threadsafe_function::{
+        ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode,
+    },
+    JsFunction, Status,
+};
 use napi_derive::napi;
 
-use crate::{
-    cast::TryCast,
-    sync::{await_promise, handle_error},
-    threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
-};
+use crate::cast::TryCast;
 
 /// The result of executing a call override.
 #[napi(object)]
@@ -34,20 +36,16 @@ impl TryCast<Option<edr_provider::CallOverrideResult>> for Option<CallOverrideRe
 struct CallOverrideCall {
     contract_address: Address,
     data: Bytes,
-    sender: Sender<napi::Result<Option<edr_provider::CallOverrideResult>>>,
 }
 
 #[derive(Clone)]
 pub struct CallOverrideCallback {
-    call_override_callback_fn: ThreadsafeFunction<CallOverrideCall>,
+    call_override_callback_fn: ThreadsafeFunction<CallOverrideCall, ErrorStrategy::Fatal>,
 }
 
 impl CallOverrideCallback {
-    pub fn new(env: &Env, call_override_callback: JsFunction) -> napi::Result<Self> {
-        let call_override_callback_fn = ThreadsafeFunction::create(
-            env.raw(),
-            // SAFETY: The callback is guaranteed to be valid for the lifetime of the inspector.
-            unsafe { call_override_callback.raw() },
+    pub fn new(call_override_callback: JsFunction) -> napi::Result<Self> {
+        let call_override_callback_fn = call_override_callback.create_threadsafe_function(
             0,
             |ctx: ThreadSafeCallContext<CallOverrideCall>| {
                 let address = ctx
@@ -60,14 +58,7 @@ impl CallOverrideCallback {
                     .create_buffer_with_data(ctx.value.data.to_vec())?
                     .into_raw();
 
-                let sender = ctx.value.sender.clone();
-                let promise = ctx.callback.call(None, &[address, data])?;
-                let result = await_promise::<
-                    Option<CallOverrideResult>,
-                    Option<edr_provider::CallOverrideResult>,
-                >(ctx.env, promise, ctx.value.sender);
-
-                handle_error(sender, result)
+                Ok(vec![address, data])
             },
         )?;
 
@@ -83,13 +74,22 @@ impl CallOverrideCallback {
     ) -> Option<edr_provider::CallOverrideResult> {
         let (sender, receiver) = channel();
 
-        let status = self.call_override_callback_fn.call(
+        let status = self.call_override_callback_fn.call_with_return_value(
             CallOverrideCall {
                 contract_address,
                 data,
-                sender,
             },
             ThreadsafeFunctionCallMode::Blocking,
+            move |result: Option<CallOverrideResult>| {
+                let result = result.try_cast();
+
+                sender.send(result).map_err(|_error| {
+                    napi::Error::new(
+                        Status::GenericFailure,
+                        "Failed to send result from call_override_callback",
+                    )
+                })
+            },
         );
 
         assert_eq!(status, Status::Ok, "Call override callback failed");
