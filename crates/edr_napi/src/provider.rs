@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use edr_eth::remote::jsonrpc;
 use edr_provider::InvalidRequestReason;
-use napi::{bindgen_prelude::ObjectFinalize, tokio::runtime, Env, JsFunction, JsObject, Status};
+use napi::{tokio::runtime, Env, JsFunction, JsObject, Status};
 use napi_derive::napi;
 
 use self::config::ProviderConfig;
@@ -16,12 +16,8 @@ use crate::{
     trace::RawTrace,
 };
 
-// An arbitrarily large amount of memory to signal to the javascript garbage
-// collector that it needs to attempt to free the provider object's memory.
-const PROVIDER_MEMORY_SIZE: i64 = 10_000;
-
 /// A JSON-RPC provider for Ethereum.
-#[napi(custom_finalize)]
+#[napi]
 pub struct Provider {
     provider: Arc<edr_provider::Provider<LoggerError>>,
     #[cfg(feature = "scenarios")]
@@ -43,8 +39,8 @@ impl Provider {
         let config = edr_provider::ProviderConfig::try_from(config)?;
         let runtime = runtime::Handle::current();
 
-        let logger = Box::new(Logger::new(logger_config)?);
-        let subscriber_callback = SubscriberCallback::new(subscriber_callback)?;
+        let logger = Box::new(Logger::new(&env, logger_config)?);
+        let subscriber_callback = SubscriberCallback::new(&env, subscriber_callback)?;
         let subscriber_callback = Box::new(move |event| subscriber_callback.call(event));
 
         let (deferred, promise) = env.create_deferred()?;
@@ -68,11 +64,7 @@ impl Provider {
                     },
                 );
 
-            deferred.resolve(|mut env| {
-                env.adjust_external_memory(PROVIDER_MEMORY_SIZE)?;
-
-                result
-            });
+            deferred.resolve(|_env| result);
             Ok::<_, napi::Error>(())
         });
 
@@ -179,6 +171,7 @@ impl Provider {
     #[napi(ts_return_type = "void")]
     pub fn set_call_override_callback(
         &self,
+        env: Env,
         #[napi(
             ts_arg_type = "(contract_address: Buffer, data: Buffer) => Promise<CallOverrideResult | undefined>"
         )]
@@ -186,22 +179,11 @@ impl Provider {
     ) -> napi::Result<()> {
         let provider = self.provider.clone();
 
-        let call_override_callback = CallOverrideCallback::new(call_override_callback)?;
+        let call_override_callback = CallOverrideCallback::new(&env, call_override_callback)?;
         let call_override_callback =
             Arc::new(move |address, data| call_override_callback.call_override(address, data));
 
         provider.set_call_override_callback(Some(call_override_callback));
-
-        Ok(())
-    }
-}
-
-#[napi]
-impl ObjectFinalize for Provider {
-    fn finalize(self, mut env: Env) -> napi::Result<()> {
-        env.adjust_external_memory(-PROVIDER_MEMORY_SIZE)?;
-
-        println!("destroyed provider");
 
         Ok(())
     }

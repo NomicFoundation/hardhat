@@ -4,7 +4,7 @@ use napi::{
     threadsafe_function::{
         ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode,
     },
-    JsFunction,
+    Env, JsFunction,
 };
 use napi_derive::napi;
 
@@ -14,8 +14,8 @@ pub struct SubscriberCallback {
 }
 
 impl SubscriberCallback {
-    pub fn new(subscription_event_callback: JsFunction) -> napi::Result<Self> {
-        let callback = subscription_event_callback.create_threadsafe_function(
+    pub fn new(env: &Env, subscription_event_callback: JsFunction) -> napi::Result<Self> {
+        let mut callback = subscription_event_callback.create_threadsafe_function(
             0,
             |ctx: ThreadSafeCallContext<edr_provider::SubscriptionEvent>| {
                 // SubscriptionEvent
@@ -41,6 +41,11 @@ impl SubscriberCallback {
                 Ok(vec![event])
             },
         )?;
+
+        // Maintain a weak reference to the function to avoid the event loop from
+        // exiting.
+        callback.unref(env)?;
+
         Ok(Self { inner: callback })
     }
 

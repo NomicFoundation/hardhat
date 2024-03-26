@@ -6,7 +6,7 @@ use napi::{
     threadsafe_function::{
         ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode,
     },
-    JsFunction, Status,
+    Env, JsFunction, Status,
 };
 use napi_derive::napi;
 
@@ -44,8 +44,8 @@ pub struct CallOverrideCallback {
 }
 
 impl CallOverrideCallback {
-    pub fn new(call_override_callback: JsFunction) -> napi::Result<Self> {
-        let call_override_callback_fn = call_override_callback.create_threadsafe_function(
+    pub fn new(env: &Env, call_override_callback: JsFunction) -> napi::Result<Self> {
+        let mut call_override_callback_fn = call_override_callback.create_threadsafe_function(
             0,
             |ctx: ThreadSafeCallContext<CallOverrideCall>| {
                 let address = ctx
@@ -61,6 +61,10 @@ impl CallOverrideCallback {
                 Ok(vec![address, data])
             },
         )?;
+
+        // Maintain a weak reference to the function to avoid the event loop from
+        // exiting.
+        call_override_callback_fn.unref(env)?;
 
         Ok(Self {
             call_override_callback_fn,

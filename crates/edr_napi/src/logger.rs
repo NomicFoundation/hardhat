@@ -14,7 +14,7 @@ use napi::{
     threadsafe_function::{
         ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode,
     },
-    JsFunction, Status,
+    Env, JsFunction, Status,
 };
 use napi_derive::napi;
 
@@ -112,9 +112,9 @@ pub struct Logger {
 }
 
 impl Logger {
-    pub fn new(config: LoggerConfig) -> napi::Result<Self> {
+    pub fn new(env: &Env, config: LoggerConfig) -> napi::Result<Self> {
         Ok(Self {
-            collector: LogCollector::new(config)?,
+            collector: LogCollector::new(env, config)?,
         })
     }
 }
@@ -251,8 +251,8 @@ struct LogCollector {
 }
 
 impl LogCollector {
-    pub fn new(config: LoggerConfig) -> napi::Result<Self> {
-        let decode_console_log_inputs_fn = config
+    pub fn new(env: &Env, config: LoggerConfig) -> napi::Result<Self> {
+        let mut decode_console_log_inputs_fn = config
             .decode_console_log_inputs_callback
             .create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Vec<Bytes>>| {
                 let inputs =
@@ -271,7 +271,11 @@ impl LogCollector {
                 Ok(vec![inputs])
             })?;
 
-        let get_contract_and_function_name_fn = config
+        // Maintain a weak reference to the function to avoid the event loop from
+        // exiting.
+        decode_console_log_inputs_fn.unref(env)?;
+
+        let mut get_contract_and_function_name_fn = config
             .get_contract_and_function_name_callback
             .create_threadsafe_function(
                 0,
@@ -295,7 +299,11 @@ impl LogCollector {
                 },
             )?;
 
-        let print_line_fn = config.print_line_callback.create_threadsafe_function(
+        // Maintain a weak reference to the function to avoid the event loop from
+        // exiting.
+        get_contract_and_function_name_fn.unref(env)?;
+
+        let mut print_line_fn = config.print_line_callback.create_threadsafe_function(
             0,
             |ctx: ThreadSafeCallContext<(String, bool)>| {
                 // String
@@ -307,6 +315,10 @@ impl LogCollector {
                 Ok(vec![message.into_unknown(), replace.into_unknown()])
             },
         )?;
+
+        // Maintain a weak reference to the function to avoid the event loop from
+        // exiting.
+        print_line_fn.unref(env)?;
 
         Ok(Self {
             decode_console_log_inputs_fn,

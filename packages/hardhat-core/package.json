@@ -102,8 +102,7 @@
     "sinon": "^9.0.0",
     "time-require": "^0.1.2",
     "ts-node": "^10.8.0",
-    "typescript": "~5.0.0",
-    "why-is-node-running": "^2.2.2"
+    "typescript": "~5.0.0"
   },
   "dependencies": {
     "@ethersproject/abi": "^5.1.2",
