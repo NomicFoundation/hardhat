@@ -1,4 +1,4 @@
-use std::{mem, sync::Arc};
+use std::sync::Arc;
 
 use edr_evm::{interpreter::OPCODE_JUMPMAP, trace::BeforeMessage};
 use napi::{
@@ -47,34 +47,14 @@ pub struct TracingMessage {
 
 impl TracingMessage {
     pub fn new(env: &Env, message: &BeforeMessage) -> napi::Result<Self> {
-        let data = message.data.clone();
-        let data = unsafe {
-            env.create_buffer_with_borrowed_data(
-                data.as_ptr(),
-                data.len(),
-                data,
-                |data: edr_eth::Bytes, _env| {
-                    mem::drop(data);
-                },
-            )
-        }
-        .map(JsBufferValue::into_raw)?;
+        let data = env
+            .create_buffer_with_data(message.data.to_vec())
+            .map(JsBufferValue::into_raw)?;
 
         let code = message.code.as_ref().map_or(Ok(None), |code| {
-            let code = code.original_bytes();
-
-            unsafe {
-                env.create_buffer_with_borrowed_data(
-                    code.as_ptr(),
-                    code.len(),
-                    code,
-                    |code: edr_eth::Bytes, _env| {
-                        mem::drop(code);
-                    },
-                )
-            }
-            .map(JsBufferValue::into_raw)
-            .map(Some)
+            env.create_buffer_with_data(code.original_bytes().to_vec())
+                .map(JsBufferValue::into_raw)
+                .map(Some)
         })?;
 
         Ok(TracingMessage {
