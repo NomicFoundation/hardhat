@@ -1092,6 +1092,7 @@ dependencies = [
  "openssl-sys",
  "parking_lot 0.12.1",
  "rand",
+ "rpmalloc",
  "serde",
  "serde_json",
  "thiserror",
@@ -2965,6 +2966,26 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "rpmalloc"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "86179c13cdc0bcedbb60e63c1aebe3bac82162ddfa746320de6dcea31ebe2b06"
+dependencies = [
+ "rpmalloc-sys",
+]
+
+[[package]]
+name = "rpmalloc-sys"
+version = "0.2.3+b097fd0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8d4b7d5e225a53887ee57fcec492eaf114b8e290f7072d035adc6ddd6810b67b"
+dependencies = [
+ "cc",
+ "libc",
+ "pkg-config",
 ]
 
 [[package]]
