@@ -80,6 +80,7 @@ const MAINNET_HARDFORKS: &[(u64, SpecId)] = &[
     (15_050_000, SpecId::GRAY_GLACIER),
     (15_537_394, SpecId::MERGE),
     (17_034_870, SpecId::SHANGHAI),
+    (19_426_589, SpecId::CANCUN),
 ];
 
 fn mainnet_config() -> &'static ChainConfig {
