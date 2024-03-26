@@ -52,8 +52,8 @@
     "universal": "napi universal",
     "version": "napi version",
     "pretest": "pnpm build",
-    "test": "pnpm tsc && mocha --recursive \"test/**/*.ts\" --exit",
-    "testNoBuild": "pnpm tsc && mocha --recursive \"test/**/*.ts\" --exit",
+    "test": "pnpm tsc && mocha --recursive \"test/**/*.ts\"",
+    "testNoBuild": "pnpm tsc && mocha --recursive \"test/**/*.ts\"",
     "clean": "rm -rf @nomicfoundation/edr.node"
   }
 }
