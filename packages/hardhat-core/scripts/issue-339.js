@@ -1,4 +1,4 @@
-const edr = require("@nomicfoundation/edr")
+const edr = require("@nomicfoundation/edr");
 
 const config = {
   allowBlocksWithSameTimestamp: true,
@@ -16,26 +16,35 @@ const config = {
     autoMine: true,
     memPool: {
       order: edr.MineOrdering.Priority,
-    }
+    },
   },
   networkId: 31337n,
-}
+};
 
 const loggerConfig = {
   enable: true,
-  decodeConsoleLogInputsCallback: (_inputs) => { return []; },
-  getContractAndFunctionNameCallback: (_code) => { return { contractName: "" }; },
+  decodeConsoleLogInputsCallback: (_inputs) => {
+    return [];
+  },
+  getContractAndFunctionNameCallback: (_code) => {
+    return { contractName: "" };
+  },
   printLineCallback: (_message, _replace) => {},
-}
+};
 
 async function main() {
-  const context = new edr.EdrContext()
-  const provider = edr.Provider.withConfig(context, config, loggerConfig, () => {})
+  const context = new edr.EdrContext();
+  const provider = edr.Provider.withConfig(
+    context,
+    config,
+    loggerConfig,
+    () => {}
+  );
 
-  console.log("main finished")
+  console.log("main finished");
 }
 
 main().catch((e) => {
-    console.error(e);
-    process.exit(1);
+  console.error(e);
+  process.exit(1);
 });
