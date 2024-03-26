@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use edr_eth::remote::jsonrpc;
 use edr_provider::InvalidRequestReason;
-use napi::{bindgen_prelude::ObjectFinalize, tokio::runtime, Env, JsFunction, JsObject, Status};
+use napi::{tokio::runtime, Env, JsFunction, JsObject, Status};
 use napi_derive::napi;
 
 use self::config::ProviderConfig;
@@ -16,12 +16,8 @@ use crate::{
     trace::RawTrace,
 };
 
-// An arbitrarily large amount of memory to signal to the javascript garbage
-// collector that it needs to attempt to free the provider object's memory.
-const PROVIDER_MEMORY_SIZE: i64 = 10_000;
-
 /// A JSON-RPC provider for Ethereum.
-#[napi(custom_finalize)]
+#[napi]
 pub struct Provider {
     provider: Arc<edr_provider::Provider<LoggerError>>,
     #[cfg(feature = "scenarios")]
@@ -33,7 +29,7 @@ impl Provider {
     #[doc = "Constructs a new provider with the provided configuration."]
     #[napi(ts_return_type = "Promise<Provider>")]
     pub fn with_config(
-        mut env: Env,
+        env: Env,
         // We take the context as argument to ensure that tracing is initialized properly.
         _context: &EdrContext,
         config: ProviderConfig,
@@ -71,9 +67,6 @@ impl Provider {
             deferred.resolve(|_env| result);
             Ok::<_, napi::Error>(())
         });
-
-        // Signal that memory was externally allocated
-        env.adjust_external_memory(PROVIDER_MEMORY_SIZE)?;
 
         Ok(promise)
     }
@@ -191,15 +184,6 @@ impl Provider {
             Arc::new(move |address, data| call_override_callback.call_override(address, data));
 
         provider.set_call_override_callback(Some(call_override_callback));
-
-        Ok(())
-    }
-}
-
-impl ObjectFinalize for Provider {
-    fn finalize(self, mut env: Env) -> napi::Result<()> {
-        // Signal that the externally allocated memory has been freed
-        env.adjust_external_memory(-PROVIDER_MEMORY_SIZE)?;
 
         Ok(())
     }
