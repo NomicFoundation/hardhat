@@ -1,5 +1,12 @@
 # @nomicfoundation/edr
 
+## 0.3.3
+
+### Patch Changes
+
+- 3ac838b: Fixes detection of Cancun blocks on mainnet
+- 7d0f981: Fix node.js runtime freezing on shutdown
+
 ## 0.3.2
 
 ### Patch Changes
