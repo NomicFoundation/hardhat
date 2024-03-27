@@ -5,7 +5,6 @@ use std::{
 };
 
 use edr_eth::{Address, Bytes, U256, U64};
-use ethers_core::types::transaction::eip712::TypedData;
 use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::ProviderError;
@@ -411,17 +410,137 @@ pub(crate) mod storage_value {
     }
 }
 
-/// Helper function for deserializing the payload of an `eth_signTypedData_v4`
-/// request.
-pub(crate) fn deserialize_typed_data<'de, DeserializerT>(
-    deserializer: DeserializerT,
-) -> Result<TypedData, DeserializerT::Error>
-where
-    DeserializerT: Deserializer<'de>,
-{
-    TypedData::deserialize(deserializer).map_err(|_error| {
+/// Helper module for deserializing the payload of an `eth_signTypedData_v4`
+/// request. The types and the deserializer implementation are a patched version
+/// of [`ethers_core`](https://github.com/gakonst/ethers-rs/blob/5394d899adca736a602e316e6f0c06fdb5aa64b9/ethers-core/src/types/transaction/eip712.rs)
+/// in order to support hex strings for the salt parameter.
+/// `ethers_core` is copyright (c) 2020 Georgios Konstantopoulos and is licensed
+/// under the MIT License.
+pub(crate) mod typed_data {
+    use std::collections::BTreeMap;
+
+    use edr_eth::Bytes;
+    use ethers_core::types::transaction::eip712::{EIP712Domain, TypedData, Types};
+    use serde::{Deserialize, Deserializer};
+
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct PatchedEIP712Domain {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        name: Option<String>,
+
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        version: Option<String>,
+
+        #[serde(
+            default,
+            skip_serializing_if = "Option::is_none",
+            deserialize_with = "ethers_core::types::serde_helpers::deserialize_stringified_numeric_opt"
+        )]
+        chain_id: Option<ethers_core::types::U256>,
+
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        verifying_contract: Option<ethers_core::types::Address>,
+
+        // Changed salt from `[u8; 32]` to `Bytes` to support hex strings.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        salt: Option<Bytes>,
+    }
+
+    #[derive(Debug, thiserror::Error)]
+    #[error("The salt parameter must be exactly 32 bytes long.")]
+    struct InvalidSaltError;
+
+    impl TryFrom<PatchedEIP712Domain> for EIP712Domain {
+        type Error = InvalidSaltError;
+
+        fn try_from(value: PatchedEIP712Domain) -> Result<Self, Self::Error> {
+            let PatchedEIP712Domain {
+                name,
+                version,
+                chain_id,
+                verifying_contract,
+                salt,
+            } = value;
+
+            let salt: Option<[u8; 32]> = salt
+                .map(|bytes| {
+                    let vec: Vec<u8> = bytes.into();
+                    vec.try_into().map_err(|_error| InvalidSaltError {})
+                })
+                .transpose()?;
+
+            Ok(EIP712Domain {
+                name,
+                version,
+                chain_id,
+                verifying_contract,
+                salt,
+            })
+        }
+    }
+
+    #[derive(Deserialize)]
+    struct TypedDataHelper {
+        domain: PatchedEIP712Domain,
+        types: Types,
+        #[serde(rename = "primaryType")]
+        primary_type: String,
+        message: BTreeMap<String, serde_json::Value>,
+    }
+
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum Type {
+        Val(TypedDataHelper),
+        String(String),
+    }
+
+    fn invalid_json_error<'de, DeserializerT: Deserializer<'de>>(
+        _error: impl std::error::Error,
+    ) -> DeserializerT::Error {
         serde::de::Error::custom("The message parameter is an invalid JSON.".to_string())
-    })
+    }
+
+    /// Helper function for deserializing the payload of an
+    /// `eth_signTypedData_v4` request.
+    pub(crate) fn deserialize<'de, DeserializerT>(
+        deserializer: DeserializerT,
+    ) -> Result<TypedData, DeserializerT::Error>
+    where
+        DeserializerT: Deserializer<'de>,
+    {
+        match Type::deserialize(deserializer).map_err(invalid_json_error::<'de, DeserializerT>)? {
+            Type::Val(v) => {
+                let TypedDataHelper {
+                    domain,
+                    types,
+                    primary_type,
+                    message,
+                } = v;
+                Ok(TypedData {
+                    domain: domain.try_into().map_err(serde::de::Error::custom)?,
+                    types,
+                    primary_type,
+                    message,
+                })
+            }
+            Type::String(s) => {
+                let TypedDataHelper {
+                    domain,
+                    types,
+                    primary_type,
+                    message,
+                } = serde_json::from_str(&s).map_err(invalid_json_error::<'de, DeserializerT>)?;
+                Ok(TypedData {
+                    domain: domain.try_into().map_err(serde::de::Error::custom)?,
+                    types,
+                    primary_type,
+                    message,
+                })
+            }
+        }
+    }
 }
 
 fn invalid_hex<'de, D>(value: &str) -> D::Error
