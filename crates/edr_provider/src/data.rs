@@ -1413,75 +1413,73 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         &mut self,
         signed_transaction: ExecutableTransaction,
     ) -> Result<SendTransactionResult, ProviderError<LoggerErrorT>> {
-        let snapshot_id = if self.is_auto_mining {
+        if self.is_auto_mining {
             self.validate_auto_mine_transaction(&signed_transaction)?;
 
-            Some(self.make_snapshot())
+            // We need to increment the snapshot id to remain backwards compatible with the
+            // old version of scenarios
+            self.next_snapshot_id += 1;
+
+            if !mempool::has_transactions(&self.mem_pool) {
+                return self.mine_and_commit_transaction(signed_transaction);
+            }
+        }
+
+        // If adding a transaction to the mem pool fails, no state will have been
+        // modified
+        let transaction_hash = self.add_pending_transaction(signed_transaction)?;
+
+        let mut mining_results = Vec::new();
+        let transaction_result = if self.is_auto_mining {
+            let snapshot_id = self.make_snapshot();
+
+            let transaction_result = loop {
+                let result = self
+                    .mine_and_commit_block(BlockOptions::default())
+                    .map_err(|error| {
+                        self.revert_to_snapshot(snapshot_id);
+
+                        error
+                    })?;
+
+                let transaction_result = izip!(
+                    result.block.transactions().iter(),
+                    result.transaction_results.iter(),
+                    result.transaction_traces.iter()
+                )
+                .find_map(|(transaction, result, trace)| {
+                    if *transaction.hash() == transaction_hash {
+                        Some((result.clone(), trace.clone()))
+                    } else {
+                        None
+                    }
+                });
+
+                mining_results.push(result);
+
+                if let Some(transaction_result) = transaction_result {
+                    break transaction_result;
+                }
+            };
+
+            while self.mem_pool.has_pending_transactions() {
+                let result = self
+                    .mine_and_commit_block(BlockOptions::default())
+                    .map_err(|error| {
+                        self.revert_to_snapshot(snapshot_id);
+
+                        error
+                    })?;
+
+                mining_results.push(result);
+            }
+
+            self.snapshots.remove(&snapshot_id);
+
+            Some(transaction_result)
         } else {
             None
         };
-
-        let transaction_hash =
-            self.add_pending_transaction(signed_transaction)
-                .map_err(|error| {
-                    if let Some(snapshot_id) = snapshot_id {
-                        self.revert_to_snapshot(snapshot_id);
-                    }
-
-                    error
-                })?;
-
-        let mut mining_results = Vec::new();
-        let transaction_result = snapshot_id
-            .map(
-                |snapshot_id| -> Result<(ExecutionResult, Trace), ProviderError<LoggerErrorT>> {
-                    let transaction_result = loop {
-                        let result = self
-                            .mine_and_commit_block(BlockOptions::default())
-                            .map_err(|error| {
-                                self.revert_to_snapshot(snapshot_id);
-
-                                error
-                            })?;
-
-                        let transaction_result = izip!(
-                            result.block.transactions().iter(),
-                            result.transaction_results.iter(),
-                            result.transaction_traces.iter()
-                        )
-                        .find_map(|(transaction, result, trace)| {
-                            if *transaction.hash() == transaction_hash {
-                                Some((result.clone(), trace.clone()))
-                            } else {
-                                None
-                            }
-                        });
-
-                        mining_results.push(result);
-
-                        if let Some(transaction_result) = transaction_result {
-                            break transaction_result;
-                        }
-                    };
-
-                    while self.mem_pool.has_pending_transactions() {
-                        let result = self
-                            .mine_and_commit_block(BlockOptions::default())
-                            .map_err(|error| {
-                                self.revert_to_snapshot(snapshot_id);
-
-                                error
-                            })?;
-
-                        mining_results.push(result);
-                    }
-
-                    self.snapshots.remove(&snapshot_id);
-
-                    Ok(transaction_result)
-                },
-            )
-            .transpose()?;
 
         Ok(SendTransactionResult {
             transaction_hash,
@@ -1882,6 +1880,38 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
 
             Ok(function(&blockchain, &block, &result.state))
         }
+    }
+
+    /// # Panics
+    ///
+    /// Panics if the mempool has pending transactions.
+    fn mine_and_commit_transaction(
+        &mut self,
+        signed_transaction: ExecutableTransaction,
+    ) -> Result<SendTransactionResult, ProviderError<LoggerErrorT>> {
+        debug_assert!(!mempool::has_transactions(&self.mem_pool));
+
+        let transaction_hash = self.add_pending_transaction(signed_transaction)?;
+
+        self.mine_and_commit_block(BlockOptions::default())
+            .map_or_else(
+                |error| {
+                    self.remove_pending_transaction(&transaction_hash);
+                    Err(error)
+                },
+                |result| {
+                    let transaction_result = Some((
+                        result.transaction_results[0].clone(),
+                        result.transaction_traces[0].clone(),
+                    ));
+
+                    Ok(SendTransactionResult {
+                        transaction_hash,
+                        transaction_result,
+                        mining_results: vec![result],
+                    })
+                },
+            )
     }
 
     /// Mine a block using the provided options. If an option has not been
