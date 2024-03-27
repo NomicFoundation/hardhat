@@ -1,17 +1,19 @@
+import type { OutputControlledEmitter } from "../../src/internal/with-spinners";
+
 import { assert } from "chai";
 import sinon from "sinon";
 import EventEmitter from "events";
-import * as spinners from "../../src/internal/with-spinners";
+import { withSpinners } from "../../src/internal/with-spinners";
 
 describe("withSpinners", () => {
-  let eventEmitter: EventEmitter;
+  let eventEmitter: OutputControlledEmitter;
 
   function containsArray(baseArray: Array<string | symbol>, values: string[]) {
     return values.every((value) => baseArray.includes(value));
   }
 
   beforeEach(() => {
-    eventEmitter = new EventEmitter();
+    eventEmitter = new EventEmitter() as OutputControlledEmitter;
   });
 
   afterEach(() => {
@@ -19,7 +21,7 @@ describe("withSpinners", () => {
   });
 
   it("should attach the connection events", () => {
-    const emitter = spinners.withSpinners(eventEmitter);
+    const emitter = withSpinners(eventEmitter);
     assert.isTrue(
       containsArray(emitter.eventNames(), [
         "connection_start",
@@ -30,7 +32,7 @@ describe("withSpinners", () => {
   });
 
   it("should attach the derivation events", () => {
-    const emitter = spinners.withSpinners(eventEmitter);
+    const emitter = withSpinners(eventEmitter);
     assert.isTrue(
       containsArray(emitter.eventNames(), [
         "derivation_start",
@@ -42,7 +44,7 @@ describe("withSpinners", () => {
   });
 
   it("should attach the confirmation events", () => {
-    const emitter = spinners.withSpinners(eventEmitter);
+    const emitter = withSpinners(eventEmitter);
     assert.isTrue(
       containsArray(emitter.eventNames(), [
         "confirmation_start",
