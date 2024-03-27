@@ -16,12 +16,16 @@ export async function checkAutominedNetwork(
     // just continue with the next check.
   }
 
-  const isGanache = /ganache/i.test(
-    (await provider.request({ method: "web3_clientVersion" })) as string
-  );
+  try {
+    const isGanache = /ganache/i.test(
+      (await provider.request({ method: "web3_clientVersion" })) as string
+    );
 
-  if (isGanache) {
-    return true;
+    if (isGanache) {
+      return true;
+    }
+  } catch {
+    // If this method failed we aren't using Ganache
   }
 
   return false;
