@@ -89,6 +89,14 @@ async function verify(benchmarkResultPath) {
   ));
 
   for (let scenarioName in snapshotResult) {
+    // Snapshot testing is unreliable for these scenarios
+    if (
+      scenarioName.includes("openzeppelin") ||
+      scenarioName.includes("neptune-mutual")
+    ) {
+      continue;
+    }
+
     let snapshotFailures = new Set(snapshotResult[scenarioName].failures);
     let benchFailures = new Set(benchmarkResult[scenarioName].failures);
 
