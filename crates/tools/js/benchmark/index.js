@@ -202,12 +202,14 @@ async function benchmarkScenario(scenarioFileName) {
 
   const failures = [];
   const rpcCallResults = [];
+  const rpcCallErrors = [];
 
   for (let i = 0; i < requests.length; i += 1) {
     try {
       const result = await provider.request(requests[i]);
       rpcCallResults.push(result);
     } catch (e) {
+      rpcCallErrors.push(e);
       failures.push(i);
     }
   }
@@ -230,7 +232,7 @@ async function benchmarkScenario(scenarioFileName) {
   console.log(JSON.stringify(result));
 
   // Return this to avoid gc
-  return rpcCallResults;
+  return { rpcCallResults, rpcCallErrors };
 }
 
 async function loadScenario(scenarioFileName) {
