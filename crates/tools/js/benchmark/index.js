@@ -12,10 +12,15 @@ const { _ } = require("lodash");
 const {
   createHardhatNetworkProvider,
 } = require("hardhat/internal/hardhat-network/provider/provider");
+const {
+  AnvilServer,
+} = require("@foundry-rs/hardhat-anvil/dist/src/anvil-server");
+const { HttpProvider } = require("hardhat/internal/core/providers/http");
 
 const SCENARIOS_DIR = "../../scenarios/";
 const SCENARIO_SNAPSHOT_NAME = "snapshot.json";
 const OZ_MAX_MIN_FAILURES = 1.05;
+const ANVIL_HOST = "http://127.0.0.1:8545";
 
 async function main() {
   const parser = new ArgumentParser({
@@ -34,6 +39,10 @@ async function main() {
     default: "./benchmark-output.json",
     help: "Where to save the benchmark output file",
   });
+  parser.add_argument("--anvil", {
+    action: "store_true",
+    help: "Run benchmarks on Anvil node",
+  });
   const args = parser.parse_args();
 
   // Make results not GC
@@ -42,11 +51,11 @@ async function main() {
     if (args.grep) {
       for (let scenarioFileName of getScenarioFileNames()) {
         if (scenarioFileName.includes(args.grep)) {
-          results = await benchmarkScenario(scenarioFileName);
+          results = await benchmarkScenario(scenarioFileName, args.anvil);
         }
       }
     } else {
-      await benchmarkAllScenarios(args.benchmark_output);
+      await benchmarkAllScenarios(args.benchmark_output, args.anvil);
     }
     await flushStdout();
   } else if (args.command === "verify") {
@@ -155,36 +164,37 @@ function setDifference(a, b) {
   return new Set(Array.from(a).filter((item) => !b.has(item)));
 }
 
-async function benchmarkAllScenarios(outPath) {
+async function benchmarkAllScenarios(outPath, useAnvil) {
   const result = {};
   let totalTime = 0;
   let totalFailures = 0;
   for (let scenarioFileName of getScenarioFileNames()) {
+    const args = [
+      "--noconcurrent_sweeping",
+      "--noconcurrent_recompilation",
+      "--max-old-space-size=28000",
+      "index.js",
+      "benchmark",
+      "-g",
+      scenarioFileName,
+    ];
+    if (useAnvil) {
+      args.push("--anvil");
+    }
+
     try {
       const scenarioResults = [];
       const iterations = numIterations(scenarioFileName);
       for (let i = 0; i < iterations; i++) {
         // Run in subprocess with grep to simulate Hardhat test runner behaviour
         // where there is one provider per process
-        const processResult = child_process.spawnSync(
-          process.argv[0],
-          [
-            "--noconcurrent_sweeping",
-            "--noconcurrent_recompilation",
-            "--max-old-space-size=28000",
-            "index.js",
-            "benchmark",
-            "-g",
-            scenarioFileName,
-          ],
-          {
-            shell: true,
-            timeout: 60 * 60 * 1000,
-            // Pipe stdout, proxy the rest
-            stdio: [process.stdin, "pipe", process.stderr],
-            encoding: "utf-8",
-          }
-        );
+        const processResult = child_process.spawnSync(process.argv[0], args, {
+          shell: true,
+          timeout: 60 * 60 * 1000,
+          // Pipe stdout, proxy the rest
+          stdio: [process.stdin, "pipe", process.stderr],
+          encoding: "utf-8",
+        });
         const scenarioResult = JSON.parse(processResult.stdout);
         scenarioResults.push(scenarioResult);
       }
@@ -238,16 +248,31 @@ function medianOfResults(results) {
   return sorted[middle];
 }
 
-async function benchmarkScenario(scenarioFileName) {
+async function benchmarkScenario(scenarioFileName, useAnvil) {
   let { config, requests } = await loadScenario(scenarioFileName);
   const name = path.basename(scenarioFileName).split(".")[0];
   console.error(`Running ${name} scenario`);
 
   const start = performance.now();
 
-  const provider = await createHardhatNetworkProvider(config.providerConfig, {
-    enabled: config.loggerEnabled,
-  });
+  let provider;
+  let anvilServer;
+  if (useAnvil) {
+    try {
+      // Wrapper doesn't support `--prune-history` argument, hence `launch: false`
+      anvilServer = await AnvilServer.launch({ launch: false });
+      provider = new HttpProvider(ANVIL_HOST, "anvil");
+    } catch (e) {
+      if (anvilServer) {
+        anvilServer.kill();
+      }
+      throw e;
+    }
+  } else {
+    provider = await createHardhatNetworkProvider(config.providerConfig, {
+      enabled: config.loggerEnabled,
+    });
+  }
 
   const failures = [];
   const rpcCallResults = [];
@@ -264,6 +289,10 @@ async function benchmarkScenario(scenarioFileName) {
   }
 
   const timeMs = performance.now() - start;
+
+  if (anvilServer) {
+    anvilServer.kill();
+  }
 
   console.error(
     `${name} finished in ${
