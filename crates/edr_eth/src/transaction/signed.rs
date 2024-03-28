@@ -250,6 +250,14 @@ impl SignedTransaction {
         }
     }
 
+    /// Total blob gas used by the transaction.
+    pub fn total_blob_gas(&self) -> Option<u64> {
+        match self {
+            SignedTransaction::Eip4844(tx) => Some(tx.total_blob_gas()),
+            _ => None,
+        }
+    }
+
     pub fn transaction_type(&self) -> u64 {
         match self {
             SignedTransaction::PreEip155Legacy(_) | SignedTransaction::PostEip155Legacy(_) => 0,

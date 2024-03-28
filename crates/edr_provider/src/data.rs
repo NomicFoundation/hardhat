@@ -3743,5 +3743,11 @@ mod tests {
             chain_id: 11_155_111,
             url: get_alchemy_url().replace("mainnet", "sepolia"),
         },
+        // This block has an EIP-4844 transaction
+        mainnet_cancun => {
+            block_number: 19_529_021,
+            chain_id: 1,
+            url: get_alchemy_url(),
+        },
     }
 }
