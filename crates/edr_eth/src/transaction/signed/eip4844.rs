@@ -2,6 +2,7 @@ use std::sync::OnceLock;
 
 use alloy_primitives::keccak256;
 use alloy_rlp::{RlpDecodable, RlpEncodable};
+use revm_primitives::GAS_PER_BLOB;
 
 use crate::{
     access_list::AccessList,
@@ -71,6 +72,11 @@ impl Eip4844SignedTransaction {
         }
 
         signature.recover(Eip4844TransactionRequest::from(self).hash())
+    }
+
+    /// Total blob gas used by the transaction.
+    pub fn total_blob_gas(&self) -> u64 {
+        GAS_PER_BLOB * self.blob_hashes.len() as u64
     }
 }
 

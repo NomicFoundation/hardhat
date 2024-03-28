@@ -17,6 +17,7 @@ use revm::{
     primitives::{
         BlobExcessGasAndPrice, BlockEnv, CfgEnvWithHandlerCfg, EVMError, EnvWithHandlerCfg,
         ExecutionResult, InvalidHeader, InvalidTransaction, Output, ResultAndState, SpecId,
+        MAX_BLOB_GAS_PER_BLOCK,
     },
     Context, DatabaseCommit, Evm, InnerEvmContext,
 };
@@ -54,6 +55,9 @@ pub enum BlockTransactionError<BE, SE> {
     /// Transaction has higher gas limit than is remaining in block
     #[error("Transaction has a higher gas limit than the remaining gas in the block")]
     ExceedsBlockGasLimit,
+    /// Transaction has higher blob gas usage than is remaining in block
+    #[error("Transaction has higher blob gas usage than is remaining in block")]
+    ExceedsBlockBlobGasLimit,
     /// Sender does not have enough funds to send transaction.
     #[error("Sender doesn't have enough funds to send tx. The max upfront cost is: {max_upfront_cost} and the sender's balance is: {sender_balance}.")]
     InsufficientFunds {
@@ -231,6 +235,19 @@ impl BlockBuilder {
             };
         }
 
+        let blob_gas = transaction.total_blob_gas().unwrap_or_default();
+        if let Some(BlobGas { gas_used, .. }) = self.header.blob_gas.as_ref() {
+            if gas_used + blob_gas > MAX_BLOB_GAS_PER_BLOCK {
+                return ExecutionResultWithContext {
+                    result: Err(BlockTransactionError::ExceedsBlockBlobGasLimit),
+                    evm_context: EvmContext {
+                        debug: debug_context,
+                        state,
+                    },
+                };
+            }
+        }
+
         let spec_id = self.cfg.handler_cfg.spec_id;
 
         let block = BlockEnv {
@@ -345,6 +362,10 @@ impl BlockBuilder {
         state.commit(state_diff);
 
         self.header.gas_used += result.gas_used();
+
+        if let Some(BlobGas { gas_used, .. }) = self.header.blob_gas.as_mut() {
+            *gas_used += blob_gas;
+        }
 
         let logs = result.logs().to_vec();
         let logs_bloom = {
