@@ -177,7 +177,7 @@ ignitionScope
         // check for a previous run of this deploymentId and compare instanceIds
         // if they're different, wipe deployment state
         const instanceFilePath = path.join(
-          path.dirname(deploymentDir),
+          hre.config.paths.cache,
           ".hardhat-network-instances.json"
         );
         const instanceFileExists = await pathExists(instanceFilePath);
