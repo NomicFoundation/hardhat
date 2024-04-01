@@ -14,10 +14,7 @@ import {
   readFile,
 } from "fs-extra";
 import { extendConfig, extendEnvironment, scope } from "hardhat/config";
-import {
-  HardhatPluginError,
-  NomicLabsHardhatPluginError,
-} from "hardhat/plugins";
+import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import path from "path";
 
 import "./type-extensions";
@@ -70,7 +67,7 @@ extendEnvironment((hre) => {
     (hre as any).ignition = {
       type: "stub",
       deploy: () => {
-        throw new HardhatPluginError(
+        throw new NomicLabsHardhatPluginError(
           "hardhat-ignition",
           "Please install either `@nomicfoundation/hardhat-ignition-viem` or `@nomicfoundation/hardhat-ignition-ethers` to use Ignition in your Hardhat tests"
         );
@@ -210,18 +207,16 @@ ignitionScope
 
       if (reset) {
         if (deploymentDir === undefined) {
-          console.warn(
+          throw new NomicLabsHardhatPluginError(
+            "@nomicfoundation/hardhat-ignition",
             "Deploy cancelled: Cannot reset deployment on ephemeral Hardhat network"
           );
-
-          process.exitCode = 1;
         } else {
           await rm(deploymentDir, { recursive: true, force: true });
         }
       }
 
       if (strategyName !== "basic" && strategyName !== "create2") {
-        require("hardhat/plugins") as typeof import("hardhat/plugins");
         throw new NomicLabsHardhatPluginError(
           "hardhat-ignition",
           "Invalid strategy name, must be either 'basic' or 'create2'"
@@ -233,9 +228,10 @@ ignitionScope
       const userModule = loadModule(hre.config.paths.ignition, modulePath);
 
       if (userModule === undefined) {
-        console.warn("No Ignition modules found");
-        process.exitCode = 1;
-        return;
+        throw new NomicLabsHardhatPluginError(
+          "@nomicfoundation/hardhat-ignition",
+          "No Ignition modules found"
+        );
       }
 
       let parameters: DeploymentParameters | undefined;
@@ -331,34 +327,35 @@ ignitionScope
       const userModule = loadModule(hre.config.paths.ignition, modulePath);
 
       if (userModule === undefined) {
-        console.warn("No Ignition modules found");
-        process.exitCode = 1;
-      } else {
-
-      try {
-        const serializedIgnitionModule =
-          IgnitionModuleSerializer.serialize(userModule);
-
-        const batchInfo = batches(userModule);
-
-        await writeVisualization(
-          { module: serializedIgnitionModule, batches: batchInfo },
-          {
-            cacheDir: hre.config.paths.cache,
-          }
+        throw new NomicLabsHardhatPluginError(
+          "@nomicfoundation/hardhat-ignition",
+          "No Ignition modules found"
         );
-      } catch (e) {
-        if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-          throw new NomicLabsHardhatPluginError(
-            "hardhat-ignition",
-            e.message,
-            e
-          );
-        }
+      } else {
+        try {
+          const serializedIgnitionModule =
+            IgnitionModuleSerializer.serialize(userModule);
 
-        throw e;
+          const batchInfo = batches(userModule);
+
+          await writeVisualization(
+            { module: serializedIgnitionModule, batches: batchInfo },
+            {
+              cacheDir: hre.config.paths.cache,
+            }
+          );
+        } catch (e) {
+          if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
+            throw new NomicLabsHardhatPluginError(
+              "hardhat-ignition",
+              e.message,
+              e
+            );
+          }
+
+          throw e;
+        }
       }
-    }
 
       if (!noOpen) {
         const indexFile = path.join(
@@ -584,10 +581,15 @@ async function resolveConfigPath(
       throw e;
     }
 
-    console.warn(`Could not parse parameters from ${filepath}`);
-    process.exitCode = 1;
+    if (e instanceof Error) {
+      throw new NomicLabsHardhatPluginError(
+        "@nomicfoundation/hardhat-ignition",
+        `Could not parse parameters from ${filepath}`,
+        e
+      );
+    }
 
-    throw new Error(`Failed to parse parameters from ${filepath}`);
+    throw e;
   }
 }
 
@@ -599,10 +601,14 @@ function resolveParametersString(paramString: string): DeploymentParameters {
       throw e;
     }
 
-    console.warn(`Could not parse JSON parameters`);
-    process.exitCode = 1;
+    if (e instanceof Error) {
+      throw new NomicLabsHardhatPluginError(
+        "@nomicfoundation/hardhat-ignition",
+        "Could not parse JSON parameters",
+        e
+      );
+    }
 
-    throw new Error("Failed to parse JSON parameters");
-
+    throw e;
   }
 }
