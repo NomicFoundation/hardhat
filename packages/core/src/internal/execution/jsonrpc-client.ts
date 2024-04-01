@@ -202,38 +202,19 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
   }
 
   public async getNetworkFees(): Promise<NetworkFees> {
-    const latestBlock = await this.getLatestBlock();
+    const fees = await this._getNetworkFees();
+    const maxFees = "gasPrice" in fees ? fees.gasPrice : fees.maxFeePerGas;
 
-    // We prioritize EIP-1559 fees over legacy gasPrice fees
-    if (latestBlock.baseFeePerGas !== undefined) {
-      // Logic copied from ethers v6
-      const maxPriorityFeePerGas = 1_000_000_000n; // 1gwei
-      const maxFeePerGas =
-        latestBlock.baseFeePerGas * 2n + maxPriorityFeePerGas;
-
-      if (
-        this._config?.maxFeePerGasLimit !== undefined &&
-        maxFeePerGas > this._config.maxFeePerGasLimit
-      ) {
-        throw new IgnitionError(
-          ERRORS.EXECUTION.MAX_FEE_PER_GAS_EXCEEDS_GAS_LIMIT
-        );
-      }
-
-      return {
-        maxFeePerGas,
-        maxPriorityFeePerGas,
-      };
+    if (
+      this._config?.maxFeePerGasLimit !== undefined &&
+      maxFees > this._config.maxFeePerGasLimit
+    ) {
+      throw new IgnitionError(
+        ERRORS.EXECUTION.MAX_FEE_PER_GAS_EXCEEDS_GAS_LIMIT
+      );
     }
 
-    const response = await this._provider.request({
-      method: "eth_gasPrice",
-      params: [],
-    });
-
-    assertResponseType("eth_gasPrice", response, typeof response === "string");
-
-    return { gasPrice: jsonRpcQuantityToBigInt(response) };
+    return fees;
   }
 
   public async getLatestBlock(): Promise<Block> {
@@ -637,6 +618,32 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
     assertResponseType("eth_getCode", result, typeof result === "string");
 
     return result;
+  }
+
+  private async _getNetworkFees(): Promise<NetworkFees> {
+    const latestBlock = await this.getLatestBlock();
+
+    // We prioritize EIP-1559 fees over legacy gasPrice fees
+    if (latestBlock.baseFeePerGas !== undefined) {
+      // Logic copied from ethers v6
+      const maxPriorityFeePerGas = 1_000_000_000n; // 1gwei
+      const maxFeePerGas =
+        latestBlock.baseFeePerGas * 2n + maxPriorityFeePerGas;
+
+      return {
+        maxFeePerGas,
+        maxPriorityFeePerGas,
+      };
+    }
+
+    const response = await this._provider.request({
+      method: "eth_gasPrice",
+      params: [],
+    });
+
+    assertResponseType("eth_gasPrice", response, typeof response === "string");
+
+    return { gasPrice: jsonRpcQuantityToBigInt(response) };
   }
 }
 
