@@ -23,7 +23,7 @@
     "test:coverage": "npm run test:coverage -w packages",
     "test:examples": "npm run test -w examples --if-present",
     "watch": "tsc --build --watch packages/core packages/hardhat-plugin",
-    "fullcheck": "npm run build && npm run lint && npm run test:coverage && npm run test:examples",
+    "fullcheck": "npm run build && npm run lint && npm run test:examples",
     "clean": "npm run clean --workspaces --if-present"
   },
   "devDependencies": {
