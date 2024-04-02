@@ -159,4 +159,46 @@ describe("verify", () => {
       assert.deepEqual(actualSources, expectedSources);
     }
   });
+
+  it("should yield a verify result containing all available contracts when `includeUnrelatedContracts` is enabled", async () => {
+    const expectedResultMap: { [k: string]: string[] } = {
+      "contracts/TestA.sol:TestA": [
+        "contracts/TestA.sol",
+        "contracts/TestB.sol",
+        "contracts/TestC.sol",
+        "contracts/TestD.sol",
+      ],
+      "contracts/TestB.sol:TestB": [
+        "contracts/TestA.sol",
+        "contracts/TestB.sol",
+        "contracts/TestC.sol",
+        "contracts/TestD.sol",
+      ],
+      "contracts/TestC.sol:TestC": [
+        "contracts/TestA.sol",
+        "contracts/TestB.sol",
+        "contracts/TestC.sol",
+        "contracts/TestD.sol",
+      ],
+      "contracts/TestD.sol:TestD": [
+        "contracts/TestA.sol",
+        "contracts/TestB.sol",
+        "contracts/TestC.sol",
+        "contracts/TestD.sol",
+      ],
+    };
+
+    const deploymentDir = path.join(__dirname, "mocks", "verify", "min-input");
+
+    for await (const [, info] of getVerificationInformation(
+      deploymentDir,
+      undefined,
+      true
+    )) {
+      const expectedSources = expectedResultMap[info.name];
+      const actualSources = Object.keys(JSON.parse(info.sourceCode).sources);
+
+      assert.deepEqual(actualSources, expectedSources);
+    }
+  });
 });

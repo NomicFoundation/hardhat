@@ -33,7 +33,8 @@ import {
  */
 export async function* getVerificationInformation(
   deploymentDir: string,
-  customChains: ChainConfig[] = []
+  customChains: ChainConfig[] = [],
+  includeUnrelatedContracts = false
 ): AsyncGenerator<VerifyResult> {
   const deploymentLoader = new FileDeploymentLoader(deploymentDir);
 
@@ -61,7 +62,8 @@ export async function* getVerificationInformation(
   for (const exState of deploymentExStates) {
     const verifyInfo = await convertExStateToVerifyInfo(
       exState,
-      deploymentLoader
+      deploymentLoader,
+      includeUnrelatedContracts
     );
 
     const verifyResult: VerifyResult = [chainConfig, verifyInfo];
@@ -97,9 +99,13 @@ function getImportSourceNames(
   const contractSource = buildInfo.input.sources[sourceName].content;
   const { imports } = analyze(contractSource);
 
-  const importSources = imports.map((i) =>
-    path.join(path.dirname(sourceName), i).replaceAll("\\", "/")
-  );
+  const importSources = imports.map((i) => {
+    if (/^\.\.?[\/|\\]/.test(i)) {
+      return path.join(path.dirname(sourceName), i).replaceAll("\\", "/");
+    }
+
+    return i;
+  });
 
   return [
     ...importSources,
@@ -109,7 +115,8 @@ function getImportSourceNames(
 
 async function convertExStateToVerifyInfo(
   exState: DeploymentExecutionState,
-  deploymentLoader: FileDeploymentLoader
+  deploymentLoader: FileDeploymentLoader,
+  includeUnrelatedContracts: boolean = false
 ) {
   const [buildInfo, artifact] = await Promise.all([
     deploymentLoader.readBuildInfo(exState.artifactId),
@@ -126,14 +133,16 @@ async function convertExStateToVerifyInfo(
 
   const sourceCode = prepareInputBasedOn(buildInfo, artifact, libraries);
 
-  const sourceNames = [
-    artifact.sourceName,
-    ...getImportSourceNames(artifact.sourceName, buildInfo),
-  ];
+  if (!includeUnrelatedContracts) {
+    const sourceNames = [
+      artifact.sourceName,
+      ...getImportSourceNames(artifact.sourceName, buildInfo),
+    ];
 
-  for (const source of Object.keys(sourceCode.sources)) {
-    if (!sourceNames.includes(source)) {
-      delete sourceCode.sources[source];
+    for (const source of Object.keys(sourceCode.sources)) {
+      if (!sourceNames.includes(source)) {
+        delete sourceCode.sources[source];
+      }
     }
   }
 
