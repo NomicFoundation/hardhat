@@ -22,7 +22,6 @@
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{js,md,json}\"",
     "test": "mocha --recursive \"test/**/*.ts\" --exit && node web3-lazy-object-tests/when-accessing-web3-class.js && node web3-lazy-object-tests/when-accessing-web3-object.js && node web3-lazy-object-tests/when-requiring-web3-module.js",
-    "prebuild": "cd ../../crates/edr_napi && yarn build",
     "build": "tsc --build .",
     "prepublishOnly": "pnpm build",
     "clean": "rimraf dist"

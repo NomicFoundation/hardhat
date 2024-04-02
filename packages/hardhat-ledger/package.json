@@ -24,7 +24,6 @@
     "pretest": "cd ../.. && pnpm build",
     "test": "mocha --recursive \"test/**/*.ts\" -c --exit",
     "coverage": "nyc pnpm test -- --reporter min",
-    "prebuild": "cd ../../crates/edr_napi && pnpm build",
     "build": "tsc --build .",
     "prepublishOnly": "pnpm build",
     "clean": "rimraf dist"
