@@ -190,9 +190,18 @@ async function benchmarkAllScenarios(outPath) {
 }
 
 async function benchmarkScenario(scenarioFileName) {
-  const { config, requests } = await loadScenario(scenarioFileName);
+  let { config, requests } = await loadScenario(scenarioFileName);
   const name = path.basename(scenarioFileName).split(".")[0];
   console.error(`Running ${name} scenario`);
+
+  if (name.startsWith("synthetix")) {
+    console.error(
+      "Filtering `eth_getBlockByNumber` to let results stay in memory to prevent variance from GC"
+    );
+    requests = requests.filter(
+      (request) => request.method !== "eth_getBlockByNumber"
+    );
+  }
 
   const start = performance.now();
 
