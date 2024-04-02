@@ -70,7 +70,7 @@ describe("Vyper plugin", function () {
       });
     });
 
-    describe("optimize, as boolean type, can always be set to false in versions < 0.3.10 (flag --no-optimize)", function () {
+    describe("optimize, as boolean type, can always be set to false in versions 0.3.0 < v < 0.3.10 (flag --no-optimize)", function () {
       useFixtureProject(
         "compilation-with-settings-option-variants/optimize-set-to-false-always-available-old-versions"
       );
@@ -79,6 +79,20 @@ describe("Vyper plugin", function () {
       it("should compile successfully", async function () {
         await this.env.run(TASK_COMPILE);
         assertFileExists(path.join("artifacts", "contracts", "A.vy", "A.json"));
+      });
+    });
+
+    describe("optimize, as boolean type, cannot be set to false in versions < 0.3.1", function () {
+      useFixtureProject(
+        "compilation-with-settings-option-variants/optimize-set-to-false-not-available-old-versions"
+      );
+      useEnvironment();
+
+      it("should compile successfully", async function () {
+        await expect(this.env.run(TASK_COMPILE)).to.be.rejectedWith(
+          Error,
+          "The 'optimize' setting with value 'false' is not supported for versions of the Vyper compiler older than 0.3.1. You are currently using version 0.3.0."
+        );
       });
     });
 

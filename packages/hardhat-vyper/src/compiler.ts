@@ -82,6 +82,12 @@ function getOptimize(
       // The optimizer is enabled by default
       return "";
     } else {
+      if (semver.lt(compilerVersion, "0.3.1")) {
+        throw new VyperPluginError(
+          `The 'optimize' setting with value 'false' is not supported for versions of the Vyper compiler older than 0.3.1. You are currently using version ${compilerVersion}.`
+        );
+      }
+
       return semver.lt(compilerVersion, "0.3.10")
         ? "--no-optimize"
         : "--optimize none";
