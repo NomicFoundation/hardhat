@@ -1,6 +1,7 @@
 import { exec } from "child_process";
 import semver from "semver";
 import { VyperSettings } from "./types";
+import { VyperPluginError } from "./util";
 
 export class Compiler {
   constructor(private _pathToVyper: string) {}
@@ -58,7 +59,7 @@ function getOptimize(
   optimize: string | boolean | undefined
 ): string {
   if (compilerVersion === "" && optimize !== undefined) {
-    throw new Error(
+    throw new VyperPluginError(
       "The 'compilerVersion' parameter must be set when the setting 'optimize' is set."
     );
   }
@@ -73,7 +74,7 @@ function getOptimize(
         semver.gte(compilerVersion, "0.3.10") ||
         semver.lt(compilerVersion, "0.3.1")
       ) {
-        throw new Error(
+        throw new VyperPluginError(
           `The 'optimize' setting with value 'true' is not supported for versions of the Vyper compiler older than 0.3.1 or newer than 0.3.10. You are currently using version ${compilerVersion}.`
         );
       }
@@ -92,12 +93,12 @@ function getOptimize(
       return `--optimize ${optimize}`;
     }
 
-    throw new Error(
+    throw new VyperPluginError(
       `The 'optimize' setting, when specified as a string value, is available only starting from the Vyper compiler version 0.3.10. You are currently using version ${compilerVersion}.`
     );
   }
 
-  throw new Error(
+  throw new VyperPluginError(
     `The 'optimize' setting has an invalid type value. Type is: ${typeof optimize}.`
   );
 }
