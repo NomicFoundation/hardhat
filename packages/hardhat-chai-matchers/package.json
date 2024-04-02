@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-chai-matchers",
-  "version": "2.0.4",
+  "version": "2.0.6",
   "description": "Hardhat utils for testing",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-chai-matchers",
   "repository": "github:nomicfoundation/hardhat",
@@ -22,6 +22,7 @@
     "pretest": "cd ../.. && pnpm build",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
     "test:ci": "pnpm test && node scripts/check-subpath-exports.js",
+    "prebuild": "cd ../../crates/edr_napi && pnpm build",
     "build": "tsc --build .",
     "prepublishOnly": "pnpm build",
     "clean": "rimraf dist internal types *.{d.ts,js}{,.map} build-test tsconfig.tsbuildinfo"
@@ -45,7 +46,7 @@
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.2.0",
     "@types/mocha": ">=9.1.0",
-    "@types/node": "^16.0.0",
+    "@types/node": "^18.0.0",
     "@typescript-eslint/eslint-plugin": "5.61.0",
     "@typescript-eslint/parser": "5.61.0",
     "bignumber.js": "^9.0.2",
@@ -66,10 +67,10 @@
     "typescript": "~5.0.0"
   },
   "peerDependencies": {
-    "@nomicfoundation/hardhat-ethers": "^3.0.0",
+    "@nomicfoundation/hardhat-ethers": "workspace:^3.0.0",
     "chai": "^4.2.0",
     "ethers": "^6.1.0",
-    "hardhat": "^2.9.4"
+    "hardhat": "workspace:^2.9.4"
   },
   "dependencies": {
     "@types/chai-as-promised": "^7.1.3",

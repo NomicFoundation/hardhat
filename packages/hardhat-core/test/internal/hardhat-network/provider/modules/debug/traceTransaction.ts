@@ -3,10 +3,9 @@ import _ from "lodash";
 
 import { defaultHardhatNetworkParams } from "../../../../../../src/internal/core/config/default-config";
 import { BackwardsCompatibilityProviderAdapter } from "../../../../../../src/internal/core/providers/backwards-compatibility";
-import { ModulesLogger } from "../../../../../../src/internal/hardhat-network/provider/modules/logger";
 import { ForkConfig } from "../../../../../../src/internal/hardhat-network/provider/node-types";
 import { RpcDebugTraceOutput } from "../../../../../../src/internal/hardhat-network/provider/output";
-import { HardhatNetworkProvider } from "../../../../../../src/internal/hardhat-network/provider/provider";
+import { createHardhatNetworkProvider } from "../../../../../../src/internal/hardhat-network/provider/provider";
 import { EthereumProvider } from "../../../../../../src/types";
 import { trace as mainnetPostLondonTxTrace } from "../../../../../fixture-debug-traces/mainnetPostLondonTxTrace";
 import { trace as mainnetReturnsDataTrace } from "../../../../../fixture-debug-traces/mainnetReturnsDataTrace";
@@ -26,7 +25,6 @@ import {
   DEFAULT_ACCOUNTS,
   DEFAULT_ACCOUNTS_ADDRESSES,
   DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
-  DEFAULT_CHAIN_ID,
   DEFAULT_HARDFORK,
   DEFAULT_NETWORK_ID,
   PROVIDERS,
@@ -231,7 +229,7 @@ describe("Debug module", function () {
 
     let provider: EthereumProvider;
 
-    beforeEach(function () {
+    beforeEach(async function () {
       if (ALCHEMY_URL === undefined) {
         this.skip();
       }
@@ -240,12 +238,10 @@ describe("Debug module", function () {
         blockNumber: 11_954_000,
       };
 
-      const logger = new ModulesLogger(false);
-
-      const hardhatNetworkProvider = new HardhatNetworkProvider(
+      const hardhatNetworkProvider = await createHardhatNetworkProvider(
         {
-          hardfork: DEFAULT_HARDFORK,
-          chainId: DEFAULT_CHAIN_ID,
+          hardfork: "muirGlacier",
+          chainId: 1,
           networkId: DEFAULT_NETWORK_ID,
           blockGasLimit: 13000000,
           minGasPrice: 0n,
@@ -262,7 +258,9 @@ describe("Debug module", function () {
           allowBlocksWithSameTimestamp: false,
           enableTransientStorage: false,
         },
-        logger
+        {
+          enabled: false,
+        }
       );
 
       provider = new BackwardsCompatibilityProviderAdapter(
@@ -356,7 +354,7 @@ describe("Debug module", function () {
   describe("fork tests (post-london)", function () {
     let provider: EthereumProvider;
 
-    beforeEach(function () {
+    beforeEach(async function () {
       if (ALCHEMY_URL === undefined) {
         this.skip();
       }
@@ -365,12 +363,10 @@ describe("Debug module", function () {
         blockNumber: 15_204_358,
       };
 
-      const logger = new ModulesLogger(false);
-
-      const hardhatNetworkProvider = new HardhatNetworkProvider(
+      const hardhatNetworkProvider = await createHardhatNetworkProvider(
         {
           hardfork: DEFAULT_HARDFORK,
-          chainId: DEFAULT_CHAIN_ID,
+          chainId: 1,
           networkId: DEFAULT_NETWORK_ID,
           blockGasLimit: 13000000,
           minGasPrice: 0n,
@@ -387,7 +383,9 @@ describe("Debug module", function () {
           allowBlocksWithSameTimestamp: false,
           enableTransientStorage: false,
         },
-        logger
+        {
+          enabled: false,
+        }
       );
 
       provider = new BackwardsCompatibilityProviderAdapter(
@@ -401,8 +399,6 @@ describe("Debug module", function () {
         "debug_traceTransaction",
         ["0xe0b1f8e11eb822107ddc35ce2d944147cc043acf680c39332ee95dd6508d107e"]
       );
-
-      console.log(trace.structLogs.length);
 
       assertEqualTraces(trace, mainnetPostLondonTxTrace);
     });

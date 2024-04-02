@@ -11,7 +11,7 @@ import {
 import { EthereumProvider } from "../../../../src/types";
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { ALCHEMY_URL } from "../../../setup";
-import { rpcToBlockData } from "../../../../src/internal/hardhat-network/provider/fork/rpcToBlockData";
+import { rpcToBlockData } from "./utils/rpcToBlockData";
 
 async function getLatestBaseFeePerGas(provider: EthereumProvider) {
   const block = await provider.send("eth_getBlockByNumber", ["latest", false]);
@@ -122,7 +122,12 @@ describe("Block's baseFeePerGas", function () {
                 );
               });
 
-              for (const hardfork of ["london", "arrowGlacier", "shanghai"]) {
+              for (const hardfork of [
+                "london",
+                "arrowGlacier",
+                "shanghai",
+                "cancun",
+              ]) {
                 it(`should compute the next base fee correctly when ${hardfork} is activated`, async function () {
                   const latestBlockRpc = await this.provider.send(
                     "eth_getBlockByNumber",
@@ -132,6 +137,12 @@ describe("Block's baseFeePerGas", function () {
                   if (hardfork !== "shanghai") {
                     delete latestBlockRpc.withdrawals;
                     delete latestBlockRpc.withdrawalsRoot;
+                  }
+
+                  if (hardfork !== "cancun") {
+                    delete latestBlockRpc.blobGasUsed;
+                    delete latestBlockRpc.excessBlobGas;
+                    delete latestBlockRpc.parentBeaconBlockRoot;
                   }
 
                   const latestBlockData = rpcToBlockData({
@@ -225,7 +236,7 @@ describe("Block's baseFeePerGas", function () {
             });
           });
         } else {
-          describe("When not forking", function () {
+          describe("When forking", function () {
             useProvider({
               blockGasLimit: 21000n * 4n,
               initialBaseFeePerGas: 1_000_000_000n,

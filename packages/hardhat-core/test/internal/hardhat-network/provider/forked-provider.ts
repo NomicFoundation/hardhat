@@ -1,4 +1,4 @@
-import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
+import { bytesToHex as bufferToHex } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 
 import {
@@ -32,7 +32,6 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   FORKED_PROVIDERS,
 } from "../helpers/providers";
-import { retrieveForkBlockNumber } from "../helpers/retrieveForkBlockNumber";
 import { deployContract } from "../helpers/transactions";
 
 const WETH_DEPOSIT_SELECTOR = "0xd0e30db0";
@@ -44,9 +43,6 @@ describe("Forked provider", function () {
     describe(`Using ${rpcProvider}`, function () {
       setCWD();
       useProvider();
-
-      const getForkBlockNumber = async () =>
-        retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider);
 
       let gasPrice: string;
       beforeEach(async function () {
@@ -75,7 +71,9 @@ describe("Forked provider", function () {
         describe("when used in the context of a past block", () => {
           describe("when the block number is greater than the fork block number", () => {
             it("does not affect previously added data", async function () {
-              const forkBlockNumber = await getForkBlockNumber();
+              const forkBlockNumber = rpcQuantityToNumber(
+                await this.provider.send("eth_blockNumber")
+              );
 
               const contractAddress = await deployContract(
                 this.provider,
@@ -118,7 +116,10 @@ describe("Forked provider", function () {
 
           describe("when the block number is less or equal to the fork block number", () => {
             it("does not affect previously added storage data", async function () {
-              const forkBlockNumber = await getForkBlockNumber();
+              const forkBlockNumber = rpcQuantityToNumber(
+                await this.provider.send("eth_blockNumber")
+              );
+
               await this.provider.send("hardhat_impersonateAccount", [
                 BITFINEX_WALLET_ADDRESS.toString(),
               ]);
@@ -160,7 +161,10 @@ describe("Forked provider", function () {
             });
 
             it("does not affect previously added balance data", async function () {
-              const forkBlockNumber = await getForkBlockNumber();
+              const forkBlockNumber = rpcQuantityToNumber(
+                await this.provider.send("eth_blockNumber")
+              );
+
               await this.provider.send("hardhat_impersonateAccount", [
                 BITFINEX_WALLET_ADDRESS.toString(),
               ]);

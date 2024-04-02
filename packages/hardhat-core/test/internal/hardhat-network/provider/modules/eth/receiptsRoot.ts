@@ -1,13 +1,15 @@
 import { assert } from "chai";
 
-import { numberToRpcQuantity } from "../../../../../../src/internal/core/jsonrpc/types/base-types";
+import {
+  numberToRpcQuantity,
+  rpcQuantityToNumber,
+} from "../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { workaroundWindowsCiFailures } from "../../../../../utils/workaround-windows-ci-failures";
 import { setCWD } from "../../../helpers/cwd";
 import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   PROVIDERS,
 } from "../../../helpers/providers";
-import { retrieveForkBlockNumber } from "../../../helpers/retrieveForkBlockNumber";
 import { getPendingBaseFeePerGas } from "../../../helpers/getPendingBaseFeePerGas";
 
 describe("Eth module", function () {
@@ -22,14 +24,13 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      const getFirstBlock = async () =>
-        isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
-
       describe("receiptsRoot", function () {
-        let firstBlock: number;
+        let firstBlockNumber: number;
 
         beforeEach(async function () {
-          firstBlock = await getFirstBlock();
+          firstBlockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
         });
 
         it("should have the right receiptsRoot when mining 1 tx", async function () {
@@ -45,7 +46,7 @@ describe("Eth module", function () {
           ]);
 
           const block = await this.provider.send("eth_getBlockByNumber", [
-            numberToRpcQuantity(firstBlock + 1),
+            numberToRpcQuantity(firstBlockNumber + 1),
             false,
           ]);
 
@@ -80,7 +81,7 @@ describe("Eth module", function () {
           await this.provider.send("evm_mine", []);
 
           const block = await this.provider.send("eth_getBlockByNumber", [
-            numberToRpcQuantity(firstBlock + 1),
+            numberToRpcQuantity(firstBlockNumber + 1),
             false,
           ]);
 

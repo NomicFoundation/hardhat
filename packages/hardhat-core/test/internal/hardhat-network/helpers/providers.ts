@@ -1,7 +1,7 @@
 import {
-  bufferToHex,
+  bytesToHex as bufferToHex,
   privateToAddress,
-  toBuffer,
+  toBytes,
 } from "@nomicfoundation/ethereumjs-util";
 
 import {
@@ -11,6 +11,10 @@ import {
 import { ALCHEMY_URL, INFURA_URL } from "../../../setup";
 
 import { useProvider, UseProviderOptions } from "./useProvider";
+
+function toBuffer(x: Parameters<typeof toBytes>[0]) {
+  return Buffer.from(toBytes(x));
+}
 
 export const DEFAULT_HARDFORK = "shanghai";
 export const DEFAULT_CHAIN_ID = 123;
@@ -94,7 +98,7 @@ export const INTERVAL_MINING_PROVIDERS = [
         loggerEnabled: true,
         mining: {
           auto: false,
-          interval: 10000,
+          interval: 100,
           mempool: DEFAULT_MEMPOOL_CONFIG,
         },
         ...options,
@@ -111,7 +115,7 @@ export const INTERVAL_MINING_PROVIDERS = [
         loggerEnabled: true,
         mining: {
           auto: false,
-          interval: 10000,
+          interval: 100,
           mempool: DEFAULT_MEMPOOL_CONFIG,
         },
         ...options,
@@ -156,7 +160,7 @@ if (ALCHEMY_URL !== undefined) {
         forkConfig: { jsonRpcUrl: url, blockNumber: options.forkBlockNumber },
         mining: {
           auto: false,
-          interval: 10000,
+          interval: 100,
           mempool: DEFAULT_MEMPOOL_CONFIG,
         },
         ...options,

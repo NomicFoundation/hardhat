@@ -1,13 +1,14 @@
 import type EthersT from "ethers";
-import type OrdinalT from "ordinal";
-
-import { AssertionError } from "chai";
 
 import {
   ASSERTION_ABORTED,
   REVERTED_WITH_CUSTOM_ERROR_MATCHER,
 } from "../constants";
-import { assertIsNotNull, preventAsyncMatcherChaining } from "../utils";
+import {
+  assertArgsArraysEqual,
+  assertIsNotNull,
+  preventAsyncMatcherChaining,
+} from "../utils";
 import { buildAssert, Ssfi } from "../../utils";
 import {
   decodeReturnData,
@@ -196,11 +197,10 @@ function validateInput(
 export async function revertedWithCustomErrorWithArgs(
   context: any,
   Assertion: Chai.AssertionStatic,
-  _utils: Chai.ChaiUtils,
+  chaiUtils: Chai.ChaiUtils,
   expectedArgs: any[],
   ssfi: Ssfi
 ) {
-  const ordinal = require("ordinal") as typeof OrdinalT;
   const negated = false; // .withArgs cannot be negated
   const assert = buildAssert(negated, ssfi);
 
@@ -223,47 +223,13 @@ export async function revertedWithCustomErrorWithArgs(
     contractInterface.decodeErrorResult(errorFragment, returnData)
   );
 
-  new Assertion(actualArgs).to.have.same.length(
-    expectedArgs.length,
-    `expected ${expectedArgs.length} args but got ${actualArgs.length}`
+  assertArgsArraysEqual(
+    Assertion,
+    expectedArgs,
+    actualArgs,
+    `"${customError.name}" custom error`,
+    "error",
+    assert,
+    ssfi
   );
-
-  for (const [i, actualArg] of actualArgs.entries()) {
-    const expectedArg = expectedArgs[i];
-    if (typeof expectedArg === "function") {
-      const errorPrefix = `The predicate for custom error argument with index ${i}`;
-      try {
-        assert(
-          expectedArg(actualArg),
-          `${errorPrefix} returned false`
-          // no need for a negated message, since we disallow mixing .not. with
-          // .withArgs
-        );
-      } catch (e) {
-        if (e instanceof AssertionError) {
-          assert(
-            false,
-            `${errorPrefix} threw an AssertionError: ${e.message}`
-            // no need for a negated message, since we disallow mixing .not. with
-            // .withArgs
-          );
-        }
-        throw e;
-      }
-    } else if (Array.isArray(expectedArg)) {
-      const expectedLength = expectedArg.length;
-      const actualLength = actualArg.length;
-      assert(
-        expectedLength === actualLength,
-        `Expected the ${ordinal(i + 1)} argument of the "${
-          customError.name
-        }" custom error to have ${expectedLength} ${
-          expectedLength === 1 ? "element" : "elements"
-        }, but it has ${actualLength}`
-      );
-      new Assertion(actualArg).to.deep.equal(expectedArg);
-    } else {
-      new Assertion(actualArg).to.equal(expectedArg);
-    }
-  }
 }

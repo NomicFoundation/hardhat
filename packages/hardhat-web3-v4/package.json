@@ -22,6 +22,7 @@
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{js,md,json}\"",
     "test": "mocha --recursive \"test/**/*.ts\" --exit && node web3-lazy-object-tests/when-accessing-web3-class.js && node web3-lazy-object-tests/when-accessing-web3-object.js && node web3-lazy-object-tests/when-requiring-web3-module.js",
+    "prebuild": "cd ../../crates/edr_napi && yarn build",
     "build": "tsc --build .",
     "prepublishOnly": "pnpm build",
     "clean": "rimraf dist"
@@ -38,7 +39,7 @@
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^7.1.3",
     "@types/mocha": ">=9.1.0",
-    "@types/node": "^16.0.0",
+    "@types/node": "^18.0.0",
     "@typescript-eslint/eslint-plugin": "5.61.0",
     "@typescript-eslint/parser": "5.61.0",
     "chai": "^4.2.0",
@@ -57,7 +58,7 @@
     "web3": "^4.0.1"
   },
   "peerDependencies": {
-    "hardhat": "^2.0.0",
+    "hardhat": "workspace:^2.0.0",
     "web3": "^4.0.1"
   }
 }

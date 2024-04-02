@@ -1,0 +1,84 @@
+use std::{fmt::Debug, ops::Deref};
+
+use auto_impl::auto_impl;
+use edr_eth::{Address, B256, U256};
+use revm::primitives::{AccountInfo, Bytecode};
+
+type BoxedAccountModifierFn = Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + Send>;
+
+/// Debuggable function type for modifying account information.
+pub struct AccountModifierFn {
+    inner: BoxedAccountModifierFn,
+}
+
+impl AccountModifierFn {
+    /// Constructs an [`AccountModifierFn`] from the provided function.
+    pub fn new(func: BoxedAccountModifierFn) -> Self {
+        Self { inner: func }
+    }
+}
+
+impl Debug for AccountModifierFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            std::any::type_name::<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>)>()
+        )
+    }
+}
+
+impl Deref for AccountModifierFn {
+    type Target = dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>);
+
+    fn deref(&self) -> &Self::Target {
+        self.inner.as_ref()
+    }
+}
+
+/// A trait for debug operation on a database.
+#[auto_impl(&mut, Box)]
+pub trait StateDebug {
+    /// The state's error type.
+    type Error;
+
+    /// Retrieves the storage root of the account at the specified address.
+    fn account_storage_root(&self, address: &Address) -> Result<Option<B256>, Self::Error>;
+
+    /// Inserts the provided account at the specified address.
+    fn insert_account(
+        &mut self,
+        address: Address,
+        account_info: AccountInfo,
+    ) -> Result<(), Self::Error>;
+
+    /// Modifies the account at the specified address using the provided
+    /// function.
+    ///
+    /// Returns the modified (or created) account.
+    fn modify_account(
+        &mut self,
+        address: Address,
+        modifier: AccountModifierFn,
+    ) -> Result<AccountInfo, Self::Error>;
+
+    /// Removes and returns the account at the specified address, if it exists.
+    fn remove_account(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error>;
+
+    /// Serializes the state using ordering of addresses and storage indices.
+    fn serialize(&self) -> String;
+
+    /// Sets the storage slot at the specified address and index to the provided
+    /// value.
+    ///
+    /// Returns the old value.
+    fn set_account_storage_slot(
+        &mut self,
+        address: Address,
+        index: U256,
+        value: U256,
+    ) -> Result<U256, Self::Error>;
+
+    /// Retrieves the storage root of the database.
+    fn state_root(&self) -> Result<B256, Self::Error>;
+}

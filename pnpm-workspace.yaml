@@ -1,2 +1,4 @@
 packages:
   - "packages/*"
+  - "crates/edr_napi"
+  - "crates/tools/js/benchmark"

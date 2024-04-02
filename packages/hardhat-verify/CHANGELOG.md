@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 2.0.5
+
+### Patch Changes
+
+- 91d035e: Updated polygonZkEVMTestnet to point to cardona testnet
+
 ## 2.0.4
 
 ### Patch Changes

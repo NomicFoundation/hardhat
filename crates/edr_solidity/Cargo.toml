@@ -1,0 +1,8 @@
+[package]
+name = "edr_solidity"
+version = "0.2.0-dev"
+edition = "2021"
+
+[dependencies]
+edr_eth = { version = "0.2.0-dev", path = "../edr_eth" }
+edr_evm = { version = "0.2.0-dev", path = "../edr_evm" }

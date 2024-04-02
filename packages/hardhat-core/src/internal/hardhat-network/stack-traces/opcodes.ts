@@ -306,6 +306,10 @@ export enum Opcode {
   SELFDESTRUCT = 0xff,
 }
 
+export function opcodeName(opcode: number): string {
+  return Opcode[opcode] ?? `<unrecognized opcode ${opcode}>`;
+}
+
 export function isPush(opcode: Opcode) {
   return opcode >= Opcode.PUSH1 && opcode <= Opcode.PUSH32;
 }

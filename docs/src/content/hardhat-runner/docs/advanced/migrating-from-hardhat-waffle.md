@@ -55,7 +55,7 @@ Follow these steps to migrate your project to Hardhat Toolbox.
    :::tab{value="npm 6"}
 
    ```
-   npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomicfoundation/hardhat-ethers @nomicfoundation/hardhat-verify chai@4 ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v6
+   npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-ignition-ethers @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomicfoundation/hardhat-ethers @nomicfoundation/hardhat-verify chai@4 ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v6
    ```
 
    :::
@@ -63,7 +63,7 @@ Follow these steps to migrate your project to Hardhat Toolbox.
    :::tab{value="yarn"}
 
    ```
-   yarn add --dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers@1 @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai@4 ethers@5 hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v6
+   yarn add --dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-ignition-ethers @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers@1 @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai@4 ethers@5 hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v6
    ```
 
    :::
@@ -98,6 +98,8 @@ Follow these steps to migrate your project to Hardhat Toolbox.
 
    - `@nomicfoundation/hardhat-ethers`
    - `@nomicfoundation/hardhat-verify`
+   - `@nomicfoundation/hardhat-ignition`
+   - `@nomicfoundation/hardhat-ignition-ethers`
    - `hardhat-gas-reporter`
    - `solidity-coverage`
    - `@typechain/hardhat`

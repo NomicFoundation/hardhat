@@ -1,5 +1,51 @@
 # hardhat
 
+## 2.22.2
+
+### Patch Changes
+
+- 7876104: Initialize the Hardhat Runtime Environment before passing the command line arguments.
+
+## 2.22.1
+
+### Patch Changes
+
+- 92d140f: Include Hardhat Ignition in the toolboxes of the starter projects
+- cfec932: Upgraded hardhat-toolbox-viem to support viem@2 in the viem sample project
+
+## 2.22.0
+
+### Minor Changes
+
+- bcce371: Set cancun as the default hardfork in Hardhat network
+
+## 2.21.0
+
+### Minor Changes
+
+- 837350e: Dropped support for node v16
+- 3df5d29: Refactored Hardhat Network to use EDR instead of ethereumjs
+
+### Patch Changes
+
+- 6b6f447: Fixes a bug in Hardhat where Post-Cancun genesis blocks did not use the mandated 0x0 parent beacon block root (https://eips.ethereum.org/EIPS/eip-4788)
+
+## 2.20.1
+
+### Patch Changes
+
+- b519239: Fixed a bug when `hardhat_setStorageAt` was used in untouched addresses
+
+## 2.20.0
+
+### Minor Changes
+
+- 6ff0b20: Add support for the Cancun hardfork
+
+### Patch Changes
+
+- 4250635: Added support for solc 0.8.24
+
 ## 2.19.5
 
 ### Patch Changes

@@ -12,7 +12,7 @@ Some examples of things you could achieve by creating a plugin are: running a li
 
 ## Extending the Hardhat Runtime Environment
 
-Let’s go through the process of creating a plugin that adds new functionality to the Hardhat Runtime Environment. By doing this, we make sure our new feature is available everywhere. This means your plugin users can access it from tasks, tests, scripts, and the Hardhat console.
+Let’s go through the process of creating a plugin that adds new functionality to the Hardhat Runtime Environment. By doing this, we make sure our new feature is available everywhere. This means your plugin users can access it from tasks, tests, scripts and the Hardhat console.
 
 The Hardhat Runtime Environment (HRE) is configured through a queue of extension functions that you can add to using the `extendEnvironment()` function. It receives one parameter which is a callback which will be executed after the HRE is initialized. If `extendEnvironment` is called multiple times, its callbacks will be executed in order.
 
@@ -55,7 +55,7 @@ The Hardhat provider is configured through a queue of extension functions that y
 
 These callbacks can be `async`, and they will be `await`ed until they finish, so you should be careful when adding any functionality that might take a long time to resolve.
 
-It's important to keep in mind that after all callbacks are executed, the provider will be wrapped by Hardhat's built-in extenders. This means that the object returned by `extendProvider` is not the same as the one found on `hre.network.provider`, but its funcionality is included there.
+It's important to keep in mind that after all callbacks are executed, the provider will be wrapped by Hardhat's built-in extenders. This means that the object returned by `extendProvider` is not the same as the one found on `hre.network.provider`, but its functionality is included there.
 
 For example, adding the following to `hardhat.config.js`:
 
@@ -97,7 +97,7 @@ Will make the `hre` provider use that gas price value everywhere it's used:
 
 ```js
 task("request", async (args, hre) => {
-  await hre.network.request(/*{ method arguments }*/); // this will run FixedGasProvider's request method above
+  await hre.network.provider.request({method: /*{ method arguments }*/}); // this will run FixedGasProvider's request method above
 });
 
 module.exports = {};

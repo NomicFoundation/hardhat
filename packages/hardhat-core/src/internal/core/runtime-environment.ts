@@ -1,3 +1,5 @@
+import type { MessageTrace } from "../hardhat-network/stack-traces/message-trace";
+
 import debug from "debug";
 
 import {
@@ -20,7 +22,6 @@ import {
   ScopesMap,
 } from "../../types";
 import { Artifacts } from "../artifacts";
-import { MessageTrace } from "../hardhat-network/stack-traces/message-trace";
 
 import { getHardhatVersion } from "../util/packageInfo";
 import { analyzeModuleNotFoundError } from "./config/config-loading";

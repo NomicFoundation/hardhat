@@ -110,7 +110,7 @@ The initialized project has the following structure:
 
 ```
 contracts/
-scripts/
+ignition/modules/
 test/
 hardhat.config.js
 ```
@@ -118,8 +118,8 @@ hardhat.config.js
 These are the default paths for a Hardhat project.
 
 - `contracts/` is where the source files for your contracts should be.
+- `ignition/modules/` is where the Ignition modules that handle contract deployments should be.
 - `test/` is where your tests should go.
-- `scripts/` is where simple automation scripts go.
 
 If you need to change these paths, take a look at the [paths configuration section](../config/index.md#path-configuration).
 

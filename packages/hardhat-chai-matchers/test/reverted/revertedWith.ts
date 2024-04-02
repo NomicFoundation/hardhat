@@ -239,7 +239,7 @@ describe("INTEGRATION: Reverted with", function () {
           ).to.not.be.revertedWith("some reason")
         ).to.be.eventually.rejectedWith(
           ProviderError,
-          "sender doesn't have enough funds to send tx"
+          "Sender doesn't have enough funds to send tx"
         );
       });
     });

@@ -1,18 +1,16 @@
-import { ModulesLogger } from "../../../../src/internal/hardhat-network/provider/modules/logger";
-
-export class FakeModulesLogger extends ModulesLogger {
+export class FakeModulesLogger {
   public lines: string[] = [];
 
-  constructor(enabled: boolean) {
-    super(
-      enabled,
-      (line) => {
-        this.lines.push(line);
-      },
-      (line) => {
-        this.lines[this.lines.length - 1] = line;
-      }
-    );
+  public printLineFn(): (line: string) => void {
+    return (line) => {
+      this.lines.push(line);
+    };
+  }
+
+  public replaceLastLineFn(): (line: string) => void {
+    return (line) => {
+      this.lines[this.lines.length - 1] = line;
+    };
   }
 
   public getOutput(): string {
