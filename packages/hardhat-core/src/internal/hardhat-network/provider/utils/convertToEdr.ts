@@ -1,4 +1,4 @@
-import {
+import type {
   SpecId,
   MineOrdering,
   IntervalRange,
@@ -9,6 +9,7 @@ import {
 } from "@nomicfoundation/edr";
 import { Address } from "@nomicfoundation/ethereumjs-util";
 
+import { requireNapiRsModule } from "../../../../common/napi-rs";
 import { HardforkName } from "../../../util/hardforks";
 import { IntervalMiningConfig, MempoolOrder } from "../node-types";
 import { RpcDebugTraceOutput, RpcStructLog } from "../output";
@@ -21,6 +22,10 @@ import {
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): SpecId {
+  const { SpecId } = requireNapiRsModule(
+    "@nomicfoundation/edr"
+  ) as typeof import("@nomicfoundation/edr");
+
   switch (hardfork) {
     case HardforkName.FRONTIER:
       return SpecId.Frontier;
@@ -65,6 +70,10 @@ export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): SpecId {
 }
 
 export function edrSpecIdToEthereumHardfork(specId: SpecId): HardforkName {
+  const { SpecId } = requireNapiRsModule(
+    "@nomicfoundation/edr"
+  ) as typeof import("@nomicfoundation/edr");
+
   switch (specId) {
     case SpecId.Frontier:
       return HardforkName.FRONTIER;
@@ -128,6 +137,10 @@ export function ethereumjsIntervalMiningConfigToEdr(
 export function ethereumjsMempoolOrderToEdrMineOrdering(
   mempoolOrder: MempoolOrder
 ): MineOrdering {
+  const { MineOrdering } = requireNapiRsModule(
+    "@nomicfoundation/edr"
+  ) as typeof import("@nomicfoundation/edr");
+
   switch (mempoolOrder) {
     case "fifo":
       return MineOrdering.Fifo;
