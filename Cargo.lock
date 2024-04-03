@@ -3716,6 +3716,9 @@ dependencies = [
  "tempfile",
  "tokio",
  "toml 0.5.11",
+ "tracing",
+ "tracing-flame",
+ "tracing-subscriber",
  "walkdir",
 ]
 

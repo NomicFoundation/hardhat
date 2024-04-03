@@ -46,7 +46,7 @@ openssl-sys = { version = "0.9.93", features = ["vendored"] }
 napi-build = "2.0.1"
 
 [features]
-tracing = ["edr_evm/tracing"]
+tracing = ["edr_evm/tracing", "edr_provider/tracing"]
 scenarios = ["rand"]
 
 [profile.release]

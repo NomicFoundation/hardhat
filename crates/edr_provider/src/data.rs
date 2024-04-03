@@ -526,7 +526,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         self.beneficiary
     }
 
-    #[tracing::instrument(level = "trace", skip(self))]
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
     pub fn debug_trace_transaction(
         &mut self,
         transaction_hash: &B256,
