@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Throw CORRUPTED_LOCKFILE error when requiring EDR fails
+A proper error is now thrown when requiring EDR fails
