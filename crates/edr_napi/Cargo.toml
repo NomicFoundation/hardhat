@@ -20,7 +20,6 @@ edr_defaults = { version = "0.2.0-dev", path = "../edr_defaults" }
 edr_evm = { version = "0.2.0-dev", path = "../edr_evm", features = ["tracing"]}
 edr_eth = { version = "0.2.0-dev", path = "../edr_eth" }
 edr_provider = { version = "0.2.0-dev", path = "../edr_provider" }
-rpmalloc = { git = "https://github.com/Wodann/rpmalloc-rs", rev = "9dc133b", version = "0.2.2", default-features = false, features = ["dynamic_link", "global_cache", "thread_cache"] }
 serde_json = { version = "1.0.85", default-features = false, features = ["alloc"] }
 thiserror = { version = "1.0.37", default-features = false }
 tracing = { version = "0.1.37", default-features = false, features = ["std"] }
@@ -30,6 +29,7 @@ parking_lot = { version = "0.12.1", default-features = false }
 lazy_static = { version = "1.4.0", features = [] }
 rand = { version = "0.8.4", optional = true }
 serde = { version = "1.0.189", features = ["derive"] }
+mimalloc = { version = "0.1.39", default-features = false }
 
 [target.x86_64-unknown-linux-gnu.dependencies]
 openssl-sys = { version = "0.9.93", features = ["vendored"] }

@@ -1086,13 +1086,13 @@ dependencies = [
  "k256",
  "lazy_static",
  "log",
+ "mimalloc",
  "napi",
  "napi-build",
  "napi-derive",
  "openssl-sys",
  "parking_lot 0.12.1",
  "rand",
- "rpmalloc",
  "serde",
  "serde_json",
  "thiserror",
@@ -1946,6 +1946,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4ec2a862134d2a7d32d7983ddcdd1c4923530833c9f2ea1a44fc5fa473989058"
 
 [[package]]
+name = "libmimalloc-sys"
+version = "0.1.35"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3979b5c37ece694f1f5e51e7ecc871fdb0f517ed04ee45f88d15d6d553cb9664"
+dependencies = [
+ "cc",
+ "libc",
+]
+
+[[package]]
 name = "linux-raw-sys"
 version = "0.4.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1996,6 +2006,15 @@ name = "memchr"
 version = "2.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f665ee40bc4a3c5590afb1e9677db74a508659dfd71e126420da8274909a0167"
+
+[[package]]
+name = "mimalloc"
+version = "0.1.39"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fa01922b5ea280a911e323e4d2fd24b7fe5cc4042e0d2cda3c40775cdc4bdc9c"
+dependencies = [
+ "libmimalloc-sys",
+]
 
 [[package]]
 name = "mime"
@@ -2966,24 +2985,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
-]
-
-[[package]]
-name = "rpmalloc"
-version = "0.2.2"
-source = "git+https://github.com/Wodann/rpmalloc-rs?rev=9dc133b#9dc133b8d95ea7a217a7af65cd2769ecb7ee1962"
-dependencies = [
- "rpmalloc-sys",
-]
-
-[[package]]
-name = "rpmalloc-sys"
-version = "0.2.4+1.4.5"
-source = "git+https://github.com/Wodann/rpmalloc-rs?rev=9dc133b#9dc133b8d95ea7a217a7af65cd2769ecb7ee1962"
-dependencies = [
- "cc",
- "libc",
- "pkg-config",
 ]
 
 [[package]]
