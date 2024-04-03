@@ -66,7 +66,7 @@ describe("Eth module", function () {
             );
           });
 
-          it("Should validate that percentiles are are sorted", async function () {
+          it("Should validate that percentiles are sorted", async function () {
             await assertInvalidInputError(
               this.provider,
               "eth_feeHistory",
