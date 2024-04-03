@@ -2971,7 +2971,7 @@ dependencies = [
 [[package]]
 name = "rpmalloc"
 version = "0.2.2"
-source = "git+https://github.com/Wodann/rpmalloc-rs?rev=48d3b35#48d3b3556bb6c15c943641befdbeb9351435f15b"
+source = "git+https://github.com/Wodann/rpmalloc-rs?rev=9dc133b#9dc133b8d95ea7a217a7af65cd2769ecb7ee1962"
 dependencies = [
  "rpmalloc-sys",
 ]
@@ -2979,7 +2979,7 @@ dependencies = [
 [[package]]
 name = "rpmalloc-sys"
 version = "0.2.4+1.4.5"
-source = "git+https://github.com/Wodann/rpmalloc-rs?rev=48d3b35#48d3b3556bb6c15c943641befdbeb9351435f15b"
+source = "git+https://github.com/Wodann/rpmalloc-rs?rev=9dc133b#9dc133b8d95ea7a217a7af65cd2769ecb7ee1962"
 dependencies = [
  "cc",
  "libc",
