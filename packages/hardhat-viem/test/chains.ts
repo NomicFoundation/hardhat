@@ -1,9 +1,8 @@
 import type { EthereumProvider } from "hardhat/types";
-
-import { expect, assert } from "chai";
+import { after, afterEach, describe, it } from "node:test";
+import assert from "node:assert";
 import sinon from "sinon";
 import * as chains from "viem/chains";
-
 import {
   getChain,
   getMode,
@@ -12,8 +11,14 @@ import {
 import { EthereumMockedProvider } from "./mocks/provider";
 
 describe("chains", () => {
+  after(function () {
+    process.exit(0);
+  });
+
   describe("getChain", () => {
-    afterEach(sinon.restore);
+    afterEach(() => {
+      sinon.restore();
+    });
 
     it("should return the chain corresponding to the chain id", async () => {
       const provider: EthereumProvider = new EthereumMockedProvider();
@@ -24,7 +29,7 @@ describe("chains", () => {
 
       const chain = await getChain(provider);
 
-      expect(chain).to.deep.equal(chains.mainnet);
+      assert.deepEqual(chain, chains.mainnet);
       assert.equal(sendStub.callCount, 1);
     });
 
@@ -37,7 +42,7 @@ describe("chains", () => {
 
       const chain = await getChain(provider);
 
-      expect(chain).to.deep.equal(chains.hardhat);
+      assert.deepEqual(chain, chains.hardhat);
     });
 
     it("should return the foundry chain if the chain id is 31337 and the network is foundry", async () => {
@@ -49,7 +54,7 @@ describe("chains", () => {
 
       const chain = await getChain(provider);
 
-      expect(chain).to.deep.equal(chains.foundry);
+      assert.deepEqual(chain, chains.foundry);
     });
 
     it("should throw if the chain id is 31337 and the network is neither hardhat nor foundry", async () => {
@@ -59,9 +64,16 @@ describe("chains", () => {
       sendStub.withArgs("hardhat_metadata").throws();
       sendStub.withArgs("anvil_nodeInfo").throws();
 
-      await expect(getChain(provider)).to.be.rejectedWith(
+      await assert.rejects(
+        getChain(provider),
         `The chain id corresponds to a development network but we couldn't detect which one.
-Please report this issue if you're using Hardhat or Foundry.`
+      Please report this issue if you're using Hardhat or Foundry.`
+      );
+
+      await assert.rejects(
+        getChain(provider),
+        `The chain id corresponds to a development network but we couldn't detect which one.
+    Please report this issue if you're using Hardhat or Foundry.`
       );
     });
 
@@ -72,7 +84,8 @@ Please report this issue if you're using Hardhat or Foundry.`
       sendStub.withArgs("hardhat_metadata").throws();
       sendStub.withArgs("anvil_nodeInfo").throws();
 
-      await expect(getChain(provider)).to.be.rejectedWith(
+      await assert.rejects(
+        getChain(provider),
         /No network with chain id 0 found/
       );
     });
@@ -85,7 +98,8 @@ Please report this issue if you're using Hardhat or Foundry.`
       sendStub.withArgs("hardhat_metadata").throws();
       sendStub.withArgs("anvil_nodeInfo").throws();
 
-      await expect(getChain(provider)).to.be.rejectedWith(
+      await assert.rejects(
+        getChain(provider),
         /Multiple networks with chain id 999 found./
       );
     });
@@ -97,7 +111,7 @@ Please report this issue if you're using Hardhat or Foundry.`
     });
 
     it("should return false if the chain id is not 31337", () => {
-      assert.notOk(isDevelopmentNetwork(1));
+      assert.equal(isDevelopmentNetwork(1), false);
     });
   });
 
@@ -110,7 +124,7 @@ Please report this issue if you're using Hardhat or Foundry.`
 
       const mode = await getMode(provider);
 
-      expect(mode).to.equal("hardhat");
+      assert.equal(mode, "hardhat");
     });
 
     it("should return anvil if the network is foundry", async () => {
@@ -121,7 +135,7 @@ Please report this issue if you're using Hardhat or Foundry.`
 
       const mode = await getMode(provider);
 
-      expect(mode).to.equal("anvil");
+      assert.equal(mode, "anvil");
     });
 
     it("should throw if the network is neither hardhat nor foundry", async () => {
@@ -130,9 +144,10 @@ Please report this issue if you're using Hardhat or Foundry.`
       sendStub.withArgs("hardhat_metadata").throws();
       sendStub.withArgs("anvil_nodeInfo").throws();
 
-      await expect(getMode(provider)).to.be.rejectedWith(
+      await assert.rejects(
+        getMode(provider),
         `The chain id corresponds to a development network but we couldn't detect which one.
-Please report this issue if you're using Hardhat or Foundry.`
+  Please report this issue if you're using Hardhat or Foundry.`
       );
     });
 
@@ -145,8 +160,8 @@ Please report this issue if you're using Hardhat or Foundry.`
 
       const chain = await getChain(provider);
 
-      expect(chain.id).to.equal(12345);
-      expect(chain.name).to.equal("Hardhat");
+      assert.equal(chain.id, 12345);
+      assert.equal(chain.name, "Hardhat");
     });
 
     it("should return a foundry chain with the custom chainId", async function () {
@@ -158,8 +173,8 @@ Please report this issue if you're using Hardhat or Foundry.`
 
       const chain = await getChain(provider);
 
-      expect(chain.id).to.equal(12345);
-      expect(chain.name).to.equal("Foundry");
+      assert.equal(chain.id, 12345);
+      assert.equal(chain.name, "Foundry");
     });
   });
 });

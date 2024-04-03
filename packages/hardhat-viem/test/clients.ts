@@ -1,6 +1,6 @@
 import type { EthereumProvider } from "hardhat/types";
-
-import { assert } from "chai";
+import { after, describe, it } from "node:test";
+import assert from "node:assert";
 import * as chains from "viem/chains";
 
 import {
@@ -11,13 +11,17 @@ import {
 import { EthereumMockedProvider } from "./mocks/provider";
 
 describe("clients", () => {
+  after(function () {
+    process.exit(0);
+  });
+
   describe("innerGetPublicClient", () => {
     it("should return a public client", async () => {
       const provider: EthereumProvider = new EthereumMockedProvider();
 
       const client = await innerGetPublicClient(provider, chains.mainnet);
 
-      assert.isDefined(client);
+      assert.notEqual(client, undefined);
       assert.equal(client.type, "publicClient");
       assert.equal(client.chain.id, chains.mainnet.id);
     });
@@ -53,8 +57,8 @@ describe("clients", () => {
         "0x2",
       ]);
 
-      assert.isArray(clients);
-      assert.isNotEmpty(clients);
+      assert.ok(Array.isArray(clients));
+      assert.ok(clients.length > 0);
       clients.forEach((client) => {
         assert.equal(client.type, "walletClient");
         assert.equal(client.chain.id, chains.mainnet.id);
@@ -76,8 +80,8 @@ describe("clients", () => {
         }
       );
 
-      assert.isArray(clients);
-      assert.isNotEmpty(clients);
+      assert.ok(Array.isArray(clients));
+      assert.ok(clients.length > 0);
       clients.forEach((client) => {
         assert.equal(client.pollingInterval, 1000);
         assert.equal(client.cacheTime, 2000);
@@ -92,8 +96,8 @@ describe("clients", () => {
         "0x2",
       ]);
 
-      assert.isArray(clients);
-      assert.isNotEmpty(clients);
+      assert.ok(Array.isArray(clients));
+      assert.ok(clients.length > 0);
       clients.forEach((client) => {
         assert.equal(client.pollingInterval, 50);
         assert.equal(client.cacheTime, 0);
@@ -105,8 +109,8 @@ describe("clients", () => {
 
       const clients = await innerGetWalletClients(provider, chains.mainnet, []);
 
-      assert.isArray(clients);
-      assert.isEmpty(clients);
+      assert.ok(Array.isArray(clients));
+      assert.ok(clients.length === 0);
     });
   });
 
@@ -120,7 +124,7 @@ describe("clients", () => {
         "hardhat"
       );
 
-      assert.isDefined(client);
+      assert.notEqual(client, undefined);
       assert.equal(client.type, "testClient");
       assert.equal(client.chain.id, chains.hardhat.id);
       assert.equal(client.mode, "hardhat");
@@ -135,7 +139,7 @@ describe("clients", () => {
         "anvil"
       );
 
-      assert.isDefined(client);
+      assert.notEqual(client, undefined);
       assert.equal(client.type, "testClient");
       assert.equal(client.chain.id, chains.foundry.id);
       assert.equal(client.mode, "anvil");

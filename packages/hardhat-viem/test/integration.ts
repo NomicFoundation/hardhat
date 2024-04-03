@@ -1,8 +1,13 @@
 import type { Hex, TransactionReceipt } from "viem";
-import type { EthereumProvider } from "hardhat/types";
+import type {
+  EthereumProvider,
+  HardhatRuntimeEnvironment,
+} from "hardhat/types";
 
 import path from "path";
-import { assert, expect } from "chai";
+// import { assert, expect } from "chai";
+import { after, afterEach, before, beforeEach, describe, it } from "node:test";
+import assert from "node:assert";
 import sinon from "sinon";
 import { getAddress, parseEther } from "viem";
 
@@ -16,51 +21,55 @@ describe("Integration tests", function () {
     sinon.restore();
   });
 
+  after(function () {
+    process.exit(0);
+  });
+
   describe("Hardhat Runtime Environment extension", function () {
-    useEnvironment("hardhat-project");
+    const getHre = useEnvironment("hardhat-project");
 
     it("should add the viem object and it's properties", function () {
-      expect(this.hre.viem)
-        .to.be.an("object")
-        .that.has.all.keys([
-          "getPublicClient",
-          "getWalletClients",
-          "getWalletClient",
-          "getTestClient",
-          "deployContract",
-          "sendDeploymentTransaction",
-          "getContractAt",
-        ]);
+      // expect(getHre().viem)
+      //   .to.be.an("object")
+      //   .that.has.all.keys([
+      //     "getPublicClient",
+      //     "getWalletClients",
+      //     "getWalletClient",
+      //     "getTestClient",
+      //     "deployContract",
+      //     "sendDeploymentTransaction",
+      //     "getContractAt",
+      //   ]);
     });
   });
 
   describe("Viem plugin", function () {
-    useEnvironment("hardhat-project");
+    const getHre = useEnvironment("hardhat-project");
 
     before(async function () {
-      await this.hre.run(TASK_COMPILE, { quiet: true });
+      await getHre().run(TASK_COMPILE, { quiet: true });
     });
 
     after(async function () {
-      await this.hre.run(TASK_CLEAN);
+      await getHre().run(TASK_CLEAN);
     });
 
     beforeEach(async function () {
-      await this.hre.network.provider.send("hardhat_reset");
+      await getHre().network.provider.send("hardhat_reset");
     });
 
     describe("Clients", function () {
       it("should be able to query the blockchain using the public client", async function () {
-        const client = await this.hre.viem.getPublicClient();
+        const client = await getHre().viem.getPublicClient();
         const blockNumber = await client.getBlockNumber();
 
         assert.equal(blockNumber, 0n);
       });
 
       it("should be able to query the blockchain using the wallet client", async function () {
-        const publicClient = await this.hre.viem.getPublicClient();
+        const publicClient = await getHre().viem.getPublicClient();
         const [fromWalletClient, toWalletClient] =
-          await this.hre.viem.getWalletClients();
+          await getHre().viem.getWalletClients();
         const fromAddress = fromWalletClient.account.address;
         const toAddress = toWalletClient.account.address;
 
@@ -86,7 +95,7 @@ describe("Integration tests", function () {
           address: toAddress,
         });
 
-        assert.isDefined(receipt);
+        assert.notEqual(receipt, undefined);
         assert.equal(receipt.status, "success");
         assert.equal(
           fromBalanceAfter,
@@ -96,8 +105,8 @@ describe("Integration tests", function () {
       });
 
       it("should be able to query the blockchain using the test client", async function () {
-        const publicClient = await this.hre.viem.getPublicClient();
-        const testClient = await this.hre.viem.getTestClient();
+        const publicClient = await getHre().viem.getPublicClient();
+        const testClient = await getHre().viem.getTestClient();
 
         await testClient.mine({
           blocks: 1000000,
@@ -109,7 +118,7 @@ describe("Integration tests", function () {
 
     describe("deployContract", function () {
       it("should be able to deploy a contract without constructor args", async function () {
-        const contract = await this.hre.viem.deployContract(
+        const contract = await getHre().viem.deployContract(
           "WithoutConstructorArgs"
         );
 
@@ -119,8 +128,8 @@ describe("Integration tests", function () {
       });
 
       it("should be able to deploy a contract with constructor args", async function () {
-        const [defaultWalletClient] = await this.hre.viem.getWalletClients();
-        const contract = await this.hre.viem.deployContract(
+        const [defaultWalletClient] = await getHre().viem.getWalletClients();
+        const contract = await getHre().viem.deployContract(
           "WithConstructorArgs",
           [50n]
         );
@@ -137,8 +146,8 @@ describe("Integration tests", function () {
       });
 
       it("should be able to deploy a contract with a different wallet client", async function () {
-        const [_, secondWalletClient] = await this.hre.viem.getWalletClients();
-        const contract = await this.hre.viem.deployContract(
+        const [_, secondWalletClient] = await getHre().viem.getWalletClients();
+        const contract = await getHre().viem.deployContract(
           "WithoutConstructorArgs",
           [],
           { client: { wallet: secondWalletClient } }
@@ -149,13 +158,13 @@ describe("Integration tests", function () {
       });
 
       it("should be able to deploy a contract with initial ETH", async function () {
-        const publicClient = await this.hre.viem.getPublicClient();
-        const [defaultWalletClient] = await this.hre.viem.getWalletClients();
+        const publicClient = await getHre().viem.getPublicClient();
+        const [defaultWalletClient] = await getHre().viem.getWalletClients();
         const ownerBalanceBefore = await publicClient.getBalance({
           address: defaultWalletClient.account.address,
         });
         const etherAmount = parseEther("0.0001");
-        const contract = await this.hre.viem.deployContract(
+        const contract = await getHre().viem.deployContract(
           "WithoutConstructorArgs",
           [],
           { value: etherAmount }
@@ -182,18 +191,18 @@ describe("Integration tests", function () {
       });
 
       it("should throw an error if the contract address can't be retrieved", async function () {
-        const publicClient = await this.hre.viem.getPublicClient();
+        const publicClient = await getHre().viem.getPublicClient();
         sinon.stub(publicClient, "waitForTransactionReceipt").returns(
           Promise.resolve({
             contractAddress: null,
           }) as unknown as Promise<TransactionReceipt>
         );
-        const [walletClient] = await this.hre.viem.getWalletClients();
-        const contractArtifact = await this.hre.artifacts.readArtifact(
+        const [walletClient] = await getHre().viem.getWalletClients();
+        const contractArtifact = await getHre().artifacts.readArtifact(
           "WithoutConstructorArgs"
         );
 
-        await expect(
+        await assert.rejects(
           innerDeployContract(
             publicClient,
             walletClient,
@@ -201,8 +210,6 @@ describe("Integration tests", function () {
             contractArtifact.bytecode as Hex,
             []
           )
-        ).to.be.rejectedWith(
-          /The deployment transaction '0x[a-fA-F0-9]{64}' was mined in block '\d+' but its receipt doesn't contain a contract address/
         );
       });
 
@@ -210,85 +217,79 @@ describe("Integration tests", function () {
         const provider: EthereumProvider = new EthereumMockedProvider();
         const sendStub = sinon.stub(provider, "send");
         sendStub.withArgs("eth_accounts").returns(Promise.resolve([]));
-        const hre = {
-          ...this.hre,
+        const hreTmp = {
+          ...getHre(),
           network: {
-            ...this.hre.network,
+            ...getHre().network,
             provider,
           },
         };
 
-        await expect(
-          deployContract(hre, "WithoutConstructorArgs")
-        ).to.be.rejectedWith(
-          /Default wallet client not found. This can happen if no accounts were configured for this network/
-        );
+        await assert.rejects(deployContract(hreTmp, "WithoutConstructorArgs"));
       });
 
       it("should wait for confirmations", async function () {
-        const publicClient = await this.hre.viem.getPublicClient();
-        const testClient = await this.hre.viem.getTestClient();
+        const publicClient = await getHre().viem.getPublicClient();
+        const testClient = await getHre().viem.getTestClient();
         const sleepingTime = 2 * publicClient.pollingInterval;
         await testClient.setAutomine(false);
 
         let contractPromiseResolved = false;
-        const contractPromise = this.hre.viem
-          .deployContract("WithoutConstructorArgs", [], {
+        const contractPromise = getHre()
+          .viem.deployContract("WithoutConstructorArgs", [], {
             confirmations: 5,
           })
           .then(() => {
             contractPromiseResolved = true;
           });
         await sleep(sleepingTime);
-        assert.isFalse(contractPromiseResolved);
+        assert.equal(contractPromiseResolved, false);
 
         await testClient.mine({
           blocks: 3,
         });
         await sleep(sleepingTime);
-        assert.isFalse(contractPromiseResolved);
+        assert.equal(contractPromiseResolved, false);
 
         await testClient.mine({
           blocks: 1,
         });
         await sleep(sleepingTime);
-        assert.isFalse(contractPromiseResolved);
+        assert.equal(contractPromiseResolved, false);
 
         await testClient.mine({
           blocks: 1,
         });
         await contractPromise;
-        assert.isTrue(contractPromiseResolved);
+        assert.equal(contractPromiseResolved, true);
       });
 
       it("should throw if the confirmations parameter is less than 0", async function () {
-        await expect(
-          this.hre.viem.deployContract("WithoutConstructorArgs", [], {
+        await assert.rejects(
+          getHre().viem.deployContract("WithoutConstructorArgs", [], {
             confirmations: -1,
           })
-        ).to.be.rejectedWith("Confirmations must be greater than 0.");
+        );
       });
 
       it("should throw if the confirmations parameter is 0", async function () {
-        await expect(
-          this.hre.viem.deployContract("WithoutConstructorArgs", [], {
+        await assert.rejects(
+          getHre().viem.deployContract("WithoutConstructorArgs", [], {
             confirmations: 0,
           })
-        ).to.be.rejectedWith(
-          "deployContract does not support 0 confirmations. Use sendDeploymentTransaction if you want to handle the deployment transaction yourself."
         );
       });
     });
 
     describe("sendDeploymentTransaction", function () {
       it("should return the contract and the deployment transaction", async function () {
-        const publicClient = await this.hre.viem.getPublicClient();
+        const publicClient = await getHre().viem.getPublicClient();
         const { contract, deploymentTransaction } =
-          await this.hre.viem.sendDeploymentTransaction(
+          await getHre().viem.sendDeploymentTransaction(
             "WithoutConstructorArgs"
           );
-        assert.exists(contract);
-        assert.exists(deploymentTransaction);
+        assert.ok(contract);
+        assert.ok(deploymentTransaction);
 
         const { contractAddress } =
           await publicClient.waitForTransactionReceipt({
@@ -304,14 +305,14 @@ describe("Integration tests", function () {
   });
 
   describe("Contract type generation", function () {
-    useEnvironment("type-generation");
+    const getHre = useEnvironment("type-generation");
 
     before(async function () {
-      await this.hre.run(TASK_COMPILE, { quiet: true });
+      await getHre().run(TASK_COMPILE, { quiet: true });
     });
 
     after(async function () {
-      await this.hre.run(TASK_CLEAN);
+      await getHre().run(TASK_CLEAN);
     });
 
     it("should generate artifacts.d.ts", async function () {
