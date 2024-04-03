@@ -1020,6 +1020,7 @@ dependencies = [
  "log",
  "mockito",
  "paste",
+ "regex",
  "reqwest",
  "reqwest-middleware",
  "reqwest-retry",
