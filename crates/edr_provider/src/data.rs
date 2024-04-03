@@ -3732,12 +3732,6 @@ mod tests {
             chain_id: 1,
             url: get_alchemy_url(),
         },
-        // This block has both EIP-2930 and EIP-1559 transactions
-        goerli_merge => {
-            block_number: 7_728_449,
-            chain_id: 5,
-            url: get_alchemy_url().replace("mainnet", "goerli"),
-        },
         sepolia_shanghai => {
             block_number: 3_095_000,
             chain_id: 11_155_111,
