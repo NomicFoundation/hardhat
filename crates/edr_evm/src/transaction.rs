@@ -53,7 +53,7 @@ where
     }
 }
 
-/// An error that occurred while trying to construct a [`PendingTransaction`].
+/// An error that occurred while trying to construct an [`ExecutableTransaction`].
 #[derive(Debug, thiserror::Error)]
 pub enum TransactionCreationError {
     /// Creating contract without any data.
