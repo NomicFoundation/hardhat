@@ -1206,7 +1206,7 @@ mod tests {
 
         if let RpcClientError::HttpStatus(error) = error {
             assert_eq!(
-                <ReqwestError as Into<reqwest::Error>>::into(error).status(),
+                reqwest::Error::from(error).status(),
                 Some(StatusCode::from_u16(STATUS_CODE).unwrap())
             );
         } else {
@@ -1265,7 +1265,7 @@ mod tests {
 
             if let RpcClientError::HttpStatus(error) = error {
                 assert_eq!(
-                    <ReqwestError as Into<reqwest::Error>>::into(error).status(),
+                    reqwest::Error::from(error).status(),
                     Some(StatusCode::from_u16(401).unwrap())
                 );
             } else {
