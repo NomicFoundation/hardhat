@@ -3,7 +3,12 @@
 const path = require("path");
 
 /**
- * Returns a config object.
+ * Creates a predefined config that every package inside this monorepo should use.
+ *
+ * Note that the config includes both the sources of the package (inside `src/`) and
+ * the tests (inside `test/`), so a single config file per package is enough.
+ *
+ * The only packages that should not use this config are our own eslint plugins/rules.
  *
  * @param {string} configFilePath The path to the config file that is using this function.
  * @param {string[]} [packageEntryPoints=[]] The entry points of the package, expressed as relative paths from the config file.
