@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, fmt::Debug};
+use std::{cmp::Ordering, fmt::Debug, num::NonZeroU64};
 
 use edr_eth::{Address, B256, U256};
 use indexmap::{map::Entry, IndexMap};
@@ -84,7 +84,7 @@ pub enum MemPoolAddTransactionError<SE> {
     #[error("Transaction gas limit is {transaction_gas_limit} and exceeds block gas limit of {block_gas_limit}")]
     ExceedsBlockGasLimit {
         /// The block gas limit
-        block_gas_limit: u64,
+        block_gas_limit: NonZeroU64,
         /// The transaction gas limit
         transaction_gas_limit: u64,
     },
@@ -166,7 +166,7 @@ impl OrderedTransaction {
 #[derive(Clone, Debug)]
 pub struct MemPool {
     /// The block's gas limit
-    block_gas_limit: u64,
+    block_gas_limit: NonZeroU64,
     /// Transactions that can be executed now
     pending_transactions: IndexMap<Address, Vec<OrderedTransaction>>,
     /// Mapping of transaction hashes to transaction
@@ -179,7 +179,7 @@ pub struct MemPool {
 
 impl MemPool {
     /// Constructs a new [`MemPool`] with the specified block gas limit.
-    pub fn new(block_gas_limit: u64) -> Self {
+    pub fn new(block_gas_limit: NonZeroU64) -> Self {
         Self {
             block_gas_limit,
             pending_transactions: IndexMap::new(),
@@ -190,12 +190,12 @@ impl MemPool {
     }
 
     /// Retrieves the instance's block gas limit.
-    pub fn block_gas_limit(&self) -> u64 {
+    pub fn block_gas_limit(&self) -> NonZeroU64 {
         self.block_gas_limit
     }
 
     /// Sets the instance's block gas limit.
-    pub fn set_block_gas_limit<S>(&mut self, state: &S, limit: u64) -> Result<(), S::Error>
+    pub fn set_block_gas_limit<S>(&mut self, state: &S, limit: NonZeroU64) -> Result<(), S::Error>
     where
         S: StateRef + ?Sized,
         S::Error: Debug,
@@ -270,7 +270,7 @@ impl MemPool {
         transaction: ExecutableTransaction,
     ) -> Result<(), MemPoolAddTransactionError<S::Error>> {
         let transaction_gas_limit = transaction.gas_limit();
-        if transaction_gas_limit > self.block_gas_limit {
+        if transaction_gas_limit > self.block_gas_limit.get() {
             return Err(MemPoolAddTransactionError::ExceedsBlockGasLimit {
                 block_gas_limit: self.block_gas_limit,
                 transaction_gas_limit,
@@ -380,10 +380,10 @@ impl MemPool {
     {
         fn is_valid_tx(
             transaction: &ExecutableTransaction,
-            block_gas_limit: u64,
+            block_gas_limit: NonZeroU64,
             sender: &AccountInfo,
         ) -> bool {
-            transaction.gas_limit() <= block_gas_limit
+            transaction.gas_limit() <= block_gas_limit.get()
                 && transaction.upfront_cost() <= sender.balance
                 // Remove all mined transactions
                 && transaction.nonce() >= sender.nonce

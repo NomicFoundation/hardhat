@@ -1,4 +1,5 @@
 use std::{
+    num::NonZeroU64,
     path::PathBuf,
     time::{Duration, SystemTime},
 };
@@ -172,7 +173,15 @@ impl TryFrom<MiningConfig> for edr_provider::MiningConfig {
             .map(|interval| {
                 let interval = match interval {
                     Either::A(interval) => {
-                        edr_provider::IntervalConfig::Fixed(interval.try_cast()?)
+                        let interval = interval.try_cast()?;
+                        let interval = NonZeroU64::new(interval).ok_or_else(|| {
+                            napi::Error::new(
+                                napi::Status::GenericFailure,
+                                "Interval must be greater than 0",
+                            )
+                        })?;
+
+                        edr_provider::IntervalConfig::Fixed(interval)
                     }
                     Either::B(IntervalRange { min, max }) => edr_provider::IntervalConfig::Range {
                         min: min.try_cast()?,
@@ -225,6 +234,14 @@ impl TryFrom<ProviderConfig> for edr_provider::ProviderConfig {
             )
             .collect::<napi::Result<_>>()?;
 
+        let block_gas_limit =
+            NonZeroU64::new(value.block_gas_limit.try_cast()?).ok_or_else(|| {
+                napi::Error::new(
+                    napi::Status::GenericFailure,
+                    "Block gas limit must be greater than 0",
+                )
+            })?;
+
         Ok(Self {
             accounts: value
                 .genesis_accounts
@@ -235,7 +252,7 @@ impl TryFrom<ProviderConfig> for edr_provider::ProviderConfig {
             allow_unlimited_contract_size: value.allow_unlimited_contract_size,
             bail_on_call_failure: value.bail_on_call_failure,
             bail_on_transaction_failure: value.bail_on_transaction_failure,
-            block_gas_limit: value.block_gas_limit.try_cast()?,
+            block_gas_limit,
             cache_dir: PathBuf::from(
                 value
                     .cache_dir

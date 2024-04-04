@@ -15,7 +15,7 @@ use ::serde::{
 };
 
 pub use crate::requests::{
-    methods::{MethodInvocation, OneUsizeOrTwo, U64OrUsize},
+    methods::{IntervalConfig, MethodInvocation, U64OrUsize},
     serde::InvalidRequestReason,
 };
 

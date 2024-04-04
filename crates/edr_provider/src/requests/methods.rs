@@ -263,7 +263,7 @@ pub enum MethodInvocation {
     EvmSetBlockGasLimit(U64),
     /// evm_setIntervalMining
     #[serde(rename = "evm_setIntervalMining", with = "edr_eth::serde::sequence")]
-    EvmSetIntervalMining(OneUsizeOrTwo),
+    EvmSetIntervalMining(IntervalConfig),
     /// evm_setNextBlockTimestamp
     #[serde(
         rename = "evm_setNextBlockTimestamp",
@@ -482,14 +482,14 @@ impl MethodInvocation {
     }
 }
 
-/// an input that can be either a single usize or an array of two usize values
+/// an input that can be either a single `u64` or an array of two `u64` values
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
-pub enum OneUsizeOrTwo {
-    /// a single usize
-    One(usize),
-    /// an array of two usize values
-    Two([usize; 2]),
+pub enum IntervalConfig {
+    /// A fixed value; or disabled, when zero.
+    FixedOrDisabled(u64),
+    /// an array of two `u64` values
+    Range([u64; 2]),
 }
 
 /// an input that can be either a U256 or a usize

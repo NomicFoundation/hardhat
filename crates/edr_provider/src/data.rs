@@ -3,12 +3,11 @@ mod call;
 mod gas;
 
 use std::{
-    cmp,
-    cmp::Ordering,
+    cmp::{self, Ordering},
     collections::BTreeMap,
     ffi::OsString,
     fmt::Debug,
-    num::NonZeroUsize,
+    num::{NonZeroU64, NonZeroUsize},
     sync::Arc,
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
@@ -319,7 +318,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
 
     /// Retrieves the gas limit of the next block.
     pub fn block_gas_limit(&self) -> u64 {
-        self.mem_pool.block_gas_limit()
+        self.mem_pool.block_gas_limit().get()
     }
 
     /// Returns the default caller.
@@ -1527,7 +1526,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
     /// Sets the gas limit used for mining new blocks.
     pub fn set_block_gas_limit(
         &mut self,
-        gas_limit: u64,
+        gas_limit: NonZeroU64,
     ) -> Result<(), ProviderError<LoggerErrorT>> {
         let state = self.current_state()?;
         self.mem_pool
@@ -1892,11 +1891,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
     ) -> Result<DebugMineBlockResultAndState<StateError>, ProviderError<LoggerErrorT>> {
         options.base_fee = options.base_fee.or(self.next_block_base_fee_per_gas);
         options.beneficiary = Some(options.beneficiary.unwrap_or(self.beneficiary));
-        options.gas_limit = Some(
-            options
-                .gas_limit
-                .unwrap_or_else(|| self.mem_pool.block_gas_limit()),
-        );
+        options.gas_limit = Some(options.gas_limit.unwrap_or_else(|| self.block_gas_limit()));
 
         let evm_config = self.create_evm_config(None)?;
 
@@ -2359,7 +2354,7 @@ fn create_blockchain_and_state(
             config.chain_id,
             config.hardfork,
             GenesisBlockOptions {
-                gas_limit: Some(config.block_gas_limit),
+                gas_limit: Some(config.block_gas_limit.get()),
                 timestamp: config.initial_date.map(|d| {
                     d.duration_since(UNIX_EPOCH)
                         .expect("initial date must be after UNIX epoch")
@@ -3014,7 +3009,11 @@ mod tests {
     #[test]
     fn mine_and_commit_block_leaves_unmined_transactions() -> anyhow::Result<()> {
         let mut fixture = ProviderTestFixture::new_local()?;
-        fixture.provider_data.set_block_gas_limit(55_000)?;
+
+        // SAFETY: literal is non-zero
+        fixture
+            .provider_data
+            .set_block_gas_limit(unsafe { NonZeroU64::new_unchecked(55_000) })?;
 
         // Actual gas usage is 21_000
         let transaction1 = fixture.signed_dummy_transaction(0, Some(0))?;
@@ -3581,7 +3580,8 @@ mod tests {
         }));
 
         let config = ProviderConfig {
-            block_gas_limit: 1_000_000,
+            // SAFETY: literal is non-zero
+            block_gas_limit: unsafe { NonZeroU64::new_unchecked(1_000_000) },
             chain_id: 1,
             coinbase: Address::ZERO,
             hardfork: SpecId::LONDON,
