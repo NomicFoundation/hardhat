@@ -219,12 +219,10 @@ async function benchmarkScenario(scenarioFileName) {
   const name = path.basename(scenarioFileName).split(".")[0];
   console.error(`Running ${name} scenario`);
 
-  if (name.startsWith("synthetix")) {
+  const filterGetBlockByNumberRequests = name.startsWith("synthetix");
+  if (filterGetBlockByNumberRequests) {
     console.error(
-      "Filtering `eth_getBlockByNumber` to let results stay in memory to prevent variance from GC"
-    );
-    requests = requests.filter(
-      (request) => request.method !== "eth_getBlockByNumber"
+      "Filtering `eth_getBlockByNumber` requests to let results stay in memory to prevent variance from GC"
     );
   }
 
@@ -239,6 +237,14 @@ async function benchmarkScenario(scenarioFileName) {
   const rpcCallErrors = [];
 
   for (let i = 0; i < requests.length; i += 1) {
+    // Filter requests here to make transactions indices match failures snapshot.
+    if (
+      filterGetBlockByNumberRequests &&
+      requests[i].method !== "eth_getBlockByNumber"
+    ) {
+      continue;
+    }
+
     try {
       const result = await provider.request(requests[i]);
       rpcCallResults.push(result);
