@@ -143,30 +143,35 @@ async function benchmarkAllScenarios(outPath) {
   let totalTime = 0;
   let totalFailures = 0;
   for (let scenarioFileName of getScenarioFileNames()) {
-    // Run in subprocess with grep to simulate Hardhat test runner behaviour
-    // where there is one provider per process
-    const processResult = child_process.spawnSync(
-      process.argv[0],
-      [
-        "--noconcurrent_sweeping",
-        "--noconcurrent_recompilation",
-        "--max-old-space-size=28000",
-        "index.js",
-        "benchmark",
-        "-g",
-        scenarioFileName,
-      ],
-      {
-        shell: true,
-        timeout: 60 * 60 * 1000,
-        // Pipe stdout, proxy the rest
-        stdio: [process.stdin, "pipe", process.stderr],
-        encoding: "utf-8",
-      }
-    );
-
     try {
-      const scenarioResult = JSON.parse(processResult.stdout);
+      const scenarioResults = [];
+      const iterations = numIterations(scenarioFileName);
+      for (let i = 0; i < iterations; i++) {
+        // Run in subprocess with grep to simulate Hardhat test runner behaviour
+        // where there is one provider per process
+        const processResult = child_process.spawnSync(
+          process.argv[0],
+          [
+            "--noconcurrent_sweeping",
+            "--noconcurrent_recompilation",
+            "--max-old-space-size=28000",
+            "index.js",
+            "benchmark",
+            "-g",
+            scenarioFileName,
+          ],
+          {
+            shell: true,
+            timeout: 60 * 60 * 1000,
+            // Pipe stdout, proxy the rest
+            stdio: [process.stdin, "pipe", process.stderr],
+            encoding: "utf-8",
+          }
+        );
+        const scenarioResult = JSON.parse(processResult.stdout);
+        scenarioResults.push(scenarioResult);
+      }
+      const scenarioResult = medianOfResults(scenarioResults);
       totalTime += scenarioResult.result.timeMs;
       totalFailures += scenarioResult.result.failures.length;
       result[scenarioResult.name] = scenarioResult.result;
@@ -187,6 +192,26 @@ async function benchmarkAllScenarios(outPath) {
   );
 
   console.error(`Benchmark results written to ${outPath}`);
+}
+
+function numIterations(scenarioName) {
+  // Run fast scenarios repeatedly to get more reliable results
+  if (scenarioName.includes("safe-contracts")) {
+    return 15;
+  } else if (scenarioName.includes("seaport")) {
+    return 5;
+  } else {
+    return 1;
+  }
+}
+
+function medianOfResults(results) {
+  if (results.length === 0) {
+    throw new Error("No results to calculate median");
+  }
+  const sorted = results.sort((a, b) => a.result.timeMs - b.result.timeMs);
+  const middle = Math.floor(sorted.length / 2);
+  return sorted[middle];
 }
 
 async function benchmarkScenario(scenarioFileName) {

@@ -77,7 +77,7 @@ jobs:
           github-token: ${{ secrets.BENCHMARK_GITHUB_TOKEN }}
           # Only save the data for main branch pushes. For PRs we only compare
           auto-push: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
-          alert-threshold: "115%"
+          alert-threshold: "110%"
           # Only fail on pull requests, don't break CI in main
           fail-on-alert: ${{ github.event_name == 'pull_request' }}
           # Enable Job Summary for PRs
