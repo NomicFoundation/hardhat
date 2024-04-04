@@ -17,8 +17,8 @@ use crate::{signature::SignatureError, transaction::SignedTransaction, Address, 
 ///
 /// Its variants correspond to specific allowed transactions:
 /// 1. Legacy (pre-EIP2718) [`LegacyTransactionRequest`]
-/// 2. EIP2930 (state access lists) [`EIP2930TransactionRequest`]
-/// 3. EIP1559 [`EIP1559TransactionRequest`]
+/// 2. EIP2930 (state access lists) [`Eip2930TransactionRequest`]
+/// 3. EIP1559 [`Eip1559TransactionRequest`]
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum TransactionRequest {
     /// A legacy transaction request

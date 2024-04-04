@@ -55,7 +55,7 @@ pub enum CreationError {
     },
 }
 
-/// Error type for [`RemoteBlockchain`].
+/// Error type for `RemoteBlockchain`.
 #[derive(Debug, thiserror::Error)]
 pub enum ForkedBlockchainError {
     /// Remote block creation error

@@ -31,7 +31,7 @@ pub struct ExecutableTransaction {
 }
 
 impl ExecutableTransaction {
-    /// Create a [`PendingTransaction`] by attempting to validate and recover
+    /// Create an [`ExecutableTransaction`] by attempting to validate and recover
     /// the caller address of the provided transaction.
     pub fn new(
         spec_id: SpecId,
@@ -44,7 +44,7 @@ impl ExecutableTransaction {
         Self::with_caller(spec_id, transaction, caller)
     }
 
-    /// Creates a [`PendingTransaction`] with the provided transaction and
+    /// Creates an [`ExecutableTransaction`] with the provided transaction and
     /// caller address.
     pub fn with_caller(
         spec_id: SpecId,
@@ -69,7 +69,7 @@ impl ExecutableTransaction {
         })
     }
 
-    /// Returns the [`PendingTransaction`]'s caller.
+    /// Returns the [`ExecutableTransaction`]'s caller.
     pub fn caller(&self) -> &Address {
         &self.caller
     }

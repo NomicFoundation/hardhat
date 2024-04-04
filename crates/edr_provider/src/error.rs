@@ -66,7 +66,7 @@ pub enum ProviderError<LoggerErrorT> {
         latest_block_number: u64,
     },
     /// The block tag is not allowed in pre-merge hardforks.
-    /// https://github.com/NomicFoundation/hardhat/blob/b84baf2d9f5d3ea897c06e0ecd5e7084780d8b6c/packages/hardhat-core/src/internal/hardhat-network/provider/modules/eth.ts#L1820
+    /// <https://github.com/NomicFoundation/hardhat/blob/b84baf2d9f5d3ea897c06e0ecd5e7084780d8b6c/packages/hardhat-core/src/internal/hardhat-network/provider/modules/eth.ts#L1820>
     #[error("The '{block_tag}' block tag is not allowed in pre-merge hardforks. You are using the '{spec:?}' hardfork.")]
     InvalidBlockTag { block_tag: BlockTag, spec: SpecId },
     /// Invalid chain ID
@@ -158,7 +158,7 @@ pub enum ProviderError<LoggerErrorT> {
     #[error(transparent)]
     TransactionCreationError(#[from] TransactionCreationError),
     /// `eth_sendTransaction` failed and
-    /// [`ProviderConfig::bail_on_call_failure`] was enabled
+    /// [`crate::config::ProviderConfig::bail_on_call_failure`] was enabled
     #[error(transparent)]
     TransactionFailed(#[from] TransactionFailureWithTraces),
     /// Failed to convert an integer type
@@ -305,7 +305,7 @@ impl std::fmt::Display for TransactionFailureWithTraces {
     }
 }
 
-/// Wrapper around [`revm_primitives::Halt`] to convert error messages to match
+/// Wrapper around [`ExecutionResult::Halt`] to convert error messages to match
 /// Hardhat.
 #[derive(Clone, Debug, thiserror::Error, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
