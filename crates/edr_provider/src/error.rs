@@ -305,7 +305,7 @@ impl std::fmt::Display for TransactionFailureWithTraces {
     }
 }
 
-/// Wrapper around [`ExecutionResult::Halt`] to convert error messages to match
+/// Wrapper around [`edr_evm::HaltReason`] to convert error messages to match
 /// Hardhat.
 #[derive(Clone, Debug, thiserror::Error, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
