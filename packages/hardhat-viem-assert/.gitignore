@@ -4,21 +4,17 @@
 # Compilation output
 /build-test/
 /dist
+/internal
+/*.js
+/*.js.map
+/*.d.ts
+/*.d.ts.map
+
+!.eslintrc.js
 
 # Code coverage artifacts
 /coverage
 /.nyc_output
-
-/*.js
-!/.eslintrc.js
-/*.js.map
-/*.d.ts
-/*.d.ts.map
-/builtin-tasks
-/common
-/internal
-/types
-/utils
 
 # Below is Github's node gitignore template,
 # ignoring the node_modules part, as it'd ignore every node_modules, and we have some for testing
@@ -94,5 +90,3 @@ typings/
 # DynamoDB Local files
 .dynamodb/
 
-test/fixture-projects/*/artifacts
-test/fixture-projects/*/cache

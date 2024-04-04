@@ -10,6 +10,15 @@
   "references": [
     {
       "path": "../../hardhat-core/src"
+    },
+    {
+      "path": "../../hardhat-network-helpers"
+    },
+    {
+      "path": "../../hardhat-verify/src"
+    },
+    {
+      "path": "../../hardhat-viem/src"
     }
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "extends": "../../config/typescript/tsconfig.json",
+  "extends": ["../../config/typescript/tsconfig.json", "@tsconfig/node-lts/tsconfig.json"],
   "compilerOptions": {
     "outDir": "./build-test",
     "rootDirs": ["./test"],

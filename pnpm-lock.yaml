@@ -1610,16 +1610,6 @@ importers:
         version: 2.7.14(typescript@5.0.4)
 
   packages/hardhat-viem-assert:
-    dependencies:
-      '@nomicfoundation/hardhat-viem':
-        specifier: workspace:^2.0.0
-        version: link:../hardhat-viem
-      abitype:
-        specifier: ^0.9.8
-        version: 0.9.10(typescript@5.0.4)
-      lodash.memoize:
-        specifier: ^4.1.2
-        version: 4.1.2
     devDependencies:
       '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
         specifier: workspace:^
@@ -1627,42 +1617,36 @@ importers:
       '@nomicfoundation/eslint-plugin-slow-imports':
         specifier: workspace:^
         version: link:../eslint-plugin-slow-imports
+      '@nomicfoundation/hardhat-ignition-viem':
+        specifier: ^0.15.0
+        version: 0.15.0(@nomicfoundation/hardhat-ignition@0.15.0)(@nomicfoundation/hardhat-viem@packages+hardhat-viem)(@nomicfoundation/ignition-core@0.15.0)(hardhat@packages+hardhat-core)(viem@2.7.14)
+      '@nomicfoundation/hardhat-network-helpers':
+        specifier: workspace:^1.0.0
+        version: link:../hardhat-network-helpers
+      '@nomicfoundation/hardhat-toolbox-viem':
+        specifier: workspace:^3.0.0
+        version: link:../hardhat-toolbox-viem
+      '@nomicfoundation/hardhat-verify':
+        specifier: workspace:^2.0.0
+        version: link:../hardhat-verify
+      '@nomicfoundation/hardhat-viem':
+        specifier: workspace:^2.0.0
+        version: link:../hardhat-viem
       '@tsconfig/node-lts':
         specifier: ^20.1.3
         version: 20.1.3
-      '@types/chai':
-        specifier: ^4.2.0
-        version: 4.3.12
-      '@types/chai-as-promised':
-        specifier: ^7.1.3
-        version: 7.1.8
-      '@types/lodash':
-        specifier: ^4.14.123
-        version: 4.14.202
-      '@types/lodash.memoize':
-        specifier: ^4.1.7
-        version: 4.1.9
       '@types/mocha':
         specifier: '>=9.1.0'
         version: 10.0.6
       '@types/node':
         specifier: ^18.0.0
         version: 18.15.13
-      '@types/sinon':
-        specifier: ^9.0.8
-        version: 9.0.11
       '@typescript-eslint/eslint-plugin':
         specifier: 5.61.0
         version: 5.61.0(@typescript-eslint/parser@5.61.0)(eslint@8.57.0)(typescript@5.0.4)
       '@typescript-eslint/parser':
         specifier: 5.61.0
         version: 5.61.0(eslint@8.57.0)(typescript@5.0.4)
-      chai:
-        specifier: ^4.2.0
-        version: 4.4.1
-      chai-as-promised:
-        specifier: ^7.1.1
-        version: 7.1.1(chai@4.4.1)
       eslint:
         specifier: ^8.44.0
         version: 8.57.0
@@ -1679,31 +1663,28 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^2.17.0
+        specifier: workspace:^2.11.0
         version: link:../hardhat-core
-      jest-diff:
-        specifier: ^29.7.0
-        version: 29.7.0
+      hardhat-gas-reporter:
+        specifier: ^1.0.8
+        version: 1.0.10(hardhat@packages+hardhat-core)
       mocha:
         specifier: ^10.0.0
         version: 10.3.0
-      nyc:
-        specifier: ^15.1.0
-        version: 15.1.0
       prettier:
         specifier: 2.4.1
         version: 2.4.1
       rimraf:
         specifier: ^3.0.2
         version: 3.0.2
-      sinon:
-        specifier: ^9.0.0
-        version: 9.2.4
+      solidity-coverage:
+        specifier: ^0.8.1
+        version: 0.8.8(hardhat@packages+hardhat-core)
       tsx:
         specifier: ^4.7.1
         version: 4.7.1
       typescript:
-        specifier: ~5.0.0
+        specifier: ~5.0.4
         version: 5.0.4
       viem:
         specifier: ^2.7.6
@@ -3416,6 +3397,22 @@ packages:
       '@nomicfoundation/ignition-core': 0.15.0
       ethers: 6.11.1
       hardhat: link:packages/hardhat-core
+    dev: true
+
+  /@nomicfoundation/hardhat-ignition-viem@0.15.0(@nomicfoundation/hardhat-ignition@0.15.0)(@nomicfoundation/hardhat-viem@packages+hardhat-viem)(@nomicfoundation/ignition-core@0.15.0)(hardhat@packages+hardhat-core)(viem@2.7.14):
+    resolution: {integrity: sha512-st6W+WTyqnHc3bs039/H5Du1+CNvLinwJ86O0yp5h4QWKTn0gfpojY7nWn9RjqSkMdpzsKVdifqzywfgXsGZlQ==}
+    peerDependencies:
+      '@nomicfoundation/hardhat-ignition': ^0.15.0
+      '@nomicfoundation/hardhat-viem': ^2.0.0
+      '@nomicfoundation/ignition-core': ^0.15.0
+      hardhat: ^2.18.0
+      viem: ^2.7.6
+    dependencies:
+      '@nomicfoundation/hardhat-ignition': 0.15.0(@nomicfoundation/hardhat-verify@packages+hardhat-verify)(hardhat@packages+hardhat-core)
+      '@nomicfoundation/hardhat-viem': link:packages/hardhat-viem
+      '@nomicfoundation/ignition-core': 0.15.0
+      hardhat: link:packages/hardhat-core
+      viem: 2.7.14(typescript@5.0.4)
     dev: true
 
   /@nomicfoundation/hardhat-ignition-viem@0.15.0(@nomicfoundation/hardhat-ignition@0.15.0)(@nomicfoundation/hardhat-viem@packages+hardhat-viem)(@nomicfoundation/ignition-core@0.15.0)(hardhat@packages+hardhat-core)(viem@2.7.6):
