@@ -13,6 +13,8 @@ use flate2::bufread::GzDecoder;
 use indicatif::ProgressBar;
 use serde::Deserialize;
 use tokio::{runtime, task};
+#[cfg(feature = "tracing")]
+use tracing_subscriber::{prelude::*, Registry};
 
 #[derive(Clone, Debug, Deserialize)]
 struct ScenarioConfig {
@@ -29,6 +31,19 @@ pub async fn execute(scenario_path: &Path, max_count: Option<usize>) -> anyhow::
 
     let logger = Box::<DisabledLogger>::default();
     let subscription_callback = Box::new(|_| ());
+
+    #[cfg(feature = "tracing")]
+    let _flame_guard = {
+        let (flame_layer, guard) = tracing_flame::FlameLayer::with_file("tracing.folded").unwrap();
+
+        let flame_layer = flame_layer.with_empty_samples(false);
+        let subscriber = Registry::default().with(flame_layer);
+
+        tracing::subscriber::set_global_default(subscriber)
+            .expect("Could not set global default tracing subscriber");
+
+        guard
+    };
 
     println!("Executing requests");
 
