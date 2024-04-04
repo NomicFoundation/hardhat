@@ -154,6 +154,37 @@ describe("JSON-RPC client", function () {
           assert.equal(fees.gasPrice, 1n);
         });
 
+        it("Should return zero gas fees when deploying to a network with a zero base fee per gas (e.g. private Besu instances)", async function () {
+          const besuClient = new EIP1193JsonRpcClient({
+            request: async (req) => {
+              if (req.method === "eth_chainId") {
+                return "0x42";
+              }
+
+              if (req.method === "eth_getBlockByNumber") {
+                return {
+                  number: "0x0",
+                  hash: "0x0",
+                  baseFeePerGas: "0x0", // Set the base fee to zero
+                };
+              }
+
+              if (req.method === "eth_gasPrice") {
+                return "0x1";
+              }
+
+              throw new Error(`Unimplemented mock for ${req.method}`);
+            },
+          });
+
+          const fees = await besuClient.getNetworkFees();
+
+          assert.deepStrictEqual(fees, {
+            maxFeePerGas: 0n,
+            maxPriorityFeePerGas: 0n,
+          });
+        });
+
         it("Should use the `maxPriorityFeePerGas` from the node if `eth_maxPriorityFeePerGas` is present (and there is no config)", async function () {
           // TODO: Hardhat does not support `eth_maxPriorityFeePerGas` yet, when it does, this
           // can be removed.
