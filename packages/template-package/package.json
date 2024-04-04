@@ -1,0 +1,55 @@
+{
+  "name": "@nomicfoundation/template-package",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Template for Nomic Foundation npm packages",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/template-package",
+  "repository": "github:nomicfoundation/hardhat",
+  "author": "Nomic Foundation",
+  "license": "MIT",
+  "type": "module",
+  "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": "./dist/src/index.js",
+    "./other": "./dist/src/other-entry-point.js"
+  },
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "hardhat"
+  ],
+  "scripts": {
+    "lint": "pnpm prettier --check && pnpm eslint",
+    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
+    "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
+    "prettier": "prettier \"**/*.{ts,js,md,json}\"",
+    "pretest": "cd ../.. && pnpm build",
+    "test": "glob --cmd='node --import tsx/esm --test' 'test/**/*.ts'",
+    "build": "tsc --build .",
+    "prepublishOnly": "pnpm build",
+    "clean": "rimraf dist"
+  },
+  "files": [
+    "dist/src/",
+    "src/",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "devDependencies": {
+    "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
+    "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
+    "@types/node": "^20.0.0",
+    "eslint": "8.57.0",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-plugin-import": "2.29.1",
+    "eslint-plugin-no-only-tests": "3.1.0",
+    "expect-type": "^0.19.0",
+    "glob": "^10.3.12",
+    "prettier": "3.2.5",
+    "rimraf": "^5.0.5",
+    "tsx": "^4.7.1",
+    "typescript": "~5.4.0",
+    "typescript-eslint": "7.5.0"
+  }
+}
