@@ -325,10 +325,16 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
       };
     } catch (error) {
       if (error instanceof Error) {
-        if ("data" in error && typeof error.data === "string") {
+        const errorWithData = error as { data?: string | { data?: string } };
+        const data =
+          typeof errorWithData.data === "string"
+            ? errorWithData.data
+            : errorWithData.data?.data;
+
+        if (data !== undefined) {
           return {
             success: false,
-            returnData: error.data,
+            returnData: data,
             customErrorReported: isCustomErrorError(error),
           };
         }

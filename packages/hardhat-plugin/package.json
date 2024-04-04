@@ -51,7 +51,7 @@
     "@types/chai-as-promised": "^7.1.4",
     "@types/sinon": "^10.0.13",
     "@nomicfoundation/hardhat-network-helpers": "1.0.9",
-    "hardhat": "2.20.0",
+    "hardhat": "^2.18.0",
     "viem": "^2.7.6"
   },
   "peerDependencies": {

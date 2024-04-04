@@ -14,7 +14,7 @@
     "@nomicfoundation/hardhat-network-helpers": "1.0.10",
     "@nomicfoundation/hardhat-viem": "2.0.0",
     "chai": "4.4.1",
-    "hardhat": "2.20.0",
+    "hardhat": "^2.18.0",
     "prettier-plugin-solidity": "1.1.3"
   }
 }
