@@ -1,0 +1,435 @@
+name: EDR NPM release
+
+env:
+  DEBUG: napi:*
+  APP_NAME: edr
+  MACOSX_DEPLOYMENT_TARGET: "10.13"
+permissions:
+  contents: write
+  id-token: write
+on:
+  push:
+    branches:
+      - main
+      - edr/release
+    tags-ignore:
+      - "**"
+    paths-ignore:
+      - "**/*.md"
+      - LICENSE
+      - "**/*.gitignore"
+      - .editorconfig
+      - docs/**
+  pull_request: null
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - host: macos-latest
+            target: x86_64-apple-darwin
+            build: |
+              pnpm build
+              strip -x *.node
+          - host: windows-latest
+            build: pnpm build
+            target: x86_64-pc-windows-msvc
+          - host: windows-latest
+            build: |
+              pnpm build --target i686-pc-windows-msvc
+              pnpm testNoBuild
+            target: i686-pc-windows-msvc
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust@sha256:4b2638c0987845c4ab3488574a215a2a866b99fb28588788786f2b8cbcb40e71
+            build: |-
+              set -e &&
+              pnpm run build --target x86_64-unknown-linux-gnu &&
+              strip *.node
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust@sha256:2003f7f7027adaab2c97bf576ce6bb87640a77c62a6898ed2359c050c49872a5
+            build: |-
+              apk add perl;
+              set -e &&
+              pnpm run build &&
+              strip *.node
+          - host: macos-latest
+            target: aarch64-apple-darwin
+            build: |
+              pnpm build --target aarch64-apple-darwin
+              strip -x *.node
+          - host: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust@sha256:08cb2c8326ae78cf8ffd58f81523dd9592a4778c2c5f314251f5773ea204f289
+            build: |-
+              set -e &&
+              sudo apt-get update &&
+              sudo apt-get install perl -y &&
+              rustup target add aarch64-unknown-linux-gnu &&
+              # Required to build OpenSSL
+              export LDFLAGS="-L/usr/aarch64-unknown-linux-gnu/lib/gcc/aarch64-unknown-linux-gnu/4.8.5" &&
+              export CFLAGS="-B/usr/aarch64-unknown-linux-gnu/lib/gcc/aarch64-unknown-linux-gnu/4.8.5 --sysroot=/usr/aarch64-unknown-linux-gnu/aarch64-unknown-linux-gnu/sysroot" &&
+              export CXXFLAGS="-B/usr/aarch64-unknown-linux-gnu/lib/gcc/aarch64-unknown-linux-gnu/4.8.5 --sysroot=/usr/aarch64-unknown-linux-gnu/aarch64-unknown-linux-gnu/sysroot" &&
+              pnpm run build --target aarch64-unknown-linux-gnu &&
+              aarch64-unknown-linux-gnu-strip *.node
+          - host: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust@sha256:2003f7f7027adaab2c97bf576ce6bb87640a77c62a6898ed2359c050c49872a5
+            build: |-
+              apk add perl;
+              set -e &&
+              rustup target add aarch64-unknown-linux-musl &&
+              pnpm run build --target aarch64-unknown-linux-musl &&
+              /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
+          - host: windows-latest
+            target: aarch64-pc-windows-msvc
+            build: pnpm build --target aarch64-pc-windows-msvc
+    name: stable - ${{ matrix.settings.target }} - node@18
+    runs-on: ${{ matrix.settings.host }}
+    defaults:
+      run:
+        working-directory: ./crates/edr_napi
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Setup node
+        uses: actions/setup-node@v3
+        if: ${{ !matrix.settings.docker }}
+        with:
+          node-version: 18
+          check-latest: true
+          cache: pnpm
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        if: ${{ !matrix.settings.docker }}
+        with:
+          toolchain: stable
+      # The `--target` flag for `rustup toolchain install` is not working properly which is
+      # why we need this extra step in addition to the `dtolnay/rust-toolchain` action.
+      # https://github.com/rust-lang/rustup/issues/3255
+      - name: Add Rust cross-compilation target
+        run: rustup target add ${{ matrix.settings.target }}
+        if: ${{ !matrix.settings.docker }}
+        shell: bash
+      - name: Cache cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            .cargo-cache
+            target/
+          key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.host }}
+      - uses: goto-bus-stop/setup-zig@v2
+        if: ${{ matrix.settings.target == 'armv7-unknown-linux-gnueabihf' }}
+        with:
+          version: 0.10.1
+      - name: Setup node x86
+        if: matrix.settings.target == 'i686-pc-windows-msvc'
+        run: pnpm config set supportedArchitectures.cpu "ia32"
+        shell: bash
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Setup node x86
+        uses: actions/setup-node@v3
+        if: matrix.settings.target == 'i686-pc-windows-msvc'
+        with:
+          node-version: 18
+          check-latest: true
+          cache: pnpm
+          architecture: x86
+      - name: Build in docker
+        uses: addnab/docker-run-action@v3
+        if: ${{ matrix.settings.docker }}
+        with:
+          image: ${{ matrix.settings.docker }}
+          options: "--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build/crates/edr_napi"
+          run: ${{ matrix.settings.build }}
+      - name: Build
+        run: ${{ matrix.settings.build }}
+        if: ${{ !matrix.settings.docker }}
+        shell: bash
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          # The upload artifact action doesn't respect the working directory setting. Unclear if this is a bug or not
+          # https://github.com/actions/upload-artifact/issues/294
+          path: ./crates/edr_napi/${{ env.APP_NAME }}.*.node
+          if-no-files-found: error
+  test-macOS-windows-binding:
+    name: Test bindings on ${{ matrix.settings.target }} - node@${{ matrix.node }}
+    needs:
+      - build
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - host: macos-latest
+            target: x86_64-apple-darwin
+          - host: windows-latest
+            target: x86_64-pc-windows-msvc
+        node:
+          - "18"
+          - "20"
+    runs-on: ${{ matrix.settings.host }}
+    defaults:
+      run:
+        working-directory: ./crates/edr_napi
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          check-latest: true
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: ./crates/edr_napi/
+      - name: List packages
+        run: ls -R .
+        shell: bash
+      - name: Test bindings
+        run: pnpm testNoBuild
+  test-linux-x64-gnu-binding:
+    name: Test bindings on Linux-x64-gnu - node@${{ matrix.node }}
+    needs:
+      - build
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - "18"
+          - "20"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          check-latest: true
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: bindings-x86_64-unknown-linux-gnu
+          path: ./crates/edr_napi/
+      - name: List packages
+        run: ls -R .
+        shell: bash
+      - name: Test bindings
+        run: docker run --rm -v $(pwd):/build -w /build/crates/edr_napi node:${{ matrix.node }} bash -c "wget -qO- 'https://unpkg.com/@pnpm/self-installer' | node; pnpm testNoBuild"
+  test-linux-x64-musl-binding:
+    name: Test bindings on x86_64-unknown-linux-musl - node@${{ matrix.node }}
+    needs:
+      - build
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - "18"
+          - "20"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          check-latest: true
+          cache: pnpm
+      - name: Install dependencies
+        run: |
+          pnpm config set supportedArchitectures.libc "musl"
+          pnpm install --frozen-lockfile --prefer-offline
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: bindings-x86_64-unknown-linux-musl
+          path: ./crates/edr_napi/
+      - name: List packages
+        run: ls -R .
+        shell: bash
+      - name: Test bindings
+        run: docker run --rm -v $(pwd):/build -w /build/crates/edr_napi node:${{ matrix.node }}-alpine sh -c "wget -qO- 'https://unpkg.com/@pnpm/self-installer' | node; pnpm testNoBuild"
+  test-linux-aarch64-gnu-binding:
+    name: Test bindings on aarch64-unknown-linux-gnu - node@${{ matrix.node }}
+    needs:
+      - build
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - "18"
+          - "20"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: bindings-aarch64-unknown-linux-gnu
+          path: ./crates/edr_napi/
+      - name: List packages
+        run: ls -R .
+        shell: bash
+      - name: Install dependencies
+        run: |
+          pnpm config set supportedArchitectures.cpu "arm64"
+          pnpm config set supportedArchitectures.libc "glibc"
+          pnpm install --frozen-lockfile --prefer-offline
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: arm64
+      - run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+      - name: Setup and run tests
+        uses: addnab/docker-run-action@v3
+        with:
+          image: node:${{ matrix.node }}
+          options: "--platform linux/arm64 -v ${{ github.workspace }}:/build -w /build/crates/edr_napi"
+          run: |
+            wget -qO- 'https://unpkg.com/@pnpm/self-installer' | node
+            set -e
+            pnpm testNoBuild
+            ls -la
+  test-linux-aarch64-musl-binding:
+    name: Test bindings on aarch64-unknown-linux-musl - node@lts
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: bindings-aarch64-unknown-linux-musl
+          path: ./crates/edr_napi/
+      - name: List packages
+        run: ls -R .
+        shell: bash
+      - name: Install dependencies
+        run: |
+          pnpm config set supportedArchitectures.cpu "arm64"
+          pnpm config set supportedArchitectures.libc "musl"
+          pnpm install --frozen-lockfile --prefer-offline
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: arm64
+      - run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+      - name: Setup and run tests
+        uses: addnab/docker-run-action@v3
+        with:
+          image: node:lts-alpine
+          options: "--platform linux/arm64 -v ${{ github.workspace }}:/build -w /build/crates/edr_napi"
+          run: |
+            wget -qO- 'https://unpkg.com/@pnpm/self-installer' | node
+            set -e
+            pnpm testNoBuild
+  check_commit:
+    name: Check commit
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.author_association == 'OWNER' || github.event.pull_request.author_association == 'MEMBER' || github.event.pull_request.author_association == 'COLLABORATOR'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Check if commit message is a release commit
+        id: check_commit
+        # Must match commit check in publish step
+        run: |
+          if git log -1 --pretty=%B | grep "^edr-[0-9]\+\.[0-9]\+\.[0-9]\+";
+          then
+            echo "Check commit: matches"
+            echo "match=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Check commit: no match"
+            echo "match=false" >> "$GITHUB_OUTPUT"
+          fi
+    outputs:
+      match: ${{ steps.check_commit.outputs.match }}
+  publish:
+    name: Publish
+    environment: edr-release
+    runs-on: ubuntu-latest
+    needs:
+      - check_commit
+      - test-macOS-windows-binding
+      - test-linux-x64-gnu-binding
+      - test-linux-x64-musl-binding
+      - test-linux-aarch64-gnu-binding
+      - test-linux-aarch64-musl-binding
+    # Only run workflow if the PR is merged to main and the commit message is a release commit.
+    if: ${{ needs.check_commit.outputs.match == 'true' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/edr/release') }}
+    defaults:
+      run:
+        working-directory: ./crates/edr_napi
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          check-latest: true
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: ./crates/edr_napi/artifacts
+      - name: Move artifacts
+        run: pnpm artifacts
+      - name: Publish
+        run: |
+          if git log -1 --pretty=%B | grep "^edr-[0-9]\+\.[0-9]\+\.[0-9]\+$";
+          then
+            echo "Publishing release"
+            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+            pnpm publish --no-git-checks --provenance --access public
+          elif git log -1 --pretty=%B | grep "^edr-[0-9]\+\.[0-9]\+\.[0-9]\+";
+          then
+            echo "Publishing pre-release"
+            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+            pnpm publish --no-git-checks --provenance --tag next --access public
+          else
+            echo "Not a release, skipping publish"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NOMICFOUNDATION_ORG_NPM_TOKEN }}

@@ -154,7 +154,7 @@ const contractA = await hre.viem.deployContract(
   "contractName",
   ["arg1", 50, "arg3"],
   {
-    walletClient: secondWalletClient,
+    client: { wallet: secondWalletClient }
     gas: 1000000,
     value: parseEther("0.0001"),
     confirmations: 5, // 1 by default
@@ -185,7 +185,7 @@ const [_, secondWalletClient] = await hre.viem.getWalletClients();
 const contract = await hre.viem.getContractAt(
   "contractName",
   "0x1234567890123456789012345678901234567890",
-  { walletClient: secondWalletClient }
+  { client: { wallet: secondWalletClient } }
 );
 ```
 
@@ -210,7 +210,7 @@ const { contract: contractName, deploymentTransaction } =
     "contractName",
     ["arg1", 50, "arg3"],
     {
-      walletClient: secondWalletClient,
+      client: { wallet: secondWalletClient },
       gas: 1000000,
       value: parseEther("0.0001"),
     }

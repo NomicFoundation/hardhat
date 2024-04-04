@@ -78,13 +78,13 @@ describe("Ethers plugin", function () {
       describe("getImpersonatedSigner", function () {
         it("should return the working impersonated signer", async function () {
           const [signer] = await this.env.ethers.getSigners();
-          const address = `0x${"ff".repeat(20)}`;
+          const randomAddress = `0xe7d45f52130a5634f19346a3e5d32994ad821750`;
           const impersonatedSigner =
-            await this.env.ethers.getImpersonatedSigner(address);
+            await this.env.ethers.getImpersonatedSigner(randomAddress);
 
           assert.strictEqual(
-            impersonatedSigner.address,
-            "0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF"
+            impersonatedSigner.address.toLowerCase(),
+            randomAddress
           );
 
           // fund impersonated account

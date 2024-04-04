@@ -1,6 +1,7 @@
 import { zeroAddress } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 
+import { rpcQuantityToNumber } from "../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { RpcBlockOutput } from "../../../../../../src/internal/hardhat-network/provider/output";
 import { workaroundWindowsCiFailures } from "../../../../../utils/workaround-windows-ci-failures";
 import {
@@ -13,7 +14,6 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   PROVIDERS,
 } from "../../../helpers/providers";
-import { retrieveForkBlockNumber } from "../../../helpers/retrieveForkBlockNumber";
 import { deployContract } from "../../../helpers/transactions";
 
 describe("Eth module", function () {
@@ -28,12 +28,11 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      const getFirstBlock = async () =>
-        isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
-
       describe("block tags", function () {
         it("should allow EIP-1898 block tags", async function () {
-          const firstBlock = await getFirstBlock();
+          const firstBlockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
 
           const contractAddress = await deployContract(
             this.provider,
@@ -51,7 +50,9 @@ describe("Eth module", function () {
             },
           ]);
 
-          const previousBlockNumber = `0x${(firstBlock + 1).toString(16)}`;
+          const previousBlockNumber = `0x${(firstBlockNumber + 1).toString(
+            16
+          )}`;
           const previousBlock: RpcBlockOutput = await this.provider.send(
             "eth_getBlockByNumber",
             [previousBlockNumber, false]

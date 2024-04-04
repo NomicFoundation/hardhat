@@ -89,15 +89,20 @@ const customRedirects = [
     permanent: false,
   },
   {
+    source: "/hardhat-runner/docs/guides/migrating-from-hardhat-waffle",
+    destination: "/hardhat-runner/docs/advanced/migrating-from-hardhat-waffle",
+    permanent: false,
+  },
+  {
     source: "/custom-hardfork-history",
     destination:
       "/hardhat-network/docs/guides/forking-other-networks.html#using-a-custom-hardfork-history",
     permanent: false,
   },
   {
-    source: "/solidity-survey-2022",
+    source: "/solidity-survey-2023",
     destination:
-      "https://cryptpad.fr/form/#/2/form/view/HuPIRv4gvziSV0dPV1SJncKzYJXTVc8LGCaMfLUoj2c/",
+      "https://cryptpad.fr/form/#/2/form/view/pV-DdryeJoYUWvW+gXsFaMNynEY7t5mUsgeD1urgwSE",
     permanent: false,
   },
   {
@@ -245,6 +250,11 @@ const customRedirects = [
     destination: "/hardhat-runner/docs/guides/command-line-completion",
     permanent: false,
   },
+  {
+    source: "/hardhat-runner/docs/guides/tasks-and-scripts",
+    destination: "/hardhat-runner/docs/guides/tasks",
+    permanent: false,
+  },
   // guides redirects, exceptions go first
   {
     source:
@@ -302,6 +312,12 @@ const customRedirects = [
   {
     source: "/hardhat-runner/plugins/nomiclabs-hardhat-ethers",
     destination: "/hardhat-runner/plugins/nomicfoundation-hardhat-ethers",
+    permanent: false,
+  },
+  {
+    source: "/release/:version",
+    destination:
+      "https://github.com/NomicFoundation/hardhat/releases/tag/hardhat%40:version",
     permanent: false,
   },
   ...loadErrorRedirects(),

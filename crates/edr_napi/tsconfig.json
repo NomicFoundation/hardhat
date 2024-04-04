@@ -1,0 +1,17 @@
+{
+  "extends": "../../config/typescript/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./build-test",
+    "rootDirs": [
+      "./test"
+    ],
+    "composite": true
+  },
+  "include": [
+    "./*.ts",
+    "./test/**/*.ts"
+  ],
+  "exclude": [
+    "./node_modules"
+  ]
+}

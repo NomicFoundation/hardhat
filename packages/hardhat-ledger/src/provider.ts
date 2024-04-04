@@ -35,6 +35,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
 
   public readonly paths: Paths = {}; // { address: path }
   public name: string = "LedgerProvider";
+  public isOutputEnabled: boolean = true;
 
   protected _eth: EthWrapper | undefined;
 
@@ -113,6 +114,10 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
 
   public async request(args: RequestArguments): Promise<unknown> {
     const params = this._getParams(args);
+
+    if (args.method === "hardhat_setLedgerOutputEnabled") {
+      return this._setOutputEnabled(params);
+    }
 
     if (args.method === "eth_accounts") {
       const accounts = (await this._wrappedProvider.request(args)) as string[];
@@ -390,23 +395,23 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
   }
 
   private async _toRpcSig(signature: Signature): Promise<string> {
-    const { toRpcSig, toBuffer } = await import(
+    const { toRpcSig, toBytes } = await import(
       "@nomicfoundation/ethereumjs-util"
     );
 
     return toRpcSig(
       BigInt(signature.v - 27),
-      toBuffer(toHex(signature.r)),
-      toBuffer(toHex(signature.s))
+      toBytes(toHex(signature.r)),
+      toBytes(toHex(signature.s))
     );
   }
 
   private async _getNonce(address: Buffer): Promise<bigint> {
-    const { bufferToHex } = await import("@nomicfoundation/ethereumjs-util");
+    const { bytesToHex } = await import("@nomicfoundation/ethereumjs-util");
 
     const response = (await this._wrappedProvider.request({
       method: "eth_getTransactionCount",
-      params: [bufferToHex(address), "pending"],
+      params: [bytesToHex(address), "pending"],
     })) as string;
 
     return rpcQuantityToBigInt(response);
@@ -427,5 +432,15 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
         hexAddress
       );
     }
+  }
+
+  /**
+   * Toggles the provider's output. Use to suppress default feedback and
+   * manage it via events.
+   */
+  private _setOutputEnabled(params: any[]): void {
+    const [enabled] = validateParams(params, t.boolean);
+
+    this.isOutputEnabled = enabled;
   }
 }

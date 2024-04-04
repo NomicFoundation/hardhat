@@ -1,7 +1,9 @@
 import type { request as RequestT } from "undici";
 
 import debug from "debug";
-import os from "os";
+import os from "node:os";
+import { join } from "node:path";
+import { spawn } from "node:child_process";
 
 import { isLocalDev } from "../core/execution-mode";
 import { isRunningOnCiServer } from "../util/ci-detection";
@@ -10,8 +12,10 @@ import {
   readFirstLegacyAnalyticsId,
   readSecondLegacyAnalyticsId,
   writeAnalyticsId,
+  writeTelemetryConsent,
 } from "../util/global-dir";
 import { getPackageJson } from "../util/packageInfo";
+import { confirmTelemetryConsent } from "./prompt";
 
 const log = debug("hardhat:core:analytics");
 
@@ -19,6 +23,17 @@ const log = debug("hardhat:core:analytics");
 interface AnalyticsPayload {
   client_id: string;
   user_id: string;
+  user_properties: {};
+  events: Array<{
+    name: string;
+    params: {
+      engagement_time_msec?: string;
+      session_id?: string;
+    };
+  }>;
+}
+
+interface TaskHitPayload extends AnalyticsPayload {
   user_properties: {
     projectId: {
       value?: string;
@@ -37,14 +52,26 @@ interface AnalyticsPayload {
     };
   };
   events: Array<{
-    name: string;
+    name: "task";
     params: {
-      engagement_time_msec: string;
-      session_id: string;
+      engagement_time_msec?: string;
+      session_id?: string;
+      scope?: string;
+      task?: string;
     };
   }>;
 }
-/* eslint-enable @typescript-eslint/naming-convention */
+
+interface TelemetryConsentHitPayload extends AnalyticsPayload {
+  events: Array<{
+    name: "TelemetryConsentResponse";
+    params: {
+      engagement_time_msec?: string;
+      session_id?: string;
+      userConsent: "yes" | "no";
+    };
+  }>;
+}
 
 type AbortAnalytics = () => void;
 
@@ -99,7 +126,10 @@ export class Analytics {
     }
 
     let eventParams = {};
-    if (scopeName === "ignition" && taskName === "deploy") {
+    if (
+      (scopeName === "ignition" && taskName === "deploy") ||
+      (scopeName === undefined && taskName === "deploy")
+    ) {
       eventParams = {
         scope: scopeName,
         task: taskName,
@@ -109,12 +139,31 @@ export class Analytics {
     return this._sendHit(await this._buildTaskHitPayload(eventParams));
   }
 
+  public async sendTelemetryConsentHit(
+    userConsent: "yes" | "no"
+  ): Promise<[AbortAnalytics, Promise<void>]> {
+    const telemetryConsentHitPayload: TelemetryConsentHitPayload = {
+      client_id: "hardhat_telemetry_consent",
+      user_id: "hardhat_telemetry_consent",
+      user_properties: {},
+      events: [
+        {
+          name: "TelemetryConsentResponse",
+          params: {
+            userConsent,
+          },
+        },
+      ],
+    };
+    return this._sendHit(telemetryConsentHitPayload);
+  }
+
   private async _buildTaskHitPayload(
     eventParams: {
       scope?: string;
       task?: string;
     } = {}
-  ): Promise<AnalyticsPayload> {
+  ): Promise<TaskHitPayload> {
     return {
       client_id: this._clientId,
       user_id: this._clientId,
@@ -206,4 +255,34 @@ async function getHardhatVersion(): Promise<string> {
   const { version } = await getPackageJson();
 
   return `Hardhat ${version}`;
+}
+
+export async function requestTelemetryConsent() {
+  const telemetryConsent = await confirmTelemetryConsent();
+
+  if (telemetryConsent === undefined) {
+    return;
+  }
+
+  writeTelemetryConsent(telemetryConsent);
+
+  const reportTelemetryConsentPath = join(
+    __dirname,
+    "..",
+    "util",
+    "report-telemetry-consent.js"
+  );
+
+  const subprocess = spawn(
+    process.execPath,
+    [reportTelemetryConsentPath, telemetryConsent ? "yes" : "no"],
+    {
+      detached: true,
+      stdio: "ignore",
+    }
+  );
+
+  subprocess.unref();
+
+  return telemetryConsent;
 }

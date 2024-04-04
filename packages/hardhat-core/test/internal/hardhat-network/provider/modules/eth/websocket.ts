@@ -381,7 +381,8 @@ describe("Eth module", function () {
           return onPending;
         });
 
-        it("contract events work", async function () {
+        // TODO: https://github.com/NomicFoundation/edr/issues/279
+        it.skip("contract events work", async function () {
           const signer = await provider.getSigner();
           const Factory = new ethers.ContractFactory<[], ethers.Contract>(
             EXAMPLE_CONTRACT.abi,

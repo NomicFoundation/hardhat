@@ -1,3 +1,6 @@
 *.sol linguist-language=Solidity
 # prevent github actions to checkout files with crlf line endings
-* -text
+* text=auto
+
+*.sol text eol=lf
+*.d.ts text eol=lf

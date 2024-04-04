@@ -1,5 +1,30 @@
 # @nomicfoundation/hardhat-verify
 
+## 2.0.5
+
+### Patch Changes
+
+- 91d035e: Updated polygonZkEVMTestnet to point to cardona testnet
+
+## 2.0.4
+
+### Patch Changes
+
+- fb673f2be: Added holesky and arbitrumSepolia, and removed arbitrumTestnet and arbitrumGoerli from hardhat-verify chains.
+- 11043e96a: Added support for programmatic verification in Sourcify
+
+## 2.0.3
+
+### Patch Changes
+
+- e77f1d8a0: Add apiUrl and browserUrl to Sourcify configuration.
+
+## 2.0.2
+
+### Patch Changes
+
+- 5cab65fb7: Updated chiado urls to avoid redirect
+
 ## 2.0.1
 
 ### Patch Changes

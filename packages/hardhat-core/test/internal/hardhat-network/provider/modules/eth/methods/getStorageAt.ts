@@ -3,6 +3,7 @@ import { assert } from "chai";
 import {
   numberToRpcQuantity,
   numberToRpcStorageSlot,
+  rpcQuantityToNumber,
 } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import { assertInvalidArgumentsError } from "../../../../helpers/assertions";
@@ -13,7 +14,6 @@ import {
   DEFAULT_BLOCK_GAS_LIMIT,
   PROVIDERS,
 } from "../../../../helpers/providers";
-import { retrieveForkBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 import { deployContract } from "../../../../helpers/transactions";
 
 describe("Eth module", function () {
@@ -27,9 +27,6 @@ describe("Eth module", function () {
     describe(`${name} provider`, function () {
       setCWD();
       useProvider();
-
-      const getFirstBlock = async () =>
-        isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
 
       describe("eth_getStorageAt", async function () {
         describe("Imitating Ganache", function () {
@@ -69,7 +66,10 @@ describe("Eth module", function () {
           describe("When a slot has been written into", function () {
             describe("When 32 bytes were written", function () {
               it("Should return a 32-byte DATA string", async function () {
-                const firstBlock = await getFirstBlock();
+                const firstBlockNumber = rpcQuantityToNumber(
+                  await this.provider.send("eth_blockNumber")
+                );
+
                 const exampleContract = await deployContract(
                   this.provider,
                   `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -79,7 +79,7 @@ describe("Eth module", function () {
                   await this.provider.send("eth_getStorageAt", [
                     exampleContract,
                     numberToRpcStorageSlot(2),
-                    numberToRpcQuantity(firstBlock),
+                    numberToRpcQuantity(firstBlockNumber),
                   ]),
                   "0x0000000000000000000000000000000000000000000000000000000000000000"
                 );
@@ -173,7 +173,10 @@ describe("Eth module", function () {
 
             describe("When less than 32 bytes where written", function () {
               it("Should return a DATA string with the same amount bytes that have been written", async function () {
-                const firstBlock = await getFirstBlock();
+                const firstBlockNumber = rpcQuantityToNumber(
+                  await this.provider.send("eth_blockNumber")
+                );
+
                 const exampleContract = await deployContract(
                   this.provider,
                   `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -197,7 +200,7 @@ describe("Eth module", function () {
                   await this.provider.send("eth_getStorageAt", [
                     exampleContract,
                     numberToRpcStorageSlot(0),
-                    numberToRpcQuantity(firstBlock + 1),
+                    numberToRpcQuantity(firstBlockNumber + 1),
                   ]),
                   "0x0000000000000000000000000000000000000000000000000000000000000000"
                 );
@@ -225,7 +228,7 @@ describe("Eth module", function () {
                   await this.provider.send("eth_getStorageAt", [
                     exampleContract,
                     numberToRpcStorageSlot(0),
-                    numberToRpcQuantity(firstBlock + 2),
+                    numberToRpcQuantity(firstBlockNumber + 2),
                   ]),
                   "0x000000000000000000000000000000000000000000000000000000000000007b"
                 );

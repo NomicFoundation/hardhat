@@ -1,6 +1,5 @@
 import chalk from "chalk";
 import fsExtra from "fs-extra";
-import os from "os";
 import path from "path";
 
 import { HARDHAT_NAME } from "../constants";
@@ -8,10 +7,7 @@ import { assertHardhatInvariant, HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 import { getRecommendedGitIgnore } from "../core/project-structure";
 import { getAllFilesMatching } from "../util/fs-utils";
-import {
-  hasConsentedTelemetry,
-  writeTelemetryConsent,
-} from "../util/global-dir";
+import { hasConsentedTelemetry } from "../util/global-dir";
 import { fromEntries } from "../util/lang";
 import {
   getPackageJson,
@@ -19,13 +15,14 @@ import {
   PackageJson,
 } from "../util/packageInfo";
 import { pluralize } from "../util/strings";
+import { isRunningOnCiServer } from "../util/ci-detection";
 import {
   confirmRecommendedDepsInstallation,
-  confirmTelemetryConsent,
   confirmProjectCreation,
 } from "./prompt";
 import { emoji } from "./emoji";
 import { Dependencies, PackageManager } from "./types";
+import { requestTelemetryConsent } from "./analytics";
 
 enum Action {
   CREATE_JAVASCRIPT_PROJECT_ACTION = "Create a JavaScript project",
@@ -45,11 +42,11 @@ const HARDHAT_PACKAGE_NAME = "hardhat";
 const PROJECT_DEPENDENCIES: Dependencies = {};
 
 const ETHERS_PROJECT_DEPENDENCIES: Dependencies = {
-  "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+  "@nomicfoundation/hardhat-toolbox": "^5.0.0",
 };
 
 const VIEM_PROJECT_DEPENDENCIES: Dependencies = {
-  "@nomicfoundation/hardhat-toolbox-viem": "^2.0.0",
+  "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
 };
 
 const PEER_DEPENDENCIES: Dependencies = {
@@ -59,6 +56,7 @@ const PEER_DEPENDENCIES: Dependencies = {
   chai: "^4.2.0",
   "hardhat-gas-reporter": "^1.0.8",
   "solidity-coverage": "^0.8.0",
+  "@nomicfoundation/hardhat-ignition": "^0.15.0",
 };
 
 const ETHERS_PEER_DEPENDENCIES: Dependencies = {
@@ -68,11 +66,13 @@ const ETHERS_PEER_DEPENDENCIES: Dependencies = {
   "@typechain/hardhat": "^9.0.0",
   typechain: "^8.3.0",
   "@typechain/ethers-v6": "^0.5.0",
+  "@nomicfoundation/hardhat-ignition-ethers": "^0.15.0",
 };
 
 const VIEM_PEER_DEPENDENCIES: Dependencies = {
-  "@nomicfoundation/hardhat-viem": "^1.0.0",
-  viem: "^1.15.1",
+  "@nomicfoundation/hardhat-viem": "^2.0.0",
+  viem: "^2.7.6",
+  "@nomicfoundation/hardhat-ignition-viem": "^0.15.0",
 };
 
 const TYPESCRIPT_DEPENDENCIES: Dependencies = {};
@@ -80,7 +80,7 @@ const TYPESCRIPT_DEPENDENCIES: Dependencies = {};
 const TYPESCRIPT_PEER_DEPENDENCIES: Dependencies = {
   "@types/chai": "^4.2.0",
   "@types/mocha": ">=9.1.0",
-  "@types/node": ">=16.0.0",
+  "@types/node": ">=18.0.0",
   "ts-node": ">=8.0.0",
   typescript: ">=4.5.0",
 };
@@ -254,7 +254,7 @@ async function printRecommendedDepsInstallationInstructions(
 // exported so we can test that it uses the latest supported version of solidity
 export const EMPTY_HARDHAT_CONFIG = `/** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "0.8.19",
+  solidity: "0.8.24",
 };
 `;
 
@@ -279,6 +279,11 @@ async function getAction(isEsm: boolean): Promise<Action> {
     process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !== undefined
   ) {
     return Action.CREATE_TYPESCRIPT_PROJECT_ACTION;
+  } else if (
+    process.env.HARDHAT_CREATE_TYPESCRIPT_VIEM_PROJECT_WITH_DEFAULTS !==
+    undefined
+  ) {
+    return Action.CREATE_TYPESCRIPT_VIEM_PROJECT_ACTION;
   }
 
   const { default: enquirer } = await import("enquirer");
@@ -358,6 +363,20 @@ function showStarOnGitHubMessage() {
   console.log(chalk.cyan("     https://github.com/NomicFoundation/hardhat"));
 }
 
+export function showSoliditySurveyMessage() {
+  if (new Date() > new Date("2024-01-07 23:39")) {
+    // the survey has finished
+    return;
+  }
+
+  console.log();
+  console.log(
+    chalk.cyan(
+      "Please take a moment to complete the 2023 Solidity Survey: https://hardhat.org/solidity-survey-2023"
+    )
+  );
+}
+
 export async function createProject() {
   printAsciiLogo();
 
@@ -403,6 +422,7 @@ export async function createProject() {
 
     console.log();
     showStarOnGitHubMessage();
+    showSoliditySurveyMessage();
 
     return;
   }
@@ -414,7 +434,9 @@ export async function createProject() {
 
   const useDefaultPromptResponses =
     process.env.HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS !== undefined ||
-    process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !== undefined;
+    process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !== undefined ||
+    process.env.HARDHAT_CREATE_TYPESCRIPT_VIEM_PROJECT_WITH_DEFAULTS !==
+      undefined;
 
   if (useDefaultPromptResponses) {
     responses = {
@@ -442,13 +464,10 @@ export async function createProject() {
 
   if (
     process.env.HARDHAT_DISABLE_TELEMETRY_PROMPT !== "true" &&
+    !isRunningOnCiServer() &&
     hasConsentedTelemetry() === undefined
   ) {
-    const telemetryConsent = await confirmTelemetryConsent();
-
-    if (telemetryConsent !== undefined) {
-      writeTelemetryConsent(telemetryConsent);
-    }
+    await requestTelemetryConsent();
   }
 
   await copySampleProject(projectRoot, action, isEsm);
@@ -506,15 +525,11 @@ export async function createProject() {
   console.log("See the README.md file for some example tasks you can run");
   console.log();
   showStarOnGitHubMessage();
+  showSoliditySurveyMessage();
 }
 
 async function canInstallRecommendedDeps() {
-  return (
-    (await fsExtra.pathExists("package.json")) &&
-    // TODO: Figure out why this doesn't work on Win
-    // cf. https://github.com/nomiclabs/hardhat/issues/1698
-    os.type() !== "Windows_NT"
-  );
+  return fsExtra.pathExists("package.json");
 }
 
 function isInstalled(dep: string) {
@@ -556,12 +571,8 @@ async function doesNpmAutoInstallPeerDependencies() {
 async function installRecommendedDependencies(dependencies: Dependencies) {
   console.log("");
 
-  // The reason we don't quote the dependencies here is because they are going
-  // to be used in child_process.sapwn, which doesn't require escaping string,
-  // and can actually fail if you do.
   const installCmd = await getRecommendedDependenciesInstallationCommand(
-    dependencies,
-    false
+    dependencies
   );
   return installDependencies(installCmd[0], installCmd.slice(1));
 }
@@ -576,6 +587,7 @@ async function installDependencies(
 
   const childProcess = spawn(packageManager, args, {
     stdio: "inherit",
+    shell: true,
   });
 
   return new Promise((resolve, reject) => {
@@ -598,11 +610,10 @@ async function installDependencies(
 }
 
 async function getRecommendedDependenciesInstallationCommand(
-  dependencies: Dependencies,
-  quoteDependencies = true
+  dependencies: Dependencies
 ): Promise<string[]> {
-  const deps = Object.entries(dependencies).map(([name, version]) =>
-    quoteDependencies ? `"${name}@${version}"` : `${name}@${version}`
+  const deps = Object.entries(dependencies).map(
+    ([name, version]) => `"${name}@${version}"`
   );
 
   if (await isYarnProject()) {

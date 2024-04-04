@@ -14,6 +14,7 @@ import {
   CompilerVersionsMismatchError,
   ContractVerificationFailedError,
   HardhatNetworkNotSupportedError,
+  HardhatVerifyError,
   InvalidAddressError,
   InvalidContractNameError,
   MissingAddressError,
@@ -50,7 +51,6 @@ interface AttemptVerificationArgs {
 subtask(TASK_VERIFY_SOURCIFY)
   .addParam("address")
   .addOptionalParam("contract")
-  // TODO: [remove-verify-subtask] change to types.inputFile
   .addOptionalParam("libraries", undefined, undefined, types.any)
   .setAction(async (taskArgs: VerifyTaskArgs, { config, network, run }) => {
     const { address, libraries, contractFQN }: VerificationArgs = await run(
@@ -67,7 +67,17 @@ subtask(TASK_VERIFY_SOURCIFY)
       16
     );
 
-    const sourcify = new Sourcify(currentChainId);
+    const { apiUrl, browserUrl } = config.sourcify;
+
+    if (apiUrl === undefined) {
+      throw new HardhatVerifyError("Sourcify `apiUrl` is not defined");
+    }
+
+    if (browserUrl === undefined) {
+      throw new HardhatVerifyError("Sourcify `browserUrl` is not defined");
+    }
+
+    const sourcify = new Sourcify(currentChainId, apiUrl, browserUrl);
 
     const status = await sourcify.isVerified(address);
     if (status !== false) {
@@ -132,7 +142,6 @@ ${contractURL}`);
 subtask(TASK_VERIFY_SOURCIFY_RESOLVE_ARGUMENTS)
   .addOptionalParam("address")
   .addOptionalParam("contract")
-  // TODO: [remove-verify-subtask] change to types.inputFile
   .addOptionalParam("libraries", undefined, undefined, types.any)
   .setAction(
     async ({
@@ -153,7 +162,6 @@ subtask(TASK_VERIFY_SOURCIFY_RESOLVE_ARGUMENTS)
         throw new InvalidContractNameError(contract);
       }
 
-      // TODO: [remove-verify-subtask] librariesModule should always be string
       let libraries;
       if (typeof librariesModule === "object") {
         libraries = librariesModule;

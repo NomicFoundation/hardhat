@@ -1,4 +1,4 @@
-import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
+import { bytesToHex as bufferToHex } from "@nomicfoundation/ethereumjs-util";
 
 import { panicErrorCodeToMessage } from "./panic-errors";
 import {
@@ -66,8 +66,8 @@ export function encodeSolidityStackTrace(
     if (previousStack !== undefined) {
       stack = previousStack;
     } else {
-      // We remove Hardhat Network related stack traces
-      stack.splice(0, 3);
+      // We remove error management related stack traces
+      stack.splice(0, 1);
     }
 
     for (const entry of stackTrace) {
@@ -271,7 +271,9 @@ function getMessageFromLastStackTraceEntry(
       }
 
       if (!stackTraceEntry.message.isEmpty()) {
-        const returnData = stackTraceEntry.message.value.toString("hex");
+        const returnData = Buffer.from(stackTraceEntry.message.value).toString(
+          "hex"
+        );
 
         return `VM Exception while processing transaction: reverted with an unrecognized custom error (return data: 0x${returnData})`;
       }
@@ -391,7 +393,7 @@ class SolidityCallSite implements NodeJS.CallSite {
   }
 
   public getScriptNameOrSourceURL() {
-    return null;
+    return "";
   }
 
   public getThis() {
@@ -424,5 +426,21 @@ class SolidityCallSite implements NodeJS.CallSite {
 
   public isToplevel() {
     return false;
+  }
+
+  public getScriptHash(): string {
+    return "";
+  }
+
+  public getEnclosingColumnNumber(): number {
+    return 0;
+  }
+
+  public getEnclosingLineNumber(): number {
+    return 0;
+  }
+
+  public toString(): string {
+    return "[SolidityCallSite]";
   }
 }

@@ -25,11 +25,11 @@ When Hardhat executes your tests, scripts or tasks, an in-process Hardhat Networ
 
 There's no need to make any changes to your tests or scripts.
 
-Hardhat Network is simply another network. If you wanted to be explicit, you could run, for example, `npx hardhat run --network hardhat scripts/my-script.js`.
+Hardhat Network is simply another network. If you wanted to be explicit, you could run, for example, `npx hardhat ignition deploy ./ignition/modules/MyModule.ts --network hardhat`.
 
 ### Running stand-alone in order to support wallets and other software
 
-Alternatively, Hardhat Network can run in a stand-alone fashion so that external clients can connect to it. This could be a wallet, your Dapp front-end, or a script. To run Hardhat Network in this way, run:
+Alternatively, Hardhat Network can run in a stand-alone fashion so that external clients can connect to it. This could be a wallet, your Dapp front-end, or a Hardhat Ignition deployment. To run Hardhat Network in this way, run:
 
 ```
 $ npx hardhat node

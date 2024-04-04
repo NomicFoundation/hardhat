@@ -38,6 +38,7 @@ Welcome to Hardhat v{HARDHAT_VERSION}
 ? What do you want to do? …
 ▸ Create a JavaScript project
   Create a TypeScript project
+  Create a TypeScript project (with Viem)
   Create an empty hardhat.config.js
   Quit
 ```
@@ -51,7 +52,7 @@ Then install [`chai`](https://www.chaijs.com/), the `@nomiclabs/hardhat-waffle` 
 :::tab{value="npm 7+"}
 
 ```
-npm install --save-dev chai @nomiclabs/hardhat-waffle
+npm install --save-dev chai@4 @nomiclabs/hardhat-waffle
 ```
 
 :::
@@ -59,7 +60,7 @@ npm install --save-dev chai @nomiclabs/hardhat-waffle
 :::tab{value="npm 6"}
 
 ```
-npm install --save-dev chai @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs/hardhat-ethers ethers@5
+npm install --save-dev chai@4 @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs/hardhat-ethers ethers@5
 ```
 
 :::
@@ -67,7 +68,7 @@ npm install --save-dev chai @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs
 :::tab{value="yarn"}
 
 ```
-yarn add --dev chai @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs/hardhat-ethers ethers@5
+yarn add --dev chai@4 @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs/hardhat-ethers ethers@5
 ```
 
 :::

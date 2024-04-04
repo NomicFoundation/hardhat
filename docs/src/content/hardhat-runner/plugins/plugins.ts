@@ -748,7 +748,7 @@ const communityPlugins: IPlugin[] = [
     tags: ["transaction", "gasPrice", "retry", "helper"],
   },
   {
-    name: "hardhat-fireblocks",
+    name: "@fireblocks/hardhat-fireblocks",
     author: "Fireblocks",
     authorUrl: "https://github.com/fireblocks",
     description: "Hardhat plugin for integrating with Fireblocks",
@@ -863,6 +863,22 @@ const communityPlugins: IPlugin[] = [
       "Display different signatures that have the methods, events and errors of your contracts by console",
     tags: ["functions", "errors", "events", "tooling", "selectorss"],
   },
+  {
+    name: "@dgma/hardhat-sol-bundler",
+    author: "Dogma Labs",
+    authorUrl: "https://github.com/dgma",
+    description: "Build and deploy only changed smartcontracts",
+    tags: ["deployment", "diff deployment", "ethers.js", "proxy"],
+  },
+  {
+    name: "@bonadocs/docgen",
+    author: "Bonadocs",
+    npmPackage: "@bonadocs/docgen",
+    authorUrl: "https://github.com/bonadocs",
+    description:
+      "Generate a beautiful and interactive documentation website for your project in seconds",
+    tags: ["Documentation", "NatSpec"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
@@ -960,6 +976,14 @@ const officialPlugins: IPlugin[] = [
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",
     description: "Injects Web3 1.x into the Hardhat Runtime Environment",
+    tags: ["Web3.js", "Testing", "Tasks", "Scripts"],
+  },
+  {
+    name: "@nomicfoundation/hardhat-web3-v4",
+    author: "ChainSafe and Nomic Foundation",
+    npmPackage: "@nomicfoundation/hardhat-web3-v4",
+    authorUrl: "https://twitter.com/ChainSafeth",
+    description: "Injects Web3 4.x into the Hardhat Runtime Environment",
     tags: ["Web3.js", "Testing", "Tasks", "Scripts"],
   },
   {

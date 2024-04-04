@@ -1,0 +1,3 @@
+# All e2e test temporary folders
+projects-initialization-tests-*
+fixture-projects-run-*

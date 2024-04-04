@@ -117,7 +117,7 @@ function testArtifactsFunctionality() {
     }
   });
 
-  it("Should deploy linked contracts succesfully", async function () {
+  it("Should deploy linked contracts successfully", async function () {
     const Lib = this.env.artifacts.require("Lib");
     const lib = await Lib.new();
     assertIsContractInstance(lib, "addOne");

@@ -1,5 +1,82 @@
 # hardhat
 
+## 2.22.2
+
+### Patch Changes
+
+- 7876104: Initialize the Hardhat Runtime Environment before passing the command line arguments.
+
+## 2.22.1
+
+### Patch Changes
+
+- 92d140f: Include Hardhat Ignition in the toolboxes of the starter projects
+- cfec932: Upgraded hardhat-toolbox-viem to support viem@2 in the viem sample project
+
+## 2.22.0
+
+### Minor Changes
+
+- bcce371: Set cancun as the default hardfork in Hardhat network
+
+## 2.21.0
+
+### Minor Changes
+
+- 837350e: Dropped support for node v16
+- 3df5d29: Refactored Hardhat Network to use EDR instead of ethereumjs
+
+### Patch Changes
+
+- 6b6f447: Fixes a bug in Hardhat where Post-Cancun genesis blocks did not use the mandated 0x0 parent beacon block root (https://eips.ethereum.org/EIPS/eip-4788)
+
+## 2.20.1
+
+### Patch Changes
+
+- b519239: Fixed a bug when `hardhat_setStorageAt` was used in untouched addresses
+
+## 2.20.0
+
+### Minor Changes
+
+- 6ff0b20: Add support for the Cancun hardfork
+
+### Patch Changes
+
+- 4250635: Added support for solc 0.8.24
+
+## 2.19.5
+
+### Patch Changes
+
+- 125cbad3d: Added a notification when a new Hardhat version is available
+- ffb301f14: Improved loading performance
+- 1c6373a5b: Fixed a bug during project initialization when using yarn or pnpm
+- 15a0d2e6c: Fixed a race condition that occurred when multiple Hardhat processes ran a compilation at the same time.
+- 8f677ea9f: Added a fix to prevent submitting transactions with 0 priority fee (thanks @itsdevbear!)
+
+## 2.19.4
+
+### Patch Changes
+
+- 7aea77e49: Report telemetry consent response to Google Analytics
+
+## 2.19.3
+
+### Patch Changes
+
+- 3f282db50: Added support for solc 0.8.23
+- fa2f0fba7: Added a temporary message about the 2023 Solidtiy Developer Survey
+
+## 2.19.2
+
+### Patch Changes
+
+- b475fc49c: Modified the artifacts cleanup logic to avoid removing a `package.json` file under the artifacts directory
+- c3aad2c55: Added support for scopes in hh autocomplete.
+- 4bc6a2726: Added experimental support for using ESM modules with TypeScript
+
 ## 2.19.1
 
 ### Patch Changes

@@ -27,6 +27,18 @@ const pendingBlock = await network.provider.send("eth_getBlockByNumber", [
 ]);
 ```
 
+### Mining multiple transactions in one block
+
+Note that for the special case of the Hardhat Network, the transaction `gas`-limit config [defaults to the fixed `blockGasLimit`](../reference/index.md#gas), not to [`auto`](/hardhat-runner/docs/config) (gas-estimation). This [speeds things up](https://github.com/NomicFoundation/hardhat/issues/4090#issuecomment-1622155314), but consequently limits the transactions per block to a maximum of 1. So to mine multiple transactions in a single block on the Hardhat Network, in addition to disabling automine, either specify the transaction `gasLimit` explicitly for each of the transactions, or force automatic gas-estimation in your config with:
+
+```
+networks: {
+  hardhat: {
+    gas: "auto",
+  },
+},
+```
+
 ### Mining transactions in FIFO order
 
 The way Hardhat Network's mempool orders transactions is customizable. By default, they are prioritized following Geth's rules, but you can enable a FIFO behavior instead, which ensures that transactions are added to blocks in the same order they are sent, and which is useful to recreate blocks from other networks.

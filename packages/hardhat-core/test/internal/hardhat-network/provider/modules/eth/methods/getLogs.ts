@@ -11,7 +11,6 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   PROVIDERS,
 } from "../../../../helpers/providers";
-import { retrieveForkBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 import { deployContract } from "../../../../helpers/transactions";
 
 describe("Eth module", function () {
@@ -26,14 +25,13 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      const getFirstBlock = async () =>
-        isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
-
       describe("eth_getLogs", async function () {
-        let firstBlock: number;
+        let firstBlockNumber: number;
 
         beforeEach(async function () {
-          firstBlock = await getFirstBlock();
+          firstBlockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
         });
 
         it("Supports get logs", async function () {
@@ -73,7 +71,10 @@ describe("Eth module", function () {
           assert.equal(log.removed, false);
           assert.equal(log.logIndex, "0x0");
           assert.equal(log.transactionIndex, "0x0");
-          assert.equal(rpcQuantityToNumber(log.blockNumber), firstBlock + 2);
+          assert.equal(
+            rpcQuantityToNumber(log.blockNumber),
+            firstBlockNumber + 2
+          );
           assert.equal(log.address, exampleContract);
           assert.equal(log.data, `0x${newState}`);
         });
@@ -212,7 +213,7 @@ describe("Eth module", function () {
           assert.lengthOf(
             await this.provider.send("eth_getLogs", [
               {
-                fromBlock: numberToRpcQuantity(firstBlock + 2),
+                fromBlock: numberToRpcQuantity(firstBlockNumber + 2),
                 topics: [
                   [
                     "0x3359f789ea83a10b6e9605d460de1088ff290dd7b3c9a155c896d45cf495ed4d",
@@ -256,7 +257,7 @@ describe("Eth module", function () {
           assert.lengthOf(
             await this.provider.send("eth_getLogs", [
               {
-                fromBlock: numberToRpcQuantity(firstBlock + 3),
+                fromBlock: numberToRpcQuantity(firstBlockNumber + 3),
               },
             ]),
             1
@@ -291,8 +292,8 @@ describe("Eth module", function () {
           assert.lengthOf(
             await this.provider.send("eth_getLogs", [
               {
-                fromBlock: numberToRpcQuantity(firstBlock + 1),
-                toBlock: numberToRpcQuantity(firstBlock + 2),
+                fromBlock: numberToRpcQuantity(firstBlockNumber + 1),
+                toBlock: numberToRpcQuantity(firstBlockNumber + 2),
               },
             ]),
             1
@@ -303,7 +304,7 @@ describe("Eth module", function () {
           const logs = await this.provider.send("eth_getLogs", [
             {
               address: "0x0000000000000000000000000000000000000000",
-              fromBlock: numberToRpcQuantity(firstBlock + 10000000),
+              fromBlock: numberToRpcQuantity(firstBlockNumber + 10000000),
             },
           ]);
           assert.lengthOf(logs, 0);
@@ -311,8 +312,8 @@ describe("Eth module", function () {
           const logs2 = await this.provider.send("eth_getLogs", [
             {
               address: "0x0000000000000000000000000000000000000000",
-              fromBlock: numberToRpcQuantity(firstBlock),
-              toBlock: numberToRpcQuantity(firstBlock + 1000000),
+              fromBlock: numberToRpcQuantity(firstBlockNumber),
+              toBlock: numberToRpcQuantity(firstBlockNumber + 1000000),
             },
           ]);
           assert.lengthOf(logs2, 0);

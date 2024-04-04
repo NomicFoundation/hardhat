@@ -7,3 +7,6 @@ order:
   - /error-handling
   - /modifications
   - /tests
+  - /verify
+  - /viem
+  - /create2

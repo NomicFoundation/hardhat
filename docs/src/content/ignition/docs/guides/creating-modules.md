@@ -122,7 +122,7 @@ m.call(myContract, "receivesEth" [], {
 
 ### Reading a value from a contract
 
-If you need to call a `view` or `pure` function in a contract to retreive a value, you can do it with `m.staticCall`:
+If you need to call a `view` or `pure` function in a contract to retrieve a value, you can do it with `m.staticCall`:
 
 ```js
 const balance = m.staticCall(token, "balanceOf", [address]);
@@ -165,7 +165,7 @@ Calling `m.send` will create a `Future` representing the sending action. The fir
 
 The second argument is the address of the account where you want to send the ETH or data to.
 
-The third and forth parameters are both optional. They represent the amount of ETH and the data to be sent.
+The third and fourth parameters are both optional. They represent the amount of ETH and the data to be sent.
 
 ### Deploying a library
 
@@ -179,7 +179,7 @@ If you need to link libraries take a look at the [Linking Libraries](#linking-li
 
 ## `Future` IDs
 
-Each `Future` that is created should have a unique ID. In most cases, Hardhat Ignition will automatically generate an ID for the every `Future` you create, based on the creation parameters.
+Each `Future` that is created should have a unique ID. In most cases, Hardhat Ignition will automatically generate an ID for every `Future` you create, based on the creation parameters.
 
 In some cases, this automatic process may lead to an ID clash with an existing `Future`. If that happens, Hardhat Ignition won't try to resolve the clash, and you will need to define an ID manually to resolve the issue. Every method of `ModuleBuilder` accepts an options object as last argument, which has an `id` field that can be used like this:
 
@@ -203,7 +203,7 @@ You also have the option to set explicit dependencies between `Future` objects. 
 const token = m.contract("Token", ["My Token", "TKN", 18]);
 
 const receiver = m.contract("Receiver", [], {
-  after: token, // `receiver` is deployed after `token`
+  after: [token], // `receiver` is deployed after `token`
 });
 ```
 

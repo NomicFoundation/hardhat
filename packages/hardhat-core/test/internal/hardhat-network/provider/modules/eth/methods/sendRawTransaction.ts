@@ -109,6 +109,19 @@ describe("Eth module", function () {
           assertReceiptMatchesGethOne(receipt, receiptFromGeth, 1);
         });
 
+        it("should reject blob transactions", async function () {
+          // blob tx signed with the private key of the first default account
+          const rawBlobTx =
+            "0x03f88380808080809400000000000000000000000000000000000000108080c080e1a0000000000000000000000000000000000000001012345678901234567890123401a0f3f7e5408804e3a0e3c4ac30a4f14b2995656a02d8b0279d7d48044d3cdf05e6a004e7606fef78d5221916053b3ec8a5fefddaa8a62ac6440f24a7c860ca25aa9f";
+
+          await assertInvalidInputError(
+            this.provider,
+            "eth_sendRawTransaction",
+            [rawBlobTx],
+            "An EIP-4844 (shard blob) transaction was received, but Hardhat doesn't have support for them yet."
+          );
+        });
+
         describe("Transaction hash returned within the error data", function () {
           describe("Set lower baseFeePerGas", function () {
             // setting a lower baseFeePerGas here to avoid having to re-create the raw tx
@@ -201,7 +214,7 @@ describe("Eth module", function () {
               { common }
             ).sign(pk);
 
-            const rawTx = `0x${tx.serialize().toString("hex")}`;
+            const rawTx = `0x${Buffer.from(tx.serialize()).toString("hex")}`;
             return client
               .request({
                 method: "POST",
@@ -230,10 +243,11 @@ describe("Eth module", function () {
               keepAliveMaxTimeout: 10,
             });
 
+            // TODO: Find out a better way to obtain the common here
+            const provider: any = this.hardhatNetworkProvider;
+
             // eslint-disable-next-line dot-notation,@typescript-eslint/dot-notation
-            await this.hardhatNetworkProvider["_init"]();
-            // eslint-disable-next-line dot-notation,@typescript-eslint/dot-notation
-            common = this.hardhatNetworkProvider["_common"]!;
+            common = provider["_common"];
           });
 
           const pk = Buffer.from(

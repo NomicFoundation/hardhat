@@ -140,10 +140,10 @@ export const builtinChains: ChainConfig[] = [
   },
   {
     network: "polygonZkEVMTestnet",
-    chainId: 1442,
+    chainId: 2442,
     urls: {
-      apiURL: "https://api-testnet-zkevm.polygonscan.com/api",
-      browserURL: "https://testnet-zkevm.polygonscan.com",
+      apiURL: "https://api-cardona-zkevm.polygonscan.com/api",
+      browserURL: "https://cardona-zkevm.polygonscan.com",
     },
   },
   {
@@ -166,8 +166,16 @@ export const builtinChains: ChainConfig[] = [
     network: "chiado",
     chainId: 10200,
     urls: {
-      apiURL: "https://blockscout.chiadochain.net/api",
-      browserURL: "https://blockscout.chiadochain.net",
+      apiURL: "https://gnosis-chiado.blockscout.com/api",
+      browserURL: "https://gnosis-chiado.blockscout.com",
+    },
+  },
+  {
+    network: "holesky",
+    chainId: 17000,
+    urls: {
+      apiURL: "https://api-holesky.etherscan.io/api",
+      browserURL: "https://holesky.etherscan.io",
     },
   },
   {
@@ -211,19 +219,11 @@ export const builtinChains: ChainConfig[] = [
     },
   },
   {
-    network: "arbitrumTestnet",
-    chainId: 421611,
+    network: "arbitrumSepolia",
+    chainId: 421614,
     urls: {
-      apiURL: "https://api-testnet.arbiscan.io/api",
-      browserURL: "https://testnet.arbiscan.io/",
-    },
-  },
-  {
-    network: "arbitrumGoerli",
-    chainId: 421613,
-    urls: {
-      apiURL: "https://api-goerli.arbiscan.io/api",
-      browserURL: "https://goerli.arbiscan.io/",
+      apiURL: "https://api-sepolia.arbiscan.io/api",
+      browserURL: "https://sepolia.arbiscan.io/",
     },
   },
   {

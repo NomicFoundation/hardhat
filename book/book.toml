@@ -1,0 +1,6 @@
+[book]
+authors = ["Wodann"]
+language = "en"
+multilingual = false
+src = "src"
+title = "EDR - Ethereum Development Runtime"

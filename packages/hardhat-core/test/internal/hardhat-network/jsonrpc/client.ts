@@ -1,4 +1,7 @@
-import { bufferToBigInt, toBuffer } from "@nomicfoundation/ethereumjs-util";
+import {
+  bytesToBigInt as bufferToBigInt,
+  toBytes,
+} from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 import fsExtra from "fs-extra";
 import sinon from "sinon";
@@ -20,6 +23,10 @@ import {
   FIRST_TX_HASH_OF_10496585,
 } from "../helpers/constants";
 import { FORKED_PROVIDERS } from "../helpers/providers";
+
+function toBuffer(x: Parameters<typeof toBytes>[0]) {
+  return Buffer.from(toBytes(x));
+}
 
 type FakeProvider = Pick<HttpProvider, "url" | "sendBatch"> & {
   request: sinon.SinonStub | HttpProvider["request"];
@@ -379,7 +386,10 @@ describe("JsonRpcClient", () => {
           });
 
           it("returns null for non-existent block", async () => {
-            const block = await client.getBlockByHash(randomHashBuffer(), true);
+            const block = await client.getBlockByHash(
+              Buffer.from(randomHashBuffer()),
+              true
+            );
             assert.isNull(block);
           });
         });
@@ -429,7 +439,7 @@ describe("JsonRpcClient", () => {
 
           it("returns null for non-existent transactions", async () => {
             const transaction = await client.getTransactionByHash(
-              randomHashBuffer()
+              Buffer.from(randomHashBuffer())
             );
             assert.equal(transaction, null);
           });
@@ -450,7 +460,7 @@ describe("JsonRpcClient", () => {
 
           it("returns null for non-existent transactions", async () => {
             const transaction = await client.getTransactionReceipt(
-              randomHashBuffer()
+              Buffer.from(randomHashBuffer())
             );
             assert.equal(transaction, null);
           });

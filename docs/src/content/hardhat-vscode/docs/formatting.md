@@ -18,7 +18,7 @@ To set Hardhat for Visual Studio Code as your default formatter for solidity fil
 
 3. Select `Hardhat + Solidity` as the default formatter for solidity files
 
-   ![Format Document With](/hardhat-vscode-images/select_solidity_plus_hardhat.png "Confiure default formatter")
+   ![Format Document With](/hardhat-vscode-images/select_solidity_plus_hardhat.png "Configure default formatter")
 
 ## Formatting Configuration
 

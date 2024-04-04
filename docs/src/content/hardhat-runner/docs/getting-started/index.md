@@ -65,7 +65,7 @@ If you are using Windows, we **strongly recommend** using [WSL 2](https://docs.m
 
 :::
 
-We will explore the basics of creating a Hardhat project with a sample contract, tests of that contract, and a script to deploy it.
+We will explore the basics of creating a Hardhat project with a sample contract, tests of that contract, and a Hardhat Ignition module to deploy it.
 
 To create the sample project, run `npx hardhat init` in your project folder:
 
@@ -85,6 +85,7 @@ $ npx hardhat init
 ? What do you want to do? …
 ❯ Create a JavaScript project
   Create a TypeScript project
+  Create a TypeScript project (with Viem)
   Create an empty hardhat.config.js
   Quit
 ```
@@ -150,7 +151,7 @@ If you created a TypeScript project, this task will also generate TypeScript bin
 
 ### Testing your contracts
 
-Your project comes with tests that use [Mocha](https://mochajs.org), [Chai](https://www.chaijs.com), and [Ethers.js](https://docs.ethers.org/v6/).
+Your project comes with tests that use [Mocha](https://mochajs.org), [Chai](https://www.chaijs.com), [Ethers.js](https://docs.ethers.org/v6/) and [Hardhat Ignition](/ignition).
 
 If you take a look in the `test/` folder, you'll see a test file:
 
@@ -238,59 +239,89 @@ Compiled 2 Solidity files successfully
 
 ### Deploying your contracts
 
-:::tip
+Next, to deploy the contract we will use a Hardhat Ignition module.
 
-Try [Hardhat Ignition](/ignition) for your deployments! Our new declarative system for deploying smart contracts without getting caught up in execution details.
-
-:::
-
-Next, to deploy the contract we will use a Hardhat script.
-
-Inside the `scripts/` folder you will find a file with the following code:
+Inside the `ignition/modules` folder you will find a file with the following code:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
 :::tab{value="TypeScript"}
 
-<<< @/../packages/hardhat-core/sample-projects/typescript/scripts/deploy.ts
+<<< @/../packages/hardhat-core/sample-projects/typescript/ignition/modules/Lock.ts
 
 :::
 
 :::tab{value="JavaScript"}
 
-<<< @/../packages/hardhat-core/sample-projects/javascript/scripts/deploy.js
+<<< @/../packages/hardhat-core/sample-projects/javascript/ignition/modules/Lock.js
 
 :::
 
 ::::
-
-You can run it using `npx hardhat run`:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
 :::tab{value="TypeScript"}
 
+You can deploy it using `npx hardhat ignition deploy ./ignition/modules/Lock.ts`:
+
 ```
-$ npx hardhat run scripts/deploy.ts
-Lock with 1 ETH deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
+$ npx hardhat ignition deploy ./ignition/modules/Lock.ts
+Compiled 1 Solidity file successfully (evm target: paris).
+You are running Hardhat Ignition against an in-process instance of Hardhat Network.
+This will execute the deployment, but the results will be lost.
+You can use --network <network-name> to deploy to a different network.
+
+Hardhat Ignition 🚀
+
+Deploying [ LockModule ]
+
+Batch #1
+  Executed LockModule#Lock
+
+[ LockModule ] successfully deployed 🚀
+
+Deployed Addresses
+
+LockModule#Lock - 0x5FbDB2315678afecb367f032d93F642f64180aa3
 ```
 
 :::
 
 :::tab{value="JavaScript"}
 
+You can deploy it using `npx hardhat ignition deploy ./ignition/modules/Lock.js`:
+
 ```
-$ npx hardhat run scripts/deploy.js
-Lock with 1 ETH deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
+$ npx hardhat ignition deploy ./ignition/modules/Lock.js
+Compiled 1 Solidity file successfully (evm target: paris).
+You are running Hardhat Ignition against an in-process instance of Hardhat Network.
+This will execute the deployment, but the results will be lost.
+You can use --network <network-name> to deploy to a different network.
+
+Hardhat Ignition 🚀
+
+Deploying [ LockModule ]
+
+Batch #1
+  Executed LockModule#Lock
+
+[ LockModule ] successfully deployed 🚀
+
+Deployed Addresses
+
+LockModule#Lock - 0x5FbDB2315678afecb367f032d93F642f64180aa3
 ```
 
 :::
 
 ::::
+
+To learn more check out the [Hardhat Ignition documentation](/ignition).
 
 ### Connecting a wallet or Dapp to Hardhat Network
 
-By default, Hardhat will spin up a new in-memory instance of Hardhat Network on startup. It's also possible to run Hardhat Network in a standalone fashion so that external clients can connect to it. This could be a wallet, your Dapp front-end, or a script.
+By default, Hardhat will spin up a new in-memory instance of Hardhat Network on startup. It's also possible to run Hardhat Network in a standalone fashion so that external clients can connect to it. This could be a wallet, your Dapp front-end, or a Hardhat Ignition deployment.
 
 To run Hardhat Network in this way, run `npx hardhat node`:
 
@@ -301,16 +332,16 @@ Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/
 
 This will expose a JSON-RPC interface to Hardhat Network. To use it connect your wallet or application to `http://127.0.0.1:8545`.
 
-If you want to connect Hardhat to this node, for example to run a deployment script against it, you simply need to run it using `--network localhost`.
+If you want to connect Hardhat to this node, for example to run a deployment against it, you simply need to run it using `--network localhost`.
 
-To try this, start a node with `npx hardhat node` and re-run the deployment script using the `network` option:
+To try this, start a node with `npx hardhat node` and re-run the deployment using the `network` option:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
 :::tab{value="TypeScript"}
 
 ```
-npx hardhat run scripts/deploy.ts --network localhost
+npx hardhat ignition deploy ./ignition/modules/Lock.ts --network localhost
 ```
 
 :::
@@ -318,7 +349,7 @@ npx hardhat run scripts/deploy.ts --network localhost
 :::tab{value="JavaScript"}
 
 ```
-npx hardhat run scripts/deploy.js --network localhost
+npx hardhat ignition deploy ./ignition/modules/Lock.js --network localhost
 ```
 
 :::

@@ -1,6 +1,9 @@
 import { assert } from "chai";
 
-import { numberToRpcQuantity } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
+import {
+  numberToRpcQuantity,
+  rpcQuantityToNumber,
+} from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import { assertQuantity } from "../../../../helpers/assertions";
 import { setCWD } from "../../../../helpers/cwd";
@@ -9,7 +12,6 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   PROVIDERS,
 } from "../../../../helpers/providers";
-import { retrieveForkBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 import { sendTxToZeroAddress } from "../../../../helpers/transactions";
 
 describe("Eth module", function () {
@@ -24,39 +26,38 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      const getFirstBlock = async () =>
-        isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
-
       describe("eth_blockNumber", async function () {
-        let firstBlock: number;
+        let firstBlockNumber: number;
 
         beforeEach(async function () {
-          firstBlock = await getFirstBlock();
+          firstBlockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
         });
 
         it("should return the current block number as QUANTITY", async function () {
           let blockNumber = await this.provider.send("eth_blockNumber");
-          assertQuantity(blockNumber, firstBlock);
+          assertQuantity(blockNumber, firstBlockNumber);
 
           await sendTxToZeroAddress(this.provider);
 
           blockNumber = await this.provider.send("eth_blockNumber");
-          assertQuantity(blockNumber, firstBlock + 1);
+          assertQuantity(blockNumber, firstBlockNumber + 1);
 
           await sendTxToZeroAddress(this.provider);
 
           blockNumber = await this.provider.send("eth_blockNumber");
-          assertQuantity(blockNumber, firstBlock + 2);
+          assertQuantity(blockNumber, firstBlockNumber + 2);
 
           await sendTxToZeroAddress(this.provider);
 
           blockNumber = await this.provider.send("eth_blockNumber");
-          assertQuantity(blockNumber, firstBlock + 3);
+          assertQuantity(blockNumber, firstBlockNumber + 3);
         });
 
         it("Should increase if a transaction gets to execute and fails", async function () {
           let blockNumber = await this.provider.send("eth_blockNumber");
-          assertQuantity(blockNumber, firstBlock);
+          assertQuantity(blockNumber, firstBlockNumber);
 
           try {
             await this.provider.send("eth_sendTransaction", [
@@ -76,12 +77,12 @@ describe("Eth module", function () {
           }
 
           blockNumber = await this.provider.send("eth_blockNumber");
-          assertQuantity(blockNumber, firstBlock + 1);
+          assertQuantity(blockNumber, firstBlockNumber + 1);
         });
 
         it("Shouldn't increase if a call is made", async function () {
           let blockNumber = await this.provider.send("eth_blockNumber");
-          assertQuantity(blockNumber, firstBlock);
+          assertQuantity(blockNumber, firstBlockNumber);
 
           await this.provider.send("eth_call", [
             {
@@ -95,7 +96,7 @@ describe("Eth module", function () {
           ]);
 
           blockNumber = await this.provider.send("eth_blockNumber");
-          assertQuantity(blockNumber, firstBlock);
+          assertQuantity(blockNumber, firstBlockNumber);
         });
       });
     });

@@ -1,15 +1,14 @@
-import { Transaction } from "@nomicfoundation/ethereumjs-tx";
+import { LegacyTransaction } from "@nomicfoundation/ethereumjs-tx";
 import {
-  bufferToHex,
-  toBuffer,
+  bytesToHex as bufferToHex,
+  toBytes,
   zeroAddress,
 } from "@nomicfoundation/ethereumjs-util";
 
 import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { RpcTransactionRequestInput } from "../../../../src/internal/core/jsonrpc/types/input/transactionRequest";
 import { TransactionParams } from "../../../../src/internal/hardhat-network/provider/node-types";
-import { HardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";
-import { EthereumProvider } from "../../../../src/types";
+import { EIP1193Provider, EthereumProvider } from "../../../../src/types";
 
 import {
   DEFAULT_ACCOUNTS,
@@ -18,6 +17,10 @@ import {
 } from "./providers";
 import { getPendingBaseFeePerGas } from "./getPendingBaseFeePerGas";
 import { retrieveCommon } from "./retrieveCommon";
+
+function toBuffer(x: Parameters<typeof toBytes>[0]) {
+  return Buffer.from(toBytes(x));
+}
 
 export async function deployContract(
   provider: EthereumProvider,
@@ -95,11 +98,11 @@ export async function sendTransactionFromTxParams(
 }
 
 export async function getSignedTxHash(
-  hardhatNetworkProvider: HardhatNetworkProvider,
+  hardhatNetworkProvider: EIP1193Provider,
   txParams: TransactionParams,
   signerAccountIndex: number
 ) {
-  const txToSign = new Transaction(txParams, {
+  const txToSign = new LegacyTransaction(txParams, {
     common: await retrieveCommon(hardhatNetworkProvider),
   });
 

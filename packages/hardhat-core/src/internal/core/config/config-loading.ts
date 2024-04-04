@@ -20,7 +20,6 @@ import { getUserConfigPath } from "../project-structure";
 
 import { SUPPORTED_SOLIDITY_VERSION_RANGE } from "../../hardhat-network/stack-traces/constants";
 import { resolveConfig } from "./config-resolution";
-import { validateConfig, validateResolvedConfig } from "./config-validation";
 import { DEFAULT_SOLC_VERSION } from "./default-config";
 
 const log = debug("hardhat:core:config");
@@ -68,6 +67,8 @@ export function loadConfigAndTasks(
     showSolidityConfigWarnings: false,
   }
 ): { resolvedConfig: HardhatConfig; userConfig: HardhatUserConfig } {
+  const { validateConfig, validateResolvedConfig } =
+    require("./config-validation") as typeof import("./config-validation");
   let configPath =
     hardhatArguments !== undefined ? hardhatArguments.config : undefined;
 

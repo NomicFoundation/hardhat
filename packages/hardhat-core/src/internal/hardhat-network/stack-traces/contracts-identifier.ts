@@ -1,11 +1,10 @@
-import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
+import { bytesToHex } from "@nomicfoundation/ethereumjs-util";
 
 import {
   normalizeLibraryRuntimeBytecodeIfNecessary,
   zeroOutAddresses,
   zeroOutSlices,
 } from "./library-utils";
-import { EvmMessageTrace, isCreateTrace } from "./message-trace";
 import { Bytecode } from "./model";
 import { getOpcodeLength, Opcode } from "./opcodes";
 
@@ -64,7 +63,7 @@ class BytecodeTrie {
    * entire code is covered by the trie, and there's no match, we return undefined.
    */
   public search(
-    code: Buffer,
+    code: Uint8Array,
     currentCodeByte: number = 0
   ): Bytecode | BytecodeTrie | undefined {
     if (currentCodeByte > code.length) {
@@ -100,16 +99,15 @@ export class ContractsIdentifier {
     this._cache.clear();
   }
 
-  public getBytecodeFromMessageTrace(
-    trace: EvmMessageTrace
+  public getBytecodeForCall(
+    code: Uint8Array,
+    isCreate: boolean
   ): Bytecode | undefined {
-    const normalizedCode = normalizeLibraryRuntimeBytecodeIfNecessary(
-      trace.code
-    );
+    const normalizedCode = normalizeLibraryRuntimeBytecodeIfNecessary(code);
 
     let normalizedCodeHex: string | undefined;
     if (this._enableCache) {
-      normalizedCodeHex = bufferToHex(normalizedCode);
+      normalizedCodeHex = bytesToHex(normalizedCode);
       const cached = this._cache.get(normalizedCodeHex);
 
       if (cached !== undefined) {
@@ -117,7 +115,7 @@ export class ContractsIdentifier {
       }
     }
 
-    const result = this._searchBytecode(trace, normalizedCode);
+    const result = this._searchBytecode(isCreate, normalizedCode);
 
     if (this._enableCache) {
       if (result !== undefined) {
@@ -129,8 +127,8 @@ export class ContractsIdentifier {
   }
 
   private _searchBytecode(
-    trace: EvmMessageTrace,
-    code: Buffer,
+    isCreate: boolean,
+    code: Uint8Array,
     normalizeLibraries = true,
     trie = this._trie,
     firstByteToSearch = 0
@@ -159,7 +157,7 @@ export class ContractsIdentifier {
     // We take advantage of this last observation, and just return the bytecode that exactly
     // matched the searchResult (sub)trie that we got.
     if (
-      isCreateTrace(trace) &&
+      isCreate &&
       searchResult.match !== undefined &&
       searchResult.match.isDeployment
     ) {
@@ -186,7 +184,7 @@ export class ContractsIdentifier {
         );
 
         const normalizedResult = this._searchBytecode(
-          trace,
+          isCreate,
           normalizedCode,
           false,
           searchResult,
@@ -220,7 +218,7 @@ export class ContractsIdentifier {
   /**
    * Returns true if the lastByte is placed right when the metadata starts or after it.
    */
-  private _isMatchingMetadata(code: Buffer, lastByte: number): boolean {
+  private _isMatchingMetadata(code: Uint8Array, lastByte: number): boolean {
     for (let byte = 0; byte < lastByte; ) {
       const opcode = code[byte];
 

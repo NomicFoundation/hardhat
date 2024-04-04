@@ -7,7 +7,11 @@ import { HARDHAT_NETWORK_NAME } from "../internal/constants";
 import { subtask, task } from "../internal/core/config/config-env";
 import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
-import { isRunningWithTypescript } from "../internal/core/typescript-support";
+import {
+  isJavascriptFile,
+  isRunningWithTypescript,
+  isTypescriptFile,
+} from "../internal/core/typescript-support";
 import { getForkCacheDirPath } from "../internal/hardhat-network/provider/utils/disk-cache";
 import { showForkRecommendationsBannerIfNecessary } from "../internal/hardhat-network/provider/utils/fork-recomendations-banner";
 import { pluralize } from "../internal/util/strings";
@@ -40,15 +44,16 @@ subtask(TASK_TEST_GET_TEST_FILES)
 
     const jsFiles = await getAllFilesMatching(
       config.paths.tests,
-      (f) => f.endsWith(".js") || f.endsWith(".cjs") || f.endsWith(".mjs")
+      isJavascriptFile
     );
 
     if (!isRunningWithTypescript(config)) {
       return jsFiles;
     }
 
-    const tsFiles = await getAllFilesMatching(config.paths.tests, (f) =>
-      f.endsWith(".ts")
+    const tsFiles = await getAllFilesMatching(
+      config.paths.tests,
+      isTypescriptFile
     );
 
     return [...jsFiles, ...tsFiles];

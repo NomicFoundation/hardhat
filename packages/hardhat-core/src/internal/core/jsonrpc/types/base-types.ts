@@ -1,7 +1,7 @@
 import {
-  bufferToHex,
+  bytesToHex as bufferToHex,
   isValidAddress,
-  toBuffer,
+  toBytes,
 } from "@nomicfoundation/ethereumjs-util";
 import * as t from "io-ts";
 
@@ -22,14 +22,16 @@ export const rpcQuantity = new t.Type<bigint>(
 export const rpcData = new t.Type<Buffer>(
   "DATA",
   Buffer.isBuffer,
-  (u, c) => (isRpcDataString(u) ? t.success(toBuffer(u)) : t.failure(u, c)),
+  (u, c) =>
+    isRpcDataString(u) ? t.success(Buffer.from(toBytes(u))) : t.failure(u, c),
   t.identity
 );
 
 export const rpcHash = new t.Type<Buffer>(
   "HASH",
   (v): v is Buffer => Buffer.isBuffer(v) && v.length === HASH_LENGTH_BYTES,
-  (u, c) => (isRpcHashString(u) ? t.success(toBuffer(u)) : t.failure(u, c)),
+  (u, c) =>
+    isRpcHashString(u) ? t.success(Buffer.from(toBytes(u))) : t.failure(u, c),
   t.identity
 );
 
@@ -96,7 +98,10 @@ function validateStorageSlot(u: unknown, c: t.Context): t.Validation<bigint> {
 export const rpcAddress = new t.Type<Buffer>(
   "ADDRESS",
   (v): v is Buffer => Buffer.isBuffer(v) && v.length === ADDRESS_LENGTH_BYTES,
-  (u, c) => (isRpcAddressString(u) ? t.success(toBuffer(u)) : t.failure(u, c)),
+  (u, c) =>
+    isRpcAddressString(u)
+      ? t.success(Buffer.from(toBytes(u)))
+      : t.failure(u, c),
   t.identity
 );
 
@@ -173,7 +178,7 @@ export function rpcDataToBigInt(data: string): bigint {
 }
 
 export function bufferToRpcData(
-  buffer: Buffer,
+  buffer: Uint8Array,
   padToBytes: number = 0
 ): string {
   let s = bufferToHex(buffer);
@@ -191,7 +196,7 @@ export function rpcDataToBuffer(data: string): Buffer {
     });
   }
 
-  return toBuffer(data);
+  return Buffer.from(toBytes(data));
 }
 
 // Type guards
