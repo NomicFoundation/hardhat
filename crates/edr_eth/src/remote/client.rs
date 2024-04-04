@@ -51,8 +51,8 @@ const TMP_DIR: &str = "tmp";
 // Retry parameters for rate limited requests.
 const EXPONENT_BASE: u32 = 2;
 const MIN_RETRY_INTERVAL: Duration = Duration::from_secs(1);
-const MAX_RETRY_INTERVAL: Duration = Duration::from_secs(16);
-const MAX_RETRIES: u32 = 7;
+const MAX_RETRY_INTERVAL: Duration = Duration::from_secs(32);
+const MAX_RETRIES: u32 = 9;
 
 /// Specialized error types
 #[derive(Debug, thiserror::Error)]
