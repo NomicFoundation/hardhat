@@ -4,15 +4,17 @@ version = "0.2.0-dev"
 edition = "2021"
 
 [dependencies]
+anyhow = "1.0.75"
 alloy-primitives = { version = "0.6", default-features = false, features = ["rand", "rlp"] }
 alloy-rlp = { version = "0.3", default-features = false, features = ["derive"] }
-futures = {version = "0.3.28", default-features = false}
+futures = { version = "0.3.28", default-features = false }
 hash-db = { version = "0.15.2", default-features = false }
 hash256-std-hasher = { version = "0.15.2", default-features = false }
 hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
-hyper = {version = "0.14.27", default-features = false}
+hyper = { version = "0.14.27", default-features = false }
 itertools = { version = "0.10.5", default-features = false, features = ["use_alloc"] }
-k256 = { version = "0.13.1", default-features = false, features = ["arithmetic", "ecdsa", "pkcs8",] }
+k256 = { version = "0.13.1", default-features = false, features = ["arithmetic", "ecdsa", "pkcs8", ] }
+lazy_static = { version = "1.4.0", default-features = false }
 log = { version = "0.4.17", default-features = false }
 reqwest = { version = "0.11", features = ["blocking", "json"] }
 reqwest-middleware = { version = "0.2.4", default-features = false }
@@ -26,8 +28,9 @@ thiserror = { version = "1.0.37", default-features = false }
 tokio = { version = "1.21.2", default-features = false, features = ["fs", "sync"] }
 tracing = { version = "0.1.37", features = ["attributes", "std"], optional = true }
 triehash = { version = "0.8.4", default-features = false }
-uuid = { version = "1.4.1", default-features = false, features = ["v4"]}
+uuid = { version = "1.4.1", default-features = false, features = ["v4"] }
 url = "2.4.1"
+regex = "1.10.0"
 
 [dev-dependencies]
 anyhow = "1.0.75"
@@ -40,7 +43,7 @@ edr_test_utils = { version = "0.2.0-dev", path = "../edr_test_utils" }
 serial_test = "2.0.0"
 tempfile = { version = "3.7.1", default-features = false }
 tokio = { version = "1.23.0", features = ["macros"] }
-walkdir = { version = "2.3.3", default-features =  false }
+walkdir = { version = "2.3.3", default-features = false }
 
 [features]
 default = ["std"]

@@ -1,3 +1,5 @@
+mod reqwest_error;
+
 use std::{
     collections::{HashMap, VecDeque},
     fmt::Debug,
@@ -29,6 +31,7 @@ use super::{
     request_methods::RequestMethod,
     BlockSpec, PreEip1898BlockSpec,
 };
+pub use crate::remote::client::reqwest_error::{MiddlewareError, ReqwestError};
 use crate::{
     block::{block_time, is_safe_block_number, IsSafeBlockNumberArgs},
     log::FilterLog,
@@ -59,15 +62,15 @@ const MAX_RETRIES: u32 = 9;
 pub enum RpcClientError {
     /// The message could not be sent to the remote node
     #[error(transparent)]
-    FailedToSend(reqwest_middleware::Error),
+    FailedToSend(MiddlewareError),
 
     /// The remote node failed to reply with the body of the response
     #[error("The response text was corrupted: {0}.")]
-    CorruptedResponse(reqwest::Error),
+    CorruptedResponse(ReqwestError),
 
     /// The server returned an error code.
     #[error("The Http server returned error status code: {0}")]
-    HttpStatus(reqwest::Error),
+    HttpStatus(ReqwestError),
 
     /// The request cannot be serialized as JSON.
     #[error(transparent)]
@@ -484,12 +487,12 @@ impl RpcClient {
             .body(request_body.to_json_string())
             .send()
             .await
-            .map_err(RpcClientError::FailedToSend)?
+            .map_err(|err| RpcClientError::FailedToSend(err.into()))?
             .error_for_status()
-            .map_err(RpcClientError::HttpStatus)?
+            .map_err(|err| RpcClientError::HttpStatus(err.into()))?
             .text()
             .await
-            .map_err(RpcClientError::CorruptedResponse)
+            .map_err(|err| RpcClientError::CorruptedResponse(err.into()))
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip_all))]
@@ -1203,7 +1206,7 @@ mod tests {
 
         if let RpcClientError::HttpStatus(error) = error {
             assert_eq!(
-                error.status(),
+                reqwest::Error::from(error).status(),
                 Some(StatusCode::from_u16(STATUS_CODE).unwrap())
             );
         } else {
@@ -1245,20 +1248,26 @@ mod tests {
 
         #[tokio::test]
         async fn call_bad_api_key() {
-            let alchemy_url = "https://eth-mainnet.g.alchemy.com/v2/abcdefg";
+            let api_key = "invalid-api-key";
+            let alchemy_url = format!("https://eth-mainnet.g.alchemy.com/v2/{api_key}");
 
             let hash = B256::from_str(
                 "0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933022222",
             )
             .expect("failed to parse hash from string");
 
-            let error = TestRpcClient::new(alchemy_url)
+            let error = TestRpcClient::new(&alchemy_url)
                 .call::<Option<eth::Transaction>>(RequestMethod::GetTransactionByHash(hash))
                 .await
                 .expect_err("should have failed to interpret response as a Transaction");
 
+            assert!(!error.to_string().contains(api_key));
+
             if let RpcClientError::HttpStatus(error) = error {
-                assert_eq!(error.status(), Some(StatusCode::from_u16(401).unwrap()));
+                assert_eq!(
+                    reqwest::Error::from(error).status(),
+                    Some(StatusCode::from_u16(401).unwrap())
+                );
             } else {
                 unreachable!("Invalid error: {error}");
             }
@@ -1279,7 +1288,7 @@ mod tests {
                 .expect_err("should have failed to connect due to a garbage domain name");
 
             if let RpcClientError::FailedToSend(error) = error {
-                assert!(error.to_string().contains(&format!("error sending request for url ({alchemy_url}): error trying to connect: dns error: ")));
+                assert!(error.to_string().contains("dns error"));
             } else {
                 unreachable!("Invalid error: {error}");
             }
