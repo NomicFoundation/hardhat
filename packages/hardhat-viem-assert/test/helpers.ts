@@ -5,23 +5,23 @@ const __filename = fileURLToPath(import.meta.url); // get the resolved path to t
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const __dirname = path.dirname(__filename); // get the name of the directory
 
+import { afterEach, beforeEach } from "node:test";
+
 import { resetHardhatContext } from "hardhat/plugins-testing.js";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-declare module "mocha" {
-  interface Context {
-    env: HardhatRuntimeEnvironment;
-  }
-}
+export function useEnvironment(fixtureProjectName: string): () => any {
+  let hre: HardhatRuntimeEnvironment;
 
-export function useEnvironment(fixtureProjectName: string) {
-  beforeEach("Loading hardhat environment", async function () {
+  beforeEach(async function () {
     process.chdir(path.join(__dirname, "fixture-projects", fixtureProjectName));
 
-    this.env = (await import("hardhat")).default;
+    hre = (await import("hardhat")).default;
   });
 
-  afterEach("Resetting hardhat", function () {
+  afterEach(function () {
     resetHardhatContext();
   });
+
+  return () => hre;
 }

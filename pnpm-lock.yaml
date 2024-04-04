@@ -1635,9 +1635,6 @@ importers:
       '@tsconfig/node-lts':
         specifier: ^20.1.3
         version: 20.1.3
-      '@types/mocha':
-        specifier: '>=9.1.0'
-        version: 10.0.6
       '@types/node':
         specifier: ^18.0.0
         version: 18.15.13
@@ -1668,9 +1665,6 @@ importers:
       hardhat-gas-reporter:
         specifier: ^1.0.8
         version: 1.0.10(hardhat@packages+hardhat-core)
-      mocha:
-        specifier: ^10.0.0
-        version: 10.3.0
       prettier:
         specifier: 2.4.1
         version: 2.4.1

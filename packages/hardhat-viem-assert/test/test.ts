@@ -1,21 +1,17 @@
 import { expect } from "../src/index.js";
 import { useEnvironment } from "./helpers.js";
 
-declare module "hardhat/types" {
-  interface HardhatRuntimeEnvironment {
-    viem: any;
-  }
-}
+import { describe, it } from "node:test";
 
 describe("hardhat-toolbox-viem", function () {
   describe("only-toolbox", function () {
-    useEnvironment("hardhat-project");
+    const getHre = useEnvironment("hardhat-project");
 
     it("has all the expected things in the HRE", async function () {
       const [bobWalletClient, aliceWalletClient] =
-        await this.env.viem.getWalletClients();
+        await getHre().viem.getWalletClients();
 
-      const publicClient = await this.env.viem.getPublicClient();
+      const publicClient = await getHre().viem.getPublicClient();
 
       await expect(async () => {
         console.log("run f");
