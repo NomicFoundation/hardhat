@@ -2,6 +2,9 @@
 
 //! NAPI bindings for the EDR EVM
 
+#[global_allocator]
+static ALLOC: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
 mod account;
 mod block;
 mod call_override;
