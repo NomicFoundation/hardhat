@@ -219,7 +219,8 @@ async function benchmarkScenario(scenarioFileName) {
   const name = path.basename(scenarioFileName).split(".")[0];
   console.error(`Running ${name} scenario`);
 
-  const filterGetBlockByNumberRequests = name.startsWith("synthetix");
+  // const filterGetBlockByNumberRequests = name.startsWith("synthetix");
+  const filterGetBlockByNumberRequests = false;
   if (filterGetBlockByNumberRequests) {
     console.error(
       "Filtering `eth_getBlockByNumber` requests to let results stay in memory to prevent variance from GC"
