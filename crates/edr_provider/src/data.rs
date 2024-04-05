@@ -135,7 +135,7 @@ pub struct ProviderData<LoggerErrorT: Debug> {
     fork_metadata: Option<ForkMetadata>,
     // Must be set if the provider is created with a fork config.
     // Hack to get around the type erasure with the dyn blockchain trait.
-    rpc_client: Option<RpcClient>,
+    rpc_client: Option<Arc<RpcClient>>,
     instance_id: B256,
     is_auto_mining: bool,
     next_block_base_fee_per_gas: Option<U256>,
@@ -2185,7 +2185,7 @@ fn block_time_offset_seconds(config: &ProviderConfig) -> Result<i64, CreationErr
 struct BlockchainAndState {
     blockchain: Box<dyn SyncBlockchain<BlockchainError, StateError>>,
     fork_metadata: Option<ForkMetadata>,
-    rpc_client: Option<RpcClient>,
+    rpc_client: Option<Arc<RpcClient>>,
     state: Box<dyn SyncState<StateError>>,
     irregular_state: IrregularState,
     prev_randao_generator: RandomHashGenerator,
@@ -2211,6 +2211,12 @@ fn create_blockchain_and_state(
             .map(|headers| HeaderMap::try_from(headers).map_err(CreationError::InvalidHttpHeaders))
             .transpose()?;
 
+        let rpc_client = Arc::new(RpcClient::new(
+            &fork_config.json_rpc_url,
+            config.cache_dir.clone(),
+            http_headers.clone(),
+        )?);
+
         let (blockchain, mut irregular_state) =
             tokio::task::block_in_place(|| -> Result<_, ForkedCreationError> {
                 let mut irregular_state = IrregularState::default();
@@ -2218,11 +2224,7 @@ fn create_blockchain_and_state(
                     runtime.clone(),
                     Some(config.chain_id),
                     config.hardfork,
-                    RpcClient::new(
-                        &fork_config.json_rpc_url,
-                        config.cache_dir.clone(),
-                        http_headers.clone(),
-                    )?,
+                    rpc_client.clone(),
                     fork_config.block_number,
                     &mut irregular_state,
                     state_root_generator.clone(),
@@ -2233,12 +2235,6 @@ fn create_blockchain_and_state(
             })?;
 
         let fork_block_number = blockchain.last_block_number();
-
-        let rpc_client = RpcClient::new(
-            &fork_config.json_rpc_url,
-            config.cache_dir.clone(),
-            http_headers,
-        )?;
 
         if !genesis_accounts.is_empty() {
             let genesis_addresses = genesis_accounts.keys().cloned().collect::<Vec<_>>();

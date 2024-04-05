@@ -130,7 +130,7 @@ pub async fn run_full_block(url: String, block_number: u64, chain_id: u64) -> an
         runtime.clone(),
         Some(chain_id),
         spec_id,
-        rpc_client,
+        Arc::new(rpc_client),
         Some(block_number - 1),
         &mut irregular_state,
         state_root_generator,
