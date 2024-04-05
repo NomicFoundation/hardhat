@@ -72,19 +72,19 @@ function getOptimize(
     if (optimize) {
       if (
         semver.gte(compilerVersion, "0.3.10") ||
-        semver.lt(compilerVersion, "0.3.1")
+        semver.lte(compilerVersion, "0.3.0")
       ) {
         throw new VyperPluginError(
-          `The 'optimize' setting with value 'true' is not supported for versions of the Vyper compiler older than 0.3.1 or newer than 0.3.10. You are currently using version ${compilerVersion}.`
+          `The 'optimize' setting with value 'true' is not supported for versions of the Vyper compiler older than or equal to 0.3.0 or newer than or equal to 0.3.10. You are currently using version ${compilerVersion}.`
         );
       }
 
       // The optimizer is enabled by default
       return "";
     } else {
-      if (semver.lt(compilerVersion, "0.3.1")) {
+      if (semver.lte(compilerVersion, "0.3.0")) {
         throw new VyperPluginError(
-          `The 'optimize' setting with value 'false' is not supported for versions of the Vyper compiler older than 0.3.1. You are currently using version ${compilerVersion}.`
+          `The 'optimize' setting with value 'false' is not supported for versions of the Vyper compiler older than or equal to 0.3.0. You are currently using version ${compilerVersion}.`
         );
       }
 
