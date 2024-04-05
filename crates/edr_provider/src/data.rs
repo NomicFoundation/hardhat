@@ -3743,5 +3743,10 @@ mod tests {
             chain_id: 1,
             url: get_alchemy_url(),
         },
+        mainnet_cancun2 => {
+            block_number: 19_562_047,
+            chain_id: 1,
+            url: get_alchemy_url(),
+        },
     }
 }
