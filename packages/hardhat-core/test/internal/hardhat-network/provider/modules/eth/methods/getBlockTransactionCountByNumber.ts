@@ -22,7 +22,7 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      describe("eth_getBlockTransactionCountByNumber", async function () {
+      describe("eth_getBlockTransactionCountByNumber", function () {
         it("should return null for non-existing blocks", async function () {
           const firstBlockNumber = rpcQuantityToNumber(
             await this.provider.send("eth_blockNumber")

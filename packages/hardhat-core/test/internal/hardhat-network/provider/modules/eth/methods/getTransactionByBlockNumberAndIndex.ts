@@ -44,7 +44,7 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      describe("eth_getTransactionByBlockNumberAndIndex", async function () {
+      describe("eth_getTransactionByBlockNumberAndIndex", function () {
         it("should return null for non-existing blocks", async function () {
           assert.isNull(
             await this.provider.send(

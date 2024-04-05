@@ -26,7 +26,7 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      describe("eth_blockNumber", async function () {
+      describe("eth_blockNumber", function () {
         let firstBlockNumber: number;
 
         beforeEach(async function () {

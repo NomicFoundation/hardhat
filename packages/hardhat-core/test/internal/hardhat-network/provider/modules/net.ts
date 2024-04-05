@@ -17,13 +17,13 @@ describe("Net module", function () {
       setCWD();
       useProvider();
 
-      describe("net_listening", async function () {
+      describe("net_listening", function () {
         it("Should return true", async function () {
           assert.isTrue(await this.provider.send("net_listening"));
         });
       });
 
-      describe("net_peerCount", async function () {
+      describe("net_peerCount", function () {
         it("Should return 0", async function () {
           assert.strictEqual(
             await this.provider.send("net_peerCount"),
@@ -32,7 +32,7 @@ describe("Net module", function () {
         });
       });
 
-      describe("net_version", async function () {
+      describe("net_version", function () {
         it("Should return the network id as a decimal string, not QUANTITY", async function () {
           assert.strictEqual(
             await this.provider.send("net_version"),

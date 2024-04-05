@@ -31,7 +31,7 @@ describe("Eth module", function () {
       setCWD();
       useProvider({ hardfork: "london" });
 
-      describe("eth_sendRawTransaction", async function () {
+      describe("eth_sendRawTransaction", function () {
         it("Should throw if the data isn't a proper transaction", async function () {
           await assertInvalidArgumentsError(
             this.provider,

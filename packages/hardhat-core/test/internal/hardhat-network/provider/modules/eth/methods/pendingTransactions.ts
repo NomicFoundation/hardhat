@@ -20,7 +20,7 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      describe("eth_pendingTransactions", async function () {
+      describe("eth_pendingTransactions", function () {
         it("should return an empty array if there are no pending transactions", async function () {
           assert.deepEqual(
             await this.provider.send("eth_pendingTransactions"),

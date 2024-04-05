@@ -28,7 +28,7 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      describe("eth_getStorageAt", async function () {
+      describe("eth_getStorageAt", function () {
         describe("Imitating Ganache", function () {
           describe("When a slot has not been written into", function () {
             it("Should return `0x0000000000000000000000000000000000000000000000000000000000000000`", async function () {

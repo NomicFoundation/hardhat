@@ -16,7 +16,7 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      describe("eth_unsubscribe", async function () {
+      describe("eth_unsubscribe", function () {
         it("Supports unsubscribe", async function () {
           const filterId = await this.provider.send("eth_subscribe", [
             "newHeads",

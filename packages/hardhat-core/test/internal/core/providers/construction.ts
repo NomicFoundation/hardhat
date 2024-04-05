@@ -21,7 +21,7 @@ import { expectHardhatErrorAsync } from "../../../helpers/errors";
 
 import { MockedProvider } from "./mocks";
 
-describe("Network config typeguards", async () => {
+describe("Network config typeguards", () => {
   it("Should recognize HDAccountsConfig", () => {
     assert.isTrue(isHDAccountsConfig({ mnemonic: "asdads" } as any));
     assert.isFalse(isHDAccountsConfig({ initialIndex: 1 } as any));

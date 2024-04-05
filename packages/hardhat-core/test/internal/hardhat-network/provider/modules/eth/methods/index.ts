@@ -28,7 +28,7 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      describe("eth_accounts", async function () {
+      describe("eth_accounts", function () {
         it("should return the genesis accounts in lower case", async function () {
           const accounts = await this.provider.send("eth_accounts");
 
@@ -36,13 +36,13 @@ describe("Eth module", function () {
         });
       });
 
-      describe("eth_chainId", async function () {
+      describe("eth_chainId", function () {
         it("should return the chain id as QUANTITY", async function () {
           assertQuantity(await this.provider.send("eth_chainId"), chainId);
         });
       });
 
-      describe("eth_coinbase", async function () {
+      describe("eth_coinbase", function () {
         it("should return the default coinbase address", async function () {
           assert.equal(
             await this.provider.send("eth_coinbase"),
@@ -51,37 +51,37 @@ describe("Eth module", function () {
         });
       });
 
-      describe("eth_compileLLL", async function () {
+      describe("eth_compileLLL", function () {
         it("is not supported", async function () {
           await assertNotSupported(this.provider, "eth_compileLLL");
         });
       });
 
-      describe("eth_compileSerpent", async function () {
+      describe("eth_compileSerpent", function () {
         it("is not supported", async function () {
           await assertNotSupported(this.provider, "eth_compileSerpent");
         });
       });
 
-      describe("eth_compileSolidity", async function () {
+      describe("eth_compileSolidity", function () {
         it("is not supported", async function () {
           await assertNotSupported(this.provider, "eth_compileSolidity");
         });
       });
 
-      describe("eth_getCompilers", async function () {
+      describe("eth_getCompilers", function () {
         it("is not supported", async function () {
           await assertNotSupported(this.provider, "eth_getCompilers");
         });
       });
 
-      describe("eth_getProof", async function () {
+      describe("eth_getProof", function () {
         it("is not supported", async function () {
           await assertNotSupported(this.provider, "eth_getProof");
         });
       });
 
-      describe("eth_getUncleByBlockHashAndIndex", async function () {
+      describe("eth_getUncleByBlockHashAndIndex", function () {
         it("is not supported", async function () {
           await assertNotSupported(
             this.provider,
@@ -90,7 +90,7 @@ describe("Eth module", function () {
         });
       });
 
-      describe("eth_getUncleByBlockNumberAndIndex", async function () {
+      describe("eth_getUncleByBlockNumberAndIndex", function () {
         it("is not supported", async function () {
           await assertNotSupported(
             this.provider,
@@ -99,7 +99,7 @@ describe("Eth module", function () {
         });
       });
 
-      describe("eth_getUncleCountByBlockHash", async function () {
+      describe("eth_getUncleCountByBlockHash", function () {
         it("is not supported", async function () {
           await assertNotSupported(
             this.provider,
@@ -108,7 +108,7 @@ describe("Eth module", function () {
         });
       });
 
-      describe("eth_getUncleCountByBlockNumber", async function () {
+      describe("eth_getUncleCountByBlockNumber", function () {
         it("is not supported", async function () {
           await assertNotSupported(
             this.provider,
@@ -117,36 +117,36 @@ describe("Eth module", function () {
         });
       });
 
-      describe("eth_getWork", async function () {
+      describe("eth_getWork", function () {
         it("is not supported", async function () {
           await assertNotSupported(this.provider, "eth_getWork");
         });
       });
 
-      describe("eth_hashrate", async function () {
+      describe("eth_hashrate", function () {
         it("is not supported", async function () {
           await assertNotSupported(this.provider, "eth_hashrate");
         });
       });
 
-      describe("eth_mining", async function () {
+      describe("eth_mining", function () {
         it("should return false", async function () {
           assert.deepEqual(await this.provider.send("eth_mining"), false);
         });
       });
 
-      describe("eth_protocolVersion", async function () {
+      describe("eth_protocolVersion", function () {
         it("is not supported", async function () {
           await assertNotSupported(this.provider, "eth_protocolVersion");
         });
       });
 
-      describe("eth_sign", async function () {
+      describe("eth_sign", function () {
         // TODO: Test this. Note that it's implementation is tested in one of
         // our provider wrappers, but re-test it here anyway.
       });
 
-      describe("eth_signTransaction", async function () {
+      describe("eth_signTransaction", function () {
         it("is not supported", async function () {
           await assertNotSupported(this.provider, "eth_signTransaction");
         });
@@ -164,19 +164,19 @@ describe("Eth module", function () {
         });
       });
 
-      describe("eth_submitHashrate", async function () {
+      describe("eth_submitHashrate", function () {
         it("is not supported", async function () {
           await assertNotSupported(this.provider, "eth_submitHashrate");
         });
       });
 
-      describe("eth_submitWork", async function () {
+      describe("eth_submitWork", function () {
         it("is not supported", async function () {
           await assertNotSupported(this.provider, "eth_submitWork");
         });
       });
 
-      describe("eth_syncing", async function () {
+      describe("eth_syncing", function () {
         it("Should return false", async function () {
           assert.deepEqual(await this.provider.send("eth_syncing"), false);
         });

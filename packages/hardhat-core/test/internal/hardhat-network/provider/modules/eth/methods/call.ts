@@ -57,7 +57,7 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      describe("eth_call", async function () {
+      describe("eth_call", function () {
         describe("when called without blockTag param", () => {
           it("Should return the value returned by the contract", async function () {
             const contractAddress = await deployContract(

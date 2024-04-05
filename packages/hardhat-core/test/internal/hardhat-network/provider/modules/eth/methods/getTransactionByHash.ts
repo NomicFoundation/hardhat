@@ -56,7 +56,7 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      describe("eth_getTransactionByHash", async function () {
+      describe("eth_getTransactionByHash", function () {
         it("should return null for unknown txs", async function () {
           assert.isNull(
             await this.provider.send("eth_getTransactionByHash", [

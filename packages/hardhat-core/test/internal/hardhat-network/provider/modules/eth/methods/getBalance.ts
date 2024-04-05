@@ -33,7 +33,7 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      describe("eth_getBalance", async function () {
+      describe("eth_getBalance", function () {
         it("Should return 0 for empty accounts", async function () {
           if (!isFork) {
             assertQuantity(

@@ -21,7 +21,7 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      describe("eth_feeHistory", async function () {
+      describe("eth_feeHistory", function () {
         describe("Params validation", function () {
           it("Should validate that block count is in [1, 1024]", async function () {
             await assertInvalidInputError(
