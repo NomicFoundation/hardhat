@@ -82,11 +82,17 @@ module.exports = {
       }
 
       if (!isExternalModule(modulePath)) {
-        const absoluteModulePath = relative(
-          modulePath,
-          filename,
-          context.settings
-        );
+        const tsModulePath = modulePath.endsWith(".js")
+          ? modulePath.substring(0, modulePath.length - 3) + ".ts"
+          : undefined;
+
+        const tsAbsoluteModulePath = tsModulePath
+          ? relative(tsModulePath, filename, context.settings)
+          : undefined;
+
+        const absoluteModulePath =
+          tsAbsoluteModulePath ??
+          relative(modulePath, filename, context.settings);
 
         if (!absoluteModulePath) {
           context.report({
