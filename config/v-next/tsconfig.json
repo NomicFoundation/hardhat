@@ -3,10 +3,15 @@
   "compilerOptions": {
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true,
-    "noEmitOnError": true,
-    "skipDefaultLibCheck": true,
+    "exactOptionalPropertyTypes": true,
+    "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
-    "forceConsistentCasingInFileNames": true
+    "noEmitOnError": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "skipDefaultLibCheck": true,
+    "sourceMap": true
   }
 }
