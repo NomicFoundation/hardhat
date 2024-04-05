@@ -8,6 +8,7 @@
 - bdf3971: Fix 429 HTTP error by using smaller batches when querying genesis account info
 - 7c23825: Fix 429 HTTP error by increasing rate limiting retries
 - 92693fb: Fix calculation of used blob gas for post-Cancun blocks
+- 62e28ad: Fixed eth_getLogs RPC request for pre-Merge hardforks
 
 ## 0.3.3
 
