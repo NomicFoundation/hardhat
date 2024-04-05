@@ -2222,8 +2222,7 @@ fn create_blockchain_and_state(
                         &fork_config.json_rpc_url,
                         config.cache_dir.clone(),
                         http_headers.clone(),
-                    )
-                    .expect("url ok"),
+                    )?,
                     fork_config.block_number,
                     &mut irregular_state,
                     state_root_generator.clone(),
@@ -2239,8 +2238,7 @@ fn create_blockchain_and_state(
             &fork_config.json_rpc_url,
             config.cache_dir.clone(),
             http_headers,
-        )
-        .expect("url ok");
+        )?;
 
         if !genesis_accounts.is_empty() {
             let genesis_addresses = genesis_accounts.keys().cloned().collect::<Vec<_>>();
