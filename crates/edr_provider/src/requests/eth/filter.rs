@@ -6,7 +6,7 @@ use edr_eth::{
         filter::{FilteredEvents, LogFilterOptions, LogOutput, OneOrMore, SubscriptionType},
         BlockSpec, BlockTag, Eip1898BlockSpec,
     },
-    SpecId, U256,
+    U256,
 };
 use edr_evm::HashSet;
 
@@ -39,13 +39,6 @@ pub fn handle_get_logs_request<LoggerErrorT: Debug>(
     }
     if let Some(to_block) = &filter_options.to_block {
         validate_post_merge_block_tags(data.spec_id(), to_block)?;
-    }
-
-    if data.spec_id() < SpecId::MERGE {
-        return Err(ProviderError::InvalidInput(
-            "eth_getLogs is disabled. It only works with the Berlin hardfork or a later one."
-                .into(),
-        ));
     }
 
     let filter = validate_filter_criteria::<true, LoggerErrorT>(data, filter_options)?;
