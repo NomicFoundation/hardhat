@@ -31,8 +31,8 @@ pub struct ExecutableTransaction {
 }
 
 impl ExecutableTransaction {
-    /// Create an [`ExecutableTransaction`] by attempting to validate and recover
-    /// the caller address of the provided transaction.
+    /// Create an [`ExecutableTransaction`] by attempting to validate and
+    /// recover the caller address of the provided transaction.
     pub fn new(
         spec_id: SpecId,
         transaction: SignedTransaction,
