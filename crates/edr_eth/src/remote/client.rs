@@ -10,7 +10,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use futures::stream::StreamExt;
+use futures::{future, stream::StreamExt};
 use hyper::header::HeaderValue;
 pub use hyper::{header, http::Error as HttpError, HeaderMap};
 use itertools::{izip, Itertools};
@@ -827,11 +827,33 @@ impl RpcClient {
         address: &Address,
         block: Option<BlockSpec>,
     ) -> Result<AccountInfo, RpcClientError> {
-        Ok(self
-            .get_account_infos(&[*address], block)
-            .await?
-            .pop()
-            .expect("batch call returns as many results as inputs if there was no error"))
+        let inputs = &[
+            RequestMethod::GetBalance(*address, block.clone()),
+            RequestMethod::GetTransactionCount(*address, block.clone()),
+            RequestMethod::GetCode(*address, block.clone()),
+        ];
+
+        let responses = self.batch_call(inputs).await?;
+        let (balance, nonce, code) = responses
+            .into_iter()
+            .collect_tuple()
+            .expect("batch call checks responses");
+
+        let balance = balance.parse::<U256>().await?;
+        let nonce: u64 = nonce.parse::<U256>().await?.to();
+        let code = code.parse::<Bytes>().await?;
+        let code = if code.is_empty() {
+            None
+        } else {
+            Some(Bytecode::new_raw(code))
+        };
+
+        Ok(AccountInfo {
+            balance,
+            code_hash: code.as_ref().map_or(KECCAK_EMPTY, Bytecode::hash_slow),
+            code,
+            nonce,
+        })
     }
 
     /// Fetch account infos for multiple addresses in a batch call.
@@ -841,40 +863,12 @@ impl RpcClient {
         addresses: &[Address],
         block: Option<BlockSpec>,
     ) -> Result<Vec<AccountInfo>, RpcClientError> {
-        let inputs: Vec<RequestMethod> = addresses
-            .iter()
-            .flat_map(|address| {
-                [
-                    RequestMethod::GetBalance(*address, block.clone()),
-                    RequestMethod::GetTransactionCount(*address, block.clone()),
-                    RequestMethod::GetCode(*address, block.clone()),
-                ]
-            })
-            .collect();
-
-        let responses = self.batch_call(inputs.as_slice()).await?;
-        let mut results = Vec::with_capacity(inputs.len() / 3);
-        for (balance, nonce, code) in responses.into_iter().tuples() {
-            let balance = balance.parse::<U256>().await?;
-            let nonce: u64 = nonce.parse::<U256>().await?.to();
-            let code = code.parse::<Bytes>().await?;
-            let code = if code.is_empty() {
-                None
-            } else {
-                Some(Bytecode::new_raw(code))
-            };
-
-            let account_info = AccountInfo {
-                balance,
-                code_hash: code.as_ref().map_or(KECCAK_EMPTY, Bytecode::hash_slow),
-                code,
-                nonce,
-            };
-
-            results.push(account_info);
-        }
-
-        Ok(results)
+        future::try_join_all(
+            addresses
+                .iter()
+                .map(|address| self.get_account_info(address, block.clone())),
+        )
+        .await
     }
 
     /// Calls `eth_getBlockByHash` and returns the transaction's hash.

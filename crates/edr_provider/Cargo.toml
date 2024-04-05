@@ -11,6 +11,7 @@ edr_defaults = { version = "0.2.0-dev", path = "../edr_defaults" }
 edr_eth = { version = "0.2.0-dev", path = "../edr_eth" }
 edr_evm = { version = "0.2.0-dev", path = "../edr_evm", features = ["tracing"] }
 ethers-core = {  version = "2.0.12" , features = ["eip712"]}
+futures = { version = "0.3.28", default-features = false, features = ["std"] }
 indexmap = { version = "2.0.0", default-features = false, features = ["std"] }
 itertools = { version = "0.12.0", default-features = false, features = ["use_alloc"] }
 k256 = { version = "0.13.1", default-features = false, features = ["arithmetic", "ecdsa", "pem", "pkcs8", "precomputed-tables", "std"] }
