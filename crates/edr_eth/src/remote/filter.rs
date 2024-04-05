@@ -16,7 +16,7 @@ pub enum OneOrMore<T> {
 }
 
 /// for specifying the inputs to `eth_newFilter` and `eth_getLogs`
-#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Default, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LogFilterOptions {
     /// beginning of a range of blocks
