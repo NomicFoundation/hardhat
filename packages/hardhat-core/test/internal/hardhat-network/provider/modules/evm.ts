@@ -55,7 +55,7 @@ describe("Evm module", function () {
         );
       };
 
-      describe.skip("evm_increaseTime", async function () {
+      describe("evm_increaseTime", async function () {
         it("should increase the offset of time used for block timestamps", async function () {
           const blockNumber = rpcQuantityToNumber(
             await this.provider.send("eth_blockNumber")
@@ -148,7 +148,7 @@ describe("Evm module", function () {
         });
       });
 
-      describe.skip("evm_setNextBlockTimestamp", async function () {
+      describe("evm_setNextBlockTimestamp", async function () {
         for (const { description, prepare } of [
           {
             description: "without any special preparation",
@@ -358,7 +358,7 @@ describe("Evm module", function () {
         }
       });
 
-      describe.skip("evm_setBlockGasLimit", () => {
+      describe("evm_setBlockGasLimit", () => {
         it("validates block gas limit", async function () {
           await assertInvalidInputError(
             this.provider,
@@ -487,13 +487,11 @@ describe("Evm module", function () {
         });
       });
 
-      describe.skip("evm_mine", async function () {
+      describe("evm_mine", async function () {
         it("should mine empty blocks", async function () {
           const firstBlockNumber = rpcQuantityToNumber(
             await this.provider.send("eth_blockNumber")
           );
-
-          console.log("evm_mine", firstBlockNumber);
 
           await this.provider.send("evm_mine");
 
@@ -614,7 +612,7 @@ describe("Evm module", function () {
           assertQuantity(block.timestamp, timestamp);
         });
 
-        describe("tests using sinon", () => {
+        describe.skip("tests using sinon", () => {
           let sinonClock: sinon.SinonFakeTimers;
 
           beforeEach(() => {
@@ -643,7 +641,7 @@ describe("Evm module", function () {
         });
       });
 
-      describe.skip("evm_setAutomine", () => {
+      describe("evm_setAutomine", () => {
         it("should allow disabling automine", async function () {
           await this.provider.send("evm_setAutomine", [false]);
           const previousBlock = await this.provider.send("eth_blockNumber");
@@ -714,7 +712,7 @@ describe("Evm module", function () {
         });
       });
 
-      describe.skip("evm_setIntervalMining", () => {
+      describe("evm_setIntervalMining", () => {
         it("validates blockTime parameter", async function () {
           await assertInvalidArgumentsError(
             this.provider,
@@ -740,7 +738,7 @@ describe("Evm module", function () {
             }
           });
 
-          describe("using sinon", () => {
+          describe.skip("using sinon", () => {
             let sinonClock: sinon.SinonFakeTimers;
 
             beforeEach(() => {
@@ -977,7 +975,7 @@ describe("Evm module", function () {
           assert.isFalse(reverted2);
         });
 
-        it.skip("Deletes blocks mined after snapshot", async function () {
+        it("Deletes blocks mined after snapshot", async function () {
           const snapshotId: string = await this.provider.send(
             "evm_snapshot",
             []
@@ -1020,7 +1018,7 @@ describe("Evm module", function () {
           assert.isNull(blockByNumber);
         });
 
-        it.skip("Deletes transactions mined after snapshot", async function () {
+        it("Deletes transactions mined after snapshot", async function () {
           const [, from] = await this.provider.send("eth_accounts");
 
           const snapshotId: string = await this.provider.send(
@@ -1053,7 +1051,7 @@ describe("Evm module", function () {
           assert.isNull(txHashAfter);
         });
 
-        it.skip("Deletes pending transactions added after snapshot", async function () {
+        it("Deletes pending transactions added after snapshot", async function () {
           await this.provider.send("evm_setAutomine", [false]);
 
           const [, from] = await this.provider.send("eth_accounts");
@@ -1102,7 +1100,7 @@ describe("Evm module", function () {
           assert.lengthOf(pendingTransactionsAfter, 0);
         });
 
-        it.skip("Re-adds the transactions that were mined after snapshot to the tx pool", async function () {
+        it("Re-adds the transactions that were mined after snapshot to the tx pool", async function () {
           await this.provider.send("evm_setAutomine", [false]);
 
           const [, from] = await this.provider.send("eth_accounts");
@@ -1153,7 +1151,7 @@ describe("Evm module", function () {
           assert.lengthOf(pendingTransactionsAfter, 2);
         });
 
-        it.skip("TxPool state reverts back correctly to the snapshot state", async function () {
+        it("TxPool state reverts back correctly to the snapshot state", async function () {
           await this.provider.send("evm_setAutomine", [false]);
 
           const txHash1 = await this.provider.send("eth_sendTransaction", [
@@ -1208,7 +1206,7 @@ describe("Evm module", function () {
           );
         });
 
-        it.skip("Allows resending the same tx after a revert", async function () {
+        it("Allows resending the same tx after a revert", async function () {
           const [, from] = await this.provider.send("eth_accounts");
 
           const snapshotId: string = await this.provider.send(
@@ -1275,7 +1273,7 @@ describe("Evm module", function () {
           assert.isTrue(revertedTo1);
         });
 
-        it.skip("Resets the blockchain so that new blocks are added with the right numbers", async function () {
+        it("Resets the blockchain so that new blocks are added with the right numbers", async function () {
           const blockNumber = rpcQuantityToNumber(
             await this.provider.send("eth_blockNumber")
           );
@@ -1326,7 +1324,7 @@ describe("Evm module", function () {
           await assertLatestBlockNumber(this.provider, blockNumber + 4);
         });
 
-        it.skip("Restores the previous state", async function () {
+        it("Restores the previous state", async function () {
           // This is a very coarse test, as we know that the entire state is
           // managed by the vm, and is restored as a whole
           const [, from] = await this.provider.send("eth_accounts");
@@ -1438,7 +1436,7 @@ describe("Evm module", function () {
       });
     });
 
-    describe.skip(`${name} provider (allowBlocksWithSameTimestamp)`, function () {
+    describe(`${name} provider (allowBlocksWithSameTimestamp)`, function () {
       setCWD();
       useProvider({ allowBlocksWithSameTimestamp: true });
 

@@ -1,6 +1,8 @@
 [alias]
-gen-execution-api  = "run --bin tools -- gen-execution-api"
-replay-block       = "run --bin tools -- replay-block"
+gen-execution-api       = "run --bin tools -- gen-execution-api"
+scenario                = "run --release --bin tools -- scenario"
+scenario-with-tracing   = "run --release --features tracing --bin tools -- scenario"
+replay-block            = "run --release --bin tools -- replay-block"
 
 [target.'cfg(all())']
 rustflags = [

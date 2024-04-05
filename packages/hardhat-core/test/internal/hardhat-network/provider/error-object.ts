@@ -16,6 +16,7 @@ import { useHelpers } from "../helpers/useHelpers";
 // `Error("a reason")` encoded
 const REVERT_REASON_STRING =
   "0x08c379a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000086120726561736f6e000000000000000000000000000000000000000000000000";
+const REVERT_CUSTOM_ERROR = "0x4e7254d6";
 
 // The error thrown by the provider when a transaction reverts has extra information, like the
 // transaction hash (if the method is eth_send[Raw]Transaction) and the raw return data.
@@ -62,8 +63,45 @@ describe("error object in JSON-RPC response", function () {
               assert.equal(error.data.data, REVERT_REASON_STRING);
               assert.equal(error.data.message, error.message);
               assert.isString(error.data.txHash);
+              assert.hasAllKeys(error.data, ["data", "message", "txHash"]);
             } else {
               assert.equal(error.data, REVERT_REASON_STRING);
+              assert.isString(error.transactionHash);
+            }
+          }
+
+          assert.isTrue(
+            transactionReverted,
+            "Transaction should have reverted"
+          );
+        });
+
+        it("when using eth_sendTransaction and a custom error is thrown", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_REVERT_CONTRACT.bytecode.object}`
+          );
+
+          let transactionReverted = false;
+          try {
+            await this.provider.send("eth_sendTransaction", [
+              {
+                to: contractAddress,
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                data: `${EXAMPLE_REVERT_CONTRACT.selectors.customError}0000000000000000000000000000000000000000000000000000000000000000`,
+              },
+            ]);
+          } catch (error: any) {
+            transactionReverted = true;
+
+            if (isJsonRpc) {
+              assert.isObject(error.data);
+              assert.equal(error.data.data, REVERT_CUSTOM_ERROR);
+              assert.equal(error.data.message, error.message);
+              assert.isString(error.data.txHash);
+              assert.hasAllKeys(error.data, ["data", "message", "txHash"]);
+            } else {
+              assert.equal(error.data, REVERT_CUSTOM_ERROR);
               assert.isString(error.transactionHash);
             }
           }
@@ -117,6 +155,7 @@ describe("error object in JSON-RPC response", function () {
               assert.equal(error.data.data, REVERT_REASON_STRING);
               assert.equal(error.data.message, error.message);
               assert.isString(error.data.txHash);
+              assert.hasAllKeys(error.data, ["data", "message", "txHash"]);
             } else {
               assert.equal(error.data, REVERT_REASON_STRING);
               assert.isString(error.transactionHash);
@@ -152,6 +191,7 @@ describe("error object in JSON-RPC response", function () {
               assert.equal(error.data.data, REVERT_REASON_STRING);
               assert.equal(error.data.message, error.message);
               assert.isUndefined(error.data.txHash);
+              assert.hasAllKeys(error.data, ["data", "message"]);
             } else {
               assert.equal(error.data, REVERT_REASON_STRING);
               assert.isUndefined(error.transactionHash);
@@ -187,6 +227,7 @@ describe("error object in JSON-RPC response", function () {
               assert.equal(error.data.data, REVERT_REASON_STRING);
               assert.equal(error.data.message, error.message);
               assert.isUndefined(error.data.txHash);
+              assert.hasAllKeys(error.data, ["data", "message"]);
             } else {
               assert.equal(error.data, REVERT_REASON_STRING);
               assert.isUndefined(error.transactionHash);

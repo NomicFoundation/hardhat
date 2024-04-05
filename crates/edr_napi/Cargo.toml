@@ -29,6 +29,7 @@ parking_lot = { version = "0.12.1", default-features = false }
 lazy_static = { version = "1.4.0", features = [] }
 rand = { version = "0.8.4", optional = true }
 serde = { version = "1.0.189", features = ["derive"] }
+mimalloc = { version = "0.1.39", default-features = false }
 
 [target.x86_64-unknown-linux-gnu.dependencies]
 openssl-sys = { version = "0.9.93", features = ["vendored"] }
@@ -46,7 +47,7 @@ openssl-sys = { version = "0.9.93", features = ["vendored"] }
 napi-build = "2.0.1"
 
 [features]
-tracing = ["edr_evm/tracing"]
+tracing = ["edr_evm/tracing", "edr_provider/tracing"]
 scenarios = ["rand"]
 
 [profile.release]

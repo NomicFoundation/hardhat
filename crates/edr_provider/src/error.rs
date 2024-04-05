@@ -16,7 +16,7 @@ use edr_evm::{
 };
 use ethers_core::types::transaction::eip712::Eip712Error;
 
-use crate::data::CreationError;
+use crate::{data::CreationError, IntervalConfigConversionError};
 
 #[derive(Debug, thiserror::Error)]
 pub enum ProviderError<LoggerErrorT> {
@@ -66,7 +66,7 @@ pub enum ProviderError<LoggerErrorT> {
         latest_block_number: u64,
     },
     /// The block tag is not allowed in pre-merge hardforks.
-    /// https://github.com/NomicFoundation/hardhat/blob/b84baf2d9f5d3ea897c06e0ecd5e7084780d8b6c/packages/hardhat-core/src/internal/hardhat-network/provider/modules/eth.ts#L1820
+    /// <https://github.com/NomicFoundation/hardhat/blob/b84baf2d9f5d3ea897c06e0ecd5e7084780d8b6c/packages/hardhat-core/src/internal/hardhat-network/provider/modules/eth.ts#L1820>
     #[error("The '{block_tag}' block tag is not allowed in pre-merge hardforks. You are using the '{spec:?}' hardfork.")]
     InvalidBlockTag { block_tag: BlockTag, spec: SpecId },
     /// Invalid chain ID
@@ -131,6 +131,12 @@ pub enum ProviderError<LoggerErrorT> {
     /// Cannot set account nonce when the mem pool is not empty
     #[error("Cannot set account nonce when the transaction pool is not empty")]
     SetAccountNonceWithPendingTransactions,
+    /// `evm_setBlockGasLimit` was called with a gas limit of zero.
+    #[error("Block gas limit must be greater than 0")]
+    SetBlockGasLimitMustBeGreaterThanZero,
+    /// The `evm_setIntervalMining` method was called with an invalid interval.
+    #[error(transparent)]
+    SetIntervalMiningConfigInvalid(#[from] IntervalConfigConversionError),
     /// The `hardhat_setNextBlockBaseFeePerGas` method is not supported due to
     /// an older hardfork.
     #[error("hardhat_setNextBlockBaseFeePerGas is disabled because EIP-1559 is not active")]
@@ -158,7 +164,7 @@ pub enum ProviderError<LoggerErrorT> {
     #[error(transparent)]
     TransactionCreationError(#[from] TransactionCreationError),
     /// `eth_sendTransaction` failed and
-    /// [`ProviderConfig::bail_on_call_failure`] was enabled
+    /// [`crate::config::ProviderConfig::bail_on_call_failure`] was enabled
     #[error(transparent)]
     TransactionFailed(#[from] TransactionFailureWithTraces),
     /// Failed to convert an integer type
@@ -229,6 +235,8 @@ impl<LoggerErrorT: Debug> From<ProviderError<LoggerErrorT>> for jsonrpc::Error {
             ProviderError::Serialization(_) => INVALID_INPUT,
             ProviderError::SetAccountNonceLowerThanCurrent { .. } => INVALID_INPUT,
             ProviderError::SetAccountNonceWithPendingTransactions => INTERNAL_ERROR,
+            ProviderError::SetBlockGasLimitMustBeGreaterThanZero => INVALID_INPUT,
+            ProviderError::SetIntervalMiningConfigInvalid(_) => INVALID_PARAMS,
             ProviderError::SetMinGasPriceUnsupported => INVALID_INPUT,
             ProviderError::SetNextBlockBaseFeePerGasUnsupported { .. } => INVALID_INPUT,
             ProviderError::SetNextPrevRandaoUnsupported { .. } => INVALID_INPUT,
@@ -305,7 +313,7 @@ impl std::fmt::Display for TransactionFailureWithTraces {
     }
 }
 
-/// Wrapper around [`revm_primitives::Halt`] to convert error messages to match
+/// Wrapper around [`edr_evm::HaltReason`] to convert error messages to match
 /// Hardhat.
 #[derive(Clone, Debug, thiserror::Error, serde::Serialize)]
 #[serde(rename_all = "camelCase")]

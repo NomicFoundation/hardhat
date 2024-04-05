@@ -3,12 +3,11 @@ mod call;
 mod gas;
 
 use std::{
-    cmp,
-    cmp::Ordering,
+    cmp::{self, Ordering},
     collections::BTreeMap,
     ffi::OsString,
     fmt::Debug,
-    num::NonZeroUsize,
+    num::{NonZeroU64, NonZeroUsize},
     sync::Arc,
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
@@ -135,7 +134,7 @@ pub struct ProviderData<LoggerErrorT: Debug> {
     fork_metadata: Option<ForkMetadata>,
     // Must be set if the provider is created with a fork config.
     // Hack to get around the type erasure with the dyn blockchain trait.
-    rpc_client: Option<RpcClient>,
+    rpc_client: Option<Arc<RpcClient>>,
     instance_id: B256,
     is_auto_mining: bool,
     next_block_base_fee_per_gas: Option<U256>,
@@ -319,7 +318,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
 
     /// Retrieves the gas limit of the next block.
     pub fn block_gas_limit(&self) -> u64 {
-        self.mem_pool.block_gas_limit()
+        self.mem_pool.block_gas_limit().get()
     }
 
     /// Returns the default caller.
@@ -526,7 +525,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         self.beneficiary
     }
 
-    #[tracing::instrument(level = "trace", skip(self))]
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace", skip(self)))]
     pub fn debug_trace_transaction(
         &mut self,
         transaction_hash: &B256,
@@ -1527,7 +1526,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
     /// Sets the gas limit used for mining new blocks.
     pub fn set_block_gas_limit(
         &mut self,
-        gas_limit: u64,
+        gas_limit: NonZeroU64,
     ) -> Result<(), ProviderError<LoggerErrorT>> {
         let state = self.current_state()?;
         self.mem_pool
@@ -1892,11 +1891,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
     ) -> Result<DebugMineBlockResultAndState<StateError>, ProviderError<LoggerErrorT>> {
         options.base_fee = options.base_fee.or(self.next_block_base_fee_per_gas);
         options.beneficiary = Some(options.beneficiary.unwrap_or(self.beneficiary));
-        options.gas_limit = Some(
-            options
-                .gas_limit
-                .unwrap_or_else(|| self.mem_pool.block_gas_limit()),
-        );
+        options.gas_limit = Some(options.gas_limit.unwrap_or_else(|| self.block_gas_limit()));
 
         let evm_config = self.create_evm_config(None)?;
 
@@ -2185,7 +2180,7 @@ fn block_time_offset_seconds(config: &ProviderConfig) -> Result<i64, CreationErr
 struct BlockchainAndState {
     blockchain: Box<dyn SyncBlockchain<BlockchainError, StateError>>,
     fork_metadata: Option<ForkMetadata>,
-    rpc_client: Option<RpcClient>,
+    rpc_client: Option<Arc<RpcClient>>,
     state: Box<dyn SyncState<StateError>>,
     irregular_state: IrregularState,
     prev_randao_generator: RandomHashGenerator,
@@ -2211,6 +2206,12 @@ fn create_blockchain_and_state(
             .map(|headers| HeaderMap::try_from(headers).map_err(CreationError::InvalidHttpHeaders))
             .transpose()?;
 
+        let rpc_client = Arc::new(RpcClient::new(
+            &fork_config.json_rpc_url,
+            config.cache_dir.clone(),
+            http_headers.clone(),
+        )?);
+
         let (blockchain, mut irregular_state) =
             tokio::task::block_in_place(|| -> Result<_, ForkedCreationError> {
                 let mut irregular_state = IrregularState::default();
@@ -2218,12 +2219,7 @@ fn create_blockchain_and_state(
                     runtime.clone(),
                     Some(config.chain_id),
                     config.hardfork,
-                    RpcClient::new(
-                        &fork_config.json_rpc_url,
-                        config.cache_dir.clone(),
-                        http_headers.clone(),
-                    )
-                    .expect("url ok"),
+                    rpc_client.clone(),
                     fork_config.block_number,
                     &mut irregular_state,
                     state_root_generator.clone(),
@@ -2234,13 +2230,6 @@ fn create_blockchain_and_state(
             })?;
 
         let fork_block_number = blockchain.last_block_number();
-
-        let rpc_client = RpcClient::new(
-            &fork_config.json_rpc_url,
-            config.cache_dir.clone(),
-            http_headers,
-        )
-        .expect("url ok");
 
         if !genesis_accounts.is_empty() {
             let genesis_addresses = genesis_accounts.keys().cloned().collect::<Vec<_>>();
@@ -2359,7 +2348,7 @@ fn create_blockchain_and_state(
             config.chain_id,
             config.hardfork,
             GenesisBlockOptions {
-                gas_limit: Some(config.block_gas_limit),
+                gas_limit: Some(config.block_gas_limit.get()),
                 timestamp: config.initial_date.map(|d| {
                     d.duration_since(UNIX_EPOCH)
                         .expect("initial date must be after UNIX epoch")
@@ -3014,7 +3003,11 @@ mod tests {
     #[test]
     fn mine_and_commit_block_leaves_unmined_transactions() -> anyhow::Result<()> {
         let mut fixture = ProviderTestFixture::new_local()?;
-        fixture.provider_data.set_block_gas_limit(55_000)?;
+
+        // SAFETY: literal is non-zero
+        fixture
+            .provider_data
+            .set_block_gas_limit(unsafe { NonZeroU64::new_unchecked(55_000) })?;
 
         // Actual gas usage is 21_000
         let transaction1 = fixture.signed_dummy_transaction(0, Some(0))?;
@@ -3581,7 +3574,8 @@ mod tests {
         }));
 
         let config = ProviderConfig {
-            block_gas_limit: 1_000_000,
+            // SAFETY: literal is non-zero
+            block_gas_limit: unsafe { NonZeroU64::new_unchecked(1_000_000) },
             chain_id: 1,
             coinbase: Address::ZERO,
             hardfork: SpecId::LONDON,
@@ -3733,10 +3727,10 @@ mod tests {
             url: get_alchemy_url(),
         },
         // This block has both EIP-2930 and EIP-1559 transactions
-        goerli_merge => {
-            block_number: 7_728_449,
-            chain_id: 5,
-            url: get_alchemy_url().replace("mainnet", "goerli"),
+        sepolia_eip_1559_2930 => {
+            block_number: 5_632_795,
+            chain_id: 11_155_111,
+            url: get_alchemy_url().replace("mainnet", "sepolia"),
         },
         sepolia_shanghai => {
             block_number: 3_095_000,

@@ -107,7 +107,7 @@
   "dependencies": {
     "@ethersproject/abi": "^5.1.2",
     "@metamask/eth-sig-util": "^4.0.0",
-    "@nomicfoundation/edr": "workspace:^0.3.1",
+    "@nomicfoundation/edr": "workspace:^0.3.3",
     "@nomicfoundation/ethereumjs-common": "4.0.4",
     "@nomicfoundation/ethereumjs-tx": "5.0.4",
     "@nomicfoundation/ethereumjs-util": "9.0.4",

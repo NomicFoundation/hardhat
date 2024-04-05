@@ -9,7 +9,7 @@ import type {
   RequestArguments,
 } from "../../../types";
 
-import {
+import type {
   EdrContext,
   Provider as EdrProviderT,
   ExecutionResult,
@@ -27,6 +27,7 @@ import fsExtra from "fs-extra";
 import * as t from "io-ts";
 import semver from "semver";
 
+import { requireNapiRsModule } from "../../../common/napi-rs";
 import {
   HARDHAT_NETWORK_RESET_EVENT,
   HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
@@ -87,6 +88,10 @@ let _globalEdrContext: EdrContext | undefined;
 
 // Lazy initialize the global EDR context.
 export function getGlobalEdrContext(): EdrContext {
+  const { EdrContext } = requireNapiRsModule(
+    "@nomicfoundation/edr"
+  ) as typeof import("@nomicfoundation/edr");
+
   if (_globalEdrContext === undefined) {
     // Only one is allowed to exist
     _globalEdrContext = new EdrContext();
@@ -197,8 +202,9 @@ export class EdrProviderWrapper
     rawTraceCallbacks: RawTraceCallbacks,
     tracingConfig?: TracingConfig
   ): Promise<EdrProviderWrapper> {
-    const { Provider } =
-      require("@nomicfoundation/edr") as typeof import("@nomicfoundation/edr");
+    const { Provider } = requireNapiRsModule(
+      "@nomicfoundation/edr"
+    ) as typeof import("@nomicfoundation/edr");
 
     const coinbase = config.coinbase ?? DEFAULT_COINBASE;
 
