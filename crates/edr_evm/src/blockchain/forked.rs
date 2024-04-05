@@ -102,7 +102,7 @@ impl ForkedBlockchain {
         runtime: runtime::Handle,
         chain_id_override: Option<u64>,
         spec_id: SpecId,
-        rpc_client: RpcClient,
+        rpc_client: Arc<RpcClient>,
         fork_block_number: Option<u64>,
         irregular_state: &mut IrregularState,
         state_root_generator: Arc<Mutex<RandomHashGenerator>>,
@@ -212,8 +212,6 @@ impl ForkedBlockchain {
                     });
             }
         }
-
-        let rpc_client = Arc::new(rpc_client);
 
         Ok(Self {
             local_storage: ReservableSparseBlockchainStorage::empty(fork_block_number),

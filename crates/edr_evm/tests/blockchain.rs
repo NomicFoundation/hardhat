@@ -51,7 +51,7 @@ async fn create_forked_dummy_blockchain(
             tokio::runtime::Handle::current().clone(),
             None,
             SpecId::LATEST,
-            rpc_client,
+            Arc::new(rpc_client),
             fork_block_number,
             &mut irregular_state,
             Arc::new(Mutex::new(RandomHashGenerator::with_seed(

@@ -9,3 +9,6 @@ rpath = true
 
 [profile.release]
 rpath = true
+
+[profile.test]
+opt-level = 2

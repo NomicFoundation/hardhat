@@ -27,7 +27,7 @@ async fn unknown_transaction_types() -> anyhow::Result<()> {
         runtime::Handle::current(),
         None,
         SpecId::LATEST,
-        rpc_client,
+        Arc::new(rpc_client),
         None,
         &mut irregular_state,
         state_root_generator,

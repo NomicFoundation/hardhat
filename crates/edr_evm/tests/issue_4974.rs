@@ -22,7 +22,7 @@ async fn issue_4974() -> anyhow::Result<()> {
         runtime::Handle::current(),
         None,
         SpecId::LATEST,
-        rpc_client,
+        Arc::new(rpc_client),
         Some(FORK_BLOCK_NUMBER),
         &mut irregular_state,
         state_root_generator,
