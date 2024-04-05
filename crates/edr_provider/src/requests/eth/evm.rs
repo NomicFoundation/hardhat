@@ -1,4 +1,5 @@
 use core::fmt::Debug;
+use std::num::NonZeroU64;
 
 use edr_eth::{block::BlockOptions, U64};
 use edr_evm::trace::Trace;
@@ -55,7 +56,10 @@ pub fn handle_set_block_gas_limit_request<LoggerErrorT: Debug>(
     data: &mut ProviderData<LoggerErrorT>,
     gas_limit: U64,
 ) -> Result<bool, ProviderError<LoggerErrorT>> {
-    data.set_block_gas_limit(gas_limit.as_limbs()[0])?;
+    let gas_limit = NonZeroU64::new(gas_limit.as_limbs()[0])
+        .ok_or(ProviderError::SetBlockGasLimitMustBeGreaterThanZero)?;
+
+    data.set_block_gas_limit(gas_limit)?;
 
     Ok(true)
 }

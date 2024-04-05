@@ -1,4 +1,4 @@
-use std::{path::PathBuf, time::SystemTime};
+use std::{num::NonZeroU64, path::PathBuf, time::SystemTime};
 
 use edr_eth::{
     block::BlobGas, spec::HardforkActivations, AccountInfo, Address, HashMap, SpecId, B256, U256,
@@ -7,12 +7,12 @@ use edr_evm::{alloy_primitives::ChainId, MineOrdering};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
-use crate::{requests::hardhat::rpc_types::ForkConfig, OneUsizeOrTwo};
+use crate::requests::{hardhat::rpc_types::ForkConfig, IntervalConfig as IntervalConfigRequest};
 
 /// Configuration for interval mining.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum IntervalConfig {
-    Fixed(u64),
+    Fixed(NonZeroU64),
     Range { min: u64, max: u64 },
 }
 
@@ -20,23 +20,38 @@ impl IntervalConfig {
     /// Generates a (random) interval based on the configuration.
     pub fn generate_interval(&self) -> u64 {
         match self {
-            IntervalConfig::Fixed(interval) => *interval,
+            IntervalConfig::Fixed(interval) => interval.get(),
             IntervalConfig::Range { min, max } => rand::thread_rng().gen_range(*min..=*max),
         }
     }
 }
 
-impl TryFrom<OneUsizeOrTwo> for IntervalConfig {
-    type Error = ();
+/// An error that occurs when trying to convert [`IntervalConfigRequest`] to an
+/// `Option<IntervalConfig>`.
+#[derive(Debug, thiserror::Error)]
+pub enum IntervalConfigConversionError {
+    /// The minimum value in the range is greater than the maximum value.
+    #[error("Minimum value in range is greater than maximum value")]
+    MinGreaterThanMax,
+}
 
-    fn try_from(value: OneUsizeOrTwo) -> Result<Self, Self::Error> {
-        match value {
-            OneUsizeOrTwo::One(0) => Err(()),
-            OneUsizeOrTwo::One(value) => Ok(Self::Fixed(value as u64)),
-            OneUsizeOrTwo::Two([min, max]) => Ok(Self::Range {
-                min: min as u64,
-                max: max as u64,
-            }),
+impl TryInto<Option<IntervalConfig>> for IntervalConfigRequest {
+    type Error = IntervalConfigConversionError;
+
+    fn try_into(self) -> Result<Option<IntervalConfig>, Self::Error> {
+        match self {
+            Self::FixedOrDisabled(0) => Ok(None),
+            Self::FixedOrDisabled(value) => {
+                // Zero implies disabled
+                Ok(NonZeroU64::new(value).map(IntervalConfig::Fixed))
+            }
+            Self::Range([min, max]) => {
+                if max >= min {
+                    Ok(Some(IntervalConfig::Range { min, max }))
+                } else {
+                    Err(IntervalConfigConversionError::MinGreaterThanMax)
+                }
+            }
         }
     }
 }
@@ -65,7 +80,7 @@ pub struct ProviderConfig {
     pub bail_on_call_failure: bool,
     /// Whether to return an `Err` when a `eth_sendTransaction` fails
     pub bail_on_transaction_failure: bool,
-    pub block_gas_limit: u64,
+    pub block_gas_limit: NonZeroU64,
     pub cache_dir: PathBuf,
     pub chain_id: ChainId,
     pub chains: HashMap<ChainId, HardforkActivations>,

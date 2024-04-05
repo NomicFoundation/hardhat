@@ -16,7 +16,7 @@ use edr_evm::{
 };
 use ethers_core::types::transaction::eip712::Eip712Error;
 
-use crate::data::CreationError;
+use crate::{data::CreationError, IntervalConfigConversionError};
 
 #[derive(Debug, thiserror::Error)]
 pub enum ProviderError<LoggerErrorT> {
@@ -131,6 +131,12 @@ pub enum ProviderError<LoggerErrorT> {
     /// Cannot set account nonce when the mem pool is not empty
     #[error("Cannot set account nonce when the transaction pool is not empty")]
     SetAccountNonceWithPendingTransactions,
+    /// `evm_setBlockGasLimit` was called with a gas limit of zero.
+    #[error("Block gas limit must be greater than 0")]
+    SetBlockGasLimitMustBeGreaterThanZero,
+    /// The `evm_setIntervalMining` method was called with an invalid interval.
+    #[error(transparent)]
+    SetIntervalMiningConfigInvalid(#[from] IntervalConfigConversionError),
     /// The `hardhat_setNextBlockBaseFeePerGas` method is not supported due to
     /// an older hardfork.
     #[error("hardhat_setNextBlockBaseFeePerGas is disabled because EIP-1559 is not active")]
@@ -229,6 +235,8 @@ impl<LoggerErrorT: Debug> From<ProviderError<LoggerErrorT>> for jsonrpc::Error {
             ProviderError::Serialization(_) => INVALID_INPUT,
             ProviderError::SetAccountNonceLowerThanCurrent { .. } => INVALID_INPUT,
             ProviderError::SetAccountNonceWithPendingTransactions => INTERNAL_ERROR,
+            ProviderError::SetBlockGasLimitMustBeGreaterThanZero => INVALID_INPUT,
+            ProviderError::SetIntervalMiningConfigInvalid(_) => INVALID_PARAMS,
             ProviderError::SetMinGasPriceUnsupported => INVALID_INPUT,
             ProviderError::SetNextBlockBaseFeePerGasUnsupported { .. } => INVALID_INPUT,
             ProviderError::SetNextPrevRandaoUnsupported { .. } => INVALID_INPUT,

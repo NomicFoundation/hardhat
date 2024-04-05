@@ -10,7 +10,7 @@ use edr_eth::{
     Address, Bytes, B256, U256, U64,
 };
 use edr_evm::alloy_primitives::U160;
-use edr_provider::{MethodInvocation, OneUsizeOrTwo, U64OrUsize};
+use edr_provider::{IntervalConfigRequest, MethodInvocation, U64OrUsize};
 
 use crate::common::{
     help_test_method_invocation_serde, help_test_method_invocation_serde_with_expected,
@@ -479,12 +479,12 @@ fn test_evm_set_automine() {
 
 #[test]
 fn test_evm_set_interval_mining() {
-    help_test_method_invocation_serde(MethodInvocation::EvmSetIntervalMining(OneUsizeOrTwo::One(
-        1000,
-    )));
-    help_test_method_invocation_serde(MethodInvocation::EvmSetIntervalMining(OneUsizeOrTwo::Two(
-        [1000, 5000],
-    )));
+    help_test_method_invocation_serde(MethodInvocation::EvmSetIntervalMining(
+        IntervalConfigRequest::FixedOrDisabled(1000),
+    ));
+    help_test_method_invocation_serde(MethodInvocation::EvmSetIntervalMining(
+        IntervalConfigRequest::Range([1000, 5000]),
+    ));
 }
 
 #[test]

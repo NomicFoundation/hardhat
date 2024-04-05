@@ -35,8 +35,8 @@ pub use self::{
     logger::{Logger, NoopLogger},
     mock::CallOverrideResult,
     requests::{
-        hardhat::rpc_types as hardhat_rpc_types, InvalidRequestReason, MethodInvocation,
-        OneUsizeOrTwo, ProviderRequest, U64OrUsize,
+        hardhat::rpc_types as hardhat_rpc_types, IntervalConfig as IntervalConfigRequest,
+        InvalidRequestReason, MethodInvocation, ProviderRequest, U64OrUsize,
     },
     subscribe::*,
 };

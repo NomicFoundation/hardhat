@@ -1,4 +1,4 @@
-use std::{convert::Infallible, time::SystemTime};
+use std::{convert::Infallible, num::NonZeroU64, time::SystemTime};
 
 use anyhow::anyhow;
 use edr_eth::{
@@ -57,7 +57,8 @@ pub fn create_test_config_with_fork(fork: Option<ForkConfig>) -> ProviderConfig 
         allow_unlimited_contract_size: false,
         bail_on_call_failure: false,
         bail_on_transaction_failure: false,
-        block_gas_limit: 30_000_000,
+        // SAFETY: literal is non-zero
+        block_gas_limit: unsafe { NonZeroU64::new_unchecked(30_000_000) },
         chain_id: 123,
         chains: HashMap::new(),
         coinbase: Address::from(U160::from(1)),

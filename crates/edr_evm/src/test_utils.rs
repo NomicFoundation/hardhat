@@ -1,3 +1,5 @@
+use std::num::NonZeroU64;
+
 use edr_eth::{
     transaction::{Eip1559TransactionRequest, Eip155TransactionRequest, TransactionKind},
     AccountInfo, Address, Bytes, HashMap, SpecId, U256,
@@ -23,7 +25,8 @@ impl MemPoolTestFixture {
         let trie = AccountTrie::with_accounts(&accounts);
 
         MemPoolTestFixture {
-            mem_pool: MemPool::new(10_000_000u64),
+            // SAFETY: literal is non-zero
+            mem_pool: MemPool::new(unsafe { NonZeroU64::new_unchecked(10_000_000u64) }),
             state: TrieState::with_accounts(trie),
         }
     }
@@ -37,7 +40,7 @@ impl MemPoolTestFixture {
     }
 
     /// Sets the block gas limit.
-    pub fn set_block_gas_limit(&mut self, block_gas_limit: u64) -> Result<(), StateError> {
+    pub fn set_block_gas_limit(&mut self, block_gas_limit: NonZeroU64) -> Result<(), StateError> {
         self.mem_pool
             .set_block_gas_limit(&self.state, block_gas_limit)
     }
