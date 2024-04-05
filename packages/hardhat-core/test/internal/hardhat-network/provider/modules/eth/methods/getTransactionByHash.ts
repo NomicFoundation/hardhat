@@ -329,59 +329,59 @@ describe("Eth module", function () {
           assert.equal(tx.from, "0x8a9d69aa686fa0f9bbdec21294f67d4d9cfb4a3e");
         });
 
-        it("should get an existing transaction from goerli", async function () {
+        it("should get an existing transaction from sepolia", async function () {
           if (!isFork || ALCHEMY_URL === undefined) {
             this.skip();
           }
-          const goerliUrl = ALCHEMY_URL.replace("mainnet", "goerli");
+          const sepoliaUrl = ALCHEMY_URL.replace("mainnet", "sepolia");
 
           // If "mainnet" is not present the replacement failed so we skip the test
-          if (goerliUrl === ALCHEMY_URL) {
+          if (sepoliaUrl === ALCHEMY_URL) {
             this.skip();
           }
 
           await this.provider.send("hardhat_reset", [
             {
               forking: {
-                jsonRpcUrl: goerliUrl,
+                jsonRpcUrl: sepoliaUrl,
               },
             },
           ]);
 
           const tx = await this.provider.send("eth_getTransactionByHash", [
-            "0x3f0908ca1db37402b4fc18e8722dfffa9d78aa1c25b90c37dfe8c9f8a2612b2f",
+            "0xa74bda9627781a8d6aa3707eb6a2b8964b0c2e2522cfe47ff374d61ba8651e95",
           ]);
 
-          assert.equal(tx.from, "0x84467283e3663522a02574288291a9d0f9c968c2");
+          assert.equal(tx.from, "0x395d049687a65902dcada4abe30bcb0a438d5b63");
         });
 
-        it("should get a blob transaction from goerli", async function () {
+        it("should get a blob transaction from sepolia", async function () {
           if (!isFork || ALCHEMY_URL === undefined) {
             this.skip();
           }
-          const goerliUrl = ALCHEMY_URL.replace("mainnet", "goerli");
+          const sepoliaUrl = ALCHEMY_URL.replace("mainnet", "sepolia");
 
-          // If "mainnet" is not present the replacement failed so we skip the test
-          if (goerliUrl === ALCHEMY_URL) {
+          // If "mainnet" is not present the replacement failed, so we skip the test
+          if (sepoliaUrl === ALCHEMY_URL) {
             this.skip();
           }
 
           await this.provider.send("hardhat_reset", [
             {
               forking: {
-                jsonRpcUrl: goerliUrl,
-                // Cancun block
-                blockNumber: 10527489,
+                jsonRpcUrl: sepoliaUrl,
+                // Block with the tx below
+                blockNumber: 5628498,
               },
             },
           ]);
 
           const tx = await this.provider.send("eth_getTransactionByHash", [
             // blob transaction
-            "0x0190ab719774b0ed612789072e399157537845383c2d2445a9929784a098a5c9",
+            "0x3735effc4fe73c17809a10c8076e5b9d154dce760d8df73b5bc08e399c27b16b",
           ]);
 
-          assert.equal(tx.from, "0xa1d6cf9ed782555a0572cc08380ee3b68a1df449");
+          assert.equal(tx.from, "0xf598b6388ec06945021699f0bbb23dfcfc5edbe8");
         });
 
         it("should return access list transactions", async function () {
