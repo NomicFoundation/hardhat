@@ -10,7 +10,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use futures::{future, stream::StreamExt};
+use futures::stream::StreamExt;
 use hyper::header::HeaderValue;
 pub use hyper::{header, http::Error as HttpError, HeaderMap};
 use itertools::{izip, Itertools};
@@ -56,6 +56,9 @@ const EXPONENT_BASE: u32 = 2;
 const MIN_RETRY_INTERVAL: Duration = Duration::from_secs(1);
 const MAX_RETRY_INTERVAL: Duration = Duration::from_secs(32);
 const MAX_RETRIES: u32 = 9;
+// Constrain parallel requests to avoid rate limiting on transport level and
+// thundering herd during backoff.
+const MAX_PARALLEL_REQUESTS: usize = 20;
 
 /// Specialized error types
 #[derive(Debug, thiserror::Error)]
@@ -863,12 +866,13 @@ impl RpcClient {
         addresses: &[Address],
         block: Option<BlockSpec>,
     ) -> Result<Vec<AccountInfo>, RpcClientError> {
-        future::try_join_all(
-            addresses
-                .iter()
-                .map(|address| self.get_account_info(address, block.clone())),
-        )
-        .await
+        futures::stream::iter(addresses.iter())
+            .map(|address| self.get_account_info(address, block.clone()))
+            .buffered(MAX_PARALLEL_REQUESTS)
+            .collect::<Vec<Result<AccountInfo, RpcClientError>>>()
+            .await
+            .into_iter()
+            .collect()
     }
 
     /// Calls `eth_getBlockByHash` and returns the transaction's hash.
