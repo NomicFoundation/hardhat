@@ -31,7 +31,7 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      describe("eth_estimateGas", async function () {
+      describe("eth_estimateGas", function () {
         it("should estimate the gas for a transfer", async function () {
           const estimation = await this.provider.send("eth_estimateGas", [
             {

@@ -23,7 +23,7 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      describe("eth_getBlockTransactionCountByHash", async function () {
+      describe("eth_getBlockTransactionCountByHash", function () {
         it("should return null for non-existing blocks", async function () {
           assert.isNull(
             await this.provider.send("eth_getBlockTransactionCountByHash", [

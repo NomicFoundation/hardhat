@@ -55,7 +55,7 @@ describe("Evm module", function () {
         );
       };
 
-      describe("evm_increaseTime", async function () {
+      describe("evm_increaseTime", function () {
         it("should increase the offset of time used for block timestamps", async function () {
           const blockNumber = rpcQuantityToNumber(
             await this.provider.send("eth_blockNumber")
@@ -148,7 +148,7 @@ describe("Evm module", function () {
         });
       });
 
-      describe("evm_setNextBlockTimestamp", async function () {
+      describe("evm_setNextBlockTimestamp", function () {
         for (const { description, prepare } of [
           {
             description: "without any special preparation",
@@ -487,7 +487,7 @@ describe("Evm module", function () {
         });
       });
 
-      describe("evm_mine", async function () {
+      describe("evm_mine", function () {
         it("should mine empty blocks", async function () {
           const firstBlockNumber = rpcQuantityToNumber(
             await this.provider.send("eth_blockNumber")
@@ -921,7 +921,7 @@ describe("Evm module", function () {
         });
       });
 
-      describe("evm_snapshot", async function () {
+      describe("evm_snapshot", function () {
         it("returns the snapshot id starting at 1", async function () {
           const id1: string = await this.provider.send("evm_snapshot", []);
           const id2: string = await this.provider.send("evm_snapshot", []);
@@ -945,7 +945,7 @@ describe("Evm module", function () {
         });
       });
 
-      describe("evm_revert", async function () {
+      describe("evm_revert", function () {
         it("Returns false for non-existing ids", async function () {
           const reverted1: boolean = await this.provider.send("evm_revert", [
             "0x1",
@@ -1440,7 +1440,7 @@ describe("Evm module", function () {
       setCWD();
       useProvider({ allowBlocksWithSameTimestamp: true });
 
-      describe("evm_setNextBlockTimestamp", async function () {
+      describe("evm_setNextBlockTimestamp", function () {
         it("should allow using the same timestamp as the previous block", async function () {
           const timestamp = getCurrentTimestamp() + 70;
           await this.provider.send("evm_mine", [timestamp]);

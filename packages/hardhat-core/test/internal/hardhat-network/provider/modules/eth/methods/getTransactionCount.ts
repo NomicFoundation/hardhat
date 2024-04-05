@@ -29,7 +29,7 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      describe("eth_getTransactionCount", async function () {
+      describe("eth_getTransactionCount", function () {
         it("Should return 0 for random accounts", async function () {
           assertQuantity(
             await this.provider.send("eth_getTransactionCount", [

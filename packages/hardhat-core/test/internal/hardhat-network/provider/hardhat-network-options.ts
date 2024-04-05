@@ -171,7 +171,7 @@ describe("Hardhat Network special options", function () {
   });
 
   describe("accounts", function () {
-    describe("mnemonic without passphrase", async function () {
+    describe("mnemonic without passphrase", function () {
       useFixtureProject("mnemonic-without-passphrase");
       useEnvironment();
 
@@ -189,7 +189,7 @@ describe("Hardhat Network special options", function () {
       });
     });
 
-    describe("mnemonic with a passphrase", async function () {
+    describe("mnemonic with a passphrase", function () {
       useFixtureProject("mnemonic-with-passphrase");
       useEnvironment();
 

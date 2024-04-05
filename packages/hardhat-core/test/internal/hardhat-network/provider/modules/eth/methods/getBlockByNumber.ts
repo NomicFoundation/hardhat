@@ -29,7 +29,7 @@ describe("Eth module", function () {
       setCWD();
       useProvider({ hardfork: "london" });
 
-      describe("eth_getBlockByNumber", async function () {
+      describe("eth_getBlockByNumber", function () {
         it("Should return the genesis block for number 0", async function () {
           const block = await this.provider.send("eth_getBlockByNumber", [
             numberToRpcQuantity(0),

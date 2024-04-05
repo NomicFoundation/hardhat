@@ -36,7 +36,7 @@ describe("error object in JSON-RPC response", function () {
     describe(`${name} provider`, function () {
       setCWD();
 
-      describe("should have the right fields", async function () {
+      describe("should have the right fields", function () {
         useProvider();
         useHelpers();
 

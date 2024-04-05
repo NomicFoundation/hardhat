@@ -51,7 +51,7 @@ describe("Eth module", function () {
     describe(`${name} provider`, function () {
       setCWD();
 
-      describe("eth_sendTransaction", async function () {
+      describe("eth_sendTransaction", function () {
         useProvider({ hardfork: "london" });
         useHelpers();
 

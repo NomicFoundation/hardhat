@@ -473,7 +473,7 @@ describe("Hardhat module", function () {
           );
         });
 
-        describe("should increment the block number", async function () {
+        describe("should increment the block number", function () {
           it("when not given any arguments", async function () {
             const latestBlockNumber = await getLatestBlockNumber();
             await this.provider.send("hardhat_mine");
