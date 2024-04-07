@@ -21,9 +21,7 @@ describe("createLedgerProvider", () => {
       "0xe149ff2797adc146aa2d68d3df3e819c3c38e762",
       "0x343fe45cd2d785a5f2e97a00de8436f9c42ef444",
     ];
-    const config = {
-      ledgerOptions: { accounts: ledgerAccounts },
-    } as NetworkConfig;
+    const config = { ledgerAccounts } as NetworkConfig;
     const ledgerProvider = createLedgerProvider(mockedProvider, config);
 
     assert.deepEqual(ledgerProvider.options.accounts, ledgerAccounts);
@@ -42,8 +40,8 @@ describe("createLedgerProvider", () => {
       return `44'/60'/${accountNumber}'/0/0`;
     };
     const config = {
+      ledgerAccounts,
       ledgerOptions: {
-        accounts: ledgerAccounts,
         derivationFunction,
       },
     } as NetworkConfig;
@@ -57,9 +55,7 @@ describe("createLedgerProvider", () => {
 
   it("should pass the provider to the LedgerProvider", async () => {
     const config = {
-      ledgerOptions: {
-        accounts: ["0xf4416d306caa15dd4cdf4cd882cd764a6b2aa9b2"],
-      },
+      ledgerAccounts: ["0xf4416d306caa15dd4cdf4cd882cd764a6b2aa9b2"],
     } as NetworkConfig;
     const ledgerProvider = createLedgerProvider(mockedProvider, config);
     const requestStub = sinon.stub(mockedProvider, "request");
@@ -75,9 +71,7 @@ describe("createLedgerProvider", () => {
     const withSpinnerSpy = sinon.spy(spinners, "withSpinners");
 
     const config = {
-      ledgerOptions: {
-        accounts: ["0xe149ff2797adc146aa2d68d3df3e819c3c38e762"],
-      },
+      ledgerAccounts: ["0xe149ff2797adc146aa2d68d3df3e819c3c38e762"],
     } as NetworkConfig;
     const ledgerProvider = createLedgerProvider(mockedProvider, config);
 

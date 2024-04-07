@@ -7,8 +7,8 @@ export function createLedgerProvider(
   provider: EIP1193Provider,
   networkConfig: NetworkConfig
 ): LedgerProvider {
-  const accounts = networkConfig.ledgerOptions.accounts;
-  const derivationFunction = networkConfig.ledgerOptions.derivationFunction;
+  const accounts = networkConfig.ledgerAccounts;
+  const derivationFunction = networkConfig.ledgerOptions?.derivationFunction;
 
   const ledgerProvider = new LedgerProvider(
     { accounts, derivationFunction },
