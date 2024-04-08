@@ -1,8 +1,8 @@
 use std::sync::OnceLock;
 
-use alloy_primitives::keccak256;
 use alloy_rlp::RlpEncodable;
 use k256::SecretKey;
+use revm_primitives::keccak256;
 
 use crate::{
     access_list::AccessListItem,

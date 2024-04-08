@@ -25,7 +25,7 @@ where
     /// Removes all pending transactions of the account corresponding to the
     /// provided address.
     pub fn remove_caller(&mut self, caller: &Address) -> Option<Vec<OrderedTransaction>> {
-        self.transactions.remove(caller)
+        self.transactions.shift_remove(caller)
     }
 }
 
@@ -70,7 +70,7 @@ where
             });
 
         if let Some(caller) = &to_be_removed {
-            self.transactions.remove(caller);
+            self.transactions.shift_remove(caller);
         }
 
         next
@@ -336,7 +336,7 @@ impl MemPool {
                     let removed = pending_transactions.remove(idx);
 
                     if pending_transactions.is_empty() {
-                        self.pending_transactions.remove(caller);
+                        self.pending_transactions.shift_remove(caller);
                     }
 
                     self.future_transactions
@@ -359,7 +359,7 @@ impl MemPool {
                     let removed = future_transactions.remove(idx);
 
                     if future_transactions.is_empty() {
-                        self.future_transactions.remove(caller);
+                        self.future_transactions.shift_remove(caller);
                     }
 
                     return Some(removed);
@@ -503,7 +503,7 @@ impl MemPool {
             }
 
             if future_transactions.is_empty() {
-                self.future_transactions.remove(&caller);
+                self.future_transactions.shift_remove(&caller);
             }
         }
 

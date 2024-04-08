@@ -172,7 +172,7 @@ pub mod optional_u64 {
 /// Helper module for (de)serializing [`std::primitive::u8`]s from and into
 /// `0x`-prefixed hexadecimal strings.
 pub mod u8 {
-    use alloy_primitives::U8;
+    use revm_primitives::alloy_primitives::U8;
 
     use super::{Deserialize, Deserializer, Serialize, Serializer};
 

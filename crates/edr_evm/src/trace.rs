@@ -346,13 +346,13 @@ impl TraceCollector {
         let result = match safe_ret.into() {
             SuccessOrHalt::Success(reason) => ExecutionResult::Success {
                 reason,
-                gas_used: outcome.gas().spend(),
+                gas_used: outcome.gas().spent(),
                 gas_refunded: outcome.gas().refunded() as u64,
                 logs: data.journaled_state.logs.clone(),
                 output: Output::Call(outcome.output().clone()),
             },
             SuccessOrHalt::Revert => ExecutionResult::Revert {
-                gas_used: outcome.gas().spend(),
+                gas_used: outcome.gas().spent(),
                 output: outcome.output().clone(),
             },
             SuccessOrHalt::Halt(reason) => ExecutionResult::Halt {
@@ -407,13 +407,13 @@ impl TraceCollector {
         let result = match safe_ret.into() {
             SuccessOrHalt::Success(reason) => ExecutionResult::Success {
                 reason,
-                gas_used: outcome.gas().spend(),
+                gas_used: outcome.gas().spent(),
                 gas_refunded: outcome.gas().refunded() as u64,
                 logs: data.journaled_state.logs.clone(),
                 output: Output::Create(outcome.output().clone(), outcome.address),
             },
             SuccessOrHalt::Revert => ExecutionResult::Revert {
-                gas_used: outcome.gas().spend(),
+                gas_used: outcome.gas().spent(),
                 output: outcome.output().clone(),
             },
             SuccessOrHalt::Halt(reason) => ExecutionResult::Halt {

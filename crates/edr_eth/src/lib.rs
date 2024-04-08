@@ -40,8 +40,10 @@ pub mod trie;
 pub mod utils;
 pub mod withdrawal;
 
-pub use alloy_primitives::{Bloom, BloomInput, B512, B64, U64};
-pub use revm_primitives::{hex_literal, AccountInfo, Address, Bytes, HashMap, SpecId, B256, U256};
+pub use revm_primitives::{
+    alloy_primitives::{Bloom, BloomInput, B512, B64, U64},
+    hex_literal, AccountInfo, Address, Bytes, HashMap, SpecId, B256, U256,
+};
 
 /// A secret key
 pub type Secret = B256;
