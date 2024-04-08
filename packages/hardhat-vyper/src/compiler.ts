@@ -58,14 +58,14 @@ function getOptimize(
   compilerVersion: string,
   optimize: string | boolean | undefined
 ): string {
-  if (compilerVersion === "" && optimize !== undefined) {
+  if (optimize === undefined) {
+    return "";
+  }
+
+  if (compilerVersion === "") {
     throw new VyperPluginError(
       "The 'compilerVersion' parameter must be set when the setting 'optimize' is set."
     );
-  }
-
-  if (optimize === undefined) {
-    return "";
   }
 
   if (typeof optimize === "boolean") {
@@ -105,6 +105,6 @@ function getOptimize(
   }
 
   throw new VyperPluginError(
-    `The 'optimize' setting has an invalid type value. Type is: ${typeof optimize}.`
+    `The 'optimize' setting has an invalid type value: ${typeof optimize}. Type should be either string or boolean.`
   );
 }

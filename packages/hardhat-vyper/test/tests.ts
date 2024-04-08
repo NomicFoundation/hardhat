@@ -159,7 +159,7 @@ describe("Vyper plugin", function () {
       it("should fail the compilation", async function () {
         await expect(this.env.run(TASK_COMPILE)).to.be.rejectedWith(
           Error,
-          "The 'optimize' setting has an invalid type value. Type is: number."
+          "The 'optimize' setting has an invalid type value: number. Type should be either string or boolean."
         );
       });
     });
