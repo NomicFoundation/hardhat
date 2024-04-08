@@ -18,7 +18,7 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      describe("eth_newPendingTransactionFilter", async function () {
+      describe("eth_newPendingTransactionFilter", function () {
         it("Supports pending transaction filter", async function () {
           assert.isString(
             await this.provider.send("eth_newPendingTransactionFilter")

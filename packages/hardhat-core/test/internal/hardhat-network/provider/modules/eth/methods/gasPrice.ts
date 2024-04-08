@@ -14,7 +14,7 @@ describe("Eth module", function () {
     describe(`${name} provider`, function () {
       setCWD();
 
-      describe("eth_gasPrice", async function () {
+      describe("eth_gasPrice", function () {
         describe("with eip-1559", function () {
           useProvider();
 

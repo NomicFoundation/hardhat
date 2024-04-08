@@ -46,7 +46,7 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      describe("eth_getTransactionReceipt", async function () {
+      describe("eth_getTransactionReceipt", function () {
         it("should return null for unknown txs", async function () {
           const receipt = await this.provider.send(
             "eth_getTransactionReceipt",

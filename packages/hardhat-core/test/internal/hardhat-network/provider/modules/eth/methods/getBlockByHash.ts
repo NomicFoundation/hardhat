@@ -24,7 +24,7 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      describe("eth_getBlockByHash", async function () {
+      describe("eth_getBlockByHash", function () {
         it("should return null for non-existing blocks", async function () {
           assert.isNull(
             await this.provider.send("eth_getBlockByHash", [

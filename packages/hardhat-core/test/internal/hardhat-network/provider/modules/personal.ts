@@ -16,7 +16,7 @@ describe("Personal module", function () {
       setCWD();
       useProvider();
 
-      describe("personal_sign", async function () {
+      describe("personal_sign", function () {
         it("Should be compatible with geth's implementation", async function () {
           // This test was created by using Geth 1.10.12-unstable and calling personal_sign
           const result = await this.provider.request({

@@ -25,7 +25,7 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      describe("eth_getFilterLogs", async function () {
+      describe("eth_getFilterLogs", function () {
         let firstBlockNumber: number;
 
         beforeEach(async function () {

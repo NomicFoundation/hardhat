@@ -23,7 +23,7 @@ describe("Web3 module", function () {
       setCWD();
       useProvider();
 
-      describe("web3_clientVersion", async function () {
+      describe("web3_clientVersion", function () {
         it("Should return the right value", async function () {
           const res = await this.provider.send("web3_clientVersion");
           const expectedEDRVersion =
@@ -32,7 +32,7 @@ describe("Web3 module", function () {
         });
       });
 
-      describe("web3_sha3", async function () {
+      describe("web3_sha3", function () {
         it("Should return the keccak256 of the input", async function () {
           const data = "0x123a1b238123";
           const hashed = bufferToRpcData(keccak256(toBuffer(data)));

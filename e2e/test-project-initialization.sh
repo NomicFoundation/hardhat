@@ -80,6 +80,8 @@ for pkg_manager in $pkg_managers; do
   assert_no_empty_files
   $pkg_runner hardhat compile
   $pkg_runner hardhat test
+  $pkg_runner hardhat coverage
+  REPORT_GAS=true $pkg_runner hardhat test
   cd -
 
   # pkg_manager, javascript, esm
@@ -94,6 +96,8 @@ for pkg_manager in $pkg_managers; do
   assert_no_empty_files
   $pkg_runner hardhat compile
   $pkg_runner hardhat test
+  $pkg_runner hardhat coverage
+  REPORT_GAS=true $pkg_runner hardhat test
   cd -
 
   # pkg_manager, typescript, cjs
@@ -106,6 +110,8 @@ for pkg_manager in $pkg_managers; do
   assert_no_empty_files
   $pkg_runner hardhat compile
   $pkg_runner hardhat test
+  $pkg_runner hardhat coverage
+  REPORT_GAS=true $pkg_runner hardhat test
   cd -
 
   # pkg_manager, typescript, esm
@@ -134,6 +140,8 @@ for pkg_manager in $pkg_managers; do
   assert_no_empty_files
   $pkg_runner hardhat compile
   $pkg_runner hardhat test
+  SOLIDITY_COVERAGE=true $pkg_runner hardhat coverage
+  REPORT_GAS=true $pkg_runner hardhat test
   cd -
 
   # pkg_manager, typescript-viem, esm

@@ -31,7 +31,7 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      describe("eth_getCode", async function () {
+      describe("eth_getCode", function () {
         it("Should return an empty buffer for non-contract accounts", async function () {
           assert.equal(
             await this.provider.send("eth_getCode", [zeroAddress()]),
