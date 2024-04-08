@@ -417,16 +417,16 @@ jobs:
         run: pnpm artifacts
       - name: Publish
         run: |
-          if git log -1 --pretty=%B | grep "^edr-[0-9]\+\.[0-9]\+\.[0-9]\+\s*";
-          then
-            echo "Publishing release"
-            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-            pnpm publish --no-git-checks --provenance --access public
-          elif git log -1 --pretty=%B | grep "^edr-[0-9]\+\.[0-9]\+\.[0-9]\+-";
+          if git log -1 --pretty=%B | grep "^edr-[0-9]\+\.[0-9]\+\.[0-9]\+-";
           then
             echo "Publishing pre-release"
             echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
             pnpm publish --no-git-checks --provenance --tag next --access public
+          elif git log -1 --pretty=%B | grep "^edr-[0-9]\+\.[0-9]\+\.[0-9]\+\s*";
+          then
+            echo "Publishing release"
+            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+            pnpm publish --no-git-checks --provenance --access public
           else
             echo "Not a release, skipping publish"
           fi
