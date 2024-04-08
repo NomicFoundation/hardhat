@@ -23,7 +23,6 @@ describe("hardhat-toolbox-viem", function () {
 
         await publicClient.waitForTransactionReceipt({ hash });
       }).to.changeEtherBalance(
-        publicClient,
         bobWalletClient.account.address,
         1000000039375000000000n
       );

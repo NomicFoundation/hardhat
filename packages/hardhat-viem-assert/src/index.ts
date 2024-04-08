@@ -3,11 +3,11 @@ export function expect(fn: any) {
 
   return {
     to: {
-      async changeEtherBalance(
-        publicClient: any,
-        address: any,
-        amount: bigint
-      ) {
+      async changeEtherBalance(address: any, amount: bigint) {
+        const hre = await import("hardhat");
+
+        const publicClient = await hre.default.viem.getPublicClient();
+
         const balanceBefore = await publicClient.getBalance({
           address,
         });
