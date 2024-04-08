@@ -9,6 +9,8 @@ export class Compiler {
   /**
    *
    * @param inputPaths array of paths to contracts to be compiled
+   * @param compilerVersion the version of the Vyper compiler
+   * @param settings the Vyper settings to use during compilation
    */
   public async compile(
     inputPaths: string[],
