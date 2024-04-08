@@ -68,7 +68,7 @@ describe("Vyper plugin", function () {
     });
   });
 
-  describe("Mixed language", async function () {
+  describe("Mixed language", function () {
     useFixtureProject("mixed-language");
     useEnvironment();
 
