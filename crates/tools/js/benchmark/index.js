@@ -15,6 +15,7 @@ const {
 
 const SCENARIOS_DIR = "../../scenarios/";
 const SCENARIO_SNAPSHOT_NAME = "snapshot.json";
+const OZ_MAX_MIN_FAILURES = 1.05;
 
 async function main() {
   const parser = new ArgumentParser({
@@ -89,11 +90,27 @@ async function verify(benchmarkResultPath) {
   ));
 
   for (let scenarioName in snapshotResult) {
-    // Snapshot testing is unreliable for these scenarios
-    if (
-      scenarioName.includes("openzeppelin") ||
-      scenarioName.includes("neptune-mutual")
-    ) {
+    // TODO https://github.com/NomicFoundation/edr/issues/365
+    if (scenarioName.includes("neptune-mutual")) {
+      continue;
+    }
+
+    // TODO https://github.com/NomicFoundation/edr/issues/365
+    if (scenarioName.contains("openzeppelin")) {
+      const snapshotCount = snapshotResult[scenarioName].failures.length;
+      const actualCount = benchmarkResult[scenarioName].failures.length;
+      const ratio =
+        Math.max(snapshotCount, actualCount) /
+        Math.min(snapshotCount, actualCount);
+
+      if (ratio > OZ_MAX_MIN_FAILURES) {
+        console.error(
+          `Snapshot failure for ${scenarioName} with max/min failure ratio`,
+          ratio
+        );
+        success = false;
+      }
+
       continue;
     }
 
