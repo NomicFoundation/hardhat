@@ -140,7 +140,7 @@ for pkg_manager in $pkg_managers; do
   assert_no_empty_files
   $pkg_runner hardhat compile
   $pkg_runner hardhat test
-  $pkg_runner hardhat coverage
+  SOLIDITY_COVERAGE=true $pkg_runner hardhat coverage
   REPORT_GAS=true $pkg_runner hardhat test
   cd -
 
