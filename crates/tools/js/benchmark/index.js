@@ -96,7 +96,7 @@ async function verify(benchmarkResultPath) {
     }
 
     // TODO https://github.com/NomicFoundation/edr/issues/365
-    if (scenarioName.contains("openzeppelin")) {
+    if (scenarioName.includes("openzeppelin")) {
       const snapshotCount = snapshotResult[scenarioName].failures.length;
       const actualCount = benchmarkResult[scenarioName].failures.length;
       const ratio =
