@@ -12,3 +12,6 @@ node_modules
 # solidity-coverage files
 /coverage
 /coverage.json
+
+# ignition default localhost folder
+ignition/deployments/chain-31337
