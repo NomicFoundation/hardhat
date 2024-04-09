@@ -206,9 +206,9 @@ importers:
       eslint-plugin-import:
         specifier: 2.27.5
         version: 2.27.5(@typescript-eslint/parser@5.61.0)(eslint@8.57.0)
-      eslint-plugin-no-only-tests:
-        specifier: 3.0.0
-        version: 3.0.0
+      eslint-plugin-mocha:
+        specifier: 10.4.1
+        version: 10.4.1(eslint@8.57.0)
       eslint-plugin-prettier:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@2.4.1)
@@ -456,9 +456,9 @@ importers:
       eslint-plugin-import:
         specifier: 2.27.5
         version: 2.27.5(@typescript-eslint/parser@5.61.0)(eslint@8.57.0)
-      eslint-plugin-no-only-tests:
-        specifier: 3.0.0
-        version: 3.0.0
+      eslint-plugin-mocha:
+        specifier: 10.4.1
+        version: 10.4.1(eslint@8.57.0)
       eslint-plugin-prettier:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@2.4.1)
@@ -547,9 +547,9 @@ importers:
       eslint-plugin-import:
         specifier: 2.27.5
         version: 2.27.5(@typescript-eslint/parser@5.61.0)(eslint@8.57.0)
-      eslint-plugin-no-only-tests:
-        specifier: 3.0.0
-        version: 3.0.0
+      eslint-plugin-mocha:
+        specifier: 10.4.1
+        version: 10.4.1(eslint@8.57.0)
       eslint-plugin-prettier:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@2.4.1)
@@ -617,6 +617,9 @@ importers:
       eslint-plugin-import:
         specifier: 2.27.5
         version: 2.27.5(@typescript-eslint/parser@5.61.0)(eslint@8.57.0)
+      eslint-plugin-mocha:
+        specifier: 10.4.1
+        version: 10.4.1(eslint@8.57.0)
       eslint-plugin-prettier:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@2.4.1)
@@ -717,9 +720,9 @@ importers:
       eslint-plugin-import:
         specifier: 2.27.5
         version: 2.27.5(@typescript-eslint/parser@5.61.0)(eslint@8.57.0)
-      eslint-plugin-no-only-tests:
-        specifier: 3.0.0
-        version: 3.0.0
+      eslint-plugin-mocha:
+        specifier: 10.4.1
+        version: 10.4.1(eslint@8.57.0)
       eslint-plugin-prettier:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@2.4.1)
@@ -793,9 +796,9 @@ importers:
       eslint-plugin-import:
         specifier: 2.27.5
         version: 2.27.5(@typescript-eslint/parser@5.61.0)(eslint@8.57.0)
-      eslint-plugin-no-only-tests:
-        specifier: 3.0.0
-        version: 3.0.0
+      eslint-plugin-mocha:
+        specifier: 10.4.1
+        version: 10.4.1(eslint@8.57.0)
       eslint-plugin-prettier:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@2.4.1)
@@ -875,9 +878,9 @@ importers:
       eslint-plugin-import:
         specifier: 2.27.5
         version: 2.27.5(@typescript-eslint/parser@5.61.0)(eslint@8.57.0)
-      eslint-plugin-no-only-tests:
-        specifier: 3.0.0
-        version: 3.0.0
+      eslint-plugin-mocha:
+        specifier: 10.4.1
+        version: 10.4.1(eslint@8.57.0)
       eslint-plugin-prettier:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@2.4.1)
@@ -945,9 +948,9 @@ importers:
       eslint-plugin-import:
         specifier: 2.27.5
         version: 2.27.5(@typescript-eslint/parser@5.61.0)(eslint@8.57.0)
-      eslint-plugin-no-only-tests:
-        specifier: 3.0.0
-        version: 3.0.0
+      eslint-plugin-mocha:
+        specifier: 10.4.1
+        version: 10.4.1(eslint@8.57.0)
       eslint-plugin-prettier:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@2.4.1)
@@ -1021,9 +1024,9 @@ importers:
       eslint-plugin-import:
         specifier: 2.27.5
         version: 2.27.5(@typescript-eslint/parser@5.61.0)(eslint@8.57.0)
-      eslint-plugin-no-only-tests:
-        specifier: 3.0.0
-        version: 3.0.0
+      eslint-plugin-mocha:
+        specifier: 10.4.1
+        version: 10.4.1(eslint@8.57.0)
       eslint-plugin-prettier:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@2.4.1)
@@ -1102,9 +1105,9 @@ importers:
       eslint-plugin-import:
         specifier: 2.27.5
         version: 2.27.5(@typescript-eslint/parser@5.61.0)(eslint@8.57.0)
-      eslint-plugin-no-only-tests:
-        specifier: 3.0.0
-        version: 3.0.0
+      eslint-plugin-mocha:
+        specifier: 10.4.1
+        version: 10.4.1(eslint@8.57.0)
       eslint-plugin-prettier:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@2.4.1)
@@ -1193,9 +1196,9 @@ importers:
       eslint-plugin-import:
         specifier: 2.27.5
         version: 2.27.5(@typescript-eslint/parser@5.61.0)(eslint@8.57.0)
-      eslint-plugin-no-only-tests:
-        specifier: 3.0.0
-        version: 3.0.0
+      eslint-plugin-mocha:
+        specifier: 10.4.1
+        version: 10.4.1(eslint@8.57.0)
       eslint-plugin-prettier:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@2.4.1)
@@ -1281,9 +1284,9 @@ importers:
       eslint-plugin-import:
         specifier: 2.27.5
         version: 2.27.5(@typescript-eslint/parser@5.61.0)(eslint@8.57.0)
-      eslint-plugin-no-only-tests:
-        specifier: 3.0.0
-        version: 3.0.0
+      eslint-plugin-mocha:
+        specifier: 10.4.1
+        version: 10.4.1(eslint@8.57.0)
       eslint-plugin-prettier:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@2.4.1)
@@ -1363,9 +1366,9 @@ importers:
       eslint-plugin-import:
         specifier: 2.27.5
         version: 2.27.5(@typescript-eslint/parser@5.61.0)(eslint@8.57.0)
-      eslint-plugin-no-only-tests:
-        specifier: 3.0.0
-        version: 3.0.0
+      eslint-plugin-mocha:
+        specifier: 10.4.1
+        version: 10.4.1(eslint@8.57.0)
       eslint-plugin-prettier:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@2.4.1)
@@ -1478,9 +1481,9 @@ importers:
       eslint-plugin-import:
         specifier: 2.27.5
         version: 2.27.5(@typescript-eslint/parser@5.61.0)(eslint@8.57.0)
-      eslint-plugin-no-only-tests:
-        specifier: 3.0.0
-        version: 3.0.0
+      eslint-plugin-mocha:
+        specifier: 10.4.1
+        version: 10.4.1(eslint@8.57.0)
       eslint-plugin-prettier:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@2.4.1)
@@ -1572,9 +1575,9 @@ importers:
       eslint-plugin-import:
         specifier: 2.27.5
         version: 2.27.5(@typescript-eslint/parser@5.61.0)(eslint@8.57.0)
-      eslint-plugin-no-only-tests:
-        specifier: 3.0.0
-        version: 3.0.0
+      eslint-plugin-mocha:
+        specifier: 10.4.1
+        version: 10.4.1(eslint@8.57.0)
       eslint-plugin-prettier:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@2.4.1)
@@ -1678,9 +1681,9 @@ importers:
       eslint-plugin-import:
         specifier: 2.27.5
         version: 2.27.5(@typescript-eslint/parser@5.61.0)(eslint@8.57.0)
-      eslint-plugin-no-only-tests:
-        specifier: 3.0.0
-        version: 3.0.0
+      eslint-plugin-mocha:
+        specifier: 10.4.1
+        version: 10.4.1(eslint@8.57.0)
       eslint-plugin-prettier:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@2.4.1)
@@ -1742,9 +1745,9 @@ importers:
       eslint-plugin-import:
         specifier: 2.27.5
         version: 2.27.5(@typescript-eslint/parser@5.61.0)(eslint@8.57.0)
-      eslint-plugin-no-only-tests:
-        specifier: 3.0.0
-        version: 3.0.0
+      eslint-plugin-mocha:
+        specifier: 10.4.1
+        version: 10.4.1(eslint@8.57.0)
       eslint-plugin-prettier:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@2.4.1)
@@ -1808,9 +1811,9 @@ importers:
       eslint-plugin-import:
         specifier: 2.27.5
         version: 2.27.5(@typescript-eslint/parser@5.61.0)(eslint@8.57.0)
-      eslint-plugin-no-only-tests:
-        specifier: 3.0.0
-        version: 3.0.0
+      eslint-plugin-mocha:
+        specifier: 10.4.1
+        version: 10.4.1(eslint@8.57.0)
       eslint-plugin-prettier:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@2.4.1)
@@ -1877,9 +1880,9 @@ importers:
       eslint-plugin-import:
         specifier: 2.27.5
         version: 2.27.5(@typescript-eslint/parser@5.61.0)(eslint@8.57.0)
-      eslint-plugin-no-only-tests:
-        specifier: 3.0.0
-        version: 3.0.0
+      eslint-plugin-mocha:
+        specifier: 10.4.1
+        version: 10.4.1(eslint@8.57.0)
       eslint-plugin-prettier:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@2.4.1)
@@ -2723,7 +2726,7 @@ packages:
       '@ethersproject/bignumber': 5.7.0
       '@ethersproject/bytes': 5.7.0
       '@ethersproject/constants': 5.7.0
-      '@ethersproject/logger': 5.0.6
+      '@ethersproject/logger': 5.7.0
       '@ethersproject/properties': 5.7.0
       '@ethersproject/transactions': 5.7.0
 
@@ -2778,9 +2781,6 @@ packages:
     dependencies:
       '@ethersproject/bytes': 5.7.0
       js-sha3: 0.8.0
-
-  /@ethersproject/logger@5.0.6:
-    resolution: {integrity: sha512-FrX0Vnb3JZ1md/7GIZfmJ06XOAA8r3q9Uqt9O5orr4ZiksnbpXKlyDzQtlZ5Yv18RS8CAUbiKH9vwidJg1BPmQ==}
 
   /@ethersproject/logger@5.7.0:
     resolution: {integrity: sha512-0odtFdXu/XHtjQXJYA3u9G0G8btm0ND5Cu8M7i5vhEcE8/HmF4Lbdqanwyv4uQTr2tx6b7fQRmgLrsnpQlmnig==}
@@ -6200,9 +6200,16 @@ packages:
       - supports-color
     dev: true
 
-  /eslint-plugin-no-only-tests@3.0.0:
-    resolution: {integrity: sha512-I0PeXMs1vu21ap45hey4HQCJRqpcoIvGcNTPJe+UhUm8TwjQ6//mCrDqF8q0WS6LgmRDwQ4ovQej0AQsAHb5yg==}
-    engines: {node: '>=5.0.0'}
+  /eslint-plugin-mocha@10.4.1(eslint@8.57.0):
+    resolution: {integrity: sha512-G85ALUgKaLzuEuHhoW3HVRgPTmia6njQC3qCG6CEvA8/Ja9PDZnRZOuzekMki+HaViEQXINuYsmhp5WR5/4MfA==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      eslint: '>=7.0.0'
+    dependencies:
+      eslint: 8.57.0
+      eslint-utils: 3.0.0(eslint@8.57.0)
+      globals: 13.24.0
+      rambda: 7.5.0
     dev: true
 
   /eslint-plugin-node@11.1.0(eslint@8.57.0):
@@ -9339,6 +9346,10 @@ packages:
   /quick-lru@5.1.1:
     resolution: {integrity: sha512-WuyALRjWPDGtt/wzJiadO5AXY+8hZ80hVpe6MyivgraREW751X3SbhRvG3eLKOYN+8VEvqLcf3wdnt44Z4S4SA==}
     engines: {node: '>=10'}
+
+  /rambda@7.5.0:
+    resolution: {integrity: sha512-y/M9weqWAH4iopRd7EHDEQQvpFPHj1AA3oHozE9tfITHUtTR7Z9PSlIRRG2l1GuW7sefC1cXFfIcF+cgnShdBA==}
+    dev: true
 
   /randombytes@2.1.0:
     resolution: {integrity: sha512-vYl3iOX+4CKUWuxGi9Ukhie6fsqXqS9FE2Zaic4tNFD2N2QQaXOMFbuKK4QmDHC0JO6B1Zp41J0LpT0oR68amQ==}

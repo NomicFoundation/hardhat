@@ -860,7 +860,7 @@ describe("BigNumber matchers", function () {
       });
     });
 
-    describe("deep equal", async function () {
+    describe("deep equal", function () {
       checkAll(1, 1, (a, b) => {
         it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
           // successful assertions
