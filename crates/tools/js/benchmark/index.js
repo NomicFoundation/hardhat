@@ -15,6 +15,7 @@ const {
 
 const SCENARIOS_DIR = "../../scenarios/";
 const SCENARIO_SNAPSHOT_NAME = "snapshot.json";
+const OZ_MAX_MIN_FAILURES = 1.05;
 
 async function main() {
   const parser = new ArgumentParser({
@@ -89,11 +90,27 @@ async function verify(benchmarkResultPath) {
   ));
 
   for (let scenarioName in snapshotResult) {
-    // Snapshot testing is unreliable for these scenarios
-    if (
-      scenarioName.includes("openzeppelin") ||
-      scenarioName.includes("neptune-mutual")
-    ) {
+    // TODO https://github.com/NomicFoundation/edr/issues/365
+    if (scenarioName.includes("neptune-mutual")) {
+      continue;
+    }
+
+    // TODO https://github.com/NomicFoundation/edr/issues/365
+    if (scenarioName.includes("openzeppelin")) {
+      const snapshotCount = snapshotResult[scenarioName].failures.length;
+      const actualCount = benchmarkResult[scenarioName].failures.length;
+      const ratio =
+        Math.max(snapshotCount, actualCount) /
+        Math.min(snapshotCount, actualCount);
+
+      if (ratio > OZ_MAX_MIN_FAILURES) {
+        console.error(
+          `Snapshot failure for ${scenarioName} with max/min failure ratio`,
+          ratio
+        );
+        success = false;
+      }
+
       continue;
     }
 
@@ -143,30 +160,35 @@ async function benchmarkAllScenarios(outPath) {
   let totalTime = 0;
   let totalFailures = 0;
   for (let scenarioFileName of getScenarioFileNames()) {
-    // Run in subprocess with grep to simulate Hardhat test runner behaviour
-    // where there is one provider per process
-    const processResult = child_process.spawnSync(
-      process.argv[0],
-      [
-        "--noconcurrent_sweeping",
-        "--noconcurrent_recompilation",
-        "--max-old-space-size=28000",
-        "index.js",
-        "benchmark",
-        "-g",
-        scenarioFileName,
-      ],
-      {
-        shell: true,
-        timeout: 60 * 60 * 1000,
-        // Pipe stdout, proxy the rest
-        stdio: [process.stdin, "pipe", process.stderr],
-        encoding: "utf-8",
-      }
-    );
-
     try {
-      const scenarioResult = JSON.parse(processResult.stdout);
+      const scenarioResults = [];
+      const iterations = numIterations(scenarioFileName);
+      for (let i = 0; i < iterations; i++) {
+        // Run in subprocess with grep to simulate Hardhat test runner behaviour
+        // where there is one provider per process
+        const processResult = child_process.spawnSync(
+          process.argv[0],
+          [
+            "--noconcurrent_sweeping",
+            "--noconcurrent_recompilation",
+            "--max-old-space-size=28000",
+            "index.js",
+            "benchmark",
+            "-g",
+            scenarioFileName,
+          ],
+          {
+            shell: true,
+            timeout: 60 * 60 * 1000,
+            // Pipe stdout, proxy the rest
+            stdio: [process.stdin, "pipe", process.stderr],
+            encoding: "utf-8",
+          }
+        );
+        const scenarioResult = JSON.parse(processResult.stdout);
+        scenarioResults.push(scenarioResult);
+      }
+      const scenarioResult = medianOfResults(scenarioResults);
       totalTime += scenarioResult.result.timeMs;
       totalFailures += scenarioResult.result.failures.length;
       result[scenarioResult.name] = scenarioResult.result;
@@ -189,8 +211,28 @@ async function benchmarkAllScenarios(outPath) {
   console.error(`Benchmark results written to ${outPath}`);
 }
 
+function numIterations(scenarioName) {
+  // Run fast scenarios repeatedly to get more reliable results
+  if (scenarioName.includes("safe-contracts")) {
+    return 15;
+  } else if (scenarioName.includes("seaport")) {
+    return 5;
+  } else {
+    return 1;
+  }
+}
+
+function medianOfResults(results) {
+  if (results.length === 0) {
+    throw new Error("No results to calculate median");
+  }
+  const sorted = results.sort((a, b) => a.result.timeMs - b.result.timeMs);
+  const middle = Math.floor(sorted.length / 2);
+  return sorted[middle];
+}
+
 async function benchmarkScenario(scenarioFileName) {
-  const { config, requests } = await loadScenario(scenarioFileName);
+  let { config, requests } = await loadScenario(scenarioFileName);
   const name = path.basename(scenarioFileName).split(".")[0];
   console.error(`Running ${name} scenario`);
 
@@ -202,12 +244,14 @@ async function benchmarkScenario(scenarioFileName) {
 
   const failures = [];
   const rpcCallResults = [];
+  const rpcCallErrors = [];
 
   for (let i = 0; i < requests.length; i += 1) {
     try {
       const result = await provider.request(requests[i]);
       rpcCallResults.push(result);
     } catch (e) {
+      rpcCallErrors.push(e);
       failures.push(i);
     }
   }
@@ -230,7 +274,7 @@ async function benchmarkScenario(scenarioFileName) {
   console.log(JSON.stringify(result));
 
   // Return this to avoid gc
-  return rpcCallResults;
+  return { rpcCallResults, rpcCallErrors };
 }
 
 async function loadScenario(scenarioFileName) {
