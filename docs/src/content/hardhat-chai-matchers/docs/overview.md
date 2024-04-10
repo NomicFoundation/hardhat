@@ -45,6 +45,12 @@ Simply `require("@nomicfoundation/hardhat-chai-matchers")` in your Hardhat confi
 
 A few other helpers, such as argument predicates and panic code constants, must be imported explicitly. These are discussed below.
 
+:::warning
+
+The `hardhat-chai-matchers` plugin is designed to work with `hardhat-ethers`. Attempting to use it in conjunction with `hardhat-viem` results in compatibility issues.
+
+:::
+
 ## Why would I want to use it?
 
 ### Events
