@@ -1,6 +1,6 @@
 use std::mem::take;
 
-use revm_primitives::HashSet;
+use hashbrown::HashSet;
 
 use crate::{log::FilterLog, remote::BlockSpec, Address, Bytes, B256};
 

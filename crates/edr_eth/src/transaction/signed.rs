@@ -37,6 +37,23 @@ pub enum SignedTransaction {
 }
 
 impl SignedTransaction {
+    /// Returns the effective gas price of the transaction.
+    pub fn effective_gas_price(&self, block_base_fee: U256) -> U256 {
+        match self {
+            SignedTransaction::PreEip155Legacy(tx) => tx.gas_price,
+            SignedTransaction::PostEip155Legacy(tx) => tx.gas_price,
+            SignedTransaction::Eip2930(tx) => tx.gas_price,
+            SignedTransaction::Eip1559(tx) => {
+                block_base_fee
+                    + (tx.max_fee_per_gas - block_base_fee).min(tx.max_priority_fee_per_gas)
+            }
+            SignedTransaction::Eip4844(tx) => {
+                block_base_fee
+                    + (tx.max_fee_per_gas - block_base_fee).min(tx.max_priority_fee_per_gas)
+            }
+        }
+    }
+
     /// Returns the gas price of the transaction.
     pub fn gas_price(&self) -> U256 {
         match self {

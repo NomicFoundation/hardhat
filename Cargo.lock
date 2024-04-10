@@ -79,6 +79,9 @@ dependencies = [
  "getrandom",
  "hex-literal",
  "itoa",
+ "k256",
+ "keccak-asm",
+ "proptest",
  "rand",
  "ruint",
  "serde",
@@ -1006,6 +1009,7 @@ dependencies = [
  "futures",
  "hash-db",
  "hash256-std-hasher",
+ "hashbrown 0.14.3",
  "hex",
  "hyper",
  "itertools 0.10.5",
@@ -2902,7 +2906,7 @@ dependencies = [
 [[package]]
 name = "revm"
 version = "8.0.0"
-source = "git+https://github.com/Wodann/revm?rev=abacdd3#abacdd39f4fda24ec57e4965410cd5c52191858a"
+source = "git+https://github.com/Wodann/revm?rev=451f122#451f122b5a234db90e3fa00dedfaec6c03b46d61"
 dependencies = [
  "auto_impl",
  "cfg-if",
@@ -2915,7 +2919,7 @@ dependencies = [
 [[package]]
 name = "revm-interpreter"
 version = "4.0.0"
-source = "git+https://github.com/Wodann/revm?rev=abacdd3#abacdd39f4fda24ec57e4965410cd5c52191858a"
+source = "git+https://github.com/Wodann/revm?rev=451f122#451f122b5a234db90e3fa00dedfaec6c03b46d61"
 dependencies = [
  "revm-primitives",
  "serde",
@@ -2924,9 +2928,10 @@ dependencies = [
 [[package]]
 name = "revm-precompile"
 version = "6.0.0"
-source = "git+https://github.com/Wodann/revm?rev=abacdd3#abacdd39f4fda24ec57e4965410cd5c52191858a"
+source = "git+https://github.com/Wodann/revm?rev=451f122#451f122b5a234db90e3fa00dedfaec6c03b46d61"
 dependencies = [
  "aurora-engine-modexp",
+ "c-kzg",
  "k256",
  "once_cell",
  "revm-primitives",
@@ -2938,7 +2943,7 @@ dependencies = [
 [[package]]
 name = "revm-primitives"
 version = "3.1.1"
-source = "git+https://github.com/Wodann/revm?rev=abacdd3#abacdd39f4fda24ec57e4965410cd5c52191858a"
+source = "git+https://github.com/Wodann/revm?rev=451f122#451f122b5a234db90e3fa00dedfaec6c03b46d61"
 dependencies = [
  "alloy-primitives 0.7.0",
  "auto_impl",
@@ -2946,10 +2951,12 @@ dependencies = [
  "bitvec",
  "c-kzg",
  "cfg-if",
+ "derive_more",
  "dyn-clone",
  "enumn",
  "hashbrown 0.14.3",
  "hex",
+ "once_cell",
  "serde",
 ]
 

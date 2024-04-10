@@ -60,5 +60,5 @@ pub mod interpreter {
 
 /// Types for managing Ethereum precompiles
 pub mod precompile {
-    pub use revm::precompile::{PrecompileSpecId, Precompiles};
+    pub use revm::precompile::{u64_to_address, PrecompileSpecId, Precompiles};
 }
