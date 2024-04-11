@@ -584,16 +584,16 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
     pub fn debug_trace_call(
         &mut self,
         transaction: ExecutableTransaction,
-        block_spec: Option<&BlockSpec>,
+        block_spec: &BlockSpec,
         trace_config: DebugTraceConfig,
     ) -> Result<DebugTraceResult, ProviderError<LoggerErrorT>> {
-        let cfg_env = self.create_evm_config(block_spec)?;
+        let cfg_env = self.create_evm_config(Some(block_spec))?;
 
         let tx_env: TxEnv = transaction.into();
 
         let mut tracer = TracerEip3155::new(trace_config);
 
-        self.execute_in_block_context(block_spec, |blockchain, block, state| {
+        self.execute_in_block_context(Some(block_spec), |blockchain, block, state| {
             let result = run_call(RunCallArgs {
                 blockchain,
                 header: block.header(),
@@ -1346,15 +1346,15 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
     pub fn run_call(
         &mut self,
         transaction: ExecutableTransaction,
-        block_spec: Option<&BlockSpec>,
+        block_spec: &BlockSpec,
         state_overrides: &StateOverrides,
     ) -> Result<CallResult, ProviderError<LoggerErrorT>> {
-        let cfg_env = self.create_evm_config(block_spec)?;
+        let cfg_env = self.create_evm_config(Some(block_spec))?;
         let tx_env = transaction.into();
 
         let mut debugger = Debugger::with_mocker(Mocker::new(self.call_override.clone()));
 
-        self.execute_in_block_context(block_spec, |blockchain, block, state| {
+        self.execute_in_block_context(Some(block_spec), |blockchain, block, state| {
             let execution_result = call::run_call(RunCallArgs {
                 blockchain,
                 header: block.header(),
@@ -2817,7 +2817,7 @@ mod tests {
 
         let result = fixture.provider_data.run_call(
             pending_transaction,
-            None,
+            &BlockSpec::latest(),
             &StateOverrides::default(),
         )?;
 
@@ -3549,10 +3549,9 @@ mod tests {
         ) -> Result<CallResult, ProviderError<Infallible>> {
             let state_overrides = StateOverrides::default();
 
-            let transaction =
-                resolve_call_request(data, request, Some(&block_spec), &state_overrides)?;
+            let transaction = resolve_call_request(data, request, &block_spec, &state_overrides)?;
 
-            data.run_call(transaction, Some(&block_spec), &state_overrides)
+            data.run_call(transaction, &block_spec, &state_overrides)
         }
 
         const EIP_1559_ACTIVATION_BLOCK: u64 = 12_965_000;
