@@ -251,7 +251,7 @@ This bug can only affect you if you, or someone at your team, installed the proj
 To avoid it, please delete both your node_modules and package-lock.json, and reinstall your project.
 
 Note that you don't need to do this every time you install a new dependency, but please make sure to delete your node_modules every time you delete your package-lock.json.`,
-      shouldBeReported: false,
+      shouldBeReported: true,
     },
     ESM_PROJECT_WITHOUT_CJS_CONFIG: {
       number: 19,
