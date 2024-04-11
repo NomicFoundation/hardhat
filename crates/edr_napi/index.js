@@ -224,17 +224,32 @@ switch (platform) {
         }
         break
       case 'arm':
-        localFileExisted = existsSync(
-          join(__dirname, 'edr.linux-arm-gnueabihf.node')
-        )
-        try {
-          if (localFileExisted) {
-            nativeBinding = require('./edr.linux-arm-gnueabihf.node')
-          } else {
-            nativeBinding = require('@nomicfoundation/edr-linux-arm-gnueabihf')
+        if (isMusl()) {
+          localFileExisted = existsSync(
+            join(__dirname, 'edr.linux-arm-musleabihf.node')
+          )
+          try {
+            if (localFileExisted) {
+              nativeBinding = require('./edr.linux-arm-musleabihf.node')
+            } else {
+              nativeBinding = require('@nomicfoundation/edr-linux-arm-musleabihf')
+            }
+          } catch (e) {
+            loadError = e
           }
-        } catch (e) {
-          loadError = e
+        } else {
+          localFileExisted = existsSync(
+            join(__dirname, 'edr.linux-arm-gnueabihf.node')
+          )
+          try {
+            if (localFileExisted) {
+              nativeBinding = require('./edr.linux-arm-gnueabihf.node')
+            } else {
+              nativeBinding = require('@nomicfoundation/edr-linux-arm-gnueabihf')
+            }
+          } catch (e) {
+            loadError = e
+          }
         }
         break
       case 'riscv64':
