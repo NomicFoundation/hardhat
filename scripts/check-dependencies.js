@@ -1,6 +1,9 @@
 const fs = require("fs");
 const path = require("path");
 
+// We ignore te packages introduces in v-next for now
+const vNextPackages = ["template-package"];
+
 // An array of dependencies whose version checks are ignored for all the
 // packages
 const IGNORE_SAME_VERSION_FROM_ALL = ["web3", "hardhat"];
@@ -143,6 +146,7 @@ function getAllPackageJsonPaths() {
   const packageJsons = packageNames
     // ignore hh-etherscan and hh-waffle because they only have a readme
     .filter((p) => !["hardhat-etherscan", "hardhat-waffle"].includes(p))
+    .filter((p) => !vNextPackages.includes(p))
     .map((p) => path.join(__dirname, "..", "packages", p, "package.json"));
 
   packageJsons.push(path.join(__dirname, "..", "package.json"));
