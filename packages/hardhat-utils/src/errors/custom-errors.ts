@@ -1,5 +1,3 @@
-export type NodeJSError = Error & NodeJS.ErrnoException;
-
 /**
  * Abstract custom error class, which inherits from the built-in Error class,
  * making sure that the standard errror properties are set, and the stack trace
