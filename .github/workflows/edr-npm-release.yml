@@ -37,11 +37,6 @@ jobs:
           - host: windows-latest
             build: pnpm build
             target: x86_64-pc-windows-msvc
-          - host: windows-latest
-            build: |
-              pnpm build --target i686-pc-windows-msvc
-              pnpm testNoBuild
-            target: i686-pc-windows-msvc
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust@sha256:4b2638c0987845c4ab3488574a215a2a866b99fb28588788786f2b8cbcb40e71
@@ -85,9 +80,6 @@ jobs:
               rustup target add aarch64-unknown-linux-musl &&
               pnpm run build --target aarch64-unknown-linux-musl &&
               /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
-          - host: windows-latest
-            target: aarch64-pc-windows-msvc
-            build: pnpm build --target aarch64-pc-windows-msvc
     name: stable - ${{ matrix.settings.target }} - node@18
     runs-on: ${{ matrix.settings.host }}
     defaults:
@@ -131,20 +123,8 @@ jobs:
         if: ${{ matrix.settings.target == 'armv7-unknown-linux-gnueabihf' }}
         with:
           version: 0.10.1
-      - name: Setup node x86
-        if: matrix.settings.target == 'i686-pc-windows-msvc'
-        run: pnpm config set supportedArchitectures.cpu "ia32"
-        shell: bash
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
-      - name: Setup node x86
-        uses: actions/setup-node@v3
-        if: matrix.settings.target == 'i686-pc-windows-msvc'
-        with:
-          node-version: 18
-          check-latest: true
-          cache: pnpm
-          architecture: x86
       - name: Build in docker
         uses: addnab/docker-run-action@v3
         if: ${{ matrix.settings.docker }}
