@@ -1819,6 +1819,9 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         Ok(transaction_hash)
     }
 
+    /// Creates a configuration, taking into the hardfork at the provided
+    /// `BlockSpec`. If none is provided, assumes the hardfork for newly
+    /// mined blocks.
     fn create_evm_config(
         &self,
         block_spec: Option<&BlockSpec>,
