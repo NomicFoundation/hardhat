@@ -374,9 +374,9 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
 
     this.emit("derivation_failure");
     throw new HardhatLedgerDerivationPathError(
-      `Could not find a valid derivation path for ${addressToFind}. Paths from m/${this._getDerivationPath(
+      `Could not find a valid derivation path for ${addressToFind}. Paths from ${this._getDerivationPath(
         0
-      )} to m/${this._getDerivationPath(
+      )} to ${this._getDerivationPath(
         LedgerProvider.MAX_DERIVATION_ACCOUNTS
       )} were searched.`,
       path
@@ -385,7 +385,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
 
   private _getDerivationPath(index: number): string {
     if (this.options.derivationFunction === undefined) {
-      return `44'/60'/${index}'/0/0`;
+      return `m/44'/60'/${index}'/0/0`;
     } else {
       return this.options.derivationFunction(index);
     }

@@ -53,7 +53,7 @@ describe("HardhatLedgerDerivationPathError", () => {
   });
 
   it("should store the path", () => {
-    const path = "44'/60'/0'/0/0";
+    const path = "m/44'/60'/0'/0/0";
     const error = new HardhatLedgerDerivationPathError("", path);
     assert.equal(error.path, path);
   });

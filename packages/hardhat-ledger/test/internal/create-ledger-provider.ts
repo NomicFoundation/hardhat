@@ -37,7 +37,7 @@ describe("createLedgerProvider", () => {
       "0x343fe45cd2d785a5f2e97a00de8436f9c42ef444",
     ];
     const derivationFunction = (accountNumber: number) => {
-      return `44'/60'/${accountNumber}'/0/0`;
+      return `m/44'/60'/0'/${accountNumber}`; // legacy derivation path
     };
     const config = {
       ledgerAccounts,
