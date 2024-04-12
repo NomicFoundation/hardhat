@@ -42,7 +42,8 @@ export class InvalidDirectoryError extends CustomError {
 }
 
 /**
- * Returns the real path of absolutePath, resolving symlinks.
+ * Determines the canonical pathname for a given path, resolving any symbolic
+ * links, and returns it.
  *
  * @throws FileNotFoundError if absolutePath doesn't exist.
  * @throws FileSystemAccessError for any other error.
@@ -61,25 +62,26 @@ export async function getRealPath(absolutePath: string): Promise<string> {
 }
 
 /**
- * Returns an array of files (not dirs) that match a condition.
+ * Recursively searches a directory and its subdirectories for files that
+ * satisfy the specified condition, returning their absolute paths.
  *
- * @param absolutePathToDir A directory. If it doesn't exist `[]` is returned.
- * @param matches A function to filter files (not directories)
+ * @param dirFrom The absolute path of the directory to start the search from.
+ * @param matches A function to filter files (not directories).
  * @returns An array of absolute paths. Each file has its true case, except
- *  for the initial absolutePathToDir part, which preserves the given casing.
- *  No order is guaranteed.
- * @throws InvalidDirectoryError if absolutePathToDir is not a directory.
+ *  for the initial dirFrom part, which preserves the given casing.
+ *  No order is guaranteed. If dirFrom doesn't exist `[]` is returned.
+ * @throws InvalidDirectoryError if dirFrom is not a directory.
  * @throws FileSystemAccessError for any other error.
  */
 export async function getAllFilesMatching(
-  absolutePathToDir: string,
+  dirFrom: string,
   matches?: (absolutePathToFile: string) => boolean,
 ): Promise<string[]> {
-  const dir = await readdir(absolutePathToDir);
+  const dirContent = await readdir(dirFrom);
 
   const results = await Promise.all(
-    dir.map(async (file) => {
-      const absolutePathToFile = path.join(absolutePathToDir, file);
+    dirContent.map(async (file) => {
+      const absolutePathToFile = path.join(dirFrom, file);
       const stats = await fsPromises.stat(absolutePathToFile);
       if (stats.isDirectory()) {
         return getAllFilesMatching(absolutePathToFile, matches);
@@ -95,8 +97,8 @@ export async function getAllFilesMatching(
 }
 
 /**
- * Returns the true case path of a given `relativePath` from a starting directory `from`, without
- * resolving symlinks.
+ * Determines the true case path of a given relative path from a specified
+ * directory, without resolving symbolic links, and returns it.
  *
  * @param from The absolute path of the directory to start the search from.
  * @param relativePath The relative path to get the true case of.
