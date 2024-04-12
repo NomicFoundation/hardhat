@@ -2778,7 +2778,10 @@ mod tests {
     fn fork_metadata_fork_mode() -> anyhow::Result<()> {
         let fixture = ProviderTestFixture::new_forked(None)?;
 
-        let fork_metadata = fixture.provider_data.fork_metadata().unwrap();
+        let fork_metadata = fixture
+            .provider_data
+            .fork_metadata()
+            .expect("fork metadata should exist");
         assert_eq!(fork_metadata.chain_id, 1);
 
         Ok(())
