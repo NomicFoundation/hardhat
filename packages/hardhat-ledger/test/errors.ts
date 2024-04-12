@@ -10,7 +10,7 @@ import {
 describe("HardhatLedgerError", () => {
   it("should set the plugin name of the error", () => {
     const error = new HardhatLedgerError("");
-    assert.equal(error.pluginName, "@nomiclabs/hardhat-ledger");
+    assert.equal(error.pluginName, "@nomicfoundation/hardhat-ledger");
   });
 
   it("should set the message of the error", () => {
