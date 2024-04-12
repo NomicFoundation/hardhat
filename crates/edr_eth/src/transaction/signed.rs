@@ -43,14 +43,12 @@ impl SignedTransaction {
             SignedTransaction::PreEip155Legacy(tx) => tx.gas_price,
             SignedTransaction::PostEip155Legacy(tx) => tx.gas_price,
             SignedTransaction::Eip2930(tx) => tx.gas_price,
-            SignedTransaction::Eip1559(tx) => {
-                block_base_fee
-                    + (tx.max_fee_per_gas - block_base_fee).min(tx.max_priority_fee_per_gas)
-            }
-            SignedTransaction::Eip4844(tx) => {
-                block_base_fee
-                    + (tx.max_fee_per_gas - block_base_fee).min(tx.max_priority_fee_per_gas)
-            }
+            SignedTransaction::Eip1559(tx) => tx
+                .max_fee_per_gas
+                .min(block_base_fee + tx.max_priority_fee_per_gas),
+            SignedTransaction::Eip4844(tx) => tx
+                .max_fee_per_gas
+                .min(block_base_fee + tx.max_priority_fee_per_gas),
         }
     }
 
