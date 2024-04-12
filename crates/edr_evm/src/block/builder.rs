@@ -90,11 +90,13 @@ where
                 }
                 _ => Self::InvalidTransaction(e),
             },
-            EVMError::Header(
-                InvalidHeader::ExcessBlobGasNotSet | InvalidHeader::PrevrandaoNotSet,
-            ) => unreachable!("error: {error:?}"),
             EVMError::Database(DatabaseComponentError::State(e)) => Self::State(e),
             EVMError::Database(DatabaseComponentError::BlockHash(e)) => Self::BlockHash(e),
+            // This case is a bug in our codebase for local blockchains, but it can happen that the
+            // remote returns incorrect block data in which case we should return a custom error.
+            EVMError::Header(
+                error @ (InvalidHeader::ExcessBlobGasNotSet | InvalidHeader::PrevrandaoNotSet),
+            ) => Self::Custom(error.to_string()),
             EVMError::Custom(error) => Self::Custom(error),
         }
     }

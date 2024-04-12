@@ -22,11 +22,11 @@ pub fn handle_estimate_gas<LoggerErrorT: Debug>(
     call_request: CallRequest,
     block_spec: Option<BlockSpec>,
 ) -> Result<(U64, Vec<Trace>), ProviderError<LoggerErrorT>> {
-    validate_call_request(data.spec_id(), &call_request, &block_spec)?;
-
     // Matching Hardhat behavior in defaulting to "pending" instead of "latest" for
     // estimate gas.
     let block_spec = block_spec.unwrap_or_else(BlockSpec::pending);
+
+    validate_call_request(data.spec_id(), &call_request, &block_spec)?;
 
     let transaction =
         resolve_estimate_gas_request(data, call_request, &block_spec, &StateOverrides::default())?;
@@ -109,7 +109,7 @@ fn resolve_estimate_gas_request<LoggerErrorT: Debug>(
     resolve_call_request_inner(
         data,
         request,
-        Some(block_spec),
+        block_spec,
         state_overrides,
         ProviderData::gas_price,
         |data, max_fee_per_gas, max_priority_fee_per_gas| {

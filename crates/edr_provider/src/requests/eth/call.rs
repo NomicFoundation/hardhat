@@ -21,13 +21,14 @@ pub fn handle_call_request<LoggerErrorT: Debug>(
     block_spec: Option<BlockSpec>,
     state_overrides: Option<StateOverrideOptions>,
 ) -> Result<(Bytes, Trace), ProviderError<LoggerErrorT>> {
+    let block_spec = resolve_block_spec_for_call_request(block_spec);
     validate_call_request(data.spec_id(), &request, &block_spec)?;
 
     let state_overrides =
         state_overrides.map_or(Ok(StateOverrides::default()), StateOverrides::try_from)?;
 
-    let transaction = resolve_call_request(data, request, block_spec.as_ref(), &state_overrides)?;
-    let result = data.run_call(transaction.clone(), block_spec.as_ref(), &state_overrides)?;
+    let transaction = resolve_call_request(data, request, &block_spec, &state_overrides)?;
+    let result = data.run_call(transaction.clone(), &block_spec, &state_overrides)?;
 
     let spec_id = data.spec_id();
     data.logger_mut()
@@ -51,10 +52,14 @@ pub fn handle_call_request<LoggerErrorT: Debug>(
     Ok((output, result.trace))
 }
 
+pub(crate) fn resolve_block_spec_for_call_request(block_spec: Option<BlockSpec>) -> BlockSpec {
+    block_spec.unwrap_or_else(BlockSpec::latest)
+}
+
 pub(crate) fn resolve_call_request<LoggerErrorT: Debug>(
     data: &mut ProviderData<LoggerErrorT>,
     request: CallRequest,
-    block_spec: Option<&BlockSpec>,
+    block_spec: &BlockSpec,
     state_overrides: &StateOverrides,
 ) -> Result<ExecutableTransaction, ProviderError<LoggerErrorT>> {
     resolve_call_request_inner(
@@ -78,7 +83,7 @@ pub(crate) fn resolve_call_request<LoggerErrorT: Debug>(
 pub(crate) fn resolve_call_request_inner<LoggerErrorT: Debug>(
     data: &mut ProviderData<LoggerErrorT>,
     request: CallRequest,
-    block_spec: Option<&BlockSpec>,
+    block_spec: &BlockSpec,
     state_overrides: &StateOverrides,
     default_gas_price_fn: impl FnOnce(
         &ProviderData<LoggerErrorT>,
@@ -108,7 +113,7 @@ pub(crate) fn resolve_call_request_inner<LoggerErrorT: Debug>(
     let from = from.unwrap_or_else(|| data.default_caller());
     let gas_limit = gas.unwrap_or_else(|| data.block_gas_limit());
     let input = input.map_or(Bytes::new(), Bytes::from);
-    let nonce = data.nonce(&from, block_spec, state_overrides)?;
+    let nonce = data.nonce(&from, Some(block_spec), state_overrides)?;
     let value = value.unwrap_or(U256::ZERO);
 
     let transaction = if data.spec_id() < SpecId::LONDON || gas_price.is_some() {
@@ -179,7 +184,7 @@ mod tests {
         let resolved = resolve_call_request_inner(
             &mut fixture.provider_data,
             request,
-            Some(&BlockSpec::pending()),
+            &BlockSpec::pending(),
             &StateOverrides::default(),
             |_data| unreachable!("gas_price is set"),
             |_, _, _| unreachable!("gas_price is set"),
@@ -208,7 +213,7 @@ mod tests {
         let resolved = resolve_call_request_inner(
             &mut fixture.provider_data,
             request,
-            Some(&BlockSpec::pending()),
+            &BlockSpec::pending(),
             &StateOverrides::default(),
             |_data| unreachable!("max fees are set"),
             |_, max_fee_per_gas, max_priority_fee_per_gas| {

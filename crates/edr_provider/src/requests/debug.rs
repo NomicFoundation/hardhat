@@ -9,7 +9,10 @@ use serde::{Deserialize, Deserializer};
 
 use crate::{
     data::ProviderData,
-    requests::{eth::resolve_call_request, validation::validate_call_request},
+    requests::{
+        eth::{resolve_block_spec_for_call_request, resolve_call_request},
+        validation::validate_call_request,
+    },
     ProviderError,
 };
 
@@ -36,17 +39,14 @@ pub fn handle_debug_trace_call<LoggerErrorT: Debug>(
     block_spec: Option<BlockSpec>,
     config: Option<DebugTraceConfig>,
 ) -> Result<DebugTraceResult, ProviderError<LoggerErrorT>> {
+    let block_spec = resolve_block_spec_for_call_request(block_spec);
     validate_call_request(data.spec_id(), &call_request, &block_spec)?;
 
-    let transaction = resolve_call_request(
-        data,
-        call_request,
-        block_spec.as_ref(),
-        &StateOverrides::default(),
-    )?;
+    let transaction =
+        resolve_call_request(data, call_request, &block_spec, &StateOverrides::default())?;
     data.debug_trace_call(
         transaction,
-        block_spec.as_ref(),
+        &block_spec,
         config.map(Into::into).unwrap_or_default(),
     )
 }

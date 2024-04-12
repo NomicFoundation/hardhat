@@ -155,11 +155,9 @@ pub fn validate_transaction_spec<LoggerErrorT: Debug>(
 pub fn validate_call_request<LoggerErrorT: Debug>(
     spec_id: SpecId,
     call_request: &CallRequest,
-    block_spec: &Option<BlockSpec>,
+    block_spec: &BlockSpec,
 ) -> Result<(), ProviderError<LoggerErrorT>> {
-    if let Some(ref block_spec) = block_spec {
-        validate_post_merge_block_tags(spec_id, block_spec)?;
-    }
+    validate_post_merge_block_tags(spec_id, block_spec)?;
 
     validate_transaction_and_call_request(
         spec_id,
