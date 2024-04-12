@@ -98,10 +98,18 @@ describe("Eth module", function () {
             )
           );
 
+          // Promises could have executed in any order, so we sort the results
+          const sortedReceipts = receipts.sort((lhs, rhs) => {
+            return (
+              rpcQuantityToNumber(lhs.transactionIndex) -
+              rpcQuantityToNumber(rhs.transactionIndex)
+            );
+          });
+
           let logIndex = 0;
           let cumGasUsed = 0;
 
-          for (const receipt of receipts) {
+          for (const receipt of sortedReceipts) {
             cumGasUsed += rpcQuantityToNumber(receipt.gasUsed);
             assert.equal(
               cumGasUsed,
