@@ -2320,7 +2320,7 @@ fn create_blockchain_and_state(
 
         Ok(BlockchainAndState {
             fork_metadata: Some(ForkMetadata {
-                chain_id: tokio::task::block_in_place(|| runtime.block_on(rpc_client.chain_id()))?,
+                chain_id: blockchain.remote_chain_id(),
                 fork_block_number,
                 fork_block_hash: *blockchain
                     .block_by_number(fork_block_number)
