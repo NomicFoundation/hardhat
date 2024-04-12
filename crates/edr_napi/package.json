@@ -19,17 +19,15 @@
     "triples": {
       "additional": [
         "aarch64-apple-darwin",
-        "aarch64-pc-windows-msvc",
         "aarch64-unknown-linux-gnu",
         "aarch64-unknown-linux-musl",
-        "x86_64-unknown-linux-musl",
-        "i686-pc-windows-msvc"
+        "x86_64-unknown-linux-musl"
       ]
     }
   },
   "license": "MIT",
   "devDependencies": {
-    "@napi-rs/cli": "^2.16.3",
+    "@napi-rs/cli": "^2.18.1",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^7.1.8",
     "@types/mocha": ">=9.1.0",

@@ -11,6 +11,7 @@
   - [Tools](02_development/01_tools.md)
   - [Verdaccio](02_development/02_verdaccio.md)
   - [Local release](02_development/03_local_release.md)
+  - [Update N-API targets](02_development/04_update_napi_targets.md)
 
 - [Release](./03_release.md)
 
