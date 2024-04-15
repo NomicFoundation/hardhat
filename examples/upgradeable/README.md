@@ -8,6 +8,9 @@ To run the Ignition deploy against the ephemeral hardhat network:
 
 ```shell
 npx hardhat ignition deploy ./ignition/modules/ProxyModule.js
+
+# or to deploy the upgrade module
+npx hardhat ignition deploy ./ignition/modules/UpgradeModule.js
 ```
 
 ## Test
