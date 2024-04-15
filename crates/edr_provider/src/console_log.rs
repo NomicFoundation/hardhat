@@ -60,15 +60,18 @@ pub(crate) mod tests {
     };
     use edr_evm::hex;
 
-    use crate::data::ProviderData;
+    use crate::{data::ProviderData, time::TimeSinceEpoch};
 
     pub struct ConsoleLogTransaction {
         pub transaction: TransactionRequestAndSender,
         pub expected_call_data: Bytes,
     }
 
-    pub fn deploy_console_log_contract<LoggerErrorT: Debug + Send + Sync + 'static>(
-        provider_data: &mut ProviderData<LoggerErrorT>,
+    pub fn deploy_console_log_contract<
+        LoggerErrorT: Debug + Send + Sync + 'static,
+        TimerT: Clone + TimeSinceEpoch,
+    >(
+        provider_data: &mut ProviderData<LoggerErrorT, TimerT>,
     ) -> anyhow::Result<ConsoleLogTransaction> {
         // Compiled with solc 0.8.17, without optimizations
         /*

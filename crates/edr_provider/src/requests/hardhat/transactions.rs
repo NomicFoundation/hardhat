@@ -2,10 +2,10 @@ use core::fmt::Debug;
 
 use edr_eth::B256;
 
-use crate::{data::ProviderData, ProviderError};
+use crate::{data::ProviderData, time::TimeSinceEpoch, ProviderError};
 
-pub fn handle_drop_transaction<LoggerErrorT: Debug>(
-    data: &mut ProviderData<LoggerErrorT>,
+pub fn handle_drop_transaction<LoggerErrorT: Debug, TimerT: Clone + TimeSinceEpoch>(
+    data: &mut ProviderData<LoggerErrorT, TimerT>,
     transaction_hash: B256,
 ) -> Result<bool, ProviderError<LoggerErrorT>> {
     let was_removed = data.remove_pending_transaction(&transaction_hash).is_some();

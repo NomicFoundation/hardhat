@@ -1,10 +1,12 @@
+#![cfg(feature = "test-utils")]
+
 use std::str::FromStr;
 
 use anyhow::Context;
 use edr_eth::{remote::eth::CallRequest, Address, Bytes, SpecId};
 use edr_provider::{
-    hardhat_rpc_types::ForkConfig, test_utils::create_test_config_with_fork, MethodInvocation,
-    NoopLogger, Provider, ProviderRequest,
+    hardhat_rpc_types::ForkConfig, test_utils::create_test_config_with_fork, time::CurrentTime,
+    MethodInvocation, NoopLogger, Provider, ProviderRequest,
 };
 use edr_test_utils::env::get_alchemy_url;
 use sha3::{Digest, Keccak256};
@@ -31,7 +33,13 @@ async fn issue_324() -> anyhow::Result<()> {
     }));
     config.hardfork = SpecId::CANCUN;
 
-    let provider = Provider::new(runtime::Handle::current(), logger, subscriber, config)?;
+    let provider = Provider::new(
+        runtime::Handle::current(),
+        logger,
+        subscriber,
+        config,
+        CurrentTime,
+    )?;
 
     let selector = Bytes::copy_from_slice(
         &Keccak256::new_with_prefix("decimals()")

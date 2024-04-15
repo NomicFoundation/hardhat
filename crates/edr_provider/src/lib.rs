@@ -15,6 +15,8 @@ mod subscribe;
 /// Utilities for testing
 #[cfg(any(test, feature = "test-utils"))]
 pub mod test_utils;
+/// Types for temporal operations
+pub mod time;
 
 use core::fmt::Debug;
 use std::sync::Arc;
@@ -25,6 +27,7 @@ use logger::SyncLogger;
 use mock::SyncCallOverride;
 use parking_lot::Mutex;
 use requests::{eth::handle_set_interval_mining, hardhat::rpc_types::ResetProviderConfig};
+use time::{CurrentTime, TimeSinceEpoch};
 use tokio::{runtime, sync::Mutex as AsyncMutex, task};
 
 pub use self::{
@@ -93,8 +96,8 @@ pub struct ResponseWithTraces {
 ///     }
 /// }
 /// ```
-pub struct Provider<LoggerErrorT: Debug> {
-    data: Arc<AsyncMutex<ProviderData<LoggerErrorT>>>,
+pub struct Provider<LoggerErrorT: Debug, TimerT: Clone + TimeSinceEpoch = CurrentTime> {
+    data: Arc<AsyncMutex<ProviderData<LoggerErrorT, TimerT>>>,
     /// Interval miner runs in the background, if enabled. It holds the data
     /// mutex, so it needs to internally check for cancellation/self-destruction
     /// while async-awaiting the lock to avoid a deadlock.
@@ -102,13 +105,16 @@ pub struct Provider<LoggerErrorT: Debug> {
     runtime: runtime::Handle,
 }
 
-impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
+impl<LoggerErrorT: Debug + Send + Sync + 'static, TimerT: Clone + TimeSinceEpoch>
+    Provider<LoggerErrorT, TimerT>
+{
     /// Constructs a new instance.
     pub fn new(
         runtime: runtime::Handle,
         logger: Box<dyn SyncLogger<BlockchainError = BlockchainError, LoggerError = LoggerErrorT>>,
         subscriber_callback: Box<dyn SyncSubscriberCallback>,
         config: ProviderConfig,
+        timer: TimerT,
     ) -> Result<Self, CreationError> {
         let data = ProviderData::new(
             runtime.clone(),
@@ -116,6 +122,7 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
             subscriber_callback,
             None,
             config.clone(),
+            timer,
         )?;
         let data = Arc::new(AsyncMutex::new(data));
 
@@ -167,7 +174,7 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
     /// Handles a batch of JSON requests for an execution provider.
     fn handle_batch_request(
         &self,
-        data: &mut ProviderData<LoggerErrorT>,
+        data: &mut ProviderData<LoggerErrorT, TimerT>,
         request: Vec<MethodInvocation>,
     ) -> Result<ResponseWithTraces, ProviderError<LoggerErrorT>> {
         let mut results = Vec::new();
@@ -185,7 +192,7 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
 
     fn handle_single_request(
         &self,
-        data: &mut ProviderData<LoggerErrorT>,
+        data: &mut ProviderData<LoggerErrorT, TimerT>,
         request: MethodInvocation,
     ) -> Result<ResponseWithTraces, ProviderError<LoggerErrorT>> {
         let method_name = if data.logger_mut().is_enabled() {
@@ -443,7 +450,7 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
 
     fn reset(
         &self,
-        data: &mut ProviderData<LoggerErrorT>,
+        data: &mut ProviderData<LoggerErrorT, TimerT>,
         config: Option<ResetProviderConfig>,
     ) -> Result<bool, ProviderError<LoggerErrorT>> {
         let mut interval_miner = self.interval_miner.lock();

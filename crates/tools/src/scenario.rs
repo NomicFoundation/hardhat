@@ -8,7 +8,7 @@ use std::{
 use anyhow::Context;
 use edr_eth::remote::jsonrpc;
 use edr_evm::blockchain::BlockchainError;
-use edr_provider::{Logger, ProviderError, ProviderRequest};
+use edr_provider::{time::CurrentTime, Logger, ProviderError, ProviderRequest};
 use flate2::bufread::GzDecoder;
 use indicatif::ProgressBar;
 use serde::Deserialize;
@@ -55,6 +55,7 @@ pub async fn execute(scenario_path: &Path, max_count: Option<usize>) -> anyhow::
             logger,
             subscription_callback,
             config.provider_config,
+            CurrentTime,
         )
     })
     .await??;

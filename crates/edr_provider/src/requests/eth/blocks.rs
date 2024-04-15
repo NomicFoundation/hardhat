@@ -10,6 +10,7 @@ use edr_evm::{blockchain::BlockchainError, SyncBlock};
 use crate::{
     data::{BlockDataForTransaction, ProviderData, TransactionAndBlock},
     requests::{eth::transaction_to_rpc_result, validation::validate_post_merge_block_tags},
+    time::TimeSinceEpoch,
     ProviderError,
 };
 
@@ -20,8 +21,8 @@ pub enum HashOrTransaction {
     Transaction(eth::Transaction),
 }
 
-pub fn handle_get_block_by_hash_request<LoggerErrorT: Debug>(
-    data: &ProviderData<LoggerErrorT>,
+pub fn handle_get_block_by_hash_request<LoggerErrorT: Debug, TimerT: Clone + TimeSinceEpoch>(
+    data: &ProviderData<LoggerErrorT, TimerT>,
     block_hash: B256,
     transaction_detail_flag: bool,
 ) -> Result<Option<eth::Block<HashOrTransaction>>, ProviderError<LoggerErrorT>> {
@@ -40,8 +41,8 @@ pub fn handle_get_block_by_hash_request<LoggerErrorT: Debug>(
         .transpose()
 }
 
-pub fn handle_get_block_by_number_request<LoggerErrorT: Debug>(
-    data: &mut ProviderData<LoggerErrorT>,
+pub fn handle_get_block_by_number_request<LoggerErrorT: Debug, TimerT: Clone + TimeSinceEpoch>(
+    data: &mut ProviderData<LoggerErrorT, TimerT>,
     block_spec: PreEip1898BlockSpec,
     transaction_detail_flag: bool,
 ) -> Result<Option<eth::Block<HashOrTransaction>>, ProviderError<LoggerErrorT>> {
@@ -64,8 +65,11 @@ pub fn handle_get_block_by_number_request<LoggerErrorT: Debug>(
         .transpose()
 }
 
-pub fn handle_get_block_transaction_count_by_hash_request<LoggerErrorT: Debug>(
-    data: &ProviderData<LoggerErrorT>,
+pub fn handle_get_block_transaction_count_by_hash_request<
+    LoggerErrorT: Debug,
+    TimerT: Clone + TimeSinceEpoch,
+>(
+    data: &ProviderData<LoggerErrorT, TimerT>,
     block_hash: B256,
 ) -> Result<Option<U64>, ProviderError<LoggerErrorT>> {
     Ok(data
@@ -73,8 +77,11 @@ pub fn handle_get_block_transaction_count_by_hash_request<LoggerErrorT: Debug>(
         .map(|block| U64::from(block.transactions().len())))
 }
 
-pub fn handle_get_block_transaction_count_by_block_number<LoggerErrorT: Debug>(
-    data: &mut ProviderData<LoggerErrorT>,
+pub fn handle_get_block_transaction_count_by_block_number<
+    LoggerErrorT: Debug,
+    TimerT: Clone + TimeSinceEpoch,
+>(
+    data: &mut ProviderData<LoggerErrorT, TimerT>,
     block_spec: PreEip1898BlockSpec,
 ) -> Result<Option<U64>, ProviderError<LoggerErrorT>> {
     Ok(block_by_number(data, &block_spec.into())?
@@ -92,8 +99,8 @@ struct BlockByNumberResult {
     pub total_difficulty: Option<U256>,
 }
 
-fn block_by_number<LoggerErrorT: Debug>(
-    data: &mut ProviderData<LoggerErrorT>,
+fn block_by_number<LoggerErrorT: Debug, TimerT: Clone + TimeSinceEpoch>(
+    data: &mut ProviderData<LoggerErrorT, TimerT>,
     block_spec: &BlockSpec,
 ) -> Result<Option<BlockByNumberResult>, ProviderError<LoggerErrorT>> {
     validate_post_merge_block_tags(data.spec_id(), block_spec)?;

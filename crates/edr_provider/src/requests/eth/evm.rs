@@ -4,10 +4,12 @@ use std::num::NonZeroU64;
 use edr_eth::{block::BlockOptions, U64};
 use edr_evm::trace::Trace;
 
-use crate::{data::ProviderData, requests::methods::U64OrUsize, ProviderError};
+use crate::{
+    data::ProviderData, requests::methods::U64OrUsize, time::TimeSinceEpoch, ProviderError,
+};
 
-pub fn handle_increase_time_request<LoggerErrorT: Debug>(
-    data: &mut ProviderData<LoggerErrorT>,
+pub fn handle_increase_time_request<LoggerErrorT: Debug, TimerT: Clone + TimeSinceEpoch>(
+    data: &mut ProviderData<LoggerErrorT, TimerT>,
     increment: U64OrUsize,
 ) -> Result<String, ProviderError<LoggerErrorT>> {
     let new_block_time = data.increase_block_time(increment.into());
@@ -16,8 +18,8 @@ pub fn handle_increase_time_request<LoggerErrorT: Debug>(
     Ok(new_block_time.to_string())
 }
 
-pub fn handle_mine_request<LoggerErrorT: Debug>(
-    data: &mut ProviderData<LoggerErrorT>,
+pub fn handle_mine_request<LoggerErrorT: Debug, TimerT: Clone + TimeSinceEpoch>(
+    data: &mut ProviderData<LoggerErrorT, TimerT>,
     timestamp: Option<U64OrUsize>,
 ) -> Result<(String, Vec<Trace>), ProviderError<LoggerErrorT>> {
     let mine_block_result = data.mine_and_commit_block(BlockOptions {
@@ -36,15 +38,15 @@ pub fn handle_mine_request<LoggerErrorT: Debug>(
     Ok((result, traces))
 }
 
-pub fn handle_revert_request<LoggerErrorT: Debug>(
-    data: &mut ProviderData<LoggerErrorT>,
+pub fn handle_revert_request<LoggerErrorT: Debug, TimerT: Clone + TimeSinceEpoch>(
+    data: &mut ProviderData<LoggerErrorT, TimerT>,
     snapshot_id: U64,
 ) -> Result<bool, ProviderError<LoggerErrorT>> {
     Ok(data.revert_to_snapshot(snapshot_id.as_limbs()[0]))
 }
 
-pub fn handle_set_automine_request<LoggerErrorT: Debug>(
-    data: &mut ProviderData<LoggerErrorT>,
+pub fn handle_set_automine_request<LoggerErrorT: Debug, TimerT: Clone + TimeSinceEpoch>(
+    data: &mut ProviderData<LoggerErrorT, TimerT>,
     automine: bool,
 ) -> Result<bool, ProviderError<LoggerErrorT>> {
     data.set_auto_mining(automine);
@@ -52,8 +54,8 @@ pub fn handle_set_automine_request<LoggerErrorT: Debug>(
     Ok(true)
 }
 
-pub fn handle_set_block_gas_limit_request<LoggerErrorT: Debug>(
-    data: &mut ProviderData<LoggerErrorT>,
+pub fn handle_set_block_gas_limit_request<LoggerErrorT: Debug, TimerT: Clone + TimeSinceEpoch>(
+    data: &mut ProviderData<LoggerErrorT, TimerT>,
     gas_limit: U64,
 ) -> Result<bool, ProviderError<LoggerErrorT>> {
     let gas_limit = NonZeroU64::new(gas_limit.as_limbs()[0])
@@ -64,8 +66,11 @@ pub fn handle_set_block_gas_limit_request<LoggerErrorT: Debug>(
     Ok(true)
 }
 
-pub fn handle_set_next_block_timestamp_request<LoggerErrorT: Debug>(
-    data: &mut ProviderData<LoggerErrorT>,
+pub fn handle_set_next_block_timestamp_request<
+    LoggerErrorT: Debug,
+    TimerT: Clone + TimeSinceEpoch,
+>(
+    data: &mut ProviderData<LoggerErrorT, TimerT>,
     timestamp: U64OrUsize,
 ) -> Result<String, ProviderError<LoggerErrorT>> {
     let new_timestamp = data.set_next_block_timestamp(timestamp.into())?;
@@ -74,8 +79,8 @@ pub fn handle_set_next_block_timestamp_request<LoggerErrorT: Debug>(
     Ok(new_timestamp.to_string())
 }
 
-pub fn handle_snapshot_request<LoggerErrorT: Debug>(
-    data: &mut ProviderData<LoggerErrorT>,
+pub fn handle_snapshot_request<LoggerErrorT: Debug, TimerT: Clone + TimeSinceEpoch>(
+    data: &mut ProviderData<LoggerErrorT, TimerT>,
 ) -> Result<U64, ProviderError<LoggerErrorT>> {
     let snapshot_id = data.make_snapshot();
 

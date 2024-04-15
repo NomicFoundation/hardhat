@@ -13,11 +13,12 @@ use crate::{
         eth::{resolve_block_spec_for_call_request, resolve_call_request},
         validation::validate_call_request,
     },
+    time::TimeSinceEpoch,
     ProviderError,
 };
 
-pub fn handle_debug_trace_transaction<LoggerErrorT: Debug>(
-    data: &mut ProviderData<LoggerErrorT>,
+pub fn handle_debug_trace_transaction<LoggerErrorT: Debug, TimerT: Clone + TimeSinceEpoch>(
+    data: &mut ProviderData<LoggerErrorT, TimerT>,
     transaction_hash: B256,
     config: Option<DebugTraceConfig>,
 ) -> Result<DebugTraceResult, ProviderError<LoggerErrorT>> {
@@ -33,8 +34,8 @@ pub fn handle_debug_trace_transaction<LoggerErrorT: Debug>(
     })
 }
 
-pub fn handle_debug_trace_call<LoggerErrorT: Debug>(
-    data: &mut ProviderData<LoggerErrorT>,
+pub fn handle_debug_trace_call<LoggerErrorT: Debug, TimerT: Clone + TimeSinceEpoch>(
+    data: &mut ProviderData<LoggerErrorT, TimerT>,
     call_request: CallRequest,
     block_spec: Option<BlockSpec>,
     config: Option<DebugTraceConfig>,

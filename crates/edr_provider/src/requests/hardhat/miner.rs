@@ -2,16 +2,16 @@ use core::fmt::Debug;
 
 use edr_evm::trace::Trace;
 
-use crate::{data::ProviderData, ProviderError};
+use crate::{data::ProviderData, time::TimeSinceEpoch, ProviderError};
 
-pub fn handle_interval_mine_request<LoggerErrorT: Debug>(
-    data: &mut ProviderData<LoggerErrorT>,
+pub fn handle_interval_mine_request<LoggerErrorT: Debug, TimerT: Clone + TimeSinceEpoch>(
+    data: &mut ProviderData<LoggerErrorT, TimerT>,
 ) -> Result<bool, ProviderError<LoggerErrorT>> {
     data.interval_mine()
 }
 
-pub fn handle_mine<LoggerErrorT: Debug>(
-    data: &mut ProviderData<LoggerErrorT>,
+pub fn handle_mine<LoggerErrorT: Debug, TimerT: Clone + TimeSinceEpoch>(
+    data: &mut ProviderData<LoggerErrorT, TimerT>,
     number_of_blocks: Option<u64>,
     interval: Option<u64>,
 ) -> Result<(bool, Vec<Trace>), ProviderError<LoggerErrorT>> {

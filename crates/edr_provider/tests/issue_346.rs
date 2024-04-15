@@ -1,4 +1,6 @@
-use edr_provider::{test_utils::create_test_config, NoopLogger, Provider};
+#![cfg(feature = "test-utils")]
+
+use edr_provider::{test_utils::create_test_config, time::CurrentTime, NoopLogger, Provider};
 use serde_json::json;
 use tokio::runtime;
 
@@ -8,7 +10,13 @@ async fn issue_346() -> anyhow::Result<()> {
     let config = create_test_config();
     let logger = Box::new(NoopLogger);
     let subscriber = Box::new(|_event| {});
-    let provider = Provider::new(runtime::Handle::current(), logger, subscriber, config)?;
+    let provider = Provider::new(
+        runtime::Handle::current(),
+        logger,
+        subscriber,
+        config,
+        CurrentTime,
+    )?;
 
     // The address has been changed from the repro in the issue to an address that
     // we have a secret key for in the test config.

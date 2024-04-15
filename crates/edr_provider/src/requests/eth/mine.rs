@@ -3,10 +3,16 @@ use std::sync::Arc;
 
 use tokio::{runtime, sync::Mutex};
 
-use crate::{data::ProviderData, interval::IntervalMiner, requests, IntervalConfig, ProviderError};
+use crate::{
+    data::ProviderData, interval::IntervalMiner, requests, time::TimeSinceEpoch, IntervalConfig,
+    ProviderError,
+};
 
-pub fn handle_set_interval_mining<LoggerErrorT: Debug + Send + Sync + 'static>(
-    data: Arc<Mutex<ProviderData<LoggerErrorT>>>,
+pub fn handle_set_interval_mining<
+    LoggerErrorT: Debug + Send + Sync + 'static,
+    TimerT: Clone + TimeSinceEpoch,
+>(
+    data: Arc<Mutex<ProviderData<LoggerErrorT, TimerT>>>,
     interval_miner: &mut Option<IntervalMiner<LoggerErrorT>>,
     runtime: runtime::Handle,
     config: requests::IntervalConfig,

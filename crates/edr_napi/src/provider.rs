@@ -3,7 +3,7 @@ mod config;
 use std::sync::Arc;
 
 use edr_eth::remote::jsonrpc;
-use edr_provider::InvalidRequestReason;
+use edr_provider::{time::CurrentTime, InvalidRequestReason};
 use napi::{tokio::runtime, Env, JsFunction, JsObject, Status};
 use napi_derive::napi;
 
@@ -52,17 +52,23 @@ impl Provider {
                     edr_provider::Logger::is_enabled(&*logger),
                 ))?;
 
-            let result = edr_provider::Provider::new(runtime, logger, subscriber_callback, config)
-                .map_or_else(
-                    |error| Err(napi::Error::new(Status::GenericFailure, error.to_string())),
-                    |provider| {
-                        Ok(Provider {
-                            provider: Arc::new(provider),
-                            #[cfg(feature = "scenarios")]
-                            scenario_file,
-                        })
-                    },
-                );
+            let result = edr_provider::Provider::new(
+                runtime,
+                logger,
+                subscriber_callback,
+                config,
+                CurrentTime,
+            )
+            .map_or_else(
+                |error| Err(napi::Error::new(Status::GenericFailure, error.to_string())),
+                |provider| {
+                    Ok(Provider {
+                        provider: Arc::new(provider),
+                        #[cfg(feature = "scenarios")]
+                        scenario_file,
+                    })
+                },
+            );
 
             deferred.resolve(|_env| result);
             Ok::<_, napi::Error>(())

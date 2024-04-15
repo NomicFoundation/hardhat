@@ -11,12 +11,12 @@ use edr_eth::{
 use edr_evm::{state::StateOverrides, trace::Trace, ExecutableTransaction};
 
 use crate::{
-    data::ProviderData, requests::validation::validate_call_request, ProviderError,
-    TransactionFailure,
+    data::ProviderData, requests::validation::validate_call_request, time::TimeSinceEpoch,
+    ProviderError, TransactionFailure,
 };
 
-pub fn handle_call_request<LoggerErrorT: Debug>(
-    data: &mut ProviderData<LoggerErrorT>,
+pub fn handle_call_request<LoggerErrorT: Debug, TimerT: Clone + TimeSinceEpoch>(
+    data: &mut ProviderData<LoggerErrorT, TimerT>,
     request: CallRequest,
     block_spec: Option<BlockSpec>,
     state_overrides: Option<StateOverrideOptions>,
@@ -56,8 +56,8 @@ pub(crate) fn resolve_block_spec_for_call_request(block_spec: Option<BlockSpec>)
     block_spec.unwrap_or_else(BlockSpec::latest)
 }
 
-pub(crate) fn resolve_call_request<LoggerErrorT: Debug>(
-    data: &mut ProviderData<LoggerErrorT>,
+pub(crate) fn resolve_call_request<LoggerErrorT: Debug, TimerT: Clone + TimeSinceEpoch>(
+    data: &mut ProviderData<LoggerErrorT, TimerT>,
     request: CallRequest,
     block_spec: &BlockSpec,
     state_overrides: &StateOverrides,
@@ -80,16 +80,16 @@ pub(crate) fn resolve_call_request<LoggerErrorT: Debug>(
     )
 }
 
-pub(crate) fn resolve_call_request_inner<LoggerErrorT: Debug>(
-    data: &mut ProviderData<LoggerErrorT>,
+pub(crate) fn resolve_call_request_inner<LoggerErrorT: Debug, TimerT: Clone + TimeSinceEpoch>(
+    data: &mut ProviderData<LoggerErrorT, TimerT>,
     request: CallRequest,
     block_spec: &BlockSpec,
     state_overrides: &StateOverrides,
     default_gas_price_fn: impl FnOnce(
-        &ProviderData<LoggerErrorT>,
+        &ProviderData<LoggerErrorT, TimerT>,
     ) -> Result<U256, ProviderError<LoggerErrorT>>,
     max_fees_fn: impl FnOnce(
-        &ProviderData<LoggerErrorT>,
+        &ProviderData<LoggerErrorT, TimerT>,
         // max_fee_per_gas
         Option<U256>,
         // max_priority_fee_per_gas

@@ -1,3 +1,5 @@
+#![cfg(feature = "test-utils")]
+
 use std::str::FromStr;
 
 use edr_eth::{
@@ -7,6 +9,7 @@ use edr_eth::{
 use edr_evm::KECCAK_EMPTY;
 use edr_provider::{
     test_utils::{create_test_config_with_fork, one_ether},
+    time::CurrentTime,
     MethodInvocation, MiningConfig, NoopLogger, Provider, ProviderRequest,
 };
 use tokio::runtime;
@@ -35,7 +38,13 @@ async fn issue_326() -> anyhow::Result<()> {
         },
     );
 
-    let provider = Provider::new(runtime::Handle::current(), logger, subscriber, config)?;
+    let provider = Provider::new(
+        runtime::Handle::current(),
+        logger,
+        subscriber,
+        config,
+        CurrentTime,
+    )?;
 
     provider.handle_request(ProviderRequest::Single(
         MethodInvocation::ImpersonateAccount(impersonated_account.into()),

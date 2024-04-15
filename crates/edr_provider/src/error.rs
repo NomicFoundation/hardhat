@@ -1,5 +1,5 @@
 use core::fmt::Debug;
-use std::{num::TryFromIntError, time::SystemTimeError};
+use std::num::TryFromIntError;
 
 use alloy_sol_types::{ContractError, SolInterface};
 use edr_eth::{
@@ -151,9 +151,6 @@ pub enum ProviderError<LoggerErrorT> {
     /// State error
     #[error(transparent)]
     State(#[from] StateError),
-    /// System time error
-    #[error(transparent)]
-    SystemTime(#[from] SystemTimeError),
     /// Timestamp lower than previous timestamp
     #[error("Timestamp {proposed} is lower than the previous block's timestamp {previous}")]
     TimestampLowerThanPrevious { proposed: u64, previous: u64 },
@@ -242,7 +239,6 @@ impl<LoggerErrorT: Debug> From<ProviderError<LoggerErrorT>> for jsonrpc::Error {
             ProviderError::SetNextPrevRandaoUnsupported { .. } => INVALID_INPUT,
             ProviderError::Signature(_) => INVALID_INPUT,
             ProviderError::State(_) => INVALID_INPUT,
-            ProviderError::SystemTime(_) => INVALID_INPUT,
             ProviderError::TimestampLowerThanPrevious { .. } => INVALID_INPUT,
             ProviderError::TimestampEqualsPrevious { .. } => INVALID_INPUT,
             ProviderError::TransactionFailed(_) => INVALID_INPUT,

@@ -1,9 +1,11 @@
+#![cfg(feature = "test-utils")]
+
 use std::str::FromStr;
 
 use edr_eth::{remote::eth::CallRequest, Address, Bytes, SpecId, U256};
 use edr_provider::{
-    hardhat_rpc_types::ForkConfig, test_utils::create_test_config_with_fork, MethodInvocation,
-    NoopLogger, Provider, ProviderRequest,
+    hardhat_rpc_types::ForkConfig, test_utils::create_test_config_with_fork, time::CurrentTime,
+    MethodInvocation, NoopLogger, Provider, ProviderRequest,
 };
 use edr_test_utils::env::get_alchemy_url;
 use tokio::runtime;
@@ -29,7 +31,13 @@ async fn issue_324() -> anyhow::Result<()> {
     }));
     config.hardfork = SpecId::CANCUN;
 
-    let provider = Provider::new(runtime::Handle::current(), logger, subscriber, config)?;
+    let provider = Provider::new(
+        runtime::Handle::current(),
+        logger,
+        subscriber,
+        config,
+        CurrentTime,
+    )?;
 
     let x = provider.handle_request(ProviderRequest::Single(MethodInvocation::Call(
         CallRequest {

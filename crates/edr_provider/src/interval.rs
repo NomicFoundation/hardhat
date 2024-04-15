@@ -8,7 +8,7 @@ use tokio::{
     time::Instant,
 };
 
-use crate::{data::ProviderData, IntervalConfig, ProviderError};
+use crate::{data::ProviderData, time::TimeSinceEpoch, IntervalConfig, ProviderError};
 
 /// Type for interval mining on a separate thread.
 pub struct IntervalMiner<LoggerErrorT: Debug> {
@@ -24,10 +24,10 @@ struct Inner<LoggerErrorT: Debug> {
 }
 
 impl<LoggerErrorT: Debug + Send + Sync + 'static> IntervalMiner<LoggerErrorT> {
-    pub fn new(
+    pub fn new<TimerT: Clone + TimeSinceEpoch>(
         runtime: runtime::Handle,
         config: IntervalConfig,
-        data: Arc<Mutex<ProviderData<LoggerErrorT>>>,
+        data: Arc<Mutex<ProviderData<LoggerErrorT, TimerT>>>,
     ) -> Self {
         let (cancellation_sender, cancellation_receiver) = oneshot::channel();
         let background_task = runtime
@@ -44,9 +44,12 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> IntervalMiner<LoggerErrorT> {
 }
 
 #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-async fn interval_mining_loop<LoggerErrorT: Debug + Send + Sync + 'static>(
+async fn interval_mining_loop<
+    LoggerErrorT: Debug + Send + Sync + 'static,
+    TimerT: Clone + TimeSinceEpoch,
+>(
     config: IntervalConfig,
-    data: Arc<Mutex<ProviderData<LoggerErrorT>>>,
+    data: Arc<Mutex<ProviderData<LoggerErrorT, TimerT>>>,
     mut cancellation_receiver: oneshot::Receiver<()>,
 ) -> Result<(), ProviderError<LoggerErrorT>> {
     let mut now = Instant::now();

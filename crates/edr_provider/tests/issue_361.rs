@@ -1,3 +1,5 @@
+#![cfg(feature = "test-utils")]
+
 use edr_eth::{
     remote::{filter::LogFilterOptions, BlockSpec},
     transaction::EthTransactionRequest,
@@ -6,6 +8,7 @@ use edr_eth::{
 use edr_evm::KECCAK_EMPTY;
 use edr_provider::{
     test_utils::{create_test_config_with_fork, one_ether},
+    time::CurrentTime,
     MethodInvocation, NoopLogger, Provider, ProviderRequest,
 };
 use tokio::runtime;
@@ -29,7 +32,13 @@ async fn issue_361() -> anyhow::Result<()> {
         },
     );
 
-    let provider = Provider::new(runtime::Handle::current(), logger, subscriber, config)?;
+    let provider = Provider::new(
+        runtime::Handle::current(),
+        logger,
+        subscriber,
+        config,
+        CurrentTime,
+    )?;
 
     provider.handle_request(ProviderRequest::Single(
         MethodInvocation::ImpersonateAccount(impersonated_account.into()),

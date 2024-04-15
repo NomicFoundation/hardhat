@@ -14,11 +14,12 @@ use super::resolve_call_request_inner;
 use crate::{
     data::ProviderData,
     requests::validation::{validate_call_request, validate_post_merge_block_tags},
+    time::TimeSinceEpoch,
     ProviderError,
 };
 
-pub fn handle_estimate_gas<LoggerErrorT: Debug>(
-    data: &mut ProviderData<LoggerErrorT>,
+pub fn handle_estimate_gas<LoggerErrorT: Debug, TimerT: Clone + TimeSinceEpoch>(
+    data: &mut ProviderData<LoggerErrorT, TimerT>,
     call_request: CallRequest,
     block_spec: Option<BlockSpec>,
 ) -> Result<(U64, Vec<Trace>), ProviderError<LoggerErrorT>> {
@@ -47,8 +48,8 @@ pub fn handle_estimate_gas<LoggerErrorT: Debug>(
     }
 }
 
-pub fn handle_fee_history<LoggerErrorT: Debug>(
-    data: &mut ProviderData<LoggerErrorT>,
+pub fn handle_fee_history<LoggerErrorT: Debug, TimerT: Clone + TimeSinceEpoch>(
+    data: &mut ProviderData<LoggerErrorT, TimerT>,
     block_count: U256,
     newest_block: BlockSpec,
     reward_percentiles: Option<Vec<f64>>,
@@ -100,8 +101,8 @@ The reward percentiles should be in non-decreasing order, but the percentile num
     data.fee_history(block_count, &newest_block, reward_percentiles)
 }
 
-fn resolve_estimate_gas_request<LoggerErrorT: Debug>(
-    data: &mut ProviderData<LoggerErrorT>,
+fn resolve_estimate_gas_request<LoggerErrorT: Debug, TimerT: Clone + TimeSinceEpoch>(
+    data: &mut ProviderData<LoggerErrorT, TimerT>,
     request: CallRequest,
     block_spec: &BlockSpec,
     state_overrides: &StateOverrides,

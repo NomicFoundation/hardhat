@@ -1106,6 +1106,7 @@ version = "0.2.0-dev"
 dependencies = [
  "alloy-sol-types",
  "anyhow",
+ "auto_impl",
  "cargo_toml",
  "dyn-clone",
  "edr_defaults",
