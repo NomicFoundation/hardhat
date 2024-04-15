@@ -219,6 +219,14 @@ export const builtinChains: ChainConfig[] = [
     },
   },
   {
+    network: "baseSepolia",
+    chainId: 84532,
+    urls: {
+      apiURL: "https://api-sepolia.basescan.org/api",
+      browserURL: "https://sepolia.basescan.org/",
+    },
+  },
+  {
     network: "arbitrumSepolia",
     chainId: 421614,
     urls: {
