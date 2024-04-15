@@ -60,7 +60,7 @@ Because we're using the OpenZeppelin proxy contracts, we need to import them her
 
 ## Writing our Ignition modules
 
-Inside our `ignition` directory, we'll create a directory called `modules`, if one doesn't already exist. Inside this directory, we'll create a file called `ProxyModule.js` (or `ProxyModule.ts` if you're using TypeScript). Inside this file, we'll break up our Ignition module into three parts.
+Inside our `ignition` directory, we'll create a directory called `modules`, if one doesn't already exist. Inside this directory, we'll create a file called `ProxyModule.js` (or `ProxyModule.ts` if you're using TypeScript). Inside this file, we'll break up our first Ignition module into two parts.
 
 ### Part 1: Deploying our proxies
 
@@ -140,11 +140,53 @@ Then, we deploy our `TransparentUpgradeableProxy` contract. This contract will b
 
 When we deploy the proxy, it will automatically create a new `ProxyAdmin` contract within its constructor. We'll need to get the address of this contract so that we can interact with it later. To do this, we'll use the `m.readEventArgument(...)` method to read the `newAdmin` argument from the `AdminChanged` event that is emitted when the proxy is deployed.
 
-Finally, we'll use the `m.contractAt(...)` method to get the `ProxyAdmin` contract at the address we retrieved from the event and return it along with the proxy.
+Finally, we'll use the `m.contractAt(...)` method to tell Ignition to use the `ProxyAdmin` ABI for the contract at the address we just retrieved. This will allow us to interact with the `ProxyAdmin` contract when we upgrade our proxy.
 
-### Part 2: Upgrading our proxy
+### Part 2: Interacting with our proxy
 
-Now that we have our proxy deployed, we want to upgrade it. To do this, within the same file, we'll create a new module called `UpgradeModule`:
+Now that we have our proxy deployed, we're ready to interact with it. To do this, we'll create a new module called `DemoModule`:
+
+```js
+const demoModule = buildModule("DemoModule", (m) => {
+  const { proxy, proxyAdmin } = m.useModule(upgradeModule);
+
+  const demo = m.contractAt("Demo", proxy);
+
+  return { demo, proxy, proxyAdmin };
+});
+```
+
+First, we use the `m.useModule(...)` method to get the proxy contract from the previous module. This will ensure that the proxy is deployed before we try to upgrade it.
+
+Then, similar to what we did with our `ProxyAdmin` above, we use `m.contractAt("Demo", proxy)` to tell Ignition to use the `Demo` ABI for the contract at the address of the proxy. This will allow us to interact with the `Demo` contract through the proxy when we use it in tests or scripts.
+
+Finally, we return the `Demo` contract instance so that we can use it in other modules, or tests and scripts. We also return the `proxy` and `proxyAdmin` contracts so that we can use them to upgrade our proxy in the next module.
+
+As a last step, we'll export `demoModule` from our file so that we can deploy it and use it in our tests or scripts:
+
+::::tabsgroup{options="TypeScript,JavaScript"}
+
+:::tab{value="TypeScript"}
+
+```typescript
+export default demoModule;
+```
+
+:::
+
+:::tab{value="JavaScript"}
+
+```javascript
+module.exports = demoModule;
+```
+
+:::
+
+::::
+
+### Part 3: Upgrading our proxy
+
+Next it's time to upgrade our proxy to a new version. To do this, we'll create a new file within our `ignition/modules` directory called `UpgradeModule.js` (or `UpgradeModule.ts` if you're using TypeScript). Inside this file, we'll again break up our module into two parts. To start, we'll write our `UpgradeModule`:
 
 ```js
 const upgradeModule = buildModule("UpgradeModule", (m) => {
@@ -162,9 +204,9 @@ const upgradeModule = buildModule("UpgradeModule", (m) => {
 });
 ```
 
-This module begins the same way as the previous one, by getting the account that owns the `ProxyAdmin` contract. We'll use this in a moment to upgrade the proxy.
+This module begins the same way as `ProxyModule`, by getting the account that owns the `ProxyAdmin` contract. We'll use this in a moment to upgrade the proxy.
 
-Next, we use the `m.useModule(...)` method to get the `ProxyAdmin` and proxy contracts from the previous module. This will ensure that the proxy is deployed before we try to upgrade it.
+Next, we use the `m.useModule(...)` method to get the `ProxyAdmin` and proxy contracts from the previous module. 
 
 Then, we deploy our `DemoV2` contract. This will be the contract that we'll upgrade our proxy to.
 
@@ -172,12 +214,13 @@ Finally, we call the `upgradeAndCall` method on the `ProxyAdmin` contract. This 
 
 Lastly, we again return the `ProxyAdmin` and proxy contracts so that we can use them in our next module.
 
-### Part 3: Interacting with our proxy
+### Part 4: Interacting with our upgraded proxy
 
-Now that we have our proxy deployed and upgraded, we're ready to interact with it. To do this, we'll create a new module called `InteractableModule`:
+Finally, in the same file, we'll create our module called `DemoV2Module`:
 
 ```js
-const interactableModule = buildModule("InteractableModule", (m) => {
+
+const demoV2Module = buildModule("DemoV2Module", (m) => {
   const { proxy } = m.useModule(upgradeModule);
 
   const demo = m.contractAt("DemoV2", proxy);
@@ -186,20 +229,18 @@ const interactableModule = buildModule("InteractableModule", (m) => {
 });
 ```
 
-First, as before, we use the `m.useModule(...)` method to get the proxy contract from the previous module.
+This module is similar to `DemoModule`, but instead of using the `Demo` contract, we use the `DemoV2` contract. Though the `Demo` contracts are contrived for this example and don't actually change the ABI between upgrades, this module demonstrates how you can interact with different versions of your contract ABI through the same proxy.
 
-Then, we use `m.contractAt("DemoV2", proxy)` to get the `DemoV2` contract at the address of the proxy. This will allow us to interact with the proxy as if it were the `DemoV2` contract itself.
+As before, we return the `DemoV2` contract instance so that we can use it in other modules, or tests and scripts. We could also return the `proxy` and `proxyAdmin` contracts if we needed to interact with them further, but for the purposes of this example, we left them out.
 
-Finally, we return the `DemoV2` contract instance so that we can use it in other modules or tests.
-
-As a final step, we'll export `interactableModule` from our file so that we can deploy it and use it in our tests:
+As a last step, we'll export `demoV2Module` from our file so that we can deploy it and use it in our tests or scripts:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
 :::tab{value="TypeScript"}
 
 ```typescript
-export default interactableModule;
+export default demoV2Module;
 ```
 
 :::
@@ -207,7 +248,7 @@ export default interactableModule;
 :::tab{value="JavaScript"}
 
 ```javascript
-module.exports = interactableModule;
+module.exports = demoV2Module;
 ```
 
 :::
@@ -216,7 +257,7 @@ module.exports = interactableModule;
 
 ## Testing our Ignition modules
 
-Now that we've written our Ignition modules for deploying and interacting with our proxy, let's write a simple test to make sure everything works as expected.
+Now that we've written our Ignition modules for deploying and interacting with our proxy, let's write a couple of simple tests to make sure everything works as expected.
 
 Inside our `test` directory, we'll create a file called `ProxyDemo.js` (or `ProxyDemo.ts` if you're using TypeScript):
 
@@ -228,8 +269,19 @@ Inside our `test` directory, we'll create a file called `ProxyDemo.js` (or `Prox
 import { expect } from "chai";
 
 import ProxyModule from "../ignition/modules/ProxyModule";
+import UpgradeModule from "../ignition/modules/UpgradeModule";
 
 describe("Demo Proxy", function () {
+  describe("Proxy interaction", async function () {
+    it("Should be interactable via proxy", async function () {
+      const [owner, otherAccount] = await ethers.getSigners();
+
+      const { demo } = await ignition.deploy(ProxyModule);
+
+      expect(await demo.connect(otherAccount).version()).to.equal("1.0.0");
+    });
+  });
+  
   describe("Upgrading", function () {
     it("Should have upgraded the proxy to DemoV2", async function () {
       const [owner, otherAccount] = await ethers.getSigners();
@@ -250,13 +302,24 @@ describe("Demo Proxy", function () {
 const { expect } = require("chai");
 
 const ProxyModule = require("../ignition/modules/ProxyModule");
+const UpgradeModule = require("../ignition/modules/UpgradeModule");
 
 describe("Demo Proxy", function () {
+  describe("Proxy interaction", async function () {
+    it("Should be interactable via proxy", async function () {
+      const [owner, otherAccount] = await ethers.getSigners();
+
+      const { demo } = await ignition.deploy(ProxyModule);
+
+      expect(await demo.connect(otherAccount).version()).to.equal("1.0.0");
+    });
+  });
+
   describe("Upgrading", function () {
     it("Should have upgraded the proxy to DemoV2", async function () {
       const [owner, otherAccount] = await ethers.getSigners();
 
-      const { demo } = await ignition.deploy(ProxyModule);
+      const { demo } = await ignition.deploy(UpgradeModule);
 
       expect(await demo.connect(otherAccount).version()).to.equal("2.0.0");
     });
@@ -268,7 +331,7 @@ describe("Demo Proxy", function () {
 
 ::::
 
-Here we use Hardhat Ignition to deploy our imported module. Then, we use the `demo` contract instance that is returned to call the `version` method and make sure that it returns the correct version string.
+Here we use Hardhat Ignition to deploy our imported modules. First, we deploy our base `ProxyModule` that returns the first version of our `Demo` contract and test it to ensure the proxy worked and retrieves the appropriate version string. Then, we deploy our `UpgradeModule` that returns the second version of our `Demo` contract and test it to ensure the proxy now returns the updated version string.
 
 ## Further reading
 
