@@ -115,7 +115,13 @@ yyyy-mm-dd` release.
 16. Switch to main branch and pull the latest changes
 17. Git tag the version, `g tag -a v0.x.x -m "v0.x.x"` and push the tag `git push --follow-tags`
 18. Publish `@nomicfoundation/ignition-core`, `@nomicfoundation/ignition-ui`, `@nomicfoundation/hardhat-ignition` and `@nomicfoundation/hardhat-ignition-viem` : `npm publish -w @nomicfoundation/ignition-core -w @nomicfoundation/ignition-ui -w @nomicfoundation/hardhat-ignition -w @nomicfoundation/hardhat-ignition-ethers -w @nomicfoundation/hardhat-ignition-viem`
-19. Create a release on github off of the pushed tag
+19. Create a release on github off of the pushed tag, the release notes should match the changelogs followed by a hiring entry:
+
+```markdown
+---
+> 💡 **The Nomic Foundation is hiring! Check [our open positions](https://www.nomic.foundation/jobs).**
+---
+```
 
 ## Manual testing
 
