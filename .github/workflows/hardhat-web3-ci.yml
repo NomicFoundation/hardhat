@@ -49,8 +49,6 @@ jobs:
   test_on_macos:
     name: Test hardhat-web3 on MacOS with Node 18
     runs-on: macos-latest
-    # disable until actions/virtual-environments#4896 is fixed
-    if: ${{ false }}
     steps:
       - uses: actions/checkout@v2
       - uses: pnpm/action-setup@v2
