@@ -949,63 +949,12 @@ const officialPlugins: IPlugin[] = [
     tags: ["Vyper", "Compiler"],
   },
   {
-    name: "@nomiclabs/hardhat-solhint",
-    author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
-    description: "Easily run solhint to lint your Solidity code",
-    tags: ["Solhint", "Linter"],
-  },
-  {
-    name: "@nomiclabs/hardhat-solpp",
-    author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
-    description:
-      "Automatically run the solpp preprocessor before each compilation",
-    tags: ["Solpp", "Preprocessor"],
-  },
-  {
-    name: "@nomiclabs/hardhat-waffle",
-    author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
-    description:
-      "Adds a Waffle-compatible provider to the Hardhat Runtime Environment and automatically initializes the Waffle Chai matchers",
-    tags: ["Waffle", "Testing"],
-  },
-  {
-    name: "@nomiclabs/hardhat-web3",
-    author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
-    description: "Injects Web3 1.x into the Hardhat Runtime Environment",
-    tags: ["Web3.js", "Testing", "Tasks", "Scripts"],
-  },
-  {
     name: "@nomicfoundation/hardhat-web3-v4",
     author: "ChainSafe and Nomic Foundation",
     npmPackage: "@nomicfoundation/hardhat-web3-v4",
     authorUrl: "https://twitter.com/ChainSafeth",
     description: "Injects Web3 4.x into the Hardhat Runtime Environment",
     tags: ["Web3.js", "Testing", "Tasks", "Scripts"],
-  },
-  {
-    name: "@nomiclabs/hardhat-truffle5",
-    author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
-    description: "Integration with TruffleContract from Truffle 5",
-    tags: ["Truffle", "Testing"],
-  },
-  {
-    name: "@nomiclabs/hardhat-web3-legacy",
-    author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
-    description: "Injects Web3 0.20.x into the Hardhat Runtime Environment",
-    tags: ["Web3.js", "Legacy", "Testing", "Tasks", "Scripts"],
-  },
-  {
-    name: "@nomiclabs/hardhat-truffle4",
-    author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
-    description: "Integration with TruffleContract from Truffle 4",
-    tags: ["Truffle", "Testing"],
   },
   // Don't add community plugins here. They should be placed in the other array.
 ];
