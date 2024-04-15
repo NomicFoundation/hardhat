@@ -89,6 +89,8 @@ pub struct ForkedBlockchain {
     /// The chan id of the forked blockchain is either the local chain id
     /// override or the chain id of the remote blockchain.
     chain_id: u64,
+    /// The chain id of the remote blockchain. It might deviate from chain_id.
+    remote_chain_id: u64,
     network_id: u64,
     spec_id: SpecId,
     hardfork_activations: Option<HardforkActivations>,
@@ -218,11 +220,17 @@ impl ForkedBlockchain {
             remote: RemoteBlockchain::new(rpc_client, runtime),
             state_root_generator,
             chain_id: chain_id_override.unwrap_or(remote_chain_id),
+            remote_chain_id,
             fork_block_number,
             network_id,
             spec_id,
             hardfork_activations,
         })
+    }
+
+    /// Returns the chain id of the remote blockchain.
+    pub fn remote_chain_id(&self) -> u64 {
+        self.remote_chain_id
     }
 
     fn runtime(&self) -> &runtime::Handle {

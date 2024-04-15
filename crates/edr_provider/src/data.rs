@@ -2323,7 +2323,7 @@ fn create_blockchain_and_state(
 
         Ok(BlockchainAndState {
             fork_metadata: Some(ForkMetadata {
-                chain_id: blockchain.chain_id(),
+                chain_id: blockchain.remote_chain_id(),
                 fork_block_number,
                 fork_block_hash: *blockchain
                     .block_by_number(fork_block_number)
@@ -2773,6 +2773,19 @@ mod tests {
 
         let chain_id = fixture.provider_data.chain_id();
         assert_eq!(chain_id, fixture.config.chain_id);
+
+        Ok(())
+    }
+
+    #[test]
+    fn fork_metadata_fork_mode() -> anyhow::Result<()> {
+        let fixture = ProviderTestFixture::new_forked(None)?;
+
+        let fork_metadata = fixture
+            .provider_data
+            .fork_metadata()
+            .expect("fork metadata should exist");
+        assert_eq!(fork_metadata.chain_id, 1);
 
         Ok(())
     }
