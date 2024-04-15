@@ -1,7 +1,7 @@
 use std::sync::OnceLock;
 
-use alloy_primitives::keccak256;
 use alloy_rlp::{RlpDecodable, RlpEncodable};
+use revm_primitives::keccak256;
 
 use super::LegacySignedTransaction;
 use crate::{

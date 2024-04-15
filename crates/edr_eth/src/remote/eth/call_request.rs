@@ -1,7 +1,4 @@
-use alloy_primitives::Bytes;
-use revm_primitives::{Address, B256};
-
-use crate::{access_list::AccessListItem, U256};
+use crate::{access_list::AccessListItem, Address, Bytes, B256, U256};
 
 /// For specifying input to methods requiring a transaction object, like
 /// `eth_call` and `eth_estimateGas`

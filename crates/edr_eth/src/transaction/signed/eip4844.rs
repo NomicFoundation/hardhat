@@ -1,8 +1,7 @@
 use std::sync::OnceLock;
 
-use alloy_primitives::keccak256;
 use alloy_rlp::{RlpDecodable, RlpEncodable};
-use revm_primitives::GAS_PER_BLOB;
+use revm_primitives::{keccak256, GAS_PER_BLOB};
 
 use crate::{
     access_list::AccessList,

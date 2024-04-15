@@ -5,11 +5,11 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.75"
-alloy-primitives = { version = "0.6", default-features = false, features = ["rand", "rlp"] }
 alloy-rlp = { version = "0.3", default-features = false, features = ["derive"] }
 futures = { version = "0.3.28", default-features = false }
 hash-db = { version = "0.15.2", default-features = false }
 hash256-std-hasher = { version = "0.15.2", default-features = false }
+hashbrown = { version = "0.14.3", default-features = false, features = ["ahash", "allocator-api2", "inline-more"] }
 hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
 hyper = { version = "0.14.27", default-features = false }
 itertools = { version = "0.10.5", default-features = false, features = ["use_alloc"] }
@@ -20,7 +20,7 @@ reqwest = { version = "0.11", features = ["blocking", "json"] }
 reqwest-middleware = { version = "0.2.4", default-features = false }
 reqwest-retry = { version = "0.3.0", default-features = false }
 reqwest-tracing = { version = "0.4.7", default-features = false, optional = true }
-revm-primitives = { version = "3.0", default-features = false }
+revm-primitives = { git = "https://github.com/Wodann/revm", rev = "451f122", version = "3.1", default-features = false, features = ["hashbrown"] }
 serde = { version = "1.0.147", default-features = false, features = ["derive"], optional = true }
 serde_json = { version = "1.0.89", optional = true }
 sha3 = { version = "0.10.8", default-features = false }
@@ -47,7 +47,8 @@ walkdir = { version = "2.3.3", default-features = false }
 
 [features]
 default = ["std"]
-serde = ["dep:serde", "alloy-primitives/serde", "revm-primitives/serde", "serde_json"]
-std = ["alloy-primitives/std", "futures/std", "hash256-std-hasher/std", "hash-db/std", "hex/std", "itertools/use_std", "k256/std", "k256/precomputed-tables", "serde?/std", "sha3/std", "triehash/std", "uuid/std"]
+rand = ["revm-primitives/rand"]
+serde = ["dep:serde", "revm-primitives/serde", "serde_json"]
+std = ["futures/std", "hash256-std-hasher/std", "hash-db/std", "hex/std", "itertools/use_std", "k256/std", "k256/precomputed-tables", "revm-primitives/std", "serde?/std", "sha3/std", "triehash/std", "uuid/std"]
 tracing = ["dep:tracing", "reqwest-tracing"]
 test-remote = ["serde"]

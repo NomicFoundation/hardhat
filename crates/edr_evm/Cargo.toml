@@ -20,8 +20,8 @@ log = { version = "0.4.17", default-features = false }
 once_cell = { version = "1.18.0", default-features = false, features = ["alloc", "race", "std"] }
 parking_lot = { version = "0.12.1", default-features = false }
 edr_defaults = { version = "0.2.0-dev", path = "../edr_defaults" }
-edr_eth = { version = "0.2.0-dev", path = "../edr_eth", features = ["serde"] }
-revm = { version = "7.1", default-features = false, features = ["dev", "serde"] }
+edr_eth = { version = "0.2.0-dev", path = "../edr_eth", features = ["rand", "serde"] }
+revm = { git = "https://github.com/Wodann/revm", rev = "451f122", version = "8.0", default-features = false, features = ["c-kzg", "dev", "serde"] }
 serde = { version = "1.0.158", default-features = false, features = ["std"] }
 serde_json = { version = "1.0.94", default-features = false, features = ["std"] }
 thiserror = { version = "1.0.38", default-features = false }

@@ -1,5 +1,6 @@
-use alloy_primitives::U256;
 use revm_primitives::SpecId;
+
+use crate::U256;
 
 /// Retrieves the miner reward for the provided hardfork.
 pub fn miner_reward(spec_id: SpecId) -> Option<U256> {

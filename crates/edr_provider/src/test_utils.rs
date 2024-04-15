@@ -186,6 +186,95 @@ pub async fn run_full_block(url: String, block_number: u64, chain_id: u64) -> an
     let mined_block = builder.finalize(&mut state, rewards)?;
 
     let mined_header = mined_block.block.header();
+    for (expected, actual) in replay_block
+        .transaction_receipts()?
+        .into_iter()
+        .zip(mined_block.block.transaction_receipts().iter())
+    {
+        debug_assert_eq!(
+            expected.block_number,
+            actual.block_number,
+            "{:?}",
+            replay_block.transactions()[expected.transaction_index as usize]
+        );
+        debug_assert_eq!(
+            expected.transaction_hash,
+            actual.transaction_hash,
+            "{:?}",
+            replay_block.transactions()[expected.transaction_index as usize]
+        );
+        debug_assert_eq!(
+            expected.transaction_index,
+            actual.transaction_index,
+            "{:?}",
+            replay_block.transactions()[expected.transaction_index as usize]
+        );
+        debug_assert_eq!(
+            expected.from,
+            actual.from,
+            "{:?}",
+            replay_block.transactions()[expected.transaction_index as usize]
+        );
+        debug_assert_eq!(
+            expected.to,
+            actual.to,
+            "{:?}",
+            replay_block.transactions()[expected.transaction_index as usize]
+        );
+        debug_assert_eq!(
+            expected.contract_address,
+            actual.contract_address,
+            "{:?}",
+            replay_block.transactions()[expected.transaction_index as usize]
+        );
+        debug_assert_eq!(
+            expected.gas_used,
+            actual.gas_used,
+            "{:?}",
+            replay_block.transactions()[expected.transaction_index as usize]
+        );
+        debug_assert_eq!(
+            expected.effective_gas_price,
+            actual.effective_gas_price,
+            "{:?}",
+            replay_block.transactions()[expected.transaction_index as usize]
+        );
+        debug_assert_eq!(
+            expected.cumulative_gas_used,
+            actual.cumulative_gas_used,
+            "{:?}",
+            replay_block.transactions()[expected.transaction_index as usize]
+        );
+        if expected.logs_bloom != actual.logs_bloom {
+            for (expected, actual) in expected.logs.iter().zip(actual.logs.iter()) {
+                debug_assert_eq!(
+                    expected.inner.address,
+                    actual.inner.address,
+                    "{:?}",
+                    replay_block.transactions()[expected.transaction_index as usize]
+                );
+                debug_assert_eq!(
+                    expected.inner.topics(),
+                    actual.inner.topics(),
+                    "{:?}",
+                    replay_block.transactions()[expected.transaction_index as usize]
+                );
+                debug_assert_eq!(
+                    expected.inner.data.data,
+                    actual.inner.data.data,
+                    "{:?}",
+                    replay_block.transactions()[expected.transaction_index as usize]
+                );
+            }
+        }
+        debug_assert_eq!(
+            expected.data,
+            actual.data,
+            "{:?}",
+            replay_block.transactions()[expected.transaction_index as usize]
+        );
+    }
+
     assert_eq!(mined_header, replay_header);
 
     Ok(())

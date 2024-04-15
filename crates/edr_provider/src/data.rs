@@ -3745,5 +3745,12 @@ mod tests {
             chain_id: 1,
             url: get_alchemy_url(),
         },
+        // This block contains a transaction that uses the KZG point evaluation
+        // precompile, introduced in Cancun
+        mainnet_cancun2 => {
+            block_number: 19_562_047,
+            chain_id: 1,
+            url: get_alchemy_url(),
+        },
     }
 }

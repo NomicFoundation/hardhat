@@ -12,11 +12,7 @@ use edr_eth::{
 };
 use revm::{
     interpreter::gas::validate_initial_tx_gas,
-    primitives::{
-        BerlinSpec, ByzantiumSpec, CancunSpec, CreateScheme, FrontierSpec, HomesteadSpec,
-        IstanbulSpec, LatestSpec, LondonSpec, MergeSpec, PetersburgSpec, ShanghaiSpec, SpecId,
-        SpuriousDragonSpec, TangerineSpec, TransactTo, TxEnv,
-    },
+    primitives::{CreateScheme, SpecId, TransactTo, TxEnv},
 };
 
 use super::TransactionCreationError;
@@ -408,78 +404,19 @@ impl TryFrom<Transaction> for ExecutableTransaction {
 }
 
 fn initial_cost(spec_id: SpecId, transaction: &SignedTransaction) -> u64 {
-    let access_list: Option<Vec<(Address, Vec<U256>)>> =
-        transaction.access_list().cloned().map(Into::into);
+    let access_list = transaction
+        .access_list()
+        .cloned()
+        .map(Vec::<(Address, Vec<U256>)>::from);
 
-    match spec_id {
-        SpecId::FRONTIER | SpecId::FRONTIER_THAWING => validate_initial_tx_gas::<FrontierSpec>(
-            transaction.data(),
-            transaction.kind() == TransactionKind::Create,
-            access_list.as_ref().map_or(&[], |access_list| access_list),
-        ),
-        SpecId::HOMESTEAD | SpecId::DAO_FORK => validate_initial_tx_gas::<HomesteadSpec>(
-            transaction.data(),
-            transaction.kind() == TransactionKind::Create,
-            access_list.as_ref().map_or(&[], |access_list| access_list),
-        ),
-        SpecId::TANGERINE => validate_initial_tx_gas::<TangerineSpec>(
-            transaction.data(),
-            transaction.kind() == TransactionKind::Create,
-            access_list.as_ref().map_or(&[], |access_list| access_list),
-        ),
-        SpecId::SPURIOUS_DRAGON => validate_initial_tx_gas::<SpuriousDragonSpec>(
-            transaction.data(),
-            transaction.kind() == TransactionKind::Create,
-            access_list.as_ref().map_or(&[], |access_list| access_list),
-        ),
-        SpecId::BYZANTIUM => validate_initial_tx_gas::<ByzantiumSpec>(
-            transaction.data(),
-            transaction.kind() == TransactionKind::Create,
-            access_list.as_ref().map_or(&[], |access_list| access_list),
-        ),
-        SpecId::PETERSBURG | SpecId::CONSTANTINOPLE => validate_initial_tx_gas::<PetersburgSpec>(
-            transaction.data(),
-            transaction.kind() == TransactionKind::Create,
-            access_list.as_ref().map_or(&[], |access_list| access_list),
-        ),
-        SpecId::ISTANBUL | SpecId::MUIR_GLACIER => validate_initial_tx_gas::<IstanbulSpec>(
-            transaction.data(),
-            transaction.kind() == TransactionKind::Create,
-            access_list.as_ref().map_or(&[], |access_list| access_list),
-        ),
-        SpecId::BERLIN => validate_initial_tx_gas::<BerlinSpec>(
-            transaction.data(),
-            transaction.kind() == TransactionKind::Create,
-            access_list.as_ref().map_or(&[], |access_list| access_list),
-        ),
-        SpecId::LONDON | SpecId::ARROW_GLACIER | SpecId::GRAY_GLACIER => {
-            validate_initial_tx_gas::<LondonSpec>(
-                transaction.data(),
-                transaction.kind() == TransactionKind::Create,
-                access_list.as_ref().map_or(&[], |access_list| access_list),
-            )
-        }
-        SpecId::MERGE => validate_initial_tx_gas::<MergeSpec>(
-            transaction.data(),
-            transaction.kind() == TransactionKind::Create,
-            access_list.as_ref().map_or(&[], |access_list| access_list),
-        ),
-        SpecId::SHANGHAI => validate_initial_tx_gas::<ShanghaiSpec>(
-            transaction.data(),
-            transaction.kind() == TransactionKind::Create,
-            access_list.as_ref().map_or(&[], |access_list| access_list),
-        ),
-        SpecId::CANCUN => validate_initial_tx_gas::<CancunSpec>(
-            transaction.data(),
-            transaction.kind() == TransactionKind::Create,
-            access_list.as_ref().map_or(&[], |access_list| access_list),
-        ),
-        SpecId::LATEST => validate_initial_tx_gas::<LatestSpec>(
-            transaction.data(),
-            transaction.kind() == TransactionKind::Create,
-            access_list.as_ref().map_or(&[], |access_list| access_list),
-        ),
-    }
+    validate_initial_tx_gas(
+        spec_id,
+        transaction.data().as_ref(),
+        transaction.kind() == TransactionKind::Create,
+        access_list
+            .as_ref()
+            .map_or(&[], |access_list| access_list.as_slice()),
+    )
 }
 
 #[cfg(test)]
