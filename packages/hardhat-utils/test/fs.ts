@@ -17,6 +17,7 @@ import {
   readJsonFile,
   readUtf8File,
   readdir,
+  remove,
   writeJsonFile,
   writeUtf8File,
 } from "../src/fs.js";
@@ -653,7 +654,7 @@ describe("File system utils", () => {
       assert.ok(await isDirectory(dirPath));
     });
 
-    it("Should throw FileSystemAccessError if a different error is thrown", async function () {
+    it("Should throw FileSystemAccessError for any error", async function () {
       const dirPath = path.join(getTmpDir(), "protected-dir");
 
       await mkdir(dirPath);
@@ -780,6 +781,66 @@ describe("File system utils", () => {
         });
       } finally {
         await fsPromises.chmod(srcPath, 0o777);
+      }
+    });
+  });
+
+  describe("remove", function () {
+    it("Should remove a file", async function () {
+      const filePath = path.join(getTmpDir(), "file.txt");
+      await writeUtf8File(filePath, "");
+
+      await remove(filePath);
+
+      assert.ok(!(await exists(filePath)));
+    });
+
+    it("Should remove an empty directory", async function () {
+      const dirPath = path.join(getTmpDir(), "dir");
+      await mkdir(dirPath);
+
+      await remove(dirPath);
+
+      assert.ok(!(await exists(dirPath)));
+    });
+
+    it("Should remove a directory and its content", async function () {
+      const dirPath = path.join(getTmpDir(), "dir");
+      await mkdir(dirPath);
+
+      const files = ["file1.txt", "file2.txt", "file3.json"];
+      for (const file of files) {
+        await writeUtf8File(path.join(dirPath, file), "");
+      }
+
+      const subDirPath = path.join(dirPath, "subdir");
+      await mkdir(subDirPath);
+      await writeUtf8File(path.join(subDirPath, "file4.txt"), "");
+
+      await remove(dirPath);
+
+      assert.ok(!(await exists(dirPath)));
+    });
+
+    it("Should not throw if the path doesn't exist", async function () {
+      const filePath = path.join(getTmpDir(), "not-exists.txt");
+
+      await assert.doesNotReject(remove(filePath));
+    });
+
+    it("Should throw FileSystemAccessError for any error", async function () {
+      const filePath = path.join(getTmpDir(), "protected-file.txt");
+      await writeUtf8File(filePath, "");
+
+      try {
+        // the delete permission depends on the parent directory
+        await fsPromises.chmod(getTmpDir(), 0o000);
+
+        await assert.rejects(remove(filePath), {
+          name: "FileSystemAccessError",
+        });
+      } finally {
+        await fsPromises.chmod(getTmpDir(), 0o777);
       }
     });
   });

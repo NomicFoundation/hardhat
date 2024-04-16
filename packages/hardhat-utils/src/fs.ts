@@ -364,3 +364,23 @@ export async function copy(source: string, destination: string): Promise<void> {
     throw new FileSystemAccessError(e.message, e);
   }
 }
+
+/**
+ * Removes a file or directory recursively.
+ * Exceptions are ignored for non-existent paths.
+ *
+ * @param absolutePath The path to the file or directory to remove.
+ * @throws FileSystemAccessError for any error, except for non-existent path errors.
+ */
+export async function remove(absolutePath: string): Promise<void> {
+  try {
+    await fsPromises.rm(absolutePath, {
+      recursive: true,
+      force: true,
+      maxRetries: 3,
+    });
+  } catch (e) {
+    ensureError<NodeJS.ErrnoException>(e);
+    throw new FileSystemAccessError(e.message, e);
+  }
+}
