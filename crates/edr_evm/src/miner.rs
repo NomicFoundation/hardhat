@@ -105,11 +105,9 @@ where
         .last_block()
         .map_err(MineBlockError::Blockchain)?;
 
-    let parent_header = parent_block.header();
-
     let mut block_builder = BlockBuilder::new(
         cfg.clone(),
-        parent_header,
+        &parent_block,
         options,
         dao_hardfork_activation_block,
     )?;

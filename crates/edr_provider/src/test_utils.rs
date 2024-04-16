@@ -150,7 +150,7 @@ pub async fn run_full_block(url: String, block_number: u64, chain_id: u64) -> an
 
     let mut builder = BlockBuilder::new(
         cfg,
-        parent.header(),
+        &parent,
         BlockOptions {
             beneficiary: Some(replay_header.beneficiary),
             gas_limit: Some(replay_header.gas_limit),

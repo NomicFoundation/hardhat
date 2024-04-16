@@ -4,7 +4,7 @@ use std::{
 };
 
 use edr_eth::{
-    block::{BlobGas, BlockOptions, Header, PartialHeader},
+    block::{BlobGas, BlockOptions, PartialHeader},
     log::{add_log_to_bloom, Log},
     receipt::{TransactionReceipt, TypedReceipt, TypedReceiptData},
     transaction::SignedTransaction,
@@ -27,7 +27,7 @@ use crate::{
     blockchain::SyncBlockchain,
     debug::{DebugContext, EvmContext},
     state::{AccountModifierFn, StateDebug, StateDiff, SyncState},
-    ExecutableTransaction,
+    ExecutableTransaction, SyncBlock,
 };
 
 const DAO_EXTRA_DATA: &[u8] = b"dao-hard-fork";
@@ -139,9 +139,9 @@ pub struct BlockBuilder {
 impl BlockBuilder {
     /// Creates an intance of [`BlockBuilder`].
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn new(
+    pub fn new<BlockchainErrorT>(
         cfg: CfgEnvWithHandlerCfg,
-        parent: &Header,
+        parent: &dyn SyncBlock<Error = BlockchainErrorT>,
         mut options: BlockOptions,
         dao_hardfork_activation_block: Option<u64>,
     ) -> Result<Self, BlockBuilderCreationError> {
@@ -151,8 +151,9 @@ impl BlockBuilder {
             ));
         }
 
+        let parent_header = parent.header();
         let parent_gas_limit = if options.gas_limit.is_none() {
-            Some(parent.gas_limit)
+            Some(parent_header.gas_limit)
         } else {
             None
         };
@@ -165,7 +166,8 @@ impl BlockBuilder {
             }
         });
 
-        let header = PartialHeader::new(cfg.handler_cfg.spec_id, options, Some(parent));
+        options.parent_hash = Some(*parent.hash());
+        let header = PartialHeader::new(cfg.handler_cfg.spec_id, options, Some(parent_header));
 
         if let Some(dao_hardfork_activation_block) = dao_hardfork_activation_block {
             const DAO_FORCE_EXTRA_DATA_RANGE: u64 = 9;
@@ -523,12 +525,15 @@ mod tests {
         const DUMMY_DAO_HARDFORK_BLOCK_NUMBER: u64 = 3;
 
         // Create a random block header
-        let header = Header {
+        let partial_header = PartialHeader {
             number: DUMMY_DAO_HARDFORK_BLOCK_NUMBER - 1,
-            ..Header::default()
+            ..PartialHeader::default()
         };
 
-        let cfg = CfgEnvWithHandlerCfg::new_with_spec_id(CfgEnv::default(), SpecId::BYZANTIUM);
+        let spec_id = SpecId::BYZANTIUM;
+        let parent = LocalBlock::empty(spec_id, partial_header);
+
+        let cfg = CfgEnvWithHandlerCfg::new_with_spec_id(CfgEnv::default(), spec_id);
         let block_options = BlockOptions {
             number: Some(DUMMY_DAO_HARDFORK_BLOCK_NUMBER),
             extra_data: Some(Bytes::from(DAO_EXTRA_DATA)),
@@ -537,7 +542,7 @@ mod tests {
 
         let block_builder = BlockBuilder::new(
             cfg,
-            &header,
+            &parent,
             block_options,
             Some(DUMMY_DAO_HARDFORK_BLOCK_NUMBER),
         );
@@ -553,12 +558,15 @@ mod tests {
         const DUMMY_DAO_HARDFORK_BLOCK_NUMBER: u64 = 3;
 
         // Create a random block header
-        let header = Header {
+        let partial_header = PartialHeader {
             number: DUMMY_DAO_HARDFORK_BLOCK_NUMBER - 1,
-            ..Header::default()
+            ..PartialHeader::default()
         };
 
-        let cfg = CfgEnvWithHandlerCfg::new_with_spec_id(CfgEnv::default(), SpecId::BYZANTIUM);
+        let spec_id = SpecId::BYZANTIUM;
+        let parent = LocalBlock::empty(spec_id, partial_header);
+
+        let cfg = CfgEnvWithHandlerCfg::new_with_spec_id(CfgEnv::default(), spec_id);
 
         let block_options = BlockOptions {
             number: Some(DUMMY_DAO_HARDFORK_BLOCK_NUMBER),
@@ -567,7 +575,7 @@ mod tests {
 
         let block_builder = BlockBuilder::new(
             cfg,
-            &header,
+            &parent,
             block_options,
             Some(DUMMY_DAO_HARDFORK_BLOCK_NUMBER),
         );
