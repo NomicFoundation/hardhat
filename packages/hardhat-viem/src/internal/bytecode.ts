@@ -10,9 +10,9 @@ import {
   UnnecessaryLibraryLinkError,
 } from "./errors";
 
-type Libraries<Address = string> = {
+export interface Libraries<Address = string> {
   [libraryName: string]: Address;
-};
+}
 
 interface Link {
   sourceName: string;

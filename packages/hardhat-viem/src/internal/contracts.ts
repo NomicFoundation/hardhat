@@ -1,7 +1,6 @@
 import type {
   EthereumProvider,
   HardhatRuntimeEnvironment,
-  Libraries,
 } from "hardhat/types";
 import type { Abi, Address, Hex } from "viem";
 import type {
@@ -14,7 +13,7 @@ import type {
   WalletClient,
 } from "../types";
 
-import { resolveBytecodeWithLinkedLibraries } from "./bytecode";
+import { Libraries, resolveBytecodeWithLinkedLibraries } from "./bytecode";
 import { getPublicClient, getWalletClients } from "./clients";
 import {
   DefaultWalletClientNotFoundError,
@@ -23,7 +22,7 @@ import {
   InvalidConfirmationsError,
 } from "./errors";
 
-async function innerGetContractAbiAndBytecode(
+async function getContractAbiAndBytecode(
   artifacts: HardhatRuntimeEnvironment["artifacts"],
   contractName: string,
   libraries: Libraries<Address>
@@ -55,7 +54,7 @@ export async function deployContract(
   const [publicClient, walletClient, { abi, bytecode }] = await Promise.all([
     client?.public ?? getPublicClient(network.provider),
     client?.wallet ?? getDefaultWalletClient(network.provider, network.name),
-    innerGetContractAbiAndBytecode(artifacts, contractName, libraries),
+    getContractAbiAndBytecode(artifacts, contractName, libraries),
   ]);
 
   return innerDeployContract(
@@ -142,7 +141,7 @@ export async function sendDeploymentTransaction(
   const [publicClient, walletClient, { abi, bytecode }] = await Promise.all([
     client?.public ?? getPublicClient(network.provider),
     client?.wallet ?? getDefaultWalletClient(network.provider, network.name),
-    innerGetContractAbiAndBytecode(artifacts, contractName, libraries),
+    getContractAbiAndBytecode(artifacts, contractName, libraries),
   ]);
 
   return innerSendDeploymentTransaction(
