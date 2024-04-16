@@ -446,3 +446,14 @@ export async function chmod(
     throw new FileSystemAccessError(e.message, e);
   }
 }
+
+/**
+ * Creates a file with an empty content. If the file already exists, it will be overwritten.
+ *
+ * @param absolutePath The path to the file to create.
+ * @throws FileNotFoundError if part of the path doesn't exist.
+ * @throws FileSystemAccessError for any other error.
+ */
+export async function createFile(absolutePath: string): Promise<void> {
+  await writeUtf8File(absolutePath, "");
+}

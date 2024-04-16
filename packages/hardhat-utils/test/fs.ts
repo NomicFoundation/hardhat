@@ -9,6 +9,7 @@ import {
   exists,
   chmod,
   copy,
+  createFile,
   getAllFilesMatching,
   getChangeTime,
   getFileTrueCase,
@@ -37,7 +38,7 @@ describe("File system utils", () => {
       } */
 
       const actualPath = path.join(getTmpDir(), "mixedCasingFile");
-      await writeUtf8File(actualPath, "");
+      await createFile(actualPath);
 
       const linkPath = path.join(getTmpDir(), "link");
       await fsPromises.symlink(actualPath, linkPath);
@@ -47,7 +48,7 @@ describe("File system utils", () => {
 
     it("Should normalize the path", async function () {
       const actualPath = path.join(getTmpDir(), "file");
-      await writeUtf8File(actualPath, "");
+      await createFile(actualPath);
 
       const filePath = path.join(getTmpDir(), "a", "..", ".", "", "file");
 
@@ -81,40 +82,34 @@ describe("File system utils", () => {
       await mkdir(path.join(getTmpDir(), "dir-WithCasing"));
 
       // root files
-      await writeUtf8File(path.join(getTmpDir(), "file-1.txt"), "");
-      await writeUtf8File(path.join(getTmpDir(), "file-2.txt"), "");
-      await writeUtf8File(path.join(getTmpDir(), "file-3.json"), "");
+      await createFile(path.join(getTmpDir(), "file-1.txt"));
+      await createFile(path.join(getTmpDir(), "file-2.txt"));
+      await createFile(path.join(getTmpDir(), "file-3.json"));
 
       // dir-with-files files
-      await writeUtf8File(
+      await createFile(
         path.join(getTmpDir(), "dir-with-files", "inner-file-1.json"),
-        "",
       );
-      await writeUtf8File(
+      await createFile(
         path.join(getTmpDir(), "dir-with-files", "inner-file-2.txt"),
-        "",
       );
 
       // dir-with-files/dir-within-dir files
-      await writeUtf8File(
+      await createFile(
         path.join(getTmpDir(), "dir-with-files", "dir-within-dir", "file-deep"),
-        "",
       );
 
       // dir-with-extension.txt files
-      await writeUtf8File(
+      await createFile(
         path.join(getTmpDir(), "dir-with-extension.txt", "inner-file-3.txt"),
-        "",
       );
-      await writeUtf8File(
+      await createFile(
         path.join(getTmpDir(), "dir-with-extension.txt", "inner-file-4.json"),
-        "",
       );
 
       // dir-WithCasing files
-      await writeUtf8File(
+      await createFile(
         path.join(getTmpDir(), "dir-WithCasing", "file-WithCASING"),
-        "",
       );
     });
 
@@ -228,9 +223,9 @@ describe("File system utils", () => {
       const mixedCaseDirPath = path.join(getTmpDir(), "mixedCaseDir");
       const mixedCaseFile2Path = path.join(mixedCaseDirPath, "mixedCaseFile2");
 
-      await writeUtf8File(mixedCaseFilePath, "");
+      await createFile(mixedCaseFilePath);
       await mkdir(mixedCaseDirPath);
-      await writeUtf8File(mixedCaseFile2Path, "");
+      await createFile(mixedCaseFile2Path);
 
       // We test mixedCaseFilePath from tmpdir
       assert.equal(
@@ -304,7 +299,7 @@ describe("File system utils", () => {
       } */
 
       const actualPath = path.join(getTmpDir(), "mixedCasingFile");
-      await writeUtf8File(actualPath, "");
+      await createFile(actualPath);
 
       const linkPath = path.join(getTmpDir(), "lInK");
       await fsPromises.symlink(actualPath, linkPath);
@@ -323,7 +318,7 @@ describe("File system utils", () => {
 
     it("Should throw InvalidDirectoryError if the starting directory is not a directory", async function () {
       const filePath = path.join(getTmpDir(), "file");
-      await writeUtf8File(filePath, "");
+      await createFile(filePath);
 
       await assert.rejects(getFileTrueCase(filePath, "asd"), {
         name: "InvalidDirectoryError",
@@ -357,7 +352,7 @@ describe("File system utils", () => {
 
     it("Should return false if the path is not a directory", async function () {
       const filePath = path.join(getTmpDir(), "file");
-      await writeUtf8File(filePath, "");
+      await createFile(filePath);
 
       assert.ok(!(await isDirectory(filePath)));
     });
@@ -416,7 +411,7 @@ describe("File system utils", () => {
 
     it("Should throw FileSystemAccessError if a different error is thrown", async function () {
       const filePath = path.join(getTmpDir(), "protected-file.json");
-      await writeUtf8File(filePath, "");
+      await createFile(filePath);
 
       try {
         await chmod(filePath, 0o000);
@@ -469,7 +464,7 @@ describe("File system utils", () => {
 
     it("Should throw FileSystemAccessError if a different error is thrown", async function () {
       const filePath = path.join(getTmpDir(), "protected-file.json");
-      await writeUtf8File(filePath, "");
+      await createFile(filePath);
 
       try {
         await chmod(filePath, 0o000);
@@ -504,7 +499,7 @@ describe("File system utils", () => {
 
     it("Should throw FileSystemAccessError if a different error is thrown", async function () {
       const filePath = path.join(getTmpDir(), "protected-file.txt");
-      await writeUtf8File(filePath, "");
+      await createFile(filePath);
 
       try {
         await chmod(filePath, 0o000);
@@ -541,7 +536,7 @@ describe("File system utils", () => {
     it("Should throw FileNotFoundError if part of the path doesn't exist", async function () {
       const filePath = path.join(getTmpDir(), "not-exists", "file.txt");
 
-      await assert.rejects(writeUtf8File(filePath, ""), {
+      await assert.rejects(writeUtf8File(filePath, "hello"), {
         name: "FileNotFoundError",
         message: `File ${filePath} not found`,
       });
@@ -549,9 +544,9 @@ describe("File system utils", () => {
 
     it("Should throw FileAlreadyExistsError if the file already exists and the flag 'x' is used", async function () {
       const filePath = path.join(getTmpDir(), "file.txt");
-      await writeUtf8File(filePath, "");
+      await writeUtf8File(filePath, "hello");
 
-      await assert.rejects(writeUtf8File(filePath, "", "wx"), {
+      await assert.rejects(writeUtf8File(filePath, "hello", "wx"), {
         name: "FileAlreadyExistsError",
         message: `File ${filePath} already exists`,
       });
@@ -561,11 +556,11 @@ describe("File system utils", () => {
       const filePath = path.join(getTmpDir(), "protected-file.txt");
 
       try {
-        await writeUtf8File(filePath, "");
+        await writeUtf8File(filePath, "hello");
 
         await chmod(filePath, 0o000);
 
-        await assert.rejects(writeUtf8File(filePath, ""), {
+        await assert.rejects(writeUtf8File(filePath, "hello"), {
           name: "FileSystemAccessError",
         });
       } finally {
@@ -581,12 +576,12 @@ describe("File system utils", () => {
 
       const files = ["file1.txt", "file2.txt", "file3.json"];
       for (const file of files) {
-        await writeUtf8File(path.join(dirPath, file), "");
+        await createFile(path.join(dirPath, file));
       }
 
       const subDirPath = path.join(dirPath, "subdir");
       await mkdir(subDirPath);
-      await writeUtf8File(path.join(subDirPath, "file4.txt"), "");
+      await createFile(path.join(subDirPath, "file4.txt"));
 
       // should include the subdir but not its content as it's not recursive
       assert.deepEqual(
@@ -606,7 +601,7 @@ describe("File system utils", () => {
 
     it("Should throw InvalidDirectoryError if the path is not a directory", async function () {
       const filePath = path.join(getTmpDir(), "file");
-      await writeUtf8File(filePath, "");
+      await createFile(filePath);
 
       await assert.rejects(readdir(filePath), {
         name: "InvalidDirectoryError",
@@ -676,7 +671,7 @@ describe("File system utils", () => {
   describe("getChangeTime", function () {
     it("Should return the change time of a file", async function () {
       const filePath = path.join(getTmpDir(), "file.txt");
-      await writeUtf8File(filePath, "");
+      await createFile(filePath);
 
       const stats = await fsPromises.stat(filePath);
 
@@ -699,7 +694,7 @@ describe("File system utils", () => {
   describe("exists", function () {
     it("Should return true if the file exists", async function () {
       const filePath = path.join(getTmpDir(), "file.txt");
-      await writeUtf8File(filePath, "");
+      await createFile(filePath);
 
       assert.ok(await exists(filePath));
     });
@@ -736,7 +731,7 @@ describe("File system utils", () => {
       const srcPath = path.join(getTmpDir(), "src.txt");
       const destPath = path.join(getTmpDir(), "not-exists", "dest.txt");
 
-      await writeUtf8File(srcPath, "");
+      await createFile(srcPath);
 
       await assert.rejects(copy(srcPath, destPath), {
         name: "FileNotFoundError",
@@ -760,7 +755,7 @@ describe("File system utils", () => {
       const srcPath = path.join(getTmpDir(), "src.txt");
       const destPath = path.join(getTmpDir(), "dir");
 
-      await writeUtf8File(srcPath, "");
+      await createFile(srcPath);
       await mkdir(destPath);
 
       await assert.rejects(copy(srcPath, destPath), {
@@ -773,7 +768,7 @@ describe("File system utils", () => {
       const srcPath = path.join(getTmpDir(), "src.txt");
       const destPath = path.join(getTmpDir(), "dest.txt");
 
-      await writeUtf8File(srcPath, "");
+      await createFile(srcPath);
 
       try {
         await chmod(srcPath, 0o000);
@@ -790,7 +785,7 @@ describe("File system utils", () => {
   describe("remove", function () {
     it("Should remove a file", async function () {
       const filePath = path.join(getTmpDir(), "file.txt");
-      await writeUtf8File(filePath, "");
+      await createFile(filePath);
 
       await remove(filePath);
 
@@ -812,12 +807,12 @@ describe("File system utils", () => {
 
       const files = ["file1.txt", "file2.txt", "file3.json"];
       for (const file of files) {
-        await writeUtf8File(path.join(dirPath, file), "");
+        await createFile(path.join(dirPath, file));
       }
 
       const subDirPath = path.join(dirPath, "subdir");
       await mkdir(subDirPath);
-      await writeUtf8File(path.join(subDirPath, "file4.txt"), "");
+      await createFile(path.join(subDirPath, "file4.txt"));
 
       await remove(dirPath);
 
@@ -832,7 +827,7 @@ describe("File system utils", () => {
 
     it("Should throw FileSystemAccessError for any error", async function () {
       const filePath = path.join(getTmpDir(), "protected-file.txt");
-      await writeUtf8File(filePath, "");
+      await createFile(filePath);
 
       try {
         // the delete permission depends on the parent directory
@@ -850,7 +845,7 @@ describe("File system utils", () => {
   describe("chmod", function () {
     it("Should change the mode of a file", async function () {
       const filePath = path.join(getTmpDir(), "file.txt");
-      await writeUtf8File(filePath, "");
+      await createFile(filePath);
 
       await chmod(filePath, 0o777);
 
@@ -887,7 +882,7 @@ describe("File system utils", () => {
       const destPath = path.join(getTmpDir(), "dest");
 
       await mkdir(srcPath);
-      await writeUtf8File(path.join(srcPath, "file.txt"), "");
+      await createFile(path.join(srcPath, "file.txt"));
 
       await move(srcPath, destPath);
 
@@ -910,7 +905,7 @@ describe("File system utils", () => {
       const srcPath = path.join(getTmpDir(), "src.txt");
       const destPath = path.join(getTmpDir(), "not-exists", "dest.txt");
 
-      await writeUtf8File(srcPath, "");
+      await createFile(srcPath);
 
       await assert.rejects(move(srcPath, destPath), {
         name: "FileNotFoundError",
@@ -924,7 +919,7 @@ describe("File system utils", () => {
 
       await mkdir(srcPath);
       await mkdir(destPath);
-      await writeUtf8File(path.join(destPath, "file.txt"), "");
+      await createFile(path.join(destPath, "file.txt"));
 
       await assert.rejects(move(srcPath, destPath), {
         name: "DirectoryNotEmptyError",
@@ -936,12 +931,45 @@ describe("File system utils", () => {
       const srcPath = path.join(getTmpDir(), "src.txt");
       const destPath = path.join(getTmpDir(), "dest.txt");
 
-      await writeUtf8File(srcPath, "");
+      await createFile(srcPath);
 
       try {
         await chmod(getTmpDir(), 0o000);
 
         await assert.rejects(move(srcPath, destPath), {
+          name: "FileSystemAccessError",
+        });
+      } finally {
+        await chmod(getTmpDir(), 0o777);
+      }
+    });
+  });
+
+  describe("createFile", function () {
+    it("Should create a file", async function () {
+      const filePath = path.join(getTmpDir(), "file.txt");
+
+      await createFile(filePath);
+
+      assert.ok(await exists(filePath));
+    });
+
+    it("Should throw FileNotFoundError if part of the path doesn't exist", async function () {
+      const filePath = path.join(getTmpDir(), "not-exists", "file.txt");
+
+      await assert.rejects(createFile(filePath), {
+        name: "FileNotFoundError",
+        message: `File ${filePath} not found`,
+      });
+    });
+
+    it("Should throw FileSystemAccessError for any error", async function () {
+      const filePath = path.join(getTmpDir(), "protected-file.txt");
+
+      try {
+        await chmod(getTmpDir(), 0o000);
+
+        await assert.rejects(createFile(filePath), {
           name: "FileSystemAccessError",
         });
       } finally {
