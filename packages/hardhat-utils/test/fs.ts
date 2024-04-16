@@ -6,6 +6,7 @@ import path from "node:path";
 import { expectTypeOf } from "expect-type";
 
 import {
+  exists,
   getAllFilesMatching,
   getChangeTime,
   getFileTrueCase,
@@ -688,6 +689,21 @@ describe("File system utils", () => {
         name: "FileNotFoundError",
         message: `File ${filePath} not found`,
       });
+    });
+  });
+
+  describe("exists", function () {
+    it("Should return true if the file exists", async function () {
+      const filePath = path.join(getTmpDir(), "file.txt");
+      await writeUtf8File(filePath, "");
+
+      assert.ok(await exists(filePath));
+    });
+
+    it("Should return false if the file doesn't exist", async function () {
+      const filePath = path.join(getTmpDir(), "not-exists.txt");
+
+      assert.ok(!(await exists(filePath)));
     });
   });
 });

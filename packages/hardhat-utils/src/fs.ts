@@ -310,3 +310,17 @@ export async function getChangeTime(absolutePath: string): Promise<Date> {
     throw new FileSystemAccessError(e.message, e);
   }
 }
+
+/**
+ * Checks if a file or directory exists.
+ * @param absolutePath The absolute path to the file or directory.
+ * @returns A boolean indicating whether the file or directory exists.
+ */
+export async function exists(absolutePath: string): Promise<boolean> {
+  try {
+    await fsPromises.access(absolutePath);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
