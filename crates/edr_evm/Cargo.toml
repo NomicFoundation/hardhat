@@ -3,7 +3,7 @@ bench = false
 
 [package]
 name = "edr_evm"
-version = "0.2.0-dev"
+version = "0.3.5"
 edition = "2021"
 
 [dependencies]
@@ -19,8 +19,8 @@ itertools = { version = "0.11.0", default-features = false, features = ["use_all
 log = { version = "0.4.17", default-features = false }
 once_cell = { version = "1.18.0", default-features = false, features = ["alloc", "race", "std"] }
 parking_lot = { version = "0.12.1", default-features = false }
-edr_defaults = { version = "0.2.0-dev", path = "../edr_defaults" }
-edr_eth = { version = "0.2.0-dev", path = "../edr_eth", features = ["rand", "serde"] }
+edr_defaults = { version = "0.3.5", path = "../edr_defaults" }
+edr_eth = { version = "0.3.5", path = "../edr_eth", features = ["rand", "serde"] }
 revm = { git = "https://github.com/Wodann/revm", rev = "451f122", version = "8.0", default-features = false, features = ["c-kzg", "dev", "serde"] }
 serde = { version = "1.0.158", default-features = false, features = ["std"] }
 serde_json = { version = "1.0.94", default-features = false, features = ["std"] }
@@ -31,7 +31,7 @@ tracing = { version = "0.1.37", features = ["attributes", "std"], optional = tru
 [dev-dependencies]
 anyhow = "1.0.75"
 criterion = { version = "0.4.0", default-features = false, features = ["cargo_bench_support", "html_reports", "plotters"] }
-edr_test_utils = { version = "0.2.0-dev", path = "../edr_test_utils" }
+edr_test_utils = { version = "0.3.5", path = "../edr_test_utils" }
 lazy_static = "1.4.0"
 paste = { version = "1.0.14", default-features = false }
 serial_test = "2.0.0"
