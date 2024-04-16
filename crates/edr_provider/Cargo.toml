@@ -1,15 +1,15 @@
 [package]
 name = "edr_provider"
-version = "0.2.0-dev"
+version = "0.3.5"
 edition = "2021"
 
 [dependencies]
 alloy-sol-types = { version = "0.5.1", default-features = false, features = ["std"]}
 anyhow = { version = "1.0.75", optional = true }
 dyn-clone = { version = "1.0.13", default-features = false }
-edr_defaults = { version = "0.2.0-dev", path = "../edr_defaults" }
-edr_eth = { version = "0.2.0-dev", path = "../edr_eth", features = ["rand"] }
-edr_evm = { version = "0.2.0-dev", path = "../edr_evm", features = ["tracing"] }
+edr_defaults = { version = "0.3.5", path = "../edr_defaults" }
+edr_eth = { version = "0.3.5", path = "../edr_eth", features = ["rand"] }
+edr_evm = { version = "0.3.5", path = "../edr_evm", features = ["tracing"] }
 ethers-core = {  version = "2.0.12" , features = ["eip712"]}
 indexmap = { version = "2.0.0", default-features = false, features = ["std"] }
 itertools = { version = "0.12.0", default-features = false, features = ["use_alloc"] }
@@ -28,7 +28,7 @@ lru = "0.12.2"
 
 [dev-dependencies]
 anyhow = "1.0.75"
-edr_test_utils = { version = "0.2.0-dev", path = "../edr_test_utils" }
+edr_test_utils = { version = "0.3.5", path = "../edr_test_utils" }
 paste = { version = "1.0.14", default-features = false }
 serial_test = "2.0.0"
 tempfile = "3.7.1"

@@ -1,6 +1,6 @@
 [package]
 name = "edr_eth"
-version = "0.2.0-dev"
+version = "0.3.5"
 edition = "2021"
 
 [dependencies]
@@ -35,11 +35,11 @@ regex = "1.10.0"
 [dev-dependencies]
 anyhow = "1.0.75"
 assert-json-diff = "2.0.2"
-edr_defaults = { version = "0.2.0-dev", path = "../edr_defaults" }
+edr_defaults = { version = "0.3.5", path = "../edr_defaults" }
 lazy_static = "1.4.0"
 mockito = { version = "1.0.2", default-features = false }
 paste = { version = "1.0.14", default-features = false }
-edr_test_utils = { version = "0.2.0-dev", path = "../edr_test_utils" }
+edr_test_utils = { version = "0.3.5", path = "../edr_test_utils" }
 serial_test = "2.0.0"
 tempfile = { version = "3.7.1", default-features = false }
 tokio = { version = "1.23.0", features = ["macros"] }

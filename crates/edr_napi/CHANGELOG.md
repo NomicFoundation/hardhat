@@ -1,22 +1,31 @@
 # @nomicfoundation/edr
 
+## 0.3.5
+
+### Patch Changes
+
+- e5f048e: Removed i686 & ARM builds of EDR
+- 3d7f13e: Fixed a bug in `hardhat_metadata` where the local chain id was being used in the fork metadata
+- bbc3a6d: Fixed missing KZG point evaluation precompile for Cancun hardfork
+- 219f457: Fixed incorrect derivation of hardfork when executing a call in fork mode for the block immediately preceding the fork
+
 ## 0.3.4
 
 ### Patch Changes
 
 - 71287a8: Removed API keys from RPC error messages
-- bdf3971: Fix 429 HTTP error by using smaller batches when querying genesis account info
-- 7c23825: Fix 429 HTTP error by increasing rate limiting retries
-- 92693fb: Fix calculation of used blob gas for post-Cancun blocks
+- bdf3971: Fixed 429 HTTP error by using smaller batches when querying genesis account info
+- 7c23825: Fixed 429 HTTP error by increasing rate limiting retries
+- 92693fb: Fixed calculation of used blob gas for post-Cancun blocks
 - 62e28ad: Fixed eth_getLogs RPC request for pre-Merge hardforks
 
 ## 0.3.3
 
 ### Patch Changes
 
-- 60b2a62: Support hex string as salt in `eth_signTypedData_v4`
-- 3ac838b: Fixes detection of Cancun blocks on mainnet
-- 7d0f981: Fix node.js runtime freezing on shutdown
+- 60b2a62: Fixed missing support for hex string as salt in `eth_signTypedData_v4`
+- 3ac838b: Fixed detection of Cancun blocks on mainnet
+- 7d0f981: Fixed node.js runtime freezing on shutdown
 
 ## 0.3.2
 

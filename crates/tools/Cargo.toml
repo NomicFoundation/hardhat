@@ -8,10 +8,10 @@ anyhow = { version = "1.0.75" }
 cfg-if = "1.0.0"
 clap = { version = "3.2.20", features = ["derive"] }
 difference = { version = "2.0.0", default-features = false }
-edr_defaults = { version = "0.2.0-dev", path = "../edr_defaults" }
-edr_eth = { version = "0.2.0-dev", path = "../edr_eth" }
-edr_evm = { version = "0.2.0-dev", path = "../edr_evm", features = ["tracing"] }
-edr_provider = { version = "0.2.0-dev", path = "../edr_provider", features = ["test-utils"] }
+edr_defaults = { version = "0.3.5", path = "../edr_defaults" }
+edr_eth = { version = "0.3.5", path = "../edr_eth" }
+edr_evm = { version = "0.3.5", path = "../edr_evm", features = ["tracing"] }
+edr_provider = { version = "0.3.5", path = "../edr_provider", features = ["test-utils"] }
 flate2 = "1.0.28"
 indicatif = { version = "0.17.7", features = ["rayon"] }
 reqwest = { version = "0.11.12", features = ["blocking"] }
