@@ -35,7 +35,7 @@ async function getContractAbiAndBytecode(
 
   return {
     abi: artifact.abi,
-    bytecode: bytecode as Hex,
+    bytecode,
   };
 }
 

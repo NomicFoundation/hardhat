@@ -1,4 +1,5 @@
 import type * as viemT from "viem";
+import { isHex } from "viem";
 
 import { Artifact } from "hardhat/types/artifacts";
 
@@ -20,7 +21,7 @@ interface Link {
   address: string;
 }
 
-export function linkBytecode(artifact: Artifact, libraries: Link[]): string {
+export function linkBytecode(artifact: Artifact, libraries: Link[]): viemT.Hex {
   let bytecode = artifact.bytecode;
 
   // TODO: measure performance impact
@@ -34,7 +35,7 @@ export function linkBytecode(artifact: Artifact, libraries: Link[]): string {
     }
   }
 
-  return bytecode;
+  return isHex(bytecode) ? bytecode : `0x${bytecode}`;
 }
 
 export async function throwOnAmbigousLibraryNameOrUnnecessaryLink(
@@ -124,7 +125,7 @@ export async function throwOnOverlappingLibraryNames(
 export async function resolveBytecodeWithLinkedLibraries(
   artifact: Artifact,
   libraries: Libraries<viemT.Address>
-): Promise<string> {
+): Promise<viemT.Hex> {
   const { linkReferences } = artifact;
 
   const neededLibraries: Array<Omit<Link, "address">> = [];
