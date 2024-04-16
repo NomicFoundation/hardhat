@@ -6,7 +6,6 @@ import { Artifact } from "hardhat/types/artifacts";
 import {
   AmbigousLibraryNameError,
   MissingLibraryAddressError,
-  InvalidLibraryAddressError,
   OverlappingLibraryNamesError,
   UnnecessaryLibraryLinkError,
 } from "./errors";
@@ -38,7 +37,7 @@ export function linkBytecode(artifact: Artifact, libraries: Link[]): viemT.Hex {
   return isHex(bytecode) ? bytecode : `0x${bytecode}`;
 }
 
-export async function throwOnAmbigousLibraryNameOrUnnecessaryLink(
+async function throwOnAmbigousLibraryNameOrUnnecessaryLink(
   contractName: string,
   libraries: Libraries<viemT.Address>,
   neededLibraries: Array<Pick<Link, "libraryName" | "sourceName">>
@@ -64,7 +63,7 @@ export async function throwOnAmbigousLibraryNameOrUnnecessaryLink(
   }
 }
 
-export async function throwOnMissingLibrariesAddress(
+async function throwOnMissingLibrariesAddress(
   contractName: string,
   libraries: Libraries<viemT.Address>,
   neededLibraries: Array<Pick<Link, "libraryName" | "sourceName">>
@@ -84,30 +83,7 @@ export async function throwOnMissingLibrariesAddress(
   }
 }
 
-export async function throwOnInvalidLibrariesAddress(
-  contractName: string,
-  libraries: Libraries<viemT.Address>,
-  neededLibraries: Link[]
-) {
-  const librariesWithInvalidAddress = [];
-  for (const { sourceName, libraryName } of neededLibraries) {
-    const address =
-      libraries[`${sourceName}:${libraryName}`] ?? libraries[libraryName];
-
-    if (address === undefined) {
-      librariesWithInvalidAddress.push({ sourceName, libraryName, address });
-    }
-  }
-
-  if (librariesWithInvalidAddress.length > 0) {
-    throw new InvalidLibraryAddressError(
-      contractName,
-      librariesWithInvalidAddress
-    );
-  }
-}
-
-export async function throwOnOverlappingLibraryNames(
+async function throwOnOverlappingLibraryNames(
   contractName: string,
   libraries: Libraries<viemT.Address>,
   neededLibraries: Array<Pick<Link, "libraryName" | "sourceName">>
@@ -128,12 +104,14 @@ export async function resolveBytecodeWithLinkedLibraries(
 ): Promise<viemT.Hex> {
   const { linkReferences } = artifact;
 
-  const neededLibraries: Array<Omit<Link, "address">> = [];
+  const neededLibraries: Link[] = [];
   for (const [sourceName, sourceLibraries] of Object.entries(linkReferences)) {
-    for (const [libraryName] of Object.entries(sourceLibraries)) {
+    for (const libraryName of Object.keys(sourceLibraries)) {
       neededLibraries.push({
         sourceName,
         libraryName,
+        address:
+          libraries[`${sourceName}:${libraryName}`] ?? libraries[libraryName],
       });
     }
   }
@@ -154,18 +132,5 @@ export async function resolveBytecodeWithLinkedLibraries(
     neededLibraries
   );
 
-  const resolvedLibraries: Link[] = neededLibraries.map((link) => ({
-    ...link,
-    address:
-      libraries[`${link.sourceName}:${link.libraryName}`] ??
-      libraries[link.libraryName],
-  }));
-
-  await throwOnInvalidLibrariesAddress(
-    artifact.contractName,
-    libraries,
-    resolvedLibraries
-  );
-
-  return linkBytecode(artifact, resolvedLibraries);
+  return linkBytecode(artifact, neededLibraries);
 }

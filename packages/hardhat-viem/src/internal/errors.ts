@@ -122,18 +122,3 @@ Please deploy them first and link them while deploying "${contractName}"`
     );
   }
 }
-
-export class InvalidLibraryAddressError extends HardhatViemError {
-  constructor(contractName: string, invalidLibraryAddresses: Link[]) {
-    super(
-      `The following libraries were linked to invalid addresses;
-${invalidLibraryAddresses
-  .map(
-    ({ sourceName, libraryName, address }) =>
-      `\t"${sourceName}:${libraryName}" => ${address}`
-  )
-  .join(", ")}
-Please validate addresses provided to "${contractName}" contract.`
-    );
-  }
-}
