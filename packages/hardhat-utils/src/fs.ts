@@ -77,7 +77,7 @@ export async function getAllFilesMatching(
   dirFrom: string,
   matches?: (absolutePathToFile: string) => boolean,
 ): Promise<string[]> {
-  const dirContent = await readdir(dirFrom);
+  const dirContent = await readdirOrEmpty(dirFrom);
 
   const results = await Promise.all(
     dirContent.map(async (file) => {
@@ -111,7 +111,7 @@ export async function getFileTrueCase(
   from: string,
   relativePath: string,
 ): Promise<string> {
-  const dirEntries = await readdir(from);
+  const dirEntries = await readdirOrEmpty(from);
 
   const segments = relativePath.split(path.sep);
   const nextDir = segments[0];
@@ -261,11 +261,11 @@ export async function writeUtf8File(
 }
 
 /**
- * Reads a directory and returns its content as an array of strings. If the directory doesn't exist,
- * an empty array is returned.
+ * Reads a directory and returns its content as an array of strings.
  *
  * @param absolutePathToDir The path to the directory.
  * @returns An array of strings with the names of the files and directories in the directory.
+ * @throws FileNotFoundError if the directory doesn't exist.
  * @throws InvalidDirectoryError if the path is not a directory.
  * @throws FileSystemAccessError for any other error.
  */
@@ -275,7 +275,7 @@ export async function readdir(absolutePathToDir: string) {
   } catch (e) {
     ensureError<NodeJS.ErrnoException>(e);
     if (e.code === "ENOENT") {
-      return []; // TODO this doesn't feel right, we should throw an error
+      throw new FileNotFoundError(absolutePathToDir, e);
     }
 
     if (e.code === "ENOTDIR") {
@@ -283,6 +283,21 @@ export async function readdir(absolutePathToDir: string) {
     }
 
     throw new FileSystemAccessError(e.message, e);
+  }
+}
+
+/**
+ * Wrapper around `readdir` that returns an empty array if the directory doesn't exist.
+ * @see readdir
+ */
+async function readdirOrEmpty(dirFrom: string): Promise<string[]> {
+  try {
+    return await readdir(dirFrom);
+  } catch (error) {
+    if (error instanceof FileNotFoundError) {
+      return [];
+    }
+    throw error;
   }
 }
 
