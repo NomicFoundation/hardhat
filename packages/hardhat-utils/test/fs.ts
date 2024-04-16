@@ -7,6 +7,7 @@ import { expectTypeOf } from "expect-type";
 
 import {
   exists,
+  chmod,
   copy,
   getAllFilesMatching,
   getChangeTime,
@@ -842,6 +843,29 @@ describe("File system utils", () => {
       } finally {
         await fsPromises.chmod(getTmpDir(), 0o777);
       }
+    });
+  });
+
+  describe("chmod", function () {
+    it("Should change the mode of a file", async function () {
+      const filePath = path.join(getTmpDir(), "file.txt");
+      await writeUtf8File(filePath, "");
+
+      await chmod(filePath, 0o777);
+
+      const stats = await fsPromises.stat(filePath);
+
+      // eslint-disable-next-line no-bitwise
+      assert.equal(stats.mode & 0o777, 0o777);
+    });
+
+    it("Should throw FileNotFoundError if the file doesn't exist", async function () {
+      const filePath = path.join(getTmpDir(), "not-exists.txt");
+
+      await assert.rejects(chmod(filePath, 0o777), {
+        name: "FileNotFoundError",
+        message: `File ${filePath} not found`,
+      });
     });
   });
 });

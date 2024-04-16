@@ -384,3 +384,19 @@ export async function remove(absolutePath: string): Promise<void> {
     throw new FileSystemAccessError(e.message, e);
   }
 }
+
+export async function chmod(
+  absolutePath: string,
+  mode: string | number,
+): Promise<void> {
+  try {
+    await fsPromises.chmod(absolutePath, mode);
+  } catch (e) {
+    ensureError<NodeJS.ErrnoException>(e);
+    if (e.code === "ENOENT") {
+      throw new FileNotFoundError(absolutePath, e);
+    }
+
+    throw new FileSystemAccessError(e.message, e);
+  }
+}
