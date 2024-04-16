@@ -10,6 +10,7 @@ import {
   JsonSerializationError,
   FileAlreadyExistsError,
   InvalidDirectoryError,
+  IsDirectoryError,
 } from "./errors/fs.js";
 
 /**
@@ -259,6 +260,7 @@ export async function readdir(absolutePathToDir: string) {
 
 /**
  * Wrapper around `readdir` that returns an empty array if the directory doesn't exist.
+ *
  * @see readdir
  */
 async function readdirOrEmpty(dirFrom: string): Promise<string[]> {
@@ -313,6 +315,7 @@ export async function getChangeTime(absolutePath: string): Promise<Date> {
 
 /**
  * Checks if a file or directory exists.
+ *
  * @param absolutePath The absolute path to the file or directory.
  * @returns A boolean indicating whether the file or directory exists.
  */
@@ -322,5 +325,42 @@ export async function exists(absolutePath: string): Promise<boolean> {
     return true;
   } catch (e) {
     return false;
+  }
+}
+
+/**
+ * Copies a file from a source to a destination.
+ * If the destination file already exists, it will be overwritten.
+ *
+ * @param source The path to the source file. It can't be a directory.
+ * @param destination The path to the destination file. It can't be a directory.
+ * @throws FileNotFoundError if the source path or the destination path doesn't exist.
+ * @throws IsDirectoryError if the source path or the destination path is a directory.
+ * @throws FileSystemAccessError for any other error.
+ */
+export async function copy(source: string, destination: string): Promise<void> {
+  try {
+    await fsPromises.copyFile(source, destination);
+  } catch (e) {
+    ensureError<NodeJS.ErrnoException>(e);
+    if (e.code === "ENOENT") {
+      if (!(await exists(source))) {
+        throw new FileNotFoundError(source, e);
+      }
+      if (!(await exists(destination))) {
+        throw new FileNotFoundError(destination, e);
+      }
+    }
+
+    if (e.code === "EISDIR") {
+      if (await isDirectory(source)) {
+        throw new IsDirectoryError(source, e);
+      }
+      if (await isDirectory(destination)) {
+        throw new IsDirectoryError(destination, e);
+      }
+    }
+
+    throw new FileSystemAccessError(e.message, e);
   }
 }

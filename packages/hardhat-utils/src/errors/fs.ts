@@ -33,3 +33,9 @@ export class InvalidDirectoryError extends CustomError {
     super(`Invalid directory ${filePath}`, cause);
   }
 }
+
+export class IsDirectoryError extends CustomError {
+  constructor(filePath: string, cause: Error) {
+    super(`Path ${filePath} is a directory`, cause);
+  }
+}

@@ -7,6 +7,7 @@ import { expectTypeOf } from "expect-type";
 
 import {
   exists,
+  copy,
   getAllFilesMatching,
   getChangeTime,
   getFileTrueCase,
@@ -704,6 +705,82 @@ describe("File system utils", () => {
       const filePath = path.join(getTmpDir(), "not-exists.txt");
 
       assert.ok(!(await exists(filePath)));
+    });
+  });
+
+  describe("copy", function () {
+    it("Should copy a file", async function () {
+      const srcPath = path.join(getTmpDir(), "src.txt");
+      const destPath = path.join(getTmpDir(), "dest.txt");
+
+      await writeUtf8File(srcPath, "hello");
+      await copy(srcPath, destPath);
+
+      assert.equal(await readUtf8File(destPath), "hello");
+    });
+
+    it("Should throw FileNotFoundError if the source file doesn't exist", async function () {
+      const srcPath = path.join(getTmpDir(), "not-exists.txt");
+      const destPath = path.join(getTmpDir(), "dest.txt");
+
+      await assert.rejects(copy(srcPath, destPath), {
+        name: "FileNotFoundError",
+        message: `File ${srcPath} not found`,
+      });
+    });
+
+    it("Should throw FileNotFoundError if the destination path doesn't exist", async function () {
+      const srcPath = path.join(getTmpDir(), "src.txt");
+      const destPath = path.join(getTmpDir(), "not-exists", "dest.txt");
+
+      await writeUtf8File(srcPath, "");
+
+      await assert.rejects(copy(srcPath, destPath), {
+        name: "FileNotFoundError",
+        message: `File ${destPath} not found`,
+      });
+    });
+
+    it("Should throw IsDirectoryError if the source path is a directory", async function () {
+      const srcPath = path.join(getTmpDir(), "dir");
+      const destPath = path.join(getTmpDir(), "dest.txt");
+
+      await mkdir(srcPath);
+
+      await assert.rejects(copy(srcPath, destPath), {
+        name: "IsDirectoryError",
+        message: `Path ${srcPath} is a directory`,
+      });
+    });
+
+    it("Should throw IsDirectoryError if the destination path is a directory", async function () {
+      const srcPath = path.join(getTmpDir(), "src.txt");
+      const destPath = path.join(getTmpDir(), "dir");
+
+      await writeUtf8File(srcPath, "");
+      await mkdir(destPath);
+
+      await assert.rejects(copy(srcPath, destPath), {
+        name: "IsDirectoryError",
+        message: `Path ${destPath} is a directory`,
+      });
+    });
+
+    it("Should throw FileSystemAccessError if a different error is thrown", async function () {
+      const srcPath = path.join(getTmpDir(), "src.txt");
+      const destPath = path.join(getTmpDir(), "dest.txt");
+
+      await writeUtf8File(srcPath, "");
+
+      try {
+        await fsPromises.chmod(srcPath, 0o000);
+
+        await assert.rejects(copy(srcPath, destPath), {
+          name: "FileSystemAccessError",
+        });
+      } finally {
+        await fsPromises.chmod(srcPath, 0o777);
+      }
     });
   });
 });
