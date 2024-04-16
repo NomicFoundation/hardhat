@@ -589,10 +589,13 @@ describe("File system utils", () => {
       );
     });
 
-    it("Should return an empty array if the directory doesn't exist", async function () {
+    it("Should throw FileNotFoundError if the directory doesn't exist", async function () {
       const dirPath = path.join(getTmpDir(), "not-exists");
 
-      assert.deepEqual(await readdir(dirPath), []);
+      await assert.rejects(readdir(dirPath), {
+        name: "FileNotFoundError",
+        message: `File ${dirPath} not found`,
+      });
     });
 
     it("Should throw InvalidDirectoryError if the path is not a directory", async function () {
