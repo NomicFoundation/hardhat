@@ -1,12 +1,15 @@
 import type * as ethers from "ethers";
-import type { Artifact } from "hardhat/types/artifacts";
-import type { Libraries } from "hardhat/types/libraries";
+import type { Artifact } from "hardhat/types";
 import type { HardhatEthersProvider } from "../internal/hardhat-ethers-provider";
 import type { HardhatEthersSigner } from "../signers";
 
+export interface Libraries {
+  [libraryName: string]: string | ethers.Addressable;
+}
+
 export interface FactoryOptions {
   signer?: ethers.Signer;
-  libraries?: Libraries<ethers.Addressable | string>;
+  libraries?: Libraries;
 }
 
 export type DeployContractOptions = FactoryOptions & ethers.Overrides;
