@@ -287,3 +287,26 @@ export async function mkdir(absolutePath: string): Promise<void> {
     throw new FileSystemAccessError(e.message, e);
   }
 }
+
+/**
+ * Retrieves the last change time of a file or directory's properties.
+ * This includes changes to the file's metadata or contents.
+ *
+ * @param absolutePath The absolute path to the file or directory.
+ * @returns The time of the last change as a Date object.
+ * @throws FileNotFoundError if the path does not exist.
+ * @throws FileSystemAccessError for any other error.
+ */
+export async function getChangeTime(absolutePath: string): Promise<Date> {
+  try {
+    const stats = await fsPromises.stat(absolutePath);
+    return stats.ctime;
+  } catch (e) {
+    ensureError<NodeJS.ErrnoException>(e);
+    if (e.code === "ENOENT") {
+      throw new FileNotFoundError(absolutePath, e);
+    }
+
+    throw new FileSystemAccessError(e.message, e);
+  }
+}

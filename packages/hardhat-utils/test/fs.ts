@@ -7,6 +7,7 @@ import { expectTypeOf } from "expect-type";
 
 import {
   getAllFilesMatching,
+  getChangeTime,
   getFileTrueCase,
   getRealPath,
   isDirectory,
@@ -664,6 +665,29 @@ describe("File system utils", () => {
       } finally {
         await fsPromises.chmod(dirPath, 0o777);
       }
+    });
+  });
+
+  describe("getChangeTime", function () {
+    it("Should return the change time of a file", async function () {
+      const filePath = path.join(getTmpDir(), "file.txt");
+      await writeUtf8File(filePath, "");
+
+      const stats = await fsPromises.stat(filePath);
+
+      assert.equal(
+        stats.ctime.getTime(),
+        (await getChangeTime(filePath)).getTime(),
+      );
+    });
+
+    it("Should throw FileNotFoundError if the file doesn't exist", async function () {
+      const filePath = path.join(getTmpDir(), "not-exists.txt");
+
+      await assert.rejects(getChangeTime(filePath), {
+        name: "FileNotFoundError",
+        message: `File ${filePath} not found`,
+      });
     });
   });
 });
