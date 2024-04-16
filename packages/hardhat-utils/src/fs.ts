@@ -385,6 +385,14 @@ export async function remove(absolutePath: string): Promise<void> {
   }
 }
 
+/**
+ * Changes the permissions of a file or directory.
+ *
+ * @param absolutePath The path to the file or directory.
+ * @param mode The permissions to set. It can be a string or a number representing the octal mode.
+ * @throws FileNotFoundError if the path doesn't exist.
+ * @throws FileSystemAccessError for any other error.
+ */
 export async function chmod(
   absolutePath: string,
   mode: string | number,
