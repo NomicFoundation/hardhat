@@ -210,13 +210,13 @@ describe("File system utils", () => {
       await mkdir(dirPath);
 
       try {
-        await fsPromises.chmod(dirPath, 0o000);
+        await chmod(dirPath, 0o000);
 
         await assert.rejects(getAllFilesMatching(dirPath), {
           name: "FileSystemAccessError",
         });
       } finally {
-        await fsPromises.chmod(dirPath, 0o777);
+        await chmod(dirPath, 0o777);
       }
     });
   });
@@ -335,13 +335,13 @@ describe("File system utils", () => {
       await mkdir(dirPath);
 
       try {
-        await fsPromises.chmod(dirPath, 0o000);
+        await chmod(dirPath, 0o000);
 
         await assert.rejects(getFileTrueCase(dirPath, "file"), {
           name: "FileSystemAccessError",
         });
       } finally {
-        await fsPromises.chmod(dirPath, 0o777);
+        await chmod(dirPath, 0o777);
       }
     });
   });
@@ -418,13 +418,13 @@ describe("File system utils", () => {
       await writeUtf8File(filePath, "");
 
       try {
-        await fsPromises.chmod(filePath, 0o000);
+        await chmod(filePath, 0o000);
 
         await assert.rejects(readJsonFile(filePath), {
           name: "FileSystemAccessError",
         });
       } finally {
-        await fsPromises.chmod(filePath, 0o777);
+        await chmod(filePath, 0o777);
       }
     });
   });
@@ -471,13 +471,13 @@ describe("File system utils", () => {
       await writeUtf8File(filePath, "");
 
       try {
-        await fsPromises.chmod(filePath, 0o000);
+        await chmod(filePath, 0o000);
 
         await assert.rejects(writeJsonFile(filePath, {}), {
           name: "FileSystemAccessError",
         });
       } finally {
-        await fsPromises.chmod(filePath, 0o777);
+        await chmod(filePath, 0o777);
       }
     });
   });
@@ -506,13 +506,13 @@ describe("File system utils", () => {
       await writeUtf8File(filePath, "");
 
       try {
-        await fsPromises.chmod(filePath, 0o000);
+        await chmod(filePath, 0o000);
 
         await assert.rejects(readUtf8File(filePath), {
           name: "FileSystemAccessError",
         });
       } finally {
-        await fsPromises.chmod(filePath, 0o777);
+        await chmod(filePath, 0o777);
       }
     });
   });
@@ -562,13 +562,13 @@ describe("File system utils", () => {
       try {
         await writeUtf8File(filePath, "");
 
-        await fsPromises.chmod(filePath, 0o000);
+        await chmod(filePath, 0o000);
 
         await assert.rejects(writeUtf8File(filePath, ""), {
           name: "FileSystemAccessError",
         });
       } finally {
-        await fsPromises.chmod(filePath, 0o777);
+        await chmod(filePath, 0o777);
       }
     });
   });
@@ -618,13 +618,13 @@ describe("File system utils", () => {
       await mkdir(dirPath);
 
       try {
-        await fsPromises.chmod(dirPath, 0o000);
+        await chmod(dirPath, 0o000);
 
         await assert.rejects(readdir(dirPath), {
           name: "FileSystemAccessError",
         });
       } finally {
-        await fsPromises.chmod(dirPath, 0o777);
+        await chmod(dirPath, 0o777);
       }
     });
   });
@@ -661,13 +661,13 @@ describe("File system utils", () => {
       await mkdir(dirPath);
 
       try {
-        await fsPromises.chmod(dirPath, 0o000);
+        await chmod(dirPath, 0o000);
 
         await assert.rejects(mkdir(path.join(dirPath, "subdir")), {
           name: "FileSystemAccessError",
         });
       } finally {
-        await fsPromises.chmod(dirPath, 0o777);
+        await chmod(dirPath, 0o777);
       }
     });
   });
@@ -775,13 +775,13 @@ describe("File system utils", () => {
       await writeUtf8File(srcPath, "");
 
       try {
-        await fsPromises.chmod(srcPath, 0o000);
+        await chmod(srcPath, 0o000);
 
         await assert.rejects(copy(srcPath, destPath), {
           name: "FileSystemAccessError",
         });
       } finally {
-        await fsPromises.chmod(srcPath, 0o777);
+        await chmod(srcPath, 0o777);
       }
     });
   });
@@ -835,13 +835,13 @@ describe("File system utils", () => {
 
       try {
         // the delete permission depends on the parent directory
-        await fsPromises.chmod(getTmpDir(), 0o000);
+        await chmod(getTmpDir(), 0o000);
 
         await assert.rejects(remove(filePath), {
           name: "FileSystemAccessError",
         });
       } finally {
-        await fsPromises.chmod(getTmpDir(), 0o777);
+        await chmod(getTmpDir(), 0o777);
       }
     });
   });
