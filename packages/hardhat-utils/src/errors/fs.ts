@@ -39,3 +39,9 @@ export class IsDirectoryError extends CustomError {
     super(`Path ${filePath} is a directory`, cause);
   }
 }
+
+export class DirectoryNotEmptyError extends CustomError {
+  constructor(filePath: string, cause: Error) {
+    super(`Directory ${filePath} is not empty`, cause);
+  }
+}

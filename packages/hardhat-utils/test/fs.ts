@@ -15,6 +15,7 @@ import {
   getRealPath,
   isDirectory,
   mkdir,
+  move,
   readJsonFile,
   readUtf8File,
   readdir,
@@ -866,6 +867,86 @@ describe("File system utils", () => {
         name: "FileNotFoundError",
         message: `File ${filePath} not found`,
       });
+    });
+  });
+
+  describe("move", function () {
+    it("Should move a file", async function () {
+      const srcPath = path.join(getTmpDir(), "src.txt");
+      const destPath = path.join(getTmpDir(), "dest.txt");
+
+      await writeUtf8File(srcPath, "hello");
+      await move(srcPath, destPath);
+
+      assert.equal(await readUtf8File(destPath), "hello");
+      assert.ok(!(await exists(srcPath)));
+    });
+
+    it("Should move a directory", async function () {
+      const srcPath = path.join(getTmpDir(), "dir");
+      const destPath = path.join(getTmpDir(), "dest");
+
+      await mkdir(srcPath);
+      await writeUtf8File(path.join(srcPath, "file.txt"), "");
+
+      await move(srcPath, destPath);
+
+      assert.ok(!(await exists(srcPath)));
+      assert.ok(await exists(destPath));
+      assert.ok(await exists(path.join(destPath, "file.txt")));
+    });
+
+    it("Should throw FileNotFoundError if the source file doesn't exist", async function () {
+      const srcPath = path.join(getTmpDir(), "not-exists.txt");
+      const destPath = path.join(getTmpDir(), "dest.txt");
+
+      await assert.rejects(move(srcPath, destPath), {
+        name: "FileNotFoundError",
+        message: `File ${srcPath} not found`,
+      });
+    });
+
+    it("Should throw FileNotFoundError if the destination path doesn't exist", async function () {
+      const srcPath = path.join(getTmpDir(), "src.txt");
+      const destPath = path.join(getTmpDir(), "not-exists", "dest.txt");
+
+      await writeUtf8File(srcPath, "");
+
+      await assert.rejects(move(srcPath, destPath), {
+        name: "FileNotFoundError",
+        message: `File ${destPath} not found`,
+      });
+    });
+
+    it("Should throw DirectoryNotEmptyError if the source path is a directory and the destination path is a directory that is not empty", async function () {
+      const srcPath = path.join(getTmpDir(), "dir");
+      const destPath = path.join(getTmpDir(), "dest");
+
+      await mkdir(srcPath);
+      await mkdir(destPath);
+      await writeUtf8File(path.join(destPath, "file.txt"), "");
+
+      await assert.rejects(move(srcPath, destPath), {
+        name: "DirectoryNotEmptyError",
+        message: `Directory ${destPath} is not empty`,
+      });
+    });
+
+    it("Should throw FileSystemAccessError if a different error is thrown", async function () {
+      const srcPath = path.join(getTmpDir(), "src.txt");
+      const destPath = path.join(getTmpDir(), "dest.txt");
+
+      await writeUtf8File(srcPath, "");
+
+      try {
+        await chmod(getTmpDir(), 0o000);
+
+        await assert.rejects(move(srcPath, destPath), {
+          name: "FileSystemAccessError",
+        });
+      } finally {
+        await chmod(getTmpDir(), 0o777);
+      }
     });
   });
 });

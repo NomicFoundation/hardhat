@@ -11,6 +11,7 @@ import {
   FileAlreadyExistsError,
   InvalidDirectoryError,
   IsDirectoryError,
+  DirectoryNotEmptyError,
 } from "./errors/fs.js";
 
 /**
@@ -359,6 +360,43 @@ export async function copy(source: string, destination: string): Promise<void> {
       if (await isDirectory(destination)) {
         throw new IsDirectoryError(destination, e);
       }
+    }
+
+    throw new FileSystemAccessError(e.message, e);
+  }
+}
+
+/**
+ * Moves a file or directory from a source to a destination. If the source is a
+ * file and the destination is a file that already exists, it will be overwritten.
+ * If the source is a directory and the destination is a directory, it needs to be empty.
+ *
+ * Note: This method may not work when moving files between different mount points
+ * or file systems, as the underlying `fsPromises.rename` method may not support it.
+ *
+ * @param source The path to the source file or directory.
+ * @param destination The path to the destination file or directory.
+ * @throws FileNotFoundError if the source path or the destination path doesn't exist.
+ * @throws DirectoryNotEmptyError if the source path is a directory and the destination
+ * path is a directory that is not empty.
+ * @throws FileSystemAccessError for any other error.
+ */
+export async function move(source: string, destination: string): Promise<void> {
+  try {
+    await fsPromises.rename(source, destination);
+  } catch (e) {
+    ensureError<NodeJS.ErrnoException>(e);
+    if (e.code === "ENOENT") {
+      if (!(await exists(source))) {
+        throw new FileNotFoundError(source, e);
+      }
+      if (!(await exists(path.dirname(destination)))) {
+        throw new FileNotFoundError(destination, e);
+      }
+    }
+
+    if (e.code === "ENOTEMPTY") {
+      throw new DirectoryNotEmptyError(destination, e);
     }
 
     throw new FileSystemAccessError(e.message, e);
