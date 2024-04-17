@@ -155,11 +155,11 @@ export async function readJsonFile<T>(absolutePathToFile: string): Promise<T> {
 
 /**
  * Writes an object to a JSON file. The encoding used is "utf8" and the file is overwritten.
+ * If part of the path doesn't exist, it will be created.
  *
  * @param absolutePathToFile The path to the file. If the file exists, it will be overwritten.
  * @param object The object to write.
  * @throws JsonSerializationError if the object can't be serialized to JSON.
- * @throws FileNotFoundError if part of the path doesn't exist.
  * @throws FileSystemAccessError for any other error.
  */
 export async function writeJsonFile<T>(absolutePathToFile: string, object: T) {
@@ -199,12 +199,12 @@ export async function readUtf8File(
 
 /**
  * Writes a string to a file. The encoding used is "utf8" and the file is overwritten by default.
+ * If part of the path doesn't exist, it will be created.
  *
  * @param absolutePathToFile The path to the file.
  * @param data The data to write.
  * @param flag The flag to use when writing the file. If not provided, the file will be overwritten.
  * See https://nodejs.org/docs/latest-v20.x/api/fs.html#file-system-flags for more information.
- * @throws FileNotFoundError if part of the path doesn't exist.
  * @throws FileAlreadyExistsError if the file already exists and the flag "x" is used.
  * @throws FileSystemAccessError for any other error.
  */
@@ -213,6 +213,12 @@ export async function writeUtf8File(
   data: string,
   flag?: string,
 ): Promise<void> {
+  const dirPath = path.dirname(absolutePathToFile);
+  const dirExists = await exists(dirPath);
+  if (!dirExists) {
+    await mkdir(dirPath);
+  }
+
   try {
     await fsPromises.writeFile(absolutePathToFile, data, {
       encoding: "utf8",
@@ -220,6 +226,14 @@ export async function writeUtf8File(
     });
   } catch (e) {
     ensureError<NodeJS.ErrnoException>(e);
+    // if the directory was created, we should remove it
+    if (dirExists === false) {
+      try {
+        await remove(dirPath);
+        // we don't want to override the original error
+      } catch (err) {}
+    }
+
     if (e.code === "ENOENT") {
       throw new FileNotFoundError(absolutePathToFile, e);
     }
@@ -449,9 +463,9 @@ export async function chmod(
 
 /**
  * Creates a file with an empty content. If the file already exists, it will be overwritten.
+ * If part of the path doesn't exist, it will be created.
  *
  * @param absolutePath The path to the file to create.
- * @throws FileNotFoundError if part of the path doesn't exist.
  * @throws FileSystemAccessError for any other error.
  */
 export async function createFile(absolutePath: string): Promise<void> {

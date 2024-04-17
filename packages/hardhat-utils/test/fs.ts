@@ -442,6 +442,18 @@ describe("File system utils", () => {
       );
     });
 
+    it("Should write an object tto a JSON file even if part of the path doesn't exist", async function () {
+      const expectedObject = { a: 1, b: 2 };
+      const filePath = path.join(getTmpDir(), "not-exists", "file.json");
+
+      await writeJsonFile(filePath, expectedObject);
+
+      assert.deepEqual(
+        JSON.parse(await readUtf8File(filePath)),
+        expectedObject,
+      );
+    });
+
     it("Should throw JsonSerializationError if the object can't be serialized to JSON", async function () {
       const filePath = path.join(getTmpDir(), "file.json");
       // create an object with a circular reference
@@ -451,15 +463,6 @@ describe("File system utils", () => {
       await assert.rejects(writeJsonFile(filePath, circularObject), {
         name: "JsonSerializationError",
         message: `Error serializing JSON file ${filePath}`,
-      });
-    });
-
-    it("Should throw FileNotFoundError if part of the path doesn't exist", async function () {
-      const filePath = path.join(getTmpDir(), "not-exists", "file.json");
-
-      await assert.rejects(writeJsonFile(filePath, {}), {
-        name: "FileNotFoundError",
-        message: `File ${filePath} not found`,
       });
     });
 
@@ -524,6 +527,15 @@ describe("File system utils", () => {
       assert.equal(await readUtf8File(filePath), content);
     });
 
+    it("Should write a string to a file even if part of the path doesn't exist", async function () {
+      const content = "hello";
+      const filePath = path.join(getTmpDir(), "not-exists", "file.txt");
+
+      await writeUtf8File(filePath, content);
+
+      assert.equal(await readUtf8File(filePath), content);
+    });
+
     it("Should allow setting the flag", async function () {
       const content = "hello";
       const filePath = path.join(getTmpDir(), "file.txt");
@@ -532,15 +544,6 @@ describe("File system utils", () => {
       await writeUtf8File(filePath, content, "a");
 
       assert.equal(await readUtf8File(filePath), `${content}${content}`);
-    });
-
-    it("Should throw FileNotFoundError if part of the path doesn't exist", async function () {
-      const filePath = path.join(getTmpDir(), "not-exists", "file.txt");
-
-      await assert.rejects(writeUtf8File(filePath, "hello"), {
-        name: "FileNotFoundError",
-        message: `File ${filePath} not found`,
-      });
     });
 
     it("Should throw FileAlreadyExistsError if the file already exists and the flag 'x' is used", async function () {
@@ -955,13 +958,12 @@ describe("File system utils", () => {
       assert.ok(await exists(filePath));
     });
 
-    it("Should throw FileNotFoundError if part of the path doesn't exist", async function () {
+    it("Should create a file even if part of the path doesn't exist", async function () {
       const filePath = path.join(getTmpDir(), "not-exists", "file.txt");
 
-      await assert.rejects(createFile(filePath), {
-        name: "FileNotFoundError",
-        message: `File ${filePath} not found`,
-      });
+      await createFile(filePath);
+
+      assert.ok(await exists(filePath));
     });
 
     it("Should throw FileSystemAccessError for any error", async function () {
