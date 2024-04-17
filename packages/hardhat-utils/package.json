@@ -50,5 +50,8 @@
     "tsx": "^4.7.1",
     "typescript": "~5.4.0",
     "typescript-eslint": "7.5.0"
+  },
+  "dependencies": {
+    "undici": "^5.14.0"
   }
 }
