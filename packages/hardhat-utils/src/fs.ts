@@ -9,7 +9,7 @@ import {
   InvalidFileFormatError,
   JsonSerializationError,
   FileAlreadyExistsError,
-  InvalidDirectoryError,
+  NotADirectoryError,
   IsDirectoryError,
   DirectoryNotEmptyError,
 } from "./errors/fs.js";
@@ -43,7 +43,7 @@ export async function getRealPath(absolutePath: string): Promise<string> {
  * @returns An array of absolute paths. Each file has its true case, except
  *  for the initial dirFrom part, which preserves the given casing.
  *  No order is guaranteed. If dirFrom doesn't exist `[]` is returned.
- * @throws InvalidDirectoryError if dirFrom is not a directory.
+ * @throws NotADirectoryError if dirFrom is not a directory.
  * @throws FileSystemAccessError for any other error.
  */
 export async function getAllFilesMatching(
@@ -55,7 +55,7 @@ export async function getAllFilesMatching(
   const results = await Promise.all(
     dirContent.map(async (file) => {
       const absolutePathToFile = path.join(dirFrom, file);
-      const stats = await fsPromises.stat(absolutePathToFile);
+      const stats = await fsPromises.stat(absolutePathToFile); // TODO THIS LINE SHOULD BE WRAPPED IN A TRY CATCH BLOCK
       if (stats.isDirectory()) {
         return getAllFilesMatching(absolutePathToFile, matches);
       } else if (matches === undefined || matches(absolutePathToFile)) {
@@ -77,7 +77,7 @@ export async function getAllFilesMatching(
  * @param relativePath The relative path to get the true case of.
  * @returns The true case of the relative path.
  * @throws FileNotFoundError if the starting directory or the relative path doesn't exist.
- * @throws InvalidDirectoryError if the starting directory is not a directory.
+ * @throws NotADirectoryError if the starting directory is not a directory.
  * @throws FileSystemAccessError for any other error.
  */
 export async function getFileTrueCase(
@@ -239,7 +239,7 @@ export async function writeUtf8File(
  * @param absolutePathToDir The path to the directory.
  * @returns An array of strings with the names of the files and directories in the directory.
  * @throws FileNotFoundError if the directory doesn't exist.
- * @throws InvalidDirectoryError if the path is not a directory.
+ * @throws NotADirectoryError if the path is not a directory.
  * @throws FileSystemAccessError for any other error.
  */
 export async function readdir(absolutePathToDir: string) {
@@ -252,7 +252,7 @@ export async function readdir(absolutePathToDir: string) {
     }
 
     if (e.code === "ENOTDIR") {
-      throw new InvalidDirectoryError(absolutePathToDir, e);
+      throw new NotADirectoryError(absolutePathToDir, e);
     }
 
     throw new FileSystemAccessError(e.message, e);
@@ -456,4 +456,40 @@ export async function chmod(
  */
 export async function createFile(absolutePath: string): Promise<void> {
   await writeUtf8File(absolutePath, "");
+}
+
+/**
+ * Empties a directory by recursively removing all its content. If the
+ * directory doesn't exist, it will be created. The directory itself is
+ * not removed.
+ *
+ * @param absolutePath The path to the directory to empty.
+ * @throws NotADirectoryError if the path is not a directory.
+ * @throws FileSystemAccessError for any other error.
+ */
+export async function emptyDir(absolutePath: string): Promise<void> {
+  let isDir;
+  let mode;
+  try {
+    const stats = await fsPromises.stat(absolutePath);
+    isDir = stats.isDirectory();
+    mode = stats.mode;
+  } catch (e) {
+    ensureError<NodeJS.ErrnoException>(e);
+    if (e.code === "ENOENT") {
+      await mkdir(absolutePath);
+      return;
+    }
+
+    throw new FileSystemAccessError(e.message, e);
+  }
+
+  if (!isDir) {
+    throw new NotADirectoryError(absolutePath, new Error());
+  }
+
+  await remove(absolutePath);
+  await mkdir(absolutePath);
+  // eslint-disable-next-line no-bitwise
+  await chmod(absolutePath, mode & 0o777);
 }

@@ -10,6 +10,7 @@ import {
   chmod,
   copy,
   createFile,
+  emptyDir,
   getAllFilesMatching,
   getChangeTime,
   getFileTrueCase,
@@ -189,14 +190,14 @@ describe("File system utils", () => {
       );
     });
 
-    it("Should throw InvalidDirectoryError if the path is not a directory", async function () {
+    it("Should throw NotADirectoryError if the path is not a directory", async function () {
       const dirPath = path.join(getTmpDir(), "file-1.txt");
 
       await assert.rejects(
         getAllFilesMatching(path.join(getTmpDir(), "file-1.txt")),
         {
-          name: "InvalidDirectoryError",
-          message: `Invalid directory ${dirPath}`,
+          name: "NotADirectoryError",
+          message: `Path ${dirPath} is not a directory`,
         },
       );
     });
@@ -316,13 +317,13 @@ describe("File system utils", () => {
       });
     });
 
-    it("Should throw InvalidDirectoryError if the starting directory is not a directory", async function () {
+    it("Should throw NotADirectoryError if the starting directory is not a directory", async function () {
       const filePath = path.join(getTmpDir(), "file");
       await createFile(filePath);
 
       await assert.rejects(getFileTrueCase(filePath, "asd"), {
-        name: "InvalidDirectoryError",
-        message: `Invalid directory ${filePath}`,
+        name: "NotADirectoryError",
+        message: `Path ${filePath} is not a directory`,
       });
     });
 
@@ -599,13 +600,13 @@ describe("File system utils", () => {
       });
     });
 
-    it("Should throw InvalidDirectoryError if the path is not a directory", async function () {
+    it("Should throw NotADirectoryError if the path is not a directory", async function () {
       const filePath = path.join(getTmpDir(), "file");
       await createFile(filePath);
 
       await assert.rejects(readdir(filePath), {
-        name: "InvalidDirectoryError",
-        message: `Invalid directory ${filePath}`,
+        name: "NotADirectoryError",
+        message: `Path ${filePath} is not a directory`,
       });
     });
 
@@ -974,6 +975,73 @@ describe("File system utils", () => {
         });
       } finally {
         await chmod(getTmpDir(), 0o777);
+      }
+    });
+  });
+
+  describe("emptyDir", function () {
+    it("Should empty a directory", async function () {
+      const dirPath = path.join(getTmpDir(), "dir");
+      await mkdir(dirPath);
+
+      const files = ["file1.txt", "file2.txt", "file3.json"];
+      for (const file of files) {
+        await createFile(path.join(dirPath, file));
+      }
+
+      await emptyDir(dirPath);
+
+      assert.ok(await isDirectory(dirPath));
+      assert.deepEqual(await readdir(dirPath), []);
+    });
+
+    it("Should preserve the directory permissions", async function () {
+      const dirPath = path.join(getTmpDir(), "dir");
+      await mkdir(dirPath);
+      await chmod(dirPath, 0o777);
+
+      await emptyDir(dirPath);
+
+      // eslint-disable-next-line no-bitwise
+      assert.equal((await fsPromises.stat(dirPath)).mode & 0o777, 0o777);
+    });
+
+    it("Should create the directory if it doesn't exist", async function () {
+      const dirPath = path.join(getTmpDir(), "not-exists");
+
+      await emptyDir(dirPath);
+
+      assert.ok(await isDirectory(dirPath));
+      assert.deepEqual(await readdir(dirPath), []);
+    });
+
+    it("Should throw NotADirectoryError if the path is not a directory", async function () {
+      const filePath = path.join(getTmpDir(), "file");
+      await createFile(filePath);
+
+      await assert.rejects(emptyDir(filePath), {
+        name: "NotADirectoryError",
+        message: `Path ${filePath} is not a directory`,
+      });
+    });
+
+    it("Should throw FileSystemAccessError for any error", async function () {
+      const dirPath = path.join(getTmpDir(), "protected-dir");
+      await mkdir(dirPath);
+
+      const files = ["file1.txt", "file2.txt", "file3.json"];
+      for (const file of files) {
+        await createFile(path.join(dirPath, file));
+      }
+
+      try {
+        await chmod(dirPath, 0o000);
+
+        await assert.rejects(emptyDir(dirPath), {
+          name: "FileSystemAccessError",
+        });
+      } finally {
+        await chmod(dirPath, 0o777);
       }
     });
   });

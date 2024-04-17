@@ -28,9 +28,9 @@ export class JsonSerializationError extends CustomError {
   }
 }
 
-export class InvalidDirectoryError extends CustomError {
+export class NotADirectoryError extends CustomError {
   constructor(filePath: string, cause: Error) {
-    super(`Invalid directory ${filePath}`, cause);
+    super(`Path ${filePath} is not a directory`, cause);
   }
 }
 
