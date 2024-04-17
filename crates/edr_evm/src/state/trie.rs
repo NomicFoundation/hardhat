@@ -1,4 +1,4 @@
-mod account_trie;
+mod account;
 mod persistent_memory_db;
 mod state_trie;
 mod storage_trie;
@@ -11,7 +11,7 @@ use revm::{
     DatabaseCommit,
 };
 
-pub use self::account_trie::AccountTrie;
+pub use self::account::AccountTrie;
 use super::{StateDebug, StateError};
 use crate::collections::SharedMap;
 
