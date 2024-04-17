@@ -1,14 +1,14 @@
 use std::hash::Hash;
 
-use revm::primitives::HashMap;
+use rpds::HashTrieMapSync;
 
 #[derive(Clone, Debug)]
-pub struct SharedMapEntry<T> {
+pub struct SharedMapEntry<T: Clone> {
     value: T,
     occurences: usize,
 }
 
-impl<T> SharedMapEntry<T> {
+impl<T: Clone> SharedMapEntry<T> {
     /// Creates a new [`SharedMapEntry`] for the provided value.
     pub fn new(value: T) -> Self {
         Self {
@@ -22,54 +22,59 @@ impl<T> SharedMapEntry<T> {
         self.occurences += 1;
     }
 
-    /// Decrements the number of occurences. If no occurences are left, the
-    /// [`SharedMapEntry`] is consumed.
-    pub fn decrement(mut self) -> Option<Self> {
+    /// Decrements the number of occurences.
+    pub fn decrement(&mut self) {
         self.occurences -= 1;
+    }
 
-        if self.occurences > 0 {
-            Some(self)
-        } else {
-            None
-        }
+    /// Returns the number of occurences
+    pub fn occurences(&self) -> usize {
+        self.occurences
     }
 }
 
 #[derive(Debug, Default)]
-pub struct SharedMap<K, V> {
-    entries: HashMap<K, SharedMapEntry<V>>,
+pub struct SharedMap<K: std::cmp::Eq + std::hash::Hash, V: Clone> {
+    entries: HashTrieMapSync<K, SharedMapEntry<V>>,
 }
 
 impl<K, V> SharedMap<K, V>
 where
-    K: Eq + Hash,
+    K: Eq + Hash + Clone,
+    V: Clone,
 {
     /// Inserts new value or, if it already exists, increments the number of
     /// occurences of the corresponding entry.
     pub fn insert(&mut self, key: K, value: V) {
-        self.entries
-            .entry(key)
-            .and_modify(SharedMapEntry::increment)
-            .or_insert_with(|| SharedMapEntry::new(value));
+        if let Some(entry) = self.entries.get_mut(&key) {
+            entry.increment();
+        } else {
+            self.entries.insert_mut(key, SharedMapEntry::new(value));
+        }
     }
 }
 
 impl<K, V> SharedMap<K, V>
 where
     K: Clone + Eq + Hash,
+    V: Clone,
 {
     /// Decremenents the number of occurences of the value corresponding to the
     /// provided key, if it exists, and removes unused entry.
     pub fn remove(&mut self, key: &K) {
-        self.entries
-            .entry(key.clone())
-            .and_replace_entry_with(|_key, entry| entry.decrement());
+        if let Some(entry) = self.entries.get_mut(key) {
+            entry.decrement();
+            if entry.occurences() == 0 {
+                self.entries.remove_mut(key);
+            }
+        }
     }
 }
 
 impl<K, V> SharedMap<K, V>
 where
     K: Eq + Hash,
+    V: Clone,
 {
     /// Retrieves the entry corresponding to the provided key.
     pub fn get(&self, key: &K) -> Option<&V> {
@@ -79,7 +84,7 @@ where
 
 impl<K, V> Clone for SharedMap<K, V>
 where
-    K: Clone,
+    K: Clone + std::cmp::Eq + std::hash::Hash,
     V: Clone,
 {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]

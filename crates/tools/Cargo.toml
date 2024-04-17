@@ -14,6 +14,7 @@ edr_evm = { version = "0.3.5", path = "../edr_evm", features = ["tracing"] }
 edr_provider = { version = "0.3.5", path = "../edr_provider", features = ["test-utils"] }
 flate2 = "1.0.28"
 indicatif = { version = "0.17.7", features = ["rayon"] }
+mimalloc = { version = "0.1.39", default-features = false }
 reqwest = { version = "0.11.12", features = ["blocking"] }
 serde_json = "1.0.107"
 serde = { version = "1.0.189", features = ["derive"] }

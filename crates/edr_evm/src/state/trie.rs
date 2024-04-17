@@ -1,4 +1,8 @@
 mod account_trie;
+mod persistent_memory_db;
+mod state_trie;
+mod storage_trie;
+mod trie_query;
 
 use edr_eth::{account::KECCAK_EMPTY, Address, B256, U256};
 use revm::{

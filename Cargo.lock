@@ -177,6 +177,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0952808a6c2afd1aa8947271f3a60f1a6763c7b912d210184c5149b5cf147247"
 
 [[package]]
+name = "archery"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8967cd1cc9e9e1954f644e14fbd6042fe9a37da96c52a67e44a2ac18261f8561"
+dependencies = [
+ "static_assertions",
+ "triomphe",
+]
+
+[[package]]
 name = "ark-ff"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -591,8 +601,9 @@ dependencies = [
 
 [[package]]
 name = "cita_trie"
-version = "4.0.0"
-source = "git+https://github.com/Wodann/cita-trie?rev=60efef5#60efef58be0b76c528b6d7fa45a8eccdfd8f615c"
+version = "4.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f8c3d2abadaa28e0d277f9f6d07a2052544f045d929cd4d6f7bcfb43567c9767"
 dependencies = [
  "hasher",
  "parking_lot 0.12.1",
@@ -1062,6 +1073,7 @@ dependencies = [
  "parking_lot 0.12.1",
  "paste",
  "revm",
+ "rpds",
  "serde",
  "serde_json",
  "serial_test",
@@ -1122,6 +1134,7 @@ dependencies = [
  "parking_lot 0.12.1",
  "paste",
  "rand",
+ "rpds",
  "serde",
  "serde_json",
  "serial_test",
@@ -1592,7 +1605,8 @@ dependencies = [
 [[package]]
 name = "hasher"
 version = "0.1.4"
-source = "git+https://github.com/Wodann/hasher?rev=89d3fc9#89d3fc999651b23a6ea9d4eb80427fd043cb2b24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbbba678b6567f27ce22870d951f4208e1dc2fef64993bd4521b1d497ef8a3aa"
 dependencies = [
  "tiny-keccak",
 ]
@@ -3002,6 +3016,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "rpds"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a0e15515d3ce3313324d842629ea4905c25a13f81953eadb88f85516f59290a4"
+dependencies = [
+ "archery",
+]
+
+[[package]]
 name = "ruint"
 version = "1.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3751,6 +3774,7 @@ dependencies = [
  "edr_provider",
  "flate2",
  "indicatif",
+ "mimalloc",
  "reqwest",
  "serde",
  "serde_json",
@@ -3838,6 +3862,12 @@ dependencies = [
  "hash-db",
  "rlp",
 ]
+
+[[package]]
+name = "triomphe"
+version = "0.1.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "859eb650cfee7434994602c3a68b25d77ad9e68c8a6cd491616ef86661382eb3"
 
 [[package]]
 name = "try-lock"

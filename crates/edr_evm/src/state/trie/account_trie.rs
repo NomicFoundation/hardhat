@@ -1,317 +1,93 @@
-use std::{collections::BTreeMap, fmt::Debug, sync::Arc};
+use std::{collections::BTreeMap, fmt::Debug};
 
-use alloy_rlp::Decodable;
-use cita_trie::{MemoryDB, PatriciaTrie, Trie as CitaTrie};
 use edr_eth::{account::BasicAccount, Address, B256, U256};
 use hasher::{Hasher, HasherKeccak};
 use revm::primitives::{Account, AccountInfo, HashMap};
+use rpds::HashTrieMapSync;
 
-/// A change to the account, where `None` implies deletion.
-pub type AccountChange<'a> = (&'a Address, Option<(BasicAccount, &'a HashMap<U256, U256>)>);
+use crate::state::trie::{
+    state_trie::{StateTrie, StateTrieMutation},
+    storage_trie::StorageTrie,
+};
 
-type AccountStorageTries = HashMap<Address, (Arc<MemoryDB>, B256)>;
-
-type Trie = PatriciaTrie<MemoryDB, HasherKeccak>;
+type StorageTries = HashTrieMapSync<Address, StorageTrie>;
 
 /// A trie for maintaining the state of accounts and their storage.
-#[derive(Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct AccountTrie {
-    state_root: B256,
-    state_trie_db: Arc<MemoryDB>,
-    storage_trie_dbs: AccountStorageTries,
+    state_trie: StateTrie,
+    storage_tries: StorageTries,
 }
 
-impl AccountTrie {
+impl<'a> AccountTrie {
     /// Constructs a `TrieState` from an (address -> account) mapping.
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub fn with_accounts(accounts: &HashMap<Address, AccountInfo>) -> Self {
-        let state_trie_db = Arc::new(MemoryDB::new(true));
-        let hasher = Arc::new(HasherKeccak::new());
+        let mut account_trie = Self::default();
 
-        let mut storage_trie_dbs = HashMap::new();
+        {
+            let mut account_trie_mutation = account_trie.mutate();
 
-        let state_root = {
-            let mut state_trie = Trie::new(state_trie_db.clone(), hasher.clone());
             accounts.iter().for_each(|(address, account_info)| {
-                let storage_trie_db = Arc::new(MemoryDB::new(true));
-                let storage_root = {
-                    let mut storage_trie = Trie::new(storage_trie_db.clone(), hasher.clone());
-
-                    B256::from_slice(&storage_trie.root().unwrap())
-                };
-                storage_trie_dbs.insert(*address, (storage_trie_db, storage_root));
-
-                Self::set_account_in(address, account_info, storage_root, &mut state_trie);
+                account_trie_mutation.init_account(address, account_info);
             });
-
-            B256::from_slice(&state_trie.root().unwrap())
-        };
-
-        Self {
-            state_root,
-            state_trie_db,
-            storage_trie_dbs,
         }
-    }
 
-    /// Constructs a `TrieState` from layers of changes.
-    #[cfg_attr(feature = "tracing", tracing::instrument(skip(layers)))]
-    pub fn from_changes<'a, I, C>(layers: I) -> Self
-    where
-        I: IntoIterator<Item = C>,
-        C: IntoIterator<Item = AccountChange<'a>>,
-    {
-        let state_trie_db = Arc::new(MemoryDB::new(true));
-
-        let mut storage_trie_dbs = HashMap::new();
-
-        let state_root = {
-            let mut state_trie = Trie::new(state_trie_db.clone(), Arc::new(HasherKeccak::new()));
-
-            layers.into_iter().for_each(|layer| {
-                layer.into_iter().for_each(|(address, change)| {
-                    if let Some((mut account, storage)) = change {
-                        let (storage_trie_db, storage_root) =
-                            storage_trie_dbs.entry(*address).or_insert_with(|| {
-                                let storage_trie_db = Arc::new(MemoryDB::new(true));
-                                let storage_root = {
-                                    let mut storage_trie = Trie::new(
-                                        storage_trie_db.clone(),
-                                        Arc::new(HasherKeccak::new()),
-                                    );
-                                    B256::from_slice(&storage_trie.root().unwrap())
-                                };
-
-                                (storage_trie_db, storage_root)
-                            });
-
-                        {
-                            let mut storage_trie = Trie::from(
-                                storage_trie_db.clone(),
-                                Arc::new(HasherKeccak::new()),
-                                storage_root.as_slice(),
-                            )
-                            .expect("Invalid storage root");
-
-                            storage.iter().for_each(|(index, value)| {
-                                Self::set_account_storage_slot_in(index, value, &mut storage_trie);
-                            });
-
-                            *storage_root = B256::from_slice(&storage_trie.root().unwrap());
-                        };
-
-                        account.storage_root = *storage_root;
-
-                        let hashed_address = HasherKeccak::new().digest(address.as_slice());
-                        state_trie
-                            .insert(hashed_address, alloy_rlp::encode(&account))
-                            .unwrap();
-                    } else {
-                        Self::remove_account_in(address, &mut state_trie, &mut storage_trie_dbs);
-                    }
-                });
-            });
-
-            B256::from_slice(&state_trie.root().unwrap())
-        };
-
-        Self {
-            state_root,
-            state_trie_db,
-            storage_trie_dbs,
-        }
+        account_trie
     }
 
     /// Retrieves an account corresponding to the specified address from the
     /// state.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
     pub fn account(&self, address: &Address) -> Option<BasicAccount> {
-        let state_trie = Trie::from(
-            self.state_trie_db.clone(),
-            Arc::new(HasherKeccak::new()),
-            self.state_root.as_slice(),
-        )
-        .expect("Invalid state root");
-
-        Self::account_in(address, &state_trie)
+        self.state_trie.account(address)
     }
 
-    fn account_in(address: &Address, state_trie: &Trie) -> Option<BasicAccount> {
-        let hashed_address = HasherKeccak::new().digest(address.as_slice());
-
-        state_trie
-            .get(&hashed_address)
-            .unwrap()
-            .map(|encoded_account| BasicAccount::decode(&mut encoded_account.as_slice()).unwrap())
-    }
-
-    /// Retrieves the storage storage corresponding to the account at the
+    /// Retrieves the storage corresponding to the account at the
     /// specified address and the specified index, if they exist.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
     pub fn account_storage_slot(&self, address: &Address, index: &U256) -> Option<U256> {
-        self.storage_trie_dbs
+        self.storage_tries
             .get(address)
-            .and_then(|(storage_trie_db, storage_root)| {
-                let storage_trie = Trie::from(
-                    storage_trie_db.clone(),
-                    Arc::new(HasherKeccak::new()),
-                    storage_root.as_slice(),
-                )
-                .expect("Invalid storage root");
-
-                let hashed_index = HasherKeccak::new().digest(&index.to_be_bytes::<32>());
-                storage_trie
-                    .get(&hashed_index)
-                    .unwrap()
-                    .map(|decode_value| U256::decode(&mut decode_value.as_slice()).unwrap())
-            })
+            .and_then(|storage_trie| storage_trie.storage_slot(index))
     }
 
     /// Commits changes to the state.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
     pub fn commit(&mut self, changes: &HashMap<Address, Account>) {
-        let mut state_trie = Trie::from(
-            self.state_trie_db.clone(),
-            Arc::new(HasherKeccak::new()),
-            self.state_root.as_slice(),
-        )
-        .expect("Invalid state root");
+        let mut account_trie_mutation = self.mutate();
 
         changes.iter().for_each(|(address, account)| {
             if account.is_touched() {
                 if (account.is_empty() && !account.is_created()) || account.is_selfdestructed() {
                     // Removes account only if it exists, so safe to use for empty, touched accounts
-                    Self::remove_account_in(address, &mut state_trie, &mut self.storage_trie_dbs);
+                    account_trie_mutation.remove_account(address);
                 } else {
+                    // TODO question to reviewers: does it come from the Ethereum protocol or is it
+                    // a quirk of our implementation that an account can already have a storage trie
+                    // when it's status is created?
                     if account.is_created() {
                         // We can simply remove the storage trie db, as it will get reinitialized in
                         // the next operation
-                        self.storage_trie_dbs.remove(address);
+                        account_trie_mutation.remove_account_storage(address);
                     }
 
-                    let (storage_trie_db, storage_root) =
-                        self.storage_trie_dbs.entry(*address).or_insert_with(|| {
-                            let storage_trie_db = Arc::new(MemoryDB::new(true));
-                            let storage_root = {
-                                let mut storage_trie = Trie::new(
-                                    storage_trie_db.clone(),
-                                    Arc::new(HasherKeccak::new()),
-                                );
-
-                                B256::from_slice(&storage_trie.root().unwrap())
-                            };
-
-                            (storage_trie_db, storage_root)
-                        });
-
-                    if !account.storage.is_empty() {
-                        let mut storage_trie = Trie::from(
-                            storage_trie_db.clone(),
-                            Arc::new(HasherKeccak::new()),
-                            storage_root.as_slice(),
-                        )
-                        .expect("Invalid storage root");
-
-                        account.storage.iter().for_each(|(index, value)| {
-                            Self::set_account_storage_slot_in(
-                                index,
-                                &value.present_value,
-                                &mut storage_trie,
-                            );
-                        });
-
-                        *storage_root = B256::from_slice(&storage_trie.root().unwrap());
-                    }
-
-                    Self::set_account_in(address, &account.info, *storage_root, &mut state_trie);
+                    account_trie_mutation.insert_account_storage(address, account);
                 }
             }
         });
-
-        self.state_root = B256::from_slice(&state_trie.root().unwrap());
     }
 
     /// Sets the provided account at the specified address.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
     pub fn set_account(&mut self, address: &Address, account_info: &AccountInfo) {
-        let mut state_trie = Trie::from(
-            self.state_trie_db.clone(),
-            Arc::new(HasherKeccak::new()),
-            self.state_root.as_slice(),
-        )
-        .expect("Invalid state root");
-
-        // Check whether the account already existed. If so, use its storage root.
-        let (_db, storage_root) = self.storage_trie_dbs.entry(*address).or_insert_with(|| {
-            let storage_trie_db = Arc::new(MemoryDB::new(true));
-            let storage_root = {
-                let mut storage_trie =
-                    Trie::new(storage_trie_db.clone(), Arc::new(HasherKeccak::new()));
-                B256::from_slice(&storage_trie.root().unwrap())
-            };
-
-            (storage_trie_db, storage_root)
-        });
-
-        Self::set_account_in(address, account_info, *storage_root, &mut state_trie);
-
-        self.state_root = B256::from_slice(&state_trie.root().unwrap());
-    }
-
-    /// Helper function for setting the account at the specified address into
-    /// the provided state trie.
-    #[cfg_attr(feature = "tracing", tracing::instrument(skip(state_trie)))]
-    fn set_account_in(
-        address: &Address,
-        account_info: &AccountInfo,
-        storage_root: B256,
-        state_trie: &mut Trie,
-    ) {
-        let account = BasicAccount::from((account_info, storage_root));
-
-        let hashed_address = HasherKeccak::new().digest(address.as_slice());
-        state_trie
-            .insert(hashed_address, alloy_rlp::encode(account))
-            .unwrap();
+        self.mutate().insert_account_info(address, account_info);
     }
 
     /// Removes the account at the specified address, if it exists.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
     pub fn remove_account(&mut self, address: &Address) -> Option<BasicAccount> {
-        let mut state_trie = Trie::from(
-            self.state_trie_db.clone(),
-            Arc::new(HasherKeccak::new()),
-            self.state_root.as_slice(),
-        )
-        .expect("Invalid state root");
-
-        let account = Self::remove_account_in(address, &mut state_trie, &mut self.storage_trie_dbs);
-
-        self.state_root = B256::from_slice(&state_trie.root().unwrap());
-
-        account
-    }
-
-    /// Helper function for removing the account at the specified address from
-    /// the provided state trie and storage tries, if it exists.
-    #[cfg_attr(
-        feature = "tracing",
-        tracing::instrument(skip(state_trie, storage_trie_dbs))
-    )]
-    fn remove_account_in(
-        address: &Address,
-        state_trie: &mut Trie,
-        storage_trie_dbs: &mut AccountStorageTries,
-    ) -> Option<BasicAccount> {
-        let account = Self::account_in(address, state_trie);
-
-        if account.is_some() {
-            let hashed_address = HasherKeccak::new().digest(address.as_slice());
-            state_trie.remove(&hashed_address).unwrap();
-
-            storage_trie_dbs.remove(address);
-        }
-
-        account
+        self.mutate().remove_account(address)
     }
 
     /// Serializes the state using ordering of addresses and storage indices.
@@ -331,54 +107,29 @@ impl AccountTrie {
             pub storage_root: B256,
         }
 
-        let state_trie = Trie::from(
-            self.state_trie_db.clone(),
-            Arc::new(HasherKeccak::new()),
-            self.state_root.as_slice(),
-        )
-        .expect("Invalid state root");
-
         let state: BTreeMap<Address, StateAccount> = self
-            .storage_trie_dbs
+            .storage_tries
             .iter()
-            .filter_map(|(address, (storage_trie_db, storage_root))| {
-                let hashed_address = HasherKeccak::new().digest(address.as_slice());
-                let account = state_trie
-                    .get(&hashed_address)
-                    .unwrap()
-                    .unwrap_or_else(|| panic!("Account with address '{address}' and hashed address '{hashed_address:?}' must exist in state, if a storage trie is stored for it"));
-
-                let account = BasicAccount::decode(&mut account.as_slice()).unwrap();
+            .filter_map(|(address, storage_trie)| {
+                let account = self.state_trie.account(address)
+                    .unwrap_or_else(|| {
+                        let hashed_address = HasherKeccak::new().digest(address.as_slice());
+                        panic!("Account with address '{address}' and hashed address '{hashed_address:?}' must exist in state, if a storage trie is stored for it")
+                    });
 
                 if account == BasicAccount::default() {
                     None
                 } else {
-                    let storage_trie = Trie::from(
-                        storage_trie_db.clone(),
-                        Arc::new(HasherKeccak::new()),
-                        storage_root.as_slice(),
-                    )
-                    .expect("Invalid storage root");
-
-                    let storage = storage_trie
-                        .iter()
-                        .map(|(hashed_index, encoded_value)| {
-                            let value = U256::decode(&mut encoded_value.as_slice()).unwrap();
-                            assert_eq!(hashed_index.len(), 32);
-                            (B256::from_slice(&hashed_index), value)
-                        })
-                        .collect();
-
                     let account = StateAccount {
                         balance: account.balance,
                         code_hash: account.code_hash,
                         nonce: account.nonce,
-                        storage,
-                        storage_root: *storage_root,
+                        storage: storage_trie.storage(),
+                        storage_root: storage_trie.root(),
                     };
 
                     Some((*address, account))
-            }})
+                }})
             .collect();
 
         serde_json::to_string_pretty(&state).unwrap()
@@ -399,153 +150,167 @@ impl AccountTrie {
         value: &U256,
         default_account_fn: &dyn Fn() -> Result<AccountInfo, ErrorT>,
     ) -> Result<Option<U256>, ErrorT> {
-        let (storage_trie_db, storage_root) =
-            self.storage_trie_dbs.entry(*address).or_insert_with(|| {
-                let storage_trie_db = Arc::new(MemoryDB::new(true));
-                let storage_root = {
-                    let mut storage_trie =
-                        Trie::new(storage_trie_db.clone(), Arc::new(HasherKeccak::new()));
-                    B256::from_slice(&storage_trie.root().unwrap())
-                };
+        self.mutate()
+            .insert_storage_slot(address, index, value, default_account_fn)
+    }
 
-                (storage_trie_db, storage_root)
-            });
+    /// Retrieves the trie's state root.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
+    pub fn state_root(&self) -> B256 {
+        self.state_trie.root()
+    }
 
-        let old_value = {
-            let mut storage_trie = Trie::from(
-                storage_trie_db.clone(),
-                Arc::new(HasherKeccak::new()),
-                storage_root.as_slice(),
-            )
-            .expect("Invalid storage root");
+    /// Retrieves the storage root of the account at the specified address.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
+    pub fn storage_root(&self, address: &Address) -> Option<B256> {
+        self.storage_tries.get(address).map(StorageTrie::root)
+    }
 
-            let old_value = Self::set_account_storage_slot_in(index, value, &mut storage_trie);
+    fn mutate(&'a mut self) -> AccountTrieMutation<'a> {
+        AccountTrieMutation {
+            state_trie_mut: self.state_trie.mutate(),
+            storage_tries: &mut self.storage_tries,
+        }
+    }
+}
 
-            *storage_root = B256::from_slice(&storage_trie.root().unwrap());
+/// Helper struct that allows setting and removing multiple accounts and then
+/// updates the state root.
+struct AccountTrieMutation<'a> {
+    state_trie_mut: StateTrieMutation<'a>,
+    storage_tries: &'a mut StorageTries,
+}
 
-            old_value
+impl<'a> AccountTrieMutation<'a> {
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
+    pub fn init_account(&mut self, address: &Address, account_info: &AccountInfo) {
+        let storage_trie = StorageTrie::default();
+        let storage_root = storage_trie.root();
+
+        self.storage_tries.insert_mut(*address, storage_trie);
+
+        self.state_trie_mut.insert_account_info_with_storage_root(
+            address,
+            account_info,
+            storage_root,
+        );
+    }
+
+    /// Create or update teh account info. Ensures that a storage trie exists.
+    pub fn insert_account_info(&mut self, address: &Address, account_info: &AccountInfo) {
+        let storage_root = if let Some(storage_trie) = self.storage_tries.get_mut(address) {
+            storage_trie.root()
+        } else {
+            let storage_trie = StorageTrie::default();
+
+            let root = storage_trie.root();
+            self.storage_tries.insert_mut(*address, storage_trie);
+            root
         };
 
-        let mut state_trie = Trie::from(
-            self.state_trie_db.clone(),
-            Arc::new(HasherKeccak::new()),
-            self.state_root.as_slice(),
-        )
-        .expect("Invalid state root");
+        self.state_trie_mut.insert_account_info_with_storage_root(
+            address,
+            account_info,
+            storage_root,
+        );
+    }
 
-        let hashed_address = HasherKeccak::new().digest(address.as_slice());
-        let account = if let Some(account) = state_trie.get(&hashed_address).unwrap() {
-            let mut account = BasicAccount::decode(&mut account.as_slice()).unwrap();
-            account.storage_root = *storage_root;
+    /// Create or update the account storage.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
+    pub fn insert_account_storage(&mut self, address: &Address, account: &Account) {
+        let storage_root = if let Some(storage_trie) = self.storage_tries.get_mut(address) {
+            // Dropping the mutation will update the storage trie root
+            if !account.storage.is_empty() {
+                let mut storage_trie_mutation = storage_trie.mutate();
+                storage_trie_mutation.set_storage_slots(&account.storage);
+            }
+
+            storage_trie.root()
+        } else {
+            let mut storage_trie = StorageTrie::default();
+
+            if !account.storage.is_empty() {
+                let mut storage_trie_mutation = storage_trie.mutate();
+                storage_trie_mutation.set_storage_slots(&account.storage);
+            }
+
+            let root = storage_trie.root();
+            self.storage_tries.insert_mut(*address, storage_trie);
+            root
+        };
+
+        self.state_trie_mut.insert_account_info_with_storage_root(
+            address,
+            &account.info,
+            storage_root,
+        );
+    }
+
+    /// Sets the storage slot at the specified address and index to the provided
+    /// value. Create storage trie and account in state trie if necessary.
+    pub fn insert_storage_slot<ErrorT>(
+        &mut self,
+        address: &Address,
+        index: &U256,
+        value: &U256,
+        default_account_fn: &dyn Fn() -> Result<AccountInfo, ErrorT>,
+    ) -> Result<Option<U256>, ErrorT> {
+        let (storage_root, old_value) =
+            if let Some(storage_trie) = self.storage_tries.get_mut(address) {
+                let old_value = { storage_trie.mutate().set_storage_slot(index, value) };
+                (storage_trie.root(), old_value)
+            } else {
+                let mut storage_trie = StorageTrie::default();
+
+                let old_value = { storage_trie.mutate().set_storage_slot(index, value) };
+
+                let storage_root = storage_trie.root();
+                self.storage_tries.insert_mut(*address, storage_trie);
+                (storage_root, old_value)
+            };
+
+        let account = if let Some(mut account) = self.state_trie_mut.account(address) {
+            account.storage_root = storage_root;
             account
         } else {
             let default_account = default_account_fn()?;
             BasicAccount {
                 nonce: default_account.nonce,
                 balance: default_account.balance,
-                storage_root: *storage_root,
+                storage_root,
                 code_hash: default_account.code_hash,
             }
         };
 
-        state_trie
-            .insert(hashed_address, alloy_rlp::encode(account))
-            .unwrap();
-
-        self.state_root = B256::from_slice(&state_trie.root().unwrap());
+        self.state_trie_mut.insert_basic_account(address, account);
 
         Ok(old_value)
     }
 
-    /// Helper function for setting the storage slot at the specified address
-    /// and index to the provided value.
-    #[cfg_attr(feature = "tracing", tracing::instrument(skip(storage_trie)))]
-    fn set_account_storage_slot_in(
-        index: &U256,
-        value: &U256,
-        storage_trie: &mut Trie,
-    ) -> Option<U256> {
-        let hashed_index = HasherKeccak::new().digest(&index.to_be_bytes::<32>());
+    /// Helper function for removing the account at the specified address from
+    /// the provided state trie and storage tries, if it exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
+    pub fn remove_account(&mut self, address: &Address) -> Option<BasicAccount> {
+        let account = self.state_trie_mut.account(address);
 
-        let old_value = storage_trie
-            .get(&hashed_index)
-            .unwrap()
-            .map(|decode_value| U256::decode(&mut decode_value.as_slice()).unwrap());
+        if account.is_some() {
+            self.state_trie_mut.remove_account(address);
 
-        if *value == U256::ZERO {
-            if old_value.is_some() {
-                storage_trie.remove(&hashed_index).unwrap();
-            }
-        } else {
-            storage_trie
-                .insert(hashed_index, alloy_rlp::encode(value))
-                .unwrap();
+            self.remove_account_storage(address);
         }
 
-        old_value
+        account
     }
 
-    /// Retrieves the trie's state root.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
-    pub fn state_root(&self) -> B256 {
-        self.state_root
-    }
-
-    /// Retrieves the storage root of the account at the specified address.
-    #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
-    pub fn storage_root(&self, address: &Address) -> Option<B256> {
-        self.storage_trie_dbs.get(address).map(|(_db, root)| *root)
-    }
-}
-
-impl Clone for AccountTrie {
-    #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
-    fn clone(&self) -> Self {
-        let state_trie_db = Arc::new((*self.state_trie_db).clone());
-
-        let storage_trie_dbs = self
-            .storage_trie_dbs
-            .iter()
-            .map(|(address, (storage_trie_db, storage_root))| {
-                let storage_trie_db = Arc::new((**storage_trie_db).clone());
-
-                (*address, (storage_trie_db, *storage_root))
-            })
-            .collect();
-
-        Self {
-            state_root: self.state_root,
-            state_trie_db,
-            storage_trie_dbs,
-        }
-    }
-}
-
-impl Default for AccountTrie {
-    #[cfg_attr(feature = "tracing", tracing::instrument)]
-    fn default() -> Self {
-        let state_trie_db = Arc::new(MemoryDB::new(true));
-        let state_root = {
-            let mut state_trie = Trie::new(state_trie_db.clone(), Arc::new(HasherKeccak::new()));
-
-            B256::from_slice(&state_trie.root().unwrap())
-        };
-
-        Self {
-            state_root,
-            state_trie_db,
-            storage_trie_dbs: HashMap::new(),
-        }
+    pub fn remove_account_storage(&mut self, address: &Address) {
+        self.storage_tries.remove_mut(address);
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use edr_eth::{
-        account::KECCAK_EMPTY,
-        state::{state_root, storage_root, Storage},
-        trie::KECCAK_NULL_RLP,
-    };
+    use edr_eth::{state::state_root, trie::KECCAK_NULL_RLP};
 
     use super::*;
 
@@ -621,142 +386,5 @@ mod tests {
         let state = AccountTrie::with_accounts(&accounts);
 
         assert_eq!(state.state_root(), old);
-    }
-
-    #[test]
-    fn from_changes_empty() {
-        let changes: Vec<Vec<AccountChange<'_>>> = Vec::new();
-        let state = AccountTrie::from_changes(changes);
-
-        assert_eq!(state.state_root(), KECCAK_NULL_RLP);
-    }
-
-    #[test]
-    fn from_changes_one_layer() {
-        const DUMMY_ADDRESS: [u8; 20] = [1u8; 20];
-        const DUMMY_STORAGE_SLOT_INDEX: u64 = 100;
-        const DUMMY_STORAGE_SLOT_VALUE: u64 = 100;
-
-        let expected_address = Address::from(DUMMY_ADDRESS);
-        let expected_index = U256::from(DUMMY_STORAGE_SLOT_INDEX);
-        let expected_storage_value = U256::from(DUMMY_STORAGE_SLOT_VALUE);
-
-        let mut expected_storage = Storage::new();
-        expected_storage.insert(expected_index, expected_storage_value);
-
-        let expected_account = BasicAccount {
-            nonce: 1,
-            balance: U256::from(100u32),
-            storage_root: storage_root(expected_storage.iter()),
-            code_hash: KECCAK_EMPTY,
-        };
-
-        let changes: Vec<Vec<AccountChange<'_>>> = vec![vec![(
-            &expected_address,
-            Some((expected_account.clone(), &expected_storage)),
-        )]];
-        let state = AccountTrie::from_changes(changes);
-
-        let account = state.account(&expected_address);
-        assert_eq!(account, Some(expected_account));
-
-        let storage_value = state.account_storage_slot(&expected_address, &expected_index);
-        assert_eq!(storage_value, Some(expected_storage_value));
-    }
-
-    #[test]
-    fn from_changes_two_layers() {
-        const DUMMY_ADDRESS: [u8; 20] = [1u8; 20];
-        const DUMMY_STORAGE_SLOT_INDEX: u64 = 100;
-        const DUMMY_STORAGE_SLOT_VALUE1: u64 = 50;
-        const DUMMY_STORAGE_SLOT_VALUE2: u64 = 100;
-
-        let expected_address = Address::from(DUMMY_ADDRESS);
-        let expected_index = U256::from(DUMMY_STORAGE_SLOT_INDEX);
-        let expected_storage_value = U256::from(DUMMY_STORAGE_SLOT_VALUE2);
-
-        let mut storage_layer1 = Storage::new();
-        storage_layer1.insert(expected_index, U256::from(DUMMY_STORAGE_SLOT_VALUE1));
-
-        let init_account = BasicAccount {
-            nonce: 1,
-            balance: U256::from(100u32),
-            storage_root: storage_root(storage_layer1.iter()),
-            code_hash: KECCAK_EMPTY,
-        };
-
-        let mut storage_layer2 = Storage::new();
-        storage_layer2.insert(expected_index, expected_storage_value);
-
-        let expected_account = BasicAccount {
-            nonce: 2,
-            balance: U256::from(200u32),
-            storage_root: storage_root(storage_layer2.iter()),
-            code_hash: KECCAK_EMPTY,
-        };
-
-        let changes: Vec<Vec<AccountChange<'_>>> = vec![
-            vec![(&expected_address, Some((init_account, &storage_layer1)))],
-            vec![(
-                &expected_address,
-                Some((expected_account.clone(), &storage_layer2)),
-            )],
-        ];
-        let state = AccountTrie::from_changes(changes);
-
-        let account = state.account(&expected_address);
-        assert_eq!(account, Some(expected_account));
-
-        let storage_value = state.account_storage_slot(&expected_address, &expected_index);
-        assert_eq!(storage_value, Some(expected_storage_value));
-    }
-
-    #[test]
-    fn from_changes_remove_zeroed_storage_slot() {
-        const DUMMY_ADDRESS: [u8; 20] = [1u8; 20];
-        const DUMMY_STORAGE_SLOT_INDEX: u64 = 100;
-        const DUMMY_STORAGE_SLOT_VALUE: u64 = 100;
-
-        let expected_address = Address::from(DUMMY_ADDRESS);
-        let expected_index = U256::from(DUMMY_STORAGE_SLOT_INDEX);
-
-        let mut storage_layer1 = Storage::new();
-        storage_layer1.insert(expected_index, U256::from(DUMMY_STORAGE_SLOT_VALUE));
-
-        let init_account = BasicAccount {
-            nonce: 1,
-            balance: U256::from(100u32),
-            storage_root: storage_root(storage_layer1.iter()),
-            code_hash: KECCAK_EMPTY,
-        };
-
-        let mut storage_layer2 = Storage::new();
-        storage_layer2.insert(U256::from(100), U256::ZERO);
-
-        let expected_account = BasicAccount {
-            nonce: 2,
-            balance: U256::from(200u32),
-            storage_root: storage_root(
-                storage_layer2
-                    .iter()
-                    .filter(|(_index, value)| **value != U256::ZERO),
-            ),
-            code_hash: KECCAK_EMPTY,
-        };
-
-        let changes: Vec<Vec<AccountChange<'_>>> = vec![
-            vec![(&expected_address, Some((init_account, &storage_layer1)))],
-            vec![(
-                &expected_address,
-                Some((expected_account.clone(), &storage_layer2)),
-            )],
-        ];
-        let state = AccountTrie::from_changes(changes);
-
-        let account = state.account(&expected_address);
-        assert_eq!(account, Some(expected_account));
-
-        let storage_value = state.account_storage_slot(&expected_address, &expected_index);
-        assert_eq!(storage_value, None);
     }
 }

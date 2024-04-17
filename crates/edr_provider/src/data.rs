@@ -50,6 +50,7 @@ use gas::gas_used_ratio;
 use indexmap::IndexMap;
 use itertools::izip;
 use lru::LruCache;
+use rpds::HashTrieMapSync;
 use tokio::runtime;
 
 use self::account::{create_accounts, InitialAccounts};
@@ -73,7 +74,7 @@ use crate::{
 
 const DEFAULT_INITIAL_BASE_FEE_PER_GAS: u64 = 1_000_000_000;
 const EDR_MAX_CACHED_STATES_ENV_VAR: &str = "__EDR_MAX_CACHED_STATES";
-const DEFAULT_MAX_CACHED_STATES: usize = 10;
+const DEFAULT_MAX_CACHED_STATES: usize = 1_000_000;
 
 /// The result of executing an `eth_call`.
 #[derive(Clone, Debug)]
@@ -155,7 +156,7 @@ pub struct ProviderData<LoggerErrorT: Debug> {
     // self to get.
     block_state_cache: LruCache<StateId, Arc<Box<dyn SyncState<StateError>>>>,
     current_state_id: StateId,
-    block_number_to_state_id: BTreeMap<u64, StateId>,
+    block_number_to_state_id: HashTrieMapSync<u64, StateId>,
 }
 
 impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
@@ -195,11 +196,11 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             },
         )?;
         let mut block_state_cache = LruCache::new(max_cached_states);
-        let mut block_number_to_state_id = BTreeMap::new();
+        let mut block_number_to_state_id = HashTrieMapSync::default();
 
         let current_state_id = StateId::default();
         block_state_cache.push(current_state_id, Arc::new(state));
-        block_number_to_state_id.insert(blockchain.last_block_number(), current_state_id);
+        block_number_to_state_id.insert_mut(blockchain.last_block_number(), current_state_id);
 
         let allow_blocks_with_same_timestamp = config.allow_blocks_with_same_timestamp;
         let allow_unlimited_contract_size = config.allow_unlimited_contract_size;
@@ -2141,7 +2142,8 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
     ) -> StateId {
         let state_id = self.current_state_id.increment();
         self.block_state_cache.push(state_id, Arc::new(state));
-        self.block_number_to_state_id.insert(block_number, state_id);
+        self.block_number_to_state_id
+            .insert_mut(block_number, state_id);
         state_id
     }
 }
