@@ -2041,9 +2041,10 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 .ok_or(ProviderError::UnknownAddress { address: sender })?;
 
             let signed_transaction = request.sign(secret_key)?;
-            Ok(ExecutableTransaction::new(
+            Ok(ExecutableTransaction::with_caller(
                 self.blockchain.spec_id(),
                 signed_transaction,
+                sender,
             )?)
         }
     }
