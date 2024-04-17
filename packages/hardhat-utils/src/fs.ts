@@ -306,6 +306,12 @@ export async function mkdir(absolutePath: string): Promise<void> {
 }
 
 /**
+ * Alias for `mkdir`.
+ * @see mkdir
+ */
+export const ensureDir = mkdir;
+
+/**
  * Retrieves the last change time of a file or directory's properties.
  * This includes changes to the file's metadata or contents.
  *
