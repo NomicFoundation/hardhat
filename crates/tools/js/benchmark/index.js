@@ -215,7 +215,12 @@ function numIterations(scenarioName) {
   // Run fast scenarios repeatedly to get more reliable results
   if (scenarioName.includes("safe-contracts")) {
     return 15;
-  } else if (scenarioName.includes("seaport")) {
+  } else if (
+    scenarioName.includes("seaport") ||
+    scenarioName.includes("openzeppelin") ||
+    scenarioName.includes("rocketpool") ||
+    scenarioName.includes("uniswap")
+  ) {
     return 5;
   } else {
     return 1;
