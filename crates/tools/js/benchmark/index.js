@@ -222,6 +222,8 @@ function numIterations(scenarioName) {
     scenarioName.includes("uniswap")
   ) {
     return 5;
+  } else if (scenarioName.includes("neptune-mutual")) {
+    return 3;
   } else {
     return 1;
   }
