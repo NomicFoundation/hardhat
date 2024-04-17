@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 2.0.6
+
+### Patch Changes
+
+- 62d24cd: Added baseSepolia (thanks @hironate)
+
 ## 2.0.5
 
 ### Patch Changes

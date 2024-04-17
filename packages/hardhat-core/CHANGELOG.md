@@ -1,5 +1,13 @@
 # hardhat
 
+## 2.22.3
+
+### Patch Changes
+
+- 6466e3a: A proper error is now thrown when requiring EDR fails
+- ae62841: Upgrade EDR to version [0.3.5](https://github.com/NomicFoundation/hardhat/blob/3b36d76a88915de6bb5efd0eb110cc1782c461ca/crates/edr_napi/CHANGELOG.md#035)
+- 679d8a5: Report [HH18](https://hardhat.org/hardhat-runner/docs/errors#HH18) to Sentry.
+
 ## 2.22.2
 
 ### Patch Changes
