@@ -23,7 +23,7 @@
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "pretest": "cd ../.. && pnpm build",
-    "test": "glob --cmd='node --import tsx/esm --test' 'test/**/*.ts'",
+    "test": "glob --cmd=\"node --import tsx/esm --test\" 'test/**/*.ts'",
     "build": "tsc --build .",
     "prepublishOnly": "pnpm build",
     "clean": "rimraf dist"
