@@ -95,6 +95,7 @@ pub struct SendTransactionResult {
 }
 
 impl SendTransactionResult {
+    /// Present if the transaction was auto-mined.
     pub fn transaction_result_and_trace(&self) -> Option<(&ExecutionResult, &Trace)> {
         self.mining_results.iter().find_map(|result| {
             result
