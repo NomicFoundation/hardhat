@@ -1,7 +1,7 @@
 use core::fmt::Debug;
 use std::sync::Arc;
 
-use edr_eth::Bytes;
+use edr_eth::{Bytes, B256};
 use edr_evm::{
     state::{StateDiff, SyncState},
     trace::Trace,
@@ -56,6 +56,34 @@ pub struct DebugMineBlockResult<BlockchainErrorT> {
     pub transaction_traces: Vec<Trace>,
     /// Encoded `console.log` call inputs
     pub console_log_inputs: Vec<Bytes>,
+}
+
+impl<BlockchainErrorT> DebugMineBlockResult<BlockchainErrorT> {
+    /// Whether the block contains a transaction with the given hash.
+    pub fn has_transaction(&self, transaction_hash: &B256) -> bool {
+        self.block
+            .transactions()
+            .iter()
+            .any(|tx| *tx.hash() == *transaction_hash)
+    }
+
+    /// Returns the index of the transaction with the given hash in the block.
+    pub fn transaction_index(&self, transaction_hash: &B256) -> Option<usize> {
+        self.block
+            .transactions()
+            .iter()
+            .position(|tx| *tx.hash() == *transaction_hash)
+    }
+
+    /// Returns the transaction result of the transaction with the given index.
+    pub fn transaction_result(&self, transaction_index: usize) -> Option<&ExecutionResult> {
+        self.transaction_results.get(transaction_index)
+    }
+
+    /// Returns the transaction trace of the transaction with the given index.
+    pub fn transaction_trace(&self, transaction_index: usize) -> Option<&Trace> {
+        self.transaction_traces.get(transaction_index)
+    }
 }
 
 impl<BlockchainErrorT> Clone for DebugMineBlockResult<BlockchainErrorT> {

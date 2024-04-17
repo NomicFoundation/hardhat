@@ -48,7 +48,6 @@ use edr_evm::{
 use ethers_core::types::transaction::eip712::{Eip712, TypedData};
 use gas::gas_used_ratio;
 use indexmap::IndexMap;
-use itertools::izip;
 use lru::LruCache;
 use rpds::HashTrieMapSync;
 use tokio::runtime;
@@ -92,9 +91,38 @@ pub struct EstimateGasResult {
 
 pub struct SendTransactionResult {
     pub transaction_hash: B256,
-    /// Present if the transaction was auto-mined.
-    pub transaction_result: Option<(ExecutionResult, Trace)>,
     pub mining_results: Vec<DebugMineBlockResult<BlockchainError>>,
+}
+
+impl SendTransactionResult {
+    pub fn transaction_result_and_trace(&self) -> Option<(&ExecutionResult, &Trace)> {
+        self.mining_results.iter().find_map(|result| {
+            result
+                .transaction_index(&self.transaction_hash)
+                .map(|index| {
+                    (
+                        result.transaction_result(index).expect("index is valid"),
+                        result.transaction_trace(index).expect("index is valid"),
+                    )
+                })
+        })
+    }
+}
+
+impl From<SendTransactionResult> for (B256, Vec<Trace>) {
+    fn from(value: SendTransactionResult) -> Self {
+        let SendTransactionResult {
+            transaction_hash,
+            mining_results,
+        } = value;
+
+        let traces = mining_results
+            .into_iter()
+            .flat_map(|result| result.transaction_traces)
+            .collect();
+
+        (transaction_hash, traces)
+    }
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -1432,60 +1460,46 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
                 })?;
 
         let mut mining_results = Vec::new();
-        let transaction_result = snapshot_id
-            .map(
-                |snapshot_id| -> Result<(ExecutionResult, Trace), ProviderError<LoggerErrorT>> {
-                    let transaction_result = loop {
-                        let result = self
-                            .mine_and_commit_block(BlockOptions::default())
-                            .map_err(|error| {
-                                self.revert_to_snapshot(snapshot_id);
+        snapshot_id
+            .map(|snapshot_id| -> Result<(), ProviderError<LoggerErrorT>> {
+                loop {
+                    let result = self
+                        .mine_and_commit_block(BlockOptions::default())
+                        .map_err(|error| {
+                            self.revert_to_snapshot(snapshot_id);
 
-                                error
-                            })?;
+                            error
+                        })?;
 
-                        let transaction_result = izip!(
-                            result.block.transactions().iter(),
-                            result.transaction_results.iter(),
-                            result.transaction_traces.iter()
-                        )
-                        .find_map(|(transaction, result, trace)| {
-                            if *transaction.hash() == transaction_hash {
-                                Some((result.clone(), trace.clone()))
-                            } else {
-                                None
-                            }
-                        });
+                    let mined_transaction = result.has_transaction(&transaction_hash);
 
-                        mining_results.push(result);
+                    mining_results.push(result);
 
-                        if let Some(transaction_result) = transaction_result {
-                            break transaction_result;
-                        }
-                    };
-
-                    while self.mem_pool.has_pending_transactions() {
-                        let result = self
-                            .mine_and_commit_block(BlockOptions::default())
-                            .map_err(|error| {
-                                self.revert_to_snapshot(snapshot_id);
-
-                                error
-                            })?;
-
-                        mining_results.push(result);
+                    if mined_transaction {
+                        break;
                     }
+                }
 
-                    self.snapshots.remove(&snapshot_id);
+                while self.mem_pool.has_pending_transactions() {
+                    let result = self
+                        .mine_and_commit_block(BlockOptions::default())
+                        .map_err(|error| {
+                            self.revert_to_snapshot(snapshot_id);
 
-                    Ok(transaction_result)
-                },
-            )
+                            error
+                        })?;
+
+                    mining_results.push(result);
+                }
+
+                self.snapshots.remove(&snapshot_id);
+
+                Ok(())
+            })
             .transpose()?;
 
         Ok(SendTransactionResult {
             transaction_hash,
-            transaction_result,
             mining_results,
         })
     }
