@@ -34,6 +34,7 @@ impl EdrContext {
 
 #[derive(Debug)]
 pub struct Context {
+    _subscriber_guard: tracing::subscriber::DefaultGuard,
     #[cfg(feature = "tracing")]
     _tracing_write_guard: tracing_flame::FlushGuard<std::io::BufWriter<std::fs::File>>,
 }
@@ -63,10 +64,10 @@ impl Context {
         #[cfg(feature = "tracing")]
         let subscriber = subscriber.with(flame_layer);
 
-        tracing::subscriber::set_global_default(subscriber)
-            .expect("Could not set global default tracing subscriber");
+        let subscriber_guard = tracing::subscriber::set_default(subscriber);
 
         Ok(Self {
+            _subscriber_guard: subscriber_guard,
             #[cfg(feature = "tracing")]
             _tracing_write_guard: guard,
         })
