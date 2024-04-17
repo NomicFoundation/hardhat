@@ -11,6 +11,7 @@ import {
   copy,
   createFile,
   emptyDir,
+  findUp,
   getAllFilesMatching,
   getChangeTime,
   getFileTrueCase,
@@ -1045,6 +1046,29 @@ describe("File system utils", () => {
       } finally {
         await chmod(dirPath, 0o777);
       }
+    });
+  });
+
+  describe("findUp", function () {
+    it("Should find a file in the current directory", async function () {
+      const filePath = path.join(getTmpDir(), "file.txt");
+      await createFile(filePath);
+
+      assert.equal(await findUp("file.txt", getTmpDir()), filePath);
+    });
+
+    it("Should find a file in a parent directory", async function () {
+      const filePath = path.join(getTmpDir(), "file.txt");
+      await createFile(filePath);
+
+      assert.equal(
+        await findUp("file.txt", path.join(getTmpDir(), "subdir")),
+        filePath,
+      );
+    });
+
+    it("Should return undefined if the file is not found", async function () {
+      assert.equal(await findUp("not-exists.txt"), undefined);
     });
   });
 });

@@ -513,3 +513,30 @@ export async function emptyDir(absolutePath: string): Promise<void> {
   // eslint-disable-next-line no-bitwise
   await chmod(absolutePath, mode & 0o777);
 }
+
+/**
+ * Looks for a file in the current directory and its parents.
+ *
+ * @param fileName The name of the file to look for.
+ * @param from The directory to start the search from. Defaults to the current working directory.
+ * @returns The absolute path to the file, or `undefined` if it wasn't found.
+ */
+export async function findUp(
+  fileName: string,
+  from: string = process.cwd(),
+): Promise<string | undefined> {
+  let currentDir = from;
+  while (true) {
+    const absolutePath = path.join(currentDir, fileName);
+    if (await exists(absolutePath)) {
+      return absolutePath;
+    }
+
+    const parentDir = path.dirname(currentDir);
+    if (parentDir === currentDir) {
+      return undefined;
+    }
+
+    currentDir = parentDir;
+  }
+}
