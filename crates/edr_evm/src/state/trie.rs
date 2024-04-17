@@ -1,4 +1,4 @@
-mod account;
+mod account_trie;
 
 use edr_eth::{account::KECCAK_EMPTY, Address, B256, U256};
 use revm::{
@@ -7,7 +7,7 @@ use revm::{
     DatabaseCommit,
 };
 
-pub use self::account::AccountTrie;
+pub use self::account_trie::AccountTrie;
 use super::{StateDebug, StateError};
 use crate::collections::SharedMap;
 
