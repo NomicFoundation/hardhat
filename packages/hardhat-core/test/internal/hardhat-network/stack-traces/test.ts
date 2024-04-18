@@ -290,6 +290,7 @@ function compareStackTraces(
   description: StackFrameDescription[],
   optimizer: SolidityCompilerOptimizer | undefined
 ) {
+  console.log("start compareStackTraces");
   const isViaIR = optimizer?.viaIR === true;
 
   // if IR is enabled, we ignore callstack entries in the comparison
@@ -453,9 +454,11 @@ function compareStackTraces(
 
   // We do it here so that the first few do get compared
   assert.lengthOf(trace, description.length);
+  console.log("end compareStackTraces");
 }
 
 function compareConsoleLogs(logs: string[], expectedLogs?: ConsoleLogs[]) {
+  console.log("start compareConsoleLogs");
   if (expectedLogs === undefined) {
     return;
   }
@@ -468,6 +471,7 @@ function compareConsoleLogs(logs: string[], expectedLogs?: ConsoleLogs[]) {
 
     assert.equal(actual, expected);
   }
+  console.log("end compareConsoleLogs");
 }
 
 async function runTest(
@@ -476,6 +480,7 @@ async function runTest(
   sources: string[],
   compilerOptions: SolidityCompiler
 ) {
+  console.log("start runTest");
   const [compilerInput, compilerOutput] = await compileIfNecessary(
     testDir,
     sources,
@@ -592,6 +597,8 @@ async function runTest(
       }
     }
   }
+
+  console.log("end runTest");
 }
 
 function linkBytecode(
@@ -600,6 +607,7 @@ function linkBytecode(
   libs: { [file: string]: { [lib: string]: number } },
   txIndexToContract: Map<number, DeployedContract>
 ): Buffer {
+  console.log("start linkBytecode");
   let code = bytecode.object;
 
   for (const [file, fileLibs] of Object.entries<any>(bytecode.linkReferences)) {
@@ -643,7 +651,9 @@ function linkBytecode(
     `Libraries missing for deploying transaction ${txIndex}`
   );
 
-  return Buffer.from(code, "hex");
+  const r = Buffer.from(code, "hex");
+  console.log("end linkBytecode");
+  return r;
 }
 
 async function runDeploymentTransactionTest(
@@ -701,6 +711,7 @@ async function runCallTransactionTest(
   compilerOutput: CompilerOutput,
   contract: DeployedContract
 ): Promise<CallMessageTrace> {
+  console.log("start runCallTransactionTest");
   const compilerContract =
     compilerOutput.contracts[contract.file][contract.name];
 
@@ -725,6 +736,7 @@ async function runCallTransactionTest(
     gas: tx.gas !== undefined ? BigInt(tx.gas) : undefined,
   });
 
+  console.log("end runCallTransactionTest");
   return trace as CallMessageTrace;
 }
 

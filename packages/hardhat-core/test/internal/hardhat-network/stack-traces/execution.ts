@@ -148,6 +148,6 @@ export async function traceTransaction(
     return trace;
   } finally {
     vmTracer.clearLastError();
+    console.log("end traceTransaction");
   }
-  console.log("end traceTransaction");
 }
