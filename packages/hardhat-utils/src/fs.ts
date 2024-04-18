@@ -373,8 +373,9 @@ export async function copy(source: string, destination: string): Promise<void> {
       }
     }
 
-    // On linux, trying to copy a directory will throw EISDIR, while on Windows it will throw EPERM.
-    if (e.code === "EISDIR" || e.code === "EPERM") {
+    // On linux, trying to copy a directory will throw EISDIR,
+    // on Windows it will throw EPERM, and on macOS it will throw ENOTSUP.
+    if (e.code === "EISDIR" || e.code === "EPERM" || e.code === "ENOTSUP") {
       if (await isDirectory(source)) {
         throw new IsDirectoryError(source, e);
       }
