@@ -4,7 +4,9 @@ import { ERRORS } from "../internal/core/errors-list";
 export function requireNapiRsModule(id: string): unknown {
   console.log("start requireNapiRsModule");
   try {
-    return require(id);
+    let r = require(id);
+    console.log("end requireNapiRsModule");
+    return r;
   } catch (e: any) {
     if (e.code === "MODULE_NOT_FOUND") {
       throw new HardhatError(ERRORS.GENERAL.CORRUPTED_LOCKFILE);
@@ -13,5 +15,4 @@ export function requireNapiRsModule(id: string): unknown {
     // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
     throw e;
   }
-  console.log("end requireNapiRsModule");
 }
