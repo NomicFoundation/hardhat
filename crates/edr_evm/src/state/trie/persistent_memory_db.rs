@@ -25,7 +25,6 @@ impl Default for PersistentMemoryDB {
     }
 }
 
-// TODO test https://github.com/Wodann/cita-trie/commit/60efef58be0b76c528b6d7fa45a8eccdfd8f615c
 impl Clone for PersistentMemoryDB {
     fn clone(&self) -> Self {
         Self {
