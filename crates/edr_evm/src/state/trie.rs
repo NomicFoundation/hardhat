@@ -114,13 +114,16 @@ impl TrieState {
 
 impl Default for TrieState {
     fn default() -> Self {
+        println!("start TrieState::default()");
         let mut contracts = SharedMap::default();
         contracts.insert(KECCAK_EMPTY, Bytecode::new());
 
-        Self {
+        let r = Self {
             accounts: AccountTrie::default(),
             contracts,
-        }
+        };
+        println!("end TrieState::default()");
+        r
     }
 }
 

@@ -197,7 +197,9 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             },
         )?;
         let mut block_state_cache = LruCache::new(max_cached_states);
+        println!("pre HashTrieMapSync::default()");
         let mut block_number_to_state_id = HashTrieMapSync::default();
+        println!("post HashTrieMapSync::default()");
 
         let current_state_id = StateId::default();
         block_state_cache.push(current_state_id, Arc::new(state));
@@ -2201,9 +2203,10 @@ fn create_blockchain_and_state(
     config: &ProviderConfig,
     mut genesis_accounts: HashMap<Address, Account>,
 ) -> Result<BlockchainAndState, CreationError> {
+    println!("start create_blockchain_and_state");
     let mut prev_randao_generator = RandomHashGenerator::with_seed(edr_defaults::MIX_HASH_SEED);
 
-    if let Some(fork_config) = &config.fork {
+    let r = if let Some(fork_config) = &config.fork {
         let state_root_generator = Arc::new(parking_lot::Mutex::new(
             RandomHashGenerator::with_seed(edr_defaults::STATE_ROOT_HASH_SEED),
         ));
@@ -2387,7 +2390,10 @@ fn create_blockchain_and_state(
             // part of the genesis block.
             next_block_base_fee_per_gas: None,
         })
-    }
+    };
+
+    println!("post create_blockchain_and_state");
+    r
 }
 
 /// The result returned by requesting a transaction.
