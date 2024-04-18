@@ -202,6 +202,7 @@ export class EdrProviderWrapper
     rawTraceCallbacks: RawTraceCallbacks,
     tracingConfig?: TracingConfig
   ): Promise<EdrProviderWrapper> {
+    console.log("start EdrProvider.create");
     const { Provider } = requireNapiRsModule(
       "@nomicfoundation/edr"
     ) as typeof import("@nomicfoundation/edr");
@@ -336,6 +337,7 @@ export class EdrProviderWrapper
       wrapper._ethEventListener.bind(wrapper)
     );
 
+    console.log("end EdrProvider.create");
     return wrapper;
   }
 

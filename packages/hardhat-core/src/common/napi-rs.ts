@@ -2,6 +2,7 @@ import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 
 export function requireNapiRsModule(id: string): unknown {
+  console.log("start requireNapiRsModule");
   try {
     return require(id);
   } catch (e: any) {
@@ -12,4 +13,5 @@ export function requireNapiRsModule(id: string): unknown {
     // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
     throw e;
   }
+  console.log("end requireNapiRsModule");
 }

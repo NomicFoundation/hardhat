@@ -223,6 +223,7 @@ async function compileIfNecessary(
   sources: string[],
   compilerOptions: SolidityCompiler
 ): Promise<[CompilerInput, CompilerOutput]> {
+  console.log("start compileIfNecessary");
   const { solidityVersion, optimizer } = compilerOptions;
   const maxSourceCtime = sources
     .map((s) => fs.statSync(s).ctimeMs)
@@ -281,6 +282,7 @@ async function compileIfNecessary(
     fs.writeFileSync(outputPath, JSON.stringify(compilerOutput, undefined, 2));
   }
 
+  console.log("end compileIfNecessary");
   return [compilerInput, compilerOutput];
 }
 

@@ -110,6 +110,7 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
         subscriber_callback: Box<dyn SyncSubscriberCallback>,
         config: ProviderConfig,
     ) -> Result<Self, CreationError> {
+        println!("start edr_provider::Provider::new");
         let data = ProviderData::new(
             runtime.clone(),
             logger,
@@ -127,6 +128,7 @@ impl<LoggerErrorT: Debug + Send + Sync + 'static> Provider<LoggerErrorT> {
 
         let interval_miner = Arc::new(Mutex::new(interval_miner));
 
+        println!("end edr_provider::Provider::new");
         Ok(Self {
             data,
             interval_miner,

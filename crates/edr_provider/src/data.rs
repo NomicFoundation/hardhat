@@ -167,6 +167,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
         call_override: Option<Arc<dyn SyncCallOverride>>,
         config: ProviderConfig,
     ) -> Result<Self, CreationError> {
+        println!("start edr_provider::ProviderData::new");
         let InitialAccounts {
             local_accounts,
             genesis_accounts,
@@ -222,7 +223,7 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             RandomHashGenerator::with_seed("randomParentBeaconBlockRootSeed")
         };
 
-        Ok(Self {
+        let r = Ok(Self {
             runtime_handle,
             initial_config: config,
             blockchain,
@@ -255,7 +256,9 @@ impl<LoggerErrorT: Debug> ProviderData<LoggerErrorT> {
             block_state_cache,
             current_state_id,
             block_number_to_state_id,
-        })
+        });
+        println!("end edr_provider::ProviderData::new");
+        r
     }
 
     pub fn set_call_override_callback(&mut self, call_override: Option<Arc<dyn SyncCallOverride>>) {

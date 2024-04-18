@@ -30,6 +30,7 @@ export async function instantiateProvider(
   loggerConfig: LoggerConfig,
   tracingConfig: TracingConfig
 ): Promise<[EdrProviderWrapper, VMTracer]> {
+  console.log("start instantiateProvider");
   const config = {
     hardfork: "shanghai",
     chainId: 1,
@@ -74,6 +75,7 @@ export async function instantiateProvider(
     tracingConfig
   );
 
+  console.log("end instantiateProvider");
   return [provider, vmTracer];
 }
 

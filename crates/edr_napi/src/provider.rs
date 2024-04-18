@@ -36,6 +36,8 @@ impl Provider {
         logger_config: LoggerConfig,
         #[napi(ts_arg_type = "(event: SubscriptionEvent) => void")] subscriber_callback: JsFunction,
     ) -> napi::Result<JsObject> {
+        println!("start edr_napi::Provider::with_config");
+
         let config = edr_provider::ProviderConfig::try_from(config)?;
         let runtime = runtime::Handle::current();
 
@@ -68,6 +70,7 @@ impl Provider {
             Ok::<_, napi::Error>(())
         });
 
+        println!("end edr_napi::Provider::with_config");
         Ok(promise)
     }
 
