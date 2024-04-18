@@ -110,8 +110,6 @@ pub enum RpcClientError {
         method: Box<RequestMethod>,
         /// The id of the request iwth the missing response
         id: Id,
-        /// The response text
-        response: String,
     },
 
     /// The JSON-RPC returned an error.
@@ -645,14 +643,15 @@ impl RpcClient {
                 })
                 .collect())
         } else {
-            let request_body = SerializedRequest(
-                serde_json::to_value(&requests).map_err(RpcClientError::InvalidJsonRequest)?,
-            );
-            let remote_response = self.send_request_body(&request_body).await?;
-            let remote_responses: Vec<jsonrpc::Response<serde_json::Value>> =
-                Self::parse_response_str(&remote_response)?;
+            for request in requests {
+                let request_body = SerializedRequest(
+                    serde_json::to_value(&request).map_err(RpcClientError::InvalidJsonRequest)?,
+                );
 
-            for response in remote_responses {
+                let remote_response = self.send_request_body(&request_body).await?;
+                let response: jsonrpc::Response<serde_json::Value> =
+                    Self::parse_response_str(&remote_response)?;
+
                 let index = id_to_index
                     // Remove to make sure no duplicate ids in response
                     .remove(&response.id)
@@ -675,15 +674,13 @@ impl RpcClient {
 
                 results[index] = Some(ResponseValue::Remote(result));
             }
-
             results
                 .into_iter()
                 .enumerate()
                 .map(|(index, result)| {
                     result.ok_or_else(|| RpcClientError::MissingResponse {
                         method: Box::new(methods[index].clone()),
-                        id: ids[index].clone(),
-                        response: remote_response.clone(),
+                        id: ids[index].clone()
                     })
                 })
                 .collect()
