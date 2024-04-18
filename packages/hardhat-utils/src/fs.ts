@@ -373,7 +373,8 @@ export async function copy(source: string, destination: string): Promise<void> {
       }
     }
 
-    if (e.code === "EISDIR") {
+    // On linux, trying to copy a directory will throw EISDIR, while on Windows it will throw EPERM.
+    if (e.code === "EISDIR" || e.code === "EPERM") {
       if (await isDirectory(source)) {
         throw new IsDirectoryError(source, e);
       }
@@ -415,7 +416,9 @@ export async function move(source: string, destination: string): Promise<void> {
       }
     }
 
-    if (e.code === "ENOTEMPTY") {
+    // On linux, trying to move a non-empty directory will throw ENOTEMPTY,
+    // while on Windows it will throw EPERM.
+    if (e.code === "ENOTEMPTY" || e.code === "EPERM") {
       throw new DirectoryNotEmptyError(destination, e);
     }
 
