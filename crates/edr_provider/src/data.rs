@@ -48,6 +48,7 @@ use edr_evm::{
 use ethers_core::types::transaction::eip712::{Eip712, TypedData};
 use gas::gas_used_ratio;
 use indexmap::IndexMap;
+use itertools::izip;
 use lru::LruCache;
 use rpds::HashTrieMapSync;
 use tokio::runtime;
@@ -98,14 +99,18 @@ impl SendTransactionResult {
     /// Present if the transaction was auto-mined.
     pub fn transaction_result_and_trace(&self) -> Option<(&ExecutionResult, &Trace)> {
         self.mining_results.iter().find_map(|result| {
-            result
-                .transaction_index(&self.transaction_hash)
-                .map(|index| {
-                    (
-                        result.transaction_result(index).expect("index is valid"),
-                        result.transaction_trace(index).expect("index is valid"),
-                    )
-                })
+            izip!(
+                result.block.transactions().iter(),
+                result.transaction_results.iter(),
+                result.transaction_traces.iter()
+            )
+            .find_map(|(transaction, result, trace)| {
+                if *transaction.hash() == self.transaction_hash {
+                    Some((result, trace))
+                } else {
+                    None
+                }
+            })
         })
     }
 }

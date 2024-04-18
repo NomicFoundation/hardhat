@@ -66,24 +66,6 @@ impl<BlockchainErrorT> DebugMineBlockResult<BlockchainErrorT> {
             .iter()
             .any(|tx| *tx.hash() == *transaction_hash)
     }
-
-    /// Returns the index of the transaction with the given hash in the block.
-    pub fn transaction_index(&self, transaction_hash: &B256) -> Option<usize> {
-        self.block
-            .transactions()
-            .iter()
-            .position(|tx| *tx.hash() == *transaction_hash)
-    }
-
-    /// Returns the transaction result of the transaction with the given index.
-    pub fn transaction_result(&self, transaction_index: usize) -> Option<&ExecutionResult> {
-        self.transaction_results.get(transaction_index)
-    }
-
-    /// Returns the transaction trace of the transaction with the given index.
-    pub fn transaction_trace(&self, transaction_index: usize) -> Option<&Trace> {
-        self.transaction_traces.get(transaction_index)
-    }
 }
 
 impl<BlockchainErrorT> Clone for DebugMineBlockResult<BlockchainErrorT> {
