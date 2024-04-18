@@ -368,7 +368,13 @@ export class EdrProviderWrapper
     );
     const response = JSON.parse(responseObject.json);
 
-    if (this._node._vm.evm.events.eventNames().length > 0) {
+    const needsTraces =
+      this._node._vm.evm.events.eventNames().length > 0 ||
+      this._rawTraceCallbacks.onStep !== undefined ||
+      this._rawTraceCallbacks.onAfterMessage !== undefined ||
+      this._rawTraceCallbacks.onBeforeMessage !== undefined;
+
+    if (needsTraces) {
       const rawTraces = responseObject.traces;
       for (const rawTrace of rawTraces) {
         const trace = rawTrace.trace();
