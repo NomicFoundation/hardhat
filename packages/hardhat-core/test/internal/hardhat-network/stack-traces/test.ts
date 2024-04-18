@@ -654,6 +654,7 @@ async function runDeploymentTransactionTest(
   compilerOutput: CompilerOutput,
   txIndexToContract: Map<number, DeployedContract>
 ): Promise<CreateMessageTrace> {
+  console.log("start runDeploymentTransactionTest");
   const file = compilerOutput.contracts[tx.file];
 
   assert.isDefined(
@@ -688,6 +689,7 @@ async function runDeploymentTransactionTest(
     gas: tx.gas !== undefined ? BigInt(tx.gas) : undefined,
   });
 
+  console.log("end runDeploymentTransactionTest");
   return trace as CreateMessageTrace;
 }
 

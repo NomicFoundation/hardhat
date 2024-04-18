@@ -119,7 +119,9 @@ export async function traceTransaction(
   vmTracer: VMTracer,
   txData: TxData
 ): Promise<MessageTrace> {
+  console.log("start traceTransaction");
   try {
+    console.log("start eth_sendTransaction");
     await provider.request({
       method: "eth_sendTransaction",
       params: [
@@ -134,14 +136,18 @@ export async function traceTransaction(
         },
       ],
     });
+    console.log("end eth_sendTransaction");
 
+    console.log("get trace");
     const trace = vmTracer.getLastTopLevelMessageTrace();
     if (trace === undefined) {
       const error = vmTracer.getLastError();
       throw error ?? new Error("Cannot get last top level message trace");
     }
+    console.log("end trace");
     return trace;
   } finally {
     vmTracer.clearLastError();
   }
+  console.log("end traceTransaction");
 }
