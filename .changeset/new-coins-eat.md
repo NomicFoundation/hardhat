@@ -1,5 +1,5 @@
 ---
-"@nomicfoundation/edr: patch"
+"@nomicfoundation/edr": patch
 ---
 
 fix: avoid ecrecover for known sender
