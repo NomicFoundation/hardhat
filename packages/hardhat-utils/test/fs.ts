@@ -2,7 +2,6 @@ import { beforeEach, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import fsPromises from "node:fs/promises";
 import path from "node:path";
-// import os from "node:os";
 import { expectTypeOf } from "expect-type";
 
 import {
@@ -28,17 +27,11 @@ import {
 } from "../src/fs.js";
 import { useTmpDir } from "./helpers/fs.js";
 
-// const IS_WINDOWS = os.platform() === "win32";
-
 describe("File system utils", () => {
   const getTmpDir = useTmpDir("fs");
 
   describe("getRealPath", () => {
     it("Should resolve symlinks", async function () {
-      /*       if (IS_WINDOWS) { // TODO is this still necessary?
-        tc.skip();
-      } */
-
       const actualPath = path.join(getTmpDir(), "mixedCasingFile");
       await createFile(actualPath);
 
@@ -204,18 +197,12 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileSystemAccessError if a different error is thrown", async function () {
-      const dirPath = path.join(getTmpDir(), "protected-dir");
-      await mkdir(dirPath);
+      const linkPath = path.join(getTmpDir(), "link");
+      await fsPromises.symlink(linkPath, linkPath);
 
-      try {
-        await chmod(dirPath, 0o000);
-
-        await assert.rejects(getAllFilesMatching(dirPath), {
-          name: "FileSystemAccessError",
-        });
-      } finally {
-        await chmod(dirPath, 0o777);
-      }
+      await assert.rejects(getAllFilesMatching(linkPath), {
+        name: "FileSystemAccessError",
+      });
     });
   });
 
@@ -296,10 +283,6 @@ describe("File system utils", () => {
     });
 
     it("Should NOT resolve symlinks", async function () {
-      /*       if (IS_WINDOWS) {
-        this.skip();
-      } */
-
       const actualPath = path.join(getTmpDir(), "mixedCasingFile");
       await createFile(actualPath);
 
@@ -329,18 +312,12 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileSystemAccessError if a different error is thrown", async function () {
-      const dirPath = path.join(getTmpDir(), "protected-dir");
-      await mkdir(dirPath);
+      const linkPath = path.join(getTmpDir(), "link");
+      await fsPromises.symlink(linkPath, linkPath);
 
-      try {
-        await chmod(dirPath, 0o000);
-
-        await assert.rejects(getFileTrueCase(dirPath, "file"), {
-          name: "FileSystemAccessError",
-        });
-      } finally {
-        await chmod(dirPath, 0o777);
-      }
+      await assert.rejects(getFileTrueCase(linkPath, "file"), {
+        name: "FileSystemAccessError",
+      });
     });
   });
 
@@ -412,18 +389,11 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileSystemAccessError if a different error is thrown", async function () {
-      const filePath = path.join(getTmpDir(), "protected-file.json");
-      await createFile(filePath);
+      const invalidPath = "\0";
 
-      try {
-        await chmod(filePath, 0o000);
-
-        await assert.rejects(readJsonFile(filePath), {
-          name: "FileSystemAccessError",
-        });
-      } finally {
-        await chmod(filePath, 0o777);
-      }
+      await assert.rejects(readJsonFile(invalidPath), {
+        name: "FileSystemAccessError",
+      });
     });
   });
 
@@ -472,13 +442,13 @@ describe("File system utils", () => {
       await createFile(filePath);
 
       try {
-        await chmod(filePath, 0o000);
+        await chmod(filePath, 0o444);
 
         await assert.rejects(writeJsonFile(filePath, {}), {
           name: "FileSystemAccessError",
         });
       } finally {
-        await chmod(filePath, 0o777);
+        await chmod(filePath, 0o666);
       }
     });
   });
@@ -503,18 +473,11 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileSystemAccessError if a different error is thrown", async function () {
-      const filePath = path.join(getTmpDir(), "protected-file.txt");
-      await createFile(filePath);
+      const invalidPath = "\0";
 
-      try {
-        await chmod(filePath, 0o000);
-
-        await assert.rejects(readUtf8File(filePath), {
-          name: "FileSystemAccessError",
-        });
-      } finally {
-        await chmod(filePath, 0o777);
-      }
+      await assert.rejects(readUtf8File(invalidPath), {
+        name: "FileSystemAccessError",
+      });
     });
   });
 
@@ -563,13 +526,13 @@ describe("File system utils", () => {
       try {
         await writeUtf8File(filePath, "hello");
 
-        await chmod(filePath, 0o000);
+        await chmod(filePath, 0o444);
 
         await assert.rejects(writeUtf8File(filePath, "hello"), {
           name: "FileSystemAccessError",
         });
       } finally {
-        await chmod(filePath, 0o777);
+        await chmod(filePath, 0o666);
       }
     });
   });
@@ -615,18 +578,11 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileSystemAccessError if a different error is thrown", async function () {
-      const dirPath = path.join(getTmpDir(), "protected-dir");
-      await mkdir(dirPath);
+      const invalidPath = "\0";
 
-      try {
-        await chmod(dirPath, 0o000);
-
-        await assert.rejects(readdir(dirPath), {
-          name: "FileSystemAccessError",
-        });
-      } finally {
-        await chmod(dirPath, 0o777);
-      }
+      await assert.rejects(readdir(invalidPath), {
+        name: "FileSystemAccessError",
+      });
     });
   });
 
@@ -657,19 +613,11 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileSystemAccessError for any error", async function () {
-      const dirPath = path.join(getTmpDir(), "protected-dir");
+      const invalidPath = "\0";
 
-      await mkdir(dirPath);
-
-      try {
-        await chmod(dirPath, 0o000);
-
-        await assert.rejects(mkdir(path.join(dirPath, "subdir")), {
-          name: "FileSystemAccessError",
-        });
-      } finally {
-        await chmod(dirPath, 0o777);
-      }
+      await assert.rejects(mkdir(invalidPath), {
+        name: "FileSystemAccessError",
+      });
     });
   });
 
@@ -692,6 +640,14 @@ describe("File system utils", () => {
       await assert.rejects(getChangeTime(filePath), {
         name: "FileNotFoundError",
         message: `File ${filePath} not found`,
+      });
+    });
+
+    it("Should throw FileSystemAccessError if a different error is thrown", async function () {
+      const invalidPath = "\0";
+
+      await assert.rejects(getChangeTime(invalidPath), {
+        name: "FileSystemAccessError",
       });
     });
   });
@@ -770,20 +726,12 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileSystemAccessError if a different error is thrown", async function () {
-      const srcPath = path.join(getTmpDir(), "src.txt");
+      const invalidPath = "\0";
       const destPath = path.join(getTmpDir(), "dest.txt");
 
-      await createFile(srcPath);
-
-      try {
-        await chmod(srcPath, 0o000);
-
-        await assert.rejects(copy(srcPath, destPath), {
-          name: "FileSystemAccessError",
-        });
-      } finally {
-        await chmod(srcPath, 0o777);
-      }
+      await assert.rejects(copy(invalidPath, destPath), {
+        name: "FileSystemAccessError",
+      });
     });
   });
 
@@ -831,19 +779,11 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileSystemAccessError for any error", async function () {
-      const filePath = path.join(getTmpDir(), "protected-file.txt");
-      await createFile(filePath);
+      const invalidPath = "\0";
 
-      try {
-        // the delete permission depends on the parent directory
-        await chmod(getTmpDir(), 0o000);
-
-        await assert.rejects(remove(filePath), {
-          name: "FileSystemAccessError",
-        });
-      } finally {
-        await chmod(getTmpDir(), 0o777);
-      }
+      await assert.rejects(remove(invalidPath), {
+        name: "FileSystemAccessError",
+      });
     });
   });
 
@@ -852,20 +792,28 @@ describe("File system utils", () => {
       const filePath = path.join(getTmpDir(), "file.txt");
       await createFile(filePath);
 
-      await chmod(filePath, 0o777);
+      await chmod(filePath, 0o666);
 
       const stats = await fsPromises.stat(filePath);
 
       // eslint-disable-next-line no-bitwise
-      assert.equal(stats.mode & 0o777, 0o777);
+      assert.equal(stats.mode & 0o777, 0o666);
     });
 
     it("Should throw FileNotFoundError if the file doesn't exist", async function () {
       const filePath = path.join(getTmpDir(), "not-exists.txt");
 
-      await assert.rejects(chmod(filePath, 0o777), {
+      await assert.rejects(chmod(filePath, 0o666), {
         name: "FileNotFoundError",
         message: `File ${filePath} not found`,
+      });
+    });
+
+    it("Should throw FileSystemAccessError if a different error is thrown", async function () {
+      const invalidPath = "\0";
+
+      await assert.rejects(chmod(invalidPath, 0o666), {
+        name: "FileSystemAccessError",
       });
     });
   });
@@ -933,20 +881,12 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileSystemAccessError if a different error is thrown", async function () {
-      const srcPath = path.join(getTmpDir(), "src.txt");
+      const invalidPath = "\0";
       const destPath = path.join(getTmpDir(), "dest.txt");
 
-      await createFile(srcPath);
-
-      try {
-        await chmod(getTmpDir(), 0o000);
-
-        await assert.rejects(move(srcPath, destPath), {
-          name: "FileSystemAccessError",
-        });
-      } finally {
-        await chmod(getTmpDir(), 0o777);
-      }
+      await assert.rejects(move(invalidPath, destPath), {
+        name: "FileSystemAccessError",
+      });
     });
   });
 
@@ -968,17 +908,11 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileSystemAccessError for any error", async function () {
-      const filePath = path.join(getTmpDir(), "protected-file.txt");
+      const invalidPath = "\0";
 
-      try {
-        await chmod(getTmpDir(), 0o000);
-
-        await assert.rejects(createFile(filePath), {
-          name: "FileSystemAccessError",
-        });
-      } finally {
-        await chmod(getTmpDir(), 0o777);
-      }
+      await assert.rejects(createFile(invalidPath), {
+        name: "FileSystemAccessError",
+      });
     });
   });
 
@@ -1001,12 +935,12 @@ describe("File system utils", () => {
     it("Should preserve the directory permissions", async function () {
       const dirPath = path.join(getTmpDir(), "dir");
       await mkdir(dirPath);
-      await chmod(dirPath, 0o777);
+      await chmod(dirPath, 0o666);
 
       await emptyDir(dirPath);
 
       // eslint-disable-next-line no-bitwise
-      assert.equal((await fsPromises.stat(dirPath)).mode & 0o777, 0o777);
+      assert.equal((await fsPromises.stat(dirPath)).mode & 0o777, 0o666);
     });
 
     it("Should create the directory if it doesn't exist", async function () {
@@ -1029,23 +963,11 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileSystemAccessError for any error", async function () {
-      const dirPath = path.join(getTmpDir(), "protected-dir");
-      await mkdir(dirPath);
+      const invalidPath = "\0";
 
-      const files = ["file1.txt", "file2.txt", "file3.json"];
-      for (const file of files) {
-        await createFile(path.join(dirPath, file));
-      }
-
-      try {
-        await chmod(dirPath, 0o000);
-
-        await assert.rejects(emptyDir(dirPath), {
-          name: "FileSystemAccessError",
-        });
-      } finally {
-        await chmod(dirPath, 0o777);
-      }
+      await assert.rejects(emptyDir(invalidPath), {
+        name: "FileSystemAccessError",
+      });
     });
   });
 
