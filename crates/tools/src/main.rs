@@ -11,9 +11,9 @@ mod update;
 
 use update::Mode;
 
-// Matches `edr_napi`. Important for scenarios.
-#[global_allocator]
-static ALLOC: mimalloc::MiMalloc = mimalloc::MiMalloc;
+// // Matches `edr_napi`. Important for scenarios.
+// #[global_allocator]
+// static ALLOC: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
 #[derive(Parser)]
 #[clap(name = "tasks", version, author)]
