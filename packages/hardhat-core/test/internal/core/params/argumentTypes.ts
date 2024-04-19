@@ -127,6 +127,74 @@ describe("argumentTypes", () => {
     });
   });
 
+  describe("bigint type", () => {
+    it("should work with decimal values", () => {
+      assert.equal(types.bigint.parse("arg", "0"), 0n);
+      assert.equal(types.bigint.parse("arg", "1"), 1n);
+      assert.equal(types.bigint.parse("arg", "1123"), 1123n);
+      assert.equal(types.bigint.parse("arg", "05678"), 5678n);
+      assert.equal(
+        types.bigint.parse("arg", "9007199254740992"),
+        BigInt("9007199254740992")
+      );
+    });
+
+    it("should work with hex values", () => {
+      assert.equal(types.bigint.parse("arg", "0x0"), BigInt(0));
+      assert.equal(types.bigint.parse("arg", "0x1"), BigInt(1));
+      assert.equal(types.bigint.parse("arg", "0xA"), BigInt(0xa));
+      assert.equal(types.bigint.parse("arg", "0xa"), BigInt(0xa));
+      assert.equal(types.bigint.parse("arg", "0x0a"), BigInt(0x0a));
+      assert.equal(
+        types.bigint.parse("arg", "0x20000000000000"),
+        BigInt("0x20000000000000")
+      );
+    });
+
+    it("should fail with incorrect values", () => {
+      expectHardhatError(
+        () => types.bigint.parse("arg", ""),
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
+      );
+      expectHardhatError(
+        () => types.bigint.parse("arg", "1."),
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
+      );
+      expectHardhatError(
+        () => types.bigint.parse("arg", ".1"),
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
+      );
+      expectHardhatError(
+        () => types.bigint.parse("arg", "0.1"),
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
+      );
+      expectHardhatError(
+        () => types.bigint.parse("arg", "asdas"),
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
+      );
+      expectHardhatError(
+        () => types.bigint.parse("arg", "a1"),
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
+      );
+      expectHardhatError(
+        () => types.bigint.parse("arg", "1a"),
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
+      );
+      expectHardhatError(
+        () => types.bigint.parse("arg", "1 1"),
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
+      );
+      expectHardhatError(
+        () => types.bigint.parse("arg", "x123"),
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
+      );
+      expectHardhatError(
+        () => types.bigint.parse("arg", "1e0"),
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
+      );
+    });
+  });
+
   describe("float type", () => {
     it("should work with integer decimal values", () => {
       assert.equal(types.float.parse("arg", "0"), 0);
