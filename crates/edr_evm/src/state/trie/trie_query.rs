@@ -29,7 +29,7 @@ impl TrieQuery {
 
     /// Get the value at the specified (unhashed) key.
     pub fn get(&self, key: impl AsRef<[u8]>) -> Option<Vec<u8>> {
-        self.0.get(&Self::hash_key(key)).expect(DB_IS_INFALLIBLE)
+        self.0.get(&hash_key(key)).expect(DB_IS_INFALLIBLE)
     }
 
     /// Get the value at the specified hashed key.
@@ -41,7 +41,7 @@ impl TrieQuery {
     /// exists. The value will be RLP-encoded.
     pub fn insert(&mut self, key: impl AsRef<[u8]>, value: impl alloy_rlp::Encodable) {
         self.0
-            .insert(Self::hash_key(key), alloy_rlp::encode(value))
+            .insert(hash_key(key), alloy_rlp::encode(value))
             .expect(DB_IS_INFALLIBLE);
     }
 
@@ -53,13 +53,14 @@ impl TrieQuery {
             .expect(DB_IS_INFALLIBLE);
     }
 
+    /// Iterate over hashed key and RLP-encoded value pairs.
     pub fn iter(&self) -> impl Iterator<Item = (Vec<u8>, Vec<u8>)> + '_ {
         self.0.iter()
     }
 
     /// Remove the value at the specified (unhashed) key.
     pub fn remove(&mut self, key: impl AsRef<[u8]>) -> bool {
-        self.remove_hashed_key(&Self::hash_key(key))
+        self.remove_hashed_key(&hash_key(key))
     }
 
     /// Remove the value at the specified hashed key.
@@ -72,8 +73,8 @@ impl TrieQuery {
         let root = self.0.root().expect(DB_IS_INFALLIBLE);
         B256::from_slice(&root)
     }
+}
 
-    fn hash_key(key: impl AsRef<[u8]>) -> Vec<u8> {
-        HasherKeccak::new().digest(key.as_ref())
-    }
+fn hash_key(key: impl AsRef<[u8]>) -> Vec<u8> {
+    HasherKeccak::new().digest(key.as_ref())
 }

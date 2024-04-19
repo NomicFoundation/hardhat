@@ -4,31 +4,14 @@ use rpds::HashTrieMapSync;
 /// An in-memory database for a Merkle-Patricia trie based on a persistent data
 /// structure that allows efficient checkpointing.
 /// Based on the `cita-trie` crate's `MemoryDB`.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub(super) struct PersistentMemoryDB {
-    light: bool,
     storage: RwLock<HashTrieMapSync<Vec<u8>, Vec<u8>>>,
-}
-
-impl PersistentMemoryDB {
-    pub fn new(light: bool) -> Self {
-        Self {
-            light,
-            storage: RwLock::new(HashTrieMapSync::default()),
-        }
-    }
-}
-
-impl Default for PersistentMemoryDB {
-    fn default() -> Self {
-        Self::new(true)
-    }
 }
 
 impl Clone for PersistentMemoryDB {
     fn clone(&self) -> Self {
         Self {
-            light: self.light,
             storage: RwLock::new(self.storage.read().clone()),
         }
     }
@@ -51,9 +34,7 @@ impl cita_trie::DB for PersistentMemoryDB {
     }
 
     fn remove(&self, key: &[u8]) -> Result<(), Self::Error> {
-        if self.light {
-            self.storage.write().remove_mut(key);
-        }
+        self.storage.write().remove_mut(key);
         Ok(())
     }
 
@@ -74,7 +55,7 @@ mod tests {
         const KEY: &[u8] = b"test-key";
         const VALUE: &[u8] = b"test-value";
 
-        let memdb1 = PersistentMemoryDB::new(true);
+        let memdb1 = PersistentMemoryDB::default();
         memdb1.insert(KEY.to_vec(), VALUE.to_vec()).unwrap();
 
         let memdb2 = memdb1.clone();

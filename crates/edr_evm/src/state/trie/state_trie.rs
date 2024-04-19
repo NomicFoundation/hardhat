@@ -55,7 +55,6 @@ impl Default for StateTrie {
         let mut trie = TrieQuery::empty(Arc::clone(&db));
         let root = trie.root();
 
-        // TODO root should be cacheable
         Self { db, root }
     }
 }

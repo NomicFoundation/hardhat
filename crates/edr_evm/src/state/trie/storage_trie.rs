@@ -27,7 +27,7 @@ impl<'a> StorageTrie {
     pub fn storage_slot(&self, index: &U256) -> Option<U256> {
         self.trie_query()
             .get(index.to_be_bytes::<32>())
-            .map(Self::decode_u256)
+            .map(decode_u256)
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
@@ -35,10 +35,7 @@ impl<'a> StorageTrie {
         self.trie_query()
             .iter()
             .map(|(hashed_index, encoded_value)| {
-                (
-                    B256::from_slice(&hashed_index),
-                    Self::decode_u256(encoded_value),
-                )
+                (B256::from_slice(&hashed_index), decode_u256(encoded_value))
             })
             .collect()
     }
@@ -49,10 +46,6 @@ impl<'a> StorageTrie {
 
     fn trie_query(&'a self) -> TrieQuery {
         TrieQuery::new(Arc::clone(&self.db), &self.root)
-    }
-
-    fn decode_u256(encoded_value: Vec<u8>) -> U256 {
-        U256::decode(&mut encoded_value.as_slice()).expect("Valid RLP")
     }
 }
 
@@ -70,7 +63,6 @@ impl Default for StorageTrie {
     fn default() -> Self {
         let db = Arc::new(PersistentMemoryDB::default());
         let mut trie = TrieQuery::empty(Arc::clone(&db));
-        // TODO root should be cacheable
         let root = trie.root();
 
         Self { db, root }
@@ -97,7 +89,7 @@ impl<'a> StorageTrieMutation<'a> {
         let old_value = self
             .trie_query
             .get_hashed_key(&hashed_index)
-            .map(StorageTrie::decode_u256);
+            .map(decode_u256);
 
         if value.is_zero() {
             if old_value.is_some() {
@@ -115,4 +107,8 @@ impl<'a> Drop for StorageTrieMutation<'a> {
     fn drop(&mut self) {
         self.storage_trie.root = self.trie_query.root();
     }
+}
+
+fn decode_u256(encoded_value: Vec<u8>) -> U256 {
+    U256::decode(&mut encoded_value.as_slice()).expect("Valid RLP")
 }

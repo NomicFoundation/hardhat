@@ -1,5 +1,5 @@
 ---
-"@nomicfoundation/edr": minor
+"@nomicfoundation/edr": patch
 ---
 
-feat: constant time checkpointing for significant performance improvements on large test suites
+perf: changed internal data structures to achieve to constant time checkpointing for significant performance improvements on large test suites

@@ -3,12 +3,12 @@ use std::hash::Hash;
 use rpds::HashTrieMapSync;
 
 #[derive(Clone, Debug)]
-pub struct SharedMapEntry<T: Clone> {
+pub struct SharedMapEntry<T> {
     value: T,
     occurences: usize,
 }
 
-impl<T: Clone> SharedMapEntry<T> {
+impl<T> SharedMapEntry<T> {
     /// Creates a new [`SharedMapEntry`] for the provided value.
     pub fn new(value: T) -> Self {
         Self {
@@ -34,7 +34,7 @@ impl<T: Clone> SharedMapEntry<T> {
 }
 
 #[derive(Debug, Default)]
-pub struct SharedMap<K: std::cmp::Eq + std::hash::Hash, V: Clone> {
+pub struct SharedMap<K: Eq + Hash, V: Clone> {
     entries: HashTrieMapSync<K, SharedMapEntry<V>>,
 }
 
@@ -84,7 +84,7 @@ where
 
 impl<K, V> Clone for SharedMap<K, V>
 where
-    K: Clone + std::cmp::Eq + std::hash::Hash,
+    K: Clone + Eq + Hash,
     V: Clone,
 {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]

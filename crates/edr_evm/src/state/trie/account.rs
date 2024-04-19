@@ -19,7 +19,7 @@ pub struct AccountTrie {
     storage_tries: StorageTries,
 }
 
-impl<'a> AccountTrie {
+impl AccountTrie {
     /// Constructs a `TrieState` from an (address -> account) mapping.
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub fn with_accounts(accounts: &HashMap<Address, AccountInfo>) -> Self {
@@ -53,6 +53,7 @@ impl<'a> AccountTrie {
     }
 
     /// Commits changes to the state.
+    /// Inspired by <https://github.com/bluealloy/revm/blob/688c36ca4525cc44aa7c547b7b0f22a9490c4f2f/crates/revm/src/db/in_memory_db.rs#L131>
     #[cfg_attr(feature = "tracing", tracing::instrument(skip(self)))]
     pub fn commit(&mut self, changes: &HashMap<Address, Account>) {
         let mut account_trie_mutation = self.mutate();
@@ -63,9 +64,6 @@ impl<'a> AccountTrie {
                     // Removes account only if it exists, so safe to use for empty, touched accounts
                     account_trie_mutation.remove_account(address);
                 } else {
-                    // TODO question to reviewers: does it come from the Ethereum protocol or is it
-                    // a quirk of our implementation that an account can already have a storage trie
-                    // when it's status is created?
                     if account.is_created() {
                         // We can simply remove the storage trie db, as it will get reinitialized in
                         // the next operation
@@ -166,7 +164,7 @@ impl<'a> AccountTrie {
         self.storage_tries.get(address).map(StorageTrie::root)
     }
 
-    fn mutate(&'a mut self) -> AccountTrieMutation<'a> {
+    fn mutate(&mut self) -> AccountTrieMutation<'_> {
         AccountTrieMutation {
             state_trie_mut: self.state_trie.mutate(),
             storage_tries: &mut self.storage_tries,
@@ -196,7 +194,7 @@ impl<'a> AccountTrieMutation<'a> {
         );
     }
 
-    /// Create or update teh account info. Ensures that a storage trie exists.
+    /// Create or update the account info. Ensures that a storage trie exists.
     pub fn insert_account_info(&mut self, address: &Address, account_info: &AccountInfo) {
         let storage_root = if let Some(storage_trie) = self.storage_tries.get_mut(address) {
             storage_trie.root()
