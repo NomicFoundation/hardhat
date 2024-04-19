@@ -1,7 +1,5 @@
 import type * as viemT from "viem";
-import { isHex } from "viem";
-
-import { Artifact } from "hardhat/types/artifacts";
+import type { Artifact } from "hardhat/types/artifacts";
 
 import {
   AmbigousLibraryNameError,
@@ -14,13 +12,17 @@ export interface Libraries<Address = string> {
   [libraryName: string]: Address;
 }
 
-interface Link {
+export interface Link {
   sourceName: string;
   libraryName: string;
   address: string;
 }
 
-export function linkBytecode(artifact: Artifact, libraries: Link[]): viemT.Hex {
+export async function linkBytecode(
+  artifact: Artifact,
+  libraries: Link[]
+): Promise<viemT.Hex> {
+  const { isHex } = await import("viem");
   let bytecode = artifact.bytecode;
 
   // TODO: measure performance impact
@@ -40,7 +42,7 @@ export function linkBytecode(artifact: Artifact, libraries: Link[]): viemT.Hex {
 async function throwOnAmbigousLibraryNameOrUnnecessaryLink(
   contractName: string,
   libraries: Libraries<viemT.Address>,
-  neededLibraries: Array<Pick<Link, "libraryName" | "sourceName">>
+  neededLibraries: Link[]
 ) {
   for (const linkedLibraryName of Object.keys(libraries)) {
     const matchingLibraries = neededLibraries.filter(
@@ -66,7 +68,7 @@ async function throwOnAmbigousLibraryNameOrUnnecessaryLink(
 async function throwOnMissingLibrariesAddress(
   contractName: string,
   libraries: Libraries<viemT.Address>,
-  neededLibraries: Array<Pick<Link, "libraryName" | "sourceName">>
+  neededLibraries: Link[]
 ) {
   const missingLibraries = [];
   for (const { sourceName, libraryName } of neededLibraries) {
@@ -86,7 +88,7 @@ async function throwOnMissingLibrariesAddress(
 async function throwOnOverlappingLibraryNames(
   contractName: string,
   libraries: Libraries<viemT.Address>,
-  neededLibraries: Array<Pick<Link, "libraryName" | "sourceName">>
+  neededLibraries: Link[]
 ) {
   for (const { sourceName, libraryName } of neededLibraries) {
     if (

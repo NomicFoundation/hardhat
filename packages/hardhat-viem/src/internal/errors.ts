@@ -1,5 +1,6 @@
+import type { Link } from "./bytecode";
+
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
-import { Link } from "hardhat/types/libraries";
 
 export class HardhatViemError extends NomicLabsHardhatPluginError {
   constructor(message: string, parent?: Error) {

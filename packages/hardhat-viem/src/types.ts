@@ -1,6 +1,6 @@
 import type * as viemT from "viem";
 import type { ArtifactsMap } from "hardhat/types/artifacts";
-import type { Libraries } from "hardhat/types/libraries";
+import type { Libraries } from "./internal/bytecode";
 
 export type PublicClient = viemT.PublicClient<viemT.Transport, viemT.Chain>;
 export type WalletClient = viemT.WalletClient<
