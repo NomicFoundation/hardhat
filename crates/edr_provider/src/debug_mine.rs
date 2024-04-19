@@ -1,7 +1,7 @@
 use core::fmt::Debug;
 use std::sync::Arc;
 
-use edr_eth::Bytes;
+use edr_eth::{Bytes, B256};
 use edr_evm::{
     state::{StateDiff, SyncState},
     trace::Trace,
@@ -56,6 +56,16 @@ pub struct DebugMineBlockResult<BlockchainErrorT> {
     pub transaction_traces: Vec<Trace>,
     /// Encoded `console.log` call inputs
     pub console_log_inputs: Vec<Bytes>,
+}
+
+impl<BlockchainErrorT> DebugMineBlockResult<BlockchainErrorT> {
+    /// Whether the block contains a transaction with the given hash.
+    pub fn has_transaction(&self, transaction_hash: &B256) -> bool {
+        self.block
+            .transactions()
+            .iter()
+            .any(|tx| *tx.hash() == *transaction_hash)
+    }
 }
 
 impl<BlockchainErrorT> Clone for DebugMineBlockResult<BlockchainErrorT> {

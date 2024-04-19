@@ -15,7 +15,7 @@ use edr_eth::{
 use edr_evm::{blockchain::BlockchainError, trace::Trace, ExecutableTransaction, SyncBlock};
 
 use crate::{
-    data::{BlockDataForTransaction, ProviderData, SendTransactionResult, TransactionAndBlock},
+    data::{BlockDataForTransaction, ProviderData, TransactionAndBlock},
     error::TransactionFailureWithTraces,
     requests::validation::{
         validate_eip3860_max_initcode_size, validate_post_merge_block_tags,
@@ -416,35 +416,34 @@ fn send_raw_transaction_and_log<LoggerErrorT: Debug>(
     data: &mut ProviderData<LoggerErrorT>,
     signed_transaction: ExecutableTransaction,
 ) -> Result<(B256, Vec<Trace>), ProviderError<LoggerErrorT>> {
-    let SendTransactionResult {
-        transaction_hash,
-        transaction_result,
-        mining_results,
-    } = data.send_transaction(signed_transaction.clone())?;
+    let result = data.send_transaction(signed_transaction.clone())?;
 
     let spec_id = data.spec_id();
     data.logger_mut()
-        .log_send_transaction(spec_id, &signed_transaction, &mining_results)
+        .log_send_transaction(spec_id, &signed_transaction, &result.mining_results)
         .map_err(ProviderError::Logger)?;
 
-    let traces = mining_results
-        .into_iter()
-        .flat_map(|result| result.transaction_traces)
-        .collect();
-
     if data.bail_on_transaction_failure() {
-        let transaction_failure = transaction_result.and_then(|(result, trace)| {
-            TransactionFailure::from_execution_result(&result, Some(&transaction_hash), &trace)
-        });
+        let transaction_failure =
+            result
+                .transaction_result_and_trace()
+                .and_then(|(execution_result, trace)| {
+                    TransactionFailure::from_execution_result(
+                        execution_result,
+                        Some(&result.transaction_hash),
+                        trace,
+                    )
+                });
 
         if let Some(failure) = transaction_failure {
+            let (_transaction_hash, traces) = result.into();
             return Err(ProviderError::TransactionFailed(
                 TransactionFailureWithTraces { failure, traces },
             ));
         }
     }
 
-    Ok((transaction_hash, traces))
+    Ok(result.into())
 }
 
 fn validate_send_transaction_request<LoggerErrorT: Debug>(
@@ -528,10 +527,7 @@ mod tests {
     use edr_evm::ExecutableTransaction;
 
     use super::*;
-    use crate::{
-        data::{test_utils::ProviderTestFixture, SendTransactionResult},
-        test_utils::one_ether,
-    };
+    use crate::{data::test_utils::ProviderTestFixture, test_utils::one_ether};
 
     #[test]
     fn transaction_by_hash_for_impersonated_account() -> anyhow::Result<()> {
@@ -565,18 +561,14 @@ mod tests {
         )?;
 
         fixture.provider_data.set_auto_mining(true);
-        let SendTransactionResult {
-            transaction_hash,
-            transaction_result,
-            ..
-        } = fixture.provider_data.send_transaction(transaction)?;
-        assert!(transaction_result.is_some());
+        let result = fixture.provider_data.send_transaction(transaction)?;
+        assert!(result.transaction_result_and_trace().is_some());
 
         let rpc_transaction =
-            handle_get_transaction_by_hash(&fixture.provider_data, transaction_hash)?
+            handle_get_transaction_by_hash(&fixture.provider_data, result.transaction_hash)?
                 .context("transaction not found")?;
         assert_eq!(&rpc_transaction.from, &impersonated_account);
-        assert_eq!(&rpc_transaction.hash, &transaction_hash);
+        assert_eq!(&rpc_transaction.hash, &result.transaction_hash);
 
         Ok(())
     }
