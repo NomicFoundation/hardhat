@@ -1,4 +1,8 @@
 mod account;
+mod persistent_memory_db;
+mod state_trie;
+mod storage_trie;
+mod trie_query;
 
 use edr_eth::{account::KECCAK_EMPTY, Address, B256, U256};
 use revm::{
@@ -242,5 +246,63 @@ impl StateDebug for TrieState {
 
     fn state_root(&self) -> Result<B256, Self::Error> {
         Ok(self.accounts.state_root())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{state::AccountModifierFn, Bytes};
+
+    #[test]
+    fn test_trie_state_clone() -> anyhow::Result<()> {
+        let mut state1 = TrieState::default();
+
+        let code_1 = Bytecode::new_raw(Bytes::from_static(&[0x01]));
+        let code_1_hash = code_1.hash_slow();
+        let code_2 = Bytecode::new_raw(Bytes::from_static(&[0x02]));
+        let code_2_hash = code_2.hash_slow();
+
+        let address1 = Address::random();
+        let mut account1 = AccountInfo::default();
+        account1.code_hash = code_1_hash;
+        account1.code = Some(code_1);
+        state1.insert_account(address1, account1)?;
+        state1.set_account_storage_slot(address1, U256::from(100), U256::from(100))?;
+
+        let address2 = Address::random();
+        let mut account2 = AccountInfo::default();
+        account2.code_hash = code_2_hash;
+        account2.code = Some(code_2);
+        let mut state2 = state1.clone();
+        state2.insert_account(address2, account2)?;
+        state2.set_account_storage_slot(address2, U256::from(200), U256::from(200))?;
+
+        state2.set_account_storage_slot(address1, U256::from(100), U256::from(102))?;
+
+        assert!(state1.basic(address1)?.is_some());
+        assert!(state2.basic(address1)?.is_some());
+        assert!(state1.basic(address2)?.is_none());
+        assert!(state2.basic(address1)?.is_some());
+
+        assert!(state1.code_by_hash(code_1_hash).is_ok());
+        assert!(state2.code_by_hash(code_1_hash).is_ok());
+        assert!(state2.code_by_hash(code_2_hash).is_ok());
+
+        assert_eq!(state1.storage(address1, U256::from(100))?, U256::from(100));
+        assert_eq!(state2.storage(address1, U256::from(100))?, U256::from(102));
+        assert_eq!(state2.storage(address2, U256::from(200))?, U256::from(200));
+
+        state2.modify_account(
+            address1,
+            AccountModifierFn::new(Box::new(|_balance, nonce, _code| {
+                *nonce = 200;
+            })),
+        )?;
+
+        assert_eq!(state1.basic(address1)?.unwrap().nonce, 0);
+        assert_eq!(state2.basic(address1)?.unwrap().nonce, 200);
+
+        Ok(())
     }
 }
