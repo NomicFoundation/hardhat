@@ -151,6 +151,10 @@ describe("argumentTypes", () => {
       );
     });
 
+    it("should work with bigint values with 'n' suffix", () => {
+      assert.equal(types.bigint.parse("arg", "0n"), BigInt(0));
+    });
+
     it("should fail with incorrect values", () => {
       expectHardhatError(
         () => types.bigint.parse("arg", ""),
@@ -190,6 +194,10 @@ describe("argumentTypes", () => {
       );
       expectHardhatError(
         () => types.bigint.parse("arg", "1e0"),
+        ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
+      );
+      expectHardhatError(
+        () => types.bigint.parse("arg", "0x0n"),
         ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE
       );
     });
