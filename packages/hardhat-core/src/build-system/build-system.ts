@@ -2,7 +2,54 @@ import fsExtra from "fs-extra";
 import debug from "debug";
 import semver from "semver";
 import chalk from "chalk";
-import { getAllFilesMatching } from "../internal/util/fs-utils";
+// import { getAllFilesMatching } from "../internal/util/fs-utils";
+// import {
+// Artifacts,
+// CompilationJob,
+// CompilationJobCreationError,
+// CompilationJobCreationErrorReason,
+// CompilerInput,
+// CompilerOutput,
+// HardhatConfig,
+// ResolvedFile,
+// SolcBuild,
+// } from "../types";
+// import { localPathToSourceName } from "../utils/source-names";
+import {
+  HardhatError, // TODO-REWRITE
+  // , assertHardhatInvariant
+} from "../internal/core/errors";
+// import { ERRORS } from "../internal/core/errors-list";
+// import {
+// createCompilationJobFromFile,
+// createCompilationJobsFromConnectedComponent,
+// mergeCompilationJobsWithoutBug,
+// } from "../internal/solidity/compilation-job";
+// import * as taskTypes from "../types/builtin-tasks";
+// import { SolidityFilesCache } from "../builtin-tasks/utils/solidity-files-cache";
+// import { pluralize } from "../internal/util/strings";
+// import {
+// CompilerDownloader,
+// CompilerPlatform,
+// } from "../internal/solidity/compiler/downloader";
+// import { getCompilersDir } from "../internal/util/global-dir";
+// import { Compiler, NativeCompiler } from "../internal/solidity/compiler";
+// import { getInputFromCompilationJob } from "../internal/solidity/compiler/compiler-input";
+// import {
+// Artifacts as ArtifactsImpl,
+// getArtifactFromContractOutput,
+// } from "../internal/artifacts";
+// import { getEvmVersionFromSolcVersion } from "../internal/solidity/compiler/solc-info";
+// import { Parser } from "../internal/solidity/parse";
+// import { Resolver } from "../internal/solidity/resolver";
+import {
+  TASK_COMPILE_GET_REMAPPINGS,
+  TASK_COMPILE_SOLIDITY_READ_FILE,
+  TASK_COMPILE_TRANSFORM_IMPORT_NAME,
+} from "../builtin-tasks/task-names";
+import { DependencyGraph } from "../internal/solidity/dependencyGraph";
+
+// ------------------ START PACKAGE
 import {
   Artifacts,
   CompilationJob,
@@ -13,38 +60,37 @@ import {
   HardhatConfig,
   ResolvedFile,
   SolcBuild,
-} from "../types";
-import { localPathToSourceName } from "../utils/source-names";
-import { HardhatError, assertHardhatInvariant } from "../internal/core/errors";
-import { ERRORS } from "../internal/core/errors-list";
+} from "./util/types/index";
+import { getAllFilesMatching } from "./util/fs-utils";
+import { localPathToSourceName } from "./util/source-names";
+import {
+  // HardhatError,
+  assertHardhatInvariant,
+} from "./util/errors";
+import { ERRORS } from "./util/errors-list";
 import {
   createCompilationJobFromFile,
   createCompilationJobsFromConnectedComponent,
   mergeCompilationJobsWithoutBug,
-} from "../internal/solidity/compilation-job";
-import * as taskTypes from "../types/builtin-tasks";
-import { SolidityFilesCache } from "../builtin-tasks/utils/solidity-files-cache";
-import { pluralize } from "../internal/util/strings";
+} from "./util/solidity/compilation-job";
+import * as taskTypes from "./util/types/builtin-tasks";
+import { SolidityFilesCache } from "./util/builtin-tasks/utils/solidity-files-cache";
+import { pluralize } from "./util/string";
 import {
   CompilerDownloader,
   CompilerPlatform,
-} from "../internal/solidity/compiler/downloader";
-import { getCompilersDir } from "../internal/util/global-dir";
-import { Compiler, NativeCompiler } from "../internal/solidity/compiler";
-import { getInputFromCompilationJob } from "../internal/solidity/compiler/compiler-input";
+} from "./util/solidity/compiler/downloader";
+import { getCompilersDir } from "./util/global-dir";
+import { Compiler, NativeCompiler } from "./util/solidity/compiler";
+import { getInputFromCompilationJob } from "./util/solidity/compiler/compiler-input";
 import {
   Artifacts as ArtifactsImpl,
   getArtifactFromContractOutput,
-} from "../internal/artifacts";
-import { getEvmVersionFromSolcVersion } from "../internal/solidity/compiler/solc-info";
-import { Parser } from "../internal/solidity/parse";
-import { Resolver } from "../internal/solidity/resolver";
-import {
-  TASK_COMPILE_GET_REMAPPINGS,
-  TASK_COMPILE_SOLIDITY_READ_FILE,
-  TASK_COMPILE_TRANSFORM_IMPORT_NAME,
-} from "../builtin-tasks/task-names";
-import { DependencyGraph } from "../internal/solidity/dependencyGraph";
+} from "./util/artifacts";
+import { getEvmVersionFromSolcVersion } from "./util/solidity/compiler/solc-info";
+import { Parser } from "./util/solidity/parse";
+import { Resolver } from "./util/solidity/resolver";
+// --------------END PACKAGE
 
 const log = debug("hardhat:core:tasks:compile:REFACTORING");
 
