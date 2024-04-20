@@ -1,5 +1,5 @@
 // Part of this code was adapted from ethers-rs and is distributed under their
-// licenss:
+// license:
 // - https://github.com/gakonst/ethers-rs/blob/cba6f071aedafb766e82e4c2f469ed5e4638337d/LICENSE-APACHE
 // - https://github.com/gakonst/ethers-rs/blob/cba6f071aedafb766e82e4c2f469ed5e4638337d/LICENSE-MIT
 // For the original context see: https://github.com/gakonst/ethers-rs/blob/3d9c3290d42b77c510e5b5d0b6f7a2f72913bfff/ethers-core/src/types/transaction/eip2930.rs
