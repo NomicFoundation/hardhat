@@ -5,7 +5,7 @@ import path from "node:path";
 import * as semver from "semver";
 import { CompilerInput, CompilerOutput } from "../../types";
 import { ERRORS } from "../../errors-list";
-import { HardhatError } from "../../../../internal/core/errors"; // TODO
+import { HardhatError } from "../../errors";
 
 export interface ICompiler {
   compile(input: CompilerInput): Promise<CompilerOutput>;

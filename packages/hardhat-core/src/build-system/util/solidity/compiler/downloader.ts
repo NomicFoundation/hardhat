@@ -6,10 +6,6 @@ import { execFile } from "child_process";
 import { promisify } from "util";
 
 import { download } from "../../download";
-// import {
-//   // assertHardhatInvariant,
-//   HardhatError, // TODO
-// } from "../../core/errors";
 import { HardhatError } from "../../../../internal/core/errors";
 import { assertHardhatInvariant } from "../../errors";
 import { ERRORS } from "../../errors-list";

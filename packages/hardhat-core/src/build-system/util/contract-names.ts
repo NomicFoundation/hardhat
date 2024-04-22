@@ -1,4 +1,4 @@
-import { HardhatError } from "../../internal/core/errors"; // TODO
+import { HardhatError } from "./errors";
 import { ERRORS } from "./errors-list";
 
 /**
