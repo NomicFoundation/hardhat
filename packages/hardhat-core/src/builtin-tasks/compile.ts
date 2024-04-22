@@ -22,6 +22,7 @@ import { getFullyQualifiedName } from "../utils/contract-names";
 import {
   TasksOverrides,
   taskCompileRemoveObsoleteArtifacts,
+  taskCompileSolidity,
   taskCompileSolidityCompileJobs,
   taskCompileSolidityFilterCompilationJobs,
   taskCompileSolidityGetCompilationJobs,
@@ -85,143 +86,6 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
   );
 
 /**
- * Main task for compiling the solidity files in the project.
- *
- * The main responsibility of this task is to orchestrate and connect most of
- * the subtasks related to compiling solidity.
- */
-//
-// KEEP THIS TASK
-//
-subtask(TASK_COMPILE_SOLIDITY)
-  .addParam("force", undefined, undefined, types.boolean)
-  .addParam("quiet", undefined, undefined, types.boolean)
-  .addParam("concurrency", undefined, DEFAULT_CONCURRENCY_LEVEL, types.int)
-  .setAction(
-    async (
-      {
-        force,
-        quiet,
-        concurrency,
-        tasksOverrides,
-      }: {
-        force: boolean;
-        quiet: boolean;
-        concurrency: number;
-        tasksOverrides: TasksOverrides;
-      },
-      { artifacts, config }
-    ) => {
-      const rootPath = config.paths.root;
-
-      const sourcePaths: string[] = await taskCompileSolidityGetSourcePaths(
-        config,
-        config.paths.sources
-      );
-
-      const sourceNames: string[] = await taskCompileSolidityGetSourceNames(
-        config,
-        sourcePaths,
-        rootPath
-      );
-
-      const solidityFilesCachePath = getSolidityFilesCachePath(config.paths);
-      let solidityFilesCache = await SolidityFilesCache.readFromFile(
-        solidityFilesCachePath
-      );
-
-      const dependencyGraph: taskTypes.DependencyGraph =
-        await taskCompileSolidityGetDependencyGraph(
-          sourceNames,
-          config,
-          tasksOverrides,
-          rootPath,
-          solidityFilesCache
-        );
-
-      solidityFilesCache = await invalidateCacheMissingArtifacts(
-        solidityFilesCache,
-        artifacts,
-        dependencyGraph.getResolvedFiles()
-      );
-
-      const compilationJobsCreationResult: CompilationJobsCreationResult =
-        await taskCompileSolidityGetCompilationJobs(
-          config,
-          dependencyGraph,
-          solidityFilesCache
-        );
-
-      await taskCompileSolidityHandleCompilationJobsFailures(
-        compilationJobsCreationResult.errors
-      );
-
-      const compilationJobs = compilationJobsCreationResult.jobs;
-
-      const filteredCompilationJobs: CompilationJob[] =
-        await taskCompileSolidityFilterCompilationJobs(
-          compilationJobs,
-          force,
-          solidityFilesCache
-        );
-
-      const mergedCompilationJobs: CompilationJob[] =
-        await taskCompileSolidityMergeCompilationJobs(filteredCompilationJobs);
-
-      const {
-        artifactsEmittedPerJob,
-      }: { artifactsEmittedPerJob: ArtifactsEmittedPerJob } =
-        await taskCompileSolidityCompileJobs(
-          mergedCompilationJobs,
-          artifacts,
-          quiet,
-          concurrency
-        );
-
-      // update cache using the information about the emitted artifacts
-      for (const {
-        compilationJob: compilationJob,
-        artifactsEmittedPerFile: artifactsEmittedPerFile,
-      } of artifactsEmittedPerJob) {
-        for (const { file, artifactsEmitted } of artifactsEmittedPerFile) {
-          solidityFilesCache.addFile(file.absolutePath, {
-            lastModificationDate: file.lastModificationDate.valueOf(),
-            contentHash: file.contentHash,
-            sourceName: file.sourceName,
-            solcConfig: compilationJob.getSolcConfig(),
-            imports: file.content.imports,
-            versionPragmas: file.content.versionPragmas,
-            artifacts: artifactsEmitted,
-          });
-        }
-      }
-
-      const allArtifactsEmittedPerFile = solidityFilesCache.getEntries();
-
-      // We know this is the actual implementation, so we use some
-      // non-public methods here.
-      const artifactsImpl = artifacts as ArtifactsImpl;
-      artifactsImpl.addValidArtifacts(allArtifactsEmittedPerFile);
-
-      await solidityFilesCache.writeToFile(solidityFilesCachePath);
-
-      if (
-        tasksOverrides?.taskCompileSolidityLogCompilationResult !== undefined
-      ) {
-        await tasksOverrides.taskCompileSolidityLogCompilationResult(
-          mergedCompilationJobs,
-          quiet
-        );
-      } else {
-        await taskCompileSolidityLogCompilationResult(
-          mergedCompilationJobs,
-          quiet
-        );
-      }
-    }
-  );
-
-/**
  * Returns a list of compilation tasks.
  *
  * This is the task to override to add support for other languages.
@@ -251,53 +115,25 @@ task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
     DEFAULT_CONCURRENCY_LEVEL,
     types.int
   )
-  .setAction(async (compilationArgs: any, { artifacts, run }) => {
-    const compilationTasks: string[] = await run(
-      TASK_COMPILE_GET_COMPILATION_TASKS
-    );
+  .setAction(async (compilationArgs: any, { artifacts, run, config }) => {
+    // TODO
+    // const compilationTasks: string[] = await run(
+    //   TASK_COMPILE_GET_COMPILATION_TASKS
+    // );
 
-    for (const compilationTask of compilationTasks) {
-      await run(compilationTask, compilationArgs);
-    }
+    // for (const compilationTask of compilationTasks) {
+    //   await run(compilationTask, compilationArgs);
+    // }
+
+    // TODO
+    await taskCompileSolidity(
+      config,
+      artifacts,
+      compilationArgs.force,
+      compilationArgs.quit,
+      compilationArgs.concurrency,
+      compilationArgs.tasksOverrides
+    );
 
     await taskCompileRemoveObsoleteArtifacts(artifacts);
   });
-
-/**
- * If a file is present in the cache, but some of its artifacts are missing on
- * disk, we remove it from the cache to force it to be recompiled.
- */
-async function invalidateCacheMissingArtifacts(
-  solidityFilesCache: SolidityFilesCache,
-  artifacts: Artifacts,
-  resolvedFiles: ResolvedFile[]
-): Promise<SolidityFilesCache> {
-  const paths = new Set(await artifacts.getArtifactPaths());
-
-  for (const file of resolvedFiles) {
-    const cacheEntry = solidityFilesCache.getEntry(file.absolutePath);
-
-    if (cacheEntry === undefined) {
-      continue;
-    }
-
-    const { artifacts: emittedArtifacts } = cacheEntry;
-    for (const emittedArtifact of emittedArtifacts) {
-      const fqn = getFullyQualifiedName(file.sourceName, emittedArtifact);
-      const path = artifacts.formArtifactPathFromFullyQualifiedName(fqn);
-
-      if (!paths.has(path)) {
-        log(
-          `Invalidate cache for '${file.absolutePath}' because artifact '${fqn}' doesn't exist`
-        );
-
-        solidityFilesCache.removeEntry(file.absolutePath);
-        break;
-      }
-    }
-  }
-
-  artifacts.clearCache?.();
-
-  return solidityFilesCache;
-}
