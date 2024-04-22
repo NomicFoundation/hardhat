@@ -4,7 +4,7 @@ import * as os from "os";
 import * as path from "path";
 import fsPromises from "fs/promises";
 
-import { HardhatError } from "../../internal/core/errors"; // TODO
+import { HardhatError } from "./errors";
 import {
   getFullyQualifiedName,
   isFullyQualifiedName,

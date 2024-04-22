@@ -1,4 +1,4 @@
-import { assert, expect } from "chai";
+import { AssertionError, assert, expect } from "chai";
 import ci from "ci-info";
 import * as fsExtra from "fs-extra";
 import * as path from "path";
@@ -8,10 +8,12 @@ import {
   TASK_COMPILE_SOLIDITY_READ_FILE,
 } from "../../src/builtin-tasks/task-names";
 import { SOLIDITY_FILES_CACHE_FILENAME } from "../../src/internal/constants";
-import { ERRORS } from "../../src/internal/core/errors-list";
+import {
+  ERRORS,
+  ErrorDescriptor,
+} from "../../src/build-system/util/errors-list";
 import { CompilationJobCreationErrorReason } from "../../src/types/builtin-tasks";
 import { useEnvironment } from "../helpers/environment";
-import { expectHardhatErrorAsync } from "../helpers/errors";
 import { useFixtureProject } from "../helpers/project";
 import { assertValidJson } from "../utils/json";
 import { mockFile } from "../utils/mock-file";
@@ -20,6 +22,66 @@ import {
   getRealPathSync,
 } from "../../src/internal/util/fs-utils";
 import { getLatestSupportedVersion } from "../internal/hardhat-network/stack-traces/compilers-list";
+import { HardhatError } from "../../src/build-system/util/errors";
+
+// TODO: rewrite here because instance of HardhatError has to be the one defined in the new build-system package
+export async function expectHardhatErrorAsync(
+  f: () => Promise<any>,
+  errorDescriptor: ErrorDescriptor,
+  errorMessage?: string | RegExp
+) {
+  // We create the error here to capture the stack trace before the await.
+  // This makes things easier, at least as long as we don't have async stack
+  // traces. This may change in the near-ish future.
+  const error = new AssertionError(
+    `HardhatError number ${errorDescriptor.number} expected, but no Error was thrown`
+  );
+
+  const notExactMatch = new AssertionError(
+    `HardhatError was correct, but should have include "${errorMessage}" but got "`
+  );
+
+  const notRegexpMatch = new AssertionError(
+    `HardhatError was correct, but should have matched regex ${errorMessage} but got "`
+  );
+
+  try {
+    await f();
+  } catch (err: unknown) {
+    if (!(err instanceof HardhatError)) {
+      assert.fail();
+    }
+    assert.equal(err.number, errorDescriptor.number);
+    assert.notInclude(
+      err.message,
+      "%s",
+      "HardhatError has old-style format tag"
+    );
+    assert.notMatch(
+      err.message,
+      /%[a-zA-Z][a-zA-Z0-9]*%/,
+      "HardhatError has an non-replaced variable tag"
+    );
+
+    if (errorMessage !== undefined) {
+      if (typeof errorMessage === "string") {
+        if (!err.message.includes(errorMessage)) {
+          notExactMatch.message += `${err.message}`;
+          throw notExactMatch;
+        }
+      } else {
+        if (errorMessage.exec(err.message) === null) {
+          notRegexpMatch.message += `${err.message}`;
+          throw notRegexpMatch;
+        }
+      }
+    }
+
+    return;
+  }
+
+  throw error;
+}
 
 function assertFileExists(pathToFile: string) {
   assert.isTrue(
@@ -921,7 +983,11 @@ Read about compiler configuration at https://hardhat.org/config
     useEnvironment();
 
     it("should always produce the same build-info name", async function () {
-      await this.env.run("compile");
+      await this.env.run("compile", {
+        tasksOverrides: {
+          taskCompileSolidityLogCompilationResult: () => {},
+        },
+      });
 
       const buildInfos = getBuildInfos();
       assert.lengthOf(buildInfos, 1);
@@ -932,7 +998,11 @@ Read about compiler configuration at https://hardhat.org/config
 
       for (let i = 0; i < runs; i++) {
         await this.env.run("clean");
-        await this.env.run("compile");
+        await this.env.run("compile", {
+          tasksOverrides: {
+            taskCompileSolidityLogCompilationResult: () => {},
+          },
+        });
 
         const newBuildInfos = getBuildInfos();
         assert.lengthOf(newBuildInfos, 1);
@@ -1033,7 +1103,15 @@ Read about compiler configuration at https://hardhat.org/config
     useEnvironment();
 
     it("should compile fine", async function () {
-      await this.env.run("compile");
+      await this.env.run("compile", {
+        tasksOverrides: {
+          taskCompileGetRemappings: () => {
+            return {
+              "foo/": "node_modules/foo/contracts/",
+            };
+          },
+        },
+      });
 
       assertFileExists(path.join("artifacts", "contracts", "A.sol", "A.json"));
       assertFileExists(path.join("artifacts", "foo", "Foo.sol", "Foo.json"));
@@ -1046,7 +1124,17 @@ Read about compiler configuration at https://hardhat.org/config
 
     it("should throw an error", async function () {
       await expectHardhatErrorAsync(
-        () => this.env.run("compile"),
+        () =>
+          this.env.run("compile", {
+            tasksOverrides: {
+              taskCompileGetRemappings: () => {
+                return {
+                  "foo/": "node_modules/foo/contracts/",
+                  "bar/": "node_modules/foo/contracts/",
+                };
+              },
+            },
+          }),
         ERRORS.RESOLVER.AMBIGUOUS_SOURCE_NAMES,
         /Two different source names \('\w+\/Foo.sol' and '\w+\/Foo.sol'\) resolve to the same file/
       );
