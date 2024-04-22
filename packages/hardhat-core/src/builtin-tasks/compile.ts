@@ -20,6 +20,7 @@ import {
 import { getFullyQualifiedName } from "../utils/contract-names";
 
 import {
+  TasksOverrides,
   taskCompileRemoveObsoleteArtifacts,
   taskCompileSolidityCompileJobs,
   taskCompileSolidityFilterCompilationJobs,
@@ -30,6 +31,7 @@ import {
   taskCompileSolidityHandleCompilationJobsFailures,
   taskCompileSolidityLogCompilationResult,
   taskCompileSolidityMergeCompilationJobs,
+  taskCompileSolidityReadFile,
 } from "../build-system/build-system";
 import {
   // TO KEEP
@@ -60,46 +62,9 @@ subtask(TASK_COMPILE_SOLIDITY_READ_FILE)
   .addParam("absolutePath", undefined, undefined, types.string)
   .setAction(
     async ({ absolutePath }: { absolutePath: string }): Promise<string> => {
-      try {
-        return await fsExtra.readFile(absolutePath, {
-          encoding: "utf8",
-        });
-      } catch (e) {
-        if (fsExtra.lstatSync(absolutePath).isDirectory()) {
-          throw new HardhatError(ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY, {
-            absolutePath,
-          });
-        }
-
-        // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
-        throw e;
-      }
+      return taskCompileSolidityReadFile(absolutePath);
     }
   );
-
-/**
- * DEPRECATED: This subtask is deprecated and will be removed in the future.
- *
- * This task transform the string literal in an import directive.
- * By default it does nothing, but it can be overriden by plugins.
- */
-subtask(TASK_COMPILE_TRANSFORM_IMPORT_NAME)
-  .addParam("importName", undefined, undefined, types.string)
-  .setAction(
-    async ({ importName }: { importName: string }): Promise<string> => {
-      return importName;
-    }
-  );
-
-/**
- * This task returns a Record<string, string> representing remappings to be used
- * by the resolver.
- */
-subtask(TASK_COMPILE_GET_REMAPPINGS).setAction(
-  async (): Promise<Record<string, string>> => {
-    return {};
-  }
-);
 
 /**
  * Receives a list of CompilationJobsFailure and returns an error message
@@ -330,22 +295,22 @@ subtask(TASK_COMPILE_SOLIDITY)
         force,
         quiet,
         concurrency,
-      }: { force: boolean; quiet: boolean; concurrency: number },
-      { artifacts, config, run }
+        tasksOverrides,
+      }: {
+        force: boolean;
+        quiet: boolean;
+        concurrency: number;
+        tasksOverrides: TasksOverrides;
+      },
+      { artifacts, config }
     ) => {
-      // console.log(
-      //   `-------------------------------------------- ${config.paths.root}`
-      // );
-
       const rootPath = config.paths.root;
 
-      // TESTED
       const sourcePaths: string[] = await taskCompileSolidityGetSourcePaths(
         config,
         config.paths.sources
       );
 
-      // TESTED
       const sourceNames: string[] = await taskCompileSolidityGetSourceNames(
         config,
         sourcePaths,
@@ -361,7 +326,7 @@ subtask(TASK_COMPILE_SOLIDITY)
         await taskCompileSolidityGetDependencyGraph(
           sourceNames,
           config,
-          run,
+          tasksOverrides,
           rootPath,
           solidityFilesCache
         );
@@ -432,10 +397,19 @@ subtask(TASK_COMPILE_SOLIDITY)
 
       await solidityFilesCache.writeToFile(solidityFilesCachePath);
 
-      await taskCompileSolidityLogCompilationResult(
-        mergedCompilationJobs,
-        quiet
-      );
+      if (
+        tasksOverrides?.taskCompileSolidityLogCompilationResult !== undefined
+      ) {
+        await tasksOverrides.taskCompileSolidityLogCompilationResult(
+          mergedCompilationJobs,
+          quiet
+        );
+      } else {
+        await taskCompileSolidityLogCompilationResult(
+          mergedCompilationJobs,
+          quiet
+        );
+      }
     }
   );
 

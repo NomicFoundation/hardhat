@@ -15,10 +15,10 @@ import chalk from "chalk";
 // SolcBuild,
 // } from "../types";
 // import { localPathToSourceName } from "../utils/source-names";
-import {
-  HardhatError, // TODO-REWRITE
-  // , assertHardhatInvariant
-} from "../internal/core/errors";
+// import {
+//   HardhatError,
+//   // , assertHardhatInvariant
+// } from "../internal/core/errors";
 // import { ERRORS } from "../internal/core/errors-list";
 // import {
 // createCompilationJobFromFile,
@@ -42,14 +42,15 @@ import {
 // import { getEvmVersionFromSolcVersion } from "../internal/solidity/compiler/solc-info";
 // import { Parser } from "../internal/solidity/parse";
 // import { Resolver } from "../internal/solidity/resolver";
-import {
-  TASK_COMPILE_GET_REMAPPINGS,
-  TASK_COMPILE_SOLIDITY_READ_FILE,
-  TASK_COMPILE_TRANSFORM_IMPORT_NAME,
-} from "../builtin-tasks/task-names";
-import { DependencyGraph } from "../internal/solidity/dependencyGraph";
+// import {
+//   TASK_COMPILE_GET_REMAPPINGS,
+//   TASK_COMPILE_SOLIDITY_READ_FILE,
+//   TASK_COMPILE_TRANSFORM_IMPORT_NAME,
+// } from "../builtin-tasks/task-names";
+// import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 
 // ------------------ START PACKAGE
+import { DependencyGraph } from "./util/solidity/dependencyGraph";
 import {
   Artifacts,
   CompilationJob,
@@ -63,10 +64,7 @@ import {
 } from "./util/types/index";
 import { getAllFilesMatching } from "./util/fs-utils";
 import { localPathToSourceName } from "./util/source-names";
-import {
-  // HardhatError,
-  assertHardhatInvariant,
-} from "./util/errors";
+import { HardhatError, assertHardhatInvariant } from "./util/errors";
 import { ERRORS } from "./util/errors-list";
 import {
   createCompilationJobFromFile,
@@ -100,6 +98,11 @@ type ArtifactsEmittedPerJob = Array<{
   compilationJob: CompilationJob;
   artifactsEmittedPerFile: taskTypes.ArtifactsEmittedPerFile;
 }>;
+
+export interface TasksOverrides {
+  taskCompileGetRemappings: typeof taskCompileGetRemappings;
+  taskCompileSolidityLogCompilationResult: typeof taskCompileSolidityLogCompilationResult;
+}
 
 // TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS
 // TESTED
@@ -1155,7 +1158,6 @@ export async function taskCompileSolidityCompileJobs(
 
 // TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT
 // TESTED
-// TODO: override task - it prints too many information
 export async function taskCompileSolidityLogCompilationResult(
   compilationJobs: CompilationJob[],
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -1222,36 +1224,23 @@ export async function taskCompileRemoveObsoleteArtifacts(artifacts: Artifacts) {
 export async function taskCompileSolidityGetDependencyGraph(
   sourceNames: string[],
   config: HardhatConfig,
-  // TODO: remove start
-  run: (
-    taskIdentifier: any,
-    taskArguments?: any,
-    subtaskArguments?: any | undefined
-  ) => Promise<any>,
-  // TODO: remove end
+  tasksOverrides?: TasksOverrides,
   rootPath?: string,
   solidityFilesCache?: SolidityFilesCache
 ): Promise<taskTypes.DependencyGraph> {
   const parser = new Parser(solidityFilesCache);
 
-  const remappings = await run(TASK_COMPILE_GET_REMAPPINGS);
-  // TODO - replace with func - test override
-  // const remappings = await taskCompileGetRemappings();
+  const remappings =
+    tasksOverrides?.taskCompileGetRemappings !== undefined
+      ? await tasksOverrides.taskCompileGetRemappings()
+      : await taskCompileGetRemappings();
 
   const resolver = new Resolver(
     rootPath ?? config.paths.root,
     parser,
     remappings,
-    (absolutePath: string) =>
-      run(TASK_COMPILE_SOLIDITY_READ_FILE, { absolutePath }),
-    // TODO - replace with func - test override
-    // (absolutePath: string) => taskCompileSolidityReadFile(absolutePath),
-    (importName: string) =>
-      // DEPRECATED
-      run(TASK_COMPILE_TRANSFORM_IMPORT_NAME, {
-        importName,
-        deprecationCheck: true,
-      })
+    (absolutePath: string) => taskCompileSolidityReadFile(absolutePath),
+    (importName: string) => taskCompileTransformImportName(importName, true)
   );
 
   const resolvedFiles = await Promise.all(
@@ -1263,3 +1252,15 @@ export async function taskCompileSolidityGetDependencyGraph(
 
 // TASK_COMPILE_TRANSFORM_IMPORT_NAME
 // DEPRECATED
+/**
+ * DEPRECATED: This subtask is deprecated and will be removed in the future.
+ *
+ * This task transform the string literal in an import directive.
+ * By default it does nothing, but it can be overriden by plugins.
+ */
+export async function taskCompileTransformImportName(
+  importName: string,
+  deprecationCheck: boolean
+): Promise<string> {
+  return importName;
+}

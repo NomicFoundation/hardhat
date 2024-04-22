@@ -20,8 +20,7 @@ import {
   LibraryInfo,
   ResolvedFile as IResolvedFile,
 } from "../types/builtin-tasks";
-import { assertHardhatInvariant } from "../errors";
-import { HardhatError } from "../../../internal/core/errors"; // TODO
+import { HardhatError, assertHardhatInvariant } from "../errors";
 import { Parser } from "./parse";
 
 const NODE_MODULES = "node_modules";

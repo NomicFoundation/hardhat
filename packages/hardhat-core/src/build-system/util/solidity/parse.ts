@@ -1,7 +1,7 @@
 import type SolidityAnalyzerT from "@nomicfoundation/solidity-analyzer";
 
 import { SolidityFilesCache } from "../builtin-tasks/utils/solidity-files-cache";
-import { HardhatError } from "../../../internal/core/errors"; // TODO
+import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 
 interface ParsedData {
