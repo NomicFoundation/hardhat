@@ -45,7 +45,7 @@ Once you have a Hardhat project ready, open a terminal in its root directory, an
 :::tab{value="npm 7+"}
 
 ```sh
-npm install --save-dev @nomicfoundation/hardhat-ignition-ethers
+npm install --save-dev @nomicfoundation/hardhat-ignition @nomicfoundation/hardhat-ignition-ethers
 ```
 
 :::
