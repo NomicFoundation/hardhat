@@ -27,7 +27,11 @@ const balancerDefinition = buildModule("Balancer", (m) => {
 });
 
 const synthetixDefinition = buildModule("Synthetix", (m) => {
-  const synthetixCore = m.contractAt("SynthetixCore", "0x0123", fakeArtifact);
+  const synthetixCore = m.contractAt(
+    "SynthetixCore",
+    "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    fakeArtifact
+  );
 
   const { router } = m.useModule(uniswap);
 

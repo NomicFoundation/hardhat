@@ -3,7 +3,7 @@
   "version": "0.15.1",
   "type": "module",
   "scripts": {
-    "predev": "npm run regenerate-deployment-example",
+    "predev": "pnpm regenerate-deployment-example",
     "dev": "vite --force",
     "build": "tsc && vite build",
     "test": "mocha --loader=ts-node/esm --recursive \"test/**/*.ts\"",
@@ -12,12 +12,12 @@
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "clean": "rimraf dist tsconfig.tsbuildinfo",
-    "prepack": "npm run build"
+    "prepack": "pnpm build"
   },
   "dependencies": {},
   "devDependencies": {
     "@fontsource/roboto": "^5.0.8",
-    "@nomicfoundation/ignition-core": "^0.15.1",
+    "@nomicfoundation/ignition-core": "workspace:^",
     "@types/chai": "^4.2.22",
     "@types/chai-as-promised": "^7.1.5",
     "@types/react": "^18.0.28",
@@ -26,13 +26,13 @@
     "@vitejs/plugin-react": "^4.0.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.3.4",
-    "mermaid": "10.1.0",
+    "mermaid": "10.8.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "6.11.0",
     "react-tooltip": "^5.21.4",
     "styled-components": "5.3.10",
-    "vite": "^4.3.2",
-    "vite-plugin-singlefile": "0.13.5"
+    "vite": "^5.0.0",
+    "vite-plugin-singlefile": "^2.0.1"
   }
 }

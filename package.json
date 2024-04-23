@@ -3,28 +3,18 @@
   "author": "Nomic Foundation",
   "license": "SEE LICENSE IN EACH PACKAGE'S LICENSE FILE",
   "private": true,
-  "workspaces": {
-    "packages": [
-      "packages/core",
-      "packages/ui",
-      "packages/hardhat-plugin",
-      "packages/hardhat-plugin-ethers",
-      "packages/hardhat-plugin-viem",
-      "examples/*"
-    ]
-  },
   "scripts": {
-    "build": "npm run build -w packages",
-    "lint": "npm run lint --workspaces",
+    "build": "pnpm --recursive build",
+    "lint": "pnpm --recursive lint",
     "postlint": "prettier --check *.{md,json} ./config/**/*.{js,json}",
-    "lint:fix": "npm run lint:fix --workspaces",
+    "lint:fix": "pnpm --recursive lint:fix",
     "postlint:fix": "prettier --write *.{md,json} ./config/**/*.{js,json}",
-    "test": "npm run test -w packages && npm run test:integrations -w packages/core",
-    "test:coverage": "npm run test:coverage -w packages",
-    "test:examples": "npm run test -w examples --if-present",
+    "test": "pnpm --recursive test && pnpm --filter \"./packages/core\" test:integrations",
+    "test:coverage": "pnpm --recursive test:coverage",
+    "test:examples": "pnpm --filter \"./examples/*\" test",
     "watch": "tsc --build --watch packages/core packages/hardhat-plugin",
-    "fullcheck": "npm run build && npm run lint && npm run test:examples",
-    "clean": "npm run clean --workspaces --if-present"
+    "fullcheck": "pnpm build && pnpm lint && pnpm test",
+    "clean": "pnpm --recursive clean"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
@@ -38,7 +28,7 @@
     "@types/lodash.flattendeep": "^4.4.7",
     "@types/mocha": "9.1.1",
     "@types/ndjson": "2.0.1",
-    "@types/node": "16.11.7",
+    "@types/node": "^18.0.0",
     "@types/prompts": "^2.4.2",
     "@typescript-eslint/eslint-plugin": "^5.57.1",
     "@typescript-eslint/experimental-utils": "^5.62.0",

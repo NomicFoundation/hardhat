@@ -6,6 +6,6 @@
           "version": "18" /* Keep in sync with the oldest version of Node.js that Hardhat supports */
         },
     },
-    /* installs npm dependencies on the new container. */
-    "postCreateCommand": "npm install"
+    /* installs pnpm dependencies on the new container. */
+    "postCreateCommand": "pnpm install"
 }

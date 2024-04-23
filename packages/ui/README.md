@@ -11,7 +11,7 @@ a deployment.
 A development server can be run from the root of this package with:
 
 ```sh
-npm run dev
+pnpm dev
 ```
 
 By default in development the deployment in `./public/deployment.json` is used,
@@ -19,7 +19,7 @@ to overwrite this example deployment, update the module in
 `./examples/ComplexModule.js` and run the regenerate command:
 
 ```sh
-npm run regenerate-deployment-example
+pnpm regenerate-deployment-example
 ```
 
 ## Contributing

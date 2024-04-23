@@ -13,36 +13,38 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
       - uses: actions/setup-node@v2
         with:
           node-version: 18
-          cache: npm
+          cache: "pnpm"
       - name: Install
-        run: npm install
+        run: pnpm install
       - name: Build
-        run: npm run build
+        run: pnpm build
       - name: Run tests
-        run: npm run test
-      - name: Run tests in examples
-        run: npm run test:examples
+        run: pnpm test
 
   test_on_macos:
     name: Test Ignition on MacOS with Node 18
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
       - uses: actions/setup-node@v2
         with:
           node-version: 18
-          cache: npm
+          cache: "pnpm"
       - name: Install
-        run: npm install
+        run: pnpm install
       - name: Build
-        run: npm run build
+        run: pnpm build
       - name: Run tests
-        run: npm run test
-      - name: Run tests in examples
-        run: npm run test:examples
+        run: pnpm test
 
   test_on_linux:
     name: Test Ignition on Ubuntu with Node ${{ matrix.node }}
@@ -52,31 +54,35 @@ jobs:
         node: [18, 20.5]
     steps:
       - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
-          cache: npm
+          cache: "pnpm"
       - name: Install
-        run: npm install
+        run: pnpm install
       - name: Build
-        run: npm run build
+        run: pnpm build
       - name: Run tests
-        run: npm run test
-      - name: Run tests in examples
-        run: npm run test:examples
+        run: pnpm test
 
   lint:
     name: Lint the project
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
       - uses: actions/setup-node@v2
         with:
           node-version: 18
-          cache: npm
+          cache: "pnpm"
       - name: Install
-        run: npm install
+        run: pnpm install
       - name: Build
-        run: npm run build
+        run: pnpm build
       - name: Lint
-        run: npm run lint
+        run: pnpm lint
