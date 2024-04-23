@@ -26,6 +26,7 @@ import {
   InvalidContractNameError,
   UnexpectedNumberOfFilesError,
   VerificationAPIUnexpectedMessageError,
+  ContractAlreadyVerifiedError,
 } from "../errors";
 import { Etherscan } from "../etherscan";
 import { Bytecode } from "../solc/bytecode";
@@ -50,6 +51,7 @@ interface VerificationArgs {
   constructorArgs: string[];
   libraries: LibraryToAddress;
   contractFQN?: string;
+  force: boolean;
 }
 
 interface GetMinimalInputArgs {
@@ -76,12 +78,14 @@ subtask(TASK_VERIFY_ETHERSCAN)
   .addOptionalParam("constructorArgs")
   .addOptionalParam("libraries", undefined, undefined, types.any)
   .addOptionalParam("contract")
+  .addFlag("force")
   .setAction(async (taskArgs: VerifyTaskArgs, { config, network, run }) => {
     const {
       address,
       constructorArgs,
       libraries,
       contractFQN,
+      force,
     }: VerificationArgs = await run(
       TASK_VERIFY_ETHERSCAN_RESOLVE_ARGUMENTS,
       taskArgs
@@ -99,7 +103,7 @@ subtask(TASK_VERIFY_ETHERSCAN)
     );
 
     const isVerified = await etherscan.isVerified(address);
-    if (isVerified) {
+    if (!force && isVerified) {
       const contractURL = etherscan.getContractUrl(address);
       console.log(`The contract ${address} has already been verified on Etherscan.
 ${contractURL}`);
@@ -200,6 +204,7 @@ subtask(TASK_VERIFY_ETHERSCAN_RESOLVE_ARGUMENTS)
   .addOptionalParam("constructorArgs", undefined, undefined, types.inputFile)
   .addOptionalParam("libraries", undefined, undefined, types.any)
   .addOptionalParam("contract")
+  .addFlag("force")
   .setAction(
     async ({
       address,
@@ -207,6 +212,7 @@ subtask(TASK_VERIFY_ETHERSCAN_RESOLVE_ARGUMENTS)
       constructorArgs: constructorArgsModule,
       contract,
       libraries: librariesModule,
+      force,
     }: VerifyTaskArgs): Promise<VerificationArgs> => {
       if (address === undefined) {
         throw new MissingAddressError();
@@ -238,6 +244,7 @@ subtask(TASK_VERIFY_ETHERSCAN_RESOLVE_ARGUMENTS)
         constructorArgs,
         libraries,
         contractFQN: contract,
+        force,
       };
     }
   );
@@ -311,6 +318,11 @@ for verification on the block explorer. Waiting for verification result...
       await sleep(700);
       const verificationStatus =
         await verificationInterface.getVerificationStatus(guid);
+
+      // Etherscan answers with already verified message only when checking returned guid
+      if (verificationStatus.isAlreadyVerified()) {
+        throw new ContractAlreadyVerifiedError(address);
+      }
 
       if (!(verificationStatus.isFailure() || verificationStatus.isSuccess())) {
         // Reaching this point shouldn't be possible unless the API is behaving in a new way.

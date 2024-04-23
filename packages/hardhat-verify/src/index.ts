@@ -52,6 +52,7 @@ export interface VerifyTaskArgs {
   constructorArgs?: string;
   libraries?: string;
   contract?: string;
+  force: boolean;
   listNetworks: boolean;
 }
 
@@ -114,6 +115,11 @@ task(TASK_VERIFY, "Verifies a contract on Etherscan or Sourcify")
     "contract",
     "Fully qualified name of the contract to verify. Skips automatic detection of the contract. " +
       "Use if the deployed bytecode matches more than one contract in your project"
+  )
+  .addFlag(
+    "force",
+    "Enforce contract verification even if the contract is already verified. " +
+      "Use to re-verify partially verified contracts on Blockscout"
   )
   .addFlag("listNetworks", "Print the list of supported networks")
   .setAction(async (taskArgs: VerifyTaskArgs, { run }) => {

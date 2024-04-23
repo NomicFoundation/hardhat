@@ -11,6 +11,7 @@ import {
   ContractStatusPollingInvalidStatusCodeError,
   ContractVerificationMissingBytecodeError,
   ContractVerificationInvalidStatusCodeError,
+  ContractAlreadyVerifiedError,
   HardhatVerifyError,
   MissingApiKeyError,
   ContractStatusPollingResponseNotOkError,
@@ -139,6 +140,7 @@ export class Etherscan {
    * @throws {ContractVerificationRequestError} if there is an error on the request.
    * @throws {ContractVerificationInvalidStatusCodeError} if the API returns an invalid status code.
    * @throws {ContractVerificationMissingBytecodeError} if the bytecode is not found on the block explorer.
+   * @throws {ContractAlreadyVerifiedError} if the bytecode is already verified.
    * @throws {HardhatVerifyError} if the response status is not OK.
    */
   public async verify(
@@ -184,6 +186,10 @@ export class Etherscan {
         );
       }
 
+      if (etherscanResponse.isAlreadyVerified()) {
+        throw new ContractAlreadyVerifiedError(contractAddress);
+      }
+
       if (!etherscanResponse.isOk()) {
         throw new HardhatVerifyError(etherscanResponse.message);
       }
@@ -192,7 +198,8 @@ export class Etherscan {
     } catch (e) {
       if (
         e instanceof ContractVerificationInvalidStatusCodeError ||
-        e instanceof ContractVerificationMissingBytecodeError
+        e instanceof ContractVerificationMissingBytecodeError ||
+        e instanceof ContractAlreadyVerifiedError
       ) {
         throw e;
       }
@@ -239,7 +246,10 @@ export class Etherscan {
         return await this.getVerificationStatus(guid);
       }
 
-      if (etherscanResponse.isFailure()) {
+      if (
+        etherscanResponse.isFailure() ||
+        etherscanResponse.isAlreadyVerified()
+      ) {
         return etherscanResponse;
       }
 
@@ -294,6 +304,15 @@ class EtherscanResponse implements ValidationResponse {
 
   public isBytecodeMissingInNetworkError() {
     return this.message.startsWith("Unable to locate ContractCode at");
+  }
+
+  public isAlreadyVerified() {
+    return (
+      // returned by blockscout
+      this.message.startsWith("Smart-contract already verified") ||
+      // returned by etherscan
+      this.message.startsWith("Already Verified")
+    );
   }
 
   public isOk() {
