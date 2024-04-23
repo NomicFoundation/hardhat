@@ -12,6 +12,8 @@ import {
 } from "./types/jsonrpc";
 import { toChecksumFormat } from "./utils/address";
 
+const DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 1_000_000_000n;
+
 /**
  * The params to make an `eth_call`.
  */
@@ -638,9 +640,9 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
     // We prioritize EIP-1559 fees over legacy gasPrice fees, however,
     // polygon (chainId 137) requires legacy gasPrice fees so we skip EIP-1559 logic in that case
     if (latestBlock.baseFeePerGas !== undefined && chainId !== 137) {
+      const maxPriorityFeePerGas = await this._resolveMaxPriorityFeePerGas();
+
       // Logic copied from ethers v6
-      const maxPriorityFeePerGas =
-        this._config?.maxPriorityFeePerGas ?? 1_000_000_000n; // 1gwei
       const maxFeePerGas =
         latestBlock.baseFeePerGas * 2n + maxPriorityFeePerGas;
 
@@ -658,6 +660,44 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
     assertResponseType("eth_gasPrice", response, typeof response === "string");
 
     return { gasPrice: jsonRpcQuantityToBigInt(response) };
+  }
+
+  /**
+   * The max fee per gas is needed in the max fee calculation.
+   *
+   * It is resolved from config if present, falling back to
+   * the  `eth_maxPriorityFeePerGas` RPC call if supported by the chain,
+   * and finally falling back to the default max fee per gas.
+   *
+   * @returns a max fee per gas based on the config, RPC call, or default value.
+   */
+  private async _resolveMaxPriorityFeePerGas(): Promise<bigint> {
+    if (this._config?.maxPriorityFeePerGas !== undefined) {
+      return this._config?.maxPriorityFeePerGas;
+    }
+
+    try {
+      return await this._getMaxPrioirtyFeePerGas();
+    } catch {
+      // the max priority fee RPC call is not supported by
+      // this chain
+    }
+
+    return DEFAULT_MAX_PRIORITY_FEE_PER_GAS;
+  }
+
+  private async _getMaxPrioirtyFeePerGas(): Promise<bigint> {
+    const fee = await this._provider.request({
+      method: "eth_maxPriorityFeePerGas",
+    });
+
+    assertResponseType(
+      "eth_maxPriorityFeePerGas",
+      fee,
+      typeof fee === "string"
+    );
+
+    return jsonRpcQuantityToBigInt(fee);
   }
 }
 

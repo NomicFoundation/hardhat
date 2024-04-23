@@ -153,6 +153,56 @@ describe("JSON-RPC client", function () {
 
           assert.equal(fees.gasPrice, 1n);
         });
+
+        it("Should use the `maxPriorityFeePerGas` from the node if `eth_maxPriorityFeePerGas` is present (and there is no config)", async function () {
+          // TODO: Hardhat does not support `eth_maxPriorityFeePerGas` yet, when it does, this
+          // can be removed.
+          const proxiedProvider = {
+            ...this.hre.network.provider,
+            request: async (req: { method: string }) => {
+              if (req.method === "eth_maxPriorityFeePerGas") {
+                return "2000000000";
+              }
+
+              return this.hre.network.provider.request(req);
+            },
+          };
+
+          const maxFeeClient = new EIP1193JsonRpcClient(proxiedProvider, {
+            maxPriorityFeePerGas: undefined, // no config set for maxPriorityFeePerGas
+          });
+
+          const fees = await maxFeeClient.getNetworkFees();
+
+          assert("maxPriorityFeePerGas" in fees);
+
+          assert.equal(fees.maxPriorityFeePerGas, 2_000_000_000n);
+        });
+
+        it("Should default to 1gwei for maxPriorityFeePerGas if `eth_maxPriorityFeePerGas` is not available and no config set", async function () {
+          const proxiedProvider = {
+            ...this.hre.network.provider,
+            request: async (req: { method: string }) => {
+              if (req.method === "eth_maxPriorityFeePerGas") {
+                throw new Error(
+                  "Method eth_maxPriorityFeePerGas is not supported"
+                );
+              }
+
+              return this.hre.network.provider.request(req);
+            },
+          };
+
+          const maxFeeClient = new EIP1193JsonRpcClient(proxiedProvider, {
+            maxPriorityFeePerGas: undefined, // no config set for maxPriorityFeePerGas
+          });
+
+          const fees = await maxFeeClient.getNetworkFees();
+
+          assert("maxPriorityFeePerGas" in fees);
+
+          assert.equal(fees.maxPriorityFeePerGas, 1_000_000_000n);
+        });
       });
     });
 
