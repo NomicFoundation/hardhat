@@ -14,7 +14,7 @@ import { CustomError } from "./errors";
  */
 export async function getAllFilesMatching(
   absolutePathToDir: string,
-  matches?: (absolutePathToFile: string) => boolean
+  matches?: (absolutePathToFile: string) => boolean,
 ): Promise<string[]> {
   const dir = await readdir(absolutePathToDir);
 
@@ -30,7 +30,7 @@ export async function getAllFilesMatching(
       } else {
         return [];
       }
-    })
+    }),
   );
 
   return results.flat();
@@ -70,7 +70,7 @@ export class FileSystemAccessError extends CustomError {}
  */
 export async function getFileTrueCase(
   from: string,
-  relativePath: string
+  relativePath: string,
 ): Promise<string> {
   const dirEntries = await readdir(from);
 
@@ -87,8 +87,8 @@ export async function getFileTrueCase(
         dirEntry,
         await getFileTrueCase(
           path.join(from, dirEntry),
-          path.relative(parts[0], relativePath)
-        )
+          path.relative(parts[0], relativePath),
+        ),
       );
     }
   }
@@ -110,7 +110,7 @@ export class FileNotFoundError extends CustomError {
  */
 export function getAllFilesMatchingSync(
   absolutePathToDir: string,
-  matches?: (absolutePathToFile: string) => boolean
+  matches?: (absolutePathToFile: string) => boolean,
 ): string[] {
   const dir = readdirSync(absolutePathToDir);
 
@@ -154,7 +154,7 @@ function readdirSync(absolutePathToDir: string) {
  */
 export function getFileTrueCaseSync(
   from: string,
-  relativePath: string
+  relativePath: string,
 ): string {
   const dirEntries = readdirSync(from);
 
@@ -171,8 +171,8 @@ export function getFileTrueCaseSync(
         dirEntry,
         getFileTrueCaseSync(
           path.join(from, dirEntry),
-          path.relative(parts[0], relativePath)
-        )
+          path.relative(parts[0], relativePath),
+        ),
       );
     }
   }
@@ -191,6 +191,27 @@ export async function getRealPath(absolutePath: string): Promise<string> {
     // This method returns the actual casing.
     // Please read Node.js' docs to learn more.
     return await fsPromises.realpath(path.normalize(absolutePath));
+  } catch (e: any) {
+    if (e.code === "ENOENT") {
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+      throw new FileNotFoundError(absolutePath, e);
+    }
+
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+    throw new FileSystemAccessError(e.message, e);
+  }
+}
+
+/**
+ * Sync version of getRealPath
+ *
+ * @see getRealCase
+ */
+export function getRealPathSync(absolutePath: string): string {
+  try {
+    // This method returns the actual casing.
+    // Please read Node.js' docs to learn more.
+    return fs.realpathSync.native(path.normalize(absolutePath));
   } catch (e: any) {
     if (e.code === "ENOENT") {
       // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
