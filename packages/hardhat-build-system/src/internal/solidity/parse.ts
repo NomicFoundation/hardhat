@@ -1,8 +1,8 @@
 import type SolidityAnalyzerT from "@nomicfoundation/solidity-analyzer";
 
 import { SolidityFilesCache } from "../builtin-tasks/utils/solidity-files-cache";
-import { HardhatError } from "../errors";
-import { ERRORS } from "../errors-list";
+import { HardhatError } from "../errors/errors";
+import { ERRORS } from "../errors/errors-list";
 
 interface ParsedData {
   imports: string[];
@@ -21,7 +21,7 @@ export class Parser {
   public parse(
     fileContent: string,
     absolutePath: string,
-    contentHash: string
+    contentHash: string,
   ): ParsedData {
     const cacheResult = this._getFromCache(absolutePath, contentHash);
 
@@ -54,7 +54,7 @@ export class Parser {
    */
   private _getFromCache(
     absolutePath: string,
-    contentHash: string
+    contentHash: string,
   ): ParsedData | null {
     const internalCacheEntry = this._cache.get(contentHash);
 

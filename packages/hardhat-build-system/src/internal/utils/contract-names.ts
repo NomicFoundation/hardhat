@@ -1,12 +1,12 @@
-import { HardhatError } from "./errors";
-import { ERRORS } from "./errors-list";
+import { HardhatError } from "../errors/errors";
+import { ERRORS } from "../errors/errors-list";
 
 /**
  * Returns a fully qualified name from a sourceName and contractName.
  */
 export function getFullyQualifiedName(
   sourceName: string,
-  contractName: string
+  contractName: string,
 ): string {
   return `${sourceName}:${contractName}`;
 }
@@ -73,15 +73,15 @@ export function findDistance(a: string, b: string): number {
     _d1: number,
     _d2: number,
     _bx: number,
-    _ay: number
+    _ay: number,
   ): number {
     return _d0 < _d1 || _d2 < _d1
       ? _d0 > _d2
         ? _d2 + 1
         : _d0 + 1
       : _bx === _ay
-      ? _d1
-      : _d1 + 1;
+        ? _d1
+        : _d1 + 1;
   }
 
   if (a === b) {

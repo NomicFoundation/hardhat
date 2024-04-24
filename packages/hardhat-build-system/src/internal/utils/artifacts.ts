@@ -4,14 +4,7 @@ import * as os from "os";
 import * as path from "path";
 import fsPromises from "fs/promises";
 
-import { HardhatError } from "./errors";
-import {
-  getFullyQualifiedName,
-  isFullyQualifiedName,
-  parseFullyQualifiedName,
-  findDistance,
-} from "./contract-names";
-import { replaceBackslashes } from "./source-names";
+import { HardhatError } from "../errors/errors";
 import {
   Artifact,
   Artifacts as IArtifacts,
@@ -19,7 +12,15 @@ import {
   CompilerInput,
   CompilerOutput,
   DebugFile,
-} from "./types";
+} from "../types";
+import { ERRORS } from "../errors/errors-list";
+import {
+  getFullyQualifiedName,
+  isFullyQualifiedName,
+  parseFullyQualifiedName,
+  findDistance,
+} from "./contract-names";
+import { replaceBackslashes } from "./source-names";
 
 import {
   ARTIFACT_FORMAT_VERSION,
@@ -28,7 +29,6 @@ import {
   DEBUG_FILE_FORMAT_VERSION,
   EDIT_DISTANCE_THRESHOLD,
 } from "./constants";
-import { ERRORS } from "./errors-list";
 import { createNonCryptographicHashBasedIdentifier } from "./hash";
 import {
   FileNotFoundError,
@@ -62,7 +62,7 @@ export class Artifacts implements IArtifacts {
   }
 
   public addValidArtifacts(
-    validArtifacts: Array<{ sourceName: string; artifacts: string[] }>
+    validArtifacts: Array<{ sourceName: string; artifacts: string[] }>,
   ) {
     this._validArtifacts.push(...validArtifacts);
   }
@@ -99,7 +99,7 @@ export class Artifacts implements IArtifacts {
   }
 
   public async getBuildInfo(
-    fullyQualifiedName: string
+    fullyQualifiedName: string,
   ): Promise<BuildInfo | undefined> {
     let buildInfoPath =
       this._cache?.artifactFQNToBuildInfoPathCache.get(fullyQualifiedName);
@@ -117,7 +117,7 @@ export class Artifacts implements IArtifacts {
 
       this._cache?.artifactFQNToBuildInfoPathCache.set(
         fullyQualifiedName,
-        buildInfoPath
+        buildInfoPath,
       );
     }
 
@@ -141,7 +141,7 @@ export class Artifacts implements IArtifacts {
 
       this._cache?.artifactFQNToBuildInfoPathCache.set(
         fullyQualifiedName,
-        buildInfoPath
+        buildInfoPath,
       );
     }
 
@@ -155,7 +155,7 @@ export class Artifacts implements IArtifacts {
     }
 
     const paths = await getAllFilesMatching(this._artifactsPath, (f) =>
-      this._isArtifactPath(f)
+      this._isArtifactPath(f),
     );
 
     const result = paths.sort();
@@ -175,7 +175,7 @@ export class Artifacts implements IArtifacts {
 
     const paths = await getAllFilesMatching(
       path.join(this._artifactsPath, BUILD_INFO_DIR_NAME),
-      (f) => f.endsWith(".json")
+      (f) => f.endsWith(".json"),
     );
 
     const result = paths.sort();
@@ -195,7 +195,7 @@ export class Artifacts implements IArtifacts {
 
     const paths = await getAllFilesMatching(
       path.join(this._artifactsPath),
-      (f) => f.endsWith(".dbg.json")
+      (f) => f.endsWith(".dbg.json"),
     );
 
     const result = paths.sort();
@@ -209,13 +209,13 @@ export class Artifacts implements IArtifacts {
 
   public async saveArtifactAndDebugFile(
     artifact: Artifact,
-    pathToBuildInfo?: string
+    pathToBuildInfo?: string,
   ) {
     try {
       // artifact
       const fullyQualifiedName = getFullyQualifiedName(
         artifact.sourceName,
-        artifact.contractName
+        artifact.contractName,
       );
 
       const artifactPath =
@@ -236,7 +236,7 @@ export class Artifacts implements IArtifacts {
           const debugFilePath = this._getDebugFilePath(artifactPath);
           const debugFile = this._createDebugFile(
             artifactPath,
-            pathToBuildInfo
+            pathToBuildInfo,
           );
 
           await fsExtra.writeJSON(debugFilePath, debugFile, {
@@ -253,7 +253,7 @@ export class Artifacts implements IArtifacts {
     solcVersion: string,
     solcLongVersion: string,
     input: CompilerInput,
-    output: CompilerOutput
+    output: CompilerOutput,
   ): Promise<string> {
     try {
       const buildInfoDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
@@ -262,7 +262,7 @@ export class Artifacts implements IArtifacts {
       const buildInfoName = this._getBuildInfoName(
         solcVersion,
         solcLongVersion,
-        input
+        input,
       );
 
       const buildInfo = this._createBuildInfo(
@@ -270,7 +270,7 @@ export class Artifacts implements IArtifacts {
         solcVersion,
         solcLongVersion,
         input,
-        output
+        output,
       );
 
       const buildInfoPath = path.join(buildInfoDir, `${buildInfoName}.json`);
@@ -319,7 +319,7 @@ export class Artifacts implements IArtifacts {
 
         let isFirst = true;
         for (const [name, value] of Object.entries(
-          buildInfo.output.sources ?? {}
+          buildInfo.output.sources ?? {},
         )) {
           if (isFirst) {
             isFirst = false;
@@ -338,7 +338,7 @@ export class Artifacts implements IArtifacts {
 
         isFirst = true;
         for (const [name, value] of Object.entries(
-          buildInfo.output.contracts ?? {}
+          buildInfo.output.contracts ?? {},
         )) {
           if (isFirst) {
             isFirst = false;
@@ -377,10 +377,10 @@ export class Artifacts implements IArtifacts {
         this._validArtifacts.flatMap(({ sourceName, artifacts }) =>
           artifacts.map((artifactName) =>
             this._getArtifactPath(
-              getFullyQualifiedName(sourceName, artifactName)
-            )
-          )
-        )
+              getFullyQualifiedName(sourceName, artifactName),
+            ),
+          ),
+        ),
       );
 
       const validArtifactsPathsSet = new Set<string>(validArtifactPaths);
@@ -389,8 +389,8 @@ export class Artifacts implements IArtifacts {
         for (const artifactName of artifacts) {
           validArtifactsPathsSet.add(
             this.formArtifactPathFromFullyQualifiedName(
-              getFullyQualifiedName(sourceName, artifactName)
-            )
+              getFullyQualifiedName(sourceName, artifactName),
+            ),
           );
         }
       }
@@ -400,7 +400,7 @@ export class Artifacts implements IArtifacts {
       await Promise.all(
         existingArtifactsPaths
           .filter((artifactPath) => !validArtifactsPathsSet.has(artifactPath))
-          .map((artifactPath) => this._removeArtifactFiles(artifactPath))
+          .map((artifactPath) => this._removeArtifactFiles(artifactPath)),
       );
 
       await this._removeObsoleteBuildInfos();
@@ -415,7 +415,7 @@ export class Artifacts implements IArtifacts {
    * @throws {HardhatError} If the name is not fully qualified.
    */
   public formArtifactPathFromFullyQualifiedName(
-    fullyQualifiedName: string
+    fullyQualifiedName: string,
   ): string {
     const { sourceName, contractName } =
       parseFullyQualifiedName(fullyQualifiedName);
@@ -451,11 +451,11 @@ export class Artifacts implements IArtifacts {
         if (buildInfoFile !== undefined) {
           return path.resolve(path.dirname(debugFile), buildInfoFile);
         }
-      })
+      }),
     );
 
     const filteredBuildInfos: string[] = buildInfos.filter(
-      (bf): bf is string => typeof bf === "string"
+      (bf): bf is string => typeof bf === "string",
     );
 
     const validBuildInfos = new Set<string>(filteredBuildInfos);
@@ -468,14 +468,14 @@ export class Artifacts implements IArtifacts {
         .map(async (buildInfoFile) => {
           log(`Removing buildInfo '${buildInfoFile}'`);
           await fsExtra.unlink(buildInfoFile);
-        })
+        }),
     );
   }
 
   private _getBuildInfoName(
     solcVersion: string,
     solcLongVersion: string,
-    input: CompilerInput
+    input: CompilerInput,
   ): string {
     const json = JSON.stringify({
       _format: BUILD_INFO_FORMAT_VERSION,
@@ -485,7 +485,7 @@ export class Artifacts implements IArtifacts {
     });
 
     return createNonCryptographicHashBasedIdentifier(
-      Buffer.from(json)
+      Buffer.from(json),
     ).toString("hex");
   }
 
@@ -525,7 +525,7 @@ export class Artifacts implements IArtifacts {
     solcVersion: string,
     solcLongVersion: string,
     input: CompilerInput,
-    output: CompilerOutput
+    output: CompilerOutput,
   ): BuildInfo {
     return {
       id,
@@ -540,7 +540,7 @@ export class Artifacts implements IArtifacts {
   private _createDebugFile(artifactPath: string, pathToBuildInfo: string) {
     const relativePathToBuildInfo = path.relative(
       path.dirname(artifactPath),
-      pathToBuildInfo
+      pathToBuildInfo,
     );
 
     const debugFile: DebugFile = {
@@ -558,7 +558,7 @@ export class Artifacts implements IArtifacts {
     }
 
     const paths = getAllFilesMatchingSync(this._artifactsPath, (f) =>
-      this._isArtifactPath(f)
+      this._isArtifactPath(f),
     );
 
     const result = paths.sort();
@@ -600,7 +600,7 @@ export class Artifacts implements IArtifacts {
    * @see https://github.com/dethcrypto/TypeChain/issues/544
    */
   private _getArtifactPathFromFullyQualifiedName(
-    fullyQualifiedName: string
+    fullyQualifiedName: string,
   ): string {
     const { sourceName, contractName } =
       parseFullyQualifiedName(fullyQualifiedName);
@@ -619,7 +619,7 @@ export class Artifacts implements IArtifacts {
    * - {@link ERRORS.ARTIFACTS.NOT_FOUND} If the artifact is not found.
    */
   private async _getValidArtifactPathFromFullyQualifiedName(
-    fullyQualifiedName: string
+    fullyQualifiedName: string,
   ): Promise<string> {
     const artifactPath =
       this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
@@ -629,8 +629,8 @@ export class Artifacts implements IArtifacts {
         this._artifactsPath,
         await getFileTrueCase(
           this._artifactsPath,
-          path.relative(this._artifactsPath, artifactPath)
-        )
+          path.relative(this._artifactsPath, artifactPath),
+        ),
       );
 
       if (artifactPath !== trueCasePath) {
@@ -644,7 +644,7 @@ export class Artifacts implements IArtifacts {
     } catch (e) {
       if (e instanceof FileNotFoundError) {
         return this._handleWrongArtifactForFullyQualifiedName(
-          fullyQualifiedName
+          fullyQualifiedName,
         );
       }
 
@@ -685,13 +685,13 @@ Please replace "${contractName}" for the correct contract name wherever you are 
    * @throws {HardhatError} with a list of similar contract names.
    */
   private _handleWrongArtifactForFullyQualifiedName(
-    fullyQualifiedName: string
+    fullyQualifiedName: string,
   ): never {
     const names = this._getAllFullyQualifiedNamesSync();
 
     const similarNames = this._getSimilarContractNames(
       fullyQualifiedName,
-      names
+      names,
     );
 
     throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
@@ -705,7 +705,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
    */
   private _handleWrongArtifactForContractName(
     contractName: string,
-    files: string[]
+    files: string[],
   ): never {
     const names = this._getAllContractNamesFromFiles(files);
 
@@ -714,7 +714,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     if (similarNames.length > 1) {
       similarNames = this._filterDuplicatesAsFullyQualifiedNames(
         files,
-        similarNames
+        similarNames,
       );
     }
 
@@ -740,14 +740,17 @@ Please replace "${contractName}" for the correct contract name wherever you are 
    */
   private _filterDuplicatesAsFullyQualifiedNames(
     files: string[],
-    similarNames: string[]
+    similarNames: string[],
   ): string[] {
     const outputNames = [];
-    const groups = similarNames.reduce((obj, cur) => {
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-      obj[cur] = obj[cur] ? obj[cur] + 1 : 1;
-      return obj;
-    }, {} as { [k: string]: number });
+    const groups = similarNames.reduce(
+      (obj, cur) => {
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+        obj[cur] = obj[cur] ? obj[cur] + 1 : 1;
+        return obj;
+      },
+      {} as { [k: string]: number },
+    );
 
     for (const [name, occurrences] of Object.entries(groups)) {
       if (occurrences > 1) {
@@ -773,7 +776,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
    */
   private _getSimilarContractNames(
     givenName: string,
-    names: string[]
+    names: string[],
   ): string[] {
     let shortestDistance = EDIT_DISTANCE_THRESHOLD;
     let mostSimilarNames: string[] = [];
@@ -796,7 +799,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
   }
 
   private _getValidArtifactPathFromFullyQualifiedNameSync(
-    fullyQualifiedName: string
+    fullyQualifiedName: string,
   ): string {
     const artifactPath =
       this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
@@ -806,8 +809,8 @@ Please replace "${contractName}" for the correct contract name wherever you are 
         this._artifactsPath,
         getFileTrueCaseSync(
           this._artifactsPath,
-          path.relative(this._artifactsPath, artifactPath)
-        )
+          path.relative(this._artifactsPath, artifactPath),
+        ),
       );
 
       if (artifactPath !== trueCasePath) {
@@ -821,7 +824,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     } catch (e) {
       if (e instanceof FileNotFoundError) {
         return this._handleWrongArtifactForFullyQualifiedName(
-          fullyQualifiedName
+          fullyQualifiedName,
         );
       }
 
@@ -842,7 +845,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
    */
   private _getArtifactPathFromFiles(
     contractName: string,
-    files: string[]
+    files: string[],
   ): string {
     const matchingFiles = files.filter((file) => {
       return path.basename(file) === `${contractName}.json`;
@@ -854,7 +857,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
 
     if (matchingFiles.length > 1) {
       const candidates = matchingFiles.map((file) =>
-        this._getFullyQualifiedNameFromPath(file)
+        this._getFullyQualifiedNameFromPath(file),
       );
 
       throw new HardhatError(ERRORS.ARTIFACTS.MULTIPLE_FOUND, {
@@ -875,7 +878,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
    */
   private _getFullyQualifiedNameFromPath(absolutePath: string): string {
     const sourceName = replaceBackslashes(
-      path.relative(this._artifactsPath, path.dirname(absolutePath))
+      path.relative(this._artifactsPath, path.dirname(absolutePath)),
     );
 
     const contractName = path.basename(absolutePath).replace(".json", "");
@@ -899,7 +902,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
    * corresponding build info file if it exists, or undefined otherwise.
    */
   private async _getBuildInfoFromDebugFile(
-    debugFilePath: string
+    debugFilePath: string,
   ): Promise<string | undefined> {
     if (await fsExtra.pathExists(debugFilePath)) {
       const { buildInfo } = await fsExtra.readJson(debugFilePath);
@@ -913,7 +916,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
    * Sync version of _getBuildInfoFromDebugFile
    */
   private _getBuildInfoFromDebugFileSync(
-    debugFilePath: string
+    debugFilePath: string,
   ): string | undefined {
     if (fsExtra.pathExistsSync(debugFilePath)) {
       const { buildInfo } = fsExtra.readJsonSync(debugFilePath);
@@ -943,7 +946,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
 export function getArtifactFromContractOutput(
   sourceName: string,
   contractName: string,
-  contractOutput: any
+  contractOutput: any,
 ): Artifact {
   const evmBytecode = contractOutput.evm?.bytecode;
   let bytecode: string = evmBytecode?.object ?? "";

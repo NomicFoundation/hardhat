@@ -10,17 +10,17 @@ import {
   replaceBackslashes,
   validateSourceNameExistenceAndCasing,
   validateSourceNameFormat,
-} from "../source-names";
-import { ERRORS } from "../errors-list";
-import { createNonCryptographicHashBasedIdentifier } from "../hash";
-import { getRealPath } from "../fs-utils";
-import { applyRemappings } from "../remappings";
+} from "../utils/source-names";
+import { ERRORS } from "../errors/errors-list";
+import { createNonCryptographicHashBasedIdentifier } from "../utils/hash";
+import { getRealPath } from "../utils/fs-utils";
+import { applyRemappings } from "../utils/remappings";
 import {
   FileContent,
   LibraryInfo,
   ResolvedFile as IResolvedFile,
 } from "../types/builtin-tasks";
-import { HardhatError, assertHardhatInvariant } from "../errors";
+import { HardhatError, assertHardhatInvariant } from "../errors/errors";
 import { Parser } from "./parse";
 
 const NODE_MODULES = "node_modules";
@@ -35,12 +35,12 @@ export class ResolvedFile implements IResolvedFile {
     public readonly contentHash: string,
     public readonly lastModificationDate: Date,
     libraryName?: string,
-    libraryVersion?: string
+    libraryVersion?: string,
   ) {
     assertHardhatInvariant(
       (libraryName === undefined && libraryVersion === undefined) ||
         (libraryName !== undefined && libraryVersion !== undefined),
-      "Libraries should have both name and version, or neither one"
+      "Libraries should have both name and version, or neither one",
     );
 
     if (libraryName !== undefined && libraryVersion !== undefined) {
@@ -68,8 +68,8 @@ export class Resolver {
     private readonly _remappings: Record<string, string>,
     private readonly _readFile: (absolutePath: string) => Promise<string>,
     private readonly _transformImportName: (
-      importName: string
-    ) => Promise<string>
+      importName: string,
+    ) => Promise<string>,
   ) {}
 
   /**
@@ -92,12 +92,12 @@ export class Resolver {
     if (await isLocalSourceName(this._projectRoot, remappedSourceName)) {
       resolvedFile = await this._resolveLocalSourceName(
         sourceName,
-        remappedSourceName
+        remappedSourceName,
       );
     } else {
       resolvedFile = await this._resolveLibrarySourceName(
         sourceName,
-        remappedSourceName
+        remappedSourceName,
       );
     }
 
@@ -112,12 +112,12 @@ export class Resolver {
    */
   public async resolveImport(
     from: ResolvedFile,
-    importName: string
+    importName: string,
   ): Promise<ResolvedFile> {
     // sanity check for deprecated task
     if (importName !== (await this._transformImportName(importName))) {
       throw new HardhatError(
-        ERRORS.TASK_DEFINITIONS.DEPRECATED_TRANSFORM_IMPORT_TASK
+        ERRORS.TASK_DEFINITIONS.DEPRECATED_TRANSFORM_IMPORT_TASK,
       );
     }
 
@@ -183,7 +183,7 @@ export class Resolver {
       ) {
         resolvedFile = await this._resolveLocalSourceName(
           sourceName,
-          applyRemappings(this._remappings, sourceName)
+          applyRemappings(this._remappings, sourceName),
         );
       } else {
         resolvedFile = await this.resolveSourceName(sourceName);
@@ -195,11 +195,11 @@ export class Resolver {
       if (
         HardhatError.isHardhatErrorType(
           error,
-          ERRORS.RESOLVER.FILE_NOT_FOUND
+          ERRORS.RESOLVER.FILE_NOT_FOUND,
         ) ||
         HardhatError.isHardhatErrorType(
           error,
-          ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND
+          ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND,
         )
       ) {
         if (imported !== importName) {
@@ -210,7 +210,7 @@ export class Resolver {
               importName,
               from: from.sourceName,
             },
-            error
+            error,
           );
         } else {
           throw new HardhatError(
@@ -219,7 +219,7 @@ export class Resolver {
               imported,
               from: from.sourceName,
             },
-            error
+            error,
           );
         }
       }
@@ -227,7 +227,7 @@ export class Resolver {
       if (
         HardhatError.isHardhatErrorType(
           error,
-          ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING
+          ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING,
         )
       ) {
         throw new HardhatError(
@@ -236,14 +236,14 @@ export class Resolver {
             imported,
             from: from.sourceName,
           },
-          error
+          error,
         );
       }
 
       if (
         HardhatError.isHardhatErrorType(
           error,
-          ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED
+          ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED,
         )
       ) {
         throw new HardhatError(
@@ -252,14 +252,14 @@ export class Resolver {
             library: error.messageArguments.library,
             from: from.sourceName,
           },
-          error
+          error,
         );
       }
 
       if (
         HardhatError.isHardhatErrorType(
           error,
-          ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY
+          ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY,
         )
       ) {
         throw new HardhatError(
@@ -268,7 +268,7 @@ export class Resolver {
             imported,
             from: from.sourceName,
           },
-          error
+          error,
         );
       }
 
@@ -279,12 +279,12 @@ export class Resolver {
 
   private async _resolveLocalSourceName(
     sourceName: string,
-    remappedSourceName: string
+    remappedSourceName: string,
   ): Promise<ResolvedFile> {
     await this._validateSourceNameExistenceAndCasing(
       this._projectRoot,
       remappedSourceName,
-      false
+      false,
     );
 
     const absolutePath = path.join(this._projectRoot, remappedSourceName);
@@ -293,18 +293,18 @@ export class Resolver {
 
   private async _resolveLibrarySourceName(
     sourceName: string,
-    remappedSourceName: string
+    remappedSourceName: string,
   ): Promise<ResolvedFile> {
     const normalizedSourceName = remappedSourceName.replace(
       /^node_modules\//,
-      ""
+      "",
     );
     const libraryName = this._getLibraryName(normalizedSourceName);
 
     let packageJsonPath;
     try {
       packageJsonPath = this._resolveNodeModulesFileFromProjectRoot(
-        path.join(libraryName, "package.json")
+        path.join(libraryName, "package.json"),
       );
     } catch (error) {
       // if the project is using a dependency from hardhat itself but it can't
@@ -319,7 +319,7 @@ export class Resolver {
           {
             library: libraryName,
           },
-          error as Error
+          error as Error,
         );
       }
     }
@@ -342,14 +342,14 @@ export class Resolver {
         // TODO: this is _not_ a source name; we should handle this scenario in
         // a better way
         fileName,
-        true
+        true,
       );
       absolutePath = path.join(packageRoot, fileName);
     } else {
       await this._validateSourceNameExistenceAndCasing(
         nodeModulesPath,
         normalizedSourceName,
-        true
+        true,
       );
       absolutePath = path.join(nodeModulesPath, normalizedSourceName);
     }
@@ -365,13 +365,13 @@ export class Resolver {
       // We resolve to the real path here, as we may be resolving a linked library
       await getRealPath(absolutePath),
       libraryName,
-      libraryVersion
+      libraryVersion,
     );
   }
 
   private async _relativeImportToSourceName(
     from: ResolvedFile,
-    imported: string
+    imported: string,
   ): Promise<string> {
     // This is a special case, were we turn relative imports from local files
     // into library imports if necessary. The reason for this is that many
@@ -381,7 +381,7 @@ export class Resolver {
     }
 
     const sourceName = normalizeSourceName(
-      path.join(path.dirname(from.sourceName), imported)
+      path.join(path.dirname(from.sourceName), imported),
     );
 
     // If the file with the import is local, and the normalized version
@@ -389,7 +389,7 @@ export class Resolver {
     if (from.library === undefined && sourceName.startsWith("../")) {
       throw new HardhatError(
         ERRORS.RESOLVER.INVALID_IMPORT_OUTSIDE_OF_PROJECT,
-        { from: from.sourceName, imported }
+        { from: from.sourceName, imported },
       );
     }
 
@@ -412,20 +412,20 @@ export class Resolver {
     sourceName: string,
     absolutePath: string,
     libraryName?: string,
-    libraryVersion?: string
+    libraryVersion?: string,
   ): Promise<ResolvedFile> {
     const rawContent = await this._readFile(absolutePath);
     const stats = await fsExtra.stat(absolutePath);
     const lastModificationDate = new Date(stats.ctime);
 
     const contentHash = createNonCryptographicHashBasedIdentifier(
-      Buffer.from(rawContent)
+      Buffer.from(rawContent),
     ).toString("hex");
 
     const parsedContent = this._parser.parse(
       rawContent,
       absolutePath,
-      contentHash
+      contentHash,
     );
 
     const content = {
@@ -440,7 +440,7 @@ export class Resolver {
       contentHash,
       lastModificationDate,
       libraryName,
-      libraryVersion
+      libraryVersion,
     );
   }
 
@@ -494,7 +494,7 @@ export class Resolver {
 
   private _isRelativeImportToLibrary(
     from: ResolvedFile,
-    imported: string
+    imported: string,
   ): boolean {
     return (
       this._isRelativeImport(imported) &&
@@ -505,10 +505,10 @@ export class Resolver {
 
   private _relativeImportToLibraryToSourceName(
     from: ResolvedFile,
-    imported: string
+    imported: string,
   ): string {
     const sourceName = normalizeSourceName(
-      path.join(path.dirname(from.sourceName), imported)
+      path.join(path.dirname(from.sourceName), imported),
     );
 
     const nmIndex = sourceName.indexOf(`${NODE_MODULES}/`);
@@ -518,7 +518,7 @@ export class Resolver {
   private async _validateSourceNameExistenceAndCasing(
     fromDir: string,
     sourceName: string,
-    isLibrary: boolean
+    isLibrary: boolean,
   ) {
     try {
       await validateSourceNameExistenceAndCasing(fromDir, sourceName);
@@ -526,7 +526,7 @@ export class Resolver {
       if (
         HardhatError.isHardhatErrorType(
           error,
-          ERRORS.SOURCE_NAMES.FILE_NOT_FOUND
+          ERRORS.SOURCE_NAMES.FILE_NOT_FOUND,
         )
       ) {
         throw new HardhatError(
@@ -534,7 +534,7 @@ export class Resolver {
             ? ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND
             : ERRORS.RESOLVER.FILE_NOT_FOUND,
           { file: sourceName },
-          error
+          error,
         );
       }
 
@@ -547,7 +547,7 @@ export class Resolver {
             incorrect: sourceName,
             correct: error.messageArguments.correct,
           },
-          error
+          error,
         );
       }
 

@@ -1,4 +1,4 @@
-import { replaceAll } from "./string";
+import { replaceAll } from "../utils/string";
 
 import { ErrorDescriptor, ERRORS, getErrorCode } from "./errors-list";
 

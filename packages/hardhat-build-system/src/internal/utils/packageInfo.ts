@@ -2,14 +2,14 @@ import findup from "find-up";
 import fsExtra from "fs-extra";
 import path from "path";
 
-import { assertHardhatInvariant } from "./errors";
+import { assertHardhatInvariant } from "../errors/errors";
 
 export function getHardhatVersion(): string {
   const packageJsonPath = findClosestPackageJson(__filename);
 
   assertHardhatInvariant(
     packageJsonPath !== null,
-    "There should be a package.json in hardhat-core's root directory"
+    "There should be a package.json in hardhat-core's root directory",
   );
 
   const packageJson = fsExtra.readJsonSync(packageJsonPath);

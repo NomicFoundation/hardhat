@@ -1,21 +1,21 @@
 import * as taskTypes from "../types/builtin-tasks";
-import { HardhatError } from "../errors";
-import { ERRORS } from "../errors-list";
+import { HardhatError } from "../errors/errors";
+import { ERRORS } from "../errors/errors-list";
 
 import { ResolvedFile, Resolver } from "./resolver";
 
 export class DependencyGraph implements taskTypes.DependencyGraph {
   public static async createFromResolvedFiles(
     resolver: Resolver,
-    resolvedFiles: ResolvedFile[]
+    resolvedFiles: ResolvedFile[],
   ): Promise<DependencyGraph> {
     const graph = new DependencyGraph();
 
     // TODO refactor this to make the results deterministic
     await Promise.all(
       resolvedFiles.map((resolvedFile) =>
-        graph._addDependenciesFrom(resolver, resolvedFile)
-      )
+        graph._addDependenciesFrom(resolver, resolvedFile),
+      ),
     );
 
     return graph;
@@ -43,7 +43,7 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
 
   public entries(): Array<[ResolvedFile, Set<ResolvedFile>]> {
     return Array.from(this._dependenciesPerFile.entries()).map(
-      ([key, value]) => [this._resolvedFiles.get(key)!, value]
+      ([key, value]) => [this._resolvedFiles.get(key)!, value],
     );
   }
 
@@ -55,14 +55,14 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
   }
 
   public getTransitiveDependencies(
-    file: ResolvedFile
+    file: ResolvedFile,
   ): taskTypes.TransitiveDependency[] {
     const visited = new Set<ResolvedFile>();
 
     const transitiveDependencies = this._getTransitiveDependencies(
       file,
       visited,
-      []
+      [],
     );
 
     return [...transitiveDependencies];
@@ -132,7 +132,7 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
   private _getTransitiveDependencies(
     file: ResolvedFile,
     visited: Set<ResolvedFile>,
-    path: ResolvedFile[]
+    path: ResolvedFile[],
   ): Set<taskTypes.TransitiveDependency> {
     if (visited.has(file)) {
       return new Set();
@@ -146,14 +146,14 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
       }));
 
     const transitiveDependencies = new Set<taskTypes.TransitiveDependency>(
-      directDependencies
+      directDependencies,
     );
 
     for (const { dependency } of transitiveDependencies) {
       this._getTransitiveDependencies(
         dependency,
         visited,
-        path.concat(dependency)
+        path.concat(dependency),
       ).forEach((x) => transitiveDependencies.add(x));
     }
 
@@ -162,7 +162,7 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
 
   private async _addDependenciesFrom(
     resolver: Resolver,
-    file: ResolvedFile
+    file: ResolvedFile,
   ): Promise<void> {
     const sourceName = this._visitedFiles.get(file.absolutePath);
 
@@ -190,7 +190,7 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
         dependencies.add(dependency);
 
         await this._addDependenciesFrom(resolver, dependency);
-      })
+      }),
     );
   }
 }
