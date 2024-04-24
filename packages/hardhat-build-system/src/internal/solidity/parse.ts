@@ -1,5 +1,4 @@
 import type SolidityAnalyzerT from "@nomicfoundation/solidity-analyzer";
-
 import { SolidityFilesCache } from "../builtin-tasks/utils/solidity-files-cache";
 import { HardhatError } from "../errors/errors";
 import { ERRORS } from "../errors/errors-list";

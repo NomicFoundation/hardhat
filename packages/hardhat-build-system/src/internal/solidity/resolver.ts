@@ -1,7 +1,6 @@
 import fsExtra from "fs-extra";
 import path from "path";
 import resolve from "resolve";
-
 import {
   includesOwnPackageName,
   isAbsolutePathSourceName,

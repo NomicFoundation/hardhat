@@ -1,9 +1,8 @@
+import type { LoDashStatic } from "lodash";
+import type { SolcConfig } from "../../types";
 import debug from "debug";
 import fsExtra from "fs-extra";
 import * as t from "io-ts";
-
-import type { LoDashStatic } from "lodash";
-import type { SolcConfig } from "../../types";
 
 const log = debug("hardhat:core:tasks:compile:cache");
 
@@ -48,7 +47,7 @@ export class SolidityFilesCache {
   }
 
   public static async readFromFile(
-    solidityFilesCachePath: string
+    solidityFilesCachePath: string,
   ): Promise<SolidityFilesCache> {
     let cacheRaw: Cache = {
       _format: FORMAT_VERSION,
@@ -82,7 +81,7 @@ export class SolidityFilesCache {
         if (!(await fsExtra.pathExists(absolutePath))) {
           this.removeEntry(absolutePath);
         }
-      })
+      }),
     );
   }
 
@@ -111,7 +110,7 @@ export class SolidityFilesCache {
   public hasFileChanged(
     absolutePath: string,
     contentHash: string,
-    solcConfig?: SolcConfig
+    solcConfig?: SolcConfig,
   ): boolean {
     const isEqual = require("lodash/isEqual") as LoDashStatic["isEqual"];
 
