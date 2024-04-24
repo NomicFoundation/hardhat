@@ -11,7 +11,7 @@ import { SOLIDITY_FILES_CACHE_FILENAME } from "../../src/internal/constants";
 import {
   ERRORS,
   ErrorDescriptor,
-} from "../../src/build-system/util/errors-list";
+} from "../../../hardhat-build-system/src/internal/errors/errors-list"; // TODO: tmp to check that hh-core tests work with the new package
 import { CompilationJobCreationErrorReason } from "../../src/types/builtin-tasks";
 import { useEnvironment } from "../helpers/environment";
 import { useFixtureProject } from "../helpers/project";
@@ -22,7 +22,7 @@ import {
   getRealPathSync,
 } from "../../src/internal/util/fs-utils";
 import { getLatestSupportedVersion } from "../internal/hardhat-network/stack-traces/compilers-list";
-import { HardhatError } from "../../src/build-system/util/errors";
+import { HardhatError } from "../../../hardhat-build-system/src/internal/errors/errors"; // TODO: tmp to check that hh-core tests work with the new package
 
 // TODO: rewrite here because instance of HardhatError has to be the one defined in the new build-system package
 export async function expectHardhatErrorAsync(
