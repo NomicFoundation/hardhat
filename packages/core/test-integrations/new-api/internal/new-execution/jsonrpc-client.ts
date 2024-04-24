@@ -108,14 +108,50 @@ describe("JSON-RPC client", function () {
         });
 
         it("Should use the configured maxPriorityFeePerGas", async function () {
-          const client = new EIP1193JsonRpcClient(this.hre.network.provider, {
-            maxPriorityFeePerGas: 1n,
-          });
-          const fees = await client.getNetworkFees();
+          const maxFeeClient = new EIP1193JsonRpcClient(
+            this.hre.network.provider,
+            {
+              maxPriorityFeePerGas: 1n,
+            }
+          );
+          const fees = await maxFeeClient.getNetworkFees();
 
           assert("maxPriorityFeePerGas" in fees);
 
           assert.equal(fees.maxPriorityFeePerGas, 1n);
+        });
+
+        it("Should use return legacy fees when deploying to polygon network (chainId 137)", async function () {
+          const polygonClient = new EIP1193JsonRpcClient(
+            {
+              request: async (req) => {
+                if (req.method === "eth_chainId") {
+                  return "0x89"; // 137
+                }
+
+                if (req.method === "eth_getBlockByNumber") {
+                  return {
+                    number: "0x0",
+                    hash: "0x0",
+                  };
+                }
+
+                if (req.method === "eth_gasPrice") {
+                  return "0x1";
+                }
+
+                throw new Error(`Unimplemented mock for ${req.method}`);
+              },
+            },
+            {
+              maxPriorityFeePerGas: 1n,
+            }
+          );
+          const fees = await polygonClient.getNetworkFees();
+
+          assert("gasPrice" in fees);
+
+          assert.equal(fees.gasPrice, 1n);
         });
       });
     });

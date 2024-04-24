@@ -39,6 +39,20 @@ describe("config", () => {
       });
     });
 
+    it("should apply maxFeePerGasLimit", async function () {
+      assert.equal(
+        this.hre.config.networks.hardhat.ignition.maxFeePerGasLimit,
+        2n
+      );
+    });
+
+    it("should apply maxPriorityFeePerGas", async function () {
+      assert.equal(
+        this.hre.config.networks.hardhat.ignition.maxPriorityFeePerGas,
+        3n
+      );
+    });
+
     it("should only have known config", () => {
       const configOptions: KeyListOf<HardhatConfig["ignition"]> = [
         "blockPollingInterval",

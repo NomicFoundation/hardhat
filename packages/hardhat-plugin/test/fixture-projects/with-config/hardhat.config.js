@@ -6,6 +6,10 @@ module.exports = {
       mining: {
         auto: false,
       },
+      ignition: {
+        maxFeePerGasLimit: 2n,
+        maxPriorityFeePerGas: 3n,
+      },
     },
   },
   ignition: {

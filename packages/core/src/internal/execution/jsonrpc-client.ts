@@ -630,10 +630,14 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
   }
 
   private async _getNetworkFees(): Promise<NetworkFees> {
-    const latestBlock = await this.getLatestBlock();
+    const [latestBlock, chainId] = await Promise.all([
+      this.getLatestBlock(),
+      this.getChainId(),
+    ]);
 
-    // We prioritize EIP-1559 fees over legacy gasPrice fees
-    if (latestBlock.baseFeePerGas !== undefined) {
+    // We prioritize EIP-1559 fees over legacy gasPrice fees, however,
+    // polygon (chainId 137) requires legacy gasPrice fees so we skip EIP-1559 logic in that case
+    if (latestBlock.baseFeePerGas !== undefined && chainId !== 137) {
       // Logic copied from ethers v6
       const maxPriorityFeePerGas =
         this._config?.maxPriorityFeePerGas ?? 1_000_000_000n; // 1gwei
