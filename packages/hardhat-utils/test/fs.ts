@@ -31,7 +31,7 @@ describe("File system utils", () => {
   const getTmpDir = useTmpDir("fs");
 
   describe("getRealPath", () => {
-    it("Should resolve symlinks", async function () {
+    it("Should resolve symlinks", async () => {
       const actualPath = path.join(getTmpDir(), "mixedCasingFile");
       await createFile(actualPath);
 
@@ -41,7 +41,7 @@ describe("File system utils", () => {
       assert.equal(await getRealPath(linkPath), actualPath);
     });
 
-    it("Should normalize the path", async function () {
+    it("Should normalize the path", async () => {
       const actualPath = path.join(getTmpDir(), "file");
       await createFile(actualPath);
 
@@ -50,7 +50,7 @@ describe("File system utils", () => {
       assert.equal(await getRealPath(filePath), actualPath);
     });
 
-    it("Should throw FileNotFoundError if not found", async function () {
+    it("Should throw FileNotFoundError if not found", async () => {
       const actualPath = path.join(getTmpDir(), "not-exists");
 
       await assert.rejects(getRealPath(actualPath), {
@@ -59,7 +59,7 @@ describe("File system utils", () => {
       });
     });
 
-    it("Should throw FileSystemAccessError if a different error is thrown", async function () {
+    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
       const linkPath = path.join(getTmpDir(), "link");
       await fsPromises.symlink(linkPath, linkPath);
 
@@ -69,8 +69,8 @@ describe("File system utils", () => {
     });
   });
 
-  describe("getAllFilesMatching", function () {
-    beforeEach(async function () {
+  describe("getAllFilesMatching", () => {
+    beforeEach(async () => {
       await mkdir(path.join(getTmpDir(), "dir-empty"));
       await mkdir(path.join(getTmpDir(), "dir-with-files", "dir-within-dir"));
       await mkdir(path.join(getTmpDir(), "dir-with-extension.txt"));
@@ -119,7 +119,7 @@ describe("File system utils", () => {
       );
     }
 
-    it("Should return an empty array if the dir doesn't exist", async function () {
+    it("Should return an empty array if the dir doesn't exist", async () => {
       await assertGetAllFilesMatching(
         path.join(getTmpDir(), "not-in-fs"),
         undefined,
@@ -127,7 +127,7 @@ describe("File system utils", () => {
       );
     });
 
-    it("Should return an empty array if the dir is empty", async function () {
+    it("Should return an empty array if the dir is empty", async () => {
       await assertGetAllFilesMatching(
         path.join(getTmpDir(), "dir-empty"),
         undefined,
@@ -135,11 +135,11 @@ describe("File system utils", () => {
       );
     });
 
-    it("Should return an empty array if no file matches", async function () {
+    it("Should return an empty array if no file matches", async () => {
       await assertGetAllFilesMatching(getTmpDir(), () => false, []);
     });
 
-    it("Should return every file by default, recursively", async function () {
+    it("Should return every file by default, recursively", async () => {
       await assertGetAllFilesMatching(getTmpDir(), undefined, [
         path.join(getTmpDir(), "file-1.txt"),
         path.join(getTmpDir(), "file-2.txt"),
@@ -159,7 +159,7 @@ describe("File system utils", () => {
       );
     });
 
-    it("Should filter files and not dirs", async function () {
+    it("Should filter files and not dirs", async () => {
       await assertGetAllFilesMatching(getTmpDir(), (f) => f.endsWith(".txt"), [
         path.join(getTmpDir(), "file-1.txt"),
         path.join(getTmpDir(), "file-2.txt"),
@@ -176,7 +176,7 @@ describe("File system utils", () => {
       ]);
     });
 
-    it("Should preserve the true casing of the files, except for the dir's path", async function () {
+    it("Should preserve the true casing of the files, except for the dir's path", async () => {
       await assertGetAllFilesMatching(
         getTmpDir(),
         (f) => f.toLowerCase().endsWith("withcasing"),
@@ -184,7 +184,7 @@ describe("File system utils", () => {
       );
     });
 
-    it("Should throw NotADirectoryError if the path is not a directory", async function () {
+    it("Should throw NotADirectoryError if the path is not a directory", async () => {
       const dirPath = path.join(getTmpDir(), "file-1.txt");
 
       await assert.rejects(
@@ -196,7 +196,7 @@ describe("File system utils", () => {
       );
     });
 
-    it("Should throw FileSystemAccessError if a different error is thrown", async function () {
+    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
       const linkPath = path.join(getTmpDir(), "link");
       await fsPromises.symlink(linkPath, linkPath);
 
@@ -206,8 +206,8 @@ describe("File system utils", () => {
     });
   });
 
-  describe("getFileTrueCase", function () {
-    it("Should return the true case of files and dirs", async function () {
+  describe("getFileTrueCase", () => {
+    it("Should return the true case of files and dirs", async () => {
       const mixedCaseFilePath = path.join(getTmpDir(), "mixedCaseFile");
       const mixedCaseDirPath = path.join(getTmpDir(), "mixedCaseDir");
       const mixedCaseFile2Path = path.join(mixedCaseDirPath, "mixedCaseFile2");
@@ -282,7 +282,7 @@ describe("File system utils", () => {
       );
     });
 
-    it("Should NOT resolve symlinks", async function () {
+    it("Should NOT resolve symlinks", async () => {
       const actualPath = path.join(getTmpDir(), "mixedCasingFile");
       await createFile(actualPath);
 
@@ -292,7 +292,7 @@ describe("File system utils", () => {
       assert.equal(await getFileTrueCase(getTmpDir(), "link"), "lInK");
     });
 
-    it("Should throw FileNotFoundError if not found", async function () {
+    it("Should throw FileNotFoundError if not found", async () => {
       const actualPath = path.join(getTmpDir(), "not-exists");
 
       await assert.rejects(getFileTrueCase(getTmpDir(), "not-exists"), {
@@ -301,7 +301,7 @@ describe("File system utils", () => {
       });
     });
 
-    it("Should throw NotADirectoryError if the starting directory is not a directory", async function () {
+    it("Should throw NotADirectoryError if the starting directory is not a directory", async () => {
       const filePath = path.join(getTmpDir(), "file");
       await createFile(filePath);
 
@@ -311,7 +311,7 @@ describe("File system utils", () => {
       });
     });
 
-    it("Should throw FileSystemAccessError if a different error is thrown", async function () {
+    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
       const linkPath = path.join(getTmpDir(), "link");
       await fsPromises.symlink(linkPath, linkPath);
 
@@ -321,22 +321,22 @@ describe("File system utils", () => {
     });
   });
 
-  describe("isDirectory", function () {
-    it("Should return true if the path is a directory", async function () {
+  describe("isDirectory", () => {
+    it("Should return true if the path is a directory", async () => {
       const dirPath = path.join(getTmpDir(), "dir");
       await mkdir(dirPath);
 
       assert.ok(await isDirectory(dirPath));
     });
 
-    it("Should return false if the path is not a directory", async function () {
+    it("Should return false if the path is not a directory", async () => {
       const filePath = path.join(getTmpDir(), "file");
       await createFile(filePath);
 
       assert.ok(!(await isDirectory(filePath)));
     });
 
-    it("Should throw FileNotFoundError if the path doesn't exist", async function () {
+    it("Should throw FileNotFoundError if the path doesn't exist", async () => {
       const actualPath = path.join(getTmpDir(), "not-exists");
 
       await assert.rejects(isDirectory(actualPath), {
@@ -345,7 +345,7 @@ describe("File system utils", () => {
       });
     });
 
-    it("Should throw FileSystemAccessError if a different error is thrown", async function () {
+    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
       // As a directory with no permissions can still be accessed by stat, we need
       // to pass a path that is not a valid directory path, for example a null byte.
       const invalidPath = "\0";
@@ -356,8 +356,8 @@ describe("File system utils", () => {
     });
   });
 
-  describe("readJsonFile", function () {
-    it("Should read and parse a JSON file", async function () {
+  describe("readJsonFile", () => {
+    it("Should read and parse a JSON file", async () => {
       const expectedObject = { a: 1, b: 2 };
       const filePath = path.join(getTmpDir(), "file.json");
       await writeUtf8File(filePath, JSON.stringify(expectedObject));
@@ -369,7 +369,7 @@ describe("File system utils", () => {
       ).toMatchTypeOf<{ a: number; b: number }>();
     });
 
-    it("Should throw InvalidFileFormatError if the file is not valid JSON", async function () {
+    it("Should throw InvalidFileFormatError if the file is not valid JSON", async () => {
       const filePath = path.join(getTmpDir(), "file.json");
       await writeUtf8File(filePath, "not-json");
 
@@ -379,7 +379,7 @@ describe("File system utils", () => {
       });
     });
 
-    it("Should throw FileNotFoundError if the file doesn't exist", async function () {
+    it("Should throw FileNotFoundError if the file doesn't exist", async () => {
       const filePath = path.join(getTmpDir(), "not-exists.json");
 
       await assert.rejects(readJsonFile(filePath), {
@@ -388,7 +388,7 @@ describe("File system utils", () => {
       });
     });
 
-    it("Should throw FileSystemAccessError if a different error is thrown", async function () {
+    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
       const invalidPath = "\0";
 
       await assert.rejects(readJsonFile(invalidPath), {
@@ -397,8 +397,8 @@ describe("File system utils", () => {
     });
   });
 
-  describe("writeJsonFile", function () {
-    it("Should write an object to a JSON file", async function () {
+  describe("writeJsonFile", () => {
+    it("Should write an object to a JSON file", async () => {
       const expectedObject = { a: 1, b: 2 };
       const filePath = path.join(getTmpDir(), "file.json");
 
@@ -413,7 +413,7 @@ describe("File system utils", () => {
       );
     });
 
-    it("Should write an object tto a JSON file even if part of the path doesn't exist", async function () {
+    it("Should write an object tto a JSON file even if part of the path doesn't exist", async () => {
       const expectedObject = { a: 1, b: 2 };
       const filePath = path.join(getTmpDir(), "not-exists", "file.json");
 
@@ -425,7 +425,7 @@ describe("File system utils", () => {
       );
     });
 
-    it("Should throw JsonSerializationError if the object can't be serialized to JSON", async function () {
+    it("Should throw JsonSerializationError if the object can't be serialized to JSON", async () => {
       const filePath = path.join(getTmpDir(), "file.json");
       // create an object with a circular reference
       const circularObject: { self?: {} } = {};
@@ -437,7 +437,7 @@ describe("File system utils", () => {
       });
     });
 
-    it("Should throw FileSystemAccessError if a different error is thrown", async function () {
+    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
       const filePath = path.join(getTmpDir(), "protected-file.json");
       await createFile(filePath);
 
@@ -453,8 +453,8 @@ describe("File system utils", () => {
     });
   });
 
-  describe("readUtf8File", function () {
-    it("Should read a file and return its content as a string", async function () {
+  describe("readUtf8File", () => {
+    it("Should read a file and return its content as a string", async () => {
       const content = "hello";
       const filePath = path.join(getTmpDir(), "file.txt");
       await writeUtf8File(filePath, content);
@@ -463,7 +463,7 @@ describe("File system utils", () => {
       expectTypeOf(await readUtf8File(filePath)).toMatchTypeOf<string>();
     });
 
-    it("Should throw FileNotFoundError if the file doesn't exist", async function () {
+    it("Should throw FileNotFoundError if the file doesn't exist", async () => {
       const filePath = path.join(getTmpDir(), "not-exists.txt");
 
       await assert.rejects(readUtf8File(filePath), {
@@ -472,7 +472,7 @@ describe("File system utils", () => {
       });
     });
 
-    it("Should throw FileSystemAccessError if a different error is thrown", async function () {
+    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
       const invalidPath = "\0";
 
       await assert.rejects(readUtf8File(invalidPath), {
@@ -481,8 +481,8 @@ describe("File system utils", () => {
     });
   });
 
-  describe("writeUtf8File", function () {
-    it("Should write a string to a file", async function () {
+  describe("writeUtf8File", () => {
+    it("Should write a string to a file", async () => {
       const content = "hello";
       const filePath = path.join(getTmpDir(), "file.txt");
 
@@ -491,7 +491,7 @@ describe("File system utils", () => {
       assert.equal(await readUtf8File(filePath), content);
     });
 
-    it("Should write a string to a file even if part of the path doesn't exist", async function () {
+    it("Should write a string to a file even if part of the path doesn't exist", async () => {
       const content = "hello";
       const filePath = path.join(getTmpDir(), "not-exists", "file.txt");
 
@@ -500,7 +500,7 @@ describe("File system utils", () => {
       assert.equal(await readUtf8File(filePath), content);
     });
 
-    it("Should allow setting the flag", async function () {
+    it("Should allow setting the flag", async () => {
       const content = "hello";
       const filePath = path.join(getTmpDir(), "file.txt");
 
@@ -510,7 +510,7 @@ describe("File system utils", () => {
       assert.equal(await readUtf8File(filePath), `${content}${content}`);
     });
 
-    it("Should throw FileAlreadyExistsError if the file already exists and the flag 'x' is used", async function () {
+    it("Should throw FileAlreadyExistsError if the file already exists and the flag 'x' is used", async () => {
       const filePath = path.join(getTmpDir(), "file.txt");
       await writeUtf8File(filePath, "hello");
 
@@ -520,7 +520,7 @@ describe("File system utils", () => {
       });
     });
 
-    it("Should throw FileSystemAccessError if a different error is thrown", async function () {
+    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
       const filePath = path.join(getTmpDir(), "protected-file.txt");
 
       try {
@@ -537,8 +537,8 @@ describe("File system utils", () => {
     });
   });
 
-  describe("readdir", function () {
-    it("Should return the files in a directory", async function () {
+  describe("readdir", () => {
+    it("Should return the files in a directory", async () => {
       const dirPath = path.join(getTmpDir(), "dir");
       await mkdir(dirPath);
 
@@ -558,7 +558,7 @@ describe("File system utils", () => {
       );
     });
 
-    it("Should throw FileNotFoundError if the directory doesn't exist", async function () {
+    it("Should throw FileNotFoundError if the directory doesn't exist", async () => {
       const dirPath = path.join(getTmpDir(), "not-exists");
 
       await assert.rejects(readdir(dirPath), {
@@ -567,7 +567,7 @@ describe("File system utils", () => {
       });
     });
 
-    it("Should throw NotADirectoryError if the path is not a directory", async function () {
+    it("Should throw NotADirectoryError if the path is not a directory", async () => {
       const filePath = path.join(getTmpDir(), "file");
       await createFile(filePath);
 
@@ -577,7 +577,7 @@ describe("File system utils", () => {
       });
     });
 
-    it("Should throw FileSystemAccessError if a different error is thrown", async function () {
+    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
       const invalidPath = "\0";
 
       await assert.rejects(readdir(invalidPath), {
@@ -586,8 +586,8 @@ describe("File system utils", () => {
     });
   });
 
-  describe("mkdir", function () {
-    it("Should create a directory", async function () {
+  describe("mkdir", () => {
+    it("Should create a directory", async () => {
       const dirPath = path.join(getTmpDir(), "dir");
 
       await mkdir(dirPath);
@@ -595,7 +595,7 @@ describe("File system utils", () => {
       assert.ok(await isDirectory(dirPath));
     });
 
-    it("Should create a directory and any necessary directories along the way", async function () {
+    it("Should create a directory and any necessary directories along the way", async () => {
       const dirPath = path.join(getTmpDir(), "dir", "subdir");
 
       await mkdir(dirPath);
@@ -603,7 +603,7 @@ describe("File system utils", () => {
       assert.ok(await isDirectory(dirPath));
     });
 
-    it("Should do nothing if the directory already exists", async function () {
+    it("Should do nothing if the directory already exists", async () => {
       const dirPath = path.join(getTmpDir(), "dir");
 
       await mkdir(dirPath);
@@ -612,7 +612,7 @@ describe("File system utils", () => {
       assert.ok(await isDirectory(dirPath));
     });
 
-    it("Should throw FileSystemAccessError for any error", async function () {
+    it("Should throw FileSystemAccessError for any error", async () => {
       const invalidPath = "\0";
 
       await assert.rejects(mkdir(invalidPath), {
@@ -621,8 +621,8 @@ describe("File system utils", () => {
     });
   });
 
-  describe("getChangeTime", function () {
-    it("Should return the change time of a file", async function () {
+  describe("getChangeTime", () => {
+    it("Should return the change time of a file", async () => {
       const filePath = path.join(getTmpDir(), "file.txt");
       await createFile(filePath);
 
@@ -634,7 +634,7 @@ describe("File system utils", () => {
       );
     });
 
-    it("Should throw FileNotFoundError if the file doesn't exist", async function () {
+    it("Should throw FileNotFoundError if the file doesn't exist", async () => {
       const filePath = path.join(getTmpDir(), "not-exists.txt");
 
       await assert.rejects(getChangeTime(filePath), {
@@ -643,7 +643,7 @@ describe("File system utils", () => {
       });
     });
 
-    it("Should throw FileSystemAccessError if a different error is thrown", async function () {
+    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
       const invalidPath = "\0";
 
       await assert.rejects(getChangeTime(invalidPath), {
@@ -652,23 +652,23 @@ describe("File system utils", () => {
     });
   });
 
-  describe("exists", function () {
-    it("Should return true if the file exists", async function () {
+  describe("exists", () => {
+    it("Should return true if the file exists", async () => {
       const filePath = path.join(getTmpDir(), "file.txt");
       await createFile(filePath);
 
       assert.ok(await exists(filePath));
     });
 
-    it("Should return false if the file doesn't exist", async function () {
+    it("Should return false if the file doesn't exist", async () => {
       const filePath = path.join(getTmpDir(), "not-exists.txt");
 
       assert.ok(!(await exists(filePath)));
     });
   });
 
-  describe("copy", function () {
-    it("Should copy a file", async function () {
+  describe("copy", () => {
+    it("Should copy a file", async () => {
       const srcPath = path.join(getTmpDir(), "src.txt");
       const destPath = path.join(getTmpDir(), "dest.txt");
 
@@ -678,7 +678,7 @@ describe("File system utils", () => {
       assert.equal(await readUtf8File(destPath), "hello");
     });
 
-    it("Should throw FileNotFoundError if the source file doesn't exist", async function () {
+    it("Should throw FileNotFoundError if the source file doesn't exist", async () => {
       const srcPath = path.join(getTmpDir(), "not-exists.txt");
       const destPath = path.join(getTmpDir(), "dest.txt");
 
@@ -688,7 +688,7 @@ describe("File system utils", () => {
       });
     });
 
-    it("Should throw FileNotFoundError if the destination path doesn't exist", async function () {
+    it("Should throw FileNotFoundError if the destination path doesn't exist", async () => {
       const srcPath = path.join(getTmpDir(), "src.txt");
       const destPath = path.join(getTmpDir(), "not-exists", "dest.txt");
 
@@ -700,7 +700,7 @@ describe("File system utils", () => {
       });
     });
 
-    it("Should throw IsDirectoryError if the source path is a directory", async function () {
+    it("Should throw IsDirectoryError if the source path is a directory", async () => {
       const srcPath = path.join(getTmpDir(), "dir");
       const destPath = path.join(getTmpDir(), "dest.txt");
 
@@ -712,7 +712,7 @@ describe("File system utils", () => {
       });
     });
 
-    it("Should throw IsDirectoryError if the destination path is a directory", async function () {
+    it("Should throw IsDirectoryError if the destination path is a directory", async () => {
       const srcPath = path.join(getTmpDir(), "src.txt");
       const destPath = path.join(getTmpDir(), "dir");
 
@@ -725,7 +725,7 @@ describe("File system utils", () => {
       });
     });
 
-    it("Should throw FileSystemAccessError if a different error is thrown", async function () {
+    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
       const invalidPath = "\0";
       const destPath = path.join(getTmpDir(), "dest.txt");
 
@@ -735,8 +735,8 @@ describe("File system utils", () => {
     });
   });
 
-  describe("remove", function () {
-    it("Should remove a file", async function () {
+  describe("remove", () => {
+    it("Should remove a file", async () => {
       const filePath = path.join(getTmpDir(), "file.txt");
       await createFile(filePath);
 
@@ -745,7 +745,7 @@ describe("File system utils", () => {
       assert.ok(!(await exists(filePath)));
     });
 
-    it("Should remove an empty directory", async function () {
+    it("Should remove an empty directory", async () => {
       const dirPath = path.join(getTmpDir(), "dir");
       await mkdir(dirPath);
 
@@ -754,7 +754,7 @@ describe("File system utils", () => {
       assert.ok(!(await exists(dirPath)));
     });
 
-    it("Should remove a directory and its content", async function () {
+    it("Should remove a directory and its content", async () => {
       const dirPath = path.join(getTmpDir(), "dir");
       await mkdir(dirPath);
 
@@ -772,13 +772,13 @@ describe("File system utils", () => {
       assert.ok(!(await exists(dirPath)));
     });
 
-    it("Should not throw if the path doesn't exist", async function () {
+    it("Should not throw if the path doesn't exist", async () => {
       const filePath = path.join(getTmpDir(), "not-exists.txt");
 
-      await assert.doesNotReject(remove(filePath));
+      await remove(filePath);
     });
 
-    it("Should throw FileSystemAccessError for any error", async function () {
+    it("Should throw FileSystemAccessError for any error", async () => {
       const invalidPath = "\0";
 
       await assert.rejects(remove(invalidPath), {
@@ -787,8 +787,8 @@ describe("File system utils", () => {
     });
   });
 
-  describe("chmod", function () {
-    it("Should change the mode of a file", async function () {
+  describe("chmod", () => {
+    it("Should change the mode of a file", async () => {
       const filePath = path.join(getTmpDir(), "file.txt");
       await createFile(filePath);
 
@@ -800,7 +800,7 @@ describe("File system utils", () => {
       assert.equal(stats.mode & 0o777, 0o666);
     });
 
-    it("Should throw FileNotFoundError if the file doesn't exist", async function () {
+    it("Should throw FileNotFoundError if the file doesn't exist", async () => {
       const filePath = path.join(getTmpDir(), "not-exists.txt");
 
       await assert.rejects(chmod(filePath, 0o666), {
@@ -809,7 +809,7 @@ describe("File system utils", () => {
       });
     });
 
-    it("Should throw FileSystemAccessError if a different error is thrown", async function () {
+    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
       const invalidPath = "\0";
 
       await assert.rejects(chmod(invalidPath, 0o666), {
@@ -818,8 +818,8 @@ describe("File system utils", () => {
     });
   });
 
-  describe("move", function () {
-    it("Should move a file", async function () {
+  describe("move", () => {
+    it("Should move a file", async () => {
       const srcPath = path.join(getTmpDir(), "src.txt");
       const destPath = path.join(getTmpDir(), "dest.txt");
 
@@ -830,7 +830,7 @@ describe("File system utils", () => {
       assert.ok(!(await exists(srcPath)));
     });
 
-    it("Should move a directory", async function () {
+    it("Should move a directory", async () => {
       const srcPath = path.join(getTmpDir(), "dir");
       const destPath = path.join(getTmpDir(), "dest");
 
@@ -844,7 +844,7 @@ describe("File system utils", () => {
       assert.ok(await exists(path.join(destPath, "file.txt")));
     });
 
-    it("Should throw FileNotFoundError if the source file doesn't exist", async function () {
+    it("Should throw FileNotFoundError if the source file doesn't exist", async () => {
       const srcPath = path.join(getTmpDir(), "not-exists.txt");
       const destPath = path.join(getTmpDir(), "dest.txt");
 
@@ -854,7 +854,7 @@ describe("File system utils", () => {
       });
     });
 
-    it("Should throw FileNotFoundError if the destination path doesn't exist", async function () {
+    it("Should throw FileNotFoundError if the destination path doesn't exist", async () => {
       const srcPath = path.join(getTmpDir(), "src.txt");
       const destPath = path.join(getTmpDir(), "not-exists", "dest.txt");
 
@@ -866,7 +866,7 @@ describe("File system utils", () => {
       });
     });
 
-    it("Should throw DirectoryNotEmptyError if the source path is a directory and the destination path is a directory that is not empty", async function () {
+    it("Should throw DirectoryNotEmptyError if the source path is a directory and the destination path is a directory that is not empty", async () => {
       const srcPath = path.join(getTmpDir(), "dir");
       const destPath = path.join(getTmpDir(), "dest");
 
@@ -880,7 +880,7 @@ describe("File system utils", () => {
       });
     });
 
-    it("Should throw FileSystemAccessError if a different error is thrown", async function () {
+    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
       const invalidPath = "\0";
       const destPath = path.join(getTmpDir(), "dest.txt");
 
@@ -890,8 +890,8 @@ describe("File system utils", () => {
     });
   });
 
-  describe("createFile", function () {
-    it("Should create a file", async function () {
+  describe("createFile", () => {
+    it("Should create a file", async () => {
       const filePath = path.join(getTmpDir(), "file.txt");
 
       await createFile(filePath);
@@ -899,7 +899,7 @@ describe("File system utils", () => {
       assert.ok(await exists(filePath));
     });
 
-    it("Should create a file even if part of the path doesn't exist", async function () {
+    it("Should create a file even if part of the path doesn't exist", async () => {
       const filePath = path.join(getTmpDir(), "not-exists", "file.txt");
 
       await createFile(filePath);
@@ -907,7 +907,7 @@ describe("File system utils", () => {
       assert.ok(await exists(filePath));
     });
 
-    it("Should throw FileSystemAccessError for any error", async function () {
+    it("Should throw FileSystemAccessError for any error", async () => {
       const invalidPath = "\0";
 
       await assert.rejects(createFile(invalidPath), {
@@ -916,8 +916,8 @@ describe("File system utils", () => {
     });
   });
 
-  describe("emptyDir", function () {
-    it("Should empty a directory", async function () {
+  describe("emptyDir", () => {
+    it("Should empty a directory", async () => {
       const dirPath = path.join(getTmpDir(), "dir");
       await mkdir(dirPath);
 
@@ -932,7 +932,7 @@ describe("File system utils", () => {
       assert.deepEqual(await readdir(dirPath), []);
     });
 
-    it("Should preserve the directory permissions", async function () {
+    it("Should preserve the directory permissions", async () => {
       const dirPath = path.join(getTmpDir(), "dir");
       await mkdir(dirPath);
       await chmod(dirPath, 0o666);
@@ -943,7 +943,7 @@ describe("File system utils", () => {
       assert.equal((await fsPromises.stat(dirPath)).mode & 0o777, 0o666);
     });
 
-    it("Should create the directory if it doesn't exist", async function () {
+    it("Should create the directory if it doesn't exist", async () => {
       const dirPath = path.join(getTmpDir(), "not-exists");
 
       await emptyDir(dirPath);
@@ -952,7 +952,7 @@ describe("File system utils", () => {
       assert.deepEqual(await readdir(dirPath), []);
     });
 
-    it("Should throw NotADirectoryError if the path is not a directory", async function () {
+    it("Should throw NotADirectoryError if the path is not a directory", async () => {
       const filePath = path.join(getTmpDir(), "file");
       await createFile(filePath);
 
@@ -962,7 +962,7 @@ describe("File system utils", () => {
       });
     });
 
-    it("Should throw FileSystemAccessError for any error", async function () {
+    it("Should throw FileSystemAccessError for any error", async () => {
       const invalidPath = "\0";
 
       await assert.rejects(emptyDir(invalidPath), {
@@ -971,15 +971,15 @@ describe("File system utils", () => {
     });
   });
 
-  describe("findUp", function () {
-    it("Should find a file in the current directory", async function () {
+  describe("findUp", () => {
+    it("Should find a file in the current directory", async () => {
       const filePath = path.join(getTmpDir(), "file.txt");
       await createFile(filePath);
 
       assert.equal(await findUp("file.txt", getTmpDir()), filePath);
     });
 
-    it("Should find a file in a parent directory", async function () {
+    it("Should find a file in a parent directory", async () => {
       const filePath = path.join(getTmpDir(), "file.txt");
       await createFile(filePath);
 
@@ -989,7 +989,7 @@ describe("File system utils", () => {
       );
     });
 
-    it("Should return undefined if the file is not found", async function () {
+    it("Should return undefined if the file is not found", async () => {
       assert.equal(await findUp("not-exists.txt"), undefined);
     });
   });

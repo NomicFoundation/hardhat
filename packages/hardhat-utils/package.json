@@ -8,9 +8,9 @@
   "author": "Nomic Foundation",
   "license": "MIT",
   "type": "module",
-  "types": "dist/src/index.d.ts",
   "exports": {
-    ".": "./dist/src/index.js"
+    "./fs": "./dist/src/fs.js",
+    "./request": "./dist/src/request.js"
   },
   "keywords": [
     "ethereum",
