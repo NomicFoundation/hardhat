@@ -2,6 +2,17 @@
   "name": "@nomicfoundation/build-system",
   "private": true,
   "version": "0.0.1",
+  "scripts": {
+    "lint": "pnpm prettier --check && pnpm eslint",
+    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
+    "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
+    "prettier": "prettier \"**/*.{ts,js,md,json}\"",
+    "pretest": "cd ../.. && pnpm build",
+    "test": "glob --cmd='node --import tsx/esm --test' 'test/**/*.ts'",
+    "build": "tsc --build .",
+    "prepublishOnly": "pnpm build",
+    "clean": "rimraf dist"
+  },
   "dependencies": {
     "@nomicfoundation/ethereumjs-util": "9.0.4",
     "@nomicfoundation/solidity-analyzer": "^0.1.0",
@@ -21,6 +32,7 @@
   "devDependencies": {
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
+    "@types/ci-info": "^2.0.0",
     "@types/debug": "^4.1.4",
     "@types/find-up": "^2.1.1",
     "@types/fs-extra": "^5.1.0",
@@ -29,6 +41,8 @@
     "@types/node": "^20.0.0",
     "@types/resolve": "^1.17.1",
     "@types/semver": "^6.2.7",
+    "@types/sinon": "^9.0.8",
+    "ci-info": "^2.0.0",
     "eslint": "8.57.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-import": "2.29.1",
@@ -37,6 +51,7 @@
     "glob": "^10.3.12",
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
+    "sinon": "^9.0.0",
     "tsx": "^4.7.1",
     "typescript": "~5.4.0",
     "typescript-eslint": "7.5.0"
