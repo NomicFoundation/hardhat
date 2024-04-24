@@ -4,8 +4,8 @@ import os from "node:os";
 import path from "node:path";
 import * as semver from "semver";
 import { CompilerInput, CompilerOutput } from "../../types";
-import { ERRORS } from "../../errors-list";
-import { HardhatError } from "../../errors";
+import { ERRORS } from "../../errors/errors-list";
+import { HardhatError } from "../../errors/errors";
 
 export interface ICompiler {
   compile(input: CompilerInput): Promise<CompilerOutput>;
@@ -30,7 +30,7 @@ export class Compiler implements ICompiler {
 
     const solcWrapper = require("solc/wrapper");
     this._loadedSolc = solcWrapper(
-      this._loadCompilerSources(this._pathToSolcJs)
+      this._loadCompilerSources(this._pathToSolcJs),
     );
 
     return this._loadedSolc;
@@ -56,7 +56,7 @@ export class Compiler implements ICompiler {
 
     Module._extensions[".js"] = function (
       module: NodeJS.Module,
-      filename: string
+      filename: string,
     ) {
       const content = fs.readFileSync(filename, "utf8");
       Object.getPrototypeOf(module)._compile.call(module, content, filename);
@@ -71,7 +71,10 @@ export class Compiler implements ICompiler {
 }
 
 export class NativeCompiler implements ICompiler {
-  constructor(private _pathToSolc: string, private _solcVersion?: string) {}
+  constructor(
+    private _pathToSolc: string,
+    private _solcVersion?: string,
+  ) {}
 
   public async compile(input: CompilerInput) {
     const args = ["--standard-json"];
@@ -104,7 +107,7 @@ export class NativeCompiler implements ICompiler {
               return reject(err);
             }
             resolve(stdout);
-          }
+          },
         );
 
         process.stdin!.write(JSON.stringify(input));

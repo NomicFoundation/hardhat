@@ -1,7 +1,7 @@
 import path from "path";
+import { HardhatError } from "../errors/errors";
+import { ERRORS } from "../errors/errors-list";
 import { FileNotFoundError, getFileTrueCase } from "./fs-utils";
-import { HardhatError } from "./errors";
-import { ERRORS } from "./errors-list";
 import { getPackageName } from "./package-info";
 
 const NODE_MODULES = "node_modules";
@@ -14,7 +14,7 @@ const NODE_MODULES = "node_modules";
  */
 export async function localPathToSourceName(
   projectRoot: string,
-  localFileAbsolutePath: string
+  localFileAbsolutePath: string,
 ): Promise<string> {
   const relativePath = path.relative(projectRoot, localFileAbsolutePath);
   const normalized = normalizeSourceName(relativePath);
@@ -50,7 +50,7 @@ export function normalizeSourceName(sourceName: string): string {
  */
 async function getSourceNameTrueCase(
   fromDir: string,
-  p: string
+  p: string,
 ): Promise<string> {
   try {
     const realCase = await getFileTrueCase(fromDir, slashesToPathSeparator(p));
@@ -62,7 +62,7 @@ async function getSourceNameTrueCase(
         {
           name: p,
         },
-        error
+        error,
       );
     }
 
@@ -101,7 +101,7 @@ function slashesToPathSeparator(str: string): string {
  * as a substring
  */
 export async function includesOwnPackageName(
-  sourceName: string
+  sourceName: string,
 ): Promise<boolean> {
   const packageName = await getPackageName(sourceName);
   if (packageName !== "") {
@@ -129,7 +129,7 @@ export function isAbsolutePathSourceName(sourceName: string): boolean {
  */
 export async function isLocalSourceName(
   projectRoot: string,
-  sourceName: string
+  sourceName: string,
 ): Promise<boolean> {
   // Note that we consider "hardhat/console.sol" as a special case here.
   // This lets someone have a "hardhat" directory within their project without
@@ -168,7 +168,7 @@ export async function isLocalSourceName(
  */
 export async function validateSourceNameExistenceAndCasing(
   fromDir: string,
-  sourceName: string
+  sourceName: string,
 ) {
   const trueCaseSourceName = await getSourceNameTrueCase(fromDir, sourceName);
 
@@ -192,7 +192,7 @@ export function validateSourceNameFormat(sourceName: string) {
       ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_ABSOLUTE_PATH,
       {
         name: sourceName,
-      }
+      },
     );
   }
 
@@ -201,7 +201,7 @@ export function validateSourceNameFormat(sourceName: string) {
       ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_RELATIVE_PATH,
       {
         name: sourceName,
-      }
+      },
     );
   }
 
@@ -212,7 +212,7 @@ export function validateSourceNameFormat(sourceName: string) {
       ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_BACKSLASHES,
       {
         name: sourceName,
-      }
+      },
     );
   }
 

@@ -9,7 +9,7 @@ import {
   CompilationJobCreationErrorReason,
   CompilationJobsCreationResult,
 } from "../types/builtin-tasks";
-import { assertHardhatInvariant } from "../errors";
+import { assertHardhatInvariant } from "../errors/errors";
 import { ResolvedFile } from "./resolver";
 
 // this should have a proper version range when it's fixed
@@ -19,7 +19,7 @@ function isCompilationJobCreationError(
   x:
     | taskTypes.CompilationJob
     | taskTypes.CompilationJobCreationError
-    | SolcConfig
+    | SolcConfig,
 ): x is CompilationJobCreationError {
   return "reason" in x;
 }
@@ -29,7 +29,7 @@ const log = debug("hardhat:core:compilation-job");
 export async function createCompilationJobFromFile(
   dependencyGraph: taskTypes.DependencyGraph,
   file: ResolvedFile,
-  solidityConfig: SolidityConfig
+  solidityConfig: SolidityConfig,
 ): Promise<CompilationJob | CompilationJobCreationError> {
   const directDependencies = dependencyGraph.getDependencies(file);
   const transitiveDependencies =
@@ -39,7 +39,7 @@ export async function createCompilationJobFromFile(
     file,
     directDependencies,
     transitiveDependencies,
-    solidityConfig
+    solidityConfig,
   );
 
   // if the config cannot be obtained, we just return the failure
@@ -47,7 +47,7 @@ export async function createCompilationJobFromFile(
     return compilerConfig;
   }
   log(
-    `File '${file.absolutePath}' will be compiled with version '${compilerConfig.version}'`
+    `File '${file.absolutePath}' will be compiled with version '${compilerConfig.version}'`,
   );
 
   const compilationJob = new CompilationJob(compilerConfig);
@@ -55,7 +55,7 @@ export async function createCompilationJobFromFile(
   compilationJob.addFileToCompile(file, true);
   for (const { dependency } of transitiveDependencies) {
     log(
-      `File '${dependency.absolutePath}' added as dependency of '${file.absolutePath}'`
+      `File '${dependency.absolutePath}' added as dependency of '${file.absolutePath}'`,
     );
     compilationJob.addFileToCompile(dependency, false);
   }
@@ -71,8 +71,8 @@ export async function createCompilationJobFromFile(
 export async function createCompilationJobsFromConnectedComponent(
   connectedComponent: taskTypes.DependencyGraph,
   getFromFile: (
-    file: ResolvedFile
-  ) => Promise<taskTypes.CompilationJob | CompilationJobCreationError>
+    file: ResolvedFile,
+  ) => Promise<taskTypes.CompilationJob | CompilationJobCreationError>,
 ): Promise<CompilationJobsCreationResult> {
   const compilationJobs: taskTypes.CompilationJob[] = [];
   const errors: CompilationJobCreationError[] = [];
@@ -84,7 +84,7 @@ export async function createCompilationJobsFromConnectedComponent(
       log(
         `'${file.absolutePath}' couldn't be compiled. Reason: '${
           compilationJobOrError as any
-        }'`
+        }'`,
       );
       errors.push(compilationJobOrError);
       continue;
@@ -102,7 +102,7 @@ export async function createCompilationJobsFromConnectedComponent(
  * Merge compilation jobs not affected by the solc #9573 bug
  */
 export function mergeCompilationJobsWithoutBug(
-  compilationJobs: taskTypes.CompilationJob[]
+  compilationJobs: taskTypes.CompilationJob[],
 ): taskTypes.CompilationJob[] {
   return mergeCompilationJobs(compilationJobs, (job) => !job.hasSolc9573Bug());
 }
@@ -138,7 +138,7 @@ export class CompilationJob implements taskTypes.CompilationJob {
 
     assertHardhatInvariant(
       isEqual(this.solidityConfig, job.getSolcConfig()),
-      "Merging jobs with different solidity configurations"
+      "Merging jobs with different solidity configurations",
     );
     const mergedJobs = new CompilationJob(job.getSolcConfig());
     for (const file of this.getResolvedFiles()) {
@@ -172,7 +172,7 @@ export class CompilationJob implements taskTypes.CompilationJob {
 
     assertHardhatInvariant(
       fileToCompile !== undefined,
-      `File '${file.sourceName}' does not exist in this compilation job`
+      `File '${file.sourceName}' does not exist in this compilation job`,
     );
 
     return fileToCompile.emitsArtifacts;
@@ -187,16 +187,16 @@ function getCompilerConfigForFile(
   file: ResolvedFile,
   directDependencies: ResolvedFile[],
   transitiveDependencies: taskTypes.TransitiveDependency[],
-  solidityConfig: SolidityConfig
+  solidityConfig: SolidityConfig,
 ): SolcConfig | CompilationJobCreationError {
   const transitiveDependenciesVersionPragmas = transitiveDependencies.map(
-    ({ dependency }) => dependency.content.versionPragmas
+    ({ dependency }) => dependency.content.versionPragmas,
   );
   const versionRange = Array.from(
     new Set([
       ...file.content.versionPragmas,
       ...transitiveDependenciesVersionPragmas,
-    ])
+    ]),
   ).join(" ");
 
   const overrides = solidityConfig.overrides ?? {};
@@ -211,7 +211,7 @@ function getCompilerConfigForFile(
         directDependencies,
         transitiveDependencies,
         [overriddenCompiler.version],
-        true
+        true,
       );
     }
 
@@ -228,12 +228,12 @@ function getCompilerConfigForFile(
       directDependencies,
       transitiveDependencies,
       compilerVersions,
-      false
+      false,
     );
   }
 
   const matchingConfig = solidityConfig.compilers.find(
-    (x) => x.version === matchingVersion
+    (x) => x.version === matchingVersion,
   )!;
 
   return matchingConfig;
@@ -244,7 +244,7 @@ function getCompilationJobCreationError(
   directDependencies: ResolvedFile[],
   transitiveDependencies: taskTypes.TransitiveDependency[],
   compilerVersions: string[],
-  overriden: boolean
+  overriden: boolean,
 ): CompilationJobCreationError {
   const fileVersionRange = file.content.versionPragmas.join(" ");
   if (semver.maxSatisfying(compilerVersions, fileVersionRange) === null) {
@@ -300,14 +300,14 @@ function getCompilationJobCreationError(
  * Merge compilation jobs affected by the solc #9573 bug
  */
 export function mergeCompilationJobsWithBug(
-  compilationJobs: taskTypes.CompilationJob[]
+  compilationJobs: taskTypes.CompilationJob[],
 ): taskTypes.CompilationJob[] {
   return mergeCompilationJobs(compilationJobs, (job) => job.hasSolc9573Bug());
 }
 
 function mergeCompilationJobs(
   jobs: taskTypes.CompilationJob[],
-  isMergeable: (job: taskTypes.CompilationJob) => boolean
+  isMergeable: (job: taskTypes.CompilationJob) => boolean,
 ): taskTypes.CompilationJob[] {
   const jobsMap: Map<SolcConfig, taskTypes.CompilationJob[]> = new Map();
 
@@ -322,7 +322,7 @@ function mergeCompilationJobs(
       } else {
         assertHardhatInvariant(
           false,
-          "More than one mergeable job was added for the same configuration"
+          "More than one mergeable job was added for the same configuration",
         );
       }
     } else {

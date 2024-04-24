@@ -1,5 +1,5 @@
 import * as path from "path";
-import { ProjectPathsConfig } from "./types";
+import { ProjectPathsConfig } from "../types";
 
 export const SOLIDITY_FILES_CACHE_FILENAME = "solidity-files-cache.json";
 
