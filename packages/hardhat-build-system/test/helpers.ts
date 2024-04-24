@@ -3,11 +3,11 @@ import semver from "semver";
 import { beforeEach } from "node:test";
 import * as fsExtra from "fs-extra";
 import assert, { AssertionError } from "node:assert";
-import { BuildConfig, SolidityConfig } from "../src/util/types/config";
-import { SolcConfig } from "../src/util/types";
-import { ErrorDescriptor } from "../src/util/errors-list";
-import { HardhatError } from "../src/util/errors";
-import { ResolvedFile } from "../src/util/solidity/resolver";
+import { BuildConfig, SolidityConfig } from "../src/internal/types/config";
+import { SolcConfig } from "../src/internal/types";
+import { ErrorDescriptor } from "../src/internal/errors/errors-list";
+import { HardhatError } from "../src/internal/errors/errors";
+import { ResolvedFile } from "../src/internal/solidity/resolver";
 
 const DEFAULT_SOLC_VERSION = "0.7.3";
 
