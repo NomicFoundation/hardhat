@@ -9,6 +9,7 @@
   "license": "MIT",
   "type": "module",
   "exports": {
+    "./abi": "./dist/src/abi.js",
     "./fs": "./dist/src/fs.js",
     "./request": "./dist/src/request.js"
   },
@@ -52,6 +53,7 @@
     "typescript-eslint": "7.5.0"
   },
   "dependencies": {
+    "@ethersproject/abi": "^5.7.0",
     "undici": "^5.14.0"
   }
 }
