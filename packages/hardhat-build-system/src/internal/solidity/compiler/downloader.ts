@@ -5,10 +5,10 @@ import os from "os";
 import { execFile } from "child_process";
 import { promisify } from "util";
 
-import { download } from "../../download";
-import { HardhatError, assertHardhatInvariant } from "../../errors";
-import { ERRORS } from "../../errors-list";
-import { MultiProcessMutex } from "../../multi-process-mutex";
+import { download } from "../../utils/download";
+import { HardhatError, assertHardhatInvariant } from "../../errors/errors";
+import { ERRORS } from "../../errors/errors-list";
+import { MultiProcessMutex } from "../../utils/multi-process-mutex";
 
 const log = debug("hardhat:core:solidity:downloader");
 
@@ -63,7 +63,7 @@ export interface ICompilerDownloader {
   downloadCompiler(
     version: string,
     downloadStartedCb: (isCompilerDownloaded: boolean) => Promise<any>,
-    downloadEndedCb: (isCompilerDownloaded: boolean) => Promise<any>
+    downloadEndedCb: (isCompilerDownloaded: boolean) => Promise<any>,
   ): Promise<void>;
 
   /**
@@ -111,14 +111,14 @@ export class CompilerDownloader implements ICompilerDownloader {
 
   public static getConcurrencySafeDownloader(
     platform: CompilerPlatform,
-    compilersDir: string
+    compilersDir: string,
   ) {
     const key = platform + compilersDir;
 
     if (!this._downloaderPerPlatform.has(key)) {
       this._downloaderPerPlatform.set(
         key,
-        new CompilerDownloader(platform, compilersDir)
+        new CompilerDownloader(platform, compilersDir),
       );
     }
 
@@ -135,7 +135,7 @@ export class CompilerDownloader implements ICompilerDownloader {
     private readonly _platform: CompilerPlatform,
     private readonly _compilersDir: string,
     private readonly _compilerListCachePeriodMs = CompilerDownloader.defaultCompilerListCachePeriod,
-    private readonly _downloadFunction: typeof download = download
+    private readonly _downloadFunction: typeof download = download,
   ) {}
 
   public async isCompilerDownloaded(version: string): Promise<boolean> {
@@ -153,7 +153,7 @@ export class CompilerDownloader implements ICompilerDownloader {
   public async downloadCompiler(
     version: string,
     downloadStartedCb: (isCompilerDownloaded: boolean) => Promise<any>,
-    downloadEndedCb: (isCompilerDownloaded: boolean) => Promise<any>
+    downloadEndedCb: (isCompilerDownloaded: boolean) => Promise<any>,
   ): Promise<void> {
     // Since only one process at a time can acquire the mutex, we avoid the risk of downloading the same compiler multiple times.
     // This is because the mutex blocks access until a compiler has been fully downloaded, preventing any new process
@@ -177,7 +177,7 @@ export class CompilerDownloader implements ICompilerDownloader {
           throw new HardhatError(
             ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED,
             {},
-            e
+            e,
           );
         }
 
@@ -197,7 +197,7 @@ export class CompilerDownloader implements ICompilerDownloader {
           {
             remoteVersion: build.longVersion,
           },
-          e
+          e,
         );
       }
 
@@ -219,14 +219,14 @@ export class CompilerDownloader implements ICompilerDownloader {
 
     assertHardhatInvariant(
       build !== undefined,
-      "Trying to get a compiler before it was downloaded"
+      "Trying to get a compiler before it was downloaded",
     );
 
     const compilerPath = this._getCompilerBinaryPathFromBuild(build);
 
     assertHardhatInvariant(
       await fsExtra.pathExists(compilerPath),
-      "Trying to get a compiler before it was downloaded"
+      "Trying to get a compiler before it was downloaded",
     );
 
     if (await fsExtra.pathExists(this._getCompilerDoesntWorkFile(build))) {
@@ -242,7 +242,7 @@ export class CompilerDownloader implements ICompilerDownloader {
   }
 
   private async _getCompilerBuild(
-    version: string
+    version: string,
   ): Promise<CompilerBuild | undefined> {
     const listPath = this._getCompilerListPath();
     if (!(await fsExtra.pathExists(listPath))) {
@@ -314,11 +314,11 @@ export class CompilerDownloader implements ICompilerDownloader {
 
   private async _verifyCompilerDownload(
     build: CompilerBuild,
-    downloadPath: string
+    downloadPath: string,
   ): Promise<boolean> {
     const { bytesToHex } =
       require("@nomicfoundation/ethereumjs-util") as typeof import("@nomicfoundation/ethereumjs-util");
-    const { keccak256 } = await import("../../keccak.js");
+    const { keccak256 } = await import("../../utils/keccak.js");
 
     const expectedKeccak256 = build.keccak256;
     const compiler = await fsExtra.readFile(downloadPath);
@@ -335,7 +335,7 @@ export class CompilerDownloader implements ICompilerDownloader {
 
   private async _postProcessCompilerDownload(
     build: CompilerBuild,
-    downloadPath: string
+    downloadPath: string,
   ): Promise<void> {
     if (this._platform === CompilerPlatform.WASM) {
       return;
