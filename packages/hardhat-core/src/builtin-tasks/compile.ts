@@ -1,62 +1,20 @@
 import os from "os";
-import debug from "debug";
-import fsExtra from "fs-extra";
-
-import { Artifacts as ArtifactsImpl } from "../internal/artifacts";
 import { subtask, task, types } from "../internal/core/config/config-env";
-import { HardhatError } from "../internal/core/errors";
-import { ERRORS } from "../internal/core/errors-list";
-
-import { ResolvedFile } from "../internal/solidity/resolver";
-import { pluralize } from "../internal/util/strings";
-import { Artifacts } from "../types";
-import * as taskTypes from "../types/builtin-tasks";
+import { CompilationJobCreationError } from "../types/builtin-tasks";
 import {
-  CompilationJob,
-  CompilationJobCreationError,
-  CompilationJobCreationErrorReason,
-  CompilationJobsCreationResult,
-} from "../types/builtin-tasks";
-import { getFullyQualifiedName } from "../utils/contract-names";
-
-import {
-  TasksOverrides,
-  taskCompileRemoveObsoleteArtifacts,
-  taskCompileSolidity,
-  taskCompileSolidityCompileJobs,
-  taskCompileSolidityFilterCompilationJobs,
-  taskCompileSolidityGetCompilationJobs,
+  BuildSystem,
   taskCompileSolidityGetCompilationJobsFailureReasons,
-  taskCompileSolidityGetDependencyGraph,
-  taskCompileSolidityGetSourceNames,
-  taskCompileSolidityGetSourcePaths,
-  taskCompileSolidityHandleCompilationJobsFailures,
-  taskCompileSolidityLogCompilationResult,
-  taskCompileSolidityMergeCompilationJobs,
   taskCompileSolidityReadFile,
-} from "../build-system/build-system";
+} from "../../../hardhat-build-system/src/index"; // TODO: tmp to check that hh-core tests work with the new package
+
 import {
-  // TO KEEP
+  // TODO: THE FOLLOWING TASKS ARE CURRENTLY KEEP ACTIVE
   TASK_COMPILE,
   TASK_COMPILE_SOLIDITY,
   TASK_COMPILE_GET_COMPILATION_TASKS,
-  // NEEDS OVERWRITING - check implementation with tests
   TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS,
   TASK_COMPILE_SOLIDITY_READ_FILE,
-  TASK_COMPILE_TRANSFORM_IMPORT_NAME, // DEPRECATED
-  TASK_COMPILE_GET_REMAPPINGS,
 } from "./task-names";
-import {
-  getSolidityFilesCachePath,
-  SolidityFilesCache,
-} from "./utils/solidity-files-cache";
-
-type ArtifactsEmittedPerJob = Array<{
-  compilationJob: CompilationJob;
-  artifactsEmittedPerFile: taskTypes.ArtifactsEmittedPerFile;
-}>;
-
-const log = debug("hardhat:core:tasks:compile");
 
 const DEFAULT_CONCURRENCY_LEVEL = Math.max(os.cpus().length - 1, 1);
 
@@ -90,9 +48,6 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
  *
  * This is the task to override to add support for other languages.
  */
-//
-// KEEP THIS TASK
-//
 subtask(TASK_COMPILE_GET_COMPILATION_TASKS, async (): Promise<string[]> => {
   return [TASK_COMPILE_SOLIDITY];
 });
@@ -115,25 +70,19 @@ task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
     DEFAULT_CONCURRENCY_LEVEL,
     types.int
   )
-  .setAction(async (compilationArgs: any, { artifacts, run, config }) => {
-    // TODO
-    // const compilationTasks: string[] = await run(
-    //   TASK_COMPILE_GET_COMPILATION_TASKS
-    // );
+  .setAction(async (compilationArgs: any, { artifacts, config }) => {
+    // TODO: use the new build system
 
-    // for (const compilationTask of compilationTasks) {
-    //   await run(compilationTask, compilationArgs);
-    // }
+    const buildSystem = new BuildSystem(config);
 
-    // TODO
-    await taskCompileSolidity(
-      config,
+    await buildSystem.build({
+      profile: "development",
+      type: "all",
+      files: [],
       artifacts,
-      compilationArgs.force,
-      compilationArgs.quit,
-      compilationArgs.concurrency,
-      compilationArgs.tasksOverrides
-    );
-
-    await taskCompileRemoveObsoleteArtifacts(artifacts);
+      force: compilationArgs.force,
+      quiet: compilationArgs.quiet,
+      concurrency: compilationArgs.concurrency,
+      tasksOverrides: compilationArgs.tasksOverrides,
+    });
   });
