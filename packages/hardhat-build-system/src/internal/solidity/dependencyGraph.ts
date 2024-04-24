@@ -1,7 +1,6 @@
 import * as taskTypes from "../types/builtin-tasks";
 import { HardhatError } from "../errors/errors";
 import { ERRORS } from "../errors/errors-list";
-
 import { ResolvedFile, Resolver } from "./resolver";
 
 export class DependencyGraph implements taskTypes.DependencyGraph {

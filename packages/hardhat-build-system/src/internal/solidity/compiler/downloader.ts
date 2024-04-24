@@ -4,7 +4,6 @@ import debug from "debug";
 import os from "os";
 import { execFile } from "child_process";
 import { promisify } from "util";
-
 import { download } from "../../utils/download";
 import { HardhatError, assertHardhatInvariant } from "../../errors/errors";
 import { ERRORS } from "../../errors/errors-list";

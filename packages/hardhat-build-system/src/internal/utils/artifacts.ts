@@ -3,7 +3,6 @@ import fsExtra from "fs-extra";
 import * as os from "os";
 import * as path from "path";
 import fsPromises from "fs/promises";
-
 import { HardhatError } from "../errors/errors";
 import {
   Artifact,
@@ -21,7 +20,6 @@ import {
   findDistance,
 } from "./contract-names";
 import { replaceBackslashes } from "./source-names";
-
 import {
   ARTIFACT_FORMAT_VERSION,
   BUILD_INFO_DIR_NAME,

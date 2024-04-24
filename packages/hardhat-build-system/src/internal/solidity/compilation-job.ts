@@ -1,7 +1,6 @@
 import type { LoDashStatic } from "lodash";
 import debug from "debug";
 import semver from "semver";
-
 import * as taskTypes from "../types/builtin-tasks";
 import { SolcConfig, SolidityConfig } from "../types";
 import {
@@ -313,6 +312,7 @@ function mergeCompilationJobs(
 
   for (const job of jobs) {
     const mergedJobs = jobsMap.get(job.getSolcConfig());
+
     if (isMergeable(job)) {
       if (mergedJobs === undefined) {
         jobsMap.set(job.getSolcConfig(), [job]);

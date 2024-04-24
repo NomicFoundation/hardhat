@@ -1,5 +1,4 @@
 import { replaceAll } from "../utils/string";
-
 import { ErrorDescriptor, ERRORS, getErrorCode } from "./errors-list";
 
 const inspect = Symbol.for("nodejs.util.inspect.custom");
