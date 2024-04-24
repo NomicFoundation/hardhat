@@ -50,6 +50,7 @@ extendConfig((config, userConfig) => {
 
     config.networks[networkName].ignition = {
       maxFeePerGasLimit: userNetworkConfig.ignition?.maxFeePerGasLimit,
+      maxPriorityFeePerGas: userNetworkConfig.ignition?.maxPriorityFeePerGas,
     };
   });
 
@@ -312,6 +313,9 @@ ignitionScope
           strategyConfig,
           maxFeePerGasLimit:
             hre.config.networks[hre.network.name]?.ignition.maxFeePerGasLimit,
+          maxPriorityFeePerGas:
+            hre.config.networks[hre.network.name]?.ignition
+              .maxPriorityFeePerGas,
         });
 
         try {

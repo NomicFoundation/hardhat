@@ -52,6 +52,7 @@ export async function deploy<
   strategy,
   strategyConfig,
   maxFeePerGasLimit,
+  maxPriorityFeePerGas,
 }: {
   config?: Partial<DeployConfig>;
   artifactResolver: ArtifactResolver;
@@ -69,6 +70,7 @@ export async function deploy<
   strategy?: StrategyT;
   strategyConfig?: StrategyConfig[StrategyT];
   maxFeePerGasLimit?: bigint;
+  maxPriorityFeePerGas?: bigint;
 }): Promise<DeploymentResult> {
   const executionStrategy: ExecutionStrategy = resolveStrategy(
     strategy,
@@ -114,6 +116,7 @@ export async function deploy<
 
   const jsonRpcClient = new EIP1193JsonRpcClient(provider, {
     maxFeePerGasLimit,
+    maxPriorityFeePerGas,
   });
 
   const isAutominedNetwork = await checkAutominedNetwork(provider);

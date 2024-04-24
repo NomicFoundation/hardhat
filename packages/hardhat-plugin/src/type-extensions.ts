@@ -16,24 +16,28 @@ declare module "hardhat/types/config" {
   export interface HardhatNetworkUserConfig {
     ignition?: {
       maxFeePerGasLimit?: bigint;
+      maxPriorityFeePerGas?: bigint;
     };
   }
 
   export interface HardhatNetworkConfig {
     ignition: {
       maxFeePerGasLimit?: bigint;
+      maxPriorityFeePerGas?: bigint;
     };
   }
 
   export interface HttpNetworkUserConfig {
     ignition?: {
       maxFeePerGasLimit?: bigint;
+      maxPriorityFeePerGas?: bigint;
     };
   }
 
   export interface HttpNetworkConfig {
     ignition: {
       maxFeePerGasLimit?: bigint;
+      maxPriorityFeePerGas?: bigint;
     };
   }
 

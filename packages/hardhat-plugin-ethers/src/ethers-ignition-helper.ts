@@ -145,6 +145,12 @@ export class EthersIgnitionHelper {
       defaultSender,
       strategy,
       strategyConfig: resolvedStrategyConfig,
+      maxFeePerGasLimit:
+        this._hre.config.networks[this._hre.network.name]?.ignition
+          .maxFeePerGasLimit,
+      maxPriorityFeePerGas:
+        this._hre.config.networks[this._hre.network.name]?.ignition
+          .maxPriorityFeePerGas,
     });
 
     if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {

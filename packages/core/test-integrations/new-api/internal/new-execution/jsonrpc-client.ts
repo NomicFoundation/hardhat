@@ -82,7 +82,7 @@ describe("JSON-RPC client", function () {
 
     describe("getNetworkFees", async function () {
       describe("With an EIP-1559 network (i.e. Hardhat Network)", function () {
-        it("Should return information about EIP-159 fees", async function () {
+        it("Should return information about EIP-1559 fees", async function () {
           const fees = await client.getNetworkFees();
 
           assert("maxFeePerGas" in fees);
@@ -105,6 +105,17 @@ describe("JSON-RPC client", function () {
             failClient.getNetworkFees(),
             /IGN407: The calculated max fee per gas exceeds the configured limit./
           );
+        });
+
+        it("Should use the configured maxPriorityFeePerGas", async function () {
+          const client = new EIP1193JsonRpcClient(this.hre.network.provider, {
+            maxPriorityFeePerGas: 1n,
+          });
+          const fees = await client.getNetworkFees();
+
+          assert("maxPriorityFeePerGas" in fees);
+
+          assert.equal(fees.maxPriorityFeePerGas, 1n);
         });
       });
     });

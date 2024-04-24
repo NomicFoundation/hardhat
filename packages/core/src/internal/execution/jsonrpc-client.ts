@@ -187,7 +187,10 @@ export interface JsonRpcClient {
 export class EIP1193JsonRpcClient implements JsonRpcClient {
   constructor(
     private readonly _provider: EIP1193Provider,
-    private readonly _config?: { maxFeePerGasLimit?: bigint }
+    private readonly _config?: {
+      maxFeePerGasLimit?: bigint;
+      maxPriorityFeePerGas?: bigint;
+    }
   ) {}
 
   public async getChainId(): Promise<number> {
@@ -632,7 +635,8 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
     // We prioritize EIP-1559 fees over legacy gasPrice fees
     if (latestBlock.baseFeePerGas !== undefined) {
       // Logic copied from ethers v6
-      const maxPriorityFeePerGas = 1_000_000_000n; // 1gwei
+      const maxPriorityFeePerGas =
+        this._config?.maxPriorityFeePerGas ?? 1_000_000_000n; // 1gwei
       const maxFeePerGas =
         latestBlock.baseFeePerGas * 2n + maxPriorityFeePerGas;
 
