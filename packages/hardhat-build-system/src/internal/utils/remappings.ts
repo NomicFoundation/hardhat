@@ -1,6 +1,6 @@
 export function applyRemappings(
   remappings: Record<string, string>,
-  sourceName: string
+  sourceName: string,
 ): string {
   const selectedRemapping = { from: "", to: "" };
 

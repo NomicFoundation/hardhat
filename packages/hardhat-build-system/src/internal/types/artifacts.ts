@@ -78,7 +78,7 @@ export interface Artifacts {
    */
   saveArtifactAndDebugFile(
     artifact: Artifact,
-    pathToBuildInfo?: string
+    pathToBuildInfo?: string,
   ): Promise<void>;
 
   /**
@@ -93,7 +93,7 @@ export interface Artifacts {
     solcVersion: string,
     solcLongVersion: string,
     input: CompilerInput,
-    output: CompilerOutput
+    output: CompilerOutput,
   ): Promise<string>;
 
   /**
