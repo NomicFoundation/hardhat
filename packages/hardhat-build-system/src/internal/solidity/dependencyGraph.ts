@@ -1,5 +1,5 @@
 import * as taskTypes from "../types/builtin-tasks";
-import { HardhatError } from "../errors/errors";
+import { HardhatError, assertHardhatInvariant } from "../errors/errors";
 import { ERRORS } from "../errors/errors-list";
 import { ResolvedFile, Resolver } from "./resolver";
 
@@ -42,7 +42,16 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
 
   public entries(): Array<[ResolvedFile, Set<ResolvedFile>]> {
     return Array.from(this._dependenciesPerFile.entries()).map(
-      ([key, value]) => [this._resolvedFiles.get(key)!, value],
+      ([key, value]) => {
+        const resolvedFile = this._resolvedFiles.get(key);
+
+        assertHardhatInvariant(
+          resolvedFile !== undefined,
+          "The resolved file is undefined",
+        );
+
+        return [resolvedFile, value];
+      },
     );
   }
 
@@ -79,8 +88,9 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
       for (const dependency of dependencies) {
         undirectedGraph[dependency.sourceName] =
           undirectedGraph[dependency.sourceName] ?? new Set();
-        undirectedGraph[sourceName].add(dependency.sourceName);
-        undirectedGraph[dependency.sourceName].add(sourceName);
+
+        undirectedGraph[sourceName]?.add(dependency.sourceName);
+        undirectedGraph[dependency.sourceName]?.add(sourceName);
       }
     }
 
@@ -91,17 +101,24 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
       if (visited.has(node)) {
         continue;
       }
+
       visited.add(node);
+
       const component = new Set([node]);
-      const stack = [...undirectedGraph[node]];
+      const stack = [...(undirectedGraph[node] ?? [])];
       while (stack.length > 0) {
-        const newNode = stack.pop()!;
+        const newNode = stack.pop();
+
+        assertHardhatInvariant(newNode !== undefined, "The node is undefined");
+
         if (visited.has(newNode)) {
           continue;
         }
+
         visited.add(newNode);
         component.add(newNode);
-        [...undirectedGraph[newNode]].forEach((adjacent) => {
+
+        [...(undirectedGraph[newNode] ?? [])].forEach((adjacent) => {
           if (!visited.has(adjacent)) {
             stack.push(adjacent);
           }
@@ -116,8 +133,14 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
       const dependencyGraph = new DependencyGraph();
 
       for (const sourceName of component) {
-        const file = this._resolvedFiles.get(sourceName)!;
-        const dependencies = this._dependenciesPerFile.get(sourceName)!;
+        const file = this._resolvedFiles.get(sourceName);
+        const dependencies = this._dependenciesPerFile.get(sourceName);
+
+        assertHardhatInvariant(file !== undefined, "File is undefined");
+        assertHardhatInvariant(
+          dependencies !== undefined,
+          "Dependencies set is undefined",
+        );
 
         dependencyGraph._resolvedFiles.set(sourceName, file);
         dependencyGraph._dependenciesPerFile.set(sourceName, dependencies);

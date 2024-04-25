@@ -111,17 +111,16 @@ export class CompilerDownloader implements ICompilerDownloader {
   public static getConcurrencySafeDownloader(
     platform: CompilerPlatform,
     compilersDir: string,
-  ) {
+  ): CompilerDownloader {
     const key = platform + compilersDir;
+    let downloader = this._downloaderPerPlatform.get(key);
 
-    if (!this._downloaderPerPlatform.has(key)) {
-      this._downloaderPerPlatform.set(
-        key,
-        new CompilerDownloader(platform, compilersDir),
-      );
+    if (downloader === undefined) {
+      downloader = new CompilerDownloader(platform, compilersDir);
+      this._downloaderPerPlatform.set(key, downloader);
     }
 
-    return this._downloaderPerPlatform.get(key)!;
+    return downloader;
   }
 
   public static defaultCompilerListCachePeriod = 3_600_00;

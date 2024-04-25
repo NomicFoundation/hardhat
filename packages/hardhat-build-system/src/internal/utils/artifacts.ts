@@ -3,7 +3,7 @@ import fsExtra from "fs-extra";
 import * as os from "os";
 import * as path from "path";
 import fsPromises from "fs/promises";
-import { HardhatError } from "../errors/errors";
+import { HardhatError, assertHardhatInvariant } from "../errors/errors";
 import {
   Artifact,
   Artifacts as IArtifacts,
@@ -50,7 +50,7 @@ export class Artifacts implements IArtifacts {
   private _validArtifacts: Array<{ sourceName: string; artifacts: string[] }>;
 
   // Undefined means that the cache is disabled.
-  private _cache?: Cache = {
+  private _cache?: Cache | undefined = {
     artifactNameToArtifactPathCache: new Map(),
     artifactFQNToBuildInfoPathCache: new Map(),
   };
@@ -668,7 +668,7 @@ export class Artifacts implements IArtifacts {
       case 0:
         return "";
       case 1:
-        return `Did you mean "${names[0]}"?`;
+        return `Did you mean "${names[0] as string}"?`;
       default:
         return `We found some that were similar:
 
@@ -744,7 +744,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     const groups = similarNames.reduce(
       (obj, cur) => {
         // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        obj[cur] = obj[cur] ? obj[cur] + 1 : 1;
+        obj[cur] = obj[cur] ? (obj[cur] as number) + 1 : 1;
         return obj;
       },
       {} as { [k: string]: number },
@@ -863,6 +863,11 @@ Please replace "${contractName}" for the correct contract name wherever you are 
         candidates: candidates.join(os.EOL),
       });
     }
+
+    assertHardhatInvariant(
+      matchingFiles[0] !== undefined,
+      "Matching file is undefined",
+    );
 
     return matchingFiles[0];
   }
