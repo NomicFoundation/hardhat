@@ -2,6 +2,7 @@ import fsExtra from "fs-extra";
 import debug from "debug";
 import semver from "semver";
 import chalk from "chalk";
+import AggregateError from "aggregate-error";
 import { CompilationJobsCreationResult } from "./types/builtin-tasks";
 import { DependencyGraph } from "./solidity/dependencyGraph";
 import {
@@ -343,18 +344,29 @@ export async function taskCompileSolidityGetCompilationJobsFailureReasons(
       );
 
       let directImportsText = "";
+      assertHardhatInvariant(
+        incompatibleDirectImports[0] !== undefined,
+        "Incompatible direct import at index 0 is undefined",
+      );
       if (incompatibleDirectImports.length === 1) {
         directImportsText = ` imports ${incompatibleDirectImports[0]}`;
-      } else if (incompatibleDirectImports.length === 2) {
-        directImportsText = ` imports ${incompatibleDirectImports[0]} and ${incompatibleDirectImports[1]}`;
-      } else if (incompatibleDirectImports.length > 2) {
-        const otherImportsCount = incompatibleDirectImports.length - 2;
-        directImportsText = ` imports ${incompatibleDirectImports[0]}, ${
-          incompatibleDirectImports[1]
-        } and ${otherImportsCount} other ${pluralize(
-          otherImportsCount,
-          "file",
-        )}. Use --verbose to see the full list.`;
+      } else {
+        assertHardhatInvariant(
+          incompatibleDirectImports[1] !== undefined,
+          "Incompatible direct import at index 1 is undefined",
+        );
+
+        if (incompatibleDirectImports.length === 2) {
+          directImportsText = ` imports ${incompatibleDirectImports[0]} and ${incompatibleDirectImports[1]}`;
+        } else if (incompatibleDirectImports.length > 2) {
+          const otherImportsCount = incompatibleDirectImports.length - 2;
+          directImportsText = ` imports ${incompatibleDirectImports[0]}, ${
+            incompatibleDirectImports[1]
+          } and ${otherImportsCount} other ${pluralize(
+            otherImportsCount,
+            "file",
+          )}. Use --verbose to see the full list.`;
+        }
       }
 
       errorMessage += `  * ${sourceName} (${versionsRange})${directImportsText}\n`;
@@ -401,18 +413,29 @@ The dependency path is ${dependencyPathText}
       }
 
       let indirectImportsText = "";
+      assertHardhatInvariant(
+        incompatibleImports[0] !== undefined,
+        "Incompatible import at index 0 is undefined",
+      );
       if (incompatibleImports.length === 1) {
         indirectImportsText = ` depends on ${incompatibleImports[0]}`;
-      } else if (incompatibleImports.length === 2) {
-        indirectImportsText = ` depends on ${incompatibleImports[0]} and ${incompatibleImports[1]}`;
-      } else if (incompatibleImports.length > 2) {
-        const otherImportsCount = incompatibleImports.length - 2;
-        indirectImportsText = ` depends on ${incompatibleImports[0]}, ${
-          incompatibleImports[1]
-        } and ${otherImportsCount} other ${pluralize(
-          otherImportsCount,
-          "file",
-        )}. Use --verbose to see the full list.`;
+      } else {
+        assertHardhatInvariant(
+          incompatibleImports[1] !== undefined,
+          "Incompatible import at index 1 is undefined",
+        );
+
+        if (incompatibleImports.length === 2) {
+          indirectImportsText = ` depends on ${incompatibleImports[0]} and ${incompatibleImports[1]}`;
+        } else if (incompatibleImports.length > 2) {
+          const otherImportsCount = incompatibleImports.length - 2;
+          indirectImportsText = ` depends on ${incompatibleImports[0]}, ${
+            incompatibleImports[1]
+          } and ${otherImportsCount} other ${pluralize(
+            otherImportsCount,
+            "file",
+          )}. Use --verbose to see the full list.`;
+        }
       }
 
       errorMessage += `  * ${sourceName} (${versionsRange})${indirectImportsText}\n`;

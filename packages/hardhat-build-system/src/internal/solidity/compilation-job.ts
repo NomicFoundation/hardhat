@@ -233,7 +233,12 @@ function getCompilerConfigForFile(
 
   const matchingConfig = solidityConfig.compilers.find(
     (x) => x.version === matchingVersion,
-  )!;
+  );
+
+  assertHardhatInvariant(
+    matchingConfig !== undefined,
+    `Matching config not found for version '${matchingVersion}'`,
+  );
 
   return matchingConfig;
 }
@@ -317,6 +322,11 @@ function mergeCompilationJobs(
       if (mergedJobs === undefined) {
         jobsMap.set(job.getSolcConfig(), [job]);
       } else if (mergedJobs.length === 1) {
+        assertHardhatInvariant(
+          mergedJobs[0] !== undefined,
+          "Merged job at index 0 is undefined",
+        );
+
         const newJob = mergedJobs[0].merge(job);
         jobsMap.set(job.getSolcConfig(), [newJob]);
       } else {

@@ -5,7 +5,7 @@ import path from "node:path";
 import * as semver from "semver";
 import { CompilerInput, CompilerOutput } from "../../types";
 import { ERRORS } from "../../errors/errors-list";
-import { HardhatError } from "../../errors/errors";
+import { HardhatError, assertHardhatInvariant } from "../../errors/errors";
 
 export interface ICompiler {
   compile(input: CompilerInput): Promise<CompilerOutput>;
@@ -110,8 +110,10 @@ export class NativeCompiler implements ICompiler {
           },
         );
 
-        process.stdin!.write(JSON.stringify(input));
-        process.stdin!.end();
+        assertHardhatInvariant(process.stdin !== null, "process.stdin is null");
+
+        process.stdin.write(JSON.stringify(input));
+        process.stdin.end();
       } catch (e: any) {
         throw new HardhatError(ERRORS.SOLC.CANT_RUN_NATIVE_COMPILER, {}, e);
       }
