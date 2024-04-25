@@ -8,7 +8,7 @@
  * The exact algorithm being used shouldn't matter.
  */
 export function createNonCryptographicHashBasedIdentifier(
-  input: Buffer
+  input: Buffer,
 ): Buffer {
   const { createHash } = require("crypto");
 

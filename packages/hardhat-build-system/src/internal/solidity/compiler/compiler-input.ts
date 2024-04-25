@@ -1,7 +1,7 @@
 import { CompilationJob, CompilerInput } from "../../types";
 
 export function getInputFromCompilationJob(
-  compilationJob: CompilationJob
+  compilationJob: CompilationJob,
 ): CompilerInput {
   const sources: { [sourceName: string]: { content: string } } = {};
 

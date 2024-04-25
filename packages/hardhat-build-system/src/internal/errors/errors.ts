@@ -74,8 +74,6 @@ export class HardhatError extends CustomError {
   public readonly number: number;
   public readonly messageArguments: Record<string, any>;
 
-  private readonly _isHardhatError: boolean;
-
   constructor(
     errorDescriptor: ErrorDescriptor,
     messageArguments: Record<string, string | number> = {},
@@ -94,7 +92,6 @@ export class HardhatError extends CustomError {
     this.number = errorDescriptor.number;
     this.messageArguments = messageArguments;
 
-    this._isHardhatError = true;
     Object.setPrototypeOf(this, HardhatError.prototype);
   }
 }

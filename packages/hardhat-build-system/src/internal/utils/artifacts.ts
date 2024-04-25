@@ -591,22 +591,6 @@ export class Artifacts implements IArtifacts {
   }
 
   /**
-   * DO NOT DELETE OR CHANGE
-   *
-   * use this.formArtifactPathFromFullyQualifiedName instead
-   * @deprecated until typechain migrates to public version
-   * @see https://github.com/dethcrypto/TypeChain/issues/544
-   */
-  private _getArtifactPathFromFullyQualifiedName(
-    fullyQualifiedName: string,
-  ): string {
-    const { sourceName, contractName } =
-      parseFullyQualifiedName(fullyQualifiedName);
-
-    return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
-  }
-
-  /**
    * Returns the absolute path to the artifact that corresponds to the given
    * fully qualified name.
    * @param fullyQualifiedName The fully qualified name of the contract.
