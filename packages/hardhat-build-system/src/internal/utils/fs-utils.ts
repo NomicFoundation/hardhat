@@ -1,7 +1,7 @@
 import fsPromises from "fs/promises";
 import path from "path";
 import fs from "fs";
-import { CustomError } from "../errors/errors";
+import { CustomError, assertHardhatInvariant } from "../errors/errors";
 
 /**
  * Returns an array of files (not dirs) that match a condition.
@@ -75,6 +75,12 @@ export async function getFileTrueCase(
   const dirEntries = await readdir(from);
 
   const parts = relativePath.split(path.sep);
+
+  assertHardhatInvariant(
+    parts[0] !== undefined,
+    "Part of the relativePath is undefined",
+  );
+
   const nextDirLowerCase = parts[0].toLowerCase();
 
   for (const dirEntry of dirEntries) {
@@ -159,6 +165,12 @@ export function getFileTrueCaseSync(
   const dirEntries = readdirSync(from);
 
   const parts = relativePath.split(path.sep);
+
+  assertHardhatInvariant(
+    parts[0] !== undefined,
+    "Part of the relativePath is undefined",
+  );
+
   const nextDirLowerCase = parts[0].toLowerCase();
 
   for (const dirEntry of dirEntries) {
