@@ -4,7 +4,7 @@
 export function replaceAll(
   str: string,
   toReplace: string,
-  replacement: string
+  replacement: string,
 ) {
   return str.split(toReplace).join(replacement);
 }

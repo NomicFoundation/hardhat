@@ -154,8 +154,7 @@ export async function taskCompileSolidityGetCompilationJobForFile(
   config: BuildConfig,
   file: taskTypes.ResolvedFile,
   dependencyGraph: taskTypes.DependencyGraph,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  solidityFilesCache?: SolidityFilesCache,
+  _solidityFilesCache?: SolidityFilesCache, // TODO: keep unused?
 ): Promise<CompilationJob | taskTypes.CompilationJobCreationError> {
   return createCompilationJobFromFile(dependencyGraph, file, config.solidity);
 }
@@ -244,7 +243,6 @@ export async function taskCompileSolidityHandleCompilationJobsFailures(
  * that describes the failure.
  */
 export async function taskCompileSolidityGetCompilationJobsFailureReasons(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   compilationJobsCreationErrors: CompilationJobCreationError[],
 ): Promise<string> {
   const noCompatibleSolc: CompilationJobCreationError[] = [];
@@ -547,8 +545,7 @@ export async function taskCompileSolidityLogNothingToCompile(quiet: boolean) {
 export async function taskCompileSolidityLogDownloadCompilerStart(
   solcVersion: string,
   isCompilerDownloaded: boolean,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  quiet: boolean,
+  _quiet: boolean, // TODO: keep unused?
 ) {
   if (isCompilerDownloaded) {
     return;
@@ -559,12 +556,9 @@ export async function taskCompileSolidityLogDownloadCompilerStart(
 // TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END
 // TO TEST
 export async function taskCompileSolidityLogDownloadCompilerEnd(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  solcVersion: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  isCompilerDownloaded: boolean,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  quiet: boolean,
+  _solcVersion: string, // TODO: keep unused?
+  _isCompilerDownloaded: boolean, // TODO: keep unused?
+  _quiet: boolean, // TODO: keep unused?
 ) {
   return;
 }
@@ -659,14 +653,10 @@ export async function taskCompileSolidityGetSolcBuild(
  * Prints a message before running soljs with some input.
  */
 export async function taskCompileSolidityLogRunCompilerStart(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  compilationJob: CompilationJob,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  compilationJobs: CompilationJob[],
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  compilationJobIndex: number,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  quiet: boolean,
+  _compilationJob: CompilationJob, // TODO: keep unused?
+  _compilationJobs: CompilationJob[], // TODO: keep unused?
+  _compilationJobIndex: number, // TODO: keep unused?
+  _quiet: boolean, // TODO: keep unused?
 ) {
   return;
 }
@@ -716,16 +706,11 @@ export async function taskCompileSolidityRunSolc(
 // TASK_COMPILE_SOLIDITY_LOG_RUN_COMPILER_END
 // TO TEST
 export async function taskCompileSolidityLogRunCompilerEnd(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  compilationJob: CompilationJob,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  compilationJobs: CompilationJob[],
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  compilationJobIndex: number,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  output: any,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  quiet: boolean,
+  _compilationJob: CompilationJob, // TODO: keep unused?
+  _compilationJobs: CompilationJob[], // TODO: keep unused?
+  _compilationJobIndex: number, // TODO: keep unused?
+  _output: any, // TODO: keep unused?
+  _quiet: boolean, // TODO: keep unused?
 ) {
   return;
 }
@@ -814,8 +799,7 @@ export async function taskCompileSolidityCompile(
  */
 export async function taskCompileSolidityLogCompilationErrors(
   output: any,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  quiet: boolean,
+  _quiet: boolean, // TODO: keep unused?
 ) {
   if (output?.errors === undefined) {
     return;
@@ -1136,8 +1120,7 @@ export async function taskCompileSolidityCompileJobs(
 // TESTED
 export async function taskCompileSolidityLogCompilationResult(
   compilationJobs: CompilationJob[],
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  quiet?: boolean,
+  _quiet?: boolean, // TODO: keep unused?
 ) {
   let count = 0;
   const evmVersions = new Set<string>();
@@ -1236,8 +1219,7 @@ export async function taskCompileSolidityGetDependencyGraph(
  */
 export async function taskCompileTransformImportName(
   importName: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  deprecationCheck: boolean,
+  _deprecationCheck: boolean, // TODO: keep unused?
 ): Promise<string> {
   return importName;
 }

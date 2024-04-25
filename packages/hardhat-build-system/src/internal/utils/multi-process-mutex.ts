@@ -43,7 +43,7 @@ export class MultiProcessMutex {
       if (this._isMutexFileTooOld()) {
         // If the mutex file is too old, it likely indicates a stale lock, so the file should be removed
         log(
-          `Current mutex file is too old, removing it at path '${this._mutexFilePath}'`
+          `Current mutex file is too old, removing it at path '${this._mutexFilePath}'`,
         );
         this._deleteMutexFile();
       } else {
@@ -69,7 +69,7 @@ export class MultiProcessMutex {
   }
 
   private async _executeFunctionAndReleaseMutex<T>(
-    f: () => Promise<T>
+    f: () => Promise<T>,
   ): Promise<T> {
     log(`Mutex acquired at path '${this._mutexFilePath}'`);
 
@@ -127,7 +127,7 @@ export class MultiProcessMutex {
 
   private async _waitMs() {
     return new Promise((resolve) =>
-      setTimeout(resolve, MUTEX_LOOP_WAITING_TIME_IN_MS)
+      setTimeout(resolve, MUTEX_LOOP_WAITING_TIME_IN_MS),
     );
   }
 }

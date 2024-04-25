@@ -64,7 +64,7 @@ const defaultEvmTargets: { [key: string]: string } = {
 };
 
 export function getEvmVersionFromSolcVersion(
-  solcVersion: string
+  solcVersion: string,
 ): string | undefined {
   return defaultEvmTargets[solcVersion];
 }
