@@ -44,3 +44,20 @@ export function ensureError<ErrorT extends Error>(
 
   throw thrown;
 }
+
+/**
+ * Throws an error for an unreachable code path. This function is typically
+ * used in a default case of a switch statement where all possible values of
+ * the switched variable should be handled in other cases. If the default case
+ * is reached, it means that an unexpected value was encountered, so an error
+ * is thrown.
+ *
+ * @param _value - The unexpected value. This parameter is unused and is only for
+ * the purpose of type checking.
+ * @param error - The error to throw.
+ * @returns This function never returns normally. It always throws an error.
+ * @throws Will throw an error when called.
+ */
+export function unreachable(_value: never, error: Error): never {
+  throw error;
+}

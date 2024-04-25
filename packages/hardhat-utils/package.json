@@ -39,6 +39,7 @@
   "devDependencies": {
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
+    "@types/bn.js": "^5.1.5",
     "@types/node": "^20.0.0",
     "eslint": "8.57.0",
     "eslint-config-prettier": "9.1.0",
@@ -54,6 +55,8 @@
   },
   "dependencies": {
     "@ethersproject/abi": "^5.7.0",
+    "bignumber.js": "^9.1.2",
+    "bn.js": "^5.2.1",
     "undici": "^5.14.0"
   }
 }
