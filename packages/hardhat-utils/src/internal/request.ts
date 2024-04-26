@@ -3,6 +3,7 @@ import type { DispatcherOptions, RequestOptions } from "../request.js";
 
 import path from "node:path";
 import url from "node:url";
+
 import { mkdir } from "../fs.js";
 import {
   DEFAULT_MAX_REDIRECTS,

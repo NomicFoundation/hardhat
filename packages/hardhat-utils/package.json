@@ -10,6 +10,7 @@
   "type": "module",
   "exports": {
     "./abi": "./dist/src/abi.js",
+    "./bigint": "./dist/src/bigint.js",
     "./fs": "./dist/src/fs.js",
     "./request": "./dist/src/request.js"
   },
