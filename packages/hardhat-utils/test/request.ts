@@ -551,7 +551,7 @@ describe("Requests util", () => {
 
       await assert.rejects(download(url, destination, undefined, mockPool), {
         name: "DownloadError",
-        message: `Failed to download file from ${url}.`,
+        message: `Failed to download file from ${url}`,
       });
     });
   });

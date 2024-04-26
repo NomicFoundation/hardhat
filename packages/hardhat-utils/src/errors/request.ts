@@ -11,7 +11,7 @@ export class RequestError extends CustomError {
 
 export class DownloadError extends CustomError {
   constructor(url: string, cause?: Error) {
-    super(`Failed to download file from ${sanitizeUrl(url)}.`, cause);
+    super(`Failed to download file from ${sanitizeUrl(url)}`, cause);
   }
 }
 
