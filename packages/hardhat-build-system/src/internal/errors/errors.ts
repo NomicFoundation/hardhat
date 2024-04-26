@@ -56,7 +56,9 @@ export class CustomError extends Error {
 export class HardhatError extends CustomError {
   public static isHardhatError(other: any): other is HardhatError {
     return (
-      other !== undefined && other !== null && other._isHardhatError === true
+      other !== undefined &&
+      other !== null &&
+      (other as HardhatError)._isHardhatError === true
     );
   }
 
@@ -73,6 +75,8 @@ export class HardhatError extends CustomError {
   public readonly errorDescriptor: ErrorDescriptor;
   public readonly number: number;
   public readonly messageArguments: Record<string, any>;
+
+  private readonly _isHardhatError: boolean;
 
   constructor(
     errorDescriptor: ErrorDescriptor,
@@ -92,6 +96,7 @@ export class HardhatError extends CustomError {
     this.number = errorDescriptor.number;
     this.messageArguments = messageArguments;
 
+    this._isHardhatError = true;
     Object.setPrototypeOf(this, HardhatError.prototype);
   }
 }

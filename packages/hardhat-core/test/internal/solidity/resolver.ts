@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { AssertionError, assert } from "chai";
 import * as fsExtra from "fs-extra";
 import path from "path";
 import sinon from "sinon";
@@ -20,6 +20,67 @@ import {
 } from "../../helpers/project";
 import { replaceBackslashes } from "../../../src/utils/source-names";
 import { getRealPath } from "../../../src/internal/util/fs-utils";
+import { ErrorDescriptor } from "../../../../hardhat-build-system/src/internal/errors/errors-list";
+import { HardhatError } from "../../../../hardhat-build-system/src/internal/errors/errors";
+
+// TODO: the HardhatError class has to be the one from the package otherwise the tests will fail
+export async function expectHardhatErrorAsync2(
+  f: () => Promise<any>,
+  errorDescriptor: ErrorDescriptor,
+  errorMessage?: string | RegExp
+) {
+  // We create the error here to capture the stack trace before the await.
+  // This makes things easier, at least as long as we don't have async stack
+  // traces. This may change in the near-ish future.
+  const error = new AssertionError(
+    `HardhatError number ${errorDescriptor.number} expected, but no Error was thrown`
+  );
+
+  const notExactMatch = new AssertionError(
+    `HardhatError was correct, but should have include "${errorMessage}" but got "`
+  );
+
+  const notRegexpMatch = new AssertionError(
+    `HardhatError was correct, but should have matched regex ${errorMessage} but got "`
+  );
+
+  try {
+    await f();
+  } catch (err: unknown) {
+    if (!(err instanceof HardhatError)) {
+      assert.fail();
+    }
+    assert.equal(err.number, errorDescriptor.number);
+    assert.notInclude(
+      err.message,
+      "%s",
+      "HardhatError has old-style format tag"
+    );
+    assert.notMatch(
+      err.message,
+      /%[a-zA-Z][a-zA-Z0-9]*%/,
+      "HardhatError has an non-replaced variable tag"
+    );
+
+    if (errorMessage !== undefined) {
+      if (typeof errorMessage === "string") {
+        if (!err.message.includes(errorMessage)) {
+          notExactMatch.message += `${err.message}`;
+          throw notExactMatch;
+        }
+      } else {
+        if (errorMessage.exec(err.message) === null) {
+          notRegexpMatch.message += `${err.message}`;
+          throw notRegexpMatch;
+        }
+      }
+    }
+
+    return;
+  }
+
+  throw error;
+}
 
 function assertResolvedFilePartiallyEquals(
   actual: ResolvedFile,
@@ -604,7 +665,7 @@ describe("TASK_COMPILE: the file to compile is trying to import a directory", fu
     useEnvironment();
 
     it("should throw an error because a directory is trying to be imported", async function () {
-      await expectHardhatErrorAsync(
+      await expectHardhatErrorAsync2(
         async () => {
           await this.env.run(TASK_COMPILE);
         },
@@ -619,7 +680,7 @@ describe("TASK_COMPILE: the file to compile is trying to import a directory", fu
     useEnvironment();
 
     it("should throw an error because a directory is trying to be imported", async function () {
-      await expectHardhatErrorAsync(
+      await expectHardhatErrorAsync2(
         async () => {
           await this.env.run(TASK_COMPILE);
         },
@@ -636,7 +697,7 @@ describe("TASK_COMPILE: the file to compile is trying to import a non existing f
     useEnvironment();
 
     it("should throw an error because a directory is trying to be imported", async function () {
-      await expectHardhatErrorAsync(
+      await expectHardhatErrorAsync2(
         async () => {
           await this.env.run(TASK_COMPILE);
         },
@@ -651,7 +712,7 @@ describe("TASK_COMPILE: the file to compile is trying to import a non existing f
     useEnvironment();
 
     it("should throw an error because a directory is trying to be imported", async function () {
-      await expectHardhatErrorAsync(
+      await expectHardhatErrorAsync2(
         async () => {
           await this.env.run(TASK_COMPILE);
         },

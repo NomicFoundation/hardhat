@@ -14,6 +14,9 @@ import {
   TASK_COMPILE_GET_COMPILATION_TASKS,
   TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS,
   TASK_COMPILE_SOLIDITY_READ_FILE,
+  TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
+  TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
+  TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES,
 } from "./task-names";
 
 const DEFAULT_CONCURRENCY_LEVEL = Math.max(os.cpus().length - 1, 1);
@@ -70,11 +73,8 @@ task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
     DEFAULT_CONCURRENCY_LEVEL,
     types.int
   )
-  .setAction(async (compilationArgs: any, { artifacts, config }) => {
-    // TODO: use the new build system
-
+  .setAction(async (compilationArgs: any, { artifacts, config, run }) => {
     const buildSystem = new BuildSystem(config);
-
     await buildSystem.build({
       profile: "development",
       type: "all",
@@ -86,3 +86,63 @@ task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
       tasksOverrides: compilationArgs.tasksOverrides,
     });
   });
+
+// ---------------------------------------
+// TESTING FILES THAT ATE NOTE THE compile.ts
+// ---------------------------------------
+
+subtask(TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH)
+  .addOptionalParam("rootPath", undefined, undefined, types.string)
+  .addParam("sourceNames", undefined, undefined, types.any)
+  .addOptionalParam("solidityFilesCache", undefined, undefined, types.any)
+  .setAction(
+    async (
+      {
+        // rootPath,
+        sourceNames,
+      }: // solidityFilesCache,
+      {
+        rootPath?: string;
+        sourceNames: string[];
+        // solidityFilesCache?: SolidityFilesCache;
+      },
+      { config }
+    ): Promise<any> => {
+      const buildSystem = new BuildSystem(config);
+
+      return buildSystem.solidityGetDependencyGraph(sourceNames, config);
+    }
+  );
+
+subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS)
+  .addOptionalParam("sourcePath", undefined, undefined, types.string)
+  .setAction(
+    async (
+      { sourcePath }: { sourcePath?: string },
+      { config }
+    ): Promise<string[]> => {
+      const buildSystem = new BuildSystem(config);
+
+      return buildSystem.solidityGetSourcePaths(sourcePath);
+    }
+  );
+
+subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES)
+  .addOptionalParam("rootPath", undefined, undefined, types.string)
+  .addParam("sourcePaths", undefined, undefined, types.any)
+  .setAction(
+    async (
+      {
+        rootPath,
+        sourcePaths,
+      }: {
+        rootPath?: string;
+        sourcePaths: string[];
+      },
+      { config }
+    ): Promise<string[]> => {
+      const buildSystem = new BuildSystem(config);
+
+      return buildSystem.solidityGetSourceNames(sourcePaths, rootPath);
+    }
+  );
