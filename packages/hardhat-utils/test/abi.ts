@@ -31,12 +31,10 @@ describe("abi", () => {
         ],
       };
       await assert.rejects(
-        async () => {
-          await computeSelector(
-            constructorFragment.name as any,
-            constructorFragment.inputs,
-          );
-        },
+        computeSelector(
+          constructorFragment.name as any,
+          constructorFragment.inputs,
+        ),
         {
           name: "AbiError",
           message: "Cannot compute selector",
@@ -49,12 +47,7 @@ describe("abi", () => {
         inputs: [{ not: "an-input" }],
       };
       await assert.rejects(
-        async () => {
-          await computeSelector(
-            invalidFragment.name,
-            invalidFragment.inputs as any,
-          );
-        },
+        computeSelector(invalidFragment.name, invalidFragment.inputs as any),
         {
           name: "AbiError",
           message: "Cannot compute selector",
