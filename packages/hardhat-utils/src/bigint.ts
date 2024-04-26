@@ -1,6 +1,3 @@
-import type BN from "bn.js";
-import type { BigNumber } from "bignumber.js";
-
 import { BigIntError } from "./errors/bigint.js";
 import { isBNBigInt, isBigNumberBigInt } from "./internal/bigint.js";
 import { unreachable } from "./errors/catch-utils.js";
@@ -43,7 +40,7 @@ export function max(x: bigint, y: bigint): bigint {
  * @throws BigIntError If the input value cannot be converted to a BigInt.
  */
 export async function toBigInt(
-  x: number | bigint | BN | BigNumber | string,
+  x: number | string | bigint | object,
 ): Promise<bigint> {
   switch (typeof x) {
     case "number":

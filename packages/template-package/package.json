@@ -40,6 +40,8 @@
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
     "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.7.1",
+    "@typescript-eslint/parser": "^7.7.1",
     "eslint": "8.57.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-import": "2.29.1",
@@ -50,6 +52,6 @@
     "rimraf": "^5.0.5",
     "tsx": "^4.7.1",
     "typescript": "~5.4.0",
-    "typescript-eslint": "7.5.0"
+    "typescript-eslint": "7.7.1"
   }
 }

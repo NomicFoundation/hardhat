@@ -52,6 +52,15 @@ export function ensureError<ErrorT extends Error>(
  * is reached, it means that an unexpected value was encountered, so an error
  * is thrown.
  *
+ * Note: The `@typescript-eslint/switch-exhaustiveness-check` rule checks for
+ * exhaustiveness in switch statements by comparing the types of the switch
+ * expression and the case clauses. However, it only works with union types and
+ * enum types. If you're switching on the result of the `typeof` operator or
+ * any other expression that doesn't return a union type or an enum type, this
+ * rule cannot enforce exhaustiveness. In such cases, you can use this function
+ * in the default case to ensure that an error is thrown if an unexpected value
+ * is encountered.
+ *
  * @param _value - The unexpected value. This parameter is unused and is only for
  * the purpose of type checking.
  * @param error - The error to throw.
