@@ -12,7 +12,9 @@
     "./abi": "./dist/src/abi.js",
     "./bigint": "./dist/src/bigint.js",
     "./fs": "./dist/src/fs.js",
-    "./request": "./dist/src/request.js"
+    "./package": "./dist/src/package.js",
+    "./request": "./dist/src/request.js",
+    "./stack": "./dist/src/stack.js"
   },
   "keywords": [
     "ethereum",
