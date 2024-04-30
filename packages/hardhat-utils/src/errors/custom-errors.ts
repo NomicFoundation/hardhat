@@ -41,3 +41,9 @@ export function assertHardhatUtilsInvariant(
     throw new HardhatUtilsError(message);
   }
 }
+
+export class InvalidParameterError extends CustomError {
+  constructor(message: string, cause?: Error) {
+    super(message, cause);
+  }
+}

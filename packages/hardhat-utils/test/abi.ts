@@ -2,6 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
 import { computeSelector, isValidCalldata, formatValues } from "../src/abi.js";
+import { hexStringToBytes } from "../src/hex.js";
 
 describe("abi", () => {
   describe("computeSelector", () => {
@@ -59,20 +60,20 @@ describe("abi", () => {
   describe("isValidCalldata", () => {
     it("Should return true if the calldata is valid", async () => {
       const calldata =
-        "00000000000000000000000000000000000000000000000000000000000004d20000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000b48656c6c6f20576f726c64000000000000000000000000000000000000000000";
+        "0x00000000000000000000000000000000000000000000000000000000000004d20000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000b48656c6c6f20576f726c64000000000000000000000000000000000000000000";
       const isValid = await isValidCalldata(
         ["uint", "string"],
-        Buffer.from(calldata, "hex"),
+        hexStringToBytes(calldata),
       );
 
       assert.ok(isValid);
     });
 
     it("Should return false if the calldata is invalid", async () => {
-      const calldata = "not-valid";
+      const calldata = "0x12345";
       const isValid = await isValidCalldata(
         ["uint", "string"],
-        Buffer.from(calldata, "hex"),
+        hexStringToBytes(calldata),
       );
 
       assert.ok(!isValid);

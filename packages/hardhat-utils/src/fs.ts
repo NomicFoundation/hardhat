@@ -162,7 +162,10 @@ export async function readJsonFile<T>(absolutePathToFile: string): Promise<T> {
  * @throws JsonSerializationError if the object can't be serialized to JSON.
  * @throws FileSystemAccessError for any other error.
  */
-export async function writeJsonFile<T>(absolutePathToFile: string, object: T) {
+export async function writeJsonFile<T>(
+  absolutePathToFile: string,
+  object: T,
+): Promise<void> {
   let content;
   try {
     content = JSON.stringify(object, null, 2);
@@ -256,7 +259,7 @@ export async function writeUtf8File(
  * @throws NotADirectoryError if the path is not a directory.
  * @throws FileSystemAccessError for any other error.
  */
-export async function readdir(absolutePathToDir: string) {
+export async function readdir(absolutePathToDir: string): Promise<string[]> {
   try {
     return await fsPromises.readdir(absolutePathToDir);
   } catch (e) {

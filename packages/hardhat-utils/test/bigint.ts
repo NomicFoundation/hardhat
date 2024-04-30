@@ -3,7 +3,13 @@ import assert from "node:assert/strict";
 import { BigNumber } from "bignumber.js";
 import BN from "bn.js";
 
-import { min, max, toBigInt, isLibraryBigInt } from "../src/bigint.js";
+import {
+  min,
+  max,
+  toBigInt,
+  isLibraryBigInt,
+  signedBytesToBigInt,
+} from "../src/bigint.js";
 
 describe("bigint", () => {
   describe("min", () => {
@@ -112,6 +118,28 @@ describe("bigint", () => {
 
     it("Should return false for other objects", async () => {
       assert.ok(!(await isLibraryBigInt({})));
+    });
+  });
+
+  describe("signedBytesToBigInt", () => {
+    it("should convert an unsigned (negative) Uint8Array to a signed number", () => {
+      const bytes = new Uint8Array(32);
+      bytes[0] = 255; // Set the most significant bit to -1 in two's complement
+
+      assert.equal(
+        signedBytesToBigInt(bytes).toString(),
+        "-452312848583266388373324160190187140051835877600158453279131187530910662656",
+      );
+    });
+
+    it("should convert an unsigned (positive) Uint8Array to a signed number", () => {
+      const bytes = new Uint8Array(32);
+      bytes[0] = 1; // Set the most significant bit to 1
+
+      assert.equal(
+        signedBytesToBigInt(bytes).toString(),
+        "452312848583266388373324160190187140051835877600158453279131187530910662656",
+      );
     });
   });
 });

@@ -1,9 +1,9 @@
-import { InvalidParameterError } from "./errors/hex.js";
+import { InvalidParameterError } from "./errors/custom-errors.js";
 
 export type PrefixedHexString = `0x${string}`;
 
 /**
- * Converts a non-negative safe integer or BigInt to a hexadecimal string.
+ * Converts a non-negative safe integer or bigint to a hexadecimal string.
  *
  * @param value The number to convert.
  * @returns The hexadecimal representation of the number.
@@ -15,7 +15,7 @@ export function numberToHexString(value: number | bigint): PrefixedHexString {
     (typeof value === "number" && !Number.isSafeInteger(value))
   ) {
     throw new InvalidParameterError(
-      `Expected a non-negative safe integer or BigInt. Received: ${value}`,
+      `Expected a non-negative safe integer or bigint. Received: ${value}`,
     );
   }
 
@@ -23,7 +23,7 @@ export function numberToHexString(value: number | bigint): PrefixedHexString {
 }
 
 /**
- * Converts a hexadecimal string to a number or BigInt if the number is an
+ * Converts a hexadecimal string to a number or bigint if the number is an
  * unsafe integer.
  *
  * @param hexString The hexadecimal string to convert. It must be a valid
@@ -71,7 +71,16 @@ export function hexStringToBytes(hexString: string): Uint8Array {
     );
   }
 
-  return Uint8Array.from(Buffer.from(getUnprefixedHexString(hexString), "hex"));
+  // Pad the hex string if it's odd, as Buffer.from will truncate it
+  // the last character if it's not a full byte.
+  // See: https://nodejs.org/api/buffer.html#buffers-and-character-encodings
+  const unprefixedHexString = getUnprefixedHexString(hexString);
+  const paddedHexString =
+    unprefixedHexString.length % 2 === 0
+      ? unprefixedHexString
+      : `0${unprefixedHexString}`;
+
+  return Uint8Array.from(Buffer.from(paddedHexString, "hex"));
 }
 
 /**
@@ -132,7 +141,7 @@ export function getUnprefixedHexString(hexString: string): string {
  * @param hexString The hexadecimal string.
  * @returns The hexadecimal string without leading zeros.
  */
-export function unpadHexString(hexString: string) {
+export function unpadHexString(hexString: string): string {
   const unpaddedHexString = hexString.replace(/^0x0+/i, "0x");
   return unpaddedHexString === "0x" ? "0x0" : unpaddedHexString;
 }

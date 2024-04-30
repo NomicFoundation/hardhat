@@ -2,6 +2,7 @@ import type { JsonFragmentType, ParamType } from "@ethersproject/abi";
 
 import { AbiError } from "./errors/abi.js";
 import { ensureError } from "./errors/catch-utils.js";
+import { hexStringToBytes } from "./hex.js";
 
 /**
  * Computes the selector for a given Ethereum function, event, or error based
@@ -31,7 +32,7 @@ export async function computeSelector(
     const selectorHex = abi.Interface.getSighash(fragment);
 
     // TODO I'm pretty sure this is casted back to a hex string everywhere it's used
-    return Buffer.from(selectorHex.slice(2), "hex");
+    return hexStringToBytes(selectorHex);
   } catch (e) {
     ensureError(e);
     throw new AbiError("Cannot compute selector", e);

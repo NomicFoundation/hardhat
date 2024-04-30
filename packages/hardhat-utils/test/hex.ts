@@ -54,18 +54,18 @@ describe("hex", () => {
     it("Should throw InvalidParameterError if the input is not a safe integer or is negative", () => {
       assert.throws(() => numberToHexString(-1), {
         name: "InvalidParameterError",
-        message: "Expected a non-negative safe integer or BigInt. Received: -1",
+        message: "Expected a non-negative safe integer or bigint. Received: -1",
       });
 
       assert.throws(() => numberToHexString(-1n), {
         name: "InvalidParameterError",
-        message: "Expected a non-negative safe integer or BigInt. Received: -1",
+        message: "Expected a non-negative safe integer or bigint. Received: -1",
       });
 
       const unsafeInt = Number.MAX_SAFE_INTEGER + 1;
       assert.throws(() => numberToHexString(unsafeInt), {
         name: "InvalidParameterError",
-        message: `Expected a non-negative safe integer or BigInt. Received: ${unsafeInt}`,
+        message: `Expected a non-negative safe integer or bigint. Received: ${unsafeInt}`,
       });
     });
   });
@@ -111,6 +111,10 @@ describe("hex", () => {
       assert.equal(bytesToHexString(new Uint8Array([16])), "0x10");
       assert.equal(bytesToHexString(new Uint8Array([255])), "0xff");
       assert.equal(
+        bytesToHexString(new Uint8Array([0x01, 0x02, 0x03])),
+        "0x010203",
+      );
+      assert.equal(
         bytesToHexString(new Uint8Array([0, 1, 15, 16, 255])),
         "0x00010f10ff",
       );
@@ -122,6 +126,10 @@ describe("hex", () => {
       assert.equal(bytesToHexString(Buffer.from([15])), "0x0f");
       assert.equal(bytesToHexString(Buffer.from([16])), "0x10");
       assert.equal(bytesToHexString(Buffer.from([255])), "0xff");
+      assert.equal(
+        bytesToHexString(Buffer.from([0x01, 0x02, 0x03])),
+        "0x010203",
+      );
       assert.equal(
         bytesToHexString(Buffer.from([0, 1, 15, 16, 255])),
         "0x00010f10ff",
@@ -137,6 +145,10 @@ describe("hex", () => {
       assert.deepEqual(hexStringToBytes("0x0f"), new Uint8Array([15]));
       assert.deepEqual(hexStringToBytes("0x10"), new Uint8Array([16]));
       assert.deepEqual(hexStringToBytes("0xff"), new Uint8Array([255]));
+      assert.deepEqual(
+        hexStringToBytes("0x010203"),
+        new Uint8Array([0x01, 0x02, 0x03]),
+      );
       assert.deepEqual(
         hexStringToBytes("0x00010f10ff"),
         new Uint8Array([0, 1, 15, 16, 255]),
