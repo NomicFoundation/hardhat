@@ -50,11 +50,11 @@ export function hexStringToNumber(hexString: string): number | bigint {
 /**
  * Converts a Uint8Array to a hexadecimal string.
  *
- * @param value The bytes to convert.
+ * @param bytes The bytes to convert.
  * @returns PrefixedHexString The hexadecimal representation of the bytes.
  */
-export function bytesToHexString(value: Uint8Array): PrefixedHexString {
-  return `0x${Buffer.from(value).toString("hex")}`;
+export function bytesToHexString(bytes: Uint8Array): PrefixedHexString {
+  return `0x${Buffer.from(bytes).toString("hex")}`;
 }
 
 /**
@@ -103,13 +103,13 @@ export function isHexStringPrefixed(hexString: string): boolean {
 }
 
 /**
- * Checks if a string is a hexadecimal string.
+ * Checks if a value is a hexadecimal string.
  *
- * @param value The string to check.
- * @returns True if the string is a hexadecimal string, false otherwise.
+ * @param value The value to check.
+ * @returns True if the value is a hexadecimal string, false otherwise.
  */
-export function isHexString(value: string): boolean {
-  return /^0x[0-9a-f]*$/i.test(value);
+export function isHexString(value: unknown): boolean {
+  return typeof value === "string" && /^0x[0-9a-f]*$/i.test(value.trim());
 }
 
 /**

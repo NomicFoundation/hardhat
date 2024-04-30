@@ -182,10 +182,13 @@ describe("hex", () => {
     it("Should check if a string is a hexadecimal string", () => {
       assert.equal(isHexString("0x0"), true);
       assert.equal(isHexString("0xFFff"), true);
-      assert.equal(isHexString(" 0x10000 "), false);
-      assert.equal(isHexString("0X1000000Ff"), true);
+      assert.equal(isHexString(" 0x10000 "), true);
+      assert.equal(isHexString("0X1000000Ff      "), true);
       assert.equal(isHexString("20000000000000"), false);
       assert.equal(isHexString("invalid"), false);
+      assert.equal(isHexString(10), false);
+      assert.equal(isHexString(true), false);
+      assert.equal(isHexString({}), false);
     });
   });
 
