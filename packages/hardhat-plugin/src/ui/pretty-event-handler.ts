@@ -67,9 +67,15 @@ export class PrettyEventHandler implements ExecutionEventListener {
     maxFeeBumps: 0,
     gasBumps: {},
     strategy: null,
+    ledger: false,
+    ledgerMessage: "",
+    ledgerMessageIsDisplayed: false,
   };
 
-  constructor(private _deploymentParams: DeploymentParameters = {}) {}
+  constructor(
+    private _deploymentParams: DeploymentParameters = {},
+    private _disableOutput = false
+  ) {}
 
   public get state(): UiState {
     return this._uiState;
@@ -309,6 +315,77 @@ export class PrettyEventHandler implements ExecutionEventListener {
     };
   }
 
+  public ledgerConnectionStart(): void {
+    this.state = {
+      ...this.state,
+      ledger: true,
+      ledgerMessage: "Connecting wallet",
+    };
+
+    this._redisplayCurrentBatch();
+
+    this.state = {
+      ...this.state,
+      ledgerMessageIsDisplayed: true,
+    };
+  }
+
+  public ledgerConnectionSuccess(): void {
+    this.state = {
+      ...this.state,
+      ledgerMessage: "Wallet connected",
+    };
+
+    this._redisplayCurrentBatch();
+  }
+
+  public ledgerConnectionFailure(): void {
+    this.state = {
+      ...this.state,
+      ledgerMessage: "Wallet connection failed",
+    };
+
+    this._redisplayCurrentBatch();
+  }
+
+  public ledgerConfirmationStart(): void {
+    this.state = {
+      ...this.state,
+      ledger: true,
+      ledgerMessage: "Waiting for confirmation on device",
+    };
+
+    this._redisplayCurrentBatch();
+
+    this.state = {
+      ...this.state,
+      ledgerMessageIsDisplayed: true,
+    };
+  }
+
+  public ledgerConfirmationSuccess(): void {
+    this.state = {
+      ...this.state,
+      ledgerMessage: "Transaction approved by device",
+    };
+
+    this._redisplayCurrentBatch();
+
+    this.state = {
+      ...this.state,
+      ledger: false,
+    };
+  }
+
+  public ledgerConfirmationFailure(): void {
+    this.state = {
+      ...this.state,
+      ledgerMessage: "Transaction confirmation failed",
+    };
+
+    this._redisplayCurrentBatch();
+  }
+
   private _setFutureStatusInitializedAndRedisplayBatch({
     futureId,
   }: {
@@ -330,6 +407,11 @@ export class PrettyEventHandler implements ExecutionEventListener {
       futureId,
       this._getFutureStatusFromEventResult(result)
     );
+
+    this.state = {
+      ...this.state,
+      ledgerMessageIsDisplayed: false,
+    };
   }
 
   private _setFutureStatusAndRedisplayBatch(
@@ -454,11 +536,13 @@ export class PrettyEventHandler implements ExecutionEventListener {
   }
 
   private _redisplayCurrentBatch() {
-    const { height, text: batch } = calculateBatchDisplay(this.state);
+    if (!this._disableOutput) {
+      const { height, text: batch } = calculateBatchDisplay(this.state);
 
-    this._clearUpToHeight(height);
+      this._clearUpToHeight(height);
 
-    console.log(batch);
+      console.log(batch);
+    }
   }
 
   private _clearCurrentLine(): void {

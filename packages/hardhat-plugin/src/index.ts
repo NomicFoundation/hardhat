@@ -6,12 +6,12 @@ import {
   StatusResult,
 } from "@nomicfoundation/ignition-core";
 import {
+  ensureDir,
+  pathExists,
+  readFile,
   readdirSync,
   rm,
-  pathExists,
   writeJSON,
-  ensureDir,
-  readFile,
 } from "fs-extra";
 import { extendConfig, extendEnvironment, scope } from "hardhat/config";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
@@ -257,6 +257,47 @@ ignitionScope
       const strategyConfig = hre.config.ignition.strategyConfig?.[strategyName];
 
       try {
+        const ledgerConnectionStart = () =>
+          executionEventListener.ledgerConnectionStart();
+        const ledgerConnectionSuccess = () =>
+          executionEventListener.ledgerConnectionSuccess();
+        const ledgerConnectionFailure = () =>
+          executionEventListener.ledgerConnectionFailure();
+        const ledgerConfirmationStart = () =>
+          executionEventListener.ledgerConfirmationStart();
+        const ledgerConfirmationSuccess = () =>
+          executionEventListener.ledgerConfirmationSuccess();
+        const ledgerConfirmationFailure = () =>
+          executionEventListener.ledgerConfirmationFailure();
+
+        try {
+          await hre.network.provider.send("hardhat_setLedgerOutputEnabled", [
+            false,
+          ]);
+
+          hre.network.provider.once("connection_start", ledgerConnectionStart);
+          hre.network.provider.once(
+            "connection_success",
+            ledgerConnectionSuccess
+          );
+          hre.network.provider.once(
+            "connection_failure",
+            ledgerConnectionFailure
+          );
+          hre.network.provider.on(
+            "confirmation_start",
+            ledgerConfirmationStart
+          );
+          hre.network.provider.on(
+            "confirmation_success",
+            ledgerConfirmationSuccess
+          );
+          hre.network.provider.on(
+            "confirmation_failure",
+            ledgerConfirmationFailure
+          );
+        } catch {}
+
         const result = await deploy({
           config: hre.config.ignition,
           provider: hre.network.provider,
@@ -272,6 +313,34 @@ ignitionScope
           maxFeePerGasLimit:
             hre.config.networks[hre.network.name]?.ignition.maxFeePerGasLimit,
         });
+
+        try {
+          await hre.network.provider.send("hardhat_setLedgerOutputEnabled", [
+            true,
+          ]);
+
+          hre.network.provider.off("connection_start", ledgerConnectionStart);
+          hre.network.provider.off(
+            "connection_success",
+            ledgerConnectionSuccess
+          );
+          hre.network.provider.off(
+            "connection_failure",
+            ledgerConnectionFailure
+          );
+          hre.network.provider.off(
+            "confirmation_start",
+            ledgerConfirmationStart
+          );
+          hre.network.provider.off(
+            "confirmation_success",
+            ledgerConfirmationSuccess
+          );
+          hre.network.provider.off(
+            "confirmation_failure",
+            ledgerConfirmationFailure
+          );
+        } catch {}
 
         if (result.type === "SUCCESSFUL_DEPLOYMENT" && verify) {
           console.log("");

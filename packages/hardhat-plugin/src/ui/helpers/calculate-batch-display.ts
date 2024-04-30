@@ -5,7 +5,7 @@ export function calculateBatchDisplay(state: UiState): {
   height: number;
 } {
   const batch = state.batches[state.currentBatch - 1];
-  const height = batch.length + 2;
+  const height = batch.length + (state.ledgerMessageIsDisplayed ? 4 : 2);
 
   let text = `Batch #${state.currentBatch}\n`;
 
@@ -15,6 +15,10 @@ export function calculateBatchDisplay(state: UiState): {
     .join("\n");
 
   text += "\n";
+
+  if (state.ledger) {
+    text += `\n  Ledger: ${state.ledgerMessage}\n`;
+  }
 
   return { text, height };
 }
