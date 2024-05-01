@@ -11,7 +11,12 @@
   "exports": {
     "./abi": "./dist/src/abi.js",
     "./bigint": "./dist/src/bigint.js",
+    "./bytes": "./dist/src/bytes.js",
+    "./crypto": "./dist/src/crypto.js",
+    "./eth": "./dist/src/eth.js",
     "./fs": "./dist/src/fs.js",
+    "./hex": "./dist/src/hex.js",
+    "./number": "./dist/src/number.js",
     "./package": "./dist/src/package.js",
     "./request": "./dist/src/request.js",
     "./stack": "./dist/src/stack.js"
@@ -43,6 +48,7 @@
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
     "@types/bn.js": "^5.1.5",
+    "@types/keccak": "^3.0.4",
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
     "@typescript-eslint/parser": "^7.7.1",
@@ -62,6 +68,7 @@
     "@ethersproject/abi": "^5.7.0",
     "bignumber.js": "^9.1.2",
     "bn.js": "^5.2.1",
+    "keccak": "^3.0.4",
     "undici": "^5.14.0"
   }
 }
