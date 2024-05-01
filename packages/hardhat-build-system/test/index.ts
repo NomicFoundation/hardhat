@@ -3,38 +3,38 @@
 
 import { describe, it } from "node:test";
 import assert from "node:assert";
-import * as fsExtra from "fs-extra";
-import path from "path";
-import fs from "fs";
+import fs from "node:fs/promises";
+import { existsSync } from "node:fs";
+import path from "node:path";
 import sinon from "sinon";
 import ci from "ci-info";
-import { BuildSystem } from "../src/index";
+import { fileURLToPath } from "node:url";
+import { BuildSystem } from "../src/index.js";
 import {
   getAllFilesMatchingSync,
   getRealPathSync,
-} from "../src/internal/utils/fs-utils";
-import { ERRORS } from "../src/internal/errors/errors-list";
-import { CompilationJobCreationErrorReason } from "../src/internal/types/builtin-tasks";
+} from "../src/internal/utils/fs-utils.js";
+import { ERRORS } from "../src/internal/errors/errors-list.js";
+import { CompilationJobCreationErrorReason } from "../src/internal/types/builtin-tasks/index.js";
 import {
   cleanFixtureProjectDir,
   expectHardhatErrorAsync,
   mockFile,
   resolveConfig,
   useFixtureProject,
-} from "./helpers";
+} from "./helpers.js";
 
-function assertFileExists(pathToFile: string) {
-  assert.equal(
-    fsExtra.existsSync(pathToFile),
-    true,
-    `Expected ${pathToFile} to exist`,
-  );
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = path.dirname(_filename);
+
+async function assertFileExists(pathToFile: string) {
+  assert.equal(existsSync(pathToFile), true, `Expected ${pathToFile} to exist`);
 }
 
-function assertBuildInfoExists(pathToDbg: string) {
-  assertFileExists(pathToDbg);
-  const { buildInfo } = fsExtra.readJsonSync(pathToDbg);
-  assertFileExists(path.resolve(path.dirname(pathToDbg), buildInfo));
+async function assertBuildInfoExists(pathToDbg: string) {
+  await assertFileExists(pathToDbg);
+  const { buildInfo } = JSON.parse((await fs.readFile(pathToDbg)).toString());
+  await assertFileExists(path.resolve(path.dirname(pathToDbg), buildInfo));
 }
 
 function getBuildInfos(): string[] {
@@ -43,8 +43,8 @@ function getBuildInfos(): string[] {
   );
 }
 
-function assertValidJson(pathToJson: string) {
-  const content = fs.readFileSync(pathToJson).toString();
+async function assertValidJson(pathToJson: string) {
+  const content = (await fs.readFile(pathToJson)).toString();
 
   try {
     JSON.parse(content);
@@ -53,7 +53,7 @@ function assertValidJson(pathToJson: string) {
   }
 }
 
-describe("build-system", () => {
+describe("build-system", { only: true }, () => {
   // TODO: should we also move here the tests to check that the last solidity version is properly added?
   // It's this commented code:
   // describe("compile with latest solc version", function () {
@@ -94,62 +94,66 @@ describe("build-system", () => {
     useFixtureProject("compilation-single-file");
 
     it("should compile and emit artifacts", async function () {
-      const config = resolveConfig();
+      const config = await resolveConfig();
 
       const buildSystem = new BuildSystem(config);
       await buildSystem.build();
 
-      assertFileExists(path.join("artifacts", "contracts", "A.sol", "A.json"));
-      assertBuildInfoExists(
+      await assertFileExists(
+        path.join("artifacts", "contracts", "A.sol", "A.json"),
+      );
+      await assertBuildInfoExists(
         path.join("artifacts", "contracts", "A.sol", "A.dbg.json"),
       );
 
       const buildInfos = getBuildInfos();
       assert.equal(buildInfos.length, 1);
-      assertValidJson(buildInfos[0]!);
+      await assertValidJson(buildInfos[0]!);
     });
   });
 
-  describe("project with an empty file", function () {
+  describe("project with an empty file", { only: true }, function () {
     useFixtureProject("compilation-empty-file");
 
-    it("should compile and emit no artifact", async function () {
-      const config = resolveConfig();
+    it(
+      "should compile and emit no artifact",
+      { only: true },
+      async function () {
+        const config = await resolveConfig();
 
-      const buildSystem = new BuildSystem(config);
-      await buildSystem.build();
+        const buildSystem = new BuildSystem(config);
+        await buildSystem.build();
 
-      // the artifacts directory only has the build-info directory
-      const artifactsDirectory = fsExtra.readdirSync("artifacts");
-      assert.equal(
-        artifactsDirectory.length,
-        1,
-        "The length should be the same",
-      );
+        // the artifacts directory only has the build-info directory
+        const artifactsDirectory = await fs.readdir("artifacts");
+        assert.equal(
+          artifactsDirectory.length,
+          1,
+          "The length should be the same",
+        );
 
-      const buildInfos = getBuildInfos();
-      assert.equal(buildInfos.length, 0);
-    });
+        const buildInfos = getBuildInfos();
+        assert.equal(buildInfos.length, 0);
+      },
+    );
   });
 
   describe("project with a single file with many contracts", function () {
     useFixtureProject("compilation-single-file-many-contracts");
 
     it("should compile and emit artifacts", async function () {
-      const config = resolveConfig();
+      const config = await resolveConfig();
 
       const buildSystem = new BuildSystem(config);
       await buildSystem.build();
 
-      const artifactsDirectory = fsExtra.readdirSync(
-        "artifacts/contracts/A.sol",
-      );
+      const artifactsDirectory = await fs.readdir("artifacts/contracts/A.sol");
       // 100 contracts, 2 files per contract
       assert.equal(artifactsDirectory.length, 200);
 
       const buildInfos = getBuildInfos();
       assert.equal(buildInfos.length, 1);
-      assertValidJson(buildInfos[0]!);
+      await assertValidJson(buildInfos[0]!);
     });
   });
 
@@ -157,18 +161,18 @@ describe("build-system", () => {
     useFixtureProject("compilation-many-files");
 
     it("should compile and emit artifacts", async function () {
-      const config = resolveConfig();
+      const config = await resolveConfig();
 
       const buildSystem = new BuildSystem(config);
       await buildSystem.build();
 
-      const contractsDirectory = fsExtra.readdirSync("artifacts/contracts");
+      const contractsDirectory = await fs.readdir("artifacts/contracts");
       assert.equal(contractsDirectory.length, 100);
 
       const buildInfos = getBuildInfos();
       assert.equal(buildInfos.length, 1);
 
-      assertValidJson(buildInfos[0]!);
+      await assertValidJson(buildInfos[0]!);
     });
   });
 
@@ -176,24 +180,28 @@ describe("build-system", () => {
     useFixtureProject("compilation-two-files-different-versions");
 
     it("should compile and emit artifacts", async function () {
-      const config = resolveConfig();
+      const config = await resolveConfig();
 
       const buildSystem = new BuildSystem(config);
       await buildSystem.build();
 
-      assertFileExists(path.join("artifacts", "contracts", "A.sol", "A.json"));
-      assertFileExists(path.join("artifacts", "contracts", "B.sol", "B.json"));
-      assertBuildInfoExists(
+      await assertFileExists(
+        path.join("artifacts", "contracts", "A.sol", "A.json"),
+      );
+      await assertFileExists(
+        path.join("artifacts", "contracts", "B.sol", "B.json"),
+      );
+      await assertBuildInfoExists(
         path.join("artifacts", "contracts", "A.sol", "A.dbg.json"),
       );
-      assertBuildInfoExists(
+      await assertBuildInfoExists(
         path.join("artifacts", "contracts", "B.sol", "B.dbg.json"),
       );
 
       const buildInfos = getBuildInfos();
       assert.equal(buildInfos.length, 2);
-      assertValidJson(buildInfos[0]!);
-      assertValidJson(buildInfos[1]!);
+      await assertValidJson(buildInfos[0]!);
+      await assertValidJson(buildInfos[1]!);
     });
   });
 
@@ -203,7 +211,7 @@ describe("build-system", () => {
     it("should compile and show a message listing all the evm versions used", async function () {
       const spyFunctionConsoleLog = sinon.stub(console, "log");
 
-      const config = resolveConfig();
+      const config = await resolveConfig();
 
       const buildSystem = new BuildSystem(config);
       await buildSystem.build();
@@ -224,9 +232,9 @@ describe("build-system", () => {
       useFixtureProject(folderName);
 
       it("should throw an error because a directory is trying to be imported", async function () {
-        const absolutePath = `${__dirname}/fixture-projects/${folderName}/contracts/`;
+        const absolutePath = `${_dirname}/fixture-projects/${folderName}/contracts/`;
 
-        const config = resolveConfig();
+        const config = await resolveConfig();
         const buildSystem = new BuildSystem(config);
 
         await expectHardhatErrorAsync(
@@ -244,9 +252,9 @@ describe("build-system", () => {
       useFixtureProject(folderName);
 
       it("should throw an error because the file does not exist", async function () {
-        const absolutePath = `${__dirname}/fixture-projects/${folderName}/contracts/file.sol`;
+        const absolutePath = `${_dirname}/fixture-projects/${folderName}/contracts/file.sol`;
 
-        const config = resolveConfig();
+        const config = await resolveConfig();
         const buildSystem = new BuildSystem(config);
 
         await assert.rejects(async () => {
@@ -261,7 +269,7 @@ describe("build-system", () => {
 
     describe("project with an old version of solidity", function () {
       it("should throw an error", async function () {
-        const config = resolveConfig("old-solidity-version.js");
+        const config = await resolveConfig("old-solidity-version.js");
         const buildSystem = new BuildSystem(config);
 
         await expectHardhatErrorAsync(async () => {
@@ -272,7 +280,7 @@ describe("build-system", () => {
 
     describe("project with an old version of solidity (multiple compilers)", function () {
       it("should throw an error", async function () {
-        const config = resolveConfig(
+        const config = await resolveConfig(
           "old-solidity-version-multiple-compilers.js",
         );
         const buildSystem = new BuildSystem(config);
@@ -285,7 +293,9 @@ describe("build-system", () => {
 
     describe("project with an old version of solidity in an override", function () {
       it("should throw an error", async function () {
-        const config = resolveConfig("old-solidity-version-in-override.js");
+        const config = await resolveConfig(
+          "old-solidity-version-in-override.js",
+        );
         const buildSystem = new BuildSystem(config);
 
         await expectHardhatErrorAsync(async () => {
@@ -300,7 +310,7 @@ describe("build-system", () => {
     useFixtureProject(folderName);
 
     it("should always produce the same build-info name", async function () {
-      const config = resolveConfig();
+      const config = await resolveConfig();
       const buildSystem = new BuildSystem(config);
 
       await buildSystem.build({
@@ -337,7 +347,7 @@ describe("build-system", () => {
     useFixtureProject("compilation-contract-with-deps");
 
     it("should not remove the build-info if it is still referenced by an external library", async function () {
-      const config = resolveConfig();
+      const config = await resolveConfig();
       const buildSystem = new BuildSystem(config);
 
       // This project is compiled from scratch multiple times in the same test, which
@@ -349,9 +359,9 @@ describe("build-system", () => {
       });
 
       const pathToContractA = path.join("contracts", "A.sol");
-      let contractA = fsExtra.readFileSync(pathToContractA, "utf-8");
+      let contractA = await fs.readFile(pathToContractA, "utf-8");
       contractA = contractA.replace("contract A", "contract B");
-      fsExtra.writeFileSync(pathToContractA, contractA, "utf-8");
+      await fs.writeFile(pathToContractA, contractA, "utf-8");
 
       // TODO: check if artifacts logic is moved from the 'build' method
       /**
@@ -371,7 +381,7 @@ describe("build-system", () => {
       });
 
       contractA = contractA.replace("contract B", "contract A");
-      fsExtra.writeFileSync(pathToContractA, contractA, "utf-8");
+      await fs.writeFile(pathToContractA, contractA, "utf-8");
 
       // asserts
       const pathToBuildInfoB = path.join(
@@ -380,7 +390,7 @@ describe("build-system", () => {
         "A.sol",
         "B.dbg.json",
       );
-      assertBuildInfoExists(pathToBuildInfoB);
+      await assertBuildInfoExists(pathToBuildInfoB);
 
       const pathToBuildInfoConsole = path.join(
         "artifacts",
@@ -389,11 +399,11 @@ describe("build-system", () => {
         "console.sol",
         "console.dbg.json",
       );
-      assertBuildInfoExists(pathToBuildInfoConsole);
+      await assertBuildInfoExists(pathToBuildInfoConsole);
     });
 
     it("should not remove the build-info if it is still referenced by another local contract", async function () {
-      const config = resolveConfig();
+      const config = await resolveConfig();
       const buildSystem = new BuildSystem(config);
 
       // This project is compiled from scratch multiple times in the same test, which
@@ -405,9 +415,9 @@ describe("build-system", () => {
       });
 
       const pathToContractC = path.join("contracts", "C.sol");
-      let contractC = fsExtra.readFileSync(pathToContractC, "utf-8");
+      let contractC = await fs.readFile(pathToContractC, "utf-8");
       contractC = contractC.replace("contract C", "contract D");
-      fsExtra.writeFileSync(pathToContractC, contractC, "utf-8");
+      await fs.writeFile(pathToContractC, contractC, "utf-8");
 
       // TODO: check if artifacts logic is moved from the 'build' method
       /**
@@ -427,7 +437,7 @@ describe("build-system", () => {
       });
 
       contractC = contractC.replace("contract D", "contract C");
-      fsExtra.writeFileSync(pathToContractC, contractC, "utf-8");
+      await fs.writeFile(pathToContractC, contractC, "utf-8");
 
       // asserts
       const pathToBuildInfoC = path.join(
@@ -436,7 +446,7 @@ describe("build-system", () => {
         "C.sol",
         "D.dbg.json",
       );
-      assertBuildInfoExists(pathToBuildInfoC);
+      await assertBuildInfoExists(pathToBuildInfoC);
 
       const pathToBuildInfoE = path.join(
         "artifacts",
@@ -444,7 +454,7 @@ describe("build-system", () => {
         "E.sol",
         "E.dbg.json",
       );
-      assertBuildInfoExists(pathToBuildInfoE);
+      await assertBuildInfoExists(pathToBuildInfoE);
     });
   });
 
@@ -464,7 +474,7 @@ describe("build-system", () => {
         },
       ];
 
-      const config = resolveConfig();
+      const config = await resolveConfig();
       const buildSystem = new BuildSystem(config);
 
       const reasons =
@@ -508,7 +518,7 @@ Read about compiler configuration at https://hardhat.org/config
         },
       ];
 
-      const config = resolveConfig();
+      const config = await resolveConfig();
       const buildSystem = new BuildSystem(config);
 
       const reasons =
@@ -544,7 +554,7 @@ Read about compiler configuration at https://hardhat.org/config
         },
       ];
 
-      const config = resolveConfig();
+      const config = await resolveConfig();
       const buildSystem = new BuildSystem(config);
 
       const reasons =
@@ -585,7 +595,7 @@ Read about compiler configuration at https://hardhat.org/config
         },
       ];
 
-      const config = resolveConfig();
+      const config = await resolveConfig();
       const buildSystem = new BuildSystem(config);
 
       const reasons =
@@ -630,7 +640,7 @@ Read about compiler configuration at https://hardhat.org/config
         },
       ];
 
-      const config = resolveConfig();
+      const config = await resolveConfig();
       const buildSystem = new BuildSystem(config);
 
       const reasons =
@@ -679,7 +689,7 @@ Read about compiler configuration at https://hardhat.org/config
         },
       ];
 
-      const config = resolveConfig();
+      const config = await resolveConfig();
       const buildSystem = new BuildSystem(config);
 
       const reasons =
@@ -732,7 +742,7 @@ Read about compiler configuration at https://hardhat.org/config
         },
       ];
 
-      const config = resolveConfig();
+      const config = await resolveConfig();
       const buildSystem = new BuildSystem(config);
 
       const reasons =
@@ -778,7 +788,7 @@ Read about compiler configuration at https://hardhat.org/config
         },
       ];
 
-      const config = resolveConfig();
+      const config = await resolveConfig();
       const buildSystem = new BuildSystem(config);
 
       const reasons =
@@ -826,7 +836,7 @@ Read about compiler configuration at https://hardhat.org/config
         },
       ];
 
-      const config = resolveConfig();
+      const config = await resolveConfig();
       const buildSystem = new BuildSystem(config);
 
       const reasons =
@@ -879,7 +889,7 @@ Read about compiler configuration at https://hardhat.org/config
         },
       ];
 
-      const config = resolveConfig();
+      const config = await resolveConfig();
       const buildSystem = new BuildSystem(config);
 
       const reasons =
@@ -937,7 +947,7 @@ Read about compiler configuration at https://hardhat.org/config
         },
       ];
 
-      const config = resolveConfig();
+      const config = await resolveConfig();
       const buildSystem = new BuildSystem(config);
 
       const reasons =
@@ -970,7 +980,7 @@ Read about compiler configuration at https://hardhat.org/config
         },
       ];
 
-      const config = resolveConfig();
+      const config = await resolveConfig();
       const buildSystem = new BuildSystem(config);
 
       const reasons =
@@ -1003,7 +1013,7 @@ Read about compiler configuration at https://hardhat.org/config
         },
       ];
 
-      const config = resolveConfig();
+      const config = await resolveConfig();
       const buildSystem = new BuildSystem(config);
 
       const reasons =
@@ -1083,7 +1093,7 @@ Read about compiler configuration at https://hardhat.org/config
         },
       ];
 
-      const config = resolveConfig();
+      const config = await resolveConfig();
       const buildSystem = new BuildSystem(config);
 
       const reasons =
@@ -1125,7 +1135,7 @@ Read about compiler configuration at https://hardhat.org/config
     useFixtureProject("compilation-remappings");
 
     it("should compile fine", async function () {
-      const config = resolveConfig();
+      const config = await resolveConfig();
       const buildSystem = new BuildSystem(config);
 
       await buildSystem.build({
@@ -1138,8 +1148,12 @@ Read about compiler configuration at https://hardhat.org/config
         },
       });
 
-      assertFileExists(path.join("artifacts", "contracts", "A.sol", "A.json"));
-      assertFileExists(path.join("artifacts", "foo", "Foo.sol", "Foo.json"));
+      await assertFileExists(
+        path.join("artifacts", "contracts", "A.sol", "A.json"),
+      );
+      await assertFileExists(
+        path.join("artifacts", "foo", "Foo.sol", "Foo.json"),
+      );
     });
   });
 
@@ -1147,7 +1161,7 @@ Read about compiler configuration at https://hardhat.org/config
     useFixtureProject("compilation-ambiguous-remappings");
 
     it("should throw an error", async function () {
-      const config = resolveConfig();
+      const config = await resolveConfig();
       const buildSystem = new BuildSystem(config);
 
       await expectHardhatErrorAsync(

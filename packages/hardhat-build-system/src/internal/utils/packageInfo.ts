@@ -2,7 +2,7 @@ import findup from "find-up";
 import fsExtra from "fs-extra";
 import path from "path";
 
-import { assertHardhatInvariant } from "../errors/errors";
+import { assertHardhatInvariant } from "../errors/errors.js";
 
 export function getHardhatVersion(): string {
   const packageJsonPath = findClosestPackageJson(__filename);

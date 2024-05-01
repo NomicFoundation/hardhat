@@ -2,6 +2,13 @@
   "name": "@nomicfoundation/build-system",
   "private": true,
   "version": "0.0.1",
+  "description": "Hardhat's build system",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-build-system",
+  "repository": "github:nomicfoundation/hardhat",
+  "author": "Nomic Foundation",
+  "license": "MIT",
+  "type": "module",
+  "types": "dist/src/index.d.ts",
   "scripts": {
     "lint": "pnpm prettier --check && pnpm eslint",
     "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
@@ -16,6 +23,7 @@
   "dependencies": {
     "@nomicfoundation/ethereumjs-util": "9.0.4",
     "@nomicfoundation/solidity-analyzer": "^0.1.0",
+    "adm-zip": "^0.4.16",
     "aggregate-error": "^3.0.0",
     "chalk": "^2.4.2",
     "debug": "^4.1.1",

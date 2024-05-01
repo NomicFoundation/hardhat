@@ -345,7 +345,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS)
  * Receives a list of compilation jobs and returns a new list where some of
  * the compilation jobs might've been removed.
  *
- * This task can be overridden to change the way the cache is used, or to use
+ * This task can be overriden to change the way the cache is used, or to use
  * a different approach to filtering out compilation jobs.
  */
 subtask(TASK_COMPILE_SOLIDITY_FILTER_COMPILATION_JOBS)
@@ -1152,7 +1152,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
           const { versionPragmas } = error.file.content;
           const versionsRange = versionPragmas.join(" ");
 
-          log(`File ${sourceName} has an incompatible overridden compiler`);
+          log(`File ${sourceName} has an incompatible overriden compiler`);
 
           errorMessage += `  * ${sourceName} (${versionsRange})\n`;
         }

@@ -1,8 +1,8 @@
 import type { Dispatcher } from "undici";
 import fsExtra from "fs-extra";
 import path from "path";
-import { getHardhatVersion } from "./package-info";
-import { shouldUseProxy } from "./proxy";
+import { getHardhatVersion } from "./package-info.js";
+import { shouldUseProxy } from "./proxy.js";
 
 const TEMP_FILE_PREFIX = "tmp-";
 

@@ -1,7 +1,7 @@
 import fsPromises from "fs/promises";
 import path from "path";
 import fs from "fs";
-import { CustomError, assertHardhatInvariant } from "../errors/errors";
+import { CustomError, assertHardhatInvariant } from "../errors/errors.js";
 
 /**
  * Returns an array of files (not dirs) that match a condition.
