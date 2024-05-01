@@ -7,10 +7,10 @@
  *
  * The exact algorithm being used shouldn't matter.
  */
-export function createNonCryptographicHashBasedIdentifier(
+export async function createNonCryptographicHashBasedIdentifier(
   input: Buffer,
-): Buffer {
-  const { createHash } = require("crypto");
+): Promise<Buffer> {
+  const { createHash } = await import("crypto");
 
   return createHash("md5").update(input).digest();
 }

@@ -1,13 +1,17 @@
 import path from "path";
 import semver from "semver";
 import { beforeEach } from "node:test";
-import * as fsExtra from "fs-extra";
+import { rmSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import assert, { AssertionError } from "node:assert";
-import { BuildConfig, SolidityConfig } from "../src/internal/types/config";
-import { SolcConfig } from "../src/internal/types";
-import { ErrorDescriptor } from "../src/internal/errors/errors-list";
-import { HardhatError } from "../src/internal/errors/errors";
-import { ResolvedFile } from "../src/internal/solidity/resolver";
+import { BuildConfig, SolidityConfig } from "../src/internal/types/config.js";
+import { SolcConfig } from "../src/internal/types/index.js";
+import { ErrorDescriptor } from "../src/internal/errors/errors-list.js";
+import { HardhatError } from "../src/internal/errors/errors.js";
+import { ResolvedFile } from "../src/internal/solidity/resolver.js";
+
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = path.dirname(_filename);
 
 const DEFAULT_SOLC_VERSION = "0.7.3";
 
@@ -38,18 +42,18 @@ const defaultSolcOutputSelection = {
 };
 export function cleanFixtureProjectDir(fixtureProjectName: string) {
   const folderPath = path.join(
-    __dirname,
+    _dirname,
     "fixture-projects",
     fixtureProjectName,
   );
 
-  fsExtra.removeSync(path.join(folderPath, "artifacts"));
-  fsExtra.removeSync(path.join(folderPath, "cache"));
+  rmSync(path.join(folderPath, "artifacts"), { recursive: true, force: true });
+  rmSync(path.join(folderPath, "cache"), { recursive: true, force: true });
 }
 
 export function useFixtureProject(fixtureProjectName: string) {
   beforeEach(async () => {
-    process.chdir(path.join(__dirname, "fixture-projects", fixtureProjectName));
+    process.chdir(path.join(_dirname, "fixture-projects", fixtureProjectName));
 
     // be sure that the fixture folder is clean
     cleanFixtureProjectDir(fixtureProjectName);
@@ -64,11 +68,13 @@ export function useFixtureProject(fixtureProjectName: string) {
  *
  * @returns the resolved config
  */
-export function resolveConfig(
+export async function resolveConfig(
   hardhatConfigFileName: string = "hardhat.config.js",
-): BuildConfig {
+): Promise<BuildConfig> {
   const rootDir = process.cwd();
-  const userConfig = importCsjOrEsModule(`${rootDir}/${hardhatConfigFileName}`);
+  const userConfig = await importCsjOrEsModule(
+    `${rootDir}/${hardhatConfigFileName}`,
+  );
 
   return {
     ...userConfig,
@@ -82,9 +88,9 @@ export function resolveConfig(
   };
 }
 
-export function importCsjOrEsModule(filePath: string): any {
+export async function importCsjOrEsModule(filePath: string): Promise<any> {
   try {
-    const imported = require(filePath);
+    const imported = await import(filePath);
     return imported.default !== undefined ? imported.default : imported;
   } catch (e: any) {
     if (e.code === "ERR_REQUIRE_ESM") {

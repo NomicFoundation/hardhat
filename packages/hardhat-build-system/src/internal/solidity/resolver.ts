@@ -1,5 +1,5 @@
-import fsExtra from "fs-extra";
-import path from "path";
+import fs from "node:fs/promises";
+import path from "node:path";
 import resolve from "resolve";
 import {
   includesOwnPackageName,
@@ -9,18 +9,18 @@ import {
   replaceBackslashes,
   validateSourceNameExistenceAndCasing,
   validateSourceNameFormat,
-} from "../utils/source-names";
-import { ERRORS } from "../errors/errors-list";
-import { createNonCryptographicHashBasedIdentifier } from "../utils/hash";
-import { getRealPath } from "../utils/fs-utils";
-import { applyRemappings } from "../utils/remappings";
+} from "../utils/source-names.js";
+import { ERRORS } from "../errors/errors-list.js";
+import { createNonCryptographicHashBasedIdentifier } from "../utils/hash.js";
+import { getRealPath } from "../utils/fs-utils.js";
+import { applyRemappings } from "../utils/remappings.js";
 import {
   FileContent,
   LibraryInfo,
   ResolvedFile as IResolvedFile,
-} from "../types/builtin-tasks";
-import { HardhatError, assertHardhatInvariant } from "../errors/errors";
-import { Parser } from "./parse";
+} from "../types/builtin-tasks/index.js";
+import { HardhatError, assertHardhatInvariant } from "../errors/errors.js";
+import { Parser } from "./parse.js";
 
 const NODE_MODULES = "node_modules";
 
@@ -356,7 +356,7 @@ export class Resolver {
     const packageInfo: {
       name: string;
       version: string;
-    } = await fsExtra.readJson(packageJsonPath);
+    } = JSON.parse((await fs.readFile(packageJsonPath)).toString());
     const libraryVersion = packageInfo.version;
 
     return this._resolveFile(
@@ -414,14 +414,14 @@ export class Resolver {
     libraryVersion?: string,
   ): Promise<ResolvedFile> {
     const rawContent = await this._readFile(absolutePath);
-    const stats = await fsExtra.stat(absolutePath);
+    const stats = await fs.stat(absolutePath);
     const lastModificationDate = new Date(stats.ctime);
 
-    const contentHash = createNonCryptographicHashBasedIdentifier(
-      Buffer.from(rawContent),
+    const contentHash = (
+      await createNonCryptographicHashBasedIdentifier(Buffer.from(rawContent))
     ).toString("hex");
 
-    const parsedContent = this._parser.parse(
+    const parsedContent = await this._parser.parse(
       rawContent,
       absolutePath,
       contentHash,

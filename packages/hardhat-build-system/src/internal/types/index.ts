@@ -1,3 +1,3 @@
-export * from "./artifacts";
-export * from "./builtin-tasks/compile";
-export * from "./config";
+export * from "./artifacts.js";
+export * from "./builtin-tasks/compile.js";
+export * from "./config.js";

@@ -1,7 +1,7 @@
 import type SolidityAnalyzerT from "@nomicfoundation/solidity-analyzer";
-import { SolidityFilesCache } from "../builtin-tasks/utils/solidity-files-cache";
-import { HardhatError } from "../errors/errors";
-import { ERRORS } from "../errors/errors-list";
+import { SolidityFilesCache } from "../builtin-tasks/utils/solidity-files-cache.js";
+import { HardhatError } from "../errors/errors.js";
+import { ERRORS } from "../errors/errors-list.js";
 
 interface ParsedData {
   imports: string[];
@@ -17,11 +17,11 @@ export class Parser {
       _solidityFilesCache ?? SolidityFilesCache.createEmpty();
   }
 
-  public parse(
+  public async parse(
     fileContent: string,
     absolutePath: string,
     contentHash: string,
-  ): ParsedData {
+  ): Promise<ParsedData> {
     const cacheResult = this._getFromCache(absolutePath, contentHash);
 
     if (cacheResult !== null) {
@@ -29,8 +29,9 @@ export class Parser {
     }
 
     try {
-      const { analyze } =
-        require("@nomicfoundation/solidity-analyzer") as typeof SolidityAnalyzerT;
+      const { analyze } = (await import(
+        "@nomicfoundation/solidity-analyzer"
+      )) as typeof SolidityAnalyzerT;
       const result = analyze(fileContent);
 
       this._cache.set(contentHash, result);

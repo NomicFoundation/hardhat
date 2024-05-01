@@ -1,8 +1,8 @@
 import path from "path";
-import { HardhatError } from "../errors/errors";
-import { ERRORS } from "../errors/errors-list";
-import { FileNotFoundError, getFileTrueCase } from "./fs-utils";
-import { getPackageName } from "./package-info";
+import { HardhatError } from "../errors/errors.js";
+import { ERRORS } from "../errors/errors-list.js";
+import { FileNotFoundError, getFileTrueCase } from "./fs-utils.js";
+import { getPackageName } from "./package-info.js";
 
 const NODE_MODULES = "node_modules";
 

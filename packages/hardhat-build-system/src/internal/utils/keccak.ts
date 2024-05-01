@@ -1,5 +1,7 @@
-import createKeccakHash from "keccak";
+import { Keccak } from "keccak";
 
 export function keccak256(data: Uint8Array): Uint8Array {
-  return createKeccakHash("keccak256").update(Buffer.from(data)).digest();
+  const hash = new Keccak(256, 0, null, 256, {});
+  hash.update(Buffer.from(data));
+  return hash.digest();
 }

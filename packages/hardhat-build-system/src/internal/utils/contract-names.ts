@@ -1,5 +1,5 @@
-import { HardhatError, assertHardhatInvariant } from "../errors/errors";
-import { ERRORS } from "../errors/errors-list";
+import { HardhatError, assertHardhatInvariant } from "../errors/errors.js";
+import { ERRORS } from "../errors/errors-list.js";
 
 /**
  * Returns a fully qualified name from a sourceName and contractName.

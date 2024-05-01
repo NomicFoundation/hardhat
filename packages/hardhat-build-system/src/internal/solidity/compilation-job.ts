@@ -1,15 +1,15 @@
-import type { LoDashStatic } from "lodash";
 import debug from "debug";
 import semver from "semver";
-import * as taskTypes from "../types/builtin-tasks";
-import { SolcConfig, SolidityConfig } from "../types";
+import isEqual from "lodash/isEqual.js";
+import * as taskTypes from "../types/builtin-tasks/index.js";
+import { SolcConfig, SolidityConfig } from "../types/index.js";
 import {
   CompilationJobCreationError,
   CompilationJobCreationErrorReason,
   CompilationJobsCreationResult,
-} from "../types/builtin-tasks";
-import { assertHardhatInvariant } from "../errors/errors";
-import { ResolvedFile } from "./resolver";
+} from "../types/builtin-tasks/index.js";
+import { assertHardhatInvariant } from "../errors/errors.js";
+import { ResolvedFile } from "./resolver.js";
 
 // this should have a proper version range when it's fixed
 const SOLC_BUG_9573_VERSIONS = "<0.8.0";
@@ -133,8 +133,6 @@ export class CompilationJob implements taskTypes.CompilationJob {
   }
 
   public merge(job: taskTypes.CompilationJob): CompilationJob {
-    const isEqual = require("lodash/isEqual") as LoDashStatic["isEqual"];
-
     assertHardhatInvariant(
       isEqual(this.solidityConfig, job.getSolcConfig()),
       "Merging jobs with different solidity configurations",
