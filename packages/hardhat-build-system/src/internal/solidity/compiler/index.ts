@@ -3,9 +3,9 @@ import * as fs from "fs";
 import os from "node:os";
 import path from "node:path";
 import * as semver from "semver";
-import { CompilerInput, CompilerOutput } from "../../types";
-import { ERRORS } from "../../errors/errors-list";
-import { HardhatError, assertHardhatInvariant } from "../../errors/errors";
+import { CompilerInput, CompilerOutput } from "../../types/index.js";
+import { ERRORS } from "../../errors/errors-list.js";
+import { HardhatError, assertHardhatInvariant } from "../../errors/errors.js";
 
 export interface ICompiler {
   compile(input: CompilerInput): Promise<CompilerOutput>;

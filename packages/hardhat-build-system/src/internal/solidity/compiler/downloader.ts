@@ -4,10 +4,10 @@ import debug from "debug";
 import os from "os";
 import { execFile } from "child_process";
 import { promisify } from "util";
-import { download } from "../../utils/download";
-import { HardhatError, assertHardhatInvariant } from "../../errors/errors";
-import { ERRORS } from "../../errors/errors-list";
-import { MultiProcessMutex } from "../../utils/multi-process-mutex";
+import { download } from "../../utils/download.js";
+import { HardhatError, assertHardhatInvariant } from "../../errors/errors.js";
+import { ERRORS } from "../../errors/errors-list.js";
+import { MultiProcessMutex } from "../../utils/multi-process-mutex.js";
 
 const log = debug("hardhat:core:solidity:downloader");
 
@@ -349,7 +349,7 @@ export class CompilerDownloader implements ICompilerDownloader {
       downloadPath.endsWith(".zip")
     ) {
       // some window builds are zipped, some are not
-      const AdmZip = require("adm-zip");
+      const AdmZip = await import("adm-zip");
 
       const solcFolder = path.join(this._compilersDir, build.version);
       await fsExtra.ensureDir(solcFolder);

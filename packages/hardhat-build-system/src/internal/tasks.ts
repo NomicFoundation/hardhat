@@ -3,8 +3,8 @@ import debug from "debug";
 import semver from "semver";
 import chalk from "chalk";
 import AggregateError from "aggregate-error";
-import { CompilationJobsCreationResult } from "./types/builtin-tasks";
-import { DependencyGraph } from "./solidity/dependencyGraph";
+import { CompilationJobsCreationResult } from "./types/builtin-tasks/index.js";
+import { DependencyGraph } from "./solidity/dependencyGraph.js";
 import {
   Artifacts,
   CompilationJob,
@@ -15,35 +15,35 @@ import {
   BuildConfig,
   ResolvedFile,
   SolcBuild,
-} from "./types/index";
-import { getAllFilesMatching } from "./utils/fs-utils";
-import { localPathToSourceName } from "./utils/source-names";
-import { HardhatError, assertHardhatInvariant } from "./errors/errors";
-import { ERRORS } from "./errors/errors-list";
+} from "./types/index.js";
+import { getAllFilesMatching } from "./utils/fs-utils.js";
+import { localPathToSourceName } from "./utils/source-names.js";
+import { HardhatError, assertHardhatInvariant } from "./errors/errors.js";
+import { ERRORS } from "./errors/errors-list.js";
 import {
   createCompilationJobFromFile,
   createCompilationJobsFromConnectedComponent,
   mergeCompilationJobsWithoutBug,
-} from "./solidity/compilation-job";
-import * as taskTypes from "./types/builtin-tasks";
-import { SolidityFilesCache } from "./builtin-tasks/utils/solidity-files-cache";
-import { pluralize } from "./utils/string";
+} from "./solidity/compilation-job.js";
+import * as taskTypes from "./types/builtin-tasks/index.js";
+import { SolidityFilesCache } from "./builtin-tasks/utils/solidity-files-cache.js";
+import { pluralize } from "./utils/string.js";
 import {
   CompilerDownloader,
   CompilerPlatform,
-} from "./solidity/compiler/downloader";
-import { getCompilersDir } from "./utils/global-dir";
-import { Compiler, NativeCompiler } from "./solidity/compiler";
-import { getInputFromCompilationJob } from "./solidity/compiler/compiler-input";
+} from "./solidity/compiler/downloader.js";
+import { getCompilersDir } from "./utils/global-dir.js";
+import { Compiler, NativeCompiler } from "./solidity/compiler/index.js";
+import { getInputFromCompilationJob } from "./solidity/compiler/compiler-input.js";
 import {
   Artifacts as ArtifactsImpl,
   getArtifactFromContractOutput,
-} from "./utils/artifacts";
-import { getEvmVersionFromSolcVersion } from "./solidity/compiler/solc-info";
-import { Parser } from "./solidity/parse";
-import { Resolver } from "./solidity/resolver";
-import { getSolidityFilesCachePath } from "./utils/solidity-files-cache";
-import { getFullyQualifiedName } from "./utils/contract-names";
+} from "./utils/artifacts.js";
+import { getEvmVersionFromSolcVersion } from "./solidity/compiler/solc-info.js";
+import { Parser } from "./solidity/parse.js";
+import { Resolver } from "./solidity/resolver.js";
+import { getSolidityFilesCachePath } from "./utils/solidity-files-cache.js";
+import { getFullyQualifiedName } from "./utils/contract-names.js";
 
 const log = debug("hardhat:core:tasks:compile:REFACTORING");
 
@@ -801,6 +801,16 @@ export async function taskCompileSolidityLogCompilationErrors(
   output: any,
   _quiet: boolean, // TODO: keep unused?
 ) {
+  assertHardhatInvariant(
+    "red" in chalk && typeof chalk.red === "function",
+    "TODO: remove this",
+  );
+
+  assertHardhatInvariant(
+    "yellow" in chalk && typeof chalk.yellow === "function",
+    "TODO: remove this",
+  );
+
   if (output?.errors === undefined) {
     return;
   }
@@ -811,12 +821,36 @@ export async function taskCompileSolidityLogCompilationErrors(
         getFormattedInternalCompilerErrorMessage(error) ??
         error.formattedMessage;
 
-      console.error(errorMessage.replace(/^\w+:/, (t) => chalk.red.bold(t)));
+      console.error(
+        errorMessage.replace(/^\w+:/, (t) => {
+          assertHardhatInvariant(
+            "red" in chalk && typeof chalk.red === "function",
+            "TODO: remove this",
+          );
+
+          assertHardhatInvariant(
+            "bold" in chalk.red && typeof chalk.red.bold === "function",
+            "TODO: remove this",
+          );
+
+          return chalk.red.bold(t);
+        }),
+      );
     } else {
       console.warn(
-        (error.formattedMessage as string).replace(/^\w+:/, (t) =>
-          chalk.yellow.bold(t),
-        ),
+        (error.formattedMessage as string).replace(/^\w+:/, (t) => {
+          assertHardhatInvariant(
+            "yellow" in chalk && typeof chalk.yellow === "function",
+            "TODO: remove this",
+          );
+
+          assertHardhatInvariant(
+            "bold" in chalk.yellow && typeof chalk.yellow.bold === "function",
+            "TODO: remove this",
+          );
+
+          return chalk.yellow.bold(t);
+        }),
       );
     }
   }

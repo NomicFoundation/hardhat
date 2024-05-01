@@ -1,8 +1,8 @@
-import type { LoDashStatic } from "lodash";
-import type { SolcConfig } from "../../types";
+import type { SolcConfig } from "../../types/index.js";
 import debug from "debug";
 import fsExtra from "fs-extra";
 import * as t from "io-ts";
+import isEqual from "lodash/isEqual.js";
 
 const log = debug("hardhat:core:tasks:compile:cache");
 
@@ -112,8 +112,6 @@ export class SolidityFilesCache {
     contentHash: string,
     solcConfig?: SolcConfig,
   ): boolean {
-    const isEqual = require("lodash/isEqual") as LoDashStatic["isEqual"];
-
     const cacheEntry = this.getEntry(absolutePath);
 
     if (cacheEntry === undefined) {

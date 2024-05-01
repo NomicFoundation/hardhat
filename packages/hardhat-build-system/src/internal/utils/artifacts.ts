@@ -3,7 +3,7 @@ import fsExtra from "fs-extra";
 import * as os from "os";
 import * as path from "path";
 import fsPromises from "fs/promises";
-import { HardhatError, assertHardhatInvariant } from "../errors/errors";
+import { HardhatError, assertHardhatInvariant } from "../errors/errors.js";
 import {
   Artifact,
   Artifacts as IArtifacts,
@@ -11,30 +11,30 @@ import {
   CompilerInput,
   CompilerOutput,
   DebugFile,
-} from "../types";
-import { ERRORS } from "../errors/errors-list";
+} from "../types/index.js";
+import { ERRORS } from "../errors/errors-list.js";
 import {
   getFullyQualifiedName,
   isFullyQualifiedName,
   parseFullyQualifiedName,
   findDistance,
-} from "./contract-names";
-import { replaceBackslashes } from "./source-names";
+} from "./contract-names.js";
+import { replaceBackslashes } from "./source-names.js";
 import {
   ARTIFACT_FORMAT_VERSION,
   BUILD_INFO_DIR_NAME,
   BUILD_INFO_FORMAT_VERSION,
   DEBUG_FILE_FORMAT_VERSION,
   EDIT_DISTANCE_THRESHOLD,
-} from "./constants";
-import { createNonCryptographicHashBasedIdentifier } from "./hash";
+} from "./constants.js";
+import { createNonCryptographicHashBasedIdentifier } from "./hash.js";
 import {
   FileNotFoundError,
   getAllFilesMatching,
   getAllFilesMatchingSync,
   getFileTrueCase,
   getFileTrueCaseSync,
-} from "./fs-utils";
+} from "./fs-utils.js";
 
 const log = debug("hardhat:core:artifacts");
 
@@ -257,7 +257,7 @@ export class Artifacts implements IArtifacts {
       const buildInfoDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
       await fsExtra.ensureDir(buildInfoDir);
 
-      const buildInfoName = this._getBuildInfoName(
+      const buildInfoName = await this._getBuildInfoName(
         solcVersion,
         solcLongVersion,
         input,
@@ -470,11 +470,11 @@ export class Artifacts implements IArtifacts {
     );
   }
 
-  private _getBuildInfoName(
+  private async _getBuildInfoName(
     solcVersion: string,
     solcLongVersion: string,
     input: CompilerInput,
-  ): string {
+  ): Promise<string> {
     const json = JSON.stringify({
       _format: BUILD_INFO_FORMAT_VERSION,
       solcVersion,
@@ -482,8 +482,8 @@ export class Artifacts implements IArtifacts {
       input,
     });
 
-    return createNonCryptographicHashBasedIdentifier(
-      Buffer.from(json),
+    return (
+      await createNonCryptographicHashBasedIdentifier(Buffer.from(json))
     ).toString("hex");
   }
 
