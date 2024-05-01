@@ -2,6 +2,7 @@ import { BigIntError } from "./errors/bigint.js";
 import { isBNBigInt, isBigNumberBigInt } from "./internal/bigint.js";
 import { unreachable } from "./errors/catch-utils.js";
 import { bytesToNumber } from "./number.js";
+import { InvalidParameterError } from "./errors/custom-errors.js";
 
 /**
  * Returns the minimum of two bigints.
@@ -36,37 +37,40 @@ export function max(x: bigint, y: bigint): bigint {
  *
  * If the input is of an unsupported type, an error is thrown.
  *
- * @param x The value to convert to a bigint.
+ * @param value The value to convert to a bigint.
  * @returns The input value converted to a bigint.
  * @throws BigIntError If the input value cannot be converted to a bigint.
  */
 export async function toBigInt(
-  x: number | string | bigint | object,
+  value: number | string | bigint | object,
 ): Promise<bigint> {
-  switch (typeof x) {
+  switch (typeof value) {
     case "number":
-      if (!Number.isInteger(x)) {
-        throw new BigIntError(`${x} is not an integer`);
+      if (!Number.isInteger(value)) {
+        throw new BigIntError(`${value} is not an integer`);
       }
-      if (!Number.isSafeInteger(x)) {
+      if (!Number.isSafeInteger(value)) {
         throw new BigIntError(
-          `Integer ${x} is unsafe. Consider using ${x}n instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`,
+          `Integer ${value} is unsafe. Consider using ${value}n instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`,
         );
       }
     // `break;` intentionally omitted. fallthrough desired.
     case "string":
     case "bigint":
-      return BigInt(x);
+      return BigInt(value);
     case "object":
-      if (await isLibraryBigInt(x)) {
-        return BigInt(x.toString());
+      if (await isLibraryBigInt(value)) {
+        return BigInt(value.toString());
       } else {
         throw new BigIntError(
-          `Value ${JSON.stringify(x)} is of type "object" but is not an instanceof one of the known big number object types.`,
+          `Value ${JSON.stringify(value)} is of type "object" but is not an instanceof one of the known big number object types.`,
         );
       }
     default:
-      unreachable(x, new BigIntError(`Unsupported type ${typeof x}`));
+      unreachable(
+        value,
+        new InvalidParameterError(`Unsupported type: ${typeof value}`),
+      );
   }
 }
 
@@ -74,15 +78,15 @@ export async function toBigInt(
  * Checks if the given value is a bigint. This function should only be used
  * when the value may be a bigint from a third-party library, like `bn.js` or
  * `bignumber.js`. To check if a value is a native JavaScript bigint, use
- * `typeof x === "bigint"`.
+ * `typeof value === "bigint"`.
  *
- * @param x The value to check.
+ * @param value The value to check.
  * @returns `true` if the value is a bigint, `false` otherwise.
  */
-export async function isLibraryBigInt(x: unknown): Promise<boolean> {
+export async function isLibraryBigInt(value: unknown): Promise<boolean> {
   const [isBNBigIntResult, isBigNumberBigIntResult] = await Promise.all([
-    isBNBigInt(x),
-    isBigNumberBigInt(x),
+    isBNBigInt(value),
+    isBigNumberBigInt(value),
   ]);
 
   return isBNBigIntResult || isBigNumberBigIntResult;
@@ -96,9 +100,9 @@ export async function isLibraryBigInt(x: unknown): Promise<boolean> {
  * If the Uint8Array has a different length, the function will still work, but
  * the most significant bit of the 32nd byte will be interpreted as the sign bit.
  *
- * @param num The Uint8Array of signed bytes to convert.
+ * @param bytes The Uint8Array of signed bytes to convert.
  * @returns The converted bigint.
  */
-export const signedBytesToBigInt = (num: Uint8Array): bigint => {
-  return BigInt.asIntN(256, BigInt(bytesToNumber(num)));
+export const signedBytesToBigInt = (bytes: Uint8Array): bigint => {
+  return BigInt.asIntN(256, BigInt(bytesToNumber(bytes)));
 };

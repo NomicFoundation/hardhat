@@ -1,3 +1,4 @@
+import { unreachable } from "./errors/catch-utils.js";
 import { InvalidParameterError } from "./errors/custom-errors.js";
 import { PrefixedHexString, hexStringToBytes } from "./hex.js";
 import { numberToBytes } from "./number.js";
@@ -16,8 +17,8 @@ export function isBytes(value: unknown): boolean {
  * Pads a Uint8Array with zeros on the left to a specified length, or truncates
  * it from the left if it's too long.
  *
- * @param bytes - The Uint8Array to pad or truncate.
- * @param length - The desired length of the Uint8Array.
+ * @param bytes The Uint8Array to pad or truncate.
+ * @param length The desired length of the Uint8Array.
  * @returns The padded or truncated Uint8Array.
  */
 export function setLengthLeft(bytes: Uint8Array, length: number): Uint8Array {
@@ -63,8 +64,9 @@ export function toBytes(value: ToBytesParamTypes): Uint8Array {
     return numberToBytes(value);
   }
 
-  throw new InvalidParameterError(
-    `Invalid parameter type. Expected null, undefined, number[], Uint8Array, string, number or bigint. Received type: ${typeof value}`,
+  unreachable(
+    value,
+    new InvalidParameterError(`Unsupported type: ${typeof value}`),
   );
 }
 

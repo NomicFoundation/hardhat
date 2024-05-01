@@ -101,8 +101,8 @@ describe("bigint", () => {
 
     it("Should throw on unsupported types", async () => {
       await assert.rejects(toBigInt(true as any), {
-        name: "BigIntError",
-        message: "Unsupported type boolean",
+        name: "InvalidParameterError",
+        message: "Unsupported type: boolean",
       });
     });
   });

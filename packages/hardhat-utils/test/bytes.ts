@@ -87,7 +87,7 @@ describe("bytes", () => {
     it("Should throw an error for other types", () => {
       assert.throws(() => toBytes({} as any), {
         name: "InvalidParameterError",
-        message: `Invalid parameter type. Expected null, undefined, number[], Uint8Array, string, number or bigint. Received type: ${typeof {}}`,
+        message: `Unsupported type: ${typeof {}}`,
       });
     });
   });

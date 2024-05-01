@@ -61,9 +61,9 @@ export function ensureError<ErrorT extends Error>(
  * in the default case to ensure that an error is thrown if an unexpected value
  * is encountered.
  *
- * @param _value - The unexpected value. This parameter is unused and is only for
+ * @param _value The unexpected value. This parameter is unused and is only for
  * the purpose of type checking.
- * @param error - The error to throw.
+ * @param error The error to throw.
  * @returns This function never returns normally. It always throws an error.
  * @throws Will throw an error when called.
  */
