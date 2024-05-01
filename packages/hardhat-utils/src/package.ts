@@ -1,13 +1,13 @@
 import path from "node:path";
 
-import { findUp, readJsonFile } from "./fs.js";
-import { getCurrentStack } from "./stack.js";
-import { getFilePath } from "./internal/package.js";
+import { ensureError } from "./errors/catch-utils.js";
 import {
   PackageJsonNotFoundError,
   PackageJsonReadError,
 } from "./errors/package.js";
-import { ensureError } from "./errors/catch-utils.js";
+import { getFilePath } from "./internal/package.js";
+import { findUp, readJsonFile } from "./fs.js";
+import { getCurrentStack } from "./stack.js";
 
 /**
  * The structure of a `package.json` file. This is a subset of the actual

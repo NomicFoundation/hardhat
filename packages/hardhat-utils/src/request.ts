@@ -6,6 +6,12 @@ import stream from "node:stream/promises";
 import EventEmitter from "node:events";
 import querystring from "node:querystring";
 
+import { ensureError } from "./errors/catch-utils.js";
+import {
+  DownloadError,
+  RequestError,
+  DispatcherError,
+} from "./errors/request.js";
 import {
   generateTempFilePath,
   getBaseDispatcherOptions,
@@ -14,12 +20,6 @@ import {
   getPoolDispatcher,
   getProxyDispatcher,
 } from "./internal/request.js";
-import {
-  DownloadError,
-  RequestError,
-  DispatcherError,
-} from "./errors/request.js";
-import { ensureError } from "./errors/catch-utils.js";
 import { move } from "./fs.js";
 
 export const DEFAULT_TIMEOUT_IN_MILLISECONDS = 30_000;

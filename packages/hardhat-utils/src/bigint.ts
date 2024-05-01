@@ -1,8 +1,8 @@
+import { unreachable } from "./errors/catch-utils.js";
+import { InvalidParameterError } from "./errors/custom-errors.js";
 import { BigIntError } from "./errors/bigint.js";
 import { isBNBigInt, isBigNumberBigInt } from "./internal/bigint.js";
-import { unreachable } from "./errors/catch-utils.js";
 import { bytesToNumber } from "./number.js";
-import { InvalidParameterError } from "./errors/custom-errors.js";
 
 /**
  * Returns the minimum of two bigints.

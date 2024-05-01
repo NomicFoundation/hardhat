@@ -1,6 +1,8 @@
+import type { PrefixedHexString } from "./hex.js";
+
 import { unreachable } from "./errors/catch-utils.js";
 import { InvalidParameterError } from "./errors/custom-errors.js";
-import { PrefixedHexString, hexStringToBytes } from "./hex.js";
+import { hexStringToBytes } from "./hex.js";
 import { numberToBytes } from "./number.js";
 
 /**

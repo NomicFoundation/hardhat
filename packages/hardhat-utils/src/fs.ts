@@ -1,8 +1,8 @@
 import fsPromises from "node:fs/promises";
 import path from "node:path";
 
-import { assertHardhatUtilsInvariant } from "./errors/custom-errors.js";
 import { ensureError } from "./errors/catch-utils.js";
+import { assertHardhatUtilsInvariant } from "./errors/custom-errors.js";
 import {
   FileNotFoundError,
   FileSystemAccessError,
