@@ -94,14 +94,14 @@ To publish ignition:
 8. Update the `CHANGELOG.md` under `./packages/hardhat-plugin-ethers`.
 9. Update the `CHANGELOG.md` under `./packages/hardhat-plugin-viem`.
 10. Update the `CHANGELOG.md` under `./packages/ui`.
-11. Update the package versions based on semver: `pnpm version --no-git-tag-version --workspaces patch #minor #major`
+11. Update the package versions based on semver (manually) - versions are tkept in sync across our packages.
 12. Update the version of dependencies:
 
 - cores version in hardhat-ui deps
-- cores and uis versions in hardhat-ignition devDeps and peerDeps
+- cores and uis versions in hardhat-ignition devDeps
 - examples version of hardhat-ignition
 
-13. Commit the version update `git commit`:
+1.  Commit the version update `git commit`:
 
 ```
 chore: bump version to vX.X.X
@@ -115,7 +115,14 @@ yyyy-mm-dd` release.
 16. On a successful check, `rebase merge` the release branch into `main`
 17. Switch to main branch and pull the latest changes
 18. Git tag the version, `g tag -a v0.x.x -m "v0.x.x"` and push the tag `git push --follow-tags`
-19. Publish `@nomicfoundation/ignition-core`, `@nomicfoundation/ignition-ui`, `@nomicfoundation/hardhat-ignition` and `@nomicfoundation/hardhat-ignition-viem` : `pnpm publish -w @nomicfoundation/ignition-core -w @nomicfoundation/ignition-ui -w @nomicfoundation/hardhat-ignition -w @nomicfoundation/hardhat-ignition-ethers -w @nomicfoundation/hardhat-ignition-viem`
+19. Publish `@nomicfoundation/ignition-core`, `@nomicfoundation/ignition-ui`, `@nomicfoundation/hardhat-ignition` and `@nomicfoundation/hardhat-ignition-viem` :
+
+- `cd packages/core && pnpm publish --no-git-check`
+- `cd packages/ui && pnpm publish --no-git-check`
+- `cd packages/hardhat-plugin && pnpm publish --no-git-check`
+- `cd packages/hardhat-plugin-ethers && pnpm publish --no-git-check`
+- `cd packages/hardhat-plugin-viem && pnpm publish --no-git-check`
+
 20. Create a release on github off of the pushed tag, the release notes should match the changelogs followed by a hiring entry:
 
 ```markdown
