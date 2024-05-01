@@ -101,7 +101,7 @@ export function normalizeHexString(hexString: string): PrefixedHexString {
 }
 
 /**
- * Checks if a string starts with "0x".
+ * Checks if a string starts with "0x" (case-insensitive).
  * This function does not validate the input.
  *
  * @param hexString The string to check.
@@ -142,6 +142,23 @@ export function getUnprefixedHexString(hexString: string): string {
  * @returns The hexadecimal string without leading zeros.
  */
 export function unpadHexString(hexString: string): string {
-  const unpaddedHexString = hexString.replace(/^0x0+/i, "0x");
-  return unpaddedHexString === "0x" ? "0x0" : unpaddedHexString;
+  const unprefixedHexString = getUnprefixedHexString(hexString);
+  const unpaddedHexString = unprefixedHexString.replace(/^0+/, "");
+  return unpaddedHexString === "" ? "0x0" : `0x${unpaddedHexString}`;
+}
+
+/**
+ * Pads a hexadecimal string with zeros on the left to a specified length.
+ * This function does not validate the input.
+ *
+ * @param hexString The hexadecimal string to pad.
+ * @param length The desired length of the hexadecimal string.
+ * @returns The padded hexadecimal string.
+ */
+export function setLengthLeft(hexString: string, length: number): string {
+  const unprefixedHexString = getUnprefixedHexString(hexString);
+  // TODO: should we truncate if the string is too long? that's the way it
+  // works for Uint8Array and it seems odd to have different behavior.
+  const paddedHexString = unprefixedHexString.padStart(length, "0");
+  return `0x${paddedHexString}`;
 }

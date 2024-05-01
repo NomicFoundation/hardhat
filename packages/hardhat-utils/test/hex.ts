@@ -11,6 +11,7 @@ import {
   isHexString,
   getUnprefixedHexString,
   unpadHexString,
+  setLengthLeft,
 } from "../src/hex.js";
 
 describe("hex", () => {
@@ -221,6 +222,17 @@ describe("hex", () => {
       assert.equal(unpadHexString("0x01"), "0x1");
       assert.equal(unpadHexString("0x0000000000"), "0x0");
       assert.equal(unpadHexString("0X0000000001"), "0x1");
+    });
+  });
+
+  describe("setLengthLeft", () => {
+    it("Should set the length of a hexadecimal string", () => {
+      assert.equal(setLengthLeft("0x0", 1), "0x0"); // Same length
+      assert.equal(setLengthLeft("0x0", 2), "0x00");
+      assert.equal(setLengthLeft("0x1", 2), "0x01");
+      assert.equal(setLengthLeft("0x1", 4), "0x0001");
+      assert.equal(setLengthLeft("0x1", 8), "0x00000001");
+      assert.equal(setLengthLeft("0x1", 16), "0x0000000000000001");
     });
   });
 });
