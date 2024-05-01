@@ -190,6 +190,53 @@ describe("Reconciliation - named contract", () => {
     ]);
   });
 
+  it("should reconcile an address arg with entirely different casing", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const contract1 = m.contract("Contract1", [
+        "0x15d34aaf54267db7d7c367839aaf71a00a2c6a65",
+      ]);
+
+      return { contract1 };
+    });
+
+    await assertSuccessReconciliation(
+      moduleDefinition,
+      createDeploymentState({
+        ...exampleDeploymentState,
+        id: "Module#Contract1",
+        status: ExecutionStatus.STARTED,
+        constructorArgs: ["0x15D34AAF54267DB7D7C367839AAF71A00A2C6A65"],
+      })
+    );
+  });
+
+  it("should fail to reconcile an address arg with partially different casing", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const contract1 = m.contract("Contract1", [
+        "0x15d34aaf54267db7d7c367839aaf71a00a2c6a65",
+      ]);
+
+      return { contract1 };
+    });
+
+    const reconciliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState({
+        ...exampleDeploymentState,
+        id: "Module#Contract1",
+        status: ExecutionStatus.STARTED,
+        constructorArgs: ["0x15d34aaf54267db7D7c367839aaf71a00a2c6a65"],
+      })
+    );
+
+    assert.deepStrictEqual(reconciliationResult.reconciliationFailures, [
+      {
+        futureId: "Module#Contract1",
+        failure: "Argument at index 0 has been changed",
+      },
+    ]);
+  });
+
   it("should find changes to libraries unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const safeMath = m.library("SafeMath");

@@ -139,3 +139,6 @@ dist
 
 # Webstorm files
 .idea/
+
+# npm lockfile since we use pnpm now
+package-lock.json

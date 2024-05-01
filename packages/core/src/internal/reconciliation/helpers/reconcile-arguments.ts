@@ -12,6 +12,7 @@ import {
   ExecutionSateType,
   StaticCallExecutionState,
 } from "../../execution/types/execution-state";
+import { isAddress, equalAddresses } from "../../execution/utils/address";
 import {
   ReconciliationContext,
   ReconciliationFutureResultFailure,
@@ -57,7 +58,13 @@ export function reconcileArguments(
   for (const [i, futureArg] of futureArgs.entries()) {
     const exStateArg = exStateArgs[i];
 
-    if (!isEqual(futureArg, exStateArg)) {
+    // if both args are addresses, we need to compare the checksummed versions
+    // to ensure case discrepancies are ignored
+    if (isAddress(futureArg) && isAddress(exStateArg)) {
+      if (!equalAddresses(futureArg, exStateArg)) {
+        return fail(future, `Argument at index ${i} has been changed`);
+      }
+    } else if (!isEqual(futureArg, exStateArg)) {
       return fail(future, `Argument at index ${i} has been changed`);
     }
   }
