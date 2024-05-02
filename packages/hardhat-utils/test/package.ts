@@ -8,7 +8,6 @@ import {
   findClosestPackageJson,
   readClosestPackageJson,
   findClosestPackageRoot,
-  getClosestCallerPackageName,
 } from "../src/package.js";
 import { createFile, mkdir, writeJsonFile, writeUtf8File } from "../src/fs.js";
 import { useTmpDir } from "./helpers/fs.js";
@@ -167,23 +166,6 @@ describe("package", () => {
         name: "PackageJsonNotFoundError",
         message: `No package.json found for ${fromPath}`,
       });
-    });
-  });
-
-  describe("getClosestCallerPackageName", () => {
-    // Sadly, we don't have any way of injecting a caller into the stack, so we
-    // can't test that the test-package is excluded from the search.
-    it("should return the name of the closest caller's package", async () => {
-      const packageJsonPath = path.join(getTmpDir(), "package.json");
-      const fromPath = path.join(getTmpDir(), "subdir", "subsubdir", "file.js");
-      await writeJsonFile(packageJsonPath, {
-        name: "test-package",
-      });
-      await createFile(fromPath);
-
-      const packageName = await getClosestCallerPackageName(fromPath);
-
-      assert.equal(packageName, "@nomicfoundation/hardhat-utils");
     });
   });
 });

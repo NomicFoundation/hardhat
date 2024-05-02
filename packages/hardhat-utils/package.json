@@ -9,7 +9,6 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    "./abi": "./dist/src/abi.js",
     "./bigint": "./dist/src/bigint.js",
     "./bytes": "./dist/src/bytes.js",
     "./crypto": "./dist/src/crypto.js",
@@ -18,8 +17,7 @@
     "./hex": "./dist/src/hex.js",
     "./number": "./dist/src/number.js",
     "./package": "./dist/src/package.js",
-    "./request": "./dist/src/request.js",
-    "./stack": "./dist/src/stack.js"
+    "./request": "./dist/src/request.js"
   },
   "keywords": [
     "ethereum",
@@ -65,9 +63,6 @@
     "typescript-eslint": "7.7.1"
   },
   "dependencies": {
-    "@ethersproject/abi": "^5.7.0",
-    "bignumber.js": "^9.1.2",
-    "bn.js": "^5.2.1",
     "keccak": "^3.0.4",
     "undici": "^5.14.0"
   }

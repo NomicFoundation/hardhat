@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
-import { isBytes, setLengthLeft, toBytes, equalsBytes } from "../src/bytes.js";
+import { isBytes, setLengthLeft, equalsBytes } from "../src/bytes.js";
 
 describe("bytes", () => {
   describe("isBytes", () => {
@@ -37,58 +37,6 @@ describe("bytes", () => {
     it("Should return a copy of the Uint8Array if the length is the same", () => {
       const bytes = new Uint8Array([0x01, 0x02, 0x03]);
       assert.deepEqual(setLengthLeft(bytes, 3), bytes);
-    });
-  });
-
-  describe("toBytes", () => {
-    it("Should convert null to an empty Uint8Array", () => {
-      assert.deepEqual(toBytes(null), new Uint8Array());
-    });
-
-    it("Should convert undefined to an empty Uint8Array", () => {
-      assert.deepEqual(toBytes(undefined), new Uint8Array());
-    });
-
-    it("Should convert an array to a Uint8Array", () => {
-      const array = [0x01, 0x02, 0x03];
-      const bytes = new Uint8Array(array);
-      assert.deepEqual(toBytes(array), bytes);
-    });
-
-    it("Should convert a Uint8Array to a Uint8Array", () => {
-      const bytes = new Uint8Array([0x01, 0x02, 0x03]);
-      assert.deepEqual(toBytes(bytes), bytes);
-    });
-
-    it("Should convert a Buffer to a Uint8Array", () => {
-      const buffer = Buffer.from([0x01, 0x02, 0x03]);
-      const bytes = new Uint8Array([0x01, 0x02, 0x03]);
-      assert.deepEqual(toBytes(buffer), bytes);
-    });
-
-    it("Should convert a hexadecimal string to a Uint8Array", () => {
-      const hexString = "0x010203";
-      const bytes = new Uint8Array([0x01, 0x02, 0x03]);
-      assert.deepEqual(toBytes(hexString), bytes);
-    });
-
-    it("Should convert a number to a Uint8Array", () => {
-      const number = 66051;
-      const bytes = new Uint8Array([0x01, 0x02, 0x03]);
-      assert.deepEqual(toBytes(number), bytes);
-    });
-
-    it("Should convert a bigint to a Uint8Array", () => {
-      const bigint = BigInt(66051);
-      const bytes = new Uint8Array([0x01, 0x02, 0x03]);
-      assert.deepEqual(toBytes(bigint), bytes);
-    });
-
-    it("Should throw an error for other types", () => {
-      assert.throws(() => toBytes({} as any), {
-        name: "InvalidParameterError",
-        message: `Unsupported type: ${typeof {}}`,
-      });
     });
   });
 
