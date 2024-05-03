@@ -15,14 +15,14 @@ import {
 describe("eth", () => {
   describe("isAddress", () => {
     it("Should return true for valid addresses", () => {
-      assert.ok(isAddress("0x")); // zero address
-      assert.ok(isAddress("0x0")); // zero address
       assert.ok(isAddress("0x1234567890123456789012345678901234567890"));
       assert.ok(isAddress("0xabcdefABCDEFabcdefABCDEFabcdefABCDEFabcd"));
       assert.ok(isAddress("0x1234abcd5678ABCD9012efab3456CDEF7890abcd"));
     });
 
     it("Should return false for invalid addresses", () => {
+      assert.ok(!isAddress("0x")); // zero address
+      assert.ok(!isAddress("0x0")); // zero address
       assert.ok(!isAddress("")); // empty
       assert.ok(!isAddress("0x00")); // zero address with extra 0
       assert.ok(!isAddress("0x123456789012345678901234567890123456789")); // too short
@@ -34,8 +34,6 @@ describe("eth", () => {
 
   describe("isHash", () => {
     it("Should return true for valid hashes", () => {
-      assert.ok(isAddress("0x")); // zero hash
-      assert.ok(isAddress("0x0")); // zero hash
       assert.ok(
         isHash(
           "0x1234567890123456789012345678901234567890123456789012345678901234",
@@ -54,6 +52,8 @@ describe("eth", () => {
     });
 
     it("Should return false for invalid hashes", () => {
+      assert.ok(!isHash("0x")); // zero hash
+      assert.ok(!isHash("0x0")); // zero hash
       assert.ok(!isHash("")); // empty
       assert.ok(!isHash("0x00")); // zero hash with extra 0
       assert.ok(

@@ -4,24 +4,23 @@ import { getAddressGenerator, getHashGenerator } from "./internal/eth.js";
 import { bytesToHexString, numberToHexString, setLengthLeft } from "./hex.js";
 
 /**
- * Checks if a value is an Ethereum address. The zero address is considered
- * valid.
+ * Checks if a value is an Ethereum address.
  *
  * @param value The value to check.
  * @returns True if the value is an Ethereum address, false otherwise.
  */
 export function isAddress(value: unknown): boolean {
-  return typeof value === "string" && /^0x0?$|^0x[0-9a-fA-F]{40}$/.test(value);
+  return typeof value === "string" && /^0x[0-9a-f]{40}$/i.test(value);
 }
 
 /**
- * Checks if a value is an Ethereum hash. The zero hash is considered valid.
+ * Checks if a value is an Ethereum hash.
  *
  * @param value The value to check.
  * @returns True if the value is an Ethereum hash, false otherwise.
  */
 export function isHash(value: unknown): boolean {
-  return typeof value === "string" && /^0x0?$|^0x[0-9a-fA-F]{64}$/.test(value);
+  return typeof value === "string" && /^0x[0-9a-f]{64}$/i.test(value);
 }
 
 /**
