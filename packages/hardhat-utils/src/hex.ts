@@ -1,4 +1,5 @@
 import { InvalidParameterError } from "./errors/custom-errors.js";
+import { padToEven } from "./internal/hex.js";
 
 export type PrefixedHexString = `0x${string}`;
 
@@ -24,22 +25,29 @@ export function numberToHexString(value: number | bigint): PrefixedHexString {
 
 /**
  * Converts a hexadecimal string to a number or bigint if the number is an
- * unsafe integer.
+ * unsafe integer. The string must be a valid hexadecimal string. The string may
+ * be prefixed with "0x" or not. The empty string is considered a valid
+ * hexadecimal string, so is the string "0x" and will be converted to 0.
  *
  * @param hexString The hexadecimal string to convert. It must be a valid
- * hexadecimal string starting with "0x".
+ * hexadecimal string.
  * @returns The number representation of the hexadecimal string.
  * @throws InvalidParameterError If the input is not a hexadecimal string.
  */
 export function hexStringToNumber(hexString: string): number | bigint {
   if (!isHexString(hexString)) {
     throw new InvalidParameterError(
-      `Expected a hexadecimal string starting with '0x'. Received: ${hexString}`,
+      `Expected a valid hexadecimal string. Received: ${hexString}`,
     );
   }
+  // Prefix the string as it is required to make BigInt interpret it as a
+  // hexadecimal number.
+  let prefixedHexString = getPrefixedHexString(hexString);
+  // BigInt does not support "0x" as a valid hexadecimal number, so we need to
+  // add a zero after the prefix if the string is "0x".
+  prefixedHexString = prefixedHexString === "0x" ? "0x0" : prefixedHexString;
 
-  const bigInt = BigInt(hexString);
-
+  const bigInt = BigInt(prefixedHexString);
   if (bigInt <= Number.MAX_SAFE_INTEGER) {
     return Number(bigInt);
   }
@@ -58,7 +66,10 @@ export function bytesToHexString(bytes: Uint8Array): PrefixedHexString {
 }
 
 /**
- * Converts a hexadecimal string to a Uint8Array.
+ * Converts a hexadecimal string to a Uint8Array. The string must be a valid
+ * hexadecimal string. The string may be prefixed with "0x" or not. The empty
+ * string is considered a valid hexadecimal string, so is the string "0x" and
+ * will be converted to Uint8Array([0]).
  *
  * @param hexString The hexadecimal string to convert.
  * @returns The byte representation of the hexadecimal string.
@@ -67,34 +78,36 @@ export function bytesToHexString(bytes: Uint8Array): PrefixedHexString {
 export function hexStringToBytes(hexString: string): Uint8Array {
   if (!isHexString(hexString)) {
     throw new InvalidParameterError(
-      `Expected a hexadecimal string starting with '0x'. Received: ${hexString}`,
+      `Expected a valid hexadecimal string. Received: ${hexString}`,
     );
   }
 
   // Pad the hex string if it's odd, as Buffer.from will truncate it
   // the last character if it's not a full byte.
   // See: https://nodejs.org/api/buffer.html#buffers-and-character-encodings
-  const unprefixedHexString = getUnprefixedHexString(hexString);
-  const paddedHexString =
-    unprefixedHexString.length % 2 === 0
-      ? unprefixedHexString
-      : `0${unprefixedHexString}`;
-
-  return Uint8Array.from(Buffer.from(paddedHexString, "hex"));
+  const unprefixedHexString = getUnprefixedHexString(padToEven(hexString));
+  return Uint8Array.from(Buffer.from(unprefixedHexString, "hex"));
 }
 
 /**
- * Normalizes a string that represents a hexadecimal number.
+ * Normalizes and validates a string that represents a hexadecimal number.
  * The normalization process includes trimming any leading or trailing
  * whitespace, converting all characters to lowercase, and ensuring the string
- * has a "0x" prefix.
- * This function does not validate the input.
+ * has a "0x" prefix. The validation process checks if the string is a valid
+ * hexadecimal string.
  *
  * @param hexString The hex string to normalize.
  * @returns The normalized hexadecimal string.
  */
 export function normalizeHexString(hexString: string): PrefixedHexString {
   const normalizedHexString = hexString.trim().toLowerCase();
+
+  if (!isHexString(normalizedHexString)) {
+    throw new InvalidParameterError(
+      `Expected a valid hexadecimal string. Received: ${hexString}`,
+    );
+  }
+
   return isHexStringPrefixed(normalizedHexString)
     ? (normalizedHexString as PrefixedHexString)
     : `0x${normalizedHexString}`;
@@ -112,13 +125,15 @@ export function isHexStringPrefixed(hexString: string): boolean {
 }
 
 /**
- * Checks if a value is a hexadecimal string.
+ * Checks if a value is a hexadecimal string. The string may be prefixed with
+ * "0x" or not. The empty string is considered a valid hexadecimal string, so
+ * is the string "0x".
  *
  * @param value The value to check.
  * @returns True if the value is a hexadecimal string, false otherwise.
  */
 export function isHexString(value: unknown): boolean {
-  return typeof value === "string" && /^0x[0-9a-f]*$/i.test(value.trim());
+  return typeof value === "string" && /^(?:0x)?[0-9a-f]*$/i.test(value);
 }
 
 /**
@@ -131,6 +146,18 @@ export function isHexString(value: unknown): boolean {
  */
 export function getUnprefixedHexString(hexString: string): string {
   return isHexStringPrefixed(hexString) ? hexString.substring(2) : hexString;
+}
+
+/**
+ * Adds the "0x" prefix to a hexadecimal string.
+ * If the string is already prefixed, it is returned as is.
+ * This function does not validate the input.
+ *
+ * @param hexString The hexadecimal string.
+ * @returns The hexadecimal string with the "0x" prefix.
+ */
+export function getPrefixedHexString(hexString: string): string {
+  return isHexStringPrefixed(hexString) ? hexString : `0x${hexString}`;
 }
 
 /**
