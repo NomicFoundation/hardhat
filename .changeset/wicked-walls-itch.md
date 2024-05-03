@@ -1,5 +1,5 @@
 ---
-"@nomicfoundation/ed": patch
+"hardhat": patch
 ---
 
-fix: avoid transferring traces to JS if there are no plugins that need them to improve performance
+Improved performance by reducing back-and-forth with EDR when it's not necessary
