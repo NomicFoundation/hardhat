@@ -562,46 +562,46 @@ describe("Requests util", () => {
       delete process.env.NO_PROXY;
     });
 
-    it("should return false for localhost", () => {
+    it("Should return false for localhost", () => {
       assert.equal(shouldUseProxy("http://localhost"), false);
     });
 
-    it("should return false for 127.0.0.1", () => {
+    it("Should return false for 127.0.0.1", () => {
       assert.equal(shouldUseProxy("http://127.0.0.1"), false);
     });
 
-    it("should return false if NO_PROXY is '*'", () => {
+    it("Should return false if NO_PROXY is '*'", () => {
       process.env.NO_PROXY = "*";
       assert.equal(shouldUseProxy("http://example.com"), false);
     });
 
-    it("should return false if hostname is in NO_PROXY list", () => {
+    it("Should return false if hostname is in NO_PROXY list", () => {
       process.env.NO_PROXY = "example.com,other.com";
       assert.equal(shouldUseProxy("http://example.com"), false);
       assert.equal(shouldUseProxy("http://other.com"), false);
     });
 
-    it("should return true if hostname is not in NO_PROXY list", () => {
+    it("Should return true if hostname is not in NO_PROXY list", () => {
       process.env.NO_PROXY = "other.com,different.com";
       assert.equal(shouldUseProxy("http://example.com"), true);
     });
 
-    it("should handle a mix of proxied and non-proxied URLs in NO_PROXY", () => {
+    it("Should handle a mix of proxied and non-proxied URLs in NO_PROXY", () => {
       process.env.NO_PROXY = "example.com,other.com";
-      assert.strictEqual(shouldUseProxy("http://example.com"), false);
-      assert.strictEqual(shouldUseProxy("http://other.com"), false);
-      assert.strictEqual(shouldUseProxy("http://different.com"), true);
+      assert.equal(shouldUseProxy("http://example.com"), false);
+      assert.equal(shouldUseProxy("http://other.com"), false);
+      assert.equal(shouldUseProxy("http://different.com"), true);
     });
 
-    it("should return true if NO_PROXY is not defined", () => {
+    it("Should return true if NO_PROXY is not defined", () => {
       assert.equal(shouldUseProxy("http://example.com"), true);
     });
 
-    it("should ignore the protocol part of the URL", () => {
+    it("Should ignore the protocol part of the URL", () => {
       process.env.NO_PROXY = "example.com";
-      assert.strictEqual(shouldUseProxy("http://example.com"), false);
-      assert.strictEqual(shouldUseProxy("https://example.com"), false);
-      assert.strictEqual(shouldUseProxy("ftp://example.com"), false);
+      assert.equal(shouldUseProxy("http://example.com"), false);
+      assert.equal(shouldUseProxy("https://example.com"), false);
+      assert.equal(shouldUseProxy("ftp://example.com"), false);
     });
   });
 });
