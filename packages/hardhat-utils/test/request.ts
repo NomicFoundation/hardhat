@@ -1,6 +1,6 @@
 import type UndiciT from "undici";
 
-import { describe, it } from "node:test";
+import { afterEach, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import querystring from "node:querystring";
 import path from "node:path";
@@ -16,6 +16,7 @@ import {
   postFormRequest,
   download,
   getDispatcher,
+  shouldUseProxy,
 } from "../src/request.js";
 import { exists, readUtf8File } from "../src/fs.js";
 import {
@@ -553,6 +554,54 @@ describe("Requests util", () => {
         name: "DownloadError",
         message: `Failed to download file from ${url}`,
       });
+    });
+  });
+
+  describe("shouldUseProxy", () => {
+    afterEach(() => {
+      delete process.env.NO_PROXY;
+    });
+
+    it("should return false for localhost", () => {
+      assert.equal(shouldUseProxy("http://localhost"), false);
+    });
+
+    it("should return false for 127.0.0.1", () => {
+      assert.equal(shouldUseProxy("http://127.0.0.1"), false);
+    });
+
+    it("should return false if NO_PROXY is '*'", () => {
+      process.env.NO_PROXY = "*";
+      assert.equal(shouldUseProxy("http://example.com"), false);
+    });
+
+    it("should return false if hostname is in NO_PROXY list", () => {
+      process.env.NO_PROXY = "example.com,other.com";
+      assert.equal(shouldUseProxy("http://example.com"), false);
+      assert.equal(shouldUseProxy("http://other.com"), false);
+    });
+
+    it("should return true if hostname is not in NO_PROXY list", () => {
+      process.env.NO_PROXY = "other.com,different.com";
+      assert.equal(shouldUseProxy("http://example.com"), true);
+    });
+
+    it("should handle a mix of proxied and non-proxied URLs in NO_PROXY", () => {
+      process.env.NO_PROXY = "example.com,other.com";
+      assert.strictEqual(shouldUseProxy("http://example.com"), false);
+      assert.strictEqual(shouldUseProxy("http://other.com"), false);
+      assert.strictEqual(shouldUseProxy("http://different.com"), true);
+    });
+
+    it("should return true if NO_PROXY is not defined", () => {
+      assert.equal(shouldUseProxy("http://example.com"), true);
+    });
+
+    it("should ignore the protocol part of the URL", () => {
+      process.env.NO_PROXY = "example.com";
+      assert.strictEqual(shouldUseProxy("http://example.com"), false);
+      assert.strictEqual(shouldUseProxy("https://example.com"), false);
+      assert.strictEqual(shouldUseProxy("ftp://example.com"), false);
     });
   });
 });

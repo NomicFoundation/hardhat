@@ -253,3 +253,28 @@ export async function getDispatcher(
     throw new DispatcherError(e.message, e);
   }
 }
+
+/**
+ * Determines whether a proxy should be used for a given url.
+ *
+ * @param url The url to check.
+ * @returns `true` if a proxy should be used for the url, `false` otherwise.
+ */
+export function shouldUseProxy(url: string): boolean {
+  const { hostname } = new URL(url);
+  const noProxy = process.env.NO_PROXY;
+
+  if (hostname === "localhost" || hostname === "127.0.0.1" || noProxy === "*") {
+    return false;
+  }
+
+  if (noProxy !== undefined && noProxy !== "") {
+    const noProxySet = new Set(noProxy.split(","));
+
+    if (noProxySet.has(hostname)) {
+      return false;
+    }
+  }
+
+  return true;
+}
