@@ -211,6 +211,14 @@ export const builtinChains: ChainConfig[] = [
     },
   },
   {
+    network: "polygonAmoy",
+    chainId: 80002,
+    urls: {
+      apiURL: "https://api-amoy.polygonscan.com/api",
+      browserURL: "https://amoy.polygonscan.com/",
+    },
+  },
+  {
     network: "baseGoerli",
     chainId: 84531,
     urls: {
