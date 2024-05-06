@@ -301,16 +301,17 @@ subtask(TASK_VERIFY_ETHERSCAN_ATTEMPT_VERIFICATION)
       // Ensure the linking information is present in the compiler input;
       compilerInput.settings.libraries = contractInformation.libraries;
 
+      const contractFQN = `${contractInformation.sourceName}:${contractInformation.contractName}`;
       const { message: guid } = await verificationInterface.verify(
         address,
         JSON.stringify(compilerInput),
-        `${contractInformation.sourceName}:${contractInformation.contractName}`,
+        contractFQN,
         `v${contractInformation.solcLongVersion}`,
         encodedConstructorArguments
       );
 
       console.log(`Successfully submitted source code for contract
-${contractInformation.sourceName}:${contractInformation.contractName} at ${address}
+${contractFQN} at ${address}
 for verification on the block explorer. Waiting for verification result...
 `);
 
@@ -321,7 +322,7 @@ for verification on the block explorer. Waiting for verification result...
 
       // Etherscan answers with already verified message only when checking returned guid
       if (verificationStatus.isAlreadyVerified()) {
-        throw new ContractAlreadyVerifiedError(address);
+        throw new ContractAlreadyVerifiedError(contractFQN, address);
       }
 
       if (!(verificationStatus.isFailure() || verificationStatus.isSuccess())) {

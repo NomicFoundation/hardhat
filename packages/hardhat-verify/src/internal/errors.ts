@@ -460,10 +460,9 @@ ${undetectableLibraries.map((x) => `  * ${x}`).join("\n")}`
 }
 
 export class ContractAlreadyVerifiedError extends HardhatVerifyError {
-  constructor(contractAddress: string) {
-    super(`The Etherecan API responded that the contract ${contractAddress} is already verified.
-This can happen if you used '--force' flag, but either the explorer does not support contracts' re-verification
-(e.g., Etherscan) or the contract has already been verified with a full match.`);
-    Object.setPrototypeOf(this, ContractAlreadyVerifiedError.prototype);
+  constructor(contractFQN: string, contractAddress: string) {
+    super(`The block explorer's API responded that the contract ${contractFQN} at ${contractAddress} is already verified.
+This can happen if you used the '--force' flag. However, re-verification of contracts might not be supported
+by the explorer (e.g., Etherscan), or the contract may have already been verified with a full match.`);
   }
 }

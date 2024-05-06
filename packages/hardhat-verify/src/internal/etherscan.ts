@@ -187,7 +187,7 @@ export class Etherscan {
       }
 
       if (etherscanResponse.isAlreadyVerified()) {
-        throw new ContractAlreadyVerifiedError(contractAddress);
+        throw new ContractAlreadyVerifiedError(contractName, contractAddress);
       }
 
       if (!etherscanResponse.isOk()) {
