@@ -203,6 +203,14 @@ export const builtinChains: ChainConfig[] = [
     },
   },
   {
+    network: "polygonMumbai",
+    chainId: 80001,
+    urls: {
+      apiURL: "https://api-testnet.polygonscan.com/api",
+      browserURL: "https://mumbai.polygonscan.com/",
+    },
+  },
+  {
     network: "polygonAmoy",
     chainId: 80002,
     urls: {
