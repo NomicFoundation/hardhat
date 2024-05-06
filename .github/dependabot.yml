@@ -3,16 +3,10 @@
 
 version: 2
 updates:
-  - package-ecosystem: "cargo"
-    directory: "/"
-    schedule:
-      interval: "daily"
-    commit-message:
-      prefix: "bump"
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "daily"
     allow:
-      - dependency-name: "@solidity-parser/parser"
+      - dependency-name: "@nomicfoundation/edr"
     versioning-strategy: increase
