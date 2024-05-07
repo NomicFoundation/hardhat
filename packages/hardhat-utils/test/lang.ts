@@ -124,7 +124,7 @@ describe("lang", () => {
     });
   });
 
-  describe("deepEqual", {}, () => {
+  describe("deepEqual", () => {
     it("Should compare objects correctly", async () => {
       const obj1 = { a: 1, b: 2, c: { d: 3 } };
       const obj2 = { a: 1, b: 2, c: { d: 3 } };
