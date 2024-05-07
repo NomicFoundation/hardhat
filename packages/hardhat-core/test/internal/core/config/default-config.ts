@@ -11,9 +11,10 @@ describe("Default config", function () {
       assert.fail("Mainnet entry should exist");
     }
 
+    const history = mainnetChainConfig.hardforkHistory;
+
     for (const hardfork of Object.values(HardforkName)) {
-      const hardforkHistoryEntry =
-        mainnetChainConfig.hardforkHistory.get(hardfork);
+      const hardforkHistoryEntry = history.get(hardfork);
       assert.isDefined(
         hardforkHistoryEntry,
         `No hardfork history entry for ${hardfork}`

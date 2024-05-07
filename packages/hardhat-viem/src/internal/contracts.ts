@@ -88,7 +88,7 @@ export async function innerDeployContract(
     confirmations,
   });
 
-  if (contractAddress === null) {
+  if (contractAddress === null || contractAddress === undefined) {
     const transaction = await publicClient.getTransaction({
       hash: deploymentTxHash,
     });
