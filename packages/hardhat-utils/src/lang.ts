@@ -12,4 +12,15 @@ export async function deepClone<T>(value: T): Promise<T> {
   return _deepClone<T>(value);
 }
 
-// export function deepEqual<T>(a: T, b: T): boolean {}
+/**
+ * Checks if two values are deeply equal.
+ *
+ * @param x The first value to compare.
+ * @param y The second value to compare.
+ * @returns True if the values are deeply equal, false otherwise.
+ */
+export async function deepEqual<T>(x: T, y: T): Promise<boolean> {
+  const { deepEqual: _deepEqual } = await import("fast-equals");
+
+  return _deepEqual(x, y);
+}

@@ -2,7 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { expectTypeOf } from "expect-type";
 
-import { deepClone } from "../src/lang.js";
+import { deepClone, deepEqual } from "../src/lang.js";
 
 describe("lang", () => {
   describe("deepClone", () => {
@@ -122,13 +122,175 @@ describe("lang", () => {
       expectTypeOf(clonedArgs).toHaveProperty("1").toBeString();
       expectTypeOf(clonedArgs).toHaveProperty("2").toBeBoolean();
     });
+  });
 
-    it("Should match JSON.parse(JSON.stringify(o)) for other types", async () => {
-      const error = new Error("test");
-      const clonedError = await deepClone(error);
+  describe("deepEqual", {}, () => {
+    it("Should compare objects correctly", async () => {
+      const obj1 = { a: 1, b: 2, c: { d: 3 } };
+      const obj2 = { a: 1, b: 2, c: { d: 3 } };
+      const obj3 = { a: 1, b: 2, c: { d: 4 } };
 
-      assert.deepEqual(clonedError, JSON.parse(JSON.stringify(error)));
-      expectTypeOf(clonedError).toEqualTypeOf<typeof error>();
+      const areEqual = await deepEqual(obj1, obj2);
+      const areNotEqual = await deepEqual(obj1, obj3);
+
+      assert.ok(areEqual);
+      assert.ok(!areNotEqual);
+    });
+
+    it("Should compare arrays correctly", async () => {
+      const arr1 = [1, 2, [3]];
+      const arr2 = [1, 2, [3]];
+      const arr3 = [1, 2, [4]];
+
+      const areEqual = await deepEqual(arr1, arr2);
+      const areNotEqual = await deepEqual(arr1, arr3);
+
+      assert.ok(areEqual);
+      assert.ok(!areNotEqual);
+    });
+
+    it("Should compare strings correctly", async () => {
+      const str1 = "hello";
+      const str2 = "hello";
+      const str3 = "world";
+
+      const areEqual = await deepEqual(str1, str2);
+      const areNotEqual = await deepEqual(str1, str3);
+
+      assert.ok(areEqual);
+      assert.ok(!areNotEqual);
+    });
+
+    it("Should compare numbers correctly", async () => {
+      const num1 = 42;
+      const num2 = 42;
+      const num3 = 43;
+
+      const areEqual = await deepEqual(num1, num2);
+      const areNotEqual = await deepEqual(num1, num3);
+
+      assert.ok(areEqual);
+      assert.ok(!areNotEqual);
+    });
+
+    it("Should compare null values correctly", async () => {
+      const n1 = null;
+      const n2 = null;
+      const n3 = undefined;
+
+      const areEqual = await deepEqual(n1, n2);
+      const areNotEqual = await deepEqual(n1, n3);
+
+      assert.ok(areEqual);
+      assert.ok(!areNotEqual);
+    });
+
+    it("Should compare undefined values correctly", async () => {
+      const u1 = undefined;
+      const u2 = undefined;
+      const u3 = null;
+
+      const areEqual = await deepEqual(u1, u2);
+      const areNotEqual = await deepEqual(u1, u3);
+
+      assert.ok(areEqual);
+      assert.ok(!areNotEqual);
+    });
+
+    it("Should compare functions correctly", async () => {
+      const fn1 = () => {};
+      const fn2 = fn1;
+      const fn3 = (arg1: any) => arg1;
+
+      const areEqual = await deepEqual(fn1, fn2);
+      const areNotEqual = await deepEqual(fn1, fn3);
+
+      assert.ok(areEqual);
+      assert.ok(!areNotEqual);
+    });
+
+    it("Should compare Dates correctly", async () => {
+      const date1 = new Date();
+      const date2 = new Date(date1.getTime());
+      const date3 = new Date(date1.getTime() + 1);
+
+      const areEqual = await deepEqual(date1, date2);
+      const areNotEqual = await deepEqual(date1, date3);
+
+      assert.ok(areEqual);
+      assert.ok(!areNotEqual);
+    });
+
+    it("Should compare Maps correctly", async () => {
+      const map1 = new Map([
+        ["a", 1],
+        ["b", 2],
+      ]);
+      const map2 = new Map([
+        ["a", 1],
+        ["b", 2],
+      ]);
+      const map3 = new Map([
+        ["a", 1],
+        ["b", 3],
+      ]);
+
+      const areEqual = await deepEqual(map1, map2);
+      const areNotEqual = await deepEqual(map1, map3);
+
+      assert.ok(areEqual);
+      assert.ok(!areNotEqual);
+    });
+
+    it("Should compare Sets correctly", async () => {
+      const set1 = new Set([1, 2]);
+      const set2 = new Set([1, 2]);
+      const set3 = new Set([1, 3]);
+
+      const areEqual = await deepEqual(set1, set2);
+      const areNotEqual = await deepEqual(set1, set3);
+
+      assert.ok(areEqual);
+      assert.ok(!areNotEqual);
+    });
+
+    it("Should compare Buffers correctly", async () => {
+      const buffer1 = Buffer.from("test");
+      const buffer2 = Buffer.from("test");
+      const buffer3 = Buffer.from("test2");
+
+      const areEqual = await deepEqual(buffer1, buffer2);
+      const areNotEqual = await deepEqual(buffer1, buffer3);
+
+      assert.ok(areEqual);
+      assert.ok(!areNotEqual);
+    });
+
+    it("Should compare arguments correctly", async () => {
+      function testFunc(_a: number, _b: string, _c: boolean) {
+        return arguments;
+      }
+      const args1 = testFunc(1, "2", false);
+      const args2 = testFunc(1, "2", false);
+      const args3 = testFunc(1, "2", true);
+
+      const areEqual = await deepEqual(args1, args2);
+      const areNotEqual = await deepEqual(args1, args3);
+
+      assert.ok(areEqual);
+      assert.ok(!areNotEqual);
+    });
+
+    it("Should compare Errors correctly", async () => {
+      const error1 = new Error("test");
+      const error2 = error1;
+      const error3 = new Error("test2");
+
+      const areEqual = await deepEqual(error1, error2);
+      const areNotEqual = await deepEqual(error1, error3);
+
+      assert.ok(areEqual);
+      assert.ok(!areNotEqual);
     });
   });
 });
