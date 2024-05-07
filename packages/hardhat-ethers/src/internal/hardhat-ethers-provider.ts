@@ -87,8 +87,8 @@ export class HardhatEthersProvider implements ethers.Provider {
   private _transactionHashListeners: Map<string, ListenerItem[]> = new Map();
   private _eventListeners: EventListenerItem[] = [];
 
-  private _transactionHashPollingInterval: NodeJS.Timeout | undefined;
-  private _blockPollingInterval: NodeJS.Timeout | undefined;
+  private _transactionHashPollingTimeout: NodeJS.Timeout | undefined;
+  private _blockPollingTimeout: NodeJS.Timeout | undefined;
 
   constructor(
     private readonly _hardhatProvider: EthereumProvider,
@@ -868,63 +868,12 @@ export class HardhatEthersProvider implements ethers.Provider {
   }
 
   private async _startTransactionHashPolling() {
-    const _isHardhatNetwork = await this._isHardhatNetwork();
-
-    const interval = _isHardhatNetwork ? 50 : 500;
-
-    if (_isHardhatNetwork) {
-      await this._pollTransactionHashes();
-    }
-
-    if (this._transactionHashListeners.size === 0) {
-      // it's possible that the first poll cleans all the listeners,
-      // in that case we don't start the interval
-      return;
-    }
-
-    if (this._transactionHashPollingInterval === undefined) {
-      this._transactionHashPollingInterval = setInterval(async () => {
-        await this._pollTransactionHashes();
-      }, interval);
-    }
+    await this._pollTransactionHashes();
   }
 
   private _stopTransactionHashPolling() {
-    if (this._transactionHashPollingInterval !== undefined) {
-      clearInterval(this._transactionHashPollingInterval);
-      this._transactionHashPollingInterval = undefined;
-    }
-  }
-
-  private async _startBlockPolling() {
-    const _isHardhatNetwork = await this._isHardhatNetwork();
-
-    const interval = _isHardhatNetwork ? 50 : 500;
-
-    this._latestBlockNumberPolled = await this.getBlockNumber();
-
-    if (_isHardhatNetwork) {
-      await this._pollBlocks();
-    }
-
-    if (this._blockListeners.length === 0) {
-      // it's possible that the first poll cleans all the listeners,
-      // in that case we don't start the interval
-      return;
-    }
-
-    if (this._blockPollingInterval === undefined) {
-      this._blockPollingInterval = setInterval(async () => {
-        await this._pollBlocks();
-      }, interval);
-    }
-  }
-
-  private _stopBlockPolling() {
-    if (this._blockPollingInterval !== undefined) {
-      clearInterval(this._blockPollingInterval);
-      this._blockPollingInterval = undefined;
-    }
+    clearTimeout(this._transactionHashPollingTimeout);
+    this._transactionHashPollingTimeout = undefined;
   }
 
   /**
@@ -957,7 +906,29 @@ export class HardhatEthersProvider implements ethers.Provider {
       }
     } catch (e: any) {
       log(`Error during transaction hash polling: ${e.message}`);
+    } finally {
+      // it's possible that the first poll cleans all the listeners,
+      // in that case we don't set the timeout
+      if (this._transactionHashListeners.size > 0) {
+        const _isHardhatNetwork = await this._isHardhatNetwork();
+        const timeout = _isHardhatNetwork ? 50 : 500;
+
+        clearTimeout(this._transactionHashPollingTimeout);
+        this._transactionHashPollingTimeout = setTimeout(async () => {
+          await this._pollTransactionHashes();
+        }, timeout);
+      }
     }
+  }
+
+  private async _startBlockPolling() {
+    this._latestBlockNumberPolled = await this.getBlockNumber();
+    await this._pollBlocks();
+  }
+
+  private _stopBlockPolling() {
+    clearInterval(this._blockPollingTimeout);
+    this._blockPollingTimeout = undefined;
   }
 
   private async _pollBlocks() {
@@ -998,6 +969,18 @@ export class HardhatEthersProvider implements ethers.Provider {
       }
     } catch (e: any) {
       log(`Error during block polling: ${e.message}`);
+    } finally {
+      // it's possible that the first poll cleans all the listeners,
+      // in that case we don't set the timeout
+      if (this._blockListeners.length > 0) {
+        const _isHardhatNetwork = await this._isHardhatNetwork();
+        const timeout = _isHardhatNetwork ? 50 : 500;
+
+        clearTimeout(this._blockPollingTimeout);
+        this._blockPollingTimeout = setTimeout(async () => {
+          await this._pollBlocks();
+        }, timeout);
+      }
     }
   }
 
