@@ -270,5 +270,16 @@ describe("hex", () => {
       assert.equal(setLengthLeft("0x1", 8), "0x00000001");
       assert.equal(setLengthLeft("0x1", 16), "0x0000000000000001");
     });
+
+    it("Should truncate the string if it's too long", () => {
+      assert.equal(setLengthLeft("0x0000000000000001", 1), "0x1");
+      assert.equal(setLengthLeft("0x0000000000000001", 2), "0x01");
+      assert.equal(setLengthLeft("0x0000000000000001", 4), "0x0001");
+      assert.equal(setLengthLeft("0x0000000000000001", 8), "0x00000001");
+      assert.equal(
+        setLengthLeft("0x0000000000000001", 16),
+        "0x0000000000000001",
+      );
+    });
   });
 });

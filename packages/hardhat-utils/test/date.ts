@@ -41,6 +41,7 @@ describe("date", () => {
       // Allow a 1-second difference
       assert.ok(
         timestamp >= currentTimestamp - 1 && timestamp <= currentTimestamp + 1,
+        "Should be within 1 second of the current timestamp",
       );
     });
   });

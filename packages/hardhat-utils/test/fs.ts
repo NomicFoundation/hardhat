@@ -326,14 +326,20 @@ describe("File system utils", () => {
       const dirPath = path.join(getTmpDir(), "dir");
       await mkdir(dirPath);
 
-      assert.ok(await isDirectory(dirPath));
+      assert.ok(
+        await isDirectory(dirPath),
+        "Should return true for a directory",
+      );
     });
 
     it("Should return false if the path is not a directory", async () => {
       const filePath = path.join(getTmpDir(), "file");
       await createFile(filePath);
 
-      assert.ok(!(await isDirectory(filePath)));
+      assert.ok(
+        !(await isDirectory(filePath)),
+        "Should return false for a file",
+      );
     });
 
     it("Should throw FileNotFoundError if the path doesn't exist", async () => {
@@ -592,7 +598,7 @@ describe("File system utils", () => {
 
       await mkdir(dirPath);
 
-      assert.ok(await isDirectory(dirPath));
+      assert.ok(await isDirectory(dirPath), "Should create a directory");
     });
 
     it("Should create a directory and any necessary directories along the way", async () => {
@@ -600,7 +606,7 @@ describe("File system utils", () => {
 
       await mkdir(dirPath);
 
-      assert.ok(await isDirectory(dirPath));
+      assert.ok(await isDirectory(dirPath), "Should create a directory");
     });
 
     it("Should do nothing if the directory already exists", async () => {
@@ -609,7 +615,7 @@ describe("File system utils", () => {
       await mkdir(dirPath);
       await mkdir(dirPath);
 
-      assert.ok(await isDirectory(dirPath));
+      assert.ok(await isDirectory(dirPath), "Should create a directory");
     });
 
     it("Should throw FileSystemAccessError for any error", async () => {
@@ -657,13 +663,19 @@ describe("File system utils", () => {
       const filePath = path.join(getTmpDir(), "file.txt");
       await createFile(filePath);
 
-      assert.ok(await exists(filePath));
+      assert.ok(
+        await exists(filePath),
+        "Should return true for an existing file",
+      );
     });
 
     it("Should return false if the file doesn't exist", async () => {
       const filePath = path.join(getTmpDir(), "not-exists.txt");
 
-      assert.ok(!(await exists(filePath)));
+      assert.ok(
+        !(await exists(filePath)),
+        "Should return false for a non-existing file",
+      );
     });
   });
 
@@ -742,7 +754,7 @@ describe("File system utils", () => {
 
       await remove(filePath);
 
-      assert.ok(!(await exists(filePath)));
+      assert.ok(!(await exists(filePath)), "Should remove a file");
     });
 
     it("Should remove an empty directory", async () => {
@@ -751,7 +763,7 @@ describe("File system utils", () => {
 
       await remove(dirPath);
 
-      assert.ok(!(await exists(dirPath)));
+      assert.ok(!(await exists(dirPath)), "Should remove a directory");
     });
 
     it("Should remove a directory and its content", async () => {
@@ -769,7 +781,7 @@ describe("File system utils", () => {
 
       await remove(dirPath);
 
-      assert.ok(!(await exists(dirPath)));
+      assert.ok(!(await exists(dirPath)), "Should remove a directory");
     });
 
     it("Should not throw if the path doesn't exist", async () => {
@@ -827,7 +839,7 @@ describe("File system utils", () => {
       await move(srcPath, destPath);
 
       assert.equal(await readUtf8File(destPath), "hello");
-      assert.ok(!(await exists(srcPath)));
+      assert.ok(!(await exists(srcPath)), "Should remove the source file");
     });
 
     it("Should move a directory", async () => {
@@ -839,9 +851,15 @@ describe("File system utils", () => {
 
       await move(srcPath, destPath);
 
-      assert.ok(!(await exists(srcPath)));
-      assert.ok(await exists(destPath));
-      assert.ok(await exists(path.join(destPath, "file.txt")));
+      assert.ok(!(await exists(srcPath)), "Should remove the source directory");
+      assert.ok(
+        await exists(destPath),
+        "Should create the destination directory",
+      );
+      assert.ok(
+        await exists(path.join(destPath, "file.txt")),
+        "Should move the file",
+      );
     });
 
     it("Should throw FileNotFoundError if the source file doesn't exist", async () => {
@@ -896,7 +914,7 @@ describe("File system utils", () => {
 
       await createFile(filePath);
 
-      assert.ok(await exists(filePath));
+      assert.ok(await exists(filePath), "Should create a file");
     });
 
     it("Should create a file even if part of the path doesn't exist", async () => {
@@ -904,7 +922,7 @@ describe("File system utils", () => {
 
       await createFile(filePath);
 
-      assert.ok(await exists(filePath));
+      assert.ok(await exists(filePath), "Should create a file");
     });
 
     it("Should throw FileSystemAccessError for any error", async () => {
@@ -928,7 +946,7 @@ describe("File system utils", () => {
 
       await emptyDir(dirPath);
 
-      assert.ok(await isDirectory(dirPath));
+      assert.ok(await isDirectory(dirPath), "Should keep the directory");
       assert.deepEqual(await readdir(dirPath), []);
     });
 
@@ -948,7 +966,7 @@ describe("File system utils", () => {
 
       await emptyDir(dirPath);
 
-      assert.ok(await isDirectory(dirPath));
+      assert.ok(await isDirectory(dirPath), "Should create the directory");
       assert.deepEqual(await readdir(dirPath), []);
     });
 

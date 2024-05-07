@@ -54,8 +54,7 @@ export async function getAllFilesMatching(
   const results = await Promise.all(
     dirContent.map(async (file) => {
       const absolutePathToFile = path.join(dirFrom, file);
-      const stats = await fsPromises.stat(absolutePathToFile); // TODO THIS LINE SHOULD BE WRAPPED IN A TRY CATCH BLOCK
-      if (stats.isDirectory()) {
+      if (await isDirectory(absolutePathToFile)) {
         return getAllFilesMatching(absolutePathToFile, matches);
       } else if (matches === undefined || matches(absolutePathToFile)) {
         return absolutePathToFile;

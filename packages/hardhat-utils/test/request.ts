@@ -40,7 +40,7 @@ describe("Requests util", () => {
       });
       const dispatcher = await getDispatcher(url, options);
 
-      assert.ok(dispatcher instanceof ProxyAgent);
+      assert.ok(dispatcher instanceof ProxyAgent, "Should return a ProxyAgent");
     });
 
     it("Should return a Pool dispatcher if pool is true", async () => {
@@ -50,7 +50,7 @@ describe("Requests util", () => {
       });
       const dispatcher = await getDispatcher(url, options);
 
-      assert.ok(dispatcher instanceof Pool);
+      assert.ok(dispatcher instanceof Pool, "Should return a Pool");
     });
 
     it("Should throw if both pool and proxy are set", async () => {
@@ -74,7 +74,7 @@ describe("Requests util", () => {
       });
       const dispatcher = await getDispatcher(url, options);
 
-      assert.ok(dispatcher instanceof Agent);
+      assert.ok(dispatcher instanceof Agent, "Should return an Agent");
     });
 
     it("Should return an Agent dispatcher if proxy is not set and pool is not set", async () => {
@@ -82,7 +82,7 @@ describe("Requests util", () => {
       const options = getTestDispatcherOptions();
       const dispatcher = await getDispatcher(url, options);
 
-      assert.ok(dispatcher instanceof Agent);
+      assert.ok(dispatcher instanceof Agent, "Should return an Agent");
     });
 
     describe("getBaseDispatcherOptions", () => {
@@ -154,7 +154,7 @@ describe("Requests util", () => {
       };
       const { dispatcher, ...options } = await getBaseRequestOptions(url);
 
-      assert.ok(dispatcher instanceof Agent);
+      assert.ok(dispatcher instanceof Agent, "Should return an Agent");
       assert.deepEqual(options, expectedOptions);
     });
 
@@ -219,7 +219,7 @@ describe("Requests util", () => {
         dispatcherOptions,
       );
 
-      assert.ok(dispatcher instanceof Pool);
+      assert.ok(dispatcher instanceof Pool, "Should return a Pool");
     });
 
     it("Should return the provided signal", async () => {
@@ -260,7 +260,7 @@ describe("Requests util", () => {
       mockPool.intercept(baseInterceptorOptions).reply(200, {});
       const response = await getRequest(url, undefined, mockPool);
 
-      assert.ok(response);
+      assert.ok(response, "Should return a response");
       assert.equal(response.statusCode, 200);
       await response.body.json();
     });
@@ -275,7 +275,7 @@ describe("Requests util", () => {
         .reply(200, {});
       const response = await getRequest(url, { queryParams }, mockPool);
 
-      assert.ok(response);
+      assert.ok(response, "Should return a response");
       assert.equal(response.statusCode, 200);
       await response.body.json();
     });
@@ -292,7 +292,7 @@ describe("Requests util", () => {
         .reply(200, {});
       const response = await getRequest(url, { extraHeaders }, mockPool);
 
-      assert.ok(response);
+      assert.ok(response, "Should return a response");
       assert.equal(response.statusCode, 200);
       await response.body.json();
     });
@@ -345,7 +345,7 @@ describe("Requests util", () => {
       mockPool.intercept(baseInterceptorOptions).reply(200, {});
       const response = await postJsonRequest(url, body, undefined, mockPool);
 
-      assert.ok(response);
+      assert.ok(response, "Should return a response");
       assert.equal(response.statusCode, 200);
       await response.body.json();
     });
@@ -367,7 +367,7 @@ describe("Requests util", () => {
         mockPool,
       );
 
-      assert.ok(response);
+      assert.ok(response, "Should return a response");
       assert.equal(response.statusCode, 200);
       await response.body.json();
     });
@@ -389,7 +389,7 @@ describe("Requests util", () => {
         mockPool,
       );
 
-      assert.ok(response);
+      assert.ok(response, "Should return a response");
       assert.equal(response.statusCode, 200);
       await response.body.json();
     });
@@ -443,7 +443,7 @@ describe("Requests util", () => {
       mockPool.intercept(baseInterceptorOptions).reply(200, {});
       const response = await postFormRequest(url, body, undefined, mockPool);
 
-      assert.ok(response);
+      assert.ok(response, "Should return a response");
       assert.equal(response.statusCode, 200);
       await response.body.json();
     });
@@ -465,7 +465,7 @@ describe("Requests util", () => {
         mockPool,
       );
 
-      assert.ok(response);
+      assert.ok(response, "Should return a response");
       assert.equal(response.statusCode, 200);
       await response.body.json();
     });
@@ -487,7 +487,7 @@ describe("Requests util", () => {
         mockPool,
       );
 
-      assert.ok(response);
+      assert.ok(response, "Should return a response");
       assert.equal(response.statusCode, 200);
       await response.body.json();
     });
@@ -540,7 +540,7 @@ describe("Requests util", () => {
       mockPool.intercept(baseInterceptorOptions).reply(200, "file content");
       await download(url, destination, undefined, mockPool);
 
-      assert.ok(exists(destination));
+      assert.ok(exists(destination), "Should create the file");
       assert.equal(await readUtf8File(destination), "file content");
     });
 

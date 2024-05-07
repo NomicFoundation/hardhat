@@ -133,8 +133,14 @@ describe("lang", () => {
       const areEqual = await deepEqual(obj1, obj2);
       const areNotEqual = await deepEqual(obj1, obj3);
 
-      assert.ok(areEqual);
-      assert.ok(!areNotEqual);
+      assert.ok(
+        areEqual,
+        `${JSON.stringify(obj1)} should equal ${JSON.stringify(obj2)}`,
+      );
+      assert.ok(
+        !areNotEqual,
+        `${JSON.stringify(obj1)} should not equal ${JSON.stringify(obj3)}`,
+      );
     });
 
     it("Should compare arrays correctly", async () => {
@@ -145,8 +151,14 @@ describe("lang", () => {
       const areEqual = await deepEqual(arr1, arr2);
       const areNotEqual = await deepEqual(arr1, arr3);
 
-      assert.ok(areEqual);
-      assert.ok(!areNotEqual);
+      assert.ok(
+        areEqual,
+        `${JSON.stringify(arr1)} should equal ${JSON.stringify(arr2)}`,
+      );
+      assert.ok(
+        !areNotEqual,
+        `${JSON.stringify(arr1)} should not equal ${JSON.stringify(arr3)}`,
+      );
     });
 
     it("Should compare strings correctly", async () => {
@@ -157,8 +169,8 @@ describe("lang", () => {
       const areEqual = await deepEqual(str1, str2);
       const areNotEqual = await deepEqual(str1, str3);
 
-      assert.ok(areEqual);
-      assert.ok(!areNotEqual);
+      assert.ok(areEqual, `${str1} should equal ${str2}`);
+      assert.ok(!areNotEqual, `${str1} should not equal ${str3}`);
     });
 
     it("Should compare numbers correctly", async () => {
@@ -169,8 +181,8 @@ describe("lang", () => {
       const areEqual = await deepEqual(num1, num2);
       const areNotEqual = await deepEqual(num1, num3);
 
-      assert.ok(areEqual);
-      assert.ok(!areNotEqual);
+      assert.ok(areEqual, `${num1} should equal ${num2}`);
+      assert.ok(!areNotEqual, `${num1} should not equal ${num3}`);
     });
 
     it("Should compare null values correctly", async () => {
@@ -181,8 +193,8 @@ describe("lang", () => {
       const areEqual = await deepEqual(n1, n2);
       const areNotEqual = await deepEqual(n1, n3);
 
-      assert.ok(areEqual);
-      assert.ok(!areNotEqual);
+      assert.ok(areEqual, `${n1} should equal ${n2}`);
+      assert.ok(!areNotEqual, `${n1} should not equal ${n3}`);
     });
 
     it("Should compare undefined values correctly", async () => {
@@ -193,8 +205,8 @@ describe("lang", () => {
       const areEqual = await deepEqual(u1, u2);
       const areNotEqual = await deepEqual(u1, u3);
 
-      assert.ok(areEqual);
-      assert.ok(!areNotEqual);
+      assert.ok(areEqual, `${u1} should equal ${u2}`);
+      assert.ok(!areNotEqual, `${u1} should not equal ${u3}`);
     });
 
     it("Should compare functions correctly", async () => {
@@ -205,8 +217,11 @@ describe("lang", () => {
       const areEqual = await deepEqual(fn1, fn2);
       const areNotEqual = await deepEqual(fn1, fn3);
 
-      assert.ok(areEqual);
-      assert.ok(!areNotEqual);
+      assert.ok(areEqual, `${fn1.toString()} should equal ${fn2.toString()}`);
+      assert.ok(
+        !areNotEqual,
+        `${fn1.toString()} should not equal ${fn3.toString()}`,
+      );
     });
 
     it("Should compare Dates correctly", async () => {
@@ -217,8 +232,14 @@ describe("lang", () => {
       const areEqual = await deepEqual(date1, date2);
       const areNotEqual = await deepEqual(date1, date3);
 
-      assert.ok(areEqual);
-      assert.ok(!areNotEqual);
+      assert.ok(
+        areEqual,
+        `${date1.toString()} should equal ${date2.toString()}`,
+      );
+      assert.ok(
+        !areNotEqual,
+        `${date1.toString()} should not equal ${date3.toString()}`,
+      );
     });
 
     it("Should compare Maps correctly", async () => {
@@ -238,8 +259,11 @@ describe("lang", () => {
       const areEqual = await deepEqual(map1, map2);
       const areNotEqual = await deepEqual(map1, map3);
 
-      assert.ok(areEqual);
-      assert.ok(!areNotEqual);
+      assert.ok(areEqual, `${map1.toString()} should equal ${map2.toString()}`);
+      assert.ok(
+        !areNotEqual,
+        `${map1.toString()} should not equal ${map3.toString()}`,
+      );
     });
 
     it("Should compare Sets correctly", async () => {
@@ -250,8 +274,11 @@ describe("lang", () => {
       const areEqual = await deepEqual(set1, set2);
       const areNotEqual = await deepEqual(set1, set3);
 
-      assert.ok(areEqual);
-      assert.ok(!areNotEqual);
+      assert.ok(areEqual, `${set1.toString()} should equal ${set2.toString()}`);
+      assert.ok(
+        !areNotEqual,
+        `${set1.toString()} should not equal ${set3.toString()}`,
+      );
     });
 
     it("Should compare Buffers correctly", async () => {
@@ -262,8 +289,14 @@ describe("lang", () => {
       const areEqual = await deepEqual(buffer1, buffer2);
       const areNotEqual = await deepEqual(buffer1, buffer3);
 
-      assert.ok(areEqual);
-      assert.ok(!areNotEqual);
+      assert.ok(
+        areEqual,
+        `${buffer1.toString()} should equal ${buffer2.toString()}`,
+      );
+      assert.ok(
+        !areNotEqual,
+        `${buffer1.toString()} should not equal ${buffer3.toString()}`,
+      );
     });
 
     it("Should compare arguments correctly", async () => {
@@ -277,8 +310,14 @@ describe("lang", () => {
       const areEqual = await deepEqual(args1, args2);
       const areNotEqual = await deepEqual(args1, args3);
 
-      assert.ok(areEqual);
-      assert.ok(!areNotEqual);
+      assert.ok(
+        areEqual,
+        `${args1.toString()} should equal ${args2.toString()}`,
+      );
+      assert.ok(
+        !areNotEqual,
+        `${args1.toString()} should not equal ${args3.toString()}`,
+      );
     });
 
     it("Should compare Errors correctly", async () => {
@@ -289,8 +328,14 @@ describe("lang", () => {
       const areEqual = await deepEqual(error1, error2);
       const areNotEqual = await deepEqual(error1, error3);
 
-      assert.ok(areEqual);
-      assert.ok(!areNotEqual);
+      assert.ok(
+        areEqual,
+        `${error1.toString()} should equal ${error2.toString()}`,
+      );
+      assert.ok(
+        !areNotEqual,
+        `${error1.toString()} should not equal ${error3.toString()}`,
+      );
     });
   });
 });

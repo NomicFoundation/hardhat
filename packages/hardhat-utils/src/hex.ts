@@ -172,7 +172,8 @@ export function unpadHexString(hexString: string): string {
 }
 
 /**
- * Pads a hexadecimal string with zeros on the left to a specified length.
+ * Pads a hexadecimal string with zeros on the left to a specified length, or
+ * truncates it from the left if it's too long.
  * This function does not validate the input.
  *
  * @param hexString The hexadecimal string to pad.
@@ -181,8 +182,12 @@ export function unpadHexString(hexString: string): string {
  */
 export function setLengthLeft(hexString: string, length: number): string {
   const unprefixedHexString = getUnprefixedHexString(hexString);
-  // TODO: should we truncate if the string is too long? that's the way it
-  // works for Uint8Array and it seems odd to have different behavior.
+
+  // if the string is longer than the desired length, truncate it
+  if (unprefixedHexString.length > length) {
+    return `0x${unprefixedHexString.slice(-length)}`;
+  }
+
   const paddedHexString = unprefixedHexString.padStart(length, "0");
   return `0x${paddedHexString}`;
 }

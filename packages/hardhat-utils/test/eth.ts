@@ -15,20 +15,41 @@ import {
 describe("eth", () => {
   describe("isAddress", () => {
     it("Should return true for valid addresses", () => {
-      assert.ok(isAddress("0x1234567890123456789012345678901234567890"));
-      assert.ok(isAddress("0xabcdefABCDEFabcdefABCDEFabcdefABCDEFabcd"));
-      assert.ok(isAddress("0x1234abcd5678ABCD9012efab3456CDEF7890abcd"));
+      assert.ok(
+        isAddress("0x1234567890123456789012345678901234567890"),
+        "An address with 40 numeric characters should be valid",
+      );
+      assert.ok(
+        isAddress("0xabcdefABCDEFabcdefABCDEFabcdefABCDEFabcd"),
+        "An address with 40 mixed-case characters should be valid",
+      );
+      assert.ok(
+        isAddress("0x1234abcd5678ABCD9012efab3456CDEF7890abcd"),
+        "An address with 40 mixed-case alphanumeric characters should be valid",
+      );
     });
 
     it("Should return false for invalid addresses", () => {
-      assert.ok(!isAddress("0x")); // zero address
-      assert.ok(!isAddress("0x0")); // zero address
-      assert.ok(!isAddress("")); // empty
-      assert.ok(!isAddress("0x00")); // zero address with extra 0
-      assert.ok(!isAddress("0x123456789012345678901234567890123456789")); // too short
-      assert.ok(!isAddress("0x12345678901234567890123456789012345678901")); // too long
-      assert.ok(!isAddress("0x12345678901234567890*234567890123456789g")); // invalid character
-      assert.ok(!isAddress("1234567890123456789012345678901234567890")); // missing prefix
+      assert.ok(!isAddress("0x"), "The 0x address is not valid"); // zero address
+      assert.ok(!isAddress("0x0"), "The 0x0 address is not valid"); // zero address
+      assert.ok(!isAddress(""), "An empty address is not valid"); // empty
+      assert.ok(!isAddress("0x00"), "The 0x00 address is not valid"); // zero address with extra 0
+      assert.ok(
+        !isAddress("0x123456789012345678901234567890123456789"),
+        "An address with less than 40 characters is not valid",
+      ); // too short
+      assert.ok(
+        !isAddress("0x12345678901234567890123456789012345678901"),
+        "An address with more than 40 characters is not valid",
+      ); // too long
+      assert.ok(
+        !isAddress("0x12345678901234567890*234567890123456789g"),
+        "An address with invalid characters is not valid",
+      ); // invalid character
+      assert.ok(
+        !isAddress("1234567890123456789012345678901234567890"),
+        "An address without the 0x prefix is not valid",
+      ); // missing prefix
     });
   });
 
@@ -38,43 +59,50 @@ describe("eth", () => {
         isHash(
           "0x1234567890123456789012345678901234567890123456789012345678901234",
         ),
+        "A hash with 64 numeric characters should be valid",
       );
       assert.ok(
         isHash(
           "0xabcdefABCDEFabcdefABCDEFabcdefABCDEFabcdefABCDEFabcdefABCDEFabcd",
         ),
+        "A hash with 64 mixed-case characters should be valid",
       );
       assert.ok(
         isHash(
           "0x1234abcd5678ABCD9012efab3456CDEF7890abcd1234abcd5678ABCD9012efab",
         ),
+        "A hash with 64 mixed-case alphanumeric characters should be valid",
       );
     });
 
     it("Should return false for invalid hashes", () => {
-      assert.ok(!isHash("0x")); // zero hash
-      assert.ok(!isHash("0x0")); // zero hash
-      assert.ok(!isHash("")); // empty
-      assert.ok(!isHash("0x00")); // zero hash with extra 0
+      assert.ok(!isHash("0x"), "The 0x hash is not valid"); // zero hash
+      assert.ok(!isHash("0x0"), "The 0x0 hash is not valid"); // zero hash
+      assert.ok(!isHash(""), "An empty hash is not valid"); // empty
+      assert.ok(!isHash("0x00"), "The 0x00 hash is not valid"); // zero hash with extra 0
       assert.ok(
         !isHash(
           "0x123456789012345678901234567890123456789012345678901234567890123",
         ),
+        "A hash with less than 64 characters is not valid",
       ); // too short
       assert.ok(
         !isHash(
           "0x12345678901234567890123456789012345678901234567890123456789012345",
         ),
+        "A hash with more than 64 characters is not valid",
       ); // too long
       assert.ok(
         !isHash(
           "0x12345678901234567890*2345678901234567890123456789012345678901234",
         ),
+        "A hash with invalid characters is not valid",
       ); // invalid character
       assert.ok(
         !isHash(
           "1234567890123456789012345678901234567890123456789012345678901234",
         ),
+        "A hash without the 0x prefix is not valid",
       ); // missing prefix
     });
   });
@@ -144,7 +172,7 @@ describe("eth", () => {
   describe("randomHash", () => {
     it("Should return a 66-character hexadecimal string", async () => {
       const hash = await randomHash();
-      assert.ok(isHash(hash));
+      assert.ok(isHash(hash), "Should be a valid hash");
       assert.equal(hash.length, 66); // account for the "0x" prefix
     });
   });
@@ -160,7 +188,7 @@ describe("eth", () => {
   describe("randomAddress", () => {
     it("Should return a 42-character hexadecimal string", async () => {
       const address = await randomAddress();
-      assert.ok(isAddress(address));
+      assert.ok(isAddress(address), "Should be a valid address");
       assert.equal(address.length, 42); // account for the "0x" prefix
     });
   });
