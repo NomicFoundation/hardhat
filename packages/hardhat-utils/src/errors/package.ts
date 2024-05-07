@@ -1,4 +1,4 @@
-import { CustomError } from "./custom-errors.js";
+import { CustomError } from "../error.js";
 
 export class PackageJsonNotFoundError extends CustomError {
   constructor(filePathOrUrl: string, cause?: Error) {

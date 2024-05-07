@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   numberToHexString,
-  hexStringToNumber,
+  hexStringToBigInt,
   bytesToHexString,
   hexStringToBytes,
   normalizeHexString,
@@ -74,49 +74,33 @@ describe("hex", () => {
 
   describe("hexStringToNumber", () => {
     it("Should convert a hexadecimal string to a number", () => {
-      assert.equal(hexStringToNumber("0x"), 0);
-      assert.equal(hexStringToNumber("0x0"), 0);
-      assert.equal(hexStringToNumber("0x1"), 1);
-      assert.equal(hexStringToNumber("0xf"), 15);
-      assert.equal(hexStringToNumber("0x10"), 16);
-      assert.equal(hexStringToNumber("0xff"), 255);
-      assert.equal(hexStringToNumber("0x100"), 256);
-      assert.equal(hexStringToNumber("0xffff"), 65535);
-      assert.equal(hexStringToNumber("0x10000"), 65536);
-      assert.equal(hexStringToNumber("0xffffffff"), 4294967295);
-      assert.equal(hexStringToNumber("0x100000000"), 4294967296);
-      assert.equal(
-        hexStringToNumber("0x1fffffffffffff"),
-        Number.MAX_SAFE_INTEGER,
-      );
-      assert.equal(
-        hexStringToNumber("0x20000000000000"),
-        BigInt(Number.MAX_SAFE_INTEGER) + 1n,
-      );
+      assert.equal(hexStringToBigInt("0x"), 0n);
+      assert.equal(hexStringToBigInt("0x0"), 0n);
+      assert.equal(hexStringToBigInt("0x1"), 1n);
+      assert.equal(hexStringToBigInt("0xf"), 15n);
+      assert.equal(hexStringToBigInt("0x10"), 16n);
+      assert.equal(hexStringToBigInt("0xff"), 255n);
+      assert.equal(hexStringToBigInt("0x100"), 256n);
+      assert.equal(hexStringToBigInt("0xffff"), 65535n);
+      assert.equal(hexStringToBigInt("0x10000"), 65536n);
+      assert.equal(hexStringToBigInt("0xffffffff"), 4294967295n);
+      assert.equal(hexStringToBigInt("0x100000000"), 4294967296n);
 
-      assert.equal(hexStringToNumber(""), 0);
-      assert.equal(hexStringToNumber("0"), 0);
-      assert.equal(hexStringToNumber("1"), 1);
-      assert.equal(hexStringToNumber("f"), 15);
-      assert.equal(hexStringToNumber("10"), 16);
-      assert.equal(hexStringToNumber("ff"), 255);
-      assert.equal(hexStringToNumber("100"), 256);
-      assert.equal(hexStringToNumber("ffff"), 65535);
-      assert.equal(hexStringToNumber("10000"), 65536);
-      assert.equal(hexStringToNumber("ffffffff"), 4294967295);
-      assert.equal(hexStringToNumber("100000000"), 4294967296);
-      assert.equal(
-        hexStringToNumber("1fffffffffffff"),
-        Number.MAX_SAFE_INTEGER,
-      );
-      assert.equal(
-        hexStringToNumber("20000000000000"),
-        BigInt(Number.MAX_SAFE_INTEGER) + 1n,
-      );
+      assert.equal(hexStringToBigInt(""), 0n);
+      assert.equal(hexStringToBigInt("0"), 0n);
+      assert.equal(hexStringToBigInt("1"), 1n);
+      assert.equal(hexStringToBigInt("f"), 15n);
+      assert.equal(hexStringToBigInt("10"), 16n);
+      assert.equal(hexStringToBigInt("ff"), 255n);
+      assert.equal(hexStringToBigInt("100"), 256n);
+      assert.equal(hexStringToBigInt("ffff"), 65535n);
+      assert.equal(hexStringToBigInt("10000"), 65536n);
+      assert.equal(hexStringToBigInt("ffffffff"), 4294967295n);
+      assert.equal(hexStringToBigInt("100000000"), 4294967296n);
     });
 
     it("Should throw InvalidParameterError if the input is not a hexadecimal string", () => {
-      assert.throws(() => hexStringToNumber("invalid"), {
+      assert.throws(() => hexStringToBigInt("invalid"), {
         name: "InvalidParameterError",
         message: "Expected a valid hexadecimal string. Received: invalid",
       });

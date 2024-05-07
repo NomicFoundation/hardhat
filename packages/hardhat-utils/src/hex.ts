@@ -1,4 +1,4 @@
-import { InvalidParameterError } from "./errors/custom-errors.js";
+import { InvalidParameterError } from "./common-errors.js";
 import { padToEven } from "./internal/hex.js";
 
 export type PrefixedHexString = `0x${string}`;
@@ -24,17 +24,17 @@ export function numberToHexString(value: number | bigint): PrefixedHexString {
 }
 
 /**
- * Converts a hexadecimal string to a number or bigint if the number is an
- * unsafe integer. The string must be a valid hexadecimal string. The string may
- * be prefixed with "0x" or not. The empty string is considered a valid
- * hexadecimal string, so is the string "0x" and will be converted to 0.
+ * Converts a hexadecimal string to a bigint. The string must be a valid
+ * hexadecimal string. The string may be prefixed with "0x" or not. The
+ * empty string is considered a valid hexadecimal string, so is the string
+ * "0x" and will be converted to 0.
  *
  * @param hexString The hexadecimal string to convert. It must be a valid
  * hexadecimal string.
- * @returns The number representation of the hexadecimal string.
+ * @returns The bigint representation of the hexadecimal string.
  * @throws InvalidParameterError If the input is not a hexadecimal string.
  */
-export function hexStringToNumber(hexString: string): number | bigint {
+export function hexStringToBigInt(hexString: string): bigint {
   if (!isHexString(hexString)) {
     throw new InvalidParameterError(
       `Expected a valid hexadecimal string. Received: ${hexString}`,
@@ -48,9 +48,6 @@ export function hexStringToNumber(hexString: string): number | bigint {
   prefixedHexString = prefixedHexString === "0x" ? "0x0" : prefixedHexString;
 
   const bigInt = BigInt(prefixedHexString);
-  if (bigInt <= Number.MAX_SAFE_INTEGER) {
-    return Number(bigInt);
-  }
 
   return bigInt;
 }
@@ -125,18 +122,6 @@ export function isHexStringPrefixed(hexString: string): boolean {
 }
 
 /**
- * Checks if a value is a hexadecimal string. The string may be prefixed with
- * "0x" or not. The empty string is considered a valid hexadecimal string, so
- * is the string "0x".
- *
- * @param value The value to check.
- * @returns True if the value is a hexadecimal string, false otherwise.
- */
-export function isHexString(value: unknown): boolean {
-  return typeof value === "string" && /^(?:0x)?[0-9a-f]*$/i.test(value);
-}
-
-/**
  * Removes the "0x" prefix from a hexadecimal string.
  * If the string is not prefixed, it is returned as is.
  * This function does not validate the input.
@@ -158,6 +143,18 @@ export function getUnprefixedHexString(hexString: string): string {
  */
 export function getPrefixedHexString(hexString: string): string {
   return isHexStringPrefixed(hexString) ? hexString : `0x${hexString}`;
+}
+
+/**
+ * Checks if a value is a hexadecimal string. The string may be prefixed with
+ * "0x" or not. The empty string is considered a valid hexadecimal string, so
+ * is the string "0x".
+ *
+ * @param value The value to check.
+ * @returns True if the value is a hexadecimal string, false otherwise.
+ */
+export function isHexString(value: unknown): boolean {
+  return typeof value === "string" && /^(?:0x)?[0-9a-f]*$/i.test(value);
 }
 
 /**

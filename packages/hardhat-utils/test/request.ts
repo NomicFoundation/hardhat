@@ -23,7 +23,7 @@ import {
   getBaseDispatcherOptions,
   getBaseRequestOptions,
 } from "../src/internal/request.js";
-import { ensureError } from "../src/errors/catch-utils.js";
+import { ensureError } from "../src/error.js";
 import {
   getTestDispatcherOptions,
   mockPool,

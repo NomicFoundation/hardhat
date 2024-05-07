@@ -4,7 +4,7 @@
  * @param value The value to check.
  * @returns True if the value is a Uint8Array, false otherwise.
  */
-export function isBytes(value: unknown): boolean {
+export function isBytes(value: unknown): value is Uint8Array {
   return value instanceof Uint8Array;
 }
 
@@ -37,5 +37,5 @@ export function equalsBytes(x: Uint8Array, y: Uint8Array): boolean {
   return x.length === y.length && x.every((xVal, i) => xVal === y[i]);
 }
 
-export { bytesToNumber, numberToBytes } from "./number.js";
+export { bytesToBigInt as bytesToNumber, numberToBytes } from "./number.js";
 export { bytesToHexString, hexStringToBytes } from "./hex.js";

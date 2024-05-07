@@ -6,7 +6,7 @@ import stream from "node:stream/promises";
 import EventEmitter from "node:events";
 import querystring from "node:querystring";
 
-import { ensureError } from "./errors/catch-utils.js";
+import { ensureError } from "./error.js";
 import {
   DownloadError,
   RequestError,
@@ -278,3 +278,9 @@ export function shouldUseProxy(url: string): boolean {
 
   return true;
 }
+
+export {
+  DownloadError,
+  RequestError,
+  DispatcherError,
+} from "./errors/request.js";

@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { ensureError } from "./errors/catch-utils.js";
+import { ensureError } from "./error.js";
 import {
   PackageJsonNotFoundError,
   PackageJsonReadError,
@@ -96,3 +96,8 @@ export async function findClosestPackageRoot(
 
   return path.dirname(packageJsonPath);
 }
+
+export {
+  PackageJsonNotFoundError,
+  PackageJsonReadError,
+} from "./errors/package.js";

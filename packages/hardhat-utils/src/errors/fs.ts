@@ -1,4 +1,4 @@
-import { CustomError } from "./custom-errors.js";
+import { CustomError } from "../error.js";
 
 // We use this error to encapsulate any other error possibly thrown by node's
 // fs apis, as sometimes their errors don't have stack traces.

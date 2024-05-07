@@ -1,8 +1,7 @@
 import fsPromises from "node:fs/promises";
 import path from "node:path";
 
-import { ensureError } from "./errors/catch-utils.js";
-import { assertHardhatUtilsInvariant } from "./errors/custom-errors.js";
+import { ensureError } from "./error.js";
 import {
   FileNotFoundError,
   FileSystemAccessError,
@@ -88,10 +87,6 @@ export async function getFileTrueCase(
 
   const segments = relativePath.split(path.sep);
   const nextDir = segments[0];
-  assertHardhatUtilsInvariant(
-    nextDir !== undefined,
-    "Splitting the path should always return at least one segment.",
-  );
   const nextDirLowerCase = nextDir.toLowerCase();
 
   for (const dirEntry of dirEntries) {
@@ -530,8 +525,12 @@ export async function emptyDir(absolutePath: string): Promise<void> {
  */
 export async function findUp(
   fileName: string,
-  from: string = process.cwd(),
+  from?: string,
 ): Promise<string | undefined> {
+  if (from === undefined) {
+    from = process.cwd();
+  }
+
   let currentDir = from;
   while (true) {
     const absolutePath = path.join(currentDir, fileName);
@@ -547,3 +546,14 @@ export async function findUp(
     currentDir = parentDir;
   }
 }
+
+export {
+  FileNotFoundError,
+  FileSystemAccessError,
+  InvalidFileFormatError,
+  JsonSerializationError,
+  FileAlreadyExistsError,
+  NotADirectoryError,
+  IsDirectoryError,
+  DirectoryNotEmptyError,
+} from "./errors/fs.js";

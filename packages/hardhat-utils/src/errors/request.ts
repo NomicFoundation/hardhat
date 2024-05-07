@@ -1,7 +1,7 @@
 import type UndiciT from "undici";
 
+import { CustomError } from "../error.js";
 import { sanitizeUrl } from "../internal/request.js";
-import { CustomError } from "./custom-errors.js";
 
 export class RequestError extends CustomError {
   constructor(url: string, type: UndiciT.Dispatcher.HttpMethod, cause?: Error) {
