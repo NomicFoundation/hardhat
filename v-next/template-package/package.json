@@ -23,8 +23,8 @@
     "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
-    "pretest": "cd ../.. && pnpm build",
     "test": "glob --cmd=\"node --import tsx/esm --test\" 'test/**/*.ts'",
+    "test:github": "glob --cmd=\"node --import tsx/esm --test --test-reporter=@reporters/github --test-reporter-destination=stdout --test-reporter=spec --test-reporter-destination=stdout\" 'test/**/*.ts'",
     "build": "tsc --build .",
     "prepublishOnly": "pnpm build",
     "clean": "rimraf dist"
@@ -39,6 +39,7 @@
   "devDependencies": {
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
+    "@reporters/github": "^1.7.0",
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
     "@typescript-eslint/parser": "^7.7.1",
