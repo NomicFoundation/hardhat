@@ -458,3 +458,11 @@ ${undetectableLibraries.map((x) => `  * ${x}`).join("\n")}`
 }`);
   }
 }
+
+export class ContractAlreadyVerifiedError extends HardhatVerifyError {
+  constructor(contractFQN: string, contractAddress: string) {
+    super(`The block explorer's API responded that the contract ${contractFQN} at ${contractAddress} is already verified.
+This can happen if you used the '--force' flag. However, re-verification of contracts might not be supported
+by the explorer (e.g., Etherscan), or the contract may have already been verified with a full match.`);
+  }
+}

@@ -67,6 +67,7 @@ describe("verify task", () => {
           ConstructorLib: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
         },
         contractFQN: "contracts/TestContract.sol:TestContract",
+        force: false,
       };
       const processedArgs = await this.hre.run(
         TASK_VERIFY_ETHERSCAN_RESOLVE_ARGUMENTS,
