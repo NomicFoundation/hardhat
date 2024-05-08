@@ -64,17 +64,21 @@ describe("pweb3", () => {
     assert.equal(await test.constantFunction(), 1);
   });
 
-  it("Should give the same result as calling web3 but promisified", (done) => {
-    web3.eth.getAccounts((error: Error | null, expectedAccounts?: string[]) => {
-      const promise = pweb3.eth.getAccounts();
-      assert.instanceOf(promise, Promise);
-      promise
-        .then(
-          (actualAccounts: string[]) =>
-            assert.deepEqual(actualAccounts, expectedAccounts),
-          (_pweb3Error: Error) => assert.instanceOf(error, Error)
-        )
-        .then(done);
+  it("Should give the same result as calling web3 but promisified", async () => {
+    const actualAccounts = await pweb3.eth.getAccounts();
+
+    return new Promise((resolve, reject) => {
+      web3.eth.getAccounts(
+        (error: Error | null, expectedAccounts?: string[]) => {
+          if (error !== null) {
+            reject(error);
+            return;
+          }
+
+          assert.deepEqual(actualAccounts, expectedAccounts);
+          resolve();
+        }
+      );
     });
   });
 });

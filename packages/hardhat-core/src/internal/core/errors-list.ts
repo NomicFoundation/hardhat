@@ -1020,6 +1020,13 @@ If you are running MacOS, try installing Apple Rosetta.
 If this error persists, run "npx hardhat clean --global".`,
       shouldBeReported: false,
     },
+    SOLCJS_ERROR: {
+      number: 506,
+      message: "Error running solcjs: %error%",
+      title: "Error running solcjs",
+      description: `There was an error while running the solcjs compiler.`,
+      shouldBeReported: false,
+    },
   },
   BUILTIN_TASKS: {
     COMPILE_FAILURE: {
