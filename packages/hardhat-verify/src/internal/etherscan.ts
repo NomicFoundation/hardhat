@@ -311,6 +311,7 @@ class EtherscanResponse implements ValidationResponse {
       // returned by blockscout
       this.message.startsWith("Smart-contract already verified") ||
       // returned by etherscan
+      this.message.startsWith("Contract source code already verified") ||
       this.message.startsWith("Already Verified")
     );
   }
