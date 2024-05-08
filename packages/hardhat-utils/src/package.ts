@@ -41,6 +41,10 @@ export async function findClosestPackageJson(
 ): Promise<string> {
   const filePath = getFilePath(filePathOrUrl);
 
+  if (filePath === undefined) {
+    throw new PackageJsonNotFoundError(filePathOrUrl);
+  }
+
   const packageJsonPath = await findUp("package.json", path.dirname(filePath));
 
   if (packageJsonPath === undefined) {
