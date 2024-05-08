@@ -43,7 +43,7 @@
     "build": "tsc --build --force --incremental .",
     "build:tracing": "tsc --build --force --incremental .",
     "prepublishOnly": "pnpm build",
-    "clean": "rimraf builtin-tasks internal types utils *.d.ts *.map *.js build-test tsconfig.tsbuildinfo test/internal/hardhat-network/provider/.hardhat_node_test_cache test/internal/hardhat-network/stack-traces/test-files/artifacts"
+    "clean": "rimraf builtin-tasks internal types utils *.d.ts *.map *.js build-test tsconfig.tsbuildinfo test/internal/hardhat-network/stack-traces/test-files/artifacts"
   },
   "files": [
     "builtin-tasks/",
