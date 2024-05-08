@@ -1,4 +1,4 @@
-import { execFile } from "child_process";
+import { execFile, fork } from "child_process";
 import * as fs from "fs";
 import os from "node:os";
 import path from "node:path";
@@ -12,61 +12,40 @@ export interface ICompiler {
 }
 
 export class Compiler implements ICompiler {
-  private _loadedSolc?: any;
-
   constructor(private _pathToSolcJs: string) {}
 
   public async compile(input: CompilerInput) {
-    const solc = await this.getSolc();
+    const scriptPath = path.join(__dirname, "./solcjs-runner.js");
 
-    const jsonOutput = solc.compile(JSON.stringify(input));
-    return JSON.parse(jsonOutput);
-  }
+    const subprocess = fork(scriptPath, [this._pathToSolcJs], {
+      stdio: "pipe",
+    });
 
-  public async getSolc() {
-    if (this._loadedSolc !== undefined) {
-      return this._loadedSolc;
-    }
+    subprocess.stdin!.write(JSON.stringify(input));
+    subprocess.stdin!.end();
 
-    const solcWrapper = require("solc/wrapper");
-    this._loadedSolc = solcWrapper(
-      this._loadCompilerSources(this._pathToSolcJs)
-    );
+    let stdout = "";
+    let stderr = "";
 
-    return this._loadedSolc;
-  }
+    subprocess.stdout!.on("data", (data) => {
+      stdout += data;
+    });
 
-  /**
-   * This function loads the compiler sources bypassing any require hook.
-   *
-   * The compiler is a huge asm.js file, and using a simple require may trigger
-   * babel/register and hang the process.
-   */
-  private _loadCompilerSources(compilerPath: string) {
-    const Module = module.constructor as any;
+    subprocess.stderr!.on("data", (data) => {
+      stderr += data;
+    });
 
-    // if Hardhat is bundled (for example, in the vscode extension), then
-    // Module._extenions might be undefined. In that case, we just use a plain
-    // require.
-    if (Module._extensions === undefined) {
-      return require(compilerPath);
-    }
+    const output = await new Promise<string>((resolve, reject) => {
+      subprocess.on("exit", (code) => {
+        if (code === 0) {
+          resolve(stdout);
+        } else {
+          reject(new HardhatError(ERRORS.SOLC.SOLCJS_ERROR, { error: stderr }));
+        }
+      });
+    });
 
-    const previousHook = Module._extensions[".js"];
-
-    Module._extensions[".js"] = function (
-      module: NodeJS.Module,
-      filename: string
-    ) {
-      const content = fs.readFileSync(filename, "utf8");
-      Object.getPrototypeOf(module)._compile.call(module, content, filename);
-    };
-
-    const loadedSolc = require(compilerPath);
-
-    Module._extensions[".js"] = previousHook;
-
-    return loadedSolc;
+    return JSON.parse(output);
   }
 }
 

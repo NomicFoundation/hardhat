@@ -30,6 +30,7 @@
     "pretest": "cd ../.. && pnpm build",
     "test": "mocha --recursive \"test/**/*.ts\" --exclude \"test/internal/hardhat-network/**/*.ts\"",
     "build": "tsc --build .",
+    "postbuild": "cp src/internal/solidity/compiler/solcjs-runner.js internal/solidity/compiler/solcjs-runner.js",
     "prepublishOnly": "pnpm build",
     "clean": "rimraf builtin-tasks internal types utils *.d.ts *.map *.js build-test tsconfig.tsbuildinfo test/internal/hardhat-network/provider/.hardhat_node_test_cache test/internal/hardhat-network/stack-traces/test-files/artifacts"
   },
