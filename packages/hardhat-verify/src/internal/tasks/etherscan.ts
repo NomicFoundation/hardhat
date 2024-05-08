@@ -105,8 +105,8 @@ subtask(TASK_VERIFY_ETHERSCAN)
     const isVerified = await etherscan.isVerified(address);
     if (!force && isVerified) {
       const contractURL = etherscan.getContractUrl(address);
-      console.log(`The contract ${address} has already been verified on the block explorer.
-${contractURL}. If you're trying to verify a partially verified contract, please use the --force flag.`);
+      console.log(`The contract ${address} has already been verified on the block explorer. If you're trying to verify a partially verified contract, please use the --force flag.
+${contractURL}`);
       return;
     }
 
