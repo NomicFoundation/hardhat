@@ -12,8 +12,6 @@ import {
   CallStrategyGenerator,
   DeploymentStrategyGenerator,
   ExecutionStrategy,
-  OnchainInteractionResponseType,
-  SIMULATION_SUCCESS_SIGNAL_TYPE,
 } from "../../types/execution-strategy";
 import {
   CallExecutionStateCompleteMessage,
@@ -23,6 +21,7 @@ import {
   TransactionSendMessage,
 } from "../../types/messages";
 import { NetworkInteractionType } from "../../types/network-interaction";
+import { decodeSimulationResult } from "../helpers/decode-simulation-result";
 import { createExecutionStateCompleteMessageForExecutionsWithOnchainInteractions } from "../helpers/messages-helpers";
 import {
   TRANSACTION_SENT_TYPE,
@@ -87,27 +86,8 @@ export async function sendTransaction(
     jsonRpcClient,
     exState.from,
     lastNetworkInteraction,
-    async (_sender: string) => nonceManager.getNextNonce(_sender),
-    async (simulationResult) => {
-      const response = await strategyGenerator.next({
-        type: OnchainInteractionResponseType.SIMULATION_RESULT,
-        result: simulationResult,
-      });
-
-      assertIgnitionInvariant(
-        response.value.type === SIMULATION_SUCCESS_SIGNAL_TYPE ||
-          response.value.type ===
-            ExecutionResultType.STRATEGY_SIMULATION_ERROR ||
-          response.value.type === ExecutionResultType.SIMULATION_ERROR,
-        `Invalid response received from strategy after a simulation was run before sending a transaction for ExecutionState ${exState.id}`
-      );
-
-      if (response.value.type === SIMULATION_SUCCESS_SIGNAL_TYPE) {
-        return undefined;
-      }
-
-      return response.value;
-    }
+    nonceManager,
+    decodeSimulationResult(strategyGenerator, exState)
   );
 
   // If the transaction failed during simulation, we need to revert the nonce allocation

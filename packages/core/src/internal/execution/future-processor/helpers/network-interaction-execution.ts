@@ -5,8 +5,11 @@
  * @file
  */
 
+import { IgnitionError } from "../../../../errors";
+import { ERRORS } from "../../../errors-list";
 import { assertIgnitionInvariant } from "../../../utils/assertions";
 import { JsonRpcClient, TransactionParams } from "../../jsonrpc-client";
+import { NonceManager } from "../../nonce-management/json-rpc-nonce-manager";
 import {
   SimulationErrorExecutionResult,
   StrategySimulationErrorExecutionResult,
@@ -96,7 +99,7 @@ export async function sendTransactionForOnchainInteraction(
   client: JsonRpcClient,
   sender: string,
   onchainInteraction: OnchainInteraction,
-  getNonce: (sender: string) => Promise<number>,
+  nonceManager: NonceManager,
   decodeSimulationResult: (
     simulationResult: RawStaticCallResult
   ) => Promise<
@@ -113,7 +116,8 @@ export async function sendTransactionForOnchainInteraction(
       nonce: number;
     }
 > {
-  const nonce = onchainInteraction.nonce ?? (await getNonce(sender));
+  const nonce =
+    onchainInteraction.nonce ?? (await nonceManager.getNextNonce(sender));
   const fees = await getNextTransactionFees(client, onchainInteraction);
 
   // TODO: Should we check the balance here? Before or after estimating gas?
@@ -140,10 +144,6 @@ export async function sendTransactionForOnchainInteraction(
 
     // If the gas estimation failed, we simulate the transaction to get information
     // about why it failed.
-    //
-    // TODO: We are catching every error (e.g. network errors) here, which may be
-    // too broad and make the assertion below fail. We could try to catch only
-    // estimation errors.
     const failedEstimateGasSimulationResult = await client.call(
       paramsWithoutFees,
       "pending"
@@ -153,12 +153,35 @@ export async function sendTransactionForOnchainInteraction(
       failedEstimateGasSimulationResult
     );
 
+    if (decoded !== undefined) {
+      return decoded;
+    }
+
+    // this is just for type inference
     assertIgnitionInvariant(
-      decoded !== undefined,
-      "Expected failed simulation after having failed to estimate gas"
+      error instanceof Error,
+      "Unexpected error type while resolving failed gas estimation"
     );
 
-    return decoded;
+    // If the user has tried to transfer funds (i.e. m.send(...)) and they have insufficient funds
+    if (/insufficient funds for transfer/.test(error.message)) {
+      throw new IgnitionError(
+        ERRORS.EXECUTION.INSUFFICIENT_FUNDS_FOR_TRANSFER,
+        { sender, amount: estimateGasPrams.value.toString() }
+      );
+    }
+    // if the user has insufficient funds to deploy the contract they're trying to deploy
+    else if (/contract creation code storage out of gas/.test(error.message)) {
+      throw new IgnitionError(ERRORS.EXECUTION.INSUFFICIENT_FUNDS_FOR_DEPLOY, {
+        sender,
+      });
+    }
+    // catch-all error for all other errors
+    else {
+      throw new IgnitionError(ERRORS.EXECUTION.GAS_ESTIMATION_FAILED, {
+        error: error.message,
+      });
+    }
   }
 
   const transactionParams: TransactionParams = {

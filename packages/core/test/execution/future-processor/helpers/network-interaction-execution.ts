@@ -4,7 +4,12 @@ import {
   GetTransactionRetryConfig,
   monitorOnchainInteraction,
 } from "../../../../src/internal/execution/future-processor/handlers/monitor-onchain-interaction";
-import { runStaticCall } from "../../../../src/internal/execution/future-processor/helpers/network-interaction-execution";
+import { decodeSimulationResult } from "../../../../src/internal/execution/future-processor/helpers/decode-simulation-result";
+import {
+  TRANSACTION_SENT_TYPE,
+  runStaticCall,
+  sendTransactionForOnchainInteraction,
+} from "../../../../src/internal/execution/future-processor/helpers/network-interaction-execution";
 import {
   Block,
   CallParams,
@@ -12,13 +17,22 @@ import {
   JsonRpcClient,
   TransactionParams,
 } from "../../../../src/internal/execution/jsonrpc-client";
+import { NonceManager } from "../../../../src/internal/execution/nonce-management/json-rpc-nonce-manager";
 import { TransactionTrackingTimer } from "../../../../src/internal/execution/transaction-tracking-timer";
+import { EvmExecutionResultTypes } from "../../../../src/internal/execution/types/evm-execution";
 import {
+  ExecutionResultType,
+  SimulationErrorExecutionResult,
+} from "../../../../src/internal/execution/types/execution-result";
+import {
+  CallExecutionState,
   DeploymentExecutionState,
   ExecutionSateType,
   ExecutionStatus,
 } from "../../../../src/internal/execution/types/execution-state";
+import { CallStrategyGenerator } from "../../../../src/internal/execution/types/execution-strategy";
 import {
+  EIP1559NetworkFees,
   NetworkFees,
   RawStaticCallResult,
   Transaction,
@@ -28,6 +42,7 @@ import {
 import { JournalMessageType } from "../../../../src/internal/execution/types/messages";
 import {
   NetworkInteractionType,
+  OnchainInteraction,
   StaticCall,
 } from "../../../../src/internal/execution/types/network-interaction";
 import { FutureType } from "../../../../src/types/module";
@@ -282,59 +297,442 @@ describe("Network interactions", () => {
 
   describe("sendTransactionForOnchainInteraction", () => {
     describe("First transaction", () => {
-      it("Should allocate a nonce for the onchain interaction's sender", async () => {
-        // TODO @alcuadrado
-      });
+      class MockJsonRpcClient extends StubJsonRpcClient {
+        public async getNetworkFees(): Promise<NetworkFees> {
+          return {
+            maxFeePerGas: 0n,
+            maxPriorityFeePerGas: 0n,
+          };
+        }
+
+        public async estimateGas(
+          _transactionParams: EstimateGasParams
+        ): Promise<bigint> {
+          return 0n;
+        }
+
+        public async call(
+          _callParams: CallParams,
+          _blockTag: "latest" | "pending"
+        ): Promise<RawStaticCallResult> {
+          return {
+            customErrorReported: false,
+            returnData: "0x",
+            success: true,
+          };
+        }
+
+        public async sendTransaction(
+          _transactionParams: TransactionParams
+        ): Promise<string> {
+          return "0x1234";
+        }
+      }
+
+      class MockNonceManager implements NonceManager {
+        public calls: Record<string, number> = {};
+
+        public async getNextNonce(_address: string): Promise<number> {
+          this.calls[_address] = this.calls[_address] ?? 0;
+          this.calls[_address] += 1;
+          return this.calls[_address] - 1;
+        }
+
+        public revertNonce(_sender: string): void {
+          throw new Error("Method not implemented.");
+        }
+      }
 
       it("Should use the recommended network fees", async () => {
-        // TODO @alcuadrado
+        class LocalMockJsonRpcClient extends MockJsonRpcClient {
+          public storedFees: EIP1559NetworkFees = {} as EIP1559NetworkFees;
+
+          public async getNetworkFees(): Promise<NetworkFees> {
+            return {
+              maxFeePerGas: 100n,
+              maxPriorityFeePerGas: 50n,
+            };
+          }
+
+          public async sendTransaction(
+            _transactionParams: TransactionParams
+          ): Promise<string> {
+            this.storedFees = _transactionParams.fees as EIP1559NetworkFees;
+            return "0x1234";
+          }
+        }
+
+        const client = new LocalMockJsonRpcClient();
+        const nonceManager = new MockNonceManager();
+
+        const onchainInteraction: OnchainInteraction = {
+          to: exampleAccounts[1],
+          data: "0x",
+          value: 0n,
+          id: 1,
+          type: NetworkInteractionType.ONCHAIN_INTERACTION,
+          transactions: [],
+          shouldBeResent: false,
+        };
+
+        await sendTransactionForOnchainInteraction(
+          client,
+          exampleAccounts[0],
+          onchainInteraction,
+          nonceManager,
+          async () => undefined
+        );
+
+        assert.equal(client.storedFees.maxFeePerGas, 100n);
+        assert.equal(client.storedFees.maxPriorityFeePerGas, 50n);
+      });
+
+      describe("When allocating a nonce", () => {
+        it("Should allocate a nonce when the onchainInteraction doesn't have one", async () => {
+          const client = new MockJsonRpcClient();
+          const nonceManager = new MockNonceManager();
+
+          const onchainInteraction: OnchainInteraction = {
+            to: exampleAccounts[1],
+            data: "0x",
+            value: 0n,
+            id: 1,
+            type: NetworkInteractionType.ONCHAIN_INTERACTION,
+            transactions: [],
+            shouldBeResent: false,
+          };
+
+          await sendTransactionForOnchainInteraction(
+            client,
+            exampleAccounts[0],
+            onchainInteraction,
+            nonceManager,
+            async () => undefined
+          );
+
+          assert.equal(nonceManager.calls[exampleAccounts[0]], 1);
+        });
+
+        it("Should use the onchainInteraction nonce if present", async () => {
+          class LocalMockJsonRpcClient extends MockJsonRpcClient {
+            public storedNonce: number | undefined;
+
+            public async sendTransaction(
+              _transactionParams: TransactionParams
+            ): Promise<string> {
+              this.storedNonce = _transactionParams.nonce;
+              return "0x1234";
+            }
+          }
+
+          const client = new LocalMockJsonRpcClient();
+          const nonceManager = new MockNonceManager();
+
+          const onchainInteraction: OnchainInteraction = {
+            to: exampleAccounts[1],
+            data: "0x",
+            value: 0n,
+            nonce: 5,
+            id: 1,
+            type: NetworkInteractionType.ONCHAIN_INTERACTION,
+            transactions: [],
+            shouldBeResent: false,
+          };
+
+          await sendTransactionForOnchainInteraction(
+            client,
+            exampleAccounts[0],
+            onchainInteraction,
+            nonceManager,
+            async () => undefined
+          );
+
+          assert.equal(nonceManager.calls[exampleAccounts[0]], undefined);
+          assert.equal(client.storedNonce, 5);
+        });
       });
 
       describe("When the gas estimation succeeds", () => {
         describe("When the simulation fails", () => {
           it("Should return the decoded simulation error", async () => {
-            // TODO @alcuadrado
+            class LocalMockJsonRpcClient extends MockJsonRpcClient {
+              public async call(
+                _callParams: CallParams,
+                _blockTag: "latest" | "pending"
+              ): Promise<RawStaticCallResult> {
+                return {
+                  customErrorReported: true,
+                  returnData: "0x1111",
+                  success: false,
+                };
+              }
+            }
+
+            const client = new LocalMockJsonRpcClient();
+            const nonceManager = new MockNonceManager();
+
+            const onchainInteraction: OnchainInteraction = {
+              to: exampleAccounts[1],
+              data: "0x",
+              value: 0n,
+              id: 1,
+              type: NetworkInteractionType.ONCHAIN_INTERACTION,
+              transactions: [],
+              shouldBeResent: false,
+            };
+
+            const mockStrategyGenerator = {
+              next(): { value: SimulationErrorExecutionResult } {
+                return {
+                  value: {
+                    type: ExecutionResultType.SIMULATION_ERROR,
+                    error: {
+                      type: EvmExecutionResultTypes.REVERT_WITH_REASON,
+                      message: "mock error",
+                    },
+                  },
+                };
+              },
+            } as unknown as CallStrategyGenerator;
+
+            const mockExecutionState = {
+              id: "test",
+            } as unknown as CallExecutionState;
+
+            const result = await sendTransactionForOnchainInteraction(
+              client,
+              exampleAccounts[0],
+              onchainInteraction,
+              nonceManager,
+              decodeSimulationResult(mockStrategyGenerator, mockExecutionState)
+            );
+
+            // type casting
+            if (
+              result.type !== ExecutionResultType.SIMULATION_ERROR ||
+              result.error.type !== EvmExecutionResultTypes.REVERT_WITH_REASON
+            ) {
+              return assert.fail("Unexpected result type");
+            }
+
+            assert.equal(result.error.message, "mock error");
           });
         });
 
         describe("When the simulation succeeds", () => {
           it("Should send the transaction and return its hash and nonce", async () => {
-            // TODO @alcuadrado
+            const client = new MockJsonRpcClient();
+            const nonceManager = new MockNonceManager();
+
+            const onchainInteraction: OnchainInteraction = {
+              to: exampleAccounts[1],
+              data: "0x",
+              value: 0n,
+              id: 1,
+              type: NetworkInteractionType.ONCHAIN_INTERACTION,
+              transactions: [],
+              shouldBeResent: false,
+            };
+
+            const result = await sendTransactionForOnchainInteraction(
+              client,
+              exampleAccounts[0],
+              onchainInteraction,
+              nonceManager,
+              async () => undefined
+            );
+
+            // type casting
+            if (result.type !== TRANSACTION_SENT_TYPE) {
+              return assert.fail("Unexpected result type");
+            }
+
+            assert.equal(result.nonce, 0);
+            assert.equal(result.transaction.hash, "0x1234");
           });
         });
       });
 
       describe("When the gas estimation fails", () => {
+        class LocalMockJsonRpcClient extends MockJsonRpcClient {
+          public errorMessage: string = "testing failure case";
+
+          constructor(_errorMessage?: string) {
+            super();
+            this.errorMessage = _errorMessage ?? this.errorMessage;
+          }
+
+          public async estimateGas(
+            _transactionParams: EstimateGasParams
+          ): Promise<bigint> {
+            throw new Error(this.errorMessage);
+          }
+
+          public async call(
+            _callParams: CallParams,
+            _blockTag: "latest" | "pending"
+          ): Promise<RawStaticCallResult> {
+            return {
+              customErrorReported: true,
+              returnData: "0x1111",
+              success: false,
+            };
+          }
+        }
+
         describe("When the simulation fails", () => {
           it("Should return the decoded simulation error", async () => {
-            // TODO @alcuadrado
+            const client = new LocalMockJsonRpcClient();
+            const nonceManager = new MockNonceManager();
+
+            const onchainInteraction: OnchainInteraction = {
+              to: exampleAccounts[1],
+              data: "0x",
+              value: 0n,
+              id: 1,
+              type: NetworkInteractionType.ONCHAIN_INTERACTION,
+              transactions: [],
+              shouldBeResent: false,
+            };
+
+            const mockStrategyGenerator = {
+              next(): { value: SimulationErrorExecutionResult } {
+                return {
+                  value: {
+                    type: ExecutionResultType.SIMULATION_ERROR,
+                    error: {
+                      type: EvmExecutionResultTypes.REVERT_WITH_REASON,
+                      message: "mock error",
+                    },
+                  },
+                };
+              },
+            } as unknown as CallStrategyGenerator;
+
+            const mockExecutionState = {
+              id: "test",
+            } as unknown as CallExecutionState;
+
+            const result = await sendTransactionForOnchainInteraction(
+              client,
+              exampleAccounts[0],
+              onchainInteraction,
+              nonceManager,
+              decodeSimulationResult(mockStrategyGenerator, mockExecutionState)
+            );
+
+            // type casting
+            if (
+              result.type !== ExecutionResultType.SIMULATION_ERROR ||
+              result.error.type !== EvmExecutionResultTypes.REVERT_WITH_REASON
+            ) {
+              return assert.fail("Unexpected result type");
+            }
+
+            assert.equal(result.error.message, "mock error");
           });
         });
 
         describe("When the simulation succeeds", () => {
-          it("Should hit an invariant violation", async () => {
-            // TODO @alcuadrado
+          describe("When there are insufficient funds for a transfer", () => {
+            it("Should throw an error", async () => {
+              const client = new LocalMockJsonRpcClient(
+                "insufficient funds for transfer"
+              );
+              const nonceManager = new MockNonceManager();
+
+              const onchainInteraction: OnchainInteraction = {
+                to: exampleAccounts[1],
+                data: "0x",
+                value: 0n,
+                id: 1,
+                type: NetworkInteractionType.ONCHAIN_INTERACTION,
+                transactions: [],
+                shouldBeResent: false,
+              };
+
+              await assert.isRejected(
+                sendTransactionForOnchainInteraction(
+                  client,
+                  exampleAccounts[0],
+                  onchainInteraction,
+                  nonceManager,
+                  async () => undefined
+                ),
+                /^IGN408/
+              );
+            });
+          });
+
+          describe("When there are insufficient funds for a deployment", () => {
+            it("Should throw an error", async () => {
+              const client = new LocalMockJsonRpcClient(
+                "contract creation code storage out of gas"
+              );
+              const nonceManager = new MockNonceManager();
+
+              const onchainInteraction: OnchainInteraction = {
+                to: exampleAccounts[1],
+                data: "0x",
+                value: 0n,
+                id: 1,
+                type: NetworkInteractionType.ONCHAIN_INTERACTION,
+                transactions: [],
+                shouldBeResent: false,
+              };
+
+              await assert.isRejected(
+                sendTransactionForOnchainInteraction(
+                  client,
+                  exampleAccounts[0],
+                  onchainInteraction,
+                  nonceManager,
+                  async () => undefined
+                ),
+                /^IGN409/
+              );
+            });
+          });
+
+          describe("When the gas estimation fails for any other reason", () => {
+            it("Should throw an error", async () => {
+              const client = new LocalMockJsonRpcClient("unknown error");
+              const nonceManager = new MockNonceManager();
+
+              const onchainInteraction: OnchainInteraction = {
+                to: exampleAccounts[1],
+                data: "0x",
+                value: 0n,
+                id: 1,
+                type: NetworkInteractionType.ONCHAIN_INTERACTION,
+                transactions: [],
+                shouldBeResent: false,
+              };
+
+              await assert.isRejected(
+                sendTransactionForOnchainInteraction(
+                  client,
+                  exampleAccounts[0],
+                  onchainInteraction,
+                  nonceManager,
+                  async () => undefined
+                ),
+                /^IGN410/
+              );
+            });
           });
         });
       });
     });
+  });
 
-    describe("Follow up transaction", () => {
-      it("Should reuse the nonce that the onchain interaction has, and not allocate a new one", async () => {
-        // TODO @alcuadrado
-      });
+  describe("getNextTransactionFees", () => {
+    it("Should bump fees and also take recommended network fees into account", async () => {
+      // TODO @zoeyTM
+    });
 
-      it("Should bump fees and also take recommended network fees into account", async () => {
-        // TODO @alcuadrado
-      });
-
-      it("Should re-estimate the gas limit", async () => {
-        // TODO @alcuadrado
-      });
-
-      it("Should run a new simulation", async () => {
-        // TODO @alcuadrado
-      });
+    it("Should re-estimate the gas limit", async () => {
+      // TODO @zoeyTM
     });
   });
 });

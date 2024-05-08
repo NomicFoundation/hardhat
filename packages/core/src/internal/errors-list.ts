@@ -183,6 +183,19 @@ export const ERRORS = {
       number: 407,
       message: "The calculated max fee per gas exceeds the configured limit.",
     },
+    INSUFFICIENT_FUNDS_FOR_TRANSFER: {
+      number: 408,
+      message:
+        "Account %sender% has insufficient funds to transfer %amount% wei",
+    },
+    INSUFFICIENT_FUNDS_FOR_DEPLOY: {
+      number: 409,
+      message: "Account %sender% has insufficient funds to deploy the contract",
+    },
+    GAS_ESTIMATION_FAILED: {
+      number: 410,
+      message: "Gas estimation failed: %error%",
+    },
   },
   RECONCILIATION: {
     INVALID_EXECUTION_STATUS: {

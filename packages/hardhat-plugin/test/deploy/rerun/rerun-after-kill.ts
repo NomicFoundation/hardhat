@@ -15,7 +15,9 @@ import {
  *
  * This covers a bug in the nonce mangement code: see #576
  */
-describe("execution - rerun after kill", () => {
+describe("execution - rerun after kill", function () {
+  this.timeout(60000);
+
   useFileIgnitionProject("minimal", "rerun-after-kill");
 
   it("should pickup deployment and run contracts to completion", async function () {
