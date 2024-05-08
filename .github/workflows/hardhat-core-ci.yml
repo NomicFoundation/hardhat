@@ -98,12 +98,12 @@ jobs:
       - name: Install package
         run: pnpm install --frozen-lockfile --prefer-offline
 
-      - name: Cache network requests
+      - name: Cache stack trace artifacts
         uses: actions/cache@v2
         with:
           path: |
-            packages/hardhat-core/test/internal/hardhat-network/provider/.hardhat_node_test_cache
-          key: hardhat-network-forking-tests-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/provider/node.ts') }}
+            packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/artifacts
+          key: hardhat-network-stack-traces-tests-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/*.sol') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/test.json') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/**/*.ts') }}
 
       - name: Build
         run: pnpm build
