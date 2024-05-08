@@ -1,8 +1,6 @@
 name: hardhat-core CI
 
-# Note: this workflow uses `macos-13` because the CI doesn't work well with
-# `macos-latest` as its now arm, so it defaults to `solcjs` instead of native `solc`
-# making things slower, leading to timeouts
+# Note: this workflow uses `macos-13` to use x86
 
 on:
   push:
@@ -99,11 +97,11 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Cache stack trace artifacts
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/artifacts
-          key: hardhat-network-stack-traces-tests-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/*.sol') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/test.json') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/**/*.ts') }}
+          key: hardhat-network-stack-traces-tests-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/*.sol') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/test.json') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/**/*.ts') }}-v4
 
       - name: Build
         run: pnpm build
@@ -148,13 +146,6 @@ jobs:
 
       - name: Install package
         run: pnpm install --frozen-lockfile --prefer-offline
-
-      - name: Cache stack trace artifacts
-        uses: actions/cache@v2
-        with:
-          path: |
-            packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/artifacts
-          key: hardhat-network-stack-traces-tests-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/*.sol') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/test.json') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/**/*.ts') }}
 
       - name: Cache EDR RPC cache
         uses: actions/cache@v2
