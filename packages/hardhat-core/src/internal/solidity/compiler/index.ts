@@ -1,4 +1,4 @@
-import { execFile, fork } from "child_process";
+import { execFile } from "child_process";
 import * as fs from "fs";
 import os from "node:os";
 import path from "node:path";
@@ -17,32 +17,31 @@ export class Compiler implements ICompiler {
   public async compile(input: CompilerInput) {
     const scriptPath = path.join(__dirname, "./solcjs-runner.js");
 
-    const subprocess = fork(scriptPath, [this._pathToSolcJs], {
-      stdio: "pipe",
-    });
+    const output: string = await new Promise((resolve, reject) => {
+      try {
+        const subprocess = execFile(
+          process.execPath,
+          [scriptPath, this._pathToSolcJs],
+          {
+            maxBuffer: 1024 * 1024 * 500,
+          },
+          (err, stdout) => {
+            if (err !== null) {
+              return reject(err);
+            }
+            resolve(stdout);
+          }
+        );
 
-    subprocess.stdin!.write(JSON.stringify(input));
-    subprocess.stdin!.end();
-
-    let stdout = "";
-    let stderr = "";
-
-    subprocess.stdout!.on("data", (data) => {
-      stdout += data;
-    });
-
-    subprocess.stderr!.on("data", (data) => {
-      stderr += data;
-    });
-
-    const output = await new Promise<string>((resolve, reject) => {
-      subprocess.on("exit", (code) => {
-        if (code === 0) {
-          resolve(stdout);
-        } else {
-          reject(new HardhatError(ERRORS.SOLC.SOLCJS_ERROR, { error: stderr }));
-        }
-      });
+        subprocess.stdin!.write(JSON.stringify(input));
+        subprocess.stdin!.end();
+      } catch (e: any) {
+        throw new HardhatError(
+          ERRORS.SOLC.SOLCJS_ERROR,
+          { error: e.message },
+          e
+        );
+      }
     });
 
     return JSON.parse(output);
