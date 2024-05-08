@@ -38,6 +38,7 @@
     "pretest:tracing": "cd ../../crates/edr_napi && pnpm build",
     "pretest:except-tracing": "cd ../../crates/edr_napi && pnpm build",
     "prebuild": "cd ../../crates/edr_napi && pnpm build",
+    "postbuild": "cp src/internal/solidity/compiler/solcjs-runner.js internal/solidity/compiler/solcjs-runner.js",
     "prebuild:tracing": "cd ../../crates/edr_napi && pnpm build:tracing",
     "build": "tsc --build --force --incremental .",
     "build:tracing": "tsc --build --force --incremental .",
