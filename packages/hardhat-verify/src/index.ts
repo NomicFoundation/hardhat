@@ -62,6 +62,7 @@ interface VerifySubtaskArgs {
   constructorArguments: string[];
   libraries: LibraryToAddress;
   contract?: string;
+  force?: boolean;
 }
 
 export interface VerificationResponse {
@@ -272,9 +273,16 @@ subtask(TASK_VERIFY_VERIFY)
   .addOptionalParam("constructorArguments", undefined, [], types.any)
   .addOptionalParam("libraries", undefined, {}, types.any)
   .addOptionalParam("contract")
+  .addFlag("force")
   .setAction(
     async (
-      { address, constructorArguments, libraries, contract }: VerifySubtaskArgs,
+      {
+        address,
+        constructorArguments,
+        libraries,
+        contract,
+        force,
+      }: VerifySubtaskArgs,
       { run, config }
     ) => {
       // This can only happen if the subtask is invoked from within Hardhat by a user script or another task.
@@ -292,6 +300,7 @@ subtask(TASK_VERIFY_VERIFY)
           constructorArgsParams: constructorArguments,
           libraries,
           contract,
+          force,
         });
       }
 
