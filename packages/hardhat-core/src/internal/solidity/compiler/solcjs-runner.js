@@ -1,14 +1,15 @@
 // @ts-check
-const fs = require("node:fs");
 
-function readStdInSync() {
-  process.stdin.resume();
+async function readStream(stream, encoding = "utf8") {
+  stream.setEncoding(encoding);
 
-  const response = fs.readFileSync(process.stdin.fd, { encoding: "utf-8" });
+  return new Promise((resolve, reject) => {
+    let data = "";
 
-  process.stdin.pause();
-
-  return response;
+    stream.on("data", (chunk) => (data += chunk));
+    stream.on("end", () => resolve(data));
+    stream.on("error", (error) => reject(error));
+  });
 }
 
 function getSolcJs(solcJsPath) {
@@ -16,8 +17,18 @@ function getSolcJs(solcJsPath) {
   return solcWrapper(require(solcJsPath));
 }
 
-const solcjsPath = process.argv[2];
-const solc = getSolcJs(solcjsPath);
-const output = solc.compile(readStdInSync());
+async function main() {
+  const input = await readStream(process.stdin);
 
-console.log(output);
+  const solcjsPath = process.argv[2];
+  const solc = getSolcJs(solcjsPath);
+
+  const output = solc.compile(input);
+
+  console.log(output);
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
