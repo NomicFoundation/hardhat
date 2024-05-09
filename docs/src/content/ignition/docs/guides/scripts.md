@@ -1,10 +1,10 @@
-# Advanced deployment with Hardhat scripts
+# Deploying within Hardhat scripts
 
 Hardhat Ignition is a powerful deployment engine, but you may find there are some programming concepts that are not allowed within an Ignition module. Conditional logic, `async/await`, and `console.log` of deployment variables are some examples of operations that cannot be performed within an Ignition module. However, this guide will show you how you can perform all of these operations by pairing Ignition with Hardhat scripts.
 
 :::tip
 
-This guide will be using the contracts and Ignition module from the [quick start guide](/ignition/docs/getting-started#quick-start), but you can follow along in your own project if you prefer.
+This guide will be using the contracts and Ignition module from the [quick start guide](/ignition/docs/getting-started#quick-start).
 
 :::
 
@@ -22,7 +22,7 @@ import ApolloModule from "../ignition/modules/Apollo";
 async function main() {
   const { apollo } = await hre.ignition.deploy(ApolloModule);
 
-  console.log(`Apollo deployed to: ${apollo.target}`);
+  console.log(`Apollo deployed to: ${await apollo.getAddress()}`);
 }
 
 main().catch(console.error);
@@ -38,7 +38,7 @@ const ApolloModule = require("../ignition/modules/Apollo");
 async function main() {
   const { apollo } = await hre.ignition.deploy(ApolloModule);
 
-  console.log(`Apollo deployed to: ${apollo.target}`);
+  console.log(`Apollo deployed to: ${await apollo.getAddress()}`);
 }
 
 main().catch(console.error);
@@ -78,7 +78,7 @@ For this example, let's say we want to dynamically change the name of the `Rocke
 
 :::tab{value="TypeScript"}
 
-```typescript
+```typescript{4}
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
 export default buildModule("Apollo", (m) => {
@@ -95,7 +95,7 @@ export default buildModule("Apollo", (m) => {
 
 :::tab{value="JavaScript"}
 
-```javascript
+```javascript{4}
 const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 
 module.exports = buildModule("Apollo", (m) => {
@@ -168,7 +168,13 @@ main().catch(console.error);
 
 ::::
 
-In this script, we've added a new function called `getRocketNameFromAPI`, which simulates an asynchronous API call. We then call this function to retrieve the rocket name and pass it as a parameter to the Ignition module when deploying the `Apollo` module. You can run this script using the same command as before.
+In this script, we've added a new function called `getRocketNameFromAPI`, which simulates an asynchronous API call. We then call this function to retrieve the rocket name and pass it as a parameter under the named Ignition module when deploying the `Apollo` module. You can run this script using the same command as before.
+
+:::tip
+
+You can read more about defining and using parameters in Ignition modules in the [deployment guide](/ignition/docs/guides/deploy#defining-parameters-during-deployment).
+
+:::
 
 ## Conditional logic
 
@@ -194,7 +200,7 @@ async function main() {
       parameters: { Apollo: { rocketName } },
     });
 
-    console.log(`Apollo deployed to: ${apollo.target}`);
+    console.log(`Apollo deployed to: ${await apollo.getAddress()}`);
   } else {
     console.log("No name given for Rocket contract, skipping deployment");
   }
@@ -223,7 +229,7 @@ async function main() {
       parameters: { Apollo: { rocketName } },
     });
 
-    console.log(`Apollo deployed to: ${apollo.target}`);
+    console.log(`Apollo deployed to: ${await apollo.getAddress()}`);
   } else {
     console.log("No name given for Rocket contract, skipping deployment");
   }
@@ -238,4 +244,4 @@ main().catch(console.error);
 
 In this script, we've added an `if` statement to check if the `rocketName` is not `undefined`. If it is not `undefined`, we proceed with deploying the `Apollo` module; otherwise, we log a message to the console indicating that the deployment has been skipped. You can run this script using the same command as before.
 
-By combining Ignition with Hardhat scripts, you can perform advanced deployment operations that are not possible within an Ignition module alone. These are just a few examples of what you can achieve with this powerful combination. Feel free to experiment further and explore the possibilities!
+By combining Hardhat Ignition with Hardhat scripts, you can perform advanced deployment operations that are not possible within an Ignition module alone. These are just a few examples of what you can achieve with this powerful combination. Feel free to experiment further and explore the possibilities!
