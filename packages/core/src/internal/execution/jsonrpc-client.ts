@@ -640,7 +640,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
     // We prioritize EIP-1559 fees over legacy gasPrice fees, however,
     // polygon (chainId 137) requires legacy gasPrice fees so we skip EIP-1559 logic in that case
     if (latestBlock.baseFeePerGas !== undefined && chainId !== 137) {
-      if (latestBlock.baseFeePerGas === 0n) {
+      if (latestBlock.baseFeePerGas === 0n && chainId !== 56) {
         // Support zero gas fee chains, such as a private instances
         // of blockchains using Besu.
         return {
