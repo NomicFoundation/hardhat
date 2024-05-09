@@ -105,6 +105,10 @@ function createConfig(configFilePath, packageEntryPoints = []) {
           trailingUnderscore: "allow",
         },
         {
+          selector: ["import"],
+          format: ["camelCase", "PascalCase"],
+        },
+        {
           selector: ["variable", "parameter"],
           format: ["camelCase", "UPPER_CASE", "PascalCase"],
           leadingUnderscore: "allow",
@@ -195,6 +199,13 @@ function createConfig(configFilePath, packageEntryPoints = []) {
           allowAny: false,
         },
       ],
+      "@typescript-eslint/switch-exhaustiveness-check": [
+        "error",
+        {
+          allowDefaultCaseForExhaustiveSwitch: false,
+          requireDefaultForNonUnion: true,
+        },
+      ],
       "@typescript-eslint/triple-slash-reference": [
         "error",
         {
@@ -229,12 +240,12 @@ function createConfig(configFilePath, packageEntryPoints = []) {
         },
       ],
       "import/no-default-export": "error",
+      "import/no-duplicates": "error",
       "no-bitwise": "error",
       "no-caller": "error",
       "no-cond-assign": "error",
       "no-debugger": "error",
       "no-duplicate-case": "error",
-      "@typescript-eslint/no-duplicate-imports": "error",
       "no-eval": "error",
       "no-extra-bind": "error",
       "no-new-func": "error",

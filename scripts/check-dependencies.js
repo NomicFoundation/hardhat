@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 // We ignore te packages introduces in v-next for now
-const vNextPackages = ["template-package"];
+const vNextPackages = ["template-package", "hardhat-utils"];
 
 // An array of dependencies whose version checks are ignored for all the
 // packages

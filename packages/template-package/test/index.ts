@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
-import * as assert from "node:assert";
+import assert from "node:assert/strict";
 import { expectTypeOf } from "expect-type";
+
 import { bar, foo, foobar } from "../src/index.js";
 
 describe("Example tests", () => {
