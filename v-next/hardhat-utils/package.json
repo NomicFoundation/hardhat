@@ -35,6 +35,7 @@
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "test": "glob --cmd=\"node --import tsx/esm --test\" 'test/**/*.ts'",
     "test:github": "glob --cmd=\"node --import tsx/esm --test --test-reporter=@reporters/github --test-reporter-destination=stdout --test-reporter=spec --test-reporter-destination=stdout\" 'test/**/*.ts'",
+    "pretest": "pnpm build",
     "build": "tsc --build .",
     "prepublishOnly": "pnpm build",
     "clean": "rimraf dist"
