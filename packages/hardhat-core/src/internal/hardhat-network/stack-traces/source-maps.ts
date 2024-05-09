@@ -75,13 +75,13 @@ function uncompressSourcemaps(compressedSourcemap: string): SourceMap[] {
 
 function addUnmappedInstructions(
   instructions: Instruction[],
-  bytecode: Buffer,
+  bytecode: Buffer
 ) {
   const lastInstrPc = instructions[instructions.length - 1].pc;
   let bytesIndex = lastInstrPc + 1;
 
   while (bytecode[bytesIndex] !== Opcode.INVALID) {
-    const opcode = bytecode[nextPc];
+    const opcode = bytecode[bytesIndex];
     let pushData: Buffer | undefined;
 
     let pushDataLenth = 0;
