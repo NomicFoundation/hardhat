@@ -210,13 +210,13 @@ describe("JSON-RPC client", function () {
 
           const fees = await bnbClient.getNetworkFees();
 
-          assert.notDeepEqual(
+          assert.deepStrictEqual(
             fees,
             {
-              maxFeePerGas: 0n,
-              maxPriorityFeePerGas: 0n,
+              maxFeePerGas: 1_000_000_000n,
+              maxPriorityFeePerGas: 1_000_000_000n,
             },
-            "Fees should not be zero due to the specific handling for BNB Chain."
+            "Both max fee and max priority fee should be 1 gwei, as the base fee is 0 for BNB Chain"
           );
         });
 
