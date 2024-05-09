@@ -9,6 +9,7 @@ import { TASK_VERIFY_VERIFY } from "./task-names";
 export class HardhatVerifyError extends NomicLabsHardhatPluginError {
   constructor(message: string, parent?: Error) {
     super("@nomicfoundation/hardhat-verify", message, parent);
+    Object.setPrototypeOf(this, this.constructor.prototype);
   }
 }
 
@@ -421,12 +422,27 @@ Encoder error reason: ${reason} fault in ${operation}`,
   }
 }
 
+/**
+ * `VerificationAPIUnexpectedMessageError` is thrown when the block explorer API
+ * does not behave as expected, such as when it returns an unexpected response message.
+ *
+ * This error is intended to be reported to the Hardhat team for further investigation
+ * and potential updates to the plugin to handle the new behavior.
+ */
 export class VerificationAPIUnexpectedMessageError extends HardhatVerifyError {
   constructor(message: string) {
     super(`The API responded with an unexpected message.
 Please report this issue to the Hardhat team.
 Contract verification may have succeeded and should be checked manually.
 Message: ${message}`);
+  }
+}
+
+export class NetworkRequestError extends HardhatVerifyError {
+  constructor(e: Error) {
+    super(
+      `A network request failed. This error is not related to Hardhat. Original error: ${e.message}`
+    );
   }
 }
 
