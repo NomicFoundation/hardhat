@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-fix: flatten 2d array
+Fix an issue with solc version selection
