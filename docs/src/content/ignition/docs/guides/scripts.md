@@ -17,6 +17,7 @@ We will begin by creating a `scripts` directory within our Hardhat project. With
 :::tab{value="TypeScript"}
 
 ```typescript
+import hre from "hardhat";
 import ApolloModule from "../ignition/modules/Apollo";
 
 async function main() {
@@ -79,6 +80,7 @@ For this example, let's say we want to dynamically change the name of the `Rocke
 :::tab{value="TypeScript"}
 
 ```typescript{4}
+import hre from "hardhat";
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
 export default buildModule("Apollo", (m) => {
@@ -119,6 +121,7 @@ We've added a new parameter to the Ignition module called `rocketName`. This par
 :::tab{value="TypeScript"}
 
 ```typescript
+import hre from "hardhat";
 import ApolloModule from "../ignition/modules/Apollo";
 
 async function getRocketNameFromAPI() {
