@@ -1,7 +1,11 @@
 import { keccak256 } from "../crypto.js";
 
 class RandomBytesGenerator {
-  private constructor(private _nextValue: Uint8Array) {}
+  #nextValue: Uint8Array;
+
+  private constructor(nextValue: Uint8Array) {
+    this.#nextValue = nextValue;
+  }
 
   public static async create(seed: string): Promise<RandomBytesGenerator> {
     const nextValue = await keccak256(Buffer.from(seed));
@@ -10,9 +14,9 @@ class RandomBytesGenerator {
   }
 
   public async next(): Promise<Uint8Array> {
-    const valueToReturn = this._nextValue;
+    const valueToReturn = this.#nextValue;
 
-    this._nextValue = await keccak256(this._nextValue);
+    this.#nextValue = await keccak256(this.#nextValue);
 
     return valueToReturn;
   }
