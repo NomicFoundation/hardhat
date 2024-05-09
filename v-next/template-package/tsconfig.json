@@ -10,9 +10,5 @@
     "./node_modules",
     "./test/fixture-projects/hardhat.config.ts"
   ],
-  "references": [
-    {
-      "path": "../hardhat-core/src"
-    }
-  ]
+  "references": []
 }
