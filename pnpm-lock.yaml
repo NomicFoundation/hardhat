@@ -89,133 +89,6 @@ importers:
         specifier: ^10.0.0
         version: 10.4.0
 
-  packages/hardhat-build-system:
-    dependencies:
-      '@nomicfoundation/ethereumjs-util':
-        specifier: 9.0.4
-        version: 9.0.4
-      '@nomicfoundation/solidity-analyzer':
-        specifier: ^0.1.0
-        version: 0.1.1
-      adm-zip:
-        specifier: ^0.4.16
-        version: 0.4.16
-      aggregate-error:
-        specifier: ^3.0.0
-        version: 3.1.0
-      chalk:
-        specifier: ^2.4.2
-        version: 2.4.2
-      debug:
-        specifier: ^4.1.1
-        version: 4.3.4(supports-color@8.1.1)
-      env-paths:
-        specifier: ^2.2.0
-        version: 2.2.1
-      find-up:
-        specifier: ^2.1.0
-        version: 2.1.0
-      fs-extra:
-        specifier: ^7.0.1
-        version: 7.0.1
-      io-ts:
-        specifier: 1.10.4
-        version: 1.10.4
-      keccak:
-        specifier: ^3.0.2
-        version: 3.0.4
-      lodash:
-        specifier: ^4.17.11
-        version: 4.17.21
-      p-map:
-        specifier: ^4.0.0
-        version: 4.0.0
-      resolve:
-        specifier: 1.17.0
-        version: 1.17.0
-      semver:
-        specifier: ^6.3.0
-        version: 6.3.1
-      undici:
-        specifier: ^5.14.0
-        version: 5.28.4
-    devDependencies:
-      '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
-        specifier: workspace:^
-        version: link:../eslint-plugin-hardhat-internal-rules
-      '@nomicfoundation/eslint-plugin-slow-imports':
-        specifier: workspace:^
-        version: link:../eslint-plugin-slow-imports
-      '@types/ci-info':
-        specifier: ^2.0.0
-        version: 2.0.0
-      '@types/debug':
-        specifier: ^4.1.4
-        version: 4.1.12
-      '@types/find-up':
-        specifier: ^2.1.1
-        version: 2.1.1
-      '@types/fs-extra':
-        specifier: ^5.1.0
-        version: 5.1.0
-      '@types/keccak':
-        specifier: ^3.0.1
-        version: 3.0.4
-      '@types/lodash':
-        specifier: ^4.14.123
-        version: 4.17.1
-      '@types/node':
-        specifier: ^20.0.0
-        version: 20.12.11
-      '@types/resolve':
-        specifier: ^1.17.1
-        version: 1.20.6
-      '@types/semver':
-        specifier: ^6.2.7
-        version: 6.2.7
-      '@types/sinon':
-        specifier: ^9.0.8
-        version: 9.0.11
-      ci-info:
-        specifier: ^2.0.0
-        version: 2.0.0
-      eslint:
-        specifier: 8.57.0
-        version: 8.57.0
-      eslint-config-prettier:
-        specifier: 9.1.0
-        version: 9.1.0(eslint@8.57.0)
-      eslint-plugin-import:
-        specifier: 2.29.1
-        version: 2.29.1(@typescript-eslint/parser@7.5.0(eslint@8.57.0)(typescript@5.4.5))(eslint@8.57.0)
-      eslint-plugin-no-only-tests:
-        specifier: 3.1.0
-        version: 3.1.0
-      expect-type:
-        specifier: ^0.19.0
-        version: 0.19.0
-      glob:
-        specifier: ^10.3.12
-        version: 10.3.14
-      prettier:
-        specifier: 3.2.5
-        version: 3.2.5
-      rimraf:
-        specifier: ^5.0.5
-        version: 5.0.5
-      sinon:
-        specifier: ^9.0.0
-        version: 9.2.4
-      tsx:
-        specifier: ^4.7.1
-        version: 4.9.3
-      typescript:
-        specifier: ~5.4.0
-        version: 5.4.5
-      typescript-eslint:
-        specifier: 7.5.0
-        version: 7.5.0(eslint@8.57.0)(typescript@5.4.5)
-
   packages/hardhat-chai-matchers:
     dependencies:
       '@types/chai-as-promised':
@@ -1534,6 +1407,133 @@ importers:
       web3:
         specifier: ^4.0.1
         version: 4.8.0(typescript@5.0.4)(zod@3.23.8)
+
+  v-next/hardhat-build-system:
+    dependencies:
+      '@nomicfoundation/ethereumjs-util':
+        specifier: 9.0.4
+        version: 9.0.4
+      '@nomicfoundation/solidity-analyzer':
+        specifier: ^0.1.0
+        version: 0.1.1
+      adm-zip:
+        specifier: ^0.4.16
+        version: 0.4.16
+      aggregate-error:
+        specifier: ^3.0.0
+        version: 3.1.0
+      chalk:
+        specifier: ^2.4.2
+        version: 2.4.2
+      debug:
+        specifier: ^4.1.1
+        version: 4.3.4(supports-color@8.1.1)
+      env-paths:
+        specifier: ^2.2.0
+        version: 2.2.1
+      find-up:
+        specifier: ^2.1.0
+        version: 2.1.0
+      fs-extra:
+        specifier: ^7.0.1
+        version: 7.0.1
+      io-ts:
+        specifier: 1.10.4
+        version: 1.10.4
+      keccak:
+        specifier: ^3.0.2
+        version: 3.0.4
+      lodash:
+        specifier: ^4.17.11
+        version: 4.17.21
+      p-map:
+        specifier: ^4.0.0
+        version: 4.0.0
+      resolve:
+        specifier: 1.17.0
+        version: 1.17.0
+      semver:
+        specifier: ^6.3.0
+        version: 6.3.1
+      undici:
+        specifier: ^5.14.0
+        version: 5.28.4
+    devDependencies:
+      '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
+        specifier: workspace:^
+        version: link:../../packages/eslint-plugin-hardhat-internal-rules
+      '@nomicfoundation/eslint-plugin-slow-imports':
+        specifier: workspace:^
+        version: link:../../packages/eslint-plugin-slow-imports
+      '@types/ci-info':
+        specifier: ^2.0.0
+        version: 2.0.0
+      '@types/debug':
+        specifier: ^4.1.4
+        version: 4.1.12
+      '@types/find-up':
+        specifier: ^2.1.1
+        version: 2.1.1
+      '@types/fs-extra':
+        specifier: ^5.1.0
+        version: 5.1.0
+      '@types/keccak':
+        specifier: ^3.0.1
+        version: 3.0.4
+      '@types/lodash':
+        specifier: ^4.14.123
+        version: 4.17.1
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.12.11
+      '@types/resolve':
+        specifier: ^1.17.1
+        version: 1.20.6
+      '@types/semver':
+        specifier: ^6.2.7
+        version: 6.2.7
+      '@types/sinon':
+        specifier: ^9.0.8
+        version: 9.0.11
+      ci-info:
+        specifier: ^2.0.0
+        version: 2.0.0
+      eslint:
+        specifier: 8.57.0
+        version: 8.57.0
+      eslint-config-prettier:
+        specifier: 9.1.0
+        version: 9.1.0(eslint@8.57.0)
+      eslint-plugin-import:
+        specifier: 2.29.1
+        version: 2.29.1(@typescript-eslint/parser@7.5.0(eslint@8.57.0)(typescript@5.4.5))(eslint@8.57.0)
+      eslint-plugin-no-only-tests:
+        specifier: 3.1.0
+        version: 3.1.0
+      expect-type:
+        specifier: ^0.19.0
+        version: 0.19.0
+      glob:
+        specifier: ^10.3.12
+        version: 10.3.14
+      prettier:
+        specifier: 3.2.5
+        version: 3.2.5
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.5
+      sinon:
+        specifier: ^9.0.0
+        version: 9.2.4
+      tsx:
+        specifier: ^4.7.1
+        version: 4.9.3
+      typescript:
+        specifier: ~5.4.0
+        version: 5.4.5
+      typescript-eslint:
+        specifier: 7.5.0
+        version: 7.5.0(eslint@8.57.0)(typescript@5.4.5)
 
   v-next/hardhat-utils:
     dependencies:
@@ -7409,7 +7409,7 @@ snapshots:
 
   '@types/fs-extra@5.1.0':
     dependencies:
-      '@types/node': 20.12.11
+      '@types/node': 18.19.33
 
   '@types/glob@7.2.0':
     dependencies:
@@ -7422,7 +7422,7 @@ snapshots:
 
   '@types/keccak@3.0.4':
     dependencies:
-      '@types/node': 20.12.11
+      '@types/node': 18.19.33
 
   '@types/lodash.clonedeep@4.5.9':
     dependencies:
@@ -7468,7 +7468,7 @@ snapshots:
 
   '@types/pbkdf2@3.1.2':
     dependencies:
-      '@types/node': 20.12.11
+      '@types/node': 18.19.33
 
   '@types/prettier@2.7.3': {}
 
@@ -7483,7 +7483,7 @@ snapshots:
 
   '@types/secp256k1@4.0.6':
     dependencies:
-      '@types/node': 20.12.11
+      '@types/node': 18.19.33
 
   '@types/semver@6.2.7': {}
 
