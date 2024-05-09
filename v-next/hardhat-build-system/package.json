@@ -31,7 +31,7 @@
     "find-up": "^2.1.0",
     "fs-extra": "^7.0.1",
     "io-ts": "1.10.4",
-    "keccak": "^3.0.2",
+    "keccak": "^3.0.4",
     "lodash": "^4.17.11",
     "p-map": "^4.0.0",
     "resolve": "1.17.0",
@@ -45,7 +45,7 @@
     "@types/debug": "^4.1.4",
     "@types/find-up": "^2.1.1",
     "@types/fs-extra": "^5.1.0",
-    "@types/keccak": "^3.0.1",
+    "@types/keccak": "^3.0.4",
     "@types/lodash": "^4.14.123",
     "@types/node": "^20.0.0",
     "@types/resolve": "^1.17.1",
@@ -63,6 +63,6 @@
     "sinon": "^9.0.0",
     "tsx": "^4.7.1",
     "typescript": "~5.4.0",
-    "typescript-eslint": "7.5.0"
+    "typescript-eslint": "7.7.1"
   }
 }
