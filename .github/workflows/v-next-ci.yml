@@ -25,7 +25,7 @@ jobs:
       - uses: actions/checkout@v4
       - id: list
         run: |
-          echo "::set-output name=packages::$(ls -d v-next/* | xargs -n 1 basename| jq -R -s -c 'split("\n")[:-1]')"
+          echo "packages=$(ls -d v-next/* | xargs -n 1 basename| jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
 
   ci:
     needs: list-packages
