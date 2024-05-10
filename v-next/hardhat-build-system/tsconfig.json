@@ -10,5 +10,9 @@
     "./node_modules",
     "./test/fixture-projects/hardhat.config.ts"
   ],
-  "references": []
+  "references": [
+    {
+      "path": "../hardhat-utils"
+    }
+  ]
 }
