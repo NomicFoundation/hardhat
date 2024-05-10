@@ -9,6 +9,7 @@ import { HardhatError, assertHardhatInvariant } from "../../errors/errors.js";
 import { ERRORS } from "../../errors/errors-list.js";
 import { MultiProcessMutex } from "../../utils/multi-process-mutex.js";
 import { keccak256 } from "@nomicfoundation/hardhat-utils/crypto";
+import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
 
 const log = debug("hardhat:core:solidity:downloader");
 
@@ -315,13 +316,10 @@ export class CompilerDownloader implements ICompilerDownloader {
     build: CompilerBuild,
     downloadPath: string,
   ): Promise<boolean> {
-    const { bytesToHex } =
-      require("@nomicfoundation/ethereumjs-util") as typeof import("@nomicfoundation/ethereumjs-util");
-
     const expectedKeccak256 = build.keccak256;
     const compiler = await fsExtra.readFile(downloadPath);
 
-    const compilerKeccak256 = bytesToHex(await keccak256(compiler));
+    const compilerKeccak256 = bytesToHexString(await keccak256(compiler));
 
     if (expectedKeccak256 !== compilerKeccak256) {
       await fsExtra.unlink(downloadPath);

@@ -1,6 +1,7 @@
 import findup from "find-up";
 import fsExtra from "fs-extra";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { assertHardhatInvariant } from "../errors/errors.js";
 
 export interface PackageJson {
@@ -13,7 +14,9 @@ export interface PackageJson {
 }
 
 export function getHardhatVersion(): string {
-  const packageJsonPath = findClosestPackageJson(__filename);
+  const packageJsonPath = findClosestPackageJson(
+    fileURLToPath(import.meta.url),
+  );
 
   assertHardhatInvariant(
     packageJsonPath !== null,
