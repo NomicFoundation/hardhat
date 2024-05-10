@@ -285,16 +285,12 @@ function createConfig(configFilePath, packageEntryPoints = []) {
         {
           patterns: [
             {
-              group: [
-                "hardhat/src",
-                "@nomiclabs/*/src",
-                "@nomicfoundation/*/src",
-              ],
+              group: ["/hardhat/src", "/@nomicfoundation/*/src"],
               message:
                 "Don't import from the src folder, use the package entry point instead.",
             },
             {
-              group: require("module").builtinModules,
+              group: require("module").builtinModules.map((m) => `/${m}`),
               message:
                 "Use the 'node:' prefix to import built-in Node.js modules.",
             },
