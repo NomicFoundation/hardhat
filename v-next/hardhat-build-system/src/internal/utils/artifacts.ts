@@ -1,8 +1,8 @@
 import debug from "debug";
 import fsExtra from "fs-extra";
-import * as os from "os";
-import * as path from "path";
-import fsPromises from "fs/promises";
+import * as os from "node:os";
+import * as path from "node:path";
+import fsPromises from "node:fs/promises";
 import { HardhatError, assertHardhatInvariant } from "../errors/errors.js";
 import {
   Artifact,

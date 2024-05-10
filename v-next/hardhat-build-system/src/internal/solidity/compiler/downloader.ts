@@ -1,9 +1,9 @@
-import path from "path";
+import path from "node:path";
 import fsExtra from "fs-extra";
 import debug from "debug";
-import os from "os";
-import { execFile } from "child_process";
-import { promisify } from "util";
+import os from "node:os";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { download } from "../../utils/download.js";
 import { HardhatError, assertHardhatInvariant } from "../../errors/errors.js";
 import { ERRORS } from "../../errors/errors-list.js";
