@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.1",
   "description": "Utilities for Hardhat and its plugins",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/v-next/hardhat-utils",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-utils",
   "repository": "github:nomicfoundation/hardhat",
   "author": "Nomic Foundation",
   "license": "MIT",
@@ -23,6 +23,11 @@
     "./package": "./dist/src/package.js",
     "./request": "./dist/src/request.js"
   },
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "hardhat"
+  ],
   "scripts": {
     "lint": "pnpm prettier --check && pnpm eslint",
     "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
