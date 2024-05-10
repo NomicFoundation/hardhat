@@ -22,7 +22,7 @@ jobs:
           ref: "refs/pull/${{ github.event.number }}/merge"
       - uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 9
       - uses: actions/setup-node@v2
         with:
           node-version: 18
