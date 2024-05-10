@@ -1,7 +1,2 @@
-export function foo() {
-  return "foo";
-}
-
-export function bar() {
-  return "bar";
-}
+export type { ErrorDescriptor } from "./descriptors.js";
+export { HardhatError, assertHardhatInvariant } from "./errors.js";
