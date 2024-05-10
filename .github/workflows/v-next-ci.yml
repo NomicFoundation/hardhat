@@ -16,6 +16,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  check_dependencies:
+    name: Check dependency versions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run check
+        run: node scripts/check-v-next-dependencies.js
+
   list-packages:
     name: List packages
     runs-on: ubuntu-latest
@@ -27,48 +38,15 @@ jobs:
         run: |
           echo "packages=$(ls -d v-next/* | xargs -n 1 basename| jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
 
-  ci:
+  lint:
     needs: list-packages
 
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-13, macos-latest, windows-latest]
-        node: [22]
         package: ${{ fromJson(needs.list-packages.outputs.packages) }}
 
-    name: ${{ matrix.package }} ci on ${{ matrix.os }} with Node.js ${{ matrix.node }}
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        working-directory: v-next/${{ matrix.package }}
-
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 8
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node }}
-          cache: "pnpm"
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile --prefer-offline
-      - name: Build
-        run: pnpm build
-      - name: Run tests
-        run: pnpm run test:github
-
-  lint:
-    needs: list-packages
-
-    strategy:
-      fail-fast: true
-      matrix:
-        package: ${{ fromJson(needs.list-packages.outputs.packages) }}
-
-    name: ${{ matrix.package }} lint
+    name: "[${{ matrix.package }}] lint"
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -91,13 +69,35 @@ jobs:
       - name: Lint
         run: pnpm lint
 
-  check_dependencies:
-    name: Check dependency versions
-    runs-on: ubuntu-latest
+  ci:
+    needs: list-packages
+
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJson(needs.list-packages.outputs.packages) }}
+        os: [ubuntu-latest, macos-13, macos-latest, windows-latest]
+        node: [22]
+
+    name: "[${{ matrix.package }}] ci on ${{ matrix.os }} (Node ${{ matrix.node }})"
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: v-next/${{ matrix.package }}
+
     steps:
       - uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-      - name: Run check
-        run: node scripts/check-v-next-dependencies.js
+          node-version: ${{ matrix.node }}
+          cache: "pnpm"
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Build
+        run: pnpm build
+      - name: Run tests
+        run: pnpm run test:github
