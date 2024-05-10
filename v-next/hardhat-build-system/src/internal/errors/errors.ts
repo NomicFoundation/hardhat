@@ -4,7 +4,7 @@ import { ErrorDescriptor, ERRORS, getErrorCode } from "./errors-list.js";
 const inspect = Symbol.for("nodejs.util.inspect.custom");
 
 export class CustomError extends Error {
-  private _stack: string;
+  readonly #stack: string;
 
   constructor(
     message: string,
@@ -24,7 +24,7 @@ export class CustomError extends Error {
       (Error as any).captureStackTrace(this, this.constructor);
     }
 
-    this._stack = this.stack ?? "";
+    this.#stack = this.stack ?? "";
 
     Object.defineProperty(this, "stack", {
       get: () => this[inspect](),
@@ -32,7 +32,7 @@ export class CustomError extends Error {
   }
 
   public [inspect](): string {
-    let str = this._stack;
+    let str = this.#stack;
     if (this.parent !== undefined) {
       const parentAsAny = this.parent as any;
       const causeString =
@@ -58,7 +58,7 @@ export class HardhatError extends CustomError {
     return (
       other !== undefined &&
       other !== null &&
-      (other as HardhatError)._isHardhatError === true
+      (other as HardhatError).#isHardhatError === true
     );
   }
 
@@ -76,7 +76,7 @@ export class HardhatError extends CustomError {
   public readonly number: number;
   public readonly messageArguments: Record<string, any>;
 
-  private readonly _isHardhatError: boolean;
+  readonly #isHardhatError: boolean;
 
   constructor(
     errorDescriptor: ErrorDescriptor,
@@ -96,7 +96,7 @@ export class HardhatError extends CustomError {
     this.number = errorDescriptor.number;
     this.messageArguments = messageArguments;
 
-    this._isHardhatError = true;
+    this.#isHardhatError = true;
     Object.setPrototypeOf(this, HardhatError.prototype);
   }
 }

@@ -59,17 +59,26 @@ export class ResolvedFile implements IResolvedFile {
 }
 
 export class Resolver {
-  private readonly _cache: Map<string, ResolvedFile> = new Map();
+  readonly #projectRoot: string;
+  readonly #parser: Parser;
+  readonly #remappings: Record<string, string>;
+  readonly #readFile: (absolutePath: string) => Promise<string>;
+  readonly #transformImportName: (importName: string) => Promise<string>;
+  readonly #cache: Map<string, ResolvedFile> = new Map();
 
   constructor(
-    private readonly _projectRoot: string,
-    private readonly _parser: Parser,
-    private readonly _remappings: Record<string, string>,
-    private readonly _readFile: (absolutePath: string) => Promise<string>,
-    private readonly _transformImportName: (
-      importName: string,
-    ) => Promise<string>,
-  ) {}
+    _projectRoot: string,
+    _parser: Parser,
+    _remappings: Record<string, string>,
+    _readFile: (absolutePath: string) => Promise<string>,
+    _transformImportName: (importName: string) => Promise<string>,
+  ) {
+    this.#projectRoot = _projectRoot;
+    this.#parser = _parser;
+    this.#remappings = _remappings;
+    this.#readFile = _readFile;
+    this.#transformImportName = _transformImportName;
+  }
 
   /**
    * Resolves a source name into a ResolvedFile.
@@ -77,30 +86,30 @@ export class Resolver {
    * @param sourceName The source name as it would be provided to solc.
    */
   public async resolveSourceName(sourceName: string): Promise<ResolvedFile> {
-    const cached = this._cache.get(sourceName);
+    const cached = this.#cache.get(sourceName);
     if (cached !== undefined) {
       return cached;
     }
 
-    const remappedSourceName = applyRemappings(this._remappings, sourceName);
+    const remappedSourceName = applyRemappings(this.#remappings, sourceName);
 
     validateSourceNameFormat(remappedSourceName);
 
     let resolvedFile: ResolvedFile;
 
-    if (await isLocalSourceName(this._projectRoot, remappedSourceName)) {
-      resolvedFile = await this._resolveLocalSourceName(
+    if (await isLocalSourceName(this.#projectRoot, remappedSourceName)) {
+      resolvedFile = await this.#resolveLocalSourceName(
         sourceName,
         remappedSourceName,
       );
     } else {
-      resolvedFile = await this._resolveLibrarySourceName(
+      resolvedFile = await this.#resolveLibrarySourceName(
         sourceName,
         remappedSourceName,
       );
     }
 
-    this._cache.set(sourceName, resolvedFile);
+    this.#cache.set(sourceName, resolvedFile);
     return resolvedFile;
   }
 
@@ -114,15 +123,15 @@ export class Resolver {
     importName: string,
   ): Promise<ResolvedFile> {
     // sanity check for deprecated task
-    if (importName !== (await this._transformImportName(importName))) {
+    if (importName !== (await this.#transformImportName(importName))) {
       throw new HardhatError(
         ERRORS.TASK_DEFINITIONS.DEPRECATED_TRANSFORM_IMPORT_TASK,
       );
     }
 
-    const imported = applyRemappings(this._remappings, importName);
+    const imported = applyRemappings(this.#remappings, importName);
 
-    const scheme = this._getUriScheme(imported);
+    const scheme = this.#getUriScheme(imported);
     if (scheme !== undefined) {
       throw new HardhatError(ERRORS.RESOLVER.INVALID_IMPORT_PROTOCOL, {
         from: from.sourceName,
@@ -157,15 +166,15 @@ export class Resolver {
     try {
       let sourceName: string;
 
-      const isRelativeImport = this._isRelativeImport(imported);
+      const isRelativeImport = this.#isRelativeImport(imported);
 
       if (isRelativeImport) {
-        sourceName = await this._relativeImportToSourceName(from, imported);
+        sourceName = await this.#relativeImportToSourceName(from, imported);
       } else {
         sourceName = normalizeSourceName(importName); // The sourceName of the imported file is not transformed
       }
 
-      const cached = this._cache.get(sourceName);
+      const cached = this.#cache.get(sourceName);
       if (cached !== undefined) {
         return cached;
       }
@@ -178,17 +187,17 @@ export class Resolver {
       if (
         from.library === undefined &&
         isRelativeImport &&
-        !this._isRelativeImportToLibrary(from, imported)
+        !this.#isRelativeImportToLibrary(from, imported)
       ) {
-        resolvedFile = await this._resolveLocalSourceName(
+        resolvedFile = await this.#resolveLocalSourceName(
           sourceName,
-          applyRemappings(this._remappings, sourceName),
+          applyRemappings(this.#remappings, sourceName),
         );
       } else {
         resolvedFile = await this.resolveSourceName(sourceName);
       }
 
-      this._cache.set(sourceName, resolvedFile);
+      this.#cache.set(sourceName, resolvedFile);
       return resolvedFile;
     } catch (error) {
       if (
@@ -276,21 +285,21 @@ export class Resolver {
     }
   }
 
-  private async _resolveLocalSourceName(
+  async #resolveLocalSourceName(
     sourceName: string,
     remappedSourceName: string,
   ): Promise<ResolvedFile> {
-    await this._validateSourceNameExistenceAndCasing(
-      this._projectRoot,
+    await this.#validateSourceNameExistenceAndCasing(
+      this.#projectRoot,
       remappedSourceName,
       false,
     );
 
-    const absolutePath = path.join(this._projectRoot, remappedSourceName);
-    return this._resolveFile(sourceName, absolutePath);
+    const absolutePath = path.join(this.#projectRoot, remappedSourceName);
+    return this.#resolveFile(sourceName, absolutePath);
   }
 
-  private async _resolveLibrarySourceName(
+  async #resolveLibrarySourceName(
     sourceName: string,
     remappedSourceName: string,
   ): Promise<ResolvedFile> {
@@ -298,11 +307,11 @@ export class Resolver {
       /^node_modules\//,
       "",
     );
-    const libraryName = this._getLibraryName(normalizedSourceName);
+    const libraryName = this.#getLibraryName(normalizedSourceName);
 
     let packageJsonPath;
     try {
-      packageJsonPath = this._resolveNodeModulesFileFromProjectRoot(
+      packageJsonPath = this.#resolveNodeModulesFileFromProjectRoot(
         path.join(libraryName, "package.json"),
       );
     } catch (error) {
@@ -324,7 +333,7 @@ export class Resolver {
     }
 
     let nodeModulesPath = path.dirname(path.dirname(packageJsonPath));
-    if (this._isScopedPackage(normalizedSourceName)) {
+    if (this.#isScopedPackage(normalizedSourceName)) {
       nodeModulesPath = path.dirname(nodeModulesPath);
     }
 
@@ -336,7 +345,7 @@ export class Resolver {
       const pattern = new RegExp(`^${libraryName}/?`);
       const fileName = normalizedSourceName.replace(pattern, "");
 
-      await this._validateSourceNameExistenceAndCasing(
+      await this.#validateSourceNameExistenceAndCasing(
         packageRoot,
         // TODO: this is _not_ a source name; we should handle this scenario in
         // a better way
@@ -345,7 +354,7 @@ export class Resolver {
       );
       absolutePath = path.join(packageRoot, fileName);
     } else {
-      await this._validateSourceNameExistenceAndCasing(
+      await this.#validateSourceNameExistenceAndCasing(
         nodeModulesPath,
         normalizedSourceName,
         true,
@@ -359,7 +368,7 @@ export class Resolver {
     } = JSON.parse((await fs.readFile(packageJsonPath)).toString());
     const libraryVersion = packageInfo.version;
 
-    return this._resolveFile(
+    return this.#resolveFile(
       sourceName,
       // We resolve to the real path here, as we may be resolving a linked library
       await getRealPath(absolutePath),
@@ -368,15 +377,15 @@ export class Resolver {
     );
   }
 
-  private async _relativeImportToSourceName(
+  async #relativeImportToSourceName(
     from: ResolvedFile,
     imported: string,
   ): Promise<string> {
     // This is a special case, were we turn relative imports from local files
     // into library imports if necessary. The reason for this is that many
     // users just do `import "../node_modules/lib/a.sol";`.
-    if (this._isRelativeImportToLibrary(from, imported)) {
-      return this._relativeImportToLibraryToSourceName(from, imported);
+    if (this.#isRelativeImportToLibrary(from, imported)) {
+      return this.#relativeImportToLibraryToSourceName(from, imported);
     }
 
     const sourceName = normalizeSourceName(
@@ -394,7 +403,7 @@ export class Resolver {
 
     if (
       from.library !== undefined &&
-      !this._isInsideSameDir(from.sourceName, sourceName)
+      !this.#isInsideSameDir(from.sourceName, sourceName)
     ) {
       // If the file is being imported from a library, this means that it's
       // trying to reach another one.
@@ -407,13 +416,13 @@ export class Resolver {
     return sourceName;
   }
 
-  private async _resolveFile(
+  async #resolveFile(
     sourceName: string,
     absolutePath: string,
     libraryName?: string,
     libraryVersion?: string,
   ): Promise<ResolvedFile> {
-    const rawContent = await this._readFile(absolutePath);
+    const rawContent = await this.#readFile(absolutePath);
     const stats = await fs.stat(absolutePath);
     const lastModificationDate = new Date(stats.ctime);
 
@@ -421,7 +430,7 @@ export class Resolver {
       await createNonCryptographicHashBasedIdentifier(Buffer.from(rawContent))
     ).toString("hex");
 
-    const parsedContent = await this._parser.parse(
+    const parsedContent = await this.#parser.parse(
       rawContent,
       absolutePath,
       contentHash,
@@ -443,20 +452,20 @@ export class Resolver {
     );
   }
 
-  private _isRelativeImport(imported: string): boolean {
+  #isRelativeImport(imported: string): boolean {
     return imported.startsWith("./") || imported.startsWith("../");
   }
 
-  private _resolveNodeModulesFileFromProjectRoot(fileName: string) {
+  #resolveNodeModulesFileFromProjectRoot(fileName: string) {
     return resolve.sync(fileName, {
-      basedir: this._projectRoot,
+      basedir: this.#projectRoot,
       preserveSymlinks: true,
     });
   }
 
-  private _getLibraryName(sourceName: string): string {
+  #getLibraryName(sourceName: string): string {
     let endIndex: number;
-    if (this._isScopedPackage(sourceName)) {
+    if (this.#isScopedPackage(sourceName)) {
       endIndex = sourceName.indexOf("/", sourceName.indexOf("/") + 1);
     } else if (sourceName.indexOf("/") === -1) {
       endIndex = sourceName.length;
@@ -467,7 +476,7 @@ export class Resolver {
     return sourceName.slice(0, endIndex);
   }
 
-  private _getUriScheme(s: string): string | undefined {
+  #getUriScheme(s: string): string | undefined {
     const re = /([a-zA-Z]+):\/\//;
     const match = re.exec(s);
     if (match === null) {
@@ -477,7 +486,7 @@ export class Resolver {
     return match[1];
   }
 
-  private _isInsideSameDir(sourceNameInDir: string, sourceNameToTest: string) {
+  #isInsideSameDir(sourceNameInDir: string, sourceNameToTest: string) {
     const firstSlash = sourceNameInDir.indexOf("/");
     const dir =
       firstSlash !== -1
@@ -487,22 +496,19 @@ export class Resolver {
     return sourceNameToTest.startsWith(dir);
   }
 
-  private _isScopedPackage(packageOrPackageFile: string): boolean {
+  #isScopedPackage(packageOrPackageFile: string): boolean {
     return packageOrPackageFile.startsWith("@");
   }
 
-  private _isRelativeImportToLibrary(
-    from: ResolvedFile,
-    imported: string,
-  ): boolean {
+  #isRelativeImportToLibrary(from: ResolvedFile, imported: string): boolean {
     return (
-      this._isRelativeImport(imported) &&
+      this.#isRelativeImport(imported) &&
       from.library === undefined &&
       imported.includes(`${NODE_MODULES}/`)
     );
   }
 
-  private _relativeImportToLibraryToSourceName(
+  #relativeImportToLibraryToSourceName(
     from: ResolvedFile,
     imported: string,
   ): string {
@@ -514,7 +520,7 @@ export class Resolver {
     return sourceName.substr(nmIndex + NODE_MODULES.length + 1);
   }
 
-  private async _validateSourceNameExistenceAndCasing(
+  async #validateSourceNameExistenceAndCasing(
     fromDir: string,
     sourceName: string,
     isLibrary: boolean,

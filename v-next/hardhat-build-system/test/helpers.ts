@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 import semver from "semver";
 import { beforeEach } from "node:test";
 import { rmSync } from "node:fs";

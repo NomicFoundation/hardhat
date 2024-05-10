@@ -4,12 +4,12 @@ import debug from "debug";
 import os from "node:os";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { keccak256 } from "@nomicfoundation/hardhat-utils/crypto";
+import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
 import { download } from "../../utils/download.js";
 import { HardhatError, assertHardhatInvariant } from "../../errors/errors.js";
 import { ERRORS } from "../../errors/errors-list.js";
 import { MultiProcessMutex } from "../../utils/multi-process-mutex.js";
-import { keccak256 } from "@nomicfoundation/hardhat-utils/crypto";
-import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
 
 const log = debug("hardhat:core:solidity:downloader");
 
@@ -107,7 +107,7 @@ export class CompilerDownloader implements ICompilerDownloader {
     }
   }
 
-  private static _downloaderPerPlatform: Map<string, CompilerDownloader> =
+  static readonly #downloaderPerPlatform: Map<string, CompilerDownloader> =
     new Map();
 
   public static getConcurrencySafeDownloader(
@@ -115,37 +115,46 @@ export class CompilerDownloader implements ICompilerDownloader {
     compilersDir: string,
   ): CompilerDownloader {
     const key = platform + compilersDir;
-    let downloader = this._downloaderPerPlatform.get(key);
+    let downloader = this.#downloaderPerPlatform.get(key);
 
     if (downloader === undefined) {
       downloader = new CompilerDownloader(platform, compilersDir);
-      this._downloaderPerPlatform.set(key, downloader);
+      this.#downloaderPerPlatform.set(key, downloader);
     }
 
     return downloader;
   }
 
   public static defaultCompilerListCachePeriod = 3_600_00;
-  private readonly _mutex = new MultiProcessMutex("compiler-download");
+  readonly #platform: CompilerPlatform;
+  readonly #compilersDir: string;
+  readonly #compilerListCachePeriodMs;
+  readonly #downloadFunction: typeof download;
+  readonly #mutex = new MultiProcessMutex("compiler-download");
 
   /**
    * Use CompilerDownloader.getConcurrencySafeDownloader instead
    */
   constructor(
-    private readonly _platform: CompilerPlatform,
-    private readonly _compilersDir: string,
-    private readonly _compilerListCachePeriodMs = CompilerDownloader.defaultCompilerListCachePeriod,
-    private readonly _downloadFunction: typeof download = download,
-  ) {}
+    _platform: CompilerPlatform,
+    _compilersDir: string,
+    _compilerListCachePeriodMs = CompilerDownloader.defaultCompilerListCachePeriod,
+    _downloadFunction: typeof download = download,
+  ) {
+    this.#platform = _platform;
+    this.#compilersDir = _compilersDir;
+    this.#compilerListCachePeriodMs = _compilerListCachePeriodMs;
+    this.#downloadFunction = _downloadFunction;
+  }
 
   public async isCompilerDownloaded(version: string): Promise<boolean> {
-    const build = await this._getCompilerBuild(version);
+    const build = await this.#getCompilerBuild(version);
 
     if (build === undefined) {
       return false;
     }
 
-    const downloadPath = this._getCompilerBinaryPathFromBuild(build);
+    const downloadPath = this.#getCompilerBinaryPathFromBuild(build);
 
     return fsExtra.pathExists(downloadPath);
   }
@@ -159,7 +168,7 @@ export class CompilerDownloader implements ICompilerDownloader {
     // This is because the mutex blocks access until a compiler has been fully downloaded, preventing any new process
     // from checking whether that version of the compiler exists. Without mutex it might incorrectly
     // return false, indicating that the compiler isn't present, even though it is currently being downloaded.
-    await this._mutex.use(async () => {
+    await this.#mutex.use(async () => {
       const isCompilerDownloaded = await this.isCompilerDownloaded(version);
 
       if (isCompilerDownloaded === true) {
@@ -168,11 +177,11 @@ export class CompilerDownloader implements ICompilerDownloader {
 
       await downloadStartedCb(isCompilerDownloaded);
 
-      let build = await this._getCompilerBuild(version);
+      let build = await this.#getCompilerBuild(version);
 
-      if (build === undefined && (await this._shouldDownloadCompilerList())) {
+      if (build === undefined && (await this.#shouldDownloadCompilerList())) {
         try {
-          await this._downloadCompilerList();
+          await this.#downloadCompilerList();
         } catch (e: any) {
           throw new HardhatError(
             ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED,
@@ -181,7 +190,7 @@ export class CompilerDownloader implements ICompilerDownloader {
           );
         }
 
-        build = await this._getCompilerBuild(version);
+        build = await this.#getCompilerBuild(version);
       }
 
       if (build === undefined) {
@@ -190,7 +199,7 @@ export class CompilerDownloader implements ICompilerDownloader {
 
       let downloadPath: string;
       try {
-        downloadPath = await this._downloadCompiler(build);
+        downloadPath = await this.#downloadCompiler(build);
       } catch (e: any) {
         throw new HardhatError(
           ERRORS.SOLC.DOWNLOAD_FAILED,
@@ -201,35 +210,35 @@ export class CompilerDownloader implements ICompilerDownloader {
         );
       }
 
-      const verified = await this._verifyCompilerDownload(build, downloadPath);
+      const verified = await this.#verifyCompilerDownload(build, downloadPath);
       if (!verified) {
         throw new HardhatError(ERRORS.SOLC.INVALID_DOWNLOAD, {
           remoteVersion: build.longVersion,
         });
       }
 
-      await this._postProcessCompilerDownload(build, downloadPath);
+      await this.#postProcessCompilerDownload(build, downloadPath);
 
       await downloadEndedCb(isCompilerDownloaded);
     });
   }
 
   public async getCompiler(version: string): Promise<Compiler | undefined> {
-    const build = await this._getCompilerBuild(version);
+    const build = await this.#getCompilerBuild(version);
 
     assertHardhatInvariant(
       build !== undefined,
       "Trying to get a compiler before it was downloaded",
     );
 
-    const compilerPath = this._getCompilerBinaryPathFromBuild(build);
+    const compilerPath = this.#getCompilerBinaryPathFromBuild(build);
 
     assertHardhatInvariant(
       await fsExtra.pathExists(compilerPath),
       "Trying to get a compiler before it was downloaded",
     );
 
-    if (await fsExtra.pathExists(this._getCompilerDoesntWorkFile(build))) {
+    if (await fsExtra.pathExists(this.#getCompilerDoesntWorkFile(build))) {
       return undefined;
     }
 
@@ -237,53 +246,51 @@ export class CompilerDownloader implements ICompilerDownloader {
       version,
       longVersion: build.longVersion,
       compilerPath,
-      isSolcJs: this._platform === CompilerPlatform.WASM,
+      isSolcJs: this.#platform === CompilerPlatform.WASM,
     };
   }
 
-  private async _getCompilerBuild(
-    version: string,
-  ): Promise<CompilerBuild | undefined> {
-    const listPath = this._getCompilerListPath();
+  async #getCompilerBuild(version: string): Promise<CompilerBuild | undefined> {
+    const listPath = this.#getCompilerListPath();
     if (!(await fsExtra.pathExists(listPath))) {
       return undefined;
     }
 
-    const list = await this._readCompilerList(listPath);
+    const list = await this.#readCompilerList(listPath);
     return list.builds.find((b) => b.version === version);
   }
 
-  private _getCompilerListPath(): string {
-    return path.join(this._compilersDir, this._platform, "list.json");
+  #getCompilerListPath(): string {
+    return path.join(this.#compilersDir, this.#platform, "list.json");
   }
 
-  private async _readCompilerList(listPath: string): Promise<CompilerList> {
+  async #readCompilerList(listPath: string): Promise<CompilerList> {
     return fsExtra.readJSON(listPath);
   }
 
-  private _getCompilerDownloadPathFromBuild(build: CompilerBuild): string {
-    return path.join(this._compilersDir, this._platform, build.path);
+  #getCompilerDownloadPathFromBuild(build: CompilerBuild): string {
+    return path.join(this.#compilersDir, this.#platform, build.path);
   }
 
-  private _getCompilerBinaryPathFromBuild(build: CompilerBuild): string {
-    const downloadPath = this._getCompilerDownloadPathFromBuild(build);
+  #getCompilerBinaryPathFromBuild(build: CompilerBuild): string {
+    const downloadPath = this.#getCompilerDownloadPathFromBuild(build);
 
     if (
-      this._platform !== CompilerPlatform.WINDOWS ||
+      this.#platform !== CompilerPlatform.WINDOWS ||
       !downloadPath.endsWith(".zip")
     ) {
       return downloadPath;
     }
 
-    return path.join(this._compilersDir, build.version, "solc.exe");
+    return path.join(this.#compilersDir, build.version, "solc.exe");
   }
 
-  private _getCompilerDoesntWorkFile(build: CompilerBuild): string {
-    return `${this._getCompilerBinaryPathFromBuild(build)}.does.not.work`;
+  #getCompilerDoesntWorkFile(build: CompilerBuild): string {
+    return `${this.#getCompilerBinaryPathFromBuild(build)}.does.not.work`;
   }
 
-  private async _shouldDownloadCompilerList(): Promise<boolean> {
-    const listPath = this._getCompilerListPath();
+  async #shouldDownloadCompilerList(): Promise<boolean> {
+    const listPath = this.#getCompilerListPath();
     if (!(await fsExtra.pathExists(listPath))) {
       return true;
     }
@@ -291,28 +298,28 @@ export class CompilerDownloader implements ICompilerDownloader {
     const stats = await fsExtra.stat(listPath);
     const age = new Date().valueOf() - stats.ctimeMs;
 
-    return age > this._compilerListCachePeriodMs;
+    return age > this.#compilerListCachePeriodMs;
   }
 
-  private async _downloadCompilerList(): Promise<void> {
-    log(`Downloading compiler list for platform ${this._platform}`);
-    const url = `${COMPILER_REPOSITORY_URL}/${this._platform}/list.json`;
-    const downloadPath = this._getCompilerListPath();
+  async #downloadCompilerList(): Promise<void> {
+    log(`Downloading compiler list for platform ${this.#platform}`);
+    const url = `${COMPILER_REPOSITORY_URL}/${this.#platform}/list.json`;
+    const downloadPath = this.#getCompilerListPath();
 
-    await this._downloadFunction(url, downloadPath);
+    await this.#downloadFunction(url, downloadPath);
   }
 
-  private async _downloadCompiler(build: CompilerBuild): Promise<string> {
+  async #downloadCompiler(build: CompilerBuild): Promise<string> {
     log(`Downloading compiler ${build.longVersion}`);
-    const url = `${COMPILER_REPOSITORY_URL}/${this._platform}/${build.path}`;
-    const downloadPath = this._getCompilerDownloadPathFromBuild(build);
+    const url = `${COMPILER_REPOSITORY_URL}/${this.#platform}/${build.path}`;
+    const downloadPath = this.#getCompilerDownloadPathFromBuild(build);
 
-    await this._downloadFunction(url, downloadPath);
+    await this.#downloadFunction(url, downloadPath);
 
     return downloadPath;
   }
 
-  private async _verifyCompilerDownload(
+  async #verifyCompilerDownload(
     build: CompilerBuild,
     downloadPath: string,
   ): Promise<boolean> {
@@ -329,27 +336,27 @@ export class CompilerDownloader implements ICompilerDownloader {
     return true;
   }
 
-  private async _postProcessCompilerDownload(
+  async #postProcessCompilerDownload(
     build: CompilerBuild,
     downloadPath: string,
   ): Promise<void> {
-    if (this._platform === CompilerPlatform.WASM) {
+    if (this.#platform === CompilerPlatform.WASM) {
       return;
     }
 
     if (
-      this._platform === CompilerPlatform.LINUX ||
-      this._platform === CompilerPlatform.MACOS
+      this.#platform === CompilerPlatform.LINUX ||
+      this.#platform === CompilerPlatform.MACOS
     ) {
       fsExtra.chmodSync(downloadPath, 0o755);
     } else if (
-      this._platform === CompilerPlatform.WINDOWS &&
+      this.#platform === CompilerPlatform.WINDOWS &&
       downloadPath.endsWith(".zip")
     ) {
       // some window builds are zipped, some are not
       const AdmZip = await import("adm-zip");
 
-      const solcFolder = path.join(this._compilersDir, build.version);
+      const solcFolder = path.join(this.#compilersDir, build.version);
       await fsExtra.ensureDir(solcFolder);
 
       const zip = new AdmZip(downloadPath);
@@ -357,17 +364,17 @@ export class CompilerDownloader implements ICompilerDownloader {
     }
 
     log("Checking native solc binary");
-    const nativeSolcWorks = await this._checkNativeSolc(build);
+    const nativeSolcWorks = await this.#checkNativeSolc(build);
 
     if (nativeSolcWorks) {
       return;
     }
 
-    await fsExtra.createFile(this._getCompilerDoesntWorkFile(build));
+    await fsExtra.createFile(this.#getCompilerDoesntWorkFile(build));
   }
 
-  private async _checkNativeSolc(build: CompilerBuild): Promise<boolean> {
-    const solcPath = this._getCompilerBinaryPathFromBuild(build);
+  async #checkNativeSolc(build: CompilerBuild): Promise<boolean> {
+    const solcPath = this.#getCompilerBinaryPathFromBuild(build);
     const execFileP = promisify(execFile);
 
     try {

@@ -9,11 +9,11 @@ interface ParsedData {
 }
 
 export class Parser {
-  private _cache = new Map<string, ParsedData>();
-  private _solidityFilesCache: SolidityFilesCache;
+  readonly #cache = new Map<string, ParsedData>();
+  readonly #solidityFilesCache: SolidityFilesCache;
 
   constructor(_solidityFilesCache?: SolidityFilesCache) {
-    this._solidityFilesCache =
+    this.#solidityFilesCache =
       _solidityFilesCache ?? SolidityFilesCache.createEmpty();
   }
 
@@ -22,7 +22,7 @@ export class Parser {
     absolutePath: string,
     contentHash: string,
   ): Promise<ParsedData> {
-    const cacheResult = this._getFromCache(absolutePath, contentHash);
+    const cacheResult = this.#getFromCache(absolutePath, contentHash);
 
     if (cacheResult !== null) {
       return cacheResult;
@@ -34,7 +34,7 @@ export class Parser {
       )) as typeof SolidityAnalyzerT;
       const result = analyze(fileContent);
 
-      this._cache.set(contentHash, result);
+      this.#cache.set(contentHash, result);
 
       return result;
     } catch (e: any) {
@@ -52,18 +52,15 @@ export class Parser {
    *
    * Returns null if cannot find it in either one.
    */
-  private _getFromCache(
-    absolutePath: string,
-    contentHash: string,
-  ): ParsedData | null {
-    const internalCacheEntry = this._cache.get(contentHash);
+  #getFromCache(absolutePath: string, contentHash: string): ParsedData | null {
+    const internalCacheEntry = this.#cache.get(contentHash);
 
     if (internalCacheEntry !== undefined) {
       return internalCacheEntry;
     }
 
     const solidityFilesCacheEntry =
-      this._solidityFilesCache.getEntry(absolutePath);
+      this.#solidityFilesCache.getEntry(absolutePath);
 
     if (solidityFilesCacheEntry === undefined) {
       return null;
