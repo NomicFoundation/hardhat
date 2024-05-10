@@ -208,14 +208,25 @@ export function edrRpcDebugTraceToHardhat(
 export function edrTracingStepToMinimalInterpreterStep(
   step: TracingStep
 ): MinimalInterpreterStep {
-  return {
+  const minimalInterpreterStep: MinimalInterpreterStep = {
     pc: Number(step.pc),
     depth: step.depth,
     opcode: {
       name: step.opcode,
     },
-    stack: step.stackTop !== undefined ? [step.stackTop] : [],
+    stack:
+      step.stack !== undefined
+        ? step.stack
+        : step.stackTop !== undefined
+        ? [step.stackTop]
+        : [],
   };
+
+  if (step.memory !== undefined) {
+    minimalInterpreterStep.memory = step.memory;
+  }
+
+  return minimalInterpreterStep;
 }
 
 export function edrTracingMessageResultToMinimalEVMResult(
