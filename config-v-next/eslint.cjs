@@ -319,43 +319,22 @@ function createConfig(configFilePath, packageEntryPoints = []) {
     ],
   };
 
-  if (packageEntryPoints.length > 0) {
-    const acceptableTopLevelImports = [
-      "chalk",
-      "debug",
-      "find-up",
-      "fs-extra",
-      "semver",
-      "source-map-support/register",
-      "@nomicfoundation/hardhat-ethers",
-      "hardhat/common",
-      "hardhat/common/bigInt",
-      "hardhat/config",
-      "hardhat/plugins",
-      "hardhat/types",
-      "hardhat/types/artifacts",
-      "hardhat/types/config",
-      "hardhat/types/runtime",
-      "hardhat/builtin-tasks/task-names",
-      "hardhat/internal/core/errors",
-      "hardhat/internal/core/providers/util",
-      "hardhat/internal/util/fs-utils",
-      "hardhat/utils/contract-names",
-      "hardhat/utils/source-names",
-    ];
+  // TODO: Maybe re-enable it once we have a more stable project structure
+  // if (packageEntryPoints.length > 0) {
+  //   const acceptableTopLevelImports = [];
 
-    config.overrides?.push({
-      files: packageEntryPoints,
-      rules: {
-        "@nomicfoundation/slow-imports/no-top-level-external-import": [
-          "error",
-          {
-            ignoreModules: [...acceptableTopLevelImports],
-          },
-        ],
-      },
-    });
-  }
+  //   config.overrides?.push({
+  //     files: packageEntryPoints,
+  //     rules: {
+  //       "@nomicfoundation/slow-imports/no-top-level-external-import": [
+  //         "error",
+  //         {
+  //           ignoreModules: [...acceptableTopLevelImports],
+  //         },
+  //       ],
+  //     },
+  //   });
+  // }
 
   return config;
 }
