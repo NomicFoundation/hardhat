@@ -1,9 +1,8 @@
 {
   "name": "@nomicfoundation/hardhat-utils",
-  "private": true,
-  "version": "0.0.1",
+  "version": "3.0.0",
   "description": "Utilities for Hardhat and its plugins",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-utils",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-utils",
   "repository": "github:nomicfoundation/hardhat",
   "author": "Nomic Foundation",
   "license": "MIT",

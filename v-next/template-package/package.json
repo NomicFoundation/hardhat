@@ -1,9 +1,9 @@
 {
   "name": "@nomicfoundation/template-package",
   "private": true,
-  "version": "0.0.1",
+  "version": "3.0.0",
   "description": "Template for Nomic Foundation npm packages",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/template-package",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/template-package",
   "repository": "github:nomicfoundation/hardhat",
   "author": "Nomic Foundation",
   "license": "MIT",
