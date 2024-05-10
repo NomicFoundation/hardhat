@@ -70,6 +70,14 @@ export class HardhatError extends CustomError {
   public get number(): number {
     return this.#descriptor.number;
   }
+
+  public get pluginId(): string | undefined {
+    return this.#descriptor.pluginId;
+  }
+
+  public get descriptor(): ErrorDescriptor {
+    return this.#descriptor;
+  }
 }
 
 /**
