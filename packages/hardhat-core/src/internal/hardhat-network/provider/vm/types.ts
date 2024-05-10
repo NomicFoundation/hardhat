@@ -12,6 +12,7 @@ export interface MinimalInterpreterStep {
     name: string;
   };
   stack: bigint[];
+  memory?: Uint8Array;
 }
 
 export interface MinimalExecResult {
