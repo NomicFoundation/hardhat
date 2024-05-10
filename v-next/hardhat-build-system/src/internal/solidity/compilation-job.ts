@@ -1,6 +1,5 @@
 import debug from "debug";
 import semver from "semver";
-import isEqual from "lodash/isEqual.js";
 import * as taskTypes from "../types/builtin-tasks/index.js";
 import { SolcConfig, SolidityConfig } from "../types/index.js";
 import {
@@ -10,6 +9,7 @@ import {
 } from "../types/builtin-tasks/index.js";
 import { assertHardhatInvariant } from "../errors/errors.js";
 import { ResolvedFile } from "./resolver.js";
+import { deepEqual } from "fast-equals";
 
 // this should have a proper version range when it's fixed
 const SOLC_BUG_9573_VERSIONS = "<0.8.0";
@@ -134,7 +134,7 @@ export class CompilationJob implements taskTypes.CompilationJob {
 
   public merge(job: taskTypes.CompilationJob): CompilationJob {
     assertHardhatInvariant(
-      isEqual(this.solidityConfig, job.getSolcConfig()),
+      deepEqual(this.solidityConfig, job.getSolcConfig()),
       "Merging jobs with different solidity configurations",
     );
     const mergedJobs = new CompilationJob(job.getSolcConfig());

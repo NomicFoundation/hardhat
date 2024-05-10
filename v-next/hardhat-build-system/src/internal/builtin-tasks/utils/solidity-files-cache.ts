@@ -2,7 +2,7 @@ import type { SolcConfig } from "../../types/index.js";
 import debug from "debug";
 import fsExtra from "fs-extra";
 import * as t from "io-ts";
-import isEqual from "lodash/isEqual.js";
+import { deepEqual } from "fast-equals";
 
 const log = debug("hardhat:core:tasks:compile:cache");
 
@@ -125,7 +125,7 @@ export class SolidityFilesCache {
 
     if (
       solcConfig !== undefined &&
-      !isEqual(solcConfig, cacheEntry.solcConfig)
+      !deepEqual(solcConfig, cacheEntry.solcConfig)
     ) {
       return true;
     }
