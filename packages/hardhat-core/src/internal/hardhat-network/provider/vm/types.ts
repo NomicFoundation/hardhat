@@ -1,3 +1,4 @@
+import type { ExceptionalHalt, SuccessReason } from "@nomicfoundation/edr";
 import type { Address } from "@nomicfoundation/ethereumjs-util";
 
 /**
@@ -16,7 +17,9 @@ export interface MinimalInterpreterStep {
 }
 
 export interface MinimalExecResult {
+  success: boolean;
   executionGasUsed: bigint;
+  reason?: SuccessReason | ExceptionalHalt;
 }
 
 export interface MinimalEVMResult {
