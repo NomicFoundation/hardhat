@@ -265,5 +265,6 @@ export function edrTracingMessageToMinimalMessage(
     value: message.value,
     caller: new Address(message.caller),
     gasLimit: message.gasLimit,
+    isStaticCall: message.isStaticCall,
   };
 }
