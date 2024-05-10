@@ -1468,6 +1468,9 @@ importers:
       '@nomicfoundation/eslint-plugin-slow-imports':
         specifier: workspace:^
         version: link:../../packages/eslint-plugin-slow-imports
+      '@reporters/github':
+        specifier: ^1.7.0
+        version: 1.7.0
       '@types/ci-info':
         specifier: ^2.0.0
         version: 2.0.0
