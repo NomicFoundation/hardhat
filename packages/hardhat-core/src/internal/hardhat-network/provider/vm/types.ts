@@ -33,4 +33,5 @@ export interface MinimalMessage {
   data: Uint8Array;
   caller: Address;
   gasLimit: bigint;
+  isStaticCall: boolean;
 }
