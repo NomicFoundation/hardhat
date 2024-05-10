@@ -13,37 +13,37 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
     // TODO refactor this to make the results deterministic
     await Promise.all(
       resolvedFiles.map((resolvedFile) =>
-        graph._addDependenciesFrom(resolver, resolvedFile),
+        graph.#addDependenciesFrom(resolver, resolvedFile),
       ),
     );
 
     return graph;
   }
 
-  private _resolvedFiles = new Map<string, ResolvedFile>();
-  private _dependenciesPerFile = new Map<string, Set<ResolvedFile>>();
+  readonly #resolvedFiles = new Map<string, ResolvedFile>();
+  readonly #dependenciesPerFile = new Map<string, Set<ResolvedFile>>();
 
   // map absolute paths to source names
-  private readonly _visitedFiles = new Map<string, string>();
+  readonly #visitedFiles = new Map<string, string>();
 
   private constructor() {}
 
   public getResolvedFiles(): ResolvedFile[] {
-    return Array.from(this._resolvedFiles.values());
+    return Array.from(this.#resolvedFiles.values());
   }
 
   public has(file: ResolvedFile): boolean {
-    return this._resolvedFiles.has(file.sourceName);
+    return this.#resolvedFiles.has(file.sourceName);
   }
 
   public isEmpty(): boolean {
-    return this._resolvedFiles.size === 0;
+    return this.#resolvedFiles.size === 0;
   }
 
   public entries(): Array<[ResolvedFile, Set<ResolvedFile>]> {
-    return Array.from(this._dependenciesPerFile.entries()).map(
+    return Array.from(this.#dependenciesPerFile.entries()).map(
       ([key, value]) => {
-        const resolvedFile = this._resolvedFiles.get(key);
+        const resolvedFile = this.#resolvedFiles.get(key);
 
         assertHardhatInvariant(
           resolvedFile !== undefined,
@@ -57,7 +57,7 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
 
   public getDependencies(file: ResolvedFile): ResolvedFile[] {
     const dependencies =
-      this._dependenciesPerFile.get(file.sourceName) ?? new Set();
+      this.#dependenciesPerFile.get(file.sourceName) ?? new Set();
 
     return [...dependencies];
   }
@@ -67,7 +67,7 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
   ): taskTypes.TransitiveDependency[] {
     const visited = new Set<ResolvedFile>();
 
-    const transitiveDependencies = this._getTransitiveDependencies(
+    const transitiveDependencies = this.#getTransitiveDependencies(
       file,
       visited,
       [],
@@ -82,7 +82,7 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
     for (const [
       sourceName,
       dependencies,
-    ] of this._dependenciesPerFile.entries()) {
+    ] of this.#dependenciesPerFile.entries()) {
       undirectedGraph[sourceName] = undirectedGraph[sourceName] ?? new Set();
 
       for (const dependency of dependencies) {
@@ -133,8 +133,8 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
       const dependencyGraph = new DependencyGraph();
 
       for (const sourceName of component) {
-        const file = this._resolvedFiles.get(sourceName);
-        const dependencies = this._dependenciesPerFile.get(sourceName);
+        const file = this.#resolvedFiles.get(sourceName);
+        const dependencies = this.#dependenciesPerFile.get(sourceName);
 
         assertHardhatInvariant(file !== undefined, "File is undefined");
         assertHardhatInvariant(
@@ -142,8 +142,8 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
           "Dependencies set is undefined",
         );
 
-        dependencyGraph._resolvedFiles.set(sourceName, file);
-        dependencyGraph._dependenciesPerFile.set(sourceName, dependencies);
+        dependencyGraph.#resolvedFiles.set(sourceName, file);
+        dependencyGraph.#dependenciesPerFile.set(sourceName, dependencies);
       }
       connectedComponents.push(dependencyGraph);
     }
@@ -151,7 +151,7 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
     return connectedComponents;
   }
 
-  private _getTransitiveDependencies(
+  #getTransitiveDependencies(
     file: ResolvedFile,
     visited: Set<ResolvedFile>,
     path: ResolvedFile[],
@@ -172,7 +172,7 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
     );
 
     for (const { dependency } of transitiveDependencies) {
-      this._getTransitiveDependencies(
+      this.#getTransitiveDependencies(
         dependency,
         visited,
         path.concat(dependency),
@@ -182,11 +182,11 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
     return transitiveDependencies;
   }
 
-  private async _addDependenciesFrom(
+  async #addDependenciesFrom(
     resolver: Resolver,
     file: ResolvedFile,
   ): Promise<void> {
-    const sourceName = this._visitedFiles.get(file.absolutePath);
+    const sourceName = this.#visitedFiles.get(file.absolutePath);
 
     if (sourceName !== undefined) {
       if (sourceName !== file.sourceName) {
@@ -199,11 +199,11 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
       return;
     }
 
-    this._visitedFiles.set(file.absolutePath, file.sourceName);
+    this.#visitedFiles.set(file.absolutePath, file.sourceName);
 
     const dependencies = new Set<ResolvedFile>();
-    this._resolvedFiles.set(file.sourceName, file);
-    this._dependenciesPerFile.set(file.sourceName, dependencies);
+    this.#resolvedFiles.set(file.sourceName, file);
+    this.#dependenciesPerFile.set(file.sourceName, dependencies);
 
     // TODO refactor this to make the results deterministic
     await Promise.all(
@@ -211,7 +211,7 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
         const dependency = await resolver.resolveImport(file, imp);
         dependencies.add(dependency);
 
-        await this._addDependenciesFrom(resolver, dependency);
+        await this.#addDependenciesFrom(resolver, dependency);
       }),
     );
   }

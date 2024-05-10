@@ -12,9 +12,12 @@ export interface ICompiler {
 }
 
 export class Compiler implements ICompiler {
-  private _loadedSolc?: any;
+  readonly #pathToSolcJs;
+  #loadedSolc?: any;
 
-  constructor(private _pathToSolcJs: string) {}
+  constructor(_pathToSolcJs: string) {
+    this.#pathToSolcJs = _pathToSolcJs;
+  }
 
   public async compile(input: CompilerInput) {
     const solc = await this.getSolc();
@@ -24,16 +27,16 @@ export class Compiler implements ICompiler {
   }
 
   public async getSolc() {
-    if (this._loadedSolc !== undefined) {
-      return this._loadedSolc;
+    if (this.#loadedSolc !== undefined) {
+      return this.#loadedSolc;
     }
 
     const solcWrapper = require("solc/wrapper");
-    this._loadedSolc = solcWrapper(
-      this._loadCompilerSources(this._pathToSolcJs),
+    this.#loadedSolc = solcWrapper(
+      this.#loadCompilerSources(this.#pathToSolcJs),
     );
 
-    return this._loadedSolc;
+    return this.#loadedSolc;
   }
 
   /**
@@ -42,7 +45,7 @@ export class Compiler implements ICompiler {
    * The compiler is a huge asm.js file, and using a simple require may trigger
    * babel/register and hang the process.
    */
-  private _loadCompilerSources(compilerPath: string) {
+  #loadCompilerSources(compilerPath: string) {
     const Module = module.constructor as any;
 
     // if Hardhat is bundled (for example, in the vscode extension), then
@@ -71,21 +74,24 @@ export class Compiler implements ICompiler {
 }
 
 export class NativeCompiler implements ICompiler {
-  constructor(
-    private _pathToSolc: string,
-    private _solcVersion?: string,
-  ) {}
+  readonly #pathToSolc: string;
+  readonly #solcVersion?: string;
+
+  constructor(_pathToSolc: string, _solcVersion?: string) {
+    this.#pathToSolc = _pathToSolc;
+    this.#solcVersion = _solcVersion;
+  }
 
   public async compile(input: CompilerInput) {
     const args = ["--standard-json"];
 
     // Logic to make sure that solc default import callback is not being used.
     // If solcVersion is not defined or <= 0.6.8, do not add extra args.
-    if (this._solcVersion !== undefined) {
-      if (semver.gte(this._solcVersion, "0.8.22")) {
+    if (this.#solcVersion !== undefined) {
+      if (semver.gte(this.#solcVersion, "0.8.22")) {
         // version >= 0.8.22
         args.push("--no-import-callback");
-      } else if (semver.gte(this._solcVersion, "0.6.9")) {
+      } else if (semver.gte(this.#solcVersion, "0.6.9")) {
         // version >= 0.6.9
         const tmpFolder = path.join(os.tmpdir(), "hardhat-solc");
         fs.mkdirSync(tmpFolder, { recursive: true });
@@ -97,7 +103,7 @@ export class NativeCompiler implements ICompiler {
     const output: string = await new Promise((resolve, reject) => {
       try {
         const process = execFile(
-          this._pathToSolc,
+          this.#pathToSolc,
           args,
           {
             maxBuffer: 1024 * 1024 * 500,

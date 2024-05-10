@@ -35,10 +35,10 @@ interface BuildResult {
 }
 
 export class BuildSystem {
-  private _config: BuildConfig;
+  readonly #config: BuildConfig;
 
   constructor(config: BuildConfig) {
-    this._config = config; // TODO: can be optional? E.g.: it's not needed for method 'solidityReadFile'
+    this.#config = config; // TODO: can be optional? E.g.: it's not needed for method 'solidityReadFile'
     // TODO: clone the config?
   }
 
@@ -46,10 +46,10 @@ export class BuildSystem {
     // TODO: how to handle artifacts? Should they be passed as a parameter or should they be created here? Or both?
     const artifacts =
       buildRequest?.artifacts ??
-      new ArtifactsImpl(this._config.paths.artifacts);
+      new ArtifactsImpl(this.#config.paths.artifacts);
 
     await taskCompileSolidity(
-      this._config, // TODO: should it be passed as a parameter and override default values?
+      this.#config, // TODO: should it be passed as a parameter and override default values?
       artifacts,
       buildRequest?.force ?? false,
       buildRequest?.quiet ?? false,
@@ -87,7 +87,7 @@ export class BuildSystem {
   public async solidityGetSourcePaths(
     sourcePath: string | undefined,
   ): Promise<string[]> {
-    return taskCompileSolidityGetSourcePaths(this._config, sourcePath);
+    return taskCompileSolidityGetSourcePaths(this.#config, sourcePath);
   }
 
   // TODO: TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES
@@ -96,7 +96,7 @@ export class BuildSystem {
     rootPath?: string | undefined,
   ): Promise<string[]> {
     return taskCompileSolidityGetSourceNames(
-      this._config,
+      this.#config,
       sourcePaths,
       rootPath,
     );

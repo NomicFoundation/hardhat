@@ -1,5 +1,6 @@
 import debug from "debug";
 import semver from "semver";
+import { deepEqual } from "fast-equals";
 import * as taskTypes from "../types/builtin-tasks/index.js";
 import { SolcConfig, SolidityConfig } from "../types/index.js";
 import {
@@ -9,7 +10,6 @@ import {
 } from "../types/builtin-tasks/index.js";
 import { assertHardhatInvariant } from "../errors/errors.js";
 import { ResolvedFile } from "./resolver.js";
-import { deepEqual } from "fast-equals";
 
 // this should have a proper version range when it's fixed
 const SOLC_BUG_9573_VERSIONS = "<0.8.0";
@@ -107,7 +107,7 @@ export function mergeCompilationJobsWithoutBug(
 }
 
 export class CompilationJob implements taskTypes.CompilationJob {
-  private _filesToCompile: Map<
+  readonly #filesToCompile: Map<
     string,
     { file: ResolvedFile; emitsArtifacts: boolean }
   > = new Map();
@@ -115,13 +115,13 @@ export class CompilationJob implements taskTypes.CompilationJob {
   constructor(public solidityConfig: SolcConfig) {}
 
   public addFileToCompile(file: ResolvedFile, emitsArtifacts: boolean) {
-    const fileToCompile = this._filesToCompile.get(file.sourceName);
+    const fileToCompile = this.#filesToCompile.get(file.sourceName);
 
     // if the file doesn't exist, we add it
     // we also add it if emitsArtifacts is true, to override it in case it was
     // previously added but with a false emitsArtifacts
     if (fileToCompile === undefined || emitsArtifacts) {
-      this._filesToCompile.set(file.sourceName, { file, emitsArtifacts });
+      this.#filesToCompile.set(file.sourceName, { file, emitsArtifacts });
     }
   }
 
@@ -152,11 +152,11 @@ export class CompilationJob implements taskTypes.CompilationJob {
   }
 
   public isEmpty() {
-    return this._filesToCompile.size === 0;
+    return this.#filesToCompile.size === 0;
   }
 
   public getResolvedFiles(): ResolvedFile[] {
-    return [...this._filesToCompile.values()].map((x) => x.file);
+    return [...this.#filesToCompile.values()].map((x) => x.file);
   }
 
   /**
@@ -165,7 +165,7 @@ export class CompilationJob implements taskTypes.CompilationJob {
    * If no file is given, check if *some* file in the job emits artifacts.
    */
   public emitsArtifacts(file: ResolvedFile): boolean {
-    const fileToCompile = this._filesToCompile.get(file.sourceName);
+    const fileToCompile = this.#filesToCompile.get(file.sourceName);
 
     assertHardhatInvariant(
       fileToCompile !== undefined,

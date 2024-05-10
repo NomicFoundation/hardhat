@@ -19,44 +19,44 @@ const DEFAULT_MAX_MUTEX_LIFESPAN_IN_MS = 60000;
 const MUTEX_LOOP_WAITING_TIME_IN_MS = 100;
 
 export class MultiProcessMutex {
-  private _mutexFilePath: string;
-  private _mutexLifespanInMs: number;
+  readonly #mutexFilePath: string;
+  readonly #mutexLifespanInMs: number;
 
   constructor(mutexName: string, maxMutexLifespanInMs?: number) {
     log(`Creating mutex with name '${mutexName}'`);
 
-    this._mutexFilePath = path.join(os.tmpdir(), `${mutexName}.txt`);
-    this._mutexLifespanInMs =
+    this.#mutexFilePath = path.join(os.tmpdir(), `${mutexName}.txt`);
+    this.#mutexLifespanInMs =
       maxMutexLifespanInMs ?? DEFAULT_MAX_MUTEX_LIFESPAN_IN_MS;
   }
 
   public async use<T>(f: () => Promise<T>): Promise<T> {
-    log(`Starting mutex process with mutex file '${this._mutexFilePath}'`);
+    log(`Starting mutex process with mutex file '${this.#mutexFilePath}'`);
 
     while (true) {
-      if (await this._tryToAcquireMutex()) {
+      if (await this.#tryToAcquireMutex()) {
         // Mutex has been acquired
-        return this._executeFunctionAndReleaseMutex(f);
+        return this.#executeFunctionAndReleaseMutex(f);
       }
 
       // Mutex not acquired
-      if (this._isMutexFileTooOld()) {
+      if (this.#isMutexFileTooOld()) {
         // If the mutex file is too old, it likely indicates a stale lock, so the file should be removed
         log(
-          `Current mutex file is too old, removing it at path '${this._mutexFilePath}'`,
+          `Current mutex file is too old, removing it at path '${this.#mutexFilePath}'`,
         );
-        this._deleteMutexFile();
+        this.#deleteMutexFile();
       } else {
         // wait
-        await this._waitMs();
+        await this.#waitMs();
       }
     }
   }
 
-  private async _tryToAcquireMutex() {
+  async #tryToAcquireMutex() {
     try {
       // Create a file only if it does not exist
-      fs.writeFileSync(this._mutexFilePath, "", { flag: "wx+" });
+      fs.writeFileSync(this.#mutexFilePath, "", { flag: "wx+" });
       return true;
     } catch (error: any) {
       if (error.code === "EEXIST") {
@@ -68,33 +68,31 @@ export class MultiProcessMutex {
     }
   }
 
-  private async _executeFunctionAndReleaseMutex<T>(
-    f: () => Promise<T>,
-  ): Promise<T> {
-    log(`Mutex acquired at path '${this._mutexFilePath}'`);
+  async #executeFunctionAndReleaseMutex<T>(f: () => Promise<T>): Promise<T> {
+    log(`Mutex acquired at path '${this.#mutexFilePath}'`);
 
     try {
       const res = await f();
 
       // Release the mutex
-      log(`Mutex released at path '${this._mutexFilePath}'`);
-      this._deleteMutexFile();
+      log(`Mutex released at path '${this.#mutexFilePath}'`);
+      this.#deleteMutexFile();
 
-      log(`Mutex released at path '${this._mutexFilePath}'`);
+      log(`Mutex released at path '${this.#mutexFilePath}'`);
 
       return res;
     } catch (error: any) {
       // Catch any error to avoid stale locks.
       // Remove the mutex file and re-throw the error
-      this._deleteMutexFile();
+      this.#deleteMutexFile();
       throw error;
     }
   }
 
-  private _isMutexFileTooOld(): boolean {
+  #isMutexFileTooOld(): boolean {
     let fileStat;
     try {
-      fileStat = fs.statSync(this._mutexFilePath);
+      fileStat = fs.statSync(this.#mutexFilePath);
     } catch (error: any) {
       if (error.code === "ENOENT") {
         // The file might have been deleted by another process while this function was trying to access it.
@@ -108,13 +106,13 @@ export class MultiProcessMutex {
     const fileDate = new Date(fileStat.ctime);
     const diff = now.getTime() - fileDate.getTime();
 
-    return diff > this._mutexLifespanInMs;
+    return diff > this.#mutexLifespanInMs;
   }
 
-  private _deleteMutexFile() {
+  #deleteMutexFile() {
     try {
-      log(`Deleting mutex file at path '${this._mutexFilePath}'`);
-      fs.unlinkSync(this._mutexFilePath);
+      log(`Deleting mutex file at path '${this.#mutexFilePath}'`);
+      fs.unlinkSync(this.#mutexFilePath);
     } catch (error: any) {
       if (error.code === "ENOENT") {
         // The file might have been deleted by another process while this function was trying to access it.
@@ -125,7 +123,7 @@ export class MultiProcessMutex {
     }
   }
 
-  private async _waitMs() {
+  async #waitMs() {
     return new Promise((resolve) =>
       setTimeout(resolve, MUTEX_LOOP_WAITING_TIME_IN_MS),
     );

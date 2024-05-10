@@ -39,6 +39,8 @@ export interface Cache {
 }
 
 export class SolidityFilesCache {
+  readonly #cache: Cache;
+
   public static createEmpty(): SolidityFilesCache {
     return new SolidityFilesCache({
       _format: FORMAT_VERSION,
@@ -73,11 +75,13 @@ export class SolidityFilesCache {
     });
   }
 
-  constructor(private _cache: Cache) {}
+  constructor(_cache: Cache) {
+    this.#cache = _cache;
+  }
 
   public async removeNonExistingFiles() {
     await Promise.all(
-      Object.keys(this._cache.files).map(async (absolutePath) => {
+      Object.keys(this.#cache.files).map(async (absolutePath) => {
         if (!(await fsExtra.pathExists(absolutePath))) {
           this.removeEntry(absolutePath);
         }
@@ -86,25 +90,25 @@ export class SolidityFilesCache {
   }
 
   public async writeToFile(solidityFilesCachePath: string) {
-    await fsExtra.outputJson(solidityFilesCachePath, this._cache, {
+    await fsExtra.outputJson(solidityFilesCachePath, this.#cache, {
       spaces: 2,
     });
   }
 
   public addFile(absolutePath: string, entry: CacheEntry) {
-    this._cache.files[absolutePath] = entry;
+    this.#cache.files[absolutePath] = entry;
   }
 
   public getEntries(): CacheEntry[] {
-    return Object.values(this._cache.files);
+    return Object.values(this.#cache.files);
   }
 
   public getEntry(file: string): CacheEntry | undefined {
-    return this._cache.files[file];
+    return this.#cache.files[file];
   }
 
   public removeEntry(file: string) {
-    delete this._cache.files[file];
+    delete this.#cache.files[file];
   }
 
   public hasFileChanged(
