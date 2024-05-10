@@ -232,11 +232,24 @@ export function edrTracingStepToMinimalInterpreterStep(
 export function edrTracingMessageResultToMinimalEVMResult(
   tracingMessageResult: TracingMessageResult
 ): MinimalEVMResult {
-  return {
+  const executionResult = tracingMessageResult.executionResult.result;
+
+  // only SuccessResult has logs
+  const success = "logs" in executionResult;
+
+  const minimalEVMResult: MinimalEVMResult = {
     execResult: {
-      executionGasUsed: tracingMessageResult.executionResult.result.gasUsed,
+      executionGasUsed: executionResult.gasUsed,
+      success,
     },
   };
+
+  // only success and exceptional halt have reason
+  if ("reason" in executionResult) {
+    minimalEVMResult.execResult.reason = executionResult.reason;
+  }
+
+  return minimalEVMResult;
 }
 
 export function edrTracingMessageToMinimalMessage(
