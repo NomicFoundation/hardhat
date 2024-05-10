@@ -1,5 +1,5 @@
 {
-  "extends": "../../config/v-next/tsconfig.json",
+  "extends": "../../config-v-next/tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
     "composite": true,
