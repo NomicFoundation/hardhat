@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 import { HardhatError } from "../errors/errors.js";
 import { ERRORS } from "../errors/errors-list.js";
 import { FileNotFoundError, getFileTrueCase } from "./fs-utils.js";
