@@ -19,6 +19,7 @@ import {
 
 import { LibraryToAddress } from "./solc/artifacts";
 import {
+  ABIArgumentTypeErrorType,
   isABIArgumentLengthError,
   isABIArgumentOverflowError,
   isABIArgumentTypeError,
@@ -228,6 +229,23 @@ export async function encodeArguments(
   const contractInterface = new Interface(abi);
   let encodedConstructorArguments;
   try {
+    // Check if the constructor arguments are of the correct type.
+    const constructorArgType = contractInterface.deploy.inputs?.map(
+      (ci) => ci?.type
+    );
+    constructorArguments?.forEach((item, index) => {
+      if (
+        typeof item !== constructorArgType[index] &&
+        constructorArgType[index] === "string"
+      )
+        throw new ABIArgumentTypeError({
+          code: "INVALID_ARGUMENT",
+          argument: "constructor argument",
+          value: item,
+          reason: `Expected type 'string', but got '${typeof item}'`,
+        } as ABIArgumentTypeErrorType);
+    });
+
     encodedConstructorArguments = contractInterface
       .encodeDeploy(constructorArguments)
       .replace("0x", "");
