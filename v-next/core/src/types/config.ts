@@ -45,29 +45,11 @@ export type SensitiveString = string | ConfigurationVariable;
  * The user's Hardhat configuration, as exported in their
  * config file.
  */
-export interface HardhatUserConfig {
-  solidity?: string | SolidityUserConfig;
-  privateKey?: SensitiveString;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface -- Used through module aumentation
+export interface HardhatUserConfig {}
 
 /**
  * The resolved Hardhat configuration.
  */
-export interface HardhatConfig {
-  solidity: SolidityConfig;
-  privateKey?: ResolvedConfigurationVariable;
-}
-
-/**
- * The solidity configuration as provided by the user.
- */
-export interface SolidityUserConfig {
-  version: string;
-}
-
-/**
- * The resolved solidity configuration.
- */
-export interface SolidityConfig {
-  version: string;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface -- Used through module aumentation
+export interface HardhatConfig {}

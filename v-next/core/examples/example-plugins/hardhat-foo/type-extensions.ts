@@ -8,10 +8,12 @@ declare module "../../../src/types/config.js" {
   }
 
   interface HardhatUserConfig {
+    privateKey?: SensitiveString;
     foo?: FooUserConfig;
   }
 
   interface HardhatConfig {
+    privateKey?: ResolvedConfigurationVariable;
     foo: FooConfig;
   }
 }

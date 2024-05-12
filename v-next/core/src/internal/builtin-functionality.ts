@@ -1,17 +1,9 @@
 import type { HardhatPlugin } from "../types/plugins.js";
 import { z } from "zod";
-import {
-  SensitiveStringType,
-  validateUserConfigZodType,
-} from "./config/validation-utils.js";
-
-const SolidityUserConfig = z.object({
-  version: z.string(),
-});
+import { validateUserConfigZodType } from "./config/validation-utils.js";
 
 const HardhatUserConfig = z.object({
-  solidity: z.optional(z.union([z.string(), SolidityUserConfig])),
-  privateKey: z.optional(SensitiveStringType),
+  // TODO: validate the tasks array
 });
 
 export default {
@@ -31,23 +23,7 @@ export default {
           resolveConfigurationVariable,
         );
 
-        const version =
-          typeof userConfig.solidity === "string"
-            ? userConfig.solidity
-            : userConfig.solidity?.version ?? "0.8.2";
-
-        resolvedConfig.solidity = {
-          ...resolvedConfig.solidity,
-          version,
-        };
-
-        if (userConfig.privateKey !== undefined) {
-          resolvedConfig.privateKey = resolveConfigurationVariable(
-            userConfig.privateKey,
-          );
-        }
-
-        return resolvedConfig;
+        return { ...resolvedConfig, tasks: userConfig.tasks ?? [] };
       },
     }),
     configurationVariables: async () => {
@@ -55,6 +31,8 @@ export default {
 
       return {
         fetchValue: async (context, variable, _next) => {
+          // TODO: Actually fetch the configuration variable, this is just a
+          //  stub
           if (configVariablesStore === undefined) {
             const password = await context.interruptions.requestSecretInput(
               "Configuration variables",
@@ -72,5 +50,4 @@ export default {
       };
     },
   },
-  dependencies: [],
 } satisfies HardhatPlugin;

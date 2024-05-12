@@ -1,9 +1,10 @@
+import { GlobalParameter } from "./global-parameters.js";
 import { HardhatHooks } from "./hooks.js";
+import { TaskDefinition } from "./tasks.js";
 
-// We add the plugins to the config with a module augmentation
-// to keep everything plugin-related here, and at the same time
-// to avoid a circular dependency and/or having
-// a huge file with everything.
+// We add the plugins to the config types with a module augmentation to avoid
+// introducing a circular dependency that would look like this:
+// config.ts -> plugins.ts -> hooks.ts -> config.ts
 declare module "./config.js" {
   export interface HardhatUserConfig {
     plugins?: HardhatPlugin[];
@@ -28,6 +29,11 @@ export interface HardhatPlugin {
    * The npm package where the plugin is located, if any.
    */
   npmPackage?: string;
+
+  /**
+   * An arary of plugins that this plugins depends on.
+   */
+  dependencies?: HardhatPlugin[];
 
   /**
    * An object with the different hook handlers that this plugin defines.
@@ -59,9 +65,18 @@ export interface HardhatPlugin {
   hookHandlers?: HookHandlerCategoryFactories;
 
   /**
-   * An arary of plugins that this plugins depends on.
+   * An array of the global parameters that this plugin defines.
    */
-  dependencies?: HardhatPlugin[];
+  globalParameters?: GlobalParameter[];
+
+  /**
+   * An array of type definitions, which should be created using their builders.
+   *
+   * Each entry either defines or overrides a task. To override a tasks, it must
+   * habe been defined before, either by a plugin you depend on or by Hardhat
+   * itself.
+   */
+  tasks?: TaskDefinition[];
 }
 
 /**

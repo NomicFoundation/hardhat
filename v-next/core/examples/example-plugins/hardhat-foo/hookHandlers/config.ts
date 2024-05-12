@@ -34,6 +34,10 @@ export default async () => {
           ...resolvedConfig.foo,
           bar: typeof bar === "number" ? [bar] : bar,
         },
+        privateKey:
+          userConfig.privateKey !== undefined
+            ? resolveConfigurationVariable(userConfig.privateKey)
+            : undefined,
       };
     },
   };

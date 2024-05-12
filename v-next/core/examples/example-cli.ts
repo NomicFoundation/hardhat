@@ -28,6 +28,8 @@ export async function main() {
     const now = process.hrtime.bigint();
     console.log("Time to initialize the HRE (ms):", (now - then) / 1000000n);
 
+    await hre.tasks.getTask("test").run({});
+
     await ignitionMockTask(hre);
   } catch (error) {
     process.exitCode = 1;

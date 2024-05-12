@@ -7,11 +7,23 @@ cat <<EOF > "$SCRIPT_DIR/../src/api-extractor-entrypoint.ts"
 export * from "./index.js";
 export type * from "./index.js";
 
+export * from "./types/common.js";
+export type * from "./types/common.js";
+export * from "./types/config.js";
 export type * from "./types/config.js";
+export * from "./types/global-parameters.js";
+export type * from "./types/global-parameters.js";
+export * from "./types/hooks.js";
 export type * from "./types/hooks.js";
+export * from "./types/hre.js";
 export type * from "./types/hre.js";
+export * from "./types/plugins.js";
 export type * from "./types/plugins.js";
+export * from "./types/tasks.js";
+export type * from "./types/tasks.js";
+export * from "./types/user-interruptions.js";
 export type * from "./types/user-interruptions.js";
+export * from "./types/utils.js";
 export type * from "./types/utils.js";
 
 export * from "./config.js";

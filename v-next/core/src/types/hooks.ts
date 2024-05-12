@@ -4,6 +4,7 @@ import {
   HardhatUserConfig,
   ResolvedConfigurationVariable,
 } from "./config.js";
+import { HardhatRuntimeEnvironment } from "./hre.js";
 import { UserInterruptionManager } from "./user-interruptions.js";
 import {
   LastParameter,
@@ -13,6 +14,15 @@ import {
   Params,
   Return,
 } from "./utils.js";
+
+// We add the HookManager to the HRE with a module augmentation to avoid
+// introducing a circular dependency that would look like this:
+// hre.ts -> hooks.ts -> hre.ts
+declare module "./hre.js" {
+  export interface HardhatRuntimeEnvironment {
+    readonly hooks: HookManager;
+  }
+}
 
 /**
  * The context that is passed to hook handlers, except for those in the "config"
@@ -34,6 +44,7 @@ export interface HardhatHooks {
   config: ConfigHooks;
   userInterruptions: UserInterruptionHooks;
   configurationVariables: ConfigurationVariableHooks;
+  hre: HardhatRuntimeEnvironmentHooks;
 }
 
 /**
@@ -209,6 +220,16 @@ export interface UserInterruptionHooks {
       nextInputDescription: string,
     ) => Promise<string>,
   ) => Promise<string>;
+}
+
+/**
+ * Hardhat Runtime Environment-related hooks.
+ */
+export interface HardhatRuntimeEnvironmentHooks {
+  created: (
+    context: HookContext,
+    hre: HardhatRuntimeEnvironment,
+  ) => Promise<void>;
 }
 
 /**
