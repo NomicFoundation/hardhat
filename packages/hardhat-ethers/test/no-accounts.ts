@@ -34,10 +34,10 @@ describe("hardhat-ethers plugin", function () {
           const receipt = await deployGreeter(this.env, signerAddress);
 
           if (receipt === null) {
-            assert.fail("receipt shoudn't be null");
+            assert.fail("receipt shouldn't be null");
           }
           if (receipt.contractAddress === null) {
-            assert.fail("receipt.contractAddress shoudn't be null");
+            assert.fail("receipt.contractAddress shouldn't be null");
           }
 
           const contract = await this.env.ethers.getContractAt(
@@ -58,10 +58,10 @@ describe("hardhat-ethers plugin", function () {
         it("Should return an instance of a contract with a read-only provider", async function () {
           const receipt = await deployGreeter(this.env, signerAddress);
           if (receipt === null) {
-            assert.fail("receipt shoudn't be null");
+            assert.fail("receipt shouldn't be null");
           }
           if (receipt.contractAddress === null) {
-            assert.fail("receipt.contractAddress shoudn't be null");
+            assert.fail("receipt.contractAddress shouldn't be null");
           }
 
           const signers = await this.env.ethers.getSigners();
@@ -126,7 +126,7 @@ async function deployGreeter(
   assert.isDefined(hre.ethers.provider);
   const receipt = await hre.ethers.provider.getTransactionReceipt(txHash);
   if (receipt === null) {
-    assert.fail("receipt shoudn't be null");
+    assert.fail("receipt shouldn't be null");
   }
   assert.strictEqual(receipt.status, 1, "The deployment transaction failed.");
 

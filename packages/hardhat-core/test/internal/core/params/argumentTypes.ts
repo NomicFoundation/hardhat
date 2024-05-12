@@ -303,7 +303,7 @@ describe("argumentTypes", () => {
       assert.equal(output, absolute);
     });
 
-    it("Should throw if the file doesnt exist", () => {
+    it("Should throw if the file doesn't exist", () => {
       expectHardhatError(
         () => types.inputFile.parse("A file", "NON_EXISTENT_FILE"),
         ERRORS.ARGUMENTS.INVALID_INPUT_FILE
