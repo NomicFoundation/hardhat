@@ -227,21 +227,25 @@ export function edrTracingStepToMinimalInterpreterStep(
 export function edrTracingMessageResultToMinimalEVMResult(
   tracingMessageResult: TracingMessageResult
 ): MinimalEVMResult {
-  const executionResult = tracingMessageResult.executionResult.result;
+  const { result, contractAddress } = tracingMessageResult.executionResult;
 
   // only SuccessResult has logs
-  const success = "logs" in executionResult;
+  const success = "logs" in result;
 
   const minimalEVMResult: MinimalEVMResult = {
     execResult: {
-      executionGasUsed: executionResult.gasUsed,
+      executionGasUsed: result.gasUsed,
       success,
     },
   };
 
   // only success and exceptional halt have reason
-  if ("reason" in executionResult) {
-    minimalEVMResult.execResult.reason = executionResult.reason;
+  if ("reason" in result) {
+    minimalEVMResult.execResult.reason = result.reason;
+  }
+
+  if (contractAddress !== undefined) {
+    minimalEVMResult.execResult.contractAddress = new Address(contractAddress);
   }
 
   return minimalEVMResult;

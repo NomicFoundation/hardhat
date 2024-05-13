@@ -19,6 +19,7 @@ export interface MinimalInterpreterStep {
 export interface MinimalExecResult {
   success: boolean;
   executionGasUsed: bigint;
+  contractAddress?: Address;
   reason?: SuccessReason | ExceptionalHalt;
 }
 
