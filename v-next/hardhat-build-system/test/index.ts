@@ -53,7 +53,7 @@ async function assertValidJson(pathToJson: string) {
   }
 }
 
-describe("build-system", { only: true }, () => {
+describe("build-system", () => {
   // TODO: should we also move here the tests to check that the last solidity version is properly added?
   // It's this commented code:
   // describe("compile with latest solc version", function () {
@@ -112,30 +112,26 @@ describe("build-system", { only: true }, () => {
     });
   });
 
-  describe("project with an empty file", { only: true }, function () {
+  describe("project with an empty file", function () {
     useFixtureProject("compilation-empty-file");
 
-    it(
-      "should compile and emit no artifact",
-      { only: true },
-      async function () {
-        const config = await resolveConfig();
+    it("should compile and emit no artifact", async function () {
+      const config = await resolveConfig();
 
-        const buildSystem = new BuildSystem(config);
-        await buildSystem.build();
+      const buildSystem = new BuildSystem(config);
+      await buildSystem.build();
 
-        // the artifacts directory only has the build-info directory
-        const artifactsDirectory = await fs.readdir("artifacts");
-        assert.equal(
-          artifactsDirectory.length,
-          1,
-          "The length should be the same",
-        );
+      // the artifacts directory only has the build-info directory
+      const artifactsDirectory = await fs.readdir("artifacts");
+      assert.equal(
+        artifactsDirectory.length,
+        1,
+        "The length should be the same",
+      );
 
-        const buildInfos = getBuildInfos();
-        assert.equal(buildInfos.length, 0);
-      },
-    );
+      const buildInfos = getBuildInfos();
+      assert.equal(buildInfos.length, 0);
+    });
   });
 
   describe("project with a single file with many contracts", function () {
