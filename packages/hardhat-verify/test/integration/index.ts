@@ -309,7 +309,7 @@ This can occur if the library is only called in the contract constructor. The mi
           constructorArgsParams: [],
         })
       ).to.be.rejectedWith(
-        /A network request failed\. This error is not related to Hardhat\. Original error: getaddrinfo ENOTFOUND api-hardhat\.etherscan\.io/
+        /A network request failed\. This is an error from the block explorer, not Hardhat\. Error: getaddrinfo ENOTFOUND api-hardhat\.etherscan\.io/
       );
     });
 
@@ -376,7 +376,7 @@ This can occur if the library is only called in the contract constructor. The mi
           constructorArgsParams: [],
         })
       ).to.be.rejectedWith(
-        /A network request failed\. This error is not related to Hardhat\. Original error: getaddrinfo ENOTFOUND api-hardhat\.etherscan\.io/
+        /A network request failed\. This is an error from the block explorer, not Hardhat\. Error: getaddrinfo ENOTFOUND api-hardhat\.etherscan\.io/
       );
 
       expect(logStub).to.be
