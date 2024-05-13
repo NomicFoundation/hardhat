@@ -4,8 +4,6 @@ import debug from "debug";
 import os from "node:os";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-// TODO: remove this line after rebasing on the fix
-// eslint-disable-next-line no-restricted-imports
 import { keccak256 } from "@nomicfoundation/hardhat-utils/crypto";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
 import { download } from "../../utils/download.js";
