@@ -425,14 +425,10 @@ Encoder error reason: ${reason} fault in ${operation}`,
 /**
  * `VerificationAPIUnexpectedMessageError` is thrown when the block explorer API
  * does not behave as expected, such as when it returns an unexpected response message.
- *
- * This error is intended to be reported to the Hardhat team for further investigation
- * and potential updates to the plugin to handle the new behavior.
  */
 export class VerificationAPIUnexpectedMessageError extends HardhatVerifyError {
   constructor(message: string) {
     super(`The API responded with an unexpected message.
-Please report this issue to the Hardhat team.
 Contract verification may have succeeded and should be checked manually.
 Message: ${message}`);
   }
@@ -443,19 +439,6 @@ export class NetworkRequestError extends HardhatVerifyError {
     super(
       `A network request failed. This error is not related to Hardhat. Original error: ${e.message}`
     );
-  }
-}
-
-export class UnexpectedError extends HardhatVerifyError {
-  constructor(e: unknown, functionName: string) {
-    const defaultErrorDetails = `Unexpected error in ${functionName}`;
-    const errorDetails =
-      e instanceof Error
-        ? e.message ?? defaultErrorDetails
-        : defaultErrorDetails;
-    super(`An unexpected error occurred during the verification process.
-Please report this issue to the Hardhat team.
-Error Details: ${errorDetails}`);
   }
 }
 

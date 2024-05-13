@@ -10,7 +10,6 @@ import {
   TASK_VERIFY_VERIFY,
   TASK_VERIFY_SOURCIFY,
 } from "../../src/internal/task-names";
-import { UnexpectedError } from "../../src/internal/errors";
 import { deployContract, getRandomAddress, useEnvironment } from "../helpers";
 import {
   interceptGetStatus,
@@ -339,11 +338,6 @@ This can occur if the library is only called in the contract constructor. The mi
         });
         assert.fail("Expected error was not thrown");
       } catch (e: any) {
-        assert.notInstanceOf(
-          e,
-          UnexpectedError,
-          "Error should not be an instance of UnexpectedError"
-        );
         assert.match(
           e.message,
           new RegExp(
