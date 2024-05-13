@@ -177,6 +177,7 @@ export async function writeJsonFile<T>(
  * @param absolutePathToFile The path to the file.
  * @returns The content of the file as a string.
  * @throws FileNotFoundError if the file doesn't exist.
+ * @throws IsDirectoryError if the path is a directory instead of a file.
  * @throws FileSystemAccessError for any other error.
  */
 export async function readUtf8File(
