@@ -13,8 +13,9 @@ import { AsyncEventEmitter } from "@nomicfoundation/ethereumjs-util";
  * interface only has the things used by those plugins.
  */
 export interface MinimalEthereumJsVm {
+  events: AsyncEventEmitter<MinimalEthereumJsVmEvents>;
   evm: {
-    events: AsyncEventEmitter<MinimalEthereumJsVmEvents>;
+    events: AsyncEventEmitter<MinimalEthereumJsEvmEvents>;
   };
   stateManager: {
     putContractCode: (address: Address, code: Buffer) => Promise<void>;
@@ -27,10 +28,18 @@ export interface MinimalEthereumJsVm {
   };
 }
 
-// we need to use a type instead of an interface to satisfy the type constarint
+// we need to use a type instead of an interface to satisfy the type constraint
 // of the AsyncEventEmitter type param
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type MinimalEthereumJsVmEvents = {
+  beforeTx: () => void;
+  afterTx: () => void;
+};
+
+// we need to use a type instead of an interface to satisfy the type constraint
+// of the AsyncEventEmitter type param
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type MinimalEthereumJsEvmEvents = {
   beforeMessage: (
     data: MinimalMessage,
     resolve?: (result?: any) => void
@@ -46,13 +55,15 @@ type MinimalEthereumJsVmEvents = {
 };
 
 export class MinimalEthereumJsVmEventEmitter extends AsyncEventEmitter<MinimalEthereumJsVmEvents> {}
+export class MinimalEthereumJsEvmEventEmitter extends AsyncEventEmitter<MinimalEthereumJsEvmEvents> {}
 
 export function getMinimalEthereumJsVm(
   provider: EdrProviderT
 ): MinimalEthereumJsVm {
   const minimalEthereumJsVm: MinimalEthereumJsVm = {
+    events: new MinimalEthereumJsVmEventEmitter(),
     evm: {
-      events: new MinimalEthereumJsVmEventEmitter(),
+      events: new MinimalEthereumJsEvmEventEmitter(),
     },
     stateManager: {
       putContractCode: async (address: Address, code: Buffer) => {
