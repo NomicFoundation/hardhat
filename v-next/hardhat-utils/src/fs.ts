@@ -135,6 +135,7 @@ export async function isDirectory(absolutePath: string): Promise<boolean> {
  * @returns The parsed JSON object.
  * @throws FileNotFoundError if the file doesn't exist.
  * @throws InvalidFileFormatError if the file is not a valid JSON file.
+ * @throws IsDirectoryError if the path is a directory instead of a file.
  * @throws FileSystemAccessError for any other error.
  */
 export async function readJsonFile<T>(absolutePathToFile: string): Promise<T> {
