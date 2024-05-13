@@ -179,13 +179,20 @@ function createConfig(configFilePath, packageEntryPoints = []) {
       "@typescript-eslint/prefer-namespace-keyword": "error",
       "@typescript-eslint/prefer-readonly": "error",
       // "@typescript-eslint/prefer-readonly-parameter-types": "error", // TBD if we enable it
-      // This forces use to use native #private fields
+
       "no-restricted-syntax": [
         "error",
+        // This forces us to use native #private fields
         {
           selector:
             ':matches(PropertyDefinition, MethodDefinition[kind!="constructor"], TSParameterProperty)[accessibility="private"]',
           message: "Use #private instead",
+        },
+        // We forbid `instanceof HardhatError` because it may not work well if the users has multiple versions of `@nomicfoundation/hardhat-errors` installed.
+        {
+          selector:
+            ":matches(BinaryExpression[operator='instanceof']) > Identifier[name='HardhatError']",
+          message: "Use HardhatError.isHardhatError instead of instanceof",
         },
       ],
       "@typescript-eslint/restrict-plus-operands": "error",
