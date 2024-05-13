@@ -92,7 +92,8 @@ describe("verify task integration tests", () => {
 
       expect(logStub).to.be.calledOnceWith(
         `The contract ${address} has already been verified on the block explorer. If you're trying to verify a partially verified contract, please use the --force flag.
-https://hardhat.etherscan.io/address/${address}#code`
+https://hardhat.etherscan.io/address/${address}#code
+`
       );
       logStub.restore();
       assert.isUndefined(taskResponse);
