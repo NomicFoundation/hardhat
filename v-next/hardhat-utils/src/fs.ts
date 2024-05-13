@@ -186,8 +186,13 @@ export async function readUtf8File(
     return await fsPromises.readFile(absolutePathToFile, { encoding: "utf8" });
   } catch (e) {
     ensureError<NodeJS.ErrnoException>(e);
+
     if (e.code === "ENOENT") {
       throw new FileNotFoundError(absolutePathToFile, e);
+    }
+
+    if (e.code === "EISDIR") {
+      throw new IsDirectoryError(absolutePathToFile, e);
     }
 
     throw new FileSystemAccessError(e.message, e);

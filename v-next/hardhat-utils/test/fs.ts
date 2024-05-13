@@ -469,6 +469,16 @@ describe("File system utils", () => {
       expectTypeOf(await readUtf8File(filePath)).toMatchTypeOf<string>();
     });
 
+    it("Should throw IsDirectoryError if the path is a dir and not a file", async () => {
+      const dirPath = path.join(getTmpDir(), "dir-name");
+      await mkdir(dirPath);
+
+      await assert.rejects(readUtf8File(dirPath), {
+        name: "IsDirectoryError",
+        message: `Path ${dirPath} is a directory`,
+      });
+    });
+
     it("Should throw FileNotFoundError if the file doesn't exist", async () => {
       const filePath = path.join(getTmpDir(), "not-exists.txt");
 
