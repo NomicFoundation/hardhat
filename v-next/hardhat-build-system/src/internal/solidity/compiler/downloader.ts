@@ -1,11 +1,20 @@
 import path from "node:path";
-import fsExtra from "fs-extra";
 import debug from "debug";
 import os from "node:os";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { keccak256 } from "@nomicfoundation/hardhat-utils/crypto";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
+import {
+  chmod,
+  createFile,
+  ensureDir,
+  exists,
+  getChangeTime,
+  readJsonFile,
+  readUtf8File,
+  remove,
+} from "@nomicfoundation/hardhat-utils/fs";
 import { download } from "../../utils/download.js";
 import { HardhatError, assertHardhatInvariant } from "../../errors/errors.js";
 import { ERRORS } from "../../errors/errors-list.js";
@@ -156,7 +165,7 @@ export class CompilerDownloader implements ICompilerDownloader {
 
     const downloadPath = this.#getCompilerBinaryPathFromBuild(build);
 
-    return fsExtra.pathExists(downloadPath);
+    return exists(downloadPath);
   }
 
   public async downloadCompiler(
@@ -234,11 +243,11 @@ export class CompilerDownloader implements ICompilerDownloader {
     const compilerPath = this.#getCompilerBinaryPathFromBuild(build);
 
     assertHardhatInvariant(
-      await fsExtra.pathExists(compilerPath),
+      await exists(compilerPath),
       "Trying to get a compiler before it was downloaded",
     );
 
-    if (await fsExtra.pathExists(this.#getCompilerDoesntWorkFile(build))) {
+    if (await exists(this.#getCompilerDoesntWorkFile(build))) {
       return undefined;
     }
 
@@ -252,7 +261,7 @@ export class CompilerDownloader implements ICompilerDownloader {
 
   async #getCompilerBuild(version: string): Promise<CompilerBuild | undefined> {
     const listPath = this.#getCompilerListPath();
-    if (!(await fsExtra.pathExists(listPath))) {
+    if (!(await exists(listPath))) {
       return undefined;
     }
 
@@ -265,7 +274,7 @@ export class CompilerDownloader implements ICompilerDownloader {
   }
 
   async #readCompilerList(listPath: string): Promise<CompilerList> {
-    return fsExtra.readJSON(listPath);
+    return readJsonFile(listPath);
   }
 
   #getCompilerDownloadPathFromBuild(build: CompilerBuild): string {
@@ -291,12 +300,12 @@ export class CompilerDownloader implements ICompilerDownloader {
 
   async #shouldDownloadCompilerList(): Promise<boolean> {
     const listPath = this.#getCompilerListPath();
-    if (!(await fsExtra.pathExists(listPath))) {
+    if (!(await exists(listPath))) {
       return true;
     }
 
-    const stats = await fsExtra.stat(listPath);
-    const age = new Date().valueOf() - stats.ctimeMs;
+    const ctime = await getChangeTime(listPath);
+    const age = new Date().valueOf() - ctime.valueOf();
 
     return age > this.#compilerListCachePeriodMs;
   }
@@ -324,12 +333,14 @@ export class CompilerDownloader implements ICompilerDownloader {
     downloadPath: string,
   ): Promise<boolean> {
     const expectedKeccak256 = build.keccak256;
-    const compiler = await fsExtra.readFile(downloadPath);
+    const compiler = await readUtf8File(downloadPath);
 
-    const compilerKeccak256 = bytesToHexString(await keccak256(compiler));
+    const compilerKeccak256 = bytesToHexString(
+      await keccak256(new TextEncoder().encode(compiler)),
+    );
 
     if (expectedKeccak256 !== compilerKeccak256) {
-      await fsExtra.unlink(downloadPath);
+      await remove(downloadPath);
       return false;
     }
 
@@ -348,7 +359,7 @@ export class CompilerDownloader implements ICompilerDownloader {
       this.#platform === CompilerPlatform.LINUX ||
       this.#platform === CompilerPlatform.MACOS
     ) {
-      fsExtra.chmodSync(downloadPath, 0o755);
+      await chmod(downloadPath, 0o755);
     } else if (
       this.#platform === CompilerPlatform.WINDOWS &&
       downloadPath.endsWith(".zip")
@@ -357,7 +368,7 @@ export class CompilerDownloader implements ICompilerDownloader {
       const AdmZip = await import("adm-zip");
 
       const solcFolder = path.join(this.#compilersDir, build.version);
-      await fsExtra.ensureDir(solcFolder);
+      await ensureDir(solcFolder);
 
       const zip = new AdmZip(downloadPath);
       zip.extractAllTo(solcFolder);
@@ -370,7 +381,7 @@ export class CompilerDownloader implements ICompilerDownloader {
       return;
     }
 
-    await fsExtra.createFile(this.#getCompilerDoesntWorkFile(build));
+    await createFile(this.#getCompilerDoesntWorkFile(build));
   }
 
   async #checkNativeSolc(build: CompilerBuild): Promise<boolean> {
