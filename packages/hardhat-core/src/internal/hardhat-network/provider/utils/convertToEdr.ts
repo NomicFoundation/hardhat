@@ -214,12 +214,7 @@ export function edrTracingStepToMinimalInterpreterStep(
     opcode: {
       name: step.opcode,
     },
-    stack:
-      step.stack !== undefined
-        ? step.stack
-        : step.stackTop !== undefined
-        ? [step.stackTop]
-        : [],
+    stack: step.stack,
   };
 
   if (step.memory !== undefined) {
