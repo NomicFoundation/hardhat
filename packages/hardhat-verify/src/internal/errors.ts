@@ -437,7 +437,7 @@ Message: ${message}`);
 export class NetworkRequestError extends HardhatVerifyError {
   constructor(e: Error) {
     super(
-      `A network request failed. This error is not related to Hardhat. Original error: ${e.message}`
+      `A network request failed. This is an error from the block explorer, not Hardhat. Error: ${e.message}`
     );
   }
 }
