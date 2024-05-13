@@ -1,0 +1,71 @@
+{
+  "name": "@nomicfoundation/hardhat-core",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Template for Nomic Foundation npm packages",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/template-package",
+  "repository": "github:nomicfoundation/hardhat",
+  "author": "Nomic Foundation",
+  "license": "MIT",
+  "type": "module",
+  "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": "./dist/src/index.js",
+    "config": "./dist/src/config.js",
+    "types/config": "./dist/src/types/config.js",
+    "types/hooks": "./dist/src/types/hooks.js",
+    "types/hre": "./dist/src/types/hre.js",
+    "types/plugins": "./dist/src/types/plugins.js",
+    "types/user-interruptions": "./dist/src/types/user-interruptions.js",
+    "types/utils": "./dist/src/types/utils.js"
+  },
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "hardhat"
+  ],
+  "scripts": {
+    "lint": "pnpm prettier --check && pnpm eslint",
+    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
+    "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts' 'examples/**/*.ts'",
+    "prettier": "prettier \"**/*.{ts,js,md,json}\"",
+    "test": "glob --cmd=\"node --import tsx/esm --test\" 'test/**/*.ts'",
+    "test:github": "glob --cmd=\"node --import tsx/esm --test --test-reporter=@reporters/github --test-reporter-destination=stdout --test-reporter=spec --test-reporter-destination=stdout\" 'test/**/*.ts'",
+    "pretest": "pnpm build",
+    "build": "tsc --build .",
+    "prepublishOnly": "pnpm build",
+    "clean": "rimraf dist"
+  },
+  "files": [
+    "dist/src/",
+    "src/",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "devDependencies": {
+    "@microsoft/api-extractor": "^7.43.4",
+    "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
+    "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
+    "@reporters/github": "^1.7.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.7.1",
+    "@typescript-eslint/parser": "^7.7.1",
+    "eslint": "8.57.0",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-plugin-import": "2.29.1",
+    "eslint-plugin-no-only-tests": "3.1.0",
+    "expect-type": "^0.19.0",
+    "glob": "^10.3.12",
+    "madge": "^7.0.0",
+    "prettier": "3.2.5",
+    "rimraf": "^5.0.5",
+    "tsx": "^4.7.1",
+    "typescript": "~5.4.0",
+    "typescript-eslint": "7.7.1"
+  },
+  "dependencies": {
+    "chalk": "^2.4.2",
+    "zod": "^3.22.4"
+  }
+}
