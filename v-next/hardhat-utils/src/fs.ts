@@ -135,6 +135,7 @@ export async function isDirectory(absolutePath: string): Promise<boolean> {
  * @returns The parsed JSON object.
  * @throws FileNotFoundError if the file doesn't exist.
  * @throws InvalidFileFormatError if the file is not a valid JSON file.
+ * @throws IsDirectoryError if the path is a directory instead of a file.
  * @throws FileSystemAccessError for any other error.
  */
 export async function readJsonFile<T>(absolutePathToFile: string): Promise<T> {
@@ -177,6 +178,7 @@ export async function writeJsonFile<T>(
  * @param absolutePathToFile The path to the file.
  * @returns The content of the file as a string.
  * @throws FileNotFoundError if the file doesn't exist.
+ * @throws IsDirectoryError if the path is a directory instead of a file.
  * @throws FileSystemAccessError for any other error.
  */
 export async function readUtf8File(
@@ -186,8 +188,13 @@ export async function readUtf8File(
     return await fsPromises.readFile(absolutePathToFile, { encoding: "utf8" });
   } catch (e) {
     ensureError<NodeJS.ErrnoException>(e);
+
     if (e.code === "ENOENT") {
       throw new FileNotFoundError(absolutePathToFile, e);
+    }
+
+    if (e.code === "EISDIR") {
+      throw new IsDirectoryError(absolutePathToFile, e);
     }
 
     throw new FileSystemAccessError(e.message, e);
