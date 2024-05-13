@@ -1,13 +1,14 @@
 import debug from "debug";
 import * as os from "node:os";
 import * as path from "node:path";
-import fsPromises from "node:fs/promises";
 import {
   ensureDir,
   exists,
+  getAllFilesMatching,
   readJsonFile,
   remove,
   writeJsonFile,
+  writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { HardhatError, assertHardhatInvariant } from "../errors/errors.js";
 import {
@@ -34,12 +35,7 @@ import {
   EDIT_DISTANCE_THRESHOLD,
 } from "./constants.js";
 import { createNonCryptographicHashBasedIdentifier } from "./hash.js";
-import {
-  FileNotFoundError,
-  getAllFilesMatching,
-  getAllFilesMatchingSync,
-  getFileTrueCase,
-} from "./fs-utils.js";
+import { FileNotFoundError, getFileTrueCase } from "./fs-utils.js";
 
 const log = debug("hardhat:core:artifacts");
 
@@ -257,7 +253,8 @@ export class Artifacts implements IArtifacts {
       // We split this code into different curly-brace-enclosed scopes so that
       // partial JSON strings get out of scope sooner and hence can be reclaimed
       // by the GC if needed.
-      const file = await fsPromises.open(buildInfoPath, "w");
+      await writeUtf8File(buildInfoPath, "", "a");
+
       try {
         {
           const withoutOutput = JSON.stringify({
@@ -266,7 +263,7 @@ export class Artifacts implements IArtifacts {
           });
 
           // We write the JSON (without output) except the last }
-          await file.write(withoutOutput.slice(0, -1));
+          await writeUtf8File(buildInfoPath, withoutOutput.slice(0, -1), "a");
         }
 
         {
@@ -277,20 +274,24 @@ export class Artifacts implements IArtifacts {
           });
 
           // We start writing the output
-          await file.write(',"output":');
+          await writeUtf8File(buildInfoPath, ',"output":', "a");
 
           // Write the output object except for the last }
-          await file.write(outputWithoutSourcesAndContracts.slice(0, -1));
+          await writeUtf8File(
+            buildInfoPath,
+            outputWithoutSourcesAndContracts.slice(0, -1),
+            "a",
+          );
 
           // If there were other field apart from sources and contracts we need
           // a comma
           if (outputWithoutSourcesAndContracts.length > 2) {
-            await file.write(",");
+            await writeUtf8File(buildInfoPath, ",", "a");
           }
         }
 
         // Writing the sources
-        await file.write('"sources":{');
+        await writeUtf8File(buildInfoPath, '"sources":{', "a");
 
         let isFirst = true;
         for (const [name, value] of Object.entries(
@@ -299,17 +300,21 @@ export class Artifacts implements IArtifacts {
           if (isFirst) {
             isFirst = false;
           } else {
-            await file.write(",");
+            await writeUtf8File(buildInfoPath, ",", "a");
           }
 
-          await file.write(`${JSON.stringify(name)}:${JSON.stringify(value)}`);
+          await writeUtf8File(
+            buildInfoPath,
+            `${JSON.stringify(name)}:${JSON.stringify(value)}`,
+            "a",
+          );
         }
 
         // Close sources object
-        await file.write("}");
+        await writeUtf8File(buildInfoPath, "}", "a");
 
         // Writing the contracts
-        await file.write(',"contracts":{');
+        await writeUtf8File(buildInfoPath, ',"contracts":{', "a");
 
         isFirst = true;
         for (const [name, value] of Object.entries(
@@ -318,20 +323,24 @@ export class Artifacts implements IArtifacts {
           if (isFirst) {
             isFirst = false;
           } else {
-            await file.write(",");
+            await writeUtf8File(buildInfoPath, ",", "a");
           }
 
-          await file.write(`${JSON.stringify(name)}:${JSON.stringify(value)}`);
+          await writeUtf8File(
+            buildInfoPath,
+            `${JSON.stringify(name)}:${JSON.stringify(value)}`,
+            "a",
+          );
         }
 
         // close contracts object
-        await file.write("}");
+        await writeUtf8File(buildInfoPath, "}", "a");
         // close output object
-        await file.write("}");
+        await writeUtf8File(buildInfoPath, "}", "a");
         // close build info object
-        await file.write("}");
+        await writeUtf8File(buildInfoPath, "}", "a");
       } finally {
-        await file.close();
+        await writeUtf8File(buildInfoPath, "\n", "a");
       }
 
       return buildInfoPath;
@@ -526,25 +535,6 @@ export class Artifacts implements IArtifacts {
     return debugFile;
   }
 
-  #getArtifactPathsSync(): string[] {
-    const cached = this.#cache?.artifactPaths;
-    if (cached !== undefined) {
-      return cached;
-    }
-
-    const paths = getAllFilesMatchingSync(this.#artifactsPath, (f) =>
-      this.#isArtifactPath(f),
-    );
-
-    const result = paths.sort();
-
-    if (this.#cache !== undefined) {
-      this.#cache.artifactPaths = result;
-    }
-
-    return result;
-  }
-
   /**
    * Returns the absolute path to the artifact that corresponds to the given
    * fully qualified name.
@@ -597,11 +587,6 @@ export class Artifacts implements IArtifacts {
     });
   }
 
-  #getAllFullyQualifiedNamesSync(): string[] {
-    const paths = this.#getArtifactPathsSync();
-    return paths.map((p) => this.#getFullyQualifiedNameFromPath(p)).sort();
-  }
-
   #formatSuggestions(names: string[], contractName: string): string {
     switch (names.length) {
       case 0:
@@ -621,8 +606,10 @@ Please replace "${contractName}" for the correct contract name wherever you are 
   /**
    * @throws {HardhatError} with a list of similar contract names.
    */
-  #handleWrongArtifactForFullyQualifiedName(fullyQualifiedName: string): never {
-    const names = this.#getAllFullyQualifiedNamesSync();
+  async #handleWrongArtifactForFullyQualifiedName(
+    fullyQualifiedName: string,
+  ): Promise<never> {
+    const names = await this.getAllFullyQualifiedNames();
 
     const similarNames = this.#getSimilarContractNames(
       fullyQualifiedName,
