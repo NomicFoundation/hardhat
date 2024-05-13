@@ -370,6 +370,7 @@ export class EdrProviderWrapper
 
     const needsTraces =
       this._node._vm.evm.events.eventNames().length > 0 ||
+      this._node._vm.events.eventNames().length > 0 ||
       this._rawTraceCallbacks.onStep !== undefined ||
       this._rawTraceCallbacks.onAfterMessage !== undefined ||
       this._rawTraceCallbacks.onBeforeMessage !== undefined;
@@ -378,7 +379,14 @@ export class EdrProviderWrapper
       const rawTraces = responseObject.traces;
       for (const rawTrace of rawTraces) {
         const trace = rawTrace.trace();
+
+        // beforeTx event
+        if (this._node._vm.events.listenerCount("beforeTx") > 0) {
+          this._node._vm.events.emit("beforeTx");
+        }
+
         for (const traceItem of trace) {
+          // step event
           if ("pc" in traceItem) {
             if (this._node._vm.evm.events.listenerCount("step") > 0) {
               this._node._vm.evm.events.emit(
@@ -389,7 +397,9 @@ export class EdrProviderWrapper
             if (this._rawTraceCallbacks.onStep !== undefined) {
               await this._rawTraceCallbacks.onStep(traceItem);
             }
-          } else if ("executionResult" in traceItem) {
+          }
+          // afterMessage event
+          else if ("executionResult" in traceItem) {
             if (this._node._vm.evm.events.listenerCount("afterMessage") > 0) {
               this._node._vm.evm.events.emit(
                 "afterMessage",
@@ -401,7 +411,9 @@ export class EdrProviderWrapper
                 traceItem.executionResult
               );
             }
-          } else {
+          }
+          // beforeMessage event
+          else {
             if (this._node._vm.evm.events.listenerCount("beforeMessage") > 0) {
               this._node._vm.evm.events.emit(
                 "beforeMessage",
@@ -412,6 +424,11 @@ export class EdrProviderWrapper
               await this._rawTraceCallbacks.onBeforeMessage(traceItem);
             }
           }
+        }
+
+        // afterTx event
+        if (this._node._vm.events.listenerCount("afterTx") > 0) {
+          this._node._vm.events.emit("afterTx");
         }
       }
     }
@@ -476,6 +493,10 @@ export class EdrProviderWrapper
         return this._callOverrideCallback?.(address, data);
       }
     );
+  }
+
+  private _setVerboseTracing(enabled: boolean) {
+    this._provider.setVerboseTracing(enabled);
   }
 
   private _ethEventListener(event: SubscriptionEvent) {
