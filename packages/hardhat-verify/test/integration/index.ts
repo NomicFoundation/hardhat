@@ -92,7 +92,8 @@ describe("verify task integration tests", () => {
 
       expect(logStub).to.be.calledOnceWith(
         `The contract ${address} has already been verified on the block explorer. If you're trying to verify a partially verified contract, please use the --force flag.
-https://hardhat.etherscan.io/address/${address}#code`
+https://hardhat.etherscan.io/address/${address}#code
+`
       );
       logStub.restore();
       assert.isUndefined(taskResponse);
@@ -308,7 +309,7 @@ This can occur if the library is only called in the contract constructor. The mi
           constructorArgsParams: [],
         })
       ).to.be.rejectedWith(
-        /An unexpected error occurred during the verification process\.\nPlease report this issue to the Hardhat team\.\nError Details: getaddrinfo ENOTFOUND api-hardhat\.etherscan\.io/
+        /A network request failed\. This is an error from the block explorer, not Hardhat\. Error: getaddrinfo ENOTFOUND api-hardhat\.etherscan\.io/
       );
     });
 
@@ -331,16 +332,20 @@ This can occur if the library is only called in the contract constructor. The mi
         result: "Unable to locate ContractCode at 0x...",
       });
 
-      await expect(
-        this.hre.run(TASK_VERIFY_ETHERSCAN, {
+      try {
+        await this.hre.run(TASK_VERIFY_ETHERSCAN, {
           address: simpleContractAddress,
           constructorArgsParams: [],
-        })
-      ).to.be.rejectedWith(
-        new RegExp(
-          `The Etherscan API responded that the address ${simpleContractAddress} does not have bytecode.`
-        )
-      );
+        });
+        assert.fail("Expected error was not thrown");
+      } catch (e: any) {
+        assert.match(
+          e.message,
+          new RegExp(
+            `The Etherscan API responded that the address ${simpleContractAddress} does not have bytecode.`
+          )
+        );
+      }
     });
 
     it("should throw if the verification response status is not ok", async function () {
@@ -371,7 +376,7 @@ This can occur if the library is only called in the contract constructor. The mi
           constructorArgsParams: [],
         })
       ).to.be.rejectedWith(
-        /An unexpected error occurred during the verification process\.\nPlease report this issue to the Hardhat team\.\nError Details: getaddrinfo ENOTFOUND api-hardhat\.etherscan\.io/
+        /A network request failed\. This is an error from the block explorer, not Hardhat\. Error: getaddrinfo ENOTFOUND api-hardhat\.etherscan\.io/
       );
 
       expect(logStub).to.be
