@@ -488,6 +488,16 @@ describe("File system utils", () => {
       });
     });
 
+    it("Should throw IsDirectoryError if the path is a dir and not a file", async () => {
+      const dirPath = path.join(getTmpDir(), "dir-name");
+      await mkdir(dirPath);
+
+      await assert.rejects(readUtf8File(dirPath), {
+        name: "IsDirectoryError",
+        message: `Path ${dirPath} is a directory`,
+      });
+    });
+
     it("Should throw FileSystemAccessError if a different error is thrown", async () => {
       const invalidPath = "\0";
 
