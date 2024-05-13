@@ -1,21 +1,20 @@
-// This shouldn't be the main entry point. We need a previous file that loads
-// tsx/esm and then imports this one.
-// This should also be moved to its own package.
-
 import { isAbsolute, resolve } from "node:path";
 import {
-  GlobalParameterMap,
   buildGlobalParameterMap,
   createHardhatRuntimeEnvironment,
   resolvePluginList,
-} from "../../index.js";
-import { GlobalArguments } from "../../types/global-parameters.js";
-import { HardhatRuntimeEnvironment } from "../../types/hre.js";
-import { Task } from "../../types/tasks.js";
-import { HardhatPlugin } from "../../types/plugins.js";
+} from "@nomicfoundation/hardhat-core";
+import {
+  GlobalArguments,
+  GlobalParameterMap,
+} from "@nomicfoundation/hardhat-core/types/global-parameters";
+import { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
+import { Task } from "@nomicfoundation/hardhat-core/types/tasks";
+import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
+import { builtinPlugins } from "../builtin-plugins/index.js";
 
-async function main(cliArguments: string[]) {
-  const hreInitStart = process.hrtime.bigint();
+export async function main(cliArguments: string[]) {
+  const hreInitStart = performance.now();
   let configPath: string | undefined;
   let showStackTraces: boolean = false; // true if ci
   let help: boolean = false;
@@ -72,9 +71,8 @@ async function main(cliArguments: string[]) {
   try {
     const userConfig = await importUserConfig(configPath);
 
-    const resolvedPlugins: HardhatPlugin[] = resolvePluginList(
-      userConfig.plugins,
-    );
+    const plugins = [...builtinPlugins, ...(userConfig.plugins ?? [])];
+    const resolvedPlugins = resolvePluginList(plugins);
 
     const globalParameterMap = buildGlobalParameterMap(resolvedPlugins);
     const userProvidedGlobalArguments = parseGlobalArguments(
@@ -89,23 +87,20 @@ async function main(cliArguments: string[]) {
       { resolvedPlugins, globalParameterMap },
     );
 
-    const hreInitEnd = process.hrtime.bigint();
-    console.log(
-      "Time to initialize the HRE (ms):",
-      (hreInitEnd - hreInitStart) / 1000000n,
-    );
+    const hreInitEnd = performance.now();
+    console.log("Time to initialize the HRE (ms):", hreInitEnd - hreInitStart);
 
-    const taskParsingStart = process.hrtime.bigint();
+    const taskParsingStart = performance.now();
 
     const result = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
 
-    if (result === undefined) {
-      // TODO: Print the global help
-      console.log("Global help");
-      return;
-    }
-
     if (Array.isArray(result)) {
+      if (result.length === 0) {
+        // TODO: Print the global help
+        console.log("Global help");
+        return;
+      }
+
       throw new Error(`Unrecognized task ${result.join(" ")}`);
     }
 
@@ -123,22 +118,22 @@ async function main(cliArguments: string[]) {
       return;
     }
 
-    const taskParsingEnd = process.hrtime.bigint();
+    const taskParsingEnd = performance.now();
 
     console.log(
       "Time to parse the task (ms):",
-      (taskParsingEnd - taskParsingStart) / 1000000n,
+      taskParsingEnd - taskParsingStart,
     );
 
-    const taskRunningStart = process.hrtime.bigint();
+    const taskRunningStart = performance.now();
 
     await task.run(taskArguments);
 
-    const taskRunningEnd = process.hrtime.bigint();
+    const taskRunningEnd = performance.now();
 
     console.log(
       "Time to run the task (ms):",
-      (taskRunningEnd - taskRunningStart) / 1000000n,
+      taskRunningEnd - taskRunningStart,
     );
   } catch (error) {
     process.exitCode = 1;
@@ -270,18 +265,9 @@ async function importUserConfig(configPath: string) {
     ? configPath
     : resolve(process.cwd(), configPath);
 
-  let exists: boolean;
+  const { exists } = await import("@nomicfoundation/hardhat-utils/fs");
 
-  // TODO: use hardhat-utils
-  try {
-    const { stat } = await import("node:fs/promises");
-    await stat(normalizedPath);
-    exists = true;
-  } catch {
-    exists = false;
-  }
-
-  if (!exists) {
+  if (!(await exists(normalizedPath))) {
     throw new Error(`Config file ${configPath} not found`);
   }
 
@@ -299,8 +285,3 @@ async function importUserConfig(configPath: string) {
 
   return config;
 }
-
-main(process.argv.slice(2)).catch((error) => {
-  process.exitCode = 1;
-  console.error(error);
-});

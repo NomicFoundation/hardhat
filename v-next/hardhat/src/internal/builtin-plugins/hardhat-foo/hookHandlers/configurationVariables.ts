@@ -1,4 +1,4 @@
-import { ConfigurationVariableHooks } from "../../../../src/types/hooks.js";
+import { ConfigurationVariableHooks } from "@nomicfoundation/hardhat-core/types/hooks";
 
 export default async () => {
   const handlers: Partial<ConfigurationVariableHooks> = {

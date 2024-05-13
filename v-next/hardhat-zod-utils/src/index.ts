@@ -1,17 +1,26 @@
+import { HardhatUserConfig } from "@nomicfoundation/hardhat-core/config";
+import { HardhatUserConfigValidationError } from "@nomicfoundation/hardhat-core/types/hooks";
 import { ZodType, ZodTypeDef, ZodIssue, z } from "zod";
-import { HardhatUserConfigValidationError } from "../../types/hooks.js";
-import { HardhatUserConfig } from "../../types/config.js";
 
-export const ConfigurationVariableType = z.object({
+/**
+ * A Zod type to validate Hardhat's ConfigurationVariable objects.
+ */
+export const configurationVariableType = z.object({
   _type: z.literal("ConfigurationVariable"),
   name: z.string(),
 });
 
-export const SensitiveStringType = z.union([
+/**
+ * A Zod type to validate Hardhat's SensitiveString values.
+ */
+export const sensitiveStringType = z.union([
   z.string(),
-  ConfigurationVariableType,
+  configurationVariableType,
 ]);
 
+/**
+ * A function to validate the user's configuration object against a Zod type.
+ */
 export async function validateUserConfigZodType<
   Output,
   Def extends ZodTypeDef = ZodTypeDef,
@@ -31,7 +40,7 @@ export async function validateUserConfigZodType<
   }
 }
 
-export function zodIssueToValidationError<
+function zodIssueToValidationError<
   Output,
   Def extends ZodTypeDef = ZodTypeDef,
   Input = Output,
@@ -40,6 +49,8 @@ export function zodIssueToValidationError<
   _configType: ZodType<Output, Def, Input>,
   zodIssue: ZodIssue,
 ): HardhatUserConfigValidationError {
+  // TODO: `invalid_union` errors are too ambiguous. How can we improve them?
+  //  This is just a sketch: not perfect nor tested.
   if (zodIssue.code === "invalid_union") {
     return {
       path: zodIssue.path,

@@ -1,17 +1,20 @@
 import { z } from "zod";
+import { ConfigHooks } from "@nomicfoundation/hardhat-core/types/hooks";
+import {
+  sensitiveStringType,
+  validateUserConfigZodType,
+} from "@nomicfoundation/hardhat-zod-utils";
 
-import { validateUserConfigZodType } from "../../../../src/internal/config/validation-utils.js";
-import { ConfigHooks } from "../../../../src/types/hooks.js";
+const fooUserConfigType = z.object({
+  bar: z.optional(z.union([z.number(), z.array(z.number())])),
+});
+
+const hardhatUserConfig = z.object({
+  foo: z.optional(fooUserConfigType),
+  privateKey: z.optional(sensitiveStringType),
+});
 
 export default async () => {
-  const fooUserConfigType = z.object({
-    bar: z.optional(z.union([z.number(), z.array(z.number())])),
-  });
-
-  const hardhatUserConfig = z.object({
-    foo: z.optional(fooUserConfigType),
-  });
-
   const handlers: Partial<ConfigHooks> = {
     validateUserConfig: async (userConfig) => {
       return validateUserConfigZodType(userConfig, hardhatUserConfig);

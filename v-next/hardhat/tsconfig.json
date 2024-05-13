@@ -5,13 +5,23 @@
     "composite": true,
     "incremental": true
   },
-  "exclude": ["./dist", "./node_modules"],
+  "exclude": [
+    "./dist",
+    "./node_modules",
+    "./test/fixture-projects/hardhat.config.ts"
+  ],
   "references": [
+    {
+      "path": "../core"
+    },
     {
       "path": "../hardhat-errors"
     },
     {
       "path": "../hardhat-utils"
+    },
+    {
+      "path": "../hardhat-zod-utils"
     }
   ]
 }

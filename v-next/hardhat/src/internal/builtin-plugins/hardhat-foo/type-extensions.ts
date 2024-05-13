@@ -1,4 +1,4 @@
-declare module "../../../src/types/config.js" {
+declare module "@nomicfoundation/hardhat-core/types/config" {
   interface FooUserConfig {
     bar?: number | number[];
   }

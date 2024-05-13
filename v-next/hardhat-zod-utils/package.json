@@ -1,26 +1,15 @@
 {
-  "name": "@nomicfoundation/hardhat-core",
+  "name": "@nomicfoundation/hardhat-zod-utils",
   "version": "3.0.0",
-  "description": "Hardhat's core infrastructure and functionality.",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/core",
+  "description": "Utilities to use Zod to validadte Hardhat plugins' confg",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-zod-utils",
   "repository": "github:nomicfoundation/hardhat",
   "author": "Nomic Foundation",
   "license": "MIT",
   "type": "module",
   "types": "dist/src/index.d.ts",
   "exports": {
-    ".": "./dist/src/index.js",
-    "./config": "./dist/src/config.js",
-    "./types/cli": "./dist/src/types/cli.js",
-    "./types/common": "./dist/src/types/common.js",
-    "./types/config": "./dist/src/types/config.js",
-    "./types/global-parameters": "./dist/src/types/global-parameters.js",
-    "./types/hooks": "./dist/src/types/hooks.js",
-    "./types/hre": "./dist/src/types/hre.js",
-    "./types/plugins": "./dist/src/types/plugins.js",
-    "./types/tasks": "./dist/src/types/tasks.js",
-    "./types/user-interruptions": "./dist/src/types/user-interruptions.js",
-    "./types/utils": "./dist/src/types/utils.js"
+    ".": "./dist/src/index.js"
   },
   "keywords": [
     "ethereum",
@@ -34,11 +23,10 @@
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "test": "glob --cmd=\"node --import tsx/esm --test\" 'test/**/*.ts'",
     "test:github": "glob --cmd=\"node --import tsx/esm --test --test-reporter=@reporters/github --test-reporter-destination=stdout --test-reporter=spec --test-reporter-destination=stdout\" 'test/**/*.ts'",
-    "test:coverage": "c8 --reporter html --reporter text --all --src src glob --cmd=\"node --import tsx/esm --test\" 'test/**/*.ts'",
     "pretest": "pnpm build",
     "build": "tsc --build .",
     "prepublishOnly": "pnpm build",
-    "clean": "rimraf dist coverage dependency-graph.png temp"
+    "clean": "rimraf dist"
   },
   "files": [
     "dist/src/",
@@ -48,30 +36,28 @@
     "README.md"
   ],
   "devDependencies": {
-    "@microsoft/api-extractor": "^7.43.4",
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
+    "@nomicfoundation/hardhat-core": "workspace:^3.0.0",
     "@reporters/github": "^1.7.0",
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
     "@typescript-eslint/parser": "^7.7.1",
-    "c8": "^9.1.0",
     "eslint": "8.57.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-import": "2.29.1",
     "eslint-plugin-no-only-tests": "3.1.0",
     "expect-type": "^0.19.0",
     "glob": "^10.3.12",
-    "madge": "^7.0.0",
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
     "tsx": "^4.7.1",
     "typescript": "~5.4.0",
-    "typescript-eslint": "7.7.1"
+    "typescript-eslint": "7.7.1",
+    "zod": "^3.23.8"
   },
-  "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0",
-    "chalk": "^5.3.0"
+  "peerDependencies": {
+    "@nomicfoundation/hardhat-core": "workspace:^3.0.0",
+    "zod": "^3.23.8"
   }
 }

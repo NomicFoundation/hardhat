@@ -1,8 +1,8 @@
 import {
   ConfigurationVariable,
   ResolvedConfigurationVariable,
-} from "../../types/config.js";
-import { HookManager } from "../../types/hooks.js";
+} from "../types/config.js";
+import { HookManager } from "../types/hooks.js";
 
 export class ResolvedConfigurationVariableImplementation
   implements ResolvedConfigurationVariable
@@ -12,6 +12,7 @@ export class ResolvedConfigurationVariableImplementation
 
   readonly #hooks: HookManager;
   readonly #variable: ConfigurationVariable | string;
+  readonly #cachedValue?: string;
 
   constructor(hooks: HookManager, variable: ConfigurationVariable | string) {
     this.#hooks = hooks;
@@ -19,9 +20,12 @@ export class ResolvedConfigurationVariableImplementation
   }
 
   public async get(): Promise<string> {
-    // TODO: Cache
     if (typeof this.#variable === "string") {
       return this.#variable;
+    }
+
+    if (this.#cachedValue !== undefined) {
+      return this.#cachedValue;
     }
 
     return this.#hooks.runHandlerChain(
@@ -32,7 +36,7 @@ export class ResolvedConfigurationVariableImplementation
         const value = process.env[v.name];
 
         if (typeof value !== "string") {
-          throw new Error("Variable not found");
+          throw new Error("Variable not found as an env variable");
         }
 
         return value;

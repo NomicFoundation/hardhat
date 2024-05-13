@@ -7,6 +7,11 @@ cat <<EOF > "$SCRIPT_DIR/../src/api-extractor-entrypoint.ts"
 export * from "./index.js";
 export type * from "./index.js";
 
+export * from "./config.js";
+export type * from "./config.js";
+
+export * from "./types/cli.js";
+export type * from "./types/cli.js";
 export * from "./types/common.js";
 export type * from "./types/common.js";
 export * from "./types/config.js";
@@ -25,12 +30,6 @@ export * from "./types/user-interruptions.js";
 export type * from "./types/user-interruptions.js";
 export * from "./types/utils.js";
 export type * from "./types/utils.js";
-
-export * from "./config.js";
-export type * from "./config.js";
-
-export * from "./internal/builtin-functionality.js";
-export type * from "./internal/builtin-functionality.js";
 EOF
 
 

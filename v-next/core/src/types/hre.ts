@@ -1,4 +1,4 @@
-import { HardhatConfig, HardhatUserConfig } from "../types/config.js";
+import { HardhatConfig } from "../types/config.js";
 import { GlobalArguments } from "./global-parameters.js";
 import { UserInterruptionManager } from "./user-interruptions.js";
 
@@ -7,11 +7,10 @@ import { UserInterruptionManager } from "./user-interruptions.js";
  * all the functionality available through Hardhat.
  */
 export interface HardhatRuntimeEnvironment {
-  readonly userConfig: HardhatUserConfig;
   readonly config: HardhatConfig;
-  readonly interruptions: UserInterruptionManager;
   readonly globalArguments: GlobalArguments;
-
-  // Network
-  // Build system
+  readonly interruptions: UserInterruptionManager;
+  // These fields are defined using module agumentation in this same package:
+  // readonly hooks: HookManager;
+  // readonly tasks: TaskManager;
 }

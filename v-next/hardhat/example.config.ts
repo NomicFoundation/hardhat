@@ -1,10 +1,9 @@
 import {
-  overrideTask,
-  configVariable,
-  task,
   HardhatUserConfig,
-} from "../src/config.js";
-import hardhatFoo from "./example-plugins/hardhat-foo/index.js";
+  configVariable,
+  overrideTask,
+  task,
+} from "./src/config.js";
 
 const exampleTaskOverride = overrideTask("example")
   .setAction(async (_, _hre, runSuper) => {
@@ -53,10 +52,6 @@ const testSolidityTask = task(["test", "solidity"], "Runs Solidity tests")
   .build();
 
 export default {
-  plugins: [hardhatFoo],
-  foo: {
-    bar: 12,
-  },
-  privateKey: configVariable("PRIVATE_KEY"),
   tasks: [exampleTaskOverride, testTask, testTaskOverride, testSolidityTask],
+  privateKey: configVariable("privateKey"),
 } satisfies HardhatUserConfig;

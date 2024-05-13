@@ -26,3 +26,17 @@ export interface GlobalParameter {
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-interface -- To be used through module augmentation
 export interface GlobalArguments {}
+
+/**
+ * An entry in the global parameter map.
+ * @see GlobalParameterMap
+ */
+export interface GlobalParameterMapEntry {
+  pluginId: string;
+  param: GlobalParameter;
+}
+
+/**
+ * A map with all the `GlobalParameter`s and which plugin defined them.
+ */
+export type GlobalParameterMap = Map<string, GlobalParameterMapEntry>;

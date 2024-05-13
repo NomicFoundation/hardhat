@@ -2,15 +2,9 @@ import { ParameterType } from "../types/common.js";
 import {
   GlobalArguments,
   GlobalParameter,
+  GlobalParameterMap,
 } from "../types/global-parameters.js";
 import { HardhatPlugin } from "../types/plugins.js";
-
-export interface GlobalParameterMapEntry {
-  pluginId: string;
-  param: GlobalParameter;
-}
-
-export type GlobalParameterMap = Map<string, GlobalParameterMapEntry>;
 
 /**
  * Builds a map of the global parameters, validating them.

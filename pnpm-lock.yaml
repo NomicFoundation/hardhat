@@ -1410,16 +1410,98 @@ importers:
 
   v-next/core:
     dependencies:
+      '@nomicfoundation/hardhat-errors':
+        specifier: workspace:^3.0.0
+        version: link:../hardhat-errors
+      '@nomicfoundation/hardhat-utils':
+        specifier: workspace:^3.0.0
+        version: link:../hardhat-utils
       chalk:
-        specifier: ^2.4.2
-        version: 2.4.2
-      zod:
-        specifier: ^3.22.4
-        version: 3.23.7
+        specifier: ^5.3.0
+        version: 5.3.0
     devDependencies:
       '@microsoft/api-extractor':
         specifier: ^7.43.4
         version: 7.43.4(@types/node@20.12.10)
+      '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
+        specifier: workspace:^
+        version: link:../../packages/eslint-plugin-hardhat-internal-rules
+      '@nomicfoundation/eslint-plugin-slow-imports':
+        specifier: workspace:^
+        version: link:../../packages/eslint-plugin-slow-imports
+      '@reporters/github':
+        specifier: ^1.7.0
+        version: 1.7.0
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.12.10
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^7.7.1
+        version: 7.8.0(@typescript-eslint/parser@7.8.0)(eslint@8.57.0)(typescript@5.4.5)
+      '@typescript-eslint/parser':
+        specifier: ^7.7.1
+        version: 7.8.0(eslint@8.57.0)(typescript@5.4.5)
+      c8:
+        specifier: ^9.1.0
+        version: 9.1.0
+      eslint:
+        specifier: 8.57.0
+        version: 8.57.0
+      eslint-config-prettier:
+        specifier: 9.1.0
+        version: 9.1.0(eslint@8.57.0)
+      eslint-plugin-import:
+        specifier: 2.29.1
+        version: 2.29.1(@typescript-eslint/parser@7.8.0)(eslint@8.57.0)
+      eslint-plugin-no-only-tests:
+        specifier: 3.1.0
+        version: 3.1.0
+      expect-type:
+        specifier: ^0.19.0
+        version: 0.19.0
+      glob:
+        specifier: ^10.3.12
+        version: 10.3.12
+      madge:
+        specifier: ^7.0.0
+        version: 7.0.0(typescript@5.4.5)
+      prettier:
+        specifier: 3.2.5
+        version: 3.2.5
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.5
+      tsx:
+        specifier: ^4.7.1
+        version: 4.9.3
+      typescript:
+        specifier: ~5.4.0
+        version: 5.4.5
+      typescript-eslint:
+        specifier: 7.7.1
+        version: 7.7.1(eslint@8.57.0)(typescript@5.4.5)
+
+  v-next/hardhat:
+    dependencies:
+      '@nomicfoundation/hardhat-core':
+        specifier: workspace:^3.0.0
+        version: link:../core
+      '@nomicfoundation/hardhat-errors':
+        specifier: workspace:^3.0.0
+        version: link:../hardhat-errors
+      '@nomicfoundation/hardhat-utils':
+        specifier: workspace:^3.0.0
+        version: link:../hardhat-utils
+      '@nomicfoundation/hardhat-zod-utils':
+        specifier: workspace:^3.0.0
+        version: link:../hardhat-zod-utils
+      tsx:
+        specifier: ^4.7.1
+        version: 4.9.3
+      zod:
+        specifier: ^3.23.8
+        version: 3.23.8
+    devDependencies:
       '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
         specifier: workspace:^
         version: link:../../packages/eslint-plugin-hardhat-internal-rules
@@ -1456,18 +1538,12 @@ importers:
       glob:
         specifier: ^10.3.12
         version: 10.3.12
-      madge:
-        specifier: ^7.0.0
-        version: 7.0.0(typescript@5.4.5)
       prettier:
         specifier: 3.2.5
         version: 3.2.5
       rimraf:
         specifier: ^5.0.5
         version: 5.0.5
-      tsx:
-        specifier: ^4.7.1
-        version: 4.9.3
       typescript:
         specifier: ~5.4.0
         version: 5.4.5
@@ -1604,6 +1680,66 @@ importers:
       typescript-eslint:
         specifier: 7.7.1
         version: 7.7.1(eslint@8.57.0)(typescript@5.4.5)
+
+  v-next/hardhat-zod-utils:
+    devDependencies:
+      '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
+        specifier: workspace:^
+        version: link:../../packages/eslint-plugin-hardhat-internal-rules
+      '@nomicfoundation/eslint-plugin-slow-imports':
+        specifier: workspace:^
+        version: link:../../packages/eslint-plugin-slow-imports
+      '@nomicfoundation/hardhat-core':
+        specifier: workspace:^3.0.0
+        version: link:../core
+      '@reporters/github':
+        specifier: ^1.7.0
+        version: 1.7.0
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.12.10
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^7.7.1
+        version: 7.8.0(@typescript-eslint/parser@7.8.0)(eslint@8.57.0)(typescript@5.4.5)
+      '@typescript-eslint/parser':
+        specifier: ^7.7.1
+        version: 7.8.0(eslint@8.57.0)(typescript@5.4.5)
+      eslint:
+        specifier: 8.57.0
+        version: 8.57.0
+      eslint-config-prettier:
+        specifier: 9.1.0
+        version: 9.1.0(eslint@8.57.0)
+      eslint-plugin-import:
+        specifier: 2.29.1
+        version: 2.29.1(@typescript-eslint/parser@7.8.0)(eslint@8.57.0)
+      eslint-plugin-no-only-tests:
+        specifier: 3.1.0
+        version: 3.1.0
+      expect-type:
+        specifier: ^0.19.0
+        version: 0.19.0
+      glob:
+        specifier: ^10.3.12
+        version: 10.3.12
+      prettier:
+        specifier: 3.2.5
+        version: 3.2.5
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.5
+      tsx:
+        specifier: ^4.7.1
+        version: 4.9.3
+      typescript:
+        specifier: ~5.4.0
+        version: 5.4.5
+      typescript-eslint:
+        specifier: 7.7.1
+        version: 7.7.1(eslint@8.57.0)(typescript@5.4.5)
+      zod:
+        specifier: ^3.23.8
+        version: 3.23.8
 
   v-next/template-package:
     devDependencies:
@@ -1889,6 +2025,10 @@ packages:
       to-fast-properties: 2.0.0
     dev: true
 
+  /@bcoe/v8-coverage@0.2.3:
+    resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
+    dev: true
+
   /@changesets/apply-release-plan@7.0.0:
     resolution: {integrity: sha512-vfi69JR416qC9hWmFGSxj7N6wA5J222XNBmezSVATPWDVPIF7gkd4d8CpbEbXmRWbVrkoli3oerGS6dcL/BGsQ==}
     dependencies:
@@ -2093,7 +2233,6 @@ packages:
     cpu: [ppc64]
     os: [aix]
     requiresBuild: true
-    dev: true
     optional: true
 
   /@esbuild/android-arm64@0.20.2:
@@ -2102,7 +2241,6 @@ packages:
     cpu: [arm64]
     os: [android]
     requiresBuild: true
-    dev: true
     optional: true
 
   /@esbuild/android-arm@0.20.2:
@@ -2111,7 +2249,6 @@ packages:
     cpu: [arm]
     os: [android]
     requiresBuild: true
-    dev: true
     optional: true
 
   /@esbuild/android-x64@0.20.2:
@@ -2120,7 +2257,6 @@ packages:
     cpu: [x64]
     os: [android]
     requiresBuild: true
-    dev: true
     optional: true
 
   /@esbuild/darwin-arm64@0.20.2:
@@ -2129,7 +2265,6 @@ packages:
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
-    dev: true
     optional: true
 
   /@esbuild/darwin-x64@0.20.2:
@@ -2138,7 +2273,6 @@ packages:
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
-    dev: true
     optional: true
 
   /@esbuild/freebsd-arm64@0.20.2:
@@ -2147,7 +2281,6 @@ packages:
     cpu: [arm64]
     os: [freebsd]
     requiresBuild: true
-    dev: true
     optional: true
 
   /@esbuild/freebsd-x64@0.20.2:
@@ -2156,7 +2289,6 @@ packages:
     cpu: [x64]
     os: [freebsd]
     requiresBuild: true
-    dev: true
     optional: true
 
   /@esbuild/linux-arm64@0.20.2:
@@ -2165,7 +2297,6 @@ packages:
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
-    dev: true
     optional: true
 
   /@esbuild/linux-arm@0.20.2:
@@ -2174,7 +2305,6 @@ packages:
     cpu: [arm]
     os: [linux]
     requiresBuild: true
-    dev: true
     optional: true
 
   /@esbuild/linux-ia32@0.20.2:
@@ -2183,7 +2313,6 @@ packages:
     cpu: [ia32]
     os: [linux]
     requiresBuild: true
-    dev: true
     optional: true
 
   /@esbuild/linux-loong64@0.20.2:
@@ -2192,7 +2321,6 @@ packages:
     cpu: [loong64]
     os: [linux]
     requiresBuild: true
-    dev: true
     optional: true
 
   /@esbuild/linux-mips64el@0.20.2:
@@ -2201,7 +2329,6 @@ packages:
     cpu: [mips64el]
     os: [linux]
     requiresBuild: true
-    dev: true
     optional: true
 
   /@esbuild/linux-ppc64@0.20.2:
@@ -2210,7 +2337,6 @@ packages:
     cpu: [ppc64]
     os: [linux]
     requiresBuild: true
-    dev: true
     optional: true
 
   /@esbuild/linux-riscv64@0.20.2:
@@ -2219,7 +2345,6 @@ packages:
     cpu: [riscv64]
     os: [linux]
     requiresBuild: true
-    dev: true
     optional: true
 
   /@esbuild/linux-s390x@0.20.2:
@@ -2228,7 +2353,6 @@ packages:
     cpu: [s390x]
     os: [linux]
     requiresBuild: true
-    dev: true
     optional: true
 
   /@esbuild/linux-x64@0.20.2:
@@ -2237,7 +2361,6 @@ packages:
     cpu: [x64]
     os: [linux]
     requiresBuild: true
-    dev: true
     optional: true
 
   /@esbuild/netbsd-x64@0.20.2:
@@ -2246,7 +2369,6 @@ packages:
     cpu: [x64]
     os: [netbsd]
     requiresBuild: true
-    dev: true
     optional: true
 
   /@esbuild/openbsd-x64@0.20.2:
@@ -2255,7 +2377,6 @@ packages:
     cpu: [x64]
     os: [openbsd]
     requiresBuild: true
-    dev: true
     optional: true
 
   /@esbuild/sunos-x64@0.20.2:
@@ -2264,7 +2385,6 @@ packages:
     cpu: [x64]
     os: [sunos]
     requiresBuild: true
-    dev: true
     optional: true
 
   /@esbuild/win32-arm64@0.20.2:
@@ -2273,7 +2393,6 @@ packages:
     cpu: [arm64]
     os: [win32]
     requiresBuild: true
-    dev: true
     optional: true
 
   /@esbuild/win32-ia32@0.20.2:
@@ -2282,7 +2401,6 @@ packages:
     cpu: [ia32]
     os: [win32]
     requiresBuild: true
-    dev: true
     optional: true
 
   /@esbuild/win32-x64@0.20.2:
@@ -2291,7 +2409,6 @@ packages:
     cpu: [x64]
     os: [win32]
     requiresBuild: true
-    dev: true
     optional: true
 
   /@eslint-community/eslint-utils@4.4.0(eslint@8.57.0):
@@ -3572,7 +3689,7 @@ packages:
   /@types/bn.js@5.1.5:
     resolution: {integrity: sha512-V46N0zwKRF5Q00AZ6hWtN0T8gGmDUaUzLWQvHFo5yThtVwK/VCenFY3wXVbOvNfajEpsTfQM4IN9k/d6gUVX3A==}
     dependencies:
-      '@types/node': 18.19.32
+      '@types/node': 20.12.10
 
   /@types/chai-as-promised@7.1.8:
     resolution: {integrity: sha512-ThlRVIJhr69FLlh6IctTXFkmhtP3NpMZ2QGq69StYLyKZFp/HOp1VdKZj7RvfNWYYcJ1xlbLGLLWj1UvP5u/Gw==}
@@ -3615,14 +3732,18 @@ packages:
   /@types/fs-extra@5.1.0:
     resolution: {integrity: sha512-AInn5+UBFIK9FK5xc9yP5e3TQSPNNgjHByqYcj9g5elVBnDQcQL7PlO1CIRy2gWlbwK7UPYqi7vRvFA44dCmYQ==}
     dependencies:
-      '@types/node': 18.19.32
+      '@types/node': 20.12.10
     dev: true
 
   /@types/glob@7.2.0:
     resolution: {integrity: sha512-ZUxbzKl0IfJILTS6t7ip5fQQM/J3TJYubDm3nMbgubNNYS62eXeUpoLUC8/7fJNiFYHTrGPQn7hspDUzIHX3UA==}
     dependencies:
       '@types/minimatch': 5.1.2
-      '@types/node': 18.19.32
+      '@types/node': 20.12.10
+    dev: true
+
+  /@types/istanbul-lib-coverage@2.0.6:
+    resolution: {integrity: sha512-2QF/t/auWm0lsy8XtKVPG19v3sSOQlJe/YHZgfjb/KBBHOGSV+J2q/S671rcq9uTBrLAXmZpqJiaQbMT+zNU1w==}
     dev: true
 
   /@types/json-schema@7.0.15:
@@ -3635,7 +3756,7 @@ packages:
   /@types/keccak@3.0.4:
     resolution: {integrity: sha512-hdnkmbie7tE0yXnQQvlIOqCyjEsoXDVEZ3ACqO+F305XgUOW4Z9ElWdogCXXRAW/khnZ7GxM0t/BGB5bORKt/g==}
     dependencies:
-      '@types/node': 18.19.32
+      '@types/node': 20.12.10
     dev: true
 
   /@types/lodash.clonedeep@4.5.9:
@@ -3695,6 +3816,7 @@ packages:
     resolution: {integrity: sha512-2bkg93YBSDKk8DLmmHnmj/Rwr18TLx7/n+I23BigFwgexUJoMHZOd8X1OFxuF/W3NN0S2W2E5sVabI5CPinNvA==}
     dependencies:
       undici-types: 5.26.5
+    dev: true
 
   /@types/node@20.12.10:
     resolution: {integrity: sha512-Eem5pH9pmWBHoGAT8Dr5fdc5rYA+4NAovdM4EktRPVAAiJhmWWfQrA0cFhAbOsQdSfIHjAud6YdkbL69+zSKjw==}
@@ -3773,7 +3895,7 @@ packages:
   /@types/ws@7.4.7:
     resolution: {integrity: sha512-JQbbmxZTZehdc2iszGKs5oC3NFnjeay7mtAWrdt7qNtAVK0g19muApzAy4bm9byz79xa2ZnO/BOBC2R8RC5Lww==}
     dependencies:
-      '@types/node': 18.19.32
+      '@types/node': 20.12.10
     dev: true
 
   /@types/ws@8.5.3:
@@ -4761,6 +4883,24 @@ packages:
     engines: {node: '>= 0.8'}
     dev: false
 
+  /c8@9.1.0:
+    resolution: {integrity: sha512-mBWcT5iqNir1zIkzSPyI3NCR9EZCVI3WUD+AVO17MVWTSFNyUueXE82qTeampNtTr+ilN/5Ua3j24LgbCKjDVg==}
+    engines: {node: '>=14.14.0'}
+    hasBin: true
+    dependencies:
+      '@bcoe/v8-coverage': 0.2.3
+      '@istanbuljs/schema': 0.1.3
+      find-up: 5.0.0
+      foreground-child: 3.1.1
+      istanbul-lib-coverage: 3.2.2
+      istanbul-lib-report: 3.0.1
+      istanbul-reports: 3.1.7
+      test-exclude: 6.0.0
+      v8-to-istanbul: 9.2.0
+      yargs: 17.7.2
+      yargs-parser: 21.1.1
+    dev: true
+
   /caching-transform@4.0.0:
     resolution: {integrity: sha512-kpqOvwXnjjN44D89K5ccQC+RUrsy7jB/XLlRrx0D7/2HNcTPqzsb6XgYoErwko6QsV184CA2YgS1fxDiiDZMWA==}
     engines: {node: '>=8'}
@@ -4869,6 +5009,11 @@ packages:
     dependencies:
       ansi-styles: 4.3.0
       supports-color: 7.2.0
+
+  /chalk@5.3.0:
+    resolution: {integrity: sha512-dLitG79d+GV1Nb/VYcCDFivJeK1hiukt9QjRNVOsUtTy1rR1YJsmpGGTZ3qJos+uw7WmWF4wUwBd9jxjocFC2w==}
+    engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
+    dev: false
 
   /chardet@0.7.0:
     resolution: {integrity: sha512-mT8iDcrh03qDGRRmoA2hmBJnxpllMR+0/0qlzjqZES6NdiWDcZkCNAk4rPFZ9Q85r27unkiNNg8ZOiwZXBHwcA==}
@@ -5683,7 +5828,6 @@ packages:
       '@esbuild/win32-arm64': 0.20.2
       '@esbuild/win32-ia32': 0.20.2
       '@esbuild/win32-x64': 0.20.2
-    dev: true
 
   /escalade@3.1.2:
     resolution: {integrity: sha512-ErCHMCae19vR8vQGe50xIsVomy19rg6gFu3+r3jkEO46suLMWBksvVyoGgQV+jOfl84ZSOSlmv6Gxa89PmTGmA==}
@@ -6644,7 +6788,6 @@ packages:
     resolution: {integrity: sha512-ofbkKj+0pjXjhejr007J/fLf+sW+8H7K5GCm+msC8q3IpvgjobpyPqSRFemNyIMxklC0zeJpi7VDFna19FacvQ==}
     dependencies:
       resolve-pkg-maps: 1.0.0
-    dev: true
 
   /ghost-testrpc@0.0.2:
     resolution: {integrity: sha512-i08dAEgJ2g8z5buJIrCTduwPIhih3DP+hOCTyyryikfV8T0bNvHnGXO67i0DD1H4GBDETTclPy9njZbfluQYrQ==}
@@ -8842,7 +8985,6 @@ packages:
 
   /resolve-pkg-maps@1.0.0:
     resolution: {integrity: sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw==}
-    dev: true
 
   /resolve@1.1.7:
     resolution: {integrity: sha512-9znBF0vBcaSN3W2j7wKvdERPwqTxSpCq+if5C0WoTCyV9n24rua28jeuQ2pL/HOf+yUe/Mef+H/5p60K0Id3bg==}
@@ -9781,7 +9923,6 @@ packages:
       get-tsconfig: 4.7.4
     optionalDependencies:
       fsevents: 2.3.3
-    dev: true
 
   /tty-table@4.2.3:
     resolution: {integrity: sha512-Fs15mu0vGzCrj8fmJNP7Ynxt5J7praPXqFN0leZeZBXJwkMxv9cb2D454k1ltrtUSJbZ4yH4e0CynsHLxmUfFA==}
@@ -10088,6 +10229,15 @@ packages:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
     dev: true
 
+  /v8-to-istanbul@9.2.0:
+    resolution: {integrity: sha512-/EH/sDgxU2eGxajKdwLCDmQ4FWq+kpi3uCmBGpw1xJtnAxEjlD8j8PEiGWpCIMIs3ciNAgH0d3TTJiUkYzyZjA==}
+    engines: {node: '>=10.12.0'}
+    dependencies:
+      '@jridgewell/trace-mapping': 0.3.25
+      '@types/istanbul-lib-coverage': 2.0.6
+      convert-source-map: 2.0.0
+    dev: true
+
   /validate-npm-package-license@3.0.4:
     resolution: {integrity: sha512-DpKm2Ui/xN7/HQKCtpZxoRWBhZ9Z0kqtygG8XCgNQ8ZlDnxuQmWhj566j8fN4Cu3/JmbhsDo7fcAJq4s9h27Ew==}
     dependencies:
@@ -10381,7 +10531,7 @@ packages:
       util: 0.12.5
       web3-errors: 1.1.4
       web3-types: 1.6.0
-      zod: 3.23.7
+      zod: 3.23.8
     dev: true
 
   /web3@4.8.0(typescript@5.0.4):
@@ -10707,5 +10857,5 @@ packages:
       commander: 9.5.0
     dev: true
 
-  /zod@3.23.7:
-    resolution: {integrity: sha512-NBeIoqbtOiUMomACV/y+V3Qfs9+Okr18vR5c/5pHClPpufWOrsx8TENboDPe265lFdfewX2yBtNTLPvnmCxwog==}
+  /zod@3.23.8:
+    resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}

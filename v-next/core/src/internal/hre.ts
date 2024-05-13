@@ -8,14 +8,17 @@ import {
 import { HardhatPlugin } from "../types/plugins.js";
 import { UserInterruptionManager } from "../types/user-interruptions.js";
 
-import { GlobalArguments } from "../types/global-parameters.js";
+import {
+  GlobalArguments,
+  GlobalParameterMap,
+} from "../types/global-parameters.js";
 import { TaskManager } from "../types/tasks.js";
+import { UnsafeHardhatRuntimeEnvironmentOptions } from "../types/cli.js";
 import { HookManagerImplementation } from "./hook-manager.js";
 import { UserInterruptionManagerImplementation } from "./user-interruptions.js";
-import { ResolvedConfigurationVariableImplementation } from "./config/configuration-variables.js";
+import { ResolvedConfigurationVariableImplementation } from "./configuration-variables.js";
 import { TaskManagerImplementation } from "./tasks/task-manager.js";
 import {
-  GlobalParameterMap,
   buildGlobalParameterMap,
   resolveGlobalArguments,
 } from "./global-parameters.js";
@@ -27,10 +30,7 @@ export class HardhatRuntimeEnvironmentImplementation
   public static async create(
     inputUserConfig: HardhatUserConfig,
     userProvidedGlobalArguments: Partial<GlobalArguments>,
-    unsafeOptions?: {
-      resolvedPlugins: HardhatPlugin[];
-      globalParameterMap: GlobalParameterMap;
-    },
+    unsafeOptions?: UnsafeHardhatRuntimeEnvironmentOptions,
   ): Promise<HardhatRuntimeEnvironmentImplementation> {
     // TODO: Clone with lodash or https://github.com/davidmarkclements/rfdc
     // TODO: Or maybe don't clone at all
@@ -83,7 +83,7 @@ export class HardhatRuntimeEnvironmentImplementation
       unsafeOptions?.globalParameterMap ??
       buildGlobalParameterMap(resolvedPlugins);
 
-    const resolvedGlobalArguments = resolveGlobalArguments(
+    const globalArguments = resolveGlobalArguments(
       userProvidedGlobalArguments,
       globalParametersIndex,
     );
@@ -96,6 +96,7 @@ export class HardhatRuntimeEnvironmentImplementation
     const hookContext: HookContext = {
       hooks,
       config,
+      globalArguments,
       interruptions,
     };
 
@@ -106,7 +107,7 @@ export class HardhatRuntimeEnvironmentImplementation
       config,
       hooks,
       interruptions,
-      resolvedGlobalArguments,
+      globalArguments,
       globalParametersIndex,
     );
 
@@ -147,13 +148,16 @@ async function validateUserConfig(
   hooks: HookManager,
   config: HardhatUserConfig,
 ): Promise<HardhatUserConfigValidationError[]> {
+  // TODO: Validate the plugin and tasks lists
+  const validationErrors: HardhatUserConfigValidationError[] = [];
+
   const results = await hooks.runParallelHandlers(
     "config",
     "validateUserConfig",
     [config],
   );
 
-  return results.flat(1);
+  return [...validationErrors, ...results.flat(1)];
 }
 
 async function resolveUserConfig(
@@ -163,6 +167,7 @@ async function resolveUserConfig(
 ): Promise<HardhatConfig> {
   const initialResolvedConfig = {
     plugins: sortedPlugins,
+    tasks: config.tasks ?? [],
   } as HardhatConfig;
 
   return hooks.runHandlerChain(

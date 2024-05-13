@@ -4,6 +4,7 @@ import {
   HardhatUserConfig,
   ResolvedConfigurationVariable,
 } from "./config.js";
+import { GlobalArguments } from "./global-parameters.js";
 import { HardhatRuntimeEnvironment } from "./hre.js";
 import { UserInterruptionManager } from "./user-interruptions.js";
 import {
@@ -27,11 +28,15 @@ declare module "./hre.js" {
 /**
  * The context that is passed to hook handlers, except for those in the "config"
  * category.
+ *
+ * The `HookContext` offers a subset of the functionality that the
+ * `HardhatRuntimeEnvironment` does.
  */
 export interface HookContext {
-  readonly hooks: HookManager;
   readonly config: HardhatConfig;
+  readonly globalArguments: GlobalArguments;
   readonly interruptions: UserInterruptionManager;
+  readonly hooks: HookManager;
 }
 
 /**
