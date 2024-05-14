@@ -1,8 +1,8 @@
+import fsExtra from "fs-extra";
 import debug from "debug";
 import semver from "semver";
 import chalk from "chalk";
 import AggregateError from "aggregate-error";
-import { readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 import { CompilationJobsCreationResult } from "./types/builtin-tasks/index.js";
 import { DependencyGraph } from "./solidity/dependencyGraph.js";
 import {
@@ -112,7 +112,20 @@ export async function taskCompileGetRemappings(): Promise<
 export async function taskCompileSolidityReadFile(
   absolutePath: string,
 ): Promise<string> {
-  return readUtf8File(absolutePath);
+  try {
+    return await fsExtra.readFile(absolutePath, {
+      encoding: "utf8",
+    });
+  } catch (e) {
+    if (fsExtra.lstatSync(absolutePath).isDirectory()) {
+      throw new HardhatError(ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY, {
+        absolutePath,
+      });
+    }
+
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+    throw e;
+  }
 }
 
 // TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE

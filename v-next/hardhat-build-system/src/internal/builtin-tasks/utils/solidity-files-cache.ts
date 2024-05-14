@@ -1,12 +1,8 @@
 import type { SolcConfig } from "../../types/index.js";
 import debug from "debug";
+import fsExtra from "fs-extra";
 import * as t from "io-ts";
 import { deepEqual } from "fast-equals";
-import {
-  exists,
-  readJsonFile,
-  writeJsonFile,
-} from "@nomicfoundation/hardhat-utils/fs";
 
 const log = debug("hardhat:core:tasks:compile:cache");
 
@@ -59,8 +55,8 @@ export class SolidityFilesCache {
       _format: FORMAT_VERSION,
       files: {},
     };
-    if (await exists(solidityFilesCachePath)) {
-      cacheRaw = await readJsonFile(solidityFilesCachePath);
+    if (await fsExtra.pathExists(solidityFilesCachePath)) {
+      cacheRaw = await fsExtra.readJson(solidityFilesCachePath);
     }
 
     const result = CacheCodec.decode(cacheRaw);
@@ -86,7 +82,7 @@ export class SolidityFilesCache {
   public async removeNonExistingFiles() {
     await Promise.all(
       Object.keys(this.#cache.files).map(async (absolutePath) => {
-        if (!(await exists(absolutePath))) {
+        if (!(await fsExtra.pathExists(absolutePath))) {
           this.removeEntry(absolutePath);
         }
       }),
@@ -94,7 +90,9 @@ export class SolidityFilesCache {
   }
 
   public async writeToFile(solidityFilesCachePath: string) {
-    await writeJsonFile(solidityFilesCachePath, this.#cache);
+    await fsExtra.outputJson(solidityFilesCachePath, this.#cache, {
+      spaces: 2,
+    });
   }
 
   public addFile(absolutePath: string, entry: CacheEntry) {

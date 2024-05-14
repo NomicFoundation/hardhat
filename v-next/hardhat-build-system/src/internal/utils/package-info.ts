@@ -1,7 +1,7 @@
 import findup from "find-up";
+import fsExtra from "fs-extra";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { readJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 import { assertHardhatInvariant } from "../errors/errors.js";
 
 export interface PackageJson {
@@ -13,7 +13,7 @@ export interface PackageJson {
   };
 }
 
-export async function getHardhatVersion(): Promise<string> {
+export function getHardhatVersion(): string {
   const packageJsonPath = findClosestPackageJson(
     fileURLToPath(import.meta.url),
   );
@@ -23,7 +23,7 @@ export async function getHardhatVersion(): Promise<string> {
     "There should be a package.json in hardhat-core's root directory",
   );
 
-  const packageJson: PackageJson = await readJsonFile(packageJsonPath);
+  const packageJson = fsExtra.readJsonSync(packageJsonPath);
   return packageJson.version;
 }
 
@@ -34,7 +34,7 @@ export function findClosestPackageJson(file: string): string | null {
 export async function getPackageName(file: string): Promise<string> {
   const packageJsonPath = findClosestPackageJson(file);
   if (packageJsonPath !== null && packageJsonPath !== "") {
-    const packageJson: PackageJson = await readJsonFile(packageJsonPath);
+    const packageJson: PackageJson = await fsExtra.readJSON(packageJsonPath);
     return packageJson.name;
   }
   return "";
