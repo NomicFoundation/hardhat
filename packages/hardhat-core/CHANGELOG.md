@@ -1,5 +1,16 @@
 # hardhat
 
+## 2.22.4
+
+### Patch Changes
+
+- 22bcbf5: Added BigInt task argument type
+- 2c533f0: Bumped EDR dependency to 0.3.7
+- 3203639: Fixed an issue in the solidity source map decoding module
+- 5d7a604: Fixed an issue with solc version selection
+- 3c6de8f: Now solcjs is run in a subprocess, which leads to better error reporting and allows it to run multiple compilation jobs at the same time
+- 6447e80: Improved performance by reducing back-and-forth with EDR when it's not necessary
+
 ## 2.22.3
 
 ### Patch Changes
