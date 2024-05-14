@@ -24,6 +24,12 @@ function createConfig(configFilePath, packageEntryPoints = []) {
       node: true,
     },
     extends: ["plugin:@nomicfoundation/slow-imports/recommended"],
+    settings: {
+      "import/resolver": {
+        typescript: true,
+        node: true,
+      },
+    },
     parser: "@typescript-eslint/parser",
     parserOptions: {
       project: path.join(path.dirname(configFilePath), "tsconfig.json"),
