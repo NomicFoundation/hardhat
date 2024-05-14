@@ -243,6 +243,14 @@ export function edrTracingMessageResultToMinimalEVMResult(
   if ("reason" in result) {
     minimalEVMResult.execResult.reason = result.reason;
   }
+  if ("output" in result) {
+    const { output } = result;
+    if (Buffer.isBuffer(output)) {
+      minimalEVMResult.execResult.output = output;
+    } else {
+      minimalEVMResult.execResult.output = output.returnValue;
+    }
+  }
 
   if (contractAddress !== undefined) {
     minimalEVMResult.execResult.contractAddress = new Address(contractAddress);

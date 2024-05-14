@@ -21,6 +21,7 @@ export interface MinimalExecResult {
   executionGasUsed: bigint;
   contractAddress?: Address;
   reason?: SuccessReason | ExceptionalHalt;
+  output?: Buffer;
 }
 
 export interface MinimalEVMResult {
