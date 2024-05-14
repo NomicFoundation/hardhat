@@ -114,6 +114,21 @@ importers:
         specifier: ^5.0.2
         version: 5.4.5
 
+  examples/complete:
+    devDependencies:
+      '@nomicfoundation/hardhat-ignition-ethers':
+        specifier: workspace:^
+        version: link:../../packages/hardhat-plugin-ethers
+      '@nomicfoundation/hardhat-toolbox':
+        specifier: 4.0.0
+        version: 4.0.0(@nomicfoundation/hardhat-chai-matchers@2.0.6(@nomicfoundation/hardhat-ethers@3.0.5(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(chai@4.4.1)(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(@nomicfoundation/hardhat-ethers@3.0.5(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(@nomicfoundation/hardhat-network-helpers@1.0.10(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(@nomicfoundation/hardhat-verify@2.0.6(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(@typechain/ethers-v6@0.5.1(ethers@6.12.0)(typechain@8.3.2(typescript@5.4.5))(typescript@5.4.5))(@typechain/hardhat@9.1.0(@typechain/ethers-v6@0.5.1(ethers@6.12.0)(typechain@8.3.2(typescript@5.4.5))(typescript@5.4.5))(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5))(typechain@8.3.2(typescript@5.4.5)))(@types/chai@4.3.14)(@types/mocha@9.1.1)(@types/node@18.15.13)(chai@4.4.1)(ethers@6.12.0)(hardhat-gas-reporter@1.0.10(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5))(solidity-coverage@0.8.12(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typechain@8.3.2(typescript@5.4.5))(typescript@5.4.5)
+      hardhat:
+        specifier: ^2.18.0
+        version: 2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)
+      prettier-plugin-solidity:
+        specifier: 1.1.3
+        version: 1.1.3(prettier@2.8.8)
+
   examples/sample:
     devDependencies:
       '@nomicfoundation/hardhat-ignition-ethers':
@@ -121,7 +136,43 @@ importers:
         version: link:../../packages/hardhat-plugin-ethers
       '@nomicfoundation/hardhat-toolbox':
         specifier: 4.0.0
-        version: 4.0.0(@nomicfoundation/hardhat-chai-matchers@2.0.6(@nomicfoundation/hardhat-ethers@3.0.5(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(chai@4.4.1)(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(@nomicfoundation/hardhat-ethers@3.0.5(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(@nomicfoundation/hardhat-network-helpers@1.0.9(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(@nomicfoundation/hardhat-verify@2.0.6(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(@typechain/ethers-v6@0.5.1(ethers@6.12.0)(typechain@8.3.2(typescript@5.4.5))(typescript@5.4.5))(@typechain/hardhat@9.1.0(@typechain/ethers-v6@0.5.1(ethers@6.12.0)(typechain@8.3.2(typescript@5.4.5))(typescript@5.4.5))(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5))(typechain@8.3.2(typescript@5.4.5)))(@types/chai@4.3.14)(@types/mocha@9.1.1)(@types/node@18.15.13)(chai@4.4.1)(ethers@6.12.0)(hardhat-gas-reporter@1.0.10(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5))(solidity-coverage@0.8.12(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typechain@8.3.2(typescript@5.4.5))(typescript@5.4.5)
+        version: 4.0.0(@nomicfoundation/hardhat-chai-matchers@2.0.6(@nomicfoundation/hardhat-ethers@3.0.5(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(chai@4.4.1)(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(@nomicfoundation/hardhat-ethers@3.0.5(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(@nomicfoundation/hardhat-network-helpers@1.0.10(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(@nomicfoundation/hardhat-verify@2.0.6(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(@typechain/ethers-v6@0.5.1(ethers@6.12.0)(typechain@8.3.2(typescript@5.4.5))(typescript@5.4.5))(@typechain/hardhat@9.1.0(@typechain/ethers-v6@0.5.1(ethers@6.12.0)(typechain@8.3.2(typescript@5.4.5))(typescript@5.4.5))(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5))(typechain@8.3.2(typescript@5.4.5)))(@types/chai@4.3.14)(@types/mocha@9.1.1)(@types/node@18.15.13)(chai@4.4.1)(ethers@6.12.0)(hardhat-gas-reporter@1.0.10(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5))(solidity-coverage@0.8.12(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typechain@8.3.2(typescript@5.4.5))(typescript@5.4.5)
+      hardhat:
+        specifier: ^2.18.0
+        version: 2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)
+      prettier-plugin-solidity:
+        specifier: 1.1.3
+        version: 1.1.3(prettier@2.8.8)
+
+  examples/ts-sample:
+    devDependencies:
+      '@nomicfoundation/hardhat-ignition-ethers':
+        specifier: workspace:^
+        version: link:../../packages/hardhat-plugin-ethers
+      '@nomicfoundation/hardhat-toolbox':
+        specifier: 4.0.0
+        version: 4.0.0(@nomicfoundation/hardhat-chai-matchers@2.0.6(@nomicfoundation/hardhat-ethers@3.0.5(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(chai@4.4.1)(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(@nomicfoundation/hardhat-ethers@3.0.5(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(@nomicfoundation/hardhat-network-helpers@1.0.10(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(@nomicfoundation/hardhat-verify@2.0.6(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(@typechain/ethers-v6@0.5.1(ethers@6.12.0)(typechain@8.3.2(typescript@5.4.5))(typescript@5.4.5))(@typechain/hardhat@9.1.0(@typechain/ethers-v6@0.5.1(ethers@6.12.0)(typechain@8.3.2(typescript@5.4.5))(typescript@5.4.5))(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5))(typechain@8.3.2(typescript@5.4.5)))(@types/chai@4.3.14)(@types/mocha@9.1.1)(@types/node@18.15.13)(chai@4.4.1)(ethers@6.12.0)(hardhat-gas-reporter@1.0.10(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5))(solidity-coverage@0.8.12(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typechain@8.3.2(typescript@5.4.5))(typescript@5.4.5)
+      hardhat:
+        specifier: ^2.18.0
+        version: 2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)
+      prettier-plugin-solidity:
+        specifier: 1.1.3
+        version: 1.1.3(prettier@2.8.8)
+
+  examples/viem-sample:
+    devDependencies:
+      '@nomicfoundation/hardhat-ignition-viem':
+        specifier: workspace:^
+        version: link:../../packages/hardhat-plugin-viem
+      '@nomicfoundation/hardhat-network-helpers':
+        specifier: 1.0.10
+        version: 1.0.10(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5))
+      '@nomicfoundation/hardhat-viem':
+        specifier: 2.0.0
+        version: 2.0.0(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5))(typescript@5.4.5)(viem@2.9.25(typescript@5.4.5))
+      chai:
+        specifier: 4.4.1
+        version: 4.4.1
       hardhat:
         specifier: ^2.18.0
         version: 2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)
@@ -944,6 +995,11 @@ packages:
       ethers: ^6.1.0
       hardhat: ^2.0.0
 
+  '@nomicfoundation/hardhat-network-helpers@1.0.10':
+    resolution: {integrity: sha512-R35/BMBlx7tWN5V6d/8/19QCwEmIdbnA4ZrsuXgvs8i2qFx5i7h6mH5pBS4Pwi4WigLH+upl6faYusrNPuzMrQ==}
+    peerDependencies:
+      hardhat: ^2.9.5
+
   '@nomicfoundation/hardhat-network-helpers@1.0.9':
     resolution: {integrity: sha512-OXWCv0cHpwLUO2u7bFxBna6dQtCC2Gg/aN/KtJLO7gmuuA28vgmVKYFRCDUqrbjujzgfwQ2aKyZ9Y3vSmDqS7Q==}
     peerDependencies:
@@ -974,6 +1030,13 @@ packages:
     resolution: {integrity: sha512-oKUI5fl8QC8jysE2LUBHE6rObzEmccJcc4b43Ov7LFMlCBZJE27qoqGIsg/++wX7L8Jdga+bkejPxl8NvsecpQ==}
     peerDependencies:
       hardhat: ^2.0.4
+
+  '@nomicfoundation/hardhat-viem@2.0.0':
+    resolution: {integrity: sha512-ilXQKTc1jWHqJ66fAN6TIyCRyormoChOn1yQTCGoBQ+G6QcVCu5FTaGL2r0KUOY4IkTohtphK+UXQrKcxQX5Yw==}
+    peerDependencies:
+      hardhat: ^2.17.0
+      typescript: ~5.0.0
+      viem: ^2.7.6
 
   '@nomicfoundation/hardhat-viem@2.0.1':
     resolution: {integrity: sha512-C7mSg2MiJekWY2xZYYOdbGmA1+hRKIHoSsh/SeY97mPO6nTha7OEeeg+seecxTekLJW1kqryjCdU8ul+L29v3w==}
@@ -5673,16 +5736,21 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@nomicfoundation/hardhat-network-helpers@1.0.10(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5))':
+    dependencies:
+      ethereumjs-util: 7.1.5
+      hardhat: 2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)
+
   '@nomicfoundation/hardhat-network-helpers@1.0.9(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5))':
     dependencies:
       ethereumjs-util: 7.1.5
       hardhat: 2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)
 
-  ? '@nomicfoundation/hardhat-toolbox@4.0.0(@nomicfoundation/hardhat-chai-matchers@2.0.6(@nomicfoundation/hardhat-ethers@3.0.5(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(chai@4.4.1)(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(@nomicfoundation/hardhat-ethers@3.0.5(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(@nomicfoundation/hardhat-network-helpers@1.0.9(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(@nomicfoundation/hardhat-verify@2.0.6(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(@typechain/ethers-v6@0.5.1(ethers@6.12.0)(typechain@8.3.2(typescript@5.4.5))(typescript@5.4.5))(@typechain/hardhat@9.1.0(@typechain/ethers-v6@0.5.1(ethers@6.12.0)(typechain@8.3.2(typescript@5.4.5))(typescript@5.4.5))(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5))(typechain@8.3.2(typescript@5.4.5)))(@types/chai@4.3.14)(@types/mocha@9.1.1)(@types/node@18.15.13)(chai@4.4.1)(ethers@6.12.0)(hardhat-gas-reporter@1.0.10(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5))(solidity-coverage@0.8.12(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typechain@8.3.2(typescript@5.4.5))(typescript@5.4.5)'
+  ? '@nomicfoundation/hardhat-toolbox@4.0.0(@nomicfoundation/hardhat-chai-matchers@2.0.6(@nomicfoundation/hardhat-ethers@3.0.5(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(chai@4.4.1)(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(@nomicfoundation/hardhat-ethers@3.0.5(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(@nomicfoundation/hardhat-network-helpers@1.0.10(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(@nomicfoundation/hardhat-verify@2.0.6(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(@typechain/ethers-v6@0.5.1(ethers@6.12.0)(typechain@8.3.2(typescript@5.4.5))(typescript@5.4.5))(@typechain/hardhat@9.1.0(@typechain/ethers-v6@0.5.1(ethers@6.12.0)(typechain@8.3.2(typescript@5.4.5))(typescript@5.4.5))(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5))(typechain@8.3.2(typescript@5.4.5)))(@types/chai@4.3.14)(@types/mocha@9.1.1)(@types/node@18.15.13)(chai@4.4.1)(ethers@6.12.0)(hardhat-gas-reporter@1.0.10(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5))(solidity-coverage@0.8.12(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typechain@8.3.2(typescript@5.4.5))(typescript@5.4.5)'
   : dependencies:
       '@nomicfoundation/hardhat-chai-matchers': 2.0.6(@nomicfoundation/hardhat-ethers@3.0.5(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)))(chai@4.4.1)(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5))
       '@nomicfoundation/hardhat-ethers': 3.0.5(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5))
-      '@nomicfoundation/hardhat-network-helpers': 1.0.9(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5))
+      '@nomicfoundation/hardhat-network-helpers': 1.0.10(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5))
       '@nomicfoundation/hardhat-verify': 2.0.6(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5))
       '@typechain/ethers-v6': 0.5.1(ethers@6.12.0)(typechain@8.3.2(typescript@5.4.5))(typescript@5.4.5)
       '@typechain/hardhat': 9.1.0(@typechain/ethers-v6@0.5.1(ethers@6.12.0)(typechain@8.3.2(typescript@5.4.5))(typescript@5.4.5))(ethers@6.12.0)(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5))(typechain@8.3.2(typescript@5.4.5))
@@ -5712,6 +5780,16 @@ snapshots:
       undici: 5.28.4
     transitivePeerDependencies:
       - supports-color
+
+  '@nomicfoundation/hardhat-viem@2.0.0(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5))(typescript@5.4.5)(viem@2.9.25(typescript@5.4.5))':
+    dependencies:
+      abitype: 0.9.10(typescript@5.4.5)
+      hardhat: 2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5)
+      lodash.memoize: 4.1.2
+      typescript: 5.4.5
+      viem: 2.9.25(typescript@5.4.5)
+    transitivePeerDependencies:
+      - zod
 
   '@nomicfoundation/hardhat-viem@2.0.1(hardhat@2.22.3(ts-node@10.9.1(@types/node@18.15.13)(typescript@5.4.5))(typescript@5.4.5))(typescript@5.4.5)(viem@2.9.25(typescript@5.4.5))':
     dependencies:

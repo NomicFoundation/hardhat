@@ -85,7 +85,10 @@ If you are working purely on the documentation, not as a result of a technical c
 To publish ignition:
 
 1. git fetch, Checkout out `development`, then ensure your branch is up to date `git pull --ff-only`
-2. Perform a clean install and build (will lose all uncommitted changes) git clean -fdx ., pnpm install, pnpm build
+2. Perform a clean install and build (will lose all uncommitted changes):
+   - `git clean -fdx .`
+   - `pnpm install`
+   - `pnpm build`
 3. Run a full check, stopping on failure: `pnpm fullcheck`
 4. Confirm the commits represent the features for the release
 5. Create a release branch `git checkout -b release/yyyy-mm-dd`
@@ -94,14 +97,8 @@ To publish ignition:
 8. Update the `CHANGELOG.md` under `./packages/hardhat-plugin-ethers`.
 9. Update the `CHANGELOG.md` under `./packages/hardhat-plugin-viem`.
 10. Update the `CHANGELOG.md` under `./packages/ui`.
-11. Update the package versions based on semver (manually) - versions are tkept in sync across our packages.
-12. Update the version of dependencies:
-
-- cores version in hardhat-ui deps
-- cores and uis versions in hardhat-ignition devDeps
-- examples version of hardhat-ignition
-
-1.  Commit the version update `git commit`:
+11. Update the package versions based on semver (manually) - versions are kept in sync across our packages.
+12. Commit the version update `git commit`:
 
 ```
 chore: bump version to vX.X.X
@@ -110,26 +107,20 @@ Update the packages versions and changelogs for the `X.X.X -
 yyyy-mm-dd` release.
 ```
 
-14. Deploy to a local verdaccio instance and test each of the `./examples` based on the new version.
-15. Push the release branch and open a pull request on `main`, the PR description should match the changelogs
-16. On a successful check, `rebase merge` the release branch into `main`
-17. Switch to main branch and pull the latest changes
-18. Git tag the version, `g tag -a v0.x.x -m "v0.x.x"` and push the tag `git push --follow-tags`
-19. Publish `@nomicfoundation/ignition-core`, `@nomicfoundation/ignition-ui`, `@nomicfoundation/hardhat-ignition` and `@nomicfoundation/hardhat-ignition-viem` :
-
-- `cd packages/core && pnpm publish --no-git-check`
-- `cd packages/ui && pnpm publish --no-git-check`
-- `cd packages/hardhat-plugin && pnpm publish --no-git-check`
-- `cd packages/hardhat-plugin-ethers && pnpm publish --no-git-check`
-- `cd packages/hardhat-plugin-viem && pnpm publish --no-git-check`
-
-20. Create a release on github off of the pushed tag, the release notes should match the changelogs followed by a hiring entry:
+13. Push the release branch and open a pull request on `main`, the PR description should match the changelogs
+14. On a successful check, `rebase merge` the release branch into `main`
+15. Switch to `main` branch and pull the latest changes
+16. Git tag the version, `g tag -a v0.x.x -m "v0.x.x"` and push the tag `git push --follow-tags`
+17. Publish all workspace packages: `pnpm -r publish --no-git-checks`
+18. Create a release on github off of the pushed tag, the release notes should match the changelogs followed by a hiring entry:
 
 ```markdown
 ---
 > 💡 **The Nomic Foundation is hiring! Check [our open positions](https://www.nomic.foundation/jobs).**
 ---
 ```
+
+19. Switch to `development` branch and rebase it on `main` to include the new release. Push the rebased `development` branch
 
 ## Manual testing
 

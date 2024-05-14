@@ -9,11 +9,11 @@
     "postlint": "prettier --check *.{md,json} ./config/**/*.{js,json}",
     "lint:fix": "pnpm --recursive lint:fix",
     "postlint:fix": "prettier --write *.{md,json} ./config/**/*.{js,json}",
-    "test": "pnpm --recursive test && pnpm --filter \"./packages/core\" test:integrations",
+    "test": "pnpm --filter \"./packages/*\" test && pnpm --filter \"./packages/core\" test:integrations",
     "test:coverage": "pnpm --recursive test:coverage",
     "test:examples": "pnpm --filter \"./examples/*\" test",
     "watch": "tsc --build --watch packages/core packages/hardhat-plugin",
-    "fullcheck": "pnpm build && pnpm lint && pnpm test",
+    "fullcheck": "pnpm build && pnpm lint && pnpm test && pnpm test:examples",
     "clean": "pnpm --recursive clean"
   },
   "devDependencies": {

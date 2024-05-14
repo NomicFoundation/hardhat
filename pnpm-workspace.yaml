@@ -1,3 +1,6 @@
 packages:
   - "packages/*"
+  - "examples/complete"
   - "examples/sample"
+  - "examples/ts-sample"
+  - "examples/viem-sample"
