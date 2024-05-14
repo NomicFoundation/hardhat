@@ -55,7 +55,7 @@ export async function download(
     await ensureDir(path.dirname(filePath));
 
     await writeUtf8File(tmpFilePath, responseBody.toString("utf8"));
-    await move(tmpFilePath, filePath);
+    return move(tmpFilePath, filePath);
   }
   // undici's response bodies must always be consumed to prevent leaks
   const text = await response.body.text();
