@@ -66,7 +66,7 @@ async function defaultDisplayMessage(
   interruptor: string,
   message: string,
 ) {
-  const chalk = (await import("chalk")).default.default;
+  const chalk = (await import("chalk")).default;
   console.log(chalk.blue(`[${interruptor}]`) + ` ${message}`);
 }
 
@@ -76,7 +76,7 @@ async function defaultRequestInput(
   inputDescription: string,
 ): Promise<string> {
   const { createInterface } = await import("node:readline");
-  const chalk = (await import("chalk")).default.default;
+  const chalk = (await import("chalk")).default;
   const rl = createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -99,7 +99,7 @@ async function defaultRequestSecretInput(
   inputDescription: string,
 ): Promise<string> {
   const { createInterface } = await import("node:readline");
-  const chalk = (await import("chalk")).default.default;
+  const chalk = (await import("chalk")).default;
   const rl = createInterface({
     input: process.stdin,
     output: process.stdout,

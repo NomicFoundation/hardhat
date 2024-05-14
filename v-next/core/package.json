@@ -1,9 +1,8 @@
 {
   "name": "@nomicfoundation/hardhat-core",
-  "private": true,
-  "version": "0.0.1",
-  "description": "Template for Nomic Foundation npm packages",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/template-package",
+  "version": "3.0.0",
+  "description": "Hardhat's core infrastructure and functionality.",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/core",
   "repository": "github:nomicfoundation/hardhat",
   "author": "Nomic Foundation",
   "license": "MIT",
@@ -11,13 +10,17 @@
   "types": "dist/src/index.d.ts",
   "exports": {
     ".": "./dist/src/index.js",
-    "config": "./dist/src/config.js",
-    "types/config": "./dist/src/types/config.js",
-    "types/hooks": "./dist/src/types/hooks.js",
-    "types/hre": "./dist/src/types/hre.js",
-    "types/plugins": "./dist/src/types/plugins.js",
-    "types/user-interruptions": "./dist/src/types/user-interruptions.js",
-    "types/utils": "./dist/src/types/utils.js"
+    "./config": "./dist/src/config.js",
+    "./types/cli": "./dist/src/types/cli.js",
+    "./types/common": "./dist/src/types/common.js",
+    "./types/config": "./dist/src/types/config.js",
+    "./types/global-parameters": "./dist/src/types/global-parameters.js",
+    "./types/hooks": "./dist/src/types/hooks.js",
+    "./types/hre": "./dist/src/types/hre.js",
+    "./types/plugins": "./dist/src/types/plugins.js",
+    "./types/tasks": "./dist/src/types/tasks.js",
+    "./types/user-interruptions": "./dist/src/types/user-interruptions.js",
+    "./types/utils": "./dist/src/types/utils.js"
   },
   "keywords": [
     "ethereum",
@@ -27,14 +30,15 @@
   "scripts": {
     "lint": "pnpm prettier --check && pnpm eslint",
     "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
-    "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts' 'examples/**/*.ts'",
+    "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "test": "glob --cmd=\"node --import tsx/esm --test\" 'test/**/*.ts'",
     "test:github": "glob --cmd=\"node --import tsx/esm --test --test-reporter=@reporters/github --test-reporter-destination=stdout --test-reporter=spec --test-reporter-destination=stdout\" 'test/**/*.ts'",
+    "test:coverage": "c8 --reporter html --reporter text --all --src src glob --cmd=\"node --import tsx/esm --test\" 'test/**/*.ts'",
     "pretest": "pnpm build",
     "build": "tsc --build .",
     "prepublishOnly": "pnpm build",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist coverage dependency-graph.png temp"
   },
   "files": [
     "dist/src/",
@@ -51,6 +55,7 @@
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
     "@typescript-eslint/parser": "^7.7.1",
+    "c8": "^9.1.0",
     "eslint": "8.57.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-import": "2.29.1",
@@ -65,7 +70,8 @@
     "typescript-eslint": "7.7.1"
   },
   "dependencies": {
-    "chalk": "^2.4.2",
-    "zod": "^3.22.4"
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0",
+    "chalk": "^5.3.0"
   }
 }
