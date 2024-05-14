@@ -35,7 +35,7 @@
   ],
   "dependencies": {
     "@nomicfoundation/ethereumjs-util": "9.0.4",
-    "@nomicfoundation/hardhat-utils": "workspace:^",
+    "@nomicfoundation/hardhat-utils": "^3.0.0",
     "@nomicfoundation/solidity-analyzer": "^0.1.0",
     "adm-zip": "^0.4.16",
     "aggregate-error": "^3.0.0",
