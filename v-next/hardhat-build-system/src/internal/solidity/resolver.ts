@@ -1,10 +1,6 @@
+import fs from "node:fs/promises";
 import path from "node:path";
 import resolve from "resolve";
-import {
-  getChangeTime,
-  getRealPath,
-  readJsonFile,
-} from "@nomicfoundation/hardhat-utils/fs";
 import {
   includesOwnPackageName,
   isAbsolutePathSourceName,
@@ -16,6 +12,7 @@ import {
 } from "../utils/source-names.js";
 import { ERRORS } from "../errors/errors-list.js";
 import { createNonCryptographicHashBasedIdentifier } from "../utils/hash.js";
+import { getRealPath } from "../utils/fs-utils.js";
 import { applyRemappings } from "../utils/remappings.js";
 import {
   FileContent,
@@ -368,7 +365,7 @@ export class Resolver {
     const packageInfo: {
       name: string;
       version: string;
-    } = await readJsonFile(packageJsonPath);
+    } = JSON.parse((await fs.readFile(packageJsonPath)).toString());
     const libraryVersion = packageInfo.version;
 
     return this.#resolveFile(
@@ -426,7 +423,8 @@ export class Resolver {
     libraryVersion?: string,
   ): Promise<ResolvedFile> {
     const rawContent = await this.#readFile(absolutePath);
-    const lastModificationDate = await getChangeTime(absolutePath);
+    const stats = await fs.stat(absolutePath);
+    const lastModificationDate = new Date(stats.ctime);
 
     const contentHash = (
       await createNonCryptographicHashBasedIdentifier(Buffer.from(rawContent))
