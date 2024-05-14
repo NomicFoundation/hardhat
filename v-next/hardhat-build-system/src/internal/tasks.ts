@@ -801,16 +801,6 @@ export async function taskCompileSolidityLogCompilationErrors(
   output: any,
   _quiet: boolean, // TODO: keep unused?
 ) {
-  assertHardhatInvariant(
-    "red" in chalk && typeof chalk.red === "function",
-    "TODO: remove this",
-  );
-
-  assertHardhatInvariant(
-    "yellow" in chalk && typeof chalk.yellow === "function",
-    "TODO: remove this",
-  );
-
   if (output?.errors === undefined) {
     return;
   }
@@ -821,36 +811,12 @@ export async function taskCompileSolidityLogCompilationErrors(
         getFormattedInternalCompilerErrorMessage(error) ??
         error.formattedMessage;
 
-      console.error(
-        errorMessage.replace(/^\w+:/, (t) => {
-          assertHardhatInvariant(
-            "red" in chalk && typeof chalk.red === "function",
-            "TODO: remove this",
-          );
-
-          assertHardhatInvariant(
-            "bold" in chalk.red && typeof chalk.red.bold === "function",
-            "TODO: remove this",
-          );
-
-          return chalk.red.bold(t);
-        }),
-      );
+      console.error(errorMessage.replace(/^\w+:/, (t) => chalk.red.bold(t)));
     } else {
       console.warn(
-        (error.formattedMessage as string).replace(/^\w+:/, (t) => {
-          assertHardhatInvariant(
-            "yellow" in chalk && typeof chalk.yellow === "function",
-            "TODO: remove this",
-          );
-
-          assertHardhatInvariant(
-            "bold" in chalk.yellow && typeof chalk.yellow.bold === "function",
-            "TODO: remove this",
-          );
-
-          return chalk.yellow.bold(t);
-        }),
+        (error.formattedMessage as string).replace(/^\w+:/, (t) =>
+          chalk.yellow.bold(t),
+        ),
       );
     }
   }
