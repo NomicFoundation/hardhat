@@ -1,5 +1,5 @@
-import { unreachable } from "./error.js";
 import { InvalidParameterError } from "./common-errors.js";
+import { unreachable } from "./error.js";
 
 /**
  * Returns the minimum of two bigints.

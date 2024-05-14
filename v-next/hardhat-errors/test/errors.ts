@@ -1,7 +1,8 @@
-import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { HardhatError, applyErrorMessageTemplate } from "../src/errors.js";
+import { describe, it } from "node:test";
+
 import { ERROR_CATEGORIES, ErrorDescriptor } from "../src/descriptors.js";
+import { HardhatError, applyErrorMessageTemplate } from "../src/errors.js";
 
 const mockErrorDescriptor: ErrorDescriptor = {
   number: 123,

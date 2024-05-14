@@ -1,5 +1,5 @@
-import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 
 import { keccak256, createNonCryptographicHashId } from "../src/crypto.js";
 import { bytesToHexString } from "../src/hex.js";

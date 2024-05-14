@@ -1,15 +1,17 @@
-import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
+import { describe, it } from "node:test";
+
 import { expectTypeOf } from "expect-type";
 
+import { createFile, mkdir, writeJsonFile, writeUtf8File } from "../src/fs.js";
 import {
   PackageJson,
   findClosestPackageJson,
   readClosestPackageJson,
   findClosestPackageRoot,
 } from "../src/package.js";
-import { createFile, mkdir, writeJsonFile, writeUtf8File } from "../src/fs.js";
+
 import { useTmpDir } from "./helpers/fs.js";
 
 describe("package", () => {

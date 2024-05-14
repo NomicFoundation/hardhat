@@ -1,12 +1,19 @@
 import type UndiciT from "undici";
 
-import { afterEach, describe, it } from "node:test";
 import assert from "node:assert/strict";
-import querystring from "node:querystring";
 import path from "node:path";
+import querystring from "node:querystring";
+import { afterEach, describe, it } from "node:test";
+
 import { expectTypeOf } from "expect-type";
 import { ProxyAgent, Pool, Agent, Client } from "undici";
 
+import { ensureError } from "../src/error.js";
+import { exists, readUtf8File } from "../src/fs.js";
+import {
+  getBaseDispatcherOptions,
+  getBaseRequestOptions,
+} from "../src/internal/request.js";
 import {
   DEFAULT_MAX_REDIRECTS,
   DEFAULT_TIMEOUT_IN_MILLISECONDS,
@@ -18,18 +25,13 @@ import {
   getDispatcher,
   shouldUseProxy,
 } from "../src/request.js";
-import { exists, readUtf8File } from "../src/fs.js";
-import {
-  getBaseDispatcherOptions,
-  getBaseRequestOptions,
-} from "../src/internal/request.js";
-import { ensureError } from "../src/error.js";
+
+import { useTmpDir } from "./helpers/fs.js";
 import {
   getTestDispatcherOptions,
   mockPool,
   setupRequestMocking,
 } from "./helpers/request.js";
-import { useTmpDir } from "./helpers/fs.js";
 
 describe("Requests util", () => {
   describe("getDispatcher", () => {

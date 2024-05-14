@@ -1,4 +1,5 @@
 import { isAbsolute, resolve } from "node:path";
+
 import {
   buildGlobalParameterMap,
   createHardhatRuntimeEnvironment,
@@ -10,6 +11,7 @@ import {
 } from "@nomicfoundation/hardhat-core/types/global-parameters";
 import { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
 import { Task } from "@nomicfoundation/hardhat-core/types/tasks";
+
 import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
 import { builtinPlugins } from "../builtin-plugins/index.js";
 

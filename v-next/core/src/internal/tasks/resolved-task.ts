@@ -7,6 +7,7 @@ import {
   TaskActions,
   TaskArguments,
 } from "../../types/tasks.js";
+
 import { formatTaskId } from "./utils.js";
 
 export class ResolvedTask implements Task {

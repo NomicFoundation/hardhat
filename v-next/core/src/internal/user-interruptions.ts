@@ -1,5 +1,6 @@
 import { HookContext, HookManager } from "../types/hooks.js";
 import { UserInterruptionManager } from "../types/user-interruptions.js";
+
 import { AsyncMutex } from "./async-mutex.js";
 
 export class UserInterruptionManagerImplementation

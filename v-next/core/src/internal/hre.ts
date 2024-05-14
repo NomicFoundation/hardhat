@@ -1,28 +1,29 @@
 import type { HardhatRuntimeEnvironment } from "../types/hre.js";
+
+import { UnsafeHardhatRuntimeEnvironmentOptions } from "../types/cli.js";
 import { HardhatUserConfig, HardhatConfig } from "../types/config.js";
+import {
+  GlobalArguments,
+  GlobalParameterMap,
+} from "../types/global-parameters.js";
 import {
   HardhatUserConfigValidationError,
   HookContext,
   HookManager,
 } from "../types/hooks.js";
 import { HardhatPlugin } from "../types/plugins.js";
+import { TaskManager } from "../types/tasks.js";
 import { UserInterruptionManager } from "../types/user-interruptions.js";
 
-import {
-  GlobalArguments,
-  GlobalParameterMap,
-} from "../types/global-parameters.js";
-import { TaskManager } from "../types/tasks.js";
-import { UnsafeHardhatRuntimeEnvironmentOptions } from "../types/cli.js";
-import { HookManagerImplementation } from "./hook-manager.js";
-import { UserInterruptionManagerImplementation } from "./user-interruptions.js";
 import { ResolvedConfigurationVariableImplementation } from "./configuration-variables.js";
-import { TaskManagerImplementation } from "./tasks/task-manager.js";
 import {
   buildGlobalParameterMap,
   resolveGlobalArguments,
 } from "./global-parameters.js";
+import { HookManagerImplementation } from "./hook-manager.js";
 import { resolvePluginList } from "./plugins/resolve-plugin-list.js";
+import { TaskManagerImplementation } from "./tasks/task-manager.js";
+import { UserInterruptionManagerImplementation } from "./user-interruptions.js";
 
 export class HardhatRuntimeEnvironmentImplementation
   implements HardhatRuntimeEnvironment

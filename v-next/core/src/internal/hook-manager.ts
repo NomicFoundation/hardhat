@@ -8,6 +8,7 @@ import {
 } from "../types/hooks.js";
 import { HardhatPlugin } from "../types/plugins.js";
 import { LastParameter, Return } from "../types/utils.js";
+
 import { validatePluginNpmDependencies } from "./plugins/plugin-validation.js";
 
 export class HookManagerImplementation implements HookManager {

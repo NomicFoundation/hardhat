@@ -1,4 +1,5 @@
 import { after, before } from "node:test";
+
 import { MockAgent } from "undici";
 
 import { DispatcherOptions } from "../../src/request.js";

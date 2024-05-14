@@ -1,9 +1,9 @@
-import { z } from "zod";
 import { ConfigHooks } from "@nomicfoundation/hardhat-core/types/hooks";
 import {
   sensitiveStringType,
   validateUserConfigZodType,
 } from "@nomicfoundation/hardhat-zod-utils";
+import { z } from "zod";
 
 const fooUserConfigType = z.object({
   bar: z.optional(z.union([z.number(), z.array(z.number())])),

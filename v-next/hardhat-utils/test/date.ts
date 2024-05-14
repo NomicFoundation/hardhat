@@ -1,5 +1,6 @@
-import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+
 import { expectTypeOf } from "expect-type";
 
 import { toSeconds, secondsToDate, now } from "../src/date.js";
