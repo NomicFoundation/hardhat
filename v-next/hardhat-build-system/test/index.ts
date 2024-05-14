@@ -3,19 +3,17 @@
 
 import { describe, it } from "node:test";
 import assert from "node:assert";
+import fs from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import sinon from "sinon";
 import ci from "ci-info";
 import { fileURLToPath } from "node:url";
-import {
-  getAllFilesMatching,
-  getRealPath,
-  readUtf8File,
-  readdir,
-  writeUtf8File,
-} from "@nomicfoundation/hardhat-utils/fs";
 import { BuildSystem } from "../src/index.js";
+import {
+  getAllFilesMatchingSync,
+  getRealPathSync,
+} from "../src/internal/utils/fs-utils.js";
 import { ERRORS } from "../src/internal/errors/errors-list.js";
 import { CompilationJobCreationErrorReason } from "../src/internal/types/builtin-tasks/index.js";
 import {
@@ -35,18 +33,18 @@ async function assertFileExists(pathToFile: string) {
 
 async function assertBuildInfoExists(pathToDbg: string) {
   await assertFileExists(pathToDbg);
-  const { buildInfo } = JSON.parse(await readUtf8File(pathToDbg));
+  const { buildInfo } = JSON.parse((await fs.readFile(pathToDbg)).toString());
   await assertFileExists(path.resolve(path.dirname(pathToDbg), buildInfo));
 }
 
-async function getBuildInfos(): Promise<string[]> {
-  return getAllFilesMatching(await getRealPath("artifacts/build-info"), (f) =>
+function getBuildInfos(): string[] {
+  return getAllFilesMatchingSync(getRealPathSync("artifacts/build-info"), (f) =>
     f.endsWith(".json"),
   );
 }
 
 async function assertValidJson(pathToJson: string) {
-  const content = await readUtf8File(pathToJson);
+  const content = (await fs.readFile(pathToJson)).toString();
 
   try {
     JSON.parse(content);
@@ -85,7 +83,7 @@ describe("build-system", () => {
   //       path.join("artifacts", "contracts", "A.sol", "A.dbg.json")
   //     );
 
-  //     const buildInfos = await getBuildInfos();
+  //     const buildInfos = getBuildInfos();
   //     assert.lengthOf(buildInfos, 1);
 
   //     assertValidJson(buildInfos[0]);
@@ -108,7 +106,7 @@ describe("build-system", () => {
         path.join("artifacts", "contracts", "A.sol", "A.dbg.json"),
       );
 
-      const buildInfos = await getBuildInfos();
+      const buildInfos = getBuildInfos();
       assert.equal(buildInfos.length, 1);
       await assertValidJson(buildInfos[0]!);
     });
@@ -124,14 +122,14 @@ describe("build-system", () => {
       await buildSystem.build();
 
       // the artifacts directory only has the build-info directory
-      const artifactsDirectory = await readdir("artifacts");
+      const artifactsDirectory = await fs.readdir("artifacts");
       assert.equal(
         artifactsDirectory.length,
         1,
         "The length should be the same",
       );
 
-      const buildInfos = await getBuildInfos();
+      const buildInfos = getBuildInfos();
       assert.equal(buildInfos.length, 0);
     });
   });
@@ -145,11 +143,11 @@ describe("build-system", () => {
       const buildSystem = new BuildSystem(config);
       await buildSystem.build();
 
-      const artifactsDirectory = await readdir("artifacts/contracts/A.sol");
+      const artifactsDirectory = await fs.readdir("artifacts/contracts/A.sol");
       // 100 contracts, 2 files per contract
       assert.equal(artifactsDirectory.length, 200);
 
-      const buildInfos = await getBuildInfos();
+      const buildInfos = getBuildInfos();
       assert.equal(buildInfos.length, 1);
       await assertValidJson(buildInfos[0]!);
     });
@@ -164,10 +162,10 @@ describe("build-system", () => {
       const buildSystem = new BuildSystem(config);
       await buildSystem.build();
 
-      const contractsDirectory = await readdir("artifacts/contracts");
+      const contractsDirectory = await fs.readdir("artifacts/contracts");
       assert.equal(contractsDirectory.length, 100);
 
-      const buildInfos = await getBuildInfos();
+      const buildInfos = getBuildInfos();
       assert.equal(buildInfos.length, 1);
 
       await assertValidJson(buildInfos[0]!);
@@ -196,7 +194,7 @@ describe("build-system", () => {
         path.join("artifacts", "contracts", "B.sol", "B.dbg.json"),
       );
 
-      const buildInfos = await getBuildInfos();
+      const buildInfos = getBuildInfos();
       assert.equal(buildInfos.length, 2);
       await assertValidJson(buildInfos[0]!);
       await assertValidJson(buildInfos[1]!);
@@ -314,7 +312,7 @@ describe("build-system", () => {
         },
       });
 
-      const buildInfos = await getBuildInfos();
+      const buildInfos = getBuildInfos();
       assert.equal(buildInfos.length, 1);
 
       const expectedBuildInfoName = buildInfos[0];
@@ -330,7 +328,7 @@ describe("build-system", () => {
           },
         });
 
-        const newBuildInfos = await getBuildInfos();
+        const newBuildInfos = getBuildInfos();
         assert.equal(newBuildInfos.length, 1);
 
         assert.equal(newBuildInfos[0], expectedBuildInfoName);
@@ -354,9 +352,9 @@ describe("build-system", () => {
       });
 
       const pathToContractA = path.join("contracts", "A.sol");
-      let contractA = await readUtf8File(pathToContractA);
+      let contractA = await fs.readFile(pathToContractA, "utf-8");
       contractA = contractA.replace("contract A", "contract B");
-      await writeUtf8File(pathToContractA, contractA);
+      await fs.writeFile(pathToContractA, contractA, "utf-8");
 
       // TODO: check if artifacts logic is moved from the 'build' method
       /**
@@ -376,7 +374,7 @@ describe("build-system", () => {
       });
 
       contractA = contractA.replace("contract B", "contract A");
-      await writeUtf8File(pathToContractA, contractA);
+      await fs.writeFile(pathToContractA, contractA, "utf-8");
 
       // asserts
       const pathToBuildInfoB = path.join(
@@ -410,9 +408,9 @@ describe("build-system", () => {
       });
 
       const pathToContractC = path.join("contracts", "C.sol");
-      let contractC = await readUtf8File(pathToContractC);
+      let contractC = await fs.readFile(pathToContractC, "utf-8");
       contractC = contractC.replace("contract C", "contract D");
-      await writeUtf8File(pathToContractC, contractC);
+      await fs.writeFile(pathToContractC, contractC, "utf-8");
 
       // TODO: check if artifacts logic is moved from the 'build' method
       /**
@@ -432,7 +430,7 @@ describe("build-system", () => {
       });
 
       contractC = contractC.replace("contract D", "contract C");
-      await writeUtf8File(pathToContractC, contractC);
+      await fs.writeFile(pathToContractC, contractC, "utf-8");
 
       // asserts
       const pathToBuildInfoC = path.join(

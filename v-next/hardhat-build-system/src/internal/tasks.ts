@@ -2,10 +2,7 @@ import debug from "debug";
 import semver from "semver";
 import chalk from "chalk";
 import AggregateError from "aggregate-error";
-import {
-  getAllFilesMatching,
-  readUtf8File,
-} from "@nomicfoundation/hardhat-utils/fs";
+import { readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 import { CompilationJobsCreationResult } from "./types/builtin-tasks/index.js";
 import { DependencyGraph } from "./solidity/dependencyGraph.js";
 import {
@@ -19,6 +16,7 @@ import {
   ResolvedFile,
   SolcBuild,
 } from "./types/index.js";
+import { getAllFilesMatching } from "./utils/fs-utils.js";
 import { localPathToSourceName } from "./utils/source-names.js";
 import { HardhatError, assertHardhatInvariant } from "./errors/errors.js";
 import { ERRORS } from "./errors/errors-list.js";

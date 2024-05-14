@@ -1,7 +1,58 @@
+import fsPromises from "node:fs/promises";
 import path from "node:path";
 import fs from "node:fs";
-import { readdir } from "@nomicfoundation/hardhat-utils/fs";
 import { CustomError, assertHardhatInvariant } from "../errors/errors.js";
+
+/**
+ * Returns an array of files (not dirs) that match a condition.
+ *
+ * @param absolutePathToDir A directory. If it doesn't exist `[]` is returned.
+ * @param matches A function to filter files (not directories)
+ * @returns An array of absolute paths. Each file has its true case, except
+ *  for the initial absolutePathToDir part, which preserves the given casing.
+ *  No order is guaranteed.
+ */
+export async function getAllFilesMatching(
+  absolutePathToDir: string,
+  matches?: (absolutePathToFile: string) => boolean,
+): Promise<string[]> {
+  const dir = await readdir(absolutePathToDir);
+
+  const results = await Promise.all(
+    dir.map(async (file) => {
+      const absolutePathToFile = path.join(absolutePathToDir, file);
+      const stats = await fsPromises.stat(absolutePathToFile);
+      if (stats.isDirectory()) {
+        const files = await getAllFilesMatching(absolutePathToFile, matches);
+        return files.flat();
+      } else if (matches === undefined || matches(absolutePathToFile)) {
+        return absolutePathToFile;
+      } else {
+        return [];
+      }
+    }),
+  );
+
+  return results.flat();
+}
+
+async function readdir(absolutePathToDir: string) {
+  try {
+    return await fsPromises.readdir(absolutePathToDir);
+  } catch (e: any) {
+    if (e.code === "ENOENT") {
+      return [];
+    }
+
+    if (e.code === "ENOTDIR") {
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+      throw new InvalidDirectoryError(absolutePathToDir, e);
+    }
+
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+    throw new FileSystemAccessError(e.message, e);
+  }
+}
 
 export class InvalidDirectoryError extends CustomError {
   constructor(filePath: string, parent: Error) {
@@ -56,6 +107,32 @@ export class FileNotFoundError extends CustomError {
   constructor(filePath: string, parent?: Error) {
     super(`File ${filePath} not found`, parent);
   }
+}
+
+/**
+ * Sync version of getAllFilesMatching
+ *
+ * @see getAllFilesMatching
+ */
+export function getAllFilesMatchingSync(
+  absolutePathToDir: string,
+  matches?: (absolutePathToFile: string) => boolean,
+): string[] {
+  const dir = readdirSync(absolutePathToDir);
+
+  const results = dir.map((file) => {
+    const absolutePathToFile = path.join(absolutePathToDir, file);
+    const stats = fs.statSync(absolutePathToFile);
+    if (stats.isDirectory()) {
+      return getAllFilesMatchingSync(absolutePathToFile, matches).flat();
+    } else if (matches === undefined || matches(absolutePathToFile)) {
+      return absolutePathToFile;
+    } else {
+      return [];
+    }
+  });
+
+  return results.flat();
 }
 
 function readdirSync(absolutePathToDir: string) {
@@ -114,4 +191,46 @@ export function getFileTrueCaseSync(
 
   // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
   throw new FileNotFoundError(path.join(from, relativePath));
+}
+
+/**
+ * Returns the real path of absolutePath, resolving symlinks.
+ *
+ * @throws FileNotFoundError if absolutePath doesn't exist.
+ */
+export async function getRealPath(absolutePath: string): Promise<string> {
+  try {
+    // This method returns the actual casing.
+    // Please read Node.js' docs to learn more.
+    return await fsPromises.realpath(path.normalize(absolutePath));
+  } catch (e: any) {
+    if (e.code === "ENOENT") {
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+      throw new FileNotFoundError(absolutePath, e);
+    }
+
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+    throw new FileSystemAccessError(e.message, e);
+  }
+}
+
+/**
+ * Sync version of getRealPath
+ *
+ * @see getRealCase
+ */
+export function getRealPathSync(absolutePath: string): string {
+  try {
+    // This method returns the actual casing.
+    // Please read Node.js' docs to learn more.
+    return fs.realpathSync.native(path.normalize(absolutePath));
+  } catch (e: any) {
+    if (e.code === "ENOENT") {
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+      throw new FileNotFoundError(absolutePath, e);
+    }
+
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+    throw new FileSystemAccessError(e.message, e);
+  }
 }
