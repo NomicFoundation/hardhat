@@ -210,7 +210,7 @@ export async function expectHardhatErrorAsync(
   try {
     await f();
   } catch (err: unknown) {
-    if (!(err instanceof HardhatError)) {
+    if (!HardhatError.isHardhatError(err)) {
       assert.fail();
     }
     assert.equal(err.number, errorDescriptor.number);
