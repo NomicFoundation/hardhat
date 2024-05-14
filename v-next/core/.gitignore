@@ -1,0 +1,8 @@
+# Node modules
+/node_modules
+
+# Compilation output
+/dist
+
+# Madge output
+/dependency-graph.png

@@ -1,17 +1,15 @@
 {
-  "name": "@nomicfoundation/template-package",
-  "private": true,
+  "name": "@nomicfoundation/hardhat-errors",
   "version": "3.0.0",
-  "description": "Template for Nomic Foundation npm packages",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/template-package",
+  "description": "The different errors that Hardhat can throw",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-errors",
   "repository": "github:nomicfoundation/hardhat",
   "author": "Nomic Foundation",
   "license": "MIT",
   "type": "module",
   "types": "dist/src/index.d.ts",
   "exports": {
-    ".": "./dist/src/index.js",
-    "./other": "./dist/src/other-entry-point.js"
+    ".": "./dist/src/index.js"
   },
   "keywords": [
     "ethereum",
@@ -38,6 +36,7 @@
     "README.md"
   ],
   "devDependencies": {
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0",
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
     "@reporters/github": "^1.7.0",
