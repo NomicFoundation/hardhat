@@ -249,12 +249,17 @@ function createConfig(configFilePath, packageEntryPoints = []) {
         {
           groups: [
             "type",
-            "object",
-            ["builtin", "external"],
+            "builtin",
+            "external",
             "parent",
             "sibling",
             "index",
+            "object",
           ],
+          "newlines-between": "always",
+          alphabetize: {
+            order: "asc",
+          },
         },
       ],
       "import/no-duplicates": "error",
