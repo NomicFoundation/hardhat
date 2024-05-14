@@ -1,14 +1,8 @@
 import debug from "debug";
+import fsExtra from "fs-extra";
 import * as os from "node:os";
 import * as path from "node:path";
 import fsPromises from "node:fs/promises";
-import {
-  ensureDir,
-  exists,
-  readJsonFile,
-  remove,
-  writeJsonFile,
-} from "@nomicfoundation/hardhat-utils/fs";
 import { HardhatError, assertHardhatInvariant } from "../errors/errors.js";
 import {
   Artifact,
@@ -39,6 +33,7 @@ import {
   getAllFilesMatching,
   getAllFilesMatchingSync,
   getFileTrueCase,
+  getFileTrueCaseSync,
 } from "./fs-utils.js";
 
 const log = debug("hardhat:core:artifacts");
@@ -77,7 +72,12 @@ export class Artifacts implements IArtifacts {
 
   public async readArtifact(name: string): Promise<Artifact> {
     const artifactPath = await this.#getArtifactPath(name);
-    return readJsonFile(artifactPath);
+    return fsExtra.readJson(artifactPath);
+  }
+
+  public readArtifactSync(name: string): Artifact {
+    const artifactPath = this.#getArtifactPathSync(name);
+    return fsExtra.readJsonSync(artifactPath);
   }
 
   public async artifactExists(name: string): Promise<boolean> {
@@ -93,7 +93,7 @@ export class Artifacts implements IArtifacts {
       throw e;
     }
 
-    return exists(artifactPath);
+    return fsExtra.pathExists(artifactPath);
   }
 
   public async getAllFullyQualifiedNames(): Promise<string[]> {
@@ -124,7 +124,31 @@ export class Artifacts implements IArtifacts {
       );
     }
 
-    return readJsonFile(buildInfoPath);
+    return fsExtra.readJSON(buildInfoPath);
+  }
+
+  public getBuildInfoSync(fullyQualifiedName: string): BuildInfo | undefined {
+    let buildInfoPath =
+      this.#cache?.artifactFQNToBuildInfoPathCache.get(fullyQualifiedName);
+
+    if (buildInfoPath === undefined) {
+      const artifactPath =
+        this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
+
+      const debugFilePath = this.#getDebugFilePath(artifactPath);
+      buildInfoPath = this.#getBuildInfoFromDebugFileSync(debugFilePath);
+
+      if (buildInfoPath === undefined) {
+        return undefined;
+      }
+
+      this.#cache?.artifactFQNToBuildInfoPathCache.set(
+        fullyQualifiedName,
+        buildInfoPath,
+      );
+    }
+
+    return fsExtra.readJSONSync(buildInfoPath);
   }
 
   public async getArtifactPaths(): Promise<string[]> {
@@ -200,10 +224,12 @@ export class Artifacts implements IArtifacts {
       const artifactPath =
         this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
 
-      await ensureDir(path.dirname(artifactPath));
+      await fsExtra.ensureDir(path.dirname(artifactPath));
 
       await Promise.all([
-        writeJsonFile(artifactPath, artifact),
+        fsExtra.writeJSON(artifactPath, artifact, {
+          spaces: 2,
+        }),
         (async () => {
           if (pathToBuildInfo === undefined) {
             return;
@@ -216,7 +242,9 @@ export class Artifacts implements IArtifacts {
             pathToBuildInfo,
           );
 
-          await writeJsonFile(debugFilePath, debugFile);
+          await fsExtra.writeJSON(debugFilePath, debugFile, {
+            spaces: 2,
+          });
         })(),
       ]);
     } finally {
@@ -232,7 +260,7 @@ export class Artifacts implements IArtifacts {
   ): Promise<string> {
     try {
       const buildInfoDir = path.join(this.#artifactsPath, BUILD_INFO_DIR_NAME);
-      await ensureDir(buildInfoDir);
+      await fsExtra.ensureDir(buildInfoDir);
 
       const buildInfoName = await this.#getBuildInfoName(
         solcVersion,
@@ -442,7 +470,7 @@ export class Artifacts implements IArtifacts {
         .filter((buildInfoFile) => !validBuildInfos.has(buildInfoFile))
         .map(async (buildInfoFile) => {
           log(`Removing buildInfo '${buildInfoFile}'`);
-          await remove(buildInfoFile);
+          await fsExtra.unlink(buildInfoFile);
         }),
     );
   }
@@ -542,6 +570,28 @@ export class Artifacts implements IArtifacts {
       this.#cache.artifactPaths = result;
     }
 
+    return result;
+  }
+
+  /**
+   * Sync version of _getArtifactPath
+   */
+  #getArtifactPathSync(name: string): string {
+    const cached = this.#cache?.artifactNameToArtifactPathCache.get(name);
+    if (cached !== undefined) {
+      return cached;
+    }
+
+    let result: string;
+
+    if (isFullyQualifiedName(name)) {
+      result = this.#getValidArtifactPathFromFullyQualifiedNameSync(name);
+    } else {
+      const files = this.#getArtifactPathsSync();
+      result = this.#getArtifactPathFromFiles(name, files);
+    }
+
+    this.#cache?.artifactNameToArtifactPathCache.set(name, result);
     return result;
   }
 
@@ -730,40 +780,40 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     return mostSimilarNames;
   }
 
-  // #getValidArtifactPathFromFullyQualifiedNameSync(
-  //   fullyQualifiedName: string,
-  // ): string {
-  //   const artifactPath =
-  //     this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
+  #getValidArtifactPathFromFullyQualifiedNameSync(
+    fullyQualifiedName: string,
+  ): string {
+    const artifactPath =
+      this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
 
-  //   try {
-  //     const trueCasePath = path.join(
-  //       this.#artifactsPath,
-  //       getFileTrueCaseSync(
-  //         this.#artifactsPath,
-  //         path.relative(this.#artifactsPath, artifactPath),
-  //       ),
-  //     );
+    try {
+      const trueCasePath = path.join(
+        this.#artifactsPath,
+        getFileTrueCaseSync(
+          this.#artifactsPath,
+          path.relative(this.#artifactsPath, artifactPath),
+        ),
+      );
 
-  //     if (artifactPath !== trueCasePath) {
-  //       throw new HardhatError(ERRORS.ARTIFACTS.WRONG_CASING, {
-  //         correct: this.#getFullyQualifiedNameFromPath(trueCasePath),
-  //         incorrect: fullyQualifiedName,
-  //       });
-  //     }
+      if (artifactPath !== trueCasePath) {
+        throw new HardhatError(ERRORS.ARTIFACTS.WRONG_CASING, {
+          correct: this.#getFullyQualifiedNameFromPath(trueCasePath),
+          incorrect: fullyQualifiedName,
+        });
+      }
 
-  //     return trueCasePath;
-  //   } catch (e) {
-  //     if (e instanceof FileNotFoundError) {
-  //       return this.#handleWrongArtifactForFullyQualifiedName(
-  //         fullyQualifiedName,
-  //       );
-  //     }
+      return trueCasePath;
+    } catch (e) {
+      if (e instanceof FileNotFoundError) {
+        return this.#handleWrongArtifactForFullyQualifiedName(
+          fullyQualifiedName,
+        );
+      }
 
-  //     // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
-  //     throw e;
-  //   }
-  // }
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+      throw e;
+    }
+  }
 
   #getDebugFilePath(artifactPath: string): string {
     return artifactPath.replace(/\.json$/, ".dbg.json");
@@ -824,11 +874,11 @@ Please replace "${contractName}" for the correct contract name wherever you are 
    * Remove the artifact file and its debug file.
    */
   async #removeArtifactFiles(artifactPath: string) {
-    await remove(artifactPath);
+    await fsExtra.remove(artifactPath);
 
     const debugFilePath = this.#getDebugFilePath(artifactPath);
 
-    await remove(debugFilePath);
+    await fsExtra.remove(debugFilePath);
   }
 
   /**
@@ -838,8 +888,20 @@ Please replace "${contractName}" for the correct contract name wherever you are 
   async #getBuildInfoFromDebugFile(
     debugFilePath: string,
   ): Promise<string | undefined> {
-    if (await exists(debugFilePath)) {
-      const { buildInfo } = await readJsonFile<any>(debugFilePath);
+    if (await fsExtra.pathExists(debugFilePath)) {
+      const { buildInfo } = await fsExtra.readJson(debugFilePath);
+      return path.resolve(path.dirname(debugFilePath), buildInfo);
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Sync version of _getBuildInfoFromDebugFile
+   */
+  #getBuildInfoFromDebugFileSync(debugFilePath: string): string | undefined {
+    if (fsExtra.pathExistsSync(debugFilePath)) {
+      const { buildInfo } = fsExtra.readJsonSync(debugFilePath);
       return path.resolve(path.dirname(debugFilePath), buildInfo);
     }
 
