@@ -1,10 +1,6 @@
 import type { Dispatcher } from "undici";
+import fsExtra from "fs-extra";
 import path from "node:path";
-import {
-  ensureDir,
-  move,
-  writeUtf8File,
-} from "@nomicfoundation/hardhat-utils/fs";
 import { getHardhatVersion } from "./package-info.js";
 import { shouldUseProxy } from "./proxy.js";
 
@@ -35,7 +31,7 @@ export async function download(
     dispatcher = getGlobalDispatcher();
   }
 
-  const hardhatVersion = await getHardhatVersion();
+  const hardhatVersion = getHardhatVersion();
 
   // Fetch the url
   const response = await request(url, {
@@ -52,10 +48,10 @@ export async function download(
   if (response.statusCode >= 200 && response.statusCode <= 299) {
     const responseBody = Buffer.from(await response.body.arrayBuffer());
     const tmpFilePath = resolveTempFileName(filePath);
-    await ensureDir(path.dirname(filePath));
+    await fsExtra.ensureDir(path.dirname(filePath));
 
-    await writeUtf8File(tmpFilePath, responseBody.toString("utf8"));
-    await move(tmpFilePath, filePath);
+    await fsExtra.writeFile(tmpFilePath, responseBody);
+    return fsExtra.move(tmpFilePath, filePath, { overwrite: true });
   }
   // undici's response bodies must always be consumed to prevent leaks
   const text = await response.body.text();

@@ -233,10 +233,13 @@ describe("build-system", () => {
         const config = await resolveConfig();
         const buildSystem = new BuildSystem(config);
 
-        await assert.rejects(buildSystem.solidityReadFile(absolutePath), {
-          name: "IsDirectoryError",
-          message: `Path ${absolutePath} is a directory`,
-        });
+        await expectHardhatErrorAsync(
+          async () => {
+            await buildSystem.solidityReadFile(absolutePath);
+          },
+          ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY,
+          `HH22: Invalid file path ${absolutePath}. Attempting to read a directory instead of a file.`,
+        );
       });
     });
 
