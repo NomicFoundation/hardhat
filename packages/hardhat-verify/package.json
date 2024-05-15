@@ -27,7 +27,6 @@
     "README.md"
   ],
   "scripts": {
-    "prebuild": "cd ../../crates/edr_napi && yarn build",
     "build": "tsc --build .",
     "clean": "rimraf dist internal *.{d.ts,js}{,.map} build-test tsconfig.tsbuildinfo",
     "coverage": "nyc pnpm test -- --reporter min",
