@@ -1608,8 +1608,8 @@ importers:
         specifier: ^6.3.0
         version: 6.3.1
       undici:
-        specifier: ^5.14.0
-        version: 5.28.3
+        specifier: ^6.16.1
+        version: 6.16.1
     devDependencies:
       '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
         specifier: workspace:^
