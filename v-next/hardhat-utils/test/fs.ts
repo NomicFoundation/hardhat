@@ -568,13 +568,15 @@ describe("File system utils", () => {
 
   describe("readBinaryFile", () => {
     it("Should read a file and return its content as a string", async () => {
-      const encoder = new TextEncoder();
-      const content = encoder.encode("hello");
+      const content = "hello";
       const filePath = path.join(getTmpDir(), "file.txt");
 
-      await fsPromises.writeFile(filePath, content);
+      await writeUtf8File(filePath, content);
 
-      assert.deepStrictEqual(await readBinaryFile(filePath), content);
+      const encoder = new TextEncoder();
+      const binaryContent = encoder.encode(content);
+
+      assert.deepStrictEqual(await readBinaryFile(filePath), binaryContent);
       expectTypeOf(await readBinaryFile(filePath)).toMatchTypeOf<Uint8Array>();
     });
 
