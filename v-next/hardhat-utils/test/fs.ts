@@ -25,6 +25,7 @@ import {
   remove,
   writeJsonFile,
   writeUtf8File,
+  readBinaryFile,
 } from "../src/fs.js";
 
 import { useTmpDir } from "./helpers/fs.js";
@@ -562,6 +563,60 @@ describe("File system utils", () => {
       } finally {
         await chmod(filePath, 0o666);
       }
+    });
+  });
+
+  describe("readBinaryFile", () => {
+    it("Should read a file and return its content as a string", async () => {
+      const content = "hello";
+      const filePath = path.join(getTmpDir(), "file.txt");
+
+      await writeUtf8File(filePath, content);
+
+      const encoder = new TextEncoder();
+      const binaryContent = encoder.encode(content);
+
+      assert.deepStrictEqual(await readBinaryFile(filePath), binaryContent);
+      expectTypeOf(await readBinaryFile(filePath)).toMatchTypeOf<Uint8Array>();
+    });
+
+    it("Should throw IsDirectoryError if the path is a dir and not a file", async () => {
+      const dirPath = path.join(getTmpDir(), "dir-name");
+
+      await mkdir(dirPath);
+
+      await assert.rejects(readBinaryFile(dirPath), {
+        name: "IsDirectoryError",
+        message: `Path ${dirPath} is a directory`,
+      });
+    });
+
+    it("Should throw FileNotFoundError if the file doesn't exist", async () => {
+      const filePath = path.join(getTmpDir(), "not-exists.txt");
+
+      await assert.rejects(readBinaryFile(filePath), {
+        name: "FileNotFoundError",
+        message: `File ${filePath} not found`,
+      });
+    });
+
+    it("Should throw IsDirectoryError if the path is a dir and not a file", async () => {
+      const dirPath = path.join(getTmpDir(), "dir-name");
+
+      await mkdir(dirPath);
+
+      await assert.rejects(readBinaryFile(dirPath), {
+        name: "IsDirectoryError",
+        message: `Path ${dirPath} is a directory`,
+      });
+    });
+
+    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
+      const invalidPath = "\0";
+
+      await assert.rejects(readBinaryFile(invalidPath), {
+        name: "FileSystemAccessError",
+      });
     });
   });
 

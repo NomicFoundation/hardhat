@@ -252,6 +252,36 @@ export async function writeUtf8File(
 }
 
 /**
+ * Reads a file and returns its content as a Uint8Array.
+ *
+ * @param absolutePathToFile The path to the file.
+ * @returns The content of the file as a Uint8Array.
+ * @throws FileNotFoundError if the file doesn't exist.
+ * @throws IsDirectoryError if the path is a directory instead of a file.
+ * @throws FileSystemAccessError for any other error.
+ */
+export async function readBinaryFile(
+  absolutePathToFile: string,
+): Promise<Uint8Array> {
+  try {
+    const buffer = await fsPromises.readFile(absolutePathToFile);
+    return new Uint8Array(buffer);
+  } catch (e) {
+    ensureError<NodeJS.ErrnoException>(e);
+
+    if (e.code === "ENOENT") {
+      throw new FileNotFoundError(absolutePathToFile, e);
+    }
+
+    if (e.code === "EISDIR") {
+      throw new IsDirectoryError(absolutePathToFile, e);
+    }
+
+    throw new FileSystemAccessError(e.message, e);
+  }
+}
+
+/**
  * Reads a directory and returns its content as an array of strings.
  *
  * @param absolutePathToDir The path to the directory.
