@@ -2,6 +2,7 @@ import type { Dispatcher } from "undici";
 
 import path from "node:path";
 
+import { ensureDir, move } from "@nomicfoundation/hardhat-utils/fs";
 import fsExtra from "fs-extra";
 
 import { getHardhatVersion } from "./package-info.js";
@@ -51,10 +52,10 @@ export async function download(
   if (response.statusCode >= 200 && response.statusCode <= 299) {
     const responseBody = Buffer.from(await response.body.arrayBuffer());
     const tmpFilePath = resolveTempFileName(filePath);
-    await fsExtra.ensureDir(path.dirname(filePath));
+    await ensureDir(path.dirname(filePath));
 
     await fsExtra.writeFile(tmpFilePath, responseBody);
-    return fsExtra.move(tmpFilePath, filePath, { overwrite: true });
+    return move(tmpFilePath, filePath);
   }
   // undici's response bodies must always be consumed to prevent leaks
   const text = await response.body.text();
