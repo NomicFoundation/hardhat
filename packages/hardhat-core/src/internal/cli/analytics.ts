@@ -15,6 +15,7 @@ import {
   writeTelemetryConsent,
 } from "../util/global-dir";
 import { getPackageJson } from "../util/packageInfo";
+import { HardhatRuntimeEnvironment } from "../../types";
 import { confirmTelemetryConsent } from "./prompt";
 
 const log = debug("hardhat:core:analytics");
@@ -58,6 +59,7 @@ interface TaskHitPayload extends AnalyticsPayload {
       session_id?: string;
       scope?: string;
       task?: string;
+      chainId?: string;
     };
   }>;
 }
@@ -119,7 +121,8 @@ export class Analytics {
    */
   public async sendTaskHit(
     scopeName: string | undefined,
-    taskName: string
+    taskName: string,
+    hre: HardhatRuntimeEnvironment
   ): Promise<[AbortAnalytics, Promise<void>]> {
     if (!this._enabled) {
       return [() => {}, Promise.resolve()];
@@ -130,9 +133,19 @@ export class Analytics {
       (scopeName === "ignition" && taskName === "deploy") ||
       (scopeName === undefined && taskName === "deploy")
     ) {
+      let chainId: number | undefined;
+      try {
+        chainId = Number(
+          await hre.network.provider.request({
+            method: "eth_chainId",
+          })
+        );
+      } catch {}
+
       eventParams = {
         scope: scopeName,
         task: taskName,
+        chainId: chainId?.toString(),
       };
     }
 

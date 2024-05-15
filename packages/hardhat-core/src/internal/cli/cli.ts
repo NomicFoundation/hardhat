@@ -271,7 +271,8 @@ async function main() {
 
     const [abortAnalytics, hitPromise] = await analytics.sendTaskHit(
       scopeName,
-      taskName
+      taskName,
+      env
     );
 
     let taskArguments: TaskArguments;
