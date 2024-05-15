@@ -1,0 +1,7 @@
+/node_modules
+/dist
+CHANGELOG.md
+# Ignore the HH files generated in the fixture-projects
+# by compile
+artifacts/
+cache/
