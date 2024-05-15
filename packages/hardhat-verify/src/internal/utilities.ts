@@ -229,21 +229,22 @@ export async function encodeArguments(
   const contractInterface = new Interface(abi);
   let encodedConstructorArguments;
   try {
-    // Check if the constructor arguments are of the correct type.
-    const constructorArgType = contractInterface.deploy.inputs?.map(
-      (ci) => ci?.type
-    );
-    constructorArguments?.forEach((item, index) => {
+    // encodeDeploy doesn't catch subtle type mismatches, such as a number
+    // being passed when a string is expected, so we have to validate the
+    // scenario manually.
+    const expectedConstructorArgs = contractInterface.deploy.inputs;
+    constructorArguments.forEach((arg, i) => {
       if (
-        typeof item !== constructorArgType[index] &&
-        constructorArgType[index] === "string"
-      )
+        expectedConstructorArgs[i]?.type === "string" &&
+        typeof arg !== "string"
+      ) {
         throw new ABIArgumentTypeError({
           code: "INVALID_ARGUMENT",
-          argument: "constructor argument",
-          value: item,
-          reason: `Expected type 'string', but got '${typeof item}'`,
+          argument: expectedConstructorArgs[i].name,
+          value: arg,
+          reason: "invalid string value",
         } as ABIArgumentTypeErrorType);
+      }
     });
 
     encodedConstructorArguments = contractInterface
