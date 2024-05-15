@@ -37,14 +37,7 @@ export function supportChangeEtherBalances(
         chaiUtils
       );
 
-      if (
-        Array.isArray(balanceChanges) &&
-        accounts.length !== balanceChanges.length
-      ) {
-        throw new Error(
-          `The number of accounts (${accounts.length}) is different than the number of expected balance changes (${balanceChanges.length})`
-        );
-      }
+      validateInput(this._obj, accounts, balanceChanges);
 
       const checkBalanceChanges = ([actualChanges, accountAddresses]: [
         bigint[],
@@ -111,6 +104,28 @@ export function supportChangeEtherBalances(
       return this;
     }
   );
+}
+
+function validateInput(
+  obj: any,
+  accounts: Array<Addressable | string>,
+  balanceChanges: EthersT.BigNumberish[] | ((changes: bigint[]) => boolean)
+) {
+  try {
+    if (
+      Array.isArray(balanceChanges) &&
+      accounts.length !== balanceChanges.length
+    ) {
+      throw new Error(
+        `The number of accounts (${accounts.length}) is different than the number of expected balance changes (${balanceChanges.length})`
+      );
+    }
+  } catch (e) {
+    // if the input validation fails, we discard the subject since it could
+    // potentially be a rejected promise
+    Promise.resolve(obj).catch(() => {});
+    throw e;
+  }
 }
 
 export async function getBalanceChanges(
