@@ -2,7 +2,7 @@ import assert, { AssertionError } from "node:assert";
 import { rmSync } from "node:fs";
 import path from "node:path";
 import { beforeEach } from "node:test";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import semver from "semver";
 
@@ -92,7 +92,7 @@ export async function resolveConfig(
 
 export async function importCsjOrEsModule(filePath: string): Promise<any> {
   try {
-    const imported = await import(filePath);
+    const imported = await import(pathToFileURL(filePath).toString());
     return imported.default !== undefined ? imported.default : imported;
   } catch (e: any) {
     if (e.code === "ERR_REQUIRE_ESM") {
