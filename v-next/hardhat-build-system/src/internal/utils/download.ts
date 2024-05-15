@@ -34,7 +34,7 @@ export async function download(
     dispatcher = getGlobalDispatcher();
   }
 
-  const hardhatVersion = getHardhatVersion();
+  const hardhatVersion = await getHardhatVersion();
 
   // Fetch the url
   const response = await request(url, {
