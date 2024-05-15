@@ -356,7 +356,7 @@ export class CompilerDownloader implements ICompilerDownloader {
       downloadPath.endsWith(".zip")
     ) {
       // some window builds are zipped, some are not
-      const AdmZip = await import("adm-zip");
+      const { default: AdmZip } = await import("adm-zip");
 
       const solcFolder = path.join(this.#compilersDir, build.version);
       await fsExtra.ensureDir(solcFolder);
