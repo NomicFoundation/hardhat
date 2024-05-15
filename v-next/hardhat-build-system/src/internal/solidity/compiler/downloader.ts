@@ -11,11 +11,11 @@ import {
   ensureDir,
   exists,
   getChangeTime,
+  readBinaryFile,
   readJsonFile,
   remove,
 } from "@nomicfoundation/hardhat-utils/fs";
 import debug from "debug";
-import fsExtra from "fs-extra";
 
 import { ERRORS } from "../../errors/errors-list.js";
 import { HardhatError, assertHardhatInvariant } from "../../errors/errors.js";
@@ -335,7 +335,7 @@ export class CompilerDownloader implements ICompilerDownloader {
     downloadPath: string,
   ): Promise<boolean> {
     const expectedKeccak256 = build.keccak256;
-    const compiler = await fsExtra.readFile(downloadPath);
+    const compiler = await readBinaryFile(downloadPath);
 
     const compilerKeccak256 = bytesToHexString(await keccak256(compiler));
 

@@ -1,12 +1,13 @@
-import type { Dispatcher } from "undici";
-
 import path from "node:path";
 
 import { ensureDir, move } from "@nomicfoundation/hardhat-utils/fs";
-import fsExtra from "fs-extra";
+import {
+  download as downloadCompiler,
+  DispatcherOptions,
+  shouldUseProxy,
+} from "@nomicfoundation/hardhat-utils/request";
 
 import { getHardhatVersion } from "./package-info.js";
-import { shouldUseProxy } from "./proxy.js";
 
 const TEMP_FILE_PREFIX = "tmp-";
 
@@ -20,48 +21,27 @@ function resolveTempFileName(filePath: string): string {
   });
 }
 
-export async function download(
-  url: string,
-  filePath: string,
-  timeoutMillis = 10000,
-  extraHeaders: { [name: string]: string } = {},
-) {
-  const { getGlobalDispatcher, ProxyAgent, request } = await import("undici");
-
-  let dispatcher: Dispatcher;
-  if (process.env.http_proxy !== undefined && shouldUseProxy(url)) {
-    dispatcher = new ProxyAgent(process.env.http_proxy);
-  } else {
-    dispatcher = getGlobalDispatcher();
+export async function download(url: string, filePath: string) {
+  const dispatcherOptions: DispatcherOptions = {};
+  if (process.env.proxy !== undefined && shouldUseProxy(url)) {
+    dispatcherOptions.proxy = process.env.proxy;
   }
 
+  await ensureDir(path.dirname(filePath));
+
+  const tmpFilePath = resolveTempFileName(filePath);
   const hardhatVersion = await getHardhatVersion();
 
-  // Fetch the url
-  const response = await request(url, {
-    dispatcher,
-    headersTimeout: timeoutMillis,
-    maxRedirections: 10,
-    method: "GET",
-    headers: {
-      ...extraHeaders,
-      "User-Agent": `hardhat ${hardhatVersion}`,
+  await downloadCompiler(
+    url,
+    tmpFilePath,
+    {
+      extraHeaders: {
+        "User-Agent": `hardhat ${hardhatVersion}`,
+      },
     },
-  });
-
-  if (response.statusCode >= 200 && response.statusCode <= 299) {
-    const responseBody = Buffer.from(await response.body.arrayBuffer());
-    const tmpFilePath = resolveTempFileName(filePath);
-    await ensureDir(path.dirname(filePath));
-
-    await fsExtra.writeFile(tmpFilePath, responseBody);
-    return move(tmpFilePath, filePath);
-  }
-  // undici's response bodies must always be consumed to prevent leaks
-  const text = await response.body.text();
-
-  // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
-  throw new Error(
-    `Failed to download ${url} - ${response.statusCode} received. ${text}`,
+    dispatcherOptions,
   );
+
+  return move(tmpFilePath, filePath);
 }
