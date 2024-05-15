@@ -537,6 +537,39 @@ but 2 arguments were provided instead.`);
       );
     });
 
+    it("should throw if a parameter type does not match its expected type: number instead of string", async () => {
+      const abi: JsonFragment[] = [
+        {
+          inputs: [
+            {
+              name: "amount",
+              type: "uint256",
+            },
+            {
+              name: "amount",
+              type: "string",
+            },
+            {
+              name: "amount",
+              type: "address",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+      ];
+      const constructorArguments: any[] = [
+        50,
+        50, // Invalid string
+        "0x752C8191E6b1Db38B41A8c8921F7a703F2969d18",
+      ];
+      await expect(
+        encodeArguments(abi, sourceName, contractName, constructorArguments)
+      ).to.be.rejectedWith(
+        /Value 50 cannot be encoded for the parameter amount./
+      );
+    });
+
     it("should throw if an unsafe integer is provided as an argument", async () => {
       const abi: JsonFragment[] = [
         {
