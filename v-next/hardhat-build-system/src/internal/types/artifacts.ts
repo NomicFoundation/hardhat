@@ -13,11 +13,6 @@ export interface Artifacts {
   readArtifact(contractNameOrFullyQualifiedName: string): Promise<Artifact>;
 
   /**
-   * Synchronous version of readArtifact.
-   */
-  readArtifactSync(contractNameOrFullyQualifiedName: string): Artifact;
-
-  /**
    * Returns true if an artifact exists.
    *
    * This function doesn't throw if the name is not unique.
@@ -40,11 +35,6 @@ export interface Artifacts {
    * can return undefined.
    */
   getBuildInfo(fullyQualifiedName: string): Promise<BuildInfo | undefined>;
-
-  /**
-   * Synchronous version of getBuildInfo.
-   */
-  getBuildInfoSync(fullyQualifiedName: string): BuildInfo | undefined;
 
   /**
    * Returns an array with the absolute paths of all the existing artifacts.
