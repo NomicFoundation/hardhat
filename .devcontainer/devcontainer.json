@@ -1,5 +1,5 @@
 {
-  "name": "Hardhat + EDR",
+  "name": "Hardhat",
   "image": "mcr.microsoft.com/devcontainers/base:bullseye",
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
@@ -7,13 +7,6 @@
     }
   },
   "postAttachCommand": "scripts/setup.sh",
-  "portsAttributes": {
-    // The default port of mdbook
-    "3000": {
-      "label": "mdbook",
-      "onAutoForward": "openPreview"
-    }
-  },
   "containerEnv": {
     "ALCHEMY_URL": "${localEnv:ALCHEMY_URL}",
     "INFURA_URL": "${localEnv:INFURA_URL}"
@@ -23,16 +16,9 @@
       "extensions": [
         "esbenp.prettier-vscode",
         "NomicFoundation.hardhat-solidity",
-        "rust-lang.rust-analyzer",
         "tamasfe.even-better-toml",
         "vadimcn.vscode-lldb"
-      ],
-      "settings": {
-        "rust-analyzer.cargo.features": "all",
-        "rust-analyzer.rustfmt.extraArgs": [
-          "+nightly"
-        ]
-      }
+      ]
     }
   }
 }
