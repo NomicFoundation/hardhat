@@ -1,5 +1,6 @@
-import fs from "fs-extra";
 import path from "node:path";
+
+import fs from "fs-extra";
 
 export async function getCompilersDir() {
   const cache = await getCacheDir();

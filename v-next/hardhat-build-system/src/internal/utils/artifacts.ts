@@ -1,8 +1,11 @@
-import debug from "debug";
-import fsExtra from "fs-extra";
+import fsPromises from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
-import fsPromises from "node:fs/promises";
+
+import debug from "debug";
+import fsExtra from "fs-extra";
+
+import { ERRORS } from "../errors/errors-list.js";
 import { HardhatError, assertHardhatInvariant } from "../errors/errors.js";
 import {
   Artifact,
@@ -12,14 +15,7 @@ import {
   CompilerOutput,
   DebugFile,
 } from "../types/index.js";
-import { ERRORS } from "../errors/errors-list.js";
-import {
-  getFullyQualifiedName,
-  isFullyQualifiedName,
-  parseFullyQualifiedName,
-  findDistance,
-} from "./contract-names.js";
-import { replaceBackslashes } from "./source-names.js";
+
 import {
   ARTIFACT_FORMAT_VERSION,
   BUILD_INFO_DIR_NAME,
@@ -27,7 +23,12 @@ import {
   DEBUG_FILE_FORMAT_VERSION,
   EDIT_DISTANCE_THRESHOLD,
 } from "./constants.js";
-import { createNonCryptographicHashBasedIdentifier } from "./hash.js";
+import {
+  getFullyQualifiedName,
+  isFullyQualifiedName,
+  parseFullyQualifiedName,
+  findDistance,
+} from "./contract-names.js";
 import {
   FileNotFoundError,
   getAllFilesMatching,
@@ -35,6 +36,8 @@ import {
   getFileTrueCase,
   getFileTrueCaseSync,
 } from "./fs-utils.js";
+import { createNonCryptographicHashBasedIdentifier } from "./hash.js";
+import { replaceBackslashes } from "./source-names.js";
 
 const log = debug("hardhat:core:artifacts");
 

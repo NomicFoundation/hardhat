@@ -1,21 +1,24 @@
 // TODO: remove this TS rule?
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { describe, it } from "node:test";
 import assert from "node:assert";
-import fs from "node:fs/promises";
 import { existsSync } from "node:fs";
+import fs from "node:fs/promises";
 import path from "node:path";
-import sinon from "sinon";
-import ci from "ci-info";
+import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
+
+import ci from "ci-info";
+import sinon from "sinon";
+
 import { BuildSystem } from "../src/index.js";
+import { ERRORS } from "../src/internal/errors/errors-list.js";
+import { CompilationJobCreationErrorReason } from "../src/internal/types/builtin-tasks/index.js";
 import {
   getAllFilesMatchingSync,
   getRealPathSync,
 } from "../src/internal/utils/fs-utils.js";
-import { ERRORS } from "../src/internal/errors/errors-list.js";
-import { CompilationJobCreationErrorReason } from "../src/internal/types/builtin-tasks/index.js";
+
 import {
   cleanFixtureProjectDir,
   expectHardhatErrorAsync,

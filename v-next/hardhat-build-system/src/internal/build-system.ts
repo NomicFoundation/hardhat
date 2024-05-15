@@ -1,10 +1,4 @@
 import {
-  Artifacts,
-  CompilationJobCreationError,
-  BuildConfig,
-} from "./types/index.js";
-import { Artifacts as ArtifactsImpl } from "./utils/artifacts.js";
-import {
   TasksOverrides,
   taskCompileRemoveObsoleteArtifacts,
   taskCompileSolidity,
@@ -14,6 +8,12 @@ import {
   taskCompileSolidityGetSourcePaths,
   taskCompileSolidityReadFile,
 } from "./tasks.js";
+import {
+  Artifacts,
+  CompilationJobCreationError,
+  BuildConfig,
+} from "./types/index.js";
+import { Artifacts as ArtifactsImpl } from "./utils/artifacts.js";
 
 export interface BuildRequest {
   // TODO: should build profiles be defined in the hh-config and have a default value? Then it can be overridden when calling 'build'?

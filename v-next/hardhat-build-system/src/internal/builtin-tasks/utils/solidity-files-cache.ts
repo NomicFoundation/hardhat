@@ -1,8 +1,9 @@
 import type { SolcConfig } from "../../types/index.js";
+
 import debug from "debug";
+import { deepEqual } from "fast-equals";
 import fsExtra from "fs-extra";
 import * as t from "io-ts";
-import { deepEqual } from "fast-equals";
 
 const log = debug("hardhat:core:tasks:compile:cache");
 

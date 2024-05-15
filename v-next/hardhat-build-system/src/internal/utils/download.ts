@@ -1,6 +1,9 @@
 import type { Dispatcher } from "undici";
-import fsExtra from "fs-extra";
+
 import path from "node:path";
+
+import fsExtra from "fs-extra";
+
 import { getHardhatVersion } from "./package-info.js";
 import { shouldUseProxy } from "./proxy.js";
 

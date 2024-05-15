@@ -1,6 +1,8 @@
 import path from "node:path";
-import { HardhatError } from "../errors/errors.js";
+
 import { ERRORS } from "../errors/errors-list.js";
+import { HardhatError } from "../errors/errors.js";
+
 import { FileNotFoundError, getFileTrueCase } from "./fs-utils.js";
 import { getPackageName } from "./package-info.js";
 
