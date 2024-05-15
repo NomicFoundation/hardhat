@@ -1,10 +1,29 @@
-import fsExtra from "fs-extra";
-import debug from "debug";
-import semver from "semver";
-import chalk from "chalk";
 import AggregateError from "aggregate-error";
-import { CompilationJobsCreationResult } from "./types/builtin-tasks/index.js";
+import chalk from "chalk";
+import debug from "debug";
+import fsExtra from "fs-extra";
+import semver from "semver";
+
+import { SolidityFilesCache } from "./builtin-tasks/utils/solidity-files-cache.js";
+import { ERRORS } from "./errors/errors-list.js";
+import { HardhatError, assertHardhatInvariant } from "./errors/errors.js";
+import {
+  createCompilationJobFromFile,
+  createCompilationJobsFromConnectedComponent,
+  mergeCompilationJobsWithoutBug,
+} from "./solidity/compilation-job.js";
+import { getInputFromCompilationJob } from "./solidity/compiler/compiler-input.js";
+import {
+  CompilerDownloader,
+  CompilerPlatform,
+} from "./solidity/compiler/downloader.js";
+import { Compiler, NativeCompiler } from "./solidity/compiler/index.js";
+import { getEvmVersionFromSolcVersion } from "./solidity/compiler/solc-info.js";
 import { DependencyGraph } from "./solidity/dependencyGraph.js";
+import { Parser } from "./solidity/parse.js";
+import { Resolver } from "./solidity/resolver.js";
+import { CompilationJobsCreationResult } from "./types/builtin-tasks/index.js";
+import * as taskTypes from "./types/builtin-tasks/index.js";
 import {
   Artifacts,
   CompilationJob,
@@ -16,34 +35,16 @@ import {
   ResolvedFile,
   SolcBuild,
 } from "./types/index.js";
-import { getAllFilesMatching } from "./utils/fs-utils.js";
-import { localPathToSourceName } from "./utils/source-names.js";
-import { HardhatError, assertHardhatInvariant } from "./errors/errors.js";
-import { ERRORS } from "./errors/errors-list.js";
-import {
-  createCompilationJobFromFile,
-  createCompilationJobsFromConnectedComponent,
-  mergeCompilationJobsWithoutBug,
-} from "./solidity/compilation-job.js";
-import * as taskTypes from "./types/builtin-tasks/index.js";
-import { SolidityFilesCache } from "./builtin-tasks/utils/solidity-files-cache.js";
-import { pluralize } from "./utils/string.js";
-import {
-  CompilerDownloader,
-  CompilerPlatform,
-} from "./solidity/compiler/downloader.js";
-import { getCompilersDir } from "./utils/global-dir.js";
-import { Compiler, NativeCompiler } from "./solidity/compiler/index.js";
-import { getInputFromCompilationJob } from "./solidity/compiler/compiler-input.js";
 import {
   Artifacts as ArtifactsImpl,
   getArtifactFromContractOutput,
 } from "./utils/artifacts.js";
-import { getEvmVersionFromSolcVersion } from "./solidity/compiler/solc-info.js";
-import { Parser } from "./solidity/parse.js";
-import { Resolver } from "./solidity/resolver.js";
-import { getSolidityFilesCachePath } from "./utils/solidity-files-cache.js";
 import { getFullyQualifiedName } from "./utils/contract-names.js";
+import { getAllFilesMatching } from "./utils/fs-utils.js";
+import { getCompilersDir } from "./utils/global-dir.js";
+import { getSolidityFilesCachePath } from "./utils/solidity-files-cache.js";
+import { localPathToSourceName } from "./utils/source-names.js";
+import { pluralize } from "./utils/string.js";
 
 const log = debug("hardhat:core:tasks:compile:REFACTORING");
 

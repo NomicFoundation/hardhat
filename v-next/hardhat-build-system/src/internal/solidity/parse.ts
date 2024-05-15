@@ -1,7 +1,8 @@
 import type SolidityAnalyzerT from "@nomicfoundation/solidity-analyzer";
+
 import { SolidityFilesCache } from "../builtin-tasks/utils/solidity-files-cache.js";
-import { HardhatError } from "../errors/errors.js";
 import { ERRORS } from "../errors/errors-list.js";
+import { HardhatError } from "../errors/errors.js";
 
 interface ParsedData {
   imports: string[];

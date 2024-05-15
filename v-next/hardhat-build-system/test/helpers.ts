@@ -1,14 +1,16 @@
-import path from "node:path";
-import semver from "semver";
-import { beforeEach } from "node:test";
-import { rmSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import assert, { AssertionError } from "node:assert";
-import { BuildConfig, SolidityConfig } from "../src/internal/types/config.js";
-import { SolcConfig } from "../src/internal/types/index.js";
+import { rmSync } from "node:fs";
+import path from "node:path";
+import { beforeEach } from "node:test";
+import { fileURLToPath } from "node:url";
+
+import semver from "semver";
+
 import { ErrorDescriptor } from "../src/internal/errors/errors-list.js";
 import { HardhatError } from "../src/internal/errors/errors.js";
 import { ResolvedFile } from "../src/internal/solidity/resolver.js";
+import { BuildConfig, SolidityConfig } from "../src/internal/types/config.js";
+import { SolcConfig } from "../src/internal/types/index.js";
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = path.dirname(_filename);

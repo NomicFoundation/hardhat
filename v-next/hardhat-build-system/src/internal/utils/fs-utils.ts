@@ -1,6 +1,7 @@
+import fs from "node:fs";
 import fsPromises from "node:fs/promises";
 import path from "node:path";
-import fs from "node:fs";
+
 import { CustomError, assertHardhatInvariant } from "../errors/errors.js";
 
 /**

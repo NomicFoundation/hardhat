@@ -1,14 +1,16 @@
-import path from "node:path";
-import fsExtra from "fs-extra";
-import debug from "debug";
-import os from "node:os";
 import { execFile } from "node:child_process";
+import os from "node:os";
+import path from "node:path";
 import { promisify } from "node:util";
-import { keccak256 } from "@nomicfoundation/hardhat-utils/crypto";
+
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
-import { download } from "../../utils/download.js";
-import { HardhatError, assertHardhatInvariant } from "../../errors/errors.js";
+import { keccak256 } from "@nomicfoundation/hardhat-utils/crypto";
+import debug from "debug";
+import fsExtra from "fs-extra";
+
 import { ERRORS } from "../../errors/errors-list.js";
+import { HardhatError, assertHardhatInvariant } from "../../errors/errors.js";
+import { download } from "../../utils/download.js";
 import { MultiProcessMutex } from "../../utils/multi-process-mutex.js";
 
 const log = debug("hardhat:core:solidity:downloader");

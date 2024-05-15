@@ -1,6 +1,18 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+
 import resolve from "resolve";
+
+import { ERRORS } from "../errors/errors-list.js";
+import { HardhatError, assertHardhatInvariant } from "../errors/errors.js";
+import {
+  FileContent,
+  LibraryInfo,
+  ResolvedFile as IResolvedFile,
+} from "../types/builtin-tasks/index.js";
+import { getRealPath } from "../utils/fs-utils.js";
+import { createNonCryptographicHashBasedIdentifier } from "../utils/hash.js";
+import { applyRemappings } from "../utils/remappings.js";
 import {
   includesOwnPackageName,
   isAbsolutePathSourceName,
@@ -10,16 +22,7 @@ import {
   validateSourceNameExistenceAndCasing,
   validateSourceNameFormat,
 } from "../utils/source-names.js";
-import { ERRORS } from "../errors/errors-list.js";
-import { createNonCryptographicHashBasedIdentifier } from "../utils/hash.js";
-import { getRealPath } from "../utils/fs-utils.js";
-import { applyRemappings } from "../utils/remappings.js";
-import {
-  FileContent,
-  LibraryInfo,
-  ResolvedFile as IResolvedFile,
-} from "../types/builtin-tasks/index.js";
-import { HardhatError, assertHardhatInvariant } from "../errors/errors.js";
+
 import { Parser } from "./parse.js";
 
 const NODE_MODULES = "node_modules";

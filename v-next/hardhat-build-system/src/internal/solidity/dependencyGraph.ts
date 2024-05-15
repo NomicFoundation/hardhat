@@ -1,6 +1,7 @@
-import * as taskTypes from "../types/builtin-tasks/index.js";
-import { HardhatError, assertHardhatInvariant } from "../errors/errors.js";
 import { ERRORS } from "../errors/errors-list.js";
+import { HardhatError, assertHardhatInvariant } from "../errors/errors.js";
+import * as taskTypes from "../types/builtin-tasks/index.js";
+
 import { ResolvedFile, Resolver } from "./resolver.js";
 
 export class DependencyGraph implements taskTypes.DependencyGraph {

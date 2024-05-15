@@ -1,14 +1,16 @@
 import debug from "debug";
-import semver from "semver";
 import { deepEqual } from "fast-equals";
+import semver from "semver";
+
+import { assertHardhatInvariant } from "../errors/errors.js";
 import * as taskTypes from "../types/builtin-tasks/index.js";
-import { SolcConfig, SolidityConfig } from "../types/index.js";
 import {
   CompilationJobCreationError,
   CompilationJobCreationErrorReason,
   CompilationJobsCreationResult,
 } from "../types/builtin-tasks/index.js";
-import { assertHardhatInvariant } from "../errors/errors.js";
+import { SolcConfig, SolidityConfig } from "../types/index.js";
+
 import { ResolvedFile } from "./resolver.js";
 
 // this should have a proper version range when it's fixed

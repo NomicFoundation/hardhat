@@ -1,8 +1,9 @@
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
-import debug from "debug";
 import fs from "node:fs";
-import path from "node:path";
 import os from "node:os";
+import path from "node:path";
+
+import debug from "debug";
 
 // Logic explanation: the fs.writeFile function, when used with the wx+ flag, performs an atomic operation to create a file.
 // If multiple processes try to create the same file simultaneously, only one will succeed.

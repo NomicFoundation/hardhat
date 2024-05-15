@@ -1,7 +1,9 @@
-import findup from "find-up";
-import fsExtra from "fs-extra";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
+import findup from "find-up";
+import fsExtra from "fs-extra";
+
 import { assertHardhatInvariant } from "../errors/errors.js";
 
 export interface PackageJson {
