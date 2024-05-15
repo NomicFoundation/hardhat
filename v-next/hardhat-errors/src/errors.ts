@@ -1,4 +1,5 @@
 import { CustomError } from "@nomicfoundation/hardhat-utils/error";
+
 import { ERRORS, ErrorDescriptor } from "./descriptors.js";
 
 export const ERROR_PREFIX = "HHE";

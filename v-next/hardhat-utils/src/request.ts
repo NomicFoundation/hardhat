@@ -1,10 +1,10 @@
-import type UndiciT from "undici";
 import type { ParsedUrlQueryInput } from "node:querystring";
+import type UndiciT from "undici";
 
-import fs from "node:fs";
-import stream from "node:stream/promises";
 import EventEmitter from "node:events";
+import fs from "node:fs";
 import querystring from "node:querystring";
+import stream from "node:stream/promises";
 
 import { ensureError } from "./error.js";
 import {
@@ -12,6 +12,7 @@ import {
   RequestError,
   DispatcherError,
 } from "./errors/request.js";
+import { move } from "./fs.js";
 import {
   generateTempFilePath,
   getBaseDispatcherOptions,
@@ -20,7 +21,6 @@ import {
   getPoolDispatcher,
   getProxyDispatcher,
 } from "./internal/request.js";
-import { move } from "./fs.js";
 
 export const DEFAULT_TIMEOUT_IN_MILLISECONDS = 30_000;
 export const DEFAULT_MAX_REDIRECTS = 10;

@@ -4,5 +4,11 @@
 # Compilation output
 /dist
 
+# ApiExtractor output
+/temp
+
 # Madge output
 /dependency-graph.png
+
+# c8 output
+/coverage

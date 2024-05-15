@@ -1,23 +1,16 @@
-## Hardhat v-next's core
+# Hardhat v-next's core
 
-This package contains the new core of Hardhat, which includes its config and plugin system. It's WIP and still pretty unstable.
+This package contains the new core of Hardhat, which includes:
 
-Some major things that are missing are:
+- The config system
+- The configuration variables system
+- The plugin system
+- The global arguments system
+- The hooks system
+- The tasks system
+- The user interruptions system
 
-- Port over the Hardhat errors structure
-- Tests
-- Custom global argumetns
-- Its updated task system
-
-## Examples
-
-There are some examples of plugins, and a config file in `examples/`.
-
-You can run them wit:
-
-```sh
-node examples/hardhat.js examples/example-config.ts
-```
+This package is not meant to be used directly. Use `hardhat` instead.
 
 ## Utilities
 

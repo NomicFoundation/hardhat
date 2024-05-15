@@ -8,7 +8,7 @@ import {
 } from "../types/hooks.js";
 import { HardhatPlugin } from "../types/plugins.js";
 import { LastParameter, Return } from "../types/utils.js";
-import builtinFunctionality from "./builtin-functionality.js";
+
 import { validatePluginNpmDependencies } from "./plugins/plugin-validation.js";
 
 export class HookManagerImplementation implements HookManager {
@@ -258,14 +258,11 @@ export class HookManagerImplementation implements HookManager {
             hookHandlerCategoryFactory,
           );
         } else {
-          hookCategory = await hookHandlerCategoryFactory();
+          console.warn(
+            `WARNING: Inline hooks found in plugin "${plugin.id}", category "${hookCategoryName}". User paths in production.`,
+          );
 
-          // We don't print warning of inline hooks for the builtin functionality
-          if (plugin.id !== builtinFunctionality.id) {
-            console.warn(
-              `WARNING: Inline hooks found in plugin "${plugin.id}", category "${hookCategoryName}". User paths in production.`,
-            );
-          }
+          hookCategory = await hookHandlerCategoryFactory();
         }
 
         if (!this.#staticHookHandlerCategories.has(plugin.id)) {

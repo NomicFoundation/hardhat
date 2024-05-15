@@ -1,7 +1,7 @@
 import type { PrefixedHexString } from "./hex.js";
 
-import { getAddressGenerator, getHashGenerator } from "./internal/eth.js";
 import { bytesToHexString, numberToHexString, setLengthLeft } from "./hex.js";
+import { getAddressGenerator, getHashGenerator } from "./internal/eth.js";
 
 /**
  * Checks if a value is an Ethereum address.

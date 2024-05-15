@@ -1,7 +1,7 @@
-import { beforeEach } from "node:test";
 import fsPromises from "node:fs/promises";
-import path from "node:path";
 import os from "node:os";
+import path from "node:path";
+import { beforeEach } from "node:test";
 
 import { getRealPath, mkdir } from "../../src/fs.js";
 

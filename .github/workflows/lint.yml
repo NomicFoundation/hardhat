@@ -7,7 +7,6 @@ on:
     branches:
       - "**"
     paths:
-      - "*"
       - "docs/**"
       - "packages/**"
   workflow_dispatch:

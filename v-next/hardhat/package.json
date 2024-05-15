@@ -1,0 +1,79 @@
+{
+  "name": "@nomicfoundation/hardhat",
+  "version": "3.0.0",
+  "description": "Hardhat is an extensible developer tool that helps smart contract developers increase productivity by reliably bringing together the tools they want.",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat",
+  "repository": "github:nomicfoundation/hardhat",
+  "author": "Nomic Foundation",
+  "license": "MIT",
+  "type": "module",
+  "types": "dist/src/index.d.ts",
+  "bin": {
+    "hardhat": "./dist/src/cli.js"
+  },
+  "exports": {
+    ".": "./dist/src/index.js",
+    "./config": "./dist/src/config.js",
+    "./hre": "./dist/src/hre.js",
+    "./types/common": "./dist/src/types/common.js",
+    "./types/config": "./dist/src/types/config.js",
+    "./types/global-parameters": "./dist/src/types/global-parameters.js",
+    "./types/hooks": "./dist/src/types/hooks.js",
+    "./types/hre": "./dist/src/types/hre.js",
+    "./types/plugins": "./dist/src/types/plugins.js",
+    "./types/tasks": "./dist/src/types/tasks.js",
+    "./types/user-interruptions": "./dist/src/types/user-interruptions.js",
+    "./types/utils": "./dist/src/types/utils.js"
+  },
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "hardhat"
+  ],
+  "scripts": {
+    "lint": "pnpm prettier --check && pnpm eslint",
+    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
+    "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
+    "prettier": "prettier \"**/*.{ts,js,md,json}\"",
+    "test": "glob --cmd=\"node --import tsx/esm --test\" 'test/**/*.ts'",
+    "test:github": "glob --cmd=\"node --import tsx/esm --test --test-reporter=@reporters/github --test-reporter-destination=stdout --test-reporter=spec --test-reporter-destination=stdout\" 'test/**/*.ts'",
+    "pretest": "pnpm build",
+    "build": "tsc --build .",
+    "prepublishOnly": "pnpm build",
+    "clean": "rimraf dist"
+  },
+  "files": [
+    "dist/src/",
+    "src/",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "devDependencies": {
+    "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
+    "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
+    "@reporters/github": "^1.7.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.7.1",
+    "@typescript-eslint/parser": "^7.7.1",
+    "eslint": "8.57.0",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-import-resolver-typescript": "^3.6.1",
+    "eslint-plugin-import": "2.29.1",
+    "eslint-plugin-no-only-tests": "3.1.0",
+    "expect-type": "^0.19.0",
+    "glob": "^10.3.12",
+    "prettier": "3.2.5",
+    "rimraf": "^5.0.5",
+    "typescript": "~5.4.0",
+    "typescript-eslint": "7.7.1"
+  },
+  "dependencies": {
+    "@nomicfoundation/hardhat-core": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0",
+    "tsx": "^4.7.1",
+    "zod": "^3.23.8"
+  }
+}

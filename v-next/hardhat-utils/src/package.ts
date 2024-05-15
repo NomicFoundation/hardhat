@@ -5,8 +5,8 @@ import {
   PackageJsonNotFoundError,
   PackageJsonReadError,
 } from "./errors/package.js";
-import { getFilePath } from "./internal/package.js";
 import { findUp, readJsonFile } from "./fs.js";
+import { getFilePath } from "./internal/package.js";
 
 /**
  * The structure of a `package.json` file. This is a subset of the actual

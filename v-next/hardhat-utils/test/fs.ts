@@ -1,7 +1,8 @@
-import { beforeEach, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import fsPromises from "node:fs/promises";
 import path from "node:path";
+import { beforeEach, describe, it } from "node:test";
+
 import { expectTypeOf } from "expect-type";
 
 import {
@@ -25,6 +26,7 @@ import {
   writeJsonFile,
   writeUtf8File,
 } from "../src/fs.js";
+
 import { useTmpDir } from "./helpers/fs.js";
 
 describe("File system utils", () => {

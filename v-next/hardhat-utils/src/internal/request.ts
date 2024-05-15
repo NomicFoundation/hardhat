@@ -1,5 +1,5 @@
-import type UndiciT from "undici";
 import type { DispatcherOptions, RequestOptions } from "../request.js";
+import type UndiciT from "undici";
 
 import path from "node:path";
 import url from "node:url";
