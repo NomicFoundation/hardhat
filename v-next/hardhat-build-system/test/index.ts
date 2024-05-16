@@ -8,11 +8,11 @@ import path from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import ci from "ci-info";
 import sinon from "sinon";
 
 import { BuildSystem } from "../src/index.js";
-import { ERRORS } from "../src/internal/errors/errors-list.js";
 import { CompilationJobCreationErrorReason } from "../src/internal/types/builtin-tasks/index.js";
 import {
   getAllFilesMatchingSync,
@@ -26,6 +26,8 @@ import {
   resolveConfig,
   useFixtureProject,
 } from "./helpers.js";
+
+const ERRORS = HardhatError.ERRORS;
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = path.dirname(_filename);
@@ -236,13 +238,9 @@ describe("build-system", () => {
         const config = await resolveConfig();
         const buildSystem = new BuildSystem(config);
 
-        await expectHardhatErrorAsync(
-          async () => {
-            await buildSystem.solidityReadFile(absolutePath);
-          },
-          ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY,
-          `HH22: Invalid file path ${absolutePath}. Attempting to read a directory instead of a file.`,
-        );
+        await expectHardhatErrorAsync(async () => {
+          await buildSystem.solidityReadFile(absolutePath);
+        }, ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY);
       });
     });
 

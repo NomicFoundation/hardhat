@@ -1,11 +1,12 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import {
+  HardhatError,
+  assertHardhatInvariant,
+} from "@nomicfoundation/hardhat-errors";
 import resolve from "resolve";
 
-import { ERRORS } from "../errors/errors-list.js";
-import { HardhatError } from "../errors/errors.js";
 import {
   FileContent,
   LibraryInfo,
@@ -27,6 +28,8 @@ import {
 import { Parser } from "./parse.js";
 
 const NODE_MODULES = "node_modules";
+
+const ERRORS = HardhatError.ERRORS;
 
 export class ResolvedFile implements IResolvedFile {
   public readonly library?: LibraryInfo;
@@ -205,11 +208,8 @@ export class Resolver {
       return resolvedFile;
     } catch (error) {
       if (
-        HardhatError.isHardhatErrorType(
-          error,
-          ERRORS.RESOLVER.FILE_NOT_FOUND,
-        ) ||
-        HardhatError.isHardhatErrorType(
+        HardhatError.isHardhatError(error, ERRORS.RESOLVER.FILE_NOT_FOUND) ||
+        HardhatError.isHardhatError(
           error,
           ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND,
         )
@@ -237,7 +237,7 @@ export class Resolver {
       }
 
       if (
-        HardhatError.isHardhatErrorType(
+        HardhatError.isHardhatError(
           error,
           ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING,
         )
@@ -253,7 +253,7 @@ export class Resolver {
       }
 
       if (
-        HardhatError.isHardhatErrorType(
+        HardhatError.isHardhatError(
           error,
           ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED,
         )
@@ -269,7 +269,7 @@ export class Resolver {
       }
 
       if (
-        HardhatError.isHardhatErrorType(
+        HardhatError.isHardhatError(
           error,
           ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY,
         )
@@ -533,10 +533,7 @@ export class Resolver {
       await validateSourceNameExistenceAndCasing(fromDir, sourceName);
     } catch (error) {
       if (
-        HardhatError.isHardhatErrorType(
-          error,
-          ERRORS.SOURCE_NAMES.FILE_NOT_FOUND,
-        )
+        HardhatError.isHardhatError(error, ERRORS.SOURCE_NAMES.FILE_NOT_FOUND)
       ) {
         throw new HardhatError(
           isLibrary
@@ -548,7 +545,7 @@ export class Resolver {
       }
 
       if (
-        HardhatError.isHardhatErrorType(error, ERRORS.SOURCE_NAMES.WRONG_CASING)
+        HardhatError.isHardhatError(error, ERRORS.SOURCE_NAMES.WRONG_CASING)
       ) {
         throw new HardhatError(
           ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING,

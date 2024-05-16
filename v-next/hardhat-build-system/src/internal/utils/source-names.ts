@@ -1,12 +1,13 @@
 import path from "node:path";
 
-import { ERRORS } from "../errors/errors-list.js";
-import { HardhatError } from "../errors/errors.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { FileNotFoundError, getFileTrueCase } from "./fs-utils.js";
 import { getPackageName } from "./package-info.js";
 
 const NODE_MODULES = "node_modules";
+
+const ERRORS = HardhatError.ERRORS;
 
 /**
  * Returns the source name of an existing local file's absolute path.

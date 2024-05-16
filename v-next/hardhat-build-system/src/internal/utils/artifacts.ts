@@ -2,12 +2,13 @@ import fsPromises from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import {
+  HardhatError,
+  assertHardhatInvariant,
+} from "@nomicfoundation/hardhat-errors";
 import debug from "debug";
 import fsExtra from "fs-extra";
 
-import { ERRORS } from "../errors/errors-list.js";
-import { HardhatError } from "../errors/errors.js";
 import {
   Artifact,
   Artifacts as IArtifacts,
@@ -41,6 +42,8 @@ import { createNonCryptographicHashBasedIdentifier } from "./hash.js";
 import { replaceBackslashes } from "./source-names.js";
 
 const log = debug("hardhat:core:artifacts");
+
+const ERRORS = HardhatError.ERRORS;
 
 interface Cache {
   artifactPaths?: string[];

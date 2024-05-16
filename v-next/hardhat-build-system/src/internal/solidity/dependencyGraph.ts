@@ -1,7 +1,8 @@
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import {
+  HardhatError,
+  assertHardhatInvariant,
+} from "@nomicfoundation/hardhat-errors";
 
-import { ERRORS } from "../errors/errors-list.js";
-import { HardhatError } from "../errors/errors.js";
 import * as taskTypes from "../types/builtin-tasks/index.js";
 
 import { ResolvedFile, Resolver } from "./resolver.js";
@@ -193,10 +194,13 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
 
     if (sourceName !== undefined) {
       if (sourceName !== file.sourceName) {
-        throw new HardhatError(ERRORS.RESOLVER.AMBIGUOUS_SOURCE_NAMES, {
-          sourcenames: `'${sourceName}' and '${file.sourceName}'`,
-          file: file.absolutePath,
-        });
+        throw new HardhatError(
+          HardhatError.ERRORS.RESOLVER.AMBIGUOUS_SOURCE_NAMES,
+          {
+            sourcenames: `'${sourceName}' and '${file.sourceName}'`,
+            file: file.absolutePath,
+          },
+        );
       }
 
       return;

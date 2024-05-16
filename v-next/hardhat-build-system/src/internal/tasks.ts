@@ -1,4 +1,7 @@
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import {
+  HardhatError,
+  assertHardhatInvariant,
+} from "@nomicfoundation/hardhat-errors";
 import AggregateError from "aggregate-error";
 import chalk from "chalk";
 import debug from "debug";
@@ -6,8 +9,6 @@ import fsExtra from "fs-extra";
 import semver from "semver";
 
 import { SolidityFilesCache } from "./builtin-tasks/utils/solidity-files-cache.js";
-import { ERRORS } from "./errors/errors-list.js";
-import { HardhatError } from "./errors/errors.js";
 import {
   createCompilationJobFromFile,
   createCompilationJobsFromConnectedComponent,
@@ -48,6 +49,8 @@ import { localPathToSourceName } from "./utils/source-names.js";
 import { pluralize } from "./utils/string.js";
 
 const log = debug("hardhat:core:tasks:compile:REFACTORING");
+
+const ERRORS = HardhatError.ERRORS;
 
 const COMPILE_TASK_FIRST_SOLC_VERSION_SUPPORTED = "0.4.11";
 
@@ -1103,9 +1106,9 @@ export async function taskCompileSolidityCompileJobs(
 
     for (const error of e) {
       if (
-        !HardhatError.isHardhatErrorType(
+        !HardhatError.isHardhatError(
           error,
-          ERRORS.BUILTIN_TASKS.COMPILE_FAILURE,
+          HardhatError.ERRORS.BUILTIN_TASKS.COMPILE_FAILURE,
         )
       ) {
         // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
@@ -1114,7 +1117,7 @@ export async function taskCompileSolidityCompileJobs(
     }
 
     // error is an aggregate error, and all errors are compilation failures
-    throw new HardhatError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
+    throw new HardhatError(HardhatError.ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
   }
 }
 

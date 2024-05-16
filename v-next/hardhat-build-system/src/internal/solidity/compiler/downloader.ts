@@ -3,20 +3,23 @@ import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import {
+  HardhatError,
+  assertHardhatInvariant,
+} from "@nomicfoundation/hardhat-errors";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
 import { keccak256 } from "@nomicfoundation/hardhat-utils/crypto";
 import debug from "debug";
 import fsExtra from "fs-extra";
 
-import { ERRORS } from "../../errors/errors-list.js";
-import { HardhatError } from "../../errors/errors.js";
 import { download } from "../../utils/download.js";
 import { MultiProcessMutex } from "../../utils/multi-process-mutex.js";
 
 const log = debug("hardhat:core:solidity:downloader");
 
 const COMPILER_REPOSITORY_URL = "https://binaries.soliditylang.org";
+
+const ERRORS = HardhatError.ERRORS;
 
 export enum CompilerPlatform {
   LINUX = "linux-amd64",
@@ -197,7 +200,9 @@ export class CompilerDownloader implements ICompilerDownloader {
       }
 
       if (build === undefined) {
-        throw new HardhatError(ERRORS.SOLC.INVALID_VERSION, { version });
+        throw new HardhatError(ERRORS.SOLC.INVALID_VERSION, {
+          version,
+        });
       }
 
       let downloadPath: string;
