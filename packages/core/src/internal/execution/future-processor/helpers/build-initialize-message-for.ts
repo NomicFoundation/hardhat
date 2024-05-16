@@ -8,6 +8,7 @@ import {
   CallExecutionStateInitializeMessage,
   ContractAtExecutionStateInitializeMessage,
   DeploymentExecutionStateInitializeMessage,
+  EncodeFunctionCallExecutionStateInitializeMessage,
   JournalMessage,
   JournalMessageType,
   ReadEventArgExecutionStateInitializeMessage,
@@ -19,6 +20,8 @@ import {
   resolveAddressForContractFuture,
   resolveAddressLike,
   resolveArgs,
+  resolveEncodeFunctionCallResult,
+  resolveFutureData,
   resolveFutureFrom,
   resolveLibraries,
   resolveReadEventArgumentResult,
@@ -145,6 +148,37 @@ export async function buildInitializeMessageFor(
 
       return namedStaticCallInit;
     }
+    case FutureType.ENCODE_FUNCTION_CALL: {
+      const args = resolveArgs(
+        future.args,
+        deploymentState,
+        deploymentParameters,
+        accounts
+      );
+
+      const result = await resolveEncodeFunctionCallResult(
+        future.contract.id,
+        future.functionName,
+        args,
+        deploymentLoader
+      );
+
+      const encodeFunctionCallInit: EncodeFunctionCallExecutionStateInitializeMessage =
+        _extendBaseInitWith(
+          JournalMessageType.ENCODE_FUNCTION_CALL_EXECUTION_STATE_INITIALIZE,
+          future,
+          strategy.name,
+          strategy.config,
+          {
+            args,
+            functionName: future.functionName,
+            artifactId: future.contract.id,
+            result,
+          }
+        );
+
+      return encodeFunctionCallInit;
+    }
     case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
     case FutureType.CONTRACT_AT: {
       const contractAtInit: ContractAtExecutionStateInitializeMessage =
@@ -219,7 +253,7 @@ export async function buildInitializeMessageFor(
               deploymentState,
               accounts
             ),
-            data: future.data ?? "0x",
+            data: resolveFutureData(future.data, deploymentState),
             from: resolveFutureFrom(future.from, accounts, defaultSender),
           }
         );

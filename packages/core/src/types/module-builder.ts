@@ -8,6 +8,7 @@ import {
   ContractCallFuture,
   ContractDeploymentFuture,
   ContractFuture,
+  EncodeFunctionCallFuture,
   Future,
   IgnitionModule,
   IgnitionModuleResult,
@@ -136,6 +137,23 @@ export interface StaticCallOptions {
    * The account to send the transaction from.
    */
   from?: string | AccountRuntimeValue;
+}
+
+/**
+ * The options for an `encodeFunctionCall` call.
+ *
+ * @beta
+ */
+export interface EncodeFunctionCallOptions {
+  /**
+   * The future id.
+   */
+  id?: string;
+
+  /**
+   * The futures to execute before this one.
+   */
+  after?: Future[];
 }
 
 /**
@@ -369,6 +387,31 @@ export interface IgnitionModuleBuilder {
   ): StaticCallFuture<ContractNameT, FunctionNameT>;
 
   /**
+   * Encode a function call.
+   *
+   * @param contractFuture - The contract ABI to encode with
+   * @param functionName - The name of the function
+   * @param args - The arguments to pass to the function
+   * @param options - The options for the call
+   *
+   * @example
+   * ```
+   * const myContract = m.contract("MyContract");
+   * const data = m.encodeFunctionCall(myContract, "updateCounter", [100]);
+   * m.send("callFunctionOnContract", myContract, 0n, data);
+   * ```
+   */
+  encodeFunctionCall<
+    ContractNameT extends string,
+    FunctionNameT extends string
+  >(
+    contractFuture: CallableContractFuture<ContractNameT>,
+    functionName: FunctionNameT,
+    args?: ArgumentType[],
+    options?: EncodeFunctionCallOptions
+  ): EncodeFunctionCallFuture<ContractNameT, FunctionNameT>;
+
+  /**
    * Create a future for an existing deployed contract so that it can be
    * referenced in subsequent futures.
    *
@@ -494,7 +537,7 @@ export interface IgnitionModuleBuilder {
       | ModuleParameterRuntimeValue<string>
       | AccountRuntimeValue,
     value?: bigint | ModuleParameterRuntimeValue<bigint>,
-    data?: string,
+    data?: string | EncodeFunctionCallFuture<string, string>,
     options?: SendDataOptions
   ): SendDataFuture;
 

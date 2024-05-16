@@ -9,6 +9,7 @@ import {
   DeploymentExecutionStateInitializeEvent,
   DeploymentInitializeEvent,
   DeploymentStartEvent,
+  EncodeFunctionCallExecutionStateInitializeEvent,
   ExecutionEventListener,
   ExecutionEventNetworkInteractionType,
   ExecutionEventResultType,
@@ -170,6 +171,16 @@ export class VerboseEventHandler implements ExecutionEventListener {
   ): void {
     console.log(
       `Executed read event argument future ${event.futureId} with result ${
+        event.result.result ?? "undefined"
+      }`
+    );
+  }
+
+  public encodeFunctionCallExecutionStateInitialize(
+    event: EncodeFunctionCallExecutionStateInitializeEvent
+  ): void {
+    console.log(
+      `Executed encode function call future ${event.futureId} with result ${
         event.result.result ?? "undefined"
       }`
     );

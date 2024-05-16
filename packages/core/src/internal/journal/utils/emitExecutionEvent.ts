@@ -85,6 +85,17 @@ export function emitExecutionEvent(
       });
       break;
     }
+    case JournalMessageType.ENCODE_FUNCTION_CALL_EXECUTION_STATE_INITIALIZE: {
+      executionEventListener.encodeFunctionCallExecutionStateInitialize({
+        type: ExecutionEventType.ENCODE_FUNCTION_CALL_EXECUTION_STATE_INITIALIZE,
+        futureId: message.futureId,
+        result: {
+          type: ExecutionEventResultType.SUCCESS,
+          result: message.result,
+        },
+      });
+      break;
+    }
     case JournalMessageType.SEND_DATA_EXECUTION_STATE_INITIALIZE: {
       executionEventListener.sendDataExecutionStateInitialize({
         type: ExecutionEventType.SEND_DATA_EXECUTION_STATE_INITIALIZE,

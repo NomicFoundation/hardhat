@@ -21,6 +21,7 @@ import {
   ReadEventArgumentFuture,
   RuntimeValueType,
   SendDataFuture,
+  EncodeFunctionCallFuture,
 } from "../types/module";
 
 const customInspectSymbol = Symbol.for("util.inspect.custom");
@@ -176,6 +177,24 @@ export class NamedStaticCallFutureImplementation<
   }
 }
 
+export class NamedEncodeFunctionCallFutureImplementation<
+    ContractNameT extends string,
+    FunctionNameT extends string
+  >
+  extends BaseFutureImplementation<FutureType.ENCODE_FUNCTION_CALL>
+  implements EncodeFunctionCallFuture<ContractNameT, FunctionNameT>
+{
+  constructor(
+    public readonly id: string,
+    public readonly module: IgnitionModuleImplementation,
+    public readonly functionName: FunctionNameT,
+    public readonly contract: ContractFuture<ContractNameT>,
+    public readonly args: ArgumentType[]
+  ) {
+    super(id, FutureType.ENCODE_FUNCTION_CALL, module);
+  }
+}
+
 export class NamedContractAtFutureImplementation<ContractNameT extends string>
   extends BaseFutureImplementation<FutureType.NAMED_ARTIFACT_CONTRACT_AT>
   implements NamedArtifactContractAtFuture<ContractNameT>
@@ -245,7 +264,10 @@ export class SendDataFutureImplementation
       | ModuleParameterRuntimeValue<string>
       | AccountRuntimeValue,
     public readonly value: bigint | ModuleParameterRuntimeValue<bigint>,
-    public readonly data: string | undefined,
+    public readonly data:
+      | string
+      | EncodeFunctionCallFuture<string, string>
+      | undefined,
     public readonly from: string | AccountRuntimeValue | undefined
   ) {
     super(id, FutureType.SEND_DATA, module);

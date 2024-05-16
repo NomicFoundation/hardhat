@@ -93,6 +93,12 @@ export function logJournalableMessage(message: JournalMessage): void {
       );
       break;
 
+    case JournalMessageType.ENCODE_FUNCTION_CALL_EXECUTION_STATE_INITIALIZE:
+      console.log(
+        `Executed encode function call future ${message.futureId} with result ${message.result}`
+      );
+      break;
+
     case JournalMessageType.NETWORK_INTERACTION_REQUEST:
       if (
         message.networkInteraction.type ===

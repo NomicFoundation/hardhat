@@ -104,7 +104,9 @@ export class FutureProcessor {
       assertIgnitionInvariant(
         exState.type !== ExecutionSateType.CONTRACT_AT_EXECUTION_STATE &&
           exState.type !==
-            ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE,
+            ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE &&
+          exState.type !==
+            ExecutionSateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE,
         `Unexpected ExectutionState ${exState.id} with type ${exState.type} and status ${exState.status}: it should have been immediately completed`
       );
 

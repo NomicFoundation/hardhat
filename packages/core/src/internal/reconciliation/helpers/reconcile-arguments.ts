@@ -4,11 +4,13 @@ import {
   ContractCallFuture,
   NamedArtifactContractDeploymentFuture,
   StaticCallFuture,
+  EncodeFunctionCallFuture,
 } from "../../../types/module";
 import { resolveArgs } from "../../execution/future-processor/helpers/future-resolvers";
 import {
   CallExecutionState,
   DeploymentExecutionState,
+  EncodeFunctionCallExecutionState,
   ExecutionSateType,
   StaticCallExecutionState,
 } from "../../execution/types/execution-state";
@@ -24,11 +26,13 @@ export function reconcileArguments(
     | NamedArtifactContractDeploymentFuture<string>
     | ContractDeploymentFuture
     | StaticCallFuture<string, string>
-    | ContractCallFuture<string, string>,
+    | ContractCallFuture<string, string>
+    | EncodeFunctionCallFuture<string, string>,
   exState:
     | DeploymentExecutionState
     | CallExecutionState
-    | StaticCallExecutionState,
+    | StaticCallExecutionState
+    | EncodeFunctionCallExecutionState,
   context: ReconciliationContext
 ): ReconciliationFutureResultFailure | undefined {
   const unresolvedFutureArgs = isDeploymentFuture(future)

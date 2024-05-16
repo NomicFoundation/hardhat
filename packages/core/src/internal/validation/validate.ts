@@ -13,6 +13,7 @@ import { validateArtifactLibraryDeployment } from "./futures/validateArtifactLib
 import { validateNamedContractAt } from "./futures/validateNamedContractAt";
 import { validateNamedContractCall } from "./futures/validateNamedContractCall";
 import { validateNamedContractDeployment } from "./futures/validateNamedContractDeployment";
+import { validateNamedEncodeFunctionCall } from "./futures/validateNamedEncodeFunctionCall";
 import { validateNamedLibraryDeployment } from "./futures/validateNamedLibraryDeployment";
 import { validateNamedStaticCall } from "./futures/validateNamedStaticCall";
 import { validateReadEventArgument } from "./futures/validateReadEventArgument";
@@ -110,6 +111,13 @@ async function _validateFuture(
       );
     case FutureType.STATIC_CALL:
       return validateNamedStaticCall(
+        future,
+        artifactLoader,
+        deploymentParameters,
+        accounts
+      );
+    case FutureType.ENCODE_FUNCTION_CALL:
+      return validateNamedEncodeFunctionCall(
         future,
         artifactLoader,
         deploymentParameters,

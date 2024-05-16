@@ -395,6 +395,34 @@ describe("stored deployment serializer", () => {
     });
   });
 
+  describe("encode function call", () => {
+    it("should serialize a call", () => {
+      const module = buildModule("Module1", (m) => {
+        const contract1 = m.contract("Contract1");
+
+        m.encodeFunctionCall(contract1, "lock", [1, "a", false]);
+
+        return { contract1 };
+      });
+
+      assertSerializableModuleIn(module);
+    });
+
+    it("should serialize a call with dependencies", () => {
+      const module = buildModule("Module1", (m) => {
+        const contract1 = m.contract("Contract1");
+        const contract2 = m.contract("Contract2");
+
+        m.encodeFunctionCall(contract2, "lock", [contract1]);
+        m.encodeFunctionCall(contract2, "unlock", [], { after: [contract1] });
+
+        return { contract1, contract2 };
+      });
+
+      assertSerializableModuleIn(module);
+    });
+  });
+
   describe("send", () => {
     it("should serialize a send", () => {
       const module = buildModule("Module1", (m) => {

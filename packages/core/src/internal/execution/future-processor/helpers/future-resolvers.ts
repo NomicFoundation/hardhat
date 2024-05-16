@@ -1,5 +1,3 @@
-import { isAddress } from "ethers";
-
 import {
   isAccountRuntimeValue,
   isFuture,
@@ -11,6 +9,7 @@ import {
   AddressResolvableFuture,
   ArgumentType,
   ContractFuture,
+  EncodeFunctionCallFuture,
   Future,
   ModuleParameterRuntimeValue,
   ReadEventArgumentFuture,
@@ -118,6 +117,25 @@ export function resolveFutureFrom(
 }
 
 /**
+ * Resolve a `send` future's data parameter to a string.
+ */
+export function resolveFutureData(
+  data: string | EncodeFunctionCallFuture<string, string> | undefined,
+  deploymentState: DeploymentState
+): string {
+  if (data === undefined) {
+    return "0x";
+  }
+
+  if (typeof data === "string") {
+    return data;
+  }
+
+  // this type coercion is safe because we know the type of data is EncodeFunctionCallFuture
+  return findResultForFutureById(deploymentState, data.id) as string;
+}
+
+/**
  * Resolves an account runtime value to an address.
  */
 export function resolveAccountRuntimeValue(
@@ -221,6 +239,7 @@ export function resolveAddressLike(
 
   const result = findResultForFutureById(deploymentState, addressLike.id);
 
+  const { isAddress } = require("ethers") as typeof import("ethers");
   assertIgnitionInvariant(
     typeof result === "string" && isAddress(result),
     `Future '${addressLike.id}' must be a valid address`
@@ -271,4 +290,18 @@ export async function resolveReadEventArgumentResult(
     emitterAddress,
     txToReadFrom: confirmedTx.hash,
   };
+}
+
+export async function resolveEncodeFunctionCallResult(
+  artifactId: string,
+  functionName: string,
+  args: SolidityParameterType[],
+  deploymentLoader: DeploymentLoader
+): Promise<string> {
+  const artifact = await deploymentLoader.loadArtifact(artifactId);
+
+  const { Interface } = require("ethers") as typeof import("ethers");
+  const iface = new Interface(artifact.abi);
+
+  return iface.encodeFunctionData(functionName, args);
 }

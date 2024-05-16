@@ -28,7 +28,9 @@ module.exports = buildModule("CompleteModule", (m) => {
     { id: "ContractWithLibrary2" }
   );
 
-  m.send("test_send", duplicate, 123n);
+  const data = m.encodeFunctionCall(duplicate, "otherFunction", [42n]);
+
+  m.send("test_send", duplicate, 123n, data);
 
   return {
     basic,

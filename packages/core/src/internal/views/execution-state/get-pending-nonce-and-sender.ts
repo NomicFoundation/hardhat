@@ -18,7 +18,8 @@ export function getPendingNonceAndSender(
 ): { nonce: number; sender: string } | undefined {
   if (
     exState.type === ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE ||
-    exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE
+    exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE ||
+    exState.type === ExecutionSateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE
   ) {
     return undefined;
   }

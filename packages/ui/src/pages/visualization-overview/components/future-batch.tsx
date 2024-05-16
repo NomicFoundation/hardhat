@@ -159,6 +159,8 @@ function toDisplayText(future: Future): string {
       return `Call ${future.contract.contractName}.${future.functionName}`;
     case FutureType.STATIC_CALL:
       return `Static call ${future.id}`;
+    case FutureType.ENCODE_FUNCTION_CALL:
+      return `Encode function call ${future.id}`;
     case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
       return `Existing contract ${future.id} (${
         typeof future.address === "string"
@@ -271,6 +273,25 @@ const FutureDetailsSection: React.FC<{
         </FutureDetailsStyle>
       );
     }
+    case FutureType.ENCODE_FUNCTION_CALL: {
+      const args = Object.entries(future.args);
+      return (
+        <FutureDetailsStyle className={className}>
+          <p>{args.length === 0 ? "No " : null}Arguments</p>
+          <ul>
+            {args.map(([, arg], i) => (
+              <li key={`arg-${i}`}>
+                <Argument
+                  setToggled={setToggled}
+                  arg={arg}
+                  setHoveredFuture={setHoveredFuture}
+                />
+              </li>
+            ))}
+          </ul>
+        </FutureDetailsStyle>
+      );
+    }
     case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
     case FutureType.CONTRACT_AT: {
       return (
@@ -316,7 +337,20 @@ const FutureDetailsSection: React.FC<{
               />
             )}
           </p>
-          <p>Data - {future.data}</p>
+          <p>
+            Data -{" "}
+            {typeof future.data === "string" ? (
+              future.data
+            ) : future.data === undefined ? (
+              "0x"
+            ) : (
+              <Argument
+                setToggled={setToggled}
+                arg={future.data}
+                setHoveredFuture={setHoveredFuture}
+              />
+            )}
+          </p>
         </FutureDetailsStyle>
       );
     }

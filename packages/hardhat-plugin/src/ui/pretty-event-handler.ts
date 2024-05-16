@@ -12,6 +12,7 @@ import {
   DeploymentResult,
   DeploymentResultType,
   DeploymentStartEvent,
+  EncodeFunctionCallExecutionStateInitializeEvent,
   ExecutionEventListener,
   ExecutionEventResult,
   ExecutionEventResultType,
@@ -210,6 +211,14 @@ export class PrettyEventHandler implements ExecutionEventListener {
 
   public readEventArgumentExecutionStateInitialize(
     event: ReadEventArgExecutionStateInitializeEvent
+  ): void {
+    this._setFutureStatusAndRedisplayBatch(event.futureId, {
+      type: UiFutureStatusType.SUCCESS,
+    });
+  }
+
+  public encodeFunctionCallExecutionStateInitialize(
+    event: EncodeFunctionCallExecutionStateInitializeEvent
   ): void {
     this._setFutureStatusAndRedisplayBatch(event.futureId, {
       type: UiFutureStatusType.SUCCESS,

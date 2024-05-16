@@ -2,6 +2,7 @@ import {
   ContractAtFuture,
   ContractCallFuture,
   ContractDeploymentFuture,
+  EncodeFunctionCallFuture,
   LibraryDeploymentFuture,
   NamedArtifactContractAtFuture,
   NamedArtifactContractDeploymentFuture,
@@ -14,6 +15,7 @@ import {
   CallExecutionState,
   ContractAtExecutionState,
   DeploymentExecutionState,
+  EncodeFunctionCallExecutionState,
   ExecutionStatus,
   ReadEventArgumentExecutionState,
   SendDataExecutionState,
@@ -35,12 +37,14 @@ export function reconcileStrategy(
     | ContractAtFuture
     | ContractCallFuture<string, string>
     | StaticCallFuture<string, string>
+    | EncodeFunctionCallFuture<string, string>
     | SendDataFuture
     | ReadEventArgumentFuture,
   exState:
     | DeploymentExecutionState
     | CallExecutionState
     | StaticCallExecutionState
+    | EncodeFunctionCallExecutionState
     | ContractAtExecutionState
     | SendDataExecutionState
     | ReadEventArgumentExecutionState,

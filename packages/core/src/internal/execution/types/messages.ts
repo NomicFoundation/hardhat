@@ -33,6 +33,7 @@ export type JournalMessage =
   | SendDataExecutionStateCompleteMessage
   | ContractAtExecutionStateInitializeMessage
   | ReadEventArgExecutionStateInitializeMessage
+  | EncodeFunctionCallExecutionStateInitializeMessage
   | NetworkInteractionRequestMessage
   | TransactionSendMessage
   | TransactionConfirmMessage
@@ -62,6 +63,7 @@ export enum JournalMessageType {
   SEND_DATA_EXECUTION_STATE_COMPLETE = "SEND_DATA_EXECUTION_STATE_COMPLETE",
   CONTRACT_AT_EXECUTION_STATE_INITIALIZE = "CONTRACT_AT_EXECUTION_STATE_INITIALIZE",
   READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE = "READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE",
+  ENCODE_FUNCTION_CALL_EXECUTION_STATE_INITIALIZE = "ENCODE_FUNCTION_CALL_EXECUTION_STATE_INITIALIZE",
   NETWORK_INTERACTION_REQUEST = "NETWORK_INTERACTION_REQUEST",
   TRANSACTION_SEND = "TRANSACTION_SEND",
   TRANSACTION_CONFIRM = "TRANSACTION_CONFIRM",
@@ -181,6 +183,18 @@ export interface ReadEventArgExecutionStateInitializeMessage {
   emitterAddress: string;
   eventIndex: number;
   result: SolidityParameterType;
+}
+
+export interface EncodeFunctionCallExecutionStateInitializeMessage {
+  type: JournalMessageType.ENCODE_FUNCTION_CALL_EXECUTION_STATE_INITIALIZE;
+  futureId: string;
+  strategy: string;
+  strategyConfig: ConcreteExecutionConfig;
+  dependencies: string[];
+  artifactId: string;
+  functionName: string;
+  args: SolidityParameterType[];
+  result: string;
 }
 
 export interface NetworkInteractionRequestMessage {

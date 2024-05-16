@@ -7,6 +7,7 @@ import {
   ContractDeploymentFuture,
   ContractFuture,
   DeploymentFuture,
+  EncodeFunctionCallFuture,
   FunctionCallFuture,
   Future,
   FutureType,
@@ -161,6 +162,19 @@ export function isNamedStaticCallFuture(
   future: Future
 ): future is StaticCallFuture<string, string> {
   return future.type === FutureType.STATIC_CALL;
+}
+
+/**
+ * Returns true if future is of type EncodeFunctionCallFuture\<string, string\>.
+ *
+ * @beta
+ */
+export function isEncodeFunctionCallFuture(
+  potential: unknown
+): potential is EncodeFunctionCallFuture<string, string> {
+  return (
+    isFuture(potential) && potential.type === FutureType.ENCODE_FUNCTION_CALL
+  );
 }
 
 /**

@@ -30,6 +30,7 @@ export async function saveArtifactsForFuture(
       );
     case FutureType.CONTRACT_CALL:
     case FutureType.STATIC_CALL:
+    case FutureType.ENCODE_FUNCTION_CALL:
     case FutureType.READ_EVENT_ARGUMENT:
     case FutureType.SEND_DATA:
       return;

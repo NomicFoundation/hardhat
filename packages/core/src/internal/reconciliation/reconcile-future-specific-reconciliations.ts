@@ -3,6 +3,7 @@ import {
   CallExecutionState,
   ContractAtExecutionState,
   DeploymentExecutionState,
+  EncodeFunctionCallExecutionState,
   ExecutionState,
   ReadEventArgumentExecutionState,
   SendDataExecutionState,
@@ -15,6 +16,7 @@ import { reconcileArtifactLibraryDeployment } from "./futures/reconcileArtifactL
 import { reconcileNamedContractAt } from "./futures/reconcileNamedContractAt";
 import { reconcileNamedContractCall } from "./futures/reconcileNamedContractCall";
 import { reconcileNamedContractDeployment } from "./futures/reconcileNamedContractDeployment";
+import { reconcileNamedEncodeFunctionCall } from "./futures/reconcileNamedEncodeFunctionCall";
 import { reconcileNamedLibraryDeployment } from "./futures/reconcileNamedLibraryDeployment";
 import { reconcileNamedStaticCall } from "./futures/reconcileNamedStaticCall";
 import { reconcileReadEventArgument } from "./futures/reconcileReadEventArgument";
@@ -61,6 +63,12 @@ export async function reconcileFutureSpecificReconciliations(
       return reconcileNamedStaticCall(
         future,
         executionState as StaticCallExecutionState,
+        context
+      );
+    case FutureType.ENCODE_FUNCTION_CALL:
+      return reconcileNamedEncodeFunctionCall(
+        future,
+        executionState as EncodeFunctionCallExecutionState,
         context
       );
     case FutureType.NAMED_ARTIFACT_CONTRACT_AT:

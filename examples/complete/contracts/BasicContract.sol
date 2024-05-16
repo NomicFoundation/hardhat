@@ -5,6 +5,8 @@ pragma solidity ^0.8.9;
 // import "hardhat/console.sol";
 
 contract BasicContract {
+  uint public savedArg;
+
   event BasicEvent(uint eventArg);
 
   receive() external payable {}
@@ -14,5 +16,9 @@ contract BasicContract {
     // console.log("Unlock time is %o and block timestamp is %o", unlockTime, block.timestamp);
 
     emit BasicEvent(funcArg);
+  }
+
+  function otherFunction(uint arg) public payable {
+    savedArg = arg;
   }
 }

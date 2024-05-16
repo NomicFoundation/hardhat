@@ -19,7 +19,8 @@ export function findResultForFutureById(
     exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
       exState.type === ExecutionSateType.STATIC_CALL_EXECUTION_STATE ||
       exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE ||
-      exState.type === ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE,
+      exState.type === ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE ||
+      exState.type === ExecutionSateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE,
     `Expected execution state for ${futureId} to be support result lookup, but instead it was ${exState.type}`
   );
 
@@ -32,7 +33,10 @@ export function findResultForFutureById(
     `Expected execution state for ${futureId} to have a result, but it did not`
   );
 
-  if (exState.type === ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE) {
+  if (
+    exState.type === ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE ||
+    exState.type === ExecutionSateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE
+  ) {
     return exState.result;
   }
 

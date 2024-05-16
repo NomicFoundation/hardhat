@@ -3,6 +3,7 @@ import {
   CallExecutionState,
   ContractAtExecutionState,
   DeploymentExecutionState,
+  EncodeFunctionCallExecutionState,
   ExecutionSateType,
   ExecutionStatus,
   ReadEventArgumentExecutionState,
@@ -13,6 +14,7 @@ import {
   CallExecutionStateInitializeMessage,
   ContractAtExecutionStateInitializeMessage,
   DeploymentExecutionStateInitializeMessage,
+  EncodeFunctionCallExecutionStateInitializeMessage,
   ReadEventArgExecutionStateInitializeMessage,
   SendDataExecutionStateInitializeMessage,
   StaticCallExecutionStateInitializeMessage,
@@ -126,6 +128,27 @@ export function initialiseContractAtExecutionStateFrom(
   };
 
   return contractAtExecutionInitialState;
+}
+
+export function initialiseEncodeFunctionCallExecutionStateFrom(
+  action: EncodeFunctionCallExecutionStateInitializeMessage
+): EncodeFunctionCallExecutionState {
+  const encodeFunctionCallExecutionInitialState: EncodeFunctionCallExecutionState =
+    {
+      id: action.futureId,
+      type: ExecutionSateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE,
+      futureType: FutureType.ENCODE_FUNCTION_CALL,
+      strategy: action.strategy,
+      strategyConfig: action.strategyConfig,
+      status: ExecutionStatus.SUCCESS,
+      dependencies: new Set<string>(action.dependencies),
+      artifactId: action.artifactId,
+      functionName: action.functionName,
+      args: action.args,
+      result: action.result,
+    };
+
+  return encodeFunctionCallExecutionInitialState;
 }
 
 export function initialiseCallExecutionStateFrom(

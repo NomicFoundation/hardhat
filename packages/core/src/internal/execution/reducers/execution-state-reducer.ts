@@ -7,6 +7,7 @@ import {
   ContractAtExecutionStateInitializeMessage,
   DeploymentExecutionStateCompleteMessage,
   DeploymentExecutionStateInitializeMessage,
+  EncodeFunctionCallExecutionStateInitializeMessage,
   JournalMessage,
   JournalMessageType,
   NetworkInteractionRequestMessage,
@@ -29,6 +30,7 @@ import {
   initialiseCallExecutionStateFrom,
   initialiseContractAtExecutionStateFrom,
   initialiseDeploymentExecutionStateFrom,
+  initialiseEncodeFunctionCallExecutionStateFrom,
   initialiseReadEventArgumentExecutionStateFrom,
   initialiseSendDataExecutionStateFrom,
   initialiseStaticCallExecutionStateFrom,
@@ -77,6 +79,7 @@ export function executionStateReducer(
     | SendDataExecutionStateCompleteMessage
     | ContractAtExecutionStateInitializeMessage
     | ReadEventArgExecutionStateInitializeMessage
+    | EncodeFunctionCallExecutionStateInitializeMessage
     | NetworkInteractionRequestMessage
     | TransactionSendMessage
     | TransactionConfirmMessage
@@ -99,6 +102,8 @@ export function executionStateReducer(
       return initialiseContractAtExecutionStateFrom(action);
     case JournalMessageType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE:
       return initialiseReadEventArgumentExecutionStateFrom(action);
+    case JournalMessageType.ENCODE_FUNCTION_CALL_EXECUTION_STATE_INITIALIZE:
+      return initialiseEncodeFunctionCallExecutionStateFrom(action);
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE:
       return _ensureStateThen(
         state,

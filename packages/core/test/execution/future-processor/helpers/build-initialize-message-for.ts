@@ -20,6 +20,7 @@ import {
   CallExecutionStateInitializeMessage,
   ContractAtExecutionStateInitializeMessage,
   DeploymentExecutionStateInitializeMessage,
+  EncodeFunctionCallExecutionStateInitializeMessage,
   JournalMessageType,
   ReadEventArgExecutionStateInitializeMessage,
   SendDataExecutionStateInitializeMessage,
@@ -40,6 +41,7 @@ import {
   NamedContractAtFutureImplementation,
   NamedContractCallFutureImplementation,
   NamedContractDeploymentFutureImplementation,
+  NamedEncodeFunctionCallFutureImplementation,
   NamedLibraryDeploymentFutureImplementation,
   NamedStaticCallFutureImplementation,
   ReadEventArgumentFutureImplementation,
@@ -57,6 +59,7 @@ import {
   StaticCallFuture,
   ReadEventArgumentFuture,
   SendDataFuture,
+  EncodeFunctionCallFuture,
 } from "../../../../src/types/module";
 import {
   exampleAccounts,
@@ -77,6 +80,7 @@ describe("buildInitializeMessageFor", () => {
   let artifactLibraryDeployment: LibraryDeploymentFuture;
   let namedContractCall: ContractCallFuture<string, string>;
   let staticCall: StaticCallFuture<string, string>;
+  let encodedCall: EncodeFunctionCallFuture<string, string>;
   let namedContractAt: NamedArtifactContractAtFuture<string>;
   let artifactContractAt: ContractAtFuture;
   let readEventArgument: ReadEventArgumentFuture;
@@ -194,6 +198,17 @@ describe("buildInitializeMessageFor", () => {
     staticCall.dependencies.add(anotherNamedContractDeployment);
     staticCall.dependencies.add(safeMathLibraryDeployment);
 
+    encodedCall = new NamedEncodeFunctionCallFutureImplementation(
+      "MyModule:EncodeFunctionCall",
+      fakeModule,
+      "test",
+      anotherNamedContractDeployment,
+      [1n, "b", safeMathLibraryDeployment, { sub: "d" }]
+    );
+
+    encodedCall.dependencies.add(anotherNamedContractDeployment);
+    encodedCall.dependencies.add(safeMathLibraryDeployment);
+
     namedContractAt = new NamedContractAtFutureImplementation(
       "MyModule:NamedContractAt",
       fakeModule,
@@ -236,6 +251,34 @@ describe("buildInitializeMessageFor", () => {
                 type: "uint256",
                 internalType: "uint256",
                 indexed: false,
+              },
+            ],
+          },
+          {
+            type: "function",
+            name: "test",
+            inputs: [
+              {
+                name: "a",
+                type: "uint256",
+              },
+              {
+                name: "b",
+                type: "string",
+              },
+              {
+                name: "c",
+                type: "address",
+              },
+              {
+                name: "d",
+                type: "tuple",
+                components: [
+                  {
+                    name: "sub",
+                    type: "string",
+                  },
+                ],
               },
             ],
           },
@@ -614,6 +657,39 @@ describe("buildInitializeMessageFor", () => {
           args: [1n, "b", libraryAddress, { sub: "d" }],
           nameOrIndex: 0,
           from: exampleAccounts[0],
+        });
+      });
+    });
+  });
+
+  describe("encode function call state", () => {
+    let message: EncodeFunctionCallExecutionStateInitializeMessage;
+
+    describe("named library", () => {
+      beforeEach(async () => {
+        message = (await buildInitializeMessageFor(
+          encodedCall,
+          exampleDeploymentState,
+          basicStrategy,
+          {},
+          mockDeploymentLoader,
+          exampleAccounts,
+          getDefaultSender(exampleAccounts)
+        )) as EncodeFunctionCallExecutionStateInitializeMessage;
+      });
+
+      it("should build an initialize message", async () => {
+        assert.deepStrictEqual(message, {
+          type: JournalMessageType.ENCODE_FUNCTION_CALL_EXECUTION_STATE_INITIALIZE,
+          futureId: "MyModule:EncodeFunctionCall",
+          strategy: "basic",
+          strategyConfig: {},
+          dependencies: ["MyModule:AnotherContract", "MyModule:SafeMath"],
+          artifactId: "MyModule:AnotherContract",
+          functionName: "test",
+          args: [1n, "b", libraryAddress, { sub: "d" }],
+          result:
+            "0xd40c6f1500000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000080000000000000000000000000742d35cc6634c0532925a3b844bc454e4438f44e00000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000016200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000016400000000000000000000000000000000000000000000000000000000000000",
         });
       });
     });

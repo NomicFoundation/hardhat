@@ -156,6 +156,19 @@ export interface SerializedNamedStaticCallFuture extends BaseSerializedFuture {
 }
 
 /**
+ * The serialized version of NamedEncodeFunctionCallFuture.
+ *
+ * @beta
+ */
+export interface SerializedNamedEncodeFunctionCallFuture
+  extends BaseSerializedFuture {
+  type: FutureType.ENCODE_FUNCTION_CALL;
+  functionName: string;
+  contract: FutureToken;
+  args: SerializedArgumentType[];
+}
+
+/**
  * The serialized version of NamedContractAtFuture.
  *
  * @beta
@@ -207,7 +220,7 @@ export interface SerializedSendDataFuture extends BaseSerializedFuture {
     | SerializedModuleParameterRuntimeValue
     | SerializedAccountRuntimeValue;
   value: SerializedBigInt | SerializedModuleParameterRuntimeValue;
-  data: string | undefined;
+  data: string | FutureToken | undefined;
   from: string | SerializedAccountRuntimeValue | undefined;
 }
 
@@ -289,6 +302,7 @@ export type SerializedFuture =
   | SerializedArtifactLibraryDeploymentFuture
   | SerializedNamedContractCallFuture
   | SerializedNamedStaticCallFuture
+  | SerializedNamedEncodeFunctionCallFuture
   | SerializedNamedContractAtFuture
   | SerializedArtifactContractAtFuture
   | SerializedReadEventArgumentFuture

@@ -1,6 +1,11 @@
-import { ContractCallFuture, StaticCallFuture } from "../../../types/module";
+import {
+  ContractCallFuture,
+  EncodeFunctionCallFuture,
+  StaticCallFuture,
+} from "../../../types/module";
 import {
   CallExecutionState,
+  EncodeFunctionCallExecutionState,
   StaticCallExecutionState,
 } from "../../execution/types/execution-state";
 import {
@@ -11,8 +16,14 @@ import {
 import { compare } from "./compare";
 
 export function reconcileFunctionName(
-  future: ContractCallFuture<string, string> | StaticCallFuture<string, string>,
-  exState: CallExecutionState | StaticCallExecutionState,
+  future:
+    | ContractCallFuture<string, string>
+    | StaticCallFuture<string, string>
+    | EncodeFunctionCallFuture<string, string>,
+  exState:
+    | CallExecutionState
+    | StaticCallExecutionState
+    | EncodeFunctionCallExecutionState,
   _context: ReconciliationContext
 ): ReconciliationFutureResultFailure | undefined {
   return compare(

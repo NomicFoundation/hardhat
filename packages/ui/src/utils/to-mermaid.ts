@@ -123,6 +123,8 @@ function toLabel(f: Future): string {
       return `Call ${f.contract.contractName}.${f.functionName}`;
     case FutureType.STATIC_CALL:
       return `Static call ${f.contract.contractName}.${f.functionName}`;
+    case FutureType.ENCODE_FUNCTION_CALL:
+      return `Encoded call ${f.contract.contractName}.${f.functionName}`;
     case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
       return `Existing contract ${f.contractName} (${
         typeof f.address === "string"

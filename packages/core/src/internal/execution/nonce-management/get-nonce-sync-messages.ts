@@ -3,6 +3,7 @@ import uniq from "lodash/uniq";
 import { IgnitionError } from "../../../errors";
 import {
   isArtifactContractAtFuture,
+  isEncodeFunctionCallFuture,
   isNamedContractAtFuture,
   isReadEventArgumentFuture,
 } from "../../../type-guards";
@@ -251,7 +252,9 @@ function createMapFromSenderToNonceAndTransactions(
     if (
       executionState.type ===
         ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE ||
-      executionState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE
+      executionState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE ||
+      executionState.type ===
+        ExecutionSateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE
     ) {
       continue;
     }
@@ -339,6 +342,10 @@ function _pickFrom(
   }
 
   if (isReadEventArgumentFuture(future)) {
+    return null;
+  }
+
+  if (isEncodeFunctionCallFuture(future)) {
     return null;
   }
 

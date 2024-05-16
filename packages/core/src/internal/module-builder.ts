@@ -7,6 +7,7 @@ import {
   isArtifactType,
   isCallableContractFuture,
   isContractFuture,
+  isEncodeFunctionCallFuture,
   isFuture,
   isModuleParameterRuntimeValue,
   isNamedStaticCallFuture,
@@ -22,6 +23,7 @@ import {
   ContractCallFuture,
   ContractDeploymentFuture,
   ContractFuture,
+  EncodeFunctionCallFuture,
   FutureType,
   IgnitionModule,
   IgnitionModuleResult,
@@ -40,6 +42,7 @@ import {
   CallOptions,
   ContractAtOptions,
   ContractOptions,
+  EncodeFunctionCallOptions,
   IgnitionModuleBuilder,
   LibraryOptions,
   ReadEventArgumentOptions,
@@ -59,6 +62,7 @@ import {
   NamedContractAtFutureImplementation,
   NamedContractCallFutureImplementation,
   NamedContractDeploymentFutureImplementation,
+  NamedEncodeFunctionCallFutureImplementation,
   NamedLibraryDeploymentFutureImplementation,
   NamedStaticCallFutureImplementation,
   ReadEventArgumentFutureImplementation,
@@ -610,6 +614,68 @@ class IgnitionModuleBuilderImplementation<
     return future;
   }
 
+  public encodeFunctionCall<
+    ContractNameT extends string,
+    FunctionNameT extends string
+  >(
+    contractFuture: CallableContractFuture<ContractNameT>,
+    functionName: FunctionNameT,
+    args: ArgumentType[] = [],
+    options: EncodeFunctionCallOptions = {}
+  ): EncodeFunctionCallFuture<ContractNameT, FunctionNameT> {
+    if (!Array.isArray(args)) {
+      this._throwErrorWithStackTrace(
+        `Invalid parameter "args" provided to encodeFunctionCall "${functionName}" in module "${this._module.id}"`,
+        this.encodeFunctionCall
+      );
+    }
+
+    if (typeof options !== "object") {
+      this._throwErrorWithStackTrace(
+        `Invalid parameter "options" provided to encodeFunctionCall "${functionName}" in module "${this._module.id}"`,
+        this.encodeFunctionCall
+      );
+    }
+
+    const futureId = toCallFutureId(
+      this._module.id,
+      options.id,
+      contractFuture.module.id,
+      contractFuture.id,
+      functionName
+    );
+
+    /* validation start */
+    this._assertValidId(options.id, this.encodeFunctionCall);
+    this._assertValidFunctionName(functionName, this.encodeFunctionCall);
+    this._assertUniqueFutureId(futureId, options.id, this.encodeFunctionCall);
+    this._assertValidCallableContract(contractFuture, this.encodeFunctionCall);
+    /* validation end */
+
+    const future = new NamedEncodeFunctionCallFutureImplementation(
+      futureId,
+      this._module,
+      functionName,
+      contractFuture,
+      args
+    );
+
+    future.dependencies.add(contractFuture);
+
+    for (const arg of resolveArgsToFutures(args)) {
+      future.dependencies.add(arg);
+    }
+
+    for (const afterFuture of options.after ?? []) {
+      future.dependencies.add(afterFuture);
+    }
+
+    this._module.futures.add(future);
+    this._futureIds.add(futureId);
+
+    return future;
+  }
+
   public contractAt<ContractNameT extends string>(
     contractName: ContractNameT,
     address:
@@ -844,7 +910,7 @@ class IgnitionModuleBuilderImplementation<
       | ModuleParameterRuntimeValue<string>
       | AccountRuntimeValue,
     value?: bigint | ModuleParameterRuntimeValue<bigint>,
-    data?: string,
+    data?: string | EncodeFunctionCallFuture<string, string>,
     options: SendDataOptions = {}
   ): SendDataFuture {
     if (typeof options !== "object") {
@@ -878,6 +944,10 @@ class IgnitionModuleBuilderImplementation<
 
     if (isFuture(to)) {
       future.dependencies.add(to);
+    }
+
+    if (isFuture(data)) {
+      future.dependencies.add(data);
     }
 
     for (const afterFuture of options.after ?? []) {
@@ -1130,10 +1200,14 @@ m.${futureConstructor.name}(..., { id: "MyUniqueId"})`,
   }
 
   private _assertValidData(
-    data: string | undefined,
+    data: string | EncodeFunctionCallFuture<string, string> | undefined,
     func: (...[]: any[]) => any
   ) {
-    if (typeof data !== "string" && data !== undefined) {
+    if (
+      typeof data !== "string" &&
+      data !== undefined &&
+      !isEncodeFunctionCallFuture(data)
+    ) {
       this._throwErrorWithStackTrace(`Invalid data given`, func);
     }
   }

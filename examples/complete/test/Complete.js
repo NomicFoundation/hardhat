@@ -41,4 +41,10 @@ describe("Complete", function () {
 
     expect(await withLib.readonlyFunction(40)).to.equal(42);
   });
+
+  it("Should call the otherFunction with 42", async () => {
+    const { duplicate } = await loadFixture(deployCompleteFixture);
+
+    expect(await duplicate.savedArg()).to.equal(42);
+  });
 });

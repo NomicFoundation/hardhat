@@ -53,7 +53,7 @@ export function toContractFutureId(
 }
 
 /**
- * Construct the future id for a call or static call, namespaced by the moduleId.
+ * Construct the future id for a call, static call, or encoded function call, namespaced by the moduleId.
  *
  * @param moduleId - the id of the module the future is part of
  * @param userProvidedId - the overriding id provided by the user (it will still

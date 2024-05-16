@@ -236,6 +236,33 @@ describe("send", () => {
     assert.equal(futureC2.to.defaultValue, undefined);
   });
 
+  it("should be able to pass an encode function call future as the 'data' arg for a send", () => {
+    const moduleWithDependentContracts = buildModule("Module1", (m) => {
+      const example = m.contract("Example");
+      const data = m.encodeFunctionCall(example, "test", []);
+      m.send("test_send", example, 0n, data);
+
+      return { example };
+    });
+
+    assert.isDefined(moduleWithDependentContracts);
+
+    const exampleFuture = [...moduleWithDependentContracts.futures].find(
+      ({ id }) => id === "Module1#Example.test"
+    );
+
+    const sendFuture = [...moduleWithDependentContracts.futures].find(
+      ({ id }) => id === "Module1#test_send"
+    );
+
+    if (!(sendFuture instanceof SendDataFutureImplementation)) {
+      assert.fail("Not a send data future");
+    }
+
+    assert.equal(sendFuture.dependencies.size, 2);
+    assert(sendFuture.dependencies.has(exampleFuture!));
+  });
+
   describe("passing id", () => {
     it("should be able to call the same function twice by passing an id", () => {
       const moduleWithSameCallTwice = buildModule("Module1", (m) => {

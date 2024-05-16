@@ -15,6 +15,7 @@ export type ExecutionState =
   | DeploymentExecutionState
   | CallExecutionState
   | StaticCallExecutionState
+  | EncodeFunctionCallExecutionState
   | ContractAtExecutionState
   | ReadEventArgumentExecutionState
   | SendDataExecutionState;
@@ -37,6 +38,7 @@ export enum ExecutionSateType {
   DEPLOYMENT_EXECUTION_STATE = "DEPLOYMENT_EXECUTION_STATE",
   CALL_EXECUTION_STATE = "CALL_EXECUTION_STATE",
   STATIC_CALL_EXECUTION_STATE = "STATIC_CALL_EXECUTION_STATE",
+  ENCODE_FUNCTION_CALL_EXECUTION_STATE = "ENCODE_FUNCTION_CALL_EXECUTION_STATE",
   CONTRACT_AT_EXECUTION_STATE = "CONTRACT_AT_EXECUTION_STATE",
   READ_EVENT_ARGUMENT_EXECUTION_STATE = "READ_EVENT_ARGUMENT_EXECUTION_STATE",
   SEND_DATA_EXECUTION_STATE = "SEND_DATA_EXECUTION_STATE",
@@ -132,6 +134,25 @@ export interface StaticCallExecutionState
 }
 
 /**
+ * An execution state that tracks the execution of an encode function call future.
+ *
+ * Encode function call execution states are only stored for reconciliation purposes
+ * and don't actually lead to any network interaction.
+ *
+ * Their execution is immediately completed.
+ */
+export interface EncodeFunctionCallExecutionState
+  extends BaseExecutionState<
+    ExecutionSateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE,
+    FutureType.ENCODE_FUNCTION_CALL
+  > {
+  artifactId: string;
+  functionName: string;
+  args: SolidityParameterType[];
+  result?: string;
+}
+
+/**
  * An execution state that tracks the execution of an arbitrary send data future.
  */
 export interface SendDataExecutionState
@@ -166,7 +187,7 @@ export interface ContractAtExecutionState
 }
 
 /**
- * An execution state that tracks the execution of a contract at future.
+ * An execution state that tracks the execution of a read event argument future.
  *
  * Read event argument execution states are only stored for reconciliation
  * purposes and don't actually lead to any network interaction.

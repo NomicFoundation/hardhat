@@ -19,6 +19,7 @@ export type ExecutionEvent =
   | SendDataExecutionStateCompleteEvent
   | ContractAtExecutionStateInitializeEvent
   | ReadEventArgExecutionStateInitializeEvent
+  | EncodeFunctionCallExecutionStateInitializeEvent
   | NetworkInteractionRequestEvent
   | TransactionSendEvent
   | TransactionConfirmEvent
@@ -51,6 +52,7 @@ export enum ExecutionEventType {
   SEND_DATA_EXECUTION_STATE_COMPLETE = "SEND_DATA_EXECUTION_STATE_COMPLETE",
   CONTRACT_AT_EXECUTION_STATE_INITIALIZE = "CONTRACT_AT_EXECUTION_STATE_INITIALIZE",
   READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE = "READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE",
+  ENCODE_FUNCTION_CALL_EXECUTION_STATE_INITIALIZE = "ENCODE_FUNCTION_CALL_EXECUTION_STATE_INITIALIZE",
   NETWORK_INTERACTION_REQUEST = "NETWORK_INTERACTION_REQUEST",
   TRANSACTION_SEND = "TRANSACTION_SEND",
   TRANSACTION_CONFIRM = "TRANSACTION_CONFIRM",
@@ -260,6 +262,19 @@ export interface ReadEventArgExecutionStateInitializeEvent {
 }
 
 /**
+ * An event indicating that a future that represents encoding a function
+ * call has been initialized, there is no complete event as it initializes
+ * as complete.
+ *
+ * @beta
+ */
+export interface EncodeFunctionCallExecutionStateInitializeEvent {
+  type: ExecutionEventType.ENCODE_FUNCTION_CALL_EXECUTION_STATE_INITIALIZE;
+  futureId: string;
+  result: ExecutionEventSuccess;
+}
+
+/**
  * An event indicating the user has clear the previous execution of a future.
  *
  * @beta
@@ -457,6 +472,7 @@ export interface ExecutionEventTypeMap {
   [ExecutionEventType.SEND_DATA_EXECUTION_STATE_COMPLETE]: SendDataExecutionStateCompleteEvent;
   [ExecutionEventType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE]: ContractAtExecutionStateInitializeEvent;
   [ExecutionEventType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE]: ReadEventArgExecutionStateInitializeEvent;
+  [ExecutionEventType.ENCODE_FUNCTION_CALL_EXECUTION_STATE_INITIALIZE]: EncodeFunctionCallExecutionStateInitializeEvent;
   [ExecutionEventType.NETWORK_INTERACTION_REQUEST]: NetworkInteractionRequestEvent;
   [ExecutionEventType.TRANSACTION_SEND]: TransactionSendEvent;
   [ExecutionEventType.TRANSACTION_CONFIRM]: TransactionConfirmEvent;

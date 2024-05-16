@@ -13,6 +13,7 @@ export type BaseArgumentType =
   | boolean
   | ContractFuture<string>
   | StaticCallFuture<string, string>
+  | EncodeFunctionCallFuture<string, string>
   | ReadEventArgumentFuture
   | RuntimeValue;
 
@@ -38,6 +39,7 @@ export enum FutureType {
   LIBRARY_DEPLOYMENT = "LIBRARY_DEPLOYMENT",
   CONTRACT_CALL = "CONTRACT_CALL",
   STATIC_CALL = "STATIC_CALL",
+  ENCODE_FUNCTION_CALL = "ENCODE_FUNCTION_CALL",
   NAMED_ARTIFACT_CONTRACT_AT = "NAMED_ARTIFACT_CONTRACT_AT",
   CONTRACT_AT = "CONTRACT_AT",
   READ_EVENT_ARGUMENT = "READ_EVENT_ARGUMENT",
@@ -56,6 +58,7 @@ export type Future =
   | LibraryDeploymentFuture
   | ContractCallFuture<string, string>
   | StaticCallFuture<string, string>
+  | EncodeFunctionCallFuture<string, string>
   | NamedArtifactContractAtFuture<string>
   | ContractAtFuture
   | ReadEventArgumentFuture
@@ -245,6 +248,24 @@ export interface StaticCallFuture<
 }
 
 /**
+ * A future representing the encoding of a contract function call
+ *
+ * @beta
+ */
+export interface EncodeFunctionCallFuture<
+  ContractNameT extends string,
+  FunctionNameT extends string
+> {
+  type: FutureType.ENCODE_FUNCTION_CALL;
+  id: string;
+  module: IgnitionModule;
+  dependencies: Set<Future>;
+  contract: ContractFuture<ContractNameT>;
+  functionName: FunctionNameT;
+  args: ArgumentType[];
+}
+
+/**
  * A future representing a previously deployed contract at a known address that belongs to this project.
  *
  * @beta
@@ -318,7 +339,7 @@ export interface SendDataFuture {
     | ModuleParameterRuntimeValue<string>
     | AccountRuntimeValue;
   value: bigint | ModuleParameterRuntimeValue<bigint>;
-  data: string | undefined;
+  data: string | EncodeFunctionCallFuture<string, string> | undefined;
   from: string | AccountRuntimeValue | undefined;
 }
 
