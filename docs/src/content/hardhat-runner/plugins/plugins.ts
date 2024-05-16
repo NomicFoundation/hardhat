@@ -966,6 +966,14 @@ const communityPlugins: IPlugin[] = [
     description: "Ui extensions for the ethernaut-wallet package",
     tags: ["ethernaut-cli", "ui", "wallet"],
   },
+  {
+    name: "@okxweb3/hardhat-explorer-verify",
+    author: "okx",
+    authorUrl: "https://github.com/okx",
+    description:
+      "Hardhat plugin for verifying smart contracts deployed on the EVM chains including X Layer",
+    tags: ["OKX Explorer", "Verification", "X Layer"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
