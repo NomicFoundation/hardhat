@@ -169,7 +169,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             )
           ).to.be.rejectedWith(
             AssertionError,
-            /Expected the balance of MCK tokens for "0x\w{40}" to satisfy the predicate, but it didn't \(change by: 0 wei\)/
+            /Expected the balance of MCK tokens for "0x\w{40}" to satisfy the predicate, but it didn't \(token balance change: 0 wei\)/
           );
         });
 
@@ -195,7 +195,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             )
           ).to.be.rejectedWith(
             AssertionError,
-            /Expected the balance of MCK tokens for "0x\w{40}" to NOT satisfy the predicate, but it did \(change by: 0 wei\)/
+            /Expected the balance of MCK tokens for "0x\w{40}" to NOT satisfy the predicate, but it did \(token balance change: 0 wei\)/
           );
         });
 
@@ -395,7 +395,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             )
           ).to.be.rejectedWith(
             AssertionError,
-            /Expected the balance of MCK tokens for "0x\w{40}" to satisfy the predicate, but it didn't \(change by: 50 wei\)/
+            /Expected the balance of MCK tokens for "0x\w{40}" to satisfy the predicate, but it didn't \(token balance change: 50 wei\)/
           );
         });
 
@@ -421,7 +421,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             )
           ).to.be.rejectedWith(
             AssertionError,
-            /Expected the balance of MCK tokens for "0x\w{40}" to NOT satisfy the predicate, but it did \(change by: 50 wei\)/
+            /Expected the balance of MCK tokens for "0x\w{40}" to NOT satisfy the predicate, but it did \(token balance change: 50 wei\)/
           );
         });
 

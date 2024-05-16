@@ -69,8 +69,8 @@ export function supportChangeTokenBalance(
         if (typeof balanceChange === "function") {
           assert(
             balanceChange(actualChange),
-            `Expected the balance of ${tokenDescription} tokens for "${address}" to satisfy the predicate, but it didn't (change by: ${actualChange.toString()} wei)`,
-            `Expected the balance of ${tokenDescription} tokens for "${address}" to NOT satisfy the predicate, but it did (change by: ${actualChange.toString()} wei)`
+            `Expected the balance of ${tokenDescription} tokens for "${address}" to satisfy the predicate, but it didn't (token balance change: ${actualChange.toString()} wei)`,
+            `Expected the balance of ${tokenDescription} tokens for "${address}" to NOT satisfy the predicate, but it did (token balance change: ${actualChange.toString()} wei)`
           );
         } else {
           assert(
