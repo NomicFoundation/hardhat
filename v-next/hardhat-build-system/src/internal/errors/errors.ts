@@ -181,12 +181,3 @@ function _applyErrorMessageTemplate(
 
   return template;
 }
-
-export function assertHardhatInvariant(
-  invariant: boolean,
-  message: string,
-): asserts invariant {
-  if (!invariant) {
-    throw new HardhatError(ERRORS.GENERAL.ASSERTION_ERROR, { message });
-  }
-}

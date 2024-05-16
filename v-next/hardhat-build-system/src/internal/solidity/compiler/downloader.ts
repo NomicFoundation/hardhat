@@ -3,13 +3,14 @@ import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
 import { keccak256 } from "@nomicfoundation/hardhat-utils/crypto";
 import debug from "debug";
 import fsExtra from "fs-extra";
 
 import { ERRORS } from "../../errors/errors-list.js";
-import { HardhatError, assertHardhatInvariant } from "../../errors/errors.js";
+import { HardhatError } from "../../errors/errors.js";
 import { download } from "../../utils/download.js";
 import { MultiProcessMutex } from "../../utils/multi-process-mutex.js";
 

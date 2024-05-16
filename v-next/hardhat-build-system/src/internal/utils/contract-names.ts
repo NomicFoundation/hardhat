@@ -1,5 +1,7 @@
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+
 import { ERRORS } from "../errors/errors-list.js";
-import { HardhatError, assertHardhatInvariant } from "../errors/errors.js";
+import { HardhatError } from "../errors/errors.js";
 
 /**
  * Returns a fully qualified name from a sourceName and contractName.

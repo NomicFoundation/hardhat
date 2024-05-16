@@ -1,10 +1,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import resolve from "resolve";
 
 import { ERRORS } from "../errors/errors-list.js";
-import { HardhatError, assertHardhatInvariant } from "../errors/errors.js";
+import { HardhatError } from "../errors/errors.js";
 import {
   FileContent,
   LibraryInfo,

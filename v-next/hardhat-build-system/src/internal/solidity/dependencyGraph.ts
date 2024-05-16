@@ -1,5 +1,7 @@
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+
 import { ERRORS } from "../errors/errors-list.js";
-import { HardhatError, assertHardhatInvariant } from "../errors/errors.js";
+import { HardhatError } from "../errors/errors.js";
 import * as taskTypes from "../types/builtin-tasks/index.js";
 
 import { ResolvedFile, Resolver } from "./resolver.js";

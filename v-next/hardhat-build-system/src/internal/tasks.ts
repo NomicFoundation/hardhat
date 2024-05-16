@@ -1,3 +1,4 @@
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import AggregateError from "aggregate-error";
 import chalk from "chalk";
 import debug from "debug";
@@ -6,7 +7,7 @@ import semver from "semver";
 
 import { SolidityFilesCache } from "./builtin-tasks/utils/solidity-files-cache.js";
 import { ERRORS } from "./errors/errors-list.js";
-import { HardhatError, assertHardhatInvariant } from "./errors/errors.js";
+import { HardhatError } from "./errors/errors.js";
 import {
   createCompilationJobFromFile,
   createCompilationJobsFromConnectedComponent,

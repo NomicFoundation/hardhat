@@ -3,10 +3,11 @@ import * as fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import * as semver from "semver";
 
 import { ERRORS } from "../../errors/errors-list.js";
-import { HardhatError, assertHardhatInvariant } from "../../errors/errors.js";
+import { HardhatError } from "../../errors/errors.js";
 import { CompilerInput, CompilerOutput } from "../../types/index.js";
 
 export interface ICompiler {
