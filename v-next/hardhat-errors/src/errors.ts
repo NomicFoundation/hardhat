@@ -55,7 +55,10 @@ export class HardhatError extends CustomError {
     });
   }
 
-  public static isHardhatError(other: unknown): other is HardhatError {
+  public static isHardhatError(
+    other: unknown,
+    descriptor?: ErrorDescriptor,
+  ): other is HardhatError {
     if (typeof other !== "object" || other === null) {
       return false;
     }
@@ -65,7 +68,13 @@ export class HardhatError extends CustomError {
       IS_HARDHAT_ERROR_PROPERTY_NAME,
     );
 
-    return isHardhatErrorProperty?.value === true;
+    return (
+      isHardhatErrorProperty?.value === true &&
+      // If an error descriptor is provided, check if its number matches the Hardhat error number
+      (descriptor === undefined
+        ? true
+        : (other as HardhatError).number === descriptor.number)
+    );
   }
 
   public get number(): number {
@@ -78,6 +87,10 @@ export class HardhatError extends CustomError {
 
   public get descriptor(): ErrorDescriptor {
     return this.#descriptor;
+  }
+
+  public get messageArguments(): Record<string, ErrorMessageTemplateValue> {
+    return this.messageArguments;
   }
 }
 
