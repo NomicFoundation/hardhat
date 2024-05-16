@@ -1562,6 +1562,9 @@ importers:
       '@nomicfoundation/ethereumjs-util':
         specifier: 9.0.4
         version: 9.0.4
+      '@nomicfoundation/hardhat-errors':
+        specifier: ^3.0.0
+        version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
         specifier: ^3.0.0
         version: link:../hardhat-utils
