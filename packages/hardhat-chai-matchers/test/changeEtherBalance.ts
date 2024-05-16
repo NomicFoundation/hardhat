@@ -104,7 +104,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
               to: receiver.address,
               value: 200,
             })
-          ).to.changeEtherBalance(sender, BigInt("-200"));
+          ).to.changeEtherBalance(sender, -200n);
         });
 
         it("Should pass when given a predicate", async () => {
@@ -113,10 +113,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
               to: receiver.address,
               value: 200,
             })
-          ).to.changeEtherBalance(
-            sender,
-            (diff: bigint) => diff === BigInt("-200")
-          );
+          ).to.changeEtherBalance(sender, (diff: bigint) => diff === -200n);
         });
 
         it("Should pass when expected balance change is passed as int and is equal to an actual", async () => {
@@ -149,7 +146,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
             })
           ).to.changeEtherBalance(
             sender,
-            (diff: bigint) => diff === BigInt(-(txGasFees + 200)),
+            (diff: bigint) => diff === -(BigInt(txGasFees) + 200n),
             {
               includeFee: true,
             }
@@ -184,7 +181,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
             })
           ).to.not.changeEtherBalance(
             receiver,
-            (diff: bigint) => diff === BigInt(300)
+            (diff: bigint) => diff === 300n
           );
         });
 
@@ -226,10 +223,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
                 to: receiver.address,
                 value: 200,
               })
-            ).to.changeEtherBalance(
-              sender,
-              (diff: bigint) => diff === BigInt(-500)
-            )
+            ).to.changeEtherBalance(sender, (diff: bigint) => diff === -500n)
           ).to.be.eventually.rejectedWith(
             AssertionError,
             `Expected the ether balance change of "${sender.address}" to satisfy the predicate, but it didn't (balance change: -200 wei)`
@@ -259,7 +253,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
               })
             ).to.not.changeEtherBalance(
               sender,
-              (diff: bigint) => diff === BigInt(-200)
+              (diff: bigint) => diff === -200n
             )
           ).to.be.eventually.rejectedWith(
             AssertionError,

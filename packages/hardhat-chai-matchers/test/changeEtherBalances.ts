@@ -105,10 +105,7 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
               gasPrice: 1,
               value: 200,
             })
-          ).to.changeEtherBalances(
-            [sender, receiver],
-            [BigInt("-200"), BigInt(200)]
-          );
+          ).to.changeEtherBalances([sender, receiver], [-200n, 200n]);
         });
 
         it("Should pass when given a predicate", async () => {
@@ -120,11 +117,8 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
             })
           ).to.changeEtherBalances(
             [sender, receiver],
-            ([senderDiff, receiverDiff]: bigint[]) => {
-              return (
-                senderDiff === BigInt(-200) && receiverDiff === BigInt(200)
-              );
-            }
+            ([senderDiff, receiverDiff]: bigint[]) =>
+              senderDiff === -200n && receiverDiff === 200n
           );
         });
 
@@ -138,11 +132,8 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
               })
             ).to.changeEtherBalances(
               [sender, receiver],
-              ([senderDiff, receiverDiff]: bigint[]) => {
-                return (
-                  senderDiff === BigInt(-201) && receiverDiff === BigInt(200)
-                );
-              }
+              ([senderDiff, receiverDiff]: bigint[]) =>
+                senderDiff === -201n && receiverDiff === 200n
             )
           ).to.be.eventually.rejectedWith(
             AssertionError,
@@ -160,11 +151,8 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
               })
             ).to.not.changeEtherBalances(
               [sender, receiver],
-              ([senderDiff, receiverDiff]: bigint[]) => {
-                return (
-                  senderDiff === BigInt(-200) && receiverDiff === BigInt(200)
-                );
-              }
+              ([senderDiff, receiverDiff]: bigint[]) =>
+                senderDiff === -200n && receiverDiff === 200n
             )
           ).to.be.eventually.rejectedWith(
             AssertionError,

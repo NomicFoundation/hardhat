@@ -130,7 +130,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         ).to.not.changeTokenBalance(
           mockToken,
           sender,
-          (diff: bigint) => diff > BigInt(0)
+          (diff: bigint) => diff > 0n
         );
 
         await expect(() =>
@@ -165,7 +165,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             ).to.changeTokenBalance(
               mockToken,
               sender,
-              (diff: bigint) => diff > BigInt(0)
+              (diff: bigint) => diff > 0n
             )
           ).to.be.rejectedWith(
             AssertionError,
@@ -191,7 +191,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             ).to.not.changeTokenBalance(
               mockToken,
               sender,
-              (diff: bigint) => diff < BigInt(1)
+              (diff: bigint) => diff < 1n
             )
           ).to.be.rejectedWith(
             AssertionError,
@@ -240,9 +240,8 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         ).to.changeTokenBalances(
           mockToken,
           [sender, receiver],
-          ([senderDiff, receiverDiff]: bigint[]) => {
-            return senderDiff === BigInt(-75) && receiverDiff === BigInt(75);
-          }
+          ([senderDiff, receiverDiff]: bigint[]) =>
+            senderDiff === -75n && receiverDiff === 75n
         );
       });
 
@@ -253,9 +252,8 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           ).to.changeTokenBalances(
             mockToken,
             [sender, receiver],
-            ([senderDiff, receiverDiff]: bigint[]) => {
-              return senderDiff === BigInt(-74) && receiverDiff === BigInt(75);
-            }
+            ([senderDiff, receiverDiff]: bigint[]) =>
+              senderDiff === -74n && receiverDiff === 75n
           )
         ).to.be.eventually.rejectedWith(
           AssertionError,
@@ -270,9 +268,8 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           ).to.not.changeTokenBalances(
             mockToken,
             [sender, receiver],
-            ([senderDiff, receiverDiff]: bigint[]) => {
-              return senderDiff === BigInt(-75) && receiverDiff === BigInt(75);
-            }
+            ([senderDiff, receiverDiff]: bigint[]) =>
+              senderDiff === -75n && receiverDiff === 75n
           )
         ).to.be.eventually.rejectedWith(
           AssertionError,
@@ -394,7 +391,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             ).to.changeTokenBalance(
               mockToken,
               receiver,
-              (diff: bigint) => diff === BigInt(500)
+              (diff: bigint) => diff === 500n
             )
           ).to.be.rejectedWith(
             AssertionError,
@@ -420,7 +417,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             ).to.not.changeTokenBalance(
               mockToken,
               receiver,
-              (diff: bigint) => diff === BigInt(50)
+              (diff: bigint) => diff === 50n
             )
           ).to.be.rejectedWith(
             AssertionError,
@@ -710,15 +707,11 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
       it("native bigints are accepted", async function () {
         await expect(
           mockToken.transfer(receiver.address, 50)
-        ).to.changeTokenBalance(mockToken, sender, BigInt(-50));
+        ).to.changeTokenBalance(mockToken, sender, -50n);
 
         await expect(
           mockToken.transfer(receiver.address, 50)
-        ).to.changeTokenBalances(
-          mockToken,
-          [sender, receiver],
-          [BigInt(-50), BigInt(50)]
-        );
+        ).to.changeTokenBalances(mockToken, [sender, receiver], [-50n, 50n]);
       });
     });
 
