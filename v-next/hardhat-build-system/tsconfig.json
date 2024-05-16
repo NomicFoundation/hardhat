@@ -12,7 +12,10 @@
   ],
   "references": [
     {
-      "path": ["../hardhat-errors", "../hardhat-utils"]
+      "path": "../hardhat-errors"
+    },
+    {
+      "path": "../hardhat-utils"
     }
   ]
 }
