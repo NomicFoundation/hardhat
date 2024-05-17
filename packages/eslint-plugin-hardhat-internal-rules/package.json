@@ -29,7 +29,8 @@
     "eslint-plugin-eslint-plugin": "^5.0.0",
     "eslint-plugin-n": "^16.6.2",
     "eslint-plugin-prettier": "3.4.0",
-    "mocha": "^10.0.0"
+    "mocha": "^10.0.0",
+    "prettier": "2.4.1"
   },
   "peerDependencies": {
     "eslint": "^8.44.0"

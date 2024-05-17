@@ -59,10 +59,13 @@ importers:
         version: 16.6.2(eslint@8.57.0)
       eslint-plugin-prettier:
         specifier: 3.4.0
-        version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@3.2.5)
+        version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@2.4.1)
       mocha:
         specifier: ^10.0.0
         version: 10.3.0
+      prettier:
+        specifier: 2.4.1
+        version: 2.4.1
 
   packages/eslint-plugin-slow-imports:
     dependencies:
@@ -88,9 +91,15 @@ importers:
       eslint-plugin-n:
         specifier: ^16.6.2
         version: 16.6.2(eslint@8.57.0)
+      eslint-plugin-prettier:
+        specifier: 3.4.0
+        version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@2.4.1)
       mocha:
         specifier: ^10.0.0
         version: 10.3.0
+      prettier:
+        specifier: 2.4.1
+        version: 2.4.1
 
   packages/hardhat-chai-matchers:
     dependencies:
@@ -6525,23 +6534,6 @@ packages:
       eslint: 8.57.0
       eslint-config-prettier: 8.3.0(eslint@8.57.0)
       prettier: 2.4.1
-      prettier-linter-helpers: 1.0.0
-    dev: true
-
-  /eslint-plugin-prettier@3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@3.2.5):
-    resolution: {integrity: sha512-UDK6rJT6INSfcOo545jiaOwB701uAIt2/dR7WnFQoGCVl1/EMqdANBmwUaqqQ45aXprsTGzSa39LI1PyuRBxxw==}
-    engines: {node: '>=6.0.0'}
-    peerDependencies:
-      eslint: '>=5.0.0'
-      eslint-config-prettier: '*'
-      prettier: '>=1.13.0'
-    peerDependenciesMeta:
-      eslint-config-prettier:
-        optional: true
-    dependencies:
-      eslint: 8.57.0
-      eslint-config-prettier: 8.3.0(eslint@8.57.0)
-      prettier: 3.2.5
       prettier-linter-helpers: 1.0.0
     dev: true
 
