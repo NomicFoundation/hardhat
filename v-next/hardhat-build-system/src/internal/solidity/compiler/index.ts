@@ -3,6 +3,7 @@ import * as fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import * as semver from "semver";
 
 import { ERRORS } from "../../errors/errors-list.js";
@@ -122,7 +123,9 @@ export class NativeCompiler implements ICompiler {
 
         process.stdin.write(JSON.stringify(input));
         process.stdin.end();
-      } catch (e: any) {
+      } catch (e) {
+        ensureError(e);
+
         throw new HardhatError(ERRORS.SOLC.CANT_RUN_NATIVE_COMPILER, {}, e);
       }
     });

@@ -1,5 +1,7 @@
 import type SolidityAnalyzerT from "@nomicfoundation/solidity-analyzer";
 
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+
 import { SolidityFilesCache } from "../builtin-tasks/utils/solidity-files-cache.js";
 import { ERRORS } from "../errors/errors-list.js";
 import { HardhatError } from "../errors/errors.js";
@@ -38,8 +40,14 @@ export class Parser {
       this.#cache.set(contentHash, result);
 
       return result;
-    } catch (e: any) {
-      if (e.code === "MODULE_NOT_FOUND") {
+    } catch (e) {
+      ensureError(e);
+
+      if (
+        "code" in e &&
+        typeof e.code === "string" &&
+        e.code === "MODULE_NOT_FOUND"
+      ) {
         throw new HardhatError(ERRORS.GENERAL.CORRUPTED_LOCKFILE);
       }
 

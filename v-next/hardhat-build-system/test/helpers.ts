@@ -5,6 +5,7 @@ import path from "node:path";
 import { beforeEach } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { getRealPath, mkdir, remove } from "@nomicfoundation/hardhat-utils/fs";
 import semver from "semver";
 
@@ -96,7 +97,12 @@ export async function importCsjOrEsModule(filePath: string): Promise<any> {
   try {
     const imported = await import(pathToFileURL(filePath).toString());
     return imported.default !== undefined ? imported.default : imported;
-  } catch (e: any) {
+  } catch (e) {
+    ensureError(e);
+    if (!("code" in e) || typeof e.code !== "string") {
+      throw e;
+    }
+
     if (e.code === "ERR_REQUIRE_ESM") {
       throw new Error("Cannot find configuration file");
     }
@@ -213,7 +219,7 @@ export async function expectHardhatErrorAsync(
 
   try {
     await f();
-  } catch (err: unknown) {
+  } catch (err) {
     if (!HardhatError.isHardhatError(err)) {
       assert.fail();
     }
