@@ -1,3 +1,4 @@
+import type { Dispatcher } from "undici/types";
 import type {
   SourcifyIsVerifiedResponse,
   SourcifyVerifyResponse,
@@ -5,7 +6,8 @@ import type {
 
 import {
   ContractVerificationInvalidStatusCodeError,
-  UnexpectedError,
+  NetworkRequestError,
+  VerificationAPIUnexpectedMessageError,
 } from "./errors";
 import { isSuccessStatusCode, sendGetRequest, sendPostRequest } from "./undici";
 import { ContractStatus } from "./sourcify.types";
@@ -28,53 +30,53 @@ export class Sourcify {
     const url = new URL(`${this.apiUrl}/check-all-by-addresses`);
     url.search = parameters.toString();
 
+    let response: Dispatcher.ResponseData | undefined;
+    let json: SourcifyIsVerifiedResponse[] | undefined;
     try {
-      const response = await sendGetRequest(url);
-      const json = (await response.body.json()) as SourcifyIsVerifiedResponse[];
-
-      if (!isSuccessStatusCode(response.statusCode)) {
-        throw new ContractVerificationInvalidStatusCodeError(
-          url.toString(),
-          response.statusCode,
-          JSON.stringify(json)
-        );
-      }
-
-      if (!Array.isArray(json)) {
-        throw new Error(`Unexpected response body: ${JSON.stringify(json)}`);
-      }
-
-      const contract = json.find(
-        (match) => match.address.toLowerCase() === address.toLowerCase()
-      );
-      if (contract === undefined) {
-        return false;
-      }
-
-      if (
-        "status" in contract &&
-        contract.status === ContractStatus.NOT_FOUND
-      ) {
-        return false;
-      }
-
-      if ("chainIds" in contract && contract.chainIds.length === 1) {
-        const { status } = contract.chainIds[0];
-        if (
-          status === ContractStatus.PERFECT ||
-          status === ContractStatus.PARTIAL
-        ) {
-          return status;
-        }
-      }
-
-      throw new Error(`Unexpected response body: ${JSON.stringify(json)}`);
-    } catch (e) {
-      if (e instanceof ContractVerificationInvalidStatusCodeError) {
-        throw e;
-      }
-      throw new UnexpectedError(e, "Sourcify.isVerified");
+      response = await sendGetRequest(url);
+      json = (await response.body.json()) as SourcifyIsVerifiedResponse[];
+    } catch (e: any) {
+      throw new NetworkRequestError(e);
     }
+
+    if (!isSuccessStatusCode(response.statusCode)) {
+      throw new ContractVerificationInvalidStatusCodeError(
+        url.toString(),
+        response.statusCode,
+        JSON.stringify(json)
+      );
+    }
+
+    if (!Array.isArray(json)) {
+      throw new VerificationAPIUnexpectedMessageError(
+        `Unexpected response body: ${JSON.stringify(json)}`
+      );
+    }
+
+    const contract = json.find(
+      (match) => match.address.toLowerCase() === address.toLowerCase()
+    );
+    if (contract === undefined) {
+      return false;
+    }
+
+    if ("status" in contract && contract.status === ContractStatus.NOT_FOUND) {
+      return false;
+    }
+
+    if ("chainIds" in contract && contract.chainIds.length === 1) {
+      const { status } = contract.chainIds[0];
+      if (
+        status === ContractStatus.PERFECT ||
+        status === ContractStatus.PARTIAL
+      ) {
+        return status;
+      }
+    }
+
+    throw new VerificationAPIUnexpectedMessageError(
+      `Unexpected response body: ${JSON.stringify(json)}`
+    );
   }
 
   // https://sourcify.dev/server/api-docs/#/Stateless%20Verification/post_verify
@@ -94,33 +96,35 @@ export class Sourcify {
     }
 
     const url = new URL(this.apiUrl);
+
+    let response: Dispatcher.ResponseData | undefined;
+    let json: SourcifyVerifyResponse | undefined;
     try {
-      const response = await sendPostRequest(url, JSON.stringify(parameters), {
+      response = await sendPostRequest(url, JSON.stringify(parameters), {
         "Content-Type": "application/json",
       });
-      const json = (await response.body.json()) as SourcifyVerifyResponse;
-
-      if (!isSuccessStatusCode(response.statusCode)) {
-        throw new ContractVerificationInvalidStatusCodeError(
-          url.toString(),
-          response.statusCode,
-          JSON.stringify(json)
-        );
-      }
-
-      const sourcifyResponse = new SourcifyResponse(json);
-
-      if (!sourcifyResponse.isOk()) {
-        throw new Error(`Verify response is not ok: ${JSON.stringify(json)}`);
-      }
-
-      return sourcifyResponse;
-    } catch (e) {
-      if (e instanceof ContractVerificationInvalidStatusCodeError) {
-        throw e;
-      }
-      throw new UnexpectedError(e, "Sourcify.verify");
+      json = (await response.body.json()) as SourcifyVerifyResponse;
+    } catch (e: any) {
+      throw new NetworkRequestError(e);
     }
+
+    if (!isSuccessStatusCode(response.statusCode)) {
+      throw new ContractVerificationInvalidStatusCodeError(
+        url.toString(),
+        response.statusCode,
+        JSON.stringify(json)
+      );
+    }
+
+    const sourcifyResponse = new SourcifyResponse(json);
+
+    if (!sourcifyResponse.isOk()) {
+      throw new VerificationAPIUnexpectedMessageError(
+        `Verify response is not ok: ${JSON.stringify(json)}`
+      );
+    }
+
+    return sourcifyResponse;
   }
 
   public getContractUrl(

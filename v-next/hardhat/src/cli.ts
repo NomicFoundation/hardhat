@@ -4,7 +4,7 @@ process.setSourceMapsEnabled(true);
 
 const { main } = await import("./internal/cli/main.js");
 
-main(process.argv.slice(2)).catch((error) => {
+main(process.argv.slice(2)).catch((error: unknown) => {
   console.error(error);
   process.exitCode = 1;
 });

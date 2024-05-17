@@ -1,5 +1,7 @@
 name: hardhat-core CI
 
+# Note: this workflow uses `macos-13` to use x86
+
 on:
   push:
     branches:
@@ -35,9 +37,7 @@ jobs:
       fail-fast: false
       matrix:
         node: [18.15]
-        # disable until actions/virtual-environments#4896 is fixed
-        # os: ["macos-latest", "ubuntu-latest", "windows-latest"]
-        os: ["ubuntu-latest", "windows-latest"]
+        os: ["macos-13", "ubuntu-latest", "windows-latest"]
     steps:
       - uses: actions/checkout@v3
 
@@ -45,7 +45,7 @@ jobs:
         with:
           version: 8
       - name: Install Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
           cache: pnpm
@@ -53,12 +53,12 @@ jobs:
       - name: Install package
         run: pnpm install --frozen-lockfile --prefer-offline
 
-      - name: Cache network requests
-        uses: actions/cache@v2
+      - name: Cache stack trace artifacts
+        uses: actions/cache@v4
         with:
           path: |
-            packages/hardhat-core/test/internal/hardhat-network/provider/.hardhat_node_test_cache
-          key: hardhat-network-forking-tests-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/provider/node.ts') }}
+            packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/artifacts
+          key: hardhat-network-stack-traces-tests-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/*.sol') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/test.json') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/**/*.ts') }}-v4
 
       - name: Build
         run: pnpm build
@@ -69,4 +69,73 @@ jobs:
           ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
-        run: pnpm test
+          NODE_OPTIONS: --max-old-space-size=4096
+        run: pnpm test:except-provider
+
+  test-provider:
+    name: Test provider (${{ matrix.os }}, Node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [18.15]
+        os: ["macos-13", "ubuntu-latest", "windows-latest"]
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+
+      - name: Install package
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Cache EDR RPC cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            packages/hardhat-core/test/internal/hardhat-network/edr-cache
+          key: hardhat-network-edr-cache-v2
+
+      - name: Build
+        run: pnpm build
+
+      - name: Run tests
+        env:
+          INFURA_URL: ${{ secrets.INFURA_URL }}
+          ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
+          DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
+          FORCE_COLOR: 3
+        run: pnpm test:provider
+
+  test_types_node:
+    name: Test different versions of @types/node
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [18, 20]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Install @types/node
+        run: pnpm add --save-dev @types/node@${{ matrix.node }}
+      - name: Build
+        run: pnpm build
+      - name: Run tests
+        env:
+          DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
+          FORCE_COLOR: 3
+        run: pnpm test:except-tracing

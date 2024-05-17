@@ -3,6 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import debug from "debug";
 
 // Logic explanation: the fs.writeFile function, when used with the wx+ flag, performs an atomic operation to create a file.
@@ -59,7 +60,12 @@ export class MultiProcessMutex {
       // Create a file only if it does not exist
       fs.writeFileSync(this.#mutexFilePath, "", { flag: "wx+" });
       return true;
-    } catch (error: any) {
+    } catch (error) {
+      ensureError(error);
+      if (!("code" in error) || typeof error.code !== "string") {
+        throw error;
+      }
+
       if (error.code === "EEXIST") {
         // File already exists, so the mutex is already acquired
         return false;
@@ -82,7 +88,7 @@ export class MultiProcessMutex {
       log(`Mutex released at path '${this.#mutexFilePath}'`);
 
       return res;
-    } catch (error: any) {
+    } catch (error) {
       // Catch any error to avoid stale locks.
       // Remove the mutex file and re-throw the error
       this.#deleteMutexFile();
@@ -94,7 +100,12 @@ export class MultiProcessMutex {
     let fileStat;
     try {
       fileStat = fs.statSync(this.#mutexFilePath);
-    } catch (error: any) {
+    } catch (error) {
+      ensureError(error);
+      if (!("code" in error) || typeof error.code !== "string") {
+        throw error;
+      }
+
       if (error.code === "ENOENT") {
         // The file might have been deleted by another process while this function was trying to access it.
         return false;
@@ -114,7 +125,12 @@ export class MultiProcessMutex {
     try {
       log(`Deleting mutex file at path '${this.#mutexFilePath}'`);
       fs.unlinkSync(this.#mutexFilePath);
-    } catch (error: any) {
+    } catch (error) {
+      ensureError(error);
+      if (!("code" in error) || typeof error.code !== "string") {
+        throw error;
+      }
+
       if (error.code === "ENOENT") {
         // The file might have been deleted by another process while this function was trying to access it.
         return;

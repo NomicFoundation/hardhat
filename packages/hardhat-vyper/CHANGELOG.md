@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-vyper
 
+## 3.0.6
+
+### Patch Changes
+
+- f0e6389: Added support for vyper settings 'evmVersion' and 'optimize'
+
 ## 3.0.5
 
 ### Patch Changes

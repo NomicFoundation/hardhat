@@ -105,9 +105,58 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
               gasPrice: 1,
               value: 200,
             })
+          ).to.changeEtherBalances([sender, receiver], [-200n, 200n]);
+        });
+
+        it("Should pass when given a predicate", async () => {
+          await expect(() =>
+            sender.sendTransaction({
+              to: receiver.address,
+              gasPrice: 1,
+              value: 200,
+            })
           ).to.changeEtherBalances(
             [sender, receiver],
-            [BigInt("-200"), BigInt(200)]
+            ([senderDiff, receiverDiff]: bigint[]) =>
+              senderDiff === -200n && receiverDiff === 200n
+          );
+        });
+
+        it("Should fail when the predicate returns false", async () => {
+          await expect(
+            expect(() =>
+              sender.sendTransaction({
+                to: receiver.address,
+                gasPrice: 1,
+                value: 200,
+              })
+            ).to.changeEtherBalances(
+              [sender, receiver],
+              ([senderDiff, receiverDiff]: bigint[]) =>
+                senderDiff === -201n && receiverDiff === 200n
+            )
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            "Expected the balance changes of the accounts to satisfy the predicate, but they didn't"
+          );
+        });
+
+        it("Should fail when the predicate returns true and the assertion is negated", async () => {
+          await expect(
+            expect(() =>
+              sender.sendTransaction({
+                to: receiver.address,
+                gasPrice: 1,
+                value: 200,
+              })
+            ).to.not.changeEtherBalances(
+              [sender, receiver],
+              ([senderDiff, receiverDiff]: bigint[]) =>
+                senderDiff === -200n && receiverDiff === 200n
+            )
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            "Expected the balance changes of the accounts to NOT satisfy the predicate, but they did"
           );
         });
 
@@ -206,6 +255,34 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
           ).to.be.eventually.rejectedWith(
             AssertionError,
             `Expected the ether balance of ${sender.address} (the 1st address in the list) NOT to change by -200 wei`
+          );
+        });
+
+        it("arrays have different length", async function () {
+          expect(() =>
+            expect(
+              sender.sendTransaction({
+                to: receiver.address,
+                gasPrice: 1,
+                value: 200,
+              })
+            ).to.changeEtherBalances([sender], ["-200", 200])
+          ).to.throw(
+            Error,
+            "The number of accounts (1) is different than the number of expected balance changes (2)"
+          );
+
+          expect(() =>
+            expect(
+              sender.sendTransaction({
+                to: receiver.address,
+                gasPrice: 1,
+                value: 200,
+              })
+            ).to.changeEtherBalances([sender, receiver], ["-200"])
+          ).to.throw(
+            Error,
+            "The number of accounts (2) is different than the number of expected balance changes (1)"
           );
         });
       });

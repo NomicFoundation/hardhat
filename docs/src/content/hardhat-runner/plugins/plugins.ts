@@ -879,6 +879,101 @@ const communityPlugins: IPlugin[] = [
       "Generate a beautiful and interactive documentation website for your project in seconds",
     tags: ["Documentation", "NatSpec"],
   },
+  {
+    name: "ethernaut-ai",
+    author: "Alejandro Santander",
+    authorUrl: "https://github.com/theethernaut",
+    description:
+      "AI assistant that interprets user input and executes hardhat tasks",
+    tags: ["ethernaut-cli", "AI", "Agent"],
+  },
+  {
+    name: "ethernaut-ai-ui",
+    author: "Alejandro Santander",
+    authorUrl: "https://github.com/theethernaut",
+    description: "Ui extensions for the ethernaut-ai package",
+    tags: ["ethernaut-cli", "ui", "AI"],
+  },
+  {
+    name: "ethernaut-challenges",
+    author: "Alejandro Santander",
+    authorUrl: "https://github.com/theethernaut",
+    description:
+      "Tasks for playing the Open Zeppelin Ethernaut challenges from the CLI",
+    tags: ["ethernaut-cli", "OpenZeppelin", "Ethernaut"],
+  },
+  {
+    name: "ethernaut-interact",
+    author: "Alejandro Santander",
+    authorUrl: "https://github.com/theethernaut",
+    description:
+      "Tasks for sending transactions and interacting with contracts",
+    tags: ["ethernaut-cli", "contract", "send", "transactions"],
+  },
+  {
+    name: "ethernaut-interact-ui",
+    author: "Alejandro Santander",
+    authorUrl: "https://github.com/theethernaut",
+    description: "Ui extensions for the ethernaut-interact package",
+    tags: ["ethernaut-cli", "ui", "interact", "etherscan"],
+  },
+  {
+    name: "ethernaut-network",
+    author: "Alejandro Santander",
+    authorUrl: "https://github.com/theethernaut",
+    description: "Tasks for interacting with different networks",
+    tags: ["ethernaut-cli", "network"],
+  },
+  {
+    name: "ethernaut-network-ui",
+    author: "Alejandro Santander",
+    authorUrl: "https://github.com/theethernaut",
+    description: "Ui extensions for the ethernaut-network package",
+    tags: ["ethernaut-cli", "ui", "network"],
+  },
+  {
+    name: "ethernaut-ui",
+    author: "Alejandro Santander",
+    authorUrl: "https://github.com/theethernaut",
+    description: "Ui extensions for the ethernaut-network package",
+    tags: ["ethernaut-cli", "ui", "interactivity", "enquirer", "prompts"],
+  },
+  {
+    name: "ethernaut-util",
+    author: "Alejandro Santander",
+    authorUrl: "https://github.com/theethernaut",
+    description: "Simple, everyday utilities for Ethereum devs",
+    tags: ["ethernaut-cli", "utilities"],
+  },
+  {
+    name: "ethernaut-util-ui",
+    author: "Alejandro Santander",
+    authorUrl: "https://github.com/theethernaut",
+    description: "Ui extensions for the ethernaut-util package",
+    tags: ["ethernaut-cli", "ui", "utilities"],
+  },
+  {
+    name: "ethernaut-wallet",
+    author: "Alejandro Santander",
+    authorUrl: "https://github.com/theethernaut",
+    description: "Tasks for interacting from different Ethereum accounts",
+    tags: ["ethernaut-cli", "wallet"],
+  },
+  {
+    name: "ethernaut-wallet-ui",
+    author: "Alejandro Santander",
+    authorUrl: "https://github.com/theethernaut",
+    description: "Ui extensions for the ethernaut-wallet package",
+    tags: ["ethernaut-cli", "ui", "wallet"],
+  },
+  {
+    name: "@okxweb3/hardhat-explorer-verify",
+    author: "okx",
+    authorUrl: "https://github.com/okx",
+    description:
+      "Hardhat plugin for verifying smart contracts deployed on the EVM chains including X Layer",
+    tags: ["OKX Explorer", "Verification", "X Layer"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [

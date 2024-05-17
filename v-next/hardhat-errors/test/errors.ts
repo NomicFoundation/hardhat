@@ -19,6 +19,15 @@ describe("HardhatError", () => {
       );
     });
 
+    it("Should return true for HardhatErrors with the same ErrorDescriptor", () => {
+      assert.ok(
+        HardhatError.isHardhatError(
+          new HardhatError(mockErrorDescriptor),
+          mockErrorDescriptor,
+        ),
+      );
+    });
+
     it("Should return false for everything else", () => {
       assert.ok(!HardhatError.isHardhatError(new Error()));
       assert.ok(!HardhatError.isHardhatError(undefined));
@@ -26,6 +35,15 @@ describe("HardhatError", () => {
       assert.ok(!HardhatError.isHardhatError(123));
       assert.ok(!HardhatError.isHardhatError("123"));
       assert.ok(!HardhatError.isHardhatError({ asd: 123 }));
+    });
+
+    it("Should return false for HardhatErrors with a different ErrorDescriptor", () => {
+      assert.ok(
+        !HardhatError.isHardhatError(new HardhatError(mockErrorDescriptor), {
+          ...mockErrorDescriptor,
+          number: 1,
+        }),
+      );
     });
   });
 

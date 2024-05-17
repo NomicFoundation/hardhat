@@ -6,6 +6,7 @@
       "version": "20"
     }
   },
+  "postCreateCommand": "scripts/setup.sh",
   "containerEnv": {
     "ALCHEMY_URL": "${localEnv:ALCHEMY_URL}",
     "INFURA_URL": "${localEnv:INFURA_URL}"

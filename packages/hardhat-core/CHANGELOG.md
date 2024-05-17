@@ -1,5 +1,24 @@
 # hardhat
 
+## 2.22.4
+
+### Patch Changes
+
+- 22bcbf5: Added BigInt task argument type
+- 2c533f0: Bumped EDR dependency to 0.3.7
+- 3203639: Fixed an issue in the solidity source map decoding module
+- 5d7a604: Fixed an issue with solc version selection
+- 3c6de8f: Now solcjs is run in a subprocess, which leads to better error reporting and allows it to run multiple compilation jobs at the same time
+- 6447e80: Improved performance by reducing back-and-forth with EDR when it's not necessary
+
+## 2.22.3
+
+### Patch Changes
+
+- 6466e3a: A proper error is now thrown when requiring EDR fails
+- ae62841: Upgrade EDR to version [0.3.5](https://github.com/NomicFoundation/hardhat/blob/3b36d76a88915de6bb5efd0eb110cc1782c461ca/crates/edr_napi/CHANGELOG.md#035)
+- 679d8a5: Report [HH18](https://hardhat.org/hardhat-runner/docs/errors#HH18) to Sentry.
+
 ## 2.22.2
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-foundry
 
+## 1.1.2
+
+### Patch Changes
+
+- a93e240: Fixed an issue where paths were set as relative instead of absolute when overriding sources
+
 ## 1.1.1
 
 ### Patch Changes

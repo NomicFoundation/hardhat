@@ -19,10 +19,10 @@
   "scripts": {
     "lint": "pnpm prettier --check && pnpm eslint",
     "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
-    "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
+    "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
-    "test": "glob --cmd=\"node --import tsx/esm --test\" 'test/**/*.ts'",
-    "test:github": "glob --cmd=\"node --import tsx/esm --test --test-reporter=@reporters/github --test-reporter-destination=stdout --test-reporter=spec --test-reporter-destination=stdout\" 'test/**/*.ts'",
+    "test": "glob --cmd=\"node --import tsx/esm --test\" \"test/**/*.ts\"",
+    "test:github": "glob --cmd=\"node --import tsx/esm --test --test-reporter=@reporters/github --test-reporter-destination=stdout --test-reporter=spec --test-reporter-destination=stdout\" \"test/**/*.ts\"",
     "pretest": "pnpm build",
     "build": "tsc --build .",
     "prepublishOnly": "pnpm build",

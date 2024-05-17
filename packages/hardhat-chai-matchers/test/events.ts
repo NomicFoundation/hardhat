@@ -405,7 +405,7 @@ describe(".to.emit (contract events)", () => {
           );
         });
 
-        describe("nested predicate", async function () {
+        describe("nested predicate", function () {
           it("Should succeed when predicate passes", async function () {
             await expect(contract.emitUintArray(1, 2))
               .to.emit(contract, "WithUintArray")
@@ -630,7 +630,7 @@ describe(".to.emit (contract events)", () => {
           "WithStringArg"
         );
       });
-      describe("When detecting two events from one call (chaining)", async function () {
+      describe("When detecting two events from one call (chaining)", function () {
         it("Should succeed when both expected events are indeed emitted", async function () {
           await expect(contract.emitUintAndString(1, "a string"))
             .to.emit(contract, "WithUintArg")
@@ -663,7 +663,7 @@ describe(".to.emit (contract events)", () => {
             );
           });
         });
-        describe("When specifying .withArgs()", async function () {
+        describe("When specifying .withArgs()", function () {
           it("Should pass when expecting the correct args from the first event", async function () {
             await expect(contract.emitUintAndString(1, "a string"))
               .to.emit(contract, "WithUintArg")

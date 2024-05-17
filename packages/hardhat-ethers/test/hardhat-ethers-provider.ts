@@ -1,6 +1,8 @@
 import { assert, use } from "chai";
 import chaiAsPromised from "chai-as-promised";
 
+import { EthereumProvider } from "hardhat/types/provider";
+import { HardhatEthersProvider } from "../src/internal/hardhat-ethers-provider";
 import { ExampleContract, EXAMPLE_CONTRACT } from "./example-contracts";
 import { usePersistentEnvironment } from "./environment";
 import { assertIsNotNull, assertWithin } from "./helpers";
@@ -117,12 +119,83 @@ describe("hardhat ethers provider", function () {
     assert.strictEqual(network.chainId, 31337n);
   });
 
-  it("should return fee data", async function () {
-    const feeData = await this.env.ethers.provider.getFeeData();
+  describe("getFeeData", function () {
+    it("should return fee data", async function () {
+      const feeData = await this.env.ethers.provider.getFeeData();
 
-    assert.typeOf(feeData.gasPrice, "bigint");
-    assert.typeOf(feeData.maxFeePerGas, "bigint");
-    assert.typeOf(feeData.maxPriorityFeePerGas, "bigint");
+      assert.typeOf(feeData.gasPrice, "bigint");
+      assert.typeOf(feeData.maxFeePerGas, "bigint");
+      assert.typeOf(feeData.maxPriorityFeePerGas, "bigint");
+    });
+
+    // This helper overrides the send method of an EthereumProvider to allow
+    // altering the default Hardhat node's reported results.
+    function overrideSendOn(
+      provider: EthereumProvider,
+      sendOveride: (method: string, params?: any[] | undefined) => Promise<any>
+    ) {
+      return new Proxy(provider, {
+        get: (target: EthereumProvider, prop: keyof EthereumProvider) => {
+          if (prop === "send") {
+            return async (method: string, params?: any[] | undefined) => {
+              const result = await sendOveride(method, params);
+
+              return result ?? target.send(method, params);
+            };
+          }
+
+          return target[prop];
+        },
+      });
+    }
+
+    it("should default maxPriorityFeePerGas to 1 gwei (if eth_maxPriorityFeePerGas not supported)", async function () {
+      const proxiedProvider = overrideSendOn(
+        this.env.network.provider,
+        async (method) => {
+          if (method !== "eth_maxPriorityFeePerGas") {
+            // rely on default send implementation
+            return undefined;
+          }
+
+          throw new Error("Method eth_maxPriorityFeePerGas is not supported");
+        }
+      );
+
+      const ethersProvider = new HardhatEthersProvider(
+        proxiedProvider,
+        this.env.network.name
+      );
+
+      const feeData = await ethersProvider.getFeeData();
+
+      assert.equal(feeData.maxPriorityFeePerGas, 1_000_000_000n);
+    });
+
+    it("should default maxPriorityFeePerGas to eth_maxPriorityFeePerGas if available", async function () {
+      const expectedMaxPriorityFeePerGas = 4_000_000_000n;
+
+      const overridenEthereumProvider = overrideSendOn(
+        this.env.network.provider,
+        async (method) => {
+          if (method !== "eth_maxPriorityFeePerGas") {
+            // rely on default send implementation
+            return undefined;
+          }
+
+          return expectedMaxPriorityFeePerGas.toString();
+        }
+      );
+
+      const ethersProvider = new HardhatEthersProvider(
+        overridenEthereumProvider,
+        this.env.network.name
+      );
+
+      const feeData = await ethersProvider.getFeeData();
+
+      assert.equal(feeData.maxPriorityFeePerGas, 4_000_000_000n);
+    });
   });
 
   describe("getBalance", function () {

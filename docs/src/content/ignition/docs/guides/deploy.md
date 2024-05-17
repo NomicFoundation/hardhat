@@ -76,15 +76,23 @@ To pass a `bigint` as a Module parameter, you can encode it as a string. Any str
 
 ## Inspecting an existing deployment
 
+To get a list of all the deployment IDs that exist in the current project, run:
+
+```sh
+npx hardhat ignition deployments
+```
+
 To check on the current status of a deployment, run:
 
 ```sh
 npx hardhat ignition status DeploymentId
 ```
 
-If you run it on the [Quick Start guide](../getting-started/index.md#quick-start) project after executing the deploying, you'd see something like this:
+If you run these tasks on the [Quick Start guide](../getting-started/index.md#quick-start) project after executing the deployment, you'd see something like this:
 
 ```
+$ npx hardhat ignition deployments
+chain-31337
 $ npx hardhat ignition status chain-31337
 
 [ chain-31337 ] successfully deployed 🚀

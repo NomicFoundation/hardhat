@@ -59,7 +59,7 @@ extendConfig((config, userConfig) => {
   }
 
   // Set sources path
-  config.paths.sources = foundrySourcesPath;
+  config.paths.sources = path.resolve(config.paths.root, foundrySourcesPath);
 
   // Change hardhat's cache path if it clashes with foundry's
   const foundryCachePath = path.resolve(

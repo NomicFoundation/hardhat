@@ -211,11 +211,27 @@ export const builtinChains: ChainConfig[] = [
     },
   },
   {
+    network: "polygonAmoy",
+    chainId: 80002,
+    urls: {
+      apiURL: "https://api-amoy.polygonscan.com/api",
+      browserURL: "https://amoy.polygonscan.com/",
+    },
+  },
+  {
     network: "baseGoerli",
     chainId: 84531,
     urls: {
       apiURL: "https://api-goerli.basescan.org/api",
       browserURL: "https://goerli.basescan.org/",
+    },
+  },
+  {
+    network: "baseSepolia",
+    chainId: 84532,
+    urls: {
+      apiURL: "https://api-sepolia.basescan.org/api",
+      browserURL: "https://sepolia.basescan.org/",
     },
   },
   {

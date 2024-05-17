@@ -7,6 +7,7 @@ import {
   HardhatError,
   assertHardhatInvariant,
 } from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import * as semver from "semver";
 
 import { CompilerInput, CompilerOutput } from "../../types/index.js";
@@ -124,7 +125,9 @@ export class NativeCompiler implements ICompiler {
 
         process.stdin.write(JSON.stringify(input));
         process.stdin.end();
-      } catch (e: any) {
+      } catch (e) {
+        ensureError(e);
+
         throw new HardhatError(
           HardhatError.ERRORS.SOLC.CANT_RUN_NATIVE_COMPILER,
           {},

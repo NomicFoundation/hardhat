@@ -3,7 +3,7 @@ import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 
 export class HardhatLedgerError extends NomicLabsHardhatPluginError {
   constructor(message: string, parent?: Error) {
-    super("@nomiclabs/hardhat-ledger", message, parent);
+    super("@nomicfoundation/hardhat-ledger", message, parent);
   }
 }
 

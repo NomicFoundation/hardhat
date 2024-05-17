@@ -50,12 +50,12 @@ The next level is a folder. It can contain nesting folders and `*.md` files. Eac
 - group - a regular group with a title and list of items
 - single - good for groups with a single item
 - hidden - the folder won't be shown in the sidebar but when you open a page from this group sidebar is present.
-- plugins - the "special" group with is generated not from the `*.md` files located in the content folder, but from README.md files from plugin packages
+- plugins - the "special" group which is generated not from the `*.md` files located in the content folder, but from README.md files from plugin packages
 
 **order**: an array of items in the order they should appear in the sidebar group. This is optional but if it's not specified the order will be based on file names. This array can contain two types of items:
 
 - simple href strings (which are the same as a path to a file without a file extension. e.g. `/explanation/mining-modes`). Note it shouldn't contain the group folder name in the path. In this case, the title of the item will be generated automatically and will be the same as a page title.
-- objects with `href` and `title` keys. In this case, href can be any valid relative link. The title specifies the title of that item in the sidebar. Note: this allows to specify anchor links e.g. `"#quick-start"` or a "index" links - `/`.
+- objects with `href` and `title` keys. In this case, href can be any valid relative link. The title specifies the title of that item in the sidebar. Note: this allows to specify anchor links e.g. `"#quick-start"` or an "index" links - `/`.
 
 ### MD Files
 

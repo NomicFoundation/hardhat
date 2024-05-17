@@ -54,7 +54,7 @@ export async function innerGetPublicClient(
 /**
  * Get a list of WalletClient instances. These are read-write clients that can
  * be used to send transactions to the blockchain. Each client is associated
- * with a an account obtained from the provider using `eth_accounts`.
+ * with an account obtained from the provider using `eth_accounts`.
  *
  * @param provider The Ethereum provider used to connect to the blockchain.
  * @param walletClientConfig Optional configuration for the WalletClient instances. See the viem documentation for more information.

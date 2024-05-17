@@ -9,7 +9,7 @@ import type {
   RequestArguments,
 } from "../../../types";
 
-import {
+import type {
   EdrContext,
   Provider as EdrProviderT,
   ExecutionResult,
@@ -27,6 +27,7 @@ import fsExtra from "fs-extra";
 import * as t from "io-ts";
 import semver from "semver";
 
+import { requireNapiRsModule } from "../../../common/napi-rs";
 import {
   HARDHAT_NETWORK_RESET_EVENT,
   HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
@@ -87,6 +88,10 @@ let _globalEdrContext: EdrContext | undefined;
 
 // Lazy initialize the global EDR context.
 export function getGlobalEdrContext(): EdrContext {
+  const { EdrContext } = requireNapiRsModule(
+    "@nomicfoundation/edr"
+  ) as typeof import("@nomicfoundation/edr");
+
   if (_globalEdrContext === undefined) {
     // Only one is allowed to exist
     _globalEdrContext = new EdrContext();
@@ -197,8 +202,9 @@ export class EdrProviderWrapper
     rawTraceCallbacks: RawTraceCallbacks,
     tracingConfig?: TracingConfig
   ): Promise<EdrProviderWrapper> {
-    const { Provider } =
-      require("@nomicfoundation/edr") as typeof import("@nomicfoundation/edr");
+    const { Provider } = requireNapiRsModule(
+      "@nomicfoundation/edr"
+    ) as typeof import("@nomicfoundation/edr");
 
     const coinbase = config.coinbase ?? DEFAULT_COINBASE;
 
@@ -362,41 +368,49 @@ export class EdrProviderWrapper
     );
     const response = JSON.parse(responseObject.json);
 
-    const rawTraces = responseObject.traces;
-    for (const rawTrace of rawTraces) {
-      const trace = rawTrace.trace();
-      for (const traceItem of trace) {
-        if ("pc" in traceItem) {
-          if (this._node._vm.evm.events.listenerCount("step") > 0) {
-            this._node._vm.evm.events.emit(
-              "step",
-              edrTracingStepToMinimalInterpreterStep(traceItem)
-            );
-          }
-          if (this._rawTraceCallbacks.onStep !== undefined) {
-            await this._rawTraceCallbacks.onStep(traceItem);
-          }
-        } else if ("executionResult" in traceItem) {
-          if (this._node._vm.evm.events.listenerCount("afterMessage") > 0) {
-            this._node._vm.evm.events.emit(
-              "afterMessage",
-              edrTracingMessageResultToMinimalEVMResult(traceItem)
-            );
-          }
-          if (this._rawTraceCallbacks.onAfterMessage !== undefined) {
-            await this._rawTraceCallbacks.onAfterMessage(
-              traceItem.executionResult
-            );
-          }
-        } else {
-          if (this._node._vm.evm.events.listenerCount("beforeMessage") > 0) {
-            this._node._vm.evm.events.emit(
-              "beforeMessage",
-              edrTracingMessageToMinimalMessage(traceItem)
-            );
-          }
-          if (this._rawTraceCallbacks.onBeforeMessage !== undefined) {
-            await this._rawTraceCallbacks.onBeforeMessage(traceItem);
+    const needsTraces =
+      this._node._vm.evm.events.eventNames().length > 0 ||
+      this._rawTraceCallbacks.onStep !== undefined ||
+      this._rawTraceCallbacks.onAfterMessage !== undefined ||
+      this._rawTraceCallbacks.onBeforeMessage !== undefined;
+
+    if (needsTraces) {
+      const rawTraces = responseObject.traces;
+      for (const rawTrace of rawTraces) {
+        const trace = rawTrace.trace();
+        for (const traceItem of trace) {
+          if ("pc" in traceItem) {
+            if (this._node._vm.evm.events.listenerCount("step") > 0) {
+              this._node._vm.evm.events.emit(
+                "step",
+                edrTracingStepToMinimalInterpreterStep(traceItem)
+              );
+            }
+            if (this._rawTraceCallbacks.onStep !== undefined) {
+              await this._rawTraceCallbacks.onStep(traceItem);
+            }
+          } else if ("executionResult" in traceItem) {
+            if (this._node._vm.evm.events.listenerCount("afterMessage") > 0) {
+              this._node._vm.evm.events.emit(
+                "afterMessage",
+                edrTracingMessageResultToMinimalEVMResult(traceItem)
+              );
+            }
+            if (this._rawTraceCallbacks.onAfterMessage !== undefined) {
+              await this._rawTraceCallbacks.onAfterMessage(
+                traceItem.executionResult
+              );
+            }
+          } else {
+            if (this._node._vm.evm.events.listenerCount("beforeMessage") > 0) {
+              this._node._vm.evm.events.emit(
+                "beforeMessage",
+                edrTracingMessageToMinimalMessage(traceItem)
+              );
+            }
+            if (this._rawTraceCallbacks.onBeforeMessage !== undefined) {
+              await this._rawTraceCallbacks.onBeforeMessage(traceItem);
+            }
           }
         }
       }

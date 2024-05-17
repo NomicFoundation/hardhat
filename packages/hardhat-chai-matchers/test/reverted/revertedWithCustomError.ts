@@ -223,7 +223,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
     });
 
     describe("with args", function () {
-      describe("one argument", async function () {
+      describe("one argument", function () {
         it("Should match correct argument", async function () {
           await expect(matchers.revertWithCustomErrorWithUint(1))
             .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
@@ -348,7 +348,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
         });
       });
 
-      describe("array of different lengths", async function () {
+      describe("array of different lengths", function () {
         it("Should fail if the expected array is bigger", async function () {
           await expect(
             expect(matchers.revertWithCustomErrorWithPair(1, 2))

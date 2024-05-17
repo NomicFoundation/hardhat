@@ -10,3 +10,5 @@ order:
   - /verify
   - /viem
   - /create2
+  - /ledger
+  - /scripts
