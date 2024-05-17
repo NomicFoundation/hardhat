@@ -1,5 +1,5 @@
-import type EthersT from "ethers";
-import type { Contract, Interface, Transaction } from "ethers";
+import type { EventFragment, JsonFragment, Interface } from "ethers";
+import type { TransactionReceipt, GetContractReturnType, Abi, Log } from "viem";
 import type { AssertWithSsfi, Ssfi } from "../utils";
 
 import { AssertionError } from "chai";
@@ -12,30 +12,26 @@ import {
   assertArgsArraysEqual,
   assertIsNotNull,
   preventAsyncMatcherChaining,
+  getTransactionReceipt,
 } from "./utils";
-
-type EventFragment = EthersT.EventFragment;
-type Provider = EthersT.Provider;
 
 export const EMIT_CALLED = "emitAssertionCalled";
 
 async function waitForPendingTransaction(
-  tx: Promise<Transaction> | Transaction | string,
-  provider: Provider
+  tx: Promise<`0x${string}`> | `0x${string}`
 ) {
-  let hash: string | null;
+  let hash: `0x${string}`;
   if (tx instanceof Promise) {
-    ({ hash } = await tx);
+    hash = await tx;
   } else if (typeof tx === "string") {
     hash = tx;
   } else {
-    ({ hash } = tx);
-  }
-  if (hash === null) {
     throw new Error(`${JSON.stringify(tx)} is not a valid transaction`);
   }
-  return provider.getTransactionReceipt(hash);
+  return getTransactionReceipt(hash);
 }
+
+type Contract = GetContractReturnType<Abi>;
 
 export function supportEmit(
   Assertion: Chai.AssertionStatic,
@@ -57,7 +53,7 @@ export function supportEmit(
 
       const promise = this.then === undefined ? Promise.resolve() : this;
 
-      const onSuccess = (receipt: EthersT.TransactionReceipt) => {
+      const onSuccess = async (receipt: TransactionReceipt) => {
         // abort if the assertion chain was aborted, for example because
         // a `.not` was combined with a `.withArgs`
         if (chaiUtils.flag(this, ASSERTION_ABORTED) === true) {
@@ -66,9 +62,11 @@ export function supportEmit(
 
         const assert = buildAssert(negated, onSuccess);
 
+        const { ethers } = await import("ethers");
+        const iface = new ethers.Interface(contract.abi as JsonFragment[]);
         let eventFragment: EventFragment | null = null;
         try {
-          eventFragment = contract.interface.getEvent(eventName);
+          eventFragment = iface.getEvent(eventName);
         } catch (e) {
           // ignore error
         }
@@ -80,10 +78,10 @@ export function supportEmit(
         }
 
         const topic = eventFragment.topicHash;
-        const contractAddress = contract.target;
+        const contractAddress = contract.address;
         if (typeof contractAddress !== "string") {
           throw new HardhatChaiMatchersAssertionError(
-            `The contract target should be a string`
+            `The contract address should be a string`
           );
         }
 
@@ -94,7 +92,7 @@ export function supportEmit(
         }
 
         this.logs = receipt.logs
-          .filter((log) => log.topics.includes(topic))
+          .filter((log) => (log.topics as string[]).includes(topic))
           .filter(
             (log) => log.address.toLowerCase() === contractAddress.toLowerCase()
           );
@@ -105,7 +103,7 @@ export function supportEmit(
           `Expected event "${eventName}" NOT to be emitted, but it was`
         );
         chaiUtils.flag(this, "eventName", eventName);
-        chaiUtils.flag(this, "contract", contract);
+        chaiUtils.flag(this, "iface", iface);
       };
 
       const derivedPromise = promise.then(() => {
@@ -115,18 +113,10 @@ export function supportEmit(
           return;
         }
 
-        if (contract.runner === null || contract.runner.provider === null) {
-          throw new HardhatChaiMatchersAssertionError(
-            "contract.runner.provider shouldn't be null"
-          );
-        }
-
-        return waitForPendingTransaction(tx, contract.runner.provider).then(
-          (receipt) => {
-            assertIsNotNull(receipt, "receipt");
-            return onSuccess(receipt);
-          }
-        );
+        return waitForPendingTransaction(tx).then((receipt) => {
+          assertIsNotNull(receipt, "receipt");
+          return onSuccess(receipt);
+        });
       });
 
       chaiUtils.flag(this, EMIT_CALLED, true);
@@ -165,15 +155,14 @@ const tryAssertArgsArraysEqual = (
   Assertion: Chai.AssertionStatic,
   chaiUtils: Chai.ChaiUtils,
   expectedArgs: any[],
-  logs: any[],
+  logs: Log[],
   assert: AssertWithSsfi,
   ssfi: Ssfi
 ) => {
-  const eventName = chaiUtils.flag(context, "eventName");
+  const eventName: string = chaiUtils.flag(context, "eventName");
+  const iface: Interface = chaiUtils.flag(context, "iface");
   if (logs.length === 1) {
-    const parsedLog = (
-      chaiUtils.flag(context, "contract").interface as Interface
-    ).parseLog(logs[0]);
+    const parsedLog = iface.parseLog(logs[0]);
     assertIsNotNull(parsedLog, "parsedLog");
 
     return assertArgsArraysEqual(
@@ -186,28 +175,22 @@ const tryAssertArgsArraysEqual = (
       ssfi
     );
   }
-  for (const index in logs) {
-    if (index === undefined) {
-      break;
-    } else {
-      try {
-        const parsedLog = (
-          chaiUtils.flag(context, "contract").interface as Interface
-        ).parseLog(logs[index]);
-        assertIsNotNull(parsedLog, "parsedLog");
-
-        assertArgsArraysEqual(
-          Assertion,
-          expectedArgs,
-          parsedLog.args,
-          `"${eventName}" event`,
-          "event",
-          assert,
-          ssfi
-        );
-        return;
-      } catch {}
-    }
+  for (const log of logs) {
+    const parsedLog = iface.parseLog(log);
+    assertIsNotNull(parsedLog, "parsedLog");
+    try {
+      // assert and return if successful, otherwise keep looping
+      assertArgsArraysEqual(
+        Assertion,
+        expectedArgs,
+        parsedLog.args,
+        `"${eventName}" event`,
+        "event",
+        assert,
+        ssfi
+      );
+      return;
+    } catch {}
   }
 
   assert(
@@ -215,7 +198,7 @@ const tryAssertArgsArraysEqual = (
     `The specified arguments (${util.inspect(
       expectedArgs
     )}) were not included in any of the ${
-      context.logs.length
+      logs.length
     } emitted "${eventName}" events`
   );
 };

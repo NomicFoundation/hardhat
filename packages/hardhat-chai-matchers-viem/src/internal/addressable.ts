@@ -1,6 +1,4 @@
-import type EthersT from "ethers";
-
-import { tryDereference } from "./typed";
+import type ViemT from "viem";
 
 export function supportAddressable(
   Assertion: Chai.AssertionStatic,
@@ -24,15 +22,16 @@ function override(
     overwriteAddressableFunction(method, name, negativeName, _super, chaiUtils);
 }
 
-// ethers's Addressable have a .getAddress() that returns a Promise<string>. We don't want to deal with async here,
+// We don't want to deal with async here,
 // so we are looking for a sync way of getting the address. If an address was recovered, it is returned as a string,
 // otherwise undefined is returned.
 function tryGetAddressSync(value: any): string | undefined {
-  const { isAddress, isAddressable } = require("ethers") as typeof EthersT;
+  const { isAddress } = require("viem") as typeof ViemT;
 
-  value = tryDereference(value, "address");
-  if (isAddressable(value)) {
-    value = (value as any).address ?? (value as any).target;
+  if (value?.address) {
+    value = value.address;
+  } else if (value?.account?.address) {
+    value = value.account.address;
   }
   if (isAddress(value)) {
     return value;

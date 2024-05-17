@@ -2,7 +2,7 @@ import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 
 export class HardhatChaiMatchersError extends NomicLabsHardhatPluginError {
   constructor(message: string, parent?: Error) {
-    super("@nomicfoundation/hardhat-chai-matchers", message, parent);
+    super("@nomicfoundation/hardhat-chai-matchers-viem", message, parent);
   }
 }
 

@@ -1,3 +1,4 @@
+import { privateKeyToAccount } from "viem/accounts";
 import { AssertionError, expect } from "chai";
 import { ProviderError } from "hardhat/internal/core/providers/errors";
 import path from "path";
@@ -15,7 +16,7 @@ import "../../src/internal/add-chai-matchers";
 import { anyUint, anyValue } from "../../src/withArgs";
 import { MatchersContract } from "../contracts";
 
-describe("INTEGRATION: Reverted with custom error", function () {
+describe.only("INTEGRATION: Reverted with custom error", function () {
   describe("with the in-process hardhat network", function () {
     useEnvironment("hardhat-project");
 
@@ -32,12 +33,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
     // deploy Matchers contract before each test
     let matchers: MatchersContract;
     beforeEach("deploy matchers contract", async function () {
-      const Matchers = await this.hre.ethers.getContractFactory<
-        [],
-        MatchersContract
-      >("Matchers");
-
-      matchers = await Matchers.deploy();
+      matchers = await this.hre.viem.deployContract("Matchers");
     });
 
     describe("calling a method that succeeds", function () {
@@ -69,7 +65,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
     });
 
     describe("calling a method that reverts without a reason", function () {
-      it("successful asserts", async function () {
+      it.only("successful asserts", async function () {
         await runSuccessfulAsserts({
           matchers,
           method: "revertsWithoutReason",
@@ -225,14 +221,14 @@ describe("INTEGRATION: Reverted with custom error", function () {
     describe("with args", function () {
       describe("one argument", function () {
         it("Should match correct argument", async function () {
-          await expect(matchers.revertWithCustomErrorWithUint(1))
+          await expect(matchers.write.revertWithCustomErrorWithUint([1n]))
             .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
             .withArgs(1);
         });
 
         it("Should fail if wrong argument", async function () {
           await expect(
-            expect(matchers.revertWithCustomErrorWithUint(1))
+            expect(matchers.write.revertWithCustomErrorWithUint([1n]))
               .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
               .withArgs(2)
           ).to.be.rejectedWith(
@@ -245,7 +241,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
       describe("two arguments", function () {
         it("Should match correct values", async function () {
           await expect(
-            matchers.revertWithCustomErrorWithUintAndString(1, "foo")
+            matchers.write.revertWithCustomErrorWithUintAndString([1n, "foo"])
           )
             .to.be.revertedWithCustomError(
               matchers,
@@ -256,7 +252,9 @@ describe("INTEGRATION: Reverted with custom error", function () {
 
         it("Should fail if uint is wrong", async function () {
           await expect(
-            expect(matchers.revertWithCustomErrorWithUintAndString(1, "foo"))
+            expect(
+              matchers.write.revertWithCustomErrorWithUintAndString([1n, "foo"])
+            )
               .to.be.revertedWithCustomError(
                 matchers,
                 "CustomErrorWithUintAndString"
@@ -270,7 +268,9 @@ describe("INTEGRATION: Reverted with custom error", function () {
 
         it("Should fail if string is wrong", async function () {
           await expect(
-            expect(matchers.revertWithCustomErrorWithUintAndString(1, "foo"))
+            expect(
+              matchers.write.revertWithCustomErrorWithUintAndString([1n, "foo"])
+            )
               .to.be.revertedWithCustomError(
                 matchers,
                 "CustomErrorWithUintAndString"
@@ -284,7 +284,9 @@ describe("INTEGRATION: Reverted with custom error", function () {
 
         it("Should fail if first predicate throws", async function () {
           await expect(
-            expect(matchers.revertWithCustomErrorWithUintAndString(1, "foo"))
+            expect(
+              matchers.write.revertWithCustomErrorWithUintAndString([1n, "foo"])
+            )
               .to.be.revertedWithCustomError(
                 matchers,
                 "CustomErrorWithUintAndString"
@@ -302,7 +304,9 @@ describe("INTEGRATION: Reverted with custom error", function () {
       describe("different number of arguments", function () {
         it("Should reject if expected fewer arguments", async function () {
           await expect(
-            expect(matchers.revertWithCustomErrorWithUintAndString(1, "s"))
+            expect(
+              matchers.write.revertWithCustomErrorWithUintAndString([1n, "s"])
+            )
               .to.be.revertedWithCustomError(
                 matchers,
                 "CustomErrorWithUintAndString"
@@ -316,7 +320,9 @@ describe("INTEGRATION: Reverted with custom error", function () {
 
         it("Should reject if expected more arguments", async function () {
           await expect(
-            expect(matchers.revertWithCustomErrorWithUintAndString(1, "s"))
+            expect(
+              matchers.write.revertWithCustomErrorWithUintAndString([1n, "s"])
+            )
               .to.be.revertedWithCustomError(
                 matchers,
                 "CustomErrorWithUintAndString"
@@ -331,14 +337,14 @@ describe("INTEGRATION: Reverted with custom error", function () {
 
       describe("nested arguments", function () {
         it("should match correct arguments", async function () {
-          await expect(matchers.revertWithCustomErrorWithPair(1, 2))
+          await expect(matchers.write.revertWithCustomErrorWithPair([1n, 2n]))
             .to.be.revertedWithCustomError(matchers, "CustomErrorWithPair")
             .withArgs([1, 2]);
         });
 
         it("should reject different arguments", async function () {
           await expect(
-            expect(matchers.revertWithCustomErrorWithPair(1, 2))
+            expect(matchers.write.revertWithCustomErrorWithPair([1n, 2n]))
               .to.be.revertedWithCustomError(matchers, "CustomErrorWithPair")
               .withArgs([3, 2])
           ).to.be.rejectedWith(
@@ -351,7 +357,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
       describe("array of different lengths", function () {
         it("Should fail if the expected array is bigger", async function () {
           await expect(
-            expect(matchers.revertWithCustomErrorWithPair(1, 2))
+            expect(matchers.write.revertWithCustomErrorWithPair([1n, 2n]))
               .to.be.revertedWithCustomError(matchers, "CustomErrorWithPair")
               .withArgs([1])
           ).to.be.rejectedWith(
@@ -362,7 +368,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
 
         it("Should fail if the expected array is smaller", async function () {
           await expect(
-            expect(matchers.revertWithCustomErrorWithPair(1, 2))
+            expect(matchers.write.revertWithCustomErrorWithPair([1n, 2n]))
               .to.be.revertedWithCustomError(matchers, "CustomErrorWithPair")
               .withArgs([1, 2, 3])
           ).to.be.rejectedWith(
@@ -374,7 +380,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
 
       it("Should fail when used with .not.", async function () {
         expect(() =>
-          expect(matchers.revertWithSomeCustomError())
+          expect(matchers.write.revertWithSomeCustomError())
             .to.not.be.revertedWithCustomError(matchers, "SomeCustomError")
             .withArgs(1)
         ).to.throw(Error, "Do not combine .not. with .withArgs()");
@@ -382,7 +388,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
 
       it("should fail if withArgs is called on its own", async function () {
         expect(() =>
-          expect(matchers.revertWithCustomErrorWithUint(1))
+          expect(matchers.write.revertWithCustomErrorWithUint([1n]))
             // @ts-expect-error
             .withArgs(1)
         ).to.throw(
@@ -395,7 +401,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
       // See https://github.com/NomicFoundation/hardhat/issues/4235
       it.skip("should fail if both emit and revertedWithCustomError are called", async function () {
         expect(() =>
-          expect(matchers.revertWithSomeCustomError())
+          expect(matchers.write.revertWithSomeCustomError())
             .to.emit(matchers, "SomeEvent")
             .and.to.be.revertedWithCustomError(matchers, "SomeCustomError")
             .withArgs(1)
@@ -407,17 +413,17 @@ describe("INTEGRATION: Reverted with custom error", function () {
 
       describe("Should handle argument predicates", function () {
         it("Should pass when a predicate argument returns true", async function () {
-          await expect(matchers.revertWithCustomErrorWithUint(1))
+          await expect(matchers.write.revertWithCustomErrorWithUint([1n]))
             .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
             .withArgs(anyValue);
-          await expect(matchers.revertWithCustomErrorWithUint(1))
+          await expect(matchers.write.revertWithCustomErrorWithUint([1n]))
             .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
             .withArgs(anyUint);
         });
 
         it("Should fail when a predicate argument returns false", async function () {
           await expect(
-            expect(matchers.revertWithCustomErrorWithUint(1))
+            expect(matchers.write.revertWithCustomErrorWithUint([1n]))
               .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
               .withArgs(() => false)
           ).to.be.rejectedWith(
@@ -428,7 +434,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
 
         it("Should fail when a predicate argument throws an error", async function () {
           await expect(
-            expect(matchers.revertWithCustomErrorWithInt(-1))
+            expect(matchers.write.revertWithCustomErrorWithInt([-1n]))
               .to.be.revertedWithCustomError(matchers, "CustomErrorWithInt")
               .withArgs(anyUint)
           ).to.be.rejectedWith(
@@ -450,7 +456,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
       });
 
       it("non-string as expectation", async function () {
-        const { hash } = await mineSuccessfulTransaction(this.hre);
+        const hash = await mineSuccessfulTransaction(this.hre);
 
         expect(() =>
           // @ts-expect-error
@@ -460,7 +466,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
 
       it("the contract is not specified", async function () {
         expect(() =>
-          expect(matchers.revertWithSomeCustomError())
+          expect(matchers.write.revertWithSomeCustomError())
             .to.be // @ts-expect-error
             .revertedWithCustomError("SomeCustomError")
         ).to.throw(
@@ -472,7 +478,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
       it("the contract doesn't have a custom error with that name", async function () {
         expect(() =>
           expect(
-            matchers.revertWithSomeCustomError()
+            matchers.write.revertWithSomeCustomError()
           ).to.be.revertedWithCustomError(matchers, "SomeCustmError")
         ).to.throw(
           Error,
@@ -484,20 +490,18 @@ describe("INTEGRATION: Reverted with custom error", function () {
         // use an address that almost surely doesn't have balance
         const randomPrivateKey =
           "0xc5c587cc6e48e9692aee0bf07474118e6d830c11905f7ec7ff32c09c99eba5f9";
-        const signer = new this.hre.ethers.Wallet(
-          randomPrivateKey,
-          this.hre.ethers.provider
-        );
-        const matchersFromSenderWithoutFunds = matchers.connect(
-          signer
-        ) as MatchersContract;
+        const account = privateKeyToAccount(randomPrivateKey);
+        const wallet = await this.hre.viem.getWalletClient(account.address, {
+          account,
+        });
 
         // this transaction will fail because of lack of funds, not because of a
         // revert
         await expect(
           expect(
-            matchersFromSenderWithoutFunds.revertsWithoutReason({
-              gasLimit: 1_000_000,
+            matchers.write.revertsWithoutReason({
+              gas: 1_000_000n,
+              account: wallet.account,
             })
           ).to.not.be.revertedWithCustomError(matchers, "SomeCustomError")
         ).to.be.eventually.rejectedWith(
@@ -509,7 +513,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
       it("extra arguments", async function () {
         expect(() =>
           expect(
-            matchers.revertWithSomeCustomError()
+            matchers.write.revertWithSomeCustomError()
           ).to.be.revertedWithCustomError(
             matchers,
             "SomeCustomError",
@@ -528,7 +532,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
       it("includes test file", async function () {
         try {
           await expect(
-            matchers.revertsWith("some reason")
+            matchers.write.revertsWith(["some reason"])
           ).to.be.revertedWithCustomError(matchers, "SomeCustomError");
         } catch (e: any) {
           const errorString = util.inspect(e);

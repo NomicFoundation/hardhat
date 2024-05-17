@@ -1,7 +1,5 @@
-import type { TransactionResponse } from "ethers";
-import type { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
-import type { Token } from "../src/internal/changeTokenBalance";
-import type { MatchersContract } from "./contracts";
+import type { WalletClient } from "@nomicfoundation/hardhat-viem/types";
+import type { Token, MatchersContract } from "./contracts";
 
 import assert from "assert";
 import { AssertionError, expect } from "chai";
@@ -34,32 +32,23 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
   });
 
   function runTests() {
-    let sender: HardhatEthersSigner;
-    let receiver: HardhatEthersSigner;
+    let sender: WalletClient;
+    let receiver: WalletClient;
     let mockToken: Token;
     let matchers: MatchersContract;
 
     beforeEach(async function () {
-      const wallets = await this.hre.ethers.getSigners();
-      sender = wallets[0];
-      receiver = wallets[1];
+      [sender, receiver] = await this.hre.viem.getWalletClients();
 
-      const MockToken = await this.hre.ethers.getContractFactory<[], Token>(
-        "MockToken"
-      );
-      mockToken = await MockToken.deploy();
+      mockToken = await this.hre.viem.deployContract("MockToken");
 
-      const Matchers = await this.hre.ethers.getContractFactory<
-        [],
-        MatchersContract
-      >("Matchers");
-      matchers = await Matchers.deploy();
+      matchers = await this.hre.viem.deployContract("Matchers");
     });
 
     describe("transaction that doesn't move tokens", () => {
       it("with a promise of a TxResponse", async function () {
         const transactionResponse = sender.sendTransaction({
-          to: receiver.address,
+          to: receiver.account.address,
         });
         await runAllAsserts(
           transactionResponse,
@@ -72,7 +61,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
       it("with a TxResponse", async function () {
         await runAllAsserts(
           await sender.sendTransaction({
-            to: receiver.address,
+            to: receiver.account.address,
           }),
           mockToken,
           [sender, receiver],
@@ -82,7 +71,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
 
       it("with a function that returns a promise of a TxResponse", async function () {
         await runAllAsserts(
-          () => sender.sendTransaction({ to: receiver.address }),
+          () => sender.sendTransaction({ to: receiver.account.address }),
           mockToken,
           [sender, receiver],
           [0, 0]
@@ -91,7 +80,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
 
       it("with a function that returns a TxResponse", async function () {
         const txResponse = await sender.sendTransaction({
-          to: receiver.address,
+          to: receiver.account.address,
         });
         await runAllAsserts(
           () => txResponse,
@@ -103,46 +92,42 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
 
       it("accepts addresses", async function () {
         await expect(
-          sender.sendTransaction({ to: receiver.address })
-        ).to.changeTokenBalance(mockToken, sender.address, 0);
+          sender.sendTransaction({ to: receiver.account.address })
+        ).to.changeTokenBalance(mockToken, sender.account.address, 0);
 
         await expect(() =>
-          sender.sendTransaction({ to: receiver.address })
+          sender.sendTransaction({ to: receiver.account.address })
         ).to.changeTokenBalances(
           mockToken,
-          [sender.address, receiver.address],
+          [sender.account.address, receiver.account.address],
           [0, 0]
         );
 
         // mixing signers and addresses
         await expect(() =>
-          sender.sendTransaction({ to: receiver.address })
-        ).to.changeTokenBalances(mockToken, [sender.address, receiver], [0, 0]);
+          sender.sendTransaction({ to: receiver.account.address })
+        ).to.changeTokenBalances(
+          mockToken,
+          [sender.account.address, receiver],
+          [0, 0]
+        );
       });
 
       it("negated", async function () {
         await expect(
-          sender.sendTransaction({ to: receiver.address })
+          sender.sendTransaction({ to: receiver.account.address })
         ).to.not.changeTokenBalance(mockToken, sender, 1);
 
-        await expect(
-          sender.sendTransaction({ to: receiver.address })
-        ).to.not.changeTokenBalance(
-          mockToken,
-          sender,
-          (diff: bigint) => diff > 0n
-        );
-
         await expect(() =>
-          sender.sendTransaction({ to: receiver.address })
+          sender.sendTransaction({ to: receiver.account.address })
         ).to.not.changeTokenBalances(mockToken, [sender, receiver], [0, 1]);
 
         await expect(() =>
-          sender.sendTransaction({ to: receiver.address })
+          sender.sendTransaction({ to: receiver.account.address })
         ).to.not.changeTokenBalances(mockToken, [sender, receiver], [1, 0]);
 
         await expect(() =>
-          sender.sendTransaction({ to: receiver.address })
+          sender.sendTransaction({ to: receiver.account.address })
         ).to.not.changeTokenBalances(mockToken, [sender, receiver], [1, 1]);
       });
 
@@ -150,7 +135,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         it("doesn't change balance as expected", async function () {
           await expect(
             expect(
-              sender.sendTransaction({ to: receiver.address })
+              sender.sendTransaction({ to: receiver.account.address })
             ).to.changeTokenBalance(mockToken, sender, 1)
           ).to.be.rejectedWith(
             AssertionError,
@@ -158,25 +143,10 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           );
         });
 
-        it("change balance doesn't satisfies the predicate", async function () {
-          await expect(
-            expect(
-              sender.sendTransaction({ to: receiver.address })
-            ).to.changeTokenBalance(
-              mockToken,
-              sender,
-              (diff: bigint) => diff > 0n
-            )
-          ).to.be.rejectedWith(
-            AssertionError,
-            /Expected the balance of MCK tokens for "0x\w{40}" to satisfy the predicate, but it didn't \(token balance change: 0 wei\)/
-          );
-        });
-
         it("changes balance in the way it was not expected", async function () {
           await expect(
             expect(
-              sender.sendTransaction({ to: receiver.address })
+              sender.sendTransaction({ to: receiver.account.address })
             ).to.not.changeTokenBalance(mockToken, sender, 0)
           ).to.be.rejectedWith(
             AssertionError,
@@ -184,25 +154,10 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           );
         });
 
-        it("changes balance doesn't have to satisfy the predicate, but it did", async function () {
-          await expect(
-            expect(
-              sender.sendTransaction({ to: receiver.address })
-            ).to.not.changeTokenBalance(
-              mockToken,
-              sender,
-              (diff: bigint) => diff < 1n
-            )
-          ).to.be.rejectedWith(
-            AssertionError,
-            /Expected the balance of MCK tokens for "0x\w{40}" to NOT satisfy the predicate, but it did \(token balance change: 0 wei\)/
-          );
-        });
-
         it("the first account doesn't change its balance as expected", async function () {
           await expect(
             expect(
-              sender.sendTransaction({ to: receiver.address })
+              sender.sendTransaction({ to: receiver.account.address })
             ).to.changeTokenBalances(mockToken, [sender, receiver], [1, 0])
           ).to.be.rejectedWith(AssertionError);
         });
@@ -210,7 +165,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         it("the second account doesn't change its balance as expected", async function () {
           await expect(
             expect(
-              sender.sendTransaction({ to: receiver.address })
+              sender.sendTransaction({ to: receiver.account.address })
             ).to.changeTokenBalances(mockToken, [sender, receiver], [0, 1])
           ).to.be.rejectedWith(AssertionError);
         });
@@ -218,7 +173,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         it("neither account changes its balance as expected", async function () {
           await expect(
             expect(
-              sender.sendTransaction({ to: receiver.address })
+              sender.sendTransaction({ to: receiver.account.address })
             ).to.changeTokenBalances(mockToken, [sender, receiver], [1, 1])
           ).to.be.rejectedWith(AssertionError);
         });
@@ -226,69 +181,24 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         it("accounts change their balance in the way it was not expected", async function () {
           await expect(
             expect(
-              sender.sendTransaction({ to: receiver.address })
+              sender.sendTransaction({ to: receiver.account.address })
             ).to.not.changeTokenBalances(mockToken, [sender, receiver], [0, 0])
           ).to.be.rejectedWith(AssertionError);
         });
       });
     });
 
-    describe("Transaction Callback", function () {
-      it("Should pass when given predicate", async () => {
-        await expect(() =>
-          mockToken.transfer(receiver.address, 75)
-        ).to.changeTokenBalances(
-          mockToken,
-          [sender, receiver],
-          ([senderDiff, receiverDiff]: bigint[]) =>
-            senderDiff === -75n && receiverDiff === 75n
-        );
-      });
-
-      it("Should fail when the predicate returns false", async () => {
-        await expect(
-          expect(
-            mockToken.transfer(receiver.address, 75)
-          ).to.changeTokenBalances(
-            mockToken,
-            [sender, receiver],
-            ([senderDiff, receiverDiff]: bigint[]) =>
-              senderDiff === -74n && receiverDiff === 75n
-          )
-        ).to.be.eventually.rejectedWith(
-          AssertionError,
-          "Expected the balance changes of MCK to satisfy the predicate, but they didn't"
-        );
-      });
-
-      it("Should fail when the predicate returns true and the assertion is negated", async () => {
-        await expect(
-          expect(
-            mockToken.transfer(receiver.address, 75)
-          ).to.not.changeTokenBalances(
-            mockToken,
-            [sender, receiver],
-            ([senderDiff, receiverDiff]: bigint[]) =>
-              senderDiff === -75n && receiverDiff === 75n
-          )
-        ).to.be.eventually.rejectedWith(
-          AssertionError,
-          "Expected the balance changes of MCK to NOT satisfy the predicate, but they did"
-        );
-      });
-    });
-
     describe("transaction that transfers some tokens", function () {
       it("with a promise of a TxResponse", async function () {
         await runAllAsserts(
-          mockToken.transfer(receiver.address, 50),
+          mockToken.write.transfer([receiver.account.address, 50n]),
           mockToken,
           [sender, receiver],
           [-50, 50]
         );
 
         await runAllAsserts(
-          mockToken.transfer(receiver.address, 100),
+          mockToken.write.transfer([receiver.account.address, 100n]),
           mockToken,
           [sender, receiver],
           [-100, 100]
@@ -297,7 +207,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
 
       it("with a TxResponse", async function () {
         await runAllAsserts(
-          await mockToken.transfer(receiver.address, 150),
+          await mockToken.write.transfer([receiver.account.address, 150n]),
           mockToken,
           [sender, receiver],
           [-150, 150]
@@ -306,7 +216,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
 
       it("with a function that returns a promise of a TxResponse", async function () {
         await runAllAsserts(
-          () => mockToken.transfer(receiver.address, 200),
+          () => mockToken.write.transfer([receiver.account.address, 200n]),
           mockToken,
           [sender, receiver],
           [-200, 200]
@@ -314,7 +224,10 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
       });
 
       it("with a function that returns a TxResponse", async function () {
-        const txResponse = await mockToken.transfer(receiver.address, 300);
+        const txResponse = await mockToken.write.transfer([
+          receiver.account.address,
+          300n,
+        ]);
         await runAllAsserts(
           () => txResponse,
           mockToken,
@@ -324,51 +237,53 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
       });
 
       it("changeTokenBalance shouldn't run the transaction twice", async function () {
-        const receiverBalanceBefore = await mockToken.balanceOf(
-          receiver.address
-        );
+        const receiverBalanceBefore = await mockToken.read.balanceOf([
+          receiver.account.address,
+        ]);
 
         await expect(() =>
-          mockToken.transfer(receiver.address, 50)
+          mockToken.write.transfer([receiver.account.address, 50n])
         ).to.changeTokenBalance(mockToken, receiver, 50);
 
         const receiverBalanceChange =
-          (await mockToken.balanceOf(receiver.address)) - receiverBalanceBefore;
+          (await mockToken.read.balanceOf([receiver.account.address])) -
+          receiverBalanceBefore;
 
         expect(receiverBalanceChange).to.equal(50n);
       });
 
       it("changeTokenBalances shouldn't run the transaction twice", async function () {
-        const receiverBalanceBefore = await mockToken.balanceOf(
-          receiver.address
-        );
+        const receiverBalanceBefore = await mockToken.read.balanceOf([
+          receiver.account.address,
+        ]);
 
         await expect(() =>
-          mockToken.transfer(receiver.address, 50)
+          mockToken.write.transfer([receiver.account.address, 50n])
         ).to.changeTokenBalances(mockToken, [sender, receiver], [-50, 50]);
 
         const receiverBalanceChange =
-          (await mockToken.balanceOf(receiver.address)) - receiverBalanceBefore;
+          (await mockToken.read.balanceOf([receiver.account.address])) -
+          receiverBalanceBefore;
 
         expect(receiverBalanceChange).to.equal(50n);
       });
 
       it("negated", async function () {
         await expect(
-          mockToken.transfer(receiver.address, 50)
+          mockToken.write.transfer([receiver.account.address, 50n])
         ).to.not.changeTokenBalance(mockToken, sender, 0);
         await expect(
-          mockToken.transfer(receiver.address, 50)
+          mockToken.write.transfer([receiver.account.address, 50n])
         ).to.not.changeTokenBalance(mockToken, sender, 1);
 
         await expect(
-          mockToken.transfer(receiver.address, 50)
+          mockToken.write.transfer([receiver.account.address, 50n])
         ).to.not.changeTokenBalances(mockToken, [sender, receiver], [0, 0]);
         await expect(
-          mockToken.transfer(receiver.address, 50)
+          mockToken.write.transfer([receiver.account.address, 50n])
         ).to.not.changeTokenBalances(mockToken, [sender, receiver], [-50, 0]);
         await expect(
-          mockToken.transfer(receiver.address, 50)
+          mockToken.write.transfer([receiver.account.address, 50n])
         ).to.not.changeTokenBalances(mockToken, [sender, receiver], [0, 50]);
       });
 
@@ -376,7 +291,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         it("doesn't change balance as expected", async function () {
           await expect(
             expect(
-              mockToken.transfer(receiver.address, 50)
+              mockToken.write.transfer([receiver.account.address, 50n])
             ).to.changeTokenBalance(mockToken, receiver, 500)
           ).to.be.rejectedWith(
             AssertionError,
@@ -384,25 +299,10 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           );
         });
 
-        it("change balance doesn't satisfies the predicate", async function () {
-          await expect(
-            expect(
-              mockToken.transfer(receiver.address, 50)
-            ).to.changeTokenBalance(
-              mockToken,
-              receiver,
-              (diff: bigint) => diff === 500n
-            )
-          ).to.be.rejectedWith(
-            AssertionError,
-            /Expected the balance of MCK tokens for "0x\w{40}" to satisfy the predicate, but it didn't \(token balance change: 50 wei\)/
-          );
-        });
-
         it("changes balance in the way it was not expected", async function () {
           await expect(
             expect(
-              mockToken.transfer(receiver.address, 50)
+              mockToken.write.transfer([receiver.account.address, 50n])
             ).to.not.changeTokenBalance(mockToken, receiver, 50)
           ).to.be.rejectedWith(
             AssertionError,
@@ -410,25 +310,10 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           );
         });
 
-        it("changes balance doesn't have to satisfy the predicate, but it did", async function () {
-          await expect(
-            expect(
-              mockToken.transfer(receiver.address, 50)
-            ).to.not.changeTokenBalance(
-              mockToken,
-              receiver,
-              (diff: bigint) => diff === 50n
-            )
-          ).to.be.rejectedWith(
-            AssertionError,
-            /Expected the balance of MCK tokens for "0x\w{40}" to NOT satisfy the predicate, but it did \(token balance change: 50 wei\)/
-          );
-        });
-
         it("the first account doesn't change its balance as expected", async function () {
           await expect(
             expect(
-              mockToken.transfer(receiver.address, 50)
+              mockToken.write.transfer([receiver.account.address, 50n])
             ).to.changeTokenBalances(mockToken, [sender, receiver], [-100, 50])
           ).to.be.rejectedWith(AssertionError);
         });
@@ -436,7 +321,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         it("the second account doesn't change its balance as expected", async function () {
           await expect(
             expect(
-              mockToken.transfer(receiver.address, 50)
+              mockToken.write.transfer([receiver.account.address, 50n])
             ).to.changeTokenBalances(mockToken, [sender, receiver], [-50, 100])
           ).to.be.rejectedWith(AssertionError);
         });
@@ -444,7 +329,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         it("neither account changes its balance as expected", async function () {
           await expect(
             expect(
-              mockToken.transfer(receiver.address, 50)
+              mockToken.write.transfer([receiver.account.address, 50n])
             ).to.changeTokenBalances(mockToken, [sender, receiver], [0, 0])
           ).to.be.rejectedWith(AssertionError);
         });
@@ -452,7 +337,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         it("accounts change their balance in the way it was not expected", async function () {
           await expect(
             expect(
-              mockToken.transfer(receiver.address, 50)
+              mockToken.write.transfer([receiver.account.address, 50n])
             ).to.not.changeTokenBalances(
               mockToken,
               [sender, receiver],
@@ -462,15 +347,13 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         });
 
         it("uses the token name if the contract doesn't have a symbol", async function () {
-          const TokenWithOnlyName = await this.hre.ethers.getContractFactory<
-            [],
-            Token
-          >("TokenWithOnlyName");
-          const tokenWithOnlyName = await TokenWithOnlyName.deploy();
+          const tokenWithOnlyName = await this.hre.viem.deployContract(
+            "TokenWithOnlyName"
+          );
 
           await expect(
             expect(
-              tokenWithOnlyName.transfer(receiver.address, 50)
+              tokenWithOnlyName.write.transfer([receiver.account.address, 50n])
             ).to.changeTokenBalance(tokenWithOnlyName, receiver, 500)
           ).to.be.rejectedWith(
             AssertionError,
@@ -479,7 +362,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
 
           await expect(
             expect(
-              tokenWithOnlyName.transfer(receiver.address, 50)
+              tokenWithOnlyName.write.transfer([receiver.account.address, 50n])
             ).to.not.changeTokenBalance(tokenWithOnlyName, receiver, 50)
           ).to.be.rejectedWith(
             AssertionError,
@@ -488,16 +371,16 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         });
 
         it("uses the contract address if the contract doesn't have name or symbol", async function () {
-          const TokenWithoutNameNorSymbol =
-            await this.hre.ethers.getContractFactory<[], Token>(
-              "TokenWithoutNameNorSymbol"
-            );
-          const tokenWithoutNameNorSymbol =
-            await TokenWithoutNameNorSymbol.deploy();
+          const tokenWithoutNameNorSymbol = await this.hre.viem.deployContract(
+            "TokenWithoutNameNorSymbol"
+          );
 
           await expect(
             expect(
-              tokenWithoutNameNorSymbol.transfer(receiver.address, 50)
+              tokenWithoutNameNorSymbol.write.transfer([
+                receiver.account.address,
+                50n,
+              ])
             ).to.changeTokenBalance(tokenWithoutNameNorSymbol, receiver, 500)
           ).to.be.rejectedWith(
             AssertionError,
@@ -506,7 +389,10 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
 
           await expect(
             expect(
-              tokenWithoutNameNorSymbol.transfer(receiver.address, 50)
+              tokenWithoutNameNorSymbol.write.transfer([
+                receiver.account.address,
+                50n,
+              ])
             ).to.not.changeTokenBalance(tokenWithoutNameNorSymbol, receiver, 50)
           ).to.be.rejectedWith(
             AssertionError,
@@ -516,7 +402,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
 
         it("changeTokenBalance: Should throw if chained to another non-chainable method", () => {
           expect(() =>
-            expect(mockToken.transfer(receiver.address, 50))
+            expect(mockToken.write.transfer([receiver.account.address, 50n]))
               .to.emit(mockToken, "SomeEvent")
               .and.to.changeTokenBalance(mockToken, receiver, 50)
           ).to.throw(
@@ -527,7 +413,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         it("changeTokenBalances: should throw if chained to another non-chainable method", () => {
           expect(() =>
             expect(
-              mockToken.transfer(receiver.address, 50)
+              mockToken.write.transfer([receiver.account.address, 50n])
             ).to.be.reverted.and.to.changeTokenBalances(
               mockToken,
               [sender, receiver],
@@ -544,7 +430,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
       describe(CHANGE_TOKEN_BALANCE_MATCHER, function () {
         it("token is not specified", async function () {
           expect(() =>
-            expect(mockToken.transfer(receiver.address, 50))
+            expect(mockToken.write.transfer([receiver.account.address, 50n]))
               .to // @ts-expect-error
               .changeTokenBalance(receiver, 50)
           ).to.throw(
@@ -554,7 +440,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
 
           // if an address is used
           expect(() =>
-            expect(mockToken.transfer(receiver.address, 50))
+            expect(mockToken.write.transfer([receiver.account.address, 50n]))
               .to // @ts-expect-error
               .changeTokenBalance(receiver.address, 50)
           ).to.throw(
@@ -564,14 +450,11 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         });
 
         it("contract is not a token", async function () {
-          const NotAToken = await this.hre.ethers.getContractFactory(
-            "NotAToken"
-          );
-          const notAToken = await NotAToken.deploy();
+          const notAToken = await this.hre.viem.deployContract("NotAToken");
 
           expect(() =>
             expect(
-              mockToken.transfer(receiver.address, 50)
+              mockToken.write.transfer([receiver.account.address, 50n])
             ).to.changeTokenBalance(notAToken, sender, -50)
           ).to.throw(
             Error,
@@ -584,15 +467,17 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
 
           // we set a gas limit to avoid using the whole block gas limit
           await sender.sendTransaction({
-            to: receiver.address,
-            gasLimit: 30_000,
+            to: receiver.account.address,
+            gas: 30_000n,
           });
 
           await this.hre.network.provider.send("evm_setAutomine", [true]);
 
           await expect(
             expect(
-              mockToken.transfer(receiver.address, 50, { gasLimit: 100_000 })
+              mockToken.write.transfer([receiver.account.address, 50n], {
+                gas: 100_000n,
+              })
             ).to.changeTokenBalance(mockToken, sender, -50)
           ).to.be.rejectedWith(Error, "Multiple transactions found in block");
         });
@@ -600,7 +485,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         it("tx reverts", async function () {
           await expect(
             expect(
-              mockToken.transfer(receiver.address, 0)
+              mockToken.write.transfer([receiver.account.address, 0n])
             ).to.changeTokenBalance(mockToken, sender, -50)
           ).to.be.rejectedWith(
             Error,
@@ -613,7 +498,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
       describe(CHANGE_TOKEN_BALANCES_MATCHER, function () {
         it("token is not specified", async function () {
           expect(() =>
-            expect(mockToken.transfer(receiver.address, 50))
+            expect(mockToken.write.transfer([receiver.account.address, 50n]))
               .to // @ts-expect-error
               .changeTokenBalances([sender, receiver], [-50, 50])
           ).to.throw(
@@ -623,14 +508,11 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         });
 
         it("contract is not a token", async function () {
-          const NotAToken = await this.hre.ethers.getContractFactory(
-            "NotAToken"
-          );
-          const notAToken = await NotAToken.deploy();
+          const notAToken = await this.hre.viem.deployContract("NotAToken");
 
           expect(() =>
             expect(
-              mockToken.transfer(receiver.address, 50)
+              mockToken.write.transfer([receiver.account.address, 50n])
             ).to.changeTokenBalances(notAToken, [sender, receiver], [-50, 50])
           ).to.throw(
             Error,
@@ -641,7 +523,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         it("arrays have different length", async function () {
           expect(() =>
             expect(
-              mockToken.transfer(receiver.address, 50)
+              mockToken.write.transfer([receiver.account.address, 50n])
             ).to.changeTokenBalances(mockToken, [sender], [-50, 50])
           ).to.throw(
             Error,
@@ -650,7 +532,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
 
           expect(() =>
             expect(
-              mockToken.transfer(receiver.address, 50)
+              mockToken.write.transfer([receiver.account.address, 50n])
             ).to.changeTokenBalances(mockToken, [sender, receiver], [-50])
           ).to.throw(
             Error,
@@ -660,11 +542,9 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
 
         it("arrays have different length, subject is a rejected promise", async function () {
           expect(() =>
-            expect(matchers.revertsWithoutReason()).to.changeTokenBalances(
-              mockToken,
-              [sender],
-              [-50, 50]
-            )
+            expect(
+              matchers.write.revertsWithoutReason()
+            ).to.changeTokenBalances(mockToken, [sender], [-50, 50])
           ).to.throw(
             Error,
             "The number of accounts (1) is different than the number of expected balance changes (2)"
@@ -676,15 +556,17 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
 
           // we set a gas limit to avoid using the whole block gas limit
           await sender.sendTransaction({
-            to: receiver.address,
-            gasLimit: 30_000,
+            to: receiver.account.address,
+            gas: 30_000n,
           });
 
           await this.hre.network.provider.send("evm_setAutomine", [true]);
 
           await expect(
             expect(
-              mockToken.transfer(receiver.address, 50, { gasLimit: 100_000 })
+              mockToken.write.transfer([receiver.account.address, 50n], {
+                gas: 100_000n,
+              })
             ).to.changeTokenBalances(mockToken, [sender, receiver], [-50, 50])
           ).to.be.rejectedWith(Error, "Multiple transactions found in block");
         });
@@ -692,7 +574,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         it("tx reverts", async function () {
           await expect(
             expect(
-              mockToken.transfer(receiver.address, 0)
+              mockToken.write.transfer([receiver.account.address, 0n])
             ).to.changeTokenBalances(mockToken, [sender, receiver], [-50, 50])
           ).to.be.rejectedWith(
             Error,
@@ -706,12 +588,16 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
     describe("accepted number types", function () {
       it("native bigints are accepted", async function () {
         await expect(
-          mockToken.transfer(receiver.address, 50)
-        ).to.changeTokenBalance(mockToken, sender, -50n);
+          mockToken.write.transfer([receiver.account.address, 50n])
+        ).to.changeTokenBalance(mockToken, sender, BigInt(-50));
 
         await expect(
-          mockToken.transfer(receiver.address, 50)
-        ).to.changeTokenBalances(mockToken, [sender, receiver], [-50n, 50n]);
+          mockToken.write.transfer([receiver.account.address, 50n])
+        ).to.changeTokenBalances(
+          mockToken,
+          [sender, receiver],
+          [BigInt(-50), BigInt(50)]
+        );
       });
     });
 
@@ -722,7 +608,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           let hasProperStackTrace = false;
           try {
             await expect(
-              mockToken.transfer(receiver.address, 50)
+              mockToken.write.transfer([receiver.account.address, 50n])
             ).to.changeTokenBalance(mockToken, sender, -100);
           } catch (e: any) {
             hasProperStackTrace = util
@@ -738,7 +624,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         it("includes test file", async function () {
           try {
             await expect(
-              mockToken.transfer(receiver.address, 50)
+              mockToken.write.transfer([receiver.account.address, 50n])
             ).to.changeTokenBalances(
               mockToken,
               [sender, receiver],
@@ -772,12 +658,12 @@ function zip<T, U>(a: T[], b: U[]): Array<[T, U]> {
  */
 async function runAllAsserts(
   expr:
-    | TransactionResponse
-    | Promise<TransactionResponse>
-    | (() => TransactionResponse)
-    | (() => Promise<TransactionResponse>),
+    | `0x${string}`
+    | Promise<`0x${string}`>
+    | (() => `0x${string}`)
+    | (() => Promise<`0x${string}`>),
   token: Token,
-  accounts: Array<string | HardhatEthersSigner>,
+  accounts: Array<`0x${string}` | WalletClient>,
   balances: Array<number | bigint>
 ) {
   // changeTokenBalances works for the given arrays

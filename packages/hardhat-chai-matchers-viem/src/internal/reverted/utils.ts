@@ -1,4 +1,5 @@
-import type EthersT from "ethers";
+import type { Result } from "ethers";
+import type ViemT from "viem";
 
 import { AssertionError } from "chai";
 
@@ -17,7 +18,7 @@ const PANIC_CODE_PREFIX = "0x4e487b71";
  * If the value is an error but it doesn't have data, we assume it's not related
  * to a reverted transaction and we re-throw it.
  */
-export function getReturnDataFromError(error: any): string {
+export function getReturnDataFromError(error: any): `0x${string}` {
   if (!(error instanceof Error)) {
     throw new AssertionError("Expected an Error object");
   }
@@ -26,15 +27,29 @@ export function getReturnDataFromError(error: any): string {
   // some property that doesn't exist on Error
   error = error as any;
 
-  const errorData = error.data ?? error.error?.data;
+  // a list of the possible locations for error return data
+  // it varies based on a number of things:
+  //   1. internal hardhat network or external
+  //   2. read or write contract interation type
+  //   3. ethers or viem
+  //   4. probably a lot more
+  const returnData: `0x${string}` | undefined = [
+    error?.data,
+    error?.error?.data,
+    error?.data?.data,
+    error?.error?.data?.data,
+    error?.cause?.cause?.data,
+    error?.cause?.cause?.data?.data,
+    error?.cause?.cause?.cause?.data,
+    error?.cause?.cause?.cause?.data?.data,
+  ].find(
+    (returnData: any) =>
+      typeof returnData === "string" && returnData.startsWith("0x")
+  );
+  console.log(returnData);
 
-  if (errorData === undefined) {
-    throw error;
-  }
-
-  const returnData = typeof errorData === "string" ? errorData : errorData.data;
-
-  if (returnData === undefined || typeof returnData !== "string") {
+  if (typeof returnData !== "string") {
+    console.log(JSON.stringify(error, undefined, 2));
     throw error;
   }
 
@@ -61,8 +76,8 @@ type DecodedReturnData =
     };
 
 export function decodeReturnData(returnData: string): DecodedReturnData {
-  const { AbiCoder } = require("ethers") as typeof EthersT;
-  const abi = new AbiCoder();
+  const { decodeAbiParameters, parseAbiParameters } =
+    require("viem") as typeof ViemT;
 
   if (returnData === "0x") {
     return { kind: "Empty" };
@@ -70,7 +85,10 @@ export function decodeReturnData(returnData: string): DecodedReturnData {
     const encodedReason = returnData.slice(ERROR_STRING_PREFIX.length);
     let reason: string;
     try {
-      reason = abi.decode(["string"], `0x${encodedReason}`)[0];
+      reason = decodeAbiParameters(
+        parseAbiParameters("string"),
+        `0x${encodedReason}`
+      )[0];
     } catch (e: any) {
       throw new HardhatChaiMatchersDecodingError(encodedReason, "string", e);
     }
@@ -83,7 +101,10 @@ export function decodeReturnData(returnData: string): DecodedReturnData {
     const encodedReason = returnData.slice(PANIC_CODE_PREFIX.length);
     let code: bigint;
     try {
-      code = abi.decode(["uint256"], `0x${encodedReason}`)[0];
+      code = decodeAbiParameters(
+        parseAbiParameters("uint256"),
+        `0x${encodedReason}`
+      )[0];
     } catch (e: any) {
       throw new HardhatChaiMatchersDecodingError(encodedReason, "uint256", e);
     }
@@ -116,7 +137,7 @@ export function decodeReturnData(returnData: string): DecodedReturnData {
  *
  * The resulting array will be: ["foo", [1n, 2n]]
  */
-export function resultToArray(result: EthersT.Result): any[] {
+export function resultToArray(result: Result): any[] {
   return result
     .toArray()
     .map((x) =>
@@ -124,4 +145,13 @@ export function resultToArray(result: EthersT.Result): any[] {
         ? resultToArray(x)
         : x
     );
+}
+
+export function toBeHex(value: bigint) {
+  let result = value.toString(16);
+  // Ensure the value is of even length
+  if (result.length % 2) {
+    result = `0${result}`;
+  }
+  return `0x${result}`;
 }

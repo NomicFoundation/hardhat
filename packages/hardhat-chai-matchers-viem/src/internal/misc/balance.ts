@@ -1,4 +1,4 @@
-import type { Addressable } from "ethers";
+import type { WalletClient } from "viem";
 
 import { getAddressOf } from "./account";
 
@@ -6,17 +6,19 @@ export interface BalanceChangeOptions {
   includeFee?: boolean;
 }
 
-export function getAddresses(accounts: Array<Addressable | string>) {
+export function getAddresses(
+  accounts: Array<WalletClient | { address: `0x${string}` } | `0x${string}`>
+) {
   return Promise.all(accounts.map((account) => getAddressOf(account)));
 }
 
 export async function getBalances(
-  accounts: Array<Addressable | string>,
-  blockNumber?: number
+  accounts: Array<WalletClient | { address: `0x${string}` } | `0x${string}`>,
+  blockNumber?: bigint
 ): Promise<bigint[]> {
-  const { toBigInt } = await import("ethers");
-  const hre = await import("hardhat");
-  const provider = hre.ethers.provider;
+  const { network } = await import("hardhat");
+  const { hexToBigInt } = await import("viem");
+  const provider = network.provider;
 
   return Promise.all(
     accounts.map(async (account) => {
@@ -25,7 +27,7 @@ export async function getBalances(
         address,
         `0x${blockNumber?.toString(16) ?? 0}`,
       ]);
-      return toBigInt(result);
+      return hexToBigInt(result);
     })
   );
 }

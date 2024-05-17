@@ -1,16 +1,16 @@
-import type {
-  Addressable,
-  BigNumberish,
-  TransactionResponse,
-  default as EthersT,
-} from "ethers";
+import type { WalletClient } from "viem";
+
 import type { BalanceChangeOptions } from "./misc/balance";
 
 import { buildAssert } from "../utils";
 import { ensure } from "./calledOnContract/utils";
 import { getAddressOf } from "./misc/account";
 import { CHANGE_ETHER_BALANCE_MATCHER } from "./constants";
-import { assertIsNotNull, preventAsyncMatcherChaining } from "./utils";
+import {
+  assertIsNotNull,
+  getTransactionReceipt,
+  preventAsyncMatcherChaining,
+} from "./utils";
 
 export function supportChangeEtherBalance(
   Assertion: Chai.AssertionStatic,
@@ -20,11 +20,10 @@ export function supportChangeEtherBalance(
     CHANGE_ETHER_BALANCE_MATCHER,
     function (
       this: any,
-      account: Addressable | string,
-      balanceChange: BigNumberish | ((change: bigint) => boolean),
+      account: WalletClient | { address: `0x${string}` } | `0x${string}`,
+      balanceChange: bigint | number | string,
       options?: BalanceChangeOptions
     ) {
-      const { toBigInt } = require("ethers") as typeof EthersT;
       // capture negated flag before async code executes; see buildAssert's jsdoc
       const negated = this.__flags.negate;
       const subject = this._obj;
@@ -41,20 +40,11 @@ export function supportChangeEtherBalance(
       ]) => {
         const assert = buildAssert(negated, checkBalanceChange);
 
-        if (typeof balanceChange === "function") {
-          assert(
-            balanceChange(actualChange),
-            `Expected the ether balance change of "${address}" to satisfy the predicate, but it didn't (balance change: ${actualChange.toString()} wei)`,
-            `Expected the ether balance change of "${address}" to NOT satisfy the predicate, but it did (balance change: ${actualChange.toString()} wei)`
-          );
-        } else {
-          const expectedChange = toBigInt(balanceChange);
-          assert(
-            actualChange === expectedChange,
-            `Expected the ether balance of "${address}" to change by ${balanceChange.toString()} wei, but it changed by ${actualChange.toString()} wei`,
-            `Expected the ether balance of "${address}" NOT to change by ${balanceChange.toString()} wei, but it did`
-          );
-        }
+        assert(
+          actualChange === BigInt(balanceChange),
+          `Expected the ether balance of "${address}" to change by ${balanceChange.toString()} wei, but it changed by ${actualChange.toString()} wei`,
+          `Expected the ether balance of "${address}" NOT to change by ${balanceChange.toString()} wei, but it did`
+        );
       };
 
       const derivedPromise = Promise.all([
@@ -71,24 +61,25 @@ export function supportChangeEtherBalance(
 
 export async function getBalanceChange(
   transaction:
-    | TransactionResponse
-    | Promise<TransactionResponse>
-    | (() => Promise<TransactionResponse> | TransactionResponse),
-  account: Addressable | string,
+    | `0x${string}`
+    | Promise<`0x${string}`>
+    | (() => Promise<`0x${string}`> | `0x${string}`),
+  account: WalletClient | { address: `0x${string}` } | `0x${string}`,
   options?: BalanceChangeOptions
 ): Promise<bigint> {
-  const hre = await import("hardhat");
-  const provider = hre.network.provider;
+  const { network, viem } = await import("hardhat");
+  const provider = network.provider;
 
-  let txResponse: TransactionResponse;
+  let hash: `0x${string}`;
 
   if (typeof transaction === "function") {
-    txResponse = await transaction();
+    hash = await transaction();
   } else {
-    txResponse = await transaction;
+    hash = await transaction;
   }
 
-  const txReceipt = await txResponse.wait();
+  const txReceipt = await getTransactionReceipt(hash);
+
   assertIsNotNull(txReceipt, "txReceipt");
   const txBlockNumber = txReceipt.blockNumber;
 
@@ -112,14 +103,17 @@ export async function getBalanceChange(
 
   const balanceBeforeHex = await provider.send("eth_getBalance", [
     address,
-    `0x${(txBlockNumber - 1).toString(16)}`,
+    `0x${(txBlockNumber - 1n).toString(16)}`,
   ]);
 
   const balanceAfter = BigInt(balanceAfterHex);
   const balanceBefore = BigInt(balanceBeforeHex);
 
-  if (options?.includeFee !== true && address === txResponse.from) {
-    const gasPrice = txReceipt.gasPrice;
+  if (
+    options?.includeFee !== true &&
+    address.toLowerCase() === txReceipt.from.toLowerCase()
+  ) {
+    const gasPrice = txReceipt.effectiveGasPrice;
     const gasUsed = txReceipt.gasUsed;
     const txFee = gasPrice * gasUsed;
 

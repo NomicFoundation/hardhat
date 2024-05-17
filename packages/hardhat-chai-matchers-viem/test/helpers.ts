@@ -1,14 +1,15 @@
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import type { MatchersContract } from "./contracts";
 
+import { TransactionReceiptNotFoundError } from "viem";
 import { AssertionError, expect } from "chai";
 import { fork } from "child_process";
 import getPort from "get-port";
 import { resetHardhatContext } from "hardhat/plugins-testing";
 import path from "path";
 
-// we assume that all the fixture projects use the hardhat-ethers plugin
-import "@nomicfoundation/hardhat-ethers/internal/type-extensions";
+// we assume that all the fixture projects use the hardhat-viem plugin
+import "@nomicfoundation/hardhat-viem/internal/type-extensions";
 
 declare module "mocha" {
   interface Context {
@@ -102,7 +103,6 @@ export function useEnvironmentWithNode(fixtureProjectName: string) {
  *   - A write transaction
  *   - A view method
  *   - A gas estimation
- *   - A static call
  * And run the `successfulAssert` function with the result of each of these
  * calls. Since we expect this assertion to be successful, we just await its
  * result; if any of them fails, an error will be thrown.
@@ -118,10 +118,9 @@ export async function runSuccessfulAsserts({
   args?: any[];
   successfulAssert: (x: any) => Promise<void>;
 }) {
-  await successfulAssert(matchers[method](...args));
-  await successfulAssert(matchers[`${method}View`](...args));
-  await successfulAssert(matchers[method].estimateGas(...args));
-  await successfulAssert(matchers[method].staticCall(...args));
+  await successfulAssert(matchers.write[method](...args));
+  await successfulAssert(matchers.read[method](...args));
+  await successfulAssert(matchers.estimateGas[method](...args));
 }
 
 /**
@@ -141,18 +140,15 @@ export async function runFailedAsserts({
   failedAssert: (x: any) => Promise<void>;
   failedAssertReason: string;
 }) {
-  await expect(failedAssert(matchers[method](...args))).to.be.rejectedWith(
+  await expect(
+    failedAssert(matchers.write[method](...args))
+  ).to.be.rejectedWith(AssertionError, failedAssertReason);
+  await expect(failedAssert(matchers.read[method](...args))).to.be.rejectedWith(
     AssertionError,
     failedAssertReason
   );
   await expect(
-    failedAssert(matchers[`${method}View`](...args))
-  ).to.be.rejectedWith(AssertionError, failedAssertReason);
-  await expect(
-    failedAssert(matchers[method].estimateGas(...args))
-  ).to.be.rejectedWith(AssertionError, failedAssertReason);
-  await expect(
-    failedAssert(matchers[method].staticCall(...args))
+    failedAssert(matchers.estimateGas[method](...args))
   ).to.be.rejectedWith(AssertionError, failedAssertReason);
 }
 
@@ -161,14 +157,14 @@ export async function mineSuccessfulTransaction(
 ) {
   await hre.network.provider.send("evm_setAutomine", [false]);
 
-  const [signer] = await hre.ethers.getSigners();
-  const tx = await signer.sendTransaction({ to: signer.address });
+  const [signer] = await hre.viem.getWalletClients();
+  const txHash = await signer.sendTransaction({ to: signer.account.address });
 
-  await mineBlocksUntilTxIsIncluded(hre, tx.hash);
+  await mineBlocksUntilTxIsIncluded(hre, txHash);
 
   await hre.network.provider.send("evm_setAutomine", [true]);
 
-  return tx;
+  return txHash;
 }
 
 export async function mineRevertedTransaction(
@@ -177,31 +173,37 @@ export async function mineRevertedTransaction(
 ) {
   await hre.network.provider.send("evm_setAutomine", [false]);
 
-  const tx = await matchers.revertsWithoutReason({
-    gasLimit: 1_000_000,
+  const txHash = await matchers.write.revertsWithoutReason({
+    gas: 1_000_000n,
   });
 
-  await mineBlocksUntilTxIsIncluded(hre, tx.hash);
+  await mineBlocksUntilTxIsIncluded(hre, txHash);
 
   await hre.network.provider.send("evm_setAutomine", [true]);
 
-  return tx;
+  return txHash;
 }
 
 async function mineBlocksUntilTxIsIncluded(
   hre: HardhatRuntimeEnvironment,
-  txHash: string
+  txHash: `0x${string}`
 ) {
   let i = 0;
 
   while (true) {
-    const receipt = await hre.ethers.provider.getTransactionReceipt(txHash);
-
-    if (receipt !== null) {
+    try {
+      const publicClient = await hre.viem.getPublicClient();
+      await publicClient.getTransactionReceipt({
+        hash: txHash,
+      });
       return;
+    } catch (e) {
+      if (!(e instanceof TransactionReceiptNotFoundError)) {
+        throw e;
+      }
     }
 
-    await hre.network.provider.send("hardhat_mine", []);
+    await hre.network.provider.send("evm_mine", []);
 
     i++;
     if (i > 100) {

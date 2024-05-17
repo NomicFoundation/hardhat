@@ -1,9 +1,7 @@
-import type EthersT from "ethers";
-
 import { buildAssert } from "../../utils";
 import { REVERTED_WITH_MATCHER } from "../constants";
 import { preventAsyncMatcherChaining } from "../utils";
-import { decodeReturnData, getReturnDataFromError } from "./utils";
+import { decodeReturnData, getReturnDataFromError, toBeHex } from "./utils";
 
 export function supportRevertedWith(
   Assertion: Chai.AssertionStatic,
@@ -45,7 +43,6 @@ export function supportRevertedWith(
       };
 
       const onError = (error: any) => {
-        const { toBeHex } = require("ethers") as typeof EthersT;
         const assert = buildAssert(negated, onError);
 
         const returnData = getReturnDataFromError(error);

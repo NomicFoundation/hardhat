@@ -1,4 +1,4 @@
-import "@nomicfoundation/hardhat-ethers";
+import "@nomicfoundation/hardhat-viem";
 
 import "./types";
 

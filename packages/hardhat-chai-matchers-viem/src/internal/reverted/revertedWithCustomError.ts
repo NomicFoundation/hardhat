@@ -1,4 +1,10 @@
-import type EthersT from "ethers";
+import type {
+  default as EthersT,
+  Interface,
+  ErrorFragment,
+  JsonFragment,
+} from "ethers";
+import type { GetContractReturnType } from "viem";
 
 import {
   ASSERTION_ABORTED,
@@ -14,15 +20,18 @@ import {
   decodeReturnData,
   getReturnDataFromError,
   resultToArray,
+  toBeHex,
 } from "./utils";
 
 export const REVERTED_WITH_CUSTOM_ERROR_CALLED = "customErrorAssertionCalled";
 
 interface CustomErrorAssertionData {
-  contractInterface: EthersT.Interface;
-  returnData: string;
-  customError: EthersT.ErrorFragment;
+  contractInterface: Interface;
+  returnData: `0x${string}`;
+  customError: ErrorFragment;
 }
+
+type Contract = GetContractReturnType;
 
 export function supportRevertedWithCustomError(
   Assertion: Chai.AssertionStatic,
@@ -32,7 +41,7 @@ export function supportRevertedWithCustomError(
     REVERTED_WITH_CUSTOM_ERROR_MATCHER,
     function (
       this: any,
-      contract: EthersT.BaseContract,
+      contract: Contract,
       expectedCustomErrorName: string,
       ...args: any[]
     ) {
@@ -69,8 +78,6 @@ export function supportRevertedWithCustomError(
         if (chaiUtils.flag(this, ASSERTION_ABORTED) === true) {
           return;
         }
-
-        const { toBeHex } = require("ethers") as typeof EthersT;
 
         const assert = buildAssert(negated, onError);
 
@@ -150,14 +157,14 @@ export function supportRevertedWithCustomError(
 
 function validateInput(
   obj: any,
-  contract: EthersT.BaseContract,
+  contract: Contract,
   expectedCustomErrorName: string,
   args: any[]
-): { iface: EthersT.Interface; expectedCustomError: EthersT.ErrorFragment } {
+): { iface: Interface; expectedCustomError: ErrorFragment } {
   try {
     // check the case where users forget to pass the contract as the first
     // argument
-    if (typeof contract === "string" || contract?.interface === undefined) {
+    if (typeof contract === "string" || contract?.abi === undefined) {
       // discard subject since it could potentially be a rejected promise
       throw new TypeError(
         "The first argument of .revertedWithCustomError must be the contract that defines the custom error"
@@ -169,7 +176,8 @@ function validateInput(
       throw new TypeError("Expected the custom error name to be a string");
     }
 
-    const iface = contract.interface;
+    const { ethers } = require("ethers") as typeof EthersT;
+    const iface = new ethers.Interface(contract.abi as JsonFragment[]);
     const expectedCustomError = iface.getError(expectedCustomErrorName);
 
     // check that interface contains the given custom error

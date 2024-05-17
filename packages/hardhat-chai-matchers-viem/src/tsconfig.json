@@ -13,7 +13,7 @@
       "path": "../../hardhat-core/src"
     },
     {
-      "path": "../../hardhat-ethers/src"
+      "path": "../../hardhat-viem/src"
     }
   ]
 }

@@ -1,29 +1,29 @@
-[![npm](https://img.shields.io/npm/v/@nomicfoundation/hardhat-chai-matchers.svg)](https://www.npmjs.com/package/@nomicfoundation/hardhat-chai-matchers)
+[![npm](https://img.shields.io/npm/v/@nomicfoundation/hardhat-chai-matchers-viem.svg)](https://www.npmjs.com/package/@nomicfoundation/hardhat-chai-matchers-viem)
 
-# Hardhat Chai Matchers
+# Hardhat Chai Matchers Viem
 
 This plugin adds Ethereum-specific capabilities to the [Chai](https://chaijs.com/) assertion library, making your smart contract tests easy to write and read.
 
-Check [its documentation](https://hardhat.org/hardhat-chai-matchers/docs) to learn more.
+It is based on @nomicfoundation/hardhat-chai-matchers which is for ethers. Check [its documentation](https://hardhat.org/hardhat-chai-matchers/docs) to learn more.
 
 ### Installation
 
 We recommend using npm 7 or later. If you do that, then you just need to install the plugin itself:
 
 ```bash
-npm install --save-dev @nomicfoundation/hardhat-chai-matchers
+npm install --save-dev @nomicfoundation/hardhat-chai-matchers-viem
 ```
 
 If you are using an older version of npm, you'll also need to install all the packages used by the plugin.
 
 ```bash
-npm install --save-dev @nomicfoundation/hardhat-chai-matchers chai@4 @nomicfoundation/hardhat-ethers ethers
+npm install --save-dev @nomicfoundation/hardhat-chai-matchers-viem chai@4 @nomicfoundation/hardhat-viem viem
 ```
 
 That's also the case if you are using yarn:
 
 ```bash
-yarn add --dev @nomicfoundation/hardhat-chai-matchers chai@4 @nomicfoundation/hardhat-ethers ethers
+yarn add --dev @nomicfoundation/hardhat-chai-matchers-viem chai@4 @nomicfoundation/hardhat-viem viem
 ```
 
 ### Usage
@@ -31,19 +31,19 @@ yarn add --dev @nomicfoundation/hardhat-chai-matchers chai@4 @nomicfoundation/ha
 After installing it, add the plugin to your Hardhat config:
 
 ```js
-require("@nomicfoundation/hardhat-chai-matchers");
+require("@nomicfoundation/hardhat-chai-matchers-viem");
 ```
 
 Then you'll be able to use the matchers in your tests:
 
 ```js
-expect(await token.totalSupply()).to.equal(1_000_000);
+expect(await token.read.totalSupply()).to.equal(1_000_000);
 
-await expect(token.transfer(token, 1000)).to.be.revertedWith(
+await expect(token.write.transfer([token, 1000n])).to.be.revertedWith(
   "Cannot transfer to the contract itself"
 );
 
-await expect(token.transfer(recipient, 1000))
+await expect(token.write.transfer([recipient, 1000n]))
   .to.emit(token, "Transfer")
   .withArgs(owner, recipient, 1000);
 ```

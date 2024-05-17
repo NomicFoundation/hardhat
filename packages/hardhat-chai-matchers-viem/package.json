@@ -1,8 +1,8 @@
 {
-  "name": "@nomicfoundation/hardhat-chai-matchers",
-  "version": "2.0.6",
+  "name": "@nomicfoundation/hardhat-chai-matchers-viem",
+  "version": "3.0.0",
   "description": "Hardhat utils for testing",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-chai-matchers",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-chai-matchers-viem",
   "repository": "github:nomicfoundation/hardhat",
   "author": "Nomic Foundation",
   "license": "MIT",
@@ -40,16 +40,13 @@
   "devDependencies": {
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
-    "@nomicfoundation/hardhat-chai-matchers": "workspace:*",
-    "@nomicfoundation/hardhat-ethers": "workspace:^3.0.0",
-    "@types/bn.js": "^5.1.0",
+    "@nomicfoundation/hardhat-chai-matchers-viem": "workspace:*",
+    "@nomicfoundation/hardhat-viem": "workspace:^2.0.0",
     "@types/chai": "^4.2.0",
     "@types/mocha": ">=9.1.0",
     "@types/node": "^18.0.0",
     "@typescript-eslint/eslint-plugin": "5.61.0",
     "@typescript-eslint/parser": "5.61.0",
-    "bignumber.js": "^9.0.2",
-    "bn.js": "^5.1.0",
     "chai": "^4.2.0",
     "eslint": "^8.44.0",
     "eslint-config-prettier": "8.3.0",
@@ -58,18 +55,20 @@
     "eslint-plugin-prettier": "3.4.0",
     "ethers": "^6.1.0",
     "get-port": "^5.1.1",
-    "hardhat": "workspace:^2.9.4",
+    "hardhat": "workspace:^2.11.0",
     "mocha": "^10.0.0",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",
     "ts-node": "^10.8.0",
-    "typescript": "~5.0.0"
+    "typescript": "~5.0.4",
+    "viem": "^2.7.6"
   },
   "peerDependencies": {
-    "@nomicfoundation/hardhat-ethers": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-viem": "workspace:^2.0.0",
     "chai": "^4.2.0",
     "ethers": "^6.1.0",
-    "hardhat": "workspace:^2.9.4"
+    "hardhat": "workspace:^2.11.0",
+    "viem": "^2.7.6"
   },
   "dependencies": {
     "@types/chai-as-promised": "^7.1.3",

@@ -1,12 +1,10 @@
-import type EthersT from "ethers";
-
 import { normalizeToBigInt } from "hardhat/common";
 
 import { buildAssert } from "../../utils";
 import { REVERTED_WITH_PANIC_MATCHER } from "../constants";
 import { preventAsyncMatcherChaining } from "../utils";
 import { panicErrorCodeToReason } from "./panic";
-import { decodeReturnData, getReturnDataFromError } from "./utils";
+import { decodeReturnData, getReturnDataFromError, toBeHex } from "./utils";
 
 export function supportRevertedWithPanic(
   Assertion: Chai.AssertionStatic,
@@ -15,8 +13,6 @@ export function supportRevertedWithPanic(
   Assertion.addMethod(
     REVERTED_WITH_PANIC_MATCHER,
     function (this: any, expectedCodeArg: any) {
-      const ethers = require("ethers") as typeof EthersT;
-
       // capture negated flag before async code executes; see buildAssert's jsdoc
       const negated = this.__flags.negate;
 
@@ -41,11 +37,8 @@ export function supportRevertedWithPanic(
       if (code === undefined) {
         formattedPanicCode = "some panic code";
       } else {
-        const codeBN = ethers.toBigInt(code);
-        description = panicErrorCodeToReason(codeBN) ?? "unknown panic code";
-        formattedPanicCode = `panic code ${ethers.toBeHex(
-          codeBN
-        )} (${description})`;
+        description = panicErrorCodeToReason(code) ?? "unknown panic code";
+        formattedPanicCode = `panic code ${toBeHex(code)} (${description})`;
       }
 
       preventAsyncMatcherChaining(this, REVERTED_WITH_PANIC_MATCHER, chaiUtils);
@@ -79,7 +72,7 @@ export function supportRevertedWithPanic(
           if (code !== undefined) {
             assert(
               decodedReturnData.code === code,
-              `Expected transaction to be reverted with ${formattedPanicCode}, but it reverted with panic code ${ethers.toBeHex(
+              `Expected transaction to be reverted with ${formattedPanicCode}, but it reverted with panic code ${toBeHex(
                 decodedReturnData.code
               )} (${decodedReturnData.description})`,
               `Expected transaction NOT to be reverted with ${formattedPanicCode}, but it was`
@@ -88,7 +81,7 @@ export function supportRevertedWithPanic(
             assert(
               true,
               undefined,
-              `Expected transaction NOT to be reverted with ${formattedPanicCode}, but it reverted with panic code ${ethers.toBeHex(
+              `Expected transaction NOT to be reverted with ${formattedPanicCode}, but it reverted with panic code ${toBeHex(
                 decodedReturnData.code
               )} (${decodedReturnData.description})`
             );

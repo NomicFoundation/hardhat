@@ -1,4 +1,4 @@
-import type EthersT from "ethers";
+import type ViemT from "viem";
 import type OrdinalT from "ordinal";
 
 import { AssertWithSsfi, Ssfi } from "../utils";
@@ -15,6 +15,17 @@ export function assertIsNotNull<T>(
   if (value === null) {
     throw new HardhatChaiMatchersAssertionError(
       `${valueName} should not be null`
+    );
+  }
+}
+
+export function assertIsNotUndefined<T>(
+  value: T,
+  valueName: string
+): asserts value is Exclude<T, undefined> {
+  if (typeof value === "undefined") {
+    throw new HardhatChaiMatchersAssertionError(
+      `${valueName} should not be undefined`
     );
   }
 }
@@ -109,7 +120,8 @@ function innerAssertArgEqual(
   assert: AssertWithSsfi,
   ssfi: Ssfi
 ) {
-  const ethers = require("ethers") as typeof EthersT;
+  const { toHex, isHex, hexToBytes, stringToBytes, keccak256 } =
+    require("viem") as typeof ViemT;
   if (typeof expectedArg === "function") {
     try {
       if (expectedArg(actualArg) === true) return;
@@ -128,9 +140,7 @@ function innerAssertArgEqual(
       // .withArgs
     );
   } else if (expectedArg instanceof Uint8Array) {
-    new Assertion(actualArg, undefined, ssfi, true).equal(
-      ethers.hexlify(expectedArg)
-    );
+    new Assertion(actualArg, undefined, ssfi, true).equal(toHex(expectedArg));
   } else if (
     expectedArg?.length !== undefined &&
     typeof expectedArg !== "string"
@@ -155,10 +165,10 @@ function innerAssertArgEqual(
         expectedArg,
         "The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion should be the actual event argument (the pre-image of the hash). You provided the hash itself. Please supply the actual event argument (the pre-image of the hash) instead."
       );
-      const expectedArgBytes = ethers.isHexString(expectedArg)
-        ? ethers.getBytes(expectedArg)
-        : ethers.toUtf8Bytes(expectedArg);
-      const expectedHash = ethers.keccak256(expectedArgBytes);
+      const expectedArgBytes = isHex(expectedArg)
+        ? hexToBytes(expectedArg)
+        : stringToBytes(expectedArg);
+      const expectedHash = keccak256(expectedArgBytes);
       new Assertion(actualArg.hash, undefined, ssfi, true).to.equal(
         expectedHash,
         `The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion was hashed to produce ${expectedHash}. The actual hash and the expected hash ${actualArg.hash} did not match`
@@ -167,4 +177,10 @@ function innerAssertArgEqual(
       new Assertion(actualArg, undefined, ssfi, true).equal(expectedArg);
     }
   }
+}
+
+export async function getTransactionReceipt(hash: `0x${string}`) {
+  const { viem } = await import("hardhat");
+  const publicClient = await viem.getPublicClient();
+  return publicClient.waitForTransactionReceipt({ hash });
 }

@@ -1,4 +1,3 @@
-import type EthersT from "ethers";
 import { AssertionError } from "chai";
 
 import { isBigNumber, normalizeToBigInt } from "hardhat/common";
@@ -55,12 +54,16 @@ export function supportWithArgs(
   Assertion.addMethod("withArgs", function (this: any, ...expectedArgs: any[]) {
     const { emitCalled } = validateInput.call(this, chaiUtils);
 
-    const { isAddressable } = require("ethers") as typeof EthersT;
-
     // Resolve arguments to their canonical form:
-    // - Addressable → address
+    // - WalletClient or contract → address
     const resolveArgument = (arg: any) =>
-      isAddressable(arg) ? arg.getAddress() : arg;
+      arg?.account?.address
+        ? arg.account.address
+        : arg?.address
+        ? arg.address
+        : typeof arg.getAddresses === "function"
+        ? arg.getAddresses()
+        : arg;
 
     const onSuccess = (resolvedExpectedArgs: any[]) => {
       if (emitCalled) {

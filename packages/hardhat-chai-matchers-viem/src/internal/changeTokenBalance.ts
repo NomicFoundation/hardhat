@@ -1,11 +1,9 @@
-import type EthersT from "ethers";
 import type {
-  Addressable,
-  BaseContract,
-  BaseContractMethod,
-  BigNumberish,
-  ContractTransactionResponse,
-} from "ethers";
+  WalletClient,
+  GetContractReturnType,
+  erc20Abi,
+  PublicClient,
+} from "viem";
 
 import { buildAssert } from "../utils";
 import { ensure } from "./calledOnContract/utils";
@@ -14,20 +12,13 @@ import {
   CHANGE_TOKEN_BALANCES_MATCHER,
   CHANGE_TOKEN_BALANCE_MATCHER,
 } from "./constants";
-import { assertIsNotNull, preventAsyncMatcherChaining } from "./utils";
+import {
+  assertIsNotNull,
+  getTransactionReceipt,
+  preventAsyncMatcherChaining,
+} from "./utils";
 
-type TransactionResponse = EthersT.TransactionResponse;
-
-export type Token = BaseContract & {
-  balanceOf: BaseContractMethod<[string], bigint, bigint>;
-  name: BaseContractMethod<[], string, string>;
-  transfer: BaseContractMethod<
-    [string, BigNumberish],
-    boolean,
-    ContractTransactionResponse
-  >;
-  symbol: BaseContractMethod<[], string, string>;
-};
+type TokenContract = GetContractReturnType<typeof erc20Abi, PublicClient>;
 
 export function supportChangeTokenBalance(
   Assertion: Chai.AssertionStatic,
@@ -37,12 +28,10 @@ export function supportChangeTokenBalance(
     CHANGE_TOKEN_BALANCE_MATCHER,
     function (
       this: any,
-      token: Token,
-      account: Addressable | string,
-      balanceChange: EthersT.BigNumberish | ((change: bigint) => boolean)
+      token: TokenContract,
+      account: WalletClient | { address: `0x${string}` } | `0x${string}`,
+      balanceChange: bigint | number | string
     ) {
-      const ethers = require("ethers") as typeof EthersT;
-
       // capture negated flag before async code executes; see buildAssert's jsdoc
       const negated = this.__flags.negate;
 
@@ -66,19 +55,11 @@ export function supportChangeTokenBalance(
       ]) => {
         const assert = buildAssert(negated, checkBalanceChange);
 
-        if (typeof balanceChange === "function") {
-          assert(
-            balanceChange(actualChange),
-            `Expected the balance of ${tokenDescription} tokens for "${address}" to satisfy the predicate, but it didn't (token balance change: ${actualChange.toString()} wei)`,
-            `Expected the balance of ${tokenDescription} tokens for "${address}" to NOT satisfy the predicate, but it did (token balance change: ${actualChange.toString()} wei)`
-          );
-        } else {
-          assert(
-            actualChange === ethers.toBigInt(balanceChange),
-            `Expected the balance of ${tokenDescription} tokens for "${address}" to change by ${balanceChange.toString()}, but it changed by ${actualChange.toString()}`,
-            `Expected the balance of ${tokenDescription} tokens for "${address}" NOT to change by ${balanceChange.toString()}, but it did`
-          );
-        }
+        assert(
+          actualChange === BigInt(balanceChange),
+          `Expected the balance of ${tokenDescription} tokens for "${address}" to change by ${balanceChange.toString()}, but it changed by ${actualChange.toString()}`,
+          `Expected the balance of ${tokenDescription} tokens for "${address}" NOT to change by ${balanceChange.toString()}, but it did`
+        );
       };
 
       const derivedPromise = Promise.all([
@@ -98,12 +79,12 @@ export function supportChangeTokenBalance(
     CHANGE_TOKEN_BALANCES_MATCHER,
     function (
       this: any,
-      token: Token,
-      accounts: Array<Addressable | string>,
-      balanceChanges: EthersT.BigNumberish[] | ((changes: bigint[]) => boolean)
+      token: TokenContract,
+      accounts: Array<
+        WalletClient | { address: `0x${string}` } | `0x${string}`
+      >,
+      balanceChanges: Array<bigint | number | string>
     ) {
-      const ethers = require("ethers") as typeof EthersT;
-
       // capture negated flag before async code executes; see buildAssert's jsdoc
       const negated = this.__flags.negate;
 
@@ -132,29 +113,21 @@ export function supportChangeTokenBalance(
       ]: [bigint[], string[], string]) => {
         const assert = buildAssert(negated, checkBalanceChanges);
 
-        if (typeof balanceChanges === "function") {
-          assert(
-            balanceChanges(actualChanges),
-            `Expected the balance changes of ${tokenDescription} to satisfy the predicate, but they didn't`,
-            `Expected the balance changes of ${tokenDescription} to NOT satisfy the predicate, but they did`
-          );
-        } else {
-          assert(
-            actualChanges.every(
-              (change, ind) => change === ethers.toBigInt(balanceChanges[ind])
-            ),
-            `Expected the balances of ${tokenDescription} tokens for ${
-              addresses as any
-            } to change by ${
-              balanceChanges as any
-            }, respectively, but they changed by ${actualChanges as any}`,
-            `Expected the balances of ${tokenDescription} tokens for ${
-              addresses as any
-            } NOT to change by ${
-              balanceChanges as any
-            }, respectively, but they did`
-          );
-        }
+        assert(
+          actualChanges.every(
+            (change, ind) => change === BigInt(balanceChanges[ind])
+          ),
+          `Expected the balances of ${tokenDescription} tokens for ${
+            addresses as any
+          } to change by ${
+            balanceChanges as any
+          }, respectively, but they changed by ${actualChanges as any}`,
+          `Expected the balances of ${tokenDescription} tokens for ${
+            addresses as any
+          } NOT to change by ${
+            balanceChanges as any
+          }, respectively, but they did`
+        );
       };
 
       const derivedPromise = Promise.all([
@@ -173,17 +146,14 @@ export function supportChangeTokenBalance(
 
 function validateInput(
   obj: any,
-  token: Token,
-  accounts: Array<Addressable | string>,
-  balanceChanges: EthersT.BigNumberish[] | ((changes: bigint[]) => boolean)
+  token: TokenContract,
+  accounts: Array<WalletClient | { address: `0x${string}` } | `0x${string}`>,
+  balanceChanges: Array<bigint | number | string>
 ) {
   try {
     checkToken(token, CHANGE_TOKEN_BALANCES_MATCHER);
 
-    if (
-      Array.isArray(balanceChanges) &&
-      accounts.length !== balanceChanges.length
-    ) {
+    if (accounts.length !== balanceChanges.length) {
       throw new Error(
         `The number of accounts (${accounts.length}) is different than the number of expected balance changes (${balanceChanges.length})`
       );
@@ -197,52 +167,44 @@ function validateInput(
 }
 
 function checkToken(token: unknown, method: string) {
-  if (typeof token !== "object" || token === null || !("interface" in token)) {
+  if (typeof token !== "object" || token === null || !("abi" in token)) {
     throw new Error(
       `The first argument of ${method} must be the contract instance of the token`
     );
-  } else if ((token as any).interface.getFunction("balanceOf") === null) {
+  } else if (typeof (token as any)?.read?.balanceOf !== "function") {
     throw new Error("The given contract instance is not an ERC20 token");
   }
 }
 
 export async function getBalanceChange(
-  transaction: TransactionResponse | Promise<TransactionResponse>,
-  token: Token,
-  account: Addressable | string
+  transaction: `0x${string}` | Promise<`0x${string}`>,
+  token: TokenContract,
+  account: WalletClient | { address: `0x${string}` } | `0x${string}`
 ) {
-  const ethers = require("ethers") as typeof EthersT;
-  const hre = await import("hardhat");
-  const provider = hre.network.provider;
+  const { viem } = await import("hardhat");
+  const publicClient = await viem.getPublicClient();
 
-  const txResponse = await transaction;
-
-  const txReceipt = await txResponse.wait();
+  const hash = await transaction;
+  const txReceipt = await getTransactionReceipt(hash);
   assertIsNotNull(txReceipt, "txReceipt");
   const txBlockNumber = txReceipt.blockNumber;
+  const transactionCount = await publicClient.getBlockTransactionCount({
+    blockHash: txReceipt.blockHash,
+  });
 
-  const block = await provider.send("eth_getBlockByHash", [
-    txReceipt.blockHash,
-    false,
-  ]);
-
-  ensure(
-    block.transactions.length === 1,
-    Error,
-    "Multiple transactions found in block"
-  );
+  ensure(transactionCount === 1, Error, "Multiple transactions found in block");
 
   const address = await getAddressOf(account);
 
-  const balanceAfter = await token.balanceOf(address, {
-    blockTag: txBlockNumber,
+  const balanceAfter = await token.read.balanceOf([address], {
+    blockNumber: txBlockNumber,
   });
 
-  const balanceBefore = await token.balanceOf(address, {
-    blockTag: txBlockNumber - 1,
+  const balanceBefore = await token.read.balanceOf([address], {
+    blockNumber: txBlockNumber - 1n,
   });
 
-  return ethers.toBigInt(balanceAfter) - balanceBefore;
+  return balanceAfter - balanceBefore;
 }
 
 let tokenDescriptionsCache: Record<string, string> = {};
@@ -251,15 +213,15 @@ let tokenDescriptionsCache: Record<string, string> = {};
  * possible; if it doesn't exist, the name is used; if the name doesn't
  * exist, the address of the token is used.
  */
-async function getTokenDescription(token: Token): Promise<string> {
-  const tokenAddress = await token.getAddress();
+async function getTokenDescription(token: TokenContract): Promise<string> {
+  const tokenAddress = token.address;
   if (tokenDescriptionsCache[tokenAddress] === undefined) {
     let tokenDescription = `<token at ${tokenAddress}>`;
     try {
-      tokenDescription = await token.symbol();
+      tokenDescription = await token.read.symbol();
     } catch (e) {
       try {
-        tokenDescription = await token.name();
+        tokenDescription = await token.read.name();
       } catch (e2) {}
     }
 

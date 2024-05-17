@@ -1,9 +1,11 @@
-import type EthersT from "ethers";
-
 import { buildAssert } from "../../utils";
 import { REVERTED_MATCHER } from "../constants";
-import { assertIsNotNull, preventAsyncMatcherChaining } from "../utils";
-import { decodeReturnData, getReturnDataFromError } from "./utils";
+import {
+  assertIsNotNull,
+  preventAsyncMatcherChaining,
+  getTransactionReceipt,
+} from "../utils";
+import { decodeReturnData, getReturnDataFromError, toBeHex } from "./utils";
 
 export function supportReverted(
   Assertion: Chai.AssertionStatic,
@@ -25,28 +27,24 @@ export function supportReverted(
     const onSuccess = async (value: unknown) => {
       const assert = buildAssert(negated, onSuccess);
 
-      if (isTransactionResponse(value) || typeof value === "string") {
-        const hash = typeof value === "string" ? value : value.hash;
-
-        if (!isValidTransactionHash(hash)) {
+      if (typeof value === "string") {
+        if (!isValidTransactionHash(value)) {
           throw new TypeError(
-            `Expected a valid transaction hash, but got '${hash}'`
+            `Expected a valid transaction hash, but got '${value}'`
           );
         }
 
-        const receipt = await getTransactionReceipt(hash);
+        const receipt = await getTransactionReceipt(value);
 
         assertIsNotNull(receipt, "receipt");
         assert(
-          receipt.status === 0,
+          receipt.status === "reverted",
           "Expected transaction to be reverted",
           "Expected transaction NOT to be reverted"
         );
       } else if (isTransactionReceipt(value)) {
-        const receipt = value;
-
         assert(
-          receipt.status === 0,
+          value.status === "reverted",
           "Expected transaction to be reverted",
           "Expected transaction NOT to be reverted"
         );
@@ -62,7 +60,6 @@ export function supportReverted(
     };
 
     const onError = (error: any) => {
-      const { toBeHex } = require("ethers") as typeof EthersT;
       const assert = buildAssert(negated, onError);
       const returnData = getReturnDataFromError(error);
       const decodedReturnData = decodeReturnData(returnData);
@@ -104,33 +101,21 @@ export function supportReverted(
   });
 }
 
-async function getTransactionReceipt(hash: string) {
-  const hre = await import("hardhat");
-
-  return hre.ethers.provider.getTransactionReceipt(hash);
-}
-
-function isTransactionResponse(x: unknown): x is { hash: string } {
-  if (typeof x === "object" && x !== null) {
-    return "hash" in x;
-  }
-
-  return false;
-}
-
-function isTransactionReceipt(x: unknown): x is { status: number } {
+function isTransactionReceipt(
+  x: unknown
+): x is { status: "reverted" | "success" } {
   if (typeof x === "object" && x !== null && "status" in x) {
     const status = (x as any).status;
 
-    // this means we only support ethers's receipts for now; adding support for
+    // this means we only support viem's receipts for now; adding support for
     // raw receipts, where the status is an hexadecimal string, should be easy
     // and we can do it if there's demand for that
-    return typeof status === "number";
+    return status === "reverted" || status === "success";
   }
 
   return false;
 }
 
-function isValidTransactionHash(x: string): boolean {
+function isValidTransactionHash(x: string): x is `0x${string}` {
   return /0x[0-9a-fA-F]{64}/.test(x);
 }
