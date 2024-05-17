@@ -29,8 +29,6 @@ const log = debug("hardhat:core:solidity:downloader");
 
 const COMPILER_REPOSITORY_URL = "https://binaries.soliditylang.org";
 
-const ERRORS = HardhatError.ERRORS;
-
 export enum CompilerPlatform {
   LINUX = "linux-amd64",
   WINDOWS = "windows-amd64",
@@ -202,7 +200,7 @@ export class CompilerDownloader implements ICompilerDownloader {
           ensureError(e);
 
           throw new HardhatError(
-            ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED,
+            HardhatError.ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED,
             {},
             e,
           );
@@ -212,7 +210,7 @@ export class CompilerDownloader implements ICompilerDownloader {
       }
 
       if (build === undefined) {
-        throw new HardhatError(ERRORS.SOLC.INVALID_VERSION, {
+        throw new HardhatError(HardhatError.ERRORS.SOLC.INVALID_VERSION, {
           version,
         });
       }
@@ -224,7 +222,7 @@ export class CompilerDownloader implements ICompilerDownloader {
         ensureError(e);
 
         throw new HardhatError(
-          ERRORS.SOLC.DOWNLOAD_FAILED,
+          HardhatError.ERRORS.SOLC.DOWNLOAD_FAILED,
           {
             remoteVersion: build.longVersion,
           },
@@ -234,7 +232,7 @@ export class CompilerDownloader implements ICompilerDownloader {
 
       const verified = await this.#verifyCompilerDownload(build, downloadPath);
       if (!verified) {
-        throw new HardhatError(ERRORS.SOLC.INVALID_DOWNLOAD, {
+        throw new HardhatError(HardhatError.ERRORS.SOLC.INVALID_DOWNLOAD, {
           remoteVersion: build.longVersion,
         });
       }

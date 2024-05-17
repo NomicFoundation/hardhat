@@ -50,8 +50,6 @@ import { pluralize } from "./utils/string.js";
 
 const log = debug("hardhat:core:tasks:compile:REFACTORING");
 
-const ERRORS = HardhatError.ERRORS;
-
 const COMPILE_TASK_FIRST_SOLC_VERSION_SUPPORTED = "0.4.11";
 
 type ArtifactsEmittedPerJob = Array<{
@@ -121,9 +119,12 @@ export async function taskCompileSolidityReadFile(
     return await readUtf8File(absolutePath);
   } catch (e) {
     if (await isDirectory(absolutePath)) {
-      throw new HardhatError(ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY, {
-        absolutePath,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY,
+        {
+          absolutePath,
+        },
+      );
     }
 
     // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
@@ -231,7 +232,7 @@ export async function taskCompileSolidityHandleCompilationJobsFailures(
       );
 
     throw new HardhatError(
-      ERRORS.BUILTIN_TASKS.COMPILATION_JOBS_CREATION_FAILURE,
+      HardhatError.ERRORS.BUILTIN_TASKS.COMPILATION_JOBS_CREATION_FAILURE,
       {
         reasons,
       },
@@ -691,11 +692,14 @@ export async function taskCompileSolidityRunSolc(
   solcVersion?: string,
 ): Promise<any> {
   if (solcVersion !== undefined && semver.valid(solcVersion) === null) {
-    throw new HardhatError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
-      value: solcVersion,
-      name: "solcVersion",
-      type: "string",
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      {
+        value: solcVersion,
+        name: "solcVersion",
+        type: "string",
+      },
+    );
   }
 
   const compiler = new NativeCompiler(solcPath, solcVersion);
@@ -883,7 +887,7 @@ export async function taskCompileSolidityCheckErrors(
   await taskCompileSolidityLogCompilationErrors(output, quiet);
 
   if (hasCompilationErrors(output)) {
-    throw new HardhatError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
+    throw new HardhatError(HardhatError.ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
   }
 }
 
@@ -1063,7 +1067,7 @@ export async function taskCompileSolidityCompileJobs(
     // see issue https://github.com/nomiclabs/hardhat/issues/2004
     if (semver.lt(solcVersion, COMPILE_TASK_FIRST_SOLC_VERSION_SUPPORTED)) {
       throw new HardhatError(
-        ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION,
+        HardhatError.ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION,
         {
           version: solcVersion,
           firstSupportedVersion: COMPILE_TASK_FIRST_SOLC_VERSION_SUPPORTED,

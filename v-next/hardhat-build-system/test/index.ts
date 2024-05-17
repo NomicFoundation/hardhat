@@ -27,8 +27,6 @@ import {
   useFixtureProject,
 } from "./helpers.js";
 
-const ERRORS = HardhatError.ERRORS;
-
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = path.dirname(_filename);
 
@@ -240,7 +238,7 @@ describe("build-system", () => {
 
         await expectHardhatErrorAsync(async () => {
           await buildSystem.solidityReadFile(absolutePath);
-        }, ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY);
+        }, HardhatError.ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY);
       });
     });
 
@@ -271,7 +269,7 @@ describe("build-system", () => {
 
         await expectHardhatErrorAsync(async () => {
           await buildSystem.build();
-        }, ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION);
+        }, HardhatError.ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION);
       });
     });
 
@@ -284,7 +282,7 @@ describe("build-system", () => {
 
         await expectHardhatErrorAsync(async () => {
           await buildSystem.build();
-        }, ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION);
+        }, HardhatError.ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION);
       });
     });
 
@@ -297,7 +295,7 @@ describe("build-system", () => {
 
         await expectHardhatErrorAsync(async () => {
           await buildSystem.build();
-        }, ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION);
+        }, HardhatError.ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION);
       });
     });
   });
@@ -1173,7 +1171,7 @@ Read about compiler configuration at https://hardhat.org/config
               },
             },
           }),
-        ERRORS.RESOLVER.AMBIGUOUS_SOURCE_NAMES,
+        HardhatError.ERRORS.RESOLVER.AMBIGUOUS_SOURCE_NAMES,
         /Two different source names \('\w+\/Foo.sol' and '\w+\/Foo.sol'\) resolve to the same file/,
       );
     });
