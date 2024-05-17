@@ -1489,9 +1489,6 @@ importers:
       expect-type:
         specifier: ^0.19.0
         version: 0.19.0
-      glob:
-        specifier: ^10.3.12
-        version: 10.3.12
       madge:
         specifier: ^7.0.0
         version: 7.0.0(typescript@5.4.3)
@@ -1574,9 +1571,6 @@ importers:
       expect-type:
         specifier: ^0.19.0
         version: 0.19.0
-      glob:
-        specifier: ^10.3.12
-        version: 10.3.12
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -1719,9 +1713,6 @@ importers:
       expect-type:
         specifier: ^0.19.0
         version: 0.19.0
-      glob:
-        specifier: ^10.3.12
-        version: 10.3.12
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -1789,9 +1780,6 @@ importers:
       expect-type:
         specifier: ^0.19.0
         version: 0.19.0
-      glob:
-        specifier: ^10.3.12
-        version: 10.3.12
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -1938,9 +1926,6 @@ importers:
       expect-type:
         specifier: ^0.19.0
         version: 0.19.0
-      glob:
-        specifier: ^10.3.12
-        version: 10.3.12
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -2004,9 +1989,6 @@ importers:
       expect-type:
         specifier: ^0.19.0
         version: 0.19.0
-      glob:
-        specifier: ^10.3.12
-        version: 10.3.12
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -2070,9 +2052,6 @@ importers:
       expect-type:
         specifier: ^0.19.0
         version: 0.19.0
-      glob:
-        specifier: ^10.3.12
-        version: 10.3.12
       prettier:
         specifier: 3.2.5
         version: 3.2.5
