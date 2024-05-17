@@ -8,7 +8,7 @@ export async function reset(
   blockNumber?: NumberLike
 ): Promise<void> {
   const provider = await getHardhatProvider();
-  clearSnapshots();
+  await clearSnapshots();
   if (url === undefined) {
     await provider.request({
       method: "hardhat_reset",
