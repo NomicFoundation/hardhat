@@ -1,7 +1,7 @@
+import { isDirectory, readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 import AggregateError from "aggregate-error";
 import chalk from "chalk";
 import debug from "debug";
-import fsExtra from "fs-extra";
 import semver from "semver";
 
 import { SolidityFilesCache } from "./builtin-tasks/utils/solidity-files-cache.js";
@@ -114,11 +114,9 @@ export async function taskCompileSolidityReadFile(
   absolutePath: string,
 ): Promise<string> {
   try {
-    return await fsExtra.readFile(absolutePath, {
-      encoding: "utf8",
-    });
+    return await readUtf8File(absolutePath);
   } catch (e) {
-    if (fsExtra.lstatSync(absolutePath).isDirectory()) {
+    if (await isDirectory(absolutePath)) {
       throw new HardhatError(ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY, {
         absolutePath,
       });

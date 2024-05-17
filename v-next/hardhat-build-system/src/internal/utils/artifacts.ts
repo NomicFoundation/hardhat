@@ -2,8 +2,14 @@ import fsPromises from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
 
+import {
+  ensureDir,
+  exists,
+  readJsonFile,
+  remove,
+  writeJsonFile,
+} from "@nomicfoundation/hardhat-utils/fs";
 import debug from "debug";
-import fsExtra from "fs-extra";
 
 import { ERRORS } from "../errors/errors-list.js";
 import { HardhatError, assertHardhatInvariant } from "../errors/errors.js";
@@ -34,7 +40,6 @@ import {
   getAllFilesMatching,
   getAllFilesMatchingSync,
   getFileTrueCase,
-  getFileTrueCaseSync,
 } from "./fs-utils.js";
 import { createNonCryptographicHashBasedIdentifier } from "./hash.js";
 import { replaceBackslashes } from "./source-names.js";
@@ -75,12 +80,7 @@ export class Artifacts implements IArtifacts {
 
   public async readArtifact(name: string): Promise<Artifact> {
     const artifactPath = await this.#getArtifactPath(name);
-    return fsExtra.readJson(artifactPath);
-  }
-
-  public readArtifactSync(name: string): Artifact {
-    const artifactPath = this.#getArtifactPathSync(name);
-    return fsExtra.readJsonSync(artifactPath);
+    return readJsonFile(artifactPath);
   }
 
   public async artifactExists(name: string): Promise<boolean> {
@@ -96,7 +96,7 @@ export class Artifacts implements IArtifacts {
       throw e;
     }
 
-    return fsExtra.pathExists(artifactPath);
+    return exists(artifactPath);
   }
 
   public async getAllFullyQualifiedNames(): Promise<string[]> {
@@ -127,31 +127,7 @@ export class Artifacts implements IArtifacts {
       );
     }
 
-    return fsExtra.readJSON(buildInfoPath);
-  }
-
-  public getBuildInfoSync(fullyQualifiedName: string): BuildInfo | undefined {
-    let buildInfoPath =
-      this.#cache?.artifactFQNToBuildInfoPathCache.get(fullyQualifiedName);
-
-    if (buildInfoPath === undefined) {
-      const artifactPath =
-        this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
-
-      const debugFilePath = this.#getDebugFilePath(artifactPath);
-      buildInfoPath = this.#getBuildInfoFromDebugFileSync(debugFilePath);
-
-      if (buildInfoPath === undefined) {
-        return undefined;
-      }
-
-      this.#cache?.artifactFQNToBuildInfoPathCache.set(
-        fullyQualifiedName,
-        buildInfoPath,
-      );
-    }
-
-    return fsExtra.readJSONSync(buildInfoPath);
+    return readJsonFile(buildInfoPath);
   }
 
   public async getArtifactPaths(): Promise<string[]> {
@@ -227,12 +203,10 @@ export class Artifacts implements IArtifacts {
       const artifactPath =
         this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
 
-      await fsExtra.ensureDir(path.dirname(artifactPath));
+      await ensureDir(path.dirname(artifactPath));
 
       await Promise.all([
-        fsExtra.writeJSON(artifactPath, artifact, {
-          spaces: 2,
-        }),
+        writeJsonFile(artifactPath, artifact),
         (async () => {
           if (pathToBuildInfo === undefined) {
             return;
@@ -245,9 +219,7 @@ export class Artifacts implements IArtifacts {
             pathToBuildInfo,
           );
 
-          await fsExtra.writeJSON(debugFilePath, debugFile, {
-            spaces: 2,
-          });
+          await writeJsonFile(debugFilePath, debugFile);
         })(),
       ]);
     } finally {
@@ -263,7 +235,7 @@ export class Artifacts implements IArtifacts {
   ): Promise<string> {
     try {
       const buildInfoDir = path.join(this.#artifactsPath, BUILD_INFO_DIR_NAME);
-      await fsExtra.ensureDir(buildInfoDir);
+      await ensureDir(buildInfoDir);
 
       const buildInfoName = await this.#getBuildInfoName(
         solcVersion,
@@ -473,7 +445,7 @@ export class Artifacts implements IArtifacts {
         .filter((buildInfoFile) => !validBuildInfos.has(buildInfoFile))
         .map(async (buildInfoFile) => {
           log(`Removing buildInfo '${buildInfoFile}'`);
-          await fsExtra.unlink(buildInfoFile);
+          await remove(buildInfoFile);
         }),
     );
   }
@@ -573,28 +545,6 @@ export class Artifacts implements IArtifacts {
       this.#cache.artifactPaths = result;
     }
 
-    return result;
-  }
-
-  /**
-   * Sync version of _getArtifactPath
-   */
-  #getArtifactPathSync(name: string): string {
-    const cached = this.#cache?.artifactNameToArtifactPathCache.get(name);
-    if (cached !== undefined) {
-      return cached;
-    }
-
-    let result: string;
-
-    if (isFullyQualifiedName(name)) {
-      result = this.#getValidArtifactPathFromFullyQualifiedNameSync(name);
-    } else {
-      const files = this.#getArtifactPathsSync();
-      result = this.#getArtifactPathFromFiles(name, files);
-    }
-
-    this.#cache?.artifactNameToArtifactPathCache.set(name, result);
     return result;
   }
 
@@ -783,41 +733,6 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     return mostSimilarNames;
   }
 
-  #getValidArtifactPathFromFullyQualifiedNameSync(
-    fullyQualifiedName: string,
-  ): string {
-    const artifactPath =
-      this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
-
-    try {
-      const trueCasePath = path.join(
-        this.#artifactsPath,
-        getFileTrueCaseSync(
-          this.#artifactsPath,
-          path.relative(this.#artifactsPath, artifactPath),
-        ),
-      );
-
-      if (artifactPath !== trueCasePath) {
-        throw new HardhatError(ERRORS.ARTIFACTS.WRONG_CASING, {
-          correct: this.#getFullyQualifiedNameFromPath(trueCasePath),
-          incorrect: fullyQualifiedName,
-        });
-      }
-
-      return trueCasePath;
-    } catch (e) {
-      if (e instanceof FileNotFoundError) {
-        return this.#handleWrongArtifactForFullyQualifiedName(
-          fullyQualifiedName,
-        );
-      }
-
-      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
-      throw e;
-    }
-  }
-
   #getDebugFilePath(artifactPath: string): string {
     return artifactPath.replace(/\.json$/, ".dbg.json");
   }
@@ -877,11 +792,11 @@ Please replace "${contractName}" for the correct contract name wherever you are 
    * Remove the artifact file and its debug file.
    */
   async #removeArtifactFiles(artifactPath: string) {
-    await fsExtra.remove(artifactPath);
+    await remove(artifactPath);
 
     const debugFilePath = this.#getDebugFilePath(artifactPath);
 
-    await fsExtra.remove(debugFilePath);
+    await remove(debugFilePath);
   }
 
   /**
@@ -891,20 +806,8 @@ Please replace "${contractName}" for the correct contract name wherever you are 
   async #getBuildInfoFromDebugFile(
     debugFilePath: string,
   ): Promise<string | undefined> {
-    if (await fsExtra.pathExists(debugFilePath)) {
-      const { buildInfo } = await fsExtra.readJson(debugFilePath);
-      return path.resolve(path.dirname(debugFilePath), buildInfo);
-    }
-
-    return undefined;
-  }
-
-  /**
-   * Sync version of _getBuildInfoFromDebugFile
-   */
-  #getBuildInfoFromDebugFileSync(debugFilePath: string): string | undefined {
-    if (fsExtra.pathExistsSync(debugFilePath)) {
-      const { buildInfo } = fsExtra.readJsonSync(debugFilePath);
+    if (await exists(debugFilePath)) {
+      const { buildInfo } = await readJsonFile<DebugFile>(debugFilePath);
       return path.resolve(path.dirname(debugFilePath), buildInfo);
     }
 
