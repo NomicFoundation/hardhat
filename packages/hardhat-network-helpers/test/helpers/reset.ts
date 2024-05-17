@@ -55,7 +55,7 @@ describe("resetWithoutFork", function () {
   });
 });
 
-describe("should clear snapshot upon reset", async function () {
+describe("should clear snapshot upon reset", function () {
   useEnvironment("simple");
   it("checks if the snapshot is cleared upon hardhat_reset", async function () {
     const snapshotBeforeReset = await hh.takeSnapshot();
