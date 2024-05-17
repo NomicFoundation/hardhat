@@ -1,8 +1,0 @@
-[package]
-name = "edr_test_utils"
-version = "0.3.5"
-edition = "2021"
-
-[dependencies]
-serde = { version = "1.0.147", default-features = false, features = ["derive"] }
-serde_json = { version = "1.0.89" }
