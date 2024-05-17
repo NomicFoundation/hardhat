@@ -1,10 +1,12 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
+import {
+  HardhatError,
+  assertHardhatInvariant,
+} from "@nomicfoundation/hardhat-errors";
 import resolve from "resolve";
 
-import { ERRORS } from "../errors/errors-list.js";
-import { HardhatError, assertHardhatInvariant } from "../errors/errors.js";
 import {
   FileContent,
   LibraryInfo,
@@ -128,7 +130,7 @@ export class Resolver {
     // sanity check for deprecated task
     if (importName !== (await this.#transformImportName(importName))) {
       throw new HardhatError(
-        ERRORS.TASK_DEFINITIONS.DEPRECATED_TRANSFORM_IMPORT_TASK,
+        HardhatError.ERRORS.TASK_DEFINITIONS.DEPRECATED_TRANSFORM_IMPORT_TASK,
       );
     }
 
@@ -136,34 +138,46 @@ export class Resolver {
 
     const scheme = this.#getUriScheme(imported);
     if (scheme !== undefined) {
-      throw new HardhatError(ERRORS.RESOLVER.INVALID_IMPORT_PROTOCOL, {
-        from: from.sourceName,
-        imported,
-        protocol: scheme,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.RESOLVER.INVALID_IMPORT_PROTOCOL,
+        {
+          from: from.sourceName,
+          imported,
+          protocol: scheme,
+        },
+      );
     }
 
     if (replaceBackslashes(imported) !== imported) {
-      throw new HardhatError(ERRORS.RESOLVER.INVALID_IMPORT_BACKSLASH, {
-        from: from.sourceName,
-        imported,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.RESOLVER.INVALID_IMPORT_BACKSLASH,
+        {
+          from: from.sourceName,
+          imported,
+        },
+      );
     }
 
     if (isAbsolutePathSourceName(imported)) {
-      throw new HardhatError(ERRORS.RESOLVER.INVALID_IMPORT_ABSOLUTE_PATH, {
-        from: from.sourceName,
-        imported,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.RESOLVER.INVALID_IMPORT_ABSOLUTE_PATH,
+        {
+          from: from.sourceName,
+          imported,
+        },
+      );
     }
 
     // Edge-case where an import can contain the current package's name in monorepos.
     // The path can be resolved because there's a symlink in the node modules.
     if (await includesOwnPackageName(imported)) {
-      throw new HardhatError(ERRORS.RESOLVER.INCLUDES_OWN_PACKAGE_NAME, {
-        from: from.sourceName,
-        imported,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.RESOLVER.INCLUDES_OWN_PACKAGE_NAME,
+        {
+          from: from.sourceName,
+          imported,
+        },
+      );
     }
 
     try {
@@ -204,18 +218,18 @@ export class Resolver {
       return resolvedFile;
     } catch (error) {
       if (
-        HardhatError.isHardhatErrorType(
+        HardhatError.isHardhatError(
           error,
-          ERRORS.RESOLVER.FILE_NOT_FOUND,
+          HardhatError.ERRORS.RESOLVER.FILE_NOT_FOUND,
         ) ||
-        HardhatError.isHardhatErrorType(
+        HardhatError.isHardhatError(
           error,
-          ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND,
+          HardhatError.ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND,
         )
       ) {
         if (imported !== importName) {
           throw new HardhatError(
-            ERRORS.RESOLVER.IMPORTED_MAPPED_FILE_NOT_FOUND,
+            HardhatError.ERRORS.RESOLVER.IMPORTED_MAPPED_FILE_NOT_FOUND,
             {
               imported,
               importName,
@@ -225,7 +239,7 @@ export class Resolver {
           );
         } else {
           throw new HardhatError(
-            ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND,
+            HardhatError.ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND,
             {
               imported,
               from: from.sourceName,
@@ -236,13 +250,13 @@ export class Resolver {
       }
 
       if (
-        HardhatError.isHardhatErrorType(
+        HardhatError.isHardhatError(
           error,
-          ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING,
+          HardhatError.ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING,
         )
       ) {
         throw new HardhatError(
-          ERRORS.RESOLVER.INVALID_IMPORT_WRONG_CASING,
+          HardhatError.ERRORS.RESOLVER.INVALID_IMPORT_WRONG_CASING,
           {
             imported,
             from: from.sourceName,
@@ -252,13 +266,13 @@ export class Resolver {
       }
 
       if (
-        HardhatError.isHardhatErrorType(
+        HardhatError.isHardhatError(
           error,
-          ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED,
+          HardhatError.ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED,
         )
       ) {
         throw new HardhatError(
-          ERRORS.RESOLVER.IMPORTED_LIBRARY_NOT_INSTALLED,
+          HardhatError.ERRORS.RESOLVER.IMPORTED_LIBRARY_NOT_INSTALLED,
           {
             library: error.messageArguments.library,
             from: from.sourceName,
@@ -268,13 +282,13 @@ export class Resolver {
       }
 
       if (
-        HardhatError.isHardhatErrorType(
+        HardhatError.isHardhatError(
           error,
-          ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY,
+          HardhatError.ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY,
         )
       ) {
         throw new HardhatError(
-          ERRORS.RESOLVER.INVALID_IMPORT_OF_DIRECTORY,
+          HardhatError.ERRORS.RESOLVER.INVALID_IMPORT_OF_DIRECTORY,
           {
             imported,
             from: from.sourceName,
@@ -326,7 +340,7 @@ export class Resolver {
         packageJsonPath = path.join(hardhatCoreDir, "package.json");
       } else {
         throw new HardhatError(
-          ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED,
+          HardhatError.ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED,
           {
             library: libraryName,
           },
@@ -399,7 +413,7 @@ export class Resolver {
     // starts with ../ means that it's trying to get outside of the project.
     if (from.library === undefined && sourceName.startsWith("../")) {
       throw new HardhatError(
-        ERRORS.RESOLVER.INVALID_IMPORT_OUTSIDE_OF_PROJECT,
+        HardhatError.ERRORS.RESOLVER.INVALID_IMPORT_OUTSIDE_OF_PROJECT,
         { from: from.sourceName, imported },
       );
     }
@@ -410,7 +424,7 @@ export class Resolver {
     ) {
       // If the file is being imported from a library, this means that it's
       // trying to reach another one.
-      throw new HardhatError(ERRORS.RESOLVER.ILLEGAL_IMPORT, {
+      throw new HardhatError(HardhatError.ERRORS.RESOLVER.ILLEGAL_IMPORT, {
         from: from.sourceName,
         imported,
       });
@@ -532,25 +546,28 @@ export class Resolver {
       await validateSourceNameExistenceAndCasing(fromDir, sourceName);
     } catch (error) {
       if (
-        HardhatError.isHardhatErrorType(
+        HardhatError.isHardhatError(
           error,
-          ERRORS.SOURCE_NAMES.FILE_NOT_FOUND,
+          HardhatError.ERRORS.SOURCE_NAMES.FILE_NOT_FOUND,
         )
       ) {
         throw new HardhatError(
           isLibrary
-            ? ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND
-            : ERRORS.RESOLVER.FILE_NOT_FOUND,
+            ? HardhatError.ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND
+            : HardhatError.ERRORS.RESOLVER.FILE_NOT_FOUND,
           { file: sourceName },
           error,
         );
       }
 
       if (
-        HardhatError.isHardhatErrorType(error, ERRORS.SOURCE_NAMES.WRONG_CASING)
+        HardhatError.isHardhatError(
+          error,
+          HardhatError.ERRORS.SOURCE_NAMES.WRONG_CASING,
+        )
       ) {
         throw new HardhatError(
-          ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING,
+          HardhatError.ERRORS.RESOLVER.WRONG_SOURCE_NAME_CASING,
           {
             incorrect: sourceName,
             correct: error.messageArguments.correct,

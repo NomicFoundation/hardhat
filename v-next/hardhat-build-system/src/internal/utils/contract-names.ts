@@ -1,5 +1,7 @@
-import { ERRORS } from "../errors/errors-list.js";
-import { HardhatError, assertHardhatInvariant } from "../errors/errors.js";
+import {
+  HardhatError,
+  assertHardhatInvariant,
+} from "@nomicfoundation/hardhat-errors";
 
 /**
  * Returns a fully qualified name from a sourceName and contractName.
@@ -31,9 +33,12 @@ export function parseFullyQualifiedName(fullyQualifiedName: string): {
   const { sourceName, contractName } = parseName(fullyQualifiedName);
 
   if (sourceName === undefined) {
-    throw new HardhatError(ERRORS.CONTRACT_NAMES.INVALID_FULLY_QUALIFIED_NAME, {
-      name: fullyQualifiedName,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.CONTRACT_NAMES.INVALID_FULLY_QUALIFIED_NAME,
+      {
+        name: fullyQualifiedName,
+      },
+    );
   }
 
   return { sourceName, contractName };

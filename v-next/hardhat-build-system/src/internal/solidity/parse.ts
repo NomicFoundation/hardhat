@@ -1,10 +1,9 @@
 import type SolidityAnalyzerT from "@nomicfoundation/solidity-analyzer";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 import { SolidityFilesCache } from "../builtin-tasks/utils/solidity-files-cache.js";
-import { ERRORS } from "../errors/errors-list.js";
-import { HardhatError } from "../errors/errors.js";
 
 interface ParsedData {
   imports: string[];
@@ -48,7 +47,7 @@ export class Parser {
         typeof e.code === "string" &&
         e.code === "MODULE_NOT_FOUND"
       ) {
-        throw new HardhatError(ERRORS.GENERAL.CORRUPTED_LOCKFILE);
+        throw new HardhatError(HardhatError.ERRORS.GENERAL.CORRUPTED_LOCKFILE);
       }
 
       // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error

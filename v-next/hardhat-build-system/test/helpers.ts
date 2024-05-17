@@ -5,12 +5,11 @@ import path from "node:path";
 import { beforeEach } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { ErrorDescriptor, HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { getRealPath, mkdir, remove } from "@nomicfoundation/hardhat-utils/fs";
 import semver from "semver";
 
-import { ErrorDescriptor } from "../src/internal/errors/errors-list.js";
-import { HardhatError } from "../src/internal/errors/errors.js";
 import { ResolvedFile } from "../src/internal/solidity/resolver.js";
 import { BuildConfig, SolidityConfig } from "../src/internal/types/config.js";
 import { SolcConfig } from "../src/internal/types/index.js";

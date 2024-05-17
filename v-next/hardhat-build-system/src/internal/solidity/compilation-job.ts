@@ -1,8 +1,8 @@
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import debug from "debug";
 import { deepEqual } from "fast-equals";
 import semver from "semver";
 
-import { assertHardhatInvariant } from "../errors/errors.js";
 import * as taskTypes from "../types/builtin-tasks/index.js";
 import {
   CompilationJobCreationError,

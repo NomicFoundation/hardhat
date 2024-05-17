@@ -8,11 +8,11 @@ import path from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import ci from "ci-info";
 import sinon from "sinon";
 
 import { BuildSystem } from "../src/index.js";
-import { ERRORS } from "../src/internal/errors/errors-list.js";
 import { CompilationJobCreationErrorReason } from "../src/internal/types/builtin-tasks/index.js";
 import {
   getAllFilesMatchingSync,
@@ -236,13 +236,9 @@ describe("build-system", () => {
         const config = await resolveConfig();
         const buildSystem = new BuildSystem(config);
 
-        await expectHardhatErrorAsync(
-          async () => {
-            await buildSystem.solidityReadFile(absolutePath);
-          },
-          ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY,
-          `HH22: Invalid file path ${absolutePath}. Attempting to read a directory instead of a file.`,
-        );
+        await expectHardhatErrorAsync(async () => {
+          await buildSystem.solidityReadFile(absolutePath);
+        }, HardhatError.ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY);
       });
     });
 
@@ -273,7 +269,7 @@ describe("build-system", () => {
 
         await expectHardhatErrorAsync(async () => {
           await buildSystem.build();
-        }, ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION);
+        }, HardhatError.ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION);
       });
     });
 
@@ -286,7 +282,7 @@ describe("build-system", () => {
 
         await expectHardhatErrorAsync(async () => {
           await buildSystem.build();
-        }, ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION);
+        }, HardhatError.ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION);
       });
     });
 
@@ -299,7 +295,7 @@ describe("build-system", () => {
 
         await expectHardhatErrorAsync(async () => {
           await buildSystem.build();
-        }, ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION);
+        }, HardhatError.ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION);
       });
     });
   });
@@ -1175,7 +1171,7 @@ Read about compiler configuration at https://hardhat.org/config
               },
             },
           }),
-        ERRORS.RESOLVER.AMBIGUOUS_SOURCE_NAMES,
+        HardhatError.ERRORS.RESOLVER.AMBIGUOUS_SOURCE_NAMES,
         /Two different source names \('\w+\/Foo.sol' and '\w+\/Foo.sol'\) resolve to the same file/,
       );
     });

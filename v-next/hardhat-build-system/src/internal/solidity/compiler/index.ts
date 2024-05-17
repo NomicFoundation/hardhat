@@ -3,11 +3,13 @@ import * as fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import {
+  HardhatError,
+  assertHardhatInvariant,
+} from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import * as semver from "semver";
 
-import { ERRORS } from "../../errors/errors-list.js";
-import { HardhatError, assertHardhatInvariant } from "../../errors/errors.js";
 import { CompilerInput, CompilerOutput } from "../../types/index.js";
 
 export interface ICompiler {
@@ -126,7 +128,11 @@ export class NativeCompiler implements ICompiler {
       } catch (e) {
         ensureError(e);
 
-        throw new HardhatError(ERRORS.SOLC.CANT_RUN_NATIVE_COMPILER, {}, e);
+        throw new HardhatError(
+          HardhatError.ERRORS.SOLC.CANT_RUN_NATIVE_COMPILER,
+          {},
+          e,
+        );
       }
     });
 

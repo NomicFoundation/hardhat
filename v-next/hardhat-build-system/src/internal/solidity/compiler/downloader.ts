@@ -3,6 +3,10 @@ import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 
+import {
+  HardhatError,
+  assertHardhatInvariant,
+} from "@nomicfoundation/hardhat-errors";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
 import { keccak256 } from "@nomicfoundation/hardhat-utils/crypto";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
@@ -18,8 +22,6 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 import debug from "debug";
 
-import { ERRORS } from "../../errors/errors-list.js";
-import { HardhatError, assertHardhatInvariant } from "../../errors/errors.js";
 import { download } from "../../utils/download.js";
 import { MultiProcessMutex } from "../../utils/multi-process-mutex.js";
 
@@ -198,7 +200,7 @@ export class CompilerDownloader implements ICompilerDownloader {
           ensureError(e);
 
           throw new HardhatError(
-            ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED,
+            HardhatError.ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED,
             {},
             e,
           );
@@ -208,7 +210,9 @@ export class CompilerDownloader implements ICompilerDownloader {
       }
 
       if (build === undefined) {
-        throw new HardhatError(ERRORS.SOLC.INVALID_VERSION, { version });
+        throw new HardhatError(HardhatError.ERRORS.SOLC.INVALID_VERSION, {
+          version,
+        });
       }
 
       let downloadPath: string;
@@ -218,7 +222,7 @@ export class CompilerDownloader implements ICompilerDownloader {
         ensureError(e);
 
         throw new HardhatError(
-          ERRORS.SOLC.DOWNLOAD_FAILED,
+          HardhatError.ERRORS.SOLC.DOWNLOAD_FAILED,
           {
             remoteVersion: build.longVersion,
           },
@@ -228,7 +232,7 @@ export class CompilerDownloader implements ICompilerDownloader {
 
       const verified = await this.#verifyCompilerDownload(build, downloadPath);
       if (!verified) {
-        throw new HardhatError(ERRORS.SOLC.INVALID_DOWNLOAD, {
+        throw new HardhatError(HardhatError.ERRORS.SOLC.INVALID_DOWNLOAD, {
           remoteVersion: build.longVersion,
         });
       }

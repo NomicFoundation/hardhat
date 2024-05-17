@@ -2,9 +2,8 @@ import fs from "node:fs";
 import fsPromises from "node:fs/promises";
 import path from "node:path";
 
-import { ensureError } from "@nomicfoundation/hardhat-utils/error";
-
-import { CustomError, assertHardhatInvariant } from "../errors/errors.js";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { ensureError, CustomError } from "@nomicfoundation/hardhat-utils/error";
 
 /**
  * Returns an array of files (not dirs) that match a condition.
