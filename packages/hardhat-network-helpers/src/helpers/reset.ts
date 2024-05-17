@@ -1,4 +1,6 @@
 import type { NumberLike } from "../types";
+import { clearSnapshots } from "../loadFixture";
+
 import { getHardhatProvider, toNumber } from "../utils";
 
 export async function reset(
@@ -6,7 +8,7 @@ export async function reset(
   blockNumber?: NumberLike
 ): Promise<void> {
   const provider = await getHardhatProvider();
-
+  await clearSnapshots();
   if (url === undefined) {
     await provider.request({
       method: "hardhat_reset",
