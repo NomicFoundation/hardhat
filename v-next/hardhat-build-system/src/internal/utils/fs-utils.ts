@@ -2,6 +2,8 @@ import fs from "node:fs";
 import fsPromises from "node:fs/promises";
 import path from "node:path";
 
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+
 import { CustomError, assertHardhatInvariant } from "../errors/errors.js";
 
 /**
@@ -40,7 +42,12 @@ export async function getAllFilesMatching(
 async function readdir(absolutePathToDir: string) {
   try {
     return await fsPromises.readdir(absolutePathToDir);
-  } catch (e: any) {
+  } catch (e) {
+    ensureError(e);
+    if (!("code" in e) || typeof e.code !== "string") {
+      throw e;
+    }
+
     if (e.code === "ENOENT") {
       return [];
     }
@@ -139,7 +146,12 @@ export function getAllFilesMatchingSync(
 function readdirSync(absolutePathToDir: string) {
   try {
     return fs.readdirSync(absolutePathToDir);
-  } catch (e: any) {
+  } catch (e) {
+    ensureError(e);
+    if (!("code" in e) || typeof e.code !== "string") {
+      throw e;
+    }
+
     if (e.code === "ENOENT") {
       return [];
     }
@@ -204,7 +216,12 @@ export async function getRealPath(absolutePath: string): Promise<string> {
     // This method returns the actual casing.
     // Please read Node.js' docs to learn more.
     return await fsPromises.realpath(path.normalize(absolutePath));
-  } catch (e: any) {
+  } catch (e) {
+    ensureError(e);
+    if (!("code" in e) || typeof e.code !== "string") {
+      throw e;
+    }
+
     if (e.code === "ENOENT") {
       // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw new FileNotFoundError(absolutePath, e);
@@ -225,7 +242,12 @@ export function getRealPathSync(absolutePath: string): string {
     // This method returns the actual casing.
     // Please read Node.js' docs to learn more.
     return fs.realpathSync.native(path.normalize(absolutePath));
-  } catch (e: any) {
+  } catch (e) {
+    ensureError(e);
+    if (!("code" in e) || typeof e.code !== "string") {
+      throw e;
+    }
+
     if (e.code === "ENOENT") {
       // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw new FileNotFoundError(absolutePath, e);

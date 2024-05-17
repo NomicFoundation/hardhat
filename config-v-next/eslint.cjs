@@ -200,6 +200,12 @@ function createConfig(configFilePath, packageEntryPoints = []) {
             ":matches(BinaryExpression[operator='instanceof']) > Identifier[name='HardhatError']",
           message: "Use HardhatError.isHardhatError instead of instanceof",
         },
+        // We forbid casting errors in favor of using ensureError or HardhatError.isHardhatError
+        {
+          selector: "CatchClause[param] > Identifier[typeAnnotation]",
+          message:
+            "Use ensureError() or HardhatError.isHardhatError instead of casting the error",
+        },
       ],
       "@typescript-eslint/restrict-plus-operands": "error",
       "@typescript-eslint/restrict-template-expressions": [
@@ -233,6 +239,7 @@ function createConfig(configFilePath, packageEntryPoints = []) {
         },
       ],
       "@typescript-eslint/unified-signatures": "error",
+      "@typescript-eslint/use-unknown-in-catch-callback-variable": "error",
       "constructor-super": "error",
       eqeqeq: ["error", "always"],
       "guard-for-in": "error",

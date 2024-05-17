@@ -5,6 +5,7 @@ import { promisify } from "node:util";
 
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
 import { keccak256 } from "@nomicfoundation/hardhat-utils/crypto";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import {
   chmod,
   createFile,
@@ -193,7 +194,9 @@ export class CompilerDownloader implements ICompilerDownloader {
       if (build === undefined && (await this.#shouldDownloadCompilerList())) {
         try {
           await this.#downloadCompilerList();
-        } catch (e: any) {
+        } catch (e) {
+          ensureError(e);
+
           throw new HardhatError(
             ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED,
             {},
@@ -211,7 +214,9 @@ export class CompilerDownloader implements ICompilerDownloader {
       let downloadPath: string;
       try {
         downloadPath = await this.#downloadCompiler(build);
-      } catch (e: any) {
+      } catch (e) {
+        ensureError(e);
+
         throw new HardhatError(
           ERRORS.SOLC.DOWNLOAD_FAILED,
           {
