@@ -3,6 +3,6 @@ section-title: Advanced
 order:
   - /execution
   - /deployment-artifacts
-  - /migrating
   - /reconciliation
   - /versioning
+  - /migrating

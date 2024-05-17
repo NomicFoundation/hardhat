@@ -1,8 +1,6 @@
 # Migrating from hardhat-deploy
 
-For several years, the hardhat-deploy community plugin has been a go-to solution for deploying smart contracts within the Hardhat community. Recently, we introduced [Hardhat Ignition](/ignition/docs/getting-started), a declarative system for deploying smart contracts on Ethereum, which aims to pick up the torch from `hardhat-deploy` and expand Hardhat's deployment features.
-
-This guide will walk you through migrating your Hardhat project from `hardhat-deploy` to Hardhat Ignition.
+This guide will walk you through migrating your Hardhat project to Hardhat Ignition from `hardhat-deploy`, a community plugin for deploying smart contracts used within the Hardhat community.
 
 ## Installing Hardhat Ignition
 
@@ -376,7 +374,3 @@ Once converted, tests can be checked in the standard way:
 ```sh
 npx hardhat test
 ```
-
-## Feedback welcome
-
-We would love your feedback if you run into any issues or have any feature requests! Please [open an issue on Github](https://github.com/NomicFoundation/hardhat-ignition/issues/new).
