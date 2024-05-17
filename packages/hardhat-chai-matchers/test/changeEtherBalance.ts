@@ -104,7 +104,16 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
               to: receiver.address,
               value: 200,
             })
-          ).to.changeEtherBalance(sender, BigInt("-200"));
+          ).to.changeEtherBalance(sender, -200n);
+        });
+
+        it("Should pass when given a predicate", async () => {
+          await expect(() =>
+            sender.sendTransaction({
+              to: receiver.address,
+              value: 200,
+            })
+          ).to.changeEtherBalance(sender, (diff: bigint) => diff === -200n);
         });
 
         it("Should pass when expected balance change is passed as int and is equal to an actual", async () => {
@@ -128,6 +137,22 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
           });
         });
 
+        it("Should take into account transaction fee when given a predicate", async () => {
+          await expect(() =>
+            sender.sendTransaction({
+              to: receiver.address,
+              gasPrice: 1,
+              value: 200,
+            })
+          ).to.changeEtherBalance(
+            sender,
+            (diff: bigint) => diff === -(BigInt(txGasFees) + 200n),
+            {
+              includeFee: true,
+            }
+          );
+        });
+
         it("Should ignore fee if receiver's wallet is being checked and includeFee was set", async () => {
           await expect(() =>
             sender.sendTransaction({
@@ -146,6 +171,18 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
               value: 200,
             })
           ).to.changeEtherBalance(sender, -200);
+        });
+
+        it("Should pass on negative case when expected balance does not satisfy the predicate", async () => {
+          await expect(() =>
+            sender.sendTransaction({
+              to: receiver.address,
+              value: 200,
+            })
+          ).to.not.changeEtherBalance(
+            receiver,
+            (diff: bigint) => diff === 300n
+          );
         });
 
         it("Should throw when fee was not calculated correctly", async () => {
@@ -179,6 +216,20 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
           );
         });
 
+        it("Should throw when actual balance change value does not satisfy the predicate", async () => {
+          await expect(
+            expect(() =>
+              sender.sendTransaction({
+                to: receiver.address,
+                value: 200,
+              })
+            ).to.changeEtherBalance(sender, (diff: bigint) => diff === -500n)
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            `Expected the ether balance change of "${sender.address}" to satisfy the predicate, but it didn't (balance change: -200 wei)`
+          );
+        });
+
         it("Should throw in negative case when expected balance change value was equal to an actual", async () => {
           await expect(
             expect(() =>
@@ -190,6 +241,23 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
           ).to.be.eventually.rejectedWith(
             AssertionError,
             `Expected the ether balance of "${sender.address}" NOT to change by -200 wei, but it did`
+          );
+        });
+
+        it("Should throw in negative case when expected balance change value satisfies the predicate", async () => {
+          await expect(
+            expect(() =>
+              sender.sendTransaction({
+                to: receiver.address,
+                value: 200,
+              })
+            ).to.not.changeEtherBalance(
+              sender,
+              (diff: bigint) => diff === -200n
+            )
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            `Expected the ether balance change of "${sender.address}" to NOT satisfy the predicate, but it did (balance change: -200 wei)`
           );
         });
 

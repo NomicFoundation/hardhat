@@ -153,7 +153,16 @@ export class HardhatEthersProvider implements ethers.Provider {
     const latestBlock = await this.getBlock("latest");
     const baseFeePerGas = latestBlock?.baseFeePerGas;
     if (baseFeePerGas !== undefined && baseFeePerGas !== null) {
-      maxPriorityFeePerGas = 1_000_000_000n;
+      try {
+        maxPriorityFeePerGas = BigInt(
+          await this._hardhatProvider.send("eth_maxPriorityFeePerGas")
+        );
+      } catch {
+        // the max priority fee RPC call is not supported by
+        // this chain
+      }
+
+      maxPriorityFeePerGas = maxPriorityFeePerGas ?? 1_000_000_000n;
       maxFeePerGas = 2n * baseFeePerGas + maxPriorityFeePerGas;
     }
 

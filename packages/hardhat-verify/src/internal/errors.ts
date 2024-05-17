@@ -9,6 +9,7 @@ import { TASK_VERIFY_VERIFY } from "./task-names";
 export class HardhatVerifyError extends NomicLabsHardhatPluginError {
   constructor(message: string, parent?: Error) {
     super("@nomicfoundation/hardhat-verify", message, parent);
+    Object.setPrototypeOf(this, this.constructor.prototype);
   }
 }
 
@@ -421,25 +422,23 @@ Encoder error reason: ${reason} fault in ${operation}`,
   }
 }
 
+/**
+ * `VerificationAPIUnexpectedMessageError` is thrown when the block explorer API
+ * does not behave as expected, such as when it returns an unexpected response message.
+ */
 export class VerificationAPIUnexpectedMessageError extends HardhatVerifyError {
   constructor(message: string) {
     super(`The API responded with an unexpected message.
-Please report this issue to the Hardhat team.
 Contract verification may have succeeded and should be checked manually.
 Message: ${message}`);
   }
 }
 
-export class UnexpectedError extends HardhatVerifyError {
-  constructor(e: unknown, functionName: string) {
-    const defaultErrorDetails = `Unexpected error in ${functionName}`;
-    const errorDetails =
-      e instanceof Error
-        ? e.message ?? defaultErrorDetails
-        : defaultErrorDetails;
-    super(`An unexpected error occurred during the verification process.
-Please report this issue to the Hardhat team.
-Error Details: ${errorDetails}`);
+export class NetworkRequestError extends HardhatVerifyError {
+  constructor(e: Error) {
+    super(
+      `A network request failed. This is an error from the block explorer, not Hardhat. Error: ${e.message}`
+    );
   }
 }
 
@@ -456,5 +455,13 @@ address for one of these libraries:
 ${undetectableLibraries.map((x) => `  * ${x}`).join("\n")}`
     : ""
 }`);
+  }
+}
+
+export class ContractAlreadyVerifiedError extends HardhatVerifyError {
+  constructor(contractFQN: string, contractAddress: string) {
+    super(`The block explorer's API responded that the contract ${contractFQN} at ${contractAddress} is already verified.
+This can happen if you used the '--force' flag. However, re-verification of contracts might not be supported
+by the explorer (e.g., Etherscan), or the contract may have already been verified with a full match.`);
   }
 }

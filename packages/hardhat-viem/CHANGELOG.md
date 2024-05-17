@@ -1,5 +1,17 @@
 # @nomicfoundation/hardhat-viem
 
+## 2.0.2
+
+### Patch Changes
+
+- ccb0ace: Added support for library linking (thanks @Chlebamaticon!)
+
+## 2.0.1
+
+### Patch Changes
+
+- a181462: Fix to add guard for updated `TransactionReceipt` type in `viem`
+
 ## 2.0.0
 
 ### Major Changes

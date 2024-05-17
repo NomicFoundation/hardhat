@@ -52,6 +52,7 @@ export interface VerifyTaskArgs {
   constructorArgs?: string;
   libraries?: string;
   contract?: string;
+  force: boolean;
   listNetworks: boolean;
 }
 
@@ -61,6 +62,7 @@ interface VerifySubtaskArgs {
   constructorArguments: string[];
   libraries: LibraryToAddress;
   contract?: string;
+  force?: boolean;
 }
 
 export interface VerificationResponse {
@@ -114,6 +116,11 @@ task(TASK_VERIFY, "Verifies a contract on Etherscan or Sourcify")
     "contract",
     "Fully qualified name of the contract to verify. Skips automatic detection of the contract. " +
       "Use if the deployed bytecode matches more than one contract in your project"
+  )
+  .addFlag(
+    "force",
+    "Enforce contract verification even if the contract is already verified. " +
+      "Use to re-verify partially verified contracts on Blockscout"
   )
   .addFlag("listNetworks", "Print the list of supported networks")
   .setAction(async (taskArgs: VerifyTaskArgs, { run }) => {
@@ -266,9 +273,16 @@ subtask(TASK_VERIFY_VERIFY)
   .addOptionalParam("constructorArguments", undefined, [], types.any)
   .addOptionalParam("libraries", undefined, {}, types.any)
   .addOptionalParam("contract")
+  .addFlag("force")
   .setAction(
     async (
-      { address, constructorArguments, libraries, contract }: VerifySubtaskArgs,
+      {
+        address,
+        constructorArguments,
+        libraries,
+        contract,
+        force,
+      }: VerifySubtaskArgs,
       { run, config }
     ) => {
       // This can only happen if the subtask is invoked from within Hardhat by a user script or another task.
@@ -286,6 +300,7 @@ subtask(TASK_VERIFY_VERIFY)
           constructorArgsParams: constructorArguments,
           libraries,
           contract,
+          force,
         });
       }
 

@@ -1,4 +1,6 @@
-import { ExceptionalHalt, SuccessReason } from "@nomicfoundation/edr";
+import type { ExceptionalHalt, SuccessReason } from "@nomicfoundation/edr";
+
+import { requireNapiRsModule } from "../../../../common/napi-rs";
 
 export enum ExitCode {
   SUCCESS,
@@ -14,6 +16,10 @@ export enum ExitCode {
 
 export class Exit {
   public static fromEdrSuccessReason(reason: SuccessReason): Exit {
+    const { SuccessReason } = requireNapiRsModule(
+      "@nomicfoundation/edr"
+    ) as typeof import("@nomicfoundation/edr");
+
     switch (reason) {
       case SuccessReason.Stop:
       case SuccessReason.Return:
@@ -25,6 +31,10 @@ export class Exit {
   }
 
   public static fromEdrExceptionalHalt(halt: ExceptionalHalt): Exit {
+    const { ExceptionalHalt } = requireNapiRsModule(
+      "@nomicfoundation/edr"
+    ) as typeof import("@nomicfoundation/edr");
+
     switch (halt) {
       case ExceptionalHalt.OutOfGas:
         return new Exit(ExitCode.OUT_OF_GAS);
@@ -83,6 +93,10 @@ export class Exit {
   }
 
   public getEdrExceptionalHalt(): ExceptionalHalt {
+    const { ExceptionalHalt } = requireNapiRsModule(
+      "@nomicfoundation/edr"
+    ) as typeof import("@nomicfoundation/edr");
+
     switch (this.kind) {
       case ExitCode.OUT_OF_GAS:
         return ExceptionalHalt.OutOfGas;

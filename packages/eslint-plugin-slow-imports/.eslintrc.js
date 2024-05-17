@@ -5,8 +5,8 @@ module.exports = {
   extends: [
     "eslint:recommended",
     "plugin:eslint-plugin/recommended",
-    "plugin:node/recommended",
-    "prettier",
+    "plugin:n/recommended",
+    "plugin:prettier/recommended",
   ],
   env: {
     node: true,

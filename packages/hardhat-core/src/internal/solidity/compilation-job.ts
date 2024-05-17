@@ -234,9 +234,9 @@ function getCompilerConfigForFile(
   transitiveDependencies: taskTypes.TransitiveDependency[],
   solidityConfig: SolidityConfig
 ): SolcConfig | CompilationJobCreationError {
-  const transitiveDependenciesVersionPragmas = transitiveDependencies.map(
-    ({ dependency }) => dependency.content.versionPragmas
-  );
+  const transitiveDependenciesVersionPragmas = transitiveDependencies
+    .map(({ dependency }) => dependency.content.versionPragmas)
+    .flat();
   const versionRange = Array.from(
     new Set([
       ...file.content.versionPragmas,
