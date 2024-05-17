@@ -19,6 +19,7 @@ import {
 
 import { LibraryToAddress } from "./solc/artifacts";
 import {
+  ABIArgumentTypeErrorType,
   isABIArgumentLengthError,
   isABIArgumentOverflowError,
   isABIArgumentTypeError,
@@ -228,6 +229,24 @@ export async function encodeArguments(
   const contractInterface = new Interface(abi);
   let encodedConstructorArguments;
   try {
+    // encodeDeploy doesn't catch subtle type mismatches, such as a number
+    // being passed when a string is expected, so we have to validate the
+    // scenario manually.
+    const expectedConstructorArgs = contractInterface.deploy.inputs;
+    constructorArguments.forEach((arg, i) => {
+      if (
+        expectedConstructorArgs[i]?.type === "string" &&
+        typeof arg !== "string"
+      ) {
+        throw new ABIArgumentTypeError({
+          code: "INVALID_ARGUMENT",
+          argument: expectedConstructorArgs[i].name,
+          value: arg,
+          reason: "invalid string value",
+        } as ABIArgumentTypeErrorType);
+      }
+    });
+
     encodedConstructorArguments = contractInterface
       .encodeDeploy(constructorArguments)
       .replace("0x", "");

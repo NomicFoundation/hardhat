@@ -97,7 +97,7 @@ Will make the `hre` provider use that gas price value everywhere it's used:
 
 ```js
 task("request", async (args, hre) => {
-  await hre.network.request(/*{ method arguments }*/); // this will run FixedGasProvider's request method above
+  await hre.network.provider.request({method: /*{ method arguments }*/}); // this will run FixedGasProvider's request method above
 });
 
 module.exports = {};

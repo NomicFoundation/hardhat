@@ -1,8 +1,7 @@
 import type SolidityAnalyzerT from "@nomicfoundation/solidity-analyzer";
 
 import { SolidityFilesCache } from "../../builtin-tasks/utils/solidity-files-cache";
-import { HardhatError } from "../core/errors";
-import { ERRORS } from "../core/errors-list";
+import { requireNapiRsModule } from "../../common/napi-rs";
 
 interface ParsedData {
   imports: string[];
@@ -29,22 +28,14 @@ export class Parser {
       return cacheResult;
     }
 
-    try {
-      const { analyze } =
-        require("@nomicfoundation/solidity-analyzer") as typeof SolidityAnalyzerT;
-      const result = analyze(fileContent);
+    const { analyze } = requireNapiRsModule(
+      "@nomicfoundation/solidity-analyzer"
+    ) as typeof SolidityAnalyzerT;
+    const result = analyze(fileContent);
 
-      this._cache.set(contentHash, result);
+    this._cache.set(contentHash, result);
 
-      return result;
-    } catch (e: any) {
-      if (e.code === "MODULE_NOT_FOUND") {
-        throw new HardhatError(ERRORS.GENERAL.CORRUPTED_LOCKFILE);
-      }
-
-      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
-      throw e;
-    }
+    return result;
   }
 
   /**

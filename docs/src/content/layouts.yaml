@@ -55,6 +55,7 @@ ignition:
     - ignition/docs/config
     - ignition/docs/guides
     - ignition/docs/advanced
+    - ignition/docs/reference
     - ignition/docs/other-components
 
 hidden:

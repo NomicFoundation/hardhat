@@ -1,12 +1,12 @@
 # 4. Writing and compiling smart contracts
 
-We're going to create a simple smart contract that implements a token that can be transferred. Token contracts are most frequently used to exchange or store value. We won't go in depth into the Solidity code of the contract on this tutorial, but there's some logic we implemented that you should know:
+We're going to create a simple smart contract that implements a token that can be transferred. Token contracts are most frequently used to exchange or store value. We won't go in depth into the Solidity code of the contract in this tutorial, but there's some logic we implemented that you should know:
 
 - There is a fixed total supply of tokens that can't be changed.
 - The entire supply is assigned to the address that deploys the contract.
 - Anyone can receive tokens.
 - Anyone with at least one token can transfer tokens.
-- The token is non-divisible. You can transfer 1, 2, 3 or 37 tokens but not 2.5.
+- The token is non-divisible. You can transfer 1, 2, 3, or 37 tokens but not 2.5.
 
 :::tip
 
@@ -71,7 +71,7 @@ contract Token {
      */
     function transfer(address to, uint256 amount) external {
         // Check if the transaction sender has enough tokens.
-        // If `require`'s first argument evaluates to `false` then the
+        // If `require`'s first argument evaluates to `false`, the
         // transaction will revert.
         require(balances[msg.sender] >= amount, "Not enough tokens");
 

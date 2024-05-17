@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-foundry",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Hardhat plugin that adds Hardhat support to Foundry projects",
   "repository": "github:nomicfoundation/hardhat",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-foundry",
@@ -47,6 +47,7 @@
     "eslint": "^8.44.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-import": "2.27.5",
+    "eslint-plugin-mocha": "10.4.1",
     "eslint-plugin-prettier": "3.4.0",
     "hardhat": "workspace:^2.17.2",
     "mocha": "^10.0.0",

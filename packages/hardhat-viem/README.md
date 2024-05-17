@@ -228,6 +228,26 @@ const { contractAddress } = await publicClient.waitForTransactionReceipt({
 });
 ```
 
+##### Library linking
+
+Some contracts need to be linked with libraries before they are deployed. You can pass the addresses of their libraries to the `deployContract` and `sendDeploymentTransaction` functions with an object like this:
+
+```typescript
+const contractA = await hre.viem.deployContract(
+  "contractName",
+  ["arg1", 50, "arg3"],
+  {
+    libraries: {
+      ExampleLib: "0x...",
+    },
+  }
+);
+```
+
+This allows you to deploy a contract linked to the `ExampleLib` library at the address `"0x..."`.
+
+To deploy a contract, all libraries must be linked. An error will be thrown if any libraries are missing.
+
 ## Usage
 
 There are no additional steps you need to take for this plugin to work.

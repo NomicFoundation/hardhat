@@ -153,7 +153,7 @@ function defineTest(
   ) {
     it.skip(desc, func);
   } else if (testDefinition.only !== undefined && testDefinition.only) {
-    // eslint-disable-next-line no-only-tests/no-only-tests
+    // eslint-disable-next-line mocha/no-exclusive-tests
     it.only(desc, func);
   } else {
     it(desc, func);
@@ -773,7 +773,7 @@ describe("Stack traces", function () {
       process.exit(1);
     }
 
-    // eslint-disable-next-line no-only-tests/no-only-tests
+    // eslint-disable-next-line mocha/no-exclusive-tests
     describe.only(`Use compiler at ${customSolcPath} with version ${customSolcVersion}`, function () {
       const compilerOptions = {
         solidityVersion: customSolcVersion,
@@ -867,7 +867,7 @@ function defineTestForSolidityMajorVersion(
   testsPath: string
 ) {
   for (const compilerOptions of solcVersionsCompilerOptions) {
-    // eslint-disable-next-line no-only-tests/no-only-tests
+    // eslint-disable-next-line mocha/no-exclusive-tests
     const describeFn = compilerOptions.only === true ? describe.only : describe;
 
     describeFn(`Use compiler ${compilerOptions.compilerPath}`, function () {

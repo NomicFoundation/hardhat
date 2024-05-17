@@ -27,7 +27,8 @@
     "eslint-config-prettier": "8.3.0",
     "eslint-doc-generator": "^1.0.0",
     "eslint-plugin-eslint-plugin": "^5.0.0",
-    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-n": "^16.6.2",
+    "eslint-plugin-prettier": "3.4.0",
     "mocha": "^10.0.0"
   },
   "peerDependencies": {
