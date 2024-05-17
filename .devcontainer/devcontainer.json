@@ -6,7 +6,7 @@
       "version": "18"
     }
   },
-  "postAttachCommand": "scripts/setup.sh",
+  "postCreateCommand": "scripts/setup.sh",
   "containerEnv": {
     "ALCHEMY_URL": "${localEnv:ALCHEMY_URL}",
     "INFURA_URL": "${localEnv:INFURA_URL}"
@@ -15,9 +15,7 @@
     "vscode": {
       "extensions": [
         "esbenp.prettier-vscode",
-        "NomicFoundation.hardhat-solidity",
-        "tamasfe.even-better-toml",
-        "vadimcn.vscode-lldb"
+        "NomicFoundation.hardhat-solidity"
       ]
     }
   }
