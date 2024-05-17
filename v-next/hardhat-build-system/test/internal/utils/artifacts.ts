@@ -3,13 +3,13 @@ import * as os from "node:os";
 import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   readJsonFile,
   remove,
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 
-import { ERRORS } from "../../../src/internal/errors/errors-list.js";
 import {
   Artifact,
   BuildInfo,
@@ -22,6 +22,8 @@ import {
 } from "../../../src/internal/utils/artifacts.js";
 import { getFullyQualifiedName } from "../../../src/internal/utils/contract-names.js";
 import { expectHardhatErrorAsync, useTmpDir } from "../../helpers.js";
+
+const ERRORS = HardhatError.ERRORS;
 
 async function storeAllArtifacts(sourceName: string, artifacts: Artifacts) {
   const solcVersion = "0.5.6";
