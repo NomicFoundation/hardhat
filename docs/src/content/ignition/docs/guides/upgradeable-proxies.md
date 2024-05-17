@@ -206,7 +206,7 @@ const upgradeModule = buildModule("UpgradeModule", (m) => {
 
 This module begins the same way as `ProxyModule`, by getting the account that owns the `ProxyAdmin` contract. We'll use this in a moment to upgrade the proxy.
 
-Next, we use the `m.useModule(...)` method to get the `ProxyAdmin` and proxy contracts from the previous module. 
+Next, we use the `m.useModule(...)` method to get the `ProxyAdmin` and proxy contracts from the previous module.
 
 Then, we deploy our `DemoV2` contract. This will be the contract that we'll upgrade our proxy to.
 
@@ -219,7 +219,6 @@ Lastly, we again return the `ProxyAdmin` and proxy contracts so that we can use 
 Finally, in the same file, we'll create our module called `DemoV2Module`:
 
 ```js
-
 const demoV2Module = buildModule("DemoV2Module", (m) => {
   const { proxy } = m.useModule(upgradeModule);
 
@@ -281,7 +280,7 @@ describe("Demo Proxy", function () {
       expect(await demo.connect(otherAccount).version()).to.equal("1.0.0");
     });
   });
-  
+
   describe("Upgrading", function () {
     it("Should have upgraded the proxy to DemoV2", async function () {
       const [owner, otherAccount] = await ethers.getSigners();
