@@ -27,6 +27,17 @@ jobs:
       - name: Run check
         run: node scripts/check-v-next-dependencies.js
 
+  check_npm_scripts:
+    name: Check that the npm scripts are consistent
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run check
+        run: node scripts/check-v-next-npm-scripts.js
+
   list-packages:
     name: List packages
     runs-on: ubuntu-latest
