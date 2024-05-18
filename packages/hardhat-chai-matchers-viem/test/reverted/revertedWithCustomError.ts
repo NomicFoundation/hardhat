@@ -455,7 +455,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
       });
 
       it("non-string as expectation", async function () {
-        const hash = await mineSuccessfulTransaction(this.hre);
+        const { hash } = await mineSuccessfulTransaction(this.hre);
 
         expect(() =>
           // @ts-expect-error

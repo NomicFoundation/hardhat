@@ -179,7 +179,7 @@ function innerAssertArgEqual(
   }
 }
 
-export async function getTransactionReceipt(hash: `0x${string}`) {
+export async function waitForTransactionReceipt(hash: `0x${string}`) {
   const { viem } = await import("hardhat");
   const publicClient = await viem.getPublicClient();
   return publicClient.waitForTransactionReceipt({ hash });

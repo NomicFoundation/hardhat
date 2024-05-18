@@ -5,7 +5,11 @@ import path from "path";
 import util from "util";
 
 import "../src/internal/add-chai-matchers";
-import { useEnvironment, useEnvironmentWithNode } from "./helpers";
+import {
+  getTransaction,
+  useEnvironment,
+  useEnvironmentWithNode,
+} from "./helpers";
 
 describe("INTEGRATION: changeEtherBalance matcher", function () {
   describe("with the in-process hardhat network", function () {
@@ -407,25 +411,25 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
 
     describe("Transaction Response", () => {
       describe("Change balance, one account", () => {
-        it("Should pass when expected balance change is passed as string and is equal to an actual", async () => {
-          await expect(
-            await sender.sendTransaction({
-              to: receiver.account.address,
-              value: 200n,
-            })
-          ).to.changeEtherBalance(sender, "-200");
+        it("Should pass when expected balance change is passed as string and is equal to an actual", async function () {
+          const hash = await sender.sendTransaction({
+            to: receiver.account.address,
+            value: 200n,
+          });
+          const tx = await getTransaction(this.hre, hash);
+          await expect(tx).to.changeEtherBalance(sender, "-200");
         });
 
-        it("Should pass when expected balance change is passed as int and is equal to an actual", async () => {
-          await expect(
-            await sender.sendTransaction({
-              to: receiver.account.address,
-              value: 200n,
-            })
-          ).to.changeEtherBalance(receiver, 200);
+        it("Should pass when expected balance change is passed as int and is equal to an actual", async function () {
+          const hash = await sender.sendTransaction({
+            to: receiver.account.address,
+            value: 200n,
+          });
+          const tx = await getTransaction(this.hre, hash);
+          await expect(tx).to.changeEtherBalance(receiver, 200);
         });
 
-        it("Should throw when expected balance change value was different from an actual", async () => {
+        it("Should throw when expected balance change value was different from an actual", async function () {
           await expect(
             expect(
               await sender.sendTransaction({
@@ -439,7 +443,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
           );
         });
 
-        it("Should throw in negative case when expected balance change value was equal to an actual", async () => {
+        it("Should throw in negative case when expected balance change value was equal to an actual", async function () {
           await expect(
             expect(
               await sender.sendTransaction({
@@ -455,7 +459,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
       });
 
       describe("Change balance, one contract", () => {
-        it("Should pass when expected balance change is passed as int and is equal to an actual", async () => {
+        it("Should pass when expected balance change is passed as int and is equal to an actual", async function () {
           await expect(
             await sender.sendTransaction({
               to: contract.address,

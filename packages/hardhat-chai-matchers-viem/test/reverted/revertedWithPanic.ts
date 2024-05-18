@@ -2,6 +2,7 @@ import { AssertionError, expect } from "chai";
 import { ProviderError } from "hardhat/internal/core/providers/errors";
 import path from "path";
 import util from "util";
+import { privateKeyToAccount } from "viem/accounts";
 
 import "../../src/internal/add-chai-matchers";
 import { PANIC_CODES } from "../../src/panic";
@@ -31,11 +32,7 @@ describe("INTEGRATION: Reverted with panic", function () {
     // deploy Matchers contract before each test
     let matchers: MatchersContract;
     beforeEach("deploy matchers contract", async function () {
-      const Matchers = await this.hre.ethers.getContractFactory<
-        [],
-        MatchersContract
-      >("Matchers");
-      matchers = await Matchers.deploy();
+      matchers = await this.hre.viem.deployContract("Matchers");
     });
 
     describe("calling a method that succeeds", function () {
@@ -276,7 +273,7 @@ describe("INTEGRATION: Reverted with panic", function () {
       });
 
       it("non-number as expectation, subject is a rejected promise", async function () {
-        const tx = matchers.revertsWithoutReason();
+        const tx = matchers.write.revertsWithoutReason();
 
         expect(() => expect(tx).to.be.revertedWithPanic("invalid")).to.throw(
           TypeError,
@@ -288,20 +285,18 @@ describe("INTEGRATION: Reverted with panic", function () {
         // use an address that almost surely doesn't have balance
         const randomPrivateKey =
           "0xc5c587cc6e48e9692aee0bf07474118e6d830c11905f7ec7ff32c09c99eba5f9";
-        const signer = new this.hre.ethers.Wallet(
-          randomPrivateKey,
-          this.hre.ethers.provider
-        );
-        const matchersFromSenderWithoutFunds = matchers.connect(
-          signer
-        ) as MatchersContract;
+        const account = privateKeyToAccount(randomPrivateKey);
+        const wallet = await this.hre.viem.getWalletClient(account.address, {
+          account,
+        });
 
         // this transaction will fail because of lack of funds, not because of a
         // revert
         await expect(
           expect(
-            matchersFromSenderWithoutFunds.revertsWithoutReason({
-              gasLimit: 1_000_000,
+            matchers.write.revertsWithoutReason({
+              gas: 1_000_000n,
+              account: wallet.account,
             })
           ).to.not.be.revertedWithPanic()
         ).to.be.eventually.rejectedWith(
@@ -315,7 +310,9 @@ describe("INTEGRATION: Reverted with panic", function () {
       // smoke test for stack traces
       it("includes test file", async function () {
         try {
-          await expect(matchers.panicAssert()).to.not.be.revertedWithPanic();
+          await expect(
+            matchers.write.panicAssert()
+          ).to.not.be.revertedWithPanic();
         } catch (e: any) {
           const errorString = util.inspect(e);
           expect(errorString).to.include(

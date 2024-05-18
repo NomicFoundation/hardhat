@@ -158,13 +158,13 @@ export async function mineSuccessfulTransaction(
   await hre.network.provider.send("evm_setAutomine", [false]);
 
   const [signer] = await hre.viem.getWalletClients();
-  const txHash = await signer.sendTransaction({ to: signer.account.address });
+  const hash = await signer.sendTransaction({ to: signer.account.address });
 
-  await mineBlocksUntilTxIsIncluded(hre, txHash);
+  await mineBlocksUntilTxIsIncluded(hre, hash);
 
   await hre.network.provider.send("evm_setAutomine", [true]);
 
-  return txHash;
+  return { hash };
 }
 
 export async function mineRevertedTransaction(
@@ -173,29 +173,26 @@ export async function mineRevertedTransaction(
 ) {
   await hre.network.provider.send("evm_setAutomine", [false]);
 
-  const txHash = await matchers.write.revertsWithoutReason({
+  const hash = await matchers.write.revertsWithoutReason({
     gas: 1_000_000n,
   });
 
-  await mineBlocksUntilTxIsIncluded(hre, txHash);
+  await mineBlocksUntilTxIsIncluded(hre, hash);
 
   await hre.network.provider.send("evm_setAutomine", [true]);
 
-  return txHash;
+  return { hash };
 }
 
 async function mineBlocksUntilTxIsIncluded(
   hre: HardhatRuntimeEnvironment,
-  txHash: `0x${string}`
+  hash: `0x${string}`
 ) {
   let i = 0;
 
-  const publicClient = await hre.viem.getPublicClient();
   while (true) {
     try {
-      await publicClient.getTransactionReceipt({
-        hash: txHash,
-      });
+      await getTransactionReceipt(hre, hash);
       return;
     } catch (e) {
       if (!(e instanceof TransactionReceiptNotFoundError)) {
@@ -210,4 +207,28 @@ async function mineBlocksUntilTxIsIncluded(
       throw new Error(`Transaction was not mined after mining ${i} blocks`);
     }
   }
+}
+
+export async function getTransaction(
+  hre: HardhatRuntimeEnvironment,
+  hash: `0x${string}`
+) {
+  const publicClient = await hre.viem.getPublicClient();
+  return publicClient.getTransaction({ hash });
+}
+
+export async function getTransactionReceipt(
+  hre: HardhatRuntimeEnvironment,
+  hash: `0x${string}`
+) {
+  const publicClient = await hre.viem.getPublicClient();
+  return publicClient.getTransactionReceipt({ hash });
+}
+
+export async function waitForTransactionReceipt(
+  hre: HardhatRuntimeEnvironment,
+  hash: `0x${string}`
+) {
+  const publicClient = await hre.viem.getPublicClient();
+  return publicClient.waitForTransactionReceipt({ hash });
 }

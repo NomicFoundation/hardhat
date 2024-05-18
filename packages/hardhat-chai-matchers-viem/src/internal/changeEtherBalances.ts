@@ -9,7 +9,7 @@ import { getAddresses, getBalances } from "./misc/balance";
 import { CHANGE_ETHER_BALANCES_MATCHER } from "./constants";
 import {
   assertIsNotNull,
-  getTransactionReceipt,
+  waitForTransactionReceipt,
   preventAsyncMatcherChaining,
 } from "./utils";
 
@@ -108,7 +108,7 @@ export async function getBalanceChanges(
 ): Promise<bigint[]> {
   const hash = await transaction;
 
-  const txReceipt = await getTransactionReceipt(hash);
+  const txReceipt = await waitForTransactionReceipt(hash);
 
   assertIsNotNull(txReceipt, "txReceipt");
   const txBlockNumber = txReceipt.blockNumber;

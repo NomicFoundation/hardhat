@@ -12,7 +12,7 @@ import {
   assertArgsArraysEqual,
   assertIsNotNull,
   preventAsyncMatcherChaining,
-  getTransactionReceipt,
+  waitForTransactionReceipt,
 } from "./utils";
 
 export const EMIT_CALLED = "emitAssertionCalled";
@@ -28,7 +28,7 @@ async function waitForPendingTransaction(
   } else {
     throw new Error(`${JSON.stringify(tx)} is not a valid transaction`);
   }
-  return getTransactionReceipt(hash);
+  return waitForTransactionReceipt(hash);
 }
 
 type Contract = GetContractReturnType<Abi>;

@@ -3,7 +3,7 @@ import { REVERTED_MATCHER } from "../constants";
 import {
   assertIsNotNull,
   preventAsyncMatcherChaining,
-  getTransactionReceipt,
+  waitForTransactionReceipt,
 } from "../utils";
 import { decodeReturnData, getReturnDataFromError, toBeHex } from "./utils";
 
@@ -27,14 +27,16 @@ export function supportReverted(
     const onSuccess = async (value: unknown) => {
       const assert = buildAssert(negated, onSuccess);
 
-      if (typeof value === "string") {
-        if (!isValidTransactionHash(value)) {
+      if (isTransactionResponse(value) || typeof value === "string") {
+        const hash = typeof value === "string" ? value : value.hash;
+
+        if (!isValidTransactionHash(hash)) {
           throw new TypeError(
-            `Expected a valid transaction hash, but got '${value}'`
+            `Expected a valid transaction hash, but got '${hash}'`
           );
         }
 
-        const receipt = await getTransactionReceipt(value);
+        const receipt = await waitForTransactionReceipt(hash);
 
         assertIsNotNull(receipt, "receipt");
         assert(
@@ -43,8 +45,10 @@ export function supportReverted(
           "Expected transaction NOT to be reverted"
         );
       } else if (isTransactionReceipt(value)) {
+        const receipt = value;
+
         assert(
-          value.status === "reverted",
+          receipt.status === "reverted",
           "Expected transaction to be reverted",
           "Expected transaction NOT to be reverted"
         );
@@ -99,6 +103,14 @@ export function supportReverted(
 
     return this;
   });
+}
+
+function isTransactionResponse(x: unknown): x is { hash: string } {
+  if (typeof x === "object" && x !== null) {
+    return "hash" in x && typeof x.hash === "string";
+  }
+
+  return false;
 }
 
 function isTransactionReceipt(

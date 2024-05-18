@@ -8,7 +8,7 @@ import { getAddressOf } from "./misc/account";
 import { CHANGE_ETHER_BALANCE_MATCHER } from "./constants";
 import {
   assertIsNotNull,
-  getTransactionReceipt,
+  waitForTransactionReceipt,
   preventAsyncMatcherChaining,
 } from "./utils";
 
@@ -67,7 +67,7 @@ export async function getBalanceChange(
   account: WalletClient | { address: `0x${string}` } | `0x${string}`,
   options?: BalanceChangeOptions
 ): Promise<bigint> {
-  const { network, viem } = await import("hardhat");
+  const { network } = await import("hardhat");
   const provider = network.provider;
 
   let hash: `0x${string}`;
@@ -78,7 +78,7 @@ export async function getBalanceChange(
     hash = await transaction;
   }
 
-  const txReceipt = await getTransactionReceipt(hash);
+  const txReceipt = await waitForTransactionReceipt(hash);
 
   assertIsNotNull(txReceipt, "txReceipt");
   const txBlockNumber = txReceipt.blockNumber;
