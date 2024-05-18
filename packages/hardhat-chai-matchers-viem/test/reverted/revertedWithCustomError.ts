@@ -16,7 +16,7 @@ import "../../src/internal/add-chai-matchers";
 import { anyUint, anyValue } from "../../src/withArgs";
 import { MatchersContract } from "../contracts";
 
-describe.only("INTEGRATION: Reverted with custom error", function () {
+describe("INTEGRATION: Reverted with custom error", function () {
   describe("with the in-process hardhat network", function () {
     useEnvironment("hardhat-project");
 

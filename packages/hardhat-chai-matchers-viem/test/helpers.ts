@@ -190,9 +190,9 @@ async function mineBlocksUntilTxIsIncluded(
 ) {
   let i = 0;
 
+  const publicClient = await hre.viem.getPublicClient();
   while (true) {
     try {
-      const publicClient = await hre.viem.getPublicClient();
       await publicClient.getTransactionReceipt({
         hash: txHash,
       });

@@ -1,7 +1,9 @@
+import type { HardhatRuntimeEnvironment } from "hardhat/types/runtime";
 import type { MatchersContract } from "../contracts";
 
 import { AssertionError, expect } from "chai";
-import { ProviderError } from "hardhat/internal/core/providers/errors";
+import { TransactionExecutionError } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
 import path from "path";
 import util from "util";
 
@@ -22,7 +24,8 @@ describe("INTEGRATION: Reverted", function () {
     runTests();
   });
 
-  describe("connected to a hardhat node", function () {
+  // external hardhat node with viem does not include error data in many cases
+  describe.skip("connected to a hardhat node", function () {
     useEnvironmentWithNode("hardhat-project");
 
     runTests();
@@ -32,11 +35,7 @@ describe("INTEGRATION: Reverted", function () {
     // deploy Matchers contract before each test
     let matchers: MatchersContract;
     beforeEach("deploy matchers contract", async function () {
-      const Matchers = await this.hre.ethers.getContractFactory<
-        [],
-        MatchersContract
-      >("Matchers");
-      matchers = await Matchers.deploy();
+      matchers = await this.hre.viem.deployContract("Matchers");
     });
 
     // helpers
@@ -44,9 +43,17 @@ describe("INTEGRATION: Reverted", function () {
       return expect(x).to.be.eventually.rejectedWith(AssertionError, message);
     };
 
+    async function getTransactionReceipt(
+      hre: HardhatRuntimeEnvironment,
+      hash: `0x${string}`
+    ) {
+      const publicClient = await hre.viem.getPublicClient();
+      return publicClient.waitForTransactionReceipt({ hash });
+    }
+
     describe("with a string as its subject", function () {
       it("hash of a successful transaction", async function () {
-        const { hash } = await mineSuccessfulTransaction(this.hre);
+        const hash = await mineSuccessfulTransaction(this.hre);
 
         await expectAssertionError(
           expect(hash).to.be.reverted,
@@ -56,7 +63,7 @@ describe("INTEGRATION: Reverted", function () {
       });
 
       it("hash of a reverted transaction", async function () {
-        const { hash } = await mineRevertedTransaction(this.hre, matchers);
+        const hash = await mineRevertedTransaction(this.hre, matchers);
 
         await expect(hash).to.be.reverted;
         await expectAssertionError(
@@ -78,7 +85,7 @@ describe("INTEGRATION: Reverted", function () {
       });
 
       it("promise of a hash of a successful transaction", async function () {
-        const { hash } = await mineSuccessfulTransaction(this.hre);
+        const hash = await mineSuccessfulTransaction(this.hre);
 
         await expectAssertionError(
           expect(Promise.resolve(hash)).to.be.reverted,
@@ -88,7 +95,7 @@ describe("INTEGRATION: Reverted", function () {
       });
 
       it("promise of a hash of a reverted transaction", async function () {
-        const { hash } = await mineRevertedTransaction(this.hre, matchers);
+        const hash = await mineRevertedTransaction(this.hre, matchers);
 
         await expect(Promise.resolve(hash)).to.be.reverted;
         await expectAssertionError(
@@ -155,21 +162,20 @@ describe("INTEGRATION: Reverted", function () {
         );
       });
 
-      it("reverted: should throw if chained to another non-chainable method", function () {
-        const txPromise = mineRevertedTransaction(this.hre, matchers);
+      it("reverted: should throw if chained to another non-chainable method", async function () {
+        const tx = await mineRevertedTransaction(this.hre, matchers);
         expect(
           () =>
-            expect(txPromise).to.be.revertedWith("an error message").and.to.be
-              .reverted
+            expect(tx).to.be.revertedWith("an error message").and.to.be.reverted
         ).to.throw(
           /The matcher 'reverted' cannot be chained after 'revertedWith'./
         );
       });
 
-      it("revertedWith: should throw if chained to another non-chainable method", function () {
-        const txPromise = mineRevertedTransaction(this.hre, matchers);
+      it("revertedWith: should throw if chained to another non-chainable method", async function () {
+        const tx = await mineRevertedTransaction(this.hre, matchers);
         expect(() =>
-          expect(txPromise)
+          expect(tx)
             .to.be.revertedWithCustomError(matchers, "SomeCustomError")
             .and.to.be.revertedWith("an error message")
         ).to.throw(
@@ -177,10 +183,10 @@ describe("INTEGRATION: Reverted", function () {
         );
       });
 
-      it("revertedWithCustomError: should throw if chained to another non-chainable method", function () {
-        const txPromise = mineRevertedTransaction(this.hre, matchers);
+      it("revertedWithCustomError: should throw if chained to another non-chainable method", async function () {
+        const tx = await mineRevertedTransaction(this.hre, matchers);
         expect(() =>
-          expect(txPromise)
+          expect(tx)
             .to.be.revertedWithoutReason()
             .and.to.be.revertedWithCustomError(matchers, "SomeCustomError")
         ).to.throw(
@@ -188,22 +194,20 @@ describe("INTEGRATION: Reverted", function () {
         );
       });
 
-      it("revertedWithoutReason: should throw if chained to another non-chainable method", function () {
-        const txPromise = mineRevertedTransaction(this.hre, matchers);
+      it("revertedWithoutReason: should throw if chained to another non-chainable method", async function () {
+        const tx = await mineRevertedTransaction(this.hre, matchers);
         expect(() =>
-          expect(txPromise)
-            .to.be.revertedWithPanic()
-            .and.to.be.revertedWithoutReason()
+          expect(tx).to.be.revertedWithPanic().and.to.be.revertedWithoutReason()
         ).to.throw(
           /The matcher 'revertedWithoutReason' cannot be chained after 'revertedWithPanic'./
         );
       });
 
       it("revertedWithPanic: should throw if chained to another non-chainable method", async function () {
-        const [sender] = await this.hre.ethers.getSigners();
-        const txPromise = mineRevertedTransaction(this.hre, matchers);
+        const [sender] = await this.hre.viem.getWalletClients();
+        const tx = await mineRevertedTransaction(this.hre, matchers);
         expect(() =>
-          expect(txPromise)
+          expect(tx)
             .to.changeEtherBalance(sender, "-200")
             .and.to.be.revertedWithPanic()
         ).to.throw(
@@ -215,7 +219,7 @@ describe("INTEGRATION: Reverted", function () {
     describe("with a TxReceipt as its subject", function () {
       it("TxReceipt of a successful transaction", async function () {
         const tx = await mineSuccessfulTransaction(this.hre);
-        const receipt = await tx.wait();
+        const receipt = await getTransactionReceipt(this.hre, tx);
 
         await expectAssertionError(
           expect(receipt).to.be.reverted,
@@ -226,9 +230,7 @@ describe("INTEGRATION: Reverted", function () {
 
       it("TxReceipt of a reverted transaction", async function () {
         const tx = await mineRevertedTransaction(this.hre, matchers);
-        const receipt = await this.hre.ethers.provider.getTransactionReceipt(
-          tx.hash
-        ); // tx.wait rejects, so we use provider.getTransactionReceipt
+        const receipt = await getTransactionReceipt(this.hre, tx);
 
         await expect(receipt).to.be.reverted;
         await expectAssertionError(
@@ -239,7 +241,7 @@ describe("INTEGRATION: Reverted", function () {
 
       it("promise of a TxReceipt of a successful transaction", async function () {
         const tx = await mineSuccessfulTransaction(this.hre);
-        const receiptPromise = tx.wait();
+        const receiptPromise = getTransactionReceipt(this.hre, tx);
 
         await expectAssertionError(
           expect(receiptPromise).to.be.reverted,
@@ -250,9 +252,7 @@ describe("INTEGRATION: Reverted", function () {
 
       it("promise of a TxReceipt of a reverted transaction", async function () {
         const tx = await mineRevertedTransaction(this.hre, matchers);
-        const receiptPromise = this.hre.ethers.provider.getTransactionReceipt(
-          tx.hash
-        ); // tx.wait rejects, so we use provider.getTransactionReceipt
+        const receiptPromise = getTransactionReceipt(this.hre, tx);
 
         await expect(receiptPromise).to.be.reverted;
         await expectAssertionError(
@@ -267,7 +267,6 @@ describe("INTEGRATION: Reverted", function () {
         await runSuccessfulAsserts({
           matchers,
           method: "succeeds",
-          args: [],
           successfulAssert: (x) => expect(x).to.not.be.reverted,
         });
       });
@@ -276,7 +275,6 @@ describe("INTEGRATION: Reverted", function () {
         await runFailedAsserts({
           matchers,
           method: "succeeds",
-          args: [],
           failedAssert: (x) => expect(x).to.be.reverted,
           failedAssertReason: "Expected transaction to be reverted",
         });
@@ -284,24 +282,18 @@ describe("INTEGRATION: Reverted", function () {
     });
 
     describe("calling a method that reverts without a reason", function () {
-      // depends on a bug being fixed on ethers.js
-      // see https://github.com/NomicFoundation/hardhat/issues/3446
-      it.skip("successful asserts", async function () {
+      it("successful asserts", async function () {
         await runSuccessfulAsserts({
           matchers,
           method: "revertsWithoutReason",
-          args: [],
           successfulAssert: (x) => expect(x).to.be.reverted,
         });
       });
 
-      // depends on a bug being fixed on ethers.js
-      // see https://github.com/NomicFoundation/hardhat/issues/3446
-      it.skip("failed asserts", async function () {
+      it("failed asserts", async function () {
         await runFailedAsserts({
           matchers,
           method: "revertsWithoutReason",
-          args: [],
           failedAssert: (x) => expect(x).not.to.be.reverted,
           failedAssertReason: "Expected transaction NOT to be reverted",
         });
@@ -335,7 +327,6 @@ describe("INTEGRATION: Reverted", function () {
         await runSuccessfulAsserts({
           matchers,
           method: "panicAssert",
-          args: [],
           successfulAssert: (x) => expect(x).to.be.reverted,
         });
       });
@@ -344,7 +335,6 @@ describe("INTEGRATION: Reverted", function () {
         await runFailedAsserts({
           matchers,
           method: "panicAssert",
-          args: [],
           failedAssert: (x) => expect(x).not.to.be.reverted,
           failedAssertReason:
             "Expected transaction NOT to be reverted, but it reverted with panic code 0x01 (Assertion error)",
@@ -357,7 +347,6 @@ describe("INTEGRATION: Reverted", function () {
         await runSuccessfulAsserts({
           matchers,
           method: "revertWithSomeCustomError",
-          args: [],
           successfulAssert: (x) => expect(x).to.be.reverted,
         });
       });
@@ -366,7 +355,6 @@ describe("INTEGRATION: Reverted", function () {
         await runFailedAsserts({
           matchers,
           method: "revertWithSomeCustomError",
-          args: [],
           failedAssert: (x) => expect(x).not.to.be.reverted,
           failedAssertReason: "Expected transaction NOT to be reverted",
         });
@@ -385,24 +373,22 @@ describe("INTEGRATION: Reverted", function () {
         // use an address that almost surely doesn't have balance
         const randomPrivateKey =
           "0xc5c587cc6e48e9692aee0bf07474118e6d830c11905f7ec7ff32c09c99eba5f9";
-        const signer = new this.hre.ethers.Wallet(
-          randomPrivateKey,
-          this.hre.ethers.provider
-        );
-        const matchersFromSenderWithoutFunds = matchers.connect(
-          signer
-        ) as MatchersContract;
+        const account = privateKeyToAccount(randomPrivateKey);
+        const wallet = await this.hre.viem.getWalletClient(account.address, {
+          account,
+        });
 
         // this transaction will fail because of lack of funds, not because of a
         // revert
         await expect(
           expect(
-            matchersFromSenderWithoutFunds.revertsWithoutReason({
-              gasLimit: 1_000_000,
+            matchers.write.revertsWithoutReason({
+              gas: 1_000_000n,
+              account: wallet.account,
             })
           ).to.not.be.reverted
         ).to.be.eventually.rejectedWith(
-          ProviderError,
+          TransactionExecutionError,
           "Sender doesn't have enough funds to send tx"
         );
       });
@@ -412,7 +398,7 @@ describe("INTEGRATION: Reverted", function () {
       // smoke test for stack traces
       it("includes test file", async function () {
         try {
-          await expect(matchers.succeeds()).to.be.reverted;
+          await expect(matchers.write.succeeds()).to.be.reverted;
         } catch (e: any) {
           const errorString = util.inspect(e);
           expect(errorString).to.include("Expected transaction to be reverted");
