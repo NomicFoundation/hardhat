@@ -23,7 +23,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
     runTests();
   });
 
-  // external hardhat node with viem does not include error data in many cases
+  // external hardhat node with viem does not include error data in some cases
   describe.skip("connected to a hardhat node", function () {
     useEnvironmentWithNode("hardhat-project");
 
@@ -455,7 +455,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
       });
 
       it("non-string as expectation", async function () {
-        const { hash } = await mineSuccessfulTransaction(this.hre);
+        const hash = await mineSuccessfulTransaction(this.hre);
 
         expect(() =>
           // @ts-expect-error

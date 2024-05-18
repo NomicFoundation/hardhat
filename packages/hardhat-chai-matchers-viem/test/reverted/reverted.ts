@@ -25,7 +25,7 @@ describe("INTEGRATION: Reverted", function () {
     runTests();
   });
 
-  // external hardhat node with viem does not include error data in many cases
+  // external hardhat node with viem does not include error data in some cases
   describe.skip("connected to a hardhat node", function () {
     useEnvironmentWithNode("hardhat-project");
 
@@ -155,21 +155,21 @@ describe("INTEGRATION: Reverted", function () {
         );
       });
 
-      it("reverted: should throw if chained to another non-chainable method", function () {
-        const hashPromise = mineRevertedTransaction(this.hre, matchers);
+      it("reverted: should throw if chained to another non-chainable method", async function () {
+        const hash = await mineRevertedTransaction(this.hre, matchers);
         expect(
           () =>
-            expect(hashPromise).to.be.revertedWith("an error message").and.to.be
+            expect(hash).to.be.revertedWith("an error message").and.to.be
               .reverted
         ).to.throw(
           /The matcher 'reverted' cannot be chained after 'revertedWith'./
         );
       });
 
-      it("revertedWith: should throw if chained to another non-chainable method", function () {
-        const hashPromise = mineRevertedTransaction(this.hre, matchers);
+      it("revertedWith: should throw if chained to another non-chainable method", async function () {
+        const hash = await mineRevertedTransaction(this.hre, matchers);
         expect(() =>
-          expect(hashPromise)
+          expect(hash)
             .to.be.revertedWithCustomError(matchers, "SomeCustomError")
             .and.to.be.revertedWith("an error message")
         ).to.throw(
@@ -177,10 +177,10 @@ describe("INTEGRATION: Reverted", function () {
         );
       });
 
-      it("revertedWithCustomError: should throw if chained to another non-chainable method", function () {
-        const hashPromise = mineRevertedTransaction(this.hre, matchers);
+      it("revertedWithCustomError: should throw if chained to another non-chainable method", async function () {
+        const hash = await mineRevertedTransaction(this.hre, matchers);
         expect(() =>
-          expect(hashPromise)
+          expect(hash)
             .to.be.revertedWithoutReason()
             .and.to.be.revertedWithCustomError(matchers, "SomeCustomError")
         ).to.throw(
@@ -188,10 +188,10 @@ describe("INTEGRATION: Reverted", function () {
         );
       });
 
-      it("revertedWithoutReason: should throw if chained to another non-chainable method", function () {
-        const hashPromise = mineRevertedTransaction(this.hre, matchers);
+      it("revertedWithoutReason: should throw if chained to another non-chainable method", async function () {
+        const hash = await mineRevertedTransaction(this.hre, matchers);
         expect(() =>
-          expect(hashPromise)
+          expect(hash)
             .to.be.revertedWithPanic()
             .and.to.be.revertedWithoutReason()
         ).to.throw(
@@ -201,9 +201,9 @@ describe("INTEGRATION: Reverted", function () {
 
       it("revertedWithPanic: should throw if chained to another non-chainable method", async function () {
         const [sender] = await this.hre.viem.getWalletClients();
-        const hashPromise = mineRevertedTransaction(this.hre, matchers);
+        const hash = await mineRevertedTransaction(this.hre, matchers);
         expect(() =>
-          expect(hashPromise)
+          expect(hash)
             .to.changeEtherBalance(sender, "-200")
             .and.to.be.revertedWithPanic()
         ).to.throw(
