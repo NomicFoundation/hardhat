@@ -46,10 +46,8 @@ export function getReturnDataFromError(error: any): `0x${string}` {
     (returnData: any) =>
       typeof returnData === "string" && returnData.startsWith("0x")
   );
-  console.log(returnData);
 
   if (typeof returnData !== "string") {
-    console.log(JSON.stringify(error, undefined, 2));
     throw error;
   }
 

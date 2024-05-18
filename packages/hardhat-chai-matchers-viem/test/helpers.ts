@@ -110,7 +110,7 @@ export function useEnvironmentWithNode(fixtureProjectName: string) {
 export async function runSuccessfulAsserts({
   matchers,
   method,
-  args = [],
+  args,
   successfulAssert,
 }: {
   matchers: any;
@@ -118,9 +118,9 @@ export async function runSuccessfulAsserts({
   args?: any[];
   successfulAssert: (x: any) => Promise<void>;
 }) {
-  await successfulAssert(matchers.write[method](...args));
-  await successfulAssert(matchers.read[method](...args));
-  await successfulAssert(matchers.estimateGas[method](...args));
+  await successfulAssert(matchers.write[method](args));
+  await successfulAssert(matchers.read[`${method}View`](args));
+  await successfulAssert(matchers.estimateGas[method](args));
 }
 
 /**
@@ -130,7 +130,7 @@ export async function runSuccessfulAsserts({
 export async function runFailedAsserts({
   matchers,
   method,
-  args = [],
+  args,
   failedAssert,
   failedAssertReason,
 }: {
@@ -140,15 +140,15 @@ export async function runFailedAsserts({
   failedAssert: (x: any) => Promise<void>;
   failedAssertReason: string;
 }) {
-  await expect(
-    failedAssert(matchers.write[method](...args))
-  ).to.be.rejectedWith(AssertionError, failedAssertReason);
-  await expect(failedAssert(matchers.read[method](...args))).to.be.rejectedWith(
+  await expect(failedAssert(matchers.write[method](args))).to.be.rejectedWith(
     AssertionError,
     failedAssertReason
   );
   await expect(
-    failedAssert(matchers.estimateGas[method](...args))
+    failedAssert(matchers.read[`${method}View`](args))
+  ).to.be.rejectedWith(AssertionError, failedAssertReason);
+  await expect(
+    failedAssert(matchers.estimateGas[method](args))
   ).to.be.rejectedWith(AssertionError, failedAssertReason);
 }
 
