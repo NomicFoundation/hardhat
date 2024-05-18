@@ -16,7 +16,6 @@ import {
   mineSuccessfulTransaction,
   mineRevertedTransaction,
   waitForTransactionReceipt,
-  getTransaction,
 } from "../helpers";
 
 describe("INTEGRATION: Reverted", function () {
@@ -47,7 +46,7 @@ describe("INTEGRATION: Reverted", function () {
 
     describe("with a string as its subject", function () {
       it("hash of a successful transaction", async function () {
-        const { hash } = await mineSuccessfulTransaction(this.hre);
+        const hash = await mineSuccessfulTransaction(this.hre);
 
         await expectAssertionError(
           expect(hash).to.be.reverted,
@@ -57,7 +56,7 @@ describe("INTEGRATION: Reverted", function () {
       });
 
       it("hash of a reverted transaction", async function () {
-        const { hash } = await mineRevertedTransaction(this.hre, matchers);
+        const hash = await mineRevertedTransaction(this.hre, matchers);
 
         await expect(hash).to.be.reverted;
         await expectAssertionError(
@@ -79,7 +78,7 @@ describe("INTEGRATION: Reverted", function () {
       });
 
       it("promise of a hash of a successful transaction", async function () {
-        const { hash } = await mineSuccessfulTransaction(this.hre);
+        const hash = await mineSuccessfulTransaction(this.hre);
 
         await expectAssertionError(
           expect(Promise.resolve(hash)).to.be.reverted,
@@ -89,7 +88,7 @@ describe("INTEGRATION: Reverted", function () {
       });
 
       it("promise of a hash of a reverted transaction", async function () {
-        const { hash } = await mineRevertedTransaction(this.hre, matchers);
+        const hash = await mineRevertedTransaction(this.hre, matchers);
 
         await expect(Promise.resolve(hash)).to.be.reverted;
         await expectAssertionError(
@@ -117,66 +116,60 @@ describe("INTEGRATION: Reverted", function () {
 
     describe("with a TxResponse as its subject", function () {
       it("TxResponse of a successful transaction", async function () {
-        const { hash } = await mineSuccessfulTransaction(this.hre);
-        const tx = await getTransaction(this.hre, hash);
+        const hash = await mineSuccessfulTransaction(this.hre);
 
         await expectAssertionError(
-          expect(tx).to.be.reverted,
+          expect(hash).to.be.reverted,
           "Expected transaction to be reverted"
         );
-        await expect(tx).to.not.be.reverted;
+        await expect(hash).to.not.be.reverted;
       });
 
       it("TxResponse of a reverted transaction", async function () {
-        const { hash } = await mineRevertedTransaction(this.hre, matchers);
-        const tx = await getTransaction(this.hre, hash);
+        const hash = await mineRevertedTransaction(this.hre, matchers);
 
-        await expect(tx).to.be.reverted;
+        await expect(hash).to.be.reverted;
         await expectAssertionError(
-          expect(tx).to.not.be.reverted,
+          expect(hash).to.not.be.reverted,
           "Expected transaction NOT to be reverted"
         );
       });
 
       it("promise of a TxResponse of a successful transaction", async function () {
-        const { hash } = await mineSuccessfulTransaction(this.hre);
-        const txPromise = getTransaction(this.hre, hash);
+        const hashPromise = mineSuccessfulTransaction(this.hre);
 
         await expectAssertionError(
-          expect(txPromise).to.be.reverted,
+          expect(hashPromise).to.be.reverted,
           "Expected transaction to be reverted"
         );
-        await expect(txPromise).to.not.be.reverted;
+        await expect(hashPromise).to.not.be.reverted;
       });
 
       it("promise of a TxResponse of a reverted transaction", async function () {
-        const { hash } = await mineRevertedTransaction(this.hre, matchers);
-        const txPromise = getTransaction(this.hre, hash);
+        const hashPromise = mineRevertedTransaction(this.hre, matchers);
 
-        await expect(txPromise).to.be.reverted;
+        await expect(hashPromise).to.be.reverted;
         await expectAssertionError(
-          expect(txPromise).to.not.be.reverted,
+          expect(hashPromise).to.not.be.reverted,
           "Expected transaction NOT to be reverted"
         );
       });
 
-      it("reverted: should throw if chained to another non-chainable method", async function () {
-        const { hash } = await mineRevertedTransaction(this.hre, matchers);
-        const txPromise = getTransaction(this.hre, hash);
+      it("reverted: should throw if chained to another non-chainable method", function () {
+        const hashPromise = mineRevertedTransaction(this.hre, matchers);
         expect(
           () =>
-            expect(txPromise).to.be.revertedWith("an error message").and.to.be
+            expect(hashPromise).to.be.revertedWith("an error message").and.to.be
               .reverted
         ).to.throw(
           /The matcher 'reverted' cannot be chained after 'revertedWith'./
         );
       });
 
-      it("revertedWith: should throw if chained to another non-chainable method", async function () {
-        const { hash } = await mineRevertedTransaction(this.hre, matchers);
-        const txPromise = getTransaction(this.hre, hash);
+      it("revertedWith: should throw if chained to another non-chainable method", function () {
+        const hashPromise = mineRevertedTransaction(this.hre, matchers);
         expect(() =>
-          expect(txPromise)
+          expect(hashPromise)
             .to.be.revertedWithCustomError(matchers, "SomeCustomError")
             .and.to.be.revertedWith("an error message")
         ).to.throw(
@@ -184,11 +177,10 @@ describe("INTEGRATION: Reverted", function () {
         );
       });
 
-      it("revertedWithCustomError: should throw if chained to another non-chainable method", async function () {
-        const { hash } = await mineRevertedTransaction(this.hre, matchers);
-        const txPromise = getTransaction(this.hre, hash);
+      it("revertedWithCustomError: should throw if chained to another non-chainable method", function () {
+        const hashPromise = mineRevertedTransaction(this.hre, matchers);
         expect(() =>
-          expect(txPromise)
+          expect(hashPromise)
             .to.be.revertedWithoutReason()
             .and.to.be.revertedWithCustomError(matchers, "SomeCustomError")
         ).to.throw(
@@ -196,11 +188,10 @@ describe("INTEGRATION: Reverted", function () {
         );
       });
 
-      it("revertedWithoutReason: should throw if chained to another non-chainable method", async function () {
-        const { hash } = await mineRevertedTransaction(this.hre, matchers);
-        const txPromise = getTransaction(this.hre, hash);
+      it("revertedWithoutReason: should throw if chained to another non-chainable method", function () {
+        const hashPromise = mineRevertedTransaction(this.hre, matchers);
         expect(() =>
-          expect(txPromise)
+          expect(hashPromise)
             .to.be.revertedWithPanic()
             .and.to.be.revertedWithoutReason()
         ).to.throw(
@@ -210,10 +201,9 @@ describe("INTEGRATION: Reverted", function () {
 
       it("revertedWithPanic: should throw if chained to another non-chainable method", async function () {
         const [sender] = await this.hre.viem.getWalletClients();
-        const { hash } = await mineRevertedTransaction(this.hre, matchers);
-        const txPromise = getTransaction(this.hre, hash);
+        const hashPromise = mineRevertedTransaction(this.hre, matchers);
         expect(() =>
-          expect(txPromise)
+          expect(hashPromise)
             .to.changeEtherBalance(sender, "-200")
             .and.to.be.revertedWithPanic()
         ).to.throw(
@@ -224,7 +214,7 @@ describe("INTEGRATION: Reverted", function () {
 
     describe("with a TxReceipt as its subject", function () {
       it("TxReceipt of a successful transaction", async function () {
-        const { hash } = await mineSuccessfulTransaction(this.hre);
+        const hash = await mineSuccessfulTransaction(this.hre);
         const receipt = await waitForTransactionReceipt(this.hre, hash);
 
         await expectAssertionError(
@@ -235,7 +225,7 @@ describe("INTEGRATION: Reverted", function () {
       });
 
       it("TxReceipt of a reverted transaction", async function () {
-        const { hash } = await mineRevertedTransaction(this.hre, matchers);
+        const hash = await mineRevertedTransaction(this.hre, matchers);
         const receipt = await waitForTransactionReceipt(this.hre, hash);
 
         await expect(receipt).to.be.reverted;
@@ -246,7 +236,7 @@ describe("INTEGRATION: Reverted", function () {
       });
 
       it("promise of a TxReceipt of a successful transaction", async function () {
-        const { hash } = await mineSuccessfulTransaction(this.hre);
+        const hash = await mineSuccessfulTransaction(this.hre);
         const receiptPromise = waitForTransactionReceipt(this.hre, hash);
 
         await expectAssertionError(
@@ -257,7 +247,7 @@ describe("INTEGRATION: Reverted", function () {
       });
 
       it("promise of a TxReceipt of a reverted transaction", async function () {
-        const { hash } = await mineRevertedTransaction(this.hre, matchers);
+        const hash = await mineRevertedTransaction(this.hre, matchers);
         const receiptPromise = waitForTransactionReceipt(this.hre, hash);
 
         await expect(receiptPromise).to.be.reverted;

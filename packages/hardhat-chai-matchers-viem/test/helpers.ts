@@ -164,7 +164,7 @@ export async function mineSuccessfulTransaction(
 
   await hre.network.provider.send("evm_setAutomine", [true]);
 
-  return { hash };
+  return hash;
 }
 
 export async function mineRevertedTransaction(
@@ -181,7 +181,7 @@ export async function mineRevertedTransaction(
 
   await hre.network.provider.send("evm_setAutomine", [true]);
 
-  return { hash };
+  return hash;
 }
 
 async function mineBlocksUntilTxIsIncluded(
@@ -207,14 +207,6 @@ async function mineBlocksUntilTxIsIncluded(
       throw new Error(`Transaction was not mined after mining ${i} blocks`);
     }
   }
-}
-
-export async function getTransaction(
-  hre: HardhatRuntimeEnvironment,
-  hash: `0x${string}`
-) {
-  const publicClient = await hre.viem.getPublicClient();
-  return publicClient.getTransaction({ hash });
 }
 
 export async function getTransactionReceipt(
