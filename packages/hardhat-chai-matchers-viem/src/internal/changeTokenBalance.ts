@@ -30,7 +30,7 @@ export function supportChangeTokenBalance(
       this: any,
       token: TokenContract,
       account: WalletClient | { address: `0x${string}` } | `0x${string}`,
-      balanceChange: bigint | number | string
+      balanceChange: bigint | number | string | ((change: bigint) => boolean)
     ) {
       // capture negated flag before async code executes; see buildAssert's jsdoc
       const negated = this.__flags.negate;
@@ -55,11 +55,19 @@ export function supportChangeTokenBalance(
       ]) => {
         const assert = buildAssert(negated, checkBalanceChange);
 
-        assert(
-          actualChange === BigInt(balanceChange),
-          `Expected the balance of ${tokenDescription} tokens for "${address}" to change by ${balanceChange.toString()}, but it changed by ${actualChange.toString()}`,
-          `Expected the balance of ${tokenDescription} tokens for "${address}" NOT to change by ${balanceChange.toString()}, but it did`
-        );
+        if (typeof balanceChange === "function") {
+          assert(
+            balanceChange(actualChange),
+            `Expected the balance of ${tokenDescription} tokens for "${address}" to satisfy the predicate, but it didn't (token balance change: ${actualChange.toString()} wei)`,
+            `Expected the balance of ${tokenDescription} tokens for "${address}" to NOT satisfy the predicate, but it did (token balance change: ${actualChange.toString()} wei)`
+          );
+        } else {
+          assert(
+            actualChange === BigInt(balanceChange),
+            `Expected the balance of ${tokenDescription} tokens for "${address}" to change by ${balanceChange.toString()}, but it changed by ${actualChange.toString()}`,
+            `Expected the balance of ${tokenDescription} tokens for "${address}" NOT to change by ${balanceChange.toString()}, but it did`
+          );
+        }
       };
 
       const derivedPromise = Promise.all([
@@ -83,7 +91,9 @@ export function supportChangeTokenBalance(
       accounts: Array<
         WalletClient | { address: `0x${string}` } | `0x${string}`
       >,
-      balanceChanges: Array<bigint | number | string>
+      balanceChanges:
+        | Array<bigint | number | string>
+        | ((changes: bigint[]) => boolean)
     ) {
       // capture negated flag before async code executes; see buildAssert's jsdoc
       const negated = this.__flags.negate;
@@ -113,21 +123,29 @@ export function supportChangeTokenBalance(
       ]: [bigint[], string[], string]) => {
         const assert = buildAssert(negated, checkBalanceChanges);
 
-        assert(
-          actualChanges.every(
-            (change, ind) => change === BigInt(balanceChanges[ind])
-          ),
-          `Expected the balances of ${tokenDescription} tokens for ${
-            addresses as any
-          } to change by ${
-            balanceChanges as any
-          }, respectively, but they changed by ${actualChanges as any}`,
-          `Expected the balances of ${tokenDescription} tokens for ${
-            addresses as any
-          } NOT to change by ${
-            balanceChanges as any
-          }, respectively, but they did`
-        );
+        if (typeof balanceChanges === "function") {
+          assert(
+            balanceChanges(actualChanges),
+            `Expected the balance changes of ${tokenDescription} to satisfy the predicate, but they didn't`,
+            `Expected the balance changes of ${tokenDescription} to NOT satisfy the predicate, but they did`
+          );
+        } else {
+          assert(
+            actualChanges.every(
+              (change, ind) => change === BigInt(balanceChanges[ind])
+            ),
+            `Expected the balances of ${tokenDescription} tokens for ${
+              addresses as any
+            } to change by ${
+              balanceChanges as any
+            }, respectively, but they changed by ${actualChanges as any}`,
+            `Expected the balances of ${tokenDescription} tokens for ${
+              addresses as any
+            } NOT to change by ${
+              balanceChanges as any
+            }, respectively, but they did`
+          );
+        }
       };
 
       const derivedPromise = Promise.all([
@@ -148,12 +166,17 @@ function validateInput(
   obj: any,
   token: TokenContract,
   accounts: Array<WalletClient | { address: `0x${string}` } | `0x${string}`>,
-  balanceChanges: Array<bigint | number | string>
+  balanceChanges:
+    | Array<bigint | number | string>
+    | ((changes: bigint[]) => boolean)
 ) {
   try {
     checkToken(token, CHANGE_TOKEN_BALANCES_MATCHER);
 
-    if (accounts.length !== balanceChanges.length) {
+    if (
+      Array.isArray(balanceChanges) &&
+      accounts.length !== balanceChanges.length
+    ) {
       throw new Error(
         `The number of accounts (${accounts.length}) is different than the number of expected balance changes (${balanceChanges.length})`
       );

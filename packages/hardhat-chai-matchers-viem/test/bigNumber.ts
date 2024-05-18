@@ -815,13 +815,13 @@ describe("BigNumber matchers", function () {
 
         describe(`when using .to.${operator}`, function () {
           it("with an unsafe int as the first param", function () {
-            expect(() => expect(unsafeInt).to[operator](BigInt(1))).to.throw(
+            expect(() => expect(unsafeInt).to[operator](1n)).to.throw(
               HardhatError,
               msg
             );
           });
           it("with an unsafe int as the second param", function () {
-            expect(() => expect(BigInt(1)).to[operator](unsafeInt)).to.throw(
+            expect(() => expect(1n).to[operator](unsafeInt)).to.throw(
               HardhatError,
               msg
             );
@@ -830,14 +830,16 @@ describe("BigNumber matchers", function () {
 
         describe(`when using .not.to.${operator}`, function () {
           it("with an unsafe int as the first param", function () {
-            expect(() =>
-              expect(unsafeInt).not.to[operator](BigInt(1))
-            ).to.throw(HardhatError, msg);
+            expect(() => expect(unsafeInt).not.to[operator](1n)).to.throw(
+              HardhatError,
+              msg
+            );
           });
           it("with an unsafe int as the second param", function () {
-            expect(() =>
-              expect(BigInt(1)).not.to[operator](unsafeInt)
-            ).to.throw(HardhatError, msg);
+            expect(() => expect(1n).not.to[operator](unsafeInt)).to.throw(
+              HardhatError,
+              msg
+            );
           });
         });
       });
@@ -1136,37 +1138,43 @@ describe("BigNumber matchers", function () {
 
         describe(`when using .to.${operator}`, function () {
           it("with an unsafe int as the first param", function () {
-            expect(() =>
-              expect(unsafeInt).to[operator](BigInt(1), BigInt(1))
-            ).to.throw(HardhatError, msg);
+            expect(() => expect(unsafeInt).to[operator](1n, 1n)).to.throw(
+              HardhatError,
+              msg
+            );
           });
           it("with an unsafe int as the second param", function () {
-            expect(() =>
-              expect(BigInt(1)).to[operator](unsafeInt, BigInt(1))
-            ).to.throw(HardhatError, msg);
+            expect(() => expect(1n).to[operator](unsafeInt, 1n)).to.throw(
+              HardhatError,
+              msg
+            );
           });
           it("with an unsafe int as the third param", function () {
-            expect(() =>
-              expect(BigInt(1)).to[operator](BigInt(1), unsafeInt)
-            ).to.throw(HardhatError, msg);
+            expect(() => expect(1n).to[operator](1n, unsafeInt)).to.throw(
+              HardhatError,
+              msg
+            );
           });
         });
 
         describe(`when using not.to.${operator}`, function () {
           it("with an unsafe int as the first param", function () {
-            expect(() =>
-              expect(unsafeInt).not.to[operator](BigInt(1), BigInt(1))
-            ).to.throw(HardhatError, msg);
+            expect(() => expect(unsafeInt).not.to[operator](1n, 1n)).to.throw(
+              HardhatError,
+              msg
+            );
           });
           it("with an unsafe int as the second param", function () {
-            expect(() =>
-              expect(BigInt(1)).not.to[operator](unsafeInt, BigInt(1))
-            ).to.throw(HardhatError, msg);
+            expect(() => expect(1n).not.to[operator](unsafeInt, 1n)).to.throw(
+              HardhatError,
+              msg
+            );
           });
           it("with an unsafe int as the third param", function () {
-            expect(() =>
-              expect(BigInt(1)).not.to[operator](BigInt(1), unsafeInt)
-            ).to.throw(HardhatError, msg);
+            expect(() => expect(1n).not.to[operator](1n, unsafeInt)).to.throw(
+              HardhatError,
+              msg
+            );
           });
         });
       });
@@ -1181,7 +1189,7 @@ describe("BigNumber matchers", function () {
     );
 
     // number and bigint
-    expect(() => expect(1).to.equal(BigInt(2), "custom message")).to.throw(
+    expect(() => expect(1).to.equal(2n, "custom message")).to.throw(
       AssertionError,
       "custom message"
     );
@@ -1193,7 +1201,7 @@ describe("BigNumber matchers", function () {
     );
 
     // number and bigint
-    expect(() => expect([1]).to.equal([BigInt(2)], "custom message")).to.throw(
+    expect(() => expect([1]).to.equal([2n], "custom message")).to.throw(
       AssertionError,
       "custom message"
     );

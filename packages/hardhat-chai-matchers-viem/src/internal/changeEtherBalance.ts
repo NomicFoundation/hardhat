@@ -21,7 +21,7 @@ export function supportChangeEtherBalance(
     function (
       this: any,
       account: WalletClient | { address: `0x${string}` } | `0x${string}`,
-      balanceChange: bigint | number | string,
+      balanceChange: bigint | number | string | ((change: bigint) => boolean),
       options?: BalanceChangeOptions
     ) {
       // capture negated flag before async code executes; see buildAssert's jsdoc
@@ -40,11 +40,20 @@ export function supportChangeEtherBalance(
       ]) => {
         const assert = buildAssert(negated, checkBalanceChange);
 
-        assert(
-          actualChange === BigInt(balanceChange),
-          `Expected the ether balance of "${address}" to change by ${balanceChange.toString()} wei, but it changed by ${actualChange.toString()} wei`,
-          `Expected the ether balance of "${address}" NOT to change by ${balanceChange.toString()} wei, but it did`
-        );
+        if (typeof balanceChange === "function") {
+          assert(
+            balanceChange(actualChange),
+            `Expected the ether balance change of "${address}" to satisfy the predicate, but it didn't (balance change: ${actualChange.toString()} wei)`,
+            `Expected the ether balance change of "${address}" to NOT satisfy the predicate, but it did (balance change: ${actualChange.toString()} wei)`
+          );
+        } else {
+          const expectedChange = BigInt(balanceChange);
+          assert(
+            actualChange === expectedChange,
+            `Expected the ether balance of "${address}" to change by ${balanceChange.toString()} wei, but it changed by ${actualChange.toString()} wei`,
+            `Expected the ether balance of "${address}" NOT to change by ${balanceChange.toString()} wei, but it did`
+          );
+        }
       };
 
       const derivedPromise = Promise.all([

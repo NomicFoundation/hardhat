@@ -264,7 +264,7 @@ describe("INTEGRATION: Reverted with panic", function () {
       });
 
       it("non-number as expectation", async function () {
-        const { hash } = await mineSuccessfulTransaction(this.hre);
+        const hash = await mineSuccessfulTransaction(this.hre);
 
         expect(() => expect(hash).to.be.revertedWithPanic("invalid")).to.throw(
           TypeError,

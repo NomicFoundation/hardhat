@@ -118,6 +118,14 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           sender.sendTransaction({ to: receiver.account.address })
         ).to.not.changeTokenBalance(mockToken, sender, 1);
 
+        await expect(
+          sender.sendTransaction({ to: receiver.account.address })
+        ).to.not.changeTokenBalance(
+          mockToken,
+          sender,
+          (diff: bigint) => diff > 0n
+        );
+
         await expect(() =>
           sender.sendTransaction({ to: receiver.account.address })
         ).to.not.changeTokenBalances(mockToken, [sender, receiver], [0, 1]);
@@ -143,6 +151,21 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           );
         });
 
+        it("change balance doesn't satisfies the predicate", async function () {
+          await expect(
+            expect(
+              sender.sendTransaction({ to: receiver.account.address })
+            ).to.changeTokenBalance(
+              mockToken,
+              sender,
+              (diff: bigint) => diff > 0n
+            )
+          ).to.be.rejectedWith(
+            AssertionError,
+            /Expected the balance of MCK tokens for "0x\w{40}" to satisfy the predicate, but it didn't \(token balance change: 0 wei\)/
+          );
+        });
+
         it("changes balance in the way it was not expected", async function () {
           await expect(
             expect(
@@ -151,6 +174,21 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           ).to.be.rejectedWith(
             AssertionError,
             /Expected the balance of MCK tokens for "0x\w{40}" NOT to change by 0, but it did/
+          );
+        });
+
+        it("changes balance doesn't have to satisfy the predicate, but it did", async function () {
+          await expect(
+            expect(
+              sender.sendTransaction({ to: receiver.account.address })
+            ).to.not.changeTokenBalance(
+              mockToken,
+              sender,
+              (diff: bigint) => diff < 1n
+            )
+          ).to.be.rejectedWith(
+            AssertionError,
+            /Expected the balance of MCK tokens for "0x\w{40}" to NOT satisfy the predicate, but it did \(token balance change: 0 wei\)/
           );
         });
 
@@ -185,6 +223,51 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             ).to.not.changeTokenBalances(mockToken, [sender, receiver], [0, 0])
           ).to.be.rejectedWith(AssertionError);
         });
+      });
+    });
+
+    describe("Transaction Callback", function () {
+      it("Should pass when given predicate", async () => {
+        await expect(() =>
+          mockToken.write.transfer([receiver.account.address, 75n])
+        ).to.changeTokenBalances(
+          mockToken,
+          [sender, receiver],
+          ([senderDiff, receiverDiff]: bigint[]) =>
+            senderDiff === -75n && receiverDiff === 75n
+        );
+      });
+
+      it("Should fail when the predicate returns false", async () => {
+        await expect(
+          expect(
+            mockToken.write.transfer([receiver.account.address, 75n])
+          ).to.changeTokenBalances(
+            mockToken,
+            [sender, receiver],
+            ([senderDiff, receiverDiff]: bigint[]) =>
+              senderDiff === -74n && receiverDiff === 75n
+          )
+        ).to.be.eventually.rejectedWith(
+          AssertionError,
+          "Expected the balance changes of MCK to satisfy the predicate, but they didn't"
+        );
+      });
+
+      it("Should fail when the predicate returns true and the assertion is negated", async () => {
+        await expect(
+          expect(
+            mockToken.write.transfer([receiver.account.address, 75n])
+          ).to.not.changeTokenBalances(
+            mockToken,
+            [sender, receiver],
+            ([senderDiff, receiverDiff]: bigint[]) =>
+              senderDiff === -75n && receiverDiff === 75n
+          )
+        ).to.be.eventually.rejectedWith(
+          AssertionError,
+          "Expected the balance changes of MCK to NOT satisfy the predicate, but they did"
+        );
       });
     });
 
@@ -299,6 +382,21 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           );
         });
 
+        it("change balance doesn't satisfies the predicate", async function () {
+          await expect(
+            expect(
+              mockToken.write.transfer([receiver.account.address, 50n])
+            ).to.changeTokenBalance(
+              mockToken,
+              receiver,
+              (diff: bigint) => diff === 500n
+            )
+          ).to.be.rejectedWith(
+            AssertionError,
+            /Expected the balance of MCK tokens for "0x\w{40}" to satisfy the predicate, but it didn't \(token balance change: 50 wei\)/
+          );
+        });
+
         it("changes balance in the way it was not expected", async function () {
           await expect(
             expect(
@@ -307,6 +405,21 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           ).to.be.rejectedWith(
             AssertionError,
             /Expected the balance of MCK tokens for "0x\w{40}" NOT to change by 50, but it did/
+          );
+        });
+
+        it("changes balance doesn't have to satisfy the predicate, but it did", async function () {
+          await expect(
+            expect(
+              mockToken.write.transfer([receiver.account.address, 50n])
+            ).to.not.changeTokenBalance(
+              mockToken,
+              receiver,
+              (diff: bigint) => diff === 50n
+            )
+          ).to.be.rejectedWith(
+            AssertionError,
+            /Expected the balance of MCK tokens for "0x\w{40}" to NOT satisfy the predicate, but it did \(token balance change: 50 wei\)/
           );
         });
 
@@ -589,15 +702,11 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
       it("native bigints are accepted", async function () {
         await expect(
           mockToken.write.transfer([receiver.account.address, 50n])
-        ).to.changeTokenBalance(mockToken, sender, BigInt(-50));
+        ).to.changeTokenBalance(mockToken, sender, -50n);
 
         await expect(
           mockToken.write.transfer([receiver.account.address, 50n])
-        ).to.changeTokenBalances(
-          mockToken,
-          [sender, receiver],
-          [BigInt(-50), BigInt(50)]
-        );
+        ).to.changeTokenBalances(mockToken, [sender, receiver], [-50n, 50n]);
       });
     });
 
