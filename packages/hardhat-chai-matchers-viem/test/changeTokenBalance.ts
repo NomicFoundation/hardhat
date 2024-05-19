@@ -39,10 +39,17 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
 
     beforeEach(async function () {
       [sender, receiver] = await this.hre.viem.getWalletClients();
+      // Contract artifacts don't exist until tests are run.
+      // Without artifacts, ts doesn't know contract types.
+      // So build fails which prevents tests from being run.
+      // '[contract] as unknown as [Contract]' is a bandaid.
+      mockToken = (await this.hre.viem.deployContract(
+        "MockToken"
+      )) as unknown as Token;
 
-      mockToken = await this.hre.viem.deployContract("MockToken");
-
-      matchers = await this.hre.viem.deployContract("Matchers");
+      matchers = (await this.hre.viem.deployContract(
+        "Matchers"
+      )) as unknown as MatchersContract;
     });
 
     describe("transaction that doesn't move tokens", () => {

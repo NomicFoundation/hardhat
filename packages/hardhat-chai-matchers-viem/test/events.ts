@@ -37,13 +37,21 @@ describe(".to.emit (contract events)", () => {
 
   function runTests() {
     beforeEach(async function () {
-      otherContract = await this.hre.viem.deployContract("AnotherContract");
+      // Contract artifacts don't exist until tests are run.
+      // Without artifacts, ts doesn't know contract types.
+      // So build fails which prevents tests from being run.
+      // '[contract] as unknown as [Contract]' is a bandaid.
+      otherContract = (await this.hre.viem.deployContract(
+        "AnotherContract"
+      )) as unknown as AnotherContract;
 
-      contract = await this.hre.viem.deployContract("Events", [
+      contract = (await this.hre.viem.deployContract("Events", [
         otherContract.address,
-      ]);
+      ])) as unknown as EventsContract;
 
-      matchers = await this.hre.viem.deployContract("Matchers");
+      matchers = (await this.hre.viem.deployContract(
+        "Matchers"
+      )) as unknown as MatchersContract;
     });
 
     it("Should fail when expecting an event that's not in the contract", async function () {

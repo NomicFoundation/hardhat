@@ -29,14 +29,22 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
 
     beforeEach(async function () {
       [sender, receiver] = await this.hre.viem.getWalletClients();
-      contract = await this.hre.viem.deployContract("ChangeEtherBalance");
+      // Contract artifacts don't exist until tests are run.
+      // Without artifacts, ts doesn't know contract types.
+      // So build fails which prevents tests from being run.
+      // '[contract] as unknown as [Contract]' is a bandaid.
+      contract = (await this.hre.viem.deployContract(
+        "ChangeEtherBalance"
+      )) as unknown as ChangeEtherBalance;
       txGasFees = 1 * 21_000;
       await this.hre.network.provider.send(
         "hardhat_setNextBlockBaseFeePerGas",
         ["0x0"]
       );
 
-      mockToken = await this.hre.viem.deployContract("MockToken");
+      mockToken = (await this.hre.viem.deployContract(
+        "MockToken"
+      )) as unknown as Token;
     });
 
     describe("Transaction Callback (legacy tx)", () => {

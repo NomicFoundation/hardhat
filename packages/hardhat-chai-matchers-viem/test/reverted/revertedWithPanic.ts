@@ -33,7 +33,13 @@ describe("INTEGRATION: Reverted with panic", function () {
     // deploy Matchers contract before each test
     let matchers: MatchersContract;
     beforeEach("deploy matchers contract", async function () {
-      matchers = await this.hre.viem.deployContract("Matchers");
+      // Contract artifacts don't exist until tests are run.
+      // Without artifacts, ts doesn't know contract types.
+      // So build fails which prevents tests from being run.
+      // '[contract] as unknown as [Contract]' is a bandaid.
+      matchers = (await this.hre.viem.deployContract(
+        "Matchers"
+      )) as unknown as MatchersContract;
     });
 
     describe("calling a method that succeeds", function () {
