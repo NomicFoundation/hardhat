@@ -28,9 +28,9 @@ function override(
 function tryGetAddressSync(value: any): string | undefined {
   const { isAddress } = require("viem") as typeof ViemT;
 
-  if (value?.address) {
+  if (typeof value?.address !== "undefined") {
     value = value.address;
-  } else if (value?.account?.address) {
+  } else if (typeof value?.account?.address !== "undefined") {
     value = value.account.address;
   }
   if (isAddress(value)) {

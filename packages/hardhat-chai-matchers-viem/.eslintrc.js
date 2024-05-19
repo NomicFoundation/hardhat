@@ -22,6 +22,7 @@ module.exports = {
               ...slowImportsCommonIgnoredModules,
               "chai",
               "chai-as-promised",
+              "@nomicfoundation/hardhat-viem",
             ],
           },
         ],

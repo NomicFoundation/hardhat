@@ -42,10 +42,7 @@ export function getReturnDataFromError(error: any): `0x${string}` {
     error?.cause?.cause?.data?.data,
     error?.cause?.cause?.cause?.data,
     error?.cause?.cause?.cause?.data?.data,
-  ].find(
-    (returnData: any) =>
-      typeof returnData === "string" && returnData.startsWith("0x")
-  );
+  ].find((data: any) => typeof data === "string" && data.startsWith("0x"));
 
   if (typeof returnData !== "string") {
     throw error;
@@ -148,7 +145,7 @@ export function resultToArray(result: Result): any[] {
 export function toBeHex(value: bigint) {
   let result = value.toString(16);
   // Ensure the value is of even length
-  if (result.length % 2) {
+  if (result.length % 2 === 1) {
     result = `0${result}`;
   }
   return `0x${result}`;

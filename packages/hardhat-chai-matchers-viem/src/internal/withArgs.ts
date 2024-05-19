@@ -57,9 +57,9 @@ export function supportWithArgs(
     // Resolve arguments to their canonical form:
     // - WalletClient or contract → address
     const resolveArgument = (arg: any) =>
-      arg?.account?.address
+      typeof arg?.account?.address !== "undefined"
         ? arg.account.address
-        : arg?.address
+        : typeof arg?.address !== "undefined"
         ? arg.address
         : typeof arg.getAddresses === "function"
         ? arg.getAddresses()

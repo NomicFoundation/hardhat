@@ -1,4 +1,3 @@
-import type { HardhatRuntimeEnvironment } from "hardhat/types/runtime";
 import type { MatchersContract } from "../contracts";
 
 import { AssertionError, expect } from "chai";

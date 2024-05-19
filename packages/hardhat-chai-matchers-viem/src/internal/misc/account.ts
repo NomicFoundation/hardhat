@@ -11,7 +11,7 @@ export async function getAddressOf(
     return account;
   }
 
-  if ("account" in account && account.account?.address) {
+  if ("account" in account && typeof account.account?.address !== "undefined") {
     assert(
       /^0x[0-9a-fA-F]{40}$/.test(account.account.address),
       `Invalid address ${account.account.address}`
@@ -19,7 +19,7 @@ export async function getAddressOf(
     return account.account.address;
   }
 
-  if ("address" in account && account.address) {
+  if ("address" in account && typeof account.address !== "undefined") {
     assert(
       /^0x[0-9a-fA-F]{40}$/.test(account.address),
       `Invalid address ${account.address}`
