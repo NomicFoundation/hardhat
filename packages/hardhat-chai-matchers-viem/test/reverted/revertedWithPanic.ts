@@ -285,9 +285,6 @@ describe("INTEGRATION: Reverted with panic", function () {
         const randomPrivateKey =
           "0xc5c587cc6e48e9692aee0bf07474118e6d830c11905f7ec7ff32c09c99eba5f9";
         const account = privateKeyToAccount(randomPrivateKey);
-        const wallet = await this.hre.viem.getWalletClient(account.address, {
-          account,
-        });
 
         // this transaction will fail because of lack of funds, not because of a
         // revert
@@ -295,7 +292,7 @@ describe("INTEGRATION: Reverted with panic", function () {
           expect(
             matchers.write.revertsWithoutReason({
               gas: 1_000_000n,
-              account: wallet.account,
+              account,
             })
           ).to.not.be.revertedWithPanic()
         ).to.be.eventually.rejectedWith(

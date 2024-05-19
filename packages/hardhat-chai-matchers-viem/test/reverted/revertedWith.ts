@@ -1,5 +1,6 @@
 import { AssertionError, expect } from "chai";
-import { ProviderError } from "hardhat/internal/core/providers/errors";
+import { TransactionExecutionError } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
 import path from "path";
 import util from "util";
 
@@ -21,7 +22,8 @@ describe("INTEGRATION: Reverted with", function () {
     runTests();
   });
 
-  describe("connected to a hardhat node", function () {
+  // external hardhat node with viem does not include error data in some cases
+  describe.skip("connected to a hardhat node", function () {
     useEnvironmentWithNode("hardhat-project");
 
     runTests();
@@ -32,11 +34,7 @@ describe("INTEGRATION: Reverted with", function () {
     let matchers: MatchersContract;
 
     beforeEach("deploy matchers contract", async function () {
-      const Matchers = await this.hre.ethers.getContractFactory<
-        [],
-        MatchersContract
-      >("Matchers");
-      matchers = await Matchers.deploy();
+      matchers = await this.hre.viem.deployContract("Matchers");
     });
 
     describe("calling a method that succeeds", function () {
@@ -70,9 +68,7 @@ describe("INTEGRATION: Reverted with", function () {
         });
       });
 
-      // depends on a bug being fixed on ethers.js
-      // see https://github.com/NomicFoundation/hardhat/issues/3446
-      it.skip("failed asserts", async function () {
+      it("failed asserts", async function () {
         await runFailedAsserts({
           matchers,
           method: "revertsWithoutReason",
@@ -194,7 +190,7 @@ describe("INTEGRATION: Reverted with", function () {
       });
 
       it("non-string as expectation", async function () {
-        const { hash } = await mineSuccessfulTransaction(this.hre);
+        const hash = await mineSuccessfulTransaction(this.hre);
 
         expect(() =>
           // @ts-expect-error
@@ -206,7 +202,7 @@ describe("INTEGRATION: Reverted with", function () {
       });
 
       it("non-string as expectation, subject is a rejected promise", async function () {
-        const tx = matchers.revertsWithoutReason();
+        const tx = matchers.write.revertsWithoutReason();
 
         expect(() =>
           // @ts-expect-error
@@ -221,24 +217,19 @@ describe("INTEGRATION: Reverted with", function () {
         // use an address that almost surely doesn't have balance
         const randomPrivateKey =
           "0xc5c587cc6e48e9692aee0bf07474118e6d830c11905f7ec7ff32c09c99eba5f9";
-        const signer = new this.hre.ethers.Wallet(
-          randomPrivateKey,
-          this.hre.ethers.provider
-        );
-        const matchersFromSenderWithoutFunds = matchers.connect(
-          signer
-        ) as MatchersContract;
+        const account = privateKeyToAccount(randomPrivateKey);
 
         // this transaction will fail because of lack of funds, not because of a
         // revert
         await expect(
           expect(
-            matchersFromSenderWithoutFunds.revertsWithoutReason({
-              gasLimit: 1_000_000,
+            matchers.write.revertsWithoutReason({
+              gas: 1_000_000n,
+              account,
             })
           ).to.not.be.revertedWith("some reason")
         ).to.be.eventually.rejectedWith(
-          ProviderError,
+          TransactionExecutionError,
           "Sender doesn't have enough funds to send tx"
         );
       });
@@ -248,7 +239,9 @@ describe("INTEGRATION: Reverted with", function () {
       // smoke test for stack traces
       it("includes test file", async function () {
         try {
-          await expect(matchers.revertsWith("bar")).to.be.revertedWith("foo");
+          await expect(matchers.write.revertsWith(["bar"])).to.be.revertedWith(
+            "foo"
+          );
         } catch (e: any) {
           const errorString = util.inspect(e);
           expect(errorString).to.include(
