@@ -5,3 +5,4 @@ order:
   - /deployment-artifacts
   - /reconciliation
   - /versioning
+  - /migrating
