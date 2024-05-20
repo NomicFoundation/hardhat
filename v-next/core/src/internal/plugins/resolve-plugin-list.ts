@@ -1,3 +1,5 @@
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import { HardhatPlugin } from "../../types/plugins.js";
 
 /**
@@ -28,8 +30,9 @@ export function reverseTopologicalSort(
 
     if (visited !== undefined) {
       if (visited !== plugin) {
-        throw new Error(
-          `Duplicated plugin id "${plugin.id}" found. Did you install multiple versions of the same plugin?`,
+        throw new HardhatError(
+          HardhatError.ERRORS.GENERAL.DUPLICATED_PLUGIN_ID,
+          { id: plugin.id },
         );
       }
 
