@@ -1,6 +1,8 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import { resolvePluginList } from "../../src/internal/plugins/resolve-plugin-list.js";
 import { HardhatPlugin } from "../../src/types/plugins.js";
 
@@ -106,14 +108,24 @@ describe("Plugins - resolve plugin list", () => {
     ]);
   });
 
-  it("should error on different plugins with the same id", () => {
+  it("should throw a HardhatError on finding different plugins with the same id", () => {
     const a = { id: "dup" };
     const copy = { id: "dup" };
 
     assert.throws(
       () => resolvePluginList([a, copy]),
-      /Duplicated plugin id "dup" found. Did you install multiple versions of the same plugin\?/,
-      "Expected a duplicate is to be detected",
+
+      (err) => {
+        assert(HardhatError.isHardhatError(err), "Expected a HardhatError");
+        assert(
+          /Duplicated plugin id "dup" found. Did you install multiple versions of the same plugin\?/.test(
+            err.message,
+          ),
+        );
+
+        return true;
+      },
+      "Expected a duplicate to be detected",
     );
   });
 });

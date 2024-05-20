@@ -104,6 +104,15 @@ Note that you don't need to do this every time you install a new dependency, but
 
 Please double check the file path.`,
     },
+    DUPLICATED_PLUGIN_ID: {
+      number: 4,
+      messageTemplate:
+        'Duplicated plugin id "%id%" found. Did you install multiple versions of the same plugin?',
+      websiteTitle: "Duplicated plugin id",
+      websiteDescription: `While loading the plugins, two different plugins where found with the same id.
+
+Please double check whether you have multiple versions of the same plugin installed.`,
+    },
   },
   INTERNAL: {
     ASSERTION_ERROR: {
