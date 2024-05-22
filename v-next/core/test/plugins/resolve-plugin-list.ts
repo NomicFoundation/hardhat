@@ -114,7 +114,6 @@ describe("Plugins - resolve plugin list", () => {
 
     assert.throws(
       () => resolvePluginList([a, copy]),
-
       (err) => {
         assert(HardhatError.isHardhatError(err), "Expected a HardhatError");
         assert(
