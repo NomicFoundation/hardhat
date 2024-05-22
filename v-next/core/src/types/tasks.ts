@@ -109,7 +109,7 @@ export interface EmptyTaskDefinition {
 /**
  * The definition of a new task.
  */
-export interface NewTaskDefintion {
+export interface NewTaskDefinition {
   type: TaskDefinitionType.NEW_TASK;
 
   id: string[];
@@ -145,11 +145,11 @@ export interface TaskOverrideDefinition {
  */
 export type TaskDefinition =
   | EmptyTaskDefinition
-  | NewTaskDefintion
+  | NewTaskDefinition
   | TaskOverrideDefinition;
 
 /**
- * A builder for creating NewTaskDefintions.
+ * A builder for creating NewTaskDefinitions.
  */
 export interface NewTaskDefinitionBuilder {
   /**
@@ -241,7 +241,7 @@ export interface NewTaskDefinitionBuilder {
   /**
    * Builds the NewTaskDefinition.
    */
-  build(): NewTaskDefintion;
+  build(): NewTaskDefinition;
 }
 
 /**
