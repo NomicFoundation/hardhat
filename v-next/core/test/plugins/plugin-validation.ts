@@ -74,18 +74,11 @@ describe("Plugins - plugin validation", () => {
       );
 
       await assert.rejects(
-        async () =>
-          validatePluginNpmDependencies(plugin, notInstalledPeerDepFixture),
-        (err) => {
-          assert(HardhatError.isHardhatError(err), "Expected a HardhatError");
-          assert.equal(
-            err.message,
-            'HHE1201: Plugin "example-plugin" is missing a peer dependency "peer2".',
-          );
-
-          return true;
-        },
-        "Expected a missing peer dependency error",
+        validatePluginNpmDependencies(plugin, notInstalledPeerDepFixture),
+        {
+          name: "HardhatError"
+          message: 'HHE1201: Plugin "example-plugin" is missing a peer dependency "peer2".',
+        }
       );
     });
   });
