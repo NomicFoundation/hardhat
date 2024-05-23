@@ -2,7 +2,6 @@ import { isAbsolute, resolve } from "node:path";
 
 import {
   buildGlobalParameterMap,
-  createHardhatRuntimeEnvironment,
   resolvePluginList,
 } from "@nomicfoundation/hardhat-core";
 import {
@@ -14,6 +13,7 @@ import { Task } from "@nomicfoundation/hardhat-core/types/tasks";
 
 import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
 import { builtinPlugins } from "../builtin-plugins/index.js";
+import { getHRE } from "../hre-singleton.js";
 
 export async function main(cliArguments: string[]) {
   const hreInitStart = performance.now();
@@ -67,6 +67,7 @@ export async function main(cliArguments: string[]) {
 
   if (configPath === undefined) {
     // TODO: Find the closest config file
+    // if HARDHAT_CONFIG exists, use it
     throw new Error("Missing --config");
   }
 
@@ -83,11 +84,10 @@ export async function main(cliArguments: string[]) {
       usedCliArguments,
     );
 
-    const hre = await createHardhatRuntimeEnvironment(
-      userConfig,
-      userProvidedGlobalArguments,
-      { resolvedPlugins, globalParameterMap },
-    );
+    const hre = await getHRE(userConfig, userProvidedGlobalArguments, {
+      resolvedPlugins,
+      globalParameterMap,
+    });
 
     const hreInitEnd = performance.now();
     console.log("Time to initialize the HRE (ms):", hreInitEnd - hreInitStart);
