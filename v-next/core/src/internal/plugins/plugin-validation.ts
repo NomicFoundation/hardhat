@@ -26,7 +26,7 @@ export async function validatePluginNpmDependencies(
     return;
   }
 
-  const pluginPackageJson = readPackageJson(
+  const pluginPackageJson = readPackageJsonViaNodeRequire(
     plugin.npmPackage,
     basePathForNpmResolution,
   );
@@ -44,7 +44,7 @@ export async function validatePluginNpmDependencies(
   for (const [dependencyName, versionSpec] of Object.entries(
     pluginPackageJson.peerDependencies,
   )) {
-    const dependencyPackageJson = readPackageJson(
+    const dependencyPackageJson = readPackageJsonViaNodeRequire(
       dependencyName,
       basePathForNpmResolution,
     );
@@ -83,7 +83,7 @@ export async function validatePluginNpmDependencies(
  * @param baseRequirePath - the directory path to use for resolution, defaults to `process.cwd()`
  * @returns the package.json object or undefined if the package is not found
  */
-export function readPackageJson(
+function readPackageJsonViaNodeRequire(
   packageName: string,
   baseRequirePath?: string,
 ): PackageJson | undefined {
