@@ -1,8 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
-
 import { validatePluginNpmDependencies } from "../../src/internal/plugins/plugin-validation.js";
 import { HardhatPlugin } from "../../src/types/plugins.js";
 
@@ -43,16 +41,10 @@ describe("Plugins - plugin validation", () => {
             plugin,
             nonInstalledPackageProjectFixture,
           ),
-        (err) => {
-          assert(HardhatError.isHardhatError(err), "Expected a HardhatError");
-          assert.equal(
-            err.message,
-            'HHE1200: Plugin "example-plugin" is not installed.',
-          );
-
-          return true;
+        {
+          name: "HardhatError",
+          message: 'HHE1200: Plugin "example-plugin" is not installed.',
         },
-        "Expected a plugin not installed error",
       );
     });
   });
@@ -76,9 +68,10 @@ describe("Plugins - plugin validation", () => {
       await assert.rejects(
         validatePluginNpmDependencies(plugin, notInstalledPeerDepFixture),
         {
-          name: "HardhatError"
-          message: 'HHE1201: Plugin "example-plugin" is missing a peer dependency "peer2".',
-        }
+          name: "HardhatError",
+          message:
+            'HHE1201: Plugin "example-plugin" is missing a peer dependency "peer2".',
+        },
       );
     });
   });
@@ -92,16 +85,11 @@ describe("Plugins - plugin validation", () => {
       await assert.rejects(
         async () =>
           validatePluginNpmDependencies(plugin, peerDepWithWrongVersionFixture),
-        (err) => {
-          assert(HardhatError.isHardhatError(err), "Expected a HardhatError");
-          assert.equal(
-            err.message,
+        {
+          name: "HardhatError",
+          message:
             'HHE1202: Plugin "example-plugin" has a peer dependency "peer2" with version "2.0.0" but version "^1.0.0" is needed.',
-          );
-
-          return true;
         },
-        "Expected a peer dependency version mismatch error",
       );
     });
   });
