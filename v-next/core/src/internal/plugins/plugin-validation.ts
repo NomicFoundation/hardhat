@@ -3,19 +3,10 @@ import path from "node:path";
 import process from "node:process";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { PackageJson } from "@nomicfoundation/hardhat-utils/package";
 import semver from "semver";
 
 import { HardhatPlugin } from "../../types/plugins.js";
-
-/**
- * A simplified version of the package.json object
- */
-interface PackageJson {
-  version: string;
-  peerDependencies: {
-    [name: string]: string;
-  };
-}
 
 /**
  * Validate that a plugin is installed and that its peer dependencies are installed and satisfy the version constraints.
