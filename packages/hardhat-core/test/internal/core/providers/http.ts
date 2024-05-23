@@ -2,7 +2,9 @@ import { assert } from "chai";
 import { MockAgent, MockPool } from "undici";
 
 import { HttpProvider } from "../../../../src/internal/core/providers/http";
+import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { SuccessfulJsonRpcResponse } from "../../../../src/internal/util/jsonrpc";
+import { expectHardhatError } from "../../../helpers/errors";
 
 const TOO_MANY_REQUEST_STATUS = 429;
 
@@ -26,6 +28,20 @@ describe("HttpProvider", function () {
     id: 1,
     result: "whatever",
   };
+
+  describe("constructor()", function () {
+    it("should throw an error if network or forking URL is an empty string", async function () {
+      expectHardhatError(() => {
+        const emptyURL = "";
+        new HttpProvider(emptyURL, networkName, {}, 20000);
+      }, ERRORS.NETWORK.EMPTY_URL);
+
+      expectHardhatError(() => {
+        const emptyURLwithWhitespace = " ";
+        new HttpProvider(emptyURLwithWhitespace, networkName, {}, 20000);
+      }, ERRORS.NETWORK.EMPTY_URL);
+    });
+  });
 
   describe("request()", function () {
     it("should call mock pool's request()", async function () {
