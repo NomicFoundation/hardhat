@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+foo#!/usr/bin/env sh
 
 set -e
 
