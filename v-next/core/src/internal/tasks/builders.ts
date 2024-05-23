@@ -12,6 +12,8 @@ import {
 } from "../../types/tasks.js";
 import { isValidParamNameCasing } from "../parameters.js";
 
+import { isValidActionUrl } from "./utils.js";
+
 export class NewTaskDefinitionBuilderImplementation
   implements NewTaskDefinitionBuilder
 {
@@ -36,10 +38,8 @@ export class NewTaskDefinitionBuilderImplementation
   }
 
   public setAction(action: NewTaskActionFunction | string): this {
-    if (typeof action === "string") {
-      if (!action.startsWith("file://") || action === "file://") {
-        throw new Error("Invalid action file URL");
-      }
+    if (typeof action === "string" && !isValidActionUrl(action)) {
+      throw new Error("Invalid action file URL");
     }
 
     this.#action = action;
@@ -263,10 +263,8 @@ export class TaskOverrideDefinitionBuilderImplementation
   }
 
   public setAction(action: TaskOverrideActionFunction | string): this {
-    if (typeof action === "string") {
-      if (!action.startsWith("file://") || action === "file://") {
-        throw new Error("Invalid action file URL");
-      }
+    if (typeof action === "string" && !isValidActionUrl(action)) {
+      throw new Error("Invalid action file URL");
     }
 
     this.#action = action;
