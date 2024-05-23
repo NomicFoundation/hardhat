@@ -319,6 +319,24 @@ function createConfig(configFilePath, packageEntryPoints = []) {
                 "Use the 'node:' prefix to import built-in Node.js modules.",
             },
           ],
+          paths: [
+            {
+              // Due to an error in @types/node 20 you can't import AssertionError from node:assert/strict
+              name: "node:assert/strict",
+              importNames: ["AssertionError"],
+              message: "AssertionError must be imported from node:assert.",
+            },
+            {
+              name: "node:assert",
+              importNames: [
+                "default",
+                ...Object.keys(require("node:assert")).filter(
+                  (k) => k !== "AssertionError"
+                ),
+              ],
+              message: "Use node:assert/strict instead.",
+            },
+          ],
         },
       ],
     },
