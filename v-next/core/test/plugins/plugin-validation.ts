@@ -33,7 +33,7 @@ describe("Plugins - plugin validation", () => {
     });
 
     it("should fail validation if the npm package has not been installed", async () => {
-      const noninstalledPackageProjectFixture = import.meta.resolve(
+      const nonInstalledPackageProjectFixture = import.meta.resolve(
         "./fixture-projects/not-installed-package",
       );
 
@@ -41,7 +41,7 @@ describe("Plugins - plugin validation", () => {
         async () =>
           validatePluginNpmDependencies(
             plugin,
-            noninstalledPackageProjectFixture,
+            nonInstalledPackageProjectFixture,
           ),
         (err) => {
           assert(HardhatError.isHardhatError(err), "Expected a HardhatError");
