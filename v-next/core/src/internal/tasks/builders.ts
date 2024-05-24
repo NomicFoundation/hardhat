@@ -86,6 +86,10 @@ export class NewTaskDefinitionBuilderImplementation
       );
     }
 
+    if (type === ParameterType.BOOLEAN && defaultValue === undefined) {
+      defaultValue = false as ParameterTypeToValueType<T>;
+    }
+
     this.#usedNames.add(name);
 
     this.#namedParams[name] = {
@@ -299,6 +303,10 @@ export class TaskOverrideDefinitionBuilderImplementation
       throw new Error(
         `Default value ${formatValue(defaultValue)} does not match the type ${parameterType}`,
       );
+    }
+
+    if (type === ParameterType.BOOLEAN && defaultValue === undefined) {
+      defaultValue = false as ParameterTypeToValueType<T>;
     }
 
     this.#namedParams[name] = {
