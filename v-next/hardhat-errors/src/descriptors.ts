@@ -522,6 +522,12 @@ A fully qualified name should look like file.sol:Contract`,
       websiteTitle: "Dependency version mismatch",
       websiteDescription: `A plugin's peer dependency version does not match the expected version.`,
     },
+    PLUGIN_DEPENDENCY_FAILED_LOAD: {
+      number: 1203,
+      messageTemplate: 'Plugin "%pluginId%" dependency could not be loaded.',
+      websiteTitle: "Plugin dependency could not be loaded",
+      websiteDescription: `A plugin's dependent plugin could not be lazily loaded.`,
+    },
   },
 } satisfies {
   [category in keyof typeof ERROR_CATEGORIES]: {

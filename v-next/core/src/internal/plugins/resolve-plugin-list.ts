@@ -1,6 +1,9 @@
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 import { HardhatPlugin } from "../../types/plugins.js";
+
+import { validatePluginNpmDependencies } from "./plugin-validation.js";
 
 /**
  * Resolves the plugin list, returning them in the right order.
@@ -42,8 +45,8 @@ export async function reverseTopologicalSort(
     visitedPlugins.set(plugin.id, plugin);
 
     if (plugin.dependencies !== undefined) {
-      for (const dependencyFactory of plugin.dependencies) {
-        const dependency = await dependencyFactory();
+      for (const loadFn of plugin.dependencies) {
+        const dependency = await loadDependency(plugin, loadFn);
 
         await dfs(dependency);
       }
@@ -57,4 +60,33 @@ export async function reverseTopologicalSort(
   }
 
   return result;
+}
+
+/**
+ * Attempt to load a plugins dependency. If there is an error,
+ * first try and validate the npm dependencies of the plugin.
+ *
+ * @param plugin - the plugin has the dependency
+ * @param loadFn - the load function for the dependency
+ * @returns the loaded plugin
+ */
+async function loadDependency(
+  plugin: HardhatPlugin,
+  loadFn: () => Promise<HardhatPlugin>,
+): Promise<HardhatPlugin> {
+  try {
+    return await loadFn();
+  } catch (error) {
+    ensureError(error);
+
+    await validatePluginNpmDependencies(plugin);
+
+    throw new HardhatError(
+      HardhatError.ERRORS.PLUGINS.PLUGIN_DEPENDENCY_FAILED_LOAD,
+      {
+        pluginId: plugin.id,
+      },
+      error,
+    );
+  }
 }
