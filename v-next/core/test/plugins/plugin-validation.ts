@@ -50,29 +50,43 @@ describe("Plugins - plugin validation", () => {
   });
 
   describe("when the plugin has peer deps", () => {
-    it("should pass validation if the peer deps have been installed", async () => {
-      const installedPeerDepsFixture = import.meta.resolve(
-        "./fixture-projects/installed-peer-deps",
-      );
+    describe("and the peer deps are installed in the top level `node_modules`", () => {
+      it("should pass validation if the peer deps have been installed", async () => {
+        const installedPeerDepsFixture = import.meta.resolve(
+          "./fixture-projects/installed-peer-deps",
+        );
 
-      await assert.doesNotReject(async () =>
-        validatePluginNpmDependencies(plugin, installedPeerDepsFixture),
-      );
+        await assert.doesNotReject(async () =>
+          validatePluginNpmDependencies(plugin, installedPeerDepsFixture),
+        );
+      });
+
+      it("should fail validation if a peer dependency is not installed", async () => {
+        const notInstalledPeerDepFixture = import.meta.resolve(
+          "./fixture-projects/not-installed-peer-dep",
+        );
+
+        await assert.rejects(
+          validatePluginNpmDependencies(plugin, notInstalledPeerDepFixture),
+          {
+            name: "HardhatError",
+            message:
+              'HHE1201: Plugin "example-plugin" is missing a peer dependency "peer2".',
+          },
+        );
+      });
     });
 
-    it("should fail validation if a peer dependency is not installed", async () => {
-      const notInstalledPeerDepFixture = import.meta.resolve(
-        "./fixture-projects/not-installed-peer-dep",
-      );
+    describe("and the peer deps are installed in the `node_modules` of the plugin package", () => {
+      it("should pass validation if the peer deps have been installed", async () => {
+        const installedPeerDepsFixture = import.meta.resolve(
+          "./fixture-projects/installed-peer-deps-as-sub-node-modules",
+        );
 
-      await assert.rejects(
-        validatePluginNpmDependencies(plugin, notInstalledPeerDepFixture),
-        {
-          name: "HardhatError",
-          message:
-            'HHE1201: Plugin "example-plugin" is missing a peer dependency "peer2".',
-        },
-      );
+        await assert.doesNotReject(async () =>
+          validatePluginNpmDependencies(plugin, installedPeerDepsFixture),
+        );
+      });
     });
   });
 

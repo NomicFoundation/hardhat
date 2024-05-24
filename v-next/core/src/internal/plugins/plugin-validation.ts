@@ -26,16 +26,18 @@ export async function validatePluginNpmDependencies(
     return;
   }
 
-  const pluginPackageJson = readPackageJsonViaNodeRequire(
+  const pluginPackageResult = readPackageJsonViaNodeRequire(
     plugin.npmPackage,
     basePathForNpmResolution,
   );
 
-  if (pluginPackageJson === undefined) {
+  if (pluginPackageResult === undefined) {
     throw new HardhatError(HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED, {
       pluginId: plugin.id,
     });
   }
+
+  const { packageJson: pluginPackageJson, packagePath } = pluginPackageResult;
 
   if (pluginPackageJson.peerDependencies === undefined) {
     return;
@@ -44,12 +46,12 @@ export async function validatePluginNpmDependencies(
   for (const [dependencyName, versionSpec] of Object.entries(
     pluginPackageJson.peerDependencies,
   )) {
-    const dependencyPackageJson = readPackageJsonViaNodeRequire(
+    const dependencyPackageJsonResult = readPackageJsonViaNodeRequire(
       dependencyName,
-      basePathForNpmResolution,
+      packagePath,
     );
 
-    if (dependencyPackageJson === undefined) {
+    if (dependencyPackageJsonResult === undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.PLUGINS.PLUGIN_MISSING_DEPENDENCY,
         {
@@ -59,7 +61,7 @@ export async function validatePluginNpmDependencies(
       );
     }
 
-    const installedVersion = dependencyPackageJson.version;
+    const installedVersion = dependencyPackageJsonResult.packageJson.version;
 
     if (!semver.satisfies(installedVersion, versionSpec)) {
       throw new HardhatError(
@@ -86,15 +88,15 @@ export async function validatePluginNpmDependencies(
 function readPackageJsonViaNodeRequire(
   packageName: string,
   baseRequirePath?: string,
-): PackageJson | undefined {
+): { packageJson: PackageJson; packagePath: string } | undefined {
   try {
     const require = createRequire(baseRequirePath ?? process.cwd());
 
-    const packageJsonPath = require.resolve(
-      path.join(packageName, "package.json"),
-    );
+    const packagePath = require.resolve(path.join(packageName, "package.json"));
 
-    return require(packageJsonPath);
+    const packageJson = require(packagePath);
+
+    return { packageJson, packagePath };
   } catch (error) {
     return undefined;
   }
