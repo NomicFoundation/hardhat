@@ -13,6 +13,10 @@ import { HardhatPlugin } from "../../types/plugins.js";
  *
  * @param plugin - the plugin to be validated
  * @param basePathForNpmResolution - the directory path to use for node module resolution, defaulting to `process.cwd()`
+ * @throws {HardhatError} with descriptor:
+ * - {@link ERRORS.ARTIFACTS.PLUGIN_NOT_INSTALLED} if the plugin is not installed as an npm package
+ * - {@link ERRORS.ARTIFACTS.PLUGIN_MISSING_DEPENDENCY} if the plugin's package peer dependency is not installed
+ * - {@link ERRORS.ARTIFACTS.DEPENDENCY_VERSION_MISMATCH} if the plugin's package peer dependency is installed but has the wrong version
  */
 export async function validatePluginNpmDependencies(
   plugin: HardhatPlugin,
