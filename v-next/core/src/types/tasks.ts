@@ -1,5 +1,5 @@
-import { ParameterType } from "./common.js";
-import { HardhatRuntimeEnvironment } from "./hre.js";
+import type { ParameterType, ParameterTypeToValueType } from "./common.js";
+import type { HardhatRuntimeEnvironment } from "./hre.js";
 
 // We add the TaskManager to the HRE with a module augmentation to avoid
 // introducing a circular dependency that would look like this:
@@ -182,11 +182,11 @@ export interface NewTaskDefinitionBuilder {
    * The default value, if provided, should be of the same type as the
    * parameter.
    */
-  addNamedParameter(paramOptions: {
+  addNamedParameter<T extends ParameterType>(paramOptions: {
     name: string;
     description?: string;
-    type?: ParameterType;
-    defaultValue?: any;
+    type?: T;
+    defaultValue?: ParameterTypeToValueType<T>;
   }): this;
 
   /**
@@ -210,11 +210,11 @@ export interface NewTaskDefinitionBuilder {
    * optional, and any other positional parameters after it must also be
    * optional.
    */
-  addPositionalParameter(paramOptions: {
+  addPositionalParameter<T extends ParameterType>(paramOptions: {
     name: string;
     description?: string;
-    type?: ParameterType;
-    defaultValue?: any;
+    type?: T;
+    defaultValue?: ParameterTypeToValueType<T>;
   }): this;
 
   /**
@@ -231,11 +231,11 @@ export interface NewTaskDefinitionBuilder {
    * Note that this parameter must be the last positional parameter. No other
    * positional parameter can follow it, including variadic parameters.
    */
-  addVariadicParameter(paramOptions: {
+  addVariadicParameter<T extends ParameterType>(paramOptions: {
     name: string;
     description?: string;
-    type?: ParameterType;
-    defaultValue?: any[];
+    type?: T;
+    defaultValue?: Array<ParameterTypeToValueType<T>>;
   }): this;
 
   /**
@@ -258,11 +258,11 @@ export interface TaskOverrideDefinitionBuilder {
    *
    * @see NewTaskDefinitionBuilder.addNamedParameter
    */
-  addNamedParameter(paramOptions: {
+  addNamedParameter<T extends ParameterType>(paramOptions: {
     name: string;
     description?: string;
-    type?: ParameterType;
-    defaultValue: any;
+    type?: T;
+    defaultValue: ParameterTypeToValueType<T>;
   }): this;
 
   /**

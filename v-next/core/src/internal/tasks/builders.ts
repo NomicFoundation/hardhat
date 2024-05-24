@@ -1,15 +1,17 @@
-import { ParameterType } from "../../types/common.js";
-import {
+import type { ParameterTypeToValueType } from "../../types/common.js";
+import type {
   NamedTaskParameter,
   NewTaskActionFunction,
   NewTaskDefinitionBuilder,
   NewTaskDefinition,
   PositionalTaskParameter,
-  TaskDefinitionType,
   TaskOverrideActionFunction,
   TaskOverrideDefinitionBuilder,
   TaskOverrideDefinition,
 } from "../../types/tasks.js";
+
+import { ParameterType } from "../../types/common.js";
+import { TaskDefinitionType } from "../../types/tasks.js";
 import { isValidParamNameCasing } from "../parameters.js";
 
 import { isValidActionUrl } from "./utils.js";
@@ -47,17 +49,19 @@ export class NewTaskDefinitionBuilderImplementation
     return this;
   }
 
-  public addNamedParameter({
+  public addNamedParameter<T extends ParameterType>({
     name,
     description = "",
-    type = ParameterType.STRING,
+    type,
     defaultValue,
   }: {
     name: string;
     description?: string;
-    type?: ParameterType;
-    defaultValue?: any;
+    type?: T;
+    defaultValue?: ParameterTypeToValueType<T>;
   }): this {
+    const parameterType = type ?? ParameterType.STRING;
+
     if (!isValidParamNameCasing(name)) {
       throw new Error("Invalid param name");
     }
@@ -74,7 +78,7 @@ export class NewTaskDefinitionBuilderImplementation
     this.#namedParams[name] = {
       name,
       description,
-      parameterType: type,
+      parameterType,
       defaultValue,
     };
 
@@ -89,17 +93,19 @@ export class NewTaskDefinitionBuilderImplementation
     });
   }
 
-  public addPositionalParameter({
+  public addPositionalParameter<T extends ParameterType>({
     name,
     description = "",
-    type = ParameterType.STRING,
+    type,
     defaultValue,
   }: {
     name: string;
     description?: string;
-    type?: ParameterType;
-    defaultValue?: any;
+    type?: T;
+    defaultValue?: ParameterTypeToValueType<T>;
   }): this {
+    const parameterType = type ?? ParameterType.STRING;
+
     if (!isValidParamNameCasing(name)) {
       throw new Error("Invalid param name");
     }
@@ -131,7 +137,7 @@ export class NewTaskDefinitionBuilderImplementation
     this.#positionalParams.push({
       name,
       description,
-      parameterType: type,
+      parameterType,
       defaultValue,
       isVariadic: false,
     });
@@ -139,17 +145,19 @@ export class NewTaskDefinitionBuilderImplementation
     return this;
   }
 
-  public addVariadicParameter({
+  public addVariadicParameter<T extends ParameterType>({
     name,
     description = "",
-    type = ParameterType.STRING,
+    type,
     defaultValue,
   }: {
     name: string;
     description?: string;
-    type?: ParameterType;
-    defaultValue?: any[];
+    type?: T;
+    defaultValue?: Array<ParameterTypeToValueType<T>>;
   }): this {
+    const parameterType = type ?? ParameterType.STRING;
+
     if (!isValidParamNameCasing(name)) {
       throw new Error("Invalid param name");
     }
@@ -181,7 +189,7 @@ export class NewTaskDefinitionBuilderImplementation
     this.#positionalParams.push({
       name,
       description,
-      parameterType: type,
+      parameterType,
       defaultValue,
       isVariadic: true,
     });
@@ -222,17 +230,19 @@ export class TaskOverrideDefinitionBuilderImplementation
     return this;
   }
 
-  public addNamedParameter({
+  public addNamedParameter<T extends ParameterType>({
     name,
     description = "",
-    type = ParameterType.STRING,
+    type,
     defaultValue,
   }: {
     name: string;
     description?: string;
-    type?: ParameterType;
-    defaultValue: any;
+    type?: T;
+    defaultValue: ParameterTypeToValueType<T>;
   }): this {
+    const parameterType = type ?? ParameterType.STRING;
+
     if (!isValidParamNameCasing(name)) {
       throw new Error("Invalid param name");
     }
@@ -247,7 +257,7 @@ export class TaskOverrideDefinitionBuilderImplementation
     this.#namedParams[name] = {
       name,
       description,
-      parameterType: type,
+      parameterType,
       defaultValue,
     };
 
