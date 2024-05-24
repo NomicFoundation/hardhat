@@ -20,7 +20,9 @@ export function isValidActionUrl(action: string): boolean {
 export function formatValue<T extends ParameterType>(
   value: ParameterTypeToValueType<T> | Array<ParameterTypeToValueType<T>>,
 ): string {
-  return JSON.stringify(value, (_, v) =>
-    typeof v === "bigint" ? v.toString() : v,
-  );
+  if (typeof value === "bigint") {
+    return `${value}n`;
+  }
+
+  return JSON.stringify(value);
 }
