@@ -11,11 +11,18 @@ describe("Plugins - plugin validation", () => {
   };
 
   it("should skip validation if the plugin is not from an npm package", async () => {
+    const peerDepWithWrongVersionFixture = import.meta.resolve(
+      "./fixture-projects/peer-dep-with-wrong-version",
+    );
+
     await assert.doesNotReject(async () =>
-      validatePluginNpmDependencies({
-        ...plugin,
-        npmPackage: undefined,
-      }),
+      validatePluginNpmDependencies(
+        {
+          ...plugin,
+          npmPackage: undefined,
+        },
+        peerDepWithWrongVersionFixture,
+      ),
     );
   });
 

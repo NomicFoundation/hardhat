@@ -37,9 +37,15 @@ export class HardhatRuntimeEnvironmentImplementation
     // TODO: Or maybe don't clone at all
     const clonedUserConfig = inputUserConfig;
 
+    // Resolve plugins from node modules relative to the current working directory
+    const basePathForNpmResolution = process.cwd();
+
     const resolvedPlugins =
       unsafeOptions?.resolvedPlugins ??
-      resolvePluginList(clonedUserConfig.plugins);
+      (await resolvePluginList(
+        clonedUserConfig.plugins,
+        basePathForNpmResolution,
+      ));
 
     const hooks = new HookManagerImplementation(resolvedPlugins);
 
