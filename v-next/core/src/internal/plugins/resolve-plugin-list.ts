@@ -1,7 +1,7 @@
+import type { HardhatPlugin } from "../../types/plugins.js";
+
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
-
-import { HardhatPlugin } from "../../types/plugins.js";
 
 import { validatePluginNpmDependencies } from "./plugin-validation.js";
 
@@ -10,8 +10,9 @@ import { validatePluginNpmDependencies } from "./plugin-validation.js";
  */
 export async function resolvePluginList(
   userConfigPluginList: HardhatPlugin[] = [],
+  basePathForNpmResolution: string,
 ): Promise<HardhatPlugin[]> {
-  return reverseTopologicalSort(userConfigPluginList);
+  return reverseTopologicalSort(userConfigPluginList, basePathForNpmResolution);
 }
 
 /**
@@ -22,8 +23,9 @@ export async function resolvePluginList(
  * @param plugins The plugins.
  * @returns The ordered plugins.
  */
-export async function reverseTopologicalSort(
+async function reverseTopologicalSort(
   plugins: HardhatPlugin[],
+  basePathForNpmResolution: string,
 ): Promise<HardhatPlugin[]> {
   const visitedPlugins: Map<string, HardhatPlugin> = new Map();
   const result: HardhatPlugin[] = [];
@@ -46,7 +48,11 @@ export async function reverseTopologicalSort(
 
     if (plugin.dependencies !== undefined) {
       for (const loadFn of plugin.dependencies) {
-        const dependency = await loadDependency(plugin, loadFn);
+        const dependency = await loadDependency(
+          plugin,
+          loadFn,
+          basePathForNpmResolution,
+        );
 
         await dfs(dependency);
       }
@@ -68,18 +74,20 @@ export async function reverseTopologicalSort(
  *
  * @param plugin - the plugin has the dependency
  * @param loadFn - the load function for the dependency
+ * @param basePathForNpmResolution - the directory path to use for node module resolution
  * @returns the loaded plugin
  */
 async function loadDependency(
   plugin: HardhatPlugin,
   loadFn: () => Promise<HardhatPlugin>,
+  basePathForNpmResolution: string,
 ): Promise<HardhatPlugin> {
   try {
     return await loadFn();
   } catch (error) {
     ensureError(error);
 
-    await validatePluginNpmDependencies(plugin);
+    await validatePluginNpmDependencies(plugin, basePathForNpmResolution);
 
     throw new HardhatError(
       HardhatError.ERRORS.PLUGINS.PLUGIN_DEPENDENCY_FAILED_LOAD,

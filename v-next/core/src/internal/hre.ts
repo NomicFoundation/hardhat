@@ -37,9 +37,18 @@ export class HardhatRuntimeEnvironmentImplementation
     // TODO: Or maybe don't clone at all
     const clonedUserConfig = inputUserConfig;
 
+    // TODO: When all loads where based on a hardhat config file
+    // on disk we used the config file's directory as the base path
+    // We need to decide if the current working directory is the right
+    // option for module resolution now
+    const basePathForNpmResolution = process.cwd();
+
     const resolvedPlugins =
       unsafeOptions?.resolvedPlugins ??
-      (await resolvePluginList(clonedUserConfig.plugins));
+      (await resolvePluginList(
+        clonedUserConfig.plugins,
+        basePathForNpmResolution,
+      ));
 
     const hooks = new HookManagerImplementation(resolvedPlugins);
 

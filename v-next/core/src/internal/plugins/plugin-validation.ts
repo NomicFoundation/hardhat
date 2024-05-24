@@ -1,6 +1,5 @@
 import { createRequire } from "node:module";
 import path from "node:path";
-import process from "node:process";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { PackageJson } from "@nomicfoundation/hardhat-utils/package";
@@ -20,11 +19,7 @@ import { HardhatPlugin } from "../../types/plugins.js";
  */
 export async function validatePluginNpmDependencies(
   plugin: HardhatPlugin,
-  // TODO: When all loads where based on a hardhat config file
-  // on disk we used the config file's directory as the base path
-  // We need to decide if the current working directory is the right
-  // option for module resolution now
-  basePathForNpmResolution?: string,
+  basePathForNpmResolution: string,
 ): Promise<void> {
   if (plugin.npmPackage === undefined) {
     return;
@@ -91,10 +86,10 @@ export async function validatePluginNpmDependencies(
  */
 function readPackageJsonViaNodeRequire(
   packageName: string,
-  baseRequirePath?: string,
+  baseRequirePath: string,
 ): { packageJson: PackageJson; packagePath: string } | undefined {
   try {
-    const require = createRequire(baseRequirePath ?? process.cwd());
+    const require = createRequire(baseRequirePath);
 
     const packagePath = require.resolve(path.join(packageName, "package.json"));
 
