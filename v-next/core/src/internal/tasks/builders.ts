@@ -10,6 +10,8 @@ import type {
   TaskOverrideDefinition,
 } from "../../types/tasks.js";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import { ParameterType, isParameterValueValid } from "../../types/common.js";
 import { TaskDefinitionType } from "../../types/tasks.js";
 import {
@@ -17,7 +19,7 @@ import {
   isValidParamNameCasing,
 } from "../parameters.js";
 
-import { formatValue, isValidActionUrl } from "./utils.js";
+import { formatTaskId, formatValue, isValidActionUrl } from "./utils.js";
 
 export class NewTaskDefinitionBuilderImplementation
   implements NewTaskDefinitionBuilder
@@ -44,7 +46,12 @@ export class NewTaskDefinitionBuilderImplementation
 
   public setAction(action: NewTaskActionFunction | string): this {
     if (typeof action === "string" && !isValidActionUrl(action)) {
-      throw new Error("Invalid action file URL");
+      throw new HardhatError(
+        HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
+        {
+          action,
+        },
+      );
     }
 
     this.#action = action;
@@ -66,23 +73,34 @@ export class NewTaskDefinitionBuilderImplementation
     const parameterType = type ?? ParameterType.STRING;
 
     if (!isValidParamNameCasing(name)) {
-      throw new Error("Invalid param name");
+      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
+        name,
+      });
     }
 
     if (this.#usedNames.has(name)) {
-      throw new Error(`Parameter ${name} already exists`);
+      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
+        name,
+      });
     }
 
     if (RESERVED_PARAMETER_NAMES.has(name)) {
-      throw new Error(`Parameter ${name} is reserved`);
+      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
+        name,
+      });
     }
 
     if (
       defaultValue !== undefined &&
       !isParameterValueValid(parameterType, defaultValue)
     ) {
-      throw new Error(
-        `Default value ${formatValue(defaultValue)} does not match the type ${parameterType}`,
+      throw new HardhatError(
+        HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+        {
+          value: formatValue(defaultValue),
+          name: "defaultValue",
+          type: parameterType,
+        },
       );
     }
 
@@ -152,7 +170,9 @@ export class NewTaskDefinitionBuilderImplementation
 
   public build(): NewTaskDefinition {
     if (this.#action === undefined) {
-      throw new Error("Missing action");
+      throw new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.NO_ACTION, {
+        task: formatTaskId(this.#id),
+      });
     }
 
     return {
@@ -183,15 +203,21 @@ export class NewTaskDefinitionBuilderImplementation
     const parameterType = type ?? ParameterType.STRING;
 
     if (!isValidParamNameCasing(name)) {
-      throw new Error("Invalid param name");
+      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
+        name,
+      });
     }
 
     if (this.#usedNames.has(name)) {
-      throw new Error(`Parameter ${name} already exists`);
+      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
+        name,
+      });
     }
 
     if (RESERVED_PARAMETER_NAMES.has(name)) {
-      throw new Error(`Parameter ${name} is reserved`);
+      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
+        name,
+      });
     }
 
     if (defaultValue !== undefined) {
@@ -206,8 +232,13 @@ export class NewTaskDefinitionBuilderImplementation
       }
 
       if (!isValid) {
-        throw new Error(
-          `Default value ${formatValue(defaultValue)} does not match the type ${parameterType}`,
+        throw new HardhatError(
+          HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+          {
+            value: formatValue(defaultValue),
+            name: "defaultValue",
+            type: parameterType,
+          },
         );
       }
     }
@@ -217,12 +248,20 @@ export class NewTaskDefinitionBuilderImplementation
         this.#positionalParams[this.#positionalParams.length - 1];
 
       if (lastParam.isVariadic) {
-        throw new Error("Cannot add positional param after variadic param");
+        throw new HardhatError(
+          HardhatError.ERRORS.TASK_DEFINITIONS.POSITIONAL_PARAM_AFTER_VARIADIC,
+          {
+            name,
+          },
+        );
       }
 
       if (lastParam.defaultValue !== undefined && defaultValue === undefined) {
-        throw new Error(
-          "Cannot add required positional param after an optional one",
+        throw new HardhatError(
+          HardhatError.ERRORS.TASK_DEFINITIONS.REQUIRED_PARAM_AFTER_OPTIONAL,
+          {
+            name,
+          },
         );
       }
     }
@@ -263,7 +302,12 @@ export class TaskOverrideDefinitionBuilderImplementation
 
   public setAction(action: TaskOverrideActionFunction | string): this {
     if (typeof action === "string" && !isValidActionUrl(action)) {
-      throw new Error("Invalid action file URL");
+      throw new HardhatError(
+        HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
+        {
+          action,
+        },
+      );
     }
 
     this.#action = action;
@@ -285,23 +329,34 @@ export class TaskOverrideDefinitionBuilderImplementation
     const parameterType = type ?? ParameterType.STRING;
 
     if (!isValidParamNameCasing(name)) {
-      throw new Error("Invalid param name");
+      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
+        name,
+      });
     }
 
     if (name in this.#namedParams) {
-      throw new Error(`Parameter ${name} already exists`);
+      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
+        name,
+      });
     }
 
     if (RESERVED_PARAMETER_NAMES.has(name)) {
-      throw new Error(`Parameter ${name} is reserved`);
+      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
+        name,
+      });
     }
 
     if (
       defaultValue !== undefined &&
       !isParameterValueValid(parameterType, defaultValue)
     ) {
-      throw new Error(
-        `Default value ${formatValue(defaultValue)} does not match the type ${parameterType}`,
+      throw new HardhatError(
+        HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+        {
+          value: formatValue(defaultValue),
+          name: "defaultValue",
+          type: parameterType,
+        },
       );
     }
 
@@ -329,7 +384,9 @@ export class TaskOverrideDefinitionBuilderImplementation
 
   public build(): TaskOverrideDefinition {
     if (this.#action === undefined) {
-      throw new Error("Missing action");
+      throw new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.NO_ACTION, {
+        task: formatTaskId(this.#id),
+      });
     }
 
     return {

@@ -88,8 +88,8 @@ describe("Task builders", () => {
       it("should throw when trying to build a task definition without an action", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
         assert.throws(() => builder.build(), {
-          name: "Error",
-          message: "Missing action",
+          name: "HardhatError",
+          message: `HHE202: The task task-id doesn't have an action`,
         });
       });
 
@@ -97,12 +97,14 @@ describe("Task builders", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
 
         assert.throws(() => builder.setAction("not-a-valid-file-url"), {
-          name: "Error",
-          message: "Invalid action file URL",
+          name: "HardhatError",
+          message:
+            "HHE201: Invalid file action: not-a-valid-file-url is not a valid file URL",
         });
         assert.throws(() => builder.setAction("file://"), {
-          name: "Error",
-          message: "Invalid action file URL",
+          name: "HardhatError",
+          message:
+            "HHE201: Invalid file action: file:// is not a valid file URL",
         });
       });
     });
@@ -617,8 +619,8 @@ describe("Task builders", () => {
         invalidNames.forEach((name) => {
           fnNames.forEach((fnName) => {
             assert.throws(() => builder[fnName]({ name }), {
-              name: "Error",
-              message: "Invalid param name",
+              name: "HardhatError",
+              message: `HHE303: Argument name ${name} is invalid`,
             });
           });
         });
@@ -638,8 +640,8 @@ describe("Task builders", () => {
         names.forEach((name) => {
           fnNames.forEach((fnName) => {
             assert.throws(() => builder[fnName]({ name }), {
-              name: "Error",
-              message: `Parameter ${name} already exists`,
+              name: "HardhatError",
+              message: `HHE302: Argument name ${name} is already in use`,
             });
           });
         });
@@ -652,8 +654,8 @@ describe("Task builders", () => {
 
         reservedNames.forEach((name) => {
           assert.throws(() => builder.addNamedParameter({ name }), {
-            name: "Error",
-            message: `Parameter ${name} is reserved`,
+            name: "HardhatError",
+            message: `HHE301: Argument name ${name} is reserved`,
           });
         });
       });
@@ -677,8 +679,9 @@ describe("Task builders", () => {
                 type: ParameterType.STRING,
               }),
             {
-              name: "Error",
-              message: "Default value 123 does not match the type STRING",
+              name: "HardhatError",
+              message:
+                "HHE300: Invalid value 123 for argument defaultValue of type STRING",
             },
           );
         });
@@ -691,9 +694,9 @@ describe("Task builders", () => {
               type: ParameterType.STRING,
             }),
           {
-            name: "Error",
+            name: "HardhatError",
             message:
-              "Default value [123,456,789] does not match the type STRING",
+              "HHE300: Invalid value [123,456,789] for argument defaultValue of type STRING",
           },
         );
       });
@@ -711,14 +714,15 @@ describe("Task builders", () => {
         assert.throws(
           () => builder.addPositionalParameter({ name: "param2" }),
           {
-            name: "Error",
+            name: "HardhatError",
             message:
-              "Cannot add required positional param after an optional one",
+              "HHE204: Cannot add required positional param param2 after an optional one",
           },
         );
         assert.throws(() => builder.addVariadicParameter({ name: "param3" }), {
-          name: "Error",
-          message: "Cannot add required positional param after an optional one",
+          name: "HardhatError",
+          message:
+            "HHE204: Cannot add required positional param param3 after an optional one",
         });
       });
 
@@ -730,14 +734,16 @@ describe("Task builders", () => {
         assert.throws(
           () => builder.addPositionalParameter({ name: "param2" }),
           {
-            name: "Error",
-            message: "Cannot add positional param after variadic param",
+            name: "HardhatError",
+            message:
+              "HHE203: Cannot add the positional param param2 after a variadic one",
           },
         );
 
         assert.throws(() => builder.addVariadicParameter({ name: "param3" }), {
-          name: "Error",
-          message: "Cannot add positional param after variadic param",
+          name: "HardhatError",
+          message:
+            "HHE203: Cannot add the positional param param3 after a variadic one",
         });
       });
     });
@@ -820,8 +826,8 @@ describe("Task builders", () => {
           "task-id",
         );
         assert.throws(() => builder.build(), {
-          name: "Error",
-          message: "Missing action",
+          name: "HardhatError",
+          message: `HHE202: The task task-id doesn't have an action`,
         });
       });
 
@@ -831,12 +837,14 @@ describe("Task builders", () => {
         );
 
         assert.throws(() => builder.setAction("not-a-valid-file-url"), {
-          name: "Error",
-          message: "Invalid action file URL",
+          name: "HardhatError",
+          message:
+            "HHE201: Invalid file action: not-a-valid-file-url is not a valid file URL",
         });
         assert.throws(() => builder.setAction("file://"), {
-          name: "Error",
-          message: "Invalid action file URL",
+          name: "HardhatError",
+          message:
+            "HHE201: Invalid file action: file:// is not a valid file URL",
         });
       });
     });
@@ -1080,8 +1088,8 @@ describe("Task builders", () => {
         invalidNames.forEach((name) => {
           fnNames.forEach((fnName) => {
             assert.throws(() => builder[fnName]({ name }), {
-              name: "Error",
-              message: "Invalid param name",
+              name: "HardhatError",
+              message: `HHE303: Argument name ${name} is invalid`,
             });
           });
         });
@@ -1101,8 +1109,8 @@ describe("Task builders", () => {
         names.forEach((name) => {
           fnNames.forEach((fnName) => {
             assert.throws(() => builder[fnName]({ name }), {
-              name: "Error",
-              message: `Parameter ${name} already exists`,
+              name: "HardhatError",
+              message: `HHE302: Argument name ${name} is already in use`,
             });
           });
         });
@@ -1117,8 +1125,8 @@ describe("Task builders", () => {
 
         reservedNames.forEach((name) => {
           assert.throws(() => builder.addNamedParameter({ name }), {
-            name: "Error",
-            message: `Parameter ${name} is reserved`,
+            name: "HardhatError",
+            message: `HHE301: Argument name ${name} is reserved`,
           });
         });
       });
@@ -1138,8 +1146,9 @@ describe("Task builders", () => {
               type: ParameterType.STRING,
             }),
           {
-            name: "Error",
-            message: "Default value 123 does not match the type STRING",
+            name: "HardhatError",
+            message:
+              "HHE300: Invalid value 123 for argument defaultValue of type STRING",
           },
         );
       });
