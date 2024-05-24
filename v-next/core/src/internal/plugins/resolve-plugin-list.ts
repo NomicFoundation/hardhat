@@ -5,9 +5,9 @@ import { HardhatPlugin } from "../../types/plugins.js";
 /**
  * Resolves the plugin list, returning them in the right order.
  */
-export function resolvePluginList(
+export async function resolvePluginList(
   userConfigPluginList: HardhatPlugin[] = [],
-): HardhatPlugin[] {
+): Promise<HardhatPlugin[]> {
   return reverseTopologicalSort(userConfigPluginList);
 }
 
@@ -19,13 +19,13 @@ export function resolvePluginList(
  * @param plugins The plugins.
  * @returns The ordered plugins.
  */
-export function reverseTopologicalSort(
+export async function reverseTopologicalSort(
   plugins: HardhatPlugin[],
-): HardhatPlugin[] {
+): Promise<HardhatPlugin[]> {
   const visitedPlugins: Map<string, HardhatPlugin> = new Map();
   const result: HardhatPlugin[] = [];
 
-  function dfs(plugin: HardhatPlugin) {
+  async function dfs(plugin: HardhatPlugin) {
     const visited = visitedPlugins.get(plugin.id);
 
     if (visited !== undefined) {
@@ -42,8 +42,10 @@ export function reverseTopologicalSort(
     visitedPlugins.set(plugin.id, plugin);
 
     if (plugin.dependencies !== undefined) {
-      for (const dependency of plugin.dependencies) {
-        dfs(dependency);
+      for (const dependencyFactory of plugin.dependencies) {
+        const dependency = await dependencyFactory();
+
+        await dfs(dependency);
       }
     }
 
@@ -51,7 +53,7 @@ export function reverseTopologicalSort(
   }
 
   for (const plugin of plugins) {
-    dfs(plugin);
+    await dfs(plugin);
   }
 
   return result;

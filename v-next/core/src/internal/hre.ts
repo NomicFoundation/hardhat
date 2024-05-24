@@ -39,7 +39,7 @@ export class HardhatRuntimeEnvironmentImplementation
 
     const resolvedPlugins =
       unsafeOptions?.resolvedPlugins ??
-      resolvePluginList(clonedUserConfig.plugins);
+      (await resolvePluginList(clonedUserConfig.plugins));
 
     const hooks = new HookManagerImplementation(resolvedPlugins);
 
