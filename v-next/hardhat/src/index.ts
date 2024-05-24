@@ -1,8 +1,8 @@
-import { getHRE } from "./internal/hre-singleton.js";
+import { getHardhatRuntimeEnvironmentSingleton } from "./internal/hre-singleton.js";
 
 // TODO:
 //  - Load the config from the file system.
-const hre = await getHRE({});
+const hre = await getHardhatRuntimeEnvironmentSingleton({});
 
 export const { config, tasks, globalArguments, hooks, interruptions } = hre;
 

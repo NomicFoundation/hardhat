@@ -13,7 +13,7 @@ import { Task } from "@nomicfoundation/hardhat-core/types/tasks";
 
 import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
 import { builtinPlugins } from "../builtin-plugins/index.js";
-import { getHRE } from "../hre-singleton.js";
+import { getHardhatRuntimeEnvironmentSingleton } from "../hre-singleton.js";
 
 export async function main(cliArguments: string[]) {
   const hreInitStart = performance.now();
@@ -84,10 +84,14 @@ export async function main(cliArguments: string[]) {
       usedCliArguments,
     );
 
-    const hre = await getHRE(userConfig, userProvidedGlobalArguments, {
-      resolvedPlugins,
-      globalParameterMap,
-    });
+    const hre = await getHardhatRuntimeEnvironmentSingleton(
+      userConfig,
+      userProvidedGlobalArguments,
+      {
+        resolvedPlugins,
+        globalParameterMap,
+      },
+    );
 
     const hreInitEnd = performance.now();
     console.log("Time to initialize the HRE (ms):", hreInitEnd - hreInitStart);
