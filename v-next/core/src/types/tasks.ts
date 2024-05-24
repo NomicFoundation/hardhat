@@ -269,7 +269,7 @@ export interface TaskOverrideDefinitionBuilder {
     name: string;
     description?: string;
     type?: T;
-    defaultValue: ParameterTypeToValueType<T>;
+    defaultValue?: ParameterTypeToValueType<T>;
   }): this;
 
   /**
