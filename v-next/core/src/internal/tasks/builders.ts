@@ -12,7 +12,10 @@ import type {
 
 import { ParameterType, isParameterValueValid } from "../../types/common.js";
 import { TaskDefinitionType } from "../../types/tasks.js";
-import { isValidParamNameCasing } from "../parameters.js";
+import {
+  RESERVED_PARAMETER_NAMES,
+  isValidParamNameCasing,
+} from "../parameters.js";
 
 import { formatValue, isValidActionUrl } from "./utils.js";
 
@@ -70,6 +73,10 @@ export class NewTaskDefinitionBuilderImplementation
       throw new Error(`Parameter ${name} already exists`);
     }
 
+    if (RESERVED_PARAMETER_NAMES.has(name)) {
+      throw new Error(`Parameter ${name} is reserved`);
+    }
+
     if (
       defaultValue !== undefined &&
       !isParameterValueValid(parameterType, defaultValue)
@@ -78,7 +85,6 @@ export class NewTaskDefinitionBuilderImplementation
         `Default value ${formatValue(defaultValue)} does not match the type ${parameterType}`,
       );
     }
-    // TODO: Validate that the name is not one of the reserved ones in parameters.ts
 
     this.#usedNames.add(name);
 
@@ -180,6 +186,10 @@ export class NewTaskDefinitionBuilderImplementation
       throw new Error(`Parameter ${name} already exists`);
     }
 
+    if (RESERVED_PARAMETER_NAMES.has(name)) {
+      throw new Error(`Parameter ${name} is reserved`);
+    }
+
     if (defaultValue !== undefined) {
       let isValid = true;
 
@@ -212,8 +222,6 @@ export class NewTaskDefinitionBuilderImplementation
         );
       }
     }
-
-    // TODO: Validate that the name is not one of the reserved ones in parameters.ts
 
     this.#usedNames.add(name);
 
@@ -280,6 +288,10 @@ export class TaskOverrideDefinitionBuilderImplementation
       throw new Error(`Parameter ${name} already exists`);
     }
 
+    if (RESERVED_PARAMETER_NAMES.has(name)) {
+      throw new Error(`Parameter ${name} is reserved`);
+    }
+
     if (
       defaultValue !== undefined &&
       !isParameterValueValid(parameterType, defaultValue)
@@ -288,8 +300,6 @@ export class TaskOverrideDefinitionBuilderImplementation
         `Default value ${formatValue(defaultValue)} does not match the type ${parameterType}`,
       );
     }
-
-    // TODO: Validate that the name is not one of the reserved ones in parameters.ts
 
     this.#namedParams[name] = {
       name,
