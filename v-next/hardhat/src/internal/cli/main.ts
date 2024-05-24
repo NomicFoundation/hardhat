@@ -75,7 +75,7 @@ export async function main(cliArguments: string[]) {
     const userConfig = await importUserConfig(configPath);
 
     const plugins = [...builtinPlugins, ...(userConfig.plugins ?? [])];
-    const resolvedPlugins = resolvePluginList(plugins);
+    const resolvedPlugins = await resolvePluginList(plugins, configPath);
 
     const globalParameterMap = buildGlobalParameterMap(resolvedPlugins);
     const userProvidedGlobalArguments = parseGlobalArguments(
