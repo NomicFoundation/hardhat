@@ -10,11 +10,11 @@ import type {
   TaskOverrideDefinition,
 } from "../../types/tasks.js";
 
-import { ParameterType } from "../../types/common.js";
+import { ParameterType, isParameterValueValid } from "../../types/common.js";
 import { TaskDefinitionType } from "../../types/tasks.js";
 import { isValidParamNameCasing } from "../parameters.js";
 
-import { isValidActionUrl } from "./utils.js";
+import { formatValue, isValidActionUrl } from "./utils.js";
 
 export class NewTaskDefinitionBuilderImplementation
   implements NewTaskDefinitionBuilder
@@ -70,10 +70,17 @@ export class NewTaskDefinitionBuilderImplementation
       throw new Error(`Parameter ${name} already exists`);
     }
 
-    this.#usedNames.add(name);
-
-    // TODO: Validate that default value matches with type
+    if (
+      defaultValue !== undefined &&
+      !isParameterValueValid(parameterType, defaultValue)
+    ) {
+      throw new Error(
+        `Default value ${formatValue(defaultValue)} does not match the type ${parameterType}`,
+      );
+    }
     // TODO: Validate that the name is not one of the reserved ones in parameters.ts
+
+    this.#usedNames.add(name);
 
     this.#namedParams[name] = {
       name,
@@ -173,7 +180,23 @@ export class NewTaskDefinitionBuilderImplementation
       throw new Error(`Parameter ${name} already exists`);
     }
 
-    this.#usedNames.add(name);
+    if (defaultValue !== undefined) {
+      let isValid = true;
+
+      if (Array.isArray(defaultValue)) {
+        isValid =
+          isVariadic &&
+          defaultValue.every((v) => isParameterValueValid(parameterType, v));
+      } else {
+        isValid = isParameterValueValid(parameterType, defaultValue);
+      }
+
+      if (!isValid) {
+        throw new Error(
+          `Default value ${formatValue(defaultValue)} does not match the type ${parameterType}`,
+        );
+      }
+    }
 
     if (this.#positionalParams.length > 0) {
       const lastParam =
@@ -190,8 +213,9 @@ export class NewTaskDefinitionBuilderImplementation
       }
     }
 
-    // TODO: Validate default value matches with type
     // TODO: Validate that the name is not one of the reserved ones in parameters.ts
+
+    this.#usedNames.add(name);
 
     this.#positionalParams.push({
       name,
@@ -256,7 +280,15 @@ export class TaskOverrideDefinitionBuilderImplementation
       throw new Error(`Parameter ${name} already exists`);
     }
 
-    // TODO: Validate that default value matches with type
+    if (
+      defaultValue !== undefined &&
+      !isParameterValueValid(parameterType, defaultValue)
+    ) {
+      throw new Error(
+        `Default value ${formatValue(defaultValue)} does not match the type ${parameterType}`,
+      );
+    }
+
     // TODO: Validate that the name is not one of the reserved ones in parameters.ts
 
     this.#namedParams[name] = {
