@@ -254,6 +254,13 @@ export interface TaskOverrideDefinitionBuilder {
   setDescription(description: string): this;
 
   /**
+   * Sets a new action for the task.
+   *
+   * @see NewTaskDefinitionBuilder.setAction
+   */
+  setAction(action: TaskOverrideActionFunction | string): this;
+
+  /**
    * Adds a new named parameter to the task.
    *
    * @see NewTaskDefinitionBuilder.addNamedParameter
@@ -269,13 +276,6 @@ export interface TaskOverrideDefinitionBuilder {
    * Adds a named parameter of boolean type and default value false.
    */
   addFlag(paramOptions: { name: string; description?: string }): this;
-
-  /**
-   * Sets a new action for the task.
-   *
-   * @see NewTaskDefinitionBuilder.setAction
-   */
-  setAction(action: TaskOverrideActionFunction | string): this;
 
   /**
    * Builds the TaskOverrideDefinition.

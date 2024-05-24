@@ -217,9 +217,12 @@ export class TaskOverrideDefinitionBuilderImplementation
   implements TaskOverrideDefinitionBuilder
 {
   readonly #id: string[];
+
   readonly #namedParams: Record<string, NamedTaskParameter> = {};
-  #action?: TaskOverrideActionFunction | string;
+
   #description?: string;
+
+  #action?: TaskOverrideActionFunction | string;
 
   constructor(id: string | string[]) {
     this.#id = Array.isArray(id) ? id : [id];
@@ -227,6 +230,16 @@ export class TaskOverrideDefinitionBuilderImplementation
 
   public setDescription(description: string): this {
     this.#description = description;
+    return this;
+  }
+
+  public setAction(action: TaskOverrideActionFunction | string): this {
+    if (typeof action === "string" && !isValidActionUrl(action)) {
+      throw new Error("Invalid action file URL");
+    }
+
+    this.#action = action;
+
     return this;
   }
 
@@ -270,16 +283,6 @@ export class TaskOverrideDefinitionBuilderImplementation
       type: ParameterType.BOOLEAN,
       defaultValue: false,
     });
-  }
-
-  public setAction(action: TaskOverrideActionFunction | string): this {
-    if (typeof action === "string" && !isValidActionUrl(action)) {
-      throw new Error("Invalid action file URL");
-    }
-
-    this.#action = action;
-
-    return this;
   }
 
   public build(): TaskOverrideDefinition {
