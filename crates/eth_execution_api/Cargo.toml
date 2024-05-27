@@ -1,9 +1,0 @@
-[package]
-name = "eth_execution_api"
-version = "1.0.0-beta.1"
-edition = "2021"
-
-[dependencies]
-derive_builder = { version = "0.11.2", default-features = false }
-serde = { version = "1.0.145", default-features = false, features = ["derive"] }
-serde_json = { version = "1.0.85", default-features = false, features = ["alloc"] }

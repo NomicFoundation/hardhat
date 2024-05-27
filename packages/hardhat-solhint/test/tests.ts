@@ -44,6 +44,32 @@ describe("Solhint plugin", function () {
     });
   });
 
+  describe("Project with .solhintignore file", function () {
+    useEnvironment("solhintignore-project");
+
+    it("should not return a report for the ignored files", async function () {
+      const reports = await this.env.run("hardhat-solhint:run-solhint");
+      // Greeter.sol is not ignored, Solhint should return a report
+      assert.isTrue(
+        reports.some((report: any) =>
+          report.file.includes("contracts/Greeter.sol")
+        )
+      );
+      // Greeter2.sol is ignored in the .solhintignore file, Solhint should not return a report
+      assert.isFalse(
+        reports.some((report: any) =>
+          report.file.includes("contracts/Greeter2.sol")
+        )
+      );
+      // Greeter3.sol is ignored in the .solhint.json file, Solhint should not return a report
+      assert.isFalse(
+        reports.some((report: any) =>
+          report.file.includes("contracts/Greeter2.sol")
+        )
+      );
+    });
+  });
+
   describe("Project with no solhint config", function () {
     useEnvironment("no-config-project");
 

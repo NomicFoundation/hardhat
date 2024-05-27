@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ethers",
-  "version": "3.0.5",
+  "version": "3.0.6",
   "description": "Hardhat plugin for ethers",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-ethers",
   "repository": "github:nomicfoundation/hardhat",
@@ -22,7 +22,6 @@
     "prettier": "prettier \"**/*.{js,md,json}\"",
     "pretest": "cd ../.. && pnpm build",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
-    "prebuild": "cd ../../crates/edr_napi && pnpm build",
     "build": "tsc --build .",
     "prepublishOnly": "pnpm build",
     "clean": "rimraf dist internal types *.{d.ts,js}{,.map} build-test tsconfig.tsbuildinfo"

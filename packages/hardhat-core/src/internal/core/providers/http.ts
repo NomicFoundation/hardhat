@@ -51,6 +51,12 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
 
     const { Pool, ProxyAgent } = require("undici") as typeof Undici;
 
+    if (this._url.trim().length === 0) {
+      throw new HardhatError(ERRORS.NETWORK.EMPTY_URL, {
+        value: this._url,
+      });
+    }
+
     const url = new URL(this._url);
     this._path = url.pathname;
     this._authHeader =
