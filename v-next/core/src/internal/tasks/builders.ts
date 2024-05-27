@@ -19,7 +19,7 @@ import {
   isValidParamNameCasing,
 } from "../parameters.js";
 
-import { formatTaskId, formatValue, isValidActionUrl } from "./utils.js";
+import { formatTaskId, isValidActionUrl } from "./utils.js";
 
 export class NewTaskDefinitionBuilderImplementation
   implements NewTaskDefinitionBuilder
@@ -97,15 +97,11 @@ export class NewTaskDefinitionBuilderImplementation
       throw new HardhatError(
         HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
         {
-          value: formatValue(defaultValue),
+          value: defaultValue,
           name: "defaultValue",
           type: parameterType,
         },
       );
-    }
-
-    if (type === ParameterType.BOOLEAN && defaultValue === undefined) {
-      defaultValue = false as ParameterTypeToValueType<T>;
     }
 
     this.#usedNames.add(name);
@@ -235,7 +231,7 @@ export class NewTaskDefinitionBuilderImplementation
         throw new HardhatError(
           HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
           {
-            value: formatValue(defaultValue),
+            value: defaultValue,
             name: "defaultValue",
             type: parameterType,
           },
@@ -353,15 +349,11 @@ export class TaskOverrideDefinitionBuilderImplementation
       throw new HardhatError(
         HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
         {
-          value: formatValue(defaultValue),
+          value: defaultValue,
           name: "defaultValue",
           type: parameterType,
         },
       );
-    }
-
-    if (type === ParameterType.BOOLEAN && defaultValue === undefined) {
-      defaultValue = false as ParameterTypeToValueType<T>;
     }
 
     this.#namedParams[name] = {

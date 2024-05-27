@@ -10,7 +10,10 @@ export enum ParameterType {
   FILE = "FILE",
 }
 
-interface ParameterToValueTypeMap {
+/**
+ * Maps all the `ParameterType` values to their corresponding value types.
+ */
+export interface ParameterToValueTypeMap {
   [ParameterType.STRING]: string;
   [ParameterType.BOOLEAN]: boolean;
   [ParameterType.INT]: number;
@@ -25,8 +28,13 @@ interface ParameterToValueTypeMap {
  * This type takes a `ParameterType` as a type parameter and returns the type
  * of the value that should be used for parameters of that type.
  *
- * For example, `ParameterTypeToValueType<ParameterType.STRING>` would be
- * `string`, and `ParameterTypeToValueType<ParameterType.INT>` would be `number`.
+ * @example
+ * ParameterTypeToValueType<ParameterType.STRING>
+ * // ^? "string"
+ *
+ * @example
+ * ParameterTypeToValueType<ParameterType.INT>
+ * // ^? "number"
  */
 export type ParameterTypeToValueType<T extends ParameterType> =
   ParameterToValueTypeMap[T];

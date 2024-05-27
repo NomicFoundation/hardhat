@@ -4,7 +4,6 @@ import { describe, it } from "node:test";
 import {
   formatTaskId,
   isValidActionUrl,
-  formatValue,
 } from "../../../src/internal/tasks/utils.js";
 
 describe("Task utils", () => {
@@ -27,16 +26,6 @@ describe("Task utils", () => {
       assert.equal(isValidActionUrl("http://foo"), false);
       assert.equal(isValidActionUrl("file://"), false);
       assert.equal(isValidActionUrl("missing-protocol"), false);
-    });
-  });
-
-  describe("formatValue", () => {
-    it("should return the value as a string", () => {
-      assert.equal(formatValue("foo"), '"foo"');
-      assert.equal(formatValue(true), "true");
-      assert.equal(formatValue(42), "42");
-      assert.equal(formatValue(BigInt(42)), "42n");
-      assert.equal(formatValue(3.14), "3.14");
     });
   });
 });

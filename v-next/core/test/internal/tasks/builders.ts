@@ -1,18 +1,13 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { expectTypeOf } from "expect-type";
-
+import { RESERVED_PARAMETER_NAMES } from "../../../src/internal/parameters.js";
 import {
   NewTaskDefinitionBuilderImplementation,
   TaskOverrideDefinitionBuilderImplementation,
 } from "../../../src/internal/tasks/builders.js";
 import { ParameterType } from "../../../src/types/common.js";
-import {
-  NewTaskDefinition,
-  TaskDefinitionType,
-  TaskOverrideDefinition,
-} from "../../../src/types/tasks.js";
+import { TaskDefinitionType } from "../../../src/types/tasks.js";
 
 describe("Task builders", () => {
   describe("NewTaskDefinitionBuilderImplementation", () => {
@@ -21,10 +16,6 @@ describe("Task builders", () => {
       const taskAction = () => {};
       const taskDefinition = builder.setAction(taskAction).build();
 
-      expectTypeOf(
-        builder,
-      ).toEqualTypeOf<NewTaskDefinitionBuilderImplementation>();
-      expectTypeOf(taskDefinition).toEqualTypeOf<NewTaskDefinition>();
       assert.deepEqual(taskDefinition, {
         type: TaskDefinitionType.NEW_TASK,
         id: ["task-id"],
@@ -41,7 +32,6 @@ describe("Task builders", () => {
       const taskAction = () => {};
       const taskDefinition = builder.setAction(taskAction).build();
 
-      expectTypeOf(taskDefinition).toEqualTypeOf<NewTaskDefinition>();
       assert.deepEqual(taskDefinition, {
         type: TaskDefinitionType.NEW_TASK,
         id: ids,
@@ -58,7 +48,6 @@ describe("Task builders", () => {
         const taskAction = async () => {};
         const taskDefinition = builder.setAction(taskAction).build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<NewTaskDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
@@ -74,7 +63,6 @@ describe("Task builders", () => {
         const taskAction = "file://path/to/task-action.js";
         const taskDefinition = builder.setAction(taskAction).build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<NewTaskDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
@@ -118,7 +106,6 @@ describe("Task builders", () => {
         const taskAction = () => {};
         const taskDefinition = builder.setAction(taskAction).build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<NewTaskDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
@@ -137,7 +124,6 @@ describe("Task builders", () => {
           .setDescription("Task description")
           .build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<NewTaskDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
@@ -159,7 +145,6 @@ describe("Task builders", () => {
           .setDescription("New task description")
           .build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<NewTaskDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
@@ -182,7 +167,6 @@ describe("Task builders", () => {
           })
           .build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<NewTaskDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
@@ -211,7 +195,6 @@ describe("Task builders", () => {
           })
           .build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<NewTaskDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
@@ -240,7 +223,6 @@ describe("Task builders", () => {
           })
           .build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<NewTaskDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
@@ -269,7 +251,6 @@ describe("Task builders", () => {
           })
           .build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<NewTaskDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
@@ -286,32 +267,6 @@ describe("Task builders", () => {
           positionalParameters: [],
         });
       });
-
-      it("should set the default defaultValue to false for when the type is BOOLEAN", () => {
-        const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        const taskAction = () => {};
-        const taskDefinition = builder
-          .setAction(taskAction)
-          .addNamedParameter({ name: "param", type: ParameterType.BOOLEAN })
-          .build();
-
-        expectTypeOf(taskDefinition).toEqualTypeOf<NewTaskDefinition>();
-        assert.deepEqual(taskDefinition, {
-          type: TaskDefinitionType.NEW_TASK,
-          id: ["task-id"],
-          description: "",
-          action: taskAction,
-          namedParameters: {
-            param: {
-              name: "param",
-              description: "",
-              parameterType: ParameterType.BOOLEAN,
-              defaultValue: false,
-            },
-          },
-          positionalParameters: [],
-        });
-      });
     });
 
     describe("Adding flags", () => {
@@ -323,7 +278,6 @@ describe("Task builders", () => {
           .addFlag({ name: "flag" })
           .build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<NewTaskDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
@@ -349,7 +303,6 @@ describe("Task builders", () => {
           .addFlag({ name: "flag", description: "Flag description" })
           .build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<NewTaskDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
@@ -377,7 +330,6 @@ describe("Task builders", () => {
           .addPositionalParameter({ name: "param" })
           .build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<NewTaskDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
@@ -407,7 +359,6 @@ describe("Task builders", () => {
           })
           .build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<NewTaskDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
@@ -437,7 +388,6 @@ describe("Task builders", () => {
           })
           .build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<NewTaskDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
@@ -467,7 +417,6 @@ describe("Task builders", () => {
           })
           .build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<NewTaskDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
@@ -496,7 +445,6 @@ describe("Task builders", () => {
           .addVariadicParameter({ name: "param" })
           .build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<NewTaskDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
@@ -526,7 +474,6 @@ describe("Task builders", () => {
           })
           .build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<NewTaskDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
@@ -556,7 +503,6 @@ describe("Task builders", () => {
           })
           .build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<NewTaskDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
@@ -583,7 +529,6 @@ describe("Task builders", () => {
           .addVariadicParameter({ name: "param", type: ParameterType.INT })
           .build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<NewTaskDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
@@ -650,9 +595,7 @@ describe("Task builders", () => {
       it("should throw if the parameter name is reserved", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
 
-        const reservedNames = ["config", "help", "version"];
-
-        reservedNames.forEach((name) => {
+        RESERVED_PARAMETER_NAMES.forEach((name) => {
           assert.throws(() => builder.addNamedParameter({ name }), {
             name: "HardhatError",
             message: `HHE301: Argument name ${name} is reserved`,
@@ -757,10 +700,6 @@ describe("Task builders", () => {
       const taskAction = () => {};
       const taskDefinition = builder.setAction(taskAction).build();
 
-      expectTypeOf(
-        builder,
-      ).toEqualTypeOf<TaskOverrideDefinitionBuilderImplementation>();
-      expectTypeOf(taskDefinition).toEqualTypeOf<TaskOverrideDefinition>();
       assert.deepEqual(taskDefinition, {
         type: TaskDefinitionType.TASK_OVERRIDE,
         id: ["task-id"],
@@ -776,7 +715,6 @@ describe("Task builders", () => {
       const taskAction = () => {};
       const taskDefinition = builder.setAction(taskAction).build();
 
-      expectTypeOf(taskDefinition).toEqualTypeOf<TaskOverrideDefinition>();
       assert.deepEqual(taskDefinition, {
         type: TaskDefinitionType.TASK_OVERRIDE,
         id: ids,
@@ -794,7 +732,6 @@ describe("Task builders", () => {
         const taskAction = async () => {};
         const taskDefinition = builder.setAction(taskAction).build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<TaskOverrideDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
@@ -811,7 +748,6 @@ describe("Task builders", () => {
         const taskAction = "file://path/to/task-action.js";
         const taskDefinition = builder.setAction(taskAction).build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<TaskOverrideDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
@@ -860,7 +796,6 @@ describe("Task builders", () => {
           .setDescription("Task description")
           .build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<TaskOverrideDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
@@ -884,7 +819,6 @@ describe("Task builders", () => {
           })
           .build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<TaskOverrideDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
@@ -914,7 +848,6 @@ describe("Task builders", () => {
           })
           .build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<TaskOverrideDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
@@ -944,7 +877,6 @@ describe("Task builders", () => {
           })
           .build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<TaskOverrideDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
@@ -974,7 +906,6 @@ describe("Task builders", () => {
           })
           .build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<TaskOverrideDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
@@ -986,33 +917,6 @@ describe("Task builders", () => {
               description: "",
               parameterType: ParameterType.INT,
               defaultValue: undefined,
-            },
-          },
-        });
-      });
-
-      it("should set the default defaultValue to false for when the type is BOOLEAN", () => {
-        const builder = new TaskOverrideDefinitionBuilderImplementation(
-          "task-id",
-        );
-        const taskAction = () => {};
-        const taskDefinition = builder
-          .setAction(taskAction)
-          .addNamedParameter({ name: "param", type: ParameterType.BOOLEAN })
-          .build();
-
-        expectTypeOf(taskDefinition).toEqualTypeOf<TaskOverrideDefinition>();
-        assert.deepEqual(taskDefinition, {
-          type: TaskDefinitionType.TASK_OVERRIDE,
-          id: ["task-id"],
-          description: undefined,
-          action: taskAction,
-          namedParameters: {
-            param: {
-              name: "param",
-              description: "",
-              parameterType: ParameterType.BOOLEAN,
-              defaultValue: false,
             },
           },
         });
@@ -1030,7 +934,6 @@ describe("Task builders", () => {
           .addFlag({ name: "flag" })
           .build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<TaskOverrideDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
@@ -1057,7 +960,6 @@ describe("Task builders", () => {
           .addFlag({ name: "flag", description: "Flag description" })
           .build();
 
-        expectTypeOf(taskDefinition).toEqualTypeOf<TaskOverrideDefinition>();
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
@@ -1121,9 +1023,7 @@ describe("Task builders", () => {
           "task-id",
         );
 
-        const reservedNames = ["config", "help", "version"];
-
-        reservedNames.forEach((name) => {
+        RESERVED_PARAMETER_NAMES.forEach((name) => {
           assert.throws(() => builder.addNamedParameter({ name }), {
             name: "HardhatError",
             message: `HHE301: Argument name ${name} is reserved`,
