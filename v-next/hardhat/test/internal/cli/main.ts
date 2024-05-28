@@ -5,7 +5,7 @@ import { createHardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core";
 import { ParameterType, task } from "@nomicfoundation/hardhat-core/config";
 import { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
 import {
-  NewTaskDefintion,
+  NewTaskDefinition,
   Task,
 } from "@nomicfoundation/hardhat-core/types/tasks";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -21,8 +21,8 @@ describe("main", function () {
   let hre: HardhatRuntimeEnvironment;
 
   // TASKS and SUBTASKS are defined in the "before()" hooks before every "functionality test groups".
-  let TASK: NewTaskDefintion;
-  let SUBTASK: NewTaskDefintion;
+  let TASK: NewTaskDefinition;
+  let SUBTASK: NewTaskDefinition;
 
   describe("parseTaskAndArguments", function () {
     describe("only task and subtask", function () {
