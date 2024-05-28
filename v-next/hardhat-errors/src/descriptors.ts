@@ -611,8 +611,4 @@ A fully qualified name should look like file.sol:Contract`,
       websiteDescription: `A plugin's dependent plugin could not be lazily loaded.`,
     },
   },
-} satisfies {
-  [category in keyof typeof ERROR_CATEGORIES]: {
-    [name: string]: ErrorDescriptor;
-  };
-};
+} as const;
