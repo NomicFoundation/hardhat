@@ -35,6 +35,12 @@ export class NewTaskDefinitionBuilderImplementation
   #action?: NewTaskActionFunction | string;
 
   constructor(id: string | string[], description: string = "") {
+    if (id.length === 0) {
+      throw new HardhatError(
+        HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+      );
+    }
+
     this.#id = Array.isArray(id) ? id : [id];
     this.#description = description;
   }
@@ -288,6 +294,12 @@ export class TaskOverrideDefinitionBuilderImplementation
   #action?: TaskOverrideActionFunction | string;
 
   constructor(id: string | string[]) {
+    if (id.length === 0) {
+      throw new HardhatError(
+        HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+      );
+    }
+
     this.#id = Array.isArray(id) ? id : [id];
   }
 

@@ -42,6 +42,26 @@ describe("Task builders", () => {
       });
     });
 
+    describe("Task id validation", () => {
+      it("should throw if the id is an empty string", () => {
+        assert.throws(() => new NewTaskDefinitionBuilderImplementation(""), {
+          name: "HardhatError",
+          message:
+            "HHE208: Task id cannot be an empty string or an empty array",
+        });
+      });
+
+      it("should throw if the array of ids is empty", () => {
+        const ids: string[] = [];
+
+        assert.throws(() => new NewTaskDefinitionBuilderImplementation(ids), {
+          name: "HardhatError",
+          message:
+            "HHE208: Task id cannot be an empty string or an empty array",
+        });
+      });
+    });
+
     describe("Adding an action", () => {
       it("should create a new task definition builder with an async function action", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
@@ -721,6 +741,32 @@ describe("Task builders", () => {
         description: undefined,
         action: taskAction,
         namedParameters: {},
+      });
+    });
+
+    describe("Task id validation", () => {
+      it("should throw if the id is an empty string", () => {
+        assert.throws(
+          () => new TaskOverrideDefinitionBuilderImplementation(""),
+          {
+            name: "HardhatError",
+            message:
+              "HHE208: Task id cannot be an empty string or an empty array",
+          },
+        );
+      });
+
+      it("should throw if the array of ids is empty", () => {
+        const ids: string[] = [];
+
+        assert.throws(
+          () => new TaskOverrideDefinitionBuilderImplementation(ids),
+          {
+            name: "HardhatError",
+            message:
+              "HHE208: Task id cannot be an empty string or an empty array",
+          },
+        );
       });
     });
 
