@@ -118,6 +118,32 @@ Please double check the file path.`,
 
 Please double check whether you have multiple versions of the same plugin installed.`,
     },
+    NO_CONFIG_FILE_FOUND: {
+      number: 5,
+      messageTemplate: "No Hardhat config file found",
+      websiteTitle: "No Hardhat config file found",
+      websiteDescription:
+        "Hardhat couldn't find a config file in the current directory or any of its parents.",
+    },
+    INVALID_CONFIG_PATH: {
+      number: 6,
+      messageTemplate: "Config file %configPath% not found",
+      websiteTitle: "Invalid config path",
+      websiteDescription: "The config file doesn't exist at the provided path.",
+    },
+    NO_CONFIG_EXPORTED: {
+      number: 7,
+      messageTemplate: "No config exported in %configPath%",
+      websiteTitle: "No config exported",
+      websiteDescription: "There is nothing exported from the config file.",
+    },
+    INVALID_CONFIG_OBJECT: {
+      number: 8,
+      messageTemplate: "Invalid config exported in %configPath%",
+      websiteTitle: "Invalid config object",
+      websiteDescription:
+        "The config file doesn't export a valid configuration object.",
+    },
   },
   INTERNAL: {
     ASSERTION_ERROR: {
