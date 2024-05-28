@@ -220,6 +220,41 @@ describe("JSON-RPC client", function () {
           );
         });
 
+        it("Should not return zero gas fees for BNB Test Chain even with a zero base fee", async function () {
+          const bnbTestClient = new EIP1193JsonRpcClient({
+            request: async (req) => {
+              if (req.method === "eth_chainId") {
+                return "0x61"; // BNB Test Chain ID
+              }
+
+              if (req.method === "eth_getBlockByNumber") {
+                return {
+                  number: "0x0",
+                  hash: "0x0",
+                  baseFeePerGas: "0x0", // Set the base fee to zero, testing the exception
+                };
+              }
+
+              if (req.method === "eth_gasPrice") {
+                return "0x1";
+              }
+
+              throw new Error(`Unimplemented mock for ${req.method}`);
+            },
+          });
+
+          const fees = await bnbTestClient.getNetworkFees();
+
+          assert.deepStrictEqual(
+            fees,
+            {
+              maxFeePerGas: 1_000_000_000n,
+              maxPriorityFeePerGas: 1_000_000_000n,
+            },
+            "Both max fee and max priority fee should be 1 gwei, as the base fee is 0 for BNB Test Chain"
+          );
+        });
+
         it("Should use the `maxPriorityFeePerGas` from the node if `eth_maxPriorityFeePerGas` is present (and there is no config)", async function () {
           // TODO: Hardhat does not support `eth_maxPriorityFeePerGas` yet, when it does, this
           // can be removed.
