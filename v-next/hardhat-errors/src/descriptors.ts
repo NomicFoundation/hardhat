@@ -145,6 +145,33 @@ Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us i
 
 Please double check your arguments.`,
     },
+    UNRECOGNIZED_NAMED_PARAM: {
+      number: 301,
+      messageTemplate:
+        'Invalid parameter "%parameter%". It is neither a valid global parameter nor associated with any task. Did you forget to add the task first, or did you misspell it?',
+      websiteTitle: "Invalid parameter value",
+      websiteDescription: `One of your Hardhat parameters is invalid.
+
+Please double check your arguments.`,
+    },
+    MISSING_VALUE_FOR_NAMED_PARAMETER: {
+      number: 302,
+      messageTemplate:
+        'Missing value for the task parameter named "%paramName%"',
+      websiteTitle: "Missing value for the task parameter",
+      websiteDescription: `You tried to run a task, but one of the values of its parameters was missing.
+
+Please double check how you invoked Hardhat or ran your task.`,
+    },
+    UNUSED_ARGUMENT: {
+      number: 303,
+      messageTemplate:
+        'The argument with value "%value%" was not consumed because it is not associated with any task.',
+      websiteTitle: "Argument was not consumed",
+      websiteDescription: `You tried to run a task, but one of your arguments was not consumed.
+
+Please double check how you invoked Hardhat or ran your task.`,
+    },
   },
   RESOLVER: {
     FILE_NOT_FOUND: {

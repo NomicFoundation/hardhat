@@ -1,0 +1,537 @@
+import assert from "node:assert/strict";
+import { before, describe, it } from "node:test";
+
+import { createHardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core";
+import { ParameterType, task } from "@nomicfoundation/hardhat-core/config";
+import { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
+import {
+  NewTaskDefintion,
+  Task,
+} from "@nomicfoundation/hardhat-core/types/tasks";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
+import { parseTaskAndArguments } from "../../../src/internal/cli/main.js";
+
+interface TaskRes {
+  task: Task;
+  taskArguments: Record<string, any>;
+}
+
+describe("main", function () {
+  let hre: HardhatRuntimeEnvironment;
+
+  // TASKS and SUBTASKS are defined in the "before()" hooks before every "functionality test groups".
+  let TASK: NewTaskDefintion;
+  let SUBTASK: NewTaskDefintion;
+
+  describe("parseTaskAndArguments", function () {
+    describe("only task and subtask", function () {
+      before(async function () {
+        TASK = task(["task"])
+          .setAction(() => {})
+          .build();
+
+        SUBTASK = task(["task", "subtask"])
+          .setAction(() => {})
+          .build();
+
+        hre = await createHardhatRuntimeEnvironment({
+          tasks: [TASK, SUBTASK],
+        });
+      });
+
+      it("should get the tasks and the subtask and skip the global param", function () {
+        const command = "npx hardhat task --network localhost subtask";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = [false, true, true, false];
+
+        const res = parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        ) as TaskRes;
+
+        assert.equal(res.task.id, SUBTASK.id);
+        assert.deepStrictEqual(usedCliArguments, [true, true, true, true]);
+        assert.deepStrictEqual(res.taskArguments, {});
+      });
+    });
+
+    describe("task and subtask with named parameters", function () {
+      before(async function () {
+        TASK = task(["task"])
+          .addNamedParameter({ name: "param" })
+          .addNamedParameter({
+            name: "flag",
+            type: ParameterType.BOOLEAN,
+          })
+          .addNamedParameter({
+            name: "optionFlag",
+          })
+          .setAction(() => {})
+          .build();
+
+        SUBTASK = task(["task", "subtask"])
+          .addNamedParameter({ name: "param" })
+          .setAction(() => {})
+          .build();
+
+        hre = await createHardhatRuntimeEnvironment({
+          tasks: [TASK, SUBTASK],
+        });
+      });
+
+      it("should get the tasks and its parameter", function () {
+        const command = "npx hardhat task --param <paramValue>";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = [false, false, false];
+
+        const res = parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        ) as TaskRes;
+
+        assert.equal(res.task.id, TASK.id);
+        assert.deepStrictEqual(usedCliArguments, [true, true, true]);
+        assert.deepStrictEqual(res.taskArguments, {
+          param: "<paramValue>",
+        });
+      });
+
+      it("should get the subtask and its parameter", async function () {
+        const command = "npx hardhat task subtask --param <paramValue>";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = [false, false, false, false];
+
+        const res = parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        ) as TaskRes;
+
+        assert.equal(res.task.id, SUBTASK.id);
+        assert.deepStrictEqual(usedCliArguments, [true, true, true, true]);
+        assert.deepStrictEqual(res.taskArguments, {
+          param: "<paramValue>",
+        });
+      });
+
+      it("should get the tasks and its parameter as type boolean with value set to true", function () {
+        const command = "npx hardhat task --flag";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = [false, false];
+
+        const res = parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        ) as TaskRes;
+
+        assert.equal(res.task.id, TASK.id);
+        assert.deepStrictEqual(usedCliArguments, [true, true]);
+        assert.deepStrictEqual(res.taskArguments, { flag: true });
+      });
+
+      it("should throw because the parameter when set as bool (flag behavior) should not be followed by a bool value", function () {
+        const command = "npx hardhat task --flag false";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = [false, false, false];
+
+        // Throws because the flag parameter does not expect values, so the "false" argument will not be consumed
+        assert.throws(
+          () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+          new HardhatError(HardhatError.ERRORS.ARGUMENTS.UNUSED_ARGUMENT, {
+            value: "false",
+          }),
+        );
+      });
+
+      it("should convert on the fly the camelCase parameter to kebab-case", function () {
+        // Parameter with name "optionFlag" should be converted on the fly to "--option-flag"
+        const command = "npx hardhat task --option-flag <value>";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = [false, false, false];
+
+        const res = parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        ) as TaskRes;
+
+        assert.equal(res.task.id, TASK.id);
+        assert.deepStrictEqual(usedCliArguments, [true, true, true]);
+        assert.deepStrictEqual(res.taskArguments, { optionFlag: "<value>" });
+      });
+
+      it("should throw because the parameter is not defined", async function () {
+        const command = "npx hardhat task --undefinedParam <value>";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = [false, false, false];
+
+        assert.throws(
+          () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+          new HardhatError(
+            HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_NAMED_PARAM,
+            {
+              parameter: "--undefinedParam",
+            },
+          ),
+        );
+      });
+
+      it("should throw because the task parameter is declared before the task name", async function () {
+        const command = "npx hardhat --param <paramValue> task";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = [false, false, false];
+
+        assert.throws(
+          () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+          new HardhatError(
+            HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_NAMED_PARAM,
+            {
+              parameter: "--param",
+            },
+          ),
+        );
+      });
+
+      it("should throw because the task parameter is declared but no value is associated to it", async function () {
+        const command = "npx hardhat task --param";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = [false, false];
+
+        assert.throws(
+          () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+          new HardhatError(
+            HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_NAMED_PARAMETER,
+            {
+              paramName: "--param",
+            },
+          ),
+        );
+      });
+    });
+
+    describe("task and subtask with positional parameters", function () {
+      before(async function () {
+        TASK = task(["task"])
+          .addPositionalParameter({ name: "param" })
+          .addPositionalParameter({
+            name: "param2",
+            defaultValue: "defaultValue",
+          })
+          .setAction(() => {})
+          .build();
+
+        SUBTASK = task(["task", "subtask"])
+          .addPositionalParameter({ name: "param" })
+          .addPositionalParameter({
+            name: "param2",
+            defaultValue: "defaultValue",
+          })
+          .setAction(() => {})
+          .build();
+
+        hre = await createHardhatRuntimeEnvironment({
+          tasks: [TASK, SUBTASK],
+        });
+      });
+
+      it("should get the tasks and its required parameter", function () {
+        const command = "npx hardhat task <paramValue>";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = [false, false];
+
+        const res = parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        ) as TaskRes;
+
+        assert.equal(res.task.id, TASK.id);
+        assert.deepStrictEqual(usedCliArguments, [true, true]);
+        assert.deepStrictEqual(res.taskArguments, {
+          param: "<paramValue>",
+        });
+      });
+
+      it("should get the tasks and its required parameter that comes after the --", function () {
+        // subtask is a param value in this scenario, not a subtask because it is preceded by "--"
+        const command = "npx hardhat task -- subtask";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = [false, false, false];
+
+        const res = parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        ) as TaskRes;
+
+        assert.equal(res.task.id, TASK.id);
+        assert.deepStrictEqual(usedCliArguments, [true, true, true]);
+        assert.deepStrictEqual(res.taskArguments, {
+          param: "subtask",
+        });
+      });
+
+      it("should get the tasks and its required parameter (the positional argument has the same value as a subtask name)", function () {
+        // The subtask is a param value in this scenario, not a subtask because it is preceded by a positional value
+        const command = "npx hardhat task foo subtask";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = [false, false, false];
+
+        const res = parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        ) as TaskRes;
+
+        assert.equal(res.task.id, TASK.id);
+        assert.deepStrictEqual(usedCliArguments, [true, true, true]);
+        assert.deepStrictEqual(res.taskArguments, {
+          param: "foo",
+          param2: "subtask",
+        });
+      });
+
+      it("should get the subtasks and not complain about the missing optional parameter", function () {
+        const command = "npx hardhat task subtask <paramValue>";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = [false, false, false];
+
+        const res = parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        ) as TaskRes;
+
+        assert.equal(res.task.id, SUBTASK.id);
+        assert.deepStrictEqual(usedCliArguments, [true, true, true]);
+        assert.deepStrictEqual(res.taskArguments, {
+          param: "<paramValue>",
+        });
+      });
+
+      it("should get the subtasks and its optional parameter passed in the cli", function () {
+        const command = "npx hardhat task subtask <paramValue> <optParamValue>";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = [false, false, false, false];
+
+        const res = parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        ) as TaskRes;
+
+        assert.equal(res.task.id, SUBTASK.id);
+        assert.deepStrictEqual(usedCliArguments, [true, true, true, true]);
+        assert.deepStrictEqual(res.taskArguments, {
+          param: "<paramValue>",
+          param2: "<optParamValue>",
+        });
+      });
+    });
+
+    describe("task and subtask with variadic parameters", function () {
+      before(async function () {
+        TASK = task(["task"])
+          .addVariadicParameter({ name: "param" })
+          .setAction(() => {})
+          .build();
+
+        hre = await createHardhatRuntimeEnvironment({
+          tasks: [TASK, SUBTASK],
+        });
+      });
+
+      it("should get the parameters", function () {
+        const command = "npx hardhat task <val1> <val2> <val3>";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = [false, false, false, false];
+
+        const res = parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        ) as TaskRes;
+
+        assert.equal(res.task.id, TASK.id);
+        assert.deepStrictEqual(usedCliArguments, [true, true, true, true]);
+        assert.deepStrictEqual(res.taskArguments, {
+          param: ["<val1>", "<val2>", "<val3>"],
+        });
+      });
+
+      it("should not throw when the parameters are not passed", function () {
+        const command = "npx hardhat task";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = [false];
+
+        const res = parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        ) as TaskRes;
+
+        assert.equal(res.task.id, TASK.id);
+        assert.deepStrictEqual(usedCliArguments, [true]);
+        assert.deepStrictEqual(res.taskArguments, {});
+      });
+    });
+
+    describe("formatting of parameters types", function () {
+      describe("named parameters", function () {
+        before(async function () {
+          TASK = task(["task"])
+            .addNamedParameter({ name: "param", type: ParameterType.BIGINT })
+            .addNamedParameter({ name: "param2", type: ParameterType.BOOLEAN })
+            .addNamedParameter({ name: "param3", type: ParameterType.FLOAT })
+            .addNamedParameter({ name: "param4", type: ParameterType.INT })
+            .addNamedParameter({ name: "param5", type: ParameterType.STRING })
+            .setAction(() => {})
+            .build();
+
+          hre = await createHardhatRuntimeEnvironment({
+            tasks: [TASK],
+          });
+        });
+
+        it("should correctly format the parameters accordingly to their types", function () {
+          const command =
+            "npx hardhat task --param 1234 --param2 --param3 12.34 --param4 1234 --param5 hello";
+
+          const res = parseTaskAndArguments(
+            command.split(" ").slice(2),
+            [
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+            ],
+            hre,
+          ) as TaskRes;
+
+          assert.deepStrictEqual(res.taskArguments, {
+            param: BigInt(1234),
+            param2: true,
+            param3: 12.34,
+            param4: 1234,
+            param5: "hello",
+          });
+        });
+      });
+
+      describe("positional parameters", function () {
+        before(async function () {
+          TASK = task(["task"])
+            .addPositionalParameter({
+              name: "param",
+              type: ParameterType.BIGINT,
+            })
+            .addPositionalParameter({
+              name: "param2",
+              type: ParameterType.BOOLEAN,
+            })
+            .addPositionalParameter({
+              name: "param3",
+              type: ParameterType.FLOAT,
+            })
+            .addPositionalParameter({ name: "param4", type: ParameterType.INT })
+            .addPositionalParameter({
+              name: "param5",
+              type: ParameterType.STRING,
+            })
+            .setAction(() => {})
+            .build();
+
+          hre = await createHardhatRuntimeEnvironment({
+            tasks: [TASK],
+          });
+        });
+
+        it("should correctly format the parameters accordingly to their types", function () {
+          const command = "npx hardhat task 1234 true 12.34 1234 hello";
+
+          const res = parseTaskAndArguments(
+            command.split(" ").slice(2),
+            [false, false, false, false, false, false],
+            hre,
+          ) as TaskRes;
+
+          assert.deepStrictEqual(res.taskArguments, {
+            param: BigInt(1234),
+            param2: true,
+            param3: 12.34,
+            param4: 1234,
+            param5: "hello",
+          });
+        });
+      });
+
+      describe("variadic parameters", function () {
+        const paramTypes = [
+          ParameterType.BIGINT,
+          ParameterType.BOOLEAN,
+          ParameterType.FLOAT,
+          ParameterType.INT,
+          ParameterType.STRING,
+        ];
+
+        const paramValues = ["1234", "true", "12.34", "1234", "hello"];
+        const paramResults = [BigInt(1234), true, 12.34, 1234, "hello"];
+
+        it("should correctly format the parameters accordingly to their types", async function () {
+          // Variadic parameters can only be of a single type at a time, so loop through all the types
+          for (let i = 0; i < paramTypes.length; i++) {
+            TASK = task(["task"])
+              .addVariadicParameter({
+                name: "param",
+                type: paramTypes[i],
+              })
+              .setAction(() => {})
+              .build();
+
+            hre = await createHardhatRuntimeEnvironment({
+              tasks: [TASK],
+            });
+
+            const command = `npx hardhat task ${paramValues[i]}`;
+
+            const res = parseTaskAndArguments(
+              command.split(" ").slice(2),
+              [false, false],
+              hre,
+            ) as TaskRes;
+
+            assert.deepStrictEqual(res.taskArguments, {
+              param: [paramResults[i]],
+            });
+          }
+        });
+      });
+    });
+  });
+});
