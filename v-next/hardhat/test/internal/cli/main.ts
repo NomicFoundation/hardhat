@@ -533,5 +533,69 @@ describe("main", function () {
         });
       });
     });
+
+    describe("combine all the parameters' types", function () {
+      before(async function () {
+        TASK = task(["task"])
+          .addNamedParameter({ name: "param" })
+          .addPositionalParameter({ name: "posParam" })
+          .addPositionalParameter({
+            name: "posParam2",
+            defaultValue: "default",
+          })
+          .addVariadicParameter({ name: "varParam", defaultValue: ["default"] })
+          .setAction(() => {})
+          .build();
+
+        hre = await createHardhatRuntimeEnvironment({
+          tasks: [TASK, SUBTASK],
+        });
+      });
+
+      it("should get the subtasks and its optional parameter passed in the cli", function () {
+        const command =
+          "npx hardhat task --param <value> --network localhost <posValue> <posValue2> --verbose <varValue1> <varValue2>";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = [
+          false,
+          false,
+          false,
+          true,
+          true,
+          false,
+          false,
+          true,
+          false,
+          false,
+        ];
+
+        const res = parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        ) as TaskRes;
+
+        assert.equal(res.task.id, TASK.id);
+        assert.deepStrictEqual(usedCliArguments, [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+        ]);
+        assert.deepStrictEqual(res.taskArguments, {
+          param: "<value>",
+          posParam: "<posValue>",
+          posParam2: "<posValue2>",
+          varParam: ["<varValue1>", "<varValue2>"],
+        });
+      });
+    });
   });
 });
