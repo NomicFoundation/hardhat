@@ -17,7 +17,7 @@ import { HardhatPlugin } from "../../types/plugins.js";
  * - {@link ERRORS.ARTIFACTS.PLUGIN_MISSING_DEPENDENCY} if the plugin's package peer dependency is not installed
  * - {@link ERRORS.ARTIFACTS.DEPENDENCY_VERSION_MISMATCH} if the plugin's package peer dependency is installed but has the wrong version
  */
-export async function validatePluginNpmDependencies(
+export async function detectPluginNpmDependencyProblems(
   plugin: HardhatPlugin,
   basePathForNpmResolution: string,
 ): Promise<void> {

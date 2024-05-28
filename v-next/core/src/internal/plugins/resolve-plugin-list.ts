@@ -3,7 +3,7 @@ import type { HardhatPlugin } from "../../types/plugins.js";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
-import { validatePluginNpmDependencies } from "./plugin-validation.js";
+import { detectPluginNpmDependencyProblems } from "./detect-plugin-npm-dependency-problems.js";
 
 /**
  * Resolves the plugin list, returning them in the right order.
@@ -87,7 +87,7 @@ async function loadDependency(
   } catch (error) {
     ensureError(error);
 
-    await validatePluginNpmDependencies(plugin, basePathForNpmResolution);
+    await detectPluginNpmDependencyProblems(plugin, basePathForNpmResolution);
 
     throw new HardhatError(
       HardhatError.ERRORS.PLUGINS.PLUGIN_DEPENDENCY_FAILED_LOAD,
