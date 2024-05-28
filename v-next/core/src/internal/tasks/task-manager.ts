@@ -5,7 +5,7 @@ import {
   TaskDefinition,
   TaskDefinitionType,
   TaskManager,
-  NewTaskDefintion,
+  NewTaskDefinition,
   TaskOverrideDefinition,
 } from "../../types/tasks.js";
 
@@ -165,7 +165,7 @@ export class TaskManagerImplementation implements TaskManager {
 
   #validateClashesWithGlobalParams(
     globalParameterIndex: GlobalParameterMap,
-    taskDefinition: NewTaskDefintion | TaskOverrideDefinition,
+    taskDefinition: NewTaskDefinition | TaskOverrideDefinition,
     pluginId?: string,
   ) {
     for (const namedParamName of Object.keys(taskDefinition.namedParameters)) {

@@ -1,7 +1,7 @@
 // TODO: remove this TS rule?
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import assert from "node:assert";
+import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";

@@ -9,11 +9,7 @@ import {
 import { HardhatPlugin } from "../types/plugins.js";
 import { LastParameter, Return } from "../types/utils.js";
 
-import { validatePluginNpmDependencies } from "./plugins/plugin-validation.js";
-
 export class HookManagerImplementation implements HookManager {
-  readonly #validatedPlugins = new Set<string>();
-
   readonly #pluginsInReverseOrder: HardhatPlugin[];
 
   /**
@@ -242,11 +238,6 @@ export class HookManagerImplementation implements HookManager {
 
         if (hookHandlerCategoryFactory === undefined) {
           return;
-        }
-
-        if (!this.#validatedPlugins.has(plugin.id)) {
-          await validatePluginNpmDependencies(plugin);
-          this.#validatedPlugins.add(plugin.id);
         }
 
         let hookCategory: Partial<HardhatHooks[HookCategoryNameT]>;

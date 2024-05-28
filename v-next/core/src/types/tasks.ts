@@ -43,7 +43,7 @@ export interface NamedTaskParameter {
  * A positional task parameter is one that is used as `<value>` in the CLI, and whose
  * position matters. For example, `mv <from> <to>` has two positional parameters.
  *
- * If the parameter is variadic, it can be have multiple values. A variadic parameter
+ * If the parameter is variadic, it can have multiple values. A variadic parameter
  * can only be the last positional parameter, and it consumes all the remaining values.
  */
 export interface PositionalTaskParameter {
@@ -93,7 +93,7 @@ export enum TaskDefinitionType {
 }
 
 /**
- * Empty task defintion. It is meant to be used as a placeholder task that only
+ * Empty task definition. It is meant to be used as a placeholder task that only
  * prints information about its subtasks.
  *
  * For example, if you have the tasks `ignition deploy` and `ignition verify`,
@@ -109,7 +109,7 @@ export interface EmptyTaskDefinition {
 /**
  * The definition of a new task.
  */
-export interface NewTaskDefintion {
+export interface NewTaskDefinition {
   type: TaskDefinitionType.NEW_TASK;
 
   id: string[];
@@ -145,11 +145,11 @@ export interface TaskOverrideDefinition {
  */
 export type TaskDefinition =
   | EmptyTaskDefinition
-  | NewTaskDefintion
+  | NewTaskDefinition
   | TaskOverrideDefinition;
 
 /**
- * A builder for creating NewTaskDefintions.
+ * A builder for creating NewTaskDefinitions.
  */
 export interface NewTaskDefinitionBuilder {
   /**
@@ -160,11 +160,11 @@ export interface NewTaskDefinitionBuilder {
   /**
    * Sets the action of the task.
    *
-   * If can be provided as a function, or as a `file://` URL pointing to a file
-   * that exports as default as NewTaskActionFunction.
+   * It can be provided as a function, or as a `file://` URL pointing to a file
+   * that exports a default NewTaskActionFunction.
    *
    * Note that plugins can only use the inline function form for development
-   * purpose.
+   * purposes.
    */
   setAction(action: NewTaskActionFunction | string): this;
 
@@ -221,10 +221,10 @@ export interface NewTaskDefinitionBuilder {
    * Adds a variadic positional parameter to the task.
    *
    * A variadic parameter is a positional parameter that can have multiple
-   * values. For example `cat <file1> <file2> <file3>` has a variadic parameter
+   * values. For example, `cat <file1> <file2> <file3>` has a variadic parameter
    * representing the files to print.
    *
-   * The default value, if provided, must be an array of the whose elements are
+   * The default value, if provided, must be an array whose elements are
    * of the same type as the parameter. That is, `type` represents the type of
    * each element.
    *
@@ -241,7 +241,7 @@ export interface NewTaskDefinitionBuilder {
   /**
    * Builds the NewTaskDefinition.
    */
-  build(): NewTaskDefintion;
+  build(): NewTaskDefinition;
 }
 
 /**
@@ -273,11 +273,7 @@ export interface TaskOverrideDefinitionBuilder {
   /**
    * Sets a new action for the task.
    *
-   * If can be provided as a function, or as a `file://` URL pointing to a file
-   * that exports as default as TaskOverrideActionFunction.
-   *
-   * Note that plugins can only use the inline function form for development
-   * purpose.
+   * @see NewTaskDefinitionBuilder.setAction
    */
   setAction(action: TaskOverrideActionFunction | string): this;
 
@@ -288,12 +284,12 @@ export interface TaskOverrideDefinitionBuilder {
 }
 
 /**
- * The actions associated to the ask, in order.
+ * The actions associated to the task, in order.
  *
  * Each of them has the pluginId of the plugin that defined it, if any, and the
  * action itself.
  *
- * Note tat the first action is a `NewTaskActionFunction`, `string`, or
+ * Note that the first action is a `NewTaskActionFunction`, `string`, or
  * `undefined`. `undefined` is only used for empty tasks.
  *
  * The rest of the actions always have a `TaskOverrideActionFunction` or a
@@ -334,7 +330,7 @@ export interface Task {
   positionalParameters: PositionalTaskParameter[];
 
   /**
-   * Weather if the task is an empty task.
+   * Whether the task is an empty task.
    */
   isEmpty: boolean;
 
@@ -356,7 +352,7 @@ export interface Task {
 
 /**
  * A task manager is an object that manages the tasks of a Hardhat project. It
- * can be used to retreive tasks and run them.
+ * can be used to retrieve tasks and run them.
  */
 export interface TaskManager {
   /**

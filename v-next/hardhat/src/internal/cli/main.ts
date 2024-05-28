@@ -2,7 +2,6 @@ import { isAbsolute, resolve } from "node:path";
 
 import {
   buildGlobalParameterMap,
-  createHardhatRuntimeEnvironment,
   resolvePluginList,
 } from "@nomicfoundation/hardhat-core";
 import { ParameterType } from "@nomicfoundation/hardhat-core/types/common";
@@ -19,6 +18,7 @@ import "tsx"; // NOTE: This is important, it allows us to load .ts files form th
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { builtinPlugins } from "../builtin-plugins/index.js";
+import { getHardhatRuntimeEnvironmentSingleton } from "../hre-singleton.js";
 
 export async function main(cliArguments: string[]) {
   const hreInitStart = performance.now();
@@ -72,6 +72,7 @@ export async function main(cliArguments: string[]) {
 
   if (configPath === undefined) {
     // TODO: Find the closest config file
+    // if HARDHAT_CONFIG exists, use it
     throw new Error("Missing --config");
   }
 
@@ -79,7 +80,7 @@ export async function main(cliArguments: string[]) {
     const userConfig = await importUserConfig(configPath);
 
     const plugins = [...builtinPlugins, ...(userConfig.plugins ?? [])];
-    const resolvedPlugins = resolvePluginList(plugins);
+    const resolvedPlugins = await resolvePluginList(plugins, configPath);
 
     const globalParameterMap = buildGlobalParameterMap(resolvedPlugins);
     const userProvidedGlobalArguments = parseGlobalArguments(
@@ -88,10 +89,13 @@ export async function main(cliArguments: string[]) {
       usedCliArguments,
     );
 
-    const hre = await createHardhatRuntimeEnvironment(
+    const hre = await getHardhatRuntimeEnvironmentSingleton(
       userConfig,
       userProvidedGlobalArguments,
-      { resolvedPlugins, globalParameterMap },
+      {
+        resolvedPlugins,
+        globalParameterMap,
+      },
     );
 
     const hreInitEnd = performance.now();

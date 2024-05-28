@@ -21,7 +21,13 @@ export async function createHardhatRuntimeEnvironment(
   userProvidedGlobalArguments: Partial<GlobalArguments> = {},
 ): Promise<HardhatRuntimeEnvironment> {
   const plugins = [...builtinPlugins, ...(config.plugins ?? [])];
-  const resolvedPlugins = resolvePluginList(plugins);
+
+  // We resolve the plugins within npm modules relative to the current working
+  const basePathForNpmResolution = process.cwd();
+  const resolvedPlugins = await resolvePluginList(
+    plugins,
+    basePathForNpmResolution,
+  );
 
   return originalCreateHardhatRuntimeEnvironment(
     config,

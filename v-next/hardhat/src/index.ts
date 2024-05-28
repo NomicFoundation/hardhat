@@ -1,9 +1,8 @@
-import { createHardhatRuntimeEnvironment } from "./hre.js";
+import { getHardhatRuntimeEnvironmentSingleton } from "./internal/hre-singleton.js";
 
 // TODO:
-//  - If the HRE was already initialized in the CLI, we should use that one.
 //  - Load the config from the file system.
-const hre = await createHardhatRuntimeEnvironment({});
+const hre = await getHardhatRuntimeEnvironmentSingleton({});
 
 export const { config, tasks, globalArguments, hooks, interruptions } = hre;
 

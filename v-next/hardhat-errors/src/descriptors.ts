@@ -69,6 +69,11 @@ export const ERROR_CATEGORIES: {
     max: 1199,
     websiteTitle: "Contract name errors",
   },
+  PLUGINS: {
+    min: 1200,
+    max: 1299,
+    websiteTitle: "Plugin errors",
+  },
 };
 
 export const ERRORS = {
@@ -521,6 +526,34 @@ If you aren't overriding compilation-related tasks, please report this as a bug.
       websiteDescription: `A contract name was expected to be in fully qualified form, but it's not.
 
 A fully qualified name should look like file.sol:Contract`,
+    },
+  },
+  PLUGINS: {
+    PLUGIN_NOT_INSTALLED: {
+      number: 1200,
+      messageTemplate: 'Plugin "%pluginId%" is not installed.',
+      websiteTitle: "Plugin not installed",
+      websiteDescription: `A plugin was included in the Hardhat config but has not been installed.`,
+    },
+    PLUGIN_MISSING_DEPENDENCY: {
+      number: 1201,
+      messageTemplate:
+        'Plugin "%pluginId%" is missing a peer dependency "%peerDependencyName%".',
+      websiteTitle: "Plugin missing peer dependency",
+      websiteDescription: `A plugin's peer dependency has not been installed.`,
+    },
+    DEPENDENCY_VERSION_MISMATCH: {
+      number: 1202,
+      messageTemplate:
+        'Plugin "%pluginId%" has a peer dependency "%peerDependencyName%" with version "%installedVersion%" but version "%expectedVersion%" is needed.',
+      websiteTitle: "Dependency version mismatch",
+      websiteDescription: `A plugin's peer dependency version does not match the expected version.`,
+    },
+    PLUGIN_DEPENDENCY_FAILED_LOAD: {
+      number: 1203,
+      messageTemplate: 'Plugin "%pluginId%" dependency could not be loaded.',
+      websiteTitle: "Plugin dependency could not be loaded",
+      websiteDescription: `A plugin's dependent plugin could not be lazily loaded.`,
     },
   },
 } satisfies {

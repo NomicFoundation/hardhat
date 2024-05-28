@@ -3,7 +3,7 @@ import {
   NamedTaskParameter,
   NewTaskActionFunction,
   NewTaskDefinitionBuilder,
-  NewTaskDefintion,
+  NewTaskDefinition,
   PositionalTaskParameter,
   TaskDefinitionType,
   TaskOverrideActionFunction,
@@ -189,7 +189,7 @@ export class NewTaskDefinitionBuilderImplementation
     return this;
   }
 
-  public build(): NewTaskDefintion {
+  public build(): NewTaskDefinition {
     if (this.#action === undefined) {
       throw new Error("Missing action");
     }

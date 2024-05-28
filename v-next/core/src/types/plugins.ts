@@ -33,7 +33,7 @@ export interface HardhatPlugin {
   /**
    * An arary of plugins that this plugins depends on.
    */
-  dependencies?: HardhatPlugin[];
+  dependencies?: Array<() => Promise<HardhatPlugin>>;
 
   /**
    * An object with the different hook handlers that this plugin defines.

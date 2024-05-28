@@ -1,4 +1,5 @@
-import assert, { AssertionError } from "node:assert";
+import { AssertionError } from "node:assert";
+import assert from "node:assert/strict";
 import { rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
