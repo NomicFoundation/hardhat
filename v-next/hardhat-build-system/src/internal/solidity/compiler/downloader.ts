@@ -201,7 +201,6 @@ export class CompilerDownloader implements ICompilerDownloader {
 
           throw new HardhatError(
             HardhatError.ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED,
-            {},
             e,
           );
         }
