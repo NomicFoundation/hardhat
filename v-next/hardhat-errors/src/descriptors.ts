@@ -103,7 +103,7 @@ Note that you don't need to do this every time you install a new dependency, but
     INVALID_READ_OF_DIRECTORY: {
       number: 3,
       messageTemplate:
-        "Invalid file path %absolutePath%. Attempting to read a directory instead of a file.",
+        "Invalid file path {absolutePath}. Attempting to read a directory instead of a file.",
       websiteTitle: "Invalid read: a directory cannot be read",
       websiteDescription: `An attempt was made to read a file, but a path to a directory was provided.
 
@@ -112,7 +112,7 @@ Please double check the file path.`,
     DUPLICATED_PLUGIN_ID: {
       number: 4,
       messageTemplate:
-        'Duplicated plugin id "%id%" found. Did you install multiple versions of the same plugin?',
+        'Duplicated plugin id "{id}" found. Did you install multiple versions of the same plugin?',
       websiteTitle: "Duplicated plugin id",
       websiteDescription: `While loading the plugins, two different plugins where found with the same id.
 
@@ -148,7 +148,7 @@ Please double check whether you have multiple versions of the same plugin instal
   INTERNAL: {
     ASSERTION_ERROR: {
       number: 100,
-      messageTemplate: "An internal invariant was violated: %message%",
+      messageTemplate: "An internal invariant was violated: {message}",
       websiteTitle: "Invariant violation",
       websiteDescription: `An internal invariant was violated. This is probably caused by a programming error in Hardhat or in one of the used plugins.
 
@@ -202,7 +202,7 @@ Please ensure that an action is defined for each task.`,
     INVALID_VALUE_FOR_TYPE: {
       number: 300,
       messageTemplate:
-        "Invalid value %value% for argument %name% of type %type%",
+        "Invalid value {value} for argument {name} of type {type}",
       websiteTitle: "Invalid argument type",
       websiteDescription: `One of your Hardhat or task arguments has an invalid type.
 
@@ -236,13 +236,13 @@ Please double check your arguments.`,
   RESOLVER: {
     FILE_NOT_FOUND: {
       number: 400,
-      messageTemplate: "File %file% doesn't exist.",
+      messageTemplate: "File {file} doesn't exist.",
       websiteTitle: "Solidity file not found",
       websiteDescription: `Tried to resolve a nonexistent Solidity file as an entry-point.`,
     },
     LIBRARY_NOT_INSTALLED: {
       number: 401,
-      messageTemplate: "Library %library% is not installed.",
+      messageTemplate: "Library {library} is not installed.",
       websiteTitle: "Solidity library not installed",
       websiteDescription: `One of your Solidity sources imports a library that is not installed.
 
@@ -250,7 +250,7 @@ Please double check your imports or install the missing dependency.`,
     },
     LIBRARY_FILE_NOT_FOUND: {
       number: 402,
-      messageTemplate: "File %file% doesn't exist.",
+      messageTemplate: "File {file} doesn't exist.",
       websiteTitle: "Missing library file",
       websiteDescription: `One of your libraries' files was imported but doesn't exist.
 
@@ -258,7 +258,7 @@ Please double check your imports or update your libraries.`,
     },
     ILLEGAL_IMPORT: {
       number: 403,
-      messageTemplate: "Illegal import %imported% from %from%",
+      messageTemplate: "Illegal import {imported} from {from}",
       websiteTitle: "Illegal Solidity import",
       websiteDescription: `One of your libraries tried to use a relative import to import a file outside of its scope.
 
@@ -266,7 +266,7 @@ This is disabled for security reasons.`,
     },
     IMPORTED_FILE_NOT_FOUND: {
       number: 404,
-      messageTemplate: "File %imported%, imported from %from%, not found.",
+      messageTemplate: "File {imported}, imported from {from}, not found.",
       websiteTitle: "Imported file not found",
       websiteDescription: `One of your source files imported a nonexistent file.
 
@@ -275,7 +275,7 @@ Please double check your imports.`,
     INVALID_IMPORT_BACKSLASH: {
       number: 405,
       messageTemplate:
-        "Invalid import %imported% from %from%. Imports must use / instead of \\, even in Windows",
+        "Invalid import {imported} from {from}. Imports must use / instead of \\, even in Windows",
       websiteTitle: "Invalid import: use / instead of \\",
       websiteDescription: `A Solidity file is trying to import another file via relative path and is using backslashes (\\\\) instead of slashes (/).
 
@@ -284,7 +284,7 @@ You must always use slashes (/) in Solidity imports.`,
     INVALID_IMPORT_PROTOCOL: {
       number: 406,
       messageTemplate:
-        "Invalid import %imported% from %from%. Hardhat doesn't support imports via %protocol%.",
+        "Invalid import {imported} from {from}. Hardhat doesn't support imports via {protocol}.",
       websiteTitle: "Invalid import: trying to use an unsupported protocol",
       websiteDescription: `A Solidity file is trying to import a file using an unsupported protocol, like http.
 
@@ -293,7 +293,7 @@ You can only import files that are available locally or installed through npm.`,
     INVALID_IMPORT_ABSOLUTE_PATH: {
       number: 407,
       messageTemplate:
-        "Invalid import %imported% from %from%. Hardhat doesn't support imports with absolute paths.",
+        "Invalid import {imported} from {from}. Hardhat doesn't support imports with absolute paths.",
       websiteTitle: "Invalid import: absolute paths unsupported",
       websiteDescription: `A Solidity file is trying to import a file using its absolute path.
 
@@ -302,7 +302,7 @@ This is not supported, as it would lead to hard-to-reproduce compilations.`,
     INVALID_IMPORT_OUTSIDE_OF_PROJECT: {
       number: 408,
       messageTemplate:
-        "Invalid import %imported% from %from%. The file being imported is outside of the project",
+        "Invalid import {imported} from {from}. The file being imported is outside of the project",
       websiteTitle: "Invalid import: file outside of the project",
       websiteDescription: `A Solidity file is trying to import a file that is outside of the project.
 
@@ -311,7 +311,7 @@ This is not supported by Hardhat.`,
     INVALID_IMPORT_WRONG_CASING: {
       number: 409,
       messageTemplate:
-        "Trying to import %imported% from %from%, but it has an incorrect casing.",
+        "Trying to import {imported} from {from}, but it has an incorrect casing.",
       websiteTitle: "Invalid import: wrong file casing",
       websiteDescription: `A Solidity file is trying to import a file but its source name casing was wrong.
 
@@ -320,7 +320,7 @@ Hardhat's compiler is case sensitive to ensure projects are portable across diff
     WRONG_SOURCE_NAME_CASING: {
       number: 410,
       messageTemplate:
-        "Trying to resolve the file %incorrect% but its correct case-sensitive name is %correct%",
+        "Trying to resolve the file {incorrect} but its correct case-sensitive name is {correct}",
       websiteTitle: "Incorrect source name casing",
       websiteDescription: `You tried to resolve a Solidity file with an incorrect casing.
 
@@ -329,7 +329,7 @@ Hardhat's compiler is case sensitive to ensure projects are portable across diff
     IMPORTED_LIBRARY_NOT_INSTALLED: {
       number: 411,
       messageTemplate:
-        "The library %library%, imported from %from%, is not installed. Try installing it using npm.",
+        "The library {library}, imported from {from}, is not installed. Try installing it using npm.",
       websiteTitle: "Invalid import: library not installed",
       websiteDescription: `A Solidity file is trying to import another which belongs to a library that is not installed.
 
@@ -338,7 +338,7 @@ Try installing the library using npm.`,
     INCLUDES_OWN_PACKAGE_NAME: {
       number: 412,
       messageTemplate:
-        "Invalid import %imported% from %from%. Trying to import file using the own package's name.",
+        "Invalid import {imported} from {from}. Trying to import file using the own package's name.",
       websiteTitle: "Invalid import: includes own package's name",
       websiteDescription: `A Solidity file is trying to import another using its own package name. This is most likely caused by an existing symlink for the package in your node_modules.
 
@@ -347,7 +347,7 @@ Use a relative import instead of referencing the package's name.`,
     IMPORTED_MAPPED_FILE_NOT_FOUND: {
       number: 413,
       messageTemplate:
-        "File %importName% => %imported%, imported from %from%, not found.",
+        "File {importName} => {imported}, imported from {from}, not found.",
       websiteTitle: "Imported mapped file not found",
       websiteDescription: `One of your source files imported a nonexistent or not installed file.
 
@@ -356,7 +356,7 @@ Please double check your imports and installed libraries.`,
     INVALID_IMPORT_OF_DIRECTORY: {
       number: 414,
       messageTemplate:
-        "Invalid import %imported% from %from%. Attempting to import a directory. Directories cannot be imported.",
+        "Invalid import {imported} from {from}. Attempting to import a directory. Directories cannot be imported.",
       websiteTitle: "Invalid import: a directory cannot be imported",
       websiteDescription: `A Solidity file is attempting to import a directory, which is not possible.
 
@@ -365,7 +365,7 @@ Please double check your imports.`,
     AMBIGUOUS_SOURCE_NAMES: {
       number: 415,
       messageTemplate:
-        "Two different source names (%sourcenames%) resolve to the same file (%file%).",
+        "Two different source names ({sourcenames}) resolve to the same file ({file}).",
       websiteTitle: "Ambiguous source names",
       websiteDescription: `Two different source names map to the same file.
 
@@ -375,7 +375,7 @@ This is probably caused by multiple remappings pointing to the same source file.
   SOLC: {
     INVALID_VERSION: {
       number: 500,
-      messageTemplate: `Solidity version %version% is invalid or hasn't been released yet.
+      messageTemplate: `Solidity version {version} is invalid or hasn't been released yet.
 
 If you are certain it has been released, run "npx hardhat clean --global" and try again`,
       websiteTitle: "Invalid or unreleased `solc` version",
@@ -386,7 +386,7 @@ If you are certain it has been released, run \`npx hardhat clean --global\` and 
     DOWNLOAD_FAILED: {
       number: 501,
       messageTemplate:
-        "Couldn't download compiler version %remoteVersion%. Please check your internet connection and try again.",
+        "Couldn't download compiler version {remoteVersion}. Please check your internet connection and try again.",
       websiteTitle: "`solc` download failed",
       websiteDescription: `Couldn't download \`solc\`.
 
@@ -403,7 +403,7 @@ Please check your internet connection and try again.`,
     },
     INVALID_DOWNLOAD: {
       number: 503,
-      messageTemplate: `Couldn't download compiler version %remoteVersion%: Checksum verification failed.
+      messageTemplate: `Couldn't download compiler version {remoteVersion}: Checksum verification failed.
 
 Please check your internet connection and try again.
 
@@ -443,15 +443,15 @@ Please check Hardhat's output for more details.`,
       number: 601,
       messageTemplate: `The project cannot be compiled, see reasons below.
 
-%reasons%`,
+{reasons}`,
       websiteTitle: "The project cannot be compiled",
       websiteDescription: `The project cannot be compiled with the current settings.`,
     },
     COMPILE_TASK_UNSUPPORTED_SOLC_VERSION: {
       number: 602,
-      messageTemplate: `Version %version% is not supported by Hardhat.
+      messageTemplate: `Version {version} is not supported by Hardhat.
 
-The first supported version is %firstSupportedVersion%`,
+The first supported version is {firstSupportedVersion}`,
       websiteTitle: "Unsupported solc version",
       websiteDescription: `This version of solidity is not supported by Hardhat.
 Please use a newer, supported version.`,
@@ -462,7 +462,7 @@ Please use a newer, supported version.`,
     NOT_FOUND: {
       number: 700,
       messageTemplate:
-        'Artifact for contract "%contractName%" not found. %suggestion%',
+        'Artifact for contract "{contractName}" not found. {suggestion}',
       websiteTitle: "Artifact not found",
       websiteDescription: `Tried to import a nonexistent artifact.
 
@@ -470,11 +470,11 @@ Please double check that your contracts have been compiled and double check your
     },
     MULTIPLE_FOUND: {
       number: 701,
-      messageTemplate: `There are multiple artifacts for contract "%contractName%", please use a fully qualified name.
+      messageTemplate: `There are multiple artifacts for contract "{contractName}", please use a fully qualified name.
 
-Please replace %contractName% for one of these options wherever you are trying to read its artifact:
+Please replace {contractName} for one of these options wherever you are trying to read its artifact:
 
-%candidates%
+{candidates}
 `,
       websiteTitle: "Multiple artifacts found",
       websiteDescription: `There are multiple artifacts that match the given contract name, and Hardhat doesn't know which one to use.
@@ -484,7 +484,7 @@ Please use the fully qualified name of the contract to disambiguate it.`,
     WRONG_CASING: {
       number: 702,
       messageTemplate:
-        "Invalid artifact path %incorrect%, its correct case-sensitive path is %correct%",
+        "Invalid artifact path {incorrect}, its correct case-sensitive path is {correct}",
       websiteTitle: "Incorrect artifact path casing",
       websiteDescription: `You tried to get an artifact file with an incorrect casing.
 
@@ -496,7 +496,7 @@ Hardhat's artifact resolution is case sensitive to ensure projects are portable 
     INVALID_SOURCE_NAME_ABSOLUTE_PATH: {
       number: 1000,
       messageTemplate:
-        "Invalid source name %name%. Expected source name but found an absolute path.",
+        "Invalid source name {name}. Expected source name but found an absolute path.",
       websiteTitle: "Invalid source name: absolute path",
       websiteDescription: `A Solidity source name was expected, but an absolute path was given.
 
@@ -506,7 +506,7 @@ If you aren't overriding compilation-related tasks, please report this as a bug.
     INVALID_SOURCE_NAME_RELATIVE_PATH: {
       number: 1001,
       messageTemplate:
-        "Invalid source name %name%. Expected source name but found a relative path.",
+        "Invalid source name {name}. Expected source name but found a relative path.",
       websiteTitle: "Invalid source name: relative path",
       websiteDescription: `A Solidity source name was expected, but a relative path was given.
 
@@ -516,7 +516,7 @@ If you aren't overriding compilation-related tasks, please report this as a bug.
     INVALID_SOURCE_NAME_BACKSLASHES: {
       number: 1002,
       messageTemplate:
-        "Invalid source %name%. The source name uses backslashes (\\) instead of slashes (/).",
+        "Invalid source {name}. The source name uses backslashes (\\) instead of slashes (/).",
       websiteTitle: "Invalid source name: backslashes",
       websiteDescription: `A Solidity source name was invalid because it uses backslashes (\\\\) instead of slashes (/).
 
@@ -526,7 +526,7 @@ If you aren't overriding compilation-related tasks, please report this as a bug.
     INVALID_SOURCE_NOT_NORMALIZED: {
       number: 1003,
       messageTemplate:
-        "Invalid source name %name%. Source names must be normalized",
+        "Invalid source name {name}. Source names must be normalized",
       websiteTitle: "Invalid source name: not normalized",
       websiteDescription: `A Solidity source name was invalid because it wasn't normalized. It probably contains some "." or "..".
 
@@ -536,7 +536,7 @@ If you aren't overriding compilation-related tasks, please report this as a bug.
     WRONG_CASING: {
       number: 1004,
       messageTemplate:
-        "Invalid source map %incorrect%, its correct case-sensitive source name is %correct%",
+        "Invalid source map {incorrect}, its correct case-sensitive source name is {correct}",
       websiteTitle: "Incorrect source name casing",
       websiteDescription: `You tried to resolve a Solidity file with an incorrect casing.
 
@@ -545,7 +545,7 @@ Hardhat's compiler is case sensitive to ensure projects are portable across diff
     },
     FILE_NOT_FOUND: {
       number: 1005,
-      messageTemplate: "Solidity source file %name% not found",
+      messageTemplate: "Solidity source file {name} not found",
       websiteTitle: "Solidity source file not found",
       websiteDescription: `A source name should correspond to an existing Solidity file but it doesn't.
 
@@ -555,7 +555,7 @@ Hardhat's compiler is case sensitive to ensure projects are portable across diff
     NODE_MODULES_AS_LOCAL: {
       number: 1006,
       messageTemplate:
-        "The file %path% is treated as local but is inside a node_modules directory",
+        "The file {path} is treated as local but is inside a node_modules directory",
       websiteTitle: "File from node_modules treated as local",
       websiteDescription: `A file was treated as local but is inside a node_modules directory.
 
@@ -565,7 +565,7 @@ If you aren't overriding compilation-related tasks, please report this as a bug.
     EXTERNAL_AS_LOCAL: {
       number: 1007,
       messageTemplate:
-        "The file %path% is treated as local but is outside the project",
+        "The file {path} is treated as local but is outside the project",
       websiteTitle: "File from outside the project treated as local",
       websiteDescription: `A file was treated as local but is outside the project.
 
@@ -576,7 +576,7 @@ If you aren't overriding compilation-related tasks, please report this as a bug.
   CONTRACT_NAMES: {
     INVALID_FULLY_QUALIFIED_NAME: {
       number: 1100,
-      messageTemplate: "Invalid fully qualified contract name %name%.",
+      messageTemplate: "Invalid fully qualified contract name {name}.",
       websiteTitle: "Invalid fully qualified contract name",
       websiteDescription: `A contract name was expected to be in fully qualified form, but it's not.
 
@@ -586,27 +586,27 @@ A fully qualified name should look like file.sol:Contract`,
   PLUGINS: {
     PLUGIN_NOT_INSTALLED: {
       number: 1200,
-      messageTemplate: 'Plugin "%pluginId%" is not installed.',
+      messageTemplate: 'Plugin "{pluginId}" is not installed.',
       websiteTitle: "Plugin not installed",
       websiteDescription: `A plugin was included in the Hardhat config but has not been installed.`,
     },
     PLUGIN_MISSING_DEPENDENCY: {
       number: 1201,
       messageTemplate:
-        'Plugin "%pluginId%" is missing a peer dependency "%peerDependencyName%".',
+        'Plugin "{pluginId}" is missing a peer dependency "{peerDependencyName}".',
       websiteTitle: "Plugin missing peer dependency",
       websiteDescription: `A plugin's peer dependency has not been installed.`,
     },
     DEPENDENCY_VERSION_MISMATCH: {
       number: 1202,
       messageTemplate:
-        'Plugin "%pluginId%" has a peer dependency "%peerDependencyName%" with version "%installedVersion%" but version "%expectedVersion%" is needed.',
+        'Plugin "{pluginId}" has a peer dependency "{peerDependencyName}" with version "{installedVersion}" but version "{expectedVersion}" is needed.',
       websiteTitle: "Dependency version mismatch",
       websiteDescription: `A plugin's peer dependency version does not match the expected version.`,
     },
     PLUGIN_DEPENDENCY_FAILED_LOAD: {
       number: 1203,
-      messageTemplate: 'Plugin "%pluginId%" dependency could not be loaded.',
+      messageTemplate: 'Plugin "{pluginId}" dependency could not be loaded.',
       websiteTitle: "Plugin dependency could not be loaded",
       websiteDescription: `A plugin's dependent plugin could not be lazily loaded.`,
     },
