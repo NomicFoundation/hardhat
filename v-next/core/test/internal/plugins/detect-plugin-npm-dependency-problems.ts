@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { validatePluginNpmDependencies } from "../../../src/internal/plugins/plugin-validation.js";
+import { detectPluginNpmDependencyProblems } from "../../../src/internal/plugins/detect-plugin-npm-dependency-problems.js";
 import { HardhatPlugin } from "../../../src/types/plugins.js";
 
-describe("Plugins - plugin validation", () => {
+describe("Plugins - detect npm dependency problems", () => {
   const plugin: HardhatPlugin = {
     id: "example-plugin",
     npmPackage: "example",
@@ -16,7 +16,7 @@ describe("Plugins - plugin validation", () => {
     );
 
     await assert.doesNotReject(async () =>
-      validatePluginNpmDependencies(
+      detectPluginNpmDependencyProblems(
         {
           ...plugin,
           npmPackage: undefined,
@@ -33,7 +33,10 @@ describe("Plugins - plugin validation", () => {
       );
 
       await assert.doesNotReject(async () =>
-        validatePluginNpmDependencies(plugin, installedPackageProjectFixture),
+        detectPluginNpmDependencyProblems(
+          plugin,
+          installedPackageProjectFixture,
+        ),
       );
     });
 
@@ -44,7 +47,7 @@ describe("Plugins - plugin validation", () => {
 
       await assert.rejects(
         async () =>
-          validatePluginNpmDependencies(
+          detectPluginNpmDependencyProblems(
             plugin,
             nonInstalledPackageProjectFixture,
           ),
@@ -64,7 +67,7 @@ describe("Plugins - plugin validation", () => {
         );
 
         await assert.doesNotReject(async () =>
-          validatePluginNpmDependencies(plugin, installedPeerDepsFixture),
+          detectPluginNpmDependencyProblems(plugin, installedPeerDepsFixture),
         );
       });
 
@@ -74,7 +77,7 @@ describe("Plugins - plugin validation", () => {
         );
 
         await assert.rejects(
-          validatePluginNpmDependencies(plugin, notInstalledPeerDepFixture),
+          detectPluginNpmDependencyProblems(plugin, notInstalledPeerDepFixture),
           {
             name: "HardhatError",
             message:
@@ -91,7 +94,7 @@ describe("Plugins - plugin validation", () => {
         );
 
         await assert.doesNotReject(async () =>
-          validatePluginNpmDependencies(plugin, installedPeerDepsFixture),
+          detectPluginNpmDependencyProblems(plugin, installedPeerDepsFixture),
         );
       });
     });
@@ -105,7 +108,10 @@ describe("Plugins - plugin validation", () => {
 
       await assert.rejects(
         async () =>
-          validatePluginNpmDependencies(plugin, peerDepWithWrongVersionFixture),
+          detectPluginNpmDependencyProblems(
+            plugin,
+            peerDepWithWrongVersionFixture,
+          ),
         {
           name: "HardhatError",
           message:
