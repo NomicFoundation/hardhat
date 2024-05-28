@@ -1,3 +1,8 @@
+import {
+  HardhatError,
+  assertHardhatInvariant,
+} from "@nomicfoundation/hardhat-errors";
+
 import { GlobalParameterMap } from "../../types/global-parameters.js";
 import { HardhatRuntimeEnvironment } from "../../types/hre.js";
 import {
@@ -10,7 +15,7 @@ import {
 } from "../../types/tasks.js";
 
 import { ResolvedTask } from "./resolved-task.js";
-import { formatTaskId } from "./utils.js";
+import { formatTaskId, getActorFragment } from "./utils.js";
 
 export class TaskManagerImplementation implements TaskManager {
   readonly #hre: HardhatRuntimeEnvironment;
@@ -22,6 +27,7 @@ export class TaskManagerImplementation implements TaskManager {
   ) {
     this.#hre = hre;
 
+    // reduce plugin tasks
     for (const plugin of this.#hre.config.plugins) {
       if (plugin.tasks === undefined) {
         continue;
@@ -36,6 +42,7 @@ export class TaskManagerImplementation implements TaskManager {
       }
     }
 
+    // reduce global user defined tasks
     for (const taskDefinition of this.#hre.config.tasks) {
       this.#reduceTaskDefinition(globalParameterIndex, taskDefinition);
     }
@@ -43,22 +50,26 @@ export class TaskManagerImplementation implements TaskManager {
 
   public getTask(taskId: string | string[]): Task {
     taskId = Array.isArray(taskId) ? taskId : [taskId];
-
     if (taskId.length === 0) {
-      throw new Error(`Invalid task id "${formatTaskId(taskId)}"`);
+      throw new HardhatError(
+        HardhatError.ERRORS.TASK_DEFINITIONS.TASK_NOT_FOUND,
+        {
+          id: formatTaskId(taskId),
+        },
+      );
     }
 
     let tasks = this.#rootTasks;
-    let task: Task;
-
+    let task: Task | undefined;
     for (let i = 0; i < taskId.length; i++) {
       const idFragment = taskId[i];
-
       const currentTask = tasks.get(idFragment);
-
       if (currentTask === undefined) {
-        throw new Error(
-          `Task "${formatTaskId(taskId.slice(0, i + 1))}" not found.`,
+        throw new HardhatError(
+          HardhatError.ERRORS.TASK_DEFINITIONS.TASK_NOT_FOUND,
+          {
+            id: formatTaskId(taskId.slice(0, i + 1)),
+          },
         );
       }
 
@@ -66,52 +77,55 @@ export class TaskManagerImplementation implements TaskManager {
       tasks = task.subtasks;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- Can't be undefined as we set it in the non-empty loop.
-    return task!;
+    // task can't be undefined as we set it in the non-empty loop
+    assertHardhatInvariant(task !== undefined, "Task not found");
+
+    return task;
   }
 
   #insertTask(taskId: string[], task: Task, pluginId?: string) {
     if (taskId.length === 0) {
-      throw new Error(`Invalid task id "${formatTaskId(taskId)}"`);
+      throw new HardhatError(
+        HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+      );
     }
 
+    // Traverse all the parent tasks to check that they exist
     let tasks = this.#rootTasks;
-
     for (let i = 0; i < taskId.length - 1; i++) {
       const idFragment = taskId[i];
-
       const currentTask = tasks.get(idFragment);
-
       if (currentTask === undefined) {
-        throw new Error(
-          `Task "${formatTaskId(taskId.slice(0, i + 1))}" not found and trying to define subtask "${formatTaskId(taskId)}". Define an empty task if you just want to define subtasks`,
+        throw new HardhatError(
+          HardhatError.ERRORS.TASK_DEFINITIONS.SUBTASK_WITHOUT_PARENT,
+          {
+            task: formatTaskId(taskId.slice(0, i + 1)),
+            subtask: formatTaskId(taskId),
+          },
         );
       }
 
       tasks = currentTask.subtasks;
     }
 
-    const existingTask = tasks.get(taskId[taskId.length - 1]);
-
-    if (existingTask === undefined) {
-      tasks.set(taskId[taskId.length - 1], task);
-      return;
-    }
-
-    const definedByMessage =
-      existingTask.pluginId !== undefined
-        ? ` by plugin ${existingTask.pluginId}`
-        : "";
-
-    if (pluginId !== undefined) {
-      throw new Error(
-        `Plugin ${pluginId} is trying to define the task "${formatTaskId(taskId)}" but it is already defined${definedByMessage}`,
+    // Check that the task doesn't already exist
+    const lastIdFragment = taskId[taskId.length - 1];
+    const existingTask = tasks.get(lastIdFragment);
+    if (existingTask !== undefined) {
+      const exPluginId = existingTask.pluginId;
+      throw new HardhatError(
+        HardhatError.ERRORS.TASK_DEFINITIONS.TASK_ALREADY_DEFINED,
+        {
+          actorFragment: getActorFragment(pluginId),
+          task: formatTaskId(taskId),
+          definedByFragment:
+            exPluginId !== undefined ? ` by plugin ${exPluginId}` : "",
+        },
       );
     }
 
-    throw new Error(
-      `You are trying to defined the task "${formatTaskId(taskId)}" is already defined${definedByMessage}`,
-    );
+    // Insert the task
+    tasks.set(lastIdFragment, task);
   }
 
   #reduceTaskDefinition(
@@ -159,6 +173,7 @@ export class TaskManagerImplementation implements TaskManager {
         );
 
         this.#processTaskOverride(taskDefinition);
+        break;
       }
     }
   }
@@ -170,17 +185,16 @@ export class TaskManagerImplementation implements TaskManager {
   ) {
     for (const namedParamName of Object.keys(taskDefinition.namedParameters)) {
       const globalParamEntry = globalParameterIndex.get(namedParamName);
-
       if (globalParamEntry !== undefined) {
-        if (pluginId === undefined) {
-          throw new Error(
-            `Trying to define task "${formatTaskId(taskDefinition.id)}" with the named parameter ${namedParamName} but it is already defined as a global parameter by plugin ${globalParamEntry.pluginId}`,
-          );
-        } else {
-          throw new Error(
-            `Plugin ${pluginId} trying to define task "${formatTaskId(taskDefinition.id)}" with the named parameter ${namedParamName} but it is already defined as a global parameter by plugin ${globalParamEntry.pluginId}`,
-          );
-        }
+        throw new HardhatError(
+          HardhatError.ERRORS.TASK_DEFINITIONS.TASK_PARAMETER_ALREADY_DEFINED,
+          {
+            actorFragment: getActorFragment(pluginId),
+            task: formatTaskId(taskDefinition.id),
+            namedParamName,
+            globalParamPluginId: globalParamEntry.pluginId,
+          },
+        );
       }
     }
   }
@@ -190,34 +204,21 @@ export class TaskManagerImplementation implements TaskManager {
     pluginId?: string,
   ) {
     const task = this.getTask(taskDefinition.id);
-    if (task === undefined) {
-      if (pluginId !== undefined) {
-        throw new Error(
-          `Plugin ${pluginId} is trying to override the task "${formatTaskId(taskDefinition.id)}" but it hasn't been defined`,
-        );
-      } else {
-        throw new Error(
-          `Trying to override the task "${formatTaskId(taskDefinition.id)}" but it hasn't been defined`,
+    for (const [namedParamName, namedParamValue] of Object.entries(
+      taskDefinition.namedParameters,
+    )) {
+      if (task.namedParameters.has(namedParamName)) {
+        throw new HardhatError(
+          HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_PARAMETER_ALREADY_DEFINED,
+          {
+            actorFragment: getActorFragment(pluginId),
+            namedParamName,
+            task: formatTaskId(taskDefinition.id),
+          },
         );
       }
-    }
 
-    for (const paramName of Object.keys(taskDefinition.namedParameters)) {
-      if (task.namedParameters.has(paramName)) {
-        if (pluginId !== undefined) {
-          throw new Error(
-            `Plugin ${pluginId} is trying to override the named parameter ${paramName} of the task "${formatTaskId(taskDefinition.id)}" but it is already defined`,
-          );
-        } else {
-          throw new Error(
-            `Trying to override the named parameter ${paramName} of the task "${formatTaskId(taskDefinition.id)}" but it is already defined`,
-          );
-        }
-      }
-    }
-
-    for (const namedParam of Object.values(taskDefinition.namedParameters)) {
-      task.namedParameters.set(namedParam.name, namedParam);
+      task.namedParameters.set(namedParamName, namedParamValue);
     }
 
     if (taskDefinition.description !== undefined) {

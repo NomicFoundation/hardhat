@@ -197,6 +197,51 @@ Please ensure that an action is defined for each task.`,
       websiteDescription:
         "Required positional parameters must be defined before optional ones in a task definition.",
     },
+    TASK_NOT_FOUND: {
+      number: 205,
+      messageTemplate: "Task %task% not found",
+      websiteTitle: "Task not found",
+      websiteDescription: "The provided task name does not match any task.",
+    },
+    SUBTASK_WITHOUT_PARENT: {
+      number: 206,
+      messageTemplate:
+        "Task %task% not found when attempting to define subtask %subtask%. If you intend to only define subtasks, please first define %task% as an empty task",
+      websiteTitle: "Subtask without parent",
+      websiteDescription:
+        "The parent task of the subtask being defined was not found. If you intend to only define subtasks, please first define the parent task as an empty task.",
+    },
+    TASK_ALREADY_DEFINED: {
+      number: 207,
+      messageTemplate:
+        "%actorFragment% trying to define the task %task% but it is already defined%definedByFragment%",
+      websiteTitle: "Task already defined",
+      websiteDescription:
+        "The task is already defined. Please ensure that tasks are uniquely named to avoid conflicts.",
+    },
+    EMPTY_TASK_ID: {
+      number: 208,
+      messageTemplate: "Task id cannot be an empty string or an empty array",
+      websiteTitle: "Empty task id",
+      websiteDescription:
+        "The task id cannot be an empty string or an empty array. Please ensure that the array of task names is not empty.",
+    },
+    TASK_PARAMETER_ALREADY_DEFINED: {
+      number: 209,
+      messageTemplate:
+        "%actorFragment% trying to define task %task% with the named parameter %namedParamName% but it is already defined as a global parameter by plugin %globalParamPluginId%",
+      websiteTitle: "Task parameter already defined",
+      websiteDescription:
+        "The task named parameter is already defined as a global parameter by another plugin. Please ensure that task parameters are uniquely named to avoid conflicts.",
+    },
+    TASK_OVERRIDE_PARAMETER_ALREADY_DEFINED: {
+      number: 210,
+      messageTemplate:
+        "%actorFragment% trying to override the named parameter %namedParamName% of the task %task% but it is already defined",
+      websiteTitle: "Task override parameter already defined",
+      websiteDescription:
+        "An attempt is being made to override a named parameter that has already been defined. Please ensure that the parameter is not defined before trying to override it.",
+    },
   },
   ARGUMENTS: {
     INVALID_VALUE_FOR_TYPE: {
