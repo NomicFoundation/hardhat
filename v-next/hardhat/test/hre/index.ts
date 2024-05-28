@@ -4,7 +4,10 @@ import { describe, it } from "node:test";
 import { createHardhatRuntimeEnvironment } from "../../src/hre.js";
 import { builtinPlugins } from "../../src/internal/builtin-plugins/index.js";
 import { resolveConfigPath } from "../../src/internal/helpers/config-loading.js";
-import { getHardhatRuntimeEnvironmentSingleton } from "../../src/internal/hre-singleton.js";
+import {
+  getHardhatRuntimeEnvironmentSingleton,
+  resetHardhatRuntimeEnvironmentSingleton,
+} from "../../src/internal/hre-singleton.js";
 import { useFixtureProject } from "../helpers/project.js";
 
 describe("HRE", () => {
@@ -13,6 +16,8 @@ describe("HRE", () => {
       const hre = await createHardhatRuntimeEnvironment({});
 
       assert.deepEqual(hre.config.plugins, builtinPlugins);
+
+      resetHardhatRuntimeEnvironmentSingleton();
     });
   });
 
@@ -32,22 +37,24 @@ describe("HRE", () => {
         { id: "custom task" },
       );
       assert.deepEqual(hre1, hre2);
+
+      resetHardhatRuntimeEnvironmentSingleton();
     });
   });
 
   describe("config loading", () => {
     describe("resolveConfigPath", async () => {
       it("should return the HARDHAT_CONFIG env variable if it is set", async () => {
-        process.env.HARDHAT_CONFIG = "hardhat.config.js";
+        process.env.HARDHAT_CONFIG = "env.config.js";
 
-        assert.equal(await resolveConfigPath(), "hardhat.config.js");
+        assert.equal(await resolveConfigPath(), "env.config.js");
 
         delete process.env.HARDHAT_CONFIG;
       });
 
       it("should throw if the config file is not found", async () => {
         await assert.rejects(resolveConfigPath(), {
-          message: "No Hardhat config file found",
+          message: "HHE5: No Hardhat config file found",
         });
       });
 
@@ -96,18 +103,15 @@ describe("HRE", () => {
       });
     });
 
-    // This test works individually but fails when running all tests
-    // due to the hre singleton being used in tests above.
-    // ESM modules cache is not accessible like `require.cache` in CJS,
-    // so a workaround is needed.
-    // TODO: Fix this test
-    describe.skip("programmatic API", () => {
+    describe("programmatic API", () => {
       useFixtureProject("loaded-config");
 
       it("should load the config file", async () => {
         const hre = await import("../../src/index.js");
 
         assert.deepEqual(hre.config.plugins, [{ id: "test-plugin" }]);
+
+        resetHardhatRuntimeEnvironmentSingleton();
       });
     });
   });

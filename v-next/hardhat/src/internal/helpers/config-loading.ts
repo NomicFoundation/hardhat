@@ -1,21 +1,25 @@
 import { isAbsolute, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { findUp } from "@nomicfoundation/hardhat-utils/fs";
 
+import { ERRORS } from "../../../../hardhat-errors/src/descriptors.js";
+
 async function findClosestHardhatConfig(): Promise<string> {
-  let hardhatConfigPath = await findUp("hardhat.config.js");
+  let hardhatConfigPath = await findUp("hardhat.config.ts");
 
   if (hardhatConfigPath !== undefined) {
     return hardhatConfigPath;
   }
 
-  hardhatConfigPath = await findUp("hardhat.config.ts");
+  hardhatConfigPath = await findUp("hardhat.config.js");
 
   if (hardhatConfigPath !== undefined) {
     return hardhatConfigPath;
   }
 
-  throw new Error("No Hardhat config file found");
+  throw new HardhatError(ERRORS.GENERAL.NO_CONFIG_FILE_FOUND);
 }
 
 export async function resolveConfigPath(): Promise<string> {
@@ -36,19 +40,22 @@ export async function importUserConfig(configPath: string) {
   const { exists } = await import("@nomicfoundation/hardhat-utils/fs");
 
   if (!(await exists(normalizedPath))) {
-    throw new Error(`Config file ${configPath} not found`);
+    throw new HardhatError(ERRORS.GENERAL.INVALID_CONFIG_PATH, { configPath });
   }
 
-  const imported = await import(normalizedPath);
+  console.log("also here", pathToFileURL(normalizedPath).href);
+  const imported = await import(pathToFileURL(normalizedPath).href);
 
   if (!("default" in imported)) {
-    throw new Error(`No config exported in ${configPath}`);
+    throw new HardhatError(ERRORS.GENERAL.NO_CONFIG_EXPORTED, { configPath });
   }
 
   const config = imported.default;
 
   if (typeof config !== "object" || config === null) {
-    throw new Error(`Invalid config exported in ${configPath}`);
+    throw new HardhatError(ERRORS.GENERAL.INVALID_CONFIG_OBJECT, {
+      configPath,
+    });
   }
 
   return config;

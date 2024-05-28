@@ -1,8 +1,7 @@
-import fsPromises from "node:fs/promises";
 import path from "node:path";
 import { before, after } from "node:test";
 
-import { exists } from "@nomicfoundation/hardhat-utils/fs";
+import { exists, getRealPath } from "@nomicfoundation/hardhat-utils/fs";
 
 /**
  * This helper adds mocha hooks to run the tests inside one of the projects
@@ -49,19 +48,4 @@ async function getFixtureProjectPath(
   }
 
   return getRealPath(projectPath);
-}
-
-/**
- * Returns the real path of absolutePath, resolving symlinks.
- *
- * @throws Error if absolutePath doesn't exist.
- */
-async function getRealPath(absolutePath: string): Promise<string> {
-  try {
-    // This method returns the actual casing.
-    // Please read Node.js' docs to learn more.
-    return await fsPromises.realpath(path.normalize(absolutePath));
-  } catch {
-    throw new Error(`Invalid directory ${absolutePath}`);
-  }
 }
