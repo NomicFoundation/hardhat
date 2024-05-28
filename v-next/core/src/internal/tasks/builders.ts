@@ -1,16 +1,25 @@
-import { ParameterType } from "../../types/common.js";
-import {
+import type { ParameterTypeToValueType } from "../../types/common.js";
+import type {
   NamedTaskParameter,
   NewTaskActionFunction,
   NewTaskDefinitionBuilder,
   NewTaskDefinition,
   PositionalTaskParameter,
-  TaskDefinitionType,
   TaskOverrideActionFunction,
   TaskOverrideDefinitionBuilder,
   TaskOverrideDefinition,
 } from "../../types/tasks.js";
-import { isValidParamNameCasing } from "../parameters.js";
+
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
+import { ParameterType, isParameterValueValid } from "../../types/common.js";
+import { TaskDefinitionType } from "../../types/tasks.js";
+import {
+  RESERVED_PARAMETER_NAMES,
+  isValidParamNameCasing,
+} from "../parameters.js";
+
+import { formatTaskId, isValidActionUrl } from "./utils.js";
 
 export class NewTaskDefinitionBuilderImplementation
   implements NewTaskDefinitionBuilder
@@ -36,10 +45,13 @@ export class NewTaskDefinitionBuilderImplementation
   }
 
   public setAction(action: NewTaskActionFunction | string): this {
-    if (typeof action === "string") {
-      if (!action.startsWith("file://") || action === "file://") {
-        throw new Error("Invalid action file URL");
-      }
+    if (typeof action === "string" && !isValidActionUrl(action)) {
+      throw new HardhatError(
+        HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
+        {
+          action,
+        },
+      );
     }
 
     this.#action = action;
@@ -47,34 +59,57 @@ export class NewTaskDefinitionBuilderImplementation
     return this;
   }
 
-  public addNamedParameter({
+  public addNamedParameter<T extends ParameterType>({
     name,
     description = "",
-    type = ParameterType.STRING,
+    type,
     defaultValue,
   }: {
     name: string;
     description?: string;
-    type?: ParameterType;
-    defaultValue?: any;
+    type?: T;
+    defaultValue?: ParameterTypeToValueType<T>;
   }): this {
+    const parameterType = type ?? ParameterType.STRING;
+
     if (!isValidParamNameCasing(name)) {
-      throw new Error("Invalid param name");
+      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
+        name,
+      });
     }
 
     if (this.#usedNames.has(name)) {
-      throw new Error(`Parameter ${name} already exists`);
+      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
+        name,
+      });
+    }
+
+    if (RESERVED_PARAMETER_NAMES.has(name)) {
+      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
+        name,
+      });
+    }
+
+    if (
+      defaultValue !== undefined &&
+      !isParameterValueValid(parameterType, defaultValue)
+    ) {
+      throw new HardhatError(
+        HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+        {
+          value: defaultValue,
+          name: "defaultValue",
+          type: parameterType,
+        },
+      );
     }
 
     this.#usedNames.add(name);
 
-    // TODO: Validate that default value matches with type
-    // TODO: Validate that the name is not one of the reserved ones in parameters.ts
-
     this.#namedParams[name] = {
       name,
       description,
-      parameterType: type,
+      parameterType,
       defaultValue,
     };
 
@@ -89,109 +124,51 @@ export class NewTaskDefinitionBuilderImplementation
     });
   }
 
-  public addPositionalParameter({
+  public addPositionalParameter<T extends ParameterType>({
     name,
-    description = "",
-    type = ParameterType.STRING,
+    description,
+    type,
     defaultValue,
   }: {
     name: string;
     description?: string;
-    type?: ParameterType;
-    defaultValue?: any;
+    type?: T;
+    defaultValue?: ParameterTypeToValueType<T>;
   }): this {
-    if (!isValidParamNameCasing(name)) {
-      throw new Error("Invalid param name");
-    }
-
-    if (this.#usedNames.has(name)) {
-      throw new Error(`Parameter ${name} already exists`);
-    }
-
-    this.#usedNames.add(name);
-
-    if (this.#positionalParams.length > 0) {
-      const lastParam =
-        this.#positionalParams[this.#positionalParams.length - 1];
-
-      if (lastParam.isVariadic) {
-        throw new Error("Cannot add positional param after variadic param");
-      }
-
-      if (lastParam.defaultValue !== undefined && defaultValue === undefined) {
-        throw new Error(
-          "Cannot add required positional param after an optional one",
-        );
-      }
-    }
-
-    // TODO: Validate default value matches with type
-    // TODO: Validate that the name is not one of the reserved ones in parameters.ts
-
-    this.#positionalParams.push({
+    return this.#addPositionalParameter({
       name,
       description,
-      parameterType: type,
+      type,
       defaultValue,
       isVariadic: false,
     });
-
-    return this;
   }
 
-  public addVariadicParameter({
+  public addVariadicParameter<T extends ParameterType>({
     name,
-    description = "",
-    type = ParameterType.STRING,
+    description,
+    type,
     defaultValue,
   }: {
     name: string;
     description?: string;
-    type?: ParameterType;
-    defaultValue?: any[];
+    type?: T;
+    defaultValue?: Array<ParameterTypeToValueType<T>>;
   }): this {
-    if (!isValidParamNameCasing(name)) {
-      throw new Error("Invalid param name");
-    }
-
-    if (this.#usedNames.has(name)) {
-      throw new Error(`Parameter ${name} already exists`);
-    }
-
-    this.#usedNames.add(name);
-
-    if (this.#positionalParams.length > 0) {
-      const lastParam =
-        this.#positionalParams[this.#positionalParams.length - 1];
-
-      if (lastParam.isVariadic) {
-        throw new Error("Cannot add positional param after variadic param");
-      }
-
-      if (lastParam.defaultValue !== undefined && defaultValue === undefined) {
-        throw new Error(
-          "Cannot add required positional param after an optional one",
-        );
-      }
-    }
-
-    // TODO: Validate default value is an array where each element matches with type
-    // TODO: Validate that the name is not one of the reserved ones in parameters.ts
-
-    this.#positionalParams.push({
+    return this.#addPositionalParameter({
       name,
       description,
-      parameterType: type,
+      type,
       defaultValue,
       isVariadic: true,
     });
-
-    return this;
   }
 
   public build(): NewTaskDefinition {
     if (this.#action === undefined) {
-      throw new Error("Missing action");
+      throw new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.NO_ACTION, {
+        task: formatTaskId(this.#id),
+      });
     }
 
     return {
@@ -203,15 +180,112 @@ export class NewTaskDefinitionBuilderImplementation
       positionalParameters: this.#positionalParams,
     };
   }
+
+  #addPositionalParameter<T extends ParameterType>({
+    name,
+    description = "",
+    type,
+    defaultValue,
+    isVariadic,
+  }: {
+    name: string;
+    description?: string;
+    type?: T;
+    defaultValue?:
+      | ParameterTypeToValueType<T>
+      | Array<ParameterTypeToValueType<T>>;
+    isVariadic: boolean;
+  }): this {
+    const parameterType = type ?? ParameterType.STRING;
+
+    if (!isValidParamNameCasing(name)) {
+      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
+        name,
+      });
+    }
+
+    if (this.#usedNames.has(name)) {
+      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
+        name,
+      });
+    }
+
+    if (RESERVED_PARAMETER_NAMES.has(name)) {
+      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
+        name,
+      });
+    }
+
+    if (defaultValue !== undefined) {
+      let isValid = true;
+
+      if (Array.isArray(defaultValue)) {
+        isValid =
+          isVariadic &&
+          defaultValue.every((v) => isParameterValueValid(parameterType, v));
+      } else {
+        isValid = isParameterValueValid(parameterType, defaultValue);
+      }
+
+      if (!isValid) {
+        throw new HardhatError(
+          HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+          {
+            value: defaultValue,
+            name: "defaultValue",
+            type: parameterType,
+          },
+        );
+      }
+    }
+
+    if (this.#positionalParams.length > 0) {
+      const lastParam =
+        this.#positionalParams[this.#positionalParams.length - 1];
+
+      if (lastParam.isVariadic) {
+        throw new HardhatError(
+          HardhatError.ERRORS.TASK_DEFINITIONS.POSITIONAL_PARAM_AFTER_VARIADIC,
+          {
+            name,
+          },
+        );
+      }
+
+      if (lastParam.defaultValue !== undefined && defaultValue === undefined) {
+        throw new HardhatError(
+          HardhatError.ERRORS.TASK_DEFINITIONS.REQUIRED_PARAM_AFTER_OPTIONAL,
+          {
+            name,
+          },
+        );
+      }
+    }
+
+    this.#usedNames.add(name);
+
+    this.#positionalParams.push({
+      name,
+      description,
+      parameterType,
+      defaultValue,
+      isVariadic,
+    });
+
+    return this;
+  }
 }
 
 export class TaskOverrideDefinitionBuilderImplementation
   implements TaskOverrideDefinitionBuilder
 {
   readonly #id: string[];
+
   readonly #namedParams: Record<string, NamedTaskParameter> = {};
-  #action?: TaskOverrideActionFunction | string;
+
   #description?: string;
+
+  #action?: TaskOverrideActionFunction | string;
 
   constructor(id: string | string[]) {
     this.#id = Array.isArray(id) ? id : [id];
@@ -222,32 +296,70 @@ export class TaskOverrideDefinitionBuilderImplementation
     return this;
   }
 
-  public addNamedParameter({
+  public setAction(action: TaskOverrideActionFunction | string): this {
+    if (typeof action === "string" && !isValidActionUrl(action)) {
+      throw new HardhatError(
+        HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
+        {
+          action,
+        },
+      );
+    }
+
+    this.#action = action;
+
+    return this;
+  }
+
+  public addNamedParameter<T extends ParameterType>({
     name,
     description = "",
-    type = ParameterType.STRING,
+    type,
     defaultValue,
   }: {
     name: string;
     description?: string;
-    type?: ParameterType;
-    defaultValue: any;
+    type?: T;
+    defaultValue?: ParameterTypeToValueType<T>;
   }): this {
+    const parameterType = type ?? ParameterType.STRING;
+
     if (!isValidParamNameCasing(name)) {
-      throw new Error("Invalid param name");
+      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
+        name,
+      });
     }
 
     if (name in this.#namedParams) {
-      throw new Error(`Parameter ${name} already exists`);
+      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
+        name,
+      });
     }
 
-    // TODO: Validate that default value matches with type
-    // TODO: Validate that the name is not one of the reserved ones in parameters.ts
+    if (RESERVED_PARAMETER_NAMES.has(name)) {
+      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
+        name,
+      });
+    }
+
+    if (
+      defaultValue !== undefined &&
+      !isParameterValueValid(parameterType, defaultValue)
+    ) {
+      throw new HardhatError(
+        HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+        {
+          value: defaultValue,
+          name: "defaultValue",
+          type: parameterType,
+        },
+      );
+    }
 
     this.#namedParams[name] = {
       name,
       description,
-      parameterType: type,
+      parameterType,
       defaultValue,
     };
 
@@ -262,21 +374,11 @@ export class TaskOverrideDefinitionBuilderImplementation
     });
   }
 
-  public setAction(action: TaskOverrideActionFunction | string): this {
-    if (typeof action === "string") {
-      if (!action.startsWith("file://") || action === "file://") {
-        throw new Error("Invalid action file URL");
-      }
-    }
-
-    this.#action = action;
-
-    return this;
-  }
-
   public build(): TaskOverrideDefinition {
     if (this.#action === undefined) {
-      throw new Error("Missing action");
+      throw new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.NO_ACTION, {
+        task: formatTaskId(this.#id),
+      });
     }
 
     return {

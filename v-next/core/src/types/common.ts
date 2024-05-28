@@ -9,3 +9,59 @@ export enum ParameterType {
   FLOAT = "FLOAT",
   FILE = "FILE",
 }
+
+/**
+ * Maps all the `ParameterType` values to their corresponding value types.
+ */
+export interface ParameterToValueTypeMap {
+  [ParameterType.STRING]: string;
+  [ParameterType.BOOLEAN]: boolean;
+  [ParameterType.INT]: number;
+  [ParameterType.BIGINT]: bigint;
+  [ParameterType.FLOAT]: number;
+  [ParameterType.FILE]: string;
+}
+
+/**
+ * Maps a `ParameterType` to its corresponding value type.
+ *
+ * This type takes a `ParameterType` as a type parameter and returns the type
+ * of the value that should be used for parameters of that type.
+ *
+ * @example
+ * ParameterTypeToValueType<ParameterType.STRING>
+ * // ^? "string"
+ *
+ * @example
+ * ParameterTypeToValueType<ParameterType.INT>
+ * // ^? "number"
+ */
+export type ParameterTypeToValueType<T extends ParameterType> =
+  ParameterToValueTypeMap[T];
+
+const parameterTypeValidators: Record<
+  ParameterType,
+  (value: unknown) => boolean
+> = {
+  [ParameterType.STRING]: (value): value is string => typeof value === "string",
+  [ParameterType.BOOLEAN]: (value): value is boolean =>
+    typeof value === "boolean",
+  [ParameterType.INT]: (value): value is number => Number.isInteger(value),
+  [ParameterType.BIGINT]: (value): value is bigint => typeof value === "bigint",
+  [ParameterType.FLOAT]: (value): value is number => typeof value === "number",
+  [ParameterType.FILE]: (value): value is string => typeof value === "string",
+};
+
+/**
+ * Checks if a parameter value is valid for a given parameter type.
+ *
+ * This function uses a map of validators, where each validator is a function
+ * that checks if a value is valid for a specific parameter type.
+ */
+export function isParameterValueValid(
+  type: ParameterType,
+  value: unknown,
+): boolean {
+  const validator = parameterTypeValidators[type];
+  return validator(value);
+}
