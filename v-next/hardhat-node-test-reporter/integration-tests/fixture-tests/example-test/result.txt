@@ -1,0 +1,109 @@
+1
+2
+  Foooo
+    [90m[32m✔[39m[90m test[39m
+    [31m1) test with cause[39m
+    child
+      [31m2) asdasd[39m
+
+  a
+    aa
+      aaa
+        [90m[32m✔[39m[90m aaaa[39m
+
+  top level test
+    [90m[32m✔[39m[90m bar[39m
+
+  [90m[32m✔[39m[90m top level test[39m
+
+  in describe
+    [31m3) foo[39m
+
+  testing before each
+    nested
+      [90m[32m✔[39m[90m neseted foo[39m
+      [90m[32m✔[39m[90m neseted foo 2[39m
+
+
+  [34m+ todo test[39m
+
+  [36m- skipped test[39m
+
+
+[32m6 passing[39m[90m (104ms)[39m[31m[39m
+[31m2 failing[39m[36m[39m
+[36m1 skipped[39m[34m[39m
+[34m1 todo[39m[90m[39m
+[90m1 cancelled[39m
+
+  1) Foooo
+       test with cause:
+
+   [31mError: withCause[39m
+   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:1:136)[39m
+   [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
+   [90m    ... 6 lines matching cause stack trace ...[39m
+   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:533:7) {[39m
+   [90m  [cause]: Error: cause[39m
+   [90m      at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:1:165)[39m
+   [90m      at Test.runInAsyncScope (node:async_hooks:206:9)[39m
+   [90m      at Test.run (node:internal/test_runner/test:824:25)[39m
+   [90m      at Suite.processPendingSubtests (node:internal/test_runner/test:533:18)[39m
+   [90m      at Test.postRun (node:internal/test_runner/test:923:19)[39m
+   [90m      at Test.run (node:internal/test_runner/test:866:12)[39m
+   [90m      at async Promise.all (index 0)[39m
+   [90m      at async Suite.run (node:internal/test_runner/test:1183:7)[39m
+   [90m      at async Test.processPendingSubtests (node:internal/test_runner/test:533:7)[39m
+   [90m}[39m
+
+  2) Foooo
+       child
+         asdasd:
+
+   [31mError: Different arrays[39m
+   [32m- Expected[39m
+   [31m+ Received[39m
+   
+   [2m  Array [[22m
+   [2m    1,[22m
+   [32m-   2,[39m
+   [31m+   3,[39m
+   [2m    3,[22m
+   [2m  ][22m
+   
+   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:1:239)[39m
+   [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
+   [90m    ... 7 lines matching cause stack trace ...[39m
+   [90m    at Array.map (<anonymous>) {[39m
+   [90m  [cause]: Error: cause[39m
+   [90m      at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:1:275)[39m
+   [90m      at Test.runInAsyncScope (node:async_hooks:206:9)[39m
+   [90m      at Test.run (node:internal/test_runner/test:824:25)[39m
+   [90m      at Test.start (node:internal/test_runner/test:721:17)[39m
+   [90m      at node:internal/test_runner/test:1181:71[39m
+   [90m      at node:internal/per_context/primordials:488:82[39m
+   [90m      at new Promise (<anonymous>)[39m
+   [90m      at new SafePromise (node:internal/per_context/primordials:456:29)[39m
+   [90m      at node:internal/per_context/primordials:488:9[39m
+   [90m      at Array.map (<anonymous>)[39m
+   [90m}[39m
+
+  3) in describe
+       foo:
+
+   [31mTest cancelled by parent error[39m
+   [90m    This test was cancelled due to an error in its parent suite/it or test/it, or in one of its before/beforeEach[39m
+
+  4) in describe:
+
+   [31mError: before[39m
+   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:1:696)[39m
+   [90m    at TestHook.runInAsyncScope (node:async_hooks:206:9)[39m
+   [90m    at TestHook.run (node:internal/test_runner/test:824:25)[39m
+   [90m    at TestHook.run (node:internal/test_runner/test:1073:18)[39m
+   [90m    at TestHook.run (node:internal/util:528:20)[39m
+   [90m    at node:internal/test_runner/test:744:20[39m
+   [90m    at async Suite.runHook (node:internal/test_runner/test:742:7)[39m
+   [90m    at async Suite.run (node:internal/test_runner/test:1177:7)[39m
+   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:533:7)[39m
+

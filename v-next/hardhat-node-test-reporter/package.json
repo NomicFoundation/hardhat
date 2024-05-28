@@ -1,0 +1,66 @@
+{
+  "name": "@nomicfoundation/hardhat-node-test-reporter",
+  "version": "3.0.0",
+  "description": "A node:test reporter",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-node-test-reporter",
+  "repository": "github:nomicfoundation/hardhat",
+  "author": "Nomic Foundation",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./dist/src/reporter.js"
+  },
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "hardhat"
+  ],
+  "scripts": {
+    "lint": "pnpm prettier --check && pnpm eslint",
+    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
+    "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
+    "prettier": "prettier \"**/*.{ts,js,md,json}\"",
+    "test": "glob --cmd=\"node --import tsx/esm --test\" \"test/**/*.ts\"",
+    "test:github": "glob --cmd=\"node --import tsx/esm --test --test-reporter=@reporters/github --test-reporter-destination=stdout --test-reporter=spec --test-reporter-destination=stdout\" \"test/**/*.ts\"",
+    "test:integration": "node --import tsx/esm integration-tests/index.ts --color",
+    "posttest": "pnpm test:integration",
+    "posttest:github": "pnpm test:integration",
+    "pretest": "pnpm build",
+    "build": "tsc --build .",
+    "prepublishOnly": "pnpm build",
+    "clean": "rimraf dist"
+  },
+  "files": [
+    "dist/src/",
+    "src/",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "devDependencies": {
+    "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
+    "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0",
+    "@reporters/github": "^1.7.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.7.1",
+    "@typescript-eslint/parser": "^7.7.1",
+    "@voxpelli/node-test-pretty-reporter": "^1.1.1",
+    "eslint": "8.57.0",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-import-resolver-typescript": "^3.6.1",
+    "eslint-plugin-import": "2.29.1",
+    "eslint-plugin-no-only-tests": "3.1.0",
+    "expect-type": "^0.19.0",
+    "glob": "^10.3.12",
+    "prettier": "3.2.5",
+    "rimraf": "^5.0.5",
+    "tsx": "^4.7.1",
+    "typescript": "~5.4.0",
+    "typescript-eslint": "7.7.1"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "jest-diff": "^29.7.0"
+  }
+}
