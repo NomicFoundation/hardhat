@@ -9,6 +9,7 @@ export type ErrorMessageTemplateValue =
   | bigint
   | undefined
   | null
+  | ErrorMessageTemplateValue[]
   | { toString(): string };
 
 export type MessagetTemplateArguments<MessageTemplateT extends string> =
@@ -193,8 +194,17 @@ export function applyErrorMessageTemplate(
     if (rawValue === undefined) {
       return "undefined";
     }
+
     if (rawValue === null) {
       return "null";
+    }
+
+    if (typeof rawValue === "bigint") {
+      return `${rawValue}n`;
+    }
+
+    if (Array.isArray(rawValue)) {
+      return JSON.stringify(rawValue);
     }
 
     return rawValue.toString();
