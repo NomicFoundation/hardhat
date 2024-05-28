@@ -43,7 +43,6 @@ export async function importUserConfig(configPath: string) {
     throw new HardhatError(ERRORS.GENERAL.INVALID_CONFIG_PATH, { configPath });
   }
 
-  console.log("also here", pathToFileURL(normalizedPath).href);
   const imported = await import(pathToFileURL(normalizedPath).href);
 
   if (!("default" in imported)) {
