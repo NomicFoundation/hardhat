@@ -224,7 +224,7 @@ export interface NewTaskDefinitionBuilder {
    * values. For example `cat <file1> <file2> <file3>` has a variadic parameter
    * representing the files to print.
    *
-   * The default value, if provided, must be an array of the whose elemtents are
+   * The default value, if provided, must be an array of the whose elements are
    * of the same type as the parameter. That is, `type` represents the type of
    * each element.
    *
