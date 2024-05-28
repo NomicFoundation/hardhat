@@ -361,6 +361,8 @@ function parseNamedParameters(
       continue;
     }
 
+    // The value immediately following a named parameter (if the parameter does not behave as a flag)
+    // is the parameter's value; otherwise, it's an error
     if (
       cliArguments[i + 1] !== undefined &&
       usedCliArguments[i + 1] === false
