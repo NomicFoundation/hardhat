@@ -130,7 +130,6 @@ export class NativeCompiler implements ICompiler {
 
         throw new HardhatError(
           HardhatError.ERRORS.SOLC.CANT_RUN_NATIVE_COMPILER,
-          {},
           e,
         );
       }
