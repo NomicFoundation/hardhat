@@ -143,13 +143,15 @@ describe("main", function () {
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = [false, false, false];
 
-        // Throws because the flag parameter does not expect values, so the "false" argument will not be consumed
-        assert.throws(
-          () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
-          new HardhatError(HardhatError.ERRORS.ARGUMENTS.UNUSED_ARGUMENT, {
-            value: "false",
-          }),
-        );
+        const res = parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        ) as TaskRes;
+
+        assert.equal(res.task.id, TASK.id);
+        assert.deepStrictEqual(usedCliArguments, [true, true, true]);
+        assert.deepStrictEqual(res.taskArguments, { flag: false });
       });
 
       it("should convert on the fly the camelCase parameter to kebab-case", function () {
@@ -572,6 +574,10 @@ describe("main", function () {
           .setAction(() => {})
           .build();
 
+        SUBTASK = task(["task", "subtask"])
+          .setAction(() => {})
+          .build();
+
         hre = await createHardhatRuntimeEnvironment({
           tasks: [TASK, SUBTASK],
         });
@@ -620,6 +626,21 @@ describe("main", function () {
           posParam2: "<posValue2>",
           varParam: ["<varValue1>", "<varValue2>"],
         });
+      });
+
+      it("should throw because there is an unused argument", function () {
+        const command = "npx hardhat task subtask <value>";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = [false, false, false];
+
+        // Throws because the flag parameter does not expect values, so the "false" argument will not be consumed
+        assert.throws(
+          () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+          new HardhatError(HardhatError.ERRORS.ARGUMENTS.UNUSED_ARGUMENT, {
+            value: "<value>",
+          }),
+        );
       });
     });
   });

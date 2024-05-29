@@ -357,6 +357,23 @@ function parseNamedParameters(
     const { param: paramDetails, originalName: paramOriginalName } = paramInfo;
 
     if (paramDetails.parameterType === ParameterType.BOOLEAN) {
+      if (
+        cliArguments[i + 1] !== undefined &&
+        usedCliArguments[i + 1] === false &&
+        (cliArguments[i + 1] === "true" || cliArguments[i + 1] === "false")
+      ) {
+        // The flag could be follow by the boolean value
+        taskArguments[paramOriginalName] = formatParameterValue(
+          cliArguments[i + 1],
+          ParameterType.BOOLEAN,
+          paramOriginalName,
+        );
+
+        usedCliArguments[i + 1] = true;
+        continue;
+      }
+
+      // If the flag is not followed by a boolean value, then the flag itself means that the value is true
       taskArguments[paramOriginalName] = true;
       continue;
     }
