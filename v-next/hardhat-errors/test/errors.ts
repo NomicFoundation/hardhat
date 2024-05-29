@@ -409,7 +409,7 @@ describe("Type tests", () => {
     });
   });
 
-  describe("messageArguments propery types", () => {
+  describe("messageArguments property types", () => {
     it("Should have the right type", () => {
       expectTypeOf(
         new HardhatError(mockErrorDescriptor).messageArguments,
