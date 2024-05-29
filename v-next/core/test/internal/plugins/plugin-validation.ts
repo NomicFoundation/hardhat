@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { validatePluginNpmDependencies } from "../../src/internal/plugins/plugin-validation.js";
-import { HardhatPlugin } from "../../src/types/plugins.js";
+import { validatePluginNpmDependencies } from "../../../src/internal/plugins/plugin-validation.js";
+import { HardhatPlugin } from "../../../src/types/plugins.js";
 
 describe("Plugins - plugin validation", () => {
   const plugin: HardhatPlugin = {
