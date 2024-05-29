@@ -302,13 +302,11 @@ describe("applyErrorMessageTemplate", () => {
 describe("Type tests", () => {
   describe("ErrorDescriptor types", () => {
     it("should have the right type", () => {
-      const descriptors: {
+      const _descriptors: {
         [category in keyof typeof ERROR_CATEGORIES]: {
           [name: string]: ErrorDescriptor;
         };
       } = ERRORS;
-
-      void descriptors;
     });
   });
 
@@ -385,12 +383,12 @@ describe("Type tests", () => {
 
   describe("Hardhat error constructor", () => {
     it("Should be constructable without arguments if there aren't any", () => {
-      void new HardhatError(mockErrorDescriptor);
-      void new HardhatError(mockErrorDescriptor, new Error());
+      const _e = new HardhatError(mockErrorDescriptor);
+      const _e2 = new HardhatError(mockErrorDescriptor, new Error());
     });
 
     it("Should be constructable with the right arguments", () => {
-      void new HardhatError(
+      const _e = new HardhatError(
         {
           ...mockErrorDescriptor,
           messageTemplate: "{asd}",
@@ -398,7 +396,7 @@ describe("Type tests", () => {
         { asd: 123 },
       );
 
-      void new HardhatError(
+      const _e2 = new HardhatError(
         {
           ...mockErrorDescriptor,
           messageTemplate: "{asd}",
