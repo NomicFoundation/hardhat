@@ -402,9 +402,10 @@ describe("main", function () {
           TASK = task(["task"])
             .addNamedParameter({ name: "param", type: ParameterType.BIGINT })
             .addNamedParameter({ name: "param2", type: ParameterType.BOOLEAN })
-            .addNamedParameter({ name: "param3", type: ParameterType.FLOAT })
-            .addNamedParameter({ name: "param4", type: ParameterType.INT })
-            .addNamedParameter({ name: "param5", type: ParameterType.STRING })
+            .addNamedParameter({ name: "param3", type: ParameterType.FILE })
+            .addNamedParameter({ name: "param4", type: ParameterType.FLOAT })
+            .addNamedParameter({ name: "param5", type: ParameterType.INT })
+            .addNamedParameter({ name: "param6", type: ParameterType.STRING })
             .setAction(() => {})
             .build();
 
@@ -415,11 +416,13 @@ describe("main", function () {
 
         it("should correctly format the parameters accordingly to their types", function () {
           const command =
-            "npx hardhat task --param 1234 --param2 --param3 12.34 --param4 1234 --param5 hello";
+            "npx hardhat task --param 1234 --param2 --param3 ./file-path --param4 12.34 --param5 1234 --param6 hello";
 
           const res = parseTaskAndArguments(
             command.split(" ").slice(2),
             [
+              false,
+              false,
               false,
               false,
               false,
@@ -437,9 +440,10 @@ describe("main", function () {
           assert.deepStrictEqual(res.taskArguments, {
             param: BigInt(1234),
             param2: true,
-            param3: 12.34,
-            param4: 1234,
-            param5: "hello",
+            param3: "./file-path",
+            param4: 12.34,
+            param5: 1234,
+            param6: "hello",
           });
         });
       });
@@ -457,11 +461,15 @@ describe("main", function () {
             })
             .addPositionalParameter({
               name: "param3",
+              type: ParameterType.FILE,
+            })
+            .addPositionalParameter({
+              name: "param4",
               type: ParameterType.FLOAT,
             })
-            .addPositionalParameter({ name: "param4", type: ParameterType.INT })
+            .addPositionalParameter({ name: "param5", type: ParameterType.INT })
             .addPositionalParameter({
-              name: "param5",
+              name: "param6",
               type: ParameterType.STRING,
             })
             .setAction(() => {})
@@ -473,20 +481,22 @@ describe("main", function () {
         });
 
         it("should correctly format the parameters accordingly to their types", function () {
-          const command = "npx hardhat task 1234 true 12.34 1234 hello";
+          const command =
+            "npx hardhat task 1234 true ./file-path 12.34 1234 hello";
 
           const res = parseTaskAndArguments(
             command.split(" ").slice(2),
-            [false, false, false, false, false, false],
+            [false, false, false, false, false, false, false],
             hre,
           ) as TaskRes;
 
           assert.deepStrictEqual(res.taskArguments, {
             param: BigInt(1234),
             param2: true,
-            param3: 12.34,
-            param4: 1234,
-            param5: "hello",
+            param3: "./file-path",
+            param4: 12.34,
+            param5: 1234,
+            param6: "hello",
           });
         });
       });
@@ -495,13 +505,28 @@ describe("main", function () {
         const paramTypes = [
           ParameterType.BIGINT,
           ParameterType.BOOLEAN,
+          ParameterType.FILE,
           ParameterType.FLOAT,
           ParameterType.INT,
           ParameterType.STRING,
         ];
 
-        const paramValues = ["1234", "true", "12.34", "1234", "hello"];
-        const paramResults = [BigInt(1234), true, 12.34, 1234, "hello"];
+        const paramValues = [
+          "1234",
+          "true",
+          "./file-path",
+          "12.34",
+          "1234",
+          "hello",
+        ];
+        const paramResults = [
+          BigInt(1234),
+          true,
+          "./file-path",
+          12.34,
+          1234,
+          "hello",
+        ];
 
         it("should correctly format the parameters accordingly to their types", async function () {
           // Variadic parameters can only be of a single type at a time, so loop through all the types

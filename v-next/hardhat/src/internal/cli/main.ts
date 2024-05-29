@@ -444,13 +444,13 @@ function formatParameterValue(
 ): any {
   switch (type) {
     case ParameterType.STRING:
+    case ParameterType.FILE:
       return value;
     case ParameterType.INT:
     case ParameterType.FLOAT:
       return Number(value);
     case ParameterType.BIGINT:
       return BigInt(value);
-    // TODO: FILE?
     case ParameterType.BOOLEAN:
       if (value !== "true" && value !== "false") {
         throw new HardhatError(
@@ -464,7 +464,6 @@ function formatParameterValue(
       }
 
       return value === "true";
-    default:
   }
 }
 
