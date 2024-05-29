@@ -296,6 +296,17 @@ describe("applyErrorMessageTemplate", () => {
         );
       });
     });
+
+    describe("Edge cases", () => {
+      it("Should support {}", () => {
+        assert.equal(
+          applyErrorMessageTemplate("foo {} {}", {
+            [""]: "bar",
+          }),
+          "foo bar bar",
+        );
+      });
+    });
   });
 });
 
@@ -378,6 +389,15 @@ describe("Type tests", () => {
         hello: ErrorMessageTemplateValue;
         hola: ErrorMessageTemplateValue;
       }>();
+    });
+
+    describe("Edge cases", () => {
+      it("Should support {}", () => {
+        expectTypeOf<MessagetTemplateArguments<"foo {} {}">>().toEqualTypeOf<{
+          // eslint-disable-next-line @typescript-eslint/naming-convention
+          "": ErrorMessageTemplateValue;
+        }>();
+      });
     });
   });
 
