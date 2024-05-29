@@ -8,10 +8,7 @@ import {
   GlobalParameterMap,
 } from "@nomicfoundation/hardhat-core/types/global-parameters";
 import { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
-import {
-  NamedTaskParameter,
-  Task,
-} from "@nomicfoundation/hardhat-core/types/tasks";
+import { Task } from "@nomicfoundation/hardhat-core/types/tasks";
 import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
