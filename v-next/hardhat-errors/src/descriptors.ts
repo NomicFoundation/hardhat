@@ -118,6 +118,32 @@ Please double check the file path.`,
 
 Please double check whether you have multiple versions of the same plugin installed.`,
     },
+    NO_CONFIG_FILE_FOUND: {
+      number: 5,
+      messageTemplate: "No Hardhat config file found",
+      websiteTitle: "No Hardhat config file found",
+      websiteDescription:
+        "Hardhat couldn't find a config file in the current directory or any of its parents.",
+    },
+    INVALID_CONFIG_PATH: {
+      number: 6,
+      messageTemplate: "Config file %configPath% not found",
+      websiteTitle: "Invalid config path",
+      websiteDescription: "The config file doesn't exist at the provided path.",
+    },
+    NO_CONFIG_EXPORTED: {
+      number: 7,
+      messageTemplate: "No config exported in %configPath%",
+      websiteTitle: "No config exported",
+      websiteDescription: "There is nothing exported from the config file.",
+    },
+    INVALID_CONFIG_OBJECT: {
+      number: 8,
+      messageTemplate: "Invalid config exported in %configPath%",
+      websiteTitle: "Invalid config object",
+      websiteDescription:
+        "The config file doesn't export a valid configuration object.",
+    },
   },
   INTERNAL: {
     ASSERTION_ERROR: {
@@ -139,6 +165,38 @@ Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us i
       websiteDescription: `This task has been deprecated in favor of a new approach.`,
       shouldBeReported: true,
     },
+    INVALID_FILE_ACTION: {
+      number: 201,
+      messageTemplate: "Invalid file action: %action% is not a valid file URL",
+      websiteTitle: "Invalid file action",
+      websiteDescription: `The setAction function was called with a string parameter that is not a valid file URL. A valid file URL must start with 'file://'.
+
+Please ensure that you are providing a correct file URL.`,
+    },
+    NO_ACTION: {
+      number: 202,
+      messageTemplate: "The task %task% doesn't have an action",
+      websiteTitle: "Task missing action",
+      websiteDescription: `A task was defined without an action.
+
+Please ensure that an action is defined for each task.`,
+    },
+    POSITIONAL_PARAM_AFTER_VARIADIC: {
+      number: 203,
+      messageTemplate:
+        "Cannot add the positional param %name% after a variadic one",
+      websiteTitle: "Invalid task definition",
+      websiteDescription:
+        "A variadic parameter must always be the last positional parameter in a task definition.",
+    },
+    REQUIRED_PARAM_AFTER_OPTIONAL: {
+      number: 204,
+      messageTemplate:
+        "Cannot add required positional param %name% after an optional one",
+      websiteTitle: "Invalid task definition",
+      websiteDescription:
+        "Required positional parameters must be defined before optional ones in a task definition.",
+    },
   },
   ARGUMENTS: {
     INVALID_VALUE_FOR_TYPE: {
@@ -150,8 +208,32 @@ Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us i
 
 Please double check your arguments.`,
     },
-    UNRECOGNIZED_NAMED_PARAM: {
+    RESERVED_NAME: {
       number: 301,
+      messageTemplate: "Argument name %name% is reserved",
+      websiteTitle: "Reserved argument name",
+      websiteDescription: `One of your Hardhat or task arguments has a reserved name.
+
+Please double check your arguments.`,
+    },
+    DUPLICATED_NAME: {
+      number: 302,
+      messageTemplate: "Argument name %name% is already in use",
+      websiteTitle: "Argument name already in use",
+      websiteDescription: `One of your Hardhat or task argument names is already in use.
+
+Please double check your arguments.`,
+    },
+    INVALID_NAME: {
+      number: 303,
+      messageTemplate: "Argument name %name% is invalid",
+      websiteTitle: "Invalid argument name",
+      websiteDescription: `One of your Hardhat or task argument names is invalid.
+
+Please double check your arguments.`,
+    },
+    UNRECOGNIZED_NAMED_PARAM: {
+      number: 304,
       messageTemplate:
         'Invalid parameter "%parameter%". It is neither a valid global parameter nor associated with any task. Did you forget to add the task first, or did you misspell it?',
       websiteTitle: "Invalid parameter value",
@@ -160,7 +242,7 @@ Please double check your arguments.`,
 Please double check your arguments.`,
     },
     MISSING_VALUE_FOR_NAMED_PARAMETER: {
-      number: 302,
+      number: 305,
       messageTemplate:
         'Missing value for the task parameter named "%paramName%"',
       websiteTitle: "Missing value for the task parameter",
@@ -169,7 +251,7 @@ Please double check your arguments.`,
 Please double check how you invoked Hardhat or ran your task.`,
     },
     UNUSED_ARGUMENT: {
-      number: 303,
+      number: 306,
       messageTemplate:
         'The argument with value "%value%" was not consumed because it is not associated with any task.',
       websiteTitle: "Argument was not consumed",

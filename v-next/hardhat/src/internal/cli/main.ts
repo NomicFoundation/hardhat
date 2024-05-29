@@ -1,5 +1,3 @@
-import { isAbsolute, resolve } from "node:path";
-
 import {
   buildGlobalParameterMap,
   resolvePluginList,
@@ -18,6 +16,10 @@ import "tsx"; // NOTE: This is important, it allows us to load .ts files form th
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { builtinPlugins } from "../builtin-plugins/index.js";
+import {
+  importUserConfig,
+  resolveConfigPath,
+} from "../helpers/config-loading.js";
 import { getHardhatRuntimeEnvironmentSingleton } from "../hre-singleton.js";
 
 export async function main(cliArguments: string[]) {
@@ -71,9 +73,7 @@ export async function main(cliArguments: string[]) {
   }
 
   if (configPath === undefined) {
-    // TODO: Find the closest config file
-    // if HARDHAT_CONFIG exists, use it
-    throw new Error("Missing --config");
+    configPath = await resolveConfigPath();
   }
 
   try {

@@ -2,7 +2,7 @@ import type { HardhatRuntimeEnvironment } from "../types/hre.js";
 
 import { createHardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core";
 
-let hre: HardhatRuntimeEnvironment;
+let hre: HardhatRuntimeEnvironment | undefined;
 
 /**
  * This function returns a singleton instance of the Hardhat Runtime Environment.
@@ -19,4 +19,13 @@ export async function getHardhatRuntimeEnvironmentSingleton(
   }
 
   return hre;
+}
+
+/**
+ * This function resets the singleton instance of the Hardhat Runtime Environment.
+ *
+ * It should be used only in tests.
+ */
+export function resetHardhatRuntimeEnvironmentSingleton() {
+  hre = undefined;
 }

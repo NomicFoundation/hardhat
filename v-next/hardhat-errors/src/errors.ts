@@ -172,6 +172,13 @@ function _applyErrorMessageTemplate(
       value = "undefined";
     } else if (rawValue === null) {
       value = "null";
+    } else if (typeof rawValue === "bigint") {
+      value = `${rawValue}n`;
+    } else if (
+      typeof rawValue === "object" &&
+      !rawValue.hasOwnProperty("toString")
+    ) {
+      value = JSON.stringify(rawValue);
     } else {
       value = rawValue.toString();
     }
