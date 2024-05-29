@@ -33,6 +33,7 @@
     "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "test": "glob --cmd=\"node --import tsx/esm --test\" \"test/**/*.ts\"",
+    "test:only": "glob --cmd=\"node --import tsx/esm --test --test-only\" \"test/**/*.ts\"",
     "test:github": "glob --cmd=\"node --import tsx/esm --test --test-reporter=@reporters/github --test-reporter-destination=stdout --test-reporter=spec --test-reporter-destination=stdout\" \"test/**/*.ts\"",
     "test:coverage": "c8 --reporter html --reporter text --all --src src glob --cmd=\"node --import tsx/esm --test\" \"test/**/*.ts\"",
     "pretest": "pnpm build",
