@@ -7,8 +7,6 @@
     "isolatedModules": true,
     "noEmitOnError": true,
     "noImplicitOverride": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
     "skipDefaultLibCheck": true,
     "sourceMap": true
   }
