@@ -306,22 +306,6 @@ function parseNamedParameters(
   task: Task,
   taskArguments: Record<string, any>,
 ) {
-  // Create a temporary map where all the keys associated to the named parameters are converted to kebab case.
-  // This is needed because in the cli a parameter with name 'myParam' must be be passed as '--my-param'.
-  // In a map context, it's not possible to convert and compare a cli kebab-case value to camelCase on the fly.
-  // For instance, the kebab-case 'key-value' converts to camelCase as 'keyValue', but the original key might be 'KEYValue'.
-  const kebabCaseParameters = new Map<
-    string,
-    { originalName: string; param: NamedTaskParameter }
-  >();
-
-  task.namedParameters.forEach((value, key) => {
-    kebabCaseParameters.set(camelToKebabCase(key), {
-      originalName: key,
-      param: value,
-    });
-  });
-
   for (let i = 0; i < cliArguments.length; i++) {
     if (usedCliArguments[i]) {
       continue;
@@ -339,9 +323,8 @@ function parseNamedParameters(
       continue;
     }
 
-    const paramNameKebabCase = camelToKebabCase(arg.replace("--", ""));
-
-    const paramInfo = kebabCaseParameters.get(paramNameKebabCase);
+    const paramName = kebabToCamelCase(arg.substring(2));
+    const paramInfo = task.namedParameters.get(paramName);
 
     if (paramInfo === undefined) {
       throw new HardhatError(
@@ -354,19 +337,17 @@ function parseNamedParameters(
 
     usedCliArguments[i] = true;
 
-    const { param: paramDetails, originalName: paramOriginalName } = paramInfo;
-
-    if (paramDetails.parameterType === ParameterType.BOOLEAN) {
+    if (paramInfo.parameterType === ParameterType.BOOLEAN) {
       if (
         cliArguments[i + 1] !== undefined &&
         usedCliArguments[i + 1] === false &&
         (cliArguments[i + 1] === "true" || cliArguments[i + 1] === "false")
       ) {
         // The flag could be follow by the boolean value
-        taskArguments[paramOriginalName] = formatParameterValue(
+        taskArguments[paramName] = formatParameterValue(
           cliArguments[i + 1],
           ParameterType.BOOLEAN,
-          paramOriginalName,
+          paramName,
         );
 
         usedCliArguments[i + 1] = true;
@@ -374,7 +355,7 @@ function parseNamedParameters(
       }
 
       // If the flag is not followed by a boolean value, then the flag itself means that the value is true
-      taskArguments[paramOriginalName] = true;
+      taskArguments[paramName] = true;
       continue;
     }
 
@@ -384,10 +365,10 @@ function parseNamedParameters(
       cliArguments[i + 1] !== undefined &&
       usedCliArguments[i + 1] === false
     ) {
-      taskArguments[paramOriginalName] = formatParameterValue(
+      taskArguments[paramName] = formatParameterValue(
         cliArguments[++i],
-        paramDetails.parameterType,
-        paramOriginalName,
+        paramInfo.parameterType,
+        paramName,
       );
 
       usedCliArguments[i] = true;
@@ -448,10 +429,8 @@ function parsePositionalAndVariadicParameters(
   }
 }
 
-function camelToKebabCase(str: string): string {
-  return str
-    .replace(/([a-z])([A-Z])|([A-Z])([A-Z][a-z])/g, "$1$3-$2$4")
-    .toLowerCase();
+function kebabToCamelCase(str: string) {
+  return str.replace(/-./g, (match) => match.charAt(1).toUpperCase());
 }
 
 function formatParameterValue(
