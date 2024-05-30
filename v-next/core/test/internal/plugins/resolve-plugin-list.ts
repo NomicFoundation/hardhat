@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { resolvePluginList } from "../../src/internal/plugins/resolve-plugin-list.js";
-import { HardhatPlugin } from "../../src/types/plugins.js";
+import { resolvePluginList } from "../../../src/internal/plugins/resolve-plugin-list.js";
+import { HardhatPlugin } from "../../../src/types/plugins.js";
 
 describe("Plugins - resolve plugin list", () => {
   const installedPackageFixture = import.meta.resolve(

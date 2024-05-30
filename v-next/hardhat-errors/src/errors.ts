@@ -2,10 +2,6 @@ import { CustomError } from "@nomicfoundation/hardhat-utils/error";
 
 import { ERRORS, ErrorDescriptor } from "./descriptors.js";
 
-export const ERROR_PREFIX = "HHE";
-
-const IS_HARDHAT_ERROR_PROPERTY_NAME = "_isHardhatError";
-
 export type ErrorMessageTemplateValue =
   | string
   | number
@@ -13,33 +9,84 @@ export type ErrorMessageTemplateValue =
   | bigint
   | undefined
   | null
+  | ErrorMessageTemplateValue[]
   | { toString(): string };
 
-export type ErrorMessageTemplateArguments = Record<
-  string,
-  ErrorMessageTemplateValue
->;
+export type MessagetTemplateArguments<MessageTemplateT extends string> =
+  MessageTemplateT extends `${string}{${infer Tag}}${infer Rest}`
+    ? {
+        [K in
+          | Tag
+          | keyof MessagetTemplateArguments<Rest>]: ErrorMessageTemplateValue;
+      }
+    : {};
 
-export class HardhatError extends CustomError {
+export type HardhatErrorConstructorArguments<
+  ErrorDescriptorT extends ErrorDescriptor,
+> = keyof MessagetTemplateArguments<
+  ErrorDescriptorT["messageTemplate"]
+> extends never
+  ? [ErrorDescriptorT, Error?]
+  : [
+      ErrorDescriptorT,
+      MessagetTemplateArguments<ErrorDescriptorT["messageTemplate"]>,
+      Error?,
+    ];
+
+export const ERROR_PREFIX = "HHE";
+
+const IS_HARDHAT_ERROR_PROPERTY_NAME = "_isHardhatError";
+
+export class HardhatError<
+  ErrorDescriptorT extends ErrorDescriptor,
+> extends CustomError {
   public static readonly ERRORS = ERRORS;
 
-  readonly #descriptor: ErrorDescriptor;
+  readonly #descriptor: ErrorDescriptorT;
+
+  readonly #arguments: MessagetTemplateArguments<
+    ErrorDescriptorT["messageTemplate"]
+  >;
 
   constructor(
-    errorDescriptor: ErrorDescriptor,
-    messageArguments: ErrorMessageTemplateArguments = {},
-    parentError?: Error,
+    ...[
+      errorDescriptor,
+      messageArgumentsOrParentError,
+      parentError,
+    ]: HardhatErrorConstructorArguments<ErrorDescriptorT>
   ) {
     const prefix = `${getErrorCode(errorDescriptor)}: `;
 
-    const formattedMessage = applyErrorMessageTemplate(
-      errorDescriptor.messageTemplate,
-      messageArguments,
+    const formattedMessage =
+      messageArgumentsOrParentError === undefined ||
+      messageArgumentsOrParentError instanceof Error
+        ? errorDescriptor.messageTemplate
+        : applyErrorMessageTemplate(
+            errorDescriptor.messageTemplate,
+            messageArgumentsOrParentError,
+          );
+
+    super(
+      prefix + formattedMessage,
+      parentError instanceof Error
+        ? parentError
+        : messageArgumentsOrParentError instanceof Error
+          ? messageArgumentsOrParentError
+          : undefined,
     );
 
-    super(prefix + formattedMessage, parentError);
-
     this.#descriptor = errorDescriptor;
+
+    if (
+      messageArgumentsOrParentError === undefined ||
+      messageArgumentsOrParentError instanceof Error
+    ) {
+      this.#arguments = {} as MessagetTemplateArguments<
+        ErrorDescriptorT["messageTemplate"]
+      >;
+    } else {
+      this.#arguments = messageArgumentsOrParentError;
+    }
 
     // As this package is going to be used from most of our packages, there's a
     // change of users having multiple versions of it. If that happens, they may
@@ -57,8 +104,15 @@ export class HardhatError extends CustomError {
 
   public static isHardhatError(
     other: unknown,
+  ): other is HardhatError<ErrorDescriptor>;
+  public static isHardhatError<ErrorDescriptorT extends ErrorDescriptor>(
+    other: unknown,
+    descriptor?: ErrorDescriptorT,
+  ): other is HardhatError<ErrorDescriptorT>;
+  public static isHardhatError(
+    other: unknown,
     descriptor?: ErrorDescriptor,
-  ): other is HardhatError {
+  ): other is HardhatError<ErrorDescriptor> {
     if (typeof other !== "object" || other === null) {
       return false;
     }
@@ -73,7 +127,7 @@ export class HardhatError extends CustomError {
       // If an error descriptor is provided, check if its number matches the Hardhat error number
       (descriptor === undefined
         ? true
-        : (other as HardhatError).number === descriptor.number)
+        : (other as HardhatError<ErrorDescriptor>).number === descriptor.number)
     );
   }
 
@@ -89,8 +143,10 @@ export class HardhatError extends CustomError {
     return this.#descriptor;
   }
 
-  public get messageArguments(): Record<string, ErrorMessageTemplateValue> {
-    return this.messageArguments;
+  public get messageArguments(): MessagetTemplateArguments<
+    ErrorDescriptorT["messageTemplate"]
+  > {
+    return this.#arguments;
   }
 }
 
@@ -130,68 +186,27 @@ function getErrorCode(errorDescriptor: ErrorDescriptor): string {
  */
 export function applyErrorMessageTemplate(
   template: string,
-  values: ErrorMessageTemplateArguments,
+  values: Record<string, ErrorMessageTemplateValue>,
 ): string {
-  return _applyErrorMessageTemplate(template, values, false);
-}
-
-function _applyErrorMessageTemplate(
-  template: string,
-  values: ErrorMessageTemplateArguments,
-  isRecursiveCall: boolean,
-): string {
-  if (!isRecursiveCall) {
-    for (const variableName of Object.keys(values)) {
-      assertHardhatInvariant(
-        /^[a-zA-Z][a-zA-Z0-9]*$/.test(variableName),
-        `Trying to apply error template but variable "${variableName}" is invalid. Variable names can only include ascii letters and numbers, and start with a letter.`,
-      );
-
-      const variableTag = `%${variableName}%`;
-
-      assertHardhatInvariant(
-        template.includes(variableTag),
-        `Trying to apply error template but variable "${variableName}" is not present in the template.`,
-      );
-    }
-  }
-
-  if (template.includes("%%")) {
-    return template
-      .split("%%")
-      .map((part) => _applyErrorMessageTemplate(part, values, true))
-      .join("%");
-  }
-
-  for (const variableName of Object.keys(values)) {
-    let value: string;
-
+  return template.replaceAll(/{(.*?)}/g, (_match, variableName) => {
     const rawValue = values[variableName];
 
     if (rawValue === undefined) {
-      value = "undefined";
-    } else if (rawValue === null) {
-      value = "null";
-    } else if (typeof rawValue === "bigint") {
-      value = `${rawValue}n`;
-    } else if (
-      typeof rawValue === "object" &&
-      !rawValue.hasOwnProperty("toString")
-    ) {
-      value = JSON.stringify(rawValue);
-    } else {
-      value = rawValue.toString();
+      return "undefined";
     }
 
-    const variableTag = `%${variableName}%`;
+    if (rawValue === null) {
+      return "null";
+    }
 
-    assertHardhatInvariant(
-      !/%([a-zA-Z][a-zA-Z0-9]*)?%/.test(value),
-      `Trying to apply an error template but variable "${variableName}" has a value that contains a variable tag.`,
-    );
+    if (typeof rawValue === "bigint") {
+      return `${rawValue}n`;
+    }
 
-    template = template.replaceAll(variableTag, value);
-  }
+    if (Array.isArray(rawValue)) {
+      return JSON.stringify(rawValue);
+    }
 
-  return template;
+    return rawValue.toString();
+  });
 }
