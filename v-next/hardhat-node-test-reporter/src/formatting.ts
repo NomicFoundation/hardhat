@@ -23,13 +23,13 @@ export function formatTestContext(
   const prefixLength = prefix.length;
 
   for (const [i, parentTest] of contextStack.entries()) {
-    const indentationLength = nestingToIndentation(parentTest.nesting);
+    const indentation = nestingToIndentationLength(parentTest.nesting);
 
     if (i === 0) {
-      contextFragments.push(indent(prefix, indentationLength));
+      contextFragments.push(indent(prefix, indentation));
     } else {
       contextFragments.push("\n");
-      contextFragments.push(indent("", indentationLength + prefixLength));
+      contextFragments.push(indent("", indentation + prefixLength));
     }
 
     contextFragments.push(parentTest.name);
@@ -40,27 +40,26 @@ export function formatTestContext(
   return contextFragments.join("");
 }
 
-export function* formatTestPass(
-  passData: TestEventData["test:pass"],
-): Generator<string> {
-  yield "".padEnd(nestingToIndentation(passData.nesting));
+export function formatTestPass(passData: TestEventData["test:pass"]): string {
+  let msg: string;
 
   if (passData.skip === true || typeof passData.skip === "string") {
     // TODO: show skip reason
-    yield chalk.cyan(`- ${passData.name}`);
+    msg = chalk.cyan(`- ${passData.name}`);
   } else if (passData.todo === true || typeof passData.todo === "string") {
     // TODO: show todo reason
-    yield chalk.blue(`+ ${passData.name}`);
+    msg = chalk.blue(`+ ${passData.name}`);
   } else {
-    const successMsg = `${SUCCESS_SYMBOL} ${passData.name}`;
-    yield chalk.gray(successMsg);
+    msg = chalk.gray(`${SUCCESS_SYMBOL} ${passData.name}`);
   }
+
+  return indent(msg, nestingToIndentationLength(passData.nesting));
 }
 
-export function* formatTestFailure(failure: Failure): Generator<string> {
-  yield indent(
+export function formatTestFailure(failure: Failure): string {
+  return indent(
     chalk.red(`${formatFailureIndex(failure.index)}) ${failure.testFail.name}`),
-    nestingToIndentation(failure.testFail.nesting),
+    nestingToIndentationLength(failure.testFail.nesting),
   );
 }
 
@@ -74,11 +73,8 @@ export function formatFailureReason(failure: Failure): string {
 ${indent(formatError(failure.testFail.details.error), 3)}`;
 }
 
-export function* formatSlowTestInfo(durationMs: number): Generator<string> {
-  const durationMsg = chalk.italic(`(${Math.floor(durationMs)}ms)`);
-
-  yield " ";
-  yield chalk.red(durationMsg);
+export function formatSlowTestInfo(durationMs: number): string {
+  return ` ${chalk.red(chalk.italic(`(${Math.floor(durationMs)}ms)`))}`;
 }
 
 export function formatGlobalDiagnostics(
@@ -123,7 +119,7 @@ function formatFailureIndex(index: number): string {
   return (index + 1).toString();
 }
 
-function nestingToIndentation(nesting: number): number {
+function nestingToIndentationLength(nesting: number): number {
   return (nesting + 1) * 2;
 }
 

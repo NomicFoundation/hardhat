@@ -115,7 +115,7 @@ export default async function* customReporter(
         }
 
         if (event.type === "test:pass") {
-          yield* formatTestPass(event.data);
+          yield formatTestPass(event.data);
         } else {
           const failure: Failure = {
             index: preFormattedFailureReasons.length,
@@ -125,11 +125,11 @@ export default async function* customReporter(
 
           preFormattedFailureReasons.push(formatFailureReason(failure));
 
-          yield* formatTestFailure(failure);
+          yield formatTestFailure(failure);
         }
 
         if (event.data.details.duration_ms > SLOW_TEST_THRESHOLD) {
-          yield* formatSlowTestInfo(event.data.details.duration_ms);
+          yield formatSlowTestInfo(event.data.details.duration_ms);
         }
 
         yield "\n";
