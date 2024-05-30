@@ -11,9 +11,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
-    name: Lint
+  build:
+    name: Build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docs
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v2
@@ -23,11 +26,9 @@ jobs:
         with:
           node-version: 18
           cache: "pnpm"
-      - name: Install
-        run: pnpm install --frozen-lockfile --prefer-offline
+          cache-dependency-path: |
+            docs/pnpm-lock.yaml
       - name: Install Docs
-        run: cd docs && pnpm install --frozen-lockfile --prefer-offline
-      - name: lint
-        run: cd docs && pnpm lint
+        run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
-        run: cd docs && pnpm build
+        run: pnpm build
