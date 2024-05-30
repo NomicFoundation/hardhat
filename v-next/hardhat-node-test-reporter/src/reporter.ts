@@ -43,10 +43,7 @@ export default async function* customReporter(
   // Diagnostics are processed at the end, so we collect them all here
   const diagnostics: Array<TestEventData["test:diagnostic"]> = [];
 
-  // Failures are processed at the end, so we collect them all here.
-  // We currently clone the stack that contains the context for each failure,
-  // which can probably be optimized.
-  const failures: Failure[] = [];
+  const preFormattedFailureReasons: string[] = [];
 
   for await (const event of source) {
     switch (event.type) {
@@ -72,13 +69,13 @@ export default async function* customReporter(
                 event.data.details.error.failureType === "subtestsFailed"
               )
             ) {
-              const failure: Failure = {
-                index: failures.length,
-                testFail: event.data,
-                contextStack: [...stack],
-              };
-
-              failures.push(failure);
+              preFormattedFailureReasons.push(
+                formatFailureReason({
+                  index: preFormattedFailureReasons.length,
+                  testFail: event.data,
+                  contextStack: stack,
+                }),
+              );
             }
           }
 
@@ -112,12 +109,13 @@ export default async function* customReporter(
         // Otherwise, we print all the unprinted elements in the stack, except
         // for the last one, which is the current test.
         if (lastPrintedIndex !== stack.length - 2) {
-          yield* formatTestContext(
+          yield formatTestContext(
             stack.slice(
               lastPrintedIndex !== undefined ? lastPrintedIndex + 1 : 0,
               -1,
             ),
           );
+          yield "\n";
           lastPrintedIndex = stack.length - 2;
         }
 
@@ -125,12 +123,12 @@ export default async function* customReporter(
           yield* formatTestPass(event.data);
         } else {
           const failure: Failure = {
-            index: failures.length,
+            index: preFormattedFailureReasons.length,
             testFail: event.data,
-            contextStack: [...stack],
+            contextStack: stack,
           };
 
-          failures.push(failure);
+          preFormattedFailureReasons.push(formatFailureReason(failure));
 
           yield* formatTestFailure(failure);
         }
@@ -207,8 +205,8 @@ export default async function* customReporter(
 
   yield "\n\n";
 
-  for (const failure of failures) {
-    yield* formatFailureReason(failure);
+  for (const reason of preFormattedFailureReasons) {
+    yield reason;
     yield "\n\n";
   }
 }

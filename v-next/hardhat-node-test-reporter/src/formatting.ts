@@ -2,34 +2,40 @@ import chalk from "chalk";
 
 import { GlobalDiagnostics } from "./diagnostics.js";
 import { formatError } from "./error-formatting.js";
-import { Failure, TestEventData } from "./types.js";
+import { TestEventData } from "./node-types.js";
+import { Failure } from "./reporter.js";
 
 export const INFO_SYMBOL = chalk.blue("\u2139");
 export const SUCCESS_SYMBOL = chalk.green("✔");
 
-export function* formatTestContext(
+export function formatTestContext(
   contextStack: Array<TestEventData["test:start"]>,
   prefix = "",
   suffix = "",
-) {
+): string {
+  const contextFragments: string[] = [];
+
   const prefixLength = prefix.length;
 
   for (const [i, parentTest] of contextStack.entries()) {
     if (i !== 0) {
-      yield "\n";
+      contextFragments.push("\n");
     }
 
-    yield "".padEnd(
-      (parentTest.nesting + 1) * 2 + (i !== 0 ? prefixLength : 0),
+    contextFragments.push(
+      "".padEnd((parentTest.nesting + 1) * 2 + (i !== 0 ? prefixLength : 0)),
     );
 
     if (i === 0 && prefix !== "") {
-      yield prefix;
+      contextFragments.push(prefix);
     }
 
-    yield parentTest.name;
+    contextFragments.push(parentTest.name);
   }
-  yield suffix + "\n";
+
+  contextFragments.push(suffix);
+
+  return contextFragments.join("");
 }
 
 export function* formatTestPass(
@@ -57,14 +63,14 @@ export function* formatTestFailure(failure: Failure): Generator<string> {
   yield chalk.red(failMsg);
 }
 
-export function* formatFailureReason(failure: Failure): Generator<string> {
-  yield* formatTestContext(
+export function formatFailureReason(failure: Failure): string {
+  return `${formatTestContext(
     failure.contextStack,
     `${formatFailureIndex(failure.index)}) `,
     ":",
-  );
-  yield "\n";
-  yield indent(formatError(failure.testFail.details.error), 3);
+  )}
+
+${indent(formatError(failure.testFail.details.error), 3)}`;
 }
 
 export function* formatSlowTestInfo(durationMs: number): Generator<string> {
