@@ -77,8 +77,7 @@ export class TaskManagerImplementation implements TaskManager {
       tasks = task.subtasks;
     }
 
-    // task can't be undefined as we set it in the non-empty loop
-    assertHardhatInvariant(task !== undefined, "Task not found");
+    assertHardhatInvariant(task !== undefined, "Task is undefined despite it being always set by a non-empty loop");
 
     return task;
   }
