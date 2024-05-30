@@ -106,7 +106,7 @@ export function normalizeHexString(hexString: string): PrefixedHexString {
   }
 
   return isHexStringPrefixed(normalizedHexString)
-    ? (normalizedHexString as PrefixedHexString)
+    ? normalizedHexString
     : `0x${normalizedHexString}`;
 }
 
@@ -117,7 +117,9 @@ export function normalizeHexString(hexString: string): PrefixedHexString {
  * @param hexString The string to check.
  * @returns True if the string starts with "0x", false otherwise.
  */
-export function isHexStringPrefixed(hexString: string): boolean {
+export function isHexStringPrefixed(
+  hexString: string,
+): hexString is PrefixedHexString {
   return hexString.toLowerCase().startsWith("0x");
 }
 

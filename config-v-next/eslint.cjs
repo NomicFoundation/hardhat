@@ -41,8 +41,13 @@ function createConfig(configFilePath, packageEntryPoints = []) {
       "no-only-tests",
       "@typescript-eslint",
       "@nomicfoundation/slow-imports",
+      "@eslint-community/eslint-comments",
     ],
     rules: {
+      "@eslint-community/eslint-comments/require-description": [
+        "error",
+        { ignore: ["eslint-enable"] },
+      ],
       "@typescript-eslint/adjacent-overload-signatures": "error",
       "@typescript-eslint/array-type": [
         "error",
@@ -89,7 +94,10 @@ function createConfig(configFilePath, packageEntryPoints = []) {
           minimumDescriptionLength: 3,
         },
       ],
-      "@typescript-eslint/consistent-type-assertions": "error",
+      "@typescript-eslint/consistent-type-assertions": [
+        "error",
+        { assertionStyle: "never" },
+      ],
       "@typescript-eslint/consistent-type-definitions": "error",
       "@typescript-eslint/dot-notation": "error",
       "@typescript-eslint/explicit-member-accessibility": [

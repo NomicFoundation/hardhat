@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/consistent-type-assertions -- TODO: Stop
+using invalid objects in tests */
 import assert from "node:assert/strict";
 import * as os from "node:os";
 import path from "node:path";

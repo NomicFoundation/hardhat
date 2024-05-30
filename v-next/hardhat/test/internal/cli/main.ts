@@ -4,18 +4,10 @@ import { before, describe, it } from "node:test";
 import { createHardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core";
 import { ParameterType, task } from "@nomicfoundation/hardhat-core/config";
 import { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
-import {
-  NewTaskDefinition,
-  Task,
-} from "@nomicfoundation/hardhat-core/types/tasks";
+import { NewTaskDefinition } from "@nomicfoundation/hardhat-core/types/tasks";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { parseTaskAndArguments } from "../../../src/internal/cli/main.js";
-
-interface TaskRes {
-  task: Task;
-  taskArguments: Record<string, any>;
-}
 
 describe("main", function () {
   let hre: HardhatRuntimeEnvironment;
@@ -46,12 +38,9 @@ describe("main", function () {
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = [false, true, true, false];
 
-        const res = parseTaskAndArguments(
-          cliArguments,
-          usedCliArguments,
-          hre,
-        ) as TaskRes;
+        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
 
+        assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, newSubtaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true, true, true, true]);
         assert.deepEqual(res.taskArguments, {});
@@ -88,12 +77,9 @@ describe("main", function () {
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = [false, false, false];
 
-        const res = parseTaskAndArguments(
-          cliArguments,
-          usedCliArguments,
-          hre,
-        ) as TaskRes;
+        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
 
+        assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, newTaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true, true, true]);
         assert.deepEqual(res.taskArguments, {
@@ -107,11 +93,9 @@ describe("main", function () {
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = [false, false, false, false];
 
-        const res = parseTaskAndArguments(
-          cliArguments,
-          usedCliArguments,
-          hre,
-        ) as TaskRes;
+        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+
+        assert.ok(!Array.isArray(res), "Result should be an array");
 
         assert.equal(res.task.id, newSubtaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true, true, true, true]);
@@ -126,11 +110,9 @@ describe("main", function () {
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = [false, false];
 
-        const res = parseTaskAndArguments(
-          cliArguments,
-          usedCliArguments,
-          hre,
-        ) as TaskRes;
+        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+
+        assert.ok(!Array.isArray(res), "Result should be an array");
 
         assert.equal(res.task.id, newTaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true, true]);
@@ -143,12 +125,9 @@ describe("main", function () {
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = [false, false, false];
 
-        const res = parseTaskAndArguments(
-          cliArguments,
-          usedCliArguments,
-          hre,
-        ) as TaskRes;
+        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
 
+        assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, newTaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true, true, true]);
         assert.deepEqual(res.taskArguments, { flag: false });
@@ -161,12 +140,9 @@ describe("main", function () {
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = [false, false, false];
 
-        const res = parseTaskAndArguments(
-          cliArguments,
-          usedCliArguments,
-          hre,
-        ) as TaskRes;
+        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
 
+        assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, newTaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true, true, true]);
         assert.deepEqual(res.taskArguments, { optionFlag: "<value>" });
@@ -255,12 +231,9 @@ describe("main", function () {
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = [false, false];
 
-        const res = parseTaskAndArguments(
-          cliArguments,
-          usedCliArguments,
-          hre,
-        ) as TaskRes;
+        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
 
+        assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, newTaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true, true]);
         assert.deepEqual(res.taskArguments, {
@@ -275,12 +248,9 @@ describe("main", function () {
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = [false, false, false];
 
-        const res = parseTaskAndArguments(
-          cliArguments,
-          usedCliArguments,
-          hre,
-        ) as TaskRes;
+        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
 
+        assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, newTaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true, true, true]);
         assert.deepEqual(res.taskArguments, {
@@ -295,12 +265,9 @@ describe("main", function () {
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = [false, false, false];
 
-        const res = parseTaskAndArguments(
-          cliArguments,
-          usedCliArguments,
-          hre,
-        ) as TaskRes;
+        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
 
+        assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, newTaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true, true, true]);
         assert.deepEqual(res.taskArguments, {
@@ -315,12 +282,9 @@ describe("main", function () {
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = [false, false, false];
 
-        const res = parseTaskAndArguments(
-          cliArguments,
-          usedCliArguments,
-          hre,
-        ) as TaskRes;
+        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
 
+        assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, newSubtaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true, true, true]);
         assert.deepEqual(res.taskArguments, {
@@ -334,12 +298,9 @@ describe("main", function () {
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = [false, false, false, false];
 
-        const res = parseTaskAndArguments(
-          cliArguments,
-          usedCliArguments,
-          hre,
-        ) as TaskRes;
+        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
 
+        assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, newSubtaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true, true, true, true]);
         assert.deepEqual(res.taskArguments, {
@@ -367,12 +328,9 @@ describe("main", function () {
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = [false, false, false, false];
 
-        const res = parseTaskAndArguments(
-          cliArguments,
-          usedCliArguments,
-          hre,
-        ) as TaskRes;
+        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
 
+        assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, newTaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true, true, true, true]);
         assert.deepEqual(res.taskArguments, {
@@ -386,12 +344,9 @@ describe("main", function () {
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = [false];
 
-        const res = parseTaskAndArguments(
-          cliArguments,
-          usedCliArguments,
-          hre,
-        ) as TaskRes;
+        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
 
+        assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, newTaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true]);
         assert.deepEqual(res.taskArguments, {});
@@ -437,8 +392,9 @@ describe("main", function () {
               false,
             ],
             hre,
-          ) as TaskRes;
+          );
 
+          assert.ok(!Array.isArray(res), "Result should be an array");
           assert.deepEqual(res.taskArguments, {
             param: BigInt(1234),
             param2: true,
@@ -490,8 +446,9 @@ describe("main", function () {
             command.split(" ").slice(2),
             [false, false, false, false, false, false, false],
             hre,
-          ) as TaskRes;
+          );
 
+          assert.ok(!Array.isArray(res), "Result should be an array");
           assert.deepEqual(res.taskArguments, {
             param: BigInt(1234),
             param2: true,
@@ -551,8 +508,9 @@ describe("main", function () {
               command.split(" ").slice(2),
               [false, false],
               hre,
-            ) as TaskRes;
+            );
 
+            assert.ok(!Array.isArray(res), "Result should be an array");
             assert.deepEqual(res.taskArguments, {
               param: [paramResults[i]],
             });
@@ -601,12 +559,9 @@ describe("main", function () {
           false,
         ];
 
-        const res = parseTaskAndArguments(
-          cliArguments,
-          usedCliArguments,
-          hre,
-        ) as TaskRes;
+        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
 
+        assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, newTaskDefinition.id);
         assert.deepEqual(usedCliArguments, [
           true,

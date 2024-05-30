@@ -885,7 +885,7 @@ describe("File system utils", () => {
 
       const stats = await fsPromises.stat(filePath);
 
-      // eslint-disable-next-line no-bitwise
+      // eslint-disable-next-line no-bitwise -- Bitwise is common in fs permissions
       assert.equal(stats.mode & 0o777, 0o666);
     });
 
@@ -1034,7 +1034,7 @@ describe("File system utils", () => {
 
       await emptyDir(dirPath);
 
-      // eslint-disable-next-line no-bitwise
+      // eslint-disable-next-line no-bitwise -- Bitwise is common in fs permissions
       assert.equal((await fsPromises.stat(dirPath)).mode & 0o777, 0o666);
     });
 

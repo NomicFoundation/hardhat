@@ -81,6 +81,9 @@ export class HardhatError<
       messageArgumentsOrParentError === undefined ||
       messageArgumentsOrParentError instanceof Error
     ) {
+      /* eslint-disable @typescript-eslint/consistent-type-assertions -- 
+      Typescript inference get's lost here, but we know that if we didn't get
+      arguments, it's because the error doesn't have any. */
       this.#arguments = {} as MessagetTemplateArguments<
         ErrorDescriptorT["messageTemplate"]
       >;

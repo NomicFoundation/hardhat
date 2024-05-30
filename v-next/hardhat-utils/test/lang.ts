@@ -103,7 +103,7 @@ describe("lang", () => {
 
       const expected: { [key: number]: number } = {};
       for (let i = 0; i < buffer.length; i++) {
-        expected[i] = buffer[i] as number;
+        expected[i] = buffer[i];
       }
 
       assert.deepEqual(clonedBuffer, expected);

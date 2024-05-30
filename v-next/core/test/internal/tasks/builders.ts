@@ -618,6 +618,8 @@ describe("Task builders", () => {
             () =>
               builder[fnName]({
                 name: "param",
+                /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+                Intentionally testing an invalid type */
                 defaultValue: 123 as any,
                 type: ParameterType.STRING,
               }),
@@ -633,6 +635,8 @@ describe("Task builders", () => {
           () =>
             builder.addVariadicParameter({
               name: "param",
+              /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+              Intentionally testing an invalid type */
               defaultValue: [123, 456, 789] as any,
               type: ParameterType.STRING,
             }),
@@ -1042,6 +1046,8 @@ describe("Task builders", () => {
           () =>
             builder.addNamedParameter({
               name: "param",
+              /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+              Intentionally testing an invalid type */
               defaultValue: 123 as any,
               type: ParameterType.STRING,
             }),

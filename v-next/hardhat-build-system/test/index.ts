@@ -1,6 +1,4 @@
-// TODO: remove this TS rule?
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-
+/* eslint-disable @typescript-eslint/no-non-null-assertion -- TODO: remove this */
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import fs from "node:fs/promises";
@@ -366,7 +364,7 @@ describe("build-system", () => {
        * command operates as a separate process. To resolve this, the private
        * variable should be cleared after each run of the compile task.
        */
-      // eslint-disable-next-line @typescript-eslint/dot-notation
+      // eslint-disable-next-line @typescript-eslint/dot-notation -- TODO
       // (this.env.artifacts as any)["_validArtifacts"] = [];
 
       await buildSystem.build({
@@ -422,7 +420,7 @@ describe("build-system", () => {
        * command operates as a separate process. To resolve this, the private
        * variable should be cleared after each run of the compile task.
        */
-      // eslint-disable-next-line @typescript-eslint/dot-notation
+      // eslint-disable-next-line @typescript-eslint/dot-notation -- TODO
       // (this.env.artifacts as any)["_validArtifacts"] = [];
 
       await buildSystem.build({

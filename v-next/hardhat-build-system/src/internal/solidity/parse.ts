@@ -1,5 +1,3 @@
-import type SolidityAnalyzerT from "@nomicfoundation/solidity-analyzer";
-
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
@@ -31,9 +29,7 @@ export class Parser {
     }
 
     try {
-      const { analyze } = (await import(
-        "@nomicfoundation/solidity-analyzer"
-      )) as typeof SolidityAnalyzerT;
+      const { analyze } = await import("@nomicfoundation/solidity-analyzer");
       const result = analyze(fileContent);
 
       this.#cache.set(contentHash, result);
@@ -50,7 +46,7 @@ export class Parser {
         throw new HardhatError(HardhatError.ERRORS.GENERAL.CORRUPTED_LOCKFILE);
       }
 
-      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
       throw e;
     }
   }

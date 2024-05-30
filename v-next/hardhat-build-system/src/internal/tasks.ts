@@ -127,7 +127,7 @@ export async function taskCompileSolidityReadFile(
       );
     }
 
-    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
     throw e;
   }
 }
@@ -821,6 +821,8 @@ export async function taskCompileSolidityLogCompilationErrors(
       console.error(errorMessage.replace(/^\w+:/, (t) => chalk.red.bold(t)));
     } else {
       console.warn(
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+        This is not typed, but a string is returned by solidity */
         (error.formattedMessage as string).replace(/^\w+:/, (t) =>
           chalk.yellow.bold(t),
         ),
@@ -1102,7 +1104,7 @@ export async function taskCompileSolidityCompileJobs(
     return { artifactsEmittedPerJob };
   } catch (e) {
     if (!(e instanceof AggregateError)) {
-      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
       throw e;
     }
 
@@ -1113,7 +1115,7 @@ export async function taskCompileSolidityCompileJobs(
           HardhatError.ERRORS.BUILTIN_TASKS.COMPILE_FAILURE,
         )
       ) {
-        // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+        // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
         throw error;
       }
     }
@@ -1174,8 +1176,9 @@ export async function taskCompileSolidityLogCompilationResult(
 // TASK_COMPILE_REMOVE_OBSOLETE_ARTIFACTS
 // TESTED
 export async function taskCompileRemoveObsoleteArtifacts(artifacts: Artifacts) {
-  // We know this is the actual implementation, so we use some
-  // non-public methods here.
+  /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- 
+  We know this is the actual implementation, so we use some non-public methods 
+  here by downcasting */
   const artifactsImpl = artifacts as ArtifactsImpl;
   await artifactsImpl.removeObsoleteArtifacts();
 }
@@ -1333,8 +1336,9 @@ export async function taskCompileSolidity(
 
   const allArtifactsEmittedPerFile = solidityFilesCache.getEntries();
 
-  // We know this is the actual implementation, so we use some
-  // non-public methods here.
+  /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- 
+  We know this is the actual implementation, so we use some non-public methods 
+  here by downcasting */
   const artifactsImpl = artifacts as ArtifactsImpl;
   artifactsImpl.addValidArtifacts(allArtifactsEmittedPerFile);
 

@@ -5,6 +5,7 @@ import {
   HardhatError,
   assertHardhatInvariant,
 } from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import resolve from "resolve";
 
 import {
@@ -297,7 +298,7 @@ export class Resolver {
         );
       }
 
-      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
       throw error;
     }
   }
@@ -339,12 +340,14 @@ export class Resolver {
         const hardhatCoreDir = path.join(__dirname, "..", "..");
         packageJsonPath = path.join(hardhatCoreDir, "package.json");
       } else {
+        ensureError(error);
+
         throw new HardhatError(
           HardhatError.ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED,
           {
             library: libraryName,
           },
-          error as Error,
+          error,
         );
       }
     }
@@ -576,7 +579,7 @@ export class Resolver {
         );
       }
 
-      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
       throw error;
     }
   }

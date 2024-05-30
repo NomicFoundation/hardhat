@@ -172,10 +172,10 @@ async function resolveUserConfig(
   sortedPlugins: HardhatPlugin[],
   config: HardhatUserConfig,
 ): Promise<HardhatConfig> {
-  const initialResolvedConfig = {
+  const initialResolvedConfig: HardhatConfig = {
     plugins: sortedPlugins,
     tasks: config.tasks ?? [],
-  } as HardhatConfig;
+  };
 
   return hooks.runHandlerChain(
     "config",

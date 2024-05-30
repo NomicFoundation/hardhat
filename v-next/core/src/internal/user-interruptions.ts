@@ -1,3 +1,5 @@
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+
 import { HookContext, HookManager } from "../types/hooks.js";
 import { UserInterruptionManager } from "../types/user-interruptions.js";
 
@@ -106,6 +108,8 @@ async function defaultRequestSecretInput(
     output: process.stdout,
   });
 
+  /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- 
+  We need to access a private property of the readline interface. */
   const rlAsAny = rl as any;
 
   let initialMessage: string | undefined;
@@ -116,22 +120,24 @@ async function defaultRequestSecretInput(
         initialMessage = out;
       }
 
+      assertHardhatInvariant(
+        rlAsAny.output,
+        "Espected readline output to be defined",
+      );
+
       // We shouw the initial message as is
       if (out.startsWith(initialMessage)) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        rlAsAny.output!.write(initialMessage);
+        rlAsAny.output.write(initialMessage);
         out = out.slice(initialMessage.length);
       } else if (out.trim() === "") {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        rlAsAny.output!.write(out);
+        rlAsAny.output.write(out);
         out = "";
       }
     }
 
     // We show the rest of the chars as "*"
     for (const _ of out) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      rlAsAny.output!.write("*");
+      rlAsAny.output.write("*");
     }
   };
 

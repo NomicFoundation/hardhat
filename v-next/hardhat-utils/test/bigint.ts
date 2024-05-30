@@ -72,6 +72,7 @@ describe("bigint", () => {
     });
 
     it("Should throw on unsupported types", async () => {
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Intentionally testing an type mismatch
       await assert.rejects(toBigInt(true as any), {
         name: "InvalidParameterError",
         message: "Unsupported type: boolean",

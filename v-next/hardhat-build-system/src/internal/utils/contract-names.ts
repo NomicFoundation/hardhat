@@ -154,8 +154,8 @@ export function findDistance(a: string, b: string): number {
     bx3 = b.charCodeAt(offset + (d3 = x + 3));
     dd = x += 4;
     for (y = 0; y < len; y += 2) {
-      dy = vector[y] as number;
-      ay = vector[y + 1] as number;
+      dy = vector[y];
+      ay = vector[y + 1];
       d0 = _min(dy, d0, d1, bx0, ay);
       d1 = _min(d0, d1, d2, bx1, ay);
       d2 = _min(d1, d2, d3, bx2, ay);
@@ -172,8 +172,8 @@ export function findDistance(a: string, b: string): number {
     bx0 = b.charCodeAt(offset + (d0 = x));
     dd = ++x;
     for (y = 0; y < len; y += 2) {
-      dy = vector[y] as number;
-      vector[y] = dd = _min(dy, d0, dd, bx0, vector[y + 1] as number);
+      dy = vector[y];
+      vector[y] = dd = _min(dy, d0, dd, bx0, vector[y + 1]);
       d0 = dy;
     }
   }
