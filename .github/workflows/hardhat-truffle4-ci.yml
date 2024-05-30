@@ -4,6 +4,7 @@ on:
   push:
     branches: [$default-branch]
     paths:
+      - ".github/workflows/hardhat-truffle4-ci.yml"
       - "packages/hardhat-truffle4/**"
       - "packages/hardhat-web3-legacy/**"
       - "packages/hardhat-core/**"
@@ -13,6 +14,7 @@ on:
     branches:
       - "**"
     paths:
+      - ".github/workflows/hardhat-truffle4-ci.yml"
       - "packages/hardhat-truffle4/**"
       - "packages/hardhat-web3-legacy/**"
       - "packages/hardhat-core/**"

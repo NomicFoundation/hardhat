@@ -4,6 +4,7 @@ on:
   push:
     branches: [$default-branch]
     paths:
+      - ".github/workflows/hardhat-foundry-ci.yml"
       - "packages/hardhat-foundry/**"
       - "packages/hardhat-common/**"
       - "config/**"
@@ -11,6 +12,7 @@ on:
     branches:
       - "**"
     paths:
+      - ".github/workflows/hardhat-foundry-ci.yml"
       - "packages/hardhat-foundry/**"
       - "packages/hardhat-common/**"
       - "config/**"

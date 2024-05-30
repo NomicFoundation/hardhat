@@ -4,6 +4,7 @@ on:
   push:
     branches: [$default-branch]
     paths:
+      - ".github/workflows/hardhat-web3-legacy-ci.yml"
       - "packages/hardhat-web3-legacy/**"
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**/*"
@@ -12,6 +13,7 @@ on:
     branches:
       - "**"
     paths:
+      - ".github/workflows/hardhat-web3-legacy-ci.yml"
       - "packages/hardhat-web3-legacy/**"
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"

@@ -4,6 +4,7 @@ on:
   push:
     branches: [$default-branch]
     paths:
+      - ".github/workflows/hardhat-toolbox-ci.yml"
       - "packages/hardhat-toolbox/**"
       - "packages/hardhat-core/**"
       - "packages/hardhat-chai-matchers/**"
@@ -16,6 +17,7 @@ on:
     branches:
       - "**"
     paths:
+      - ".github/workflows/hardhat-toolbox-ci.yml"
       - "packages/hardhat-toolbox/**"
       - "packages/hardhat-core/**"
       - "packages/hardhat-chai-matchers/**"
