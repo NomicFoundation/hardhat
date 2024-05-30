@@ -127,7 +127,7 @@ export async function taskCompileSolidityReadFile(
       );
     }
 
-    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
     throw e;
   }
 }
@@ -1102,7 +1102,7 @@ export async function taskCompileSolidityCompileJobs(
     return { artifactsEmittedPerJob };
   } catch (e) {
     if (!(e instanceof AggregateError)) {
-      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
       throw e;
     }
 
@@ -1113,7 +1113,7 @@ export async function taskCompileSolidityCompileJobs(
           HardhatError.ERRORS.BUILTIN_TASKS.COMPILE_FAILURE,
         )
       ) {
-        // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+        // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
         throw error;
       }
     }

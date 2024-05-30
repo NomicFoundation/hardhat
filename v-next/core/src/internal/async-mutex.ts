@@ -21,8 +21,9 @@ export class AsyncMutex {
     const release = await this.#acquire();
 
     try {
-      // eslint-disable-next-line @typescript-eslint/return-await, @typescript-eslint/await-thenable
+      /* eslint-disable-next-line @typescript-eslint/return-await, @typescript-eslint/await-thenable -- We want to make sure that we await the result if it's a promise, and that the finally is run after it */
       return await f();
+      /* eslint-enable @typescript-eslint/return-await, @typescript-eslint/await-thenable */
     } finally {
       await release();
     }

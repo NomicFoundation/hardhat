@@ -394,7 +394,7 @@ describe("Type tests", () => {
     describe("Edge cases", () => {
       it("Should support {}", () => {
         expectTypeOf<MessagetTemplateArguments<"foo {} {}">>().toEqualTypeOf<{
-          // eslint-disable-next-line @typescript-eslint/naming-convention
+          // eslint-disable-next-line @typescript-eslint/naming-convention -- This test case is intentionally testing a weird variable name
           "": ErrorMessageTemplateValue;
         }>();
       });

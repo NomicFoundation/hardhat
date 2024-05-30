@@ -548,7 +548,7 @@ export async function emptyDir(absolutePath: string): Promise<void> {
 
   await remove(absolutePath);
   await mkdir(absolutePath);
-  // eslint-disable-next-line no-bitwise
+  // eslint-disable-next-line no-bitwise -- Bitwise as common in fs permissions
   await chmod(absolutePath, mode & 0o777);
 }
 

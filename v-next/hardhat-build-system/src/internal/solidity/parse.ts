@@ -50,7 +50,7 @@ export class Parser {
         throw new HardhatError(HardhatError.ERRORS.GENERAL.CORRUPTED_LOCKFILE);
       }
 
-      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
       throw e;
     }
   }

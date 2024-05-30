@@ -94,7 +94,7 @@ export class Artifacts implements IArtifacts {
         return false;
       }
 
-      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
       throw e;
     }
 
@@ -590,7 +590,7 @@ export class Artifacts implements IArtifacts {
         );
       }
 
-      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
       throw e;
     }
   }
@@ -685,7 +685,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     const outputNames = [];
     const groups = similarNames.reduce(
       (obj, cur) => {
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions -- Re-throwing the error
         obj[cur] = obj[cur] ? (obj[cur] as number) + 1 : 1;
         return obj;
       },
