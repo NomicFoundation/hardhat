@@ -275,7 +275,7 @@ function parseTaskArguments(
   usedCliArguments: boolean[],
   task: Task,
 ): Record<string, any> {
-  const taskArguments: Record<string, any> = {};
+  const taskArguments: Record<string, unknown> = {};
 
   parseNamedParameters(cliArguments, usedCliArguments, task, taskArguments);
 
