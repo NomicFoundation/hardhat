@@ -159,6 +159,7 @@ export async function postFormRequest(
         ...headers,
         "Content-Type": "application/x-www-form-urlencoded",
       },
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO: Add a runtime check for body's type
       body: querystring.stringify(body as ParsedUrlQueryInput),
     });
   } catch (e) {

@@ -51,6 +51,8 @@ export class Compiler implements ICompiler {
    * babel/register and hang the process.
    */
   #loadCompilerSources(compilerPath: string) {
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+    TODO: This was already replaced in `main`. */
     const Module = module.constructor as any;
 
     // if Hardhat is bundled (for example, in the vscode extension), then

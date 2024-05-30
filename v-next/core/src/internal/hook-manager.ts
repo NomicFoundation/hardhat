@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/consistent-type-assertions -- Typescript
+can handle the generic types in this file correctly. It can do it for function
+signatures, but not for function bodies. */
 import {
   ChainedHook,
   HookContext,

@@ -108,6 +108,8 @@ async function defaultRequestSecretInput(
     output: process.stdout,
   });
 
+  /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- 
+  We need to access a private property of the readline interface. */
   const rlAsAny = rl as any;
 
   let initialMessage: string | undefined;

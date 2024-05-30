@@ -162,6 +162,8 @@ describe("Error categories", () => {
 
 describe("Error descriptors", () => {
   it("Should have all errors inside their ranges", () => {
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+    We kwow that this is correct */
     for (const errorGroup of Object.keys(HardhatError.ERRORS) as Array<
       keyof typeof HardhatError.ERRORS
     >) {
@@ -184,6 +186,8 @@ describe("Error descriptors", () => {
   });
 
   it("Shouldn't repeat error numbers", () => {
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+    We kwow that this is correct */
     for (const errorGroup of Object.keys(HardhatError.ERRORS) as Array<
       keyof typeof HardhatError.ERRORS
     >) {
@@ -206,6 +210,8 @@ describe("Error descriptors", () => {
   });
 
   it("Should keep the numbers in order, without gaps", () => {
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+    We kwow that this is correct */
     for (const errorGroup of Object.keys(HardhatError.ERRORS) as Array<
       keyof typeof HardhatError.ERRORS
     >) {
@@ -394,7 +400,8 @@ describe("Type tests", () => {
     describe("Edge cases", () => {
       it("Should support {}", () => {
         expectTypeOf<MessagetTemplateArguments<"foo {} {}">>().toEqualTypeOf<{
-          // eslint-disable-next-line @typescript-eslint/naming-convention -- This test case is intentionally testing a weird variable name
+          /* eslint-disable-next-line @typescript-eslint/naming-convention -- 
+          This test case is intentionally testing a weird variable name */
           "": ErrorMessageTemplateValue;
         }>();
       });

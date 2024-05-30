@@ -612,7 +612,7 @@ export class Artifacts implements IArtifacts {
       case 0:
         return "";
       case 1:
-        return `Did you mean "${names[0] as string}"?`;
+        return `Did you mean "${names[0]}"?`;
       default:
         return `We found some that were similar:
 
@@ -683,14 +683,10 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     similarNames: string[],
   ): string[] {
     const outputNames = [];
-    const groups = similarNames.reduce(
-      (obj, cur) => {
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions -- Re-throwing the error
-        obj[cur] = obj[cur] ? (obj[cur] as number) + 1 : 1;
-        return obj;
-      },
-      {} as { [k: string]: number },
-    );
+    const groups = similarNames.reduce<{ [k: string]: number }>((obj, cur) => {
+      obj[cur] = obj[cur] !== undefined ? obj[cur] + 1 : 1;
+      return obj;
+    }, {});
 
     for (const [name, occurrences] of Object.entries(groups)) {
       if (occurrences > 1) {

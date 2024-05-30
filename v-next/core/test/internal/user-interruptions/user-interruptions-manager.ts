@@ -12,7 +12,19 @@ describe("UserInterruptionManager", () => {
       const userInterruptionManager = new UserInterruptionManagerImplementation(
         hookManager,
       );
-      hookManager.setContext({} as any);
+
+      // TODO: Setting the context like this is a bit fragile. If this test
+      // breaks we should probably switch to initializing an entire HRE in these
+      // tests.
+      hookManager.setContext({
+        config: {
+          tasks: [],
+          plugins: [],
+        },
+        globalArguments: {},
+        hooks: hookManager,
+        interruptions: userInterruptionManager,
+      });
 
       let called = false;
       let givenInterruptor: string = "";
@@ -45,7 +57,15 @@ describe("UserInterruptionManager", () => {
       const userInterruptionManager = new UserInterruptionManagerImplementation(
         hookManager,
       );
-      hookManager.setContext({} as any);
+      hookManager.setContext({
+        config: {
+          tasks: [],
+          plugins: [],
+        },
+        globalArguments: {},
+        hooks: hookManager,
+        interruptions: userInterruptionManager,
+      });
 
       let called = false;
       let givenInterruptor: string = "";
@@ -80,7 +100,15 @@ describe("UserInterruptionManager", () => {
       const userInterruptionManager = new UserInterruptionManagerImplementation(
         hookManager,
       );
-      hookManager.setContext({} as any);
+      hookManager.setContext({
+        config: {
+          tasks: [],
+          plugins: [],
+        },
+        globalArguments: {},
+        hooks: hookManager,
+        interruptions: userInterruptionManager,
+      });
 
       let called = false;
       let givenInterruptor: string = "";

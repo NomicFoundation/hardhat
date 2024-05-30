@@ -83,9 +83,9 @@ export async function createCompilationJobsFromConnectedComponent(
 
     if (isCompilationJobCreationError(compilationJobOrError)) {
       log(
-        `'${file.absolutePath}' couldn't be compiled. Reason: '${
-          compilationJobOrError as any
-        }'`,
+        `'${file.absolutePath}' couldn't be compiled. Reason: '${JSON.stringify(
+          compilationJobOrError,
+        )}'`,
       );
       errors.push(compilationJobOrError);
       continue;

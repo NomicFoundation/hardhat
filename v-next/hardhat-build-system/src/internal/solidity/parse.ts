@@ -1,5 +1,3 @@
-import type SolidityAnalyzerT from "@nomicfoundation/solidity-analyzer";
-
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
@@ -31,9 +29,7 @@ export class Parser {
     }
 
     try {
-      const { analyze } = (await import(
-        "@nomicfoundation/solidity-analyzer"
-      )) as typeof SolidityAnalyzerT;
+      const { analyze } = await import("@nomicfoundation/solidity-analyzer");
       const result = analyze(fileContent);
 
       this.#cache.set(contentHash, result);

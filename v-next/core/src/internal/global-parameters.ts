@@ -73,5 +73,6 @@ export function resolveGlobalArguments(
   // TODO: Validate the userProvidedGlobalArguments and get the remaining ones
   // from env variables
 
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO
   return userProvidedGlobalArguments as GlobalArguments;
 }
