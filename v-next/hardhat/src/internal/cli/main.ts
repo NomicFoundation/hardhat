@@ -357,12 +357,11 @@ function parseNamedParameters(
 
     // The value immediately following a named parameter (if the parameter does not behave as a flag)
     // is the parameter's value; otherwise, it's an error
-    if (
-      cliArguments[i + 1] !== undefined &&
-      usedCliArguments[i + 1] === false
-    ) {
+    if (usedCliArguments[i + 1] === false) {
+      i++;
+
       taskArguments[paramName] = formatParameterValue(
-        cliArguments[++i],
+        cliArguments[i],
         paramInfo.parameterType,
         paramName,
       );
