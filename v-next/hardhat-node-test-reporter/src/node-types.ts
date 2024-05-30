@@ -8,7 +8,8 @@ export interface TestCompletedEventData {
   column?: number;
   details: {
     passed: boolean;
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    /* eslint-disable-next-line @typescript-eslint/naming-convention -- Keeping
+    this aligned with the node:test event */
     duration_ms: number;
     error?: Error;
     type?: string;

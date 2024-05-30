@@ -50,9 +50,14 @@ export function processGlobalDiagnostics(
       continue;
     }
 
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+    We checked that thsi is a key of globalDiagnostics */
+    const nameAsKey = name as keyof GlobalDiagnostics;
+
     try {
       const value = parseFloat(numberString);
-      globalDiagnostics[name as keyof GlobalDiagnostics] = value;
+
+      globalDiagnostics[nameAsKey] = value;
     } catch {
       // If this throwed, the format of the diagnostic isn't what we expected,
       // so we just print it as an unused diagnostic.

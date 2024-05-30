@@ -214,13 +214,14 @@ export default async function* customReporter(
         yield chalk.red("\nTest coverage not supported by this reporter\n");
         break;
       }
-      // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- We have this extra check here becase we know the @types/node type is unreliable
+      /* eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check --
+      We have this extra check here becase we know the @types/node type is 
+      unreliable */
       default: {
         const _isNever: never = event;
         void _isNever;
 
-        const type = (event as any).type;
-        yield chalk.red(`Unsuported node:test event type ${type}:`, event);
+        yield chalk.red(`Unsuported node:test event:`, event);
         break;
       }
     }
