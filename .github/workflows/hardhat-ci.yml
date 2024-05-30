@@ -1,0 +1,166 @@
+name: hardhat CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - "**"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  packages:
+    name: Find packages to test
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.packages.outputs.result }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fetch files modified in push event
+        if: github.event_name == 'push'
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.event.after }}
+        run: git diff --name-only $BEFORE $AFTER | tee files.txt
+      - name: Parse pnpm lock file
+        run: yq -p yaml -o json pnpm-lock.yaml | tee pnpm-lock.json
+      - uses: actions/github-script@v7
+        name: Find packages to test
+        id: packages
+        env:
+          EXCLUDED_PACKAGES: |
+            .
+            packages/hardhat-core
+            packages/common
+            packages/eslint-plugin-hardhat-internal-rules
+            packages/eslint-plugin-slow-imports
+          COMMON_DEPENDENCIES: |
+            packages/common
+            config
+          WORKFLOW_FILE: .github/workflows/hardhat-ci.yml
+        with:
+          script: |
+            const fs = require('fs');
+
+            const excludedPackages = process.env.EXCLUDED_PACKAGES.split('\n').filter(p => p);
+            const commonDependencies = process.env.COMMON_DEPENDENCIES.split('\n').filter(p => p);
+            const workflowFile = process.env.WORKFLOW_FILE;
+
+            const event = context.eventName;
+            const modifiedFiles = [];
+
+            if (event === 'pull_request') {
+              core.info('This is a pull request event')
+              const pullNumber = context.issue.number;
+
+              core.info(`Fetching files for pull request #${pullNumber}`);
+              const files = await github.paginate(github.rest.pulls.listFiles, {
+                ...context.issue,
+                pull_number: pullNumber
+              });
+              modifiedFiles.push(...files.map(file => file.filename));
+              core.info(`Modified files: ${JSON.stringify(modifiedFiles)}`);
+            } else if (event === 'push') {
+              core.info('This is a push event')
+              core.info(`Fetching files modified between ${context.payload.before} and ${context.payload.after}`)
+              const files = fs.readFileSync('files.txt', 'utf8').split('\n').filter(f => f);
+              modifiedFiles.push(...files);
+              core.info(`Modified files: ${JSON.stringify(modifiedFiles)}`);
+            }
+
+            core.info('Checking if workflow file was modified')
+            const isWorkflowFileModified = modifiedFiles.includes(workflowFile);
+            core.info(`Workflow file was modified: ${isWorkflowFileModified}`)
+
+            core.info('Reading pnpm lock file')
+            const lock = JSON.parse(fs.readFileSync('pnpm-lock.json', 'utf8'));
+            const packagesToTest = [];
+
+            core.info('Finding packages to test')
+            for (const [package, dependencies] of Object.entries(lock.importers)) {
+              core.info(`Checking package ${package}`)
+
+              if (excludedPackages.includes(package)) {
+                core.info(`Package ${package} is excluded, skipping`)
+                continue;
+              }
+
+              if (event === 'workflow_dispatch' || isWorkflowFileModified) {
+                core.info(`Workflow was dispatched or workflow file was modified, testing package ${package}`)
+                packagesToTest.push(package);
+                continue;
+              }
+
+              core.info(`Finding internal dependencies for package ${package} (only direct; not transitive)`)
+              const internalDependencies = Object.values(dependencies)
+                .flatMap(d => Object.values(d))
+                .map(d => d.version)
+                .filter(dependency => dependency.startsWith('link:../'))
+                .map(dependency => dependency.replace('link:../', 'packages/'));
+              core.info(`Internal dependencies for package ${package}: ${JSON.stringify(internalDependencies)}`)
+
+              core.info(`Checking if package ${package} or its internal dependencies were modified`)
+              const prefixes = [
+                package,
+                ...internalDependencies,
+                ...commonDependencies,
+              ].map(p => `${p}/`);
+              const isPackageModified = prefixes.some(p => modifiedFiles.some(f => f.startsWith(p)));
+              core.info(`Package ${package} or its internal dependencies were modified: ${isPackageModified}`)
+
+              if (isPackageModified) {
+                core.info(`Package ${package} or its internal dependencies were modified, testing package ${package}`)
+                packagesToTest.push(package);
+              }
+            }
+
+            core.info(`Packages to test: ${JSON.stringify(packagesToTest)}`)
+
+            return packagesToTest.map(p => p.replace('packages/', ''));
+  test:
+    needs: [packages]
+    name: Test ${{ matrix.package }} on ${{ matrix.runner }} with Node ${{ matrix.node_version }}
+    runs-on: ${{ matrix.runner }}
+    if: needs.packages.outputs.packages != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.packages.outputs.packages) }}
+        runner: [windows-latest, macos-latest, ubuntu-latest]
+        node_version: [18, 20]
+        exclude:
+          - package: hardhat-vyper
+            runner: windows-latest
+          - package: hardhat-vyper
+            runner: macos-latest
+          - runner: windows-latest
+            node_version: 20
+          - runner: macos-latest
+            node_version: 20
+    defaults:
+      run:
+        working-directory: packages/${{ matrix.package }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node_version }}
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Build
+        run: pnpm build
+      - name: Run tests
+        env:
+          FORCE_COLOR: 3
+        run: pnpm ${{ matrix.package == 'hardhat-chai-matchers' && 'test:ci' || 'test' }}
