@@ -53,8 +53,8 @@ describe("main", function () {
         ) as TaskRes;
 
         assert.equal(res.task.id, SUBTASK.id);
-        assert.deepStrictEqual(usedCliArguments, [true, true, true, true]);
-        assert.deepStrictEqual(res.taskArguments, {});
+        assert.deepEqual(usedCliArguments, [true, true, true, true]);
+        assert.deepEqual(res.taskArguments, {});
       });
     });
 
@@ -95,8 +95,8 @@ describe("main", function () {
         ) as TaskRes;
 
         assert.equal(res.task.id, TASK.id);
-        assert.deepStrictEqual(usedCliArguments, [true, true, true]);
-        assert.deepStrictEqual(res.taskArguments, {
+        assert.deepEqual(usedCliArguments, [true, true, true]);
+        assert.deepEqual(res.taskArguments, {
           param: "<paramValue>",
         });
       });
@@ -114,8 +114,8 @@ describe("main", function () {
         ) as TaskRes;
 
         assert.equal(res.task.id, SUBTASK.id);
-        assert.deepStrictEqual(usedCliArguments, [true, true, true, true]);
-        assert.deepStrictEqual(res.taskArguments, {
+        assert.deepEqual(usedCliArguments, [true, true, true, true]);
+        assert.deepEqual(res.taskArguments, {
           param: "<paramValue>",
         });
       });
@@ -133,8 +133,8 @@ describe("main", function () {
         ) as TaskRes;
 
         assert.equal(res.task.id, TASK.id);
-        assert.deepStrictEqual(usedCliArguments, [true, true]);
-        assert.deepStrictEqual(res.taskArguments, { flag: true });
+        assert.deepEqual(usedCliArguments, [true, true]);
+        assert.deepEqual(res.taskArguments, { flag: true });
       });
 
       it("should throw because the parameter when set as bool (flag behavior) should not be followed by a bool value", function () {
@@ -150,8 +150,8 @@ describe("main", function () {
         ) as TaskRes;
 
         assert.equal(res.task.id, TASK.id);
-        assert.deepStrictEqual(usedCliArguments, [true, true, true]);
-        assert.deepStrictEqual(res.taskArguments, { flag: false });
+        assert.deepEqual(usedCliArguments, [true, true, true]);
+        assert.deepEqual(res.taskArguments, { flag: false });
       });
 
       it("should convert on the fly the camelCase parameter to kebab-case", function () {
@@ -168,8 +168,8 @@ describe("main", function () {
         ) as TaskRes;
 
         assert.equal(res.task.id, TASK.id);
-        assert.deepStrictEqual(usedCliArguments, [true, true, true]);
-        assert.deepStrictEqual(res.taskArguments, { optionFlag: "<value>" });
+        assert.deepEqual(usedCliArguments, [true, true, true]);
+        assert.deepEqual(res.taskArguments, { optionFlag: "<value>" });
       });
 
       it("should throw because the parameter is not defined", async function () {
@@ -262,8 +262,8 @@ describe("main", function () {
         ) as TaskRes;
 
         assert.equal(res.task.id, TASK.id);
-        assert.deepStrictEqual(usedCliArguments, [true, true]);
-        assert.deepStrictEqual(res.taskArguments, {
+        assert.deepEqual(usedCliArguments, [true, true]);
+        assert.deepEqual(res.taskArguments, {
           param: "<paramValue>",
         });
       });
@@ -282,8 +282,8 @@ describe("main", function () {
         ) as TaskRes;
 
         assert.equal(res.task.id, TASK.id);
-        assert.deepStrictEqual(usedCliArguments, [true, true, true]);
-        assert.deepStrictEqual(res.taskArguments, {
+        assert.deepEqual(usedCliArguments, [true, true, true]);
+        assert.deepEqual(res.taskArguments, {
           param: "subtask",
         });
       });
@@ -302,8 +302,8 @@ describe("main", function () {
         ) as TaskRes;
 
         assert.equal(res.task.id, TASK.id);
-        assert.deepStrictEqual(usedCliArguments, [true, true, true]);
-        assert.deepStrictEqual(res.taskArguments, {
+        assert.deepEqual(usedCliArguments, [true, true, true]);
+        assert.deepEqual(res.taskArguments, {
           param: "foo",
           param2: "subtask",
         });
@@ -322,8 +322,8 @@ describe("main", function () {
         ) as TaskRes;
 
         assert.equal(res.task.id, SUBTASK.id);
-        assert.deepStrictEqual(usedCliArguments, [true, true, true]);
-        assert.deepStrictEqual(res.taskArguments, {
+        assert.deepEqual(usedCliArguments, [true, true, true]);
+        assert.deepEqual(res.taskArguments, {
           param: "<paramValue>",
         });
       });
@@ -341,8 +341,8 @@ describe("main", function () {
         ) as TaskRes;
 
         assert.equal(res.task.id, SUBTASK.id);
-        assert.deepStrictEqual(usedCliArguments, [true, true, true, true]);
-        assert.deepStrictEqual(res.taskArguments, {
+        assert.deepEqual(usedCliArguments, [true, true, true, true]);
+        assert.deepEqual(res.taskArguments, {
           param: "<paramValue>",
           param2: "<optParamValue>",
         });
@@ -374,8 +374,8 @@ describe("main", function () {
         ) as TaskRes;
 
         assert.equal(res.task.id, TASK.id);
-        assert.deepStrictEqual(usedCliArguments, [true, true, true, true]);
-        assert.deepStrictEqual(res.taskArguments, {
+        assert.deepEqual(usedCliArguments, [true, true, true, true]);
+        assert.deepEqual(res.taskArguments, {
           param: ["<val1>", "<val2>", "<val3>"],
         });
       });
@@ -393,8 +393,8 @@ describe("main", function () {
         ) as TaskRes;
 
         assert.equal(res.task.id, TASK.id);
-        assert.deepStrictEqual(usedCliArguments, [true]);
-        assert.deepStrictEqual(res.taskArguments, {});
+        assert.deepEqual(usedCliArguments, [true]);
+        assert.deepEqual(res.taskArguments, {});
       });
     });
 
@@ -439,7 +439,7 @@ describe("main", function () {
             hre,
           ) as TaskRes;
 
-          assert.deepStrictEqual(res.taskArguments, {
+          assert.deepEqual(res.taskArguments, {
             param: BigInt(1234),
             param2: true,
             param3: "./file-path",
@@ -492,7 +492,7 @@ describe("main", function () {
             hre,
           ) as TaskRes;
 
-          assert.deepStrictEqual(res.taskArguments, {
+          assert.deepEqual(res.taskArguments, {
             param: BigInt(1234),
             param2: true,
             param3: "./file-path",
@@ -553,7 +553,7 @@ describe("main", function () {
               hre,
             ) as TaskRes;
 
-            assert.deepStrictEqual(res.taskArguments, {
+            assert.deepEqual(res.taskArguments, {
               param: [paramResults[i]],
             });
           }
@@ -608,7 +608,7 @@ describe("main", function () {
         ) as TaskRes;
 
         assert.equal(res.task.id, TASK.id);
-        assert.deepStrictEqual(usedCliArguments, [
+        assert.deepEqual(usedCliArguments, [
           true,
           true,
           true,
@@ -620,7 +620,7 @@ describe("main", function () {
           true,
           true,
         ]);
-        assert.deepStrictEqual(res.taskArguments, {
+        assert.deepEqual(res.taskArguments, {
           param: "<value>",
           posParam: "<posValue>",
           posParam2: "<posValue2>",
