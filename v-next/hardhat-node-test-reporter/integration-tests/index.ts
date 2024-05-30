@@ -1,16 +1,17 @@
+import { run } from "node:test";
+
 import {
   isDirectory,
   readdir,
   getAllFilesMatching,
   readUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
-import { run } from "node:test";
+import { diff } from "jest-diff";
 
 import reporter from "../src/reporter.js";
-import { diff } from "jest-diff";
 const SHOW_OUTPUT = process.argv.includes("--show-output");
 
-for (let entry of await readdir(import.meta.dirname + "/fixture-tests")) {
+for (const entry of await readdir(import.meta.dirname + "/fixture-tests")) {
   const entryPath = import.meta.dirname + "/fixture-tests/" + entry;
   if (await isDirectory(entryPath)) {
     console.log("Running integration test: " + entry);
