@@ -137,7 +137,7 @@ describe("main", function () {
         assert.deepEqual(res.taskArguments, { flag: true });
       });
 
-      it("should throw because the parameter when set as bool (flag behavior) should not be followed by a bool value", function () {
+      it("should read the (optional )bool value after the parameter", function () {
         const command = "npx hardhat task --flag false";
 
         const cliArguments = command.split(" ").slice(2);
