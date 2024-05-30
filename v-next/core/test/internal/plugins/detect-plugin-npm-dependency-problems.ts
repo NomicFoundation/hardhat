@@ -115,7 +115,7 @@ describe("Plugins - detect npm dependency problems", () => {
         {
           name: "HardhatError",
           message:
-            'HHE1202: Plugin "example-plugin" has a peer dependency "peer2" with version "2.0.0" but version "^1.0.0" is needed.',
+            'HHE1202: Plugin "example-plugin" has a peer dependency "peer2" with expected version "^1.0.0" but the installed version is "2.0.0".',
         },
       );
     });
