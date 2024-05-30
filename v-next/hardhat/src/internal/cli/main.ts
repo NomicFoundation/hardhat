@@ -336,9 +336,8 @@ function parseNamedParameters(
 
     if (paramInfo.parameterType === ParameterType.BOOLEAN) {
       if (
-        cliArguments[i + 1] !== undefined &&
         usedCliArguments[i + 1] === false &&
-        (cliArguments[i + 1] === "true" || cliArguments[i + 1] === "false")
+        ["true", "false"].includes(cliArguments[i + 1])
       ) {
         // The flag could be follow by the boolean value
         taskArguments[paramName] = formatParameterValue(
