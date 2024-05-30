@@ -400,7 +400,9 @@ function parsePositionalAndVariadicParameters(
       continue;
     }
 
-    if (task.positionalParameters[paramI] === undefined) {
+    const paramInfo = task.positionalParameters[paramI];
+
+    if (paramInfo === undefined) {
       continue;
     }
 
@@ -408,19 +410,18 @@ function parsePositionalAndVariadicParameters(
 
     const formattedValue = formatParameterValue(
       cliArguments[i],
-      task.positionalParameters[paramI].parameterType,
-      task.positionalParameters[paramI].name,
+      paramInfo.parameterType,
+      paramInfo.name,
     );
 
-    if (task.positionalParameters[paramI].isVariadic === false) {
+    if (paramInfo.isVariadic === false) {
       taskArguments[task.positionalParameters[paramI++].name] = formattedValue;
       continue;
     }
 
     // Handle variadic parameters
-    taskArguments[task.positionalParameters[paramI].name] =
-      taskArguments[task.positionalParameters[paramI].name] ?? [];
-    taskArguments[task.positionalParameters[paramI].name].push(formattedValue);
+    taskArguments[paramInfo.name] = taskArguments[paramInfo.name] ?? [];
+    taskArguments[paramInfo.name].push(formattedValue);
   }
 }
 
