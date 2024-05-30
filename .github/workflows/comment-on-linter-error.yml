@@ -25,7 +25,7 @@ jobs:
         with:
           artifacts-url: ${{ github.event.workflow_run.artifacts_url }}
           artifact-names: event
-      - uses: actions/github-script@v6
+      - uses: actions/github-script@v7
         name: Comment on failure
         env:
           NUMBER: ${{ fromJSON(steps.context.outputs.artifacts)['event'].files['event.json'].number }}

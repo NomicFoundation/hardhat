@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v4
         with:
           version: 9
       - uses: actions/setup-node@v4
@@ -31,7 +31,7 @@ jobs:
       - name: lint
         run: pnpm lint
       - name: Cache artifacts
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/artifacts
@@ -52,7 +52,7 @@ jobs:
         working-directory: packages/hardhat-core
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v4
         with:
           version: 9
       - uses: actions/setup-node@v4
@@ -62,7 +62,7 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Cache network requests
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             packages/hardhat-core/test/internal/hardhat-network/provider/.hardhat_node_test_cache
