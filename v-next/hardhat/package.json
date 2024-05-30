@@ -50,6 +50,7 @@
     "README.md"
   ],
   "devDependencies": {
+    "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
     "@reporters/github": "^1.7.0",

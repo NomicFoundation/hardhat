@@ -41,8 +41,13 @@ function createConfig(configFilePath, packageEntryPoints = []) {
       "no-only-tests",
       "@typescript-eslint",
       "@nomicfoundation/slow-imports",
+      "@eslint-community/eslint-comments",
     ],
     rules: {
+      "@eslint-community/eslint-comments/require-description": [
+        "error",
+        { ignore: ["eslint-enable"] },
+      ],
       "@typescript-eslint/adjacent-overload-signatures": "error",
       "@typescript-eslint/array-type": [
         "error",

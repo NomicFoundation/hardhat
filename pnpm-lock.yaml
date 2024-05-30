@@ -1438,6 +1438,9 @@ importers:
         specifier: ^7.6.2
         version: 7.6.2
     devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.3.0(eslint@8.57.0)
       '@microsoft/api-extractor':
         specifier: ^7.43.4
         version: 7.43.4(@types/node@20.12.10)
@@ -1526,6 +1529,9 @@ importers:
         specifier: ^3.23.8
         version: 3.23.8
     devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.3.0(eslint@8.57.0)
       '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
         specifier: workspace:^
         version: link:../../packages/eslint-plugin-hardhat-internal-rules
@@ -1635,6 +1641,9 @@ importers:
         specifier: ^6.16.1
         version: 6.16.1
     devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.3.0(eslint@8.57.0)
       '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
         specifier: workspace:^
         version: link:../../packages/eslint-plugin-hardhat-internal-rules
@@ -1726,6 +1735,9 @@ importers:
         specifier: workspace:^3.0.0
         version: link:../hardhat-utils
     devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.3.0(eslint@8.57.0)
       '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
         specifier: workspace:^
         version: link:../../packages/eslint-plugin-hardhat-internal-rules
@@ -1796,6 +1808,9 @@ importers:
         specifier: ^6.16.1
         version: 6.16.1
     devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.3.0(eslint@8.57.0)
       '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
         specifier: workspace:^
         version: link:../../packages/eslint-plugin-hardhat-internal-rules
@@ -1859,6 +1874,9 @@ importers:
 
   v-next/hardhat-zod-utils:
     devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.3.0(eslint@8.57.0)
       '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
         specifier: workspace:^
         version: link:../../packages/eslint-plugin-hardhat-internal-rules
@@ -1922,6 +1940,9 @@ importers:
 
   v-next/template-package:
     devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.3.0(eslint@8.57.0)
       '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
         specifier: workspace:^
         version: link:../../packages/eslint-plugin-hardhat-internal-rules
@@ -2290,6 +2311,12 @@ packages:
     engines: {node: '>=12'}
     cpu: [x64]
     os: [win32]
+
+  '@eslint-community/eslint-plugin-eslint-comments@4.3.0':
+    resolution: {integrity: sha512-6e93KtgsndNkvwCCa07LOQJSwzzLLxwrFll3+huyFoiiQXWG0KBcmo0Q1bVgYQQDLfWOOZl2VPBsXqZL6vHIBQ==}
+    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    peerDependencies:
+      eslint: ^6.0.0 || ^7.0.0 || ^8.0.0 || ^9.0.0
 
   '@eslint-community/eslint-utils@4.4.0':
     resolution: {integrity: sha512-1/sA4dwrzBAyeUoQ6oxahHKmrZvsnLCg4RfxW3ZFGGmQkSNQPFNLV9CUEFQP1x9EYXHTo5p6xdhZM1Ne9p/AfA==}
@@ -7175,6 +7202,12 @@ snapshots:
 
   '@esbuild/win32-x64@0.19.12':
     optional: true
+
+  '@eslint-community/eslint-plugin-eslint-comments@4.3.0(eslint@8.57.0)':
+    dependencies:
+      escape-string-regexp: 4.0.0
+      eslint: 8.57.0
+      ignore: 5.3.1
 
   '@eslint-community/eslint-utils@4.4.0(eslint@8.57.0)':
     dependencies:
