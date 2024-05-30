@@ -94,7 +94,10 @@ function createConfig(configFilePath, packageEntryPoints = []) {
           minimumDescriptionLength: 3,
         },
       ],
-      "@typescript-eslint/consistent-type-assertions": "error",
+      "@typescript-eslint/consistent-type-assertions": [
+        "error",
+        { assertionStyle: "never" },
+      ],
       "@typescript-eslint/consistent-type-definitions": "error",
       "@typescript-eslint/dot-notation": "error",
       "@typescript-eslint/explicit-member-accessibility": [
