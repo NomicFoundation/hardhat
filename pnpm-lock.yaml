@@ -1793,6 +1793,73 @@ importers:
         specifier: 7.7.1
         version: 7.7.1(eslint@8.57.0)(typescript@5.4.3)
 
+  v-next/hardhat-node-test-reporter:
+    dependencies:
+      chalk:
+        specifier: ^5.3.0
+        version: 5.3.0
+      jest-diff:
+        specifier: ^29.7.0
+        version: 29.7.0
+    devDependencies:
+      '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
+        specifier: workspace:^
+        version: link:../../packages/eslint-plugin-hardhat-internal-rules
+      '@nomicfoundation/eslint-plugin-slow-imports':
+        specifier: workspace:^
+        version: link:../../packages/eslint-plugin-slow-imports
+      '@nomicfoundation/hardhat-utils':
+        specifier: workspace:^3.0.0
+        version: link:../hardhat-utils
+      '@reporters/github':
+        specifier: ^1.7.0
+        version: 1.7.0
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.12.10
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^7.7.1
+        version: 7.9.0(@typescript-eslint/parser@7.9.0(eslint@8.57.0)(typescript@5.4.5))(eslint@8.57.0)(typescript@5.4.5)
+      '@typescript-eslint/parser':
+        specifier: ^7.7.1
+        version: 7.9.0(eslint@8.57.0)(typescript@5.4.5)
+      eslint:
+        specifier: 8.57.0
+        version: 8.57.0
+      eslint-config-prettier:
+        specifier: 9.1.0
+        version: 9.1.0(eslint@8.57.0)
+      eslint-import-resolver-typescript:
+        specifier: ^3.6.1
+        version: 3.6.1(@typescript-eslint/parser@7.9.0(eslint@8.57.0)(typescript@5.4.5))(eslint-plugin-import@2.29.1)(eslint@8.57.0)
+      eslint-plugin-import:
+        specifier: 2.29.1
+        version: 2.29.1(@typescript-eslint/parser@7.9.0(eslint@8.57.0)(typescript@5.4.5))(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0)
+      eslint-plugin-no-only-tests:
+        specifier: 3.1.0
+        version: 3.1.0
+      expect-type:
+        specifier: ^0.19.0
+        version: 0.19.0
+      glob:
+        specifier: ^10.3.12
+        version: 10.3.12
+      prettier:
+        specifier: 3.2.5
+        version: 3.2.5
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.5
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.1
+      typescript:
+        specifier: ~5.4.0
+        version: 5.4.5
+      typescript-eslint:
+        specifier: 7.7.1
+        version: 7.7.1(eslint@8.57.0)(typescript@5.4.5)
+
   v-next/hardhat-utils:
     dependencies:
       fast-equals:
