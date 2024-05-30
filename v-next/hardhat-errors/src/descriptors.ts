@@ -588,7 +588,7 @@ A fully qualified name should look like file.sol:Contract`,
       number: 1200,
       messageTemplate: 'Plugin "{pluginId}" is not installed.',
       websiteTitle: "Plugin not installed",
-      websiteDescription: `A plugin was included in the Hardhat config but has not been installed.`,
+      websiteDescription: `A plugin was included in the Hardhat config but has not been installed into "node_modules".`,
     },
     PLUGIN_MISSING_DEPENDENCY: {
       number: 1201,
@@ -600,15 +600,17 @@ A fully qualified name should look like file.sol:Contract`,
     DEPENDENCY_VERSION_MISMATCH: {
       number: 1202,
       messageTemplate:
-        'Plugin "{pluginId}" has a peer dependency "{peerDependencyName}" with version "{installedVersion}" but version "{expectedVersion}" is needed.',
+        'Plugin "{pluginId}" has a peer dependency "{peerDependencyName}" with expected version "{expectedVersion}" but the installed version is "{installedVersion}".',
       websiteTitle: "Dependency version mismatch",
-      websiteDescription: `A plugin's peer dependency version does not match the expected version.`,
+      websiteDescription: `A plugin's peer dependency expected version does not match the version of the installed package.
+
+Please install a version of the peer dependency that meets the plugin's requirements.`,
     },
     PLUGIN_DEPENDENCY_FAILED_LOAD: {
       number: 1203,
       messageTemplate: 'Plugin "{pluginId}" dependency could not be loaded.',
       websiteTitle: "Plugin dependency could not be loaded",
-      websiteDescription: `A plugin's dependent plugin could not be lazily loaded.`,
+      websiteDescription: `The loading of a plugin's dependent plugin failed.`,
     },
   },
 } as const;
