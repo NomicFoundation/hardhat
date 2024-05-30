@@ -9,6 +9,7 @@ import {
   formatTestFailure,
   formatTestPass,
   formatSlowTestInfo,
+  Failure,
 } from "./formatting.js";
 import {
   TestEventData,
@@ -17,12 +18,6 @@ import {
 } from "./node-types.js";
 
 export const SLOW_TEST_THRESHOLD = 75;
-
-export interface Failure {
-  index: number;
-  testFail: TestEventData["test:fail"];
-  contextStack: Array<TestEventData["test:start"]>;
-}
 
 export default async function* customReporter(
   source: TestEventSource,

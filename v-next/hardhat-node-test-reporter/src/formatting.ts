@@ -3,10 +3,15 @@ import chalk from "chalk";
 import { GlobalDiagnostics } from "./diagnostics.js";
 import { formatError } from "./error-formatting.js";
 import { TestEventData } from "./node-types.js";
-import { Failure } from "./reporter.js";
 
 export const INFO_SYMBOL = chalk.blue("\u2139");
 export const SUCCESS_SYMBOL = chalk.green("✔");
+
+export interface Failure {
+  index: number;
+  testFail: TestEventData["test:fail"];
+  contextStack: Array<TestEventData["test:start"]>;
+}
 
 export function formatTestContext(
   contextStack: Array<TestEventData["test:start"]>,
@@ -18,16 +23,13 @@ export function formatTestContext(
   const prefixLength = prefix.length;
 
   for (const [i, parentTest] of contextStack.entries()) {
-    if (i !== 0) {
+    const indentationLength = nestingToIndentation(parentTest.nesting);
+
+    if (i === 0) {
+      contextFragments.push(indent(prefix, indentationLength));
+    } else {
       contextFragments.push("\n");
-    }
-
-    contextFragments.push(
-      "".padEnd((parentTest.nesting + 1) * 2 + (i !== 0 ? prefixLength : 0)),
-    );
-
-    if (i === 0 && prefix !== "") {
-      contextFragments.push(prefix);
+      contextFragments.push(indent("", indentationLength + prefixLength));
     }
 
     contextFragments.push(parentTest.name);
@@ -41,7 +43,7 @@ export function formatTestContext(
 export function* formatTestPass(
   passData: TestEventData["test:pass"],
 ): Generator<string> {
-  yield "".padEnd((passData.nesting + 1) * 2);
+  yield "".padEnd(nestingToIndentation(passData.nesting));
 
   if (passData.skip === true || typeof passData.skip === "string") {
     // TODO: show skip reason
@@ -56,11 +58,10 @@ export function* formatTestPass(
 }
 
 export function* formatTestFailure(failure: Failure): Generator<string> {
-  yield "".padEnd((failure.testFail.nesting + 1) * 2);
-
-  const failMsg = `${formatFailureIndex(failure.index)}) ${failure.testFail.name}`;
-
-  yield chalk.red(failMsg);
+  yield indent(
+    chalk.red(`${formatFailureIndex(failure.index)}) ${failure.testFail.name}`),
+    nestingToIndentation(failure.testFail.nesting),
+  );
 }
 
 export function formatFailureReason(failure: Failure): string {
@@ -120,6 +121,10 @@ export function formatUnusedDiagnostics(
 
 function formatFailureIndex(index: number): string {
   return (index + 1).toString();
+}
+
+function nestingToIndentation(nesting: number): number {
+  return (nesting + 1) * 2;
 }
 
 function indent(str: string, spaces: number): string {
