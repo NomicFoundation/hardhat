@@ -169,7 +169,7 @@ export default async function* customReporter(
         yield chalk.red("\nTest coverage not supported by this reporter\n");
         break;
       }
-      // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
+      // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- We have this extra check here becase we know the @types/node type is unreliable
       default: {
         const _isNever: never = event;
         void _isNever;
