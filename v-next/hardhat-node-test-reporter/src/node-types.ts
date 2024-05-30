@@ -1,5 +1,9 @@
 import type { TestEvent } from "node:test/reporters";
 
+/**
+ * This is missing from `@types/node` 20, so we define our own version of it,
+ * based on the Node 22 docs.
+ */
 export interface TestCompletedEventData {
   column?: number;
   details: {
@@ -18,6 +22,10 @@ export interface TestCompletedEventData {
   skip?: string | boolean;
 }
 
+/**
+ * This is missing from `@types/node` 20, so we define our own version of it,
+ * based on the Node 22 docs.
+ */
 export interface TestCoverageEventData {
   summary: {
     files: Array<{
@@ -61,13 +69,18 @@ export interface TestCoverageEventData {
   nesting: number;
 }
 
-// We define this type because @types/node@20 doesn't define it
+/**
+ * This is a fixed version of `@types/node`, as that one is incomplete, at least
+ * in its version 20.
+ */
 export type CorrectedTestEvent =
   | TestEvent
   | { type: "test:complete"; data: TestCompletedEventData }
   | { type: "test:coverage"; data: TestCoverageEventData };
 
-// We map the event type to their data type so that its easier to work with
+/**
+ * A map from event type to its data type.
+ */
 export type TestEventData = UnionToObject<CorrectedTestEvent>;
 
 type UnionToObject<T extends { type: string }> = {
@@ -76,12 +89,12 @@ type UnionToObject<T extends { type: string }> = {
     : never;
 };
 
+/**
+ * The type of the event source that the reporter will receive.
+ */
 export type TestEventSource = AsyncGenerator<CorrectedTestEvent, void>;
 
+/**
+ * The type of the result of the reporter.
+ */
 export type TestReporterResult = AsyncGenerator<string, void>;
-
-export interface Failure {
-  index: number;
-  testFail: TestEventData["test:fail"];
-  contextStack: Array<TestEventData["test:start"]>;
-}
