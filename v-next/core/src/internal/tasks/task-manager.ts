@@ -54,7 +54,7 @@ export class TaskManagerImplementation implements TaskManager {
       throw new HardhatError(
         HardhatError.ERRORS.TASK_DEFINITIONS.TASK_NOT_FOUND,
         {
-          id: formatTaskId(taskId),
+          task: formatTaskId(taskId),
         },
       );
     }
@@ -68,7 +68,7 @@ export class TaskManagerImplementation implements TaskManager {
         throw new HardhatError(
           HardhatError.ERRORS.TASK_DEFINITIONS.TASK_NOT_FOUND,
           {
-            id: formatTaskId(taskId.slice(0, i + 1)),
+            task: formatTaskId(taskId.slice(0, i + 1)),
           },
         );
       }
