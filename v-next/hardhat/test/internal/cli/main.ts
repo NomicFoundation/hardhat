@@ -20,23 +20,23 @@ interface TaskRes {
 describe("main", function () {
   let hre: HardhatRuntimeEnvironment;
 
-  // TASKS and SUBTASKS are defined in the "before()" hooks before every "functionality test groups".
-  let TASK: NewTaskDefinition;
-  let SUBTASK: NewTaskDefinition;
+  // newTaskDefinitionS and newSubtaskDefinitionS are defined in the "before()" hooks before every "functionality test groups".
+  let newTaskDefinition: NewTaskDefinition;
+  let newSubtaskDefinition: NewTaskDefinition;
 
   describe("parseTaskAndArguments", function () {
     describe("only task and subtask", function () {
       before(async function () {
-        TASK = task(["task"])
+        newTaskDefinition = task(["task"])
           .setAction(() => {})
           .build();
 
-        SUBTASK = task(["task", "subtask"])
+        newSubtaskDefinition = task(["task", "subtask"])
           .setAction(() => {})
           .build();
 
         hre = await createHardhatRuntimeEnvironment({
-          tasks: [TASK, SUBTASK],
+          tasks: [newTaskDefinition, newSubtaskDefinition],
         });
       });
 
@@ -52,7 +52,7 @@ describe("main", function () {
           hre,
         ) as TaskRes;
 
-        assert.equal(res.task.id, SUBTASK.id);
+        assert.equal(res.task.id, newSubtaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true, true, true, true]);
         assert.deepEqual(res.taskArguments, {});
       });
@@ -60,7 +60,7 @@ describe("main", function () {
 
     describe("task and subtask with named parameters", function () {
       before(async function () {
-        TASK = task(["task"])
+        newTaskDefinition = task(["task"])
           .addNamedParameter({ name: "param" })
           .addNamedParameter({
             name: "flag",
@@ -72,13 +72,13 @@ describe("main", function () {
           .setAction(() => {})
           .build();
 
-        SUBTASK = task(["task", "subtask"])
+        newSubtaskDefinition = task(["task", "subtask"])
           .addNamedParameter({ name: "param" })
           .setAction(() => {})
           .build();
 
         hre = await createHardhatRuntimeEnvironment({
-          tasks: [TASK, SUBTASK],
+          tasks: [newTaskDefinition, newSubtaskDefinition],
         });
       });
 
@@ -94,7 +94,7 @@ describe("main", function () {
           hre,
         ) as TaskRes;
 
-        assert.equal(res.task.id, TASK.id);
+        assert.equal(res.task.id, newTaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true, true, true]);
         assert.deepEqual(res.taskArguments, {
           param: "<paramValue>",
@@ -113,7 +113,7 @@ describe("main", function () {
           hre,
         ) as TaskRes;
 
-        assert.equal(res.task.id, SUBTASK.id);
+        assert.equal(res.task.id, newSubtaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true, true, true, true]);
         assert.deepEqual(res.taskArguments, {
           param: "<paramValue>",
@@ -132,7 +132,7 @@ describe("main", function () {
           hre,
         ) as TaskRes;
 
-        assert.equal(res.task.id, TASK.id);
+        assert.equal(res.task.id, newTaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true, true]);
         assert.deepEqual(res.taskArguments, { flag: true });
       });
@@ -149,7 +149,7 @@ describe("main", function () {
           hre,
         ) as TaskRes;
 
-        assert.equal(res.task.id, TASK.id);
+        assert.equal(res.task.id, newTaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true, true, true]);
         assert.deepEqual(res.taskArguments, { flag: false });
       });
@@ -167,7 +167,7 @@ describe("main", function () {
           hre,
         ) as TaskRes;
 
-        assert.equal(res.task.id, TASK.id);
+        assert.equal(res.task.id, newTaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true, true, true]);
         assert.deepEqual(res.taskArguments, { optionFlag: "<value>" });
       });
@@ -226,7 +226,7 @@ describe("main", function () {
 
     describe("task and subtask with positional parameters", function () {
       before(async function () {
-        TASK = task(["task"])
+        newTaskDefinition = task(["task"])
           .addPositionalParameter({ name: "param" })
           .addPositionalParameter({
             name: "param2",
@@ -235,7 +235,7 @@ describe("main", function () {
           .setAction(() => {})
           .build();
 
-        SUBTASK = task(["task", "subtask"])
+        newSubtaskDefinition = task(["task", "subtask"])
           .addPositionalParameter({ name: "param" })
           .addPositionalParameter({
             name: "param2",
@@ -245,7 +245,7 @@ describe("main", function () {
           .build();
 
         hre = await createHardhatRuntimeEnvironment({
-          tasks: [TASK, SUBTASK],
+          tasks: [newTaskDefinition, newSubtaskDefinition],
         });
       });
 
@@ -261,7 +261,7 @@ describe("main", function () {
           hre,
         ) as TaskRes;
 
-        assert.equal(res.task.id, TASK.id);
+        assert.equal(res.task.id, newTaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true, true]);
         assert.deepEqual(res.taskArguments, {
           param: "<paramValue>",
@@ -281,7 +281,7 @@ describe("main", function () {
           hre,
         ) as TaskRes;
 
-        assert.equal(res.task.id, TASK.id);
+        assert.equal(res.task.id, newTaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true, true, true]);
         assert.deepEqual(res.taskArguments, {
           param: "subtask",
@@ -301,7 +301,7 @@ describe("main", function () {
           hre,
         ) as TaskRes;
 
-        assert.equal(res.task.id, TASK.id);
+        assert.equal(res.task.id, newTaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true, true, true]);
         assert.deepEqual(res.taskArguments, {
           param: "foo",
@@ -321,7 +321,7 @@ describe("main", function () {
           hre,
         ) as TaskRes;
 
-        assert.equal(res.task.id, SUBTASK.id);
+        assert.equal(res.task.id, newSubtaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true, true, true]);
         assert.deepEqual(res.taskArguments, {
           param: "<paramValue>",
@@ -340,7 +340,7 @@ describe("main", function () {
           hre,
         ) as TaskRes;
 
-        assert.equal(res.task.id, SUBTASK.id);
+        assert.equal(res.task.id, newSubtaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true, true, true, true]);
         assert.deepEqual(res.taskArguments, {
           param: "<paramValue>",
@@ -351,13 +351,13 @@ describe("main", function () {
 
     describe("task and subtask with variadic parameters", function () {
       before(async function () {
-        TASK = task(["task"])
+        newTaskDefinition = task(["task"])
           .addVariadicParameter({ name: "param" })
           .setAction(() => {})
           .build();
 
         hre = await createHardhatRuntimeEnvironment({
-          tasks: [TASK, SUBTASK],
+          tasks: [newTaskDefinition, newSubtaskDefinition],
         });
       });
 
@@ -373,7 +373,7 @@ describe("main", function () {
           hre,
         ) as TaskRes;
 
-        assert.equal(res.task.id, TASK.id);
+        assert.equal(res.task.id, newTaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true, true, true, true]);
         assert.deepEqual(res.taskArguments, {
           param: ["<val1>", "<val2>", "<val3>"],
@@ -392,7 +392,7 @@ describe("main", function () {
           hre,
         ) as TaskRes;
 
-        assert.equal(res.task.id, TASK.id);
+        assert.equal(res.task.id, newTaskDefinition.id);
         assert.deepEqual(usedCliArguments, [true]);
         assert.deepEqual(res.taskArguments, {});
       });
@@ -401,7 +401,7 @@ describe("main", function () {
     describe("formatting of parameters types", function () {
       describe("named parameters", function () {
         before(async function () {
-          TASK = task(["task"])
+          newTaskDefinition = task(["task"])
             .addNamedParameter({ name: "param", type: ParameterType.BIGINT })
             .addNamedParameter({ name: "param2", type: ParameterType.BOOLEAN })
             .addNamedParameter({ name: "param3", type: ParameterType.FILE })
@@ -412,7 +412,7 @@ describe("main", function () {
             .build();
 
           hre = await createHardhatRuntimeEnvironment({
-            tasks: [TASK],
+            tasks: [newTaskDefinition],
           });
         });
 
@@ -452,7 +452,7 @@ describe("main", function () {
 
       describe("positional parameters", function () {
         before(async function () {
-          TASK = task(["task"])
+          newTaskDefinition = task(["task"])
             .addPositionalParameter({
               name: "param",
               type: ParameterType.BIGINT,
@@ -478,7 +478,7 @@ describe("main", function () {
             .build();
 
           hre = await createHardhatRuntimeEnvironment({
-            tasks: [TASK],
+            tasks: [newTaskDefinition],
           });
         });
 
@@ -533,7 +533,7 @@ describe("main", function () {
         it("should correctly format the parameters accordingly to their types", async function () {
           // Variadic parameters can only be of a single type at a time, so loop through all the types
           for (let i = 0; i < paramTypes.length; i++) {
-            TASK = task(["task"])
+            newTaskDefinition = task(["task"])
               .addVariadicParameter({
                 name: "param",
                 type: paramTypes[i],
@@ -542,7 +542,7 @@ describe("main", function () {
               .build();
 
             hre = await createHardhatRuntimeEnvironment({
-              tasks: [TASK],
+              tasks: [newTaskDefinition],
             });
 
             const command = `npx hardhat task ${paramValues[i]}`;
@@ -563,7 +563,7 @@ describe("main", function () {
 
     describe("combine all the parameters' types", function () {
       before(async function () {
-        TASK = task(["task"])
+        newTaskDefinition = task(["task"])
           .addNamedParameter({ name: "param" })
           .addPositionalParameter({ name: "posParam" })
           .addPositionalParameter({
@@ -574,12 +574,12 @@ describe("main", function () {
           .setAction(() => {})
           .build();
 
-        SUBTASK = task(["task", "subtask"])
+        newSubtaskDefinition = task(["task", "subtask"])
           .setAction(() => {})
           .build();
 
         hre = await createHardhatRuntimeEnvironment({
-          tasks: [TASK, SUBTASK],
+          tasks: [newTaskDefinition, newSubtaskDefinition],
         });
       });
 
@@ -607,7 +607,7 @@ describe("main", function () {
           hre,
         ) as TaskRes;
 
-        assert.equal(res.task.id, TASK.id);
+        assert.equal(res.task.id, newTaskDefinition.id);
         assert.deepEqual(usedCliArguments, [
           true,
           true,
