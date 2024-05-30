@@ -33,7 +33,7 @@ describe("UserInterruptionManager", () => {
         "test-message",
       );
 
-      assert(called);
+      assert(called, "Handler was not called");
       assert.equal(givenInterruptor, "test-interruptor");
       assert.equal(givenMessage, "test-message");
     });
@@ -67,7 +67,7 @@ describe("UserInterruptionManager", () => {
         "test-input-description",
       );
 
-      assert(called);
+      assert(called, "Handler was not called");
       assert.equal(givenInterruptor, "test-interruptor");
       assert.equal(givenInputDescription, "test-input-description");
       assert.equal(input, "test-input");
@@ -102,7 +102,7 @@ describe("UserInterruptionManager", () => {
         "test-input-description",
       );
 
-      assert(called);
+      assert(called, "Handler was not called");
       assert.equal(givenInterruptor, "test-interruptor");
       assert.equal(givenInputDescription, "test-input-description");
       assert.equal(input, "test-secret-input");

@@ -18,11 +18,12 @@ describe("AsyncMutex", () => {
     }
 
     await Promise.all([
-      mutex.excluiveRun(run),
-      mutex.excluiveRun(run),
-      mutex.excluiveRun(run),
+      mutex.exclusiveRun(run),
+      mutex.exclusiveRun(run),
+      mutex.exclusiveRun(run),
     ]);
 
-    assert.strictEqual(maxRunning, 1);
+    assert.equal(maxRunning, 1);
+    assert.equal(running, 0);
   });
 });
