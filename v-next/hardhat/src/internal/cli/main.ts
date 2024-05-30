@@ -2,14 +2,16 @@ import {
   buildGlobalParameterMap,
   resolvePluginList,
 } from "@nomicfoundation/hardhat-core";
+import { ParameterType } from "@nomicfoundation/hardhat-core/types/common";
 import {
   GlobalArguments,
   GlobalParameterMap,
 } from "@nomicfoundation/hardhat-core/types/global-parameters";
 import { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
 import { Task } from "@nomicfoundation/hardhat-core/types/tasks";
-
 import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import { builtinPlugins } from "../builtin-plugins/index.js";
 import {
   importUserConfig,
@@ -184,7 +186,7 @@ function parseGlobalArguments(
  * @returns The task and its arguments, or an array with the unrecognized task
  *  id. If no task id is provided, an empty array is returned.
  */
-function parseTaskAndArguments(
+export function parseTaskAndArguments(
   cliArguments: string[],
   usedCliArguments: boolean[],
   hre: HardhatRuntimeEnvironment,
@@ -201,20 +203,13 @@ function parseTaskAndArguments(
 
   const task = taskOrId;
 
-  // TODO: Parse the task arguments
-  // - Skip the used cli arguments.
-  // - Everything after `--` is a positional argument.
-  // - Most name parameters are parsed as `--name value`
-  // - Name parameters of boolean type with default `false` can be used as
-  //    `--name` and their value is not necessary (it's implicitly `true`).
-  // - Positional parameters are parsed as `<value>`, one at the time.
-  // - Variadic positional parameters are parsed as `<value>...` and consume
-  //   all the remaining values.
-  // - Parse each argument value according to its type
-  // - Fail if there are unrecognized or unused cli arguments.
-  // - Note: missing and optional parameters should be handled in Task#run
+  const taskArguments = parseTaskArguments(
+    cliArguments,
+    usedCliArguments,
+    task,
+  );
 
-  return { task, taskArguments: {} };
+  return { task, taskArguments };
 }
 
 function getTaskFromCliArguments(
@@ -233,11 +228,20 @@ function getTaskFromCliArguments(
     const arg = cliArguments[i];
 
     if (arg.startsWith("--")) {
+      // A standalone '--' is ok because it is used to separate CLI tool arguments from script arguments,
+      // ensuring the tool passes subsequent options directly to the script.
       if (arg.length === 2 || task !== undefined) {
         break;
       }
 
-      throw new Error(`Found task argument ${arg} before the task name`);
+      // At this point in the code, the global parameters have already been parsed, so the remaining parameters starting with '--' are task named parameters.
+      // Hence, if no task is defined, it means that the parameter is not assigned to any task, and it's an error.
+      throw new HardhatError(
+        HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_NAMED_PARAM,
+        {
+          parameter: arg,
+        },
+      );
     }
 
     if (task === undefined) {
@@ -264,4 +268,193 @@ function getTaskFromCliArguments(
   }
 
   return task;
+}
+
+function parseTaskArguments(
+  cliArguments: string[],
+  usedCliArguments: boolean[],
+  task: Task,
+): Record<string, any> {
+  const taskArguments: Record<string, unknown> = {};
+
+  parseNamedParameters(cliArguments, usedCliArguments, task, taskArguments);
+
+  parsePositionalAndVariadicParameters(
+    cliArguments,
+    usedCliArguments,
+    task,
+    taskArguments,
+  );
+
+  usedCliArguments.forEach((arg, index) => {
+    if (!arg) {
+      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.UNUSED_ARGUMENT, {
+        value: cliArguments[index],
+      });
+    }
+  });
+
+  return taskArguments;
+}
+
+function parseNamedParameters(
+  cliArguments: string[],
+  usedCliArguments: boolean[],
+  task: Task,
+  taskArguments: Record<string, any>,
+) {
+  for (let i = 0; i < cliArguments.length; i++) {
+    if (usedCliArguments[i]) {
+      continue;
+    }
+
+    if (cliArguments[i] === "--") {
+      // A standalone '--' is ok because it is used to separate CLI tool arguments from script arguments,
+      // ensuring the tool passes subsequent options directly to the script.
+      continue;
+    }
+
+    const arg = cliArguments[i];
+
+    if (arg.startsWith("--") === false) {
+      continue;
+    }
+
+    const paramName = kebabToCamelCase(arg.substring(2));
+    const paramInfo = task.namedParameters.get(paramName);
+
+    if (paramInfo === undefined) {
+      throw new HardhatError(
+        HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_NAMED_PARAM,
+        {
+          parameter: arg,
+        },
+      );
+    }
+
+    usedCliArguments[i] = true;
+
+    if (paramInfo.parameterType === ParameterType.BOOLEAN) {
+      if (
+        usedCliArguments[i + 1] === false &&
+        ["true", "false"].includes(cliArguments[i + 1])
+      ) {
+        // The flag could be follow by the boolean value
+        taskArguments[paramName] = formatParameterValue(
+          cliArguments[i + 1],
+          ParameterType.BOOLEAN,
+          paramName,
+        );
+
+        usedCliArguments[i + 1] = true;
+        continue;
+      }
+
+      // If the flag is not followed by a boolean value, then the flag itself means that the value is true
+      taskArguments[paramName] = true;
+      continue;
+    }
+
+    // The value immediately following a named parameter (if the parameter does not behave as a flag)
+    // is the parameter's value; otherwise, it's an error
+    if (usedCliArguments[i + 1] === false) {
+      i++;
+
+      taskArguments[paramName] = formatParameterValue(
+        cliArguments[i],
+        paramInfo.parameterType,
+        paramName,
+      );
+
+      usedCliArguments[i] = true;
+
+      continue;
+    }
+
+    throw new HardhatError(
+      HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_NAMED_PARAMETER,
+      {
+        paramName: arg,
+      },
+    );
+  }
+}
+
+function parsePositionalAndVariadicParameters(
+  cliArguments: string[],
+  usedCliArguments: boolean[],
+  task: Task,
+  taskArguments: Record<string, any>,
+) {
+  let paramI = 0;
+
+  for (let i = 0; i < cliArguments.length; i++) {
+    if (usedCliArguments[i] === true) {
+      continue;
+    }
+
+    if (cliArguments[i] === "--") {
+      // A standalone '--' is ok because it is used to separate CLI tool arguments from script arguments,
+      // ensuring the tool passes subsequent options directly to the script.
+      usedCliArguments[i] = true;
+      continue;
+    }
+
+    const paramInfo = task.positionalParameters[paramI];
+
+    if (paramInfo === undefined) {
+      continue;
+    }
+
+    usedCliArguments[i] = true;
+
+    const formattedValue = formatParameterValue(
+      cliArguments[i],
+      paramInfo.parameterType,
+      paramInfo.name,
+    );
+
+    if (paramInfo.isVariadic === false) {
+      taskArguments[task.positionalParameters[paramI++].name] = formattedValue;
+      continue;
+    }
+
+    // Handle variadic parameters
+    taskArguments[paramInfo.name] = taskArguments[paramInfo.name] ?? [];
+    taskArguments[paramInfo.name].push(formattedValue);
+  }
+}
+
+function kebabToCamelCase(str: string) {
+  return str.replace(/-./g, (match) => match.charAt(1).toUpperCase());
+}
+
+function formatParameterValue(
+  value: string,
+  type: ParameterType,
+  name: string,
+): any {
+  switch (type) {
+    case ParameterType.STRING:
+    case ParameterType.FILE:
+      return value;
+    case ParameterType.INT:
+    case ParameterType.FLOAT:
+      return Number(value);
+    case ParameterType.BIGINT:
+      return BigInt(value);
+    case ParameterType.BOOLEAN:
+      if (value !== "true" && value !== "false") {
+        throw new HardhatError(
+          HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+          {
+            value,
+            name,
+            type,
+          },
+        );
+      }
+
+      return value === "true";
+  }
 }
