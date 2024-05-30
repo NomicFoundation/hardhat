@@ -237,10 +237,10 @@ Please ensure that an action is defined for each task.`,
     TASK_OVERRIDE_PARAMETER_ALREADY_DEFINED: {
       number: 210,
       messageTemplate:
-        "{actorFragment} trying to override the named parameter {namedParamName} of the task {task} but it is already defined",
+        "{actorFragment} trying to override the parameter {namedParamName} of the task {task} but it is already defined",
       websiteTitle: "Task override parameter already defined",
       websiteDescription:
-        "An attempt is being made to override a named parameter that has already been defined. Please ensure that the parameter is not defined before trying to override it.",
+        "An attempt is being made to override a parameter that has already been defined. Please ensure that the parameter is not defined before trying to override it.",
     },
   },
   ARGUMENTS: {

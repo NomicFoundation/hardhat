@@ -206,7 +206,10 @@ export class TaskManagerImplementation implements TaskManager {
     for (const [namedParamName, namedParamValue] of Object.entries(
       taskDefinition.namedParameters,
     )) {
-      if (task.namedParameters.has(namedParamName)) {
+      const hasArgument =
+        task.namedParameters.has(namedParamName) ||
+        task.positionalParameters.some((p) => p.name === namedParamName);
+      if (hasArgument) {
         throw new HardhatError(
           HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_PARAMETER_ALREADY_DEFINED,
           {
