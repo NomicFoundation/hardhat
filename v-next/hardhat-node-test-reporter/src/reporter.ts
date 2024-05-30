@@ -11,6 +11,7 @@ import {
   formatSlowTestInfo,
   Failure,
 } from "./formatting.js";
+import { isSubtestFailedError } from "./node-test-error-utils.js";
 import {
   TestEventData,
   TestEventSource,
@@ -56,14 +57,7 @@ export default async function* customReporter(
           // If a suite failed for a reason other than a subtest failing, we
           // want to print its failure, so we push it to the failures array.
           if (event.type === "test:fail") {
-            if (
-              !(
-                "code" in event.data.details.error &&
-                "failureType" in event.data.details.error &&
-                event.data.details.error.code === "ERR_TEST_FAILURE" &&
-                event.data.details.error.failureType === "subtestsFailed"
-              )
-            ) {
+            if (!isSubtestFailedError(event.data.details.error)) {
               preFormattedFailureReasons.push(
                 formatFailureReason({
                   index: preFormattedFailureReasons.length,

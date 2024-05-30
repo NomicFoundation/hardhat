@@ -4,23 +4,24 @@ import { inspect } from "node:util";
 import chalk from "chalk";
 import { diff } from "jest-diff";
 
+import {
+  cleanupTestFailError,
+  isCancelledByParentError,
+} from "./node-test-error-utils.js";
+
 // TODO: Clean up the node internal fames from the stack trace
 export function formatError(error: Error): string {
-  if ("code" in error && error.code === "ERR_TEST_FAILURE") {
-    if (error.cause instanceof Error) {
-      error = error.cause;
-    }
-
-    if ("failureType" in error && error.failureType === "cancelledByParent") {
-      return (
-        chalk.red("Test cancelled by parent error") +
-        "\n" +
-        chalk.gray(
-          "    This test was cancelled due to an error in its parent suite/it or test/it, or in one of its before/beforeEach",
-        )
-      );
-    }
+  if (isCancelledByParentError(error)) {
+    return (
+      chalk.red("Test cancelled by parent error") +
+      "\n" +
+      chalk.gray(
+        "    This test was cancelled due to an error in its parent suite/it or test/it, or in one of its before/beforeEach",
+      )
+    );
   }
+
+  error = cleanupTestFailError(error);
 
   const defaultFormat = inspect(error);
   const indexOfMessage = defaultFormat.indexOf(error.message);
