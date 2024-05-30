@@ -15,7 +15,7 @@ export class AsyncMutex {
    * @param f The function to run.
    * @returns The result of the function.
    */
-  public async excluiveRun<ReturnT>(
+  public async exclusiveRun<ReturnT>(
     f: () => ReturnT,
   ): Promise<Awaited<ReturnT>> {
     const release = await this.#acquire();
