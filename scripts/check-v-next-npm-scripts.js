@@ -14,6 +14,12 @@ for (const dir of dirs) {
     continue;
   }
 
+  // The test reporter is a special case, as it doesn't use itself as test
+  // reporter
+  if (dir.name === "hardhat-node-test-reporter") {
+    continue;
+  }
+
   const packageJsonPath = path.resolve(vNextDir, dir.name, "package.json");
   const packageJson = require(packageJsonPath);
 
@@ -43,7 +49,7 @@ for (const dir of dirs) {
     ) {
       console.error(`Mismatch in script ${scriptName} in ${dir.name}`);
       console.error(`  Expected: ${templatePackageJson.scripts[scriptName]}`);
-      console.error(`  Actual: ${packageJson.scripts[scriptName]}`);
+      console.error(`  Actual:   ${packageJson.scripts[scriptName] ?? ""}`);
       console.error();
 
       errorsFound = true;
