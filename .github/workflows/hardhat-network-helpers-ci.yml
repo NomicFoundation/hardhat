@@ -2,7 +2,8 @@ name: hardhat-network-helpers CI
 
 on:
   push:
-    branches: [$default-branch]
+    branches:
+      - main
     paths:
       - ".github/workflows/hardhat-network-helpers-ci.yml"
       - "packages/hardhat-core/**"

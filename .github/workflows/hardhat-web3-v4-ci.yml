@@ -2,7 +2,8 @@ name: hardhat-web3-v4 CI
 
 on:
   push:
-    branches: [$default-branch]
+    branches:
+      - main
     paths:
       - ".github/workflows/hardhat-web3-v4-ci.yml"
       - "packages/hardhat-web3-v4/**"

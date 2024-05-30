@@ -2,7 +2,8 @@ name: hardhat-foundry CI
 
 on:
   push:
-    branches: [$default-branch]
+    branches:
+      - main
     paths:
       - ".github/workflows/hardhat-foundry-ci.yml"
       - "packages/hardhat-foundry/**"

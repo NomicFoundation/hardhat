@@ -2,7 +2,8 @@ name: hardhat-truffle5 CI
 
 on:
   push:
-    branches: [$default-branch]
+    branches:
+      - main
     paths:
       - ".github/workflows/hardhat-truffle5-ci.yml"
       - "packages/hardhat-truffle5/**"

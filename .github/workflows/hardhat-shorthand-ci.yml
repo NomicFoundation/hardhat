@@ -2,7 +2,8 @@ name: hardhat-shorthand CI
 
 on:
   push:
-    branches: [$default-branch]
+    branches:
+      - main
     paths:
       - ".github/workflows/hardhat-shorthand-ci.yml"
       - "packages/hardhat-shorthand/**"

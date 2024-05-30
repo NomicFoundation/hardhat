@@ -2,7 +2,8 @@ name: hardhat-solhint CI
 
 on:
   push:
-    branches: [$default-branch]
+    branches:
+      - main
     paths:
       - ".github/workflows/hardhat-solhint-ci.yml"
       - "packages/hardhat-solhint/**"

@@ -2,7 +2,8 @@ name: hardhat-ethers CI
 
 on:
   push:
-    branches: [$default-branch]
+    branches:
+      - main
     paths:
       - ".github/workflows/hardhat-ethers-ci.yml"
       - "packages/hardhat-ethers/**"

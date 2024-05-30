@@ -2,7 +2,8 @@ name: hardhat-vyper CI
 
 on:
   push:
-    branches: [$default-branch]
+    branches:
+      - main
     paths:
       - ".github/workflows/hardhat-vyper-ci.yml"
       - "packages/hardhat-vyper/**"

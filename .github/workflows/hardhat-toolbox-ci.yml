@@ -2,7 +2,8 @@ name: hardhat-toolbox CI
 
 on:
   push:
-    branches: [$default-branch]
+    branches:
+      - main
     paths:
       - ".github/workflows/hardhat-toolbox-ci.yml"
       - "packages/hardhat-toolbox/**"
