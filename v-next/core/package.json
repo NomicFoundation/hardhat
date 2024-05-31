@@ -35,7 +35,7 @@
     "test": "node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/**/*.ts\"",
     "test:only": "node --import tsx/esm --test --test-only --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/**/*.ts\"",
     "test:github": "node --import tsx/esm --test --test-reporter=@reporters/github --test-reporter-destination=stdout --test-reporter=@nomicfoundation/hardhat-node-test-reporter --test-reporter-destination=stdout \"test/**/*.ts\"",
-    "test:coverage": "c8 --reporter html --reporter text --all --src src glob node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/**/*.ts\"",
+    "test:coverage": "c8 --reporter html --reporter text --all --src src --exclude src/types node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/**/*.ts\"",
     "pretest": "pnpm build",
     "build": "tsc --build .",
     "prepublishOnly": "pnpm build",
