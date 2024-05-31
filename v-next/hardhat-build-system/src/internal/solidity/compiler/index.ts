@@ -2,6 +2,7 @@ import { execFile } from "node:child_process";
 import * as fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import {
   HardhatError,
@@ -17,66 +18,55 @@ export interface ICompiler {
 }
 
 export class Compiler implements ICompiler {
-  readonly #pathToSolcJs;
-  #loadedSolc?: any;
+  readonly #pathToSolcJs: string;
 
-  constructor(_pathToSolcJs: string) {
-    this.#pathToSolcJs = _pathToSolcJs;
+  constructor(pathToSolcJs: string) {
+    this.#pathToSolcJs = pathToSolcJs;
   }
 
   public async compile(input: CompilerInput) {
-    const solc = await this.getSolc();
+    const scriptPath = fileURLToPath(import.meta.resolve("./solcjs-runner.js"));
 
-    const jsonOutput = solc.compile(JSON.stringify(input));
-    return JSON.parse(jsonOutput);
-  }
+    // If the script is a TypeScript file, we need to pass the --import tsx/esm
+    // which is available, as we are running the tests
+    const nodeOptions = scriptPath.endsWith(".ts")
+      ? ["--import", "tsx/esm"]
+      : [];
 
-  public async getSolc() {
-    if (this.#loadedSolc !== undefined) {
-      return this.#loadedSolc;
-    }
+    const output: string = await new Promise((resolve, reject) => {
+      try {
+        const subprocess = execFile(
+          process.execPath,
+          [...nodeOptions, scriptPath, this.#pathToSolcJs],
+          {
+            maxBuffer: 1024 * 1024 * 500,
+          },
+          (err, stdout) => {
+            if (err !== null) {
+              return reject(err);
+            }
+            resolve(stdout);
+          },
+        );
 
-    const solcWrapper = require("solc/wrapper");
-    this.#loadedSolc = solcWrapper(
-      this.#loadCompilerSources(this.#pathToSolcJs),
-    );
+        assertHardhatInvariant(
+          subprocess.stdin !== null,
+          "process.stdin should be defined",
+        );
 
-    return this.#loadedSolc;
-  }
+        subprocess.stdin.write(JSON.stringify(input));
+        subprocess.stdin.end();
+      } catch (e) {
+        ensureError(e);
 
-  /**
-   * This function loads the compiler sources bypassing any require hook.
-   *
-   * The compiler is a huge asm.js file, and using a simple require may trigger
-   * babel/register and hang the process.
-   */
-  #loadCompilerSources(compilerPath: string) {
-    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
-    TODO: This was already replaced in `main`. */
-    const Module = module.constructor as any;
+        throw new HardhatError(
+          HardhatError.ERRORS.SOLC.CANT_RUN_SOLCJS_COMPILER,
+          e,
+        );
+      }
+    });
 
-    // if Hardhat is bundled (for example, in the vscode extension), then
-    // Module._extenions might be undefined. In that case, we just use a plain
-    // require.
-    if (Module._extensions === undefined) {
-      return require(compilerPath);
-    }
-
-    const previousHook = Module._extensions[".js"];
-
-    Module._extensions[".js"] = function (
-      module: NodeJS.Module,
-      filename: string,
-    ) {
-      const content = fs.readFileSync(filename, "utf8");
-      Object.getPrototypeOf(module)._compile.call(module, content, filename);
-    };
-
-    const loadedSolc = require(compilerPath);
-
-    Module._extensions[".js"] = previousHook;
-
-    return loadedSolc;
+    return JSON.parse(output);
   }
 }
 
