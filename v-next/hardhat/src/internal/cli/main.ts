@@ -311,7 +311,7 @@ function parseNamedParameters(
     if (cliArguments[i] === "--") {
       // A standalone '--' is ok because it is used to separate CLI tool arguments from task arguments, ensuring the tool passes
       // subsequent options directly to the task. Everything after "--" should be considered as a positional parameter
-      continue;
+      break;
     }
 
     const arg = cliArguments[i];

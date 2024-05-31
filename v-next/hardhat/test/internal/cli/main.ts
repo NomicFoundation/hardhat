@@ -520,6 +520,8 @@ describe("main", function () {
     });
 
     describe("combine all the parameters' types", function () {
+      let newTaskDefinition2: NewTaskDefinition;
+
       before(async function () {
         newTaskDefinition = task(["task"])
           .addNamedParameter({ name: "param" })
@@ -532,13 +534,32 @@ describe("main", function () {
           .setAction(() => {})
           .build();
 
+        newTaskDefinition2 = task(["task2"])
+          .addPositionalParameter({ name: "param" })
+          .setAction(() => {})
+          .build();
+
         newSubtaskDefinition = task(["task", "subtask"])
           .setAction(() => {})
           .build();
 
         hre = await createHardhatRuntimeEnvironment({
-          tasks: [newTaskDefinition, newSubtaskDefinition],
+          tasks: [newTaskDefinition, newTaskDefinition2, newSubtaskDefinition],
         });
+      });
+
+      it("should not parse as a named parameter because everything after a standalone '--' should be considered a positional parameter", async function () {
+        const command = "npx hardhat task2 -- --param"; // '--param' should be considered a positional parameter
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = [false, false, false];
+
+        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+
+        assert.ok(!Array.isArray(res), "Result should be an array");
+        assert.equal(res.task.id, newTaskDefinition2.id);
+        assert.deepEqual(usedCliArguments, [true, true, true]);
+        assert.deepEqual(res.taskArguments, { param: "--param" });
       });
 
       it("should get the subtasks and its optional parameter passed in the cli", function () {
