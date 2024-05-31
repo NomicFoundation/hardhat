@@ -143,7 +143,7 @@ describe("Plugins - resolve plugin list", () => {
     const a = { id: "dup" };
     const copy = { id: "dup" };
 
-    assert.rejects(
+    await assert.rejects(
       async () => resolvePluginList([a, copy], installedPackageFixture),
       {
         name: "HardhatError",
@@ -165,7 +165,7 @@ describe("Plugins - resolve plugin list", () => {
         ],
       };
 
-      assert.rejects(
+      await assert.rejects(
         async () => resolvePluginList([plugin], installedPackageFixture),
         {
           name: "HardhatError",
@@ -189,7 +189,7 @@ describe("Plugins - resolve plugin list", () => {
         ],
       };
 
-      assert.rejects(
+      await assert.rejects(
         async () => resolvePluginList([plugin], notInstalledPackageFixture),
         {
           name: "HardhatError",
