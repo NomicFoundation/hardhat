@@ -345,7 +345,7 @@ function parseNamedParameters(
         (cliArguments[i + 1] === "true" || cliArguments[i + 1] === "false")
       ) {
         // The flag could be follow by the boolean value
-        taskArguments[paramName] = formatParameterValue(
+        taskArguments[paramName] = parseParameterValue(
           cliArguments[i + 1],
           ParameterType.BOOLEAN,
           paramName,
@@ -368,7 +368,7 @@ function parseNamedParameters(
     ) {
       i++;
 
-      taskArguments[paramName] = formatParameterValue(
+      taskArguments[paramName] = parseParameterValue(
         cliArguments[i],
         paramInfo.parameterType,
         paramName,
@@ -423,7 +423,7 @@ function parsePositionalAndVariadicParameters(
 
     usedCliArguments[i] = true;
 
-    const formattedValue = formatParameterValue(
+    const formattedValue = parseParameterValue(
       cliArguments[i],
       paramInfo.parameterType,
       paramInfo.name,
@@ -472,7 +472,7 @@ function kebabToCamelCase(str: string) {
   return str.replace(/-./g, (match) => match.charAt(1).toUpperCase());
 }
 
-function formatParameterValue(
+function parseParameterValue(
   value: string,
   type: ParameterType,
   name: string,
