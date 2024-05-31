@@ -208,24 +208,55 @@ export function edrRpcDebugTraceToHardhat(
 export function edrTracingStepToMinimalInterpreterStep(
   step: TracingStep
 ): MinimalInterpreterStep {
-  return {
+  const minimalInterpreterStep: MinimalInterpreterStep = {
     pc: Number(step.pc),
     depth: step.depth,
     opcode: {
       name: step.opcode,
     },
-    stack: step.stackTop !== undefined ? [step.stackTop] : [],
+    stack: step.stack,
   };
+
+  if (step.memory !== undefined) {
+    minimalInterpreterStep.memory = step.memory;
+  }
+
+  return minimalInterpreterStep;
 }
 
 export function edrTracingMessageResultToMinimalEVMResult(
   tracingMessageResult: TracingMessageResult
 ): MinimalEVMResult {
-  return {
+  const { result, contractAddress } = tracingMessageResult.executionResult;
+
+  // only SuccessResult has logs
+  const success = "logs" in result;
+
+  const minimalEVMResult: MinimalEVMResult = {
     execResult: {
-      executionGasUsed: tracingMessageResult.executionResult.result.gasUsed,
+      executionGasUsed: result.gasUsed,
+      success,
     },
   };
+
+  // only success and exceptional halt have reason
+  if ("reason" in result) {
+    minimalEVMResult.execResult.reason = result.reason;
+  }
+  if ("output" in result) {
+    const { output } = result;
+    if (Buffer.isBuffer(output)) {
+      minimalEVMResult.execResult.output = output;
+    } else {
+      minimalEVMResult.execResult.output = output.returnValue;
+    }
+  }
+
+  if (contractAddress !== undefined) {
+    minimalEVMResult.execResult.contractAddress = new Address(contractAddress);
+  }
+
+  return minimalEVMResult;
 }
 
 export function edrTracingMessageToMinimalMessage(
@@ -241,5 +272,6 @@ export function edrTracingMessageToMinimalMessage(
     value: message.value,
     caller: new Address(message.caller),
     gasLimit: message.gasLimit,
+    isStaticCall: message.isStaticCall,
   };
 }
