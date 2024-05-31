@@ -501,7 +501,7 @@ If you are running MacOS, try installing Apple Rosetta.
 If this error persists, run "npx hardhat clean --global".`,
     },
     CANT_RUN_SOLCJS_COMPILER: {
-      number: 504,
+      number: 505,
       messageTemplate: `A wasm version of solc failed to run.
 
 If this error persists, run "npx hardhat clean --global".`,
