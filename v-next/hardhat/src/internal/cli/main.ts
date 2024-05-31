@@ -336,6 +336,7 @@ function parseNamedParameters(
 
     if (paramInfo.parameterType === ParameterType.BOOLEAN) {
       if (
+        usedCliArguments[i + 1] !== undefined &&
         usedCliArguments[i + 1] === false &&
         (cliArguments[i + 1] === "true" || cliArguments[i + 1] === "false")
       ) {
@@ -357,7 +358,10 @@ function parseNamedParameters(
 
     // The value immediately following a named parameter (if the parameter does not behave as a flag)
     // is the parameter's value; otherwise, it's an error
-    if (usedCliArguments[i + 1] === false) {
+    if (
+      usedCliArguments[i + 1] !== undefined &&
+      usedCliArguments[i + 1] === false
+    ) {
       i++;
 
       taskArguments[paramName] = formatParameterValue(
