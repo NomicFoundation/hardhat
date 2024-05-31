@@ -286,7 +286,7 @@ Please double check your arguments.`,
 
 Please double check your arguments.`,
     },
-    MISSING_VALUE_FOR_NAMED_PARAMETER: {
+    MISSING_VALUE_FOR_PARAMETER: {
       number: 305,
       messageTemplate: "Missing value for the task parameter named {paramName}",
       websiteTitle: "Missing value for the task parameter",

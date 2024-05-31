@@ -8,7 +8,11 @@ import {
   GlobalParameterMap,
 } from "@nomicfoundation/hardhat-core/types/global-parameters";
 import { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
-import { Task } from "@nomicfoundation/hardhat-core/types/tasks";
+import {
+  NamedTaskParameter,
+  PositionalTaskParameter,
+  Task,
+} from "@nomicfoundation/hardhat-core/types/tasks";
 import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
@@ -376,12 +380,19 @@ function parseNamedParameters(
     }
 
     throw new HardhatError(
-      HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_NAMED_PARAMETER,
+      HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_PARAMETER,
       {
         paramName: arg,
       },
     );
   }
+
+  // Check if all the required parameters have been used
+  validateRequiredParameters(
+    Array.from(task.namedParameters.values()),
+    taskArguments,
+    "--",
+  );
 }
 
 function parsePositionalAndVariadicParameters(
@@ -419,7 +430,7 @@ function parsePositionalAndVariadicParameters(
     );
 
     if (paramInfo.isVariadic === false) {
-      taskArguments[task.positionalParameters[paramI].name] = formattedValue;
+      taskArguments[paramInfo.name] = formattedValue;
       paramI++;
       continue;
     }
@@ -429,6 +440,32 @@ function parsePositionalAndVariadicParameters(
     taskArguments[paramInfo.name] = taskArguments[paramInfo.name] ?? [];
     taskArguments[paramInfo.name].push(formattedValue);
   }
+
+  // Check if all the required parameters have been used
+  validateRequiredParameters(task.positionalParameters, taskArguments);
+}
+
+function validateRequiredParameters(
+  parameters: PositionalTaskParameter[] | NamedTaskParameter[],
+  taskArguments: Record<string, any>,
+  paramNamePrefix: string = "",
+) {
+  const missingRequiredParam = parameters.find(
+    (param) =>
+      param.defaultValue === undefined &&
+      taskArguments[param.name] === undefined,
+  );
+
+  if (missingRequiredParam === undefined) {
+    return;
+  }
+
+  const paramName = `${paramNamePrefix}${missingRequiredParam.name}`;
+
+  throw new HardhatError(
+    HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_PARAMETER,
+    { paramName },
+  );
 }
 
 function kebabToCamelCase(str: string) {
