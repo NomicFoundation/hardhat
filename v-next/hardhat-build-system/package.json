@@ -52,6 +52,7 @@
     "p-map": "^4.0.0",
     "resolve": "1.17.0",
     "semver": "^7.6.2",
+    "solc": "0.7.3",
     "undici": "^6.16.1"
   },
   "devDependencies": {

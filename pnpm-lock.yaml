@@ -1637,6 +1637,9 @@ importers:
       semver:
         specifier: ^7.6.2
         version: 7.6.2
+      solc:
+        specifier: 0.7.3
+        version: 0.7.3(debug@4.3.4)
       undici:
         specifier: ^6.16.1
         version: 6.16.1
