@@ -228,8 +228,8 @@ function getTaskFromCliArguments(
     const arg = cliArguments[i];
 
     if (arg.startsWith("--")) {
-      // A standalone '--' is ok because it is used to separate CLI tool arguments from script arguments,
-      // ensuring the tool passes subsequent options directly to the script.
+      // A standalone '--' is ok because it is used to separate CLI tool arguments from task arguments, ensuring the tool passes
+      // subsequent options directly to the task. Everything after "--" should be considered as a positional parameter
       if (arg.length === 2 || task !== undefined) {
         break;
       }
@@ -309,8 +309,8 @@ function parseNamedParameters(
     }
 
     if (cliArguments[i] === "--") {
-      // A standalone '--' is ok because it is used to separate CLI tool arguments from script arguments,
-      // ensuring the tool passes subsequent options directly to the script.
+      // A standalone '--' is ok because it is used to separate CLI tool arguments from task arguments, ensuring the tool passes
+      // subsequent options directly to the task. Everything after "--" should be considered as a positional parameter
       continue;
     }
 
@@ -394,8 +394,8 @@ function parsePositionalAndVariadicParameters(
     }
 
     if (cliArguments[i] === "--") {
-      // A standalone '--' is ok because it is used to separate CLI tool arguments from script arguments,
-      // ensuring the tool passes subsequent options directly to the script.
+      // A standalone '--' is ok because it is used to separate CLI tool arguments from task arguments, ensuring the tool passes
+      // subsequent options directly to the task. Everything after "--" should be considered as a positional parameter
       usedCliArguments[i] = true;
       continue;
     }
