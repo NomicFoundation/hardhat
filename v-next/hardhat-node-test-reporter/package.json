@@ -41,7 +41,6 @@
   "devDependencies": {
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0",
     "@reporters/github": "^1.7.0",
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
