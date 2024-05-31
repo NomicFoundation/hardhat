@@ -286,13 +286,13 @@ function parseTaskArguments(
     taskArguments,
   );
 
-  usedCliArguments.forEach((arg, index) => {
-    if (!arg) {
-      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.UNUSED_ARGUMENT, {
-        value: cliArguments[index],
-      });
-    }
-  });
+  const unusedIndex = usedCliArguments.indexOf(false);
+
+  if (unusedIndex !== -1) {
+    throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.UNUSED_ARGUMENT, {
+      value: cliArguments[unusedIndex],
+    });
+  }
 
   return taskArguments;
 }
