@@ -7,10 +7,15 @@ name: Slow imports rule check
 on:
   schedule:
     - cron: "0 0 * * *"
-  workflow_dispatch:
   push:
+    branches:
+      - main
     paths:
       - ".github/workflows/test-slow-imports-rule.yml"
+  pull_request:
+    paths:
+      - ".github/workflows/test-slow-imports-rule.yml"
+  workflow_dispatch:
 
 defaults:
   run:

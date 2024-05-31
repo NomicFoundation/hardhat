@@ -12,8 +12,6 @@ on:
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"
   pull_request:
-    branches:
-      - "**"
     paths:
       - ".github/workflows/hardhat-core-ci.yml"
       - "config/**"

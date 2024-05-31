@@ -2,6 +2,15 @@ name: Populate cache
 
 on:
   push:
+    branches:
+      - main
+      - pre-release-testing-branch
+      - changeset-release/main
+    paths:
+      - ".github/workflows/populate-cache.yml"
+      - "pnpm-lock.yaml"
+      - "docs/pnpm-lock.yaml"
+  pull_request:
     paths:
       - ".github/workflows/populate-cache.yml"
       - "pnpm-lock.yaml"
