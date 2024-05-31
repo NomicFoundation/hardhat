@@ -18,6 +18,9 @@
       "path": "../hardhat-errors"
     },
     {
+      "path": "../hardhat-node-test-reporter"
+    },
+    {
       "path": "../hardhat-utils"
     },
     {
