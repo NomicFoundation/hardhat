@@ -17,13 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
-          cache: "pnpm"
+      - uses: ./.github/actions/setup-env
       - name: Install
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
@@ -52,13 +46,7 @@ jobs:
         working-directory: packages/hardhat-core
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
-          cache: "pnpm"
+      - uses: ./.github/actions/setup-env
       - name: Install
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Cache network requests

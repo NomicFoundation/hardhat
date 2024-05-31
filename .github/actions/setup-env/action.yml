@@ -1,0 +1,60 @@
+name: Setup env
+description: Sets up node and pnpm
+
+inputs:
+  pnpm-version:
+    description: Version of pnpm to install
+    required: false
+    default: "9"
+  node-version:
+    description: Version of node to install
+    required: false
+    default: "18"
+  cache-restore:
+    description: Whether to restore the pnpm cache
+    required: false
+    default: "true"
+  cache-save:
+    description: Whether to save the pnpm cache
+    required: false
+    default: "false"
+  pnpm-lockfile:
+    description: Path to the pnpm lockfile
+    required: false
+    default: "pnpm-lock.yaml"
+  package-json:
+    description: Path to the package.json file
+    required: false
+    default: "package.json"
+outputs:
+  cache-hit:
+    description: Whether the cache was restored
+    value: ${{ steps.node.outputs.cache-hit }}
+
+runs:
+  using: composite
+  steps:
+    - if: inputs.cache-save == 'true' && inputs.cache-restore == 'false'
+      run: |
+        echo "::error::Saving the cache without restoring it is not supported"
+        exit 1
+      shell: bash
+    - uses: pnpm/action-setup@v4
+      with:
+        version: ${{ inputs.pnpm-version }}
+        package_json_file: ${{ inputs.package-json }}
+    - uses: actions/setup-node@v4
+      id: node
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: ${{ inputs.cache-save == 'true' && 'pnpm' || '' }}
+        cache-dependency-path: ${{ inputs.pnpm-lockfile }}
+    - id: pnpm
+      if: inputs.cache-save == 'false' && inputs.cache-restore == 'true'
+      run: pnpm store path --silent | xargs -I {} -0 echo "path={}" | tee -a $GITHUB_OUTPUT
+      shell: bash
+    - uses: actions/cache/restore@v4
+      if: inputs.cache-save == 'false' && inputs.cache-restore == 'true'
+      with:
+        path: ${{ steps.pnpm.outputs.path }}
+        key: node-cache-${{ runner.os }}-pnpm-${{ hashFiles(inputs.pnpm-lockfile) }}

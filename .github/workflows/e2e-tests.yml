@@ -29,12 +29,10 @@ jobs:
       IS_WINDOWS: ${{ matrix.os == 'windows-latest' }}
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/setup-env
         with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
+          pnpm-lockfile: docs/pnpm-lock.yaml
+          package-json: docs/package.json
       - name: Run fixture-projects script
         run: |
           cd e2e

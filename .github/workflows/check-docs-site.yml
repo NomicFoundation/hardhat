@@ -19,15 +19,10 @@ jobs:
         working-directory: docs
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/setup-env
         with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
-          cache: "pnpm"
-          cache-dependency-path: |
-            docs/pnpm-lock.yaml
+          pnpm-lockfile: docs/pnpm-lock.yaml
+          package-json: docs/package.json
       - name: Install Docs
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build

@@ -26,15 +26,10 @@ jobs:
         working-directory: ${{ matrix.working-directory || github.workspace }}
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/setup-env
         with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
-          cache: "pnpm"
-          cache-dependency-path: |
-            ${{ matrix.working-directory || '.' }}/pnpm-lock.yaml
+          pnpm-lockfile: ${{ matrix.working-directory || '.' }}/pnpm-lock.yaml
+          package-json: ${{ matrix.working-directory || '.' }}/package.json
       - name: Install
         run: pnpm install --frozen-lockfile --prefer-offline
       # Linting under the root directory requires build because some packages
