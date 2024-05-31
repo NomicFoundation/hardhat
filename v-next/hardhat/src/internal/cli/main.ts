@@ -407,7 +407,7 @@ function parsePositionalAndVariadicParameters(
     const paramInfo = task.positionalParameters[paramI];
 
     if (paramInfo === undefined) {
-      continue;
+      break;
     }
 
     usedCliArguments[i] = true;
@@ -419,11 +419,13 @@ function parsePositionalAndVariadicParameters(
     );
 
     if (paramInfo.isVariadic === false) {
-      taskArguments[task.positionalParameters[paramI++].name] = formattedValue;
+      taskArguments[task.positionalParameters[paramI].name] = formattedValue;
+      paramI++;
       continue;
     }
 
-    // Handle variadic parameters
+    // Handle variadic parameters. No longer increment "paramI" becuase there can only be one variadic parameter and it
+    // will consume all remaining arguments.
     taskArguments[paramInfo.name] = taskArguments[paramInfo.name] ?? [];
     taskArguments[paramInfo.name].push(formattedValue);
   }
