@@ -38,6 +38,7 @@ export function formatError(error: Error): string {
     stack = error.stack ?? "";
   }
 
+  title = improveNodeAssertTitle(title, error);
   title = chalk.red(title);
   stack = replaceFileUrlsWithRelativePaths(stack);
   stack = chalk.gray(stack);
@@ -69,6 +70,23 @@ function isDiffableError(
   return (
     "expected" in error && "actual" in error && error.expected !== undefined
   );
+}
+
+function improveNodeAssertTitle(title: string, error: Error): string {
+  if (!isDiffableError(error)) {
+    return title;
+  }
+
+  if (!title.includes("AssertionError [ERR_ASSERTION]: ")) {
+    return title;
+  }
+
+  const match = title.match(/^AssertionError \[ERR_ASSERTION\]\: (.*)\:/);
+  if (match === null) {
+    return title;
+  }
+
+  return `AssertionError: ${match[1]}`;
 }
 
 function getErrorDiff(error: Error): string | undefined {
