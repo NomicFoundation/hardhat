@@ -1,3 +1,4 @@
+import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { inspect } from "node:util";
 
@@ -68,8 +69,8 @@ ${stack}`;
 // TODO: Do this in a more robust way and that works well with windows
 function replaceFileUrlsWithRelativePaths(stack: string): string {
   return stack
-    .replaceAll("(" + pathToFileURL(process.cwd() + "/").toString(), "(")
-    .replaceAll("(" + process.cwd() + "/".toString(), "(");
+    .replaceAll("(" + pathToFileURL(process.cwd() + path.sep).toString(), "(")
+    .replaceAll("(" + process.cwd() + path.sep, "(");
 }
 
 function isDiffableError(
