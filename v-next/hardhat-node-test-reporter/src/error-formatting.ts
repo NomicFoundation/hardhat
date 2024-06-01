@@ -7,6 +7,7 @@ import { diff } from "jest-diff";
 import {
   cleanupTestFailError,
   isCancelledByParentError,
+  isTestFileExecutionFailureError,
 } from "./node-test-error-utils.js";
 
 // TODO: Clean up the node internal fames from the stack trace
@@ -18,6 +19,14 @@ export function formatError(error: Error): string {
       chalk.gray(
         "    This test was cancelled due to an error in its parent suite/it or test/it, or in one of its before/beforeEach",
       )
+    );
+  }
+
+  if (isTestFileExecutionFailureError(error)) {
+    return (
+      chalk.red(`Test file execution failed (exit code ${error.exitCode}).`) +
+      "\n" +
+      chalk.gray("    Did you forget to await a promise?")
     );
   }
 
