@@ -71,7 +71,7 @@ importers:
     dependencies:
       eslint-module-utils:
         specifier: ^2.8.0
-        version: 2.8.1(@typescript-eslint/parser@7.9.0(eslint@8.57.0)(typescript@5.4.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.9.0(eslint@8.57.0)(typescript@5.4.3))(eslint-plugin-import@2.29.1)(eslint@8.57.0))(eslint@8.57.0)
+        version: 2.8.1(@typescript-eslint/parser@7.9.0(eslint@8.57.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.9.0(eslint@8.57.0)(typescript@5.4.5))(eslint-plugin-import@2.29.1)(eslint@8.57.0))(eslint@8.57.0)
       requireindex:
         specifier: ^1.2.0
         version: 1.2.0
@@ -1453,9 +1453,6 @@ importers:
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0
         version: link:../hardhat-node-test-reporter
-      '@reporters/github':
-        specifier: ^1.7.0
-        version: 1.7.0
       '@types/node':
         specifier: ^20.0.0
         version: 20.12.10
@@ -1541,9 +1538,6 @@ importers:
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0
         version: link:../hardhat-node-test-reporter
-      '@reporters/github':
-        specifier: ^1.7.0
-        version: 1.7.0
       '@types/node':
         specifier: ^20.0.0
         version: 20.12.10
@@ -1656,9 +1650,6 @@ importers:
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0
         version: link:../hardhat-node-test-reporter
-      '@reporters/github':
-        specifier: ^1.7.0
-        version: 1.7.0
       '@types/ci-info':
         specifier: ^2.0.0
         version: 2.0.0
@@ -1750,9 +1741,6 @@ importers:
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0
         version: link:../hardhat-node-test-reporter
-      '@reporters/github':
-        specifier: ^1.7.0
-        version: 1.7.0
       '@types/node':
         specifier: ^20.0.0
         version: 20.12.10
@@ -1798,6 +1786,9 @@ importers:
 
   v-next/hardhat-node-test-reporter:
     dependencies:
+      '@actions/core':
+        specifier: ^1.10.1
+        version: 1.10.1
       chalk:
         specifier: ^5.3.0
         version: 5.3.0
@@ -1811,9 +1802,6 @@ importers:
       '@nomicfoundation/eslint-plugin-slow-imports':
         specifier: workspace:^
         version: link:../../packages/eslint-plugin-slow-imports
-      '@reporters/github':
-        specifier: ^1.7.0
-        version: 1.7.0
       '@types/node':
         specifier: ^20.0.0
         version: 20.12.10
@@ -1884,9 +1872,6 @@ importers:
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0
         version: link:../hardhat-node-test-reporter
-      '@reporters/github':
-        specifier: ^1.7.0
-        version: 1.7.0
       '@types/bn.js':
         specifier: ^5.1.5
         version: 5.1.5
@@ -1953,9 +1938,6 @@ importers:
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0
         version: link:../hardhat-node-test-reporter
-      '@reporters/github':
-        specifier: ^1.7.0
-        version: 1.7.0
       '@types/node':
         specifier: ^20.0.0
         version: 20.12.10
@@ -2016,9 +1998,6 @@ importers:
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0
         version: link:../hardhat-node-test-reporter
-      '@reporters/github':
-        specifier: ^1.7.0
-        version: 1.7.0
       '@types/node':
         specifier: ^20.0.0
         version: 20.12.10
@@ -2809,9 +2788,6 @@ packages:
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
-
-  '@reporters/github@1.7.0':
-    resolution: {integrity: sha512-5velzo4PWkfTqvZD2Ins5Wg38KSjPsWofS4jKTw61IjL4z2vLFGx2KL2Aqpa7bTOo3NYtc7w0zbyaHsBmZtCxQ==}
 
   '@rushstack/node-core-library@4.2.1':
     resolution: {integrity: sha512-jO8tR7ySxwy2c34QXSQDT9C22EfyisQruKT39FpipPOJAwKejug86eM+FL0QmkqbWGwpmfzkp3pyV71I5ZD9FA==}
@@ -4119,10 +4095,6 @@ packages:
   escape-string-regexp@1.0.5:
     resolution: {integrity: sha512-vbRorB5FUQWvla16U8R/qgaFIya2qGzwDrNmCZuYKrbdSUMG6I1ZCGQRefkRVhuOkIGVne7BQ35DSfo1qvJqFg==}
     engines: {node: '>=0.8.0'}
-
-  escape-string-regexp@2.0.0:
-    resolution: {integrity: sha512-UpzcLCXolUWcNu5HtVMHYdXJjArjsF9C0aNnquZYY4uW/Vu0miy5YoWvbV345HauVvcAUnpRuhMMcqTcGOY2+w==}
-    engines: {node: '>=8'}
 
   escape-string-regexp@4.0.0:
     resolution: {integrity: sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==}
@@ -6124,10 +6096,6 @@ packages:
   sprintf-js@1.0.3:
     resolution: {integrity: sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g==}
 
-  stack-utils@2.0.6:
-    resolution: {integrity: sha512-XlkWvfIm6RmsWtNJx+uqtKLS8eqFbxUg0ZzLXqY0caEy9l7hruX8IpiDnjsLavoBgqCCR71TqWO8MaXYheJ3RQ==}
-    engines: {node: '>=10'}
-
   stacktrace-parser@0.1.10:
     resolution: {integrity: sha512-KJP1OCML99+8fhOHxwwzyWrlUuVX5GQ0ZpJTd1DFXhdkrvg1szxfHhawXUZ3g9TkXORQd4/WG68jMlQZ2p8wlg==}
     engines: {node: '>=6'}
@@ -7963,11 +7931,6 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
-  '@reporters/github@1.7.0':
-    dependencies:
-      '@actions/core': 1.10.1
-      stack-utils: 2.0.6
-
   '@rushstack/node-core-library@4.2.1(@types/node@20.12.10)':
     dependencies:
       fs-extra: 7.0.1
@@ -9679,8 +9642,6 @@ snapshots:
   escalade@3.1.2: {}
 
   escape-string-regexp@1.0.5: {}
-
-  escape-string-regexp@2.0.0: {}
 
   escape-string-regexp@4.0.0: {}
 
@@ -12057,10 +12018,6 @@ snapshots:
       readable-stream: 3.6.2
 
   sprintf-js@1.0.3: {}
-
-  stack-utils@2.0.6:
-    dependencies:
-      escape-string-regexp: 2.0.0
 
   stacktrace-parser@0.1.10:
     dependencies:

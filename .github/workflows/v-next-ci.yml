@@ -111,4 +111,4 @@ jobs:
       - name: Build
         run: pnpm build
       - name: Run tests
-        run: pnpm run test:github
+        run: pnpm run test
