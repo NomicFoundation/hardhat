@@ -67,10 +67,9 @@ ${stack}`;
 
 // TODO: Do this in a more robust way and that works well with windows
 function replaceFileUrlsWithRelativePaths(stack: string): string {
-  return stack.replaceAll(
-    "(" + pathToFileURL(process.cwd() + "/").toString(),
-    "(",
-  );
+  return stack
+    .replaceAll("(" + pathToFileURL(process.cwd() + "/").toString(), "(")
+    .replaceAll("(" + process.cwd() + "/".toString(), "(");
 }
 
 function isDiffableError(

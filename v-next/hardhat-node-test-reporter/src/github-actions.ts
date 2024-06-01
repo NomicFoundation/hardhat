@@ -46,7 +46,7 @@ function getLocation(
 
   const workspace = process.env.GITHUB_WORKSPACE ?? process.cwd();
 
-  const filePath = fileURLToPath(file);
+  const filePath = file.startsWith("file://") ? fileURLToPath(file) : file;
 
   // The error doesn't come from the workspace
   if (filePath.startsWith(workspace) === false) {
