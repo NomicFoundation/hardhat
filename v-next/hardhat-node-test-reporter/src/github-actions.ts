@@ -8,7 +8,10 @@ import { TestEventData } from "./node-types.js";
 export async function annotatePR(
   event: TestEventData["test:fail"],
 ): Promise<void> {
-  if (process.env.GITHUB_ACTIONS === undefined) {
+  if (
+    process.env.GITHUB_ACTIONS === undefined ||
+    process.env.NO_GITHUB_ACTIONS_ANNOTATIONS !== undefined
+  ) {
     return;
   }
 

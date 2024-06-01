@@ -20,6 +20,9 @@ for (const entry of readdirSync(import.meta.dirname + "/fixture-tests")) {
 
     const outputChunks = [];
 
+    // We disable github actions annotations, as they are misleading on PRs
+    // otherwise.
+    process.env.NO_GITHUB_ACTIONS_ANNOTATIONS = "true";
     const reporterStream = run({
       files: testFiles,
     }).compose(reporter);
