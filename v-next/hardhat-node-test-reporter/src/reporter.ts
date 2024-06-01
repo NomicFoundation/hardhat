@@ -11,6 +11,7 @@ import {
   formatSlowTestInfo,
   Failure,
 } from "./formatting.js";
+import { annotatePR } from "./github-actions.js";
 import { isSubtestFailedError } from "./node-test-error-utils.js";
 import {
   TestEventData,
@@ -101,6 +102,8 @@ export default async function* customReporter(
           // want to print its failure.
           if (event.type === "test:fail") {
             if (!isSubtestFailedError(event.data.details.error)) {
+              await annotatePR(event.data);
+
               preFormattedFailureReasons.push(
                 formatFailureReason({
                   index: preFormattedFailureReasons.length,
@@ -162,6 +165,8 @@ export default async function* customReporter(
           // We format the failure reason and store it in an array, so that we
           // can output it at the end.
           preFormattedFailureReasons.push(formatFailureReason(failure));
+
+          await annotatePR(event.data);
 
           yield formatTestFailure(failure);
         }
