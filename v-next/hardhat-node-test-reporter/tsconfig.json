@@ -6,9 +6,5 @@
     "incremental": true
   },
   "exclude": ["./dist", "./node_modules"],
-  "references": [
-    {
-      "path": "../hardhat-utils"
-    }
-  ]
+  "references": []
 }

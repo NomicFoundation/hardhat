@@ -1,24 +1,22 @@
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import { run } from "node:test";
 
-import {
-  isDirectory,
-  readdir,
-  getAllFilesMatching,
-  readUtf8File,
-} from "@nomicfoundation/hardhat-utils/fs";
 import { diff } from "jest-diff";
 
 import reporter from "../src/reporter.js";
 const SHOW_OUTPUT = process.argv.includes("--show-output");
 
-for (const entry of await readdir(import.meta.dirname + "/fixture-tests")) {
+for (const entry of readdirSync(import.meta.dirname + "/fixture-tests")) {
   const entryPath = import.meta.dirname + "/fixture-tests/" + entry;
-  if (await isDirectory(entryPath)) {
+
+  const stats = statSync(entryPath);
+  if (stats.isDirectory()) {
     console.log("Running integration test: " + entry);
 
-    const testFiles = await getAllFilesMatching(entryPath, (file) =>
-      file.endsWith(".ts"),
-    );
+    const files = readdirSync(entryPath);
+    const testFiles = files
+      .map((f) => entryPath + "/" + f)
+      .filter((f) => statSync(f).isFile() && f.endsWith(".ts"));
 
     const outputChunks = [];
 
@@ -31,7 +29,7 @@ for (const entry of await readdir(import.meta.dirname + "/fixture-tests")) {
     }
 
     const output = outputChunks.join("");
-    const expectedOutput = await readUtf8File(entryPath + "/result.txt");
+    const expectedOutput = readFileSync(entryPath + "/result.txt", "utf8");
 
     const normalizedOutput = normalizeOutputs(output);
     const normalizedExpectedOutput = normalizeOutputs(expectedOutput);
