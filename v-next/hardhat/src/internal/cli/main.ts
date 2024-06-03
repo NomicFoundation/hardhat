@@ -389,7 +389,6 @@ function parseNamedParameters(
   validateRequiredParameters(
     Array.from(task.namedParameters.values()),
     taskArguments,
-    "--",
   );
 }
 
@@ -446,7 +445,6 @@ function parsePositionalAndVariadicParameters(
 function validateRequiredParameters(
   parameters: PositionalTaskParameter[] | NamedTaskParameter[],
   taskArguments: Record<string, any>,
-  paramNamePrefix: string = "",
 ) {
   const missingRequiredParam = parameters.find(
     (param) =>
@@ -458,11 +456,9 @@ function validateRequiredParameters(
     return;
   }
 
-  const paramName = `${paramNamePrefix}${missingRequiredParam.name}`;
-
   throw new HardhatError(
     HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_PARAMETER,
-    { paramName },
+    { paramName: missingRequiredParam.name },
   );
 }
 
