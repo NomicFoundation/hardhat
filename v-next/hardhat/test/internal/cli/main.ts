@@ -311,6 +311,24 @@ describe("main", function () {
         );
       });
 
+      it("should throw because the task parameter is required but there is no value right after it to consume", async function () {
+        const command = "npx hardhat task0 --param --global-flag <value>";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = [false, false, true, false];
+
+        assert.rejects(
+          async () =>
+            parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+          new HardhatError(
+            HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_PARAMETER,
+            {
+              paramName: "--param",
+            },
+          ),
+        );
+      });
+
       it("should throw because the task parameter is required but it is not provided", async function () {
         const command = "npx hardhat task0";
 
