@@ -344,7 +344,7 @@ function parseNamedParameters(
         usedCliArguments[i + 1] === false &&
         (cliArguments[i + 1] === "true" || cliArguments[i + 1] === "false")
       ) {
-        // The flag could be follow by the boolean value
+        // The parameter could be followed by a boolean value if it does not behaves like a flag
         taskArguments[paramName] = parseParameterValue(
           cliArguments[i + 1],
           ParameterType.BOOLEAN,
@@ -355,14 +355,12 @@ function parseNamedParameters(
         continue;
       }
 
-      // If the flag is not followed by a boolean value, then the flag itself means that the value is true
-      taskArguments[paramName] = true;
-      continue;
-    }
-
-    // The value immediately following a named parameter (if the parameter does not behave as a flag)
-    // is the parameter's value; otherwise, it's an error
-    if (
+      if (paramInfo.defaultValue === false) {
+        // If the default value for the parameter is false, the parameter behaves like a flag, so there is no need to specify the value
+        taskArguments[paramName] = true;
+        continue;
+      }
+    } else if (
       usedCliArguments[i + 1] !== undefined &&
       usedCliArguments[i + 1] === false
     ) {
