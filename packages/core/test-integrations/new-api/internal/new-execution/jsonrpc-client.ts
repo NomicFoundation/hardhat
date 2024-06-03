@@ -697,6 +697,68 @@ describe("JSON-RPC client", function () {
       });
     });
 
+    describe("setBalance", function () {
+      it("Should allow setting an account balance against a local hardhat node", async function () {
+        // Arrange
+        const balanceBefore = await client.getBalance(
+          this.accounts[19],
+          "latest"
+        );
+
+        assert.equal(balanceBefore, 10000000000000000000000n);
+
+        // Act
+        await client.setBalance(this.accounts[19], 99999n);
+
+        // Assert
+        const balanceAfter = await client.getBalance(
+          this.accounts[19],
+          "latest"
+        );
+
+        assert.equal(balanceAfter, 99999n);
+      });
+
+      it("Should allow setting an account balance against an anvil node", async function () {
+        // Arrange
+
+        // we create a fake anvil client that will
+        // correctly set a balance but return null rather
+        // than a boolean.
+        const fakeAnvilClient = new EIP1193JsonRpcClient({
+          request: async (req) => {
+            if (req.method === "hardhat_setBalance") {
+              // Apply setBalance
+              await this.hre.network.provider.request(req);
+
+              // but return null as anvil would
+              return null;
+            }
+
+            return this.hre.network.provider.request(req);
+          },
+        });
+
+        const balanceBefore = await fakeAnvilClient.getBalance(
+          this.accounts[19],
+          "latest"
+        );
+
+        assert.equal(balanceBefore, 10000000000000000000000n);
+
+        // Act
+        await fakeAnvilClient.setBalance(this.accounts[19], 99999n);
+
+        // Assert
+        const balanceAfter = await fakeAnvilClient.getBalance(
+          this.accounts[19],
+          "latest"
+        );
+
+        assert.equal(balanceAfter, 99999n);
+      });
+    });
+
     describe("estimateGas", function () {
       it("Should return the estimate gas if the tx would succeed", async function () {
         const estimation = await client.estimateGas({
