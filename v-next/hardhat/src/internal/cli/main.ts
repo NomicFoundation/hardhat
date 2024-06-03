@@ -22,6 +22,8 @@ import {
   resolveConfigPath,
 } from "../helpers/config-loading.js";
 import { getHardhatRuntimeEnvironmentSingleton } from "../hre-singleton.js";
+import { isDirectory } from "@nomicfoundation/hardhat-utils/fs";
+import path from "node:path";
 
 export async function main(cliArguments: string[]) {
   const hreInitStart = performance.now();
@@ -104,7 +106,11 @@ export async function main(cliArguments: string[]) {
 
     const taskParsingStart = performance.now();
 
-    const result = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+    const result = await parseTaskAndArguments(
+      cliArguments,
+      usedCliArguments,
+      hre,
+    );
 
     if (Array.isArray(result)) {
       if (result.length === 0) {
@@ -190,16 +196,17 @@ function parseGlobalArguments(
  * @returns The task and its arguments, or an array with the unrecognized task
  *  id. If no task id is provided, an empty array is returned.
  */
-export function parseTaskAndArguments(
+export async function parseTaskAndArguments(
   cliArguments: string[],
   usedCliArguments: boolean[],
   hre: HardhatRuntimeEnvironment,
-):
+): Promise<
   | {
       task: Task;
       taskArguments: Record<string, any>;
     }
-  | string[] {
+  | string[]
+> {
   const taskOrId = getTaskFromCliArguments(cliArguments, usedCliArguments, hre);
   if (Array.isArray(taskOrId)) {
     return taskOrId;
@@ -207,7 +214,7 @@ export function parseTaskAndArguments(
 
   const task = taskOrId;
 
-  const taskArguments = parseTaskArguments(
+  const taskArguments = await parseTaskArguments(
     cliArguments,
     usedCliArguments,
     task,
@@ -274,16 +281,21 @@ function getTaskFromCliArguments(
   return task;
 }
 
-function parseTaskArguments(
+async function parseTaskArguments(
   cliArguments: string[],
   usedCliArguments: boolean[],
   task: Task,
-): Record<string, any> {
+): Promise<Record<string, any>> {
   const taskArguments: Record<string, unknown> = {};
 
-  parseNamedParameters(cliArguments, usedCliArguments, task, taskArguments);
+  await parseNamedParameters(
+    cliArguments,
+    usedCliArguments,
+    task,
+    taskArguments,
+  );
 
-  parsePositionalAndVariadicParameters(
+  await parsePositionalAndVariadicParameters(
     cliArguments,
     usedCliArguments,
     task,
@@ -301,7 +313,7 @@ function parseTaskArguments(
   return taskArguments;
 }
 
-function parseNamedParameters(
+async function parseNamedParameters(
   cliArguments: string[],
   usedCliArguments: boolean[],
   task: Task,
@@ -345,7 +357,7 @@ function parseNamedParameters(
         (cliArguments[i + 1] === "true" || cliArguments[i + 1] === "false")
       ) {
         // The parameter could be followed by a boolean value if it does not behaves like a flag
-        taskArguments[paramName] = parseParameterValue(
+        taskArguments[paramName] = await parseParameterValue(
           cliArguments[i + 1],
           ParameterType.BOOLEAN,
           paramName,
@@ -366,7 +378,7 @@ function parseNamedParameters(
     ) {
       i++;
 
-      taskArguments[paramName] = parseParameterValue(
+      taskArguments[paramName] = await parseParameterValue(
         cliArguments[i],
         paramInfo.parameterType,
         paramName,
@@ -392,7 +404,7 @@ function parseNamedParameters(
   );
 }
 
-function parsePositionalAndVariadicParameters(
+async function parsePositionalAndVariadicParameters(
   cliArguments: string[],
   usedCliArguments: boolean[],
   task: Task,
@@ -420,7 +432,7 @@ function parsePositionalAndVariadicParameters(
 
     usedCliArguments[i] = true;
 
-    const formattedValue = parseParameterValue(
+    const formattedValue = await parseParameterValue(
       cliArguments[i],
       paramInfo.parameterType,
       paramInfo.name,
@@ -466,32 +478,134 @@ function kebabToCamelCase(str: string) {
   return str.replace(/-./g, (match) => match.charAt(1).toUpperCase());
 }
 
-function parseParameterValue(
-  value: string,
+async function parseParameterValue(
+  strValue: string,
   type: ParameterType,
-  name: string,
-): any {
+  argName: string,
+): Promise<any> {
   switch (type) {
     case ParameterType.STRING:
+      return validateAndParseString(argName, strValue);
     case ParameterType.FILE:
-      return value;
+      return validateAndParseFile(argName, strValue);
     case ParameterType.INT:
+      return validateAndParseInt(argName, strValue);
     case ParameterType.FLOAT:
-      return Number(value);
+      return validateAndParseFloat(argName, strValue);
     case ParameterType.BIGINT:
-      return BigInt(value);
+      return validateAndParseBigInt(argName, strValue);
     case ParameterType.BOOLEAN:
-      if (value !== "true" && value !== "false") {
-        throw new HardhatError(
-          HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
-          {
-            value,
-            name,
-            type,
-          },
-        );
-      }
-
-      return value === "true";
+      return validateAndParseBoolean(argName, strValue);
   }
+}
+
+function validateAndParseInt(argName: string, strValue: string): number {
+  const decimalPattern = /^\d+(?:[eE]\d+)?$/;
+  const hexPattern = /^0[xX][\dABCDEabcde]+$/;
+
+  if (
+    strValue.match(decimalPattern) === null &&
+    strValue.match(hexPattern) === null
+  ) {
+    throw new HardhatError(
+      HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      {
+        value: strValue,
+        name: argName,
+        type: "int",
+      },
+    );
+  }
+
+  return Number(strValue);
+}
+
+function validateAndParseString(_argName: string, strValue: string): string {
+  return strValue;
+}
+
+async function validateAndParseFile(
+  argName: string,
+  strValue: string,
+): Promise<string> {
+  try {
+    const absolutePath = path.join(process.cwd(), strValue);
+
+    if (await isDirectory(absolutePath)) {
+      // This is caught and encapsulated in a hardhat error
+      throw new Error(`${strValue} is a directory, not a file`);
+    }
+
+    return absolutePath;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new HardhatError(
+        HardhatError.ERRORS.ARGUMENTS.INVALID_INPUT_FILE,
+        {
+          name: argName,
+          value: strValue,
+        },
+        error,
+      );
+    }
+
+    throw error;
+  }
+}
+
+function validateAndParseFloat(argName: string, strValue: string): number {
+  const decimalPattern = /^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE]\d+)?$/;
+  const hexPattern = /^0[xX][\dABCDEabcde]+$/;
+
+  if (
+    strValue.match(decimalPattern) === null &&
+    strValue.match(hexPattern) === null
+  ) {
+    throw new HardhatError(
+      HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      {
+        value: strValue,
+        name: argName,
+        type: "float",
+      },
+    );
+  }
+
+  return Number(strValue);
+}
+
+function validateAndParseBigInt(argName: string, strValue: string): bigint {
+  const decimalPattern = /^\d+(?:n)?$/;
+  const hexPattern = /^0[xX][\dABCDEabcde]+$/;
+
+  if (
+    strValue.match(decimalPattern) === null &&
+    strValue.match(hexPattern) === null
+  ) {
+    throw new HardhatError(
+      HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      {
+        value: strValue,
+        name: argName,
+        type: "bigint",
+      },
+    );
+  }
+
+  return BigInt(strValue.replace("n", ""));
+}
+
+function validateAndParseBoolean(argName: string, strValue: string): boolean {
+  if (strValue.toLowerCase() === "true") {
+    return true;
+  }
+  if (strValue.toLowerCase() === "false") {
+    return false;
+  }
+
+  throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+    value: strValue,
+    name: argName,
+    type: "boolean",
+  });
 }

@@ -303,6 +303,16 @@ Please double check how you invoked Hardhat or ran your task.`,
 
 Please double check how you invoked Hardhat or ran your task.`,
     },
+    INVALID_INPUT_FILE: {
+      number: 307,
+      messageTemplate:
+        "Invalid argument {name}: File {value} doesn't exist or is not a readable file.",
+      websiteTitle: "Invalid file argument",
+      websiteDescription: `One of your tasks expected a file as an argument, but you provided a
+nonexistent or non-readable file.
+
+Please double check your arguments.`,
+    },
   },
   RESOLVER: {
     FILE_NOT_FOUND: {

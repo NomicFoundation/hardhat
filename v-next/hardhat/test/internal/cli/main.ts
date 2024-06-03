@@ -11,6 +11,10 @@ import {
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { parseTaskAndArguments } from "../../../src/internal/cli/main.js";
+import path from "node:path";
+
+const FIXTURE_RELATIVE_FILE_PATH =
+  "./test/fixture-projects/cli/type-validation/test.txt";
 
 async function getTasksAndHreEnvironment(
   tasksBuilders: NewTaskDefinitionBuilder[],
@@ -65,13 +69,17 @@ describe("main", function () {
         ));
       });
 
-      it("should get the tasks and the subtask and skip the global param", function () {
+      it("should get the tasks and the subtask and skip the global param", async function () {
         const command = "npx hardhat task0 --network localhost subtask0";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = [false, true, true, false];
 
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+        const res = await parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        );
 
         assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, subtasks[0].id);
@@ -117,13 +125,17 @@ describe("main", function () {
         ));
       });
 
-      it("should get the task and its parameter", function () {
+      it("should get the task and its parameter", async function () {
         const command = "npx hardhat task0 --param <paramValue>";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+        const res = await parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        );
 
         assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, tasks[0].id);
@@ -142,7 +154,11 @@ describe("main", function () {
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+        const res = await parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        );
 
         assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, subtasks[0].id);
@@ -155,13 +171,17 @@ describe("main", function () {
         });
       });
 
-      it("should get the task and its parameter as type boolean with value set to true (flag behavior)", function () {
+      it("should get the task and its parameter as type boolean with value set to true (flag behavior)", async function () {
         const command = "npx hardhat task1 --flag";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+        const res = await parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        );
 
         assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, tasks[1].id);
@@ -172,13 +192,17 @@ describe("main", function () {
         assert.deepEqual(res.taskArguments, { flag: true });
       });
 
-      it("should get the required bool value (the bool value must be specified, not a flag behavior because default is true)", function () {
+      it("should get the required bool value (the bool value must be specified, not a flag behavior because default is true)", async function () {
         const command = "npx hardhat task2 --param false";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+        const res = await parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        );
 
         assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, tasks[2].id);
@@ -189,13 +213,17 @@ describe("main", function () {
         assert.deepEqual(res.taskArguments, { param: false });
       });
 
-      it("should get the required bool value (the bool value must be specified, not a flag behavior because default is undefined)", function () {
+      it("should get the required bool value (the bool value must be specified, not a flag behavior because default is undefined)", async function () {
         const command = "npx hardhat task3 --param true";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+        const res = await parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        );
 
         assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, tasks[3].id);
@@ -206,13 +234,17 @@ describe("main", function () {
         assert.deepEqual(res.taskArguments, { param: true });
       });
 
-      it("should convert on the fly the camelCase parameter to kebab-case", function () {
+      it("should convert on the fly the camelCase parameter to kebab-case", async function () {
         const command = "npx hardhat task4 --camel-case-param <value>";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+        const res = await parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        );
 
         assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, tasks[4].id);
@@ -231,8 +263,9 @@ describe("main", function () {
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-        assert.throws(
-          () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+        assert.rejects(
+          async () =>
+            await parseTaskAndArguments(cliArguments, usedCliArguments, hre),
           new HardhatError(
             HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_NAMED_PARAM,
             {
@@ -248,8 +281,9 @@ describe("main", function () {
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-        assert.throws(
-          () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+        assert.rejects(
+          async () =>
+            await parseTaskAndArguments(cliArguments, usedCliArguments, hre),
           new HardhatError(
             HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_NAMED_PARAM,
             {
@@ -265,8 +299,9 @@ describe("main", function () {
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-        assert.throws(
-          () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+        assert.rejects(
+          async () =>
+            await parseTaskAndArguments(cliArguments, usedCliArguments, hre),
           new HardhatError(
             HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_PARAMETER,
             {
@@ -282,8 +317,9 @@ describe("main", function () {
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = [false];
 
-        assert.throws(
-          () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+        assert.rejects(
+          async () =>
+            await parseTaskAndArguments(cliArguments, usedCliArguments, hre),
           new HardhatError(
             HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_PARAMETER,
             {
@@ -327,13 +363,17 @@ describe("main", function () {
         ));
       });
 
-      it("should get the tasks and its required parameter", function () {
+      it("should get the tasks and its required parameter", async function () {
         const command = "npx hardhat task0 <paramValue>";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+        const res = await parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        );
 
         assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, tasks[0].id);
@@ -346,13 +386,17 @@ describe("main", function () {
         });
       });
 
-      it("should get the subtask and its required parameter", function () {
+      it("should get the subtask and its required parameter", async function () {
         const command = "npx hardhat task1 subtask1 <paramValue>";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+        const res = await parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        );
 
         assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, subtasks[1].id);
@@ -365,14 +409,18 @@ describe("main", function () {
         });
       });
 
-      it("should get the tasks and its required parameter that comes after the --", function () {
+      it("should get the tasks and its required parameter that comes after the --", async function () {
         // subtask is a param value in this scenario, not a subtask because it is preceded by "--"
         const command = "npx hardhat task0 -- subtask0";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+        const res = await parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        );
 
         assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, tasks[0].id);
@@ -385,14 +433,18 @@ describe("main", function () {
         });
       });
 
-      it("should get the tasks and its required parameter (the positional argument has the same value as a subtask name)", function () {
+      it("should get the tasks and its required parameter (the positional argument has the same value as a subtask name)", async function () {
         // subtask1 is a param value in this scenario, not a subtask because it is preceded by a positional value
         const command = "npx hardhat task1 foo subtask1";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+        const res = await parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        );
 
         assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, tasks[1].id);
@@ -406,13 +458,17 @@ describe("main", function () {
         });
       });
 
-      it("should get the subtasks and not complain about the missing optional parameter", function () {
+      it("should get the subtasks and not complain about the missing optional parameter", async function () {
         const command = "npx hardhat task1 subtask1 <paramValue>";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+        const res = await parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        );
 
         assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, subtasks[1].id);
@@ -425,14 +481,18 @@ describe("main", function () {
         });
       });
 
-      it("should get the subtasks and its optional parameter passed in the cli", function () {
+      it("should get the subtasks and its optional parameter passed in the cli", async function () {
         const command =
           "npx hardhat task1 subtask1 <paramValue> <optParamValue>";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+        const res = await parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        );
 
         assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, subtasks[1].id);
@@ -446,14 +506,15 @@ describe("main", function () {
         });
       });
 
-      it("should throw an error because the required parameter is not passed", function () {
+      it("should throw an error because the required parameter is not passed", async function () {
         const command = "npx hardhat task0";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = [false];
 
-        assert.throws(
-          () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+        assert.rejects(
+          async () =>
+            await parseTaskAndArguments(cliArguments, usedCliArguments, hre),
           new HardhatError(
             HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_PARAMETER,
             {
@@ -485,13 +546,17 @@ describe("main", function () {
         ));
       });
 
-      it("should get the parameters", function () {
+      it("should get the parameters", async function () {
         const command = "npx hardhat task0 <val1> <val2> <val3>";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+        const res = await parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        );
 
         assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, tasks[0].id);
@@ -504,13 +569,17 @@ describe("main", function () {
         });
       });
 
-      it("should not throw when a parameters is not passed and there is a default value", function () {
+      it("should not throw when a parameters is not passed and there is a default value", async function () {
         const command = "npx hardhat task0 subtask0";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+        const res = await parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        );
 
         assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, subtasks[0].id);
@@ -521,14 +590,15 @@ describe("main", function () {
         assert.deepEqual(res.taskArguments, {});
       });
 
-      it("should throw when a parameter is not passed and there is no default value", function () {
+      it("should throw when a parameter is not passed and there is no default value", async function () {
         const command = "npx task task0";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = [false];
 
-        assert.throws(
-          () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+        assert.rejects(
+          async () =>
+            await parseTaskAndArguments(cliArguments, usedCliArguments, hre),
           new HardhatError(
             HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_PARAMETER,
             {
@@ -564,14 +634,13 @@ describe("main", function () {
           ));
         });
 
-        it("should correctly format the parameters accordingly to their types", function () {
-          const command =
-            "npx hardhat task0 --param 1234 --param2 true --param3 ./file-path --param4 12.34 --param5 1234 --param6 hello";
+        it("should correctly format the parameters accordingly to their types", async function () {
+          const command = `npx hardhat task0 --param 1234 --param2 true --param3 ${FIXTURE_RELATIVE_FILE_PATH} --param4 12.34 --param5 1234 --param6 hello`;
 
           const cliArguments = command.split(" ").slice(2);
           const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-          const res = parseTaskAndArguments(
+          const res = await parseTaskAndArguments(
             command.split(" ").slice(2),
             usedCliArguments,
             hre,
@@ -581,7 +650,7 @@ describe("main", function () {
           assert.deepEqual(res.taskArguments, {
             param: 1234n,
             param2: true,
-            param3: "./file-path",
+            param3: path.join(process.cwd(), FIXTURE_RELATIVE_FILE_PATH),
             param4: 12.34,
             param5: 1234,
             param6: "hello",
@@ -625,14 +694,13 @@ describe("main", function () {
           ));
         });
 
-        it("should correctly format the parameters accordingly to their types", function () {
-          const command =
-            "npx hardhat task0 1234 true ./file-path 12.34 1234 hello";
+        it("should correctly format the parameters accordingly to their types", async function () {
+          const command = `npx hardhat task0 1234 true ${FIXTURE_RELATIVE_FILE_PATH} 12.34 1234 hello`;
 
           const cliArguments = command.split(" ").slice(2);
           const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-          const res = parseTaskAndArguments(
+          const res = await parseTaskAndArguments(
             command.split(" ").slice(2),
             usedCliArguments,
             hre,
@@ -642,7 +710,7 @@ describe("main", function () {
           assert.deepEqual(res.taskArguments, {
             param: 1234n,
             param2: true,
-            param3: "./file-path",
+            param3: path.join(process.cwd(), FIXTURE_RELATIVE_FILE_PATH),
             param4: 12.34,
             param5: 1234,
             param6: "hello",
@@ -663,12 +731,19 @@ describe("main", function () {
         const paramValues = [
           "1234",
           "true",
-          "./file-path",
+          FIXTURE_RELATIVE_FILE_PATH,
           "12.34",
           "1234",
           "hello",
         ];
-        const paramResults = [1234n, true, "./file-path", 12.34, 1234, "hello"];
+        const paramResults = [
+          1234n,
+          true,
+          path.join(process.cwd(), FIXTURE_RELATIVE_FILE_PATH),
+          12.34,
+          1234,
+          "hello",
+        ];
 
         it("should correctly format the parameters accordingly to their types", async function () {
           // Variadic parameters can only be of a single type at a time, so loop through all the types
@@ -690,7 +765,7 @@ describe("main", function () {
             const cliArguments = command.split(" ").slice(2);
             const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-            const res = parseTaskAndArguments(
+            const res = await parseTaskAndArguments(
               command.split(" ").slice(2),
               usedCliArguments,
               hre,
@@ -759,7 +834,11 @@ describe("main", function () {
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+        const res = await parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        );
 
         assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, tasks[0].id);
@@ -770,7 +849,7 @@ describe("main", function () {
         assert.deepEqual(res.taskArguments, { posParam: "--param" });
       });
 
-      it("should get the task, its parameters passed in the cli and ignore global arguments", function () {
+      it("should get the task, its parameters passed in the cli and ignore global arguments", async function () {
         const command =
           "npx hardhat task1 --param <value> --network localhost <posValue> <posValue2> --verbose <varValue1> <varValue2>";
 
@@ -788,7 +867,11 @@ describe("main", function () {
           false,
         ];
 
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+        const res = await parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        );
 
         assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, tasks[1].id);
@@ -804,13 +887,17 @@ describe("main", function () {
         });
       });
 
-      it("should consume all the positional optional parameters and not get any variadic parameters", function () {
+      it("should consume all the positional optional parameters and not get any variadic parameters", async function () {
         const command = "npx hardhat task2 <posValue> <posValue2> <posValue3>";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+        const res = await parseTaskAndArguments(
+          cliArguments,
+          usedCliArguments,
+          hre,
+        );
 
         assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, tasks[2].id);
@@ -825,15 +912,16 @@ describe("main", function () {
         });
       });
 
-      it("should throw because there is an unused argument", function () {
+      it("should throw because there is an unused argument", async function () {
         const command = "npx hardhat task0 subtask0 <value>";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
         // Throws because the flag parameter does not expect values, so the "false" argument will not be consumed
-        assert.throws(
-          () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+        assert.rejects(
+          async () =>
+            await parseTaskAndArguments(cliArguments, usedCliArguments, hre),
           new HardhatError(HardhatError.ERRORS.ARGUMENTS.UNUSED_ARGUMENT, {
             value: "<value>",
           }),
