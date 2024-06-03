@@ -1,3 +1,5 @@
+import path from "node:path";
+
 import {
   buildGlobalParameterMap,
   resolvePluginList,
@@ -15,6 +17,7 @@ import {
 } from "@nomicfoundation/hardhat-core/types/tasks";
 import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { isDirectory } from "@nomicfoundation/hardhat-utils/fs";
 
 import { builtinPlugins } from "../builtin-plugins/index.js";
 import {
@@ -22,8 +25,6 @@ import {
   resolveConfigPath,
 } from "../helpers/config-loading.js";
 import { getHardhatRuntimeEnvironmentSingleton } from "../hre-singleton.js";
-import { isDirectory } from "@nomicfoundation/hardhat-utils/fs";
-import path from "node:path";
 
 export async function main(cliArguments: string[]) {
   const hreInitStart = performance.now();

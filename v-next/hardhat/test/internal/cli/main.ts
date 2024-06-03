@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import path from "node:path";
 import { before, describe, it } from "node:test";
 
 import { createHardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core";
@@ -11,7 +12,6 @@ import {
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { parseTaskAndArguments } from "../../../src/internal/cli/main.js";
-import path from "node:path";
 
 const FIXTURE_RELATIVE_FILE_PATH =
   "./test/fixture-projects/cli/type-validation/test.txt";
@@ -265,7 +265,7 @@ describe("main", function () {
 
         assert.rejects(
           async () =>
-            await parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+            parseTaskAndArguments(cliArguments, usedCliArguments, hre),
           new HardhatError(
             HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_NAMED_PARAM,
             {
@@ -283,7 +283,7 @@ describe("main", function () {
 
         assert.rejects(
           async () =>
-            await parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+            parseTaskAndArguments(cliArguments, usedCliArguments, hre),
           new HardhatError(
             HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_NAMED_PARAM,
             {
@@ -301,7 +301,7 @@ describe("main", function () {
 
         assert.rejects(
           async () =>
-            await parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+            parseTaskAndArguments(cliArguments, usedCliArguments, hre),
           new HardhatError(
             HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_PARAMETER,
             {
@@ -319,7 +319,7 @@ describe("main", function () {
 
         assert.rejects(
           async () =>
-            await parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+            parseTaskAndArguments(cliArguments, usedCliArguments, hre),
           new HardhatError(
             HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_PARAMETER,
             {
@@ -514,7 +514,7 @@ describe("main", function () {
 
         assert.rejects(
           async () =>
-            await parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+            parseTaskAndArguments(cliArguments, usedCliArguments, hre),
           new HardhatError(
             HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_PARAMETER,
             {
@@ -598,7 +598,7 @@ describe("main", function () {
 
         assert.rejects(
           async () =>
-            await parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+            parseTaskAndArguments(cliArguments, usedCliArguments, hre),
           new HardhatError(
             HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_PARAMETER,
             {
@@ -921,7 +921,7 @@ describe("main", function () {
         // Throws because the flag parameter does not expect values, so the "false" argument will not be consumed
         assert.rejects(
           async () =>
-            await parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+            parseTaskAndArguments(cliArguments, usedCliArguments, hre),
           new HardhatError(HardhatError.ERRORS.ARGUMENTS.UNUSED_ARGUMENT, {
             value: "<value>",
           }),
