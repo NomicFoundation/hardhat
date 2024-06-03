@@ -204,9 +204,30 @@ describe("verify", () => {
   });
 
   describe("getImportSourceNames", () => {
+    const exampleBuildInfo: BuildInfo = {
+      _format: "hh-sol-artifact-1",
+      id: "example",
+      solcVersion: "0.8.19",
+      solcLongVersion: "0.8.19+commit.7dd6d404",
+      input: {
+        language: "Solidity",
+        settings: {
+          optimizer: {},
+          outputSelection: {},
+        },
+        sources: {},
+      },
+      output: {
+        contracts: {},
+        sources: {},
+      },
+    };
+
     it("should handle circular imports", () => {
-      const buildInfo = {
+      const buildInfo: BuildInfo = {
+        ...exampleBuildInfo,
         input: {
+          ...exampleBuildInfo.input,
           sources: {
             "contracts/A.sol": {
               content: 'import "./B.sol";',
@@ -218,12 +239,37 @@ describe("verify", () => {
         },
       };
 
-      const result = getImportSourceNames(
-        "contracts/A.sol",
-        buildInfo as unknown as BuildInfo
-      );
+      const result = getImportSourceNames("contracts/A.sol", buildInfo);
 
       assert.deepEqual(result, ["contracts/B.sol", "contracts/A.sol"]);
+    });
+
+    it("should handle indirect circular imports", () => {
+      const buildInfo: BuildInfo = {
+        ...exampleBuildInfo,
+        input: {
+          ...exampleBuildInfo.input,
+          sources: {
+            "contracts/A.sol": {
+              content: 'import "./B.sol";',
+            },
+            "contracts/B.sol": {
+              content: 'import "./C.sol";',
+            },
+            "contracts/C.sol": {
+              content: 'import "./A.sol";',
+            },
+          },
+        },
+      };
+
+      const result = getImportSourceNames("contracts/A.sol", buildInfo);
+
+      assert.deepEqual(result, [
+        "contracts/B.sol",
+        "contracts/C.sol",
+        "contracts/A.sol",
+      ]);
     });
   });
 });
