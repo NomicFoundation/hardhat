@@ -92,10 +92,17 @@ function resolveChainConfig(
   return chainConfig;
 }
 
-function getImportSourceNames(
+export function getImportSourceNames(
   sourceName: string,
-  buildInfo: BuildInfo
+  buildInfo: BuildInfo,
+  visited: Record<string, boolean> = {}
 ): string[] {
+  if (visited[sourceName]) {
+    return [];
+  }
+
+  visited[sourceName] = true;
+
   const contractSource = buildInfo.input.sources[sourceName].content;
   const { imports } = analyze(contractSource);
 
@@ -109,7 +116,9 @@ function getImportSourceNames(
 
   return [
     ...importSources,
-    ...importSources.flatMap((i) => getImportSourceNames(i, buildInfo)),
+    ...importSources.flatMap((i) =>
+      getImportSourceNames(i, buildInfo, visited)
+    ),
   ];
 }
 

@@ -1,7 +1,8 @@
 import { assert } from "chai";
 import path from "path";
 
-import { VerifyResult, getVerificationInformation } from "../src";
+import { BuildInfo, VerifyResult, getVerificationInformation } from "../src";
+import { getImportSourceNames } from "../src/verify";
 
 describe("verify", () => {
   it("should not verify an unitialized deployment", async () => {
@@ -200,5 +201,29 @@ describe("verify", () => {
 
       assert.deepEqual(actualSources, expectedSources);
     }
+  });
+
+  describe("getImportSourceNames", () => {
+    it("should handle circular imports", () => {
+      const buildInfo = {
+        input: {
+          sources: {
+            "contracts/A.sol": {
+              content: 'import "./B.sol";',
+            },
+            "contracts/B.sol": {
+              content: 'import "./A.sol";',
+            },
+          },
+        },
+      };
+
+      const result = getImportSourceNames(
+        "contracts/A.sol",
+        buildInfo as unknown as BuildInfo
+      );
+
+      assert.deepEqual(result, ["contracts/B.sol", "contracts/A.sol"]);
+    });
   });
 });
