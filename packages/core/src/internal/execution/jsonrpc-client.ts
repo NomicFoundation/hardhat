@@ -286,6 +286,11 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
       params: [address, balanceHex],
     });
 
+    // anvil supports this method, but returns `null` instead of a boolean
+    if (returnedBalance === null) {
+      return true;
+    }
+
     assertResponseType(
       "hardhat_setBalance",
       returnedBalance,
