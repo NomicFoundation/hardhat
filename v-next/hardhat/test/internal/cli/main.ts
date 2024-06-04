@@ -22,6 +22,7 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import {
   parseGlobalArguments,
+  parseInitialHardhatParameters,
   parseTaskAndArguments,
 } from "../../../src/internal/cli/main.js";
 
@@ -59,6 +60,75 @@ async function getTasksAndHreEnvironment(
 }
 
 describe("main", function () {
+  describe("parseInitialHardhatParameters", function () {
+    it("should set the all the hardhat initial global parameters", async function () {
+      // All the <value> and "task" should be ignored
+      const command =
+        "npx hardhat --help <value> --version --show-stack-traces task --config ./path-to-config <value>";
+
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      const { configPath, showStackTraces, help, version } =
+        await parseInitialHardhatParameters(cliArguments, usedCliArguments);
+
+      assert.deepEqual(usedCliArguments, [
+        true,
+        false,
+        true,
+        true,
+        false,
+        true,
+        true,
+        false,
+      ]);
+      assert.equal(configPath, "./path-to-config");
+      assert.equal(showStackTraces, true);
+      assert.equal(help, true);
+      assert.equal(version, true);
+    });
+
+    it("should not set any hardhat initial global parameters except the path to the config", async function () {
+      // The config path is passed via ENV variable
+      const RANDOM_CONFIG_PATH = "./path";
+
+      process.env.HARDHAT_CONFIG = RANDOM_CONFIG_PATH;
+
+      const command = "npx hardhat <value> --random-flag";
+
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      const { configPath, showStackTraces, help, version } =
+        await parseInitialHardhatParameters(cliArguments, usedCliArguments);
+
+      assert.deepEqual(
+        usedCliArguments,
+        new Array(cliArguments.length).fill(false),
+      );
+      assert.equal(configPath, RANDOM_CONFIG_PATH);
+      assert.equal(showStackTraces, false);
+      assert.equal(help, false);
+      assert.equal(version, false);
+    });
+
+    it("should throw an error because the config param is passed twice", async function () {
+      // The config path is passed via ENV variable
+      const command = "npx hardhat --config ./path1 --config ./path2";
+
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      assert.rejects(
+        async () =>
+          parseInitialHardhatParameters(cliArguments, usedCliArguments),
+        new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
+          name: "--config",
+        }),
+      );
+    });
+  });
+
   describe("parseGlobalArguments", function () {
     // The function "parseGlobalArguments" uses the same function "parseDoubleDashArgs" that is used to parse named parameters.
     // Most of the tests to check the "parseDoubleDashArgs" logic are in the named parameter section of these tests.

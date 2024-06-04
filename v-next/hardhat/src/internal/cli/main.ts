@@ -29,56 +29,15 @@ import { getHardhatRuntimeEnvironmentSingleton } from "../hre-singleton.js";
 
 export async function main(cliArguments: string[]) {
   const hreInitStart = performance.now();
-  let configPath: string | undefined;
-  let showStackTraces: boolean = false; // true if ci
-  let help: boolean = false;
-  let version: boolean = false;
 
   const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-  for (let i = 0; i < cliArguments.length; i++) {
-    const arg = cliArguments[i];
-
-    if (arg === "--config") {
-      usedCliArguments[i] = true;
-
-      if (configPath !== undefined) {
-        throw new Error("Multiple --config arguments are not allowed");
-      }
-
-      configPath = cliArguments[i + 1];
-      i++;
-
-      usedCliArguments[i] = true;
-      continue;
-    }
-
-    if (arg === "--show-stack-traces") {
-      usedCliArguments[i] = true;
-      showStackTraces = true;
-      continue;
-    }
-
-    if (arg === "--help") {
-      usedCliArguments[i] = true;
-      help = true;
-      continue;
-    }
-
-    if (arg === "--version") {
-      usedCliArguments[i] = true;
-      version = true;
-      continue;
-    }
-  }
+  const { configPath, showStackTraces, help, version } =
+    await parseInitialHardhatParameters(cliArguments, usedCliArguments);
 
   if (version) {
     console.log("3.0.0");
     return;
-  }
-
-  if (configPath === undefined) {
-    configPath = await resolveConfigPath();
   }
 
   try {
@@ -172,6 +131,60 @@ export async function main(cliArguments: string[]) {
       console.error(error);
     }
   }
+}
+
+export async function parseInitialHardhatParameters(
+  cliArguments: string[],
+  usedCliArguments: boolean[],
+) {
+  let configPath: string | undefined;
+  let showStackTraces: boolean = false; // true if ci
+  let help: boolean = false;
+  let version: boolean = false;
+
+  for (let i = 0; i < cliArguments.length; i++) {
+    const arg = cliArguments[i];
+
+    if (arg === "--config") {
+      usedCliArguments[i] = true;
+
+      if (configPath !== undefined) {
+        throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
+          name: "--config",
+        });
+      }
+
+      configPath = cliArguments[i + 1];
+      i++;
+
+      usedCliArguments[i] = true;
+      continue;
+    }
+
+    if (arg === "--show-stack-traces") {
+      usedCliArguments[i] = true;
+      showStackTraces = true;
+      continue;
+    }
+
+    if (arg === "--help") {
+      usedCliArguments[i] = true;
+      help = true;
+      continue;
+    }
+
+    if (arg === "--version") {
+      usedCliArguments[i] = true;
+      version = true;
+      continue;
+    }
+  }
+
+  if (configPath === undefined) {
+    configPath = await resolveConfigPath();
+  }
+
+  return { configPath, showStackTraces, help, version };
 }
 
 export async function parseGlobalArguments(
