@@ -1,3 +1,5 @@
+import path from "node:path";
+
 import {
   buildGlobalParameterMap,
   resolvePluginList,
@@ -8,9 +10,14 @@ import {
   GlobalParameterMap,
 } from "@nomicfoundation/hardhat-core/types/global-parameters";
 import { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
-import { Task } from "@nomicfoundation/hardhat-core/types/tasks";
+import {
+  NamedTaskParameter,
+  PositionalTaskParameter,
+  Task,
+} from "@nomicfoundation/hardhat-core/types/tasks";
 import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { isDirectory } from "@nomicfoundation/hardhat-utils/fs";
 
 import { builtinPlugins } from "../builtin-plugins/index.js";
 import {
@@ -100,7 +107,11 @@ export async function main(cliArguments: string[]) {
 
     const taskParsingStart = performance.now();
 
-    const result = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+    const result = await parseTaskAndArguments(
+      cliArguments,
+      usedCliArguments,
+      hre,
+    );
 
     if (Array.isArray(result)) {
       if (result.length === 0) {
@@ -186,16 +197,17 @@ function parseGlobalArguments(
  * @returns The task and its arguments, or an array with the unrecognized task
  *  id. If no task id is provided, an empty array is returned.
  */
-export function parseTaskAndArguments(
+export async function parseTaskAndArguments(
   cliArguments: string[],
   usedCliArguments: boolean[],
   hre: HardhatRuntimeEnvironment,
-):
+): Promise<
   | {
       task: Task;
       taskArguments: Record<string, any>;
     }
-  | string[] {
+  | string[]
+> {
   const taskOrId = getTaskFromCliArguments(cliArguments, usedCliArguments, hre);
   if (Array.isArray(taskOrId)) {
     return taskOrId;
@@ -203,7 +215,7 @@ export function parseTaskAndArguments(
 
   const task = taskOrId;
 
-  const taskArguments = parseTaskArguments(
+  const taskArguments = await parseTaskArguments(
     cliArguments,
     usedCliArguments,
     task,
@@ -228,8 +240,8 @@ function getTaskFromCliArguments(
     const arg = cliArguments[i];
 
     if (arg.startsWith("--")) {
-      // A standalone '--' is ok because it is used to separate CLI tool arguments from script arguments,
-      // ensuring the tool passes subsequent options directly to the script.
+      // A standalone '--' is ok because it is used to separate CLI tool arguments from task arguments, ensuring the tool passes
+      // subsequent options directly to the task. Everything after "--" should be considered as a positional parameter
       if (arg.length === 2 || task !== undefined) {
         break;
       }
@@ -270,34 +282,39 @@ function getTaskFromCliArguments(
   return task;
 }
 
-function parseTaskArguments(
+async function parseTaskArguments(
   cliArguments: string[],
   usedCliArguments: boolean[],
   task: Task,
-): Record<string, any> {
+): Promise<Record<string, any>> {
   const taskArguments: Record<string, unknown> = {};
 
-  parseNamedParameters(cliArguments, usedCliArguments, task, taskArguments);
-
-  parsePositionalAndVariadicParameters(
+  await parseNamedParameters(
     cliArguments,
     usedCliArguments,
     task,
     taskArguments,
   );
 
-  usedCliArguments.forEach((arg, index) => {
-    if (!arg) {
-      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.UNUSED_ARGUMENT, {
-        value: cliArguments[index],
-      });
-    }
-  });
+  await parsePositionalAndVariadicParameters(
+    cliArguments,
+    usedCliArguments,
+    task,
+    taskArguments,
+  );
+
+  const unusedIndex = usedCliArguments.indexOf(false);
+
+  if (unusedIndex !== -1) {
+    throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.UNUSED_ARGUMENT, {
+      value: cliArguments[unusedIndex],
+    });
+  }
 
   return taskArguments;
 }
 
-function parseNamedParameters(
+async function parseNamedParameters(
   cliArguments: string[],
   usedCliArguments: boolean[],
   task: Task,
@@ -309,9 +326,9 @@ function parseNamedParameters(
     }
 
     if (cliArguments[i] === "--") {
-      // A standalone '--' is ok because it is used to separate CLI tool arguments from script arguments,
-      // ensuring the tool passes subsequent options directly to the script.
-      continue;
+      // A standalone '--' is ok because it is used to separate CLI tool arguments from task arguments, ensuring the tool passes
+      // subsequent options directly to the task. Everything after "--" should be considered as a positional parameter
+      break;
     }
 
     const arg = cliArguments[i];
@@ -336,11 +353,12 @@ function parseNamedParameters(
 
     if (paramInfo.parameterType === ParameterType.BOOLEAN) {
       if (
+        usedCliArguments[i + 1] !== undefined &&
         usedCliArguments[i + 1] === false &&
-        ["true", "false"].includes(cliArguments[i + 1])
+        (cliArguments[i + 1] === "true" || cliArguments[i + 1] === "false")
       ) {
-        // The flag could be follow by the boolean value
-        taskArguments[paramName] = formatParameterValue(
+        // The parameter could be followed by a boolean value if it does not behaves like a flag
+        taskArguments[paramName] = await parseParameterValue(
           cliArguments[i + 1],
           ParameterType.BOOLEAN,
           paramName,
@@ -350,17 +368,18 @@ function parseNamedParameters(
         continue;
       }
 
-      // If the flag is not followed by a boolean value, then the flag itself means that the value is true
-      taskArguments[paramName] = true;
-      continue;
-    }
-
-    // The value immediately following a named parameter (if the parameter does not behave as a flag)
-    // is the parameter's value; otherwise, it's an error
-    if (usedCliArguments[i + 1] === false) {
+      if (paramInfo.defaultValue === false) {
+        // If the default value for the parameter is false, the parameter behaves like a flag, so there is no need to specify the value
+        taskArguments[paramName] = true;
+        continue;
+      }
+    } else if (
+      usedCliArguments[i + 1] !== undefined &&
+      usedCliArguments[i + 1] === false
+    ) {
       i++;
 
-      taskArguments[paramName] = formatParameterValue(
+      taskArguments[paramName] = await parseParameterValue(
         cliArguments[i],
         paramInfo.parameterType,
         paramName,
@@ -372,15 +391,21 @@ function parseNamedParameters(
     }
 
     throw new HardhatError(
-      HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_NAMED_PARAMETER,
+      HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_PARAMETER,
       {
         paramName: arg,
       },
     );
   }
+
+  // Check if all the required parameters have been used
+  validateRequiredParameters(
+    Array.from(task.namedParameters.values()),
+    taskArguments,
+  );
 }
 
-function parsePositionalAndVariadicParameters(
+async function parsePositionalAndVariadicParameters(
   cliArguments: string[],
   usedCliArguments: boolean[],
   task: Task,
@@ -394,8 +419,8 @@ function parsePositionalAndVariadicParameters(
     }
 
     if (cliArguments[i] === "--") {
-      // A standalone '--' is ok because it is used to separate CLI tool arguments from script arguments,
-      // ensuring the tool passes subsequent options directly to the script.
+      // A standalone '--' is ok because it is used to separate CLI tool arguments from task arguments, ensuring the tool passes
+      // subsequent options directly to the task. Everything after "--" should be considered as a positional parameter
       usedCliArguments[i] = true;
       continue;
     }
@@ -403,58 +428,185 @@ function parsePositionalAndVariadicParameters(
     const paramInfo = task.positionalParameters[paramI];
 
     if (paramInfo === undefined) {
-      continue;
+      break;
     }
 
     usedCliArguments[i] = true;
 
-    const formattedValue = formatParameterValue(
+    const formattedValue = await parseParameterValue(
       cliArguments[i],
       paramInfo.parameterType,
       paramInfo.name,
     );
 
     if (paramInfo.isVariadic === false) {
-      taskArguments[task.positionalParameters[paramI++].name] = formattedValue;
+      taskArguments[paramInfo.name] = formattedValue;
+      paramI++;
       continue;
     }
 
-    // Handle variadic parameters
+    // Handle variadic parameters. No longer increment "paramI" becuase there can only be one variadic parameter and it
+    // will consume all remaining arguments.
     taskArguments[paramInfo.name] = taskArguments[paramInfo.name] ?? [];
     taskArguments[paramInfo.name].push(formattedValue);
   }
+
+  // Check if all the required parameters have been used
+  validateRequiredParameters(task.positionalParameters, taskArguments);
+}
+
+function validateRequiredParameters(
+  parameters: PositionalTaskParameter[] | NamedTaskParameter[],
+  taskArguments: Record<string, any>,
+) {
+  const missingRequiredParam = parameters.find(
+    (param) =>
+      param.defaultValue === undefined &&
+      taskArguments[param.name] === undefined,
+  );
+
+  if (missingRequiredParam === undefined) {
+    return;
+  }
+
+  throw new HardhatError(
+    HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_PARAMETER,
+    { paramName: missingRequiredParam.name },
+  );
 }
 
 function kebabToCamelCase(str: string) {
   return str.replace(/-./g, (match) => match.charAt(1).toUpperCase());
 }
 
-function formatParameterValue(
-  value: string,
+async function parseParameterValue(
+  strValue: string,
   type: ParameterType,
-  name: string,
-): any {
+  argName: string,
+): Promise<any> {
   switch (type) {
     case ParameterType.STRING:
+      return validateAndParseString(argName, strValue);
     case ParameterType.FILE:
-      return value;
+      return validateAndParseFile(argName, strValue);
     case ParameterType.INT:
+      return validateAndParseInt(argName, strValue);
     case ParameterType.FLOAT:
-      return Number(value);
+      return validateAndParseFloat(argName, strValue);
     case ParameterType.BIGINT:
-      return BigInt(value);
+      return validateAndParseBigInt(argName, strValue);
     case ParameterType.BOOLEAN:
-      if (value !== "true" && value !== "false") {
-        throw new HardhatError(
-          HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
-          {
-            value,
-            name,
-            type,
-          },
-        );
-      }
-
-      return value === "true";
+      return validateAndParseBoolean(argName, strValue);
   }
+}
+
+function validateAndParseInt(argName: string, strValue: string): number {
+  const decimalPattern = /^\d+(?:[eE]\d+)?$/;
+  const hexPattern = /^0[xX][\dABCDEabcde]+$/;
+
+  if (
+    strValue.match(decimalPattern) === null &&
+    strValue.match(hexPattern) === null
+  ) {
+    throw new HardhatError(
+      HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      {
+        value: strValue,
+        name: argName,
+        type: "int",
+      },
+    );
+  }
+
+  return Number(strValue);
+}
+
+function validateAndParseString(_argName: string, strValue: string): string {
+  return strValue;
+}
+
+async function validateAndParseFile(
+  argName: string,
+  strValue: string,
+): Promise<string> {
+  try {
+    const absolutePath = path.join(process.cwd(), strValue);
+
+    if (await isDirectory(absolutePath)) {
+      // This is caught and encapsulated in a hardhat error
+      throw new Error(`${strValue} is a directory, not a file`);
+    }
+
+    return absolutePath;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new HardhatError(
+        HardhatError.ERRORS.ARGUMENTS.INVALID_INPUT_FILE,
+        {
+          name: argName,
+          value: strValue,
+        },
+        error,
+      );
+    }
+
+    throw error;
+  }
+}
+
+function validateAndParseFloat(argName: string, strValue: string): number {
+  const decimalPattern = /^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE]\d+)?$/;
+  const hexPattern = /^0[xX][\dABCDEabcde]+$/;
+
+  if (
+    strValue.match(decimalPattern) === null &&
+    strValue.match(hexPattern) === null
+  ) {
+    throw new HardhatError(
+      HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      {
+        value: strValue,
+        name: argName,
+        type: "float",
+      },
+    );
+  }
+
+  return Number(strValue);
+}
+
+function validateAndParseBigInt(argName: string, strValue: string): bigint {
+  const decimalPattern = /^\d+(?:n)?$/;
+  const hexPattern = /^0[xX][\dABCDEabcde]+$/;
+
+  if (
+    strValue.match(decimalPattern) === null &&
+    strValue.match(hexPattern) === null
+  ) {
+    throw new HardhatError(
+      HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      {
+        value: strValue,
+        name: argName,
+        type: "bigint",
+      },
+    );
+  }
+
+  return BigInt(strValue.replace("n", ""));
+}
+
+function validateAndParseBoolean(argName: string, strValue: string): boolean {
+  if (strValue.toLowerCase() === "true") {
+    return true;
+  }
+  if (strValue.toLowerCase() === "false") {
+    return false;
+  }
+
+  throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+    value: strValue,
+    name: argName,
+    type: "boolean",
+  });
 }

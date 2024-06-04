@@ -286,7 +286,7 @@ Please double check your arguments.`,
 
 Please double check your arguments.`,
     },
-    MISSING_VALUE_FOR_NAMED_PARAMETER: {
+    MISSING_VALUE_FOR_PARAMETER: {
       number: 305,
       messageTemplate: "Missing value for the task parameter named {paramName}",
       websiteTitle: "Missing value for the task parameter",
@@ -302,6 +302,16 @@ Please double check how you invoked Hardhat or ran your task.`,
       websiteDescription: `You tried to run a task, but one of your arguments was not consumed.
 
 Please double check how you invoked Hardhat or ran your task.`,
+    },
+    INVALID_INPUT_FILE: {
+      number: 307,
+      messageTemplate:
+        "Invalid argument {name}: File {value} doesn't exist or is not a readable file.",
+      websiteTitle: "Invalid file argument",
+      websiteDescription: `One of your tasks expected a file as an argument, but you provided a
+nonexistent or non-readable file.
+
+Please double check your arguments.`,
     },
   },
   RESOLVER: {
