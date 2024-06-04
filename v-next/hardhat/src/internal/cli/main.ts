@@ -174,22 +174,25 @@ export async function main(cliArguments: string[]) {
   }
 }
 
-function parseGlobalArguments(
-  _globalParamsIndex: GlobalParameterMap,
-  _cliArguments: string[],
-  _usedCliArguments: boolean[],
-): Partial<GlobalArguments> {
-  // TODO: Parse the global arguments
-  // - Parse the global params, skipping the processed entries
-  // - At each stage validate the value according to its type
-  // - If a global param is boolean and its default is false, its value is not
-  //   necessary. That means that if the immediatly next value is `"true"` or
-  //   `"false"`, we should use it, but if it's not we just don't, and consider
-  //   its value `true`.
-  // - Mark all the used entries in usedCliArguments
-  // - Do not resolve defaults here, the HRE does that.
-  // - Return the values
-  return {};
+export async function parseGlobalArguments(
+  globalParamsIndex: GlobalParameterMap,
+  cliArguments: string[],
+  usedCliArguments: boolean[],
+): Promise<Partial<GlobalArguments>> {
+  const globalArguments: Partial<GlobalArguments> = {};
+
+  const parameters = new Map(
+    Array.from(globalParamsIndex, ([key, value]) => [key, value.param]),
+  );
+
+  await parseDoubleDashArgs(
+    cliArguments,
+    usedCliArguments,
+    parameters,
+    globalArguments,
+  );
+
+  return globalArguments;
 }
 
 /**

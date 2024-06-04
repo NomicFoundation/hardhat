@@ -3,7 +3,16 @@ import path from "node:path";
 import { before, describe, it } from "node:test";
 
 import { createHardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core";
-import { ParameterType, task } from "@nomicfoundation/hardhat-core/config";
+import {
+  ParameterType,
+  globalFlag,
+  globalParameter,
+  task,
+} from "@nomicfoundation/hardhat-core/config";
+import {
+  GlobalParameterMap,
+  GlobalParameterMapEntry,
+} from "@nomicfoundation/hardhat-core/types/global-parameters";
 import { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
 import {
   NewTaskDefinition,
@@ -11,7 +20,10 @@ import {
 } from "@nomicfoundation/hardhat-core/types/tasks";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
-import { parseTaskAndArguments } from "../../../src/internal/cli/main.js";
+import {
+  parseGlobalArguments,
+  parseTaskAndArguments,
+} from "../../../src/internal/cli/main.js";
 
 const FIXTURE_RELATIVE_FILE_PATH =
   "./test/fixture-projects/cli/type-validation/test.txt";
@@ -47,16 +59,96 @@ async function getTasksAndHreEnvironment(
 }
 
 describe("main", function () {
-  let hre: HardhatRuntimeEnvironment;
-  let tasks: NewTaskDefinition[];
-  let subtasks: NewTaskDefinition[];
+  describe("parseGlobalArguments", function () {
+    // The function "parseGlobalArguments" uses the same function "parseDoubleDashArgs" that is used to parse named parameters.
+    // Most of the tests to check the "parseDoubleDashArgs" logic are in the named parameter section of these tests.
 
-  // Define your tasks and subtasks here.
-  // tasksBuilders and subtasksBuilders are defined in the "before()" hooks before every "functionality test groups".
-  let tasksBuilders: NewTaskDefinitionBuilder[] = [];
-  let subtasksBuilders: NewTaskDefinitionBuilder[] = [];
+    let globalParamsIndex: GlobalParameterMap;
+
+    before(function () {
+      const GLOBAL_PARAM = globalParameter({
+        name: "param",
+        parameterType: ParameterType.STRING,
+        defaultValue: "default",
+        description: "",
+      });
+
+      const GLOBAL_FLAG = globalFlag({
+        name: "flag",
+        description: "",
+      });
+
+      globalParamsIndex = new Map<string, GlobalParameterMapEntry>([
+        ["param", { pluginId: "1", param: GLOBAL_PARAM }],
+        ["flag", { pluginId: "1", param: GLOBAL_FLAG }],
+      ]);
+    });
+
+    it("should get the global parameter with the values passed in the cli", async function () {
+      const command = "npx hardhat task --param <value1> <value2> <value3>";
+
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      const globalArguments = await parseGlobalArguments(
+        globalParamsIndex,
+        cliArguments,
+        usedCliArguments,
+      );
+
+      assert.deepEqual(usedCliArguments, [false, true, true, false, false]);
+      assert.deepEqual(globalArguments, {
+        param: "<value1>",
+      });
+    });
+
+    it("should have a flag behavior (no bool value required after)", async function () {
+      const command = "npx hardhat task --flag <value>";
+
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      const globalArguments = await parseGlobalArguments(
+        globalParamsIndex,
+        cliArguments,
+        usedCliArguments,
+      );
+
+      assert.deepEqual(usedCliArguments, [false, true, false]);
+      assert.deepEqual(globalArguments, {
+        flag: true,
+      });
+    });
+
+    it("should parse the bool value after the flag", async function () {
+      const command = "npx hardhat task --flag true <value>";
+
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      const globalArguments = await parseGlobalArguments(
+        globalParamsIndex,
+        cliArguments,
+        usedCliArguments,
+      );
+
+      assert.deepEqual(usedCliArguments, [false, true, true, false]);
+      assert.deepEqual(globalArguments, {
+        flag: true,
+      });
+    });
+  });
 
   describe("parseTaskAndArguments", function () {
+    let hre: HardhatRuntimeEnvironment;
+    let tasks: NewTaskDefinition[];
+    let subtasks: NewTaskDefinition[];
+
+    // Define your tasks and subtasks here.
+    // tasksBuilders and subtasksBuilders are defined in the "before()" hooks before every "functionality test groups".
+    let tasksBuilders: NewTaskDefinitionBuilder[] = [];
+    let subtasksBuilders: NewTaskDefinitionBuilder[] = [];
+
     describe("only task and subtask", function () {
       before(async function () {
         tasksBuilders = [task(["task0"])];
