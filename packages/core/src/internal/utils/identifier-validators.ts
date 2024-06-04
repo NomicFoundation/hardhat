@@ -13,8 +13,10 @@ const solidityIdentifierRegex = /^[a-zA-Z$_][a-zA-Z0-9$_]*$/;
 /**
  * A regex capturing the solidity identifier rule but extended to support
  * the `myfun(uint256,bool)` parameter syntax
+ *
+ * This *could* be even stricter, but it works for now and covers obvious mistakes
  */
-const functionNameRegex = /^[a-zA-Z$_][a-zA-Z0-9$_,()]*$/;
+const functionNameRegex = /^[a-zA-Z0-9$_]*(\([a-zA-Z0-9$_,\[\]]*\))?$/;
 
 /**
  * Does the identifier match Ignition's rules for ids. Specifically that they
