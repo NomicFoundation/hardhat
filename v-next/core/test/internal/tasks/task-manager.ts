@@ -1,7 +1,3 @@
-import type { HardhatUserConfig } from "../../../src/types/config.js";
-import type { GlobalParameterMap } from "../../../src/types/global-parameters.js";
-import type { HardhatPlugin } from "../../../src/types/plugins.js";
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -10,7 +6,6 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ParameterType } from "../../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../../src/index.js";
 import { buildGlobalParameterDefinition } from "../../../src/internal/global-parameters.js";
-import { resolvePluginList } from "../../../src/internal/plugins/resolve-plugin-list.js";
 import {
   NewTaskDefinitionBuilderImplementation,
   TaskOverrideDefinitionBuilderImplementation,
@@ -27,32 +22,13 @@ import { TaskDefinitionType } from "../../../src/types/tasks.js";
  * HardhatRuntimeEnvironmentImplementation, as it's the one that creates the
  * TaskManagerImplementation.
  */
-async function createHre({
-  config = {},
-  plugins = [],
-}: {
-  config?: HardhatUserConfig;
-  plugins?: HardhatPlugin[];
-  globalParameterMap?: GlobalParameterMap;
-} = {}) {
-  const resolvedPlugins = await resolvePluginList(plugins, process.cwd());
-
-  return createHardhatRuntimeEnvironment(
-    config,
-    {},
-    {
-      resolvedPlugins,
-    },
-  );
-}
-
 describe("TaskManagerImplementation", () => {
   it("should initialize the task manager with an empty set of tasks if no plugins or tasks are provided", async () => {
-    await assert.doesNotReject(createHre());
+    await assert.doesNotReject(createHardhatRuntimeEnvironment({}));
   });
 
   it("should initialize the task manager with the tasks from the plugins", async () => {
-    const hre = await createHre({
+    const hre = await createHardhatRuntimeEnvironment({
       plugins: [
         {
           id: "plugin1",
@@ -105,24 +81,22 @@ describe("TaskManagerImplementation", () => {
   });
 
   it("should initialize the task manager with the tasks from the config", async () => {
-    const hre = await createHre({
-      config: {
-        tasks: [
-          new NewTaskDefinitionBuilderImplementation("task1")
-            .addNamedParameter({ name: "param1" })
-            .setAction(() => {})
-            .build(),
-          new NewTaskDefinitionBuilderImplementation("task2")
-            .addFlag({ name: "flag1" })
-            .setAction(() => {})
-            .build(),
-          new NewTaskDefinitionBuilderImplementation("task3")
-            .addPositionalParameter({ name: "posParam1" })
-            .addVariadicParameter({ name: "varParam1" })
-            .setAction(() => {})
-            .build(),
-        ],
-      },
+    const hre = await createHardhatRuntimeEnvironment({
+      tasks: [
+        new NewTaskDefinitionBuilderImplementation("task1")
+          .addNamedParameter({ name: "param1" })
+          .setAction(() => {})
+          .build(),
+        new NewTaskDefinitionBuilderImplementation("task2")
+          .addFlag({ name: "flag1" })
+          .setAction(() => {})
+          .build(),
+        new NewTaskDefinitionBuilderImplementation("task3")
+          .addPositionalParameter({ name: "posParam1" })
+          .addVariadicParameter({ name: "varParam1" })
+          .setAction(() => {})
+          .build(),
+      ],
     });
 
     // task1 in plugin1 should be available
@@ -142,7 +116,7 @@ describe("TaskManagerImplementation", () => {
   });
 
   it("should override a task within the same plugin", async () => {
-    const hre = await createHre({
+    const hre = await createHardhatRuntimeEnvironment({
       plugins: [
         {
           id: "plugin1",
@@ -192,7 +166,7 @@ describe("TaskManagerImplementation", () => {
   });
 
   it("should override a task from a different plugin", async () => {
-    const hre = await createHre({
+    const hre = await createHardhatRuntimeEnvironment({
       plugins: [
         {
           id: "plugin1",
@@ -247,7 +221,7 @@ describe("TaskManagerImplementation", () => {
   });
 
   it("should override the same task multiple times", async () => {
-    const hre = await createHre({
+    const hre = await createHardhatRuntimeEnvironment({
       plugins: [
         {
           id: "plugin1",
@@ -312,7 +286,7 @@ describe("TaskManagerImplementation", () => {
   });
 
   it("should add an empty task", async () => {
-    const hre = await createHre({
+    const hre = await createHardhatRuntimeEnvironment({
       plugins: [
         {
           id: "plugin1",
@@ -333,7 +307,7 @@ describe("TaskManagerImplementation", () => {
   });
 
   it("should add subtasks", async () => {
-    const hre = await createHre({
+    const hre = await createHardhatRuntimeEnvironment({
       plugins: [
         {
           id: "plugin1",
@@ -385,7 +359,7 @@ describe("TaskManagerImplementation", () => {
   describe("errors", () => {
     it("should throw if there's a global parameter with the same name as a task named parameter", async () => {
       await assert.rejects(
-        createHre({
+        createHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -423,7 +397,7 @@ describe("TaskManagerImplementation", () => {
 
     it("should throw if trying to add a task with an empty id", async () => {
       await assert.rejects(
-        createHre({
+        createHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -447,7 +421,7 @@ describe("TaskManagerImplementation", () => {
 
     it("should throw if trying to add a subtask for a task that doesn't exist", async () => {
       await assert.rejects(
-        createHre({
+        createHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -475,7 +449,7 @@ describe("TaskManagerImplementation", () => {
 
     it("should throw if trying to add a task that already exists", async () => {
       await assert.rejects(
-        createHre({
+        createHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -511,7 +485,7 @@ describe("TaskManagerImplementation", () => {
     it("should throw if trying to override a task that doesn't exist", async () => {
       // Empty id task will not be found as empty ids are not allowed
       await assert.rejects(
-        createHre({
+        createHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -535,7 +509,7 @@ describe("TaskManagerImplementation", () => {
 
       // task1 will not be found as it's not defined
       await assert.rejects(
-        createHre({
+        createHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -556,7 +530,7 @@ describe("TaskManagerImplementation", () => {
     it("should throw if trying to override a task and there is a name clash with an exising named parameter", async () => {
       // added parameter clash with an existing named parameter
       await assert.rejects(
-        createHre({
+        createHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -590,7 +564,7 @@ describe("TaskManagerImplementation", () => {
 
       // added flag clash with an existing named parameter
       await assert.rejects(
-        createHre({
+        createHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -626,7 +600,7 @@ describe("TaskManagerImplementation", () => {
     it("should throw if trying to override a task and there is a name clash with an exising flag parameter", async () => {
       // added parameter clash with an existing flag
       await assert.rejects(
-        createHre({
+        createHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -660,7 +634,7 @@ describe("TaskManagerImplementation", () => {
 
       // added flag clash with an existing flag
       await assert.rejects(
-        createHre({
+        createHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -696,7 +670,7 @@ describe("TaskManagerImplementation", () => {
     it("should throw if trying to override a task and there is a name clash with an exising positional parameter", async () => {
       // added parameter clash with an existing positional parameter
       await assert.rejects(
-        createHre({
+        createHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -730,7 +704,7 @@ describe("TaskManagerImplementation", () => {
 
       // added flag clash with an existing positional parameter
       await assert.rejects(
-        createHre({
+        createHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -766,7 +740,7 @@ describe("TaskManagerImplementation", () => {
     it("should throw if trying to override a task and there is a name clash with an exising variadic parameter", async () => {
       // added parameter clash with an existing variadic parameter
       await assert.rejects(
-        createHre({
+        createHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -800,7 +774,7 @@ describe("TaskManagerImplementation", () => {
 
       // added flag clash with an existing variadic parameter
       await assert.rejects(
-        createHre({
+        createHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -837,14 +811,12 @@ describe("TaskManagerImplementation", () => {
       // this will fail as the config tasks are processed after
       // the plugin tasks so the override logic will not find task1
       await assert.rejects(
-        createHre({
-          config: {
-            tasks: [
-              new NewTaskDefinitionBuilderImplementation("task1")
-                .setAction(() => {})
-                .build(),
-            ],
-          },
+        createHardhatRuntimeEnvironment({
+          tasks: [
+            new NewTaskDefinitionBuilderImplementation("task1")
+              .setAction(() => {})
+              .build(),
+          ],
           plugins: [
             {
               id: "plugin1",
@@ -865,7 +837,7 @@ describe("TaskManagerImplementation", () => {
 
   describe("getTask", () => {
     it("should return the task if it exists", async () => {
-      const hre = await createHre({
+      const hre = await createHardhatRuntimeEnvironment({
         plugins: [
           {
             id: "plugin1",
@@ -876,13 +848,11 @@ describe("TaskManagerImplementation", () => {
             ],
           },
         ],
-        config: {
-          tasks: [
-            new NewTaskDefinitionBuilderImplementation("task2")
-              .setAction(() => {})
-              .build(),
-          ],
-        },
+        tasks: [
+          new NewTaskDefinitionBuilderImplementation("task2")
+            .setAction(() => {})
+            .build(),
+        ],
       });
 
       const task1 = hre.tasks.getTask("task1");
@@ -895,7 +865,7 @@ describe("TaskManagerImplementation", () => {
     });
 
     it("should throw if the task doesn't exist", async () => {
-      const hre = await createHre();
+      const hre = await createHardhatRuntimeEnvironment({});
       // task1 will not be found as it's not defined
       assert.throws(
         () => hre.tasks.getTask("task1"),
