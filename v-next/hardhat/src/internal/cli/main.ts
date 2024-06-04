@@ -7,6 +7,7 @@ import {
 import { ParameterType } from "@nomicfoundation/hardhat-core/types/common";
 import {
   GlobalArguments,
+  GlobalParameter,
   GlobalParameterMap,
 } from "@nomicfoundation/hardhat-core/types/global-parameters";
 import { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
@@ -289,10 +290,11 @@ async function parseTaskArguments(
 ): Promise<Record<string, any>> {
   const taskArguments: Record<string, unknown> = {};
 
-  await parseNamedParameters(
+  // Parse named parameters
+  await parseDoubleDashArgs(
     cliArguments,
     usedCliArguments,
-    task,
+    task.namedParameters,
     taskArguments,
   );
 
@@ -314,11 +316,11 @@ async function parseTaskArguments(
   return taskArguments;
 }
 
-async function parseNamedParameters(
+async function parseDoubleDashArgs(
   cliArguments: string[],
   usedCliArguments: boolean[],
-  task: Task,
-  taskArguments: Record<string, any>,
+  parametersMap: Map<string, NamedTaskParameter | GlobalParameter>,
+  argumentsMap: Record<string, any>,
 ) {
   for (let i = 0; i < cliArguments.length; i++) {
     if (usedCliArguments[i]) {
@@ -338,7 +340,7 @@ async function parseNamedParameters(
     }
 
     const paramName = kebabToCamelCase(arg.substring(2));
-    const paramInfo = task.namedParameters.get(paramName);
+    const paramInfo = parametersMap.get(paramName);
 
     if (paramInfo === undefined) {
       throw new HardhatError(
@@ -358,7 +360,7 @@ async function parseNamedParameters(
         (cliArguments[i + 1] === "true" || cliArguments[i + 1] === "false")
       ) {
         // The parameter could be followed by a boolean value if it does not behaves like a flag
-        taskArguments[paramName] = await parseParameterValue(
+        argumentsMap[paramName] = await parseParameterValue(
           cliArguments[i + 1],
           ParameterType.BOOLEAN,
           paramName,
@@ -370,7 +372,7 @@ async function parseNamedParameters(
 
       if (paramInfo.defaultValue === false) {
         // If the default value for the parameter is false, the parameter behaves like a flag, so there is no need to specify the value
-        taskArguments[paramName] = true;
+        argumentsMap[paramName] = true;
         continue;
       }
     } else if (
@@ -379,7 +381,7 @@ async function parseNamedParameters(
     ) {
       i++;
 
-      taskArguments[paramName] = await parseParameterValue(
+      argumentsMap[paramName] = await parseParameterValue(
         cliArguments[i],
         paramInfo.parameterType,
         paramName,
@@ -399,10 +401,7 @@ async function parseNamedParameters(
   }
 
   // Check if all the required parameters have been used
-  validateRequiredParameters(
-    Array.from(task.namedParameters.values()),
-    taskArguments,
-  );
+  validateRequiredParameters(Array.from(parametersMap.values()), argumentsMap);
 }
 
 async function parsePositionalAndVariadicParameters(
