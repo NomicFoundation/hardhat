@@ -172,6 +172,23 @@ describe("main", function () {
         assert.deepEqual(res.taskArguments, { flag: true });
       });
 
+      it("should get the task and its parameter as type boolean - even though it has a flag behavior, boolean values are still consumed", function () {
+        const command = "npx hardhat task1 --flag false";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+
+        assert.ok(!Array.isArray(res), "Result should be an array");
+        assert.equal(res.task.id, tasks[1].id);
+        assert.deepEqual(
+          usedCliArguments,
+          new Array(cliArguments.length).fill(true),
+        );
+        assert.deepEqual(res.taskArguments, { flag: false });
+      });
+
       it("should get the required bool value (the bool value must be specified, not a flag behavior because default is true)", function () {
         const command = "npx hardhat task2 --param false";
 
