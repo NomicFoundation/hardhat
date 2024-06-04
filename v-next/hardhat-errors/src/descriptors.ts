@@ -313,6 +313,16 @@ nonexistent or non-readable file.
 
 Please double check your arguments.`,
     },
+    MISSING_CONFIG_FILE: {
+      number: 308,
+      messageTemplate:
+        'The configuration parameter "--config" was passed, but no file path was provided.',
+      websiteTitle: "Missing configuration file path",
+      websiteDescription: `A path to the configuration file is expected after the parameter
+"--config", but none was provided.
+
+Please double check your arguments.`,
+    },
   },
   RESOLVER: {
     FILE_NOT_FOUND: {

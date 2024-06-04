@@ -89,11 +89,6 @@ describe("main", function () {
     });
 
     it("should not set any hardhat initial global parameters except the path to the config", async function () {
-      // The config path is passed via ENV variable
-      const RANDOM_CONFIG_PATH = "./path";
-
-      process.env.HARDHAT_CONFIG = RANDOM_CONFIG_PATH;
-
       const command = "npx hardhat <value> --random-flag";
 
       const cliArguments = command.split(" ").slice(2);
@@ -106,7 +101,7 @@ describe("main", function () {
         usedCliArguments,
         new Array(cliArguments.length).fill(false),
       );
-      assert.equal(configPath, RANDOM_CONFIG_PATH);
+      assert.equal(configPath, undefined);
       assert.equal(showStackTraces, false);
       assert.equal(help, false);
       assert.equal(version, false);

@@ -32,19 +32,28 @@ export async function main(cliArguments: string[]) {
 
   const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-  const { configPath, showStackTraces, help, version } =
-    await parseInitialHardhatParameters(cliArguments, usedCliArguments);
+  const hhGlobalParams = await parseInitialHardhatParameters(
+    cliArguments,
+    usedCliArguments,
+  );
 
-  if (version) {
+  if (hhGlobalParams.version) {
     console.log("3.0.0");
     return;
   }
 
+  if (hhGlobalParams.configPath === undefined) {
+    hhGlobalParams.configPath = await resolveConfigPath();
+  }
+
   try {
-    const userConfig = await importUserConfig(configPath);
+    const userConfig = await importUserConfig(hhGlobalParams.configPath);
 
     const plugins = [...builtinPlugins, ...(userConfig.plugins ?? [])];
-    const resolvedPlugins = await resolvePluginList(plugins, configPath);
+    const resolvedPlugins = await resolvePluginList(
+      plugins,
+      hhGlobalParams.configPath,
+    );
 
     const globalParameterMap = buildGlobalParameterMap(resolvedPlugins);
     const userProvidedGlobalArguments = parseGlobalArguments(
@@ -85,7 +94,7 @@ export async function main(cliArguments: string[]) {
 
     const { task, taskArguments } = result;
 
-    if (help) {
+    if (hhGlobalParams.help) {
       if (task.isEmpty) {
         // TODO: Print information about its subtasks
         console.log("Info about subtasks");
@@ -126,7 +135,7 @@ export async function main(cliArguments: string[]) {
 
     console.log("Error running the task:", error.message);
 
-    if (showStackTraces) {
+    if (hhGlobalParams.showStackTraces) {
       console.log("");
       console.error(error);
     }
@@ -154,6 +163,15 @@ export async function parseInitialHardhatParameters(
         });
       }
 
+      if (
+        usedCliArguments[i + 1] === undefined ||
+        usedCliArguments[i + 1] === true
+      ) {
+        throw new HardhatError(
+          HardhatError.ERRORS.ARGUMENTS.MISSING_CONFIG_FILE,
+        );
+      }
+
       configPath = cliArguments[i + 1];
       i++;
 
@@ -178,10 +196,6 @@ export async function parseInitialHardhatParameters(
       version = true;
       continue;
     }
-  }
-
-  if (configPath === undefined) {
-    configPath = await resolveConfigPath();
   }
 
   return { configPath, showStackTraces, help, version };
