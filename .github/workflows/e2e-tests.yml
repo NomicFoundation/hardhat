@@ -45,7 +45,6 @@ jobs:
           chmod +x run-fixture-projects.sh
           ./run-fixture-projects.sh
         shell: bash
-        if: runner.os != 'Windows'
 
       - name: Run test-project-initialization script
         run: |
@@ -53,13 +52,4 @@ jobs:
           chmod +x test-project-initialization.sh
           ./test-project-initialization.sh
         shell: bash
-        if: runner.os != 'Windows'
         
-      - name: Run Windows-specific scripts
-        run: |
-          cd e2e
-          .\run-fixture-projects.ps1
-          .\test-project-initialization.ps1
-        shell: pwsh
-        if: runner.os == 'Windows'
-
