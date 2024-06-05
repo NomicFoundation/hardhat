@@ -223,17 +223,7 @@ export class NewTaskDefinitionBuilderImplementation
     }
 
     if (defaultValue !== undefined) {
-      let isValid = true;
-
-      if (Array.isArray(defaultValue)) {
-        isValid =
-          isVariadic &&
-          defaultValue.every((v) => isParameterValueValid(parameterType, v));
-      } else {
-        isValid = isParameterValueValid(parameterType, defaultValue);
-      }
-
-      if (!isValid) {
+      if (!isParameterValueValid(parameterType, defaultValue, isVariadic)) {
         throw new HardhatError(
           HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
           {

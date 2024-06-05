@@ -1,21 +1,30 @@
-import {
-  buildGlobalParameterMap,
-  resolvePluginList,
-} from "@nomicfoundation/hardhat-core";
-import { ParameterType } from "@nomicfoundation/hardhat-core/types/common";
-import {
+import type {
   GlobalArguments,
   GlobalParameter,
   GlobalParameterMap,
 } from "@nomicfoundation/hardhat-core/types/global-parameters";
-import { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
-import {
+import type { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
+import type {
   NamedTaskParameter,
-  PositionalTaskParameter,
   Task,
+  TaskArguments,
+  TaskParameter,
 } from "@nomicfoundation/hardhat-core/types/tasks";
+
 import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
+import {
+  buildGlobalParameterMap,
+  resolvePluginList,
+} from "@nomicfoundation/hardhat-core";
+import {
+  ParameterType,
+  ParameterValue,
+} from "@nomicfoundation/hardhat-core/types/common";
+import {
+  HardhatError,
+  assertHardhatInvariant,
+} from "@nomicfoundation/hardhat-errors";
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 
 import { builtinPlugins } from "../builtin-plugins/index.js";
@@ -24,6 +33,14 @@ import {
   resolveConfigPath,
 } from "../helpers/config-loading.js";
 import { getHardhatRuntimeEnvironmentSingleton } from "../hre-singleton.js";
+
+/**
+ * The parsed arguments of a task. This is the result of parsing the raw
+ * arguments passed to a task.
+ */
+interface ParsedTaskArguments extends TaskArguments {
+  [key: string]: ParameterValue | ParameterValue[];
+}
 
 export async function main(cliArguments: string[]) {
   const hreInitStart = performance.now();
@@ -231,7 +248,7 @@ export function parseTaskAndArguments(
 ):
   | {
       task: Task;
-      taskArguments: Record<string, any>;
+      taskArguments: ParsedTaskArguments;
     }
   | string[] {
   const taskOrId = getTaskFromCliArguments(cliArguments, usedCliArguments, hre);
@@ -312,8 +329,8 @@ function parseTaskArguments(
   cliArguments: string[],
   usedCliArguments: boolean[],
   task: Task,
-): Record<string, any> {
-  const taskArguments: Record<string, unknown> = {};
+): ParsedTaskArguments {
+  const taskArguments: ParsedTaskArguments = {};
 
   // Parse named parameters
   parseDoubleDashArgs(
@@ -345,7 +362,7 @@ function parseDoubleDashArgs(
   cliArguments: string[],
   usedCliArguments: boolean[],
   parametersMap: Map<string, NamedTaskParameter | GlobalParameter>,
-  argumentsMap: Record<string, any>,
+  argumentsMap: ParsedTaskArguments,
 ) {
   for (let i = 0; i < cliArguments.length; i++) {
     if (usedCliArguments[i]) {
@@ -433,7 +450,7 @@ function parsePositionalAndVariadicParameters(
   cliArguments: string[],
   usedCliArguments: boolean[],
   task: Task,
-  taskArguments: Record<string, any>,
+  taskArguments: ParsedTaskArguments,
 ) {
   let paramI = 0;
 
@@ -472,7 +489,12 @@ function parsePositionalAndVariadicParameters(
     // Handle variadic parameters. No longer increment "paramI" becuase there can only be one variadic parameter and it
     // will consume all remaining arguments.
     taskArguments[paramInfo.name] = taskArguments[paramInfo.name] ?? [];
-    taskArguments[paramInfo.name].push(formattedValue);
+    const variadicTaskArg = taskArguments[paramInfo.name];
+    assertHardhatInvariant(
+      Array.isArray(variadicTaskArg),
+      "Variadic parameter values should be an array",
+    );
+    variadicTaskArg.push(formattedValue);
   }
 
   // Check if all the required parameters have been used
@@ -480,8 +502,8 @@ function parsePositionalAndVariadicParameters(
 }
 
 function validateRequiredParameters(
-  parameters: PositionalTaskParameter[] | NamedTaskParameter[],
-  taskArguments: Record<string, any>,
+  parameters: TaskParameter[],
+  taskArguments: ParsedTaskArguments,
 ) {
   const missingRequiredParam = parameters.find(
     (param) =>
@@ -507,7 +529,7 @@ function parseParameterValue(
   strValue: string,
   type: ParameterType,
   argName: string,
-): any {
+): ParameterValue {
   switch (type) {
     case ParameterType.STRING:
       return validateAndParseString(argName, strValue);
