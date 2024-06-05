@@ -16,7 +16,7 @@ const solidityIdentifierRegex = /^[a-zA-Z$_][a-zA-Z0-9$_]*$/;
  *
  * This *could* be even stricter, but it works for now and covers obvious mistakes
  */
-const functionNameRegex = /^[a-zA-Z0-9$_]*(\([a-zA-Z0-9$_,\[\]]*\))?$/;
+const functionNameRegex = /^[a-zA-Z0-9$_]+(\([a-zA-Z0-9$_,\[\]]*\))?$/;
 
 /**
  * Does the identifier match Ignition's rules for ids. Specifically that they

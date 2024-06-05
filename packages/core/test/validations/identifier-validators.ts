@@ -17,5 +17,6 @@ describe("isValidFunctionOrEventName", () => {
     assert.isFalse(isValidFunctionOrEventName("myFunction(uint)256"));
     assert.isFalse(isValidFunctionOrEventName("myFunction(uint256"));
     assert.isFalse(isValidFunctionOrEventName("myFunctionuint256)"));
+    assert.isFalse(isValidFunctionOrEventName("(uint256)"));
   });
 });
