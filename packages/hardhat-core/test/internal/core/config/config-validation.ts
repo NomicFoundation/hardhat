@@ -1,9 +1,11 @@
-import { assert } from "chai";
+import { assert, expect } from "chai";
 
 import { HARDHAT_NETWORK_NAME } from "../../../../src/internal/constants";
 import {
   getValidationErrors,
   validateConfig,
+  validatePluginsConfig,
+  validateTasksConfig,
   validateResolvedConfig,
 } from "../../../../src/internal/core/config/config-validation";
 import { ERRORS } from "../../../../src/internal/core/errors-list";
@@ -1961,6 +1963,56 @@ describe("Config validation", function () {
         ERRORS.GENERAL.INVALID_CONFIG,
         "The number of optimizer runs exceeds the maximum of 2**32 - 1"
       );
+    });
+  });
+
+  describe("Plugins Config Validation", function () {
+    it("should validate correctly for valid plugins array", function () {
+      const errors: string[] = [];
+      const plugins = ["plugin1", "plugin2"];
+      validatePluginsConfig(plugins, errors);
+      expect(errors).to.be.empty;
+    });
+
+    it("should return an error for non-array plugins", function () {
+      const errors: string[] = [];
+      const plugins = "not-an-array";
+      validatePluginsConfig(plugins, errors);
+      expect(errors).to.have.lengthOf(1);
+      expect(errors[0]).to.include("Invalid value for plugins - Expected an array");
+    });
+
+    it("should return an error for non-string plugin names", function () {
+      const errors: string[] = [];
+      const plugins = ["plugin1", 123];
+      validatePluginsConfig(plugins, errors);
+      expect(errors).to.have.lengthOf(1);
+      expect(errors[0]).to.include("Invalid plugin name - Expected a string");
+    });
+  });
+
+  describe("Tasks Config Validation", function () {
+    it("should validate correctly for valid tasks object", function () {
+      const errors: string[] = [];
+      const tasks = { task1: {}, task2: {} };
+      validateTasksConfig(tasks, errors);
+      expect(errors).to.be.empty;
+    });
+
+    it("should return an error for non-object tasks", function () {
+      const errors: string[] = [];
+      const tasks = "not-an-object";
+      validateTasksConfig(tasks, errors);
+      expect(errors).to.have.lengthOf(1);
+      expect(errors[0]).to.include("Invalid value for tasks - Expected an object");
+    });
+
+    it("should return an error for non-object task config", function () {
+      const errors: string[] = [];
+      const tasks = { task1: "not-an-object" };
+      validateTasksConfig(tasks, errors);
+      expect(errors).to.have.lengthOf(1);
+      expect(errors[0]).to.include("Invalid task config for task1 - Expected an object");
     });
   });
 });

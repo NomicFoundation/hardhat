@@ -583,6 +583,13 @@ export function getValidationErrors(config: any): string[] {
         );
       }
     }
+    if (config.plugins !== undefined) {
+      validatePluginsConfig(config.plugins, errors);
+    }
+
+    if (config.tasks !== undefined) {
+      validateTasksConfig(config.tasks, errors);
+    }
   }
 
   // io-ts can get confused if there are errors that it can't understand.
@@ -619,3 +626,33 @@ export function validateResolvedConfig(resolvedConfig: HardhatConfigT) {
     }
   }
 }
+
+export function validatePluginsConfig(plugins: any, errors: string[]) {
+  if (!Array.isArray(plugins)) {
+    errors.push(`Invalid value for plugins - Expected an array, received ${typeof plugins}`);
+    return;
+  }
+
+  for (const plugin of plugins) {
+    if (typeof plugin !== "string") {
+      errors.push(`Invalid plugin name - Expected a string, received ${typeof plugin}`);
+    }
+  }
+}
+
+export function validateTasksConfig(tasks: any, errors: string[]) {
+  if (typeof tasks !== "object" || tasks === null) {
+    errors.push(`Invalid value for tasks - Expected an object, received ${typeof tasks}`);
+    return;
+  }
+
+  for (const [taskName, taskConfig] of Object.entries(tasks)) {
+    if (typeof taskName !== "string") {
+      errors.push(`Invalid task name - Expected a string, received ${typeof taskName}`);
+    }
+    if (typeof taskConfig !== "object" || taskConfig === null) {
+      errors.push(`Invalid task config for ${taskName} - Expected an object, received ${typeof taskConfig}`);
+    }
+  }
+}
+
