@@ -30,3 +30,17 @@ export function pluralize(
 export function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
+
+/**
+ * Converts a kebab-case string to camelCase.
+ *
+ * This function takes a string in kebab-case format (words separated by hyphens)
+ * and converts it to camelCase format (no spaces, with each word after the first
+ * starting with an uppercase letter).
+ *
+ * @param str The kebab-case string to convert.
+ * @returns The converted camelCase string.
+ */
+function kebabToCamelCase(str: string) {
+  return str.replace(/-./g, (match) => match.charAt(1).toUpperCase());
+}

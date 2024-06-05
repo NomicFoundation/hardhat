@@ -65,3 +65,15 @@ export function isParameterValueValid(
   const validator = parameterTypeValidators[type];
   return validator(value);
 }
+
+/**
+ * Checks if a value is an object.
+ *
+ * This function determines if the provided value is of type 'object' and is not null.
+ *
+ * @param value The value to check.
+ * @returns True if the value is an object, false otherwise.
+ */
+export function isObject(value: any): value is object {
+  return value !== null && typeof value === 'object';
+}

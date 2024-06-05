@@ -18,6 +18,7 @@ import {
 import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isDirectory } from "@nomicfoundation/hardhat-utils/fs";
+import { kebabToCamelCase } from "@nomicfoundation/hardhat-utils/string";
 
 import { builtinPlugins } from "../builtin-plugins/index.js";
 import {
@@ -473,10 +474,6 @@ function validateRequiredParameters(
     HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_PARAMETER,
     { paramName: missingRequiredParam.name },
   );
-}
-
-function kebabToCamelCase(str: string) {
-  return str.replace(/-./g, (match) => match.charAt(1).toUpperCase());
 }
 
 async function parseParameterValue(
