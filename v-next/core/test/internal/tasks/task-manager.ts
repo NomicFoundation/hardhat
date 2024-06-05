@@ -875,4 +875,96 @@ describe("TaskManagerImplementation", () => {
       );
     });
   });
+
+  /**
+   * The run method is part of the Task interface, but it's tested through the
+   * HardhatRuntimeEnvironmentImplementation for simplicity.
+   */
+  describe("run", () => {
+    it("should run a task without arguments", async () => {
+      let taskRun = false;
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [
+          {
+            id: "plugin1",
+            tasks: [
+              new NewTaskDefinitionBuilderImplementation("task1")
+                .setAction(() => {
+                  taskRun = true;
+                })
+                .build(),
+            ],
+          },
+        ],
+      });
+
+      const task1 = hre.tasks.getTask("task1");
+      assert.equal(taskRun, false);
+      await task1.run({});
+      assert.equal(taskRun, true);
+    });
+
+    it("should run a overridden task without arguments", async () => {
+      let taskRun = false;
+      let overrideTaskRun = false;
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [
+          {
+            id: "plugin1",
+            tasks: [
+              new NewTaskDefinitionBuilderImplementation("task1")
+                .setAction(() => {
+                  taskRun = true;
+                })
+                .build(),
+              new TaskOverrideDefinitionBuilderImplementation("task1")
+                .setAction(async (args, _hre, runSuper) => {
+                  await runSuper(args);
+                  overrideTaskRun = true;
+                })
+                .build(),
+            ],
+          },
+        ],
+      });
+
+      const task1 = hre.tasks.getTask("task1");
+      assert.equal(taskRun, false);
+      assert.equal(overrideTaskRun, false);
+      await task1.run({});
+      assert.equal(taskRun, true);
+      assert.equal(overrideTaskRun, true);
+    });
+
+    it("should not run the original task action if the override task action doesn't call runSuper", async () => {
+      let taskRun = false;
+      let overrideTaskRun = false;
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [
+          {
+            id: "plugin1",
+            tasks: [
+              new NewTaskDefinitionBuilderImplementation("task1")
+                .setAction(() => {
+                  taskRun = true;
+                })
+                .build(),
+              new TaskOverrideDefinitionBuilderImplementation("task1")
+                .setAction(async (_args, _hre, _runSuper) => {
+                  overrideTaskRun = true;
+                })
+                .build(),
+            ],
+          },
+        ],
+      });
+
+      const task1 = hre.tasks.getTask("task1");
+      assert.equal(taskRun, false);
+      assert.equal(overrideTaskRun, false);
+      await task1.run({});
+      assert.equal(taskRun, false);
+      assert.equal(overrideTaskRun, true);
+    });
+  });
 });
