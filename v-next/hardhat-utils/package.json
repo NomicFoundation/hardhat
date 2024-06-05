@@ -10,6 +10,7 @@
   "exports": {
     "./bigint": "./dist/src/bigint.js",
     "./bytes": "./dist/src/bytes.js",
+    "./ci": "./dist/src/ci.js",
     "./common-errors": "./dist/src/common-errors.js",
     "./crypto": "./dist/src/crypto.js",
     "./date": "./dist/src/date.js",
