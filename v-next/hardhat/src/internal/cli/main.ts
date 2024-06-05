@@ -1,5 +1,3 @@
-import path from "node:path";
-
 import {
   buildGlobalParameterMap,
   resolvePluginList,
@@ -17,7 +15,6 @@ import {
 } from "@nomicfoundation/hardhat-core/types/tasks";
 import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { isDirectory } from "@nomicfoundation/hardhat-utils/fs";
 import { kebabToCamelCase } from "@nomicfoundation/hardhat-utils/string";
 
 import { builtinPlugins } from "../builtin-plugins/index.js";
@@ -108,11 +105,7 @@ export async function main(cliArguments: string[]) {
 
     const taskParsingStart = performance.now();
 
-    const result = await parseTaskAndArguments(
-      cliArguments,
-      usedCliArguments,
-      hre,
-    );
+    const result = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
 
     if (Array.isArray(result)) {
       if (result.length === 0) {
@@ -198,17 +191,16 @@ function parseGlobalArguments(
  * @returns The task and its arguments, or an array with the unrecognized task
  *  id. If no task id is provided, an empty array is returned.
  */
-export async function parseTaskAndArguments(
+export function parseTaskAndArguments(
   cliArguments: string[],
   usedCliArguments: boolean[],
   hre: HardhatRuntimeEnvironment,
-): Promise<
+):
   | {
       task: Task;
       taskArguments: Record<string, any>;
     }
-  | string[]
-> {
+  | string[] {
   const taskOrId = getTaskFromCliArguments(cliArguments, usedCliArguments, hre);
   if (Array.isArray(taskOrId)) {
     return taskOrId;
@@ -216,7 +208,7 @@ export async function parseTaskAndArguments(
 
   const task = taskOrId;
 
-  const taskArguments = await parseTaskArguments(
+  const taskArguments = parseTaskArguments(
     cliArguments,
     usedCliArguments,
     task,
@@ -283,21 +275,16 @@ function getTaskFromCliArguments(
   return task;
 }
 
-async function parseTaskArguments(
+function parseTaskArguments(
   cliArguments: string[],
   usedCliArguments: boolean[],
   task: Task,
-): Promise<Record<string, any>> {
+): Record<string, any> {
   const taskArguments: Record<string, unknown> = {};
 
-  await parseNamedParameters(
-    cliArguments,
-    usedCliArguments,
-    task,
-    taskArguments,
-  );
+  parseNamedParameters(cliArguments, usedCliArguments, task, taskArguments);
 
-  await parsePositionalAndVariadicParameters(
+  parsePositionalAndVariadicParameters(
     cliArguments,
     usedCliArguments,
     task,
@@ -315,7 +302,7 @@ async function parseTaskArguments(
   return taskArguments;
 }
 
-async function parseNamedParameters(
+function parseNamedParameters(
   cliArguments: string[],
   usedCliArguments: boolean[],
   task: Task,
@@ -359,7 +346,7 @@ async function parseNamedParameters(
         (cliArguments[i + 1] === "true" || cliArguments[i + 1] === "false")
       ) {
         // The parameter could be followed by a boolean value if it does not behaves like a flag
-        taskArguments[paramName] = await parseParameterValue(
+        taskArguments[paramName] = parseParameterValue(
           cliArguments[i + 1],
           ParameterType.BOOLEAN,
           paramName,
@@ -380,7 +367,7 @@ async function parseNamedParameters(
     ) {
       i++;
 
-      taskArguments[paramName] = await parseParameterValue(
+      taskArguments[paramName] = parseParameterValue(
         cliArguments[i],
         paramInfo.parameterType,
         paramName,
@@ -406,7 +393,7 @@ async function parseNamedParameters(
   );
 }
 
-async function parsePositionalAndVariadicParameters(
+function parsePositionalAndVariadicParameters(
   cliArguments: string[],
   usedCliArguments: boolean[],
   task: Task,
@@ -434,7 +421,7 @@ async function parsePositionalAndVariadicParameters(
 
     usedCliArguments[i] = true;
 
-    const formattedValue = await parseParameterValue(
+    const formattedValue = parseParameterValue(
       cliArguments[i],
       paramInfo.parameterType,
       paramInfo.name,
@@ -476,11 +463,11 @@ function validateRequiredParameters(
   );
 }
 
-async function parseParameterValue(
+function parseParameterValue(
   strValue: string,
   type: ParameterType,
   argName: string,
-): Promise<any> {
+): any {
   switch (type) {
     case ParameterType.STRING:
       return validateAndParseString(argName, strValue);
@@ -522,33 +509,8 @@ function validateAndParseString(_argName: string, strValue: string): string {
   return strValue;
 }
 
-async function validateAndParseFile(
-  argName: string,
-  strValue: string,
-): Promise<string> {
-  try {
-    const absolutePath = path.join(process.cwd(), strValue);
-
-    if (await isDirectory(absolutePath)) {
-      // This is caught and encapsulated in a hardhat error
-      throw new Error(`${strValue} is a directory, not a file`);
-    }
-
-    return absolutePath;
-  } catch (error) {
-    if (error instanceof Error) {
-      throw new HardhatError(
-        HardhatError.ERRORS.ARGUMENTS.INVALID_INPUT_FILE,
-        {
-          name: argName,
-          value: strValue,
-        },
-        error,
-      );
-    }
-
-    throw error;
-  }
+function validateAndParseFile(_argName: string, strValue: string): string {
+  return strValue;
 }
 
 function validateAndParseFloat(argName: string, strValue: string): number {
