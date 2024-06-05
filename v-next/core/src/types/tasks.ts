@@ -1,4 +1,8 @@
-import type { ParameterType, ParameterTypeToValueType } from "./common.js";
+import type {
+  ParameterType,
+  ParameterTypeToValueType,
+  ParameterValue,
+} from "./common.js";
 import type { HardhatRuntimeEnvironment } from "./hre.js";
 
 // We add the TaskManager to the HRE with a module augmentation to avoid
@@ -63,7 +67,7 @@ export interface PositionalTaskParameter<
  * A type representing the arguments or concrete parameters of a task. That is,
  * the actual values passed to it.
  */
-export type TaskArguments = Record<string, any>;
+export type TaskArguments = Record<string, ParameterValue | ParameterValue[]>;
 
 /**
  * The type of a new task's action function.

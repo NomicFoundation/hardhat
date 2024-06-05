@@ -34,14 +34,6 @@ import {
 } from "../helpers/config-loading.js";
 import { getHardhatRuntimeEnvironmentSingleton } from "../hre-singleton.js";
 
-/**
- * The parsed arguments of a task. This is the result of parsing the raw
- * arguments passed to a task.
- */
-interface ParsedTaskArguments extends TaskArguments {
-  [key: string]: ParameterValue | ParameterValue[];
-}
-
 export async function main(cliArguments: string[]) {
   const hreInitStart = performance.now();
 
@@ -248,7 +240,7 @@ export function parseTaskAndArguments(
 ):
   | {
       task: Task;
-      taskArguments: ParsedTaskArguments;
+      taskArguments: TaskArguments;
     }
   | string[] {
   const taskOrId = getTaskFromCliArguments(cliArguments, usedCliArguments, hre);
@@ -329,8 +321,8 @@ function parseTaskArguments(
   cliArguments: string[],
   usedCliArguments: boolean[],
   task: Task,
-): ParsedTaskArguments {
-  const taskArguments: ParsedTaskArguments = {};
+): TaskArguments {
+  const taskArguments: TaskArguments = {};
 
   // Parse named parameters
   parseDoubleDashArgs(
@@ -362,7 +354,7 @@ function parseDoubleDashArgs(
   cliArguments: string[],
   usedCliArguments: boolean[],
   parametersMap: Map<string, NamedTaskParameter | GlobalParameter>,
-  argumentsMap: ParsedTaskArguments,
+  argumentsMap: TaskArguments,
 ) {
   for (let i = 0; i < cliArguments.length; i++) {
     if (usedCliArguments[i]) {
@@ -450,7 +442,7 @@ function parsePositionalAndVariadicParameters(
   cliArguments: string[],
   usedCliArguments: boolean[],
   task: Task,
-  taskArguments: ParsedTaskArguments,
+  taskArguments: TaskArguments,
 ) {
   let paramI = 0;
 
@@ -503,7 +495,7 @@ function parsePositionalAndVariadicParameters(
 
 function validateRequiredParameters(
   parameters: TaskParameter[],
-  taskArguments: ParsedTaskArguments,
+  taskArguments: TaskArguments,
 ) {
   const missingRequiredParam = parameters.find(
     (param) =>
