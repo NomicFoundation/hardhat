@@ -174,7 +174,7 @@ export class TaskManagerImplementation implements TaskManager {
           pluginId,
         );
 
-        this.#processTaskOverride(taskDefinition);
+        this.#processTaskOverride(taskDefinition, pluginId);
         break;
       }
     }

@@ -1,5 +1,3 @@
-import path from "node:path";
-
 import {
   buildGlobalParameterMap,
   resolvePluginList,
@@ -18,7 +16,6 @@ import {
 } from "@nomicfoundation/hardhat-core/types/tasks";
 import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { isDirectory } from "@nomicfoundation/hardhat-utils/fs";
 
 import { builtinPlugins } from "../builtin-plugins/index.js";
 import {
@@ -78,11 +75,7 @@ export async function main(cliArguments: string[]) {
 
     const taskParsingStart = performance.now();
 
-    const result = await parseTaskAndArguments(
-      cliArguments,
-      usedCliArguments,
-      hre,
-    );
+    const result = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
 
     if (Array.isArray(result)) {
       if (result.length === 0) {
@@ -230,17 +223,16 @@ export async function parseGlobalArguments(
  * @returns The task and its arguments, or an array with the unrecognized task
  *  id. If no task id is provided, an empty array is returned.
  */
-export async function parseTaskAndArguments(
+export function parseTaskAndArguments(
   cliArguments: string[],
   usedCliArguments: boolean[],
   hre: HardhatRuntimeEnvironment,
-): Promise<
+):
   | {
       task: Task;
       taskArguments: Record<string, any>;
     }
-  | string[]
-> {
+  | string[] {
   const taskOrId = getTaskFromCliArguments(cliArguments, usedCliArguments, hre);
   if (Array.isArray(taskOrId)) {
     return taskOrId;
@@ -248,7 +240,7 @@ export async function parseTaskAndArguments(
 
   const task = taskOrId;
 
-  const taskArguments = await parseTaskArguments(
+  const taskArguments = parseTaskArguments(
     cliArguments,
     usedCliArguments,
     task,
@@ -315,11 +307,11 @@ function getTaskFromCliArguments(
   return task;
 }
 
-async function parseTaskArguments(
+function parseTaskArguments(
   cliArguments: string[],
   usedCliArguments: boolean[],
   task: Task,
-): Promise<Record<string, any>> {
+): Record<string, any> {
   const taskArguments: Record<string, unknown> = {};
 
   // Parse named parameters
@@ -330,7 +322,7 @@ async function parseTaskArguments(
     taskArguments,
   );
 
-  await parsePositionalAndVariadicParameters(
+  parsePositionalAndVariadicParameters(
     cliArguments,
     usedCliArguments,
     task,
@@ -436,7 +428,7 @@ async function parseDoubleDashArgs(
   validateRequiredParameters([...parametersMap.values()], argumentsMap);
 }
 
-async function parsePositionalAndVariadicParameters(
+function parsePositionalAndVariadicParameters(
   cliArguments: string[],
   usedCliArguments: boolean[],
   task: Task,
@@ -464,7 +456,7 @@ async function parsePositionalAndVariadicParameters(
 
     usedCliArguments[i] = true;
 
-    const formattedValue = await parseParameterValue(
+    const formattedValue = parseParameterValue(
       cliArguments[i],
       paramInfo.parameterType,
       paramInfo.name,
@@ -510,11 +502,11 @@ function kebabToCamelCase(str: string) {
   return str.replace(/-./g, (match) => match.charAt(1).toUpperCase());
 }
 
-async function parseParameterValue(
+function parseParameterValue(
   strValue: string,
   type: ParameterType,
   argName: string,
-): Promise<any> {
+): any {
   switch (type) {
     case ParameterType.STRING:
       return validateAndParseString(argName, strValue);
@@ -556,33 +548,8 @@ function validateAndParseString(_argName: string, strValue: string): string {
   return strValue;
 }
 
-async function validateAndParseFile(
-  argName: string,
-  strValue: string,
-): Promise<string> {
-  try {
-    const absolutePath = path.join(process.cwd(), strValue);
-
-    if (await isDirectory(absolutePath)) {
-      // This is caught and encapsulated in a hardhat error
-      throw new Error(`${strValue} is a directory, not a file`);
-    }
-
-    return absolutePath;
-  } catch (error) {
-    if (error instanceof Error) {
-      throw new HardhatError(
-        HardhatError.ERRORS.ARGUMENTS.INVALID_INPUT_FILE,
-        {
-          name: argName,
-          value: strValue,
-        },
-        error,
-      );
-    }
-
-    throw error;
-  }
+function validateAndParseFile(_argName: string, strValue: string): string {
+  return strValue;
 }
 
 function validateAndParseFloat(argName: string, strValue: string): number {

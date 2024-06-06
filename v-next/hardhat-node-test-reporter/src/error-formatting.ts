@@ -1,3 +1,4 @@
+import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { inspect } from "node:util";
 
@@ -7,6 +8,7 @@ import { diff } from "jest-diff";
 import {
   cleanupTestFailError,
   isCancelledByParentError,
+  isTestFileExecutionFailureError,
 } from "./node-test-error-utils.js";
 
 // TODO: Clean up the node internal fames from the stack trace
@@ -18,6 +20,14 @@ export function formatError(error: Error): string {
       chalk.gray(
         "    This test was cancelled due to an error in its parent suite/it or test/it, or in one of its before/beforeEach",
       )
+    );
+  }
+
+  if (isTestFileExecutionFailureError(error)) {
+    return (
+      chalk.red(`Test file execution failed (exit code ${error.exitCode}).`) +
+      "\n" +
+      chalk.gray("    Did you forget to await a promise?")
     );
   }
 
@@ -38,6 +48,7 @@ export function formatError(error: Error): string {
     stack = error.stack ?? "";
   }
 
+  title = improveNodeAssertTitle(title, error);
   title = chalk.red(title);
   stack = replaceFileUrlsWithRelativePaths(stack);
   stack = chalk.gray(stack);
@@ -57,10 +68,9 @@ ${stack}`;
 
 // TODO: Do this in a more robust way and that works well with windows
 function replaceFileUrlsWithRelativePaths(stack: string): string {
-  return stack.replaceAll(
-    "(" + pathToFileURL(process.cwd() + "/").toString(),
-    "(",
-  );
+  return stack
+    .replaceAll("(" + pathToFileURL(process.cwd() + path.sep).toString(), "(")
+    .replaceAll("(" + process.cwd() + path.sep, "(");
 }
 
 function isDiffableError(
@@ -69,6 +79,23 @@ function isDiffableError(
   return (
     "expected" in error && "actual" in error && error.expected !== undefined
   );
+}
+
+function improveNodeAssertTitle(title: string, error: Error): string {
+  if (!isDiffableError(error)) {
+    return title;
+  }
+
+  if (!title.includes("AssertionError [ERR_ASSERTION]: ")) {
+    return title;
+  }
+
+  const match = title.match(/^AssertionError \[ERR_ASSERTION\]\: (.*)\:/);
+  if (match === null) {
+    return title;
+  }
+
+  return `AssertionError: ${match[1]}`;
 }
 
 function getErrorDiff(error: Error): string | undefined {

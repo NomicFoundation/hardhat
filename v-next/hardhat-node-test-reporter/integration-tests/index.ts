@@ -1,4 +1,5 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
+import path from "node:path";
 import { run } from "node:test";
 
 import { diff } from "jest-diff";
@@ -20,6 +21,9 @@ for (const entry of readdirSync(import.meta.dirname + "/fixture-tests")) {
 
     const outputChunks = [];
 
+    // We disable github actions annotations, as they are misleading on PRs
+    // otherwise.
+    process.env.NO_GITHUB_ACTIONS_ANNOTATIONS = "true";
     const reporterStream = run({
       files: testFiles,
     }).compose(reporter);
@@ -56,5 +60,10 @@ for (const entry of readdirSync(import.meta.dirname + "/fixture-tests")) {
 }
 
 function normalizeOutputs(output: string): string {
-  return output.replace(/\(\d+ms\)/, "(Xms)").replaceAll("\r\n", "\n");
+  return output
+    .replace(/\(\d+ms\)/, "(Xms)")
+    .replaceAll("\r\n", "\n")
+    .replaceAll(/\(.*?:\d+:\d+\)/g, (match) => {
+      return match.replaceAll(path.sep, "/");
+    });
 }

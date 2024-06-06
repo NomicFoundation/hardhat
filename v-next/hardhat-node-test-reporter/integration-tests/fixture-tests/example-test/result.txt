@@ -30,7 +30,7 @@
   [36m- skipped test[39m
 
 
-[32m6 passing[39m[90m (104ms)[39m[31m[39m
+[32m6 passing[39m[90m (119ms)[39m[31m[39m
 [31m2 failing[39m[36m[39m
 [36m1 skipped[39m[34m[39m
 [34m1 todo[39m[90m[39m
@@ -40,12 +40,12 @@
        test with cause:
 
    [31mError: withCause[39m
-   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:1:136)[39m
+   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:7:11)[39m
    [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
    [90m    ... 6 lines matching cause stack trace ...[39m
    [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:533:7) {[39m
    [90m  [cause]: Error: cause[39m
-   [90m      at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:1:165)[39m
+   [90m      at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:7:43)[39m
    [90m      at Test.runInAsyncScope (node:async_hooks:206:9)[39m
    [90m      at Test.run (node:internal/test_runner/test:824:25)[39m
    [90m      at Suite.processPendingSubtests (node:internal/test_runner/test:533:18)[39m
@@ -71,12 +71,12 @@
    [2m    3,[22m
    [2m  ][22m
    
-   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:1:239)[39m
+   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:12:21)[39m
    [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
    [90m    ... 7 lines matching cause stack trace ...[39m
    [90m    at Array.map (<anonymous>) {[39m
    [90m  [cause]: Error: cause[39m
-   [90m      at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:1:275)[39m
+   [90m      at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:13:16)[39m
    [90m      at Test.runInAsyncScope (node:async_hooks:206:9)[39m
    [90m      at Test.run (node:internal/test_runner/test:824:25)[39m
    [90m      at Test.start (node:internal/test_runner/test:721:17)[39m
@@ -97,7 +97,7 @@
   4) in describe:
 
    [31mError: before[39m
-   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:1:696)[39m
+   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:51:11)[39m
    [90m    at TestHook.runInAsyncScope (node:async_hooks:206:9)[39m
    [90m    at TestHook.run (node:internal/test_runner/test:824:25)[39m
    [90m    at TestHook.run (node:internal/test_runner/test:1073:18)[39m

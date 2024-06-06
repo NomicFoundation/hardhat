@@ -25,6 +25,24 @@ export function isCancelledByParentError(error: Error): boolean {
 }
 
 /**
+ * Returns true if the error represents that an entire file execution failed,
+ * outside of the context of any particular test.
+ */
+export function isTestFileExecutionFailureError(
+  error: Error,
+): error is Error & { exitCode: number } {
+  return (
+    "code" in error &&
+    "failureType" in error &&
+    error.code === "ERR_TEST_FAILURE" &&
+    error.failureType === "testCodeFailure" &&
+    "exitCode" in error &&
+    typeof error.exitCode === "number" &&
+    error.exitCode !== 0
+  );
+}
+
+/**
  * Cleans the test:fail event error, as it's usually wrapped by a node:test
  * error.
  */
