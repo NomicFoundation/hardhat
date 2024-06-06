@@ -1,3 +1,4 @@
+import type { ParameterValue } from "@nomicfoundation/hardhat-core/types/common";
 import type {
   GlobalArguments,
   GlobalParameter,
@@ -17,10 +18,7 @@ import {
   buildGlobalParameterMap,
   resolvePluginList,
 } from "@nomicfoundation/hardhat-core";
-import {
-  ParameterType,
-  ParameterValue,
-} from "@nomicfoundation/hardhat-core/types/common";
+import { ParameterType } from "@nomicfoundation/hardhat-core/types/common";
 import {
   HardhatError,
   assertHardhatInvariant,
