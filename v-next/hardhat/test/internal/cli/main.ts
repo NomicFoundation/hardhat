@@ -61,7 +61,7 @@ async function getTasksAndHreEnvironment(
 
 describe("main", function () {
   describe("parseHardhatSpecialArguments", function () {
-    it("should set the all the hardhat initial global parameters", async function () {
+    it("should set all the hardhat special parameters", async function () {
       // All the <value> and "task" should be ignored
       const command =
         "npx hardhat --help <value> --version --show-stack-traces task --config ./path-to-config <value>";
@@ -88,7 +88,7 @@ describe("main", function () {
       assert.equal(version, true);
     });
 
-    it("should not set any hardhat initial global parameters except the path to the config", async function () {
+    it("should not set any hardhat special parameters", async function () {
       const command = "npx hardhat <value> --random-flag";
 
       const cliArguments = command.split(" ").slice(2);
@@ -108,7 +108,6 @@ describe("main", function () {
     });
 
     it("should throw an error because the config param is passed twice", async function () {
-      // The config path is passed via ENV variable
       const command = "npx hardhat --config ./path1 --config ./path2";
 
       const cliArguments = command.split(" ").slice(2);
@@ -120,6 +119,19 @@ describe("main", function () {
         new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
           name: "--config",
         }),
+      );
+    });
+
+    it("should throw an error because the config param is passed but there is no path after it", async function () {
+      const command = "npx hardhat --config";
+
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      assert.rejects(
+        async () =>
+          parseHardhatSpecialArguments(cliArguments, usedCliArguments),
+        new HardhatError(HardhatError.ERRORS.ARGUMENTS.MISSING_CONFIG_FILE),
       );
     });
   });
