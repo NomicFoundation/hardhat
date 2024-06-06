@@ -6,12 +6,10 @@ import type {
   Task,
   TaskActions,
   TaskArguments,
+  TaskOverrideActionFunction,
 } from "../../types/tasks.js";
 
-import {
-  HardhatError,
-  assertHardhatInvariant,
-} from "@nomicfoundation/hardhat-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { isParameterValueValid } from "../../types/common.js";
 
@@ -104,17 +102,17 @@ export class ResolvedTask implements Task {
       }
     }
 
-    await this.#resolveFileActions();
-
     const next = async (
       nextTaskArguments: TaskArguments,
       currentIndex = this.actions.length - 1,
     ): Promise<any> => {
-      const actionFn = this.actions[currentIndex].action;
-      assertHardhatInvariant(
-        typeof actionFn === "function",
-        "The action should be a function",
-      );
+      // The first action may be empty if the task was originally an empty task
+      const currentAction = this.actions[currentIndex].action ?? (() => {});
+
+      const actionFn =
+        typeof currentAction === "function"
+          ? currentAction
+          : await this.#resolveFileAction(currentAction, this.id);
 
       if (currentIndex === 0) {
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
@@ -138,7 +136,7 @@ export class ResolvedTask implements Task {
   }
 
   /**
-   * Get a parameter by name.
+   * Gets a parameter by name.
    * @throws HardhatError if the parameter doesn't exist.
    */
   #getParameter(name: string): NamedTaskParameter | PositionalTaskParameter {
@@ -160,7 +158,7 @@ export class ResolvedTask implements Task {
   }
 
   /**
-   * Validate that a required parameter has a value. A parameter is required if
+   * Validates that a required parameter has a value. A parameter is required if
    * it doesn't have a default value.
    * @throws HardhatError if the parameter is required and doesn't have a value.
    */
@@ -179,7 +177,7 @@ export class ResolvedTask implements Task {
   }
 
   /**
-   * Validate that a parameter has the correct type. If the parameter is optional
+   * Validates that a parameter has the correct type. If the parameter is optional
    * and doesn't have a value, the type is not validated as it will be resolved
    * to the default value.
    *
@@ -203,33 +201,31 @@ export class ResolvedTask implements Task {
   }
 
   /**
-   * Resolve the file actions to functions. This is done by importing the module
-   * and updating the action to the default export of the module.
+   * Resolves the action file for a task. The action file is imported and the
+   * default export function is returned.
    *
    * @throws HardhatError if the module can't be imported or doesn't have a
    * default export function.
    */
-  async #resolveFileActions(): Promise<void> {
-    for (const action of this.actions) {
-      let resolvedActionFn;
-
-      if (typeof action.action === "string") {
-        try {
-          resolvedActionFn = await import(action.action);
-        } catch (error) {
-          // TODO: use HardhatError
-          throw new Error(`Error importing the module`);
-        }
-
-        if (typeof resolvedActionFn.default !== "function") {
-          // TODO: use HardhatError
-          throw new Error(
-            `The module ${action.action} should export a default function to be used as a task action`,
-          );
-        }
-
-        action.action = resolvedActionFn.default;
-      }
+  async #resolveFileAction(
+    actionFileUrl: string,
+    taskId: string[],
+  ): Promise<NewTaskActionFunction | TaskOverrideActionFunction> {
+    let resolvedActionFn;
+    try {
+      resolvedActionFn = await import(actionFileUrl);
+    } catch (error) {
+      // TODO: use HardhatError
+      throw new Error(`Error importing the module`);
     }
+
+    if (typeof resolvedActionFn.default !== "function") {
+      // TODO: use HardhatError
+      throw new Error(
+        `The task ${formatTaskId(taskId)} has an invalid action file`,
+      );
+    }
+
+    return resolvedActionFn.default;
   }
 }
