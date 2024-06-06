@@ -18,6 +18,7 @@ import {
   NewTaskDefinitionBuilder,
 } from "@nomicfoundation/hardhat-core/types/tasks";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 
 import {
   parseGlobalArguments,
@@ -98,9 +99,12 @@ describe("main", function () {
         new Array(cliArguments.length).fill(false),
       );
       assert.equal(configPath, undefined);
-      assert.equal(showStackTraces, false);
       assert.equal(help, false);
       assert.equal(version, false);
+
+      // In the GitHub CI this value is true, but in the local environment it is false
+      const expected = isCi();
+      assert.equal(showStackTraces, expected);
     });
 
     it("should throw an error because the config param is passed twice", async function () {
