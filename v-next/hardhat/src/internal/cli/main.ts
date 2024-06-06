@@ -207,7 +207,7 @@ export async function parseGlobalArguments(
     [...globalParamsIndex].map(([key, value]) => [key, value.param]),
   );
 
-  await parseDoubleDashArgs(
+  parseDoubleDashArgs(
     cliArguments,
     usedCliArguments,
     parameters,
@@ -315,7 +315,7 @@ function parseTaskArguments(
   const taskArguments: Record<string, unknown> = {};
 
   // Parse named parameters
-  await parseDoubleDashArgs(
+  parseDoubleDashArgs(
     cliArguments,
     usedCliArguments,
     task.namedParameters,
@@ -340,7 +340,7 @@ function parseTaskArguments(
   return taskArguments;
 }
 
-async function parseDoubleDashArgs(
+function parseDoubleDashArgs(
   cliArguments: string[],
   usedCliArguments: boolean[],
   parametersMap: Map<string, NamedTaskParameter | GlobalParameter>,
@@ -384,7 +384,7 @@ async function parseDoubleDashArgs(
         (cliArguments[i + 1] === "true" || cliArguments[i + 1] === "false")
       ) {
         // The parameter could be followed by a boolean value if it does not behaves like a flag
-        argumentsMap[paramName] = await parseParameterValue(
+        argumentsMap[paramName] = parseParameterValue(
           cliArguments[i + 1],
           ParameterType.BOOLEAN,
           paramName,
@@ -405,7 +405,7 @@ async function parseDoubleDashArgs(
     ) {
       i++;
 
-      argumentsMap[paramName] = await parseParameterValue(
+      argumentsMap[paramName] = parseParameterValue(
         cliArguments[i],
         paramInfo.parameterType,
         paramName,
