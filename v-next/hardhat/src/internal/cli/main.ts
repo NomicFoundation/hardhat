@@ -211,7 +211,7 @@ export async function parseGlobalArguments(
   const globalArguments: Partial<GlobalArguments> = {};
 
   const parameters = new Map(
-    Array.from(globalParamsIndex, ([key, value]) => [key, value.param]),
+    [...globalParamsIndex].map(([key, value]) => [key, value.param]),
   );
 
   await parseDoubleDashArgs(
