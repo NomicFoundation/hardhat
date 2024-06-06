@@ -2,15 +2,29 @@ import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
 import { createHardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core";
-import { ParameterType, task } from "@nomicfoundation/hardhat-core/config";
+import {
+  ParameterType,
+  globalFlag,
+  globalParameter,
+  task,
+} from "@nomicfoundation/hardhat-core/config";
+import {
+  GlobalParameterMap,
+  GlobalParameterMapEntry,
+} from "@nomicfoundation/hardhat-core/types/global-parameters";
 import { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
 import {
   NewTaskDefinition,
   NewTaskDefinitionBuilder,
 } from "@nomicfoundation/hardhat-core/types/tasks";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 
-import { parseTaskAndArguments } from "../../../src/internal/cli/main.js";
+import {
+  parseGlobalArguments,
+  parseHardhatSpecialArguments,
+  parseTaskAndArguments,
+} from "../../../src/internal/cli/main.js";
 
 async function getTasksAndHreEnvironment(
   tasksBuilders: NewTaskDefinitionBuilder[],
@@ -43,16 +57,175 @@ async function getTasksAndHreEnvironment(
 }
 
 describe("main", function () {
-  let hre: HardhatRuntimeEnvironment;
-  let tasks: NewTaskDefinition[];
-  let subtasks: NewTaskDefinition[];
+  describe("parseHardhatSpecialArguments", function () {
+    it("should set all the hardhat special parameters", async function () {
+      // All the <value> and "task" should be ignored
+      const command =
+        "npx hardhat --help <value> --version --show-stack-traces task --config ./path-to-config <value>";
 
-  // Define your tasks and subtasks here.
-  // tasksBuilders and subtasksBuilders are defined in the "before()" hooks before every "functionality test groups".
-  let tasksBuilders: NewTaskDefinitionBuilder[] = [];
-  let subtasksBuilders: NewTaskDefinitionBuilder[] = [];
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      const { configPath, showStackTraces, help, version } =
+        await parseHardhatSpecialArguments(cliArguments, usedCliArguments);
+
+      assert.deepEqual(usedCliArguments, [
+        true,
+        false,
+        true,
+        true,
+        false,
+        true,
+        true,
+        false,
+      ]);
+      assert.equal(configPath, "./path-to-config");
+      assert.equal(showStackTraces, true);
+      assert.equal(help, true);
+      assert.equal(version, true);
+    });
+
+    it("should not set any hardhat special parameters", async function () {
+      const command = "npx hardhat <value> --random-flag";
+
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      const { configPath, showStackTraces, help, version } =
+        await parseHardhatSpecialArguments(cliArguments, usedCliArguments);
+
+      assert.deepEqual(
+        usedCliArguments,
+        new Array(cliArguments.length).fill(false),
+      );
+      assert.equal(configPath, undefined);
+      assert.equal(help, false);
+      assert.equal(version, false);
+
+      // In the GitHub CI this value is true, but in the local environment it is false
+      const expected = isCi();
+      assert.equal(showStackTraces, expected);
+    });
+
+    it("should throw an error because the config param is passed twice", async function () {
+      const command = "npx hardhat --config ./path1 --config ./path2";
+
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      assert.rejects(
+        async () =>
+          parseHardhatSpecialArguments(cliArguments, usedCliArguments),
+        new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
+          name: "--config",
+        }),
+      );
+    });
+
+    it("should throw an error because the config param is passed but there is no path after it", async function () {
+      const command = "npx hardhat --config";
+
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      assert.rejects(
+        async () =>
+          parseHardhatSpecialArguments(cliArguments, usedCliArguments),
+        new HardhatError(HardhatError.ERRORS.ARGUMENTS.MISSING_CONFIG_FILE),
+      );
+    });
+  });
+
+  describe("parseGlobalArguments", function () {
+    // The function "parseGlobalArguments" uses the same function "parseDoubleDashArgs" that is used to parse named parameters.
+    // Most of the tests to check the "parseDoubleDashArgs" logic are in the named parameter section of these tests.
+
+    let globalParamsIndex: GlobalParameterMap;
+
+    before(function () {
+      const GLOBAL_PARAM = globalParameter({
+        name: "param",
+        parameterType: ParameterType.STRING,
+        defaultValue: "default",
+        description: "",
+      });
+
+      const GLOBAL_FLAG = globalFlag({
+        name: "flag",
+        description: "",
+      });
+
+      globalParamsIndex = new Map<string, GlobalParameterMapEntry>([
+        ["param", { pluginId: "1", param: GLOBAL_PARAM }],
+        ["flag", { pluginId: "1", param: GLOBAL_FLAG }],
+      ]);
+    });
+
+    it("should get the global parameter with the values passed in the cli", async function () {
+      const command = "npx hardhat task --param <value1> <value2> <value3>";
+
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      const globalArguments = await parseGlobalArguments(
+        globalParamsIndex,
+        cliArguments,
+        usedCliArguments,
+      );
+
+      assert.deepEqual(usedCliArguments, [false, true, true, false, false]);
+      assert.deepEqual(globalArguments, {
+        param: "<value1>",
+      });
+    });
+
+    it("should have a flag behavior (no bool value required after)", async function () {
+      const command = "npx hardhat task --flag <value>";
+
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      const globalArguments = await parseGlobalArguments(
+        globalParamsIndex,
+        cliArguments,
+        usedCliArguments,
+      );
+
+      assert.deepEqual(usedCliArguments, [false, true, false]);
+      assert.deepEqual(globalArguments, {
+        flag: true,
+      });
+    });
+
+    it("should parse the bool value after the flag", async function () {
+      const command = "npx hardhat task --flag true <value>";
+
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      const globalArguments = await parseGlobalArguments(
+        globalParamsIndex,
+        cliArguments,
+        usedCliArguments,
+      );
+
+      assert.deepEqual(usedCliArguments, [false, true, true, false]);
+      assert.deepEqual(globalArguments, {
+        flag: true,
+      });
+    });
+  });
 
   describe("parseTaskAndArguments", function () {
+    let hre: HardhatRuntimeEnvironment;
+    let tasks: NewTaskDefinition[];
+    let subtasks: NewTaskDefinition[];
+
+    // Define your tasks and subtasks here.
+    // tasksBuilders and subtasksBuilders are defined in the "before()" hooks before every "functionality test groups".
+    let tasksBuilders: NewTaskDefinitionBuilder[] = [];
+    let subtasksBuilders: NewTaskDefinitionBuilder[] = [];
+
     describe("only task and subtask", function () {
       before(async function () {
         tasksBuilders = [task(["task0"])];

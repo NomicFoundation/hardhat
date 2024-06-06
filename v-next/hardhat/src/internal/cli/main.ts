@@ -5,6 +5,7 @@ import {
 import { ParameterType } from "@nomicfoundation/hardhat-core/types/common";
 import {
   GlobalArguments,
+  GlobalParameter,
   GlobalParameterMap,
 } from "@nomicfoundation/hardhat-core/types/global-parameters";
 import { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
@@ -15,6 +16,7 @@ import {
 } from "@nomicfoundation/hardhat-core/types/tasks";
 import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 
 import { builtinPlugins } from "../builtin-plugins/index.js";
 import {
@@ -25,63 +27,33 @@ import { getHardhatRuntimeEnvironmentSingleton } from "../hre-singleton.js";
 
 export async function main(cliArguments: string[]) {
   const hreInitStart = performance.now();
-  let configPath: string | undefined;
-  let showStackTraces: boolean = false; // true if ci
-  let help: boolean = false;
-  let version: boolean = false;
 
-  const usedCliArguments = new Array(cliArguments.length).fill(false);
+  const usedCliArguments: boolean[] = new Array(cliArguments.length).fill(
+    false,
+  );
 
-  for (let i = 0; i < cliArguments.length; i++) {
-    const arg = cliArguments[i];
+  const hardhatSpecialArgs = await parseHardhatSpecialArguments(
+    cliArguments,
+    usedCliArguments,
+  );
 
-    if (arg === "--config") {
-      usedCliArguments[i] = true;
-
-      if (configPath !== undefined) {
-        throw new Error("Multiple --config arguments are not allowed");
-      }
-
-      configPath = cliArguments[i + 1];
-      i++;
-
-      usedCliArguments[i] = true;
-      continue;
-    }
-
-    if (arg === "--show-stack-traces") {
-      usedCliArguments[i] = true;
-      showStackTraces = true;
-      continue;
-    }
-
-    if (arg === "--help") {
-      usedCliArguments[i] = true;
-      help = true;
-      continue;
-    }
-
-    if (arg === "--version") {
-      usedCliArguments[i] = true;
-      version = true;
-      continue;
-    }
-  }
-
-  if (version) {
+  if (hardhatSpecialArgs.version) {
     console.log("3.0.0");
     return;
   }
 
-  if (configPath === undefined) {
-    configPath = await resolveConfigPath();
+  if (hardhatSpecialArgs.configPath === undefined) {
+    hardhatSpecialArgs.configPath = await resolveConfigPath();
   }
 
   try {
-    const userConfig = await importUserConfig(configPath);
+    const userConfig = await importUserConfig(hardhatSpecialArgs.configPath);
 
     const plugins = [...builtinPlugins, ...(userConfig.plugins ?? [])];
-    const resolvedPlugins = await resolvePluginList(plugins, configPath);
+    const resolvedPlugins = await resolvePluginList(
+      plugins,
+      hardhatSpecialArgs.configPath,
+    );
 
     const globalParameterMap = buildGlobalParameterMap(resolvedPlugins);
     const userProvidedGlobalArguments = parseGlobalArguments(
@@ -118,7 +90,7 @@ export async function main(cliArguments: string[]) {
 
     const { task, taskArguments } = result;
 
-    if (help) {
+    if (hardhatSpecialArgs.help) {
       if (task.isEmpty) {
         // TODO: Print information about its subtasks
         console.log("Info about subtasks");
@@ -159,29 +131,91 @@ export async function main(cliArguments: string[]) {
 
     console.log("Error running the task:", error.message);
 
-    if (showStackTraces) {
+    if (hardhatSpecialArgs.showStackTraces) {
       console.log("");
       console.error(error);
     }
   }
 }
 
-function parseGlobalArguments(
-  _globalParamsIndex: GlobalParameterMap,
-  _cliArguments: string[],
-  _usedCliArguments: boolean[],
-): Partial<GlobalArguments> {
-  // TODO: Parse the global arguments
-  // - Parse the global params, skipping the processed entries
-  // - At each stage validate the value according to its type
-  // - If a global param is boolean and its default is false, its value is not
-  //   necessary. That means that if the immediatly next value is `"true"` or
-  //   `"false"`, we should use it, but if it's not we just don't, and consider
-  //   its value `true`.
-  // - Mark all the used entries in usedCliArguments
-  // - Do not resolve defaults here, the HRE does that.
-  // - Return the values
-  return {};
+export async function parseHardhatSpecialArguments(
+  cliArguments: string[],
+  usedCliArguments: boolean[],
+) {
+  let configPath: string | undefined;
+  let showStackTraces: boolean = isCi();
+  let help: boolean = false;
+  let version: boolean = false;
+
+  for (let i = 0; i < cliArguments.length; i++) {
+    const arg = cliArguments[i];
+
+    if (arg === "--config") {
+      usedCliArguments[i] = true;
+
+      if (configPath !== undefined) {
+        throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
+          name: "--config",
+        });
+      }
+
+      if (
+        usedCliArguments[i + 1] === undefined ||
+        usedCliArguments[i + 1] === true
+      ) {
+        throw new HardhatError(
+          HardhatError.ERRORS.ARGUMENTS.MISSING_CONFIG_FILE,
+        );
+      }
+
+      configPath = cliArguments[i + 1];
+      i++;
+
+      usedCliArguments[i] = true;
+      continue;
+    }
+
+    if (arg === "--show-stack-traces") {
+      usedCliArguments[i] = true;
+      showStackTraces = true;
+      continue;
+    }
+
+    if (arg === "--help") {
+      usedCliArguments[i] = true;
+      help = true;
+      continue;
+    }
+
+    if (arg === "--version") {
+      usedCliArguments[i] = true;
+      version = true;
+      continue;
+    }
+  }
+
+  return { configPath, showStackTraces, help, version };
+}
+
+export async function parseGlobalArguments(
+  globalParamsIndex: GlobalParameterMap,
+  cliArguments: string[],
+  usedCliArguments: boolean[],
+): Promise<Partial<GlobalArguments>> {
+  const globalArguments: Partial<GlobalArguments> = {};
+
+  const parameters = new Map(
+    [...globalParamsIndex].map(([key, value]) => [key, value.param]),
+  );
+
+  parseDoubleDashArgs(
+    cliArguments,
+    usedCliArguments,
+    parameters,
+    globalArguments,
+  );
+
+  return globalArguments;
 }
 
 /**
@@ -281,7 +315,13 @@ function parseTaskArguments(
 ): Record<string, any> {
   const taskArguments: Record<string, unknown> = {};
 
-  parseNamedParameters(cliArguments, usedCliArguments, task, taskArguments);
+  // Parse named parameters
+  parseDoubleDashArgs(
+    cliArguments,
+    usedCliArguments,
+    task.namedParameters,
+    taskArguments,
+  );
 
   parsePositionalAndVariadicParameters(
     cliArguments,
@@ -301,11 +341,11 @@ function parseTaskArguments(
   return taskArguments;
 }
 
-function parseNamedParameters(
+function parseDoubleDashArgs(
   cliArguments: string[],
   usedCliArguments: boolean[],
-  task: Task,
-  taskArguments: Record<string, any>,
+  parametersMap: Map<string, NamedTaskParameter | GlobalParameter>,
+  argumentsMap: Record<string, any>,
 ) {
   for (let i = 0; i < cliArguments.length; i++) {
     if (usedCliArguments[i]) {
@@ -325,7 +365,7 @@ function parseNamedParameters(
     }
 
     const paramName = kebabToCamelCase(arg.substring(2));
-    const paramInfo = task.namedParameters.get(paramName);
+    const paramInfo = parametersMap.get(paramName);
 
     if (paramInfo === undefined) {
       throw new HardhatError(
@@ -345,7 +385,7 @@ function parseNamedParameters(
         (cliArguments[i + 1] === "true" || cliArguments[i + 1] === "false")
       ) {
         // The parameter could be followed by a boolean value if it does not behaves like a flag
-        taskArguments[paramName] = parseParameterValue(
+        argumentsMap[paramName] = parseParameterValue(
           cliArguments[i + 1],
           ParameterType.BOOLEAN,
           paramName,
@@ -357,7 +397,7 @@ function parseNamedParameters(
 
       if (paramInfo.defaultValue === false) {
         // If the default value for the parameter is false, the parameter behaves like a flag, so there is no need to specify the value
-        taskArguments[paramName] = true;
+        argumentsMap[paramName] = true;
         continue;
       }
     } else if (
@@ -366,7 +406,7 @@ function parseNamedParameters(
     ) {
       i++;
 
-      taskArguments[paramName] = parseParameterValue(
+      argumentsMap[paramName] = parseParameterValue(
         cliArguments[i],
         paramInfo.parameterType,
         paramName,
@@ -386,10 +426,7 @@ function parseNamedParameters(
   }
 
   // Check if all the required parameters have been used
-  validateRequiredParameters(
-    Array.from(task.namedParameters.values()),
-    taskArguments,
-  );
+  validateRequiredParameters([...parametersMap.values()], argumentsMap);
 }
 
 function parsePositionalAndVariadicParameters(
