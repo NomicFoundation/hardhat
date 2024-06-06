@@ -433,7 +433,7 @@ async function parseDoubleDashArgs(
   }
 
   // Check if all the required parameters have been used
-  validateRequiredParameters(Array.from(parametersMap.values()), argumentsMap);
+  validateRequiredParameters([...parametersMap.values()], argumentsMap);
 }
 
 async function parsePositionalAndVariadicParameters(
