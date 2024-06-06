@@ -1,4 +1,8 @@
-import type { ParameterType, ParameterTypeToValueType } from "./common.js";
+import type {
+  ParameterType,
+  ParameterTypeToValueType,
+  ParameterValue,
+} from "./common.js";
 import type { HardhatRuntimeEnvironment } from "./hre.js";
 
 // We add the TaskManager to the HRE with a module augmentation to avoid
@@ -23,6 +27,15 @@ declare module "./config.js" {
   }
 }
 
+export interface TaskParameter<T extends ParameterType = ParameterType> {
+  name: string;
+  description: string;
+  parameterType: T;
+  defaultValue?:
+    | ParameterTypeToValueType<T>
+    | Array<ParameterTypeToValueType<T>>;
+}
+
 /**
  * A named task parameter is one that is used as `--<name> value` in the CLI.
  *
@@ -32,11 +45,9 @@ declare module "./config.js" {
  * parameter is considered a flag, and can be used as `--<name>` to set it to
  * `true`.
  */
-export interface NamedTaskParameter {
-  name: string;
-  description: string;
-  parameterType: ParameterType;
-  defaultValue?: any;
+export interface NamedTaskParameter<T extends ParameterType = ParameterType>
+  extends TaskParameter<T> {
+  defaultValue?: ParameterTypeToValueType<T>;
 }
 
 /**
@@ -46,11 +57,9 @@ export interface NamedTaskParameter {
  * If the parameter is variadic, it can have multiple values. A variadic parameter
  * can only be the last positional parameter, and it consumes all the remaining values.
  */
-export interface PositionalTaskParameter {
-  name: string;
-  description: string;
-  parameterType: ParameterType;
-  defaultValue?: any;
+export interface PositionalTaskParameter<
+  T extends ParameterType = ParameterType,
+> extends TaskParameter<T> {
   isVariadic: boolean;
 }
 
@@ -58,7 +67,7 @@ export interface PositionalTaskParameter {
  * A type representing the arguments or concrete parameters of a task. That is,
  * the actual values passed to it.
  */
-export type TaskArguments = Record<string, any>;
+export type TaskArguments = Record<string, ParameterValue | ParameterValue[]>;
 
 /**
  * The type of a new task's action function.

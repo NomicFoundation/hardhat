@@ -1,21 +1,28 @@
+import type { ParameterValue } from "@nomicfoundation/hardhat-core/types/common";
+import type {
+  GlobalArguments,
+  GlobalParameter,
+  GlobalParameterMap,
+} from "@nomicfoundation/hardhat-core/types/global-parameters";
+import type { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
+import type {
+  NamedTaskParameter,
+  Task,
+  TaskArguments,
+  TaskParameter,
+} from "@nomicfoundation/hardhat-core/types/tasks";
+
+import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
+
 import {
   buildGlobalParameterMap,
   resolvePluginList,
 } from "@nomicfoundation/hardhat-core";
 import { ParameterType } from "@nomicfoundation/hardhat-core/types/common";
 import {
-  GlobalArguments,
-  GlobalParameter,
-  GlobalParameterMap,
-} from "@nomicfoundation/hardhat-core/types/global-parameters";
-import { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
-import {
-  NamedTaskParameter,
-  PositionalTaskParameter,
-  Task,
-} from "@nomicfoundation/hardhat-core/types/tasks";
-import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+  HardhatError,
+  assertHardhatInvariant,
+} from "@nomicfoundation/hardhat-errors";
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 
 import { builtinPlugins } from "../builtin-plugins/index.js";
@@ -231,7 +238,7 @@ export function parseTaskAndArguments(
 ):
   | {
       task: Task;
-      taskArguments: Record<string, any>;
+      taskArguments: TaskArguments;
     }
   | string[] {
   const taskOrId = getTaskFromCliArguments(cliArguments, usedCliArguments, hre);
@@ -312,8 +319,8 @@ function parseTaskArguments(
   cliArguments: string[],
   usedCliArguments: boolean[],
   task: Task,
-): Record<string, any> {
-  const taskArguments: Record<string, unknown> = {};
+): TaskArguments {
+  const taskArguments: TaskArguments = {};
 
   // Parse named parameters
   parseDoubleDashArgs(
@@ -345,7 +352,7 @@ function parseDoubleDashArgs(
   cliArguments: string[],
   usedCliArguments: boolean[],
   parametersMap: Map<string, NamedTaskParameter | GlobalParameter>,
-  argumentsMap: Record<string, any>,
+  argumentsMap: TaskArguments,
 ) {
   for (let i = 0; i < cliArguments.length; i++) {
     if (usedCliArguments[i]) {
@@ -433,7 +440,7 @@ function parsePositionalAndVariadicParameters(
   cliArguments: string[],
   usedCliArguments: boolean[],
   task: Task,
-  taskArguments: Record<string, any>,
+  taskArguments: TaskArguments,
 ) {
   let paramI = 0;
 
@@ -472,7 +479,12 @@ function parsePositionalAndVariadicParameters(
     // Handle variadic parameters. No longer increment "paramI" becuase there can only be one variadic parameter and it
     // will consume all remaining arguments.
     taskArguments[paramInfo.name] = taskArguments[paramInfo.name] ?? [];
-    taskArguments[paramInfo.name].push(formattedValue);
+    const variadicTaskArg = taskArguments[paramInfo.name];
+    assertHardhatInvariant(
+      Array.isArray(variadicTaskArg),
+      "Variadic parameter values should be an array",
+    );
+    variadicTaskArg.push(formattedValue);
   }
 
   // Check if all the required parameters have been used
@@ -480,8 +492,8 @@ function parsePositionalAndVariadicParameters(
 }
 
 function validateRequiredParameters(
-  parameters: PositionalTaskParameter[] | NamedTaskParameter[],
-  taskArguments: Record<string, any>,
+  parameters: TaskParameter[],
+  taskArguments: TaskArguments,
 ) {
   const missingRequiredParam = parameters.find(
     (param) =>
@@ -507,7 +519,7 @@ function parseParameterValue(
   strValue: string,
   type: ParameterType,
   argName: string,
-): any {
+): ParameterValue {
   switch (type) {
     case ParameterType.STRING:
       return validateAndParseString(argName, strValue);
