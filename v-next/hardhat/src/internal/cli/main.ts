@@ -16,6 +16,7 @@ import {
 } from "@nomicfoundation/hardhat-core/types/tasks";
 import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 
 import { builtinPlugins } from "../builtin-plugins/index.js";
 import {
@@ -142,7 +143,7 @@ export async function parseHardhatSpecialArguments(
   usedCliArguments: boolean[],
 ) {
   let configPath: string | undefined;
-  let showStackTraces: boolean = false; // true if ci
+  let showStackTraces: boolean = isCi();
   let help: boolean = false;
   let version: boolean = false;
 
