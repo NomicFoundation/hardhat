@@ -30,7 +30,9 @@ import { getHardhatRuntimeEnvironmentSingleton } from "../hre-singleton.js";
 export async function main(cliArguments: string[]) {
   const hreInitStart = performance.now();
 
-  const usedCliArguments = new Array(cliArguments.length).fill(false);
+  const usedCliArguments: boolean[] = new Array(cliArguments.length).fill(
+    false,
+  );
 
   const hhGlobalParams = await parseInitialHardhatParameters(
     cliArguments,
