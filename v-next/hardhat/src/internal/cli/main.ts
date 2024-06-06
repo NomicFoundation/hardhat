@@ -34,27 +34,27 @@ export async function main(cliArguments: string[]) {
     false,
   );
 
-  const hhGlobalParams = await parseInitialHardhatParameters(
+  const hardhatSpecialArgs = await parseHardhatSpecialArguments(
     cliArguments,
     usedCliArguments,
   );
 
-  if (hhGlobalParams.version) {
+  if (hardhatSpecialArgs.version) {
     console.log("3.0.0");
     return;
   }
 
-  if (hhGlobalParams.configPath === undefined) {
-    hhGlobalParams.configPath = await resolveConfigPath();
+  if (hardhatSpecialArgs.configPath === undefined) {
+    hardhatSpecialArgs.configPath = await resolveConfigPath();
   }
 
   try {
-    const userConfig = await importUserConfig(hhGlobalParams.configPath);
+    const userConfig = await importUserConfig(hardhatSpecialArgs.configPath);
 
     const plugins = [...builtinPlugins, ...(userConfig.plugins ?? [])];
     const resolvedPlugins = await resolvePluginList(
       plugins,
-      hhGlobalParams.configPath,
+      hardhatSpecialArgs.configPath,
     );
 
     const globalParameterMap = buildGlobalParameterMap(resolvedPlugins);
@@ -96,7 +96,7 @@ export async function main(cliArguments: string[]) {
 
     const { task, taskArguments } = result;
 
-    if (hhGlobalParams.help) {
+    if (hardhatSpecialArgs.help) {
       if (task.isEmpty) {
         // TODO: Print information about its subtasks
         console.log("Info about subtasks");
@@ -137,14 +137,14 @@ export async function main(cliArguments: string[]) {
 
     console.log("Error running the task:", error.message);
 
-    if (hhGlobalParams.showStackTraces) {
+    if (hardhatSpecialArgs.showStackTraces) {
       console.log("");
       console.error(error);
     }
   }
 }
 
-export async function parseInitialHardhatParameters(
+export async function parseHardhatSpecialArguments(
   cliArguments: string[],
   usedCliArguments: boolean[],
 ) {

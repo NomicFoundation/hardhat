@@ -22,7 +22,7 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import {
   parseGlobalArguments,
-  parseInitialHardhatParameters,
+  parseHardhatSpecialArguments,
   parseTaskAndArguments,
 } from "../../../src/internal/cli/main.js";
 
@@ -60,7 +60,7 @@ async function getTasksAndHreEnvironment(
 }
 
 describe("main", function () {
-  describe("parseInitialHardhatParameters", function () {
+  describe("parseHardhatSpecialArguments", function () {
     it("should set the all the hardhat initial global parameters", async function () {
       // All the <value> and "task" should be ignored
       const command =
@@ -70,7 +70,7 @@ describe("main", function () {
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
       const { configPath, showStackTraces, help, version } =
-        await parseInitialHardhatParameters(cliArguments, usedCliArguments);
+        await parseHardhatSpecialArguments(cliArguments, usedCliArguments);
 
       assert.deepEqual(usedCliArguments, [
         true,
@@ -95,7 +95,7 @@ describe("main", function () {
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
       const { configPath, showStackTraces, help, version } =
-        await parseInitialHardhatParameters(cliArguments, usedCliArguments);
+        await parseHardhatSpecialArguments(cliArguments, usedCliArguments);
 
       assert.deepEqual(
         usedCliArguments,
@@ -116,7 +116,7 @@ describe("main", function () {
 
       assert.rejects(
         async () =>
-          parseInitialHardhatParameters(cliArguments, usedCliArguments),
+          parseHardhatSpecialArguments(cliArguments, usedCliArguments),
         new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
           name: "--config",
         }),
