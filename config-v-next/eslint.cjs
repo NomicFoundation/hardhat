@@ -278,6 +278,7 @@ function createConfig(configFilePath, packageEntryPoints = []) {
         },
       ],
       "import/no-duplicates": "error",
+      "import/no-relative-packages": "error",
       "no-bitwise": "error",
       "no-caller": "error",
       "no-cond-assign": "error",
