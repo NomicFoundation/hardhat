@@ -1271,9 +1271,10 @@ describe("TaskManagerImplementation", () => {
         await assert.rejects(
           task1.run({ otherParam: "otherParamValue" }),
           new HardhatError(
-            HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_NAMED_PARAM,
+            HardhatError.ERRORS.TASK_DEFINITIONS.UNRECOGNIZED_NAMED_PARAM,
             {
               parameter: "otherParam",
+              task: "task1",
             },
           ),
         );
@@ -1305,9 +1306,10 @@ describe("TaskManagerImplementation", () => {
             varParam: ["varValue1", "varValue2"],
           }),
           new HardhatError(
-            HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_PARAMETER,
+            HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_PARAMETER,
             {
-              paramName: "namedParam",
+              parameter: "namedParam",
+              task: "task1",
             },
           ),
         );
@@ -1319,9 +1321,10 @@ describe("TaskManagerImplementation", () => {
             varParam: ["varValue1", "varValue2"],
           }),
           new HardhatError(
-            HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_PARAMETER,
+            HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_PARAMETER,
             {
-              paramName: "posParam",
+              parameter: "posParam",
+              task: "task1",
             },
           ),
         );
@@ -1333,9 +1336,10 @@ describe("TaskManagerImplementation", () => {
             posParam: "posValue",
           }),
           new HardhatError(
-            HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_PARAMETER,
+            HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_PARAMETER,
             {
-              paramName: "varParam",
+              parameter: "varParam",
+              task: "task1",
             },
           ),
         );
@@ -1377,11 +1381,12 @@ describe("TaskManagerImplementation", () => {
             varParam: ["file1", "file2", "file3"],
           }),
           new HardhatError(
-            HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
             {
               value: "not a bigint",
               name: "namedParam",
               type: ParameterType.BIGINT,
+              task: "task1",
             },
           ),
         );
@@ -1394,11 +1399,12 @@ describe("TaskManagerImplementation", () => {
             varParam: ["file1", "file2", "file3"],
           }),
           new HardhatError(
-            HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
             {
               value: true,
               name: "posParam",
               type: ParameterType.INT,
+              task: "task1",
             },
           ),
         );
@@ -1411,11 +1417,12 @@ describe("TaskManagerImplementation", () => {
             varParam: "not an array",
           }),
           new HardhatError(
-            HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
             {
               value: "not an array",
               name: "varParam",
               type: ParameterType.FILE,
+              task: "task1",
             },
           ),
         );
@@ -1428,11 +1435,12 @@ describe("TaskManagerImplementation", () => {
             varParam: ["file1", 5, "file3"],
           }),
           new HardhatError(
-            HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
             {
               value: ["file1", 5, "file3"],
               name: "varParam",
               type: ParameterType.FILE,
+              task: "task1",
             },
           ),
         );

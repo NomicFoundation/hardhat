@@ -265,6 +265,32 @@ Please ensure that an action is defined for each task.`,
       websiteDescription:
         "The action of the task is not a function. Make sure that the file pointed to by the action URL exports a function as the default export.",
     },
+    MISSING_VALUE_FOR_PARAMETER: {
+      number: 214,
+      messageTemplate:
+        "Missing value for the parameter named {parameter} in the task {task}",
+      websiteTitle: "Missing value for the task parameter",
+      websiteDescription: `You tried to run a task, but one of the values of its parameters was missing.
+
+Please double check how you invoked Hardhat or ran your task.`,
+    },
+    INVALID_VALUE_FOR_TYPE: {
+      number: 215,
+      messageTemplate:
+        "Invalid value {value} for argument {name} of type {type} in the task {task}",
+      websiteTitle: "Invalid argument type",
+      websiteDescription: `One of your task arguments has an invalid type.
+
+Please double check your task arguments.`,
+    },
+    UNRECOGNIZED_NAMED_PARAM: {
+      number: 216,
+      messageTemplate: "Invalid parameter {parameter} for the task {task}",
+      websiteTitle: "Invalid parameter value",
+      websiteDescription: `One of the parameters for your task is invalid.
+
+Please double check your arguments.`,
+    },
   },
   ARGUMENTS: {
     INVALID_VALUE_FOR_TYPE: {

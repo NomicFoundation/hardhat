@@ -165,9 +165,10 @@ export class ResolvedTask implements Task {
   ) {
     if (parameter.defaultValue === undefined && value === undefined) {
       throw new HardhatError(
-        HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_PARAMETER,
+        HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_PARAMETER,
         {
-          paramName: parameter.name,
+          parameter: parameter.name,
+          task: formatTaskId(this.id),
         },
       );
     }
@@ -198,11 +199,12 @@ export class ResolvedTask implements Task {
     // check if the value is valid for the parameter type
     if (!isParameterValueValid(parameter.parameterType, value, isVariadic)) {
       throw new HardhatError(
-        HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+        HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
         {
           value,
           name: parameter.name,
           type: parameter.parameterType,
+          task: formatTaskId(this.id),
         },
       );
     }
@@ -217,9 +219,10 @@ export class ResolvedTask implements Task {
   #validateExtraArguments(providedArgumentNames: Set<string>) {
     if (providedArgumentNames.size > 0) {
       throw new HardhatError(
-        HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_NAMED_PARAM,
+        HardhatError.ERRORS.TASK_DEFINITIONS.UNRECOGNIZED_NAMED_PARAM,
         {
           parameter: [...providedArgumentNames][0],
+          task: formatTaskId(this.id),
         },
       );
     }
