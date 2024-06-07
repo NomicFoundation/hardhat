@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import { RESERVED_PARAMETER_NAMES } from "../../../src/internal/parameters.js";
 import {
   NewTaskDefinitionBuilderImplementation,
@@ -643,11 +645,15 @@ describe("Task builders", () => {
                 defaultValue: 123 as any,
                 type: ParameterType.STRING,
               }),
-            {
-              name: "HardhatError",
-              message:
-                "HHE300: Invalid value 123 for argument defaultValue of type STRING",
-            },
+            new HardhatError(
+              HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+              {
+                value: 123,
+                name: "defaultValue",
+                type: ParameterType.STRING,
+                task: "task-id",
+              },
+            ),
           );
         });
 
@@ -660,11 +666,15 @@ describe("Task builders", () => {
               defaultValue: [123, 456, 789] as any,
               type: ParameterType.STRING,
             }),
-          {
-            name: "HardhatError",
-            message:
-              "HHE300: Invalid value [123,456,789] for argument defaultValue of type STRING",
-          },
+          new HardhatError(
+            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+            {
+              value: [123, 456, 789],
+              name: "defaultValue",
+              type: ParameterType.STRING,
+              task: "task-id",
+            },
+          ),
         );
       });
     });
@@ -1097,11 +1107,15 @@ describe("Task builders", () => {
               defaultValue: 123 as any,
               type: ParameterType.STRING,
             }),
-          {
-            name: "HardhatError",
-            message:
-              "HHE300: Invalid value 123 for argument defaultValue of type STRING",
-          },
+          new HardhatError(
+            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+            {
+              value: 123,
+              name: "defaultValue",
+              type: ParameterType.STRING,
+              task: "task-id",
+            },
+          ),
         );
       });
     });

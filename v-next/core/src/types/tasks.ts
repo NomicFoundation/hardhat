@@ -89,7 +89,7 @@ export type NewTaskActionFunction = (
 export type TaskOverrideActionFunction = (
   taskArguments: TaskArguments,
   hre: HardhatRuntimeEnvironment,
-  runSuper: (taskArguments?: TaskArguments) => Promise<any>,
+  runSuper: (taskArguments: TaskArguments) => Promise<any>,
 ) => any;
 
 /**

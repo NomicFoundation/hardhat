@@ -875,4 +875,657 @@ describe("TaskManagerImplementation", () => {
       );
     });
   });
+
+  /**
+   * The run method is part of the Task interface, but it's tested through the
+   * HardhatRuntimeEnvironmentImplementation for simplicity.
+   */
+  describe("run", () => {
+    it("should run a task without arguments", async () => {
+      let taskRun = false;
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [
+          {
+            id: "plugin1",
+            tasks: [
+              new NewTaskDefinitionBuilderImplementation("task1")
+                .setAction(() => {
+                  taskRun = true;
+                })
+                .build(),
+            ],
+          },
+        ],
+      });
+
+      const task1 = hre.tasks.getTask("task1");
+      assert.equal(taskRun, false);
+      await task1.run({});
+      assert.equal(taskRun, true);
+    });
+
+    it("should return the result of the task action", async () => {
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [
+          {
+            id: "plugin1",
+            tasks: [
+              new NewTaskDefinitionBuilderImplementation("task1")
+                .setAction(() => "task run successfully")
+                .build(),
+            ],
+          },
+        ],
+      });
+
+      const task1 = hre.tasks.getTask("task1");
+      const result = await task1.run({});
+      assert.equal(result, "task run successfully");
+    });
+
+    it("should run a overridden task without arguments", async () => {
+      let taskRun = false;
+      let overrideTaskRun = false;
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [
+          {
+            id: "plugin1",
+            tasks: [
+              new NewTaskDefinitionBuilderImplementation("task1")
+                .setAction(() => {
+                  taskRun = true;
+                })
+                .build(),
+              new TaskOverrideDefinitionBuilderImplementation("task1")
+                .setAction(async (args, _hre, runSuper) => {
+                  await runSuper(args);
+                  overrideTaskRun = true;
+                })
+                .build(),
+            ],
+          },
+        ],
+      });
+
+      const task1 = hre.tasks.getTask("task1");
+      assert.equal(taskRun, false);
+      assert.equal(overrideTaskRun, false);
+      await task1.run({});
+      assert.equal(taskRun, true);
+      assert.equal(overrideTaskRun, true);
+    });
+
+    it("should run a task with several overrides", async () => {
+      let taskRun = false;
+      let override1TaskRun = false;
+      let override2TaskRun = false;
+      let override3TaskRun = false;
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [
+          {
+            id: "plugin1",
+            tasks: [
+              new NewTaskDefinitionBuilderImplementation("task1")
+                .setAction(() => {
+                  taskRun = true;
+                })
+                .build(),
+              new TaskOverrideDefinitionBuilderImplementation("task1")
+                .setAction(async (args, _hre, runSuper) => {
+                  await runSuper(args);
+                  override1TaskRun = true;
+                })
+                .build(),
+            ],
+          },
+          {
+            id: "plugin2",
+            tasks: [
+              new TaskOverrideDefinitionBuilderImplementation("task1")
+                .setAction(async (args, _hre, runSuper) => {
+                  await runSuper(args);
+                  override2TaskRun = true;
+                })
+                .build(),
+            ],
+          },
+        ],
+        tasks: [
+          new TaskOverrideDefinitionBuilderImplementation("task1")
+            .setAction(async (args, _hre, runSuper) => {
+              await runSuper(args);
+              override3TaskRun = true;
+            })
+            .build(),
+        ],
+      });
+
+      const task1 = hre.tasks.getTask("task1");
+      assert.equal(taskRun, false);
+      assert.equal(override1TaskRun, false);
+      assert.equal(override2TaskRun, false);
+      assert.equal(override3TaskRun, false);
+      await task1.run({});
+      assert.equal(taskRun, true);
+      assert.equal(override1TaskRun, true);
+      assert.equal(override2TaskRun, true);
+      assert.equal(override3TaskRun, true);
+    });
+
+    it("should not run the original task action if the override task action doesn't call runSuper", async () => {
+      let taskRun = false;
+      let overrideTaskRun = false;
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [
+          {
+            id: "plugin1",
+            tasks: [
+              new NewTaskDefinitionBuilderImplementation("task1")
+                .setAction(() => {
+                  taskRun = true;
+                })
+                .build(),
+              new TaskOverrideDefinitionBuilderImplementation("task1")
+                .setAction(async (_args, _hre, _runSuper) => {
+                  overrideTaskRun = true;
+                })
+                .build(),
+            ],
+          },
+        ],
+      });
+
+      const task1 = hre.tasks.getTask("task1");
+      assert.equal(taskRun, false);
+      assert.equal(overrideTaskRun, false);
+      await task1.run({});
+      assert.equal(taskRun, false);
+      assert.equal(overrideTaskRun, true);
+    });
+
+    it("should run a task with arguments", async () => {
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [
+          {
+            id: "plugin1",
+            tasks: [
+              new NewTaskDefinitionBuilderImplementation("task1")
+                .addNamedParameter({ name: "param1" })
+                .addFlag({ name: "flag1" })
+                .addPositionalParameter({ name: "posParam" })
+                .addVariadicParameter({ name: "varParam" })
+                .setAction((args) => {
+                  assert.deepEqual(args, {
+                    param1: "param1Value",
+                    flag1: true,
+                    posParam: "posValue",
+                    varParam: ["varValue1", "varValue2"],
+                  });
+                })
+                .build(),
+              new TaskOverrideDefinitionBuilderImplementation("task1")
+                .addNamedParameter({ name: "param2" })
+                .addFlag({ name: "flag2" })
+                .setAction(
+                  async ({ param2, flag2, ...args }, _hre, runSuper) => {
+                    await runSuper(args);
+                    assert.deepEqual(
+                      { param2, flag2 },
+                      {
+                        param2: "param2Value",
+                        flag2: true,
+                      },
+                    );
+                  },
+                )
+                .build(),
+            ],
+          },
+        ],
+      });
+
+      const task1 = hre.tasks.getTask("task1");
+      await task1.run({
+        param1: "param1Value",
+        flag1: true,
+        posParam: "posValue",
+        varParam: ["varValue1", "varValue2"],
+        param2: "param2Value",
+        flag2: true,
+      });
+    });
+
+    it("should run a task with arguments and resolve their default values", async () => {
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [
+          {
+            id: "plugin1",
+            tasks: [
+              new NewTaskDefinitionBuilderImplementation("task1")
+                .addNamedParameter({
+                  name: "param1",
+                  defaultValue: "param1DefaultValue",
+                })
+                .addFlag({ name: "flag1" })
+                .addPositionalParameter({
+                  name: "posParam",
+                  defaultValue: "posValue",
+                })
+                .addVariadicParameter({
+                  name: "varParam",
+                  defaultValue: ["varValue1", "varValue2"],
+                })
+                .setAction((args) => {
+                  assert.deepEqual(args, {
+                    param1: "param1DefaultValue",
+                    flag1: false,
+                    posParam: "posValue",
+                    varParam: ["varValue1", "varValue2"],
+                  });
+                })
+                .build(),
+            ],
+          },
+        ],
+      });
+
+      const task1 = hre.tasks.getTask("task1");
+      await task1.run({});
+    });
+
+    it("should run an empty task that was overriden", async () => {
+      let overrideTaskRun = false;
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [
+          {
+            id: "plugin1",
+            tasks: [
+              {
+                id: ["task1"],
+                description: "description1",
+                type: TaskDefinitionType.EMPTY_TASK,
+              },
+              new TaskOverrideDefinitionBuilderImplementation("task1")
+                .setAction(async (args, _hre, runSuper) => {
+                  await runSuper(args);
+                  overrideTaskRun = true;
+                })
+                .build(),
+            ],
+          },
+        ],
+      });
+
+      const task1 = hre.tasks.getTask("task1");
+      assert.equal(overrideTaskRun, false);
+      await task1.run({});
+      assert.equal(overrideTaskRun, true);
+    });
+
+    it("should run a task with an action url", async () => {
+      const actionUrl = import.meta.resolve(
+        "./fixture-projects/file-actions/action-fn.js",
+      );
+
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [
+          {
+            id: "plugin1",
+            tasks: [
+              new NewTaskDefinitionBuilderImplementation("task1")
+                .setAction((args) => args)
+                .build(),
+              new TaskOverrideDefinitionBuilderImplementation("task1")
+                .addNamedParameter({ name: "param1" })
+                .setAction(actionUrl)
+                .build(),
+            ],
+          },
+        ],
+      });
+
+      const task1 = hre.tasks.getTask("task1");
+      const response = await task1.run({ param1: "param1Value" });
+      assert.deepEqual(response, { param1: "param1Value" });
+    });
+
+    it("should run a task with an invalid action url that was overriden and the override doesn't call runSuper", async () => {
+      const validActionUrl = import.meta.resolve(
+        "./fixture-projects/file-actions/no-run-super.js",
+      );
+
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [
+          {
+            id: "plugin1",
+            tasks: [
+              new NewTaskDefinitionBuilderImplementation("task1")
+                .setAction("file://not-a-module")
+                .build(),
+              new TaskOverrideDefinitionBuilderImplementation("task1")
+                .addNamedParameter({ name: "param1" })
+                .setAction(validActionUrl)
+                .build(),
+            ],
+          },
+        ],
+      });
+
+      const task1 = hre.tasks.getTask("task1");
+      const response = await task1.run({ param1: "param1Value" });
+      assert.equal(
+        response,
+        `action fn called with args: ${JSON.stringify({ param1: "param1Value" })}`,
+      );
+    });
+
+    describe("validations", () => {
+      it("should throw if the task is empty", async () => {
+        const hre = await createHardhatRuntimeEnvironment({
+          plugins: [
+            {
+              id: "plugin1",
+              tasks: [
+                {
+                  id: ["task1"],
+                  description: "description1",
+                  type: TaskDefinitionType.EMPTY_TASK,
+                },
+              ],
+            },
+          ],
+        });
+
+        const task1 = hre.tasks.getTask("task1");
+        await assert.rejects(
+          task1.run({}),
+          new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK, {
+            task: "task1",
+          }),
+        );
+      });
+
+      it("should throw if the provided parameter is not one of the task parameters", async () => {
+        const hre = await createHardhatRuntimeEnvironment({
+          plugins: [
+            {
+              id: "plugin1",
+              tasks: [
+                new NewTaskDefinitionBuilderImplementation("task1")
+                  .setAction(() => {})
+                  .build(),
+              ],
+            },
+          ],
+        });
+
+        const task1 = hre.tasks.getTask("task1");
+        await assert.rejects(
+          task1.run({ otherParam: "otherParamValue" }),
+          new HardhatError(
+            HardhatError.ERRORS.TASK_DEFINITIONS.UNRECOGNIZED_NAMED_PARAM,
+            {
+              parameter: "otherParam",
+              task: "task1",
+            },
+          ),
+        );
+      });
+
+      it("should throw if a required parameter is missing", async () => {
+        const hre = await createHardhatRuntimeEnvironment({
+          plugins: [
+            {
+              id: "plugin1",
+              tasks: [
+                new NewTaskDefinitionBuilderImplementation("task1")
+                  .addNamedParameter({ name: "namedParam" })
+                  .addPositionalParameter({ name: "posParam" })
+                  .addVariadicParameter({ name: "varParam" })
+                  .setAction(() => {})
+                  .build(),
+              ],
+            },
+          ],
+        });
+
+        const task1 = hre.tasks.getTask("task1");
+
+        // namedParam is missing
+        await assert.rejects(
+          task1.run({
+            posParam: "posValue",
+            varParam: ["varValue1", "varValue2"],
+          }),
+          new HardhatError(
+            HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_PARAMETER,
+            {
+              parameter: "namedParam",
+              task: "task1",
+            },
+          ),
+        );
+
+        // posParam is missing
+        await assert.rejects(
+          task1.run({
+            namedParam: "param1Value",
+            varParam: ["varValue1", "varValue2"],
+          }),
+          new HardhatError(
+            HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_PARAMETER,
+            {
+              parameter: "posParam",
+              task: "task1",
+            },
+          ),
+        );
+
+        // varParam is missing
+        await assert.rejects(
+          task1.run({
+            namedParam: "param1Value",
+            posParam: "posValue",
+          }),
+          new HardhatError(
+            HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_PARAMETER,
+            {
+              parameter: "varParam",
+              task: "task1",
+            },
+          ),
+        );
+      });
+
+      it("should throw if the provided value for the parameter is not of the correct type", async () => {
+        const hre = await createHardhatRuntimeEnvironment({
+          plugins: [
+            {
+              id: "plugin1",
+              tasks: [
+                new NewTaskDefinitionBuilderImplementation("task1")
+                  .addNamedParameter({
+                    name: "namedParam",
+                    type: ParameterType.BIGINT,
+                  })
+                  .addPositionalParameter({
+                    name: "posParam",
+                    type: ParameterType.INT,
+                  })
+                  .addVariadicParameter({
+                    name: "varParam",
+                    type: ParameterType.FILE,
+                  })
+                  .setAction(() => {})
+                  .build(),
+              ],
+            },
+          ],
+        });
+
+        const task1 = hre.tasks.getTask("task1");
+
+        // namedParam has the wrong type
+        await assert.rejects(
+          task1.run({
+            namedParam: "not a bigint",
+            posParam: 10,
+            varParam: ["file1", "file2", "file3"],
+          }),
+          new HardhatError(
+            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+            {
+              value: "not a bigint",
+              name: "namedParam",
+              type: ParameterType.BIGINT,
+              task: "task1",
+            },
+          ),
+        );
+
+        // posParam has the wrong type
+        await assert.rejects(
+          task1.run({
+            namedParam: 5n,
+            posParam: true,
+            varParam: ["file1", "file2", "file3"],
+          }),
+          new HardhatError(
+            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+            {
+              value: true,
+              name: "posParam",
+              type: ParameterType.INT,
+              task: "task1",
+            },
+          ),
+        );
+
+        // varParam has the wrong type (not an array)
+        await assert.rejects(
+          task1.run({
+            namedParam: 5n,
+            posParam: 10,
+            varParam: "not an array",
+          }),
+          new HardhatError(
+            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+            {
+              value: "not an array",
+              name: "varParam",
+              type: ParameterType.FILE,
+              task: "task1",
+            },
+          ),
+        );
+
+        // varParam has the wrong type (array element has the wrong type)
+        await assert.rejects(
+          task1.run({
+            namedParam: 5n,
+            posParam: 10,
+            varParam: ["file1", 5, "file3"],
+          }),
+          new HardhatError(
+            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+            {
+              value: ["file1", 5, "file3"],
+              name: "varParam",
+              type: ParameterType.FILE,
+              task: "task1",
+            },
+          ),
+        );
+      });
+
+      it("should throw if an action url is provided and the module can't be resolved", async () => {
+        const hre = await createHardhatRuntimeEnvironment({
+          plugins: [
+            {
+              id: "plugin1",
+              tasks: [
+                new NewTaskDefinitionBuilderImplementation("task1")
+                  .setAction("file://not-a-module")
+                  .build(),
+              ],
+            },
+          ],
+        });
+
+        const task1 = hre.tasks.getTask("task1");
+        await assert.rejects(
+          task1.run({}),
+          new HardhatError(
+            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION_URL,
+            {
+              action: "file://not-a-module",
+              task: "task1",
+            },
+          ),
+        );
+      });
+
+      it("should throw if an action url is provided and the module doesn't have a default export", async () => {
+        const actionUrl = import.meta.resolve(
+          "./fixture-projects/file-actions/no-default.js",
+        );
+
+        const hre = await createHardhatRuntimeEnvironment({
+          plugins: [
+            {
+              id: "plugin1",
+              tasks: [
+                new NewTaskDefinitionBuilderImplementation("task1")
+                  .setAction(actionUrl)
+                  .build(),
+              ],
+            },
+          ],
+        });
+
+        const task1 = hre.tasks.getTask("task1");
+        await assert.rejects(
+          task1.run({}),
+          new HardhatError(
+            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION,
+            {
+              action: actionUrl,
+              task: "task1",
+            },
+          ),
+        );
+      });
+
+      it("should throw if an action url is provided and the module default export is not a function", async () => {
+        const actionUrl = import.meta.resolve(
+          "./fixture-projects/file-actions/no-default-fn.js",
+        );
+
+        const hre = await createHardhatRuntimeEnvironment({
+          plugins: [
+            {
+              id: "plugin1",
+              tasks: [
+                new NewTaskDefinitionBuilderImplementation("task1")
+                  .setAction(actionUrl)
+                  .build(),
+              ],
+            },
+          ],
+        });
+
+        const task1 = hre.tasks.getTask("task1");
+        await assert.rejects(
+          task1.run({}),
+          new HardhatError(
+            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION,
+            {
+              action: actionUrl,
+              task: "task1",
+            },
+          ),
+        );
+      });
+    });
+  });
 });

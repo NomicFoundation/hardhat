@@ -101,11 +101,12 @@ export class NewTaskDefinitionBuilderImplementation
       !isParameterValueValid(parameterType, defaultValue)
     ) {
       throw new HardhatError(
-        HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+        HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
         {
           value: defaultValue,
           name: "defaultValue",
           type: parameterType,
+          task: formatTaskId(this.#id),
         },
       );
     }
@@ -225,11 +226,12 @@ export class NewTaskDefinitionBuilderImplementation
     if (defaultValue !== undefined) {
       if (!isParameterValueValid(parameterType, defaultValue, isVariadic)) {
         throw new HardhatError(
-          HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
           {
             value: defaultValue,
             name: "defaultValue",
             type: parameterType,
+            task: formatTaskId(this.#id),
           },
         );
       }
@@ -349,11 +351,12 @@ export class TaskOverrideDefinitionBuilderImplementation
       !isParameterValueValid(parameterType, defaultValue)
     ) {
       throw new HardhatError(
-        HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+        HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
         {
           value: defaultValue,
           name: "defaultValue",
           type: parameterType,
+          task: formatTaskId(this.#id),
         },
       );
     }
