@@ -24,3 +24,15 @@ export async function deepEqual<T>(x: T, y: T): Promise<boolean> {
 
   return _deepEqual(x, y);
 }
+
+/**
+ * Checks if a value is an object. This function returns false for arrays.
+ *
+ * @param value The value to check.
+ * @returns True if the value is an object, false otherwise.
+ */
+export function isObject(
+  value: unknown,
+): value is Record<string | symbol, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { pluralize, capitalize } from "../src/string.js";
+import { pluralize, capitalize, kebabToCamelCase } from "../src/string.js";
 
 describe("string", () => {
   describe("pluralize", () => {
@@ -31,6 +31,17 @@ describe("string", () => {
 
     it("Should capitalize the first letter of a string and leave the rest as is", () => {
       assert.equal(capitalize("word word"), "Word word");
+    });
+  });
+
+  describe("kebabToCamelCase", () => {
+    it("Should convert a kebab-case string to camelCase", () => {
+      assert.equal(kebabToCamelCase("kebabcasestring"), "kebabcasestring");
+      assert.equal(kebabToCamelCase("kebab-case-string"), "kebabCaseString");
+      assert.equal(
+        kebabToCamelCase("kebab-c-a-s-e-s-t-r-i-n-g"),
+        "kebabCASESTRING",
+      );
     });
   });
 });

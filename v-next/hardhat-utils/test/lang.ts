@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 
 import { expectTypeOf } from "expect-type";
 
-import { deepClone, deepEqual } from "../src/lang.js";
+import { deepClone, deepEqual, isObject } from "../src/lang.js";
 
 describe("lang", () => {
   describe("deepClone", () => {
@@ -337,6 +337,25 @@ describe("lang", () => {
         !areNotEqual,
         `${error1.toString()} should not equal ${error3.toString()}`,
       );
+    });
+  });
+
+  describe("isObject", () => {
+    it("Should return true for objects", () => {
+      assert.ok(isObject({}));
+      assert.ok(isObject({ a: 1 }));
+      assert.ok(isObject(new Date()));
+      assert.ok(isObject(new Map()));
+      assert.ok(isObject(new Set()));
+    });
+
+    it("Should return false for non-objects", () => {
+      assert.ok(!isObject(null));
+      assert.ok(!isObject(undefined));
+      assert.ok(!isObject([]));
+      assert.ok(!isObject(""));
+      assert.ok(!isObject(42));
+      assert.ok(!isObject(true));
     });
   });
 });
