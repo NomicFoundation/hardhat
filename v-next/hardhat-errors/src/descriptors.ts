@@ -242,6 +242,29 @@ Please ensure that an action is defined for each task.`,
       websiteDescription:
         "An attempt is being made to override a parameter that has already been defined. Please ensure that the parameter is not defined before trying to override it.",
     },
+    EMPTY_TASK: {
+      number: 211,
+      messageTemplate: "Can't run the empty task {task}",
+      websiteTitle: "Empty task",
+      websiteDescription:
+        "The task is empty. Please ensure that tasks have at least one action.",
+    },
+    INVALID_ACTION_URL: {
+      number: 212,
+      messageTemplate:
+        "Unable to import the module specified by the action {action} of task {task}",
+      websiteTitle: "Invalid action URL",
+      websiteDescription:
+        "The action URL is invalid. Please ensure that the URL is correct.",
+    },
+    INVALID_ACTION: {
+      number: 213,
+      messageTemplate:
+        "The action resolved from {action} in task {task} is not a function",
+      websiteTitle: "Invalid action",
+      websiteDescription:
+        "The action of the task is not a function. Make sure that the file pointed to by the action URL exports a function as the default export.",
+    },
   },
   ARGUMENTS: {
     INVALID_VALUE_FOR_TYPE: {

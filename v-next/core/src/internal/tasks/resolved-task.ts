@@ -7,11 +7,14 @@ import type {
   TaskActions,
   TaskArguments,
   TaskOverrideActionFunction,
+  TaskParameter,
 } from "../../types/tasks.js";
+
+import { fileURLToPath } from "node:url";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
-import { isParameterValueValid } from "../../types/common.js";
+import { ParameterValue, isParameterValueValid } from "../../types/common.js";
 
 import { formatTaskId } from "./utils.js";
 
@@ -86,21 +89,36 @@ export class ResolvedTask implements Task {
    */
   public async run(taskArguments: TaskArguments): Promise<any> {
     if (this.isEmpty) {
-      throw new Error(`Cannot run an empty task`); // TODO should be a HardhatError
+      throw new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK, {
+        task: formatTaskId(this.id),
+      });
     }
 
-    for (const [name, value] of Object.entries(taskArguments)) {
-      const parameter = this.#getParameter(name);
+    // Normalize parameters into a single iterable
+    const allParameters: TaskParameter[] = [
+      ...this.namedParameters.values(),
+      ...this.positionalParameters,
+    ];
+
+    const providedParameterNames = new Set(Object.keys(taskArguments));
+    for (const parameter of allParameters) {
+      const value = taskArguments[parameter.name];
 
       this.#validateRequiredParameter(parameter, value);
-
       this.#validateParameterType(parameter, value);
 
       // resolve defaults for optional parameters
       if (value === undefined && parameter.defaultValue !== undefined) {
-        taskArguments[name] = parameter.defaultValue;
+        taskArguments[parameter.name] = parameter.defaultValue;
       }
+
+      // Remove processed parameter from the set as it has been processed
+      providedParameterNames.delete(parameter.name);
     }
+
+    // At this point, the set should be empty as all the task parameters have
+    // been processed. If there are any extra parameters, an error is thrown
+    this.#validateExtraParameters(providedParameterNames);
 
     const next = async (
       nextTaskArguments: TaskArguments,
@@ -136,35 +154,14 @@ export class ResolvedTask implements Task {
   }
 
   /**
-   * Gets a parameter by name.
-   * @throws HardhatError if the parameter doesn't exist.
-   */
-  #getParameter(name: string): NamedTaskParameter | PositionalTaskParameter {
-    const parameter =
-      this.namedParameters.get(name) ??
-      this.positionalParameters.find((p) => p.name === name);
-
-    // Validate that the parameter exists
-    if (parameter === undefined) {
-      throw new HardhatError(
-        HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_NAMED_PARAM,
-        {
-          parameter: name,
-        },
-      );
-    }
-
-    return parameter;
-  }
-
-  /**
    * Validates that a required parameter has a value. A parameter is required if
    * it doesn't have a default value.
+   *
    * @throws HardhatError if the parameter is required and doesn't have a value.
    */
   #validateRequiredParameter(
-    parameter: NamedTaskParameter | PositionalTaskParameter,
-    value: unknown,
+    parameter: TaskParameter,
+    value: ParameterValue | ParameterValue[],
   ) {
     if (parameter.defaultValue === undefined && value === undefined) {
       throw new HardhatError(
@@ -184,18 +181,46 @@ export class ResolvedTask implements Task {
    * @throws HardhatError if the parameter has an invalid type.
    */
   #validateParameterType(
-    parameter: NamedTaskParameter | PositionalTaskParameter,
-    value: unknown,
+    parameter: TaskParameter,
+    value: ParameterValue | ParameterValue[],
   ) {
     // skip type validation for optional parameters with undefined value
     if (value === undefined && parameter.defaultValue !== undefined) {
       return;
     }
 
-    const isVariadic = "isVariadic" in parameter && parameter.isVariadic;
+    // check if the parameter is variadic
+    const isPositionalParameter = (
+      param: TaskParameter,
+    ): param is PositionalTaskParameter => "isVariadic" in param;
+    const isVariadic = isPositionalParameter(parameter) && parameter.isVariadic;
+
+    // check if the value is valid for the parameter type
     if (!isParameterValueValid(parameter.parameterType, value, isVariadic)) {
-      throw new Error( // TODO should be a HardhatError
-        `Invalid type for parameter ${parameter.name} in task ${formatTaskId(this.id)}`,
+      throw new HardhatError(
+        HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+        {
+          value,
+          name: parameter.name,
+          type: parameter.parameterType,
+        },
+      );
+    }
+  }
+
+  /**
+   * Validates that no extra parameters were provided in the task arguments.
+   *
+   * @throws HardhatError if extra parameters were provided. The error message
+   * includes the name of the first extra parameter.
+   */
+  #validateExtraParameters(providedParameterNames: Set<string>) {
+    if (providedParameterNames.size > 0) {
+      throw new HardhatError(
+        HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_NAMED_PARAM,
+        {
+          parameter: [...providedParameterNames][0],
+        },
       );
     }
   }
@@ -213,16 +238,25 @@ export class ResolvedTask implements Task {
   ): Promise<NewTaskActionFunction | TaskOverrideActionFunction> {
     let resolvedActionFn;
     try {
-      resolvedActionFn = await import(actionFileUrl);
-    } catch (error) {
-      // TODO: use HardhatError
-      throw new Error(`Error importing the module`);
+      const actionFilePath = fileURLToPath(actionFileUrl);
+      resolvedActionFn = await import(actionFilePath);
+    } catch {
+      throw new HardhatError(
+        HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION_URL,
+        {
+          action: actionFileUrl,
+          task: formatTaskId(taskId),
+        },
+      );
     }
 
     if (typeof resolvedActionFn.default !== "function") {
-      // TODO: use HardhatError
-      throw new Error(
-        `The task ${formatTaskId(taskId)} has an invalid action file`,
+      throw new HardhatError(
+        HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION,
+        {
+          action: actionFileUrl,
+          task: formatTaskId(taskId),
+        },
       );
     }
 
