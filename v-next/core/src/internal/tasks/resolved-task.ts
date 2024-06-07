@@ -1,3 +1,4 @@
+import type { ParameterValue } from "../../types/common.js";
 import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
 import type {
   NamedTaskParameter,
@@ -14,7 +15,7 @@ import { fileURLToPath } from "node:url";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
-import { ParameterValue, isParameterValueValid } from "../../types/common.js";
+import { isParameterValueValid } from "../../types/common.js";
 
 import { formatTaskId } from "./utils.js";
 
