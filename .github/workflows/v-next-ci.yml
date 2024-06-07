@@ -47,7 +47,7 @@ jobs:
       - uses: actions/checkout@v4
       - id: list
         run: |
-          echo "packages=$(ls -d v-next/* | xargs -n 1 basename| jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
+          echo "packages=$(ls -d v-next/* | xargs -n 1 basename | grep -v example-project | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
 
   lint:
     needs: list-packages

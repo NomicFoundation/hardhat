@@ -1,0 +1,25 @@
+{
+  "name": "@nomicfoundation/example-project",
+  "private": true,
+  "version": "3.0.0",
+  "description": "Example project using Hardhat v3",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/example-project",
+  "repository": "github:nomicfoundation/hardhat",
+  "author": "Nomic Foundation",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "lint": "pnpm prettier --check",
+    "lint:fix": "pnpm prettier --write",
+    "prettier": "prettier \"**/*.{ts,js,md,json}\"",
+    "build": "tsc --build .",
+    "prepublishOnly": "pnpm build",
+    "clean": "rimraf dist"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat": "workspace:^3.0.0",
+    "@types/node": "^20.0.0",
+    "prettier": "3.2.5",
+    "typescript": "~5.4.0"
+  }
+}
