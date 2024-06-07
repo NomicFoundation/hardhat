@@ -11,14 +11,12 @@ import type {
   TaskParameter,
 } from "../../types/tasks.js";
 
-import { fileURLToPath } from "node:url";
-
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 import { isParameterValueValid } from "../../types/common.js";
 
 import { formatTaskId } from "./utils.js";
-import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 export class ResolvedTask implements Task {
   readonly #hre: HardhatRuntimeEnvironment;
@@ -240,8 +238,7 @@ export class ResolvedTask implements Task {
   ): Promise<NewTaskActionFunction | TaskOverrideActionFunction> {
     let resolvedActionFn;
     try {
-      const actionFilePath = fileURLToPath(actionFileUrl);
-      resolvedActionFn = await import(actionFilePath);
+      resolvedActionFn = await import(actionFileUrl);
     } catch (error) {
       ensureError(error);
       throw new HardhatError(
