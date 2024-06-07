@@ -6,15 +6,26 @@ on:
       - main
   pull_request:
   workflow_dispatch:
+  # Triggering on pull_request_target to provide quick feedback before
+  # all the other workflow runs triggered on pull_request are approved
+  pull_request_target:
+    types:
+      - opened
+    branches:
+      - main
 
 concurrency:
-  group: ${{github.workflow}}-${{github.ref}}
+  group: ${{github.workflow}}-${{github.event_name}}-${{github.event_name == 'pull_request_target' && github.event.number || github.ref}}
   cancel-in-progress: true
 
 jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    # Keeping permissions to a minimum to avoid leaking sensitive information
+    # on runs triggered by pull_request_target
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -23,7 +34,20 @@ jobs:
       run:
         working-directory: ${{ matrix.working-directory || github.workspace }}
     steps:
+      # Checking out both the default branch and the PR branch on pull_request_target
+      # to allow checking out sensitive files from the default branch
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        if: github.event_name == 'pull_request_target'
+        with:
+          ref: "refs/pull/${{ github.event.number }}/merge"
+          persist-credentials: false
+      - if: github.event_name == 'pull_request_target'
+        run: |
+          git checkout $GITHUB_SHA --no-overlay -- .github/actions/setup-env
+        working-directory: ${{ github.workspace }}
       - uses: ./.github/actions/setup-env
         with:
           pnpm-lockfile: ${{ matrix.working-directory || '.' }}/pnpm-lock.yaml
@@ -40,11 +64,21 @@ jobs:
       - name: Check dependency versions
         if: matrix.working-directory == ''
         run: node scripts/check-dependencies.js
-  save_event:
-    name: Save event
+  comment:
+    needs: [lint]
+    if: failure() && github.event_name == 'pull_request_target' && needs.lint.result == 'failure'
+    name: Comment
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
-      - uses: actions/upload-artifact@v4
+      - uses: actions/github-script@v6
+        name: Comment on failure
         with:
-          name: event
-          path: ${{ github.event_path }}
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "Thanks for submitting this PR!\n\nUnfortunately, it has some linter errors, so we can't merge it yet. Can you please fix them?\n\nRunning pnpm lint:fix in the root of the repository may fix them automatically."
+            })
