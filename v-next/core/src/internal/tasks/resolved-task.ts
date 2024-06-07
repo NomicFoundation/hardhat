@@ -18,6 +18,7 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isParameterValueValid } from "../../types/common.js";
 
 import { formatTaskId } from "./utils.js";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 export class ResolvedTask implements Task {
   readonly #hre: HardhatRuntimeEnvironment;
@@ -241,13 +242,15 @@ export class ResolvedTask implements Task {
     try {
       const actionFilePath = fileURLToPath(actionFileUrl);
       resolvedActionFn = await import(actionFilePath);
-    } catch {
+    } catch (error) {
+      ensureError(error);
       throw new HardhatError(
         HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION_URL,
         {
           action: actionFileUrl,
           task: formatTaskId(taskId),
         },
+        error,
       );
     }
 
