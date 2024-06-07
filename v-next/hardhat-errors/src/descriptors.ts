@@ -144,6 +144,24 @@ Please double check whether you have multiple versions of the same plugin instal
       websiteDescription:
         "The config file doesn't export a valid configuration object.",
     },
+    ENV_VAR_NOT_FOUND: {
+      number: 9,
+      messageTemplate: "Configuration variable not found as an env variable",
+      websiteTitle: "Configuration variable not found",
+      websiteDescription: `A configuration variable was expected to be set as an environment variable, but it wasn't.`,
+    },
+    INVALID_URL: {
+      number: 10,
+      messageTemplate: "Invalid URL: {url}",
+      websiteTitle: "Invalid URL",
+      websiteDescription: `Given value was not a valid URL.`,
+    },
+    INVALID_BIGINT: {
+      number: 11,
+      messageTemplate: "Invalid BigInt: {value}",
+      websiteTitle: "Invalid BigInt",
+      websiteDescription: `Given value was not a valid BigInt.`,
+    },
   },
   INTERNAL: {
     ASSERTION_ERROR: {

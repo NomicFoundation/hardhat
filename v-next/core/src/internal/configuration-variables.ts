@@ -1,3 +1,5 @@
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import {
   ConfigurationVariable,
   ResolvedConfigurationVariable,
@@ -12,7 +14,7 @@ export class ResolvedConfigurationVariableImplementation
 
   readonly #hooks: HookManager;
   readonly #variable: ConfigurationVariable | string;
-  readonly #cachedValue?: string;
+  #cachedValue?: string;
 
   constructor(hooks: HookManager, variable: ConfigurationVariable | string) {
     this.#hooks = hooks;
@@ -24,24 +26,26 @@ export class ResolvedConfigurationVariableImplementation
       return this.#variable;
     }
 
-    if (this.#cachedValue !== undefined) {
-      return this.#cachedValue;
+    if (this.#cachedValue === undefined) {
+      this.#cachedValue = await this.#hooks.runHandlerChain(
+        "configurationVariables",
+        "fetchValue",
+        [this.#variable],
+        async (_context, v) => {
+          const value = process.env[v.name];
+
+          if (typeof value !== "string") {
+            throw new HardhatError(
+              HardhatError.ERRORS.GENERAL.ENV_VAR_NOT_FOUND,
+            );
+          }
+
+          return value;
+        },
+      );
     }
 
-    return this.#hooks.runHandlerChain(
-      "configurationVariables",
-      "fetchValue",
-      [this.#variable],
-      async (_context, v) => {
-        const value = process.env[v.name];
-
-        if (typeof value !== "string") {
-          throw new Error("Variable not found as an env variable");
-        }
-
-        return value;
-      },
-    );
+    return this.#cachedValue;
   }
 
   public async getUrl(): Promise<string> {
@@ -51,7 +55,9 @@ export class ResolvedConfigurationVariableImplementation
       new URL(value);
       return value;
     } catch (e) {
-      throw new Error(`Invalid URL: ${value}`);
+      throw new HardhatError(HardhatError.ERRORS.GENERAL.INVALID_URL, {
+        url: value,
+      });
     }
   }
 
@@ -61,7 +67,9 @@ export class ResolvedConfigurationVariableImplementation
     try {
       return BigInt(value);
     } catch (e) {
-      throw new Error(`Invalid BigInt: ${value}`);
+      throw new HardhatError(HardhatError.ERRORS.GENERAL.INVALID_BIGINT, {
+        value,
+      });
     }
   }
 }
