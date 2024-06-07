@@ -1,7 +1,5 @@
 import assert from "node:assert/strict";
-import path from "node:path";
 import { describe, it } from "node:test";
-import { pathToFileURL } from "node:url";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
@@ -1165,12 +1163,9 @@ describe("TaskManagerImplementation", () => {
     });
 
     it("should run a task with an action url", async () => {
-      const actionUrl = pathToFileURL(
-        path.resolve(
-          import.meta.dirname,
-          "./fixture-projects/file-actions/action-fn.js",
-        ),
-      ).toString();
+      const actionUrl = import.meta.resolve(
+        "./fixture-projects/file-actions/action-fn.js",
+      );
 
       const hre = await createHardhatRuntimeEnvironment({
         plugins: [
@@ -1195,12 +1190,9 @@ describe("TaskManagerImplementation", () => {
     });
 
     it("should run a task with an invalid action url that was overriden and the override doesn't call runSuper", async () => {
-      const validActionUrl = pathToFileURL(
-        path.resolve(
-          import.meta.dirname,
-          "./fixture-projects/file-actions/no-run-super.js",
-        ),
-      ).toString();
+      const validActionUrl = import.meta.resolve(
+        "./fixture-projects/file-actions/no-run-super.js",
+      );
 
       const hre = await createHardhatRuntimeEnvironment({
         plugins: [
@@ -1474,12 +1466,9 @@ describe("TaskManagerImplementation", () => {
       });
 
       it("should throw if an action url is provided and the module doesn't have a default export", async () => {
-        const actionUrl = pathToFileURL(
-          path.resolve(
-            import.meta.dirname,
-            "./fixture-projects/file-actions/no-default.js",
-          ),
-        ).toString();
+        const actionUrl = import.meta.resolve(
+          "./fixture-projects/file-actions/no-default.js",
+        );
 
         const hre = await createHardhatRuntimeEnvironment({
           plugins: [
@@ -1508,12 +1497,9 @@ describe("TaskManagerImplementation", () => {
       });
 
       it("should throw if an action url is provided and the module default export is not a function", async () => {
-        const actionUrl = pathToFileURL(
-          path.resolve(
-            import.meta.dirname,
-            "./fixture-projects/file-actions/no-default-fn.js",
-          ),
-        ).toString();
+        const actionUrl = import.meta.resolve(
+          "./fixture-projects/file-actions/no-default-fn.js",
+        );
 
         const hre = await createHardhatRuntimeEnvironment({
           plugins: [
