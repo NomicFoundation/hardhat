@@ -306,7 +306,7 @@ export class HookManagerImplementation implements HookManager {
 
     const category = await factory();
 
-    // TODO: Assert that category is not undefined and it's an object
+    // TODO: Assert that category is not undefined and it's an object -- should use !isObject(category)
     if (typeof category !== "object" || category === null) {
       throw new Error(
         `Plugin ${pluginId} doesn't export a valid factory for category ${hookCategoryName} in ${path}, it didn't return an object`,
