@@ -101,7 +101,7 @@ export class ResolvedTask implements Task {
       ...this.positionalParameters,
     ];
 
-    const providedParameterNames = new Set(Object.keys(taskArguments));
+    const providedArgumentNames = new Set(Object.keys(taskArguments));
     for (const parameter of allParameters) {
       const value = taskArguments[parameter.name];
 
@@ -113,13 +113,13 @@ export class ResolvedTask implements Task {
         taskArguments[parameter.name] = parameter.defaultValue;
       }
 
-      // Remove processed parameter from the set as it has been processed
-      providedParameterNames.delete(parameter.name);
+      // Remove processed parameter from the set
+      providedArgumentNames.delete(parameter.name);
     }
 
     // At this point, the set should be empty as all the task parameters have
     // been processed. If there are any extra parameters, an error is thrown
-    this.#validateExtraParameters(providedParameterNames);
+    this.#validateExtraArguments(providedArgumentNames);
 
     const next = async (
       nextTaskArguments: TaskArguments,
@@ -210,17 +210,17 @@ export class ResolvedTask implements Task {
   }
 
   /**
-   * Validates that no extra parameters were provided in the task arguments.
+   * Validates that no extra arguments were provided in the task arguments.
    *
-   * @throws HardhatError if extra parameters were provided. The error message
-   * includes the name of the first extra parameter.
+   * @throws HardhatError if extra arguments were provided. The error message
+   * includes the name of the first extra argument.
    */
-  #validateExtraParameters(providedParameterNames: Set<string>) {
-    if (providedParameterNames.size > 0) {
+  #validateExtraArguments(providedArgumentNames: Set<string>) {
+    if (providedArgumentNames.size > 0) {
       throw new HardhatError(
         HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_NAMED_PARAM,
         {
-          parameter: [...providedParameterNames][0],
+          parameter: [...providedArgumentNames][0],
         },
       );
     }
