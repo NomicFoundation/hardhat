@@ -3,6 +3,7 @@ import { pathToFileURL } from "node:url";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { findUp } from "@nomicfoundation/hardhat-utils/fs";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
 import { ERRORS } from "../../../../hardhat-errors/src/descriptors.js";
 
@@ -51,7 +52,7 @@ export async function importUserConfig(configPath: string) {
 
   const config = imported.default;
 
-  if (typeof config !== "object" || config === null) {
+  if (!isObject(config) || config === null) {
     throw new HardhatError(ERRORS.GENERAL.INVALID_CONFIG_OBJECT, {
       configPath,
     });

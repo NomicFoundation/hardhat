@@ -24,6 +24,7 @@ import {
   assertHardhatInvariant,
 } from "@nomicfoundation/hardhat-errors";
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
+import { kebabToCamelCase } from "@nomicfoundation/hardhat-utils/string";
 
 import { builtinPlugins } from "../builtin-plugins/index.js";
 import {
@@ -56,7 +57,10 @@ export async function main(cliArguments: string[]) {
   try {
     const userConfig = await importUserConfig(hardhatSpecialArgs.configPath);
 
-    const plugins = [...builtinPlugins, ...(userConfig.plugins ?? [])];
+    const configPlugins = Array.isArray(userConfig.plugins)
+      ? userConfig.plugins
+      : [];
+    const plugins = [...builtinPlugins, ...configPlugins];
     const resolvedPlugins = await resolvePluginList(
       plugins,
       hardhatSpecialArgs.configPath,
@@ -509,10 +513,6 @@ function validateRequiredParameters(
     HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_PARAMETER,
     { paramName: missingRequiredParam.name },
   );
-}
-
-function kebabToCamelCase(str: string) {
-  return str.replace(/-./g, (match) => match.charAt(1).toUpperCase());
 }
 
 function parseParameterValue(

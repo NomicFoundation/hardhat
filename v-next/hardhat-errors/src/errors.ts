@@ -1,4 +1,5 @@
 import { CustomError } from "@nomicfoundation/hardhat-utils/error";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
 import { ERRORS, ErrorDescriptor } from "./descriptors.js";
 
@@ -81,7 +82,7 @@ export class HardhatError<
       messageArgumentsOrParentError === undefined ||
       messageArgumentsOrParentError instanceof Error
     ) {
-      /* eslint-disable @typescript-eslint/consistent-type-assertions -- 
+      /* eslint-disable @typescript-eslint/consistent-type-assertions --
       Typescript inference get's lost here, but we know that if we didn't get
       arguments, it's because the error doesn't have any. */
       this.#arguments = {} as MessagetTemplateArguments<
@@ -116,7 +117,7 @@ export class HardhatError<
     other: unknown,
     descriptor?: ErrorDescriptor,
   ): other is HardhatError<ErrorDescriptor> {
-    if (typeof other !== "object" || other === null) {
+    if (!isObject(other) || other === null) {
       return false;
     }
 
@@ -130,7 +131,7 @@ export class HardhatError<
       // If an error descriptor is provided, check if its number matches the Hardhat error number
       (descriptor === undefined
         ? true
-        : (other as HardhatError<ErrorDescriptor>).number === descriptor.number)
+        : "number" in other && other.number === descriptor.number)
     );
   }
 
