@@ -7,6 +7,7 @@ import { ParameterType } from "../../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../../src/index.js";
 import { buildGlobalParameterDefinition } from "../../../src/internal/global-parameters.js";
 import {
+  EmptyTaskDefinitionBuilderImplementation,
   NewTaskDefinitionBuilderImplementation,
   TaskOverrideDefinitionBuilderImplementation,
 } from "../../../src/internal/tasks/builders.js";
@@ -291,11 +292,10 @@ describe("TaskManagerImplementation", () => {
         {
           id: "plugin1",
           tasks: [
-            {
-              id: ["task1"],
-              description: "description1",
-              type: TaskDefinitionType.EMPTY_TASK,
-            },
+            new EmptyTaskDefinitionBuilderImplementation(
+              "task1",
+              "description1",
+            ).build(),
           ],
         },
       ],
@@ -312,11 +312,10 @@ describe("TaskManagerImplementation", () => {
         {
           id: "plugin1",
           tasks: [
-            {
-              id: ["task1"],
-              description: "description1",
-              type: TaskDefinitionType.EMPTY_TASK,
-            },
+            new EmptyTaskDefinitionBuilderImplementation(
+              "task1",
+              "description1",
+            ).build(),
             // adds a subtask to the empty task
             new NewTaskDefinitionBuilderImplementation(["task1", "subtask1"])
               .setAction(() => {})
@@ -1140,11 +1139,10 @@ describe("TaskManagerImplementation", () => {
           {
             id: "plugin1",
             tasks: [
-              {
-                id: ["task1"],
-                description: "description1",
-                type: TaskDefinitionType.EMPTY_TASK,
-              },
+              new EmptyTaskDefinitionBuilderImplementation(
+                "task1",
+                "description1",
+              ).build(),
               new TaskOverrideDefinitionBuilderImplementation("task1")
                 .setAction(async (args, _hre, runSuper) => {
                   await runSuper(args);
@@ -1226,11 +1224,10 @@ describe("TaskManagerImplementation", () => {
             {
               id: "plugin1",
               tasks: [
-                {
-                  id: ["task1"],
-                  description: "description1",
-                  type: TaskDefinitionType.EMPTY_TASK,
-                },
+                new EmptyTaskDefinitionBuilderImplementation(
+                  "task1",
+                  "description1",
+                ).build(),
               ],
             },
           ],
