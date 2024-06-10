@@ -1,12 +1,11 @@
-import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { expectTypeOf } from "expect-type";
+import { describe, it } from "node:test";
 
+import { ParameterType } from "../../src/config.js";
 import {
   isValidParamNameCasing,
   isParameterValueValid,
 } from "../../src/internal/parameters.js";
-import { ParameterType } from "../../src/config.js";
 
 describe("Parameters", () => {
   describe("isValidParamNameCasing", () => {
