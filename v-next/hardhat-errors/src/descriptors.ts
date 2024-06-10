@@ -247,10 +247,10 @@ Please ensure that an action is defined for each task.`,
     TASK_PARAMETER_ALREADY_DEFINED: {
       number: 209,
       messageTemplate:
-        "{actorFragment} trying to define task {task} with the named parameter {namedParamName} but it is already defined as a global parameter by plugin {globalParamPluginId}",
+        "{actorFragment} trying to define task {task} with the parameter {parameter} but it is already defined as a global parameter by plugin {globalParamPluginId}",
       websiteTitle: "Task parameter already defined",
       websiteDescription:
-        "The task named parameter is already defined as a global parameter by another plugin. Please ensure that task parameters are uniquely named to avoid conflicts.",
+        "The task parameter is already defined as a global parameter by another plugin. Please ensure that task parameters are uniquely named to avoid conflicts.",
     },
     TASK_OVERRIDE_PARAMETER_ALREADY_DEFINED: {
       number: 210,
