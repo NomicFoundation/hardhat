@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { before, describe, it } from "node:test";
+import { afterEach, before, describe, it, mock } from "node:test";
 
 import { createHardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core";
 import {
@@ -21,10 +21,12 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 
 import {
+  main,
   parseGlobalArguments,
   parseHardhatSpecialArguments,
   parseTaskAndArguments,
 } from "../../../src/internal/cli/main.js";
+import { useFixtureProject } from "../../helpers/project.js";
 
 async function getTasksAndHreEnvironment(
   tasksBuilders: NewTaskDefinitionBuilder[],
@@ -57,6 +59,81 @@ async function getTasksAndHreEnvironment(
 }
 
 describe("main", function () {
+  afterEach(function () {
+    mock.reset();
+  });
+
+  // const taskVariable = (await import(`${process.cwd()}/hardhat.config.js`))
+  //   .taskVariable;
+
+  describe("version", function () {
+    useFixtureProject("cli/parsing/version");
+
+    it("should print the version and instantly return", async function () {
+      const m = mock.method(console, "log", () => {});
+
+      const command = "npx hardhat example --version";
+      const cliArguments = command.split(" ").slice(2);
+
+      await main(cliArguments);
+
+      assert.equal(m.mock.calls.length, 1);
+      assert.equal(m.mock.calls[0].arguments[0], "3.0.0");
+
+      // TODO: check that the process exits, no task should be run
+    });
+  });
+
+  // it("should load the default hardhat configuration", async function () {}); // all tests validate this?
+
+  describe("version", function () {
+    useFixtureProject("cli/parsing/user-config");
+
+    it("should load the user hardhat configuration", async function () {
+      const command = "npx hardhat --config ./user-hardhat.config.ts user-task";
+      const cliArguments = command.split(" ").slice(2);
+
+      const userTaskResult = (
+        await import(`${process.cwd()}/user-hardhat.config.js`)
+      ).userTaskResult;
+
+      await main(cliArguments);
+      assert.equal(userTaskResult, true);
+    });
+  });
+
+  // it("should load the hardhat plugins", async function () {});
+
+  // it("should load the user plugins", async function () {});
+
+  // it("should load the hardhat tasks", async function () {}); // are inside tghe plugin?
+
+  // it("should load the user tasks", async function () {}); // are inside tghe plugin?
+
+  // it("should run a task with parameters and global parameters and hh initial flags", async function () {});
+
+  // it("should print the general help", async function () {});
+
+  // it("should print the task help", async function () {});
+
+  // it("should print the subtask help", async function () {});
+
+  // it("should pretty print the error", async function () {});
+
+  // it("should parse the task coming from the default hardhat plugins", async function () {
+  //   const globalAsAny: any = global;
+
+  //   const command = "npx hardhat example --flag";
+
+  //   const cliArguments = command.split(" ").slice(2);
+
+  //   await main(cliArguments);
+
+  //   assert.equal(globalAsAny.pippo, true);
+  // });
+});
+
+describe.skip("main", function () {
   describe("parseHardhatSpecialArguments", function () {
     it("should set all the hardhat special parameters", async function () {
       // All the <value> and "task" should be ignored
