@@ -25,7 +25,8 @@ export function isValidParamNameCasing(name: string): boolean {
  * This function uses a map of validators, where each validator is a function
  * that checks if a value is valid for a specific parameter type.
  * If the parameter type is variadic, the value is considered valid if it is an
- * array and all its elements are valid for the parameter type.
+ * array and all its elements are valid for the parameter type. An empty array
+ * is considered invalid.
  */
 export function isParameterValueValid(
   type: ParameterType,
@@ -35,7 +36,7 @@ export function isParameterValueValid(
   const validator = parameterTypeValidators[type];
 
   if (isVariadic) {
-    return Array.isArray(value) && value.every(validator);
+    return Array.isArray(value) && value.length > 0 && value.every(validator);
   }
 
   return validator(value);
