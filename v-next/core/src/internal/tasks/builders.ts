@@ -8,6 +8,8 @@ import type {
   TaskOverrideActionFunction,
   TaskOverrideDefinitionBuilder,
   TaskOverrideDefinition,
+  EmptyTaskDefinitionBuilder,
+  EmptyTaskDefinition,
 } from "../../types/tasks.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -20,6 +22,38 @@ import {
 } from "../parameters.js";
 
 import { formatTaskId, isValidActionUrl } from "./utils.js";
+
+export class EmptyTaskDefinitionBuilderImplementation
+  implements EmptyTaskDefinitionBuilder
+{
+  readonly #id: string[];
+
+  #description: string;
+
+  constructor(id: string | string[], description: string = "") {
+    if (id.length === 0) {
+      throw new HardhatError(
+        HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+      );
+    }
+
+    this.#id = Array.isArray(id) ? id : [id];
+    this.#description = description;
+  }
+
+  public setDescription(description: string): this {
+    this.#description = description;
+    return this;
+  }
+
+  public build(): EmptyTaskDefinition {
+    return {
+      type: TaskDefinitionType.EMPTY_TASK,
+      id: this.#id,
+      description: this.#description,
+    };
+  }
+}
 
 export class NewTaskDefinitionBuilderImplementation
   implements NewTaskDefinitionBuilder

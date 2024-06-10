@@ -1,5 +1,6 @@
 import { buildGlobalParameterDefinition } from "./internal/global-parameters.js";
 import {
+  EmptyTaskDefinitionBuilderImplementation,
   NewTaskDefinitionBuilderImplementation,
   TaskOverrideDefinitionBuilderImplementation,
 } from "./internal/tasks/builders.js";
@@ -7,9 +8,8 @@ import { ParameterType } from "./types/common.js";
 import { ConfigurationVariable } from "./types/config.js";
 import { GlobalParameter } from "./types/global-parameters.js";
 import {
-  EmptyTaskDefinition,
+  EmptyTaskDefinitionBuilder,
   NewTaskDefinitionBuilder,
-  TaskDefinitionType,
   TaskOverrideDefinitionBuilder,
 } from "./types/tasks.js";
 
@@ -40,12 +40,8 @@ export function task(
 export function emptyTask(
   id: string | string[],
   description: string,
-): EmptyTaskDefinition {
-  return {
-    type: TaskDefinitionType.EMPTY_TASK,
-    id: Array.isArray(id) ? id : [id],
-    description,
-  };
+): EmptyTaskDefinitionBuilder {
+  return new EmptyTaskDefinitionBuilderImplementation(id, description);
 }
 
 /**
