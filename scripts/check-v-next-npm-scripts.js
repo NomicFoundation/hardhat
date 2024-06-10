@@ -20,6 +20,11 @@ for (const dir of dirs) {
     continue;
   }
 
+  // Same with the example project, we don't use the same scripts
+  if (dir.name === "example-project") {
+    continue;
+  }
+
   const packageJsonPath = path.resolve(vNextDir, dir.name, "package.json");
   const packageJson = require(packageJsonPath);
 

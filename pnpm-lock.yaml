@@ -1505,6 +1505,21 @@ importers:
         specifier: 7.7.1
         version: 7.7.1(eslint@8.57.0)(typescript@5.4.3)
 
+  v-next/example-project:
+    devDependencies:
+      '@nomicfoundation/hardhat':
+        specifier: workspace:^3.0.0
+        version: link:../hardhat
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.14.2
+      prettier:
+        specifier: 3.2.5
+        version: 3.2.5
+      typescript:
+        specifier: ~5.4.0
+        version: 5.4.5
+
   v-next/hardhat:
     dependencies:
       '@nomicfoundation/hardhat-core':
@@ -3000,6 +3015,9 @@ packages:
 
   '@types/node@20.12.10':
     resolution: {integrity: sha512-Eem5pH9pmWBHoGAT8Dr5fdc5rYA+4NAovdM4EktRPVAAiJhmWWfQrA0cFhAbOsQdSfIHjAud6YdkbL69+zSKjw==}
+
+  '@types/node@20.14.2':
+    resolution: {integrity: sha512-xyu6WAMVwv6AKFLB+e/7ySZVr/0zLCzOa7rSpq6jNwpqOrUbcACDWC+53d4n2QHOnDou0fbIsg8wZu/sxrnI4Q==}
 
   '@types/node@8.10.66':
     resolution: {integrity: sha512-tktOkFUA4kXx2hhhrB8bIFb5TbwzS4uOhKEmwiD+NoiL0qtP2OQ9mFldbgD4dV1djrlBYP6eBuQZiWjuHUpqFw==}
@@ -8106,7 +8124,7 @@ snapshots:
 
   '@types/bn.js@4.11.6':
     dependencies:
-      '@types/node': 20.12.10
+      '@types/node': 20.14.2
 
   '@types/bn.js@5.1.5':
     dependencies:
@@ -8122,7 +8140,7 @@ snapshots:
 
   '@types/concat-stream@1.6.1':
     dependencies:
-      '@types/node': 20.12.10
+      '@types/node': 20.14.2
 
   '@types/debug@4.1.12':
     dependencies:
@@ -8134,7 +8152,7 @@ snapshots:
 
   '@types/form-data@0.0.33':
     dependencies:
-      '@types/node': 20.12.10
+      '@types/node': 20.14.2
 
   '@types/fs-extra@5.1.0':
     dependencies:
@@ -8189,13 +8207,17 @@ snapshots:
     dependencies:
       undici-types: 5.26.5
 
+  '@types/node@20.14.2':
+    dependencies:
+      undici-types: 5.26.5
+
   '@types/node@8.10.66': {}
 
   '@types/normalize-package-data@2.4.4': {}
 
   '@types/pbkdf2@3.1.2':
     dependencies:
-      '@types/node': 20.12.10
+      '@types/node': 20.14.2
 
   '@types/prettier@2.7.3': {}
 
@@ -8203,14 +8225,14 @@ snapshots:
 
   '@types/readable-stream@2.3.15':
     dependencies:
-      '@types/node': 20.12.10
+      '@types/node': 20.14.2
       safe-buffer: 5.1.2
 
   '@types/resolve@1.20.6': {}
 
   '@types/secp256k1@4.0.6':
     dependencies:
-      '@types/node': 20.12.10
+      '@types/node': 20.14.2
 
   '@types/semver@6.2.7': {}
 
@@ -8237,7 +8259,7 @@ snapshots:
 
   '@types/ws@8.5.3':
     dependencies:
-      '@types/node': 20.12.10
+      '@types/node': 20.14.2
 
   '@typescript-eslint/eslint-plugin@5.61.0(@typescript-eslint/parser@5.61.0(eslint@8.57.0)(typescript@5.0.4))(eslint@8.57.0)(typescript@5.0.4)':
     dependencies:

@@ -8,55 +8,55 @@ const ORIGINAL_ENV_VARS = process.env;
 
 describe("ci", () => {
   describe("isCi", () => {
-    beforeEach(function () {
+    beforeEach(() => {
       process.env = {};
     });
 
-    after(function () {
+    after(() => {
       // Restore original ENV variables
       process.env = ORIGINAL_ENV_VARS;
     });
 
-    it("should be false because all the ENV variables are undefined", async function () {
+    it("should be false because all the ENV variables are undefined", async () => {
       assert.equal(isCi(), false);
     });
 
-    it("should be true because the ENV variable CI is true", async function () {
+    it("should be true because the ENV variable CI is true", async () => {
       process.env.CI = "true";
       assert.equal(isCi(), true);
     });
 
-    it("should be true because the ENV variable CONTINUOUS_INTEGRATION is true", async function () {
+    it("should be true because the ENV variable CONTINUOUS_INTEGRATION is true", async () => {
       process.env.CONTINUOUS_INTEGRATION = "true";
       assert.equal(isCi(), true);
     });
 
-    it("should be true because the ENV variable BUILD_NUMBER is true", async function () {
+    it("should be true because the ENV variable BUILD_NUMBER is true", async () => {
       process.env.BUILD_NUMBER = "true";
       assert.equal(isCi(), true);
     });
 
-    it("should be true because the ENV variable RUN_ID is true", async function () {
+    it("should be true because the ENV variable RUN_ID is true", async () => {
       process.env.RUN_ID = "true";
       assert.equal(isCi(), true);
     });
 
-    it("should be true because the ENV variable GITHUB_ACTIONS is true", async function () {
+    it("should be true because the ENV variable GITHUB_ACTIONS is true", async () => {
       process.env.GITHUB_ACTIONS = "true";
       assert.equal(isCi(), true);
     });
 
-    it("should be true because the ENV variable NOW is true", async function () {
+    it("should be true because the ENV variable NOW is true", async () => {
       process.env.NOW = "true";
       assert.equal(isCi(), true);
     });
 
-    it("should be true because the ENV variable DEPLOYMENT_ID is true", async function () {
+    it("should be true because the ENV variable DEPLOYMENT_ID is true", async () => {
       process.env.DEPLOYMENT_ID = "true";
       assert.equal(isCi(), true);
     });
 
-    it("should be true because the ENV variable CODEBUILD_BUILD_NUMBER is true", async function () {
+    it("should be true because the ENV variable CODEBUILD_BUILD_NUMBER is true", async () => {
       process.env.CODEBUILD_BUILD_NUMBER = "true";
       assert.equal(isCi(), true);
     });

@@ -6,9 +6,9 @@ import {
 } from "./src/config.js";
 
 const exampleTaskOverride = overrideTask("example")
-  .setAction(async (_, _hre, runSuper) => {
+  .setAction(async (args, _hre, runSuper) => {
     console.log("from an override");
-    await runSuper();
+    await runSuper(args);
   })
   .build();
 
