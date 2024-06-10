@@ -380,6 +380,10 @@ export interface Task {
  */
 export interface TaskManager {
   /**
+   * Returns the root tasks of the task manager.
+   */
+  get rootTasks(): Map<string, Task>;
+  /**
    * Returns a task by its id, throwing if it doesn't exist.
    */
   getTask(taskId: string | string[]): Task;
