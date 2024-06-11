@@ -11,10 +11,14 @@ import type {
   TaskParameter,
 } from "../../types/tasks.js";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  HardhatError,
+  assertHardhatInvariant,
+} from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 import { isParameterValueValid } from "../parameters.js";
+import { detectPluginNpmDependencyProblems } from "../plugins/detect-plugin-npm-dependency-problems.js";
 
 import { formatTaskId } from "./utils.js";
 
@@ -130,7 +134,7 @@ export class ResolvedTask implements Task {
       const actionFn =
         typeof currentAction === "function"
           ? currentAction
-          : await this.#resolveFileAction(currentAction, this.id);
+          : await this.#resolveFileAction(currentAction);
 
       if (currentIndex === 0) {
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
@@ -237,18 +241,31 @@ export class ResolvedTask implements Task {
    */
   async #resolveFileAction(
     actionFileUrl: string,
-    taskId: string[],
   ): Promise<NewTaskActionFunction | TaskOverrideActionFunction> {
     let resolvedActionFn;
     try {
       resolvedActionFn = await import(actionFileUrl);
     } catch (error) {
       ensureError(error);
+
+      if (this.pluginId !== undefined) {
+        const plugin = this.#hre.config.plugins.find(
+          (p) => p.id === this.pluginId,
+        );
+
+        assertHardhatInvariant(
+          plugin !== undefined,
+          `Plugin with id ${this.pluginId} not found.`,
+        );
+
+        await detectPluginNpmDependencyProblems(plugin);
+      }
+
       throw new HardhatError(
         HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION_URL,
         {
           action: actionFileUrl,
-          task: formatTaskId(taskId),
+          task: formatTaskId(this.id),
         },
         error,
       );
@@ -259,7 +276,7 @@ export class ResolvedTask implements Task {
         HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION,
         {
           action: actionFileUrl,
-          task: formatTaskId(taskId),
+          task: formatTaskId(this.id),
         },
       );
     }
