@@ -1,9 +1,10 @@
+import type { UserInterruptionHooks } from "../../../src/types/hooks.js";
+
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { HookManagerImplementation } from "../../../src/internal/hook-manager.js";
 import { UserInterruptionManagerImplementation } from "../../../src/internal/user-interruptions.js";
-import { UserInterruptionHooks } from "../../../src/types/hooks.js";
 
 describe("UserInterruptionManager", () => {
   describe("displayMessage", () => {

@@ -1,17 +1,13 @@
+import type { ResolvedFile } from "./resolver.js";
+import type * as taskTypes from "../types/builtin-tasks/index.js";
+import type { SolcConfig, SolidityConfig } from "../types/index.js";
+
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import debug from "debug";
 import { deepEqual } from "fast-equals";
 import semver from "semver";
 
-import * as taskTypes from "../types/builtin-tasks/index.js";
-import {
-  CompilationJobCreationError,
-  CompilationJobCreationErrorReason,
-  CompilationJobsCreationResult,
-} from "../types/builtin-tasks/index.js";
-import { SolcConfig, SolidityConfig } from "../types/index.js";
-
-import { ResolvedFile } from "./resolver.js";
+import { CompilationJobCreationErrorReason } from "../types/builtin-tasks/index.js";
 
 // this should have a proper version range when it's fixed
 const SOLC_BUG_9573_VERSIONS = "<0.8.0";
@@ -21,7 +17,7 @@ function isCompilationJobCreationError(
     | taskTypes.CompilationJob
     | taskTypes.CompilationJobCreationError
     | SolcConfig,
-): x is CompilationJobCreationError {
+): x is taskTypes.CompilationJobCreationError {
   return "reason" in x;
 }
 
@@ -31,7 +27,7 @@ export async function createCompilationJobFromFile(
   dependencyGraph: taskTypes.DependencyGraph,
   file: ResolvedFile,
   solidityConfig: SolidityConfig,
-): Promise<CompilationJob | CompilationJobCreationError> {
+): Promise<CompilationJob | taskTypes.CompilationJobCreationError> {
   const directDependencies = dependencyGraph.getDependencies(file);
   const transitiveDependencies =
     dependencyGraph.getTransitiveDependencies(file);
@@ -73,10 +69,12 @@ export async function createCompilationJobsFromConnectedComponent(
   connectedComponent: taskTypes.DependencyGraph,
   getFromFile: (
     file: ResolvedFile,
-  ) => Promise<taskTypes.CompilationJob | CompilationJobCreationError>,
-): Promise<CompilationJobsCreationResult> {
+  ) => Promise<
+    taskTypes.CompilationJob | taskTypes.CompilationJobCreationError
+  >,
+): Promise<taskTypes.CompilationJobsCreationResult> {
   const compilationJobs: taskTypes.CompilationJob[] = [];
-  const errors: CompilationJobCreationError[] = [];
+  const errors: taskTypes.CompilationJobCreationError[] = [];
 
   for (const file of connectedComponent.getResolvedFiles()) {
     const compilationJobOrError = await getFromFile(file);
@@ -187,7 +185,7 @@ function getCompilerConfigForFile(
   directDependencies: ResolvedFile[],
   transitiveDependencies: taskTypes.TransitiveDependency[],
   solidityConfig: SolidityConfig,
-): SolcConfig | CompilationJobCreationError {
+): SolcConfig | taskTypes.CompilationJobCreationError {
   const transitiveDependenciesVersionPragmas = transitiveDependencies.map(
     ({ dependency }) => dependency.content.versionPragmas,
   );
@@ -249,7 +247,7 @@ function getCompilationJobCreationError(
   transitiveDependencies: taskTypes.TransitiveDependency[],
   compilerVersions: string[],
   overriden: boolean,
-): CompilationJobCreationError {
+): taskTypes.CompilationJobCreationError {
   const fileVersionRange = file.content.versionPragmas.join(" ");
   if (semver.maxSatisfying(compilerVersions, fileVersionRange) === null) {
     const reason = overriden

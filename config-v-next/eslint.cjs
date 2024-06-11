@@ -99,6 +99,13 @@ function createConfig(configFilePath, packageEntryPoints = []) {
         { assertionStyle: "never" },
       ],
       "@typescript-eslint/consistent-type-definitions": "error",
+      "@typescript-eslint/consistent-type-imports": [
+        "error",
+        {
+          prefer: "type-imports",
+          disallowTypeAnnotations: true,
+        },
+      ],
       "@typescript-eslint/dot-notation": "error",
       "@typescript-eslint/explicit-member-accessibility": [
         "error",
@@ -213,6 +220,25 @@ function createConfig(configFilePath, packageEntryPoints = []) {
           selector: "CatchClause[param] > Identifier[typeAnnotation]",
           message:
             "Use ensureError() or HardhatError.isHardhatError instead of casting the error",
+        },
+        {
+          selector:
+            "CallExpression[callee.object.name='assert'][callee.property.name=/strict/i]",
+          message:
+            "Use non-strict methods when importing from 'node:assert/strict'",
+        },
+        // We forbid using assert.ok and assert directly without a message
+        // as this may cause a bug. See: https://github.com/nodejs/node/issues/52962
+        {
+          selector: "CallExpression[callee.name='assert'][arguments.length<2]",
+          message:
+            "assert should provide an error message as the second argument",
+        },
+        {
+          selector:
+            "CallExpression[callee.object.name='assert'][callee.property.name='ok'][arguments.length<2]",
+          message:
+            "assert.ok should provide an error message as the second argument",
         },
       ],
       "@typescript-eslint/restrict-plus-operands": "error",

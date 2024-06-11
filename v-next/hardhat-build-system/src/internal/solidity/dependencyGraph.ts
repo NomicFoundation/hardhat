@@ -1,11 +1,10 @@
+import type { ResolvedFile, Resolver } from "./resolver.js";
+import type * as taskTypes from "../types/builtin-tasks/index.js";
+
 import {
   HardhatError,
   assertHardhatInvariant,
 } from "@nomicfoundation/hardhat-errors";
-
-import * as taskTypes from "../types/builtin-tasks/index.js";
-
-import { ResolvedFile, Resolver } from "./resolver.js";
 
 export class DependencyGraph implements taskTypes.DependencyGraph {
   public static async createFromResolvedFiles(

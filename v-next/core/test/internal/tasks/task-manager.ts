@@ -407,7 +407,45 @@ describe("TaskManagerImplementation", () => {
           {
             actorFragment: "Plugin plugin1 is",
             task: "task1",
-            namedParamName: "param1",
+            parameter: "param1",
+            globalParamPluginId: "plugin2",
+          },
+        ),
+      );
+    });
+
+    it("should throw if there's a global parameter with the same name as a task positional parameter", async () => {
+      await assert.rejects(
+        createHardhatRuntimeEnvironment({
+          plugins: [
+            {
+              id: "plugin1",
+              tasks: [
+                new NewTaskDefinitionBuilderImplementation("task1")
+                  .addPositionalParameter({ name: "param1" })
+                  .setAction(() => {})
+                  .build(),
+              ],
+            },
+            {
+              id: "plugin2",
+              globalParameters: [
+                buildGlobalParameterDefinition({
+                  name: "param1",
+                  description: "",
+                  parameterType: ParameterType.STRING,
+                  defaultValue: "",
+                }),
+              ],
+            },
+          ],
+        }),
+        new HardhatError(
+          HardhatError.ERRORS.TASK_DEFINITIONS.TASK_PARAMETER_ALREADY_DEFINED,
+          {
+            actorFragment: "Plugin plugin1 is",
+            task: "task1",
+            parameter: "param1",
             globalParamPluginId: "plugin2",
           },
         ),

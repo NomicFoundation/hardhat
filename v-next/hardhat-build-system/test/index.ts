@@ -213,10 +213,11 @@ describe("build-system", () => {
       const buildSystem = new BuildSystem(config);
       await buildSystem.build();
 
+      const calledWithExpectedMessage =
+        "Compiled 4 Solidity files successfully (evm targets: paris, petersburg, shanghai, unknown evm version for solc version 0.4.11).";
       assert(
-        spyFunctionConsoleLog.calledWith(
-          "Compiled 4 Solidity files successfully (evm targets: paris, petersburg, shanghai, unknown evm version for solc version 0.4.11).",
-        ),
+        spyFunctionConsoleLog.calledWith(calledWithExpectedMessage),
+        `expected console.log to be called with "${calledWithExpectedMessage}" but got "${spyFunctionConsoleLog.args[0][0]}"`,
       );
 
       spyFunctionConsoleLog.restore();

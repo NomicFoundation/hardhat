@@ -1,3 +1,5 @@
+import type { CompilerInput, CompilerOutput } from "../../types/index.js";
+
 import { execFile } from "node:child_process";
 import * as fs from "node:fs";
 import os from "node:os";
@@ -10,8 +12,6 @@ import {
 } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import * as semver from "semver";
-
-import { CompilerInput, CompilerOutput } from "../../types/index.js";
 
 export interface ICompiler {
   compile(input: CompilerInput): Promise<CompilerOutput>;

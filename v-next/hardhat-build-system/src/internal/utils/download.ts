@@ -1,9 +1,10 @@
+import type { DispatcherOptions } from "@nomicfoundation/hardhat-utils/request";
+
 import path from "node:path";
 
 import { ensureDir, move } from "@nomicfoundation/hardhat-utils/fs";
 import {
   download as downloadCompiler,
-  DispatcherOptions,
   shouldUseProxy,
 } from "@nomicfoundation/hardhat-utils/request";
 

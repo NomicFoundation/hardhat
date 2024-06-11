@@ -1,7 +1,7 @@
+import type EventEmitter from "node:events";
 import type { ParsedUrlQueryInput } from "node:querystring";
 import type UndiciT from "undici";
 
-import EventEmitter from "node:events";
 import fs from "node:fs";
 import querystring from "node:querystring";
 import stream from "node:stream/promises";

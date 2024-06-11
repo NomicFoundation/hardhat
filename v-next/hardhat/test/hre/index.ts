@@ -65,7 +65,10 @@ describe("HRE", () => {
           it("should load a config file in the current directory", async () => {
             const configPath = await resolveConfigPath();
 
-            assert(configPath.endsWith("hardhat.config.js"));
+            assert(
+              configPath.endsWith("hardhat.config.js"),
+              `expected configPath to end with hardhat.config.js, but got ${configPath}`,
+            );
           });
         });
 
@@ -75,7 +78,10 @@ describe("HRE", () => {
           it("should load a config file in the parent directory", async () => {
             const configPath = await resolveConfigPath();
 
-            assert(configPath.endsWith("hardhat.config.js"));
+            assert(
+              configPath.endsWith("hardhat.config.js"),
+              `expected configPath to end with hardhat.config.js, but got ${configPath}`,
+            );
           });
         });
       });
@@ -87,7 +93,10 @@ describe("HRE", () => {
           it("should load a config file in the current directory", async () => {
             const configPath = await resolveConfigPath();
 
-            assert(configPath.endsWith("hardhat.config.ts"));
+            assert(
+              configPath.endsWith("hardhat.config.ts"),
+              `expected configPath to end with hardhat.config.js, but got ${configPath}`,
+            );
           });
         });
 
@@ -97,7 +106,10 @@ describe("HRE", () => {
           it("should load a config file in the parent directory", async () => {
             const configPath = await resolveConfigPath();
 
-            assert(configPath.endsWith("hardhat.config.ts"));
+            assert(
+              configPath.endsWith("hardhat.config.ts"),
+              `expected configPath to end with hardhat.config.js, but got ${configPath}`,
+            );
           });
         });
       });

@@ -1,10 +1,10 @@
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
-
-import {
+import type {
   ConfigurationVariable,
   ResolvedConfigurationVariable,
 } from "../types/config.js";
-import { HookManager } from "../types/hooks.js";
+import type { HookManager } from "../types/hooks.js";
+
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 export class ResolvedConfigurationVariableImplementation
   implements ResolvedConfigurationVariable

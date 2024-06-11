@@ -1,6 +1,8 @@
-import { HardhatUserConfig } from "@nomicfoundation/hardhat-core/config";
-import { HardhatUserConfigValidationError } from "@nomicfoundation/hardhat-core/types/hooks";
-import { ZodType, ZodTypeDef, ZodIssue, z } from "zod";
+import type { HardhatUserConfig } from "@nomicfoundation/hardhat-core/config";
+import type { HardhatUserConfigValidationError } from "@nomicfoundation/hardhat-core/types/hooks";
+import type { ZodType, ZodTypeDef, ZodIssue } from "zod";
+
+import { z } from "zod";
 
 /**
  * A Zod type to validate Hardhat's ConfigurationVariable objects.

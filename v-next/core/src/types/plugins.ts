@@ -1,6 +1,6 @@
-import { GlobalParameter } from "./global-parameters.js";
-import { HardhatHooks } from "./hooks.js";
-import { TaskDefinition } from "./tasks.js";
+import type { GlobalParameter } from "./global-parameters.js";
+import type { HardhatHooks } from "./hooks.js";
+import type { TaskDefinition } from "./tasks.js";
 
 // We add the plugins to the config types with a module augmentation to avoid
 // introducing a circular dependency that would look like this:

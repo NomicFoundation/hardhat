@@ -1,3 +1,16 @@
+import type * as taskTypes from "./types/builtin-tasks/index.js";
+import type {
+  Artifacts,
+  CompilationJob,
+  CompilationJobCreationError,
+  CompilerInput,
+  CompilerOutput,
+  BuildConfig,
+  ResolvedFile,
+  SolcBuild,
+} from "./types/index.js";
+import type { Artifacts as ArtifactsImpl } from "./utils/artifacts.js";
+
 import {
   HardhatError,
   assertHardhatInvariant,
@@ -24,23 +37,8 @@ import { getEvmVersionFromSolcVersion } from "./solidity/compiler/solc-info.js";
 import { DependencyGraph } from "./solidity/dependencyGraph.js";
 import { Parser } from "./solidity/parse.js";
 import { Resolver } from "./solidity/resolver.js";
-import { CompilationJobsCreationResult } from "./types/builtin-tasks/index.js";
-import * as taskTypes from "./types/builtin-tasks/index.js";
-import {
-  Artifacts,
-  CompilationJob,
-  CompilationJobCreationError,
-  CompilationJobCreationErrorReason,
-  CompilerInput,
-  CompilerOutput,
-  BuildConfig,
-  ResolvedFile,
-  SolcBuild,
-} from "./types/index.js";
-import {
-  Artifacts as ArtifactsImpl,
-  getArtifactFromContractOutput,
-} from "./utils/artifacts.js";
+import { CompilationJobCreationErrorReason } from "./types/index.js";
+import { getArtifactFromContractOutput } from "./utils/artifacts.js";
 import { getFullyQualifiedName } from "./utils/contract-names.js";
 import { getAllFilesMatching } from "./utils/fs-utils.js";
 import { getCompilersDir } from "./utils/global-dir.js";
@@ -1176,8 +1174,8 @@ export async function taskCompileSolidityLogCompilationResult(
 // TASK_COMPILE_REMOVE_OBSOLETE_ARTIFACTS
 // TESTED
 export async function taskCompileRemoveObsoleteArtifacts(artifacts: Artifacts) {
-  /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- 
-  We know this is the actual implementation, so we use some non-public methods 
+  /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+  We know this is the actual implementation, so we use some non-public methods
   here by downcasting */
   const artifactsImpl = artifacts as ArtifactsImpl;
   await artifactsImpl.removeObsoleteArtifacts();
@@ -1283,7 +1281,7 @@ export async function taskCompileSolidity(
     dependencyGraph.getResolvedFiles(),
   );
 
-  const compilationJobsCreationResult: CompilationJobsCreationResult =
+  const compilationJobsCreationResult: taskTypes.CompilationJobsCreationResult =
     await taskCompileSolidityGetCompilationJobs(
       config,
       dependencyGraph,
@@ -1336,8 +1334,8 @@ export async function taskCompileSolidity(
 
   const allArtifactsEmittedPerFile = solidityFilesCache.getEntries();
 
-  /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- 
-  We know this is the actual implementation, so we use some non-public methods 
+  /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+  We know this is the actual implementation, so we use some non-public methods
   here by downcasting */
   const artifactsImpl = artifacts as ArtifactsImpl;
   artifactsImpl.addValidArtifacts(allArtifactsEmittedPerFile);

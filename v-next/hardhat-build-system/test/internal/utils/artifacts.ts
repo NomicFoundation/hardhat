@@ -1,5 +1,12 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions -- TODO: Stop
 using invalid objects in tests */
+import type {
+  Artifact,
+  BuildInfo,
+  CompilerInput,
+  CompilerOutput,
+} from "../../../src/internal/types/artifacts.js";
+
 import assert from "node:assert/strict";
 import * as os from "node:os";
 import path from "node:path";
@@ -12,12 +19,6 @@ import {
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 
-import {
-  Artifact,
-  BuildInfo,
-  CompilerInput,
-  CompilerOutput,
-} from "../../../src/internal/types/artifacts.js";
 import {
   Artifacts,
   getArtifactFromContractOutput,

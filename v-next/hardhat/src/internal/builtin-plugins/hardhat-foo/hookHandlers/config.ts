@@ -1,4 +1,5 @@
-import { ConfigHooks } from "@nomicfoundation/hardhat-core/types/hooks";
+import type { ConfigHooks } from "@nomicfoundation/hardhat-core/types/hooks";
+
 import {
   sensitiveStringType,
   validateUserConfigZodType,

@@ -1,18 +1,19 @@
+import type { GlobalParameterMap } from "../../types/global-parameters.js";
+import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
+import type {
+  Task,
+  TaskDefinition,
+  TaskManager,
+  NewTaskDefinition,
+  TaskOverrideDefinition,
+} from "../../types/tasks.js";
+
 import {
   HardhatError,
   assertHardhatInvariant,
 } from "@nomicfoundation/hardhat-errors";
 
-import { GlobalParameterMap } from "../../types/global-parameters.js";
-import { HardhatRuntimeEnvironment } from "../../types/hre.js";
-import {
-  Task,
-  TaskDefinition,
-  TaskDefinitionType,
-  TaskManager,
-  NewTaskDefinition,
-  TaskOverrideDefinition,
-} from "../../types/tasks.js";
+import { TaskDefinitionType } from "../../types/tasks.js";
 
 import { ResolvedTask } from "./resolved-task.js";
 import { formatTaskId, getActorFragment } from "./utils.js";
@@ -189,20 +190,26 @@ export class TaskManagerImplementation implements TaskManager {
     taskDefinition: NewTaskDefinition | TaskOverrideDefinition,
     pluginId?: string,
   ) {
-    for (const namedParamName of Object.keys(taskDefinition.namedParameters)) {
-      const globalParamEntry = globalParameterIndex.get(namedParamName);
+    const namedParamNames = Object.keys(taskDefinition.namedParameters);
+    const positionalParamNames =
+      "positionalParameters" in taskDefinition
+        ? taskDefinition.positionalParameters.map(({ name }) => name)
+        : [];
+
+    [...namedParamNames, ...positionalParamNames].forEach((paramName) => {
+      const globalParamEntry = globalParameterIndex.get(paramName);
       if (globalParamEntry !== undefined) {
         throw new HardhatError(
           HardhatError.ERRORS.TASK_DEFINITIONS.TASK_PARAMETER_ALREADY_DEFINED,
           {
             actorFragment: getActorFragment(pluginId),
             task: formatTaskId(taskDefinition.id),
-            namedParamName,
+            parameter: paramName,
             globalParamPluginId: globalParamEntry.pluginId,
           },
         );
       }
-    }
+    });
   }
 
   #processTaskOverride(

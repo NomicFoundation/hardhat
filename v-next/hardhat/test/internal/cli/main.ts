@@ -1,3 +1,13 @@
+import type {
+  GlobalParameterMap,
+  GlobalParameterMapEntry,
+} from "@nomicfoundation/hardhat-core/types/global-parameters";
+import type { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
+import type {
+  NewTaskDefinition,
+  NewTaskDefinitionBuilder,
+} from "@nomicfoundation/hardhat-core/types/tasks";
+
 import assert from "node:assert/strict";
 import { afterEach, before, describe, it, mock } from "node:test";
 
@@ -8,15 +18,6 @@ import {
   globalParameter,
   task,
 } from "@nomicfoundation/hardhat-core/config";
-import {
-  GlobalParameterMap,
-  GlobalParameterMapEntry,
-} from "@nomicfoundation/hardhat-core/types/global-parameters";
-import { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
-import {
-  NewTaskDefinition,
-  NewTaskDefinitionBuilder,
-} from "@nomicfoundation/hardhat-core/types/tasks";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 

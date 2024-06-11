@@ -1,11 +1,11 @@
+import type { HardhatPlugin } from "../../types/plugins.js";
+import type { PackageJson } from "@nomicfoundation/hardhat-utils/package";
+
 import { createRequire } from "node:module";
 import path from "node:path";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { PackageJson } from "@nomicfoundation/hardhat-utils/package";
 import semver from "semver";
-
-import { HardhatPlugin } from "../../types/plugins.js";
 
 /**
  * Validate that a plugin is installed and that its peer dependencies are installed and satisfy the version constraints.
