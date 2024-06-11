@@ -1,4 +1,4 @@
-import { HardhatUserConfig } from "@nomicfoundation/hardhat-core/config";
+import type { HardhatUserConfig } from "@nomicfoundation/hardhat-core/config";
 
 export default {
   tasks: [],

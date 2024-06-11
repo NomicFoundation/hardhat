@@ -1,5 +1,7 @@
+import type {
+  HardhatUserConfig} from "@nomicfoundation/hardhat-core/config";
+
 import {
-  HardhatUserConfig,
   emptyTask,
 } from "@nomicfoundation/hardhat-core/config";
 
