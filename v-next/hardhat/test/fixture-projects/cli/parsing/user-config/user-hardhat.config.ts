@@ -1,4 +1,4 @@
-import type { HardhatUserConfig} from "@nomicfoundation/hardhat-core/config";
+import type { HardhatUserConfig } from "@nomicfoundation/hardhat-core/config";
 
 import { task } from "@nomicfoundation/hardhat-core/config";
 
