@@ -10,14 +10,11 @@ describe("Plugins - resolve plugin list", () => {
   );
 
   it("should return empty on an empty plugin list", async () => {
-    assert.deepStrictEqual(
-      await resolvePluginList([], installedPackageFixture),
-      [],
-    );
+    assert.deepEqual(await resolvePluginList([], installedPackageFixture), []);
   });
 
   it("should return empty on an undefined plugin list", async () => {
-    assert.deepStrictEqual(
+    assert.deepEqual(
       await resolvePluginList(undefined, installedPackageFixture),
       [],
     );
@@ -28,7 +25,7 @@ describe("Plugins - resolve plugin list", () => {
       id: "example-plugin",
     };
 
-    assert.deepStrictEqual(
+    assert.deepEqual(
       await resolvePluginList([plugin], installedPackageFixture),
       [plugin],
     );
@@ -40,9 +37,10 @@ describe("Plugins - resolve plugin list", () => {
     const b: HardhatPlugin = { id: "b", dependencies: [async () => c] };
     const a: HardhatPlugin = { id: "a", dependencies: [async () => b] };
 
-    assert.deepStrictEqual(
+    const expected = [c, b, a];
+    assert.deepEqual(
       await resolvePluginList([a], installedPackageFixture),
-      [c, b, a],
+      expected,
     );
   });
 
@@ -52,9 +50,10 @@ describe("Plugins - resolve plugin list", () => {
     const b: HardhatPlugin = { id: "b" };
     const a: HardhatPlugin = { id: "a" };
 
-    assert.deepStrictEqual(
+    const expected = [a, b, c];
+    assert.deepEqual(
       await resolvePluginList([a, b, c], installedPackageFixture),
-      [a, b, c],
+      expected,
     );
   });
 
@@ -69,9 +68,10 @@ describe("Plugins - resolve plugin list", () => {
       dependencies: [async () => b, async () => c],
     };
 
-    assert.deepStrictEqual(
+    const expected = [b, c, a];
+    assert.deepEqual(
       await resolvePluginList([a], installedPackageFixture),
-      [b, c, a],
+      expected,
     );
   });
 
@@ -83,9 +83,10 @@ describe("Plugins - resolve plugin list", () => {
     const b: HardhatPlugin = { id: "b", dependencies: [async () => c] };
     const a: HardhatPlugin = { id: "a", dependencies: [async () => c] };
 
-    assert.deepStrictEqual(
+    const expected = [c, a, b];
+    assert.deepEqual(
       await resolvePluginList([a, b], installedPackageFixture),
-      [c, a, b],
+      expected,
     );
   });
 
@@ -103,9 +104,10 @@ describe("Plugins - resolve plugin list", () => {
       dependencies: [async () => b, async () => c],
     };
 
-    assert.deepStrictEqual(
+    const expected = [d, b, c, a];
+    assert.deepEqual(
       await resolvePluginList([a], installedPackageFixture),
-      [d, b, c, a],
+      expected,
     );
   });
 
@@ -133,9 +135,10 @@ describe("Plugins - resolve plugin list", () => {
       dependencies: [async () => c, async () => d],
     };
 
-    assert.deepStrictEqual(
+    const expected = [i, g, c, d, a, h, e, f, b];
+    assert.deepEqual(
       await resolvePluginList([a, b], installedPackageFixture),
-      [i, g, c, d, a, h, e, f, b],
+      expected,
     );
   });
 

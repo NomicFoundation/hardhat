@@ -214,6 +214,12 @@ function createConfig(configFilePath, packageEntryPoints = []) {
           message:
             "Use ensureError() or HardhatError.isHardhatError instead of casting the error",
         },
+        {
+          selector:
+            "CallExpression[callee.object.name='assert'][callee.property.name=/strict/i]",
+          message:
+            "Use non-strict methods when importing from 'node:assert/strict'",
+        },
       ],
       "@typescript-eslint/restrict-plus-operands": "error",
       "@typescript-eslint/restrict-template-expressions": [
