@@ -415,6 +415,17 @@ describe("main", function () {
         });
       });
 
+      it("should throw because the task parameter is not defined", function () {
+        const command = "npx hardhat undefined-task";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = [false];
+
+        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+
+        assert.deepEqual(res, ["undefined-task"]);
+      });
+
       it("should throw because the parameter is not defined", function () {
         const command = "npx hardhat task0 --undefinedParam <value>";
 
