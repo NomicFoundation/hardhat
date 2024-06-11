@@ -49,17 +49,17 @@ import {
 } from "../../../../src/internal/module";
 import {
   ContractAtFuture,
-  ContractDeploymentFuture,
-  LibraryDeploymentFuture,
-  FutureType,
-  NamedArtifactContractAtFuture,
   ContractCallFuture,
+  ContractDeploymentFuture,
+  EncodeFunctionCallFuture,
+  FutureType,
+  LibraryDeploymentFuture,
+  NamedArtifactContractAtFuture,
   NamedArtifactContractDeploymentFuture,
   NamedArtifactLibraryDeploymentFuture,
-  StaticCallFuture,
   ReadEventArgumentFuture,
   SendDataFuture,
-  EncodeFunctionCallFuture,
+  StaticCallFuture,
 } from "../../../../src/types/module";
 import {
   exampleAccounts,
@@ -665,32 +665,30 @@ describe("buildInitializeMessageFor", () => {
   describe("encode function call state", () => {
     let message: EncodeFunctionCallExecutionStateInitializeMessage;
 
-    describe("named library", () => {
-      beforeEach(async () => {
-        message = (await buildInitializeMessageFor(
-          encodedCall,
-          exampleDeploymentState,
-          basicStrategy,
-          {},
-          mockDeploymentLoader,
-          exampleAccounts,
-          getDefaultSender(exampleAccounts)
-        )) as EncodeFunctionCallExecutionStateInitializeMessage;
-      });
+    beforeEach(async () => {
+      message = (await buildInitializeMessageFor(
+        encodedCall,
+        exampleDeploymentState,
+        basicStrategy,
+        {},
+        mockDeploymentLoader,
+        exampleAccounts,
+        getDefaultSender(exampleAccounts)
+      )) as EncodeFunctionCallExecutionStateInitializeMessage;
+    });
 
-      it("should build an initialize message", async () => {
-        assert.deepStrictEqual(message, {
-          type: JournalMessageType.ENCODE_FUNCTION_CALL_EXECUTION_STATE_INITIALIZE,
-          futureId: "MyModule:EncodeFunctionCall",
-          strategy: "basic",
-          strategyConfig: {},
-          dependencies: ["MyModule:AnotherContract", "MyModule:SafeMath"],
-          artifactId: "MyModule:AnotherContract",
-          functionName: "test",
-          args: [1n, "b", libraryAddress, { sub: "d" }],
-          result:
-            "0xd40c6f1500000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000080000000000000000000000000742d35cc6634c0532925a3b844bc454e4438f44e00000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000016200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000016400000000000000000000000000000000000000000000000000000000000000",
-        });
+    it("should build an initialize message", async () => {
+      assert.deepStrictEqual(message, {
+        type: JournalMessageType.ENCODE_FUNCTION_CALL_EXECUTION_STATE_INITIALIZE,
+        futureId: "MyModule:EncodeFunctionCall",
+        strategy: "basic",
+        strategyConfig: {},
+        dependencies: ["MyModule:AnotherContract", "MyModule:SafeMath"],
+        artifactId: "MyModule:AnotherContract",
+        functionName: "test",
+        args: [1n, "b", libraryAddress, { sub: "d" }],
+        result:
+          "0xd40c6f1500000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000080000000000000000000000000742d35cc6634c0532925a3b844bc454e4438f44e00000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000016200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000016400000000000000000000000000000000000000000000000000000000000000",
       });
     });
   });
