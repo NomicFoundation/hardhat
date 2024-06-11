@@ -227,6 +227,8 @@ function createConfig(configFilePath, packageEntryPoints = []) {
           message:
             "Use non-strict methods when importing from 'node:assert/strict'",
         },
+        // We forbid using assert.ok and assert directly without a message
+        // as this may cause a bug. See: https://github.com/nodejs/node/issues/52962
         {
           selector: "CallExpression[callee.name='assert'][arguments.length<2]",
           message:
