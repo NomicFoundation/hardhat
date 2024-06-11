@@ -96,23 +96,23 @@ describe("main", function () {
       });
     });
 
-    // TODO: as soon as the 'show-stack-traces task' is done, this test should be updated
-    // describe("show-stack-traces", function () {
-    //   useFixtureProject("cli/parsing/base-project");
+    describe("show-stack-traces", function () {
+      useFixtureProject("cli/parsing/base-project");
 
-    //   it("should show the stack traces for the error", async function () {
-    //     const command = "npx hardhat non-existing-task";
-    //     const cliArguments = command.split(" ").slice(2);
+      // TODO: implement as soon as the error handling is done
+      // &&
+      // TODO throw when task is not recognized
+      // TODO: as soon as the 'show-stack-traces task' is done, this test should be updated
+      // it("should pretty print the error", async function () {});
+      it("should show the stack traces for the error", async function () {
+        const command = "npx hardhat non-existing-task";
+        const cliArguments = command.split(" ").slice(2);
 
-    //     const m = mock.method(console, "log", () => {});
-    //     // await assert.rejects(async () => {
-    //     main(cliArguments);
-    //     process.exitCode = 0;
-    //     assert.equal(m.mock.calls.length, 0);
-
-    //     // });
-    //   });
-    // });
+        await main(cliArguments);
+        assert.equal(process.exitCode, 1); // Expect 1 because the task failed
+        process.exitCode = 0; // Reset the exit code so it does not affect other tests
+      });
+    });
 
     describe("different configuration file path", function () {
       useFixtureProject("cli/parsing/user-config");
@@ -243,11 +243,6 @@ describe("main", function () {
         assert.equal(m.mock.calls[1].arguments[0], "Help message of the task");
       });
     });
-
-    // TODO: implement as soon as the error handling is done
-    // &&
-    // TODO throw when task is not recognized
-    // it("should pretty print the error", async function () {});
   });
 
   describe("parseHardhatSpecialArguments", function () {
