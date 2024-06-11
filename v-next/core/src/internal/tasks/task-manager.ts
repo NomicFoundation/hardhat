@@ -189,20 +189,26 @@ export class TaskManagerImplementation implements TaskManager {
     taskDefinition: NewTaskDefinition | TaskOverrideDefinition,
     pluginId?: string,
   ) {
-    for (const namedParamName of Object.keys(taskDefinition.namedParameters)) {
-      const globalParamEntry = globalParameterIndex.get(namedParamName);
+    const namedParamNames = Object.keys(taskDefinition.namedParameters);
+    const positionalParamNames =
+      "positionalParameters" in taskDefinition
+        ? taskDefinition.positionalParameters.map(({ name }) => name)
+        : [];
+
+    [...namedParamNames, ...positionalParamNames].forEach((paramName) => {
+      const globalParamEntry = globalParameterIndex.get(paramName);
       if (globalParamEntry !== undefined) {
         throw new HardhatError(
           HardhatError.ERRORS.TASK_DEFINITIONS.TASK_PARAMETER_ALREADY_DEFINED,
           {
             actorFragment: getActorFragment(pluginId),
             task: formatTaskId(taskDefinition.id),
-            namedParamName,
+            parameter: paramName,
             globalParamPluginId: globalParamEntry.pluginId,
           },
         );
       }
-    }
+    });
   }
 
   #processTaskOverride(
