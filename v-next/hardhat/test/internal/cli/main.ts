@@ -216,7 +216,7 @@ describe("main", function () {
     });
 
     it("should not fail when a global parameter is not recognized (it might be a task parameter)", async function () {
-      const command = "npx hardhat task --nonExistingFlag <value>";
+      const command = "npx hardhat task --taskFlag <value>";
 
       const cliArguments = command.split(" ").slice(2);
       const usedCliArguments = new Array(cliArguments.length).fill(false);

@@ -358,7 +358,7 @@ function parseDoubleDashArgs(
   usedCliArguments: boolean[],
   parametersMap: Map<string, NamedTaskParameter | GlobalParameter>,
   argumentsMap: TaskArguments,
-  isGlobalParameter = false,
+  ignoreUnknownParameter = false,
 ) {
   for (let i = 0; i < cliArguments.length; i++) {
     if (usedCliArguments[i]) {
@@ -381,7 +381,7 @@ function parseDoubleDashArgs(
     const paramInfo = parametersMap.get(paramName);
 
     if (paramInfo === undefined) {
-      if (isGlobalParameter === true) {
+      if (ignoreUnknownParameter === true) {
         continue;
       }
 
