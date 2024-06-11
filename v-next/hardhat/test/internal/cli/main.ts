@@ -415,7 +415,7 @@ describe("main", function () {
         });
       });
 
-      it("should throw because the task parameter is not defined", function () {
+      it("should return the task id if not found", function () {
         const command = "npx hardhat undefined-task";
 
         const cliArguments = command.split(" ").slice(2);
