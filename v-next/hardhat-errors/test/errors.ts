@@ -25,35 +25,56 @@ const mockErrorDescriptor = {
 describe("HardhatError", () => {
   describe("Type guard", () => {
     it("Should return true for HardhatErrors", () => {
+      const error = new HardhatError(mockErrorDescriptor);
       assert.ok(
-        HardhatError.isHardhatError(new HardhatError(mockErrorDescriptor)),
+        HardhatError.isHardhatError(error),
+        `error ${error.number} is a HardhatError, but isHardhatError returned false`,
       );
     });
 
     it("Should return true for HardhatErrors with the same ErrorDescriptor", () => {
+      const error = new HardhatError(mockErrorDescriptor);
       assert.ok(
-        HardhatError.isHardhatError(
-          new HardhatError(mockErrorDescriptor),
-          mockErrorDescriptor,
-        ),
+        HardhatError.isHardhatError(error, mockErrorDescriptor),
+        `error ${error.number} matches the descriptor ${JSON.stringify(mockErrorDescriptor, null, 2)}, but isHardhatError returned false`,
       );
     });
 
     it("Should return false for everything else", () => {
-      assert.ok(!HardhatError.isHardhatError(new Error()));
-      assert.ok(!HardhatError.isHardhatError(undefined));
-      assert.ok(!HardhatError.isHardhatError(null));
-      assert.ok(!HardhatError.isHardhatError(123));
-      assert.ok(!HardhatError.isHardhatError("123"));
-      assert.ok(!HardhatError.isHardhatError({ asd: 123 }));
+      assert.ok(
+        !HardhatError.isHardhatError(new Error()),
+        "new Error() is not a HardhatError, but isHardhatError returned true",
+      );
+      assert.ok(
+        !HardhatError.isHardhatError(undefined),
+        "undefined is not a HardhatError, but isHardhatError returned true",
+      );
+      assert.ok(
+        !HardhatError.isHardhatError(null),
+        "null is not a HardhatError, but isHardhatError returned true",
+      );
+      assert.ok(
+        !HardhatError.isHardhatError(123),
+        "123 is not a HardhatError, but isHardhatError returned true",
+      );
+      assert.ok(
+        !HardhatError.isHardhatError("123"),
+        '"123" is not a HardhatError, but isHardhatError returned true',
+      );
+      assert.ok(
+        !HardhatError.isHardhatError({ asd: 123 }),
+        "{ asd: 123 } is not a HardhatError, but isHardhatError returned true",
+      );
     });
 
     it("Should return false for HardhatErrors with a different ErrorDescriptor", () => {
+      const error = new HardhatError(mockErrorDescriptor);
       assert.ok(
-        !HardhatError.isHardhatError(new HardhatError(mockErrorDescriptor), {
+        !HardhatError.isHardhatError(error, {
           ...mockErrorDescriptor,
           number: 1,
         }),
+        `error ${error.number} doesn't match the descriptor ${JSON.stringify(mockErrorDescriptor, null, 2)}, but isHardhatError returned true`,
       );
     });
   });
@@ -400,7 +421,7 @@ describe("Type tests", () => {
     describe("Edge cases", () => {
       it("Should support {}", () => {
         expectTypeOf<MessagetTemplateArguments<"foo {} {}">>().toEqualTypeOf<{
-          /* eslint-disable-next-line @typescript-eslint/naming-convention -- 
+          /* eslint-disable-next-line @typescript-eslint/naming-convention --
           This test case is intentionally testing a weird variable name */
           "": ErrorMessageTemplateValue;
         }>();

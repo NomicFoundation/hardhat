@@ -220,6 +220,17 @@ function createConfig(configFilePath, packageEntryPoints = []) {
           message:
             "Use non-strict methods when importing from 'node:assert/strict'",
         },
+        {
+          selector: "CallExpression[callee.name='assert'][arguments.length<2]",
+          message:
+            "assert should provide an error message as the second argument",
+        },
+        {
+          selector:
+            "CallExpression[callee.object.name='assert'][callee.property.name='ok'][arguments.length<2]",
+          message:
+            "assert.ok should provide an error message as the second argument",
+        },
       ],
       "@typescript-eslint/restrict-plus-operands": "error",
       "@typescript-eslint/restrict-template-expressions": [
