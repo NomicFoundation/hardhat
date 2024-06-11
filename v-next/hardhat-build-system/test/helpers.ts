@@ -1,3 +1,10 @@
+import type {
+  BuildConfig,
+  SolidityConfig,
+} from "../src/internal/types/config.js";
+import type { SolcConfig } from "../src/internal/types/index.js";
+import type { ErrorDescriptor } from "@nomicfoundation/hardhat-errors";
+
 import { AssertionError } from "node:assert";
 import assert from "node:assert/strict";
 import { rmSync } from "node:fs";
@@ -6,14 +13,12 @@ import path from "node:path";
 import { beforeEach } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { ErrorDescriptor, HardhatError } from "@nomicfoundation/hardhat-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { getRealPath, mkdir, remove } from "@nomicfoundation/hardhat-utils/fs";
 import semver from "semver";
 
 import { ResolvedFile } from "../src/internal/solidity/resolver.js";
-import { BuildConfig, SolidityConfig } from "../src/internal/types/config.js";
-import { SolcConfig } from "../src/internal/types/index.js";
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = path.dirname(_filename);

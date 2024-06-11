@@ -3,6 +3,6 @@ import { describe, it } from "node:test";
 
 describe("Example tests", () => {
   it("foo", function () {
-    assert.ok(true);
+    assert.ok(true, "this shouldn't fail");
   });
 });

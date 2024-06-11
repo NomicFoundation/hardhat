@@ -1,13 +1,13 @@
-import {
+import type {
   ConfigurationVariable,
   HardhatConfig,
   HardhatUserConfig,
   ResolvedConfigurationVariable,
 } from "./config.js";
-import { GlobalArguments } from "./global-parameters.js";
-import { HardhatRuntimeEnvironment } from "./hre.js";
-import { UserInterruptionManager } from "./user-interruptions.js";
-import {
+import type { GlobalArguments } from "./global-parameters.js";
+import type { HardhatRuntimeEnvironment } from "./hre.js";
+import type { UserInterruptionManager } from "./user-interruptions.js";
+import type {
   LastParameter,
   ParametersExceptFirst,
   ParametersExceptFirstAndLast,

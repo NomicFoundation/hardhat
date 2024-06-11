@@ -1,3 +1,11 @@
+import type { ConfigurationVariable } from "./types/config.js";
+import type { GlobalParameter } from "./types/global-parameters.js";
+import type {
+  EmptyTaskDefinitionBuilder,
+  NewTaskDefinitionBuilder,
+  TaskOverrideDefinitionBuilder,
+} from "./types/tasks.js";
+
 import { buildGlobalParameterDefinition } from "./internal/global-parameters.js";
 import {
   EmptyTaskDefinitionBuilderImplementation,
@@ -5,13 +13,6 @@ import {
   TaskOverrideDefinitionBuilderImplementation,
 } from "./internal/tasks/builders.js";
 import { ParameterType } from "./types/common.js";
-import { ConfigurationVariable } from "./types/config.js";
-import { GlobalParameter } from "./types/global-parameters.js";
-import {
-  EmptyTaskDefinitionBuilder,
-  NewTaskDefinitionBuilder,
-  TaskOverrideDefinitionBuilder,
-} from "./types/tasks.js";
 
 export type { HardhatUserConfig } from "./types/config.js";
 

@@ -1,4 +1,4 @@
-import { ParameterType } from "./common.js";
+import type { ParameterType } from "./common.js";
 
 /**
  * A global parameter with an associated value and a default if not provided by

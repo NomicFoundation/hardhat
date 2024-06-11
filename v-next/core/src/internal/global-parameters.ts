@@ -1,10 +1,10 @@
-import { ParameterType } from "../types/common.js";
-import {
+import type { ParameterType } from "../types/common.js";
+import type {
   GlobalArguments,
   GlobalParameter,
   GlobalParameterMap,
 } from "../types/global-parameters.js";
-import { HardhatPlugin } from "../types/plugins.js";
+import type { HardhatPlugin } from "../types/plugins.js";
 
 /**
  * Builds a map of the global parameters, validating them.

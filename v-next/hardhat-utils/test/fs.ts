@@ -576,7 +576,7 @@ describe("File system utils", () => {
       const encoder = new TextEncoder();
       const binaryContent = encoder.encode(content);
 
-      assert.deepStrictEqual(await readBinaryFile(filePath), binaryContent);
+      assert.deepEqual(await readBinaryFile(filePath), binaryContent);
       expectTypeOf(await readBinaryFile(filePath)).toMatchTypeOf<Uint8Array>();
     });
 

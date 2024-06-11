@@ -1,4 +1,4 @@
-import { TestEventData } from "./node-types.js";
+import type { TestEventData } from "./node-types.js";
 
 export interface GlobalDiagnostics {
   tests: number;

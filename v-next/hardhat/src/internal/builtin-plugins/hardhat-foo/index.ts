@@ -1,5 +1,6 @@
+import type { HardhatPlugin } from "@nomicfoundation/hardhat-core/types/plugins";
+
 import { globalFlag, task } from "@nomicfoundation/hardhat-core/config";
-import { HardhatPlugin } from "@nomicfoundation/hardhat-core/types/plugins";
 import "./type-extensions.js";
 
 export default {

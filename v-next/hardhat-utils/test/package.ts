@@ -1,3 +1,5 @@
+import type { PackageJson } from "../src/package.js";
+
 import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
@@ -6,7 +8,6 @@ import { expectTypeOf } from "expect-type";
 
 import { createFile, mkdir, writeJsonFile, writeUtf8File } from "../src/fs.js";
 import {
-  PackageJson,
   findClosestPackageJson,
   readClosestPackageJson,
   findClosestPackageRoot,

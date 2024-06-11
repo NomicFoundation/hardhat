@@ -1,8 +1,9 @@
+import type { GlobalDiagnostics } from "./diagnostics.js";
+import type { TestEventData } from "./node-types.js";
+
 import chalk from "chalk";
 
-import { GlobalDiagnostics } from "./diagnostics.js";
 import { formatError } from "./error-formatting.js";
-import { TestEventData } from "./node-types.js";
 
 export const INFO_SYMBOL = chalk.blue("\u2139");
 export const SUCCESS_SYMBOL = chalk.green("✔");

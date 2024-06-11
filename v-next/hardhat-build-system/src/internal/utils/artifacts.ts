@@ -1,3 +1,12 @@
+import type {
+  Artifact,
+  Artifacts as IArtifacts,
+  BuildInfo,
+  CompilerInput,
+  CompilerOutput,
+  DebugFile,
+} from "../types/index.js";
+
 import fsPromises from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -14,15 +23,6 @@ import {
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 import debug from "debug";
-
-import {
-  Artifact,
-  Artifacts as IArtifacts,
-  BuildInfo,
-  CompilerInput,
-  CompilerOutput,
-  DebugFile,
-} from "../types/index.js";
 
 import {
   ARTIFACT_FORMAT_VERSION,

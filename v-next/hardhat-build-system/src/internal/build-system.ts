@@ -1,5 +1,11 @@
+import type { TasksOverrides } from "./tasks.js";
+import type {
+  Artifacts,
+  CompilationJobCreationError,
+  BuildConfig,
+} from "./types/index.js";
+
 import {
-  TasksOverrides,
   taskCompileRemoveObsoleteArtifacts,
   taskCompileSolidity,
   taskCompileSolidityGetCompilationJobsFailureReasons,
@@ -8,11 +14,6 @@ import {
   taskCompileSolidityGetSourcePaths,
   taskCompileSolidityReadFile,
 } from "./tasks.js";
-import {
-  Artifacts,
-  CompilationJobCreationError,
-  BuildConfig,
-} from "./types/index.js";
 import { Artifacts as ArtifactsImpl } from "./utils/artifacts.js";
 
 export interface BuildRequest {

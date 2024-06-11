@@ -342,20 +342,50 @@ describe("lang", () => {
 
   describe("isObject", () => {
     it("Should return true for objects", () => {
-      assert.ok(isObject({}));
-      assert.ok(isObject({ a: 1 }));
-      assert.ok(isObject(new Date()));
-      assert.ok(isObject(new Map()));
-      assert.ok(isObject(new Set()));
+      assert.ok(isObject({}), "{} is an object, but isObject returned false");
+      assert.ok(
+        isObject({ a: 1 }),
+        "{ a: 1 } is an object, but isObject returned false",
+      );
+      assert.ok(
+        isObject(new Date()),
+        "new Date() is an object, but isObject returned false",
+      );
+      assert.ok(
+        isObject(new Map()),
+        "new Map() is an object, but isObject returned false",
+      );
+      assert.ok(
+        isObject(new Set()),
+        "new Set() is an object, but isObject returned false",
+      );
     });
 
     it("Should return false for non-objects", () => {
-      assert.ok(!isObject(null));
-      assert.ok(!isObject(undefined));
-      assert.ok(!isObject([]));
-      assert.ok(!isObject(""));
-      assert.ok(!isObject(42));
-      assert.ok(!isObject(true));
+      assert.ok(
+        !isObject(null),
+        "null is not an object, but isObject returned true",
+      );
+      assert.ok(
+        !isObject(undefined),
+        "undefined is not an object, but isObject returned true",
+      );
+      assert.ok(
+        !isObject([]),
+        "[] is not an object, but isObject returned true",
+      );
+      assert.ok(
+        !isObject(""),
+        "'' is not an object, but isObject returned true",
+      );
+      assert.ok(
+        !isObject(42),
+        "42 is not an object, but isObject returned true",
+      );
+      assert.ok(
+        !isObject(true),
+        "true is not an object, but isObject returned true",
+      );
     });
   });
 });

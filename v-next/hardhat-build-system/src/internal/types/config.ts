@@ -1,4 +1,4 @@
-import { SolcConfig } from "./builtin-tasks/compile.js";
+import type { SolcConfig } from "./builtin-tasks/compile.js";
 
 export interface BuildConfig {
   paths: ProjectPathsConfig;

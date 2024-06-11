@@ -1,4 +1,4 @@
-import { CompilationJob, CompilerInput } from "../../types/index.js";
+import type { CompilationJob, CompilerInput } from "../../types/index.js";
 
 export function getInputFromCompilationJob(
   compilationJob: CompilationJob,

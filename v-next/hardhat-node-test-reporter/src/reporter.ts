@@ -1,3 +1,10 @@
+import type { Failure } from "./formatting.js";
+import type {
+  TestEventData,
+  TestEventSource,
+  TestReporterResult,
+} from "./node-types.js";
+
 import chalk from "chalk";
 
 import { processGlobalDiagnostics } from "./diagnostics.js";
@@ -9,15 +16,9 @@ import {
   formatTestFailure,
   formatTestPass,
   formatSlowTestInfo,
-  Failure,
 } from "./formatting.js";
 import { annotatePR } from "./github-actions.js";
 import { isSubtestFailedError } from "./node-test-error-utils.js";
-import {
-  TestEventData,
-  TestEventSource,
-  TestReporterResult,
-} from "./node-types.js";
 
 export const SLOW_TEST_THRESHOLD = 75;
 
@@ -220,7 +221,7 @@ export default async function* customReporter(
         break;
       }
       /* eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check --
-      We have this extra check here becase we know the @types/node type is 
+      We have this extra check here becase we know the @types/node type is
       unreliable */
       default: {
         const _isNever: never = event;
