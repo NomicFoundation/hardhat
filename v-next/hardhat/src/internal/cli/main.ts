@@ -295,9 +295,10 @@ function getTaskFromCliArguments(
     }
 
     if (task === undefined) {
-      task = hre.tasks.getTask(arg);
-      if (task === undefined) {
-        return [arg];
+      try {
+        task = hre.tasks.getTask(arg);
+      } catch (error) {
+        return [arg]; // No task found
       }
     } else {
       const subtask = task.subtasks.get(arg);
