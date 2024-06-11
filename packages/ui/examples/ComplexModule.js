@@ -21,7 +21,8 @@ const balancerDefinition = buildModule("Balancer", (m) => {
 
   const { router } = m.useModule(uniswap);
 
-  m.call(balancer, "setUniswap", [router]);
+  const setUniswapData = m.encodeFunctionCall(balancer, "setUniswap", [router]);
+  m.send("sendSetUniswapCall", balancer, 0n, setUniswapData);
 
   return { balancer };
 });
