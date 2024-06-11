@@ -1,7 +1,9 @@
+import type { ErrorDescriptor } from "./descriptors.js";
+
 import { CustomError } from "@nomicfoundation/hardhat-utils/error";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
-import { ERRORS, ErrorDescriptor } from "./descriptors.js";
+import { ERRORS } from "./descriptors.js";
 
 export type ErrorMessageTemplateValue =
   | string

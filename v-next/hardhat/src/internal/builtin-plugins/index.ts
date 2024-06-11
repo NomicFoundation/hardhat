@@ -1,4 +1,4 @@
-import { HardhatPlugin } from "@nomicfoundation/hardhat-core/types/plugins";
+import type { HardhatPlugin } from "@nomicfoundation/hardhat-core/types/plugins";
 
 import hardhatFoo from "./hardhat-foo/index.js";
 

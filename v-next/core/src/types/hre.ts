@@ -1,7 +1,6 @@
-import { HardhatConfig } from "../types/config.js";
-
-import { GlobalArguments } from "./global-parameters.js";
-import { UserInterruptionManager } from "./user-interruptions.js";
+import type { GlobalArguments } from "./global-parameters.js";
+import type { UserInterruptionManager } from "./user-interruptions.js";
+import type { HardhatConfig } from "../types/config.js";
 
 /**
  * The Hardhat Runtime Environment (HRE) is an object that exposes

@@ -1,19 +1,18 @@
-import type { HardhatRuntimeEnvironment } from "../types/hre.js";
-
-import { UnsafeHardhatRuntimeEnvironmentOptions } from "../types/cli.js";
-import { HardhatUserConfig, HardhatConfig } from "../types/config.js";
-import {
+import type { UnsafeHardhatRuntimeEnvironmentOptions } from "../types/cli.js";
+import type { HardhatUserConfig, HardhatConfig } from "../types/config.js";
+import type {
   GlobalArguments,
   GlobalParameterMap,
 } from "../types/global-parameters.js";
-import {
+import type {
   HardhatUserConfigValidationError,
   HookContext,
   HookManager,
 } from "../types/hooks.js";
-import { HardhatPlugin } from "../types/plugins.js";
-import { TaskManager } from "../types/tasks.js";
-import { UserInterruptionManager } from "../types/user-interruptions.js";
+import type { HardhatRuntimeEnvironment } from "../types/hre.js";
+import type { HardhatPlugin } from "../types/plugins.js";
+import type { TaskManager } from "../types/tasks.js";
+import type { UserInterruptionManager } from "../types/user-interruptions.js";
 
 import { ResolvedConfigurationVariableImplementation } from "./configuration-variables.js";
 import {

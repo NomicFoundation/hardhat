@@ -99,6 +99,13 @@ function createConfig(configFilePath, packageEntryPoints = []) {
         { assertionStyle: "never" },
       ],
       "@typescript-eslint/consistent-type-definitions": "error",
+      "@typescript-eslint/consistent-type-imports": [
+        "error",
+        {
+          prefer: "type-imports",
+          disallowTypeAnnotations: true,
+        },
+      ],
       "@typescript-eslint/dot-notation": "error",
       "@typescript-eslint/explicit-member-accessibility": [
         "error",

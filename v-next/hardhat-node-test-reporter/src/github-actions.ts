@@ -1,9 +1,10 @@
+import type { TestEventData } from "./node-types.js";
+
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { formatError } from "./error-formatting.js";
 import { cleanupTestFailError } from "./node-test-error-utils.js";
-import { TestEventData } from "./node-types.js";
 
 export async function annotatePR(
   event: TestEventData["test:fail"],

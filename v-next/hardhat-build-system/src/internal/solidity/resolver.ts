@@ -1,3 +1,10 @@
+import type { Parser } from "./parse.js";
+import type {
+  FileContent,
+  LibraryInfo,
+  ResolvedFile as IResolvedFile,
+} from "../types/builtin-tasks/index.js";
+
 import fs from "node:fs/promises";
 import path from "node:path";
 
@@ -8,11 +15,6 @@ import {
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import resolve from "resolve";
 
-import {
-  FileContent,
-  LibraryInfo,
-  ResolvedFile as IResolvedFile,
-} from "../types/builtin-tasks/index.js";
 import { getRealPath } from "../utils/fs-utils.js";
 import { createNonCryptographicHashBasedIdentifier } from "../utils/hash.js";
 import { applyRemappings } from "../utils/remappings.js";
@@ -25,8 +27,6 @@ import {
   validateSourceNameExistenceAndCasing,
   validateSourceNameFormat,
 } from "../utils/source-names.js";
-
-import { Parser } from "./parse.js";
 
 const NODE_MODULES = "node_modules";
 

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions -- Typescript
 can handle the generic types in this file correctly. It can do it for function
 signatures, but not for function bodies. */
-import {
+import type {
   ChainedHook,
   HookContext,
   HookManager,
@@ -9,8 +9,8 @@ import {
   InitialChainedHookParams,
   HardhatHooks,
 } from "../types/hooks.js";
-import { HardhatPlugin } from "../types/plugins.js";
-import { LastParameter, Return } from "../types/utils.js";
+import type { HardhatPlugin } from "../types/plugins.js";
+import type { LastParameter, Return } from "../types/utils.js";
 
 export class HookManagerImplementation implements HookManager {
   readonly #pluginsInReverseOrder: HardhatPlugin[];

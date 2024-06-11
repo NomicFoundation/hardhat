@@ -1,18 +1,19 @@
+import type { GlobalParameterMap } from "../../types/global-parameters.js";
+import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
+import type {
+  Task,
+  TaskDefinition,
+  TaskManager,
+  NewTaskDefinition,
+  TaskOverrideDefinition,
+} from "../../types/tasks.js";
+
 import {
   HardhatError,
   assertHardhatInvariant,
 } from "@nomicfoundation/hardhat-errors";
 
-import { GlobalParameterMap } from "../../types/global-parameters.js";
-import { HardhatRuntimeEnvironment } from "../../types/hre.js";
-import {
-  Task,
-  TaskDefinition,
-  TaskDefinitionType,
-  TaskManager,
-  NewTaskDefinition,
-  TaskOverrideDefinition,
-} from "../../types/tasks.js";
+import { TaskDefinitionType } from "../../types/tasks.js";
 
 import { ResolvedTask } from "./resolved-task.js";
 import { formatTaskId, getActorFragment } from "./utils.js";

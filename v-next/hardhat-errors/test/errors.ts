@@ -1,19 +1,16 @@
+import type { ErrorDescriptor } from "../src/descriptors.js";
+import type {
+  ErrorMessageTemplateValue,
+  MessagetTemplateArguments,
+} from "../src/errors.js";
+
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { expectTypeOf } from "expect-type";
 
-import {
-  ERRORS,
-  ERROR_CATEGORIES,
-  ErrorDescriptor,
-} from "../src/descriptors.js";
-import {
-  ErrorMessageTemplateValue,
-  HardhatError,
-  MessagetTemplateArguments,
-  applyErrorMessageTemplate,
-} from "../src/errors.js";
+import { ERRORS, ERROR_CATEGORIES } from "../src/descriptors.js";
+import { HardhatError, applyErrorMessageTemplate } from "../src/errors.js";
 
 const mockErrorDescriptor = {
   number: 123,

@@ -1,8 +1,9 @@
+import type { UnsafeHardhatRuntimeEnvironmentOptions } from "./types/cli.js";
+import type { HardhatUserConfig } from "./types/config.js";
+import type { GlobalArguments } from "./types/global-parameters.js";
+import type { HardhatRuntimeEnvironment } from "./types/hre.js";
+
 import { HardhatRuntimeEnvironmentImplementation } from "./internal/hre.js";
-import { UnsafeHardhatRuntimeEnvironmentOptions } from "./types/cli.js";
-import { HardhatUserConfig } from "./types/config.js";
-import { GlobalArguments } from "./types/global-parameters.js";
-import { HardhatRuntimeEnvironment } from "./types/hre.js";
 
 /**
  * Creates an instances of the Hardhat Runtime Environment.

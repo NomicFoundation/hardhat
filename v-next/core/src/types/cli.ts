@@ -1,5 +1,5 @@
-import { GlobalParameterMap } from "./global-parameters.js";
-import { HardhatPlugin } from "./plugins.js";
+import type { GlobalParameterMap } from "./global-parameters.js";
+import type { HardhatPlugin } from "./plugins.js";
 
 /**
  * An object that contains options to bypass some initialization, to avoid
