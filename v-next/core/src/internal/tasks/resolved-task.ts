@@ -130,11 +130,13 @@ export class ResolvedTask implements Task {
     ): Promise<any> => {
       // The first action may be empty if the task was originally an empty task
       const currentAction = this.actions[currentIndex].action ?? (() => {});
-
       const actionFn =
         typeof currentAction === "function"
           ? currentAction
-          : await this.#resolveFileAction(currentAction);
+          : await this.#resolveFileAction(
+              currentAction,
+              this.actions[currentIndex].pluginId,
+            );
 
       if (currentIndex === 0) {
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
@@ -241,6 +243,7 @@ export class ResolvedTask implements Task {
    */
   async #resolveFileAction(
     actionFileUrl: string,
+    actionPluginId?: string,
   ): Promise<NewTaskActionFunction | TaskOverrideActionFunction> {
     let resolvedActionFn;
     try {
@@ -248,14 +251,14 @@ export class ResolvedTask implements Task {
     } catch (error) {
       ensureError(error);
 
-      if (this.pluginId !== undefined) {
+      if (actionPluginId !== undefined) {
         const plugin = this.#hre.config.plugins.find(
-          (p) => p.id === this.pluginId,
+          (p) => p.id === actionPluginId,
         );
 
         assertHardhatInvariant(
           plugin !== undefined,
-          `Plugin with id ${this.pluginId} not found.`,
+          `Plugin with id ${actionPluginId} not found.`,
         );
 
         await detectPluginNpmDependencyProblems(plugin);

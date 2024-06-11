@@ -1530,7 +1530,8 @@ describe("TaskManagerImplementation", () => {
           "./fixture-projects/not-installed-package/index.js",
         );
 
-        const hre = await createHardhatRuntimeEnvironment({
+        // the missing dependency is used in the NEW_TASK action
+        let hre = await createHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -1544,11 +1545,40 @@ describe("TaskManagerImplementation", () => {
           ],
         });
 
-        const task1 = hre.tasks.getTask("task1");
         await assert.rejects(
-          task1.run({}),
+          hre.tasks.getTask("task1").run({}),
           new HardhatError(HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED, {
             pluginId: "plugin1",
+          }),
+        );
+
+        // the missing dependency is used in the TASK_OVERRIDE action
+        hre = await createHardhatRuntimeEnvironment({
+          plugins: [
+            {
+              id: "plugin1",
+              tasks: [
+                new NewTaskDefinitionBuilderImplementation("task1")
+                  .setAction(() => {})
+                  .build(),
+              ],
+            },
+            {
+              id: "plugin2",
+              npmPackage: "non-installed-package",
+              tasks: [
+                new TaskOverrideDefinitionBuilderImplementation("task1")
+                  .setAction(nonInstalledPackageActionUrl)
+                  .build(),
+              ],
+            },
+          ],
+        });
+
+        await assert.rejects(
+          hre.tasks.getTask("task1").run({}),
+          new HardhatError(HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED, {
+            pluginId: "plugin2",
           }),
         );
       });
