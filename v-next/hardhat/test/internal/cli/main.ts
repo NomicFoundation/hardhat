@@ -214,6 +214,22 @@ describe("main", function () {
         flag: true,
       });
     });
+
+    it("should not fail when a global parameter is not recognized (it might be a task parameter)", async function () {
+      const command = "npx hardhat task --nonExistingFlag <value>";
+
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      const globalArguments = await parseGlobalArguments(
+        globalParamsIndex,
+        cliArguments,
+        usedCliArguments,
+      );
+
+      assert.deepEqual(usedCliArguments, [false, false, false]);
+      assert.deepEqual(globalArguments, {});
+    });
   });
 
   describe("parseTaskAndArguments", function () {
