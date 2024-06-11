@@ -14,7 +14,7 @@ import type {
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
-import { isParameterValueValid } from "../../types/common.js";
+import { isParameterValueValid } from "../parameters.js";
 
 import { formatTaskId } from "./utils.js";
 

@@ -14,10 +14,11 @@ import type {
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
-import { ParameterType, isParameterValueValid } from "../../types/common.js";
+import { ParameterType } from "../../types/common.js";
 import { TaskDefinitionType } from "../../types/tasks.js";
 import {
   RESERVED_PARAMETER_NAMES,
+  isParameterValueValid,
   isValidParamNameCasing,
 } from "../parameters.js";
 
