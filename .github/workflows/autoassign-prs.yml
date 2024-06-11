@@ -21,7 +21,8 @@ jobs:
               repo: context.issue.repo,
               issue_number: context.issue.number
             });
-
+            console.log(context.issue);
+            console.log(pr.data);
             const isCollaborator = ["OWNER", "MEMBER", "COLLABORATOR"].includes(pr.data.author_association)
 
             if (isCollaborator) {
