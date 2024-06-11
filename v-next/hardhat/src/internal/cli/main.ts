@@ -224,6 +224,7 @@ export async function parseGlobalArguments(
     usedCliArguments,
     parameters,
     globalArguments,
+    true,
   );
 
   return globalArguments;
@@ -294,9 +295,10 @@ function getTaskFromCliArguments(
     }
 
     if (task === undefined) {
-      task = hre.tasks.getTask(arg);
-      if (task === undefined) {
-        return [arg];
+      try {
+        task = hre.tasks.getTask(arg);
+      } catch (error) {
+        return [arg]; // No task found
       }
     } else {
       const subtask = task.subtasks.get(arg);
@@ -357,6 +359,7 @@ function parseDoubleDashArgs(
   usedCliArguments: boolean[],
   parametersMap: Map<string, NamedTaskParameter | GlobalParameter>,
   argumentsMap: TaskArguments,
+  ignoreUnknownParameter = false,
 ) {
   for (let i = 0; i < cliArguments.length; i++) {
     if (usedCliArguments[i]) {
@@ -379,6 +382,11 @@ function parseDoubleDashArgs(
     const paramInfo = parametersMap.get(paramName);
 
     if (paramInfo === undefined) {
+      if (ignoreUnknownParameter === true) {
+        continue;
+      }
+
+      // Only throw an error when the parameter is not a global parameter, because it might be a parameter related to a task
       throw new HardhatError(
         HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_NAMED_PARAM,
         {

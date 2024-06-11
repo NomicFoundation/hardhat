@@ -1,10 +1,10 @@
 import { HardhatUserConfig, task } from "@nomicfoundation/hardhat-core/config";
 
-export const results = [false];
+export const tasksResults = [false];
 
-const customTask = task("user-task")
+const customTask = task("task")
   .setAction(() => {
-    results[0] = true;
+    tasksResults[0] = true;
   })
   .build();
 
