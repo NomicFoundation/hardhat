@@ -48,6 +48,10 @@ export class TaskManagerImplementation implements TaskManager {
     }
   }
 
+  public get rootTasks(): Map<string, Task> {
+    return this.#rootTasks;
+  }
+
   public getTask(taskId: string | string[]): Task {
     taskId = Array.isArray(taskId) ? taskId : [taskId];
     if (taskId.length === 0) {

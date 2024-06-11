@@ -5,6 +5,7 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { RESERVED_PARAMETER_NAMES } from "../../../src/internal/parameters.js";
 import {
+  EmptyTaskDefinitionBuilderImplementation,
   NewTaskDefinitionBuilderImplementation,
   TaskOverrideDefinitionBuilderImplementation,
 } from "../../../src/internal/tasks/builders.js";
@@ -12,6 +13,96 @@ import { ParameterType } from "../../../src/types/common.js";
 import { TaskDefinitionType } from "../../../src/types/tasks.js";
 
 describe("Task builders", () => {
+  describe("EmptyTaskDefinitionBuilderImplementation", () => {
+    it("should create an empty task definition builder", () => {
+      const builder = new EmptyTaskDefinitionBuilderImplementation("task-id");
+      const taskDefinition = builder.build();
+
+      assert.deepEqual(taskDefinition, {
+        type: TaskDefinitionType.EMPTY_TASK,
+        id: ["task-id"],
+        description: "",
+      });
+    });
+
+    it("should create an empty task definition builder with an array of ids", () => {
+      const ids = ["task-id", "subtask-id", "sub-subtask-id"];
+      const builder = new EmptyTaskDefinitionBuilderImplementation(ids);
+      const taskDefinition = builder.build();
+
+      assert.deepEqual(taskDefinition, {
+        type: TaskDefinitionType.EMPTY_TASK,
+        id: ids,
+        description: "",
+      });
+    });
+
+    describe("Task id validation", () => {
+      it("should throw if the id is an empty string", () => {
+        assert.throws(() => new EmptyTaskDefinitionBuilderImplementation(""), {
+          name: "HardhatError",
+          message:
+            "HHE208: Task id cannot be an empty string or an empty array",
+        });
+      });
+
+      it("should throw if the array of ids is empty", () => {
+        const ids: string[] = [];
+
+        assert.throws(() => new EmptyTaskDefinitionBuilderImplementation(ids), {
+          name: "HardhatError",
+          message:
+            "HHE208: Task id cannot be an empty string or an empty array",
+        });
+      });
+    });
+
+    describe("Adding a description", () => {
+      it("should create an empty task definition builder with a description in the constructor", () => {
+        const builder = new EmptyTaskDefinitionBuilderImplementation(
+          "task-id",
+          "Task description",
+        );
+        const taskDefinition = builder.build();
+
+        assert.deepEqual(taskDefinition, {
+          type: TaskDefinitionType.EMPTY_TASK,
+          id: ["task-id"],
+          description: "Task description",
+        });
+      });
+
+      it("should set the task description", () => {
+        const builder = new EmptyTaskDefinitionBuilderImplementation("task-id");
+        const taskDefinition = builder
+          .setDescription("Task description")
+          .build();
+
+        assert.deepEqual(taskDefinition, {
+          type: TaskDefinitionType.EMPTY_TASK,
+          id: ["task-id"],
+          description: "Task description",
+        });
+      });
+
+      it("should override the description set in the constructor", () => {
+        const builder = new EmptyTaskDefinitionBuilderImplementation(
+          "task-id",
+          "Task description",
+        );
+        const taskDefinition = builder
+          .setDescription("New task description")
+          .build();
+
+        assert.deepEqual(taskDefinition, {
+          type: TaskDefinitionType.EMPTY_TASK,
+          id: ["task-id"],
+          description: "New task description",
+        });
+      });
+    });
+  });
+
   describe("NewTaskDefinitionBuilderImplementation", () => {
     it("should create a new task definition builder", () => {
       const builder = new NewTaskDefinitionBuilderImplementation("task-id");

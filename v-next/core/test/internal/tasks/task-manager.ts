@@ -7,6 +7,7 @@ import { ParameterType } from "../../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../../src/index.js";
 import { buildGlobalParameterDefinition } from "../../../src/internal/global-parameters.js";
 import {
+  EmptyTaskDefinitionBuilderImplementation,
   NewTaskDefinitionBuilderImplementation,
   TaskOverrideDefinitionBuilderImplementation,
 } from "../../../src/internal/tasks/builders.js";
@@ -24,7 +25,9 @@ import { TaskDefinitionType } from "../../../src/types/tasks.js";
  */
 describe("TaskManagerImplementation", () => {
   it("should initialize the task manager with an empty set of tasks if no plugins or tasks are provided", async () => {
-    await assert.doesNotReject(createHardhatRuntimeEnvironment({}));
+    const hre = await createHardhatRuntimeEnvironment({});
+
+    assert.equal(hre.tasks.rootTasks.size, 0);
   });
 
   it("should initialize the task manager with the tasks from the plugins", async () => {
@@ -78,6 +81,12 @@ describe("TaskManagerImplementation", () => {
     const task3 = hre.tasks.getTask("task3");
     assert.deepEqual(task3.id, ["task3"]);
     assert.equal(task3.pluginId, "plugin2");
+
+    // task1, task2 and task3 should be root tasks
+    assert.equal(hre.tasks.rootTasks.size, 3);
+    assert.deepEqual(hre.tasks.rootTasks.get("task1")?.id, ["task1"]);
+    assert.deepEqual(hre.tasks.rootTasks.get("task2")?.id, ["task2"]);
+    assert.deepEqual(hre.tasks.rootTasks.get("task3")?.id, ["task3"]);
   });
 
   it("should initialize the task manager with the tasks from the config", async () => {
@@ -113,6 +122,12 @@ describe("TaskManagerImplementation", () => {
     const task3 = hre.tasks.getTask("task3");
     assert.deepEqual(task3.id, ["task3"]);
     assert.equal(task3.pluginId, undefined);
+
+    // task1, task2 and task3 should be root tasks
+    assert.equal(hre.tasks.rootTasks.size, 3);
+    assert.deepEqual(hre.tasks.rootTasks.get("task1")?.id, ["task1"]);
+    assert.deepEqual(hre.tasks.rootTasks.get("task2")?.id, ["task2"]);
+    assert.deepEqual(hre.tasks.rootTasks.get("task3")?.id, ["task3"]);
   });
 
   it("should override a task within the same plugin", async () => {
@@ -291,11 +306,10 @@ describe("TaskManagerImplementation", () => {
         {
           id: "plugin1",
           tasks: [
-            {
-              id: ["task1"],
-              description: "description1",
-              type: TaskDefinitionType.EMPTY_TASK,
-            },
+            new EmptyTaskDefinitionBuilderImplementation(
+              "task1",
+              "description1",
+            ).build(),
           ],
         },
       ],
@@ -312,11 +326,10 @@ describe("TaskManagerImplementation", () => {
         {
           id: "plugin1",
           tasks: [
-            {
-              id: ["task1"],
-              description: "description1",
-              type: TaskDefinitionType.EMPTY_TASK,
-            },
+            new EmptyTaskDefinitionBuilderImplementation(
+              "task1",
+              "description1",
+            ).build(),
             // adds a subtask to the empty task
             new NewTaskDefinitionBuilderImplementation(["task1", "subtask1"])
               .setAction(() => {})
@@ -351,6 +364,12 @@ describe("TaskManagerImplementation", () => {
     const subsubtask1 = hre.tasks.getTask(["task1", "subtask1", "subsubtask1"]);
     assert.deepEqual(subsubtask1.id, ["task1", "subtask1", "subsubtask1"]);
     assert.equal(subsubtask1.pluginId, "plugin2");
+
+    // task1 should be a root task, but subtask1 and subsubtask1 should not
+    assert.equal(hre.tasks.rootTasks.size, 1);
+    assert.deepEqual(hre.tasks.rootTasks.get("task1")?.id, ["task1"]);
+    assert.equal(hre.tasks.rootTasks.get("subtask1"), undefined);
+    assert.equal(hre.tasks.rootTasks.get("subsubtask1"), undefined);
   });
 
   /**
@@ -1140,11 +1159,10 @@ describe("TaskManagerImplementation", () => {
           {
             id: "plugin1",
             tasks: [
-              {
-                id: ["task1"],
-                description: "description1",
-                type: TaskDefinitionType.EMPTY_TASK,
-              },
+              new EmptyTaskDefinitionBuilderImplementation(
+                "task1",
+                "description1",
+              ).build(),
               new TaskOverrideDefinitionBuilderImplementation("task1")
                 .setAction(async (args, _hre, runSuper) => {
                   await runSuper(args);
@@ -1226,11 +1244,10 @@ describe("TaskManagerImplementation", () => {
             {
               id: "plugin1",
               tasks: [
-                {
-                  id: ["task1"],
-                  description: "description1",
-                  type: TaskDefinitionType.EMPTY_TASK,
-                },
+                new EmptyTaskDefinitionBuilderImplementation(
+                  "task1",
+                  "description1",
+                ).build(),
               ],
             },
           ],

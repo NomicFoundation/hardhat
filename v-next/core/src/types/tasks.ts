@@ -158,6 +158,21 @@ export type TaskDefinition =
   | TaskOverrideDefinition;
 
 /**
+ * A builder for creating EmptyTaskDefinitions.
+ */
+export interface EmptyTaskDefinitionBuilder {
+  /**
+   * Sets the description of the task.
+   */
+  setDescription(description: string): this;
+
+  /**
+   * Builds the EmptyTaskDefinition.
+   */
+  build(): EmptyTaskDefinition;
+}
+
+/**
  * A builder for creating NewTaskDefinitions.
  */
 export interface NewTaskDefinitionBuilder {
@@ -364,6 +379,10 @@ export interface Task {
  * can be used to retrieve tasks and run them.
  */
 export interface TaskManager {
+  /**
+   * Returns the root tasks of the task manager.
+   */
+  get rootTasks(): Map<string, Task>;
   /**
    * Returns a task by its id, throwing if it doesn't exist.
    */
