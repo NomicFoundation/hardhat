@@ -118,6 +118,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        # TODO: Currently there is no @types/node for Node 22,
+        # include it when it is available.
         node: [18, 20]
     steps:
       - uses: actions/checkout@v4
