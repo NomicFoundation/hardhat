@@ -25,7 +25,7 @@ export function useFixtureProject(projectName: string, changeDirTo?: string) {
   });
 }
 
-async function getFixtureProjectPath(
+export async function getFixtureProjectPath(
   projectName: string,
   changeDirTo?: string,
 ): Promise<string> {
