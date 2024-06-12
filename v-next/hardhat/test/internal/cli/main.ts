@@ -10,6 +10,7 @@ import type {
 
 import assert from "node:assert/strict";
 import { afterEach, before, describe, it, mock } from "node:test";
+import { pathToFileURL } from "node:url";
 
 import { createHardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core";
 import {
@@ -29,10 +30,7 @@ import {
 } from "../../../src/internal/cli/main.js";
 import { importUserConfig } from "../../../src/internal/helpers/config-loading.js";
 import { resetHardhatRuntimeEnvironmentSingleton } from "../../../src/internal/hre-singleton.js";
-import {
-  getFixtureProjectPath,
-  useFixtureProject,
-} from "../../helpers/project.js";
+import { useFixtureProject } from "../../helpers/project.js";
 
 async function getTasksAndHreEnvironment(
   tasksBuilders: NewTaskDefinitionBuilder[],
@@ -65,16 +63,13 @@ async function getTasksAndHreEnvironment(
 }
 
 async function getTasksResults(
-  projectName: string,
   configFileName: string = "hardhat.config.ts",
 ): Promise<boolean[]> {
   // To ensure that one or more tasks have been executed, each task will modify an array of boolean values, initially set to false.
   // This function imports that array, allowing the tests to verify if the tasks have been executed.
   // If a boolean flag is true, it indicates that the corresponding task (or a specific part of it) has been executed.
   return (
-    await import(
-      `${await getFixtureProjectPath(projectName)}/${configFileName}`
-    )
+    await import(pathToFileURL(`${process.cwd()}/${configFileName}`).toString())
   ).results;
 }
 
@@ -124,8 +119,7 @@ describe("main", function () {
     });
 
     describe("different configuration file path", function () {
-      const fixtureDirPath = "cli/parsing/user-config";
-      useFixtureProject(fixtureDirPath);
+      useFixtureProject("cli/parsing/user-config");
 
       it("should load the hardhat configuration file from a custom path (--config)", async function () {
         const command =
@@ -134,10 +128,7 @@ describe("main", function () {
 
         await main(cliArguments);
 
-        const results = await getTasksResults(
-          fixtureDirPath,
-          "user-hardhat.config.ts",
-        );
+        const results = await getTasksResults("user-hardhat.config.ts");
         assert.equal(results[0], true);
       });
     });
@@ -160,8 +151,7 @@ describe("main", function () {
     });
 
     describe("task with global flags and parameters", async function () {
-      const fixtureDirPath = "cli/parsing/tasks-and-subtasks";
-      useFixtureProject(fixtureDirPath);
+      useFixtureProject("cli/parsing/tasks-and-subtasks");
 
       it("should run the task with global flags and parameters", async function () {
         const command =
@@ -170,7 +160,7 @@ describe("main", function () {
 
         await main(cliArguments);
 
-        const results = await getTasksResults(fixtureDirPath);
+        const results = await getTasksResults();
         assert.deepEqual(results, [true, true, true]);
       });
 
@@ -180,7 +170,7 @@ describe("main", function () {
 
         await main(cliArguments);
 
-        const results = await getTasksResults(fixtureDirPath);
+        const results = await getTasksResults();
         assert.deepEqual(results, [true, false, false]);
       });
 
@@ -191,7 +181,7 @@ describe("main", function () {
 
         await main(cliArguments);
 
-        const results = await getTasksResults(fixtureDirPath);
+        const results = await getTasksResults();
         assert.deepEqual(results, [true, true, true]);
       });
 
@@ -202,7 +192,7 @@ describe("main", function () {
 
         await main(cliArguments);
 
-        const results = await getTasksResults("cli/parsing/tasks-and-subtasks");
+        const results = await getTasksResults();
         assert.deepEqual(results, [true, false, false]);
       });
     });
