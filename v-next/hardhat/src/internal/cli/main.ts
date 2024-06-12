@@ -14,6 +14,8 @@ import type {
 
 import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
 
+import { fileURLToPath } from "node:url";
+
 import {
   buildGlobalParameterMap,
   resolvePluginList,
@@ -24,6 +26,11 @@ import {
   assertHardhatInvariant,
 } from "@nomicfoundation/hardhat-errors";
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
+import { readJsonFile } from "@nomicfoundation/hardhat-utils/fs";
+import {
+  PackageJson,
+  findClosestPackageJson,
+} from "@nomicfoundation/hardhat-utils/package";
 import { kebabToCamelCase } from "@nomicfoundation/hardhat-utils/string";
 
 import { builtinPlugins } from "../builtin-plugins/index.js";
@@ -46,7 +53,7 @@ export async function main(cliArguments: string[]) {
   );
 
   if (hardhatSpecialArgs.version) {
-    console.log("3.0.0");
+    await printVersionMessage();
     return;
   }
 
@@ -501,6 +508,21 @@ function parsePositionalAndVariadicParameters(
 
   // Check if all the required parameters have been used
   validateRequiredParameters(task.positionalParameters, taskArguments);
+}
+
+async function printVersionMessage() {
+  const packageJsonPath = await findClosestPackageJson(
+    fileURLToPath(import.meta.url),
+  );
+
+  assertHardhatInvariant(
+    packageJsonPath !== null,
+    "There should be a package.json in hardhat's root directory",
+  );
+
+  const packageJson: PackageJson = await readJsonFile(packageJsonPath);
+
+  console.log(packageJson.version);
 }
 
 function validateRequiredParameters(
