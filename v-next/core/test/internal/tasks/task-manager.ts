@@ -1493,7 +1493,7 @@ describe("TaskManagerImplementation", () => {
         );
       });
 
-      it("should throw if an action url is provided and the module can't be resolved", async () => {
+      it("should throw if an action url is provided but the corresponding module can't be resolved", async () => {
         const hre = await createHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -1520,7 +1520,70 @@ describe("TaskManagerImplementation", () => {
         );
       });
 
-      it("should throw if an action url is provided and the module doesn't have a default export", async () => {
+      /**
+       * There are multiple scenarios where detectPluginNpmDependencyProblems
+       * can throw an error. We're not trying to test all of them, just verify
+       * that the logic is being called and that the error is being thrown.
+       */
+      it("should throw if an action url is provided but the corresponding module can't be resolved due to a missing package", async () => {
+        const nonInstalledPackageActionUrl = import.meta.resolve(
+          "./fixture-projects/not-installed-package/index.js",
+        );
+
+        // the missing dependency is used in the NEW_TASK action
+        let hre = await createHardhatRuntimeEnvironment({
+          plugins: [
+            {
+              id: "plugin1",
+              npmPackage: "non-installed-package",
+              tasks: [
+                new NewTaskDefinitionBuilderImplementation("task1")
+                  .setAction(nonInstalledPackageActionUrl)
+                  .build(),
+              ],
+            },
+          ],
+        });
+
+        await assert.rejects(
+          hre.tasks.getTask("task1").run({}),
+          new HardhatError(HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED, {
+            pluginId: "plugin1",
+          }),
+        );
+
+        // the missing dependency is used in the TASK_OVERRIDE action
+        hre = await createHardhatRuntimeEnvironment({
+          plugins: [
+            {
+              id: "plugin1",
+              tasks: [
+                new NewTaskDefinitionBuilderImplementation("task1")
+                  .setAction(() => {})
+                  .build(),
+              ],
+            },
+            {
+              id: "plugin2",
+              npmPackage: "non-installed-package",
+              tasks: [
+                new TaskOverrideDefinitionBuilderImplementation("task1")
+                  .setAction(nonInstalledPackageActionUrl)
+                  .build(),
+              ],
+            },
+          ],
+        });
+
+        await assert.rejects(
+          hre.tasks.getTask("task1").run({}),
+          new HardhatError(HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED, {
+            pluginId: "plugin2",
+          }),
+        );
+      });
+
+      it("should throw if an action url is provided and the corresponding module doesn't have a default export", async () => {
         const actionUrl = import.meta.resolve(
           "./fixture-projects/file-actions/no-default.js",
         );
@@ -1551,7 +1614,7 @@ describe("TaskManagerImplementation", () => {
         );
       });
 
-      it("should throw if an action url is provided and the module default export is not a function", async () => {
+      it("should throw if an action url is provided and the corresponding module default export is not a function", async () => {
         const actionUrl = import.meta.resolve(
           "./fixture-projects/file-actions/no-default-fn.js",
         );
