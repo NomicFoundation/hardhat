@@ -62,12 +62,13 @@ async function getTasksAndHreEnvironment(
   };
 }
 
-async function getTasksResults(
+async function getTasksAndSubtaskResults(
   configFileName: string = "hardhat.config.ts",
 ): Promise<boolean[]> {
   // To ensure that one or more tasks have been executed, each task will modify an array of boolean values, initially set to false.
   // This function imports that array, allowing the tests to verify if the tasks have been executed.
   // If a boolean flag is true, it indicates that the corresponding task (or a specific part of it) has been executed.
+  // The array is set in the hardhat.config.ts file of the fixture project.
   return (
     await import(pathToFileURL(`${process.cwd()}/${configFileName}`).toString())
   ).results;
@@ -128,7 +129,9 @@ describe("main", function () {
 
         await main(cliArguments);
 
-        const results = await getTasksResults("user-hardhat.config.ts");
+        const results = await getTasksAndSubtaskResults(
+          "user-hardhat.config.ts",
+        );
         assert.equal(results[0], true);
       });
     });
@@ -160,7 +163,7 @@ describe("main", function () {
 
         await main(cliArguments);
 
-        const results = await getTasksResults();
+        const results = await getTasksAndSubtaskResults();
         assert.deepEqual(results, [true, true, true]);
       });
 
@@ -170,7 +173,7 @@ describe("main", function () {
 
         await main(cliArguments);
 
-        const results = await getTasksResults();
+        const results = await getTasksAndSubtaskResults();
         assert.deepEqual(results, [true, false, false]);
       });
 
@@ -181,7 +184,7 @@ describe("main", function () {
 
         await main(cliArguments);
 
-        const results = await getTasksResults();
+        const results = await getTasksAndSubtaskResults();
         assert.deepEqual(results, [true, true, true]);
       });
 
@@ -192,7 +195,7 @@ describe("main", function () {
 
         await main(cliArguments);
 
-        const results = await getTasksResults();
+        const results = await getTasksAndSubtaskResults();
         assert.deepEqual(results, [true, false, false]);
       });
     });
@@ -215,7 +218,7 @@ describe("main", function () {
     });
 
     // TODO: as soon as the 'help task' is done, this test should be updated
-    describe("task help", function () {
+    describe("subtask help", function () {
       useFixtureProject("cli/parsing/subtask-help");
 
       it("should print an help message for the task's subtask", async function () {
