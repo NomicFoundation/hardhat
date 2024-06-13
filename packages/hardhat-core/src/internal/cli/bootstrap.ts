@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-import semver from "semver";
+
 import chalk from "chalk";
 
-import { SUPPORTED_NODE_VERSIONS } from "./constants";
+import { isNodeVersionToWarnOn } from "./is-node-version-to-warn-on";
 
-if (!semver.satisfies(process.version, SUPPORTED_NODE_VERSIONS.join(" || "))) {
+if (isNodeVersionToWarnOn(process.version)) {
   console.warn(
     chalk.yellow.bold(`WARNING:`),
     `You are currently using Node.js ${process.version}, which is not supported by Hardhat. This can lead to unexpected behavior. See https://hardhat.org/nodejs-versions`
