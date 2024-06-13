@@ -13,26 +13,32 @@ describe("isNodeVersionToWarnOn", function () {
     assert.isFalse(isNodeVersionToWarnOn("v22.3.0"));
   });
 
+  it("Should not warn on even newer versions even if they are unsupported", function () {
+    assert.isFalse(isNodeVersionToWarnOn("v24.0.0"));
+    assert.isFalse(isNodeVersionToWarnOn("v24.3.0"));
+  });
+
   it("Should warn on unsupported older node versions", function () {
     assert(isNodeVersionToWarnOn("v10.0.0"));
     assert(isNodeVersionToWarnOn("v10.24.1"));
 
+    assert(isNodeVersionToWarnOn("v11.0.0"));
+
     assert(isNodeVersionToWarnOn("v12.0.0"));
     assert(isNodeVersionToWarnOn("v12.22.12"));
 
+    assert(isNodeVersionToWarnOn("v13.0.0"));
+
     assert(isNodeVersionToWarnOn("v14.0.0"));
     assert(isNodeVersionToWarnOn("v14.21.3"));
+
+    assert(isNodeVersionToWarnOn("v15.0.0"));
 
     assert(isNodeVersionToWarnOn("v16.0.0"));
     assert(isNodeVersionToWarnOn("v16.20.20"));
   });
 
-  it("Should warn on unsupported newer versions", function () {
-    assert(isNodeVersionToWarnOn("v24.0.0"));
-    assert(isNodeVersionToWarnOn("v24.3.0"));
-  });
-
-  it("Should warn on unsupported odd number releases", function () {
+  it("Should warn on odd number releases", function () {
     assert(isNodeVersionToWarnOn("v15.14.0"));
     assert(isNodeVersionToWarnOn("v17.9.1"));
     assert(isNodeVersionToWarnOn("v19.9.0"));
