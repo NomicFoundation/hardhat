@@ -1,4 +1,7 @@
-import type { ParameterType } from "../types/common.js";
+import type {
+  ParameterType,
+  ParameterTypeToValueType,
+} from "../types/common.js";
 import type {
   GlobalArguments,
   GlobalParameter,
@@ -10,8 +13,8 @@ import type { HardhatPlugin } from "../types/plugins.js";
  * Builds a map of the global parameters, validating them.
  *
  * Note: this function can be used before initializing the HRE, so the plugins
- *   shouldn't be consider validated. Hence, we should validate the global
- *   parameters.
+ * shouldn't be consider validated. Hence, we should validate the global
+ * parameters.
  */
 export function buildGlobalParameterMap(
   resolvedPlugins: HardhatPlugin[],
@@ -48,11 +51,13 @@ export function buildGlobalParameterMap(
   return globalParametersIndex;
 }
 
-export function buildGlobalParameterDefinition(options: {
+export function buildGlobalParameterDefinition<
+  T extends ParameterType,
+>(options: {
   name: string;
   description: string;
   parameterType: ParameterType;
-  defaultValue: any;
+  defaultValue: ParameterTypeToValueType<T>;
 }): GlobalParameter {
   // TODO: Validate name casing
   // TODO: Validate default value matches with type

@@ -1,3 +1,4 @@
+import type { ParameterTypeToValueType } from "./types/common.js";
 import type { ConfigurationVariable } from "./types/config.js";
 import type { GlobalParameter } from "./types/global-parameters.js";
 import type {
@@ -57,11 +58,11 @@ export function overrideTask(
 /**
  * Defines a global parameter.
  */
-export function globalParameter(options: {
+export function globalParameter<T extends ParameterType>(options: {
   name: string;
   description: string;
   parameterType: ParameterType;
-  defaultValue: any;
+  defaultValue: ParameterTypeToValueType<T>;
 }): GlobalParameter {
   return buildGlobalParameterDefinition(options);
 }
