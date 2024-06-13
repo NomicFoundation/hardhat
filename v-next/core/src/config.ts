@@ -61,7 +61,7 @@ export function overrideTask(
 export function globalParameter<T extends ParameterType>(options: {
   name: string;
   description: string;
-  parameterType: ParameterType;
+  parameterType?: T;
   defaultValue: ParameterTypeToValueType<T>;
 }): GlobalParameter {
   return buildGlobalParameterDefinition(options);

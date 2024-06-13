@@ -51,12 +51,15 @@ export function buildGlobalParameterMap(
   return globalParametersIndex;
 }
 
-export function buildGlobalParameterDefinition<
-  T extends ParameterType,
->(options: {
+export function buildGlobalParameterDefinition<T extends ParameterType>({
+  name,
+  description,
+  parameterType,
+  defaultValue,
+}: {
   name: string;
   description: string;
-  parameterType: ParameterType;
+  parameterType?: T;
   defaultValue: ParameterTypeToValueType<T>;
 }): GlobalParameter {
   // TODO: Validate name casing
