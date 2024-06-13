@@ -1,13 +1,20 @@
-import type {
-  ParameterType,
-  ParameterTypeToValueType,
-} from "../types/common.js";
+import type { ParameterTypeToValueType } from "../types/common.js";
 import type {
   GlobalArguments,
   GlobalParameter,
   GlobalParameterMap,
 } from "../types/global-parameters.js";
 import type { HardhatPlugin } from "../types/plugins.js";
+
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
+import { ParameterType } from "../types/common.js";
+
+import {
+  RESERVED_PARAMETER_NAMES,
+  isParameterValueValid,
+  isValidParamNameCasing,
+} from "./parameters.js";
 
 /**
  * Builds a map of the global parameters, validating them.
@@ -62,15 +69,36 @@ export function buildGlobalParameterDefinition<T extends ParameterType>({
   parameterType?: T;
   defaultValue: ParameterTypeToValueType<T>;
 }): GlobalParameter {
-  // TODO: Validate name casing
-  // TODO: Validate default value matches with type
-  // TODO: Validate that the name is not one of the reserved ones in parameters.ts
+  const type = parameterType ?? ParameterType.STRING;
+
+  if (!isValidParamNameCasing(name)) {
+    throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
+      name,
+    });
+  }
+
+  if (RESERVED_PARAMETER_NAMES.has(name)) {
+    throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
+      name,
+    });
+  }
+
+  if (!isParameterValueValid(type, defaultValue)) {
+    throw new HardhatError(
+      HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      {
+        value: defaultValue,
+        name: "defaultValue",
+        type: parameterType,
+      },
+    );
+  }
 
   return {
-    name: options.name,
-    description: options.description,
-    parameterType: options.parameterType,
-    defaultValue: options.defaultValue,
+    name,
+    description,
+    parameterType: type,
+    defaultValue,
   };
 }
 
