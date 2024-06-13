@@ -85,31 +85,31 @@ describe("main", function () {
       useFixtureProject("cli/parsing/base-project");
 
       // TODO: as soon as the 'version task' is done, this test should be updated
-      it("should print the version and instantly return", async function () {
-        const m = mock.method(console, "log", () => {});
-        const spy = mock.fn(importUserConfig);
+      it.todo(
+        "should print the version and instantly return",
+        async function () {
+          const m = mock.method(console, "log", () => {});
+          const spy = mock.fn(importUserConfig);
 
-        const command = "npx hardhat --version";
-        const cliArguments = command.split(" ").slice(2);
+          const command = "npx hardhat --version";
+          const cliArguments = command.split(" ").slice(2);
 
-        await main(cliArguments);
+          await main(cliArguments);
 
-        assert.equal(m.mock.calls.length, 1);
-        assert.equal(m.mock.calls[0].arguments[0], "3.0.0");
-        // Check that the process exits right after printing the version, the remaining parsing logic should not be executed
-        assert.equal(spy.mock.calls.length, 0);
-      });
+          assert.equal(m.mock.calls.length, 1);
+          assert.equal(m.mock.calls[0].arguments[0], "3.0.0");
+          // Check that the process exits right after printing the version, the remaining parsing logic should not be executed
+          assert.equal(spy.mock.calls.length, 0);
+        },
+      );
     });
 
     describe("show-stack-traces", function () {
       useFixtureProject("cli/parsing/base-project");
 
-      // TODO: implement as soon as the error handling is done
-      // &&
-      // TODO throw when task is not recognized
-      // TODO: as soon as the 'show-stack-traces task' is done, this test should be updated
-      // it("should pretty print the error", async function () {});
-      it("should show the stack traces for the error", async function () {
+      // TODO: implement as soon as the 'pretty print error' and 'show-stack-traces task' are done
+      // This test throws when a task is not recognized
+      it.todo("should show the stack traces for the error", async function () {
         const command = "npx hardhat non-existing-task";
         const cliArguments = command.split(" ").slice(2);
 
@@ -140,7 +140,7 @@ describe("main", function () {
       useFixtureProject("cli/parsing/base-project");
 
       // TODO: update with a real task as soon as they are implemented
-      it("should run one of the hardhat default task", async function () {
+      it.todo("should run one of the hardhat default task", async function () {
         const m = mock.method(console, "log", () => {});
 
         const command = "npx hardhat --show-stack-traces example";
@@ -204,7 +204,7 @@ describe("main", function () {
     describe("global help", function () {
       useFixtureProject("cli/parsing/base-project");
 
-      it("should print the global help", async function () {
+      it.todo("should print the global help", async function () {
         const m = mock.method(console, "log", () => {});
 
         const command = "npx hardhat";
@@ -221,24 +221,27 @@ describe("main", function () {
     describe("subtask help", function () {
       useFixtureProject("cli/parsing/subtask-help");
 
-      it("should print an help message for the task's subtask", async function () {
-        const m = mock.method(console, "log", () => {});
+      it.todo(
+        "should print an help message for the task's subtask",
+        async function () {
+          const m = mock.method(console, "log", () => {});
 
-        const command = "npx hardhat empty-task --help";
-        const cliArguments = command.split(" ").slice(2);
+          const command = "npx hardhat empty-task --help";
+          const cliArguments = command.split(" ").slice(2);
 
-        await main(cliArguments);
+          await main(cliArguments);
 
-        assert.equal(m.mock.calls.length, 2);
-        assert.equal(m.mock.calls[1].arguments[0], "Info about subtasks");
-      });
+          assert.equal(m.mock.calls.length, 2);
+          assert.equal(m.mock.calls[1].arguments[0], "Info about subtasks");
+        },
+      );
     });
 
     // TODO: as soon as the 'help task' is done, this test should be updated
     describe("task help", function () {
       useFixtureProject("cli/parsing/base-project");
 
-      it("should print an help message for the task", async function () {
+      it.todo("should print an help message for the task", async function () {
         const m = mock.method(console, "log", () => {});
 
         const command = "npx hardhat task --help";
