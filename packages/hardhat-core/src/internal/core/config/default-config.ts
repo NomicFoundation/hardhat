@@ -141,6 +141,30 @@ export const defaultHardhatNetworkParams: Omit<
         ]),
       },
     ],
+    [
+      10, // optimism mainnet
+      {
+        hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]),
+      },
+    ],
+    [
+      11155420, // optimism sepolia
+      {
+        hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]),
+      },
+    ],
+    [
+      42161, // arbitrum one
+      {
+        hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]),
+      },
+    ],
+    [
+      421614, // arbitrum sepolia
+      {
+        hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]),
+      },
+    ],
   ]),
 };
 
