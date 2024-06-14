@@ -12,6 +12,8 @@ import type {
 import type { HardhatPlugin } from "../types/plugins.js";
 import type { LastParameter, Return } from "../types/utils.js";
 
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+
 export class HookManagerImplementation implements HookManager {
   readonly #pluginsInReverseOrder: HardhatPlugin[];
 
@@ -108,10 +110,10 @@ export class HookManagerImplementation implements HookManager {
 
     let handlerParams: Parameters<typeof defaultImplementation>;
     if (hookCategoryName !== "config") {
-      // TODO: assert that this.#context is not undefinded
-      if (this.#context === undefined) {
-        throw new Error(`Context must be set before running non-config hooks`);
-      }
+      assertHardhatInvariant(
+        this.#context !== undefined,
+        "Context must be set before running non-config hooks",
+      );
 
       handlerParams = [this.#context, ...params] as any;
     } else {
