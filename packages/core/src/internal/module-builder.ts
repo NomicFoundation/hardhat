@@ -73,6 +73,7 @@ import { assertIgnitionInvariant } from "./utils/assertions";
 import {
   toCallFutureId,
   toContractFutureId,
+  toEncodeFunctionCallFutureId,
   toReadEventArgumentFutureId,
   toSendDataFutureId,
 } from "./utils/future-id-builders";
@@ -637,7 +638,7 @@ class IgnitionModuleBuilderImplementation<
       );
     }
 
-    const futureId = toCallFutureId(
+    const futureId = toEncodeFunctionCallFutureId(
       this._module.id,
       options.id,
       contractFuture.module.id,

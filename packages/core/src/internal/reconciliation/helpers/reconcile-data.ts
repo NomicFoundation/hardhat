@@ -1,5 +1,6 @@
 import { SendDataFuture } from "../../../types/module";
 import { SendDataExecutionState } from "../../execution/types/execution-state";
+import { assertIgnitionInvariant } from "../../utils/assertions";
 import { findResultForFutureById } from "../../views/find-result-for-future-by-id";
 import {
   ReconciliationContext,
@@ -17,10 +18,15 @@ export function reconcileData(
     return compare(future, "Data", exState.data, future.data ?? "0x");
   }
 
-  return compare(
-    future,
-    "Data",
-    exState.data,
-    findResultForFutureById(context.deploymentState, future.data.id) as string
+  const newData = findResultForFutureById(
+    context.deploymentState,
+    future.data.id
   );
+
+  assertIgnitionInvariant(
+    typeof newData === "string",
+    "Expected data to be a string"
+  );
+
+  return compare(future, "Data", exState.data, newData);
 }

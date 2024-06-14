@@ -8,13 +8,17 @@ import { DeploymentParameters } from "../../../types/deploy";
 import { EncodeFunctionCallFuture } from "../../../types/module";
 import { ERRORS } from "../../errors-list";
 import { validateArtifactFunction } from "../../execution/abi";
-import { retrieveNestedRuntimeValues } from "../utils";
+import {
+  filterToAccountRuntimeValues,
+  retrieveNestedRuntimeValues,
+  validateAccountRuntimeValue,
+} from "../utils";
 
 export async function validateNamedEncodeFunctionCall(
   future: EncodeFunctionCallFuture<string, string>,
   artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
-  _accounts: string[]
+  accounts: string[]
 ): Promise<string[]> {
   const errors: IgnitionError[] = [];
 
@@ -47,6 +51,13 @@ export async function validateNamedEncodeFunctionCall(
 
   const runtimeValues = retrieveNestedRuntimeValues(future.args);
   const moduleParams = runtimeValues.filter(isModuleParameterRuntimeValue);
+  const accountParams = [...filterToAccountRuntimeValues(runtimeValues)];
+
+  errors.push(
+    ...accountParams.flatMap((arv) =>
+      validateAccountRuntimeValue(arv, accounts)
+    )
+  );
 
   const missingParams = moduleParams.filter(
     (param) =>

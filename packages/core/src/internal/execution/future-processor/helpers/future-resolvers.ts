@@ -131,8 +131,14 @@ export function resolveFutureData(
     return data;
   }
 
-  // this type coercion is safe because we know the type of data is EncodeFunctionCallFuture
-  return findResultForFutureById(deploymentState, data.id) as string;
+  const result = findResultForFutureById(deploymentState, data.id);
+
+  assertIgnitionInvariant(
+    typeof result === "string",
+    "Expected future data to be a string"
+  );
+
+  return result;
 }
 
 /**

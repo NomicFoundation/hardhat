@@ -53,7 +53,7 @@ export function toContractFutureId(
 }
 
 /**
- * Construct the future id for a call, static call, or encoded function call, namespaced by the moduleId.
+ * Construct the future id for a call or static call, namespaced by the moduleId.
  *
  * @param moduleId - the id of the module the future is part of
  * @param userProvidedId - the overriding id provided by the user (it will still
@@ -85,6 +85,40 @@ export function toCallFutureId(
   )}`;
 
   return `${moduleId}${MODULE_SEPERATOR}${submoduleContractId}${SUBKEY_SEPERATOR}${functionName}`;
+}
+
+/**
+ * Construct the future id for an encoded function call, namespaced by the moduleId.
+ *
+ * @param moduleId - the id of the module the future is part of
+ * @param userProvidedId - the overriding id provided by the user (it will still
+ * be namespaced)
+ * @param contractName - the contract or library name that forms part of the
+ * fallback
+ * @param functionName - the function name that forms part of the fallback
+ * @returns the future id
+ */
+export function toEncodeFunctionCallFutureId(
+  moduleId: string,
+  userProvidedId: string | undefined,
+  contractModuleId: string,
+  contractId: string,
+  functionName: string
+) {
+  if (userProvidedId !== undefined) {
+    return `${moduleId}${MODULE_SEPERATOR}${userProvidedId}`;
+  }
+
+  if (moduleId === contractModuleId) {
+    return `${moduleId}${MODULE_SEPERATOR}encodeFunctionCall(${contractId}${SUBKEY_SEPERATOR}${functionName})`;
+  }
+
+  // We replace the MODULE_SEPARATOR for SUBMODULE_SEPARATOR
+  const submoduleContractId = `${contractModuleId}${SUBMODULE_SEPARATOR}${contractId.substring(
+    contractModuleId.length + MODULE_SEPERATOR.length
+  )}`;
+
+  return `${moduleId}${MODULE_SEPERATOR}encodeFunctionCall(${submoduleContractId}${SUBKEY_SEPERATOR}${functionName})`;
 }
 
 /**

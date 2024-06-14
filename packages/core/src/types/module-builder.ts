@@ -387,9 +387,12 @@ export interface IgnitionModuleBuilder {
   ): StaticCallFuture<ContractNameT, FunctionNameT>;
 
   /**
-   * Encode a function call.
+   * ABI encode a function call, including both the function's name and
+   * the parameters it is being called with. This is useful when
+   * sending a raw transaction to invoke a smart contract or
+   * when invoking a smart contract proxied through an intermediary function.
    *
-   * @param contractFuture - The contract ABI to encode with
+   * @param contractFuture - The contract that the ABI for encoding will be taken from
    * @param functionName - The name of the function
    * @param args - The arguments to pass to the function
    * @param options - The options for the call
@@ -398,7 +401,7 @@ export interface IgnitionModuleBuilder {
    * ```
    * const myContract = m.contract("MyContract");
    * const data = m.encodeFunctionCall(myContract, "updateCounter", [100]);
-   * m.send("callFunctionOnContract", myContract, 0n, data);
+   * m.send("callUpdateCounter", myContract, 0n, data);
    * ```
    */
   encodeFunctionCall<

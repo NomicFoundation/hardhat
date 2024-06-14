@@ -149,7 +149,7 @@ export interface EncodeFunctionCallExecutionState
   artifactId: string;
   functionName: string;
   args: SolidityParameterType[];
-  result?: string;
+  result: string;
 }
 
 /**

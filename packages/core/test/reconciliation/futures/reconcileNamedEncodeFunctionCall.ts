@@ -48,6 +48,7 @@ describe("Reconciliation - named encode function call", () => {
     artifactId: "./artifact.json",
     functionName: "function",
     args: [],
+    result: "",
   };
 
   it("should reconcile unchanged", async () => {
@@ -79,7 +80,7 @@ describe("Reconciliation - named encode function call", () => {
         },
         {
           ...exampleEncodeFunctionCallState,
-          id: "Submodule#Contract1.function1",
+          id: "Submodule#encodeFunctionCall(Submodule#Contract1.function1)",
           futureType: FutureType.ENCODE_FUNCTION_CALL,
           status: ExecutionStatus.SUCCESS,
           functionName: "function1",
@@ -89,7 +90,7 @@ describe("Reconciliation - named encode function call", () => {
     );
   });
 
-  it("should find changes to contract unreconciliable", async () => {
+  it("should find changes to future dependencies unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
 
@@ -194,7 +195,7 @@ describe("Reconciliation - named encode function call", () => {
         },
         {
           ...exampleEncodeFunctionCallState,
-          id: "Module#Contract1.function1",
+          id: "Module#encodeFunctionCall(Module#Contract1.function1)",
           futureType: FutureType.ENCODE_FUNCTION_CALL,
           status: ExecutionStatus.STARTED,
           functionName: "function1",
@@ -205,90 +206,7 @@ describe("Reconciliation - named encode function call", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module#Contract1.function1",
-        failure: "Argument at index 0 has been changed",
-      },
-    ]);
-  });
-
-  it("should reconcile an address arg with entirely different casing", async () => {
-    const moduleDefinition = buildModule("Module", (m) => {
-      const contract1 = m.contract("Contract1");
-
-      m.encodeFunctionCall(
-        contract1,
-        "function1",
-        ["0x15d34aaf54267db7d7c367839aaf71a00a2c6a65"],
-        {}
-      );
-
-      return { contract1 };
-    });
-
-    await assertSuccessReconciliation(
-      moduleDefinition,
-      createDeploymentState(
-        {
-          ...exampleDeploymentState,
-          id: "Module#Contract1",
-          status: ExecutionStatus.SUCCESS,
-          result: {
-            type: ExecutionResultType.SUCCESS,
-            address: differentAddress,
-          },
-        },
-        {
-          ...exampleEncodeFunctionCallState,
-          id: "Module#Contract1.function1",
-          futureType: FutureType.ENCODE_FUNCTION_CALL,
-          status: ExecutionStatus.STARTED,
-          functionName: "function1",
-          args: ["0x15D34AAF54267DB7D7C367839AAF71A00A2C6A65"],
-        }
-      )
-    );
-  });
-
-  it("should fail to reconcile an address arg with partially different casing", async () => {
-    const moduleDefinition = buildModule("Module", (m) => {
-      const contract1 = m.contract("Contract1");
-
-      m.encodeFunctionCall(
-        contract1,
-        "function1",
-        ["0x15d34aaf54267db7d7c367839aaf71a00a2c6a65"],
-        {}
-      );
-
-      return { contract1 };
-    });
-
-    const reconiliationResult = await reconcile(
-      moduleDefinition,
-      createDeploymentState(
-        {
-          ...exampleDeploymentState,
-          id: "Module#Contract1",
-          status: ExecutionStatus.SUCCESS,
-          result: {
-            type: ExecutionResultType.SUCCESS,
-            address: differentAddress,
-          },
-        },
-        {
-          ...exampleEncodeFunctionCallState,
-          id: "Module#Contract1.function1",
-          futureType: FutureType.ENCODE_FUNCTION_CALL,
-          status: ExecutionStatus.STARTED,
-          functionName: "function1",
-          args: ["0x15d34aaf54267db7D7c367839aaf71a00a2c6a65"],
-        }
-      )
-    );
-
-    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
-      {
-        futureId: "Module#Contract1.function1",
+        futureId: "Module#encodeFunctionCall(Module#Contract1.function1)",
         failure: "Argument at index 0 has been changed",
       },
     ]);

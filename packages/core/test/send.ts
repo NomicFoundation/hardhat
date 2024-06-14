@@ -5,6 +5,7 @@ import { buildModule } from "../src/build-module";
 import {
   AccountRuntimeValueImplementation,
   ModuleParameterRuntimeValueImplementation,
+  NamedEncodeFunctionCallFutureImplementation,
   SendDataFutureImplementation,
 } from "../src/internal/module";
 import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module";
@@ -248,7 +249,7 @@ describe("send", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Example.test"
+      ({ id }) => id === "Module1#encodeFunctionCall(Module1#Example.test)"
     );
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
@@ -257,6 +258,12 @@ describe("send", () => {
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
       assert.fail("Not a send data future");
+    }
+
+    if (
+      !(exampleFuture instanceof NamedEncodeFunctionCallFutureImplementation)
+    ) {
+      assert.fail("Not an encode function call future");
     }
 
     assert.equal(sendFuture.dependencies.size, 2);

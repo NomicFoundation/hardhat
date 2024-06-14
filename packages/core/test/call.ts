@@ -887,7 +887,7 @@ m.call(..., { id: "MyUniqueId"})`
       );
     });
 
-    it("should validate a module parameter with a default value that is an AccountRuntimeValue for a negative index", async () => {
+    it("should not validate a module parameter with a default value that is an AccountRuntimeValue for a negative index", async () => {
       const fakerArtifact: Artifact = {
         ...fakeArtifact,
         abi: [
