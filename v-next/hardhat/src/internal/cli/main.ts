@@ -2,7 +2,7 @@ import type { ParameterValue } from "@nomicfoundation/hardhat-core/types/common"
 import type {
   GlobalArguments,
   GlobalParameter,
-  GlobalParameterMap,
+  GlobalParametersMap,
 } from "@nomicfoundation/hardhat-core/types/global-parameters";
 import type { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
 import type {
@@ -15,7 +15,7 @@ import type {
 import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
 
 import {
-  buildGlobalParameterMap,
+  buildGlobalParametersMap,
   resolvePluginList,
 } from "@nomicfoundation/hardhat-core";
 import { ParameterType } from "@nomicfoundation/hardhat-core/types/common";
@@ -66,9 +66,9 @@ export async function main(cliArguments: string[]) {
       hardhatSpecialArgs.configPath,
     );
 
-    const globalParameterMap = buildGlobalParameterMap(resolvedPlugins);
+    const globalParametersMap = buildGlobalParametersMap(resolvedPlugins);
     const userProvidedGlobalArguments = parseGlobalArguments(
-      globalParameterMap,
+      globalParametersMap,
       cliArguments,
       usedCliArguments,
     );
@@ -78,7 +78,7 @@ export async function main(cliArguments: string[]) {
       userProvidedGlobalArguments,
       {
         resolvedPlugins,
-        globalParameterMap,
+        globalParametersMap,
       },
     );
 
@@ -209,14 +209,14 @@ export async function parseHardhatSpecialArguments(
 }
 
 export async function parseGlobalArguments(
-  globalParamsIndex: GlobalParameterMap,
+  globalParametersMap: GlobalParametersMap,
   cliArguments: string[],
   usedCliArguments: boolean[],
 ): Promise<Partial<GlobalArguments>> {
   const globalArguments: Partial<GlobalArguments> = {};
 
   const parameters = new Map(
-    [...globalParamsIndex].map(([key, value]) => [key, value.param]),
+    [...globalParametersMap].map(([key, value]) => [key, value.param]),
   );
 
   parseDoubleDashArgs(

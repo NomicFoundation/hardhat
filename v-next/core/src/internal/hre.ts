@@ -2,7 +2,7 @@ import type { UnsafeHardhatRuntimeEnvironmentOptions } from "../types/cli.js";
 import type { HardhatUserConfig, HardhatConfig } from "../types/config.js";
 import type {
   GlobalArguments,
-  GlobalParameterMap,
+  GlobalParametersMap,
 } from "../types/global-parameters.js";
 import type {
   HardhatUserConfigValidationError,
@@ -16,7 +16,7 @@ import type { UserInterruptionManager } from "../types/user-interruptions.js";
 
 import { ResolvedConfigurationVariableImplementation } from "./configuration-variables.js";
 import {
-  buildGlobalParameterMap,
+  buildGlobalParametersMap,
   resolveGlobalArguments,
 } from "./global-parameters.js";
 import { HookManagerImplementation } from "./hook-manager.js";
@@ -85,13 +85,13 @@ export class HardhatRuntimeEnvironmentImplementation
       plugins: resolvedPlugins,
     };
 
-    const globalParametersIndex =
-      unsafeOptions?.globalParameterMap ??
-      buildGlobalParameterMap(resolvedPlugins);
+    const globalParametersMap =
+      unsafeOptions?.globalParametersMap ??
+      buildGlobalParametersMap(resolvedPlugins);
 
     const globalArguments = resolveGlobalArguments(
       userProvidedGlobalArguments,
-      globalParametersIndex,
+      globalParametersMap,
     );
 
     // Set the HookContext in the hook manager so that non-config hooks can
@@ -114,7 +114,7 @@ export class HardhatRuntimeEnvironmentImplementation
       hooks,
       interruptions,
       globalArguments,
-      globalParametersIndex,
+      globalParametersMap,
     );
 
     await hooks.runSequentialHandlers("hre", "created", [hre]);
@@ -130,9 +130,9 @@ export class HardhatRuntimeEnvironmentImplementation
     public readonly hooks: HookManager,
     public readonly interruptions: UserInterruptionManager,
     public readonly globalArguments: GlobalArguments,
-    globalParametersIndex: GlobalParameterMap,
+    globalParametersMap: GlobalParametersMap,
   ) {
-    this.tasks = new TaskManagerImplementation(this, globalParametersIndex);
+    this.tasks = new TaskManagerImplementation(this, globalParametersMap);
   }
 }
 
