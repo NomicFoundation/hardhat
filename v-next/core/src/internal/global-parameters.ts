@@ -33,25 +33,27 @@ export function buildGlobalParameterMap(
       continue;
     }
 
-    for (const [name, param] of Object.entries(plugin.globalParameters)) {
-      // TODO: Validate name casing
-      // TODO: Validate default value matches with type
-      // TODO: Validate that the name is not one of the reserved ones in parameters.ts
-
-      const existingByName = globalParametersIndex.get(name);
-
+    for (const param of plugin.globalParameters) {
+      const existingByName = globalParametersIndex.get(param.name);
       if (existingByName !== undefined) {
-        throw new Error(
-          `Plugin ${plugin.id} is trying to define the global parameter ${name} but it is already defined by plugin ${existingByName.pluginId}`,
+        throw new HardhatError(
+          HardhatError.ERRORS.GENERAL.GLOBAL_PARAMETER_ALREADY_DEFINED,
+          {
+            plugin: plugin.id,
+            globalParameter: param.name,
+            definedByPlugin: existingByName.pluginId,
+          },
         );
       }
 
+      const validatedGlobalParam = buildGlobalParameterDefinition(param);
+
       const indexEntry = {
         pluginId: plugin.id,
-        param,
+        param: validatedGlobalParam,
       };
 
-      globalParametersIndex.set(param.name, indexEntry);
+      globalParametersIndex.set(validatedGlobalParam.name, indexEntry);
     }
   }
 
