@@ -32,7 +32,8 @@ import {
   resolveConfigPath,
 } from "../helpers/config-loading.js";
 import { getHardhatRuntimeEnvironmentSingleton } from "../hre-singleton.js";
-import { getHardhatVersion } from "../utils/package.js";
+
+import { printVersionMessage } from "./version.js";
 
 export async function main(cliArguments: string[], print = console.log) {
   const hreInitStart = performance.now();
@@ -496,10 +497,6 @@ function parsePositionalAndVariadicParameters(
 
   // Check if all the required parameters have been used
   validateRequiredParameters(task.positionalParameters, taskArguments);
-}
-
-async function printVersionMessage(print = console.log) {
-  print(await getHardhatVersion());
 }
 
 function validateRequiredParameters(
