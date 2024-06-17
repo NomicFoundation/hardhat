@@ -182,7 +182,6 @@ export class EdrProviderWrapper
     private readonly _node: {
       _vm: MinimalEthereumJsVm;
     },
-    private readonly _eventAdapter: EdrProviderEventAdapter,
     private readonly _vmTraceDecoder: VmTraceDecoder,
     private readonly _rawTraceCallbacks: RawTraceCallbacks,
     // The common configuration for EthereumJS VM is not used by EDR, but tests expect it as part of the provider.
@@ -323,7 +322,6 @@ export class EdrProviderWrapper
     const wrapper = new EdrProviderWrapper(
       provider,
       minimalEthereumJsNode,
-      eventAdapter,
       vmTraceDecoder,
       rawTraceCallbacks,
       common,
