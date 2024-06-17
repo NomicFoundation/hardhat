@@ -33,6 +33,8 @@ import {
 } from "../helpers/config-loading.js";
 import { getHardhatRuntimeEnvironmentSingleton } from "../hre-singleton.js";
 
+import { printVersionMessage } from "./version.js";
+
 export async function main(cliArguments: string[], print = console.log) {
   const hreInitStart = performance.now();
 
@@ -46,7 +48,7 @@ export async function main(cliArguments: string[], print = console.log) {
   );
 
   if (hardhatSpecialArgs.version) {
-    print("3.0.0");
+    await printVersionMessage(print);
     return;
   }
 
