@@ -47,7 +47,7 @@ export async function main(cliArguments: string[], print = console.log) {
   );
 
   if (hardhatSpecialArgs.version) {
-    await printVersionMessage();
+    await printVersionMessage(print);
     return;
   }
 
@@ -498,8 +498,8 @@ function parsePositionalAndVariadicParameters(
   validateRequiredParameters(task.positionalParameters, taskArguments);
 }
 
-async function printVersionMessage() {
-  console.log(await getHardhatVersion());
+async function printVersionMessage(print = console.log) {
+  print(await getHardhatVersion());
 }
 
 function validateRequiredParameters(

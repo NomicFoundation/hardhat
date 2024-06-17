@@ -29,6 +29,7 @@ import {
   parseTaskAndArguments,
 } from "../../../src/internal/cli/main.js";
 import { resetHardhatRuntimeEnvironmentSingleton } from "../../../src/internal/hre-singleton.js";
+import { getHardhatVersion } from "../../../src/internal/utils/package.js";
 import { useFixtureProject } from "../../helpers/project.js";
 
 async function getTasksAndHreEnvironment(
@@ -82,26 +83,25 @@ describe("main", function () {
     describe("version", function () {
       useFixtureProject("cli/parsing/base-project");
 
-      // TODO: as soon as the 'version task' is done, this test should be updated
-      it.todo(
-        "should print the version and instantly return",
-        async function () {
-          const lines: string[] = [];
+      it("should print the version and instantly return", async function () {
+        const lines: string[] = [];
 
-          const command = "npx hardhat --version";
-          const cliArguments = command.split(" ").slice(2);
+        const command = "npx hardhat --version";
+        const cliArguments = command.split(" ").slice(2);
 
-          await main(cliArguments, (msg) => {
-            lines.push(msg);
-          });
+        await main(cliArguments, (msg) => {
+          lines.push(msg);
+        });
 
-          assert.equal(lines.length, 1);
-          assert.equal(lines[0], "3.0.0");
-          // Check that the process exits right after printing the version, the remaining parsing logic should not be executed
-          const tasksResults = await getTasksAndSubtaskResults();
-          assert.equal(tasksResults.wasParam1Used, false);
-        },
-      );
+        // Get the expected package version
+        const expectedVersion = await getHardhatVersion();
+
+        assert.equal(lines.length, 1);
+        assert.equal(lines[0], expectedVersion);
+        // Check that the process exits right after printing the version, the remaining parsing logic should not be executed
+        const tasksResults = await getTasksAndSubtaskResults();
+        assert.equal(tasksResults.wasParam1Used, false);
+      });
     });
 
     describe("show-stack-traces", function () {
