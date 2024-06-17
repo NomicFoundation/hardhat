@@ -38,13 +38,19 @@ pragma solidity ^0.8.9;
 
 // A contrived example of a contract that can be upgraded
 contract DemoV2 {
+  string public name;
+
   function version() public pure returns (string memory) {
     return "2.0.0";
+  }
+
+  function setName(string memory _name) public {
+    name = _name;
   }
 }
 ```
 
-This contract is identical to the first one, except that it returns an updated version string.
+In addition to updating the version string, this contract also adds a `name` state variable and a `setName` function that allows us to set the value of `name`. We'll use this function later when we upgrade our proxy.
 
 Finally, we'll create a file called `Proxies.sol` to import our proxy contracts. This file will look a little different than the others:
 
@@ -184,7 +190,7 @@ module.exports = demoModule;
 
 ::::
 
-### Part 3: Upgrading our proxy
+### Part 3: Upgrading our proxy with an initialization function
 
 Next it's time to upgrade our proxy to a new version. To do this, we'll create a new file within our `ignition/modules` directory called `UpgradeModule.js` (or `UpgradeModule.ts` if you're using TypeScript). Inside this file, we'll again break up our module into two parts. To start, we'll write our `UpgradeModule`:
 
@@ -196,7 +202,11 @@ const upgradeModule = buildModule("UpgradeModule", (m) => {
 
   const demoV2 = m.contract("DemoV2");
 
-  m.call(proxyAdmin, "upgradeAndCall", [proxy, demoV2, "0x"], {
+  const encodedFunctionCall = m.encodeFunctionCall(demoV2, "setName", [
+    "Example Name",
+  ]);
+
+  m.call(proxyAdmin, "upgradeAndCall", [proxy, demoV2, encodedFunctionCall], {
     from: proxyAdminOwner,
   });
 
@@ -210,7 +220,9 @@ Next, we use the `m.useModule(...)` method to get the `ProxyAdmin` and proxy con
 
 Then, we deploy our `DemoV2` contract. This will be the contract that we'll upgrade our proxy to.
 
-Finally, we call the `upgradeAndCall` method on the `ProxyAdmin` contract. This method takes three arguments: the proxy contract, the new implementation contract, and a data parameter that can be used to call an additional function. We don't need it right now, so we'll leave it blank by setting it to an empty hex string (`"0x"`). We also provide the `from` option to ensure that the upgrade is called from the owner of the `ProxyAdmin` contract.
+Next, we encode a call to the `setName` function in the `DemoV2` contract. This function takes a single argument, a string, which we'll set to `"Example Name"`. This encoded function call will be used to call the `setName` function on the `DemoV2` contract when we upgrade the proxy.
+
+Finally, we call the `upgradeAndCall` method on the `ProxyAdmin` contract. This method takes three arguments: the proxy contract, the new implementation contract, and a data parameter that can be used to call an additional function on the target contract. In this case, we're calling the `setName` function on the `DemoV2` contract with the encoded function call we created earlier. We also provide the `from` option to ensure that the upgrade is called from the owner of the `ProxyAdmin` contract.
 
 Lastly, we again return the `ProxyAdmin` and proxy contracts so that we can use them in our next module.
 
@@ -289,6 +301,14 @@ describe("Demo Proxy", function () {
 
       expect(await demo.connect(otherAccount).version()).to.equal("2.0.0");
     });
+
+    it("Should have set the name during upgrade", async function () {
+      const [owner, otherAccount] = await ethers.getSigners();
+
+      const { demo } = await ignition.deploy(UpgradeModule);
+
+      expect(await demo.connect(otherAccount).name()).to.equal("Example Name");
+    });
   });
 });
 ```
@@ -322,6 +342,14 @@ describe("Demo Proxy", function () {
 
       expect(await demo.connect(otherAccount).version()).to.equal("2.0.0");
     });
+
+    it("Should have set the name during upgrade", async function () {
+      const [owner, otherAccount] = await ethers.getSigners();
+
+      const { demo } = await ignition.deploy(UpgradeModule);
+
+      expect(await demo.connect(otherAccount).name()).to.equal("Example Name");
+    });
   });
 });
 ```
@@ -330,7 +358,7 @@ describe("Demo Proxy", function () {
 
 ::::
 
-Here we use Hardhat Ignition to deploy our imported modules. First, we deploy our base `ProxyModule` that returns the first version of our `Demo` contract and test it to ensure the proxy worked and retrieves the appropriate version string. Then, we deploy our `UpgradeModule` that returns the second version of our `Demo` contract and test it to ensure the proxy now returns the updated version string.
+Here we use Hardhat Ignition to deploy our imported modules. First, we deploy our base `ProxyModule` that returns the first version of our `Demo` contract and test it to ensure the proxy worked and retrieves the appropriate version string. Then, we deploy our `UpgradeModule` that returns the second version of our `Demo` contract and test it to ensure the proxy now returns the updated version string. We also test that our initialization function was called and set the `name` state variable to `"Example Name"`.
 
 ## Further reading
 
