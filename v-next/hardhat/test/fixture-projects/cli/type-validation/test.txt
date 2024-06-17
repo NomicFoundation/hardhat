@@ -1,1 +1,0 @@
-This file is used to validate the type FILE in the cli tests
