@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.15.5 - 2024-06-17
+
+### Added
+
+- New function `m.encodeFunctionCall` ([#761](https://github.com/NomicFoundation/hardhat-ignition/pull/761))
+
+### Fixed
+
+- Adjusted regex to allow calling overloaded functions with array parameters ([#774](https://github.com/NomicFoundation/hardhat-ignition/pull/774))
+- Handle anvil response for `hardhat_setBalance` when deploying with create2 ([#773](https://github.com/NomicFoundation/hardhat-ignition/pull/773))
+- Properly resolve `verify` logic when dealing with circular or very deeply nested imports ([#772](https://github.com/NomicFoundation/hardhat-ignition/pull/772))
+- Exclude BNB Test Chain from zero fee configuration in gas fee logic, thanks @MukulKolpe ([#768](https://github.com/NomicFoundation/hardhat-ignition/pull/768))
+
 ## 0.15.4 - 2024-05-14
 
 ### Fixed
