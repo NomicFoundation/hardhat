@@ -22,5 +22,13 @@ describe("Demo Proxy", function () {
 
       expect(await demo.connect(otherAccount).version()).to.equal("2.0.0");
     });
+
+    it("Should have set the name during upgrade", async function () {
+      const [owner, otherAccount] = await ethers.getSigners();
+
+      const { demo } = await ignition.deploy(UpgradeModule);
+
+      expect(await demo.connect(otherAccount).name()).to.equal("Example Name");
+    });
   });
 });

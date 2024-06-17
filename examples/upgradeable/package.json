@@ -10,7 +10,7 @@
     "prettier": "prettier \"*.{js,md,json}\" \"ignition/modules/*.{js,md,json}\" \"test/*.{js,md,json}\" \"contracts/**/*.sol\""
   },
   "devDependencies": {
-    "@nomicfoundation/hardhat-ignition-ethers": "^0.15.1",
+    "@nomicfoundation/hardhat-ignition-ethers": "^0.15.5",
     "@nomicfoundation/hardhat-toolbox": "4.0.0",
     "hardhat": "^2.18.0",
     "prettier-plugin-solidity": "1.1.3"
