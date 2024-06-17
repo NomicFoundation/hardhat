@@ -2,12 +2,16 @@ import type { HardhatUserConfig } from "@nomicfoundation/hardhat-core/config";
 
 import { task } from "@nomicfoundation/hardhat-core/config";
 
-export const results = [false, false, false];
+export const tasksResults = {
+  wasParam1Used: false,
+  wasParam2Used: false,
+  wasParam3Used: false,
+};
 
 function resetResults() {
-  results[0] = false;
-  results[1] = false;
-  results[2] = false;
+  tasksResults.wasParam1Used = false;
+  tasksResults.wasParam2Used = false;
+  tasksResults.wasParam3Used = false;
 }
 
 const customTask = task("task")
@@ -19,10 +23,10 @@ const customTask = task("task")
 
     const { param1, param2, param3 } = taskArguments;
 
-    results[0] = param1 === "<value1>";
-    results[1] = param2 === "<value2>";
+    tasksResults.wasParam1Used = param1 === "<value1>";
+    tasksResults.wasParam2Used = param2 === "<value2>";
     if (Array.isArray(param3)) {
-      results[2] = param3[0] === "<value3>";
+      tasksResults.wasParam3Used = param3[0] === "<value3>"; // Variadic parameters are always in an array
     }
   })
   .build();
@@ -33,7 +37,7 @@ const customTask2 = task("task-default")
     resetResults();
 
     const { param1 } = taskArguments;
-    results[0] = param1 === "<default-value1>";
+    tasksResults.wasParam1Used = param1 === "<default-value1>";
   })
   .build();
 
@@ -46,10 +50,10 @@ const customSubtask = task(["task", "subtask"])
 
     const { param1, param2, param3 } = taskArguments;
 
-    results[0] = param1 === "<value1>";
-    results[1] = param2 === "<value2>";
+    tasksResults.wasParam1Used = param1 === "<value1>";
+    tasksResults.wasParam2Used = param2 === "<value2>";
     if (Array.isArray(param3)) {
-      results[2] = param3[0] === "<value3>";
+      tasksResults.wasParam3Used = param3[0] === "<value3>"; // Variadic parameters are always in an array
     }
   })
   .build();
@@ -60,7 +64,7 @@ const customSubtask2 = task(["task-default", "subtask-default"])
     resetResults();
 
     const { param1 } = taskArguments;
-    results[0] = param1 === "<default-value1>";
+    tasksResults.wasParam1Used = param1 === "<default-value1>";
   })
   .build();
 

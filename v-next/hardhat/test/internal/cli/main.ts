@@ -64,14 +64,14 @@ async function getTasksAndHreEnvironment(
 
 async function getTasksAndSubtaskResults(
   configFileName: string = "hardhat.config.ts",
-): Promise<boolean[]> {
+) {
   // To ensure that one or more tasks have been executed, each task will modify an array of boolean values, initially set to false.
   // This function imports that array, allowing the tests to verify if the tasks have been executed.
   // If a boolean flag is true, it indicates that the corresponding task (or a specific part of it) has been executed.
   // The array is set in the hardhat.config.ts file of the fixture project.
   return (
     await import(pathToFileURL(`${process.cwd()}/${configFileName}`).toString())
-  ).results;
+  ).tasksResults;
 }
 
 describe("main", function () {
@@ -129,10 +129,10 @@ describe("main", function () {
 
         await main(cliArguments);
 
-        const results = await getTasksAndSubtaskResults(
+        const tasksResults = await getTasksAndSubtaskResults(
           "user-hardhat.config.ts",
         );
-        assert.equal(results[0], true);
+        assert.equal(tasksResults.wasParam1Used, true);
       });
     });
 
@@ -141,15 +141,12 @@ describe("main", function () {
 
       // TODO: update with a real task as soon as they are implemented
       it.todo("should run one of the hardhat default task", async function () {
-        const m = mock.method(console, "log", () => {});
+        const print = mock.fn((_msg) => {});
 
         const command = "npx hardhat --show-stack-traces example";
         const cliArguments = command.split(" ").slice(2);
 
-        await main(cliArguments);
-
-        assert.equal(m.mock.calls.length, 4);
-        assert.equal(m.mock.calls[2].arguments[0], "from a plugin");
+        await main(cliArguments, print);
       });
     });
 
@@ -163,8 +160,10 @@ describe("main", function () {
 
         await main(cliArguments);
 
-        const results = await getTasksAndSubtaskResults();
-        assert.deepEqual(results, [true, true, true]);
+        const tasksResults = await getTasksAndSubtaskResults();
+        assert.deepEqual(tasksResults.wasParam1Used, true);
+        assert.deepEqual(tasksResults.wasParam2Used, true);
+        assert.deepEqual(tasksResults.wasParam3Used, true);
       });
 
       it("should run the task with the default value", async function () {
@@ -173,8 +172,10 @@ describe("main", function () {
 
         await main(cliArguments);
 
-        const results = await getTasksAndSubtaskResults();
-        assert.deepEqual(results, [true, false, false]);
+        const tasksResults = await getTasksAndSubtaskResults();
+        assert.deepEqual(tasksResults.wasParam1Used, true);
+        assert.deepEqual(tasksResults.wasParam2Used, false);
+        assert.deepEqual(tasksResults.wasParam3Used, false);
       });
 
       it("should run the subtask with global flags and parameters", async function () {
@@ -184,8 +185,10 @@ describe("main", function () {
 
         await main(cliArguments);
 
-        const results = await getTasksAndSubtaskResults();
-        assert.deepEqual(results, [true, true, true]);
+        const tasksResults = await getTasksAndSubtaskResults();
+        assert.deepEqual(tasksResults.wasParam1Used, true);
+        assert.deepEqual(tasksResults.wasParam2Used, true);
+        assert.deepEqual(tasksResults.wasParam3Used, true);
       });
 
       it("should run the subtask with the default value", async function () {
@@ -195,8 +198,10 @@ describe("main", function () {
 
         await main(cliArguments);
 
-        const results = await getTasksAndSubtaskResults();
-        assert.deepEqual(results, [true, false, false]);
+        const tasksResults = await getTasksAndSubtaskResults();
+        assert.deepEqual(tasksResults.wasParam1Used, true);
+        assert.deepEqual(tasksResults.wasParam2Used, false);
+        assert.deepEqual(tasksResults.wasParam3Used, false);
       });
     });
 
@@ -205,15 +210,15 @@ describe("main", function () {
       useFixtureProject("cli/parsing/base-project");
 
       it.todo("should print the global help", async function () {
-        const m = mock.method(console, "log", () => {});
+        const print = mock.fn((_msg) => {});
 
         const command = "npx hardhat";
         const cliArguments = command.split(" ").slice(2);
 
-        await main(cliArguments);
+        await main(cliArguments, print);
 
-        assert.equal(m.mock.calls.length, 2);
-        assert.equal(m.mock.calls[1].arguments[0], "Global help");
+        assert.equal(print.mock.calls.length, 2);
+        assert.equal(print.mock.calls[1].arguments[0], "Global help");
       });
     });
 
@@ -224,15 +229,15 @@ describe("main", function () {
       it.todo(
         "should print an help message for the task's subtask",
         async function () {
-          const m = mock.method(console, "log", () => {});
+          const print = mock.fn((_msg) => {});
 
           const command = "npx hardhat empty-task --help";
           const cliArguments = command.split(" ").slice(2);
 
-          await main(cliArguments);
+          await main(cliArguments, print);
 
-          assert.equal(m.mock.calls.length, 2);
-          assert.equal(m.mock.calls[1].arguments[0], "Info about subtasks");
+          assert.equal(print.mock.calls.length, 2);
+          assert.equal(print.mock.calls[1].arguments[0], "Info about subtasks");
         },
       );
     });
@@ -242,15 +247,18 @@ describe("main", function () {
       useFixtureProject("cli/parsing/base-project");
 
       it.todo("should print an help message for the task", async function () {
-        const m = mock.method(console, "log", () => {});
+        const print = mock.fn((_msg) => {});
 
         const command = "npx hardhat task --help";
         const cliArguments = command.split(" ").slice(2);
 
-        await main(cliArguments);
+        await main(cliArguments, print);
 
-        assert.equal(m.mock.calls.length, 2);
-        assert.equal(m.mock.calls[1].arguments[0], "Help message of the task");
+        assert.equal(print.mock.calls.length, 2);
+        assert.equal(
+          print.mock.calls[1].arguments[0],
+          "Help message of the task",
+        );
       });
     });
   });

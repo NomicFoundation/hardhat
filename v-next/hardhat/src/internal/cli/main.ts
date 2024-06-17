@@ -33,7 +33,7 @@ import {
 } from "../helpers/config-loading.js";
 import { getHardhatRuntimeEnvironmentSingleton } from "../hre-singleton.js";
 
-export async function main(cliArguments: string[]) {
+export async function main(cliArguments: string[], print = console.log) {
   const hreInitStart = performance.now();
 
   const usedCliArguments: boolean[] = new Array(cliArguments.length).fill(
@@ -46,7 +46,7 @@ export async function main(cliArguments: string[]) {
   );
 
   if (hardhatSpecialArgs.version) {
-    console.log("3.0.0");
+    print("3.0.0");
     return;
   }
 
@@ -83,7 +83,7 @@ export async function main(cliArguments: string[]) {
     );
 
     const hreInitEnd = performance.now();
-    console.log("Time to initialize the HRE (ms):", hreInitEnd - hreInitStart);
+    print("Time to initialize the HRE (ms):", hreInitEnd - hreInitStart);
 
     const taskParsingStart = performance.now();
 
@@ -92,7 +92,7 @@ export async function main(cliArguments: string[]) {
     if (Array.isArray(result)) {
       if (result.length === 0) {
         // TODO: Print the global help
-        console.log("Global help");
+        print("Global help");
         return;
       }
 
@@ -104,21 +104,18 @@ export async function main(cliArguments: string[]) {
     if (hardhatSpecialArgs.help) {
       if (task.isEmpty) {
         // TODO: Print information about its subtasks
-        console.log("Info about subtasks");
+        print("Info about subtasks");
         return;
       }
 
       // TODO: Print the help message for this task
-      console.log("Help message of the task");
+      print("Help message of the task");
       return;
     }
 
     const taskParsingEnd = performance.now();
 
-    console.log(
-      "Time to parse the task (ms):",
-      taskParsingEnd - taskParsingStart,
-    );
+    print("Time to parse the task (ms):", taskParsingEnd - taskParsingStart);
 
     const taskRunningStart = performance.now();
 
@@ -126,10 +123,7 @@ export async function main(cliArguments: string[]) {
 
     const taskRunningEnd = performance.now();
 
-    console.log(
-      "Time to run the task (ms):",
-      taskRunningEnd - taskRunningStart,
-    );
+    print("Time to run the task (ms):", taskRunningEnd - taskRunningStart);
   } catch (error) {
     process.exitCode = 1;
 
@@ -140,10 +134,10 @@ export async function main(cliArguments: string[]) {
 
     // TODO: Print the errors nicely, especially `HardhatError`s.
 
-    console.log("Error running the task:", error.message);
+    print("Error running the task:", error.message);
 
     if (hardhatSpecialArgs.showStackTraces) {
-      console.log("");
+      print("");
       console.error(error);
     }
   }

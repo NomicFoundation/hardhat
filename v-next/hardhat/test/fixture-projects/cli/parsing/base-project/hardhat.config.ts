@@ -2,11 +2,13 @@ import type { HardhatUserConfig } from "@nomicfoundation/hardhat-core/config";
 
 import { task } from "@nomicfoundation/hardhat-core/config";
 
-export const tasksResults = [false];
+export const tasksResults = {
+  wasParam1Used: false,
+};
 
 const customTask = task("task")
   .setAction(() => {
-    tasksResults[0] = true;
+    tasksResults.wasParam1Used = true;
   })
   .build();
 
