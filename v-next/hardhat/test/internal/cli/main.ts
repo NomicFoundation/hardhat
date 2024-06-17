@@ -9,7 +9,8 @@ import type {
 } from "@nomicfoundation/hardhat-core/types/tasks";
 
 import assert from "node:assert/strict";
-import { before, describe, it } from "node:test";
+import { afterEach, before, describe, it } from "node:test";
+import { pathToFileURL } from "node:url";
 
 import { createHardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core";
 import {
@@ -22,10 +23,13 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 
 import {
+  main,
   parseGlobalArguments,
   parseHardhatSpecialArguments,
   parseTaskAndArguments,
 } from "../../../src/internal/cli/main.js";
+import { resetHardhatRuntimeEnvironmentSingleton } from "../../../src/internal/hre-singleton.js";
+import { useFixtureProject } from "../../helpers/project.js";
 
 async function getTasksAndHreEnvironment(
   tasksBuilders: NewTaskDefinitionBuilder[],
@@ -57,7 +61,213 @@ async function getTasksAndHreEnvironment(
   };
 }
 
+async function getTasksAndSubtaskResults(
+  configFileName: string = "hardhat.config.ts",
+) {
+  // To ensure that one or more tasks have been executed, each task will modify an array of boolean values, initially set to false.
+  // This function imports that array, allowing the tests to verify if the tasks have been executed.
+  // If a boolean flag is true, it indicates that the corresponding task (or a specific part of it) has been executed.
+  // The array is set in the hardhat.config.ts file of the fixture project.
+  return (
+    await import(pathToFileURL(`${process.cwd()}/${configFileName}`).toString())
+  ).tasksResults;
+}
+
 describe("main", function () {
+  describe("main", function () {
+    afterEach(function () {
+      resetHardhatRuntimeEnvironmentSingleton();
+    });
+
+    describe("version", function () {
+      useFixtureProject("cli/parsing/base-project");
+
+      // TODO: as soon as the 'version task' is done, this test should be updated
+      it.todo(
+        "should print the version and instantly return",
+        async function () {
+          const lines: string[] = [];
+
+          const command = "npx hardhat --version";
+          const cliArguments = command.split(" ").slice(2);
+
+          await main(cliArguments, (msg) => {
+            lines.push(msg);
+          });
+
+          assert.equal(lines.length, 1);
+          assert.equal(lines[0], "3.0.0");
+          // Check that the process exits right after printing the version, the remaining parsing logic should not be executed
+          const tasksResults = await getTasksAndSubtaskResults();
+          assert.equal(tasksResults.wasParam1Used, false);
+        },
+      );
+    });
+
+    describe("show-stack-traces", function () {
+      useFixtureProject("cli/parsing/base-project");
+
+      // TODO: implement as soon as the 'pretty print error' and 'show-stack-traces task' are done
+      // This test throws when a task is not recognized
+      it.todo("should show the stack traces for the error", async function () {
+        const command = "npx hardhat non-existing-task";
+        const cliArguments = command.split(" ").slice(2);
+
+        await main(cliArguments);
+        assert.equal(process.exitCode, 1); // Expect 1 because the task failed
+        process.exitCode = 0; // Reset the exit code so it does not affect other tests
+      });
+    });
+
+    describe("different configuration file path", function () {
+      useFixtureProject("cli/parsing/user-config");
+
+      it("should load the hardhat configuration file from a custom path (--config)", async function () {
+        const command =
+          "npx hardhat --config ./user-hardhat.config.ts user-task";
+        const cliArguments = command.split(" ").slice(2);
+
+        await main(cliArguments);
+
+        const tasksResults = await getTasksAndSubtaskResults(
+          "user-hardhat.config.ts",
+        );
+        assert.equal(tasksResults.wasParam1Used, true);
+      });
+    });
+
+    describe("one of the hardhat default task with global flags and parameters", async function () {
+      useFixtureProject("cli/parsing/base-project");
+
+      // TODO: update with a real task as soon as they are implemented
+      it.todo("should run one of the hardhat default task", async function () {
+        const lines: string[] = [];
+
+        const command = "npx hardhat --show-stack-traces example";
+        const cliArguments = command.split(" ").slice(2);
+
+        await main(cliArguments, (msg) => {
+          lines.push(msg);
+        });
+      });
+    });
+
+    describe("task with global flags and parameters", async function () {
+      useFixtureProject("cli/parsing/tasks-and-subtasks");
+
+      it("should run the task with global flags and parameters", async function () {
+        const command =
+          "npx hardhat --show-stack-traces task --param1 <value1> <value2> <value3>";
+        const cliArguments = command.split(" ").slice(2);
+
+        await main(cliArguments);
+
+        const tasksResults = await getTasksAndSubtaskResults();
+        assert.deepEqual(tasksResults.wasParam1Used, true);
+        assert.deepEqual(tasksResults.wasParam2Used, true);
+        assert.deepEqual(tasksResults.wasParam3Used, true);
+      });
+
+      it("should run the task with the default value", async function () {
+        const command = "npx hardhat task-default --show-stack-traces";
+        const cliArguments = command.split(" ").slice(2);
+
+        await main(cliArguments);
+
+        const tasksResults = await getTasksAndSubtaskResults();
+        assert.deepEqual(tasksResults.wasParam1Used, true);
+        assert.deepEqual(tasksResults.wasParam2Used, false);
+        assert.deepEqual(tasksResults.wasParam3Used, false);
+      });
+
+      it("should run the subtask with global flags and parameters", async function () {
+        const command =
+          "npx hardhat task subtask --param1 <value1> --show-stack-traces <value2> <value3>";
+        const cliArguments = command.split(" ").slice(2);
+
+        await main(cliArguments);
+
+        const tasksResults = await getTasksAndSubtaskResults();
+        assert.deepEqual(tasksResults.wasParam1Used, true);
+        assert.deepEqual(tasksResults.wasParam2Used, true);
+        assert.deepEqual(tasksResults.wasParam3Used, true);
+      });
+
+      it("should run the subtask with the default value", async function () {
+        const command =
+          "npx hardhat task-default --show-stack-traces subtask-default";
+        const cliArguments = command.split(" ").slice(2);
+
+        await main(cliArguments);
+
+        const tasksResults = await getTasksAndSubtaskResults();
+        assert.deepEqual(tasksResults.wasParam1Used, true);
+        assert.deepEqual(tasksResults.wasParam2Used, false);
+        assert.deepEqual(tasksResults.wasParam3Used, false);
+      });
+    });
+
+    // TODO: as soon as the 'help task' is done, this test should be updated
+    describe("global help", function () {
+      useFixtureProject("cli/parsing/base-project");
+
+      it.todo("should print the global help", async function () {
+        const lines: string[] = [];
+
+        const command = "npx hardhat";
+        const cliArguments = command.split(" ").slice(2);
+
+        await main(cliArguments, (msg) => {
+          lines.push(msg);
+        });
+
+        assert.equal(lines.length, 2);
+        assert.equal(lines[1], "Global help");
+      });
+    });
+
+    // TODO: as soon as the 'help task' is done, this test should be updated
+    describe("subtask help", function () {
+      useFixtureProject("cli/parsing/subtask-help");
+
+      it.todo(
+        "should print an help message for the task's subtask",
+        async function () {
+          const lines: string[] = [];
+
+          const command = "npx hardhat empty-task --help";
+          const cliArguments = command.split(" ").slice(2);
+
+          await main(cliArguments, (msg) => {
+            lines.push(msg);
+          });
+
+          assert.equal(lines.length, 2);
+          assert.equal(lines[1], "Info about subtasks");
+        },
+      );
+    });
+
+    // TODO: as soon as the 'help task' is done, this test should be updated
+    describe("task help", function () {
+      useFixtureProject("cli/parsing/base-project");
+
+      it.todo("should print an help message for the task", async function () {
+        const lines: string[] = [];
+
+        const command = "npx hardhat task --help";
+        const cliArguments = command.split(" ").slice(2);
+
+        await main(cliArguments, (msg) => {
+          lines.push(msg);
+        });
+
+        assert.equal(lines.length, 2);
+        assert.equal(lines[1], "Help message of the task");
+      });
+    });
+  });
+
   describe("parseHardhatSpecialArguments", function () {
     it("should set all the hardhat special parameters", async function () {
       // All the <value> and "task" should be ignored
