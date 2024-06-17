@@ -4,8 +4,8 @@ This is a NextJS-based application for the Hardhat documentation website. This a
 
 The app mainly provides two types of pages:
 
-- landing pages (see home page)
-- documentation pages (see documentation section)
+- Landing pages (see home page)
+- Documentation pages (see documentation section)
 
 Landing pages are composed of reusable blocks and separate content files. Blocks are full-width React Components that can be stacked to compose a page. Blocks output content passed to them via props.
 
@@ -14,9 +14,9 @@ Documentation pages are generated from markdown files located in the `src/conten
 It is assumed that the app will be hosted on the Vercel platform, which is highly optimized for SSG apps.
 
 We consider two directions for the follow-up application growth:
+
 - Creating and editing new content
 - Adding new features to the app
-
 
 The first one can be provided by working with human-friendly file formats located in the content folder (MD and YAML). Only minimal tech knowledge is needed for that. The second way requires developers' efforts.
 
