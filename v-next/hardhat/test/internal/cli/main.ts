@@ -9,7 +9,7 @@ import type {
 } from "@nomicfoundation/hardhat-core/types/tasks";
 
 import assert from "node:assert/strict";
-import { afterEach, before, describe, it, mock } from "node:test";
+import { afterEach, before, describe, it } from "node:test";
 import { pathToFileURL } from "node:url";
 
 import { createHardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core";
@@ -28,7 +28,6 @@ import {
   parseHardhatSpecialArguments,
   parseTaskAndArguments,
 } from "../../../src/internal/cli/main.js";
-import { importUserConfig } from "../../../src/internal/helpers/config-loading.js";
 import { resetHardhatRuntimeEnvironmentSingleton } from "../../../src/internal/hre-singleton.js";
 import { useFixtureProject } from "../../helpers/project.js";
 
@@ -78,7 +77,6 @@ describe("main", function () {
   describe("main", function () {
     afterEach(function () {
       resetHardhatRuntimeEnvironmentSingleton();
-      mock.reset();
     });
 
     describe("version", function () {
@@ -88,18 +86,20 @@ describe("main", function () {
       it.todo(
         "should print the version and instantly return",
         async function () {
-          const m = mock.method(console, "log", () => {});
-          const spy = mock.fn(importUserConfig);
+          const lines: string[] = [];
 
           const command = "npx hardhat --version";
           const cliArguments = command.split(" ").slice(2);
 
-          await main(cliArguments);
+          await main(cliArguments, (msg) => {
+            lines.push(msg);
+          });
 
-          assert.equal(m.mock.calls.length, 1);
-          assert.equal(m.mock.calls[0].arguments[0], "3.0.0");
+          assert.equal(lines.length, 1);
+          assert.equal(lines[0], "3.0.0");
           // Check that the process exits right after printing the version, the remaining parsing logic should not be executed
-          assert.equal(spy.mock.calls.length, 0);
+          const tasksResults = await getTasksAndSubtaskResults();
+          assert.equal(tasksResults.wasParam1Used, false);
         },
       );
     });
@@ -141,12 +141,14 @@ describe("main", function () {
 
       // TODO: update with a real task as soon as they are implemented
       it.todo("should run one of the hardhat default task", async function () {
-        const print = mock.fn((_msg) => {});
+        const lines: string[] = [];
 
         const command = "npx hardhat --show-stack-traces example";
         const cliArguments = command.split(" ").slice(2);
 
-        await main(cliArguments, print);
+        await main(cliArguments, (msg) => {
+          lines.push(msg);
+        });
       });
     });
 
@@ -210,15 +212,17 @@ describe("main", function () {
       useFixtureProject("cli/parsing/base-project");
 
       it.todo("should print the global help", async function () {
-        const print = mock.fn((_msg) => {});
+        const lines: string[] = [];
 
         const command = "npx hardhat";
         const cliArguments = command.split(" ").slice(2);
 
-        await main(cliArguments, print);
+        await main(cliArguments, (msg) => {
+          lines.push(msg);
+        });
 
-        assert.equal(print.mock.calls.length, 2);
-        assert.equal(print.mock.calls[1].arguments[0], "Global help");
+        assert.equal(lines.length, 2);
+        assert.equal(lines[1], "Global help");
       });
     });
 
@@ -229,15 +233,17 @@ describe("main", function () {
       it.todo(
         "should print an help message for the task's subtask",
         async function () {
-          const print = mock.fn((_msg) => {});
+          const lines: string[] = [];
 
           const command = "npx hardhat empty-task --help";
           const cliArguments = command.split(" ").slice(2);
 
-          await main(cliArguments, print);
+          await main(cliArguments, (msg) => {
+            lines.push(msg);
+          });
 
-          assert.equal(print.mock.calls.length, 2);
-          assert.equal(print.mock.calls[1].arguments[0], "Info about subtasks");
+          assert.equal(lines.length, 2);
+          assert.equal(lines[1], "Info about subtasks");
         },
       );
     });
@@ -247,18 +253,17 @@ describe("main", function () {
       useFixtureProject("cli/parsing/base-project");
 
       it.todo("should print an help message for the task", async function () {
-        const print = mock.fn((_msg) => {});
+        const lines: string[] = [];
 
         const command = "npx hardhat task --help";
         const cliArguments = command.split(" ").slice(2);
 
-        await main(cliArguments, print);
+        await main(cliArguments, (msg) => {
+          lines.push(msg);
+        });
 
-        assert.equal(print.mock.calls.length, 2);
-        assert.equal(
-          print.mock.calls[1].arguments[0],
-          "Help message of the task",
-        );
+        assert.equal(lines.length, 2);
+        assert.equal(lines[1], "Help message of the task");
       });
     });
   });
