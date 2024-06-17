@@ -3,13 +3,30 @@ import type {
   HardhatConfig,
   HardhatUserConfig,
 } from "../../src/types/config.js";
-import type { HookContext, HookManager } from "../../src/types/hooks.js";
+import type {
+  HardhatUserConfigValidationError,
+  HookContext,
+  HookManager,
+} from "../../src/types/hooks.js";
+import type { HardhatRuntimeEnvironment } from "../../src/types/hre.js";
+import type { Task, TaskManager } from "../../src/types/tasks.js";
+import type { UserInterruptionManager } from "../../src/types/user-interruptions.js";
 
 import assert from "node:assert/strict";
 import { describe, it, beforeEach } from "node:test";
 
 import { HookManagerImplementation } from "../../src/internal/hook-manager.js";
 import { UserInterruptionManagerImplementation } from "../../src/internal/user-interruptions.js";
+
+// This allows us to test the sequential return of handlers
+// Currently `hre.created` is the only hook that is returned sequentially
+// but it returns void. `testExample` takes and returns a string to
+// ease testing.
+declare module "../../src/types/hooks.js" {
+  interface HardhatRuntimeEnvironmentHooks {
+    testExample: (context: HookContext, input: string) => Promise<string>;
+  }
+}
 
 describe("HookManager", () => {
   describe("runHandlerChain", () => {
@@ -213,4 +230,165 @@ describe("HookManager", () => {
       assert.equal(resultValue, "default-value");
     });
   });
+
+  describe("runSequentialHandlers", () => {
+    let hookManager: HookManager;
+
+    beforeEach(() => {
+      const manager = new HookManagerImplementation([]);
+
+      const userInterruptionsManager =
+        new UserInterruptionManagerImplementation(hookManager);
+
+      manager.setContext({
+        config: {
+          tasks: [],
+          plugins: [],
+        },
+        hooks: hookManager,
+        globalArguments: {},
+        interruptions: userInterruptionsManager,
+      });
+
+      hookManager = manager;
+    });
+
+    it("Should return the empty set if no handlers are registered", async () => {
+      const mockHre = buildMockHardhatRuntimeEnvironment(hookManager);
+
+      const resultHre = await hookManager.runSequentialHandlers(
+        "hre",
+        "created",
+        [mockHre],
+      );
+
+      assert.deepEqual(resultHre, []);
+    });
+
+    it("Should return a return entry per handler", async () => {
+      hookManager.registerHandlers("hre", {
+        testExample: async (
+          _context: HookContext,
+          _input: string,
+        ): Promise<string> => {
+          return "first";
+        },
+      });
+
+      hookManager.registerHandlers("hre", {
+        testExample: async (
+          _context: HookContext,
+          _input: string,
+        ): Promise<string> => {
+          return "second";
+        },
+      });
+
+      hookManager.registerHandlers("hre", {
+        testExample: async (
+          _context: HookContext,
+          _input: string,
+        ): Promise<string> => {
+          return "third";
+        },
+      });
+
+      const result = await hookManager.runSequentialHandlers(
+        "hre",
+        "testExample",
+        ["input"],
+      );
+
+      assert.deepEqual(result, ["third", "second", "first"]);
+    });
+
+    it("Should let handlers access the passed context (for non-config hooks)", async () => {
+      hookManager.registerHandlers("hre", {
+        testExample: async (
+          context: HookContext,
+          input: string,
+        ): Promise<string> => {
+          assert(
+            context !== null && typeof context === "object",
+            "Context should be passed for sequential processing",
+          );
+          assert.equal(input, "input");
+          return "result";
+        },
+      });
+
+      const result = await hookManager.runSequentialHandlers(
+        "hre",
+        "testExample",
+        ["input"],
+      );
+
+      assert.deepEqual(result, ["result"]);
+    });
+
+    it("Should stop config handlers having access to the hook context", async () => {
+      const expectedConfig: HardhatConfig = {
+        plugins: [],
+        tasks: [],
+      };
+
+      hookManager.registerHandlers("config", {
+        validateUserConfig: async (
+          config: HardhatUserConfig,
+        ): Promise<HardhatUserConfigValidationError[]> => {
+          assert.deepEqual(
+            config,
+            expectedConfig,
+            "The first parameter should be the config - not the context",
+          );
+
+          return [];
+        },
+      });
+
+      const validationResult = await hookManager.runSequentialHandlers(
+        "config",
+        "validateUserConfig",
+        [expectedConfig],
+      );
+
+      assert.deepEqual(validationResult, [[]]);
+    });
+  });
 });
+
+function buildMockHardhatRuntimeEnvironment(
+  hookManager: HookManager,
+): HardhatRuntimeEnvironment {
+  const mockInteruptionManager: UserInterruptionManager = {
+    displayMessage: async () => {},
+    requestInput: async () => "",
+    requestSecretInput: async () => "",
+    uninterrupted: async <ReturnT>(
+      f: () => ReturnT,
+    ): Promise<Awaited<ReturnT>> => {
+      /* eslint-disable-next-line @typescript-eslint/return-await, @typescript-eslint/await-thenable -- this is following the pattern in the real implementation */
+      return await f();
+    },
+  };
+
+  const mockTaskManager: TaskManager = {
+    getTask: () => {
+      throw new Error("Method not implemented.");
+    },
+    rootTasks: new Map<string, Task>(),
+  };
+
+  const mockHre: HardhatRuntimeEnvironment = {
+    hooks: hookManager,
+    config: {
+      tasks: [],
+      plugins: [],
+    },
+    tasks: mockTaskManager,
+    globalArguments: {},
+    interruptions: mockInteruptionManager,
+  };
+
+  return mockHre;
+}
