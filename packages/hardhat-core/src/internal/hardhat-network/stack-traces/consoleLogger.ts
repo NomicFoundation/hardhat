@@ -47,66 +47,13 @@ import {
   Uint256Ty,
   CONSOLE_LOG_SIGNATURES,
 } from "./logger";
-import {
-  EvmMessageTrace,
-  isCallTrace,
-  isEvmStep,
-  isPrecompileTrace,
-  MessageTrace,
-} from "./message-trace";
 
-const CONSOLE_ADDRESS = "0x000000000000000000636F6e736F6c652e6c6f67"; // toHex("console.log")
 const REGISTER_SIZE = 32;
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface ConsoleLogArray extends Array<ConsoleLogEntry> {}
-
-export type ConsoleLogEntry = string | ConsoleLogArray;
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
+export type ConsoleLogEntry = string | ConsoleLogEntry[];
 export type ConsoleLogs = ConsoleLogEntry[];
 
 export class ConsoleLogger {
-  public getLogMessages(maybeDecodedMessageTrace: MessageTrace): string[] {
-    return this.getExecutionLogs(maybeDecodedMessageTrace).map(
-      consoleLogToString
-    );
-  }
-
-  public getExecutionLogs(
-    maybeDecodedMessageTrace: MessageTrace
-  ): ConsoleLogs[] {
-    if (isPrecompileTrace(maybeDecodedMessageTrace)) {
-      return [];
-    }
-
-    const logs: ConsoleLogs[] = [];
-    this._collectExecutionLogs(maybeDecodedMessageTrace, logs);
-    return logs;
-  }
-
-  private _collectExecutionLogs(trace: EvmMessageTrace, logs: ConsoleLogs) {
-    for (const messageTrace of trace.steps) {
-      if (isEvmStep(messageTrace) || isPrecompileTrace(messageTrace)) {
-        continue;
-      }
-
-      if (
-        isCallTrace(messageTrace) &&
-        bufferToHex(messageTrace.address) === CONSOLE_ADDRESS.toLowerCase()
-      ) {
-        const log = this._maybeConsoleLog(Buffer.from(messageTrace.calldata));
-        if (log !== undefined) {
-          logs.push(log);
-        }
-
-        continue;
-      }
-
-      this._collectExecutionLogs(messageTrace, logs);
-    }
-  }
-
   /**
    * Temporary code to print console.sol messages that come from EDR
    */
