@@ -141,6 +141,8 @@ export const defaultHardhatNetworkParams: Omit<
         ]),
       },
     ],
+    // TODO: the rest of this config is a temporary workaround,
+    // see https://github.com/NomicFoundation/edr/issues/522
     [
       10, // optimism mainnet
       {
