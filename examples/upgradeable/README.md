@@ -1,21 +1,24 @@
-# Hardhat Sample for Hardhat Ignition
+# Upgradeable Contract Example for Hardhat Ignition
 
 This project is a basic example of how to use Hardhat Ignition with contract systems that use an upgradeable proxy pattern.
 
 ## Deploying
 
-To run the Ignition deploy against the ephemeral hardhat network:
+To deploy the an example proxy contract against the ephemeral Hardhat network:
 
 ```shell
 npx hardhat ignition deploy ./ignition/modules/ProxyModule.js
+```
 
-# or to deploy the upgrade module
+To deploy an example of a proxy contract being upgraded against the ephemeral Hardhat network:
+
+```shell
 npx hardhat ignition deploy ./ignition/modules/UpgradeModule.js
 ```
 
 ## Test
 
-To run the hardhat tests using Ignition:
+To run the Hardhat tests using Ignition:
 
 ```shell
 npm run test
