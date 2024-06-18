@@ -42,10 +42,10 @@ import {
   Bytes8Ty,
   Bytes9Ty,
   BytesTy,
-  ConsoleLogs,
   Int256Ty,
   StringTy,
   Uint256Ty,
+  CONSOLE_LOG_SIGNATURES,
 } from "./logger";
 import {
   EvmMessageTrace,
@@ -67,14 +67,6 @@ export type ConsoleLogEntry = string | ConsoleLogArray;
 export type ConsoleLogs = ConsoleLogEntry[];
 
 export class ConsoleLogger {
-  private readonly _consoleLogs: {
-    [key: number]: string[];
-  } = {};
-
-  constructor() {
-    this._consoleLogs = ConsoleLogs;
-  }
-
   public getLogMessages(maybeDecodedMessageTrace: MessageTrace): string[] {
     return this.getExecutionLogs(maybeDecodedMessageTrace).map(
       consoleLogToString
@@ -132,15 +124,15 @@ export class ConsoleLogger {
   }
 
   private _maybeConsoleLog(calldata: Buffer): ConsoleLogs | undefined {
-    const sig = bytesToInt(calldata.slice(0, 4));
+    const selector = bytesToInt(calldata.slice(0, 4));
     const parameters = calldata.slice(4);
 
-    const types = this._consoleLogs[sig];
-    if (types === undefined) {
+    const argTypes = CONSOLE_LOG_SIGNATURES[selector];
+    if (argTypes === undefined) {
       return;
     }
 
-    const consoleLogs = this._decode(parameters, types);
+    const consoleLogs = this._decode(parameters, argTypes);
 
     this._replaceNumberFormatSpecifiers(consoleLogs);
 

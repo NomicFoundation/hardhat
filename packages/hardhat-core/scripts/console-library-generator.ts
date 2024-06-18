@@ -80,9 +80,8 @@ library console {
 `;
 
 logger +=
-  "\n// In order to optimize map lookup\n" +
-  "// we'll store 4byte signature as int\n" +
-  "export const ConsoleLogs = {\n";
+  "\n/** Maps from a 4-byte function selector to a signature (argument types) */\n" +
+  "export const CONSOLE_LOG_SIGNATURES: Record<number, string[]> = {\n";
 
 // Add the empty log() first
 const sigInt = bytesToInt(keccak256(Buffer.from("log" + "()")).slice(0, 4));
