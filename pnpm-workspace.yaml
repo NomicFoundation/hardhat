@@ -3,4 +3,5 @@ packages:
   - "examples/complete"
   - "examples/sample"
   - "examples/ts-sample"
+  - "examples/upgradeable"
   - "examples/viem-sample"
