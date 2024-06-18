@@ -326,7 +326,7 @@ const UpgradeModule = require("../ignition/modules/UpgradeModule");
 describe("Demo Proxy", function () {
   describe("Proxy interaction", async function () {
     it("Should be interactable via proxy", async function () {
-      const [owner, otherAccount] = await ethers.getSigners();
+      const [, otherAccount] = await ethers.getSigners();
 
       const { demo } = await ignition.deploy(ProxyModule);
 
@@ -336,7 +336,7 @@ describe("Demo Proxy", function () {
 
   describe("Upgrading", function () {
     it("Should have upgraded the proxy to DemoV2", async function () {
-      const [owner, otherAccount] = await ethers.getSigners();
+      const [, otherAccount] = await ethers.getSigners();
 
       const { demo } = await ignition.deploy(UpgradeModule);
 
@@ -344,7 +344,7 @@ describe("Demo Proxy", function () {
     });
 
     it("Should have set the name during upgrade", async function () {
-      const [owner, otherAccount] = await ethers.getSigners();
+      const [, otherAccount] = await ethers.getSigners();
 
       const { demo } = await ignition.deploy(UpgradeModule);
 
