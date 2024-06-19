@@ -499,6 +499,147 @@ describe("HookManager", () => {
       assert.deepEqual(results, [[validationError]]);
     });
   });
+
+  describe("unregisterHandlers", () => {
+    let hookManager: HookManager;
+
+    beforeEach(() => {
+      const manager = new HookManagerImplementation([]);
+
+      const userInterruptionsManager =
+        new UserInterruptionManagerImplementation(hookManager);
+
+      manager.setContext({
+        config: {
+          tasks: [],
+          plugins: [],
+        },
+        hooks: hookManager,
+        globalArguments: {},
+        interruptions: userInterruptionsManager,
+      });
+
+      hookManager = manager;
+    });
+
+    it("Should unhook a handler", async () => {
+      const hookCategory = {
+        validateUserConfig: async (
+          _config: HardhatUserConfig,
+        ): Promise<HardhatUserConfigValidationError[]> => {
+          return [];
+        },
+      };
+
+      hookManager.registerHandlers("config", hookCategory);
+
+      hookManager.unregisterHandlers("config", hookCategory);
+
+      const results = await hookManager.runParallelHandlers(
+        "config",
+        "validateUserConfig",
+        [
+          {
+            plugins: [],
+            tasks: [],
+          },
+        ],
+      );
+
+      // no responses should be returned
+      assert.deepEqual(results, []);
+    });
+
+    it("Should only unhook the right handler", async () => {
+      const firstHook = {
+        validateUserConfig: async (
+          _config: HardhatUserConfig,
+        ): Promise<HardhatUserConfigValidationError[]> => {
+          return [
+            {
+              path: [],
+              message: "first",
+            },
+          ];
+        },
+      };
+
+      const secondHook = {
+        validateUserConfig: async (
+          _config: HardhatUserConfig,
+        ): Promise<HardhatUserConfigValidationError[]> => {
+          return [
+            {
+              path: [],
+              message: "second",
+            },
+          ];
+        },
+      };
+
+      const thirdHook = {
+        validateUserConfig: async (
+          _config: HardhatUserConfig,
+        ): Promise<HardhatUserConfigValidationError[]> => {
+          return [
+            {
+              path: [],
+              message: "third",
+            },
+          ];
+        },
+      };
+
+      // Arrange
+      hookManager.registerHandlers("config", firstHook);
+      hookManager.registerHandlers("config", secondHook);
+      hookManager.registerHandlers("config", thirdHook);
+
+      // Act
+      hookManager.unregisterHandlers("config", secondHook);
+
+      const results = await hookManager.runParallelHandlers(
+        "config",
+        "validateUserConfig",
+        [
+          {
+            plugins: [],
+            tasks: [],
+          },
+        ],
+      );
+
+      // Assert
+      assert.deepEqual(results, [
+        [
+          {
+            path: [],
+            message: "third",
+          },
+        ],
+        [
+          {
+            path: [],
+            message: "first",
+          },
+        ],
+      ]);
+    });
+
+    it("Should not throw if there are no handlers to unhook for the category", async () => {
+      const exampleHook = {
+        validateUserConfig: async (
+          _config: HardhatUserConfig,
+        ): Promise<HardhatUserConfigValidationError[]> => {
+          return [];
+        },
+      };
+
+      assert.doesNotThrow(() =>
+        hookManager.unregisterHandlers("config", exampleHook),
+      );
+    });
+  });
 });
 
 function buildMockHardhatRuntimeEnvironment(
