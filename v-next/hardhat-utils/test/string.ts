@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { pluralize, capitalize, kebabToCamelCase } from "../src/string.js";
+import {
+  pluralize,
+  capitalize,
+  kebabToCamelCase,
+  camelToSnakeCase,
+} from "../src/string.js";
 
 describe("string", () => {
   describe("pluralize", () => {
@@ -41,6 +46,17 @@ describe("string", () => {
       assert.equal(
         kebabToCamelCase("kebab-c-a-s-e-s-t-r-i-n-g"),
         "kebabCASESTRING",
+      );
+    });
+  });
+
+  describe("camelToSnakeCase", () => {
+    it("Should convert a camelCase string to snake_case", () => {
+      assert.equal(camelToSnakeCase("camelcasestring"), "camelcasestring");
+      assert.equal(camelToSnakeCase("camelCaseString"), "camel_case_string");
+      assert.equal(
+        camelToSnakeCase("camelCASESTRING"),
+        "camel_c_a_s_e_s_t_r_i_n_g",
       );
     });
   });
