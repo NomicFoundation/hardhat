@@ -299,21 +299,17 @@ export class HookManagerImplementation implements HookManager {
 
     const factory = mod.default;
 
-    // TODO: Assert that the factory is a function
-    if (typeof factory !== "function") {
-      throw new Error(
-        `Plugin ${pluginId} doesn't export a hook factory for category ${hookCategoryName} in ${path}`,
-      );
-    }
+    assertHardhatInvariant(
+      typeof factory === "function",
+      `Plugin ${pluginId} doesn't export a hook factory for category ${hookCategoryName} in ${path}`,
+    );
 
     const category = await factory();
 
-    // TODO: Assert that category is not undefined and it's an object -- should use !isObject(category)
-    if (typeof category !== "object" || category === null) {
-      throw new Error(
-        `Plugin ${pluginId} doesn't export a valid factory for category ${hookCategoryName} in ${path}, it didn't return an object`,
-      );
-    }
+    assertHardhatInvariant(
+      category !== null && typeof category === "object",
+      `Plugin ${pluginId} doesn't export a valid factory for category ${hookCategoryName} in ${path}, it didn't return an object`,
+    );
 
     return category;
   }
