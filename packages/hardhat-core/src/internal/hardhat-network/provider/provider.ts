@@ -289,10 +289,7 @@ export class EdrProviderWrapper
       },
       {
         enable: loggerConfig.enabled,
-        decodeConsoleLogInputsCallback: (inputs: Buffer[]) => {
-          const consoleLogger = new ConsoleLogger();
-          return consoleLogger.getDecodedLogs(inputs);
-        },
+        decodeConsoleLogInputsCallback: ConsoleLogger.getDecodedLogs,
         getContractAndFunctionNameCallback: (
           code: Buffer,
           calldata?: Buffer
