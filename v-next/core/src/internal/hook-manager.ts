@@ -182,10 +182,10 @@ export class HookManagerImplementation implements HookManager {
 
     let handlerParams: any;
     if (hookCategoryName !== "config") {
-      // TODO: assert that this.#context is not undefinded
-      if (this.#context === undefined) {
-        throw new Error(`Context must be set before running non-config hooks`);
-      }
+      assertHardhatInvariant(
+        this.#context !== undefined,
+        "Context must be set before running non-config hooks",
+      );
 
       handlerParams = [this.#context, ...params];
     } else {
