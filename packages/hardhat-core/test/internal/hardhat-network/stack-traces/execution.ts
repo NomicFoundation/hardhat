@@ -1,5 +1,3 @@
-import { assert } from "chai";
-
 import {
   bigIntToHex,
   bytesToHex,
@@ -60,8 +58,7 @@ export async function instantiateProvider(
   const provider = await EdrProviderWrapper.create(
     config,
     loggerConfig,
-    tracingConfig,
-    new VMTracer(false)
+    tracingConfig
   );
 
   return provider;
@@ -108,10 +105,8 @@ export async function traceTransaction(
   provider: EdrProviderWrapper,
   txData: TxData
 ): Promise<MessageTrace> {
-  const vmTracer = provider.vmTracer();
-  if (vmTracer === undefined) {
-    assert.fail("VMTracer should always be initialized in stack-traces");
-  }
+  const vmTracer = new VMTracer(false);
+  provider.injectVmTracer(vmTracer);
 
   try {
     await provider.request({
@@ -136,6 +131,6 @@ export async function traceTransaction(
     }
     return trace;
   } finally {
-    vmTracer.clearLastError();
+    provider.injectVmTracer(undefined);
   }
 }

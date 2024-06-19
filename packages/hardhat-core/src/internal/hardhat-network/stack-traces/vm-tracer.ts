@@ -46,10 +46,6 @@ export class VMTracer {
     return this._lastError;
   }
 
-  public clearLastError() {
-    this._lastError = undefined;
-  }
-
   private _shouldKeepTracing() {
     return this._throwErrors || this._lastError === undefined;
   }

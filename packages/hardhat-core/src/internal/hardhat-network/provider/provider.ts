@@ -167,6 +167,9 @@ export class EdrProviderWrapper
   // temporarily added to make smock work with HH+EDR
   private _callOverrideCallback?: CallOverrideCallback;
 
+  /** Used for internal stack trace tests. */
+  private _vmTracer?: VMTracer;
+
   private constructor(
     private readonly _provider: EdrProviderT,
     // we add this for backwards-compatibility with plugins like solidity-coverage
@@ -175,7 +178,6 @@ export class EdrProviderWrapper
     },
     private readonly _eventAdapter: EdrProviderEventAdapter,
     private readonly _vmTraceDecoder: VmTraceDecoder,
-    private readonly _vmTracer: VMTracer | undefined,
     // The common configuration for EthereumJS VM is not used by EDR, but tests expect it as part of the provider.
     private readonly _common: Common,
     tracingConfig?: TracingConfig
@@ -190,8 +192,7 @@ export class EdrProviderWrapper
   public static async create(
     config: HardhatNetworkProviderConfig,
     loggerConfig: LoggerConfig,
-    tracingConfig?: TracingConfig,
-    vmTracer?: VMTracer
+    tracingConfig?: TracingConfig
   ): Promise<EdrProviderWrapper> {
     const { Provider } = requireNapiRsModule(
       "@nomicfoundation/edr"
@@ -316,7 +317,6 @@ export class EdrProviderWrapper
       minimalEthereumJsNode,
       eventAdapter,
       vmTraceDecoder,
-      vmTracer,
       common,
       tracingConfig
     );
@@ -468,9 +468,13 @@ export class EdrProviderWrapper
     }
   }
 
-  /** Used for internal stack traces integration tests. Only defined there. */
-  public vmTracer(): VMTracer | undefined {
-    return this._vmTracer;
+  /**
+   * Injects a `VMTracer` that observes EVM throughout requests.
+   *
+   * Used for internal stack traces integration tests.
+   */
+  public injectVmTracer(vmTracer?: VMTracer) {
+    this._vmTracer = vmTracer;
   }
 
   // temporarily added to make smock work with HH+EDR
