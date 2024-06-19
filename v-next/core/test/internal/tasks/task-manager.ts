@@ -3,9 +3,8 @@ import { describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
-import { ParameterType } from "../../../src/config.js";
+import { ParameterType, globalParameter } from "../../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../../src/index.js";
-import { buildGlobalParameterDefinition } from "../../../src/internal/global-parameters.js";
 import {
   EmptyTaskDefinitionBuilderImplementation,
   NewTaskDefinitionBuilderImplementation,
@@ -46,7 +45,7 @@ describe("TaskManagerImplementation", () => {
               .build(),
           ],
           globalParameters: [
-            buildGlobalParameterDefinition({
+            globalParameter({
               name: "globalParam1",
               description: "",
               parameterType: ParameterType.STRING,
@@ -392,7 +391,7 @@ describe("TaskManagerImplementation", () => {
             {
               id: "plugin2",
               globalParameters: [
-                buildGlobalParameterDefinition({
+                globalParameter({
                   name: "param1",
                   description: "",
                   parameterType: ParameterType.STRING,
@@ -430,7 +429,7 @@ describe("TaskManagerImplementation", () => {
             {
               id: "plugin2",
               globalParameters: [
-                buildGlobalParameterDefinition({
+                globalParameter({
                   name: "param1",
                   description: "",
                   parameterType: ParameterType.STRING,
