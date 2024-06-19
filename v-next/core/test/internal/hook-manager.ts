@@ -277,9 +277,9 @@ describe("HookManager", () => {
               },
             ),
           {
-            name: "Error",
+            name: "HardhatError",
             message:
-              "Plugin example hook factory for config is not a valid file:// URL: ./fixture-plugins/config-plugin.js",
+              'HHE1300: Plugin "example" hook factory for "config" is not a valid file:// URL: ./fixture-plugins/config-plugin.js.',
           },
         );
       });

@@ -12,7 +12,10 @@ import type {
 import type { HardhatPlugin } from "../types/plugins.js";
 import type { LastParameter, Return } from "../types/utils.js";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import {
+  HardhatError,
+  assertHardhatInvariant,
+} from "@nomicfoundation/hardhat-errors";
 
 export class HookManagerImplementation implements HookManager {
   readonly #pluginsInReverseOrder: HardhatPlugin[];
@@ -290,8 +293,13 @@ export class HookManagerImplementation implements HookManager {
     path: string,
   ): Promise<Partial<HardhatHooks[HookCategoryNameT]>> {
     if (!path.startsWith("file://")) {
-      throw new Error(
-        `Plugin ${pluginId} hook factory for ${hookCategoryName} is not a valid file:// URL: ${path}`,
+      throw new HardhatError(
+        HardhatError.ERRORS.HOOKS.INVALID_HOOK_FACTORY_PATH,
+        {
+          pluginId,
+          hookCategoryName,
+          path,
+        },
       );
     }
 
