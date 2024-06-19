@@ -54,7 +54,7 @@ export class VMTracer {
     return this._throwErrors || this._lastError === undefined;
   }
 
-  public async addBeforeMessage(message: TracingMessage) {
+  public addBeforeMessage(message: TracingMessage) {
     if (!this._shouldKeepTracing()) {
       return;
     }
@@ -151,7 +151,7 @@ export class VMTracer {
     }
   }
 
-  public async addStep(step: TracingStep) {
+  public addStep(step: TracingStep) {
     if (!this._shouldKeepTracing()) {
       return;
     }
@@ -177,7 +177,7 @@ export class VMTracer {
     }
   }
 
-  public async addAfterMessage(result: ExecutionResult, haltOverride?: Exit) {
+  public addAfterMessage(result: ExecutionResult, haltOverride?: Exit) {
     if (!this._shouldKeepTracing()) {
       return;
     }
