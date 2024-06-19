@@ -355,6 +355,150 @@ describe("HookManager", () => {
       assert.deepEqual(validationResult, [[]]);
     });
   });
+
+  describe("runParallelHandlers", () => {
+    let hookManager: HookManager;
+
+    beforeEach(() => {
+      const manager = new HookManagerImplementation([]);
+
+      const userInterruptionsManager =
+        new UserInterruptionManagerImplementation(hookManager);
+
+      manager.setContext({
+        config: {
+          tasks: [],
+          plugins: [],
+        },
+        hooks: hookManager,
+        globalArguments: {},
+        interruptions: userInterruptionsManager,
+      });
+
+      hookManager = manager;
+    });
+
+    it("Should return an empty result set if no handlers are provided", async () => {
+      const originalConfig: HardhatConfig = {
+        plugins: [],
+        tasks: [],
+      };
+
+      const results = await hookManager.runParallelHandlers(
+        "config",
+        "validateUserConfig",
+        [originalConfig],
+      );
+
+      assert.deepEqual(results, []);
+    });
+
+    it("Should return a result per handler", async () => {
+      const originalConfig: HardhatConfig = {
+        plugins: [],
+        tasks: [],
+      };
+
+      hookManager.registerHandlers("config", {
+        validateUserConfig: async (
+          _config: HardhatUserConfig,
+        ): Promise<HardhatUserConfigValidationError[]> => {
+          return [
+            {
+              path: [],
+              message: "first",
+            },
+          ];
+        },
+      });
+
+      hookManager.registerHandlers("config", {
+        validateUserConfig: async (
+          _config: HardhatUserConfig,
+        ): Promise<HardhatUserConfigValidationError[]> => {
+          return [
+            {
+              path: [],
+              message: "second",
+            },
+          ];
+        },
+      });
+
+      const results = await hookManager.runParallelHandlers(
+        "config",
+        "validateUserConfig",
+        [originalConfig],
+      );
+
+      assert.deepEqual(results, [
+        [
+          {
+            path: [],
+            message: "second",
+          },
+        ],
+        [
+          {
+            path: [],
+            message: "first",
+          },
+        ],
+      ]);
+    });
+
+    it("Should pass the context to the handler (for non-config)", async () => {
+      const mockHre = buildMockHardhatRuntimeEnvironment(hookManager);
+
+      hookManager.registerHandlers("hre", {
+        created: async (
+          context: HookContext,
+          hre: HardhatRuntimeEnvironment,
+        ): Promise<void> => {
+          assert(
+            context !== null && typeof context === "object",
+            "hook context should be passed",
+          );
+          assert.equal(hre, mockHre);
+        },
+      });
+
+      const result = await hookManager.runParallelHandlers("hre", "created", [
+        mockHre,
+      ]);
+
+      assert.deepEqual(result, [undefined]);
+    });
+
+    it("Should not pass the hook context for config", async () => {
+      const expectedConfig: HardhatConfig = {
+        plugins: [],
+        tasks: [],
+      };
+
+      const validationError = {
+        path: [],
+        message: "first",
+      };
+
+      hookManager.registerHandlers("config", {
+        validateUserConfig: async (
+          config: HardhatUserConfig,
+        ): Promise<HardhatUserConfigValidationError[]> => {
+          assert.equal(config, expectedConfig);
+          return [validationError];
+        },
+      });
+
+      const results = await hookManager.runParallelHandlers(
+        "config",
+        "validateUserConfig",
+        [expectedConfig],
+      );
+
+      assert.deepEqual(results, [[validationError]]);
+    });
+  });
 });
 
 function buildMockHardhatRuntimeEnvironment(
