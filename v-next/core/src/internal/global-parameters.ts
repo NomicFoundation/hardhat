@@ -2,7 +2,7 @@ import type { ParameterTypeToValueType } from "../types/common.js";
 import type {
   GlobalArguments,
   GlobalParameter,
-  GlobalParameterMap,
+  GlobalParametersMap,
 } from "../types/global-parameters.js";
 import type { HardhatPlugin } from "../types/plugins.js";
 
@@ -23,39 +23,41 @@ import {
  * shouldn't be consider validated. Hence, we should validate the global
  * parameters.
  */
-export function buildGlobalParameterMap(
+export function buildGlobalParametersMap(
   resolvedPlugins: HardhatPlugin[],
-): GlobalParameterMap {
-  const globalParametersIndex: GlobalParameterMap = new Map();
+): GlobalParametersMap {
+  const globalParametersMap: GlobalParametersMap = new Map();
 
   for (const plugin of resolvedPlugins) {
     if (plugin.globalParameters === undefined) {
       continue;
     }
 
-    for (const [name, param] of Object.entries(plugin.globalParameters)) {
-      // TODO: Validate name casing
-      // TODO: Validate default value matches with type
-      // TODO: Validate that the name is not one of the reserved ones in parameters.ts
-
-      const existingByName = globalParametersIndex.get(name);
-
+    for (const param of plugin.globalParameters) {
+      const existingByName = globalParametersMap.get(param.name);
       if (existingByName !== undefined) {
-        throw new Error(
-          `Plugin ${plugin.id} is trying to define the global parameter ${name} but it is already defined by plugin ${existingByName.pluginId}`,
+        throw new HardhatError(
+          HardhatError.ERRORS.GENERAL.GLOBAL_PARAMETER_ALREADY_DEFINED,
+          {
+            plugin: plugin.id,
+            globalParameter: param.name,
+            definedByPlugin: existingByName.pluginId,
+          },
         );
       }
 
-      const indexEntry = {
+      const validatedGlobalParam = buildGlobalParameterDefinition(param);
+
+      const mapEntry = {
         pluginId: plugin.id,
-        param,
+        param: validatedGlobalParam,
       };
 
-      globalParametersIndex.set(param.name, indexEntry);
+      globalParametersMap.set(validatedGlobalParam.name, mapEntry);
     }
   }
 
-  return globalParametersIndex;
+  return globalParametersMap;
 }
 
 export function buildGlobalParameterDefinition<T extends ParameterType>({
@@ -104,7 +106,7 @@ export function buildGlobalParameterDefinition<T extends ParameterType>({
 
 export function resolveGlobalArguments(
   userProvidedGlobalArguments: Partial<GlobalArguments>,
-  _globalParametersMap: GlobalParameterMap,
+  _globalParametersMap: GlobalParametersMap,
 ): GlobalArguments {
   // TODO: Validate the userProvidedGlobalArguments and get the remaining ones
   // from env variables

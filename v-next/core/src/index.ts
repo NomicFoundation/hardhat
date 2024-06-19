@@ -28,4 +28,4 @@ export async function createHardhatRuntimeEnvironment(
 }
 
 export { resolvePluginList } from "./internal/plugins/resolve-plugin-list.js";
-export { buildGlobalParameterMap } from "./internal/global-parameters.js";
+export { buildGlobalParametersMap } from "./internal/global-parameters.js";

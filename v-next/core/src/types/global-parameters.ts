@@ -28,10 +28,10 @@ export interface GlobalParameter<T extends ParameterType = ParameterType> {
 export interface GlobalArguments {}
 
 /**
- * An entry in the global parameter map.
- * @see GlobalParameterMap
+ * An entry in the global parameters map.
+ * @see GlobalParametersMap
  */
-export interface GlobalParameterMapEntry {
+export interface GlobalParametersMapEntry {
   pluginId: string;
   param: GlobalParameter;
 }
@@ -39,4 +39,4 @@ export interface GlobalParameterMapEntry {
 /**
  * A map with all the `GlobalParameter`s and which plugin defined them.
  */
-export type GlobalParameterMap = Map<string, GlobalParameterMapEntry>;
+export type GlobalParametersMap = Map<string, GlobalParametersMapEntry>;

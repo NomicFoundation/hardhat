@@ -1,4 +1,4 @@
-import type { GlobalParameterMap } from "../../types/global-parameters.js";
+import type { GlobalParametersMap } from "../../types/global-parameters.js";
 import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
 import type {
   Task,
@@ -24,7 +24,7 @@ export class TaskManagerImplementation implements TaskManager {
 
   constructor(
     hre: HardhatRuntimeEnvironment,
-    globalParameterIndex: GlobalParameterMap,
+    globalParametersMap: GlobalParametersMap,
   ) {
     this.#hre = hre;
 
@@ -36,7 +36,7 @@ export class TaskManagerImplementation implements TaskManager {
 
       for (const taskDefinition of plugin.tasks) {
         this.#reduceTaskDefinition(
-          globalParameterIndex,
+          globalParametersMap,
           taskDefinition,
           plugin.id,
         );
@@ -45,7 +45,7 @@ export class TaskManagerImplementation implements TaskManager {
 
     // reduce global user defined tasks
     for (const taskDefinition of this.#hre.config.tasks) {
-      this.#reduceTaskDefinition(globalParameterIndex, taskDefinition);
+      this.#reduceTaskDefinition(globalParametersMap, taskDefinition);
     }
   }
 
@@ -136,7 +136,7 @@ export class TaskManagerImplementation implements TaskManager {
   }
 
   #reduceTaskDefinition(
-    globalParameterIndex: GlobalParameterMap,
+    globalParametersMap: GlobalParametersMap,
     taskDefinition: TaskDefinition,
     pluginId?: string,
   ) {
@@ -154,7 +154,7 @@ export class TaskManagerImplementation implements TaskManager {
       }
       case TaskDefinitionType.NEW_TASK: {
         this.#validateClashesWithGlobalParams(
-          globalParameterIndex,
+          globalParametersMap,
           taskDefinition,
           pluginId,
         );
@@ -174,7 +174,7 @@ export class TaskManagerImplementation implements TaskManager {
       }
       case TaskDefinitionType.TASK_OVERRIDE: {
         this.#validateClashesWithGlobalParams(
-          globalParameterIndex,
+          globalParametersMap,
           taskDefinition,
           pluginId,
         );
@@ -186,7 +186,7 @@ export class TaskManagerImplementation implements TaskManager {
   }
 
   #validateClashesWithGlobalParams(
-    globalParameterIndex: GlobalParameterMap,
+    globalParametersMap: GlobalParametersMap,
     taskDefinition: NewTaskDefinition | TaskOverrideDefinition,
     pluginId?: string,
   ) {
@@ -197,7 +197,7 @@ export class TaskManagerImplementation implements TaskManager {
         : [];
 
     [...namedParamNames, ...positionalParamNames].forEach((paramName) => {
-      const globalParamEntry = globalParameterIndex.get(paramName);
+      const globalParamEntry = globalParametersMap.get(paramName);
       if (globalParamEntry !== undefined) {
         throw new HardhatError(
           HardhatError.ERRORS.TASK_DEFINITIONS.TASK_PARAMETER_ALREADY_DEFINED,

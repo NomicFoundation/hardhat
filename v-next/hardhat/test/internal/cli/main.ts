@@ -1,6 +1,6 @@
 import type {
-  GlobalParameterMap,
-  GlobalParameterMapEntry,
+  GlobalParametersMap,
+  GlobalParametersMapEntry,
 } from "@nomicfoundation/hardhat-core/types/global-parameters";
 import type { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
 import type {
@@ -351,7 +351,7 @@ describe("main", function () {
     // The function "parseGlobalArguments" uses the same function "parseDoubleDashArgs" that is used to parse named parameters.
     // Most of the tests to check the "parseDoubleDashArgs" logic are in the named parameter section of these tests.
 
-    let globalParamsIndex: GlobalParameterMap;
+    let globalParametersMap: GlobalParametersMap;
 
     before(function () {
       const GLOBAL_PARAM = globalParameter({
@@ -366,7 +366,7 @@ describe("main", function () {
         description: "",
       });
 
-      globalParamsIndex = new Map<string, GlobalParameterMapEntry>([
+      globalParametersMap = new Map<string, GlobalParametersMapEntry>([
         ["param", { pluginId: "1", param: GLOBAL_PARAM }],
         ["flag", { pluginId: "1", param: GLOBAL_FLAG }],
       ]);
@@ -379,7 +379,7 @@ describe("main", function () {
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
       const globalArguments = await parseGlobalArguments(
-        globalParamsIndex,
+        globalParametersMap,
         cliArguments,
         usedCliArguments,
       );
@@ -397,7 +397,7 @@ describe("main", function () {
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
       const globalArguments = await parseGlobalArguments(
-        globalParamsIndex,
+        globalParametersMap,
         cliArguments,
         usedCliArguments,
       );
@@ -415,7 +415,7 @@ describe("main", function () {
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
       const globalArguments = await parseGlobalArguments(
-        globalParamsIndex,
+        globalParametersMap,
         cliArguments,
         usedCliArguments,
       );
@@ -433,7 +433,7 @@ describe("main", function () {
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
       const globalArguments = await parseGlobalArguments(
-        globalParamsIndex,
+        globalParametersMap,
         cliArguments,
         usedCliArguments,
       );

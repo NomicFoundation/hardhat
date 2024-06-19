@@ -162,6 +162,14 @@ Please double check whether you have multiple versions of the same plugin instal
       websiteTitle: "Invalid BigInt",
       websiteDescription: `Given value was not a valid BigInt.`,
     },
+    GLOBAL_PARAMETER_ALREADY_DEFINED: {
+      number: 12,
+      messageTemplate:
+        "Plugin {plugin} is trying to define the global parameter {globalParameter} but it is already defined by plugin {definedByPlugin}",
+      websiteTitle: "Global parameter already defined",
+      websiteDescription:
+        "The global parameter is already defined by another plugin. Please ensure that global parameters are uniquely named to avoid conflicts.",
+    },
   },
   INTERNAL: {
     ASSERTION_ERROR: {

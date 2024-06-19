@@ -1,4 +1,4 @@
-import type { GlobalParameterMap } from "./global-parameters.js";
+import type { GlobalParametersMap } from "./global-parameters.js";
 import type { HardhatPlugin } from "./plugins.js";
 
 /**
@@ -7,5 +7,5 @@ import type { HardhatPlugin } from "./plugins.js";
  */
 export interface UnsafeHardhatRuntimeEnvironmentOptions {
   resolvedPlugins?: HardhatPlugin[];
-  globalParameterMap?: GlobalParameterMap;
+  globalParametersMap?: GlobalParametersMap;
 }
