@@ -90,7 +90,7 @@ describe("HookManager", () => {
             plugins: [],
           },
           hooks: hookManager,
-          globalArguments: {},
+          globalOptions: {},
           interruptions: userInterruptionsManager,
         });
 
@@ -295,7 +295,7 @@ describe("HookManager", () => {
             plugins: [],
           },
           hooks: hookManager,
-          globalArguments: {},
+          globalOptions: {},
           interruptions: userInterruptionsManager,
         });
 
@@ -509,7 +509,7 @@ describe("HookManager", () => {
             plugins: [],
           },
           hooks: hookManager,
-          globalArguments: {},
+          globalOptions: {},
           interruptions: userInterruptionsManager,
         });
 
@@ -634,7 +634,7 @@ describe("HookManager", () => {
             plugins: [],
           },
           hooks: hookManager,
-          globalArguments: {},
+          globalOptions: {},
           interruptions: userInterruptionsManager,
         });
 
@@ -778,7 +778,7 @@ describe("HookManager", () => {
             plugins: [],
           },
           hooks: hookManager,
-          globalArguments: {},
+          globalOptions: {},
           interruptions: userInterruptionsManager,
         });
 
@@ -935,7 +935,7 @@ function buildMockHardhatRuntimeEnvironment(
       plugins: [],
     },
     tasks: mockTaskManager,
-    globalArguments: {},
+    globalOptions: {},
     interruptions: mockInteruptionManager,
   };
 

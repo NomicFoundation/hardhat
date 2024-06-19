@@ -1,6 +1,7 @@
 import type { Task } from "@nomicfoundation/hardhat-core/types/tasks";
 
-import { getVersionString } from "./getVersionString.js";
+import { getHardhatVersion } from "../../utils/package.js";
+
 import {
   GLOBAL_NAME_PADDING,
   GLOBAL_OPTIONS,
@@ -12,7 +13,7 @@ import {
 export async function getGlobalHelpString(
   rootTasks: Map<string, Task>,
 ): Promise<string> {
-  const version = await getVersionString();
+  const version = await getHardhatVersion();
 
   const { tasks, subtasks } = parseTasks(rootTasks);
 
