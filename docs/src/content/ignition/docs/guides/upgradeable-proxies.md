@@ -1,4 +1,4 @@
-# Using Hardhat Ignition with upgradeable proxies
+# Upgradeable proxies
 
 When developing smart contracts, you may decide to use an upgradeable proxy pattern to allow for future upgrades to your contracts. This guide will explain how to create Ignition modules to deploy and interact with your upgradeable proxy contracts.
 
@@ -9,6 +9,30 @@ While there are several different proxy patterns, each with their own tradeoffs,
 The finished code for this guide can be found in the [Hardhat Ignition monorepo](https://github.com/NomicFoundation/hardhat-ignition/tree/development/examples/upgradeable)
 
 :::
+
+## Installation
+
+Before we get started, make sure you have the OpenZeppelin Contracts library installed in your project. You can install it using npm or yarn:
+
+::::tabsgroup{options="npm,yarn"}
+
+:::tab{value="npm"}
+
+```sh
+npm install @openzeppelin/contracts
+```
+
+:::
+
+:::tab{value=yarn}
+
+```sh
+yarn add @openzeppelin/contracts
+```
+
+:::
+
+::::
 
 ## Getting to know our contracts
 
@@ -142,7 +166,7 @@ First, we're getting our account that will own the ProxyAdmin contract. This acc
 
 Next, we deploy our `Demo` contract. This will be the contract that we'll upgrade.
 
-Then, we deploy our `TransparentUpgradeableProxy` contract. This contract will be deployed with the `Demo` contract as its implementation, and the `proxyAdminOwner` account as its owner. The third argument is the initialization code, which we'll leave blank for now by setting to an empty hex string (`"0x"`).
+Then we deploy our `TransparentUpgradeableProxy` contract. This contract will be deployed with the `Demo` contract as its implementation, and the `proxyAdminOwner` account as its owner. The third argument is the initialization code, which we'll leave blank for now by setting to an empty hex string (`"0x"`).
 
 When we deploy the proxy, it will automatically create a new `ProxyAdmin` contract within its constructor. We'll need to get the address of this contract so that we can interact with it later. To do this, we'll use the `m.readEventArgument(...)` method to read the `newAdmin` argument from the `AdminChanged` event that is emitted when the proxy is deployed.
 
@@ -150,11 +174,11 @@ Finally, we'll use the `m.contractAt(...)` method to tell Ignition to use the `P
 
 ### Part 2: Interacting with our proxy
 
-Now that we have our proxy deployed, we're ready to interact with it. To do this, we'll create a new module called `DemoModule`:
+Now that we have a module for deploying our proxy, we're ready to interact with it. To do this, we'll create a new module called `DemoModule` inside this same file:
 
 ```js
 const demoModule = buildModule("DemoModule", (m) => {
-  const { proxy, proxyAdmin } = m.useModule(upgradeModule);
+  const { proxy, proxyAdmin } = m.useModule(proxyModule);
 
   const demo = m.contractAt("Demo", proxy);
 
@@ -278,6 +302,7 @@ Inside our `test` directory, we'll create a file called `ProxyDemo.js` (or `Prox
 
 ```typescript
 import { expect } from "chai";
+import { ignition, ethers } from "hardhat";
 
 import ProxyModule from "../ignition/modules/ProxyModule";
 import UpgradeModule from "../ignition/modules/UpgradeModule";
@@ -297,7 +322,7 @@ describe("Demo Proxy", function () {
     it("Should have upgraded the proxy to DemoV2", async function () {
       const [, otherAccount] = await ethers.getSigners();
 
-      const { demo } = await ignition.deploy(ProxyModule);
+      const { demo } = await ignition.deploy(UpgradeModule);
 
       expect(await demo.connect(otherAccount).version()).to.equal("2.0.0");
     });
@@ -358,7 +383,7 @@ describe("Demo Proxy", function () {
 
 ::::
 
-Here we use Hardhat Ignition to deploy our imported modules. First, we deploy our base `ProxyModule` that returns the first version of our `Demo` contract and test it to ensure the proxy worked and retrieves the appropriate version string. Then, we deploy our `UpgradeModule` that returns the second version of our `Demo` contract and test it to ensure the proxy now returns the updated version string. We also test that our initialization function was called and set the `name` state variable to `"Example Name"`.
+Here we use Hardhat Ignition to deploy our imported modules. First, we deploy our base `ProxyModule` that returns the first version of our `Demo` contract and tests it to ensure the proxy worked and retrieves the appropriate version string. Then, we deploy our `UpgradeModule` that returns an upgraded version of our `Demo` contract and tests it to ensure the proxy returns the updated version string. We also test that our initialization function was called, setting the `name` state variable to `"Example Name"`.
 
 ## Further reading
 
