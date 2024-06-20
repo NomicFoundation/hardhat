@@ -2,7 +2,7 @@ import type { HardhatUserConfig } from "../../../src/types/config.js";
 import type {
   ConfigHooks,
   HardhatUserConfigValidationError,
-} from "@nomicfoundation/hardhat-core/types/hooks";
+} from "../../../src/types/hooks.js";
 
 export default async () => {
   const handlers: Partial<ConfigHooks> = {
