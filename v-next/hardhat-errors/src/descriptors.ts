@@ -162,13 +162,13 @@ Please double check whether you have multiple versions of the same plugin instal
       websiteTitle: "Invalid BigInt",
       websiteDescription: `Given value was not a valid BigInt.`,
     },
-    GLOBAL_PARAMETER_ALREADY_DEFINED: {
+    GLOBAL_OPTION_ALREADY_DEFINED: {
       number: 12,
       messageTemplate:
-        "Plugin {plugin} is trying to define the global parameter {globalParameter} but it is already defined by plugin {definedByPlugin}",
-      websiteTitle: "Global parameter already defined",
+        "Plugin {plugin} is trying to define the global option {globalOption} but it is already defined by plugin {definedByPlugin}",
+      websiteTitle: "Global option already defined",
       websiteDescription:
-        "The global parameter is already defined by another plugin. Please ensure that global parameters are uniquely named to avoid conflicts.",
+        "The global option is already defined by another plugin. Please ensure that global options are uniquely named to avoid conflicts.",
     },
   },
   INTERNAL: {
@@ -252,21 +252,21 @@ Please ensure that an action is defined for each task.`,
       websiteDescription:
         "The task id cannot be an empty string or an empty array. Please ensure that the array of task names is not empty.",
     },
-    TASK_PARAMETER_ALREADY_DEFINED: {
+    TASK_OPTION_ALREADY_DEFINED: {
       number: 209,
       messageTemplate:
-        "{actorFragment} trying to define task {task} with the parameter {parameter} but it is already defined as a global parameter by plugin {globalParamPluginId}",
-      websiteTitle: "Task parameter already defined",
+        "{actorFragment} trying to define task {task} with the option {option} but it is already defined as a global option by plugin {globalOptionPluginId}",
+      websiteTitle: "Task option already defined",
       websiteDescription:
-        "The task parameter is already defined as a global parameter by another plugin. Please ensure that task parameters are uniquely named to avoid conflicts.",
+        "The task option is already defined as a global option by another plugin. Please ensure that task options are uniquely named to avoid conflicts.",
     },
-    TASK_OVERRIDE_PARAMETER_ALREADY_DEFINED: {
+    TASK_OVERRIDE_OPTION_ALREADY_DEFINED: {
       number: 210,
       messageTemplate:
-        "{actorFragment} trying to override the parameter {namedParamName} of the task {task} but it is already defined",
-      websiteTitle: "Task override parameter already defined",
+        "{actorFragment} trying to override the parameter {optionName} of the task {task} but it is already defined",
+      websiteTitle: "Task override option already defined",
       websiteDescription:
-        "An attempt is being made to override a parameter that has already been defined. Please ensure that the parameter is not defined before trying to override it.",
+        "An attempt is being made to override an option that has already been defined. Please ensure that the option is not defined before trying to override it.",
     },
     EMPTY_TASK: {
       number: 211,
@@ -352,12 +352,12 @@ Please double check your arguments.`,
 
 Please double check your arguments.`,
     },
-    UNRECOGNIZED_NAMED_PARAM: {
+    UNRECOGNIZED_OPTION: {
       number: 304,
       messageTemplate:
-        "Invalid parameter {parameter}. It is neither a valid global parameter nor associated with any task. Did you forget to add the task first, or did you misspell it?",
-      websiteTitle: "Invalid parameter value",
-      websiteDescription: `One of your Hardhat parameters is invalid.
+        "Invalid option {option}. It is neither a valid global option nor associated with any task. Did you forget to add the task first, or did you misspell it?",
+      websiteTitle: "Invalid option value",
+      websiteDescription: `One of your Hardhat options is invalid.
 
 Please double check your arguments.`,
     },

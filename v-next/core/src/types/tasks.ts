@@ -37,7 +37,7 @@ export interface TaskParameter<T extends ParameterType = ParameterType> {
 }
 
 /**
- * A named task parameter is one that is used as `--<name> value` in the CLI.
+ * A task option is one that is used as `--<name> value` in the CLI.
  *
  * They have a name, description, type, and an optional default value.
  *
@@ -45,7 +45,7 @@ export interface TaskParameter<T extends ParameterType = ParameterType> {
  * parameter is considered a flag, and can be used as `--<name>` to set it to
  * `true`.
  */
-export interface NamedTaskParameter<T extends ParameterType = ParameterType>
+export interface TaskOption<T extends ParameterType = ParameterType>
   extends TaskParameter<T> {
   defaultValue?: ParameterTypeToValueType<T>;
 }
@@ -127,7 +127,7 @@ export interface NewTaskDefinition {
 
   action: NewTaskActionFunction | string;
 
-  namedParameters: Record<string, NamedTaskParameter>;
+  options: Record<string, TaskOption>;
 
   positionalParameters: PositionalTaskParameter[];
 }
@@ -144,7 +144,7 @@ export interface TaskOverrideDefinition {
 
   action: TaskOverrideActionFunction | string;
 
-  namedParameters: Record<string, NamedTaskParameter>;
+  options: Record<string, TaskOption>;
 }
 
 /**
@@ -193,9 +193,9 @@ export interface NewTaskDefinitionBuilder {
   setAction(action: NewTaskActionFunction | string): this;
 
   /**
-   * Adds a named parameter to the task.
+   * Adds an option to the task.
    *
-   * A named task parameter is one that is used as `--<name> value` in the CLI.
+   * A task option is one that is used as `--<name> value` in the CLI.
    *
    * If the type is `ParameterType.BOOLEAN`, the default value is `false`, the
    * parameter is considered a flag, and can be used as `--<name>` to set it to
@@ -206,7 +206,7 @@ export interface NewTaskDefinitionBuilder {
    * The default value, if provided, should be of the same type as the
    * parameter.
    */
-  addNamedParameter<T extends ParameterType>(paramOptions: {
+  addOption<T extends ParameterType>(paramOptions: {
     name: string;
     description?: string;
     type?: T;
@@ -214,7 +214,7 @@ export interface NewTaskDefinitionBuilder {
   }): this;
 
   /**
-   * Adds a named parameter of boolean type and default value false.
+   * Adds an option of boolean type and default value false.
    */
   addFlag(paramOptions: { name: string; description?: string }): this;
 
@@ -285,11 +285,11 @@ export interface TaskOverrideDefinitionBuilder {
   setAction(action: TaskOverrideActionFunction | string): this;
 
   /**
-   * Adds a new named parameter to the task.
+   * Adds a new option to the task.
    *
-   * @see NewTaskDefinitionBuilder.addNamedParameter
+   * @see NewTaskDefinitionBuilder.addOption
    */
-  addNamedParameter<T extends ParameterType>(paramOptions: {
+  addOption<T extends ParameterType>(paramOptions: {
     name: string;
     description?: string;
     type?: T;
@@ -297,7 +297,7 @@ export interface TaskOverrideDefinitionBuilder {
   }): this;
 
   /**
-   * Adds a named parameter of boolean type and default value false.
+   * Adds an option of boolean type and default value false.
    */
   addFlag(paramOptions: { name: string; description?: string }): this;
 
@@ -344,9 +344,9 @@ export interface Task {
   actions: TaskActions;
 
   /**
-   * The task named parameters.
+   * The task options.
    */
-  namedParameters: Map<string, NamedTaskParameter>;
+  options: Map<string, TaskOption>;
 
   /**
    * The task positional parameters.

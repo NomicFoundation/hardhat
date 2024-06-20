@@ -1,5 +1,5 @@
 /**
- * The possible types of a global or task parameter.
+ * The possible types of a global or task option.
  */
 export enum ParameterType {
   STRING = "STRING",

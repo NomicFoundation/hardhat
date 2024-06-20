@@ -1,6 +1,6 @@
 import type { ParameterTypeToValueType } from "../../types/common.js";
 import type {
-  NamedTaskParameter,
+  TaskOption,
   NewTaskActionFunction,
   NewTaskDefinitionBuilder,
   NewTaskDefinition,
@@ -62,7 +62,7 @@ export class NewTaskDefinitionBuilderImplementation
   readonly #id: string[];
   readonly #usedNames: Set<string> = new Set();
 
-  readonly #namedParams: Record<string, NamedTaskParameter> = {};
+  readonly #options: Record<string, TaskOption> = {};
   readonly #positionalParams: PositionalTaskParameter[] = [];
 
   #description: string;
@@ -100,7 +100,7 @@ export class NewTaskDefinitionBuilderImplementation
     return this;
   }
 
-  public addNamedParameter<T extends ParameterType>({
+  public addOption<T extends ParameterType>({
     name,
     description = "",
     type,
@@ -148,7 +148,7 @@ export class NewTaskDefinitionBuilderImplementation
 
     this.#usedNames.add(name);
 
-    this.#namedParams[name] = {
+    this.#options[name] = {
       name,
       description,
       parameterType,
@@ -159,7 +159,7 @@ export class NewTaskDefinitionBuilderImplementation
   }
 
   public addFlag(paramOptions: { name: string; description?: string }): this {
-    return this.addNamedParameter({
+    return this.addOption({
       ...paramOptions,
       type: ParameterType.BOOLEAN,
       defaultValue: false,
@@ -218,7 +218,7 @@ export class NewTaskDefinitionBuilderImplementation
       id: this.#id,
       description: this.#description,
       action: this.#action,
-      namedParameters: this.#namedParams,
+      options: this.#options,
       positionalParameters: this.#positionalParams,
     };
   }
@@ -314,7 +314,7 @@ export class TaskOverrideDefinitionBuilderImplementation
 {
   readonly #id: string[];
 
-  readonly #namedParams: Record<string, NamedTaskParameter> = {};
+  readonly #options: Record<string, TaskOption> = {};
 
   #description?: string;
 
@@ -350,7 +350,7 @@ export class TaskOverrideDefinitionBuilderImplementation
     return this;
   }
 
-  public addNamedParameter<T extends ParameterType>({
+  public addOption<T extends ParameterType>({
     name,
     description = "",
     type,
@@ -369,7 +369,7 @@ export class TaskOverrideDefinitionBuilderImplementation
       });
     }
 
-    if (name in this.#namedParams) {
+    if (name in this.#options) {
       throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
         name,
       });
@@ -396,7 +396,7 @@ export class TaskOverrideDefinitionBuilderImplementation
       );
     }
 
-    this.#namedParams[name] = {
+    this.#options[name] = {
       name,
       description,
       parameterType,
@@ -407,7 +407,7 @@ export class TaskOverrideDefinitionBuilderImplementation
   }
 
   public addFlag(paramOptions: { name: string; description?: string }): this {
-    return this.addNamedParameter({
+    return this.addOption({
       ...paramOptions,
       type: ParameterType.BOOLEAN,
       defaultValue: false,
@@ -426,7 +426,7 @@ export class TaskOverrideDefinitionBuilderImplementation
       id: this.#id,
       description: this.#description,
       action: this.#action,
-      namedParameters: this.#namedParams,
+      options: this.#options,
     };
   }
 }

@@ -4,7 +4,7 @@ import type {
   HardhatUserConfig,
   ResolvedConfigurationVariable,
 } from "./config.js";
-import type { GlobalArguments } from "./global-parameters.js";
+import type { GlobalOptions } from "./global-options.js";
 import type { HardhatRuntimeEnvironment } from "./hre.js";
 import type { UserInterruptionManager } from "./user-interruptions.js";
 import type {
@@ -34,7 +34,7 @@ declare module "./hre.js" {
  */
 export interface HookContext {
   readonly config: HardhatConfig;
-  readonly globalArguments: GlobalArguments;
+  readonly globalOptions: GlobalOptions;
   readonly interruptions: UserInterruptionManager;
   readonly hooks: HookManager;
 }

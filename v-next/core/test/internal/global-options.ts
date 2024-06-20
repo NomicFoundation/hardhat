@@ -5,62 +5,62 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { ParameterType } from "../../src/config.js";
 import {
-  buildGlobalParametersMap,
-  buildGlobalParameterDefinition,
-} from "../../src/internal/global-parameters.js";
+  buildGlobalOptionsMap,
+  buildGlobalOptionDefinition,
+} from "../../src/internal/global-options.js";
 import { RESERVED_PARAMETER_NAMES } from "../../src/internal/parameters.js";
 
-describe("Global Parameters", () => {
-  describe("buildGlobalParametersMap", () => {
-    it("should build an empty map of global parameters if no plugins are provided", () => {
-      const globalParametersMap = buildGlobalParametersMap([]);
+describe("Global Options", () => {
+  describe("buildGlobalOptionsMap", () => {
+    it("should build an empty map of global options if no plugins are provided", () => {
+      const globalOptionsMap = buildGlobalOptionsMap([]);
 
-      assert.deepEqual(globalParametersMap, new Map());
+      assert.deepEqual(globalOptionsMap, new Map());
     });
 
-    it("should build an empty map of global parameters if there are no global parameters defined by plugins", () => {
-      const globalParametersMap = buildGlobalParametersMap([
+    it("should build an empty map of global options if there are no global options defined by plugins", () => {
+      const globalOptionsMap = buildGlobalOptionsMap([
         {
           id: "plugin1",
         },
       ]);
 
-      assert.deepEqual(globalParametersMap, new Map());
+      assert.deepEqual(globalOptionsMap, new Map());
     });
 
-    it("should build a map of global parameters", () => {
-      const globalParameterDefinition = {
+    it("should build a map of global options", () => {
+      const globalOptionDefinition = {
         name: "param1",
         description: "param1 description",
         parameterType: ParameterType.BOOLEAN,
         defaultValue: true,
       };
-      const globalParametersMap = buildGlobalParametersMap([
+      const globalOptionsMap = buildGlobalOptionsMap([
         {
           id: "plugin1",
-          globalParameters: [globalParameterDefinition],
+          globalOptions: [globalOptionDefinition],
         },
       ]);
 
       assert.ok(
-        globalParametersMap.has("param1"),
-        "Expected 'param1' to be defined in the global parameters map",
+        globalOptionsMap.has("param1"),
+        "Expected 'param1' to be defined in the global options map",
       );
       assert.deepEqual(
-        globalParametersMap.get("param1")?.param,
-        globalParameterDefinition,
+        globalOptionsMap.get("param1")?.option,
+        globalOptionDefinition,
       );
-      assert.deepEqual(globalParametersMap.get("param1")?.pluginId, "plugin1");
+      assert.deepEqual(globalOptionsMap.get("param1")?.pluginId, "plugin1");
     });
 
-    it("should throw if a global parameter is already defined by another plugin", () => {
-      const globalParameterDefinition = {
+    it("should throw if a global option is already defined by another plugin", () => {
+      const globalOptionDefinition = {
         name: "param1",
         description: "param1 description",
         parameterType: ParameterType.BOOLEAN,
         defaultValue: true,
       };
-      const globalParameterDefinition2 = {
+      const globalOptionDefinition2 = {
         name: "param1",
         description: "param1 description 2",
         parameterType: ParameterType.BOOLEAN,
@@ -69,34 +69,34 @@ describe("Global Parameters", () => {
 
       assert.throws(
         () =>
-          buildGlobalParametersMap([
+          buildGlobalOptionsMap([
             {
               id: "plugin1",
-              globalParameters: [globalParameterDefinition],
+              globalOptions: [globalOptionDefinition],
             },
             {
               id: "plugin2",
-              globalParameters: [globalParameterDefinition2],
+              globalOptions: [globalOptionDefinition2],
             },
           ]),
         new HardhatError(
-          HardhatError.ERRORS.GENERAL.GLOBAL_PARAMETER_ALREADY_DEFINED,
+          HardhatError.ERRORS.GENERAL.GLOBAL_OPTION_ALREADY_DEFINED,
           {
             plugin: "plugin2",
-            globalParameter: "param1",
+            globalOption: "param1",
             definedByPlugin: "plugin1",
           },
         ),
       );
     });
 
-    it("should throw if a parameter name is not valid", () => {
+    it("should throw if an option name is not valid", () => {
       assert.throws(
         () =>
-          buildGlobalParametersMap([
+          buildGlobalOptionsMap([
             {
               id: "plugin1",
-              globalParameters: [
+              globalOptions: [
                 {
                   name: "foo bar",
                   description: "Foo description",
@@ -112,14 +112,14 @@ describe("Global Parameters", () => {
       );
     });
 
-    it("should throw if a parameter name is reserved", () => {
+    it("should throw if an option name is reserved", () => {
       RESERVED_PARAMETER_NAMES.forEach((name) => {
         assert.throws(
           () =>
-            buildGlobalParametersMap([
+            buildGlobalOptionsMap([
               {
                 id: "plugin1",
-                globalParameters: [
+                globalOptions: [
                   {
                     name,
                     description: "Foo description",
@@ -136,13 +136,13 @@ describe("Global Parameters", () => {
       });
     });
 
-    it("should throw if a parameter default value does not match the type", () => {
+    it("should throw if an options default value does not match the type", () => {
       assert.throws(
         () =>
-          buildGlobalParametersMap([
+          buildGlobalOptionsMap([
             {
               id: "plugin1",
-              globalParameters: [
+              globalOptions: [
                 {
                   name: "foo",
                   description: "Foo description",
@@ -163,37 +163,37 @@ describe("Global Parameters", () => {
     });
   });
 
-  describe("buildGlobalParameterDefinition", () => {
-    it("should build a global parameter definition", () => {
+  describe("buildGlobalOptionDefinition", () => {
+    it("should build a global option definition", () => {
       const options = {
         name: "foo",
         description: "Foo description",
         parameterType: ParameterType.BOOLEAN,
         defaultValue: true,
       };
-      const globalParameter = buildGlobalParameterDefinition(options);
+      const globalOption = buildGlobalOptionDefinition(options);
 
-      assert.deepEqual(globalParameter, options);
+      assert.deepEqual(globalOption, options);
     });
 
-    it("should build a global parameter definition with a default type of STRING", () => {
+    it("should build a global option definition with a default type of STRING", () => {
       const options = {
         name: "foo",
         description: "Foo description",
         defaultValue: "bar",
       };
-      const globalParameter = buildGlobalParameterDefinition(options);
+      const globalOption = buildGlobalOptionDefinition(options);
 
-      assert.deepEqual(globalParameter, {
+      assert.deepEqual(globalOption, {
         ...options,
         parameterType: ParameterType.STRING,
       });
     });
 
-    it("should throw if the parameter name is not valid", () => {
+    it("should throw if the option name is not valid", () => {
       assert.throws(
         () =>
-          buildGlobalParameterDefinition({
+          buildGlobalOptionDefinition({
             name: "foo bar",
             description: "Foo description",
             defaultValue: "bar",
@@ -204,11 +204,11 @@ describe("Global Parameters", () => {
       );
     });
 
-    it("should throw if the parameter name is reserved", () => {
+    it("should throw if the option name is reserved", () => {
       RESERVED_PARAMETER_NAMES.forEach((name) => {
         assert.throws(
           () =>
-            buildGlobalParameterDefinition({
+            buildGlobalOptionDefinition({
               name,
               description: "Foo description",
               defaultValue: "bar",
@@ -223,7 +223,7 @@ describe("Global Parameters", () => {
     it("should throw if the default value does not match the type", () => {
       assert.throws(
         () =>
-          buildGlobalParameterDefinition({
+          buildGlobalOptionDefinition({
             name: "foo",
             description: "Foo description",
             parameterType: ParameterType.BOOLEAN,
@@ -240,7 +240,7 @@ describe("Global Parameters", () => {
     });
   });
 
-  describe.todo("resolveGlobalArguments", () => {
+  describe.todo("resolveGlobalOptions", () => {
     // TODO: Implement tests.
   });
 });

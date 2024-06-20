@@ -5,7 +5,7 @@ This package contains the new core of Hardhat, which includes:
 - The config system
 - The configuration variables system
 - The plugin system
-- The global arguments system
+- The global options system
 - The hooks system
 - The tasks system
 - The user interruptions system

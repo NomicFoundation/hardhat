@@ -1,9 +1,9 @@
 import type { ParameterTypeToValueType } from "../types/common.js";
 import type {
-  GlobalArguments,
-  GlobalParameter,
-  GlobalParametersMap,
-} from "../types/global-parameters.js";
+  GlobalOptions,
+  GlobalOption,
+  GlobalOptionsMap,
+} from "../types/global-options.js";
 import type { HardhatPlugin } from "../types/plugins.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -17,50 +17,50 @@ import {
 } from "./parameters.js";
 
 /**
- * Builds a map of the global parameters, validating them.
+ * Builds a map of the global options, validating them.
  *
  * Note: this function can be used before initializing the HRE, so the plugins
  * shouldn't be consider validated. Hence, we should validate the global
  * parameters.
  */
-export function buildGlobalParametersMap(
+export function buildGlobalOptionsMap(
   resolvedPlugins: HardhatPlugin[],
-): GlobalParametersMap {
-  const globalParametersMap: GlobalParametersMap = new Map();
+): GlobalOptionsMap {
+  const globalOptionsMap: GlobalOptionsMap = new Map();
 
   for (const plugin of resolvedPlugins) {
-    if (plugin.globalParameters === undefined) {
+    if (plugin.globalOptions === undefined) {
       continue;
     }
 
-    for (const param of plugin.globalParameters) {
-      const existingByName = globalParametersMap.get(param.name);
+    for (const option of plugin.globalOptions) {
+      const existingByName = globalOptionsMap.get(option.name);
       if (existingByName !== undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.GENERAL.GLOBAL_PARAMETER_ALREADY_DEFINED,
+          HardhatError.ERRORS.GENERAL.GLOBAL_OPTION_ALREADY_DEFINED,
           {
             plugin: plugin.id,
-            globalParameter: param.name,
+            globalOption: option.name,
             definedByPlugin: existingByName.pluginId,
           },
         );
       }
 
-      const validatedGlobalParam = buildGlobalParameterDefinition(param);
+      const validatedGlobalOption = buildGlobalOptionDefinition(option);
 
       const mapEntry = {
         pluginId: plugin.id,
-        param: validatedGlobalParam,
+        option: validatedGlobalOption,
       };
 
-      globalParametersMap.set(validatedGlobalParam.name, mapEntry);
+      globalOptionsMap.set(validatedGlobalOption.name, mapEntry);
     }
   }
 
-  return globalParametersMap;
+  return globalOptionsMap;
 }
 
-export function buildGlobalParameterDefinition<T extends ParameterType>({
+export function buildGlobalOptionDefinition<T extends ParameterType>({
   name,
   description,
   parameterType,
@@ -70,7 +70,7 @@ export function buildGlobalParameterDefinition<T extends ParameterType>({
   description: string;
   parameterType?: T;
   defaultValue: ParameterTypeToValueType<T>;
-}): GlobalParameter {
+}): GlobalOption {
   const type = parameterType ?? ParameterType.STRING;
 
   if (!isValidParamNameCasing(name)) {
@@ -104,13 +104,13 @@ export function buildGlobalParameterDefinition<T extends ParameterType>({
   };
 }
 
-export function resolveGlobalArguments(
-  userProvidedGlobalArguments: Partial<GlobalArguments>,
-  _globalParametersMap: GlobalParametersMap,
-): GlobalArguments {
-  // TODO: Validate the userProvidedGlobalArguments and get the remaining ones
+export function resolveGlobalOptions(
+  userProvidedGlobalOptions: Partial<GlobalOptions>,
+  _globalOptionsMap: GlobalOptionsMap,
+): GlobalOptions {
+  // TODO: Validate the userProvidedGlobalOptions and get the remaining ones
   // from env variables
 
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO
-  return userProvidedGlobalArguments as GlobalArguments;
+  return userProvidedGlobalOptions as GlobalOptions;
 }

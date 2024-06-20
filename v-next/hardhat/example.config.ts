@@ -1,7 +1,7 @@
 import {
-  HardhatUserConfig,
-  configVariable,
+  type HardhatUserConfig,
   overrideTask,
+  configVariable,
   task,
 } from "./src/config.js";
 
@@ -18,7 +18,7 @@ const testTask = task("test", "Runs mocha tests")
     description: "An optional list of files to test",
     defaultValue: [],
   })
-  .addNamedParameter({
+  .addOption({
     name: "noCompile",
     description: "Don't compile before running this task",
   })
@@ -30,7 +30,7 @@ const testTask = task("test", "Runs mocha tests")
     name: "bail",
     description: "Stop running tests after the first test failure",
   })
-  .addNamedParameter({
+  .addOption({
     name: "grep",
     description: "Only run tests matching the given string or regexp",
   })

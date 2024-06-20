@@ -1,4 +1,4 @@
-import type { GlobalArguments } from "./global-parameters.js";
+import type { GlobalOptions } from "./global-options.js";
 import type { UserInterruptionManager } from "./user-interruptions.js";
 import type { HardhatConfig } from "../types/config.js";
 
@@ -8,7 +8,7 @@ import type { HardhatConfig } from "../types/config.js";
  */
 export interface HardhatRuntimeEnvironment {
   readonly config: HardhatConfig;
-  readonly globalArguments: GlobalArguments;
+  readonly globalOptions: GlobalOptions;
   readonly interruptions: UserInterruptionManager;
   // These fields are defined using module agumentation in this same package:
   // readonly hooks: HookManager;

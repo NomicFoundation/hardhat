@@ -20,7 +20,7 @@ describe("ResolvedConfigurationVariable", () => {
         plugins: [],
       },
       hooks: hookManager,
-      globalArguments: {},
+      globalOptions: {},
       interruptions: userInterruptionsManager,
     });
   });

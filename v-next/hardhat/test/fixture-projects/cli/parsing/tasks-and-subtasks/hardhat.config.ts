@@ -15,7 +15,7 @@ function resetResults() {
 }
 
 const customTask = task("task")
-  .addNamedParameter({ name: "param1" })
+  .addOption({ name: "param1" })
   .addPositionalParameter({ name: "param2" })
   .addVariadicParameter({ name: "param3" })
   .setAction((taskArguments) => {
@@ -32,7 +32,7 @@ const customTask = task("task")
   .build();
 
 const customTask2 = task("task-default")
-  .addNamedParameter({ name: "param1", defaultValue: "<default-value1>" })
+  .addOption({ name: "param1", defaultValue: "<default-value1>" })
   .setAction((taskArguments) => {
     resetResults();
 
@@ -42,7 +42,7 @@ const customTask2 = task("task-default")
   .build();
 
 const customSubtask = task(["task", "subtask"])
-  .addNamedParameter({ name: "param1" })
+  .addOption({ name: "param1" })
   .addPositionalParameter({ name: "param2" })
   .addVariadicParameter({ name: "param3" })
   .setAction((taskArguments) => {
@@ -59,7 +59,7 @@ const customSubtask = task(["task", "subtask"])
   .build();
 
 const customSubtask2 = task(["task-default", "subtask-default"])
-  .addNamedParameter({ name: "param1", defaultValue: "<default-value1>" })
+  .addOption({ name: "param1", defaultValue: "<default-value1>" })
   .setAction((taskArguments) => {
     resetResults();
 

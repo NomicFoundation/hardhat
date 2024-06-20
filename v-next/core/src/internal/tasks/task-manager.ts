@@ -1,4 +1,4 @@
-import type { GlobalParametersMap } from "../../types/global-parameters.js";
+import type { GlobalOptionsMap } from "../../types/global-options.js";
 import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
 import type {
   Task,
@@ -24,7 +24,7 @@ export class TaskManagerImplementation implements TaskManager {
 
   constructor(
     hre: HardhatRuntimeEnvironment,
-    globalParametersMap: GlobalParametersMap,
+    globalOptionsMap: GlobalOptionsMap,
   ) {
     this.#hre = hre;
 
@@ -35,17 +35,13 @@ export class TaskManagerImplementation implements TaskManager {
       }
 
       for (const taskDefinition of plugin.tasks) {
-        this.#reduceTaskDefinition(
-          globalParametersMap,
-          taskDefinition,
-          plugin.id,
-        );
+        this.#reduceTaskDefinition(globalOptionsMap, taskDefinition, plugin.id);
       }
     }
 
     // reduce global user defined tasks
     for (const taskDefinition of this.#hre.config.tasks) {
-      this.#reduceTaskDefinition(globalParametersMap, taskDefinition);
+      this.#reduceTaskDefinition(globalOptionsMap, taskDefinition);
     }
   }
 
@@ -136,7 +132,7 @@ export class TaskManagerImplementation implements TaskManager {
   }
 
   #reduceTaskDefinition(
-    globalParametersMap: GlobalParametersMap,
+    globalOptionsMap: GlobalOptionsMap,
     taskDefinition: TaskDefinition,
     pluginId?: string,
   ) {
@@ -153,8 +149,8 @@ export class TaskManagerImplementation implements TaskManager {
         break;
       }
       case TaskDefinitionType.NEW_TASK: {
-        this.#validateClashesWithGlobalParams(
-          globalParametersMap,
+        this.#validateClashesWithGlobalOptions(
+          globalOptionsMap,
           taskDefinition,
           pluginId,
         );
@@ -164,7 +160,7 @@ export class TaskManagerImplementation implements TaskManager {
           taskDefinition.id,
           taskDefinition.description,
           taskDefinition.action,
-          taskDefinition.namedParameters,
+          taskDefinition.options,
           taskDefinition.positionalParameters,
           pluginId,
         );
@@ -173,8 +169,8 @@ export class TaskManagerImplementation implements TaskManager {
         break;
       }
       case TaskDefinitionType.TASK_OVERRIDE: {
-        this.#validateClashesWithGlobalParams(
-          globalParametersMap,
+        this.#validateClashesWithGlobalOptions(
+          globalOptionsMap,
           taskDefinition,
           pluginId,
         );
@@ -185,27 +181,27 @@ export class TaskManagerImplementation implements TaskManager {
     }
   }
 
-  #validateClashesWithGlobalParams(
-    globalParametersMap: GlobalParametersMap,
+  #validateClashesWithGlobalOptions(
+    globalOptionsMap: GlobalOptionsMap,
     taskDefinition: NewTaskDefinition | TaskOverrideDefinition,
     pluginId?: string,
   ) {
-    const namedParamNames = Object.keys(taskDefinition.namedParameters);
+    const optionNames = Object.keys(taskDefinition.options);
     const positionalParamNames =
       "positionalParameters" in taskDefinition
         ? taskDefinition.positionalParameters.map(({ name }) => name)
         : [];
 
-    [...namedParamNames, ...positionalParamNames].forEach((paramName) => {
-      const globalParamEntry = globalParametersMap.get(paramName);
-      if (globalParamEntry !== undefined) {
+    [...optionNames, ...positionalParamNames].forEach((paramName) => {
+      const globalOptionEntry = globalOptionsMap.get(paramName);
+      if (globalOptionEntry !== undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.TASK_DEFINITIONS.TASK_PARAMETER_ALREADY_DEFINED,
+          HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OPTION_ALREADY_DEFINED,
           {
             actorFragment: getActorFragment(pluginId),
             task: formatTaskId(taskDefinition.id),
-            parameter: paramName,
-            globalParamPluginId: globalParamEntry.pluginId,
+            option: paramName,
+            globalOptionPluginId: globalOptionEntry.pluginId,
           },
         );
       }
@@ -217,24 +213,24 @@ export class TaskManagerImplementation implements TaskManager {
     pluginId?: string,
   ) {
     const task = this.getTask(taskDefinition.id);
-    for (const [namedParamName, namedParamValue] of Object.entries(
-      taskDefinition.namedParameters,
+    for (const [optionName, optionValue] of Object.entries(
+      taskDefinition.options,
     )) {
       const hasArgument =
-        task.namedParameters.has(namedParamName) ||
-        task.positionalParameters.some((p) => p.name === namedParamName);
+        task.options.has(optionName) ||
+        task.positionalParameters.some((p) => p.name === optionName);
       if (hasArgument) {
         throw new HardhatError(
-          HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_PARAMETER_ALREADY_DEFINED,
+          HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
           {
             actorFragment: getActorFragment(pluginId),
-            namedParamName,
+            optionName,
             task: formatTaskId(taskDefinition.id),
           },
         );
       }
 
-      task.namedParameters.set(namedParamName, namedParamValue);
+      task.options.set(optionName, optionValue);
     }
 
     if (taskDefinition.description !== undefined) {
