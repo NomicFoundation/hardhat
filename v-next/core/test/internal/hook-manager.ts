@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/consistent-type-assertions -- the sequential
+   tests require casting - see the `runSequentialHandlers` describe */
 import type {
   ConfigurationVariable,
   HardhatConfig,
@@ -9,6 +11,7 @@ import type {
   HardhatUserConfigValidationError,
   HookContext,
   HookManager,
+  HardhatHooks,
 } from "../../src/types/hooks.js";
 import type { HardhatRuntimeEnvironment } from "../../src/types/hre.js";
 import type { HardhatPlugin } from "../../src/types/plugins.js";
@@ -20,16 +23,6 @@ import { describe, it, beforeEach } from "node:test";
 
 import { HookManagerImplementation } from "../../src/internal/hook-manager.js";
 import { UserInterruptionManagerImplementation } from "../../src/internal/user-interruptions.js";
-
-// This allows us to test the sequential return of handlers
-// Currently `hre.created` is the only hook that is returned sequentially
-// but it returns void. `testExample` takes and returns a string to
-// ease testing.
-declare module "../../src/types/hooks.js" {
-  interface HardhatRuntimeEnvironmentHooks {
-    testExample: (context: HookContext, input: string) => Promise<string>;
-  }
-}
 
 describe("HookManager", () => {
   describe("plugin hooks", () => {
@@ -72,14 +65,14 @@ describe("HookManager", () => {
               return handlers;
             },
             hre: async () => {
-              const handlers: Partial<HreHooks> = {
+              const handlers = {
                 testExample: async (
                   _context: HookContext,
                   _input: string,
                 ): Promise<string> => {
                   return "FromPlugin";
                 },
-              };
+              } as Partial<HreHooks>;
 
               return handlers;
             },
@@ -145,11 +138,11 @@ describe("HookManager", () => {
           ): Promise<string> => {
             return "FromHandler";
           },
-        });
+        } as Partial<HardhatHooks["hre"]>);
 
         const result = await hookManager.runSequentialHandlers(
           "hre",
-          "testExample",
+          "testExample" as any,
           ["input"],
         );
 
@@ -489,6 +482,18 @@ describe("HookManager", () => {
       });
     });
 
+    /**
+     * To fully test sequential handlers we need to go beyond the current type.
+     * Because we are unwilling to leak the type into production we are casting
+     * as if the following type had been declared:
+     *
+     * ```ts
+     *  declare module "../../src/types/hooks.js" {
+     *    interface HardhatRuntimeEnvironmentHooks {
+     *      testExample: (context: HookContext, input: string) => Promise<string>;
+     *    }
+     *  }
+     */
     describe("runSequentialHandlers", () => {
       let hookManager: HookManager;
 
@@ -531,7 +536,7 @@ describe("HookManager", () => {
           ): Promise<string> => {
             return "first";
           },
-        });
+        } as Partial<HardhatHooks["hre"]>);
 
         hookManager.registerHandlers("hre", {
           testExample: async (
@@ -540,7 +545,7 @@ describe("HookManager", () => {
           ): Promise<string> => {
             return "second";
           },
-        });
+        } as Partial<HardhatHooks["hre"]>);
 
         hookManager.registerHandlers("hre", {
           testExample: async (
@@ -549,12 +554,12 @@ describe("HookManager", () => {
           ): Promise<string> => {
             return "third";
           },
-        });
+        } as Partial<HardhatHooks["hre"]>);
 
         const result = await hookManager.runSequentialHandlers(
           "hre",
-          "testExample",
-          ["input"],
+          "testExample" as keyof HardhatHooks["hre"],
+          ["input"] as any,
         );
 
         assert.deepEqual(result, ["third", "second", "first"]);
@@ -573,11 +578,11 @@ describe("HookManager", () => {
             assert.equal(input, "input");
             return "result";
           },
-        });
+        } as Partial<HardhatHooks["hre"]>);
 
         const result = await hookManager.runSequentialHandlers(
           "hre",
-          "testExample",
+          "testExample" as any,
           ["input"],
         );
 
