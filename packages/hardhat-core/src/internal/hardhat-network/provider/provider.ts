@@ -576,7 +576,7 @@ export class EdrProviderWrapper
   private async _rawTraceToSolidityStackTrace(
     rawTrace: RawTrace
   ): Promise<SolidityStackTrace | undefined> {
-    const vmTracer = new VMTracer(false);
+    const vmTracer = new VMTracer();
 
     const trace = rawTrace.trace();
     for (const traceItem of trace) {

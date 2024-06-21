@@ -105,7 +105,7 @@ export async function traceTransaction(
   provider: EdrProviderWrapper,
   txData: TxData
 ): Promise<MessageTrace> {
-  const vmTracer = new VMTracer(false);
+  const vmTracer = new VMTracer();
   provider.injectVmTracer(vmTracer);
 
   try {
