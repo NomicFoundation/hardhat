@@ -12,6 +12,11 @@ import type {
 import type { HardhatPlugin } from "../types/plugins.js";
 import type { LastParameter, Return } from "../types/utils.js";
 
+import {
+  HardhatError,
+  assertHardhatInvariant,
+} from "@nomicfoundation/hardhat-errors";
+
 export class HookManagerImplementation implements HookManager {
   readonly #pluginsInReverseOrder: HardhatPlugin[];
 
@@ -108,10 +113,10 @@ export class HookManagerImplementation implements HookManager {
 
     let handlerParams: Parameters<typeof defaultImplementation>;
     if (hookCategoryName !== "config") {
-      // TODO: assert that this.#context is not undefinded
-      if (this.#context === undefined) {
-        throw new Error(`Context must be set before running non-config hooks`);
-      }
+      assertHardhatInvariant(
+        this.#context !== undefined,
+        "Context must be set before running non-config hooks",
+      );
 
       handlerParams = [this.#context, ...params] as any;
     } else {
@@ -147,10 +152,10 @@ export class HookManagerImplementation implements HookManager {
 
     let handlerParams: any;
     if (hookCategoryName !== "config") {
-      // TODO: assert that this.#context is not undefinded
-      if (this.#context === undefined) {
-        throw new Error(`Context must be set before running non-config hooks`);
-      }
+      assertHardhatInvariant(
+        this.#context !== undefined,
+        "Context must be set before running non-config hooks",
+      );
 
       handlerParams = [this.#context, ...params];
     } else {
@@ -180,10 +185,10 @@ export class HookManagerImplementation implements HookManager {
 
     let handlerParams: any;
     if (hookCategoryName !== "config") {
-      // TODO: assert that this.#context is not undefinded
-      if (this.#context === undefined) {
-        throw new Error(`Context must be set before running non-config hooks`);
-      }
+      assertHardhatInvariant(
+        this.#context !== undefined,
+        "Context must be set before running non-config hooks",
+      );
 
       handlerParams = [this.#context, ...params];
     } else {
@@ -288,8 +293,13 @@ export class HookManagerImplementation implements HookManager {
     path: string,
   ): Promise<Partial<HardhatHooks[HookCategoryNameT]>> {
     if (!path.startsWith("file://")) {
-      throw new Error(
-        `Plugin ${pluginId} hook factory for ${hookCategoryName} is not a valid file:// URL: ${path}`,
+      throw new HardhatError(
+        HardhatError.ERRORS.HOOKS.INVALID_HOOK_FACTORY_PATH,
+        {
+          pluginId,
+          hookCategoryName,
+          path,
+        },
       );
     }
 
@@ -297,21 +307,17 @@ export class HookManagerImplementation implements HookManager {
 
     const factory = mod.default;
 
-    // TODO: Assert that the factory is a function
-    if (typeof factory !== "function") {
-      throw new Error(
-        `Plugin ${pluginId} doesn't export a hook factory for category ${hookCategoryName} in ${path}`,
-      );
-    }
+    assertHardhatInvariant(
+      typeof factory === "function",
+      `Plugin ${pluginId} doesn't export a hook factory for category ${hookCategoryName} in ${path}`,
+    );
 
     const category = await factory();
 
-    // TODO: Assert that category is not undefined and it's an object -- should use !isObject(category)
-    if (typeof category !== "object" || category === null) {
-      throw new Error(
-        `Plugin ${pluginId} doesn't export a valid factory for category ${hookCategoryName} in ${path}, it didn't return an object`,
-      );
-    }
+    assertHardhatInvariant(
+      category !== null && typeof category === "object",
+      `Plugin ${pluginId} doesn't export a valid factory for category ${hookCategoryName} in ${path}, it didn't return an object`,
+    );
 
     return category;
   }

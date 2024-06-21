@@ -74,6 +74,11 @@ export const ERROR_CATEGORIES: {
     max: 1299,
     websiteTitle: "Plugin errors",
   },
+  HOOKS: {
+    min: 1300,
+    max: 1399,
+    websiteTitle: "Hooks errors",
+  },
 };
 
 export const ERRORS = {
@@ -789,6 +794,15 @@ Please install a version of the peer dependency that meets the plugin's requirem
       messageTemplate: 'Plugin "{pluginId}" dependency could not be loaded.',
       websiteTitle: "Plugin dependency could not be loaded",
       websiteDescription: `The loading of a plugin's dependent plugin failed.`,
+    },
+  },
+  HOOKS: {
+    INVALID_HOOK_FACTORY_PATH: {
+      number: 1300,
+      messageTemplate:
+        'Plugin "{pluginId}" hook factory for "{hookCategoryName}" is not a valid file:// URL: {path}.',
+      websiteTitle: "Plugin hook factory is not a valid file URL",
+      websiteDescription: `The loading of a plugin's hook factory failed as the import path is not a valid file:// URL.`,
     },
   },
 } as const;
