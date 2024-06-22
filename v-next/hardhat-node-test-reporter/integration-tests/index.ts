@@ -60,10 +60,16 @@ for (const entry of readdirSync(import.meta.dirname + "/fixture-tests")) {
 }
 
 function normalizeOutputs(output: string): string {
-  return output
-    .replace(/\(\d+ms\)/, "(Xms)")
-    .replaceAll("\r\n", "\n")
-    .replaceAll(/\(.*?:\d+:\d+\)/g, (match) => {
-      return match.replaceAll(path.sep, "/");
-    });
+  return (
+    output
+      // Normalize the time it took to run the test
+      .replace(/\(\d+ms\)/, "(Xms)")
+      // Normalize windows new lines
+      .replaceAll("\r\n", "\n")
+      // Normalize path separators to `/` within the (file:line:column)
+      // part of the stack traces
+      .replaceAll(/\(.*?:\d+:\d+\)/g, (match) => {
+        return match.replaceAll(path.sep, "/");
+      })
+  );
 }
