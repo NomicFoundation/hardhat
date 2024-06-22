@@ -71,5 +71,9 @@ function normalizeOutputs(output: string): string {
       .replaceAll(/\(.*?:\d+:\d+\)/g, (match) => {
         return match.replaceAll(path.sep, "/");
       })
+      // Remove lines like `at TestHook.run (node:internal/test_runner/test:1107:18)`
+      .replaceAll(/at .*? \(node\:.*?:\d+:\d+\)/g, "")
+      // Remove lines like `at node:internal/test_runner/test:776:20`
+      .replaceAll(/at node\:.*?:\d+:\d+/g, "")
   );
 }
