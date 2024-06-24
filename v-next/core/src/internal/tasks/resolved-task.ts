@@ -1,7 +1,7 @@
 import type { ParameterValue } from "../../types/common.js";
 import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
 import type {
-  NamedTaskParameter,
+  TaskOption,
   NewTaskActionFunction,
   PositionalTaskParameter,
   Task,
@@ -48,7 +48,7 @@ export class ResolvedTask implements Task {
     id: string[],
     description: string,
     action: NewTaskActionFunction | string,
-    namedParameters: Record<string, NamedTaskParameter>,
+    options: Record<string, TaskOption>,
     positionalParameters: PositionalTaskParameter[],
     pluginId?: string,
   ): ResolvedTask {
@@ -56,7 +56,7 @@ export class ResolvedTask implements Task {
       id,
       description,
       [{ pluginId, action }],
-      new Map(Object.entries(namedParameters)),
+      new Map(Object.entries(options)),
       positionalParameters,
       pluginId,
       new Map(),
@@ -68,7 +68,7 @@ export class ResolvedTask implements Task {
     public readonly id: string[],
     public readonly description: string,
     public readonly actions: TaskActions,
-    public readonly namedParameters: Map<string, NamedTaskParameter>,
+    public readonly options: Map<string, TaskOption>,
     public readonly positionalParameters: PositionalTaskParameter[],
     public readonly pluginId: string | undefined,
     public readonly subtasks: Map<string, Task>,
@@ -100,7 +100,7 @@ export class ResolvedTask implements Task {
 
     // Normalize parameters into a single iterable
     const allParameters: TaskParameter[] = [
-      ...this.namedParameters.values(),
+      ...this.options.values(),
       ...this.positionalParameters,
     ];
 

@@ -1,6 +1,6 @@
 import type { UnsafeHardhatRuntimeEnvironmentOptions } from "./types/cli.js";
 import type { HardhatUserConfig } from "./types/config.js";
-import type { GlobalArguments } from "./types/global-parameters.js";
+import type { GlobalOptions } from "./types/global-options.js";
 import type { HardhatRuntimeEnvironment } from "./types/hre.js";
 
 import { HardhatRuntimeEnvironmentImplementation } from "./internal/hre.js";
@@ -9,7 +9,7 @@ import { HardhatRuntimeEnvironmentImplementation } from "./internal/hre.js";
  * Creates an instances of the Hardhat Runtime Environment.
  *
  * @param config - The user's Hardhat configuration.
- * @param userProvidedGlobalArguments - The global arguments provided by the
+ * @param userProvidedGlobalOptions - The global options provided by the
  *  user.
  * @param unsafeOptions - Options used to bypass some initialization, to avoid
  *  redoing it in the CLI. Should only be used in the official CLI.
@@ -17,15 +17,15 @@ import { HardhatRuntimeEnvironmentImplementation } from "./internal/hre.js";
  */
 export async function createHardhatRuntimeEnvironment(
   config: HardhatUserConfig,
-  userProvidedGlobalArguments: Partial<GlobalArguments> = {},
+  userProvidedGlobalOptions: Partial<GlobalOptions> = {},
   unsafeOptions?: UnsafeHardhatRuntimeEnvironmentOptions,
 ): Promise<HardhatRuntimeEnvironment> {
   return HardhatRuntimeEnvironmentImplementation.create(
     config,
-    userProvidedGlobalArguments,
+    userProvidedGlobalOptions,
     unsafeOptions,
   );
 }
 
 export { resolvePluginList } from "./internal/plugins/resolve-plugin-list.js";
-export { buildGlobalParametersMap } from "./internal/global-parameters.js";
+export { buildGlobalOptionsMap } from "./internal/global-options.js";

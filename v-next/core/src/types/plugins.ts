@@ -1,4 +1,4 @@
-import type { GlobalParameter } from "./global-parameters.js";
+import type { GlobalOption } from "./global-options.js";
 import type { HardhatHooks } from "./hooks.js";
 import type { TaskDefinition } from "./tasks.js";
 
@@ -65,9 +65,9 @@ export interface HardhatPlugin {
   hookHandlers?: HookHandlerCategoryFactories;
 
   /**
-   * An array of the global parameters that this plugin defines.
+   * An array of the global options that this plugin defines.
    */
-  globalParameters?: GlobalParameter[];
+  globalOptions?: GlobalOption[];
 
   /**
    * An array of type definitions, which should be created using their builders.

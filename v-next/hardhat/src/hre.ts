@@ -1,5 +1,5 @@
 import type { HardhatUserConfig } from "./types/config.js";
-import type { GlobalArguments } from "./types/global-parameters.js";
+import type { GlobalOptions } from "./types/global-options.js";
 import type { HardhatRuntimeEnvironment } from "./types/hre.js";
 
 import {
@@ -13,13 +13,13 @@ import { builtinPlugins } from "./internal/builtin-plugins/index.js";
  * Creates an instances of the Hardhat Runtime Environment.
  *
  * @param config - The user's Hardhat configuration.
- * @param userProvidedGlobalArguments - The global arguments provided by the
+ * @param userProvidedGlobalOptions - The global options provided by the
  *  user.
  * @returns The Hardhat Runtime Environment.
  */
 export async function createHardhatRuntimeEnvironment(
   config: HardhatUserConfig,
-  userProvidedGlobalArguments: Partial<GlobalArguments> = {},
+  userProvidedGlobalOptions: Partial<GlobalOptions> = {},
 ): Promise<HardhatRuntimeEnvironment> {
   const plugins = [...builtinPlugins, ...(config.plugins ?? [])];
 
@@ -32,7 +32,7 @@ export async function createHardhatRuntimeEnvironment(
 
   return originalCreateHardhatRuntimeEnvironment(
     config,
-    userProvidedGlobalArguments,
+    userProvidedGlobalOptions,
     { resolvedPlugins },
   );
 }

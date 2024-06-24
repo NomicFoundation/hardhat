@@ -18,5 +18,5 @@ export default {
       })
       .build(),
   ],
-  globalParameters: [globalFlag({ name: "flag", description: "A flag" })],
+  globalOptions: [globalFlag({ name: "flag", description: "A flag" })],
 } satisfies HardhatPlugin;

@@ -114,7 +114,7 @@ describe("Task builders", () => {
         id: ["task-id"],
         description: "",
         action: taskAction,
-        namedParameters: {},
+        options: {},
         positionalParameters: [],
       });
     });
@@ -130,7 +130,7 @@ describe("Task builders", () => {
         id: ids,
         description: "",
         action: taskAction,
-        namedParameters: {},
+        options: {},
         positionalParameters: [],
       });
     });
@@ -166,7 +166,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: "",
           action: taskAction,
-          namedParameters: {},
+          options: {},
           positionalParameters: [],
         });
       });
@@ -181,7 +181,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: "",
           action: taskAction,
-          namedParameters: {},
+          options: {},
           positionalParameters: [],
         });
       });
@@ -224,7 +224,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: "Task description",
           action: taskAction,
-          namedParameters: {},
+          options: {},
           positionalParameters: [],
         });
       });
@@ -242,7 +242,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: "Task description",
           action: taskAction,
-          namedParameters: {},
+          options: {},
           positionalParameters: [],
         });
       });
@@ -263,19 +263,19 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: "New task description",
           action: taskAction,
-          namedParameters: {},
+          options: {},
           positionalParameters: [],
         });
       });
     });
 
-    describe("Adding named parameters", () => {
-      it("should add a named parameter", () => {
+    describe("Adding options", () => {
+      it("should add an option", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
         const taskAction = () => {};
         const taskDefinition = builder
           .setAction(taskAction)
-          .addNamedParameter({
+          .addOption({
             name: "param",
           })
           .build();
@@ -285,7 +285,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: "",
           action: taskAction,
-          namedParameters: {
+          options: {
             param: {
               name: "param",
               description: "",
@@ -297,12 +297,12 @@ describe("Task builders", () => {
         });
       });
 
-      it("should add a named parameter with a description", () => {
+      it("should add an option with a description", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
         const taskAction = () => {};
         const taskDefinition = builder
           .setAction(taskAction)
-          .addNamedParameter({
+          .addOption({
             name: "param",
             description: "Parameter description",
           })
@@ -313,7 +313,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: "",
           action: taskAction,
-          namedParameters: {
+          options: {
             param: {
               name: "param",
               description: "Parameter description",
@@ -325,12 +325,12 @@ describe("Task builders", () => {
         });
       });
 
-      it("should add a named parameter with a default value", () => {
+      it("should add an option with a default value", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
         const taskAction = () => {};
         const taskDefinition = builder
           .setAction(taskAction)
-          .addNamedParameter({
+          .addOption({
             name: "param",
             defaultValue: "default",
           })
@@ -341,7 +341,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: "",
           action: taskAction,
-          namedParameters: {
+          options: {
             param: {
               name: "param",
               description: "",
@@ -353,12 +353,12 @@ describe("Task builders", () => {
         });
       });
 
-      it("should add a named parameter with a type", () => {
+      it("should add an option with a type", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
         const taskAction = () => {};
         const taskDefinition = builder
           .setAction(taskAction)
-          .addNamedParameter({
+          .addOption({
             name: "param",
             type: ParameterType.INT,
           })
@@ -369,7 +369,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: "",
           action: taskAction,
-          namedParameters: {
+          options: {
             param: {
               name: "param",
               description: "",
@@ -396,7 +396,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: "",
           action: taskAction,
-          namedParameters: {
+          options: {
             flag: {
               name: "flag",
               description: "",
@@ -421,7 +421,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: "",
           action: taskAction,
-          namedParameters: {
+          options: {
             flag: {
               name: "flag",
               description: "Flag description",
@@ -448,7 +448,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: "",
           action: taskAction,
-          namedParameters: {},
+          options: {},
           positionalParameters: [
             {
               name: "param",
@@ -477,7 +477,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: "",
           action: taskAction,
-          namedParameters: {},
+          options: {},
           positionalParameters: [
             {
               name: "param",
@@ -506,7 +506,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: "",
           action: taskAction,
-          namedParameters: {},
+          options: {},
           positionalParameters: [
             {
               name: "param",
@@ -535,7 +535,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: "",
           action: taskAction,
-          namedParameters: {},
+          options: {},
           positionalParameters: [
             {
               name: "param",
@@ -563,7 +563,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: "",
           action: taskAction,
-          namedParameters: {},
+          options: {},
           positionalParameters: [
             {
               name: "param",
@@ -592,7 +592,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: "",
           action: taskAction,
-          namedParameters: {},
+          options: {},
           positionalParameters: [
             {
               name: "param",
@@ -621,7 +621,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: "",
           action: taskAction,
-          namedParameters: {},
+          options: {},
           positionalParameters: [
             {
               name: "param",
@@ -647,7 +647,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: "",
           action: taskAction,
-          namedParameters: {},
+          options: {},
           positionalParameters: [
             {
               name: "param",
@@ -663,7 +663,7 @@ describe("Task builders", () => {
 
     describe("Parameter name validation", () => {
       const fnNames = [
-        "addNamedParameter",
+        "addOption",
         "addFlag",
         "addPositionalParameter",
         "addVariadicParameter",
@@ -688,12 +688,12 @@ describe("Task builders", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
 
         builder
-          .addNamedParameter({ name: "namedParam" })
+          .addOption({ name: "option" })
           .addFlag({ name: "flag" })
           .addPositionalParameter({ name: "posParam" })
           .addVariadicParameter({ name: "varParam" });
 
-        const names = ["namedParam", "flag", "posParam", "varParam"];
+        const names = ["option", "flag", "posParam", "varParam"];
 
         names.forEach((name) => {
           fnNames.forEach((fnName) => {
@@ -709,7 +709,7 @@ describe("Task builders", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
 
         RESERVED_PARAMETER_NAMES.forEach((name) => {
-          assert.throws(() => builder.addNamedParameter({ name }), {
+          assert.throws(() => builder.addOption({ name }), {
             name: "HardhatError",
             message: `HHE301: Argument name ${name} is reserved`,
           });
@@ -721,10 +721,7 @@ describe("Task builders", () => {
       it("should throw if the default value does not match the type", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
 
-        const fnNames = [
-          "addNamedParameter",
-          "addPositionalParameter",
-        ] as const;
+        const fnNames = ["addOption", "addPositionalParameter"] as const;
 
         fnNames.forEach((fnName) => {
           assert.throws(
@@ -830,7 +827,7 @@ describe("Task builders", () => {
         id: ["task-id"],
         description: undefined,
         action: taskAction,
-        namedParameters: {},
+        options: {},
       });
     });
 
@@ -845,7 +842,7 @@ describe("Task builders", () => {
         id: ids,
         description: undefined,
         action: taskAction,
-        namedParameters: {},
+        options: {},
       });
     });
 
@@ -888,7 +885,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: undefined,
           action: taskAction,
-          namedParameters: {},
+          options: {},
         });
       });
 
@@ -904,7 +901,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: undefined,
           action: taskAction,
-          namedParameters: {},
+          options: {},
         });
       });
 
@@ -952,20 +949,20 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: "Task description",
           action: taskAction,
-          namedParameters: {},
+          options: {},
         });
       });
     });
 
-    describe("Adding named parameters", () => {
-      it("should add a named parameter", () => {
+    describe("Adding options", () => {
+      it("should add an option", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
         );
         const taskAction = () => {};
         const taskDefinition = builder
           .setAction(taskAction)
-          .addNamedParameter({
+          .addOption({
             name: "param",
           })
           .build();
@@ -975,7 +972,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: undefined,
           action: taskAction,
-          namedParameters: {
+          options: {
             param: {
               name: "param",
               description: "",
@@ -986,14 +983,14 @@ describe("Task builders", () => {
         });
       });
 
-      it("should add a named parameter with a description", () => {
+      it("should add an option with a description", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
         );
         const taskAction = () => {};
         const taskDefinition = builder
           .setAction(taskAction)
-          .addNamedParameter({
+          .addOption({
             name: "param",
             description: "Parameter description",
           })
@@ -1004,7 +1001,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: undefined,
           action: taskAction,
-          namedParameters: {
+          options: {
             param: {
               name: "param",
               description: "Parameter description",
@@ -1015,14 +1012,14 @@ describe("Task builders", () => {
         });
       });
 
-      it("should add a named parameter with a default value", () => {
+      it("should add an option with a default value", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
         );
         const taskAction = () => {};
         const taskDefinition = builder
           .setAction(taskAction)
-          .addNamedParameter({
+          .addOption({
             name: "param",
             defaultValue: "default",
           })
@@ -1033,7 +1030,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: undefined,
           action: taskAction,
-          namedParameters: {
+          options: {
             param: {
               name: "param",
               description: "",
@@ -1044,14 +1041,14 @@ describe("Task builders", () => {
         });
       });
 
-      it("should add a named parameter with a type", () => {
+      it("should add an option with a type", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
         );
         const taskAction = () => {};
         const taskDefinition = builder
           .setAction(taskAction)
-          .addNamedParameter({
+          .addOption({
             name: "param",
             type: ParameterType.INT,
           })
@@ -1062,7 +1059,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: undefined,
           action: taskAction,
-          namedParameters: {
+          options: {
             param: {
               name: "param",
               description: "",
@@ -1090,7 +1087,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: undefined,
           action: taskAction,
-          namedParameters: {
+          options: {
             flag: {
               name: "flag",
               description: "",
@@ -1116,7 +1113,7 @@ describe("Task builders", () => {
           id: ["task-id"],
           description: undefined,
           action: taskAction,
-          namedParameters: {
+          options: {
             flag: {
               name: "flag",
               description: "Flag description",
@@ -1129,7 +1126,7 @@ describe("Task builders", () => {
     });
 
     describe("Parameter name validation", () => {
-      const fnNames = ["addNamedParameter", "addFlag"] as const;
+      const fnNames = ["addOption", "addFlag"] as const;
 
       it("should throw if the parameter name is invalid", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
@@ -1153,11 +1150,9 @@ describe("Task builders", () => {
           "task-id",
         );
 
-        builder
-          .addNamedParameter({ name: "namedParam" })
-          .addFlag({ name: "flag" });
+        builder.addOption({ name: "option" }).addFlag({ name: "flag" });
 
-        const names = ["namedParam", "flag"];
+        const names = ["option", "flag"];
 
         names.forEach((name) => {
           fnNames.forEach((fnName) => {
@@ -1175,7 +1170,7 @@ describe("Task builders", () => {
         );
 
         RESERVED_PARAMETER_NAMES.forEach((name) => {
-          assert.throws(() => builder.addNamedParameter({ name }), {
+          assert.throws(() => builder.addOption({ name }), {
             name: "HardhatError",
             message: `HHE301: Argument name ${name} is reserved`,
           });
@@ -1191,7 +1186,7 @@ describe("Task builders", () => {
 
         assert.throws(
           () =>
-            builder.addNamedParameter({
+            builder.addOption({
               name: "param",
               /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
               Intentionally testing an invalid type */
