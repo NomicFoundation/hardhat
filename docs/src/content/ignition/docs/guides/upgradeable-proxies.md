@@ -1,4 +1,4 @@
-# Upgradeable proxies
+# Upgradeable Contracts
 
 When developing smart contracts, you may decide to use an upgradeable proxy pattern to allow for future upgrades to your contracts. This guide will explain how to create Ignition modules to deploy and interact with your upgradeable proxy contracts.
 
@@ -36,7 +36,7 @@ yarn add @openzeppelin/contracts
 
 ## Getting to know our contracts
 
-Before we start writing our Ignition modules, let's take a look at the contracts we'll be deploying and interacting with.
+Let's take a look at the contracts we'll be deploying and interacting with.
 
 First, inside our `contracts` directory, we'll create a file called `Demo.sol`:
 
