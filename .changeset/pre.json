@@ -1,0 +1,32 @@
+{
+  "mode": "pre",
+  "tag": "next",
+  "initialVersions": {
+    "@nomiclabs/common": "0.0.1",
+    "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "1.0.2",
+    "@nomicfoundation/eslint-plugin-slow-imports": "1.0.0",
+    "@nomicfoundation/hardhat-chai-matchers": "2.0.6",
+    "hardhat": "2.22.4",
+    "@nomicfoundation/hardhat-ethers": "3.0.6",
+    "@nomicfoundation/hardhat-foundry": "1.1.2",
+    "@nomicfoundation/hardhat-ledger": "1.0.3",
+    "@nomicfoundation/hardhat-network-helpers": "1.0.10",
+    "hardhat-shorthand": "1.0.0",
+    "@nomicfoundation/hardhat-toolbox": "5.0.0",
+    "@nomicfoundation/hardhat-toolbox-viem": "3.0.0",
+    "@nomicfoundation/hardhat-verify": "2.0.7",
+    "@nomicfoundation/hardhat-viem": "2.0.2",
+    "@nomiclabs/hardhat-vyper": "3.0.6",
+    "@nomicfoundation/hardhat-web3-v4": "1.0.0",
+    "@ignored/hardhat-vnext-core": "2.0.0",
+    "@nomicfoundation/example-project": "3.0.0",
+    "@ignored/hardhat-vnext": "2.0.0",
+    "@ignored/hardhat-vnext-build-system": "2.0.0",
+    "@ignored/hardhat-vnext-errors": "2.0.0",
+    "@ignored/hardhat-vnext-node-test-reporter": "2.0.0",
+    "@ignored/hardhat-vnext-utils": "2.0.0",
+    "@ignored/hardhat-vnext-zod-utils": "2.0.0",
+    "@nomicfoundation/template-package": "3.0.0"
+  },
+  "changesets": []
+}

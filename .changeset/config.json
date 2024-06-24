@@ -1,12 +1,27 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@1.6.0/schema.json",
-  "changelog": "@changesets/cli/changelog",
+  "changelog": false,
   "commit": false,
   "linked": [],
   "access": "public",
-  "baseBranch": "main",
-  "updateInternalDependencies": "minor",
-  "ignore": ["@nomiclabs/common"],
+  "baseBranch": "v-next",
+  "updateInternalDependencies": "patch",
+  "ignore": [
+    "@nomiclabs/common",
+    "@nomicfoundation/hardhat-chai-matchers",
+    "hardhat",
+    "@nomicfoundation/hardhat-ethers",
+    "@nomicfoundation/hardhat-foundry",
+    "@nomicfoundation/hardhat-ledger",
+    "@nomicfoundation/hardhat-network-helpers",
+    "hardhat-shorthand",
+    "@nomicfoundation/hardhat-toolbox",
+    "@nomicfoundation/hardhat-toolbox-viem",
+    "@nomicfoundation/hardhat-verify",
+    "@nomicfoundation/hardhat-viem",
+    "@nomiclabs/hardhat-vyper",
+    "@nomicfoundation/hardhat-web3-v4"
+  ],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
     "onlyUpdatePeerDependentsWhenOutOfRange": true
   }
