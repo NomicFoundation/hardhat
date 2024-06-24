@@ -1,9 +1,9 @@
-import type { Task } from "@nomicfoundation/hardhat-core/types/tasks";
+import type { Task } from "@ignored/hardhat-vnext-core/types/tasks";
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { ParameterType } from "@nomicfoundation/hardhat-core/config";
+import { ParameterType } from "@ignored/hardhat-vnext-core/config";
 
 import {
   parseTasks,

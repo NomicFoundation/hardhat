@@ -1,6 +1,6 @@
-import type { HardhatPlugin } from "@nomicfoundation/hardhat-core/types/plugins";
+import type { HardhatPlugin } from "@ignored/hardhat-vnext-core/types/plugins";
 
-import { ParameterType, task } from "@nomicfoundation/hardhat-core/config";
+import { ParameterType, task } from "@ignored/hardhat-vnext-core/config";
 
 export default {
   id: "run",

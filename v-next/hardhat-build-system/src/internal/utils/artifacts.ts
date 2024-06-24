@@ -14,14 +14,14 @@ import * as path from "node:path";
 import {
   HardhatError,
   assertHardhatInvariant,
-} from "@nomicfoundation/hardhat-errors";
+} from "@ignored/hardhat-vnext-errors";
 import {
   ensureDir,
   exists,
   readJsonFile,
   remove,
   writeJsonFile,
-} from "@nomicfoundation/hardhat-utils/fs";
+} from "@ignored/hardhat-vnext-utils/fs";
 import debug from "debug";
 
 import {

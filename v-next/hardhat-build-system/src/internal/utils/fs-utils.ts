@@ -2,8 +2,8 @@ import fs from "node:fs";
 import fsPromises from "node:fs/promises";
 import path from "node:path";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
-import { ensureError, CustomError } from "@nomicfoundation/hardhat-utils/error";
+import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { ensureError, CustomError } from "@ignored/hardhat-vnext-utils/error";
 
 /**
  * Returns an array of files (not dirs) that match a condition.

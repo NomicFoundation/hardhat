@@ -5,7 +5,7 @@ import type { HardhatRuntimeEnvironment } from "./types/hre.js";
 import {
   createHardhatRuntimeEnvironment as originalCreateHardhatRuntimeEnvironment,
   resolvePluginList,
-} from "@nomicfoundation/hardhat-core";
+} from "@ignored/hardhat-vnext-core";
 
 import { builtinPlugins } from "./internal/builtin-plugins/index.js";
 

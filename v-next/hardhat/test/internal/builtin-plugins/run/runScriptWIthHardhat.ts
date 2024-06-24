@@ -1,10 +1,10 @@
-import type { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
+import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core/types/hre";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { createHardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core";
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 import runScriptWithHardhat from "../../../../src/internal/builtin-plugins/run/runScriptWithHardhat.js";
 import { useFixtureProject } from "../../../helpers/project.js";

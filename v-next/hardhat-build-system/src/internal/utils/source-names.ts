@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 import { FileNotFoundError, getFileTrueCase } from "./fs-utils.js";
 import { getPackageName } from "./package-info.js";

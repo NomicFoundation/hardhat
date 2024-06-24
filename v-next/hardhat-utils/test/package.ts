@@ -70,7 +70,7 @@ describe("package", () => {
       const packageJson = await readClosestPackageJson(import.meta.url);
 
       expectTypeOf(packageJson).toEqualTypeOf<PackageJson>();
-      assert.equal(packageJson.name, "@nomicfoundation/hardhat-utils");
+      assert.equal(packageJson.name, "@ignored/hardhat-vnext-utils");
     });
 
     it("Should read the closest package.json relative to a file", async () => {

@@ -1,7 +1,7 @@
 import type { HookContext, HookManager } from "../types/hooks.js";
 import type { UserInterruptionManager } from "../types/user-interruptions.js";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 
 import { AsyncMutex } from "./async-mutex.js";
 
@@ -108,7 +108,7 @@ async function defaultRequestSecretInput(
     output: process.stdout,
   });
 
-  /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- 
+  /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
   We need to access a private property of the readline interface. */
   const rlAsAny = rl as any;
 
