@@ -54,6 +54,13 @@ async function getProjectPackageJson(): Promise<PackageJson | undefined> {
   const pathToJsonPackage = path.join(process.cwd(), "package.json");
 
   if (!(await exists(pathToJsonPackage))) {
+    console.log(
+      "------------------------------- path:" +
+        pathToJsonPackage +
+        "exists: " +
+        (await exists(pathToJsonPackage)),
+    );
+
     return undefined;
   }
 
