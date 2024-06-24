@@ -71,7 +71,7 @@ export async function main(cliArguments: string[], print = console.log) {
     );
 
     const globalOptionsMap = buildGlobalOptionsMap(resolvedPlugins);
-    const userProvidedGlobalOptions = parseGlobalOptions(
+    const userProvidedGlobalOptions = await parseGlobalOptions(
       globalOptionsMap,
       cliArguments,
       usedCliArguments,
@@ -378,7 +378,7 @@ function parseDoubleDashArgs(
   cliArguments: string[],
   usedCliArguments: boolean[],
   optionsMap: Map<string, TaskOption | GlobalOption>,
-  argumentsMap: TaskArguments,
+  argumentsMap: TaskArguments | Partial<GlobalOptions>,
   ignoreUnknownParameter = false,
 ) {
   for (let i = 0; i < cliArguments.length; i++) {
@@ -525,7 +525,7 @@ function parsePositionalAndVariadicParameters(
 
 function validateRequiredParameters(
   parameters: TaskParameter[],
-  taskArguments: TaskArguments,
+  taskArguments: TaskArguments | Partial<GlobalOptions>,
 ) {
   const missingRequiredParam = parameters.find(
     (param) =>
