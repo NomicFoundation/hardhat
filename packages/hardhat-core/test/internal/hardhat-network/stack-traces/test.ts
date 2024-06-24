@@ -747,7 +747,7 @@ const solidity08Compilers = solidityCompilers.filter(
   filterSolcVersionBy("^0.8.0")
 );
 
-describe("Stack traces", function () {
+describe.only("Stack traces", function () {
   setCWD();
 
   // if a path to a solc file was specified, we only run these tests and use
