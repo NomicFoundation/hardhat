@@ -22,15 +22,15 @@ async function deletePackageJson() {
   await remove(path.join(process.cwd(), "package.json"));
 }
 
-describe("init", function () {
-  const originalEnv = process.env;
+const ORIGINAL_ENV = process.env;
 
+describe("init", function () {
   beforeEach(function () {
     process.env = {};
   });
 
   afterEach(function () {
-    process.env = originalEnv;
+    process.env = ORIGINAL_ENV;
   });
 
   describe("init Hardhat in an empty folder", function () {
