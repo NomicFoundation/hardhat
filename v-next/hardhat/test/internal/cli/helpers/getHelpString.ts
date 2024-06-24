@@ -15,7 +15,7 @@ describe("getHelpString", function () {
         id: ["task"],
         description: "task description",
         actions: [{ pluginId: "task-plugin-id", action: () => {} }],
-        namedParameters: new Map(),
+        options: new Map(),
         positionalParameters: [],
         pluginId: "task-plugin-id",
         subtasks: new Map().set("subtask", {
@@ -51,7 +51,7 @@ To get help for a specific task run: npx hardhat task <SUBTASK> --help`;
           id: ["task"],
           description: "task description",
           actions: [{ pluginId: "task-plugin-id", action: () => {} }],
-          namedParameters: new Map()
+          options: new Map()
             .set("option", {
               name: "option",
               description: "An example option",
@@ -92,7 +92,7 @@ For global options help run: hardhat --help`;
           id: ["task"],
           description: "task description",
           actions: [{ pluginId: "task-plugin-id", action: () => {} }],
-          namedParameters: new Map()
+          options: new Map()
             .set("option", {
               name: "option",
               description: "An example option",
@@ -144,7 +144,7 @@ For global options help run: hardhat --help`;
           id: ["task"],
           description: "task description",
           actions: [{ pluginId: "task-plugin-id", action: () => {} }],
-          namedParameters: new Map()
+          options: new Map()
             .set("option", {
               name: "option",
               description: "An example option",

@@ -59,12 +59,16 @@ export function parseSubtasks(
 
 export function parseOptions(task: Task): {
   options: Array<{ name: string; description: string; type: ParameterType }>;
-  positionalArguments: Array<{ name: string; description: string }>;
+  positionalArguments: Array<{
+    name: string;
+    description: string;
+    isRequired: boolean;
+  }>;
 } {
   const options = [];
   const positionalArguments = [];
 
-  for (const [optionName, option] of task.namedParameters) {
+  for (const [optionName, option] of task.options) {
     options.push({
       name: formatOptionName(optionName),
       description: option.description,
@@ -76,6 +80,7 @@ export function parseOptions(task: Task): {
     positionalArguments.push({
       name: argument.name,
       description: argument.description,
+      isRequired: argument.defaultValue === undefined,
     });
   }
 
@@ -117,7 +122,7 @@ export function getUsageString(
   }
 
   if (positionalArguments.length > 0) {
-    output += ` [--] ${positionalArguments.map((a) => a.name).join(" ")}`;
+    output += ` [--] ${positionalArguments.map((a) => (a.isRequired ? a.name : `[${a.name}]`)).join(" ")}`;
   }
 
   return output;

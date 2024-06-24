@@ -22,7 +22,7 @@ describe("utils", function () {
         id: ["task"],
         description: "task description",
         actions: [{ pluginId: "task-plugin-id", action: () => {} }],
-        namedParameters: new Map(),
+        options: new Map(),
         positionalParameters: [],
         pluginId: "task-plugin-id",
         subtasks: new Map().set("subtask", {
@@ -53,7 +53,7 @@ describe("utils", function () {
         id: ["task"],
         description: "task description",
         actions: [{ pluginId: "task-plugin-id", action: () => {} }],
-        namedParameters: new Map(),
+        options: new Map(),
         positionalParameters: [],
         pluginId: "task-plugin-id",
         subtasks: new Map().set("subtask", {
@@ -86,7 +86,7 @@ describe("utils", function () {
         id: ["task"],
         description: "task description",
         actions: [{ pluginId: "task-plugin-id", action: () => {} }],
-        namedParameters: new Map(),
+        options: new Map(),
         positionalParameters: [],
         pluginId: "task-plugin-id",
         subtasks: new Map().set("subtask", {
@@ -116,7 +116,7 @@ describe("utils", function () {
         id: ["task"],
         description: "task description",
         actions: [{ pluginId: "task-plugin-id", action: () => {} }],
-        namedParameters: new Map()
+        options: new Map()
           .set("option", {
             name: "option",
             description: "An example option",
@@ -133,6 +133,13 @@ describe("utils", function () {
             description: "An example argument",
             parameterType: ParameterType.STRING,
             isVariadic: false,
+          },
+          {
+            name: "anotherPositionalArgument",
+            description: "Another example argument",
+            parameterType: ParameterType.STRING,
+            isVariadic: false,
+            defaultValue: "default",
           },
         ],
         pluginId: "task-plugin-id",
@@ -160,6 +167,12 @@ describe("utils", function () {
           {
             name: "positionalArgument",
             description: "An example argument",
+            isRequired: true,
+          },
+          {
+            name: "anotherPositionalArgument",
+            description: "Another example argument",
+            isRequired: false,
           },
         ],
       });
@@ -207,56 +220,124 @@ Section Title:
   });
 
   describe("getUsageString", function () {
-    it("should return a usage string", function () {
-      const task: Task = {
-        id: ["task"],
-        description: "task description",
-        actions: [{ pluginId: "task-plugin-id", action: () => {} }],
-        namedParameters: new Map()
-          .set("option", {
-            name: "option",
-            description: "An example option",
-            parameterType: ParameterType.STRING,
-          })
-          .set("anotherOption", {
-            name: "anotherOption",
-            description: "Another example option",
-            parameterType: ParameterType.BOOLEAN,
-          }),
-        positionalParameters: [
-          {
-            name: "positionalArgument",
-            description: "An example argument",
-            parameterType: ParameterType.STRING,
-            isVariadic: false,
-          },
-        ],
-        pluginId: "task-plugin-id",
-        subtasks: new Map(),
-        isEmpty: false,
-        run: async () => {},
-      };
+    describe("with a required positional parameter", function () {
+      it("should return a usage string", function () {
+        const task: Task = {
+          id: ["task"],
+          description: "task description",
+          actions: [{ pluginId: "task-plugin-id", action: () => {} }],
+          options: new Map()
+            .set("option", {
+              name: "option",
+              description: "An example option",
+              parameterType: ParameterType.STRING,
+            })
+            .set("anotherOption", {
+              name: "anotherOption",
+              description: "Another example option",
+              parameterType: ParameterType.BOOLEAN,
+            }),
+          positionalParameters: [
+            {
+              name: "positionalArgument",
+              description: "An example argument",
+              parameterType: ParameterType.STRING,
+              isVariadic: false,
+            },
+          ],
+          pluginId: "task-plugin-id",
+          subtasks: new Map(),
+          isEmpty: false,
+          run: async () => {},
+        };
 
-      const usageString = getUsageString(
-        task,
-        [
-          {
-            name: "--option",
-            description: "An example option",
-            type: ParameterType.STRING,
-          },
-          {
-            name: "--another-option",
-            description: "Another example option",
-            type: ParameterType.BOOLEAN,
-          },
-        ],
-        [{ name: "positionalArgument", description: "An example argument" }],
-      );
+        const usageString = getUsageString(
+          task,
+          [
+            {
+              name: "--option",
+              description: "An example option",
+              type: ParameterType.STRING,
+            },
+            {
+              name: "--another-option",
+              description: "Another example option",
+              type: ParameterType.BOOLEAN,
+            },
+          ],
+          [
+            {
+              name: "positionalArgument",
+              description: "An example argument",
+              isRequired: true,
+            },
+          ],
+        );
 
-      const expected = `Usage: hardhat [GLOBAL OPTIONS] task [--option <STRING>] [--another-option] [--] positionalArgument`;
+        const expected = `Usage: hardhat [GLOBAL OPTIONS] task [--option <STRING>] [--another-option] [--] positionalArgument`;
 
-      assert.equal(usageString, expected);
+        assert.equal(usageString, expected);
+      });
+    });
+
+    describe("with an optional positional parameter", function () {
+      it("should return a usage string", function () {
+        const task: Task = {
+          id: ["task"],
+          description: "task description",
+          actions: [{ pluginId: "task-plugin-id", action: () => {} }],
+          options: new Map()
+            .set("option", {
+              name: "option",
+              description: "An example option",
+              parameterType: ParameterType.STRING,
+            })
+            .set("anotherOption", {
+              name: "anotherOption",
+              description: "Another example option",
+              parameterType: ParameterType.BOOLEAN,
+            }),
+          positionalParameters: [
+            {
+              name: "positionalArgument",
+              description: "An example argument",
+              parameterType: ParameterType.STRING,
+              isVariadic: false,
+            },
+          ],
+          pluginId: "task-plugin-id",
+          subtasks: new Map(),
+          isEmpty: false,
+          run: async () => {},
+        };
+
+        const usageString = getUsageString(
+          task,
+          [
+            {
+              name: "--option",
+              description: "An example option",
+              type: ParameterType.STRING,
+            },
+            {
+              name: "--another-option",
+              description: "Another example option",
+              type: ParameterType.BOOLEAN,
+            },
+          ],
+          [
+            {
+              name: "positionalArgument",
+              description: "An example argument",
+              isRequired: false,
+            },
+          ],
+        );
+
+        const expected = `Usage: hardhat [GLOBAL OPTIONS] task [--option <STRING>] [--another-option] [--] [positionalArgument]`;
+
+        assert.equal(usageString, expected);
+      });
     });
   });
 });
