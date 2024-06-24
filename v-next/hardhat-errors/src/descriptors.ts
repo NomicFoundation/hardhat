@@ -74,6 +74,11 @@ export const ERROR_CATEGORIES: {
     max: 1299,
     websiteTitle: "Plugin errors",
   },
+  HOOKS: {
+    min: 1300,
+    max: 1399,
+    websiteTitle: "Hooks errors",
+  },
 };
 
 export const ERRORS = {
@@ -162,15 +167,23 @@ Please double check whether you have multiple versions of the same plugin instal
       websiteTitle: "Invalid BigInt",
       websiteDescription: `Given value was not a valid BigInt.`,
     },
-    HARDHAT_PROJECT_ALREADY_CREATED: {
+    GLOBAL_OPTION_ALREADY_DEFINED: {
       number: 12,
+      messageTemplate:
+        "Plugin {plugin} is trying to define the global option {globalOption} but it is already defined by plugin {definedByPlugin}",
+      websiteTitle: "Global option already defined",
+      websiteDescription:
+        "The global option is already defined by another plugin. Please ensure that global options are uniquely named to avoid conflicts.",
+    },
+    HARDHAT_PROJECT_ALREADY_CREATED: {
+      number: 13,
       messageTemplate:
         "You are trying to initialize a project inside an existing Hardhat project. The path to the project's configuration file is: {hardhatProjectRootPath}.",
       websiteTitle: "Hardhat project already created",
       websiteDescription: `Cannot create a new Hardhat project, the current folder is already associated with a project.`,
     },
     NOT_INSIDE_PROJECT_ON_WINDOWS: {
-      number: 13,
+      number: 14,
       messageTemplate: `You are not inside a project and Hardhat failed to initialize a new one.
 
 If you were trying to create a new project, please try again using Windows Subsystem for Linux (WSL) or PowerShell.
@@ -184,7 +197,7 @@ If you were trying to create a new project, please try again using Windows Subsy
 You can learn how to use Hardhat by reading the [Getting Started guide](/hardhat-runner/docs/getting-started).`,
     },
     NOT_IN_INTERACTIVE_SHELL: {
-      number: 14,
+      number: 15,
       messageTemplate:
         "You are trying to initialize a project but you are not in an interactive shell.",
       websiteTitle: "Not inside an interactive shell",
@@ -193,7 +206,7 @@ You can learn how to use Hardhat by reading the [Getting Started guide](/hardhat
 Please re-run the command inside an interactive shell.`,
     },
     UNSUPPORTED_OPERATION: {
-      number: 15,
+      number: 16,
       messageTemplate: "{operation} is not supported in Hardhat.",
       websiteTitle: "Unsupported operation",
       websiteDescription: `You are trying to perform an unsupported operation.
@@ -203,7 +216,7 @@ Unless you are creating a task or plugin, this is probably a bug.
 Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
     },
     ONLY_ESM_SUPPORTED: {
-      number: 16,
+      number: 17,
       messageTemplate: `Hardhat only supports ESM projects. Please be sure to specify "'type': 'module'" in your package.json`,
       websiteTitle: "Only ESM projects are supported",
       websiteDescription: `You are trying to initialize a new Hardhat project, but your package.json does not have the property "type" set to "module".
@@ -294,21 +307,21 @@ Please ensure that an action is defined for each task.`,
       websiteDescription:
         "The task id cannot be an empty string or an empty array. Please ensure that the array of task names is not empty.",
     },
-    TASK_PARAMETER_ALREADY_DEFINED: {
+    TASK_OPTION_ALREADY_DEFINED: {
       number: 209,
       messageTemplate:
-        "{actorFragment} trying to define task {task} with the parameter {parameter} but it is already defined as a global parameter by plugin {globalParamPluginId}",
-      websiteTitle: "Task parameter already defined",
+        "{actorFragment} trying to define task {task} with the option {option} but it is already defined as a global option by plugin {globalOptionPluginId}",
+      websiteTitle: "Task option already defined",
       websiteDescription:
-        "The task parameter is already defined as a global parameter by another plugin. Please ensure that task parameters are uniquely named to avoid conflicts.",
+        "The task option is already defined as a global option by another plugin. Please ensure that task options are uniquely named to avoid conflicts.",
     },
-    TASK_OVERRIDE_PARAMETER_ALREADY_DEFINED: {
+    TASK_OVERRIDE_OPTION_ALREADY_DEFINED: {
       number: 210,
       messageTemplate:
-        "{actorFragment} trying to override the parameter {namedParamName} of the task {task} but it is already defined",
-      websiteTitle: "Task override parameter already defined",
+        "{actorFragment} trying to override the parameter {optionName} of the task {task} but it is already defined",
+      websiteTitle: "Task override option already defined",
       websiteDescription:
-        "An attempt is being made to override a parameter that has already been defined. Please ensure that the parameter is not defined before trying to override it.",
+        "An attempt is being made to override an option that has already been defined. Please ensure that the option is not defined before trying to override it.",
     },
     EMPTY_TASK: {
       number: 211,
@@ -394,12 +407,12 @@ Please double check your arguments.`,
 
 Please double check your arguments.`,
     },
-    UNRECOGNIZED_NAMED_PARAM: {
+    UNRECOGNIZED_OPTION: {
       number: 304,
       messageTemplate:
-        "Invalid parameter {parameter}. It is neither a valid global parameter nor associated with any task. Did you forget to add the task first, or did you misspell it?",
-      websiteTitle: "Invalid parameter value",
-      websiteDescription: `One of your Hardhat parameters is invalid.
+        "Invalid option {option}. It is neither a valid global option nor associated with any task. Did you forget to add the task first, or did you misspell it?",
+      websiteTitle: "Invalid option value",
+      websiteDescription: `One of your Hardhat options is invalid.
 
 Please double check your arguments.`,
     },
@@ -841,6 +854,15 @@ Please install a version of the peer dependency that meets the plugin's requirem
       messageTemplate: 'Plugin "{pluginId}" dependency could not be loaded.',
       websiteTitle: "Plugin dependency could not be loaded",
       websiteDescription: `The loading of a plugin's dependent plugin failed.`,
+    },
+  },
+  HOOKS: {
+    INVALID_HOOK_FACTORY_PATH: {
+      number: 1300,
+      messageTemplate:
+        'Plugin "{pluginId}" hook factory for "{hookCategoryName}" is not a valid file:// URL: {path}.',
+      websiteTitle: "Plugin hook factory is not a valid file URL",
+      websiteDescription: `The loading of a plugin's hook factory failed as the import path is not a valid file:// URL.`,
     },
   },
 } as const;

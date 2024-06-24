@@ -9,6 +9,6 @@ const userConfig = await importUserConfig(configPath);
 
 const hre = await getHardhatRuntimeEnvironmentSingleton(userConfig);
 
-export const { config, tasks, globalArguments, hooks, interruptions } = hre;
+export const { config, tasks, globalOptions, hooks, interruptions } = hre;
 
 export default hre;

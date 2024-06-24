@@ -1,12 +1,12 @@
 import type { ParameterValue } from "@nomicfoundation/hardhat-core/types/common";
 import type {
-  GlobalArguments,
-  GlobalParameter,
-  GlobalParameterMap,
-} from "@nomicfoundation/hardhat-core/types/global-parameters";
+  GlobalOptions,
+  GlobalOption,
+  GlobalOptionsMap,
+} from "@nomicfoundation/hardhat-core/types/global-options";
 import type { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
 import type {
-  NamedTaskParameter,
+  TaskOption,
   Task,
   TaskArguments,
   TaskParameter,
@@ -15,7 +15,7 @@ import type {
 import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
 
 import {
-  buildGlobalParameterMap,
+  buildGlobalOptionsMap,
   resolvePluginList,
 } from "@nomicfoundation/hardhat-core";
 import { ParameterType } from "@nomicfoundation/hardhat-core/types/common";
@@ -33,6 +33,8 @@ import {
 } from "../helpers/config-loading.js";
 import { getHardhatRuntimeEnvironmentSingleton } from "../hre-singleton.js";
 
+import { getGlobalHelpString } from "./helpers/getGlobalHelpString.js";
+import { getHelpString } from "./helpers/getHelpString.js";
 import { initHardhat } from "./init/init.js";
 import { printVersionMessage } from "./version.js";
 
@@ -72,19 +74,19 @@ export async function main(cliArguments: string[], print = console.log) {
       hardhatSpecialArgs.configPath,
     );
 
-    const globalParameterMap = buildGlobalParameterMap(resolvedPlugins);
-    const userProvidedGlobalArguments = parseGlobalArguments(
-      globalParameterMap,
+    const globalOptionsMap = buildGlobalOptionsMap(resolvedPlugins);
+    const userProvidedGlobalOptions = parseGlobalOptions(
+      globalOptionsMap,
       cliArguments,
       usedCliArguments,
     );
 
     const hre = await getHardhatRuntimeEnvironmentSingleton(
       userConfig,
-      userProvidedGlobalArguments,
+      userProvidedGlobalOptions,
       {
         resolvedPlugins,
-        globalParameterMap,
+        globalOptionsMap,
       },
     );
 
@@ -93,31 +95,36 @@ export async function main(cliArguments: string[], print = console.log) {
 
     const taskParsingStart = performance.now();
 
-    const result = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+    const taskOrId = parseTask(cliArguments, usedCliArguments, hre);
 
-    if (Array.isArray(result)) {
-      if (result.length === 0) {
-        // TODO: Print the global help
-        print("Global help");
+    if (Array.isArray(taskOrId)) {
+      if (taskOrId.length === 0) {
+        const globalHelp = await getGlobalHelpString(hre.tasks.rootTasks);
+
+        print(globalHelp);
         return;
       }
 
-      throw new Error(`Unrecognized task ${result.join(" ")}`);
+      throw new HardhatError(
+        HardhatError.ERRORS.TASK_DEFINITIONS.TASK_NOT_FOUND,
+        { task: taskOrId.join(" ") },
+      );
     }
 
-    const { task, taskArguments } = result;
+    const task = taskOrId;
 
     if (hardhatSpecialArgs.help) {
-      if (task.isEmpty) {
-        // TODO: Print information about its subtasks
-        print("Info about subtasks");
-        return;
-      }
+      const taskHelp = await getHelpString(task);
 
-      // TODO: Print the help message for this task
-      print("Help message of the task");
+      print(taskHelp);
       return;
     }
+
+    const taskArguments = parseTaskArguments(
+      cliArguments,
+      usedCliArguments,
+      task,
+    );
 
     const taskParsingEnd = performance.now();
 
@@ -221,26 +228,42 @@ export async function parseHardhatSpecialArguments(
   return { init, configPath, showStackTraces, help, version };
 }
 
-export async function parseGlobalArguments(
-  globalParamsIndex: GlobalParameterMap,
+export async function parseGlobalOptions(
+  globalOptionsMap: GlobalOptionsMap,
   cliArguments: string[],
   usedCliArguments: boolean[],
-): Promise<Partial<GlobalArguments>> {
-  const globalArguments: Partial<GlobalArguments> = {};
+): Promise<Partial<GlobalOptions>> {
+  const globalOptions: Partial<GlobalOptions> = {};
 
-  const parameters = new Map(
-    [...globalParamsIndex].map(([key, value]) => [key, value.param]),
+  const options = new Map(
+    [...globalOptionsMap].map(([key, value]) => [key, value.option]),
   );
 
   parseDoubleDashArgs(
     cliArguments,
     usedCliArguments,
-    parameters,
-    globalArguments,
+    options,
+    globalOptions,
     true,
   );
 
-  return globalArguments;
+  return globalOptions;
+}
+
+/**
+ * Parses the task from the cli args.
+ *
+ * @returns The task, or an array with the unrecognized task id.
+ * If no task id is provided, an empty array is returned.
+ */
+export function parseTask(
+  cliArguments: string[],
+  usedCliArguments: boolean[],
+  hre: HardhatRuntimeEnvironment,
+): Task | string[] {
+  const taskOrId = getTaskFromCliArguments(cliArguments, usedCliArguments, hre);
+
+  return taskOrId;
 }
 
 /**
@@ -249,6 +272,7 @@ export async function parseGlobalArguments(
  * @returns The task and its arguments, or an array with the unrecognized task
  *  id. If no task id is provided, an empty array is returned.
  */
+// todo: this function isn't used anymore and needs to be removed
 export function parseTaskAndArguments(
   cliArguments: string[],
   usedCliArguments: boolean[],
@@ -259,7 +283,7 @@ export function parseTaskAndArguments(
       taskArguments: TaskArguments;
     }
   | string[] {
-  const taskOrId = getTaskFromCliArguments(cliArguments, usedCliArguments, hre);
+  const taskOrId = parseTask(cliArguments, usedCliArguments, hre);
   if (Array.isArray(taskOrId)) {
     return taskOrId;
   }
@@ -297,12 +321,12 @@ function getTaskFromCliArguments(
         break;
       }
 
-      // At this point in the code, the global parameters have already been parsed, so the remaining parameters starting with '--' are task named parameters.
-      // Hence, if no task is defined, it means that the parameter is not assigned to any task, and it's an error.
+      // At this point in the code, the global options have already been parsed, so the remaining options starting with '--' are task options.
+      // Hence, if no task is defined, it means that the option is not assigned to any task, and it's an error.
       throw new HardhatError(
-        HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_NAMED_PARAM,
+        HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_OPTION,
         {
-          parameter: arg,
+          option: arg,
         },
       );
     }
@@ -341,11 +365,11 @@ function parseTaskArguments(
 ): TaskArguments {
   const taskArguments: TaskArguments = {};
 
-  // Parse named parameters
+  // Parse options
   parseDoubleDashArgs(
     cliArguments,
     usedCliArguments,
-    task.namedParameters,
+    task.options,
     taskArguments,
   );
 
@@ -370,7 +394,7 @@ function parseTaskArguments(
 function parseDoubleDashArgs(
   cliArguments: string[],
   usedCliArguments: boolean[],
-  parametersMap: Map<string, NamedTaskParameter | GlobalParameter>,
+  optionsMap: Map<string, TaskOption | GlobalOption>,
   argumentsMap: TaskArguments,
   ignoreUnknownParameter = false,
 ) {
@@ -392,18 +416,18 @@ function parseDoubleDashArgs(
     }
 
     const paramName = kebabToCamelCase(arg.substring(2));
-    const paramInfo = parametersMap.get(paramName);
+    const paramInfo = optionsMap.get(paramName);
 
     if (paramInfo === undefined) {
       if (ignoreUnknownParameter === true) {
         continue;
       }
 
-      // Only throw an error when the parameter is not a global parameter, because it might be a parameter related to a task
+      // Only throw an error when the parameter is not a global option, because it might be a option related to a task
       throw new HardhatError(
-        HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_NAMED_PARAM,
+        HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_OPTION,
         {
-          parameter: arg,
+          option: arg,
         },
       );
     }
@@ -458,7 +482,7 @@ function parseDoubleDashArgs(
   }
 
   // Check if all the required parameters have been used
-  validateRequiredParameters([...parametersMap.values()], argumentsMap);
+  validateRequiredParameters([...optionsMap.values()], argumentsMap);
 }
 
 function parsePositionalAndVariadicParameters(

@@ -14,7 +14,7 @@
     "./types/cli": "./dist/src/types/cli.js",
     "./types/common": "./dist/src/types/common.js",
     "./types/config": "./dist/src/types/config.js",
-    "./types/global-parameters": "./dist/src/types/global-parameters.js",
+    "./types/global-options": "./dist/src/types/global-options.js",
     "./types/hooks": "./dist/src/types/hooks.js",
     "./types/hre": "./dist/src/types/hre.js",
     "./types/plugins": "./dist/src/types/plugins.js",

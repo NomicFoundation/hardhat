@@ -3,8 +3,10 @@
   "compilerOptions": {
     "outDir": "./dist",
     "composite": true,
-    "incremental": true
+    "incremental": true,
+    "resolveJsonModule": true
   },
+  "include": ["**/*", "./package.json"],
   "exclude": [
     "./dist",
     "./node_modules",

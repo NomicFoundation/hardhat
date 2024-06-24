@@ -1,12 +1,13 @@
+import type { ParameterTypeToValueType } from "./types/common.js";
 import type { ConfigurationVariable } from "./types/config.js";
-import type { GlobalParameter } from "./types/global-parameters.js";
+import type { GlobalOption } from "./types/global-options.js";
 import type {
   EmptyTaskDefinitionBuilder,
   NewTaskDefinitionBuilder,
   TaskOverrideDefinitionBuilder,
 } from "./types/tasks.js";
 
-import { buildGlobalParameterDefinition } from "./internal/global-parameters.js";
+import { buildGlobalOptionDefinition } from "./internal/global-options.js";
 import {
   EmptyTaskDefinitionBuilderImplementation,
   NewTaskDefinitionBuilderImplementation,
@@ -55,15 +56,15 @@ export function overrideTask(
 }
 
 /**
- * Defines a global parameter.
+ * Defines a global option.
  */
-export function globalParameter(options: {
+export function globalOption<T extends ParameterType>(options: {
   name: string;
   description: string;
-  parameterType: ParameterType;
-  defaultValue: any;
-}): GlobalParameter {
-  return buildGlobalParameterDefinition(options);
+  parameterType?: T;
+  defaultValue: ParameterTypeToValueType<T>;
+}): GlobalOption {
+  return buildGlobalOptionDefinition(options);
 }
 
 /**
@@ -72,8 +73,8 @@ export function globalParameter(options: {
 export function globalFlag(options: {
   name: string;
   description: string;
-}): GlobalParameter {
-  return buildGlobalParameterDefinition({
+}): GlobalOption {
+  return buildGlobalOptionDefinition({
     ...options,
     parameterType: ParameterType.BOOLEAN,
     defaultValue: false,

@@ -1,9 +1,9 @@
 import type { UnsafeHardhatRuntimeEnvironmentOptions } from "../types/cli.js";
 import type { HardhatUserConfig, HardhatConfig } from "../types/config.js";
 import type {
-  GlobalArguments,
-  GlobalParameterMap,
-} from "../types/global-parameters.js";
+  GlobalOptions,
+  GlobalOptionsMap,
+} from "../types/global-options.js";
 import type {
   HardhatUserConfigValidationError,
   HookContext,
@@ -16,9 +16,9 @@ import type { UserInterruptionManager } from "../types/user-interruptions.js";
 
 import { ResolvedConfigurationVariableImplementation } from "./configuration-variables.js";
 import {
-  buildGlobalParameterMap,
-  resolveGlobalArguments,
-} from "./global-parameters.js";
+  buildGlobalOptionsMap,
+  resolveGlobalOptions,
+} from "./global-options.js";
 import { HookManagerImplementation } from "./hook-manager.js";
 import { resolvePluginList } from "./plugins/resolve-plugin-list.js";
 import { TaskManagerImplementation } from "./tasks/task-manager.js";
@@ -29,7 +29,7 @@ export class HardhatRuntimeEnvironmentImplementation
 {
   public static async create(
     inputUserConfig: HardhatUserConfig,
-    userProvidedGlobalArguments: Partial<GlobalArguments>,
+    userProvidedGlobalOptions: Partial<GlobalOptions>,
     unsafeOptions?: UnsafeHardhatRuntimeEnvironmentOptions,
   ): Promise<HardhatRuntimeEnvironmentImplementation> {
     // TODO: Clone with lodash or https://github.com/davidmarkclements/rfdc
@@ -85,13 +85,12 @@ export class HardhatRuntimeEnvironmentImplementation
       plugins: resolvedPlugins,
     };
 
-    const globalParametersIndex =
-      unsafeOptions?.globalParameterMap ??
-      buildGlobalParameterMap(resolvedPlugins);
+    const globalOptionsMap =
+      unsafeOptions?.globalOptionsMap ?? buildGlobalOptionsMap(resolvedPlugins);
 
-    const globalArguments = resolveGlobalArguments(
-      userProvidedGlobalArguments,
-      globalParametersIndex,
+    const globalOptions = resolveGlobalOptions(
+      userProvidedGlobalOptions,
+      globalOptionsMap,
     );
 
     // Set the HookContext in the hook manager so that non-config hooks can
@@ -102,7 +101,7 @@ export class HardhatRuntimeEnvironmentImplementation
     const hookContext: HookContext = {
       hooks,
       config,
-      globalArguments,
+      globalOptions,
       interruptions,
     };
 
@@ -113,8 +112,8 @@ export class HardhatRuntimeEnvironmentImplementation
       config,
       hooks,
       interruptions,
-      globalArguments,
-      globalParametersIndex,
+      globalOptions,
+      globalOptionsMap,
     );
 
     await hooks.runSequentialHandlers("hre", "created", [hre]);
@@ -129,10 +128,10 @@ export class HardhatRuntimeEnvironmentImplementation
     public readonly config: HardhatConfig,
     public readonly hooks: HookManager,
     public readonly interruptions: UserInterruptionManager,
-    public readonly globalArguments: GlobalArguments,
-    globalParametersIndex: GlobalParameterMap,
+    public readonly globalOptions: GlobalOptions,
+    globalOptionsMap: GlobalOptionsMap,
   ) {
-    this.tasks = new TaskManagerImplementation(this, globalParametersIndex);
+    this.tasks = new TaskManagerImplementation(this, globalOptionsMap);
   }
 }
 

@@ -22,7 +22,7 @@ describe("UserInterruptionManager", () => {
           tasks: [],
           plugins: [],
         },
-        globalArguments: {},
+        globalOptions: {},
         hooks: hookManager,
         interruptions: userInterruptionManager,
       });
@@ -63,7 +63,7 @@ describe("UserInterruptionManager", () => {
           tasks: [],
           plugins: [],
         },
-        globalArguments: {},
+        globalOptions: {},
         hooks: hookManager,
         interruptions: userInterruptionManager,
       });
@@ -106,7 +106,7 @@ describe("UserInterruptionManager", () => {
           tasks: [],
           plugins: [],
         },
-        globalArguments: {},
+        globalOptions: {},
         hooks: hookManager,
         interruptions: userInterruptionManager,
       });

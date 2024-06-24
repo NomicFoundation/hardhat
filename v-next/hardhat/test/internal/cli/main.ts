@@ -1,7 +1,7 @@
 import type {
-  GlobalParameterMap,
-  GlobalParameterMapEntry,
-} from "@nomicfoundation/hardhat-core/types/global-parameters";
+  GlobalOptionsMap,
+  GlobalOptionsMapEntry,
+} from "@nomicfoundation/hardhat-core/types/global-options";
 import type { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
 import type {
   NewTaskDefinition,
@@ -16,15 +16,16 @@ import { createHardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core";
 import {
   ParameterType,
   globalFlag,
-  globalParameter,
+  globalOption,
   task,
 } from "@nomicfoundation/hardhat-core/config";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
+import chalk from "chalk";
 
 import {
   main,
-  parseGlobalArguments,
+  parseGlobalOptions,
   parseHardhatSpecialArguments,
   parseTaskAndArguments,
 } from "../../../src/internal/cli/main.js";
@@ -207,63 +208,83 @@ describe("main", function () {
       });
     });
 
-    // TODO: as soon as the 'help task' is done, this test should be updated
     describe("global help", function () {
       useFixtureProject("cli/parsing/base-project");
 
-      it.todo("should print the global help", async function () {
-        const lines: string[] = [];
+      it("should print the global help", async function () {
+        let lines: string = "";
 
         const command = "npx hardhat";
         const cliArguments = command.split(" ").slice(2);
 
         await main(cliArguments, (msg) => {
-          lines.push(msg);
+          lines = msg;
         });
 
-        assert.equal(lines.length, 2);
-        assert.equal(lines[1], "Global help");
+        const expected = `Hardhat version 3.0.0
+
+Usage: hardhat [GLOBAL OPTIONS] <TASK> [SUBTASK] [TASK OPTIONS] [--] [TASK ARGUMENTS]
+
+AVAILABLE TASKS:
+
+  example                  Example task
+  task                     A task that uses param1
+
+GLOBAL OPTIONS:
+
+  --config                 A Hardhat config file.
+  --help                   Shows this message, or a task's help if its name is provided
+  --show-stack-traces      Show stack traces (always enabled on CI servers).
+  --version                Shows hardhat's version.
+
+To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
+
+        assert.equal(lines, expected);
       });
     });
 
-    // TODO: as soon as the 'help task' is done, this test should be updated
     describe("subtask help", function () {
       useFixtureProject("cli/parsing/subtask-help");
 
-      it.todo(
-        "should print an help message for the task's subtask",
-        async function () {
-          const lines: string[] = [];
+      it("should print an help message for the task's subtask", async function () {
+        let lines: string = "";
 
-          const command = "npx hardhat empty-task --help";
-          const cliArguments = command.split(" ").slice(2);
+        const command = "npx hardhat empty-task --help";
+        const cliArguments = command.split(" ").slice(2);
 
-          await main(cliArguments, (msg) => {
-            lines.push(msg);
-          });
+        await main(cliArguments, (msg) => {
+          lines = msg;
+        });
 
-          assert.equal(lines.length, 2);
-          assert.equal(lines[1], "Info about subtasks");
-        },
-      );
+        const expected = `${chalk.bold("empty task description")}
+
+Usage: hardhat [GLOBAL OPTIONS] empty-task <SUBTASK> [SUBTASK OPTIONS] [--] [SUBTASK POSITIONAL ARGUMENTS]
+`;
+
+        assert.equal(lines, expected);
+      });
     });
 
-    // TODO: as soon as the 'help task' is done, this test should be updated
     describe("task help", function () {
       useFixtureProject("cli/parsing/base-project");
 
-      it.todo("should print an help message for the task", async function () {
-        const lines: string[] = [];
+      it("should print an help message for the task", async function () {
+        let lines: string = "";
 
         const command = "npx hardhat task --help";
         const cliArguments = command.split(" ").slice(2);
 
         await main(cliArguments, (msg) => {
-          lines.push(msg);
+          lines = msg;
         });
 
-        assert.equal(lines.length, 2);
-        assert.equal(lines[1], "Help message of the task");
+        const expected = `${chalk.bold("A task that uses param1")}
+
+Usage: hardhat [GLOBAL OPTIONS] task
+
+For global options help run: hardhat --help`;
+
+        assert.equal(lines, expected);
       });
     });
   });
@@ -393,14 +414,14 @@ describe("main", function () {
     });
   });
 
-  describe("parseGlobalArguments", function () {
-    // The function "parseGlobalArguments" uses the same function "parseDoubleDashArgs" that is used to parse named parameters.
-    // Most of the tests to check the "parseDoubleDashArgs" logic are in the named parameter section of these tests.
+  describe("parseGlobalOptions", function () {
+    // The function "parseGlobalOptions" uses the same function "parseDoubleDashArgs" that is used to parse task options.
+    // Most of the tests to check the "parseDoubleDashArgs" logic are in the task option section of these tests.
 
-    let globalParamsIndex: GlobalParameterMap;
+    let globalOptionsMap: GlobalOptionsMap;
 
     before(function () {
-      const GLOBAL_PARAM = globalParameter({
+      const GLOBAL_OPTION = globalOption({
         name: "param",
         parameterType: ParameterType.STRING,
         defaultValue: "default",
@@ -412,26 +433,26 @@ describe("main", function () {
         description: "",
       });
 
-      globalParamsIndex = new Map<string, GlobalParameterMapEntry>([
-        ["param", { pluginId: "1", param: GLOBAL_PARAM }],
-        ["flag", { pluginId: "1", param: GLOBAL_FLAG }],
+      globalOptionsMap = new Map<string, GlobalOptionsMapEntry>([
+        ["param", { pluginId: "1", option: GLOBAL_OPTION }],
+        ["flag", { pluginId: "1", option: GLOBAL_FLAG }],
       ]);
     });
 
-    it("should get the global parameter with the values passed in the cli", async function () {
+    it("should get the global option with the values passed in the cli", async function () {
       const command = "npx hardhat task --param <value1> <value2> <value3>";
 
       const cliArguments = command.split(" ").slice(2);
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-      const globalArguments = await parseGlobalArguments(
-        globalParamsIndex,
+      const globalOptions = await parseGlobalOptions(
+        globalOptionsMap,
         cliArguments,
         usedCliArguments,
       );
 
       assert.deepEqual(usedCliArguments, [false, true, true, false, false]);
-      assert.deepEqual(globalArguments, {
+      assert.deepEqual(globalOptions, {
         param: "<value1>",
       });
     });
@@ -442,14 +463,14 @@ describe("main", function () {
       const cliArguments = command.split(" ").slice(2);
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-      const globalArguments = await parseGlobalArguments(
-        globalParamsIndex,
+      const globalOptions = await parseGlobalOptions(
+        globalOptionsMap,
         cliArguments,
         usedCliArguments,
       );
 
       assert.deepEqual(usedCliArguments, [false, true, false]);
-      assert.deepEqual(globalArguments, {
+      assert.deepEqual(globalOptions, {
         flag: true,
       });
     });
@@ -460,32 +481,32 @@ describe("main", function () {
       const cliArguments = command.split(" ").slice(2);
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-      const globalArguments = await parseGlobalArguments(
-        globalParamsIndex,
+      const globalOptions = await parseGlobalOptions(
+        globalOptionsMap,
         cliArguments,
         usedCliArguments,
       );
 
       assert.deepEqual(usedCliArguments, [false, true, true, false]);
-      assert.deepEqual(globalArguments, {
+      assert.deepEqual(globalOptions, {
         flag: true,
       });
     });
 
-    it("should not fail when a global parameter is not recognized (it might be a task parameter)", async function () {
+    it("should not fail when a global option is not recognized (it might be a task option)", async function () {
       const command = "npx hardhat task --taskFlag <value>";
 
       const cliArguments = command.split(" ").slice(2);
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-      const globalArguments = await parseGlobalArguments(
-        globalParamsIndex,
+      const globalOptions = await parseGlobalOptions(
+        globalOptionsMap,
         cliArguments,
         usedCliArguments,
       );
 
       assert.deepEqual(usedCliArguments, [false, false, false]);
-      assert.deepEqual(globalArguments, {});
+      assert.deepEqual(globalOptions, {});
     });
   });
 
@@ -511,7 +532,7 @@ describe("main", function () {
         ));
       });
 
-      it("should get the tasks and the subtask and skip the global param", function () {
+      it("should get the tasks and the subtask and skip the global option", function () {
         const command = "npx hardhat task0 --network localhost subtask0";
 
         const cliArguments = command.split(" ").slice(2);
@@ -526,33 +547,33 @@ describe("main", function () {
       });
     });
 
-    describe("task and subtask with named parameters", function () {
+    describe("task and subtask with options", function () {
       before(async function () {
         tasksBuilders = [
-          task(["task0"]).addNamedParameter({
+          task(["task0"]).addOption({
             name: "param",
           }),
-          task(["task1"]).addNamedParameter({
+          task(["task1"]).addOption({
             name: "flag",
             type: ParameterType.BOOLEAN,
             defaultValue: false, // flag behavior
           }),
-          task(["task2"]).addNamedParameter({
+          task(["task2"]).addOption({
             name: "param",
             type: ParameterType.BOOLEAN,
             defaultValue: true,
           }),
-          task(["task3"]).addNamedParameter({
+          task(["task3"]).addOption({
             name: "param",
             type: ParameterType.BOOLEAN,
           }),
-          task(["task4"]).addNamedParameter({
+          task(["task4"]).addOption({
             name: "camelCaseParam",
           }),
         ];
 
         subtasksBuilders = [
-          task(["task0", "subtask0"]).addNamedParameter({
+          task(["task0", "subtask0"]).addOption({
             name: "param",
           }),
         ];
@@ -707,12 +728,9 @@ describe("main", function () {
 
         assert.throws(
           () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
-          new HardhatError(
-            HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_NAMED_PARAM,
-            {
-              parameter: "--undefinedParam",
-            },
-          ),
+          new HardhatError(HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_OPTION, {
+            option: "--undefinedParam",
+          }),
         );
       });
 
@@ -724,12 +742,9 @@ describe("main", function () {
 
         assert.throws(
           () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
-          new HardhatError(
-            HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_NAMED_PARAM,
-            {
-              parameter: "--param",
-            },
-          ),
+          new HardhatError(HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_OPTION, {
+            option: "--param",
+          }),
         );
       });
 
@@ -1033,19 +1048,19 @@ describe("main", function () {
     describe("formatting of parameters types", function () {
       const RANDOM_FILE_PATH = "random-path/sample-file.txt";
 
-      describe("named parameters", function () {
+      describe("options", function () {
         before(async function () {
           tasksBuilders = [
             task(["task0"])
-              .addNamedParameter({ name: "param", type: ParameterType.BIGINT })
-              .addNamedParameter({
+              .addOption({ name: "param", type: ParameterType.BIGINT })
+              .addOption({
                 name: "param2",
                 type: ParameterType.BOOLEAN,
               })
-              .addNamedParameter({ name: "param3", type: ParameterType.FILE })
-              .addNamedParameter({ name: "param4", type: ParameterType.FLOAT })
-              .addNamedParameter({ name: "param5", type: ParameterType.INT })
-              .addNamedParameter({
+              .addOption({ name: "param3", type: ParameterType.FILE })
+              .addOption({ name: "param4", type: ParameterType.FLOAT })
+              .addOption({ name: "param5", type: ParameterType.INT })
+              .addOption({
                 name: "param6",
                 type: ParameterType.STRING,
               }),
@@ -1207,14 +1222,14 @@ describe("main", function () {
       before(async function () {
         tasksBuilders = [
           task(["task0"])
-            .addNamedParameter({
+            .addOption({
               name: "param",
               type: ParameterType.BOOLEAN,
               defaultValue: false,
             })
             .addPositionalParameter({ name: "posParam" }),
           task(["task1"])
-            .addNamedParameter({ name: "param" })
+            .addOption({ name: "param" })
             .addPositionalParameter({ name: "posParam" })
             .addPositionalParameter({
               name: "posParam2",
@@ -1251,7 +1266,7 @@ describe("main", function () {
         ));
       });
 
-      it("should not parse as a named parameter because everything after a standalone '--' should be considered a positional parameter", function () {
+      it("should not parse as an option because everything after a standalone '--' should be considered a positional parameter", function () {
         const command = "npx hardhat task0 -- --param"; // '--param' should be considered a positional parameter
 
         const cliArguments = command.split(" ").slice(2);
@@ -1268,7 +1283,7 @@ describe("main", function () {
         assert.deepEqual(res.taskArguments, { posParam: "--param" });
       });
 
-      it("should get the task, its parameters passed in the cli and ignore global arguments", function () {
+      it("should get the task, its parameters passed in the cli and ignore global option", function () {
         const command =
           "npx hardhat task1 --param <value> --network localhost <posValue> <posValue2> --verbose <varValue1> <varValue2>";
 
