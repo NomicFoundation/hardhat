@@ -7,6 +7,7 @@ export const tasksResults = {
 };
 
 const customTask = task("task")
+  .setDescription("A task that uses param1")
   .setAction(() => {
     tasksResults.wasParam1Used = true;
   })

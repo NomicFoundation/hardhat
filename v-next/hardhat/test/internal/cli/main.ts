@@ -21,6 +21,7 @@ import {
 } from "@nomicfoundation/hardhat-core/config";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
+import chalk from "chalk";
 
 import {
   main,
@@ -207,63 +208,83 @@ describe("main", function () {
       });
     });
 
-    // TODO: as soon as the 'help task' is done, this test should be updated
     describe("global help", function () {
       useFixtureProject("cli/parsing/base-project");
 
-      it.todo("should print the global help", async function () {
-        const lines: string[] = [];
+      it("should print the global help", async function () {
+        let lines: string = "";
 
         const command = "npx hardhat";
         const cliArguments = command.split(" ").slice(2);
 
         await main(cliArguments, (msg) => {
-          lines.push(msg);
+          lines = msg;
         });
 
-        assert.equal(lines.length, 2);
-        assert.equal(lines[1], "Global help");
+        const expected = `Hardhat version 3.0.0
+
+Usage: hardhat [GLOBAL OPTIONS] <TASK> [SUBTASK] [TASK OPTIONS] [--] [TASK ARGUMENTS]
+
+AVAILABLE TASKS:
+
+  example                  Example task
+  task                     A task that uses param1
+
+GLOBAL OPTIONS:
+
+  --config                 A Hardhat config file.
+  --help                   Shows this message, or a task's help if its name is provided
+  --show-stack-traces      Show stack traces (always enabled on CI servers).
+  --version                Shows hardhat's version.
+
+To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
+
+        assert.equal(lines, expected);
       });
     });
 
-    // TODO: as soon as the 'help task' is done, this test should be updated
     describe("subtask help", function () {
       useFixtureProject("cli/parsing/subtask-help");
 
-      it.todo(
-        "should print an help message for the task's subtask",
-        async function () {
-          const lines: string[] = [];
+      it("should print an help message for the task's subtask", async function () {
+        let lines: string = "";
 
-          const command = "npx hardhat empty-task --help";
-          const cliArguments = command.split(" ").slice(2);
+        const command = "npx hardhat empty-task --help";
+        const cliArguments = command.split(" ").slice(2);
 
-          await main(cliArguments, (msg) => {
-            lines.push(msg);
-          });
+        await main(cliArguments, (msg) => {
+          lines = msg;
+        });
 
-          assert.equal(lines.length, 2);
-          assert.equal(lines[1], "Info about subtasks");
-        },
-      );
+        const expected = `${chalk.bold("empty task description")}
+
+Usage: hardhat [GLOBAL OPTIONS] empty-task <SUBTASK> [SUBTASK OPTIONS] [--] [SUBTASK POSITIONAL ARGUMENTS]
+`;
+
+        assert.equal(lines, expected);
+      });
     });
 
-    // TODO: as soon as the 'help task' is done, this test should be updated
     describe("task help", function () {
       useFixtureProject("cli/parsing/base-project");
 
-      it.todo("should print an help message for the task", async function () {
-        const lines: string[] = [];
+      it("should print an help message for the task", async function () {
+        let lines: string = "";
 
         const command = "npx hardhat task --help";
         const cliArguments = command.split(" ").slice(2);
 
         await main(cliArguments, (msg) => {
-          lines.push(msg);
+          lines = msg;
         });
 
-        assert.equal(lines.length, 2);
-        assert.equal(lines[1], "Help message of the task");
+        const expected = `${chalk.bold("A task that uses param1")}
+
+Usage: hardhat [GLOBAL OPTIONS] task
+
+For global options help run: hardhat --help`;
+
+        assert.equal(lines, expected);
       });
     });
   });

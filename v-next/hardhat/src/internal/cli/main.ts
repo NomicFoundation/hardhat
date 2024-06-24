@@ -33,6 +33,8 @@ import {
 } from "../helpers/config-loading.js";
 import { getHardhatRuntimeEnvironmentSingleton } from "../hre-singleton.js";
 
+import { getGlobalHelpString } from "./helpers/getGlobalHelpString.js";
+import { getHelpString } from "./helpers/getHelpString.js";
 import { printVersionMessage } from "./version.js";
 
 export async function main(cliArguments: string[], print = console.log) {
@@ -89,31 +91,36 @@ export async function main(cliArguments: string[], print = console.log) {
 
     const taskParsingStart = performance.now();
 
-    const result = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+    const taskOrId = parseTask(cliArguments, usedCliArguments, hre);
 
-    if (Array.isArray(result)) {
-      if (result.length === 0) {
-        // TODO: Print the global help
-        print("Global help");
+    if (Array.isArray(taskOrId)) {
+      if (taskOrId.length === 0) {
+        const globalHelp = await getGlobalHelpString(hre.tasks.rootTasks);
+
+        print(globalHelp);
         return;
       }
 
-      throw new Error(`Unrecognized task ${result.join(" ")}`);
+      throw new HardhatError(
+        HardhatError.ERRORS.TASK_DEFINITIONS.TASK_NOT_FOUND,
+        { task: taskOrId.join(" ") },
+      );
     }
 
-    const { task, taskArguments } = result;
+    const task = taskOrId;
 
     if (hardhatSpecialArgs.help) {
-      if (task.isEmpty) {
-        // TODO: Print information about its subtasks
-        print("Info about subtasks");
-        return;
-      }
+      const taskHelp = await getHelpString(task);
 
-      // TODO: Print the help message for this task
-      print("Help message of the task");
+      print(taskHelp);
       return;
     }
+
+    const taskArguments = parseTaskArguments(
+      cliArguments,
+      usedCliArguments,
+      task,
+    );
 
     const taskParsingEnd = performance.now();
 
@@ -227,11 +234,28 @@ export async function parseGlobalOptions(
 }
 
 /**
+ * Parses the task from the cli args.
+ *
+ * @returns The task, or an array with the unrecognized task id.
+ * If no task id is provided, an empty array is returned.
+ */
+export function parseTask(
+  cliArguments: string[],
+  usedCliArguments: boolean[],
+  hre: HardhatRuntimeEnvironment,
+): Task | string[] {
+  const taskOrId = getTaskFromCliArguments(cliArguments, usedCliArguments, hre);
+
+  return taskOrId;
+}
+
+/**
  * Parses the task id and its arguments.
  *
  * @returns The task and its arguments, or an array with the unrecognized task
  *  id. If no task id is provided, an empty array is returned.
  */
+// todo: this function isn't used anymore and needs to be removed
 export function parseTaskAndArguments(
   cliArguments: string[],
   usedCliArguments: boolean[],
@@ -242,7 +266,7 @@ export function parseTaskAndArguments(
       taskArguments: TaskArguments;
     }
   | string[] {
-  const taskOrId = getTaskFromCliArguments(cliArguments, usedCliArguments, hre);
+  const taskOrId = parseTask(cliArguments, usedCliArguments, hre);
   if (Array.isArray(taskOrId)) {
     return taskOrId;
   }
