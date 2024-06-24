@@ -127,10 +127,23 @@ describe("init", function () {
 
   describe("not inside an interactive shell", function () {
     it("should fail because the command is not executed inside an interactive shell", async function () {
-      await assert.rejects(
-        async () => initHardhat(),
-        new HardhatError(HardhatError.ERRORS.GENERAL.NOT_IN_INTERACTIVE_SHELL),
-      );
+      if (process.platform === "win32") {
+        // Test for windows CI
+        await assert.rejects(
+          async () => initHardhat(),
+          new HardhatError(
+            HardhatError.ERRORS.GENERAL.NOT_INSIDE_PROJECT_ON_WINDOWS,
+          ),
+        );
+      } else {
+        // Test for all others CI
+        await assert.rejects(
+          async () => initHardhat(),
+          new HardhatError(
+            HardhatError.ERRORS.GENERAL.NOT_IN_INTERACTIVE_SHELL,
+          ),
+        );
+      }
     });
   });
 });
