@@ -33,6 +33,7 @@ import {
 } from "../helpers/config-loading.js";
 import { getHardhatRuntimeEnvironmentSingleton } from "../hre-singleton.js";
 
+import { initHardhat } from "./init/init.js";
 import { printVersionMessage } from "./version.js";
 
 export async function main(cliArguments: string[], print = console.log) {
@@ -48,8 +49,11 @@ export async function main(cliArguments: string[], print = console.log) {
   );
 
   if (hardhatSpecialArgs.version) {
-    await printVersionMessage(print);
-    return;
+    return printVersionMessage(print);
+  }
+
+  if (hardhatSpecialArgs.init) {
+    return initHardhat();
   }
 
   if (hardhatSpecialArgs.configPath === undefined) {
@@ -153,9 +157,16 @@ export async function parseHardhatSpecialArguments(
   let showStackTraces: boolean = isCi();
   let help: boolean = false;
   let version: boolean = false;
+  let init: boolean = false;
 
   for (let i = 0; i < cliArguments.length; i++) {
     const arg = cliArguments[i];
+
+    if (arg === "init") {
+      usedCliArguments[i] = true;
+      init = true;
+      continue;
+    }
 
     if (arg === "--config") {
       usedCliArguments[i] = true;
@@ -201,7 +212,13 @@ export async function parseHardhatSpecialArguments(
     }
   }
 
-  return { configPath, showStackTraces, help, version };
+  if (init && configPath !== undefined) {
+    throw new HardhatError(
+      HardhatError.ERRORS.ARGUMENTS.CANNOT_COMBINE_INIT_AND_CONFIG_PATH,
+    );
+  }
+
+  return { init, configPath, showStackTraces, help, version };
 }
 
 export async function parseGlobalArguments(

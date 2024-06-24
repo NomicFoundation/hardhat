@@ -277,8 +277,10 @@ describe("main", function () {
       const cliArguments = command.split(" ").slice(2);
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-      const { configPath, showStackTraces, help, version } =
-        await parseHardhatSpecialArguments(cliArguments, usedCliArguments);
+      const hardhatSpecialArgs = await parseHardhatSpecialArguments(
+        cliArguments,
+        usedCliArguments,
+      );
 
       assert.deepEqual(usedCliArguments, [
         true,
@@ -290,10 +292,13 @@ describe("main", function () {
         true,
         false,
       ]);
-      assert.equal(configPath, "./path-to-config");
-      assert.equal(showStackTraces, true);
-      assert.equal(help, true);
-      assert.equal(version, true);
+      assert.deepEqual(hardhatSpecialArgs, {
+        init: false,
+        configPath: "./path-to-config",
+        showStackTraces: true,
+        help: true,
+        version: true,
+      });
     });
 
     it("should not set any hardhat special parameters", async function () {
@@ -302,20 +307,61 @@ describe("main", function () {
       const cliArguments = command.split(" ").slice(2);
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-      const { configPath, showStackTraces, help, version } =
-        await parseHardhatSpecialArguments(cliArguments, usedCliArguments);
+      const hardhatSpecialArgs = await parseHardhatSpecialArguments(
+        cliArguments,
+        usedCliArguments,
+      );
 
       assert.deepEqual(
         usedCliArguments,
         new Array(cliArguments.length).fill(false),
       );
-      assert.equal(configPath, undefined);
-      assert.equal(help, false);
-      assert.equal(version, false);
 
       // In the GitHub CI this value is true, but in the local environment it is false
       const expected = isCi();
-      assert.equal(showStackTraces, expected);
+
+      assert.deepEqual(hardhatSpecialArgs, {
+        init: false,
+        configPath: undefined,
+        showStackTraces: expected,
+        help: false,
+        version: false,
+      });
+    });
+
+    it("should recognize the init command", async function () {
+      const command = "npx hardhat init --show-stack-traces";
+
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      const hardhatSpecialArgs = await parseHardhatSpecialArguments(
+        cliArguments,
+        usedCliArguments,
+      );
+
+      assert.deepEqual(hardhatSpecialArgs, {
+        init: true,
+        configPath: undefined,
+        showStackTraces: true,
+        help: false,
+        version: false,
+      });
+    });
+
+    it("should throw an error because the config param cannot be used with the init command", async function () {
+      const command = "npx hardhat --config ./path1 init";
+
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      assert.rejects(
+        async () =>
+          parseHardhatSpecialArguments(cliArguments, usedCliArguments),
+        new HardhatError(
+          HardhatError.ERRORS.ARGUMENTS.CANNOT_COMBINE_INIT_AND_CONFIG_PATH,
+        ),
+      );
     });
 
     it("should throw an error because the config param is passed twice", async function () {
