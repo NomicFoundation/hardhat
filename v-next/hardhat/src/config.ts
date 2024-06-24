@@ -1,7 +1,7 @@
 import { findClosestHardhatConfig } from "./internal/helpers/config-loading.js";
 
-export type * from "@nomicfoundation/hardhat-core/config";
-export * from "@nomicfoundation/hardhat-core/config";
+export type * from "@ignored/hardhat-vnext-core/config";
+export * from "@ignored/hardhat-vnext-core/config";
 
 /**
  * Attempts to find the nearest Hardhat config file, starting from the current

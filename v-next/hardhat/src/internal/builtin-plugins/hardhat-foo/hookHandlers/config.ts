@@ -1,9 +1,9 @@
-import type { ConfigHooks } from "@nomicfoundation/hardhat-core/types/hooks";
+import type { ConfigHooks } from "@ignored/hardhat-vnext-core/types/hooks";
 
 import {
   sensitiveStringType,
   validateUserConfigZodType,
-} from "@nomicfoundation/hardhat-zod-utils";
+} from "@ignored/hardhat-vnext-zod-utils";
 import { z } from "zod";
 
 const fooUserConfigType = z.object({

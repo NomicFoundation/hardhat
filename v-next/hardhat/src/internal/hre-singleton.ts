@@ -1,6 +1,6 @@
 import type { HardhatRuntimeEnvironment } from "../types/hre.js";
 
-import { createHardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core";
+import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core";
 
 let hre: HardhatRuntimeEnvironment | undefined;
 

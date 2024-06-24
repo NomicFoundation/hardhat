@@ -1,28 +1,28 @@
 import type {
   GlobalOptionsMap,
   GlobalOptionsMapEntry,
-} from "@nomicfoundation/hardhat-core/types/global-options";
-import type { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
+} from "@ignored/hardhat-vnext-core/types/global-options";
+import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core/types/hre";
 import type {
   NewTaskDefinition,
   NewTaskDefinitionBuilder,
   Task,
   TaskArguments,
-} from "@nomicfoundation/hardhat-core/types/tasks";
+} from "@ignored/hardhat-vnext-core/types/tasks";
 
 import assert from "node:assert/strict";
 import { afterEach, before, describe, it } from "node:test";
 import { pathToFileURL } from "node:url";
 
-import { createHardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core";
+import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core";
 import {
   ParameterType,
   globalFlag,
   globalOption,
   task,
-} from "@nomicfoundation/hardhat-core/config";
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { isCi } from "@nomicfoundation/hardhat-utils/ci";
+} from "@ignored/hardhat-vnext-core/config";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { isCi } from "@ignored/hardhat-vnext-utils/ci";
 import chalk from "chalk";
 
 import {
@@ -224,7 +224,7 @@ describe("main", function () {
           lines = msg;
         });
 
-        const expected = `Hardhat version 3.0.0
+        const expected = `Hardhat version 2.0.0
 
 Usage: hardhat [GLOBAL OPTIONS] <TASK> [SUBTASK] [TASK OPTIONS] [--] [TASK ARGUMENTS]
 

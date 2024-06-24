@@ -1,2 +1,2 @@
-export type * from "@nomicfoundation/hardhat-core/types/hooks";
-export * from "@nomicfoundation/hardhat-core/types/hooks";
+export type * from "@ignored/hardhat-vnext-core/types/hooks";
+export * from "@ignored/hardhat-vnext-core/types/hooks";

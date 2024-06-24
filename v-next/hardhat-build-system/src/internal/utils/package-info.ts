@@ -1,8 +1,8 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
-import { readJsonFile } from "@nomicfoundation/hardhat-utils/fs";
+import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { readJsonFile } from "@ignored/hardhat-vnext-utils/fs";
 import findup from "find-up";
 
 export interface PackageJson {

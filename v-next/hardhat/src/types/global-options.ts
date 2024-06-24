@@ -1,2 +1,2 @@
-export type * from "@nomicfoundation/hardhat-core/types/global-options";
-export * from "@nomicfoundation/hardhat-core/types/global-options";
+export type * from "@ignored/hardhat-vnext-core/types/global-options";
+export * from "@ignored/hardhat-vnext-core/types/global-options";

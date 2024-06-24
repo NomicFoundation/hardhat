@@ -11,8 +11,8 @@ import path from "node:path";
 import {
   HardhatError,
   assertHardhatInvariant,
-} from "@nomicfoundation/hardhat-errors";
-import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+} from "@ignored/hardhat-vnext-errors";
+import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import resolve from "resolve";
 
 import { getRealPath } from "../utils/fs-utils.js";

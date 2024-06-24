@@ -14,8 +14,8 @@ import type { Artifacts as ArtifactsImpl } from "./utils/artifacts.js";
 import {
   HardhatError,
   assertHardhatInvariant,
-} from "@nomicfoundation/hardhat-errors";
-import { isDirectory, readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
+} from "@ignored/hardhat-vnext-errors";
+import { isDirectory, readUtf8File } from "@ignored/hardhat-vnext-utils/fs";
 import AggregateError from "aggregate-error";
 import chalk from "chalk";
 import debug from "debug";

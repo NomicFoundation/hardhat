@@ -1,4 +1,4 @@
-import type { NewTaskActionFunction } from "@nomicfoundation/hardhat-core/types/tasks";
+import type { NewTaskActionFunction } from "@ignored/hardhat-vnext-core/types/tasks";
 
 import { isAbsolute, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -6,8 +6,8 @@ import { pathToFileURL } from "node:url";
 import {
   HardhatError,
   assertHardhatInvariant,
-} from "@nomicfoundation/hardhat-errors";
-import { exists } from "@nomicfoundation/hardhat-utils/fs";
+} from "@ignored/hardhat-vnext-errors";
+import { exists } from "@ignored/hardhat-vnext-utils/fs";
 
 const runScriptWithHardhat: NewTaskActionFunction = async (
   { script, noCompile },

@@ -6,10 +6,10 @@ import { promisify } from "node:util";
 import {
   HardhatError,
   assertHardhatInvariant,
-} from "@nomicfoundation/hardhat-errors";
-import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
-import { keccak256 } from "@nomicfoundation/hardhat-utils/crypto";
-import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+} from "@ignored/hardhat-vnext-errors";
+import { bytesToHexString } from "@ignored/hardhat-vnext-utils/bytes";
+import { keccak256 } from "@ignored/hardhat-vnext-utils/crypto";
+import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import {
   chmod,
   createFile,
@@ -19,7 +19,7 @@ import {
   readBinaryFile,
   readJsonFile,
   remove,
-} from "@nomicfoundation/hardhat-utils/fs";
+} from "@ignored/hardhat-vnext-utils/fs";
 import debug from "debug";
 
 import { download } from "../../utils/download.js";

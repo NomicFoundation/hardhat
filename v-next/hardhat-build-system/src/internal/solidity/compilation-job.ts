@@ -2,7 +2,7 @@ import type { ResolvedFile } from "./resolver.js";
 import type * as taskTypes from "../types/builtin-tasks/index.js";
 import type { SolcConfig, SolidityConfig } from "../types/index.js";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import debug from "debug";
 import { deepEqual } from "fast-equals";
 import semver from "semver";

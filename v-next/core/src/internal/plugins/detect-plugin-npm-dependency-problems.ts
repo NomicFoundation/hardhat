@@ -1,10 +1,10 @@
 import type { HardhatPlugin } from "../../types/plugins.js";
-import type { PackageJson } from "@nomicfoundation/hardhat-utils/package";
+import type { PackageJson } from "@ignored/hardhat-vnext-utils/package";
 
 import { createRequire } from "node:module";
 import path from "node:path";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import semver from "semver";
 
 /**

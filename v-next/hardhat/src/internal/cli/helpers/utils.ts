@@ -1,5 +1,5 @@
-import type { ParameterType } from "@nomicfoundation/hardhat-core/config";
-import type { Task } from "@nomicfoundation/hardhat-core/types/tasks";
+import type { ParameterType } from "@ignored/hardhat-vnext-core/config";
+import type { Task } from "@ignored/hardhat-vnext-core/types/tasks";
 
 export const GLOBAL_OPTIONS = [
   {

@@ -9,8 +9,8 @@ import { fileURLToPath } from "node:url";
 import {
   HardhatError,
   assertHardhatInvariant,
-} from "@nomicfoundation/hardhat-errors";
-import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+} from "@ignored/hardhat-vnext-errors";
+import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import * as semver from "semver";
 
 export interface ICompiler {

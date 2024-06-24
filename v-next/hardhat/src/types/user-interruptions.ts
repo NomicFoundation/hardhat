@@ -1,2 +1,2 @@
-export type * from "@nomicfoundation/hardhat-core/types/user-interruptions";
-export * from "@nomicfoundation/hardhat-core/types/user-interruptions";
+export type * from "@ignored/hardhat-vnext-core/types/user-interruptions";
+export * from "@ignored/hardhat-vnext-core/types/user-interruptions";

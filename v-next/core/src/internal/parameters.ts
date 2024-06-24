@@ -1,6 +1,6 @@
 import type { ParameterValue } from "../types/common.js";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 import { ParameterType } from "../types/common.js";
 
