@@ -167,8 +167,8 @@ declare module "hardhat/types/artifacts" {
 
   interface ContractTypesMap {
     ${Array.from(duplicateContractNames)
-        .map((name) => `${name}: never;`)
-        .join("\n    ")}
+      .map((name) => `${name}: never;`)
+      .join("\n    ")}
   }
 }
 `;
@@ -284,11 +284,17 @@ declare module "hardhat/types/artifacts" {
 
   interface ContractTypesMap {
     ${contractTypeData
-        .map((ctd) => `["${ctd.contractName}"]: GetContractReturnType<${ctd.typeName}["abi"]>;`)
-        .join("\n    ")}
+      .map(
+        (ctd) =>
+          `["${ctd.contractName}"]: GetContractReturnType<${ctd.typeName}["abi"]>;`
+      )
+      .join("\n    ")}
     ${contractTypeData
-        .map((ctd) => `["${ctd.fqn}"]: GetContractReturnType<${ctd.typeName}["abi"]>;`)
-        .join("\n    ")}
+      .map(
+        (ctd) =>
+          `["${ctd.fqn}"]: GetContractReturnType<${ctd.typeName}["abi"]>;`
+      )
+      .join("\n    ")}
   }
 }
 `;
