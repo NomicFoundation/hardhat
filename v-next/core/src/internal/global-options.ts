@@ -156,7 +156,10 @@ export function resolveGlobalOptions(
       parsedValue = option.defaultValue;
     }
 
-    globalOptions[name] = parsedValue;
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- GlobalOptions is empty for user extension, so we need to cast it to
+      assign the value. */
+    (globalOptions as Record<string, ParameterValue>)[name] = parsedValue;
   }
 
   return globalOptions;

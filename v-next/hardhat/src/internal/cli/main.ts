@@ -378,7 +378,7 @@ function parseDoubleDashArgs(
   cliArguments: string[],
   usedCliArguments: boolean[],
   optionsMap: Map<string, TaskOption | GlobalOption>,
-  argumentsMap: TaskArguments | Partial<GlobalOptions>,
+  argumentsMap: TaskArguments,
   ignoreUnknownParameter = false,
 ) {
   for (let i = 0; i < cliArguments.length; i++) {
@@ -525,7 +525,7 @@ function parsePositionalAndVariadicParameters(
 
 function validateRequiredParameters(
   parameters: TaskParameter[],
-  taskArguments: TaskArguments | Partial<GlobalOptions>,
+  taskArguments: TaskArguments,
 ) {
   const missingRequiredParam = parameters.find(
     (param) =>

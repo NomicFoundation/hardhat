@@ -1,8 +1,4 @@
-import type {
-  ParameterType,
-  ParameterTypeToValueType,
-  ParameterValue,
-} from "./common.js";
+import type { ParameterType, ParameterTypeToValueType } from "./common.js";
 
 /**
  * A global option with an associated value and a default if not provided by
@@ -29,7 +25,7 @@ export interface GlobalOption<T extends ParameterType = ParameterType> {
  * Runtime Environment.
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-interface -- To be used through module augmentation
-export interface GlobalOptions extends Record<string, ParameterValue> {}
+export interface GlobalOptions {}
 
 /**
  * An entry in the global options map.
