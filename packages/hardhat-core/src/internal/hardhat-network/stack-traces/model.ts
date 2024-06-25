@@ -36,28 +36,19 @@ export enum ContractFunctionVisibility {
 }
 
 export class SourceFile {
-  public readonly contracts: Contract[] = [];
-  public readonly functions: ContractFunction[] = [];
+  private readonly _functions: ContractFunction[] = [];
 
   constructor(
     public readonly sourceName: string,
     public readonly content: string
   ) {}
 
-  public addContract(contract: Contract) {
-    if (contract.location.file !== this) {
-      throw new Error("Trying to add a contract from another file");
-    }
-
-    this.contracts.push(contract);
-  }
-
   public addFunction(func: ContractFunction) {
     if (func.location.file !== this) {
       throw new Error("Trying to add a function from another file");
     }
 
-    this.functions.push(func);
+    this._functions.push(func);
   }
 
   public getContainingFunction(
@@ -65,7 +56,7 @@ export class SourceFile {
   ): ContractFunction | undefined {
     // TODO: Optimize this with a binary search or an internal tree
 
-    for (const func of this.functions) {
+    for (const func of this._functions) {
       if (func.location.contains(location)) {
         return func;
       }
@@ -124,12 +115,12 @@ export class SourceLocation {
 }
 
 export class Contract {
-  public readonly localFunctions: ContractFunction[] = [];
   public readonly customErrors: CustomError[] = [];
 
   private _constructor: ContractFunction | undefined;
   private _fallback: ContractFunction | undefined;
   private _receive: ContractFunction | undefined;
+  private readonly _localFunctions: ContractFunction[] = [];
   private readonly _selectorHexToFunction: Map<string, ContractFunction> =
     new Map();
 
@@ -174,7 +165,7 @@ export class Contract {
       }
     }
 
-    this.localFunctions.push(func);
+    this._localFunctions.push(func);
   }
 
   public addCustomError(customError: CustomError) {
@@ -189,7 +180,7 @@ export class Contract {
       this._receive = baseContract._receive;
     }
 
-    for (const baseContractFunction of baseContract.localFunctions) {
+    for (const baseContractFunction of baseContract._localFunctions) {
       if (
         baseContractFunction.type !== ContractFunctionType.GETTER &&
         baseContractFunction.type !== ContractFunctionType.FUNCTION
@@ -305,52 +296,10 @@ export class Instruction {
     public readonly pc: number,
     public readonly opcode: Opcode,
     public readonly jumpType: JumpType,
+    // Used only for debugging
     public readonly pushData?: Buffer,
     public readonly location?: SourceLocation
   ) {}
-
-  /**
-   * Checks equality with another Instruction.
-   */
-  public equals(other: Instruction): boolean {
-    if (this.pc !== other.pc) {
-      return false;
-    }
-
-    if (this.opcode !== other.opcode) {
-      return false;
-    }
-
-    if (this.jumpType !== other.jumpType) {
-      return false;
-    }
-
-    if (this.pushData !== undefined) {
-      if (other.pushData === undefined) {
-        return false;
-      }
-
-      if (!this.pushData.equals(other.pushData)) {
-        return false;
-      }
-    } else if (other.pushData !== undefined) {
-      return false;
-    }
-
-    if (this.location !== undefined) {
-      if (other.location === undefined) {
-        return false;
-      }
-
-      if (!this.location.equals(other.location)) {
-        return false;
-      }
-    } else if (other.location !== undefined) {
-      return false;
-    }
-
-    return true;
-  }
 }
 
 interface ImmutableReference {
@@ -365,7 +314,7 @@ export class Bytecode {
     public readonly contract: Contract,
     public readonly isDeployment: boolean,
     public readonly normalizedCode: Buffer,
-    public readonly instructions: Instruction[],
+    instructions: Instruction[],
     public readonly libraryAddressPositions: number[],
     public readonly immutableReferences: ImmutableReference[],
     public readonly compilerVersion: string
@@ -387,23 +336,5 @@ export class Bytecode {
 
   public hasInstruction(pc: number): boolean {
     return this._pcToInstruction.has(pc);
-  }
-
-  /**
-   * Checks equality with another Bytecode.
-   */
-  public equals(other: Bytecode): boolean {
-    if (this._pcToInstruction.size !== other._pcToInstruction.size) {
-      return false;
-    }
-
-    for (const [key, val] of this._pcToInstruction) {
-      const otherVal = other._pcToInstruction.get(key);
-      if (otherVal === undefined || !val.equals(otherVal)) {
-        return false;
-      }
-    }
-
-    return true;
   }
 }

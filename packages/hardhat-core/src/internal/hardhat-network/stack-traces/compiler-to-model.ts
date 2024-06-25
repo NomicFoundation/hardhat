@@ -157,8 +157,6 @@ function processContractAstNode(
     contractNode.linearizedBaseContracts
   );
 
-  file.addContract(contract);
-
   for (const node of contractNode.nodes) {
     if (node.nodeType === "FunctionDefinition") {
       const functionAbis = contractAbi?.filter(
