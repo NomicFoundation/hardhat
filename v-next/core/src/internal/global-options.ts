@@ -145,15 +145,21 @@ export function resolveGlobalOptions(
       -- GlobalOptions is empty for user extension, so we need to cast it to
       assign the value. */
       (userProvidedGlobalOptions as Record<string, string | undefined>)[name];
-    if (value === undefined) {
-      value = process.env[`HARDHAT_${camelToSnakeCase(name).toUpperCase()}`];
-    }
 
     let parsedValue: ParameterValue;
+    // if the value is provided in the user options, it's already parsed
+    // and it takes precedence over env vars
     if (value !== undefined) {
-      parsedValue = parseParameterValue(value, option.parameterType, name);
+      parsedValue = value;
     } else {
-      parsedValue = option.defaultValue;
+      value = process.env[`HARDHAT_${camelToSnakeCase(name).toUpperCase()}`];
+      if (value !== undefined) {
+        // if the value is provided via an env var, it needs to be parsed
+        parsedValue = parseParameterValue(value, option.parameterType, name);
+      } else {
+        // if the value is not provided by the user or env var, use the default
+        parsedValue = option.defaultValue;
+      }
     }
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions

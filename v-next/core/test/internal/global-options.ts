@@ -303,7 +303,7 @@ describe("Global Options", () => {
 
       const globalOptions = resolveGlobalOptions(
         {
-          param1: "false",
+          param1: false,
           param2: "user",
         },
         globalOptionsMap,
@@ -340,7 +340,7 @@ describe("Global Options", () => {
 
       const globalOptions = resolveGlobalOptions(
         {
-          param1: "false",
+          param1: false,
           param2: "user",
         },
         globalOptionsMap,
@@ -371,7 +371,7 @@ describe("Global Options", () => {
 
       const globalOptions = resolveGlobalOptions(
         {
-          param1: "false",
+          param1: false,
           param2: "user",
         },
         globalOptionsMap,
@@ -380,37 +380,6 @@ describe("Global Options", () => {
       assert.deepEqual(globalOptions, {
         param1: false,
       });
-    });
-
-    it("should throw if the provided option is not valid", () => {
-      const globalOptionsMap = buildGlobalOptionsMap([
-        {
-          id: "plugin1",
-          globalOptions: [
-            buildGlobalOptionDefinition({
-              name: "param1",
-              description: "param1 description",
-              parameterType: ParameterType.BOOLEAN,
-              defaultValue: true,
-            }),
-          ],
-        },
-      ]);
-
-      assert.throws(
-        () =>
-          resolveGlobalOptions(
-            {
-              param1: "not a boolean",
-            },
-            globalOptionsMap,
-          ),
-        new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
-          value: "not a boolean",
-          name: "param1",
-          type: ParameterType.BOOLEAN,
-        }),
-      );
     });
 
     it("should throw if the environment variable is not valid", () => {
