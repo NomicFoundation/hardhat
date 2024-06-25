@@ -1,3 +1,7 @@
+import type { ParameterValue } from "../types/common.js";
+
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import { ParameterType } from "../types/common.js";
 
 /**
@@ -54,3 +58,99 @@ const parameterTypeValidators: Record<
   [ParameterType.FLOAT]: (value): value is number => typeof value === "number",
   [ParameterType.FILE]: (value): value is string => typeof value === "string",
 };
+
+/**
+ * Parses a parameter value from a string to the corresponding type.
+ */
+// TODO: this code is duplicated in v-next/hardhat/src/internal/cli/main.ts
+// we should move it to a shared place and add tests
+export function parseParameterValue(
+  value: string,
+  type: ParameterType,
+  name: string,
+): ParameterValue {
+  switch (type) {
+    case ParameterType.STRING:
+    case ParameterType.FILE:
+      return value;
+    case ParameterType.INT:
+      return validateAndParseInt(name, value);
+    case ParameterType.FLOAT:
+      return validateAndParseFloat(name, value);
+    case ParameterType.BIGINT:
+      return validateAndParseBigInt(name, value);
+    case ParameterType.BOOLEAN:
+      return validateAndParseBoolean(name, value);
+  }
+}
+
+function validateAndParseInt(name: string, value: string): number {
+  const decimalPattern = /^\d+(?:[eE]\d+)?$/;
+  const hexPattern = /^0[xX][\dABCDEabcde]+$/;
+
+  if (!decimalPattern.test(value) && !hexPattern.test(value)) {
+    throw new HardhatError(
+      HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      {
+        value,
+        name,
+        type: ParameterType.INT,
+      },
+    );
+  }
+
+  return Number(value);
+}
+
+function validateAndParseFloat(name: string, value: string): number {
+  const decimalPattern = /^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE]\d+)?$/;
+  const hexPattern = /^0[xX][\dABCDEabcde]+$/;
+
+  if (!decimalPattern.test(value) && !hexPattern.test(value)) {
+    throw new HardhatError(
+      HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      {
+        value,
+        name,
+        type: ParameterType.FLOAT,
+      },
+    );
+  }
+
+  return Number(value);
+}
+
+function validateAndParseBigInt(name: string, value: string): bigint {
+  const decimalPattern = /^\d+(?:n)?$/;
+  const hexPattern = /^0[xX][\dABCDEabcde]+$/;
+
+  if (!decimalPattern.test(value) && !hexPattern.test(value)) {
+    throw new HardhatError(
+      HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      {
+        value,
+        name,
+        type: ParameterType.BIGINT,
+      },
+    );
+  }
+
+  return BigInt(value.replace("n", ""));
+}
+
+function validateAndParseBoolean(name: string, value: string): boolean {
+  const normalizedValue = value.toLowerCase();
+
+  if (normalizedValue !== "true" && normalizedValue !== "false") {
+    throw new HardhatError(
+      HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      {
+        value,
+        name,
+        type: ParameterType.BOOLEAN,
+      },
+    );
+  }
+
+  return normalizedValue === "true";
+}

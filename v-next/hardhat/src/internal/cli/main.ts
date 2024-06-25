@@ -71,7 +71,7 @@ export async function main(cliArguments: string[], print = console.log) {
     );
 
     const globalOptionsMap = buildGlobalOptionsMap(resolvedPlugins);
-    const userProvidedGlobalOptions = parseGlobalOptions(
+    const userProvidedGlobalOptions = await parseGlobalOptions(
       globalOptionsMap,
       cliArguments,
       usedCliArguments,

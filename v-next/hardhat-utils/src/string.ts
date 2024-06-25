@@ -40,3 +40,13 @@ export function capitalize(str: string): string {
 export function kebabToCamelCase(str: string): string {
   return str.replace(/-./g, (match) => match.charAt(1).toUpperCase());
 }
+
+/**
+ * Converts a camelCase string to snake_case.
+ *
+ * @param str The camelCase string to convert.
+ * @returns The snake_case string.
+ */
+export function camelToSnakeCase(str: string): string {
+  return str.replace(/[A-Z]/g, (match) => `_${match.toLowerCase()}`);
+}
