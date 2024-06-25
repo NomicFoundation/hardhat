@@ -132,7 +132,7 @@ jobs:
       matrix:
         package: ${{ fromJSON(needs.packages.outputs.packages) }}
         runner: [windows-latest, macos-latest, ubuntu-latest]
-        node_version: [18, 20]
+        node_version: [18, 20, 22]
         exclude:
           - package: hardhat-vyper
             runner: windows-latest
@@ -142,6 +142,10 @@ jobs:
             node_version: 20
           - runner: macos-latest
             node_version: 20
+          - runner: windows-latest
+            node_version: 22
+          - runner: macos-latest
+            node_version: 22
     defaults:
       run:
         working-directory: packages/${{ matrix.package }}
