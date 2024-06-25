@@ -26,7 +26,7 @@ import {
   StackTraceEntryType,
 } from "../../../../src/internal/hardhat-network/stack-traces/solidity-stack-trace";
 import { SolidityTracer } from "../../../../src/internal/hardhat-network/stack-traces/solidityTracer";
-import { VmTraceDecoder } from "../../../../src/internal/hardhat-network/stack-traces/vm-trace-decoder";
+import { VmTraceDecoderT } from "../../../../src/internal/hardhat-network/stack-traces/vm-trace-decoder";
 import {
   BuildInfo,
   CompilerInput,
@@ -39,6 +39,7 @@ import { SUPPORTED_SOLIDITY_VERSION_RANGE } from "../../../../src/internal/hardh
 import { TracingConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
 import { BUILD_INFO_FORMAT_VERSION } from "../../../../src/internal/constants";
 import { FakeModulesLogger } from "../helpers/fakeLogger";
+import { requireNapiRsModule } from "../../../../src/common/napi-rs";
 import {
   compileFiles,
   COMPILER_DOWNLOAD_TIMEOUT,
@@ -56,6 +57,10 @@ import {
   instantiateProvider,
   traceTransaction,
 } from "./execution";
+
+const { stackTraceEntryTypeToString } = requireNapiRsModule(
+  "@nomicfoundation/edr"
+) as typeof import("@nomicfoundation/edr");
 
 interface StackFrameDescription {
   type: string;
@@ -316,7 +321,7 @@ function compareStackTraces(
     const actual = trace[i];
     const expected = description[i];
 
-    const actualErrorType = StackTraceEntryType[actual.type];
+    const actualErrorType = stackTraceEntryTypeToString(actual.type);
     const expectedErrorType = expected.type;
 
     if (
@@ -335,22 +340,15 @@ function compareStackTraces(
       `Stack trace of tx ${txIndex} entry ${i} type is incorrect: expected ${expectedErrorType}, got ${actualErrorType}`
     );
 
-    const actualMessage = (actual as any).message as
-      | ReturnData
-      | string
-      | undefined;
-
-    // actual.message is a ReturnData in revert errors, but a string
-    // in custom errors
-    let decodedMessage = "";
-    if (typeof actualMessage === "string") {
-      decodedMessage = actualMessage;
-    } else if (
-      actualMessage instanceof ReturnData &&
-      actualMessage.isErrorReturnData()
-    ) {
-      decodedMessage = actualMessage.decodeError();
-    }
+    // actual.message is a ReturnData in revert errors but in custom errors
+    // we need to decode it
+    const decodedMessage =
+      "message" in actual
+        ? actual.message
+        : "returnData" in actual &&
+          new ReturnData(actual.returnData).isErrorReturnData()
+        ? new ReturnData(actual.returnData).decodeError()
+        : "";
 
     if (expected.message !== undefined) {
       assert.equal(
@@ -546,7 +544,7 @@ async function runTest(
 
     compareConsoleLogs(logger.lines, tx.consoleLogs);
 
-    const vmTraceDecoder = (provider as any)._vmTraceDecoder as VmTraceDecoder;
+    const vmTraceDecoder = (provider as any)._vmTraceDecoder as VmTraceDecoderT;
     const decodedTrace = vmTraceDecoder.tryToDecodeMessageTrace(trace);
 
     try {

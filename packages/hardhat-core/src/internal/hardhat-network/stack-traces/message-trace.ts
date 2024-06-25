@@ -1,12 +1,16 @@
 import type { Bytecode } from "./model";
-import type { Exit } from "../provider/vm/exit";
 import type {
   CallOutput,
   CreateOutput,
   HaltResult,
   RevertResult,
   SuccessResult,
+  PrecompileMessageTrace,
+  CreateMessageTrace,
+  CallMessageTrace,
 } from "@nomicfoundation/edr";
+
+export { PrecompileMessageTrace, CreateMessageTrace, CallMessageTrace };
 
 export type MessageTrace =
   | CreateMessageTrace
@@ -18,38 +22,6 @@ export type EvmMessageTrace = CreateMessageTrace | CallMessageTrace;
 export type DecodedEvmMessageTrace =
   | DecodedCreateMessageTrace
   | DecodedCallMessageTrace;
-
-export interface BaseMessageTrace {
-  value: bigint;
-  returnData: Uint8Array;
-  exit: Exit;
-  gasUsed: bigint;
-  depth: number;
-}
-
-export interface PrecompileMessageTrace extends BaseMessageTrace {
-  precompile: number;
-  calldata: Uint8Array;
-}
-
-export interface BaseEvmMessageTrace extends BaseMessageTrace {
-  code: Uint8Array;
-  steps: MessageTraceStep[];
-  bytecode?: Bytecode;
-  // The following is just an optimization: When processing this traces it's useful to know ahead of
-  // time how many subtraces there are.
-  numberOfSubtraces: number;
-}
-
-export interface CreateMessageTrace extends BaseEvmMessageTrace {
-  deployedContract: Uint8Array | undefined;
-}
-
-export interface CallMessageTrace extends BaseEvmMessageTrace {
-  calldata: Uint8Array;
-  address: Uint8Array;
-  codeAddress: Uint8Array;
-}
 
 export interface DecodedCreateMessageTrace extends CreateMessageTrace {
   bytecode: Bytecode;
