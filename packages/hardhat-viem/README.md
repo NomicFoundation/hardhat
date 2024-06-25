@@ -248,6 +248,18 @@ This allows you to deploy a contract linked to the `ExampleLib` library at the a
 
 To deploy a contract, all libraries must be linked. An error will be thrown if any libraries are missing.
 
+#### Using `ContractTypesMap` for easier contract type imports
+
+To simplify importing contract types in `hardhat-viem`, you can use the `ContractTypesMap`. This map contains the contract types of all contracts in your project, indexed by their names.
+
+```typescript
+import { ContractTypesMap } from "hardhat/types/artifacts";
+
+const contract: ContractTypesMap["ContractName"];
+```
+
+This reduces the need for multiple imports and makes your code cleaner and easier to manage.
+
 ## Usage
 
 There are no additional steps you need to take for this plugin to work.
