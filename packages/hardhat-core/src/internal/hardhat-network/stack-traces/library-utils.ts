@@ -1,53 +1,10 @@
-import { CompilerOutputBytecode } from "../../../types";
-
+import {
+  getLibraryAddressPositions,
+  linkHexStringBytecode,
+} from "@nomicfoundation/edr";
 import { Opcode } from "./opcodes";
 
-export function getLibraryAddressPositions(
-  bytecodeOutput: CompilerOutputBytecode
-): number[] {
-  const positions = [];
-  for (const libs of Object.values(bytecodeOutput.linkReferences)) {
-    for (const references of Object.values(libs)) {
-      for (const ref of references) {
-        positions.push(ref.start);
-      }
-    }
-  }
-
-  return positions;
-}
-
-export function normalizeCompilerOutputBytecode(
-  compilerOutputBytecodeObject: string,
-  addressesPositions: number[]
-): Buffer {
-  const ZERO_ADDRESS = "0000000000000000000000000000000000000000";
-  for (const position of addressesPositions) {
-    compilerOutputBytecodeObject = linkHexStringBytecode(
-      compilerOutputBytecodeObject,
-      ZERO_ADDRESS,
-      position
-    );
-  }
-
-  return Buffer.from(compilerOutputBytecodeObject, "hex");
-}
-
-export function linkHexStringBytecode(
-  code: string,
-  address: string,
-  position: number
-) {
-  if (address.startsWith("0x")) {
-    address = address.substring(2);
-  }
-
-  return (
-    code.substring(0, position * 2) +
-    address +
-    code.slice(position * 2 + address.length)
-  );
-}
+export { getLibraryAddressPositions, linkHexStringBytecode };
 
 export function zeroOutAddresses(
   code: Uint8Array,

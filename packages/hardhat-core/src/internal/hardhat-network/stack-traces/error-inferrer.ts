@@ -641,9 +641,13 @@ export class ErrorInferrer {
       );
 
       if (calledFunction !== undefined) {
-        const isValidCalldata = calledFunction.isValidCalldata(
-          trace.calldata.slice(4)
-        );
+        const isValidCalldata =
+          // if we don't know the param types, we just assume that the call is valid
+          calledFunction.paramTypes === undefined ||
+          AbiHelpers.isValidCalldata(
+            calledFunction.paramTypes,
+            trace.calldata.slice(4)
+          );
 
         if (!isValidCalldata) {
           return [

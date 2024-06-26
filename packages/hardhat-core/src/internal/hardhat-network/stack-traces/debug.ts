@@ -10,8 +10,8 @@ import {
   MessageTrace,
   PrecompileMessageTrace,
 } from "./message-trace";
-import { JumpType } from "./model";
-import { isJump, isPush, Opcode } from "./opcodes";
+import { JumpType, jumpTypeToString } from "./model";
+import { isJump, isPush, opcodeToString } from "./opcodes";
 import {
   SolidityStackTrace,
   SourceReference,
@@ -147,23 +147,23 @@ function traceSteps(
         if (isJump(inst.opcode)) {
           const jump =
             inst.jumpType !== JumpType.NOT_JUMP
-              ? chalk.bold(`(${JumpType[inst.jumpType]})`)
+              ? chalk.bold(`(${jumpTypeToString(inst.jumpType)})`)
               : "";
 
           console.log(
-            `${margin}  ${pc}   ${Opcode[inst.opcode]} ${jump}`.padEnd(50),
+            `${margin}  ${pc}   ${opcodeToString(inst.opcode)} ${jump}`.padEnd(50),
             location
           );
         } else if (isPush(inst.opcode)) {
           console.log(
-            `${margin}  ${pc}   ${Opcode[inst.opcode]} ${bufferToHex(
+            `${margin}  ${pc}   ${opcodeToString(inst.opcode)} ${bufferToHex(
               inst.pushData!
             )}`.padEnd(50),
             location
           );
         } else {
           console.log(
-            `${margin}  ${pc}   ${Opcode[inst.opcode]}`.padEnd(50),
+            `${margin}  ${pc}   ${opcodeToString(inst.opcode)}`.padEnd(50),
             location
           );
         }
