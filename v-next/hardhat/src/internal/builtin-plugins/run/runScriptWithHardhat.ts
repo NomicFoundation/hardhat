@@ -1,6 +1,7 @@
 import type { NewTaskActionFunction } from "@nomicfoundation/hardhat-core/types/tasks";
 
-import path from "node:path";
+import { isAbsolute, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
 import {
   HardhatError,
@@ -22,9 +23,11 @@ export const runScriptWithHardhat: NewTaskActionFunction = async (
     "Expected noCompile to be a boolean",
   );
 
-  const scriptPath = path.resolve(process.cwd(), script);
+  const normalizedPath = isAbsolute(script)
+    ? script
+    : resolve(process.cwd(), script);
 
-  if (!(await exists(scriptPath))) {
+  if (!(await exists(normalizedPath))) {
     throw new HardhatError(
       HardhatError.ERRORS.BUILTIN_TASKS.RUN_FILE_NOT_FOUND,
       { script },
@@ -36,7 +39,7 @@ export const runScriptWithHardhat: NewTaskActionFunction = async (
   }
 
   try {
-    await import(scriptPath);
+    await import(pathToFileURL(normalizedPath).href);
   } catch (error) {
     if (error instanceof Error) {
       throw new HardhatError(
