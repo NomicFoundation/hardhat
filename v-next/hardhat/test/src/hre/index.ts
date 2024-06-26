@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { resolveHardhatConfigPath } from "../../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../../src/hre.js";
 import { builtinPlugins } from "../../../src/internal/builtin-plugins/index.js";
-import { resolveConfigPath } from "../../../src/internal/helpers/config-loading.js";
 import {
   getHardhatRuntimeEnvironmentSingleton,
   resetHardhatRuntimeEnvironmentSingleton,
@@ -47,13 +47,13 @@ describe("HRE", () => {
       it("should return the HARDHAT_CONFIG env variable if it is set", async () => {
         process.env.HARDHAT_CONFIG = "env.config.js";
 
-        assert.equal(await resolveConfigPath(), "env.config.js");
+        assert.equal(await resolveHardhatConfigPath(), "env.config.js");
 
         delete process.env.HARDHAT_CONFIG;
       });
 
       it("should throw if the config file is not found", async () => {
-        await assert.rejects(resolveConfigPath(), {
+        await assert.rejects(resolveHardhatConfigPath(), {
           message: "HHE5: No Hardhat config file found",
         });
       });
@@ -63,7 +63,7 @@ describe("HRE", () => {
           useFixtureProject("config-js");
 
           it("should load a config file in the current directory", async () => {
-            const configPath = await resolveConfigPath();
+            const configPath = await resolveHardhatConfigPath();
 
             assert(
               configPath.endsWith("hardhat.config.js"),
@@ -76,7 +76,7 @@ describe("HRE", () => {
           useFixtureProject("config-js", "nested-folder");
 
           it("should load a config file in the parent directory", async () => {
-            const configPath = await resolveConfigPath();
+            const configPath = await resolveHardhatConfigPath();
 
             assert(
               configPath.endsWith("hardhat.config.js"),
@@ -91,7 +91,7 @@ describe("HRE", () => {
           useFixtureProject("config-ts");
 
           it("should load a config file in the current directory", async () => {
-            const configPath = await resolveConfigPath();
+            const configPath = await resolveHardhatConfigPath();
 
             assert(
               configPath.endsWith("hardhat.config.ts"),
@@ -104,7 +104,7 @@ describe("HRE", () => {
           useFixtureProject("config-ts", "nested-folder");
 
           it("should load a config file in the parent directory", async () => {
-            const configPath = await resolveConfigPath();
+            const configPath = await resolveHardhatConfigPath();
 
             assert(
               configPath.endsWith("hardhat.config.ts"),

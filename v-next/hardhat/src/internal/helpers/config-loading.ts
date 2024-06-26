@@ -5,7 +5,7 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { findUp } from "@nomicfoundation/hardhat-utils/fs";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
-async function findClosestHardhatConfig(): Promise<string> {
+export async function findClosestHardhatConfig(): Promise<string> {
   let hardhatConfigPath = await findUp("hardhat.config.ts");
 
   if (hardhatConfigPath !== undefined) {
@@ -19,16 +19,6 @@ async function findClosestHardhatConfig(): Promise<string> {
   }
 
   throw new HardhatError(HardhatError.ERRORS.GENERAL.NO_CONFIG_FILE_FOUND);
-}
-
-export async function resolveConfigPath(): Promise<string> {
-  const configPath = process.env.HARDHAT_CONFIG;
-
-  if (configPath !== undefined) {
-    return configPath;
-  }
-
-  return findClosestHardhatConfig();
 }
 
 export async function importUserConfig(configPath: string) {
