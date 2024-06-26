@@ -76,13 +76,9 @@ async function createEmptyTypescriptHardhatConfig() {
 
   console.log();
 
-  showReminderMessages();
+  showStarOnGitHubMessage();
 
   return;
-}
-
-function showReminderMessages() {
-  showStarOnGitHubMessage();
 }
 
 // generated with the "colossal" font
