@@ -75,7 +75,7 @@ export async function main(cliArguments: string[], print = console.log) {
     );
 
     const globalOptionsMap = buildGlobalOptionsMap(resolvedPlugins);
-    const userProvidedGlobalOptions = parseGlobalOptions(
+    const userProvidedGlobalOptions = await parseGlobalOptions(
       globalOptionsMap,
       cliArguments,
       usedCliArguments,
@@ -266,39 +266,6 @@ export function parseTask(
   return taskOrId;
 }
 
-/**
- * Parses the task id and its arguments.
- *
- * @returns The task and its arguments, or an array with the unrecognized task
- *  id. If no task id is provided, an empty array is returned.
- */
-// todo: this function isn't used anymore and needs to be removed
-export function parseTaskAndArguments(
-  cliArguments: string[],
-  usedCliArguments: boolean[],
-  hre: HardhatRuntimeEnvironment,
-):
-  | {
-      task: Task;
-      taskArguments: TaskArguments;
-    }
-  | string[] {
-  const taskOrId = parseTask(cliArguments, usedCliArguments, hre);
-  if (Array.isArray(taskOrId)) {
-    return taskOrId;
-  }
-
-  const task = taskOrId;
-
-  const taskArguments = parseTaskArguments(
-    cliArguments,
-    usedCliArguments,
-    task,
-  );
-
-  return { task, taskArguments };
-}
-
 function getTaskFromCliArguments(
   cliArguments: string[],
   usedCliArguments: boolean[],
@@ -358,7 +325,7 @@ function getTaskFromCliArguments(
   return task;
 }
 
-function parseTaskArguments(
+export function parseTaskArguments(
   cliArguments: string[],
   usedCliArguments: boolean[],
   task: Task,

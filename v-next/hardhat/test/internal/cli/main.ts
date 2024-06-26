@@ -6,6 +6,8 @@ import type { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/ty
 import type {
   NewTaskDefinition,
   NewTaskDefinitionBuilder,
+  Task,
+  TaskArguments,
 } from "@nomicfoundation/hardhat-core/types/tasks";
 
 import assert from "node:assert/strict";
@@ -27,7 +29,8 @@ import {
   main,
   parseGlobalOptions,
   parseHardhatSpecialArguments,
-  parseTaskAndArguments,
+  parseTask,
+  parseTaskArguments,
 } from "../../../src/internal/cli/main.js";
 import { resetHardhatRuntimeEnvironmentSingleton } from "../../../src/internal/hre-singleton.js";
 import { getHardhatVersion } from "../../../src/internal/utils/package.js";
@@ -511,6 +514,33 @@ For global options help run: hardhat --help`;
   });
 
   describe("parseTaskAndArguments", function () {
+    // This is not an ideal way to test these two functions now that they're split apart,
+    // but I don't think it's worth the time to refactor all of these tests right now since the logic is the same.
+    function parseTaskAndArguments(
+      cliArguments: string[],
+      usedCliArguments: boolean[],
+      hreLocal: HardhatRuntimeEnvironment,
+    ):
+      | {
+          task: Task;
+          taskArguments: TaskArguments;
+        }
+      | string[] {
+      const parsedTask = parseTask(cliArguments, usedCliArguments, hreLocal);
+      if (Array.isArray(parsedTask)) {
+        return parsedTask;
+      }
+
+      return {
+        task: parsedTask,
+        taskArguments: parseTaskArguments(
+          cliArguments,
+          usedCliArguments,
+          parsedTask,
+        ),
+      };
+    }
+
     let hre: HardhatRuntimeEnvironment;
     let tasks: NewTaskDefinition[];
     let subtasks: NewTaskDefinition[];

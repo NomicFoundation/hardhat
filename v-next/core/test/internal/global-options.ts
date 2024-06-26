@@ -7,8 +7,10 @@ import { ParameterType } from "../../src/config.js";
 import {
   buildGlobalOptionsMap,
   buildGlobalOptionDefinition,
+  resolveGlobalOptions,
 } from "../../src/internal/global-options.js";
 import { RESERVED_PARAMETER_NAMES } from "../../src/internal/parameters.js";
+import { createTestEnvManager } from "../utils.js";
 
 describe("Global Options", () => {
   describe("buildGlobalOptionsMap", () => {
@@ -240,7 +242,171 @@ describe("Global Options", () => {
     });
   });
 
-  describe.todo("resolveGlobalOptions", () => {
-    // TODO: Implement tests.
+  describe("resolveGlobalOptions", () => {
+    const { setEnvVar } = createTestEnvManager();
+
+    it("should resolve to the default values when no options are provided", () => {
+      const globalOptionsMap = buildGlobalOptionsMap([
+        {
+          id: "plugin1",
+          globalOptions: [
+            buildGlobalOptionDefinition({
+              name: "param1",
+              description: "param1 description",
+              parameterType: ParameterType.BOOLEAN,
+              defaultValue: true,
+            }),
+            buildGlobalOptionDefinition({
+              name: "param2",
+              description: "param2 description",
+              defaultValue: "default",
+            }),
+          ],
+        },
+      ]);
+
+      const globalOptions = resolveGlobalOptions({}, globalOptionsMap);
+
+      assert.deepEqual(globalOptions, {
+        param1: true,
+        param2: "default",
+      });
+    });
+
+    it("should resolve to the user provided options and env variables", () => {
+      const globalOptionsMap = buildGlobalOptionsMap([
+        {
+          id: "plugin1",
+          globalOptions: [
+            buildGlobalOptionDefinition({
+              name: "param1",
+              description: "param1 description",
+              parameterType: ParameterType.BOOLEAN,
+              defaultValue: true,
+            }),
+            buildGlobalOptionDefinition({
+              name: "param2",
+              description: "param2 description",
+              defaultValue: "default",
+            }),
+            buildGlobalOptionDefinition({
+              name: "param3",
+              description: "param3 description",
+              parameterType: ParameterType.BIGINT,
+              defaultValue: 0n,
+            }),
+          ],
+        },
+      ]);
+
+      setEnvVar("HARDHAT_PARAM3", "5n");
+
+      const globalOptions = resolveGlobalOptions(
+        {
+          param1: false,
+          param2: "user",
+        },
+        globalOptionsMap,
+      );
+
+      assert.deepEqual(globalOptions, {
+        param1: false,
+        param2: "user",
+        param3: 5n,
+      });
+    });
+
+    it("should resolve to the user provided options over the environment variables", () => {
+      const globalOptionsMap = buildGlobalOptionsMap([
+        {
+          id: "plugin1",
+          globalOptions: [
+            buildGlobalOptionDefinition({
+              name: "param1",
+              description: "param1 description",
+              parameterType: ParameterType.BOOLEAN,
+              defaultValue: true,
+            }),
+            buildGlobalOptionDefinition({
+              name: "param2",
+              description: "param2 description",
+              defaultValue: "default",
+            }),
+          ],
+        },
+      ]);
+
+      setEnvVar("HARDHAT_PARAM2", "env");
+
+      const globalOptions = resolveGlobalOptions(
+        {
+          param1: false,
+          param2: "user",
+        },
+        globalOptionsMap,
+      );
+
+      assert.deepEqual(globalOptions, {
+        param1: false,
+        param2: "user",
+      });
+    });
+
+    it("should ignore options that are not defined in the global option map", () => {
+      const globalOptionsMap = buildGlobalOptionsMap([
+        {
+          id: "plugin1",
+          globalOptions: [
+            buildGlobalOptionDefinition({
+              name: "param1",
+              description: "param1 description",
+              parameterType: ParameterType.BOOLEAN,
+              defaultValue: true,
+            }),
+          ],
+        },
+      ]);
+
+      setEnvVar("HARDHAT_PARAM3", "env");
+
+      const globalOptions = resolveGlobalOptions(
+        {
+          param1: false,
+          param2: "user",
+        },
+        globalOptionsMap,
+      );
+
+      assert.deepEqual(globalOptions, {
+        param1: false,
+      });
+    });
+
+    it("should throw if the environment variable is not valid", () => {
+      const globalOptionsMap = buildGlobalOptionsMap([
+        {
+          id: "plugin1",
+          globalOptions: [
+            buildGlobalOptionDefinition({
+              name: "param1",
+              description: "param1 description",
+              parameterType: ParameterType.BOOLEAN,
+              defaultValue: true,
+            }),
+          ],
+        },
+      ]);
+
+      setEnvVar("HARDHAT_PARAM1", "not a boolean");
+
+      assert.throws(
+        () => resolveGlobalOptions({}, globalOptionsMap),
+        new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+          value: "not a boolean",
+          name: "param1",
+          type: ParameterType.BOOLEAN,
+        }),
+      );
+    });
   });
 });
