@@ -14,8 +14,7 @@ import chalk from "chalk";
 
 import { getHardhatVersion } from "../../utils/package.js";
 
-const HARDHAT_NAME = "Hardhat";
-const HARDHAT_PACKAGE_NAME = "hardhat";
+import { HARDHAT_NAME, HARDHAT_PACKAGE_NAME } from "./constants.js";
 
 // TODO: test that is testing the last version of solidity
 export const EMPTY_HARDHAT_CONFIG = `/** import type { HardhatUserConfig } from "@nomicfoundation/hardhat-core/config"; */
