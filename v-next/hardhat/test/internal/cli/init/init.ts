@@ -10,8 +10,8 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 
 import { initHardhat } from "../../../../src/internal/cli/init/init.js";
-import { EMPTY_HARDHAT_CONFIG } from "../../../../src/internal/cli/init/project-creation.js";
 import { getUserConfigPath } from "../../../../src/internal/cli/init/project-structure.js";
+import { EMPTY_HARDHAT_CONFIG } from "../../../../src/internal/cli/init/sample-config-file.js";
 import { useFixtureProject } from "../../../helpers/project.js";
 
 async function deleteHardhatConfigFile() {

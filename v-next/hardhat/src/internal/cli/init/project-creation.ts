@@ -15,14 +15,7 @@ import chalk from "chalk";
 import { getHardhatVersion } from "../../utils/package.js";
 
 import { HARDHAT_NAME, HARDHAT_PACKAGE_NAME } from "./constants.js";
-
-// TODO: test that is testing the last version of solidity
-export const EMPTY_HARDHAT_CONFIG = `/** import type { HardhatUserConfig } from "@nomicfoundation/hardhat-core/config"; */
-
-export default {
-  solidity: "0.8.24",
-};
-`;
+import { EMPTY_HARDHAT_CONFIG } from "./sample-config-file.js";
 
 enum Action {
   CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG = "Create an empty hardhat.config.ts",
