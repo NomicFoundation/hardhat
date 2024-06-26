@@ -1,14 +1,14 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { createHardhatRuntimeEnvironment } from "../../src/hre.js";
-import { builtinPlugins } from "../../src/internal/builtin-plugins/index.js";
-import { resolveConfigPath } from "../../src/internal/helpers/config-loading.js";
+import { createHardhatRuntimeEnvironment } from "../../../src/hre.js";
+import { builtinPlugins } from "../../../src/internal/builtin-plugins/index.js";
+import { resolveConfigPath } from "../../../src/internal/helpers/config-loading.js";
 import {
   getHardhatRuntimeEnvironmentSingleton,
   resetHardhatRuntimeEnvironmentSingleton,
-} from "../../src/internal/hre-singleton.js";
-import { useFixtureProject } from "../helpers/project.js";
+} from "../../../src/internal/hre-singleton.js";
+import { useFixtureProject } from "../../helpers/project.js";
 
 describe("HRE", () => {
   describe("createHardhatRuntimeEnvironment", () => {
@@ -119,7 +119,7 @@ describe("HRE", () => {
       useFixtureProject("loaded-config");
 
       it("should load the config file", async () => {
-        const hre = await import("../../src/index.js");
+        const hre = await import("../../../src/index.js");
 
         assert.deepEqual(hre.config.plugins, [{ id: "test-plugin" }]);
 

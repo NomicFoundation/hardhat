@@ -31,10 +31,10 @@ import {
   parseHardhatSpecialArguments,
   parseTask,
   parseTaskArguments,
-} from "../../../src/internal/cli/main.js";
-import { resetHardhatRuntimeEnvironmentSingleton } from "../../../src/internal/hre-singleton.js";
-import { getHardhatVersion } from "../../../src/internal/utils/package.js";
-import { useFixtureProject } from "../../helpers/project.js";
+} from "../../../../src/internal/cli/main.js";
+import { resetHardhatRuntimeEnvironmentSingleton } from "../../../../src/internal/hre-singleton.js";
+import { getHardhatVersion } from "../../../../src/internal/utils/package.js";
+import { useFixtureProject } from "../../../helpers/project.js";
 
 async function getTasksAndHreEnvironment(
   tasksBuilders: NewTaskDefinitionBuilder[],

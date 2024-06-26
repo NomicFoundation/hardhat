@@ -6,8 +6,8 @@ import { before, describe, it } from "node:test";
 import { createHardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
-import { runScriptWithHardhat } from "../../../../src/internal/builtin-plugins/run/runScriptWithHardhat.js";
-import { useFixtureProject } from "../../../helpers/project.js";
+import { runScriptWithHardhat } from "../../../../../src/internal/builtin-plugins/run/runScriptWithHardhat.js";
+import { useFixtureProject } from "../../../../helpers/project.js";
 
 describe("runScriptWithHardhat", function () {
   let hre: HardhatRuntimeEnvironment;
