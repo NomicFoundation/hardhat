@@ -3,7 +3,6 @@ import type { PackageJson } from "@nomicfoundation/hardhat-utils/package";
 import path from "node:path";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import {
   exists,
   readJsonFile,
@@ -43,13 +42,13 @@ export async function createProject() {
 }
 
 async function getProjectPackageJson(): Promise<PackageJson | undefined> {
-  const pathToJsonPackage = path.join(process.cwd(), "package.json");
+  const pathToPackageJson = path.join(process.cwd(), "package.json");
 
-  if (!(await exists(pathToJsonPackage))) {
+  if (!(await exists(pathToPackageJson))) {
     return undefined;
   }
 
-  const pkg: PackageJson = await readJsonFile(pathToJsonPackage);
+  const pkg: PackageJson = await readJsonFile(pathToPackageJson);
 
   if (pkg.type === undefined || pkg.type !== "module") {
     throw new HardhatError(HardhatError.ERRORS.GENERAL.ONLY_ESM_SUPPORTED);
@@ -88,31 +87,18 @@ function showReminderMessages() {
 
 // generated with the "colossal" font
 function printAsciiLogo() {
-  console.log(
-    chalk.blue("888    888                      888 888               888"),
-  );
-  console.log(
-    chalk.blue("888    888                      888 888               888"),
-  );
-  console.log(
-    chalk.blue("888    888                      888 888               888"),
-  );
-  console.log(
-    chalk.blue("8888888888  8888b.  888d888 .d88888 88888b.   8888b.  888888"),
-  );
-  console.log(
-    chalk.blue('888    888     "88b 888P"  d88" 888 888 "88b     "88b 888'),
-  );
-  console.log(
-    chalk.blue("888    888 .d888888 888    888  888 888  888 .d888888 888"),
-  );
-  console.log(
-    chalk.blue("888    888 888  888 888    Y88b 888 888  888 888  888 Y88b."),
-  );
-  console.log(
-    chalk.blue('888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888'),
-  );
-  console.log("");
+  const logoLines = `
+888    888                      888 888               888
+888    888                      888 888               888
+888    888                      888 888               888
+8888888888  8888b.  888d888 .d88888 88888b.   8888b.  888888
+888    888     "88b 888P"  d88" 888 888 "88b     "88b 888
+888    888 .d888888 888    888  888 888  888 .d888888 888
+888    888 888  888 888    Y88b 888 888  888 888  888 Y88b.
+888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888
+`.trim();
+
+  console.log(chalk.blue(logoLines));
 }
 
 async function printWelcomeMessage() {
@@ -163,10 +149,10 @@ async function getAction(): Promise<Action> {
     });
   } catch (e) {
     if (e === "") {
+      // If the user cancels the prompt, we quit
       return Action.QUIT;
     }
 
-    ensureError(e);
     throw e;
   }
 }
