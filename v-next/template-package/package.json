@@ -4,7 +4,11 @@
   "version": "3.0.0",
   "description": "Template for Nomic Foundation npm packages",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/template-package",
-  "repository": "github:nomicfoundation/hardhat",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nomicfoundation/hardhat",
+    "directory": "v-next/template-package"
+  },
   "author": "Nomic Foundation",
   "license": "MIT",
   "type": "module",

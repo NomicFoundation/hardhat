@@ -25,6 +25,7 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { isCi } from "@ignored/hardhat-vnext-utils/ci";
 import chalk from "chalk";
 
+import packageJson from "../../../package.json";
 import {
   main,
   parseGlobalOptions,
@@ -224,7 +225,7 @@ describe("main", function () {
           lines = msg;
         });
 
-        const expected = `Hardhat version 2.0.0
+        const expected = `Hardhat version ${packageJson.version}
 
 Usage: hardhat [GLOBAL OPTIONS] <TASK> [SUBTASK] [TASK OPTIONS] [--] [TASK ARGUMENTS]
 
