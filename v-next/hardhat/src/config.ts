@@ -1,5 +1,9 @@
 import { findClosestHardhatConfig } from "./internal/helpers/config-loading.js";
 
+// Note: We export the builtin plugins' types here, so that any type extension
+// they may have gets loaded.
+export type * from "./internal/builtin-plugins/index.js";
+
 export type * from "@ignored/hardhat-vnext-core/config";
 export * from "@ignored/hardhat-vnext-core/config";
 
