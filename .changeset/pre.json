@@ -29,6 +29,7 @@
     "@nomicfoundation/template-package": "3.0.0"
   },
   "changesets": [
-    "big-points-try"
+    "big-points-try",
+    "quick-islands-appear"
   ]
 }
