@@ -9,7 +9,7 @@ import {
 } from "@nomicfoundation/hardhat-errors";
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
 
-export const runScriptWithHardhat: NewTaskActionFunction = async (
+const runScriptWithHardhat: NewTaskActionFunction = async (
   { script, noCompile },
   _hre,
 ) => {
@@ -55,3 +55,5 @@ export const runScriptWithHardhat: NewTaskActionFunction = async (
     throw error;
   }
 };
+
+export default runScriptWithHardhat;

@@ -2,8 +2,6 @@ import type { HardhatPlugin } from "@nomicfoundation/hardhat-core/types/plugins"
 
 import { ParameterType, task } from "@nomicfoundation/hardhat-core/config";
 
-import { runScriptWithHardhat } from "./runScriptWithHardhat.js";
-
 export default {
   id: "run",
   tasks: [
@@ -17,7 +15,7 @@ export default {
         name: "noCompile",
         description: "Don't compile before running this task",
       })
-      .setAction(runScriptWithHardhat)
+      .setAction(import.meta.resolve("./runScriptWithHardhat.js"))
       .build(),
   ],
 } satisfies HardhatPlugin;
