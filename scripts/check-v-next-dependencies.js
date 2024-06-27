@@ -136,11 +136,8 @@ function main() {
 
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
 
-    // temporarily ignore hardhat toolboxs
-    if (
-      packageJson.name === "@nomicfoundation/hardhat-toolbox" ||
-      packageJson.name === "@nomicfoundation/hardhat-toolbox-viem"
-    ) {
+    // We ignore any private package
+    if (packageJson.private === true) {
       continue;
     }
 
