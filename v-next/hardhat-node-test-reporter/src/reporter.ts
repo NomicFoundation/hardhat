@@ -3,7 +3,7 @@ import type {
   TestEventData,
   TestEventSource,
   TestReporterResult,
-} from "./node-types.js";
+} from "./types.js";
 
 import chalk from "chalk";
 
