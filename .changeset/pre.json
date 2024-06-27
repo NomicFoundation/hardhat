@@ -28,5 +28,7 @@
     "@ignored/hardhat-vnext-zod-utils": "2.0.0",
     "@nomicfoundation/template-package": "3.0.0"
   },
-  "changesets": []
+  "changesets": [
+    "big-points-try"
+  ]
 }
