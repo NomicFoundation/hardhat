@@ -13,7 +13,7 @@ import {
   getLongestNameLength,
   getSection,
   getUsageString,
-} from "../../../../../src/internal/cli/helpers/utils.js";
+} from "../../../../src/internal/cli/helpers/utils.js";
 
 describe("utils", function () {
   describe("parseTasks", function () {

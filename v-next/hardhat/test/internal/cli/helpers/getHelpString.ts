@@ -6,7 +6,7 @@ import { describe, it } from "node:test";
 import { ParameterType } from "@nomicfoundation/hardhat-core/config";
 import chalk from "chalk";
 
-import { getHelpString } from "../../../../../src/internal/cli/helpers/getHelpString.js";
+import { getHelpString } from "../../../../src/internal/cli/helpers/getHelpString.js";
 
 describe("getHelpString", function () {
   describe("when the task is empty", function () {

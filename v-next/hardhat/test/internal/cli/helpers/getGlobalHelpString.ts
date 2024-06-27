@@ -3,8 +3,8 @@ import type { Task } from "@nomicfoundation/hardhat-core/types/tasks";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import packageJson from "../../../../../package.json";
-import { getGlobalHelpString } from "../../../../../src/internal/cli/helpers/getGlobalHelpString.js";
+import packageJson from "../../../../package.json";
+import { getGlobalHelpString } from "../../../../src/internal/cli/helpers/getGlobalHelpString.js";
 
 describe("getGlobalHelpString", function () {
   describe("when there are no tasks", function () {
