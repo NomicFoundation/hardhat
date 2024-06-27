@@ -20,7 +20,9 @@
     "@nomicfoundation/hardhat-verify",
     "@nomicfoundation/hardhat-viem",
     "@nomiclabs/hardhat-vyper",
-    "@nomicfoundation/hardhat-web3-v4"
+    "@nomicfoundation/hardhat-web3-v4",
+    "@nomicfoundation/example-project",
+    "@nomicfoundation/template-package"
   ],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
     "onlyUpdatePeerDependentsWhenOutOfRange": true
