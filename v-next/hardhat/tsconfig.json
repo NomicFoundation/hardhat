@@ -6,7 +6,6 @@
     "incremental": true,
     "resolveJsonModule": true
   },
-  "include": ["**/*", "./package.json"],
   "exclude": [
     "./dist",
     "./node_modules",
