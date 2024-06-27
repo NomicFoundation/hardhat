@@ -87,12 +87,12 @@ jobs:
           git config --global user.name "Github Actions"
           git config --global user.email "nomicfoundation@users.noreply.github.com"
           git commit -a -m "chore: v-next version bump"
-          # git push
+          git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup npmrc
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.VNEXT_NPM_TOKEN }}" > .npmrc
       - name: Publish
-        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --tag next --access public --dry-run
+        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --tag next --access public
         env:
           NPM_CONFIG_PROVENANCE: true
