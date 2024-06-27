@@ -26,11 +26,9 @@ import {
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 import { kebabToCamelCase } from "@nomicfoundation/hardhat-utils/string";
 
+import { resolveHardhatConfigPath } from "../../config.js";
 import { builtinPlugins } from "../builtin-plugins/index.js";
-import {
-  importUserConfig,
-  resolveConfigPath,
-} from "../helpers/config-loading.js";
+import { importUserConfig } from "../helpers/config-loading.js";
 import { getHardhatRuntimeEnvironmentSingleton } from "../hre-singleton.js";
 
 import { getGlobalHelpString } from "./helpers/getGlobalHelpString.js";
@@ -55,7 +53,7 @@ export async function main(cliArguments: string[], print = console.log) {
   }
 
   if (hardhatSpecialArgs.configPath === undefined) {
-    hardhatSpecialArgs.configPath = await resolveConfigPath();
+    hardhatSpecialArgs.configPath = await resolveHardhatConfigPath();
   }
 
   try {

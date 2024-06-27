@@ -231,6 +231,7 @@ Usage: hardhat [GLOBAL OPTIONS] <TASK> [SUBTASK] [TASK OPTIONS] [--] [TASK ARGUM
 AVAILABLE TASKS:
 
   example                  Example task
+  run                      Runs a user-defined script after compiling the project
   task                     A task that uses param1
 
 GLOBAL OPTIONS:

@@ -43,7 +43,6 @@ async function getFixtureProjectPath(
   }
 
   if (!(await exists(projectPath))) {
-    console.log("projectPath", projectPath);
     throw new Error(`Fixture project ${projectName} doesn't exist`);
   }
 
