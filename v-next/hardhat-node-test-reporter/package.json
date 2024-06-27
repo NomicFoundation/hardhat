@@ -5,7 +5,7 @@
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-node-test-reporter",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nomicfoundation/hardhat",
+    "url": "https://github.com/NomicFoundation/hardhat",
     "directory": "v-next/hardhat-node-test-reporter"
   },
   "author": "Nomic Foundation",

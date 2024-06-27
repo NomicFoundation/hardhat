@@ -6,7 +6,7 @@
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/example-project",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nomicfoundation/hardhat",
+    "url": "https://github.com/NomicFoundation/hardhat",
     "directory": "v-next/example-project"
   },
   "author": "Nomic Foundation",
