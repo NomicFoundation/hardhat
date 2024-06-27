@@ -4,7 +4,11 @@
   "version": "2.0.1-next.0",
   "description": "Build and Solidity compilation system for Hardhat",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/v-next/hardhat-build-system",
-  "repository": "github:nomicfoundation/hardhat",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nomicfoundation/hardhat",
+    "directory": "v-next/hardhat-build-system"
+  },
   "author": "Nomic Foundation",
   "license": "MIT",
   "type": "module",
