@@ -1,4 +1,4 @@
-import { task } from "@nomicfoundation/hardhat/config";
+import { task } from "@ignored/hardhat-vnext/config";
 
 export default {
   tasks: [

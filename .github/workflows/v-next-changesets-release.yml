@@ -39,54 +39,37 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     needs: changesetcheck
+    if: needs.changesetcheck.outputs.CHANGESETS == 'found'
     permissions:
       contents: write
       id-token: write
     steps:
-      - name: Stop on no changesets
-        if: needs.changesetcheck.outputs.CHANGESETS == 'notfound'
-        run: |
-          echo "No changesets found. Exiting the workflow."
-          exit 0
-
       - name: checkout code repository
         uses: actions/checkout@v4
-        if: needs.changesetcheck.outputs.CHANGESETS == 'found'
         with:
           fetch-depth: 0
       - uses: pnpm/action-setup@v4
-        if: needs.changesetcheck.outputs.CHANGESETS == 'found'
         with:
           version: 9
       - uses: actions/setup-node@v4
-        if: needs.changesetcheck.outputs.CHANGESETS == 'found'
         with:
           node-version: 22
           cache: "pnpm"
       - name: Install
-        if: needs.changesetcheck.outputs.CHANGESETS == 'found'
         run: pnpm install --no-frozen-lockfile
       - name: Apply and commit changesets
-        if: needs.changesetcheck.outputs.CHANGESETS == 'found'
         run: |
           echo "Changesets found. Starting release."
           pnpm changeset version
           git config --global user.name "Github Actions"
           git config --global user.email "nomicfoundation@users.noreply.github.com"
           git commit -a -m "chore: v-next version bump"
-          git push
+          # git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup npmrc
-        if: needs.changesetcheck.outputs.CHANGESETS == 'found'
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.VNEXT_NPM_TOKEN }}" > .npmrc
       - name: Publish
-        if: needs.changesetcheck.outputs.CHANGESETS == 'found'
         run: pnpm publish --filter "./v-next/**" -r --no-git-checks --tag next --access public --dry-run
         env:
           NPM_CONFIG_PROVENANCE: true
-      - name: push tags
-        if: needs.changesetcheck.outputs.CHANGESETS == 'found'
-        run: git push --follow-tags
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
