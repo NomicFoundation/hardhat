@@ -71,7 +71,7 @@ importers:
     dependencies:
       eslint-module-utils:
         specifier: ^2.8.0
-        version: 2.8.1(@typescript-eslint/parser@7.9.0(eslint@8.57.0)(typescript@5.4.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.9.0(eslint@8.57.0)(typescript@5.4.3))(eslint-plugin-import@2.29.1)(eslint@8.57.0))(eslint@8.57.0)
+        version: 2.8.1(@typescript-eslint/parser@7.9.0(eslint@8.57.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.9.0(eslint@8.57.0)(typescript@5.4.5))(eslint-plugin-import@2.29.1)(eslint@8.57.0))(eslint@8.57.0)
       requireindex:
         specifier: ^1.2.0
         version: 1.2.0
@@ -1443,7 +1443,7 @@ importers:
         version: 4.3.0(eslint@8.57.0)
       '@microsoft/api-extractor':
         specifier: ^7.43.4
-        version: 7.43.4(@types/node@20.12.10)
+        version: 7.43.4(@types/node@20.14.9)
       '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
         specifier: workspace:^
         version: link:../../packages/eslint-plugin-hardhat-internal-rules
@@ -1454,8 +1454,8 @@ importers:
         specifier: workspace:^3.0.0
         version: link:../hardhat-node-test-reporter
       '@types/node':
-        specifier: ^20.0.0
-        version: 20.12.10
+        specifier: ^20.14.9
+        version: 20.14.9
       '@types/semver':
         specifier: ^7.5.8
         version: 7.5.8
@@ -1511,8 +1511,8 @@ importers:
         specifier: workspace:^3.0.0
         version: link:../hardhat
       '@types/node':
-        specifier: ^20.0.0
-        version: 20.14.2
+        specifier: ^20.14.9
+        version: 20.14.9
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -1557,8 +1557,8 @@ importers:
         specifier: workspace:^3.0.0
         version: link:../hardhat-node-test-reporter
       '@types/node':
-        specifier: ^20.0.0
-        version: 20.12.10
+        specifier: ^20.14.9
+        version: 20.14.9
       '@typescript-eslint/eslint-plugin':
         specifier: ^7.7.1
         version: 7.9.0(@typescript-eslint/parser@7.9.0(eslint@8.57.0)(typescript@5.4.5))(eslint@8.57.0)(typescript@5.4.5)
@@ -1684,8 +1684,8 @@ importers:
         specifier: ^4.14.123
         version: 4.14.202
       '@types/node':
-        specifier: ^20.0.0
-        version: 20.12.10
+        specifier: ^20.14.9
+        version: 20.14.9
       '@types/resolve':
         specifier: ^1.17.1
         version: 1.20.6
@@ -1760,8 +1760,8 @@ importers:
         specifier: workspace:^3.0.0
         version: link:../hardhat-node-test-reporter
       '@types/node':
-        specifier: ^20.0.0
-        version: 20.12.10
+        specifier: ^20.14.9
+        version: 20.14.9
       '@typescript-eslint/eslint-plugin':
         specifier: ^7.7.1
         version: 7.9.0(@typescript-eslint/parser@7.9.0(eslint@8.57.0)(typescript@5.4.3))(eslint@8.57.0)(typescript@5.4.3)
@@ -1821,8 +1821,8 @@ importers:
         specifier: workspace:^
         version: link:../../packages/eslint-plugin-slow-imports
       '@types/node':
-        specifier: ^20.0.0
-        version: 20.12.10
+        specifier: ^20.14.9
+        version: 20.14.9
       '@typescript-eslint/eslint-plugin':
         specifier: ^7.7.1
         version: 7.9.0(@typescript-eslint/parser@7.9.0(eslint@8.57.0)(typescript@5.4.5))(eslint@8.57.0)(typescript@5.4.5)
@@ -1897,8 +1897,8 @@ importers:
         specifier: ^3.0.4
         version: 3.0.4
       '@types/node':
-        specifier: ^20.0.0
-        version: 20.12.10
+        specifier: ^20.14.9
+        version: 20.14.9
       '@typescript-eslint/eslint-plugin':
         specifier: ^7.7.1
         version: 7.9.0(@typescript-eslint/parser@7.9.0(eslint@8.57.0)(typescript@5.4.3))(eslint@8.57.0)(typescript@5.4.3)
@@ -1957,8 +1957,8 @@ importers:
         specifier: workspace:^3.0.0
         version: link:../hardhat-node-test-reporter
       '@types/node':
-        specifier: ^20.0.0
-        version: 20.12.10
+        specifier: ^20.14.9
+        version: 20.14.9
       '@typescript-eslint/eslint-plugin':
         specifier: ^7.7.1
         version: 7.9.0(@typescript-eslint/parser@7.9.0(eslint@8.57.0)(typescript@5.4.5))(eslint@8.57.0)(typescript@5.4.5)
@@ -2017,8 +2017,8 @@ importers:
         specifier: workspace:^3.0.0
         version: link:../hardhat-node-test-reporter
       '@types/node':
-        specifier: ^20.0.0
-        version: 20.12.10
+        specifier: ^20.14.9
+        version: 20.14.9
       '@typescript-eslint/eslint-plugin':
         specifier: ^7.7.1
         version: 7.9.0(@typescript-eslint/parser@7.9.0(eslint@8.57.0)(typescript@5.4.3))(eslint@8.57.0)(typescript@5.4.3)
@@ -3019,8 +3019,8 @@ packages:
   '@types/node@20.12.10':
     resolution: {integrity: sha512-Eem5pH9pmWBHoGAT8Dr5fdc5rYA+4NAovdM4EktRPVAAiJhmWWfQrA0cFhAbOsQdSfIHjAud6YdkbL69+zSKjw==}
 
-  '@types/node@20.14.2':
-    resolution: {integrity: sha512-xyu6WAMVwv6AKFLB+e/7ySZVr/0zLCzOa7rSpq6jNwpqOrUbcACDWC+53d4n2QHOnDou0fbIsg8wZu/sxrnI4Q==}
+  '@types/node@20.14.9':
+    resolution: {integrity: sha512-06OCtnTXtWOZBJlRApleWndH4JsRVs1pDCc8dLSQp+7PpUpX3ePdHyeNSFTeSe7FtKyQkrlPvHwJOW3SLd8Oyg==}
 
   '@types/node@8.10.66':
     resolution: {integrity: sha512-tktOkFUA4kXx2hhhrB8bIFb5TbwzS4uOhKEmwiD+NoiL0qtP2OQ9mFldbgD4dV1djrlBYP6eBuQZiWjuHUpqFw==}
@@ -7732,23 +7732,23 @@ snapshots:
       tweetnacl: 1.0.3
       tweetnacl-util: 0.15.1
 
-  '@microsoft/api-extractor-model@7.28.16(@types/node@20.12.10)':
+  '@microsoft/api-extractor-model@7.28.16(@types/node@20.14.9)':
     dependencies:
       '@microsoft/tsdoc': 0.14.2
       '@microsoft/tsdoc-config': 0.16.2
-      '@rushstack/node-core-library': 4.2.1(@types/node@20.12.10)
+      '@rushstack/node-core-library': 4.2.1(@types/node@20.14.9)
     transitivePeerDependencies:
       - '@types/node'
 
-  '@microsoft/api-extractor@7.43.4(@types/node@20.12.10)':
+  '@microsoft/api-extractor@7.43.4(@types/node@20.14.9)':
     dependencies:
-      '@microsoft/api-extractor-model': 7.28.16(@types/node@20.12.10)
+      '@microsoft/api-extractor-model': 7.28.16(@types/node@20.14.9)
       '@microsoft/tsdoc': 0.14.2
       '@microsoft/tsdoc-config': 0.16.2
-      '@rushstack/node-core-library': 4.2.1(@types/node@20.12.10)
+      '@rushstack/node-core-library': 4.2.1(@types/node@20.14.9)
       '@rushstack/rig-package': 0.5.2
-      '@rushstack/terminal': 0.10.3(@types/node@20.12.10)
-      '@rushstack/ts-command-line': 4.19.5(@types/node@20.12.10)
+      '@rushstack/terminal': 0.10.3(@types/node@20.14.9)
+      '@rushstack/ts-command-line': 4.19.5(@types/node@20.14.9)
       lodash: 4.17.21
       minimatch: 3.0.8
       resolve: 1.22.8
@@ -7955,7 +7955,7 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
-  '@rushstack/node-core-library@4.2.1(@types/node@20.12.10)':
+  '@rushstack/node-core-library@4.2.1(@types/node@20.14.9)':
     dependencies:
       fs-extra: 7.0.1
       import-lazy: 4.0.0
@@ -7964,23 +7964,23 @@ snapshots:
       semver: 7.5.4
       z-schema: 5.0.5
     optionalDependencies:
-      '@types/node': 20.12.10
+      '@types/node': 20.14.9
 
   '@rushstack/rig-package@0.5.2':
     dependencies:
       resolve: 1.22.8
       strip-json-comments: 3.1.1
 
-  '@rushstack/terminal@0.10.3(@types/node@20.12.10)':
+  '@rushstack/terminal@0.10.3(@types/node@20.14.9)':
     dependencies:
-      '@rushstack/node-core-library': 4.2.1(@types/node@20.12.10)
+      '@rushstack/node-core-library': 4.2.1(@types/node@20.14.9)
       supports-color: 8.1.1
     optionalDependencies:
-      '@types/node': 20.12.10
+      '@types/node': 20.14.9
 
-  '@rushstack/ts-command-line@4.19.5(@types/node@20.12.10)':
+  '@rushstack/ts-command-line@4.19.5(@types/node@20.14.9)':
     dependencies:
-      '@rushstack/terminal': 0.10.3(@types/node@20.12.10)
+      '@rushstack/terminal': 0.10.3(@types/node@20.14.9)
       '@types/argparse': 1.0.38
       argparse: 1.0.10
       string-argv: 0.3.2
@@ -8127,7 +8127,7 @@ snapshots:
 
   '@types/bn.js@4.11.6':
     dependencies:
-      '@types/node': 20.14.2
+      '@types/node': 18.15.13
 
   '@types/bn.js@5.1.5':
     dependencies:
@@ -8143,7 +8143,7 @@ snapshots:
 
   '@types/concat-stream@1.6.1':
     dependencies:
-      '@types/node': 20.14.2
+      '@types/node': 18.15.13
 
   '@types/debug@4.1.12':
     dependencies:
@@ -8155,7 +8155,7 @@ snapshots:
 
   '@types/form-data@0.0.33':
     dependencies:
-      '@types/node': 20.14.2
+      '@types/node': 18.15.13
 
   '@types/fs-extra@5.1.0':
     dependencies:
@@ -8210,7 +8210,7 @@ snapshots:
     dependencies:
       undici-types: 5.26.5
 
-  '@types/node@20.14.2':
+  '@types/node@20.14.9':
     dependencies:
       undici-types: 5.26.5
 
@@ -8220,7 +8220,7 @@ snapshots:
 
   '@types/pbkdf2@3.1.2':
     dependencies:
-      '@types/node': 20.14.2
+      '@types/node': 18.15.13
 
   '@types/prettier@2.7.3': {}
 
@@ -8228,14 +8228,14 @@ snapshots:
 
   '@types/readable-stream@2.3.15':
     dependencies:
-      '@types/node': 20.14.2
+      '@types/node': 18.15.13
       safe-buffer: 5.1.2
 
   '@types/resolve@1.20.6': {}
 
   '@types/secp256k1@4.0.6':
     dependencies:
-      '@types/node': 20.14.2
+      '@types/node': 18.15.13
 
   '@types/semver@6.2.7': {}
 
@@ -8262,7 +8262,7 @@ snapshots:
 
   '@types/ws@8.5.3':
     dependencies:
-      '@types/node': 20.14.2
+      '@types/node': 18.15.13
 
   '@typescript-eslint/eslint-plugin@5.61.0(@typescript-eslint/parser@5.61.0(eslint@8.57.0)(typescript@5.0.4))(eslint@8.57.0)(typescript@5.0.4)':
     dependencies:

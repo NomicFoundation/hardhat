@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@nomicfoundation/hardhat": "workspace:^3.0.0",
-    "@types/node": "^20.0.0",
+    "@types/node": "^20.14.9",
     "prettier": "3.2.5",
     "typescript": "~5.4.0"
   }

@@ -64,7 +64,7 @@
     "@types/find-up": "^2.1.1",
     "@types/fs-extra": "^5.1.0",
     "@types/lodash": "^4.14.123",
-    "@types/node": "^20.0.0",
+    "@types/node": "^20.14.9",
     "@types/resolve": "^1.17.1",
     "@types/semver": "^7.5.8",
     "@types/sinon": "^9.0.8",
