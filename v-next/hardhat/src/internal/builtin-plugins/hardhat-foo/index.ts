@@ -2,7 +2,7 @@ import type { HardhatPlugin } from "@ignored/hardhat-vnext-core/types/plugins";
 
 import { globalFlag, task } from "@ignored/hardhat-vnext-core/config";
 
-export type * from "./type-extensions.js";
+import "./type-extensions.js";
 
 export default {
   id: "hardhat-foo",
