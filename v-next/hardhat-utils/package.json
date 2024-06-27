@@ -55,7 +55,7 @@
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0",
     "@types/bn.js": "^5.1.5",
     "@types/keccak": "^3.0.4",
-    "@types/node": "^20.0.0",
+    "@types/node": "^20.14.9",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
     "@typescript-eslint/parser": "^7.7.1",
     "eslint": "8.57.0",

@@ -1,4 +1,4 @@
-import type { TestEventData } from "./node-types.js";
+import type { TestEventData } from "./types.js";
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
