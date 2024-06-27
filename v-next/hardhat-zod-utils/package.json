@@ -1,6 +1,6 @@
 {
   "name": "@ignored/hardhat-vnext-zod-utils",
-  "version": "3.0.0-next.1",
+  "version": "3.0.0-next.2",
   "description": "Utilities to use Zod to validadte Hardhat plugins' confg",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-zod-utils",
   "repository": {
@@ -43,8 +43,8 @@
     "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
-    "@ignored/hardhat-vnext-core": "workspace:^3.0.0-next.1",
-    "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.1",
+    "@ignored/hardhat-vnext-core": "workspace:^3.0.0-next.2",
+    "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.2",
     "@types/node": "^20.14.9",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
     "@typescript-eslint/parser": "^7.7.1",
@@ -62,7 +62,7 @@
     "zod": "^3.23.8"
   },
   "peerDependencies": {
-    "@ignored/hardhat-vnext-core": "workspace:^3.0.0-next.1",
+    "@ignored/hardhat-vnext-core": "workspace:^3.0.0-next.2",
     "zod": "^3.23.8"
   }
 }

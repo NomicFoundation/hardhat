@@ -1,6 +1,6 @@
 {
   "name": "@ignored/hardhat-vnext-core",
-  "version": "3.0.0-next.1",
+  "version": "3.0.0-next.2",
   "description": "Hardhat's core infrastructure and functionality.",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/core",
   "repository": {
@@ -56,7 +56,7 @@
     "@microsoft/api-extractor": "^7.43.4",
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
-    "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.1",
+    "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.2",
     "@types/node": "^20.14.9",
     "@types/semver": "^7.5.8",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
@@ -76,8 +76,8 @@
     "typescript-eslint": "7.7.1"
   },
   "dependencies": {
-    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.1",
-    "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.1",
+    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.2",
+    "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.2",
     "chalk": "^5.3.0",
     "semver": "^7.6.2"
   }
