@@ -225,56 +225,6 @@ Please add the property "type" with the value "module" in your package.json to e
       websiteDescription:
         "The global option is already defined by another plugin. Please ensure that global options are uniquely named to avoid conflicts.",
     },
-    HARDHAT_PROJECT_ALREADY_CREATED: {
-      number: 13,
-      messageTemplate:
-        "You are trying to initialize a project inside an existing Hardhat project. The path to the project's configuration file is: {hardhatProjectRootPath}.",
-      websiteTitle: "Hardhat project already created",
-      websiteDescription: `Cannot create a new Hardhat project, the current folder is already associated with a project.`,
-    },
-    NOT_INSIDE_PROJECT_ON_WINDOWS: {
-      number: 14,
-      messageTemplate: `You are not inside a project and Hardhat failed to initialize a new one.
-
-If you were trying to create a new project, please try again using Windows Subsystem for Linux (WSL) or PowerShell.
-`,
-      websiteTitle:
-        "You are not inside a Hardhat project and Hardhat failed to initialize a new one",
-      websiteDescription: `You are trying to run Hardhat outside of a Hardhat project, and we couldn't initialize one.
-
-If you were trying to create a new project, please try again using Windows Subsystem for Linux (WSL) or PowerShell.
-
-You can learn how to use Hardhat by reading the [Getting Started guide](/hardhat-runner/docs/getting-started).`,
-    },
-    NOT_IN_INTERACTIVE_SHELL: {
-      number: 15,
-      messageTemplate:
-        "You are trying to initialize a project but you are not in an interactive shell.",
-      websiteTitle: "Not inside an interactive shell",
-      websiteDescription: `You are trying to initialize a project but you are not in an interactive shell.
-
-Please re-run the command inside an interactive shell.`,
-    },
-    UNSUPPORTED_OPERATION: {
-      number: 16,
-      messageTemplate: "{operation} is not supported in Hardhat.",
-      websiteTitle: "Unsupported operation",
-      websiteDescription: `You are trying to perform an unsupported operation.
-
-Unless you are creating a task or plugin, this is probably a bug.
-
-Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
-    },
-    ONLY_ESM_SUPPORTED: {
-      number: 17,
-      messageTemplate: `Hardhat only supports ESM projects. Please be sure to specify "'type': 'module'" in your package.json`,
-      websiteTitle: "Only ESM projects are supported",
-      websiteDescription: `You are trying to initialize a new Hardhat project, but your package.json does not have the property "type" set to "module".
-
-Currently, Hardhat only supports ESM projects.
-
-Please add the property "type" with the value "module" in your package.json to ensure that your project is recognized as an ESM project.`,
-    },
   },
   INTERNAL: {
     ASSERTION_ERROR: {
