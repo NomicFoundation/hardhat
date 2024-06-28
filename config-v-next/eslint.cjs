@@ -10,10 +10,9 @@ const path = require("path");
  * The only packages that should not use this config are our own eslint plugins/rules.
  *
  * @param {string} configFilePath The path to the config file that is using this function.
- * @param {string[]} [packageEntryPoints=[]] The entry points of the package, expressed as relative paths from the config file.
  * @returns {import("eslint").Linter.Config}
  */
-function createConfig(configFilePath, packageEntryPoints = []) {
+function createConfig(configFilePath) {
   /**
    * @type {import("eslint").Linter.Config}
    */
@@ -23,7 +22,6 @@ function createConfig(configFilePath, packageEntryPoints = []) {
       es2022: true,
       node: true,
     },
-    extends: ["plugin:@nomicfoundation/slow-imports/recommended"],
     settings: {
       "import/resolver": {
         typescript: true,
@@ -36,11 +34,9 @@ function createConfig(configFilePath, packageEntryPoints = []) {
       tsconfigRootDir: path.dirname(configFilePath),
     },
     plugins: [
-      "@nomicfoundation/hardhat-internal-rules",
       "import",
       "no-only-tests",
       "@typescript-eslint",
-      "@nomicfoundation/slow-imports",
       "@eslint-community/eslint-comments",
     ],
     rules: {
@@ -391,22 +387,6 @@ function createConfig(configFilePath, packageEntryPoints = []) {
       },
     ],
   };
-
-  // TODO: Maybe re-enable it once we have a more stable project structure
-  // if (packageEntryPoints.length > 0) {
-  //   const acceptableTopLevelImports = [];
-  //   config.overrides?.push({
-  //     files: packageEntryPoints,
-  //     rules: {
-  //       "@nomicfoundation/slow-imports/no-top-level-external-import": [
-  //         "error",
-  //         {
-  //           ignoreModules: [...acceptableTopLevelImports],
-  //         },
-  //       ],
-  //     },
-  //   });
-  // }
 
   return config;
 }

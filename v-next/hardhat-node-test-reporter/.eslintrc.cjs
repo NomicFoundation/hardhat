@@ -1,6 +1,6 @@
 const { createConfig } = require("../../config-v-next/eslint.cjs");
 
-module.exports = createConfig(__filename, ["src/reporter.ts"]);
+module.exports = createConfig(__filename);
 
 module.exports.overrides.push({
   files: ["integration-tests/**/*.ts"],
