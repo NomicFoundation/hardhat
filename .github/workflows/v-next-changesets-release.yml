@@ -88,7 +88,7 @@ jobs:
           pnpm changeset version
 
           # Update the pnpm package lock file
-          pnpm install
+          pnpm install --no-frozen-lockfile
 
           # Commit the changes and push
           git config --global user.name "Github Actions"
