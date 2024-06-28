@@ -106,7 +106,7 @@ export async function traceTransaction(
   txData: TxData
 ): Promise<MessageTrace> {
   const vmTracer = new VMTracer();
-  provider.injectVmTracer(vmTracer);
+  provider.setVmTracer(vmTracer);
 
   try {
     await provider.request({
@@ -131,6 +131,6 @@ export async function traceTransaction(
     }
     return trace;
   } finally {
-    provider.injectVmTracer(undefined);
+    provider.setVmTracer(undefined);
   }
 }

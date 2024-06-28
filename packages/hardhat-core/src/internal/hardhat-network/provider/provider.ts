@@ -469,11 +469,11 @@ export class EdrProviderWrapper
   }
 
   /**
-   * Injects a `VMTracer` that observes EVM throughout requests.
+   * Sets a `VMTracer` that observes EVM throughout requests.
    *
    * Used for internal stack traces integration tests.
    */
-  public injectVmTracer(vmTracer?: VMTracer) {
+  public setVmTracer(vmTracer?: VMTracer) {
     this._vmTracer = vmTracer;
   }
 
