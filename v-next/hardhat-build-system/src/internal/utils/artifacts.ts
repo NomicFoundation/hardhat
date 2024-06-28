@@ -94,7 +94,6 @@ export class Artifacts implements IArtifacts {
         return false;
       }
 
-      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
       throw e;
     }
 
@@ -590,7 +589,6 @@ export class Artifacts implements IArtifacts {
         );
       }
 
-      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
       throw e;
     }
   }

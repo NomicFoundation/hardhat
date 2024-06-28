@@ -52,11 +52,9 @@ async function readdir(absolutePathToDir: string) {
     }
 
     if (e.code === "ENOTDIR") {
-      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
       throw new InvalidDirectoryError(absolutePathToDir, e);
     }
 
-    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
     throw new FileSystemAccessError(e.message, e);
   }
 }
@@ -106,7 +104,6 @@ export async function getFileTrueCase(
     }
   }
 
-  // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
   throw new FileNotFoundError(path.join(from, relativePath));
 }
 
@@ -156,11 +153,9 @@ function readdirSync(absolutePathToDir: string) {
     }
 
     if (e.code === "ENOTDIR") {
-      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
       throw new InvalidDirectoryError(absolutePathToDir, e);
     }
 
-    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
     throw new FileSystemAccessError(e.message, e);
   }
 }
@@ -201,7 +196,6 @@ export function getFileTrueCaseSync(
     }
   }
 
-  // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
   throw new FileNotFoundError(path.join(from, relativePath));
 }
 
@@ -222,11 +216,9 @@ export async function getRealPath(absolutePath: string): Promise<string> {
     }
 
     if (e.code === "ENOENT") {
-      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
       throw new FileNotFoundError(absolutePath, e);
     }
 
-    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
     throw new FileSystemAccessError(e.message, e);
   }
 }
@@ -248,11 +240,9 @@ export function getRealPathSync(absolutePath: string): string {
     }
 
     if (e.code === "ENOENT") {
-      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
       throw new FileNotFoundError(absolutePath, e);
     }
 
-    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
     throw new FileSystemAccessError(e.message, e);
   }
 }
