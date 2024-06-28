@@ -660,7 +660,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://distributedlab.com/",
     description:
       "Hardhat plugin to automate the deployment and verification of contracts",
-    tags: ["Deployment", "Verification", "Migration"],
+    tags: ["Deployment", "Verification", "Migration", "Solarity"],
   },
   {
     name: "hardhat-notifier",
@@ -683,7 +683,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://distributedlab.com/",
     description:
       "Hardhat plugin to generate smart contract bindings for Golang",
-    tags: ["Bindings", "Go", "Testing"],
+    tags: ["Bindings", "Go", "Testing", "Solarity"],
   },
   {
     name: "hardhat-storage-vault",
@@ -729,7 +729,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://distributedlab.com/",
     description:
       "Hardhat plugin to generate customizable smart contracts documentation",
-    tags: ["Documentation", "NatSpec", "Markdown"],
+    tags: ["Documentation", "NatSpec", "Markdown", "Solarity"],
   },
   {
     name: "hardhat-contract-clarity",
@@ -843,7 +843,7 @@ const communityPlugins: IPlugin[] = [
     author: "Distributed Lab",
     authorUrl: "https://distributedlab.com/",
     description: "Hardhat plugin to deeply compare smart contracts",
-    tags: ["Storage Layout", "Bytecode", "Diff", "Compare"],
+    tags: ["Storage Layout", "Bytecode", "Diff", "Compare", "Solarity"],
   },
   {
     name: "hardhat-logger",
@@ -973,6 +973,20 @@ const communityPlugins: IPlugin[] = [
     description:
       "Hardhat plugin for verifying smart contracts deployed on the EVM chains including X Layer",
     tags: ["OKX Explorer", "Verification", "X Layer"],
+  },
+  {
+    name: "@solarity/hardhat-zkit",
+    author: "Distributed Lab",
+    authorUrl: "https://distributedlab.com/",
+    description: "The ultimate environment for building with Circom",
+    tags: ["Circom", "zk", "SnarkJS", "environment", "Solarity"],
+  },
+  {
+    name: "@solarity/hardhat-habits",
+    author: "Distributed Lab",
+    authorUrl: "https://distributedlab.com/",
+    description: "Hardhat plugin to get interfaceid",
+    tags: ["ABI", "interfaceid", "Solarity"],
   },
 ];
 
