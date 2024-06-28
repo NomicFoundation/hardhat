@@ -38,10 +38,8 @@ import { printVersionMessage } from "./version.js";
 
 export async function main(
   cliArguments: string[],
-  print: (message?: any, ...optionalParams: any[]) => void = console.log,
+  print: (message: string) => void = console.log,
 ): Promise<void> {
-  const hreInitStart = performance.now();
-
   const usedCliArguments: boolean[] = new Array(cliArguments.length).fill(
     false,
   );
@@ -91,11 +89,6 @@ export async function main(
       },
     );
 
-    const hreInitEnd = performance.now();
-    print("Time to initialize the HRE (ms):", hreInitEnd - hreInitStart);
-
-    const taskParsingStart = performance.now();
-
     const taskOrId = parseTask(cliArguments, usedCliArguments, hre);
 
     if (Array.isArray(taskOrId)) {
@@ -127,17 +120,7 @@ export async function main(
       task,
     );
 
-    const taskParsingEnd = performance.now();
-
-    print("Time to parse the task (ms):", taskParsingEnd - taskParsingStart);
-
-    const taskRunningStart = performance.now();
-
     await task.run(taskArguments);
-
-    const taskRunningEnd = performance.now();
-
-    print("Time to run the task (ms):", taskRunningEnd - taskRunningStart);
   } catch (error) {
     process.exitCode = 1;
 
@@ -148,7 +131,7 @@ export async function main(
 
     // TODO: Print the errors nicely, especially `HardhatError`s.
 
-    print("Error running the task:", error.message);
+    print(`Error running the task: ${error.message}`);
 
     if (hardhatSpecialArgs.showStackTraces) {
       print("");
