@@ -1,3 +1,5 @@
+import type { HardhatUserConfig } from "@ignored/hardhat-vnext-core/config";
+
 import { isAbsolute, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -23,7 +25,7 @@ export async function findClosestHardhatConfig(): Promise<string> {
 
 export async function importUserConfig(
   configPath: string,
-): Promise<Record<string | symbol, unknown>> {
+): Promise<HardhatUserConfig> {
   const normalizedPath = isAbsolute(configPath)
     ? configPath
     : resolve(process.cwd(), configPath);
