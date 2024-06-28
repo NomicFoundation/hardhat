@@ -24,7 +24,7 @@ export class Compiler implements ICompiler {
     this.#pathToSolcJs = pathToSolcJs;
   }
 
-  public async compile(input: CompilerInput) {
+  public async compile(input: CompilerInput): Promise<any> {
     const scriptPath = fileURLToPath(import.meta.resolve("./solcjs-runner.js"));
 
     // If the script is a TypeScript file, we need to pass the --import tsx/esm
@@ -79,7 +79,7 @@ export class NativeCompiler implements ICompiler {
     this.#solcVersion = _solcVersion;
   }
 
-  public async compile(input: CompilerInput) {
+  public async compile(input: CompilerInput): Promise<any> {
     const args = ["--standard-json"];
 
     // Logic to make sure that solc default import callback is not being used.

@@ -1,4 +1,5 @@
 import type { DispatcherOptions, RequestOptions } from "../request.js";
+import type EventEmitter from "node:events";
 import type UndiciT from "undici";
 
 import path from "node:path";
@@ -28,7 +29,13 @@ export async function getBaseRequestOptions(
   requestUrl: string,
   { extraHeaders, abortSignal, queryParams }: RequestOptions = {},
   dispatcherOrDispatcherOptions?: UndiciT.Dispatcher | DispatcherOptions,
-) {
+): Promise<{
+  query?: Record<string, any> | undefined;
+  signal?: EventEmitter | AbortSignal | undefined;
+  dispatcher: UndiciT.Dispatcher;
+  headers: Record<string, string>;
+  throwOnError: boolean;
+}> {
   const { Dispatcher } = await import("undici");
   const dispatcher =
     dispatcherOrDispatcherOptions instanceof Dispatcher
@@ -50,7 +57,7 @@ export async function getBaseRequestOptions(
 export function getHeaders(
   requestUrl: string,
   extraHeaders: Record<string, string> = {},
-) {
+): Record<string, string> {
   const headers: Record<string, string> = {
     ...extraHeaders,
     "User-Agent": extraHeaders["User-Agent"] ?? DEFAULT_USER_AGENT,
@@ -64,7 +71,7 @@ export function getHeaders(
   return headers;
 }
 
-export function getAuthHeader(requestUrl: string) {
+export function getAuthHeader(requestUrl: string): string | undefined {
   const parsedUrl = new URL(requestUrl);
   if (parsedUrl.username === "") {
     return undefined;

@@ -10,7 +10,10 @@ import { exists, getRealPath } from "@ignored/hardhat-vnext-utils/fs";
  * @param projectName The base name of the folder with the project to use.
  * @param changeDirTo If provided, the working directory will be changed to this. Must be a child of the project folder.
  */
-export function useFixtureProject(projectName: string, changeDirTo?: string) {
+export function useFixtureProject(
+  projectName: string,
+  changeDirTo?: string,
+): void {
   let projectPath: string;
   let prevWorkingDir: string;
 

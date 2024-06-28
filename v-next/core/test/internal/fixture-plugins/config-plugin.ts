@@ -4,7 +4,7 @@ import type {
   HardhatUserConfigValidationError,
 } from "../../../src/types/hooks.js";
 
-export default async () => {
+export default async (): Promise<Partial<ConfigHooks>> => {
   const handlers: Partial<ConfigHooks> = {
     validateUserConfig: async (
       _config: HardhatUserConfig,

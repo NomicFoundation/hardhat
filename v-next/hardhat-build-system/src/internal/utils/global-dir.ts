@@ -2,7 +2,7 @@ import path from "node:path";
 
 import { ensureDir } from "@ignored/hardhat-vnext-utils/fs";
 
-export async function getCompilersDir() {
+export async function getCompilersDir(): Promise<string> {
   const cache = await getCacheDir();
   // Note: we introduce `-v2` to invalidate all the previous compilers at once
   const compilersCache = path.join(cache, "compilers-v2");

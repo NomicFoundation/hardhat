@@ -56,7 +56,7 @@ export class ResolvedFile implements IResolvedFile {
     }
   }
 
-  public getVersionedName() {
+  public getVersionedName(): string {
     return (
       this.sourceName +
       (this.library !== undefined ? `@v${this.library.version}` : "")

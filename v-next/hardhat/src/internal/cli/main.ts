@@ -36,7 +36,10 @@ import { getHelpString } from "./helpers/getHelpString.js";
 import { initHardhat } from "./init/init.js";
 import { printVersionMessage } from "./version.js";
 
-export async function main(cliArguments: string[], print = console.log) {
+export async function main(
+  cliArguments: string[],
+  print: (message?: any, ...optionalParams: any[]) => void = console.log,
+): Promise<void> {
   const hreInitStart = performance.now();
 
   const usedCliArguments: boolean[] = new Array(cliArguments.length).fill(
@@ -157,7 +160,12 @@ export async function main(cliArguments: string[], print = console.log) {
 export async function parseHardhatSpecialArguments(
   cliArguments: string[],
   usedCliArguments: boolean[],
-) {
+): Promise<{
+  configPath: string | undefined;
+  showStackTraces: boolean;
+  help: boolean;
+  version: boolean;
+}> {
   let configPath: string | undefined;
   let showStackTraces: boolean = isCi();
   let help: boolean = false;

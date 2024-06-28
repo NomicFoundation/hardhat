@@ -4,7 +4,7 @@ import {
   isHexStringPrefixed,
 } from "../hex.js";
 
-export function padToEven(value: string) {
+export function padToEven(value: string): string {
   const isPrefixed = isHexStringPrefixed(value);
   const unprefixed = getUnprefixedHexString(value);
 

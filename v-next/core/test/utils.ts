@@ -18,7 +18,7 @@ export function createTestEnvManager() {
   });
 
   return {
-    setEnvVar(name: string, value: string) {
+    setEnvVar(name: string, value: string): void {
       // Before setting a new value, save the original value if it hasn't been saved yet
       if (!changes.has(name)) {
         originalValues.set(name, process.env[name]);

@@ -3,6 +3,7 @@ import type {
   Artifacts,
   CompilationJobCreationError,
   BuildConfig,
+  DependencyGraph,
 } from "./types/index.js";
 
 import {
@@ -71,7 +72,7 @@ export class BuildSystem {
   // TODO: TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS - naming? Do we want to keep it?
   public async solidityGetCompilationJobsFailureReasons(
     errors: CompilationJobCreationError[],
-  ) {
+  ): Promise<string> {
     return taskCompileSolidityGetCompilationJobsFailureReasons(errors);
   }
 
@@ -80,7 +81,7 @@ export class BuildSystem {
   public async solidityGetDependencyGraph(
     sourceNames: string[],
     config: BuildConfig,
-  ) {
+  ): Promise<DependencyGraph> {
     return taskCompileSolidityGetDependencyGraph(sourceNames, config);
   }
 

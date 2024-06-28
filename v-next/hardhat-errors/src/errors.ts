@@ -49,7 +49,7 @@ const IS_HARDHAT_PLUGIN_ERROR_PROPERTY_NAME = "_isHardhatPluginError";
 export class HardhatError<
   ErrorDescriptorT extends ErrorDescriptor,
 > extends CustomError {
-  public static readonly ERRORS = ERRORS;
+  public static readonly ERRORS: typeof ERRORS = ERRORS;
 
   readonly #descriptor: ErrorDescriptorT;
 

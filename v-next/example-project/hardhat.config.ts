@@ -95,7 +95,7 @@ const greeting = task("hello", "Prints a greeting")
   })
   .build();
 
-export default {
+const config: HardhatUserConfig = {
   tasks: [
     exampleTaskOverride,
     testTask,
@@ -130,4 +130,6 @@ export default {
     },
   ],
   privateKey: configVariable("privateKey"),
-} satisfies HardhatUserConfig;
+};
+
+export default config;

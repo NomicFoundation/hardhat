@@ -26,6 +26,6 @@ export async function getHardhatRuntimeEnvironmentSingleton(
  *
  * It should be used only in tests.
  */
-export function resetHardhatRuntimeEnvironmentSingleton() {
+export function resetHardhatRuntimeEnvironmentSingleton(): void {
   hre = undefined;
 }

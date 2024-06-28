@@ -22,5 +22,5 @@ export function useTmpDir(nameHint: string) {
     tmpDir = await getEmptyTmpDir(nameHint);
   });
 
-  return () => tmpDir;
+  return (): string => tmpDir;
 }

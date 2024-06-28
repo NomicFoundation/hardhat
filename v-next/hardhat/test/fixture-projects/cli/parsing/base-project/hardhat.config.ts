@@ -13,6 +13,8 @@ const customTask = task("task")
   })
   .build();
 
-export default {
+const config: HardhatUserConfig = {
   tasks: [customTask],
-} satisfies HardhatUserConfig;
+};
+
+export default config;

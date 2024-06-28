@@ -21,7 +21,9 @@ export async function findClosestHardhatConfig(): Promise<string> {
   throw new HardhatError(HardhatError.ERRORS.GENERAL.NO_CONFIG_FILE_FOUND);
 }
 
-export async function importUserConfig(configPath: string) {
+export async function importUserConfig(
+  configPath: string,
+): Promise<Record<string | symbol, unknown>> {
   const normalizedPath = isAbsolute(configPath)
     ? configPath
     : resolve(process.cwd(), configPath);

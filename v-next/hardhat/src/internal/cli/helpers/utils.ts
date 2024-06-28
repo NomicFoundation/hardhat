@@ -1,7 +1,10 @@
 import type { ParameterType } from "@ignored/hardhat-vnext-core/config";
 import type { Task } from "@ignored/hardhat-vnext-core/types/tasks";
 
-export const GLOBAL_OPTIONS = [
+export const GLOBAL_OPTIONS: Array<{
+  name: string;
+  description: string;
+}> = [
   {
     name: "--config",
     description: "A Hardhat config file.",

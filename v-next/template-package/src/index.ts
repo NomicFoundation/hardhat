@@ -1,13 +1,13 @@
 import { concat } from "./utils/string.js";
 
-export function foo() {
+export function foo(): string {
   return "foo";
 }
 
-export function bar() {
+export function bar(): string {
   return "bar";
 }
 
-export function foobar() {
+export function foobar(): string {
   return concat(foo(), bar());
 }
