@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
+import util from "node:util";
 
 import {
   HardhatError,
@@ -278,7 +279,7 @@ describe("error-handler", () => {
         assert.equal(lines.length, 5);
         assert.equal(lines[0], chalk.red.bold(`An unexpected error occurred:`));
         assert.equal(lines[1], "");
-        assert.equal(lines[2], `${error}`);
+        assert.equal(lines[2], `${util.inspect(error)}`);
         assert.equal(lines[3], "");
         assert.equal(
           lines[4],
