@@ -29,7 +29,7 @@ const senderAddress = bytesToHex(privateToAddress(toBuffer(senderPrivateKey)));
 export async function instantiateProvider(
   loggerConfig: LoggerConfig,
   tracingConfig: TracingConfig
-): Promise<[EdrProviderWrapper, VMTracer]> {
+): Promise<EdrProviderWrapper> {
   const config = {
     hardfork: "shanghai",
     chainId: 1,
@@ -55,26 +55,13 @@ export async function instantiateProvider(
     enableTransientStorage: false,
   };
 
-  const vmTracer = new VMTracer(false);
-
   const provider = await EdrProviderWrapper.create(
     config,
     loggerConfig,
-    {
-      onStep: async (step) => {
-        await vmTracer.addStep(step);
-      },
-      onAfterMessage: async (message) => {
-        await vmTracer.addAfterMessage(message);
-      },
-      onBeforeMessage: async (message) => {
-        await vmTracer.addBeforeMessage(message);
-      },
-    },
     tracingConfig
   );
 
-  return [provider, vmTracer];
+  return provider;
 }
 
 export function encodeConstructorParams(
@@ -116,9 +103,11 @@ export interface TxData {
 
 export async function traceTransaction(
   provider: EdrProviderWrapper,
-  vmTracer: VMTracer,
   txData: TxData
 ): Promise<MessageTrace> {
+  const vmTracer = new VMTracer();
+  provider.setVmTracer(vmTracer);
+
   try {
     await provider.request({
       method: "eth_sendTransaction",
@@ -142,6 +131,6 @@ export async function traceTransaction(
     }
     return trace;
   } finally {
-    vmTracer.clearLastError();
+    provider.setVmTracer(undefined);
   }
 }
