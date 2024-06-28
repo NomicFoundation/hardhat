@@ -1,8 +1,5 @@
-import path from "node:path";
-
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { findUp, readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
-import { findClosestPackageJson } from "@nomicfoundation/hardhat-utils/package";
+import { findUp } from "@nomicfoundation/hardhat-utils/fs";
 
 const JS_CONFIG_FILENAME = "hardhat.config.js";
 const TS_CONFIG_FILENAME = "hardhat.config.ts";
@@ -40,16 +37,4 @@ export async function getUserConfigPath() {
   }
 
   throw new HardhatError(HardhatError.ERRORS.GENERAL.NOT_INSIDE_PROJECT);
-}
-
-export async function getRecommendedGitIgnore() {
-  const packageRoot = await getPackageRoot();
-  const gitIgnorePath = path.join(packageRoot, "recommended-gitignore.txt");
-
-  return readUtf8File(gitIgnorePath);
-}
-
-async function getPackageRoot(): Promise<string> {
-  const packageJsonPath = await findClosestPackageJson(import.meta.url);
-  return path.dirname(packageJsonPath);
 }
