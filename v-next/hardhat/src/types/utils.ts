@@ -1,2 +1,2 @@
-export type * from "@nomicfoundation/hardhat-core/types/utils";
-export * from "@nomicfoundation/hardhat-core/types/utils";
+export type * from "@ignored/hardhat-vnext-core/types/utils";
+export * from "@ignored/hardhat-vnext-core/types/utils";

@@ -1,4 +1,4 @@
-import type { ConfigurationVariableHooks } from "@nomicfoundation/hardhat-core/types/hooks";
+import type { ConfigurationVariableHooks } from "@ignored/hardhat-vnext-core/types/hooks";
 
 export default async () => {
   const handlers: Partial<ConfigurationVariableHooks> = {

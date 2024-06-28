@@ -1,12 +1,12 @@
-import type { DispatcherOptions } from "@nomicfoundation/hardhat-utils/request";
+import type { DispatcherOptions } from "@ignored/hardhat-vnext-utils/request";
 
 import path from "node:path";
 
-import { ensureDir, move } from "@nomicfoundation/hardhat-utils/fs";
+import { ensureDir, move } from "@ignored/hardhat-vnext-utils/fs";
 import {
   download as downloadCompiler,
   shouldUseProxy,
-} from "@nomicfoundation/hardhat-utils/request";
+} from "@ignored/hardhat-vnext-utils/request";
 
 import { getHardhatVersion } from "./package-info.js";
 

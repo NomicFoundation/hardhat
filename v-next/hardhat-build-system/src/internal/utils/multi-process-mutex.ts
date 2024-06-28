@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import debug from "debug";
 
 // Logic explanation: the fs.writeFile function, when used with the wx+ flag, performs an atomic operation to create a file.

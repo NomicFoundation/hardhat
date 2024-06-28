@@ -4,7 +4,7 @@ import type {
 } from "../types/config.js";
 import type { HookManager } from "../types/hooks.js";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 export class ResolvedConfigurationVariableImplementation
   implements ResolvedConfigurationVariable

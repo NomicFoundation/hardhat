@@ -700,6 +700,22 @@ The first supported version is {firstSupportedVersion}`,
 Please use a newer, supported version.`,
       shouldBeReported: true,
     },
+    RUN_FILE_NOT_FOUND: {
+      number: 603,
+      messageTemplate: `Script {script} doesn't exist`,
+      websiteTitle: "Script doesn't exist",
+      websiteDescription: `Tried to use \`hardhat run\` to execute a nonexistent script.
+
+Please double check your script's path.`,
+    },
+    RUN_SCRIPT_ERROR: {
+      number: 604,
+      messageTemplate: `Error running script {script}: {error}`,
+      websiteTitle: "Error running script",
+      websiteDescription: `Running a script resulted in an error.
+
+Please check Hardhat's output for more details.`,
+    },
   },
   ARTIFACTS: {
     NOT_FOUND: {

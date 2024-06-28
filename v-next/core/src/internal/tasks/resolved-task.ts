@@ -14,8 +14,8 @@ import type {
 import {
   HardhatError,
   assertHardhatInvariant,
-} from "@nomicfoundation/hardhat-errors";
-import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+} from "@ignored/hardhat-vnext-errors";
+import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 
 import { isParameterValueValid } from "../parameters.js";
 import { detectPluginNpmDependencyProblems } from "../plugins/detect-plugin-npm-dependency-problems.js";

@@ -1,36 +1,34 @@
-import type { ParameterValue } from "@nomicfoundation/hardhat-core/types/common";
+import type { ParameterValue } from "@ignored/hardhat-vnext-core/types/common";
 import type {
   GlobalOptions,
   GlobalOption,
   GlobalOptionsMap,
-} from "@nomicfoundation/hardhat-core/types/global-options";
-import type { HardhatRuntimeEnvironment } from "@nomicfoundation/hardhat-core/types/hre";
+} from "@ignored/hardhat-vnext-core/types/global-options";
+import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core/types/hre";
 import type {
   TaskOption,
   Task,
   TaskArguments,
   TaskParameter,
-} from "@nomicfoundation/hardhat-core/types/tasks";
+} from "@ignored/hardhat-vnext-core/types/tasks";
 
 import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
 
 import {
   buildGlobalOptionsMap,
   resolvePluginList,
-} from "@nomicfoundation/hardhat-core";
-import { ParameterType } from "@nomicfoundation/hardhat-core/types/common";
+} from "@ignored/hardhat-vnext-core";
+import { ParameterType } from "@ignored/hardhat-vnext-core/types/common";
 import {
   HardhatError,
   assertHardhatInvariant,
-} from "@nomicfoundation/hardhat-errors";
-import { isCi } from "@nomicfoundation/hardhat-utils/ci";
-import { kebabToCamelCase } from "@nomicfoundation/hardhat-utils/string";
+} from "@ignored/hardhat-vnext-errors";
+import { isCi } from "@ignored/hardhat-vnext-utils/ci";
+import { kebabToCamelCase } from "@ignored/hardhat-vnext-utils/string";
 
+import { resolveHardhatConfigPath } from "../../config.js";
 import { builtinPlugins } from "../builtin-plugins/index.js";
-import {
-  importUserConfig,
-  resolveConfigPath,
-} from "../helpers/config-loading.js";
+import { importUserConfig } from "../helpers/config-loading.js";
 import { getHardhatRuntimeEnvironmentSingleton } from "../hre-singleton.js";
 
 import { getGlobalHelpString } from "./helpers/getGlobalHelpString.js";
@@ -59,7 +57,7 @@ export async function main(cliArguments: string[], print = console.log) {
   }
 
   if (hardhatSpecialArgs.configPath === undefined) {
-    hardhatSpecialArgs.configPath = await resolveConfigPath();
+    hardhatSpecialArgs.configPath = await resolveHardhatConfigPath();
   }
 
   try {

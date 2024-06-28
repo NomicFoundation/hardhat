@@ -1,9 +1,13 @@
 {
-  "name": "@nomicfoundation/hardhat-node-test-reporter",
-  "version": "3.0.0",
+  "name": "@ignored/hardhat-vnext-node-test-reporter",
+  "version": "3.0.0-next.2",
   "description": "A node:test reporter",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-node-test-reporter",
-  "repository": "github:nomicfoundation/hardhat",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NomicFoundation/hardhat",
+    "directory": "v-next/hardhat-node-test-reporter"
+  },
   "author": "Nomic Foundation",
   "license": "MIT",
   "type": "module",
@@ -39,7 +43,7 @@
   "devDependencies": {
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
-    "@types/node": "^20.0.0",
+    "@types/node": "^20.14.9",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
     "@typescript-eslint/parser": "^7.7.1",
     "eslint": "8.57.0",

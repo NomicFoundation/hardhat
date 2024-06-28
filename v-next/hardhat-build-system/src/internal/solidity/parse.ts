@@ -1,5 +1,5 @@
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 
 import { SolidityFilesCache } from "../builtin-tasks/utils/solidity-files-cache.js";
 

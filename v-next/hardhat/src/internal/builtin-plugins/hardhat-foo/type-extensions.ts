@@ -1,4 +1,4 @@
-declare module "@nomicfoundation/hardhat-core/types/config" {
+declare module "@ignored/hardhat-vnext-core/types/config" {
   interface FooUserConfig {
     bar?: number | number[];
   }

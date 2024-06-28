@@ -4,7 +4,7 @@ import type * as taskTypes from "../types/builtin-tasks/index.js";
 import {
   HardhatError,
   assertHardhatInvariant,
-} from "@nomicfoundation/hardhat-errors";
+} from "@ignored/hardhat-vnext-errors";
 
 export class DependencyGraph implements taskTypes.DependencyGraph {
   public static async createFromResolvedFiles(

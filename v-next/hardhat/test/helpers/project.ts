@@ -1,7 +1,7 @@
 import path from "node:path";
 import { before, after } from "node:test";
 
-import { exists, getRealPath } from "@nomicfoundation/hardhat-utils/fs";
+import { exists, getRealPath } from "@ignored/hardhat-vnext-utils/fs";
 
 /**
  * This helper adds mocha hooks to run the tests inside one of the projects
@@ -43,7 +43,6 @@ async function getFixtureProjectPath(
   }
 
   if (!(await exists(projectPath))) {
-    console.log("projectPath", projectPath);
     throw new Error(`Fixture project ${projectName} doesn't exist`);
   }
 

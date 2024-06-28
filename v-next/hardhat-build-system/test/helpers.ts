@@ -3,7 +3,7 @@ import type {
   SolidityConfig,
 } from "../src/internal/types/config.js";
 import type { SolcConfig } from "../src/internal/types/index.js";
-import type { ErrorDescriptor } from "@nomicfoundation/hardhat-errors";
+import type { ErrorDescriptor } from "@ignored/hardhat-vnext-errors";
 
 import { AssertionError } from "node:assert";
 import assert from "node:assert/strict";
@@ -13,9 +13,9 @@ import path from "node:path";
 import { beforeEach } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { ensureError } from "@nomicfoundation/hardhat-utils/error";
-import { getRealPath, mkdir, remove } from "@nomicfoundation/hardhat-utils/fs";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+import { getRealPath, mkdir, remove } from "@ignored/hardhat-vnext-utils/fs";
 import semver from "semver";
 
 import { ResolvedFile } from "../src/internal/solidity/resolver.js";

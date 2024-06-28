@@ -1,6 +1,6 @@
-import type { HardhatUserConfig } from "@nomicfoundation/hardhat-core/config";
+import type { HardhatUserConfig } from "@ignored/hardhat-vnext-core/config";
 
-import { task } from "@nomicfoundation/hardhat-core/config";
+import { task } from "@ignored/hardhat-vnext-core/config";
 
 export const tasksResults = {
   wasParam1Used: false,

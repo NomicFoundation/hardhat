@@ -1,7 +1,7 @@
 import {
   HardhatError,
   assertHardhatInvariant,
-} from "@nomicfoundation/hardhat-errors";
+} from "@ignored/hardhat-vnext-errors";
 
 /**
  * Returns a fully qualified name from a sourceName and contractName.

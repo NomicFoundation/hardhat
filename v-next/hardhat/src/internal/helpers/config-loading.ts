@@ -1,11 +1,11 @@
 import { isAbsolute, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { findUp } from "@nomicfoundation/hardhat-utils/fs";
-import { isObject } from "@nomicfoundation/hardhat-utils/lang";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { findUp } from "@ignored/hardhat-vnext-utils/fs";
+import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 
-async function findClosestHardhatConfig(): Promise<string> {
+export async function findClosestHardhatConfig(): Promise<string> {
   let hardhatConfigPath = await findUp("hardhat.config.ts");
 
   if (hardhatConfigPath !== undefined) {
@@ -21,22 +21,12 @@ async function findClosestHardhatConfig(): Promise<string> {
   throw new HardhatError(HardhatError.ERRORS.GENERAL.NO_CONFIG_FILE_FOUND);
 }
 
-export async function resolveConfigPath(): Promise<string> {
-  const configPath = process.env.HARDHAT_CONFIG;
-
-  if (configPath !== undefined) {
-    return configPath;
-  }
-
-  return findClosestHardhatConfig();
-}
-
 export async function importUserConfig(configPath: string) {
   const normalizedPath = isAbsolute(configPath)
     ? configPath
     : resolve(process.cwd(), configPath);
 
-  const { exists } = await import("@nomicfoundation/hardhat-utils/fs");
+  const { exists } = await import("@ignored/hardhat-vnext-utils/fs");
 
   if (!(await exists(normalizedPath))) {
     throw new HardhatError(HardhatError.ERRORS.GENERAL.INVALID_CONFIG_PATH, {

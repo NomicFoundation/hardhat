@@ -12,12 +12,12 @@ import * as os from "node:os";
 import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import {
   readJsonFile,
   remove,
   writeJsonFile,
-} from "@nomicfoundation/hardhat-utils/fs";
+} from "@ignored/hardhat-vnext-utils/fs";
 
 import {
   Artifacts,

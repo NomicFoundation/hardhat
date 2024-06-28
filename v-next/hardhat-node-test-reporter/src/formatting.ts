@@ -1,5 +1,5 @@
 import type { GlobalDiagnostics } from "./diagnostics.js";
-import type { TestEventData } from "./node-types.js";
+import type { TestEventData } from "./types.js";
 
 import chalk from "chalk";
 

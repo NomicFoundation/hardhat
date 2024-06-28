@@ -4,7 +4,7 @@ import {
   exists,
   readJsonFile,
   writeJsonFile,
-} from "@nomicfoundation/hardhat-utils/fs";
+} from "@ignored/hardhat-vnext-utils/fs";
 import debug from "debug";
 import { deepEqual } from "fast-equals";
 import * as t from "io-ts";

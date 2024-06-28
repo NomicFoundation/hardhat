@@ -15,7 +15,7 @@ import type { LastParameter, Return } from "../types/utils.js";
 import {
   HardhatError,
   assertHardhatInvariant,
-} from "@nomicfoundation/hardhat-errors";
+} from "@ignored/hardhat-vnext-errors";
 
 export class HookManagerImplementation implements HookManager {
   readonly #pluginsInReverseOrder: HardhatPlugin[];

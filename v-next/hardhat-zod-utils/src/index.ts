@@ -1,5 +1,5 @@
-import type { HardhatUserConfig } from "@nomicfoundation/hardhat-core/config";
-import type { HardhatUserConfigValidationError } from "@nomicfoundation/hardhat-core/types/hooks";
+import type { HardhatUserConfig } from "@ignored/hardhat-vnext-core/config";
+import type { HardhatUserConfigValidationError } from "@ignored/hardhat-vnext-core/types/hooks";
 import type { ZodType, ZodTypeDef, ZodIssue } from "zod";
 
 import { z } from "zod";

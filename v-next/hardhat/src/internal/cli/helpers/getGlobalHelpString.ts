@@ -1,4 +1,4 @@
-import type { Task } from "@nomicfoundation/hardhat-core/types/tasks";
+import type { Task } from "@ignored/hardhat-vnext-core/types/tasks";
 
 import { getHardhatVersion } from "../../utils/package.js";
 

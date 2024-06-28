@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { ensureDir } from "@nomicfoundation/hardhat-utils/fs";
+import { ensureDir } from "@ignored/hardhat-vnext-utils/fs";
 
 export async function getCompilersDir() {
   const cache = await getCacheDir();
