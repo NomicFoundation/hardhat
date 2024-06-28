@@ -1447,12 +1447,6 @@ importers:
       '@microsoft/api-extractor':
         specifier: ^7.43.4
         version: 7.43.4(@types/node@20.14.9)
-      '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
-        specifier: workspace:^
-        version: link:../../packages/eslint-plugin-hardhat-internal-rules
-      '@nomicfoundation/eslint-plugin-slow-imports':
-        specifier: workspace:^
-        version: link:../../packages/eslint-plugin-slow-imports
       '@types/node':
         specifier: ^20.14.9
         version: 20.14.9
@@ -1550,12 +1544,6 @@ importers:
       '@ignored/hardhat-vnext-node-test-reporter':
         specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-node-test-reporter
-      '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
-        specifier: workspace:^
-        version: link:../../packages/eslint-plugin-hardhat-internal-rules
-      '@nomicfoundation/eslint-plugin-slow-imports':
-        specifier: workspace:^
-        version: link:../../packages/eslint-plugin-slow-imports
       '@types/node':
         specifier: ^20.14.9
         version: 20.14.9
@@ -1662,12 +1650,6 @@ importers:
       '@ignored/hardhat-vnext-node-test-reporter':
         specifier: workspace:^3.0.0-next.0
         version: link:../hardhat-node-test-reporter
-      '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
-        specifier: workspace:^
-        version: link:../../packages/eslint-plugin-hardhat-internal-rules
-      '@nomicfoundation/eslint-plugin-slow-imports':
-        specifier: workspace:^
-        version: link:../../packages/eslint-plugin-slow-imports
       '@types/ci-info':
         specifier: ^2.0.0
         version: 2.0.0
@@ -1753,12 +1735,6 @@ importers:
       '@ignored/hardhat-vnext-node-test-reporter':
         specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-node-test-reporter
-      '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
-        specifier: workspace:^
-        version: link:../../packages/eslint-plugin-hardhat-internal-rules
-      '@nomicfoundation/eslint-plugin-slow-imports':
-        specifier: workspace:^
-        version: link:../../packages/eslint-plugin-slow-imports
       '@types/node':
         specifier: ^20.14.9
         version: 20.14.9
@@ -1814,12 +1790,6 @@ importers:
         specifier: ^29.7.0
         version: 29.7.0
     devDependencies:
-      '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
-        specifier: workspace:^
-        version: link:../../packages/eslint-plugin-hardhat-internal-rules
-      '@nomicfoundation/eslint-plugin-slow-imports':
-        specifier: workspace:^
-        version: link:../../packages/eslint-plugin-slow-imports
       '@types/node':
         specifier: ^20.14.9
         version: 20.14.9
@@ -1884,12 +1854,6 @@ importers:
       '@ignored/hardhat-vnext-node-test-reporter':
         specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-node-test-reporter
-      '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
-        specifier: workspace:^
-        version: link:../../packages/eslint-plugin-hardhat-internal-rules
-      '@nomicfoundation/eslint-plugin-slow-imports':
-        specifier: workspace:^
-        version: link:../../packages/eslint-plugin-slow-imports
       '@types/bn.js':
         specifier: ^5.1.5
         version: 5.1.5
@@ -1950,12 +1914,6 @@ importers:
       '@ignored/hardhat-vnext-node-test-reporter':
         specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-node-test-reporter
-      '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
-        specifier: workspace:^
-        version: link:../../packages/eslint-plugin-hardhat-internal-rules
-      '@nomicfoundation/eslint-plugin-slow-imports':
-        specifier: workspace:^
-        version: link:../../packages/eslint-plugin-slow-imports
       '@types/node':
         specifier: ^20.14.9
         version: 20.14.9
@@ -2010,12 +1968,6 @@ importers:
       '@ignored/hardhat-vnext-node-test-reporter':
         specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-node-test-reporter
-      '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
-        specifier: workspace:^
-        version: link:../../packages/eslint-plugin-hardhat-internal-rules
-      '@nomicfoundation/eslint-plugin-slow-imports':
-        specifier: workspace:^
-        version: link:../../packages/eslint-plugin-slow-imports
       '@types/node':
         specifier: ^20.14.9
         version: 20.14.9
