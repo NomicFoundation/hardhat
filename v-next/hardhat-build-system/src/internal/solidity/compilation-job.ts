@@ -114,7 +114,7 @@ export class CompilationJob implements taskTypes.CompilationJob {
 
   constructor(public solidityConfig: SolcConfig) {}
 
-  public addFileToCompile(file: ResolvedFile, emitsArtifacts: boolean) {
+  public addFileToCompile(file: ResolvedFile, emitsArtifacts: boolean): void {
     const fileToCompile = this.#filesToCompile.get(file.sourceName);
 
     // if the file doesn't exist, we add it
@@ -151,7 +151,7 @@ export class CompilationJob implements taskTypes.CompilationJob {
     return this.solidityConfig;
   }
 
-  public isEmpty() {
+  public isEmpty(): boolean {
     return this.#filesToCompile.size === 0;
   }
 

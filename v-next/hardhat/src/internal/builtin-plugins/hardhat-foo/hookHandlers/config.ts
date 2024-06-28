@@ -15,7 +15,7 @@ const hardhatUserConfig = z.object({
   privateKey: z.optional(sensitiveStringType),
 });
 
-export default async () => {
+export default async (): Promise<Partial<ConfigHooks>> => {
   const handlers: Partial<ConfigHooks> = {
     validateUserConfig: async (userConfig) => {
       return validateUserConfigZodType(userConfig, hardhatUserConfig);

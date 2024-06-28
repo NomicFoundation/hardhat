@@ -36,9 +36,10 @@ import { getHelpString } from "./helpers/getHelpString.js";
 import { initHardhat } from "./init/init.js";
 import { printVersionMessage } from "./version.js";
 
-export async function main(cliArguments: string[], print = console.log) {
-  const hreInitStart = performance.now();
-
+export async function main(
+  cliArguments: string[],
+  print: (message: string) => void = console.log,
+): Promise<void> {
   const usedCliArguments: boolean[] = new Array(cliArguments.length).fill(
     false,
   );
@@ -88,11 +89,6 @@ export async function main(cliArguments: string[], print = console.log) {
       },
     );
 
-    const hreInitEnd = performance.now();
-    print("Time to initialize the HRE (ms):", hreInitEnd - hreInitStart);
-
-    const taskParsingStart = performance.now();
-
     const taskOrId = parseTask(cliArguments, usedCliArguments, hre);
 
     if (Array.isArray(taskOrId)) {
@@ -124,17 +120,7 @@ export async function main(cliArguments: string[], print = console.log) {
       task,
     );
 
-    const taskParsingEnd = performance.now();
-
-    print("Time to parse the task (ms):", taskParsingEnd - taskParsingStart);
-
-    const taskRunningStart = performance.now();
-
     await task.run(taskArguments);
-
-    const taskRunningEnd = performance.now();
-
-    print("Time to run the task (ms):", taskRunningEnd - taskRunningStart);
   } catch (error) {
     process.exitCode = 1;
 
@@ -145,7 +131,7 @@ export async function main(cliArguments: string[], print = console.log) {
 
     // TODO: Print the errors nicely, especially `HardhatError`s.
 
-    print("Error running the task:", error.message);
+    print(`Error running the task: ${error.message}`);
 
     if (hardhatSpecialArgs.showStackTraces) {
       print("");
@@ -157,7 +143,13 @@ export async function main(cliArguments: string[], print = console.log) {
 export async function parseHardhatSpecialArguments(
   cliArguments: string[],
   usedCliArguments: boolean[],
-) {
+): Promise<{
+  init: boolean;
+  configPath: string | undefined;
+  showStackTraces: boolean;
+  help: boolean;
+  version: boolean;
+}> {
   let configPath: string | undefined;
   let showStackTraces: boolean = isCi();
   let help: boolean = false;

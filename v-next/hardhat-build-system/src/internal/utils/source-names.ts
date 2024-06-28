@@ -171,7 +171,7 @@ export async function isLocalSourceName(
 export async function validateSourceNameExistenceAndCasing(
   fromDir: string,
   sourceName: string,
-) {
+): Promise<void> {
   const trueCaseSourceName = await getSourceNameTrueCase(fromDir, sourceName);
 
   if (trueCaseSourceName !== sourceName) {
@@ -188,7 +188,7 @@ export async function validateSourceNameExistenceAndCasing(
  * It throws if the format is invalid.
  * If it doesn't throw all you know is that the format is valid.
  */
-export function validateSourceNameFormat(sourceName: string) {
+export function validateSourceNameFormat(sourceName: string): void {
   if (isAbsolutePathSourceName(sourceName)) {
     throw new HardhatError(
       HardhatError.ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_ABSOLUTE_PATH,

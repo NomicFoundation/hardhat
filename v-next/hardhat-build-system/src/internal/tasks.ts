@@ -173,7 +173,10 @@ export async function taskCompileSolidityGetCompilationJobs(
   config: BuildConfig,
   dependencyGraph: taskTypes.DependencyGraph,
   solidityFilesCache?: SolidityFilesCache,
-) {
+): Promise<{
+  jobs: taskTypes.CompilationJob[];
+  errors: taskTypes.CompilationJobCreationError[];
+}> {
   const connectedComponents = dependencyGraph.getConnectedComponents();
 
   log(
@@ -217,7 +220,7 @@ export async function taskCompileSolidityGetCompilationJobs(
  */
 export async function taskCompileSolidityHandleCompilationJobsFailures(
   compilationJobsCreationErrors: CompilationJobCreationError[],
-) {
+): Promise<void> {
   const hasErrors = compilationJobsCreationErrors.length > 0;
 
   if (hasErrors) {
@@ -535,7 +538,9 @@ export async function taskCompileSolidityMergeCompilationJobs(
 /**
  * Prints a message when there's nothing to compile.
  */
-export async function taskCompileSolidityLogNothingToCompile(quiet: boolean) {
+export async function taskCompileSolidityLogNothingToCompile(
+  quiet: boolean,
+): Promise<void> {
   if (!quiet) {
     console.log("Nothing to compile");
   }
@@ -547,7 +552,7 @@ export async function taskCompileSolidityLogDownloadCompilerStart(
   solcVersion: string,
   isCompilerDownloaded: boolean,
   _quiet: boolean, // TODO: keep unused?
-) {
+): Promise<void> {
   if (isCompilerDownloaded) {
     return;
   }
@@ -560,7 +565,7 @@ export async function taskCompileSolidityLogDownloadCompilerEnd(
   _solcVersion: string, // TODO: keep unused?
   _isCompilerDownloaded: boolean, // TODO: keep unused?
   _quiet: boolean, // TODO: keep unused?
-) {
+): Promise<void> {
   return;
 }
 
@@ -658,7 +663,7 @@ export async function taskCompileSolidityLogRunCompilerStart(
   _compilationJobs: CompilationJob[], // TODO: keep unused?
   _compilationJobIndex: number, // TODO: keep unused?
   _quiet: boolean, // TODO: keep unused?
-) {
+): Promise<void> {
   return;
 }
 
@@ -715,7 +720,7 @@ export async function taskCompileSolidityLogRunCompilerEnd(
   _compilationJobIndex: number, // TODO: keep unused?
   _output: any, // TODO: keep unused?
   _quiet: boolean, // TODO: keep unused?
-) {
+): Promise<void> {
   return;
 }
 
@@ -784,7 +789,10 @@ export async function taskCompileSolidityCompile(
   compilationJob: CompilationJob,
   compilationJobs: CompilationJob[],
   compilationJobIndex: number,
-) {
+): Promise<{
+  output: CompilerOutput;
+  solcBuild: taskTypes.SolcBuild;
+}> {
   return taskCompileSolidityCompileSolc(
     input,
     quiet,
@@ -804,7 +812,7 @@ export async function taskCompileSolidityCompile(
 export async function taskCompileSolidityLogCompilationErrors(
   output: any,
   _quiet: boolean, // TODO: keep unused?
-) {
+): Promise<void> {
   if (output?.errors === undefined) {
     return;
   }
@@ -882,7 +890,7 @@ function isConsoleLogError(error: any): boolean {
 export async function taskCompileSolidityCheckErrors(
   output: any,
   quiet: boolean,
-) {
+): Promise<void> {
   await taskCompileSolidityLogCompilationErrors(output, quiet);
 
   if (hasCompilationErrors(output)) {
@@ -1000,7 +1008,13 @@ export async function taskCompileSolidityCompileJob(
   quiet: boolean,
   emitsArtifacts: boolean,
   artifacts: Artifacts,
-) {
+): Promise<{
+  artifactsEmittedPerFile: taskTypes.ArtifactsEmittedPerFile;
+  compilationJob: taskTypes.CompilationJob;
+  input: CompilerInput;
+  output: CompilerOutput;
+  solcBuild: taskTypes.SolcBuild;
+}> {
   log(`Compiling job with version '${compilationJob.getSolcConfig().version}'`);
   const input: CompilerInput =
     await taskCompileSolidityGetCompilerInput(compilationJob);
@@ -1125,7 +1139,7 @@ export async function taskCompileSolidityCompileJobs(
 export async function taskCompileSolidityLogCompilationResult(
   compilationJobs: CompilationJob[],
   _quiet?: boolean, // TODO: keep unused?
-) {
+): Promise<void> {
   let count = 0;
   const evmVersions = new Set<string>();
   const unknownEvmVersions = new Set<string>();
@@ -1170,7 +1184,9 @@ export async function taskCompileSolidityLogCompilationResult(
 
 // TASK_COMPILE_REMOVE_OBSOLETE_ARTIFACTS
 // TESTED
-export async function taskCompileRemoveObsoleteArtifacts(artifacts: Artifacts) {
+export async function taskCompileRemoveObsoleteArtifacts(
+  artifacts: Artifacts,
+): Promise<void> {
   /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
   We know this is the actual implementation, so we use some non-public methods
   here by downcasting */
@@ -1244,7 +1260,7 @@ export async function taskCompileSolidity(
   quiet: boolean,
   concurrency: number,
   tasksOverrides: TasksOverrides | undefined,
-) {
+): Promise<void> {
   const rootPath = config.paths.root;
 
   const sourcePaths: string[] = await taskCompileSolidityGetSourcePaths(

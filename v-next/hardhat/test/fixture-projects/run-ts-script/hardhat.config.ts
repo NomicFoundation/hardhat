@@ -1,6 +1,8 @@
+import type { HardhatUserConfig } from "@ignored/hardhat-vnext/config";
+
 import { task } from "@ignored/hardhat-vnext/config";
 
-export default {
+const config: HardhatUserConfig = {
   tasks: [
     task("test", "Prints a test")
       .setAction(async () => {
@@ -9,3 +11,5 @@ export default {
       .build(),
   ],
 };
+
+export default config;

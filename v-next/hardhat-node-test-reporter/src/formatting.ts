@@ -5,8 +5,8 @@ import chalk from "chalk";
 
 import { formatError } from "./error-formatting.js";
 
-export const INFO_SYMBOL = chalk.blue("\u2139");
-export const SUCCESS_SYMBOL = chalk.green("✔");
+export const INFO_SYMBOL: string = chalk.blue("\u2139");
+export const SUCCESS_SYMBOL: string = chalk.green("✔");
 
 export interface Failure {
   index: number;

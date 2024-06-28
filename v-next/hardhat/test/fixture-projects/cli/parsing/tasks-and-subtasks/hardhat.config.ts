@@ -68,6 +68,8 @@ const customSubtask2 = task(["task-default", "subtask-default"])
   })
   .build();
 
-export default {
+const config: HardhatUserConfig = {
   tasks: [customTask, customTask2, customSubtask, customSubtask2],
-} satisfies HardhatUserConfig;
+};
+
+export default config;

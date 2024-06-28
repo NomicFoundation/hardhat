@@ -4,6 +4,8 @@ import { emptyTask } from "@ignored/hardhat-vnext-core/config";
 
 const customTask = emptyTask("empty-task", "empty task description").build();
 
-export default {
+const config: HardhatUserConfig = {
   tasks: [customTask],
-} satisfies HardhatUserConfig;
+};
+
+export default config;

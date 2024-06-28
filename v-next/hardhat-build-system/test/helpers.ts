@@ -50,7 +50,7 @@ const defaultSolcOutputSelection = {
     "": ["ast"],
   },
 };
-export function cleanFixtureProjectDir(fixtureProjectName: string) {
+export function cleanFixtureProjectDir(fixtureProjectName: string): void {
   const folderPath = path.join(
     _dirname,
     "fixture-projects",
@@ -61,7 +61,7 @@ export function cleanFixtureProjectDir(fixtureProjectName: string) {
   rmSync(path.join(folderPath, "cache"), { recursive: true, force: true });
 }
 
-export function useFixtureProject(fixtureProjectName: string) {
+export function useFixtureProject(fixtureProjectName: string): void {
   beforeEach(async () => {
     process.chdir(path.join(_dirname, "fixture-projects", fixtureProjectName));
 
@@ -214,7 +214,7 @@ export async function expectHardhatErrorAsync(
   f: () => Promise<any>,
   errorDescriptor: ErrorDescriptor,
   errorMessage?: string | RegExp,
-) {
+): Promise<void> {
   // We create the error here to capture the stack trace before the await.
   // This makes things easier, at least as long as we don't have async stack
   // traces. This may change in the near-ish future.
@@ -314,5 +314,5 @@ export function useTmpDir(nameHint: string) {
     tmpDir = await getEmptyTmpDir(nameHint);
   });
 
-  return () => tmpDir;
+  return (): string => tmpDir;
 }

@@ -4,7 +4,7 @@ import { globalFlag, task } from "@ignored/hardhat-vnext-core/config";
 
 import "./type-extensions.js";
 
-export default {
+const hardhatPlugin: HardhatPlugin = {
   id: "hardhat-foo",
   hookHandlers: {
     config: import.meta.resolve("./hookHandlers/config.js"),
@@ -20,4 +20,6 @@ export default {
       .build(),
   ],
   globalOptions: [globalFlag({ name: "flag", description: "A flag" })],
-} satisfies HardhatPlugin;
+};
+
+export default hardhatPlugin;

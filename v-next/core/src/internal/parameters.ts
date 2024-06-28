@@ -7,7 +7,7 @@ import { ParameterType } from "../types/common.js";
 /**
  * Names that can't be used as global- nor task-parameter names.
  */
-export const RESERVED_PARAMETER_NAMES = new Set([
+export const RESERVED_PARAMETER_NAMES: Set<string> = new Set([
   "config",
   "help",
   "showStackTraces",

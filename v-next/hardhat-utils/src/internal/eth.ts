@@ -25,14 +25,14 @@ class RandomBytesGenerator {
 let hashGenerator: RandomBytesGenerator | null = null;
 let addressGenerator: RandomBytesGenerator | null = null;
 
-export async function getHashGenerator() {
+export async function getHashGenerator(): Promise<RandomBytesGenerator> {
   if (hashGenerator === null) {
     hashGenerator = await RandomBytesGenerator.create("hashSeed");
   }
   return hashGenerator;
 }
 
-export async function getAddressGenerator() {
+export async function getAddressGenerator(): Promise<RandomBytesGenerator> {
   if (addressGenerator === null) {
     addressGenerator = await RandomBytesGenerator.create("addressSeed");
   }

@@ -2,7 +2,7 @@ import type { HardhatPlugin } from "@ignored/hardhat-vnext-core/types/plugins";
 
 import { ParameterType, task } from "@ignored/hardhat-vnext-core/config";
 
-export default {
+const hardhatPlugin: HardhatPlugin = {
   id: "run",
   tasks: [
     task("run", "Runs a user-defined script after compiling the project")
@@ -18,4 +18,6 @@ export default {
       .setAction(import.meta.resolve("./runScriptWithHardhat.js"))
       .build(),
   ],
-} satisfies HardhatPlugin;
+};
+
+export default hardhatPlugin;

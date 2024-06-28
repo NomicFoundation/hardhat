@@ -22,7 +22,7 @@ function resolveTempFileName(filePath: string): string {
   });
 }
 
-export async function download(url: string, filePath: string) {
+export async function download(url: string, filePath: string): Promise<void> {
   const dispatcherOptions: DispatcherOptions = {};
   if (process.env.proxy !== undefined && shouldUseProxy(url)) {
     dispatcherOptions.proxy = process.env.proxy;

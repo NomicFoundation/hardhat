@@ -1,5 +1,7 @@
 import type { HardhatUserConfig } from "@ignored/hardhat-vnext-core/config";
 
-export default {
+const config: HardhatUserConfig = {
   tasks: [],
-} satisfies HardhatUserConfig;
+};
+
+export default config;

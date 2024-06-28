@@ -84,7 +84,7 @@ export class SolidityFilesCache {
     this.#cache = _cache;
   }
 
-  public async removeNonExistingFiles() {
+  public async removeNonExistingFiles(): Promise<void> {
     await Promise.all(
       Object.keys(this.#cache.files).map(async (absolutePath) => {
         if (!(await exists(absolutePath))) {
@@ -94,11 +94,11 @@ export class SolidityFilesCache {
     );
   }
 
-  public async writeToFile(solidityFilesCachePath: string) {
+  public async writeToFile(solidityFilesCachePath: string): Promise<void> {
     await writeJsonFile(solidityFilesCachePath, this.#cache);
   }
 
-  public addFile(absolutePath: string, entry: CacheEntry) {
+  public addFile(absolutePath: string, entry: CacheEntry): void {
     this.#cache.files[absolutePath] = entry;
   }
 
@@ -110,7 +110,7 @@ export class SolidityFilesCache {
     return this.#cache.files[file];
   }
 
-  public removeEntry(file: string) {
+  public removeEntry(file: string): void {
     delete this.#cache.files[file];
   }
 

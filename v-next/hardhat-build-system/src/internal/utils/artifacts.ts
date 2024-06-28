@@ -76,7 +76,7 @@ export class Artifacts implements IArtifacts {
 
   public addValidArtifacts(
     validArtifacts: Array<{ sourceName: string; artifacts: string[] }>,
-  ) {
+  ): void {
     this.#validArtifacts.push(...validArtifacts);
   }
 
@@ -193,7 +193,7 @@ export class Artifacts implements IArtifacts {
   public async saveArtifactAndDebugFile(
     artifact: Artifact,
     pathToBuildInfo?: string,
-  ) {
+  ): Promise<void> {
     try {
       // artifact
       const fullyQualifiedName = getFullyQualifiedName(
@@ -347,7 +347,7 @@ export class Artifacts implements IArtifacts {
   /**
    * Remove all artifacts that don't correspond to the current solidity files
    */
-  public async removeObsoleteArtifacts() {
+  public async removeObsoleteArtifacts(): Promise<void> {
     // We clear the cache here, as we want to be sure this runs correctly
     this.clearCache();
 
@@ -402,7 +402,7 @@ export class Artifacts implements IArtifacts {
     return path.join(this.#artifactsPath, sourceName, `${contractName}.json`);
   }
 
-  public clearCache() {
+  public clearCache(): void {
     // Avoid accidentally re-enabling the cache
     if (this.#cache === undefined) {
       return;
@@ -414,7 +414,7 @@ export class Artifacts implements IArtifacts {
     };
   }
 
-  public disableCache() {
+  public disableCache(): void {
     this.#cache = undefined;
   }
 

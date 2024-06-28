@@ -152,7 +152,7 @@ export class CompilerDownloader implements ICompilerDownloader {
   constructor(
     _platform: CompilerPlatform,
     _compilersDir: string,
-    _compilerListCachePeriodMs = CompilerDownloader.defaultCompilerListCachePeriod,
+    _compilerListCachePeriodMs: number = CompilerDownloader.defaultCompilerListCachePeriod,
     _downloadFunction: typeof download = download,
   ) {
     this.#platform = _platform;
