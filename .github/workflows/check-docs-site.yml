@@ -3,7 +3,8 @@ name: Check Docs Site
 on:
   push:
     branches:
-      - "**"
+      - main
+  pull_request:
   workflow_dispatch:
 
 concurrency:
@@ -11,23 +12,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
-    name: Lint
+  build:
+    name: Build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docs
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v2
+      - uses: ./.github/actions/setup-env
         with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
-          cache: "pnpm"
-      - name: Install
-        run: pnpm install --frozen-lockfile --prefer-offline
+          pnpm-lockfile: docs/pnpm-lock.yaml
+          package-json: docs/package.json
       - name: Install Docs
-        run: cd docs && pnpm install --frozen-lockfile --prefer-offline
-      - name: lint
-        run: cd docs && pnpm lint
+        run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
-        run: cd docs && pnpm build
+        run: pnpm build

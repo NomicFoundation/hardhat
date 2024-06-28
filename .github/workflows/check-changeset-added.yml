@@ -21,7 +21,7 @@ jobs:
     # don't run this check in the changesets PR
     if: github.head_ref != 'changeset-release/main'
     steps:
-      - uses: actions/github-script@v6
+      - uses: actions/github-script@v7
         with:
           script: |
             const pullNumber = context.issue.number;
