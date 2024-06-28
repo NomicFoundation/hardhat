@@ -3,10 +3,13 @@ import type { Task } from "@ignored/hardhat-vnext-core/types/tasks";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import packageJson from "../../../../package.json";
+import { readClosestPackageJson } from "@ignored/hardhat-vnext-utils/package";
+
 import { getGlobalHelpString } from "../../../../src/internal/cli/helpers/getGlobalHelpString.js";
 
-describe("getGlobalHelpString", function () {
+describe("getGlobalHelpString", async function () {
+  const packageJson = await readClosestPackageJson(import.meta.url);
+
   describe("when there are no tasks", function () {
     it("should return the global help string", async function () {
       const tasks = new Map();
