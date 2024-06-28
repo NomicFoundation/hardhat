@@ -64,7 +64,7 @@ interface ErrorMessages {
  */
 export function printErrorMessages(
   error: unknown,
-  print = console.error,
+  print: (message: string) => void = console.error,
 ): void {
   const showStackTraces =
     process.argv.includes("--show-stack-traces") ||
@@ -81,7 +81,7 @@ export function printErrorMessages(
   print("");
 
   if (showStackTraces) {
-    print(error instanceof Error ? error.stack : error);
+    print(error instanceof Error ? `${error.stack}` : `${error}`);
     if (postErrorStackTraceMessage !== undefined) {
       print("");
       print(postErrorStackTraceMessage);
