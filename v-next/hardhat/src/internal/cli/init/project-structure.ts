@@ -1,5 +1,5 @@
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { findUp } from "@nomicfoundation/hardhat-utils/fs";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { findUp } from "@ignored/hardhat-vnext-utils/fs";
 
 const JS_CONFIG_FILENAME = "hardhat.config.js";
 const TS_CONFIG_FILENAME = "hardhat.config.ts";

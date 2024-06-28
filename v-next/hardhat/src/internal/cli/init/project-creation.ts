@@ -1,14 +1,14 @@
-import type { PackageJson } from "@nomicfoundation/hardhat-utils/package";
+import type { PackageJson } from "@ignored/hardhat-vnext-utils/package";
 
 import path from "node:path";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import {
   exists,
   readJsonFile,
   writeJsonFile,
   writeUtf8File,
-} from "@nomicfoundation/hardhat-utils/fs";
+} from "@ignored/hardhat-vnext-utils/fs";
 import chalk from "chalk";
 
 import { getHardhatVersion } from "../../utils/package.js";

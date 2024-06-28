@@ -2,12 +2,12 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { after, afterEach, beforeEach, describe, it } from "node:test";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import {
   readJsonFile,
   readUtf8File,
   remove,
-} from "@nomicfoundation/hardhat-utils/fs";
+} from "@ignored/hardhat-vnext-utils/fs";
 
 import { initHardhat } from "../../../../src/internal/cli/init/init.js";
 import { getUserConfigPath } from "../../../../src/internal/cli/init/project-structure.js";

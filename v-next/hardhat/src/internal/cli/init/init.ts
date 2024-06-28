@@ -1,4 +1,4 @@
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 import { createProject } from "./project-creation.js";
 import { getUserConfigPath, isCwdInsideProject } from "./project-structure.js";
