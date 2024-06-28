@@ -236,6 +236,11 @@ function createConfig(configFilePath) {
           message:
             "assert.ok should provide an error message as the second argument",
         },
+        {
+          selector: "AwaitExpression:not(:function AwaitExpression)",
+          message:
+            "Top-level await is only allowed in a few cases. Please discuss this change with the team.",
+        },
       ],
       "@typescript-eslint/restrict-plus-operands": "error",
       "@typescript-eslint/restrict-template-expressions": [
