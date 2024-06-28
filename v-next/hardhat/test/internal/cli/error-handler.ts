@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { beforeEach, describe, it } from "node:test";
 
 import {
   HardhatError,
@@ -22,10 +22,15 @@ const mockErrorDescriptor = {
 } as const;
 
 describe("error-handler", () => {
+  const { setEnvVar } = createTestEnvManager();
+
+  beforeEach(() => {
+    // Unset env var for tests to run correctly in CI environments
+    setEnvVar("GITHUB_ACTIONS", undefined);
+  });
+
   describe("printErrorMessages", () => {
     describe("with a Hardhat error", () => {
-      const { setEnvVar } = createTestEnvManager();
-
       it("should print the error message", () => {
         const lines: string[] = [];
         const error = new HardhatError(mockErrorDescriptor);
@@ -91,8 +96,6 @@ describe("error-handler", () => {
     });
 
     describe("with a Hardhat plugin error", () => {
-      const { setEnvVar } = createTestEnvManager();
-
       it("should print the error message", () => {
         const lines: string[] = [];
         const error = new HardhatError({
@@ -167,8 +170,6 @@ describe("error-handler", () => {
     });
 
     describe("with a Hardhat community plugin error", () => {
-      const { setEnvVar } = createTestEnvManager();
-
       it("should print the error message", () => {
         const lines: string[] = [];
         const error = new HardhatPluginError(

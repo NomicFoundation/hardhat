@@ -18,13 +18,17 @@ export function createTestEnvManager() {
   });
 
   return {
-    setEnvVar(name: string, value: string) {
+    setEnvVar(name: string, value: string | undefined) {
       // Before setting a new value, save the original value if it hasn't been saved yet
       if (!changes.has(name)) {
         originalValues.set(name, process.env[name]);
         changes.add(name);
       }
-      process.env[name] = value;
+      if (value === undefined) {
+        delete process.env[name];
+      } else {
+        process.env[name] = value;
+      }
     },
   };
 }
