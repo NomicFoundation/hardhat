@@ -83,7 +83,14 @@ jobs:
       - name: Apply and commit changesets
         run: |
           echo "Changesets found. Starting release."
+
+          # Apply prerelease changesets
           pnpm changeset version
+
+          # Update the pnpm package lock file
+          pnpm install
+
+          # Commit the changes and push
           git config --global user.name "Github Actions"
           git config --global user.email "nomicfoundation@users.noreply.github.com"
           git commit -a -m "chore: v-next version bump"

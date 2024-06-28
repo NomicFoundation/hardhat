@@ -1426,10 +1426,10 @@ importers:
   v-next/core:
     dependencies:
       '@ignored/hardhat-vnext-errors':
-        specifier: workspace:^3.0.0-next.1
+        specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-errors
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.1
+        specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-utils
       chalk:
         specifier: ^5.3.0
@@ -1442,7 +1442,7 @@ importers:
         specifier: ^4.3.0
         version: 4.3.0(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.1
+        specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-node-test-reporter
       '@microsoft/api-extractor':
         specifier: ^7.43.4
@@ -1508,7 +1508,7 @@ importers:
   v-next/example-project:
     devDependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.1
+        specifier: workspace:^3.0.0-next.2
         version: link:../hardhat
       '@types/node':
         specifier: ^20.14.9
@@ -1523,16 +1523,16 @@ importers:
   v-next/hardhat:
     dependencies:
       '@ignored/hardhat-vnext-core':
-        specifier: workspace:^3.0.0-next.1
+        specifier: workspace:^3.0.0-next.2
         version: link:../core
       '@ignored/hardhat-vnext-errors':
-        specifier: workspace:^3.0.0-next.1
+        specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-errors
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.1
+        specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-utils
       '@ignored/hardhat-vnext-zod-utils':
-        specifier: workspace:^3.0.0-next.1
+        specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-zod-utils
       chalk:
         specifier: ^5.3.0
@@ -1548,7 +1548,7 @@ importers:
         specifier: ^4.3.0
         version: 4.3.0(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.1
+        specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
         specifier: workspace:^
@@ -1744,14 +1744,14 @@ importers:
   v-next/hardhat-errors:
     dependencies:
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.1
+        specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-utils
     devDependencies:
       '@eslint-community/eslint-plugin-eslint-comments':
         specifier: ^4.3.0
         version: 4.3.0(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.1
+        specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
         specifier: workspace:^
@@ -1882,7 +1882,7 @@ importers:
         specifier: ^4.3.0
         version: 4.3.0(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.1
+        specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
         specifier: workspace:^
@@ -1945,10 +1945,10 @@ importers:
         specifier: ^4.3.0
         version: 4.3.0(eslint@8.57.0)
       '@ignored/hardhat-vnext-core':
-        specifier: workspace:^3.0.0-next.1
+        specifier: workspace:^3.0.0-next.2
         version: link:../core
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.1
+        specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
         specifier: workspace:^
@@ -2008,7 +2008,7 @@ importers:
         specifier: ^4.3.0
         version: 4.3.0(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.1
+        specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
         specifier: workspace:^
