@@ -354,7 +354,7 @@ For global options help run: hardhat --help`;
     });
 
     it("should recognize the init command", async function () {
-      const command = "npx hardhat init --show-stack-traces";
+      const command = "npx hardhat --init --show-stack-traces";
 
       const cliArguments = command.split(" ").slice(2);
       const usedCliArguments = new Array(cliArguments.length).fill(false);
@@ -374,7 +374,7 @@ For global options help run: hardhat --help`;
     });
 
     it("should throw an error because the config param cannot be used with the init command", async function () {
-      const command = "npx hardhat --config ./path1 init";
+      const command = "npx hardhat --config ./path1 --init";
 
       const cliArguments = command.split(" ").slice(2);
       const usedCliArguments = new Array(cliArguments.length).fill(false);

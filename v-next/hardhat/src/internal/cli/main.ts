@@ -169,7 +169,7 @@ export async function parseHardhatSpecialArguments(
   for (let i = 0; i < cliArguments.length; i++) {
     const arg = cliArguments[i];
 
-    if (arg === "init") {
+    if (arg === "--init") {
       usedCliArguments[i] = true;
       init = true;
       continue;
