@@ -21,7 +21,7 @@ enum Action {
   QUIT = "Quit",
 }
 
-export async function createProject() {
+export async function createProject(): Promise<void> {
   printAsciiLogo();
 
   await printWelcomeMessage();

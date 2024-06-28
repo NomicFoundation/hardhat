@@ -4,7 +4,7 @@ import { findClosestHardhatConfig } from "../../helpers/config-loading.js";
 
 import { createProject } from "./project-creation.js";
 
-export async function initHardhat() {
+export async function initHardhat(): Promise<void> {
   await throwIfCwdAlreadyInsideProject();
 
   if (

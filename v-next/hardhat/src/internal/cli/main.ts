@@ -144,6 +144,7 @@ export async function parseHardhatSpecialArguments(
   cliArguments: string[],
   usedCliArguments: boolean[],
 ): Promise<{
+  init: boolean;
   configPath: string | undefined;
   showStackTraces: boolean;
   help: boolean;
