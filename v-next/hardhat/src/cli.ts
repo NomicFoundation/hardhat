@@ -4,8 +4,9 @@ process.setSourceMapsEnabled(true);
 
 // eslint-disable-next-line no-restricted-syntax -- Allow top-level await here
 const { main } = await import("./internal/cli/main.js");
+const { printErrorMessages } = await import("./internal/cli/error-handler.js");
 
 main(process.argv.slice(2)).catch((error: unknown) => {
-  console.error(error);
-  process.exitCode = 1;
+  printErrorMessages(error);
+  process.exit(1);
 });
