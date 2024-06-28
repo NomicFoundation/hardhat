@@ -298,7 +298,6 @@ export class Resolver {
         );
       }
 
-      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
       throw error;
     }
   }
@@ -579,7 +578,6 @@ export class Resolver {
         );
       }
 
-      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
       throw error;
     }
   }

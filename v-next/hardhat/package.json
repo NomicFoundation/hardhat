@@ -19,6 +19,7 @@
     ".": "./dist/src/index.js",
     "./config": "./dist/src/config.js",
     "./hre": "./dist/src/hre.js",
+    "./plugins": "./dist/src/plugins.js",
     "./types/common": "./dist/src/types/common.js",
     "./types/config": "./dist/src/types/config.js",
     "./types/global-options": "./dist/src/types/global-options.js",
@@ -55,8 +56,6 @@
   ],
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
-    "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
-    "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
     "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.2",
     "@types/node": "^20.14.9",
     "@typescript-eslint/eslint-plugin": "^7.7.1",

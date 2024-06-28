@@ -54,8 +54,6 @@
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
     "@microsoft/api-extractor": "^7.43.4",
-    "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
-    "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
     "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.2",
     "@types/node": "^20.14.9",
     "@types/semver": "^7.5.8",

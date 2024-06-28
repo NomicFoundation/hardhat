@@ -70,7 +70,6 @@ async function getSourceNameTrueCase(
       );
     }
 
-    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
     throw error;
   }
 }
@@ -157,7 +156,6 @@ export async function isLocalSourceName(
       return false;
     }
 
-    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error -- Re-throwing the error
     throw error;
   }
 
