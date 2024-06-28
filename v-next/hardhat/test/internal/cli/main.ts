@@ -108,21 +108,6 @@ describe("main", function () {
       });
     });
 
-    describe("show-stack-traces", function () {
-      useFixtureProject("cli/parsing/base-project");
-
-      // TODO: implement as soon as the 'pretty print error' and 'show-stack-traces task' are done
-      // This test throws when a task is not recognized
-      it.todo("should show the stack traces for the error", async function () {
-        const command = "npx hardhat non-existing-task";
-        const cliArguments = command.split(" ").slice(2);
-
-        await main(cliArguments);
-        assert.equal(process.exitCode, 1); // Expect 1 because the task failed
-        process.exitCode = 0; // Reset the exit code so it does not affect other tests
-      });
-    });
-
     describe("different configuration file path", function () {
       useFixtureProject("cli/parsing/user-config");
 
