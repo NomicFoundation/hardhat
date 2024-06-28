@@ -95,6 +95,29 @@ const greeting = task("hello", "Prints a greeting")
   })
   .build();
 
+const pluginExample = {
+  id: "community-plugin",
+  tasks: [
+    task("plugin-hello", "Prints a greeting from community-plugin")
+      .addOption({
+        name: "greeting",
+        description: "The greeting to print",
+        defaultValue: "Hello, World from community-plugin!",
+      })
+      .setAction(async ({ greeting }, _) => {
+        console.log(greeting);
+
+        if (greeting === "") {
+          throw new HardhatPluginError(
+            "community-plugin",
+            "Greeting cannot be empty",
+          );
+        }
+      })
+      .build(),
+  ],
+};
+
 const config: HardhatUserConfig = {
   tasks: [
     exampleTaskOverride,
@@ -105,30 +128,7 @@ const config: HardhatUserConfig = {
     exampleEmptySubtask,
     greeting,
   ],
-  plugins: [
-    {
-      id: "plugin-example",
-      tasks: [
-        task("plugin1-hello", "Prints a greeting from plugin1")
-          .addOption({
-            name: "greeting",
-            description: "The greeting to print",
-            defaultValue: "Hello, World from plugin1!",
-          })
-          .setAction(async ({ greeting }, _) => {
-            console.log(greeting);
-
-            if (greeting === "") {
-              throw new HardhatPluginError(
-                "plugin-example",
-                "Greeting cannot be empty",
-              );
-            }
-          })
-          .build(),
-      ],
-    },
-  ],
+  plugins: [pluginExample],
   privateKey: configVariable("privateKey"),
 };
 
