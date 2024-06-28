@@ -54,8 +54,6 @@
   ],
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
-    "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
-    "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
     "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.2",
     "@types/bn.js": "^5.1.5",
     "@types/keccak": "^3.0.4",

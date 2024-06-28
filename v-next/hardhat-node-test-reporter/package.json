@@ -41,8 +41,6 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
-    "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
     "@types/node": "^20.14.9",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
     "@typescript-eslint/parser": "^7.7.1",
