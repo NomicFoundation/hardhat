@@ -39,7 +39,13 @@ export type HardhatErrorConstructorArguments<
 export const ERROR_PREFIX = "HHE";
 
 const IS_HARDHAT_ERROR_PROPERTY_NAME = "_isHardhatError";
+const IS_HARDHAT_PLUGIN_ERROR_PROPERTY_NAME = "_isHardhatPluginError";
 
+/**
+ * An error thrown by Hardhat. This error is meant to be thrown by Hardhat
+ * itself, and internal plugins. For errors thrown by community plugins, see
+ * `HardhatPluginError`.
+ */
 export class HardhatError<
   ErrorDescriptorT extends ErrorDescriptor,
 > extends CustomError {
@@ -153,6 +159,43 @@ export class HardhatError<
     ErrorDescriptorT["messageTemplate"]
   > {
     return this.#arguments;
+  }
+}
+
+/**
+ * An error thrown by a Hardhat plugin. This error is meant to be thrown by
+ * community plugins to signal that something went wrong.
+ */
+export class HardhatPluginError extends CustomError {
+  constructor(
+    public readonly pluginName: string,
+    message: string,
+    parentError?: Error,
+  ) {
+    super(message, parentError);
+
+    // See `HardhatError` constructor for an explanation of this property.
+    Object.defineProperty(this, IS_HARDHAT_PLUGIN_ERROR_PROPERTY_NAME, {
+      configurable: false,
+      enumerable: false,
+      writable: false,
+      value: true,
+    });
+  }
+
+  public static isHardhatPluginError(
+    other: unknown,
+  ): other is HardhatPluginError {
+    if (!isObject(other) || other === null) {
+      return false;
+    }
+
+    const isHardhatPluginErrorProperty = Object.getOwnPropertyDescriptor(
+      other,
+      IS_HARDHAT_PLUGIN_ERROR_PROPERTY_NAME,
+    );
+
+    return isHardhatPluginErrorProperty?.value === true;
   }
 }
 

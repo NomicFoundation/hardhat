@@ -10,7 +10,11 @@ import { describe, it } from "node:test";
 import { expectTypeOf } from "expect-type";
 
 import { ERRORS, ERROR_CATEGORIES } from "../src/descriptors.js";
-import { HardhatError, applyErrorMessageTemplate } from "../src/errors.js";
+import {
+  HardhatError,
+  HardhatPluginError,
+  applyErrorMessageTemplate,
+} from "../src/errors.js";
 
 const mockErrorDescriptor = {
   number: 123,
@@ -41,6 +45,12 @@ describe("HardhatError", () => {
       assert.ok(
         !HardhatError.isHardhatError(new Error()),
         "new Error() is not a HardhatError, but isHardhatError returned true",
+      );
+      assert.ok(
+        !HardhatError.isHardhatError(
+          new HardhatPluginError("examplePlugin", "error message"),
+        ),
+        "new HardhatPluginError() is not a HardhatError, but isHardhatError returned true",
       );
       assert.ok(
         !HardhatError.isHardhatError(undefined),
@@ -142,6 +152,82 @@ describe("HardhatError", () => {
         new Error(),
       );
       assert.equal(error.message, "HHE12: a b 123");
+    });
+  });
+});
+
+describe("HardhatPluginError", () => {
+  describe("Type guard", () => {
+    it("Should return true for HardhatPluginErrors", () => {
+      const error = new HardhatPluginError("examplePlugin", "error message");
+      assert.ok(
+        HardhatPluginError.isHardhatPluginError(error),
+        `error ${error.name} is a HardhatPluginError, but isHardhatPluginError returned false`,
+      );
+    });
+
+    it("Should return false for everything else", () => {
+      assert.ok(
+        !HardhatPluginError.isHardhatPluginError(new Error()),
+        "new Error() is not a HardhatPluginError, but isHardhatPluginError returned true",
+      );
+      assert.ok(
+        !HardhatPluginError.isHardhatPluginError(
+          new HardhatError(mockErrorDescriptor),
+        ),
+        "new HardhatError() is not a HardhatPluginError, but isHardhatPluginError returned true",
+      );
+      assert.ok(
+        !HardhatPluginError.isHardhatPluginError(undefined),
+        "undefined is not a HardhatPluginError, but isHardhatPluginError returned true",
+      );
+      assert.ok(
+        !HardhatPluginError.isHardhatPluginError(null),
+        "null is not a HardhatPluginError, but isHardhatPluginError returned true",
+      );
+      assert.ok(
+        !HardhatPluginError.isHardhatPluginError(123),
+        "123 is not a HardhatPluginError, but isHardhatPluginError returned true",
+      );
+      assert.ok(
+        !HardhatPluginError.isHardhatPluginError("123"),
+        '"123" is not a HardhatPluginError, but isHardhatPluginError returned true',
+      );
+      assert.ok(
+        !HardhatPluginError.isHardhatPluginError({ asd: 123 }),
+        "{ asd: 123 } is not a HardhatPluginError, but isHardhatPluginError returned true",
+      );
+    });
+  });
+
+  describe("Without parent error", () => {
+    it("should have the right plugin name", () => {
+      const error = new HardhatPluginError("examplePlugin", "error message");
+      assert.equal(error.pluginName, "examplePlugin");
+    });
+
+    it("should have the right error message", () => {
+      const error = new HardhatPluginError("examplePlugin", "error message");
+      assert.equal(error.message, "error message");
+    });
+
+    it("shouldn't have a cause", () => {
+      assert.equal(
+        new HardhatPluginError("examplePlugin", "error message").cause,
+        undefined,
+      );
+    });
+  });
+
+  describe("With cause error", () => {
+    it("should have the right cause error", () => {
+      const cause = new Error();
+      const error = new HardhatPluginError(
+        "examplePlugin",
+        "error message",
+        cause,
+      );
+      assert.equal(error.cause, cause);
     });
   });
 });

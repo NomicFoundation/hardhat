@@ -19,6 +19,7 @@
     ".": "./dist/src/index.js",
     "./config": "./dist/src/config.js",
     "./hre": "./dist/src/hre.js",
+    "./plugins": "./dist/src/plugins.js",
     "./types/common": "./dist/src/types/common.js",
     "./types/config": "./dist/src/types/config.js",
     "./types/global-options": "./dist/src/types/global-options.js",
