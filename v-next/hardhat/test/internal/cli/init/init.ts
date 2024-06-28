@@ -10,8 +10,8 @@ import {
 } from "@ignored/hardhat-vnext-utils/fs";
 
 import { initHardhat } from "../../../../src/internal/cli/init/init.js";
-import { getUserConfigPath } from "../../../../src/internal/cli/init/project-structure.js";
 import { EMPTY_HARDHAT_CONFIG } from "../../../../src/internal/cli/init/sample-config-file.js";
+import { findClosestHardhatConfig } from "../../../../src/internal/helpers/config-loading.js";
 import { useFixtureProject } from "../../../helpers/project.js";
 
 async function deleteHardhatConfigFile() {
@@ -118,7 +118,7 @@ describe("init", function () {
         new HardhatError(
           HardhatError.ERRORS.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,
           {
-            hardhatProjectRootPath: await getUserConfigPath(),
+            hardhatProjectRootPath: await findClosestHardhatConfig(),
           },
         ),
       );

@@ -1,17 +1,11 @@
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
+import { findClosestHardhatConfig } from "../../helpers/config-loading.js";
+
 import { createProject } from "./project-creation.js";
-import { getUserConfigPath, isCwdInsideProject } from "./project-structure.js";
 
 export async function initHardhat() {
-  if (await isCwdInsideProject()) {
-    throw new HardhatError(
-      HardhatError.ERRORS.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,
-      {
-        hardhatProjectRootPath: await getUserConfigPath(),
-      },
-    );
-  }
+  await throwIfCwdAlreadyInsideProject();
 
   if (
     process.stdout.isTTY === true ||
@@ -32,4 +26,28 @@ export async function initHardhat() {
   }
 
   throw new HardhatError(HardhatError.ERRORS.GENERAL.NOT_IN_INTERACTIVE_SHELL);
+}
+
+async function throwIfCwdAlreadyInsideProject() {
+  try {
+    const configFilePath = await findClosestHardhatConfig();
+
+    throw new HardhatError(
+      HardhatError.ERRORS.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,
+      {
+        hardhatProjectRootPath: configFilePath,
+      },
+    );
+  } catch (err) {
+    if (
+      HardhatError.isHardhatError(err) &&
+      err.number === HardhatError.ERRORS.GENERAL.NO_CONFIG_FILE_FOUND.number
+    ) {
+      // If a configuration file is not found, it is possible to initialize a new project,
+      // hence continuing code execution
+      return;
+    }
+
+    throw err;
+  }
 }
