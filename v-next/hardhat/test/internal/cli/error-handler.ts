@@ -37,7 +37,7 @@ describe("error-handler", () => {
         assert.equal(lines.length, 3);
         assert.equal(
           lines[0],
-          `${chalk.red.bold(`Error ${error.errorCode}:`)}${error.formattedMessage}`,
+          `${chalk.red.bold(`Error ${error.errorCode}:`)} ${error.formattedMessage}`,
         );
         assert.equal(lines[1], "");
         assert.equal(
@@ -60,7 +60,7 @@ describe("error-handler", () => {
         assert.equal(lines.length, 3);
         assert.equal(
           lines[0],
-          `${chalk.red.bold(`Error ${error.errorCode}:`)}${error.formattedMessage}`,
+          `${chalk.red.bold(`Error ${error.errorCode}:`)} ${error.formattedMessage}`,
         );
         assert.equal(lines[1], "");
         assert.equal(lines[2], error.stack);
@@ -80,7 +80,7 @@ describe("error-handler", () => {
           assert.equal(lines.length, 3);
           assert.equal(
             lines[0],
-            `${chalk.red.bold(`Error ${error.errorCode}:`)}${error.formattedMessage}`,
+            `${chalk.red.bold(`Error ${error.errorCode}:`)} ${error.formattedMessage}`,
           );
           assert.equal(lines[1], "");
           assert.equal(lines[2], error.stack);
@@ -107,7 +107,7 @@ describe("error-handler", () => {
         assert.equal(lines.length, 3);
         assert.equal(
           lines[0],
-          `${chalk.red.bold(`Error ${error.errorCode} in plugin ${error.pluginId}:`)}${error.formattedMessage}`,
+          `${chalk.red.bold(`Error ${error.errorCode} in plugin ${error.pluginId}:`)} ${error.formattedMessage}`,
         );
         assert.equal(lines[1], "");
         assert.equal(
@@ -133,7 +133,7 @@ describe("error-handler", () => {
         assert.equal(lines.length, 3);
         assert.equal(
           lines[0],
-          `${chalk.red.bold(`Error ${error.errorCode} in plugin ${error.pluginId}:`)}${error.formattedMessage}`,
+          `${chalk.red.bold(`Error ${error.errorCode} in plugin ${error.pluginId}:`)} ${error.formattedMessage}`,
         );
         assert.equal(lines[1], "");
         assert.equal(lines[2], error.stack);
@@ -156,7 +156,7 @@ describe("error-handler", () => {
           assert.equal(lines.length, 3);
           assert.equal(
             lines[0],
-            `${chalk.red.bold(`Error ${error.errorCode} in plugin ${error.pluginId}:`)}${error.formattedMessage}`,
+            `${chalk.red.bold(`Error ${error.errorCode} in plugin ${error.pluginId}:`)} ${error.formattedMessage}`,
           );
           assert.equal(lines[1], "");
           assert.equal(lines[2], error.stack);
@@ -183,7 +183,7 @@ describe("error-handler", () => {
         assert.equal(lines.length, 3);
         assert.equal(
           lines[0],
-          `${chalk.red.bold(`Error in community plugin ${error.pluginId}:`)}${error.message}`,
+          `${chalk.red.bold(`Error in community plugin ${error.pluginId}:`)} ${error.message}`,
         );
         assert.equal(lines[1], "");
         assert.equal(
@@ -209,7 +209,7 @@ describe("error-handler", () => {
         assert.equal(lines.length, 3);
         assert.equal(
           lines[0],
-          `${chalk.red.bold(`Error in community plugin ${error.pluginId}:`)}${error.message}`,
+          `${chalk.red.bold(`Error in community plugin ${error.pluginId}:`)} ${error.message}`,
         );
         assert.equal(lines[1], "");
         assert.equal(lines[2], error.stack);
@@ -232,7 +232,7 @@ describe("error-handler", () => {
           assert.equal(lines.length, 3);
           assert.equal(
             lines[0],
-            `${chalk.red.bold(`Error in community plugin ${error.pluginId}:`)}${error.message}`,
+            `${chalk.red.bold(`Error in community plugin ${error.pluginId}:`)} ${error.message}`,
           );
           assert.equal(lines[1], "");
           assert.equal(lines[2], error.stack);

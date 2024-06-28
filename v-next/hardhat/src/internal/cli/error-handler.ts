@@ -124,17 +124,17 @@ function getErrorMessages(error: unknown): ErrorMessages {
   switch (category) {
     case ErrorCategory.HARDHAT:
       return {
-        formattedErrorMessage: `${chalk.red.bold(`Error ${categorizedError.errorCode}:`)}${categorizedError.formattedMessage}`,
+        formattedErrorMessage: `${chalk.red.bold(`Error ${categorizedError.errorCode}:`)} ${categorizedError.formattedMessage}`,
         showMoreInfoMessage: `For more info go to ${HARDHAT_WEBSITE_URL}${categorizedError.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
       };
     case ErrorCategory.PLUGIN:
       return {
-        formattedErrorMessage: `${chalk.red.bold(`Error ${categorizedError.errorCode} in plugin ${categorizedError.pluginId}:`)}${categorizedError.formattedMessage}`,
+        formattedErrorMessage: `${chalk.red.bold(`Error ${categorizedError.errorCode} in plugin ${categorizedError.pluginId}:`)} ${categorizedError.formattedMessage}`,
         showMoreInfoMessage: `For more info go to ${HARDHAT_WEBSITE_URL}${categorizedError.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
       };
     case ErrorCategory.COMMUNITY_PLUGIN:
       return {
-        formattedErrorMessage: `${chalk.red.bold(`Error in community plugin ${categorizedError.pluginId}:`)}${categorizedError.message}`,
+        formattedErrorMessage: `${chalk.red.bold(`Error in community plugin ${categorizedError.pluginId}:`)} ${categorizedError.message}`,
         showMoreInfoMessage: `For more info run ${HARDHAT_NAME} with --show-stack-traces`,
       };
     case ErrorCategory.OTHER:
