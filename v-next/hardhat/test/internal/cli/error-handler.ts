@@ -27,6 +27,7 @@ describe("error-handler", () => {
   beforeEach(() => {
     // Unset env var for tests to run correctly in CI environments
     setEnvVar("GITHUB_ACTIONS", undefined);
+    setEnvVar("CI", undefined);
   });
 
   describe("printErrorMessages", () => {
@@ -57,6 +58,7 @@ describe("error-handler", () => {
 
         // stack traces are enabled in CI environments
         setEnvVar("GITHUB_ACTIONS", "true");
+        setEnvVar("CI", "true");
 
         printErrorMessages(error, (msg: string) => {
           lines.push(msg);
@@ -128,6 +130,7 @@ describe("error-handler", () => {
 
         // stack traces are enabled in CI environments
         setEnvVar("GITHUB_ACTIONS", "true");
+        setEnvVar("CI", "true");
 
         printErrorMessages(error, (msg: string) => {
           lines.push(msg);
@@ -202,6 +205,7 @@ describe("error-handler", () => {
 
         // stack traces are enabled in CI environments
         setEnvVar("GITHUB_ACTIONS", "true");
+        setEnvVar("CI", "true");
 
         printErrorMessages(error, (msg: string) => {
           lines.push(msg);
