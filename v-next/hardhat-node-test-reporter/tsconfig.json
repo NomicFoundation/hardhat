@@ -1,10 +1,4 @@
 {
   "extends": "../../config-v-next/tsconfig.json",
-  "compilerOptions": {
-    "outDir": "./dist",
-    "composite": true,
-    "incremental": true
-  },
-  "exclude": ["./dist", "./node_modules"],
   "references": []
 }
