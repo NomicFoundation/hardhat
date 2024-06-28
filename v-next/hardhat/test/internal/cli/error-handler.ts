@@ -70,7 +70,7 @@ describe("error-handler", () => {
           `${chalk.red.bold(`Error ${error.errorCode}:`)} ${error.formattedMessage}`,
         );
         assert.equal(lines[1], "");
-        assert.equal(lines[2], error.stack);
+        assert.equal(lines[2], `${error.stack}`);
       });
 
       it("should print the stack trace when the stack is enabled via --show-stack-traces", () => {
@@ -90,7 +90,7 @@ describe("error-handler", () => {
             `${chalk.red.bold(`Error ${error.errorCode}:`)} ${error.formattedMessage}`,
           );
           assert.equal(lines[1], "");
-          assert.equal(lines[2], error.stack);
+          assert.equal(lines[2], `${error.stack}`);
         } finally {
           process.argv.pop();
         }
@@ -142,7 +142,7 @@ describe("error-handler", () => {
           `${chalk.red.bold(`Error ${error.errorCode} in plugin ${error.pluginId}:`)} ${error.formattedMessage}`,
         );
         assert.equal(lines[1], "");
-        assert.equal(lines[2], error.stack);
+        assert.equal(lines[2], `${error.stack}`);
       });
 
       it("should print the stack trace when the stack is enabled via --show-stack-traces", () => {
@@ -165,7 +165,7 @@ describe("error-handler", () => {
             `${chalk.red.bold(`Error ${error.errorCode} in plugin ${error.pluginId}:`)} ${error.formattedMessage}`,
           );
           assert.equal(lines[1], "");
-          assert.equal(lines[2], error.stack);
+          assert.equal(lines[2], `${error.stack}`);
         } finally {
           process.argv.pop();
         }
@@ -217,7 +217,7 @@ describe("error-handler", () => {
           `${chalk.red.bold(`Error in community plugin ${error.pluginId}:`)} ${error.message}`,
         );
         assert.equal(lines[1], "");
-        assert.equal(lines[2], error.stack);
+        assert.equal(lines[2], `${error.stack}`);
       });
 
       it("should print the stack trace when the stack is enabled via --show-stack-traces", () => {
@@ -240,7 +240,7 @@ describe("error-handler", () => {
             `${chalk.red.bold(`Error in community plugin ${error.pluginId}:`)} ${error.message}`,
           );
           assert.equal(lines[1], "");
-          assert.equal(lines[2], error.stack);
+          assert.equal(lines[2], `${error.stack}`);
         } finally {
           process.argv.pop();
         }
@@ -259,7 +259,7 @@ describe("error-handler", () => {
         assert.equal(lines.length, 5);
         assert.equal(lines[0], chalk.red.bold(`An unexpected error occurred:`));
         assert.equal(lines[1], "");
-        assert.equal(lines[2], error.stack);
+        assert.equal(lines[2], `${error.stack}`);
         assert.equal(lines[3], "");
         assert.equal(
           lines[4],
@@ -278,7 +278,7 @@ describe("error-handler", () => {
         assert.equal(lines.length, 5);
         assert.equal(lines[0], chalk.red.bold(`An unexpected error occurred:`));
         assert.equal(lines[1], "");
-        assert.equal(lines[2], error);
+        assert.equal(lines[2], `${error}`);
         assert.equal(lines[3], "");
         assert.equal(
           lines[4],
