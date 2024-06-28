@@ -261,6 +261,25 @@ describe("error-handler", () => {
           `If you think this is a bug in Hardhat, please report it here: ${HARDHAT_WEBSITE_URL}report-bug`,
         );
       });
+
+      it("should print the error message with the error for an unknown error", () => {
+        const lines: string[] = [];
+        const error = { message: "error message" };
+
+        printErrorMessages(error, (msg: string) => {
+          lines.push(msg);
+        });
+
+        assert.equal(lines.length, 5);
+        assert.equal(lines[0], chalk.red.bold(`An unexpected error occurred:`));
+        assert.equal(lines[1], "");
+        assert.equal(lines[2], error);
+        assert.equal(lines[3], "");
+        assert.equal(
+          lines[4],
+          `If you think this is a bug in Hardhat, please report it here: ${HARDHAT_WEBSITE_URL}report-bug`,
+        );
+      });
     });
   });
 });
