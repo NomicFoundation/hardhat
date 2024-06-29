@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
+
 import { resolveHardhatConfigPath } from "../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../src/hre.js";
 import { builtinPlugins } from "../../src/internal/builtin-plugins/index.js";
@@ -9,7 +11,6 @@ import {
   resetHardhatRuntimeEnvironmentSingleton,
 } from "../../src/internal/hre-singleton.js";
 import { useFixtureProject } from "../helpers/project.js";
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 describe("HRE", () => {
   describe("createHardhatRuntimeEnvironment", () => {

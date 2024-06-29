@@ -3,8 +3,9 @@ import type { HardhatPlugin } from "../../../src/types/plugins.js";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { detectPluginNpmDependencyProblems } from "../../../src/internal/plugins/detect-plugin-npm-dependency-problems.js";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+
+import { detectPluginNpmDependencyProblems } from "../../../src/internal/plugins/detect-plugin-npm-dependency-problems.js";
 
 describe("Plugins - detect npm dependency problems", () => {
   const plugin: HardhatPlugin = {
