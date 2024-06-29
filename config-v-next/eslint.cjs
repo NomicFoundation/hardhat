@@ -10,9 +10,10 @@ const path = require("path");
  * The only packages that should not use this config are our own eslint plugins/rules.
  *
  * @param {string} configFilePath The path to the config file that is using this function.
+ * @param {{ onlyHardhatError?: boolean }} options An object with options to enable/disable certain rules.
  * @returns {import("eslint").Linter.Config}
  */
-function createConfig(configFilePath) {
+function createConfig(configFilePath, options = { onlyHardhatError: true }) {
   /**
    * @type {import("eslint").Linter.Config}
    */
@@ -392,6 +393,25 @@ function createConfig(configFilePath) {
       },
     ],
   };
+
+  if (options.onlyHardhatError) {
+    config.overrides?.push({
+      files: ["src/**/*.ts"],
+      rules: {
+        "no-restricted-syntax": [
+          "error",
+          {
+            // This is a best effor selector that forbids every throw unless it's a `new HardhatError`,
+            // or throwing a variable within a catch clause.
+            selector:
+              "ThrowStatement:not(:has(ThrowStatement > NewExpression[callee.name='HardhatError']), CatchClause ThrowStatement:has(ThrowStatement > Identifier))",
+            message:
+              "Invalid throw expression. Only throwing a new HardhatError and rethrowing an error you caught are allowed",
+          },
+        ],
+      },
+    });
+  }
 
   return config;
 }
