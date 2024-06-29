@@ -48,7 +48,6 @@ export const ERROR_CATEGORIES: {
   };
 } = {
   GENERAL: { min: 1, max: 99, websiteTitle: "General errors" },
-  INTERNAL: { min: 100, max: 199, websiteTitle: "Internal Hardhat errors" },
   TASK_DEFINITIONS: {
     min: 200,
     max: 299,
@@ -69,28 +68,10 @@ export const ERROR_CATEGORIES: {
     max: 1199,
     websiteTitle: "Contract name errors",
   },
-  PLUGINS: {
-    min: 1200,
-    max: 1299,
-    websiteTitle: "Plugin errors",
-  },
-  HOOKS: {
-    min: 1300,
-    max: 1399,
-    websiteTitle: "Hooks errors",
-  },
 };
 
 export const ERRORS = {
   GENERAL: {
-    NOT_INSIDE_PROJECT: {
-      number: 1,
-      messageTemplate: "You are not inside a Hardhat project.",
-      websiteTitle: "You are not inside a Hardhat project",
-      websiteDescription: `You are trying to run Hardhat outside of a Hardhat project.
-
-You can learn how to use Hardhat by reading the [Getting Started guide](/hardhat-runner/docs/getting-started).`,
-    },
     CORRUPTED_LOCKFILE: {
       number: 2,
       messageTemplate: `You installed Hardhat with a corrupted lockfile due to the NPM bug #4828.
@@ -114,128 +95,6 @@ Note that you don't need to do this every time you install a new dependency, but
 
 Please double check the file path.`,
     },
-    DUPLICATED_PLUGIN_ID: {
-      number: 4,
-      messageTemplate:
-        'Duplicated plugin id "{id}" found. Did you install multiple versions of the same plugin?',
-      websiteTitle: "Duplicated plugin id",
-      websiteDescription: `While loading the plugins, two different plugins where found with the same id.
-
-Please double check whether you have multiple versions of the same plugin installed.`,
-    },
-    NO_CONFIG_FILE_FOUND: {
-      number: 5,
-      messageTemplate: "No Hardhat config file found",
-      websiteTitle: "No Hardhat config file found",
-      websiteDescription:
-        "Hardhat couldn't find a config file in the current directory or any of its parents.",
-    },
-    INVALID_CONFIG_PATH: {
-      number: 6,
-      messageTemplate: "Config file {configPath} not found",
-      websiteTitle: "Invalid config path",
-      websiteDescription: "The config file doesn't exist at the provided path.",
-    },
-    NO_CONFIG_EXPORTED: {
-      number: 7,
-      messageTemplate: "No config exported in {configPath}",
-      websiteTitle: "No config exported",
-      websiteDescription: "There is nothing exported from the config file.",
-    },
-    INVALID_CONFIG_OBJECT: {
-      number: 8,
-      messageTemplate: "Invalid config exported in {configPath}",
-      websiteTitle: "Invalid config object",
-      websiteDescription:
-        "The config file doesn't export a valid configuration object.",
-    },
-    ENV_VAR_NOT_FOUND: {
-      number: 9,
-      messageTemplate: "Configuration variable not found as an env variable",
-      websiteTitle: "Configuration variable not found",
-      websiteDescription: `A configuration variable was expected to be set as an environment variable, but it wasn't.`,
-    },
-    INVALID_URL: {
-      number: 10,
-      messageTemplate: "Invalid URL: {url}",
-      websiteTitle: "Invalid URL",
-      websiteDescription: `Given value was not a valid URL.`,
-    },
-    INVALID_BIGINT: {
-      number: 11,
-      messageTemplate: "Invalid BigInt: {value}",
-      websiteTitle: "Invalid BigInt",
-      websiteDescription: `Given value was not a valid BigInt.`,
-    },
-    HARDHAT_PROJECT_ALREADY_CREATED: {
-      number: 12,
-      messageTemplate:
-        "You are trying to initialize a project inside an existing Hardhat project. The path to the project's configuration file is: {hardhatProjectRootPath}.",
-      websiteTitle: "Hardhat project already created",
-      websiteDescription: `Cannot create a new Hardhat project, the current folder is already associated with a project.`,
-    },
-    NOT_INSIDE_PROJECT_ON_WINDOWS: {
-      number: 13,
-      messageTemplate: `You are not inside a project and Hardhat failed to initialize a new one.
-
-If you were trying to create a new project, please try again using Windows Subsystem for Linux (WSL) or PowerShell.
-`,
-      websiteTitle:
-        "You are not inside a Hardhat project and Hardhat failed to initialize a new one",
-      websiteDescription: `You are trying to run Hardhat outside of a Hardhat project, and we couldn't initialize one.
-
-If you were trying to create a new project, please try again using Windows Subsystem for Linux (WSL) or PowerShell.
-
-You can learn how to use Hardhat by reading the [Getting Started guide](/hardhat-runner/docs/getting-started).`,
-    },
-    NOT_IN_INTERACTIVE_SHELL: {
-      number: 14,
-      messageTemplate:
-        "You are trying to initialize a project but you are not in an interactive shell.",
-      websiteTitle: "Not inside an interactive shell",
-      websiteDescription: `You are trying to initialize a project but you are not in an interactive shell.
-
-Please re-run the command inside an interactive shell.`,
-    },
-    UNSUPPORTED_OPERATION: {
-      number: 15,
-      messageTemplate: "{operation} is not supported in Hardhat.",
-      websiteTitle: "Unsupported operation",
-      websiteDescription: `You are trying to perform an unsupported operation.
-
-Unless you are creating a task or plugin, this is probably a bug.
-
-Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
-    },
-    ONLY_ESM_SUPPORTED: {
-      number: 16,
-      messageTemplate: `Hardhat only supports ESM projects. Please be sure to specify "'type': 'module'" in your package.json`,
-      websiteTitle: "Only ESM projects are supported",
-      websiteDescription: `You are trying to initialize a new Hardhat project, but your package.json does not have the property "type" set to "module".
-
-Currently, Hardhat only supports ESM projects.
-
-Please add the property "type" with the value "module" in your package.json to ensure that your project is recognized as an ESM project.`,
-    },
-    GLOBAL_OPTION_ALREADY_DEFINED: {
-      number: 17,
-      messageTemplate:
-        "Plugin {plugin} is trying to define the global option {globalOption} but it is already defined by plugin {definedByPlugin}",
-      websiteTitle: "Global option already defined",
-      websiteDescription:
-        "The global option is already defined by another plugin. Please ensure that global options are uniquely named to avoid conflicts.",
-    },
-  },
-  INTERNAL: {
-    ASSERTION_ERROR: {
-      number: 100,
-      messageTemplate: "An internal invariant was violated: {message}",
-      websiteTitle: "Invariant violation",
-      websiteDescription: `An internal invariant was violated. This is probably caused by a programming error in Hardhat or in one of the used plugins.
-
-Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
-      shouldBeReported: true,
-    },
   },
   TASK_DEFINITIONS: {
     DEPRECATED_TRANSFORM_IMPORT_TASK: {
@@ -246,132 +105,6 @@ Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us i
       websiteDescription: `This task has been deprecated in favor of a new approach.`,
       shouldBeReported: true,
     },
-    INVALID_FILE_ACTION: {
-      number: 201,
-      messageTemplate: "Invalid file action: {action} is not a valid file URL",
-      websiteTitle: "Invalid file action",
-      websiteDescription: `The setAction function was called with a string parameter that is not a valid file URL. A valid file URL must start with 'file://'.
-
-Please ensure that you are providing a correct file URL.`,
-    },
-    NO_ACTION: {
-      number: 202,
-      messageTemplate: "The task {task} doesn't have an action",
-      websiteTitle: "Task missing action",
-      websiteDescription: `A task was defined without an action.
-
-Please ensure that an action is defined for each task.`,
-    },
-    POSITIONAL_PARAM_AFTER_VARIADIC: {
-      number: 203,
-      messageTemplate:
-        "Cannot add the positional param {name} after a variadic one",
-      websiteTitle: "Invalid task definition",
-      websiteDescription:
-        "A variadic parameter must always be the last positional parameter in a task definition.",
-    },
-    REQUIRED_PARAM_AFTER_OPTIONAL: {
-      number: 204,
-      messageTemplate:
-        "Cannot add required positional param {name} after an optional one",
-      websiteTitle: "Invalid task definition",
-      websiteDescription:
-        "Required positional parameters must be defined before optional ones in a task definition.",
-    },
-    TASK_NOT_FOUND: {
-      number: 205,
-      messageTemplate: "Task {task} not found",
-      websiteTitle: "Task not found",
-      websiteDescription: "The provided task name does not match any task.",
-    },
-    SUBTASK_WITHOUT_PARENT: {
-      number: 206,
-      messageTemplate:
-        "Task {task} not found when attempting to define subtask {subtask}. If you intend to only define subtasks, please first define {task} as an empty task",
-      websiteTitle: "Subtask without parent",
-      websiteDescription:
-        "The parent task of the subtask being defined was not found. If you intend to only define subtasks, please first define the parent task as an empty task.",
-    },
-    TASK_ALREADY_DEFINED: {
-      number: 207,
-      messageTemplate:
-        "{actorFragment} trying to define the task {task} but it is already defined{definedByFragment}",
-      websiteTitle: "Task already defined",
-      websiteDescription:
-        "The task is already defined. Please ensure that tasks are uniquely named to avoid conflicts.",
-    },
-    EMPTY_TASK_ID: {
-      number: 208,
-      messageTemplate: "Task id cannot be an empty string or an empty array",
-      websiteTitle: "Empty task id",
-      websiteDescription:
-        "The task id cannot be an empty string or an empty array. Please ensure that the array of task names is not empty.",
-    },
-    TASK_OPTION_ALREADY_DEFINED: {
-      number: 209,
-      messageTemplate:
-        "{actorFragment} trying to define task {task} with the option {option} but it is already defined as a global option by plugin {globalOptionPluginId}",
-      websiteTitle: "Task option already defined",
-      websiteDescription:
-        "The task option is already defined as a global option by another plugin. Please ensure that task options are uniquely named to avoid conflicts.",
-    },
-    TASK_OVERRIDE_OPTION_ALREADY_DEFINED: {
-      number: 210,
-      messageTemplate:
-        "{actorFragment} trying to override the parameter {optionName} of the task {task} but it is already defined",
-      websiteTitle: "Task override option already defined",
-      websiteDescription:
-        "An attempt is being made to override an option that has already been defined. Please ensure that the option is not defined before trying to override it.",
-    },
-    EMPTY_TASK: {
-      number: 211,
-      messageTemplate: "Can't run the empty task {task}",
-      websiteTitle: "Empty task",
-      websiteDescription:
-        "The task is empty. Please ensure that tasks have at least one action.",
-    },
-    INVALID_ACTION_URL: {
-      number: 212,
-      messageTemplate:
-        "Unable to import the module specified by the action {action} of task {task}",
-      websiteTitle: "Invalid action URL",
-      websiteDescription:
-        "The action URL is invalid. Please ensure that the URL is correct.",
-    },
-    INVALID_ACTION: {
-      number: 213,
-      messageTemplate:
-        "The action resolved from {action} in task {task} is not a function",
-      websiteTitle: "Invalid action",
-      websiteDescription:
-        "The action of the task is not a function. Make sure that the file pointed to by the action URL exports a function as the default export.",
-    },
-    MISSING_VALUE_FOR_PARAMETER: {
-      number: 214,
-      messageTemplate:
-        "Missing value for the parameter named {parameter} in the task {task}",
-      websiteTitle: "Missing value for the task parameter",
-      websiteDescription: `You tried to run a task, but one of the values of its parameters was missing.
-
-Please double check how you invoked Hardhat or ran your task.`,
-    },
-    INVALID_VALUE_FOR_TYPE: {
-      number: 215,
-      messageTemplate:
-        "Invalid value {value} for argument {name} of type {type} in the task {task}",
-      websiteTitle: "Invalid argument type",
-      websiteDescription: `One of your task arguments has an invalid type.
-
-Please double check your task arguments.`,
-    },
-    UNRECOGNIZED_NAMED_PARAM: {
-      number: 216,
-      messageTemplate: "Invalid parameter {parameter} for the task {task}",
-      websiteTitle: "Invalid parameter value",
-      websiteDescription: `One of the parameters for your task is invalid.
-
-Please double check your arguments.`,
-    },
   },
   ARGUMENTS: {
     INVALID_VALUE_FOR_TYPE: {
@@ -380,86 +113,6 @@ Please double check your arguments.`,
         "Invalid value {value} for argument {name} of type {type}",
       websiteTitle: "Invalid argument type",
       websiteDescription: `One of your Hardhat or task arguments has an invalid type.
-
-Please double check your arguments.`,
-    },
-    RESERVED_NAME: {
-      number: 301,
-      messageTemplate: "Argument name {name} is reserved",
-      websiteTitle: "Reserved argument name",
-      websiteDescription: `One of your Hardhat or task arguments has a reserved name.
-
-Please double check your arguments.`,
-    },
-    DUPLICATED_NAME: {
-      number: 302,
-      messageTemplate: "Argument name {name} is already in use",
-      websiteTitle: "Argument name already in use",
-      websiteDescription: `One of your Hardhat or task argument names is already in use.
-
-Please double check your arguments.`,
-    },
-    INVALID_NAME: {
-      number: 303,
-      messageTemplate: "Argument name {name} is invalid",
-      websiteTitle: "Invalid argument name",
-      websiteDescription: `One of your Hardhat or task argument names is invalid.
-
-Please double check your arguments.`,
-    },
-    UNRECOGNIZED_OPTION: {
-      number: 304,
-      messageTemplate:
-        "Invalid option {option}. It is neither a valid global option nor associated with any task. Did you forget to add the task first, or did you misspell it?",
-      websiteTitle: "Invalid option value",
-      websiteDescription: `One of your Hardhat options is invalid.
-
-Please double check your arguments.`,
-    },
-    MISSING_VALUE_FOR_PARAMETER: {
-      number: 305,
-      messageTemplate: "Missing value for the task parameter named {paramName}",
-      websiteTitle: "Missing value for the task parameter",
-      websiteDescription: `You tried to run a task, but one of the values of its parameters was missing.
-
-Please double check how you invoked Hardhat or ran your task.`,
-    },
-    UNUSED_ARGUMENT: {
-      number: 306,
-      messageTemplate:
-        "The argument with value {value} was not consumed because it is not associated with any task.",
-      websiteTitle: "Argument was not consumed",
-      websiteDescription: `You tried to run a task, but one of your arguments was not consumed.
-
-Please double check how you invoked Hardhat or ran your task.`,
-    },
-    INVALID_INPUT_FILE: {
-      number: 307,
-      messageTemplate:
-        "Invalid argument {name}: File {value} doesn't exist or is not a readable file.",
-      websiteTitle: "Invalid file argument",
-      websiteDescription: `One of your tasks expected a file as an argument, but you provided a
-nonexistent or non-readable file.
-
-Please double check your arguments.`,
-    },
-    MISSING_CONFIG_FILE: {
-      number: 308,
-      messageTemplate:
-        'The configuration parameter "--config" was passed, but no file path was provided.',
-      websiteTitle: "Missing configuration file path",
-      websiteDescription: `A path to the configuration file is expected after the parameter
-"--config", but none was provided.
-
-Please double check your arguments.`,
-    },
-    CANNOT_COMBINE_INIT_AND_CONFIG_PATH: {
-      number: 309,
-      messageTemplate:
-        'The configuration parameter "--config" cannot be used with the "init" command',
-      websiteTitle:
-        'The configuration parameter "--config" cannot be used with the "init" command',
-      websiteDescription: `The configuration parameter "--config" cannot be used with the "init" command.
 
 Please double check your arguments.`,
     },
@@ -700,22 +353,6 @@ The first supported version is {firstSupportedVersion}`,
 Please use a newer, supported version.`,
       shouldBeReported: true,
     },
-    RUN_FILE_NOT_FOUND: {
-      number: 603,
-      messageTemplate: `Script {script} doesn't exist`,
-      websiteTitle: "Script doesn't exist",
-      websiteDescription: `Tried to use \`hardhat run\` to execute a nonexistent script.
-
-Please double check your script's path.`,
-    },
-    RUN_SCRIPT_ERROR: {
-      number: 604,
-      messageTemplate: `Error running script {script}: {error}`,
-      websiteTitle: "Error running script",
-      websiteDescription: `Running a script resulted in an error.
-
-Please check Hardhat's output for more details.`,
-    },
   },
   ARTIFACTS: {
     NOT_FOUND: {
@@ -840,45 +477,6 @@ If you aren't overriding compilation-related tasks, please report this as a bug.
       websiteDescription: `A contract name was expected to be in fully qualified form, but it's not.
 
 A fully qualified name should look like file.sol:Contract`,
-    },
-  },
-  PLUGINS: {
-    PLUGIN_NOT_INSTALLED: {
-      number: 1200,
-      messageTemplate: 'Plugin "{pluginId}" is not installed.',
-      websiteTitle: "Plugin not installed",
-      websiteDescription: `A plugin was included in the Hardhat config but has not been installed into "node_modules".`,
-    },
-    PLUGIN_MISSING_DEPENDENCY: {
-      number: 1201,
-      messageTemplate:
-        'Plugin "{pluginId}" is missing a peer dependency "{peerDependencyName}".',
-      websiteTitle: "Plugin missing peer dependency",
-      websiteDescription: `A plugin's peer dependency has not been installed.`,
-    },
-    DEPENDENCY_VERSION_MISMATCH: {
-      number: 1202,
-      messageTemplate:
-        'Plugin "{pluginId}" has a peer dependency "{peerDependencyName}" with expected version "{expectedVersion}" but the installed version is "{installedVersion}".',
-      websiteTitle: "Dependency version mismatch",
-      websiteDescription: `A plugin's peer dependency expected version does not match the version of the installed package.
-
-Please install a version of the peer dependency that meets the plugin's requirements.`,
-    },
-    PLUGIN_DEPENDENCY_FAILED_LOAD: {
-      number: 1203,
-      messageTemplate: 'Plugin "{pluginId}" dependency could not be loaded.',
-      websiteTitle: "Plugin dependency could not be loaded",
-      websiteDescription: `The loading of a plugin's dependent plugin failed.`,
-    },
-  },
-  HOOKS: {
-    INVALID_HOOK_FACTORY_PATH: {
-      number: 1300,
-      messageTemplate:
-        'Plugin "{pluginId}" hook factory for "{hookCategoryName}" is not a valid file:// URL: {path}.',
-      websiteTitle: "Plugin hook factory is not a valid file URL",
-      websiteDescription: `The loading of a plugin's hook factory failed as the import path is not a valid file:// URL.`,
     },
   },
 } as const;
