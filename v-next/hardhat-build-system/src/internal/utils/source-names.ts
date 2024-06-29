@@ -2,6 +2,8 @@ import path from "node:path";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
+import { ERRORS } from "../error-descriptors.js";
+
 import { FileNotFoundError, getFileTrueCase } from "./fs-utils.js";
 import { getPackageName } from "./package-info.js";
 
@@ -21,18 +23,15 @@ export async function localPathToSourceName(
   const normalized = normalizeSourceName(relativePath);
 
   if (normalized.startsWith("..")) {
-    throw new HardhatError(HardhatError.ERRORS.SOURCE_NAMES.EXTERNAL_AS_LOCAL, {
+    throw new HardhatError(ERRORS.SOURCE_NAMES.EXTERNAL_AS_LOCAL, {
       path: localFileAbsolutePath,
     });
   }
 
   if (normalized.includes(NODE_MODULES)) {
-    throw new HardhatError(
-      HardhatError.ERRORS.SOURCE_NAMES.NODE_MODULES_AS_LOCAL,
-      {
-        path: localFileAbsolutePath,
-      },
-    );
+    throw new HardhatError(ERRORS.SOURCE_NAMES.NODE_MODULES_AS_LOCAL, {
+      path: localFileAbsolutePath,
+    });
   }
 
   return getSourceNameTrueCase(projectRoot, relativePath);
@@ -62,7 +61,7 @@ async function getSourceNameTrueCase(
   } catch (error) {
     if (error instanceof FileNotFoundError) {
       throw new HardhatError(
-        HardhatError.ERRORS.SOURCE_NAMES.FILE_NOT_FOUND,
+        ERRORS.SOURCE_NAMES.FILE_NOT_FOUND,
         {
           name: p,
         },
@@ -175,7 +174,7 @@ export async function validateSourceNameExistenceAndCasing(
   const trueCaseSourceName = await getSourceNameTrueCase(fromDir, sourceName);
 
   if (trueCaseSourceName !== sourceName) {
-    throw new HardhatError(HardhatError.ERRORS.SOURCE_NAMES.WRONG_CASING, {
+    throw new HardhatError(ERRORS.SOURCE_NAMES.WRONG_CASING, {
       incorrect: sourceName,
       correct: trueCaseSourceName,
     });
@@ -191,7 +190,7 @@ export async function validateSourceNameExistenceAndCasing(
 export function validateSourceNameFormat(sourceName: string): void {
   if (isAbsolutePathSourceName(sourceName)) {
     throw new HardhatError(
-      HardhatError.ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_ABSOLUTE_PATH,
+      ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_ABSOLUTE_PATH,
       {
         name: sourceName,
       },
@@ -200,7 +199,7 @@ export function validateSourceNameFormat(sourceName: string): void {
 
   if (isExplicitRelativePath(sourceName)) {
     throw new HardhatError(
-      HardhatError.ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_RELATIVE_PATH,
+      ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_RELATIVE_PATH,
       {
         name: sourceName,
       },
@@ -211,7 +210,7 @@ export function validateSourceNameFormat(sourceName: string): void {
   // comes from slash vs backslash
   if (replaceBackslashes(sourceName) !== sourceName) {
     throw new HardhatError(
-      HardhatError.ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_BACKSLASHES,
+      ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_BACKSLASHES,
       {
         name: sourceName,
       },
@@ -219,12 +218,9 @@ export function validateSourceNameFormat(sourceName: string): void {
   }
 
   if (normalizeSourceName(sourceName) !== sourceName) {
-    throw new HardhatError(
-      HardhatError.ERRORS.SOURCE_NAMES.INVALID_SOURCE_NOT_NORMALIZED,
-      {
-        name: sourceName,
-      },
-    );
+    throw new HardhatError(ERRORS.SOURCE_NAMES.INVALID_SOURCE_NOT_NORMALIZED, {
+      name: sourceName,
+    });
   }
 }
 

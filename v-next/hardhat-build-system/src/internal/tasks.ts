@@ -22,6 +22,7 @@ import debug from "debug";
 import semver from "semver";
 
 import { SolidityFilesCache } from "./builtin-tasks/utils/solidity-files-cache.js";
+import { ERRORS } from "./error-descriptors.js";
 import {
   createCompilationJobFromFile,
   createCompilationJobsFromConnectedComponent,
@@ -117,12 +118,9 @@ export async function taskCompileSolidityReadFile(
     return await readUtf8File(absolutePath);
   } catch (e) {
     if (await isDirectory(absolutePath)) {
-      throw new HardhatError(
-        HardhatError.ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY,
-        {
-          absolutePath,
-        },
-      );
+      throw new HardhatError(ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY, {
+        absolutePath,
+      });
     }
 
     throw e;
@@ -232,7 +230,7 @@ export async function taskCompileSolidityHandleCompilationJobsFailures(
       );
 
     throw new HardhatError(
-      HardhatError.ERRORS.BUILTIN_TASKS.COMPILATION_JOBS_CREATION_FAILURE,
+      ERRORS.BUILTIN_TASKS.COMPILATION_JOBS_CREATION_FAILURE,
       {
         reasons,
       },
@@ -694,14 +692,11 @@ export async function taskCompileSolidityRunSolc(
   solcVersion?: string,
 ): Promise<any> {
   if (solcVersion !== undefined && semver.valid(solcVersion) === null) {
-    throw new HardhatError(
-      HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
-      {
-        value: solcVersion,
-        name: "solcVersion",
-        type: "string",
-      },
-    );
+    throw new HardhatError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+      value: solcVersion,
+      name: "solcVersion",
+      type: "string",
+    });
   }
 
   const compiler = new NativeCompiler(solcPath, solcVersion);
@@ -894,7 +889,7 @@ export async function taskCompileSolidityCheckErrors(
   await taskCompileSolidityLogCompilationErrors(output, quiet);
 
   if (hasCompilationErrors(output)) {
-    throw new HardhatError(HardhatError.ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
+    throw new HardhatError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
   }
 }
 
@@ -1080,7 +1075,7 @@ export async function taskCompileSolidityCompileJobs(
     // see issue https://github.com/nomiclabs/hardhat/issues/2004
     if (semver.lt(solcVersion, COMPILE_TASK_FIRST_SOLC_VERSION_SUPPORTED)) {
       throw new HardhatError(
-        HardhatError.ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION,
+        ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION,
         {
           version: solcVersion,
           firstSupportedVersion: COMPILE_TASK_FIRST_SOLC_VERSION_SUPPORTED,
@@ -1122,7 +1117,7 @@ export async function taskCompileSolidityCompileJobs(
       if (
         !HardhatError.isHardhatError(
           error,
-          HardhatError.ERRORS.BUILTIN_TASKS.COMPILE_FAILURE,
+          ERRORS.BUILTIN_TASKS.COMPILE_FAILURE,
         )
       ) {
         throw error;
@@ -1130,7 +1125,7 @@ export async function taskCompileSolidityCompileJobs(
     }
 
     // error is an aggregate error, and all errors are compilation failures
-    throw new HardhatError(HardhatError.ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
+    throw new HardhatError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
   }
 }
 

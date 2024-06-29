@@ -22,6 +22,7 @@ import {
 } from "@ignored/hardhat-vnext-utils/fs";
 import debug from "debug";
 
+import { ERRORS } from "../../error-descriptors.js";
 import { download } from "../../utils/download.js";
 import { MultiProcessMutex } from "../../utils/multi-process-mutex.js";
 
@@ -199,17 +200,14 @@ export class CompilerDownloader implements ICompilerDownloader {
         } catch (e) {
           ensureError(e);
 
-          throw new HardhatError(
-            HardhatError.ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED,
-            e,
-          );
+          throw new HardhatError(ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED, e);
         }
 
         build = await this.#getCompilerBuild(version);
       }
 
       if (build === undefined) {
-        throw new HardhatError(HardhatError.ERRORS.SOLC.INVALID_VERSION, {
+        throw new HardhatError(ERRORS.SOLC.INVALID_VERSION, {
           version,
         });
       }
@@ -221,7 +219,7 @@ export class CompilerDownloader implements ICompilerDownloader {
         ensureError(e);
 
         throw new HardhatError(
-          HardhatError.ERRORS.SOLC.DOWNLOAD_FAILED,
+          ERRORS.SOLC.DOWNLOAD_FAILED,
           {
             remoteVersion: build.longVersion,
           },
@@ -231,7 +229,7 @@ export class CompilerDownloader implements ICompilerDownloader {
 
       const verified = await this.#verifyCompilerDownload(build, downloadPath);
       if (!verified) {
-        throw new HardhatError(HardhatError.ERRORS.SOLC.INVALID_DOWNLOAD, {
+        throw new HardhatError(ERRORS.SOLC.INVALID_DOWNLOAD, {
           remoteVersion: build.longVersion,
         });
       }

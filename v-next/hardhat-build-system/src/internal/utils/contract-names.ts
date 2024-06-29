@@ -3,6 +3,8 @@ import {
   assertHardhatInvariant,
 } from "@ignored/hardhat-vnext-errors";
 
+import { ERRORS } from "../error-descriptors.js";
+
 /**
  * Returns a fully qualified name from a sourceName and contractName.
  */
@@ -33,12 +35,9 @@ export function parseFullyQualifiedName(fullyQualifiedName: string): {
   const { sourceName, contractName } = parseName(fullyQualifiedName);
 
   if (sourceName === undefined) {
-    throw new HardhatError(
-      HardhatError.ERRORS.CONTRACT_NAMES.INVALID_FULLY_QUALIFIED_NAME,
-      {
-        name: fullyQualifiedName,
-      },
-    );
+    throw new HardhatError(ERRORS.CONTRACT_NAMES.INVALID_FULLY_QUALIFIED_NAME, {
+      name: fullyQualifiedName,
+    });
   }
 
   return { sourceName, contractName };

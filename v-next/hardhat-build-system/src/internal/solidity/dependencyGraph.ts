@@ -6,6 +6,8 @@ import {
   assertHardhatInvariant,
 } from "@ignored/hardhat-vnext-errors";
 
+import { ERRORS } from "../error-descriptors.js";
+
 export class DependencyGraph implements taskTypes.DependencyGraph {
   public static async createFromResolvedFiles(
     resolver: Resolver,
@@ -193,13 +195,10 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
 
     if (sourceName !== undefined) {
       if (sourceName !== file.sourceName) {
-        throw new HardhatError(
-          HardhatError.ERRORS.RESOLVER.AMBIGUOUS_SOURCE_NAMES,
-          {
-            sourcenames: `'${sourceName}' and '${file.sourceName}'`,
-            file: file.absolutePath,
-          },
-        );
+        throw new HardhatError(ERRORS.RESOLVER.AMBIGUOUS_SOURCE_NAMES, {
+          sourcenames: `'${sourceName}' and '${file.sourceName}'`,
+          file: file.absolutePath,
+        });
       }
 
       return;

@@ -2,6 +2,7 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 
 import { SolidityFilesCache } from "../builtin-tasks/utils/solidity-files-cache.js";
+import { ERRORS } from "../error-descriptors.js";
 
 interface ParsedData {
   imports: string[];
@@ -43,7 +44,7 @@ export class Parser {
         typeof e.code === "string" &&
         e.code === "MODULE_NOT_FOUND"
       ) {
-        throw new HardhatError(HardhatError.ERRORS.GENERAL.CORRUPTED_LOCKFILE);
+        throw new HardhatError(ERRORS.GENERAL.CORRUPTED_LOCKFILE);
       }
 
       throw e;
