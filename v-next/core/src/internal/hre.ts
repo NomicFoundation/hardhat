@@ -14,6 +14,8 @@ import type { HardhatPlugin } from "../types/plugins.js";
 import type { TaskManager } from "../types/tasks.js";
 import type { UserInterruptionManager } from "../types/user-interruptions.js";
 
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
+
 import { ResolvedConfigurationVariableImplementation } from "./configuration-variables.js";
 import {
   buildGlobalOptionsMap,
@@ -61,14 +63,14 @@ export class HardhatRuntimeEnvironmentImplementation
     );
 
     if (userConfigValidationErrors.length > 0) {
-      throw new Error(
-        `Invalid config:\n\t${userConfigValidationErrors
+      throw new HardhatError(HardhatError.ERRORS.GENERAL.INVALID_CONFIG, {
+        errors: `\t${userConfigValidationErrors
           .map(
             (error) =>
               `* Config error in .${error.path.join(".")}: ${error.message}`,
           )
           .join("\n\t")}`,
-      );
+      });
     }
 
     // Resolve config
