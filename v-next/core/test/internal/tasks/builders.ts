@@ -39,21 +39,19 @@ describe("Task builders", () => {
 
     describe("Task id validation", () => {
       it("should throw if the id is an empty string", () => {
-        assert.throws(() => new EmptyTaskDefinitionBuilderImplementation(""), {
-          name: "HardhatError",
-          message:
-            "HHE208: Task id cannot be an empty string or an empty array",
-        });
+        assert.throws(
+          () => new EmptyTaskDefinitionBuilderImplementation(""),
+          new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID),
+        );
       });
 
       it("should throw if the array of ids is empty", () => {
         const ids: string[] = [];
 
-        assert.throws(() => new EmptyTaskDefinitionBuilderImplementation(ids), {
-          name: "HardhatError",
-          message:
-            "HHE208: Task id cannot be an empty string or an empty array",
-        });
+        assert.throws(
+          () => new EmptyTaskDefinitionBuilderImplementation(ids),
+          new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID),
+        );
       });
     });
 
@@ -137,21 +135,19 @@ describe("Task builders", () => {
 
     describe("Task id validation", () => {
       it("should throw if the id is an empty string", () => {
-        assert.throws(() => new NewTaskDefinitionBuilderImplementation(""), {
-          name: "HardhatError",
-          message:
-            "HHE208: Task id cannot be an empty string or an empty array",
-        });
+        assert.throws(
+          () => new NewTaskDefinitionBuilderImplementation(""),
+          new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID),
+        );
       });
 
       it("should throw if the array of ids is empty", () => {
         const ids: string[] = [];
 
-        assert.throws(() => new NewTaskDefinitionBuilderImplementation(ids), {
-          name: "HardhatError",
-          message:
-            "HHE208: Task id cannot be an empty string or an empty array",
-        });
+        assert.throws(
+          () => new NewTaskDefinitionBuilderImplementation(ids),
+          new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID),
+        );
       });
     });
 
@@ -188,25 +184,33 @@ describe("Task builders", () => {
 
       it("should throw when trying to build a task definition without an action", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        assert.throws(() => builder.build(), {
-          name: "HardhatError",
-          message: `HHE202: The task task-id doesn't have an action`,
-        });
+        assert.throws(
+          () => builder.build(),
+          new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.NO_ACTION, {
+            task: "task-id",
+          }),
+        );
       });
 
       it("should throw if the task action is not a valid file URL", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
 
-        assert.throws(() => builder.setAction("not-a-valid-file-url"), {
-          name: "HardhatError",
-          message:
-            "HHE201: Invalid file action: not-a-valid-file-url is not a valid file URL",
-        });
-        assert.throws(() => builder.setAction("file://"), {
-          name: "HardhatError",
-          message:
-            "HHE201: Invalid file action: file:// is not a valid file URL",
-        });
+        assert.throws(
+          () => builder.setAction("not-a-valid-file-url"),
+          new HardhatError(
+            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
+            { action: "not-a-valid-file-url" },
+          ),
+        );
+        assert.throws(
+          () => builder.setAction("file://"),
+          new HardhatError(
+            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
+            {
+              action: "file://",
+            },
+          ),
+        );
       });
     });
 
@@ -676,10 +680,12 @@ describe("Task builders", () => {
 
         invalidNames.forEach((name) => {
           fnNames.forEach((fnName) => {
-            assert.throws(() => builder[fnName]({ name }), {
-              name: "HardhatError",
-              message: `HHE303: Argument name ${name} is invalid`,
-            });
+            assert.throws(
+              () => builder[fnName]({ name }),
+              new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
+                name,
+              }),
+            );
           });
         });
       });
@@ -697,10 +703,12 @@ describe("Task builders", () => {
 
         names.forEach((name) => {
           fnNames.forEach((fnName) => {
-            assert.throws(() => builder[fnName]({ name }), {
-              name: "HardhatError",
-              message: `HHE302: Argument name ${name} is already in use`,
-            });
+            assert.throws(
+              () => builder[fnName]({ name }),
+              new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
+                name,
+              }),
+            );
           });
         });
       });
@@ -709,10 +717,12 @@ describe("Task builders", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
 
         RESERVED_PARAMETER_NAMES.forEach((name) => {
-          assert.throws(() => builder.addOption({ name }), {
-            name: "HardhatError",
-            message: `HHE301: Argument name ${name} is reserved`,
-          });
+          assert.throws(
+            () => builder.addOption({ name }),
+            new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
+              name,
+            }),
+          );
         });
       });
     });
@@ -778,17 +788,18 @@ describe("Task builders", () => {
 
         assert.throws(
           () => builder.addPositionalParameter({ name: "param2" }),
-          {
-            name: "HardhatError",
-            message:
-              "HHE204: Cannot add required positional param param2 after an optional one",
-          },
+          new HardhatError(
+            HardhatError.ERRORS.TASK_DEFINITIONS.REQUIRED_PARAM_AFTER_OPTIONAL,
+            { name: "param2" },
+          ),
         );
-        assert.throws(() => builder.addVariadicParameter({ name: "param3" }), {
-          name: "HardhatError",
-          message:
-            "HHE204: Cannot add required positional param param3 after an optional one",
-        });
+        assert.throws(
+          () => builder.addVariadicParameter({ name: "param3" }),
+          new HardhatError(
+            HardhatError.ERRORS.TASK_DEFINITIONS.REQUIRED_PARAM_AFTER_OPTIONAL,
+            { name: "param3" },
+          ),
+        );
       });
 
       it("should throw if trying to add a positional parameter after a variadic one", () => {
@@ -798,18 +809,19 @@ describe("Task builders", () => {
 
         assert.throws(
           () => builder.addPositionalParameter({ name: "param2" }),
-          {
-            name: "HardhatError",
-            message:
-              "HHE203: Cannot add the positional param param2 after a variadic one",
-          },
+          new HardhatError(
+            HardhatError.ERRORS.TASK_DEFINITIONS.POSITIONAL_PARAM_AFTER_VARIADIC,
+            { name: "param2" },
+          ),
         );
 
-        assert.throws(() => builder.addVariadicParameter({ name: "param3" }), {
-          name: "HardhatError",
-          message:
-            "HHE203: Cannot add the positional param param3 after a variadic one",
-        });
+        assert.throws(
+          () => builder.addVariadicParameter({ name: "param3" }),
+          new HardhatError(
+            HardhatError.ERRORS.TASK_DEFINITIONS.POSITIONAL_PARAM_AFTER_VARIADIC,
+            { name: "param3" },
+          ),
+        );
       });
     });
   });
@@ -850,11 +862,7 @@ describe("Task builders", () => {
       it("should throw if the id is an empty string", () => {
         assert.throws(
           () => new TaskOverrideDefinitionBuilderImplementation(""),
-          {
-            name: "HardhatError",
-            message:
-              "HHE208: Task id cannot be an empty string or an empty array",
-          },
+          new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID),
         );
       });
 
@@ -863,11 +871,7 @@ describe("Task builders", () => {
 
         assert.throws(
           () => new TaskOverrideDefinitionBuilderImplementation(ids),
-          {
-            name: "HardhatError",
-            message:
-              "HHE208: Task id cannot be an empty string or an empty array",
-          },
+          new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID),
         );
       });
     });
@@ -909,10 +913,12 @@ describe("Task builders", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
         );
-        assert.throws(() => builder.build(), {
-          name: "HardhatError",
-          message: `HHE202: The task task-id doesn't have an action`,
-        });
+        assert.throws(
+          () => builder.build(),
+          new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.NO_ACTION, {
+            task: "task-id",
+          }),
+        );
       });
 
       it("should throw if the task action is not a valid file URL", () => {
@@ -920,16 +926,20 @@ describe("Task builders", () => {
           "task-id",
         );
 
-        assert.throws(() => builder.setAction("not-a-valid-file-url"), {
-          name: "HardhatError",
-          message:
-            "HHE201: Invalid file action: not-a-valid-file-url is not a valid file URL",
-        });
-        assert.throws(() => builder.setAction("file://"), {
-          name: "HardhatError",
-          message:
-            "HHE201: Invalid file action: file:// is not a valid file URL",
-        });
+        assert.throws(
+          () => builder.setAction("not-a-valid-file-url"),
+          new HardhatError(
+            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
+            { action: "not-a-valid-file-url" },
+          ),
+        );
+        assert.throws(
+          () => builder.setAction("file://"),
+          new HardhatError(
+            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
+            { action: "file://" },
+          ),
+        );
       });
     });
 
@@ -1137,10 +1147,12 @@ describe("Task builders", () => {
 
         invalidNames.forEach((name) => {
           fnNames.forEach((fnName) => {
-            assert.throws(() => builder[fnName]({ name }), {
-              name: "HardhatError",
-              message: `HHE303: Argument name ${name} is invalid`,
-            });
+            assert.throws(
+              () => builder[fnName]({ name }),
+              new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
+                name,
+              }),
+            );
           });
         });
       });
@@ -1156,10 +1168,12 @@ describe("Task builders", () => {
 
         names.forEach((name) => {
           fnNames.forEach((fnName) => {
-            assert.throws(() => builder[fnName]({ name }), {
-              name: "HardhatError",
-              message: `HHE302: Argument name ${name} is already in use`,
-            });
+            assert.throws(
+              () => builder[fnName]({ name }),
+              new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
+                name,
+              }),
+            );
           });
         });
       });
@@ -1170,10 +1184,12 @@ describe("Task builders", () => {
         );
 
         RESERVED_PARAMETER_NAMES.forEach((name) => {
-          assert.throws(() => builder.addOption({ name }), {
-            name: "HardhatError",
-            message: `HHE301: Argument name ${name} is reserved`,
-          });
+          assert.throws(
+            () => builder.addOption({ name }),
+            new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
+              name,
+            }),
+          );
         });
       });
     });

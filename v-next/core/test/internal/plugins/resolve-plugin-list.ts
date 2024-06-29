@@ -3,6 +3,8 @@ import type { HardhatPlugin } from "../../../src/types/plugins.js";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
+
 import { resolvePluginList } from "../../../src/internal/plugins/resolve-plugin-list.js";
 
 describe("Plugins - resolve plugin list", () => {
@@ -149,11 +151,9 @@ describe("Plugins - resolve plugin list", () => {
 
     await assert.rejects(
       async () => resolvePluginList([a, copy], installedPackageFixture),
-      {
-        name: "HardhatError",
-        message:
-          'HHE4: Duplicated plugin id "dup" found. Did you install multiple versions of the same plugin?',
-      },
+      new HardhatError(HardhatError.ERRORS.GENERAL.DUPLICATED_PLUGIN_ID, {
+        id: "dup",
+      }),
     );
   });
 
@@ -171,10 +171,10 @@ describe("Plugins - resolve plugin list", () => {
 
       await assert.rejects(
         async () => resolvePluginList([plugin], installedPackageFixture),
-        {
-          name: "HardhatError",
-          message: 'HHE1203: Plugin "plugin" dependency could not be loaded.',
-        },
+        new HardhatError(
+          HardhatError.ERRORS.PLUGINS.PLUGIN_DEPENDENCY_FAILED_LOAD,
+          { pluginId: plugin.id },
+        ),
       );
     });
 
@@ -195,10 +195,9 @@ describe("Plugins - resolve plugin list", () => {
 
       await assert.rejects(
         async () => resolvePluginList([plugin], notInstalledPackageFixture),
-        {
-          name: "HardhatError",
-          message: 'HHE1200: Plugin "example" is not installed.',
-        },
+        new HardhatError(HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED, {
+          pluginId: "example",
+        }),
       );
     });
   });

@@ -21,6 +21,8 @@ import type { UserInterruptionManager } from "../../src/types/user-interruptions
 import assert from "node:assert/strict";
 import { describe, it, beforeEach } from "node:test";
 
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
+
 import { HookManagerImplementation } from "../../src/internal/hook-manager.js";
 import { UserInterruptionManagerImplementation } from "../../src/internal/user-interruptions.js";
 
@@ -269,11 +271,14 @@ describe("HookManager", () => {
                 return {};
               },
             ),
-          {
-            name: "HardhatError",
-            message:
-              'HHE1300: Plugin "example" hook factory for "config" is not a valid file:// URL: ./fixture-plugins/config-plugin.js.',
-          },
+          new HardhatError(
+            HardhatError.ERRORS.HOOKS.INVALID_HOOK_FACTORY_PATH,
+            {
+              hookCategoryName: "config",
+              pluginId: "example",
+              path: "./fixture-plugins/config-plugin.js",
+            },
+          ),
         );
       });
     });
