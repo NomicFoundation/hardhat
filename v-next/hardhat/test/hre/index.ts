@@ -9,6 +9,7 @@ import {
   resetHardhatRuntimeEnvironmentSingleton,
 } from "../../src/internal/hre-singleton.js";
 import { useFixtureProject } from "../helpers/project.js";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 describe("HRE", () => {
   describe("createHardhatRuntimeEnvironment", () => {
@@ -53,9 +54,10 @@ describe("HRE", () => {
       });
 
       it("should throw if the config file is not found", async () => {
-        await assert.rejects(resolveHardhatConfigPath(), {
-          message: "HHE5: No Hardhat config file found",
-        });
+        await assert.rejects(
+          resolveHardhatConfigPath(),
+          new HardhatError(HardhatError.ERRORS.GENERAL.NO_CONFIG_FILE_FOUND),
+        );
       });
 
       describe("javascript config", () => {
