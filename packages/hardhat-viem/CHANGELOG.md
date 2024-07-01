@@ -1,5 +1,16 @@
 # @nomicfoundation/hardhat-viem
 
+## 2.0.3
+
+### Patch Changes
+
+- a8a6038: Added `ContractTypesMap` to simplify contract type imports (thanks @beepidibop!)
+- Updated dependencies [cdf0160]
+- Updated dependencies [3c66da2]
+- Updated dependencies [9fadc22]
+- Updated dependencies [095faa4]
+  - hardhat@2.22.6
+
 ## 2.0.2
 
 ### Patch Changes
