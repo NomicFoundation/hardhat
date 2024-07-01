@@ -203,7 +203,7 @@ describe("HardhatPluginError", () => {
   describe("Without parent error", () => {
     it("should have the right plugin name", () => {
       const error = new HardhatPluginError("examplePlugin", "error message");
-      assert.equal(error.pluginName, "examplePlugin");
+      assert.equal(error.pluginId, "examplePlugin");
     });
 
     it("should have the right error message", () => {

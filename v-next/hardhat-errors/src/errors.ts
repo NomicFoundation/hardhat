@@ -47,7 +47,7 @@ const IS_HARDHAT_PLUGIN_ERROR_PROPERTY_NAME = "_isHardhatPluginError";
  * `HardhatPluginError`.
  */
 export class HardhatError<
-  ErrorDescriptorT extends ErrorDescriptor,
+  ErrorDescriptorT extends ErrorDescriptor = ErrorDescriptor,
 > extends CustomError {
   public static readonly ERRORS: typeof ERRORS = ERRORS;
 
@@ -57,6 +57,10 @@ export class HardhatError<
     ErrorDescriptorT["messageTemplate"]
   >;
 
+  readonly #errorCode: string;
+
+  readonly #formattedMessage: string;
+
   constructor(
     ...[
       errorDescriptor,
@@ -64,7 +68,7 @@ export class HardhatError<
       parentError,
     ]: HardhatErrorConstructorArguments<ErrorDescriptorT>
   ) {
-    const prefix = `${getErrorCode(errorDescriptor)}: `;
+    const errorCode = getErrorCode(errorDescriptor);
 
     const formattedMessage =
       messageArgumentsOrParentError === undefined ||
@@ -76,7 +80,7 @@ export class HardhatError<
           );
 
     super(
-      prefix + formattedMessage,
+      `${errorCode}: ${formattedMessage}`,
       parentError instanceof Error
         ? parentError
         : messageArgumentsOrParentError instanceof Error
@@ -85,6 +89,8 @@ export class HardhatError<
     );
 
     this.#descriptor = errorDescriptor;
+    this.#errorCode = errorCode;
+    this.#formattedMessage = formattedMessage;
 
     if (
       messageArgumentsOrParentError === undefined ||
@@ -160,6 +166,14 @@ export class HardhatError<
   > {
     return this.#arguments;
   }
+
+  public get errorCode(): string {
+    return this.#errorCode;
+  }
+
+  public get formattedMessage(): string {
+    return this.#formattedMessage;
+  }
 }
 
 /**
@@ -168,7 +182,7 @@ export class HardhatError<
  */
 export class HardhatPluginError extends CustomError {
   constructor(
-    public readonly pluginName: string,
+    public readonly pluginId: string,
     message: string,
     parentError?: Error,
   ) {

@@ -31,6 +31,7 @@ import { builtinPlugins } from "../builtin-plugins/index.js";
 import { importUserConfig } from "../helpers/config-loading.js";
 import { getHardhatRuntimeEnvironmentSingleton } from "../hre-singleton.js";
 
+import { printErrorMessages } from "./error-handler.js";
 import { getGlobalHelpString } from "./helpers/getGlobalHelpString.js";
 import { getHelpString } from "./helpers/getHelpString.js";
 import { initHardhat } from "./init/init.js";
@@ -40,28 +41,30 @@ export async function main(
   cliArguments: string[],
   print: (message: string) => void = console.log,
 ): Promise<void> {
-  const usedCliArguments: boolean[] = new Array(cliArguments.length).fill(
-    false,
-  );
-
-  const hardhatSpecialArgs = await parseHardhatSpecialArguments(
-    cliArguments,
-    usedCliArguments,
-  );
-
-  if (hardhatSpecialArgs.version) {
-    return printVersionMessage(print);
-  }
-
-  if (hardhatSpecialArgs.init) {
-    return initHardhat();
-  }
-
-  if (hardhatSpecialArgs.configPath === undefined) {
-    hardhatSpecialArgs.configPath = await resolveHardhatConfigPath();
-  }
+  let hardhatSpecialArgs;
 
   try {
+    const usedCliArguments: boolean[] = new Array(cliArguments.length).fill(
+      false,
+    );
+
+    hardhatSpecialArgs = await parseHardhatSpecialArguments(
+      cliArguments,
+      usedCliArguments,
+    );
+
+    if (hardhatSpecialArgs.version) {
+      return await printVersionMessage(print);
+    }
+
+    if (hardhatSpecialArgs.init) {
+      return await initHardhat();
+    }
+
+    if (hardhatSpecialArgs.configPath === undefined) {
+      hardhatSpecialArgs.configPath = await resolveHardhatConfigPath();
+    }
+
     const userConfig = await importUserConfig(hardhatSpecialArgs.configPath);
 
     const configPlugins = Array.isArray(userConfig.plugins)
@@ -122,21 +125,7 @@ export async function main(
 
     await task.run(taskArguments);
   } catch (error) {
-    process.exitCode = 1;
-
-    // TODO: Use ensureError
-    if (!(error instanceof Error)) {
-      throw error;
-    }
-
-    // TODO: Print the errors nicely, especially `HardhatError`s.
-
-    print(`Error running the task: ${error.message}`);
-
-    if (hardhatSpecialArgs.showStackTraces) {
-      print("");
-      console.error(error);
-    }
+    printErrorMessages(error, hardhatSpecialArgs?.showStackTraces);
   }
 }
 
