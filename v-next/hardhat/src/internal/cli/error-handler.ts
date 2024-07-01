@@ -4,7 +4,6 @@ import {
   HardhatError,
   HardhatPluginError,
 } from "@ignored/hardhat-vnext-errors";
-import { isCi } from "@ignored/hardhat-vnext-utils/ci";
 import chalk from "chalk";
 
 import { HARDHAT_NAME, HARDHAT_WEBSITE_URL } from "../constants.js";
@@ -66,11 +65,11 @@ interface ErrorMessages {
  */
 export function printErrorMessages(
   error: unknown,
+  shouldShowStackTraces: boolean = false,
   print: (message: string) => void = console.error,
 ): void {
   const showStackTraces =
-    process.argv.includes("--show-stack-traces") ||
-    isCi() ||
+    shouldShowStackTraces ||
     getErrorWithCategory(error).category === ErrorCategory.OTHER;
   const {
     formattedErrorMessage,

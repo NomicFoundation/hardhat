@@ -41,12 +41,14 @@ export async function main(
   cliArguments: string[],
   print: (message: string) => void = console.log,
 ): Promise<void> {
+  let hardhatSpecialArgs;
+
   try {
     const usedCliArguments: boolean[] = new Array(cliArguments.length).fill(
       false,
     );
 
-    const hardhatSpecialArgs = await parseHardhatSpecialArguments(
+    hardhatSpecialArgs = await parseHardhatSpecialArguments(
       cliArguments,
       usedCliArguments,
     );
@@ -123,7 +125,7 @@ export async function main(
 
     await task.run(taskArguments);
   } catch (error) {
-    printErrorMessages(error);
+    printErrorMessages(error, hardhatSpecialArgs?.showStackTraces);
   }
 }
 

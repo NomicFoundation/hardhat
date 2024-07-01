@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { beforeEach, describe, it } from "node:test";
+import { describe, it } from "node:test";
 import util from "node:util";
 
 import {
@@ -13,7 +13,6 @@ import {
   HARDHAT_NAME,
   HARDHAT_WEBSITE_URL,
 } from "../../../src/internal/constants.js";
-import { createTestEnvManager } from "../../helpers/env-vars.js";
 
 const mockErrorDescriptor = {
   number: 123,
@@ -23,21 +22,13 @@ const mockErrorDescriptor = {
 } as const;
 
 describe("error-handler", () => {
-  const { setEnvVar } = createTestEnvManager();
-
-  beforeEach(() => {
-    // Unset env var for tests to run correctly in CI environments
-    setEnvVar("GITHUB_ACTIONS", undefined);
-    setEnvVar("CI", undefined);
-  });
-
   describe("printErrorMessages", () => {
     describe("with a Hardhat error", () => {
       it("should print the error message", () => {
         const lines: string[] = [];
         const error = new HardhatError(mockErrorDescriptor);
 
-        printErrorMessages(error, (msg: string) => {
+        printErrorMessages(error, false, (msg: string) => {
           lines.push(msg);
         });
 
@@ -53,15 +44,11 @@ describe("error-handler", () => {
         );
       });
 
-      it("should print the stack trace when the stack is enabled via env vars", () => {
+      it("should print the stack trace", () => {
         const lines: string[] = [];
         const error = new HardhatError(mockErrorDescriptor);
 
-        // stack traces are enabled in CI environments
-        setEnvVar("GITHUB_ACTIONS", "true");
-        setEnvVar("CI", "true");
-
-        printErrorMessages(error, (msg: string) => {
+        printErrorMessages(error, true, (msg: string) => {
           lines.push(msg);
         });
 
@@ -72,29 +59,6 @@ describe("error-handler", () => {
         );
         assert.equal(lines[1], "");
         assert.equal(lines[2], `${error.stack}`);
-      });
-
-      it("should print the stack trace when the stack is enabled via --show-stack-traces", () => {
-        try {
-          const lines: string[] = [];
-          const error = new HardhatError(mockErrorDescriptor);
-
-          process.argv.push("--show-stack-traces");
-
-          printErrorMessages(error, (msg: string) => {
-            lines.push(msg);
-          });
-
-          assert.equal(lines.length, 3);
-          assert.equal(
-            lines[0],
-            `${chalk.red.bold(`Error ${error.errorCode}:`)} ${error.formattedMessage}`,
-          );
-          assert.equal(lines[1], "");
-          assert.equal(lines[2], `${error.stack}`);
-        } finally {
-          process.argv.pop();
-        }
       });
     });
 
@@ -106,7 +70,7 @@ describe("error-handler", () => {
           ...mockErrorDescriptor,
         });
 
-        printErrorMessages(error, (msg: string) => {
+        printErrorMessages(error, false, (msg: string) => {
           lines.push(msg);
         });
 
@@ -122,18 +86,14 @@ describe("error-handler", () => {
         );
       });
 
-      it("should print the stack trace when the stack is enabled via env vars", () => {
+      it("should print the stack trace", () => {
         const lines: string[] = [];
         const error = new HardhatError({
           pluginId: "example-plugin",
           ...mockErrorDescriptor,
         });
 
-        // stack traces are enabled in CI environments
-        setEnvVar("GITHUB_ACTIONS", "true");
-        setEnvVar("CI", "true");
-
-        printErrorMessages(error, (msg: string) => {
+        printErrorMessages(error, true, (msg: string) => {
           lines.push(msg);
         });
 
@@ -145,32 +105,6 @@ describe("error-handler", () => {
         assert.equal(lines[1], "");
         assert.equal(lines[2], `${error.stack}`);
       });
-
-      it("should print the stack trace when the stack is enabled via --show-stack-traces", () => {
-        try {
-          const lines: string[] = [];
-          const error = new HardhatError({
-            pluginId: "example-plugin",
-            ...mockErrorDescriptor,
-          });
-
-          process.argv.push("--show-stack-traces");
-
-          printErrorMessages(error, (msg: string) => {
-            lines.push(msg);
-          });
-
-          assert.equal(lines.length, 3);
-          assert.equal(
-            lines[0],
-            `${chalk.red.bold(`Error ${error.errorCode} in plugin ${error.pluginId}:`)} ${error.formattedMessage}`,
-          );
-          assert.equal(lines[1], "");
-          assert.equal(lines[2], `${error.stack}`);
-        } finally {
-          process.argv.pop();
-        }
-      });
     });
 
     describe("with a Hardhat community plugin error", () => {
@@ -181,7 +115,7 @@ describe("error-handler", () => {
           "error message",
         );
 
-        printErrorMessages(error, (msg: string) => {
+        printErrorMessages(error, false, (msg: string) => {
           lines.push(msg);
         });
 
@@ -197,18 +131,14 @@ describe("error-handler", () => {
         );
       });
 
-      it("should print the stack trace when the stack is enabled via env vars", () => {
+      it("should print the stack trace", () => {
         const lines: string[] = [];
         const error = new HardhatPluginError(
           "community-plugin",
           "error message",
         );
 
-        // stack traces are enabled in CI environments
-        setEnvVar("GITHUB_ACTIONS", "true");
-        setEnvVar("CI", "true");
-
-        printErrorMessages(error, (msg: string) => {
+        printErrorMessages(error, true, (msg: string) => {
           lines.push(msg);
         });
 
@@ -220,32 +150,6 @@ describe("error-handler", () => {
         assert.equal(lines[1], "");
         assert.equal(lines[2], `${error.stack}`);
       });
-
-      it("should print the stack trace when the stack is enabled via --show-stack-traces", () => {
-        try {
-          const lines: string[] = [];
-          const error = new HardhatPluginError(
-            "community-plugin",
-            "error message",
-          );
-
-          process.argv.push("--show-stack-traces");
-
-          printErrorMessages(error, (msg: string) => {
-            lines.push(msg);
-          });
-
-          assert.equal(lines.length, 3);
-          assert.equal(
-            lines[0],
-            `${chalk.red.bold(`Error in community plugin ${error.pluginId}:`)} ${error.message}`,
-          );
-          assert.equal(lines[1], "");
-          assert.equal(lines[2], `${error.stack}`);
-        } finally {
-          process.argv.pop();
-        }
-      });
     });
 
     describe("with an unknown error", () => {
@@ -253,7 +157,7 @@ describe("error-handler", () => {
         const lines: string[] = [];
         const error = new Error("error message");
 
-        printErrorMessages(error, (msg: string) => {
+        printErrorMessages(error, false, (msg: string) => {
           lines.push(msg);
         });
 
@@ -272,7 +176,7 @@ describe("error-handler", () => {
         const lines: string[] = [];
         const error = { message: "error message" };
 
-        printErrorMessages(error, (msg: string) => {
+        printErrorMessages(error, false, (msg: string) => {
           lines.push(msg);
         });
 
