@@ -189,6 +189,13 @@ Please add the property "type" with the value "module" in your package.json to e
       websiteDescription:
         "The global option is already defined by another plugin. Please ensure that global options are uniquely named to avoid conflicts.",
     },
+    INVALID_CONFIG: {
+      number: 16,
+      messageTemplate: `Invalid config:
+{errors}`,
+      websiteTitle: "Invalid config",
+      websiteDescription: `The configuration you provided is invalid. Please check the documentation to learn how to configure Hardhat correctly.`,
+    },
   },
   INTERNAL: {
     ASSERTION_ERROR: {
