@@ -195,7 +195,7 @@ Please add the property "type" with the value "module" in your package.json to e
       number: 100,
       messageTemplate: "An internal invariant was violated: {message}",
       websiteTitle: "Invariant violation",
-      websiteDescription: `An internal invariant was violated. This is probably caused by a programming in Hardhat or in one of the used plugins.
+      websiteDescription: `An internal invariant was violated. This is probably caused by a programming error in Hardhat or in one of the used plugins.
     
 Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
