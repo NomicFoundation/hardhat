@@ -5,6 +5,7 @@ import { getHardhatVersion } from "../../utils/package.js";
 
 import {
   GLOBAL_NAME_PADDING,
+  formatOptionName,
   getLongestNameLength,
   getSection,
   parseTasks,
@@ -17,8 +18,15 @@ export async function getGlobalHelpString(
 
   const { tasks, subtasks } = parseTasks(rootTasks);
 
+  const formattedBuiltinOptions = BUILTIN_OPTIONS.map(
+    ({ name, description }) => ({
+      name: formatOptionName(name),
+      description,
+    }),
+  );
+
   const namePadding =
-    getLongestNameLength([...tasks, ...subtasks, ...BUILTIN_OPTIONS]) +
+    getLongestNameLength([...tasks, ...subtasks, ...formattedBuiltinOptions]) +
     GLOBAL_NAME_PADDING;
 
   let output = `Hardhat version ${version}
@@ -34,7 +42,7 @@ Usage: hardhat [GLOBAL OPTIONS] <TASK> [SUBTASK] [TASK OPTIONS] [--] [TASK ARGUM
     output += getSection("AVAILABLE SUBTASKS", subtasks, namePadding);
   }
 
-  output += getSection("GLOBAL OPTIONS", BUILTIN_OPTIONS, namePadding);
+  output += getSection("GLOBAL OPTIONS", formattedBuiltinOptions, namePadding);
 
   output += `\nTo get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
 

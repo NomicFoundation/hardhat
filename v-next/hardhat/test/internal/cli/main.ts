@@ -222,7 +222,7 @@ AVAILABLE TASKS:
 GLOBAL OPTIONS:
 
   --config                 A Hardhat config file.
-  --help                   Shows this message, or a task's help if its name is provided
+  --help                   Shows this message, or a task's help if its name is provided.
   --show-stack-traces      Show stack traces (always enabled on CI servers).
   --version                Shows hardhat's version.
 

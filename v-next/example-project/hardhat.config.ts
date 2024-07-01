@@ -6,6 +6,7 @@ import {
   emptyTask,
   overrideTask,
   configVariable,
+  globalOption,
 } from "@ignored/hardhat-vnext/config";
 
 const exampleEmptyTask = emptyTask("empty", "An example empty task").build();
@@ -115,6 +116,13 @@ const pluginExample = {
         }
       })
       .build(),
+  ],
+  globalOptions: [
+    globalOption({
+      name: "myGlobalOption",
+      description: "A global option",
+      defaultValue: "default",
+    }),
   ],
 };
 
