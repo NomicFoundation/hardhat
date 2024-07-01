@@ -31,6 +31,7 @@ import { builtinPlugins } from "../builtin-plugins/index.js";
 import { importUserConfig } from "../helpers/config-loading.js";
 import { getHardhatRuntimeEnvironmentSingleton } from "../hre-singleton.js";
 
+import { printErrorMessages } from "./error-handler.js";
 import { getGlobalHelpString } from "./helpers/getGlobalHelpString.js";
 import { getHelpString } from "./helpers/getHelpString.js";
 import { initHardhat } from "./init/init.js";
@@ -40,86 +41,90 @@ export async function main(
   cliArguments: string[],
   print: (message: string) => void = console.log,
 ): Promise<void> {
-  const usedCliArguments: boolean[] = new Array(cliArguments.length).fill(
-    false,
-  );
+  try {
+    const usedCliArguments: boolean[] = new Array(cliArguments.length).fill(
+      false,
+    );
 
-  const hardhatSpecialArgs = await parseHardhatSpecialArguments(
-    cliArguments,
-    usedCliArguments,
-  );
+    const hardhatSpecialArgs = await parseHardhatSpecialArguments(
+      cliArguments,
+      usedCliArguments,
+    );
 
-  if (hardhatSpecialArgs.version) {
-    return printVersionMessage(print);
-  }
+    if (hardhatSpecialArgs.version) {
+      return await printVersionMessage(print);
+    }
 
-  if (hardhatSpecialArgs.init) {
-    return initHardhat();
-  }
+    if (hardhatSpecialArgs.init) {
+      return await initHardhat();
+    }
 
-  if (hardhatSpecialArgs.configPath === undefined) {
-    hardhatSpecialArgs.configPath = await resolveHardhatConfigPath();
-  }
+    if (hardhatSpecialArgs.configPath === undefined) {
+      hardhatSpecialArgs.configPath = await resolveHardhatConfigPath();
+    }
 
-  const userConfig = await importUserConfig(hardhatSpecialArgs.configPath);
+    const userConfig = await importUserConfig(hardhatSpecialArgs.configPath);
 
-  const configPlugins = Array.isArray(userConfig.plugins)
-    ? userConfig.plugins
-    : [];
-  const plugins = [...builtinPlugins, ...configPlugins];
-  const resolvedPlugins = await resolvePluginList(
-    plugins,
-    hardhatSpecialArgs.configPath,
-  );
+    const configPlugins = Array.isArray(userConfig.plugins)
+      ? userConfig.plugins
+      : [];
+    const plugins = [...builtinPlugins, ...configPlugins];
+    const resolvedPlugins = await resolvePluginList(
+      plugins,
+      hardhatSpecialArgs.configPath,
+    );
 
-  const globalOptionsMap = buildGlobalOptionsMap(resolvedPlugins);
-  const userProvidedGlobalOptions = await parseGlobalOptions(
-    globalOptionsMap,
-    cliArguments,
-    usedCliArguments,
-  );
-
-  const hre = await getHardhatRuntimeEnvironmentSingleton(
-    userConfig,
-    userProvidedGlobalOptions,
-    {
-      resolvedPlugins,
+    const globalOptionsMap = buildGlobalOptionsMap(resolvedPlugins);
+    const userProvidedGlobalOptions = await parseGlobalOptions(
       globalOptionsMap,
-    },
-  );
+      cliArguments,
+      usedCliArguments,
+    );
 
-  const taskOrId = parseTask(cliArguments, usedCliArguments, hre);
+    const hre = await getHardhatRuntimeEnvironmentSingleton(
+      userConfig,
+      userProvidedGlobalOptions,
+      {
+        resolvedPlugins,
+        globalOptionsMap,
+      },
+    );
 
-  if (Array.isArray(taskOrId)) {
-    if (taskOrId.length === 0) {
-      const globalHelp = await getGlobalHelpString(hre.tasks.rootTasks);
+    const taskOrId = parseTask(cliArguments, usedCliArguments, hre);
 
-      print(globalHelp);
+    if (Array.isArray(taskOrId)) {
+      if (taskOrId.length === 0) {
+        const globalHelp = await getGlobalHelpString(hre.tasks.rootTasks);
+
+        print(globalHelp);
+        return;
+      }
+
+      throw new HardhatError(
+        HardhatError.ERRORS.TASK_DEFINITIONS.TASK_NOT_FOUND,
+        { task: taskOrId.join(" ") },
+      );
+    }
+
+    const task = taskOrId;
+
+    if (hardhatSpecialArgs.help) {
+      const taskHelp = await getHelpString(task);
+
+      print(taskHelp);
       return;
     }
 
-    throw new HardhatError(
-      HardhatError.ERRORS.TASK_DEFINITIONS.TASK_NOT_FOUND,
-      { task: taskOrId.join(" ") },
+    const taskArguments = parseTaskArguments(
+      cliArguments,
+      usedCliArguments,
+      task,
     );
+
+    await task.run(taskArguments);
+  } catch (error) {
+    printErrorMessages(error);
   }
-
-  const task = taskOrId;
-
-  if (hardhatSpecialArgs.help) {
-    const taskHelp = await getHelpString(task);
-
-    print(taskHelp);
-    return;
-  }
-
-  const taskArguments = parseTaskArguments(
-    cliArguments,
-    usedCliArguments,
-    task,
-  );
-
-  await task.run(taskArguments);
 }
 
 export async function parseHardhatSpecialArguments(
