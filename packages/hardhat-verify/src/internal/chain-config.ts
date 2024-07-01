@@ -187,6 +187,22 @@ export const builtinChains: ChainConfig[] = [
     },
   },
   {
+    network: "etherlink",
+    chainId: 42793,
+    urls: {
+      apiURL: "https://explorer.etherlink.com/api/v2",
+      browserURL: "https://explorer.etherlink.com",
+    },
+  },
+  {
+    network: "etherlinkTestnet",
+    chainId: 128123,
+    urls: {
+      apiURL: "https://testnet-explorer.etherlink.com/api/v2",
+      browserURL: "https://testnet-explorer.etherlink.com",
+    },
+  },
+  {
     network: "avalancheFujiTestnet",
     chainId: 43113,
     urls: {
