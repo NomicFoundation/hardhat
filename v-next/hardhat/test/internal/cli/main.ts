@@ -225,6 +225,7 @@ GLOBAL OPTIONS:
   --help                   Shows this message, or a task's help if its name is provided.
   --show-stack-traces      Show stack traces (always enabled on CI servers).
   --version                Shows hardhat's version.
+  --flag                   A flag
 
 To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
 
