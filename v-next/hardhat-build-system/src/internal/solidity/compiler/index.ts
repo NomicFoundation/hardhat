@@ -13,6 +13,8 @@ import {
 import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import * as semver from "semver";
 
+import { ERRORS } from "../../error-descriptors.js";
+
 export interface ICompiler {
   compile(input: CompilerInput): Promise<CompilerOutput>;
 }
@@ -59,10 +61,7 @@ export class Compiler implements ICompiler {
       } catch (e) {
         ensureError(e);
 
-        throw new HardhatError(
-          HardhatError.ERRORS.SOLC.CANT_RUN_SOLCJS_COMPILER,
-          e,
-        );
+        throw new HardhatError(ERRORS.SOLC.CANT_RUN_SOLCJS_COMPILER, e);
       }
     });
 
@@ -120,10 +119,7 @@ export class NativeCompiler implements ICompiler {
       } catch (e) {
         ensureError(e);
 
-        throw new HardhatError(
-          HardhatError.ERRORS.SOLC.CANT_RUN_NATIVE_COMPILER,
-          e,
-        );
+        throw new HardhatError(ERRORS.SOLC.CANT_RUN_NATIVE_COMPILER, e);
       }
     });
 

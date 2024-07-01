@@ -12,13 +12,13 @@ import * as os from "node:os";
 import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import {
   readJsonFile,
   remove,
   writeJsonFile,
 } from "@ignored/hardhat-vnext-utils/fs";
 
+import { ERRORS } from "../../../src/internal/error-descriptors.js";
 import {
   Artifacts,
   getArtifactFromContractOutput,
@@ -389,7 +389,7 @@ describe("Artifacts class", function () {
       const artifacts = new Artifacts(getTmpDir());
       await expectHardhatErrorAsync(
         () => artifacts.readArtifact("NonExistent"),
-        HardhatError.ERRORS.ARTIFACTS.NOT_FOUND,
+        ERRORS.ARTIFACTS.NOT_FOUND,
       );
     });
 
@@ -406,7 +406,7 @@ describe("Artifacts class", function () {
 
       await expectHardhatErrorAsync(
         () => artifacts.readArtifact(name),
-        HardhatError.ERRORS.ARTIFACTS.MULTIPLE_FOUND,
+        ERRORS.ARTIFACTS.MULTIPLE_FOUND,
         `Lib.sol:Lib${os.EOL}Lib2.sol:Lib`,
       );
     });
@@ -423,7 +423,7 @@ describe("Artifacts class", function () {
 
       await expectHardhatErrorAsync(
         () => artifacts.readArtifact(typo),
-        HardhatError.ERRORS.ARTIFACTS.NOT_FOUND,
+        ERRORS.ARTIFACTS.NOT_FOUND,
         /Did you mean "Lib"\?$/,
       );
     });
@@ -449,7 +449,7 @@ describe("Artifacts class", function () {
 
       await expectHardhatErrorAsync(
         () => artifacts.readArtifact(typo),
-        HardhatError.ERRORS.ARTIFACTS.NOT_FOUND,
+        ERRORS.ARTIFACTS.NOT_FOUND,
         expected,
       );
     });
@@ -466,7 +466,7 @@ describe("Artifacts class", function () {
 
       await expectHardhatErrorAsync(
         () => artifacts.readArtifact(typo),
-        HardhatError.ERRORS.ARTIFACTS.NOT_FOUND,
+        ERRORS.ARTIFACTS.NOT_FOUND,
         /Did you mean "Lib\.sol:Lib"\?/,
       );
     });
@@ -490,7 +490,7 @@ describe("Artifacts class", function () {
 
       await expectHardhatErrorAsync(
         () => artifacts.readArtifact(typo),
-        HardhatError.ERRORS.ARTIFACTS.NOT_FOUND,
+        ERRORS.ARTIFACTS.NOT_FOUND,
         expected,
       );
     });
@@ -507,7 +507,7 @@ describe("Artifacts class", function () {
 
       await expectHardhatErrorAsync(
         () => artifacts.readArtifact(typo),
-        HardhatError.ERRORS.ARTIFACTS.NOT_FOUND,
+        ERRORS.ARTIFACTS.NOT_FOUND,
         /not found\.\s*$/,
       );
     });
@@ -524,7 +524,7 @@ describe("Artifacts class", function () {
 
       await expectHardhatErrorAsync(
         () => artifacts.readArtifact(typo),
-        HardhatError.ERRORS.ARTIFACTS.NOT_FOUND,
+        ERRORS.ARTIFACTS.NOT_FOUND,
         /not found\.\s*$/,
       );
     });

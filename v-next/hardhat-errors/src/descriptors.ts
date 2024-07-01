@@ -49,36 +49,23 @@ export const ERROR_CATEGORIES: {
 } = {
   GENERAL: { min: 1, max: 99, websiteTitle: "General errors" },
   INTERNAL: { min: 100, max: 199, websiteTitle: "Internal Hardhat errors" },
-  TASK_DEFINITIONS: {
+  PLUGINS: {
     min: 200,
     max: 299,
-    websiteTitle: "Task definition errors",
-  },
-  ARGUMENTS: { min: 300, max: 399, websiteTitle: "Arguments related errors" },
-  RESOLVER: {
-    min: 400,
-    max: 499,
-    websiteTitle: "Dependencies resolution errors",
-  },
-  SOLC: { min: 500, max: 599, websiteTitle: "Solidity related errors" },
-  BUILTIN_TASKS: { min: 600, max: 699, websiteTitle: "Built-in tasks errors" },
-  ARTIFACTS: { min: 700, max: 799, websiteTitle: "Artifacts related errors" },
-  SOURCE_NAMES: { min: 1000, max: 1099, websiteTitle: "Source name errors" },
-  CONTRACT_NAMES: {
-    min: 1100,
-    max: 1199,
-    websiteTitle: "Contract name errors",
-  },
-  PLUGINS: {
-    min: 1200,
-    max: 1299,
     websiteTitle: "Plugin errors",
   },
   HOOKS: {
-    min: 1300,
-    max: 1399,
+    min: 300,
+    max: 399,
     websiteTitle: "Hooks errors",
   },
+  TASK_DEFINITIONS: {
+    min: 400,
+    max: 499,
+    websiteTitle: "Task definition errors",
+  },
+  ARGUMENTS: { min: 500, max: 599, websiteTitle: "Arguments related errors" },
+  BUILTIN_TASKS: { min: 600, max: 699, websiteTitle: "Built-in tasks errors" },
 };
 
 export const ERRORS = {
@@ -91,31 +78,8 @@ export const ERRORS = {
 
 You can learn how to use Hardhat by reading the [Getting Started guide](/hardhat-runner/docs/getting-started).`,
     },
-    CORRUPTED_LOCKFILE: {
-      number: 2,
-      messageTemplate: `You installed Hardhat with a corrupted lockfile due to the NPM bug #4828.
-
-Please delete your node_modules, package-lock.json, reinstall your project, and try again.`,
-      websiteTitle: "Corrupted lockfile",
-      websiteDescription: `Some versions of NPM are affected [by a bug](https://github.com/npm/cli/issues/4828) that leads to corrupt lockfiles being generated.
-
-This bug can only affect you if you, or someone at your team, installed the project without a lockfile, but with an existing node_modules.
-
-To avoid it, please delete both your node_modules and package-lock.json, and reinstall your project.
-
-Note that you don't need to do this every time you install a new dependency, but please make sure to delete your node_modules every time you delete your package-lock.json.`,
-    },
-    INVALID_READ_OF_DIRECTORY: {
-      number: 3,
-      messageTemplate:
-        "Invalid file path {absolutePath}. Attempting to read a directory instead of a file.",
-      websiteTitle: "Invalid read: a directory cannot be read",
-      websiteDescription: `An attempt was made to read a file, but a path to a directory was provided.
-
-Please double check the file path.`,
-    },
     DUPLICATED_PLUGIN_ID: {
-      number: 4,
+      number: 2,
       messageTemplate:
         'Duplicated plugin id "{id}" found. Did you install multiple versions of the same plugin?',
       websiteTitle: "Duplicated plugin id",
@@ -124,58 +88,58 @@ Please double check the file path.`,
 Please double check whether you have multiple versions of the same plugin installed.`,
     },
     NO_CONFIG_FILE_FOUND: {
-      number: 5,
+      number: 3,
       messageTemplate: "No Hardhat config file found",
       websiteTitle: "No Hardhat config file found",
       websiteDescription:
         "Hardhat couldn't find a config file in the current directory or any of its parents.",
     },
     INVALID_CONFIG_PATH: {
-      number: 6,
+      number: 4,
       messageTemplate: "Config file {configPath} not found",
       websiteTitle: "Invalid config path",
       websiteDescription: "The config file doesn't exist at the provided path.",
     },
     NO_CONFIG_EXPORTED: {
-      number: 7,
+      number: 5,
       messageTemplate: "No config exported in {configPath}",
       websiteTitle: "No config exported",
       websiteDescription: "There is nothing exported from the config file.",
     },
     INVALID_CONFIG_OBJECT: {
-      number: 8,
+      number: 6,
       messageTemplate: "Invalid config exported in {configPath}",
       websiteTitle: "Invalid config object",
       websiteDescription:
         "The config file doesn't export a valid configuration object.",
     },
     ENV_VAR_NOT_FOUND: {
-      number: 9,
+      number: 7,
       messageTemplate: "Configuration variable not found as an env variable",
       websiteTitle: "Configuration variable not found",
       websiteDescription: `A configuration variable was expected to be set as an environment variable, but it wasn't.`,
     },
     INVALID_URL: {
-      number: 10,
+      number: 8,
       messageTemplate: "Invalid URL: {url}",
       websiteTitle: "Invalid URL",
       websiteDescription: `Given value was not a valid URL.`,
     },
     INVALID_BIGINT: {
-      number: 11,
+      number: 9,
       messageTemplate: "Invalid BigInt: {value}",
       websiteTitle: "Invalid BigInt",
       websiteDescription: `Given value was not a valid BigInt.`,
     },
     HARDHAT_PROJECT_ALREADY_CREATED: {
-      number: 12,
+      number: 10,
       messageTemplate:
         "You are trying to initialize a project inside an existing Hardhat project. The path to the project's configuration file is: {hardhatProjectRootPath}.",
       websiteTitle: "Hardhat project already created",
       websiteDescription: `Cannot create a new Hardhat project, the current folder is already associated with a project.`,
     },
     NOT_INSIDE_PROJECT_ON_WINDOWS: {
-      number: 13,
+      number: 11,
       messageTemplate: `You are not inside a project and Hardhat failed to initialize a new one.
 
 If you were trying to create a new project, please try again using Windows Subsystem for Linux (WSL) or PowerShell.
@@ -189,7 +153,7 @@ If you were trying to create a new project, please try again using Windows Subsy
 You can learn how to use Hardhat by reading the [Getting Started guide](/hardhat-runner/docs/getting-started).`,
     },
     NOT_IN_INTERACTIVE_SHELL: {
-      number: 14,
+      number: 12,
       messageTemplate:
         "You are trying to initialize a project but you are not in an interactive shell.",
       websiteTitle: "Not inside an interactive shell",
@@ -198,7 +162,7 @@ You can learn how to use Hardhat by reading the [Getting Started guide](/hardhat
 Please re-run the command inside an interactive shell.`,
     },
     UNSUPPORTED_OPERATION: {
-      number: 15,
+      number: 13,
       messageTemplate: "{operation} is not supported in Hardhat.",
       websiteTitle: "Unsupported operation",
       websiteDescription: `You are trying to perform an unsupported operation.
@@ -208,7 +172,7 @@ Unless you are creating a task or plugin, this is probably a bug.
 Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
     },
     ONLY_ESM_SUPPORTED: {
-      number: 16,
+      number: 14,
       messageTemplate: `Hardhat only supports ESM projects. Please be sure to specify "'type': 'module'" in your package.json`,
       websiteTitle: "Only ESM projects are supported",
       websiteDescription: `You are trying to initialize a new Hardhat project, but your package.json does not have the property "type" set to "module".
@@ -218,7 +182,7 @@ Currently, Hardhat only supports ESM projects.
 Please add the property "type" with the value "module" in your package.json to ensure that your project is recognized as an ESM project.`,
     },
     GLOBAL_OPTION_ALREADY_DEFINED: {
-      number: 17,
+      number: 15,
       messageTemplate:
         "Plugin {plugin} is trying to define the global option {globalOption} but it is already defined by plugin {definedByPlugin}",
       websiteTitle: "Global option already defined",
@@ -232,22 +196,53 @@ Please add the property "type" with the value "module" in your package.json to e
       messageTemplate: "An internal invariant was violated: {message}",
       websiteTitle: "Invariant violation",
       websiteDescription: `An internal invariant was violated. This is probably caused by a programming error in Hardhat or in one of the used plugins.
-
+    
 Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
     },
   },
-  TASK_DEFINITIONS: {
-    DEPRECATED_TRANSFORM_IMPORT_TASK: {
+  PLUGINS: {
+    PLUGIN_NOT_INSTALLED: {
       number: 200,
-      websiteTitle: "Use of deprecated remapping task",
-      messageTemplate:
-        "Task TASK_COMPILE_TRANSFORM_IMPORT_NAME is deprecated. Please update your @nomicfoundation/hardhat-foundry plugin version.",
-      websiteDescription: `This task has been deprecated in favor of a new approach.`,
-      shouldBeReported: true,
+      messageTemplate: 'Plugin "{pluginId}" is not installed.',
+      websiteTitle: "Plugin not installed",
+      websiteDescription: `A plugin was included in the Hardhat config but has not been installed into "node_modules".`,
     },
-    INVALID_FILE_ACTION: {
+    PLUGIN_MISSING_DEPENDENCY: {
       number: 201,
+      messageTemplate:
+        'Plugin "{pluginId}" is missing a peer dependency "{peerDependencyName}".',
+      websiteTitle: "Plugin missing peer dependency",
+      websiteDescription: `A plugin's peer dependency has not been installed.`,
+    },
+    DEPENDENCY_VERSION_MISMATCH: {
+      number: 202,
+      messageTemplate:
+        'Plugin "{pluginId}" has a peer dependency "{peerDependencyName}" with expected version "{expectedVersion}" but the installed version is "{installedVersion}".',
+      websiteTitle: "Dependency version mismatch",
+      websiteDescription: `A plugin's peer dependency expected version does not match the version of the installed package.
+
+Please install a version of the peer dependency that meets the plugin's requirements.`,
+    },
+    PLUGIN_DEPENDENCY_FAILED_LOAD: {
+      number: 203,
+      messageTemplate: 'Plugin "{pluginId}" dependency could not be loaded.',
+      websiteTitle: "Plugin dependency could not be loaded",
+      websiteDescription: `The loading of a plugin's dependent plugin failed.`,
+    },
+  },
+  HOOKS: {
+    INVALID_HOOK_FACTORY_PATH: {
+      number: 300,
+      messageTemplate:
+        'Plugin "{pluginId}" hook factory for "{hookCategoryName}" is not a valid file:// URL: {path}.',
+      websiteTitle: "Plugin hook factory is not a valid file URL",
+      websiteDescription: `The loading of a plugin's hook factory failed as the import path is not a valid file:// URL.`,
+    },
+  },
+  TASK_DEFINITIONS: {
+    INVALID_FILE_ACTION: {
+      number: 400,
       messageTemplate: "Invalid file action: {action} is not a valid file URL",
       websiteTitle: "Invalid file action",
       websiteDescription: `The setAction function was called with a string parameter that is not a valid file URL. A valid file URL must start with 'file://'.
@@ -255,7 +250,7 @@ Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us i
 Please ensure that you are providing a correct file URL.`,
     },
     NO_ACTION: {
-      number: 202,
+      number: 401,
       messageTemplate: "The task {task} doesn't have an action",
       websiteTitle: "Task missing action",
       websiteDescription: `A task was defined without an action.
@@ -263,7 +258,7 @@ Please ensure that you are providing a correct file URL.`,
 Please ensure that an action is defined for each task.`,
     },
     POSITIONAL_PARAM_AFTER_VARIADIC: {
-      number: 203,
+      number: 402,
       messageTemplate:
         "Cannot add the positional param {name} after a variadic one",
       websiteTitle: "Invalid task definition",
@@ -271,7 +266,7 @@ Please ensure that an action is defined for each task.`,
         "A variadic parameter must always be the last positional parameter in a task definition.",
     },
     REQUIRED_PARAM_AFTER_OPTIONAL: {
-      number: 204,
+      number: 403,
       messageTemplate:
         "Cannot add required positional param {name} after an optional one",
       websiteTitle: "Invalid task definition",
@@ -279,13 +274,13 @@ Please ensure that an action is defined for each task.`,
         "Required positional parameters must be defined before optional ones in a task definition.",
     },
     TASK_NOT_FOUND: {
-      number: 205,
+      number: 404,
       messageTemplate: "Task {task} not found",
       websiteTitle: "Task not found",
       websiteDescription: "The provided task name does not match any task.",
     },
     SUBTASK_WITHOUT_PARENT: {
-      number: 206,
+      number: 405,
       messageTemplate:
         "Task {task} not found when attempting to define subtask {subtask}. If you intend to only define subtasks, please first define {task} as an empty task",
       websiteTitle: "Subtask without parent",
@@ -293,7 +288,7 @@ Please ensure that an action is defined for each task.`,
         "The parent task of the subtask being defined was not found. If you intend to only define subtasks, please first define the parent task as an empty task.",
     },
     TASK_ALREADY_DEFINED: {
-      number: 207,
+      number: 406,
       messageTemplate:
         "{actorFragment} trying to define the task {task} but it is already defined{definedByFragment}",
       websiteTitle: "Task already defined",
@@ -301,14 +296,14 @@ Please ensure that an action is defined for each task.`,
         "The task is already defined. Please ensure that tasks are uniquely named to avoid conflicts.",
     },
     EMPTY_TASK_ID: {
-      number: 208,
+      number: 407,
       messageTemplate: "Task id cannot be an empty string or an empty array",
       websiteTitle: "Empty task id",
       websiteDescription:
         "The task id cannot be an empty string or an empty array. Please ensure that the array of task names is not empty.",
     },
     TASK_OPTION_ALREADY_DEFINED: {
-      number: 209,
+      number: 408,
       messageTemplate:
         "{actorFragment} trying to define task {task} with the option {option} but it is already defined as a global option by plugin {globalOptionPluginId}",
       websiteTitle: "Task option already defined",
@@ -316,7 +311,7 @@ Please ensure that an action is defined for each task.`,
         "The task option is already defined as a global option by another plugin. Please ensure that task options are uniquely named to avoid conflicts.",
     },
     TASK_OVERRIDE_OPTION_ALREADY_DEFINED: {
-      number: 210,
+      number: 409,
       messageTemplate:
         "{actorFragment} trying to override the parameter {optionName} of the task {task} but it is already defined",
       websiteTitle: "Task override option already defined",
@@ -324,14 +319,14 @@ Please ensure that an action is defined for each task.`,
         "An attempt is being made to override an option that has already been defined. Please ensure that the option is not defined before trying to override it.",
     },
     EMPTY_TASK: {
-      number: 211,
+      number: 410,
       messageTemplate: "Can't run the empty task {task}",
       websiteTitle: "Empty task",
       websiteDescription:
         "The task is empty. Please ensure that tasks have at least one action.",
     },
     INVALID_ACTION_URL: {
-      number: 212,
+      number: 411,
       messageTemplate:
         "Unable to import the module specified by the action {action} of task {task}",
       websiteTitle: "Invalid action URL",
@@ -339,7 +334,7 @@ Please ensure that an action is defined for each task.`,
         "The action URL is invalid. Please ensure that the URL is correct.",
     },
     INVALID_ACTION: {
-      number: 213,
+      number: 412,
       messageTemplate:
         "The action resolved from {action} in task {task} is not a function",
       websiteTitle: "Invalid action",
@@ -347,7 +342,7 @@ Please ensure that an action is defined for each task.`,
         "The action of the task is not a function. Make sure that the file pointed to by the action URL exports a function as the default export.",
     },
     MISSING_VALUE_FOR_PARAMETER: {
-      number: 214,
+      number: 413,
       messageTemplate:
         "Missing value for the parameter named {parameter} in the task {task}",
       websiteTitle: "Missing value for the task parameter",
@@ -356,7 +351,7 @@ Please ensure that an action is defined for each task.`,
 Please double check how you invoked Hardhat or ran your task.`,
     },
     INVALID_VALUE_FOR_TYPE: {
-      number: 215,
+      number: 414,
       messageTemplate:
         "Invalid value {value} for argument {name} of type {type} in the task {task}",
       websiteTitle: "Invalid argument type",
@@ -365,7 +360,7 @@ Please double check how you invoked Hardhat or ran your task.`,
 Please double check your task arguments.`,
     },
     UNRECOGNIZED_NAMED_PARAM: {
-      number: 216,
+      number: 415,
       messageTemplate: "Invalid parameter {parameter} for the task {task}",
       websiteTitle: "Invalid parameter value",
       websiteDescription: `One of the parameters for your task is invalid.
@@ -375,7 +370,7 @@ Please double check your arguments.`,
   },
   ARGUMENTS: {
     INVALID_VALUE_FOR_TYPE: {
-      number: 300,
+      number: 500,
       messageTemplate:
         "Invalid value {value} for argument {name} of type {type}",
       websiteTitle: "Invalid argument type",
@@ -384,7 +379,7 @@ Please double check your arguments.`,
 Please double check your arguments.`,
     },
     RESERVED_NAME: {
-      number: 301,
+      number: 501,
       messageTemplate: "Argument name {name} is reserved",
       websiteTitle: "Reserved argument name",
       websiteDescription: `One of your Hardhat or task arguments has a reserved name.
@@ -392,7 +387,7 @@ Please double check your arguments.`,
 Please double check your arguments.`,
     },
     DUPLICATED_NAME: {
-      number: 302,
+      number: 502,
       messageTemplate: "Argument name {name} is already in use",
       websiteTitle: "Argument name already in use",
       websiteDescription: `One of your Hardhat or task argument names is already in use.
@@ -400,7 +395,7 @@ Please double check your arguments.`,
 Please double check your arguments.`,
     },
     INVALID_NAME: {
-      number: 303,
+      number: 503,
       messageTemplate: "Argument name {name} is invalid",
       websiteTitle: "Invalid argument name",
       websiteDescription: `One of your Hardhat or task argument names is invalid.
@@ -408,7 +403,7 @@ Please double check your arguments.`,
 Please double check your arguments.`,
     },
     UNRECOGNIZED_OPTION: {
-      number: 304,
+      number: 504,
       messageTemplate:
         "Invalid option {option}. It is neither a valid global option nor associated with any task. Did you forget to add the task first, or did you misspell it?",
       websiteTitle: "Invalid option value",
@@ -417,7 +412,7 @@ Please double check your arguments.`,
 Please double check your arguments.`,
     },
     MISSING_VALUE_FOR_PARAMETER: {
-      number: 305,
+      number: 505,
       messageTemplate: "Missing value for the task parameter named {paramName}",
       websiteTitle: "Missing value for the task parameter",
       websiteDescription: `You tried to run a task, but one of the values of its parameters was missing.
@@ -425,7 +420,7 @@ Please double check your arguments.`,
 Please double check how you invoked Hardhat or ran your task.`,
     },
     UNUSED_ARGUMENT: {
-      number: 306,
+      number: 506,
       messageTemplate:
         "The argument with value {value} was not consumed because it is not associated with any task.",
       websiteTitle: "Argument was not consumed",
@@ -433,18 +428,8 @@ Please double check how you invoked Hardhat or ran your task.`,
 
 Please double check how you invoked Hardhat or ran your task.`,
     },
-    INVALID_INPUT_FILE: {
-      number: 307,
-      messageTemplate:
-        "Invalid argument {name}: File {value} doesn't exist or is not a readable file.",
-      websiteTitle: "Invalid file argument",
-      websiteDescription: `One of your tasks expected a file as an argument, but you provided a
-nonexistent or non-readable file.
-
-Please double check your arguments.`,
-    },
     MISSING_CONFIG_FILE: {
-      number: 308,
+      number: 507,
       messageTemplate:
         'The configuration parameter "--config" was passed, but no file path was provided.',
       websiteTitle: "Missing configuration file path",
@@ -454,7 +439,7 @@ Please double check your arguments.`,
 Please double check your arguments.`,
     },
     CANNOT_COMBINE_INIT_AND_CONFIG_PATH: {
-      number: 309,
+      number: 508,
       messageTemplate:
         'The configuration parameter "--config" cannot be used with the "init" command',
       websiteTitle:
@@ -464,244 +449,9 @@ Please double check your arguments.`,
 Please double check your arguments.`,
     },
   },
-  RESOLVER: {
-    FILE_NOT_FOUND: {
-      number: 400,
-      messageTemplate: "File {file} doesn't exist.",
-      websiteTitle: "Solidity file not found",
-      websiteDescription: `Tried to resolve a nonexistent Solidity file as an entry-point.`,
-    },
-    LIBRARY_NOT_INSTALLED: {
-      number: 401,
-      messageTemplate: "Library {library} is not installed.",
-      websiteTitle: "Solidity library not installed",
-      websiteDescription: `One of your Solidity sources imports a library that is not installed.
-
-Please double check your imports or install the missing dependency.`,
-    },
-    LIBRARY_FILE_NOT_FOUND: {
-      number: 402,
-      messageTemplate: "File {file} doesn't exist.",
-      websiteTitle: "Missing library file",
-      websiteDescription: `One of your libraries' files was imported but doesn't exist.
-
-Please double check your imports or update your libraries.`,
-    },
-    ILLEGAL_IMPORT: {
-      number: 403,
-      messageTemplate: "Illegal import {imported} from {from}",
-      websiteTitle: "Illegal Solidity import",
-      websiteDescription: `One of your libraries tried to use a relative import to import a file outside of its scope.
-
-This is disabled for security reasons.`,
-    },
-    IMPORTED_FILE_NOT_FOUND: {
-      number: 404,
-      messageTemplate: "File {imported}, imported from {from}, not found.",
-      websiteTitle: "Imported file not found",
-      websiteDescription: `One of your source files imported a nonexistent file.
-
-Please double check your imports.`,
-    },
-    INVALID_IMPORT_BACKSLASH: {
-      number: 405,
-      messageTemplate:
-        "Invalid import {imported} from {from}. Imports must use / instead of \\, even in Windows",
-      websiteTitle: "Invalid import: use / instead of \\",
-      websiteDescription: `A Solidity file is trying to import another file via relative path and is using backslashes (\\\\) instead of slashes (/).
-
-You must always use slashes (/) in Solidity imports.`,
-    },
-    INVALID_IMPORT_PROTOCOL: {
-      number: 406,
-      messageTemplate:
-        "Invalid import {imported} from {from}. Hardhat doesn't support imports via {protocol}.",
-      websiteTitle: "Invalid import: trying to use an unsupported protocol",
-      websiteDescription: `A Solidity file is trying to import a file using an unsupported protocol, like http.
-
-You can only import files that are available locally or installed through npm.`,
-    },
-    INVALID_IMPORT_ABSOLUTE_PATH: {
-      number: 407,
-      messageTemplate:
-        "Invalid import {imported} from {from}. Hardhat doesn't support imports with absolute paths.",
-      websiteTitle: "Invalid import: absolute paths unsupported",
-      websiteDescription: `A Solidity file is trying to import a file using its absolute path.
-
-This is not supported, as it would lead to hard-to-reproduce compilations.`,
-    },
-    INVALID_IMPORT_OUTSIDE_OF_PROJECT: {
-      number: 408,
-      messageTemplate:
-        "Invalid import {imported} from {from}. The file being imported is outside of the project",
-      websiteTitle: "Invalid import: file outside of the project",
-      websiteDescription: `A Solidity file is trying to import a file that is outside of the project.
-
-This is not supported by Hardhat.`,
-    },
-    INVALID_IMPORT_WRONG_CASING: {
-      number: 409,
-      messageTemplate:
-        "Trying to import {imported} from {from}, but it has an incorrect casing.",
-      websiteTitle: "Invalid import: wrong file casing",
-      websiteDescription: `A Solidity file is trying to import a file but its source name casing was wrong.
-
-Hardhat's compiler is case sensitive to ensure projects are portable across different operating systems.`,
-    },
-    WRONG_SOURCE_NAME_CASING: {
-      number: 410,
-      messageTemplate:
-        "Trying to resolve the file {incorrect} but its correct case-sensitive name is {correct}",
-      websiteTitle: "Incorrect source name casing",
-      websiteDescription: `You tried to resolve a Solidity file with an incorrect casing.
-
-Hardhat's compiler is case sensitive to ensure projects are portable across different operating systems.`,
-    },
-    IMPORTED_LIBRARY_NOT_INSTALLED: {
-      number: 411,
-      messageTemplate:
-        "The library {library}, imported from {from}, is not installed. Try installing it using npm.",
-      websiteTitle: "Invalid import: library not installed",
-      websiteDescription: `A Solidity file is trying to import another which belongs to a library that is not installed.
-
-Try installing the library using npm.`,
-    },
-    INCLUDES_OWN_PACKAGE_NAME: {
-      number: 412,
-      messageTemplate:
-        "Invalid import {imported} from {from}. Trying to import file using the own package's name.",
-      websiteTitle: "Invalid import: includes own package's name",
-      websiteDescription: `A Solidity file is trying to import another using its own package name. This is most likely caused by an existing symlink for the package in your node_modules.
-
-Use a relative import instead of referencing the package's name.`,
-    },
-    IMPORTED_MAPPED_FILE_NOT_FOUND: {
-      number: 413,
-      messageTemplate:
-        "File {importName} => {imported}, imported from {from}, not found.",
-      websiteTitle: "Imported mapped file not found",
-      websiteDescription: `One of your source files imported a nonexistent or not installed file.
-
-Please double check your imports and installed libraries.`,
-    },
-    INVALID_IMPORT_OF_DIRECTORY: {
-      number: 414,
-      messageTemplate:
-        "Invalid import {imported} from {from}. Attempting to import a directory. Directories cannot be imported.",
-      websiteTitle: "Invalid import: a directory cannot be imported",
-      websiteDescription: `A Solidity file is attempting to import a directory, which is not possible.
-
-Please double check your imports.`,
-    },
-    AMBIGUOUS_SOURCE_NAMES: {
-      number: 415,
-      messageTemplate:
-        "Two different source names ({sourcenames}) resolve to the same file ({file}).",
-      websiteTitle: "Ambiguous source names",
-      websiteDescription: `Two different source names map to the same file.
-
-This is probably caused by multiple remappings pointing to the same source file.`,
-    },
-  },
-  SOLC: {
-    INVALID_VERSION: {
-      number: 500,
-      messageTemplate: `Solidity version {version} is invalid or hasn't been released yet.
-
-If you are certain it has been released, run "npx hardhat clean --global" and try again`,
-      websiteTitle: "Invalid or unreleased `solc` version",
-      websiteDescription: `The Solidity version in your config is invalid or hasn't been released yet.
-
-If you are certain it has been released, run \`npx hardhat clean --global\` and try again.`,
-    },
-    DOWNLOAD_FAILED: {
-      number: 501,
-      messageTemplate:
-        "Couldn't download compiler version {remoteVersion}. Please check your internet connection and try again.",
-      websiteTitle: "`solc` download failed",
-      websiteDescription: `Couldn't download \`solc\`.
-
-Please check your internet connection and try again.`,
-    },
-    VERSION_LIST_DOWNLOAD_FAILED: {
-      number: 502,
-      messageTemplate:
-        "Couldn't download compiler version list. Please check your internet connection and try again.",
-      websiteTitle: "Couldn't obtain `solc` version list",
-      websiteDescription: `Couldn't download \`solc\`'s version list.
-
-Please check your internet connection and try again.`,
-    },
-    INVALID_DOWNLOAD: {
-      number: 503,
-      messageTemplate: `Couldn't download compiler version {remoteVersion}: Checksum verification failed.
-
-Please check your internet connection and try again.
-
-If this error persists, run "npx hardhat clean --global".`,
-      websiteTitle: "Downloaded `solc` checksum verification failed",
-      websiteDescription: `Hardhat downloaded a version of the Solidity compiler, and its checksum verification failed.
-
-Please check your internet connection and try again.
-
-If this error persists, run \`npx hardhat clean --global\`.`,
-    },
-    CANT_RUN_NATIVE_COMPILER: {
-      number: 504,
-      messageTemplate: `A native version of solc failed to run.
-
-If you are running MacOS, try installing Apple Rosetta.
-
-If this error persists, run "npx hardhat clean --global".`,
-      websiteTitle: "Failed to run native solc",
-      websiteDescription: `Hardhat successfully downloaded a native version of solc but it doesn't run.
-
-If you are running MacOS, try installing Apple Rosetta.
-
-If this error persists, run "npx hardhat clean --global".`,
-    },
-    CANT_RUN_SOLCJS_COMPILER: {
-      number: 505,
-      messageTemplate: `A wasm version of solc failed to run.
-
-If this error persists, run "npx hardhat clean --global".`,
-      websiteTitle: "Failed to run solcjs",
-      websiteDescription: `Hardhat successfully downloaded a WASM version of solc but it doesn't run.
-
-If you are running MacOS, try installing Apple Rosetta.
-
-If this error persists, run "npx hardhat clean --global".`,
-    },
-  },
   BUILTIN_TASKS: {
-    COMPILE_FAILURE: {
-      number: 600,
-      messageTemplate: "Compilation failed",
-      websiteTitle: "Compilation failed",
-      websiteDescription: `Your smart contracts failed to compile.
-
-Please check Hardhat's output for more details.`,
-    },
-    COMPILATION_JOBS_CREATION_FAILURE: {
-      number: 601,
-      messageTemplate: `The project cannot be compiled, see reasons below.
-
-{reasons}`,
-      websiteTitle: "The project cannot be compiled",
-      websiteDescription: `The project cannot be compiled with the current settings.`,
-    },
-    COMPILE_TASK_UNSUPPORTED_SOLC_VERSION: {
-      number: 602,
-      messageTemplate: `Version {version} is not supported by Hardhat.
-
-The first supported version is {firstSupportedVersion}`,
-      websiteTitle: "Unsupported solc version",
-      websiteDescription: `This version of solidity is not supported by Hardhat.
-Please use a newer, supported version.`,
-      shouldBeReported: true,
-    },
     RUN_FILE_NOT_FOUND: {
-      number: 603,
+      number: 600,
       messageTemplate: `Script {script} doesn't exist`,
       websiteTitle: "Script doesn't exist",
       websiteDescription: `Tried to use \`hardhat run\` to execute a nonexistent script.
@@ -709,176 +459,12 @@ Please use a newer, supported version.`,
 Please double check your script's path.`,
     },
     RUN_SCRIPT_ERROR: {
-      number: 604,
+      number: 601,
       messageTemplate: `Error running script {script}: {error}`,
       websiteTitle: "Error running script",
       websiteDescription: `Running a script resulted in an error.
 
 Please check Hardhat's output for more details.`,
-    },
-  },
-  ARTIFACTS: {
-    NOT_FOUND: {
-      number: 700,
-      messageTemplate:
-        'Artifact for contract "{contractName}" not found. {suggestion}',
-      websiteTitle: "Artifact not found",
-      websiteDescription: `Tried to import a nonexistent artifact.
-
-Please double check that your contracts have been compiled and double check your artifact's name.`,
-    },
-    MULTIPLE_FOUND: {
-      number: 701,
-      messageTemplate: `There are multiple artifacts for contract "{contractName}", please use a fully qualified name.
-
-Please replace {contractName} for one of these options wherever you are trying to read its artifact:
-
-{candidates}
-`,
-      websiteTitle: "Multiple artifacts found",
-      websiteDescription: `There are multiple artifacts that match the given contract name, and Hardhat doesn't know which one to use.
-
-Please use the fully qualified name of the contract to disambiguate it.`,
-    },
-    WRONG_CASING: {
-      number: 702,
-      messageTemplate:
-        "Invalid artifact path {incorrect}, its correct case-sensitive path is {correct}",
-      websiteTitle: "Incorrect artifact path casing",
-      websiteDescription: `You tried to get an artifact file with an incorrect casing.
-
-Hardhat's artifact resolution is case sensitive to ensure projects are portable across different operating systems.`,
-      shouldBeReported: true,
-    },
-  },
-  SOURCE_NAMES: {
-    INVALID_SOURCE_NAME_ABSOLUTE_PATH: {
-      number: 1000,
-      messageTemplate:
-        "Invalid source name {name}. Expected source name but found an absolute path.",
-      websiteTitle: "Invalid source name: absolute path",
-      websiteDescription: `A Solidity source name was expected, but an absolute path was given.
-
-If you aren't overriding compilation-related tasks, please report this as a bug.`,
-      shouldBeReported: true,
-    },
-    INVALID_SOURCE_NAME_RELATIVE_PATH: {
-      number: 1001,
-      messageTemplate:
-        "Invalid source name {name}. Expected source name but found a relative path.",
-      websiteTitle: "Invalid source name: relative path",
-      websiteDescription: `A Solidity source name was expected, but a relative path was given.
-
-If you aren't overriding compilation-related tasks, please report this as a bug.`,
-      shouldBeReported: true,
-    },
-    INVALID_SOURCE_NAME_BACKSLASHES: {
-      number: 1002,
-      messageTemplate:
-        "Invalid source {name}. The source name uses backslashes (\\) instead of slashes (/).",
-      websiteTitle: "Invalid source name: backslashes",
-      websiteDescription: `A Solidity source name was invalid because it uses backslashes (\\\\) instead of slashes (/).
-
-If you aren't overriding compilation-related tasks, please report this as a bug.`,
-      shouldBeReported: true,
-    },
-    INVALID_SOURCE_NOT_NORMALIZED: {
-      number: 1003,
-      messageTemplate:
-        "Invalid source name {name}. Source names must be normalized",
-      websiteTitle: "Invalid source name: not normalized",
-      websiteDescription: `A Solidity source name was invalid because it wasn't normalized. It probably contains some "." or "..".
-
-If you aren't overriding compilation-related tasks, please report this as a bug.`,
-      shouldBeReported: true,
-    },
-    WRONG_CASING: {
-      number: 1004,
-      messageTemplate:
-        "Invalid source map {incorrect}, its correct case-sensitive source name is {correct}",
-      websiteTitle: "Incorrect source name casing",
-      websiteDescription: `You tried to resolve a Solidity file with an incorrect casing.
-
-Hardhat's compiler is case sensitive to ensure projects are portable across different operating systems.`,
-      shouldBeReported: true,
-    },
-    FILE_NOT_FOUND: {
-      number: 1005,
-      messageTemplate: "Solidity source file {name} not found",
-      websiteTitle: "Solidity source file not found",
-      websiteDescription: `A source name should correspond to an existing Solidity file but it doesn't.
-
-Hardhat's compiler is case sensitive to ensure projects are portable across different operating systems.`,
-      shouldBeReported: true,
-    },
-    NODE_MODULES_AS_LOCAL: {
-      number: 1006,
-      messageTemplate:
-        "The file {path} is treated as local but is inside a node_modules directory",
-      websiteTitle: "File from node_modules treated as local",
-      websiteDescription: `A file was treated as local but is inside a node_modules directory.
-
-If you aren't overriding compilation-related tasks, please report this as a bug.`,
-      shouldBeReported: true,
-    },
-    EXTERNAL_AS_LOCAL: {
-      number: 1007,
-      messageTemplate:
-        "The file {path} is treated as local but is outside the project",
-      websiteTitle: "File from outside the project treated as local",
-      websiteDescription: `A file was treated as local but is outside the project.
-
-If you aren't overriding compilation-related tasks, please report this as a bug.`,
-      shouldBeReported: true,
-    },
-  },
-  CONTRACT_NAMES: {
-    INVALID_FULLY_QUALIFIED_NAME: {
-      number: 1100,
-      messageTemplate: "Invalid fully qualified contract name {name}.",
-      websiteTitle: "Invalid fully qualified contract name",
-      websiteDescription: `A contract name was expected to be in fully qualified form, but it's not.
-
-A fully qualified name should look like file.sol:Contract`,
-    },
-  },
-  PLUGINS: {
-    PLUGIN_NOT_INSTALLED: {
-      number: 1200,
-      messageTemplate: 'Plugin "{pluginId}" is not installed.',
-      websiteTitle: "Plugin not installed",
-      websiteDescription: `A plugin was included in the Hardhat config but has not been installed into "node_modules".`,
-    },
-    PLUGIN_MISSING_DEPENDENCY: {
-      number: 1201,
-      messageTemplate:
-        'Plugin "{pluginId}" is missing a peer dependency "{peerDependencyName}".',
-      websiteTitle: "Plugin missing peer dependency",
-      websiteDescription: `A plugin's peer dependency has not been installed.`,
-    },
-    DEPENDENCY_VERSION_MISMATCH: {
-      number: 1202,
-      messageTemplate:
-        'Plugin "{pluginId}" has a peer dependency "{peerDependencyName}" with expected version "{expectedVersion}" but the installed version is "{installedVersion}".',
-      websiteTitle: "Dependency version mismatch",
-      websiteDescription: `A plugin's peer dependency expected version does not match the version of the installed package.
-
-Please install a version of the peer dependency that meets the plugin's requirements.`,
-    },
-    PLUGIN_DEPENDENCY_FAILED_LOAD: {
-      number: 1203,
-      messageTemplate: 'Plugin "{pluginId}" dependency could not be loaded.',
-      websiteTitle: "Plugin dependency could not be loaded",
-      websiteDescription: `The loading of a plugin's dependent plugin failed.`,
-    },
-  },
-  HOOKS: {
-    INVALID_HOOK_FACTORY_PATH: {
-      number: 1300,
-      messageTemplate:
-        'Plugin "{pluginId}" hook factory for "{hookCategoryName}" is not a valid file:// URL: {path}.',
-      websiteTitle: "Plugin hook factory is not a valid file URL",
-      websiteDescription: `The loading of a plugin's hook factory failed as the import path is not a valid file:// URL.`,
     },
   },
 } as const;

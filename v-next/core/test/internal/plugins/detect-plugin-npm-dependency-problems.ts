@@ -3,6 +3,8 @@ import type { HardhatPlugin } from "../../../src/types/plugins.js";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
+
 import { detectPluginNpmDependencyProblems } from "../../../src/internal/plugins/detect-plugin-npm-dependency-problems.js";
 
 describe("Plugins - detect npm dependency problems", () => {
@@ -52,10 +54,9 @@ describe("Plugins - detect npm dependency problems", () => {
             plugin,
             nonInstalledPackageProjectFixture,
           ),
-        {
-          name: "HardhatError",
-          message: 'HHE1200: Plugin "example-plugin" is not installed.',
-        },
+        new HardhatError(HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED, {
+          pluginId: "example-plugin",
+        }),
       );
     });
   });
@@ -79,11 +80,10 @@ describe("Plugins - detect npm dependency problems", () => {
 
         await assert.rejects(
           detectPluginNpmDependencyProblems(plugin, notInstalledPeerDepFixture),
-          {
-            name: "HardhatError",
-            message:
-              'HHE1201: Plugin "example-plugin" is missing a peer dependency "peer2".',
-          },
+          new HardhatError(
+            HardhatError.ERRORS.PLUGINS.PLUGIN_MISSING_DEPENDENCY,
+            { pluginId: "example-plugin", peerDependencyName: "peer2" },
+          ),
         );
       });
     });
@@ -113,11 +113,15 @@ describe("Plugins - detect npm dependency problems", () => {
             plugin,
             peerDepWithWrongVersionFixture,
           ),
-        {
-          name: "HardhatError",
-          message:
-            'HHE1202: Plugin "example-plugin" has a peer dependency "peer2" with expected version "^1.0.0" but the installed version is "2.0.0".',
-        },
+        new HardhatError(
+          HardhatError.ERRORS.PLUGINS.DEPENDENCY_VERSION_MISMATCH,
+          {
+            pluginId: "example-plugin",
+            peerDependencyName: "peer2",
+            expectedVersion: "^1.0.0",
+            installedVersion: "2.0.0",
+          },
+        ),
       );
     });
   });

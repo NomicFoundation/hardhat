@@ -24,6 +24,8 @@ import {
 } from "@ignored/hardhat-vnext-utils/fs";
 import debug from "debug";
 
+import { ERRORS } from "../error-descriptors.js";
+
 import {
   ARTIFACT_FORMAT_VERSION,
   BUILD_INFO_DIR_NAME,
@@ -575,7 +577,7 @@ export class Artifacts implements IArtifacts {
       );
 
       if (artifactPath !== trueCasePath) {
-        throw new HardhatError(HardhatError.ERRORS.ARTIFACTS.WRONG_CASING, {
+        throw new HardhatError(ERRORS.ARTIFACTS.WRONG_CASING, {
           correct: this.#getFullyQualifiedNameFromPath(trueCasePath),
           incorrect: fullyQualifiedName,
         });
@@ -632,7 +634,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
       names,
     );
 
-    throw new HardhatError(HardhatError.ERRORS.ARTIFACTS.NOT_FOUND, {
+    throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
       contractName: fullyQualifiedName,
       suggestion: this.#formatSuggestions(similarNames, fullyQualifiedName),
     });
@@ -656,7 +658,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
       );
     }
 
-    throw new HardhatError(HardhatError.ERRORS.ARTIFACTS.NOT_FOUND, {
+    throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
       contractName,
       suggestion: this.#formatSuggestions(similarNames, contractName),
     });
@@ -753,7 +755,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
         this.#getFullyQualifiedNameFromPath(file),
       );
 
-      throw new HardhatError(HardhatError.ERRORS.ARTIFACTS.MULTIPLE_FOUND, {
+      throw new HardhatError(ERRORS.ARTIFACTS.MULTIPLE_FOUND, {
         contractName,
         candidates: candidates.join(os.EOL),
       });

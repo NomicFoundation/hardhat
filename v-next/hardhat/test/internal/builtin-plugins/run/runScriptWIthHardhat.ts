@@ -19,14 +19,18 @@ describe("runScriptWithHardhat", function () {
   it("should throw if script is not a string", async function () {
     await assert.rejects(
       runScriptWithHardhat({ script: 123, noCompile: false }, hre),
-      /An internal invariant was violated: Expected script to be a string/,
+      new HardhatError(HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR, {
+        message: "Expected script to be a string",
+      }),
     );
   });
 
   it("should throw if noCompile is not a boolean", async function () {
     await assert.rejects(
       runScriptWithHardhat({ script: "script.js", noCompile: 123 }, hre),
-      /An internal invariant was violated: Expected noCompile to be a boolean/,
+      new HardhatError(HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR, {
+        message: "Expected noCompile to be a boolean",
+      }),
     );
   });
 

@@ -6,11 +6,11 @@ import path from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import ci from "ci-info";
 import sinon from "sinon";
 
 import { BuildSystem } from "../src/index.js";
+import { ERRORS } from "../src/internal/error-descriptors.js";
 import { CompilationJobCreationErrorReason } from "../src/internal/types/builtin-tasks/index.js";
 import {
   getAllFilesMatchingSync,
@@ -237,7 +237,7 @@ describe("build-system", () => {
 
         await expectHardhatErrorAsync(async () => {
           await buildSystem.solidityReadFile(absolutePath);
-        }, HardhatError.ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY);
+        }, ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY);
       });
     });
 
@@ -268,7 +268,7 @@ describe("build-system", () => {
 
         await expectHardhatErrorAsync(async () => {
           await buildSystem.build();
-        }, HardhatError.ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION);
+        }, ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION);
       });
     });
 
@@ -281,7 +281,7 @@ describe("build-system", () => {
 
         await expectHardhatErrorAsync(async () => {
           await buildSystem.build();
-        }, HardhatError.ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION);
+        }, ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION);
       });
     });
 
@@ -294,7 +294,7 @@ describe("build-system", () => {
 
         await expectHardhatErrorAsync(async () => {
           await buildSystem.build();
-        }, HardhatError.ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION);
+        }, ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION);
       });
     });
   });
@@ -1170,7 +1170,7 @@ Read about compiler configuration at https://hardhat.org/config
               },
             },
           }),
-        HardhatError.ERRORS.RESOLVER.AMBIGUOUS_SOURCE_NAMES,
+        ERRORS.RESOLVER.AMBIGUOUS_SOURCE_NAMES,
         /Two different source names \('\w+\/Foo.sol' and '\w+\/Foo.sol'\) resolve to the same file/,
       );
     });
