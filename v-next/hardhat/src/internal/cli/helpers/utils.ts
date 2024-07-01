@@ -1,28 +1,6 @@
 import type { ParameterType } from "@ignored/hardhat-vnext-core/config";
 import type { Task } from "@ignored/hardhat-vnext-core/types/tasks";
 
-export const GLOBAL_OPTIONS: Array<{
-  name: string;
-  description: string;
-}> = [
-  {
-    name: "--config",
-    description: "A Hardhat config file.",
-  },
-  {
-    name: "--help",
-    description: "Shows this message, or a task's help if its name is provided",
-  },
-  {
-    name: "--show-stack-traces",
-    description: "Show stack traces (always enabled on CI servers).",
-  },
-  {
-    name: "--version",
-    description: "Shows hardhat's version.",
-  },
-];
-
 export const GLOBAL_NAME_PADDING = 6;
 
 export function parseTasks(taskMap: Map<string, Task>): {

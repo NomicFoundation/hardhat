@@ -1,10 +1,10 @@
 import type { Task } from "@ignored/hardhat-vnext-core/types/tasks";
 
+import { BUILTIN_OPTIONS } from "../../builtin-options.js";
 import { getHardhatVersion } from "../../utils/package.js";
 
 import {
   GLOBAL_NAME_PADDING,
-  GLOBAL_OPTIONS,
   getLongestNameLength,
   getSection,
   parseTasks,
@@ -18,7 +18,7 @@ export async function getGlobalHelpString(
   const { tasks, subtasks } = parseTasks(rootTasks);
 
   const namePadding =
-    getLongestNameLength([...tasks, ...subtasks, ...GLOBAL_OPTIONS]) +
+    getLongestNameLength([...tasks, ...subtasks, ...BUILTIN_OPTIONS]) +
     GLOBAL_NAME_PADDING;
 
   let output = `Hardhat version ${version}
@@ -34,7 +34,7 @@ Usage: hardhat [GLOBAL OPTIONS] <TASK> [SUBTASK] [TASK OPTIONS] [--] [TASK ARGUM
     output += getSection("AVAILABLE SUBTASKS", subtasks, namePadding);
   }
 
-  output += getSection("GLOBAL OPTIONS", GLOBAL_OPTIONS, namePadding);
+  output += getSection("GLOBAL OPTIONS", BUILTIN_OPTIONS, namePadding);
 
   output += `\nTo get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
 
