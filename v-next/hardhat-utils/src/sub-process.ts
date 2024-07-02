@@ -10,7 +10,7 @@ import { spawn } from "node:child_process";
  * This function does not wait for the subprocess to complete and the subprocess is unreferenced
  * to allow the parent process to exit independently.
  */
-export function spawnSubProcess(
+export function spawnDetachedSubProcess(
   absolutePathToSubProcessFile: string,
   args: string[] = [],
 ): void {

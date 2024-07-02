@@ -4,7 +4,7 @@ import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
 
 import { exists, readJsonFile, remove } from "../src/fs.js";
-import { spawnSubProcess } from "../src/sub-process.js";
+import { spawnDetachedSubProcess } from "../src/sub-process.js";
 
 import { ABSOLUTE_PATH_TO_TMP_SUBPROCESS_FILE } from "./fixture-projects/sub-process/sub-process.js";
 
@@ -47,7 +47,7 @@ describe("sub-process", () => {
       "sub-process.ts",
     );
 
-    spawnSubProcess(pathToSubprocessFile, ["one", "2"]);
+    spawnDetachedSubProcess(pathToSubprocessFile, ["one", "2"]);
 
     await checkIfSubprocessWasExecuted();
 
