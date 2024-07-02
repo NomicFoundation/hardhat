@@ -2,7 +2,7 @@ import type { UnsafeHardhatRuntimeEnvironmentOptions } from "../types/cli.js";
 import type { HardhatUserConfig, HardhatConfig } from "../types/config.js";
 import type {
   GlobalOptions,
-  GlobalOptionsMap,
+  GlobalOptionDefinitions,
 } from "../types/global-options.js";
 import type {
   HardhatUserConfigValidationError,
@@ -18,7 +18,7 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 import { ResolvedConfigurationVariableImplementation } from "./configuration-variables.js";
 import {
-  buildGlobalOptionsMap,
+  buildGlobalOptionDefinitions,
   resolveGlobalOptions,
 } from "./global-options.js";
 import { HookManagerImplementation } from "./hook-manager.js";
@@ -87,12 +87,13 @@ export class HardhatRuntimeEnvironmentImplementation
       plugins: resolvedPlugins,
     };
 
-    const globalOptionsMap =
-      unsafeOptions?.globalOptionsMap ?? buildGlobalOptionsMap(resolvedPlugins);
+    const globalOptionDefinitions =
+      unsafeOptions?.globalOptionDefinitions ??
+      buildGlobalOptionDefinitions(resolvedPlugins);
 
     const globalOptions = resolveGlobalOptions(
       userProvidedGlobalOptions,
-      globalOptionsMap,
+      globalOptionDefinitions,
     );
 
     // Set the HookContext in the hook manager so that non-config hooks can
@@ -115,7 +116,7 @@ export class HardhatRuntimeEnvironmentImplementation
       hooks,
       interruptions,
       globalOptions,
-      globalOptionsMap,
+      globalOptionDefinitions,
     );
 
     await hooks.runSequentialHandlers("hre", "created", [hre]);
@@ -131,9 +132,9 @@ export class HardhatRuntimeEnvironmentImplementation
     public readonly hooks: HookManager,
     public readonly interruptions: UserInterruptionManager,
     public readonly globalOptions: GlobalOptions,
-    globalOptionsMap: GlobalOptionsMap,
+    globalOptionDefinitions: GlobalOptionDefinitions,
   ) {
-    this.tasks = new TaskManagerImplementation(this, globalOptionsMap);
+    this.tasks = new TaskManagerImplementation(this, globalOptionDefinitions);
   }
 }
 

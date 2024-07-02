@@ -29,9 +29,9 @@ export interface GlobalOptions {}
 
 /**
  * An entry in the global options map.
- * @see GlobalOptionsMap
+ * @see GlobalOptionDefinitions
  */
-export interface GlobalOptionsMapEntry {
+export interface GlobalOptionDefinitionsEntry {
   pluginId: string;
   option: GlobalOption;
 }
@@ -39,4 +39,4 @@ export interface GlobalOptionsMapEntry {
 /**
  * A map with all the `GlobalOption`s and which plugin defined them.
  */
-export type GlobalOptionsMap = Map<string, GlobalOptionsMapEntry>;
+export type GlobalOptionDefinitions = Map<string, GlobalOptionDefinitionsEntry>;

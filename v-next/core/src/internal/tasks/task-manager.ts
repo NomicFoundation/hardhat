@@ -1,4 +1,4 @@
-import type { GlobalOptionsMap } from "../../types/global-options.js";
+import type { GlobalOptionDefinitions } from "../../types/global-options.js";
 import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
 import type {
   Task,
@@ -24,7 +24,7 @@ export class TaskManagerImplementation implements TaskManager {
 
   constructor(
     hre: HardhatRuntimeEnvironment,
-    globalOptionsMap: GlobalOptionsMap,
+    globalOptionDefinitions: GlobalOptionDefinitions,
   ) {
     this.#hre = hre;
 
@@ -35,13 +35,17 @@ export class TaskManagerImplementation implements TaskManager {
       }
 
       for (const taskDefinition of plugin.tasks) {
-        this.#reduceTaskDefinition(globalOptionsMap, taskDefinition, plugin.id);
+        this.#reduceTaskDefinition(
+          globalOptionDefinitions,
+          taskDefinition,
+          plugin.id,
+        );
       }
     }
 
     // reduce global user defined tasks
     for (const taskDefinition of this.#hre.config.tasks) {
-      this.#reduceTaskDefinition(globalOptionsMap, taskDefinition);
+      this.#reduceTaskDefinition(globalOptionDefinitions, taskDefinition);
     }
   }
 
@@ -132,7 +136,7 @@ export class TaskManagerImplementation implements TaskManager {
   }
 
   #reduceTaskDefinition(
-    globalOptionsMap: GlobalOptionsMap,
+    globalOptionDefinitions: GlobalOptionDefinitions,
     taskDefinition: TaskDefinition,
     pluginId?: string,
   ) {
@@ -150,7 +154,7 @@ export class TaskManagerImplementation implements TaskManager {
       }
       case TaskDefinitionType.NEW_TASK: {
         this.#validateClashesWithGlobalOptions(
-          globalOptionsMap,
+          globalOptionDefinitions,
           taskDefinition,
           pluginId,
         );
@@ -170,7 +174,7 @@ export class TaskManagerImplementation implements TaskManager {
       }
       case TaskDefinitionType.TASK_OVERRIDE: {
         this.#validateClashesWithGlobalOptions(
-          globalOptionsMap,
+          globalOptionDefinitions,
           taskDefinition,
           pluginId,
         );
@@ -182,7 +186,7 @@ export class TaskManagerImplementation implements TaskManager {
   }
 
   #validateClashesWithGlobalOptions(
-    globalOptionsMap: GlobalOptionsMap,
+    globalOptionDefinitions: GlobalOptionDefinitions,
     taskDefinition: NewTaskDefinition | TaskOverrideDefinition,
     pluginId?: string,
   ) {
@@ -193,7 +197,7 @@ export class TaskManagerImplementation implements TaskManager {
         : [];
 
     [...optionNames, ...positionalParamNames].forEach((paramName) => {
-      const globalOptionEntry = globalOptionsMap.get(paramName);
+      const globalOptionEntry = globalOptionDefinitions.get(paramName);
       if (globalOptionEntry !== undefined) {
         throw new HardhatError(
           HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OPTION_ALREADY_DEFINED,
