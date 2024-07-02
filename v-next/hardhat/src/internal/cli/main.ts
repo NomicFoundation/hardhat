@@ -96,7 +96,10 @@ export async function main(
 
     if (Array.isArray(taskOrId)) {
       if (taskOrId.length === 0) {
-        const globalHelp = await getGlobalHelpString(hre.tasks.rootTasks);
+        const globalHelp = await getGlobalHelpString(
+          hre.tasks.rootTasks,
+          globalOptionsMap,
+        );
 
         print(globalHelp);
         return;

@@ -1,33 +1,41 @@
 import type { ParameterType } from "@ignored/hardhat-vnext-core/config";
+import type { GlobalOptionsMap } from "@ignored/hardhat-vnext-core/types/global-options";
 import type { Task } from "@ignored/hardhat-vnext-core/types/tasks";
 
-export const GLOBAL_OPTIONS: Array<{
-  name: string;
-  description: string;
-}> = [
-  {
-    name: "--config",
-    description: "A Hardhat config file.",
-  },
-  {
-    name: "--help",
-    description: "Shows this message, or a task's help if its name is provided",
-  },
-  {
-    name: "--show-stack-traces",
-    description: "Show stack traces (always enabled on CI servers).",
-  },
-  {
-    name: "--version",
-    description: "Shows hardhat's version.",
-  },
-];
+import { BUILTIN_OPTIONS } from "../../builtin-options.js";
 
 export const GLOBAL_NAME_PADDING = 6;
 
+interface ArgumentDescriptor {
+  name: string;
+  description: string;
+  type?: ParameterType;
+  isRequired?: boolean;
+}
+
+export function parseGlobalOptions(
+  globalOptionsMap: GlobalOptionsMap,
+): ArgumentDescriptor[] {
+  const formattedBuiltinOptions = BUILTIN_OPTIONS.map(
+    ({ name, description }) => ({
+      name: formatOptionName(name),
+      description,
+    }),
+  );
+
+  const formattedUserOptions = Array.from(globalOptionsMap).map(([, entry]) => {
+    return {
+      name: formatOptionName(entry.option.name),
+      description: entry.option.description,
+    };
+  });
+
+  return [...formattedBuiltinOptions, ...formattedUserOptions];
+}
+
 export function parseTasks(taskMap: Map<string, Task>): {
-  tasks: Array<{ name: string; description: string }>;
-  subtasks: Array<{ name: string; description: string }>;
+  tasks: ArgumentDescriptor[];
+  subtasks: ArgumentDescriptor[];
 } {
   const tasks = [];
   const subtasks = [];
@@ -45,9 +53,7 @@ export function parseTasks(taskMap: Map<string, Task>): {
   return { tasks, subtasks };
 }
 
-export function parseSubtasks(
-  task: Task,
-): Array<{ name: string; description: string }> {
+export function parseSubtasks(task: Task): ArgumentDescriptor[] {
   const subtasks = [];
 
   for (const [, subtask] of task.subtasks) {
@@ -61,12 +67,8 @@ export function parseSubtasks(
 }
 
 export function parseOptions(task: Task): {
-  options: Array<{ name: string; description: string; type: ParameterType }>;
-  positionalArguments: Array<{
-    name: string;
-    description: string;
-    isRequired: boolean;
-  }>;
+  options: ArgumentDescriptor[];
+  positionalArguments: ArgumentDescriptor[];
 } {
   const options = [];
   const positionalArguments = [];
@@ -107,7 +109,7 @@ export function getLongestNameLength(tasks: Array<{ name: string }>): number {
 
 export function getSection(
   title: string,
-  items: Array<{ name: string; description: string }>,
+  items: ArgumentDescriptor[],
   namePadding: number,
 ): string {
   return `\n${title}:\n\n${items.map(({ name, description }) => `  ${name.padEnd(namePadding)}${description}`).join("\n")}\n`;
@@ -125,7 +127,7 @@ export function getUsageString(
   }
 
   if (positionalArguments.length > 0) {
-    output += ` [--] ${positionalArguments.map((a) => (a.isRequired ? a.name : `[${a.name}]`)).join(" ")}`;
+    output += ` [--] ${positionalArguments.map((a) => (a.isRequired === true ? a.name : `[${a.name}]`)).join(" ")}`;
   }
 
   return output;
