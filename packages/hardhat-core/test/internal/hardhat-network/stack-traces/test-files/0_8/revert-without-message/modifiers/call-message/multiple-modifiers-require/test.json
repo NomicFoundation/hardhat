@@ -6,7 +6,7 @@
     },
     {
       "to": 0,
-      "params": [false],
+      "params": [false, true],
       "function": "test",
       "stackTrace": [
         {

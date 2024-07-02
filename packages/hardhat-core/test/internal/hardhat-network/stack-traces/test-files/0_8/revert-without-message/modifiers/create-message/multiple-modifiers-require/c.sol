@@ -7,8 +7,11 @@ contract C {
     _;
   }
 
-  constructor(bool b) m1(b) m2(b) public {
-    revert();
+  constructor(bool b, bool doRevert) m1(b) m2(b) public {
+    // always true, used to prevent optimizations
+    if (doRevert) {
+      revert();
+    }
   }
 
   modifier m1(bool b)  {
