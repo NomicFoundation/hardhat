@@ -3,7 +3,7 @@ import { after, before, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
-import { ParameterType } from "../../src/config.js";
+import { globalOption, ParameterType } from "../../src/config.js";
 import {
   buildGlobalOptionsMap,
   buildGlobalOptionDefinition,
@@ -45,12 +45,12 @@ describe("Global Options", () => {
     });
 
     it("should build a map of global options", () => {
-      const globalOptionDefinition = {
+      const globalOptionDefinition = globalOption({
         name: "param1",
         description: "param1 description",
-        parameterType: ParameterType.BOOLEAN,
+        type: ParameterType.BOOLEAN,
         defaultValue: true,
-      };
+      });
       const globalOptionsMap = buildGlobalOptionsMap([
         {
           id: "plugin1",
@@ -70,18 +70,18 @@ describe("Global Options", () => {
     });
 
     it("should throw if a global option is already defined by another plugin", () => {
-      const globalOptionDefinition = {
+      const globalOptionDefinition = globalOption({
         name: "param1",
         description: "param1 description",
-        parameterType: ParameterType.BOOLEAN,
+        type: ParameterType.BOOLEAN,
         defaultValue: true,
-      };
-      const globalOptionDefinition2 = {
+      });
+      const globalOptionDefinition2 = globalOption({
         name: "param1",
         description: "param1 description 2",
-        parameterType: ParameterType.BOOLEAN,
+        type: ParameterType.BOOLEAN,
         defaultValue: false,
-      };
+      });
 
       assert.throws(
         () =>
@@ -113,12 +113,12 @@ describe("Global Options", () => {
             {
               id: "plugin1",
               globalOptions: [
-                {
+                globalOption({
                   name: "foo bar",
                   description: "Foo description",
-                  parameterType: ParameterType.STRING,
+                  type: ParameterType.STRING,
                   defaultValue: "bar",
-                },
+                }),
               ],
             },
           ]),
@@ -136,12 +136,12 @@ describe("Global Options", () => {
               {
                 id: "plugin1",
                 globalOptions: [
-                  {
+                  globalOption({
                     name,
                     description: "Foo description",
-                    parameterType: ParameterType.STRING,
+                    type: ParameterType.STRING,
                     defaultValue: "bar",
-                  },
+                  }),
                 ],
               },
             ]),
@@ -159,14 +159,14 @@ describe("Global Options", () => {
             {
               id: "plugin1",
               globalOptions: [
-                {
+                globalOption({
                   name: "foo",
                   description: "Foo description",
-                  parameterType: ParameterType.BOOLEAN,
+                  type: ParameterType.BOOLEAN,
                   /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
                   Intentionally testing an invalid type */
                   defaultValue: "bar" as any,
-                },
+                }),
               ],
             },
           ]),
@@ -184,12 +184,12 @@ describe("Global Options", () => {
       const options = {
         name: "foo",
         description: "Foo description",
-        parameterType: ParameterType.BOOLEAN,
+        type: ParameterType.BOOLEAN,
         defaultValue: true,
       };
-      const globalOption = buildGlobalOptionDefinition(options);
+      const globalOptionDefinition = buildGlobalOptionDefinition(options);
 
-      assert.deepEqual(globalOption, options);
+      assert.deepEqual(globalOptionDefinition, options);
     });
 
     it("should build a global option definition with a default type of STRING", () => {
@@ -198,11 +198,11 @@ describe("Global Options", () => {
         description: "Foo description",
         defaultValue: "bar",
       };
-      const globalOption = buildGlobalOptionDefinition(options);
+      const globalOptionDefinition = buildGlobalOptionDefinition(options);
 
-      assert.deepEqual(globalOption, {
+      assert.deepEqual(globalOptionDefinition, {
         ...options,
-        parameterType: ParameterType.STRING,
+        type: ParameterType.STRING,
       });
     });
 
@@ -242,7 +242,7 @@ describe("Global Options", () => {
           buildGlobalOptionDefinition({
             name: "foo",
             description: "Foo description",
-            parameterType: ParameterType.BOOLEAN,
+            type: ParameterType.BOOLEAN,
             /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
             Intentionally testing an invalid type */
             defaultValue: "bar" as any,
@@ -267,7 +267,7 @@ describe("Global Options", () => {
             buildGlobalOptionDefinition({
               name: "param1",
               description: "param1 description",
-              parameterType: ParameterType.BOOLEAN,
+              type: ParameterType.BOOLEAN,
               defaultValue: true,
             }),
             buildGlobalOptionDefinition({
@@ -295,7 +295,7 @@ describe("Global Options", () => {
             buildGlobalOptionDefinition({
               name: "param1",
               description: "param1 description",
-              parameterType: ParameterType.BOOLEAN,
+              type: ParameterType.BOOLEAN,
               defaultValue: true,
             }),
             buildGlobalOptionDefinition({
@@ -306,7 +306,7 @@ describe("Global Options", () => {
             buildGlobalOptionDefinition({
               name: "param3",
               description: "param3 description",
-              parameterType: ParameterType.BIGINT,
+              type: ParameterType.BIGINT,
               defaultValue: 0n,
             }),
           ],
@@ -338,7 +338,7 @@ describe("Global Options", () => {
             buildGlobalOptionDefinition({
               name: "param1",
               description: "param1 description",
-              parameterType: ParameterType.BOOLEAN,
+              type: ParameterType.BOOLEAN,
               defaultValue: true,
             }),
             buildGlobalOptionDefinition({
@@ -374,7 +374,7 @@ describe("Global Options", () => {
             buildGlobalOptionDefinition({
               name: "param1",
               description: "param1 description",
-              parameterType: ParameterType.BOOLEAN,
+              type: ParameterType.BOOLEAN,
               defaultValue: true,
             }),
           ],
@@ -404,7 +404,7 @@ describe("Global Options", () => {
             buildGlobalOptionDefinition({
               name: "param1",
               description: "param1 description",
-              parameterType: ParameterType.BOOLEAN,
+              type: ParameterType.BOOLEAN,
               defaultValue: true,
             }),
           ],

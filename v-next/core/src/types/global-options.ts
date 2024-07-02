@@ -16,7 +16,7 @@ import type { ParameterType, ParameterTypeToValueType } from "./common.js";
 export interface GlobalOption<T extends ParameterType = ParameterType> {
   name: string;
   description: string;
-  parameterType: ParameterType;
+  type: ParameterType;
   defaultValue: ParameterTypeToValueType<T>;
 }
 

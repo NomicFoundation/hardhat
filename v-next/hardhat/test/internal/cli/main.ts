@@ -413,7 +413,7 @@ For global options help run: hardhat --help`;
     before(function () {
       const GLOBAL_OPTION = globalOption({
         name: "param",
-        parameterType: ParameterType.STRING,
+        type: ParameterType.STRING,
         defaultValue: "default",
         description: "",
       });

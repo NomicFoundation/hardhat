@@ -120,24 +120,24 @@ describe("utils", function () {
           .set("option", {
             name: "option",
             description: "An example option",
-            parameterType: ParameterType.STRING,
+            type: ParameterType.STRING,
           })
           .set("anotherOption", {
             name: "anotherOption",
             description: "Another example option",
-            parameterType: ParameterType.BOOLEAN,
+            type: ParameterType.BOOLEAN,
           }),
         positionalParameters: [
           {
             name: "positionalArgument",
             description: "An example argument",
-            parameterType: ParameterType.STRING,
+            type: ParameterType.STRING,
             isVariadic: false,
           },
           {
             name: "anotherPositionalArgument",
             description: "Another example argument",
-            parameterType: ParameterType.STRING,
+            type: ParameterType.STRING,
             isVariadic: false,
             defaultValue: "default",
           },
@@ -230,18 +230,18 @@ Section Title:
             .set("option", {
               name: "option",
               description: "An example option",
-              parameterType: ParameterType.STRING,
+              type: ParameterType.STRING,
             })
             .set("anotherOption", {
               name: "anotherOption",
               description: "Another example option",
-              parameterType: ParameterType.BOOLEAN,
+              type: ParameterType.BOOLEAN,
             }),
           positionalParameters: [
             {
               name: "positionalArgument",
               description: "An example argument",
-              parameterType: ParameterType.STRING,
+              type: ParameterType.STRING,
               isVariadic: false,
             },
           ],
@@ -290,18 +290,18 @@ Section Title:
             .set("option", {
               name: "option",
               description: "An example option",
-              parameterType: ParameterType.STRING,
+              type: ParameterType.STRING,
             })
             .set("anotherOption", {
               name: "anotherOption",
               description: "Another example option",
-              parameterType: ParameterType.BOOLEAN,
+              type: ParameterType.BOOLEAN,
             }),
           positionalParameters: [
             {
               name: "positionalArgument",
               description: "An example argument",
-              parameterType: ParameterType.STRING,
+              type: ParameterType.STRING,
               isVariadic: false,
             },
           ],

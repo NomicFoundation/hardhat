@@ -73,15 +73,15 @@ export function buildGlobalOptionsMap(
 export function buildGlobalOptionDefinition<T extends ParameterType>({
   name,
   description,
-  parameterType,
+  type,
   defaultValue,
 }: {
   name: string;
   description: string;
-  parameterType?: T;
+  type?: T;
   defaultValue: ParameterTypeToValueType<T>;
 }): GlobalOption {
-  const type = parameterType ?? ParameterType.STRING;
+  const parameterType = type ?? ParameterType.STRING;
 
   if (!isValidParamNameCasing(name)) {
     throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
@@ -95,13 +95,13 @@ export function buildGlobalOptionDefinition<T extends ParameterType>({
     });
   }
 
-  if (!isParameterValueValid(type, defaultValue)) {
+  if (!isParameterValueValid(parameterType, defaultValue)) {
     throw new HardhatError(
       HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
       {
         value: defaultValue,
         name: "defaultValue",
-        type: parameterType,
+        type,
       },
     );
   }
@@ -109,7 +109,7 @@ export function buildGlobalOptionDefinition<T extends ParameterType>({
   return {
     name,
     description,
-    parameterType: type,
+    type: parameterType,
     defaultValue,
   };
 }
@@ -155,7 +155,7 @@ export function resolveGlobalOptions(
       value = process.env[`HARDHAT_${camelToSnakeCase(name).toUpperCase()}`];
       if (value !== undefined) {
         // if the value is provided via an env var, it needs to be parsed
-        parsedValue = parseParameterValue(value, option.parameterType, name);
+        parsedValue = parseParameterValue(value, option.type, name);
       } else {
         // if the value is not provided by the user or env var, use the default
         parsedValue = option.defaultValue;

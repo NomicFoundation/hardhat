@@ -307,7 +307,7 @@ describe("Task builders", () => {
             param: {
               name: "param",
               description: "",
-              parameterType: ParameterType.STRING,
+              type: ParameterType.STRING,
               defaultValue: undefined,
             },
           },
@@ -335,7 +335,7 @@ describe("Task builders", () => {
             param: {
               name: "param",
               description: "Parameter description",
-              parameterType: ParameterType.STRING,
+              type: ParameterType.STRING,
               defaultValue: undefined,
             },
           },
@@ -363,7 +363,7 @@ describe("Task builders", () => {
             param: {
               name: "param",
               description: "",
-              parameterType: ParameterType.STRING,
+              type: ParameterType.STRING,
               defaultValue: "default",
             },
           },
@@ -391,7 +391,7 @@ describe("Task builders", () => {
             param: {
               name: "param",
               description: "",
-              parameterType: ParameterType.INT,
+              type: ParameterType.INT,
               defaultValue: undefined,
             },
           },
@@ -418,7 +418,7 @@ describe("Task builders", () => {
             flag: {
               name: "flag",
               description: "",
-              parameterType: ParameterType.BOOLEAN,
+              type: ParameterType.BOOLEAN,
               defaultValue: false,
             },
           },
@@ -443,7 +443,7 @@ describe("Task builders", () => {
             flag: {
               name: "flag",
               description: "Flag description",
-              parameterType: ParameterType.BOOLEAN,
+              type: ParameterType.BOOLEAN,
               defaultValue: false,
             },
           },
@@ -471,7 +471,7 @@ describe("Task builders", () => {
             {
               name: "param",
               description: "",
-              parameterType: ParameterType.STRING,
+              type: ParameterType.STRING,
               defaultValue: undefined,
               isVariadic: false,
             },
@@ -500,7 +500,7 @@ describe("Task builders", () => {
             {
               name: "param",
               description: "Param description",
-              parameterType: ParameterType.STRING,
+              type: ParameterType.STRING,
               defaultValue: undefined,
               isVariadic: false,
             },
@@ -529,7 +529,7 @@ describe("Task builders", () => {
             {
               name: "param",
               description: "",
-              parameterType: ParameterType.STRING,
+              type: ParameterType.STRING,
               defaultValue: "default",
               isVariadic: false,
             },
@@ -558,7 +558,7 @@ describe("Task builders", () => {
             {
               name: "param",
               description: "",
-              parameterType: ParameterType.INT,
+              type: ParameterType.INT,
               defaultValue: undefined,
               isVariadic: false,
             },
@@ -586,7 +586,7 @@ describe("Task builders", () => {
             {
               name: "param",
               description: "",
-              parameterType: ParameterType.STRING,
+              type: ParameterType.STRING,
               defaultValue: undefined,
               isVariadic: true,
             },
@@ -615,7 +615,7 @@ describe("Task builders", () => {
             {
               name: "param",
               description: "Param description",
-              parameterType: ParameterType.STRING,
+              type: ParameterType.STRING,
               defaultValue: undefined,
               isVariadic: true,
             },
@@ -644,7 +644,7 @@ describe("Task builders", () => {
             {
               name: "param",
               description: "",
-              parameterType: ParameterType.STRING,
+              type: ParameterType.STRING,
               defaultValue: ["default1", "default2"],
               isVariadic: true,
             },
@@ -670,7 +670,7 @@ describe("Task builders", () => {
             {
               name: "param",
               description: "",
-              parameterType: ParameterType.INT,
+              type: ParameterType.INT,
               defaultValue: undefined,
               isVariadic: true,
             },
@@ -1000,7 +1000,7 @@ describe("Task builders", () => {
             param: {
               name: "param",
               description: "",
-              parameterType: ParameterType.STRING,
+              type: ParameterType.STRING,
               defaultValue: undefined,
             },
           },
@@ -1029,7 +1029,7 @@ describe("Task builders", () => {
             param: {
               name: "param",
               description: "Parameter description",
-              parameterType: ParameterType.STRING,
+              type: ParameterType.STRING,
               defaultValue: undefined,
             },
           },
@@ -1058,7 +1058,7 @@ describe("Task builders", () => {
             param: {
               name: "param",
               description: "",
-              parameterType: ParameterType.STRING,
+              type: ParameterType.STRING,
               defaultValue: "default",
             },
           },
@@ -1087,7 +1087,7 @@ describe("Task builders", () => {
             param: {
               name: "param",
               description: "",
-              parameterType: ParameterType.INT,
+              type: ParameterType.INT,
               defaultValue: undefined,
             },
           },
@@ -1115,7 +1115,7 @@ describe("Task builders", () => {
             flag: {
               name: "flag",
               description: "",
-              parameterType: ParameterType.BOOLEAN,
+              type: ParameterType.BOOLEAN,
               defaultValue: false,
             },
           },
@@ -1141,7 +1141,7 @@ describe("Task builders", () => {
             flag: {
               name: "flag",
               description: "Flag description",
-              parameterType: ParameterType.BOOLEAN,
+              type: ParameterType.BOOLEAN,
               defaultValue: false,
             },
           },

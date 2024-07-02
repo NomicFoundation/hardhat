@@ -61,7 +61,7 @@ export function overrideTask(
 export function globalOption<T extends ParameterType>(options: {
   name: string;
   description: string;
-  parameterType?: T;
+  type?: T;
   defaultValue: ParameterTypeToValueType<T>;
 }): GlobalOption {
   return buildGlobalOptionDefinition(options);
@@ -76,7 +76,7 @@ export function globalFlag(options: {
 }): GlobalOption {
   return buildGlobalOptionDefinition({
     ...options,
-    parameterType: ParameterType.BOOLEAN,
+    type: ParameterType.BOOLEAN,
     defaultValue: false,
   });
 }

@@ -48,7 +48,7 @@ describe("TaskManagerImplementation", () => {
             globalOption({
               name: "globalOption1",
               description: "",
-              parameterType: ParameterType.STRING,
+              type: ParameterType.STRING,
               defaultValue: "",
             }),
           ],
@@ -394,7 +394,7 @@ describe("TaskManagerImplementation", () => {
                 globalOption({
                   name: "param1",
                   description: "",
-                  parameterType: ParameterType.STRING,
+                  type: ParameterType.STRING,
                   defaultValue: "",
                 }),
               ],
@@ -432,7 +432,7 @@ describe("TaskManagerImplementation", () => {
                 globalOption({
                   name: "param1",
                   description: "",
-                  parameterType: ParameterType.STRING,
+                  type: ParameterType.STRING,
                   defaultValue: "",
                 }),
               ],
