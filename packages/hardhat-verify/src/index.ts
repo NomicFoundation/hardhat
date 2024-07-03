@@ -17,10 +17,12 @@ import {
   TASK_VERIFY_SOURCIFY,
   TASK_VERIFY_SOURCIFY_DISABLED_WARNING,
   TASK_VERIFY_GET_CONTRACT_INFORMATION,
+  TASK_VERIFY_BLOCKSCOUT,
 } from "./internal/task-names";
 import {
   etherscanConfigExtender,
   sourcifyConfigExtender,
+  blockscoutConfigExtender,
 } from "./internal/config";
 import {
   InvalidConstructorArgumentsError,
@@ -44,6 +46,7 @@ import {
 import "./internal/type-extensions";
 import "./internal/tasks/etherscan";
 import "./internal/tasks/sourcify";
+import "./internal/tasks/blockscout";
 
 // Main task args
 export interface VerifyTaskArgs {
@@ -84,6 +87,7 @@ export interface VerificationSubtask {
 
 extendConfig(etherscanConfigExtender);
 extendConfig(sourcifyConfigExtender);
+extendConfig(blockscoutConfigExtender);
 
 /**
  * Main verification task.
@@ -180,7 +184,18 @@ subtask(
       });
     }
 
-    if (!config.etherscan.enabled && !config.sourcify.enabled) {
+    if (config.blockscout.enabled) {
+      verificationSubtasks.push({
+        label: "Blockscout",
+        subtaskName: TASK_VERIFY_BLOCKSCOUT,
+      });
+    }
+
+    if (
+      !config.etherscan.enabled &&
+      !config.sourcify.enabled &&
+      !config.blockscout.enabled
+    ) {
       console.warn(
         chalk.yellow(
           `[WARNING] No verification services are enabled. Please enable at least one verification service in your configuration.`

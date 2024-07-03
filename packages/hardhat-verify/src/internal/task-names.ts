@@ -24,3 +24,6 @@ export const TASK_VERIFY_SOURCIFY_ATTEMPT_VERIFICATION =
   "verify:sourcify-attempt-verification";
 export const TASK_VERIFY_SOURCIFY_DISABLED_WARNING =
   "verify:sourcify-disabled-warning";
+
+// Blockscout
+export const TASK_VERIFY_BLOCKSCOUT = "verify:blockscout";

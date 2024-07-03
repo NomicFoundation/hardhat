@@ -19,4 +19,9 @@ export interface SourcifyConfig {
   browserUrl?: string;
 }
 
+export interface BlockscoutConfig {
+  enabled: boolean;
+  customChains: ChainConfig[];
+}
+
 export type ApiKey = string | Record<string, string>;

@@ -1,6 +1,10 @@
 import type LodashCloneDeepT from "lodash.clonedeep";
 import type { HardhatConfig, HardhatUserConfig } from "hardhat/types";
-import type { EtherscanConfig, SourcifyConfig } from "../types";
+import type {
+  EtherscanConfig,
+  SourcifyConfig,
+  BlockscoutConfig,
+} from "../types";
 
 import chalk from "chalk";
 
@@ -43,4 +47,17 @@ export function sourcifyConfigExtender(
   const cloneDeep = require("lodash.clonedeep") as typeof LodashCloneDeepT;
   const userSourcifyConfig = cloneDeep(userConfig.sourcify);
   config.sourcify = { ...defaultSourcifyConfig, ...userSourcifyConfig };
+}
+
+export function blockscoutConfigExtender(
+  config: HardhatConfig,
+  userConfig: Readonly<HardhatUserConfig>
+): void {
+  const defaultBlockscoutConfig: BlockscoutConfig = {
+    enabled: false,
+    customChains: [],
+  };
+  const cloneDeep = require("lodash.clonedeep") as typeof LodashCloneDeepT;
+  const userBlockscoutConfig = cloneDeep(userConfig.blockscout);
+  config.blockscout = { ...defaultBlockscoutConfig, ...userBlockscoutConfig };
 }
