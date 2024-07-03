@@ -4,9 +4,9 @@ import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
 
 import { exists, readJsonFile, remove } from "../src/fs.js";
-import { spawnDetachedSubProcess } from "../src/sub-process.js";
+import { spawnDetachedSubProcess } from "../src/subprocess.js";
 
-import { ABSOLUTE_PATH_TO_TMP_SUBPROCESS_FILE } from "./fixture-projects/sub-process/sub-process.js";
+import { ABSOLUTE_PATH_TO_TMP_SUBPROCESS_FILE } from "./fixture-projects/subprocess/subprocess.js";
 
 async function checkIfSubprocessWasExecuted() {
   // Checks if the subprocess was executed by waiting for a file to be created.
@@ -20,8 +20,6 @@ async function checkIfSubprocessWasExecuted() {
     const intervalId = setInterval(async () => {
       counter++;
 
-      console.log("path to json: " + ABSOLUTE_PATH_TO_TMP_SUBPROCESS_FILE);
-
       if (await exists(ABSOLUTE_PATH_TO_TMP_SUBPROCESS_FILE)) {
         clearInterval(intervalId);
         resolve(true);
@@ -33,7 +31,7 @@ async function checkIfSubprocessWasExecuted() {
   });
 }
 
-describe("sub-process", () => {
+describe("subprocess", () => {
   beforeEach(async () => {
     await remove(ABSOLUTE_PATH_TO_TMP_SUBPROCESS_FILE);
   });
@@ -43,8 +41,8 @@ describe("sub-process", () => {
       process.cwd(),
       "test",
       "fixture-projects",
-      "sub-process",
-      "sub-process.ts",
+      "subprocess",
+      "subprocess.ts",
     );
 
     spawnDetachedSubProcess(pathToSubprocessFile, ["one", "2"]);

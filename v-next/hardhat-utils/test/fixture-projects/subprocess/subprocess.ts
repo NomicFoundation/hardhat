@@ -14,7 +14,7 @@ const subprocessInfo = {
   arg2: "",
 };
 
-(async () => {
+(() => {
   subprocessInfo.executed = true;
   subprocessInfo.arg1 = process.argv[2];
   subprocessInfo.arg2 = process.argv[3];
