@@ -14,14 +14,16 @@ export function spawnDetachedSubProcess(
   absolutePathToSubProcessFile: string,
   args: string[] = [],
 ): void {
-  const subprocess = spawn(
-    process.execPath,
-    ["--import", "tsx/esm", absolutePathToSubProcessFile, ...args],
-    {
-      detached: true,
-      stdio: "ignore",
-    },
-  );
+  const subprocessArgs = [absolutePathToSubProcessFile, ...args];
+
+  if (absolutePathToSubProcessFile.endsWith(".ts")) {
+    subprocessArgs.unshift("--import", "tsx/esm");
+  }
+
+  const subprocess = spawn(process.execPath, subprocessArgs, {
+    detached: true,
+    stdio: "ignore",
+  });
 
   subprocess.unref();
 }
