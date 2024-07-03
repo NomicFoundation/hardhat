@@ -988,6 +988,13 @@ const communityPlugins: IPlugin[] = [
     description: "Hardhat plugin to get interfaceid",
     tags: ["ABI", "interfaceid", "Solarity"],
   },
+  {
+    name: "@yankeguo/hardhat-trezor",
+    author: "Yanke G.",
+    authorUrl: "https://yankeguo.com",
+    description: "Hardhat plugin for the Trezor hardware wallet",
+    tags: ["Trezor", "Wallet"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
