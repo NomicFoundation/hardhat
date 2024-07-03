@@ -10,15 +10,11 @@ const ABSOLUTE_PATH_TO_TMP_RESULT_SUBPROCESS_FILE: string = path.join(
 
 const subprocessInfo = {
   executed: false,
-  arg1: "",
-  arg2: "",
   envVars: {},
 };
 
 (() => {
   subprocessInfo.executed = true;
-  subprocessInfo.arg1 = process.argv[2];
-  subprocessInfo.arg2 = process.argv[3];
   subprocessInfo.envVars = process.env;
 
   writeJsonFile(ABSOLUTE_PATH_TO_TMP_RESULT_SUBPROCESS_FILE, subprocessInfo);

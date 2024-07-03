@@ -67,6 +67,31 @@ describe("subprocess", () => {
       executed: true,
       arg1: "ts-one",
       arg2: "ts-2",
+      envVars: {},
+    });
+  });
+
+  it("should execute the TypeScript subprocess with the correct env variables passed as params", async () => {
+    const pathToSubprocessFile = path.join(
+      PATH_TO_FIXTURE,
+      "ts-subprocess-env.ts",
+    );
+
+    spawnDetachedSubProcess(pathToSubprocessFile, [], { env1: "env1" });
+
+    await checkIfSubprocessWasExecuted();
+
+    const subprocessInfo = await readJsonFile(
+      ABSOLUTE_PATH_TO_TMP_RESULT_SUBPROCESS_FILE,
+    );
+
+    // Checks if the file created by the subprocess contains the expected data.
+    // The subprocess writes its received arguments to a JSON file.
+    assert.deepEqual(subprocessInfo, {
+      executed: true,
+      envVars: {
+        env1: "env1",
+      },
     });
   });
 
