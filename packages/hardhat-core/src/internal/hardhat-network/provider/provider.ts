@@ -619,11 +619,17 @@ export async function createHardhatNetworkProvider(
   loggerConfig: LoggerConfig,
   artifacts?: Artifacts
 ): Promise<EIP1193Provider> {
-  return EdrProviderWrapper.create(
+  log("Making tracing config");
+  const tracingConfig = await makeTracingConfig(artifacts);
+  log("Creating EDR provider");
+  const provider = EdrProviderWrapper.create(
     hardhatNetworkProviderConfig,
     loggerConfig,
-    await makeTracingConfig(artifacts)
+    tracingConfig
   );
+  log("EDR provider created");
+
+  return provider;
 }
 
 async function makeTracingConfig(
