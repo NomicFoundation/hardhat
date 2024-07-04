@@ -5,7 +5,7 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 import { globalOption, ParameterType } from "../../src/config.js";
 import {
-  buildGlobalOptionsMap,
+  buildGlobalOptionDefinitions,
   buildGlobalOptionDefinition,
   resolveGlobalOptions,
 } from "../../src/internal/global-options.js";
@@ -27,21 +27,21 @@ describe("Global Options", () => {
     RESERVED_PARAMETER_NAMES.delete("testName3");
   });
 
-  describe("buildGlobalOptionsMap", () => {
+  describe("buildGlobalOptionDefinitions", () => {
     it("should build an empty map of global options if no plugins are provided", () => {
-      const globalOptionsMap = buildGlobalOptionsMap([]);
+      const globalOptionDefinitions = buildGlobalOptionDefinitions([]);
 
-      assert.deepEqual(globalOptionsMap, new Map());
+      assert.deepEqual(globalOptionDefinitions, new Map());
     });
 
     it("should build an empty map of global options if there are no global options defined by plugins", () => {
-      const globalOptionsMap = buildGlobalOptionsMap([
+      const globalOptionDefinitions = buildGlobalOptionDefinitions([
         {
           id: "plugin1",
         },
       ]);
 
-      assert.deepEqual(globalOptionsMap, new Map());
+      assert.deepEqual(globalOptionDefinitions, new Map());
     });
 
     it("should build a map of global options", () => {
@@ -51,7 +51,7 @@ describe("Global Options", () => {
         type: ParameterType.BOOLEAN,
         defaultValue: true,
       });
-      const globalOptionsMap = buildGlobalOptionsMap([
+      const globalOptionDefinitions = buildGlobalOptionDefinitions([
         {
           id: "plugin1",
           globalOptions: [globalOptionDefinition],
@@ -59,14 +59,17 @@ describe("Global Options", () => {
       ]);
 
       assert.ok(
-        globalOptionsMap.has("param1"),
-        "Expected 'param1' to be defined in the global options map",
+        globalOptionDefinitions.has("param1"),
+        "Expected 'param1' to be defined in the global option map",
       );
       assert.deepEqual(
-        globalOptionsMap.get("param1")?.option,
+        globalOptionDefinitions.get("param1")?.option,
         globalOptionDefinition,
       );
-      assert.deepEqual(globalOptionsMap.get("param1")?.pluginId, "plugin1");
+      assert.deepEqual(
+        globalOptionDefinitions.get("param1")?.pluginId,
+        "plugin1",
+      );
     });
 
     it("should throw if a global option is already defined by another plugin", () => {
@@ -85,7 +88,7 @@ describe("Global Options", () => {
 
       assert.throws(
         () =>
-          buildGlobalOptionsMap([
+          buildGlobalOptionDefinitions([
             {
               id: "plugin1",
               globalOptions: [globalOptionDefinition],
@@ -109,7 +112,7 @@ describe("Global Options", () => {
     it("should throw if an option name is not valid", () => {
       assert.throws(
         () =>
-          buildGlobalOptionsMap([
+          buildGlobalOptionDefinitions([
             {
               id: "plugin1",
               globalOptions: [
@@ -132,7 +135,7 @@ describe("Global Options", () => {
       RESERVED_PARAMETER_NAMES.forEach((name) => {
         assert.throws(
           () =>
-            buildGlobalOptionsMap([
+            buildGlobalOptionDefinitions([
               {
                 id: "plugin1",
                 globalOptions: [
@@ -155,7 +158,7 @@ describe("Global Options", () => {
     it("should throw if an options default value does not match the type", () => {
       assert.throws(
         () =>
-          buildGlobalOptionsMap([
+          buildGlobalOptionDefinitions([
             {
               id: "plugin1",
               globalOptions: [
@@ -260,7 +263,7 @@ describe("Global Options", () => {
     const { setEnvVar } = createTestEnvManager();
 
     it("should resolve to the default values when no options are provided", () => {
-      const globalOptionsMap = buildGlobalOptionsMap([
+      const globalOptionDefinitions = buildGlobalOptionDefinitions([
         {
           id: "plugin1",
           globalOptions: [
@@ -279,7 +282,7 @@ describe("Global Options", () => {
         },
       ]);
 
-      const globalOptions = resolveGlobalOptions({}, globalOptionsMap);
+      const globalOptions = resolveGlobalOptions({}, globalOptionDefinitions);
 
       assert.deepEqual(globalOptions, {
         param1: true,
@@ -288,7 +291,7 @@ describe("Global Options", () => {
     });
 
     it("should resolve to the user provided options and env variables", () => {
-      const globalOptionsMap = buildGlobalOptionsMap([
+      const globalOptionDefinitions = buildGlobalOptionDefinitions([
         {
           id: "plugin1",
           globalOptions: [
@@ -320,7 +323,7 @@ describe("Global Options", () => {
           param1: false,
           param2: "user",
         },
-        globalOptionsMap,
+        globalOptionDefinitions,
       );
 
       assert.deepEqual(globalOptions, {
@@ -331,7 +334,7 @@ describe("Global Options", () => {
     });
 
     it("should resolve to the user provided options over the environment variables", () => {
-      const globalOptionsMap = buildGlobalOptionsMap([
+      const globalOptionDefinitions = buildGlobalOptionDefinitions([
         {
           id: "plugin1",
           globalOptions: [
@@ -357,7 +360,7 @@ describe("Global Options", () => {
           param1: false,
           param2: "user",
         },
-        globalOptionsMap,
+        globalOptionDefinitions,
       );
 
       assert.deepEqual(globalOptions, {
@@ -367,7 +370,7 @@ describe("Global Options", () => {
     });
 
     it("should ignore options that are not defined in the global option map", () => {
-      const globalOptionsMap = buildGlobalOptionsMap([
+      const globalOptionDefinitions = buildGlobalOptionDefinitions([
         {
           id: "plugin1",
           globalOptions: [
@@ -388,7 +391,7 @@ describe("Global Options", () => {
           param1: false,
           param2: "user",
         },
-        globalOptionsMap,
+        globalOptionDefinitions,
       );
 
       assert.deepEqual(globalOptions, {
@@ -397,7 +400,7 @@ describe("Global Options", () => {
     });
 
     it("should throw if the environment variable is not valid", () => {
-      const globalOptionsMap = buildGlobalOptionsMap([
+      const globalOptionDefinitions = buildGlobalOptionDefinitions([
         {
           id: "plugin1",
           globalOptions: [
@@ -414,7 +417,7 @@ describe("Global Options", () => {
       setEnvVar("HARDHAT_PARAM1", "not a boolean");
 
       assert.throws(
-        () => resolveGlobalOptions({}, globalOptionsMap),
+        () => resolveGlobalOptions({}, globalOptionDefinitions),
         new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
           value: "not a boolean",
           name: "param1",

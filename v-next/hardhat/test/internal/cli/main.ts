@@ -1,6 +1,6 @@
 import type {
-  GlobalOptionsMap,
-  GlobalOptionsMapEntry,
+  GlobalOptionDefinitions,
+  GlobalOptionDefinitionsEntry,
 } from "@ignored/hardhat-vnext-core/types/global-options";
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core/types/hre";
 import type {
@@ -408,7 +408,7 @@ For global options help run: hardhat --help`;
     // The function "parseGlobalOptions" uses the same function "parseDoubleDashArgs" that is used to parse task options.
     // Most of the tests to check the "parseDoubleDashArgs" logic are in the task option section of these tests.
 
-    let globalOptionsMap: GlobalOptionsMap;
+    let globalOptionDefinitions: GlobalOptionDefinitions;
 
     before(function () {
       const GLOBAL_OPTION = globalOption({
@@ -423,7 +423,7 @@ For global options help run: hardhat --help`;
         description: "",
       });
 
-      globalOptionsMap = new Map<string, GlobalOptionsMapEntry>([
+      globalOptionDefinitions = new Map<string, GlobalOptionDefinitionsEntry>([
         ["param", { pluginId: "1", option: GLOBAL_OPTION }],
         ["flag", { pluginId: "1", option: GLOBAL_FLAG }],
       ]);
@@ -436,7 +436,7 @@ For global options help run: hardhat --help`;
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
       const globalOptions = await parseGlobalOptions(
-        globalOptionsMap,
+        globalOptionDefinitions,
         cliArguments,
         usedCliArguments,
       );
@@ -454,7 +454,7 @@ For global options help run: hardhat --help`;
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
       const globalOptions = await parseGlobalOptions(
-        globalOptionsMap,
+        globalOptionDefinitions,
         cliArguments,
         usedCliArguments,
       );
@@ -472,7 +472,7 @@ For global options help run: hardhat --help`;
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
       const globalOptions = await parseGlobalOptions(
-        globalOptionsMap,
+        globalOptionDefinitions,
         cliArguments,
         usedCliArguments,
       );
@@ -490,7 +490,7 @@ For global options help run: hardhat --help`;
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
       const globalOptions = await parseGlobalOptions(
-        globalOptionsMap,
+        globalOptionDefinitions,
         cliArguments,
         usedCliArguments,
       );

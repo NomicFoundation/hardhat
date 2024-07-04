@@ -1,4 +1,4 @@
-import type { GlobalOptionsMap } from "@ignored/hardhat-vnext-core/types/global-options";
+import type { GlobalOptionDefinitions } from "@ignored/hardhat-vnext-core/types/global-options";
 import type { Task } from "@ignored/hardhat-vnext-core/types/tasks";
 
 import { getHardhatVersion } from "../../utils/package.js";
@@ -13,13 +13,13 @@ import {
 
 export async function getGlobalHelpString(
   rootTasks: Map<string, Task>,
-  globalOptionsMap: GlobalOptionsMap,
+  globalOptionDefinitions: GlobalOptionDefinitions,
 ): Promise<string> {
   const version = await getHardhatVersion();
 
   const { tasks, subtasks } = parseTasks(rootTasks);
 
-  const globalOptions = parseGlobalOptions(globalOptionsMap);
+  const globalOptions = parseGlobalOptions(globalOptionDefinitions);
 
   const namePadding =
     getLongestNameLength([...tasks, ...subtasks, ...globalOptions]) +

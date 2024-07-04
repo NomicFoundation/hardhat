@@ -3,7 +3,7 @@ import type { Task } from "@ignored/hardhat-vnext-core/types/tasks";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { buildGlobalOptionsMap } from "@ignored/hardhat-vnext-core";
+import { buildGlobalOptionDefinitions } from "@ignored/hardhat-vnext-core";
 import {
   globalOption,
   ParameterType,
@@ -168,7 +168,7 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
   describe("when there are user-defined global options", function () {
     it("should return the global help string with the user-defined global options", async function () {
       const tasks = new Map();
-      const globalOptionsMap = buildGlobalOptionsMap([
+      const globalOptionDefinitions = buildGlobalOptionDefinitions([
         {
           id: "plugin1",
           globalOptions: [
@@ -187,7 +187,7 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
           ],
         },
       ]);
-      const help = await getGlobalHelpString(tasks, globalOptionsMap);
+      const help = await getGlobalHelpString(tasks, globalOptionDefinitions);
 
       const expected = `Hardhat version ${packageJson.version}
 

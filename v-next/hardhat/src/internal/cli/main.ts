@@ -2,7 +2,7 @@ import type { ParameterValue } from "@ignored/hardhat-vnext-core/types/common";
 import type {
   GlobalOptions,
   GlobalOption,
-  GlobalOptionsMap,
+  GlobalOptionDefinitions,
 } from "@ignored/hardhat-vnext-core/types/global-options";
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core/types/hre";
 import type {
@@ -15,7 +15,7 @@ import type {
 import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
 
 import {
-  buildGlobalOptionsMap,
+  buildGlobalOptionDefinitions,
   resolvePluginList,
 } from "@ignored/hardhat-vnext-core";
 import { ParameterType } from "@ignored/hardhat-vnext-core/types/common";
@@ -76,9 +76,10 @@ export async function main(
       hardhatSpecialArgs.configPath,
     );
 
-    const globalOptionsMap = buildGlobalOptionsMap(resolvedPlugins);
+    const globalOptionDefinitions =
+      buildGlobalOptionDefinitions(resolvedPlugins);
     const userProvidedGlobalOptions = await parseGlobalOptions(
-      globalOptionsMap,
+      globalOptionDefinitions,
       cliArguments,
       usedCliArguments,
     );
@@ -88,7 +89,7 @@ export async function main(
       userProvidedGlobalOptions,
       {
         resolvedPlugins,
-        globalOptionsMap,
+        globalOptionDefinitions,
       },
     );
 
@@ -98,7 +99,7 @@ export async function main(
       if (taskOrId.length === 0) {
         const globalHelp = await getGlobalHelpString(
           hre.tasks.rootTasks,
-          globalOptionsMap,
+          globalOptionDefinitions,
         );
 
         print(globalHelp);
@@ -211,20 +212,20 @@ export async function parseHardhatSpecialArguments(
 }
 
 export async function parseGlobalOptions(
-  globalOptionsMap: GlobalOptionsMap,
+  globalOptionDefinitions: GlobalOptionDefinitions,
   cliArguments: string[],
   usedCliArguments: boolean[],
 ): Promise<Partial<GlobalOptions>> {
   const globalOptions: Partial<GlobalOptions> = {};
 
-  const options = new Map(
-    [...globalOptionsMap].map(([key, value]) => [key, value.option]),
+  const optionDefinitions = new Map(
+    [...globalOptionDefinitions].map(([key, value]) => [key, value.option]),
   );
 
   parseDoubleDashArgs(
     cliArguments,
     usedCliArguments,
-    options,
+    optionDefinitions,
     globalOptions,
     true,
   );
@@ -343,7 +344,7 @@ export function parseTaskArguments(
 function parseDoubleDashArgs(
   cliArguments: string[],
   usedCliArguments: boolean[],
-  optionsMap: Map<string, TaskOption | GlobalOption>,
+  optionDefinitions: Map<string, TaskOption | GlobalOption>,
   argumentsMap: TaskArguments,
   ignoreUnknownParameter = false,
 ) {
@@ -365,7 +366,7 @@ function parseDoubleDashArgs(
     }
 
     const paramName = kebabToCamelCase(arg.substring(2));
-    const paramInfo = optionsMap.get(paramName);
+    const paramInfo = optionDefinitions.get(paramName);
 
     if (paramInfo === undefined) {
       if (ignoreUnknownParameter === true) {
@@ -431,7 +432,7 @@ function parseDoubleDashArgs(
   }
 
   // Check if all the required parameters have been used
-  validateRequiredParameters([...optionsMap.values()], argumentsMap);
+  validateRequiredParameters([...optionDefinitions.values()], argumentsMap);
 }
 
 function parsePositionalAndVariadicParameters(

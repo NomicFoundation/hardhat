@@ -1,5 +1,5 @@
 import type { ParameterType } from "@ignored/hardhat-vnext-core/config";
-import type { GlobalOptionsMap } from "@ignored/hardhat-vnext-core/types/global-options";
+import type { GlobalOptionDefinitions } from "@ignored/hardhat-vnext-core/types/global-options";
 import type { Task } from "@ignored/hardhat-vnext-core/types/tasks";
 
 import { BUILTIN_OPTIONS } from "../../builtin-options.js";
@@ -14,7 +14,7 @@ interface ArgumentDescriptor {
 }
 
 export function parseGlobalOptions(
-  globalOptionsMap: GlobalOptionsMap,
+  globalOptionDefinitions: GlobalOptionDefinitions,
 ): ArgumentDescriptor[] {
   const formattedBuiltinOptions = BUILTIN_OPTIONS.map(
     ({ name, description }) => ({
@@ -23,12 +23,14 @@ export function parseGlobalOptions(
     }),
   );
 
-  const formattedUserOptions = Array.from(globalOptionsMap).map(([, entry]) => {
-    return {
-      name: formatOptionName(entry.option.name),
-      description: entry.option.description,
-    };
-  });
+  const formattedUserOptions = Array.from(globalOptionDefinitions).map(
+    ([, entry]) => {
+      return {
+        name: formatOptionName(entry.option.name),
+        description: entry.option.description,
+      };
+    },
+  );
 
   return [...formattedBuiltinOptions, ...formattedUserOptions];
 }
