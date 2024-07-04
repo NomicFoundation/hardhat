@@ -1,5 +1,11 @@
 import { spawn } from "node:child_process";
 
+import {
+  SubprocessFileNotFoundError,
+  SubprocessPathIsDirectoryError,
+} from "./errors/subprocess.js";
+import { exists, isDirectory } from "./fs.js";
+
 /**
  * Spawns a detached subprocess to execute a given file with optional arguments.
  *
@@ -11,11 +17,19 @@ import { spawn } from "node:child_process";
  * This function does not wait for the subprocess to complete and the subprocess is unreferenced
  * to allow the parent process to exit independently.
  */
-export function spawnDetachedSubProcess(
+export async function spawnDetachedSubProcess(
   absolutePathToSubProcessFile: string,
   args: string[] = [],
   env: Record<string, string> = {},
-): void {
+): Promise<void> {
+  if ((await exists(absolutePathToSubProcessFile)) === false) {
+    throw new SubprocessFileNotFoundError(absolutePathToSubProcessFile);
+  }
+
+  if ((await isDirectory(absolutePathToSubProcessFile)) === true) {
+    throw new SubprocessPathIsDirectoryError(absolutePathToSubProcessFile);
+  }
+
   const subprocessArgs = [absolutePathToSubProcessFile, ...args];
 
   if (absolutePathToSubProcessFile.endsWith(".ts")) {

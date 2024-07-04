@@ -3,6 +3,10 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { afterEach, beforeEach, describe, it } from "node:test";
 
+import {
+  SubprocessFileNotFoundError,
+  SubprocessPathIsDirectoryError,
+} from "../src/errors/subprocess.js";
 import { exists, readJsonFile, remove } from "../src/fs.js";
 import { spawnDetachedSubProcess } from "../src/subprocess.js";
 
@@ -53,7 +57,7 @@ describe("subprocess", () => {
   it("should execute the TypeScript subprocess with the correct arguments", async () => {
     const pathToSubprocessFile = path.join(PATH_TO_FIXTURE, "ts-subprocess.ts");
 
-    spawnDetachedSubProcess(pathToSubprocessFile, ["ts-one", "ts-2"]);
+    await spawnDetachedSubProcess(pathToSubprocessFile, ["ts-one", "ts-2"]);
 
     await checkIfSubprocessWasExecuted();
 
@@ -67,7 +71,6 @@ describe("subprocess", () => {
       executed: true,
       arg1: "ts-one",
       arg2: "ts-2",
-      envVars: {},
     });
   });
 
@@ -77,28 +80,42 @@ describe("subprocess", () => {
       "ts-subprocess-env.ts",
     );
 
-    spawnDetachedSubProcess(pathToSubprocessFile, [], { env1: "env1" });
+    await spawnDetachedSubProcess(pathToSubprocessFile, [], { env1: "env1" });
 
     await checkIfSubprocessWasExecuted();
 
-    const subprocessInfo = await readJsonFile(
+    const subprocessInfo: { executed: boolean; envVars: { env1: string } } =
+      await readJsonFile(ABSOLUTE_PATH_TO_TMP_RESULT_SUBPROCESS_FILE);
+
+    // Checks if the file created by the subprocess contains the expected data.
+    // The subprocess writes its received arguments to a JSON file.
+    assert.equal(subprocessInfo.executed, true);
+    assert.equal(subprocessInfo.envVars.env1, "env1");
+  });
+
+  it("should print to stdio from the subprocess without errors (bug related to windows)", async () => {
+    const pathToSubprocessFile = path.join(
+      PATH_TO_FIXTURE,
+      "ts-subprocess-stdio.ts",
+    );
+
+    await spawnDetachedSubProcess(pathToSubprocessFile);
+
+    await checkIfSubprocessWasExecuted();
+
+    const subprocessInfo: { executed: boolean } = await readJsonFile(
       ABSOLUTE_PATH_TO_TMP_RESULT_SUBPROCESS_FILE,
     );
 
     // Checks if the file created by the subprocess contains the expected data.
     // The subprocess writes its received arguments to a JSON file.
-    assert.deepEqual(subprocessInfo, {
-      executed: true,
-      envVars: {
-        env1: "env1",
-      },
-    });
+    assert.equal(subprocessInfo.executed, true);
   });
 
   it("should execute the Javascript subprocess with the correct arguments", async () => {
     const pathToSubprocessFile = path.join(PATH_TO_FIXTURE, "js-subprocess.js");
 
-    spawnDetachedSubProcess(pathToSubprocessFile, ["js-one", "js-2"]);
+    await spawnDetachedSubProcess(pathToSubprocessFile, ["js-one", "js-2"]);
 
     await checkIfSubprocessWasExecuted();
 
@@ -113,5 +130,28 @@ describe("subprocess", () => {
       arg1: "js-one",
       arg2: "js-2",
     });
+  });
+
+  it("should throw an error because the file to execute does not exist", async () => {
+    const pathToSubprocessFile = path.join(
+      PATH_TO_FIXTURE,
+      "non-existing-file.ts",
+    );
+
+    await assert.rejects(
+      async () =>
+        spawnDetachedSubProcess(pathToSubprocessFile, [], { env1: "env1" }),
+      new SubprocessFileNotFoundError(pathToSubprocessFile),
+    );
+  });
+
+  it("should throw an error because the file to execute is not a file but a directory", async () => {
+    const pathToSubprocessFile = path.join(PATH_TO_FIXTURE);
+
+    await assert.rejects(
+      async () =>
+        spawnDetachedSubProcess(pathToSubprocessFile, [], { env1: "env1" }),
+      new SubprocessPathIsDirectoryError(pathToSubprocessFile),
+    );
   });
 });

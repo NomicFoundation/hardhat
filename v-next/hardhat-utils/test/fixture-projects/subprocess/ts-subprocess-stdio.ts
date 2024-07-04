@@ -10,14 +10,14 @@ const ABSOLUTE_PATH_TO_TMP_RESULT_SUBPROCESS_FILE: string = path.join(
 
 const subprocessInfo = {
   executed: false,
-  arg1: "",
-  arg2: "",
 };
 
 (() => {
   subprocessInfo.executed = true;
-  subprocessInfo.arg1 = process.argv[2];
-  subprocessInfo.arg2 = process.argv[3];
+
+  console.log(
+    "this message should not appear in the stdio of the parent process",
+  );
 
   writeJsonFile(ABSOLUTE_PATH_TO_TMP_RESULT_SUBPROCESS_FILE, subprocessInfo);
 })();
