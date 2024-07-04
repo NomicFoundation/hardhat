@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { afterEach, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
@@ -13,13 +13,15 @@ import {
 import { useFixtureProject } from "../helpers/project.js";
 
 describe("HRE", () => {
+  afterEach(() => {
+    resetHardhatRuntimeEnvironmentSingleton();
+  });
+
   describe("createHardhatRuntimeEnvironment", () => {
     it("should include the built-in plugins", async () => {
       const hre = await createHardhatRuntimeEnvironment({});
 
       assert.deepEqual(hre.config.plugins, builtinPlugins);
-
-      resetHardhatRuntimeEnvironmentSingleton();
     });
   });
 
@@ -39,8 +41,6 @@ describe("HRE", () => {
         { id: "custom task" },
       );
       assert.deepEqual(hre1, hre2);
-
-      resetHardhatRuntimeEnvironmentSingleton();
     });
   });
 
@@ -125,8 +125,6 @@ describe("HRE", () => {
         const hre = await import("../../src/index.js");
 
         assert.deepEqual(hre.config.plugins, [{ id: "test-plugin" }]);
-
-        resetHardhatRuntimeEnvironmentSingleton();
       });
     });
   });
