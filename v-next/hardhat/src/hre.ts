@@ -4,6 +4,7 @@ import type { HardhatRuntimeEnvironment } from "./types/hre.js";
 import type { UnsafeHardhatRuntimeEnvironmentOptions } from "@ignored/hardhat-vnext-core/types/cli";
 
 import {
+  // eslint-disable-next-line no-restricted-imports -- This is the one place where we allow it
   createHardhatRuntimeEnvironment as originalCreateHardhatRuntimeEnvironment,
   resolvePluginList,
 } from "@ignored/hardhat-vnext-core";
