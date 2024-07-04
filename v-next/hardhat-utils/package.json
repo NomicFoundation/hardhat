@@ -26,7 +26,8 @@
     "./number": "./dist/src/number.js",
     "./package": "./dist/src/package.js",
     "./request": "./dist/src/request.js",
-    "./string": "./dist/src/string.js"
+    "./string": "./dist/src/string.js",
+    "./subprocess": "./dist/src/subprocess.js"
   },
   "keywords": [
     "ethereum",
