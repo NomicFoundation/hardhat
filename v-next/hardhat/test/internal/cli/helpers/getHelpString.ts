@@ -16,7 +16,7 @@ describe("getHelpString", function () {
         description: "task description",
         actions: [{ pluginId: "task-plugin-id", action: () => {} }],
         options: new Map(),
-        positionalParameters: [],
+        positionalArguments: [],
         pluginId: "task-plugin-id",
         subtasks: new Map().set("subtask", {
           id: ["task", "subtask"],
@@ -62,7 +62,7 @@ To get help for a specific task run: npx hardhat task <SUBTASK> --help`;
               description: "Another example option",
               type: ArgumentType.BOOLEAN,
             }),
-          positionalParameters: [],
+          positionalArguments: [],
           pluginId: "task-plugin-id",
           subtasks: new Map(),
           isEmpty: false,
@@ -103,7 +103,7 @@ For global options help run: hardhat --help`;
               description: "Another example option",
               type: ArgumentType.BOOLEAN,
             }),
-          positionalParameters: [
+          positionalArguments: [
             {
               name: "positionalArgument",
               description: "An example positional argument",
@@ -155,7 +155,7 @@ For global options help run: hardhat --help`;
               description: "Another example option",
               type: ArgumentType.BOOLEAN,
             }),
-          positionalParameters: [
+          positionalArguments: [
             {
               name: "positionalArgument",
               description: "An example positional argument",

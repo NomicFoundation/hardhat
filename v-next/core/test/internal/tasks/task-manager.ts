@@ -36,7 +36,7 @@ describe("TaskManagerImplementation", () => {
           id: "plugin1",
           tasks: [
             new NewTaskDefinitionBuilderImplementation("task1")
-              .addOption({ name: "param1" })
+              .addOption({ name: "arg1" })
               .setAction(() => {})
               .build(),
             new NewTaskDefinitionBuilderImplementation("task2")
@@ -57,8 +57,8 @@ describe("TaskManagerImplementation", () => {
           id: "plugin2",
           tasks: [
             new NewTaskDefinitionBuilderImplementation("task3")
-              .addPositionalParameter({ name: "posParam1" })
-              .addVariadicParameter({ name: "varParam1" })
+              .addPositionalArgument({ name: "posArg1" })
+              .addVariadicArgument({ name: "varArg1" })
               .setAction(() => {})
               .build(),
           ],
@@ -92,7 +92,7 @@ describe("TaskManagerImplementation", () => {
     const hre = await createHardhatRuntimeEnvironment({
       tasks: [
         new NewTaskDefinitionBuilderImplementation("task1")
-          .addOption({ name: "param1" })
+          .addOption({ name: "arg1" })
           .setAction(() => {})
           .build(),
         new NewTaskDefinitionBuilderImplementation("task2")
@@ -100,8 +100,8 @@ describe("TaskManagerImplementation", () => {
           .setAction(() => {})
           .build(),
         new NewTaskDefinitionBuilderImplementation("task3")
-          .addPositionalParameter({ name: "posParam1" })
-          .addVariadicParameter({ name: "varParam1" })
+          .addPositionalArgument({ name: "posArg1" })
+          .addVariadicArgument({ name: "varArg1" })
           .setAction(() => {})
           .build(),
       ],
@@ -137,16 +137,16 @@ describe("TaskManagerImplementation", () => {
           tasks: [
             new NewTaskDefinitionBuilderImplementation("task1")
               .setDescription("description1")
-              .addOption({ name: "param1" })
+              .addOption({ name: "arg1" })
               .addFlag({ name: "flag1" })
-              .addPositionalParameter({ name: "posParam1" })
-              .addVariadicParameter({ name: "varParam1" })
+              .addPositionalArgument({ name: "posArg1" })
+              .addVariadicArgument({ name: "varArg1" })
               .setAction(() => {})
               .build(),
-            // overriding task1 with a new description and parameters
+            // overriding task1 with a new description and arguments
             new TaskOverrideDefinitionBuilderImplementation("task1")
               .setDescription("description2")
-              .addOption({ name: "param2" })
+              .addOption({ name: "arg2" })
               .addFlag({ name: "flag2" })
               .setAction(() => {})
               .build(),
@@ -159,19 +159,19 @@ describe("TaskManagerImplementation", () => {
     assert.deepEqual(task1.id, ["task1"]);
     assert.equal(task1.pluginId, "plugin1");
     assert.equal(task1.description, "description2");
-    // Original params should have not been removed
-    assert.ok(task1.options.get("param1"), "Should have param1");
+    // Original args should have not been removed
+    assert.ok(task1.options.get("arg1"), "Should have arg1");
     assert.ok(task1.options.get("flag1"), "Should have flag1");
     assert.ok(
-      task1.positionalParameters.some((p) => p.name === "posParam1"),
-      "Should have posParam1",
+      task1.positionalArguments.some((p) => p.name === "posArg1"),
+      "Should have posArg1",
     );
     assert.ok(
-      task1.positionalParameters.some((p) => p.name === "posParam1"),
-      "Should have varParam1",
+      task1.positionalArguments.some((p) => p.name === "posArg1"),
+      "Should have varArg1",
     );
-    // New params should be added by the overrides
-    assert.ok(task1.options.get("param2"), "Should have param2");
+    // New args should be added by the overrides
+    assert.ok(task1.options.get("arg2"), "Should have arg2");
     assert.ok(task1.options.get("flag2"), "Should have flag2");
     // Should have 2 actions
     assert.equal(task1.actions.length, 2);
@@ -187,10 +187,10 @@ describe("TaskManagerImplementation", () => {
           tasks: [
             new NewTaskDefinitionBuilderImplementation("task1")
               .setDescription("description1")
-              .addOption({ name: "param1" })
+              .addOption({ name: "arg1" })
               .addFlag({ name: "flag1" })
-              .addPositionalParameter({ name: "posParam1" })
-              .addVariadicParameter({ name: "varParam1" })
+              .addPositionalArgument({ name: "posArg1" })
+              .addVariadicArgument({ name: "varArg1" })
               .setAction(() => {})
               .build(),
           ],
@@ -198,10 +198,10 @@ describe("TaskManagerImplementation", () => {
         {
           id: "plugin2",
           tasks: [
-            // overriding task1 with a new description and parameters
+            // overriding task1 with a new description and arguments
             new TaskOverrideDefinitionBuilderImplementation("task1")
               .setDescription("description2")
-              .addOption({ name: "param2" })
+              .addOption({ name: "arg2" })
               .addFlag({ name: "flag2" })
               .setAction(() => {})
               .build(),
@@ -214,19 +214,19 @@ describe("TaskManagerImplementation", () => {
     assert.deepEqual(task1.id, ["task1"]);
     assert.equal(task1.pluginId, "plugin1");
     assert.equal(task1.description, "description2");
-    // Original params should have not been removed
-    assert.ok(task1.options.get("param1"), "Should have param1");
+    // Original args should have not been removed
+    assert.ok(task1.options.get("arg1"), "Should have arg1");
     assert.ok(task1.options.get("flag1"), "Should have flag1");
     assert.ok(
-      task1.positionalParameters.some((p) => p.name === "posParam1"),
-      "Should have posParam1",
+      task1.positionalArguments.some((p) => p.name === "posArg1"),
+      "Should have posArg1",
     );
     assert.ok(
-      task1.positionalParameters.some((p) => p.name === "posParam1"),
-      "Should have varParam1",
+      task1.positionalArguments.some((p) => p.name === "posArg1"),
+      "Should have varArg1",
     );
-    // New params should be added by the overrides
-    assert.ok(task1.options.get("param2"), "Should have param2");
+    // New args should be added by the overrides
+    assert.ok(task1.options.get("arg2"), "Should have arg2");
     assert.ok(task1.options.get("flag2"), "Should have flag2");
     // Should have 2 actions
     assert.equal(task1.actions.length, 2);
@@ -242,16 +242,16 @@ describe("TaskManagerImplementation", () => {
           tasks: [
             new NewTaskDefinitionBuilderImplementation("task1")
               .setDescription("description1")
-              .addOption({ name: "param1" })
+              .addOption({ name: "arg1" })
               .addFlag({ name: "flag1" })
-              .addPositionalParameter({ name: "posParam1" })
-              .addVariadicParameter({ name: "varParam1" })
+              .addPositionalArgument({ name: "posArg1" })
+              .addVariadicArgument({ name: "varArg1" })
               .setAction(() => {})
               .build(),
-            // overriding task1 with a new description and parameters
+            // overriding task1 with a new description and arguments
             new TaskOverrideDefinitionBuilderImplementation("task1")
               .setDescription("description2")
-              .addOption({ name: "param2" })
+              .addOption({ name: "arg2" })
               .addFlag({ name: "flag2" })
               .setAction(() => {})
               .build(),
@@ -260,10 +260,10 @@ describe("TaskManagerImplementation", () => {
         {
           id: "plugin2",
           tasks: [
-            // overriding task1 with a new description and parameters
+            // overriding task1 with a new description and arguments
             new TaskOverrideDefinitionBuilderImplementation("task1")
               .setDescription("description3")
-              .addOption({ name: "param3" })
+              .addOption({ name: "arg3" })
               .addFlag({ name: "flag3" })
               .setAction(() => {})
               .build(),
@@ -276,21 +276,21 @@ describe("TaskManagerImplementation", () => {
     assert.deepEqual(task1.id, ["task1"]);
     assert.equal(task1.pluginId, "plugin1");
     assert.equal(task1.description, "description3");
-    // Original params should have not been removed
-    assert.ok(task1.options.get("param1"), "Should have param1");
+    // Original args should have not been removed
+    assert.ok(task1.options.get("arg1"), "Should have arg1");
     assert.ok(task1.options.get("flag1"), "Should have flag1");
     assert.ok(
-      task1.positionalParameters.some((p) => p.name === "posParam1"),
-      "Should have posParam1",
+      task1.positionalArguments.some((p) => p.name === "posArg1"),
+      "Should have posArg1",
     );
     assert.ok(
-      task1.positionalParameters.some((p) => p.name === "posParam1"),
-      "Should have varParam1",
+      task1.positionalArguments.some((p) => p.name === "posArg1"),
+      "Should have varArg1",
     );
-    // New params should be added by the overrides
-    assert.ok(task1.options.get("param2"), "Should have param2");
+    // New args should be added by the overrides
+    assert.ok(task1.options.get("arg2"), "Should have arg2");
     assert.ok(task1.options.get("flag2"), "Should have flag2");
-    assert.ok(task1.options.get("param3"), "Should have param3");
+    assert.ok(task1.options.get("arg3"), "Should have arg3");
     assert.ok(task1.options.get("flag3"), "Should have flag3");
     // Should have 3 actions
     assert.equal(task1.actions.length, 3);
@@ -383,7 +383,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin1",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .addOption({ name: "param1" })
+                  .addOption({ name: "arg1" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -392,7 +392,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin2",
               globalOptions: [
                 globalOption({
-                  name: "param1",
+                  name: "arg1",
                   description: "",
                   type: ArgumentType.STRING,
                   defaultValue: "",
@@ -406,14 +406,14 @@ describe("TaskManagerImplementation", () => {
           {
             actorFragment: "Plugin plugin1 is",
             task: "task1",
-            option: "param1",
+            option: "arg1",
             globalOptionPluginId: "plugin2",
           },
         ),
       );
     });
 
-    it("should throw if there's a global option with the same name as a task positional parameter", async () => {
+    it("should throw if there's a global option with the same name as a task positional argument", async () => {
       await assert.rejects(
         createHardhatRuntimeEnvironment({
           plugins: [
@@ -421,7 +421,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin1",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .addPositionalParameter({ name: "param1" })
+                  .addPositionalArgument({ name: "arg1" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -430,7 +430,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin2",
               globalOptions: [
                 globalOption({
-                  name: "param1",
+                  name: "arg1",
                   description: "",
                   type: ArgumentType.STRING,
                   defaultValue: "",
@@ -444,7 +444,7 @@ describe("TaskManagerImplementation", () => {
           {
             actorFragment: "Plugin plugin1 is",
             task: "task1",
-            option: "param1",
+            option: "arg1",
             globalOptionPluginId: "plugin2",
           },
         ),
@@ -465,7 +465,7 @@ describe("TaskManagerImplementation", () => {
                   description: "",
                   action: () => {},
                   options: {},
-                  positionalParameters: [],
+                  positionalArguments: [],
                 },
               ],
             },
@@ -486,7 +486,7 @@ describe("TaskManagerImplementation", () => {
                   "task1",
                   "subtask1",
                 ])
-                  .addOption({ name: "param1" })
+                  .addOption({ name: "arg1" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -511,7 +511,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin1",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .addOption({ name: "param1" })
+                  .addOption({ name: "arg1" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -520,7 +520,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin2",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .addOption({ name: "param2" })
+                  .addOption({ name: "arg2" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -584,7 +584,7 @@ describe("TaskManagerImplementation", () => {
     });
 
     it("should throw if trying to override a task and there is a name clash with an existing option", async () => {
-      // added parameter clash with an existing option
+      // added argument clash with an existing option
       await assert.rejects(
         createHardhatRuntimeEnvironment({
           plugins: [
@@ -592,7 +592,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin1",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .addOption({ name: "param1" })
+                  .addOption({ name: "arg1" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -601,7 +601,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin2",
               tasks: [
                 new TaskOverrideDefinitionBuilderImplementation("task1")
-                  .addOption({ name: "param1" })
+                  .addOption({ name: "arg1" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -612,7 +612,7 @@ describe("TaskManagerImplementation", () => {
           HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
           {
             actorFragment: "Plugin plugin2 is",
-            optionName: "param1",
+            optionName: "arg1",
             task: "task1",
           },
         ),
@@ -626,7 +626,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin1",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .addOption({ name: "param1" })
+                  .addOption({ name: "arg1" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -635,7 +635,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin2",
               tasks: [
                 new TaskOverrideDefinitionBuilderImplementation("task1")
-                  .addFlag({ name: "param1" })
+                  .addFlag({ name: "arg1" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -646,15 +646,15 @@ describe("TaskManagerImplementation", () => {
           HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
           {
             actorFragment: "Plugin plugin2 is",
-            optionName: "param1",
+            optionName: "arg1",
             task: "task1",
           },
         ),
       );
     });
 
-    it("should throw if trying to override a task and there is a name clash with an exising flag parameter", async () => {
-      // added parameter clash with an existing flag
+    it("should throw if trying to override a task and there is a name clash with an exising flag argument", async () => {
+      // added argument clash with an existing flag
       await assert.rejects(
         createHardhatRuntimeEnvironment({
           plugins: [
@@ -723,8 +723,8 @@ describe("TaskManagerImplementation", () => {
       );
     });
 
-    it("should throw if trying to override a task and there is a name clash with an exising positional parameter", async () => {
-      // added parameter clash with an existing positional parameter
+    it("should throw if trying to override a task and there is a name clash with an exising positional argument", async () => {
+      // added argument clash with an existing positional argument
       await assert.rejects(
         createHardhatRuntimeEnvironment({
           plugins: [
@@ -732,7 +732,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin1",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .addPositionalParameter({ name: "param1" })
+                  .addPositionalArgument({ name: "arg1" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -741,7 +741,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin2",
               tasks: [
                 new TaskOverrideDefinitionBuilderImplementation("task1")
-                  .addOption({ name: "param1" })
+                  .addOption({ name: "arg1" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -752,13 +752,13 @@ describe("TaskManagerImplementation", () => {
           HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
           {
             actorFragment: "Plugin plugin2 is",
-            optionName: "param1",
+            optionName: "arg1",
             task: "task1",
           },
         ),
       );
 
-      // added flag clash with an existing positional parameter
+      // added flag clash with an existing positional argument
       await assert.rejects(
         createHardhatRuntimeEnvironment({
           plugins: [
@@ -766,7 +766,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin1",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .addPositionalParameter({ name: "flag1" })
+                  .addPositionalArgument({ name: "flag1" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -793,8 +793,8 @@ describe("TaskManagerImplementation", () => {
       );
     });
 
-    it("should throw if trying to override a task and there is a name clash with an exising variadic parameter", async () => {
-      // added parameter clash with an existing variadic parameter
+    it("should throw if trying to override a task and there is a name clash with an exising variadic argument", async () => {
+      // added argument clash with an existing variadic argument
       await assert.rejects(
         createHardhatRuntimeEnvironment({
           plugins: [
@@ -802,7 +802,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin1",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .addVariadicParameter({ name: "param1" })
+                  .addVariadicArgument({ name: "arg1" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -811,7 +811,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin2",
               tasks: [
                 new TaskOverrideDefinitionBuilderImplementation("task1")
-                  .addOption({ name: "param1" })
+                  .addOption({ name: "arg1" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -822,13 +822,13 @@ describe("TaskManagerImplementation", () => {
           HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
           {
             actorFragment: "Plugin plugin2 is",
-            optionName: "param1",
+            optionName: "arg1",
             task: "task1",
           },
         ),
       );
 
-      // added flag clash with an existing variadic parameter
+      // added flag clash with an existing variadic argument
       await assert.rejects(
         createHardhatRuntimeEnvironment({
           plugins: [
@@ -836,7 +836,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin1",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .addVariadicParameter({ name: "flag1" })
+                  .addVariadicArgument({ name: "flag1" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -1106,34 +1106,32 @@ describe("TaskManagerImplementation", () => {
             id: "plugin1",
             tasks: [
               new NewTaskDefinitionBuilderImplementation("task1")
-                .addOption({ name: "param1" })
+                .addOption({ name: "arg1" })
                 .addFlag({ name: "flag1" })
-                .addPositionalParameter({ name: "posParam" })
-                .addVariadicParameter({ name: "varParam" })
+                .addPositionalArgument({ name: "posArg" })
+                .addVariadicArgument({ name: "varArg" })
                 .setAction((args) => {
                   assert.deepEqual(args, {
-                    param1: "param1Value",
+                    arg1: "arg1Value",
                     flag1: true,
-                    posParam: "posValue",
-                    varParam: ["varValue1", "varValue2"],
+                    posArg: "posValue",
+                    varArg: ["varValue1", "varValue2"],
                   });
                 })
                 .build(),
               new TaskOverrideDefinitionBuilderImplementation("task1")
-                .addOption({ name: "param2" })
+                .addOption({ name: "arg2" })
                 .addFlag({ name: "flag2" })
-                .setAction(
-                  async ({ param2, flag2, ...args }, _hre, runSuper) => {
-                    await runSuper(args);
-                    assert.deepEqual(
-                      { param2, flag2 },
-                      {
-                        param2: "param2Value",
-                        flag2: true,
-                      },
-                    );
-                  },
-                )
+                .setAction(async ({ arg2, flag2, ...args }, _hre, runSuper) => {
+                  await runSuper(args);
+                  assert.deepEqual(
+                    { arg2, flag2 },
+                    {
+                      arg2: "arg2Value",
+                      flag2: true,
+                    },
+                  );
+                })
                 .build(),
             ],
           },
@@ -1142,11 +1140,11 @@ describe("TaskManagerImplementation", () => {
 
       const task1 = hre.tasks.getTask("task1");
       await task1.run({
-        param1: "param1Value",
+        arg1: "arg1Value",
         flag1: true,
-        posParam: "posValue",
-        varParam: ["varValue1", "varValue2"],
-        param2: "param2Value",
+        posArg: "posValue",
+        varArg: ["varValue1", "varValue2"],
+        arg2: "arg2Value",
         flag2: true,
       });
     });
@@ -1159,24 +1157,24 @@ describe("TaskManagerImplementation", () => {
             tasks: [
               new NewTaskDefinitionBuilderImplementation("task1")
                 .addOption({
-                  name: "param1",
-                  defaultValue: "param1DefaultValue",
+                  name: "arg1",
+                  defaultValue: "arg1DefaultValue",
                 })
                 .addFlag({ name: "flag1" })
-                .addPositionalParameter({
-                  name: "posParam",
+                .addPositionalArgument({
+                  name: "posArg",
                   defaultValue: "posValue",
                 })
-                .addVariadicParameter({
-                  name: "varParam",
+                .addVariadicArgument({
+                  name: "varArg",
                   defaultValue: ["varValue1", "varValue2"],
                 })
                 .setAction((args) => {
                   assert.deepEqual(args, {
-                    param1: "param1DefaultValue",
+                    arg1: "arg1DefaultValue",
                     flag1: false,
-                    posParam: "posValue",
-                    varParam: ["varValue1", "varValue2"],
+                    posArg: "posValue",
+                    varArg: ["varValue1", "varValue2"],
                   });
                 })
                 .build(),
@@ -1231,7 +1229,7 @@ describe("TaskManagerImplementation", () => {
                 .setAction((args) => args)
                 .build(),
               new TaskOverrideDefinitionBuilderImplementation("task1")
-                .addOption({ name: "param1" })
+                .addOption({ name: "arg1" })
                 .setAction(actionUrl)
                 .build(),
             ],
@@ -1240,8 +1238,8 @@ describe("TaskManagerImplementation", () => {
       });
 
       const task1 = hre.tasks.getTask("task1");
-      const response = await task1.run({ param1: "param1Value" });
-      assert.deepEqual(response, { param1: "param1Value" });
+      const response = await task1.run({ arg1: "arg1Value" });
+      assert.deepEqual(response, { arg1: "arg1Value" });
     });
 
     it("should run a task with an invalid action url that was overriden and the override doesn't call runSuper", async () => {
@@ -1258,7 +1256,7 @@ describe("TaskManagerImplementation", () => {
                 .setAction("file://not-a-module")
                 .build(),
               new TaskOverrideDefinitionBuilderImplementation("task1")
-                .addOption({ name: "param1" })
+                .addOption({ name: "arg1" })
                 .setAction(validActionUrl)
                 .build(),
             ],
@@ -1267,10 +1265,10 @@ describe("TaskManagerImplementation", () => {
       });
 
       const task1 = hre.tasks.getTask("task1");
-      const response = await task1.run({ param1: "param1Value" });
+      const response = await task1.run({ arg1: "arg1Value" });
       assert.equal(
         response,
-        `action fn called with args: ${JSON.stringify({ param1: "param1Value" })}`,
+        `action fn called with args: ${JSON.stringify({ arg1: "arg1Value" })}`,
       );
     });
 
@@ -1299,7 +1297,7 @@ describe("TaskManagerImplementation", () => {
         );
       });
 
-      it("should throw if the provided parameter is not one of the task parameters", async () => {
+      it("should throw if the provided argument is not one of the task arguments", async () => {
         const hre = await createHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -1315,18 +1313,18 @@ describe("TaskManagerImplementation", () => {
 
         const task1 = hre.tasks.getTask("task1");
         await assert.rejects(
-          task1.run({ otherParam: "otherParamValue" }),
+          task1.run({ otherArg: "otherArgValue" }),
           new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.UNRECOGNIZED_NAMED_PARAM,
+            HardhatError.ERRORS.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
             {
-              parameter: "otherParam",
+              option: "otherArg",
               task: "task1",
             },
           ),
         );
       });
 
-      it("should throw if a required parameter is missing", async () => {
+      it("should throw if a required argument is missing", async () => {
         const hre = await createHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -1334,8 +1332,8 @@ describe("TaskManagerImplementation", () => {
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
                   .addOption({ name: "option" })
-                  .addPositionalParameter({ name: "posParam" })
-                  .addVariadicParameter({ name: "varParam" })
+                  .addPositionalArgument({ name: "posArg" })
+                  .addVariadicArgument({ name: "varArg" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -1348,50 +1346,50 @@ describe("TaskManagerImplementation", () => {
         // option is missing
         await assert.rejects(
           task1.run({
-            posParam: "posValue",
-            varParam: ["varValue1", "varValue2"],
+            posArg: "posValue",
+            varArg: ["varValue1", "varValue2"],
           }),
           new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_PARAMETER,
+            HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
             {
-              parameter: "option",
+              argument: "option",
               task: "task1",
             },
           ),
         );
 
-        // posParam is missing
+        // posArg is missing
         await assert.rejects(
           task1.run({
-            option: "param1Value",
-            varParam: ["varValue1", "varValue2"],
+            option: "arg1Value",
+            varArg: ["varValue1", "varValue2"],
           }),
           new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_PARAMETER,
+            HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
             {
-              parameter: "posParam",
+              argument: "posArg",
               task: "task1",
             },
           ),
         );
 
-        // varParam is missing
+        // varArg is missing
         await assert.rejects(
           task1.run({
-            option: "param1Value",
-            posParam: "posValue",
+            option: "arg1Value",
+            posArg: "posValue",
           }),
           new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_PARAMETER,
+            HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
             {
-              parameter: "varParam",
+              argument: "varArg",
               task: "task1",
             },
           ),
         );
       });
 
-      it("should throw if the provided value for the parameter is not of the correct type", async () => {
+      it("should throw if the provided value for the argument is not of the correct type", async () => {
         const hre = await createHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -1402,12 +1400,12 @@ describe("TaskManagerImplementation", () => {
                     name: "option",
                     type: ArgumentType.BIGINT,
                   })
-                  .addPositionalParameter({
-                    name: "posParam",
+                  .addPositionalArgument({
+                    name: "posArg",
                     type: ArgumentType.INT,
                   })
-                  .addVariadicParameter({
-                    name: "varParam",
+                  .addVariadicArgument({
+                    name: "varArg",
                     type: ArgumentType.FILE,
                   })
                   .setAction(() => {})
@@ -1423,8 +1421,8 @@ describe("TaskManagerImplementation", () => {
         await assert.rejects(
           task1.run({
             option: "not a bigint",
-            posParam: 10,
-            varParam: ["file1", "file2", "file3"],
+            posArg: 10,
+            varArg: ["file1", "file2", "file3"],
           }),
           new HardhatError(
             HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
@@ -1437,54 +1435,54 @@ describe("TaskManagerImplementation", () => {
           ),
         );
 
-        // posParam has the wrong type
+        // posArg has the wrong type
         await assert.rejects(
           task1.run({
             option: 5n,
-            posParam: true,
-            varParam: ["file1", "file2", "file3"],
+            posArg: true,
+            varArg: ["file1", "file2", "file3"],
           }),
           new HardhatError(
             HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
             {
               value: true,
-              name: "posParam",
+              name: "posArg",
               type: ArgumentType.INT,
               task: "task1",
             },
           ),
         );
 
-        // varParam has the wrong type (not an array)
+        // varArg has the wrong type (not an array)
         await assert.rejects(
           task1.run({
             option: 5n,
-            posParam: 10,
-            varParam: "not an array",
+            posArg: 10,
+            varArg: "not an array",
           }),
           new HardhatError(
             HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
             {
               value: "not an array",
-              name: "varParam",
+              name: "varArg",
               type: ArgumentType.FILE,
               task: "task1",
             },
           ),
         );
 
-        // varParam has the wrong type (array element has the wrong type)
+        // varArg has the wrong type (array element has the wrong type)
         await assert.rejects(
           task1.run({
             option: 5n,
-            posParam: 10,
-            varParam: ["file1", 5, "file3"],
+            posArg: 10,
+            varArg: ["file1", 5, "file3"],
           }),
           new HardhatError(
             HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
             {
               value: ["file1", 5, "file3"],
-              name: "varParam",
+              name: "varArg",
               type: ArgumentType.FILE,
               task: "task1",
             },

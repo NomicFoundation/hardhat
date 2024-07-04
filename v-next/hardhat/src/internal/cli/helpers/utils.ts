@@ -83,7 +83,7 @@ export function parseOptions(task: Task): {
     });
   }
 
-  for (const argument of task.positionalParameters) {
+  for (const argument of task.positionalArguments) {
     positionalArguments.push({
       name: argument.name,
       description: argument.description,

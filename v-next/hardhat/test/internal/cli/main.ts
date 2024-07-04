@@ -820,25 +820,25 @@ For global options help run: hardhat --help`;
     describe("task and subtask with positional parameters", function () {
       before(async function () {
         tasksBuilders = [
-          task(["task0"]).addPositionalParameter({
+          task(["task0"]).addPositionalArgument({
             name: "param",
           }),
           task(["task1"])
-            .addPositionalParameter({
+            .addPositionalArgument({
               name: "param",
             })
-            .addPositionalParameter({ name: "param2" }),
+            .addPositionalArgument({ name: "param2" }),
         ];
 
         subtasksBuilders = [
-          task(["task0", "subtask0"]).addPositionalParameter({
+          task(["task0", "subtask0"]).addPositionalArgument({
             name: "param",
           }),
           task(["task1", "subtask1"])
-            .addPositionalParameter({
+            .addPositionalArgument({
               name: "param",
             })
-            .addPositionalParameter({
+            .addPositionalArgument({
               name: "param2",
               defaultValue: "default",
             }),
@@ -990,13 +990,13 @@ For global options help run: hardhat --help`;
     describe("task and subtask with variadic parameters", function () {
       before(async function () {
         tasksBuilders = [
-          task(["task0"]).addVariadicParameter({
+          task(["task0"]).addVariadicArgument({
             name: "param",
           }),
         ];
 
         subtasksBuilders = [
-          task(["task0", "subtask0"]).addVariadicParameter({
+          task(["task0", "subtask0"]).addVariadicArgument({
             name: "param",
             defaultValue: ["default"],
           }),
@@ -1117,27 +1117,27 @@ For global options help run: hardhat --help`;
         before(async function () {
           tasksBuilders = [
             task(["task0"])
-              .addPositionalParameter({
+              .addPositionalArgument({
                 name: "param",
                 type: ArgumentType.BIGINT,
               })
-              .addPositionalParameter({
+              .addPositionalArgument({
                 name: "param2",
                 type: ArgumentType.BOOLEAN,
               })
-              .addPositionalParameter({
+              .addPositionalArgument({
                 name: "param3",
                 type: ArgumentType.FILE,
               })
-              .addPositionalParameter({
+              .addPositionalArgument({
                 name: "param4",
                 type: ArgumentType.FLOAT,
               })
-              .addPositionalParameter({
+              .addPositionalArgument({
                 name: "param5",
                 type: ArgumentType.INT,
               })
-              .addPositionalParameter({
+              .addPositionalArgument({
                 name: "param6",
                 type: ArgumentType.STRING,
               }),
@@ -1204,7 +1204,7 @@ For global options help run: hardhat --help`;
           // Variadic parameters can only be of a single type at a time, so loop through all the types
           for (let i = 0; i < paramTypes.length; i++) {
             tasksBuilders = [
-              task(["task0"]).addVariadicParameter({
+              task(["task0"]).addVariadicArgument({
                 name: "param",
                 type: paramTypes[i],
               }),
@@ -1244,32 +1244,32 @@ For global options help run: hardhat --help`;
               type: ArgumentType.BOOLEAN,
               defaultValue: false,
             })
-            .addPositionalParameter({ name: "posParam" }),
+            .addPositionalArgument({ name: "posParam" }),
           task(["task1"])
             .addOption({ name: "param" })
-            .addPositionalParameter({ name: "posParam" })
-            .addPositionalParameter({
+            .addPositionalArgument({ name: "posParam" })
+            .addPositionalArgument({
               name: "posParam2",
               defaultValue: "default",
             })
-            .addVariadicParameter({
+            .addVariadicArgument({
               name: "varParam",
               defaultValue: ["default"],
             }),
           task(["task2"])
-            .addPositionalParameter({
+            .addPositionalArgument({
               name: "posParam",
               defaultValue: "default",
             })
-            .addPositionalParameter({
+            .addPositionalArgument({
               name: "posParam2",
               defaultValue: "default2",
             })
-            .addPositionalParameter({
+            .addPositionalArgument({
               name: "posParam3",
               defaultValue: "default3",
             })
-            .addVariadicParameter({
+            .addVariadicArgument({
               name: "varParam",
               defaultValue: ["default"],
             }),

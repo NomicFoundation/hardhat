@@ -1,14 +1,14 @@
 import type { ArgumentValue } from "../../types/arguments.js";
 import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
 import type {
-  TaskOption,
+  TaskOptionDefinition,
   NewTaskActionFunction,
-  PositionalTaskParameter,
+  TaskPositionalArgumentDefinition,
   Task,
   TaskActions,
   TaskArguments,
   TaskOverrideActionFunction,
-  TaskParameter,
+  TaskArgumentDefinition,
 } from "../../types/tasks.js";
 
 import {
@@ -48,8 +48,8 @@ export class ResolvedTask implements Task {
     id: string[],
     description: string,
     action: NewTaskActionFunction | string,
-    options: Record<string, TaskOption>,
-    positionalParameters: PositionalTaskParameter[],
+    options: Record<string, TaskOptionDefinition>,
+    positionalArguments: TaskPositionalArgumentDefinition[],
     pluginId?: string,
   ): ResolvedTask {
     return new ResolvedTask(
@@ -57,7 +57,7 @@ export class ResolvedTask implements Task {
       description,
       [{ pluginId, action }],
       new Map(Object.entries(options)),
-      positionalParameters,
+      positionalArguments,
       pluginId,
       new Map(),
       hre,
@@ -68,8 +68,8 @@ export class ResolvedTask implements Task {
     public readonly id: string[],
     public readonly description: string,
     public readonly actions: TaskActions,
-    public readonly options: Map<string, TaskOption>,
-    public readonly positionalParameters: PositionalTaskParameter[],
+    public readonly options: Map<string, TaskOptionDefinition>,
+    public readonly positionalArguments: TaskPositionalArgumentDefinition[],
     public readonly pluginId: string | undefined,
     public readonly subtasks: Map<string, Task>,
     hre: HardhatRuntimeEnvironment,
@@ -88,8 +88,8 @@ export class ResolvedTask implements Task {
    *
    * @param taskArguments The arguments to run the task with.
    * @returns The result of running the task.
-   * @throws HardhatError if the task is empty, a required parameter is missing,
-   * a parameter has an invalid type, or the file actions can't be resolved.
+   * @throws HardhatError if the task is empty, a required argument is missing,
+   * a argument has an invalid type, or the file actions can't be resolved.
    */
   public async run(taskArguments: TaskArguments): Promise<any> {
     if (this.isEmpty) {
@@ -98,30 +98,30 @@ export class ResolvedTask implements Task {
       });
     }
 
-    // Normalize parameters into a single iterable
-    const allParameters: TaskParameter[] = [
+    // Normalize arguments into a single iterable
+    const allArguments: TaskArgumentDefinition[] = [
       ...this.options.values(),
-      ...this.positionalParameters,
+      ...this.positionalArguments,
     ];
 
     const providedArgumentNames = new Set(Object.keys(taskArguments));
-    for (const parameter of allParameters) {
-      const value = taskArguments[parameter.name];
+    for (const argument of allArguments) {
+      const value = taskArguments[argument.name];
 
-      this.#validateRequiredParameter(parameter, value);
-      this.#validateParameterType(parameter, value);
+      this.#validateRequiredArgument(argument, value);
+      this.#validateArgumentType(argument, value);
 
-      // resolve defaults for optional parameters
-      if (value === undefined && parameter.defaultValue !== undefined) {
-        taskArguments[parameter.name] = parameter.defaultValue;
+      // resolve defaults for optional arguments
+      if (value === undefined && argument.defaultValue !== undefined) {
+        taskArguments[argument.name] = argument.defaultValue;
       }
 
-      // Remove processed parameter from the set
-      providedArgumentNames.delete(parameter.name);
+      // Remove processed argument from the set
+      providedArgumentNames.delete(argument.name);
     }
 
-    // At this point, the set should be empty as all the task parameters have
-    // been processed. If there are any extra parameters, an error is thrown
+    // At this point, the set should be empty as all the task arguments have
+    // been processed. If there are any extra arguments, an error is thrown
     this.#validateExtraArguments(providedArgumentNames);
 
     const next = async (
@@ -160,20 +160,20 @@ export class ResolvedTask implements Task {
   }
 
   /**
-   * Validates that a required parameter has a value. A parameter is required if
+   * Validates that a required argument has a value. A argument is required if
    * it doesn't have a default value.
    *
-   * @throws HardhatError if the parameter is required and doesn't have a value.
+   * @throws HardhatError if the argument is required and doesn't have a value.
    */
-  #validateRequiredParameter(
-    parameter: TaskParameter,
+  #validateRequiredArgument(
+    argument: TaskArgumentDefinition,
     value: ArgumentValue | ArgumentValue[],
   ) {
-    if (parameter.defaultValue === undefined && value === undefined) {
+    if (argument.defaultValue === undefined && value === undefined) {
       throw new HardhatError(
-        HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_PARAMETER,
+        HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
         {
-          parameter: parameter.name,
+          argument: argument.name,
           task: formatTaskId(this.id),
         },
       );
@@ -181,35 +181,35 @@ export class ResolvedTask implements Task {
   }
 
   /**
-   * Validates that a parameter has the correct type. If the parameter is optional
+   * Validates that a argument has the correct type. If the argument is optional
    * and doesn't have a value, the type is not validated as it will be resolved
    * to the default value.
    *
-   * @throws HardhatError if the parameter has an invalid type.
+   * @throws HardhatError if the argument has an invalid type.
    */
-  #validateParameterType(
-    parameter: TaskParameter,
+  #validateArgumentType(
+    argument: TaskArgumentDefinition,
     value: ArgumentValue | ArgumentValue[],
   ) {
-    // skip type validation for optional parameters with undefined value
-    if (value === undefined && parameter.defaultValue !== undefined) {
+    // skip type validation for optional arguments with undefined value
+    if (value === undefined && argument.defaultValue !== undefined) {
       return;
     }
 
-    // check if the parameter is variadic
-    const isPositionalParameter = (
-      param: TaskParameter,
-    ): param is PositionalTaskParameter => "isVariadic" in param;
-    const isVariadic = isPositionalParameter(parameter) && parameter.isVariadic;
+    // check if the argument is variadic
+    const isPositionalArgument = (
+      arg: TaskArgumentDefinition,
+    ): arg is TaskPositionalArgumentDefinition => "isVariadic" in arg;
+    const isVariadic = isPositionalArgument(argument) && argument.isVariadic;
 
-    // check if the value is valid for the parameter type
-    if (!isArgumentValueValid(parameter.type, value, isVariadic)) {
+    // check if the value is valid for the argument type
+    if (!isArgumentValueValid(argument.type, value, isVariadic)) {
       throw new HardhatError(
         HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
         {
           value,
-          name: parameter.name,
-          type: parameter.type,
+          name: argument.name,
+          type: argument.type,
           task: formatTaskId(this.id),
         },
       );
@@ -225,9 +225,9 @@ export class ResolvedTask implements Task {
   #validateExtraArguments(providedArgumentNames: Set<string>) {
     if (providedArgumentNames.size > 0) {
       throw new HardhatError(
-        HardhatError.ERRORS.TASK_DEFINITIONS.UNRECOGNIZED_NAMED_PARAM,
+        HardhatError.ERRORS.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
         {
-          parameter: [...providedArgumentNames][0],
+          option: [...providedArgumentNames][0],
           task: formatTaskId(this.id),
         },
       );

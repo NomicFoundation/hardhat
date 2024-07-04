@@ -7,7 +7,7 @@ import {
   isArgumentValueValid,
 } from "../../src/internal/arguments.js";
 
-describe("Parameters", () => {
+describe("Arguments", () => {
   describe("isArgumentNameValid", () => {
     it("should return true for valid argument names", () => {
       assert.equal(isArgumentNameValid("a"), true);

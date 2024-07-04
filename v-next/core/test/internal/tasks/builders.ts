@@ -127,7 +127,7 @@ describe("Task builders", () => {
         description: "",
         action: taskAction,
         options: {},
-        positionalParameters: [],
+        positionalArguments: [],
       });
     });
 
@@ -143,7 +143,7 @@ describe("Task builders", () => {
         description: "",
         action: taskAction,
         options: {},
-        positionalParameters: [],
+        positionalArguments: [],
       });
     });
 
@@ -177,7 +177,7 @@ describe("Task builders", () => {
           description: "",
           action: taskAction,
           options: {},
-          positionalParameters: [],
+          positionalArguments: [],
         });
       });
 
@@ -192,7 +192,7 @@ describe("Task builders", () => {
           description: "",
           action: taskAction,
           options: {},
-          positionalParameters: [],
+          positionalArguments: [],
         });
       });
 
@@ -243,7 +243,7 @@ describe("Task builders", () => {
           description: "Task description",
           action: taskAction,
           options: {},
-          positionalParameters: [],
+          positionalArguments: [],
         });
       });
 
@@ -261,7 +261,7 @@ describe("Task builders", () => {
           description: "Task description",
           action: taskAction,
           options: {},
-          positionalParameters: [],
+          positionalArguments: [],
         });
       });
 
@@ -282,7 +282,7 @@ describe("Task builders", () => {
           description: "New task description",
           action: taskAction,
           options: {},
-          positionalParameters: [],
+          positionalArguments: [],
         });
       });
     });
@@ -294,7 +294,7 @@ describe("Task builders", () => {
         const taskDefinition = builder
           .setAction(taskAction)
           .addOption({
-            name: "param",
+            name: "arg",
           })
           .build();
 
@@ -304,14 +304,14 @@ describe("Task builders", () => {
           description: "",
           action: taskAction,
           options: {
-            param: {
-              name: "param",
+            arg: {
+              name: "arg",
               description: "",
               type: ArgumentType.STRING,
               defaultValue: undefined,
             },
           },
-          positionalParameters: [],
+          positionalArguments: [],
         });
       });
 
@@ -321,8 +321,8 @@ describe("Task builders", () => {
         const taskDefinition = builder
           .setAction(taskAction)
           .addOption({
-            name: "param",
-            description: "Parameter description",
+            name: "arg",
+            description: "Argument description",
           })
           .build();
 
@@ -332,14 +332,14 @@ describe("Task builders", () => {
           description: "",
           action: taskAction,
           options: {
-            param: {
-              name: "param",
-              description: "Parameter description",
+            arg: {
+              name: "arg",
+              description: "Argument description",
               type: ArgumentType.STRING,
               defaultValue: undefined,
             },
           },
-          positionalParameters: [],
+          positionalArguments: [],
         });
       });
 
@@ -349,7 +349,7 @@ describe("Task builders", () => {
         const taskDefinition = builder
           .setAction(taskAction)
           .addOption({
-            name: "param",
+            name: "arg",
             defaultValue: "default",
           })
           .build();
@@ -360,14 +360,14 @@ describe("Task builders", () => {
           description: "",
           action: taskAction,
           options: {
-            param: {
-              name: "param",
+            arg: {
+              name: "arg",
               description: "",
               type: ArgumentType.STRING,
               defaultValue: "default",
             },
           },
-          positionalParameters: [],
+          positionalArguments: [],
         });
       });
 
@@ -377,7 +377,7 @@ describe("Task builders", () => {
         const taskDefinition = builder
           .setAction(taskAction)
           .addOption({
-            name: "param",
+            name: "arg",
             type: ArgumentType.INT,
           })
           .build();
@@ -388,14 +388,14 @@ describe("Task builders", () => {
           description: "",
           action: taskAction,
           options: {
-            param: {
-              name: "param",
+            arg: {
+              name: "arg",
               description: "",
               type: ArgumentType.INT,
               defaultValue: undefined,
             },
           },
-          positionalParameters: [],
+          positionalArguments: [],
         });
       });
     });
@@ -422,7 +422,7 @@ describe("Task builders", () => {
               defaultValue: false,
             },
           },
-          positionalParameters: [],
+          positionalArguments: [],
         });
       });
 
@@ -447,18 +447,18 @@ describe("Task builders", () => {
               defaultValue: false,
             },
           },
-          positionalParameters: [],
+          positionalArguments: [],
         });
       });
     });
 
-    describe("Adding positional parameters", () => {
-      it("should add a positional parameter", () => {
+    describe("Adding positional arguments", () => {
+      it("should add a positional argument", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
         const taskAction = () => {};
         const taskDefinition = builder
           .setAction(taskAction)
-          .addPositionalParameter({ name: "param" })
+          .addPositionalArgument({ name: "arg" })
           .build();
 
         assert.deepEqual(taskDefinition, {
@@ -467,9 +467,9 @@ describe("Task builders", () => {
           description: "",
           action: taskAction,
           options: {},
-          positionalParameters: [
+          positionalArguments: [
             {
-              name: "param",
+              name: "arg",
               description: "",
               type: ArgumentType.STRING,
               defaultValue: undefined,
@@ -479,14 +479,14 @@ describe("Task builders", () => {
         });
       });
 
-      it("should add a positional parameter with a description", () => {
+      it("should add a positional argument with a description", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
         const taskAction = () => {};
         const taskDefinition = builder
           .setAction(taskAction)
-          .addPositionalParameter({
-            name: "param",
-            description: "Param description",
+          .addPositionalArgument({
+            name: "arg",
+            description: "Argument description",
           })
           .build();
 
@@ -496,10 +496,10 @@ describe("Task builders", () => {
           description: "",
           action: taskAction,
           options: {},
-          positionalParameters: [
+          positionalArguments: [
             {
-              name: "param",
-              description: "Param description",
+              name: "arg",
+              description: "Argument description",
               type: ArgumentType.STRING,
               defaultValue: undefined,
               isVariadic: false,
@@ -508,13 +508,13 @@ describe("Task builders", () => {
         });
       });
 
-      it("should add a positional parameter with a default value", () => {
+      it("should add a positional argument with a default value", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
         const taskAction = () => {};
         const taskDefinition = builder
           .setAction(taskAction)
-          .addPositionalParameter({
-            name: "param",
+          .addPositionalArgument({
+            name: "arg",
             defaultValue: "default",
           })
           .build();
@@ -525,9 +525,9 @@ describe("Task builders", () => {
           description: "",
           action: taskAction,
           options: {},
-          positionalParameters: [
+          positionalArguments: [
             {
-              name: "param",
+              name: "arg",
               description: "",
               type: ArgumentType.STRING,
               defaultValue: "default",
@@ -537,13 +537,13 @@ describe("Task builders", () => {
         });
       });
 
-      it("should add a positional parameter with a type", () => {
+      it("should add a positional argument with a type", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
         const taskAction = () => {};
         const taskDefinition = builder
           .setAction(taskAction)
-          .addPositionalParameter({
-            name: "param",
+          .addPositionalArgument({
+            name: "arg",
             type: ArgumentType.INT,
           })
           .build();
@@ -554,9 +554,9 @@ describe("Task builders", () => {
           description: "",
           action: taskAction,
           options: {},
-          positionalParameters: [
+          positionalArguments: [
             {
-              name: "param",
+              name: "arg",
               description: "",
               type: ArgumentType.INT,
               defaultValue: undefined,
@@ -567,13 +567,13 @@ describe("Task builders", () => {
       });
     });
 
-    describe("Adding variadic parameters", () => {
-      it("should add a variadic parameter", () => {
+    describe("Adding variadic arguments", () => {
+      it("should add a variadic argument", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
         const taskAction = () => {};
         const taskDefinition = builder
           .setAction(taskAction)
-          .addVariadicParameter({ name: "param" })
+          .addVariadicArgument({ name: "arg" })
           .build();
 
         assert.deepEqual(taskDefinition, {
@@ -582,9 +582,9 @@ describe("Task builders", () => {
           description: "",
           action: taskAction,
           options: {},
-          positionalParameters: [
+          positionalArguments: [
             {
-              name: "param",
+              name: "arg",
               description: "",
               type: ArgumentType.STRING,
               defaultValue: undefined,
@@ -594,14 +594,14 @@ describe("Task builders", () => {
         });
       });
 
-      it("should add a variadic parameter with a description", () => {
+      it("should add a variadic argument with a description", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
         const taskAction = () => {};
         const taskDefinition = builder
           .setAction(taskAction)
-          .addVariadicParameter({
-            name: "param",
-            description: "Param description",
+          .addVariadicArgument({
+            name: "arg",
+            description: "Argument description",
           })
           .build();
 
@@ -611,10 +611,10 @@ describe("Task builders", () => {
           description: "",
           action: taskAction,
           options: {},
-          positionalParameters: [
+          positionalArguments: [
             {
-              name: "param",
-              description: "Param description",
+              name: "arg",
+              description: "Argument description",
               type: ArgumentType.STRING,
               defaultValue: undefined,
               isVariadic: true,
@@ -623,13 +623,13 @@ describe("Task builders", () => {
         });
       });
 
-      it("should add a variadic parameter with a default value", () => {
+      it("should add a variadic argument with a default value", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
         const taskAction = () => {};
         const taskDefinition = builder
           .setAction(taskAction)
-          .addVariadicParameter({
-            name: "param",
+          .addVariadicArgument({
+            name: "arg",
             defaultValue: ["default1", "default2"],
           })
           .build();
@@ -640,9 +640,9 @@ describe("Task builders", () => {
           description: "",
           action: taskAction,
           options: {},
-          positionalParameters: [
+          positionalArguments: [
             {
-              name: "param",
+              name: "arg",
               description: "",
               type: ArgumentType.STRING,
               defaultValue: ["default1", "default2"],
@@ -652,12 +652,12 @@ describe("Task builders", () => {
         });
       });
 
-      it("should add a variadic parameter with a type", () => {
+      it("should add a variadic argument with a type", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
         const taskAction = () => {};
         const taskDefinition = builder
           .setAction(taskAction)
-          .addVariadicParameter({ name: "param", type: ArgumentType.INT })
+          .addVariadicArgument({ name: "arg", type: ArgumentType.INT })
           .build();
 
         assert.deepEqual(taskDefinition, {
@@ -666,9 +666,9 @@ describe("Task builders", () => {
           description: "",
           action: taskAction,
           options: {},
-          positionalParameters: [
+          positionalArguments: [
             {
-              name: "param",
+              name: "arg",
               description: "",
               type: ArgumentType.INT,
               defaultValue: undefined,
@@ -679,15 +679,15 @@ describe("Task builders", () => {
       });
     });
 
-    describe("Parameter name validation", () => {
+    describe("Argument name validation", () => {
       const fnNames = [
         "addOption",
         "addFlag",
-        "addPositionalParameter",
-        "addVariadicParameter",
+        "addPositionalArgument",
+        "addVariadicArgument",
       ] as const;
 
-      it("should throw if the parameter name is invalid", () => {
+      it("should throw if the argument name is invalid", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
 
         const invalidNames = ["invalid-name", "invalid_name", "123invalidName"];
@@ -704,16 +704,16 @@ describe("Task builders", () => {
         });
       });
 
-      it("should throw if the parameter name is already in use", () => {
+      it("should throw if the argument name is already in use", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
 
         builder
           .addOption({ name: "option" })
           .addFlag({ name: "flag" })
-          .addPositionalParameter({ name: "posParam" })
-          .addVariadicParameter({ name: "varParam" });
+          .addPositionalArgument({ name: "posArg" })
+          .addVariadicArgument({ name: "varArg" });
 
-        const names = ["option", "flag", "posParam", "varParam"];
+        const names = ["option", "flag", "posArg", "varArg"];
 
         names.forEach((name) => {
           fnNames.forEach((fnName) => {
@@ -727,7 +727,7 @@ describe("Task builders", () => {
         });
       });
 
-      it("should throw if the parameter name is reserved", () => {
+      it("should throw if the argument name is reserved", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
 
         RESERVED_ARGUMENT_NAMES.forEach((name) => {
@@ -741,17 +741,17 @@ describe("Task builders", () => {
       });
     });
 
-    describe("Parameter type validation", () => {
+    describe("Argument type validation", () => {
       it("should throw if the default value does not match the type", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
 
-        const fnNames = ["addOption", "addPositionalParameter"] as const;
+        const fnNames = ["addOption", "addPositionalArgument"] as const;
 
         fnNames.forEach((fnName) => {
           assert.throws(
             () =>
               builder[fnName]({
-                name: "param",
+                name: "arg",
                 /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
                 Intentionally testing an invalid type */
                 defaultValue: 123 as any,
@@ -771,8 +771,8 @@ describe("Task builders", () => {
 
         assert.throws(
           () =>
-            builder.addVariadicParameter({
-              name: "param",
+            builder.addVariadicArgument({
+              name: "arg",
               /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
               Intentionally testing an invalid type */
               defaultValue: [123, 456, 789] as any,
@@ -791,49 +791,49 @@ describe("Task builders", () => {
       });
     });
 
-    describe("Positional parameter validation", () => {
-      it("should throw if trying to add a required positional parameter after an optional one", () => {
+    describe("Positional argument validation", () => {
+      it("should throw if trying to add a required positional argument after an optional one", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
 
-        builder.addPositionalParameter({
-          name: "param",
+        builder.addPositionalArgument({
+          name: "arg",
           defaultValue: "default",
         });
 
         assert.throws(
-          () => builder.addPositionalParameter({ name: "param2" }),
+          () => builder.addPositionalArgument({ name: "arg2" }),
           new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.REQUIRED_PARAM_AFTER_OPTIONAL,
-            { name: "param2" },
+            HardhatError.ERRORS.TASK_DEFINITIONS.REQUIRED_ARG_AFTER_OPTIONAL,
+            { name: "arg2" },
           ),
         );
         assert.throws(
-          () => builder.addVariadicParameter({ name: "param3" }),
+          () => builder.addVariadicArgument({ name: "arg3" }),
           new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.REQUIRED_PARAM_AFTER_OPTIONAL,
-            { name: "param3" },
+            HardhatError.ERRORS.TASK_DEFINITIONS.REQUIRED_ARG_AFTER_OPTIONAL,
+            { name: "arg3" },
           ),
         );
       });
 
-      it("should throw if trying to add a positional parameter after a variadic one", () => {
+      it("should throw if trying to add a positional argument after a variadic one", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
 
-        builder.addVariadicParameter({ name: "param" });
+        builder.addVariadicArgument({ name: "arg" });
 
         assert.throws(
-          () => builder.addPositionalParameter({ name: "param2" }),
+          () => builder.addPositionalArgument({ name: "arg2" }),
           new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.POSITIONAL_PARAM_AFTER_VARIADIC,
-            { name: "param2" },
+            HardhatError.ERRORS.TASK_DEFINITIONS.POSITIONAL_ARG_AFTER_VARIADIC,
+            { name: "arg2" },
           ),
         );
 
         assert.throws(
-          () => builder.addVariadicParameter({ name: "param3" }),
+          () => builder.addVariadicArgument({ name: "arg3" }),
           new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.POSITIONAL_PARAM_AFTER_VARIADIC,
-            { name: "param3" },
+            HardhatError.ERRORS.TASK_DEFINITIONS.POSITIONAL_ARG_AFTER_VARIADIC,
+            { name: "arg3" },
           ),
         );
       });
@@ -987,7 +987,7 @@ describe("Task builders", () => {
         const taskDefinition = builder
           .setAction(taskAction)
           .addOption({
-            name: "param",
+            name: "arg",
           })
           .build();
 
@@ -997,8 +997,8 @@ describe("Task builders", () => {
           description: undefined,
           action: taskAction,
           options: {
-            param: {
-              name: "param",
+            arg: {
+              name: "arg",
               description: "",
               type: ArgumentType.STRING,
               defaultValue: undefined,
@@ -1015,8 +1015,8 @@ describe("Task builders", () => {
         const taskDefinition = builder
           .setAction(taskAction)
           .addOption({
-            name: "param",
-            description: "Parameter description",
+            name: "arg",
+            description: "Argument description",
           })
           .build();
 
@@ -1026,9 +1026,9 @@ describe("Task builders", () => {
           description: undefined,
           action: taskAction,
           options: {
-            param: {
-              name: "param",
-              description: "Parameter description",
+            arg: {
+              name: "arg",
+              description: "Argument description",
               type: ArgumentType.STRING,
               defaultValue: undefined,
             },
@@ -1044,7 +1044,7 @@ describe("Task builders", () => {
         const taskDefinition = builder
           .setAction(taskAction)
           .addOption({
-            name: "param",
+            name: "arg",
             defaultValue: "default",
           })
           .build();
@@ -1055,8 +1055,8 @@ describe("Task builders", () => {
           description: undefined,
           action: taskAction,
           options: {
-            param: {
-              name: "param",
+            arg: {
+              name: "arg",
               description: "",
               type: ArgumentType.STRING,
               defaultValue: "default",
@@ -1073,7 +1073,7 @@ describe("Task builders", () => {
         const taskDefinition = builder
           .setAction(taskAction)
           .addOption({
-            name: "param",
+            name: "arg",
             type: ArgumentType.INT,
           })
           .build();
@@ -1084,8 +1084,8 @@ describe("Task builders", () => {
           description: undefined,
           action: taskAction,
           options: {
-            param: {
-              name: "param",
+            arg: {
+              name: "arg",
               description: "",
               type: ArgumentType.INT,
               defaultValue: undefined,
@@ -1149,10 +1149,10 @@ describe("Task builders", () => {
       });
     });
 
-    describe("Parameter name validation", () => {
+    describe("Argument name validation", () => {
       const fnNames = ["addOption", "addFlag"] as const;
 
-      it("should throw if the parameter name is invalid", () => {
+      it("should throw if the argument name is invalid", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
         );
@@ -1171,7 +1171,7 @@ describe("Task builders", () => {
         });
       });
 
-      it("should throw if the parameter name is already in use", () => {
+      it("should throw if the argument name is already in use", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
         );
@@ -1192,7 +1192,7 @@ describe("Task builders", () => {
         });
       });
 
-      it("should throw if the parameter name is reserved", () => {
+      it("should throw if the argument name is reserved", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
         );
@@ -1208,7 +1208,7 @@ describe("Task builders", () => {
       });
     });
 
-    describe("Parameter type validation", () => {
+    describe("Argument type validation", () => {
       it("should throw if the default value does not match the type", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
@@ -1217,7 +1217,7 @@ describe("Task builders", () => {
         assert.throws(
           () =>
             builder.addOption({
-              name: "param",
+              name: "arg",
               /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
               Intentionally testing an invalid type */
               defaultValue: 123 as any,

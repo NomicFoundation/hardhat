@@ -165,7 +165,7 @@ export class TaskManagerImplementation implements TaskManager {
           taskDefinition.description,
           taskDefinition.action,
           taskDefinition.options,
-          taskDefinition.positionalParameters,
+          taskDefinition.positionalArguments,
           pluginId,
         );
 
@@ -191,20 +191,20 @@ export class TaskManagerImplementation implements TaskManager {
     pluginId?: string,
   ) {
     const optionNames = Object.keys(taskDefinition.options);
-    const positionalParamNames =
-      "positionalParameters" in taskDefinition
-        ? taskDefinition.positionalParameters.map(({ name }) => name)
+    const positionalArgNames =
+      "positionalArguments" in taskDefinition
+        ? taskDefinition.positionalArguments.map(({ name }) => name)
         : [];
 
-    [...optionNames, ...positionalParamNames].forEach((paramName) => {
-      const globalOptionEntry = globalOptionDefinitions.get(paramName);
+    [...optionNames, ...positionalArgNames].forEach((argName) => {
+      const globalOptionEntry = globalOptionDefinitions.get(argName);
       if (globalOptionEntry !== undefined) {
         throw new HardhatError(
           HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OPTION_ALREADY_DEFINED,
           {
             actorFragment: getActorFragment(pluginId),
             task: formatTaskId(taskDefinition.id),
-            option: paramName,
+            option: argName,
             globalOptionPluginId: globalOptionEntry.pluginId,
           },
         );
@@ -222,7 +222,7 @@ export class TaskManagerImplementation implements TaskManager {
     )) {
       const hasArgument =
         task.options.has(optionName) ||
-        task.positionalParameters.some((p) => p.name === optionName);
+        task.positionalArguments.some((p) => p.name === optionName);
       if (hasArgument) {
         throw new HardhatError(
           HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,

@@ -6,10 +6,10 @@ import type {
 } from "@ignored/hardhat-vnext-core/types/global-options";
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core/types/hre";
 import type {
-  TaskOption,
+  TaskOptionDefinition,
   Task,
   TaskArguments,
-  TaskParameter,
+  TaskArgumentDefinition,
 } from "@ignored/hardhat-vnext-core/types/tasks";
 
 import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
@@ -344,7 +344,7 @@ export function parseTaskArguments(
 function parseDoubleDashArgs(
   cliArguments: string[],
   usedCliArguments: boolean[],
-  optionDefinitions: Map<string, TaskOption | GlobalOption>,
+  optionDefinitions: Map<string, TaskOptionDefinition | GlobalOption>,
   argumentsMap: TaskArguments,
   ignoreUnknownParameter = false,
 ) {
@@ -455,7 +455,7 @@ function parsePositionalAndVariadicParameters(
       continue;
     }
 
-    const paramInfo = task.positionalParameters[paramI];
+    const paramInfo = task.positionalArguments[paramI];
 
     if (paramInfo === undefined) {
       break;
@@ -487,11 +487,11 @@ function parsePositionalAndVariadicParameters(
   }
 
   // Check if all the required parameters have been used
-  validateRequiredParameters(task.positionalParameters, taskArguments);
+  validateRequiredParameters(task.positionalArguments, taskArguments);
 }
 
 function validateRequiredParameters(
-  parameters: TaskParameter[],
+  parameters: TaskArgumentDefinition[],
   taskArguments: TaskArguments,
 ) {
   const missingRequiredParam = parameters.find(

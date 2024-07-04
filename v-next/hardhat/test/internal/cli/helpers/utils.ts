@@ -23,7 +23,7 @@ describe("utils", function () {
         description: "task description",
         actions: [{ pluginId: "task-plugin-id", action: () => {} }],
         options: new Map(),
-        positionalParameters: [],
+        positionalArguments: [],
         pluginId: "task-plugin-id",
         subtasks: new Map().set("subtask", {
           id: ["task", "subtask"],
@@ -54,7 +54,7 @@ describe("utils", function () {
         description: "task description",
         actions: [{ pluginId: "task-plugin-id", action: () => {} }],
         options: new Map(),
-        positionalParameters: [],
+        positionalArguments: [],
         pluginId: "task-plugin-id",
         subtasks: new Map().set("subtask", {
           id: ["task", "subtask"],
@@ -87,7 +87,7 @@ describe("utils", function () {
         description: "task description",
         actions: [{ pluginId: "task-plugin-id", action: () => {} }],
         options: new Map(),
-        positionalParameters: [],
+        positionalArguments: [],
         pluginId: "task-plugin-id",
         subtasks: new Map().set("subtask", {
           id: ["task", "subtask"],
@@ -127,7 +127,7 @@ describe("utils", function () {
             description: "Another example option",
             type: ArgumentType.BOOLEAN,
           }),
-        positionalParameters: [
+        positionalArguments: [
           {
             name: "positionalArgument",
             description: "An example argument",
@@ -237,7 +237,7 @@ Section Title:
               description: "Another example option",
               type: ArgumentType.BOOLEAN,
             }),
-          positionalParameters: [
+          positionalArguments: [
             {
               name: "positionalArgument",
               description: "An example argument",
@@ -297,7 +297,7 @@ Section Title:
               description: "Another example option",
               type: ArgumentType.BOOLEAN,
             }),
-          positionalParameters: [
+          positionalArguments: [
             {
               name: "positionalArgument",
               description: "An example argument",

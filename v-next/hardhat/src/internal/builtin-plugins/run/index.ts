@@ -6,7 +6,7 @@ const hardhatPlugin: HardhatPlugin = {
   id: "run",
   tasks: [
     task("run", "Runs a user-defined script after compiling the project")
-      .addPositionalParameter({
+      .addPositionalArgument({
         name: "script",
         description: "A js or ts file to be run within hardhat's environment",
         type: ArgumentType.STRING,
