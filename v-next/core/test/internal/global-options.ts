@@ -4,27 +4,27 @@ import { after, before, describe, it } from "node:test";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 import { globalOption, ArgumentType } from "../../src/config.js";
+import { RESERVED_ARGUMENT_NAMES } from "../../src/internal/arguments.js";
 import {
   buildGlobalOptionDefinitions,
   buildGlobalOptionDefinition,
   resolveGlobalOptions,
 } from "../../src/internal/global-options.js";
-import { RESERVED_PARAMETER_NAMES } from "../../src/internal/parameters.js";
 import { createTestEnvManager } from "../utils.js";
 
 describe("Global Options", () => {
   before(() => {
     // Make sure we have some reserved names
-    RESERVED_PARAMETER_NAMES.add("testName1");
-    RESERVED_PARAMETER_NAMES.add("testName2");
-    RESERVED_PARAMETER_NAMES.add("testName3");
+    RESERVED_ARGUMENT_NAMES.add("testName1");
+    RESERVED_ARGUMENT_NAMES.add("testName2");
+    RESERVED_ARGUMENT_NAMES.add("testName3");
   });
 
   after(() => {
     // Delete the test reserved names
-    RESERVED_PARAMETER_NAMES.delete("testName1");
-    RESERVED_PARAMETER_NAMES.delete("testName2");
-    RESERVED_PARAMETER_NAMES.delete("testName3");
+    RESERVED_ARGUMENT_NAMES.delete("testName1");
+    RESERVED_ARGUMENT_NAMES.delete("testName2");
+    RESERVED_ARGUMENT_NAMES.delete("testName3");
   });
 
   describe("buildGlobalOptionDefinitions", () => {
@@ -132,7 +132,7 @@ describe("Global Options", () => {
     });
 
     it("should throw if an option name is reserved", () => {
-      RESERVED_PARAMETER_NAMES.forEach((name) => {
+      RESERVED_ARGUMENT_NAMES.forEach((name) => {
         assert.throws(
           () =>
             buildGlobalOptionDefinitions([
@@ -224,7 +224,7 @@ describe("Global Options", () => {
     });
 
     it("should throw if the option name is reserved", () => {
-      RESERVED_PARAMETER_NAMES.forEach((name) => {
+      RESERVED_ARGUMENT_NAMES.forEach((name) => {
         assert.throws(
           () =>
             buildGlobalOptionDefinition({

@@ -5,35 +5,35 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { ArgumentType } from "../types/arguments.js";
 
 /**
- * Names that can't be used as global- nor task-parameter names. These are
- * reserved for future use.
+ * Names that cannot be used for global or task arguments.
+ * Reserved for future use.
  */
-export const RESERVED_PARAMETER_NAMES: Set<string> = new Set([]);
+export const RESERVED_ARGUMENT_NAMES: Set<string> = new Set([]);
 
-const VALID_PARAM_NAME_CASING_REGEX = /^[a-z][a-zA-Z0-9]*$/;
+const VALID_ARGUMENT_NAME_PATTERN = /^[a-z][a-zA-Z0-9]*$/;
 
 /**
- * Returns true if the given name is a valid parameter name.
+ * Returns true if the given name is a valid argument name.
  */
-export function isValidParamNameCasing(name: string): boolean {
-  return VALID_PARAM_NAME_CASING_REGEX.test(name);
+export function isArgumentNameValid(name: string): boolean {
+  return VALID_ARGUMENT_NAME_PATTERN.test(name);
 }
 
 /**
- * Checks if a parameter value is valid for a given parameter type.
+ * Checks if an argument value is valid for a given argument type.
  *
  * This function uses a map of validators, where each validator is a function
- * that checks if a value is valid for a specific parameter type.
- * If the parameter type is variadic, the value is considered valid if it is an
- * array and all its elements are valid for the parameter type. An empty array
+ * that checks if a value is valid for a specific argument type.
+ * If the argument type is variadic, the value is considered valid if it is an
+ * array and all its elements are valid for the argument type. An empty array
  * is considered invalid.
  */
-export function isParameterValueValid(
+export function isArgumentValueValid(
   type: ArgumentType,
   value: unknown,
   isVariadic: boolean = false,
 ): boolean {
-  const validator = parameterTypeValidators[type];
+  const validator = argumentTypeValidators[type];
 
   if (isVariadic) {
     return Array.isArray(value) && value.length > 0 && value.every(validator);
@@ -42,7 +42,7 @@ export function isParameterValueValid(
   return validator(value);
 }
 
-const parameterTypeValidators: Record<
+const argumentTypeValidators: Record<
   ArgumentType,
   (value: unknown) => boolean
 > = {
@@ -56,11 +56,11 @@ const parameterTypeValidators: Record<
 };
 
 /**
- * Parses a parameter value from a string to the corresponding type.
+ * Parses an argument value from a string to the corresponding type.
  */
 // TODO: this code is duplicated in v-next/hardhat/src/internal/cli/main.ts
 // we should move it to a shared place and add tests
-export function parseParameterValue(
+export function parseArgumentValue(
   value: string,
   type: ArgumentType,
   name: string,

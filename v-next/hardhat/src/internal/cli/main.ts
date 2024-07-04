@@ -391,7 +391,7 @@ function parseDoubleDashArgs(
         (cliArguments[i + 1] === "true" || cliArguments[i + 1] === "false")
       ) {
         // The parameter could be followed by a boolean value if it does not behaves like a flag
-        argumentsMap[paramName] = parseParameterValue(
+        argumentsMap[paramName] = parseArgumentValue(
           cliArguments[i + 1],
           ArgumentType.BOOLEAN,
           paramName,
@@ -412,7 +412,7 @@ function parseDoubleDashArgs(
     ) {
       i++;
 
-      argumentsMap[paramName] = parseParameterValue(
+      argumentsMap[paramName] = parseArgumentValue(
         cliArguments[i],
         paramInfo.type,
         paramName,
@@ -463,7 +463,7 @@ function parsePositionalAndVariadicParameters(
 
     usedCliArguments[i] = true;
 
-    const formattedValue = parseParameterValue(
+    const formattedValue = parseArgumentValue(
       cliArguments[i],
       paramInfo.type,
       paramInfo.name,
@@ -510,7 +510,7 @@ function validateRequiredParameters(
   );
 }
 
-function parseParameterValue(
+function parseArgumentValue(
   strValue: string,
   type: ArgumentType,
   argName: string,

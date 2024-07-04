@@ -15,11 +15,11 @@ import { camelToSnakeCase } from "@ignored/hardhat-vnext-utils/string";
 import { ArgumentType } from "../types/arguments.js";
 
 import {
-  RESERVED_PARAMETER_NAMES,
-  isParameterValueValid,
-  isValidParamNameCasing,
-  parseParameterValue,
-} from "./parameters.js";
+  RESERVED_ARGUMENT_NAMES,
+  isArgumentValueValid,
+  isArgumentNameValid,
+  parseArgumentValue,
+} from "./arguments.js";
 
 /**
  * Builds a map of the global option definitions by going through all the
@@ -83,19 +83,19 @@ export function buildGlobalOptionDefinition<T extends ArgumentType>({
 }): GlobalOption {
   const parameterType = type ?? ArgumentType.STRING;
 
-  if (!isValidParamNameCasing(name)) {
+  if (!isArgumentNameValid(name)) {
     throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
       name,
     });
   }
 
-  if (RESERVED_PARAMETER_NAMES.has(name)) {
+  if (RESERVED_ARGUMENT_NAMES.has(name)) {
     throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
       name,
     });
   }
 
-  if (!isParameterValueValid(parameterType, defaultValue)) {
+  if (!isArgumentValueValid(parameterType, defaultValue)) {
     throw new HardhatError(
       HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
       {
@@ -155,7 +155,7 @@ export function resolveGlobalOptions(
       value = process.env[`HARDHAT_${camelToSnakeCase(name).toUpperCase()}`];
       if (value !== undefined) {
         // if the value is provided via an env var, it needs to be parsed
-        parsedValue = parseParameterValue(value, option.type, name);
+        parsedValue = parseArgumentValue(value, option.type, name);
       } else {
         // if the value is not provided by the user or env var, use the default
         parsedValue = option.defaultValue;

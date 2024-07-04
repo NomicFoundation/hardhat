@@ -17,10 +17,10 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { ArgumentType } from "../../types/arguments.js";
 import { TaskDefinitionType } from "../../types/tasks.js";
 import {
-  RESERVED_PARAMETER_NAMES,
-  isParameterValueValid,
-  isValidParamNameCasing,
-} from "../parameters.js";
+  RESERVED_ARGUMENT_NAMES,
+  isArgumentValueValid,
+  isArgumentNameValid,
+} from "../arguments.js";
 
 import { formatTaskId, isValidActionUrl } from "./utils.js";
 
@@ -113,7 +113,7 @@ export class NewTaskDefinitionBuilderImplementation
   }): this {
     const parameterType = type ?? ArgumentType.STRING;
 
-    if (!isValidParamNameCasing(name)) {
+    if (!isArgumentNameValid(name)) {
       throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
         name,
       });
@@ -125,7 +125,7 @@ export class NewTaskDefinitionBuilderImplementation
       });
     }
 
-    if (RESERVED_PARAMETER_NAMES.has(name)) {
+    if (RESERVED_ARGUMENT_NAMES.has(name)) {
       throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
         name,
       });
@@ -133,7 +133,7 @@ export class NewTaskDefinitionBuilderImplementation
 
     if (
       defaultValue !== undefined &&
-      !isParameterValueValid(parameterType, defaultValue)
+      !isArgumentValueValid(parameterType, defaultValue)
     ) {
       throw new HardhatError(
         HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
@@ -240,7 +240,7 @@ export class NewTaskDefinitionBuilderImplementation
   }): this {
     const parameterType = type ?? ArgumentType.STRING;
 
-    if (!isValidParamNameCasing(name)) {
+    if (!isArgumentNameValid(name)) {
       throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
         name,
       });
@@ -252,14 +252,14 @@ export class NewTaskDefinitionBuilderImplementation
       });
     }
 
-    if (RESERVED_PARAMETER_NAMES.has(name)) {
+    if (RESERVED_ARGUMENT_NAMES.has(name)) {
       throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
         name,
       });
     }
 
     if (defaultValue !== undefined) {
-      if (!isParameterValueValid(parameterType, defaultValue, isVariadic)) {
+      if (!isArgumentValueValid(parameterType, defaultValue, isVariadic)) {
         throw new HardhatError(
           HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
           {
@@ -363,7 +363,7 @@ export class TaskOverrideDefinitionBuilderImplementation
   }): this {
     const parameterType = type ?? ArgumentType.STRING;
 
-    if (!isValidParamNameCasing(name)) {
+    if (!isArgumentNameValid(name)) {
       throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
         name,
       });
@@ -375,7 +375,7 @@ export class TaskOverrideDefinitionBuilderImplementation
       });
     }
 
-    if (RESERVED_PARAMETER_NAMES.has(name)) {
+    if (RESERVED_ARGUMENT_NAMES.has(name)) {
       throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
         name,
       });
@@ -383,7 +383,7 @@ export class TaskOverrideDefinitionBuilderImplementation
 
     if (
       defaultValue !== undefined &&
-      !isParameterValueValid(parameterType, defaultValue)
+      !isArgumentValueValid(parameterType, defaultValue)
     ) {
       throw new HardhatError(
         HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,

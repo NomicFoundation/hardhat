@@ -17,7 +17,7 @@ import {
 } from "@ignored/hardhat-vnext-errors";
 import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 
-import { isParameterValueValid } from "../parameters.js";
+import { isArgumentValueValid } from "../arguments.js";
 import { detectPluginNpmDependencyProblems } from "../plugins/detect-plugin-npm-dependency-problems.js";
 
 import { formatTaskId } from "./utils.js";
@@ -203,7 +203,7 @@ export class ResolvedTask implements Task {
     const isVariadic = isPositionalParameter(parameter) && parameter.isVariadic;
 
     // check if the value is valid for the parameter type
-    if (!isParameterValueValid(parameter.type, value, isVariadic)) {
+    if (!isArgumentValueValid(parameter.type, value, isVariadic)) {
       throw new HardhatError(
         HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
         {

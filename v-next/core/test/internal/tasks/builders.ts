@@ -3,7 +3,7 @@ import { after, before, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
-import { RESERVED_PARAMETER_NAMES } from "../../../src/internal/parameters.js";
+import { RESERVED_ARGUMENT_NAMES } from "../../../src/internal/arguments.js";
 import {
   EmptyTaskDefinitionBuilderImplementation,
   NewTaskDefinitionBuilderImplementation,
@@ -15,16 +15,16 @@ import { TaskDefinitionType } from "../../../src/types/tasks.js";
 describe("Task builders", () => {
   before(() => {
     // Make sure we have some reserved names
-    RESERVED_PARAMETER_NAMES.add("testName1");
-    RESERVED_PARAMETER_NAMES.add("testName2");
-    RESERVED_PARAMETER_NAMES.add("testName3");
+    RESERVED_ARGUMENT_NAMES.add("testName1");
+    RESERVED_ARGUMENT_NAMES.add("testName2");
+    RESERVED_ARGUMENT_NAMES.add("testName3");
   });
 
   after(() => {
     // Delete the test reserved names
-    RESERVED_PARAMETER_NAMES.delete("testName1");
-    RESERVED_PARAMETER_NAMES.delete("testName2");
-    RESERVED_PARAMETER_NAMES.delete("testName3");
+    RESERVED_ARGUMENT_NAMES.delete("testName1");
+    RESERVED_ARGUMENT_NAMES.delete("testName2");
+    RESERVED_ARGUMENT_NAMES.delete("testName3");
   });
 
   describe("EmptyTaskDefinitionBuilderImplementation", () => {
@@ -730,7 +730,7 @@ describe("Task builders", () => {
       it("should throw if the parameter name is reserved", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
 
-        RESERVED_PARAMETER_NAMES.forEach((name) => {
+        RESERVED_ARGUMENT_NAMES.forEach((name) => {
           assert.throws(
             () => builder.addOption({ name }),
             new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
@@ -1197,7 +1197,7 @@ describe("Task builders", () => {
           "task-id",
         );
 
-        RESERVED_PARAMETER_NAMES.forEach((name) => {
+        RESERVED_ARGUMENT_NAMES.forEach((name) => {
           assert.throws(
             () => builder.addOption({ name }),
             new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
