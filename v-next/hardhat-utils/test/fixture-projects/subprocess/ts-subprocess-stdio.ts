@@ -15,9 +15,9 @@ const subprocessInfo = {
 (() => {
   subprocessInfo.executed = true;
 
-  console.log(
-    "this message should not appear in the stdio of the parent process",
-  );
+  console.log("message for stdio");
+
+  console.error("message for stderr");
 
   writeJsonFile(ABSOLUTE_PATH_TO_TMP_RESULT_SUBPROCESS_FILE, subprocessInfo);
 })();
