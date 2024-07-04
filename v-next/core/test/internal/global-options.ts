@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { after, before, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
@@ -13,6 +13,20 @@ import { RESERVED_PARAMETER_NAMES } from "../../src/internal/parameters.js";
 import { createTestEnvManager } from "../utils.js";
 
 describe("Global Options", () => {
+  before(() => {
+    // Make sure we have some reserved names
+    RESERVED_PARAMETER_NAMES.add("testName1");
+    RESERVED_PARAMETER_NAMES.add("testName2");
+    RESERVED_PARAMETER_NAMES.add("testName3");
+  });
+
+  after(() => {
+    // Delete the test reserved names
+    RESERVED_PARAMETER_NAMES.delete("testName1");
+    RESERVED_PARAMETER_NAMES.delete("testName2");
+    RESERVED_PARAMETER_NAMES.delete("testName3");
+  });
+
   describe("buildGlobalOptionsMap", () => {
     it("should build an empty map of global options if no plugins are provided", () => {
       const globalOptionsMap = buildGlobalOptionsMap([]);

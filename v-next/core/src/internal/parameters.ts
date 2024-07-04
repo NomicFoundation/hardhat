@@ -5,14 +5,10 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { ParameterType } from "../types/common.js";
 
 /**
- * Names that can't be used as global- nor task-parameter names.
+ * Names that can't be used as global- nor task-parameter names. These are
+ * reserved for future use.
  */
-export const RESERVED_PARAMETER_NAMES: Set<string> = new Set([
-  "config",
-  "help",
-  "showStackTraces",
-  "version",
-]);
+export const RESERVED_PARAMETER_NAMES: Set<string> = new Set([]);
 
 const VALID_PARAM_NAME_CASING_REGEX = /^[a-z][a-zA-Z0-9]*$/;
 
