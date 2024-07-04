@@ -405,8 +405,8 @@ For global options help run: hardhat --help`;
   });
 
   describe("parseGlobalOptions", function () {
-    /* The function "parseGlobalOptions" utilizes "parseDoubleDashArgs" for parsing,
-     * similar to task options. Tests for "parseDoubleDashArgs" are primarily located
+    /* The function "parseGlobalOptions" utilizes "parseOptions" for parsing,
+     * similar to task options. Tests for "parseOptions" are primarily located
      * in the task option section. */
 
     let globalOptionDefinitions: GlobalOptionDefinitions;

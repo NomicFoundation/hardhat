@@ -222,7 +222,7 @@ export async function parseGlobalOptions(
     [...globalOptionDefinitions].map(([key, value]) => [key, value.option]),
   );
 
-  parseDoubleDashArgs(
+  parseOptions(
     cliArguments,
     usedCliArguments,
     optionDefinitions,
@@ -320,12 +320,7 @@ export function parseTaskArguments(
   const taskArguments: TaskArguments = {};
 
   // Parse options
-  parseDoubleDashArgs(
-    cliArguments,
-    usedCliArguments,
-    task.options,
-    taskArguments,
-  );
+  parseOptions(cliArguments, usedCliArguments, task.options, taskArguments);
 
   parsePositionalAndVariadicArguments(
     cliArguments,
@@ -345,7 +340,7 @@ export function parseTaskArguments(
   return taskArguments;
 }
 
-function parseDoubleDashArgs(
+function parseOptions(
   cliArguments: string[],
   usedCliArguments: boolean[],
   optionDefinitions: Map<string, TaskOptionDefinition | GlobalOption>,
