@@ -23,7 +23,7 @@ const exampleTaskOverride = task("example2")
     console.log("from an override");
   })
   .setDescription("An example task")
-  .addVariadicParameter({
+  .addVariadicArgument({
     name: "testFiles",
     description: "An optional list of files to test",
     // defaultValue: [],
@@ -47,7 +47,7 @@ const exampleTaskOverride = task("example2")
   .build();
 
 const testTask = task("test", "Runs mocha tests")
-  .addVariadicParameter({
+  .addVariadicArgument({
     name: "testFiles",
     description: "An optional list of files to test",
     // defaultValue: [],

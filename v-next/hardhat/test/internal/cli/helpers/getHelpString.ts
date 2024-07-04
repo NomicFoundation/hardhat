@@ -3,7 +3,7 @@ import type { Task } from "@ignored/hardhat-vnext-core/types/tasks";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { ParameterType } from "@ignored/hardhat-vnext-core/config";
+import { ArgumentType } from "@ignored/hardhat-vnext-core/config";
 import chalk from "chalk";
 
 import { getHelpString } from "../../../../src/internal/cli/helpers/getHelpString.js";
@@ -16,7 +16,7 @@ describe("getHelpString", function () {
         description: "task description",
         actions: [{ pluginId: "task-plugin-id", action: () => {} }],
         options: new Map(),
-        positionalParameters: [],
+        positionalArguments: [],
         pluginId: "task-plugin-id",
         subtasks: new Map().set("subtask", {
           id: ["task", "subtask"],
@@ -55,14 +55,14 @@ To get help for a specific task run: npx hardhat task <SUBTASK> --help`;
             .set("option", {
               name: "option",
               description: "An example option",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
             })
             .set("anotherOption", {
               name: "anotherOption",
               description: "Another example option",
-              type: ParameterType.BOOLEAN,
+              type: ArgumentType.BOOLEAN,
             }),
-          positionalParameters: [],
+          positionalArguments: [],
           pluginId: "task-plugin-id",
           subtasks: new Map(),
           isEmpty: false,
@@ -96,18 +96,18 @@ For global options help run: hardhat --help`;
             .set("option", {
               name: "option",
               description: "An example option",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
             })
             .set("anotherOption", {
               name: "anotherOption",
               description: "Another example option",
-              type: ParameterType.BOOLEAN,
+              type: ArgumentType.BOOLEAN,
             }),
-          positionalParameters: [
+          positionalArguments: [
             {
               name: "positionalArgument",
               description: "An example positional argument",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
               isVariadic: false,
             },
           ],
@@ -148,18 +148,18 @@ For global options help run: hardhat --help`;
             .set("option", {
               name: "option",
               description: "An example option",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
             })
             .set("anotherOption", {
               name: "anotherOption",
               description: "Another example option",
-              type: ParameterType.BOOLEAN,
+              type: ArgumentType.BOOLEAN,
             }),
-          positionalParameters: [
+          positionalArguments: [
             {
               name: "positionalArgument",
               description: "An example positional argument",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
               isVariadic: false,
             },
           ],

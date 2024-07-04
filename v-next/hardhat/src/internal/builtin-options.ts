@@ -1,31 +1,31 @@
-import type { GlobalOption } from "../types/global-options.js";
+import type { GlobalOptionDefinition } from "../types/global-options.js";
 
-import { globalOption, ParameterType } from "../config.js";
+import { globalOption, ArgumentType } from "../config.js";
 
-export const BUILTIN_OPTIONS: GlobalOption[] = [
+export const BUILTIN_OPTIONS: GlobalOptionDefinition[] = [
   globalOption({
     name: "config",
     description: "A Hardhat config file.",
-    type: ParameterType.STRING,
+    type: ArgumentType.STRING,
     defaultValue: "",
   }),
   globalOption({
     name: "help",
     description:
       "Shows this message, or a task's help if its name is provided.",
-    type: ParameterType.BOOLEAN,
+    type: ArgumentType.BOOLEAN,
     defaultValue: false,
   }),
   globalOption({
     name: "showStackTraces",
     description: "Show stack traces (always enabled on CI servers).",
-    type: ParameterType.BOOLEAN,
+    type: ArgumentType.BOOLEAN,
     defaultValue: false,
   }),
   globalOption({
     name: "version",
     description: "Shows hardhat's version.",
-    type: ParameterType.BOOLEAN,
+    type: ArgumentType.BOOLEAN,
     defaultValue: false,
   }),
 ];

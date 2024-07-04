@@ -1,15 +1,15 @@
-import type { ParameterValue } from "@ignored/hardhat-vnext-core/types/common";
+import type { ArgumentValue } from "@ignored/hardhat-vnext-core/types/arguments";
 import type {
   GlobalOptions,
-  GlobalOption,
+  GlobalOptionDefinition,
   GlobalOptionDefinitions,
 } from "@ignored/hardhat-vnext-core/types/global-options";
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core/types/hre";
 import type {
-  TaskOption,
+  TaskOptionDefinition,
   Task,
   TaskArguments,
-  TaskParameter,
+  TaskArgumentDefinition,
 } from "@ignored/hardhat-vnext-core/types/tasks";
 
 import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
@@ -18,7 +18,7 @@ import {
   buildGlobalOptionDefinitions,
   resolvePluginList,
 } from "@ignored/hardhat-vnext-core";
-import { ParameterType } from "@ignored/hardhat-vnext-core/types/common";
+import { ArgumentType } from "@ignored/hardhat-vnext-core/types/arguments";
 import {
   HardhatError,
   assertHardhatInvariant,
@@ -41,31 +41,31 @@ export async function main(
   cliArguments: string[],
   print: (message: string) => void = console.log,
 ): Promise<void> {
-  let hardhatSpecialArgs;
+  let builtinGlobalOptions;
 
   try {
     const usedCliArguments: boolean[] = new Array(cliArguments.length).fill(
       false,
     );
 
-    hardhatSpecialArgs = await parseHardhatSpecialArguments(
+    builtinGlobalOptions = await parseBuiltinGlobalOptions(
       cliArguments,
       usedCliArguments,
     );
 
-    if (hardhatSpecialArgs.version) {
+    if (builtinGlobalOptions.version) {
       return await printVersionMessage(print);
     }
 
-    if (hardhatSpecialArgs.init) {
+    if (builtinGlobalOptions.init) {
       return await initHardhat();
     }
 
-    if (hardhatSpecialArgs.configPath === undefined) {
-      hardhatSpecialArgs.configPath = await resolveHardhatConfigPath();
+    if (builtinGlobalOptions.configPath === undefined) {
+      builtinGlobalOptions.configPath = await resolveHardhatConfigPath();
     }
 
-    const userConfig = await importUserConfig(hardhatSpecialArgs.configPath);
+    const userConfig = await importUserConfig(builtinGlobalOptions.configPath);
 
     const configPlugins = Array.isArray(userConfig.plugins)
       ? userConfig.plugins
@@ -73,7 +73,7 @@ export async function main(
     const plugins = [...builtinPlugins, ...configPlugins];
     const resolvedPlugins = await resolvePluginList(
       plugins,
-      hardhatSpecialArgs.configPath,
+      builtinGlobalOptions.configPath,
     );
 
     const globalOptionDefinitions =
@@ -114,7 +114,7 @@ export async function main(
 
     const task = taskOrId;
 
-    if (hardhatSpecialArgs.help) {
+    if (builtinGlobalOptions.help) {
       const taskHelp = await getHelpString(task);
 
       print(taskHelp);
@@ -129,11 +129,11 @@ export async function main(
 
     await task.run(taskArguments);
   } catch (error) {
-    printErrorMessages(error, hardhatSpecialArgs?.showStackTraces);
+    printErrorMessages(error, builtinGlobalOptions?.showStackTraces);
   }
 }
 
-export async function parseHardhatSpecialArguments(
+export async function parseBuiltinGlobalOptions(
   cliArguments: string[],
   usedCliArguments: boolean[],
 ): Promise<{
@@ -222,7 +222,7 @@ export async function parseGlobalOptions(
     [...globalOptionDefinitions].map(([key, value]) => [key, value.option]),
   );
 
-  parseDoubleDashArgs(
+  parseOptions(
     cliArguments,
     usedCliArguments,
     optionDefinitions,
@@ -265,14 +265,18 @@ function getTaskFromCliArguments(
     const arg = cliArguments[i];
 
     if (arg.startsWith("--")) {
-      // A standalone '--' is ok because it is used to separate CLI tool arguments from task arguments, ensuring the tool passes
-      // subsequent options directly to the task. Everything after "--" should be considered as a positional parameter
+      /* A standalone '--' is ok because it is used to separate CLI tool arguments
+       * from task arguments, ensuring the tool passes subsequent options directly
+       * to the task. Everything after "--" should be considered as a positional
+       * argument. */
       if (arg.length === 2 || task !== undefined) {
         break;
       }
 
-      // At this point in the code, the global options have already been parsed, so the remaining options starting with '--' are task options.
-      // Hence, if no task is defined, it means that the option is not assigned to any task, and it's an error.
+      /* At this point in the code, the global options have already been parsed, so
+       * the remaining options starting with '--' are task options. Hence, if no task
+       * is defined, it means that the option is not assigned to any task, and it's
+       * an error. */
       throw new HardhatError(
         HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_OPTION,
         {
@@ -316,14 +320,9 @@ export function parseTaskArguments(
   const taskArguments: TaskArguments = {};
 
   // Parse options
-  parseDoubleDashArgs(
-    cliArguments,
-    usedCliArguments,
-    task.options,
-    taskArguments,
-  );
+  parseOptions(cliArguments, usedCliArguments, task.options, taskArguments);
 
-  parsePositionalAndVariadicParameters(
+  parsePositionalAndVariadicArguments(
     cliArguments,
     usedCliArguments,
     task,
@@ -341,12 +340,12 @@ export function parseTaskArguments(
   return taskArguments;
 }
 
-function parseDoubleDashArgs(
+function parseOptions(
   cliArguments: string[],
   usedCliArguments: boolean[],
-  optionDefinitions: Map<string, TaskOption | GlobalOption>,
-  argumentsMap: TaskArguments,
-  ignoreUnknownParameter = false,
+  optionDefinitions: Map<string, TaskOptionDefinition | GlobalOptionDefinition>,
+  providedArguments: TaskArguments,
+  ignoreUnknownOption = false,
 ) {
   for (let i = 0; i < cliArguments.length; i++) {
     if (usedCliArguments[i]) {
@@ -354,8 +353,10 @@ function parseDoubleDashArgs(
     }
 
     if (cliArguments[i] === "--") {
-      // A standalone '--' is ok because it is used to separate CLI tool arguments from task arguments, ensuring the tool passes
-      // subsequent options directly to the task. Everything after "--" should be considered as a positional parameter
+      /* A standalone '--' is ok because it is used to separate CLI tool arguments
+       * from task arguments, ensuring the tool passes subsequent options directly
+       * to the task. Everything after "--" should be considered as a positional
+       * argument. */
       break;
     }
 
@@ -365,15 +366,16 @@ function parseDoubleDashArgs(
       continue;
     }
 
-    const paramName = kebabToCamelCase(arg.substring(2));
-    const paramInfo = optionDefinitions.get(paramName);
+    const optionName = kebabToCamelCase(arg.substring(2));
+    const optionDefinition = optionDefinitions.get(optionName);
 
-    if (paramInfo === undefined) {
-      if (ignoreUnknownParameter === true) {
+    if (optionDefinition === undefined) {
+      if (ignoreUnknownOption === true) {
         continue;
       }
 
-      // Only throw an error when the parameter is not a global option, because it might be a option related to a task
+      // Only throw an error when the argument is not a global option, because
+      // it might be a option related to a task
       throw new HardhatError(
         HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_OPTION,
         {
@@ -384,26 +386,28 @@ function parseDoubleDashArgs(
 
     usedCliArguments[i] = true;
 
-    if (paramInfo.type === ParameterType.BOOLEAN) {
+    if (optionDefinition.type === ArgumentType.BOOLEAN) {
       if (
         usedCliArguments[i + 1] !== undefined &&
         usedCliArguments[i + 1] === false &&
         (cliArguments[i + 1] === "true" || cliArguments[i + 1] === "false")
       ) {
-        // The parameter could be followed by a boolean value if it does not behaves like a flag
-        argumentsMap[paramName] = parseParameterValue(
+        // The argument could be followed by a boolean value if it does not
+        // behaves like a flag
+        providedArguments[optionName] = parseArgumentValue(
           cliArguments[i + 1],
-          ParameterType.BOOLEAN,
-          paramName,
+          ArgumentType.BOOLEAN,
+          optionName,
         );
 
         usedCliArguments[i + 1] = true;
         continue;
       }
 
-      if (paramInfo.defaultValue === false) {
-        // If the default value for the parameter is false, the parameter behaves like a flag, so there is no need to specify the value
-        argumentsMap[paramName] = true;
+      if (optionDefinition.defaultValue === false) {
+        // If the default value for the argument is false, the argument behaves
+        // like a flag, so there is no need to specify the value
+        providedArguments[optionName] = true;
         continue;
       }
     } else if (
@@ -412,10 +416,10 @@ function parseDoubleDashArgs(
     ) {
       i++;
 
-      argumentsMap[paramName] = parseParameterValue(
+      providedArguments[optionName] = parseArgumentValue(
         cliArguments[i],
-        paramInfo.type,
-        paramName,
+        optionDefinition.type,
+        optionName,
       );
 
       usedCliArguments[i] = true;
@@ -424,24 +428,24 @@ function parseDoubleDashArgs(
     }
 
     throw new HardhatError(
-      HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_PARAMETER,
+      HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
       {
-        paramName: arg,
+        argument: arg,
       },
     );
   }
 
-  // Check if all the required parameters have been used
-  validateRequiredParameters([...optionDefinitions.values()], argumentsMap);
+  // Check if all the required arguments have been used
+  validateRequiredArguments([...optionDefinitions.values()], providedArguments);
 }
 
-function parsePositionalAndVariadicParameters(
+function parsePositionalAndVariadicArguments(
   cliArguments: string[],
   usedCliArguments: boolean[],
   task: Task,
-  taskArguments: TaskArguments,
+  providedArguments: TaskArguments,
 ) {
-  let paramI = 0;
+  let argIndex = 0;
 
   for (let i = 0; i < cliArguments.length; i++) {
     if (usedCliArguments[i] === true) {
@@ -449,84 +453,86 @@ function parsePositionalAndVariadicParameters(
     }
 
     if (cliArguments[i] === "--") {
-      // A standalone '--' is ok because it is used to separate CLI tool arguments from task arguments, ensuring the tool passes
-      // subsequent options directly to the task. Everything after "--" should be considered as a positional parameter
+      /* A standalone '--' is ok because it is used to separate CLI tool arguments
+       * from task arguments, ensuring the tool passes subsequent options directly
+       * to the task. Everything after "--" should be considered as a positional
+       * argument. */
       usedCliArguments[i] = true;
       continue;
     }
 
-    const paramInfo = task.positionalParameters[paramI];
+    const argumentDefinition = task.positionalArguments[argIndex];
 
-    if (paramInfo === undefined) {
+    if (argumentDefinition === undefined) {
       break;
     }
 
     usedCliArguments[i] = true;
 
-    const formattedValue = parseParameterValue(
+    const formattedValue = parseArgumentValue(
       cliArguments[i],
-      paramInfo.type,
-      paramInfo.name,
+      argumentDefinition.type,
+      argumentDefinition.name,
     );
 
-    if (paramInfo.isVariadic === false) {
-      taskArguments[paramInfo.name] = formattedValue;
-      paramI++;
+    if (argumentDefinition.isVariadic === false) {
+      providedArguments[argumentDefinition.name] = formattedValue;
+      argIndex++;
       continue;
     }
 
-    // Handle variadic parameters. No longer increment "paramI" becuase there can only be one variadic parameter and it
-    // will consume all remaining arguments.
-    taskArguments[paramInfo.name] = taskArguments[paramInfo.name] ?? [];
-    const variadicTaskArg = taskArguments[paramInfo.name];
+    // Handle variadic arguments. No longer increment "argIndex" because there can
+    // only be one variadic argument, and it will consume all remaining arguments.
+    providedArguments[argumentDefinition.name] =
+      providedArguments[argumentDefinition.name] ?? [];
+    const variadicTaskArg = providedArguments[argumentDefinition.name];
     assertHardhatInvariant(
       Array.isArray(variadicTaskArg),
-      "Variadic parameter values should be an array",
+      "Variadic argument values should be an array",
     );
     variadicTaskArg.push(formattedValue);
   }
 
-  // Check if all the required parameters have been used
-  validateRequiredParameters(task.positionalParameters, taskArguments);
+  // Check if all the required arguments have been used
+  validateRequiredArguments(task.positionalArguments, providedArguments);
 }
 
-function validateRequiredParameters(
-  parameters: TaskParameter[],
+function validateRequiredArguments(
+  argumentDefinitions: TaskArgumentDefinition[],
   taskArguments: TaskArguments,
 ) {
-  const missingRequiredParam = parameters.find(
-    (param) =>
-      param.defaultValue === undefined &&
-      taskArguments[param.name] === undefined,
+  const missingRequiredArgument = argumentDefinitions.find(
+    ({ defaultValue, name }) =>
+      defaultValue === undefined && taskArguments[name] === undefined,
   );
 
-  if (missingRequiredParam === undefined) {
+  if (missingRequiredArgument === undefined) {
     return;
   }
 
   throw new HardhatError(
-    HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_PARAMETER,
-    { paramName: missingRequiredParam.name },
+    HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+    { argument: missingRequiredArgument.name },
   );
 }
 
-function parseParameterValue(
+function parseArgumentValue(
   strValue: string,
-  type: ParameterType,
+  type: ArgumentType,
   argName: string,
-): ParameterValue {
+): ArgumentValue {
   switch (type) {
-    case ParameterType.STRING:
+    case ArgumentType.STRING:
       return validateAndParseString(argName, strValue);
-    case ParameterType.FILE:
+    case ArgumentType.FILE:
       return validateAndParseFile(argName, strValue);
-    case ParameterType.INT:
+    case ArgumentType.INT:
       return validateAndParseInt(argName, strValue);
-    case ParameterType.FLOAT:
+    case ArgumentType.FLOAT:
       return validateAndParseFloat(argName, strValue);
-    case ParameterType.BIGINT:
+    case ArgumentType.BIGINT:
       return validateAndParseBigInt(argName, strValue);
-    case ParameterType.BOOLEAN:
+    case ArgumentType.BOOLEAN:
       return validateAndParseBoolean(argName, strValue);
   }
 }

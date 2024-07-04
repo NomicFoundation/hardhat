@@ -1,10 +1,10 @@
 import type {
-  ParameterTypeToValueType,
-  ParameterValue,
-} from "../types/common.js";
+  ArgumentTypeToValueType,
+  ArgumentValue,
+} from "../types/arguments.js";
 import type {
   GlobalOptions,
-  GlobalOption,
+  GlobalOptionDefinition,
   GlobalOptionDefinitions,
 } from "../types/global-options.js";
 import type { HardhatPlugin } from "../types/plugins.js";
@@ -12,14 +12,14 @@ import type { HardhatPlugin } from "../types/plugins.js";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { camelToSnakeCase } from "@ignored/hardhat-vnext-utils/string";
 
-import { ParameterType } from "../types/common.js";
+import { ArgumentType } from "../types/arguments.js";
 
 import {
-  RESERVED_PARAMETER_NAMES,
-  isParameterValueValid,
-  isValidParamNameCasing,
-  parseParameterValue,
-} from "./parameters.js";
+  RESERVED_ARGUMENT_NAMES,
+  isArgumentValueValid,
+  isArgumentNameValid,
+  parseArgumentValue,
+} from "./arguments.js";
 
 /**
  * Builds a map of the global option definitions by going through all the
@@ -70,7 +70,7 @@ export function buildGlobalOptionDefinitions(
  * Builds a global option definition, validating the name, type, and default
  * value.
  */
-export function buildGlobalOptionDefinition<T extends ParameterType>({
+export function buildGlobalOptionDefinition<T extends ArgumentType>({
   name,
   description,
   type,
@@ -79,23 +79,23 @@ export function buildGlobalOptionDefinition<T extends ParameterType>({
   name: string;
   description: string;
   type?: T;
-  defaultValue: ParameterTypeToValueType<T>;
-}): GlobalOption {
-  const parameterType = type ?? ParameterType.STRING;
+  defaultValue: ArgumentTypeToValueType<T>;
+}): GlobalOptionDefinition {
+  const argumentType = type ?? ArgumentType.STRING;
 
-  if (!isValidParamNameCasing(name)) {
+  if (!isArgumentNameValid(name)) {
     throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
       name,
     });
   }
 
-  if (RESERVED_PARAMETER_NAMES.has(name)) {
+  if (RESERVED_ARGUMENT_NAMES.has(name)) {
     throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
       name,
     });
   }
 
-  if (!isParameterValueValid(parameterType, defaultValue)) {
+  if (!isArgumentValueValid(argumentType, defaultValue)) {
     throw new HardhatError(
       HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
       {
@@ -109,7 +109,7 @@ export function buildGlobalOptionDefinition<T extends ParameterType>({
   return {
     name,
     description,
-    type: parameterType,
+    type: argumentType,
     defaultValue,
   };
 }
@@ -146,7 +146,7 @@ export function resolveGlobalOptions(
       assign the value. */
       (userProvidedGlobalOptions as Record<string, string | undefined>)[name];
 
-    let parsedValue: ParameterValue;
+    let parsedValue: ArgumentValue;
     // if the value is provided in the user options, it's already parsed
     // and it takes precedence over env vars
     if (value !== undefined) {
@@ -155,7 +155,7 @@ export function resolveGlobalOptions(
       value = process.env[`HARDHAT_${camelToSnakeCase(name).toUpperCase()}`];
       if (value !== undefined) {
         // if the value is provided via an env var, it needs to be parsed
-        parsedValue = parseParameterValue(value, option.type, name);
+        parsedValue = parseArgumentValue(value, option.type, name);
       } else {
         // if the value is not provided by the user or env var, use the default
         parsedValue = option.defaultValue;
@@ -165,7 +165,7 @@ export function resolveGlobalOptions(
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       -- GlobalOptions is empty for user extension, so we need to cast it to
       assign the value. */
-    (globalOptions as Record<string, ParameterValue>)[name] = parsedValue;
+    (globalOptions as Record<string, ArgumentValue>)[name] = parsedValue;
   }
 
   return globalOptions;

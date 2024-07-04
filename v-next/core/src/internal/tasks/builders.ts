@@ -1,10 +1,10 @@
-import type { ParameterTypeToValueType } from "../../types/common.js";
+import type { ArgumentTypeToValueType } from "../../types/arguments.js";
 import type {
-  TaskOption,
+  TaskOptionDefinition,
   NewTaskActionFunction,
   NewTaskDefinitionBuilder,
   NewTaskDefinition,
-  PositionalTaskParameter,
+  TaskPositionalArgumentDefinition,
   TaskOverrideActionFunction,
   TaskOverrideDefinitionBuilder,
   TaskOverrideDefinition,
@@ -14,13 +14,13 @@ import type {
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
-import { ParameterType } from "../../types/common.js";
+import { ArgumentType } from "../../types/arguments.js";
 import { TaskDefinitionType } from "../../types/tasks.js";
 import {
-  RESERVED_PARAMETER_NAMES,
-  isParameterValueValid,
-  isValidParamNameCasing,
-} from "../parameters.js";
+  RESERVED_ARGUMENT_NAMES,
+  isArgumentValueValid,
+  isArgumentNameValid,
+} from "../arguments.js";
 
 import { formatTaskId, isValidActionUrl } from "./utils.js";
 
@@ -62,8 +62,8 @@ export class NewTaskDefinitionBuilderImplementation
   readonly #id: string[];
   readonly #usedNames: Set<string> = new Set();
 
-  readonly #options: Record<string, TaskOption> = {};
-  readonly #positionalParams: PositionalTaskParameter[] = [];
+  readonly #options: Record<string, TaskOptionDefinition> = {};
+  readonly #positionalArgs: TaskPositionalArgumentDefinition[] = [];
 
   #description: string;
 
@@ -100,7 +100,7 @@ export class NewTaskDefinitionBuilderImplementation
     return this;
   }
 
-  public addOption<T extends ParameterType>({
+  public addOption<T extends ArgumentType>({
     name,
     description = "",
     type,
@@ -109,11 +109,11 @@ export class NewTaskDefinitionBuilderImplementation
     name: string;
     description?: string;
     type?: T;
-    defaultValue?: ParameterTypeToValueType<T>;
+    defaultValue?: ArgumentTypeToValueType<T>;
   }): this {
-    const parameterType = type ?? ParameterType.STRING;
+    const argumentType = type ?? ArgumentType.STRING;
 
-    if (!isValidParamNameCasing(name)) {
+    if (!isArgumentNameValid(name)) {
       throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
         name,
       });
@@ -125,7 +125,7 @@ export class NewTaskDefinitionBuilderImplementation
       });
     }
 
-    if (RESERVED_PARAMETER_NAMES.has(name)) {
+    if (RESERVED_ARGUMENT_NAMES.has(name)) {
       throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
         name,
       });
@@ -133,14 +133,14 @@ export class NewTaskDefinitionBuilderImplementation
 
     if (
       defaultValue !== undefined &&
-      !isParameterValueValid(parameterType, defaultValue)
+      !isArgumentValueValid(argumentType, defaultValue)
     ) {
       throw new HardhatError(
         HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
         {
           value: defaultValue,
           name: "defaultValue",
-          type: parameterType,
+          type: argumentType,
           task: formatTaskId(this.#id),
         },
       );
@@ -151,57 +151,41 @@ export class NewTaskDefinitionBuilderImplementation
     this.#options[name] = {
       name,
       description,
-      type: parameterType,
+      type: argumentType,
       defaultValue,
     };
 
     return this;
   }
 
-  public addFlag(paramOptions: { name: string; description?: string }): this {
+  public addFlag(flagConfig: { name: string; description?: string }): this {
     return this.addOption({
-      ...paramOptions,
-      type: ParameterType.BOOLEAN,
+      ...flagConfig,
+      type: ArgumentType.BOOLEAN,
       defaultValue: false,
     });
   }
 
-  public addPositionalParameter<T extends ParameterType>({
-    name,
-    description,
-    type,
-    defaultValue,
-  }: {
+  public addPositionalArgument<T extends ArgumentType>(argConfig: {
     name: string;
     description?: string;
     type?: T;
-    defaultValue?: ParameterTypeToValueType<T>;
+    defaultValue?: ArgumentTypeToValueType<T>;
   }): this {
-    return this.#addPositionalParameter({
-      name,
-      description,
-      type,
-      defaultValue,
+    return this.#addPositionalArgument({
+      ...argConfig,
       isVariadic: false,
     });
   }
 
-  public addVariadicParameter<T extends ParameterType>({
-    name,
-    description,
-    type,
-    defaultValue,
-  }: {
+  public addVariadicArgument<T extends ArgumentType>(argConfig: {
     name: string;
     description?: string;
     type?: T;
-    defaultValue?: Array<ParameterTypeToValueType<T>>;
+    defaultValue?: Array<ArgumentTypeToValueType<T>>;
   }): this {
-    return this.#addPositionalParameter({
-      name,
-      description,
-      type,
-      defaultValue,
+    return this.#addPositionalArgument({
+      ...argConfig,
       isVariadic: true,
     });
   }
@@ -219,11 +203,11 @@ export class NewTaskDefinitionBuilderImplementation
       description: this.#description,
       action: this.#action,
       options: this.#options,
-      positionalParameters: this.#positionalParams,
+      positionalArguments: this.#positionalArgs,
     };
   }
 
-  #addPositionalParameter<T extends ParameterType>({
+  #addPositionalArgument<T extends ArgumentType>({
     name,
     description = "",
     type,
@@ -234,13 +218,13 @@ export class NewTaskDefinitionBuilderImplementation
     description?: string;
     type?: T;
     defaultValue?:
-      | ParameterTypeToValueType<T>
-      | Array<ParameterTypeToValueType<T>>;
+      | ArgumentTypeToValueType<T>
+      | Array<ArgumentTypeToValueType<T>>;
     isVariadic: boolean;
   }): this {
-    const parameterType = type ?? ParameterType.STRING;
+    const argumentType = type ?? ArgumentType.STRING;
 
-    if (!isValidParamNameCasing(name)) {
+    if (!isArgumentNameValid(name)) {
       throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
         name,
       });
@@ -252,42 +236,41 @@ export class NewTaskDefinitionBuilderImplementation
       });
     }
 
-    if (RESERVED_PARAMETER_NAMES.has(name)) {
+    if (RESERVED_ARGUMENT_NAMES.has(name)) {
       throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
         name,
       });
     }
 
     if (defaultValue !== undefined) {
-      if (!isParameterValueValid(parameterType, defaultValue, isVariadic)) {
+      if (!isArgumentValueValid(argumentType, defaultValue, isVariadic)) {
         throw new HardhatError(
           HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
           {
             value: defaultValue,
             name: "defaultValue",
-            type: parameterType,
+            type: argumentType,
             task: formatTaskId(this.#id),
           },
         );
       }
     }
 
-    if (this.#positionalParams.length > 0) {
-      const lastParam =
-        this.#positionalParams[this.#positionalParams.length - 1];
+    if (this.#positionalArgs.length > 0) {
+      const lastArg = this.#positionalArgs[this.#positionalArgs.length - 1];
 
-      if (lastParam.isVariadic) {
+      if (lastArg.isVariadic) {
         throw new HardhatError(
-          HardhatError.ERRORS.TASK_DEFINITIONS.POSITIONAL_PARAM_AFTER_VARIADIC,
+          HardhatError.ERRORS.TASK_DEFINITIONS.POSITIONAL_ARG_AFTER_VARIADIC,
           {
             name,
           },
         );
       }
 
-      if (lastParam.defaultValue !== undefined && defaultValue === undefined) {
+      if (lastArg.defaultValue !== undefined && defaultValue === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.TASK_DEFINITIONS.REQUIRED_PARAM_AFTER_OPTIONAL,
+          HardhatError.ERRORS.TASK_DEFINITIONS.REQUIRED_ARG_AFTER_OPTIONAL,
           {
             name,
           },
@@ -297,10 +280,10 @@ export class NewTaskDefinitionBuilderImplementation
 
     this.#usedNames.add(name);
 
-    this.#positionalParams.push({
+    this.#positionalArgs.push({
       name,
       description,
-      type: parameterType,
+      type: argumentType,
       defaultValue,
       isVariadic,
     });
@@ -314,7 +297,7 @@ export class TaskOverrideDefinitionBuilderImplementation
 {
   readonly #id: string[];
 
-  readonly #options: Record<string, TaskOption> = {};
+  readonly #options: Record<string, TaskOptionDefinition> = {};
 
   #description?: string;
 
@@ -350,7 +333,7 @@ export class TaskOverrideDefinitionBuilderImplementation
     return this;
   }
 
-  public addOption<T extends ParameterType>({
+  public addOption<T extends ArgumentType>({
     name,
     description = "",
     type,
@@ -359,11 +342,11 @@ export class TaskOverrideDefinitionBuilderImplementation
     name: string;
     description?: string;
     type?: T;
-    defaultValue?: ParameterTypeToValueType<T>;
+    defaultValue?: ArgumentTypeToValueType<T>;
   }): this {
-    const parameterType = type ?? ParameterType.STRING;
+    const argumentType = type ?? ArgumentType.STRING;
 
-    if (!isValidParamNameCasing(name)) {
+    if (!isArgumentNameValid(name)) {
       throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
         name,
       });
@@ -375,7 +358,7 @@ export class TaskOverrideDefinitionBuilderImplementation
       });
     }
 
-    if (RESERVED_PARAMETER_NAMES.has(name)) {
+    if (RESERVED_ARGUMENT_NAMES.has(name)) {
       throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
         name,
       });
@@ -383,14 +366,14 @@ export class TaskOverrideDefinitionBuilderImplementation
 
     if (
       defaultValue !== undefined &&
-      !isParameterValueValid(parameterType, defaultValue)
+      !isArgumentValueValid(argumentType, defaultValue)
     ) {
       throw new HardhatError(
         HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
         {
           value: defaultValue,
           name: "defaultValue",
-          type: parameterType,
+          type: argumentType,
           task: formatTaskId(this.#id),
         },
       );
@@ -399,17 +382,17 @@ export class TaskOverrideDefinitionBuilderImplementation
     this.#options[name] = {
       name,
       description,
-      type: parameterType,
+      type: argumentType,
       defaultValue,
     };
 
     return this;
   }
 
-  public addFlag(paramOptions: { name: string; description?: string }): this {
+  public addFlag(flagConfig: { name: string; description?: string }): this {
     return this.addOption({
-      ...paramOptions,
-      type: ParameterType.BOOLEAN,
+      ...flagConfig,
+      type: ArgumentType.BOOLEAN,
       defaultValue: false,
     });
   }

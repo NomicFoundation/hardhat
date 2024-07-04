@@ -4,10 +4,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { buildGlobalOptionDefinitions } from "@ignored/hardhat-vnext-core";
-import {
-  globalOption,
-  ParameterType,
-} from "@ignored/hardhat-vnext-core/config";
+import { globalOption, ArgumentType } from "@ignored/hardhat-vnext-core/config";
 import { readClosestPackageJson } from "@ignored/hardhat-vnext-utils/package";
 
 import { getGlobalHelpString } from "../../../../src/internal/cli/helpers/getGlobalHelpString.js";
@@ -47,7 +44,7 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
             description: "task1 description",
             actions: [{ pluginId: "task1-plugin-id", action: () => {} }],
             options: new Map(),
-            positionalParameters: [],
+            positionalArguments: [],
             pluginId: "task1-plugin-id",
             subtasks: new Map(),
             isEmpty: false,
@@ -61,7 +58,7 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
             description: "task2 description",
             actions: [{ pluginId: "task2-plugin-id", action: () => {} }],
             options: new Map(),
-            positionalParameters: [],
+            positionalArguments: [],
             pluginId: "task2-plugin-id",
             subtasks: new Map(),
             isEmpty: false,
@@ -104,14 +101,14 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
             description: "task1 description",
             actions: [{ pluginId: "task1-plugin-id", action: () => {} }],
             options: new Map(),
-            positionalParameters: [],
+            positionalArguments: [],
             pluginId: "task1-plugin-id",
             subtasks: new Map().set("subtask1", {
               id: ["task1", "subtask1"],
               description: "subtask1 description",
               actions: [{ pluginId: "task1-plugin-id", action: () => {} }],
-              namedParameters: new Map(),
-              positionalParameters: [],
+              options: new Map(),
+              positionalArguments: [],
               pluginId: "task1-plugin-id",
               subtasks: new Map(),
               isEmpty: false,
@@ -128,7 +125,7 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
             description: "task2 description",
             actions: [{ pluginId: "task2-plugin-id", action: () => {} }],
             options: new Map(),
-            positionalParameters: [],
+            positionalArguments: [],
             pluginId: "task2-plugin-id",
             subtasks: new Map(),
             isEmpty: false,
@@ -175,13 +172,13 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
             globalOption({
               name: "userOption1",
               description: "userOption1 description.",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
               defaultValue: "default",
             }),
             globalOption({
               name: "userOption2",
               description: "userOption2 description.",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
               defaultValue: "default",
             }),
           ],

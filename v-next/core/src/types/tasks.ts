@@ -1,8 +1,8 @@
 import type {
-  ParameterType,
-  ParameterTypeToValueType,
-  ParameterValue,
-} from "./common.js";
+  ArgumentType,
+  ArgumentTypeToValueType,
+  ArgumentValue,
+} from "./arguments.js";
 import type { HardhatRuntimeEnvironment } from "./hre.js";
 
 // We add the TaskManager to the HRE with a module augmentation to avoid
@@ -27,13 +27,11 @@ declare module "./config.js" {
   }
 }
 
-export interface TaskParameter<T extends ParameterType = ParameterType> {
+export interface TaskArgumentDefinition<T extends ArgumentType = ArgumentType> {
   name: string;
   description: string;
   type: T;
-  defaultValue?:
-    | ParameterTypeToValueType<T>
-    | Array<ParameterTypeToValueType<T>>;
+  defaultValue?: ArgumentTypeToValueType<T> | Array<ArgumentTypeToValueType<T>>;
 }
 
 /**
@@ -41,33 +39,33 @@ export interface TaskParameter<T extends ParameterType = ParameterType> {
  *
  * They have a name, description, type, and an optional default value.
  *
- * If the type is ParameterType.BOOLEAN, the default value is `false`, the
- * parameter is considered a flag, and can be used as `--<name>` to set it to
+ * If the type is ArgumentType.BOOLEAN, the default value is `false`, the
+ * argument is considered a flag, and can be used as `--<name>` to set it to
  * `true`.
  */
-export interface TaskOption<T extends ParameterType = ParameterType>
-  extends TaskParameter<T> {
-  defaultValue?: ParameterTypeToValueType<T>;
+export interface TaskOptionDefinition<T extends ArgumentType = ArgumentType>
+  extends TaskArgumentDefinition<T> {
+  defaultValue?: ArgumentTypeToValueType<T>;
 }
 
 /**
- * A positional task parameter is one that is used as `<value>` in the CLI, and whose
- * position matters. For example, `mv <from> <to>` has two positional parameters.
+ * A positional task argument is one that is used as `<value>` in the CLI, and whose
+ * position matters. For example, `mv <from> <to>` has two positional arguments.
  *
- * If the parameter is variadic, it can have multiple values. A variadic parameter
- * can only be the last positional parameter, and it consumes all the remaining values.
+ * If the argument is variadic, it can have multiple values. A variadic argument
+ * can only be the last positional argument, and it consumes all the remaining values.
  */
-export interface PositionalTaskParameter<
-  T extends ParameterType = ParameterType,
-> extends TaskParameter<T> {
+export interface TaskPositionalArgumentDefinition<
+  T extends ArgumentType = ArgumentType,
+> extends TaskArgumentDefinition<T> {
   isVariadic: boolean;
 }
 
 /**
- * A type representing the arguments or concrete parameters of a task. That is,
+ * A type representing the concrete arguments of a task. That is,
  * the actual values passed to it.
  */
-export type TaskArguments = Record<string, ParameterValue | ParameterValue[]>;
+export type TaskArguments = Record<string, ArgumentValue | ArgumentValue[]>;
 
 /**
  * The type of a new task's action function.
@@ -127,9 +125,9 @@ export interface NewTaskDefinition {
 
   action: NewTaskActionFunction | string;
 
-  options: Record<string, TaskOption>;
+  options: Record<string, TaskOptionDefinition>;
 
-  positionalParameters: PositionalTaskParameter[];
+  positionalArguments: TaskPositionalArgumentDefinition[];
 }
 
 /**
@@ -144,7 +142,7 @@ export interface TaskOverrideDefinition {
 
   action: TaskOverrideActionFunction | string;
 
-  options: Record<string, TaskOption>;
+  options: Record<string, TaskOptionDefinition>;
 }
 
 /**
@@ -197,69 +195,69 @@ export interface NewTaskDefinitionBuilder {
    *
    * A task option is one that is used as `--<name> value` in the CLI.
    *
-   * If the type is `ParameterType.BOOLEAN`, the default value is `false`, the
-   * parameter is considered a flag, and can be used as `--<name>` to set it to
+   * If the type is `ArgumentType.BOOLEAN`, the default value is `false`, the
+   * argument is considered a flag, and can be used as `--<name>` to set it to
    * `true`.
    *
-   * The type of the parameter defaults to `ParameterType.STRING`.
+   * The type of the argument defaults to `ArgumentType.STRING`.
    *
    * The default value, if provided, should be of the same type as the
-   * parameter.
+   * argument.
    */
-  addOption<T extends ParameterType>(paramOptions: {
+  addOption<T extends ArgumentType>(optionConfig: {
     name: string;
     description?: string;
     type?: T;
-    defaultValue?: ParameterTypeToValueType<T>;
+    defaultValue?: ArgumentTypeToValueType<T>;
   }): this;
 
   /**
    * Adds an option of boolean type and default value false.
    */
-  addFlag(paramOptions: { name: string; description?: string }): this;
+  addFlag(flagConfig: { name: string; description?: string }): this;
 
   /**
-   * Adds a positional parameter to the task.
+   * Adds a positional argument to the task.
    *
-   * A positional task parameter is one that is used as `<value>` in the CLI,
+   * A positional task argument is one that is used as `<value>` in the CLI,
    * and whose position matters. For example, `mv <from> <to>` has two
-   * positional parameters.
+   * positional arguments.
    *
-   * The type of the parameter defaults to `ParameterType.STRING`.
+   * The type of the argument defaults to `ArgumentType.STRING`.
    *
    * The default value, if provided, should be of the same type as the
-   * parameter.
+   * argument.
    *
-   * Note that if a default value is provided, the parameter is considered
-   * optional, and any other positional parameters after it must also be
+   * Note that if a default value is provided, the argument is considered
+   * optional, and any other positional arguments after it must also be
    * optional.
    */
-  addPositionalParameter<T extends ParameterType>(paramOptions: {
+  addPositionalArgument<T extends ArgumentType>(argConfig: {
     name: string;
     description?: string;
     type?: T;
-    defaultValue?: ParameterTypeToValueType<T>;
+    defaultValue?: ArgumentTypeToValueType<T>;
   }): this;
 
   /**
-   * Adds a variadic positional parameter to the task.
+   * Adds a variadic positional argument to the task.
    *
-   * A variadic parameter is a positional parameter that can have multiple
-   * values. For example, `cat <file1> <file2> <file3>` has a variadic parameter
+   * A variadic argument is a positional argument that can have multiple
+   * values. For example, `cat <file1> <file2> <file3>` has a variadic argument
    * representing the files to print.
    *
    * The default value, if provided, must be an array whose elements are
-   * of the same type as the parameter. That is, `type` represents the type of
+   * of the same type as the argument. That is, `type` represents the type of
    * each element.
    *
-   * Note that this parameter must be the last positional parameter. No other
-   * positional parameter can follow it, including variadic parameters.
+   * Note that this argument must be the last positional argument. No other
+   * positional argument can follow it, including variadic arguments.
    */
-  addVariadicParameter<T extends ParameterType>(paramOptions: {
+  addVariadicArgument<T extends ArgumentType>(argConfig: {
     name: string;
     description?: string;
     type?: T;
-    defaultValue?: Array<ParameterTypeToValueType<T>>;
+    defaultValue?: Array<ArgumentTypeToValueType<T>>;
   }): this;
 
   /**
@@ -289,17 +287,17 @@ export interface TaskOverrideDefinitionBuilder {
    *
    * @see NewTaskDefinitionBuilder.addOption
    */
-  addOption<T extends ParameterType>(paramOptions: {
+  addOption<T extends ArgumentType>(optionConfig: {
     name: string;
     description?: string;
     type?: T;
-    defaultValue?: ParameterTypeToValueType<T>;
+    defaultValue?: ArgumentTypeToValueType<T>;
   }): this;
 
   /**
    * Adds an option of boolean type and default value false.
    */
-  addFlag(paramOptions: { name: string; description?: string }): this;
+  addFlag(flagConfig: { name: string; description?: string }): this;
 
   /**
    * Builds the TaskOverrideDefinition.
@@ -346,12 +344,12 @@ export interface Task {
   /**
    * The task options.
    */
-  options: Map<string, TaskOption>;
+  options: Map<string, TaskOptionDefinition>;
 
   /**
-   * The task positional parameters.
+   * The task positional arguments.
    */
-  positionalParameters: PositionalTaskParameter[];
+  positionalArguments: TaskPositionalArgumentDefinition[];
 
   /**
    * Whether the task is an empty task.

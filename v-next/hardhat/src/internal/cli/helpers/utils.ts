@@ -1,4 +1,4 @@
-import type { ParameterType } from "@ignored/hardhat-vnext-core/config";
+import type { ArgumentType } from "@ignored/hardhat-vnext-core/config";
 import type { GlobalOptionDefinitions } from "@ignored/hardhat-vnext-core/types/global-options";
 import type { Task } from "@ignored/hardhat-vnext-core/types/tasks";
 
@@ -9,7 +9,7 @@ export const GLOBAL_NAME_PADDING = 6;
 interface ArgumentDescriptor {
   name: string;
   description: string;
-  type?: ParameterType;
+  type?: ArgumentType;
   isRequired?: boolean;
 }
 
@@ -83,7 +83,7 @@ export function parseOptions(task: Task): {
     });
   }
 
-  for (const argument of task.positionalParameters) {
+  for (const argument of task.positionalArguments) {
     positionalArguments.push({
       name: argument.name,
       description: argument.description,

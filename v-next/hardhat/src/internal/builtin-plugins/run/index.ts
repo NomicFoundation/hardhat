@@ -1,15 +1,15 @@
 import type { HardhatPlugin } from "@ignored/hardhat-vnext-core/types/plugins";
 
-import { ParameterType, task } from "@ignored/hardhat-vnext-core/config";
+import { ArgumentType, task } from "@ignored/hardhat-vnext-core/config";
 
 const hardhatPlugin: HardhatPlugin = {
   id: "run",
   tasks: [
     task("run", "Runs a user-defined script after compiling the project")
-      .addPositionalParameter({
+      .addPositionalArgument({
         name: "script",
         description: "A js or ts file to be run within hardhat's environment",
-        type: ParameterType.STRING,
+        type: ArgumentType.STRING,
       })
       .addFlag({
         name: "noCompile",

@@ -3,68 +3,70 @@ import type { HardhatUserConfig } from "@ignored/hardhat-vnext-core/config";
 import { task } from "@ignored/hardhat-vnext-core/config";
 
 export const tasksResults = {
-  wasParam1Used: false,
-  wasParam2Used: false,
-  wasParam3Used: false,
+  wasArg1Used: false,
+  wasArg2Used: false,
+  wasArg3Used: false,
 };
 
 function resetResults() {
-  tasksResults.wasParam1Used = false;
-  tasksResults.wasParam2Used = false;
-  tasksResults.wasParam3Used = false;
+  tasksResults.wasArg1Used = false;
+  tasksResults.wasArg2Used = false;
+  tasksResults.wasArg3Used = false;
 }
 
 const customTask = task("task")
-  .addOption({ name: "param1" })
-  .addPositionalParameter({ name: "param2" })
-  .addVariadicParameter({ name: "param3" })
+  .addOption({ name: "arg1" })
+  .addPositionalArgument({ name: "arg2" })
+  .addVariadicArgument({ name: "arg3" })
   .setAction((taskArguments) => {
     resetResults();
 
-    const { param1, param2, param3 } = taskArguments;
+    const { arg1, arg2, arg3 } = taskArguments;
 
-    tasksResults.wasParam1Used = param1 === "<value1>";
-    tasksResults.wasParam2Used = param2 === "<value2>";
-    if (Array.isArray(param3)) {
-      tasksResults.wasParam3Used = param3[0] === "<value3>"; // Variadic parameters are always in an array
+    tasksResults.wasArg1Used = arg1 === "<value1>";
+    tasksResults.wasArg2Used = arg2 === "<value2>";
+    // Variadic arguments are always in an array
+    if (Array.isArray(arg3)) {
+      tasksResults.wasArg3Used = arg3[0] === "<value3>";
     }
   })
   .build();
 
 const customTask2 = task("task-default")
-  .addOption({ name: "param1", defaultValue: "<default-value1>" })
+  .addOption({ name: "arg1", defaultValue: "<default-value1>" })
   .setAction((taskArguments) => {
     resetResults();
 
-    const { param1 } = taskArguments;
-    tasksResults.wasParam1Used = param1 === "<default-value1>";
+    const { arg1 } = taskArguments;
+    tasksResults.wasArg1Used = arg1 === "<default-value1>";
   })
   .build();
 
 const customSubtask = task(["task", "subtask"])
-  .addOption({ name: "param1" })
-  .addPositionalParameter({ name: "param2" })
-  .addVariadicParameter({ name: "param3" })
+  .addOption({ name: "arg1" })
+  .addPositionalArgument({ name: "arg2" })
+  .addVariadicArgument({ name: "arg3" })
   .setAction((taskArguments) => {
     resetResults();
 
-    const { param1, param2, param3 } = taskArguments;
+    const { arg1, arg2, arg3 } = taskArguments;
 
-    tasksResults.wasParam1Used = param1 === "<value1>";
-    tasksResults.wasParam2Used = param2 === "<value2>";
-    if (Array.isArray(param3)) {
-      tasksResults.wasParam3Used = param3[0] === "<value3>"; // Variadic parameters are always in an array
+    tasksResults.wasArg1Used = arg1 === "<value1>";
+    tasksResults.wasArg2Used = arg2 === "<value2>";
+    // Variadic arguments are always in an array
+    if (Array.isArray(arg3)) {
+      tasksResults.wasArg3Used = arg3[0] === "<value3>";
     }
   })
   .build();
 
 const customSubtask2 = task(["task-default", "subtask-default"])
-  .addOption({ name: "param1", defaultValue: "<default-value1>" })
+  .addOption({ name: "arg1", defaultValue: "<default-value1>" })
   .setAction((taskArguments) => {
     resetResults();
 
-    const { param1 } = taskArguments;
-    tasksResults.wasParam1Used = param1 === "<default-value1>";
+    const { arg1 } = taskArguments;
+    tasksResults.wasArg1Used = arg1 === "<default-value1>";
   })
   .build();
 

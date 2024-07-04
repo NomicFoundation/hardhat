@@ -203,7 +203,7 @@ Please add the property "type" with the value "module" in your package.json to e
       messageTemplate: "An internal invariant was violated: {message}",
       websiteTitle: "Invariant violation",
       websiteDescription: `An internal invariant was violated. This is probably caused by a programming error in Hardhat or in one of the used plugins.
-    
+
 Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
     },
@@ -264,21 +264,21 @@ Please ensure that you are providing a correct file URL.`,
 
 Please ensure that an action is defined for each task.`,
     },
-    POSITIONAL_PARAM_AFTER_VARIADIC: {
+    POSITIONAL_ARG_AFTER_VARIADIC: {
       number: 402,
       messageTemplate:
-        "Cannot add the positional param {name} after a variadic one",
+        "Cannot add the positional argument {name} after a variadic one",
       websiteTitle: "Invalid task definition",
       websiteDescription:
-        "A variadic parameter must always be the last positional parameter in a task definition.",
+        "A variadic argument must always be the last positional argument in a task definition.",
     },
-    REQUIRED_PARAM_AFTER_OPTIONAL: {
+    REQUIRED_ARG_AFTER_OPTIONAL: {
       number: 403,
       messageTemplate:
-        "Cannot add required positional param {name} after an optional one",
+        "Cannot add required positional argument {name} after an optional one",
       websiteTitle: "Invalid task definition",
       websiteDescription:
-        "Required positional parameters must be defined before optional ones in a task definition.",
+        "Required positional arguments must be defined before optional ones in a task definition.",
     },
     TASK_NOT_FOUND: {
       number: 404,
@@ -320,7 +320,7 @@ Please ensure that an action is defined for each task.`,
     TASK_OVERRIDE_OPTION_ALREADY_DEFINED: {
       number: 409,
       messageTemplate:
-        "{actorFragment} trying to override the parameter {optionName} of the task {task} but it is already defined",
+        "{actorFragment} trying to override the option {option} of the task {task} but it is already defined",
       websiteTitle: "Task override option already defined",
       websiteDescription:
         "An attempt is being made to override an option that has already been defined. Please ensure that the option is not defined before trying to override it.",
@@ -348,12 +348,12 @@ Please ensure that an action is defined for each task.`,
       websiteDescription:
         "The action of the task is not a function. Make sure that the file pointed to by the action URL exports a function as the default export.",
     },
-    MISSING_VALUE_FOR_PARAMETER: {
+    MISSING_VALUE_FOR_TASK_ARGUMENT: {
       number: 413,
       messageTemplate:
-        "Missing value for the parameter named {parameter} in the task {task}",
-      websiteTitle: "Missing value for the task parameter",
-      websiteDescription: `You tried to run a task, but one of the values of its parameters was missing.
+        "Missing value for the argument named {argument} in the task {task}",
+      websiteTitle: "Missing value for the task argument",
+      websiteDescription: `You tried to run a task, but one of the values of its arguments was missing.
 
 Please double check how you invoked Hardhat or ran your task.`,
     },
@@ -366,11 +366,11 @@ Please double check how you invoked Hardhat or ran your task.`,
 
 Please double check your task arguments.`,
     },
-    UNRECOGNIZED_NAMED_PARAM: {
+    UNRECOGNIZED_TASK_OPTION: {
       number: 415,
-      messageTemplate: "Invalid parameter {parameter} for the task {task}",
-      websiteTitle: "Invalid parameter value",
-      websiteDescription: `One of the parameters for your task is invalid.
+      messageTemplate: "Invalid option {option} for the task {task}",
+      websiteTitle: "Invalid option value",
+      websiteDescription: `One of the options for your task is invalid.
 
 Please double check your arguments.`,
     },
@@ -418,11 +418,11 @@ Please double check your arguments.`,
 
 Please double check your arguments.`,
     },
-    MISSING_VALUE_FOR_PARAMETER: {
+    MISSING_VALUE_FOR_ARGUMENT: {
       number: 505,
-      messageTemplate: "Missing value for the task parameter named {paramName}",
-      websiteTitle: "Missing value for the task parameter",
-      websiteDescription: `You tried to run a task, but one of the values of its parameters was missing.
+      messageTemplate: "Missing value for the task argument named {argument}",
+      websiteTitle: "Missing value for the task argument",
+      websiteDescription: `You tried to run a task, but one of the values of its arguments was missing.
 
 Please double check how you invoked Hardhat or ran your task.`,
     },
@@ -438,20 +438,19 @@ Please double check how you invoked Hardhat or ran your task.`,
     MISSING_CONFIG_FILE: {
       number: 507,
       messageTemplate:
-        'The configuration parameter "--config" was passed, but no file path was provided.',
+        'The global option "--config" was passed, but no file path was provided.',
       websiteTitle: "Missing configuration file path",
-      websiteDescription: `A path to the configuration file is expected after the parameter
-"--config", but none was provided.
+      websiteDescription: `A path to the configuration file is expected after the global option "--config", but none was provided.
 
 Please double check your arguments.`,
     },
     CANNOT_COMBINE_INIT_AND_CONFIG_PATH: {
       number: 508,
       messageTemplate:
-        'The configuration parameter "--config" cannot be used with the "init" command',
+        'The global option "--config" cannot be used with the "init" command',
       websiteTitle:
-        'The configuration parameter "--config" cannot be used with the "init" command',
-      websiteDescription: `The configuration parameter "--config" cannot be used with the "init" command.
+        'The global option "--config" cannot be used with the "init" command',
+      websiteDescription: `The global option "--config" cannot be used with the "init" command.
 
 Please double check your arguments.`,
     },
