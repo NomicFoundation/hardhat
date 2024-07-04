@@ -42,6 +42,12 @@ describe("HRE", () => {
       );
       assert.deepEqual(hre1, hre2);
     });
+
+    it("should include the builtin plugins", async () => {
+      const hre = await getHardhatRuntimeEnvironmentSingleton({});
+
+      assert.deepEqual(hre.config.plugins, builtinPlugins);
+    });
   });
 
   describe("config loading", () => {
