@@ -228,7 +228,7 @@ export class TaskManagerImplementation implements TaskManager {
           HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
           {
             actorFragment: getActorFragment(pluginId),
-            optionName,
+            option: optionName,
             task: formatTaskId(taskDefinition.id),
           },
         );

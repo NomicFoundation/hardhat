@@ -612,7 +612,7 @@ describe("TaskManagerImplementation", () => {
           HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
           {
             actorFragment: "Plugin plugin2 is",
-            optionName: "arg1",
+            option: "arg1",
             task: "task1",
           },
         ),
@@ -646,7 +646,7 @@ describe("TaskManagerImplementation", () => {
           HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
           {
             actorFragment: "Plugin plugin2 is",
-            optionName: "arg1",
+            option: "arg1",
             task: "task1",
           },
         ),
@@ -682,7 +682,7 @@ describe("TaskManagerImplementation", () => {
           HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
           {
             actorFragment: "Plugin plugin2 is",
-            optionName: "flag1",
+            option: "flag1",
             task: "task1",
           },
         ),
@@ -716,7 +716,7 @@ describe("TaskManagerImplementation", () => {
           HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
           {
             actorFragment: "Plugin plugin2 is",
-            optionName: "flag1",
+            option: "flag1",
             task: "task1",
           },
         ),
@@ -752,7 +752,7 @@ describe("TaskManagerImplementation", () => {
           HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
           {
             actorFragment: "Plugin plugin2 is",
-            optionName: "arg1",
+            option: "arg1",
             task: "task1",
           },
         ),
@@ -786,7 +786,7 @@ describe("TaskManagerImplementation", () => {
           HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
           {
             actorFragment: "Plugin plugin2 is",
-            optionName: "flag1",
+            option: "flag1",
             task: "task1",
           },
         ),
@@ -822,7 +822,7 @@ describe("TaskManagerImplementation", () => {
           HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
           {
             actorFragment: "Plugin plugin2 is",
-            optionName: "arg1",
+            option: "arg1",
             task: "task1",
           },
         ),
@@ -856,7 +856,7 @@ describe("TaskManagerImplementation", () => {
           HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
           {
             actorFragment: "Plugin plugin2 is",
-            optionName: "flag1",
+            option: "flag1",
             task: "task1",
           },
         ),

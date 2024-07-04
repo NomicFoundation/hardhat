@@ -220,7 +220,7 @@ Section Title:
   });
 
   describe("getUsageString", function () {
-    describe("with a required positional parameter", function () {
+    describe("with a required positional argument", function () {
       it("should return a usage string", function () {
         const task: Task = {
           id: ["task"],
@@ -280,7 +280,7 @@ Section Title:
       });
     });
 
-    describe("with an optional positional parameter", function () {
+    describe("with an optional positional argument", function () {
       it("should return a usage string", function () {
         const task: Task = {
           id: ["task"],
