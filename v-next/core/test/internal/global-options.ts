@@ -46,8 +46,8 @@ describe("Global Options", () => {
 
     it("should build a map of global options", () => {
       const globalOptionDefinition = globalOption({
-        name: "param1",
-        description: "param1 description",
+        name: "globalOption1",
+        description: "globalOption1 description",
         type: ArgumentType.BOOLEAN,
         defaultValue: true,
       });
@@ -59,29 +59,29 @@ describe("Global Options", () => {
       ]);
 
       assert.ok(
-        globalOptionDefinitions.has("param1"),
-        "Expected 'param1' to be defined in the global option map",
+        globalOptionDefinitions.has("globalOption1"),
+        "Expected 'globalOption1' to be defined in the global option map",
       );
       assert.deepEqual(
-        globalOptionDefinitions.get("param1")?.option,
+        globalOptionDefinitions.get("globalOption1")?.option,
         globalOptionDefinition,
       );
       assert.deepEqual(
-        globalOptionDefinitions.get("param1")?.pluginId,
+        globalOptionDefinitions.get("globalOption1")?.pluginId,
         "plugin1",
       );
     });
 
     it("should throw if a global option is already defined by another plugin", () => {
       const globalOptionDefinition = globalOption({
-        name: "param1",
-        description: "param1 description",
+        name: "globalOption1",
+        description: "globalOption1 description",
         type: ArgumentType.BOOLEAN,
         defaultValue: true,
       });
       const globalOptionDefinition2 = globalOption({
-        name: "param1",
-        description: "param1 description 2",
+        name: "globalOption1",
+        description: "globalOption1 description 2",
         type: ArgumentType.BOOLEAN,
         defaultValue: false,
       });
@@ -102,7 +102,7 @@ describe("Global Options", () => {
           HardhatError.ERRORS.GENERAL.GLOBAL_OPTION_ALREADY_DEFINED,
           {
             plugin: "plugin2",
-            globalOption: "param1",
+            globalOption: "globalOption1",
             definedByPlugin: "plugin1",
           },
         ),
@@ -268,14 +268,14 @@ describe("Global Options", () => {
           id: "plugin1",
           globalOptions: [
             buildGlobalOptionDefinition({
-              name: "param1",
-              description: "param1 description",
+              name: "globalOption1",
+              description: "globalOption1 description",
               type: ArgumentType.BOOLEAN,
               defaultValue: true,
             }),
             buildGlobalOptionDefinition({
-              name: "param2",
-              description: "param2 description",
+              name: "globalOption2",
+              description: "globalOption2 description",
               defaultValue: "default",
             }),
           ],
@@ -285,8 +285,8 @@ describe("Global Options", () => {
       const globalOptions = resolveGlobalOptions({}, globalOptionDefinitions);
 
       assert.deepEqual(globalOptions, {
-        param1: true,
-        param2: "default",
+        globalOption1: true,
+        globalOption2: "default",
       });
     });
 
@@ -296,19 +296,19 @@ describe("Global Options", () => {
           id: "plugin1",
           globalOptions: [
             buildGlobalOptionDefinition({
-              name: "param1",
-              description: "param1 description",
+              name: "globalOption1",
+              description: "globalOption1 description",
               type: ArgumentType.BOOLEAN,
               defaultValue: true,
             }),
             buildGlobalOptionDefinition({
-              name: "param2",
-              description: "param2 description",
+              name: "globalOption2",
+              description: "globalOption2 description",
               defaultValue: "default",
             }),
             buildGlobalOptionDefinition({
-              name: "param3",
-              description: "param3 description",
+              name: "globalOption3",
+              description: "globalOption3 description",
               type: ArgumentType.BIGINT,
               defaultValue: 0n,
             }),
@@ -316,20 +316,20 @@ describe("Global Options", () => {
         },
       ]);
 
-      setEnvVar("HARDHAT_PARAM3", "5n");
+      setEnvVar("HARDHAT_GLOBAL_OPTION3", "5n");
 
       const globalOptions = resolveGlobalOptions(
         {
-          param1: false,
-          param2: "user",
+          globalOption1: false,
+          globalOption2: "user",
         },
         globalOptionDefinitions,
       );
 
       assert.deepEqual(globalOptions, {
-        param1: false,
-        param2: "user",
-        param3: 5n,
+        globalOption1: false,
+        globalOption2: "user",
+        globalOption3: 5n,
       });
     });
 
@@ -339,33 +339,33 @@ describe("Global Options", () => {
           id: "plugin1",
           globalOptions: [
             buildGlobalOptionDefinition({
-              name: "param1",
-              description: "param1 description",
+              name: "globalOption1",
+              description: "globalOption1 description",
               type: ArgumentType.BOOLEAN,
               defaultValue: true,
             }),
             buildGlobalOptionDefinition({
-              name: "param2",
-              description: "param2 description",
+              name: "globalOption2",
+              description: "globalOption2 description",
               defaultValue: "default",
             }),
           ],
         },
       ]);
 
-      setEnvVar("HARDHAT_PARAM2", "env");
+      setEnvVar("HARDHAT_GLOBAL_OPTION2", "env");
 
       const globalOptions = resolveGlobalOptions(
         {
-          param1: false,
-          param2: "user",
+          globalOption1: false,
+          globalOption2: "user",
         },
         globalOptionDefinitions,
       );
 
       assert.deepEqual(globalOptions, {
-        param1: false,
-        param2: "user",
+        globalOption1: false,
+        globalOption2: "user",
       });
     });
 
@@ -375,8 +375,8 @@ describe("Global Options", () => {
           id: "plugin1",
           globalOptions: [
             buildGlobalOptionDefinition({
-              name: "param1",
-              description: "param1 description",
+              name: "globalOption1",
+              description: "globalOption1 description",
               type: ArgumentType.BOOLEAN,
               defaultValue: true,
             }),
@@ -384,18 +384,18 @@ describe("Global Options", () => {
         },
       ]);
 
-      setEnvVar("HARDHAT_PARAM3", "env");
+      setEnvVar("HARDHAT_GLOBAL_OPTION3", "env");
 
       const globalOptions = resolveGlobalOptions(
         {
-          param1: false,
-          param2: "user",
+          globalOption1: false,
+          globalOption2: "user",
         },
         globalOptionDefinitions,
       );
 
       assert.deepEqual(globalOptions, {
-        param1: false,
+        globalOption1: false,
       });
     });
 
@@ -405,8 +405,8 @@ describe("Global Options", () => {
           id: "plugin1",
           globalOptions: [
             buildGlobalOptionDefinition({
-              name: "param1",
-              description: "param1 description",
+              name: "globalOption1",
+              description: "globalOption1 description",
               type: ArgumentType.BOOLEAN,
               defaultValue: true,
             }),
@@ -414,13 +414,13 @@ describe("Global Options", () => {
         },
       ]);
 
-      setEnvVar("HARDHAT_PARAM1", "not a boolean");
+      setEnvVar("HARDHAT_GLOBAL_OPTION1", "not a boolean");
 
       assert.throws(
         () => resolveGlobalOptions({}, globalOptionDefinitions),
         new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
           value: "not a boolean",
-          name: "param1",
+          name: "globalOption1",
           type: ArgumentType.BOOLEAN,
         }),
       );
