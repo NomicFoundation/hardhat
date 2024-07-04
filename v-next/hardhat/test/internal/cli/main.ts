@@ -28,7 +28,7 @@ import chalk from "chalk";
 import {
   main,
   parseGlobalOptions,
-  parseHardhatSpecialArguments,
+  parseBuiltinGlobalOptions,
   parseTask,
   parseTaskArguments,
 } from "../../../src/internal/cli/main.js";
@@ -282,8 +282,8 @@ For global options help run: hardhat --help`;
     });
   });
 
-  describe("parseHardhatSpecialArguments", function () {
-    it("should set all the hardhat special arguments", async function () {
+  describe("parseBuiltinGlobalOptions", function () {
+    it("should set all the builtin global options", async function () {
       // All the <value> and "task" should be ignored
       const command =
         "npx hardhat --help <value> --version --show-stack-traces task --config ./path-to-config <value>";
@@ -291,7 +291,7 @@ For global options help run: hardhat --help`;
       const cliArguments = command.split(" ").slice(2);
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-      const hardhatSpecialArgs = await parseHardhatSpecialArguments(
+      const builtinGlobalOptions = await parseBuiltinGlobalOptions(
         cliArguments,
         usedCliArguments,
       );
@@ -306,7 +306,7 @@ For global options help run: hardhat --help`;
         true,
         false,
       ]);
-      assert.deepEqual(hardhatSpecialArgs, {
+      assert.deepEqual(builtinGlobalOptions, {
         init: false,
         configPath: "./path-to-config",
         showStackTraces: true,
@@ -315,13 +315,13 @@ For global options help run: hardhat --help`;
       });
     });
 
-    it("should not set any hardhat special arguments", async function () {
+    it("should not set any builtin global option", async function () {
       const command = "npx hardhat <value> --random-flag";
 
       const cliArguments = command.split(" ").slice(2);
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-      const hardhatSpecialArgs = await parseHardhatSpecialArguments(
+      const builtinGlobalOptions = await parseBuiltinGlobalOptions(
         cliArguments,
         usedCliArguments,
       );
@@ -334,7 +334,7 @@ For global options help run: hardhat --help`;
       // In the GitHub CI this value is true, but in the local environment it is false
       const expected = isCi();
 
-      assert.deepEqual(hardhatSpecialArgs, {
+      assert.deepEqual(builtinGlobalOptions, {
         init: false,
         configPath: undefined,
         showStackTraces: expected,
@@ -349,12 +349,12 @@ For global options help run: hardhat --help`;
       const cliArguments = command.split(" ").slice(2);
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-      const hardhatSpecialArgs = await parseHardhatSpecialArguments(
+      const builtinGlobalOptions = await parseBuiltinGlobalOptions(
         cliArguments,
         usedCliArguments,
       );
 
-      assert.deepEqual(hardhatSpecialArgs, {
+      assert.deepEqual(builtinGlobalOptions, {
         init: true,
         configPath: undefined,
         showStackTraces: true,
@@ -370,8 +370,7 @@ For global options help run: hardhat --help`;
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
       assert.rejects(
-        async () =>
-          parseHardhatSpecialArguments(cliArguments, usedCliArguments),
+        async () => parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
         new HardhatError(
           HardhatError.ERRORS.ARGUMENTS.CANNOT_COMBINE_INIT_AND_CONFIG_PATH,
         ),
@@ -385,8 +384,7 @@ For global options help run: hardhat --help`;
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
       assert.rejects(
-        async () =>
-          parseHardhatSpecialArguments(cliArguments, usedCliArguments),
+        async () => parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
         new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
           name: "--config",
         }),
@@ -400,16 +398,16 @@ For global options help run: hardhat --help`;
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
       assert.rejects(
-        async () =>
-          parseHardhatSpecialArguments(cliArguments, usedCliArguments),
+        async () => parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
         new HardhatError(HardhatError.ERRORS.ARGUMENTS.MISSING_CONFIG_FILE),
       );
     });
   });
 
   describe("parseGlobalOptions", function () {
-    // The function "parseGlobalOptions" uses the same function "parseDoubleDashArgs" that is used to parse task options.
-    // Most of the tests to check the "parseDoubleDashArgs" logic are in the task option section of these tests.
+    /* The function "parseGlobalOptions" utilizes "parseDoubleDashArgs" for parsing,
+     * similar to task options. Tests for "parseDoubleDashArgs" are primarily located
+     * in the task option section. */
 
     let globalOptionDefinitions: GlobalOptionDefinitions;
 

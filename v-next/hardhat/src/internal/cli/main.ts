@@ -41,31 +41,31 @@ export async function main(
   cliArguments: string[],
   print: (message: string) => void = console.log,
 ): Promise<void> {
-  let hardhatSpecialArgs;
+  let builtinGlobalOptions;
 
   try {
     const usedCliArguments: boolean[] = new Array(cliArguments.length).fill(
       false,
     );
 
-    hardhatSpecialArgs = await parseHardhatSpecialArguments(
+    builtinGlobalOptions = await parseBuiltinGlobalOptions(
       cliArguments,
       usedCliArguments,
     );
 
-    if (hardhatSpecialArgs.version) {
+    if (builtinGlobalOptions.version) {
       return await printVersionMessage(print);
     }
 
-    if (hardhatSpecialArgs.init) {
+    if (builtinGlobalOptions.init) {
       return await initHardhat();
     }
 
-    if (hardhatSpecialArgs.configPath === undefined) {
-      hardhatSpecialArgs.configPath = await resolveHardhatConfigPath();
+    if (builtinGlobalOptions.configPath === undefined) {
+      builtinGlobalOptions.configPath = await resolveHardhatConfigPath();
     }
 
-    const userConfig = await importUserConfig(hardhatSpecialArgs.configPath);
+    const userConfig = await importUserConfig(builtinGlobalOptions.configPath);
 
     const configPlugins = Array.isArray(userConfig.plugins)
       ? userConfig.plugins
@@ -73,7 +73,7 @@ export async function main(
     const plugins = [...builtinPlugins, ...configPlugins];
     const resolvedPlugins = await resolvePluginList(
       plugins,
-      hardhatSpecialArgs.configPath,
+      builtinGlobalOptions.configPath,
     );
 
     const globalOptionDefinitions =
@@ -114,7 +114,7 @@ export async function main(
 
     const task = taskOrId;
 
-    if (hardhatSpecialArgs.help) {
+    if (builtinGlobalOptions.help) {
       const taskHelp = await getHelpString(task);
 
       print(taskHelp);
@@ -129,11 +129,11 @@ export async function main(
 
     await task.run(taskArguments);
   } catch (error) {
-    printErrorMessages(error, hardhatSpecialArgs?.showStackTraces);
+    printErrorMessages(error, builtinGlobalOptions?.showStackTraces);
   }
 }
 
-export async function parseHardhatSpecialArguments(
+export async function parseBuiltinGlobalOptions(
   cliArguments: string[],
   usedCliArguments: boolean[],
 ): Promise<{
