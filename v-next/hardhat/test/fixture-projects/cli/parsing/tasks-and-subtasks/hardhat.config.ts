@@ -53,7 +53,7 @@ const customSubtask = task(["task", "subtask"])
 
     tasksResults.wasArg1Used = arg1 === "<value1>";
     tasksResults.wasArg2Used = arg2 === "<value2>";
-    // Variadic parameters are always in an array
+    // Variadic arguments are always in an array
     if (Array.isArray(arg3)) {
       tasksResults.wasArg3Used = arg3[0] === "<value3>";
     }
