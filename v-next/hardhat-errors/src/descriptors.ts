@@ -418,11 +418,11 @@ Please double check your arguments.`,
 
 Please double check your arguments.`,
     },
-    MISSING_VALUE_FOR_PARAMETER: {
+    MISSING_VALUE_FOR_ARGUMENT: {
       number: 505,
-      messageTemplate: "Missing value for the task parameter named {paramName}",
-      websiteTitle: "Missing value for the task parameter",
-      websiteDescription: `You tried to run a task, but one of the values of its parameters was missing.
+      messageTemplate: "Missing value for the task argument named {argument}",
+      websiteTitle: "Missing value for the task argument",
+      websiteDescription: `You tried to run a task, but one of the values of its arguments was missing.
 
 Please double check how you invoked Hardhat or ran your task.`,
     },

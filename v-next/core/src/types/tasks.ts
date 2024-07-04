@@ -62,7 +62,7 @@ export interface TaskPositionalArgumentDefinition<
 }
 
 /**
- * A type representing the arguments or concrete arguments of a task. That is,
+ * A type representing the concrete arguments of a task. That is,
  * the actual values passed to it.
  */
 export type TaskArguments = Record<string, ArgumentValue | ArgumentValue[]>;

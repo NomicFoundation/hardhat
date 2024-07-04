@@ -3,13 +3,13 @@ import type { HardhatUserConfig } from "@ignored/hardhat-vnext-core/config";
 import { task } from "@ignored/hardhat-vnext-core/config";
 
 export const tasksResults = {
-  wasParam1Used: false,
+  wasArg1Used: false,
 };
 
 const customTask = task("task")
-  .setDescription("A task that uses param1")
+  .setDescription("A task that uses arg1")
   .setAction(() => {
-    tasksResults.wasParam1Used = true;
+    tasksResults.wasArg1Used = true;
   })
   .build();
 
