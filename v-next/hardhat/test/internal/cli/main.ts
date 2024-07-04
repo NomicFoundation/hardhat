@@ -14,7 +14,6 @@ import assert from "node:assert/strict";
 import { afterEach, before, describe, it } from "node:test";
 import { pathToFileURL } from "node:url";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core";
 import {
   ArgumentType,
   globalFlag,
@@ -25,6 +24,7 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { isCi } from "@ignored/hardhat-vnext-utils/ci";
 import chalk from "chalk";
 
+import { createHardhatRuntimeEnvironment } from "../../../src/hre.js";
 import {
   main,
   parseGlobalOptions,

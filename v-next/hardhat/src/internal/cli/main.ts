@@ -27,9 +27,10 @@ import { isCi } from "@ignored/hardhat-vnext-utils/ci";
 import { kebabToCamelCase } from "@ignored/hardhat-vnext-utils/string";
 
 import { resolveHardhatConfigPath } from "../../config.js";
+import { createHardhatRuntimeEnvironment } from "../../hre.js";
 import { builtinPlugins } from "../builtin-plugins/index.js";
 import { importUserConfig } from "../helpers/config-loading.js";
-import { getHardhatRuntimeEnvironmentSingleton } from "../hre-singleton.js";
+import { setHardhatRuntimeEnvironmentSingleton } from "../hre-singleton.js";
 
 import { printErrorMessages } from "./error-handler.js";
 import { getGlobalHelpString } from "./helpers/getGlobalHelpString.js";
@@ -84,14 +85,14 @@ export async function main(
       usedCliArguments,
     );
 
-    const hre = await getHardhatRuntimeEnvironmentSingleton(
+    const hre = await createHardhatRuntimeEnvironment(
       userConfig,
       userProvidedGlobalOptions,
-      {
-        resolvedPlugins,
-        globalOptionDefinitions,
-      },
+      { resolvedPlugins, globalOptionDefinitions },
     );
+
+    // This must be the first time we set it, otherwise we let it crash
+    setHardhatRuntimeEnvironmentSingleton(hre);
 
     const taskOrId = parseTask(cliArguments, usedCliArguments, hre);
 
