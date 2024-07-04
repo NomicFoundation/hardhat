@@ -203,13 +203,13 @@ export class ResolvedTask implements Task {
     const isVariadic = isPositionalParameter(parameter) && parameter.isVariadic;
 
     // check if the value is valid for the parameter type
-    if (!isParameterValueValid(parameter.parameterType, value, isVariadic)) {
+    if (!isParameterValueValid(parameter.type, value, isVariadic)) {
       throw new HardhatError(
         HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
         {
           value,
           name: parameter.name,
-          type: parameter.parameterType,
+          type: parameter.type,
           task: formatTaskId(this.id),
         },
       );

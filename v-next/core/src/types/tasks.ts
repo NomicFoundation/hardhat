@@ -30,7 +30,7 @@ declare module "./config.js" {
 export interface TaskParameter<T extends ParameterType = ParameterType> {
   name: string;
   description: string;
-  parameterType: T;
+  type: T;
   defaultValue?:
     | ParameterTypeToValueType<T>
     | Array<ParameterTypeToValueType<T>>;

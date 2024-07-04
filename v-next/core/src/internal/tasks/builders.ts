@@ -151,7 +151,7 @@ export class NewTaskDefinitionBuilderImplementation
     this.#options[name] = {
       name,
       description,
-      parameterType,
+      type: parameterType,
       defaultValue,
     };
 
@@ -300,7 +300,7 @@ export class NewTaskDefinitionBuilderImplementation
     this.#positionalParams.push({
       name,
       description,
-      parameterType,
+      type: parameterType,
       defaultValue,
       isVariadic,
     });
@@ -399,7 +399,7 @@ export class TaskOverrideDefinitionBuilderImplementation
     this.#options[name] = {
       name,
       description,
-      parameterType,
+      type: parameterType,
       defaultValue,
     };
 

@@ -383,7 +383,7 @@ function parseDoubleDashArgs(
 
     usedCliArguments[i] = true;
 
-    if (paramInfo.parameterType === ParameterType.BOOLEAN) {
+    if (paramInfo.type === ParameterType.BOOLEAN) {
       if (
         usedCliArguments[i + 1] !== undefined &&
         usedCliArguments[i + 1] === false &&
@@ -413,7 +413,7 @@ function parseDoubleDashArgs(
 
       argumentsMap[paramName] = parseParameterValue(
         cliArguments[i],
-        paramInfo.parameterType,
+        paramInfo.type,
         paramName,
       );
 
@@ -464,7 +464,7 @@ function parsePositionalAndVariadicParameters(
 
     const formattedValue = parseParameterValue(
       cliArguments[i],
-      paramInfo.parameterType,
+      paramInfo.type,
       paramInfo.name,
     );
 

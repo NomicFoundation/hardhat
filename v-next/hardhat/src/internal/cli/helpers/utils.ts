@@ -77,7 +77,7 @@ export function parseOptions(task: Task): {
     options.push({
       name: formatOptionName(optionName),
       description: option.description,
-      type: option.parameterType,
+      type: option.type,
     });
   }
 

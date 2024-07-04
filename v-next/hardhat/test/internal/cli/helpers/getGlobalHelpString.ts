@@ -175,13 +175,13 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
             globalOption({
               name: "userOption1",
               description: "userOption1 description.",
-              parameterType: ParameterType.STRING,
+              type: ParameterType.STRING,
               defaultValue: "default",
             }),
             globalOption({
               name: "userOption2",
               description: "userOption2 description.",
-              parameterType: ParameterType.STRING,
+              type: ParameterType.STRING,
               defaultValue: "default",
             }),
           ],

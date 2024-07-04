@@ -55,12 +55,12 @@ To get help for a specific task run: npx hardhat task <SUBTASK> --help`;
             .set("option", {
               name: "option",
               description: "An example option",
-              parameterType: "STRING",
+              type: ParameterType.STRING,
             })
             .set("anotherOption", {
               name: "anotherOption",
               description: "Another example option",
-              parameterType: "BOOLEAN",
+              type: ParameterType.BOOLEAN,
             }),
           positionalParameters: [],
           pluginId: "task-plugin-id",
@@ -96,18 +96,18 @@ For global options help run: hardhat --help`;
             .set("option", {
               name: "option",
               description: "An example option",
-              parameterType: "STRING",
+              type: ParameterType.STRING,
             })
             .set("anotherOption", {
               name: "anotherOption",
               description: "Another example option",
-              parameterType: "BOOLEAN",
+              type: ParameterType.BOOLEAN,
             }),
           positionalParameters: [
             {
               name: "positionalArgument",
               description: "An example positional argument",
-              parameterType: ParameterType.STRING,
+              type: ParameterType.STRING,
               isVariadic: false,
             },
           ],
@@ -148,18 +148,18 @@ For global options help run: hardhat --help`;
             .set("option", {
               name: "option",
               description: "An example option",
-              parameterType: "STRING",
+              type: ParameterType.STRING,
             })
             .set("anotherOption", {
               name: "anotherOption",
               description: "Another example option",
-              parameterType: "BOOLEAN",
+              type: ParameterType.BOOLEAN,
             }),
           positionalParameters: [
             {
               name: "positionalArgument",
               description: "An example positional argument",
-              parameterType: ParameterType.STRING,
+              type: ParameterType.STRING,
               isVariadic: false,
             },
           ],
