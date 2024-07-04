@@ -81,7 +81,7 @@ export function buildGlobalOptionDefinition<T extends ArgumentType>({
   type?: T;
   defaultValue: ArgumentTypeToValueType<T>;
 }): GlobalOption {
-  const parameterType = type ?? ArgumentType.STRING;
+  const argumentType = type ?? ArgumentType.STRING;
 
   if (!isArgumentNameValid(name)) {
     throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
@@ -95,7 +95,7 @@ export function buildGlobalOptionDefinition<T extends ArgumentType>({
     });
   }
 
-  if (!isArgumentValueValid(parameterType, defaultValue)) {
+  if (!isArgumentValueValid(argumentType, defaultValue)) {
     throw new HardhatError(
       HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
       {
@@ -109,7 +109,7 @@ export function buildGlobalOptionDefinition<T extends ArgumentType>({
   return {
     name,
     description,
-    type: parameterType,
+    type: argumentType,
     defaultValue,
   };
 }
