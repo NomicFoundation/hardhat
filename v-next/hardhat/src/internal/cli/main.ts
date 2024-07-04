@@ -1,4 +1,4 @@
-import type { ParameterValue } from "@ignored/hardhat-vnext-core/types/common";
+import type { ArgumentValue } from "@ignored/hardhat-vnext-core/types/arguments";
 import type {
   GlobalOptions,
   GlobalOption,
@@ -18,7 +18,7 @@ import {
   buildGlobalOptionDefinitions,
   resolvePluginList,
 } from "@ignored/hardhat-vnext-core";
-import { ParameterType } from "@ignored/hardhat-vnext-core/types/common";
+import { ArgumentType } from "@ignored/hardhat-vnext-core/types/arguments";
 import {
   HardhatError,
   assertHardhatInvariant,
@@ -384,7 +384,7 @@ function parseDoubleDashArgs(
 
     usedCliArguments[i] = true;
 
-    if (paramInfo.type === ParameterType.BOOLEAN) {
+    if (paramInfo.type === ArgumentType.BOOLEAN) {
       if (
         usedCliArguments[i + 1] !== undefined &&
         usedCliArguments[i + 1] === false &&
@@ -393,7 +393,7 @@ function parseDoubleDashArgs(
         // The parameter could be followed by a boolean value if it does not behaves like a flag
         argumentsMap[paramName] = parseParameterValue(
           cliArguments[i + 1],
-          ParameterType.BOOLEAN,
+          ArgumentType.BOOLEAN,
           paramName,
         );
 
@@ -512,21 +512,21 @@ function validateRequiredParameters(
 
 function parseParameterValue(
   strValue: string,
-  type: ParameterType,
+  type: ArgumentType,
   argName: string,
-): ParameterValue {
+): ArgumentValue {
   switch (type) {
-    case ParameterType.STRING:
+    case ArgumentType.STRING:
       return validateAndParseString(argName, strValue);
-    case ParameterType.FILE:
+    case ArgumentType.FILE:
       return validateAndParseFile(argName, strValue);
-    case ParameterType.INT:
+    case ArgumentType.INT:
       return validateAndParseInt(argName, strValue);
-    case ParameterType.FLOAT:
+    case ArgumentType.FLOAT:
       return validateAndParseFloat(argName, strValue);
-    case ParameterType.BIGINT:
+    case ArgumentType.BIGINT:
       return validateAndParseBigInt(argName, strValue);
-    case ParameterType.BOOLEAN:
+    case ArgumentType.BOOLEAN:
       return validateAndParseBoolean(argName, strValue);
   }
 }

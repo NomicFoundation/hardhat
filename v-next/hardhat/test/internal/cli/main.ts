@@ -16,7 +16,7 @@ import { pathToFileURL } from "node:url";
 
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core";
 import {
-  ParameterType,
+  ArgumentType,
   globalFlag,
   globalOption,
   task,
@@ -413,7 +413,7 @@ For global options help run: hardhat --help`;
     before(function () {
       const GLOBAL_OPTION = globalOption({
         name: "param",
-        type: ParameterType.STRING,
+        type: ArgumentType.STRING,
         defaultValue: "default",
         description: "",
       });
@@ -572,17 +572,17 @@ For global options help run: hardhat --help`;
           }),
           task(["task1"]).addOption({
             name: "flag",
-            type: ParameterType.BOOLEAN,
+            type: ArgumentType.BOOLEAN,
             defaultValue: false, // flag behavior
           }),
           task(["task2"]).addOption({
             name: "param",
-            type: ParameterType.BOOLEAN,
+            type: ArgumentType.BOOLEAN,
             defaultValue: true,
           }),
           task(["task3"]).addOption({
             name: "param",
-            type: ParameterType.BOOLEAN,
+            type: ArgumentType.BOOLEAN,
           }),
           task(["task4"]).addOption({
             name: "camelCaseParam",
@@ -1069,17 +1069,17 @@ For global options help run: hardhat --help`;
         before(async function () {
           tasksBuilders = [
             task(["task0"])
-              .addOption({ name: "param", type: ParameterType.BIGINT })
+              .addOption({ name: "param", type: ArgumentType.BIGINT })
               .addOption({
                 name: "param2",
-                type: ParameterType.BOOLEAN,
+                type: ArgumentType.BOOLEAN,
               })
-              .addOption({ name: "param3", type: ParameterType.FILE })
-              .addOption({ name: "param4", type: ParameterType.FLOAT })
-              .addOption({ name: "param5", type: ParameterType.INT })
+              .addOption({ name: "param3", type: ArgumentType.FILE })
+              .addOption({ name: "param4", type: ArgumentType.FLOAT })
+              .addOption({ name: "param5", type: ArgumentType.INT })
               .addOption({
                 name: "param6",
-                type: ParameterType.STRING,
+                type: ArgumentType.STRING,
               }),
           ];
 
@@ -1119,27 +1119,27 @@ For global options help run: hardhat --help`;
             task(["task0"])
               .addPositionalParameter({
                 name: "param",
-                type: ParameterType.BIGINT,
+                type: ArgumentType.BIGINT,
               })
               .addPositionalParameter({
                 name: "param2",
-                type: ParameterType.BOOLEAN,
+                type: ArgumentType.BOOLEAN,
               })
               .addPositionalParameter({
                 name: "param3",
-                type: ParameterType.FILE,
+                type: ArgumentType.FILE,
               })
               .addPositionalParameter({
                 name: "param4",
-                type: ParameterType.FLOAT,
+                type: ArgumentType.FLOAT,
               })
               .addPositionalParameter({
                 name: "param5",
-                type: ParameterType.INT,
+                type: ArgumentType.INT,
               })
               .addPositionalParameter({
                 name: "param6",
-                type: ParameterType.STRING,
+                type: ArgumentType.STRING,
               }),
           ];
 
@@ -1175,12 +1175,12 @@ For global options help run: hardhat --help`;
 
       describe("variadic parameters", function () {
         const paramTypes = [
-          ParameterType.BIGINT,
-          ParameterType.BOOLEAN,
-          ParameterType.FILE,
-          ParameterType.FLOAT,
-          ParameterType.INT,
-          ParameterType.STRING,
+          ArgumentType.BIGINT,
+          ArgumentType.BOOLEAN,
+          ArgumentType.FILE,
+          ArgumentType.FLOAT,
+          ArgumentType.INT,
+          ArgumentType.STRING,
         ];
 
         const paramValues = [
@@ -1241,7 +1241,7 @@ For global options help run: hardhat --help`;
           task(["task0"])
             .addOption({
               name: "param",
-              type: ParameterType.BOOLEAN,
+              type: ArgumentType.BOOLEAN,
               defaultValue: false,
             })
             .addPositionalParameter({ name: "posParam" }),

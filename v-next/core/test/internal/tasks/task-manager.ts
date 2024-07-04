@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
-import { ParameterType, globalOption } from "../../../src/config.js";
+import { ArgumentType, globalOption } from "../../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../../src/index.js";
 import {
   EmptyTaskDefinitionBuilderImplementation,
@@ -48,7 +48,7 @@ describe("TaskManagerImplementation", () => {
             globalOption({
               name: "globalOption1",
               description: "",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
               defaultValue: "",
             }),
           ],
@@ -394,7 +394,7 @@ describe("TaskManagerImplementation", () => {
                 globalOption({
                   name: "param1",
                   description: "",
-                  type: ParameterType.STRING,
+                  type: ArgumentType.STRING,
                   defaultValue: "",
                 }),
               ],
@@ -432,7 +432,7 @@ describe("TaskManagerImplementation", () => {
                 globalOption({
                   name: "param1",
                   description: "",
-                  type: ParameterType.STRING,
+                  type: ArgumentType.STRING,
                   defaultValue: "",
                 }),
               ],
@@ -1400,15 +1400,15 @@ describe("TaskManagerImplementation", () => {
                 new NewTaskDefinitionBuilderImplementation("task1")
                   .addOption({
                     name: "option",
-                    type: ParameterType.BIGINT,
+                    type: ArgumentType.BIGINT,
                   })
                   .addPositionalParameter({
                     name: "posParam",
-                    type: ParameterType.INT,
+                    type: ArgumentType.INT,
                   })
                   .addVariadicParameter({
                     name: "varParam",
-                    type: ParameterType.FILE,
+                    type: ArgumentType.FILE,
                   })
                   .setAction(() => {})
                   .build(),
@@ -1431,7 +1431,7 @@ describe("TaskManagerImplementation", () => {
             {
               value: "not a bigint",
               name: "option",
-              type: ParameterType.BIGINT,
+              type: ArgumentType.BIGINT,
               task: "task1",
             },
           ),
@@ -1449,7 +1449,7 @@ describe("TaskManagerImplementation", () => {
             {
               value: true,
               name: "posParam",
-              type: ParameterType.INT,
+              type: ArgumentType.INT,
               task: "task1",
             },
           ),
@@ -1467,7 +1467,7 @@ describe("TaskManagerImplementation", () => {
             {
               value: "not an array",
               name: "varParam",
-              type: ParameterType.FILE,
+              type: ArgumentType.FILE,
               task: "task1",
             },
           ),
@@ -1485,7 +1485,7 @@ describe("TaskManagerImplementation", () => {
             {
               value: ["file1", 5, "file3"],
               name: "varParam",
-              type: ParameterType.FILE,
+              type: ArgumentType.FILE,
               task: "task1",
             },
           ),

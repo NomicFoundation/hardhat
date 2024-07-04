@@ -1,8 +1,8 @@
 import type {
-  ParameterType,
-  ParameterTypeToValueType,
-  ParameterValue,
-} from "./common.js";
+  ArgumentType,
+  ArgumentTypeToValueType,
+  ArgumentValue,
+} from "./arguments.js";
 import type { HardhatRuntimeEnvironment } from "./hre.js";
 
 // We add the TaskManager to the HRE with a module augmentation to avoid
@@ -27,13 +27,11 @@ declare module "./config.js" {
   }
 }
 
-export interface TaskParameter<T extends ParameterType = ParameterType> {
+export interface TaskParameter<T extends ArgumentType = ArgumentType> {
   name: string;
   description: string;
   type: T;
-  defaultValue?:
-    | ParameterTypeToValueType<T>
-    | Array<ParameterTypeToValueType<T>>;
+  defaultValue?: ArgumentTypeToValueType<T> | Array<ArgumentTypeToValueType<T>>;
 }
 
 /**
@@ -41,13 +39,13 @@ export interface TaskParameter<T extends ParameterType = ParameterType> {
  *
  * They have a name, description, type, and an optional default value.
  *
- * If the type is ParameterType.BOOLEAN, the default value is `false`, the
+ * If the type is ArgumentType.BOOLEAN, the default value is `false`, the
  * parameter is considered a flag, and can be used as `--<name>` to set it to
  * `true`.
  */
-export interface TaskOption<T extends ParameterType = ParameterType>
+export interface TaskOption<T extends ArgumentType = ArgumentType>
   extends TaskParameter<T> {
-  defaultValue?: ParameterTypeToValueType<T>;
+  defaultValue?: ArgumentTypeToValueType<T>;
 }
 
 /**
@@ -57,9 +55,8 @@ export interface TaskOption<T extends ParameterType = ParameterType>
  * If the parameter is variadic, it can have multiple values. A variadic parameter
  * can only be the last positional parameter, and it consumes all the remaining values.
  */
-export interface PositionalTaskParameter<
-  T extends ParameterType = ParameterType,
-> extends TaskParameter<T> {
+export interface PositionalTaskParameter<T extends ArgumentType = ArgumentType>
+  extends TaskParameter<T> {
   isVariadic: boolean;
 }
 
@@ -67,7 +64,7 @@ export interface PositionalTaskParameter<
  * A type representing the arguments or concrete parameters of a task. That is,
  * the actual values passed to it.
  */
-export type TaskArguments = Record<string, ParameterValue | ParameterValue[]>;
+export type TaskArguments = Record<string, ArgumentValue | ArgumentValue[]>;
 
 /**
  * The type of a new task's action function.
@@ -197,20 +194,20 @@ export interface NewTaskDefinitionBuilder {
    *
    * A task option is one that is used as `--<name> value` in the CLI.
    *
-   * If the type is `ParameterType.BOOLEAN`, the default value is `false`, the
+   * If the type is `ArgumentType.BOOLEAN`, the default value is `false`, the
    * parameter is considered a flag, and can be used as `--<name>` to set it to
    * `true`.
    *
-   * The type of the parameter defaults to `ParameterType.STRING`.
+   * The type of the parameter defaults to `ArgumentType.STRING`.
    *
    * The default value, if provided, should be of the same type as the
    * parameter.
    */
-  addOption<T extends ParameterType>(paramOptions: {
+  addOption<T extends ArgumentType>(paramOptions: {
     name: string;
     description?: string;
     type?: T;
-    defaultValue?: ParameterTypeToValueType<T>;
+    defaultValue?: ArgumentTypeToValueType<T>;
   }): this;
 
   /**
@@ -225,7 +222,7 @@ export interface NewTaskDefinitionBuilder {
    * and whose position matters. For example, `mv <from> <to>` has two
    * positional parameters.
    *
-   * The type of the parameter defaults to `ParameterType.STRING`.
+   * The type of the parameter defaults to `ArgumentType.STRING`.
    *
    * The default value, if provided, should be of the same type as the
    * parameter.
@@ -234,11 +231,11 @@ export interface NewTaskDefinitionBuilder {
    * optional, and any other positional parameters after it must also be
    * optional.
    */
-  addPositionalParameter<T extends ParameterType>(paramOptions: {
+  addPositionalParameter<T extends ArgumentType>(paramOptions: {
     name: string;
     description?: string;
     type?: T;
-    defaultValue?: ParameterTypeToValueType<T>;
+    defaultValue?: ArgumentTypeToValueType<T>;
   }): this;
 
   /**
@@ -255,11 +252,11 @@ export interface NewTaskDefinitionBuilder {
    * Note that this parameter must be the last positional parameter. No other
    * positional parameter can follow it, including variadic parameters.
    */
-  addVariadicParameter<T extends ParameterType>(paramOptions: {
+  addVariadicParameter<T extends ArgumentType>(paramOptions: {
     name: string;
     description?: string;
     type?: T;
-    defaultValue?: Array<ParameterTypeToValueType<T>>;
+    defaultValue?: Array<ArgumentTypeToValueType<T>>;
   }): this;
 
   /**
@@ -289,11 +286,11 @@ export interface TaskOverrideDefinitionBuilder {
    *
    * @see NewTaskDefinitionBuilder.addOption
    */
-  addOption<T extends ParameterType>(paramOptions: {
+  addOption<T extends ArgumentType>(paramOptions: {
     name: string;
     description?: string;
     type?: T;
-    defaultValue?: ParameterTypeToValueType<T>;
+    defaultValue?: ArgumentTypeToValueType<T>;
   }): this;
 
   /**

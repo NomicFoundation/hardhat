@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { ParameterType } from "../../src/config.js";
+import { ArgumentType } from "../../src/config.js";
 import {
   isValidParamNameCasing,
   isParameterValueValid,
@@ -31,60 +31,57 @@ describe("Parameters", () => {
 
   describe("isParameterValueValid", () => {
     it("should validate string parameters", () => {
-      assert.equal(isParameterValueValid(ParameterType.STRING, "foo"), true);
-      assert.equal(isParameterValueValid(ParameterType.STRING, 123), false);
+      assert.equal(isParameterValueValid(ArgumentType.STRING, "foo"), true);
+      assert.equal(isParameterValueValid(ArgumentType.STRING, 123), false);
     });
 
     it("should validate boolean parameters", () => {
-      assert.equal(isParameterValueValid(ParameterType.BOOLEAN, true), true);
-      assert.equal(isParameterValueValid(ParameterType.BOOLEAN, "true"), false);
+      assert.equal(isParameterValueValid(ArgumentType.BOOLEAN, true), true);
+      assert.equal(isParameterValueValid(ArgumentType.BOOLEAN, "true"), false);
     });
 
     it("should validate int parameters", () => {
-      assert.equal(isParameterValueValid(ParameterType.INT, 123), true);
-      assert.equal(isParameterValueValid(ParameterType.INT, 123.45), false);
-      assert.equal(isParameterValueValid(ParameterType.INT, 123n), false);
+      assert.equal(isParameterValueValid(ArgumentType.INT, 123), true);
+      assert.equal(isParameterValueValid(ArgumentType.INT, 123.45), false);
+      assert.equal(isParameterValueValid(ArgumentType.INT, 123n), false);
     });
 
     it("should validate bigint parameters", () => {
       assert.equal(
-        isParameterValueValid(ParameterType.BIGINT, BigInt(123)),
+        isParameterValueValid(ArgumentType.BIGINT, BigInt(123)),
         true,
       );
-      assert.equal(isParameterValueValid(ParameterType.BIGINT, 123n), true);
-      assert.equal(isParameterValueValid(ParameterType.BIGINT, 123), false);
+      assert.equal(isParameterValueValid(ArgumentType.BIGINT, 123n), true);
+      assert.equal(isParameterValueValid(ArgumentType.BIGINT, 123), false);
     });
 
     it("should validate float parameters", () => {
-      assert.equal(isParameterValueValid(ParameterType.FLOAT, 123), true);
-      assert.equal(isParameterValueValid(ParameterType.FLOAT, 123.45), true);
-      assert.equal(isParameterValueValid(ParameterType.FLOAT, 123n), false);
+      assert.equal(isParameterValueValid(ArgumentType.FLOAT, 123), true);
+      assert.equal(isParameterValueValid(ArgumentType.FLOAT, 123.45), true);
+      assert.equal(isParameterValueValid(ArgumentType.FLOAT, 123n), false);
     });
 
     it("should validate file parameters", () => {
-      assert.equal(isParameterValueValid(ParameterType.FILE, "foo.txt"), true);
+      assert.equal(isParameterValueValid(ArgumentType.FILE, "foo.txt"), true);
       assert.equal(
-        isParameterValueValid(ParameterType.FILE, "random string"),
+        isParameterValueValid(ArgumentType.FILE, "random string"),
         true,
       );
-      assert.equal(isParameterValueValid(ParameterType.FILE, 123), false);
+      assert.equal(isParameterValueValid(ArgumentType.FILE, 123), false);
     });
 
     it("should validate variadic parameters", () => {
       assert.equal(
-        isParameterValueValid(ParameterType.STRING, ["foo", "bar"], true),
+        isParameterValueValid(ArgumentType.STRING, ["foo", "bar"], true),
         true,
       );
       assert.equal(
-        isParameterValueValid(ParameterType.BIGINT, [123n, BigInt(123)], true),
+        isParameterValueValid(ArgumentType.BIGINT, [123n, BigInt(123)], true),
         true,
       );
+      assert.equal(isParameterValueValid(ArgumentType.STRING, [], true), false);
       assert.equal(
-        isParameterValueValid(ParameterType.STRING, [], true),
-        false,
-      );
-      assert.equal(
-        isParameterValueValid(ParameterType.STRING, ["foo", 123], true),
+        isParameterValueValid(ArgumentType.STRING, ["foo", 123], true),
         false,
       );
     });

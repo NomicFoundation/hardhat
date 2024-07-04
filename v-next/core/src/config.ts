@@ -1,4 +1,4 @@
-import type { ParameterTypeToValueType } from "./types/common.js";
+import type { ArgumentTypeToValueType } from "./types/arguments.js";
 import type { ConfigurationVariable } from "./types/config.js";
 import type { GlobalOption } from "./types/global-options.js";
 import type {
@@ -13,11 +13,11 @@ import {
   NewTaskDefinitionBuilderImplementation,
   TaskOverrideDefinitionBuilderImplementation,
 } from "./internal/tasks/builders.js";
-import { ParameterType } from "./types/common.js";
+import { ArgumentType } from "./types/arguments.js";
 
 export type { HardhatUserConfig } from "./types/config.js";
 
-export { ParameterType } from "./types/common.js";
+export { ArgumentType } from "./types/arguments.js";
 
 /**
  * Creates a configuration variable, which will be fetched at runtime.
@@ -58,11 +58,11 @@ export function overrideTask(
 /**
  * Defines a global option.
  */
-export function globalOption<T extends ParameterType>(options: {
+export function globalOption<T extends ArgumentType>(options: {
   name: string;
   description: string;
   type?: T;
-  defaultValue: ParameterTypeToValueType<T>;
+  defaultValue: ArgumentTypeToValueType<T>;
 }): GlobalOption {
   return buildGlobalOptionDefinition(options);
 }
@@ -76,7 +76,7 @@ export function globalFlag(options: {
 }): GlobalOption {
   return buildGlobalOptionDefinition({
     ...options,
-    type: ParameterType.BOOLEAN,
+    type: ArgumentType.BOOLEAN,
     defaultValue: false,
   });
 }

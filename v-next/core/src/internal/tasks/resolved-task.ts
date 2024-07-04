@@ -1,4 +1,4 @@
-import type { ParameterValue } from "../../types/common.js";
+import type { ArgumentValue } from "../../types/arguments.js";
 import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
 import type {
   TaskOption,
@@ -167,7 +167,7 @@ export class ResolvedTask implements Task {
    */
   #validateRequiredParameter(
     parameter: TaskParameter,
-    value: ParameterValue | ParameterValue[],
+    value: ArgumentValue | ArgumentValue[],
   ) {
     if (parameter.defaultValue === undefined && value === undefined) {
       throw new HardhatError(
@@ -189,7 +189,7 @@ export class ResolvedTask implements Task {
    */
   #validateParameterType(
     parameter: TaskParameter,
-    value: ParameterValue | ParameterValue[],
+    value: ArgumentValue | ArgumentValue[],
   ) {
     // skip type validation for optional parameters with undefined value
     if (value === undefined && parameter.defaultValue !== undefined) {

@@ -1,4 +1,4 @@
-import type { ParameterTypeToValueType } from "../../types/common.js";
+import type { ArgumentTypeToValueType } from "../../types/arguments.js";
 import type {
   TaskOption,
   NewTaskActionFunction,
@@ -14,7 +14,7 @@ import type {
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
-import { ParameterType } from "../../types/common.js";
+import { ArgumentType } from "../../types/arguments.js";
 import { TaskDefinitionType } from "../../types/tasks.js";
 import {
   RESERVED_PARAMETER_NAMES,
@@ -100,7 +100,7 @@ export class NewTaskDefinitionBuilderImplementation
     return this;
   }
 
-  public addOption<T extends ParameterType>({
+  public addOption<T extends ArgumentType>({
     name,
     description = "",
     type,
@@ -109,9 +109,9 @@ export class NewTaskDefinitionBuilderImplementation
     name: string;
     description?: string;
     type?: T;
-    defaultValue?: ParameterTypeToValueType<T>;
+    defaultValue?: ArgumentTypeToValueType<T>;
   }): this {
-    const parameterType = type ?? ParameterType.STRING;
+    const parameterType = type ?? ArgumentType.STRING;
 
     if (!isValidParamNameCasing(name)) {
       throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
@@ -161,12 +161,12 @@ export class NewTaskDefinitionBuilderImplementation
   public addFlag(paramOptions: { name: string; description?: string }): this {
     return this.addOption({
       ...paramOptions,
-      type: ParameterType.BOOLEAN,
+      type: ArgumentType.BOOLEAN,
       defaultValue: false,
     });
   }
 
-  public addPositionalParameter<T extends ParameterType>({
+  public addPositionalParameter<T extends ArgumentType>({
     name,
     description,
     type,
@@ -175,7 +175,7 @@ export class NewTaskDefinitionBuilderImplementation
     name: string;
     description?: string;
     type?: T;
-    defaultValue?: ParameterTypeToValueType<T>;
+    defaultValue?: ArgumentTypeToValueType<T>;
   }): this {
     return this.#addPositionalParameter({
       name,
@@ -186,7 +186,7 @@ export class NewTaskDefinitionBuilderImplementation
     });
   }
 
-  public addVariadicParameter<T extends ParameterType>({
+  public addVariadicParameter<T extends ArgumentType>({
     name,
     description,
     type,
@@ -195,7 +195,7 @@ export class NewTaskDefinitionBuilderImplementation
     name: string;
     description?: string;
     type?: T;
-    defaultValue?: Array<ParameterTypeToValueType<T>>;
+    defaultValue?: Array<ArgumentTypeToValueType<T>>;
   }): this {
     return this.#addPositionalParameter({
       name,
@@ -223,7 +223,7 @@ export class NewTaskDefinitionBuilderImplementation
     };
   }
 
-  #addPositionalParameter<T extends ParameterType>({
+  #addPositionalParameter<T extends ArgumentType>({
     name,
     description = "",
     type,
@@ -234,11 +234,11 @@ export class NewTaskDefinitionBuilderImplementation
     description?: string;
     type?: T;
     defaultValue?:
-      | ParameterTypeToValueType<T>
-      | Array<ParameterTypeToValueType<T>>;
+      | ArgumentTypeToValueType<T>
+      | Array<ArgumentTypeToValueType<T>>;
     isVariadic: boolean;
   }): this {
-    const parameterType = type ?? ParameterType.STRING;
+    const parameterType = type ?? ArgumentType.STRING;
 
     if (!isValidParamNameCasing(name)) {
       throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
@@ -350,7 +350,7 @@ export class TaskOverrideDefinitionBuilderImplementation
     return this;
   }
 
-  public addOption<T extends ParameterType>({
+  public addOption<T extends ArgumentType>({
     name,
     description = "",
     type,
@@ -359,9 +359,9 @@ export class TaskOverrideDefinitionBuilderImplementation
     name: string;
     description?: string;
     type?: T;
-    defaultValue?: ParameterTypeToValueType<T>;
+    defaultValue?: ArgumentTypeToValueType<T>;
   }): this {
-    const parameterType = type ?? ParameterType.STRING;
+    const parameterType = type ?? ArgumentType.STRING;
 
     if (!isValidParamNameCasing(name)) {
       throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
@@ -409,7 +409,7 @@ export class TaskOverrideDefinitionBuilderImplementation
   public addFlag(paramOptions: { name: string; description?: string }): this {
     return this.addOption({
       ...paramOptions,
-      type: ParameterType.BOOLEAN,
+      type: ArgumentType.BOOLEAN,
       defaultValue: false,
     });
   }

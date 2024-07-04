@@ -9,7 +9,7 @@ import {
   NewTaskDefinitionBuilderImplementation,
   TaskOverrideDefinitionBuilderImplementation,
 } from "../../../src/internal/tasks/builders.js";
-import { ParameterType } from "../../../src/types/common.js";
+import { ArgumentType } from "../../../src/types/arguments.js";
 import { TaskDefinitionType } from "../../../src/types/tasks.js";
 
 describe("Task builders", () => {
@@ -307,7 +307,7 @@ describe("Task builders", () => {
             param: {
               name: "param",
               description: "",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
               defaultValue: undefined,
             },
           },
@@ -335,7 +335,7 @@ describe("Task builders", () => {
             param: {
               name: "param",
               description: "Parameter description",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
               defaultValue: undefined,
             },
           },
@@ -363,7 +363,7 @@ describe("Task builders", () => {
             param: {
               name: "param",
               description: "",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
               defaultValue: "default",
             },
           },
@@ -378,7 +378,7 @@ describe("Task builders", () => {
           .setAction(taskAction)
           .addOption({
             name: "param",
-            type: ParameterType.INT,
+            type: ArgumentType.INT,
           })
           .build();
 
@@ -391,7 +391,7 @@ describe("Task builders", () => {
             param: {
               name: "param",
               description: "",
-              type: ParameterType.INT,
+              type: ArgumentType.INT,
               defaultValue: undefined,
             },
           },
@@ -418,7 +418,7 @@ describe("Task builders", () => {
             flag: {
               name: "flag",
               description: "",
-              type: ParameterType.BOOLEAN,
+              type: ArgumentType.BOOLEAN,
               defaultValue: false,
             },
           },
@@ -443,7 +443,7 @@ describe("Task builders", () => {
             flag: {
               name: "flag",
               description: "Flag description",
-              type: ParameterType.BOOLEAN,
+              type: ArgumentType.BOOLEAN,
               defaultValue: false,
             },
           },
@@ -471,7 +471,7 @@ describe("Task builders", () => {
             {
               name: "param",
               description: "",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
               defaultValue: undefined,
               isVariadic: false,
             },
@@ -500,7 +500,7 @@ describe("Task builders", () => {
             {
               name: "param",
               description: "Param description",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
               defaultValue: undefined,
               isVariadic: false,
             },
@@ -529,7 +529,7 @@ describe("Task builders", () => {
             {
               name: "param",
               description: "",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
               defaultValue: "default",
               isVariadic: false,
             },
@@ -544,7 +544,7 @@ describe("Task builders", () => {
           .setAction(taskAction)
           .addPositionalParameter({
             name: "param",
-            type: ParameterType.INT,
+            type: ArgumentType.INT,
           })
           .build();
 
@@ -558,7 +558,7 @@ describe("Task builders", () => {
             {
               name: "param",
               description: "",
-              type: ParameterType.INT,
+              type: ArgumentType.INT,
               defaultValue: undefined,
               isVariadic: false,
             },
@@ -586,7 +586,7 @@ describe("Task builders", () => {
             {
               name: "param",
               description: "",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
               defaultValue: undefined,
               isVariadic: true,
             },
@@ -615,7 +615,7 @@ describe("Task builders", () => {
             {
               name: "param",
               description: "Param description",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
               defaultValue: undefined,
               isVariadic: true,
             },
@@ -644,7 +644,7 @@ describe("Task builders", () => {
             {
               name: "param",
               description: "",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
               defaultValue: ["default1", "default2"],
               isVariadic: true,
             },
@@ -657,7 +657,7 @@ describe("Task builders", () => {
         const taskAction = () => {};
         const taskDefinition = builder
           .setAction(taskAction)
-          .addVariadicParameter({ name: "param", type: ParameterType.INT })
+          .addVariadicParameter({ name: "param", type: ArgumentType.INT })
           .build();
 
         assert.deepEqual(taskDefinition, {
@@ -670,7 +670,7 @@ describe("Task builders", () => {
             {
               name: "param",
               description: "",
-              type: ParameterType.INT,
+              type: ArgumentType.INT,
               defaultValue: undefined,
               isVariadic: true,
             },
@@ -755,14 +755,14 @@ describe("Task builders", () => {
                 /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
                 Intentionally testing an invalid type */
                 defaultValue: 123 as any,
-                type: ParameterType.STRING,
+                type: ArgumentType.STRING,
               }),
             new HardhatError(
               HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
               {
                 value: 123,
                 name: "defaultValue",
-                type: ParameterType.STRING,
+                type: ArgumentType.STRING,
                 task: "task-id",
               },
             ),
@@ -776,14 +776,14 @@ describe("Task builders", () => {
               /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
               Intentionally testing an invalid type */
               defaultValue: [123, 456, 789] as any,
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
             }),
           new HardhatError(
             HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
             {
               value: [123, 456, 789],
               name: "defaultValue",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
               task: "task-id",
             },
           ),
@@ -1000,7 +1000,7 @@ describe("Task builders", () => {
             param: {
               name: "param",
               description: "",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
               defaultValue: undefined,
             },
           },
@@ -1029,7 +1029,7 @@ describe("Task builders", () => {
             param: {
               name: "param",
               description: "Parameter description",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
               defaultValue: undefined,
             },
           },
@@ -1058,7 +1058,7 @@ describe("Task builders", () => {
             param: {
               name: "param",
               description: "",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
               defaultValue: "default",
             },
           },
@@ -1074,7 +1074,7 @@ describe("Task builders", () => {
           .setAction(taskAction)
           .addOption({
             name: "param",
-            type: ParameterType.INT,
+            type: ArgumentType.INT,
           })
           .build();
 
@@ -1087,7 +1087,7 @@ describe("Task builders", () => {
             param: {
               name: "param",
               description: "",
-              type: ParameterType.INT,
+              type: ArgumentType.INT,
               defaultValue: undefined,
             },
           },
@@ -1115,7 +1115,7 @@ describe("Task builders", () => {
             flag: {
               name: "flag",
               description: "",
-              type: ParameterType.BOOLEAN,
+              type: ArgumentType.BOOLEAN,
               defaultValue: false,
             },
           },
@@ -1141,7 +1141,7 @@ describe("Task builders", () => {
             flag: {
               name: "flag",
               description: "Flag description",
-              type: ParameterType.BOOLEAN,
+              type: ArgumentType.BOOLEAN,
               defaultValue: false,
             },
           },
@@ -1221,14 +1221,14 @@ describe("Task builders", () => {
               /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
               Intentionally testing an invalid type */
               defaultValue: 123 as any,
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
             }),
           new HardhatError(
             HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
             {
               value: 123,
               name: "defaultValue",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
               task: "task-id",
             },
           ),

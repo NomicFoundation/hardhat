@@ -3,7 +3,7 @@ import type { Task } from "@ignored/hardhat-vnext-core/types/tasks";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { ParameterType } from "@ignored/hardhat-vnext-core/config";
+import { ArgumentType } from "@ignored/hardhat-vnext-core/config";
 import chalk from "chalk";
 
 import { getHelpString } from "../../../../src/internal/cli/helpers/getHelpString.js";
@@ -55,12 +55,12 @@ To get help for a specific task run: npx hardhat task <SUBTASK> --help`;
             .set("option", {
               name: "option",
               description: "An example option",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
             })
             .set("anotherOption", {
               name: "anotherOption",
               description: "Another example option",
-              type: ParameterType.BOOLEAN,
+              type: ArgumentType.BOOLEAN,
             }),
           positionalParameters: [],
           pluginId: "task-plugin-id",
@@ -96,18 +96,18 @@ For global options help run: hardhat --help`;
             .set("option", {
               name: "option",
               description: "An example option",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
             })
             .set("anotherOption", {
               name: "anotherOption",
               description: "Another example option",
-              type: ParameterType.BOOLEAN,
+              type: ArgumentType.BOOLEAN,
             }),
           positionalParameters: [
             {
               name: "positionalArgument",
               description: "An example positional argument",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
               isVariadic: false,
             },
           ],
@@ -148,18 +148,18 @@ For global options help run: hardhat --help`;
             .set("option", {
               name: "option",
               description: "An example option",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
             })
             .set("anotherOption", {
               name: "anotherOption",
               description: "Another example option",
-              type: ParameterType.BOOLEAN,
+              type: ArgumentType.BOOLEAN,
             }),
           positionalParameters: [
             {
               name: "positionalArgument",
               description: "An example positional argument",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
               isVariadic: false,
             },
           ],

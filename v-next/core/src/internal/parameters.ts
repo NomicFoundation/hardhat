@@ -1,8 +1,8 @@
-import type { ParameterValue } from "../types/common.js";
+import type { ArgumentValue } from "../types/arguments.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
-import { ParameterType } from "../types/common.js";
+import { ArgumentType } from "../types/arguments.js";
 
 /**
  * Names that can't be used as global- nor task-parameter names. These are
@@ -29,7 +29,7 @@ export function isValidParamNameCasing(name: string): boolean {
  * is considered invalid.
  */
 export function isParameterValueValid(
-  type: ParameterType,
+  type: ArgumentType,
   value: unknown,
   isVariadic: boolean = false,
 ): boolean {
@@ -43,16 +43,16 @@ export function isParameterValueValid(
 }
 
 const parameterTypeValidators: Record<
-  ParameterType,
+  ArgumentType,
   (value: unknown) => boolean
 > = {
-  [ParameterType.STRING]: (value): value is string => typeof value === "string",
-  [ParameterType.BOOLEAN]: (value): value is boolean =>
+  [ArgumentType.STRING]: (value): value is string => typeof value === "string",
+  [ArgumentType.BOOLEAN]: (value): value is boolean =>
     typeof value === "boolean",
-  [ParameterType.INT]: (value): value is number => Number.isInteger(value),
-  [ParameterType.BIGINT]: (value): value is bigint => typeof value === "bigint",
-  [ParameterType.FLOAT]: (value): value is number => typeof value === "number",
-  [ParameterType.FILE]: (value): value is string => typeof value === "string",
+  [ArgumentType.INT]: (value): value is number => Number.isInteger(value),
+  [ArgumentType.BIGINT]: (value): value is bigint => typeof value === "bigint",
+  [ArgumentType.FLOAT]: (value): value is number => typeof value === "number",
+  [ArgumentType.FILE]: (value): value is string => typeof value === "string",
 };
 
 /**
@@ -62,20 +62,20 @@ const parameterTypeValidators: Record<
 // we should move it to a shared place and add tests
 export function parseParameterValue(
   value: string,
-  type: ParameterType,
+  type: ArgumentType,
   name: string,
-): ParameterValue {
+): ArgumentValue {
   switch (type) {
-    case ParameterType.STRING:
-    case ParameterType.FILE:
+    case ArgumentType.STRING:
+    case ArgumentType.FILE:
       return value;
-    case ParameterType.INT:
+    case ArgumentType.INT:
       return validateAndParseInt(name, value);
-    case ParameterType.FLOAT:
+    case ArgumentType.FLOAT:
       return validateAndParseFloat(name, value);
-    case ParameterType.BIGINT:
+    case ArgumentType.BIGINT:
       return validateAndParseBigInt(name, value);
-    case ParameterType.BOOLEAN:
+    case ArgumentType.BOOLEAN:
       return validateAndParseBoolean(name, value);
   }
 }
@@ -90,7 +90,7 @@ function validateAndParseInt(name: string, value: string): number {
       {
         value,
         name,
-        type: ParameterType.INT,
+        type: ArgumentType.INT,
       },
     );
   }
@@ -108,7 +108,7 @@ function validateAndParseFloat(name: string, value: string): number {
       {
         value,
         name,
-        type: ParameterType.FLOAT,
+        type: ArgumentType.FLOAT,
       },
     );
   }
@@ -126,7 +126,7 @@ function validateAndParseBigInt(name: string, value: string): bigint {
       {
         value,
         name,
-        type: ParameterType.BIGINT,
+        type: ArgumentType.BIGINT,
       },
     );
   }
@@ -143,7 +143,7 @@ function validateAndParseBoolean(name: string, value: string): boolean {
       {
         value,
         name,
-        type: ParameterType.BOOLEAN,
+        type: ArgumentType.BOOLEAN,
       },
     );
   }

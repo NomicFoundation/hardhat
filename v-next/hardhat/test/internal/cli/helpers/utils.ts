@@ -3,7 +3,7 @@ import type { Task } from "@ignored/hardhat-vnext-core/types/tasks";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { ParameterType } from "@ignored/hardhat-vnext-core/config";
+import { ArgumentType } from "@ignored/hardhat-vnext-core/config";
 
 import {
   parseTasks,
@@ -120,24 +120,24 @@ describe("utils", function () {
           .set("option", {
             name: "option",
             description: "An example option",
-            type: ParameterType.STRING,
+            type: ArgumentType.STRING,
           })
           .set("anotherOption", {
             name: "anotherOption",
             description: "Another example option",
-            type: ParameterType.BOOLEAN,
+            type: ArgumentType.BOOLEAN,
           }),
         positionalParameters: [
           {
             name: "positionalArgument",
             description: "An example argument",
-            type: ParameterType.STRING,
+            type: ArgumentType.STRING,
             isVariadic: false,
           },
           {
             name: "anotherPositionalArgument",
             description: "Another example argument",
-            type: ParameterType.STRING,
+            type: ArgumentType.STRING,
             isVariadic: false,
             defaultValue: "default",
           },
@@ -230,18 +230,18 @@ Section Title:
             .set("option", {
               name: "option",
               description: "An example option",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
             })
             .set("anotherOption", {
               name: "anotherOption",
               description: "Another example option",
-              type: ParameterType.BOOLEAN,
+              type: ArgumentType.BOOLEAN,
             }),
           positionalParameters: [
             {
               name: "positionalArgument",
               description: "An example argument",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
               isVariadic: false,
             },
           ],
@@ -257,12 +257,12 @@ Section Title:
             {
               name: "--option",
               description: "An example option",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
             },
             {
               name: "--another-option",
               description: "Another example option",
-              type: ParameterType.BOOLEAN,
+              type: ArgumentType.BOOLEAN,
             },
           ],
           [
@@ -290,18 +290,18 @@ Section Title:
             .set("option", {
               name: "option",
               description: "An example option",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
             })
             .set("anotherOption", {
               name: "anotherOption",
               description: "Another example option",
-              type: ParameterType.BOOLEAN,
+              type: ArgumentType.BOOLEAN,
             }),
           positionalParameters: [
             {
               name: "positionalArgument",
               description: "An example argument",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
               isVariadic: false,
             },
           ],
@@ -317,12 +317,12 @@ Section Title:
             {
               name: "--option",
               description: "An example option",
-              type: ParameterType.STRING,
+              type: ArgumentType.STRING,
             },
             {
               name: "--another-option",
               description: "Another example option",
-              type: ParameterType.BOOLEAN,
+              type: ArgumentType.BOOLEAN,
             },
           ],
           [

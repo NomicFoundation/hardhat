@@ -10,10 +10,10 @@ export type * from "./index.js";
 export * from "./config.js";
 export type * from "./config.js";
 
+export * from "./types/arguments.js";
+export type * from "./types/arguments.js";
 export * from "./types/cli.js";
 export type * from "./types/cli.js";
-export * from "./types/common.js";
-export type * from "./types/common.js";
 export * from "./types/config.js";
 export type * from "./types/config.js";
 export * from "./types/global-options.js";

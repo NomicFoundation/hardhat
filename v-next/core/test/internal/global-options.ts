@@ -3,7 +3,7 @@ import { after, before, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
-import { globalOption, ParameterType } from "../../src/config.js";
+import { globalOption, ArgumentType } from "../../src/config.js";
 import {
   buildGlobalOptionDefinitions,
   buildGlobalOptionDefinition,
@@ -48,7 +48,7 @@ describe("Global Options", () => {
       const globalOptionDefinition = globalOption({
         name: "param1",
         description: "param1 description",
-        type: ParameterType.BOOLEAN,
+        type: ArgumentType.BOOLEAN,
         defaultValue: true,
       });
       const globalOptionDefinitions = buildGlobalOptionDefinitions([
@@ -76,13 +76,13 @@ describe("Global Options", () => {
       const globalOptionDefinition = globalOption({
         name: "param1",
         description: "param1 description",
-        type: ParameterType.BOOLEAN,
+        type: ArgumentType.BOOLEAN,
         defaultValue: true,
       });
       const globalOptionDefinition2 = globalOption({
         name: "param1",
         description: "param1 description 2",
-        type: ParameterType.BOOLEAN,
+        type: ArgumentType.BOOLEAN,
         defaultValue: false,
       });
 
@@ -119,7 +119,7 @@ describe("Global Options", () => {
                 globalOption({
                   name: "foo bar",
                   description: "Foo description",
-                  type: ParameterType.STRING,
+                  type: ArgumentType.STRING,
                   defaultValue: "bar",
                 }),
               ],
@@ -142,7 +142,7 @@ describe("Global Options", () => {
                   globalOption({
                     name,
                     description: "Foo description",
-                    type: ParameterType.STRING,
+                    type: ArgumentType.STRING,
                     defaultValue: "bar",
                   }),
                 ],
@@ -165,7 +165,7 @@ describe("Global Options", () => {
                 globalOption({
                   name: "foo",
                   description: "Foo description",
-                  type: ParameterType.BOOLEAN,
+                  type: ArgumentType.BOOLEAN,
                   /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
                   Intentionally testing an invalid type */
                   defaultValue: "bar" as any,
@@ -176,7 +176,7 @@ describe("Global Options", () => {
         new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
           value: "bar",
           name: "defaultValue",
-          type: ParameterType.BOOLEAN,
+          type: ArgumentType.BOOLEAN,
         }),
       );
     });
@@ -187,7 +187,7 @@ describe("Global Options", () => {
       const options = {
         name: "foo",
         description: "Foo description",
-        type: ParameterType.BOOLEAN,
+        type: ArgumentType.BOOLEAN,
         defaultValue: true,
       };
       const globalOptionDefinition = buildGlobalOptionDefinition(options);
@@ -205,7 +205,7 @@ describe("Global Options", () => {
 
       assert.deepEqual(globalOptionDefinition, {
         ...options,
-        type: ParameterType.STRING,
+        type: ArgumentType.STRING,
       });
     });
 
@@ -245,7 +245,7 @@ describe("Global Options", () => {
           buildGlobalOptionDefinition({
             name: "foo",
             description: "Foo description",
-            type: ParameterType.BOOLEAN,
+            type: ArgumentType.BOOLEAN,
             /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
             Intentionally testing an invalid type */
             defaultValue: "bar" as any,
@@ -253,7 +253,7 @@ describe("Global Options", () => {
         new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
           value: "bar",
           name: "defaultValue",
-          type: ParameterType.BOOLEAN,
+          type: ArgumentType.BOOLEAN,
         }),
       );
     });
@@ -270,7 +270,7 @@ describe("Global Options", () => {
             buildGlobalOptionDefinition({
               name: "param1",
               description: "param1 description",
-              type: ParameterType.BOOLEAN,
+              type: ArgumentType.BOOLEAN,
               defaultValue: true,
             }),
             buildGlobalOptionDefinition({
@@ -298,7 +298,7 @@ describe("Global Options", () => {
             buildGlobalOptionDefinition({
               name: "param1",
               description: "param1 description",
-              type: ParameterType.BOOLEAN,
+              type: ArgumentType.BOOLEAN,
               defaultValue: true,
             }),
             buildGlobalOptionDefinition({
@@ -309,7 +309,7 @@ describe("Global Options", () => {
             buildGlobalOptionDefinition({
               name: "param3",
               description: "param3 description",
-              type: ParameterType.BIGINT,
+              type: ArgumentType.BIGINT,
               defaultValue: 0n,
             }),
           ],
@@ -341,7 +341,7 @@ describe("Global Options", () => {
             buildGlobalOptionDefinition({
               name: "param1",
               description: "param1 description",
-              type: ParameterType.BOOLEAN,
+              type: ArgumentType.BOOLEAN,
               defaultValue: true,
             }),
             buildGlobalOptionDefinition({
@@ -377,7 +377,7 @@ describe("Global Options", () => {
             buildGlobalOptionDefinition({
               name: "param1",
               description: "param1 description",
-              type: ParameterType.BOOLEAN,
+              type: ArgumentType.BOOLEAN,
               defaultValue: true,
             }),
           ],
@@ -407,7 +407,7 @@ describe("Global Options", () => {
             buildGlobalOptionDefinition({
               name: "param1",
               description: "param1 description",
-              type: ParameterType.BOOLEAN,
+              type: ArgumentType.BOOLEAN,
               defaultValue: true,
             }),
           ],
@@ -421,7 +421,7 @@ describe("Global Options", () => {
         new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
           value: "not a boolean",
           name: "param1",
-          type: ParameterType.BOOLEAN,
+          type: ArgumentType.BOOLEAN,
         }),
       );
     });

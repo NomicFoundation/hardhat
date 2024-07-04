@@ -1,4 +1,4 @@
-import type { ParameterType, ParameterTypeToValueType } from "./common.js";
+import type { ArgumentType, ArgumentTypeToValueType } from "./arguments.js";
 
 /**
  * A global option with an associated value and a default if not provided by
@@ -13,11 +13,11 @@ import type { ParameterType, ParameterTypeToValueType } from "./common.js";
  *
  * If both are present, the second one takes precedence.
  */
-export interface GlobalOption<T extends ParameterType = ParameterType> {
+export interface GlobalOption<T extends ArgumentType = ArgumentType> {
   name: string;
   description: string;
-  type: ParameterType;
-  defaultValue: ParameterTypeToValueType<T>;
+  type: ArgumentType;
+  defaultValue: ArgumentTypeToValueType<T>;
 }
 
 /**
