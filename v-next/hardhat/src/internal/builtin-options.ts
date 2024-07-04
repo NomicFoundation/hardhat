@@ -1,8 +1,8 @@
-import type { GlobalOption } from "../types/global-options.js";
+import type { GlobalOptionDefinition } from "../types/global-options.js";
 
 import { globalOption, ArgumentType } from "../config.js";
 
-export const BUILTIN_OPTIONS: GlobalOption[] = [
+export const BUILTIN_OPTIONS: GlobalOptionDefinition[] = [
   globalOption({
     name: "config",
     description: "A Hardhat config file.",

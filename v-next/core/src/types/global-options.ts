@@ -13,7 +13,7 @@ import type { ArgumentType, ArgumentTypeToValueType } from "./arguments.js";
  *
  * If both are present, the second one takes precedence.
  */
-export interface GlobalOption<T extends ArgumentType = ArgumentType> {
+export interface GlobalOptionDefinition<T extends ArgumentType = ArgumentType> {
   name: string;
   description: string;
   type: ArgumentType;
@@ -33,7 +33,7 @@ export interface GlobalOptions {}
  */
 export interface GlobalOptionDefinitionsEntry {
   pluginId: string;
-  option: GlobalOption;
+  option: GlobalOptionDefinition;
 }
 
 /**

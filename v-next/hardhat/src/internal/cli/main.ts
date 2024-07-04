@@ -1,7 +1,7 @@
 import type { ArgumentValue } from "@ignored/hardhat-vnext-core/types/arguments";
 import type {
   GlobalOptions,
-  GlobalOption,
+  GlobalOptionDefinition,
   GlobalOptionDefinitions,
 } from "@ignored/hardhat-vnext-core/types/global-options";
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core/types/hre";
@@ -343,7 +343,7 @@ export function parseTaskArguments(
 function parseOptions(
   cliArguments: string[],
   usedCliArguments: boolean[],
-  optionDefinitions: Map<string, TaskOptionDefinition | GlobalOption>,
+  optionDefinitions: Map<string, TaskOptionDefinition | GlobalOptionDefinition>,
   providedArguments: TaskArguments,
   ignoreUnknownOption = false,
 ) {

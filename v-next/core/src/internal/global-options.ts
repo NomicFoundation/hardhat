@@ -4,7 +4,7 @@ import type {
 } from "../types/arguments.js";
 import type {
   GlobalOptions,
-  GlobalOption,
+  GlobalOptionDefinition,
   GlobalOptionDefinitions,
 } from "../types/global-options.js";
 import type { HardhatPlugin } from "../types/plugins.js";
@@ -80,7 +80,7 @@ export function buildGlobalOptionDefinition<T extends ArgumentType>({
   description: string;
   type?: T;
   defaultValue: ArgumentTypeToValueType<T>;
-}): GlobalOption {
+}): GlobalOptionDefinition {
   const argumentType = type ?? ArgumentType.STRING;
 
   if (!isArgumentNameValid(name)) {
