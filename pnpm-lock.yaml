@@ -1547,6 +1547,9 @@ importers:
       '@ignored/hardhat-vnext-node-test-reporter':
         specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-node-test-reporter
+      '@nomicfoundation/hardhat-test-utils':
+        specifier: workspace:^
+        version: link:../hardhat-test-utils
       '@types/node':
         specifier: ^20.14.9
         version: 20.14.9
@@ -1653,6 +1656,9 @@ importers:
       '@ignored/hardhat-vnext-node-test-reporter':
         specifier: workspace:^3.0.0-next.0
         version: link:../hardhat-node-test-reporter
+      '@nomicfoundation/hardhat-test-utils':
+        specifier: workspace:^
+        version: link:../hardhat-test-utils
       '@types/ci-info':
         specifier: ^2.0.0
         version: 2.0.0
@@ -1975,6 +1981,9 @@ importers:
       '@ignored/hardhat-vnext-node-test-reporter':
         specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-node-test-reporter
+      '@nomicfoundation/hardhat-test-utils':
+        specifier: workspace:^
+        version: link:../hardhat-test-utils
       '@types/node':
         specifier: ^20.14.9
         version: 20.14.9
@@ -2029,6 +2038,9 @@ importers:
       '@ignored/hardhat-vnext-node-test-reporter':
         specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-node-test-reporter
+      '@nomicfoundation/hardhat-test-utils':
+        specifier: workspace:^
+        version: link:../hardhat-test-utils
       '@types/node':
         specifier: ^20.14.9
         version: 20.14.9
