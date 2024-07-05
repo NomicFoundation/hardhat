@@ -1,5 +1,10 @@
 import { ensureDir } from "./fs.js";
 
+/**
+ *  Returns the path to the hardhat configuration directory.
+ *
+ * @returns The path to the hardhat configuration directory.
+ */
 export async function getConfigDir(): Promise<string> {
   const { config } = await generatePaths();
   await ensureDir(config);
