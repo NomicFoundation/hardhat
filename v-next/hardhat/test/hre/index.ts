@@ -7,15 +7,15 @@ import { resolveHardhatConfigPath } from "../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../src/hre.js";
 import { builtinPlugins } from "../../src/internal/builtin-plugins/index.js";
 import {
-  getHardhatRuntimeEnvironmentSingleton,
-  resetHardhatRuntimeEnvironmentSingleton,
-  setHardhatRuntimeEnvironmentSingleton,
-} from "../../src/internal/hre-singleton.js";
+  getGlobalHardhatRuntimeEnvironment,
+  resetGlobalHardhatRuntimeEnvironment,
+  setGlobalHardhatRuntimeEnvironment,
+} from "../../src/internal/global-hre-instance.js";
 import { useFixtureProject } from "../helpers/project.js";
 
 describe("HRE", () => {
   afterEach(() => {
-    resetHardhatRuntimeEnvironmentSingleton();
+    resetGlobalHardhatRuntimeEnvironment();
   });
 
   describe("createHardhatRuntimeEnvironment", () => {
@@ -26,30 +26,30 @@ describe("HRE", () => {
     });
   });
 
-  describe("getHardhatRuntimeEnvironmentSingleton", () => {
-    it("Should return undefined if it wasn't set", () => {
-      assert.equal(getHardhatRuntimeEnvironmentSingleton(), undefined);
-      assert.equal(getHardhatRuntimeEnvironmentSingleton(), undefined);
+  describe("getGlobalHardhatRuntimeEnvironment", () => {
+    it("Should return undefined if the global instance isn't set", () => {
+      assert.equal(getGlobalHardhatRuntimeEnvironment(), undefined);
+      assert.equal(getGlobalHardhatRuntimeEnvironment(), undefined);
     });
 
     it("should return the same instance after it's set", async () => {
       const hre = await createHardhatRuntimeEnvironment({});
-      setHardhatRuntimeEnvironmentSingleton(hre);
+      setGlobalHardhatRuntimeEnvironment(hre);
 
-      const hre1 = getHardhatRuntimeEnvironmentSingleton();
-      const hre2 = getHardhatRuntimeEnvironmentSingleton();
+      const hre1 = getGlobalHardhatRuntimeEnvironment();
+      const hre2 = getGlobalHardhatRuntimeEnvironment();
 
       assert.ok(hre1 === hre, "The instances are not the same");
       assert.ok(hre2 === hre, "The instances are not the same");
     });
 
-    it("should include the builtin plugins", async () => {
+    it("should include the builtin plugins when initialized using createHardhatRuntimeEnvironment", async () => {
       const hre = await createHardhatRuntimeEnvironment({});
-      setHardhatRuntimeEnvironmentSingleton(hre);
-      const singletonHre = getHardhatRuntimeEnvironmentSingleton();
+      setGlobalHardhatRuntimeEnvironment(hre);
+      const globalHre = getGlobalHardhatRuntimeEnvironment();
 
-      assert.ok(singletonHre === hre, "The instances are not the same");
-      assert.deepEqual(singletonHre.config.plugins, builtinPlugins);
+      assert.ok(globalHre === hre, "The instances are not the same");
+      assert.deepEqual(globalHre.config.plugins, builtinPlugins);
     });
   });
 

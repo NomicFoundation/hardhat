@@ -7,14 +7,14 @@ import type { UserInterruptionManager } from "./types/user-interruptions.js";
 
 import { resolveHardhatConfigPath } from "./config.js";
 import { createHardhatRuntimeEnvironment } from "./hre.js";
-import { importUserConfig } from "./internal/helpers/config-loading.js";
 import {
-  getHardhatRuntimeEnvironmentSingleton,
-  setHardhatRuntimeEnvironmentSingleton,
-} from "./internal/hre-singleton.js";
+  getGlobalHardhatRuntimeEnvironment,
+  setGlobalHardhatRuntimeEnvironment,
+} from "./internal/global-hre-instance.js";
+import { importUserConfig } from "./internal/helpers/config-loading.js";
 
 let maybeHre: HardhatRuntimeEnvironment | undefined =
-  getHardhatRuntimeEnvironmentSingleton();
+  getGlobalHardhatRuntimeEnvironment();
 
 if (maybeHre === undefined) {
   /* eslint-disable no-restricted-syntax -- Allow top-level await here */
@@ -24,7 +24,7 @@ if (maybeHre === undefined) {
   maybeHre = await createHardhatRuntimeEnvironment(userConfig);
   /* eslint-enable no-restricted-syntax */
 
-  setHardhatRuntimeEnvironmentSingleton(maybeHre);
+  setGlobalHardhatRuntimeEnvironment(maybeHre);
 }
 
 const hre: HardhatRuntimeEnvironment = maybeHre;

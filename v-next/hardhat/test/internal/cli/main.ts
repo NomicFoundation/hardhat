@@ -32,7 +32,7 @@ import {
   parseTask,
   parseTaskArguments,
 } from "../../../src/internal/cli/main.js";
-import { resetHardhatRuntimeEnvironmentSingleton } from "../../../src/internal/hre-singleton.js";
+import { resetGlobalHardhatRuntimeEnvironment } from "../../../src/internal/global-hre-instance.js";
 import { getHardhatVersion } from "../../../src/internal/utils/package.js";
 import { useFixtureProject } from "../../helpers/project.js";
 
@@ -83,7 +83,7 @@ async function getTasksAndSubtaskResults(
 describe("main", function () {
   describe("main", function () {
     afterEach(function () {
-      resetHardhatRuntimeEnvironmentSingleton();
+      resetGlobalHardhatRuntimeEnvironment();
     });
 
     describe("version", function () {
