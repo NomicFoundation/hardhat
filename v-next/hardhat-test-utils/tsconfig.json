@@ -1,0 +1,14 @@
+{
+  "extends": "../../config-v-next/tsconfig.json",
+  "references": [
+    {
+      "path": "../hardhat-errors"
+    },
+    {
+      "path": "../hardhat-utils"
+    },
+    {
+      "path": "../hardhat-node-test-reporter"
+    }
+  ]
+}
