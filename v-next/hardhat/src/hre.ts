@@ -5,7 +5,7 @@ import type { UnsafeHardhatRuntimeEnvironmentOptions } from "@ignored/hardhat-vn
 
 import {
   // eslint-disable-next-line no-restricted-imports -- This is the one place where we allow it
-  createHardhatRuntimeEnvironment as originalCreateHardhatRuntimeEnvironment,
+  createBaseHardhatRuntimeEnvironment,
   resolvePluginList,
 } from "@ignored/hardhat-vnext-core";
 
@@ -37,7 +37,7 @@ export async function createHardhatRuntimeEnvironment(
     unsafeOptions.resolvedPlugins = resolvedPlugins;
   }
 
-  return originalCreateHardhatRuntimeEnvironment(
+  return createBaseHardhatRuntimeEnvironment(
     config,
     userProvidedGlobalOptions,
     unsafeOptions,
