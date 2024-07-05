@@ -1,8 +1,10 @@
 import type { HardhatUserConfig } from "./types/config.js";
 import type { GlobalOptions } from "./types/global-options.js";
 import type { HardhatRuntimeEnvironment } from "./types/hre.js";
+import type { UnsafeHardhatRuntimeEnvironmentOptions } from "@ignored/hardhat-vnext-core/types/cli";
 
 import {
+  // eslint-disable-next-line no-restricted-imports -- This is the one place where we allow it
   createHardhatRuntimeEnvironment as originalCreateHardhatRuntimeEnvironment,
   resolvePluginList,
 } from "@ignored/hardhat-vnext-core";
@@ -20,19 +22,24 @@ import { builtinPlugins } from "./internal/builtin-plugins/index.js";
 export async function createHardhatRuntimeEnvironment(
   config: HardhatUserConfig,
   userProvidedGlobalOptions: Partial<GlobalOptions> = {},
+  unsafeOptions: UnsafeHardhatRuntimeEnvironmentOptions = {},
 ): Promise<HardhatRuntimeEnvironment> {
-  const plugins = [...builtinPlugins, ...(config.plugins ?? [])];
+  if (unsafeOptions.resolvedPlugins === undefined) {
+    const plugins = [...builtinPlugins, ...(config.plugins ?? [])];
 
-  // We resolve the plugins within npm modules relative to the current working
-  const basePathForNpmResolution = process.cwd();
-  const resolvedPlugins = await resolvePluginList(
-    plugins,
-    basePathForNpmResolution,
-  );
+    // We resolve the plugins within npm modules relative to the current working
+    const basePathForNpmResolution = process.cwd();
+    const resolvedPlugins = await resolvePluginList(
+      plugins,
+      basePathForNpmResolution,
+    );
+
+    unsafeOptions.resolvedPlugins = resolvedPlugins;
+  }
 
   return originalCreateHardhatRuntimeEnvironment(
     config,
     userProvidedGlobalOptions,
-    { resolvedPlugins },
+    unsafeOptions,
   );
 }

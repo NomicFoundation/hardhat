@@ -6,16 +6,28 @@ import type { TaskManager } from "./types/tasks.js";
 import type { UserInterruptionManager } from "./types/user-interruptions.js";
 
 import { resolveHardhatConfigPath } from "./config.js";
+import { createHardhatRuntimeEnvironment } from "./hre.js";
 import { importUserConfig } from "./internal/helpers/config-loading.js";
-import { getHardhatRuntimeEnvironmentSingleton } from "./internal/hre-singleton.js";
+import {
+  getHardhatRuntimeEnvironmentSingleton,
+  setHardhatRuntimeEnvironmentSingleton,
+} from "./internal/hre-singleton.js";
 
-/* eslint-disable no-restricted-syntax -- Allow top-level await here */
-const configPath = await resolveHardhatConfigPath();
-const userConfig = await importUserConfig(configPath);
+let maybeHre: HardhatRuntimeEnvironment | undefined =
+  getHardhatRuntimeEnvironmentSingleton();
 
-const hre: HardhatRuntimeEnvironment =
-  await getHardhatRuntimeEnvironmentSingleton(userConfig);
-/* eslint-enable no-restricted-syntax */
+if (maybeHre === undefined) {
+  /* eslint-disable no-restricted-syntax -- Allow top-level await here */
+  const configPath = await resolveHardhatConfigPath();
+  const userConfig = await importUserConfig(configPath);
+
+  maybeHre = await createHardhatRuntimeEnvironment(userConfig);
+  /* eslint-enable no-restricted-syntax */
+
+  setHardhatRuntimeEnvironmentSingleton(maybeHre);
+}
+
+const hre: HardhatRuntimeEnvironment = maybeHre;
 
 export const config: HardhatConfig = hre.config;
 export const tasks: TaskManager = hre.tasks;

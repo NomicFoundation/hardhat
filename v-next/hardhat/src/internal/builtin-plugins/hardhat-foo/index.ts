@@ -19,7 +19,7 @@ const hardhatPlugin: HardhatPlugin = {
       })
       .build(),
   ],
-  globalOptions: [globalFlag({ name: "flag", description: "A flag" })],
+  globalOptions: [globalFlag({ name: "fooPluginFlag", description: "A flag" })],
 };
 
 export default hardhatPlugin;
