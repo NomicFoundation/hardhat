@@ -5,6 +5,14 @@ import assert from "node:assert/strict";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 
+/**
+ * Asserts that an error is a HardhatError with a certain descriptor and message
+ * arguments.
+ *
+ * @param error The error.
+ * @param descritor The error descriptor.
+ * @param messageArguments The message arguments.
+ */
 export function assertIsHardhatError<ErrorDescriptorT extends ErrorDescriptor>(
   error: unknown,
   descritor: ErrorDescriptorT,
@@ -25,6 +33,14 @@ export function assertIsHardhatError<ErrorDescriptorT extends ErrorDescriptor>(
   assert.deepEqual(error.messageArguments, messageArguments);
 }
 
+/**
+ * Asserts that calling a function throws a HardhatError with a certain
+ * descriptor and message arguments.
+ *
+ * @param f The function that should throw.
+ * @param descritor The error descriptor.
+ * @param messageArguments The message arguments.
+ */
 export function assertThrowsHardhatError<
   ErrorDescriptorT extends ErrorDescriptor,
 >(
@@ -44,18 +60,27 @@ export function assertThrowsHardhatError<
   assert.fail("Function did not throw any error");
 }
 
+/**
+ * Asserts that an async operation (i.e. calling an async function or a promise)
+ * gets rejected with a HardhatError with a certain descriptor and message
+ * arguments.
+ *
+ * @param op The async operation. If it's a function, it's called and awaited.
+ * @param descritor The error descriptor.
+ * @param messageArguments The message arguments.
+ */
 export async function assertRejectsWithHardhatError<
   ErrorDescriptorT extends ErrorDescriptor,
 >(
-  f: (() => Promise<any>) | Promise<any>,
+  op: (() => Promise<any>) | Promise<any>,
   descritor: ErrorDescriptorT,
   messageArguments: HardhatError<ErrorDescriptorT>["messageArguments"],
 ): Promise<void> {
   try {
-    if (f instanceof Promise) {
-      await f;
+    if (op instanceof Promise) {
+      await op;
     } else {
-      await f();
+      await op();
     }
   } catch (error) {
     ensureError(error);
