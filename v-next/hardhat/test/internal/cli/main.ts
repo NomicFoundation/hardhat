@@ -22,6 +22,10 @@ import {
 } from "@ignored/hardhat-vnext-core/config";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { isCi } from "@ignored/hardhat-vnext-utils/ci";
+import {
+  assertThrowsHardhatError,
+  assertThrowsHardhatErrorAsync,
+} from "@nomicfoundation/hardhat-test-utils";
 import chalk from "chalk";
 
 import { createHardhatRuntimeEnvironment } from "../../../src/hre.js";
@@ -369,11 +373,10 @@ For global options help run: hardhat --help`;
       const cliArguments = command.split(" ").slice(2);
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-      assert.rejects(
+      assertThrowsHardhatErrorAsync(
         async () => parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
-        new HardhatError(
-          HardhatError.ERRORS.ARGUMENTS.CANNOT_COMBINE_INIT_AND_CONFIG_PATH,
-        ),
+        HardhatError.ERRORS.ARGUMENTS.CANNOT_COMBINE_INIT_AND_CONFIG_PATH,
+        {},
       );
     });
 
@@ -383,11 +386,12 @@ For global options help run: hardhat --help`;
       const cliArguments = command.split(" ").slice(2);
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-      assert.rejects(
+      assertThrowsHardhatErrorAsync(
         async () => parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
-        new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
+        HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
+        {
           name: "--config",
-        }),
+        },
       );
     });
 
@@ -397,9 +401,10 @@ For global options help run: hardhat --help`;
       const cliArguments = command.split(" ").slice(2);
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-      assert.rejects(
+      assertThrowsHardhatErrorAsync(
         async () => parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
-        new HardhatError(HardhatError.ERRORS.ARGUMENTS.MISSING_CONFIG_FILE),
+        HardhatError.ERRORS.ARGUMENTS.MISSING_CONFIG_FILE,
+        {},
       );
     });
   });
@@ -744,11 +749,12 @@ For global options help run: hardhat --help`;
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-        assert.throws(
+        assertThrowsHardhatError(
           () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
-          new HardhatError(HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_OPTION, {
+          HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_OPTION,
+          {
             option: "--undefinedArg",
-          }),
+          },
         );
       });
 
@@ -758,11 +764,12 @@ For global options help run: hardhat --help`;
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-        assert.throws(
+        assertThrowsHardhatError(
           () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
-          new HardhatError(HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_OPTION, {
+          HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_OPTION,
+          {
             option: "--arg",
-          }),
+          },
         );
       });
 
@@ -772,14 +779,12 @@ For global options help run: hardhat --help`;
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-        assert.throws(
+        assertThrowsHardhatError(
           () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
-          new HardhatError(
-            HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
-            {
-              argument: "--arg",
-            },
-          ),
+          HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+          {
+            argument: "--arg",
+          },
         );
       });
 
@@ -789,14 +794,12 @@ For global options help run: hardhat --help`;
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = [false, false, true, false];
 
-        assert.throws(
+        assertThrowsHardhatError(
           () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
-          new HardhatError(
-            HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
-            {
-              argument: "--arg",
-            },
-          ),
+          HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+          {
+            argument: "--arg",
+          },
         );
       });
 
@@ -806,14 +809,12 @@ For global options help run: hardhat --help`;
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = [false];
 
-        assert.throws(
+        assertThrowsHardhatError(
           () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
-          new HardhatError(
-            HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
-            {
-              argument: "arg",
-            },
-          ),
+          HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+          {
+            argument: "arg",
+          },
         );
       });
     });
@@ -975,14 +976,12 @@ For global options help run: hardhat --help`;
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = [false];
 
-        assert.throws(
+        assertThrowsHardhatError(
           () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
-          new HardhatError(
-            HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
-            {
-              argument: "arg",
-            },
-          ),
+          HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+          {
+            argument: "arg",
+          },
         );
       });
     });
@@ -1050,14 +1049,12 @@ For global options help run: hardhat --help`;
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = [false];
 
-        assert.throws(
+        assertThrowsHardhatError(
           () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
-          new HardhatError(
-            HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
-            {
-              argument: "arg",
-            },
-          ),
+          HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+          {
+            argument: "arg",
+          },
         );
       });
     });
@@ -1362,11 +1359,12 @@ For global options help run: hardhat --help`;
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
         // Throws because the flag argument does not expect values, so the "false" argument will not be consumed
-        assert.throws(
+        assertThrowsHardhatError(
           () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
-          new HardhatError(HardhatError.ERRORS.ARGUMENTS.UNUSED_ARGUMENT, {
+          HardhatError.ERRORS.ARGUMENTS.UNUSED_ARGUMENT,
+          {
             value: "<value>",
-          }),
+          },
         );
       });
     });

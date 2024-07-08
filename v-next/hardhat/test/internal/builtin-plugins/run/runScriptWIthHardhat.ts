@@ -1,9 +1,9 @@
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core/types/hre";
 
-import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { assertThrowsHardhatErrorAsync } from "@nomicfoundation/hardhat-test-utils";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import runScriptWithHardhat from "../../../../src/internal/builtin-plugins/run/runScriptWithHardhat.js";
@@ -17,20 +17,22 @@ describe("runScriptWithHardhat", function () {
   });
 
   it("should throw if script is not a string", async function () {
-    await assert.rejects(
+    await assertThrowsHardhatErrorAsync(
       runScriptWithHardhat({ script: 123, noCompile: false }, hre),
-      new HardhatError(HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR, {
+      HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR,
+      {
         message: "Expected script to be a string",
-      }),
+      },
     );
   });
 
   it("should throw if noCompile is not a boolean", async function () {
-    await assert.rejects(
+    await assertThrowsHardhatErrorAsync(
       runScriptWithHardhat({ script: "script.js", noCompile: 123 }, hre),
-      new HardhatError(HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR, {
+      HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR,
+      {
         message: "Expected noCompile to be a boolean",
-      }),
+      },
     );
   });
 
@@ -38,14 +40,15 @@ describe("runScriptWithHardhat", function () {
     useFixtureProject("run-js-script");
 
     it("should throw if script does not exist", async function () {
-      await assert.rejects(
+      await assertThrowsHardhatErrorAsync(
         runScriptWithHardhat(
           { script: "./scripts/non-existent.js", noCompile: false },
           hre,
         ),
-        new HardhatError(HardhatError.ERRORS.BUILTIN_TASKS.RUN_FILE_NOT_FOUND, {
+        HardhatError.ERRORS.BUILTIN_TASKS.RUN_FILE_NOT_FOUND,
+        {
           script: "./scripts/non-existent.js",
-        }),
+        },
       );
     });
 
@@ -57,15 +60,16 @@ describe("runScriptWithHardhat", function () {
     });
 
     it("should throw if the script throws", async function () {
-      await assert.rejects(
+      await assertThrowsHardhatErrorAsync(
         runScriptWithHardhat(
           { script: "./scripts/throws.js", noCompile: false },
           hre,
         ),
-        new HardhatError(HardhatError.ERRORS.BUILTIN_TASKS.RUN_SCRIPT_ERROR, {
+        HardhatError.ERRORS.BUILTIN_TASKS.RUN_SCRIPT_ERROR,
+        {
           script: "./scripts/throws.js",
           error: "broken script",
-        }),
+        },
       );
     });
   });
@@ -74,14 +78,15 @@ describe("runScriptWithHardhat", function () {
     useFixtureProject("run-ts-script");
 
     it("should throw if script does not exist", async function () {
-      await assert.rejects(
+      await assertThrowsHardhatErrorAsync(
         runScriptWithHardhat(
           { script: "./scripts/non-existent.ts", noCompile: false },
           hre,
         ),
-        new HardhatError(HardhatError.ERRORS.BUILTIN_TASKS.RUN_FILE_NOT_FOUND, {
+        HardhatError.ERRORS.BUILTIN_TASKS.RUN_FILE_NOT_FOUND,
+        {
           script: "./scripts/non-existent.ts",
-        }),
+        },
       );
     });
 
@@ -93,15 +98,16 @@ describe("runScriptWithHardhat", function () {
     });
 
     it("should throw if the script throws", async function () {
-      await assert.rejects(
+      await assertThrowsHardhatErrorAsync(
         runScriptWithHardhat(
           { script: "./scripts/throws.ts", noCompile: false },
           hre,
         ),
-        new HardhatError(HardhatError.ERRORS.BUILTIN_TASKS.RUN_SCRIPT_ERROR, {
+        HardhatError.ERRORS.BUILTIN_TASKS.RUN_SCRIPT_ERROR,
+        {
           script: "./scripts/throws.ts",
           error: "broken script",
-        }),
+        },
       );
     });
   });

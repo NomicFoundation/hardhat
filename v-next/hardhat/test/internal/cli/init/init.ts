@@ -8,6 +8,7 @@ import {
   readUtf8File,
   remove,
 } from "@ignored/hardhat-vnext-utils/fs";
+import { assertThrowsHardhatErrorAsync } from "@nomicfoundation/hardhat-test-utils";
 
 import { initHardhat } from "../../../../src/internal/cli/init/init.js";
 import { EMPTY_HARDHAT_CONFIG } from "../../../../src/internal/cli/init/sample-config-file.js";
@@ -88,9 +89,10 @@ describe("init", function () {
       it("should throw an error because the project is not of type esm", async function () {
         process.env.HARDHAT_CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG = "true";
 
-        await assert.rejects(
+        await assertThrowsHardhatErrorAsync(
           async () => initHardhat(),
-          new HardhatError(HardhatError.ERRORS.GENERAL.ONLY_ESM_SUPPORTED),
+          HardhatError.ERRORS.GENERAL.ONLY_ESM_SUPPORTED,
+          {},
         );
       });
     });
@@ -101,9 +103,10 @@ describe("init", function () {
       it("should throw an error because the project is not of type esm", async function () {
         process.env.HARDHAT_CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG = "true";
 
-        await assert.rejects(
+        await assertThrowsHardhatErrorAsync(
           async () => initHardhat(),
-          new HardhatError(HardhatError.ERRORS.GENERAL.ONLY_ESM_SUPPORTED),
+          HardhatError.ERRORS.GENERAL.ONLY_ESM_SUPPORTED,
+          {},
         );
       });
     });
@@ -113,14 +116,12 @@ describe("init", function () {
     useFixtureProject("cli/init/already-in-hh-project");
 
     it("should fail because there is already a hardhat.config.ts file", async function () {
-      await assert.rejects(
+      await assertThrowsHardhatErrorAsync(
         async () => initHardhat(),
-        new HardhatError(
-          HardhatError.ERRORS.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,
-          {
-            hardhatProjectRootPath: await findClosestHardhatConfig(),
-          },
-        ),
+        HardhatError.ERRORS.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,
+        {
+          hardhatProjectRootPath: await findClosestHardhatConfig(),
+        },
       );
     });
   });
@@ -129,19 +130,17 @@ describe("init", function () {
     it("should fail because the command is not executed inside an interactive shell", async function () {
       if (process.platform === "win32") {
         // Test for windows CI
-        await assert.rejects(
+        await assertThrowsHardhatErrorAsync(
           async () => initHardhat(),
-          new HardhatError(
-            HardhatError.ERRORS.GENERAL.NOT_INSIDE_PROJECT_ON_WINDOWS,
-          ),
+          HardhatError.ERRORS.GENERAL.NOT_INSIDE_PROJECT_ON_WINDOWS,
+          {},
         );
       } else {
         // Test for all others CI
-        await assert.rejects(
+        await assertThrowsHardhatErrorAsync(
           async () => initHardhat(),
-          new HardhatError(
-            HardhatError.ERRORS.GENERAL.NOT_IN_INTERACTIVE_SHELL,
-          ),
+          HardhatError.ERRORS.GENERAL.NOT_IN_INTERACTIVE_SHELL,
+          {},
         );
       }
     });

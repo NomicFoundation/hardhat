@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { assertThrowsHardhatErrorAsync } from "@nomicfoundation/hardhat-test-utils";
 
 import { resolveHardhatConfigPath } from "../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../src/hre.js";
@@ -64,9 +65,10 @@ describe("HRE", () => {
       });
 
       it("should throw if the config file is not found", async () => {
-        await assert.rejects(
+        await assertThrowsHardhatErrorAsync(
           resolveHardhatConfigPath(),
-          new HardhatError(HardhatError.ERRORS.GENERAL.NO_CONFIG_FILE_FOUND),
+          HardhatError.ERRORS.GENERAL.NO_CONFIG_FILE_FOUND,
+          {},
         );
       });
 

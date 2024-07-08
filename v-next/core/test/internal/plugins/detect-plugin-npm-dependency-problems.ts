@@ -1,9 +1,9 @@
 import type { HardhatPlugin } from "../../../src/types/plugins.js";
 
-import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { assertThrowsHardhatErrorAsync } from "@nomicfoundation/hardhat-test-utils";
 
 import { detectPluginNpmDependencyProblems } from "../../../src/internal/plugins/detect-plugin-npm-dependency-problems.js";
 
@@ -44,15 +44,16 @@ describe("Plugins - detect npm dependency problems", () => {
         "./fixture-projects/not-installed-package",
       );
 
-      await assert.rejects(
+      await assertThrowsHardhatErrorAsync(
         async () =>
           detectPluginNpmDependencyProblems(
             plugin,
             nonInstalledPackageProjectFixture,
           ),
-        new HardhatError(HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED, {
+        HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED,
+        {
           pluginId: "example-plugin",
-        }),
+        },
       );
     });
   });
@@ -75,12 +76,10 @@ describe("Plugins - detect npm dependency problems", () => {
           "./fixture-projects/not-installed-peer-dep",
         );
 
-        await assert.rejects(
+        await assertThrowsHardhatErrorAsync(
           detectPluginNpmDependencyProblems(plugin, notInstalledPeerDepFixture),
-          new HardhatError(
-            HardhatError.ERRORS.PLUGINS.PLUGIN_MISSING_DEPENDENCY,
-            { pluginId: "example-plugin", peerDependencyName: "peer2" },
-          ),
+          HardhatError.ERRORS.PLUGINS.PLUGIN_MISSING_DEPENDENCY,
+          { pluginId: "example-plugin", peerDependencyName: "peer2" },
         );
       });
     });
@@ -105,21 +104,19 @@ describe("Plugins - detect npm dependency problems", () => {
         "./fixture-projects/peer-dep-with-wrong-version",
       );
 
-      await assert.rejects(
+      await assertThrowsHardhatErrorAsync(
         async () =>
           detectPluginNpmDependencyProblems(
             plugin,
             peerDepWithWrongVersionFixture,
           ),
-        new HardhatError(
-          HardhatError.ERRORS.PLUGINS.DEPENDENCY_VERSION_MISMATCH,
-          {
-            pluginId: "example-plugin",
-            peerDependencyName: "peer2",
-            expectedVersion: "^1.0.0",
-            installedVersion: "2.0.0",
-          },
-        ),
+        HardhatError.ERRORS.PLUGINS.DEPENDENCY_VERSION_MISMATCH,
+        {
+          pluginId: "example-plugin",
+          peerDependencyName: "peer2",
+          expectedVersion: "^1.0.0",
+          installedVersion: "2.0.0",
+        },
       );
     });
   });
