@@ -28,6 +28,7 @@ import { kebabToCamelCase } from "@ignored/hardhat-vnext-utils/string";
 
 import { resolveHardhatConfigPath } from "../../config.js";
 import { createHardhatRuntimeEnvironment } from "../../hre.js";
+import { BUILTIN_GLOBAL_OPTIONS_DEFINITIONS } from "../builtin-global-options.js";
 import { builtinPlugins } from "../builtin-plugins/index.js";
 import { setGlobalHardhatRuntimeEnvironment } from "../global-hre-instance.js";
 import { importUserConfig } from "../helpers/config-loading.js";
@@ -77,8 +78,12 @@ export async function main(
       builtinGlobalOptions.configPath,
     );
 
-    const globalOptionDefinitions =
+    const pluginGlobalOptionDefinitions =
       buildGlobalOptionDefinitions(resolvedPlugins);
+    const globalOptionDefinitions = new Map([
+      ...BUILTIN_GLOBAL_OPTIONS_DEFINITIONS,
+      ...pluginGlobalOptionDefinitions,
+    ]);
     const userProvidedGlobalOptions = await parseGlobalOptions(
       globalOptionDefinitions,
       cliArguments,
@@ -87,7 +92,7 @@ export async function main(
 
     const hre = await createHardhatRuntimeEnvironment(
       userConfig,
-      userProvidedGlobalOptions,
+      { ...builtinGlobalOptions, ...userProvidedGlobalOptions },
       { resolvedPlugins, globalOptionDefinitions },
     );
 

@@ -1,3 +1,5 @@
+import type { GlobalOptions } from "@ignored/hardhat-vnext/types/global-options";
+
 import { HardhatPluginError } from "@ignored/hardhat-vnext/plugins";
 
 import {
@@ -124,6 +126,15 @@ const pluginExample = {
       defaultValue: "default",
     }),
   ],
+};
+
+// Type includes the builtin global options
+const _globalOptions: GlobalOptions = {
+  configPath: "",
+  help: false,
+  init: false,
+  showStackTraces: false,
+  version: false,
 };
 
 const config: HardhatUserConfig = {
