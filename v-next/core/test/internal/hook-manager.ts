@@ -903,9 +903,7 @@ describe("HookManager", () => {
           },
         };
 
-        assert.doesNotThrow(() =>
-          hookManager.unregisterHandlers("config", exampleHook),
-        );
+        hookManager.unregisterHandlers("config", exampleHook);
       });
     });
   });

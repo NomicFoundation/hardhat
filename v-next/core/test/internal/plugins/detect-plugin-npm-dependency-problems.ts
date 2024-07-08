@@ -18,14 +18,12 @@ describe("Plugins - detect npm dependency problems", () => {
       "./fixture-projects/peer-dep-with-wrong-version",
     );
 
-    await assert.doesNotReject(async () =>
-      detectPluginNpmDependencyProblems(
-        {
-          ...plugin,
-          npmPackage: undefined,
-        },
-        peerDepWithWrongVersionFixture,
-      ),
+    await detectPluginNpmDependencyProblems(
+      {
+        ...plugin,
+        npmPackage: undefined,
+      },
+      peerDepWithWrongVersionFixture,
     );
   });
 
@@ -35,11 +33,9 @@ describe("Plugins - detect npm dependency problems", () => {
         "./fixture-projects/installed-package",
       );
 
-      await assert.doesNotReject(async () =>
-        detectPluginNpmDependencyProblems(
-          plugin,
-          installedPackageProjectFixture,
-        ),
+      await detectPluginNpmDependencyProblems(
+        plugin,
+        installedPackageProjectFixture,
       );
     });
 
@@ -68,8 +64,9 @@ describe("Plugins - detect npm dependency problems", () => {
           "./fixture-projects/installed-peer-deps",
         );
 
-        await assert.doesNotReject(async () =>
-          detectPluginNpmDependencyProblems(plugin, installedPeerDepsFixture),
+        await detectPluginNpmDependencyProblems(
+          plugin,
+          installedPeerDepsFixture,
         );
       });
 
@@ -94,8 +91,9 @@ describe("Plugins - detect npm dependency problems", () => {
           "./fixture-projects/installed-peer-deps-as-sub-node-modules",
         );
 
-        await assert.doesNotReject(async () =>
-          detectPluginNpmDependencyProblems(plugin, installedPeerDepsFixture),
+        await detectPluginNpmDependencyProblems(
+          plugin,
+          installedPeerDepsFixture,
         );
       });
     });
