@@ -1450,6 +1450,9 @@ importers:
       '@microsoft/api-extractor':
         specifier: ^7.43.4
         version: 7.43.4(@types/node@20.14.9)
+      '@nomicfoundation/hardhat-test-utils':
+        specifier: workspace:^
+        version: link:../hardhat-test-utils
       '@types/node':
         specifier: ^20.14.9
         version: 20.14.9
