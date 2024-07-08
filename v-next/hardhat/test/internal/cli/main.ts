@@ -373,7 +373,7 @@ For global options help run: hardhat --help`;
       const cliArguments = command.split(" ").slice(2);
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-      assertThrowsHardhatErrorAsync(
+      await assertThrowsHardhatErrorAsync(
         async () => parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
         HardhatError.ERRORS.ARGUMENTS.CANNOT_COMBINE_INIT_AND_CONFIG_PATH,
         {},
@@ -386,7 +386,7 @@ For global options help run: hardhat --help`;
       const cliArguments = command.split(" ").slice(2);
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-      assertThrowsHardhatErrorAsync(
+      await assertThrowsHardhatErrorAsync(
         async () => parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
         HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
         {
@@ -401,7 +401,7 @@ For global options help run: hardhat --help`;
       const cliArguments = command.split(" ").slice(2);
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-      assertThrowsHardhatErrorAsync(
+      await assertThrowsHardhatErrorAsync(
         async () => parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
         HardhatError.ERRORS.ARGUMENTS.MISSING_CONFIG_FILE,
         {},
