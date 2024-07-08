@@ -23,7 +23,7 @@ import { describe, it, beforeEach } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { ensureError } from "@ignored/hardhat-vnext-utils/error";
-import { assertThrowsHardhatErrorAsync } from "@nomicfoundation/hardhat-test-utils";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { HookManagerImplementation } from "../../src/internal/hook-manager.js";
 import { UserInterruptionManagerImplementation } from "../../src/internal/user-interruptions.js";
@@ -266,7 +266,7 @@ describe("HookManager", () => {
 
         const manager = new HookManagerImplementation([examplePlugin]);
 
-        await assertThrowsHardhatErrorAsync(
+        await assertRejectsWithHardhatError(
           async () =>
             manager.runHandlerChain(
               "config",

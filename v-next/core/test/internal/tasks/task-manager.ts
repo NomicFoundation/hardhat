@@ -4,7 +4,7 @@ import { describe, it } from "node:test";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import {
   assertThrowsHardhatError,
-  assertThrowsHardhatErrorAsync,
+  assertRejectsWithHardhatError,
 } from "@nomicfoundation/hardhat-test-utils";
 
 import { ArgumentType, globalOption } from "../../../src/config.js";
@@ -380,7 +380,7 @@ describe("TaskManagerImplementation", () => {
    */
   describe("errors", () => {
     it("should throw if there's a global option with the same name as a task option", async () => {
-      await assertThrowsHardhatErrorAsync(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -417,7 +417,7 @@ describe("TaskManagerImplementation", () => {
     });
 
     it("should throw if there's a global option with the same name as a task positional argument", async () => {
-      await assertThrowsHardhatErrorAsync(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -454,7 +454,7 @@ describe("TaskManagerImplementation", () => {
     });
 
     it("should throw if trying to add a task with an empty id", async () => {
-      await assertThrowsHardhatErrorAsync(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -479,7 +479,7 @@ describe("TaskManagerImplementation", () => {
     });
 
     it("should throw if trying to add a subtask for a task that doesn't exist", async () => {
-      await assertThrowsHardhatErrorAsync(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -505,7 +505,7 @@ describe("TaskManagerImplementation", () => {
     });
 
     it("should throw if trying to add a task that already exists", async () => {
-      await assertThrowsHardhatErrorAsync(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -539,7 +539,7 @@ describe("TaskManagerImplementation", () => {
 
     it("should throw if trying to override a task that doesn't exist", async () => {
       // Empty id task will not be found as empty ids are not allowed
-      await assertThrowsHardhatErrorAsync(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -564,7 +564,7 @@ describe("TaskManagerImplementation", () => {
       );
 
       // task1 will not be found as it's not defined
-      await assertThrowsHardhatErrorAsync(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -586,7 +586,7 @@ describe("TaskManagerImplementation", () => {
 
     it("should throw if trying to override a task and there is a name clash with an existing option", async () => {
       // added argument clash with an existing option
-      await assertThrowsHardhatErrorAsync(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -619,7 +619,7 @@ describe("TaskManagerImplementation", () => {
       );
 
       // added flag clash with an existing option
-      await assertThrowsHardhatErrorAsync(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -654,7 +654,7 @@ describe("TaskManagerImplementation", () => {
 
     it("should throw if trying to override a task and there is a name clash with an exising flag argument", async () => {
       // added argument clash with an existing flag
-      await assertThrowsHardhatErrorAsync(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -687,7 +687,7 @@ describe("TaskManagerImplementation", () => {
       );
 
       // added flag clash with an existing flag
-      await assertThrowsHardhatErrorAsync(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -722,7 +722,7 @@ describe("TaskManagerImplementation", () => {
 
     it("should throw if trying to override a task and there is a name clash with an exising positional argument", async () => {
       // added argument clash with an existing positional argument
-      await assertThrowsHardhatErrorAsync(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -755,7 +755,7 @@ describe("TaskManagerImplementation", () => {
       );
 
       // added flag clash with an existing positional argument
-      await assertThrowsHardhatErrorAsync(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -790,7 +790,7 @@ describe("TaskManagerImplementation", () => {
 
     it("should throw if trying to override a task and there is a name clash with an exising variadic argument", async () => {
       // added argument clash with an existing variadic argument
-      await assertThrowsHardhatErrorAsync(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -823,7 +823,7 @@ describe("TaskManagerImplementation", () => {
       );
 
       // added flag clash with an existing variadic argument
-      await assertThrowsHardhatErrorAsync(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -859,7 +859,7 @@ describe("TaskManagerImplementation", () => {
     it("should throw if a plugins tries to override a task defined in the config", async () => {
       // this will fail as the config tasks are processed after
       // the plugin tasks so the override logic will not find task1
-      await assertThrowsHardhatErrorAsync(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           tasks: [
             new NewTaskDefinitionBuilderImplementation("task1")
@@ -1284,7 +1284,7 @@ describe("TaskManagerImplementation", () => {
         });
 
         const task1 = hre.tasks.getTask("task1");
-        await assertThrowsHardhatErrorAsync(
+        await assertRejectsWithHardhatError(
           task1.run({}),
           HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK,
           {
@@ -1308,7 +1308,7 @@ describe("TaskManagerImplementation", () => {
         });
 
         const task1 = hre.tasks.getTask("task1");
-        await assertThrowsHardhatErrorAsync(
+        await assertRejectsWithHardhatError(
           task1.run({ otherArg: "otherArgValue" }),
           HardhatError.ERRORS.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
           {
@@ -1338,7 +1338,7 @@ describe("TaskManagerImplementation", () => {
         const task1 = hre.tasks.getTask("task1");
 
         // option is missing
-        await assertThrowsHardhatErrorAsync(
+        await assertRejectsWithHardhatError(
           task1.run({
             posArg: "posValue",
             varArg: ["varValue1", "varValue2"],
@@ -1351,7 +1351,7 @@ describe("TaskManagerImplementation", () => {
         );
 
         // posArg is missing
-        await assertThrowsHardhatErrorAsync(
+        await assertRejectsWithHardhatError(
           task1.run({
             option: "arg1Value",
             varArg: ["varValue1", "varValue2"],
@@ -1364,7 +1364,7 @@ describe("TaskManagerImplementation", () => {
         );
 
         // varArg is missing
-        await assertThrowsHardhatErrorAsync(
+        await assertRejectsWithHardhatError(
           task1.run({
             option: "arg1Value",
             posArg: "posValue",
@@ -1406,7 +1406,7 @@ describe("TaskManagerImplementation", () => {
         const task1 = hre.tasks.getTask("task1");
 
         // option has the wrong type
-        await assertThrowsHardhatErrorAsync(
+        await assertRejectsWithHardhatError(
           task1.run({
             option: "not a bigint",
             posArg: 10,
@@ -1422,7 +1422,7 @@ describe("TaskManagerImplementation", () => {
         );
 
         // posArg has the wrong type
-        await assertThrowsHardhatErrorAsync(
+        await assertRejectsWithHardhatError(
           task1.run({
             option: 5n,
             posArg: true,
@@ -1438,7 +1438,7 @@ describe("TaskManagerImplementation", () => {
         );
 
         // varArg has the wrong type (not an array)
-        await assertThrowsHardhatErrorAsync(
+        await assertRejectsWithHardhatError(
           task1.run({
             option: 5n,
             posArg: 10,
@@ -1454,7 +1454,7 @@ describe("TaskManagerImplementation", () => {
         );
 
         // varArg has the wrong type (array element has the wrong type)
-        await assertThrowsHardhatErrorAsync(
+        await assertRejectsWithHardhatError(
           task1.run({
             option: 5n,
             posArg: 10,
@@ -1485,7 +1485,7 @@ describe("TaskManagerImplementation", () => {
         });
 
         const task1 = hre.tasks.getTask("task1");
-        await assertThrowsHardhatErrorAsync(
+        await assertRejectsWithHardhatError(
           task1.run({}),
           HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION_URL,
           {
@@ -1520,7 +1520,7 @@ describe("TaskManagerImplementation", () => {
           ],
         });
 
-        await assertThrowsHardhatErrorAsync(
+        await assertRejectsWithHardhatError(
           hre.tasks.getTask("task1").run({}),
           HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED,
           {
@@ -1551,7 +1551,7 @@ describe("TaskManagerImplementation", () => {
           ],
         });
 
-        await assertThrowsHardhatErrorAsync(
+        await assertRejectsWithHardhatError(
           hre.tasks.getTask("task1").run({}),
           HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED,
           {
@@ -1579,7 +1579,7 @@ describe("TaskManagerImplementation", () => {
         });
 
         const task1 = hre.tasks.getTask("task1");
-        await assertThrowsHardhatErrorAsync(
+        await assertRejectsWithHardhatError(
           task1.run({}),
           HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION,
           {
@@ -1608,7 +1608,7 @@ describe("TaskManagerImplementation", () => {
         });
 
         const task1 = hre.tasks.getTask("task1");
-        await assertThrowsHardhatErrorAsync(
+        await assertRejectsWithHardhatError(
           task1.run({}),
           HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION,
           {

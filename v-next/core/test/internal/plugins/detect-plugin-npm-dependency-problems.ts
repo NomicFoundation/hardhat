@@ -3,7 +3,7 @@ import type { HardhatPlugin } from "../../../src/types/plugins.js";
 import { describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { assertThrowsHardhatErrorAsync } from "@nomicfoundation/hardhat-test-utils";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { detectPluginNpmDependencyProblems } from "../../../src/internal/plugins/detect-plugin-npm-dependency-problems.js";
 
@@ -44,7 +44,7 @@ describe("Plugins - detect npm dependency problems", () => {
         "./fixture-projects/not-installed-package",
       );
 
-      await assertThrowsHardhatErrorAsync(
+      await assertRejectsWithHardhatError(
         async () =>
           detectPluginNpmDependencyProblems(
             plugin,
@@ -76,7 +76,7 @@ describe("Plugins - detect npm dependency problems", () => {
           "./fixture-projects/not-installed-peer-dep",
         );
 
-        await assertThrowsHardhatErrorAsync(
+        await assertRejectsWithHardhatError(
           detectPluginNpmDependencyProblems(plugin, notInstalledPeerDepFixture),
           HardhatError.ERRORS.PLUGINS.PLUGIN_MISSING_DEPENDENCY,
           { pluginId: "example-plugin", peerDependencyName: "peer2" },
@@ -104,7 +104,7 @@ describe("Plugins - detect npm dependency problems", () => {
         "./fixture-projects/peer-dep-with-wrong-version",
       );
 
-      await assertThrowsHardhatErrorAsync(
+      await assertRejectsWithHardhatError(
         async () =>
           detectPluginNpmDependencyProblems(
             plugin,

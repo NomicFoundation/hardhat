@@ -3,7 +3,7 @@ import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core/type
 import { before, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { assertThrowsHardhatErrorAsync } from "@nomicfoundation/hardhat-test-utils";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import runScriptWithHardhat from "../../../../src/internal/builtin-plugins/run/runScriptWithHardhat.js";
@@ -17,7 +17,7 @@ describe("runScriptWithHardhat", function () {
   });
 
   it("should throw if script is not a string", async function () {
-    await assertThrowsHardhatErrorAsync(
+    await assertRejectsWithHardhatError(
       runScriptWithHardhat({ script: 123, noCompile: false }, hre),
       HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR,
       {
@@ -27,7 +27,7 @@ describe("runScriptWithHardhat", function () {
   });
 
   it("should throw if noCompile is not a boolean", async function () {
-    await assertThrowsHardhatErrorAsync(
+    await assertRejectsWithHardhatError(
       runScriptWithHardhat({ script: "script.js", noCompile: 123 }, hre),
       HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR,
       {
@@ -40,7 +40,7 @@ describe("runScriptWithHardhat", function () {
     useFixtureProject("run-js-script");
 
     it("should throw if script does not exist", async function () {
-      await assertThrowsHardhatErrorAsync(
+      await assertRejectsWithHardhatError(
         runScriptWithHardhat(
           { script: "./scripts/non-existent.js", noCompile: false },
           hre,
@@ -60,7 +60,7 @@ describe("runScriptWithHardhat", function () {
     });
 
     it("should throw if the script throws", async function () {
-      await assertThrowsHardhatErrorAsync(
+      await assertRejectsWithHardhatError(
         runScriptWithHardhat(
           { script: "./scripts/throws.js", noCompile: false },
           hre,
@@ -78,7 +78,7 @@ describe("runScriptWithHardhat", function () {
     useFixtureProject("run-ts-script");
 
     it("should throw if script does not exist", async function () {
-      await assertThrowsHardhatErrorAsync(
+      await assertRejectsWithHardhatError(
         runScriptWithHardhat(
           { script: "./scripts/non-existent.ts", noCompile: false },
           hre,
@@ -98,7 +98,7 @@ describe("runScriptWithHardhat", function () {
     });
 
     it("should throw if the script throws", async function () {
-      await assertThrowsHardhatErrorAsync(
+      await assertRejectsWithHardhatError(
         runScriptWithHardhat(
           { script: "./scripts/throws.ts", noCompile: false },
           hre,

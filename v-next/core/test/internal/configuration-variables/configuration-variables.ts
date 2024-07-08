@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { assertThrowsHardhatErrorAsync } from "@nomicfoundation/hardhat-test-utils";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { ResolvedConfigurationVariableImplementation } from "../../../src/internal/configuration-variables.js";
 import { HookManagerImplementation } from "../../../src/internal/hook-manager.js";
@@ -56,7 +56,7 @@ describe("ResolvedConfigurationVariable", () => {
       { name: "foo", _type: "ConfigurationVariable" },
     );
 
-    await assertThrowsHardhatErrorAsync(
+    await assertRejectsWithHardhatError(
       variable.get(),
       HardhatError.ERRORS.GENERAL.ENV_VAR_NOT_FOUND,
       {},
@@ -101,7 +101,7 @@ describe("ResolvedConfigurationVariable", () => {
 
     process.env.foo = "not a url";
 
-    await assertThrowsHardhatErrorAsync(
+    await assertRejectsWithHardhatError(
       variable.getUrl(),
       HardhatError.ERRORS.GENERAL.INVALID_URL,
       {
@@ -133,7 +133,7 @@ describe("ResolvedConfigurationVariable", () => {
 
     process.env.foo = "not a bigint";
 
-    await assertThrowsHardhatErrorAsync(
+    await assertRejectsWithHardhatError(
       variable.getBigInt(),
       HardhatError.ERRORS.GENERAL.INVALID_BIGINT,
       {
