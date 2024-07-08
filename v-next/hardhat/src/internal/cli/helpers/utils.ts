@@ -99,7 +99,12 @@ export function getSection(
   items: ArgumentDescriptor[],
   namePadding: number,
 ): string {
-  return `\n${title}:\n\n${items.map(({ name, description }) => `  ${name.padEnd(namePadding)}${description}`).join("\n")}\n`;
+  return `\n${title}:\n\n${items
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(
+      ({ name, description }) => `  ${name.padEnd(namePadding)}${description}`,
+    )
+    .join("\n")}\n`;
 }
 
 export function getUsageString(
@@ -110,11 +115,16 @@ export function getUsageString(
   let output = `Usage: hardhat [GLOBAL OPTIONS] ${task.id.join(" ")}`;
 
   if (options.length > 0) {
-    output += ` ${options.map((o) => `[${o.name}${o.type === "BOOLEAN" ? "" : ` <${o.type}>`}]`).join(" ")}`;
+    output += ` ${options
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((o) => `[${o.name}${o.type === "BOOLEAN" ? "" : ` <${o.type}>`}]`)
+      .join(" ")}`;
   }
 
   if (positionalArguments.length > 0) {
-    output += ` [--] ${positionalArguments.map((a) => (a.isRequired === true ? a.name : `[${a.name}]`)).join(" ")}`;
+    output += ` [--] ${positionalArguments
+      .map((a) => (a.isRequired === true ? a.name : `[${a.name}]`))
+      .join(" ")}`;
   }
 
   return output;
