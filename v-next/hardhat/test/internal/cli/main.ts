@@ -229,11 +229,11 @@ AVAILABLE TASKS:
 GLOBAL OPTIONS:
 
   --config                 A Hardhat config file.
+  --foo-plugin-flag        A flag
   --help                   Shows this message, or a task's help if its name is provided.
   --init                   Initializes a Hardhat project.
   --show-stack-traces      Show stack traces (always enabled on CI servers).
   --version                Shows hardhat's version.
-  --foo-plugin-flag        A flag
 
 To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
 

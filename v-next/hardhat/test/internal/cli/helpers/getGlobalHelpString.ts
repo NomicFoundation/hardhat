@@ -197,9 +197,9 @@ GLOBAL OPTIONS:
   --help                   Shows this message, or a task's help if its name is provided.
   --init                   Initializes a Hardhat project.
   --show-stack-traces      Show stack traces (always enabled on CI servers).
-  --version                Shows hardhat's version.
   --user-option-1          userOption1 description.
   --user-option-2          userOption2 description.
+  --version                Shows hardhat's version.
 
 To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
 
@@ -208,7 +208,7 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
   });
 
   describe("when there are tasks, subtasks and global options", function () {
-    it("should return the global help string with the tasks, subtasks and global options", async function () {
+    it("should return the global help string with the tasks, subtasks and global options, all sorted by name", async function () {
       const tasks: Map<string, Task> = new Map([
         [
           "task1",
@@ -295,9 +295,9 @@ GLOBAL OPTIONS:
   --help                   Shows this message, or a task's help if its name is provided.
   --init                   Initializes a Hardhat project.
   --show-stack-traces      Show stack traces (always enabled on CI servers).
-  --version                Shows hardhat's version.
   --user-option-1          userOption1 description.
   --user-option-2          userOption2 description.
+  --version                Shows hardhat's version.
 
 To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
 
