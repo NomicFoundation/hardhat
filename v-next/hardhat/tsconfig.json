@@ -11,6 +11,9 @@
       "path": "../hardhat-node-test-reporter"
     },
     {
+      "path": "../hardhat-test-utils"
+    },
+    {
       "path": "../hardhat-utils"
     },
     {

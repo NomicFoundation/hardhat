@@ -1,40 +1,20 @@
 {
-  "name": "@ignored/hardhat-vnext",
-  "version": "3.0.0-next.3",
-  "description": "Hardhat is an extensible developer tool that helps smart contract developers increase productivity by reliably bringing together the tools they want.",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat",
+  "name": "@nomicfoundation/hardhat-test-utils",
+  "private": true,
+  "version": "3.0.0",
+  "description": "Test utilities used to develop and test Hardhat",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-test-utils",
   "repository": {
     "type": "git",
     "url": "https://github.com/NomicFoundation/hardhat",
-    "directory": "v-next/hardhat"
+    "directory": "v-next/hardhat-test-utils"
   },
   "author": "Nomic Foundation",
   "license": "MIT",
   "type": "module",
-  "types": "dist/src/index.d.ts",
-  "bin": {
-    "hardhat": "./dist/src/cli.js"
-  },
   "exports": {
-    ".": "./dist/src/index.js",
-    "./config": "./dist/src/config.js",
-    "./hre": "./dist/src/hre.js",
-    "./plugins": "./dist/src/plugins.js",
-    "./types/arguments": "./dist/src/types/arguments.js",
-    "./types/config": "./dist/src/types/config.js",
-    "./types/global-options": "./dist/src/types/global-options.js",
-    "./types/hooks": "./dist/src/types/hooks.js",
-    "./types/hre": "./dist/src/types/hre.js",
-    "./types/plugins": "./dist/src/types/plugins.js",
-    "./types/tasks": "./dist/src/types/tasks.js",
-    "./types/user-interruptions": "./dist/src/types/user-interruptions.js",
-    "./types/utils": "./dist/src/types/utils.js"
+    ".": "./dist/src/index.js"
   },
-  "keywords": [
-    "ethereum",
-    "smart-contracts",
-    "hardhat"
-  ],
   "scripts": {
     "lint": "pnpm prettier --check && pnpm eslint",
     "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
@@ -57,7 +37,6 @@
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
     "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.2",
-    "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/node": "^20.14.9",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
     "@typescript-eslint/parser": "^7.7.1",
@@ -69,17 +48,12 @@
     "expect-type": "^0.19.0",
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
+    "tsx": "^4.11.0",
     "typescript": "~5.5.0",
     "typescript-eslint": "7.7.1"
   },
   "dependencies": {
-    "@ignored/hardhat-vnext-core": "workspace:^3.0.0-next.2",
-    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.2",
     "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.2",
-    "@ignored/hardhat-vnext-zod-utils": "workspace:^3.0.0-next.2",
-    "chalk": "^5.3.0",
-    "enquirer": "^2.3.0",
-    "tsx": "^4.11.0",
-    "zod": "^3.23.8"
+    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.2"
   }
 }

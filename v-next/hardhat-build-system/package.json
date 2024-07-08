@@ -38,9 +38,9 @@
     "README.md"
   ],
   "dependencies": {
-    "@nomicfoundation/ethereumjs-util": "9.0.4",
     "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.0",
     "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.0",
+    "@nomicfoundation/ethereumjs-util": "9.0.4",
     "@nomicfoundation/solidity-analyzer": "^0.1.0",
     "adm-zip": "^0.4.16",
     "aggregate-error": "^3.0.0",
@@ -61,6 +61,7 @@
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
     "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.0",
+    "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/ci-info": "^2.0.0",
     "@types/debug": "^4.1.4",
     "@types/find-up": "^2.1.1",

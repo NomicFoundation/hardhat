@@ -1547,6 +1547,9 @@ importers:
       '@ignored/hardhat-vnext-node-test-reporter':
         specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-node-test-reporter
+      '@nomicfoundation/hardhat-test-utils':
+        specifier: workspace:^
+        version: link:../hardhat-test-utils
       '@types/node':
         specifier: ^20.14.9
         version: 20.14.9
@@ -1653,6 +1656,9 @@ importers:
       '@ignored/hardhat-vnext-node-test-reporter':
         specifier: workspace:^3.0.0-next.0
         version: link:../hardhat-node-test-reporter
+      '@nomicfoundation/hardhat-test-utils':
+        specifier: workspace:^
+        version: link:../hardhat-test-utils
       '@types/ci-info':
         specifier: ^2.0.0
         version: 2.0.0
@@ -1836,6 +1842,64 @@ importers:
         specifier: 7.7.1
         version: 7.7.1(eslint@8.57.0)(typescript@5.5.2)
 
+  v-next/hardhat-test-utils:
+    dependencies:
+      '@ignored/hardhat-vnext-errors':
+        specifier: workspace:^3.0.0-next.2
+        version: link:../hardhat-errors
+      '@ignored/hardhat-vnext-utils':
+        specifier: workspace:^3.0.0-next.2
+        version: link:../hardhat-utils
+    devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.3.0(eslint@8.57.0)
+      '@ignored/hardhat-vnext-node-test-reporter':
+        specifier: workspace:^3.0.0-next.2
+        version: link:../hardhat-node-test-reporter
+      '@types/node':
+        specifier: ^20.14.9
+        version: 20.14.9
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^7.7.1
+        version: 7.9.0(@typescript-eslint/parser@7.9.0(eslint@8.57.0)(typescript@5.5.2))(eslint@8.57.0)(typescript@5.5.2)
+      '@typescript-eslint/parser':
+        specifier: ^7.7.1
+        version: 7.9.0(eslint@8.57.0)(typescript@5.5.2)
+      eslint:
+        specifier: 8.57.0
+        version: 8.57.0
+      eslint-config-prettier:
+        specifier: 9.1.0
+        version: 9.1.0(eslint@8.57.0)
+      eslint-import-resolver-typescript:
+        specifier: ^3.6.1
+        version: 3.6.1(@typescript-eslint/parser@7.9.0(eslint@8.57.0)(typescript@5.5.2))(eslint-plugin-import@2.29.1)(eslint@8.57.0)
+      eslint-plugin-import:
+        specifier: 2.29.1
+        version: 2.29.1(@typescript-eslint/parser@7.9.0(eslint@8.57.0)(typescript@5.5.2))(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0)
+      eslint-plugin-no-only-tests:
+        specifier: 3.1.0
+        version: 3.1.0
+      expect-type:
+        specifier: ^0.19.0
+        version: 0.19.0
+      prettier:
+        specifier: 3.2.5
+        version: 3.2.5
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.5
+      tsx:
+        specifier: ^4.11.0
+        version: 4.11.0
+      typescript:
+        specifier: ~5.5.0
+        version: 5.5.2
+      typescript-eslint:
+        specifier: 7.7.1
+        version: 7.7.1(eslint@8.57.0)(typescript@5.5.2)
+
   v-next/hardhat-utils:
     dependencies:
       fast-equals:
@@ -1917,6 +1981,9 @@ importers:
       '@ignored/hardhat-vnext-node-test-reporter':
         specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-node-test-reporter
+      '@nomicfoundation/hardhat-test-utils':
+        specifier: workspace:^
+        version: link:../hardhat-test-utils
       '@types/node':
         specifier: ^20.14.9
         version: 20.14.9
@@ -1971,6 +2038,9 @@ importers:
       '@ignored/hardhat-vnext-node-test-reporter':
         specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-node-test-reporter
+      '@nomicfoundation/hardhat-test-utils':
+        specifier: workspace:^
+        version: link:../hardhat-test-utils
       '@types/node':
         specifier: ^20.14.9
         version: 20.14.9
@@ -5851,6 +5921,7 @@ packages:
 
   rimraf@2.7.1:
     resolution: {integrity: sha512-uWjbaKIK3T1OSVptzX7Nl6PvQ3qAGtKEtVRjRuazjfL3Bx5eI409VZSqgND+4UNnmzLVdPj9FqFJNPqBZFve4w==}
+    deprecated: Rimraf versions prior to v4 are no longer supported
     hasBin: true
 
   rimraf@3.0.2:
