@@ -44,7 +44,7 @@ export function assertThrowsHardhatError<
   assert.fail("Function did not throw any error");
 }
 
-export async function assertThrowsHardhatErrorAsync<
+export async function assertRejectsWithHardhatError<
   ErrorDescriptorT extends ErrorDescriptor,
 >(
   f: (() => Promise<any>) | Promise<any>,

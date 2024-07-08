@@ -6,7 +6,7 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import {
   assertIsHardhatError,
   assertThrowsHardhatError,
-  assertThrowsHardhatErrorAsync,
+  assertRejectsWithHardhatError,
 } from "../src/hardhat-error.js";
 
 describe("HardhatError helpers", () => {
@@ -105,10 +105,10 @@ describe("HardhatError helpers", () => {
     });
   });
 
-  describe("assertThrowsHardhatErrorAsync", () => {
+  describe("assertRejectsWithHardhatError", () => {
     it("should throw if the function doesn't return a promise that rejects", async () => {
       await assert.rejects(async () =>
-        assertThrowsHardhatErrorAsync(
+        assertRejectsWithHardhatError(
           async () => {},
           HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION,
           { action: "foo", task: "bar" },
@@ -118,7 +118,7 @@ describe("HardhatError helpers", () => {
 
     it("should throw the promise that rejects", async () => {
       await assert.rejects(async () =>
-        assertThrowsHardhatErrorAsync(
+        assertRejectsWithHardhatError(
           Promise.resolve(1),
           HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION,
           { action: "foo", task: "bar" },
@@ -128,7 +128,7 @@ describe("HardhatError helpers", () => {
 
     it("asserts the error of the rejection", async () => {
       await assert.rejects(() =>
-        assertThrowsHardhatErrorAsync(
+        assertRejectsWithHardhatError(
           async () => {
             throw new HardhatError(
               HardhatError.ERRORS.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
@@ -141,7 +141,7 @@ describe("HardhatError helpers", () => {
       );
 
       await assert.rejects(() =>
-        assertThrowsHardhatErrorAsync(
+        assertRejectsWithHardhatError(
           Promise.reject(
             new HardhatError(
               HardhatError.ERRORS.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
@@ -153,7 +153,7 @@ describe("HardhatError helpers", () => {
         ),
       );
 
-      await assertThrowsHardhatErrorAsync(
+      await assertRejectsWithHardhatError(
         async () => {
           throw new HardhatError(
             HardhatError.ERRORS.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
