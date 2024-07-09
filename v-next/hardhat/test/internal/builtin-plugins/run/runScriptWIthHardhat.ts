@@ -3,9 +3,9 @@ import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core/type
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
+import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import runScriptWithHardhat from "../../../../src/internal/builtin-plugins/run/runScriptWithHardhat.js";
 import { useFixtureProject } from "../../../helpers/project.js";
 

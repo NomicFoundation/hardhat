@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { afterEach, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
@@ -7,40 +7,49 @@ import { resolveHardhatConfigPath } from "../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../src/hre.js";
 import { builtinPlugins } from "../../src/internal/builtin-plugins/index.js";
 import {
-  getHardhatRuntimeEnvironmentSingleton,
-  resetHardhatRuntimeEnvironmentSingleton,
-} from "../../src/internal/hre-singleton.js";
+  getGlobalHardhatRuntimeEnvironment,
+  resetGlobalHardhatRuntimeEnvironment,
+  setGlobalHardhatRuntimeEnvironment,
+} from "../../src/internal/global-hre-instance.js";
 import { useFixtureProject } from "../helpers/project.js";
 
 describe("HRE", () => {
+  afterEach(() => {
+    resetGlobalHardhatRuntimeEnvironment();
+  });
+
   describe("createHardhatRuntimeEnvironment", () => {
     it("should include the built-in plugins", async () => {
       const hre = await createHardhatRuntimeEnvironment({});
 
       assert.deepEqual(hre.config.plugins, builtinPlugins);
-
-      resetHardhatRuntimeEnvironmentSingleton();
     });
   });
 
-  describe("getHardhatRuntimeEnvironmentSingleton", () => {
-    it("should return the same instance", async () => {
-      const hre1 = await getHardhatRuntimeEnvironmentSingleton({
-        plugins: [{ id: "custom task" }],
-      });
-      const hre2 = await getHardhatRuntimeEnvironmentSingleton({});
+  describe("getGlobalHardhatRuntimeEnvironment", () => {
+    it("Should return undefined if the global instance isn't set", () => {
+      assert.equal(getGlobalHardhatRuntimeEnvironment(), undefined);
+      assert.equal(getGlobalHardhatRuntimeEnvironment(), undefined);
+    });
 
-      assert.deepEqual(
-        hre1.config.plugins.find((p) => p.id === "custom task"),
-        { id: "custom task" },
-      );
-      assert.deepEqual(
-        hre2.config.plugins.find((p) => p.id === "custom task"),
-        { id: "custom task" },
-      );
-      assert.deepEqual(hre1, hre2);
+    it("should return the same instance after it's set", async () => {
+      const hre = await createHardhatRuntimeEnvironment({});
+      setGlobalHardhatRuntimeEnvironment(hre);
 
-      resetHardhatRuntimeEnvironmentSingleton();
+      const hre1 = getGlobalHardhatRuntimeEnvironment();
+      const hre2 = getGlobalHardhatRuntimeEnvironment();
+
+      assert.ok(hre1 === hre, "The instances are not the same");
+      assert.ok(hre2 === hre, "The instances are not the same");
+    });
+
+    it("should include the builtin plugins when initialized using createHardhatRuntimeEnvironment", async () => {
+      const hre = await createHardhatRuntimeEnvironment({});
+      setGlobalHardhatRuntimeEnvironment(hre);
+      const globalHre = getGlobalHardhatRuntimeEnvironment();
+
+      assert.ok(globalHre === hre, "The instances are not the same");
+      assert.deepEqual(globalHre.config.plugins, builtinPlugins);
     });
   });
 
@@ -124,9 +133,10 @@ describe("HRE", () => {
       it("should load the config file", async () => {
         const hre = await import("../../src/index.js");
 
-        assert.deepEqual(hre.config.plugins, [{ id: "test-plugin" }]);
-
-        resetHardhatRuntimeEnvironmentSingleton();
+        assert.deepEqual(hre.config.plugins, [
+          ...builtinPlugins,
+          { id: "test-plugin" },
+        ]);
       });
     });
   });

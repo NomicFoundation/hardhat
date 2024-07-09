@@ -4,7 +4,7 @@ import { describe, it } from "node:test";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 import { ArgumentType, globalOption } from "../../../src/config.js";
-import { createHardhatRuntimeEnvironment } from "../../../src/index.js";
+import { createBaseHardhatRuntimeEnvironment } from "../../../src/index.js";
 import {
   EmptyTaskDefinitionBuilderImplementation,
   NewTaskDefinitionBuilderImplementation,
@@ -24,13 +24,13 @@ import { TaskDefinitionType } from "../../../src/types/tasks.js";
  */
 describe("TaskManagerImplementation", () => {
   it("should initialize the task manager with an empty set of tasks if no plugins or tasks are provided", async () => {
-    const hre = await createHardhatRuntimeEnvironment({});
+    const hre = await createBaseHardhatRuntimeEnvironment({});
 
     assert.equal(hre.tasks.rootTasks.size, 0);
   });
 
   it("should initialize the task manager with the tasks from the plugins", async () => {
-    const hre = await createHardhatRuntimeEnvironment({
+    const hre = await createBaseHardhatRuntimeEnvironment({
       plugins: [
         {
           id: "plugin1",
@@ -89,7 +89,7 @@ describe("TaskManagerImplementation", () => {
   });
 
   it("should initialize the task manager with the tasks from the config", async () => {
-    const hre = await createHardhatRuntimeEnvironment({
+    const hre = await createBaseHardhatRuntimeEnvironment({
       tasks: [
         new NewTaskDefinitionBuilderImplementation("task1")
           .addOption({ name: "arg1" })
@@ -130,7 +130,7 @@ describe("TaskManagerImplementation", () => {
   });
 
   it("should override a task within the same plugin", async () => {
-    const hre = await createHardhatRuntimeEnvironment({
+    const hre = await createBaseHardhatRuntimeEnvironment({
       plugins: [
         {
           id: "plugin1",
@@ -180,7 +180,7 @@ describe("TaskManagerImplementation", () => {
   });
 
   it("should override a task from a different plugin", async () => {
-    const hre = await createHardhatRuntimeEnvironment({
+    const hre = await createBaseHardhatRuntimeEnvironment({
       plugins: [
         {
           id: "plugin1",
@@ -235,7 +235,7 @@ describe("TaskManagerImplementation", () => {
   });
 
   it("should override the same task multiple times", async () => {
-    const hre = await createHardhatRuntimeEnvironment({
+    const hre = await createBaseHardhatRuntimeEnvironment({
       plugins: [
         {
           id: "plugin1",
@@ -300,7 +300,7 @@ describe("TaskManagerImplementation", () => {
   });
 
   it("should add an empty task", async () => {
-    const hre = await createHardhatRuntimeEnvironment({
+    const hre = await createBaseHardhatRuntimeEnvironment({
       plugins: [
         {
           id: "plugin1",
@@ -320,7 +320,7 @@ describe("TaskManagerImplementation", () => {
   });
 
   it("should add subtasks", async () => {
-    const hre = await createHardhatRuntimeEnvironment({
+    const hre = await createBaseHardhatRuntimeEnvironment({
       plugins: [
         {
           id: "plugin1",
@@ -377,7 +377,7 @@ describe("TaskManagerImplementation", () => {
   describe("errors", () => {
     it("should throw if there's a global option with the same name as a task option", async () => {
       await assert.rejects(
-        createHardhatRuntimeEnvironment({
+        createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -415,7 +415,7 @@ describe("TaskManagerImplementation", () => {
 
     it("should throw if there's a global option with the same name as a task positional argument", async () => {
       await assert.rejects(
-        createHardhatRuntimeEnvironment({
+        createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -453,7 +453,7 @@ describe("TaskManagerImplementation", () => {
 
     it("should throw if trying to add a task with an empty id", async () => {
       await assert.rejects(
-        createHardhatRuntimeEnvironment({
+        createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -477,7 +477,7 @@ describe("TaskManagerImplementation", () => {
 
     it("should throw if trying to add a subtask for a task that doesn't exist", async () => {
       await assert.rejects(
-        createHardhatRuntimeEnvironment({
+        createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -505,7 +505,7 @@ describe("TaskManagerImplementation", () => {
 
     it("should throw if trying to add a task that already exists", async () => {
       await assert.rejects(
-        createHardhatRuntimeEnvironment({
+        createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -541,7 +541,7 @@ describe("TaskManagerImplementation", () => {
     it("should throw if trying to override a task that doesn't exist", async () => {
       // Empty id task will not be found as empty ids are not allowed
       await assert.rejects(
-        createHardhatRuntimeEnvironment({
+        createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -565,7 +565,7 @@ describe("TaskManagerImplementation", () => {
 
       // task1 will not be found as it's not defined
       await assert.rejects(
-        createHardhatRuntimeEnvironment({
+        createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -586,7 +586,7 @@ describe("TaskManagerImplementation", () => {
     it("should throw if trying to override a task and there is a name clash with an existing option", async () => {
       // added argument clash with an existing option
       await assert.rejects(
-        createHardhatRuntimeEnvironment({
+        createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -620,7 +620,7 @@ describe("TaskManagerImplementation", () => {
 
       // added flag clash with an existing option
       await assert.rejects(
-        createHardhatRuntimeEnvironment({
+        createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -656,7 +656,7 @@ describe("TaskManagerImplementation", () => {
     it("should throw if trying to override a task and there is a name clash with an exising flag argument", async () => {
       // added argument clash with an existing flag
       await assert.rejects(
-        createHardhatRuntimeEnvironment({
+        createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -690,7 +690,7 @@ describe("TaskManagerImplementation", () => {
 
       // added flag clash with an existing flag
       await assert.rejects(
-        createHardhatRuntimeEnvironment({
+        createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -726,7 +726,7 @@ describe("TaskManagerImplementation", () => {
     it("should throw if trying to override a task and there is a name clash with an exising positional argument", async () => {
       // added argument clash with an existing positional argument
       await assert.rejects(
-        createHardhatRuntimeEnvironment({
+        createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -760,7 +760,7 @@ describe("TaskManagerImplementation", () => {
 
       // added flag clash with an existing positional argument
       await assert.rejects(
-        createHardhatRuntimeEnvironment({
+        createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -796,7 +796,7 @@ describe("TaskManagerImplementation", () => {
     it("should throw if trying to override a task and there is a name clash with an exising variadic argument", async () => {
       // added argument clash with an existing variadic argument
       await assert.rejects(
-        createHardhatRuntimeEnvironment({
+        createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -830,7 +830,7 @@ describe("TaskManagerImplementation", () => {
 
       // added flag clash with an existing variadic argument
       await assert.rejects(
-        createHardhatRuntimeEnvironment({
+        createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -867,7 +867,7 @@ describe("TaskManagerImplementation", () => {
       // this will fail as the config tasks are processed after
       // the plugin tasks so the override logic will not find task1
       await assert.rejects(
-        createHardhatRuntimeEnvironment({
+        createBaseHardhatRuntimeEnvironment({
           tasks: [
             new NewTaskDefinitionBuilderImplementation("task1")
               .setAction(() => {})
@@ -893,7 +893,7 @@ describe("TaskManagerImplementation", () => {
 
   describe("getTask", () => {
     it("should return the task if it exists", async () => {
-      const hre = await createHardhatRuntimeEnvironment({
+      const hre = await createBaseHardhatRuntimeEnvironment({
         plugins: [
           {
             id: "plugin1",
@@ -921,7 +921,7 @@ describe("TaskManagerImplementation", () => {
     });
 
     it("should throw if the task doesn't exist", async () => {
-      const hre = await createHardhatRuntimeEnvironment({});
+      const hre = await createBaseHardhatRuntimeEnvironment({});
       // task1 will not be found as it's not defined
       assert.throws(
         () => hre.tasks.getTask("task1"),
@@ -939,7 +939,7 @@ describe("TaskManagerImplementation", () => {
   describe("run", () => {
     it("should run a task without arguments", async () => {
       let taskRun = false;
-      const hre = await createHardhatRuntimeEnvironment({
+      const hre = await createBaseHardhatRuntimeEnvironment({
         plugins: [
           {
             id: "plugin1",
@@ -961,7 +961,7 @@ describe("TaskManagerImplementation", () => {
     });
 
     it("should return the result of the task action", async () => {
-      const hre = await createHardhatRuntimeEnvironment({
+      const hre = await createBaseHardhatRuntimeEnvironment({
         plugins: [
           {
             id: "plugin1",
@@ -982,7 +982,7 @@ describe("TaskManagerImplementation", () => {
     it("should run a overridden task without arguments", async () => {
       let taskRun = false;
       let overrideTaskRun = false;
-      const hre = await createHardhatRuntimeEnvironment({
+      const hre = await createBaseHardhatRuntimeEnvironment({
         plugins: [
           {
             id: "plugin1",
@@ -1016,7 +1016,7 @@ describe("TaskManagerImplementation", () => {
       let override1TaskRun = false;
       let override2TaskRun = false;
       let override3TaskRun = false;
-      const hre = await createHardhatRuntimeEnvironment({
+      const hre = await createBaseHardhatRuntimeEnvironment({
         plugins: [
           {
             id: "plugin1",
@@ -1071,7 +1071,7 @@ describe("TaskManagerImplementation", () => {
     it("should not run the original task action if the override task action doesn't call runSuper", async () => {
       let taskRun = false;
       let overrideTaskRun = false;
-      const hre = await createHardhatRuntimeEnvironment({
+      const hre = await createBaseHardhatRuntimeEnvironment({
         plugins: [
           {
             id: "plugin1",
@@ -1100,7 +1100,7 @@ describe("TaskManagerImplementation", () => {
     });
 
     it("should run a task with arguments", async () => {
-      const hre = await createHardhatRuntimeEnvironment({
+      const hre = await createBaseHardhatRuntimeEnvironment({
         plugins: [
           {
             id: "plugin1",
@@ -1150,7 +1150,7 @@ describe("TaskManagerImplementation", () => {
     });
 
     it("should run a task with arguments and resolve their default values", async () => {
-      const hre = await createHardhatRuntimeEnvironment({
+      const hre = await createBaseHardhatRuntimeEnvironment({
         plugins: [
           {
             id: "plugin1",
@@ -1189,7 +1189,7 @@ describe("TaskManagerImplementation", () => {
 
     it("should run an empty task that was overriden", async () => {
       let overrideTaskRun = false;
-      const hre = await createHardhatRuntimeEnvironment({
+      const hre = await createBaseHardhatRuntimeEnvironment({
         plugins: [
           {
             id: "plugin1",
@@ -1220,7 +1220,7 @@ describe("TaskManagerImplementation", () => {
         "./fixture-projects/file-actions/action-fn.js",
       );
 
-      const hre = await createHardhatRuntimeEnvironment({
+      const hre = await createBaseHardhatRuntimeEnvironment({
         plugins: [
           {
             id: "plugin1",
@@ -1247,7 +1247,7 @@ describe("TaskManagerImplementation", () => {
         "./fixture-projects/file-actions/no-run-super.js",
       );
 
-      const hre = await createHardhatRuntimeEnvironment({
+      const hre = await createBaseHardhatRuntimeEnvironment({
         plugins: [
           {
             id: "plugin1",
@@ -1274,7 +1274,7 @@ describe("TaskManagerImplementation", () => {
 
     describe("validations", () => {
       it("should throw if the task is empty", async () => {
-        const hre = await createHardhatRuntimeEnvironment({
+        const hre = await createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -1298,7 +1298,7 @@ describe("TaskManagerImplementation", () => {
       });
 
       it("should throw if the provided argument is not one of the task arguments", async () => {
-        const hre = await createHardhatRuntimeEnvironment({
+        const hre = await createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -1325,7 +1325,7 @@ describe("TaskManagerImplementation", () => {
       });
 
       it("should throw if a required argument is missing", async () => {
-        const hre = await createHardhatRuntimeEnvironment({
+        const hre = await createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -1390,7 +1390,7 @@ describe("TaskManagerImplementation", () => {
       });
 
       it("should throw if the provided value for the argument is not of the correct type", async () => {
-        const hre = await createHardhatRuntimeEnvironment({
+        const hre = await createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -1491,7 +1491,7 @@ describe("TaskManagerImplementation", () => {
       });
 
       it("should throw if an action url is provided but the corresponding module can't be resolved", async () => {
-        const hre = await createHardhatRuntimeEnvironment({
+        const hre = await createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -1528,7 +1528,7 @@ describe("TaskManagerImplementation", () => {
         );
 
         // the missing dependency is used in the NEW_TASK action
-        let hre = await createHardhatRuntimeEnvironment({
+        let hre = await createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -1550,7 +1550,7 @@ describe("TaskManagerImplementation", () => {
         );
 
         // the missing dependency is used in the TASK_OVERRIDE action
-        hre = await createHardhatRuntimeEnvironment({
+        hre = await createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -1585,7 +1585,7 @@ describe("TaskManagerImplementation", () => {
           "./fixture-projects/file-actions/no-default.js",
         );
 
-        const hre = await createHardhatRuntimeEnvironment({
+        const hre = await createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",
@@ -1616,7 +1616,7 @@ describe("TaskManagerImplementation", () => {
           "./fixture-projects/file-actions/no-default-fn.js",
         );
 
-        const hre = await createHardhatRuntimeEnvironment({
+        const hre = await createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
               id: "plugin1",

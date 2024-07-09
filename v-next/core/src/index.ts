@@ -6,7 +6,11 @@ import type { HardhatRuntimeEnvironment } from "./types/hre.js";
 import { HardhatRuntimeEnvironmentImplementation } from "./internal/hre.js";
 
 /**
- * Creates an instances of the Hardhat Runtime Environment.
+ * Creates an instances of the Hardhat Runtime Environment without any of the
+ * built-in plugins.
+ *
+ * To get the built-in plugins, use `createHardhatRuntimeEnvironment` from
+ * `hardhat/hre` instead.
  *
  * @param config - The user's Hardhat configuration.
  * @param userProvidedGlobalOptions - The global options provided by the
@@ -15,7 +19,7 @@ import { HardhatRuntimeEnvironmentImplementation } from "./internal/hre.js";
  *  redoing it in the CLI. Should only be used in the official CLI.
  * @returns The Hardhat Runtime Environment.
  */
-export async function createHardhatRuntimeEnvironment(
+export async function createBaseHardhatRuntimeEnvironment(
   config: HardhatUserConfig,
   userProvidedGlobalOptions: Partial<GlobalOptions> = {},
   unsafeOptions?: UnsafeHardhatRuntimeEnvironmentOptions,

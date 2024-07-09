@@ -14,7 +14,6 @@ import assert from "node:assert/strict";
 import { afterEach, before, describe, it } from "node:test";
 import { pathToFileURL } from "node:url";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core";
 import {
   ArgumentType,
   globalFlag,
@@ -25,6 +24,7 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { isCi } from "@ignored/hardhat-vnext-utils/ci";
 import chalk from "chalk";
 
+import { createHardhatRuntimeEnvironment } from "../../../src/hre.js";
 import {
   main,
   parseGlobalOptions,
@@ -32,7 +32,7 @@ import {
   parseTask,
   parseTaskArguments,
 } from "../../../src/internal/cli/main.js";
-import { resetHardhatRuntimeEnvironmentSingleton } from "../../../src/internal/hre-singleton.js";
+import { resetGlobalHardhatRuntimeEnvironment } from "../../../src/internal/global-hre-instance.js";
 import { getHardhatVersion } from "../../../src/internal/utils/package.js";
 import { useFixtureProject } from "../../helpers/project.js";
 
@@ -83,7 +83,7 @@ async function getTasksAndSubtaskResults(
 describe("main", function () {
   describe("main", function () {
     afterEach(function () {
-      resetHardhatRuntimeEnvironmentSingleton();
+      resetGlobalHardhatRuntimeEnvironment();
     });
 
     describe("version", function () {
@@ -228,7 +228,7 @@ GLOBAL OPTIONS:
   --help                   Shows this message, or a task's help if its name is provided.
   --show-stack-traces      Show stack traces (always enabled on CI servers).
   --version                Shows hardhat's version.
-  --flag                   A flag
+  --foo-plugin-flag        A flag
 
 To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
 
