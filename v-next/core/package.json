@@ -15,6 +15,7 @@
   "exports": {
     ".": "./dist/src/index.js",
     "./config": "./dist/src/config.js",
+    "./global-dir": "./dist/src/global-dir.js",
     "./types/arguments": "./dist/src/types/arguments.js",
     "./types/cli": "./dist/src/types/cli.js",
     "./types/config": "./dist/src/types/config.js",
