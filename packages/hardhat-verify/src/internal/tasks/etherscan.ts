@@ -103,12 +103,12 @@ subtask(TASK_VERIFY_ETHERSCAN)
       chainConfig
     );
 
-    let isVerified = false
+    let isVerified = false;
     try {
       isVerified = await etherscan.isVerified(address);
     } catch (err) {
       if (!force || err instanceof NetworkRequestError) {
-        throw err
+        throw err;
       }
       // https://github.com/blockscout/blockscout/issues/9001
     }
