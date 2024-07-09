@@ -4,11 +4,13 @@ import type { HardhatRuntimeEnvironment } from "./types/hre.js";
 import type { UnsafeHardhatRuntimeEnvironmentOptions } from "@ignored/hardhat-vnext-core/types/cli";
 
 import {
+  buildGlobalOptionDefinitions,
   // eslint-disable-next-line no-restricted-imports -- This is the one place where we allow it
   createBaseHardhatRuntimeEnvironment,
   resolvePluginList,
 } from "@ignored/hardhat-vnext-core";
 
+import { BUILTIN_GLOBAL_OPTIONS_DEFINITIONS } from "./internal/builtin-global-options.js";
 import { builtinPlugins } from "./internal/builtin-plugins/index.js";
 
 /**
@@ -35,6 +37,18 @@ export async function createHardhatRuntimeEnvironment(
     );
 
     unsafeOptions.resolvedPlugins = resolvedPlugins;
+  }
+
+  if (unsafeOptions.globalOptionDefinitions === undefined) {
+    const pluginGlobalOptionDefinitions = buildGlobalOptionDefinitions(
+      unsafeOptions.resolvedPlugins,
+    );
+    const globalOptionDefinitions = new Map([
+      ...BUILTIN_GLOBAL_OPTIONS_DEFINITIONS,
+      ...pluginGlobalOptionDefinitions,
+    ]);
+
+    unsafeOptions.globalOptionDefinitions = globalOptionDefinitions;
   }
 
   return createBaseHardhatRuntimeEnvironment(
