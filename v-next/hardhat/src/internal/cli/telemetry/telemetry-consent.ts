@@ -1,5 +1,6 @@
 import path from "node:path";
 
+import { getConfigDir } from "@ignored/hardhat-vnext-core/global-dir";
 import { isCi } from "@ignored/hardhat-vnext-utils/ci";
 import {
   exists,
