@@ -104,6 +104,9 @@ To learn how to add custom networks, follow these instructions: https://hardhat.
  * // Sourcify:
  * // Error message for Sourcify
  * //
+ * // Blockscout:
+ * // Error message for Blockscout
+ * //
  * // ... (more errors if present)
  */
 export function printVerificationErrors(
