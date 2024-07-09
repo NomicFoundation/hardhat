@@ -130,13 +130,27 @@ describe("HRE", () => {
     describe("programmatic API", () => {
       useFixtureProject("loaded-config");
 
-      it("should load the config file", async () => {
+      it("should load the plugins from the config file", async () => {
+        const hre = await import("../../src/index.js");
+        const { testPlugin } = await import(
+          "../fixture-projects/loaded-config/hardhat.config.js"
+        );
+
+        assert.deepEqual(hre.config.plugins, [...builtinPlugins, testPlugin]);
+      });
+
+      it("should load the global options", async () => {
         const hre = await import("../../src/index.js");
 
-        assert.deepEqual(hre.config.plugins, [
-          ...builtinPlugins,
-          { id: "test-plugin" },
-        ]);
+        assert.deepEqual(hre.globalOptions, {
+          config: "",
+          help: false,
+          init: false,
+          showStackTraces: false,
+          version: false,
+          fooPluginFlag: false,
+          myGlobalOption: "default",
+        });
       });
     });
   });

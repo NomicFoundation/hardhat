@@ -8,7 +8,7 @@ describe("types/global-options", () => {
   describe("GlobalOptions", () => {
     it("should be augmented with the builtin global options", () => {
       expectTypeOf<GlobalOptions>().toEqualTypeOf<{
-        configPath: string;
+        config: string;
         help: boolean;
         init: boolean;
         showStackTraces: boolean;

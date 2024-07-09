@@ -195,6 +195,7 @@ GLOBAL OPTIONS:
 
   --config                 A Hardhat config file.
   --help                   Shows this message, or a task's help if its name is provided.
+  --init                   Initializes a Hardhat project.
   --show-stack-traces      Show stack traces (always enabled on CI servers).
   --version                Shows hardhat's version.
   --user-option-1          userOption1 description.
@@ -292,6 +293,7 @@ GLOBAL OPTIONS:
 
   --config                 A Hardhat config file.
   --help                   Shows this message, or a task's help if its name is provided.
+  --init                   Initializes a Hardhat project.
   --show-stack-traces      Show stack traces (always enabled on CI servers).
   --version                Shows hardhat's version.
   --user-option-1          userOption1 description.
