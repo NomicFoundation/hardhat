@@ -7,7 +7,7 @@ export const BUILTIN_GLOBAL_OPTIONS_DEFINITIONS: GlobalOptionDefinitions =
     [
       "config",
       {
-        pluginId: "hardhat",
+        pluginId: "builtin",
         option: globalOption({
           name: "config",
           description: "A Hardhat config file.",
@@ -19,7 +19,7 @@ export const BUILTIN_GLOBAL_OPTIONS_DEFINITIONS: GlobalOptionDefinitions =
     [
       "help",
       {
-        pluginId: "hardhat",
+        pluginId: "builtin",
         option: globalOption({
           name: "help",
           description:
@@ -32,7 +32,7 @@ export const BUILTIN_GLOBAL_OPTIONS_DEFINITIONS: GlobalOptionDefinitions =
     [
       "showStackTraces",
       {
-        pluginId: "hardhat",
+        pluginId: "builtin",
         option: globalOption({
           name: "showStackTraces",
           description: "Show stack traces (always enabled on CI servers).",
@@ -44,7 +44,7 @@ export const BUILTIN_GLOBAL_OPTIONS_DEFINITIONS: GlobalOptionDefinitions =
     [
       "version",
       {
-        pluginId: "hardhat",
+        pluginId: "builtin",
         option: globalOption({
           name: "version",
           description: "Shows hardhat's version.",
