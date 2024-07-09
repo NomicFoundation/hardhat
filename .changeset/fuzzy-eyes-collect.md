@@ -2,4 +2,4 @@
 "@nomicfoundation/hardhat-verify": patch
 ---
 
-Makes force flag comprehensive enough to cover failing optional calls
+Make the `--force` flag override the check of any existing verification, even in the presence of errors.
