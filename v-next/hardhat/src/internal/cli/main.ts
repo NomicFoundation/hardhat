@@ -35,6 +35,7 @@ import { printErrorMessages } from "./error-handler.js";
 import { getGlobalHelpString } from "./helpers/getGlobalHelpString.js";
 import { getHelpString } from "./helpers/getHelpString.js";
 import { initHardhat } from "./init/init.js";
+import { getTelemetryConsent } from "./telemetry/telemetry-consent.js";
 import { printVersionMessage } from "./version.js";
 
 export async function main(
@@ -60,6 +61,10 @@ export async function main(
     if (builtinGlobalOptions.init) {
       return await initHardhat();
     }
+
+    const telemetryConsent = await getTelemetryConsent(
+      builtinGlobalOptions.help,
+    );
 
     if (builtinGlobalOptions.configPath === undefined) {
       builtinGlobalOptions.configPath = await resolveHardhatConfigPath();

@@ -1838,6 +1838,9 @@ importers:
 
   v-next/hardhat-utils:
     dependencies:
+      env-paths:
+        specifier: ^2.2.0
+        version: 2.2.1
       fast-equals:
         specifier: ^5.0.1
         version: 5.0.1
