@@ -63,7 +63,8 @@ export async function main(
       return await initHardhat();
     }
 
-    const telemetryConsent = await getTelemetryConsent(
+    // TODO: the consent will be enabled in the other PRs related to telemetry
+    const _telemetryConsent = await getTelemetryConsent(
       builtinGlobalOptions.help,
     );
 
