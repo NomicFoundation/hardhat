@@ -2,7 +2,7 @@ import "@ignored/hardhat-vnext-core/types/global-options";
 
 declare module "@ignored/hardhat-vnext-core/types/global-options" {
   export interface GlobalOptions {
-    configPath: string;
+    config: string;
     help: boolean;
     init: boolean;
     showStackTraces: boolean;

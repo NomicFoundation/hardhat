@@ -30,6 +30,18 @@ export const BUILTIN_GLOBAL_OPTIONS_DEFINITIONS: GlobalOptionDefinitions =
       },
     ],
     [
+      "init",
+      {
+        pluginId: "builtin",
+        option: globalOption({
+          name: "init",
+          description: "Initializes a Hardhat project.",
+          type: ArgumentType.BOOLEAN,
+          defaultValue: false,
+        }),
+      },
+    ],
+    [
       "showStackTraces",
       {
         pluginId: "builtin",
