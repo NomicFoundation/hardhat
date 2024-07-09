@@ -297,61 +297,6 @@ describe("Task builders", () => {
           .setAction(taskAction)
           .addOption({
             name: "arg",
-          })
-          .build();
-
-        assert.deepEqual(taskDefinition, {
-          type: TaskDefinitionType.NEW_TASK,
-          id: ["task-id"],
-          description: "",
-          action: taskAction,
-          options: {
-            arg: {
-              name: "arg",
-              description: "",
-              type: ArgumentType.STRING,
-              defaultValue: undefined,
-            },
-          },
-          positionalArguments: [],
-        });
-      });
-
-      it("should add an option with a description", () => {
-        const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        const taskAction = () => {};
-        const taskDefinition = builder
-          .setAction(taskAction)
-          .addOption({
-            name: "arg",
-            description: "Argument description",
-          })
-          .build();
-
-        assert.deepEqual(taskDefinition, {
-          type: TaskDefinitionType.NEW_TASK,
-          id: ["task-id"],
-          description: "",
-          action: taskAction,
-          options: {
-            arg: {
-              name: "arg",
-              description: "Argument description",
-              type: ArgumentType.STRING,
-              defaultValue: undefined,
-            },
-          },
-          positionalArguments: [],
-        });
-      });
-
-      it("should add an option with a default value", () => {
-        const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        const taskAction = () => {};
-        const taskDefinition = builder
-          .setAction(taskAction)
-          .addOption({
-            name: "arg",
             defaultValue: "default",
           })
           .build();
@@ -373,6 +318,35 @@ describe("Task builders", () => {
         });
       });
 
+      it("should add an option with a description", () => {
+        const builder = new NewTaskDefinitionBuilderImplementation("task-id");
+        const taskAction = () => {};
+        const taskDefinition = builder
+          .setAction(taskAction)
+          .addOption({
+            name: "arg",
+            description: "Argument description",
+            defaultValue: "default",
+          })
+          .build();
+
+        assert.deepEqual(taskDefinition, {
+          type: TaskDefinitionType.NEW_TASK,
+          id: ["task-id"],
+          description: "",
+          action: taskAction,
+          options: {
+            arg: {
+              name: "arg",
+              description: "Argument description",
+              type: ArgumentType.STRING,
+              defaultValue: "default",
+            },
+          },
+          positionalArguments: [],
+        });
+      });
+
       it("should add an option with a type", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
         const taskAction = () => {};
@@ -381,6 +355,7 @@ describe("Task builders", () => {
           .addOption({
             name: "arg",
             type: ArgumentType.INT,
+            defaultValue: 1,
           })
           .build();
 
@@ -394,7 +369,7 @@ describe("Task builders", () => {
               name: "arg",
               description: "",
               type: ArgumentType.INT,
-              defaultValue: undefined,
+              defaultValue: 1,
             },
           },
           positionalArguments: [],
@@ -682,28 +657,56 @@ describe("Task builders", () => {
     });
 
     describe("Argument name validation", () => {
-      const fnNames = [
-        "addOption",
-        "addFlag",
-        "addPositionalArgument",
-        "addVariadicArgument",
-      ] as const;
-
       it("should throw if the argument name is invalid", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
 
         const invalidNames = ["invalid-name", "invalid_name", "123invalidName"];
 
         invalidNames.forEach((name) => {
-          fnNames.forEach((fnName) => {
-            assertThrowsHardhatError(
-              () => builder[fnName]({ name }),
-              HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
-              {
+          assertThrowsHardhatError(
+            () =>
+              builder.addOption({
                 name,
-              },
-            );
-          });
+                defaultValue: "default",
+              }),
+            HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+            {
+              name,
+            },
+          );
+
+          assertThrowsHardhatError(
+            () =>
+              builder.addFlag({
+                name,
+              }),
+            HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+            {
+              name,
+            },
+          );
+
+          assertThrowsHardhatError(
+            () =>
+              builder.addPositionalArgument({
+                name,
+              }),
+            HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+            {
+              name,
+            },
+          );
+
+          assertThrowsHardhatError(
+            () =>
+              builder.addVariadicArgument({
+                name,
+              }),
+            HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+            {
+              name,
+            },
+          );
         });
       });
 
@@ -711,7 +714,7 @@ describe("Task builders", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
 
         builder
-          .addOption({ name: "option" })
+          .addOption({ name: "option", defaultValue: "default" })
           .addFlag({ name: "flag" })
           .addPositionalArgument({ name: "posArg" })
           .addVariadicArgument({ name: "varArg" });
@@ -719,15 +722,37 @@ describe("Task builders", () => {
         const names = ["option", "flag", "posArg", "varArg"];
 
         names.forEach((name) => {
-          fnNames.forEach((fnName) => {
-            assertThrowsHardhatError(
-              () => builder[fnName]({ name }),
-              HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
-              {
-                name,
-              },
-            );
-          });
+          assertThrowsHardhatError(
+            () => builder.addOption({ name, defaultValue: "default" }),
+            HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
+            {
+              name,
+            },
+          );
+
+          assertThrowsHardhatError(
+            () => builder.addFlag({ name }),
+            HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
+            {
+              name,
+            },
+          );
+
+          assertThrowsHardhatError(
+            () => builder.addPositionalArgument({ name }),
+            HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
+            {
+              name,
+            },
+          );
+
+          assertThrowsHardhatError(
+            () => builder.addVariadicArgument({ name }),
+            HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
+            {
+              name,
+            },
+          );
         });
       });
 
@@ -736,7 +761,7 @@ describe("Task builders", () => {
 
         RESERVED_ARGUMENT_NAMES.forEach((name) => {
           assertThrowsHardhatError(
-            () => builder.addOption({ name }),
+            () => builder.addOption({ name, defaultValue: "default" }),
             HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME,
             {
               name,
@@ -980,63 +1005,6 @@ describe("Task builders", () => {
           .setAction(taskAction)
           .addOption({
             name: "arg",
-          })
-          .build();
-
-        assert.deepEqual(taskDefinition, {
-          type: TaskDefinitionType.TASK_OVERRIDE,
-          id: ["task-id"],
-          description: undefined,
-          action: taskAction,
-          options: {
-            arg: {
-              name: "arg",
-              description: "",
-              type: ArgumentType.STRING,
-              defaultValue: undefined,
-            },
-          },
-        });
-      });
-
-      it("should add an option with a description", () => {
-        const builder = new TaskOverrideDefinitionBuilderImplementation(
-          "task-id",
-        );
-        const taskAction = () => {};
-        const taskDefinition = builder
-          .setAction(taskAction)
-          .addOption({
-            name: "arg",
-            description: "Argument description",
-          })
-          .build();
-
-        assert.deepEqual(taskDefinition, {
-          type: TaskDefinitionType.TASK_OVERRIDE,
-          id: ["task-id"],
-          description: undefined,
-          action: taskAction,
-          options: {
-            arg: {
-              name: "arg",
-              description: "Argument description",
-              type: ArgumentType.STRING,
-              defaultValue: undefined,
-            },
-          },
-        });
-      });
-
-      it("should add an option with a default value", () => {
-        const builder = new TaskOverrideDefinitionBuilderImplementation(
-          "task-id",
-        );
-        const taskAction = () => {};
-        const taskDefinition = builder
-          .setAction(taskAction)
-          .addOption({
-            name: "arg",
             defaultValue: "default",
           })
           .build();
@@ -1057,6 +1025,36 @@ describe("Task builders", () => {
         });
       });
 
+      it("should add an option with a description", () => {
+        const builder = new TaskOverrideDefinitionBuilderImplementation(
+          "task-id",
+        );
+        const taskAction = () => {};
+        const taskDefinition = builder
+          .setAction(taskAction)
+          .addOption({
+            name: "arg",
+            description: "Argument description",
+            defaultValue: "default",
+          })
+          .build();
+
+        assert.deepEqual(taskDefinition, {
+          type: TaskDefinitionType.TASK_OVERRIDE,
+          id: ["task-id"],
+          description: undefined,
+          action: taskAction,
+          options: {
+            arg: {
+              name: "arg",
+              description: "Argument description",
+              type: ArgumentType.STRING,
+              defaultValue: "default",
+            },
+          },
+        });
+      });
+
       it("should add an option with a type", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
@@ -1067,6 +1065,7 @@ describe("Task builders", () => {
           .addOption({
             name: "arg",
             type: ArgumentType.INT,
+            defaultValue: 1,
           })
           .build();
 
@@ -1080,7 +1079,7 @@ describe("Task builders", () => {
               name: "arg",
               description: "",
               type: ArgumentType.INT,
-              defaultValue: undefined,
+              defaultValue: 1,
             },
           },
         });
@@ -1142,8 +1141,6 @@ describe("Task builders", () => {
     });
 
     describe("Argument name validation", () => {
-      const fnNames = ["addOption", "addFlag"] as const;
-
       it("should throw if the argument name is invalid", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
@@ -1152,15 +1149,28 @@ describe("Task builders", () => {
         const invalidNames = ["invalid-name", "invalid_name", "123invalidName"];
 
         invalidNames.forEach((name) => {
-          fnNames.forEach((fnName) => {
-            assertThrowsHardhatError(
-              () => builder[fnName]({ name }),
-              HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
-              {
+          assertThrowsHardhatError(
+            () =>
+              builder.addOption({
                 name,
-              },
-            );
-          });
+                defaultValue: "default",
+              }),
+            HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+            {
+              name,
+            },
+          );
+
+          assertThrowsHardhatError(
+            () =>
+              builder.addFlag({
+                name,
+              }),
+            HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+            {
+              name,
+            },
+          );
         });
       });
 
@@ -1169,20 +1179,28 @@ describe("Task builders", () => {
           "task-id",
         );
 
-        builder.addOption({ name: "option" }).addFlag({ name: "flag" });
+        builder
+          .addOption({ name: "option", defaultValue: "default" })
+          .addFlag({ name: "flag" });
 
         const names = ["option", "flag"];
 
         names.forEach((name) => {
-          fnNames.forEach((fnName) => {
-            assertThrowsHardhatError(
-              () => builder[fnName]({ name }),
-              HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
-              {
-                name,
-              },
-            );
-          });
+          assertThrowsHardhatError(
+            () => builder.addOption({ name, defaultValue: "default" }),
+            HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
+            {
+              name,
+            },
+          );
+
+          assertThrowsHardhatError(
+            () => builder.addFlag({ name }),
+            HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
+            {
+              name,
+            },
+          );
         });
       });
 
@@ -1193,7 +1211,7 @@ describe("Task builders", () => {
 
         RESERVED_ARGUMENT_NAMES.forEach((name) => {
           assertThrowsHardhatError(
-            () => builder.addOption({ name }),
+            () => builder.addOption({ name, defaultValue: "default" }),
             HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME,
             {
               name,

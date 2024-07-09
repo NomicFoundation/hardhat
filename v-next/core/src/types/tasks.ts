@@ -45,7 +45,7 @@ export interface TaskArgumentDefinition<T extends ArgumentType = ArgumentType> {
  */
 export interface TaskOptionDefinition<T extends ArgumentType = ArgumentType>
   extends TaskArgumentDefinition<T> {
-  defaultValue?: ArgumentTypeToValueType<T>;
+  defaultValue: ArgumentTypeToValueType<T>;
 }
 
 /**
@@ -201,14 +201,13 @@ export interface NewTaskDefinitionBuilder {
    *
    * The type of the argument defaults to `ArgumentType.STRING`.
    *
-   * The default value, if provided, should be of the same type as the
-   * argument.
+   * The default value should be of the same type as the argument.
    */
   addOption<T extends ArgumentType>(optionConfig: {
     name: string;
     description?: string;
     type?: T;
-    defaultValue?: ArgumentTypeToValueType<T>;
+    defaultValue: ArgumentTypeToValueType<T>;
   }): this;
 
   /**
@@ -291,7 +290,7 @@ export interface TaskOverrideDefinitionBuilder {
     name: string;
     description?: string;
     type?: T;
-    defaultValue?: ArgumentTypeToValueType<T>;
+    defaultValue: ArgumentTypeToValueType<T>;
   }): this;
 
   /**

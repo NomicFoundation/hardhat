@@ -109,7 +109,7 @@ export class NewTaskDefinitionBuilderImplementation
     name: string;
     description?: string;
     type?: T;
-    defaultValue?: ArgumentTypeToValueType<T>;
+    defaultValue: ArgumentTypeToValueType<T>;
   }): this {
     const argumentType = type ?? ArgumentType.STRING;
 
@@ -131,10 +131,7 @@ export class NewTaskDefinitionBuilderImplementation
       });
     }
 
-    if (
-      defaultValue !== undefined &&
-      !isArgumentValueValid(argumentType, defaultValue)
-    ) {
+    if (!isArgumentValueValid(argumentType, defaultValue)) {
       throw new HardhatError(
         HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
         {
@@ -342,7 +339,7 @@ export class TaskOverrideDefinitionBuilderImplementation
     name: string;
     description?: string;
     type?: T;
-    defaultValue?: ArgumentTypeToValueType<T>;
+    defaultValue: ArgumentTypeToValueType<T>;
   }): this {
     const argumentType = type ?? ArgumentType.STRING;
 
@@ -364,10 +361,7 @@ export class TaskOverrideDefinitionBuilderImplementation
       });
     }
 
-    if (
-      defaultValue !== undefined &&
-      !isArgumentValueValid(argumentType, defaultValue)
-    ) {
+    if (!isArgumentValueValid(argumentType, defaultValue)) {
       throw new HardhatError(
         HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
         {
