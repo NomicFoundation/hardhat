@@ -1434,6 +1434,9 @@ importers:
       chalk:
         specifier: ^5.3.0
         version: 5.3.0
+      env-paths:
+        specifier: ^2.2.0
+        version: 2.2.1
       semver:
         specifier: ^7.6.2
         version: 7.6.2
