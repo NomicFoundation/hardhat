@@ -1,15 +1,16 @@
-import type { ArgumentValue } from "@ignored/hardhat-vnext-core/types/arguments";
+import type {
+  ArgumentValue,
+  OptionDefinition,
+  PositionalArgumentDefinition,
+} from "@ignored/hardhat-vnext-core/types/arguments";
 import type {
   GlobalOptions,
-  GlobalOptionDefinition,
   GlobalOptionDefinitions,
 } from "@ignored/hardhat-vnext-core/types/global-options";
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core/types/hre";
 import type {
-  TaskOptionDefinition,
   Task,
   TaskArguments,
-  TaskArgumentDefinition,
 } from "@ignored/hardhat-vnext-core/types/tasks";
 
 import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
@@ -349,7 +350,7 @@ export function parseTaskArguments(
 function parseOptions(
   cliArguments: string[],
   usedCliArguments: boolean[],
-  optionDefinitions: Map<string, TaskOptionDefinition | GlobalOptionDefinition>,
+  optionDefinitions: Map<string, OptionDefinition>,
   providedArguments: TaskArguments,
   ignoreUnknownOption = false,
 ) {
@@ -440,9 +441,6 @@ function parseOptions(
       },
     );
   }
-
-  // Check if all the required arguments have been used
-  validateRequiredArguments([...optionDefinitions.values()], providedArguments);
 }
 
 function parsePositionalAndVariadicArguments(
@@ -504,7 +502,7 @@ function parsePositionalAndVariadicArguments(
 }
 
 function validateRequiredArguments(
-  argumentDefinitions: TaskArgumentDefinition[],
+  argumentDefinitions: PositionalArgumentDefinition[],
   taskArguments: TaskArguments,
 ) {
   const missingRequiredArgument = argumentDefinitions.find(

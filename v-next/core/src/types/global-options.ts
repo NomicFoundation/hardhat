@@ -1,28 +1,18 @@
-import type { ArgumentType, ArgumentTypeToValueType } from "./arguments.js";
-
-/**
- * A global option with an associated value and a default if not provided by
- * the user. They are available in the Hardhat Runtime Environment.
- *
- * They can be provided in these different ways:
- *  1. Through environment variables, with the format
- *     `HARDHAT_<OPTION_NAME_WITH_THIS_CASING>`.
- *  2. Through the CLI with the format `--<option-name-with-this-casing> <value>`.
- *    2.1. Through the CLI with the format `--<option-name-with-this-casing>` if
- *      the option is boolean and its default value is `false`.
- *
- * If both are present, the second one takes precedence.
- */
-export interface GlobalOptionDefinition<T extends ArgumentType = ArgumentType> {
-  name: string;
-  description: string;
-  type: ArgumentType;
-  defaultValue: ArgumentTypeToValueType<T>;
-}
+import type { OptionDefinition } from "./arguments.js";
 
 /**
  * The values of each global option for a certain instance of the Hardhat
- * Runtime Environment.
+ * Runtime Environment are defined here. This interface can be extended through
+ * module augmentation to include additional global options as needed.
+ *
+ * Global options can be provided in several ways and are accessible through
+ * the Hardhat Runtime Environment:
+ *  1. Environment variables: `HARDHAT_<OPTION_NAME_WITH_THIS_CASING>`
+ *  2. CLI arguments:
+ *     - `--<option-name-with-this-casing> <value>` for options with values
+ *     - `--<option-name-with-this-casing>` for boolean options with a false default
+ *
+ * CLI arguments take precedence over environment variables.
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-interface -- To be used through module augmentation
 export interface GlobalOptions {}
@@ -33,7 +23,7 @@ export interface GlobalOptions {}
  */
 export interface GlobalOptionDefinitionsEntry {
   pluginId: string;
-  option: GlobalOptionDefinition;
+  option: OptionDefinition;
 }
 
 /**

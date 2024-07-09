@@ -1,14 +1,15 @@
-import type { ArgumentValue } from "../../types/arguments.js";
+import type {
+  ArgumentValue,
+  OptionDefinition,
+  PositionalArgumentDefinition,
+} from "../../types/arguments.js";
 import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
 import type {
-  TaskOptionDefinition,
   NewTaskActionFunction,
-  TaskPositionalArgumentDefinition,
   Task,
   TaskActions,
   TaskArguments,
   TaskOverrideActionFunction,
-  TaskArgumentDefinition,
 } from "../../types/tasks.js";
 
 import {
@@ -48,8 +49,8 @@ export class ResolvedTask implements Task {
     id: string[],
     description: string,
     action: NewTaskActionFunction | string,
-    options: Record<string, TaskOptionDefinition>,
-    positionalArguments: TaskPositionalArgumentDefinition[],
+    options: Record<string, OptionDefinition>,
+    positionalArguments: PositionalArgumentDefinition[],
     pluginId?: string,
   ): ResolvedTask {
     return new ResolvedTask(
@@ -68,8 +69,8 @@ export class ResolvedTask implements Task {
     public readonly id: string[],
     public readonly description: string,
     public readonly actions: TaskActions,
-    public readonly options: Map<string, TaskOptionDefinition>,
-    public readonly positionalArguments: TaskPositionalArgumentDefinition[],
+    public readonly options: Map<string, OptionDefinition>,
+    public readonly positionalArguments: PositionalArgumentDefinition[],
     public readonly pluginId: string | undefined,
     public readonly subtasks: Map<string, Task>,
     hre: HardhatRuntimeEnvironment,
@@ -98,25 +99,34 @@ export class ResolvedTask implements Task {
       });
     }
 
-    // Normalize arguments into a single iterable
-    const allArguments: TaskArgumentDefinition[] = [
-      ...this.options.values(),
-      ...this.positionalArguments,
-    ];
-
     const providedArgumentNames = new Set(Object.keys(taskArguments));
-    for (const argument of allArguments) {
+
+    // Validate and resolve the task options
+    for (const option of this.options.values()) {
+      const value = taskArguments[option.name];
+
+      this.#validateArgumentType(option, value);
+
+      // resolve defaults for optional arguments
+      if (value === undefined) {
+        taskArguments[option.name] = option.defaultValue;
+      }
+
+      providedArgumentNames.delete(option.name);
+    }
+
+    // Validate and resolve the task positional arguments
+    for (const argument of this.positionalArguments) {
       const value = taskArguments[argument.name];
 
       this.#validateRequiredArgument(argument, value);
-      this.#validateArgumentType(argument, value);
+      this.#validateArgumentType(argument, value, argument.isVariadic);
 
       // resolve defaults for optional arguments
       if (value === undefined && argument.defaultValue !== undefined) {
         taskArguments[argument.name] = argument.defaultValue;
       }
 
-      // Remove processed argument from the set
       providedArgumentNames.delete(argument.name);
     }
 
@@ -166,7 +176,7 @@ export class ResolvedTask implements Task {
    * @throws HardhatError if the argument is required and doesn't have a value.
    */
   #validateRequiredArgument(
-    argument: TaskArgumentDefinition,
+    argument: PositionalArgumentDefinition,
     value: ArgumentValue | ArgumentValue[],
   ) {
     if (argument.defaultValue === undefined && value === undefined) {
@@ -188,19 +198,14 @@ export class ResolvedTask implements Task {
    * @throws HardhatError if the argument has an invalid type.
    */
   #validateArgumentType(
-    argument: TaskArgumentDefinition,
+    argument: OptionDefinition | PositionalArgumentDefinition,
     value: ArgumentValue | ArgumentValue[],
+    isVariadic: boolean = false,
   ) {
     // skip type validation for optional arguments with undefined value
     if (value === undefined && argument.defaultValue !== undefined) {
       return;
     }
-
-    // check if the argument is variadic
-    const isPositionalArgument = (
-      arg: TaskArgumentDefinition,
-    ): arg is TaskPositionalArgumentDefinition => "isVariadic" in arg;
-    const isVariadic = isPositionalArgument(argument) && argument.isVariadic;
 
     // check if the value is valid for the argument type
     if (!isArgumentValueValid(argument.type, value, isVariadic)) {

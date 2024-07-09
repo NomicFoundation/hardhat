@@ -1,10 +1,12 @@
-import type { ArgumentTypeToValueType } from "../../types/arguments.js";
 import type {
-  TaskOptionDefinition,
+  ArgumentTypeToValueType,
+  OptionDefinition,
+  PositionalArgumentDefinition,
+} from "../../types/arguments.js";
+import type {
   NewTaskActionFunction,
   NewTaskDefinitionBuilder,
   NewTaskDefinition,
-  TaskPositionalArgumentDefinition,
   TaskOverrideActionFunction,
   TaskOverrideDefinitionBuilder,
   TaskOverrideDefinition,
@@ -62,8 +64,8 @@ export class NewTaskDefinitionBuilderImplementation
   readonly #id: string[];
   readonly #usedNames: Set<string> = new Set();
 
-  readonly #options: Record<string, TaskOptionDefinition> = {};
-  readonly #positionalArgs: TaskPositionalArgumentDefinition[] = [];
+  readonly #options: Record<string, OptionDefinition> = {};
+  readonly #positionalArgs: PositionalArgumentDefinition[] = [];
 
   #description: string;
 
@@ -294,7 +296,7 @@ export class TaskOverrideDefinitionBuilderImplementation
 {
   readonly #id: string[];
 
-  readonly #options: Record<string, TaskOptionDefinition> = {};
+  readonly #options: Record<string, OptionDefinition> = {};
 
   #description?: string;
 

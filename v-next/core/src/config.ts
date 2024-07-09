@@ -1,6 +1,8 @@
-import type { ArgumentTypeToValueType } from "./types/arguments.js";
+import type {
+  ArgumentTypeToValueType,
+  OptionDefinition,
+} from "./types/arguments.js";
 import type { ConfigurationVariable } from "./types/config.js";
-import type { GlobalOptionDefinition } from "./types/global-options.js";
 import type {
   EmptyTaskDefinitionBuilder,
   NewTaskDefinitionBuilder,
@@ -63,7 +65,7 @@ export function globalOption<T extends ArgumentType>(options: {
   description: string;
   type?: T;
   defaultValue: ArgumentTypeToValueType<T>;
-}): GlobalOptionDefinition {
+}): OptionDefinition {
   return buildGlobalOptionDefinition(options);
 }
 
@@ -73,7 +75,7 @@ export function globalOption<T extends ArgumentType>(options: {
 export function globalFlag(options: {
   name: string;
   description: string;
-}): GlobalOptionDefinition {
+}): OptionDefinition {
   return buildGlobalOptionDefinition({
     ...options,
     type: ArgumentType.BOOLEAN,
