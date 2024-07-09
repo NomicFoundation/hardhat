@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { globalOption, ArgumentType } from "../../src/config.js";
 import { RESERVED_ARGUMENT_NAMES } from "../../src/internal/arguments.js";
@@ -86,7 +87,7 @@ describe("Global Options", () => {
         defaultValue: false,
       });
 
-      assert.throws(
+      assertThrowsHardhatError(
         () =>
           buildGlobalOptionDefinitions([
             {
@@ -98,19 +99,18 @@ describe("Global Options", () => {
               globalOptions: [globalOptionDefinition2],
             },
           ]),
-        new HardhatError(
-          HardhatError.ERRORS.GENERAL.GLOBAL_OPTION_ALREADY_DEFINED,
-          {
-            plugin: "plugin2",
-            globalOption: "globalOption1",
-            definedByPlugin: "plugin1",
-          },
-        ),
+
+        HardhatError.ERRORS.GENERAL.GLOBAL_OPTION_ALREADY_DEFINED,
+        {
+          plugin: "plugin2",
+          globalOption: "globalOption1",
+          definedByPlugin: "plugin1",
+        },
       );
     });
 
     it("should throw if an option name is not valid", () => {
-      assert.throws(
+      assertThrowsHardhatError(
         () =>
           buildGlobalOptionDefinitions([
             {
@@ -125,15 +125,16 @@ describe("Global Options", () => {
               ],
             },
           ]),
-        new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
+        HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+        {
           name: "foo bar",
-        }),
+        },
       );
     });
 
     it("should throw if an option name is reserved", () => {
       RESERVED_ARGUMENT_NAMES.forEach((name) => {
-        assert.throws(
+        assertThrowsHardhatError(
           () =>
             buildGlobalOptionDefinitions([
               {
@@ -148,15 +149,16 @@ describe("Global Options", () => {
                 ],
               },
             ]),
-          new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
+          HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME,
+          {
             name,
-          }),
+          },
         );
       });
     });
 
     it("should throw if an options default value does not match the type", () => {
-      assert.throws(
+      assertThrowsHardhatError(
         () =>
           buildGlobalOptionDefinitions([
             {
@@ -173,11 +175,12 @@ describe("Global Options", () => {
               ],
             },
           ]),
-        new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+        HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+        {
           value: "bar",
           name: "defaultValue",
           type: ArgumentType.BOOLEAN,
-        }),
+        },
       );
     });
   });
@@ -210,37 +213,39 @@ describe("Global Options", () => {
     });
 
     it("should throw if the option name is not valid", () => {
-      assert.throws(
+      assertThrowsHardhatError(
         () =>
           buildGlobalOptionDefinition({
             name: "foo bar",
             description: "Foo description",
             defaultValue: "bar",
           }),
-        new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
+        HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+        {
           name: "foo bar",
-        }),
+        },
       );
     });
 
     it("should throw if the option name is reserved", () => {
       RESERVED_ARGUMENT_NAMES.forEach((name) => {
-        assert.throws(
+        assertThrowsHardhatError(
           () =>
             buildGlobalOptionDefinition({
               name,
               description: "Foo description",
               defaultValue: "bar",
             }),
-          new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
+          HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME,
+          {
             name,
-          }),
+          },
         );
       });
     });
 
     it("should throw if the default value does not match the type", () => {
-      assert.throws(
+      assertThrowsHardhatError(
         () =>
           buildGlobalOptionDefinition({
             name: "foo",
@@ -250,11 +255,12 @@ describe("Global Options", () => {
             Intentionally testing an invalid type */
             defaultValue: "bar" as any,
           }),
-        new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+        HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+        {
           value: "bar",
           name: "defaultValue",
           type: ArgumentType.BOOLEAN,
-        }),
+        },
       );
     });
   });
@@ -416,13 +422,14 @@ describe("Global Options", () => {
 
       setEnvVar("HARDHAT_GLOBAL_OPTION1", "not a boolean");
 
-      assert.throws(
+      assertThrowsHardhatError(
         () => resolveGlobalOptions({}, globalOptionDefinitions),
-        new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+        HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+        {
           value: "not a boolean",
           name: "globalOption1",
           type: ArgumentType.BOOLEAN,
-        }),
+        },
       );
     });
   });

@@ -22,6 +22,8 @@ import assert from "node:assert/strict";
 import { describe, it, beforeEach } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { HookManagerImplementation } from "../../src/internal/hook-manager.js";
 import { UserInterruptionManagerImplementation } from "../../src/internal/user-interruptions.js";
@@ -235,20 +237,23 @@ describe("HookManager", () => {
 
         const manager = new HookManagerImplementation([examplePlugin]);
 
-        await assert.rejects(
-          async () =>
-            manager.runHandlerChain(
-              "config",
-              "extendUserConfig",
-              [{}],
-              async () => {
-                return {};
-              },
-            ),
-          {
-            code: "ERR_MODULE_NOT_FOUND",
-          },
-        );
+        try {
+          await manager.runHandlerChain(
+            "config",
+            "extendUserConfig",
+            [{}],
+            async () => {
+              return {};
+            },
+          );
+        } catch (error) {
+          ensureError(error);
+          assert.ok("code" in error, "Error has no code property");
+          assert.equal(error.code, "ERR_MODULE_NOT_FOUND");
+          return;
+        }
+
+        assert.fail("Expected an error, but none was thrown");
       });
 
       it("should throw if a non-filepath is given to the plugin being loaded", async () => {
@@ -261,7 +266,7 @@ describe("HookManager", () => {
 
         const manager = new HookManagerImplementation([examplePlugin]);
 
-        await assert.rejects(
+        await assertRejectsWithHardhatError(
           async () =>
             manager.runHandlerChain(
               "config",
@@ -271,14 +276,12 @@ describe("HookManager", () => {
                 return {};
               },
             ),
-          new HardhatError(
-            HardhatError.ERRORS.HOOKS.INVALID_HOOK_FACTORY_PATH,
-            {
-              hookCategoryName: "config",
-              pluginId: "example",
-              path: "./fixture-plugins/config-plugin.js",
-            },
-          ),
+          HardhatError.ERRORS.HOOKS.INVALID_HOOK_FACTORY_PATH,
+          {
+            hookCategoryName: "config",
+            pluginId: "example",
+            path: "./fixture-plugins/config-plugin.js",
+          },
         );
       });
     });
@@ -903,9 +906,7 @@ describe("HookManager", () => {
           },
         };
 
-        assert.doesNotThrow(() =>
-          hookManager.unregisterHandlers("config", exampleHook),
-        );
+        hookManager.unregisterHandlers("config", exampleHook);
       });
     });
   });

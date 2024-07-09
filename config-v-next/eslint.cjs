@@ -10,10 +10,13 @@ const path = require("path");
  * The only packages that should not use this config are our own eslint plugins/rules.
  *
  * @param {string} configFilePath The path to the config file that is using this function.
- * @param {{ onlyHardhatError?: boolean }} options An object with options to enable/disable certain rules.
+ * @param {{ onlyHardhatError?: boolean, enforceHardhatTestUtils?: boolean }} options An object with options to enable/disable certain rules.
  * @returns {import("eslint").Linter.Config}
  */
-function createConfig(configFilePath, options = { onlyHardhatError: true }) {
+function createConfig(
+  configFilePath,
+  options = { onlyHardhatError: true, enforceHardhatTestUtils: true }
+) {
   /**
    * @type {import("eslint").Linter.Config}
    */
@@ -242,6 +245,18 @@ function createConfig(configFilePath, options = { onlyHardhatError: true }) {
           message:
             "Top-level await is only allowed in a few cases. Please discuss this change with the team.",
         },
+        {
+          selector:
+            "CallExpression[callee.object.name='assert'][callee.property.name=doesNotThrow]",
+          message:
+            "Don't use assert.doesNotThrow. Just call the function directly, letting the error bubble up if thrown",
+        },
+        {
+          selector:
+            "CallExpression[callee.object.name='assert'][callee.property.name=doesNotReject]",
+          message:
+            "Don't use assert.doesNotReject. Just await the async-function-call/promise directly, letting the error bubble up if rejected",
+        },
       ],
       "@typescript-eslint/restrict-plus-operands": "error",
       "@typescript-eslint/restrict-template-expressions": [
@@ -411,6 +426,21 @@ function createConfig(configFilePath, options = { onlyHardhatError: true }) {
         ],
       },
     });
+  }
+
+  if (options.enforceHardhatTestUtils) {
+    config.rules["no-restricted-syntax"].push(
+      {
+        selector:
+          "CallExpression[callee.object.name='assert'][callee.property.name=throws]",
+        message: "Don't use assert.throws. Use our test helpers instead.",
+      },
+      {
+        selector:
+          "CallExpression[callee.object.name='assert'][callee.property.name=rejects]",
+        message: "Don't use assert.rejects. Use our test helpers instead.",
+      }
+    );
   }
 
   return config;

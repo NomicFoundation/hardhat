@@ -2,6 +2,10 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import {
+  assertThrowsHardhatError,
+  assertRejectsWithHardhatError,
+} from "@nomicfoundation/hardhat-test-utils";
 
 import { ArgumentType, globalOption } from "../../../src/config.js";
 import { createBaseHardhatRuntimeEnvironment } from "../../../src/index.js";
@@ -376,7 +380,7 @@ describe("TaskManagerImplementation", () => {
    */
   describe("errors", () => {
     it("should throw if there's a global option with the same name as a task option", async () => {
-      await assert.rejects(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -401,20 +405,19 @@ describe("TaskManagerImplementation", () => {
             },
           ],
         }),
-        new HardhatError(
-          HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OPTION_ALREADY_DEFINED,
-          {
-            actorFragment: "Plugin plugin1 is",
-            task: "task1",
-            option: "arg1",
-            globalOptionPluginId: "plugin2",
-          },
-        ),
+
+        HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OPTION_ALREADY_DEFINED,
+        {
+          actorFragment: "Plugin plugin1 is",
+          task: "task1",
+          option: "arg1",
+          globalOptionPluginId: "plugin2",
+        },
       );
     });
 
     it("should throw if there's a global option with the same name as a task positional argument", async () => {
-      await assert.rejects(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -439,20 +442,19 @@ describe("TaskManagerImplementation", () => {
             },
           ],
         }),
-        new HardhatError(
-          HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OPTION_ALREADY_DEFINED,
-          {
-            actorFragment: "Plugin plugin1 is",
-            task: "task1",
-            option: "arg1",
-            globalOptionPluginId: "plugin2",
-          },
-        ),
+
+        HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OPTION_ALREADY_DEFINED,
+        {
+          actorFragment: "Plugin plugin1 is",
+          task: "task1",
+          option: "arg1",
+          globalOptionPluginId: "plugin2",
+        },
       );
     });
 
     it("should throw if trying to add a task with an empty id", async () => {
-      await assert.rejects(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -471,12 +473,13 @@ describe("TaskManagerImplementation", () => {
             },
           ],
         }),
-        new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID),
+        HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+        {},
       );
     });
 
     it("should throw if trying to add a subtask for a task that doesn't exist", async () => {
-      await assert.rejects(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -493,18 +496,16 @@ describe("TaskManagerImplementation", () => {
             },
           ],
         }),
-        new HardhatError(
-          HardhatError.ERRORS.TASK_DEFINITIONS.SUBTASK_WITHOUT_PARENT,
-          {
-            task: "task1",
-            subtask: "task1 subtask1",
-          },
-        ),
+        HardhatError.ERRORS.TASK_DEFINITIONS.SUBTASK_WITHOUT_PARENT,
+        {
+          task: "task1",
+          subtask: "task1 subtask1",
+        },
       );
     });
 
     it("should throw if trying to add a task that already exists", async () => {
-      await assert.rejects(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -527,20 +528,18 @@ describe("TaskManagerImplementation", () => {
             },
           ],
         }),
-        new HardhatError(
-          HardhatError.ERRORS.TASK_DEFINITIONS.TASK_ALREADY_DEFINED,
-          {
-            actorFragment: "Plugin plugin2 is",
-            task: "task1",
-            definedByFragment: " by plugin plugin1",
-          },
-        ),
+        HardhatError.ERRORS.TASK_DEFINITIONS.TASK_ALREADY_DEFINED,
+        {
+          actorFragment: "Plugin plugin2 is",
+          task: "task1",
+          definedByFragment: " by plugin plugin1",
+        },
       );
     });
 
     it("should throw if trying to override a task that doesn't exist", async () => {
       // Empty id task will not be found as empty ids are not allowed
-      await assert.rejects(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -558,13 +557,14 @@ describe("TaskManagerImplementation", () => {
             },
           ],
         }),
-        new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.TASK_NOT_FOUND, {
+        HardhatError.ERRORS.TASK_DEFINITIONS.TASK_NOT_FOUND,
+        {
           task: "",
-        }),
+        },
       );
 
       // task1 will not be found as it's not defined
-      await assert.rejects(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -577,15 +577,16 @@ describe("TaskManagerImplementation", () => {
             },
           ],
         }),
-        new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.TASK_NOT_FOUND, {
+        HardhatError.ERRORS.TASK_DEFINITIONS.TASK_NOT_FOUND,
+        {
           task: "task1",
-        }),
+        },
       );
     });
 
     it("should throw if trying to override a task and there is a name clash with an existing option", async () => {
       // added argument clash with an existing option
-      await assert.rejects(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -608,18 +609,17 @@ describe("TaskManagerImplementation", () => {
             },
           ],
         }),
-        new HardhatError(
-          HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
-          {
-            actorFragment: "Plugin plugin2 is",
-            option: "arg1",
-            task: "task1",
-          },
-        ),
+        HardhatError.ERRORS.TASK_DEFINITIONS
+          .TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
+        {
+          actorFragment: "Plugin plugin2 is",
+          option: "arg1",
+          task: "task1",
+        },
       );
 
       // added flag clash with an existing option
-      await assert.rejects(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -642,20 +642,19 @@ describe("TaskManagerImplementation", () => {
             },
           ],
         }),
-        new HardhatError(
-          HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
-          {
-            actorFragment: "Plugin plugin2 is",
-            option: "arg1",
-            task: "task1",
-          },
-        ),
+        HardhatError.ERRORS.TASK_DEFINITIONS
+          .TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
+        {
+          actorFragment: "Plugin plugin2 is",
+          option: "arg1",
+          task: "task1",
+        },
       );
     });
 
     it("should throw if trying to override a task and there is a name clash with an exising flag argument", async () => {
       // added argument clash with an existing flag
-      await assert.rejects(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -678,18 +677,17 @@ describe("TaskManagerImplementation", () => {
             },
           ],
         }),
-        new HardhatError(
-          HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
-          {
-            actorFragment: "Plugin plugin2 is",
-            option: "flag1",
-            task: "task1",
-          },
-        ),
+        HardhatError.ERRORS.TASK_DEFINITIONS
+          .TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
+        {
+          actorFragment: "Plugin plugin2 is",
+          option: "flag1",
+          task: "task1",
+        },
       );
 
       // added flag clash with an existing flag
-      await assert.rejects(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -712,20 +710,19 @@ describe("TaskManagerImplementation", () => {
             },
           ],
         }),
-        new HardhatError(
-          HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
-          {
-            actorFragment: "Plugin plugin2 is",
-            option: "flag1",
-            task: "task1",
-          },
-        ),
+        HardhatError.ERRORS.TASK_DEFINITIONS
+          .TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
+        {
+          actorFragment: "Plugin plugin2 is",
+          option: "flag1",
+          task: "task1",
+        },
       );
     });
 
     it("should throw if trying to override a task and there is a name clash with an exising positional argument", async () => {
       // added argument clash with an existing positional argument
-      await assert.rejects(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -748,18 +745,17 @@ describe("TaskManagerImplementation", () => {
             },
           ],
         }),
-        new HardhatError(
-          HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
-          {
-            actorFragment: "Plugin plugin2 is",
-            option: "arg1",
-            task: "task1",
-          },
-        ),
+        HardhatError.ERRORS.TASK_DEFINITIONS
+          .TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
+        {
+          actorFragment: "Plugin plugin2 is",
+          option: "arg1",
+          task: "task1",
+        },
       );
 
       // added flag clash with an existing positional argument
-      await assert.rejects(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -782,20 +778,19 @@ describe("TaskManagerImplementation", () => {
             },
           ],
         }),
-        new HardhatError(
-          HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
-          {
-            actorFragment: "Plugin plugin2 is",
-            option: "flag1",
-            task: "task1",
-          },
-        ),
+        HardhatError.ERRORS.TASK_DEFINITIONS
+          .TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
+        {
+          actorFragment: "Plugin plugin2 is",
+          option: "flag1",
+          task: "task1",
+        },
       );
     });
 
     it("should throw if trying to override a task and there is a name clash with an exising variadic argument", async () => {
       // added argument clash with an existing variadic argument
-      await assert.rejects(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -818,18 +813,17 @@ describe("TaskManagerImplementation", () => {
             },
           ],
         }),
-        new HardhatError(
-          HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
-          {
-            actorFragment: "Plugin plugin2 is",
-            option: "arg1",
-            task: "task1",
-          },
-        ),
+        HardhatError.ERRORS.TASK_DEFINITIONS
+          .TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
+        {
+          actorFragment: "Plugin plugin2 is",
+          option: "arg1",
+          task: "task1",
+        },
       );
 
       // added flag clash with an existing variadic argument
-      await assert.rejects(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           plugins: [
             {
@@ -852,21 +846,20 @@ describe("TaskManagerImplementation", () => {
             },
           ],
         }),
-        new HardhatError(
-          HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
-          {
-            actorFragment: "Plugin plugin2 is",
-            option: "flag1",
-            task: "task1",
-          },
-        ),
+        HardhatError.ERRORS.TASK_DEFINITIONS
+          .TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
+        {
+          actorFragment: "Plugin plugin2 is",
+          option: "flag1",
+          task: "task1",
+        },
       );
     });
 
     it("should throw if a plugins tries to override a task defined in the config", async () => {
       // this will fail as the config tasks are processed after
       // the plugin tasks so the override logic will not find task1
-      await assert.rejects(
+      await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
           tasks: [
             new NewTaskDefinitionBuilderImplementation("task1")
@@ -884,9 +877,10 @@ describe("TaskManagerImplementation", () => {
             },
           ],
         }),
-        new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.TASK_NOT_FOUND, {
+        HardhatError.ERRORS.TASK_DEFINITIONS.TASK_NOT_FOUND,
+        {
           task: "task1",
-        }),
+        },
       );
     });
   });
@@ -923,11 +917,12 @@ describe("TaskManagerImplementation", () => {
     it("should throw if the task doesn't exist", async () => {
       const hre = await createBaseHardhatRuntimeEnvironment({});
       // task1 will not be found as it's not defined
-      assert.throws(
+      assertThrowsHardhatError(
         () => hre.tasks.getTask("task1"),
-        new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.TASK_NOT_FOUND, {
+        HardhatError.ERRORS.TASK_DEFINITIONS.TASK_NOT_FOUND,
+        {
           task: "task1",
-        }),
+        },
       );
     });
   });
@@ -1289,11 +1284,12 @@ describe("TaskManagerImplementation", () => {
         });
 
         const task1 = hre.tasks.getTask("task1");
-        await assert.rejects(
+        await assertRejectsWithHardhatError(
           task1.run({}),
-          new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK, {
+          HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK,
+          {
             task: "task1",
-          }),
+          },
         );
       });
 
@@ -1312,15 +1308,13 @@ describe("TaskManagerImplementation", () => {
         });
 
         const task1 = hre.tasks.getTask("task1");
-        await assert.rejects(
+        await assertRejectsWithHardhatError(
           task1.run({ otherArg: "otherArgValue" }),
-          new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
-            {
-              option: "otherArg",
-              task: "task1",
-            },
-          ),
+          HardhatError.ERRORS.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
+          {
+            option: "otherArg",
+            task: "task1",
+          },
         );
       });
 
@@ -1344,48 +1338,42 @@ describe("TaskManagerImplementation", () => {
         const task1 = hre.tasks.getTask("task1");
 
         // option is missing
-        await assert.rejects(
+        await assertRejectsWithHardhatError(
           task1.run({
             posArg: "posValue",
             varArg: ["varValue1", "varValue2"],
           }),
-          new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
-            {
-              argument: "option",
-              task: "task1",
-            },
-          ),
+          HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
+          {
+            argument: "option",
+            task: "task1",
+          },
         );
 
         // posArg is missing
-        await assert.rejects(
+        await assertRejectsWithHardhatError(
           task1.run({
             option: "arg1Value",
             varArg: ["varValue1", "varValue2"],
           }),
-          new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
-            {
-              argument: "posArg",
-              task: "task1",
-            },
-          ),
+          HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
+          {
+            argument: "posArg",
+            task: "task1",
+          },
         );
 
         // varArg is missing
-        await assert.rejects(
+        await assertRejectsWithHardhatError(
           task1.run({
             option: "arg1Value",
             posArg: "posValue",
           }),
-          new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
-            {
-              argument: "varArg",
-              task: "task1",
-            },
-          ),
+          HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
+          {
+            argument: "varArg",
+            task: "task1",
+          },
         );
       });
 
@@ -1418,75 +1406,67 @@ describe("TaskManagerImplementation", () => {
         const task1 = hre.tasks.getTask("task1");
 
         // option has the wrong type
-        await assert.rejects(
+        await assertRejectsWithHardhatError(
           task1.run({
             option: "not a bigint",
             posArg: 10,
             varArg: ["file1", "file2", "file3"],
           }),
-          new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
-            {
-              value: "not a bigint",
-              name: "option",
-              type: ArgumentType.BIGINT,
-              task: "task1",
-            },
-          ),
+          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+          {
+            value: "not a bigint",
+            name: "option",
+            type: ArgumentType.BIGINT,
+            task: "task1",
+          },
         );
 
         // posArg has the wrong type
-        await assert.rejects(
+        await assertRejectsWithHardhatError(
           task1.run({
             option: 5n,
             posArg: true,
             varArg: ["file1", "file2", "file3"],
           }),
-          new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
-            {
-              value: true,
-              name: "posArg",
-              type: ArgumentType.INT,
-              task: "task1",
-            },
-          ),
+          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+          {
+            value: true,
+            name: "posArg",
+            type: ArgumentType.INT,
+            task: "task1",
+          },
         );
 
         // varArg has the wrong type (not an array)
-        await assert.rejects(
+        await assertRejectsWithHardhatError(
           task1.run({
             option: 5n,
             posArg: 10,
             varArg: "not an array",
           }),
-          new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
-            {
-              value: "not an array",
-              name: "varArg",
-              type: ArgumentType.FILE,
-              task: "task1",
-            },
-          ),
+          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+          {
+            value: "not an array",
+            name: "varArg",
+            type: ArgumentType.FILE,
+            task: "task1",
+          },
         );
 
         // varArg has the wrong type (array element has the wrong type)
-        await assert.rejects(
+        await assertRejectsWithHardhatError(
           task1.run({
             option: 5n,
             posArg: 10,
             varArg: ["file1", 5, "file3"],
           }),
-          new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
-            {
-              value: ["file1", 5, "file3"],
-              name: "varArg",
-              type: ArgumentType.FILE,
-              task: "task1",
-            },
-          ),
+          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+          {
+            value: ["file1", 5, "file3"],
+            name: "varArg",
+            type: ArgumentType.FILE,
+            task: "task1",
+          },
         );
       });
 
@@ -1505,15 +1485,13 @@ describe("TaskManagerImplementation", () => {
         });
 
         const task1 = hre.tasks.getTask("task1");
-        await assert.rejects(
+        await assertRejectsWithHardhatError(
           task1.run({}),
-          new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION_URL,
-            {
-              action: "file://not-a-module",
-              task: "task1",
-            },
-          ),
+          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION_URL,
+          {
+            action: "file://not-a-module",
+            task: "task1",
+          },
         );
       });
 
@@ -1542,11 +1520,12 @@ describe("TaskManagerImplementation", () => {
           ],
         });
 
-        await assert.rejects(
+        await assertRejectsWithHardhatError(
           hre.tasks.getTask("task1").run({}),
-          new HardhatError(HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED, {
+          HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED,
+          {
             pluginId: "plugin1",
-          }),
+          },
         );
 
         // the missing dependency is used in the TASK_OVERRIDE action
@@ -1572,11 +1551,12 @@ describe("TaskManagerImplementation", () => {
           ],
         });
 
-        await assert.rejects(
+        await assertRejectsWithHardhatError(
           hre.tasks.getTask("task1").run({}),
-          new HardhatError(HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED, {
+          HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED,
+          {
             pluginId: "plugin2",
-          }),
+          },
         );
       });
 
@@ -1599,15 +1579,13 @@ describe("TaskManagerImplementation", () => {
         });
 
         const task1 = hre.tasks.getTask("task1");
-        await assert.rejects(
+        await assertRejectsWithHardhatError(
           task1.run({}),
-          new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION,
-            {
-              action: actionUrl,
-              task: "task1",
-            },
-          ),
+          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION,
+          {
+            action: actionUrl,
+            task: "task1",
+          },
         );
       });
 
@@ -1630,15 +1608,13 @@ describe("TaskManagerImplementation", () => {
         });
 
         const task1 = hre.tasks.getTask("task1");
-        await assert.rejects(
+        await assertRejectsWithHardhatError(
           task1.run({}),
-          new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION,
-            {
-              action: actionUrl,
-              task: "task1",
-            },
-          ),
+          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION,
+          {
+            action: actionUrl,
+            task: "task1",
+          },
         );
       });
     });
