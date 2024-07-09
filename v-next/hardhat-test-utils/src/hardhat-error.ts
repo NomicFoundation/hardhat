@@ -10,12 +10,12 @@ import { ensureError } from "@ignored/hardhat-vnext-utils/error";
  * arguments.
  *
  * @param error The error.
- * @param descritor The error descriptor.
+ * @param descriptor The error descriptor.
  * @param messageArguments The message arguments.
  */
 export function assertIsHardhatError<ErrorDescriptorT extends ErrorDescriptor>(
   error: unknown,
-  descritor: ErrorDescriptorT,
+  descriptor: ErrorDescriptorT,
   messageArguments: HardhatError<ErrorDescriptorT>["messageArguments"],
 ): asserts error is HardhatError<ErrorDescriptorT> {
   assert.ok(HardhatError.isHardhatError(error), "Error is not a HardhatError");
@@ -24,11 +24,11 @@ export function assertIsHardhatError<ErrorDescriptorT extends ErrorDescriptor>(
   // in case the descriptors are different.
   assert.equal(
     error.descriptor.number,
-    descritor.number,
-    `Expected error number ${descritor.number}, but got ${error.descriptor.number}`,
+    descriptor.number,
+    `Expected error number ${descriptor.number}, but got ${error.descriptor.number}`,
   );
 
-  assert.deepEqual(error.descriptor, descritor);
+  assert.deepEqual(error.descriptor, descriptor);
 
   assert.deepEqual(error.messageArguments, messageArguments);
 }
@@ -38,21 +38,21 @@ export function assertIsHardhatError<ErrorDescriptorT extends ErrorDescriptor>(
  * descriptor and message arguments.
  *
  * @param f The function that should throw.
- * @param descritor The error descriptor.
+ * @param descriptor The error descriptor.
  * @param messageArguments The message arguments.
  */
 export function assertThrowsHardhatError<
   ErrorDescriptorT extends ErrorDescriptor,
 >(
   f: () => any,
-  descritor: ErrorDescriptorT,
+  descriptor: ErrorDescriptorT,
   messageArguments: HardhatError<ErrorDescriptorT>["messageArguments"],
 ): void {
   try {
     f();
   } catch (error) {
     ensureError(error);
-    assertIsHardhatError(error, descritor, messageArguments);
+    assertIsHardhatError(error, descriptor, messageArguments);
 
     return;
   }
@@ -66,14 +66,14 @@ export function assertThrowsHardhatError<
  * arguments.
  *
  * @param op The async operation. If it's a function, it's called and awaited.
- * @param descritor The error descriptor.
+ * @param descriptor The error descriptor.
  * @param messageArguments The message arguments.
  */
 export async function assertRejectsWithHardhatError<
   ErrorDescriptorT extends ErrorDescriptor,
 >(
   op: (() => Promise<any>) | Promise<any>,
-  descritor: ErrorDescriptorT,
+  descriptor: ErrorDescriptorT,
   messageArguments: HardhatError<ErrorDescriptorT>["messageArguments"],
 ): Promise<void> {
   try {
@@ -84,7 +84,7 @@ export async function assertRejectsWithHardhatError<
     }
   } catch (error) {
     ensureError(error);
-    assertIsHardhatError(error, descritor, messageArguments);
+    assertIsHardhatError(error, descriptor, messageArguments);
 
     return;
   }
