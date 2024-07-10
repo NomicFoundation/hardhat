@@ -46,7 +46,7 @@ To get help for a specific task run: npx hardhat task <SUBTASK> --help`;
 
   describe("when the task is not empty", function () {
     describe("when there are options", function () {
-      it("should return the task's help string", async function () {
+      it("should return the task's help string with options sorted by name", async function () {
         const task: Task = {
           id: ["task"],
           description: "task description",
@@ -73,12 +73,12 @@ To get help for a specific task run: npx hardhat task <SUBTASK> --help`;
 
         const expected = `${chalk.bold("task description")}
 
-Usage: hardhat [GLOBAL OPTIONS] task [--option <STRING>] [--another-option]
+Usage: hardhat [GLOBAL OPTIONS] task [--another-option] [--option <STRING>]
 
 OPTIONS:
 
-  --option              An example option
   --another-option      Another example option
+  --option              An example option
 
 For global options help run: hardhat --help`;
 
@@ -87,7 +87,7 @@ For global options help run: hardhat --help`;
     });
 
     describe("when there are positional arguments", function () {
-      it("should return the task's help string", async function () {
+      it("should return the task's help string with options and positional arguments sorted by name, except in the usage string", async function () {
         const task: Task = {
           id: ["task"],
           description: "task description",
@@ -107,6 +107,12 @@ For global options help run: hardhat --help`;
             {
               name: "positionalArgument",
               description: "An example positional argument",
+              type: ArgumentType.STRING,
+              isVariadic: false,
+            },
+            {
+              name: "anotherPositionalArgument",
+              description: "Another example positional argument",
               type: ArgumentType.STRING,
               isVariadic: false,
             },
@@ -121,16 +127,17 @@ For global options help run: hardhat --help`;
 
         const expected = `${chalk.bold("task description")}
 
-Usage: hardhat [GLOBAL OPTIONS] task [--option <STRING>] [--another-option] [--] positionalArgument
+Usage: hardhat [GLOBAL OPTIONS] task [--another-option] [--option <STRING>] [--] positionalArgument anotherPositionalArgument
 
 OPTIONS:
 
-  --option                An example option
-  --another-option        Another example option
+  --another-option               Another example option
+  --option                       An example option
 
 POSITIONAL ARGUMENTS:
 
-  positionalArgument      An example positional argument
+  anotherPositionalArgument      Another example positional argument
+  positionalArgument             An example positional argument
 
 For global options help run: hardhat --help`;
 
@@ -139,7 +146,7 @@ For global options help run: hardhat --help`;
     });
 
     describe("when there are subtasks", function () {
-      it("should return the task's help string", async function () {
+      it("should return the task's help string with subtasks sorted by name", async function () {
         const task: Task = {
           id: ["task"],
           description: "task description",
@@ -164,10 +171,15 @@ For global options help run: hardhat --help`;
             },
           ],
           pluginId: "task-plugin-id",
-          subtasks: new Map().set("subtask", {
-            id: ["task", "subtask"],
-            description: "An example subtask",
-          }),
+          subtasks: new Map()
+            .set("subtask", {
+              id: ["task", "subtask"],
+              description: "An example subtask",
+            })
+            .set("another-subtask", {
+              id: ["task", "another-subtask"],
+              description: "Another example subtask",
+            }),
           isEmpty: false,
           run: async () => {},
         };
@@ -176,20 +188,21 @@ For global options help run: hardhat --help`;
 
         const expected = `${chalk.bold("task description")}
 
-Usage: hardhat [GLOBAL OPTIONS] task [--option <STRING>] [--another-option] [--] positionalArgument
+Usage: hardhat [GLOBAL OPTIONS] task [--another-option] [--option <STRING>] [--] positionalArgument
 
 OPTIONS:
 
-  --option                An example option
-  --another-option        Another example option
+  --another-option          Another example option
+  --option                  An example option
 
 POSITIONAL ARGUMENTS:
 
-  positionalArgument      An example positional argument
+  positionalArgument        An example positional argument
 
 AVAILABLE SUBTASKS:
 
-  task subtask            An example subtask
+  task another-subtask      Another example subtask
+  task subtask              An example subtask
 
 For global options help run: hardhat --help`;
 
