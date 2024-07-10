@@ -36,7 +36,7 @@ export function isArgumentValueValid(
   const validator = argumentTypeValidators[type];
 
   if (isVariadic) {
-    return Array.isArray(value) && value.length > 0 && value.every(validator);
+    return Array.isArray(value) && value.every(validator);
   }
 
   return validator(value);

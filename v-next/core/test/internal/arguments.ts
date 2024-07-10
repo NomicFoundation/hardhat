@@ -79,7 +79,7 @@ describe("Arguments", () => {
         isArgumentValueValid(ArgumentType.BIGINT, [123n, BigInt(123)], true),
         true,
       );
-      assert.equal(isArgumentValueValid(ArgumentType.STRING, [], true), false);
+      assert.equal(isArgumentValueValid(ArgumentType.STRING, [], true), true);
       assert.equal(
         isArgumentValueValid(ArgumentType.STRING, ["foo", 123], true),
         false,
