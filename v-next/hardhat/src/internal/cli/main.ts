@@ -1,5 +1,4 @@
 import type {
-  ArgumentValue,
   OptionDefinition,
   PositionalArgumentDefinition,
 } from "@ignored/hardhat-vnext-core/types/arguments";
@@ -17,6 +16,7 @@ import "tsx"; // NOTE: This is important, it allows us to load .ts files form th
 
 import {
   buildGlobalOptionDefinitions,
+  parseArgumentValue,
   resolvePluginList,
 } from "@ignored/hardhat-vnext-core";
 import { ArgumentType } from "@ignored/hardhat-vnext-core/types/arguments";
@@ -518,111 +518,4 @@ function validateRequiredArguments(
     HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
     { argument: missingRequiredArgument.name },
   );
-}
-
-function parseArgumentValue(
-  strValue: string,
-  type: ArgumentType,
-  argName: string,
-): ArgumentValue {
-  switch (type) {
-    case ArgumentType.STRING:
-      return validateAndParseString(argName, strValue);
-    case ArgumentType.FILE:
-      return validateAndParseFile(argName, strValue);
-    case ArgumentType.INT:
-      return validateAndParseInt(argName, strValue);
-    case ArgumentType.FLOAT:
-      return validateAndParseFloat(argName, strValue);
-    case ArgumentType.BIGINT:
-      return validateAndParseBigInt(argName, strValue);
-    case ArgumentType.BOOLEAN:
-      return validateAndParseBoolean(argName, strValue);
-  }
-}
-
-function validateAndParseInt(argName: string, strValue: string): number {
-  const decimalPattern = /^\d+(?:[eE]\d+)?$/;
-  const hexPattern = /^0[xX][\dABCDEabcde]+$/;
-
-  if (
-    strValue.match(decimalPattern) === null &&
-    strValue.match(hexPattern) === null
-  ) {
-    throw new HardhatError(
-      HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
-      {
-        value: strValue,
-        name: argName,
-        type: "int",
-      },
-    );
-  }
-
-  return Number(strValue);
-}
-
-function validateAndParseString(_argName: string, strValue: string): string {
-  return strValue;
-}
-
-function validateAndParseFile(_argName: string, strValue: string): string {
-  return strValue;
-}
-
-function validateAndParseFloat(argName: string, strValue: string): number {
-  const decimalPattern = /^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE]\d+)?$/;
-  const hexPattern = /^0[xX][\dABCDEabcde]+$/;
-
-  if (
-    strValue.match(decimalPattern) === null &&
-    strValue.match(hexPattern) === null
-  ) {
-    throw new HardhatError(
-      HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
-      {
-        value: strValue,
-        name: argName,
-        type: "float",
-      },
-    );
-  }
-
-  return Number(strValue);
-}
-
-function validateAndParseBigInt(argName: string, strValue: string): bigint {
-  const decimalPattern = /^\d+(?:n)?$/;
-  const hexPattern = /^0[xX][\dABCDEabcde]+$/;
-
-  if (
-    strValue.match(decimalPattern) === null &&
-    strValue.match(hexPattern) === null
-  ) {
-    throw new HardhatError(
-      HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
-      {
-        value: strValue,
-        name: argName,
-        type: "bigint",
-      },
-    );
-  }
-
-  return BigInt(strValue.replace("n", ""));
-}
-
-function validateAndParseBoolean(argName: string, strValue: string): boolean {
-  if (strValue.toLowerCase() === "true") {
-    return true;
-  }
-  if (strValue.toLowerCase() === "false") {
-    return false;
-  }
-
-  throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
-    value: strValue,
-    name: argName,
-    type: "boolean",
-  });
 }
