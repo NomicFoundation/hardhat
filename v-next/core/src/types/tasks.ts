@@ -1,7 +1,9 @@
 import type {
+  OptionDefinition,
   ArgumentType,
   ArgumentTypeToValueType,
   ArgumentValue,
+  PositionalArgumentDefinition,
 } from "./arguments.js";
 import type { HardhatRuntimeEnvironment } from "./hre.js";
 
@@ -25,40 +27,6 @@ declare module "./config.js" {
   export interface HardhatConfig {
     tasks: TaskDefinition[];
   }
-}
-
-export interface TaskArgumentDefinition<T extends ArgumentType = ArgumentType> {
-  name: string;
-  description: string;
-  type: T;
-  defaultValue?: ArgumentTypeToValueType<T> | Array<ArgumentTypeToValueType<T>>;
-}
-
-/**
- * A task option is one that is used as `--<name> value` in the CLI.
- *
- * They have a name, description, type, and an optional default value.
- *
- * If the type is ArgumentType.BOOLEAN, the default value is `false`, the
- * argument is considered a flag, and can be used as `--<name>` to set it to
- * `true`.
- */
-export interface TaskOptionDefinition<T extends ArgumentType = ArgumentType>
-  extends TaskArgumentDefinition<T> {
-  defaultValue?: ArgumentTypeToValueType<T>;
-}
-
-/**
- * A positional task argument is one that is used as `<value>` in the CLI, and whose
- * position matters. For example, `mv <from> <to>` has two positional arguments.
- *
- * If the argument is variadic, it can have multiple values. A variadic argument
- * can only be the last positional argument, and it consumes all the remaining values.
- */
-export interface TaskPositionalArgumentDefinition<
-  T extends ArgumentType = ArgumentType,
-> extends TaskArgumentDefinition<T> {
-  isVariadic: boolean;
 }
 
 /**
@@ -125,9 +93,9 @@ export interface NewTaskDefinition {
 
   action: NewTaskActionFunction | string;
 
-  options: Record<string, TaskOptionDefinition>;
+  options: Record<string, OptionDefinition>;
 
-  positionalArguments: TaskPositionalArgumentDefinition[];
+  positionalArguments: PositionalArgumentDefinition[];
 }
 
 /**
@@ -142,7 +110,7 @@ export interface TaskOverrideDefinition {
 
   action: TaskOverrideActionFunction | string;
 
-  options: Record<string, TaskOptionDefinition>;
+  options: Record<string, OptionDefinition>;
 }
 
 /**
@@ -201,14 +169,13 @@ export interface NewTaskDefinitionBuilder {
    *
    * The type of the argument defaults to `ArgumentType.STRING`.
    *
-   * The default value, if provided, should be of the same type as the
-   * argument.
+   * The default value should be of the same type as the argument.
    */
   addOption<T extends ArgumentType>(optionConfig: {
     name: string;
     description?: string;
     type?: T;
-    defaultValue?: ArgumentTypeToValueType<T>;
+    defaultValue: ArgumentTypeToValueType<T>;
   }): this;
 
   /**
@@ -291,7 +258,7 @@ export interface TaskOverrideDefinitionBuilder {
     name: string;
     description?: string;
     type?: T;
-    defaultValue?: ArgumentTypeToValueType<T>;
+    defaultValue: ArgumentTypeToValueType<T>;
   }): this;
 
   /**
@@ -344,12 +311,12 @@ export interface Task {
   /**
    * The task options.
    */
-  options: Map<string, TaskOptionDefinition>;
+  options: Map<string, OptionDefinition>;
 
   /**
    * The task positional arguments.
    */
-  positionalArguments: TaskPositionalArgumentDefinition[];
+  positionalArguments: PositionalArgumentDefinition[];
 
   /**
    * Whether the task is an empty task.

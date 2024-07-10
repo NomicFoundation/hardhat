@@ -576,6 +576,7 @@ For global options help run: hardhat --help`;
         tasksBuilders = [
           task(["task0"]).addOption({
             name: "arg",
+            defaultValue: "default",
           }),
           task(["task1"]).addOption({
             name: "flag",
@@ -588,17 +589,15 @@ For global options help run: hardhat --help`;
             defaultValue: true,
           }),
           task(["task3"]).addOption({
-            name: "arg",
-            type: ArgumentType.BOOLEAN,
-          }),
-          task(["task4"]).addOption({
             name: "camelCaseArg",
+            defaultValue: "default",
           }),
         ];
 
         subtasksBuilders = [
           task(["task0", "subtask0"]).addOption({
             name: "arg",
+            defaultValue: "default",
           }),
         ];
 
@@ -697,8 +696,8 @@ For global options help run: hardhat --help`;
         assert.deepEqual(res.taskArguments, { arg: false });
       });
 
-      it("should get the required bool value (the bool value must be specified, not a flag behavior because default is undefined)", function () {
-        const command = "npx hardhat task3 --arg true";
+      it("should convert on the fly the camelCase argument to kebab-case", function () {
+        const command = "npx hardhat task3 --camel-case-arg <value>";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
@@ -707,23 +706,6 @@ For global options help run: hardhat --help`;
 
         assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, tasks[3].id);
-        assert.deepEqual(
-          usedCliArguments,
-          new Array(cliArguments.length).fill(true),
-        );
-        assert.deepEqual(res.taskArguments, { arg: true });
-      });
-
-      it("should convert on the fly the camelCase argument to kebab-case", function () {
-        const command = "npx hardhat task4 --camel-case-arg <value>";
-
-        const cliArguments = command.split(" ").slice(2);
-        const usedCliArguments = new Array(cliArguments.length).fill(false);
-
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
-
-        assert.ok(!Array.isArray(res), "Result should be an array");
-        assert.equal(res.task.id, tasks[4].id);
         assert.deepEqual(
           usedCliArguments,
           new Array(cliArguments.length).fill(true),
@@ -800,21 +782,6 @@ For global options help run: hardhat --help`;
           HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
           {
             argument: "--arg",
-          },
-        );
-      });
-
-      it("should throw because the task argument is required but it is not provided", function () {
-        const command = "npx hardhat task0";
-
-        const cliArguments = command.split(" ").slice(2);
-        const usedCliArguments = [false];
-
-        assertThrowsHardhatError(
-          () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
-          HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
-          {
-            argument: "arg",
           },
         );
       });
@@ -1067,17 +1034,35 @@ For global options help run: hardhat --help`;
         before(async function () {
           tasksBuilders = [
             task(["task0"])
-              .addOption({ name: "arg", type: ArgumentType.BIGINT })
+              .addOption({
+                name: "arg",
+                type: ArgumentType.BIGINT,
+                defaultValue: 1n,
+              })
               .addOption({
                 name: "arg2",
                 type: ArgumentType.BOOLEAN,
+                defaultValue: true,
               })
-              .addOption({ name: "arg3", type: ArgumentType.FILE })
-              .addOption({ name: "arg4", type: ArgumentType.FLOAT })
-              .addOption({ name: "arg5", type: ArgumentType.INT })
+              .addOption({
+                name: "arg3",
+                type: ArgumentType.FILE,
+                defaultValue: "default",
+              })
+              .addOption({
+                name: "arg4",
+                type: ArgumentType.FLOAT,
+                defaultValue: 1.1,
+              })
+              .addOption({
+                name: "arg5",
+                type: ArgumentType.INT,
+                defaultValue: 1,
+              })
               .addOption({
                 name: "arg6",
                 type: ArgumentType.STRING,
+                defaultValue: "default",
               }),
           ];
 
@@ -1244,7 +1229,7 @@ For global options help run: hardhat --help`;
             })
             .addPositionalArgument({ name: "posArg" }),
           task(["task1"])
-            .addOption({ name: "arg" })
+            .addOption({ name: "arg", defaultValue: "default" })
             .addPositionalArgument({ name: "posArg" })
             .addPositionalArgument({
               name: "posArg2",

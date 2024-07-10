@@ -40,7 +40,7 @@ describe("TaskManagerImplementation", () => {
           id: "plugin1",
           tasks: [
             new NewTaskDefinitionBuilderImplementation("task1")
-              .addOption({ name: "arg1" })
+              .addOption({ name: "arg1", defaultValue: "default" })
               .setAction(() => {})
               .build(),
             new NewTaskDefinitionBuilderImplementation("task2")
@@ -96,7 +96,7 @@ describe("TaskManagerImplementation", () => {
     const hre = await createBaseHardhatRuntimeEnvironment({
       tasks: [
         new NewTaskDefinitionBuilderImplementation("task1")
-          .addOption({ name: "arg1" })
+          .addOption({ name: "arg1", defaultValue: "default" })
           .setAction(() => {})
           .build(),
         new NewTaskDefinitionBuilderImplementation("task2")
@@ -141,7 +141,7 @@ describe("TaskManagerImplementation", () => {
           tasks: [
             new NewTaskDefinitionBuilderImplementation("task1")
               .setDescription("description1")
-              .addOption({ name: "arg1" })
+              .addOption({ name: "arg1", defaultValue: "default" })
               .addFlag({ name: "flag1" })
               .addPositionalArgument({ name: "posArg1" })
               .addVariadicArgument({ name: "varArg1" })
@@ -150,7 +150,7 @@ describe("TaskManagerImplementation", () => {
             // overriding task1 with a new description and arguments
             new TaskOverrideDefinitionBuilderImplementation("task1")
               .setDescription("description2")
-              .addOption({ name: "arg2" })
+              .addOption({ name: "arg2", defaultValue: "default" })
               .addFlag({ name: "flag2" })
               .setAction(() => {})
               .build(),
@@ -191,7 +191,7 @@ describe("TaskManagerImplementation", () => {
           tasks: [
             new NewTaskDefinitionBuilderImplementation("task1")
               .setDescription("description1")
-              .addOption({ name: "arg1" })
+              .addOption({ name: "arg1", defaultValue: "default" })
               .addFlag({ name: "flag1" })
               .addPositionalArgument({ name: "posArg1" })
               .addVariadicArgument({ name: "varArg1" })
@@ -205,7 +205,7 @@ describe("TaskManagerImplementation", () => {
             // overriding task1 with a new description and arguments
             new TaskOverrideDefinitionBuilderImplementation("task1")
               .setDescription("description2")
-              .addOption({ name: "arg2" })
+              .addOption({ name: "arg2", defaultValue: "default" })
               .addFlag({ name: "flag2" })
               .setAction(() => {})
               .build(),
@@ -246,7 +246,7 @@ describe("TaskManagerImplementation", () => {
           tasks: [
             new NewTaskDefinitionBuilderImplementation("task1")
               .setDescription("description1")
-              .addOption({ name: "arg1" })
+              .addOption({ name: "arg1", defaultValue: "default" })
               .addFlag({ name: "flag1" })
               .addPositionalArgument({ name: "posArg1" })
               .addVariadicArgument({ name: "varArg1" })
@@ -255,7 +255,7 @@ describe("TaskManagerImplementation", () => {
             // overriding task1 with a new description and arguments
             new TaskOverrideDefinitionBuilderImplementation("task1")
               .setDescription("description2")
-              .addOption({ name: "arg2" })
+              .addOption({ name: "arg2", defaultValue: "default" })
               .addFlag({ name: "flag2" })
               .setAction(() => {})
               .build(),
@@ -267,7 +267,7 @@ describe("TaskManagerImplementation", () => {
             // overriding task1 with a new description and arguments
             new TaskOverrideDefinitionBuilderImplementation("task1")
               .setDescription("description3")
-              .addOption({ name: "arg3" })
+              .addOption({ name: "arg3", defaultValue: "default" })
               .addFlag({ name: "flag3" })
               .setAction(() => {})
               .build(),
@@ -387,7 +387,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin1",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .addOption({ name: "arg1" })
+                  .addOption({ name: "arg1", defaultValue: "default" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -489,7 +489,7 @@ describe("TaskManagerImplementation", () => {
                   "task1",
                   "subtask1",
                 ])
-                  .addOption({ name: "arg1" })
+                  .addOption({ name: "arg1", defaultValue: "default" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -512,7 +512,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin1",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .addOption({ name: "arg1" })
+                  .addOption({ name: "arg1", defaultValue: "default" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -521,7 +521,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin2",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .addOption({ name: "arg2" })
+                  .addOption({ name: "arg2", defaultValue: "default" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -593,7 +593,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin1",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .addOption({ name: "arg1" })
+                  .addOption({ name: "arg1", defaultValue: "default" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -602,7 +602,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin2",
               tasks: [
                 new TaskOverrideDefinitionBuilderImplementation("task1")
-                  .addOption({ name: "arg1" })
+                  .addOption({ name: "arg1", defaultValue: "default" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -626,7 +626,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin1",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .addOption({ name: "arg1" })
+                  .addOption({ name: "arg1", defaultValue: "default" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -670,7 +670,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin2",
               tasks: [
                 new TaskOverrideDefinitionBuilderImplementation("task1")
-                  .addOption({ name: "flag1" })
+                  .addOption({ name: "flag1", defaultValue: "default" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -738,7 +738,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin2",
               tasks: [
                 new TaskOverrideDefinitionBuilderImplementation("task1")
-                  .addOption({ name: "arg1" })
+                  .addOption({ name: "arg1", defaultValue: "default" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -806,7 +806,7 @@ describe("TaskManagerImplementation", () => {
               id: "plugin2",
               tasks: [
                 new TaskOverrideDefinitionBuilderImplementation("task1")
-                  .addOption({ name: "arg1" })
+                  .addOption({ name: "arg1", defaultValue: "default" })
                   .setAction(() => {})
                   .build(),
               ],
@@ -1101,7 +1101,7 @@ describe("TaskManagerImplementation", () => {
             id: "plugin1",
             tasks: [
               new NewTaskDefinitionBuilderImplementation("task1")
-                .addOption({ name: "arg1" })
+                .addOption({ name: "arg1", defaultValue: "default" })
                 .addFlag({ name: "flag1" })
                 .addPositionalArgument({ name: "posArg" })
                 .addVariadicArgument({ name: "varArg" })
@@ -1115,7 +1115,7 @@ describe("TaskManagerImplementation", () => {
                 })
                 .build(),
               new TaskOverrideDefinitionBuilderImplementation("task1")
-                .addOption({ name: "arg2" })
+                .addOption({ name: "arg2", defaultValue: "default" })
                 .addFlag({ name: "flag2" })
                 .setAction(async ({ arg2, flag2, ...args }, _hre, runSuper) => {
                   await runSuper(args);
@@ -1224,7 +1224,7 @@ describe("TaskManagerImplementation", () => {
                 .setAction((args) => args)
                 .build(),
               new TaskOverrideDefinitionBuilderImplementation("task1")
-                .addOption({ name: "arg1" })
+                .addOption({ name: "arg1", defaultValue: "default" })
                 .setAction(actionUrl)
                 .build(),
             ],
@@ -1251,7 +1251,7 @@ describe("TaskManagerImplementation", () => {
                 .setAction("file://not-a-module")
                 .build(),
               new TaskOverrideDefinitionBuilderImplementation("task1")
-                .addOption({ name: "arg1" })
+                .addOption({ name: "arg1", defaultValue: "default" })
                 .setAction(validActionUrl)
                 .build(),
             ],
@@ -1325,7 +1325,6 @@ describe("TaskManagerImplementation", () => {
               id: "plugin1",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .addOption({ name: "option" })
                   .addPositionalArgument({ name: "posArg" })
                   .addVariadicArgument({ name: "varArg" })
                   .setAction(() => {})
@@ -1336,19 +1335,6 @@ describe("TaskManagerImplementation", () => {
         });
 
         const task1 = hre.tasks.getTask("task1");
-
-        // option is missing
-        await assertRejectsWithHardhatError(
-          task1.run({
-            posArg: "posValue",
-            varArg: ["varValue1", "varValue2"],
-          }),
-          HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
-          {
-            argument: "option",
-            task: "task1",
-          },
-        );
 
         // posArg is missing
         await assertRejectsWithHardhatError(
@@ -1387,6 +1373,7 @@ describe("TaskManagerImplementation", () => {
                   .addOption({
                     name: "option",
                     type: ArgumentType.BIGINT,
+                    defaultValue: 1n,
                   })
                   .addPositionalArgument({
                     name: "posArg",

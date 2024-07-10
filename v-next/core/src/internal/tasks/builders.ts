@@ -1,10 +1,12 @@
-import type { ArgumentTypeToValueType } from "../../types/arguments.js";
 import type {
-  TaskOptionDefinition,
+  ArgumentTypeToValueType,
+  OptionDefinition,
+  PositionalArgumentDefinition,
+} from "../../types/arguments.js";
+import type {
   NewTaskActionFunction,
   NewTaskDefinitionBuilder,
   NewTaskDefinition,
-  TaskPositionalArgumentDefinition,
   TaskOverrideActionFunction,
   TaskOverrideDefinitionBuilder,
   TaskOverrideDefinition,
@@ -62,8 +64,8 @@ export class NewTaskDefinitionBuilderImplementation
   readonly #id: string[];
   readonly #usedNames: Set<string> = new Set();
 
-  readonly #options: Record<string, TaskOptionDefinition> = {};
-  readonly #positionalArgs: TaskPositionalArgumentDefinition[] = [];
+  readonly #options: Record<string, OptionDefinition> = {};
+  readonly #positionalArgs: PositionalArgumentDefinition[] = [];
 
   #description: string;
 
@@ -109,7 +111,7 @@ export class NewTaskDefinitionBuilderImplementation
     name: string;
     description?: string;
     type?: T;
-    defaultValue?: ArgumentTypeToValueType<T>;
+    defaultValue: ArgumentTypeToValueType<T>;
   }): this {
     const argumentType = type ?? ArgumentType.STRING;
 
@@ -131,10 +133,7 @@ export class NewTaskDefinitionBuilderImplementation
       });
     }
 
-    if (
-      defaultValue !== undefined &&
-      !isArgumentValueValid(argumentType, defaultValue)
-    ) {
+    if (!isArgumentValueValid(argumentType, defaultValue)) {
       throw new HardhatError(
         HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
         {
@@ -297,7 +296,7 @@ export class TaskOverrideDefinitionBuilderImplementation
 {
   readonly #id: string[];
 
-  readonly #options: Record<string, TaskOptionDefinition> = {};
+  readonly #options: Record<string, OptionDefinition> = {};
 
   #description?: string;
 
@@ -342,7 +341,7 @@ export class TaskOverrideDefinitionBuilderImplementation
     name: string;
     description?: string;
     type?: T;
-    defaultValue?: ArgumentTypeToValueType<T>;
+    defaultValue: ArgumentTypeToValueType<T>;
   }): this {
     const argumentType = type ?? ArgumentType.STRING;
 
@@ -364,10 +363,7 @@ export class TaskOverrideDefinitionBuilderImplementation
       });
     }
 
-    if (
-      defaultValue !== undefined &&
-      !isArgumentValueValid(argumentType, defaultValue)
-    ) {
+    if (!isArgumentValueValid(argumentType, defaultValue)) {
       throw new HardhatError(
         HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
         {
