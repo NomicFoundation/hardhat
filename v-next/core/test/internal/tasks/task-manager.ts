@@ -9,6 +9,7 @@ import {
 
 import { ArgumentType, globalOption } from "../../../src/config.js";
 import { createBaseHardhatRuntimeEnvironment } from "../../../src/index.js";
+import { RESERVED_ARGUMENT_NAMES } from "../../../src/internal/arguments.js";
 import {
   EmptyTaskDefinitionBuilderImplementation,
   NewTaskDefinitionBuilderImplementation,
@@ -538,31 +539,6 @@ describe("TaskManagerImplementation", () => {
     });
 
     it("should throw if trying to override a task that doesn't exist", async () => {
-      // Empty id task will not be found as empty ids are not allowed
-      await assertRejectsWithHardhatError(
-        createBaseHardhatRuntimeEnvironment({
-          plugins: [
-            {
-              id: "plugin1",
-              tasks: [
-                // Manually creating a task as the builder doesn't allow empty ids
-                {
-                  type: TaskDefinitionType.TASK_OVERRIDE,
-                  id: [], // empty id
-                  description: "",
-                  action: () => {},
-                  options: {},
-                },
-              ],
-            },
-          ],
-        }),
-        HardhatError.ERRORS.TASK_DEFINITIONS.TASK_NOT_FOUND,
-        {
-          task: "",
-        },
-      );
-
       // task1 will not be found as it's not defined
       await assertRejectsWithHardhatError(
         createBaseHardhatRuntimeEnvironment({
@@ -882,6 +858,621 @@ describe("TaskManagerImplementation", () => {
           task: "task1",
         },
       );
+    });
+
+    describe("plain object validations", () => {
+      it("should throw if the task definition object has an empty id", async () => {
+        await assertRejectsWithHardhatError(
+          createBaseHardhatRuntimeEnvironment({
+            plugins: [
+              {
+                id: "plugin1",
+                tasks: [
+                  {
+                    type: TaskDefinitionType.EMPTY_TASK,
+                    id: [],
+                    description: "",
+                  },
+                ],
+              },
+            ],
+          }),
+          HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+          {},
+        );
+
+        await assertRejectsWithHardhatError(
+          createBaseHardhatRuntimeEnvironment({
+            plugins: [
+              {
+                id: "plugin1",
+                tasks: [
+                  {
+                    type: TaskDefinitionType.NEW_TASK,
+                    id: [],
+                    description: "",
+                    action: () => {},
+                    options: {},
+                    positionalArguments: [],
+                  },
+                ],
+              },
+            ],
+          }),
+          HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+          {},
+        );
+
+        await assertRejectsWithHardhatError(
+          createBaseHardhatRuntimeEnvironment({
+            plugins: [
+              {
+                id: "plugin1",
+                tasks: [
+                  {
+                    type: TaskDefinitionType.TASK_OVERRIDE,
+                    id: [],
+                    description: "",
+                    action: () => {},
+                    options: {},
+                  },
+                ],
+              },
+            ],
+          }),
+          HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+          {},
+        );
+      });
+
+      it("should throw if the task definition object has an invalid action file URL", async () => {
+        const invalidActionFileUrl = "not-a-valid-file-url";
+        await assertRejectsWithHardhatError(
+          createBaseHardhatRuntimeEnvironment({
+            plugins: [
+              {
+                id: "plugin1",
+                tasks: [
+                  {
+                    type: TaskDefinitionType.NEW_TASK,
+                    id: ["task-id"],
+                    description: "",
+                    action: invalidActionFileUrl,
+                    options: {},
+                    positionalArguments: [],
+                  },
+                ],
+              },
+            ],
+          }),
+          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
+          {
+            action: invalidActionFileUrl,
+          },
+        );
+
+        await assertRejectsWithHardhatError(
+          createBaseHardhatRuntimeEnvironment({
+            plugins: [
+              {
+                id: "plugin1",
+                tasks: [
+                  {
+                    type: TaskDefinitionType.TASK_OVERRIDE,
+                    id: ["task-id"],
+                    description: "",
+                    action: invalidActionFileUrl,
+                    options: {},
+                  },
+                ],
+              },
+            ],
+          }),
+          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
+          {
+            action: invalidActionFileUrl,
+          },
+        );
+      });
+
+      it("should throw if the task definition object has an option with an invalid name", async () => {
+        const invalidName = "invalid-name";
+        await assertRejectsWithHardhatError(
+          createBaseHardhatRuntimeEnvironment({
+            plugins: [
+              {
+                id: "plugin1",
+                tasks: [
+                  {
+                    type: TaskDefinitionType.NEW_TASK,
+                    id: ["task-id"],
+                    description: "",
+                    action: () => {},
+                    options: {
+                      [invalidName]: {
+                        name: invalidName,
+                        description: "A description",
+                        type: ArgumentType.STRING,
+                        defaultValue: "default",
+                      },
+                    },
+                    positionalArguments: [],
+                  },
+                ],
+              },
+            ],
+          }),
+          HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+          {
+            name: invalidName,
+          },
+        );
+
+        await assertRejectsWithHardhatError(
+          createBaseHardhatRuntimeEnvironment({
+            plugins: [
+              {
+                id: "plugin1",
+                tasks: [
+                  {
+                    type: TaskDefinitionType.TASK_OVERRIDE,
+                    id: ["task-id"],
+                    description: "",
+                    action: () => {},
+                    options: {
+                      [invalidName]: {
+                        name: invalidName,
+                        description: "A description",
+                        type: ArgumentType.STRING,
+                        defaultValue: "default",
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          }),
+          HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+          {
+            name: invalidName,
+          },
+        );
+      });
+
+      it("should throw if the task definition object has an option with an reserved name", async () => {
+        RESERVED_ARGUMENT_NAMES.forEach(async (reservedName) => {
+          await assertRejectsWithHardhatError(
+            createBaseHardhatRuntimeEnvironment({
+              plugins: [
+                {
+                  id: "plugin1",
+                  tasks: [
+                    {
+                      type: TaskDefinitionType.NEW_TASK,
+                      id: ["task-id"],
+                      description: "",
+                      action: () => {},
+                      options: {
+                        [reservedName]: {
+                          name: reservedName,
+                          description: "A description",
+                          type: ArgumentType.STRING,
+                          defaultValue: "default",
+                        },
+                      },
+                      positionalArguments: [],
+                    },
+                  ],
+                },
+              ],
+            }),
+            HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME,
+            {
+              name: reservedName,
+            },
+          );
+
+          await assertRejectsWithHardhatError(
+            createBaseHardhatRuntimeEnvironment({
+              plugins: [
+                {
+                  id: "plugin1",
+                  tasks: [
+                    {
+                      type: TaskDefinitionType.TASK_OVERRIDE,
+                      id: ["task-id"],
+                      description: "",
+                      action: () => {},
+                      options: {
+                        [reservedName]: {
+                          name: reservedName,
+                          description: "A description",
+                          type: ArgumentType.STRING,
+                          defaultValue: "default",
+                        },
+                      },
+                    },
+                  ],
+                },
+              ],
+            }),
+            HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME,
+            {
+              name: reservedName,
+            },
+          );
+        });
+      });
+
+      it("should throw if the task definition object has arguments with an duplicated name", async () => {
+        const duplicatedName = "duplicatedName";
+        await assertRejectsWithHardhatError(
+          createBaseHardhatRuntimeEnvironment({
+            plugins: [
+              {
+                id: "plugin1",
+                tasks: [
+                  {
+                    type: TaskDefinitionType.NEW_TASK,
+                    id: ["task-id"],
+                    description: "",
+                    action: () => {},
+                    options: {
+                      [duplicatedName]: {
+                        name: duplicatedName,
+                        description: "A description",
+                        type: ArgumentType.STRING,
+                        defaultValue: "default",
+                      },
+                    },
+                    positionalArguments: [
+                      {
+                        name: duplicatedName,
+                        description: "A description",
+                        type: ArgumentType.STRING,
+                        isVariadic: false,
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          }),
+          HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
+          {
+            name: duplicatedName,
+          },
+        );
+
+        await assertRejectsWithHardhatError(
+          createBaseHardhatRuntimeEnvironment({
+            plugins: [
+              {
+                id: "plugin1",
+                tasks: [
+                  {
+                    type: TaskDefinitionType.NEW_TASK,
+                    id: ["task-id"],
+                    description: "",
+                    action: () => {},
+                    options: {},
+                    positionalArguments: [
+                      {
+                        name: duplicatedName,
+                        description: "A description",
+                        type: ArgumentType.STRING,
+                        isVariadic: false,
+                      },
+                      {
+                        name: duplicatedName,
+                        description: "A description",
+                        type: ArgumentType.STRING,
+                        isVariadic: false,
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          }),
+          HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
+          {
+            name: duplicatedName,
+          },
+        );
+      });
+
+      it("should throw if the task definition object has an option with an invalid type for it's default value", async () => {
+        await assertRejectsWithHardhatError(
+          createBaseHardhatRuntimeEnvironment({
+            plugins: [
+              {
+                id: "plugin1",
+                tasks: [
+                  {
+                    type: TaskDefinitionType.NEW_TASK,
+                    id: ["task-id"],
+                    description: "",
+                    action: () => {},
+                    options: {
+                      arg: {
+                        name: "optionName",
+                        description: "A description",
+                        type: ArgumentType.STRING,
+                        defaultValue: 1,
+                      },
+                    },
+                    positionalArguments: [],
+                  },
+                ],
+              },
+            ],
+          }),
+          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+          {
+            value: 1,
+            name: "defaultValue",
+            type: ArgumentType.STRING,
+            task: "task-id",
+          },
+        );
+
+        await assertRejectsWithHardhatError(
+          createBaseHardhatRuntimeEnvironment({
+            plugins: [
+              {
+                id: "plugin1",
+                tasks: [
+                  {
+                    type: TaskDefinitionType.TASK_OVERRIDE,
+                    id: ["task-id"],
+                    description: "",
+                    action: () => {},
+                    options: {
+                      arg: {
+                        name: "optionName",
+                        description: "A description",
+                        type: ArgumentType.STRING,
+                        defaultValue: 1,
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          }),
+          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+          {
+            value: 1,
+            name: "defaultValue",
+            type: ArgumentType.STRING,
+            task: "task-id",
+          },
+        );
+      });
+
+      it("should throw if the task definition object has a positional argument with an invalid name", async () => {
+        const invalidName = "invalid-name";
+        await assertRejectsWithHardhatError(
+          createBaseHardhatRuntimeEnvironment({
+            plugins: [
+              {
+                id: "plugin1",
+                tasks: [
+                  {
+                    type: TaskDefinitionType.NEW_TASK,
+                    id: ["task-id"],
+                    description: "",
+                    action: () => {},
+                    options: {},
+                    positionalArguments: [
+                      {
+                        name: invalidName,
+                        description: "A description",
+                        type: ArgumentType.STRING,
+                        isVariadic: false,
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          }),
+          HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+          {
+            name: invalidName,
+          },
+        );
+      });
+
+      it("should throw if the task definition object has a positional argument with an reserved name", async () => {
+        RESERVED_ARGUMENT_NAMES.forEach(async (reservedName) => {
+          await assertRejectsWithHardhatError(
+            createBaseHardhatRuntimeEnvironment({
+              plugins: [
+                {
+                  id: "plugin1",
+                  tasks: [
+                    {
+                      type: TaskDefinitionType.NEW_TASK,
+                      id: ["task-id"],
+                      description: "",
+                      action: () => {},
+                      options: {},
+                      positionalArguments: [
+                        {
+                          name: reservedName,
+                          description: "A description",
+                          type: ArgumentType.STRING,
+                          isVariadic: false,
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            }),
+            HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME,
+            {
+              name: reservedName,
+            },
+          );
+        });
+      });
+
+      it("should throw if the task definition object has a positional argument with an invalid type for it's default value", async () => {
+        await assertRejectsWithHardhatError(
+          createBaseHardhatRuntimeEnvironment({
+            plugins: [
+              {
+                id: "plugin1",
+                tasks: [
+                  {
+                    type: TaskDefinitionType.NEW_TASK,
+                    id: ["task-id"],
+                    description: "",
+                    action: () => {},
+                    options: {},
+                    positionalArguments: [
+                      {
+                        name: "posArg",
+                        description: "A description",
+                        type: ArgumentType.STRING,
+                        isVariadic: false,
+                        defaultValue: 1,
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          }),
+          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+          {
+            value: 1,
+            name: "defaultValue",
+            type: ArgumentType.STRING,
+            task: "task-id",
+          },
+        );
+      });
+
+      it("should throw if the task definition object has a positional variadic argument with an invalid type for it's default value", async () => {
+        await assertRejectsWithHardhatError(
+          createBaseHardhatRuntimeEnvironment({
+            plugins: [
+              {
+                id: "plugin1",
+                tasks: [
+                  {
+                    type: TaskDefinitionType.NEW_TASK,
+                    id: ["task-id"],
+                    description: "",
+                    action: () => {},
+                    options: {},
+                    positionalArguments: [
+                      {
+                        name: "posArg",
+                        description: "A description",
+                        type: ArgumentType.STRING,
+                        isVariadic: true,
+                        defaultValue: [1],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          }),
+          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+          {
+            value: [1],
+            name: "defaultValue",
+            type: ArgumentType.STRING,
+            task: "task-id",
+          },
+        );
+      });
+
+      it("should throw if the task definition object has a positional argument after a variadic argument", async () => {
+        await assertRejectsWithHardhatError(
+          createBaseHardhatRuntimeEnvironment({
+            plugins: [
+              {
+                id: "plugin1",
+                tasks: [
+                  {
+                    type: TaskDefinitionType.NEW_TASK,
+                    id: ["task-id"],
+                    description: "",
+                    action: () => {},
+                    options: {},
+                    positionalArguments: [
+                      {
+                        name: "posArg",
+                        description: "A description",
+                        type: ArgumentType.STRING,
+                        isVariadic: true,
+                        defaultValue: ["default"],
+                      },
+                      {
+                        name: "posArg2",
+                        description: "A description",
+                        type: ArgumentType.STRING,
+                        isVariadic: false,
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          }),
+          HardhatError.ERRORS.TASK_DEFINITIONS.POSITIONAL_ARG_AFTER_VARIADIC,
+          {
+            name: "posArg2",
+          },
+        );
+      });
+
+      it("should throw if the task definition object has a required positional argument after an optional argument", async () => {
+        await assertRejectsWithHardhatError(
+          createBaseHardhatRuntimeEnvironment({
+            plugins: [
+              {
+                id: "plugin1",
+                tasks: [
+                  {
+                    type: TaskDefinitionType.NEW_TASK,
+                    id: ["task-id"],
+                    description: "",
+                    action: () => {},
+                    options: {},
+                    positionalArguments: [
+                      {
+                        name: "posArg",
+                        description: "A description",
+                        type: ArgumentType.STRING,
+                        isVariadic: false,
+                        defaultValue: "default",
+                      },
+                      {
+                        name: "posArg2",
+                        description: "A description",
+                        type: ArgumentType.STRING,
+                        isVariadic: false,
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          }),
+          HardhatError.ERRORS.TASK_DEFINITIONS.REQUIRED_ARG_AFTER_OPTIONAL,
+          {
+            name: "posArg2",
+          },
+        );
+      });
     });
   });
 
