@@ -1102,6 +1102,7 @@ describe("TaskManagerImplementation", () => {
             tasks: [
               new NewTaskDefinitionBuilderImplementation("task1")
                 .addOption({ name: "arg1", defaultValue: "default" })
+                .addOption({ name: "withDefault", defaultValue: "default" })
                 .addFlag({ name: "flag1" })
                 .addPositionalArgument({ name: "posArg" })
                 .addVariadicArgument({ name: "varArg" })
@@ -1111,6 +1112,7 @@ describe("TaskManagerImplementation", () => {
                     flag1: true,
                     posArg: "posValue",
                     varArg: ["varValue1", "varValue2"],
+                    withDefault: "default",
                   });
                 })
                 .build(),
@@ -1132,16 +1134,31 @@ describe("TaskManagerImplementation", () => {
           },
         ],
       });
-
-      const task1 = hre.tasks.getTask("task1");
-      await task1.run({
+      // withDefault option is intentionally omitted
+      const providedArgs = {
         arg1: "arg1Value",
         flag1: true,
         posArg: "posValue",
         varArg: ["varValue1", "varValue2"],
         arg2: "arg2Value",
         flag2: true,
-      });
+      };
+
+      const task1 = hre.tasks.getTask("task1");
+      await task1.run(providedArgs);
+      // Ensure withDefault is not added to the args
+      assert.deepEqual(
+        providedArgs,
+        {
+          arg1: "arg1Value",
+          flag1: true,
+          posArg: "posValue",
+          varArg: ["varValue1", "varValue2"],
+          arg2: "arg2Value",
+          flag2: true,
+        },
+        "Expected the providedArgs to not change",
+      );
     });
 
     it("should run a task with arguments and resolve their default values", async () => {

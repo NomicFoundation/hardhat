@@ -100,34 +100,29 @@ export class ResolvedTask implements Task {
     }
 
     const providedArgumentNames = new Set(Object.keys(taskArguments));
+    const argumentDefinitions = [
+      ...this.options.values(),
+      ...this.positionalArguments,
+    ];
+    const validatedTaskArguments: TaskArguments = {};
+    for (const argumentDefinition of argumentDefinitions) {
+      const value = taskArguments[argumentDefinition.name];
+      const isPositional = "isVariadic" in argumentDefinition;
 
-    // Validate and resolve the task options
-    for (const option of this.options.values()) {
-      const value = taskArguments[option.name];
-
-      this.#validateArgumentType(option, value);
+      if (isPositional) {
+        this.#validateRequiredArgument(argumentDefinition, value);
+      }
+      this.#validateArgumentType(
+        argumentDefinition,
+        value,
+        isPositional && argumentDefinition.isVariadic,
+      );
 
       // resolve defaults for optional arguments
-      if (value === undefined) {
-        taskArguments[option.name] = option.defaultValue;
-      }
+      validatedTaskArguments[argumentDefinition.name] =
+        value ?? argumentDefinition.defaultValue;
 
-      providedArgumentNames.delete(option.name);
-    }
-
-    // Validate and resolve the task positional arguments
-    for (const argument of this.positionalArguments) {
-      const value = taskArguments[argument.name];
-
-      this.#validateRequiredArgument(argument, value);
-      this.#validateArgumentType(argument, value, argument.isVariadic);
-
-      // resolve defaults for optional arguments
-      if (value === undefined && argument.defaultValue !== undefined) {
-        taskArguments[argument.name] = argument.defaultValue;
-      }
-
-      providedArgumentNames.delete(argument.name);
+      providedArgumentNames.delete(argumentDefinition.name);
     }
 
     // At this point, the set should be empty as all the task arguments have
@@ -166,7 +161,7 @@ export class ResolvedTask implements Task {
       );
     };
 
-    return next(taskArguments);
+    return next(validatedTaskArguments);
   }
 
   /**
