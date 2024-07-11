@@ -41,7 +41,7 @@ export async function confirmationPromptWithTimeout(
   } catch (e) {
     if (e === "") {
       // If the user cancels the prompt, we quit
-      process.exit();
+      return undefined;
     }
 
     throw e;
