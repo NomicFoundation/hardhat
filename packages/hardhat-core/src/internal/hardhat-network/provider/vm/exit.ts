@@ -24,6 +24,7 @@ export class Exit {
       case SuccessReason.Stop:
       case SuccessReason.Return:
       case SuccessReason.SelfDestruct:
+      case SuccessReason.EofReturnContract:
         return new Exit(ExitCode.SUCCESS);
     }
 

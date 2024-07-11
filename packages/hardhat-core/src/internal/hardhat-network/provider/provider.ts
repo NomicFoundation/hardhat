@@ -255,6 +255,7 @@ export class EdrProviderWrapper
         }),
         cacheDir: config.forkCachePath,
         coinbase: Buffer.from(coinbase.slice(2), "hex"),
+        enableRip7212: false,
         fork,
         hardfork: ethereumsjsHardforkToEdrSpecId(hardforkName),
         genesisAccounts: config.genesisAccounts.map((account) => {
