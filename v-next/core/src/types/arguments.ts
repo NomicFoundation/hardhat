@@ -57,7 +57,7 @@ export type ArgumentTypeToValueType<T extends ArgumentType> =
 export interface OptionDefinition<T extends ArgumentType = ArgumentType> {
   name: string;
   description: string;
-  type: ArgumentType;
+  type: T;
   defaultValue: ArgumentTypeToValueType<T>;
 }
 
