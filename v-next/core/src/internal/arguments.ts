@@ -36,7 +36,7 @@ export function isArgumentValueValid(
   const validator = argumentTypeValidators[type];
 
   if (isVariadic) {
-    return Array.isArray(value) && value.length > 0 && value.every(validator);
+    return Array.isArray(value) && value.every(validator);
   }
 
   return validator(value);
@@ -57,9 +57,11 @@ const argumentTypeValidators: Record<
 
 /**
  * Parses an argument value from a string to the corresponding type.
+ *
+ * @param value - The string value to parse.
+ * @param type - The type of the argument.
+ * @param name - The name of the argument.
  */
-// TODO: this code is duplicated in v-next/hardhat/src/internal/cli/main.ts
-// we should move it to a shared place and add tests
 export function parseArgumentValue(
   value: string,
   type: ArgumentType,

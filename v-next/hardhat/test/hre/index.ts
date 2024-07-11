@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { resolveHardhatConfigPath } from "../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../src/hre.js";
@@ -64,9 +65,10 @@ describe("HRE", () => {
       });
 
       it("should throw if the config file is not found", async () => {
-        await assert.rejects(
+        await assertRejectsWithHardhatError(
           resolveHardhatConfigPath(),
-          new HardhatError(HardhatError.ERRORS.GENERAL.NO_CONFIG_FILE_FOUND),
+          HardhatError.ERRORS.GENERAL.NO_CONFIG_FILE_FOUND,
+          {},
         );
       });
 
@@ -130,13 +132,27 @@ describe("HRE", () => {
     describe("programmatic API", () => {
       useFixtureProject("loaded-config");
 
-      it("should load the config file", async () => {
+      it("should load the plugins from the config file", async () => {
+        const hre = await import("../../src/index.js");
+        const { testPlugin } = await import(
+          "../fixture-projects/loaded-config/hardhat.config.js"
+        );
+
+        assert.deepEqual(hre.config.plugins, [...builtinPlugins, testPlugin]);
+      });
+
+      it("should load the global options", async () => {
         const hre = await import("../../src/index.js");
 
-        assert.deepEqual(hre.config.plugins, [
-          ...builtinPlugins,
-          { id: "test-plugin" },
-        ]);
+        assert.deepEqual(hre.globalOptions, {
+          config: "",
+          help: false,
+          init: false,
+          showStackTraces: false,
+          version: false,
+          fooPluginFlag: false,
+          myGlobalOption: "default",
+        });
       });
     });
   });

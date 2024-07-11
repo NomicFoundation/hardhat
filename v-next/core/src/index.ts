@@ -31,5 +31,6 @@ export async function createBaseHardhatRuntimeEnvironment(
   );
 }
 
+export { parseArgumentValue } from "./internal/arguments.js";
 export { resolvePluginList } from "./internal/plugins/resolve-plugin-list.js";
 export { buildGlobalOptionDefinitions } from "./internal/global-options.js";

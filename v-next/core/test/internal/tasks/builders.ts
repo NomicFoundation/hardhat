@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { RESERVED_ARGUMENT_NAMES } from "../../../src/internal/arguments.js";
 import {
@@ -53,18 +54,20 @@ describe("Task builders", () => {
 
     describe("Task id validation", () => {
       it("should throw if the id is an empty string", () => {
-        assert.throws(
+        assertThrowsHardhatError(
           () => new EmptyTaskDefinitionBuilderImplementation(""),
-          new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID),
+          HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+          {},
         );
       });
 
       it("should throw if the array of ids is empty", () => {
         const ids: string[] = [];
 
-        assert.throws(
+        assertThrowsHardhatError(
           () => new EmptyTaskDefinitionBuilderImplementation(ids),
-          new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID),
+          HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+          {},
         );
       });
     });
@@ -149,18 +152,20 @@ describe("Task builders", () => {
 
     describe("Task id validation", () => {
       it("should throw if the id is an empty string", () => {
-        assert.throws(
+        assertThrowsHardhatError(
           () => new NewTaskDefinitionBuilderImplementation(""),
-          new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID),
+          HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+          {},
         );
       });
 
       it("should throw if the array of ids is empty", () => {
         const ids: string[] = [];
 
-        assert.throws(
+        assertThrowsHardhatError(
           () => new NewTaskDefinitionBuilderImplementation(ids),
-          new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID),
+          HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+          {},
         );
       });
     });
@@ -198,32 +203,29 @@ describe("Task builders", () => {
 
       it("should throw when trying to build a task definition without an action", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        assert.throws(
+        assertThrowsHardhatError(
           () => builder.build(),
-          new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.NO_ACTION, {
+          HardhatError.ERRORS.TASK_DEFINITIONS.NO_ACTION,
+          {
             task: "task-id",
-          }),
+          },
         );
       });
 
       it("should throw if the task action is not a valid file URL", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
 
-        assert.throws(
+        assertThrowsHardhatError(
           () => builder.setAction("not-a-valid-file-url"),
-          new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
-            { action: "not-a-valid-file-url" },
-          ),
+          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
+          { action: "not-a-valid-file-url" },
         );
-        assert.throws(
+        assertThrowsHardhatError(
           () => builder.setAction("file://"),
-          new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
-            {
-              action: "file://",
-            },
-          ),
+          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
+          {
+            action: "file://",
+          },
         );
       });
     });
@@ -295,61 +297,6 @@ describe("Task builders", () => {
           .setAction(taskAction)
           .addOption({
             name: "arg",
-          })
-          .build();
-
-        assert.deepEqual(taskDefinition, {
-          type: TaskDefinitionType.NEW_TASK,
-          id: ["task-id"],
-          description: "",
-          action: taskAction,
-          options: {
-            arg: {
-              name: "arg",
-              description: "",
-              type: ArgumentType.STRING,
-              defaultValue: undefined,
-            },
-          },
-          positionalArguments: [],
-        });
-      });
-
-      it("should add an option with a description", () => {
-        const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        const taskAction = () => {};
-        const taskDefinition = builder
-          .setAction(taskAction)
-          .addOption({
-            name: "arg",
-            description: "Argument description",
-          })
-          .build();
-
-        assert.deepEqual(taskDefinition, {
-          type: TaskDefinitionType.NEW_TASK,
-          id: ["task-id"],
-          description: "",
-          action: taskAction,
-          options: {
-            arg: {
-              name: "arg",
-              description: "Argument description",
-              type: ArgumentType.STRING,
-              defaultValue: undefined,
-            },
-          },
-          positionalArguments: [],
-        });
-      });
-
-      it("should add an option with a default value", () => {
-        const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        const taskAction = () => {};
-        const taskDefinition = builder
-          .setAction(taskAction)
-          .addOption({
-            name: "arg",
             defaultValue: "default",
           })
           .build();
@@ -371,6 +318,35 @@ describe("Task builders", () => {
         });
       });
 
+      it("should add an option with a description", () => {
+        const builder = new NewTaskDefinitionBuilderImplementation("task-id");
+        const taskAction = () => {};
+        const taskDefinition = builder
+          .setAction(taskAction)
+          .addOption({
+            name: "arg",
+            description: "Argument description",
+            defaultValue: "default",
+          })
+          .build();
+
+        assert.deepEqual(taskDefinition, {
+          type: TaskDefinitionType.NEW_TASK,
+          id: ["task-id"],
+          description: "",
+          action: taskAction,
+          options: {
+            arg: {
+              name: "arg",
+              description: "Argument description",
+              type: ArgumentType.STRING,
+              defaultValue: "default",
+            },
+          },
+          positionalArguments: [],
+        });
+      });
+
       it("should add an option with a type", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
         const taskAction = () => {};
@@ -379,6 +355,7 @@ describe("Task builders", () => {
           .addOption({
             name: "arg",
             type: ArgumentType.INT,
+            defaultValue: 1,
           })
           .build();
 
@@ -392,7 +369,7 @@ describe("Task builders", () => {
               name: "arg",
               description: "",
               type: ArgumentType.INT,
-              defaultValue: undefined,
+              defaultValue: 1,
             },
           },
           positionalArguments: [],
@@ -680,27 +657,56 @@ describe("Task builders", () => {
     });
 
     describe("Argument name validation", () => {
-      const fnNames = [
-        "addOption",
-        "addFlag",
-        "addPositionalArgument",
-        "addVariadicArgument",
-      ] as const;
-
       it("should throw if the argument name is invalid", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
 
         const invalidNames = ["invalid-name", "invalid_name", "123invalidName"];
 
         invalidNames.forEach((name) => {
-          fnNames.forEach((fnName) => {
-            assert.throws(
-              () => builder[fnName]({ name }),
-              new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
+          assertThrowsHardhatError(
+            () =>
+              builder.addOption({
+                name,
+                defaultValue: "default",
+              }),
+            HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+            {
+              name,
+            },
+          );
+
+          assertThrowsHardhatError(
+            () =>
+              builder.addFlag({
                 name,
               }),
-            );
-          });
+            HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+            {
+              name,
+            },
+          );
+
+          assertThrowsHardhatError(
+            () =>
+              builder.addPositionalArgument({
+                name,
+              }),
+            HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+            {
+              name,
+            },
+          );
+
+          assertThrowsHardhatError(
+            () =>
+              builder.addVariadicArgument({
+                name,
+              }),
+            HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+            {
+              name,
+            },
+          );
         });
       });
 
@@ -708,7 +714,7 @@ describe("Task builders", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
 
         builder
-          .addOption({ name: "option" })
+          .addOption({ name: "option", defaultValue: "default" })
           .addFlag({ name: "flag" })
           .addPositionalArgument({ name: "posArg" })
           .addVariadicArgument({ name: "varArg" });
@@ -716,14 +722,37 @@ describe("Task builders", () => {
         const names = ["option", "flag", "posArg", "varArg"];
 
         names.forEach((name) => {
-          fnNames.forEach((fnName) => {
-            assert.throws(
-              () => builder[fnName]({ name }),
-              new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
-                name,
-              }),
-            );
-          });
+          assertThrowsHardhatError(
+            () => builder.addOption({ name, defaultValue: "default" }),
+            HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
+            {
+              name,
+            },
+          );
+
+          assertThrowsHardhatError(
+            () => builder.addFlag({ name }),
+            HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
+            {
+              name,
+            },
+          );
+
+          assertThrowsHardhatError(
+            () => builder.addPositionalArgument({ name }),
+            HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
+            {
+              name,
+            },
+          );
+
+          assertThrowsHardhatError(
+            () => builder.addVariadicArgument({ name }),
+            HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
+            {
+              name,
+            },
+          );
         });
       });
 
@@ -731,11 +760,12 @@ describe("Task builders", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
 
         RESERVED_ARGUMENT_NAMES.forEach((name) => {
-          assert.throws(
-            () => builder.addOption({ name }),
-            new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
+          assertThrowsHardhatError(
+            () => builder.addOption({ name, defaultValue: "default" }),
+            HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME,
+            {
               name,
-            }),
+            },
           );
         });
       });
@@ -748,7 +778,7 @@ describe("Task builders", () => {
         const fnNames = ["addOption", "addPositionalArgument"] as const;
 
         fnNames.forEach((fnName) => {
-          assert.throws(
+          assertThrowsHardhatError(
             () =>
               builder[fnName]({
                 name: "arg",
@@ -757,19 +787,17 @@ describe("Task builders", () => {
                 defaultValue: 123 as any,
                 type: ArgumentType.STRING,
               }),
-            new HardhatError(
-              HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
-              {
-                value: 123,
-                name: "defaultValue",
-                type: ArgumentType.STRING,
-                task: "task-id",
-              },
-            ),
+            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+            {
+              value: 123,
+              name: "defaultValue",
+              type: ArgumentType.STRING,
+              task: "task-id",
+            },
           );
         });
 
-        assert.throws(
+        assertThrowsHardhatError(
           () =>
             builder.addVariadicArgument({
               name: "arg",
@@ -778,15 +806,13 @@ describe("Task builders", () => {
               defaultValue: [123, 456, 789] as any,
               type: ArgumentType.STRING,
             }),
-          new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
-            {
-              value: [123, 456, 789],
-              name: "defaultValue",
-              type: ArgumentType.STRING,
-              task: "task-id",
-            },
-          ),
+          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+          {
+            value: [123, 456, 789],
+            name: "defaultValue",
+            type: ArgumentType.STRING,
+            task: "task-id",
+          },
         );
       });
     });
@@ -800,19 +826,15 @@ describe("Task builders", () => {
           defaultValue: "default",
         });
 
-        assert.throws(
+        assertThrowsHardhatError(
           () => builder.addPositionalArgument({ name: "arg2" }),
-          new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.REQUIRED_ARG_AFTER_OPTIONAL,
-            { name: "arg2" },
-          ),
+          HardhatError.ERRORS.TASK_DEFINITIONS.REQUIRED_ARG_AFTER_OPTIONAL,
+          { name: "arg2" },
         );
-        assert.throws(
+        assertThrowsHardhatError(
           () => builder.addVariadicArgument({ name: "arg3" }),
-          new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.REQUIRED_ARG_AFTER_OPTIONAL,
-            { name: "arg3" },
-          ),
+          HardhatError.ERRORS.TASK_DEFINITIONS.REQUIRED_ARG_AFTER_OPTIONAL,
+          { name: "arg3" },
         );
       });
 
@@ -821,20 +843,16 @@ describe("Task builders", () => {
 
         builder.addVariadicArgument({ name: "arg" });
 
-        assert.throws(
+        assertThrowsHardhatError(
           () => builder.addPositionalArgument({ name: "arg2" }),
-          new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.POSITIONAL_ARG_AFTER_VARIADIC,
-            { name: "arg2" },
-          ),
+          HardhatError.ERRORS.TASK_DEFINITIONS.POSITIONAL_ARG_AFTER_VARIADIC,
+          { name: "arg2" },
         );
 
-        assert.throws(
+        assertThrowsHardhatError(
           () => builder.addVariadicArgument({ name: "arg3" }),
-          new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.POSITIONAL_ARG_AFTER_VARIADIC,
-            { name: "arg3" },
-          ),
+          HardhatError.ERRORS.TASK_DEFINITIONS.POSITIONAL_ARG_AFTER_VARIADIC,
+          { name: "arg3" },
         );
       });
     });
@@ -874,18 +892,20 @@ describe("Task builders", () => {
 
     describe("Task id validation", () => {
       it("should throw if the id is an empty string", () => {
-        assert.throws(
+        assertThrowsHardhatError(
           () => new TaskOverrideDefinitionBuilderImplementation(""),
-          new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID),
+          HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+          {},
         );
       });
 
       it("should throw if the array of ids is empty", () => {
         const ids: string[] = [];
 
-        assert.throws(
+        assertThrowsHardhatError(
           () => new TaskOverrideDefinitionBuilderImplementation(ids),
-          new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID),
+          HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+          {},
         );
       });
     });
@@ -927,11 +947,12 @@ describe("Task builders", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
         );
-        assert.throws(
+        assertThrowsHardhatError(
           () => builder.build(),
-          new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.NO_ACTION, {
+          HardhatError.ERRORS.TASK_DEFINITIONS.NO_ACTION,
+          {
             task: "task-id",
-          }),
+          },
         );
       });
 
@@ -940,19 +961,15 @@ describe("Task builders", () => {
           "task-id",
         );
 
-        assert.throws(
+        assertThrowsHardhatError(
           () => builder.setAction("not-a-valid-file-url"),
-          new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
-            { action: "not-a-valid-file-url" },
-          ),
+          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
+          { action: "not-a-valid-file-url" },
         );
-        assert.throws(
+        assertThrowsHardhatError(
           () => builder.setAction("file://"),
-          new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
-            { action: "file://" },
-          ),
+          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
+          { action: "file://" },
         );
       });
     });
@@ -988,63 +1005,6 @@ describe("Task builders", () => {
           .setAction(taskAction)
           .addOption({
             name: "arg",
-          })
-          .build();
-
-        assert.deepEqual(taskDefinition, {
-          type: TaskDefinitionType.TASK_OVERRIDE,
-          id: ["task-id"],
-          description: undefined,
-          action: taskAction,
-          options: {
-            arg: {
-              name: "arg",
-              description: "",
-              type: ArgumentType.STRING,
-              defaultValue: undefined,
-            },
-          },
-        });
-      });
-
-      it("should add an option with a description", () => {
-        const builder = new TaskOverrideDefinitionBuilderImplementation(
-          "task-id",
-        );
-        const taskAction = () => {};
-        const taskDefinition = builder
-          .setAction(taskAction)
-          .addOption({
-            name: "arg",
-            description: "Argument description",
-          })
-          .build();
-
-        assert.deepEqual(taskDefinition, {
-          type: TaskDefinitionType.TASK_OVERRIDE,
-          id: ["task-id"],
-          description: undefined,
-          action: taskAction,
-          options: {
-            arg: {
-              name: "arg",
-              description: "Argument description",
-              type: ArgumentType.STRING,
-              defaultValue: undefined,
-            },
-          },
-        });
-      });
-
-      it("should add an option with a default value", () => {
-        const builder = new TaskOverrideDefinitionBuilderImplementation(
-          "task-id",
-        );
-        const taskAction = () => {};
-        const taskDefinition = builder
-          .setAction(taskAction)
-          .addOption({
-            name: "arg",
             defaultValue: "default",
           })
           .build();
@@ -1065,6 +1025,36 @@ describe("Task builders", () => {
         });
       });
 
+      it("should add an option with a description", () => {
+        const builder = new TaskOverrideDefinitionBuilderImplementation(
+          "task-id",
+        );
+        const taskAction = () => {};
+        const taskDefinition = builder
+          .setAction(taskAction)
+          .addOption({
+            name: "arg",
+            description: "Argument description",
+            defaultValue: "default",
+          })
+          .build();
+
+        assert.deepEqual(taskDefinition, {
+          type: TaskDefinitionType.TASK_OVERRIDE,
+          id: ["task-id"],
+          description: undefined,
+          action: taskAction,
+          options: {
+            arg: {
+              name: "arg",
+              description: "Argument description",
+              type: ArgumentType.STRING,
+              defaultValue: "default",
+            },
+          },
+        });
+      });
+
       it("should add an option with a type", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
@@ -1075,6 +1065,7 @@ describe("Task builders", () => {
           .addOption({
             name: "arg",
             type: ArgumentType.INT,
+            defaultValue: 1,
           })
           .build();
 
@@ -1088,7 +1079,7 @@ describe("Task builders", () => {
               name: "arg",
               description: "",
               type: ArgumentType.INT,
-              defaultValue: undefined,
+              defaultValue: 1,
             },
           },
         });
@@ -1150,8 +1141,6 @@ describe("Task builders", () => {
     });
 
     describe("Argument name validation", () => {
-      const fnNames = ["addOption", "addFlag"] as const;
-
       it("should throw if the argument name is invalid", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
@@ -1160,14 +1149,28 @@ describe("Task builders", () => {
         const invalidNames = ["invalid-name", "invalid_name", "123invalidName"];
 
         invalidNames.forEach((name) => {
-          fnNames.forEach((fnName) => {
-            assert.throws(
-              () => builder[fnName]({ name }),
-              new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
+          assertThrowsHardhatError(
+            () =>
+              builder.addOption({
+                name,
+                defaultValue: "default",
+              }),
+            HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+            {
+              name,
+            },
+          );
+
+          assertThrowsHardhatError(
+            () =>
+              builder.addFlag({
                 name,
               }),
-            );
-          });
+            HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+            {
+              name,
+            },
+          );
         });
       });
 
@@ -1176,19 +1179,28 @@ describe("Task builders", () => {
           "task-id",
         );
 
-        builder.addOption({ name: "option" }).addFlag({ name: "flag" });
+        builder
+          .addOption({ name: "option", defaultValue: "default" })
+          .addFlag({ name: "flag" });
 
         const names = ["option", "flag"];
 
         names.forEach((name) => {
-          fnNames.forEach((fnName) => {
-            assert.throws(
-              () => builder[fnName]({ name }),
-              new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
-                name,
-              }),
-            );
-          });
+          assertThrowsHardhatError(
+            () => builder.addOption({ name, defaultValue: "default" }),
+            HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
+            {
+              name,
+            },
+          );
+
+          assertThrowsHardhatError(
+            () => builder.addFlag({ name }),
+            HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
+            {
+              name,
+            },
+          );
         });
       });
 
@@ -1198,11 +1210,12 @@ describe("Task builders", () => {
         );
 
         RESERVED_ARGUMENT_NAMES.forEach((name) => {
-          assert.throws(
-            () => builder.addOption({ name }),
-            new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
+          assertThrowsHardhatError(
+            () => builder.addOption({ name, defaultValue: "default" }),
+            HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME,
+            {
               name,
-            }),
+            },
           );
         });
       });
@@ -1214,7 +1227,7 @@ describe("Task builders", () => {
           "task-id",
         );
 
-        assert.throws(
+        assertThrowsHardhatError(
           () =>
             builder.addOption({
               name: "arg",
@@ -1223,15 +1236,13 @@ describe("Task builders", () => {
               defaultValue: 123 as any,
               type: ArgumentType.STRING,
             }),
-          new HardhatError(
-            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
-            {
-              value: 123,
-              name: "defaultValue",
-              type: ArgumentType.STRING,
-              task: "task-id",
-            },
-          ),
+          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+          {
+            value: 123,
+            name: "defaultValue",
+            type: ArgumentType.STRING,
+            task: "task-id",
+          },
         );
       });
     });

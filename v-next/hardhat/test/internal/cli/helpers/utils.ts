@@ -196,23 +196,25 @@ describe("utils", function () {
   });
 
   describe("getSection", function () {
-    it("should return a section", function () {
+    it("should return a section with items sorted by name", function () {
       const section = getSection(
         "Section Title",
         [
           { name: "content", description: "content description" },
           { name: "content2", description: "content description2" },
           { name: "content3", description: "content description3" },
+          { name: "another-item", description: "content description4" },
         ],
-        14,
+        18,
       );
 
       const expected = `
 Section Title:
 
-  content       content description
-  content2      content description2
-  content3      content description3
+  another-item      content description4
+  content           content description
+  content2          content description2
+  content3          content description3
 `;
 
       assert.equal(section, expected);
@@ -221,7 +223,7 @@ Section Title:
 
   describe("getUsageString", function () {
     describe("with a required positional argument", function () {
-      it("should return a usage string", function () {
+      it("should return a usage string with options sorted by name, preserving positional argument order", function () {
         const task: Task = {
           id: ["task"],
           description: "task description",
@@ -241,6 +243,12 @@ Section Title:
             {
               name: "positionalArgument",
               description: "An example argument",
+              type: ArgumentType.STRING,
+              isVariadic: false,
+            },
+            {
+              name: "anotherPositionalArgument",
+              description: "Another example argument",
               type: ArgumentType.STRING,
               isVariadic: false,
             },
@@ -271,17 +279,22 @@ Section Title:
               description: "An example argument",
               isRequired: true,
             },
+            {
+              name: "anotherPositionalArgument",
+              description: "Another example argument",
+              isRequired: true,
+            },
           ],
         );
 
-        const expected = `Usage: hardhat [GLOBAL OPTIONS] task [--option <STRING>] [--another-option] [--] positionalArgument`;
+        const expected = `Usage: hardhat [GLOBAL OPTIONS] task [--another-option] [--option <STRING>] [--] positionalArgument anotherPositionalArgument`;
 
         assert.equal(usageString, expected);
       });
     });
 
     describe("with an optional positional argument", function () {
-      it("should return a usage string", function () {
+      it("should return a usage string with options sorted by name, preserving positional argument order", function () {
         const task: Task = {
           id: ["task"],
           description: "task description",
@@ -301,6 +314,12 @@ Section Title:
             {
               name: "positionalArgument",
               description: "An example argument",
+              type: ArgumentType.STRING,
+              isVariadic: false,
+            },
+            {
+              name: "anotherPositionalArgument",
+              description: "Another example argument",
               type: ArgumentType.STRING,
               isVariadic: false,
             },
@@ -331,10 +350,15 @@ Section Title:
               description: "An example argument",
               isRequired: false,
             },
+            {
+              name: "anotherPositionalArgument",
+              description: "Another example argument",
+              isRequired: false,
+            },
           ],
         );
 
-        const expected = `Usage: hardhat [GLOBAL OPTIONS] task [--option <STRING>] [--another-option] [--] [positionalArgument]`;
+        const expected = `Usage: hardhat [GLOBAL OPTIONS] task [--another-option] [--option <STRING>] [--] [positionalArgument] [anotherPositionalArgument]`;
 
         assert.equal(usageString, expected);
       });

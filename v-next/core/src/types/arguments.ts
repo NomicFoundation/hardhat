@@ -43,3 +43,37 @@ export type ArgumentValue = ArgumentValueTypes[keyof ArgumentValueTypes];
  */
 export type ArgumentTypeToValueType<T extends ArgumentType> =
   ArgumentValueTypes[T];
+
+/**
+ * Options in CLI are specified as `--<name> value`, where `--<name>` is the
+ * option's name and `value` is the argument it takes. For example,
+ * `--network mainnet` sets the network option to `mainnet`.
+ *
+ * Options can also be flags, which are boolean options that don't take an
+ * argument. For example, `--help` is a flag that shows the help message.
+ *
+ * Options are always optional and can be provided in any order.
+ */
+export interface OptionDefinition<T extends ArgumentType = ArgumentType> {
+  name: string;
+  description: string;
+  type: ArgumentType;
+  defaultValue: ArgumentTypeToValueType<T>;
+}
+
+/**
+ * A positional argument is used as `<value>` in the CLI, where its position
+ * matters. For example, `mv <from> <to>` has two positional arguments.
+ *
+ * If the argument is variadic, it accepts multiple values. A variadic argument
+ * must be the last positional argument and consumes all remaining values.
+ */
+export interface PositionalArgumentDefinition<
+  T extends ArgumentType = ArgumentType,
+> {
+  name: string;
+  description: string;
+  type: T;
+  defaultValue?: ArgumentTypeToValueType<T> | Array<ArgumentTypeToValueType<T>>;
+  isVariadic: boolean;
+}

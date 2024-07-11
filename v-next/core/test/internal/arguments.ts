@@ -1,10 +1,14 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
+
 import { ArgumentType } from "../../src/config.js";
 import {
   isArgumentNameValid,
   isArgumentValueValid,
+  parseArgumentValue,
 } from "../../src/internal/arguments.js";
 
 describe("Arguments", () => {
@@ -79,11 +83,94 @@ describe("Arguments", () => {
         isArgumentValueValid(ArgumentType.BIGINT, [123n, BigInt(123)], true),
         true,
       );
-      assert.equal(isArgumentValueValid(ArgumentType.STRING, [], true), false);
+      assert.equal(isArgumentValueValid(ArgumentType.STRING, [], true), true);
       assert.equal(
         isArgumentValueValid(ArgumentType.STRING, ["foo", 123], true),
         false,
       );
+    });
+  });
+
+  describe("parseArgumentValue", () => {
+    it("should parse string arguments", () => {
+      assert.equal(
+        parseArgumentValue("foo", ArgumentType.STRING, "name"),
+        "foo",
+      );
+    });
+
+    it("should parse file arguments", () => {
+      assert.equal(
+        parseArgumentValue("foo.txt", ArgumentType.FILE, "name"),
+        "foo.txt",
+      );
+    });
+
+    it("should parse int arguments", () => {
+      assert.equal(parseArgumentValue("123", ArgumentType.INT, "name"), 123);
+    });
+
+    it("should parse float arguments", () => {
+      assert.equal(
+        parseArgumentValue("123.45", ArgumentType.FLOAT, "name"),
+        123.45,
+      );
+    });
+
+    it("should parse bigint arguments", () => {
+      assert.equal(
+        parseArgumentValue("123", ArgumentType.BIGINT, "name"),
+        BigInt(123),
+      );
+    });
+
+    it("should parse boolean arguments", () => {
+      assert.equal(
+        parseArgumentValue("true", ArgumentType.BOOLEAN, "name"),
+        true,
+      );
+    });
+
+    describe("should throw an error for invalid values", () => {
+      it("for int arguments", () => {
+        assertThrowsHardhatError(
+          () => {
+            parseArgumentValue("foo", ArgumentType.INT, "name");
+          },
+          HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+          { value: "foo", name: "name", type: ArgumentType.INT },
+        );
+      });
+
+      it("for float arguments", () => {
+        assertThrowsHardhatError(
+          () => {
+            parseArgumentValue("foo", ArgumentType.FLOAT, "name");
+          },
+          HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+          { value: "foo", name: "name", type: ArgumentType.FLOAT },
+        );
+      });
+
+      it("for bigint arguments", () => {
+        assertThrowsHardhatError(
+          () => {
+            parseArgumentValue("foo", ArgumentType.BIGINT, "name");
+          },
+          HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+          { value: "foo", name: "name", type: ArgumentType.BIGINT },
+        );
+      });
+
+      it("for boolean arguments", () => {
+        assertThrowsHardhatError(
+          () => {
+            parseArgumentValue("foo", ArgumentType.BOOLEAN, "name");
+          },
+          HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+          { value: "foo", name: "name", type: ArgumentType.BOOLEAN },
+        );
+      });
     });
   });
 });
