@@ -64,9 +64,7 @@ export async function main(
     }
 
     // TODO: the consent will be enabled in the other PRs related to telemetry
-    const _telemetryConsent = await getTelemetryConsent(
-      builtinGlobalOptions.help,
-    );
+    const _telemetryConsent = await getTelemetryConsent();
 
     if (builtinGlobalOptions.configPath === undefined) {
       builtinGlobalOptions.configPath = await resolveHardhatConfigPath();

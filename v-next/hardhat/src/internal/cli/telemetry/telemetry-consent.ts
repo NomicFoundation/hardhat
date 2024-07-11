@@ -18,13 +18,10 @@ interface TelemetryConsent {
  * Get the user's telemetry consent. If already provided, returns the answer.
  * If not, prompts the user.
  * Consent is only asked in interactive environments.
- * @param isHelpCommand Whether the command typed by the user is the help command or not.
  * @returns True if the user consents to telemetry, false otherwise.
  */
-export async function getTelemetryConsent(
-  isHelpCommand: boolean,
-): Promise<boolean> {
-  if (canTelemetryBeEnabled(isHelpCommand) === false) {
+export async function getTelemetryConsent(): Promise<boolean> {
+  if (canTelemetryBeEnabled() === false) {
     return false;
   }
 
@@ -40,9 +37,8 @@ export async function getTelemetryConsent(
   return requestTelemetryConsent();
 }
 
-function canTelemetryBeEnabled(isHelpCommand: boolean): boolean {
+function canTelemetryBeEnabled(): boolean {
   return (
-    !isHelpCommand &&
     !isCi() &&
     process.stdout.isTTY === true &&
     process.env.HARDHAT_DISABLE_TELEMETRY_PROMPT !== "true"
