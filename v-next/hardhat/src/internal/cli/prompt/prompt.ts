@@ -19,7 +19,7 @@ export async function confirmationPromptWithTimeout(
     );
 
     // The timeout is a safety measure in case Hardhat is executed in a CI or another non-interactive environment and we do not detect it.
-    // Instead of blocking the process indefinitely, we abort the consent operation after a while.
+    // Instead of blocking the process indefinitely, we abort the prompt after a while.
     let timeout;
     const timeoutPromise = new Promise((resolve) => {
       timeout = setTimeout(resolve, timeoutMilliseconds);
