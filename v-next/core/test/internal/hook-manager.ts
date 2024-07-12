@@ -19,14 +19,13 @@ import type { Task, TaskManager } from "../../src/types/tasks.js";
 import type { UserInterruptionManager } from "../../src/types/user-interruptions.js";
 
 import assert from "node:assert/strict";
-import path from "node:path";
 import { describe, it, beforeEach, before } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { ensureError } from "@ignored/hardhat-vnext-utils/error";
-import { findClosestPackageJson } from "@ignored/hardhat-vnext-utils/package";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
+import { resolveProjectRoot } from "../../src/index.js";
 import { HookManagerImplementation } from "../../src/internal/hook-manager.js";
 import { UserInterruptionManagerImplementation } from "../../src/internal/user-interruptions.js";
 
@@ -34,7 +33,7 @@ describe("HookManager", () => {
   let projectRoot: string;
 
   before(async () => {
-    projectRoot = path.dirname(await findClosestPackageJson(process.cwd()));
+    projectRoot = await resolveProjectRoot(process.cwd());
   });
 
   describe("plugin hooks", () => {

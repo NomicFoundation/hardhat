@@ -14,10 +14,8 @@ import type { HardhatPlugin } from "../types/plugins.js";
 import type { TaskManager } from "../types/tasks.js";
 import type { UserInterruptionManager } from "../types/user-interruptions.js";
 
-import path from "node:path";
-
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { findClosestPackageJson } from "@ignored/hardhat-vnext-utils/package";
+import { findClosestPackageRoot } from "@ignored/hardhat-vnext-utils/package";
 
 import { ResolvedConfigurationVariableImplementation } from "./configuration-variables.js";
 import {
@@ -143,17 +141,13 @@ export class HardhatRuntimeEnvironmentImplementation
   }
 }
 
-async function resolveProjectRoot(
+/**
+ * Resolves the project root of a Hardhat project.
+ */
+export async function resolveProjectRoot(
   projectRoot: string | undefined,
 ): Promise<string> {
-  if (projectRoot !== undefined) {
-    return projectRoot;
-  }
-
-  const packageJsonPath = await findClosestPackageJson(process.cwd());
-  const packageJsonDir = path.dirname(packageJsonPath);
-
-  return packageJsonDir;
+  return findClosestPackageRoot(projectRoot ?? process.cwd());
 }
 
 async function runUserConfigExtensions(

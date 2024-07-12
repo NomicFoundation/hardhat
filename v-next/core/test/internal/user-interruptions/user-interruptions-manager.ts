@@ -1,11 +1,9 @@
 import type { UserInterruptionHooks } from "../../../src/types/hooks.js";
 
 import assert from "node:assert/strict";
-import path from "node:path";
 import { before, describe, it } from "node:test";
 
-import { findClosestPackageJson } from "@ignored/hardhat-vnext-utils/package";
-
+import { resolveProjectRoot } from "../../../src/index.js";
 import { HookManagerImplementation } from "../../../src/internal/hook-manager.js";
 import { UserInterruptionManagerImplementation } from "../../../src/internal/user-interruptions.js";
 
@@ -13,7 +11,7 @@ describe("UserInterruptionManager", () => {
   let projectRoot: string;
 
   before(async () => {
-    projectRoot = path.dirname(await findClosestPackageJson(process.cwd()));
+    projectRoot = await resolveProjectRoot(process.cwd());
   });
 
   describe("displayMessage", () => {

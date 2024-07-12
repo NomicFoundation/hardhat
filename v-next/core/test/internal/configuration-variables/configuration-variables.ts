@@ -1,11 +1,10 @@
 import assert from "node:assert/strict";
-import path from "node:path";
 import { before, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { findClosestPackageJson } from "@ignored/hardhat-vnext-utils/package";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
+import { resolveProjectRoot } from "../../../src/index.js";
 import { ResolvedConfigurationVariableImplementation } from "../../../src/internal/configuration-variables.js";
 import { HookManagerImplementation } from "../../../src/internal/hook-manager.js";
 import { UserInterruptionManagerImplementation } from "../../../src/internal/user-interruptions.js";
@@ -14,9 +13,7 @@ describe("ResolvedConfigurationVariable", () => {
   let hookManager: HookManagerImplementation;
 
   before(async () => {
-    const projectRoot = path.dirname(
-      await findClosestPackageJson(process.cwd()),
-    );
+    const projectRoot = await resolveProjectRoot(process.cwd());
 
     hookManager = new HookManagerImplementation(projectRoot, []);
     const userInterruptionsManager = new UserInterruptionManagerImplementation(
