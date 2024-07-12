@@ -27,6 +27,9 @@ describe("ResolvedConfigurationVariable", () => {
       config: {
         tasks: [],
         plugins: [],
+        paths: {
+          root: projectRoot,
+        },
       },
       hooks: hookManager,
       globalOptions: {},

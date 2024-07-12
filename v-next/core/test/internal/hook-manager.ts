@@ -102,6 +102,9 @@ describe("HookManager", () => {
           config: {
             tasks: [],
             plugins: [],
+            paths: {
+              root: projectRoot,
+            },
           },
           hooks: hookManager,
           globalOptions: {},
@@ -167,6 +170,9 @@ describe("HookManager", () => {
         const originalConfig: HardhatConfig = {
           plugins: [],
           tasks: [],
+          paths: {
+            root: projectRoot,
+          },
         };
 
         hookManager.registerHandlers("config", {
@@ -217,6 +223,9 @@ describe("HookManager", () => {
         const expectedConfig: HardhatConfig = {
           plugins: [],
           tasks: [],
+          paths: {
+            root: projectRoot,
+          },
         };
 
         const manager = new HookManagerImplementation(projectRoot, [
@@ -317,6 +326,9 @@ describe("HookManager", () => {
           config: {
             tasks: [],
             plugins: [],
+            paths: {
+              root: projectRoot,
+            },
           },
           hooks: hookManager,
           globalOptions: {},
@@ -332,6 +344,9 @@ describe("HookManager", () => {
         const defaultImplementationVersionOfConfig: HardhatConfig = {
           plugins: [],
           tasks: [],
+          paths: {
+            root: projectRoot,
+          },
         };
 
         const resultConfig = await hookManager.runHandlerChain(
@@ -413,6 +428,9 @@ describe("HookManager", () => {
         const expectedConfig: HardhatConfig = {
           plugins: [],
           tasks: [],
+          paths: {
+            root: projectRoot,
+          },
         };
 
         hookManager.registerHandlers("config", {
@@ -531,6 +549,9 @@ describe("HookManager", () => {
           config: {
             tasks: [],
             plugins: [],
+            paths: {
+              root: projectRoot,
+            },
           },
           hooks: hookManager,
           globalOptions: {},
@@ -541,7 +562,10 @@ describe("HookManager", () => {
       });
 
       it("Should return the empty set if no handlers are registered", async () => {
-        const mockHre = buildMockHardhatRuntimeEnvironment(hookManager);
+        const mockHre = buildMockHardhatRuntimeEnvironment(
+          projectRoot,
+          hookManager,
+        );
 
         const resultHre = await hookManager.runSequentialHandlers(
           "hre",
@@ -617,6 +641,9 @@ describe("HookManager", () => {
         const expectedConfig: HardhatConfig = {
           plugins: [],
           tasks: [],
+          paths: {
+            root: projectRoot,
+          },
         };
 
         hookManager.registerHandlers("config", {
@@ -656,6 +683,9 @@ describe("HookManager", () => {
           config: {
             tasks: [],
             plugins: [],
+            paths: {
+              root: projectRoot,
+            },
           },
           hooks: hookManager,
           globalOptions: {},
@@ -669,6 +699,9 @@ describe("HookManager", () => {
         const originalConfig: HardhatConfig = {
           plugins: [],
           tasks: [],
+          paths: {
+            root: projectRoot,
+          },
         };
 
         const results = await hookManager.runParallelHandlers(
@@ -684,6 +717,9 @@ describe("HookManager", () => {
         const originalConfig: HardhatConfig = {
           plugins: [],
           tasks: [],
+          paths: {
+            root: projectRoot,
+          },
         };
 
         hookManager.registerHandlers("config", {
@@ -735,7 +771,10 @@ describe("HookManager", () => {
       });
 
       it("Should pass the context to the handler (for non-config)", async () => {
-        const mockHre = buildMockHardhatRuntimeEnvironment(hookManager);
+        const mockHre = buildMockHardhatRuntimeEnvironment(
+          projectRoot,
+          hookManager,
+        );
 
         hookManager.registerHandlers("hre", {
           created: async (
@@ -761,6 +800,9 @@ describe("HookManager", () => {
         const expectedConfig: HardhatConfig = {
           plugins: [],
           tasks: [],
+          paths: {
+            root: projectRoot,
+          },
         };
 
         const validationError = {
@@ -800,6 +842,9 @@ describe("HookManager", () => {
           config: {
             tasks: [],
             plugins: [],
+            paths: {
+              root: projectRoot,
+            },
           },
           hooks: hookManager,
           globalOptions: {},
@@ -929,6 +974,7 @@ describe("HookManager", () => {
 });
 
 function buildMockHardhatRuntimeEnvironment(
+  projectRoot: string,
   hookManager: HookManager,
 ): HardhatRuntimeEnvironment {
   const mockInteruptionManager: UserInterruptionManager = {
@@ -955,6 +1001,9 @@ function buildMockHardhatRuntimeEnvironment(
     config: {
       tasks: [],
       plugins: [],
+      paths: {
+        root: projectRoot,
+      },
     },
     tasks: mockTaskManager,
     globalOptions: {},

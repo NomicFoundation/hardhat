@@ -30,6 +30,9 @@ describe("UserInterruptionManager", () => {
         config: {
           tasks: [],
           plugins: [],
+          paths: {
+            root: projectRoot,
+          },
         },
         globalOptions: {},
         hooks: hookManager,
@@ -71,6 +74,9 @@ describe("UserInterruptionManager", () => {
         config: {
           tasks: [],
           plugins: [],
+          paths: {
+            root: projectRoot,
+          },
         },
         globalOptions: {},
         hooks: hookManager,
@@ -114,6 +120,9 @@ describe("UserInterruptionManager", () => {
         config: {
           tasks: [],
           plugins: [],
+          paths: {
+            root: projectRoot,
+          },
         },
         globalOptions: {},
         hooks: hookManager,

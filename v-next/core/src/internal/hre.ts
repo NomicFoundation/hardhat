@@ -75,14 +75,20 @@ export class HardhatRuntimeEnvironmentImplementation
     // Resolve config
 
     const resolvedConfig = await resolveUserConfig(
+      resolvedProjectRoot,
       hooks,
       resolvedPlugins,
       inputUserConfig,
     );
 
-    // We override the plugins, as we want to prevent plugins from changing this
-    const config = {
+    // We override the plugins and the proejct root, as we want to prevent
+    // the plugins from changing them
+    const config: HardhatConfig = {
       ...resolvedConfig,
+      paths: {
+        ...resolvedConfig.paths,
+        root: resolvedProjectRoot,
+      },
       plugins: resolvedPlugins,
     };
 
@@ -181,6 +187,7 @@ async function validateUserConfig(
 }
 
 async function resolveUserConfig(
+  projectRoot: string,
   hooks: HookManager,
   sortedPlugins: HardhatPlugin[],
   config: HardhatUserConfig,
@@ -188,6 +195,9 @@ async function resolveUserConfig(
   const initialResolvedConfig: HardhatConfig = {
     plugins: sortedPlugins,
     tasks: config.tasks ?? [],
+    paths: {
+      root: projectRoot,
+    },
   };
 
   return hooks.runHandlerChain(
