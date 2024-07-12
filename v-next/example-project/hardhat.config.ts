@@ -26,9 +26,9 @@ const exampleTaskOverride = task("example2")
   .addVariadicArgument({
     name: "testFiles",
     description: "An optional list of files to test",
-    // defaultValue: [],
+    defaultValue: [],
   })
-  .addOption({
+  .addFlag({
     name: "noCompile",
     description: "Don't compile before running this task",
   })
@@ -43,6 +43,7 @@ const exampleTaskOverride = task("example2")
   .addOption({
     name: "grep",
     description: "Only run tests matching the given string or regexp",
+    defaultValue: "",
   })
   .build();
 
@@ -52,7 +53,7 @@ const testTask = task("test", "Runs mocha tests")
     description: "An optional list of files to test",
     // defaultValue: [],
   })
-  .addOption({
+  .addFlag({
     name: "noCompile",
     description: "Don't compile before running this task",
   })
@@ -67,6 +68,7 @@ const testTask = task("test", "Runs mocha tests")
   .addOption({
     name: "grep",
     description: "Only run tests matching the given string or regexp",
+    defaultValue: "",
   })
   .setAction(import.meta.resolve("./tasks/non-existing.ts"))
   .build();
