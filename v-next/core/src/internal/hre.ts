@@ -26,7 +26,6 @@ import { HookManagerImplementation } from "./hook-manager.js";
 import { resolvePluginList } from "./plugins/resolve-plugin-list.js";
 import { TaskManagerImplementation } from "./tasks/task-manager.js";
 import { UserInterruptionManagerImplementation } from "./user-interruptions.js";
-import { getRealPath } from "@ignored/hardhat-vnext-utils/fs";
 
 export class HardhatRuntimeEnvironmentImplementation
   implements HardhatRuntimeEnvironment
