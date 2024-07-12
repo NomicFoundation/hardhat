@@ -18,6 +18,7 @@ import {
   buildGlobalOptionDefinitions,
   parseArgumentValue,
   resolvePluginList,
+  resolveProjectRoot,
 } from "@ignored/hardhat-vnext-core";
 import { ArgumentType } from "@ignored/hardhat-vnext-core/types/arguments";
 import {
@@ -68,16 +69,17 @@ export async function main(
       builtinGlobalOptions.configPath = await resolveHardhatConfigPath();
     }
 
+    const projectRoot = await resolveProjectRoot(
+      builtinGlobalOptions.configPath,
+    );
+
     const userConfig = await importUserConfig(builtinGlobalOptions.configPath);
 
     const configPlugins = Array.isArray(userConfig.plugins)
       ? userConfig.plugins
       : [];
     const plugins = [...builtinPlugins, ...configPlugins];
-    const resolvedPlugins = await resolvePluginList(
-      plugins,
-      builtinGlobalOptions.configPath,
-    );
+    const resolvedPlugins = await resolvePluginList(projectRoot, plugins);
 
     const pluginGlobalOptionDefinitions =
       buildGlobalOptionDefinitions(resolvedPlugins);
@@ -94,6 +96,7 @@ export async function main(
     const hre = await createHardhatRuntimeEnvironment(
       userConfig,
       { ...builtinGlobalOptions, ...userProvidedGlobalOptions },
+      projectRoot,
       { resolvedPlugins, globalOptionDefinitions },
     );
 
