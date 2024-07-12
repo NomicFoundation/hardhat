@@ -266,7 +266,10 @@ export class ResolvedTask implements Task {
           `Plugin with id ${actionPluginId} not found.`,
         );
 
-        await detectPluginNpmDependencyProblems(plugin);
+        await detectPluginNpmDependencyProblems(
+          plugin,
+          this.#hre.config.paths.root,
+        );
       }
 
       throw new HardhatError(
