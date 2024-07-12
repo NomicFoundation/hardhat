@@ -14,7 +14,10 @@ import type { HardhatPlugin } from "../types/plugins.js";
 import type { TaskManager } from "../types/tasks.js";
 import type { UserInterruptionManager } from "../types/user-interruptions.js";
 
+import path from "node:path";
+
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { findClosestPackageJson } from "@ignored/hardhat-vnext-utils/package";
 
 import { ResolvedConfigurationVariableImplementation } from "./configuration-variables.js";
 import {
@@ -32,28 +35,21 @@ export class HardhatRuntimeEnvironmentImplementation
   public static async create(
     inputUserConfig: HardhatUserConfig,
     userProvidedGlobalOptions: Partial<GlobalOptions>,
+    projectRoot?: string,
     unsafeOptions?: UnsafeHardhatRuntimeEnvironmentOptions,
   ): Promise<HardhatRuntimeEnvironmentImplementation> {
-    // TODO: Clone with lodash or https://github.com/davidmarkclements/rfdc
-    // TODO: Or maybe don't clone at all
-    const clonedUserConfig = inputUserConfig;
-
-    // Resolve plugins from node modules relative to the current working directory
-    const basePathForNpmResolution = process.cwd();
+    const resolvedProjectRoot = await resolveProjectRoot(projectRoot);
 
     const resolvedPlugins =
       unsafeOptions?.resolvedPlugins ??
-      (await resolvePluginList(
-        clonedUserConfig.plugins,
-        basePathForNpmResolution,
-      ));
+      (await resolvePluginList(inputUserConfig.plugins, resolvedProjectRoot));
 
     const hooks = new HookManagerImplementation(resolvedPlugins);
 
     // extend user config:
     const extendedUserConfig = await runUserConfigExtensions(
       hooks,
-      clonedUserConfig,
+      inputUserConfig,
     );
 
     // validate config
@@ -136,6 +132,19 @@ export class HardhatRuntimeEnvironmentImplementation
   ) {
     this.tasks = new TaskManagerImplementation(this, globalOptionDefinitions);
   }
+}
+
+async function resolveProjectRoot(
+  projectRoot: string | undefined,
+): Promise<string> {
+  if (projectRoot !== undefined) {
+    return projectRoot;
+  }
+
+  const packageJsonPath = await findClosestPackageJson(process.cwd());
+  const packageJsonDir = path.dirname(packageJsonPath);
+
+  return packageJsonDir;
 }
 
 async function runUserConfigExtensions(
