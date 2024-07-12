@@ -42,9 +42,12 @@ export class HardhatRuntimeEnvironmentImplementation
 
     const resolvedPlugins =
       unsafeOptions?.resolvedPlugins ??
-      (await resolvePluginList(inputUserConfig.plugins, resolvedProjectRoot));
+      (await resolvePluginList(resolvedProjectRoot, inputUserConfig.plugins));
 
-    const hooks = new HookManagerImplementation(resolvedPlugins);
+    const hooks = new HookManagerImplementation(
+      resolvedProjectRoot,
+      resolvedPlugins,
+    );
 
     // extend user config:
     const extendedUserConfig = await runUserConfigExtensions(

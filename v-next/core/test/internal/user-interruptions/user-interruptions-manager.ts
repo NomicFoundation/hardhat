@@ -1,15 +1,24 @@
 import type { UserInterruptionHooks } from "../../../src/types/hooks.js";
 
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import path from "node:path";
+import { before, describe, it } from "node:test";
+
+import { findClosestPackageJson } from "@ignored/hardhat-vnext-utils/package";
 
 import { HookManagerImplementation } from "../../../src/internal/hook-manager.js";
 import { UserInterruptionManagerImplementation } from "../../../src/internal/user-interruptions.js";
 
 describe("UserInterruptionManager", () => {
+  let projectRoot: string;
+
+  before(async () => {
+    projectRoot = path.dirname(await findClosestPackageJson(process.cwd()));
+  });
+
   describe("displayMessage", () => {
     it("Should call a dynamic handler with a given message from an interruptor", async () => {
-      const hookManager = new HookManagerImplementation([]);
+      const hookManager = new HookManagerImplementation(projectRoot, []);
       const userInterruptionManager = new UserInterruptionManagerImplementation(
         hookManager,
       );
@@ -54,7 +63,7 @@ describe("UserInterruptionManager", () => {
 
   describe("requestInput", () => {
     it("Should call a dynamic handler with a given input description from an interruptor", async () => {
-      const hookManager = new HookManagerImplementation([]);
+      const hookManager = new HookManagerImplementation(projectRoot, []);
       const userInterruptionManager = new UserInterruptionManagerImplementation(
         hookManager,
       );
@@ -97,7 +106,7 @@ describe("UserInterruptionManager", () => {
 
   describe("requestSecretInput", () => {
     it("Should call a dynamic handler with a given input description from an interruptor", async () => {
-      const hookManager = new HookManagerImplementation([]);
+      const hookManager = new HookManagerImplementation(projectRoot, []);
       const userInterruptionManager = new UserInterruptionManagerImplementation(
         hookManager,
       );

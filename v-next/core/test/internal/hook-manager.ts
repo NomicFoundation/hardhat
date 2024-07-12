@@ -19,16 +19,24 @@ import type { Task, TaskManager } from "../../src/types/tasks.js";
 import type { UserInterruptionManager } from "../../src/types/user-interruptions.js";
 
 import assert from "node:assert/strict";
-import { describe, it, beforeEach } from "node:test";
+import path from "node:path";
+import { describe, it, beforeEach, before } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+import { findClosestPackageJson } from "@ignored/hardhat-vnext-utils/package";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { HookManagerImplementation } from "../../src/internal/hook-manager.js";
 import { UserInterruptionManagerImplementation } from "../../src/internal/user-interruptions.js";
 
 describe("HookManager", () => {
+  let projectRoot: string;
+
+  before(async () => {
+    projectRoot = path.dirname(await findClosestPackageJson(process.cwd()));
+  });
+
   describe("plugin hooks", () => {
     describe("running", () => {
       let hookManager: HookManager;
@@ -83,7 +91,9 @@ describe("HookManager", () => {
           },
         };
 
-        const manager = new HookManagerImplementation([examplePlugin]);
+        const manager = new HookManagerImplementation(projectRoot, [
+          examplePlugin,
+        ]);
 
         const userInterruptionsManager =
           new UserInterruptionManagerImplementation(hookManager);
@@ -209,7 +219,9 @@ describe("HookManager", () => {
           tasks: [],
         };
 
-        const manager = new HookManagerImplementation([examplePlugin]);
+        const manager = new HookManagerImplementation(projectRoot, [
+          examplePlugin,
+        ]);
 
         const validationResult = await manager.runSequentialHandlers(
           "config",
@@ -235,7 +247,9 @@ describe("HookManager", () => {
           },
         };
 
-        const manager = new HookManagerImplementation([examplePlugin]);
+        const manager = new HookManagerImplementation(projectRoot, [
+          examplePlugin,
+        ]);
 
         try {
           await manager.runHandlerChain(
@@ -264,7 +278,9 @@ describe("HookManager", () => {
           },
         };
 
-        const manager = new HookManagerImplementation([examplePlugin]);
+        const manager = new HookManagerImplementation(projectRoot, [
+          examplePlugin,
+        ]);
 
         await assertRejectsWithHardhatError(
           async () =>
@@ -292,7 +308,7 @@ describe("HookManager", () => {
       let hookManager: HookManager;
 
       beforeEach(() => {
-        const manager = new HookManagerImplementation([]);
+        const manager = new HookManagerImplementation(projectRoot, []);
 
         const userInterruptionsManager =
           new UserInterruptionManagerImplementation(hookManager);
@@ -506,7 +522,7 @@ describe("HookManager", () => {
       let hookManager: HookManager;
 
       beforeEach(() => {
-        const manager = new HookManagerImplementation([]);
+        const manager = new HookManagerImplementation(projectRoot, []);
 
         const userInterruptionsManager =
           new UserInterruptionManagerImplementation(hookManager);
@@ -631,7 +647,7 @@ describe("HookManager", () => {
       let hookManager: HookManager;
 
       beforeEach(() => {
-        const manager = new HookManagerImplementation([]);
+        const manager = new HookManagerImplementation(projectRoot, []);
 
         const userInterruptionsManager =
           new UserInterruptionManagerImplementation(hookManager);
@@ -775,7 +791,7 @@ describe("HookManager", () => {
       let hookManager: HookManager;
 
       beforeEach(() => {
-        const manager = new HookManagerImplementation([]);
+        const manager = new HookManagerImplementation(projectRoot, []);
 
         const userInterruptionsManager =
           new UserInterruptionManagerImplementation(hookManager);

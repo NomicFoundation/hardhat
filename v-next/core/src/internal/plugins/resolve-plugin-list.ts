@@ -9,10 +9,10 @@ import { detectPluginNpmDependencyProblems } from "./detect-plugin-npm-dependenc
  * Resolves the plugin list, returning them in the right order.
  */
 export async function resolvePluginList(
+  projectRoot: string,
   userConfigPluginList: HardhatPlugin[] = [],
-  basePathForNpmResolution: string,
 ): Promise<HardhatPlugin[]> {
-  return reverseTopologicalSort(userConfigPluginList, basePathForNpmResolution);
+  return reverseTopologicalSort(projectRoot, userConfigPluginList);
 }
 
 /**
@@ -24,8 +24,8 @@ export async function resolvePluginList(
  * @returns The ordered plugins.
  */
 async function reverseTopologicalSort(
+  projectRoot: string,
   plugins: HardhatPlugin[],
-  basePathForNpmResolution: string,
 ): Promise<HardhatPlugin[]> {
   const visitedPlugins: Map<string, HardhatPlugin> = new Map();
   const result: HardhatPlugin[] = [];
@@ -48,11 +48,7 @@ async function reverseTopologicalSort(
 
     if (plugin.dependencies !== undefined) {
       for (const loadFn of plugin.dependencies) {
-        const dependency = await loadDependency(
-          plugin,
-          loadFn,
-          basePathForNpmResolution,
-        );
+        const dependency = await loadDependency(projectRoot, plugin, loadFn);
 
         await dfs(dependency);
       }
@@ -72,22 +68,22 @@ async function reverseTopologicalSort(
  * Attempt to load a plugins dependency. If there is an error,
  * first try and validate the npm dependencies of the plugin.
  *
+ * @param projectRoot - The root of the Hardhat project.
  * @param plugin - the plugin has the dependency
  * @param loadFn - the load function for the dependency
- * @param basePathForNpmResolution - the directory path to use for node module resolution
  * @returns the loaded plugin
  */
 async function loadDependency(
+  projectRoot: string,
   plugin: HardhatPlugin,
   loadFn: () => Promise<HardhatPlugin>,
-  basePathForNpmResolution: string,
 ): Promise<HardhatPlugin> {
   try {
     return await loadFn();
   } catch (error) {
     ensureError(error);
 
-    await detectPluginNpmDependencyProblems(plugin, basePathForNpmResolution);
+    await detectPluginNpmDependencyProblems(plugin, projectRoot);
 
     throw new HardhatError(
       HardhatError.ERRORS.PLUGINS.PLUGIN_DEPENDENCY_FAILED_LOAD,

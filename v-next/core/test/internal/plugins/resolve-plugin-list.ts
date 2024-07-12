@@ -14,12 +14,12 @@ describe("Plugins - resolve plugin list", () => {
   );
 
   it("should return empty on an empty plugin list", async () => {
-    assert.deepEqual(await resolvePluginList([], installedPackageFixture), []);
+    assert.deepEqual(await resolvePluginList(installedPackageFixture, []), []);
   });
 
   it("should return empty on an undefined plugin list", async () => {
     assert.deepEqual(
-      await resolvePluginList(undefined, installedPackageFixture),
+      await resolvePluginList(installedPackageFixture, undefined),
       [],
     );
   });
@@ -30,7 +30,7 @@ describe("Plugins - resolve plugin list", () => {
     };
 
     assert.deepEqual(
-      await resolvePluginList([plugin], installedPackageFixture),
+      await resolvePluginList(installedPackageFixture, [plugin]),
       [plugin],
     );
   });
@@ -43,7 +43,7 @@ describe("Plugins - resolve plugin list", () => {
 
     const expected = [c, b, a];
     assert.deepEqual(
-      await resolvePluginList([a], installedPackageFixture),
+      await resolvePluginList(installedPackageFixture, [a]),
       expected,
     );
   });
@@ -56,7 +56,7 @@ describe("Plugins - resolve plugin list", () => {
 
     const expected = [a, b, c];
     assert.deepEqual(
-      await resolvePluginList([a, b, c], installedPackageFixture),
+      await resolvePluginList(installedPackageFixture, [a, b, c]),
       expected,
     );
   });
@@ -74,7 +74,7 @@ describe("Plugins - resolve plugin list", () => {
 
     const expected = [b, c, a];
     assert.deepEqual(
-      await resolvePluginList([a], installedPackageFixture),
+      await resolvePluginList(installedPackageFixture, [a]),
       expected,
     );
   });
@@ -89,7 +89,7 @@ describe("Plugins - resolve plugin list", () => {
 
     const expected = [c, a, b];
     assert.deepEqual(
-      await resolvePluginList([a, b], installedPackageFixture),
+      await resolvePluginList(installedPackageFixture, [a, b]),
       expected,
     );
   });
@@ -110,7 +110,7 @@ describe("Plugins - resolve plugin list", () => {
 
     const expected = [d, b, c, a];
     assert.deepEqual(
-      await resolvePluginList([a], installedPackageFixture),
+      await resolvePluginList(installedPackageFixture, [a]),
       expected,
     );
   });
@@ -141,7 +141,7 @@ describe("Plugins - resolve plugin list", () => {
 
     const expected = [i, g, c, d, a, h, e, f, b];
     assert.deepEqual(
-      await resolvePluginList([a, b], installedPackageFixture),
+      await resolvePluginList(installedPackageFixture, [a, b]),
       expected,
     );
   });
@@ -151,7 +151,7 @@ describe("Plugins - resolve plugin list", () => {
     const copy = { id: "dup" };
 
     await assertRejectsWithHardhatError(
-      async () => resolvePluginList([a, copy], installedPackageFixture),
+      async () => resolvePluginList(installedPackageFixture, [a, copy]),
       HardhatError.ERRORS.GENERAL.DUPLICATED_PLUGIN_ID,
       {
         id: "dup",
@@ -172,7 +172,7 @@ describe("Plugins - resolve plugin list", () => {
       };
 
       await assertRejectsWithHardhatError(
-        async () => resolvePluginList([plugin], installedPackageFixture),
+        async () => resolvePluginList(installedPackageFixture, [plugin]),
         HardhatError.ERRORS.PLUGINS.PLUGIN_DEPENDENCY_FAILED_LOAD,
         { pluginId: plugin.id },
       );
@@ -194,7 +194,7 @@ describe("Plugins - resolve plugin list", () => {
       };
 
       await assertRejectsWithHardhatError(
-        async () => resolvePluginList([plugin], notInstalledPackageFixture),
+        async () => resolvePluginList(notInstalledPackageFixture, [plugin]),
         HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED,
         {
           pluginId: "example",
