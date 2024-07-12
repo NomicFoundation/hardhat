@@ -26,6 +26,7 @@ import {
   assertHardhatInvariant,
 } from "@ignored/hardhat-vnext-errors";
 import { isCi } from "@ignored/hardhat-vnext-utils/ci";
+import { getRealPath } from "@ignored/hardhat-vnext-utils/fs";
 import { kebabToCamelCase } from "@ignored/hardhat-vnext-utils/string";
 
 import { resolveHardhatConfigPath } from "../../config.js";
@@ -70,7 +71,7 @@ export async function main(
     }
 
     const projectRoot = await resolveProjectRoot(
-      builtinGlobalOptions.configPath,
+      await getRealPath(builtinGlobalOptions.configPath),
     );
 
     const userConfig = await importUserConfig(builtinGlobalOptions.configPath);

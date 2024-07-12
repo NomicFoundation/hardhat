@@ -26,6 +26,7 @@ import { HookManagerImplementation } from "./hook-manager.js";
 import { resolvePluginList } from "./plugins/resolve-plugin-list.js";
 import { TaskManagerImplementation } from "./tasks/task-manager.js";
 import { UserInterruptionManagerImplementation } from "./user-interruptions.js";
+import { getRealPath } from "@ignored/hardhat-vnext-utils/fs";
 
 export class HardhatRuntimeEnvironmentImplementation
   implements HardhatRuntimeEnvironment
@@ -142,12 +143,17 @@ export class HardhatRuntimeEnvironmentImplementation
 }
 
 /**
- * Resolves the project root of a Hardhat project.
+ * Resolves the project root of a Hardhat project based on the config file or
+ * another path within the project. If not provided, it will be resolved from
+ * the current working directory.
+ *
+ * @param absolutePathWithinProject An absolute path within the project, usually
+ * the config file.
  */
 export async function resolveProjectRoot(
-  projectRoot: string | undefined,
+  absolutePathWithinProject: string | undefined,
 ): Promise<string> {
-  return findClosestPackageRoot(projectRoot ?? process.cwd());
+  return findClosestPackageRoot(absolutePathWithinProject ?? process.cwd());
 }
 
 async function runUserConfigExtensions(
