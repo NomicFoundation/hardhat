@@ -19,7 +19,7 @@ import semver from "semver";
  */
 export async function detectPluginNpmDependencyProblems(
   plugin: HardhatPlugin,
-  basePathForNpmResolution: string = process.cwd(),
+  basePathForNpmResolution: string,
 ): Promise<void> {
   if (plugin.npmPackage === undefined) {
     return;
