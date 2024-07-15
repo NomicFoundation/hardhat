@@ -1,3 +1,4 @@
+import type { PositionalArgumentDefinition } from "../../types/arguments.js";
 import type { GlobalOptionDefinitions } from "../../types/global-options.js";
 import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
 import type {
@@ -17,6 +18,12 @@ import { TaskDefinitionType } from "../../types/tasks.js";
 
 import { ResolvedTask } from "./resolved-task.js";
 import { formatTaskId, getActorFragment } from "./utils.js";
+import {
+  validateAction,
+  validateId,
+  validateOption,
+  validatePositionalArgument,
+} from "./validations.js";
 
 export class TaskManagerImplementation implements TaskManager {
   readonly #hre: HardhatRuntimeEnvironment;
@@ -35,6 +42,7 @@ export class TaskManagerImplementation implements TaskManager {
       }
 
       for (const taskDefinition of plugin.tasks) {
+        this.#validateTaskDefinition(taskDefinition);
         this.#reduceTaskDefinition(
           globalOptionDefinitions,
           taskDefinition,
@@ -45,6 +53,7 @@ export class TaskManagerImplementation implements TaskManager {
 
     // reduce global user defined tasks
     for (const taskDefinition of this.#hre.config.tasks) {
+      this.#validateTaskDefinition(taskDefinition);
       this.#reduceTaskDefinition(globalOptionDefinitions, taskDefinition);
     }
   }
@@ -242,5 +251,38 @@ export class TaskManagerImplementation implements TaskManager {
     }
 
     task.actions.push({ pluginId, action: taskDefinition.action });
+  }
+
+  #validateTaskDefinition(taskDefinition: TaskDefinition): void {
+    validateId(taskDefinition.id);
+
+    // Empty tasks don't have actions, options, or positional arguments
+    if (taskDefinition.type === TaskDefinitionType.EMPTY_TASK) {
+      return;
+    }
+
+    const usedNames = new Set<string>();
+
+    validateAction(taskDefinition.action);
+
+    Object.values(taskDefinition.options).forEach((optionDefinition) =>
+      validateOption(optionDefinition, usedNames, taskDefinition.id),
+    );
+
+    // Override tasks don't have positional arguments
+    if (taskDefinition.type === TaskDefinitionType.TASK_OVERRIDE) {
+      return;
+    }
+
+    let lastArg: PositionalArgumentDefinition;
+    taskDefinition.positionalArguments.forEach((posArgDefinition) => {
+      validatePositionalArgument(
+        posArgDefinition,
+        usedNames,
+        taskDefinition.id,
+        lastArg,
+      );
+      lastArg = posArgDefinition;
+    });
   }
 }

@@ -18,13 +18,14 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 import { ArgumentType } from "../../types/arguments.js";
 import { TaskDefinitionType } from "../../types/tasks.js";
-import {
-  RESERVED_ARGUMENT_NAMES,
-  isArgumentValueValid,
-  isArgumentNameValid,
-} from "../arguments.js";
 
-import { formatTaskId, isValidActionUrl } from "./utils.js";
+import { formatTaskId } from "./utils.js";
+import {
+  validateAction,
+  validateId,
+  validateOption,
+  validatePositionalArgument,
+} from "./validations.js";
 
 export class EmptyTaskDefinitionBuilderImplementation
   implements EmptyTaskDefinitionBuilder
@@ -34,11 +35,7 @@ export class EmptyTaskDefinitionBuilderImplementation
   #description: string;
 
   constructor(id: string | string[], description: string = "") {
-    if (id.length === 0) {
-      throw new HardhatError(
-        HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
-      );
-    }
+    validateId(id);
 
     this.#id = Array.isArray(id) ? id : [id];
     this.#description = description;
@@ -72,11 +69,7 @@ export class NewTaskDefinitionBuilderImplementation
   #action?: NewTaskActionFunction | string;
 
   constructor(id: string | string[], description: string = "") {
-    if (id.length === 0) {
-      throw new HardhatError(
-        HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
-      );
-    }
+    validateId(id);
 
     this.#id = Array.isArray(id) ? id : [id];
     this.#description = description;
@@ -88,14 +81,7 @@ export class NewTaskDefinitionBuilderImplementation
   }
 
   public setAction(action: NewTaskActionFunction | string): this {
-    if (typeof action === "string" && !isValidActionUrl(action)) {
-      throw new HardhatError(
-        HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
-        {
-          action,
-        },
-      );
-    }
+    validateAction(action);
 
     this.#action = action;
 
@@ -115,44 +101,16 @@ export class NewTaskDefinitionBuilderImplementation
   }): this {
     const argumentType = type ?? ArgumentType.STRING;
 
-    if (!isArgumentNameValid(name)) {
-      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
-        name,
-      });
-    }
-
-    if (this.#usedNames.has(name)) {
-      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
-        name,
-      });
-    }
-
-    if (RESERVED_ARGUMENT_NAMES.has(name)) {
-      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
-        name,
-      });
-    }
-
-    if (!isArgumentValueValid(argumentType, defaultValue)) {
-      throw new HardhatError(
-        HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
-        {
-          value: defaultValue,
-          name: "defaultValue",
-          type: argumentType,
-          task: formatTaskId(this.#id),
-        },
-      );
-    }
-
-    this.#usedNames.add(name);
-
-    this.#options[name] = {
+    const optionDefinition = {
       name,
       description,
       type: argumentType,
       defaultValue,
     };
+
+    validateOption(optionDefinition, this.#usedNames, this.#id);
+
+    this.#options[name] = optionDefinition;
 
     return this;
   }
@@ -223,69 +181,23 @@ export class NewTaskDefinitionBuilderImplementation
   }): this {
     const argumentType = type ?? ArgumentType.STRING;
 
-    if (!isArgumentNameValid(name)) {
-      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
-        name,
-      });
-    }
-
-    if (this.#usedNames.has(name)) {
-      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
-        name,
-      });
-    }
-
-    if (RESERVED_ARGUMENT_NAMES.has(name)) {
-      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
-        name,
-      });
-    }
-
-    if (defaultValue !== undefined) {
-      if (!isArgumentValueValid(argumentType, defaultValue, isVariadic)) {
-        throw new HardhatError(
-          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
-          {
-            value: defaultValue,
-            name: "defaultValue",
-            type: argumentType,
-            task: formatTaskId(this.#id),
-          },
-        );
-      }
-    }
-
-    if (this.#positionalArgs.length > 0) {
-      const lastArg = this.#positionalArgs[this.#positionalArgs.length - 1];
-
-      if (lastArg.isVariadic) {
-        throw new HardhatError(
-          HardhatError.ERRORS.TASK_DEFINITIONS.POSITIONAL_ARG_AFTER_VARIADIC,
-          {
-            name,
-          },
-        );
-      }
-
-      if (lastArg.defaultValue !== undefined && defaultValue === undefined) {
-        throw new HardhatError(
-          HardhatError.ERRORS.TASK_DEFINITIONS.REQUIRED_ARG_AFTER_OPTIONAL,
-          {
-            name,
-          },
-        );
-      }
-    }
-
-    this.#usedNames.add(name);
-
-    this.#positionalArgs.push({
+    const positionalArgDef = {
       name,
       description,
       type: argumentType,
       defaultValue,
       isVariadic,
-    });
+    };
+
+    const lastArg = this.#positionalArgs.at(-1);
+    validatePositionalArgument(
+      positionalArgDef,
+      this.#usedNames,
+      this.#id,
+      lastArg,
+    );
+
+    this.#positionalArgs.push(positionalArgDef);
 
     return this;
   }
@@ -303,11 +215,7 @@ export class TaskOverrideDefinitionBuilderImplementation
   #action?: TaskOverrideActionFunction | string;
 
   constructor(id: string | string[]) {
-    if (id.length === 0) {
-      throw new HardhatError(
-        HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
-      );
-    }
+    validateId(id);
 
     this.#id = Array.isArray(id) ? id : [id];
   }
@@ -318,14 +226,7 @@ export class TaskOverrideDefinitionBuilderImplementation
   }
 
   public setAction(action: TaskOverrideActionFunction | string): this {
-    if (typeof action === "string" && !isValidActionUrl(action)) {
-      throw new HardhatError(
-        HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
-        {
-          action,
-        },
-      );
-    }
+    validateAction(action);
 
     this.#action = action;
 
@@ -345,42 +246,20 @@ export class TaskOverrideDefinitionBuilderImplementation
   }): this {
     const argumentType = type ?? ArgumentType.STRING;
 
-    if (!isArgumentNameValid(name)) {
-      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
-        name,
-      });
-    }
-
-    if (name in this.#options) {
-      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
-        name,
-      });
-    }
-
-    if (RESERVED_ARGUMENT_NAMES.has(name)) {
-      throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
-        name,
-      });
-    }
-
-    if (!isArgumentValueValid(argumentType, defaultValue)) {
-      throw new HardhatError(
-        HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
-        {
-          value: defaultValue,
-          name: "defaultValue",
-          type: argumentType,
-          task: formatTaskId(this.#id),
-        },
-      );
-    }
-
-    this.#options[name] = {
+    const optionDefinition = {
       name,
       description,
       type: argumentType,
       defaultValue,
     };
+
+    validateOption(
+      optionDefinition,
+      new Set(Object.keys(this.#options)),
+      this.#id,
+    );
+
+    this.#options[name] = optionDefinition;
 
     return this;
   }
