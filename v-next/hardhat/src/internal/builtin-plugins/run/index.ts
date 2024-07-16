@@ -1,6 +1,6 @@
 import type { HardhatPlugin } from "@ignored/hardhat-vnext-core/types/plugins";
 
-import { ArgumentType, task } from "@ignored/hardhat-vnext-core/config";
+import { task } from "@ignored/hardhat-vnext-core/config";
 
 const hardhatPlugin: HardhatPlugin = {
   id: "run",
@@ -9,7 +9,6 @@ const hardhatPlugin: HardhatPlugin = {
       .addPositionalArgument({
         name: "script",
         description: "A js or ts file to be run within hardhat's environment",
-        type: ArgumentType.STRING,
       })
       .addFlag({
         name: "noCompile",
