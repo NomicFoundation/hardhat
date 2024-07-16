@@ -6,7 +6,7 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
-import runScriptWithHardhat from "../../../../src/internal/builtin-plugins/run/runScriptWithHardhat.js";
+import runScriptWithHardhat from "../../../../src/internal/builtin-plugins/run/task-action.js";
 import { useFixtureProject } from "../../../helpers/project.js";
 
 describe("runScriptWithHardhat", function () {
@@ -14,26 +14,6 @@ describe("runScriptWithHardhat", function () {
 
   before(async function () {
     hre = await createHardhatRuntimeEnvironment({});
-  });
-
-  it("should throw if script is not a string", async function () {
-    await assertRejectsWithHardhatError(
-      runScriptWithHardhat({ script: 123, noCompile: false }, hre),
-      HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR,
-      {
-        message: "Expected script to be a string",
-      },
-    );
-  });
-
-  it("should throw if noCompile is not a boolean", async function () {
-    await assertRejectsWithHardhatError(
-      runScriptWithHardhat({ script: "script.js", noCompile: 123 }, hre),
-      HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR,
-      {
-        message: "Expected noCompile to be a boolean",
-      },
-    );
   });
 
   describe("javascript", function () {

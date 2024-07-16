@@ -14,7 +14,7 @@ const hardhatPlugin: HardhatPlugin = {
         name: "noCompile",
         description: "Don't compile before running this task",
       })
-      .setAction(import.meta.resolve("./runScriptWithHardhat.js"))
+      .setAction(import.meta.resolve("./task-action.js"))
       .build(),
   ],
 };
