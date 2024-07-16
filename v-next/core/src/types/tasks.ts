@@ -2,7 +2,6 @@ import type {
   OptionDefinition,
   ArgumentType,
   ArgumentTypeToValueType,
-  ArgumentValue,
   PositionalArgumentDefinition,
 } from "./arguments.js";
 import type { HardhatRuntimeEnvironment } from "./hre.js";
@@ -33,7 +32,7 @@ declare module "./config.js" {
  * A type representing the concrete arguments of a task. That is,
  * the actual values passed to it.
  */
-export type TaskArguments = Record<string, ArgumentValue | ArgumentValue[]>;
+export type TaskArguments = Record<string, any>;
 
 /**
  * The type of a new task's action function.
@@ -46,7 +45,7 @@ export type TaskArguments = Record<string, ArgumentValue | ArgumentValue[]>;
  * it allows inferring the types of the action function's arguments.
  */
 export type NewTaskActionFunction<
-  TaskArgumentsT extends Record<string, any> = Record<string, any>,
+  TaskArgumentsT extends TaskArguments = TaskArguments,
 > = (taskArguments: TaskArgumentsT, hre: HardhatRuntimeEnvironment) => any;
 
 /**
@@ -60,11 +59,11 @@ export type NewTaskActionFunction<
  * it allows inferring the types of the action function's arguments.
  */
 export type TaskOverrideActionFunction<
-  TaskArgumentsT extends Record<string, any> = Record<string, any>,
+  TaskArgumentsT extends TaskArguments = TaskArguments,
 > = (
-  taskArguments: TaskArgumentsT & Record<string, any>,
+  taskArguments: TaskArgumentsT & TaskArguments,
   hre: HardhatRuntimeEnvironment,
-  runSuper: (taskArguments: Record<string, any>) => Promise<any>,
+  runSuper: (taskArguments: TaskArguments) => Promise<any>,
 ) => any;
 
 /**
@@ -135,7 +134,7 @@ export type TaskDefinition =
 export type ExtendTaskArguments<
   NameT extends string,
   TypeT extends ArgumentType,
-  TaskArgumentsT extends Record<string, any>,
+  TaskArgumentsT extends TaskArguments,
 > = Record<NameT, ArgumentTypeToValueType<TypeT>> & TaskArgumentsT;
 
 /**
@@ -157,7 +156,7 @@ export interface EmptyTaskDefinitionBuilder {
  * A builder for creating NewTaskDefinitions.
  */
 export interface NewTaskDefinitionBuilder<
-  TaskArgumentsT extends Record<string, any> = Record<string, any>,
+  TaskArgumentsT extends TaskArguments = TaskArguments,
 > {
   /**
    * Sets the description of the task.
@@ -274,7 +273,7 @@ export interface NewTaskDefinitionBuilder<
  * A builder for overriding existing tasks.
  */
 export interface TaskOverrideDefinitionBuilder<
-  TaskArgumentsT extends Record<string, any> = Record<string, any>,
+  TaskArgumentsT extends TaskArguments = TaskArguments,
 > {
   /**
    * Sets a new description for the task.

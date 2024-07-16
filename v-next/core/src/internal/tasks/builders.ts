@@ -13,6 +13,7 @@ import type {
   EmptyTaskDefinitionBuilder,
   EmptyTaskDefinition,
   ExtendTaskArguments,
+  TaskArguments,
 } from "../../types/tasks.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
@@ -57,7 +58,7 @@ export class EmptyTaskDefinitionBuilderImplementation
 }
 
 export class NewTaskDefinitionBuilderImplementation<
-  TaskArgumentsT extends Record<string, any> = Record<string, any>,
+  TaskArgumentsT extends TaskArguments = TaskArguments,
 > implements NewTaskDefinitionBuilder<TaskArgumentsT>
 {
   readonly #id: string[];
@@ -237,7 +238,7 @@ export class NewTaskDefinitionBuilderImplementation<
 }
 
 export class TaskOverrideDefinitionBuilderImplementation<
-  TaskArgumentsT extends Record<string, any> = Record<string, any>,
+  TaskArgumentsT extends TaskArguments = TaskArguments,
 > implements TaskOverrideDefinitionBuilder<TaskArgumentsT>
 {
   readonly #id: string[];
