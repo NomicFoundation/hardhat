@@ -127,5 +127,7 @@ export function validateTaskArgumentValue(
         },
       );
     }
+
+    throw error;
   }
 }
