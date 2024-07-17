@@ -18,10 +18,10 @@ import {
 } from "@ignored/hardhat-vnext-errors";
 import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 
-import { isArgumentValueValid } from "../arguments.js";
 import { detectPluginNpmDependencyProblems } from "../plugins/detect-plugin-npm-dependency-problems.js";
 
 import { formatTaskId } from "./utils.js";
+import { validateTaskArgumentValue } from "./validations.js";
 
 export class ResolvedTask implements Task {
   readonly #hre: HardhatRuntimeEnvironment;
@@ -112,11 +112,16 @@ export class ResolvedTask implements Task {
       if (isPositional) {
         this.#validateRequiredArgument(argumentDefinition, value);
       }
-      this.#validateArgumentType(
-        argumentDefinition,
-        value,
-        isPositional && argumentDefinition.isVariadic,
-      );
+
+      if (value !== undefined) {
+        validateTaskArgumentValue(
+          argumentDefinition.name,
+          argumentDefinition.type,
+          value,
+          isPositional && argumentDefinition.isVariadic,
+          this.id,
+        );
+      }
 
       // resolve defaults for optional arguments
       validatedTaskArguments[argumentDefinition.name] =
@@ -179,37 +184,6 @@ export class ResolvedTask implements Task {
         HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
         {
           argument: argument.name,
-          task: formatTaskId(this.id),
-        },
-      );
-    }
-  }
-
-  /**
-   * Validates that a argument has the correct type. If the argument is optional
-   * and doesn't have a value, the type is not validated as it will be resolved
-   * to the default value.
-   *
-   * @throws HardhatError if the argument has an invalid type.
-   */
-  #validateArgumentType(
-    argument: OptionDefinition | PositionalArgumentDefinition,
-    value: ArgumentValue | ArgumentValue[],
-    isVariadic: boolean = false,
-  ) {
-    // skip type validation for optional arguments with undefined value
-    if (value === undefined && argument.defaultValue !== undefined) {
-      return;
-    }
-
-    // check if the value is valid for the argument type
-    if (!isArgumentValueValid(argument.type, value, isVariadic)) {
-      throw new HardhatError(
-        HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
-        {
-          value,
-          name: argument.name,
-          type: argument.type,
           task: formatTaskId(this.id),
         },
       );

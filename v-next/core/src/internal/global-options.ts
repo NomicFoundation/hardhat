@@ -15,10 +15,9 @@ import { camelToSnakeCase } from "@ignored/hardhat-vnext-utils/string";
 import { ArgumentType } from "../types/arguments.js";
 
 import {
-  RESERVED_ARGUMENT_NAMES,
-  isArgumentValueValid,
-  isArgumentNameValid,
   parseArgumentValue,
+  validateArgumentValue,
+  validateArgumentName,
 } from "./arguments.js";
 
 /**
@@ -83,28 +82,9 @@ export function buildGlobalOptionDefinition<T extends ArgumentType>({
 }): OptionDefinition {
   const argumentType = type ?? ArgumentType.STRING;
 
-  if (!isArgumentNameValid(name)) {
-    throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
-      name,
-    });
-  }
+  validateArgumentName(name);
 
-  if (RESERVED_ARGUMENT_NAMES.has(name)) {
-    throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
-      name,
-    });
-  }
-
-  if (!isArgumentValueValid(argumentType, defaultValue)) {
-    throw new HardhatError(
-      HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
-      {
-        value: defaultValue,
-        name: "defaultValue",
-        type,
-      },
-    );
-  }
+  validateArgumentValue("defaultValue", argumentType, defaultValue);
 
   return {
     name,

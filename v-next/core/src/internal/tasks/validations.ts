@@ -7,11 +7,7 @@ import type {
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
-import {
-  isArgumentNameValid,
-  isArgumentValueValid,
-  RESERVED_ARGUMENT_NAMES,
-} from "../arguments.js";
+import { validateArgumentName, validateArgumentValue } from "../arguments.js";
 
 import { formatTaskId } from "./utils.js";
 
@@ -33,57 +29,52 @@ export function validateAction(action: unknown): void {
 }
 
 export function validateOption(
-  optionDefinition: OptionDefinition,
+  { name, type, defaultValue }: OptionDefinition,
   usedNames: Set<string>,
   taskId: string | string[],
 ): void {
-  validateArgumentName(optionDefinition.name);
+  validateArgumentName(name);
 
-  if (usedNames.has(optionDefinition.name)) {
+  if (usedNames.has(name)) {
     throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
-      name: optionDefinition.name,
+      name,
     });
   }
 
-  validateArgumentValue({
-    name: "defaultValue",
-    value: optionDefinition.defaultValue,
-    expectedType: optionDefinition.type,
-    taskId: formatTaskId(taskId),
-  });
+  validateTaskArgumentValue("defaultValue", type, defaultValue, false, taskId);
 
-  usedNames.add(optionDefinition.name);
+  usedNames.add(name);
 }
 
 export function validatePositionalArgument(
-  positionalArgDef: PositionalArgumentDefinition,
+  { name, type, defaultValue, isVariadic }: PositionalArgumentDefinition,
   usedNames: Set<string>,
   taskId: string | string[],
   lastArg?: PositionalArgumentDefinition,
 ): void {
-  validateArgumentName(positionalArgDef.name);
+  validateArgumentName(name);
 
-  if (usedNames.has(positionalArgDef.name)) {
+  if (usedNames.has(name)) {
     throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
-      name: positionalArgDef.name,
+      name,
     });
   }
 
-  if (positionalArgDef.defaultValue !== undefined) {
-    validateArgumentValue({
-      name: "defaultValue",
-      value: positionalArgDef.defaultValue,
-      isVariadic: positionalArgDef.isVariadic,
-      expectedType: positionalArgDef.type,
-      taskId: formatTaskId(taskId),
-    });
+  if (defaultValue !== undefined) {
+    validateTaskArgumentValue(
+      "defaultValue",
+      type,
+      defaultValue,
+      isVariadic,
+      taskId,
+    );
   }
 
   if (lastArg !== undefined && lastArg.isVariadic) {
     throw new HardhatError(
       HardhatError.ERRORS.TASK_DEFINITIONS.POSITIONAL_ARG_AFTER_VARIADIC,
       {
-        name: positionalArgDef.name,
+        name,
       },
     );
   }
@@ -91,17 +82,17 @@ export function validatePositionalArgument(
   if (
     lastArg !== undefined &&
     lastArg.defaultValue !== undefined &&
-    positionalArgDef.defaultValue === undefined
+    defaultValue === undefined
   ) {
     throw new HardhatError(
       HardhatError.ERRORS.TASK_DEFINITIONS.REQUIRED_ARG_AFTER_OPTIONAL,
       {
-        name: positionalArgDef.name,
+        name,
       },
     );
   }
 
-  usedNames.add(positionalArgDef.name);
+  usedNames.add(name);
 }
 
 const FILE_PROTOCOL_PATTERN = /^file:\/\/.+/;
@@ -110,42 +101,31 @@ function isValidActionUrl(action: string): boolean {
   return FILE_PROTOCOL_PATTERN.test(action);
 }
 
-function validateArgumentName(name: string): void {
-  if (!isArgumentNameValid(name)) {
-    throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
-      name,
-    });
-  }
-
-  if (RESERVED_ARGUMENT_NAMES.has(name)) {
-    throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
-      name,
-    });
-  }
-}
-
-function validateArgumentValue({
-  name,
-  expectedType,
-  isVariadic = false,
-  value,
-  taskId,
-}: {
-  name: string;
-  expectedType: ArgumentType;
-  isVariadic?: boolean;
-  value: ArgumentValue | ArgumentValue[];
-  taskId: string | string[];
-}): void {
-  if (!isArgumentValueValid(expectedType, value, isVariadic)) {
-    throw new HardhatError(
-      HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
-      {
-        value,
-        name,
-        type: expectedType,
-        task: formatTaskId(taskId),
-      },
-    );
+export function validateTaskArgumentValue(
+  name: string,
+  expectedType: ArgumentType,
+  value: ArgumentValue | ArgumentValue[],
+  isVariadic: boolean,
+  taskId: string | string[],
+): void {
+  try {
+    validateArgumentValue(name, expectedType, value, isVariadic);
+  } catch (error) {
+    if (
+      HardhatError.isHardhatError(
+        error,
+        HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      )
+    ) {
+      throw new HardhatError(
+        HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+        {
+          name,
+          type: expectedType,
+          value,
+          task: formatTaskId(taskId),
+        },
+      );
+    }
   }
 }
