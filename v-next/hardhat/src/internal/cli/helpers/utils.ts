@@ -2,6 +2,8 @@ import type { ArgumentType } from "@ignored/hardhat-vnext-core/config";
 import type { GlobalOptionDefinitions } from "@ignored/hardhat-vnext-core/types/global-options";
 import type { Task } from "@ignored/hardhat-vnext-core/types/tasks";
 
+import { camelToKebabCase } from "@ignored/hardhat-vnext-utils/string";
+
 export const GLOBAL_NAME_PADDING = 6;
 
 interface ArgumentDescriptor {
@@ -80,14 +82,7 @@ export function parseOptions(task: Task): {
 }
 
 export function formatOptionName(str: string): string {
-  return `--${str
-    .split("")
-    .map((letter, idx) => {
-      return letter.toUpperCase() === letter
-        ? `${idx !== 0 ? "-" : ""}${letter.toLowerCase()}`
-        : letter;
-    })
-    .join("")}`;
+  return `--${camelToKebabCase(str)}`;
 }
 
 export function getLongestNameLength(tasks: Array<{ name: string }>): number {
