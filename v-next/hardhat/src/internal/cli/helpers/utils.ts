@@ -2,6 +2,8 @@ import type { ArgumentType } from "@ignored/hardhat-vnext-core/config";
 import type { GlobalOptionDefinitions } from "@ignored/hardhat-vnext-core/types/global-options";
 import type { Task } from "@ignored/hardhat-vnext-core/types/tasks";
 
+import { camelToKebabCase } from "@ignored/hardhat-vnext-utils/string";
+
 export const GLOBAL_NAME_PADDING = 6;
 
 interface ArgumentDescriptor {
@@ -15,7 +17,7 @@ export function parseGlobalOptions(
   globalOptionDefinitions: GlobalOptionDefinitions,
 ): ArgumentDescriptor[] {
   return [...globalOptionDefinitions].map(([, { option }]) => ({
-    name: formatOptionName(option.name),
+    name: toCommandLineOption(option.name),
     description: option.description,
   }));
 }
@@ -62,7 +64,7 @@ export function parseOptions(task: Task): {
 
   for (const [optionName, option] of task.options) {
     options.push({
-      name: formatOptionName(optionName),
+      name: toCommandLineOption(optionName),
       description: option.description,
       type: option.type,
     });
@@ -79,15 +81,8 @@ export function parseOptions(task: Task): {
   return { options, positionalArguments };
 }
 
-export function formatOptionName(str: string): string {
-  return `--${str
-    .split("")
-    .map((letter, idx) => {
-      return letter.toUpperCase() === letter
-        ? `${idx !== 0 ? "-" : ""}${letter.toLowerCase()}`
-        : letter;
-    })
-    .join("")}`;
+export function toCommandLineOption(optionName: string): string {
+  return `--${camelToKebabCase(optionName)}`;
 }
 
 export function getLongestNameLength(tasks: Array<{ name: string }>): number {

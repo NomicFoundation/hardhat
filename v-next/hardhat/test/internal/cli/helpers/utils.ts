@@ -9,7 +9,7 @@ import {
   parseTasks,
   parseSubtasks,
   parseOptions,
-  formatOptionName,
+  toCommandLineOption,
   getLongestNameLength,
   getSection,
   getUsageString,
@@ -179,10 +179,11 @@ describe("utils", function () {
     });
   });
 
-  describe("formatOptionName", function () {
-    it("should format option names", function () {
-      assert.equal(formatOptionName("option"), "--option");
-      assert.equal(formatOptionName("anotherOption"), "--another-option");
+  describe("toCommandLineOption", function () {
+    it("should convert a camelCase option name to a kebab-case command line option", function () {
+      assert.equal(toCommandLineOption("option"), "--option");
+      assert.equal(toCommandLineOption("anotherOption"), "--another-option");
+      assert.equal(toCommandLineOption("anotherOption1"), "--another-option-1");
     });
   });
 

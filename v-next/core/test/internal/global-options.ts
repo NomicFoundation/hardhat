@@ -322,7 +322,7 @@ describe("Global Options", () => {
         },
       ]);
 
-      setEnvVar("HARDHAT_GLOBAL_OPTION3", "5n");
+      setEnvVar("HARDHAT_GLOBAL_OPTION_3", "5n");
 
       const globalOptions = resolveGlobalOptions(
         {
@@ -420,7 +420,7 @@ describe("Global Options", () => {
         },
       ]);
 
-      setEnvVar("HARDHAT_GLOBAL_OPTION1", "not a boolean");
+      setEnvVar("HARDHAT_GLOBAL_OPTION_1", "not a boolean");
 
       assertThrowsHardhatError(
         () => resolveGlobalOptions({}, globalOptionDefinitions),
