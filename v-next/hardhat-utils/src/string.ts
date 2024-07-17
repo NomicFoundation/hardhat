@@ -50,3 +50,13 @@ export function kebabToCamelCase(str: string): string {
 export function camelToSnakeCase(str: string): string {
   return str.replace(/[A-Z]/g, (match) => `_${match.toLowerCase()}`);
 }
+
+/**
+ * Converts a camelCase string to kebab-case.
+ *
+ * @param str The camelCase string to convert.
+ * @returns The kebab-case string.
+ */
+export function camelToKebabCase(str: string): string {
+  return str.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
+}
