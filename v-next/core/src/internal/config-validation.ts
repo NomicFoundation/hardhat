@@ -50,7 +50,7 @@ function collectValidationErrorsForUserConfig(
     } else {
       validationErrors.push({
         path: ["tasks"],
-        message: "Invalid config: tasks must be an array",
+        message: "tasks must be an array",
       });
     }
   }
@@ -61,7 +61,7 @@ function collectValidationErrorsForUserConfig(
     } else {
       validationErrors.push({
         path: ["plugins"],
-        message: "Invalid config: plugins must be an array",
+        message: "plugins must be an array",
       });
     }
   }
@@ -79,7 +79,7 @@ function validateTasksConfig(
     if (!isTaskDefinition(task)) {
       validationErrors.push({
         path: [...path, "tasks", index],
-        message: "Invalid config: tasks must be an array of TaskDefinitions",
+        message: "tasks must be an array of TaskDefinitions",
       });
 
       continue;
@@ -102,6 +102,7 @@ function validateTasksConfig(
         validationErrors.push(
           ...validateTaskOverride(task, [...path, "tasks", index]),
         );
+        break;
       }
     }
   }
@@ -121,14 +122,14 @@ function validateEmptyTask(
   ) {
     validationErrors.push({
       path: [...path, "id"],
-      message: "Invalid config: task id must be an array of strings",
+      message: "task id must be an array of strings",
     });
   }
 
   if (typeof task.description !== "string") {
     validationErrors.push({
       path: [...path, "description"],
-      message: "Invalid config: task description must be a string",
+      message: "task description must be a string",
     });
   }
 
@@ -147,21 +148,21 @@ function validateNewTask(
   ) {
     validationErrors.push({
       path: [...path, "id"],
-      message: "Invalid config: task id must be an array of strings",
+      message: "task id must be an array of strings",
     });
   }
 
   if (typeof task.description !== "string") {
     validationErrors.push({
       path: [...path, "description"],
-      message: "Invalid config: task description must be a string",
+      message: "task description must be a string",
     });
   }
 
   if (typeof task.action !== "function" && typeof task.action !== "string") {
     validationErrors.push({
       path: [...path, "action"],
-      message: "Invalid config: task action must be a function or a string",
+      message: "task action must be a function or a string",
     });
   }
 
@@ -172,7 +173,7 @@ function validateNewTask(
   } else {
     validationErrors.push({
       path: [...path, "options"],
-      message: "Invalid config: task options must be an object",
+      message: "task options must be an object",
     });
   }
 
@@ -183,7 +184,7 @@ function validateNewTask(
   } else {
     validationErrors.push({
       path: [...path, "positionalArguments"],
-      message: "Invalid config: task positionalArguments must be an array",
+      message: "task positionalArguments must be an array",
     });
   }
 
@@ -202,21 +203,21 @@ function validateTaskOverride(
   ) {
     validationErrors.push({
       path: [...path, "id"],
-      message: "Invalid config: task id must be an array of strings",
+      message: "task id must be an array of strings",
     });
   }
 
   if (task.description !== undefined && typeof task.description !== "string") {
     validationErrors.push({
       path: [...path, "description"],
-      message: "Invalid config: task description must be a string",
+      message: "task description must be a string",
     });
   }
 
   if (typeof task.action !== "function" && typeof task.action !== "string") {
     validationErrors.push({
       path: [...path, "action"],
-      message: "Invalid config: task action must be a function or a string",
+      message: "task action must be a function or a string",
     });
   }
 
@@ -227,7 +228,7 @@ function validateTaskOverride(
   } else {
     validationErrors.push({
       path: [...path, "options"],
-      message: "Invalid config: task options must be an object",
+      message: "task options must be an object",
     });
   }
 
@@ -244,28 +245,28 @@ function validateOptions(
     if (typeof option.name !== "string") {
       validationErrors.push({
         path: [...path, name, "name"],
-        message: "Invalid config: option name must be a string",
+        message: "option name must be a string",
       });
     }
 
     if (typeof option.description !== "string") {
       validationErrors.push({
         path: [...path, name, "description"],
-        message: "Invalid config: option description must be a string",
+        message: "option description must be a string",
       });
     }
 
     if (!isOptionDefinition(option)) {
       validationErrors.push({
         path: [...path, name, "type"],
-        message: "Invalid config: option type must be a valid ArgumentType",
+        message: "option type must be a valid ArgumentType",
       });
     }
 
     if (option.defaultValue === undefined) {
       validationErrors.push({
         path: [...path, name, "defaultValue"],
-        message: "Invalid config: option defaultValue must be defined",
+        message: "option defaultValue must be defined",
       });
     } else {
       switch (option.type) {
@@ -273,49 +274,55 @@ function validateOptions(
           if (typeof option.defaultValue !== "string") {
             validationErrors.push({
               path: [...path, name, "defaultValue"],
-              message: "Invalid config: option defaultValue must be a string",
+              message: "option defaultValue must be a string",
             });
           }
+          break;
         }
         case ArgumentType.BOOLEAN: {
           if (typeof option.defaultValue !== "boolean") {
             validationErrors.push({
               path: [...path, name, "defaultValue"],
-              message: "Invalid config: option defaultValue must be a boolean",
+              message: "option defaultValue must be a boolean",
             });
           }
+          break;
         }
         case ArgumentType.INT: {
           if (typeof option.defaultValue !== "number") {
             validationErrors.push({
               path: [...path, name, "defaultValue"],
-              message: "Invalid config: option defaultValue must be a number",
+              message: "option defaultValue must be a number",
             });
           }
+          break;
         }
         case ArgumentType.BIGINT: {
           if (typeof option.defaultValue !== "bigint") {
             validationErrors.push({
               path: [...path, name, "defaultValue"],
-              message: "Invalid config: option defaultValue must be a bigint",
+              message: "option defaultValue must be a bigint",
             });
           }
+          break;
         }
         case ArgumentType.FLOAT: {
           if (typeof option.defaultValue !== "number") {
             validationErrors.push({
               path: [...path, name, "defaultValue"],
-              message: "Invalid config: option defaultValue must be a number",
+              message: "option defaultValue must be a number",
             });
           }
+          break;
         }
         case ArgumentType.FILE: {
           if (typeof option.defaultValue !== "string") {
             validationErrors.push({
               path: [...path, name, "defaultValue"],
-              message: "Invalid config: option defaultValue must be a string",
+              message: "option defaultValue must be a string",
             });
           }
+          break;
         }
       }
     }
@@ -334,81 +341,115 @@ function validatePositionalArguments(
     if (typeof arg.name !== "string") {
       validationErrors.push({
         path: [...path, "positionalArguments", index, "name"],
-        message: "Invalid config: positional argument name must be a string",
+        message: "positional argument name must be a string",
       });
     }
 
     if (typeof arg.description !== "string") {
       validationErrors.push({
         path: [...path, "positionalArguments", index, "description"],
-        message:
-          "Invalid config: positional argument description must be a string",
+        message: "positional argument description must be a string",
       });
     }
 
     if (!isPositionalArgumentDefinition(arg)) {
       validationErrors.push({
         path: [...path, "positionalArguments", index, "type"],
-        message:
-          "Invalid config: positional argument type must be a valid ArgumentType",
+        message: "positional argument type must be a valid ArgumentType",
       });
     }
 
     if (arg.defaultValue !== undefined) {
       switch (arg.type) {
         case ArgumentType.STRING: {
-          if (typeof arg.defaultValue !== "string") {
-            validationErrors.push({
-              path: [...path, "positionalArguments", index, "defaultValue"],
-              message:
-                "Invalid config: positional argument defaultValue must be a string",
-            });
+          if (
+            typeof arg.defaultValue === "string" ||
+            (Array.isArray(arg.defaultValue) &&
+              arg.defaultValue.every((v) => typeof v === "string"))
+          ) {
+            break;
           }
+
+          validationErrors.push({
+            path: [...path, "positionalArguments", index, "defaultValue"],
+            message:
+              "positional argument defaultValue must be a string or an array of strings",
+          });
         }
         case ArgumentType.BOOLEAN: {
-          if (typeof arg.defaultValue !== "boolean") {
-            validationErrors.push({
-              path: [...path, "positionalArguments", index, "defaultValue"],
-              message:
-                "Invalid config: positional argument defaultValue must be a boolean",
-            });
+          if (
+            typeof arg.defaultValue === "boolean" ||
+            (Array.isArray(arg.defaultValue) &&
+              arg.defaultValue.every((v) => typeof v === "boolean"))
+          ) {
+            break;
           }
+
+          validationErrors.push({
+            path: [...path, "positionalArguments", index, "defaultValue"],
+            message:
+              "positional argument defaultValue must be a boolean or an array of booleans",
+          });
         }
         case ArgumentType.INT: {
-          if (typeof arg.defaultValue !== "number") {
-            validationErrors.push({
-              path: [...path, "positionalArguments", index, "defaultValue"],
-              message:
-                "Invalid config: positional argument defaultValue must be a number",
-            });
+          if (
+            typeof arg.defaultValue === "number" ||
+            (Array.isArray(arg.defaultValue) &&
+              arg.defaultValue.every((v) => typeof v === "number"))
+          ) {
+            break;
           }
+
+          validationErrors.push({
+            path: [...path, "positionalArguments", index, "defaultValue"],
+            message:
+              "positional argument defaultValue must be a number or an array of numbers",
+          });
         }
         case ArgumentType.BIGINT: {
-          if (typeof arg.defaultValue !== "bigint") {
-            validationErrors.push({
-              path: [...path, "positionalArguments", index, "defaultValue"],
-              message:
-                "Invalid config: positional argument defaultValue must be a bigint",
-            });
+          if (
+            typeof arg.defaultValue === "bigint" ||
+            (Array.isArray(arg.defaultValue) &&
+              arg.defaultValue.every((v) => typeof v === "bigint"))
+          ) {
+            break;
           }
+
+          validationErrors.push({
+            path: [...path, "positionalArguments", index, "defaultValue"],
+            message:
+              "positional argument defaultValue must be a bigint or an array of bigints",
+          });
         }
         case ArgumentType.FLOAT: {
-          if (typeof arg.defaultValue !== "number") {
-            validationErrors.push({
-              path: [...path, "positionalArguments", index, "defaultValue"],
-              message:
-                "Invalid config: positional argument defaultValue must be a number",
-            });
+          if (
+            typeof arg.defaultValue === "number" ||
+            (Array.isArray(arg.defaultValue) &&
+              arg.defaultValue.every((v) => typeof v === "number"))
+          ) {
+            break;
           }
+
+          validationErrors.push({
+            path: [...path, "positionalArguments", index, "defaultValue"],
+            message:
+              "positional argument defaultValue must be a number or an array of numbers",
+          });
         }
         case ArgumentType.FILE: {
-          if (typeof arg.defaultValue !== "string") {
-            validationErrors.push({
-              path: [...path, "positionalArguments", index, "defaultValue"],
-              message:
-                "Invalid config: positional argument defaultValue must be a string",
-            });
+          if (
+            typeof arg.defaultValue === "string" ||
+            (Array.isArray(arg.defaultValue) &&
+              arg.defaultValue.every((v) => typeof v === "string"))
+          ) {
+            break;
           }
+
+          validationErrors.push({
+            path: [...path, "positionalArguments", index, "defaultValue"],
+            message:
+              "positional argument defaultValue must be a string or an array of strings",
+          });
         }
       }
     }
@@ -416,14 +457,12 @@ function validatePositionalArguments(
     if (typeof arg.isVariadic !== "boolean") {
       validationErrors.push({
         path: [...path, "positionalArguments", index, "isVariadic"],
-        message:
-          "Invalid config: positional argument isVariadic must be a boolean",
+        message: "positional argument isVariadic must be a boolean",
       });
     } else if (arg.isVariadic === true && index !== positionalArgs.length - 1) {
       validationErrors.push({
         path: [...path, "positionalArguments", index, "isVariadic"],
-        message:
-          "Invalid config: variadic positional argument must be the last one",
+        message: "variadic positional argument must be the last one",
       });
     }
   }
@@ -441,8 +480,7 @@ function validatePluginsConfig(
     if (typeof plugin !== "object" || plugin === null) {
       validationErrors.push({
         path: [...path, "plugins", index],
-        message:
-          "Invalid config: plugins must be an array of PluginDefinitions",
+        message: "plugins must be an array of PluginDefinitions",
       });
 
       continue;
@@ -451,7 +489,7 @@ function validatePluginsConfig(
     if (typeof plugin.id !== "string") {
       validationErrors.push({
         path: [...path, "plugins", index, "id"],
-        message: "Invalid config: plugin id must be a string",
+        message: "plugin id must be a string",
       });
     }
 
@@ -461,7 +499,7 @@ function validatePluginsConfig(
     ) {
       validationErrors.push({
         path: [...path, "plugins", index, "npmPackage"],
-        message: "Invalid config: plugin npmPackage must be a string",
+        message: "plugin npmPackage must be a string",
       });
     }
 
@@ -471,15 +509,14 @@ function validatePluginsConfig(
           if (typeof dep !== "function") {
             validationErrors.push({
               path: [...path, "plugins", index, "dependencies", depIndex],
-              message:
-                "Invalid config: plugin dependencies must be an array of functions",
+              message: "plugin dependencies must be an array of functions",
             });
           }
         }
       } else {
         validationErrors.push({
           path: [...path, "plugins", index, "dependencies"],
-          message: "Invalid config: plugin dependencies must be an array",
+          message: "plugin dependencies must be an array",
         });
       }
     }
@@ -497,7 +534,7 @@ function validatePluginsConfig(
           validationErrors.push({
             path: [...path, "plugins", index, "hookHandlers", hookName],
             message:
-              "Invalid config: plugin hookHandlers must be an object of functions or strings",
+              "plugin hookHandlers must be an object of functions or strings",
           });
         }
       }
@@ -514,7 +551,7 @@ function validatePluginsConfig(
       } else {
         validationErrors.push({
           path: [...path, "plugins", index, "globalOptions"],
-          message: "Invalid config: plugin globalOptions must be an array",
+          message: "plugin globalOptions must be an array",
         });
       }
     }
@@ -527,7 +564,7 @@ function validatePluginsConfig(
       } else {
         validationErrors.push({
           path: [...path, "plugins", index, "tasks"],
-          message: "Invalid config: plugin tasks must be an array",
+          message: "plugin tasks must be an array",
         });
       }
     }
