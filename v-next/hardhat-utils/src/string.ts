@@ -48,7 +48,7 @@ export function kebabToCamelCase(str: string): string {
  * @returns The snake_case string.
  */
 export function camelToSnakeCase(str: string): string {
-  return str.replace(/[A-Z]/g, (match) => `_${match.toLowerCase()}`);
+  return str.replace(/[A-Z0-9]/g, (match) => `_${match.toLowerCase()}`);
 }
 
 /**
@@ -58,5 +58,5 @@ export function camelToSnakeCase(str: string): string {
  * @returns The kebab-case string.
  */
 export function camelToKebabCase(str: string): string {
-  return str.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
+  return str.replace(/[A-Z0-9]/g, (match) => `-${match.toLowerCase()}`);
 }

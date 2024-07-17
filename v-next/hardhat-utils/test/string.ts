@@ -60,6 +60,13 @@ describe("string", () => {
         "camel_c_a_s_e_s_t_r_i_n_g",
       );
     });
+    assert.equal(camelToSnakeCase("camelcasestring1"), "camelcasestring_1");
+    assert.equal(
+      camelToSnakeCase("camel1Case2String"),
+      "camel_1_case_2_string",
+    );
+    assert.equal(camelToSnakeCase("camelC1A2S3E4"), "camel_c_1_a_2_s_3_e_4");
+    assert.equal(camelToSnakeCase("camel123"), "camel_1_2_3");
   });
 
   describe("camelToKebabCase", () => {
@@ -70,6 +77,13 @@ describe("string", () => {
         camelToKebabCase("camelCASESTRING"),
         "camel-c-a-s-e-s-t-r-i-n-g",
       );
+      assert.equal(camelToKebabCase("camelcasestring1"), "camelcasestring-1");
+      assert.equal(
+        camelToKebabCase("camel1Case2String"),
+        "camel-1-case-2-string",
+      );
+      assert.equal(camelToKebabCase("camelC1A2S3E4"), "camel-c-1-a-2-s-3-e-4");
+      assert.equal(camelToKebabCase("camel123"), "camel-1-2-3");
     });
   });
 });
