@@ -17,7 +17,7 @@ export function parseGlobalOptions(
   globalOptionDefinitions: GlobalOptionDefinitions,
 ): ArgumentDescriptor[] {
   return [...globalOptionDefinitions].map(([, { option }]) => ({
-    name: formatOptionName(option.name),
+    name: toCommandLineOption(option.name),
     description: option.description,
   }));
 }
@@ -64,7 +64,7 @@ export function parseOptions(task: Task): {
 
   for (const [optionName, option] of task.options) {
     options.push({
-      name: formatOptionName(optionName),
+      name: toCommandLineOption(optionName),
       description: option.description,
       type: option.type,
     });
@@ -81,8 +81,8 @@ export function parseOptions(task: Task): {
   return { options, positionalArguments };
 }
 
-export function formatOptionName(str: string): string {
-  return `--${camelToKebabCase(str)}`;
+export function toCommandLineOption(optionName: string): string {
+  return `--${camelToKebabCase(optionName)}`;
 }
 
 export function getLongestNameLength(tasks: Array<{ name: string }>): number {
