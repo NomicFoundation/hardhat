@@ -13,10 +13,63 @@ export const RESERVED_ARGUMENT_NAMES: Set<string> = new Set([]);
 const VALID_ARGUMENT_NAME_PATTERN = /^[a-z][a-zA-Z0-9]*$/;
 
 /**
+ * Validates an argument name, throwing an error if it is invalid.
+ *
+ * @param name The name of the argument.
+ * @throws {HardhatError} with descriptor:
+ * - {@link HardhatError.ERRORS.ARGUMENTS.INVALID_NAME} if the name is invalid.
+ * A valid name must start with a lowercase letter and contain only
+ * alphanumeric characters.
+ * - {@link HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME} if the name is
+ * reserved. See {@link RESERVED_ARGUMENT_NAMES}.
+ */
+export function validateArgumentName(name: string): void {
+  if (!isArgumentNameValid(name)) {
+    throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
+      name,
+    });
+  }
+
+  if (RESERVED_ARGUMENT_NAMES.has(name)) {
+    throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
+      name,
+    });
+  }
+}
+
+/**
  * Returns true if the given name is a valid argument name.
  */
 export function isArgumentNameValid(name: string): boolean {
   return VALID_ARGUMENT_NAME_PATTERN.test(name);
+}
+
+/**
+ * Validates an argument value, throwing an error if it is invalid.
+ *
+ * @param name The name of the argument.
+ * @param expectedType The expected type of the argument. One of {@link ArgumentType}.
+ * @param value The value of the argument.
+ * @param isVariadic Whether the argument is variadic.
+ * @throws {HardhatError} with descriptor {@link HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE}
+ * if the value is invalid for the expected type.
+ */
+export function validateArgumentValue(
+  name: string,
+  expectedType: ArgumentType,
+  value: ArgumentValue | ArgumentValue[],
+  isVariadic: boolean = false,
+): void {
+  if (!isArgumentValueValid(expectedType, value, isVariadic)) {
+    throw new HardhatError(
+      HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      {
+        name,
+        type: expectedType,
+        value,
+      },
+    );
+  }
 }
 
 /**
