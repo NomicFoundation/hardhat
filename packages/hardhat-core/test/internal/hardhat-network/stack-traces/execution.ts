@@ -53,6 +53,7 @@ export async function instantiateProvider(
     coinbase: "0x0000000000000000000000000000000000000000",
     initialBaseFeePerGas: 0,
     enableTransientStorage: false,
+    enableRip7212: false,
   };
 
   const provider = await EdrProviderWrapper.create(
