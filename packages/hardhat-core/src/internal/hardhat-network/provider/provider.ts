@@ -120,6 +120,7 @@ interface HardhatNetworkProviderConfig {
   forkConfig?: ForkConfig;
   forkCachePath?: string;
   enableTransientStorage: boolean;
+  enableRip7212: boolean;
 }
 
 export function getNodeConfig(
@@ -255,6 +256,7 @@ export class EdrProviderWrapper
         }),
         cacheDir: config.forkCachePath,
         coinbase: Buffer.from(coinbase.slice(2), "hex"),
+        enableRip7212: config.enableRip7212,
         fork,
         hardfork: ethereumsjsHardforkToEdrSpecId(hardforkName),
         genesisAccounts: config.genesisAccounts.map((account) => {
