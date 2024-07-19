@@ -78,7 +78,7 @@ To get started, we’ll uninstall the `hardhat-deploy` plugin and install the Ha
 
 ## Convert deployment scripts to Ignition Modules
 
-`hardhat-deploy` represents contract deployments as JavaScript or TypeScript files under the `./deploy/` folder. Hardhat Ignition follows a similar pattern with deployments encapsulated as modules; these are JS/TS files stored under the `./ignition/modules directory`. Each `hardhat-deploy` deploy file will be converted or merged into a Hardhat Ignition module.
+`hardhat-deploy` represents contract deployments as JavaScript or TypeScript files under the `./deploy/` folder. Hardhat Ignition follows a similar pattern with deployments encapsulated as modules; these are JS/TS files stored under the `./ignition/modules` directory. Each `hardhat-deploy` deploy file will be converted or merged into a Hardhat Ignition module.
 
 Let’s first create the required folder structure under the root of your project:
 
