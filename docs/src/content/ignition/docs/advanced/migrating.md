@@ -126,9 +126,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments, getNamedAccounts } = hre;
   const { deploy } = deployments;
   /*
-  The deploy function uses the hardhat-deploy named accounts feature
-  to set the deployment's `from` and `args` parameters.
- */
+   The deploy function uses the hardhat-deploy named accounts feature
+   to set the deployment's `from` and `args` parameters.
+  */
   const { deployer, tokenOwner } = await getNamedAccounts();
   await deploy("Token", {
     from: deployer,
@@ -156,28 +156,28 @@ import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 */
 export default buildModule("TokenModule", (m) => {
   /*
-  Instead of named accounts, you get access to the configured accounts
-  through the `getAccount()` method.
- */
+   Instead of named accounts, you get access to the configured accounts
+   through the `getAccount()` method.
+  */
   const deployer = m.getAccount(0);
   const tokenOwner = m.getAccount(1);
 
   /*
-  Deploy `Token` by calling `contract()` with the constructor arguments
-  as the second argument. The account to use for the deployment transaction
-  is set through `from` in the third argument, which is an options object.
- */
+   Deploy `Token` by calling `contract()` with the constructor arguments
+   as the second argument. The account to use for the deployment transaction
+   is set through `from` in the third argument, which is an options object.
+  */
   const token = m.contract("Token", [tokenOwner], {
     from: deployer,
   });
 
   /*
-  The call to `m.contract()` returns a future that can be used in other `m.contract()`
-  calls (e.g. as a constructor argument, where the future will resolve to the
-  deployed address), but it can also be returned from the module. Contract
-  futures that are returned from the module can be leveraged in Hardhat tests
-  and scripts, as will be shown later.
- */
+   The call to `m.contract()` returns a future that can be used in other `m.contract()`
+   calls (e.g. as a constructor argument, where the future will resolve to the
+   deployed address), but it can also be returned from the module. Contract
+   futures that are returned from the module can be leveraged in Hardhat tests
+   and scripts, as will be shown later.
+  */
   return { token };
 });
 ```
@@ -197,28 +197,28 @@ const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 */
 module.exports = buildModule("TokenModule", (m) => {
   /*
-  Instead of named accounts, you get access to the configured accounts
-  through the `getAccount()` method.
- */
+   Instead of named accounts, you get access to the configured accounts
+   through the `getAccount()` method.
+  */
   const deployer = m.getAccount(0);
   const tokenOwner = m.getAccount(1);
 
   /*
-  Deploy `Token` by calling `contract()` with the constructor arguments
-  as the second argument. The account to use for the deployment transaction
-  is set through `from` in the third argument, which is an options object.
- */
+   Deploy `Token` by calling `contract()` with the constructor arguments
+   as the second argument. The account to use for the deployment transaction
+   is set through `from` in the third argument, which is an options object.
+  */
   const token = m.contract("Token", [tokenOwner], {
     from: deployer,
   });
 
   /*
-  The call to `m.contract()` returns a future that can be used in other `m.contract()`
-  calls (e.g. as a constructor argument, where the future will resolve to the
-  deployed address), but it can also be returned from the module. Contract
-  futures that are returned from the module can be leveraged in Hardhat tests
-  and scripts, as will be shown later.
- */
+   The call to `m.contract()` returns a future that can be used in other `m.contract()`
+   calls (e.g. as a constructor argument, where the future will resolve to the
+   deployed address), but it can also be returned from the module. Contract
+   futures that are returned from the module can be leveraged in Hardhat tests
+   and scripts, as will be shown later.
+  */
   return { token };
 });
 ```
