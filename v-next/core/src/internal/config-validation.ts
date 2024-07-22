@@ -5,11 +5,8 @@ import type {
 } from "../types/hooks.js";
 import type { HardhatPlugin } from "../types/plugins.js";
 
-import {
-  isOptionDefinition,
-  isPositionalArgumentDefinition,
-  isTaskDefinition,
-} from "../type-guards.js";
+import { isObject } from "@ignored/hardhat-vnext-utils/lang";
+
 import {
   ArgumentType,
   type OptionDefinition,
@@ -22,6 +19,50 @@ import {
   TaskDefinitionType,
   type TaskOverrideDefinition,
 } from "../types/tasks.js";
+
+function isValidEnumValue(
+  theEnum: Record<string, string>,
+  value: string,
+): boolean {
+  // Enums are objects that have entries that map:
+  //   1) keys to values
+  //   2) values to keys
+  const key = theEnum[value];
+  if (key === undefined) {
+    return false;
+  }
+
+  return theEnum[key] === value;
+}
+
+/**
+ * Returns true if `potential` is a `TaskDefinition`.
+ */
+function isTaskDefinition(potential: unknown): potential is TaskDefinition {
+  return (
+    typeof potential === "object" &&
+    potential !== null &&
+    "type" in potential &&
+    typeof potential.type === "string" &&
+    isValidEnumValue(TaskDefinitionType, potential.type)
+  );
+}
+
+/**
+ * Returns true if `potential` is a `PositionalArgumentDefinition`.
+ */
+function isPositionalArgumentDefinition(
+  potential: unknown,
+): potential is PositionalArgumentDefinition {
+  return (
+    typeof potential === "object" &&
+    potential !== null &&
+    "type" in potential &&
+    typeof potential.type === "string" &&
+    isValidEnumValue(ArgumentType, potential.type) &&
+    "isVariadic" in potential
+  );
+}
 
 export async function validateUserConfig(
   hooks: HookManager,
@@ -39,7 +80,7 @@ export async function validateUserConfig(
   return [...validationErrors, ...results.flat(1)];
 }
 
-function collectValidationErrorsForUserConfig(
+export function collectValidationErrorsForUserConfig(
   config: HardhatUserConfig,
 ): HardhatUserConfigValidationError[] {
   const validationErrors: HardhatUserConfigValidationError[] = [];
@@ -69,7 +110,7 @@ function collectValidationErrorsForUserConfig(
   return validationErrors;
 }
 
-function validateTasksConfig(
+export function validateTasksConfig(
   tasks: TaskDefinition[],
   path: Array<string | number> = [],
 ): HardhatUserConfigValidationError[] {
@@ -110,7 +151,7 @@ function validateTasksConfig(
   return validationErrors;
 }
 
-function validateEmptyTask(
+export function validateEmptyTask(
   task: EmptyTaskDefinition,
   path: Array<string | number>,
 ): HardhatUserConfigValidationError[] {
@@ -136,7 +177,7 @@ function validateEmptyTask(
   return validationErrors;
 }
 
-function validateNewTask(
+export function validateNewTask(
   task: NewTaskDefinition,
   path: Array<string | number>,
 ): HardhatUserConfigValidationError[] {
@@ -166,7 +207,7 @@ function validateNewTask(
     });
   }
 
-  if (typeof task.options === "object" && task.options !== null) {
+  if (isObject(task.options)) {
     validationErrors.push(
       ...validateOptions(task.options, [...path, "options"]),
     );
@@ -191,7 +232,7 @@ function validateNewTask(
   return validationErrors;
 }
 
-function validateTaskOverride(
+export function validateTaskOverride(
   task: TaskOverrideDefinition,
   path: Array<string | number>,
 ): HardhatUserConfigValidationError[] {
@@ -221,7 +262,7 @@ function validateTaskOverride(
     });
   }
 
-  if (typeof task.options === "object" && task.options !== null) {
+  if (isObject(task.options)) {
     validationErrors.push(
       ...validateOptions(task.options, [...path, "options"]),
     );
@@ -235,7 +276,7 @@ function validateTaskOverride(
   return validationErrors;
 }
 
-function validateOptions(
+export function validateOptions(
   options: Record<string, OptionDefinition>,
   path: Array<string | number>,
 ): HardhatUserConfigValidationError[] {
@@ -256,7 +297,7 @@ function validateOptions(
       });
     }
 
-    if (!isOptionDefinition(option)) {
+    if (ArgumentType[option.type] === undefined) {
       validationErrors.push({
         path: [...path, name, "type"],
         message: "option type must be a valid ArgumentType",
@@ -270,7 +311,8 @@ function validateOptions(
       });
     } else {
       switch (option.type) {
-        case ArgumentType.STRING: {
+        case ArgumentType.STRING:
+        case ArgumentType.FILE: {
           if (typeof option.defaultValue !== "string") {
             validationErrors.push({
               path: [...path, name, "defaultValue"],
@@ -288,7 +330,8 @@ function validateOptions(
           }
           break;
         }
-        case ArgumentType.INT: {
+        case ArgumentType.INT:
+        case ArgumentType.FLOAT: {
           if (typeof option.defaultValue !== "number") {
             validationErrors.push({
               path: [...path, name, "defaultValue"],
@@ -306,24 +349,6 @@ function validateOptions(
           }
           break;
         }
-        case ArgumentType.FLOAT: {
-          if (typeof option.defaultValue !== "number") {
-            validationErrors.push({
-              path: [...path, name, "defaultValue"],
-              message: "option defaultValue must be a number",
-            });
-          }
-          break;
-        }
-        case ArgumentType.FILE: {
-          if (typeof option.defaultValue !== "string") {
-            validationErrors.push({
-              path: [...path, name, "defaultValue"],
-              message: "option defaultValue must be a string",
-            });
-          }
-          break;
-        }
       }
     }
   }
@@ -331,7 +356,7 @@ function validateOptions(
   return validationErrors;
 }
 
-function validatePositionalArguments(
+export function validatePositionalArguments(
   positionalArgs: PositionalArgumentDefinition[],
   path: Array<string | number>,
 ): HardhatUserConfigValidationError[] {
@@ -361,95 +386,67 @@ function validatePositionalArguments(
 
     if (arg.defaultValue !== undefined) {
       switch (arg.type) {
-        case ArgumentType.STRING: {
+        case ArgumentType.STRING:
+        case ArgumentType.FILE: {
           if (
-            typeof arg.defaultValue === "string" ||
-            (Array.isArray(arg.defaultValue) &&
-              arg.defaultValue.every((v) => typeof v === "string"))
+            typeof arg.defaultValue !== "string" &&
+            (!Array.isArray(arg.defaultValue) ||
+              arg.defaultValue.some((v) => typeof v !== "string"))
           ) {
-            break;
+            validationErrors.push({
+              path: [...path, "positionalArguments", index, "defaultValue"],
+              message:
+                "positional argument defaultValue must be a string or an array of strings",
+            });
           }
 
-          validationErrors.push({
-            path: [...path, "positionalArguments", index, "defaultValue"],
-            message:
-              "positional argument defaultValue must be a string or an array of strings",
-          });
+          break;
         }
         case ArgumentType.BOOLEAN: {
           if (
-            typeof arg.defaultValue === "boolean" ||
-            (Array.isArray(arg.defaultValue) &&
-              arg.defaultValue.every((v) => typeof v === "boolean"))
+            typeof arg.defaultValue !== "boolean" &&
+            (!Array.isArray(arg.defaultValue) ||
+              arg.defaultValue.some((v) => typeof v !== "boolean"))
           ) {
-            break;
+            validationErrors.push({
+              path: [...path, "positionalArguments", index, "defaultValue"],
+              message:
+                "positional argument defaultValue must be a boolean or an array of booleans",
+            });
           }
 
-          validationErrors.push({
-            path: [...path, "positionalArguments", index, "defaultValue"],
-            message:
-              "positional argument defaultValue must be a boolean or an array of booleans",
-          });
+          break;
         }
-        case ArgumentType.INT: {
+        case ArgumentType.INT:
+        case ArgumentType.FLOAT: {
           if (
-            typeof arg.defaultValue === "number" ||
-            (Array.isArray(arg.defaultValue) &&
-              arg.defaultValue.every((v) => typeof v === "number"))
+            typeof arg.defaultValue !== "number" &&
+            (!Array.isArray(arg.defaultValue) ||
+              arg.defaultValue.some((v) => typeof v !== "number"))
           ) {
-            break;
+            validationErrors.push({
+              path: [...path, "positionalArguments", index, "defaultValue"],
+              message:
+                "positional argument defaultValue must be a number or an array of numbers",
+            });
           }
 
-          validationErrors.push({
-            path: [...path, "positionalArguments", index, "defaultValue"],
-            message:
-              "positional argument defaultValue must be a number or an array of numbers",
-          });
+          break;
         }
         case ArgumentType.BIGINT: {
           if (
-            typeof arg.defaultValue === "bigint" ||
-            (Array.isArray(arg.defaultValue) &&
-              arg.defaultValue.every((v) => typeof v === "bigint"))
+            typeof arg.defaultValue !== "bigint" &&
+            (!Array.isArray(arg.defaultValue) ||
+              arg.defaultValue.some((v) => typeof v !== "bigint"))
           ) {
-            break;
+            validationErrors.push({
+              path: [...path, "positionalArguments", index, "defaultValue"],
+              message:
+                "positional argument defaultValue must be a bigint or an array of bigints",
+            });
           }
 
-          validationErrors.push({
-            path: [...path, "positionalArguments", index, "defaultValue"],
-            message:
-              "positional argument defaultValue must be a bigint or an array of bigints",
-          });
-        }
-        case ArgumentType.FLOAT: {
-          if (
-            typeof arg.defaultValue === "number" ||
-            (Array.isArray(arg.defaultValue) &&
-              arg.defaultValue.every((v) => typeof v === "number"))
-          ) {
-            break;
-          }
-
-          validationErrors.push({
-            path: [...path, "positionalArguments", index, "defaultValue"],
-            message:
-              "positional argument defaultValue must be a number or an array of numbers",
-          });
-        }
-        case ArgumentType.FILE: {
-          if (
-            typeof arg.defaultValue === "string" ||
-            (Array.isArray(arg.defaultValue) &&
-              arg.defaultValue.every((v) => typeof v === "string"))
-          ) {
-            break;
-          }
-
-          validationErrors.push({
-            path: [...path, "positionalArguments", index, "defaultValue"],
-            message:
-              "positional argument defaultValue must be a string or an array of strings",
-          });
+          break;
         }
       }
     }
@@ -470,7 +467,7 @@ function validatePositionalArguments(
   return validationErrors;
 }
 
-function validatePluginsConfig(
+export function validatePluginsConfig(
   plugins: HardhatPlugin[],
   path: Array<string | number> = [],
 ): HardhatUserConfigValidationError[] {
@@ -527,16 +524,19 @@ function validatePluginsConfig(
         plugin.hookHandlers !== null
       ) {
         for (const [hookName, handler] of Object.entries(plugin.hookHandlers)) {
-          if (typeof handler === "function" || typeof handler === "string") {
-            continue;
+          if (typeof handler !== "function" && typeof handler !== "string") {
+            validationErrors.push({
+              path: [...path, "plugins", index, "hookHandlers", hookName],
+              message:
+                "plugin hookHandlers must be an object of functions or strings",
+            });
           }
-
-          validationErrors.push({
-            path: [...path, "plugins", index, "hookHandlers", hookName],
-            message:
-              "plugin hookHandlers must be an object of functions or strings",
-          });
         }
+      } else {
+        validationErrors.push({
+          path: [...path, "plugins", index, "hookHandlers"],
+          message: "plugin hookHandlers must be an object",
+        });
       }
     }
 
