@@ -15,13 +15,32 @@ interface TelemetryConsent {
 }
 
 /**
- * Get the user's telemetry consent. If already provided, returns the answer.
- * If not, prompts the user.
+ * Ensure that the user's telemetry consent is set. If the consent is already provided, returns the answer.
+ * If not, prompts the user to provide it.
  * Consent is only asked in interactive environments.
  * @returns True if the user consents to telemetry, false otherwise.
  */
+export async function ensureTelemetryConsent(): Promise<boolean> {
+  const consent = await getTelemetryConsentIfAlreadySet();
+  if (consent !== undefined) {
+    return consent;
+  }
+
+  // Telemetry consent not provided yet, ask for it
+  return requestTelemetryConsent();
+}
+
+/**
+ * Retrieves the user's telemetry consent status.
+ * @returns True if the user consents to telemetry, false otherwise.
+ */
 export async function getTelemetryConsent(): Promise<boolean> {
-  if (canTelemetryBeEnabled() === false) {
+  const consent = await getTelemetryConsentIfAlreadySet();
+  return consent !== undefined ? consent : false;
+}
+
+async function getTelemetryConsentIfAlreadySet(): Promise<boolean | undefined> {
+  if (!canTelemetryBeEnabled()) {
     return false;
   }
 
@@ -33,8 +52,7 @@ export async function getTelemetryConsent(): Promise<boolean> {
       .consent;
   }
 
-  // Telemetry consent not provided yet, ask for it
-  return requestTelemetryConsent();
+  return undefined;
 }
 
 function canTelemetryBeEnabled(): boolean {
