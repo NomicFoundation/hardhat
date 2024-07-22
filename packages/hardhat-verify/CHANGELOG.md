@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 2.0.9
+
+### Patch Changes
+
+- 88e57fa: Make the `--force` flag override the check of any existing verification, even in the presence of errors.
+
 ## 2.0.8
 
 ### Patch Changes
