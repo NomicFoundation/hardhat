@@ -64,4 +64,6 @@ export interface HardhatConfig {
 
 export interface ProjectPathsConfig {
   root: string;
+  cache: string;
+  artifacts: string;
 }
