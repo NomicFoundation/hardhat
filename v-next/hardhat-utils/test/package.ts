@@ -48,6 +48,16 @@ describe("package", () => {
       assert.equal(actualPath, expectedPath);
     });
 
+    it("Should find the closest package.json relative to a directory when its within that directory", async () => {
+      const expectedPath = path.join(getTmpDir(), "package.json");
+      const fromPath = getTmpDir();
+      await createFile(expectedPath);
+
+      const actualPath = await findClosestPackageJson(fromPath);
+
+      assert.equal(actualPath, expectedPath);
+    });
+
     it("Should throw PackageJsonNotFoundError if no package.json is found", async () => {
       const fromPath = path.join(getTmpDir(), "subdir", "subsubdir");
 

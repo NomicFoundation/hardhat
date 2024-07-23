@@ -17,7 +17,11 @@ import {
   assertHardhatInvariant,
 } from "@ignored/hardhat-vnext-errors";
 
+import { detectPluginNpmDependencyProblems } from "./plugins/detect-plugin-npm-dependency-problems.js";
+
 export class HookManagerImplementation implements HookManager {
+  readonly #projectRoot: string;
+
   readonly #pluginsInReverseOrder: HardhatPlugin[];
 
   /**
@@ -44,7 +48,8 @@ export class HookManagerImplementation implements HookManager {
     Array<Partial<HardhatHooks[keyof HardhatHooks]>>
   > = new Map();
 
-  constructor(plugins: HardhatPlugin[]) {
+  constructor(projectRoot: string, plugins: HardhatPlugin[]) {
+    this.#projectRoot = projectRoot;
     this.#pluginsInReverseOrder = plugins.toReversed();
   }
 
@@ -252,7 +257,7 @@ export class HookManagerImplementation implements HookManager {
 
         if (typeof hookHandlerCategoryFactory === "string") {
           hookCategory = await this.#loadHookCategoryFactory(
-            plugin.id,
+            plugin,
             hookCategoryName,
             hookHandlerCategoryFactory,
           );
@@ -288,7 +293,7 @@ export class HookManagerImplementation implements HookManager {
   }
 
   async #loadHookCategoryFactory<HookCategoryNameT extends keyof HardhatHooks>(
-    pluginId: string,
+    plugin: HardhatPlugin,
     hookCategoryName: HookCategoryNameT,
     path: string,
   ): Promise<Partial<HardhatHooks[HookCategoryNameT]>> {
@@ -296,27 +301,34 @@ export class HookManagerImplementation implements HookManager {
       throw new HardhatError(
         HardhatError.ERRORS.HOOKS.INVALID_HOOK_FACTORY_PATH,
         {
-          pluginId,
+          pluginId: plugin.id,
           hookCategoryName,
           path,
         },
       );
     }
 
-    const mod = await import(path);
+    let mod;
+
+    try {
+      mod = await import(path);
+    } catch (error) {
+      await detectPluginNpmDependencyProblems(this.#projectRoot, plugin);
+      throw error;
+    }
 
     const factory = mod.default;
 
     assertHardhatInvariant(
       typeof factory === "function",
-      `Plugin ${pluginId} doesn't export a hook factory for category ${hookCategoryName} in ${path}`,
+      `Plugin ${plugin.id} doesn't export a hook factory for category ${hookCategoryName} in ${path}`,
     );
 
     const category = await factory();
 
     assertHardhatInvariant(
       category !== null && typeof category === "object",
-      `Plugin ${pluginId} doesn't export a valid factory for category ${hookCategoryName} in ${path}, it didn't return an object`,
+      `Plugin ${plugin.id} doesn't export a valid factory for category ${hookCategoryName} in ${path}, it didn't return an object`,
     );
 
     return category;

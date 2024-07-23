@@ -5,6 +5,8 @@ import type { HardhatRuntimeEnvironment } from "./types/hre.js";
 import type { TaskManager } from "./types/tasks.js";
 import type { UserInterruptionManager } from "./types/user-interruptions.js";
 
+import { resolveProjectRoot } from "@ignored/hardhat-vnext-core";
+
 import { resolveHardhatConfigPath } from "./config.js";
 import { createHardhatRuntimeEnvironment } from "./hre.js";
 import {
@@ -19,9 +21,10 @@ let maybeHre: HardhatRuntimeEnvironment | undefined =
 if (maybeHre === undefined) {
   /* eslint-disable no-restricted-syntax -- Allow top-level await here */
   const configPath = await resolveHardhatConfigPath();
+  const projectRoot = await resolveProjectRoot(configPath);
   const userConfig = await importUserConfig(configPath);
 
-  maybeHre = await createHardhatRuntimeEnvironment(userConfig);
+  maybeHre = await createHardhatRuntimeEnvironment(userConfig, {}, projectRoot);
   /* eslint-enable no-restricted-syntax */
 
   setGlobalHardhatRuntimeEnvironment(maybeHre);

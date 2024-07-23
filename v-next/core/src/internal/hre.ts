@@ -15,6 +15,7 @@ import type { TaskManager } from "../types/tasks.js";
 import type { UserInterruptionManager } from "../types/user-interruptions.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { findClosestPackageRoot } from "@ignored/hardhat-vnext-utils/package";
 
 import { ResolvedConfigurationVariableImplementation } from "./configuration-variables.js";
 import {
@@ -32,28 +33,24 @@ export class HardhatRuntimeEnvironmentImplementation
   public static async create(
     inputUserConfig: HardhatUserConfig,
     userProvidedGlobalOptions: Partial<GlobalOptions>,
+    projectRoot?: string,
     unsafeOptions?: UnsafeHardhatRuntimeEnvironmentOptions,
   ): Promise<HardhatRuntimeEnvironmentImplementation> {
-    // TODO: Clone with lodash or https://github.com/davidmarkclements/rfdc
-    // TODO: Or maybe don't clone at all
-    const clonedUserConfig = inputUserConfig;
-
-    // Resolve plugins from node modules relative to the current working directory
-    const basePathForNpmResolution = process.cwd();
+    const resolvedProjectRoot = await resolveProjectRoot(projectRoot);
 
     const resolvedPlugins =
       unsafeOptions?.resolvedPlugins ??
-      (await resolvePluginList(
-        clonedUserConfig.plugins,
-        basePathForNpmResolution,
-      ));
+      (await resolvePluginList(resolvedProjectRoot, inputUserConfig.plugins));
 
-    const hooks = new HookManagerImplementation(resolvedPlugins);
+    const hooks = new HookManagerImplementation(
+      resolvedProjectRoot,
+      resolvedPlugins,
+    );
 
     // extend user config:
     const extendedUserConfig = await runUserConfigExtensions(
       hooks,
-      clonedUserConfig,
+      inputUserConfig,
     );
 
     // validate config
@@ -76,14 +73,20 @@ export class HardhatRuntimeEnvironmentImplementation
     // Resolve config
 
     const resolvedConfig = await resolveUserConfig(
+      resolvedProjectRoot,
       hooks,
       resolvedPlugins,
       inputUserConfig,
     );
 
-    // We override the plugins, as we want to prevent plugins from changing this
-    const config = {
+    // We override the plugins and the proejct root, as we want to prevent
+    // the plugins from changing them
+    const config: HardhatConfig = {
       ...resolvedConfig,
+      paths: {
+        ...resolvedConfig.paths,
+        root: resolvedProjectRoot,
+      },
       plugins: resolvedPlugins,
     };
 
@@ -138,6 +141,20 @@ export class HardhatRuntimeEnvironmentImplementation
   }
 }
 
+/**
+ * Resolves the project root of a Hardhat project based on the config file or
+ * another path within the project. If not provided, it will be resolved from
+ * the current working directory.
+ *
+ * @param absolutePathWithinProject An absolute path within the project, usually
+ * the config file.
+ */
+export async function resolveProjectRoot(
+  absolutePathWithinProject: string | undefined,
+): Promise<string> {
+  return findClosestPackageRoot(absolutePathWithinProject ?? process.cwd());
+}
+
 async function runUserConfigExtensions(
   hooks: HookManager,
   config: HardhatUserConfig,
@@ -169,6 +186,7 @@ async function validateUserConfig(
 }
 
 async function resolveUserConfig(
+  projectRoot: string,
   hooks: HookManager,
   sortedPlugins: HardhatPlugin[],
   config: HardhatUserConfig,
@@ -176,6 +194,9 @@ async function resolveUserConfig(
   const initialResolvedConfig: HardhatConfig = {
     plugins: sortedPlugins,
     tasks: config.tasks ?? [],
+    paths: {
+      root: projectRoot,
+    },
   };
 
   return hooks.runHandlerChain(

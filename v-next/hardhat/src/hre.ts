@@ -8,6 +8,7 @@ import {
   // eslint-disable-next-line no-restricted-imports -- This is the one place where we allow it
   createBaseHardhatRuntimeEnvironment,
   resolvePluginList,
+  resolveProjectRoot,
 } from "@ignored/hardhat-vnext-core";
 
 import { BUILTIN_GLOBAL_OPTIONS_DEFINITIONS } from "./internal/builtin-global-options.js";
@@ -19,21 +20,25 @@ import { builtinPlugins } from "./internal/builtin-plugins/index.js";
  * @param config - The user's Hardhat configuration.
  * @param userProvidedGlobalOptions - The global options provided by the
  *  user.
+ * @param projectRoot - The root of the Hardhat project. Hardhat expects this
+ * to be the root of the npm project containing your config file. If none is
+ * provided, it will use the root of the npm project that contains the CWD.
  * @returns The Hardhat Runtime Environment.
  */
 export async function createHardhatRuntimeEnvironment(
   config: HardhatUserConfig,
   userProvidedGlobalOptions: Partial<GlobalOptions> = {},
+  projectRoot?: string,
   unsafeOptions: UnsafeHardhatRuntimeEnvironmentOptions = {},
 ): Promise<HardhatRuntimeEnvironment> {
+  const resolvedProjectRoot = await resolveProjectRoot(projectRoot);
+
   if (unsafeOptions.resolvedPlugins === undefined) {
     const plugins = [...builtinPlugins, ...(config.plugins ?? [])];
 
-    // We resolve the plugins within npm modules relative to the current working
-    const basePathForNpmResolution = process.cwd();
     const resolvedPlugins = await resolvePluginList(
+      resolvedProjectRoot,
       plugins,
-      basePathForNpmResolution,
     );
 
     unsafeOptions.resolvedPlugins = resolvedPlugins;
@@ -54,6 +59,7 @@ export async function createHardhatRuntimeEnvironment(
   return createBaseHardhatRuntimeEnvironment(
     config,
     userProvidedGlobalOptions,
+    resolvedProjectRoot,
     unsafeOptions,
   );
 }

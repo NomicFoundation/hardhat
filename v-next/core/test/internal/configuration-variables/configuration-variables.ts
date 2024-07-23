@@ -4,6 +4,7 @@ import { before, describe, it } from "node:test";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
+import { resolveProjectRoot } from "../../../src/index.js";
 import { ResolvedConfigurationVariableImplementation } from "../../../src/internal/configuration-variables.js";
 import { HookManagerImplementation } from "../../../src/internal/hook-manager.js";
 import { UserInterruptionManagerImplementation } from "../../../src/internal/user-interruptions.js";
@@ -11,8 +12,10 @@ import { UserInterruptionManagerImplementation } from "../../../src/internal/use
 describe("ResolvedConfigurationVariable", () => {
   let hookManager: HookManagerImplementation;
 
-  before(() => {
-    hookManager = new HookManagerImplementation([]);
+  before(async () => {
+    const projectRoot = await resolveProjectRoot(process.cwd());
+
+    hookManager = new HookManagerImplementation(projectRoot, []);
     const userInterruptionsManager = new UserInterruptionManagerImplementation(
       hookManager,
     );
@@ -21,6 +24,9 @@ describe("ResolvedConfigurationVariable", () => {
       config: {
         tasks: [],
         plugins: [],
+        paths: {
+          root: projectRoot,
+        },
       },
       hooks: hookManager,
       globalOptions: {},
