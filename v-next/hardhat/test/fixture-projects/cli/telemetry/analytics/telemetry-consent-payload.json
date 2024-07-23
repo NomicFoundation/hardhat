@@ -1,0 +1,13 @@
+{
+  "client_id": "hardhat_telemetry_consent",
+  "user_id": "hardhat_telemetry_consent",
+  "user_properties": {},
+  "events": [
+    {
+      "name": "TelemetryConsentResponse",
+      "params": {
+        "userConsent": "yes"
+      }
+    }
+  ]
+}
