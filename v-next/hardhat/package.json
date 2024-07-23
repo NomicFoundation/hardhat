@@ -77,9 +77,11 @@
     "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.2",
     "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.2",
     "@ignored/hardhat-vnext-zod-utils": "workspace:^3.0.0-next.2",
+    "@types/uuid": "^8.3.1",
     "chalk": "^5.3.0",
     "enquirer": "^2.3.0",
     "tsx": "^4.11.0",
+    "uuid": "^8.3.2",
     "zod": "^3.23.8"
   }
 }
