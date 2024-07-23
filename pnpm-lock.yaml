@@ -1537,6 +1537,9 @@ importers:
       chalk:
         specifier: ^5.3.0
         version: 5.3.0
+      debug:
+        specifier: ^4.1.1
+        version: 4.3.4(supports-color@8.1.1)
       enquirer:
         specifier: ^2.3.0
         version: 2.4.1
@@ -1556,6 +1559,9 @@ importers:
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
+      '@types/debug':
+        specifier: ^4.1.4
+        version: 4.1.12
       '@types/node':
         specifier: ^20.14.9
         version: 20.14.9
@@ -1908,6 +1914,9 @@ importers:
 
   v-next/hardhat-utils:
     dependencies:
+      debug:
+        specifier: ^4.1.1
+        version: 4.3.4(supports-color@8.1.1)
       fast-equals:
         specifier: ^5.0.1
         version: 5.0.1
@@ -1930,6 +1939,9 @@ importers:
       '@types/bn.js':
         specifier: ^5.1.5
         version: 5.1.5
+      '@types/debug':
+        specifier: ^4.1.4
+        version: 4.1.12
       '@types/keccak':
         specifier: ^3.0.4
         version: 3.0.4
