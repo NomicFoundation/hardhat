@@ -222,6 +222,7 @@ Usage: hardhat [GLOBAL OPTIONS] <TASK> [SUBTASK] [TASK OPTIONS] [--] [TASK ARGUM
 
 AVAILABLE TASKS:
 
+  clean                    Clears the cache and deletes all artifacts
   example                  Example task
   run                      Runs a user-defined script after compiling the project
   task                     A task that uses arg1

@@ -26,6 +26,8 @@ describe("ResolvedConfigurationVariable", () => {
         plugins: [],
         paths: {
           root: projectRoot,
+          cache: "",
+          artifacts: "",
         },
       },
       hooks: hookManager,

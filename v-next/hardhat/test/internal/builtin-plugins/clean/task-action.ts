@@ -17,96 +17,102 @@ import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import cleanAction from "../../../../src/internal/builtin-plugins/clean/task-action.js";
 import { useFixtureProject } from "../../../helpers/project.js";
 
-function assertCleanBehavior(global: boolean, globalCacheDir: string) {
-  it("should empty the cache dir", async () => {
-    const cacheContents = await readdir(path.join(process.cwd(), "cache"));
-    assert.ok(cacheContents.length === 0, "Cache dir is not empty");
-  });
+let hre: HardhatRuntimeEnvironment;
+let globalCacheDir: string;
+let cacheDir: string;
+let artifactsDir: string;
 
-  it("should remove the artifacts dir", async () => {
-    assert.ok(
-      exists(path.join(process.cwd(), "artifacts")),
-      "Artifacts dir does not exist",
-    );
-  });
+function assertCleanBehavior(global: boolean) {
+  it("should clean the cache and artifacts directories", async () => {
+    await cleanAction({ global }, hre);
 
-  if (global) {
-    it("should empty the global cache dir when the global flag is true", async () => {
+    // If the cache dir exists, it should be empty
+    if (await exists(cacheDir)) {
+      const cacheContents = await readdir(cacheDir);
+      assert.ok(cacheContents.length === 0, "Cache dir is not empty");
+    }
+
+    // The artifacts dir should not exist
+    assert.ok(!(await exists(artifactsDir)), "Artifacts dir exists");
+
+    // If the global cache dir exists, it should be empty if the global flag is
+    // true, and not empty otherwise
+    if (await exists(globalCacheDir)) {
       const globalCacheContents = await readdir(globalCacheDir);
-      assert.ok(
-        globalCacheContents.length === 0,
-        "Global cache dir is not empty",
-      );
-    });
-  } else {
-    it("should not empty the global cache dir when the global flag is false", async () => {
-      const globalCacheContents = await readdir(globalCacheDir);
-      assert.ok(globalCacheContents.length > 0, "Global cache dir is empty");
-    });
-  }
+      if (global) {
+        assert.ok(
+          globalCacheContents.length === 0,
+          "Global cache dir is not empty",
+        );
+      } else {
+        assert.ok(
+          globalCacheContents.length > 0,
+          "Global cache dir is empty when it shouldn't be",
+        );
+      }
+    }
+  });
 }
 
 describe("clean/task-action", () => {
-  let hre: HardhatRuntimeEnvironment;
-  let globalCacheDir: string;
-
-  before(async function () {
-    hre = await createHardhatRuntimeEnvironment({});
-    globalCacheDir = await getCacheDir();
-  });
-
   describe("cleanAction", () => {
     useFixtureProject("loaded-config");
+
+    before(async function () {
+      globalCacheDir = await getCacheDir();
+      cacheDir = path.join(process.cwd(), "cache");
+      artifactsDir = path.join(process.cwd(), "artifacts");
+      hre = await createHardhatRuntimeEnvironment({
+        // TODO remove this once cache and artifacts are resolved in the config
+        paths: { cache: cacheDir, artifacts: artifactsDir },
+      });
+    });
 
     describe("when cache and artifact dirs don't exist", async () => {
       beforeEach(async () => {
         await remove(globalCacheDir);
-        await remove(path.join(process.cwd(), "cache"));
-        await remove(path.join(process.cwd(), "artifacts"));
+        await remove(cacheDir);
+        await remove(artifactsDir);
       });
 
-      await cleanAction({ global: true }, hre);
-      assertCleanBehavior(true, globalCacheDir);
+      assertCleanBehavior(true);
     });
 
     describe("when cache and artifact are empty dirs", async () => {
       beforeEach(async () => {
         await remove(globalCacheDir);
-        await remove(path.join(process.cwd(), "cache"));
-        await remove(path.join(process.cwd(), "artifacts"));
-        await getCacheDir(); // Recreate the cache dir
-        await mkdir(path.join(process.cwd(), "cache"));
-        await mkdir(path.join(process.cwd(), "artifacts"));
+        await remove(cacheDir);
+        await remove(artifactsDir);
+        await getCacheDir(); // Calling this recreates the cache dir
+        await mkdir(cacheDir);
+        await mkdir(artifactsDir);
       });
 
-      await cleanAction({ global: true }, hre);
-      assertCleanBehavior(true, globalCacheDir);
+      assertCleanBehavior(true);
     });
 
     describe("when cache and artifact dirs aren't empty", async () => {
       beforeEach(async () => {
         await remove(globalCacheDir);
-        await remove(path.join(process.cwd(), "cache"));
-        await remove(path.join(process.cwd(), "artifacts"));
-        await getCacheDir(); // Recreate the cache dir
+        await remove(cacheDir);
+        await remove(artifactsDir);
+        await getCacheDir(); // Calling this recreates the cache dir
         await writeUtf8File(path.join(globalCacheDir, "a"), "");
-        await writeUtf8File(path.join(process.cwd(), "cache", "a"), "");
-        await writeUtf8File(path.join(process.cwd(), "artifacts", "a"), "");
+        await writeUtf8File(path.join(cacheDir, "a"), "");
+        await writeUtf8File(path.join(artifactsDir, "a"), "");
       });
 
-      await cleanAction({ global: true }, hre);
-      assertCleanBehavior(true, globalCacheDir);
+      assertCleanBehavior(true);
     });
 
     describe("when global flag is false", async () => {
       beforeEach(async () => {
         await remove(globalCacheDir);
-        await getCacheDir(); // Recreate the cache dir
+        await getCacheDir(); // Calling this recreates the cache dir
         await writeUtf8File(path.join(globalCacheDir, "a"), "");
       });
 
-      await cleanAction({ global: false }, hre);
-      assertCleanBehavior(false, globalCacheDir);
+      assertCleanBehavior(false);
     });
   });
 });
