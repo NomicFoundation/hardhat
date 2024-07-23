@@ -83,7 +83,7 @@ async function loadDependency(
   } catch (error) {
     ensureError(error);
 
-    await detectPluginNpmDependencyProblems(plugin, projectRoot);
+    await detectPluginNpmDependencyProblems(projectRoot, plugin);
 
     throw new HardhatError(
       HardhatError.ERRORS.PLUGINS.PLUGIN_DEPENDENCY_FAILED_LOAD,

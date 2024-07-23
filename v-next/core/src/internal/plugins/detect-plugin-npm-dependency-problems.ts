@@ -8,26 +8,30 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import semver from "semver";
 
 /**
- * Validate that a plugin is installed and that its peer dependencies are installed and satisfy the version constraints.
+ * Validate that a plugin is installed and that its peer dependencies are
+ * installed and satisfy the version constraints.
  *
- * @param plugin - the plugin to be validated
- * @param basePathForNpmResolution - the directory path to use for node module resolution, defaulting to `process.cwd()`
+ * @param basePathForNpmResolution the dir path for node module resolution
+ * @param plugin the plugin to be validated
  * @throws {HardhatError} with descriptor:
- * - {@link HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED} if the plugin is not installed as an npm package
- * - {@link HardhatError.ERRORS.PLUGINS.PLUGIN_MISSING_DEPENDENCY} if the plugin's package peer dependency is not installed
- * - {@link HardhatError.ERRORS.PLUGINS.DEPENDENCY_VERSION_MISMATCH} if the plugin's package peer dependency is installed but has the wrong version
+ * - {@link HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED} if the plugin is
+ * not installed as an npm package
+ * - {@link HardhatError.ERRORS.PLUGINS.PLUGIN_MISSING_DEPENDENCY} if the
+ * plugin's package peer dependency is not installed
+ * - {@link HardhatError.ERRORS.PLUGINS.DEPENDENCY_VERSION_MISMATCH} if the
+ * plugin's package peer dependency is installed but has the wrong version
  */
 export async function detectPluginNpmDependencyProblems(
-  plugin: HardhatPlugin,
   basePathForNpmResolution: string,
+  plugin: HardhatPlugin,
 ): Promise<void> {
   if (plugin.npmPackage === undefined) {
     return;
   }
 
   const pluginPackageResult = readPackageJsonViaNodeRequire(
-    plugin.npmPackage,
     basePathForNpmResolution,
+    plugin.npmPackage,
   );
 
   if (pluginPackageResult === undefined) {
@@ -46,8 +50,8 @@ export async function detectPluginNpmDependencyProblems(
     pluginPackageJson.peerDependencies,
   )) {
     const dependencyPackageJsonResult = readPackageJsonViaNodeRequire(
-      dependencyName,
       packagePath,
+      dependencyName,
     );
 
     if (dependencyPackageJsonResult === undefined) {
@@ -77,16 +81,16 @@ export async function detectPluginNpmDependencyProblems(
 }
 
 /**
- * Read the package.json of a named package resolved through the node
- * require system.
+ * Read the package.json of a named package resolved through the node require
+ * system.
  *
- * @param packageName - the package name i.e. "@nomiclabs/hardhat-waffle"
- * @param baseRequirePath - the directory path to use for resolution, defaults to `process.cwd()`
+ * @param packageName the package name i.e. "@nomiclabs/hardhat-waffle"
+ * @param baseRequirePath  the dir path for node module resolution
  * @returns the package.json object or undefined if the package is not found
  */
 function readPackageJsonViaNodeRequire(
-  packageName: string,
   baseRequirePath: string,
+  packageName: string,
 ): { packageJson: PackageJson; packagePath: string } | undefined {
   try {
     const require = createRequire(baseRequirePath);

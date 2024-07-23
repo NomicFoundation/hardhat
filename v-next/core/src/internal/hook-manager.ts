@@ -313,7 +313,7 @@ export class HookManagerImplementation implements HookManager {
     try {
       mod = await import(path);
     } catch (error) {
-      await detectPluginNpmDependencyProblems(plugin, this.#projectRoot);
+      await detectPluginNpmDependencyProblems(this.#projectRoot, plugin);
       throw error;
     }
 

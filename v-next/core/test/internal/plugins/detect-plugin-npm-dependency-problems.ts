@@ -18,13 +18,10 @@ describe("Plugins - detect npm dependency problems", () => {
       "./fixture-projects/peer-dep-with-wrong-version",
     );
 
-    await detectPluginNpmDependencyProblems(
-      {
-        ...plugin,
-        npmPackage: undefined,
-      },
-      peerDepWithWrongVersionFixture,
-    );
+    await detectPluginNpmDependencyProblems(peerDepWithWrongVersionFixture, {
+      ...plugin,
+      npmPackage: undefined,
+    });
   });
 
   describe("when the plugin has no peer deps", () => {
@@ -34,8 +31,8 @@ describe("Plugins - detect npm dependency problems", () => {
       );
 
       await detectPluginNpmDependencyProblems(
-        plugin,
         installedPackageProjectFixture,
+        plugin,
       );
     });
 
@@ -47,8 +44,8 @@ describe("Plugins - detect npm dependency problems", () => {
       await assertRejectsWithHardhatError(
         async () =>
           detectPluginNpmDependencyProblems(
-            plugin,
             nonInstalledPackageProjectFixture,
+            plugin,
           ),
         HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED,
         {
@@ -66,8 +63,8 @@ describe("Plugins - detect npm dependency problems", () => {
         );
 
         await detectPluginNpmDependencyProblems(
-          plugin,
           installedPeerDepsFixture,
+          plugin,
         );
       });
 
@@ -77,7 +74,7 @@ describe("Plugins - detect npm dependency problems", () => {
         );
 
         await assertRejectsWithHardhatError(
-          detectPluginNpmDependencyProblems(plugin, notInstalledPeerDepFixture),
+          detectPluginNpmDependencyProblems(notInstalledPeerDepFixture, plugin),
           HardhatError.ERRORS.PLUGINS.PLUGIN_MISSING_DEPENDENCY,
           { pluginId: "example-plugin", peerDependencyName: "peer2" },
         );
@@ -91,8 +88,8 @@ describe("Plugins - detect npm dependency problems", () => {
         );
 
         await detectPluginNpmDependencyProblems(
-          plugin,
           installedPeerDepsFixture,
+          plugin,
         );
       });
     });
@@ -107,8 +104,8 @@ describe("Plugins - detect npm dependency problems", () => {
       await assertRejectsWithHardhatError(
         async () =>
           detectPluginNpmDependencyProblems(
-            plugin,
             peerDepWithWrongVersionFixture,
+            plugin,
           ),
         HardhatError.ERRORS.PLUGINS.DEPENDENCY_VERSION_MISMATCH,
         {
