@@ -29,39 +29,39 @@ export interface PackageJson {
  * Searches for the nearest `package.json` file, starting from the directory of
  * the provided file path or url string and moving up the directory tree.
  *
- * @param filePathOrUrl The file path or url string from which to start the
- * search. The url must be a file url. This is useful when you want to find
- * the nearest `package.json` file relative to the current module, as you
- * can use `import.meta.url`.
+ * @param pathOrUrl A path or url string from which to start the search. The url
+ * must be a file url. This is useful when you want to find the nearest
+ * `package.json` file relative to the current module, as you can use
+ * `import.meta.url`.
  * @returns The absolute path to the nearest `package.json` file.
  * @throws PackageJsonNotFoundError If no `package.json` file is found.
  */
 export async function findClosestPackageJson(
-  filePathOrUrl: string,
+  pathOrUrl: string,
 ): Promise<string> {
-  const filePath = getFilePath(filePathOrUrl);
+  const filePath = getFilePath(pathOrUrl);
 
   if (filePath === undefined) {
-    throw new PackageJsonNotFoundError(filePathOrUrl);
+    throw new PackageJsonNotFoundError(pathOrUrl);
   }
 
-  const packageJsonPath = await findUp("package.json", path.dirname(filePath));
+  const packageJsonPath = await findUp("package.json", filePath);
 
   if (packageJsonPath === undefined) {
-    throw new PackageJsonNotFoundError(filePathOrUrl);
+    throw new PackageJsonNotFoundError(pathOrUrl);
   }
 
   return packageJsonPath;
 }
 
 /**
- * Reads the nearest `package.json` file, starting from the directory of the
- * provided file path or url string and moving up the directory tree.
+ * Reads the nearest `package.json` file, starting from provided path or url
+ * string and moving up the directory tree.
  *
- * @param filePathOrUrl The file path or url string from which to start the
- * search. The url must be a file url. This is useful when you want to find
- * the nearest `package.json` file relative to the current module, as you
- * can use `import.meta.url`.
+ * @param pathOrUrl A path or url string from which to start the search. The url
+ * must be a file url. This is useful when you want to find the nearest
+ * `package.json` file relative to the current module, as you can use
+ * `import.meta.url`.
  * @returns The contents of the nearest `package.json` file, parsed as a
  * {@link PackageJson} object.
  * @throws PackageJsonNotFoundError If no `package.json` file is found.
@@ -69,9 +69,9 @@ export async function findClosestPackageJson(
  * be read.
  */
 export async function readClosestPackageJson(
-  filePathOrUrl: string,
+  pathOrUrl: string,
 ): Promise<PackageJson> {
-  const packageJsonPath = await findClosestPackageJson(filePathOrUrl);
+  const packageJsonPath = await findClosestPackageJson(pathOrUrl);
   try {
     return await readJsonFile<PackageJson>(packageJsonPath);
   } catch (e) {
@@ -81,16 +81,16 @@ export async function readClosestPackageJson(
 }
 
 /**
- * Finds the root directory of the nearest package, starting from the directory
- * of the provided file path or url string and moving up the directory tree.
+ * Finds the root directory of the nearest package, starting from the provided
+ * path or url string and moving up the directory tree.
  *
  * This function uses `findClosestPackageJson` to find the nearest `package.json`
  * file and then returns the directory that contains that file.
  *
- * @param filePathOrUrl The file path or url string from which to start the
- * search. The url must be a file url. This is useful when you want to find
- * the nearest `package.json` file relative to the current module, as you
- * can use `import.meta.url`.
+ * @param pathOrUrl A path or url string from which to start the search. The url
+ * must be a file url. This is useful when you want to find the nearest
+ * `package.json` file relative to the current module, as you can use
+ * `import.meta.url`.
  * @returns The absolute path of the root directory of the nearest package.
  */
 export async function findClosestPackageRoot(

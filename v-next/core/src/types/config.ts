@@ -45,11 +45,23 @@ export type SensitiveString = string | ConfigurationVariable;
  * The user's Hardhat configuration, as exported in their
  * config file.
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-interface -- Used through module aumentation
-export interface HardhatUserConfig {}
+export interface HardhatUserConfig {
+  paths?: ProjectPathsUserConfig;
+}
+
+/**
+ * The different paths that conform a Hardhat project.
+ */
+// eslint-disable-next-line @typescript-eslint/no-empty-interface -- TODO: add the paths
+export interface ProjectPathsUserConfig {}
 
 /**
  * The resolved Hardhat configuration.
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-interface -- Used through module aumentation
-export interface HardhatConfig {}
+export interface HardhatConfig {
+  paths: ProjectPathsConfig;
+}
+
+export interface ProjectPathsConfig {
+  root: string;
+}

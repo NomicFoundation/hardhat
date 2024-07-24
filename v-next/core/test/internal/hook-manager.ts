@@ -19,16 +19,23 @@ import type { Task, TaskManager } from "../../src/types/tasks.js";
 import type { UserInterruptionManager } from "../../src/types/user-interruptions.js";
 
 import assert from "node:assert/strict";
-import { describe, it, beforeEach } from "node:test";
+import { describe, it, beforeEach, before } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
+import { resolveProjectRoot } from "../../src/index.js";
 import { HookManagerImplementation } from "../../src/internal/hook-manager.js";
 import { UserInterruptionManagerImplementation } from "../../src/internal/user-interruptions.js";
 
 describe("HookManager", () => {
+  let projectRoot: string;
+
+  before(async () => {
+    projectRoot = await resolveProjectRoot(process.cwd());
+  });
+
   describe("plugin hooks", () => {
     describe("running", () => {
       let hookManager: HookManager;
@@ -83,7 +90,9 @@ describe("HookManager", () => {
           },
         };
 
-        const manager = new HookManagerImplementation([examplePlugin]);
+        const manager = new HookManagerImplementation(projectRoot, [
+          examplePlugin,
+        ]);
 
         const userInterruptionsManager =
           new UserInterruptionManagerImplementation(hookManager);
@@ -92,6 +101,9 @@ describe("HookManager", () => {
           config: {
             tasks: [],
             plugins: [],
+            paths: {
+              root: projectRoot,
+            },
           },
           hooks: hookManager,
           globalOptions: {},
@@ -157,6 +169,9 @@ describe("HookManager", () => {
         const originalConfig: HardhatConfig = {
           plugins: [],
           tasks: [],
+          paths: {
+            root: projectRoot,
+          },
         };
 
         hookManager.registerHandlers("config", {
@@ -207,9 +222,14 @@ describe("HookManager", () => {
         const expectedConfig: HardhatConfig = {
           plugins: [],
           tasks: [],
+          paths: {
+            root: projectRoot,
+          },
         };
 
-        const manager = new HookManagerImplementation([examplePlugin]);
+        const manager = new HookManagerImplementation(projectRoot, [
+          examplePlugin,
+        ]);
 
         const validationResult = await manager.runSequentialHandlers(
           "config",
@@ -235,7 +255,9 @@ describe("HookManager", () => {
           },
         };
 
-        const manager = new HookManagerImplementation([examplePlugin]);
+        const manager = new HookManagerImplementation(projectRoot, [
+          examplePlugin,
+        ]);
 
         try {
           await manager.runHandlerChain(
@@ -264,7 +286,9 @@ describe("HookManager", () => {
           },
         };
 
-        const manager = new HookManagerImplementation([examplePlugin]);
+        const manager = new HookManagerImplementation(projectRoot, [
+          examplePlugin,
+        ]);
 
         await assertRejectsWithHardhatError(
           async () =>
@@ -292,7 +316,7 @@ describe("HookManager", () => {
       let hookManager: HookManager;
 
       beforeEach(() => {
-        const manager = new HookManagerImplementation([]);
+        const manager = new HookManagerImplementation(projectRoot, []);
 
         const userInterruptionsManager =
           new UserInterruptionManagerImplementation(hookManager);
@@ -301,6 +325,9 @@ describe("HookManager", () => {
           config: {
             tasks: [],
             plugins: [],
+            paths: {
+              root: projectRoot,
+            },
           },
           hooks: hookManager,
           globalOptions: {},
@@ -316,6 +343,9 @@ describe("HookManager", () => {
         const defaultImplementationVersionOfConfig: HardhatConfig = {
           plugins: [],
           tasks: [],
+          paths: {
+            root: projectRoot,
+          },
         };
 
         const resultConfig = await hookManager.runHandlerChain(
@@ -397,6 +427,9 @@ describe("HookManager", () => {
         const expectedConfig: HardhatConfig = {
           plugins: [],
           tasks: [],
+          paths: {
+            root: projectRoot,
+          },
         };
 
         hookManager.registerHandlers("config", {
@@ -506,7 +539,7 @@ describe("HookManager", () => {
       let hookManager: HookManager;
 
       beforeEach(() => {
-        const manager = new HookManagerImplementation([]);
+        const manager = new HookManagerImplementation(projectRoot, []);
 
         const userInterruptionsManager =
           new UserInterruptionManagerImplementation(hookManager);
@@ -515,6 +548,9 @@ describe("HookManager", () => {
           config: {
             tasks: [],
             plugins: [],
+            paths: {
+              root: projectRoot,
+            },
           },
           hooks: hookManager,
           globalOptions: {},
@@ -525,7 +561,10 @@ describe("HookManager", () => {
       });
 
       it("Should return the empty set if no handlers are registered", async () => {
-        const mockHre = buildMockHardhatRuntimeEnvironment(hookManager);
+        const mockHre = buildMockHardhatRuntimeEnvironment(
+          projectRoot,
+          hookManager,
+        );
 
         const resultHre = await hookManager.runSequentialHandlers(
           "hre",
@@ -601,6 +640,9 @@ describe("HookManager", () => {
         const expectedConfig: HardhatConfig = {
           plugins: [],
           tasks: [],
+          paths: {
+            root: projectRoot,
+          },
         };
 
         hookManager.registerHandlers("config", {
@@ -631,7 +673,7 @@ describe("HookManager", () => {
       let hookManager: HookManager;
 
       beforeEach(() => {
-        const manager = new HookManagerImplementation([]);
+        const manager = new HookManagerImplementation(projectRoot, []);
 
         const userInterruptionsManager =
           new UserInterruptionManagerImplementation(hookManager);
@@ -640,6 +682,9 @@ describe("HookManager", () => {
           config: {
             tasks: [],
             plugins: [],
+            paths: {
+              root: projectRoot,
+            },
           },
           hooks: hookManager,
           globalOptions: {},
@@ -653,6 +698,9 @@ describe("HookManager", () => {
         const originalConfig: HardhatConfig = {
           plugins: [],
           tasks: [],
+          paths: {
+            root: projectRoot,
+          },
         };
 
         const results = await hookManager.runParallelHandlers(
@@ -668,6 +716,9 @@ describe("HookManager", () => {
         const originalConfig: HardhatConfig = {
           plugins: [],
           tasks: [],
+          paths: {
+            root: projectRoot,
+          },
         };
 
         hookManager.registerHandlers("config", {
@@ -719,7 +770,10 @@ describe("HookManager", () => {
       });
 
       it("Should pass the context to the handler (for non-config)", async () => {
-        const mockHre = buildMockHardhatRuntimeEnvironment(hookManager);
+        const mockHre = buildMockHardhatRuntimeEnvironment(
+          projectRoot,
+          hookManager,
+        );
 
         hookManager.registerHandlers("hre", {
           created: async (
@@ -745,6 +799,9 @@ describe("HookManager", () => {
         const expectedConfig: HardhatConfig = {
           plugins: [],
           tasks: [],
+          paths: {
+            root: projectRoot,
+          },
         };
 
         const validationError = {
@@ -775,7 +832,7 @@ describe("HookManager", () => {
       let hookManager: HookManager;
 
       beforeEach(() => {
-        const manager = new HookManagerImplementation([]);
+        const manager = new HookManagerImplementation(projectRoot, []);
 
         const userInterruptionsManager =
           new UserInterruptionManagerImplementation(hookManager);
@@ -784,6 +841,9 @@ describe("HookManager", () => {
           config: {
             tasks: [],
             plugins: [],
+            paths: {
+              root: projectRoot,
+            },
           },
           hooks: hookManager,
           globalOptions: {},
@@ -913,6 +973,7 @@ describe("HookManager", () => {
 });
 
 function buildMockHardhatRuntimeEnvironment(
+  projectRoot: string,
   hookManager: HookManager,
 ): HardhatRuntimeEnvironment {
   const mockInteruptionManager: UserInterruptionManager = {
@@ -939,6 +1000,9 @@ function buildMockHardhatRuntimeEnvironment(
     config: {
       tasks: [],
       plugins: [],
+      paths: {
+        root: projectRoot,
+      },
     },
     tasks: mockTaskManager,
     globalOptions: {},
