@@ -6,8 +6,6 @@ import type {
 } from "./types.js";
 
 import os from "node:os";
-import { dirname } from "node:path";
-import { fileURLToPath } from "node:url";
 
 import { spawnDetachedSubProcess } from "@ignored/hardhat-vnext-utils/subprocess";
 
@@ -60,7 +58,7 @@ async function sendAnalytics(
   eventName: EventNames,
   eventParams: TaskParams,
 ): Promise<boolean> {
-  if ((await getTelemetryConsent()) === false) {
+  if (!(await getTelemetryConsent())) {
     return false;
   }
 
@@ -75,7 +73,7 @@ async function createSubprocessToSendAnalytics(
   payload: TelemetryConsentPayload | Payload,
 ): Promise<void> {
   // The file extension is 'js' because the 'ts' file will be compiled
-  const analyticsSubprocessFilePath = `${dirname(fileURLToPath(import.meta.url))}/analytics-subprocess.js`;
+  const analyticsSubprocessFilePath = `${import.meta.dirname}/analytics-subprocess.js`;
 
   await spawnDetachedSubProcess(analyticsSubprocessFilePath, [
     JSON.stringify(payload),

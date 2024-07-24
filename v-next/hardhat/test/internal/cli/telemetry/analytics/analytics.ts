@@ -110,7 +110,7 @@ describe("analytics", () => {
 
     await checkIfSubprocessWasExecuted();
 
-    const result = JSON.parse(await readJsonFile(RESULT_FILE_PATH));
+    const result = await readJsonFile(RESULT_FILE_PATH);
 
     const expected = await readJsonFile(
       path.join(PATH_TO_FIXTURE, "telemetry-consent-payload.json"),
@@ -147,7 +147,7 @@ describe("analytics", () => {
 
       await checkIfSubprocessWasExecuted();
 
-      const result: Payload = JSON.parse(await readJsonFile(RESULT_FILE_PATH));
+      const result: Payload = await readJsonFile(RESULT_FILE_PATH);
 
       assert.equal(wasSent, true);
 
