@@ -18,12 +18,13 @@ import { getClientId, getUserType } from "./utils.js";
 
 // TODO:log const log = debug("hardhat:core:global-dir");
 
-const SESSION_ID = Math.random().toString(); // The same for the whole Hardhat execution
+const SESSION_ID = Math.random().toString();
+const ENGAGEMENT_TIME_MSEC = "10000";
 
 export async function sendTelemetryConsentAnalytics(
   userConsent: boolean,
 ): Promise<void> {
-  // This is a special scenario where only the consent is sent, all the other telemetry info
+  // This is a special scenario where only the consent is sent, all the other analytics info
   // (like node version, hardhat version, etc.) are stripped.
   const payload: TelemetryConsentPayload = {
     client_id: "hardhat_telemetry_consent",
@@ -101,11 +102,7 @@ async function buildPayload(
       {
         name: eventName,
         params: {
-          // From the GA docs: amount of time someone spends with your web
-          // page in focus or app screen in the foreground
-          // The parameter has no use for our app, but it's required in order
-          // for user activity to display in standard reports like Realtime
-          engagement_time_msec: "10000",
+          engagement_time_msec: ENGAGEMENT_TIME_MSEC,
           session_id: SESSION_ID,
           ...eventParams,
         },

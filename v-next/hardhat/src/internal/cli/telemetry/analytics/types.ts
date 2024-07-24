@@ -12,7 +12,11 @@ export interface BasePayload {
   events: Array<{
     name: string;
     params: {
-      engagement_time_msec?: string; // TODO: can be removed?
+      // From the GA docs: amount of time someone spends with your web
+      // page in focus or app screen in the foreground.
+      // The parameter has no use for our app, but it's required in order
+      // for user activity to display in standard reports like Realtime.
+      engagement_time_msec?: string;
       session_id?: string;
     };
   }>;
@@ -22,8 +26,8 @@ export interface TelemetryConsentPayload extends BasePayload {
   events: Array<{
     name: "TelemetryConsentResponse";
     params: {
-      session_id?: string;
       userConsent: "yes" | "no";
+      session_id?: string;
     };
   }>;
 }
