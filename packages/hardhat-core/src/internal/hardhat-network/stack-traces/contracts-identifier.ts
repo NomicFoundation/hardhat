@@ -14,15 +14,7 @@ import { getOpcodeLength, Opcode } from "./opcodes";
  * What makes it special is that every node has a set of all of its descendants and its depth.
  */
 class BytecodeTrie {
-  public static isBytecodeTrie(o: any): o is BytecodeTrie {
-    if (o === undefined || o === null) {
-      return false;
-    }
-
-    return "childNodes" in o;
-  }
-
-  public readonly childNodes: Map<number, BytecodeTrie> = new Map();
+  private readonly _childNodes: Map<number, BytecodeTrie> = new Map();
   public readonly descendants: Bytecode[] = [];
   public match?: Bytecode;
 
@@ -31,30 +23,23 @@ class BytecodeTrie {
   public add(bytecode: Bytecode) {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let trieNode: BytecodeTrie = this;
-    for (
-      let currentCodeByte = 0;
-      currentCodeByte <= bytecode.normalizedCode.length;
-      currentCodeByte += 1
-    ) {
-      if (currentCodeByte === bytecode.normalizedCode.length) {
-        // If multiple contracts with the exact same bytecode are added we keep the last of them.
-        // Note that this includes the metadata hash, so the chances of happening are pretty remote,
-        // except in super artificial cases that we have in our test suite.
-        trieNode.match = bytecode;
-        return;
-      }
 
-      const byte = bytecode.normalizedCode[currentCodeByte];
+    for (const [index, byte] of bytecode.normalizedCode.entries()) {
       trieNode.descendants.push(bytecode);
 
-      let childNode = trieNode.childNodes.get(byte);
+      let childNode = trieNode._childNodes.get(byte);
       if (childNode === undefined) {
-        childNode = new BytecodeTrie(currentCodeByte);
-        trieNode.childNodes.set(byte, childNode);
+        childNode = new BytecodeTrie(index);
+        trieNode._childNodes.set(byte, childNode);
       }
 
       trieNode = childNode;
     }
+
+    // If multiple contracts with the exact same bytecode are added we keep the last of them.
+    // Note that this includes the metadata hash, so the chances of happening are pretty remote,
+    // except in super artificial cases that we have in our test suite.
+    trieNode.match = bytecode;
   }
 
   /**
@@ -72,12 +57,8 @@ class BytecodeTrie {
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let trieNode: BytecodeTrie = this;
-    for (; currentCodeByte <= code.length; currentCodeByte += 1) {
-      if (currentCodeByte === code.length) {
-        return trieNode.match;
-      }
-
-      const childNode = trieNode.childNodes.get(code[currentCodeByte]);
+    for (; currentCodeByte < code.length; currentCodeByte += 1) {
+      const childNode = trieNode._childNodes.get(code[currentCodeByte]);
 
       if (childNode === undefined) {
         return trieNode;
@@ -85,6 +66,8 @@ class BytecodeTrie {
 
       trieNode = childNode;
     }
+
+    return trieNode.match;
   }
 }
 
@@ -139,7 +122,7 @@ export class ContractsIdentifier {
       return undefined;
     }
 
-    if (!BytecodeTrie.isBytecodeTrie(searchResult)) {
+    if (searchResult instanceof Bytecode) {
       return searchResult;
     }
 
