@@ -12,6 +12,8 @@ import type {
   TaskOverrideDefinition,
   EmptyTaskDefinitionBuilder,
   EmptyTaskDefinition,
+  ExtendTaskArguments,
+  TaskArguments,
 } from "../../types/tasks.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
@@ -55,8 +57,9 @@ export class EmptyTaskDefinitionBuilderImplementation
   }
 }
 
-export class NewTaskDefinitionBuilderImplementation
-  implements NewTaskDefinitionBuilder
+export class NewTaskDefinitionBuilderImplementation<
+  TaskArgumentsT extends TaskArguments = TaskArguments,
+> implements NewTaskDefinitionBuilder<TaskArgumentsT>
 {
   readonly #id: string[];
   readonly #usedNames: Set<string> = new Set();
@@ -66,7 +69,7 @@ export class NewTaskDefinitionBuilderImplementation
 
   #description: string;
 
-  #action?: NewTaskActionFunction | string;
+  #action?: NewTaskActionFunction<TaskArgumentsT> | string;
 
   constructor(id: string | string[], description: string = "") {
     validateId(id);
@@ -80,7 +83,9 @@ export class NewTaskDefinitionBuilderImplementation
     return this;
   }
 
-  public setAction(action: NewTaskActionFunction | string): this {
+  public setAction(
+    action: NewTaskActionFunction<TaskArgumentsT> | string,
+  ): this {
     validateAction(action);
 
     this.#action = action;
@@ -88,17 +93,22 @@ export class NewTaskDefinitionBuilderImplementation
     return this;
   }
 
-  public addOption<T extends ArgumentType>({
+  public addOption<
+    NameT extends string,
+    TypeT extends ArgumentType = ArgumentType.STRING,
+  >({
     name,
     description = "",
     type,
     defaultValue,
   }: {
-    name: string;
+    name: NameT;
     description?: string;
-    type?: T;
-    defaultValue: ArgumentTypeToValueType<T>;
-  }): this {
+    type?: TypeT;
+    defaultValue: ArgumentTypeToValueType<TypeT>;
+  }): NewTaskDefinitionBuilder<
+    ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>
+  > {
     const argumentType = type ?? ArgumentType.STRING;
 
     const optionDefinition = {
@@ -115,7 +125,12 @@ export class NewTaskDefinitionBuilderImplementation
     return this;
   }
 
-  public addFlag(flagConfig: { name: string; description?: string }): this {
+  public addFlag<NameT extends string>(flagConfig: {
+    name: NameT;
+    description?: string;
+  }): NewTaskDefinitionBuilder<
+    ExtendTaskArguments<NameT, ArgumentType.BOOLEAN, TaskArgumentsT>
+  > {
     return this.addOption({
       ...flagConfig,
       type: ArgumentType.BOOLEAN,
@@ -123,24 +138,34 @@ export class NewTaskDefinitionBuilderImplementation
     });
   }
 
-  public addPositionalArgument<T extends ArgumentType>(argConfig: {
-    name: string;
+  public addPositionalArgument<
+    NameT extends string,
+    TypeT extends ArgumentType = ArgumentType.STRING,
+  >(argConfig: {
+    name: NameT;
     description?: string;
-    type?: T;
-    defaultValue?: ArgumentTypeToValueType<T>;
-  }): this {
+    type?: TypeT;
+    defaultValue?: ArgumentTypeToValueType<TypeT>;
+  }): NewTaskDefinitionBuilder<
+    ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>
+  > {
     return this.#addPositionalArgument({
       ...argConfig,
       isVariadic: false,
     });
   }
 
-  public addVariadicArgument<T extends ArgumentType>(argConfig: {
-    name: string;
+  public addVariadicArgument<
+    NameT extends string,
+    TypeT extends ArgumentType = ArgumentType.STRING,
+  >(argConfig: {
+    name: NameT;
     description?: string;
-    type?: T;
-    defaultValue?: Array<ArgumentTypeToValueType<T>>;
-  }): this {
+    type?: TypeT;
+    defaultValue?: Array<ArgumentTypeToValueType<TypeT>>;
+  }): NewTaskDefinitionBuilder<
+    ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>
+  > {
     return this.#addPositionalArgument({
       ...argConfig,
       isVariadic: true,
@@ -158,27 +183,36 @@ export class NewTaskDefinitionBuilderImplementation
       type: TaskDefinitionType.NEW_TASK,
       id: this.#id,
       description: this.#description,
-      action: this.#action,
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- The type of the action is narrowed in the setAction function to
+      improve the argument types. Once the task is built, we use the more
+      general type to avoid having to parameterize the NewTaskDefinition */
+      action: this.#action as NewTaskActionFunction,
       options: this.#options,
       positionalArguments: this.#positionalArgs,
     };
   }
 
-  #addPositionalArgument<T extends ArgumentType>({
+  #addPositionalArgument<
+    NameT extends string,
+    TypeT extends ArgumentType = ArgumentType.STRING,
+  >({
     name,
     description = "",
     type,
     defaultValue,
     isVariadic,
   }: {
-    name: string;
+    name: NameT;
     description?: string;
-    type?: T;
+    type?: TypeT;
     defaultValue?:
-      | ArgumentTypeToValueType<T>
-      | Array<ArgumentTypeToValueType<T>>;
+      | ArgumentTypeToValueType<TypeT>
+      | Array<ArgumentTypeToValueType<TypeT>>;
     isVariadic: boolean;
-  }): this {
+  }): NewTaskDefinitionBuilder<
+    ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>
+  > {
     const argumentType = type ?? ArgumentType.STRING;
 
     const positionalArgDef = {
@@ -203,8 +237,9 @@ export class NewTaskDefinitionBuilderImplementation
   }
 }
 
-export class TaskOverrideDefinitionBuilderImplementation
-  implements TaskOverrideDefinitionBuilder
+export class TaskOverrideDefinitionBuilderImplementation<
+  TaskArgumentsT extends TaskArguments = TaskArguments,
+> implements TaskOverrideDefinitionBuilder<TaskArgumentsT>
 {
   readonly #id: string[];
 
@@ -212,7 +247,7 @@ export class TaskOverrideDefinitionBuilderImplementation
 
   #description?: string;
 
-  #action?: TaskOverrideActionFunction | string;
+  #action?: TaskOverrideActionFunction<TaskArgumentsT> | string;
 
   constructor(id: string | string[]) {
     validateId(id);
@@ -225,7 +260,9 @@ export class TaskOverrideDefinitionBuilderImplementation
     return this;
   }
 
-  public setAction(action: TaskOverrideActionFunction | string): this {
+  public setAction(
+    action: TaskOverrideActionFunction<TaskArgumentsT> | string,
+  ): this {
     validateAction(action);
 
     this.#action = action;
@@ -233,17 +270,22 @@ export class TaskOverrideDefinitionBuilderImplementation
     return this;
   }
 
-  public addOption<T extends ArgumentType>({
+  public addOption<
+    NameT extends string,
+    TypeT extends ArgumentType = ArgumentType.STRING,
+  >({
     name,
     description = "",
     type,
     defaultValue,
   }: {
-    name: string;
+    name: NameT;
     description?: string;
-    type?: T;
-    defaultValue: ArgumentTypeToValueType<T>;
-  }): this {
+    type?: TypeT;
+    defaultValue: ArgumentTypeToValueType<TypeT>;
+  }): TaskOverrideDefinitionBuilder<
+    ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>
+  > {
     const argumentType = type ?? ArgumentType.STRING;
 
     const optionDefinition = {
@@ -264,7 +306,12 @@ export class TaskOverrideDefinitionBuilderImplementation
     return this;
   }
 
-  public addFlag(flagConfig: { name: string; description?: string }): this {
+  public addFlag<NameT extends string>(flagConfig: {
+    name: string;
+    description?: string;
+  }): TaskOverrideDefinitionBuilder<
+    ExtendTaskArguments<NameT, ArgumentType.BOOLEAN, TaskArgumentsT>
+  > {
     return this.addOption({
       ...flagConfig,
       type: ArgumentType.BOOLEAN,
@@ -283,7 +330,11 @@ export class TaskOverrideDefinitionBuilderImplementation
       type: TaskDefinitionType.TASK_OVERRIDE,
       id: this.#id,
       description: this.#description,
-      action: this.#action,
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- The type of the action is narrowed in the setAction function to
+      improve the argument types. Once the task is built, we use the more
+      general type to avoid having to parameterize the TaskOverrideDefinition */
+      action: this.#action as TaskOverrideActionFunction,
       options: this.#options,
     };
   }

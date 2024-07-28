@@ -3,26 +3,18 @@ import type { NewTaskActionFunction } from "@ignored/hardhat-vnext-core/types/ta
 import { isAbsolute, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import {
-  HardhatError,
-  assertHardhatInvariant,
-} from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { exists } from "@ignored/hardhat-vnext-utils/fs";
 
-const runScriptWithHardhat: NewTaskActionFunction = async (
+interface RunActionArguments {
+  script: string;
+  noCompile: boolean;
+}
+
+const runScriptWithHardhat: NewTaskActionFunction<RunActionArguments> = async (
   { script, noCompile },
   _hre,
 ) => {
-  assertHardhatInvariant(
-    typeof script === "string",
-    "Expected script to be a string",
-  );
-
-  assertHardhatInvariant(
-    typeof noCompile === "boolean",
-    "Expected noCompile to be a boolean",
-  );
-
   const normalizedPath = isAbsolute(script)
     ? script
     : resolve(process.cwd(), script);
