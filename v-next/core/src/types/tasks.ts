@@ -131,6 +131,9 @@ export type TaskDefinition =
   | NewTaskDefinition
   | TaskOverrideDefinition;
 
+/**
+ * This helper type adds an argument to an existing TaskArgumentsT.
+ **/
 export type ExtendTaskArguments<
   NameT extends string,
   TypeT extends ArgumentType,
