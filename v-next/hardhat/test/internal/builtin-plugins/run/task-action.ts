@@ -9,7 +9,7 @@ import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import runScriptWithHardhat from "../../../../src/internal/builtin-plugins/run/task-action.js";
 import { useFixtureProject } from "../../../helpers/project.js";
 
-describe("runScriptWithHardhat", function () {
+describe("run/task-action", function () {
   let hre: HardhatRuntimeEnvironment;
 
   before(async function () {

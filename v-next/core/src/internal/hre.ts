@@ -196,6 +196,8 @@ async function resolveUserConfig(
     tasks: config.tasks ?? [],
     paths: {
       root: projectRoot,
+      cache: config.paths?.cache ?? "", // TODO: resolve cache path
+      artifacts: config.paths?.artifacts ?? "", // TODO: resolve artifacts path
     },
   };
 
