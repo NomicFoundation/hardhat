@@ -114,6 +114,7 @@ export async function createProvider(
           paths !== undefined ? getForkCacheDirPath(paths) : undefined,
         enableTransientStorage:
           hardhatNetConfig.enableTransientStorage ?? false,
+        enableRip7212: hardhatNetConfig.enableRip7212 ?? false,
       },
       {
         enabled: hardhatNetConfig.loggingEnabled,

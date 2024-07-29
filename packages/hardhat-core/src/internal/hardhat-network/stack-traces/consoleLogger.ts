@@ -42,113 +42,61 @@ import {
   Bytes8Ty,
   Bytes9Ty,
   BytesTy,
-  ConsoleLogs,
   Int256Ty,
   StringTy,
   Uint256Ty,
+  CONSOLE_LOG_SIGNATURES,
 } from "./logger";
-import {
-  EvmMessageTrace,
-  isCallTrace,
-  isEvmStep,
-  isPrecompileTrace,
-  MessageTrace,
-} from "./message-trace";
 
-const CONSOLE_ADDRESS = "0x000000000000000000636F6e736F6c652e6c6f67"; // toHex("console.log")
 const REGISTER_SIZE = 32;
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface ConsoleLogArray extends Array<ConsoleLogEntry> {}
-
-export type ConsoleLogEntry = string | ConsoleLogArray;
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export type ConsoleLogs = ConsoleLogEntry[];
+/** The decoded string representation of the arguments supplied to console.log */
+export type ConsoleLogArgs = string[];
+export type ConsoleLogs = ConsoleLogArgs[];
 
 export class ConsoleLogger {
-  private readonly _consoleLogs: {
-    [key: number]: string[];
-  } = {};
-
-  constructor() {
-    this._consoleLogs = ConsoleLogs;
-  }
-
-  public getLogMessages(maybeDecodedMessageTrace: MessageTrace): string[] {
-    return this.getExecutionLogs(maybeDecodedMessageTrace).map(
-      consoleLogToString
-    );
-  }
-
-  public getExecutionLogs(
-    maybeDecodedMessageTrace: MessageTrace
-  ): ConsoleLogs[] {
-    if (isPrecompileTrace(maybeDecodedMessageTrace)) {
-      return [];
-    }
-
-    const logs: ConsoleLogs[] = [];
-    this._collectExecutionLogs(maybeDecodedMessageTrace, logs);
-    return logs;
-  }
-
-  private _collectExecutionLogs(trace: EvmMessageTrace, logs: ConsoleLogs) {
-    for (const messageTrace of trace.steps) {
-      if (isEvmStep(messageTrace) || isPrecompileTrace(messageTrace)) {
-        continue;
-      }
-
-      if (
-        isCallTrace(messageTrace) &&
-        bufferToHex(messageTrace.address) === CONSOLE_ADDRESS.toLowerCase()
-      ) {
-        const log = this._maybeConsoleLog(Buffer.from(messageTrace.calldata));
-        if (log !== undefined) {
-          logs.push(log);
-        }
-
-        continue;
-      }
-
-      this._collectExecutionLogs(messageTrace, logs);
-    }
-  }
-
   /**
    * Temporary code to print console.sol messages that come from EDR
    */
-  public getDecodedLogs(messages: Buffer[]): string[] {
+  public static getDecodedLogs(messages: Buffer[]): string[] {
     const logs: string[] = [];
 
     for (const message of messages) {
-      const log = this._maybeConsoleLog(message);
+      const log = ConsoleLogger._maybeConsoleLog(message);
       if (log !== undefined) {
-        logs.push(consoleLogToString(log));
+        logs.push(ConsoleLogger.format(log));
       }
     }
 
     return logs;
   }
 
-  private _maybeConsoleLog(calldata: Buffer): ConsoleLogs | undefined {
-    const sig = bytesToInt(calldata.slice(0, 4));
+  /**
+   * Returns a formatted string using the first argument as a `printf`-like
+   * format string which can contain zero or more format specifiers.
+   *
+   * If there are more arguments passed than the number of specifiers, the
+   * extra arguments are concatenated to the returned string, separated by spaces.
+   */
+  public static format(args: ConsoleLogArgs = []): string {
+    return util.format(...args);
+  }
+
+  private static _maybeConsoleLog(
+    calldata: Buffer
+  ): ConsoleLogArgs | undefined {
+    const selector = bytesToInt(calldata.slice(0, 4));
     const parameters = calldata.slice(4);
 
-    const types = this._consoleLogs[sig];
-    if (types === undefined) {
+    const argTypes = CONSOLE_LOG_SIGNATURES[selector];
+    if (argTypes === undefined) {
       return;
     }
 
-    const consoleLogs = this._decode(parameters, types);
+    const decodedArgs = ConsoleLogger._decode(parameters, argTypes);
 
-    this._replaceNumberFormatSpecifiers(consoleLogs);
-
-    return consoleLogs;
-  }
-
-  private _replaceNumberFormatSpecifiers(consoleLogs: ConsoleLogs) {
     /**
+     * The first argument is interpreted as the format string, which may need adjusting.
      * Replace the occurrences of %d and %i with %s. This is necessary because if the arguments passed are numbers,
      * they could be too large to be formatted as a Number or an Integer, so it is safer to use a String.
      * %d and %i are replaced only if there is an odd number of % before the d or i.
@@ -160,15 +108,18 @@ export class ConsoleLogger {
      * (?<!%) negative look-behind to make this work.
      * The (?:) is just to avoid capturing that inner group.
      */
-    if (consoleLogs.length > 0 && typeof consoleLogs[0] === "string") {
-      consoleLogs[0] = consoleLogs[0].replace(
+    if (decodedArgs.length > 0) {
+      decodedArgs[0] = decodedArgs[0].replace(
         /((?<!%)(?:%%)*)(%[di])/g,
         "$1%s"
       );
     }
+
+    return decodedArgs;
   }
 
-  private _decode(data: Buffer, types: string[]): ConsoleLogs {
+  /** Decodes parameters from `data` according to `types` into their string representation. */
+  private static _decode(data: Buffer, types: string[]): string[] {
     return types.map((type, i) => {
       const position: number = i * 32;
       switch (types[i]) {
@@ -281,17 +232,4 @@ export class ConsoleLogger {
       }
     });
   }
-}
-
-export function consoleLogToString(log: ConsoleLogs): string {
-  if (log === undefined) {
-    return "";
-  }
-
-  // special case for console.log()
-  if (log.length === 0) {
-    return "";
-  }
-
-  return util.format(log[0], ...log.slice(1));
 }

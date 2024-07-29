@@ -7,7 +7,10 @@ contract C {
   receive() external  payable {
 
 
-    revert();
+    // always true, used to prevent optimizations
+    if (msg.value == 0) {
+      revert();
+    }
     i += 1;
   }
 

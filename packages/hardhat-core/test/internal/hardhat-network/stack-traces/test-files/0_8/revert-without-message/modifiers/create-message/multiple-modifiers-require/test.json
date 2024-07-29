@@ -3,7 +3,7 @@
     {
       "file": "c.sol",
       "contract": "C",
-      "params": [false],
+      "params": [false, true],
       "stackTrace": [
         {
           "type": "CALLSTACK_ENTRY",
