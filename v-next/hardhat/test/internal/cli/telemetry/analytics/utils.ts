@@ -11,7 +11,7 @@ import {
   writeJsonFile,
 } from "@ignored/hardhat-vnext-utils/fs";
 
-import { getClientId } from "../../../../../src/internal/cli/telemetry/analytics/utils.js";
+import { getAnalyticsClientId } from "../../../../../src/internal/cli/telemetry/analytics/utils.js";
 
 const CLIENT_ID = "test-client-id";
 
@@ -50,7 +50,7 @@ describe("telemetry/analytics/utils", () => {
     });
 
     it("should generate a new analytics clientId because the clientId is not yet defined", async () => {
-      const analyticsClientId = await getClientId();
+      const analyticsClientId = await getAnalyticsClientId();
 
       // The analyticsClientId should be generate as uuid
       assert.notEqual(analyticsClientId, undefined);

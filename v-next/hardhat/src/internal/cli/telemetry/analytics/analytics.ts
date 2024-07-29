@@ -12,7 +12,7 @@ import { spawnDetachedSubProcess } from "@ignored/hardhat-vnext-utils/subprocess
 import { getHardhatVersion } from "../../../utils/package.js";
 import { getTelemetryConsent } from "../telemetry-consent.js";
 
-import { getClientId } from "./utils.js";
+import { getAnalyticsClientId } from "./utils.js";
 
 // TODO:log const log = debug("hardhat:core:global-dir");
 
@@ -84,7 +84,7 @@ async function buildPayload(
   eventName: EventNames,
   eventParams: TaskParams,
 ): Promise<Payload> {
-  const clientId = await getClientId();
+  const clientId = await getAnalyticsClientId();
 
   return {
     client_id: clientId,

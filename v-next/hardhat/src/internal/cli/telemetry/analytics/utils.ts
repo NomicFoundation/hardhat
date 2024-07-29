@@ -11,21 +11,21 @@ import {
 
 const ANALYTICS_FILE_NAME = "analytics.json";
 
-export async function getClientId(): Promise<string> {
-  let clientId = await readAnalyticsId();
+export async function getAnalyticsClientId(): Promise<string> {
+  let clientId = await readAnalyticsClientId();
 
   if (clientId === undefined) {
     const { v4: uuid } = await import("uuid");
     // TODO:log log("Client Id not found, generating a new one");
     clientId = uuid();
 
-    await writeAnalyticsId(clientId);
+    await writeAnalyticsClientId(clientId);
   }
 
   return clientId;
 }
 
-async function readAnalyticsId(): Promise<string | undefined> {
+async function readAnalyticsClientId(): Promise<string | undefined> {
   const globalTelemetryDir = await getTelemetryDir();
   const filePath = path.join(globalTelemetryDir, ANALYTICS_FILE_NAME);
 
@@ -42,7 +42,7 @@ async function readAnalyticsId(): Promise<string | undefined> {
   return clientId;
 }
 
-async function writeAnalyticsId(clientId: string): Promise<void> {
+async function writeAnalyticsClientId(clientId: string): Promise<void> {
   const globalTelemetryDir = await getTelemetryDir();
   const filePath = path.join(globalTelemetryDir, ANALYTICS_FILE_NAME);
   await writeJsonFile(filePath, {
