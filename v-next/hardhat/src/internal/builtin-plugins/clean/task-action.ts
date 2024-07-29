@@ -18,9 +18,6 @@ const cleanAction: NewTaskActionFunction<CleanActionArguments> = async (
 
   await emptyDir(config.paths.cache);
   await remove(config.paths.artifacts);
-
-  // TODO: Uncomment this when we have a clearCache method in the artifacts module
-  // artifacts.clearCache?.();
 };
 
 export default cleanAction;
