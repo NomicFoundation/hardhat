@@ -36,7 +36,7 @@ export type EventNames = "task";
 
 export interface TaskParams {
   task: string;
-  scope?: string;
+  subtask?: string;
 }
 
 export interface Payload extends BasePayload {

@@ -42,12 +42,12 @@ export async function sendTelemetryConsentAnalytics(
 }
 
 export async function sendTaskAnalytics(
-  taskName: string,
-  scopeName: string | undefined,
+  taskId: string,
+  subtaskId: string | undefined,
 ): Promise<boolean> {
   const eventParams: TaskParams = {
-    task: taskName,
-    scope: scopeName,
+    task: taskId,
+    subtask: subtaskId,
   };
 
   return sendAnalytics("task", eventParams);

@@ -143,7 +143,7 @@ describe("analytics", () => {
     it("should create the correct payload for the task analytics", async () => {
       await setTelemetryConsentFile(true);
 
-      const wasSent = await sendTaskAnalytics("hardhat", "compile");
+      const wasSent = await sendTaskAnalytics("taskId", "subtaskId");
 
       await checkIfSubprocessWasExecuted();
 
@@ -164,8 +164,8 @@ describe("analytics", () => {
       assert.equal(result.events[0].name, "task");
       assert.equal(result.events[0].params.engagement_time_msec, "10000");
       assert.notEqual(result.events[0].params.session_id, undefined);
-      assert.equal(result.events[0].params.task, "hardhat");
-      assert.equal(result.events[0].params.scope, "compile");
+      assert.equal(result.events[0].params.task, "taskId");
+      assert.equal(result.events[0].params.subtask, "subtaskId");
     });
   });
 });
