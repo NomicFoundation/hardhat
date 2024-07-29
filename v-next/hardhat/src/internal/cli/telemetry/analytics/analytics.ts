@@ -41,13 +41,9 @@ export async function sendTelemetryConsentAnalytics(
   await createSubprocessToSendAnalytics(payload);
 }
 
-export async function sendTaskAnalytics(
-  taskId: string,
-  subtaskId: string | undefined,
-): Promise<boolean> {
+export async function sendTaskAnalytics(taskId: string[]): Promise<boolean> {
   const eventParams: TaskParams = {
-    task: taskId,
-    subtask: subtaskId,
+    task: taskId.join(", "),
   };
 
   return sendAnalytics("task", eventParams);
