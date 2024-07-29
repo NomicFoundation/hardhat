@@ -15,8 +15,6 @@ const PATH_TO_RESULT_FILE = path.join(
   "result.json",
 );
 
-(() => {
-  const stringifiedPayload = process.argv[2];
+const stringifiedPayload = process.argv[2];
 
-  writeFileSync(PATH_TO_RESULT_FILE, stringifiedPayload);
-})();
+writeFileSync(PATH_TO_RESULT_FILE, stringifiedPayload);
