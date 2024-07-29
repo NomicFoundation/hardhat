@@ -15,9 +15,8 @@ export async function getAnalyticsClientId(): Promise<string> {
   let clientId = await readAnalyticsClientId();
 
   if (clientId === undefined) {
-    const { v4: uuid } = await import("uuid");
     // TODO:log log("Client Id not found, generating a new one");
-    clientId = uuid();
+    clientId = crypto.randomUUID();
 
     await writeAnalyticsClientId(clientId);
   }
