@@ -103,6 +103,8 @@ describe("HookManager", () => {
             plugins: [],
             paths: {
               root: projectRoot,
+              cache: "",
+              artifacts: "",
             },
           },
           hooks: hookManager,
@@ -171,6 +173,8 @@ describe("HookManager", () => {
           tasks: [],
           paths: {
             root: projectRoot,
+            cache: "",
+            artifacts: "",
           },
         };
 
@@ -224,6 +228,8 @@ describe("HookManager", () => {
           tasks: [],
           paths: {
             root: projectRoot,
+            cache: "",
+            artifacts: "",
           },
         };
 
@@ -327,6 +333,8 @@ describe("HookManager", () => {
             plugins: [],
             paths: {
               root: projectRoot,
+              cache: "",
+              artifacts: "",
             },
           },
           hooks: hookManager,
@@ -345,6 +353,8 @@ describe("HookManager", () => {
           tasks: [],
           paths: {
             root: projectRoot,
+            cache: "",
+            artifacts: "",
           },
         };
 
@@ -429,6 +439,8 @@ describe("HookManager", () => {
           tasks: [],
           paths: {
             root: projectRoot,
+            cache: "",
+            artifacts: "",
           },
         };
 
@@ -550,6 +562,8 @@ describe("HookManager", () => {
             plugins: [],
             paths: {
               root: projectRoot,
+              cache: "",
+              artifacts: "",
             },
           },
           hooks: hookManager,
@@ -642,6 +656,8 @@ describe("HookManager", () => {
           tasks: [],
           paths: {
             root: projectRoot,
+            cache: "",
+            artifacts: "",
           },
         };
 
@@ -684,6 +700,8 @@ describe("HookManager", () => {
             plugins: [],
             paths: {
               root: projectRoot,
+              cache: "",
+              artifacts: "",
             },
           },
           hooks: hookManager,
@@ -700,6 +718,8 @@ describe("HookManager", () => {
           tasks: [],
           paths: {
             root: projectRoot,
+            cache: "",
+            artifacts: "",
           },
         };
 
@@ -718,6 +738,8 @@ describe("HookManager", () => {
           tasks: [],
           paths: {
             root: projectRoot,
+            cache: "",
+            artifacts: "",
           },
         };
 
@@ -801,6 +823,8 @@ describe("HookManager", () => {
           tasks: [],
           paths: {
             root: projectRoot,
+            cache: "",
+            artifacts: "",
           },
         };
 
@@ -843,6 +867,8 @@ describe("HookManager", () => {
             plugins: [],
             paths: {
               root: projectRoot,
+              cache: "",
+              artifacts: "",
             },
           },
           hooks: hookManager,
@@ -1002,6 +1028,8 @@ function buildMockHardhatRuntimeEnvironment(
       plugins: [],
       paths: {
         root: projectRoot,
+        cache: "",
+        artifacts: "",
       },
     },
     tasks: mockTaskManager,

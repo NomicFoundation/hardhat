@@ -52,8 +52,11 @@ export interface HardhatUserConfig {
 /**
  * The different paths that conform a Hardhat project.
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-interface -- TODO: add the paths
-export interface ProjectPathsUserConfig {}
+export interface ProjectPathsUserConfig {
+  root?: string;
+  cache?: string;
+  artifacts?: string;
+}
 
 /**
  * The resolved Hardhat configuration.
@@ -64,4 +67,6 @@ export interface HardhatConfig {
 
 export interface ProjectPathsConfig {
   root: string;
+  cache: string;
+  artifacts: string;
 }

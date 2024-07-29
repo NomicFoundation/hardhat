@@ -3,16 +3,12 @@ import type { HardhatPlugin } from "@ignored/hardhat-vnext-core/types/plugins";
 import { task } from "@ignored/hardhat-vnext-core/config";
 
 const hardhatPlugin: HardhatPlugin = {
-  id: "run",
+  id: "clean",
   tasks: [
-    task("run", "Runs a user-defined script after compiling the project")
-      .addPositionalArgument({
-        name: "script",
-        description: "A js or ts file to be run within hardhat's environment",
-      })
+    task("clean", "Clears the cache and deletes all artifacts")
       .addFlag({
-        name: "noCompile",
-        description: "Don't compile before running this task",
+        name: "global",
+        description: "Clear the global cache",
       })
       .setAction(import.meta.resolve("./task-action.js"))
       .build(),

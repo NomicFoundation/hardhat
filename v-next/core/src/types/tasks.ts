@@ -2,7 +2,6 @@ import type {
   OptionDefinition,
   ArgumentType,
   ArgumentTypeToValueType,
-  ArgumentValue,
   PositionalArgumentDefinition,
 } from "./arguments.js";
 import type { HardhatRuntimeEnvironment } from "./hre.js";
@@ -33,27 +32,36 @@ declare module "./config.js" {
  * A type representing the concrete arguments of a task. That is,
  * the actual values passed to it.
  */
-export type TaskArguments = Record<string, ArgumentValue | ArgumentValue[]>;
+export type TaskArguments = Record<string, any>;
 
 /**
  * The type of a new task's action function.
  *
  * This type doesn't have access to `runSuper`, as this task isn't overriding
  * another one.
+ *
+ * A TaskArgumentsT type parameter can be passed to obtain precise argument
+ * types. This is useful within the `setAction` method of the task builder, as
+ * it allows inferring the types of the action function's arguments.
  */
-export type NewTaskActionFunction = (
-  taskArguments: TaskArguments,
-  hre: HardhatRuntimeEnvironment,
-) => any;
+export type NewTaskActionFunction<
+  TaskArgumentsT extends TaskArguments = TaskArguments,
+> = (taskArguments: TaskArgumentsT, hre: HardhatRuntimeEnvironment) => any;
 
 /**
  * The type of an override task's action function.
  *
  * This type has access to `runSuper`, which is a function that runs the
  * original task.
+ *
+ * A TaskArgumentsT type parameter can be passed to obtain precise argument
+ * types. This is useful within the `setAction` method of the task builder, as
+ * it allows inferring the types of the action function's arguments.
  */
-export type TaskOverrideActionFunction = (
-  taskArguments: TaskArguments,
+export type TaskOverrideActionFunction<
+  TaskArgumentsT extends TaskArguments = TaskArguments,
+> = (
+  taskArguments: TaskArgumentsT & TaskArguments,
   hre: HardhatRuntimeEnvironment,
   runSuper: (taskArguments: TaskArguments) => Promise<any>,
 ) => any;
@@ -124,6 +132,15 @@ export type TaskDefinition =
   | TaskOverrideDefinition;
 
 /**
+ * This helper type adds an argument to an existing TaskArgumentsT.
+ **/
+export type ExtendTaskArguments<
+  NameT extends string,
+  TypeT extends ArgumentType,
+  TaskArgumentsT extends TaskArguments,
+> = Record<NameT, ArgumentTypeToValueType<TypeT>> & TaskArgumentsT;
+
+/**
  * A builder for creating EmptyTaskDefinitions.
  */
 export interface EmptyTaskDefinitionBuilder {
@@ -141,7 +158,9 @@ export interface EmptyTaskDefinitionBuilder {
 /**
  * A builder for creating NewTaskDefinitions.
  */
-export interface NewTaskDefinitionBuilder {
+export interface NewTaskDefinitionBuilder<
+  TaskArgumentsT extends TaskArguments = TaskArguments,
+> {
   /**
    * Sets the description of the task.
    */
@@ -156,7 +175,7 @@ export interface NewTaskDefinitionBuilder {
    * Note that plugins can only use the inline function form for development
    * purposes.
    */
-  setAction(action: NewTaskActionFunction | string): this;
+  setAction(action: NewTaskActionFunction<TaskArgumentsT> | string): this;
 
   /**
    * Adds an option to the task.
@@ -171,17 +190,27 @@ export interface NewTaskDefinitionBuilder {
    *
    * The default value should be of the same type as the argument.
    */
-  addOption<T extends ArgumentType>(optionConfig: {
-    name: string;
+  addOption<
+    NameT extends string,
+    TypeT extends ArgumentType = ArgumentType.STRING,
+  >(optionConfig: {
+    name: NameT;
     description?: string;
-    type?: T;
-    defaultValue: ArgumentTypeToValueType<T>;
-  }): this;
+    type?: TypeT;
+    defaultValue: ArgumentTypeToValueType<TypeT>;
+  }): NewTaskDefinitionBuilder<
+    ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>
+  >;
 
   /**
    * Adds an option of boolean type and default value false.
    */
-  addFlag(flagConfig: { name: string; description?: string }): this;
+  addFlag<NameT extends string>(flagConfig: {
+    name: NameT;
+    description?: string;
+  }): NewTaskDefinitionBuilder<
+    ExtendTaskArguments<NameT, ArgumentType.BOOLEAN, TaskArgumentsT>
+  >;
 
   /**
    * Adds a positional argument to the task.
@@ -199,12 +228,17 @@ export interface NewTaskDefinitionBuilder {
    * optional, and any other positional arguments after it must also be
    * optional.
    */
-  addPositionalArgument<T extends ArgumentType>(argConfig: {
-    name: string;
+  addPositionalArgument<
+    NameT extends string,
+    TypeT extends ArgumentType = ArgumentType.STRING,
+  >(argConfig: {
+    name: NameT;
     description?: string;
-    type?: T;
-    defaultValue?: ArgumentTypeToValueType<T>;
-  }): this;
+    type?: TypeT;
+    defaultValue?: ArgumentTypeToValueType<TypeT>;
+  }): NewTaskDefinitionBuilder<
+    ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>
+  >;
 
   /**
    * Adds a variadic positional argument to the task.
@@ -220,12 +254,17 @@ export interface NewTaskDefinitionBuilder {
    * Note that this argument must be the last positional argument. No other
    * positional argument can follow it, including variadic arguments.
    */
-  addVariadicArgument<T extends ArgumentType>(argConfig: {
-    name: string;
+  addVariadicArgument<
+    NameT extends string,
+    TypeT extends ArgumentType = ArgumentType.STRING,
+  >(argConfig: {
+    name: NameT;
     description?: string;
-    type?: T;
-    defaultValue?: Array<ArgumentTypeToValueType<T>>;
-  }): this;
+    type?: TypeT;
+    defaultValue?: Array<ArgumentTypeToValueType<TypeT>>;
+  }): NewTaskDefinitionBuilder<
+    ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>
+  >;
 
   /**
    * Builds the NewTaskDefinition.
@@ -236,7 +275,9 @@ export interface NewTaskDefinitionBuilder {
 /**
  * A builder for overriding existing tasks.
  */
-export interface TaskOverrideDefinitionBuilder {
+export interface TaskOverrideDefinitionBuilder<
+  TaskArgumentsT extends TaskArguments = TaskArguments,
+> {
   /**
    * Sets a new description for the task.
    */
@@ -247,24 +288,34 @@ export interface TaskOverrideDefinitionBuilder {
    *
    * @see NewTaskDefinitionBuilder.setAction
    */
-  setAction(action: TaskOverrideActionFunction | string): this;
+  setAction(action: TaskOverrideActionFunction<TaskArgumentsT> | string): this;
 
   /**
    * Adds a new option to the task.
    *
    * @see NewTaskDefinitionBuilder.addOption
    */
-  addOption<T extends ArgumentType>(optionConfig: {
-    name: string;
+  addOption<
+    NameT extends string,
+    TypeT extends ArgumentType = ArgumentType.STRING,
+  >(optionConfig: {
+    name: NameT;
     description?: string;
-    type?: T;
-    defaultValue: ArgumentTypeToValueType<T>;
-  }): this;
+    type?: TypeT;
+    defaultValue: ArgumentTypeToValueType<TypeT>;
+  }): TaskOverrideDefinitionBuilder<
+    ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>
+  >;
 
   /**
    * Adds an option of boolean type and default value false.
    */
-  addFlag(flagConfig: { name: string; description?: string }): this;
+  addFlag<NameT extends string>(flagConfig: {
+    name: NameT;
+    description?: string;
+  }): TaskOverrideDefinitionBuilder<
+    ExtendTaskArguments<NameT, ArgumentType.BOOLEAN, TaskArgumentsT>
+  >;
 
   /**
    * Builds the TaskOverrideDefinition.

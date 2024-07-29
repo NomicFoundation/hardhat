@@ -30,6 +30,8 @@ describe("UserInterruptionManager", () => {
           plugins: [],
           paths: {
             root: projectRoot,
+            cache: "",
+            artifacts: "",
           },
         },
         globalOptions: {},
@@ -74,6 +76,8 @@ describe("UserInterruptionManager", () => {
           plugins: [],
           paths: {
             root: projectRoot,
+            cache: "",
+            artifacts: "",
           },
         },
         globalOptions: {},
@@ -120,6 +124,8 @@ describe("UserInterruptionManager", () => {
           plugins: [],
           paths: {
             root: projectRoot,
+            cache: "",
+            artifacts: "",
           },
         },
         globalOptions: {},
