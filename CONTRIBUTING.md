@@ -119,8 +119,8 @@ Unlike linking, if you make a change in the code, you'll need to repeat the proc
 
 An even more realistic way of using your local changes in a project is to use [`pnpm pack`](https://pnpm.io/cli/pack):
 
-1. Go to `packages/hardhat-core` and run `pnpm pack`. This will create a `nomiclabs-hardhat-x.y.z.tgz` file in that directory.
-2. Go to some hardhat project and run `npm install /path/to/hardhat/packages/hardhat/nomiclabs-hardhat-x.y.z.tgz`.
+1. Go to `packages/hardhat-core` and run `pnpm pack`. This will create a `hardhat-x.y.z.tgz` file in that directory.
+2. Go to some hardhat project and run `npm install /path/to/hardhat/packages/hardhat-core/hardhat-x.y.z.tgz`.
 
 Unlike linking, if you make a change in the code, you'll need to repeat the process.
 
