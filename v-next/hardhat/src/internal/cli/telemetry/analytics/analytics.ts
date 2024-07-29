@@ -12,7 +12,7 @@ import { spawnDetachedSubProcess } from "@ignored/hardhat-vnext-utils/subprocess
 import { getHardhatVersion } from "../../../utils/package.js";
 import { getTelemetryConsent } from "../telemetry-consent.js";
 
-import { getClientId, getUserType } from "./utils.js";
+import { getClientId } from "./utils.js";
 
 // TODO:log const log = debug("hardhat:core:global-dir");
 
@@ -91,7 +91,6 @@ async function buildPayload(
     user_id: clientId,
     user_properties: {
       projectId: { value: "hardhat-project" },
-      userType: { value: getUserType() },
       hardhatVersion: { value: await getHardhatVersion() },
       operatingSystem: { value: os.platform() },
       nodeVersion: { value: process.version },

@@ -44,9 +44,6 @@ export interface Payload extends BasePayload {
     projectId: {
       value: string;
     };
-    userType: {
-      value: string;
-    };
     hardhatVersion: {
       value: string;
     };

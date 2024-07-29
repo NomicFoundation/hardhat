@@ -4,7 +4,6 @@ import os from "node:os";
 import path from "node:path";
 
 import { getTelemetryDir } from "@ignored/hardhat-vnext-core/global-dir";
-import { isCi } from "@ignored/hardhat-vnext-utils/ci";
 import {
   exists,
   readJsonFile,
@@ -32,10 +31,6 @@ export async function getClientId(): Promise<string> {
   }
 
   return clientId;
-}
-
-export function getUserType(): string {
-  return isCi() ? "CI" : "Developer";
 }
 
 async function readAnalyticsId(): Promise<string | undefined> {

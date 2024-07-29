@@ -6,17 +6,13 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, it } from "node:test";
 
 import { getTelemetryDir } from "@ignored/hardhat-vnext-core/global-dir";
-import { isCi } from "@ignored/hardhat-vnext-utils/ci";
 import {
   readJsonFile,
   remove,
   writeJsonFile,
 } from "@ignored/hardhat-vnext-utils/fs";
 
-import {
-  getClientId,
-  getUserType,
-} from "../../../../../src/internal/cli/telemetry/analytics/utils.js";
+import { getClientId } from "../../../../../src/internal/cli/telemetry/analytics/utils.js";
 
 const ANALYTICS_FILE_NAME = "analytics.json";
 
@@ -114,10 +110,5 @@ describe("telemetry/analytics/utils", () => {
       assert.equal(clientId, CLIENT_ID_SECOND_LEGACY);
       assert.equal(clientId, await getClientIdFromFile("current"));
     });
-  });
-
-  it("should return the correct user type", () => {
-    const userType = isCi() ? "CI" : "Developer";
-    assert.equal(getUserType(), userType);
   });
 });

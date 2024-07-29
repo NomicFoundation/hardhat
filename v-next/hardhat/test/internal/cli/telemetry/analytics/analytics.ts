@@ -155,7 +155,6 @@ describe("analytics", () => {
       assert.notEqual(result.client_id, undefined);
       assert.notEqual(result.user_id, undefined);
       assert.equal(result.user_properties.projectId.value, "hardhat-project");
-      assert.equal(result.user_properties.userType.value, "Developer");
       assert.equal(
         result.user_properties.hardhatVersion.value,
         await getHardhatVersion(),
