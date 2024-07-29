@@ -861,7 +861,7 @@ importers:
   packages/hardhat-solhint:
     dependencies:
       solhint:
-        specifier: ^3.4.0
+        specifier: ^3.6.2
         version: 3.6.2(typescript@5.0.4)
     devDependencies:
       '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
