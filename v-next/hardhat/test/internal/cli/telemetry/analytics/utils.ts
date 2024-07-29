@@ -1,7 +1,6 @@
 import type { AnalyticsFile } from "../../../../../src/internal/cli/telemetry/analytics/types.js";
 
 import assert from "node:assert/strict";
-import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, it } from "node:test";
 
@@ -14,101 +13,57 @@ import {
 
 import { getClientId } from "../../../../../src/internal/cli/telemetry/analytics/utils.js";
 
-const ANALYTICS_FILE_NAME = "analytics.json";
+const CLIENT_ID = "test-client-id";
 
-type FileType = "current" | "firstLegacy" | "secondLegacy";
-
-const CLIENT_ID_CURRENT = "from-current-file";
-const CLIENT_ID_FIRST_LEGACY = "from-first-legacy-file";
-const CLIENT_ID_SECOND_LEGACY = "from-second-legacy-file";
-
-async function createClientIdFile(fileType: FileType) {
-  const [filePath, clientId] = await getFileInfo(fileType);
+async function createClientIdFile() {
+  const filePath = await getFilePath();
   await writeJsonFile(filePath, {
     analytics: {
-      clientId,
+      clientId: CLIENT_ID,
     },
   });
 }
 
-async function getClientIdFromFile(fileType: FileType) {
-  const data: AnalyticsFile = await readJsonFile(
-    (await getFileInfo(fileType))[0],
-  );
-
+async function getClientIdFromFile() {
+  const filePath = await getFilePath();
+  const data: AnalyticsFile = await readJsonFile(filePath);
   return data.analytics.clientId;
 }
 
-async function deleteClientIdFile(fileType: FileType) {
-  const [filePath] = await getFileInfo(fileType);
+async function deleteClientIdFile() {
+  const filePath = await getFilePath();
   await remove(filePath);
 }
 
-async function getFileInfo(fileType: FileType) {
-  let filePath: string;
-  let clientId: string;
-
-  if (fileType === "current") {
-    filePath = path.join(await getTelemetryDir(), ANALYTICS_FILE_NAME);
-    clientId = CLIENT_ID_CURRENT;
-  } else if (fileType === "firstLegacy") {
-    filePath = path.join(os.homedir(), ".buidler", "config.json");
-    clientId = CLIENT_ID_FIRST_LEGACY;
-  } else {
-    filePath = path.join(await getTelemetryDir("buidler"), ANALYTICS_FILE_NAME);
-    clientId = CLIENT_ID_SECOND_LEGACY;
-  }
-
-  return [filePath, clientId];
+async function getFilePath() {
+  return path.join(await getTelemetryDir(), "analytics.json");
 }
 
 describe("telemetry/analytics/utils", () => {
-  describe("clientId", () => {
+  describe("analyticsClientId", () => {
     beforeEach(async () => {
-      await deleteClientIdFile("current");
-      await deleteClientIdFile("firstLegacy");
-      await deleteClientIdFile("secondLegacy");
+      await deleteClientIdFile();
     });
 
     afterEach(async () => {
-      await deleteClientIdFile("current");
-      await deleteClientIdFile("firstLegacy");
-      await deleteClientIdFile("secondLegacy");
+      await deleteClientIdFile();
     });
 
-    it("should set a new clientId because the value is not yet defined", async () => {
-      const clientId = await getClientId();
+    it("should generate a new analytics clientId because the clientId is not yet defined", async () => {
+      const analyticsClientId = await getClientId();
 
-      // The clientId should be generate as uuid
-      assert.notEqual(clientId, undefined);
-      assert.notEqual(clientId, CLIENT_ID_CURRENT);
-      assert.notEqual(clientId, CLIENT_ID_FIRST_LEGACY);
-      assert.notEqual(clientId, CLIENT_ID_SECOND_LEGACY);
-
-      // The clientId should also be saved in the file
-      assert.equal(clientId, await getClientIdFromFile("current"));
+      // The analyticsClientId should be generate as uuid
+      assert.notEqual(analyticsClientId, undefined);
+      assert.notEqual(analyticsClientId, CLIENT_ID);
+      // The analyticsClientId should also be saved in the file
+      assert.equal(analyticsClientId, await getClientIdFromFile());
     });
 
-    it("should get the 'current' clientId because it already exists", async () => {
-      await createClientIdFile("current");
-      const clientId = await getClientId();
-      assert.equal(clientId, CLIENT_ID_CURRENT);
-    });
+    it("should get the analyticsClientId from the file because it already exists", async () => {
+      await createClientIdFile();
+      const analyticsClientId = await getClientIdFromFile();
 
-    it("should get the 'firstLegacy' clientId because it already exists and store it the new analytics file (current)", async () => {
-      await createClientIdFile("firstLegacy");
-
-      const clientId = await getClientId();
-      assert.equal(clientId, CLIENT_ID_FIRST_LEGACY);
-      assert.equal(clientId, await getClientIdFromFile("current"));
-    });
-
-    it("should get the 'secondLegacy' clientId because it already exists and store it the new analytics file (current)", async () => {
-      await createClientIdFile("secondLegacy");
-
-      const clientId = await getClientId();
-      assert.equal(clientId, CLIENT_ID_SECOND_LEGACY);
-      assert.equal(clientId, await getClientIdFromFile("current"));
+      assert.equal(analyticsClientId, CLIENT_ID);
     });
   });
 });
