@@ -40,7 +40,7 @@ import { printErrorMessages } from "./error-handler.js";
 import { getGlobalHelpString } from "./helpers/getGlobalHelpString.js";
 import { getHelpString } from "./helpers/getHelpString.js";
 import { initHardhat } from "./init/init.js";
-import { getTelemetryConsent } from "./telemetry/telemetry-consent.js";
+import { ensureTelemetryConsent } from "./telemetry/telemetry-permissions.js";
 import { printVersionMessage } from "./version.js";
 
 export async function main(
@@ -67,8 +67,7 @@ export async function main(
       return await initHardhat();
     }
 
-    // TODO: the consent will be enabled in the other PRs related to telemetry
-    const _telemetryConsent = await getTelemetryConsent();
+    await ensureTelemetryConsent();
 
     if (builtinGlobalOptions.configPath === undefined) {
       builtinGlobalOptions.configPath = await resolveHardhatConfigPath();
