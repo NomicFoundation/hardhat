@@ -18,10 +18,15 @@ interface TelemetryConsent {
  * Ensure that the user's telemetry consent is set. If the consent is already provided, returns the answer.
  * If not, prompts the user to provide it.
  * Consent is only asked in interactive environments.
- * @returns True if the user consents to telemetry, false otherwise.
+ *
+ * @returns True if the user consents to telemetry and if current environment supports telemetry, false otherwise.
  */
 export async function ensureTelemetryConsent(): Promise<boolean> {
-  const consent = await getTelemetryConsentIfAlreadySet();
+  if (!isTelemetryAllowedInEnvironment()) {
+    return false;
+  }
+
+  const consent = await getTelemetryConsent();
   if (consent !== undefined) {
     return consent;
   }
@@ -31,19 +36,26 @@ export async function ensureTelemetryConsent(): Promise<boolean> {
 }
 
 /**
- * Retrieves the user's telemetry consent status.
- * @returns True if the user consents to telemetry, false otherwise.
+ * Checks whether telemetry is supported in the current environment and whether the user has provided consent.
+ *
+ * @returns True if the user consents to telemetry and if current environment supports telemetry, false otherwise.
  */
-export async function getTelemetryConsent(): Promise<boolean> {
-  const consent = await getTelemetryConsentIfAlreadySet();
-  return consent !== undefined ? consent : false;
-}
-
-async function getTelemetryConsentIfAlreadySet(): Promise<boolean | undefined> {
-  if (!canTelemetryBeEnabled()) {
+export async function isTelemetryAllowed(): Promise<boolean> {
+  if (!isTelemetryAllowedInEnvironment()) {
     return false;
   }
 
+  const consent = await getTelemetryConsent();
+  return consent !== undefined ? consent : false;
+}
+
+/**
+ * Retrieves the user's telemetry consent status from the consent file.
+ *
+ * @returns True if the user consents to telemetry, false if they do not consent,
+ * and undefined if no consent has been provided.
+ */
+export async function getTelemetryConsent(): Promise<boolean | undefined> {
   const telemetryConsentFilePath = await getTelemetryConsentFilePath();
 
   if (await exists(telemetryConsentFilePath)) {
@@ -55,11 +67,20 @@ async function getTelemetryConsentIfAlreadySet(): Promise<boolean | undefined> {
   return undefined;
 }
 
-function canTelemetryBeEnabled(): boolean {
+/**
+ * Determines if telemetry is allowed in the current environment.
+ * This function checks various environmental factors to decide if telemetry data can be collected.
+ * It verifies that the environment is not a continuous integration (CI) environment, that the terminal is interactive,
+ * and that telemetry has not been explicitly disabled through an environment variable.
+ *
+ * @returns True if telemetry is allowed in the environment, false otherwise.
+ */
+export function isTelemetryAllowedInEnvironment(): boolean {
   return (
-    !isCi() &&
-    process.stdout.isTTY === true &&
-    process.env.HARDHAT_DISABLE_TELEMETRY_PROMPT !== "true"
+    (!isCi() &&
+      process.stdout.isTTY === true &&
+      process.env.HARDHAT_DISABLE_TELEMETRY_PROMPT !== "true") ||
+    process.env.HARDHAT_ENABLE_TELEMETRY_IN_TEST === "true" // Used in tests to force telemetry execution
   );
 }
 
