@@ -105,66 +105,112 @@ describe("analytics", () => {
     await remove(RESULT_FILE_PATH);
   });
 
-  it("should create the correct payload for the telemetry consent", async () => {
-    await sendTelemetryConsentAnalytics(true);
-
-    await checkIfSubprocessWasExecuted();
-
-    const result = await readJsonFile(RESULT_FILE_PATH);
-
-    const expected = await readJsonFile(
-      path.join(PATH_TO_FIXTURE, "telemetry-consent-payload.json"),
-    );
-
-    assert.deepEqual(result, expected);
-  });
-
   describe("analytics payload", async () => {
     const ORIGINAL_PROCESS_ENV = { ...process };
 
-    before(() => {
-      // Force Ci to not be detected as Ci so the test can run (Ci is blocked for analytics)
-      delete process.env.GITHUB_ACTIONS;
-      delete process.env.NOW;
-      delete process.env.DEPLOYMENT_ID;
-      delete process.env.CODEBUILD_BUILD_NUMBER;
-      delete process.env.CI;
-      delete process.env.CONTINUOUS_INTEGRATION;
-      delete process.env.BUILD_NUMBER;
-      delete process.env.RUN_ID;
+    describe("not running in CI", () => {
+      before(() => {
+        // Force Ci to not be detected as Ci so the test can run (Ci is blocked for analytics)
+        process.env.HARDHAT_ENABLE_TELEMETRY_IN_TEST = "true";
+      });
 
-      process.stdout.isTTY = true;
+      after(() => {
+        delete process.env.HARDHAT_ENABLE_TELEMETRY_IN_TEST;
+        process = ORIGINAL_PROCESS_ENV;
+      });
+
+      it("should create the correct payload for the telemetry consent (positive consent)", async () => {
+        await sendTelemetryConsentAnalytics(true);
+
+        await checkIfSubprocessWasExecuted();
+
+        const result = await readJsonFile(RESULT_FILE_PATH);
+
+        assert.deepEqual(result, {
+          client_id: "hardhat_telemetry_consent",
+          user_id: "hardhat_telemetry_consent",
+          user_properties: {},
+          events: [
+            {
+              name: "TelemetryConsentResponse",
+              params: {
+                userConsent: "yes",
+              },
+            },
+          ],
+        });
+      });
+
+      it("should create the correct payload for the telemetry consent (negative consent)", async () => {
+        await sendTelemetryConsentAnalytics(false);
+
+        await checkIfSubprocessWasExecuted();
+
+        const result = await readJsonFile(RESULT_FILE_PATH);
+
+        assert.deepEqual(result, {
+          client_id: "hardhat_telemetry_consent",
+          user_id: "hardhat_telemetry_consent",
+          user_properties: {},
+          events: [
+            {
+              name: "TelemetryConsentResponse",
+              params: {
+                userConsent: "no",
+              },
+            },
+          ],
+        });
+      });
+
+      it("should create the correct payload for the task analytics", async () => {
+        await setTelemetryConsentFile(true);
+
+        const wasSent = await sendTaskAnalytics(["task", "subtask"]);
+
+        await checkIfSubprocessWasExecuted();
+
+        const result: Payload = await readJsonFile(RESULT_FILE_PATH);
+
+        assert.equal(wasSent, true);
+
+        // Check payload properties
+        assert.notEqual(result.client_id, undefined);
+        assert.notEqual(result.user_id, undefined);
+        assert.equal(result.user_properties.projectId.value, "hardhat-project");
+        assert.equal(
+          result.user_properties.hardhatVersion.value,
+          await getHardhatVersion(),
+        );
+        assert.notEqual(
+          result.user_properties.operatingSystem.value,
+          undefined,
+        );
+        assert.notEqual(result.user_properties.nodeVersion.value, undefined);
+        assert.equal(result.events[0].name, "task");
+        assert.equal(result.events[0].params.engagement_time_msec, "10000");
+        assert.notEqual(result.events[0].params.session_id, undefined);
+        assert.equal(result.events[0].params.task, "task, subtask");
+      });
+
+      it("should not send analytics because the consent is not given", async () => {
+        await setTelemetryConsentFile(false);
+        const wasSent = await sendTaskAnalytics(["task", "subtask"]);
+        assert.equal(wasSent, false);
+      });
     });
 
-    after(() => {
-      process = ORIGINAL_PROCESS_ENV;
-    });
+    describe("running in non interactive environment", () => {
+      it("should not send consent because the environment is non interactive", async () => {
+        const wasSent = await sendTelemetryConsentAnalytics(true);
+        assert.equal(wasSent, false);
+      });
 
-    it("should create the correct payload for the task analytics", async () => {
-      await setTelemetryConsentFile(true);
-
-      const wasSent = await sendTaskAnalytics(["task", "subtask"]);
-
-      await checkIfSubprocessWasExecuted();
-
-      const result: Payload = await readJsonFile(RESULT_FILE_PATH);
-
-      assert.equal(wasSent, true);
-
-      // Check payload properties
-      assert.notEqual(result.client_id, undefined);
-      assert.notEqual(result.user_id, undefined);
-      assert.equal(result.user_properties.projectId.value, "hardhat-project");
-      assert.equal(
-        result.user_properties.hardhatVersion.value,
-        await getHardhatVersion(),
-      );
-      assert.notEqual(result.user_properties.operatingSystem.value, undefined);
-      assert.notEqual(result.user_properties.nodeVersion.value, undefined);
-      assert.equal(result.events[0].name, "task");
-      assert.equal(result.events[0].params.engagement_time_msec, "10000");
-      assert.notEqual(result.events[0].params.session_id, undefined);
-      assert.equal(result.events[0].params.task, "task, subtask");
+      it("should not send analytics because the environment is not interactive", async () => {
+        await setTelemetryConsentFile(true);
+        const wasSent = await sendTaskAnalytics(["task", "subtask"]);
+        assert.equal(wasSent, false);
+      });
     });
   });
 });

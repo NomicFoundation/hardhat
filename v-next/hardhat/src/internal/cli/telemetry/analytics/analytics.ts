@@ -10,7 +10,10 @@ import os from "node:os";
 import { spawnDetachedSubProcess } from "@ignored/hardhat-vnext-utils/subprocess";
 
 import { getHardhatVersion } from "../../../utils/package.js";
-import { getTelemetryConsent } from "../telemetry-consent.js";
+import {
+  isTelemetryAllowedInEnvironment,
+  isTelemetryAllowed,
+} from "../telemetry-permissions.js";
 
 import { getAnalyticsClientId } from "./utils.js";
 
@@ -19,11 +22,17 @@ import { getAnalyticsClientId } from "./utils.js";
 const SESSION_ID = Math.random().toString();
 const ENGAGEMENT_TIME_MSEC = "10000";
 
+// Return a boolean for testing purposes to verify that analytics are not sent in CI environments
 export async function sendTelemetryConsentAnalytics(
-  userConsent: boolean,
-): Promise<void> {
+  consent: boolean,
+): Promise<boolean> {
   // This is a special scenario where only the consent is sent, all the other analytics info
   // (like node version, hardhat version, etc.) are stripped.
+
+  if (!isTelemetryAllowedInEnvironment()) {
+    return false;
+  }
+
   const payload: TelemetryConsentPayload = {
     client_id: "hardhat_telemetry_consent",
     user_id: "hardhat_telemetry_consent",
@@ -32,13 +41,15 @@ export async function sendTelemetryConsentAnalytics(
       {
         name: "TelemetryConsentResponse",
         params: {
-          userConsent: userConsent ? "yes" : "no",
+          userConsent: consent ? "yes" : "no",
         },
       },
     ],
   };
 
   await createSubprocessToSendAnalytics(payload);
+
+  return true;
 }
 
 export async function sendTaskAnalytics(taskId: string[]): Promise<boolean> {
@@ -49,12 +60,12 @@ export async function sendTaskAnalytics(taskId: string[]): Promise<boolean> {
   return sendAnalytics("task", eventParams);
 }
 
-// Return a boolean for test purposes, so we can check if the analytics was sent based on the consent value
+// Return a boolean for testing purposes to confirm whether analytics were sent based on the consent value and not in CI environments
 async function sendAnalytics(
   eventName: EventNames,
   eventParams: TaskParams,
 ): Promise<boolean> {
-  if (!(await getTelemetryConsent())) {
+  if (!(await isTelemetryAllowed())) {
     return false;
   }
 
