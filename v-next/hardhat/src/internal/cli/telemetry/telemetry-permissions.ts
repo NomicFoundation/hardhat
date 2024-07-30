@@ -10,6 +10,8 @@ import {
 
 import { confirmationPromptWithTimeout } from "../prompt/prompt.js";
 
+import { sendTelemetryConsentAnalytics } from "./analytics/analytics.js";
+
 interface TelemetryConsent {
   consent: boolean;
 }
@@ -50,24 +52,6 @@ export async function isTelemetryAllowed(): Promise<boolean> {
 }
 
 /**
- * Retrieves the user's telemetry consent status from the consent file.
- *
- * @returns True if the user consents to telemetry, false if they do not consent,
- * and undefined if no consent has been provided.
- */
-export async function getTelemetryConsent(): Promise<boolean | undefined> {
-  const telemetryConsentFilePath = await getTelemetryConsentFilePath();
-
-  if (await exists(telemetryConsentFilePath)) {
-    // Telemetry consent was already provided, hence return the answer
-    return (await readJsonFile<TelemetryConsent>(telemetryConsentFilePath))
-      .consent;
-  }
-
-  return undefined;
-}
-
-/**
  * Determines if telemetry is allowed in the current environment.
  * This function checks various environmental factors to decide if telemetry data can be collected.
  * It verifies that the environment is not a continuous integration (CI) environment, that the terminal is interactive,
@@ -82,6 +66,24 @@ export function isTelemetryAllowedInEnvironment(): boolean {
       process.env.HARDHAT_DISABLE_TELEMETRY_PROMPT !== "true") ||
     process.env.HARDHAT_ENABLE_TELEMETRY_IN_TEST === "true" // Used in tests to force telemetry execution
   );
+}
+
+/**
+ * Retrieves the user's telemetry consent status from the consent file.
+ *
+ * @returns True if the user consents to telemetry, false if they do not consent,
+ * and undefined if no consent has been provided.
+ */
+async function getTelemetryConsent(): Promise<boolean | undefined> {
+  const telemetryConsentFilePath = await getTelemetryConsentFilePath();
+
+  if (await exists(telemetryConsentFilePath)) {
+    // Telemetry consent was already provided, hence return the answer
+    return (await readJsonFile<TelemetryConsent>(telemetryConsentFilePath))
+      .consent;
+  }
+
+  return undefined;
 }
 
 async function getTelemetryConsentFilePath() {
@@ -99,12 +101,7 @@ async function requestTelemetryConsent(): Promise<boolean> {
   // Store user's consent choice
   await writeJsonFile(await getTelemetryConsentFilePath(), { consent });
 
-  // TODO: this will be enabled in a following PR as soon as the function to send telemetry is implemented
-  // const subprocessFilePath = path.join(
-  //   path.dirname(fileURLToPath(import.meta.url)),
-  //   "report-telemetry-consent.js",
-  // );
-  // await spawnDetachedSubProcess(subprocessFilePath, [consent ? "yes" : "no"]);
+  await sendTelemetryConsentAnalytics(consent);
 
   return consent;
 }

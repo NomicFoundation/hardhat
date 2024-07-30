@@ -5,10 +5,7 @@ import { afterEach, beforeEach, describe, it } from "node:test";
 import { getConfigDir } from "@ignored/hardhat-vnext-core/global-dir";
 import { remove, writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
 
-import {
-  getTelemetryConsent,
-  isTelemetryAllowed,
-} from "../../../../src/internal/cli/telemetry/telemetry-permissions.js";
+import { isTelemetryAllowed } from "../../../../src/internal/cli/telemetry/telemetry-permissions.js";
 
 async function setTelemetryConsentFile(consent: boolean) {
   const configDir = await getConfigDir();
@@ -65,14 +62,5 @@ describe("telemetry-permissions", () => {
       const res = await isTelemetryAllowed();
       assert.equal(res, true);
     });
-  });
-
-  it("should return undefined because the telemetry consent is not set", async () => {
-    // All other possible results are tested in the previous tests, they are included in the the function 'isTelemetryAllowed'
-    process.env.HARDHAT_ENABLE_TELEMETRY_IN_TEST = "true";
-
-    const res = await getTelemetryConsent();
-
-    assert.equal(res, undefined);
   });
 });
