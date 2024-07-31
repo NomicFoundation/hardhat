@@ -27,6 +27,8 @@ export const DEFAULT_MAX_REDIRECTS = 10;
 export const DEFAULT_POOL_MAX_CONNECTIONS = 128;
 export const DEFAULT_USER_AGENT = "Hardhat";
 
+export type Dispatcher = UndiciT.Dispatcher;
+
 /**
  * Options to configure the dispatcher.
  *
@@ -228,7 +230,7 @@ export async function getDispatcher(
     maxConnections,
     isTestDispatcher,
   }: DispatcherOptions = {},
-): Promise<UndiciT.Dispatcher> {
+): Promise<Dispatcher> {
   try {
     if (pool !== undefined && proxy !== undefined) {
       throw new Error(
