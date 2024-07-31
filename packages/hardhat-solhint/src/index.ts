@@ -136,6 +136,7 @@ task("check", async (_, { run }, runSuper) => {
   );
 
   if (errorsCount > 0) {
-    process.exit(1);
+    process.exitCode = 1;
+    return;
   }
 });
