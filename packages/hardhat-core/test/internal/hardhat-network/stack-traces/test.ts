@@ -5,6 +5,7 @@ import fsExtra from "fs-extra";
 import path from "path";
 import semver from "semver";
 
+import { stackTraceEntryTypeToString } from "@nomicfoundation/edr";
 import { EdrProviderWrapper } from "../../../../src/internal/hardhat-network/provider/provider";
 import { ReturnData } from "../../../../src/internal/hardhat-network/provider/return-data";
 import {
@@ -316,7 +317,7 @@ function compareStackTraces(
     const actual = trace[i];
     const expected = description[i];
 
-    const actualErrorType = StackTraceEntryType[actual.type];
+    const actualErrorType = stackTraceEntryTypeToString(actual.type);
     const expectedErrorType = expected.type;
 
     if (

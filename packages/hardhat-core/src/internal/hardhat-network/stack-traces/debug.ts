@@ -1,6 +1,7 @@
 import { bytesToHex as bufferToHex } from "@nomicfoundation/ethereumjs-util";
 import chalk from "chalk";
 
+import { stackTraceEntryTypeToString } from "@nomicfoundation/edr";
 import {
   CallMessageTrace,
   CreateMessageTrace,
@@ -202,7 +203,7 @@ export function printStackTrace(trace: SolidityStackTrace) {
 
   const withTextualType = withHexAddress.map((entry) => ({
     ...entry,
-    type: StackTraceEntryType[entry.type],
+    type: stackTraceEntryTypeToString(entry.type),
   }));
 
   const withFlattenedSourceReferences = withTextualType.map((entry) => ({
