@@ -14,13 +14,7 @@ jobs:
     runs-on: ${{ matrix.system }}
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
-          cache: "pnpm"
+      - uses: ./.github/actions/setup-env
       - name: Delete pnpm-lock.yaml
         run: "rm pnpm-lock.yaml"
       - name: Install
