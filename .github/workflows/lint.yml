@@ -2,10 +2,17 @@ name: Lint
 
 on:
   push:
-    branches: [$default-branch]
-  pull_request:
     branches:
-      - "**"
+      - main
+    paths:
+      - ".github/workflows/lint.yml"
+      - "docs/**"
+      - "packages/**"
+  pull_request:
+    paths:
+      - ".github/workflows/lint.yml"
+      - "docs/**"
+      - "packages/**"
   workflow_dispatch:
 
 concurrency:

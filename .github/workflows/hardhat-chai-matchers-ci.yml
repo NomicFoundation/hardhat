@@ -2,15 +2,16 @@ name: hardhat-chai-matchers CI
 
 on:
   push:
-    branches: [$default-branch]
+    branches:
+      - main
     paths:
+      - ".github/workflows/hardhat-chai-matchers-ci.yml"
       - "packages/hardhat-chai-matchers/**"
       - "packages/hardhat-common/**"
       - "config/**"
   pull_request:
-    branches:
-      - "**"
     paths:
+      - ".github/workflows/hardhat-chai-matchers-ci.yml"
       - "packages/hardhat-chai-matchers/**"
       - "packages/hardhat-common/**"
       - "config/**"

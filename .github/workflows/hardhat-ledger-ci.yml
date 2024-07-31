@@ -5,14 +5,14 @@ on:
     branches:
       - main
     paths:
+      - ".github/workflows/hardhat-ledger-ci.yml"
       - "packages/hardhat-ledger/**"
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"
       - "config/**"
   pull_request:
-    branches:
-      - "**"
     paths:
+      - ".github/workflows/hardhat-foundry-ci.yml"
       - "packages/hardhat-ledger/**"
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"
