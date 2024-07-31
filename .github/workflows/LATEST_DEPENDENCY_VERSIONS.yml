@@ -34,7 +34,7 @@ jobs:
         run: pnpm test || (echo "===== Retry =====" && pnpm test)
       - name: Notify failures
         if: failure()
-        uses: slackapi/slack-github-action@v1.18.0
+        uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
         with:
           payload: |
             {
