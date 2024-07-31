@@ -282,6 +282,21 @@ export function shouldUseProxy(url: string): boolean {
   return true;
 }
 
+/**
+ * Determines whether an absolute url is valid.
+ *
+ * @param url The url to check.
+ * @returns `true` if the url is valid, `false` otherwise.
+ */
+export function isValidUrl(url: string): boolean {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export {
   DownloadError,
   RequestError,

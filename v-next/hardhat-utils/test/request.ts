@@ -24,6 +24,7 @@ import {
   download,
   getDispatcher,
   shouldUseProxy,
+  isValidUrl,
 } from "../src/request.js";
 
 import { useTmpDir } from "./helpers/fs.js";
@@ -604,6 +605,26 @@ describe("Requests util", () => {
       assert.equal(shouldUseProxy("http://example.com"), false);
       assert.equal(shouldUseProxy("https://example.com"), false);
       assert.equal(shouldUseProxy("ftp://example.com"), false);
+    });
+  });
+
+  describe("isValidUrl", () => {
+    it("should return true for a valid URL", () => {
+      assert.equal(isValidUrl("http://example.com"), true);
+      assert.equal(isValidUrl("https://example.com"), true);
+      assert.equal(isValidUrl("ftp://example.com"), true);
+      assert.equal(isValidUrl("http://example.com:8080"), true);
+      assert.equal(
+        isValidUrl("http://example.com/path?name=value#fragment"),
+        true,
+      );
+    });
+
+    it("should return false for an invalid URL", () => {
+      assert.equal(isValidUrl("example.com"), false);
+      assert.equal(isValidUrl("example"), false);
+      assert.equal(isValidUrl(""), false);
+      assert.equal(isValidUrl("/relative/path"), false);
     });
   });
 });
