@@ -4,11 +4,7 @@ import type {
   GlobalOptions,
   GlobalOptionDefinitions,
 } from "../types/global-options.js";
-import type {
-  HardhatUserConfigValidationError,
-  HookContext,
-  HookManager,
-} from "../types/hooks.js";
+import type { HookContext, HookManager } from "../types/hooks.js";
 import type { HardhatRuntimeEnvironment } from "../types/hre.js";
 import type { HardhatPlugin } from "../types/plugins.js";
 import type { TaskManager } from "../types/tasks.js";
@@ -17,6 +13,7 @@ import type { UserInterruptionManager } from "../types/user-interruptions.js";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { findClosestPackageRoot } from "@ignored/hardhat-vnext-utils/package";
 
+import { validateUserConfig } from "./config-validation.js";
 import { ResolvedConfigurationVariableImplementation } from "./configuration-variables.js";
 import {
   buildGlobalOptionDefinitions,
@@ -64,7 +61,7 @@ export class HardhatRuntimeEnvironmentImplementation
         errors: `\t${userConfigValidationErrors
           .map(
             (error) =>
-              `* Config error in .${error.path.join(".")}: ${error.message}`,
+              `* Config error in config.${error.path.join(".")}: ${error.message}`,
           )
           .join("\n\t")}`,
       });
@@ -167,22 +164,6 @@ async function runUserConfigExtensions(
       return c;
     },
   );
-}
-
-async function validateUserConfig(
-  hooks: HookManager,
-  config: HardhatUserConfig,
-): Promise<HardhatUserConfigValidationError[]> {
-  // TODO: Validate the plugin and tasks lists
-  const validationErrors: HardhatUserConfigValidationError[] = [];
-
-  const results = await hooks.runParallelHandlers(
-    "config",
-    "validateUserConfig",
-    [config],
-  );
-
-  return [...validationErrors, ...results.flat(1)];
 }
 
 async function resolveUserConfig(
