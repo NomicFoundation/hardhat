@@ -127,4 +127,16 @@ task("check", async (_, { run }, runSuper) => {
   const reports = await run("hardhat-solhint:run-solhint");
 
   printReport(reports);
+
+  const errorsCount = reports.reduce(
+    (acc: number, i: { errorCount: number }) => {
+      return acc + i.errorCount;
+    },
+    0
+  );
+
+  if (errorsCount > 0) {
+    process.exitCode = 1;
+    return;
+  }
 });
