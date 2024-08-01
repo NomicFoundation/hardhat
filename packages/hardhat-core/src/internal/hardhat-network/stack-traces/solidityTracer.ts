@@ -1,5 +1,6 @@
 import { equalsBytes } from "@nomicfoundation/ethereumjs-util";
 
+import { SolidityTracer as SolidityTracerRs } from "@nomicfoundation/edr";
 import { ReturnData } from "../provider/return-data";
 import { ExitCode } from "../provider/vm/exit";
 
@@ -35,6 +36,7 @@ import {
 } from "./solidity-stack-trace";
 
 export class SolidityTracer {
+  private _solidityTracerRs = new SolidityTracerRs();
   private _errorInferrer = new ErrorInferrer();
 
   public getStackTrace(
@@ -240,16 +242,6 @@ export class SolidityTracer {
   }
 
   private _getLastSubtrace(trace: EvmMessageTrace): MessageTrace | undefined {
-    if (trace.numberOfSubtraces < 1) {
-      return undefined;
-    }
-
-    let i = trace.steps.length - 1;
-
-    while (isEvmStep(trace.steps[i])) {
-      i -= 1;
-    }
-
-    return trace.steps[i] as MessageTrace;
+    return this._solidityTracerRs.getLastSubtrace(trace);
   }
 }
