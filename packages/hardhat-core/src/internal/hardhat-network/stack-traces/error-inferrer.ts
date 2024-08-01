@@ -3,6 +3,7 @@ import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { equalsBytes } from "@nomicfoundation/ethereumjs-util";
 import semver from "semver";
 
+import { ErrorInferrer as ErrorInferrerRs } from "@nomicfoundation/edr";
 import { assertHardhatInvariant } from "../../core/errors";
 import { AbiHelpers } from "../../util/abi-helpers";
 import { ReturnData } from "../provider/return-data";
@@ -178,70 +179,7 @@ export class ErrorInferrer {
   public filterRedundantFrames(
     stacktrace: SolidityStackTrace
   ): SolidityStackTrace {
-    return stacktrace.filter((frame, i) => {
-      if (i + 1 === stacktrace.length) {
-        return true;
-      }
-
-      const nextFrame = stacktrace[i + 1];
-
-      // we can only filter frames if we know their sourceReference
-      // and the one from the next frame
-      if (
-        frame.sourceReference === undefined ||
-        nextFrame.sourceReference === undefined
-      ) {
-        return true;
-      }
-
-      // look TWO frames ahead to determine if this is a specific occurrence of
-      // a redundant CALLSTACK_ENTRY frame observed when using Solidity 0.8.5:
-      if (
-        frame.type === StackTraceEntryType.CALLSTACK_ENTRY &&
-        i + 2 < stacktrace.length &&
-        stacktrace[i + 2].sourceReference !== undefined &&
-        stacktrace[i + 2].type === StackTraceEntryType.RETURNDATA_SIZE_ERROR
-      ) {
-        // ! below for tsc. we confirmed existence in the enclosing conditional.
-        const thatSrcRef = stacktrace[i + 2].sourceReference;
-        if (
-          thatSrcRef !== undefined &&
-          frame.sourceReference.range[0] === thatSrcRef.range[0] &&
-          frame.sourceReference.range[1] === thatSrcRef.range[1] &&
-          frame.sourceReference.line === thatSrcRef.line
-        ) {
-          return false;
-        }
-      }
-
-      // constructors contain the whole contract, so we ignore them
-      if (
-        frame.sourceReference.function === "constructor" &&
-        nextFrame.sourceReference.function !== "constructor"
-      ) {
-        return true;
-      }
-
-      // this is probably a recursive call
-      if (
-        i > 0 &&
-        frame.type === nextFrame.type &&
-        frame.sourceReference.range[0] === nextFrame.sourceReference.range[0] &&
-        frame.sourceReference.range[1] === nextFrame.sourceReference.range[1] &&
-        frame.sourceReference.line === nextFrame.sourceReference.line
-      ) {
-        return true;
-      }
-
-      if (
-        frame.sourceReference.range[0] <= nextFrame.sourceReference.range[0] &&
-        frame.sourceReference.range[1] >= nextFrame.sourceReference.range[1]
-      ) {
-        return false;
-      }
-
-      return true;
-    });
+    return ErrorInferrerRs.filterRedundantFrames(stacktrace);
   }
 
   // Heuristics
