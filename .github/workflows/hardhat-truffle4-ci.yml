@@ -2,17 +2,18 @@ name: hardhat-truffle4 CI
 
 on:
   push:
-    branches: [$default-branch]
+    branches:
+      - main
     paths:
+      - ".github/workflows/hardhat-truffle4-ci.yml"
       - "packages/hardhat-truffle4/**"
       - "packages/hardhat-web3-legacy/**"
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"
       - "config/**"
   pull_request:
-    branches:
-      - "**"
     paths:
+      - ".github/workflows/hardhat-truffle4-ci.yml"
       - "packages/hardhat-truffle4/**"
       - "packages/hardhat-web3-legacy/**"
       - "packages/hardhat-core/**"
@@ -34,13 +35,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
-          cache: "pnpm"
+      - uses: ./.github/actions/setup-env
       - name: Install
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
@@ -53,13 +48,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
-          cache: "pnpm"
+      - uses: ./.github/actions/setup-env
       - name: Install
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
@@ -75,13 +64,9 @@ jobs:
         node: [18, 20, 22]
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
+      - uses: ./.github/actions/setup-env
         with:
           node-version: ${{ matrix.node }}
-          cache: "pnpm"
       - name: Install
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build

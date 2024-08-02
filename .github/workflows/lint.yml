@@ -2,10 +2,17 @@ name: Lint
 
 on:
   push:
-    branches: [$default-branch]
-  pull_request:
     branches:
-      - "**"
+      - main
+    paths:
+      - ".github/workflows/lint.yml"
+      - "docs/**"
+      - "packages/**"
+  pull_request:
+    paths:
+      - ".github/workflows/lint.yml"
+      - "docs/**"
+      - "packages/**"
   workflow_dispatch:
 
 concurrency:
@@ -19,8 +26,11 @@ jobs:
     permissions:
       contents: read
     steps:
+      # NOTE: When running on a pull_request_target, we're checking out the repo
+      # twice. The first checkout is for the base branch of the PR. The second,
+      # for the merge commit. We do this to be able to use the `setup-env`
+      # action that's on the base branch.
       - uses: actions/checkout@v4
-        if: github.event_name != 'pull_request_target'
         with:
           persist-credentials: false
       - uses: actions/checkout@v4
@@ -28,16 +38,10 @@ jobs:
         with:
           ref: "refs/pull/${{ github.event.number }}/merge"
           persist-credentials: false
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
-          cache: "pnpm"
-          cache-dependency-path: |
-            pnpm-lock.yaml
-            docs/pnpm-lock.yaml
+      - if: github.event_name == 'pull_request_target'
+        name: Check out setup-env action from the base branch
+        run: git checkout --no-overlay $GITHUB_SHA -- .github/actions/setup-env
+      - uses: ./.github/actions/setup-env
       - name: Install
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build

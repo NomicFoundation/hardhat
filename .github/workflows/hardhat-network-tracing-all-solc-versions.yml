@@ -22,19 +22,15 @@ jobs:
         node: [18, 20, 22]
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
+      - uses: ./.github/actions/setup-env
         with:
           node-version: ${{ matrix.node }}
-          cache: "pnpm"
       - name: Install
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
         run: pnpm build
       - name: Cache artifacts
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/artifacts
