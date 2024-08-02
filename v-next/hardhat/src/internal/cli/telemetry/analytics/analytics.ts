@@ -79,12 +79,18 @@ async function sendAnalytics(
 async function createSubprocessToSendAnalytics(
   payload: TelemetryConsentPayload | Payload,
 ): Promise<void> {
-  // The file extension is 'js' because the 'ts' file will be compiled
-  const analyticsSubprocessFilePath = `${import.meta.dirname}/analytics-subprocess.js`;
+  const fileExt =
+    process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH !== undefined ? "ts" : "js";
+  const subprocessFile = `${import.meta.dirname}/subprocess.${fileExt}`;
 
-  await spawnDetachedSubProcess(analyticsSubprocessFilePath, [
-    JSON.stringify(payload),
-  ]);
+  const env: Record<string, string> = {};
+  if (process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH !== undefined) {
+    // ATTENTION: only for testing
+    env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH =
+      process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH;
+  }
+
+  await spawnDetachedSubProcess(subprocessFile, [JSON.stringify(payload)], env);
 }
 
 async function buildPayload(
