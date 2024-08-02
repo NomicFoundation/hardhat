@@ -10,7 +10,10 @@ import {
 } from "@ignored/hardhat-vnext-errors";
 import { readUtf8File, remove } from "@ignored/hardhat-vnext-utils/fs";
 
-import { sendErrorTelemetry } from "../../../../../src/internal/cli/telemetry/sentry/reporter.js";
+import {
+  _testResetReporter,
+  sendErrorTelemetry,
+} from "../../../../../src/internal/cli/telemetry/sentry/reporter.js";
 import { getHardhatVersion } from "../../../../../src/internal/utils/package.js";
 import {
   ERROR,
