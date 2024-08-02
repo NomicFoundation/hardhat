@@ -8,11 +8,13 @@ on:
       - ".github/workflows/v-next-ci.yml"
       - "v-next/**"
       - "config-v-next/**"
+      - "pnpm-lock.yaml"
   pull_request:
     paths:
       - ".github/workflows/v-next-ci.yml"
       - "v-next/**"
       - "config-v-next/**"
+      - "pnpm-lock.yaml"
   workflow_dispatch:
 
 concurrency:
@@ -64,7 +66,8 @@ jobs:
           COMMON_FILTERS: |
             [
               ".github/workflows/v-next-ci.yml",
-              "config-v-next/**"
+              "config-v-next/**",
+              "pnpm-lock.yaml"
             ]
         run: |
           echo "filters<<EOF" >> $GITHUB_OUTPUT
