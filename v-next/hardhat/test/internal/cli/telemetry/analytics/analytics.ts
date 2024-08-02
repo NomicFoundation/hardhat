@@ -16,6 +16,12 @@ import {
   ROOT_PATH_TO_FIXTURE,
 } from "../helpers.js";
 
+//
+// TEST EXPLANATION: When setting the environment variable HARDHAT_TEST_SUBPROCESS_RESULT_PATH,
+// the subprocess writes the payload to the specified file instead of sending it to a remote server.
+// This allows us to verify that the payload is formatted correctly.
+//
+
 const PATH_TO_FIXTURE = path.join(ROOT_PATH_TO_FIXTURE, "analytics");
 const RESULT_FILE_PATH = path.join(PATH_TO_FIXTURE, "result.json");
 
