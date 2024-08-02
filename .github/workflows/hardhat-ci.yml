@@ -7,11 +7,13 @@ on:
       - ".github/workflows/hardhat-ci.yml"
       - "packages/**"
       - "config/**"
+      - "pnpm-lock.yaml"
   pull_request:
     paths:
       - ".github/workflows/hardhat-ci.yml"
       - "packages/**"
       - "config/**"
+      - "pnpm-lock.yaml"
   workflow_dispatch:
 
 concurrency:
@@ -45,7 +47,8 @@ jobs:
             [
               ".github/workflows/hardhat-ci.yml",
               "config/**",
-              "packages/common/**"
+              "packages/common/**",
+              "pnpm-lock.yaml"
             ]
         run: |
           echo "filters<<EOF" >> $GITHUB_OUTPUT
