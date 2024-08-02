@@ -7,6 +7,7 @@ on:
     branches:
       - "**"
     paths:
+      - ".github/workflows/v-next-ci.yml"
       - "v-next/**"
       - "config-v-next/**"
   workflow_dispatch:
@@ -42,15 +43,41 @@ jobs:
     name: List packages
     runs-on: ubuntu-latest
     outputs:
-      packages: ${{ steps.list.outputs.packages }}
+      packages: ${{ steps.filter.outputs.changes }}
     steps:
       - uses: actions/checkout@v4
-      - id: list
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: yq -p yaml -o json pnpm-lock.yaml | tee pnpm-lock.json
+      - id: generate
+        env:
+          PACKAGE_IGNORE: |
+            [
+              ".",
+              "packages/",
+              "v-next/example-project"
+            ]
+          COMMON_FILTERS: |
+            [
+              ".github/workflows/v-next-ci.yml",
+              "config-v-next/**"
+            ]
         run: |
-          echo "packages=$(ls -d v-next/* | xargs -n 1 basename | grep -v example-project | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
+          echo "filters<<EOF" >> $GITHUB_OUTPUT
+          node scripts/generate-filters.js |
+            yq -Po yaml 'with_entries(.key |= sub("^v-next/", ""))' |
+            tee -a $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - id: filter
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        with:
+          filters: ${{ steps.generate.outputs.filters }}
 
   lint:
     needs: list-packages
+
+    if: needs.list-packages.outputs.packages != '[]'
 
     strategy:
       fail-fast: false
@@ -82,6 +109,8 @@ jobs:
 
   ci:
     needs: list-packages
+
+    if: needs.list-packages.outputs.packages != '[]'
 
     strategy:
       fail-fast: false
