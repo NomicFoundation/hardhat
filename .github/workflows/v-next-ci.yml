@@ -2,11 +2,15 @@ name: vNext CI
 
 on:
   push:
-    branches: v-next
-  pull_request:
     branches:
-      - "**"
+      - v-next
     paths:
+      - ".github/workflows/v-next-ci.yml"
+      - "v-next/**"
+      - "config-v-next/**"
+  pull_request:
+    paths:
+      - ".github/workflows/v-next-ci.yml"
       - "v-next/**"
       - "config-v-next/**"
   workflow_dispatch:
@@ -66,7 +70,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: 9
       - uses: actions/setup-node@v4
@@ -99,7 +103,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: 9
       - uses: actions/setup-node@v4
