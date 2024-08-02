@@ -31,7 +31,7 @@ export interface HardhatPlugin {
   npmPackage?: string;
 
   /**
-   * An arary of plugins that this plugins depends on.
+   * An array of plugins that this plugin depends on.
    */
   dependencies?: Array<() => Promise<HardhatPlugin>>;
 
@@ -73,7 +73,7 @@ export interface HardhatPlugin {
    * An array of type definitions, which should be created using their builders.
    *
    * Each entry either defines or overrides a task. To override a tasks, it must
-   * habe been defined before, either by a plugin you depend on or by Hardhat
+   * have been defined before, either by a plugin you depend on or by Hardhat
    * itself.
    */
   tasks?: TaskDefinition[];
