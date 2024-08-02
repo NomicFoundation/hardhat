@@ -2,17 +2,18 @@ name: hardhat-truffle4 CI
 
 on:
   push:
-    branches: [$default-branch]
+    branches:
+      - main
     paths:
+      - ".github/workflows/hardhat-truffle4-ci.yml"
       - "packages/hardhat-truffle4/**"
       - "packages/hardhat-web3-legacy/**"
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"
       - "config/**"
   pull_request:
-    branches:
-      - "**"
     paths:
+      - ".github/workflows/hardhat-truffle4-ci.yml"
       - "packages/hardhat-truffle4/**"
       - "packages/hardhat-web3-legacy/**"
       - "packages/hardhat-core/**"

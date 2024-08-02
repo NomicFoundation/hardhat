@@ -2,16 +2,17 @@ name: hardhat-viem CI
 
 on:
   push:
-    branches: main
+    branches:
+      - main
     paths:
+      - ".github/workflows/hardhat-viem-ci.yml"
       - "packages/hardhat-viem/**"
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"
       - "config/**"
   pull_request:
-    branches:
-      - "**"
     paths:
+      - ".github/workflows/hardhat-verify-ci.yml"
       - "packages/hardhat-viem/**"
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"

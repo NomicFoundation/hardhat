@@ -5,7 +5,7 @@ on:
     types:
       - opened
     branches:
-      - $default-branch
+      - main
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
@@ -41,7 +41,7 @@ jobs:
       - name: Lint website
         working-directory: docs/
         run: pnpm lint
-      - uses: actions/github-script@v6
+      - uses: actions/github-script@v7
         name: Comment on failure
         if: ${{ failure() }}
         with:

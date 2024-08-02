@@ -12,8 +12,6 @@ on:
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"
   pull_request:
-    branches:
-      - "**"
     paths:
       - ".github/workflows/hardhat-core-ci.yml"
       - "config/**"
@@ -39,7 +37,7 @@ jobs:
         node: [18.15]
         os: ["macos-13", "ubuntu-latest", "windows-latest"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
         with:
@@ -81,7 +79,7 @@ jobs:
         node: [18.15]
         os: ["macos-13", "ubuntu-latest", "windows-latest"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
         with:
@@ -96,7 +94,7 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Cache EDR RPC cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             packages/hardhat-core/test/internal/hardhat-network/edr-cache

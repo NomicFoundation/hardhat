@@ -3,7 +3,16 @@ name: Check Docs Site
 on:
   push:
     branches:
-      - "**"
+      - main
+    paths:
+      - ".github/workflows/check-docs-site.yml"
+      - "docs/**"
+      - "packages/**"
+  pull_request:
+    paths:
+      - ".github/workflows/check-docs-site.yml"
+      - "docs/**"
+      - "packages/**"
   workflow_dispatch:
 
 concurrency:

@@ -34,7 +34,7 @@ jobs:
       - name: Build
         run: pnpm build
       - name: Cache artifacts
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/artifacts

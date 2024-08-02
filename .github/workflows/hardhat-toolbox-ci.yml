@@ -2,8 +2,10 @@ name: hardhat-toolbox CI
 
 on:
   push:
-    branches: [$default-branch]
+    branches:
+      - main
     paths:
+      - ".github/workflows/hardhat-toolbox-ci.yml"
       - "packages/hardhat-toolbox/**"
       - "packages/hardhat-core/**"
       - "packages/hardhat-chai-matchers/**"
@@ -13,9 +15,8 @@ on:
       - "packages/hardhat-common/**"
       - "config/**"
   pull_request:
-    branches:
-      - "**"
     paths:
+      - ".github/workflows/hardhat-toolbox-ci.yml"
       - "packages/hardhat-toolbox/**"
       - "packages/hardhat-core/**"
       - "packages/hardhat-chai-matchers/**"
