@@ -21,27 +21,27 @@ async function deleteTelemetryConsentFile() {
 
 describe("telemetry-permissions", () => {
   beforeEach(async () => {
-    delete process.env.HARDHAT_ENABLE_TELEMETRY_IN_TEST;
+    delete process.env.HARDHAT_TEST_INTERACTIVE_ENV;
 
     await deleteTelemetryConsentFile();
   });
 
   afterEach(async () => {
-    delete process.env.HARDHAT_ENABLE_TELEMETRY_IN_TEST;
+    delete process.env.HARDHAT_TEST_INTERACTIVE_ENV;
 
     await deleteTelemetryConsentFile();
   });
 
   describe("isTelemetryAllowed", () => {
     it("should return false because not an interactive environment", async () => {
-      await setTelemetryConsentFile(true); // Needed to be sure that the file is not read and the process exits before
+      await setTelemetryConsentFile(true);
 
       const res = await isTelemetryAllowed();
       assert.equal(res, false);
     });
 
     it("should return false because the user did not give telemetry consent", async () => {
-      process.env.HARDHAT_ENABLE_TELEMETRY_IN_TEST = "true";
+      process.env.HARDHAT_TEST_INTERACTIVE_ENV = "true";
       await setTelemetryConsentFile(false);
 
       const res = await isTelemetryAllowed();
@@ -49,14 +49,14 @@ describe("telemetry-permissions", () => {
     });
 
     it("should return false because the telemetry consent is not set", async () => {
-      process.env.HARDHAT_ENABLE_TELEMETRY_IN_TEST = "true";
+      process.env.HARDHAT_TEST_INTERACTIVE_ENV = "true";
 
       const res = await isTelemetryAllowed();
       assert.equal(res, false);
     });
 
     it("should return true because the user gave telemetry consent", async () => {
-      process.env.HARDHAT_ENABLE_TELEMETRY_IN_TEST = "true";
+      process.env.HARDHAT_TEST_INTERACTIVE_ENV = "true";
       await setTelemetryConsentFile(true);
 
       const res = await isTelemetryAllowed();
