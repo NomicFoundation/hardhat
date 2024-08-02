@@ -20,3 +20,15 @@ export class DispatcherError extends CustomError {
     super(`Failed to create dispatcher: ${message}`, cause);
   }
 }
+
+export class RequestTimeoutError extends CustomError {
+  constructor(url: string, cause?: Error) {
+    super(`Request to ${sanitizeUrl(url)} timed out`, cause);
+  }
+}
+
+export class ConnectionRefusedError extends CustomError {
+  constructor(url: string, cause?: Error) {
+    super(`Connection to ${sanitizeUrl(url)} was refused`, cause);
+  }
+}
