@@ -160,7 +160,10 @@ describe("Reporter", () => {
         true,
       );
       assert.equal(
-        resFile.exception.values[0].stacktrace.frames[3].context_line,
+        resFile.exception.values[0].stacktrace.frames[3].context_line.replace(
+          "\r",
+          "",
+        ), // Handle Windows line endings
         `export const HARDHAT_ERROR: HardhatError = new HardhatError({`,
       );
       assert.equal(
@@ -198,7 +201,10 @@ describe("Reporter", () => {
         true,
       );
       assert.equal(
-        resFile.exception.values[0].stacktrace.frames[3].context_line,
+        resFile.exception.values[0].stacktrace.frames[3].context_line.replace(
+          "\r",
+          "",
+        ), // Handle Windows line endings
         `export const ERROR: Error = new Error(\"test-error\");`,
       );
       assert.equal(
