@@ -2,9 +2,6 @@
   "extends": "../../config-v-next/tsconfig.json",
   "references": [
     {
-      "path": "../hardhat-build-system"
-    },
-    {
       "path": "../hardhat-errors"
     },
     {

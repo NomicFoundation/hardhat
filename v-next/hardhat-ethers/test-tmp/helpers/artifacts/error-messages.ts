@@ -1,7 +1,7 @@
 import type { Artifact } from "@ignored/hardhat-vnext/types/artifacts";
 
 export const CONTRACT: Artifact = {
-  _format: "hh-sol-artifact-1",
+  _format: "hh3-artifact-1",
   contractName: "Contract",
   sourceName: "contracts/Contract.sol",
   abi: [

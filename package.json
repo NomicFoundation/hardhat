@@ -22,6 +22,5 @@
     "lint:fix": "pnpm run --recursive lint:fix && pnpm prettier --write",
     "prettier": "prettier *.md \"{docs,.github}/**/*.{md,yml,ts,js}\" \"scripts/**/*.js\"",
     "vnext-full-check": "pnpm run --recursive --filter \"./v-next/**\" build && pnpm run --recursive --filter \"./v-next/**\" lint && pnpm run --recursive --filter \"./v-next/**\" test"
-  },
-  "dependencies": {}
+  }
 }

@@ -2,8 +2,7 @@ import type {
   ArtifactsManager,
   Artifact,
   BuildInfo,
-  CompilerInput,
-  CompilerOutput,
+  GetAtifactByName,
 } from "../../src/types/artifacts.js";
 
 import {
@@ -18,9 +17,9 @@ export class MockArtifactsManager implements ArtifactsManager {
     this.#artifacts = new Map();
   }
 
-  public async readArtifact(
-    contractNameOrFullyQualifiedName: string,
-  ): Promise<Artifact> {
+  public async readArtifact<ContractNameT extends string>(
+    contractNameOrFullyQualifiedName: ContractNameT,
+  ): Promise<GetAtifactByName<ContractNameT>> {
     const artifact = this.#artifacts.get(contractNameOrFullyQualifiedName);
 
     assertHardhatInvariant(
@@ -29,7 +28,10 @@ export class MockArtifactsManager implements ArtifactsManager {
         contractNameOrFullyQualifiedName,
     );
 
-    return artifact;
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+    We are asserting that the artifact is of the correct type, which won't be
+    really used during tests. */
+    return artifact as GetAtifactByName<ContractNameT>;
   }
 
   public artifactExists(
@@ -74,17 +76,6 @@ export class MockArtifactsManager implements ArtifactsManager {
 
   public async saveArtifact(artifact: Artifact): Promise<void> {
     this.#artifacts.set(artifact.contractName, artifact);
-  }
-
-  public saveBuildInfo(
-    _solcVersion: string,
-    _solcLongVersion: string,
-    _input: CompilerInput,
-    _output: CompilerOutput,
-  ): Promise<string> {
-    throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
-      message: "Not implemented in MockArtifactsManager",
-    });
   }
 
   public formArtifactPathFromFullyQualifiedName(
