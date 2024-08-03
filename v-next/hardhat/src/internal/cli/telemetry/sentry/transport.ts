@@ -32,11 +32,12 @@ export async function getSubprocessTransport(): Promise<any> {
           process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH;
       }
 
-      await spawnDetachedSubProcess(
-        subprocessFile,
-        [serializedEvent, configPath ?? ""],
-        env,
-      );
+      const args = [serializedEvent];
+      if (configPath !== undefined) {
+        args.push(configPath);
+      }
+
+      await spawnDetachedSubProcess(subprocessFile, args, env);
 
       return {
         status: Status.Success,
