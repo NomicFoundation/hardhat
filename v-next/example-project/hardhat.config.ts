@@ -11,6 +11,8 @@ import { viemScketchPlugin } from "./viem-scketch-plugin.js";
 import hardhatNetworkHelpersPlugin from "@ignored/hardhat-vnext-network-helpers";
 import hardhatEthersPlugin from "@ignored/hardhat-vnext-ethers";
 
+util.inspect.defaultOptions.depth = null;
+
 const exampleEmptyTask = emptyTask("empty", "An example empty task").build();
 
 const exampleEmptySubtask = task(["empty", "task"])
@@ -134,6 +136,33 @@ const config: HardhatUserConfig = {
       mocha: "test/mocha",
       nodeTest: "test/node",
     },
+  },
+  solidity: {
+    profiles: {
+      default: {
+        compilers: [
+          {
+            version: "0.8.22",
+          },
+          {
+            version: "0.7.1",
+          },
+        ],
+        overrides: {
+          "foo/bar.sol": {
+            version: "0.8.1",
+          },
+        },
+      },
+      test: {
+        version: "0.8.2",
+      },
+      coverage: {
+        version: "0.8.2",
+      },
+    },
+    dependenciesToCompile: ["@openzeppelin/contracts/token/ERC20/ERC20.sol"],
+    remappings: ["remapped/=npm/@openzeppelin/contracts@5.0.2/access/"],
   },
 };
 

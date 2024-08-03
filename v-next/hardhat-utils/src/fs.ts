@@ -68,6 +68,45 @@ export async function getAllFilesMatching(
 }
 
 /**
+ * Recursively searches a directory and its subdirectories for directories that
+ * satisfy the specified condition, returning their absolute paths. Once a
+ * directory is found, its subdirectories are not searched.
+ *
+ * Note: dirFrom is never returned, nor `matches` is called on it.
+ *
+ * @param dirFrom The absolute path of the directory to start the search from.
+ * @param matches A function to filter directories (not files).
+ * @returns An array of absolute paths. Each path has its true case, except
+ *  for the initial dirFrom part, which preserves the given casing.
+ *  No order is guaranteed. If dirFrom doesn't exist `[]` is returned.
+ * @throws NotADirectoryError if dirFrom is not a directory.
+ * @throws FileSystemAccessError for any other error.
+ */
+export async function getAllDirectoriesMatching(
+  dirFrom: string,
+  matches?: (absolutePathToDir: string) => boolean,
+): Promise<string[]> {
+  const dirContent = await readdirOrEmpty(dirFrom);
+
+  const results = await Promise.all(
+    dirContent.map(async (file) => {
+      const absolutePathToFile = path.join(dirFrom, file);
+      if (!(await isDirectory(absolutePathToFile))) {
+        return [];
+      }
+
+      if (matches === undefined || matches(absolutePathToFile)) {
+        return absolutePathToFile;
+      }
+
+      return getAllDirectoriesMatching(absolutePathToFile, matches);
+    }),
+  );
+
+  return results.flat();
+}
+
+/**
  * Determines the true case path of a given relative path from a specified
  * directory, without resolving symbolic links, and returns it.
  *

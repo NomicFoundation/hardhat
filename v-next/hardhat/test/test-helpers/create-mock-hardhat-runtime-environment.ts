@@ -16,13 +16,15 @@ export async function createMockHardhatRuntimeEnvironment(
   userProvidedGlobalOptions: Partial<GlobalOptions> = {},
   projectRoot?: string,
   unsafeOptions: UnsafeHardhatRuntimeEnvironmentOptions = {},
-): Promise<HardhatRuntimeEnvironment> {
+): Promise<HardhatRuntimeEnvironment & { artifacts: MockArtifactsManager }> {
+  /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+  We know that the mockArtifactPlugin sets `hre.artifacts` to `MockArtifactsManager */
   return createHardhatRuntimeEnvironment(
     { ...config, plugins: [mockArtifactsPlugin, ...(config.plugins ?? [])] },
     userProvidedGlobalOptions,
     projectRoot,
     unsafeOptions,
-  );
+  ) as Promise<HardhatRuntimeEnvironment & { artifacts: MockArtifactsManager }>;
 }
 
 const mockArtifactsPlugin: HardhatPlugin = {
