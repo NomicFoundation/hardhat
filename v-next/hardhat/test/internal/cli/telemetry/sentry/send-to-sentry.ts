@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, it } from "node:test";
 
 import { readUtf8File, remove } from "@ignored/hardhat-vnext-utils/fs";
 
-import { main } from "../../../../../src/internal/cli/telemetry/sentry/subprocess.js";
+import { main } from "../../../../../src/internal/cli/telemetry/sentry/send-to-sentry.js";
 import {
   checkIfSubprocessWasExecuted,
   ROOT_PATH_TO_FIXTURE,
@@ -15,7 +15,7 @@ const RESULT_FILE_PATH = path.join(PATH_TO_FIXTURE, "sub-process-result.txt");
 
 describe("sentry-subprocess", function () {
   beforeEach(async () => {
-    delete process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH;
+    process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH = RESULT_FILE_PATH;
     await remove(RESULT_FILE_PATH);
   });
 
@@ -25,7 +25,6 @@ describe("sentry-subprocess", function () {
   });
 
   it("should send an event to Sentry", async () => {
-    process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH = RESULT_FILE_PATH;
     process.argv[2] = "{}"; // Send an empty object, the real payload will be tested in the tests for the "Reporter"
 
     await main();
@@ -36,7 +35,6 @@ describe("sentry-subprocess", function () {
   });
 
   it("should send a failure message to Sentry because no argument is passed in argv[2] (serializedEvent)", async () => {
-    process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH = RESULT_FILE_PATH;
     delete process.argv[2];
 
     await main();
@@ -50,7 +48,6 @@ describe("sentry-subprocess", function () {
   });
 
   it("should send a failure message to Sentry because the argument in argv[2] is not a valid JSON", async () => {
-    process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH = RESULT_FILE_PATH;
     process.argv[2] = "not a valid JSON";
 
     await main();
@@ -64,7 +61,6 @@ describe("sentry-subprocess", function () {
   });
 
   it("should send a failure message to Sentry because there is an anonymization error", async () => {
-    process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH = RESULT_FILE_PATH;
     process.argv[2] = "null";
 
     await main();
