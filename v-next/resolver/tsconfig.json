@@ -1,0 +1,27 @@
+{
+  "extends": "../../config-v-next/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "composite": true,
+    "incremental": true
+  },
+  "exclude": [
+    "./dist",
+    "./node_modules",
+    "./test/fixture-projects/hardhat.config.ts"
+  ],
+  "references": [
+    {
+      "path": "../hardhat-errors"
+    },
+    {
+      "path": "../hardhat-node-test-reporter"
+    },
+    {
+      "path": "../hardhat-utils"
+    },
+    {
+      "path": "../hardhat-test-utils"
+    }
+  ]
+}
