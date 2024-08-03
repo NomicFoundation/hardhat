@@ -1534,12 +1534,21 @@ importers:
       '@ignored/hardhat-vnext-zod-utils':
         specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-zod-utils
+      '@sentry/node':
+        specifier: ^5.18.1
+        version: 5.30.0
       chalk:
         specifier: ^5.3.0
         version: 5.3.0
       enquirer:
         specifier: ^2.3.0
         version: 2.4.1
+      ethereum-cryptography:
+        specifier: 1.1.1
+        version: 1.1.1
+      fp-ts:
+        specifier: 1.19.3
+        version: 1.19.3
       tsx:
         specifier: ^4.11.0
         version: 4.11.0
@@ -2648,6 +2657,9 @@ packages:
   '@noble/curves@1.3.0':
     resolution: {integrity: sha512-t01iSXPuN+Eqzb4eBX0S5oubSqXbK/xXa1Ne18Hj8f9pStxztHCE2gfboSp/dZRLSqfuLpRK2nDXDK+W9puocA==}
 
+  '@noble/hashes@1.1.2':
+    resolution: {integrity: sha512-KYRCASVTv6aeUi1tsF8/vpyR7zpfs3FUzy2Jqm+MU+LmUKhQ0y2FpfwqkCcxSg2ua4GALJd8k2R76WxwZGbQpA==}
+
   '@noble/hashes@1.2.0':
     resolution: {integrity: sha512-FZfhjEDbT5GRswV3C6uvLPHMiVD6lQBmpoX5+eSiPaMTXte/IKqI5dykDxzZB/WBeK/CDuQRBWarPdi3FNY2zQ==}
 
@@ -2658,6 +2670,9 @@ packages:
   '@noble/hashes@1.3.3':
     resolution: {integrity: sha512-V7/fPHgl+jsVPXqqeOzT8egNj2iBIVt+ECeMMG8TdcnTikP3oaBtUVqpT/gYCR68aEBJSF+XbYUxStjbFMqIIA==}
     engines: {node: '>= 16'}
+
+  '@noble/secp256k1@1.6.2':
+    resolution: {integrity: sha512-4AmNQqf+ysJx67kw3SMiPQl/JMjGB97dRGvAmwEu7txbY8B8FAHanQ0V9+i2b1ti+uQt5Cs9OByeDrFOaN1kjw==}
 
   '@noble/secp256k1@1.7.1':
     resolution: {integrity: sha512-hOUk6AyBFmqVrv7k5WAw/LpszxVbj9gGN4JRkIX52fdFAj1UA61KXmZDvqVEm+pOyec3+fIeZB02LYa/pWOArw==}
@@ -2863,6 +2878,9 @@ packages:
   '@scure/base@1.1.5':
     resolution: {integrity: sha512-Brj9FiG2W1MRQSTB212YVPRrcbjkv48FoZi/u4l/zds/ieRrqsh7aUf6CLwkAq61oKXr/ZlTzlY66gLIj3TFTQ==}
 
+  '@scure/bip32@1.1.0':
+    resolution: {integrity: sha512-ftTW3kKX54YXLCxH6BB7oEEoJfoE2pIgw7MINKAs5PsS6nqKPuKk1haTF/EuHmYqG330t5GSrdmtRuHaY1a62Q==}
+
   '@scure/bip32@1.1.5':
     resolution: {integrity: sha512-XyNh1rB0SkEqd3tXcXMi+Xe1fvg+kUIcoRIEujP1Jgv7DqW2r9lg3Ah0NkFaCs9sTkQAQA8kw7xiRXzENi9Rtw==}
 
@@ -2871,6 +2889,9 @@ packages:
 
   '@scure/bip32@1.3.3':
     resolution: {integrity: sha512-LJaN3HwRbfQK0X1xFSi0Q9amqOgzQnnDngIt+ZlsBC3Bm7/nE7K0kwshZHyaru79yIVRv/e1mQAjZyuZG6jOFQ==}
+
+  '@scure/bip39@1.1.0':
+    resolution: {integrity: sha512-pwrPOS16VeTKg98dYXQyIjJEcWfz7/1YJIwxUEPFfQPtc86Ym/1sVgQ2RLoD43AazMk2l/unK4ITySSpW2+82w==}
 
   '@scure/bip39@1.1.1':
     resolution: {integrity: sha512-t+wDck2rVkh65Hmv280fYdVdY25J9YeEUIgn2LG1WM6gxFkGzcksoDiUkWVpVp3Oex9xGC68JU2dSbUfwZ2jPg==}
@@ -4355,6 +4376,9 @@ packages:
 
   ethereum-cryptography@0.1.3:
     resolution: {integrity: sha512-w8/4x1SGGzc+tO97TASLja6SLd3fRIK2tLVcV2Gx4IB21hE19atll5Cq9o3d0ZmAYC/8aw0ipieTSiekAea4SQ==}
+
+  ethereum-cryptography@1.1.1:
+    resolution: {integrity: sha512-zp6caNCfG3S2LtSjCeZtOjfRCXNoPv16XTBzM/jOVVlWmO1m59QZdp+VpI8Org4UwPTJ/LzI/XbRHKqi4cMRVg==}
 
   ethereum-cryptography@1.2.0:
     resolution: {integrity: sha512-6yFQC9b5ug6/17CQpCyE3k9eKBMdhyVjzUy1WkiuY/E4vj/SXDBbCw8QEIaXqf0Mf2SnY6RmpDcwlUmBSS0EJw==}
@@ -7802,11 +7826,15 @@ snapshots:
     dependencies:
       '@noble/hashes': 1.3.3
 
+  '@noble/hashes@1.1.2': {}
+
   '@noble/hashes@1.2.0': {}
 
   '@noble/hashes@1.3.2': {}
 
   '@noble/hashes@1.3.3': {}
+
+  '@noble/secp256k1@1.6.2': {}
 
   '@noble/secp256k1@1.7.1': {}
 
@@ -8016,6 +8044,12 @@ snapshots:
 
   '@scure/base@1.1.5': {}
 
+  '@scure/bip32@1.1.0':
+    dependencies:
+      '@noble/hashes': 1.1.2
+      '@noble/secp256k1': 1.6.2
+      '@scure/base': 1.1.5
+
   '@scure/bip32@1.1.5':
     dependencies:
       '@noble/hashes': 1.2.0
@@ -8032,6 +8066,11 @@ snapshots:
     dependencies:
       '@noble/curves': 1.3.0
       '@noble/hashes': 1.3.3
+      '@scure/base': 1.1.5
+
+  '@scure/bip39@1.1.0':
+    dependencies:
+      '@noble/hashes': 1.1.2
       '@scure/base': 1.1.5
 
   '@scure/bip39@1.1.1':
@@ -9843,7 +9882,7 @@ snapshots:
       axios: 1.6.7(debug@4.3.4)
       cli-table3: 0.5.1
       colors: 1.4.0
-      ethereum-cryptography: 1.2.0
+      ethereum-cryptography: 1.1.1
       ethers: 5.7.2
       fs-readdir-recursive: 1.1.0
       lodash: 4.17.21
@@ -9878,6 +9917,13 @@ snapshots:
       scrypt-js: 3.0.1
       secp256k1: 4.0.3
       setimmediate: 1.0.5
+
+  ethereum-cryptography@1.1.1:
+    dependencies:
+      '@noble/hashes': 1.1.2
+      '@noble/secp256k1': 1.6.2
+      '@scure/bip32': 1.1.0
+      '@scure/bip39': 1.1.0
 
   ethereum-cryptography@1.2.0:
     dependencies:
