@@ -67,7 +67,7 @@ describe("analytics", () => {
     it("should create the correct payload for the telemetry consent (positive consent)", async () => {
       await sendTelemetryConsentAnalytics(true);
 
-      await checkIfSubprocessWasExecuted(RESULT_FILE_PATH);
+      await checkIfSubprocessWasExecuted(RESULT_FILE_PATH, true);
 
       const result = await readJsonFile(RESULT_FILE_PATH);
 
@@ -89,7 +89,7 @@ describe("analytics", () => {
     it("should create the correct payload for the telemetry consent (negative consent)", async () => {
       await sendTelemetryConsentAnalytics(false);
 
-      await checkIfSubprocessWasExecuted(RESULT_FILE_PATH);
+      await checkIfSubprocessWasExecuted(RESULT_FILE_PATH, true);
 
       const result = await readJsonFile(RESULT_FILE_PATH);
 
@@ -111,7 +111,7 @@ describe("analytics", () => {
     it("should create the correct payload for the task analytics", async () => {
       const wasSent = await sendTaskAnalytics(["task", "subtask"]);
 
-      await checkIfSubprocessWasExecuted(RESULT_FILE_PATH);
+      await checkIfSubprocessWasExecuted(RESULT_FILE_PATH, true);
 
       const result: Payload = await readJsonFile(RESULT_FILE_PATH);
 

@@ -8,7 +8,7 @@ import {
   HardhatError,
   HardhatPluginError,
 } from "@ignored/hardhat-vnext-errors";
-import { readUtf8File, remove } from "@ignored/hardhat-vnext-utils/fs";
+import { readJsonFile, remove } from "@ignored/hardhat-vnext-utils/fs";
 
 import {
   _testResetReporter,
@@ -134,11 +134,9 @@ describe("Reporter", () => {
 
       const wasSent = await sendErrorTelemetry(HARDHAT_ERROR);
 
-      await checkIfSubprocessWasExecuted(RESULT_FILE_PATH);
+      await checkIfSubprocessWasExecuted(RESULT_FILE_PATH, true);
 
-      const resFile: SentryEvent = JSON.parse(
-        await readUtf8File(RESULT_FILE_PATH),
-      );
+      const resFile: SentryEvent = await readJsonFile(RESULT_FILE_PATH);
 
       assert.equal(wasSent, true);
 
@@ -178,11 +176,9 @@ describe("Reporter", () => {
 
       const wasSent = await sendErrorTelemetry(ERROR);
 
-      await checkIfSubprocessWasExecuted(RESULT_FILE_PATH);
+      await checkIfSubprocessWasExecuted(RESULT_FILE_PATH, true);
 
-      const resFile: SentryEvent = JSON.parse(
-        await readUtf8File(RESULT_FILE_PATH),
-      );
+      const resFile: SentryEvent = await readJsonFile(RESULT_FILE_PATH);
 
       assert.equal(wasSent, true);
 
