@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { exists } from "@ignored/hardhat-vnext-utils/fs";
+import { exists, readUtf8File } from "@ignored/hardhat-vnext-utils/fs";
 
 export const ROOT_PATH_TO_FIXTURE: string = path.join(
   process.cwd(),
@@ -33,12 +33,15 @@ export async function checkIfSubprocessWasExecuted(
       counter++;
 
       if (await exists(resultFilePath)) {
-        clearInterval(intervalId);
-        resolve(true);
+        try {
+          await readUtf8File(resultFilePath); // Wait for the file to be readable
+          clearInterval(intervalId);
+          resolve(true);
+        } catch (_err) {}
       } else if (counter > MAX_COUNTER) {
         clearInterval(intervalId);
         reject("Subprocess was not executed in the expected time");
       }
-    }, 100);
+    }, 50);
   });
 }
