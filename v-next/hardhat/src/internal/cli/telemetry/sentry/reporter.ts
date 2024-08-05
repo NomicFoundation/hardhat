@@ -25,9 +25,10 @@ export function _testResetReporter(): void {
 }
 
 class Reporter {
-  // GENERAL EXPLANATION: The 'reportError' function collects the error and passes it to our custom Sentry transporter.
-  // The transporter receives the JavaScript error serialized by Sentry.
-  // This serialized error is then passed to a detached subprocess, which anonymizes all the information before sending it to Sentry.
+  // GENERAL EXPLANATION:
+  // 1) The 'reportError' function collects the error and passes it to our custom Sentry transporter.
+  // 2) The custom transporter receives the JavaScript error serialized by Sentry.
+  // 3) This serialized error is then passed to a detached subprocess, which anonymizes all the information before sending it to Sentry.
 
   static #instance: Reporter | undefined;
   readonly #telemetryEnabled: boolean;
