@@ -30,6 +30,8 @@ export const DEFAULT_POOL_MAX_CONNECTIONS = 128;
 export const DEFAULT_USER_AGENT = "Hardhat";
 
 export type Dispatcher = UndiciT.Dispatcher;
+export type TestDispatcher = UndiciT.MockAgent;
+export type Interceptable = UndiciT.Interceptable;
 
 /**
  * Options to configure the dispatcher.
@@ -317,6 +319,17 @@ export async function getDispatcher(
     ensureError(e);
     throw new DispatcherError(e.message, e);
   }
+}
+
+export async function getTestDispatcher(
+  options: {
+    timeout?: number;
+  } = {},
+): Promise<TestDispatcher> {
+  const { MockAgent } = await import("undici");
+
+  const baseOptions = getBaseDispatcherOptions(options.timeout, true);
+  return new MockAgent(baseOptions);
 }
 
 /**
