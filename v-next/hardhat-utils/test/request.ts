@@ -262,7 +262,7 @@ describe("Requests util", () => {
       mockPool.intercept(baseInterceptorOptions).reply(200, {});
       const response = await getRequest(url, undefined, mockPool);
 
-      assert.ok(response, "Should return a response");
+      assert.notEqual(response, undefined, "Should return a response");
       assert.equal(response.statusCode, 200);
       await response.body.json();
     });
@@ -277,7 +277,7 @@ describe("Requests util", () => {
         .reply(200, {});
       const response = await getRequest(url, { queryParams }, mockPool);
 
-      assert.ok(response, "Should return a response");
+      assert.notEqual(response, undefined, "Should return a response");
       assert.equal(response.statusCode, 200);
       await response.body.json();
     });
@@ -294,7 +294,7 @@ describe("Requests util", () => {
         .reply(200, {});
       const response = await getRequest(url, { extraHeaders }, mockPool);
 
-      assert.ok(response, "Should return a response");
+      assert.notEqual(response, undefined, "Should return a response");
       assert.equal(response.statusCode, 200);
       await response.body.json();
     });
@@ -347,7 +347,7 @@ describe("Requests util", () => {
       mockPool.intercept(baseInterceptorOptions).reply(200, {});
       const response = await postJsonRequest(url, body, undefined, mockPool);
 
-      assert.ok(response, "Should return a response");
+      assert.notEqual(response, undefined, "Should return a response");
       assert.equal(response.statusCode, 200);
       await response.body.json();
     });
@@ -369,7 +369,7 @@ describe("Requests util", () => {
         mockPool,
       );
 
-      assert.ok(response, "Should return a response");
+      assert.notEqual(response, undefined, "Should return a response");
       assert.equal(response.statusCode, 200);
       await response.body.json();
     });
@@ -391,7 +391,7 @@ describe("Requests util", () => {
         mockPool,
       );
 
-      assert.ok(response, "Should return a response");
+      assert.notEqual(response, undefined, "Should return a response");
       assert.equal(response.statusCode, 200);
       await response.body.json();
     });
@@ -445,7 +445,7 @@ describe("Requests util", () => {
       mockPool.intercept(baseInterceptorOptions).reply(200, {});
       const response = await postFormRequest(url, body, undefined, mockPool);
 
-      assert.ok(response, "Should return a response");
+      assert.notEqual(response, undefined, "Should return a response");
       assert.equal(response.statusCode, 200);
       await response.body.json();
     });
@@ -467,7 +467,7 @@ describe("Requests util", () => {
         mockPool,
       );
 
-      assert.ok(response, "Should return a response");
+      assert.notEqual(response, undefined, "Should return a response");
       assert.equal(response.statusCode, 200);
       await response.body.json();
     });
@@ -489,7 +489,7 @@ describe("Requests util", () => {
         mockPool,
       );
 
-      assert.ok(response, "Should return a response");
+      assert.notEqual(response, undefined, "Should return a response");
       assert.equal(response.statusCode, 200);
       await response.body.json();
     });
@@ -542,7 +542,7 @@ describe("Requests util", () => {
       mockPool.intercept(baseInterceptorOptions).reply(200, "file content");
       await download(url, destination, undefined, mockPool);
 
-      assert.ok(exists(destination), "Should create the file");
+      assert.ok(await exists(destination), "Should create the file");
       assert.equal(await readUtf8File(destination), "file content");
     });
 

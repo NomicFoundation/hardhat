@@ -122,6 +122,10 @@ The `baseFeePerGas` of the first block. Note that when forking a remote network,
 
 The address used as coinbase in new blocks. Default value: `"0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e"`.
 
+#### `enableRip7212`
+
+A flag indicating whether to enable [RIP-7212 (Precompile for secp256r1 Curve Support)](https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md). Default value: `false`.
+
 ### Mining modes
 
 You can configure the mining behavior under your Hardhat Network settings:

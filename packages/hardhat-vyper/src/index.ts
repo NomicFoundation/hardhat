@@ -23,7 +23,10 @@ import {
   TASK_COMPILE_VYPER_LOG_DOWNLOAD_COMPILER_END,
   TASK_COMPILE_VYPER_LOG_COMPILATION_RESULT,
 } from "./task-names";
-import { DEFAULT_VYPER_VERSION } from "./constants";
+import {
+  DEFAULT_VYPER_VERSION,
+  OUTPUT_BREAKABLE_VYPER_VERSION,
+} from "./constants";
 import { Compiler } from "./compiler";
 import { CompilerDownloader } from "./downloader";
 import {
@@ -344,10 +347,24 @@ ${list}`
           }
         );
 
-        for (const [sourceName, output] of Object.entries(contracts)) {
+        const { localPathToSourceName } = await import(
+          "hardhat/utils/source-names"
+        );
+
+        for (const [contractSourceIdentifier, output] of Object.entries(
+          contracts
+        )) {
+          const sourceName = semver.gte(
+            vyperVersion,
+            OUTPUT_BREAKABLE_VYPER_VERSION
+          )
+            ? await localPathToSourceName(
+                config.paths.root,
+                contractSourceIdentifier
+              )
+            : contractSourceIdentifier;
           const artifact = getArtifactFromVyperOutput(sourceName, output);
           await artifacts.saveArtifactAndDebugFile(artifact);
-
           const file = files.find((f) => f.sourceName === sourceName);
           assertPluginInvariant(
             file !== undefined,

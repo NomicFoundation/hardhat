@@ -121,7 +121,7 @@ async function defaultRequestSecretInput(
       }
 
       assertHardhatInvariant(
-        rlAsAny.output,
+        rlAsAny.output !== undefined,
         "Espected readline output to be defined",
       );
 

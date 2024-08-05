@@ -5,7 +5,7 @@
     "rootDirs": ["./test"],
     "composite": true
   },
-  "include": ["./test/**/*.ts"],
+  "include": ["./test/**/*.ts", "scripts"],
   "exclude": [
     "./test/**/hardhat.config.ts",
     "./node_modules",

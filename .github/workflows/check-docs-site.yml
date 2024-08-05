@@ -3,8 +3,14 @@ name: Check Docs Site
 on:
   push:
     branches:
-      - "**"
+      - main
     paths:
+      - ".github/workflows/check-docs-site.yml"
+      - "docs/**"
+      - "packages/**"
+  pull_request:
+    paths:
+      - ".github/workflows/check-docs-site.yml"
       - "docs/**"
       - "packages/**"
   workflow_dispatch:
@@ -14,23 +20,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check:
-    name: Check docs site
+  build:
+    name: Build Docs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
-          cache: "pnpm"
+      - uses: ./.github/actions/setup-env
       - name: Install
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Install Docs
-        run: cd docs && pnpm install --frozen-lockfile --prefer-offline
-      - name: lint
-        run: cd docs && pnpm lint
-      - name: Build
-        run: cd docs && pnpm build
+        working-directory: docs/
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Build Docs
+        working-directory: docs/
+        run: pnpm build

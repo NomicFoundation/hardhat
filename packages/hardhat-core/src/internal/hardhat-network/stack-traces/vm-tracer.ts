@@ -26,6 +26,10 @@ import {
 const DUMMY_RETURN_DATA = Buffer.from([]);
 const DUMMY_GAS_USED = 0n;
 
+/**
+ * Consumes the incoming VM trace events, until an error occurs, to keep track
+ * of the last top level message trace/error.
+ */
 export class VMTracer {
   public tracingSteps: TracingStep[] = [];
 
@@ -33,7 +37,7 @@ export class VMTracer {
   private _lastError: Error | undefined;
   private _maxPrecompileNumber;
 
-  constructor(private readonly _throwErrors = true) {
+  constructor() {
     // TODO: temporarily hardcoded to remove the need of using ethereumjs' common and evm here
     this._maxPrecompileNumber = 10;
   }
@@ -46,15 +50,11 @@ export class VMTracer {
     return this._lastError;
   }
 
-  public clearLastError() {
-    this._lastError = undefined;
-  }
-
   private _shouldKeepTracing() {
-    return this._throwErrors || this._lastError === undefined;
+    return this._lastError === undefined;
   }
 
-  public async addBeforeMessage(message: TracingMessage) {
+  public addBeforeMessage(message: TracingMessage) {
     if (!this._shouldKeepTracing()) {
       return;
     }
@@ -143,15 +143,11 @@ export class VMTracer {
 
       this._messageTraces.push(trace);
     } catch (error) {
-      if (this._throwErrors) {
-        throw error;
-      } else {
-        this._lastError = error as Error;
-      }
+      this._lastError = error as Error;
     }
   }
 
-  public async addStep(step: TracingStep) {
+  public addStep(step: TracingStep) {
     if (!this._shouldKeepTracing()) {
       return;
     }
@@ -169,15 +165,11 @@ export class VMTracer {
 
       trace.steps.push({ pc: Number(step.pc) });
     } catch (error) {
-      if (this._throwErrors) {
-        throw error;
-      } else {
-        this._lastError = error as Error;
-      }
+      this._lastError = error as Error;
     }
   }
 
-  public async addAfterMessage(result: ExecutionResult, haltOverride?: Exit) {
+  public addAfterMessage(result: ExecutionResult) {
     if (!this._shouldKeepTracing()) {
       return;
     }
@@ -197,8 +189,7 @@ export class VMTracer {
           ).address;
         }
       } else if (isHaltResult(executionResult)) {
-        trace.exit =
-          haltOverride ?? Exit.fromEdrExceptionalHalt(executionResult.reason);
+        trace.exit = Exit.fromEdrExceptionalHalt(executionResult.reason);
 
         trace.returnData = Buffer.from([]);
       } else {
@@ -211,11 +202,7 @@ export class VMTracer {
         this._messageTraces.pop();
       }
     } catch (error) {
-      if (this._throwErrors) {
-        throw error;
-      } else {
-        this._lastError = error as Error;
-      }
+      this._lastError = error as Error;
     }
   }
 }

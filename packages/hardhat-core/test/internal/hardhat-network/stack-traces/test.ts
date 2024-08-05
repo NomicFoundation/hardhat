@@ -9,7 +9,7 @@ import { EdrProviderWrapper } from "../../../../src/internal/hardhat-network/pro
 import { ReturnData } from "../../../../src/internal/hardhat-network/provider/return-data";
 import {
   ConsoleLogs,
-  consoleLogToString,
+  ConsoleLogger,
 } from "../../../../src/internal/hardhat-network/stack-traces/consoleLogger";
 import {
   printMessageTrace,
@@ -27,7 +27,6 @@ import {
 } from "../../../../src/internal/hardhat-network/stack-traces/solidity-stack-trace";
 import { SolidityTracer } from "../../../../src/internal/hardhat-network/stack-traces/solidityTracer";
 import { VmTraceDecoder } from "../../../../src/internal/hardhat-network/stack-traces/vm-trace-decoder";
-import { VMTracer } from "../../../../src/internal/hardhat-network/stack-traces/vm-tracer";
 import {
   BuildInfo,
   CompilerInput,
@@ -95,7 +94,7 @@ interface DeploymentTransaction {
   };
   stackTrace?: StackFrameDescription[]; // No stack trace === the tx MUST be successful
   imports?: string[]; // Imports needed for successful compilation
-  consoleLogs?: ConsoleLogs[];
+  consoleLogs?: ConsoleLogs;
   gas?: number;
 }
 
@@ -110,7 +109,7 @@ interface CallTransaction {
   // The second one is with function and parms
   function?: string; // Default: no data
   params?: Array<string | number>; // Default: no param
-  consoleLogs?: ConsoleLogs[];
+  consoleLogs?: ConsoleLogs;
   gas?: number;
 }
 
@@ -455,7 +454,7 @@ function compareStackTraces(
   assert.lengthOf(trace, description.length);
 }
 
-function compareConsoleLogs(logs: string[], expectedLogs?: ConsoleLogs[]) {
+function compareConsoleLogs(logs: string[], expectedLogs?: ConsoleLogs) {
   if (expectedLogs === undefined) {
     return;
   }
@@ -464,7 +463,7 @@ function compareConsoleLogs(logs: string[], expectedLogs?: ConsoleLogs[]) {
 
   for (let i = 0; i < logs.length; i++) {
     const actual = logs[i];
-    const expected = consoleLogToString(expectedLogs[i]);
+    const expected = ConsoleLogger.format(expectedLogs[i]);
 
     assert.equal(actual, expected);
   }
@@ -498,7 +497,7 @@ async function runTest(
 
   const logger = new FakeModulesLogger();
   const solidityTracer = new SolidityTracer();
-  const [provider, vmTracer] = await instantiateProvider(
+  const provider = await instantiateProvider(
     {
       enabled: false,
       printLineFn: logger.printLineFn(),
@@ -517,7 +516,6 @@ async function runTest(
         txIndex,
         tx,
         provider,
-        vmTracer,
         compilerOutput,
         txIndexToContract
       );
@@ -541,7 +539,6 @@ async function runTest(
         txIndex,
         tx,
         provider,
-        vmTracer,
         compilerOutput,
         contract!
       );
@@ -650,7 +647,6 @@ async function runDeploymentTransactionTest(
   txIndex: number,
   tx: DeploymentTransaction,
   provider: EdrProviderWrapper,
-  vmTracer: VMTracer,
   compilerOutput: CompilerOutput,
   txIndexToContract: Map<number, DeployedContract>
 ): Promise<CreateMessageTrace> {
@@ -682,7 +678,7 @@ async function runDeploymentTransactionTest(
 
   const data = Buffer.concat([deploymentBytecode, params]);
 
-  const trace = await traceTransaction(provider, vmTracer, {
+  const trace = await traceTransaction(provider, {
     value: tx.value !== undefined ? BigInt(tx.value) : undefined,
     data,
     gas: tx.gas !== undefined ? BigInt(tx.gas) : undefined,
@@ -695,7 +691,6 @@ async function runCallTransactionTest(
   txIndex: number,
   tx: CallTransaction,
   provider: EdrProviderWrapper,
-  vmTracer: VMTracer,
   compilerOutput: CompilerOutput,
   contract: DeployedContract
 ): Promise<CallMessageTrace> {
@@ -716,7 +711,7 @@ async function runCallTransactionTest(
     data = Buffer.from([]);
   }
 
-  const trace = await traceTransaction(provider, vmTracer, {
+  const trace = await traceTransaction(provider, {
     to: contract.address,
     value: tx.value !== undefined ? BigInt(tx.value) : undefined,
     data,
