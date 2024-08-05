@@ -123,7 +123,7 @@ export class Anonymizer {
     errorMessage = this.#anonymizeMnemonic(errorMessage);
 
     // the \\ before path.sep is necessary for this to work on windows
-    const pathRegex = new RegExp(`\\S+\\${path.sep}\\S+`, "g");
+    const pathRegex = /\S+[\/\\]\S+/g;
 
     // for files that don't have a path separator
     const fileRegex = new RegExp("\\S+\\.(js|ts)\\S*", "g");
