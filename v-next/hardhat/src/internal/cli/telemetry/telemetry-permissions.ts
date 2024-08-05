@@ -47,14 +47,14 @@ export async function isTelemetryAllowed(): Promise<boolean> {
     return false;
   }
 
-  const consent = await getTelemetryConsent();
-
   // ATTENTION: only for testing
   if (process.env.HARDHAT_TEST_TELEMETRY_CONSENT_VALUE !== undefined) {
     return process.env.HARDHAT_TEST_TELEMETRY_CONSENT_VALUE === "true"
       ? true
       : false;
   }
+
+  const consent = await getTelemetryConsent();
 
   return consent !== undefined ? consent : false;
 }
@@ -72,7 +72,8 @@ export function isTelemetryAllowedInEnvironment(): boolean {
     (!isCi() &&
       process.stdout.isTTY === true &&
       process.env.HARDHAT_DISABLE_TELEMETRY_PROMPT !== "true") ||
-    process.env.HARDHAT_TEST_INTERACTIVE_ENV === "true" // Used in tests to force telemetry execution
+    // ATTENTION: used in tests to force telemetry execution
+    process.env.HARDHAT_TEST_INTERACTIVE_ENV === "true"
   );
 }
 
