@@ -542,7 +542,7 @@ describe("Requests util", () => {
       mockPool.intercept(baseInterceptorOptions).reply(200, "file content");
       await download(url, destination, undefined, mockPool);
 
-      assert.ok(exists(destination), "Should create the file");
+      assert.ok(await exists(destination), "Should create the file");
       assert.equal(await readUtf8File(destination), "file content");
     });
 
