@@ -24,12 +24,12 @@ describe("resetWithoutFork", function () {
 
     const mainnetBlockNumber = await hh.time.latestBlock();
 
-    // fork goerli
-    await hh.reset(INFURA_URL.replace("mainnet", "goerli"));
+    // fork sepolia
+    await hh.reset(INFURA_URL.replace("mainnet", "sepolia"));
 
-    const goerliBlockNumber = await hh.time.latestBlock();
+    const sepoliaBlockNumber = await hh.time.latestBlock();
 
-    const blockNumberDelta = Math.abs(mainnetBlockNumber - goerliBlockNumber);
+    const blockNumberDelta = Math.abs(mainnetBlockNumber - sepoliaBlockNumber);
 
     // check that there is a significative difference between the latest
     // block numbers of each chain

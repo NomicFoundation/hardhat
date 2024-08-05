@@ -1,5 +1,31 @@
 # hardhat
 
+## 2.22.7
+
+### Patch Changes
+
+- f944cd5: Added an `enableRip7212` optional flag to the Hardhat Network config that enables [RIP-7212 (Precompile for secp256r1 Curve Support)](https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md).
+- f6ddc92: Add `debug` logs to Hardhat Network initialization process.
+- 6c943bb: Fix message for error HH206
+- f944cd5: Bumped EDR to [v0.5.0](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.5.0).
+
+## 2.22.6
+
+### Patch Changes
+
+- cdf0160: Upgrade bundled solcjs
+- 3c66da2: Add support for Node v22
+- 9fadc22: Bump EDR to [v0.4.1](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.4.1).
+- 095faa4: Added hardfork histories for Optimim and Arbitrum chains
+
+## 2.22.5
+
+### Patch Changes
+
+- f65dc7c: Improved the validation of network and forking URLs (thanks @kshyun28!)
+- 5d46baa: Internal changes to allow `hardhat-tracer` to be re-enabled with Hardhat after the EDR upgrade
+- 6e36f3f: Bump EDR to v0.4.0. This adds support for `eth_maxPriorityFeePerGas`, limited support for blob transactions, improves performance and fixes some bugs. Check out the [v0.4.0 EDR release](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.4.0) and [v0.3.8 EDR release](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.3.8) for more details.
+
 ## 2.22.4
 
 ### Patch Changes

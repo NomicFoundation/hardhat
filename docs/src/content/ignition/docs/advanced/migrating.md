@@ -8,77 +8,77 @@ To get started, we’ll uninstall the `hardhat-deploy` plugin and install the Ha
 
 1. Remove the `hardhat-deploy` packages from your project:
 
-::::tabsgroup{options="npm,yarn"}
+   ::::tabsgroup{options="npm,yarn"}
 
-:::tab{value="npm"}
+   :::tab{value="npm"}
 
-```sh
-npm uninstall hardhat-deploy hardhat-deploy-ethers
-```
+   ```sh
+   npm uninstall hardhat-deploy hardhat-deploy-ethers
+   ```
 
-:::
+   :::
 
-:::tab{value=yarn}
+   :::tab{value=yarn}
 
-```sh
-yarn remove hardhat-deploy hardhat-deploy-ethers
-```
+   ```sh
+   yarn remove hardhat-deploy hardhat-deploy-ethers
+   ```
 
-:::
+   :::
 
-::::
+   ::::
 
 2. Install the Hardhat Ignition package and `hardhat-network-helpers` to provide additional testing support as a replacement for `hardhat-deploy` functionality like EVM snapshots:
 
-::::tabsgroup{options="npm,yarn"}
+   ::::tabsgroup{options="npm,yarn"}
 
-:::tab{value="npm"}
+   :::tab{value="npm"}
 
-```sh
-npm install --save-dev @nomicfoundation/hardhat-ignition-ethers @nomicfoundation/hardhat-network-helpers
-```
+   ```sh
+   npm install --save-dev @nomicfoundation/hardhat-ignition-ethers @nomicfoundation/hardhat-network-helpers
+   ```
 
-:::
+   :::
 
-:::tab{value=yarn}
+   :::tab{value=yarn}
 
-```sh
-yarn add --dev @nomicfoundation/hardhat-ignition-ethers @nomicfoundation/hardhat-network-helpers
-```
+   ```sh
+   yarn add --dev @nomicfoundation/hardhat-ignition-ethers @nomicfoundation/hardhat-network-helpers
+   ```
 
-:::
+   :::
 
-::::
+   ::::
 
 3. Update the project’s `hardhat.config` file to remove `hardhat-deploy` and `hardhat-deploy-ethers` and instead import Hardhat Ignition:
 
-::::tabsgroup{options="typescript,javascript"}
+   ::::tabsgroup{options="typescript,javascript"}
 
-:::tab{value="typescript"}
+   :::tab{value="typescript"}
 
-```git
-- import "hardhat-deploy";
-- import "hardhat-deploy-ethers";
-+ import "@nomicfoundation/hardhat-ignition-ethers";
-```
+   ```git
+   - import "hardhat-deploy";
+   - import "hardhat-deploy-ethers";
+   + import "@nomicfoundation/hardhat-ignition-ethers";
+   ```
 
-:::
+   :::
 
-:::tab{value=javascript}
+   :::tab{value=javascript}
 
-```git
-- require("hardhat-deploy");
-- require("hardhat-deploy-ethers");
-+ require("@nomicfoundation/hardhat-ignition-ethers");
-```
+   ```git
+   - require("hardhat-deploy");
+   - require("hardhat-deploy-ethers");
+   + require("@nomicfoundation/hardhat-ignition-ethers");
+   ```
 
-:::
+   :::
 
-::::
+   ::::
 
 ## Convert deployment scripts to Ignition Modules
 
-`hardhat-deploy` represents contract deployments as JavaScript or TypeScript files under the `./deploy/` folder. Hardhat Ignition follows a similar pattern with deployments encapsulated as modules; these are JS/TS files stored under the `./ignition/modules directory`. Each `hardhat-deploy` deploy file will be converted or merged into a Hardhat Ignition module.
+`hardhat-deploy` represents contract deployments as JavaScript or TypeScript files under the `./deploy/` folder. Hardhat Ignition follows a similar pattern with deployments encapsulated as modules; these are JS/TS files stored under the `./ignition/modules` directory. Each `hardhat-deploy` deploy file will be converted or merged into a Hardhat Ignition module.
 
 Let’s first create the required folder structure under the root of your project:
 
@@ -97,13 +97,16 @@ contract Token {
     uint256 public totalSupply = 1000000;
     address public owner;
     mapping(address => uint256) balances;
+
     constructor(address _owner) {
         balances[_owner] = totalSupply;
         owner = _owner;
     }
+
     function balanceOf(address account) external view returns (uint256) {
         return balances[account];
     }
+
     function transfer(address to, uint256 amount) external {
         require(balances[msg.sender] >= amount, "Not enough tokens");
         balances[msg.sender] -= amount;
@@ -123,9 +126,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments, getNamedAccounts } = hre;
   const { deploy } = deployments;
   /*
-  The deploy function uses the hardhat-deploy named accounts feature
-  to set the deployment's `from` and `args` parameters.
- */
+   The deploy function uses the hardhat-deploy named accounts feature
+   to set the deployment's `from` and `args` parameters.
+  */
   const { deployer, tokenOwner } = await getNamedAccounts();
   await deploy("Token", {
     from: deployer,
@@ -152,29 +155,29 @@ import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
  For instance, you can deploy contracts via `m.contract()`.
 */
 export default buildModule("TokenModule", (m) => {
-  /* 
-  Instead of named accounts, you get access to the configured accounts
-  through the `getAccount()` method.
- */
+  /*
+   Instead of named accounts, you get access to the configured accounts
+   through the `getAccount()` method.
+  */
   const deployer = m.getAccount(0);
   const tokenOwner = m.getAccount(1);
 
   /*
-  Deploy `Token` by calling `contract()` with the constructor arguments
-  as the second argument. The account to use for the deployment transaction
-  is set through `from` in the third argument, which is an options object.
- */
+   Deploy `Token` by calling `contract()` with the constructor arguments
+   as the second argument. The account to use for the deployment transaction
+   is set through `from` in the third argument, which is an options object.
+  */
   const token = m.contract("Token", [tokenOwner], {
     from: deployer,
   });
 
   /*
-  The call to `m.contract()` returns a future that can be used in other `m.contract()`
-  calls (e.g. as a constructor argument, where the future will resolve to the
-  deployed address), but it can also be returned from the module. Contract
-  futures that are returned from the module can be leveraged in Hardhat tests
-  and scripts, as will be shown later.
- */
+   The call to `m.contract()` returns a future that can be used in other `m.contract()`
+   calls (e.g. as a constructor argument, where the future will resolve to the
+   deployed address), but it can also be returned from the module. Contract
+   futures that are returned from the module can be leveraged in Hardhat tests
+   and scripts, as will be shown later.
+  */
   return { token };
 });
 ```
@@ -193,29 +196,29 @@ const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
  For instance, you can deploy contracts via `m.contract()`.
 */
 module.exports = buildModule("TokenModule", (m) => {
-  /* 
-  Instead of named accounts, you get access to the configured accounts
-  through the `getAccount()` method.
- */
+  /*
+   Instead of named accounts, you get access to the configured accounts
+   through the `getAccount()` method.
+  */
   const deployer = m.getAccount(0);
   const tokenOwner = m.getAccount(1);
 
   /*
-  Deploy `Token` by calling `contract()` with the constructor arguments
-  as the second argument. The account to use for the deployment transaction
-  is set through `from` in the third argument, which is an options object.
- */
+   Deploy `Token` by calling `contract()` with the constructor arguments
+   as the second argument. The account to use for the deployment transaction
+   is set through `from` in the third argument, which is an options object.
+  */
   const token = m.contract("Token", [tokenOwner], {
     from: deployer,
   });
 
   /*
-  The call to `m.contract()` returns a future that can be used in other `m.contract()`
-  calls (e.g. as a constructor argument, where the future will resolve to the
-  deployed address), but it can also be returned from the module. Contract
-  futures that are returned from the module can be leveraged in Hardhat tests
-  and scripts, as will be shown later.
- */
+   The call to `m.contract()` returns a future that can be used in other `m.contract()`
+   calls (e.g. as a constructor argument, where the future will resolve to the
+   deployed address), but it can also be returned from the module. Contract
+   futures that are returned from the module can be leveraged in Hardhat tests
+   and scripts, as will be shown later.
+  */
   return { token };
 });
 ```

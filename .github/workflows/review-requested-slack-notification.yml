@@ -1,7 +1,9 @@
 name: PR review requested Slack notification
+
 on:
   pull_request_target:
     types: [review_requested]
+
 jobs:
   requested:
     uses: NomicFoundation/github-actions-workflows/.github/workflows/review-requested-slack-notification.yml@main

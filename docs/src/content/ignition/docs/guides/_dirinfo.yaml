@@ -10,5 +10,6 @@ order:
   - /verify
   - /viem
   - /create2
+  - /upgradeable-proxies
   - /ledger
   - /scripts

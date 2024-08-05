@@ -305,4 +305,16 @@ describe("Vyper plugin", function () {
       );
     });
   });
+
+  describe("compile project with different ouput identifiers returned from the vyper compiler", function () {
+    useFixtureProject("compilation-with-vyper-output-breakable-version");
+    useEnvironment();
+
+    it("Should successfully compile the contracts for versions >= 0.4.0", async function () {
+      await this.env.run(TASK_COMPILE);
+
+      assert.equal(this.env.artifacts.readArtifactSync("A").contractName, "A");
+      assert.equal(this.env.artifacts.readArtifactSync("B").contractName, "B");
+    });
+  });
 });
