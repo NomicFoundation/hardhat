@@ -34,7 +34,7 @@ export async function getBaseRequestOptions(
   signal?: EventEmitter | AbortSignal | undefined;
   dispatcher: UndiciT.Dispatcher;
   headers: Record<string, string>;
-  throwOnError: boolean;
+  throwOnError: true;
 }> {
   const { Dispatcher } = await import("undici");
   const dispatcher =

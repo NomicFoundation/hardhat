@@ -13,6 +13,7 @@ import {
   DispatcherError,
   RequestTimeoutError,
   ConnectionRefusedError,
+  ResponseStatusCodeError,
 } from "./errors/request.js";
 import { move } from "./fs.js";
 import {
@@ -106,6 +107,11 @@ export async function getRequest(
       throw new RequestTimeoutError(url, e);
     }
 
+    if (e.code === "UND_ERR_RESPONSE_STATUS_CODE") {
+      ensureError<UndiciT.errors.ResponseStatusCodeError>(e);
+      throw new ResponseStatusCodeError(url, e);
+    }
+
     throw new RequestError(url, "GET", e);
   }
 }
@@ -158,6 +164,11 @@ export async function postJsonRequest(
       e.code === "UND_ERR_BODY_TIMEOUT"
     ) {
       throw new RequestTimeoutError(url, e);
+    }
+
+    if (e.code === "UND_ERR_RESPONSE_STATUS_CODE") {
+      ensureError<UndiciT.errors.ResponseStatusCodeError>(e);
+      throw new ResponseStatusCodeError(url, e);
     }
 
     throw new RequestError(url, "POST", e);
@@ -215,6 +226,11 @@ export async function postFormRequest(
       throw new RequestTimeoutError(url, e);
     }
 
+    if (e.code === "UND_ERR_RESPONSE_STATUS_CODE") {
+      ensureError<UndiciT.errors.ResponseStatusCodeError>(e);
+      throw new ResponseStatusCodeError(url, e);
+    }
+
     throw new RequestError(url, "POST", e);
   }
 }
@@ -268,6 +284,11 @@ export async function download(
       e.code === "UND_ERR_BODY_TIMEOUT"
     ) {
       throw new RequestTimeoutError(url, e);
+    }
+
+    if (e.code === "UND_ERR_RESPONSE_STATUS_CODE") {
+      ensureError<UndiciT.errors.ResponseStatusCodeError>(e);
+      throw new ResponseStatusCodeError(url, e);
     }
 
     throw new DownloadError(url, e);
@@ -373,9 +394,10 @@ export function isValidUrl(url: string): boolean {
 }
 
 export {
+  ConnectionRefusedError,
+  DispatcherError,
   DownloadError,
   RequestError,
-  DispatcherError,
   RequestTimeoutError,
-  ConnectionRefusedError,
+  ResponseStatusCodeError,
 } from "./errors/request.js";

@@ -32,3 +32,19 @@ export class ConnectionRefusedError extends CustomError {
     super(`Connection to ${sanitizeUrl(url)} was refused`, cause);
   }
 }
+
+export class ResponseStatusCodeError extends CustomError {
+  public readonly statusCode: number;
+  public readonly headers:
+    | string[]
+    | Record<string, string | string[] | undefined>
+    | null;
+  public readonly body: null | Record<string, any> | string;
+
+  constructor(url: string, cause: UndiciT.errors.ResponseStatusCodeError) {
+    super(`Received an unexpected status code from ${sanitizeUrl(url)}`, cause);
+    this.statusCode = cause.statusCode;
+    this.headers = cause.headers;
+    this.body = cause.body;
+  }
+}
