@@ -5,6 +5,7 @@ import {
   IgnitionError,
   StatusResult,
 } from "@nomicfoundation/ignition-core";
+import debug from "debug";
 import {
   ensureDir,
   pathExists,
@@ -32,6 +33,8 @@ const ignitionScope = scope(
   "ignition",
   "Deploy your smart contracts using Hardhat Ignition"
 );
+
+const log = debug("hardhat:ignition");
 
 extendConfig((config, userConfig) => {
   /* setup path configs */
@@ -297,7 +300,9 @@ ignitionScope
             "confirmation_failure",
             ledgerConfirmationFailure
           );
-        } catch {}
+        } catch (error) {
+          log(error);
+        }
 
         const result = await deploy({
           config: hre.config.ignition,
@@ -344,7 +349,9 @@ ignitionScope
             "confirmation_failure",
             ledgerConfirmationFailure
           );
-        } catch {}
+        } catch (error) {
+          log(error);
+        }
 
         if (result.type === "SUCCESSFUL_DEPLOYMENT" && verify) {
           console.log("");
