@@ -25,9 +25,9 @@ if (serializedEvent === undefined) {
   process.exit(1);
 }
 
-let event: any;
+let sentryEvent: any;
 try {
-  event = JSON.parse(serializedEvent);
+  sentryEvent = JSON.parse(serializedEvent);
 } catch {
   await sendMsgToSentry(
     "There was an error parsing an event: 'process.argv[2]' doesn't have a valid JSON",
@@ -38,7 +38,7 @@ try {
 
 try {
   const anonymizer = new Anonymizer(configPath);
-  const anonymizedEvent = await anonymizer.anonymize(event);
+  const anonymizedEvent = await anonymizer.anonymize(sentryEvent);
 
   if (anonymizedEvent.isRight()) {
     if (anonymizer.raisedByHardhat(anonymizedEvent.value)) {
@@ -65,15 +65,15 @@ async function sendMsgToSentry(msg: string) {
   captureMessage(msg);
 }
 
-async function sendEventToSentry(sentryEvent: Event) {
+async function sendEventToSentry(e: Event) {
   if (process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH !== undefined) {
     // ATTENTION: only for testing
     await writeUtf8File(
       process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH,
-      JSON.stringify(sentryEvent),
+      JSON.stringify(e),
     );
     return;
   }
 
-  captureEvent(sentryEvent);
+  captureEvent(e);
 }

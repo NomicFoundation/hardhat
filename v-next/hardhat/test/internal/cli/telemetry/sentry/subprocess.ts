@@ -10,8 +10,11 @@ import {
   ROOT_PATH_TO_FIXTURE,
 } from "../helpers.js";
 
-const PATH_TO_FIXTURE = path.join(ROOT_PATH_TO_FIXTURE, "sentry");
-const RESULT_FILE_PATH = path.join(PATH_TO_FIXTURE, "sub-process-result.txt");
+const RESULT_FILE_PATH = path.join(
+  ROOT_PATH_TO_FIXTURE,
+  "sentry",
+  "sub-process-result.txt",
+);
 const SUBPROCESS_FILE_PATH = path.join(
   process.cwd(),
   "src",
