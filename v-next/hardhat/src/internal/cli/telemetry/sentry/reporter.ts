@@ -53,7 +53,7 @@ class Reporter {
     const { Integrations, init, setExtra } = await import("@sentry/node");
 
     const linkedErrorsIntegration = new Integrations.LinkedErrors({
-      key: "parent",
+      key: "cause",
     });
 
     const transport = await getSubprocessTransport();
