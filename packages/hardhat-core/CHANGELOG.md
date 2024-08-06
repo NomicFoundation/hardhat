@@ -1,5 +1,12 @@
 # hardhat
 
+## 2.22.8
+
+### Patch Changes
+
+- f5d5d15: Fixed an issue with `debug_traceTransaction` when large responses were generated
+- 31d9d77: Upgraded EDR to v0.5.2
+
 ## 2.22.7
 
 ### Patch Changes
