@@ -66,6 +66,7 @@ export const ERROR_CATEGORIES: {
   },
   ARGUMENTS: { min: 500, max: 599, websiteTitle: "Arguments related errors" },
   BUILTIN_TASKS: { min: 600, max: 699, websiteTitle: "Built-in tasks errors" },
+  NETWORK: { min: 700, max: 799, websiteTitle: "Network errors" },
 };
 
 export const ERRORS = {
@@ -471,6 +472,50 @@ Please double check your script's path.`,
       websiteDescription: `Running a script resulted in an error.
 
 Please check Hardhat's output for more details.`,
+    },
+  },
+  NETWORK: {
+    INVALID_URL: {
+      number: 700,
+      messageTemplate: "Invalid URL {value} for network or forking.",
+      websiteTitle: "Invalid URL for network or forking",
+      websiteDescription: `You are trying to connect to a network with an invalid network or forking URL.
+
+Please check that you are sending a valid URL string for the network or forking \`URL\` parameter.`,
+    },
+    INVALID_PARAMS: {
+      number: 701,
+      messageTemplate:
+        "Invalid method parameters. Only array parameters are supported.",
+      websiteTitle: "Invalid method parameters",
+      websiteDescription:
+        "You are trying to make an EIP-1193 request with object parameters, but only array parameters are supported.",
+    },
+    INVALID_JSON_RESPONSE: {
+      number: 702,
+      messageTemplate: "Invalid JSON-RPC response received: {response}",
+      websiteTitle: "Invalid JSON-RPC response",
+      websiteDescription: `One of your JSON-RPC requests received an invalid response.
+
+Please make sure your node is running, and check your internet connection and networks config.`,
+    },
+    CONNECTION_REFUSED: {
+      number: 703,
+      messageTemplate: `Cannot connect to the network {network}.
+Please make sure your node is running, and check your internet connection and networks config`,
+      websiteTitle: "Cannot connect to the network",
+      websiteDescription: `Cannot connect to the network.
+
+Please make sure your node is running, and check your internet connection and networks config.`,
+    },
+    NETWORK_TIMEOUT: {
+      number: 704,
+      messageTemplate: `Network connection timed out.
+Please check your internet connection and networks config`,
+      websiteTitle: "Network timeout",
+      websiteDescription: `One of your JSON-RPC requests timed out.
+
+Please make sure your node is running, and check your internet connection and networks config.`,
     },
   },
 } as const;

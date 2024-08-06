@@ -1,4 +1,8 @@
-import { afterEach } from "node:test";
+import type { Interceptable } from "@ignored/hardhat-vnext-utils/request";
+
+import { after, afterEach, before } from "node:test";
+
+import { getTestDispatcher } from "@ignored/hardhat-vnext-utils/request";
 
 export function createTestEnvManager() {
   const changes = new Set<string>();
@@ -28,3 +32,27 @@ export function createTestEnvManager() {
     },
   };
 }
+
+interface InitializeOptions {
+  url?: string;
+  timeout?: number;
+}
+
+export const initializeTestDispatcher = async (
+  options: InitializeOptions = {},
+): Promise<Interceptable> => {
+  const { url = "http://localhost", timeout } = options;
+
+  const mockAgent = await getTestDispatcher({ timeout });
+  const interceptor = mockAgent.get(url);
+
+  before(() => {
+    mockAgent.disableNetConnect();
+  });
+
+  after(() => {
+    mockAgent.enableNetConnect();
+  });
+
+  return interceptor;
+};
