@@ -79,6 +79,10 @@ async function sendAnalytics(
 async function createSubprocessToSendAnalytics(
   payload: TelemetryConsentPayload | Payload,
 ): Promise<void> {
+  // The HARDHAT_TEST_SUBPROCESS_RESULT_PATH env variable is used in the tests to instruct the subprocess to write the payload to a file
+  // instead of sending it.
+  // During testing, the subprocess file is a ts file, whereas in production, it is a js file (compiled code).
+  // The following lines adjust the file extension based on whether the environment is for testing or production.
   const fileExt =
     process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH !== undefined ? "ts" : "js";
   const subprocessFile = `${import.meta.dirname}/subprocess.${fileExt}`;

@@ -62,7 +62,7 @@ export async function isTelemetryAllowed(): Promise<boolean> {
 /**
  * Determines if telemetry is allowed in the current environment.
  * This function checks various environmental factors to decide if telemetry data can be collected.
- * It verifies that the environment is not a continuous integration (CI) environment, that the terminal is interactive,
+ * It verifies that the environment is not a CI environment, that the terminal is interactive,
  * and that telemetry has not been explicitly disabled through an environment variable.
  *
  * @returns True if telemetry is allowed in the environment, false otherwise.
