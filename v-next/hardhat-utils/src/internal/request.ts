@@ -5,12 +5,16 @@ import type UndiciT from "undici";
 import path from "node:path";
 import url from "node:url";
 
+import { ensureError } from "../error.js";
 import { mkdir } from "../fs.js";
 import {
+  ConnectionRefusedError,
   DEFAULT_MAX_REDIRECTS,
   DEFAULT_TIMEOUT_IN_MILLISECONDS,
   DEFAULT_USER_AGENT,
   getDispatcher,
+  RequestTimeoutError,
+  ResponseStatusCodeError,
 } from "../request.js";
 
 export async function generateTempFilePath(filePath: string): Promise<string> {
@@ -134,4 +138,33 @@ export function getBaseDispatcherOptions(
 export function sanitizeUrl(requestUrl: string): string {
   const parsedUrl = new URL(requestUrl);
   return url.format(parsedUrl, { auth: false, search: false, fragment: false });
+}
+
+export function handleError(
+  e: NodeJS.ErrnoException,
+  requestUrl: string,
+): void {
+  let causeCode;
+  if (e.cause !== undefined) {
+    ensureError<NodeJS.ErrnoException>(e.cause);
+    causeCode = e.cause.code;
+  }
+  const errorCode = e.code ?? causeCode;
+
+  if (errorCode === "ECONNREFUSED") {
+    throw new ConnectionRefusedError(requestUrl, e);
+  }
+
+  if (
+    errorCode === "UND_ERR_CONNECT_TIMEOUT" ||
+    errorCode === "UND_ERR_HEADERS_TIMEOUT" ||
+    errorCode === "UND_ERR_BODY_TIMEOUT"
+  ) {
+    throw new RequestTimeoutError(requestUrl, e);
+  }
+
+  if (errorCode === "UND_ERR_RESPONSE_STATUS_CODE") {
+    ensureError<UndiciT.errors.ResponseStatusCodeError>(e);
+    throw new ResponseStatusCodeError(requestUrl, e);
+  }
 }

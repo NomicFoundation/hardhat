@@ -11,9 +11,6 @@ import {
   DownloadError,
   RequestError,
   DispatcherError,
-  RequestTimeoutError,
-  ConnectionRefusedError,
-  ResponseStatusCodeError,
 } from "./errors/request.js";
 import { move } from "./fs.js";
 import {
@@ -23,6 +20,7 @@ import {
   getBasicDispatcher,
   getPoolDispatcher,
   getProxyDispatcher,
+  handleError,
 } from "./internal/request.js";
 
 export const DEFAULT_TIMEOUT_IN_MILLISECONDS = 30_000;
@@ -95,22 +93,7 @@ export async function getRequest(
   } catch (e) {
     ensureError<NodeJS.ErrnoException>(e);
 
-    if (e.code === "ECONNREFUSED") {
-      throw new ConnectionRefusedError(url, e);
-    }
-
-    if (
-      e.code === "UND_ERR_CONNECT_TIMEOUT" ||
-      e.code === "UND_ERR_HEADERS_TIMEOUT" ||
-      e.code === "UND_ERR_BODY_TIMEOUT"
-    ) {
-      throw new RequestTimeoutError(url, e);
-    }
-
-    if (e.code === "UND_ERR_RESPONSE_STATUS_CODE") {
-      ensureError<UndiciT.errors.ResponseStatusCodeError>(e);
-      throw new ResponseStatusCodeError(url, e);
-    }
+    handleError(e, url);
 
     throw new RequestError(url, "GET", e);
   }
@@ -154,22 +137,7 @@ export async function postJsonRequest(
   } catch (e) {
     ensureError<NodeJS.ErrnoException>(e);
 
-    if (e.code === "ECONNREFUSED") {
-      throw new ConnectionRefusedError(url, e);
-    }
-
-    if (
-      e.code === "UND_ERR_CONNECT_TIMEOUT" ||
-      e.code === "UND_ERR_HEADERS_TIMEOUT" ||
-      e.code === "UND_ERR_BODY_TIMEOUT"
-    ) {
-      throw new RequestTimeoutError(url, e);
-    }
-
-    if (e.code === "UND_ERR_RESPONSE_STATUS_CODE") {
-      ensureError<UndiciT.errors.ResponseStatusCodeError>(e);
-      throw new ResponseStatusCodeError(url, e);
-    }
+    handleError(e, url);
 
     throw new RequestError(url, "POST", e);
   }
@@ -214,22 +182,7 @@ export async function postFormRequest(
   } catch (e) {
     ensureError<NodeJS.ErrnoException>(e);
 
-    if (e.code === "ECONNREFUSED") {
-      throw new ConnectionRefusedError(url, e);
-    }
-
-    if (
-      e.code === "UND_ERR_CONNECT_TIMEOUT" ||
-      e.code === "UND_ERR_HEADERS_TIMEOUT" ||
-      e.code === "UND_ERR_BODY_TIMEOUT"
-    ) {
-      throw new RequestTimeoutError(url, e);
-    }
-
-    if (e.code === "UND_ERR_RESPONSE_STATUS_CODE") {
-      ensureError<UndiciT.errors.ResponseStatusCodeError>(e);
-      throw new ResponseStatusCodeError(url, e);
-    }
+    handleError(e, url);
 
     throw new RequestError(url, "POST", e);
   }
@@ -274,22 +227,7 @@ export async function download(
   } catch (e) {
     ensureError<NodeJS.ErrnoException>(e);
 
-    if (e.code === "ECONNREFUSED") {
-      throw new ConnectionRefusedError(url, e);
-    }
-
-    if (
-      e.code === "UND_ERR_CONNECT_TIMEOUT" ||
-      e.code === "UND_ERR_HEADERS_TIMEOUT" ||
-      e.code === "UND_ERR_BODY_TIMEOUT"
-    ) {
-      throw new RequestTimeoutError(url, e);
-    }
-
-    if (e.code === "UND_ERR_RESPONSE_STATUS_CODE") {
-      ensureError<UndiciT.errors.ResponseStatusCodeError>(e);
-      throw new ResponseStatusCodeError(url, e);
-    }
+    handleError(e, url);
 
     throw new DownloadError(url, e);
   }

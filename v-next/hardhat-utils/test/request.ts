@@ -309,8 +309,8 @@ describe("Requests util", () => {
         .reply(500, "Internal Server Error");
 
       await assert.rejects(getRequest(url, undefined, interceptor), {
-        name: "RequestError",
-        message: `Failed to make GET request to ${url}`,
+        name: "ResponseStatusCodeError",
+        message: `Received an unexpected status code from ${url}`,
       });
     });
   });
@@ -407,8 +407,8 @@ describe("Requests util", () => {
         .reply(500, "Internal Server Error");
 
       await assert.rejects(postJsonRequest(url, body, undefined, interceptor), {
-        name: "RequestError",
-        message: `Failed to make POST request to ${url}`,
+        name: "ResponseStatusCodeError",
+        message: `Received an unexpected status code from ${url}`,
       });
     });
   });
@@ -505,8 +505,8 @@ describe("Requests util", () => {
         .reply(500, "Internal Server Error");
 
       await assert.rejects(postFormRequest(url, body, undefined, interceptor), {
-        name: "RequestError",
-        message: `Failed to make POST request to ${url}`,
+        name: "ResponseStatusCodeError",
+        message: `Received an unexpected status code from ${url}`,
       });
     });
   });
@@ -539,8 +539,8 @@ describe("Requests util", () => {
         .reply(500, "Internal Server Error");
 
       await assert.rejects(download(url, destination, undefined, interceptor), {
-        name: "DownloadError",
-        message: `Failed to download file from ${url}`,
+        name: "ResponseStatusCodeError",
+        message: `Received an unexpected status code from ${url}`,
       });
     });
   });
