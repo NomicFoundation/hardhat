@@ -14,9 +14,12 @@ import { getSubprocessTransport } from "./transport.js";
 export const SENTRY_DSN =
   "https://d578a176729662a28e7a8da268d36912@o385026.ingest.us.sentry.io/4507685793103872"; // DEV
 
-export async function sendErrorTelemetry(error: Error): Promise<boolean> {
+export async function sendErrorTelemetry(
+  error: Error,
+  configPath: string = "",
+): Promise<boolean> {
   const instance = await Reporter.getInstance();
-  return instance.reportError(error);
+  return instance.reportError(error, configPath);
 }
 
 // ATTENTION: this function is exported for testing, do not directly use it in production
@@ -77,7 +80,6 @@ class Reporter {
 
   public async reportError(
     error: Error,
-    verbose: boolean = false,
     configPath: string = "",
   ): Promise<boolean> {
     if (!(await this.canSendTelemetry(error))) {
@@ -86,7 +88,6 @@ class Reporter {
 
     const { captureException, setExtra } = await import("@sentry/node");
 
-    setExtra("verbose", verbose);
     setExtra("configPath", configPath);
 
     captureException(error);
