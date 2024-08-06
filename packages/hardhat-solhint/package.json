@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/hardhat-solhint",
-  "version": "3.1.0",
+  "version": "4.0.0",
   "description": "Hardhat plugin for solhint",
   "repository": "github:nomiclabs/hardhat",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-solhint",
@@ -35,7 +35,7 @@
     "README.md"
   ],
   "dependencies": {
-    "solhint": "^3.4.0"
+    "solhint": "^5.0.2"
   },
   "devDependencies": {
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",

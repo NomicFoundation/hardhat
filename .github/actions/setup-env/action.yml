@@ -1,0 +1,43 @@
+name: Setup env
+description: Sets up node and pnpm
+
+inputs:
+  pnpm-version:
+    description: Version of pnpm to install
+    required: false
+    default: "9"
+  node-version:
+    description: Version of node to install
+    required: false
+    default: "18"
+  cache-save:
+    description: Whether to save the pnpm cache
+    required: false
+    default: "false"
+outputs:
+  cache-hit:
+    description: Whether the cache was restored
+    value: ${{ steps.setup-node.outputs.cache-hit || steps.cache-restore.outputs.cache-hit }}
+
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@v4
+      with:
+        version: ${{ inputs.pnpm-version }}
+    - uses: actions/setup-node@v4
+      id: setup-node
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: ${{ inputs.cache-save == 'true' && 'pnpm' || '' }}
+        cache-dependency-path: "**/pnpm-lock.yaml"
+    - id: pnpm
+      if: inputs.cache-save == 'false'
+      run: pnpm store path --silent | xargs -I {} -0 echo "path={}" | tee -a $GITHUB_OUTPUT
+      shell: bash
+    - uses: actions/cache/restore@v4
+      id: cache-restore
+      if: inputs.cache-save == 'false'
+      with:
+        path: ${{ steps.pnpm.outputs.path }}
+        key: node-cache-${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
