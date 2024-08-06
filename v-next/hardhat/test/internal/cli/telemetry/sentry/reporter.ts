@@ -67,7 +67,7 @@ const TEST_HARDHAT_ERROR = new HardhatError({
 
 const PATH_TO_FIXTURE = path.join(ROOT_PATH_TO_FIXTURE, "sentry");
 
-const RESULT_FILE_PATH = path.join(PATH_TO_FIXTURE, "result.txt");
+const RESULT_FILE_PATH = path.join(PATH_TO_FIXTURE, "reporter-result.txt");
 
 describe("Reporter", () => {
   beforeEach(async () => {

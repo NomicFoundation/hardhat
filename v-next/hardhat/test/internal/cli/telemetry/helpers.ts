@@ -29,7 +29,7 @@ export async function checkIfSubprocessWasExecuted(
   // Checks if the subprocess was executed by waiting for a file to be created.
   // Uses an interval to periodically check for the file. If the file isn't found
   // within a specified number of attempts, an error is thrown, indicating a failure in subprocess execution.
-  const MAX_COUNTER = 20;
+  const MAX_COUNTER = 100;
 
   return new Promise((resolve, reject) => {
     let counter = 0;
