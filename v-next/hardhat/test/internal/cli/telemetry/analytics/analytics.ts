@@ -23,7 +23,7 @@ import {
 //
 
 const PATH_TO_FIXTURE = path.join(ROOT_PATH_TO_FIXTURE, "analytics");
-const RESULT_FILE_PATH = path.join(PATH_TO_FIXTURE, "result.json");
+const RESULT_FILE_PATH = path.join(PATH_TO_FIXTURE, "analytics-result.json");
 
 describe("analytics", () => {
   beforeEach(async () => {

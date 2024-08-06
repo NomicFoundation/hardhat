@@ -5,24 +5,9 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, it } from "node:test";
 
 import { getTelemetryDir } from "@ignored/hardhat-vnext-core/global-dir";
-import {
-  readJsonFile,
-  remove,
-  writeJsonFile,
-} from "@ignored/hardhat-vnext-utils/fs";
+import { readJsonFile, remove } from "@ignored/hardhat-vnext-utils/fs";
 
 import { getAnalyticsClientId } from "../../../../../src/internal/cli/telemetry/analytics/utils.js";
-
-const CLIENT_ID = "test-client-id";
-
-async function createClientIdFile() {
-  const filePath = await getFilePath();
-  await writeJsonFile(filePath, {
-    analytics: {
-      clientId: CLIENT_ID,
-    },
-  });
-}
 
 async function getClientIdFromFile() {
   const filePath = await getFilePath();
@@ -54,16 +39,13 @@ describe("telemetry/analytics/utils", () => {
 
       // The analyticsClientId should be generate as uuid
       assert.notEqual(analyticsClientId, undefined);
-      assert.notEqual(analyticsClientId, CLIENT_ID);
       // The analyticsClientId should also be saved in the file
       assert.equal(analyticsClientId, await getClientIdFromFile());
-    });
 
-    it("should get the analyticsClientId from the file because it already exists", async () => {
-      await createClientIdFile();
-      const analyticsClientId = await getClientIdFromFile();
+      const sameAnalyticsClientId = await getAnalyticsClientId();
 
-      assert.equal(analyticsClientId, CLIENT_ID);
+      // The clientId should be the same if read again because it should have been stored
+      assert.equal(sameAnalyticsClientId, analyticsClientId);
     });
   });
 });
