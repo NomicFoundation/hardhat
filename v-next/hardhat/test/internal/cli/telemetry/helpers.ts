@@ -1,10 +1,6 @@
 import path from "node:path";
 
-import {
-  exists,
-  readJsonFile,
-  readUtf8File,
-} from "@ignored/hardhat-vnext-utils/fs";
+import { exists, readJsonFile } from "@ignored/hardhat-vnext-utils/fs";
 
 export const ROOT_PATH_TO_FIXTURE: string = path.join(
   process.cwd(),
@@ -24,7 +20,6 @@ export const TELEMETRY_FOLDER_PATH: string = path.join(
 
 export async function checkIfSubprocessWasExecuted(
   resultFilePath: string,
-  isJsonFile: boolean = false,
 ): Promise<boolean> {
   // Checks if the subprocess was executed by waiting for a file to be created.
   // Uses an interval to periodically check for the file. If the file isn't found
@@ -40,12 +35,7 @@ export async function checkIfSubprocessWasExecuted(
       if (await exists(resultFilePath)) {
         try {
           // Wait for the file to be readable. The file could exist but the writing could be in progress.
-          if (isJsonFile) {
-            await readJsonFile(resultFilePath);
-          } else {
-            await readUtf8File(resultFilePath);
-          }
-
+          await readJsonFile(resultFilePath);
           clearInterval(intervalId);
           resolve(true);
         } catch (_err) {}

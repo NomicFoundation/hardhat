@@ -1,6 +1,6 @@
 import type { Event } from "@sentry/node";
 
-import { writeUtf8File } from "@ignored/hardhat-vnext-utils/fs";
+import { writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
 import { captureEvent, captureMessage, init } from "@sentry/node";
 
 import { Anonymizer } from "./anonymizer.js";
@@ -58,7 +58,9 @@ try {
 async function sendMsgToSentry(msg: string) {
   if (process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH !== undefined) {
     // ATTENTION: only for testing
-    await writeUtf8File(process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH, msg);
+    await writeJsonFile(process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH, {
+      msg,
+    });
     return;
   }
 
@@ -68,10 +70,7 @@ async function sendMsgToSentry(msg: string) {
 async function sendEventToSentry(e: Event) {
   if (process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH !== undefined) {
     // ATTENTION: only for testing
-    await writeUtf8File(
-      process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH,
-      JSON.stringify(e),
-    );
+    await writeJsonFile(process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH, e);
     return;
   }
 

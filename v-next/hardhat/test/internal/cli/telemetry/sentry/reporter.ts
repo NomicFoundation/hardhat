@@ -134,7 +134,7 @@ describe("Reporter", () => {
 
       const wasSent = await sendErrorTelemetry(HARDHAT_ERROR);
 
-      await checkIfSubprocessWasExecuted(RESULT_FILE_PATH, true);
+      await checkIfSubprocessWasExecuted(RESULT_FILE_PATH);
 
       const resFile: SentryEvent = await readJsonFile(RESULT_FILE_PATH);
 
@@ -176,7 +176,7 @@ describe("Reporter", () => {
 
       const wasSent = await sendErrorTelemetry(ERROR);
 
-      await checkIfSubprocessWasExecuted(RESULT_FILE_PATH, true);
+      await checkIfSubprocessWasExecuted(RESULT_FILE_PATH);
 
       const resFile: SentryEvent = await readJsonFile(RESULT_FILE_PATH);
 

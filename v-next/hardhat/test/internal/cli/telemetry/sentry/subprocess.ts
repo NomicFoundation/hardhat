@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { afterEach, beforeEach, describe, it } from "node:test";
 
-import { readUtf8File, remove } from "@ignored/hardhat-vnext-utils/fs";
+import { readJsonFile, remove } from "@ignored/hardhat-vnext-utils/fs";
 import { spawnDetachedSubProcess } from "@ignored/hardhat-vnext-utils/subprocess";
 
 import {
@@ -40,9 +40,9 @@ describe("sentry-subprocess", function () {
     });
 
     await checkIfSubprocessWasExecuted(RESULT_FILE_PATH);
-    const fileRes = await readUtf8File(RESULT_FILE_PATH);
+    const fileRes = await readJsonFile(RESULT_FILE_PATH);
 
-    assert.equal(fileRes, "{}");
+    assert.deepEqual(fileRes, {});
   });
 
   it("should send a failure message to Sentry because no argument is passed in argv[2] (serializedEvent)", async () => {
@@ -51,12 +51,11 @@ describe("sentry-subprocess", function () {
     });
 
     await checkIfSubprocessWasExecuted(RESULT_FILE_PATH);
-    const fileRes = await readUtf8File(RESULT_FILE_PATH);
+    const fileRes = await readJsonFile(RESULT_FILE_PATH);
 
-    assert.equal(
-      fileRes,
-      "There was an error parsing an event: 'process.argv[2]' argument is not set",
-    );
+    assert.deepEqual(fileRes, {
+      msg: "There was an error parsing an event: 'process.argv[2]' argument is not set",
+    });
   });
 
   it("should send a failure message to Sentry because the argument in argv[2] is not a valid JSON", async () => {
@@ -65,12 +64,11 @@ describe("sentry-subprocess", function () {
     });
 
     await checkIfSubprocessWasExecuted(RESULT_FILE_PATH);
-    const fileRes = await readUtf8File(RESULT_FILE_PATH);
+    const fileRes = await readJsonFile(RESULT_FILE_PATH);
 
-    assert.equal(
-      fileRes,
-      "There was an error parsing an event: 'process.argv[2]' doesn't have a valid JSON",
-    );
+    assert.deepEqual(fileRes, {
+      msg: "There was an error parsing an event: 'process.argv[2]' doesn't have a valid JSON",
+    });
   });
 
   it("should send a failure message to Sentry because there is an anonymization error", async () => {
@@ -79,11 +77,10 @@ describe("sentry-subprocess", function () {
     });
 
     await checkIfSubprocessWasExecuted(RESULT_FILE_PATH);
-    const fileRes = await readUtf8File(RESULT_FILE_PATH);
+    const fileRes = await readJsonFile(RESULT_FILE_PATH);
 
-    assert.equal(
-      fileRes,
-      "There was an error anonymizing an event: event is null or undefined",
-    );
+    assert.deepEqual(fileRes, {
+      msg: "There was an error anonymizing an event: event is null or undefined",
+    });
   });
 });
