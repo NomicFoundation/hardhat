@@ -45,6 +45,11 @@ class Reporter {
     const telemetryAllowed = await isTelemetryAllowed();
     this.#instance = new Reporter(telemetryAllowed);
 
+    if (!telemetryAllowed) {
+      // No need to initialize Sentry because telemetry is disabled
+      return this.#instance;
+    }
+
     const { Integrations, init, setExtra } = await import("@sentry/node");
 
     const linkedErrorsIntegration = new Integrations.LinkedErrors({
