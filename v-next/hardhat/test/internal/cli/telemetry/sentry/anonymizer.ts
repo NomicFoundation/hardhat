@@ -368,4 +368,78 @@ describe("Anonymizer", () => {
       );
     });
   });
+
+  describe("raisedByHardhat", () => {
+    function createTestEvent(filePath: string) {
+      return {
+        exception: {
+          values: [
+            {
+              type: "Error",
+              value: "test-error",
+              stacktrace: {
+                frames: [
+                  {
+                    filename: "<user-file>",
+                  },
+                  {
+                    filename: "<user-file>",
+                  },
+                  {
+                    filename: filePath,
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      };
+    }
+
+    it("should return true because the error was raised by hardhat", () => {
+      const anonymizer = new Anonymizer();
+      const res = anonymizer.raisedByHardhat(
+        createTestEvent(
+          path.join(
+            "node_modules",
+            "@nomicfoundation",
+            "random-path",
+            "some-file.js",
+          ),
+        ),
+      );
+      assert.equal(res, true);
+    });
+
+    it("should return false because the error was not raised by hardhat", () => {
+      const anonymizer = new Anonymizer();
+      const res = anonymizer.raisedByHardhat(
+        createTestEvent(
+          path.join(
+            "node_modules",
+            "@random-npm-package",
+            "random-path",
+            "some-file.js",
+          ),
+        ),
+      );
+      assert.equal(res, false);
+    });
+
+    it("should return false because the error was raised inside of hardhat BUT from an external package", () => {
+      const anonymizer = new Anonymizer();
+      const res = anonymizer.raisedByHardhat(
+        createTestEvent(
+          path.join(
+            "node_modules",
+            "@nomicfoundation",
+            "node_modules",
+            "@random-npm-package",
+            "some-file.js",
+          ),
+        ),
+      );
+      assert.equal(res, false);
+    });
+  });
 });

@@ -198,8 +198,14 @@ export class Anonymizer {
   }
 
   #isHardhatFile(filename: string): boolean {
+    const totNodeModules = filename.split("node_modules").length - 1;
+
     const nomicFoundationPath = path.join("node_modules", "@nomicfoundation");
-    return filename.startsWith(nomicFoundationPath);
+    if (filename.startsWith(nomicFoundationPath) && totNodeModules === 1) {
+      return true;
+    }
+
+    return false;
   }
 
   async #anonymizeExceptions(exceptions: Exception[]): Promise<Exception[]> {
