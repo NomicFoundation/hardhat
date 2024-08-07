@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.22.9
+
+### Patch Changes
+
+- 6771f00: Do not send `http_setLedgerOutputEnabled` messages beyond the HTTP Provider to prevent unwanted warnings in the logs of the local hardhat node
+
 ## 2.22.8
 
 ### Patch Changes
