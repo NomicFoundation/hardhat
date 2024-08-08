@@ -105,6 +105,7 @@ describe("HookManager", () => {
               root: projectRoot,
               cache: "",
               artifacts: "",
+              tests: "",
             },
           },
           hooks: hookManager,
@@ -175,6 +176,7 @@ describe("HookManager", () => {
             root: projectRoot,
             cache: "",
             artifacts: "",
+            tests: "",
           },
         };
 
@@ -230,6 +232,7 @@ describe("HookManager", () => {
             root: projectRoot,
             cache: "",
             artifacts: "",
+            tests: "",
           },
         };
 
@@ -335,6 +338,7 @@ describe("HookManager", () => {
               root: projectRoot,
               cache: "",
               artifacts: "",
+              tests: "",
             },
           },
           hooks: hookManager,
@@ -355,6 +359,7 @@ describe("HookManager", () => {
             root: projectRoot,
             cache: "",
             artifacts: "",
+            tests: "",
           },
         };
 
@@ -441,6 +446,7 @@ describe("HookManager", () => {
             root: projectRoot,
             cache: "",
             artifacts: "",
+            tests: "",
           },
         };
 
@@ -564,6 +570,7 @@ describe("HookManager", () => {
               root: projectRoot,
               cache: "",
               artifacts: "",
+              tests: "",
             },
           },
           hooks: hookManager,
@@ -658,6 +665,7 @@ describe("HookManager", () => {
             root: projectRoot,
             cache: "",
             artifacts: "",
+            tests: "",
           },
         };
 
@@ -702,6 +710,7 @@ describe("HookManager", () => {
               root: projectRoot,
               cache: "",
               artifacts: "",
+              tests: "",
             },
           },
           hooks: hookManager,
@@ -720,6 +729,7 @@ describe("HookManager", () => {
             root: projectRoot,
             cache: "",
             artifacts: "",
+            tests: "",
           },
         };
 
@@ -740,6 +750,7 @@ describe("HookManager", () => {
             root: projectRoot,
             cache: "",
             artifacts: "",
+            tests: "",
           },
         };
 
@@ -825,6 +836,7 @@ describe("HookManager", () => {
             root: projectRoot,
             cache: "",
             artifacts: "",
+            tests: "",
           },
         };
 
@@ -869,6 +881,7 @@ describe("HookManager", () => {
               root: projectRoot,
               cache: "",
               artifacts: "",
+              tests: "",
             },
           },
           hooks: hookManager,
@@ -1030,6 +1043,7 @@ function buildMockHardhatRuntimeEnvironment(
         root: projectRoot,
         cache: "",
         artifacts: "",
+        tests: "",
       },
     },
     tasks: mockTaskManager,

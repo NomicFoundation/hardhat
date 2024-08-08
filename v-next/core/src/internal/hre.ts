@@ -179,6 +179,7 @@ async function resolveUserConfig(
       root: projectRoot,
       cache: config.paths?.cache ?? "", // TODO: resolve cache path
       artifacts: config.paths?.artifacts ?? "", // TODO: resolve artifacts path
+      tests: config.paths?.tests ?? "test", // TODO: resolve tests path
     },
   };
 

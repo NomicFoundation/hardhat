@@ -28,6 +28,7 @@ describe("ResolvedConfigurationVariable", () => {
           root: projectRoot,
           cache: "",
           artifacts: "",
+          tests: "",
         },
       },
       hooks: hookManager,
