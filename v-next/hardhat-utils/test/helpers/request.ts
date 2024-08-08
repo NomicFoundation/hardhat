@@ -1,27 +1,22 @@
-import type { DispatcherOptions } from "../../src/request.js";
-import type { Interceptable } from "undici";
+import type { Interceptable } from "../../src/request.js";
 
 import { after, before } from "node:test";
 
-import { MockAgent } from "undici";
+import { getTestDispatcher } from "../../src/request.js";
 
-export function getTestDispatcherOptions(
-  options: DispatcherOptions = {},
-): DispatcherOptions & { isTestDispatcher: true } {
-  return {
-    ...options,
-    isTestDispatcher: true,
-  };
+interface InitializeOptions {
+  url?: string;
+  timeout?: number;
 }
 
-const mockAgent = new MockAgent({
-  keepAliveTimeout: 10,
-  keepAliveMaxTimeout: 10,
-});
+export const initializeTestDispatcher = async (
+  options: InitializeOptions = {},
+): Promise<Interceptable> => {
+  const { url = "http://localhost", timeout } = options;
 
-export const mockPool: Interceptable = mockAgent.get("http://localhost:3000");
+  const mockAgent = await getTestDispatcher({ timeout });
+  const interceptor = mockAgent.get(url);
 
-export const setupRequestMocking: () => void = () => {
   before(() => {
     mockAgent.disableNetConnect();
   });
@@ -29,4 +24,6 @@ export const setupRequestMocking: () => void = () => {
   after(() => {
     mockAgent.enableNetConnect();
   });
+
+  return interceptor;
 };

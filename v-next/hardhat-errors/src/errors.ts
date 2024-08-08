@@ -131,7 +131,7 @@ export class HardhatError<
     other: unknown,
     descriptor?: ErrorDescriptor,
   ): other is HardhatError<ErrorDescriptor> {
-    if (!isObject(other) || other === null) {
+    if (!isObject(other)) {
       return false;
     }
 
@@ -200,7 +200,7 @@ export class HardhatPluginError extends CustomError {
   public static isHardhatPluginError(
     other: unknown,
   ): other is HardhatPluginError {
-    if (!isObject(other) || other === null) {
+    if (!isObject(other)) {
       return false;
     }
 

@@ -36,3 +36,13 @@ export function isObject(
 ): value is Record<string | symbol, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
+
+/**
+ * Pauses the execution for the specified number of seconds.
+ *
+ * @param seconds The number of seconds to delay.
+ * @returns A promise that resolves after the specified delay.
+ */
+export async function delay(seconds: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+}
