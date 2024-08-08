@@ -336,22 +336,15 @@ function compareStackTraces(
       `Stack trace of tx ${txIndex} entry ${i} type is incorrect: expected ${expectedErrorType}, got ${actualErrorType}`
     );
 
-    const actualMessage = (actual as any).message as
-      | ReturnData
-      | string
-      | undefined;
-
-    // actual.message is a ReturnData in revert errors, but a string
-    // in custom errors
-    let decodedMessage = "";
-    if (typeof actualMessage === "string") {
-      decodedMessage = actualMessage;
-    } else if (
-      actualMessage instanceof ReturnData &&
-      actualMessage.isErrorReturnData()
-    ) {
-      decodedMessage = actualMessage.decodeError();
-    }
+    // actual.message is a ReturnData in revert errors but in custom errors
+    // we need to decode it
+    const decodedMessage =
+      "message" in actual
+        ? actual.message
+        : "returnData" in actual &&
+          new ReturnData(actual.returnData).isErrorReturnData()
+        ? new ReturnData(actual.returnData).decodeError()
+        : "";
 
     if (expected.message !== undefined) {
       assert.equal(

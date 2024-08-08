@@ -1,7 +1,6 @@
 import { equalsBytes } from "@nomicfoundation/ethereumjs-util";
 
 import { SolidityTracer as SolidityTracerRs } from "@nomicfoundation/edr";
-import { ReturnData } from "../provider/return-data";
 import { ExitCode } from "../provider/vm/exit";
 
 import {
@@ -117,7 +116,7 @@ export class SolidityTracer {
       return [
         {
           type: StackTraceEntryType.UNRECOGNIZED_CREATE_ERROR,
-          message: new ReturnData(trace.returnData),
+          returnData: trace.returnData,
           isInvalidOpcodeError,
         },
       ];
@@ -127,7 +126,7 @@ export class SolidityTracer {
       {
         type: StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR,
         address: trace.address,
-        message: new ReturnData(trace.returnData),
+        returnData: trace.returnData,
         isInvalidOpcodeError,
       },
     ];
