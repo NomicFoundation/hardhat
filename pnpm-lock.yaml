@@ -1506,10 +1506,17 @@ importers:
         version: 7.7.1(eslint@8.57.0)(typescript@5.5.4)
 
   v-next/example-project:
+    dependencies:
+      tsx:
+        specifier: ^4.11.0
+        version: 4.16.5
     devDependencies:
       '@ignored/hardhat-vnext':
         specifier: workspace:^3.0.0-next.3
         version: link:../hardhat
+      '@ignored/hardhat-vnext-node-test-runner':
+        specifier: workspace:^3.0.0-next.2
+        version: link:../hardhat-node-test-runner
       '@types/node':
         specifier: ^20.14.9
         version: 20.14.14
@@ -1853,6 +1860,70 @@ importers:
       tsx:
         specifier: ^4.11.0
         version: 4.16.5
+      typescript:
+        specifier: ~5.5.0
+        version: 5.5.4
+      typescript-eslint:
+        specifier: 7.7.1
+        version: 7.7.1(eslint@8.57.0)(typescript@5.5.4)
+
+  v-next/hardhat-node-test-runner:
+    dependencies:
+      '@ignored/hardhat-vnext-core':
+        specifier: workspace:^3.0.0-next.2
+        version: link:../core
+      '@ignored/hardhat-vnext-errors':
+        specifier: workspace:^3.0.0-next.2
+        version: link:../hardhat-errors
+      '@ignored/hardhat-vnext-node-test-reporter':
+        specifier: workspace:^3.0.0-next.2
+        version: link:../hardhat-node-test-reporter
+      '@ignored/hardhat-vnext-utils':
+        specifier: workspace:^3.0.0-next.2
+        version: link:../hardhat-utils
+      tsx:
+        specifier: ^4.11.0
+        version: 4.16.5
+    devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.3.0(eslint@8.57.0)
+      '@nomicfoundation/hardhat-test-utils':
+        specifier: workspace:^
+        version: link:../hardhat-test-utils
+      '@types/node':
+        specifier: ^20.14.9
+        version: 20.14.14
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^7.7.1
+        version: 7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4)
+      '@typescript-eslint/parser':
+        specifier: ^7.7.1
+        version: 7.18.0(eslint@8.57.0)(typescript@5.5.4)
+      eslint:
+        specifier: 8.57.0
+        version: 8.57.0
+      eslint-config-prettier:
+        specifier: 9.1.0
+        version: 9.1.0(eslint@8.57.0)
+      eslint-import-resolver-typescript:
+        specifier: ^3.6.1
+        version: 3.6.1(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint-plugin-import@2.29.1)(eslint@8.57.0)
+      eslint-plugin-import:
+        specifier: 2.29.1
+        version: 2.29.1(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0)
+      eslint-plugin-no-only-tests:
+        specifier: 3.1.0
+        version: 3.1.0
+      expect-type:
+        specifier: ^0.19.0
+        version: 0.19.0
+      prettier:
+        specifier: 3.2.5
+        version: 3.2.5
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.10
       typescript:
         specifier: ~5.5.0
         version: 5.5.4
@@ -7984,7 +8055,7 @@ snapshots:
 
   '@types/bn.js@4.11.6':
     dependencies:
-      '@types/node': 18.19.43
+      '@types/node': 20.14.14
 
   '@types/bn.js@5.1.5':
     dependencies:
@@ -8000,7 +8071,7 @@ snapshots:
 
   '@types/concat-stream@1.6.1':
     dependencies:
-      '@types/node': 18.19.43
+      '@types/node': 20.14.14
 
   '@types/debug@4.1.12':
     dependencies:
@@ -8012,7 +8083,7 @@ snapshots:
 
   '@types/form-data@0.0.33':
     dependencies:
-      '@types/node': 18.19.43
+      '@types/node': 20.14.14
 
   '@types/fs-extra@5.1.0':
     dependencies:
@@ -8073,7 +8144,7 @@ snapshots:
 
   '@types/pbkdf2@3.1.2':
     dependencies:
-      '@types/node': 18.19.43
+      '@types/node': 20.14.14
 
   '@types/prettier@2.7.3': {}
 
@@ -8081,14 +8152,14 @@ snapshots:
 
   '@types/readable-stream@2.3.15':
     dependencies:
-      '@types/node': 18.19.43
+      '@types/node': 20.14.14
       safe-buffer: 5.1.2
 
   '@types/resolve@1.20.6': {}
 
   '@types/secp256k1@4.0.6':
     dependencies:
-      '@types/node': 18.19.43
+      '@types/node': 20.14.14
 
   '@types/semver@6.2.7': {}
 
@@ -8115,7 +8186,7 @@ snapshots:
 
   '@types/ws@8.5.3':
     dependencies:
-      '@types/node': 18.19.43
+      '@types/node': 20.14.14
 
   '@typescript-eslint/eslint-plugin@5.61.0(@typescript-eslint/parser@5.61.0(eslint@8.57.0)(typescript@5.0.4))(eslint@8.57.0)(typescript@5.0.4)':
     dependencies:

@@ -197,6 +197,26 @@ Please add the property "type" with the value "module" in your package.json to e
       websiteTitle: "Invalid config",
       websiteDescription: `The configuration you provided is invalid. Please check the documentation to learn how to configure Hardhat correctly.`,
     },
+    TYPESCRIPT_NOT_INSTALLED: {
+      number: 17,
+      messageTemplate: `Your Hardhat project uses typescript, but it's not installed.
+
+Please run: npm install --save-dev typescript`,
+      websiteTitle: "typescript not installed",
+      websiteDescription: `You are running a Hardhat project that uses typescript, but it's not installed.
+
+Please run this and try again: \`npm install --save-dev typescript\``,
+    },
+    TSX_NOT_INSTALLED: {
+      number: 18,
+      messageTemplate: `Your Hardhat project uses typescript, but tsx is not installed.
+
+Please run: npm install --save-dev tsx`,
+      websiteTitle: "tsx not installed",
+      websiteDescription: `You are running a Hardhat project that uses typescript, but you haven't installed tsx.
+
+Please run this and try again: \`npm install --save-dev tsx\``,
+    },
   },
   INTERNAL: {
     ASSERTION_ERROR: {
