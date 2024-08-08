@@ -21,8 +21,8 @@ importers:
         specifier: ^0.8.5
         version: 0.8.5
       typescript:
-        specifier: ~5.0.0
-        version: 5.0.4
+        specifier: ~5.5.0
+        version: 5.5.4
 
   packages/common:
     devDependencies:
@@ -9048,7 +9048,7 @@ snapshots:
       commander: 10.0.1
       filing-cabinet: 4.2.0
       precinct: 11.0.5
-      typescript: 5.5.4
+      typescript: 5.0.4
     transitivePeerDependencies:
       - supports-color
 
@@ -9775,7 +9775,7 @@ snapshots:
       sass-lookup: 5.0.1
       stylus-lookup: 5.0.1
       tsconfig-paths: 4.2.0
-      typescript: 5.5.4
+      typescript: 5.0.4
 
   fill-range@7.1.1:
     dependencies:
