@@ -2,11 +2,14 @@ import {
   HardhatError,
   HardhatPluginError,
 } from "@ignored/hardhat-vnext-errors";
+import debug from "debug";
 
 import { getHardhatVersion } from "../../../utils/package.js";
 import { isTelemetryAllowed } from "../telemetry-permissions.js";
 
 import { getSubprocessTransport } from "./transport.js";
+
+const log = debug("hardhat:cli:telemetry:sentry:reporter");
 
 // TODO: replace with PROD version
 // export const SENTRY_DSN =
@@ -50,8 +53,11 @@ class Reporter {
 
     if (!telemetryAllowed) {
       // No need to initialize Sentry because telemetry is disabled
+      log("Reporter not initialized because telemetry is not allowed");
       return this.#instance;
     }
+
+    log("Initializing Reporter instance");
 
     const { Integrations, init, setExtra } = await import("@sentry/node");
 
@@ -83,12 +89,15 @@ class Reporter {
     configPath: string = "",
   ): Promise<boolean> {
     if (!(await this.shouldBeReported(error))) {
+      log("Error not send: this type of error should not be reported");
       return false;
     }
 
     const { captureException, setExtra } = await import("@sentry/node");
 
     setExtra("configPath", configPath);
+
+    log("Capturing exception");
 
     captureException(error);
 

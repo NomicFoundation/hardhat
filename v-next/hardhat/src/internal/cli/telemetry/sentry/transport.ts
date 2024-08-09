@@ -1,6 +1,9 @@
 import type { Event, Response } from "@sentry/node";
 
 import { spawnDetachedSubProcess } from "@ignored/hardhat-vnext-utils/subprocess";
+import debug from "debug";
+
+const log = debug("hardhat:cli:telemetry:sentry:transport");
 
 // This class is wrapped in a function to avoid having to
 // import @sentry/node just for the BaseTransport base class
@@ -11,6 +14,8 @@ export async function getSubprocessTransport(): Promise<any> {
     public override async sendEvent(event: Event): Promise<Response> {
       const extra: { configPath?: string } = event.extra ?? {};
       const { configPath } = extra;
+
+      log("Processing event");
 
       // Don't send user's full config path for privacy reasons
       delete event.extra?.configPath;
@@ -42,6 +47,8 @@ export async function getSubprocessTransport(): Promise<any> {
       }
 
       await spawnDetachedSubProcess(subprocessFile, args, env);
+
+      log("Exception sent to detached subprocess");
 
       return {
         status: Status.Success,
