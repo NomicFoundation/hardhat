@@ -124,7 +124,7 @@ export class Anonymizer {
   public anonymizeErrorMessage(errorMessage: string): string {
     errorMessage = this.#anonymizeMnemonic(errorMessage);
 
-    // the \\ before path.sep is necessary for this to work on windows
+    // Match path separators both for Windows and Unix
     const pathRegex = /\S+[\/\\]\S+/g;
 
     // for files that don't have a path separator
@@ -159,6 +159,10 @@ export class Anonymizer {
     for (const frame of frames.slice().reverse()) {
       if (frame.filename === undefined) {
         continue;
+      }
+
+      if (this.#errorRaisedByPackageToIgnore(frame.filename)) {
+        return false;
       }
 
       // we stop after finding either a hardhat file or a file from the user's
@@ -197,15 +201,25 @@ export class Anonymizer {
     }
   }
 
-  #isHardhatFile(filename: string): boolean {
-    const totNodeModules = filename.split("node_modules").length - 1;
+  #errorRaisedByPackageToIgnore(filename: string): boolean {
+    const pkgsToIgnore: string[] = [
+      path.join("node_modules", "@ethersproject"), // List of external packages that we don't want to report errors from
+    ];
 
-    const nomicFoundationPath = path.join("node_modules", "@nomicfoundation");
-    if (filename.startsWith(nomicFoundationPath) && totNodeModules === 1) {
-      return true;
+    const pkgs = filename.match(/node_modules[\/\\][^\/\\]+/g); // Match path separators both for Windows and Unix
+
+    if (pkgs === null) {
+      return false;
     }
 
-    return false;
+    const errorSourcePkg = pkgs[pkgs.length - 1];
+
+    return pkgsToIgnore.includes(errorSourcePkg);
+  }
+
+  #isHardhatFile(filename: string): boolean {
+    const nomicFoundationPath = path.join("node_modules", "@nomicfoundation");
+    return filename.startsWith(nomicFoundationPath);
   }
 
   async #anonymizeExceptions(exceptions: Exception[]): Promise<Exception[]> {
