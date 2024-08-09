@@ -552,7 +552,7 @@ Please use \`runSuper.isDefined\` to make sure that you can call it.`,
     DEFAULT_VALUE_WRONG_TYPE: {
       number: 206,
       message:
-        "Default value for param %paramName% of task %taskName% doesn't match the default one, try specifying it.",
+        "Default value for param %paramName% of task %taskName% doesn't match its expected type.",
       title: "Default value has incorrect type",
       description: `One of your tasks has a parameter whose default value doesn't match the expected type.
 

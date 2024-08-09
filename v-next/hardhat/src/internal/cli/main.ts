@@ -28,6 +28,7 @@ import {
 import { isCi } from "@ignored/hardhat-vnext-utils/ci";
 import { getRealPath } from "@ignored/hardhat-vnext-utils/fs";
 import { kebabToCamelCase } from "@ignored/hardhat-vnext-utils/string";
+import debug from "debug";
 
 import { resolveHardhatConfigPath } from "../../config.js";
 import { createHardhatRuntimeEnvironment } from "../../hre.js";
@@ -47,7 +48,11 @@ export async function main(
   cliArguments: string[],
   print: (message: string) => void = console.log,
 ): Promise<void> {
+  const log = debug("hardhat:core:cli:main");
+
   let builtinGlobalOptions;
+
+  log("Hardhat CLI started");
 
   try {
     const usedCliArguments: boolean[] = new Array(cliArguments.length).fill(
@@ -59,6 +64,8 @@ export async function main(
       usedCliArguments,
     );
 
+    log("Parsed builtin global options");
+
     if (builtinGlobalOptions.version) {
       return await printVersionMessage(print);
     }
@@ -69,8 +76,12 @@ export async function main(
 
     await ensureTelemetryConsent();
 
+    log("Retrieved telemetry consent");
+
     if (builtinGlobalOptions.configPath === undefined) {
       builtinGlobalOptions.configPath = await resolveHardhatConfigPath();
+
+      log("Resolved config path");
     }
 
     const projectRoot = await resolveProjectRoot(
@@ -79,11 +90,15 @@ export async function main(
 
     const userConfig = await importUserConfig(builtinGlobalOptions.configPath);
 
+    log("User config imported");
+
     const configPlugins = Array.isArray(userConfig.plugins)
       ? userConfig.plugins
       : [];
     const plugins = [...builtinPlugins, ...configPlugins];
     const resolvedPlugins = await resolvePluginList(projectRoot, plugins);
+
+    log("Resolved plugins");
 
     const pluginGlobalOptionDefinitions =
       buildGlobalOptionDefinitions(resolvedPlugins);
@@ -96,6 +111,8 @@ export async function main(
       cliArguments,
       usedCliArguments,
     );
+
+    log("Creating Hardhat Runtime Environment");
 
     const hre = await createHardhatRuntimeEnvironment(
       userConfig,
@@ -140,6 +157,8 @@ export async function main(
       usedCliArguments,
       task,
     );
+
+    log(`Running task "${task.id.join(" ")}"`);
 
     await task.run(taskArguments);
   } catch (error) {

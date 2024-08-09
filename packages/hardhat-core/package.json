@@ -1,6 +1,6 @@
 {
   "name": "hardhat",
-  "version": "2.22.4",
+  "version": "2.22.7",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "homepage": "https://hardhat.org",
@@ -102,7 +102,7 @@
   "dependencies": {
     "@ethersproject/abi": "^5.1.2",
     "@metamask/eth-sig-util": "^4.0.0",
-    "@nomicfoundation/edr": "^0.3.8",
+    "@nomicfoundation/edr": "^0.5.0",
     "@nomicfoundation/ethereumjs-common": "4.0.4",
     "@nomicfoundation/ethereumjs-tx": "5.0.4",
     "@nomicfoundation/ethereumjs-util": "9.0.4",
@@ -136,7 +136,7 @@
     "raw-body": "^2.4.1",
     "resolve": "1.17.0",
     "semver": "^6.3.0",
-    "solc": "0.7.3",
+    "solc": "0.8.26",
     "source-map-support": "^0.5.13",
     "stacktrace-parser": "^0.1.10",
     "tsort": "0.0.1",
