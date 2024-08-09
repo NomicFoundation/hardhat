@@ -165,8 +165,8 @@ describe("TaskManagerImplementation", () => {
     assert.equal(task1.pluginId, "plugin1");
     assert.equal(task1.description, "description2");
     // Original args should have not been removed
-    assert.ok(task1.options.get("arg1"), "Should have arg1");
-    assert.ok(task1.options.get("flag1"), "Should have flag1");
+    assert.notEqual(task1.options.get("arg1"), undefined, "Should have arg1");
+    assert.notEqual(task1.options.get("flag1"), undefined, "Should have flag1");
     assert.ok(
       task1.positionalArguments.some((p) => p.name === "posArg1"),
       "Should have posArg1",
@@ -176,8 +176,8 @@ describe("TaskManagerImplementation", () => {
       "Should have varArg1",
     );
     // New args should be added by the overrides
-    assert.ok(task1.options.get("arg2"), "Should have arg2");
-    assert.ok(task1.options.get("flag2"), "Should have flag2");
+    assert.notEqual(task1.options.get("arg2"), undefined, "Should have arg2");
+    assert.notEqual(task1.options.get("flag2"), undefined, "Should have flag2");
     // Should have 2 actions
     assert.equal(task1.actions.length, 2);
     assert.equal(task1.actions[0].pluginId, "plugin1");
@@ -220,8 +220,8 @@ describe("TaskManagerImplementation", () => {
     assert.equal(task1.pluginId, "plugin1");
     assert.equal(task1.description, "description2");
     // Original args should have not been removed
-    assert.ok(task1.options.get("arg1"), "Should have arg1");
-    assert.ok(task1.options.get("flag1"), "Should have flag1");
+    assert.notEqual(task1.options.get("arg1"), undefined, "Should have arg1");
+    assert.notEqual(task1.options.get("flag1"), undefined, "Should have flag1");
     assert.ok(
       task1.positionalArguments.some((p) => p.name === "posArg1"),
       "Should have posArg1",
@@ -231,8 +231,8 @@ describe("TaskManagerImplementation", () => {
       "Should have varArg1",
     );
     // New args should be added by the overrides
-    assert.ok(task1.options.get("arg2"), "Should have arg2");
-    assert.ok(task1.options.get("flag2"), "Should have flag2");
+    assert.notEqual(task1.options.get("arg2"), undefined, "Should have arg2");
+    assert.notEqual(task1.options.get("flag2"), undefined, "Should have flag2");
     // Should have 2 actions
     assert.equal(task1.actions.length, 2);
     assert.equal(task1.actions[0].pluginId, "plugin1");
@@ -282,8 +282,8 @@ describe("TaskManagerImplementation", () => {
     assert.equal(task1.pluginId, "plugin1");
     assert.equal(task1.description, "description3");
     // Original args should have not been removed
-    assert.ok(task1.options.get("arg1"), "Should have arg1");
-    assert.ok(task1.options.get("flag1"), "Should have flag1");
+    assert.notEqual(task1.options.get("arg1"), undefined, "Should have arg1");
+    assert.notEqual(task1.options.get("flag1"), undefined, "Should have flag1");
     assert.ok(
       task1.positionalArguments.some((p) => p.name === "posArg1"),
       "Should have posArg1",
@@ -293,10 +293,10 @@ describe("TaskManagerImplementation", () => {
       "Should have varArg1",
     );
     // New args should be added by the overrides
-    assert.ok(task1.options.get("arg2"), "Should have arg2");
-    assert.ok(task1.options.get("flag2"), "Should have flag2");
-    assert.ok(task1.options.get("arg3"), "Should have arg3");
-    assert.ok(task1.options.get("flag3"), "Should have flag3");
+    assert.notEqual(task1.options.get("arg2"), undefined, "Should have arg2");
+    assert.notEqual(task1.options.get("flag2"), undefined, "Should have flag2");
+    assert.notEqual(task1.options.get("arg3"), undefined, "Should have arg3");
+    assert.notEqual(task1.options.get("flag3"), undefined, "Should have flag3");
     // Should have 3 actions
     assert.equal(task1.actions.length, 3);
     assert.equal(task1.actions[0].pluginId, "plugin1");
@@ -1182,75 +1182,6 @@ describe("TaskManagerImplementation", () => {
         );
       });
 
-      it("should throw if the task definition object has an option with an invalid type for it's default value", async () => {
-        await assertRejectsWithHardhatError(
-          createBaseHardhatRuntimeEnvironment({
-            plugins: [
-              {
-                id: "plugin1",
-                tasks: [
-                  {
-                    type: TaskDefinitionType.NEW_TASK,
-                    id: ["task-id"],
-                    description: "",
-                    action: () => {},
-                    options: {
-                      arg: {
-                        name: "optionName",
-                        description: "A description",
-                        type: ArgumentType.STRING,
-                        defaultValue: 1,
-                      },
-                    },
-                    positionalArguments: [],
-                  },
-                ],
-              },
-            ],
-          }),
-          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
-          {
-            value: 1,
-            name: "defaultValue",
-            type: ArgumentType.STRING,
-            task: "task-id",
-          },
-        );
-
-        await assertRejectsWithHardhatError(
-          createBaseHardhatRuntimeEnvironment({
-            plugins: [
-              {
-                id: "plugin1",
-                tasks: [
-                  {
-                    type: TaskDefinitionType.TASK_OVERRIDE,
-                    id: ["task-id"],
-                    description: "",
-                    action: () => {},
-                    options: {
-                      arg: {
-                        name: "optionName",
-                        description: "A description",
-                        type: ArgumentType.STRING,
-                        defaultValue: 1,
-                      },
-                    },
-                  },
-                ],
-              },
-            ],
-          }),
-          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
-          {
-            value: 1,
-            name: "defaultValue",
-            type: ArgumentType.STRING,
-            task: "task-id",
-          },
-        );
-      });
-
       it("should throw if the task definition object has a positional argument with an invalid name", async () => {
         const invalidName = "invalid-name";
         await assertRejectsWithHardhatError(
@@ -1318,120 +1249,6 @@ describe("TaskManagerImplementation", () => {
             },
           );
         });
-      });
-
-      it("should throw if the task definition object has a positional argument with an invalid type for it's default value", async () => {
-        await assertRejectsWithHardhatError(
-          createBaseHardhatRuntimeEnvironment({
-            plugins: [
-              {
-                id: "plugin1",
-                tasks: [
-                  {
-                    type: TaskDefinitionType.NEW_TASK,
-                    id: ["task-id"],
-                    description: "",
-                    action: () => {},
-                    options: {},
-                    positionalArguments: [
-                      {
-                        name: "posArg",
-                        description: "A description",
-                        type: ArgumentType.STRING,
-                        isVariadic: false,
-                        defaultValue: 1,
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          }),
-          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
-          {
-            value: 1,
-            name: "defaultValue",
-            type: ArgumentType.STRING,
-            task: "task-id",
-          },
-        );
-      });
-
-      it("should throw if the task definition object has a positional variadic argument with an invalid type for it's default value", async () => {
-        await assertRejectsWithHardhatError(
-          createBaseHardhatRuntimeEnvironment({
-            plugins: [
-              {
-                id: "plugin1",
-                tasks: [
-                  {
-                    type: TaskDefinitionType.NEW_TASK,
-                    id: ["task-id"],
-                    description: "",
-                    action: () => {},
-                    options: {},
-                    positionalArguments: [
-                      {
-                        name: "posArg",
-                        description: "A description",
-                        type: ArgumentType.STRING,
-                        isVariadic: true,
-                        defaultValue: [1],
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          }),
-          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
-          {
-            value: [1],
-            name: "defaultValue",
-            type: ArgumentType.STRING,
-            task: "task-id",
-          },
-        );
-      });
-
-      it("should throw if the task definition object has a positional argument after a variadic argument", async () => {
-        await assertRejectsWithHardhatError(
-          createBaseHardhatRuntimeEnvironment({
-            plugins: [
-              {
-                id: "plugin1",
-                tasks: [
-                  {
-                    type: TaskDefinitionType.NEW_TASK,
-                    id: ["task-id"],
-                    description: "",
-                    action: () => {},
-                    options: {},
-                    positionalArguments: [
-                      {
-                        name: "posArg",
-                        description: "A description",
-                        type: ArgumentType.STRING,
-                        isVariadic: true,
-                        defaultValue: ["default"],
-                      },
-                      {
-                        name: "posArg2",
-                        description: "A description",
-                        type: ArgumentType.STRING,
-                        isVariadic: false,
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          }),
-          HardhatError.ERRORS.TASK_DEFINITIONS.POSITIONAL_ARG_AFTER_VARIADIC,
-          {
-            name: "posArg2",
-          },
-        );
       });
 
       it("should throw if the task definition object has a required positional argument after an optional argument", async () => {

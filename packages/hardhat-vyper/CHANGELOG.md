@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-vyper
 
+## 3.0.7
+
+### Patch Changes
+
+- 1f9f8e0: Support Vyper 0.4.0's new output identifiers (Thanks, @kiriyaga-txfusion!)
+
 ## 3.0.6
 
 ### Patch Changes

@@ -24,6 +24,7 @@ export class Exit {
       case SuccessReason.Stop:
       case SuccessReason.Return:
       case SuccessReason.SelfDestruct:
+      case SuccessReason.EofReturnContract:
         return new Exit(ExitCode.SUCCESS);
     }
 
@@ -90,26 +91,5 @@ export class Exit {
     }
 
     const _exhaustiveCheck: never = this.kind;
-  }
-
-  public getEdrExceptionalHalt(): ExceptionalHalt {
-    const { ExceptionalHalt } = requireNapiRsModule(
-      "@nomicfoundation/edr"
-    ) as typeof import("@nomicfoundation/edr");
-
-    switch (this.kind) {
-      case ExitCode.OUT_OF_GAS:
-        return ExceptionalHalt.OutOfGas;
-      case ExitCode.INVALID_OPCODE:
-        return ExceptionalHalt.OpcodeNotFound;
-      case ExitCode.CODESIZE_EXCEEDS_MAXIMUM:
-        return ExceptionalHalt.CreateContractSizeLimit;
-      case ExitCode.CREATE_COLLISION:
-        return ExceptionalHalt.CreateCollision;
-
-      default:
-        // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
-        throw new Error(`Unmatched exit code: ${this.kind}`);
-    }
   }
 }
