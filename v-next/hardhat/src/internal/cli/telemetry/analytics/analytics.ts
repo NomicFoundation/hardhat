@@ -100,6 +100,8 @@ async function createSubprocessToSendAnalytics(
   }
 
   await spawnDetachedSubProcess(subprocessFile, [JSON.stringify(payload)], env);
+
+  log("Payload sent to detached subprocess");
 }
 
 async function buildPayload(
