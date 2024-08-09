@@ -8,6 +8,7 @@ import type {
 import os from "node:os";
 
 import { spawnDetachedSubProcess } from "@ignored/hardhat-vnext-utils/subprocess";
+import debug from "debug";
 
 import { getHardhatVersion } from "../../../utils/package.js";
 import {
@@ -17,7 +18,7 @@ import {
 
 import { getAnalyticsClientId } from "./utils.js";
 
-// TODO:log const log = debug("hardhat:core:global-dir");
+const log = debug("hardhat:cli:telemetry:analytics");
 
 const SESSION_ID = Math.random().toString();
 const ENGAGEMENT_TIME_MSEC = "10000";
@@ -79,6 +80,10 @@ async function sendAnalytics(
 async function createSubprocessToSendAnalytics(
   payload: TelemetryConsentPayload | Payload,
 ): Promise<void> {
+  log(
+    `Sending analytics for '${payload.events[0].name}'. Payload: ${JSON.stringify(payload)}`,
+  );
+
   // The HARDHAT_TEST_SUBPROCESS_RESULT_PATH env variable is used in the tests to instruct the subprocess to write the payload to a file
   // instead of sending it.
   // During testing, the subprocess file is a ts file, whereas in production, it is a js file (compiled code).
