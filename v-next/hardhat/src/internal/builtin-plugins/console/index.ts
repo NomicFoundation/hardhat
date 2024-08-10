@@ -7,6 +7,11 @@ const hardhatPlugin: HardhatPlugin = {
   tasks: [
     task("console", "Opens a hardhat console")
       .setAction(import.meta.resolve("./task-action.js"))
+      .addOption({
+        name: "history",
+        description: "Path to a history file",
+        defaultValue: "console-history.txt",
+      })
       .addVariadicArgument({
         name: "commands",
         description: "Commands to run in the console",

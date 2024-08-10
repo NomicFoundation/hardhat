@@ -11,35 +11,47 @@ const log = debug("hardhat:core:tasks:console");
 
 interface ConsoleActionArguments {
   commands: string[];
+  history: string;
+  // We accept ReplOptions as an argument to allow tests overriding the IO streams
+  options?: repl.ReplOptions;
 }
 
 const consoleAction: NewTaskActionFunction<ConsoleActionArguments> = async (
-  { commands },
+  { commands, history, options },
   _hre,
 ) => {
-  const globalCacheDir = await getCacheDir();
+  // Resolve the history path if it is not empty
+  let historyPath: string | undefined;
+  if (history !== "") {
+    const globalCacheDir = await getCacheDir();
+    historyPath = path.isAbsolute(history)
+      ? history
+      : path.resolve(globalCacheDir, history);
+  }
 
   return new Promise<REPLServer>((resolve) => {
     // Start a new REPL server with the default options
-    const replServer = repl.start();
+    const replServer = repl.start(options);
 
-    // Set up the REPL history file in the global cache directory
-    const historyPath = path.join(globalCacheDir, "console-history.txt");
-    replServer.setupHistory(historyPath, (err: Error | null) => {
-      if (err !== null) {
-        log(`Failed to setup REPL history: ${err.message}`);
-      }
+    // Resolve the task action promise only when the REPL server exits
+    replServer.on("exit", () => {
+      resolve(replServer);
     });
+
+    // Set up the REPL history file if the historyPath has been set
+    if (historyPath !== undefined) {
+      replServer.setupHistory(historyPath, (err: Error | null) => {
+        // Fail silently if the history file cannot be set up
+        if (err !== null) {
+          log(`Failed to setup REPL history: ${err.message}`);
+        }
+      });
+    }
 
     // Execute each command in the REPL server
     for (const command of commands) {
       replServer.write(`${command}\n`);
     }
-
-    // Resolve the task action promise when the REPL server exits
-    replServer.on("exit", () => {
-      resolve(replServer);
-    });
   });
 };
 
