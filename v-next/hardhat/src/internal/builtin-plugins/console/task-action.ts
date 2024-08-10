@@ -20,16 +20,16 @@ const consoleAction: NewTaskActionFunction<ConsoleActionArguments> = async (
   { commands, history, options },
   hre,
 ) => {
-  // Resolve the history path if it is not empty
-  let historyPath: string | undefined;
-  if (history !== "") {
-    const globalCacheDir = await getCacheDir();
-    historyPath = path.isAbsolute(history)
-      ? history
-      : path.resolve(globalCacheDir, history);
-  }
+  return new Promise<REPLServer>(async (resolve) => {
+    // Resolve the history path if it is not empty
+    let historyPath: string | undefined;
+    if (history !== "") {
+      const globalCacheDir = await getCacheDir();
+      historyPath = path.isAbsolute(history)
+        ? history
+        : path.resolve(globalCacheDir, history);
+    }
 
-  return new Promise<REPLServer>((resolve) => {
     // Start a new REPL server with the default options
     const replServer = repl.start(options);
 
@@ -43,11 +43,14 @@ const consoleAction: NewTaskActionFunction<ConsoleActionArguments> = async (
 
     // Set up the REPL history file if the historyPath has been set
     if (historyPath !== undefined) {
-      replServer.setupHistory(historyPath, (err: Error | null) => {
-        // Fail silently if the history file cannot be set up
-        if (err !== null) {
-          log(`Failed to setup REPL history: ${err.message}`);
-        }
+      await new Promise<void>((resolveSetupHistory) => {
+        replServer.setupHistory(historyPath, (err: Error | null) => {
+          // Fail silently if the history file cannot be set up
+          if (err !== null) {
+            log(`Failed to setup REPL history: ${err.message}`);
+          }
+          resolveSetupHistory();
+        });
       });
     }
 
