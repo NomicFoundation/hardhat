@@ -18,7 +18,7 @@ interface ConsoleActionArguments {
 
 const consoleAction: NewTaskActionFunction<ConsoleActionArguments> = async (
   { commands, history, options },
-  _hre,
+  hre,
 ) => {
   // Resolve the history path if it is not empty
   let historyPath: string | undefined;
@@ -37,6 +37,9 @@ const consoleAction: NewTaskActionFunction<ConsoleActionArguments> = async (
     replServer.on("exit", () => {
       resolve(replServer);
     });
+
+    // Add the Hardhat Runtime Environment to the REPL context
+    replServer.context.hre = hre;
 
     // Set up the REPL history file if the historyPath has been set
     if (historyPath !== undefined) {

@@ -112,6 +112,20 @@ describe("console/task-action", function () {
     });
   });
 
+  describe("context", function () {
+    it("should expose the Hardhat Runtime Environment", async function () {
+      const replServer = await consoleAction(
+        {
+          commands: ["console.log(hre);", ".exit"],
+          history: "",
+          options,
+        },
+        hre,
+      );
+      assert.equal(replServer.lastError, undefined);
+    });
+  });
+
   describe("history", function () {
     let cacheDir: string;
     let history: string;
