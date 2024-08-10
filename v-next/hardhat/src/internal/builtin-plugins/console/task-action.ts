@@ -53,7 +53,7 @@ const consoleAction: NewTaskActionFunction<ConsoleActionArguments> = async (
         replServer.setupHistory(historyPath, (err: Error | null) => {
           // Fail silently if the history file cannot be set up
           if (err !== null) {
-            log(`Failed to setup REPL history: ${err.message}`);
+            log("Failed to setup REPL history", err);
           }
           resolveSetupHistory();
         });

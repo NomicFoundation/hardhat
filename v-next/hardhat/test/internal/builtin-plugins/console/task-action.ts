@@ -2,17 +2,21 @@ import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core/type
 import type repl from "node:repl";
 
 import assert from "node:assert/strict";
-import fs from "node:fs";
+import fsPromises from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { PassThrough } from "node:stream";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
 
 import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+import { exists, remove } from "@ignored/hardhat-vnext-utils/fs";
+import debug from "debug";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import consoleAction from "../../../../src/internal/builtin-plugins/console/task-action.js";
 import { useFixtureProject } from "../../../helpers/project.js";
+
+const log = debug("hardhat:test:console:task-action");
 
 describe("console/task-action", function () {
   let hre: HardhatRuntimeEnvironment;
@@ -137,20 +141,25 @@ describe("console/task-action", function () {
     let cacheDir: string;
     let history: string;
 
-    beforeEach(function () {
-      cacheDir = fs.mkdtempSync(
+    beforeEach(async function () {
+      cacheDir = await fsPromises.mkdtemp(
         path.resolve(os.tmpdir(), "console-action-test-"),
       );
       history = path.resolve(cacheDir, "console-history.txt");
     });
 
-    afterEach(function () {
-      fs.rmSync(cacheDir, { recursive: true, force: true });
+    afterEach(async function () {
+      try {
+        await remove(cacheDir);
+      } catch (error) {
+        log("Failed to remove temporary cache dir", error);
+      }
     });
 
     it("should create a history file", async function () {
+      let historyExists = await exists(history);
       assert.ok(
-        !fs.existsSync(history),
+        !historyExists,
         "History file exists before running the console",
       );
       const replServer = await consoleAction(
@@ -163,8 +172,9 @@ describe("console/task-action", function () {
         hre,
       );
       assert.equal(replServer.lastError, undefined);
+      historyExists = await exists(history);
       assert.ok(
-        fs.existsSync(history),
+        historyExists,
         "History file does not exist after running the console",
       );
     });
