@@ -138,7 +138,7 @@ describe("console/task-action", function () {
     });
 
     afterEach(function () {
-      fs.rmSync(cacheDir, { recursive: true });
+      fs.rmSync(cacheDir, { recursive: true, force: true });
     });
 
     it("should create a history file", async function () {
