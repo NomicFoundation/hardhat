@@ -12,6 +12,10 @@ const hardhatPlugin: HardhatPlugin = {
         description: "Path to a history file",
         defaultValue: "console-history.txt",
       })
+      .addFlag({
+        name: "noCompile",
+        description: "Don't compile before running this task",
+      })
       .addVariadicArgument({
         name: "commands",
         description: "Commands to run in the console",

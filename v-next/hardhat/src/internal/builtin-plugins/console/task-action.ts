@@ -12,24 +12,30 @@ const log = debug("hardhat:core:tasks:console");
 interface ConsoleActionArguments {
   commands: string[];
   history: string;
+  noCompile: boolean;
   // We accept ReplOptions as an argument to allow tests overriding the IO streams
   options?: repl.ReplOptions;
 }
 
 const consoleAction: NewTaskActionFunction<ConsoleActionArguments> = async (
-  { commands, history, options },
+  { commands, history, noCompile, options },
   hre,
 ) => {
-  return new Promise<REPLServer>(async (resolve) => {
-    // Resolve the history path if it is not empty
-    let historyPath: string | undefined;
-    if (history !== "") {
-      const globalCacheDir = await getCacheDir();
-      historyPath = path.isAbsolute(history)
-        ? history
-        : path.resolve(globalCacheDir, history);
-    }
+  // Resolve the history path if it is not empty
+  let historyPath: string | undefined;
+  if (history !== "") {
+    const globalCacheDir = await getCacheDir();
+    historyPath = path.isAbsolute(history)
+      ? history
+      : path.resolve(globalCacheDir, history);
+  }
 
+  // If noCompile is false, run the compile task first
+  if (!noCompile) {
+    // todo: run compile task
+  }
+
+  return new Promise<REPLServer>(async (resolve) => {
     // Start a new REPL server with the default options
     const replServer = repl.start(options);
 
