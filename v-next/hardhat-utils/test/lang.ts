@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 
 import { expectTypeOf } from "expect-type";
 
-import { deepClone, deepEqual, isObject, delay } from "../src/lang.js";
+import { deepClone, deepEqual, isObject, sleep } from "../src/lang.js";
 
 describe("lang", () => {
   describe("deepClone", () => {
@@ -389,40 +389,40 @@ describe("lang", () => {
     });
   });
 
-  describe("delay", () => {
+  describe("sleep", () => {
     it("should wait for the specified time", async () => {
       const start = Date.now();
-      await delay(1);
+      await sleep(1);
       const end = Date.now();
 
-      assert.ok(end - start >= 1000, "delay did not wait for 1 second");
+      assert.ok(end - start >= 1000, "sleep did not wait for 1 second");
     });
 
     it("should handle zero delay", async () => {
       const start = Date.now();
-      await delay(0);
+      await sleep(0);
       const end = Date.now();
 
-      assert.ok(end - start < 100, "delay did not handle zero delay correctly");
+      assert.ok(end - start < 100, "sleep did not handle zero delay correctly");
     });
 
     it("should handle negative delay", async () => {
       const start = Date.now();
-      await delay(-1);
+      await sleep(-1);
       const end = Date.now();
 
       assert.ok(
         end - start < 100,
-        "delay did not handle negative delay correctly",
+        "sleep did not handle negative delay correctly",
       );
     });
 
     it("should handle non-integer delay", async () => {
       const start = Date.now();
-      await delay(0.5);
+      await sleep(0.5);
       const end = Date.now();
 
-      assert.ok(end - start >= 500, "delay did not wait for 0.5 seconds");
+      assert.ok(end - start >= 500, "sleep did not wait for 0.5 seconds");
     });
   });
 });

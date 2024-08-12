@@ -483,16 +483,24 @@ Please check Hardhat's output for more details.`,
 
 Please check that you are sending a valid URL string for the network or forking \`URL\` parameter.`,
     },
-    INVALID_PARAMS: {
+    INVALID_REQUEST_METHOD: {
       number: 701,
       messageTemplate:
-        "Invalid method parameters. Only array parameters are supported.",
+        "Invalid request arguments: the 'method' argument must be a string.",
       websiteTitle: "Invalid method parameters",
       websiteDescription:
-        "You are trying to make an EIP-1193 request with object parameters, but only array parameters are supported.",
+        "The JSON-RPC request method argument is invalid. The 'method' argument must be a string representing the name of the method to be invoked. Ensure that the 'method' parameter is correctly specified as a string in your JSON-RPC request.",
+    },
+    INVALID_REQUEST_PARAMS: {
+      number: 702,
+      messageTemplate:
+        "Invalid request arguments: only array parameters are supported.",
+      websiteTitle: "Invalid method parameters",
+      websiteDescription:
+        "The JSON-RPC request parameters are invalid. You are trying to make an EIP-1193 request with object parameters, but only array parameters are supported. Ensure that the 'params' parameter is correctly specified as an array in your JSON-RPC request.",
     },
     INVALID_JSON_RESPONSE: {
-      number: 702,
+      number: 703,
       messageTemplate: "Invalid JSON-RPC response received: {response}",
       websiteTitle: "Invalid JSON-RPC response",
       websiteDescription: `One of your JSON-RPC requests received an invalid response.
@@ -500,7 +508,7 @@ Please check that you are sending a valid URL string for the network or forking 
 Please make sure your node is running, and check your internet connection and networks config.`,
     },
     CONNECTION_REFUSED: {
-      number: 703,
+      number: 704,
       messageTemplate: `Cannot connect to the network {network}.
 Please make sure your node is running, and check your internet connection and networks config`,
       websiteTitle: "Cannot connect to the network",
@@ -509,7 +517,7 @@ Please make sure your node is running, and check your internet connection and ne
 Please make sure your node is running, and check your internet connection and networks config.`,
     },
     NETWORK_TIMEOUT: {
-      number: 704,
+      number: 705,
       messageTemplate: `Network connection timed out.
 Please check your internet connection and networks config`,
       websiteTitle: "Network timeout",

@@ -2,9 +2,13 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 
 /**
- * The JSON-RPC 2.0 request object. Technically, the id field is not needed
- * if the request is a notification, but we require it here and use a different
- * interface for notifications.
+ * The JSON-RPC 2.0 request object.
+ *
+ * For typing a JSON-RPC notification request, use `JsonRpcNotificationRequest`.
+ *
+ * Although the `params` field can be an object according to the specification,
+ * we only support arrays. The interface remains unchanged to comply with the EIP
+ * and to type JSON-RPC requests not created by us.
  */
 export interface JsonRpcRequest {
   jsonrpc: "2.0";
@@ -53,12 +57,11 @@ export function getJsonRpcRequest(
   };
 
   if (isObject(params)) {
-    throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_PARAMS);
+    throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_REQUEST_PARAMS);
   }
 
-  if (params !== undefined) {
-    requestObject.params = params;
-  }
+  // We default it as an empty array to be conservative
+  requestObject.params = params ?? [];
 
   if (id !== undefined) {
     requestObject.id = id;

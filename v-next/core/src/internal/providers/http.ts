@@ -13,9 +13,11 @@ import type {
 } from "@ignored/hardhat-vnext-utils/request";
 
 import EventEmitter from "node:events";
+import util from "node:util";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { delay, isObject } from "@ignored/hardhat-vnext-utils/lang";
+import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+import { sleep, isObject } from "@ignored/hardhat-vnext-utils/lang";
 import {
   getDispatcher,
   isValidUrl,
@@ -48,19 +50,18 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
 
   /**
    * Creates a new instance of `HttpProvider`.
-   *
-   * @param url
-   * @param networkName
-   * @param extraHeaders
-   * @param timeout
-   * @returns
    */
-  public static async create(
-    url: string,
-    networkName: string,
-    extraHeaders: Record<string, string> = {},
-    timeout?: number,
-  ): Promise<HttpProvider> {
+  public static async create({
+    url,
+    networkName,
+    extraHeaders = {},
+    timeout,
+  }: {
+    url: string;
+    networkName: string;
+    extraHeaders?: Record<string, string>;
+    timeout: number;
+  }): Promise<HttpProvider> {
     if (!isValidUrl(url)) {
       throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_URL, {
         value: url,
@@ -100,7 +101,27 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     this.#dispatcher = dispatcher;
   }
 
-  public async request({ method, params }: RequestArguments): Promise<unknown> {
+  /**
+   * Sends a JSON-RPC request.
+   *
+   * @param requestArguments The arguments for the request. The first argument
+   * should be a string representing the method name, and the second argument
+   * should be an array containing the parameters. See {@link RequestArguments}.
+   * @returns The `result` property of the successful JSON-RPC response.
+   * @throws {ProviderError} If the JSON-RPC response indicates a failure.
+   * @throws {HardhatError} with descriptor:
+   * - {@link HardhatError.ERRORS.NETWORK.INVALID_REQUEST_PARAMS} if the
+   * params are not an array.
+   * - {@link HardhatError.ERRORS.NETWORK.CONNECTION_REFUSED} if the
+   * connection is refused.
+   * - {@link HardhatError.ERRORS.NETWORK.NETWORK_TIMEOUT} if the request
+   * times out.
+   */
+  public async request(
+    requestArguments: RequestArguments,
+  ): Promise<SuccessfulJsonRpcResponse["result"]> {
+    const { method, params } = requestArguments;
+
     const jsonRpcRequest = getJsonRpcRequest(
       this.#nextRequestId++,
       method,
@@ -116,34 +137,94 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
       throw error;
     }
 
+    // TODO: emit hardhat network events (hardhat_reset, evm_revert)
+
     return jsonRpcResponse.result;
   }
 
-  public async sendBatch(batch: RequestArguments[]): Promise<unknown[]> {
-    const requests = batch.map(({ method, params }) =>
-      getJsonRpcRequest(this.#nextRequestId++, method, params),
-    );
+  /**
+   * @deprecated
+   * Sends a JSON-RPC request. This method is present for backwards compatibility
+   * with the Legacy Provider API. Prefer using `request` instead.
+   *
+   * @param method The method name for the JSON-RPC request.
+   * @param params The parameters for the JSON-RPC request. This should be an
+   * array of values.
+   * @returns The `result` property of the successful JSON-RPC response.
+   * @throws {ProviderError} If the JSON-RPC response indicates a failure.
+   * @throws {HardhatError} with descriptor:
+   * - {@link HardhatError.ERRORS.NETWORK.INVALID_REQUEST_METHOD} if the
+   * method is not a string.
+   * - {@link HardhatError.ERRORS.NETWORK.INVALID_REQUEST_PARAMS} if the
+   * params are not an array.
+   * - {@link HardhatError.ERRORS.NETWORK.CONNECTION_REFUSED} if the
+   * connection is refused.
+   * - {@link HardhatError.ERRORS.NETWORK.NETWORK_TIMEOUT} if the request
+   * times out.
+   */
+  public send(
+    method: string,
+    params?: unknown[],
+  ): Promise<SuccessfulJsonRpcResponse["result"]> {
+    return this.request({ method, params });
+  }
 
-    const jsonRpcResponses = await this.#fetchJsonRpcResponse(requests);
+  /**
+   * @deprecated
+   * Sends a JSON-RPC request asynchronously. This method is present for
+   * backwards compatibility with the Legacy Provider API. Prefer using
+   * `request` instead.
+   *
+   * @param jsonRpcRequest The JSON-RPC request object.
+   * @param callback The callback function to handle the response. The first
+   * argument should be an error object if an error occurred, and the second
+   * argument should be the JSON-RPC response object.
+   */
+  public sendAsync(
+    jsonRpcRequest: JsonRpcRequest,
+    callback: (error: any, response: JsonRpcResponse) => void,
+  ): void {
+    const handleJsonRpcRequest = async () => {
+      let jsonRpcResponse: JsonRpcResponse;
+      try {
+        const result = await this.request({
+          method: jsonRpcRequest.method,
+          params: jsonRpcRequest.params,
+        });
+        jsonRpcResponse = {
+          jsonrpc: "2.0",
+          id: jsonRpcRequest.id,
+          result,
+        };
+      } catch (error) {
+        ensureError<Error & { code: unknown }>(error);
 
-    const successfulJsonRpcResponses: SuccessfulJsonRpcResponse[] = [];
-    for (const response of jsonRpcResponses) {
-      if (isFailedJsonRpcResponse(response)) {
-        const error = new ProviderError(response.error.code);
-        error.data = response.error.data;
+        if (error.code === undefined) {
+          throw error;
+        }
 
-        // eslint-disable-next-line no-restricted-syntax -- allow throwing ProviderError
-        throw error;
-      } else {
-        successfulJsonRpcResponses.push(response);
+        /* eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+        -- Allow string interpolation of unknown `error.code`. It will be converted
+        to a number, and we will handle NaN cases appropriately afterwards. */
+        const errorCode = parseInt(`${error.code}`, 10);
+        jsonRpcResponse = {
+          jsonrpc: "2.0",
+          id: jsonRpcRequest.id,
+          error: {
+            code: !isNaN(errorCode) ? errorCode : -1,
+            message: error.message,
+            data: {
+              stack: error.stack,
+              name: error.name,
+            },
+          },
+        };
       }
-    }
 
-    const sortedResponses = successfulJsonRpcResponses.sort((a, b) =>
-      `${a.id}`.localeCompare(`${b.id}`, undefined, { numeric: true }),
-    );
+      return jsonRpcResponse;
+    };
 
-    return sortedResponses;
+    util.callbackify(handleJsonRpcRequest)(callback);
   }
 
   async #fetchJsonRpcResponse(
@@ -211,14 +292,8 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
           return this.#retry(jsonRpcRequest, retryAfterSeconds, retryCount);
         }
 
-        const error = new ProviderError(ProviderErrorCode.LIMIT_EXCEEDED);
-        error.data = {
-          hostname: new URL(this.#url).hostname,
-          retryAfterSeconds,
-        };
-
         // eslint-disable-next-line no-restricted-syntax -- allow throwing ProviderError
-        throw error;
+        throw new ProviderError(ProviderErrorCode.LIMIT_EXCEEDED);
       }
 
       throw e;
@@ -257,7 +332,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     retryAfterSeconds: number,
     retryCount: number,
   ) {
-    await delay(retryAfterSeconds);
+    await sleep(retryAfterSeconds);
     return this.#fetchJsonRpcResponse(request, retryCount + 1);
   }
 }

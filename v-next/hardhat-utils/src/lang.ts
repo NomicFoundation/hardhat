@@ -40,9 +40,9 @@ export function isObject(
 /**
  * Pauses the execution for the specified number of seconds.
  *
- * @param seconds The number of seconds to delay.
- * @returns A promise that resolves after the specified delay.
+ * @param seconds The number of seconds to pause the execution.
+ * @returns A promise that resolves after the specified number of seconds.
  */
-export async function delay(seconds: number): Promise<void> {
+export async function sleep(seconds: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 }
