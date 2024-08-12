@@ -27,6 +27,10 @@ describe("console/task-action", function () {
   });
 
   beforeEach(function () {
+    // Using process.stdin for the input during tests is not reliable as it
+    // causes the test runner to hang indefinitely. We use a PassThrough stream
+    // instead. This, in turn, prevents us from using process.stdout for output.
+    // Hence, we use a PassThrough stream for output as well.
     const input = new PassThrough();
     const output = new PassThrough();
     output.pipe(process.stdout);
@@ -142,6 +146,8 @@ describe("console/task-action", function () {
     let history: string;
 
     beforeEach(async function () {
+      // We use a temporary cache dir to avoid conflicts with other tests
+      // and global user settings.
       cacheDir = await fsPromises.mkdtemp(
         path.resolve(os.tmpdir(), "console-action-test-"),
       );
@@ -149,6 +155,9 @@ describe("console/task-action", function () {
     });
 
     afterEach(async function () {
+      // We try to remove the temporary cache dir after each test, but we don't
+      // fail the test if it fails. For example, we have observed that in GHA
+      // on Windows, the temp dir cannot be removed due to permission issues.
       try {
         await remove(cacheDir);
       } catch (error) {
