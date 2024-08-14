@@ -1,7 +1,6 @@
 import type { HardhatConfig } from "@ignored/hardhat-vnext/types/config";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
-import { resolve } from "node:path";
 import { run } from "node:test";
 import { fileURLToPath } from "node:url";
 
@@ -26,11 +25,7 @@ async function getTestFiles(
   config: HardhatConfig,
 ): Promise<string[]> {
   if (testFiles.length !== 0) {
-    const testFilesAbsolutePaths = testFiles.map((x) =>
-      resolve(process.cwd(), x),
-    );
-
-    return testFilesAbsolutePaths;
+    return testFiles;
   }
 
   return getAllFilesMatching(
