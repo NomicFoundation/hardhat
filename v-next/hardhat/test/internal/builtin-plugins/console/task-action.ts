@@ -146,6 +146,7 @@ describe("console/task-action", function () {
     let history: string;
 
     beforeEach(async function () {
+      // TODO(#5601): Use the mkdtemp from hardhat-utils once it's available
       // We use a temporary cache dir to avoid conflicts with other tests
       // and global user settings.
       cacheDir = await fsPromises.mkdtemp(
