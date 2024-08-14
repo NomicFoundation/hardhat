@@ -10,7 +10,7 @@ import {
 } from "../../../src/internal/network/http-provider.js";
 import {
   ProviderError,
-  ProviderErrorCode,
+  LimitExceededError,
 } from "../../../src/internal/network/provider-errors.js";
 import { createTestEnvManager, initializeTestDispatcher } from "../../utils.js";
 
@@ -247,7 +247,7 @@ describe("http-provider", () => {
           ProviderError.isProviderError(error),
           "Error is not a ProviderError",
         );
-        assert.equal(error.code, ProviderErrorCode.LIMIT_EXCEEDED);
+        assert.equal(error.code, LimitExceededError.CODE);
         return;
       }
       assert.fail("Function did not throw any error");
@@ -285,7 +285,7 @@ describe("http-provider", () => {
           ProviderError.isProviderError(error),
           "Error is not a ProviderError",
         );
-        assert.equal(error.code, ProviderErrorCode.LIMIT_EXCEEDED);
+        assert.equal(error.code, LimitExceededError.CODE);
         return;
       }
       assert.fail("Function did not throw any error");

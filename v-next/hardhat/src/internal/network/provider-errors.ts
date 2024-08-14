@@ -6,32 +6,14 @@ import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 const IS_PROVIDER_ERROR_PROPERTY_NAME = "_isProviderError";
 
 /**
- * The error codes that a provider can return.
- * See https://eips.ethereum.org/EIPS/eip-1474#error-codes
+ * Codes taken from: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1474.md#error-codes
  */
-export enum ProviderErrorCode {
-  LIMIT_EXCEEDED = -32005,
-  INVALID_PARAMS = -32602,
-}
-
-type ProviderErrorMessages = {
-  [key in ProviderErrorCode]: string;
-};
-
-/**
- * The error messages associated with each error code.
- */
-const ProviderErrorMessage: ProviderErrorMessages = {
-  [ProviderErrorCode.LIMIT_EXCEEDED]: "Request exceeds defined limit",
-  [ProviderErrorCode.INVALID_PARAMS]: "Invalid method parameters",
-};
-
 export class ProviderError extends CustomError implements ProviderRpcError {
   public code: number;
   public data?: unknown;
 
-  constructor(code: ProviderErrorCode, parentError?: Error) {
-    super(ProviderErrorMessage[code], parentError);
+  constructor(message: string, code: number, parentError?: Error) {
+    super(message, parentError);
     this.code = code;
 
     Object.defineProperty(this, IS_PROVIDER_ERROR_PROPERTY_NAME, {
@@ -53,5 +35,13 @@ export class ProviderError extends CustomError implements ProviderRpcError {
     );
 
     return isProviderErrorProperty?.value === true;
+  }
+}
+
+export class LimitExceededError extends ProviderError {
+  public static readonly CODE = -32005;
+
+  constructor(parent?: Error) {
+    super("Request exceeds defined limit", LimitExceededError.CODE, parent);
   }
 }

@@ -30,7 +30,7 @@ import {
 
 import { getHardhatVersion } from "../utils/package.js";
 
-import { ProviderError, ProviderErrorCode } from "./provider-errors.js";
+import { ProviderError, LimitExceededError } from "./provider-errors.js";
 import {
   getJsonRpcRequest,
   isFailedJsonRpcResponse,
@@ -130,7 +130,10 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     const jsonRpcResponse = await this.#fetchJsonRpcResponse(jsonRpcRequest);
 
     if (isFailedJsonRpcResponse(jsonRpcResponse)) {
-      const error = new ProviderError(jsonRpcResponse.error.code);
+      const error = new ProviderError(
+        jsonRpcResponse.error.message,
+        jsonRpcResponse.error.code,
+      );
       error.data = jsonRpcResponse.error.data;
 
       // eslint-disable-next-line no-restricted-syntax -- allow throwing ProviderError
@@ -293,7 +296,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
         }
 
         // eslint-disable-next-line no-restricted-syntax -- allow throwing ProviderError
-        throw new ProviderError(ProviderErrorCode.LIMIT_EXCEEDED);
+        throw new LimitExceededError(e);
       }
 
       throw e;
