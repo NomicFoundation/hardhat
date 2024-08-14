@@ -24,10 +24,11 @@ const consoleAction: NewTaskActionFunction<ConsoleActionArguments> = async (
   // Resolve the history path if it is not empty
   let historyPath: string | undefined;
   if (history !== "") {
-    const globalCacheDir = await getCacheDir();
+    // TODO(#5599): Replace with hre.config.paths.cache once it is available
+    const cacheDir = await getCacheDir();
     historyPath = path.isAbsolute(history)
       ? history
-      : path.resolve(globalCacheDir, history);
+      : path.resolve(cacheDir, history);
   }
 
   // If noCompile is false, run the compile task first
