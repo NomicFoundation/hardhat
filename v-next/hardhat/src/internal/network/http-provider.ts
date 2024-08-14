@@ -101,22 +101,6 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
     this.#dispatcher = dispatcher;
   }
 
-  /**
-   * Sends a JSON-RPC request.
-   *
-   * @param requestArguments The arguments for the request. The first argument
-   * should be a string representing the method name, and the second argument
-   * should be an array containing the parameters. See {@link RequestArguments}.
-   * @returns The `result` property of the successful JSON-RPC response.
-   * @throws {ProviderError} If the JSON-RPC response indicates a failure.
-   * @throws {HardhatError} with descriptor:
-   * - {@link HardhatError.ERRORS.NETWORK.INVALID_REQUEST_PARAMS} if the
-   * params are not an array.
-   * - {@link HardhatError.ERRORS.NETWORK.CONNECTION_REFUSED} if the
-   * connection is refused.
-   * - {@link HardhatError.ERRORS.NETWORK.NETWORK_TIMEOUT} if the request
-   * times out.
-   */
   public async request(
     requestArguments: RequestArguments,
   ): Promise<SuccessfulJsonRpcResponse["result"]> {
@@ -145,26 +129,6 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
     return jsonRpcResponse.result;
   }
 
-  /**
-   * @deprecated
-   * Sends a JSON-RPC request. This method is present for backwards compatibility
-   * with the Legacy Provider API. Prefer using `request` instead.
-   *
-   * @param method The method name for the JSON-RPC request.
-   * @param params The parameters for the JSON-RPC request. This should be an
-   * array of values.
-   * @returns The `result` property of the successful JSON-RPC response.
-   * @throws {ProviderError} If the JSON-RPC response indicates a failure.
-   * @throws {HardhatError} with descriptor:
-   * - {@link HardhatError.ERRORS.NETWORK.INVALID_REQUEST_METHOD} if the
-   * method is not a string.
-   * - {@link HardhatError.ERRORS.NETWORK.INVALID_REQUEST_PARAMS} if the
-   * params are not an array.
-   * - {@link HardhatError.ERRORS.NETWORK.CONNECTION_REFUSED} if the
-   * connection is refused.
-   * - {@link HardhatError.ERRORS.NETWORK.NETWORK_TIMEOUT} if the request
-   * times out.
-   */
   public send(
     method: string,
     params?: unknown[],
@@ -172,17 +136,6 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
     return this.request({ method, params });
   }
 
-  /**
-   * @deprecated
-   * Sends a JSON-RPC request asynchronously. This method is present for
-   * backwards compatibility with the Legacy Provider API. Prefer using
-   * `request` instead.
-   *
-   * @param jsonRpcRequest The JSON-RPC request object.
-   * @param callback The callback function to handle the response. The first
-   * argument should be an error object if an error occurred, and the second
-   * argument should be the JSON-RPC response object.
-   */
   public sendAsync(
     jsonRpcRequest: JsonRpcRequest,
     callback: (error: any, jsonRpcResponse: JsonRpcResponse) => void,
