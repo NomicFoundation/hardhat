@@ -5,16 +5,16 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import {
-  ProviderError,
-  ProviderErrorCode,
-} from "../../../src/internal/providers/errors.js";
-import {
   HttpProvider,
   getHttpDispatcher,
-} from "../../../src/internal/providers/http.js";
+} from "../../../src/internal/network/http-provider.js";
+import {
+  ProviderError,
+  ProviderErrorCode,
+} from "../../../src/internal/network/provider-errors.js";
 import { createTestEnvManager, initializeTestDispatcher } from "../../utils.js";
 
-describe("http", () => {
+describe("http-provider", () => {
   describe("HttpProvider.create", () => {
     it("should create an HttpProvider", async () => {
       const provider = await HttpProvider.create({

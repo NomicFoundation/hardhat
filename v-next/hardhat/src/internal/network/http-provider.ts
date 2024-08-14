@@ -1,12 +1,12 @@
 import type {
-  EIP1193Provider,
-  RequestArguments,
-} from "../../types/providers.js";
-import type {
   JsonRpcResponse,
   JsonRpcRequest,
   SuccessfulJsonRpcResponse,
-} from "../utils/json-rpc.js";
+} from "./utils/json-rpc.js";
+import type {
+  EIP1193Provider,
+  RequestArguments,
+} from "../../types/providers.js";
 import type {
   Dispatcher,
   RequestOptions,
@@ -28,14 +28,14 @@ import {
   ResponseStatusCodeError,
 } from "@ignored/hardhat-vnext-utils/request";
 
+import { getHardhatVersion } from "../utils/package.js";
+
+import { ProviderError, ProviderErrorCode } from "./provider-errors.js";
 import {
   getJsonRpcRequest,
   isFailedJsonRpcResponse,
   parseJsonRpcResponse,
-} from "../utils/json-rpc.js";
-import { getHardhatVersion } from "../utils/package.js";
-
-import { ProviderError, ProviderErrorCode } from "./errors.js";
+} from "./utils/json-rpc.js";
 
 const TOO_MANY_REQUEST_STATUS = 429;
 const MAX_RETRIES = 6;
