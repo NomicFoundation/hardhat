@@ -4,7 +4,7 @@ import type {
   SuccessfulJsonRpcResponse,
 } from "./utils/json-rpc.js";
 import type {
-  EIP1193Provider,
+  EthereumProvider,
   RequestArguments,
 } from "../../types/providers.js";
 import type {
@@ -41,7 +41,7 @@ const TOO_MANY_REQUEST_STATUS = 429;
 const MAX_RETRIES = 6;
 const MAX_RETRY_WAIT_TIME_SECONDS = 5;
 
-export class HttpProvider extends EventEmitter implements EIP1193Provider {
+export class HttpProvider extends EventEmitter implements EthereumProvider {
   readonly #url: string;
   readonly #networkName: string;
   readonly #extraHeaders: Record<string, string>;
@@ -185,7 +185,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
    */
   public sendAsync(
     jsonRpcRequest: JsonRpcRequest,
-    callback: (error: any, response: JsonRpcResponse) => void,
+    callback: (error: any, jsonRpcResponse: JsonRpcResponse) => void,
   ): void {
     const handleJsonRpcRequest = async () => {
       let jsonRpcResponse: JsonRpcResponse;
