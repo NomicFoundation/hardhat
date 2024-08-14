@@ -24,65 +24,54 @@ import {
   download,
   getDispatcher,
   shouldUseProxy,
+  isValidUrl,
 } from "../src/request.js";
 
 import { useTmpDir } from "./helpers/fs.js";
-import {
-  getTestDispatcherOptions,
-  mockPool,
-  setupRequestMocking,
-} from "./helpers/request.js";
+import { initializeTestDispatcher } from "./helpers/request.js";
 
 describe("Requests util", () => {
   describe("getDispatcher", () => {
     it("Should return a ProxyAgent dispatcher if a proxy url was provided", async () => {
-      const url = "http://localhost";
-      const options = getTestDispatcherOptions({
+      const dispatcher = await getDispatcher("http://localhost", {
         proxy: "http://proxy",
       });
-      const dispatcher = await getDispatcher(url, options);
 
       assert.ok(dispatcher instanceof ProxyAgent, "Should return a ProxyAgent");
     });
 
     it("Should return a Pool dispatcher if pool is true", async () => {
-      const url = "http://localhost";
-      const options = getTestDispatcherOptions({
+      const dispatcher = await getDispatcher("http://localhost", {
         pool: true,
       });
-      const dispatcher = await getDispatcher(url, options);
 
       assert.ok(dispatcher instanceof Pool, "Should return a Pool");
     });
 
     it("Should throw if both pool and proxy are set", async () => {
-      const url = "http://localhost";
-      const options = getTestDispatcherOptions({
-        pool: true,
-        proxy: "http://proxy",
-      });
-
-      await assert.rejects(getDispatcher(url, options), {
-        name: "DispatcherError",
-        message:
-          "Failed to create dispatcher: The pool and proxy options can't be used at the same time",
-      });
+      await assert.rejects(
+        getDispatcher("http://localhost", {
+          pool: true,
+          proxy: "http://proxy",
+        }),
+        {
+          name: "DispatcherError",
+          message:
+            "Failed to create dispatcher: The pool and proxy options can't be used at the same time",
+        },
+      );
     });
 
     it("Should return an Agent dispatcher if proxy is not set and pool is false", async () => {
-      const url = "http://localhost";
-      const options = getTestDispatcherOptions({
+      const dispatcher = await getDispatcher("http://localhost", {
         pool: false,
       });
-      const dispatcher = await getDispatcher(url, options);
 
       assert.ok(dispatcher instanceof Agent, "Should return an Agent");
     });
 
     it("Should return an Agent dispatcher if proxy is not set and pool is not set", async () => {
-      const url = "http://localhost";
-      const options = getTestDispatcherOptions();
-      const dispatcher = await getDispatcher(url, options);
+      const dispatcher = await getDispatcher("http://localhost");
 
       assert.ok(dispatcher instanceof Agent, "Should return an Agent");
     });
@@ -214,12 +203,9 @@ describe("Requests util", () => {
 
     it("Should return a dispatcher based on the provided options", async () => {
       const url = "http://localhost";
-      const dispatcherOptions = getTestDispatcherOptions({ pool: true });
-      const { dispatcher } = await getBaseRequestOptions(
-        url,
-        undefined,
-        dispatcherOptions,
-      );
+      const { dispatcher } = await getBaseRequestOptions(url, undefined, {
+        pool: true,
+      });
 
       assert.ok(dispatcher instanceof Pool, "Should return a Pool");
     });
@@ -247,9 +233,9 @@ describe("Requests util", () => {
     });
   });
 
-  describe("getRequest", () => {
-    setupRequestMocking();
-    const url = "http://localhost:3000/";
+  describe("getRequest", async () => {
+    const interceptor = await initializeTestDispatcher();
+    const url = "http://localhost/";
     const baseInterceptorOptions = {
       path: "/",
       method: "GET",
@@ -259,8 +245,8 @@ describe("Requests util", () => {
     };
 
     it("Should make a basic get request", async () => {
-      mockPool.intercept(baseInterceptorOptions).reply(200, {});
-      const response = await getRequest(url, undefined, mockPool);
+      interceptor.intercept(baseInterceptorOptions).reply(200, {});
+      const response = await getRequest(url, undefined, interceptor);
 
       assert.notEqual(response, undefined, "Should return a response");
       assert.equal(response.statusCode, 200);
@@ -272,10 +258,10 @@ describe("Requests util", () => {
         foo: "bar",
         baz: "qux",
       };
-      mockPool
+      interceptor
         .intercept({ ...baseInterceptorOptions, query: queryParams })
         .reply(200, {});
-      const response = await getRequest(url, { queryParams }, mockPool);
+      const response = await getRequest(url, { queryParams }, interceptor);
 
       assert.notEqual(response, undefined, "Should return a response");
       assert.equal(response.statusCode, 200);
@@ -286,13 +272,13 @@ describe("Requests util", () => {
       const extraHeaders = {
         "X-Custom-Header": "value",
       };
-      mockPool
+      interceptor
         .intercept({
           ...baseInterceptorOptions,
           headers: { ...baseInterceptorOptions.headers, ...extraHeaders },
         })
         .reply(200, {});
-      const response = await getRequest(url, { extraHeaders }, mockPool);
+      const response = await getRequest(url, { extraHeaders }, interceptor);
 
       assert.notEqual(response, undefined, "Should return a response");
       assert.equal(response.statusCode, 200);
@@ -301,11 +287,11 @@ describe("Requests util", () => {
 
     it("Should allow aborting a request using an abort signal", async () => {
       const abortController = new AbortController();
-      mockPool.intercept(baseInterceptorOptions).reply(200, {});
+      interceptor.intercept(baseInterceptorOptions).reply(200, {});
       const requestPromise = getRequest(
         url,
         { abortSignal: abortController.signal },
-        mockPool,
+        interceptor,
       );
       abortController.abort();
 
@@ -318,20 +304,20 @@ describe("Requests util", () => {
     });
 
     it("Should throw if the request fails", async () => {
-      mockPool
+      interceptor
         .intercept(baseInterceptorOptions)
         .reply(500, "Internal Server Error");
 
-      await assert.rejects(getRequest(url, undefined, mockPool), {
-        name: "RequestError",
-        message: `Failed to make GET request to ${url}`,
+      await assert.rejects(getRequest(url, undefined, interceptor), {
+        name: "ResponseStatusCodeError",
+        message: `Received an unexpected status code from ${url}`,
       });
     });
   });
 
-  describe("postJsonRequest", () => {
-    setupRequestMocking();
-    const url = "http://localhost:3000/";
+  describe("postJsonRequest", async () => {
+    const interceptor = await initializeTestDispatcher();
+    const url = "http://localhost/";
     const body = { foo: "bar" };
     const baseInterceptorOptions = {
       path: "/",
@@ -344,8 +330,8 @@ describe("Requests util", () => {
     };
 
     it("Should make a basic post request", async () => {
-      mockPool.intercept(baseInterceptorOptions).reply(200, {});
-      const response = await postJsonRequest(url, body, undefined, mockPool);
+      interceptor.intercept(baseInterceptorOptions).reply(200, {});
+      const response = await postJsonRequest(url, body, undefined, interceptor);
 
       assert.notEqual(response, undefined, "Should return a response");
       assert.equal(response.statusCode, 200);
@@ -356,7 +342,7 @@ describe("Requests util", () => {
       const queryParams = {
         baz: "qux",
       };
-      mockPool
+      interceptor
         .intercept({
           ...baseInterceptorOptions,
           query: queryParams,
@@ -366,7 +352,7 @@ describe("Requests util", () => {
         url,
         body,
         { queryParams },
-        mockPool,
+        interceptor,
       );
 
       assert.notEqual(response, undefined, "Should return a response");
@@ -378,7 +364,7 @@ describe("Requests util", () => {
       const extraHeaders = {
         "X-Custom-Header": "value",
       };
-      mockPool
+      interceptor
         .intercept({
           ...baseInterceptorOptions,
           headers: { ...baseInterceptorOptions.headers, ...extraHeaders },
@@ -388,7 +374,7 @@ describe("Requests util", () => {
         url,
         body,
         { extraHeaders },
-        mockPool,
+        interceptor,
       );
 
       assert.notEqual(response, undefined, "Should return a response");
@@ -398,12 +384,12 @@ describe("Requests util", () => {
 
     it("Should allow aborting a request using an abort signal", async () => {
       const abortController = new AbortController();
-      mockPool.intercept(baseInterceptorOptions).reply(200, {});
+      interceptor.intercept(baseInterceptorOptions).reply(200, {});
       const requestPromise = postJsonRequest(
         url,
         body,
         { abortSignal: abortController.signal },
-        mockPool,
+        interceptor,
       );
       abortController.abort();
 
@@ -416,20 +402,20 @@ describe("Requests util", () => {
     });
 
     it("Should throw if the request fails", async () => {
-      mockPool
+      interceptor
         .intercept(baseInterceptorOptions)
         .reply(500, "Internal Server Error");
 
-      await assert.rejects(postJsonRequest(url, body, undefined, mockPool), {
-        name: "RequestError",
-        message: `Failed to make POST request to ${url}`,
+      await assert.rejects(postJsonRequest(url, body, undefined, interceptor), {
+        name: "ResponseStatusCodeError",
+        message: `Received an unexpected status code from ${url}`,
       });
     });
   });
 
-  describe("postFormRequest", () => {
-    setupRequestMocking();
-    const url = "http://localhost:3000/";
+  describe("postFormRequest", async () => {
+    const interceptor = await initializeTestDispatcher();
+    const url = "http://localhost/";
     const body = { foo: "bar" };
     const baseInterceptorOptions = {
       path: "/",
@@ -442,8 +428,8 @@ describe("Requests util", () => {
     };
 
     it("Should make a basic post request", async () => {
-      mockPool.intercept(baseInterceptorOptions).reply(200, {});
-      const response = await postFormRequest(url, body, undefined, mockPool);
+      interceptor.intercept(baseInterceptorOptions).reply(200, {});
+      const response = await postFormRequest(url, body, undefined, interceptor);
 
       assert.notEqual(response, undefined, "Should return a response");
       assert.equal(response.statusCode, 200);
@@ -454,7 +440,7 @@ describe("Requests util", () => {
       const queryParams = {
         baz: "qux",
       };
-      mockPool
+      interceptor
         .intercept({
           ...baseInterceptorOptions,
           query: queryParams,
@@ -464,7 +450,7 @@ describe("Requests util", () => {
         url,
         body,
         { queryParams },
-        mockPool,
+        interceptor,
       );
 
       assert.notEqual(response, undefined, "Should return a response");
@@ -476,7 +462,7 @@ describe("Requests util", () => {
       const extraHeaders = {
         "X-Custom-Header": "value",
       };
-      mockPool
+      interceptor
         .intercept({
           ...baseInterceptorOptions,
           headers: { ...baseInterceptorOptions.headers, ...extraHeaders },
@@ -486,7 +472,7 @@ describe("Requests util", () => {
         url,
         body,
         { extraHeaders },
-        mockPool,
+        interceptor,
       );
 
       assert.notEqual(response, undefined, "Should return a response");
@@ -496,12 +482,12 @@ describe("Requests util", () => {
 
     it("Should allow aborting a request using an abort signal", async () => {
       const abortController = new AbortController();
-      mockPool.intercept(baseInterceptorOptions).reply(200, {});
+      interceptor.intercept(baseInterceptorOptions).reply(200, {});
       const requestPromise = postFormRequest(
         url,
         body,
         { abortSignal: abortController.signal },
-        mockPool,
+        interceptor,
       );
       abortController.abort();
 
@@ -514,21 +500,21 @@ describe("Requests util", () => {
     });
 
     it("Should throw if the request fails", async () => {
-      mockPool
+      interceptor
         .intercept(baseInterceptorOptions)
         .reply(500, "Internal Server Error");
 
-      await assert.rejects(postFormRequest(url, body, undefined, mockPool), {
-        name: "RequestError",
-        message: `Failed to make POST request to ${url}`,
+      await assert.rejects(postFormRequest(url, body, undefined, interceptor), {
+        name: "ResponseStatusCodeError",
+        message: `Received an unexpected status code from ${url}`,
       });
     });
   });
 
-  describe("download", () => {
+  describe("download", async () => {
+    const interceptor = await initializeTestDispatcher();
     const getTmpDir = useTmpDir("request");
-    setupRequestMocking();
-    const url = "http://localhost:3000/";
+    const url = "http://localhost/";
     const baseInterceptorOptions = {
       path: "/",
       method: "GET",
@@ -539,8 +525,8 @@ describe("Requests util", () => {
 
     it("Should download a file", async () => {
       const destination = path.join(getTmpDir(), "file.txt");
-      mockPool.intercept(baseInterceptorOptions).reply(200, "file content");
-      await download(url, destination, undefined, mockPool);
+      interceptor.intercept(baseInterceptorOptions).reply(200, "file content");
+      await download(url, destination, undefined, interceptor);
 
       assert.ok(await exists(destination), "Should create the file");
       assert.equal(await readUtf8File(destination), "file content");
@@ -548,13 +534,13 @@ describe("Requests util", () => {
 
     it("Should throw if the request fails", async () => {
       const destination = path.join(getTmpDir(), "file.txt");
-      mockPool
+      interceptor
         .intercept(baseInterceptorOptions)
         .reply(500, "Internal Server Error");
 
-      await assert.rejects(download(url, destination, undefined, mockPool), {
-        name: "DownloadError",
-        message: `Failed to download file from ${url}`,
+      await assert.rejects(download(url, destination, undefined, interceptor), {
+        name: "ResponseStatusCodeError",
+        message: `Received an unexpected status code from ${url}`,
       });
     });
   });
@@ -604,6 +590,26 @@ describe("Requests util", () => {
       assert.equal(shouldUseProxy("http://example.com"), false);
       assert.equal(shouldUseProxy("https://example.com"), false);
       assert.equal(shouldUseProxy("ftp://example.com"), false);
+    });
+  });
+
+  describe("isValidUrl", () => {
+    it("should return true for a valid URL", () => {
+      assert.equal(isValidUrl("http://example.com"), true);
+      assert.equal(isValidUrl("https://example.com"), true);
+      assert.equal(isValidUrl("ftp://example.com"), true);
+      assert.equal(isValidUrl("http://example.com:8080"), true);
+      assert.equal(
+        isValidUrl("http://example.com/path?name=value#fragment"),
+        true,
+      );
+    });
+
+    it("should return false for an invalid URL", () => {
+      assert.equal(isValidUrl("example.com"), false);
+      assert.equal(isValidUrl("example"), false);
+      assert.equal(isValidUrl(""), false);
+      assert.equal(isValidUrl("/relative/path"), false);
     });
   });
 });
