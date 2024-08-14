@@ -60,8 +60,8 @@ export interface ConfigHooks {
    * Provide a handler for this hook to extend the user's config, before any
    * validation or resolution is done.
    *
-   * @param config - The user's config.
-   * @param next - A function to call the next handler for this hook.
+   * @param config The user's config.
+   * @param next A function to call the next handler for this hook.
    * @returns The extended config.
    */
   extendUserConfig: (
@@ -72,7 +72,7 @@ export interface ConfigHooks {
   /**
    * Provide a handler for this hook to validate the user's config.
    *
-   * @param config - The user's config.
+   * @param config The user's config.
    * @returns An array of validation errors.
    */
   validateUserConfig: (
@@ -88,8 +88,8 @@ export interface ConfigHooks {
    * result is typed as `HardhatConfig`, it may actually be incomplete, as other
    * plugins may not have resolved their parts of the config yet.
    *
-   * @param userConfig - The user's config.
-   * @param next - A function to call the next handler for this hook.
+   * @param userConfig The user's config.
+   * @param next A function to call the next handler for this hook.
    * @returns The resolved config.
    */
   resolveUserConfig: (
@@ -133,9 +133,9 @@ export interface ConfigurationVariableHooks {
    * Provide a handler for this hook to customize how to fetch the value
    * that a configuration variable represents.
    *
-   * @param context - The hook context.
-   * @param variable - The configuration variable or string to resolve.
-   * @param next - A function to call if the handler decides to not handle the
+   * @param context The hook context.
+   * @param variable The configuration variable or string to resolve.
+   * @param next A function to call if the handler decides to not handle the
    *  resolution of this variable.
    */
   fetchValue: (
@@ -159,11 +159,11 @@ export interface UserInterruptionHooks {
    * @see UserInterruptionManager#displayMessage to understand when the returned
    *  promise should be resolved.
    *
-   * @param context - The hook context.
-   * @param interruptor - A name or description of the module trying to display
+   * @param context The hook context.
+   * @param interruptor A name or description of the module trying to display
    *  the message.
-   * @param message - The message to display.
-   * @param next - A function to call if the handler decides to not handle the
+   * @param message The message to display.
+   * @param next A function to call if the handler decides to not handle the
    *  message.
    */
   displayMessage: (
@@ -181,12 +181,12 @@ export interface UserInterruptionHooks {
    * Provide a handler for this hook to customize how the
    * `UserInterruptionManager` requests input from the user.
    *
-   * @param context - The hook context.
-   * @param interruptor - A name or description of the module trying to request
+   * @param context The hook context.
+   * @param interruptor A name or description of the module trying to request
    *  input form the user.
-   * @param inputDescription - A description of the input that is being
+   * @param inputDescription A description of the input that is being
    *  requested.
-   * @param next - A function to call if the handler decides to not handle the
+   * @param next A function to call if the handler decides to not handle the
    *  input request.
    */
   requestInput: (
@@ -207,12 +207,12 @@ export interface UserInterruptionHooks {
    * Note that handlers for this hook should take care of to not display the
    * user's input in the terminal, and not leak it in any way.
    *
-   * @param context - The hook context.
-   * @param interruptor - A name or description of the module trying to request
+   * @param context The hook context.
+   * @param interruptor A name or description of the module trying to request
    *  input form the user.
-   * @param inputDescription - A description of the input that is being
+   * @param inputDescription A description of the input that is being
    *  requested.
-   * @param next - A function to call if the handler decides to not
+   * @param next A function to call if the handler decides to not
    *  handle the input request.
    */
   requestSecretInput: (
@@ -240,7 +240,7 @@ export interface HardhatRuntimeEnvironmentHooks {
 /**
  * An interface with utilities to interact with hooks and their handlers.
  *
- * This interface provides methods fetch and run hook handlers, as well as
+ * This interface provides methods to fetch and run hook handlers, as well as
  * registering and unregistering dynamic ones.
  *
  * Using this `HookManager` you can run a hook's handlers in a few different
@@ -249,6 +249,7 @@ export interface HardhatRuntimeEnvironmentHooks {
  *    next one.
  *  - In order, where all handlers are called in the order that `getHooks`
  *    returns them.
+ *  - In parallel, where all handlers are called at the same time.
  */
 export interface HookManager {
   /**
@@ -257,7 +258,7 @@ export interface HookManager {
    * The priority is defined like this:
    *  - Dynamically registered handlers come first, in the reverse order they
    *   were registered.
-   * - Plugin handlers come last, in the same reverse of the resolved plugins
+   *  - Plugin handlers come last, in the same reverse of the resolved plugins
    *  list, as seen in `HardhatConfig#plugins`.
    */
   getHandlers<
@@ -295,15 +296,15 @@ export interface HookManager {
    *
    * For a hook to work with this method, it should look like this:
    *
-   * `(arg1: Type1, ..., argN: TypeN, n ext: (a1: Type1, ..., aN: TypeN) => Promise<ReturnType>) => Promise<ReturnType>`
+   * `(arg1: Type1, ..., argN: TypeN, next: (a1: Type1, ..., aN: TypeN) => Promise<ReturnType>) => Promise<ReturnType>`
    *
    * Note that `next` MUST NOT be called more than once in any handler.
    *
-   * @param hookCategoryName - The name of the category of the hook whose
+   * @param hookCategoryName The name of the category of the hook whose
    *  handlers should be run.
-   * @param hookName - The name of the hook whose handlers should be run.
-   * @param initialParams - The params to pass to the first handler that is run.
-   * @param defaultHandler - The last handler in the chain. This can be thought
+   * @param hookName The name of the hook whose handlers should be run.
+   * @param initialParams The params to pass to the first handler that is run.
+   * @param defaultImplementation The last handler in the chain. This can be thought
    *  as the behavior that this execution should have in the absense of any
    *  handler.
    * @returns The result of executing the chained handlers.
@@ -316,17 +317,17 @@ export interface HookManager {
     hookCategoryName: HookCategoryNameT,
     hookName: HookNameT,
     initialParams: InitialChainedHookParams<HookCategoryNameT, HookT>,
-    defaultHandler: LastParameter<HookT>,
+    defaultImplementation: LastParameter<HookT>,
   ): Promise<Awaited<Return<HookT>>>;
 
   /**
    * Runs all the handlers for a hook in the same order that `getHandlers`
    * returns them.
    *
-   * @param hookCategoryName - The name of the category of the hook whose
+   * @param hookCategoryName The name of the category of the hook whose
    *  handlers should be run.
-   * @param hookName - The name of the hook to run.
-   * @param params - The params to pass to the hooks.
+   * @param hookName The name of the hook to run.
+   * @param params The params to pass to the hooks.
    */
   runSequentialHandlers<
     HookCategoryNameT extends keyof HardhatHooks,
@@ -341,10 +342,10 @@ export interface HookManager {
   /**
    * Runs all the handlers for a hook in parallel.
    *
-   * @param hookCategoryName - The name of the category of the hook whose
+   * @param hookCategoryName The name of the category of the hook whose
    *  handlers should be run.
-   * @param hookName - The name of the hook to run.
-   * @param params - The params to pass to the hooks.
+   * @param hookName The name of the hook to run.
+   * @param params The params to pass to the hooks.
    */
   runParallelHandlers<
     HookCategoryNameT extends keyof HardhatHooks,
@@ -389,7 +390,7 @@ export type InitialChainedHookParams<
   : ParametersExceptFirstAndLast<HookT>;
 
 /**
- * The intial parameters to run a chain of hooks.
+ * The initial parameters to run hooks either sequentially or in parallel.
  */
 export type InitialHookParams<
   HookCategoryNameT extends keyof HardhatHooks,

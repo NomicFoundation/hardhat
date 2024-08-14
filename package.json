@@ -9,7 +9,7 @@
     "hardhat": "workspace:*",
     "prettier": "2.4.1",
     "shelljs": "^0.8.5",
-    "typescript": "~5.0.0"
+    "typescript": "~5.5.0"
   },
   "scripts": {
     "build": "tsc --build packages/hardhat-core packages/hardhat-ethers packages/hardhat-verify packages/hardhat-vyper packages/hardhat-web3-v4 packages/hardhat-chai-matchers packages/hardhat-network-helpers packages/hardhat-toolbox packages/hardhat-foundry packages/hardhat-ledger packages/hardhat-viem packages/hardhat-toolbox-viem",
