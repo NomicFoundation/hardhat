@@ -46,6 +46,11 @@ const consoleAction: NewTaskActionFunction<ConsoleActionArguments> = async (
 
     // Add the Hardhat Runtime Environment to the REPL context
     replServer.context.hre = hre;
+    replServer.context.config = hre.config;
+    replServer.context.tasks = hre.tasks;
+    replServer.context.globalOptions = hre.globalOptions;
+    replServer.context.hooks = hre.hooks;
+    replServer.context.interruptions = hre.interruptions;
 
     // Set up the REPL history file if the historyPath has been set
     if (historyPath !== undefined) {
