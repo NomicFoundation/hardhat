@@ -33,7 +33,7 @@ const consoleAction: NewTaskActionFunction<ConsoleActionArguments> = async (
 
   // If noCompile is false, run the compile task first
   if (!noCompile) {
-    // todo: run compile task
+    // TODO(#5600): run compile task
   }
 
   return new Promise<REPLServer>(async (resolve) => {
