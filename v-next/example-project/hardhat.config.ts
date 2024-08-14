@@ -8,6 +8,7 @@ import {
   HardhatUserConfig,
 } from "@ignored/hardhat-vnext/config";
 import HardhatNodeTestRunner from "@ignored/hardhat-vnext-node-test-runner";
+import HardhatMochaTestRunner from "@ignored/hardhat-vnext-mocha-test-runner";
 
 const exampleEmptyTask = emptyTask("empty", "An example empty task").build();
 
@@ -102,8 +103,18 @@ const config: HardhatUserConfig = {
     exampleEmptySubtask,
     greeting,
   ],
-  plugins: [pluginExample, HardhatNodeTestRunner],
+  plugins: [
+    pluginExample,
+    HardhatMochaTestRunner,
+    // if testing node plugin, use the following line instead
+    // HardhatNodeTestRunner,
+  ],
   privateKey: configVariable("privateKey"),
+  paths: {
+    tests: "test/mocha",
+    // if testing node plugin, use the following line instead
+    // tests: "test/node",
+  },
 };
 
 export default config;

@@ -22,8 +22,11 @@
   },
   "devDependencies": {
     "@ignored/hardhat-vnext": "workspace:^3.0.0-next.3",
+    "@ignored/hardhat-vnext-mocha-test-runner": "workspace:^3.0.0-next.2",
     "@ignored/hardhat-vnext-node-test-runner": "workspace:^3.0.0-next.2",
+    "@types/mocha": ">=9.1.0",
     "@types/node": "^20.14.9",
+    "mocha": "^10.0.0",
     "prettier": "3.2.5",
     "typescript": "~5.5.0"
   },
