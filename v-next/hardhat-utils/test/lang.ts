@@ -359,6 +359,10 @@ describe("lang", () => {
         isObject(new Set()),
         "new Set() is an object, but isObject returned false",
       );
+      assert.ok(
+        isObject(new Error()),
+        "new Error() is an object, but isObject returned false",
+      );
     });
 
     it("Should return false for non-objects", () => {

@@ -91,7 +91,7 @@ export async function getRequest(
       ...baseRequestOptions,
     });
   } catch (e) {
-    ensureError<NodeJS.ErrnoException>(e);
+    ensureError(e);
 
     handleError(e, url);
 
@@ -135,7 +135,7 @@ export async function postJsonRequest(
       body: JSON.stringify(body),
     });
   } catch (e) {
-    ensureError<NodeJS.ErrnoException>(e);
+    ensureError(e);
 
     handleError(e, url);
 
@@ -180,7 +180,7 @@ export async function postFormRequest(
       body: querystring.stringify(body as ParsedUrlQueryInput),
     });
   } catch (e) {
-    ensureError<NodeJS.ErrnoException>(e);
+    ensureError(e);
 
     handleError(e, url);
 
@@ -225,7 +225,7 @@ export async function download(
     await stream.pipeline(body, fileStream);
     await move(tempFilePath, destination);
   } catch (e) {
-    ensureError<NodeJS.ErrnoException>(e);
+    ensureError(e);
 
     handleError(e, url);
 

@@ -153,9 +153,9 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
           result,
         };
       } catch (error) {
-        ensureError<Error & { code: unknown }>(error);
+        ensureError(error);
 
-        if (error.code === undefined) {
+        if (!("code" in error) || error.code === undefined) {
           throw error;
         }
 

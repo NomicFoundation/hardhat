@@ -5,8 +5,8 @@ import type UndiciT from "undici";
 import path from "node:path";
 import url from "node:url";
 
-import { ensureError } from "../error.js";
 import { mkdir } from "../fs.js";
+import { isObject } from "../lang.js";
 import {
   ConnectionRefusedError,
   DEFAULT_MAX_REDIRECTS,
@@ -140,16 +140,12 @@ export function sanitizeUrl(requestUrl: string): string {
   return url.format(parsedUrl, { auth: false, search: false, fragment: false });
 }
 
-export function handleError(
-  e: NodeJS.ErrnoException,
-  requestUrl: string,
-): void {
-  let causeCode;
-  if (e.cause !== undefined) {
-    ensureError<NodeJS.ErrnoException>(e.cause);
+export function handleError(e: Error, requestUrl: string): void {
+  let causeCode: unknown;
+  if (isObject(e.cause)) {
     causeCode = e.cause.code;
   }
-  const errorCode = e.code ?? causeCode;
+  const errorCode = "code" in e ? e.code : causeCode;
 
   if (errorCode === "ECONNREFUSED") {
     throw new ConnectionRefusedError(requestUrl, e);
@@ -164,7 +160,6 @@ export function handleError(
   }
 
   if (errorCode === "UND_ERR_RESPONSE_STATUS_CODE") {
-    ensureError<UndiciT.errors.ResponseStatusCodeError>(e);
     throw new ResponseStatusCodeError(requestUrl, e);
   }
 }

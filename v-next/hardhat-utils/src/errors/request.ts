@@ -2,6 +2,7 @@ import type UndiciT from "undici";
 
 import { CustomError } from "../error.js";
 import { sanitizeUrl } from "../internal/request.js";
+import { isObject } from "../lang.js";
 
 export class RequestError extends CustomError {
   constructor(url: string, type: UndiciT.Dispatcher.HttpMethod, cause?: Error) {
@@ -41,10 +42,43 @@ export class ResponseStatusCodeError extends CustomError {
     | null;
   public readonly body: null | Record<string, any> | string;
 
-  constructor(url: string, cause: UndiciT.errors.ResponseStatusCodeError) {
+  constructor(url: string, cause: Error) {
     super(`Received an unexpected status code from ${sanitizeUrl(url)}`, cause);
-    this.statusCode = cause.statusCode;
-    this.headers = cause.headers;
-    this.body = cause.body;
+    this.statusCode =
+      "statusCode" in cause && typeof cause.statusCode === "number"
+        ? cause.statusCode
+        : -1;
+    this.headers = this.#extractHeaders(cause);
+    this.body = "body" in cause && isObject(cause.body) ? cause.body : null;
+  }
+
+  #extractHeaders(
+    cause: Error,
+  ): string[] | Record<string, string | string[] | undefined> | null {
+    if ("headers" in cause) {
+      const headers = cause.headers;
+      if (Array.isArray(headers)) {
+        return headers;
+      } else if (this.#isValidHeaders(headers)) {
+        return headers;
+      }
+    }
+    return null;
+  }
+
+  #isValidHeaders(
+    headers: unknown,
+  ): headers is Record<string, string | string[] | undefined> {
+    if (!isObject(headers)) {
+      return false;
+    }
+
+    return Object.values(headers).every(
+      (header) =>
+        typeof header === "string" ||
+        (Array.isArray(header) &&
+          header.every((item: unknown) => typeof item === "string")) ||
+        header === undefined,
+    );
   }
 }
