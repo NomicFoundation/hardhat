@@ -45,7 +45,7 @@ async function hasTypescriptConfig(): Promise<boolean> {
   return hhConfig !== undefined;
 }
 
-const runScriptWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
+const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   { testFiles, only },
   hre,
 ) => {
@@ -74,4 +74,4 @@ const runScriptWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   run({ files, only }).compose(hardhatTestReporter).pipe(process.stdout);
 };
 
-export default runScriptWithHardhat;
+export default testWithHardhat;
