@@ -4,6 +4,7 @@ import {
 } from "@ignored/hardhat-vnext-errors";
 import debug from "debug";
 
+import { ProviderError } from "../../../network/provider-errors.js";
 import { getHardhatVersion } from "../../../utils/package.js";
 import { isTelemetryAllowed } from "../telemetry-permissions.js";
 
@@ -93,7 +94,7 @@ class Reporter {
       return false;
     }
 
-    const { captureException, setExtra } = await import("@sentry/node");
+    const { captureException, flush, setExtra } = await import("@sentry/node");
 
     setExtra("configPath", configPath);
 
@@ -101,8 +102,8 @@ class Reporter {
 
     captureException(error);
 
-    // TODO: where to run it?
-    // await this.#sentry.flush(1000);
+    // TODO: should we run it? Hook at the end of hardhat execution?
+    // await flush(50);
 
     return true;
   }
@@ -124,11 +125,10 @@ class Reporter {
       return false;
     }
 
-    // TODO: enable when ready
-    // We don't report network related errors
-    // if (error instanceof ProviderError) {
-    //   return false;
-    // }
+    if (ProviderError.isProviderError(error)) {
+      // We don't report network related errors
+      return false;
+    }
 
     return true;
   }

@@ -14,6 +14,7 @@ import {
   _testResetReporter,
   sendErrorTelemetry,
 } from "../../../../../src/internal/cli/telemetry/sentry/reporter.js";
+import { ProviderError } from "../../../../../src/internal/network/provider-errors.js";
 import { getHardhatVersion } from "../../../../../src/internal/utils/package.js";
 import {
   ERROR,
@@ -125,9 +126,13 @@ describe("Reporter", () => {
       assert.equal(wasSent, false);
     });
 
-    // TODO: as soon as provider ar ready
-    // it("should not report the error because the error is a ProviderError", async () => {
-    // });
+    it("should not report the error because the error is a ProviderError", async () => {
+      const wasSent = await sendErrorTelemetry(
+        new ProviderError("test-provider-error", 404),
+      );
+
+      assert.equal(wasSent, false);
+    });
 
     it("should send the correct error to Sentry (HardhatError)", async () => {
       process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH = RESULT_FILE_PATH;
