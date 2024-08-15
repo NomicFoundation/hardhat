@@ -94,7 +94,7 @@ class Reporter {
       return false;
     }
 
-    const { captureException, flush, setExtra } = await import("@sentry/node");
+    const { captureException, setExtra } = await import("@sentry/node");
 
     setExtra("configPath", configPath);
 
