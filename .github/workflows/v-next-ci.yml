@@ -134,10 +134,21 @@ jobs:
           fi
         shell: bash
       - uses: actions/download-artifact@v4
-      - id: du
+      - id: stats
         run: |
-          echo 'stdout<<EOF' >> $GITHUB_OUTPUT
-          du -sh * | tee -a $GITHUB_OUTPUT
+          echo "Bundles"
+          echo 'bundles<<EOF' >> $GITHUB_OUTPUT
+          du -sh * | sort -rh | tee -a $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
+
+          echo "Dependencies"
+          echo 'dependencies<<EOF' >> $GITHUB_OUTPUT
+          du -sh */node_modules/@*/* */node_modules/* | grep -Ev 'node_modules/@[^/]+$' | sort -rh | tee -a $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
+
+          echo "Packages"
+          echo 'packages<<EOF' >> $GITHUB_OUTPUT
+          du -sh * --exclude=*/node_modules | sort -rh | tee -a $GITHUB_OUTPUT
           echo 'EOF' >> $GITHUB_OUTPUT
       - if: github.event_name == 'pull_request'
         uses: marocchino/sticky-pull-request-comment@331f8f5b4215f0445d3c07b4967662a32a2d3e31 # v2.9.0
@@ -148,8 +159,24 @@ jobs:
             ## Bundle size(s)
 
             ```
-            ${{ steps.du.outputs.stdout }}
+            ${{ steps.stats.outputs.bundles }}
             ```
+
+            <details>
+            <summary>Dependencies Only</summary>
+
+            ```
+            ${{ steps.stats.outputs.dependencies }}
+            ```
+            </details>
+
+            <details>
+            <summary>Without Dependencies</summary>
+
+            ```
+            ${{ steps.stats.outputs.packages }}
+            ```
+            </details>
 
   lint:
     needs: list-packages
