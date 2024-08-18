@@ -81,6 +81,76 @@ jobs:
         with:
           filters: ${{ steps.generate.outputs.filters }}
 
+  bundle:
+    needs: list-packages
+
+    if: needs.list-packages.outputs.packages != '[]'
+
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJson(needs.list-packages.outputs.packages) }}
+
+    name: "[${{ matrix.package }}] bundle"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: v-next/${{ matrix.package }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-env
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Build
+        run: pnpm build
+      # https://github.com/pnpm/pnpm/issues/6166
+      - name: Deploy
+        run: pnpm deploy --config.shamefully-hoist=true --config.hoist=true --config.node-linker=true --config.shared-workspace-lockfile=false --filter="$(jq -r .name package.json)" --prod --no-optional bundle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.package }}
+          path: |
+            v-next/${{ matrix.package }}/bundle
+
+  bundle-aggregate:
+    needs: bundle
+
+    if: ${{ !cancelled() }}
+
+    name: bundle
+    runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: write
+
+    steps:
+      - env:
+          result: ${{ needs.bundle.result }}
+        run: |
+          if [[ "$result" == "failure" ]]; then
+            exit 1
+          fi
+        shell: bash
+      - uses: actions/download-artifact@v4
+      - id: du
+        run: |
+          echo 'stdout<<EOF' >> $GITHUB_OUTPUT
+          du -sh * | tee -a $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
+      - if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@331f8f5b4215f0445d3c07b4967662a32a2d3e31 # v2.9.0
+        with:
+          header: bundle
+          recreate: true
+          message: |
+            ## Bundle size(s)
+
+            ```
+            ${{ steps.du.outputs.stdout }}
+            ```
+
   lint:
     needs: list-packages
 
