@@ -1,6 +1,6 @@
-import type { HardhatPlugin } from "@ignored/hardhat-vnext-core/types/plugins";
+import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
 
-import { task } from "@ignored/hardhat-vnext-core/config";
+import { task } from "@ignored/hardhat-vnext/config";
 
 const hardhatPlugin: HardhatPlugin = {
   id: "test",
@@ -10,6 +10,15 @@ const hardhatPlugin: HardhatPlugin = {
         name: "testFiles",
         description: "An optional list of files to test",
         defaultValue: [],
+      })
+      .addFlag({
+        name: "bail",
+        description: "Stop running tests after the first test failure",
+      })
+      .addOption({
+        name: "grep",
+        description: "Only run tests matching the given string or regexp",
+        defaultValue: "",
       })
       .setAction(import.meta.resolve("./task-action.js"))
       .build(),
