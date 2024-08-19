@@ -50,6 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       packages: ${{ steps.filter.outputs.changes }}
+      files: ${{ toJSON(steps.filter.outputs) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -79,17 +80,24 @@ jobs:
       - id: filter
         uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
         with:
+          list-files: json
           filters: ${{ steps.generate.outputs.filters }}
 
   bundle:
+    # Depending on list-packages only to check whether pnpm-lock.yaml has changed
+    # This could be handled by a simpler job, but an extra runner would have to be allocated for it
     needs: list-packages
 
-    if: needs.list-packages.outputs.packages != '[]'
+    if: |
+      contains(fromJSON(needs.list-packages.outputs.files).hardhat_files, '.github/workflows/v-next-ci.yml') ||
+        contains(fromJSON(needs.list-packages.outputs.files).hardhat_files, 'pnpm-lock.yaml')
 
+    # Using a matrix strategy even though there's only one package
+    # because we will want to add, at least, hardhat-toolbox in the future
     strategy:
       fail-fast: false
       matrix:
-        package: ${{ fromJson(needs.list-packages.outputs.packages) }}
+        package: ['hardhat']
 
     name: "[${{ matrix.package }}] bundle"
     runs-on: ubuntu-latest
@@ -134,49 +142,32 @@ jobs:
           fi
         shell: bash
       - uses: actions/download-artifact@v4
-      - id: stats
+      - id: comment
         run: |
-          echo "Bundles"
-          echo 'bundles<<EOF' >> $GITHUB_OUTPUT
-          du -sh * | sort -rh | tee -a $GITHUB_OUTPUT
-          echo 'EOF' >> $GITHUB_OUTPUT
-
-          echo "Dependencies"
-          echo 'dependencies<<EOF' >> $GITHUB_OUTPUT
-          du -sh */node_modules/@*/* */node_modules/* | grep -Ev 'node_modules/@[^/]+$' | sort -rh | tee -a $GITHUB_OUTPUT
-          echo 'EOF' >> $GITHUB_OUTPUT
-
-          echo "Packages"
-          echo 'packages<<EOF' >> $GITHUB_OUTPUT
-          du -sh * --exclude=*/node_modules | sort -rh | tee -a $GITHUB_OUTPUT
+          echo 'body<<EOF' >> $GITHUB_OUTPUT
+          for bundle in *; do
+            echo "# $bundle" | tee -a $GITHUB_OUTPUT
+            echo '' | tee -a $GITHUB_OUTPUT
+            echo "Size: "'`'"$(du -sh $bundle | cut -f1)"'`' | tee -a $GITHUB_OUTPUT
+            echo '' | tee -a $GITHUB_OUTPUT
+            echo '<details>' | tee -a $GITHUB_OUTPUT
+            echo '<summary>Dependencies</summary>' | tee -a $GITHUB_OUTPUT
+            echo '' | tee -a $GITHUB_OUTPUT
+            echo '```' | tee -a $GITHUB_OUTPUT
+            du -shc $bundle/node_modules/@*/* $bundle/node_modules/* |
+              grep -Ev '/node_modules/@[^/]+$' | sort -rh |
+              sed "s|$bundle/node_modules/||" | tee -a $GITHUB_OUTPUT
+            echo '```' | tee -a $GITHUB_OUTPUT
+            echo '</details>' | tee -a $GITHUB_OUTPUT
+            echo '' | tee -a $GITHUB_OUTPUT
+          done
           echo 'EOF' >> $GITHUB_OUTPUT
       - if: github.event_name == 'pull_request'
         uses: marocchino/sticky-pull-request-comment@331f8f5b4215f0445d3c07b4967662a32a2d3e31 # v2.9.0
         with:
           header: bundle
           recreate: true
-          message: |
-            ## Bundle size(s)
-
-            ```
-            ${{ steps.stats.outputs.bundles }}
-            ```
-
-            <details>
-            <summary>Dependencies Only</summary>
-
-            ```
-            ${{ steps.stats.outputs.dependencies }}
-            ```
-            </details>
-
-            <details>
-            <summary>Without Dependencies</summary>
-
-            ```
-            ${{ steps.stats.outputs.packages }}
-            ```
-            </details>
+          message: ${{ steps.comment.outputs.body }}
 
   lint:
     needs: list-packages
