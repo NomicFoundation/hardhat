@@ -73,6 +73,25 @@ describe("Ethers plugin", function () {
             "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
           );
         });
+
+        it("should return an empty array of signers if `eth_accounts` is deprecated", async function () {
+          const originalSend = this.env.ethers.provider.send;
+
+          this.env.ethers.provider.send = async function (
+            method: string,
+            params: any
+          ) {
+            if (method === "eth_accounts") {
+              throw new Error("the method has been deprecated: eth_accounts");
+            }
+
+            return originalSend.call(this, method, params);
+          };
+
+          const sigs = await this.env.ethers.getSigners();
+
+          assert.deepStrictEqual(sigs, []);
+        });
       });
 
       describe("getImpersonatedSigner", function () {
