@@ -148,7 +148,7 @@ jobs:
           for bundle in *; do
             echo "# $bundle" | tee -a $GITHUB_OUTPUT
             echo '' | tee -a $GITHUB_OUTPUT
-            echo "Size: "'`'"$(du -sh $bundle | cut -f1)"'`' | tee -a $GITHUB_OUTPUT
+            echo "Size: "'`'"$(du -sh $bundle --exclude=$bundle/node_modules/.pnpm | cut -f1)"'`' | tee -a $GITHUB_OUTPUT
             echo '' | tee -a $GITHUB_OUTPUT
             echo '<details>' | tee -a $GITHUB_OUTPUT
             echo '<summary>Dependencies</summary>' | tee -a $GITHUB_OUTPUT
