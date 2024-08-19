@@ -15,6 +15,11 @@ const hardhatPlugin: HardhatPlugin = {
         name: "only",
         description: "Run all tests marked with .only",
       })
+      .addOption({
+        name: "grep",
+        description: "Only run tests matching the given string or regexp",
+        defaultValue: "",
+      })
       .setAction(import.meta.resolve("./task-action.js"))
       .build(),
   ],

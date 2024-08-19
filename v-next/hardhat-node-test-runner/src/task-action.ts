@@ -1,5 +1,6 @@
 import type { HardhatConfig } from "@ignored/hardhat-vnext/types/config";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
+import type { LastParameter } from "@ignored/hardhat-vnext/types/utils";
 
 import { finished } from "node:stream/promises";
 import { run } from "node:test";
@@ -11,6 +12,7 @@ import { getAllFilesMatching } from "@ignored/hardhat-vnext-utils/fs";
 interface TestActionArguments {
   testFiles: string[];
   only: boolean;
+  grep: string;
 }
 
 function isTypescriptFile(path: string): boolean {
@@ -48,7 +50,7 @@ async function getTestFiles(
  * Note that we are testing this manually for now as you can't run a node:test within a node:test
  */
 const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, only },
+  { testFiles, only, grep },
   hre,
 ) => {
   const files = await getTestFiles(testFiles, hre.config);
@@ -58,6 +60,13 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
   async function runTests(): Promise<number> {
     let failures = 0;
+
+    const nodeTestOptions: LastParameter<typeof run> = { files, only };
+
+    if (grep !== "") {
+      nodeTestOptions.testNamePatterns = grep;
+    }
+
     const reporterStream = run({ files, only })
       .on("test:fail", (event) => {
         if (event.details.type === "suite") {
