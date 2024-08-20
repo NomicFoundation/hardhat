@@ -1,2 +1,7 @@
-import { VmTracer as VMTracer } from "@nomicfoundation/edr";
-export { VMTracer };
+import { requireNapiRsModule } from "../../../common/napi-rs";
+
+const { VmTracer } = requireNapiRsModule(
+  "@nomicfoundation/edr"
+) as typeof import("@nomicfoundation/edr");
+
+export { VmTracer as VMTracer };

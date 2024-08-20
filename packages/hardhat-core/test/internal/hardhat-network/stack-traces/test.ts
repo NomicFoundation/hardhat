@@ -5,7 +5,6 @@ import fsExtra from "fs-extra";
 import path from "path";
 import semver from "semver";
 
-import { stackTraceEntryTypeToString } from "@nomicfoundation/edr";
 import { EdrProviderWrapper } from "../../../../src/internal/hardhat-network/provider/provider";
 import { ReturnData } from "../../../../src/internal/hardhat-network/provider/return-data";
 import {
@@ -27,7 +26,7 @@ import {
   StackTraceEntryType,
 } from "../../../../src/internal/hardhat-network/stack-traces/solidity-stack-trace";
 import { SolidityTracer } from "../../../../src/internal/hardhat-network/stack-traces/solidityTracer";
-import { VmTraceDecoder } from "../../../../src/internal/hardhat-network/stack-traces/vm-trace-decoder";
+import { VmTraceDecoderT } from "../../../../src/internal/hardhat-network/stack-traces/vm-trace-decoder";
 import {
   BuildInfo,
   CompilerInput,
@@ -40,6 +39,7 @@ import { SUPPORTED_SOLIDITY_VERSION_RANGE } from "../../../../src/internal/hardh
 import { TracingConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
 import { BUILD_INFO_FORMAT_VERSION } from "../../../../src/internal/constants";
 import { FakeModulesLogger } from "../helpers/fakeLogger";
+import { requireNapiRsModule } from "../../../../src/common/napi-rs";
 import {
   compileFiles,
   COMPILER_DOWNLOAD_TIMEOUT,
@@ -57,6 +57,10 @@ import {
   instantiateProvider,
   traceTransaction,
 } from "./execution";
+
+const { stackTraceEntryTypeToString } = requireNapiRsModule(
+  "@nomicfoundation/edr"
+) as typeof import("@nomicfoundation/edr");
 
 interface StackFrameDescription {
   type: string;
@@ -540,7 +544,7 @@ async function runTest(
 
     compareConsoleLogs(logger.lines, tx.consoleLogs);
 
-    const vmTraceDecoder = (provider as any)._vmTraceDecoder as VmTraceDecoder;
+    const vmTraceDecoder = (provider as any)._vmTraceDecoder as VmTraceDecoderT;
     const decodedTrace = vmTraceDecoder.tryToDecodeMessageTrace(trace);
 
     try {

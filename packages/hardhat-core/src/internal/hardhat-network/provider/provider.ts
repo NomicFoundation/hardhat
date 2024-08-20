@@ -12,6 +12,8 @@ import type {
 import type {
   EdrContext,
   Provider as EdrProviderT,
+  VmTraceDecoder as VmTraceDecoderT,
+  VMTracer as VMTracerT,
   RawTrace,
   Response,
   SubscriptionEvent,
@@ -169,7 +171,7 @@ export class EdrProviderWrapper
   private _callOverrideCallback?: CallOverrideCallback;
 
   /** Used for internal stack trace tests. */
-  private _vmTracer?: VMTracer;
+  private _vmTracer?: VMTracerT;
 
   private constructor(
     private readonly _provider: EdrProviderT,
@@ -177,7 +179,7 @@ export class EdrProviderWrapper
     private readonly _node: {
       _vm: MinimalEthereumJsVm;
     },
-    private readonly _vmTraceDecoder: VmTraceDecoder,
+    private readonly _vmTraceDecoder: VmTraceDecoderT,
     // The common configuration for EthereumJS VM is not used by EDR, but tests expect it as part of the provider.
     private readonly _common: Common,
     tracingConfig?: TracingConfig
@@ -467,7 +469,7 @@ export class EdrProviderWrapper
    *
    * Used for internal stack traces integration tests.
    */
-  public setVmTracer(vmTracer?: VMTracer) {
+  public setVmTracer(vmTracer?: VMTracerT) {
     this._vmTracer = vmTracer;
   }
 
