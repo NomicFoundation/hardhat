@@ -1,11 +1,8 @@
-import type { MessageTrace } from "../hardhat-network/stack-traces/message-trace";
-
 import debug from "debug";
 
 import {
   Artifacts as IArtifacts,
   EnvironmentExtender,
-  ExperimentalHardhatNetworkMessageTraceHook,
   HardhatArguments,
   HardhatConfig,
   HardhatRuntimeEnvironment,
@@ -78,7 +75,6 @@ export class Environment implements HardhatRuntimeEnvironment {
     public readonly tasks: TasksMap,
     public readonly scopes: ScopesMap,
     environmentExtenders: EnvironmentExtender[] = [],
-    experimentalHardhatNetworkMessageTraceHooks: ExperimentalHardhatNetworkMessageTraceHook[] = [],
     public readonly userConfig: HardhatUserConfig = {},
     providerExtenders: ProviderExtender[] = []
   ) {
@@ -105,10 +101,6 @@ export class Environment implements HardhatRuntimeEnvironment {
         config,
         networkName,
         this.artifacts,
-        experimentalHardhatNetworkMessageTraceHooks.map(
-          (hook) => (trace: MessageTrace, isCallMessageTrace: boolean) =>
-            hook(this, trace, isCallMessageTrace)
-        ),
         providerExtenders
       );
     });
