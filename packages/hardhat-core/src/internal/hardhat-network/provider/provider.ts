@@ -1,6 +1,5 @@
 import type {
   Artifacts,
-  BoundExperimentalHardhatNetworkMessageTraceHook,
   CompilerInput,
   CompilerOutput,
   EIP1193Provider,
@@ -116,7 +115,6 @@ interface HardhatNetworkProviderConfig {
   initialBaseFeePerGas?: number;
   initialDate?: Date;
   coinbase?: string;
-  experimentalHardhatNetworkMessageTraceHooks?: BoundExperimentalHardhatNetworkMessageTraceHook[];
   forkConfig?: ForkConfig;
   forkCachePath?: string;
   enableTransientStorage: boolean;
