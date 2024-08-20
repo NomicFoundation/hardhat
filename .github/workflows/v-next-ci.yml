@@ -148,11 +148,11 @@ jobs:
           for bundle in *; do
             echo "# $bundle" | tee -a $GITHUB_OUTPUT
             echo '' | tee -a $GITHUB_OUTPUT
-            echo "Size: "'`'"$(du -sh $bundle --exclude=$bundle/node_modules/.pnpm | cut -f1)"'`' | tee -a $GITHUB_OUTPUT
-            echo "Dependencies Count (including transitive): "'`'"$(find node_modules/@* node_modules -depth 1 -type d ! -name '.*' ! -name '@*' | wc -l)"'`' | tee -a $GITHUB_OUTPUT
+            echo "Total size of the bundle: "'`'"$(du -sh $bundle --exclude=$bundle/node_modules/.pnpm | cut -f1)"'`' | tee -a $GITHUB_OUTPUT
+            echo "Total number of dependencies (including transitive): "'`'"$(find $bundle/node_modules/@* $bundle/node_modules -mindepth 1 -maxdepth 1 -type d ! -name '.*' ! -name '@*' | wc -l)"'`' | tee -a $GITHUB_OUTPUT
             echo '' | tee -a $GITHUB_OUTPUT
             echo '<details>' | tee -a $GITHUB_OUTPUT
-            echo '<summary>Dependencies (by size)</summary>' | tee -a $GITHUB_OUTPUT
+            echo '<summary>List of dependencies (sorted by size)</summary>' | tee -a $GITHUB_OUTPUT
             echo '' | tee -a $GITHUB_OUTPUT
             echo '```' | tee -a $GITHUB_OUTPUT
             du -shc $bundle/node_modules/@*/* $bundle/node_modules/* |
