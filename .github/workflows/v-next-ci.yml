@@ -153,8 +153,10 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
         run: pnpm build
-      - name: Run tests
+      - name: Run unit tests
         run: pnpm run test
+      - name: Run integration tests
+        run: pnpm --if-present test:integration
 
   ci-aggregate:
     needs: ci
