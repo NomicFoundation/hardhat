@@ -234,7 +234,6 @@ async function main() {
       taskDefinitions,
       scopesDefinitions,
       envExtenders,
-      ctx.experimentalHardhatNetworkMessageTraceHooks,
       userConfig,
       providerExtenders
     );
