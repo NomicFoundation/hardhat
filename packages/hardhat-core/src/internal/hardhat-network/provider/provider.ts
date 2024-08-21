@@ -628,7 +628,7 @@ export async function createHardhatNetworkProvider(
   log("Making tracing config");
   const tracingConfig = await makeTracingConfig(artifacts);
   log("Creating EDR provider");
-  const provider = EdrProviderWrapper.create(
+  const provider = await EdrProviderWrapper.create(
     hardhatNetworkProviderConfig,
     loggerConfig,
     tracingConfig
