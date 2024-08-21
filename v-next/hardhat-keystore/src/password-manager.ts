@@ -1,6 +1,4 @@
-import chalk from "chalk";
-
-import { requestSecretInput } from "./io.js";
+import { io } from "./io.js";
 
 // TODO: singleton for password? TBD
 
@@ -12,29 +10,33 @@ export async function setUpPassword(): Promise<void> {
   const passwordRulesMsg =
     "The password must have at least 8 characters, one uppercase letter, one lowercase letter, and one special character.";
 
-  console.log(setupMsg);
-  console.log(passwordRulesMsg);
-  console.log();
+  io.info(setupMsg);
+  io.info(passwordRulesMsg);
+  io.info("");
 
   let password: string | undefined;
   while (password === undefined) {
-    password = await requestSecretInput(`Enter your password: `);
+    password = await io.requestSecretInput(`Enter your password: `);
 
     if (!PASSWORD_REGEX.test(password)) {
       password = undefined;
-      console.log(chalk.red("Invalid password!"));
+      io.error("Invalid password!");
     }
   }
-
-  const confirmMsg = "Please confirm your password: ";
 
   let confirmPassword: string | undefined;
   while (confirmPassword === undefined) {
-    confirmPassword = await requestSecretInput(confirmMsg);
+    confirmPassword = await io.requestSecretInput(
+      "Please confirm your password: ",
+    );
 
     if (password !== confirmPassword) {
-      console.log(chalk.red("Passwords do not match!"));
+      io.error("Passwords do not match!");
       confirmPassword = undefined;
     }
   }
+}
+
+export async function isAuthorized(): Promise<boolean> {
+  return true;
 }

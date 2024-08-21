@@ -1,8 +1,11 @@
 import chalk from "chalk";
 
+import { io } from "./io.js";
+import { isAuthorized } from "./password-manager.js";
 import {
   addNewSecret,
   getKeystore,
+  removeKey,
   setupKeystore,
   validateKey,
 } from "./utils.js";
@@ -20,12 +23,13 @@ export async function set(key: string, force: boolean = false): Promise<void> {
     return;
   }
 
-  // TODO:
-  // if (!isAuthorized()) {
-  //   return;
-  // }
+  if ((await isAuthorized()) === false) {
+    return;
+  }
 
   await addNewSecret(key, force);
+
+  io.info(`Key "${key}" set`);
 }
 
 export async function get(key: string): Promise<void> {
@@ -35,17 +39,15 @@ export async function get(key: string): Promise<void> {
     return showMsgNoKeystoreSet();
   }
 
-  // TODO:
-  // if (!isAuthorized()) {
-  //   return;
-  // }
-
+  if ((await isAuthorized()) === false) {
+    return;
+  }
   if (keystore.keys[key] === undefined) {
-    console.log(chalk.red(`Key "${key}" not found`));
+    io.error(`Key "${key}" not found`);
     return;
   }
 
-  console.log(keystore.keys[key]);
+  io.info(keystore.keys[key]);
 }
 
 export async function list(): Promise<void> {
@@ -57,13 +59,13 @@ export async function list(): Promise<void> {
 
   // No authorization needed, it only shows the keys, not the secret values
   if (Object.keys(keystore.keys).length === 0) {
-    console.log("The keystore does not contain any keys.");
+    io.info("The keystore does not contain any keys.");
     return;
   }
 
-  console.log("Keys:");
+  io.info("Keys:");
   for (const key of Object.keys(keystore.keys)) {
-    console.log(key);
+    io.info(key);
   }
 }
 
@@ -74,23 +76,15 @@ export async function remove(key: string): Promise<void> {
     return showMsgNoKeystoreSet();
   }
 
-  // TODO:
-  // if (!isAuthorized()) {
-  //   return;
-  // }
-
-  if (keystore.keys[key] === undefined) {
-    console.log(chalk.red(`Key "${key}" not found`));
+  if ((await isAuthorized()) === false) {
     return;
   }
 
-  delete keystore.keys[key];
-
-  console.log(`Key "${key}" removed`);
+  await removeKey(key);
 }
 
 function showMsgNoKeystoreSet(): void {
-  console.log(
+  io.info(
     `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
   );
 }

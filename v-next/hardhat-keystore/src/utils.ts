@@ -11,12 +11,17 @@ import {
 } from "@ignored/hardhat-vnext-utils/fs";
 import chalk from "chalk";
 
-import { requestSecretInput } from "./io.js";
+import { io } from "./io.js";
 import { PLUGIN_ID } from "./methods.js";
 import { setUpPassword } from "./password-manager.js";
 
 let keystoreCache: Keystore | undefined;
 let keystoreFilePath: string | undefined;
+
+// ATTENTION: For testing purposes
+export function setKeystoreCache(value: Keystore | undefined): void {
+  keystoreCache = value;
+}
 
 export async function getKeystore(): Promise<Keystore | undefined> {
   if (keystoreCache !== undefined) {
@@ -38,7 +43,7 @@ export async function getKeystore(): Promise<Keystore | undefined> {
 }
 
 export async function setupKeystore(): Promise<void> {
-  console.log("\n👷🔐 Hardhat-Keystore 🔐👷\n");
+  io.info("\n👷🔐 Hardhat-Keystore 🔐👷\n");
 
   await setUpPassword();
 
@@ -52,6 +57,22 @@ export async function setupKeystore(): Promise<void> {
   await writeJsonFile(keystoreFilePath, keystoreCache);
 }
 
+export async function removeKey(key: string): Promise<void> {
+  assertKeyStore(keystoreCache);
+
+  if (keystoreCache.keys[key] === undefined) {
+    io.error(`Key "${key}" not found`);
+    return;
+  }
+
+  delete keystoreCache.keys[key];
+
+  assertFilePath(keystoreFilePath);
+  await writeJsonFile(keystoreFilePath, keystoreCache);
+
+  io.info(`Key "${key}" removed`);
+}
+
 export function validateKey(key: string): boolean {
   const KEY_REGEX = /^[a-zA-Z_]+[a-zA-Z0-9_]*$/;
 
@@ -60,7 +81,7 @@ export function validateKey(key: string): boolean {
   }
 
   const errMsg = `Invalid value for key: "${key}". Keys can only have alphanumeric characters and underscores, and they cannot start with a number.`;
-  console.log(chalk.red(errMsg));
+  io.error(errMsg);
 
   return false;
 }
@@ -70,18 +91,16 @@ export async function addNewSecret(key: string, force: boolean): Promise<void> {
   assertFilePath(keystoreFilePath);
 
   if (keystoreCache.keys[key] !== undefined && !force) {
-    console.log(
-      chalk.yellow(
-        `The key "${key}" already exists. Use the --force flag to overwrite it.`,
-      ),
+    io.warn(
+      `The key "${key}" already exists. Use the ${chalk.blue.italic("--force")} flag to overwrite it.`,
     );
     return;
   }
 
-  const secret = await requestSecretInput("Enter secret to store: ");
+  const secret = await io.requestSecretInput("Enter secret to store: ");
 
   if (secret.length === 0) {
-    console.log(chalk.red("The secret cannot be empty."));
+    io.error("The secret cannot be empty.");
     return;
   }
 
