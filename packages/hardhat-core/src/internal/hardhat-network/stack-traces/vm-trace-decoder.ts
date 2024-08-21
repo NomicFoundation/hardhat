@@ -25,7 +25,7 @@ function initializeVmTraceDecoderWrapper(
     );
 
     log(
-      "Hardhat Network tracing disabled: ContractsIdentifier failed to be initialized. Please report this to help us improve Hardhat.\n",
+      "Hardhat Network tracing disabled: VmTraceDecoder failed to be initialized. Please report this to help us improve Hardhat.\n",
       error
     );
 
