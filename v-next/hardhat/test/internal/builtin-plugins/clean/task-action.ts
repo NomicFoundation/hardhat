@@ -12,10 +12,10 @@ import {
   remove,
   writeUtf8File,
 } from "@ignored/hardhat-vnext-utils/fs";
+import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import cleanAction from "../../../../src/internal/builtin-plugins/clean/task-action.js";
-import { useFixtureProject } from "../../../helpers/project.js";
 
 let hre: HardhatRuntimeEnvironment;
 let globalCacheDir: string;

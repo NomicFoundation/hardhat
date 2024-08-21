@@ -10,11 +10,11 @@ import { afterEach, before, beforeEach, describe, it } from "node:test";
 
 import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import { exists, remove } from "@ignored/hardhat-vnext-utils/fs";
+import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import debug from "debug";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import consoleAction from "../../../../src/internal/builtin-plugins/console/task-action.js";
-import { useFixtureProject } from "../../../helpers/project.js";
 
 const log = debug("hardhat:test:console:task-action");
 
