@@ -49,9 +49,9 @@ type ContractNameOfContractFuture<ContractFutureT> =
 
 export type AbiOf<ContractDeploymentFutureT> =
   ContractDeploymentFutureT extends ContractDeploymentFuture<
-    infer ContractDepploymentAbiT
+    infer ContractDeploymentAbi
   >
-    ? ContractDepploymentAbiT
+    ? ContractDeploymentAbi
     : ContractDeploymentFutureT extends ContractAtFuture<infer ContractAbiT>
     ? ContractAbiT
     : never;

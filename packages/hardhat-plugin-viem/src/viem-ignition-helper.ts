@@ -176,7 +176,7 @@ export class ViemIgnitionHelper {
         Object.entries(ignitionModule.results).map(
           async ([name, contractFuture]) => [
             name,
-            await this._getContract(
+            await ViemIgnitionHelper._getContract(
               hre,
               contractFuture,
               result.contracts[contractFuture.id]
@@ -199,7 +199,7 @@ export class ViemIgnitionHelper {
       );
     }
 
-    return this._convertContractFutureToViemContract(
+    return ViemIgnitionHelper._convertContractFutureToViemContract(
       hre,
       future,
       deployedContract
@@ -215,7 +215,7 @@ export class ViemIgnitionHelper {
       case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
       case FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT:
       case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
-        return this._convertHardhatContractToViemContract(
+        return ViemIgnitionHelper._convertHardhatContractToViemContract(
           hre,
           future,
           deployedContract
@@ -223,7 +223,7 @@ export class ViemIgnitionHelper {
       case FutureType.CONTRACT_DEPLOYMENT:
       case FutureType.LIBRARY_DEPLOYMENT:
       case FutureType.CONTRACT_AT:
-        return this._convertArtifactToViemContract(
+        return ViemIgnitionHelper._convertArtifactToViemContract(
           hre,
           future,
           deployedContract
@@ -241,7 +241,7 @@ export class ViemIgnitionHelper {
   ): Promise<GetContractReturnType> {
     return hre.viem.getContractAt(
       future.contractName,
-      this._ensureAddressFormat(deployedContract.address)
+      ViemIgnitionHelper._ensureAddressFormat(deployedContract.address)
     );
   }
 
@@ -265,7 +265,9 @@ export class ViemIgnitionHelper {
 
     const viem = await import("viem");
     const contract = viem.getContract({
-      address: this._ensureAddressFormat(deployedContract.address),
+      address: ViemIgnitionHelper._ensureAddressFormat(
+        deployedContract.address
+      ),
       abi: future.artifact.abi,
       client: {
         public: publicClient,
