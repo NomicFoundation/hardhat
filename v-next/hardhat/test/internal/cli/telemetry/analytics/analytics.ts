@@ -22,8 +22,11 @@ import {
 // This allows us to verify that the payload is formatted correctly.
 //
 
-const PATH_TO_FIXTURE = path.join(ROOT_PATH_TO_FIXTURE, "analytics");
-const RESULT_FILE_PATH = path.join(PATH_TO_FIXTURE, "result.json");
+const RESULT_FILE_PATH = path.join(
+  ROOT_PATH_TO_FIXTURE,
+  "analytics",
+  "analytics-result.json",
+);
 
 describe("analytics", () => {
   beforeEach(async () => {
@@ -67,7 +70,7 @@ describe("analytics", () => {
     it("should create the correct payload for the telemetry consent (positive consent)", async () => {
       await sendTelemetryConsentAnalytics(true);
 
-      await checkIfSubprocessWasExecuted(RESULT_FILE_PATH, true);
+      await checkIfSubprocessWasExecuted(RESULT_FILE_PATH);
 
       const result = await readJsonFile(RESULT_FILE_PATH);
 
@@ -89,7 +92,7 @@ describe("analytics", () => {
     it("should create the correct payload for the telemetry consent (negative consent)", async () => {
       await sendTelemetryConsentAnalytics(false);
 
-      await checkIfSubprocessWasExecuted(RESULT_FILE_PATH, true);
+      await checkIfSubprocessWasExecuted(RESULT_FILE_PATH);
 
       const result = await readJsonFile(RESULT_FILE_PATH);
 
@@ -111,7 +114,7 @@ describe("analytics", () => {
     it("should create the correct payload for the task analytics", async () => {
       const wasSent = await sendTaskAnalytics(["task", "subtask"]);
 
-      await checkIfSubprocessWasExecuted(RESULT_FILE_PATH, true);
+      await checkIfSubprocessWasExecuted(RESULT_FILE_PATH);
 
       const result: Payload = await readJsonFile(RESULT_FILE_PATH);
 
