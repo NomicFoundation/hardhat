@@ -12,6 +12,8 @@ export async function getSubprocessTransport(): Promise<any> {
 
   class SubprocessTransport extends Transports.BaseTransport {
     public override async sendEvent(event: Event): Promise<Response> {
+      // Be aware that any error thrown here will not be propagated to the main process
+
       const extra: { configPath?: string } = event.extra ?? {};
       const { configPath } = extra;
 

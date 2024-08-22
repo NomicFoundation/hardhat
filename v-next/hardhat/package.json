@@ -83,7 +83,6 @@
     "debug": "^4.1.1",
     "enquirer": "^2.3.0",
     "ethereum-cryptography": "1.1.1",
-    "fp-ts": "1.19.3",
     "tsx": "^4.11.0",
     "zod": "^3.23.8"
   }

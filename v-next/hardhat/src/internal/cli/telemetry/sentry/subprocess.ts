@@ -40,13 +40,13 @@ try {
   const anonymizer = new Anonymizer(configPath);
   const anonymizedEvent = await anonymizer.anonymize(sentryEvent);
 
-  if (anonymizedEvent.isRight()) {
-    if (anonymizer.raisedByHardhat(anonymizedEvent.value)) {
-      await sendEventToSentry(anonymizedEvent.value);
+  if (anonymizedEvent.success) {
+    if (anonymizer.raisedByHardhat(anonymizedEvent.event)) {
+      await sendEventToSentry(anonymizedEvent.event);
     }
   } else {
     await sendMsgToSentry(
-      `There was an error anonymizing an event: ${anonymizedEvent.value}`,
+      `There was an error anonymizing an event: ${anonymizedEvent.error}`,
     );
   }
 } catch (error: any) {

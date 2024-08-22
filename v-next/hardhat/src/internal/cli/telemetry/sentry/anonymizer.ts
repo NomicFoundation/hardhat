@@ -17,12 +17,15 @@ import * as korean from "ethereum-cryptography/bip39/wordlists/korean.js";
 import * as simplifiedChinese from "ethereum-cryptography/bip39/wordlists/simplified-chinese.js";
 import * as SPANISH from "ethereum-cryptography/bip39/wordlists/spanish.js";
 import * as traditionalChinese from "ethereum-cryptography/bip39/wordlists/traditional-chinese.js";
-import { either } from "fp-ts";
 
 interface WordMatch {
   index: number;
   word: string;
 }
+
+type AnonymizeResult =
+  | { success: true; event: Event }
+  | { success: false; error: string };
 
 const ANONYMIZED_FILE = "<user-file>";
 const ANONYMIZED_MNEMONIC = "<mnemonic>";
@@ -41,12 +44,12 @@ export class Anonymizer {
    * (https://develop.sentry.dev/sdk/event-payloads/exception/), return an
    * anonymized version of the event.
    */
-  public async anonymize(event: any): Promise<either.Either<string, Event>> {
+  public async anonymize(event: any): Promise<AnonymizeResult> {
     if (event === null || event === undefined) {
-      return either.left("event is null or undefined");
+      return { success: false, error: "event is null or undefined" };
     }
     if (typeof event !== "object") {
-      return either.left("event is not an object");
+      return { success: false, error: "event is not an object" };
     }
 
     const result: Event = {
@@ -65,7 +68,7 @@ export class Anonymizer {
       };
     }
 
-    return either.right(result);
+    return { success: true, event: result };
   }
 
   /**
