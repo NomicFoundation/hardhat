@@ -32,11 +32,12 @@ export async function set(key: string, force: boolean = false): Promise<void> {
   io.info(`Key "${key}" set`);
 }
 
-export async function get(key: string): Promise<void> {
+export async function get(key: string): Promise<string | undefined> {
   const keystore = await getKeystore();
 
   if (keystore === undefined) {
-    return showMsgNoKeystoreSet();
+    showMsgNoKeystoreSet();
+    return;
   }
 
   if ((await isAuthorized()) === false) {
@@ -48,6 +49,8 @@ export async function get(key: string): Promise<void> {
   }
 
   io.info(keystore.keys[key]);
+
+  return keystore.keys[key];
 }
 
 export async function list(): Promise<void> {

@@ -9,15 +9,11 @@ export const PLUGIN_ID = "hardhat-keystore";
 
 const hardhatKeystorePlugin: HardhatPlugin = {
   id: PLUGIN_ID,
-  // hookHandlers: {
-  //   userInterruptions: import.meta.resolve(
-  //     "./hook-handlers/user-interruptions.js",
-  //   ),
-  //   // config: import.meta.resolve("./hookHandlers/config.js"),
-  //   // configurationVariables: import.meta.resolve(
-  //   //   "./hookHandlers/configurationVariables.js"
-  //   // ),
-  // },
+  hookHandlers: {
+    configurationVariables: import.meta.resolve(
+      "./hook-handlers/configuration-variables.js",
+    ),
+  },
   tasks: [
     task("keystore", "Store your keys in a secure way")
       .setAction(async (_, _hre) => {})
