@@ -23,7 +23,7 @@ interface WordMatch {
   word: string;
 }
 
-type AnonymizeResult =
+export type AnonymizeResult =
   | { success: true; event: Event }
   | { success: false; error: string };
 
