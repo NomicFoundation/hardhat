@@ -33,7 +33,6 @@ describe("console/task-action", function () {
     // Hence, we use a PassThrough stream for output as well.
     const input = new PassThrough();
     const output = new PassThrough();
-    output.pipe(process.stdout);
     options = {
       input,
       output,
