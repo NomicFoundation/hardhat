@@ -1,8 +1,7 @@
-import type { HardhatPlugin } from "@ignored/hardhat-vnext-core/types/plugins";
+import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
 
 import { ArgumentType, task } from "@ignored/hardhat-vnext-core/config";
 
-import "./type-extensions.js";
 import { get, list, remove, set } from "./methods.js";
 
 export const PLUGIN_ID = "hardhat-keystore";

@@ -1,8 +1,8 @@
-import type { ConfigurationVariable } from "@ignored/hardhat-vnext-core/types/config";
+import type { ConfigurationVariable } from "@ignored/hardhat-vnext/types/config";
 import type {
   ConfigurationVariableHooks,
   HookContext,
-} from "@ignored/hardhat-vnext-core/types/hooks";
+} from "@ignored/hardhat-vnext/types/hooks";
 
 import { get } from "../methods.js";
 import { getKeystore } from "../utils.js";
