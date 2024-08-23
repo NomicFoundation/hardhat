@@ -1,7 +1,7 @@
 import type { Keystore } from "../src/types.js";
-import type { ConfigurationVariable } from "@ignored/hardhat-vnext-core/types/config";
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core/types/hre";
-import type { Task } from "@ignored/hardhat-vnext-core/types/tasks";
+import type { ConfigurationVariable } from "@ignored/hardhat-vnext/types/config";
+import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import type { Task } from "@ignored/hardhat-vnext/types/tasks";
 import type { Mock } from "node:test";
 
 import assert from "node:assert/strict";
@@ -9,7 +9,6 @@ import path from "node:path";
 import { afterEach, before, beforeEach, describe, it, mock } from "node:test";
 
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
-import { configVariable } from "@ignored/hardhat-vnext-core/config";
 import { getConfigDir } from "@ignored/hardhat-vnext-core/global-dir";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import {
@@ -65,7 +64,6 @@ describe("tasks", () => {
 
   before(async () => {
     hre = await createHardhatRuntimeEnvironment({
-      privateKey: configVariable(CONFIG_VAR_KEY),
       plugins: [hardhatKeystorePlugin],
     });
 
@@ -102,14 +100,16 @@ describe("tasks", () => {
         _type: "ConfigurationVariable",
         name: CONFIG_VAR_KEY,
       };
+
       const resultValue = await hre.hooks.runHandlerChain(
         "configurationVariables",
         "fetchValue",
         [configVar],
         async (_context, _configVar) => {
-          return "default-next-value"; // next function should NOT be called
+          return "";
         },
       );
+
       assert.equal(resultValue, "value");
     });
 
@@ -118,35 +118,39 @@ describe("tasks", () => {
         _type: "ConfigurationVariable",
         name: CONFIG_VAR_KEY,
       };
+
       const resultValue = await hre.hooks.runHandlerChain(
         "configurationVariables",
         "fetchValue",
         [configVar],
         async (_context, _configVar) => {
-          console.log("-------------------------------------22");
-          return "default-next-value";
+          return "";
         },
       );
-      assert.equal(resultValue, "default-next-value");
+
+      // This value is coming from the default hook handler defined in the hardhat package
+      assert.equal(resultValue, "value-from-hardhat-package");
     });
 
-    // it("should invoke the next function because the keystore is found but the key is not present", async () => {
-    //   await createKeyStore([["key", "value"]]);
-    //   const configVar: ConfigurationVariable = {
-    //     _type: "ConfigurationVariable",
-    //     name: "missing-key",
-    //   };
-    //   const resultValue = await hre.hooks.runHandlerChain(
-    //     "configurationVariables",
-    //     "fetchValue",
-    //     [configVar],
-    //     async () => {
-    //       console.log("-------------------------------------22");
-    //       return "default-next-value";
-    //     },
-    //   );
-    //   // assert.equal(resultValue, "default-next-value");
-    // });
+    it("should invoke the next function because the keystore is found but the key is not present", async () => {
+      await createKeyStore([["key", "value"]]);
+      const configVar: ConfigurationVariable = {
+        _type: "ConfigurationVariable",
+        name: "missing-key",
+      };
+
+      const resultValue = await hre.hooks.runHandlerChain(
+        "configurationVariables",
+        "fetchValue",
+        [configVar],
+        async (_context, _configVar) => {
+          return "";
+        },
+      );
+
+      // This value is coming from the default hook handler defined in the hardhat package
+      assert.equal(resultValue, "value-from-hardhat-package");
+    });
   });
 
   describe("tasks", () => {
