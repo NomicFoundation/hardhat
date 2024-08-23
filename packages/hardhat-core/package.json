@@ -28,7 +28,7 @@
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{js,md,json}\"",
     "pretest": "cd ../.. && pnpm build",
-    "test": "mocha --bail --recursive \"test/**/*.ts\"",
+    "test": "mocha --recursive \"test/**/*.ts\"",
     "test:except-provider": "mocha --recursive \"test/**/*.ts\" --exclude \"test/internal/hardhat-network/provider/**/*.ts\"",
     "test:except-tracing": "mocha --recursive \"test/**/*.ts\" --exclude \"test/internal/hardhat-network/stack-traces/**/*.ts\"",
     "test:provider": "mocha --recursive \"test/internal/hardhat-network/provider/**/*.ts\"",
