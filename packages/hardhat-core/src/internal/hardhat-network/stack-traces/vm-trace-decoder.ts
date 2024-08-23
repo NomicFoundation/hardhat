@@ -13,7 +13,6 @@ function initializeVmTraceDecoderWrapper(
   try {
     initializeVmTraceDecoder(vmTraceDecoder, tracingConfig);
   } catch (error) {
-    console.warn(JSON.stringify(error, null, 2), (error as any).message);
     console.warn(
       chalk.yellow(
         "The Hardhat Network tracing engine could not be initialized. Run Hardhat with --verbose to learn more."
