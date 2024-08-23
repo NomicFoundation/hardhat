@@ -351,7 +351,7 @@ Please ensure that an action is defined for each task.`,
     MISSING_VALUE_FOR_TASK_ARGUMENT: {
       number: 413,
       messageTemplate:
-        "Missing value for the argument named {argument} in the task {task}",
+        'Missing value for the argument named "{argument}" in the task "{task}"',
       websiteTitle: "Missing value for the task argument",
       websiteDescription: `You tried to run a task, but one of the values of its arguments was missing.
 
@@ -420,7 +420,7 @@ Please double check your arguments.`,
     },
     MISSING_VALUE_FOR_ARGUMENT: {
       number: 505,
-      messageTemplate: "Missing value for the task argument named {argument}",
+      messageTemplate: 'Missing value for the task argument named "{argument}"',
       websiteTitle: "Missing value for the task argument",
       websiteDescription: `You tried to run a task, but one of the values of its arguments was missing.
 
