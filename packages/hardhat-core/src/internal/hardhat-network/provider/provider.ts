@@ -1,6 +1,5 @@
 import type {
   Artifacts,
-  BoundExperimentalHardhatNetworkMessageTraceHook,
   CompilerInput,
   CompilerOutput,
   EIP1193Provider,
@@ -118,7 +117,6 @@ interface HardhatNetworkProviderConfig {
   initialBaseFeePerGas?: number;
   initialDate?: Date;
   coinbase?: string;
-  experimentalHardhatNetworkMessageTraceHooks?: BoundExperimentalHardhatNetworkMessageTraceHook[];
   forkConfig?: ForkConfig;
   forkCachePath?: string;
   enableTransientStorage: boolean;
@@ -356,7 +354,13 @@ export class EdrProviderWrapper
     const responseObject: Response = await this._provider.handleRequest(
       stringifiedArgs
     );
-    const response = JSON.parse(responseObject.json);
+
+    let response;
+    if (typeof responseObject.data === "string") {
+      response = JSON.parse(responseObject.data);
+    } else {
+      response = responseObject.data;
+    }
 
     const needsTraces =
       this._node._vm.evm.events.eventNames().length > 0 ||
@@ -613,7 +617,7 @@ export async function createHardhatNetworkProvider(
   log("Making tracing config");
   const tracingConfig = await makeTracingConfig(artifacts);
   log("Creating EDR provider");
-  const provider = EdrProviderWrapper.create(
+  const provider = await EdrProviderWrapper.create(
     hardhatNetworkProviderConfig,
     loggerConfig,
     tracingConfig

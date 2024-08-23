@@ -55,8 +55,8 @@ artifacts
     │   ├── Bar.json
     │   └── Bar.dbg.json
     └── Qux.sol
-        ├── Foo.json
-        └── Foo.dbg.json
+        ├── Qux.json
+        └── Qux.dbg.json
 ```
 
 Each Solidity file in your source will get a directory in the artifacts structure. Each of these directories contains one artifact (`.json`) file and one debug (`.dbg.json`) file for each _contract_ in that file. `Foo.sol`, for example, contains two contracts inside.

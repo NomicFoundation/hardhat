@@ -1,5 +1,27 @@
 # hardhat
 
+## 2.22.9
+
+### Patch Changes
+
+- 6771f00: Do not send `http_setLedgerOutputEnabled` messages beyond the HTTP Provider to prevent unwanted warnings in the logs of the local hardhat node
+
+## 2.22.8
+
+### Patch Changes
+
+- f5d5d15: Fixed an issue with `debug_traceTransaction` when large responses were generated
+- 31d9d77: Upgraded EDR to v0.5.2
+
+## 2.22.7
+
+### Patch Changes
+
+- f944cd5: Added an `enableRip7212` optional flag to the Hardhat Network config that enables [RIP-7212 (Precompile for secp256r1 Curve Support)](https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md).
+- f6ddc92: Add `debug` logs to Hardhat Network initialization process.
+- 6c943bb: Fix message for error HH206
+- f944cd5: Bumped EDR to [v0.5.0](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.5.0).
+
 ## 2.22.6
 
 ### Patch Changes

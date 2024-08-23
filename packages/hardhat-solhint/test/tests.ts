@@ -36,11 +36,24 @@ describe("Solhint plugin", function () {
       );
     });
 
-    it("should run the check task without throwing an error", async function () {
+    it("should run the check task and set the exit code to 1", async function () {
       const consoleLogStub = sinon.stub(console, "log");
       await this.env.run("check");
       assert.isTrue(consoleLogStub.calledOnce);
+      assert.strictEqual(process.exitCode, 1);
       consoleLogStub.restore();
+      process.exitCode = undefined;
+    });
+  });
+
+  describe("Project with no errors", function () {
+    useEnvironment("no-errors-project");
+
+    it("should run the check task and not set the exit code", async function () {
+      const consoleLogStub = sinon.stub(console, "log");
+      await this.env.run("check");
+      assert.isTrue(consoleLogStub.calledOnce);
+      assert.strictEqual(process.exitCode, undefined);
     });
   });
 

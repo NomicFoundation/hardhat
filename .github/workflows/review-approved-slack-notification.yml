@@ -1,8 +1,0 @@
-name: PR reviewed Slack notification
-on:
-  pull_request_review:
-    types: [submitted]
-jobs:
-  reviewed:
-    uses: NomicFoundation/github-actions-workflows/.github/workflows/review-submitted-slack-notification.yml@main
-    secrets: inherit

@@ -100,3 +100,6 @@ Brewfile.lock.json
 
 # Performance profiling application
 .clinic
+
+# Input to scripts/generate-filters.js; generated in CI
+pnpm-lock.json
