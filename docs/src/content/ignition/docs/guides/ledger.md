@@ -4,7 +4,7 @@ Hardhat Ignition supports deploying contracts using a Ledger hardware wallet via
 
 The first step is to install the `hardhat-ledger` plugin:
 
-::::tabsgroup{options="npm,yarn"}
+::::tabsgroup{options="npm,yarn,pnpm"}
 
 :::tab{value="npm"}
 
@@ -18,6 +18,13 @@ npm install --save-dev @nomicfoundation/hardhat-ledger
 
 ```sh
 yarn add --dev @nomicfoundation/hardhat-ledger
+```
+
+:::
+
+:::tab{value="pnpm"}
+```sh
+pnpm add -D @nomicfoundation/hardhat-ledger
 ```
 
 :::

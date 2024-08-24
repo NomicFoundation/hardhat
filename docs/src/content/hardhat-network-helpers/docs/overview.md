@@ -13,7 +13,7 @@ This package provides convenience functions for quick and easy interaction with 
 
 ## Installation
 
-::::tabsgroup{options="npm 7+,npm 6,yarn"}
+::::tabsgroup{options="npm 7+,npm 6,yarn,pnpm"}
 
 :::tab{value="npm 7+"}
 
@@ -37,6 +37,12 @@ npm install --save-dev @nomicfoundation/hardhat-network-helpers
 yarn add --dev @nomicfoundation/hardhat-network-helpers
 ```
 
+:::
+
+:::tab{value="pnpm"}
+```
+pnpm add -D @nomicfoundation/hardhat-network-helpers
+```
 :::
 
 ::::
