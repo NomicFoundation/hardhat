@@ -68,6 +68,7 @@ export default async (): Promise<Partial<ConfigHooks>> => {
       return {
         ...resolvedConfig,
         mocha: {
+          timeout: 40000,
           ...resolvedConfig.mocha,
           ...userConfig.mocha,
         },
