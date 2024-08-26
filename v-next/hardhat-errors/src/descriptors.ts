@@ -478,7 +478,7 @@ Please check Hardhat's output for more details.`,
       messageTemplate: `Your project uses ESM and you've programmatically run your tests twice. This is not supported yet.`,
       websiteTitle: "Running tests twice in an ESM project",
       websiteDescription:
-        'You have run your tests twice programmatically and your project is an ESM project (you have `"type": "module"` in your `package.json`, or some of your files have the `.mjs` extension). This is not supported by Mocha yet.',
+        'You have run your tests twice programmatically and your project is an ESM project (you have `"type": "module"` in your `package.json`, or some of your files have the `.mjs` extension). This is not supported by Mocha yet (https://github.com/mochajs/mocha/issues/2706).',
     },
   },
   NETWORK: {
