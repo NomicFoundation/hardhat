@@ -259,8 +259,8 @@ function getMessageFromLastStackTraceEntry(
       return `Transaction reverted: library was called directly`;
 
     case StackTraceEntryType.UNRECOGNIZED_CREATE_ERROR:
-    case StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR:
-      let returnData = new ReturnData(stackTraceEntry.returnData);
+    case StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR: {
+      const returnData = new ReturnData(stackTraceEntry.returnData);
       if (returnData.isErrorReturnData()) {
         return `VM Exception while processing transaction: reverted with reason string '${new ReturnData(
           stackTraceEntry.returnData
@@ -283,9 +283,9 @@ function getMessageFromLastStackTraceEntry(
       }
 
       return "Transaction reverted without a reason string";
-
-    case StackTraceEntryType.REVERT_ERROR:
-      returnData = new ReturnData(stackTraceEntry.returnData);
+    }
+    case StackTraceEntryType.REVERT_ERROR: {
+      const returnData = new ReturnData(stackTraceEntry.returnData);
       if (returnData.isErrorReturnData()) {
         return `VM Exception while processing transaction: reverted with reason string '${returnData.decodeError()}'`;
       }
@@ -295,7 +295,7 @@ function getMessageFromLastStackTraceEntry(
       }
 
       return "Transaction reverted without a reason string";
-
+    }
     case StackTraceEntryType.PANIC_ERROR:
       const panicMessage = panicErrorCodeToMessage(stackTraceEntry.errorCode);
       return `VM Exception while processing transaction: ${panicMessage}`;
