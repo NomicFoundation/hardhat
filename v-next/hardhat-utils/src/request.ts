@@ -20,12 +20,17 @@ import {
   getBasicDispatcher,
   getPoolDispatcher,
   getProxyDispatcher,
+  handleError,
 } from "./internal/request.js";
 
 export const DEFAULT_TIMEOUT_IN_MILLISECONDS = 30_000;
 export const DEFAULT_MAX_REDIRECTS = 10;
 export const DEFAULT_POOL_MAX_CONNECTIONS = 128;
 export const DEFAULT_USER_AGENT = "Hardhat";
+
+export type Dispatcher = UndiciT.Dispatcher;
+export type TestDispatcher = UndiciT.MockAgent;
+export type Interceptable = UndiciT.Interceptable;
 
 /**
  * Options to configure the dispatcher.
@@ -64,7 +69,9 @@ export interface RequestOptions {
  * @param requestOptions The options to configure the request. See {@link RequestOptions}.
  * @param dispatcherOrDispatcherOptions Either a dispatcher or dispatcher options. See {@link DispatcherOptions}.
  * @returns The response data object. See {@link https://undici.nodejs.org/#/docs/api/Dispatcher?id=parameter-responsedata}.
- * @throws RequestError If the request fails.
+ * @throws ConnectionRefusedError If the connection is refused by the server.
+ * @throws RequestTimeoutError If the request times out.
+ * @throws RequestError If the request fails for any other reason.
  */
 export async function getRequest(
   url: string,
@@ -85,6 +92,9 @@ export async function getRequest(
     });
   } catch (e) {
     ensureError(e);
+
+    handleError(e, url);
+
     throw new RequestError(url, "GET", e);
   }
 }
@@ -97,7 +107,9 @@ export async function getRequest(
  * @param requestOptions The options to configure the request. See {@link RequestOptions}.
  * @param dispatcherOrDispatcherOptions Either a dispatcher or dispatcher options. See {@link DispatcherOptions}.
  * @returns The response data object. See {@link https://undici.nodejs.org/#/docs/api/Dispatcher?id=parameter-responsedata}.
- * @throws RequestError If the request fails.
+ * @throws ConnectionRefusedError If the connection is refused by the server.
+ * @throws RequestTimeoutError If the request times out.
+ * @throws RequestError If the request fails for any other reason.
  */
 export async function postJsonRequest(
   url: string,
@@ -124,6 +136,9 @@ export async function postJsonRequest(
     });
   } catch (e) {
     ensureError(e);
+
+    handleError(e, url);
+
     throw new RequestError(url, "POST", e);
   }
 }
@@ -136,7 +151,9 @@ export async function postJsonRequest(
  * @param requestOptions The options to configure the request. See {@link RequestOptions}.
  * @param dispatcherOrDispatcherOptions Either a dispatcher or dispatcher options. See {@link DispatcherOptions}.
  * @returns The response data object. See {@link https://undici.nodejs.org/#/docs/api/Dispatcher?id=parameter-responsedata}.
- * @throws RequestError If the request fails.
+ * @throws ConnectionRefusedError If the connection is refused by the server.
+ * @throws RequestTimeoutError If the request times out.
+ * @throws RequestError If the request fails for any other reason.
  */
 export async function postFormRequest(
   url: string,
@@ -164,6 +181,9 @@ export async function postFormRequest(
     });
   } catch (e) {
     ensureError(e);
+
+    handleError(e, url);
+
     throw new RequestError(url, "POST", e);
   }
 }
@@ -175,7 +195,9 @@ export async function postFormRequest(
  * @param destination The absolute path to save the file to.
  * @param requestOptions The options to configure the request. See {@link RequestOptions}.
  * @param dispatcherOrDispatcherOptions Either a dispatcher or dispatcher options. See {@link DispatcherOptions}.
- * @throws DownloadFailedError If the download fails.
+ * @throws ConnectionRefusedError If the connection is refused by the server.
+ * @throws RequestTimeoutError If the request times out.
+ * @throws DownloadFailedError If the download fails for any other reason.
  */
 export async function download(
   url: string,
@@ -204,6 +226,9 @@ export async function download(
     await move(tempFilePath, destination);
   } catch (e) {
     ensureError(e);
+
+    handleError(e, url);
+
     throw new DownloadError(url, e);
   }
 }
@@ -228,7 +253,7 @@ export async function getDispatcher(
     maxConnections,
     isTestDispatcher,
   }: DispatcherOptions = {},
-): Promise<UndiciT.Dispatcher> {
+): Promise<Dispatcher> {
   try {
     if (pool !== undefined && proxy !== undefined) {
       throw new Error(
@@ -253,6 +278,17 @@ export async function getDispatcher(
     ensureError(e);
     throw new DispatcherError(e.message, e);
   }
+}
+
+export async function getTestDispatcher(
+  options: {
+    timeout?: number;
+  } = {},
+): Promise<TestDispatcher> {
+  const { MockAgent } = await import("undici");
+
+  const baseOptions = getBaseDispatcherOptions(options.timeout, true);
+  return new MockAgent(baseOptions);
 }
 
 /**
@@ -280,8 +316,26 @@ export function shouldUseProxy(url: string): boolean {
   return true;
 }
 
+/**
+ * Determines whether an absolute url is valid.
+ *
+ * @param url The url to check.
+ * @returns `true` if the url is valid, `false` otherwise.
+ */
+export function isValidUrl(url: string): boolean {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export {
+  ConnectionRefusedError,
+  DispatcherError,
   DownloadError,
   RequestError,
-  DispatcherError,
+  RequestTimeoutError,
+  ResponseStatusCodeError,
 } from "./errors/request.js";

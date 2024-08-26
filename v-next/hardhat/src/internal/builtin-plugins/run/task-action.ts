@@ -27,7 +27,7 @@ const runScriptWithHardhat: NewTaskActionFunction<RunActionArguments> = async (
   }
 
   if (!noCompile) {
-    // todo: run compile task
+    // TODO(#5600): run compile task
   }
 
   try {

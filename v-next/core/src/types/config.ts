@@ -56,6 +56,7 @@ export interface ProjectPathsUserConfig {
   root?: string;
   cache?: string;
   artifacts?: string;
+  tests?: string;
 }
 
 /**
@@ -69,4 +70,5 @@ export interface ProjectPathsConfig {
   root: string;
   cache: string;
   artifacts: string;
+  tests: string;
 }

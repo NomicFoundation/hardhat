@@ -1,6 +1,7 @@
 name: vNext CI
 
 on:
+  merge_group:
   push:
     branches:
       - v-next
@@ -108,6 +109,23 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+  lint-aggregate:
+    needs: lint
+
+    if: ${{ !cancelled() }}
+
+    name: lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - env:
+          result: ${{ needs.lint.result }}
+        run: |
+          if [[ "$result" == "failure" ]]; then
+            exit 1
+          fi
+        shell: bash
+
   ci:
     needs: list-packages
 
@@ -137,3 +155,20 @@ jobs:
         run: pnpm build
       - name: Run tests
         run: pnpm run test
+
+  ci-aggregate:
+    needs: ci
+
+    if: ${{ !cancelled() }}
+
+    name: ci
+    runs-on: ubuntu-latest
+
+    steps:
+      - env:
+          result: ${{ needs.ci.result }}
+        run: |
+          if [[ "$result" == "failure" ]]; then
+            exit 1
+          fi
+        shell: bash

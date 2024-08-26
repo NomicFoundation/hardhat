@@ -6,11 +6,15 @@ import path from "node:path";
 import url from "node:url";
 
 import { mkdir } from "../fs.js";
+import { isObject } from "../lang.js";
 import {
+  ConnectionRefusedError,
   DEFAULT_MAX_REDIRECTS,
   DEFAULT_TIMEOUT_IN_MILLISECONDS,
   DEFAULT_USER_AGENT,
   getDispatcher,
+  RequestTimeoutError,
+  ResponseStatusCodeError,
 } from "../request.js";
 
 export async function generateTempFilePath(filePath: string): Promise<string> {
@@ -34,7 +38,7 @@ export async function getBaseRequestOptions(
   signal?: EventEmitter | AbortSignal | undefined;
   dispatcher: UndiciT.Dispatcher;
   headers: Record<string, string>;
-  throwOnError: boolean;
+  throwOnError: true;
 }> {
   const { Dispatcher } = await import("undici");
   const dispatcher =
@@ -134,4 +138,28 @@ export function getBaseDispatcherOptions(
 export function sanitizeUrl(requestUrl: string): string {
   const parsedUrl = new URL(requestUrl);
   return url.format(parsedUrl, { auth: false, search: false, fragment: false });
+}
+
+export function handleError(e: Error, requestUrl: string): void {
+  let causeCode: unknown;
+  if (isObject(e.cause)) {
+    causeCode = e.cause.code;
+  }
+  const errorCode = "code" in e ? e.code : causeCode;
+
+  if (errorCode === "ECONNREFUSED") {
+    throw new ConnectionRefusedError(requestUrl, e);
+  }
+
+  if (
+    errorCode === "UND_ERR_CONNECT_TIMEOUT" ||
+    errorCode === "UND_ERR_HEADERS_TIMEOUT" ||
+    errorCode === "UND_ERR_BODY_TIMEOUT"
+  ) {
+    throw new RequestTimeoutError(requestUrl, e);
+  }
+
+  if (errorCode === "UND_ERR_RESPONSE_STATUS_CODE") {
+    throw new ResponseStatusCodeError(requestUrl, e);
+  }
 }
