@@ -50,10 +50,14 @@ const mochaConfigType = z.object({
   isWorker: z.boolean().optional(),
 });
 
+const userConfigType = z.object({
+  mocha: z.optional(mochaConfigType),
+});
+
 export default async (): Promise<Partial<ConfigHooks>> => {
   const handlers: Partial<ConfigHooks> = {
     validateUserConfig: async (userConfig) => {
-      return validateUserConfigZodType(userConfig, mochaConfigType);
+      return validateUserConfigZodType(userConfig, userConfigType);
     },
     resolveUserConfig: async (
       userConfig,
