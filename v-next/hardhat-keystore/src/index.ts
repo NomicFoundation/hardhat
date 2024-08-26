@@ -1,6 +1,6 @@
 import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
 
-import { ArgumentType, task } from "@ignored/hardhat-vnext-core/config";
+import { ArgumentType, task } from "@ignored/hardhat-vnext/config";
 
 import { get, list, remove, set } from "./methods.js";
 

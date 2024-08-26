@@ -2,14 +2,15 @@ import type { Keystore } from "./types.js";
 
 import path from "node:path";
 
-import { getConfigDir } from "@ignored/hardhat-vnext-core/global-dir";
 import { HardhatPluginError } from "@ignored/hardhat-vnext-errors";
 import {
+  ensureDir,
   exists,
   readJsonFile,
   writeJsonFile,
 } from "@ignored/hardhat-vnext-utils/fs";
 import chalk from "chalk";
+import envPaths from "env-paths";
 
 import { io } from "./io.js";
 import { PLUGIN_ID } from "./methods.js";
@@ -131,4 +132,10 @@ function assertFilePath(fileP: string | undefined): asserts fileP is string {
       "The filePath should be available at this point!",
     );
   }
+}
+
+async function getConfigDir(): Promise<string> {
+  const { config } = envPaths("hardhat");
+  await ensureDir(config);
+  return config;
 }

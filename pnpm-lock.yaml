@@ -1817,9 +1817,6 @@ importers:
       '@ignored/hardhat-vnext':
         specifier: workspace:^3.0.0-next.2
         version: link:../hardhat
-      '@ignored/hardhat-vnext-core':
-        specifier: workspace:^3.0.0-next.2
-        version: link:../core
       '@ignored/hardhat-vnext-errors':
         specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-errors
@@ -1829,6 +1826,9 @@ importers:
       chalk:
         specifier: ^5.3.0
         version: 5.3.0
+      env-paths:
+        specifier: ^2.2.0
+        version: 2.2.1
     devDependencies:
       '@eslint-community/eslint-plugin-eslint-comments':
         specifier: ^4.3.0
@@ -6779,6 +6779,7 @@ packages:
       is-hex-prefixed: 1.0.0
       strip-hex-prefix: 1.0.0
     dev: false
+    bundledDependencies: false
 
   /eventemitter3@5.0.1:
     resolution: {integrity: sha512-GWkBvjiSZK87ELrYOSESUYeVIc9mvLLf/nXalMOS5dYrgZq9o5OVkbZAVM06CVxYsCwH9BDZFPlQTlPA1j4ahA==}

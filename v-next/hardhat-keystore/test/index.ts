@@ -9,15 +9,16 @@ import path from "node:path";
 import { afterEach, before, beforeEach, describe, it, mock } from "node:test";
 
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
-import { getConfigDir } from "@ignored/hardhat-vnext-core/global-dir";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import {
+  ensureDir,
   readJsonFile,
   remove,
   writeJsonFile,
 } from "@ignored/hardhat-vnext-utils/fs";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import chalk from "chalk";
+import envPaths from "env-paths";
 
 import hardhatKeystorePlugin from "../src/index.js";
 import { io } from "../src/io.js";
@@ -52,6 +53,12 @@ async function deleteKeystore() {
 async function getKeystoreFilePath(): Promise<string> {
   const configDirPath = await getConfigDir();
   return path.join(configDirPath, "keystore.json");
+}
+
+async function getConfigDir(): Promise<string> {
+  const { config } = envPaths("hardhat");
+  await ensureDir(config);
+  return config;
 }
 
 describe("tasks", () => {
