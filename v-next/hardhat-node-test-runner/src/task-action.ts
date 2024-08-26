@@ -89,7 +89,6 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   const testFailures = await runTests();
-  console.log("Failures: ", testFailures);
 
   if (testFailures > 0) {
     process.exitCode = testFailures;
