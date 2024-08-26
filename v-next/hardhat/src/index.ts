@@ -12,6 +12,7 @@ import { createHardhatRuntimeEnvironment } from "./hre.js";
 import {
   getGlobalHardhatRuntimeEnvironment,
   setGlobalHardhatRuntimeEnvironment,
+  resetGlobalHardhatRuntimeEnvironment,
 } from "./internal/global-hre-instance.js";
 import { importUserConfig } from "./internal/helpers/config-loading.js";
 
@@ -37,5 +38,13 @@ export const tasks: TaskManager = hre.tasks;
 export const globalOptions: GlobalOptions = hre.globalOptions;
 export const hooks: HookManager = hre.hooks;
 export const interruptions: UserInterruptionManager = hre.interruptions;
+
+// We need to re-export this function so that plugins can use it.
+export const _resetGlobalHardhatRuntimeEnvironment: typeof resetGlobalHardhatRuntimeEnvironment =
+  function (): void {
+    maybeHre = undefined;
+
+    resetGlobalHardhatRuntimeEnvironment();
+  };
 
 export default hre;

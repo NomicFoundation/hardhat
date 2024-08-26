@@ -1,11 +1,23 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { describe, it, afterEach } from "node:test";
 
-import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import {
+  assertRejectsWithHardhatError,
+  useFixtureProject,
+} from "@nomicfoundation/hardhat-test-utils";
 
 describe("Hardhat Mocha plugin", () => {
   describe("Success", () => {
     useFixtureProject("test-project");
+
+    afterEach(async () => {
+      const { _resetGlobalHardhatRuntimeEnvironment } = await import(
+        "@ignored/hardhat-vnext"
+      );
+
+      _resetGlobalHardhatRuntimeEnvironment();
+    });
 
     it("should work", async () => {
       const hre = await import("@ignored/hardhat-vnext");
@@ -19,10 +31,23 @@ describe("Hardhat Mocha plugin", () => {
   describe("Failure", () => {
     useFixtureProject("invalid-mocha-config");
 
+    afterEach(async () => {
+      const { _resetGlobalHardhatRuntimeEnvironment } = await import(
+        "@ignored/hardhat-vnext"
+      );
+
+      _resetGlobalHardhatRuntimeEnvironment();
+    });
+
     it("should fail", async () => {
-      await assert.rejects(
-        () => import("@ignored/hardhat-vnext"),
-        /Config error in config\.mocha\.delay: Expected boolean, received number/,
+      const errors =
+        "\t* Config error in config.mocha.delay: Expected boolean, received number";
+
+      await assertRejectsWithHardhatError(
+        // @ts-expect-error -- we need to invalidate the import cache to re-import the HRE
+        import("@ignored/hardhat-vnext?config=invalid"),
+        HardhatError.ERRORS.GENERAL.INVALID_CONFIG,
+        { errors },
       );
     });
   });
