@@ -5,10 +5,45 @@ import { run } from "node:test";
 import { diff } from "jest-diff";
 
 import reporter from "../src/reporter.js";
-const SHOW_OUTPUT = process.argv.includes("--show-output");
 
-for (const entry of readdirSync(import.meta.dirname + "/fixture-tests")) {
-  const entryPath = import.meta.dirname + "/fixture-tests/" + entry;
+let SHOW_OUTPUT = false;
+const testOnly: string[] = [];
+
+const argv = process.argv.slice(2);
+while (argv.length > 0) {
+  const key = argv.shift();
+  switch (key) {
+    case "--show-output":
+      SHOW_OUTPUT = true;
+      break;
+    case "--test-only":
+      const val = argv.shift();
+      if (val === undefined) {
+        throw new Error("Missing value for --test-only");
+      }
+      testOnly.push(val);
+      break;
+    case "--color":
+    case "--no-color":
+      // Ignore; this is handled by chalk
+      break;
+    default:
+      throw new Error(`Unknown option: ${key}`);
+  }
+}
+
+// Change the working directory to the root of the project
+// This ensures the reported paths are relative to the project root
+process.chdir(path.resolve(import.meta.dirname, ".."));
+
+const entries = readdirSync("integration-tests/fixture-tests").filter(
+  (entry) => {
+    return testOnly.length === 0 || testOnly.includes(entry);
+  },
+);
+
+for (const entry of entries) {
+  const entryPath = `integration-tests/fixture-tests/${entry}`;
 
   const stats = statSync(entryPath);
   if (stats.isDirectory()) {
@@ -63,7 +98,7 @@ function normalizeOutputs(output: string): string {
   return (
     output
       // Normalize the time it took to run the test
-      .replace(/\(\d+ms\)/, "(Xms)")
+      .replace(/\(\d+ms\)/g, "(Xms)")
       // Normalize windows new lines
       .replaceAll("\r\n", "\n")
       // Normalize path separators to `/` within the (file:line:column)
@@ -71,9 +106,10 @@ function normalizeOutputs(output: string): string {
       .replaceAll(/\(.*?:\d+:\d+\)/g, (match) => {
         return match.replaceAll(path.sep, "/");
       })
-      // Remove lines like `at TestHook.run (node:internal/test_runner/test:1107:18)`
-      .replaceAll(/at .*? \(node\:.*?:\d+:\d+\)/g, "")
-      // Remove lines like `at node:internal/test_runner/test:776:20`
-      .replaceAll(/at node\:.*?:\d+:\d+/g, "")
+      // Normalize line:column to X:X within the node:.*:line:column
+      // part of the stack traces
+      .replaceAll(/node:.*:\d+:\d+/g, (match) => {
+        return match.replace(/\d+:\d+/, "X:X");
+      })
   );
 }
