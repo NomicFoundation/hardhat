@@ -10,12 +10,14 @@ on:
       - "v-next/**"
       - "config-v-next/**"
       - "pnpm-lock.yaml"
+      - "scripts/**"
   pull_request:
     paths:
       - ".github/workflows/v-next-ci.yml"
       - "v-next/**"
       - "config-v-next/**"
       - "pnpm-lock.yaml"
+      - "scripts/**"
   workflow_dispatch:
 
 concurrency:
