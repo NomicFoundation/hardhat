@@ -53,14 +53,14 @@ export default async function* customReporter(
    * repeate it, we keep track of the last printed context element. We do this
    * by keeping track of its index in the stack.
    *
-   * We also keep track of any diagnostic message that its reported by node:test
+   * We also keep track of any diagnostic message that is reported by node:test
    * and at the end we try to parse the global diagnostics to gather information
    * about the test run. If during this parsing we don't recognize or can't
    * properly parse one of this diagnostics, we will print it at the end.
    *
-   * Whenever a test fails, we pre-format its failure reason, so that don't need
-   * to keep the failure event in memory, and we can still print the failure
-   * reason at the end.
+   * Whenever a test fails, we pre-format its failure reason, so that we don't
+   * need to keep the failure event in memory, and we can still print the
+   * failure reason at the end.
    *
    * This code is structed in the following way:
    *  - We use an async generator to process the events as they come, printing
@@ -74,7 +74,7 @@ export default async function* customReporter(
    *  - The generaor drives the high-level format of the output, and only uses
    *  the formatting functions to generate repetitive parts of it.
    *
-   * [1] As reporter by node:test, in defintion order, which may differ from
+   * [1] As reported by node:test, in defintion order, which may differ from
    * actual execution order.
    */
 
