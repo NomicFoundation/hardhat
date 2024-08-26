@@ -156,42 +156,44 @@ function checkWorkspacePeerDependencies(packages) {
       .concat(Object.entries(package.peerDependencies));
 
     for (const [dependencyName, version] of allDependencies) {
-      if (version.startsWith("workspace:")) {
-        const dependency = packages.get(dependencyName);
+      if (!version.startsWith("workspace:")) {
+        continue;
+      }
 
-        if (dependency === undefined) {
-          console.error(
-            `Package ${package.name} has a workspace: dependency for ${dependencyName} and ${dependencyName} is not part of the monorepo`
-          );
+      const dependency = packages.get(dependencyName);
 
-          success = false;
-
-          continue;
-        }
-
-        const missingDependencyPeerDependencies = Object.keys(
-          dependency.peerDependencies
-        ).filter(
-          (dependencyPeerDependency) =>
-            package.dependencies[dependencyPeerDependency] === undefined &&
-            package.devDependencies[dependencyPeerDependency] === undefined &&
-            package.peerDependencies[dependencyPeerDependency] === undefined
-        );
-
-        if (missingDependencyPeerDependencies.length === 0) {
-          continue;
-        }
-
+      if (dependency === undefined) {
         console.error(
-          `Package ${
-            package.name
-          } has a workspace: dependency for ${dependencyName}, so it should have these packages installed:
-  - ${missingDependencyPeerDependencies.join("\n  - ")}
-`
+          `Package ${package.name} has a workspace: dependency for ${dependencyName} and ${dependencyName} is not part of the monorepo`
         );
 
         success = false;
+
+        continue;
       }
+
+      const missingDependencyPeerDependencies = Object.keys(
+        dependency.peerDependencies
+      ).filter(
+        (dependencyPeerDependency) =>
+          package.dependencies[dependencyPeerDependency] === undefined &&
+          package.devDependencies[dependencyPeerDependency] === undefined &&
+          package.peerDependencies[dependencyPeerDependency] === undefined
+      );
+
+      if (missingDependencyPeerDependencies.length === 0) {
+        continue;
+      }
+
+      console.error(
+        `Package ${
+          package.name
+        } has a workspace: dependency for ${dependencyName}, so it should have these packages installed:
+  - ${missingDependencyPeerDependencies.join("\n  - ")}
+`
+      );
+
+      success = false;
     }
   }
 
