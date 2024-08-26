@@ -7,9 +7,9 @@ import "./type-extensions.js";
 const hardhatPlugin: HardhatPlugin = {
   id: "hardhat-foo",
   hookHandlers: {
-    config: import.meta.resolve("./hookHandlers/config.js"),
+    config: import.meta.resolve("./hook-handlers/config.js"),
     configurationVariables: import.meta.resolve(
-      "./hookHandlers/configurationVariables.js",
+      "./hook-handlers/configuration-variables.js",
     ),
   },
   tasks: [
