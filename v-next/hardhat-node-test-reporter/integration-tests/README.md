@@ -7,3 +7,13 @@ Instead, the script `index.ts` runs all the tests in each fixture folder, compar
 ## Running each test manually
 
 You can run each of the fixture test manually from the package root by building it and running `node --import tsx/esm --test --test-reporter=./dist/src/reporter.js integration-tests/fixture-tests/example-test/*.ts`
+
+## Re-generating the expected results
+
+If you want to re-generate all the expected results, you can run the following script from the package root:
+
+```bash
+for dir in integration-tests/fixture-tests/*; do
+  node --import tsx/esm --test --test-reporter=./dist/src/reporter.js $dir/*.ts --color > $dir/result.txt
+done
+```
