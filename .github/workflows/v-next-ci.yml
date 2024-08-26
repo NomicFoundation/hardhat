@@ -5,17 +5,10 @@ on:
   push:
     branches:
       - v-next
-    paths:
-      - ".github/workflows/v-next-ci.yml"
-      - "v-next/**"
-      - "config-v-next/**"
-      - "pnpm-lock.yaml"
   pull_request:
-    paths:
-      - ".github/workflows/v-next-ci.yml"
-      - "v-next/**"
-      - "config-v-next/**"
-      - "pnpm-lock.yaml"
+    # TODO: Remove the filter when v-next is merged into main
+    branches:
+      - v-next
   workflow_dispatch:
 
 concurrency:
