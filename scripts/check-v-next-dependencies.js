@@ -82,21 +82,21 @@ function checkInternalConsistency(package) {
     .concat(Object.keys(package.peerDependencies));
 
   for (const dependency of allDependencies) {
-    success &&= validateVersion(
+    success &&= validateOrRecordVersion(
       package.name,
       dependency,
       package.dependencies[dependency],
       versions
     );
 
-    success &&= validateVersion(
+    success &&= validateOrRecordVersion(
       package.name,
       dependency,
       package.devDependencies[dependency],
       versions
     );
 
-    success &&= validateVersion(
+    success &&= validateOrRecordVersion(
       package.name,
       dependency,
       package.peerDependencies[dependency],
@@ -108,7 +108,8 @@ function checkInternalConsistency(package) {
 }
 
 /**
- * Validates that the package {packageName} has the same version of {dependency} if present.
+ * Validates that the package {packageName} has the same version of {dependency} if present
+ * in {versions}, otherwise it records the version in {versions}.
  *
  * @param {string} packageName
  * @param {string} dependency
@@ -116,7 +117,7 @@ function checkInternalConsistency(package) {
  * @param {Map<string, string>} versions
  * @return {boolean}
  */
-function validateVersion(packageName, dependency, version, versions) {
+function validateOrRecordVersion(packageName, dependency, version, versions) {
   if (version === undefined) {
     return true;
   }
