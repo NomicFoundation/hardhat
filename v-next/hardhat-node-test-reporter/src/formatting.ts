@@ -124,7 +124,7 @@ function nestingToIndentationLength(nesting: number): number {
   return (nesting + 1) * 2;
 }
 
-function indent(str: string, spaces: number): string {
+export function indent(str: string, spaces: number): string {
   const padding = " ".repeat(spaces);
   return str.replace(/^/gm, padding);
 }
