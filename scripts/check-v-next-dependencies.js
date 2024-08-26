@@ -216,10 +216,10 @@ function validateSameVersionsSpecs(packages) {
     console.error(`Incompatible versions of dependency: ${dependencyName}`);
 
     for (const [spec, packageNames] of versionSpecs.entries()) {
-      console.log(`  Packages with version ${spec}:`);
+      console.error(`  Packages with version ${spec}:`);
 
       for (const packageName of packageNames) {
-        console.log(`    ${packageName}`);
+        console.error(`    ${packageName}`);
       }
     }
 
