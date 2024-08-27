@@ -135,7 +135,11 @@ jobs:
           fi
         shell: bash
       - uses: actions/download-artifact@v4
+      - id: download
+        run: ls -1 | wc -l | xargs -I {} -0 echo "count={}" | tee -a $GITHUB_OUTPUT
+        shell: bash
       - id: comment
+        if: steps.download.outputs.count != '0'
         run: |
           echo 'body<<EOF' >> $GITHUB_OUTPUT
           for bundle in *; do
@@ -156,7 +160,7 @@ jobs:
             echo '' | tee -a $GITHUB_OUTPUT
           done
           echo 'EOF' >> $GITHUB_OUTPUT
-      - if: github.event_name == 'pull_request'
+      - if: github.event_name == 'pull_request' && steps.download.outputs.count != '0'
         uses: marocchino/sticky-pull-request-comment@331f8f5b4215f0445d3c07b4967662a32a2d3e31 # v2.9.0
         with:
           header: bundle
