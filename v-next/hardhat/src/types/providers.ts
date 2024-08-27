@@ -78,3 +78,9 @@ export interface EthereumProvider extends EIP1193Provider {
     callback: (error: any, jsonRpcResponse: JsonRpcResponse) => void,
   ): void;
 }
+
+export type {
+  JsonRpcRequest,
+  JsonRpcNotificationRequest,
+  JsonRpcResponse,
+} from "../internal/network/utils/json-rpc.js";
