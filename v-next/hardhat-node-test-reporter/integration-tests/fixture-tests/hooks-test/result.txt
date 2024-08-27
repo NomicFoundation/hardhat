@@ -19,7 +19,7 @@
     [31m10) should pass, too[39m
 
 
-[32m2 passing[39m[90m (140ms)[39m[31m[39m
+[32m2 passing[39m[90m (121ms)[39m[31m[39m
 [31m4 failing[39m[90m[39m
 [90m4 cancelled[39m
 
@@ -28,70 +28,70 @@
 
    [31mError: after each hook error[39m
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/hooks-test/after-each.ts:6:11)[39m
-   [90m    at TestHook.runInAsyncScope (node:async_hooks:206:9)[39m
-   [90m    at TestHook.run (node:internal/test_runner/test:856:25)[39m
-   [90m    at TestHook.run (node:internal/test_runner/test:1107:18)[39m
-   [90m    at node:internal/test_runner/test:776:20[39m
-   [90m    at async Suite.runHook (node:internal/test_runner/test:774:7)[39m
-   [90m    at async node:internal/test_runner/test:820:9[39m
-   [90m    at async Test.run (node:internal/test_runner/test:866:7)[39m
+   [90m    at TestHook.runInAsyncScope (node:async_hooks:211:14)[39m
+   [90m    at TestHook.run (node:internal/test_runner/test:878:25)[39m
+   [90m    at TestHook.run (node:internal/test_runner/test:1129:18)[39m
+   [90m    at node:internal/test_runner/test:798:20[39m
+   [90m    at async Suite.runHook (node:internal/test_runner/test:796:7)[39m
+   [90m    at async node:internal/test_runner/test:842:9[39m
+   [90m    at async Test.run (node:internal/test_runner/test:885:7)[39m
    [90m    at async Promise.all (index 0)[39m
-   [90m    at async Suite.run (node:internal/test_runner/test:1217:7)[39m
+   [90m    at async Suite.run (node:internal/test_runner/test:1239:7)[39m
 
   2) after each
        should pass, too:
 
    [31mError: after each hook error[39m
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/hooks-test/after-each.ts:6:11)[39m
-   [90m    at TestHook.runInAsyncScope (node:async_hooks:206:9)[39m
-   [90m    at TestHook.run (node:internal/test_runner/test:856:25)[39m
-   [90m    at TestHook.run (node:internal/test_runner/test:1107:18)[39m
-   [90m    at node:internal/test_runner/test:776:20[39m
-   [90m    at async Suite.runHook (node:internal/test_runner/test:774:7)[39m
-   [90m    at async node:internal/test_runner/test:820:9[39m
-   [90m    at async Test.run (node:internal/test_runner/test:866:7)[39m
-   [90m    at async Suite.processPendingSubtests (node:internal/test_runner/test:565:7)[39m
+   [90m    at TestHook.runInAsyncScope (node:async_hooks:211:14)[39m
+   [90m    at TestHook.run (node:internal/test_runner/test:878:25)[39m
+   [90m    at TestHook.run (node:internal/test_runner/test:1129:18)[39m
+   [90m    at node:internal/test_runner/test:798:20[39m
+   [90m    at async Suite.runHook (node:internal/test_runner/test:796:7)[39m
+   [90m    at async node:internal/test_runner/test:842:9[39m
+   [90m    at async Test.run (node:internal/test_runner/test:885:7)[39m
+   [90m    at async Suite.processPendingSubtests (node:internal/test_runner/test:590:7)[39m
 
   3) after:
 
    [31mError: after hook error[39m
    [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/hooks-test/after.ts:6:11)[39m
-   [90m    at TestHook.runInAsyncScope (node:async_hooks:206:9)[39m
-   [90m    at TestHook.run (node:internal/test_runner/test:856:25)[39m
-   [90m    at TestHook.run (node:internal/test_runner/test:1107:18)[39m
-   [90m    at TestHook.run (node:internal/util:538:20)[39m
-   [90m    at node:internal/test_runner/test:776:20[39m
-   [90m    at async Suite.runHook (node:internal/test_runner/test:774:7)[39m
-   [90m    at async Suite.run (node:internal/test_runner/test:1218:7)[39m
-   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:565:7)[39m
+   [90m    at TestHook.runInAsyncScope (node:async_hooks:211:14)[39m
+   [90m    at TestHook.run (node:internal/test_runner/test:878:25)[39m
+   [90m    at TestHook.run (node:internal/test_runner/test:1129:18)[39m
+   [90m    at TestHook.run (node:internal/util:545:20)[39m
+   [90m    at node:internal/test_runner/test:798:20[39m
+   [90m    at async Suite.runHook (node:internal/test_runner/test:796:7)[39m
+   [90m    at async Suite.run (node:internal/test_runner/test:1240:7)[39m
+   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:590:7)[39m
 
   4) before each
        should pass:
 
    [31mError: before each hook error[39m
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/hooks-test/before-each.ts:6:11)[39m
-   [90m    at TestHook.runInAsyncScope (node:async_hooks:206:9)[39m
-   [90m    at TestHook.run (node:internal/test_runner/test:856:25)[39m
-   [90m    at TestHook.run (node:internal/test_runner/test:1107:18)[39m
-   [90m    at node:internal/test_runner/test:776:20[39m
-   [90m    at async Suite.runHook (node:internal/test_runner/test:774:7)[39m
-   [90m    at async Test.run (node:internal/test_runner/test:832:9)[39m
+   [90m    at TestHook.runInAsyncScope (node:async_hooks:211:14)[39m
+   [90m    at TestHook.run (node:internal/test_runner/test:878:25)[39m
+   [90m    at TestHook.run (node:internal/test_runner/test:1129:18)[39m
+   [90m    at node:internal/test_runner/test:798:20[39m
+   [90m    at async Suite.runHook (node:internal/test_runner/test:796:7)[39m
+   [90m    at async Test.run (node:internal/test_runner/test:854:9)[39m
    [90m    at async Promise.all (index 0)[39m
-   [90m    at async Suite.run (node:internal/test_runner/test:1217:7)[39m
-   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:565:7)[39m
+   [90m    at async Suite.run (node:internal/test_runner/test:1239:7)[39m
+   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:590:7)[39m
 
   5) before each
        should pass, too:
 
    [31mError: before each hook error[39m
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/hooks-test/before-each.ts:6:11)[39m
-   [90m    at TestHook.runInAsyncScope (node:async_hooks:206:9)[39m
-   [90m    at TestHook.run (node:internal/test_runner/test:856:25)[39m
-   [90m    at TestHook.run (node:internal/test_runner/test:1107:18)[39m
-   [90m    at node:internal/test_runner/test:776:20[39m
-   [90m    at async Suite.runHook (node:internal/test_runner/test:774:7)[39m
-   [90m    at async Test.run (node:internal/test_runner/test:832:9)[39m
-   [90m    at async Suite.processPendingSubtests (node:internal/test_runner/test:565:7)[39m
+   [90m    at TestHook.runInAsyncScope (node:async_hooks:211:14)[39m
+   [90m    at TestHook.run (node:internal/test_runner/test:878:25)[39m
+   [90m    at TestHook.run (node:internal/test_runner/test:1129:18)[39m
+   [90m    at node:internal/test_runner/test:798:20[39m
+   [90m    at async Suite.runHook (node:internal/test_runner/test:796:7)[39m
+   [90m    at async Test.run (node:internal/test_runner/test:854:9)[39m
+   [90m    at async Suite.processPendingSubtests (node:internal/test_runner/test:590:7)[39m
 
   6) before
        should pass:
@@ -109,14 +109,14 @@
 
    [31mError: before hook error[39m
    [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/hooks-test/before.ts:6:11)[39m
-   [90m    at TestHook.runInAsyncScope (node:async_hooks:206:9)[39m
-   [90m    at TestHook.run (node:internal/test_runner/test:856:25)[39m
-   [90m    at TestHook.run (node:internal/test_runner/test:1107:18)[39m
-   [90m    at TestHook.run (node:internal/util:538:20)[39m
-   [90m    at node:internal/test_runner/test:776:20[39m
-   [90m    at async Suite.runHook (node:internal/test_runner/test:774:7)[39m
-   [90m    at async Suite.run (node:internal/test_runner/test:1211:7)[39m
-   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:565:7)[39m
+   [90m    at TestHook.runInAsyncScope (node:async_hooks:211:14)[39m
+   [90m    at TestHook.run (node:internal/test_runner/test:878:25)[39m
+   [90m    at TestHook.run (node:internal/test_runner/test:1129:18)[39m
+   [90m    at TestHook.run (node:internal/util:545:20)[39m
+   [90m    at node:internal/test_runner/test:798:20[39m
+   [90m    at async Suite.runHook (node:internal/test_runner/test:796:7)[39m
+   [90m    at async Suite.run (node:internal/test_runner/test:1233:7)[39m
+   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:590:7)[39m
 
   9) describe
        should pass:
@@ -134,13 +134,13 @@
 
    [31mError: describe setup error[39m
    [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/hooks-test/describe.ts:13:9)[39m
-   [90m    at Suite.runInAsyncScope (node:async_hooks:206:9)[39m
-   [90m    at new Suite (node:internal/test_runner/test:1153:26)[39m
-   [90m    at Test.createSubtest (node:internal/test_runner/test:629:18)[39m
-   [90m    at run (node:internal/test_runner/harness:258:28)[39m
-   [90m    at test (node:internal/test_runner/harness:271:12)[39m
+   [90m    at Suite.runInAsyncScope (node:async_hooks:211:14)[39m
+   [90m    at new Suite (node:internal/test_runner/test:1175:26)[39m
+   [90m    at Test.createSubtest (node:internal/test_runner/test:654:18)[39m
+   [90m    at run (node:internal/test_runner/harness:262:28)[39m
+   [90m    at test (node:internal/test_runner/harness:276:12)[39m
    [90m    at <anonymous> (integration-tests/fixture-tests/hooks-test/describe.ts:4:1)[39m
    [90m    at ModuleJob.run (node:internal/modules/esm/module_job:262:25)[39m
-   [90m    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:485:26)[39m
-   [90m    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:109:5)[39m
+   [90m    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:482:26)[39m
+   [90m    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)[39m
 

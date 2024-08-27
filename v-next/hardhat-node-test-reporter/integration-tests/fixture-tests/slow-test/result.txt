@@ -1,10 +1,10 @@
 
-  [90m[32m✔[39m[90m slow test[39m [31m[3m(102ms)[23m[39m
+  [90m[32m✔[39m[90m slow test[39m [31m[3m(105ms)[23m[39m
 
-  [31m1) assertion error in slow test[39m [31m[3m(104ms)[23m[39m
+  [31m1) assertion error in slow test[39m [31m[3m(107ms)[23m[39m
 
 
-[32m1 passing[39m[90m (346ms)[39m[31m[39m
+[32m1 passing[39m[90m (330ms)[39m[31m[39m
 [31m1 failing[39m
 
   1) assertion error in slow test:
@@ -17,8 +17,8 @@
    [31m+ 1[39m
    
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/slow-test/test.ts:11:10)[39m
-   [90m    at async Test.run (node:internal/test_runner/test:857:9)[39m
-   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:565:7) {[39m
+   [90m    at async Test.run (node:internal/test_runner/test:879:9)[39m
+   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:590:7) {[39m
    [90m  generatedMessage: true,[39m
    [90m  code: 'ERR_ASSERTION',[39m
    [90m  actual: 1,[39m
