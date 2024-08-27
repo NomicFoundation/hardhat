@@ -43,6 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       packages: ${{ steps.filter.outputs.changes }}
+      files: ${{ toJSON(steps.filter.outputs) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -72,7 +73,94 @@ jobs:
       - id: filter
         uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
         with:
+          list-files: json
           filters: ${{ steps.generate.outputs.filters }}
+
+  bundle:
+    # Depending on list-packages only to check whether pnpm-lock.yaml has changed
+    # This could be handled by a simpler job, but an extra runner would have to be allocated for it
+    needs: list-packages
+
+    if: |
+      contains(fromJSON(needs.list-packages.outputs.files).hardhat_files, '.github/workflows/v-next-ci.yml') ||
+        contains(fromJSON(needs.list-packages.outputs.files).hardhat_files, 'pnpm-lock.yaml')
+
+    # Using a matrix strategy even though there's only one package
+    # because we will want to add, at least, hardhat-toolbox in the future
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ['hardhat']
+
+    name: "[${{ matrix.package }}] bundle"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: v-next/${{ matrix.package }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-env
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Build
+        run: pnpm build
+      # https://github.com/pnpm/pnpm/issues/6166
+      - name: Deploy
+        run: pnpm deploy --config.shamefully-hoist=true --config.hoist=true --config.node-linker=true --config.shared-workspace-lockfile=false --filter="$(jq -r .name package.json)" --prod --no-optional bundle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.package }}
+          path: |
+            v-next/${{ matrix.package }}/bundle
+
+  bundle-aggregate:
+    needs: bundle
+
+    if: ${{ !cancelled() }}
+
+    name: bundle
+    runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: write
+
+    steps:
+      - env:
+          result: ${{ needs.bundle.result }}
+        run: |
+          if [[ "$result" == "failure" ]]; then
+            exit 1
+          fi
+        shell: bash
+      - uses: actions/download-artifact@v4
+      - id: comment
+        run: |
+          echo 'body<<EOF' >> $GITHUB_OUTPUT
+          for bundle in *; do
+            echo "# $bundle" | tee -a $GITHUB_OUTPUT
+            echo '' | tee -a $GITHUB_OUTPUT
+            echo "Total size of the bundle: "'`'"$(du -sh $bundle --exclude=$bundle/node_modules/.pnpm | cut -f1)"'`' | tee -a $GITHUB_OUTPUT
+            echo "Total number of dependencies (including transitive): "'`'"$(find $bundle/node_modules/@* $bundle/node_modules -mindepth 1 -maxdepth 1 -type d ! -name '.*' ! -name '@*' | wc -l)"'`' | tee -a $GITHUB_OUTPUT
+            echo '' | tee -a $GITHUB_OUTPUT
+            echo '<details>' | tee -a $GITHUB_OUTPUT
+            echo '<summary>List of dependencies (sorted by size)</summary>' | tee -a $GITHUB_OUTPUT
+            echo '' | tee -a $GITHUB_OUTPUT
+            echo '```' | tee -a $GITHUB_OUTPUT
+            du -shc $bundle/node_modules/@*/* $bundle/node_modules/* |
+              grep -Ev '/node_modules/@[^/]+$' | sort -rh |
+              sed "s|$bundle/node_modules/||" | tee -a $GITHUB_OUTPUT
+            echo '```' | tee -a $GITHUB_OUTPUT
+            echo '</details>' | tee -a $GITHUB_OUTPUT
+            echo '' | tee -a $GITHUB_OUTPUT
+          done
+          echo 'EOF' >> $GITHUB_OUTPUT
+      - if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@331f8f5b4215f0445d3c07b4967662a32a2d3e31 # v2.9.0
+        with:
+          header: bundle
+          message: ${{ steps.comment.outputs.body }}
 
   lint:
     needs: list-packages
