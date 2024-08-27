@@ -62,14 +62,19 @@ export const DEFAULT_COINBASE = "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e";
 let _globalEdrContext: EdrContext | undefined;
 
 // Lazy initialize the global EDR context.
-export function getGlobalEdrContext(): EdrContext {
-  const { EdrContext } = requireNapiRsModule(
-    "@nomicfoundation/edr"
-  ) as typeof import("@nomicfoundation/edr");
+export async function getGlobalEdrContext(): Promise<EdrContext> {
+  const { EdrContext, GENERIC_CHAIN_TYPE, genericChainProviderFactory } =
+    requireNapiRsModule(
+      "@nomicfoundation/edr"
+    ) as typeof import("@nomicfoundation/edr");
 
   if (_globalEdrContext === undefined) {
     // Only one is allowed to exist
     _globalEdrContext = new EdrContext();
+    await _globalEdrContext.registerProviderFactory(
+      GENERIC_CHAIN_TYPE,
+      genericChainProviderFactory()
+    );
   }
 
   return _globalEdrContext;
@@ -133,9 +138,10 @@ export class EdrProviderWrapper
     loggerConfig: LoggerConfig,
     tracingConfig?: TracingConfigWithBuffers
   ): Promise<EdrProviderWrapper> {
-    const { Provider } = requireNapiRsModule(
-      "@nomicfoundation/edr"
-    ) as typeof import("@nomicfoundation/edr");
+    const { GENERIC_CHAIN_TYPE, l1GenesisState, l1HardforkFromString } =
+      requireNapiRsModule(
+        "@nomicfoundation/edr"
+      ) as typeof import("@nomicfoundation/edr");
 
     const coinbase = config.coinbase ?? DEFAULT_COINBASE;
 
@@ -179,8 +185,16 @@ export class EdrProviderWrapper
 
     const hardforkName = getHardforkName(config.hardfork);
 
-    const provider = await Provider.withConfig(
-      getGlobalEdrContext(),
+    const genesisState =
+      fork !== undefined
+        ? [] // TODO: Add support for overriding remote fork state when the local fork is different
+        : l1GenesisState(
+            l1HardforkFromString(ethereumsjsHardforkToEdrSpecId(hardforkName))
+          );
+
+    const context = await getGlobalEdrContext();
+    const provider = await context.createProvider(
+      GENERIC_CHAIN_TYPE,
       {
         allowBlocksWithSameTimestamp:
           config.allowBlocksWithSameTimestamp ?? false,
@@ -209,13 +223,8 @@ export class EdrProviderWrapper
         coinbase: Buffer.from(coinbase.slice(2), "hex"),
         enableRip7212: config.enableRip7212,
         fork,
+        genesisState,
         hardfork: ethereumsjsHardforkToEdrSpecId(hardforkName),
-        genesisAccounts: config.genesisAccounts.map((account) => {
-          return {
-            secretKey: account.privateKey,
-            balance: BigInt(account.balance),
-          };
-        }),
         initialDate,
         initialBaseFeePerGas:
           config.initialBaseFeePerGas !== undefined
@@ -230,6 +239,12 @@ export class EdrProviderWrapper
           },
         },
         networkId: BigInt(config.networkId),
+        ownedAccounts: config.genesisAccounts.map((account) => {
+          return {
+            secretKey: account.privateKey,
+            balance: BigInt(account.balance),
+          };
+        }),
       },
       {
         enable: loggerConfig.enabled,
@@ -242,10 +257,12 @@ export class EdrProviderWrapper
           }
         },
       },
-      tracingConfig ?? {},
-      (event: SubscriptionEvent) => {
-        eventAdapter.emit("ethEvent", event);
-      }
+      {
+        subscriptionCallback: (event: SubscriptionEvent) => {
+          eventAdapter.emit("ethEvent", event);
+        },
+      },
+      tracingConfig ?? {}
     );
 
     const minimalEthereumJsNode = {
@@ -398,18 +415,20 @@ export class EdrProviderWrapper
   }
 
   // temporarily added to make smock work with HH+EDR
-  private _setCallOverrideCallback(callback: CallOverrideCallback) {
+  private async _setCallOverrideCallback(
+    callback: CallOverrideCallback
+  ): Promise<void> {
     this._callOverrideCallback = callback;
 
-    this._provider.setCallOverrideCallback(
+    await this._provider.setCallOverrideCallback(
       async (address: Buffer, data: Buffer) => {
         return this._callOverrideCallback?.(address, data);
       }
     );
   }
 
-  private _setVerboseTracing(enabled: boolean) {
-    this._provider.setVerboseTracing(enabled);
+  private async _setVerboseTracing(enabled: boolean): Promise<void> {
+    await this._provider.setVerboseTracing(enabled);
   }
 
   private _ethEventListener(event: SubscriptionEvent) {
