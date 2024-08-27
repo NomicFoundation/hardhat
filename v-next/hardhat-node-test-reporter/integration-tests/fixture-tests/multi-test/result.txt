@@ -1,15 +1,15 @@
 
-  [90m[32m✔[39m[90m integration-tests/fixture-tests/multi-test/fail.ts[39m [31m[3m(76ms)[23m[39m
+  [90m[32m✔[39m[90m integration-tests/fixture-tests/multi-test/fail.ts[39m [31m[3m(167ms)[23m[39m
 
   imported tests
     [90m[32m✔[39m[90m should pass[39m
     [31m1) should fail[39m
 
 
-  [90m[32m✔[39m[90m integration-tests/fixture-tests/multi-test/pass.ts[39m
+  [90m[32m✔[39m[90m integration-tests/fixture-tests/multi-test/pass.ts[39m [31m[3m(165ms)[23m[39m
 
 
-[32m3 passing[39m[90m (112ms)[39m[31m[39m
+[32m3 passing[39m[90m (204ms)[39m[31m[39m
 [31m1 failing[39m
 
   1) imported tests
@@ -22,7 +22,7 @@
    [32m- 2[39m
    [31m+ 1[39m
    
-   [90m    at fail (integration-tests/fixture-tests/multi-test/fail.ts:4:10)[39m
+   [90m    at fail (integration-tests/fixture-tests/multi-test/fail.ts:9:10)[39m
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/multi-test/import.ts:12:5)[39m
    [90m    at Test.runInAsyncScope (node:async_hooks:211:14)[39m
    [90m    at Test.run (node:internal/test_runner/test:878:25)[39m

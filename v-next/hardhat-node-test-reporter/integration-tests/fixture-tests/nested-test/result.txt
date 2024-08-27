@@ -6,7 +6,7 @@
         [31m2) error with cause in nested test[39m
 
 
-[32m1 passing[39m[90m (116ms)[39m[31m[39m
+[32m1 passing[39m[90m (118ms)[39m[31m[39m
 [31m2 failing[39m
 
   1) level 0

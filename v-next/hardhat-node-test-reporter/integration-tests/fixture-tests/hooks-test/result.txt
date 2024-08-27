@@ -19,7 +19,7 @@
     [31m10) should pass, too[39m
 
 
-[32m2 passing[39m[90m (121ms)[39m[31m[39m
+[32m2 passing[39m[90m (120ms)[39m[31m[39m
 [31m4 failing[39m[90m[39m
 [90m4 cancelled[39m
 

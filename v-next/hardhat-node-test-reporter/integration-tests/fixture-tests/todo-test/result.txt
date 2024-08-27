@@ -2,7 +2,7 @@
   [31m1) top level test[39m
 
 
-[32m0 passing[39m[90m (130ms)[39m[34m[39m
+[32m0 passing[39m[90m (114ms)[39m[34m[39m
 [34m1 todo[39m
 
   1) top level test:

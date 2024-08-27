@@ -2,7 +2,7 @@
   [31m1) top level test[39m
 
 
-[32m0 passing[39m[90m (114ms)[39m[31m[39m
+[32m0 passing[39m[90m (116ms)[39m[31m[39m
 [31m1 failing[39m
 [34mℹ[39m 'only' and 'runOnly' require the --test-only command-line option.
 
