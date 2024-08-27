@@ -404,7 +404,7 @@ Please double check your arguments.`,
     },
     INVALID_NAME: {
       number: 503,
-      messageTemplate: "Argument name {name} is invalid",
+      messageTemplate: `Argument name "{name}" is invalid. It must consist only of alphanumeric characters and cannot start with a number.`,
       websiteTitle: "Invalid argument name",
       websiteDescription: `One of your Hardhat or task argument names is invalid.
 
