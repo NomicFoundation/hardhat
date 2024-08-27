@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { describe, it, afterEach } from "node:test";
+import { describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import {
@@ -11,16 +11,16 @@ describe("Hardhat Mocha plugin", () => {
   describe("Success", () => {
     useFixtureProject("test-project");
 
-    afterEach(async () => {
-      const { _resetGlobalHardhatRuntimeEnvironment } = await import(
-        "@ignored/hardhat-vnext"
+    it("should work", async () => {
+      const { createHardhatRuntimeEnvironment } = await import(
+        "@ignored/hardhat-vnext/hre"
       );
 
-      _resetGlobalHardhatRuntimeEnvironment();
-    });
+      const hardhatConfig = await import(
+        "./fixture-projects/test-project/hardhat.config.js"
+      );
 
-    it("should work", async () => {
-      const hre = await import("@ignored/hardhat-vnext");
+      const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
 
       const result = await hre.tasks.getTask("test").run({});
 
@@ -31,21 +31,20 @@ describe("Hardhat Mocha plugin", () => {
   describe("Failure", () => {
     useFixtureProject("invalid-mocha-config");
 
-    afterEach(async () => {
-      const { _resetGlobalHardhatRuntimeEnvironment } = await import(
-        "@ignored/hardhat-vnext"
+    it("should fail", async () => {
+      const { createHardhatRuntimeEnvironment } = await import(
+        "@ignored/hardhat-vnext/hre"
       );
 
-      _resetGlobalHardhatRuntimeEnvironment();
-    });
-
-    it("should fail", async () => {
       const errors =
         "\t* Config error in config.mocha.delay: Expected boolean, received number";
 
+      const hardhatConfig = await import(
+        "./fixture-projects/invalid-mocha-config/hardhat.config.js"
+      );
+
       await assertRejectsWithHardhatError(
-        // @ts-expect-error -- we need to invalidate the import cache to re-import the HRE
-        import("@ignored/hardhat-vnext?config=invalid"),
+        createHardhatRuntimeEnvironment(hardhatConfig.default),
         HardhatError.ERRORS.GENERAL.INVALID_CONFIG,
         { errors },
       );
