@@ -131,11 +131,10 @@ describe("tasks", () => {
         "fetchValue",
         [configVar],
         async (_context, _configVar) => {
-          return "";
+          return "value-from-hardhat-package";
         },
       );
 
-      // This value is coming from the default hook handler defined in the hardhat package
       assert.equal(resultValue, "value-from-hardhat-package");
     });
 
@@ -151,11 +150,10 @@ describe("tasks", () => {
         "fetchValue",
         [configVar],
         async (_context, _configVar) => {
-          return "";
+          return "value-from-hardhat-package";
         },
       );
 
-      // This value is coming from the default hook handler defined in the hardhat package
       assert.equal(resultValue, "value-from-hardhat-package");
     });
   });
