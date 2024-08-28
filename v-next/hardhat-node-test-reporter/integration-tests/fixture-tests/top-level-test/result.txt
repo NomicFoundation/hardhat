@@ -6,7 +6,7 @@
   [31m2) error with cause in top level test[39m
 
 
-[32m1 passing[39m[90m (129ms)[39m[31m[39m
+[32m1 passing[39m[90m (120ms)[39m[31m[39m
 [31m2 failing[39m
 
   1) assertion error in top level test:
@@ -19,12 +19,12 @@
    [31m+ 1[39m
    
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/top-level-test/test.ts:9:10)[39m
-   [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
-   [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
-   [90m    at Test.processPendingSubtests (node:internal/test_runner/test:565:18)[39m
-   [90m    at Test.postRun (node:internal/test_runner/test:955:19)[39m
-   [90m    at Test.run (node:internal/test_runner/test:898:12)[39m
-   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:565:7) {[39m
+   [90m    at Test.runInAsyncScope (node:async_hooks:211:14)[39m
+   [90m    at Test.run (node:internal/test_runner/test:878:25)[39m
+   [90m    at Test.processPendingSubtests (node:internal/test_runner/test:590:18)[39m
+   [90m    at Test.postRun (node:internal/test_runner/test:974:19)[39m
+   [90m    at Test.run (node:internal/test_runner/test:917:12)[39m
+   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:590:7) {[39m
    [90m  generatedMessage: true,[39m
    [90m  code: 'ERR_ASSERTION',[39m
    [90m  actual: 1,[39m
@@ -36,16 +36,16 @@
 
    [31mError: error with cause[39m
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/top-level-test/test.ts:13:9)[39m
-   [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
+   [90m    at Test.runInAsyncScope (node:async_hooks:211:14)[39m
    [90m    ... 4 lines matching cause stack trace ...[39m
-   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:565:7) {[39m
+   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:590:7) {[39m
    [90m  [cause]: Error: cause[39m
    [90m      at TestContext.<anonymous> (integration-tests/fixture-tests/top-level-test/test.ts:14:12)[39m
-   [90m      at Test.runInAsyncScope (node:async_hooks:206:9)[39m
-   [90m      at Test.run (node:internal/test_runner/test:856:25)[39m
-   [90m      at Test.processPendingSubtests (node:internal/test_runner/test:565:18)[39m
-   [90m      at Test.postRun (node:internal/test_runner/test:955:19)[39m
-   [90m      at Test.run (node:internal/test_runner/test:898:12)[39m
-   [90m      at async Test.processPendingSubtests (node:internal/test_runner/test:565:7)[39m
+   [90m      at Test.runInAsyncScope (node:async_hooks:211:14)[39m
+   [90m      at Test.run (node:internal/test_runner/test:878:25)[39m
+   [90m      at Test.processPendingSubtests (node:internal/test_runner/test:590:18)[39m
+   [90m      at Test.postRun (node:internal/test_runner/test:974:19)[39m
+   [90m      at Test.run (node:internal/test_runner/test:917:12)[39m
+   [90m      at async Test.processPendingSubtests (node:internal/test_runner/test:590:7)[39m
    [90m}[39m
 

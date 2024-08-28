@@ -21,7 +21,5 @@ You can run each of the fixture test manually from the package root by building 
 If you want to re-generate all the expected results, you can run the following script from the package root:
 
 ```bash
-for dir in integration-tests/fixture-tests/*; do
-  node --import tsx/esm --test --test-reporter=./dist/src/reporter.js $dir/*.ts --color > $dir/result.txt
-done
+bash scripts/regenerate-fixtures.sh
 ```
