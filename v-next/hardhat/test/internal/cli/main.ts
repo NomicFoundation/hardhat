@@ -244,24 +244,59 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
     });
 
     describe("subtask help", function () {
-      useFixtureProject("cli/parsing/subtask-help");
+      describe("empty subtask", () => {
+        useFixtureProject("cli/parsing/subtask-help");
 
-      it("should print an help message for the task's subtask", async function () {
-        let lines: string = "";
+        it("should print an help message for the task's subtask", async function () {
+          let lines: string = "";
 
-        const command = "npx hardhat empty-task --help";
-        const cliArguments = command.split(" ").slice(2);
+          const command = "npx hardhat empty-task --help";
+          const cliArguments = command.split(" ").slice(2);
 
-        await main(cliArguments, (msg) => {
-          lines = msg;
-        });
+          await main(cliArguments, (msg) => {
+            lines = msg;
+          });
 
-        const expected = `${chalk.bold("empty task description")}
+          const expected = `${chalk.bold("empty task description")}
 
 Usage: hardhat [GLOBAL OPTIONS] empty-task <SUBTASK> [SUBTASK OPTIONS] [--] [SUBTASK POSITIONAL ARGUMENTS]
 `;
 
-        assert.equal(lines, expected);
+          assert.equal(lines, expected);
+        });
+      });
+
+      describe("task with default values", () => {
+        useFixtureProject("cli/parsing/default-values");
+
+        it("should print the default values for the task's subtask", async function () {
+          let lines: string = "";
+
+          const command = "npx hardhat test subtask --help";
+          const cliArguments = command.split(" ").slice(2);
+
+          await main(cliArguments, (msg) => {
+            lines = msg;
+          });
+
+          const expected = `${chalk.bold("subtask")}
+
+Usage: hardhat [GLOBAL OPTIONS] test [--opt <STRING>] [--] pos1 [pos2] [var1]
+
+OPTIONS:
+
+  --opt      opt description (default: opt default value)
+
+POSITIONAL ARGUMENTS:
+
+  pos1       pos1 description
+  pos2       pos2 description (default: pos2 default value)
+  var1       var1 description (default: var1 default value 1, var1 default value 2)
+
+For global options help run: hardhat --help`;
+
+          assert.equal(lines, expected);
+        });
       });
     });
 

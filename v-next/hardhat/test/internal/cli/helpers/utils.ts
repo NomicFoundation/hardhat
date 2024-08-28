@@ -173,6 +173,7 @@ describe("utils", function () {
             name: "anotherPositionalArgument",
             description: "Another example argument",
             isRequired: false,
+            defaultValue: "default",
           },
         ],
       });
