@@ -1,4 +1,4 @@
-import type { Keystore } from "../src/types.js";
+import type { KeystoreFile } from "../src/types.js";
 
 import path from "node:path";
 
@@ -12,7 +12,7 @@ import envPaths from "env-paths";
 export async function createKeyStore(
   pairs: Array<[string, string]>,
 ): Promise<void> {
-  const keystore: Keystore = {
+  const keystore: KeystoreFile = {
     version: "",
     keys: {},
   };

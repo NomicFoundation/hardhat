@@ -1,12 +1,12 @@
-import type { Keystore } from "../types.js";
+import type { KeystoreFile } from "../types.js";
 
 import { HardhatPluginError } from "@ignored/hardhat-vnext-errors";
 
 import { PLUGIN_ID } from "../constants.js";
 
 export function assertKeyStore(
-  keystore: Keystore | undefined,
-): asserts keystore is Keystore {
+  keystore: KeystoreFile | undefined,
+): asserts keystore is KeystoreFile {
   if (keystore === undefined) {
     throw new HardhatPluginError(
       PLUGIN_ID,

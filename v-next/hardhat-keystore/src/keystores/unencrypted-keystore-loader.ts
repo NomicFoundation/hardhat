@@ -1,4 +1,4 @@
-import type { Keystore } from "../types.js";
+import type { KeystoreFile } from "../types.js";
 
 import path from "node:path";
 
@@ -15,15 +15,15 @@ import { assertFilePath } from "../utils/assert-file-path.js";
 import { assertKeyStore } from "../utils/assert-keystore.js";
 import { getConfigDir } from "../utils/get-config-dir.js";
 
-let keystoreCache: Keystore | undefined;
+let keystoreCache: KeystoreFile | undefined;
 let keystoreFilePath: string | undefined;
 
 // ATTENTION: For testing purposes
-export function setKeystoreCache(value: Keystore | undefined): void {
+export function setKeystoreCache(value: KeystoreFile | undefined): void {
   keystoreCache = value;
 }
 
-export async function getKeystore(): Promise<Keystore | undefined> {
+export async function getKeystore(): Promise<KeystoreFile | undefined> {
   if (keystoreCache !== undefined) {
     return keystoreCache;
   }
@@ -35,7 +35,7 @@ export async function getKeystore(): Promise<Keystore | undefined> {
     return undefined;
   }
 
-  const keystore: Keystore = await readJsonFile(keystoreFilePath);
+  const keystore: KeystoreFile = await readJsonFile(keystoreFilePath);
 
   keystoreCache = keystore;
 
