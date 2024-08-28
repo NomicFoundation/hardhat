@@ -1,6 +1,6 @@
 import chalk from "chalk";
 
-import { io } from "../io.js";
+import { io } from "../ui/io.js";
 
 export function showMsgNoKeystoreSet(): void {
   io.info(

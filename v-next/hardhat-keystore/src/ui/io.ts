@@ -1,7 +1,7 @@
 import { HardhatPluginError } from "@ignored/hardhat-vnext-errors";
 import chalk from "chalk";
 
-import { PLUGIN_ID } from "./index.js";
+import { PLUGIN_ID } from "../index.js";
 
 export const io = {
   info: (message: string): void => {

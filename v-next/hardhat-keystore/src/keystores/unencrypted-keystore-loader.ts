@@ -9,8 +9,8 @@ import {
   writeJsonFile,
 } from "@ignored/hardhat-vnext-utils/fs";
 
-import { io } from "../io.js";
-import { setUpPassword } from "../password-manager.js";
+import { io } from "../ui/io.js";
+import { setUpPassword } from "../ui/password-manager.js";
 import { assertFilePath } from "../utils/assert-file-path.js";
 import { getConfigDir } from "../utils/get-config-dir.js";
 

@@ -13,7 +13,7 @@ import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-uti
 import chalk from "chalk";
 
 import hardhatKeystorePlugin from "../src/index.js";
-import { io } from "../src/io.js";
+import { io } from "../src/ui/io.js";
 
 import {
   createKeyStore,

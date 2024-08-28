@@ -1,7 +1,7 @@
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
 import { UnencryptedKeystoreLoader } from "../keystores/unencrypted-keystore-loader.js";
-import { isAuthorized } from "../password-manager.js";
+import { isAuthorized } from "../ui/password-manager.js";
 import { showMsgNoKeystoreSet } from "../utils/show-msg-no-keystore-set.js";
 
 interface TaskDeleteArguments {

@@ -3,7 +3,7 @@ import type { Keystore, KeystoreFile } from "../types.js";
 import { writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
 import chalk from "chalk";
 
-import { io } from "../io.js";
+import { io } from "../ui/io.js";
 import { assertFilePath } from "../utils/assert-file-path.js";
 import { assertKeyStore } from "../utils/assert-keystore.js";
 

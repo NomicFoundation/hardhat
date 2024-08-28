@@ -1,4 +1,4 @@
-import { io } from "../io.js";
+import { io } from "../ui/io.js";
 
 export function validateKey(key: string): boolean {
   const KEY_REGEX = /^[a-zA-Z_]+[a-zA-Z0-9_]*$/;
