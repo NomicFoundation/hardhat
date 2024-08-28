@@ -2,8 +2,6 @@ import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
 
 import { ArgumentType, task } from "@ignored/hardhat-vnext/config";
 
-import { get, list, remove, set } from "./methods.js";
-
 export const PLUGIN_ID = "hardhat-keystore";
 
 const hardhatKeystorePlugin: HardhatPlugin = {
@@ -31,10 +29,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         name: "force",
         description: "Forces overwrite if the key already exists.",
       })
-      .setAction(async ({ key, force }) => {
-        // await set(key, hre);
-        await set(key, force);
-      })
+      .setAction(import.meta.resolve("./tasks/set.js"))
       .build(),
 
     task(["keystore", "get"], "Get a value given a key")
@@ -43,15 +38,11 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         type: ArgumentType.STRING,
         description: "Specifies the key to retrieve the value for",
       })
-      .setAction(async ({ key }) => {
-        await get(key);
-      })
+      .setAction(import.meta.resolve("./tasks/get.js"))
       .build(),
 
     task(["keystore", "list"], "List all keys in the keystore")
-      .setAction(async () => {
-        await list();
-      })
+      .setAction(import.meta.resolve("./tasks/list.js"))
       .build(),
 
     task(["keystore", "delete"], "Delete a key from the keystore")
@@ -60,9 +51,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         type: ArgumentType.STRING,
         description: "Specifies the key to delete from the keystore",
       })
-      .setAction(async ({ key }) => {
-        await remove(key);
-      })
+      .setAction(import.meta.resolve("./tasks/delete.js"))
       .build(),
   ],
 };
