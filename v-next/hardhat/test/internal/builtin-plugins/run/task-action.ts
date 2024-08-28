@@ -3,11 +3,13 @@ import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core/type
 import { before, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import {
+  assertRejectsWithHardhatError,
+  useFixtureProject,
+} from "@nomicfoundation/hardhat-test-utils";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import runScriptWithHardhat from "../../../../src/internal/builtin-plugins/run/task-action.js";
-import { useFixtureProject } from "../../../helpers/project.js";
 
 describe("run/task-action", function () {
   let hre: HardhatRuntimeEnvironment;

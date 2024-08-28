@@ -3,6 +3,12 @@
   "references": [
     {
       "path": "../hardhat"
+    },
+    {
+      "path": "../hardhat-node-test-runner"
+    },
+    {
+      "path": "../hardhat-mocha-test-runner"
     }
   ]
 }

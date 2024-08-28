@@ -4,8 +4,8 @@ import { before, after } from "node:test";
 import { exists, getRealPath } from "@ignored/hardhat-vnext-utils/fs";
 
 /**
- * This helper adds mocha hooks to run the tests inside one of the projects
- * from test/fixture-projects.
+ * This helper adds node:test hooks to run the tests inside one of the projects
+ * from test/fixture-projects. Assumes you are running from the root of the project.
  *
  * @param projectName The base name of the folder with the project to use.
  * @param changeDirTo If provided, the working directory will be changed to this. Must be a child of the project folder.
@@ -35,8 +35,8 @@ async function getFixtureProjectPath(
   const normalizedProjectName = projectName.replaceAll("/", path.sep);
 
   let projectPath = path.join(
-    import.meta.dirname,
-    "..",
+    process.cwd(),
+    "test",
     "fixture-projects",
     normalizedProjectName,
   );

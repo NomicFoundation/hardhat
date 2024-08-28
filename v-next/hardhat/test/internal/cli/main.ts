@@ -25,6 +25,7 @@ import { isCi } from "@ignored/hardhat-vnext-utils/ci";
 import {
   assertThrowsHardhatError,
   assertRejectsWithHardhatError,
+  useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import chalk from "chalk";
 
@@ -38,7 +39,6 @@ import {
 } from "../../../src/internal/cli/main.js";
 import { resetGlobalHardhatRuntimeEnvironment } from "../../../src/internal/global-hre-instance.js";
 import { getHardhatVersion } from "../../../src/internal/utils/package.js";
-import { useFixtureProject } from "../../helpers/project.js";
 
 async function getTasksAndHreEnvironment(
   tasksBuilders: NewTaskDefinitionBuilder[],
