@@ -7,5 +7,12 @@ export interface KeystoreFile {
 
 export interface KeystoreLoader {
   hasKeystore: () => Promise<boolean>;
-  loadOrInit: () => Promise<KeystoreFile>;
+  loadOrInit: () => Promise<Keystore>;
+}
+
+export interface Keystore {
+  listKeys(): Promise<string[]>;
+  addNewSecret(key: string, force: boolean): Promise<void>;
+  removeKey(key: string): Promise<void>;
+  readValue(key: string): Promise<string | undefined>;
 }

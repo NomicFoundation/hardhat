@@ -1,12 +1,9 @@
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
 import { io } from "../io.js";
-import {
-  addNewSecret,
-  UnencryptedKeystoreLoader,
-  validateKey,
-} from "../keystores/unencrypted-keystore-loader.js";
+import { UnencryptedKeystoreLoader } from "../keystores/unencrypted-keystore-loader.js";
 import { isAuthorized } from "../password-manager.js";
+import { validateKey } from "../utils/validate-key.js";
 
 interface TaskGetArguments {
   key: string;
@@ -19,7 +16,7 @@ const taskSet: NewTaskActionFunction<TaskGetArguments> = async ({
 }) => {
   const loader = new UnencryptedKeystoreLoader();
 
-  await loader.loadOrInit();
+  const keystore = await loader.loadOrInit();
 
   if (!validateKey(key)) {
     return;
@@ -29,7 +26,7 @@ const taskSet: NewTaskActionFunction<TaskGetArguments> = async ({
     return;
   }
 
-  await addNewSecret(key, force);
+  await keystore.addNewSecret(key, force);
 
   io.info(`Key "${key}" set`);
 };

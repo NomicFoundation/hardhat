@@ -14,14 +14,16 @@ const taskList: NewTaskActionFunction = async () => {
 
   const keystore = await loader.loadOrInit();
 
+  const keys = await keystore.listKeys();
+
   // No authorization needed, it only shows the keys, not the secret values
-  if (Object.keys(keystore.keys).length === 0) {
+  if (keys.length === 0) {
     io.info("The keystore does not contain any keys.");
     return;
   }
 
   io.info("Keys:");
-  for (const key of Object.keys(keystore.keys)) {
+  for (const key of keys) {
     io.info(key);
   }
 };

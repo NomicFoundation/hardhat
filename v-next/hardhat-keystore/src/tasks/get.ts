@@ -23,14 +23,16 @@ const taskGet: NewTaskActionFunction<TaskGetArguments> = async ({ key }) => {
     return;
   }
 
-  if (keystore.keys[key] === undefined) {
+  const value = await keystore.readValue(key);
+
+  if (value === undefined) {
     io.error(`Key "${key}" not found`);
     return;
   }
 
-  io.info(keystore.keys[key]);
+  io.info(value);
 
-  return keystore.keys[key];
+  return value;
 };
 
 export default taskGet;

@@ -14,7 +14,6 @@ import chalk from "chalk";
 
 import hardhatKeystorePlugin from "../src/index.js";
 import { io } from "../src/io.js";
-import { setKeystoreCache } from "../src/keystores/unencrypted-keystore-loader.js";
 
 import {
   createKeyStore,
@@ -62,7 +61,6 @@ describe("tasks", () => {
 
   beforeEach(async () => {
     // Simulate a new use of the plugin every time a test is run
-    setKeystoreCache(undefined);
     await deleteKeystore();
   });
 
