@@ -13,7 +13,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
   },
   tasks: [
     task("keystore", "Store your keys in a secure way")
-      .setAction(async (_, _hre) => {})
+      .setAction(async () => {})
       .build(),
 
     task(

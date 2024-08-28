@@ -4,7 +4,7 @@ import type {
   HookContext,
 } from "@ignored/hardhat-vnext/types/hooks";
 
-import { get } from "../methods.js";
+import get from "../tasks/get.js";
 import { getKeystore } from "../utils.js";
 
 export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
@@ -20,7 +20,8 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
         return next(context, variable);
       }
 
-      const value = await get(variable.name);
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- this is temporary as part of a refactor
+      const value = await get({ key: variable.name }, null as any);
 
       return value ?? next(context, variable);
     },

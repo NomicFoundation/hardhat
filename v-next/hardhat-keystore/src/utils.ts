@@ -12,8 +12,8 @@ import {
 import chalk from "chalk";
 import envPaths from "env-paths";
 
+import { PLUGIN_ID } from "./constants.js";
 import { io } from "./io.js";
-import { PLUGIN_ID } from "./methods.js";
 import { setUpPassword } from "./password-manager.js";
 
 let keystoreCache: Keystore | undefined;
