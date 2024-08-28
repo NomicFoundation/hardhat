@@ -106,10 +106,9 @@ function normalizeOutputs(output: string): string {
       .replaceAll(/\(.*?:\d+:\d+\)/g, (match) => {
         return match.replaceAll(path.sep, "/");
       })
-      // Normalize line:column to X:X within the node:.*:line:column
-      // part of the stack traces
-      .replaceAll(/node:.*:\d+:\d+/g, (match) => {
-        return match.replace(/\d+:\d+/, "X:X");
-      })
+      // Remove lines like `at TestHook.run (node:internal/test_runner/test:1107:18)`
+      .replace(/^.*?at .*? \(node\:.*?:\d+:\d+\).*?$/gm, "")
+      // Remove lines like `at node:internal/test_runner/test:776:20`
+      .replace(/^.*?at node\:.*?:\d+:\d+.*?$/gm, "")
   );
 }
