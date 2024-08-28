@@ -1,3 +1,4 @@
+import type { KeystoreFile } from "../src/types.js";
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
 import type { Task } from "@ignored/hardhat-vnext/types/tasks";
 import type { Mock } from "node:test";
@@ -7,16 +8,13 @@ import { afterEach, before, beforeEach, describe, it, mock } from "node:test";
 
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { exists } from "@ignored/hardhat-vnext-utils/fs";
+import { exists, readJsonFile } from "@ignored/hardhat-vnext-utils/fs";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import chalk from "chalk";
 
 import hardhatKeystorePlugin from "../src/index.js";
 import { io } from "../src/io.js";
-import {
-  getKeystore,
-  setKeystoreCache,
-} from "../src/keystores/unencrypted-keystore-loader.js";
+import { setKeystoreCache } from "../src/keystores/unencrypted-keystore-loader.js";
 
 import {
   createKeyStore,
@@ -387,3 +385,16 @@ key2`,
     });
   });
 });
+
+async function getKeystore(): Promise<KeystoreFile | undefined> {
+  const keystoreFilePath = await getKeystoreFilePath();
+
+  const fileExists = await exists(keystoreFilePath);
+  if (fileExists === false) {
+    return undefined;
+  }
+
+  const keystore: KeystoreFile = await readJsonFile(keystoreFilePath);
+
+  return keystore;
+}

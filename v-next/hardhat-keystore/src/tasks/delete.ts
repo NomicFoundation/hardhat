@@ -1,8 +1,8 @@
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
 import {
-  getKeystore,
   removeKey,
+  UnencryptedKeystoreLoader,
 } from "../keystores/unencrypted-keystore-loader.js";
 import { isAuthorized } from "../password-manager.js";
 import { showMsgNoKeystoreSet } from "../utils/show-msg-no-keystore-set.js";
@@ -14,9 +14,10 @@ interface TaskDeleteArguments {
 const taskDelete: NewTaskActionFunction<TaskDeleteArguments> = async ({
   key,
 }) => {
-  const keystore = await getKeystore();
+  const loader = new UnencryptedKeystoreLoader();
 
-  if (keystore === undefined) {
+  const hasKeystore = await loader.hasKeystore();
+  if (!hasKeystore) {
     return showMsgNoKeystoreSet();
   }
 

@@ -1,7 +1,8 @@
-import type { KeystoreFile } from "../types.js";
+import type { KeystoreFile, KeystoreLoader } from "../types.js";
 
 import path from "node:path";
 
+import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import {
   exists,
   readJsonFile,
@@ -23,7 +24,34 @@ export function setKeystoreCache(value: KeystoreFile | undefined): void {
   keystoreCache = value;
 }
 
-export async function getKeystore(): Promise<KeystoreFile | undefined> {
+export class UnencryptedKeystoreLoader implements KeystoreLoader {
+  public async hasKeystore(): Promise<boolean> {
+    const keystore = await getKeystore();
+
+    return keystore !== undefined;
+  }
+
+  public async loadOrInit(): Promise<KeystoreFile> {
+    const keystore = await getKeystore();
+
+    if (keystore === undefined) {
+      await setupKeystore();
+
+      const newKeystore = await getKeystore();
+
+      assertHardhatInvariant(
+        newKeystore !== undefined,
+        "Keystore should be defined after setup",
+      );
+
+      return newKeystore;
+    }
+
+    return keystore;
+  }
+}
+
+async function getKeystore(): Promise<KeystoreFile | undefined> {
   if (keystoreCache !== undefined) {
     return keystoreCache;
   }
@@ -42,7 +70,7 @@ export async function getKeystore(): Promise<KeystoreFile | undefined> {
   return keystore;
 }
 
-export async function setupKeystore(): Promise<void> {
+async function setupKeystore(): Promise<void> {
   io.info("\n👷🔐 Hardhat-Keystore 🔐👷\n");
 
   await setUpPassword();

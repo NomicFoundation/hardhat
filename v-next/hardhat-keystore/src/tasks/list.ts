@@ -1,15 +1,18 @@
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
 import { io } from "../io.js";
-import { getKeystore } from "../keystores/unencrypted-keystore-loader.js";
+import { UnencryptedKeystoreLoader } from "../keystores/unencrypted-keystore-loader.js";
 import { showMsgNoKeystoreSet } from "../utils/show-msg-no-keystore-set.js";
 
 const taskList: NewTaskActionFunction = async () => {
-  const keystore = await getKeystore();
+  const loader = new UnencryptedKeystoreLoader();
 
-  if (keystore === undefined) {
+  const hasKeystore = await loader.hasKeystore();
+  if (!hasKeystore) {
     return showMsgNoKeystoreSet();
   }
+
+  const keystore = await loader.loadOrInit();
 
   // No authorization needed, it only shows the keys, not the secret values
   if (Object.keys(keystore.keys).length === 0) {

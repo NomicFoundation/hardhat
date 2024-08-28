@@ -4,7 +4,7 @@ import type {
   HookContext,
 } from "@ignored/hardhat-vnext/types/hooks";
 
-import { getKeystore } from "../keystores/unencrypted-keystore-loader.js";
+import { UnencryptedKeystoreLoader } from "../keystores/unencrypted-keystore-loader.js";
 import get from "../tasks/get.js";
 
 export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
@@ -14,9 +14,10 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
       variable: ConfigurationVariable,
       next,
     ) => {
-      const keystore = await getKeystore();
+      const loader = new UnencryptedKeystoreLoader();
 
-      if (keystore === undefined) {
+      const hasKeystore = await loader.hasKeystore();
+      if (!hasKeystore) {
         return next(context, variable);
       }
 

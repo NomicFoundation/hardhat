@@ -4,3 +4,8 @@ export interface KeystoreFile {
     [key: string]: string;
   };
 }
+
+export interface KeystoreLoader {
+  hasKeystore: () => Promise<boolean>;
+  loadOrInit: () => Promise<KeystoreFile>;
+}
