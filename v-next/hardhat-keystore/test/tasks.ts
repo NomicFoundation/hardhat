@@ -13,7 +13,10 @@ import chalk from "chalk";
 
 import hardhatKeystorePlugin from "../src/index.js";
 import { io } from "../src/io.js";
-import { getKeystore, setKeystoreCache } from "../src/utils.js";
+import {
+  getKeystore,
+  setKeystoreCache,
+} from "../src/keystores/unencrypted-keystore-loader.js";
 
 import {
   createKeyStore,

@@ -1,20 +1,19 @@
-import type { Keystore } from "./types.js";
+import type { Keystore } from "../types.js";
 
 import path from "node:path";
 
-import { HardhatPluginError } from "@ignored/hardhat-vnext-errors";
 import {
-  ensureDir,
   exists,
   readJsonFile,
   writeJsonFile,
 } from "@ignored/hardhat-vnext-utils/fs";
 import chalk from "chalk";
-import envPaths from "env-paths";
 
-import { PLUGIN_ID } from "./constants.js";
-import { io } from "./io.js";
-import { setUpPassword } from "./password-manager.js";
+import { io } from "../io.js";
+import { setUpPassword } from "../password-manager.js";
+import { assertFilePath } from "../utils/assert-file-path.js";
+import { assertKeyStore } from "../utils/assert-keystore.js";
+import { getConfigDir } from "../utils/get-config-dir.js";
 
 let keystoreCache: Keystore | undefined;
 let keystoreFilePath: string | undefined;
@@ -112,30 +111,4 @@ export async function addNewSecret(key: string, force: boolean): Promise<void> {
 async function getKeystoreFilePath(): Promise<string> {
   const configDirPath = await getConfigDir();
   return path.join(configDirPath, "keystore.json");
-}
-
-function assertKeyStore(
-  keystore: Keystore | undefined,
-): asserts keystore is Keystore {
-  if (keystore === undefined) {
-    throw new HardhatPluginError(
-      PLUGIN_ID,
-      "The keystore should be available at this point!",
-    );
-  }
-}
-
-function assertFilePath(fileP: string | undefined): asserts fileP is string {
-  if (fileP === undefined) {
-    throw new HardhatPluginError(
-      PLUGIN_ID,
-      "The filePath should be available at this point!",
-    );
-  }
-}
-
-async function getConfigDir(): Promise<string> {
-  const { config } = envPaths("hardhat");
-  await ensureDir(config);
-  return config;
 }

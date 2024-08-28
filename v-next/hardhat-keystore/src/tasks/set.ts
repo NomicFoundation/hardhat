@@ -1,13 +1,13 @@
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
 import { io } from "../io.js";
-import { isAuthorized } from "../password-manager.js";
 import {
   addNewSecret,
   getKeystore,
   setupKeystore,
   validateKey,
-} from "../utils.js";
+} from "../keystores/unencrypted-keystore-loader.js";
+import { isAuthorized } from "../password-manager.js";
 
 interface TaskGetArguments {
   key: string;

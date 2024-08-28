@@ -1,8 +1,8 @@
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
 import { io } from "../io.js";
+import { getKeystore } from "../keystores/unencrypted-keystore-loader.js";
 import { showMsgNoKeystoreSet } from "../utils/show-msg-no-keystore-set.js";
-import { getKeystore } from "../utils.js";
 
 const taskList: NewTaskActionFunction = async () => {
   const keystore = await getKeystore();

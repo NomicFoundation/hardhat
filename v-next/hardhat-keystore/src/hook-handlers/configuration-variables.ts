@@ -4,8 +4,8 @@ import type {
   HookContext,
 } from "@ignored/hardhat-vnext/types/hooks";
 
+import { getKeystore } from "../keystores/unencrypted-keystore-loader.js";
 import get from "../tasks/get.js";
-import { getKeystore } from "../utils.js";
 
 export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
   const handlers: Partial<ConfigurationVariableHooks> = {

@@ -7,7 +7,7 @@ import { afterEach, before, beforeEach, describe, it } from "node:test";
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 
 import hardhatKeystorePlugin from "../src/index.js";
-import { setKeystoreCache } from "../src/utils.js";
+import { setKeystoreCache } from "../src/keystores/unencrypted-keystore-loader.js";
 
 import { createKeyStore, deleteKeystore } from "./helpers.js";
 
