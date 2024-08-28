@@ -1,4 +1,5 @@
 import type { ArgumentType } from "@ignored/hardhat-vnext-core/config";
+import type { ArgumentTypeToValueType } from "@ignored/hardhat-vnext-core/types/arguments";
 import type { GlobalOptionDefinitions } from "@ignored/hardhat-vnext-core/types/global-options";
 import type { Task } from "@ignored/hardhat-vnext-core/types/tasks";
 
@@ -10,6 +11,7 @@ interface ArgumentDescriptor {
   name: string;
   description: string;
   type?: ArgumentType;
+  defaultValue?: ArgumentTypeToValueType<ArgumentType>;
   isRequired?: boolean;
 }
 
@@ -67,14 +69,22 @@ export function parseOptions(task: Task): {
       name: toCommandLineOption(optionName),
       description: option.description,
       type: option.type,
+      ...(option.defaultValue !== undefined && {
+        defaultValue: option.defaultValue,
+      }),
     });
   }
 
-  for (const argument of task.positionalArguments) {
+  for (const { name, description, defaultValue } of task.positionalArguments) {
     positionalArguments.push({
-      name: argument.name,
-      description: argument.description,
-      isRequired: argument.defaultValue === undefined,
+      name,
+      description,
+      isRequired: defaultValue === undefined,
+      ...(defaultValue !== undefined && {
+        defaultValue: Array.isArray(defaultValue)
+          ? defaultValue.join(", ")
+          : defaultValue,
+      }),
     });
   }
 
@@ -96,9 +106,11 @@ export function getSection(
 ): string {
   return `\n${title}:\n\n${items
     .sort((a, b) => a.name.localeCompare(b.name))
-    .map(
-      ({ name, description }) => `  ${name.padEnd(namePadding)}${description}`,
-    )
+    .map(({ name, description, defaultValue }) => {
+      const defaultValueStr =
+        defaultValue !== undefined ? ` (default: ${defaultValue})` : "";
+      return `  ${name.padEnd(namePadding)}${description}${defaultValueStr}`;
+    })
     .join("\n")}\n`;
 }
 

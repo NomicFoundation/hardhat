@@ -12,8 +12,6 @@ import type {
   TaskArguments,
 } from "@ignored/hardhat-vnext-core/types/tasks";
 
-import "tsx"; // NOTE: This is important, it allows us to load .ts files form the CLI
-
 import {
   buildGlobalOptionDefinitions,
   parseArgumentValue,
