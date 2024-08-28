@@ -21,7 +21,7 @@ for dir in integration-tests/fixture-tests/**; do
   node --import tsx/esm --test --test-reporter=./dist/src/reporter.js $dir/*.ts --color > $dir/result.txt || true # Ignore failures, as they are expected
 
   cat $dir/result.txt | aha --black > $dir/result.html;
-  
+
   wkhtmltoimage --quiet --format svg $dir/result.html $dir/result.svg;
 
   rm $dir/result.html
