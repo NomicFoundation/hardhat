@@ -1510,6 +1510,9 @@ importers:
       '@ignored/hardhat-vnext':
         specifier: workspace:^3.0.0-next.3
         version: link:../hardhat
+      '@ignored/hardhat-vnext-keystore':
+        specifier: workspace:^3.0.0-next.2
+        version: link:../hardhat-keystore
       '@ignored/hardhat-vnext-mocha-test-runner':
         specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-mocha-test-runner

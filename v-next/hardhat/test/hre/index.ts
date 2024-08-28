@@ -152,7 +152,6 @@ describe("HRE", () => {
           init: false,
           showStackTraces: false,
           version: false,
-          fooPluginFlag: false,
           myGlobalOption: "default",
         });
       });

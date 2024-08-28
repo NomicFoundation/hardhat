@@ -107,8 +107,8 @@ const config: HardhatUserConfig = {
   ],
   plugins: [
     pluginExample,
-    HardhatMochaTestRunner,
     HardhatKeystore,
+    HardhatMochaTestRunner,
     // if testing node plugin, use the following line instead
     // HardhatNodeTestRunner,
   ],
