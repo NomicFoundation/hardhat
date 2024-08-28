@@ -12,3 +12,6 @@
 
 # c8 output
 /coverage
+
+# pnpm deploy output
+/bundle

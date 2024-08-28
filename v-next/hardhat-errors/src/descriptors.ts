@@ -404,7 +404,7 @@ Please double check your arguments.`,
     },
     INVALID_NAME: {
       number: 503,
-      messageTemplate: "Argument name {name} is invalid",
+      messageTemplate: `Argument name "{name}" is invalid. It must consist only of alphanumeric characters and cannot start with a number.`,
       websiteTitle: "Invalid argument name",
       websiteDescription: `One of your Hardhat or task argument names is invalid.
 
@@ -472,6 +472,13 @@ Please double check your script's path.`,
       websiteDescription: `Running a script resulted in an error.
 
 Please check Hardhat's output for more details.`,
+    },
+    TEST_TASK_ESM_TESTS_RUN_TWICE: {
+      number: 602,
+      messageTemplate: `Your project uses ESM and you've programmatically run your tests twice. This is not supported yet.`,
+      websiteTitle: "Running tests twice in an ESM project",
+      websiteDescription:
+        'You have run your tests twice programmatically and your project is an ESM project (you have `"type": "module"` in your `package.json`, or some of your files have the `.mjs` extension). This is not supported by Mocha yet (https://github.com/mochajs/mocha/issues/2706).',
     },
   },
   NETWORK: {

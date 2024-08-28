@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import {
+  assertRejectsWithHardhatError,
+  useFixtureProject,
+} from "@nomicfoundation/hardhat-test-utils";
 
 import { resolveHardhatConfigPath } from "../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../src/hre.js";
@@ -12,7 +15,6 @@ import {
   resetGlobalHardhatRuntimeEnvironment,
   setGlobalHardhatRuntimeEnvironment,
 } from "../../src/internal/global-hre-instance.js";
-import { useFixtureProject } from "../helpers/project.js";
 
 describe("HRE", () => {
   afterEach(() => {

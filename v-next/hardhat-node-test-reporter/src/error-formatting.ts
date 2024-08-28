@@ -5,6 +5,7 @@ import { inspect } from "node:util";
 import chalk from "chalk";
 import { diff } from "jest-diff";
 
+import { indent } from "./formatting.js";
 import {
   cleanupTestFailError,
   isCancelledByParentError,
@@ -18,7 +19,10 @@ export function formatError(error: Error): string {
       chalk.red("Test cancelled by parent error") +
       "\n" +
       chalk.gray(
-        "    This test was cancelled due to an error in its parent suite/it or test/it, or in one of its before/beforeEach",
+        indent(
+          "This test was cancelled due to an error in its parent suite/it or test/it, or in one of its before/beforeEach",
+          4,
+        ),
       )
     );
   }
@@ -27,7 +31,7 @@ export function formatError(error: Error): string {
     return (
       chalk.red(`Test file execution failed (exit code ${error.exitCode}).`) +
       "\n" +
-      chalk.gray("    Did you forget to await a promise?")
+      chalk.gray(indent("Did you forget to await a promise?", 4))
     );
   }
 
