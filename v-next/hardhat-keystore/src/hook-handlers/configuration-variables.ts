@@ -14,9 +14,9 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
       variable: ConfigurationVariable,
       next,
     ) => {
-      const keystores = await getKeystore();
+      const keystore = await getKeystore();
 
-      if (keystores === undefined) {
+      if (keystore === undefined) {
         return next(context, variable);
       }
 
