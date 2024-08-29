@@ -70,3 +70,27 @@ export class RawInterruptionsImpl implements RawInterruptions {
     });
   }
 }
+
+export class HookRawInterruptionsImpl implements RawInterruptions {
+  readonly #context: HookContext;
+
+  constructor(context: HookContext) {
+    this.#context = context;
+  }
+
+  public async info(message: string): Promise<void> {
+    await this.#context.interruptions.displayMessage(PLUGIN_ID, message);
+  }
+
+  public async warn(): Promise<void> {
+    throw new HardhatPluginError(PLUGIN_ID, "this should not be called");
+  }
+
+  public async error(): Promise<void> {
+    throw new HardhatPluginError(PLUGIN_ID, "this should not be called");
+  }
+
+  public async requestSecretInput(): Promise<string> {
+    throw new HardhatPluginError(PLUGIN_ID, "this should not be called");
+  }
+}

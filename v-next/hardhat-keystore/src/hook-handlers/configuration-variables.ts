@@ -6,7 +6,7 @@ import type {
 
 import { UnencryptedKeystoreLoader } from "../keystores/unencrypted-keystore-loader.js";
 import get from "../tasks/get.js";
-import { RawInterruptionsImpl } from "../ui/raw-interruptions.js";
+import { HookRawInterruptionsImpl } from "../ui/raw-interruptions.js";
 
 export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
   const handlers: Partial<ConfigurationVariableHooks> = {
@@ -15,7 +15,7 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
       variable: ConfigurationVariable,
       next,
     ) => {
-      const interruptions = new RawInterruptionsImpl();
+      const interruptions = new HookRawInterruptionsImpl(context);
       const loader = new UnencryptedKeystoreLoader(interruptions);
 
       const hasKeystore = await loader.hasKeystore();
