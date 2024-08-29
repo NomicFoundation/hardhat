@@ -1,19 +1,24 @@
+import type { RawInterruptions } from "../types.js";
+
 import { HardhatPluginError } from "@ignored/hardhat-vnext-errors";
 import chalk from "chalk";
 
 import { PLUGIN_ID } from "../index.js";
 
-export const io = {
-  info: (message: string): void => {
+export class RawInterruptionsImpl implements RawInterruptions {
+  public info(message: string): void {
     console.log(message);
-  },
-  warn: (message: string): void => {
+  }
+
+  public warn(message: string): void {
     console.info(chalk.yellow(message));
-  },
-  error: (message: string): void => {
+  }
+
+  public error(message: string): void {
     console.error(chalk.red(message));
-  },
-  requestSecretInput: async (inputDescription: string): Promise<string> => {
+  }
+
+  public async requestSecretInput(inputDescription: string): Promise<string> {
     const { createInterface } = await import("node:readline");
 
     const rl = createInterface({
@@ -62,5 +67,5 @@ export const io = {
         rl.close();
       });
     });
-  },
-};
+  }
+}

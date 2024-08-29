@@ -1,9 +1,9 @@
+import type { RawInterruptions } from "../types.js";
+
 import chalk from "chalk";
 
-import { io } from "../ui/io.js";
-
-export function showMsgNoKeystoreSet(): void {
-  io.info(
+export function showMsgNoKeystoreSet(interruptions: RawInterruptions): void {
+  interruptions.info(
     `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
   );
 }

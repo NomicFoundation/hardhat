@@ -1,4 +1,9 @@
-import type { Keystore, KeystoreFile, KeystoreLoader } from "../types.js";
+import type {
+  Keystore,
+  KeystoreFile,
+  KeystoreLoader,
+  RawInterruptions,
+} from "../types.js";
 
 import path from "node:path";
 
@@ -9,7 +14,6 @@ import {
   writeJsonFile,
 } from "@ignored/hardhat-vnext-utils/fs";
 
-import { io } from "../ui/io.js";
 import { setUpPassword } from "../ui/password-manager.js";
 import { assertFilePath } from "../utils/assert-file-path.js";
 import { getConfigDir } from "../utils/get-config-dir.js";
@@ -17,6 +21,12 @@ import { getConfigDir } from "../utils/get-config-dir.js";
 import { UnencryptedKeystore } from "./unencrypted-keystore.js";
 
 export class UnencryptedKeystoreLoader implements KeystoreLoader {
+  readonly #interruptions: RawInterruptions;
+
+  constructor(interruptions: RawInterruptions) {
+    this.#interruptions = interruptions;
+  }
+
   public async hasKeystore(): Promise<boolean> {
     const keystore = await getKeystore();
 
@@ -27,7 +37,7 @@ export class UnencryptedKeystoreLoader implements KeystoreLoader {
     const result = await getKeystore();
 
     if (result === undefined) {
-      await setupKeystore();
+      await setupKeystore(this.#interruptions);
 
       const newResult = await getKeystore();
 
@@ -61,10 +71,10 @@ async function getKeystore(): Promise<
   return { keystore, keystoreFilePath };
 }
 
-async function setupKeystore(): Promise<void> {
-  io.info("\n👷🔐 Hardhat-Keystore 🔐👷\n");
+async function setupKeystore(interruptions: RawInterruptions): Promise<void> {
+  interruptions.info("\n👷🔐 Hardhat-Keystore 🔐👷\n");
 
-  await setUpPassword();
+  await setUpPassword(interruptions);
 
   const keystoreCache = {
     // TODO: store password hash (with random value) to validate later that password is correct

@@ -1,15 +1,17 @@
+import type { KeystoreLoader, RawInterruptions } from "../types.js";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
 import { UnencryptedKeystoreLoader } from "../keystores/unencrypted-keystore-loader.js";
-import { io } from "../ui/io.js";
+import { RawInterruptionsImpl } from "../ui/io.js";
 import { showMsgNoKeystoreSet } from "../utils/show-msg-no-keystore-set.js";
 
-const taskList: NewTaskActionFunction = async () => {
-  const loader = new UnencryptedKeystoreLoader();
-
+export const list = async (
+  loader: KeystoreLoader,
+  interruptions: RawInterruptions,
+): Promise<void> => {
   const hasKeystore = await loader.hasKeystore();
-  if (!hasKeystore) {
-    return showMsgNoKeystoreSet();
+  if (hasKeystore === false) {
+    return showMsgNoKeystoreSet(interruptions);
   }
 
   const keystore = await loader.loadOrInit();
@@ -18,14 +20,21 @@ const taskList: NewTaskActionFunction = async () => {
 
   // No authorization needed, it only shows the keys, not the secret values
   if (keys.length === 0) {
-    io.info("The keystore does not contain any keys.");
+    interruptions.info("The keystore does not contain any keys.");
     return;
   }
 
-  io.info("Keys:");
+  interruptions.info("Keys:");
   for (const key of keys) {
-    io.info(key);
+    interruptions.info(key);
   }
+};
+
+const taskList: NewTaskActionFunction = async () => {
+  const interruptions = new RawInterruptionsImpl();
+  const loader = new UnencryptedKeystoreLoader(interruptions);
+
+  await list(loader, interruptions);
 };
 
 export default taskList;

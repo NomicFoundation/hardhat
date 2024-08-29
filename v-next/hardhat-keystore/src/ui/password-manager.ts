@@ -1,8 +1,10 @@
-import { io } from "./io.js";
+import type { RawInterruptions } from "../types.js";
 
 // TODO: singleton for password? TBD
 
-export async function setUpPassword(): Promise<void> {
+export async function setUpPassword(
+  interruptions: RawInterruptions,
+): Promise<void> {
   const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[\W_]).{8,}$/;
 
   const setupMsg =
@@ -10,28 +12,28 @@ export async function setUpPassword(): Promise<void> {
   const passwordRulesMsg =
     "The password must have at least 8 characters, one uppercase letter, one lowercase letter, and one special character.";
 
-  io.info(setupMsg);
-  io.info(passwordRulesMsg);
-  io.info("");
+  interruptions.info(setupMsg);
+  interruptions.info(passwordRulesMsg);
+  interruptions.info("");
 
   let password: string | undefined;
   while (password === undefined) {
-    password = await io.requestSecretInput(`Enter your password: `);
+    password = await interruptions.requestSecretInput(`Enter your password: `);
 
     if (!PASSWORD_REGEX.test(password)) {
       password = undefined;
-      io.error("Invalid password!");
+      interruptions.error("Invalid password!");
     }
   }
 
   let confirmPassword: string | undefined;
   while (confirmPassword === undefined) {
-    confirmPassword = await io.requestSecretInput(
+    confirmPassword = await interruptions.requestSecretInput(
       "Please confirm your password: ",
     );
 
     if (password !== confirmPassword) {
-      io.error("Passwords do not match!");
+      interruptions.error("Passwords do not match!");
       confirmPassword = undefined;
     }
   }

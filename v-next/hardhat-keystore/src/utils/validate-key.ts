@@ -1,6 +1,9 @@
-import { io } from "../ui/io.js";
+import type { RawInterruptions } from "../types.js";
 
-export function validateKey(key: string): boolean {
+export function validateKey(
+  key: string,
+  interruptions: RawInterruptions,
+): boolean {
   const KEY_REGEX = /^[a-zA-Z_]+[a-zA-Z0-9_]*$/;
 
   if (KEY_REGEX.test(key)) {
@@ -8,7 +11,7 @@ export function validateKey(key: string): boolean {
   }
 
   const errMsg = `Invalid value for key: "${key}". Keys can only have alphanumeric characters and underscores, and they cannot start with a number.`;
-  io.error(errMsg);
+  interruptions.error(errMsg);
 
   return false;
 }
