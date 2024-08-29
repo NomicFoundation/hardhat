@@ -12,6 +12,7 @@ export const unionType = (
   types: Parameters<typeof z.union>[0],
   errorMessage: string,
 ) =>
+  // eslint-disable-next-line no-restricted-syntax -- This is the only place we allos z.union
   z.union(types, {
     errorMap: () => ({
       message: errorMessage,
