@@ -7,22 +7,7 @@ import { z } from "zod";
 /**
  * A Zod type to validate Hardhat's ConfigurationVariable objects.
  */
-export const configurationVariableType: z.ZodObject<
-  {
-    _type: z.ZodLiteral<"ConfigurationVariable">;
-    name: z.ZodString;
-  },
-  "strip",
-  z.ZodTypeAny,
-  {
-    _type: "ConfigurationVariable";
-    name: string;
-  },
-  {
-    _type: "ConfigurationVariable";
-    name: string;
-  }
-> = z.object({
+export const configurationVariableType = z.object({
   _type: z.literal("ConfigurationVariable"),
   name: z.string(),
 });
@@ -30,27 +15,10 @@ export const configurationVariableType: z.ZodObject<
 /**
  * A Zod type to validate Hardhat's SensitiveString values.
  */
-export const sensitiveStringType: z.ZodUnion<
-  [
-    z.ZodString,
-    z.ZodObject<
-      {
-        _type: z.ZodLiteral<"ConfigurationVariable">;
-        name: z.ZodString;
-      },
-      "strip",
-      z.ZodTypeAny,
-      {
-        _type: "ConfigurationVariable";
-        name: string;
-      },
-      {
-        _type: "ConfigurationVariable";
-        name: string;
-      }
-    >,
-  ]
-> = z.union([z.string(), configurationVariableType]);
+export const sensitiveStringType = z.union([
+  z.string(),
+  configurationVariableType,
+]);
 
 /**
  * A function to validate the user's configuration object against a Zod type.
