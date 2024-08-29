@@ -33,21 +33,15 @@ export class UnencryptedKeystoreLoader implements KeystoreLoader {
   }
 
   public async loadOrInit(): Promise<Keystore> {
-    const result = await getKeystore();
+    let result = await getKeystore();
 
     if (result === undefined) {
       await setupKeystore(this.#interruptions);
-
-      const newResult = await getKeystore();
+      result = await getKeystore();
 
       assertHardhatInvariant(
-        newResult !== undefined,
+        result !== undefined,
         "Keystore should be defined after setup",
-      );
-
-      return new UnencryptedKeystore(
-        newResult.keystore,
-        newResult.keystoreFilePath,
       );
     }
 
