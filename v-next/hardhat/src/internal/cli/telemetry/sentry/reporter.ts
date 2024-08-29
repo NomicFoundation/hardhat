@@ -89,7 +89,7 @@ class Reporter {
     error: Error,
     configPath: string = "",
   ): Promise<boolean> {
-    if (!(await this.shouldBeReported(error))) {
+    if (!(await this.#shouldBeReported(error))) {
       log("Error not send: this type of error should not be reported");
       return false;
     }
@@ -108,7 +108,7 @@ class Reporter {
     return true;
   }
 
-  private async shouldBeReported(error: Error): Promise<boolean> {
+  async #shouldBeReported(error: Error): Promise<boolean> {
     if (!this.#telemetryEnabled) {
       return false;
     }

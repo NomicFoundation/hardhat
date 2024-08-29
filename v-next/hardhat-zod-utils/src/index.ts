@@ -1,28 +1,28 @@
 import type { HardhatUserConfig } from "@ignored/hardhat-vnext-core/config";
 import type { HardhatUserConfigValidationError } from "@ignored/hardhat-vnext-core/types/hooks";
-import type { ZodType, ZodTypeDef, ZodIssue } from "zod";
+import type { ZodType, ZodTypeDef } from "zod";
 
 import { z } from "zod";
 
 /**
+ * A Zod untagged union type that returns a custom error message if the value
+ * is missing or invalid.
+ */
+export const unionType = (
+  types: Parameters<typeof z.union>[0],
+  errorMessage: string,
+) =>
+  // eslint-disable-next-line no-restricted-syntax -- This is the only place we allow z.union
+  z.union(types, {
+    errorMap: () => ({
+      message: errorMessage,
+    }),
+  });
+
+/**
  * A Zod type to validate Hardhat's ConfigurationVariable objects.
  */
-export const configurationVariableType: z.ZodObject<
-  {
-    _type: z.ZodLiteral<"ConfigurationVariable">;
-    name: z.ZodString;
-  },
-  "strip",
-  z.ZodTypeAny,
-  {
-    _type: "ConfigurationVariable";
-    name: string;
-  },
-  {
-    _type: "ConfigurationVariable";
-    name: string;
-  }
-> = z.object({
+export const configurationVariableType = z.object({
   _type: z.literal("ConfigurationVariable"),
   name: z.string(),
 });
@@ -30,27 +30,18 @@ export const configurationVariableType: z.ZodObject<
 /**
  * A Zod type to validate Hardhat's SensitiveString values.
  */
-export const sensitiveStringType: z.ZodUnion<
-  [
-    z.ZodString,
-    z.ZodObject<
-      {
-        _type: z.ZodLiteral<"ConfigurationVariable">;
-        name: z.ZodString;
-      },
-      "strip",
-      z.ZodTypeAny,
-      {
-        _type: "ConfigurationVariable";
-        name: string;
-      },
-      {
-        _type: "ConfigurationVariable";
-        name: string;
-      }
-    >,
-  ]
-> = z.union([z.string(), configurationVariableType]);
+export const sensitiveStringType = unionType(
+  [z.string(), configurationVariableType],
+  "Expected a string or a Configuration Variable",
+);
+
+/**
+ * A Zod type to validate Hardhat's SensitiveString values that expect a URL.
+ */
+export const sensitiveUrlType = unionType(
+  [z.string().url(), configurationVariableType],
+  "Expected a URL or a Configuration Variable",
+);
 
 /**
  * A function to validate the user's configuration object against a Zod type.
@@ -68,38 +59,9 @@ export async function validateUserConfigZodType<
   if (result.success) {
     return [];
   } else {
-    return result.error.errors.map((issue) =>
-      zodIssueToValidationError(config, configType, issue),
-    );
+    return result.error.errors.map((issue) => ({
+      path: issue.path,
+      message: issue.message,
+    }));
   }
-}
-
-function zodIssueToValidationError<
-  Output,
-  Def extends ZodTypeDef = ZodTypeDef,
-  Input = Output,
->(
-  _config: HardhatUserConfig,
-  _configType: ZodType<Output, Def, Input>,
-  zodIssue: ZodIssue,
-): HardhatUserConfigValidationError {
-  // TODO: `invalid_union` errors are too ambiguous. How can we improve them?
-  //  This is just a sketch: not perfect nor tested.
-  if (zodIssue.code === "invalid_union") {
-    return {
-      path: zodIssue.path,
-      message: `Expected ${zodIssue.unionErrors
-        .flatMap((ue) => ue.errors)
-        .map((zi) => {
-          if (zi.code === "invalid_type") {
-            return zi.expected;
-          }
-
-          return "(please see the docs)";
-        })
-        .join(" or ")}`,
-    };
-  }
-
-  return { path: zodIssue.path, message: zodIssue.message };
 }
