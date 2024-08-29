@@ -6,29 +6,25 @@ import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-uti
 import chalk from "chalk";
 
 import { get } from "../../src/tasks/get.js";
-import { set } from "../../src/tasks/set.js";
+import { MemoryKeystore } from "../helpers/MemoryKeystore.js";
 import { MockInterruptions } from "../helpers/MockInterruptions.js";
 import { MockKeystoreLoader } from "../helpers/MockKeystoreLoader.js";
 
 const NO_KEYSTORE_SET = `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `;
 
 describe("tasks - get", () => {
+  let mockKeystore: MemoryKeystore;
   let mockKeystoreLoader: MockKeystoreLoader;
   let mockInterruptions: MockInterruptions;
 
   beforeEach(() => {
+    mockKeystore = new MemoryKeystore();
     mockInterruptions = new MockInterruptions();
-    mockKeystoreLoader = new MockKeystoreLoader();
+    mockKeystoreLoader = new MockKeystoreLoader(mockKeystore);
   });
 
   it("should get the secret", async () => {
-    mockInterruptions.requestSecretInput = async () => "myValue";
-
-    await set(
-      { key: "myKey", force: false },
-      mockKeystoreLoader,
-      mockInterruptions,
-    );
+    mockKeystore.addNewSecret("myKey", "myValue");
 
     await get(
       {
@@ -38,7 +34,7 @@ describe("tasks - get", () => {
       mockInterruptions,
     );
 
-    assert.equal(mockInterruptions.info.mock.calls[1].arguments[0], "myValue");
+    assert.equal(mockInterruptions.info.mock.calls[0].arguments[0], "myValue");
   });
 
   it("should throw because the key is not specified", async () => {

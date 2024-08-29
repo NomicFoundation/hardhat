@@ -6,16 +6,19 @@ import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-uti
 import chalk from "chalk";
 
 import { set } from "../../src/tasks/set.js";
+import { MemoryKeystore } from "../helpers/MemoryKeystore.js";
 import { MockInterruptions } from "../helpers/MockInterruptions.js";
 import { MockKeystoreLoader } from "../helpers/MockKeystoreLoader.js";
 
 describe("tasks - set", () => {
+  let mockKeystore: MemoryKeystore;
   let mockKeystoreLoader: MockKeystoreLoader;
   let mockInterruptions: MockInterruptions;
 
   beforeEach(() => {
+    mockKeystore = new MemoryKeystore();
     mockInterruptions = new MockInterruptions();
-    mockKeystoreLoader = new MockKeystoreLoader();
+    mockKeystoreLoader = new MockKeystoreLoader(mockKeystore);
   });
 
   it("should add a new key", async () => {

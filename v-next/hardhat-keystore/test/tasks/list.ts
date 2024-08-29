@@ -4,7 +4,7 @@ import { beforeEach, describe, it } from "node:test";
 import chalk from "chalk";
 
 import { list } from "../../src/tasks/list.js";
-import { set } from "../../src/tasks/set.js";
+import { MemoryKeystore } from "../helpers/MemoryKeystore.js";
 import { MockInterruptions } from "../helpers/MockInterruptions.js";
 import { MockKeystoreLoader } from "../helpers/MockKeystoreLoader.js";
 import { getFullOutput } from "../helpers/get-full-output.js";
@@ -12,12 +12,14 @@ import { getFullOutput } from "../helpers/get-full-output.js";
 const NO_KEYSTORE_SET = `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `;
 
 describe("tasks - list", () => {
+  let mockKeystore: MemoryKeystore;
   let mockKeystoreLoader: MockKeystoreLoader;
   let mockInterruptions: MockInterruptions;
 
   beforeEach(() => {
+    mockKeystore = new MemoryKeystore();
     mockInterruptions = new MockInterruptions();
-    mockKeystoreLoader = new MockKeystoreLoader();
+    mockKeystoreLoader = new MockKeystoreLoader(mockKeystore);
   });
 
   it("should indicate that the keystore is not set", async () => {
@@ -41,23 +43,8 @@ describe("tasks - list", () => {
   });
 
   it("should list the keys", async () => {
-    mockInterruptions.requestSecretInput = async () => "value";
-
-    await set(
-      { key: "key", force: false },
-      mockKeystoreLoader,
-      mockInterruptions,
-    );
-
-    mockInterruptions.requestSecretInput = async () => "value2";
-
-    await set(
-      { key: "key2", force: false },
-      mockKeystoreLoader,
-      mockInterruptions,
-    );
-
-    mockInterruptions.info.mock.resetCalls();
+    mockKeystore.addNewSecret("key", "value");
+    mockKeystore.addNewSecret("key2", "value2");
 
     await list(mockKeystoreLoader, mockInterruptions);
 

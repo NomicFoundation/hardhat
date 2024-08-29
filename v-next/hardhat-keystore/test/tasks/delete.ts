@@ -6,29 +6,25 @@ import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-uti
 import chalk from "chalk";
 
 import { remove } from "../../src/tasks/delete.js";
-import { set } from "../../src/tasks/set.js";
+import { MemoryKeystore } from "../helpers/MemoryKeystore.js";
 import { MockInterruptions } from "../helpers/MockInterruptions.js";
 import { MockKeystoreLoader } from "../helpers/MockKeystoreLoader.js";
 
 const NO_KEYSTORE_SET = `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `;
 
 describe("tasks - delete", () => {
+  let mockKeystore: MemoryKeystore;
   let mockKeystoreLoader: MockKeystoreLoader;
   let mockInterruptions: MockInterruptions;
 
   beforeEach(() => {
+    mockKeystore = new MemoryKeystore();
     mockInterruptions = new MockInterruptions();
-    mockKeystoreLoader = new MockKeystoreLoader();
+    mockKeystoreLoader = new MockKeystoreLoader(mockKeystore);
   });
 
   it("should delete the key", async () => {
-    mockInterruptions.requestSecretInput = async () => "myValue";
-
-    await set(
-      { key: "myKey", force: false },
-      mockKeystoreLoader,
-      mockInterruptions,
-    );
+    mockKeystore.addNewSecret("myKey", "myValue");
 
     await remove(
       {
@@ -39,7 +35,7 @@ describe("tasks - delete", () => {
     );
 
     assert.equal(
-      mockInterruptions.info.mock.calls[1].arguments[0],
+      mockInterruptions.info.mock.calls[0].arguments[0],
       `Key "myKey" removed`,
     );
 

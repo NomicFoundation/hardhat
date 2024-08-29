@@ -1,6 +1,5 @@
+import type { MemoryKeystore } from "./MemoryKeystore.js";
 import type { KeystoreLoader, Keystore } from "../../src/types.js";
-
-import { MemoryKeystore } from "./MemoryKeystore.js";
 
 export class MockKeystoreLoader implements KeystoreLoader {
   public loadOrInitCalled = false;
@@ -8,9 +7,9 @@ export class MockKeystoreLoader implements KeystoreLoader {
   readonly #keystore: MemoryKeystore;
   #hasKeystore: boolean;
 
-  constructor() {
+  constructor(keystore: MemoryKeystore) {
     this.#hasKeystore = true;
-    this.#keystore = new MemoryKeystore();
+    this.#keystore = keystore;
   }
 
   public setNoExistingKeystore(): void {
