@@ -29,10 +29,10 @@ export const configurationVariableType = z.object({
 /**
  * A Zod type to validate Hardhat's SensitiveString values.
  */
-export const sensitiveStringType = z.union([
-  z.string(),
-  configurationVariableType,
-]);
+export const sensitiveStringType = unionType(
+  [z.string(), configurationVariableType],
+  "Expected a string or a Configuration Variable",
+);
 
 /**
  * A function to validate the user's configuration object against a Zod type.
