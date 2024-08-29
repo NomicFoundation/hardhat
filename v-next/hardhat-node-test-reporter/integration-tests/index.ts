@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { run } from "node:test";
 
@@ -56,10 +56,17 @@ for (const entry of entries) {
 
     const outputChunks = [];
 
+    let options = {};
+    const optionsPath = path.join(entryPath, "options.json");
+    if (existsSync(optionsPath)) {
+      options = JSON.parse(readFileSync(optionsPath, "utf8"));
+    }
+
     // We disable github actions annotations, as they are misleading on PRs
     // otherwise.
     process.env.NO_GITHUB_ACTIONS_ANNOTATIONS = "true";
     const reporterStream = run({
+      ...options,
       files: testFiles,
     }).compose(reporter);
 
@@ -67,7 +74,14 @@ for (const entry of entries) {
       outputChunks.push(chunk);
     }
 
-    const output = outputChunks.join("");
+    // We're removing lines until the one that starts with "Node.js" because
+    // that part of the output is not controlled by the reporter.
+    const lines = outputChunks.join("").split("\n");
+    const start = lines.findIndex((l) => l.startsWith("Node.js"));
+    const output = lines.slice(start + 1).join("\n");
+
+    // We're saving the actual outptu in case one needs to access it. It is .gitignored.
+    writeFileSync(entryPath + "/result.actual.txt", output);
     const expectedOutput = readFileSync(entryPath + "/result.txt", "utf8");
 
     const normalizedOutput = normalizeOutputs(output);
@@ -109,6 +123,6 @@ function normalizeOutputs(output: string): string {
       // Remove lines like `at TestHook.run (node:internal/test_runner/test:1107:18)`
       .replace(/^.*?at .*? \(node\:.*?:\d+:\d+\).*?$/gm, "")
       // Remove lines like `at node:internal/test_runner/test:776:20`
-      .replace(/^.*?at node\:.*?:\d+:\d+.*?$/gm, "")
+      .replace(/^.*?at (async )?node\:.*?:\d+:\d+.*?$/gm, "")
   );
 }

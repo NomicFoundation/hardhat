@@ -15,10 +15,25 @@ which wkhtmltoimage > /dev/null 2>&1 || (echo "Please install wkhtmltoimage usin
 # If XDG_RUNTIME_DIR is not set, set it to $HOME to avoid a warning from wkhtmltoimage
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:=$HOME}"
 
-for dir in integration-tests/fixture-tests/**; do
+if [ -n "${1:-}" ]; then
+  dirs="integration-tests/fixture-tests/$1"
+else
+  dirs="integration-tests/fixture-tests/**"
+fi
+
+for dir in $dirs; do
   echo "Regenerating fixtures for $dir"
 
-  node --import tsx/esm --test --test-reporter=./dist/src/reporter.js $dir/*.ts --color > $dir/result.txt || true # Ignore failures, as they are expected
+  options=""
+  if [ -f "$dir/options.json" ]; then
+    if [[ "$(jq .only "$dir/options.json")" == "true" ]]; then
+      options="$options --test-only"
+    fi
+  fi
+
+  node --import tsx/esm --test --test-reporter=./dist/src/reporter.js $options $dir/*.ts --color > $dir/result.txt || true # Ignore failures, as they are expected
+
+  sed -i '0,/Node\.js/d' $dir/result.txt;
 
   cat $dir/result.txt | aha --black > $dir/result.html;
 
