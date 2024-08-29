@@ -1,4 +1,4 @@
-import type { ConfigHooks } from "@ignored/hardhat-vnext-core/types/hooks";
+import type { ConfigHooks } from "../../../../types/hooks.js";
 
 import {
   sensitiveStringType,

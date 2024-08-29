@@ -1,5 +1,5 @@
-import type { GlobalOptionDefinitions } from "@ignored/hardhat-vnext-core/types/global-options";
-import type { Task } from "@ignored/hardhat-vnext-core/types/tasks";
+import type { GlobalOptionDefinitions } from "../../../types/global-options.js";
+import type { Task } from "../../../types/tasks.js";
 
 import { getHardhatVersion } from "../../utils/package.js";
 

@@ -4,8 +4,8 @@ import { findClosestHardhatConfig } from "./internal/helpers/config-loading.js";
 // they may have gets loaded.
 import "./internal/builtin-plugins/index.js";
 
-export type * from "@ignored/hardhat-vnext-core/config";
-export * from "@ignored/hardhat-vnext-core/config";
+export type * from "./internal/core/config.js";
+export * from "./internal/core/config.js";
 
 /**
  * Attempts to find the nearest Hardhat config file, starting from the current

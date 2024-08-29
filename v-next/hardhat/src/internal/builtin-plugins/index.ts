@@ -1,4 +1,4 @@
-import type { HardhatPlugin } from "@ignored/hardhat-vnext-core/types/plugins";
+import type { HardhatPlugin } from "../../types/plugins.js";
 
 import clean from "./clean/index.js";
 import console from "./console/index.js";

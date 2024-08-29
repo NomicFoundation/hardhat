@@ -1,6 +1,6 @@
-import type { HardhatUserConfig } from "@ignored/hardhat-vnext-core/config";
+import type { HardhatUserConfig } from "../../../../../src/config.js";
 
-import { emptyTask } from "@ignored/hardhat-vnext-core/config";
+import { emptyTask } from "../../../../../src/config.js";
 
 const customTask = emptyTask("empty-task", "empty task description").build();
 

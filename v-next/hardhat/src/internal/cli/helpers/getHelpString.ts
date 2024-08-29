@@ -1,4 +1,4 @@
-import type { Task } from "@ignored/hardhat-vnext-core/types/tasks";
+import type { Task } from "../../../types/tasks.js";
 
 import {
   GLOBAL_NAME_PADDING,

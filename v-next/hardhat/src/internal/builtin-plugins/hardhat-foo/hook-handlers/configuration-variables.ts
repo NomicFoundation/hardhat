@@ -1,4 +1,4 @@
-import type { ConfigurationVariableHooks } from "@ignored/hardhat-vnext-core/types/hooks";
+import type { ConfigurationVariableHooks } from "../../../../types/hooks.js";
 
 export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
   const handlers: Partial<ConfigurationVariableHooks> = {

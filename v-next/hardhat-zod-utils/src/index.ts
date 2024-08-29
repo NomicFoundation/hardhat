@@ -1,5 +1,6 @@
-import type { HardhatUserConfig } from "@ignored/hardhat-vnext-core/config";
-import type { HardhatUserConfigValidationError } from "@ignored/hardhat-vnext-core/types/hooks";
+type HardhatUserConfig = any;
+type HardhatUserConfigValidationError = any;
+
 import type { ZodType, ZodTypeDef } from "zod";
 
 import { z } from "zod";

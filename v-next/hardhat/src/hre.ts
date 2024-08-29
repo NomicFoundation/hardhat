@@ -1,18 +1,16 @@
+import type { UnsafeHardhatRuntimeEnvironmentOptions } from "./internal/core/types.js";
 import type { HardhatUserConfig } from "./types/config.js";
 import type { GlobalOptions } from "./types/global-options.js";
 import type { HardhatRuntimeEnvironment } from "./types/hre.js";
-import type { UnsafeHardhatRuntimeEnvironmentOptions } from "@ignored/hardhat-vnext-core/types/cli";
-
-import {
-  buildGlobalOptionDefinitions,
-  // eslint-disable-next-line no-restricted-imports -- This is the one place where we allow it
-  createBaseHardhatRuntimeEnvironment,
-  resolvePluginList,
-  resolveProjectRoot,
-} from "@ignored/hardhat-vnext-core";
 
 import { BUILTIN_GLOBAL_OPTIONS_DEFINITIONS } from "./internal/builtin-global-options.js";
 import { builtinPlugins } from "./internal/builtin-plugins/index.js";
+import { resolveProjectRoot } from "./internal/core/hre.js";
+import {
+  buildGlobalOptionDefinitions,
+  createBaseHardhatRuntimeEnvironment,
+  resolvePluginList,
+} from "./internal/core/index.js";
 
 /**
  * Creates an instances of the Hardhat Runtime Environment.
@@ -48,6 +46,7 @@ export async function createHardhatRuntimeEnvironment(
     const pluginGlobalOptionDefinitions = buildGlobalOptionDefinitions(
       unsafeOptions.resolvedPlugins,
     );
+
     const globalOptionDefinitions = new Map([
       ...BUILTIN_GLOBAL_OPTIONS_DEFINITIONS,
       ...pluginGlobalOptionDefinitions,

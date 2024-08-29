@@ -2,13 +2,14 @@ import type { AnalyticsFile } from "./types.js";
 
 import path from "node:path";
 
-import { getTelemetryDir } from "@ignored/hardhat-vnext-core/global-dir";
 import {
   exists,
   readJsonFile,
   writeJsonFile,
 } from "@ignored/hardhat-vnext-utils/fs";
 import debug from "debug";
+
+import { getTelemetryDir } from "../../../core/global-dir.js";
 
 const log = debug("hardhat:cli:telemetry:analytics:utils");
 

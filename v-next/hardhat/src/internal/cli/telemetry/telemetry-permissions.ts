@@ -1,6 +1,5 @@
 import path from "node:path";
 
-import { getConfigDir } from "@ignored/hardhat-vnext-core/global-dir";
 import { isCi } from "@ignored/hardhat-vnext-utils/ci";
 import {
   exists,
@@ -9,6 +8,7 @@ import {
 } from "@ignored/hardhat-vnext-utils/fs";
 import debug from "debug";
 
+import { getConfigDir } from "../../core/global-dir.js";
 import { confirmationPromptWithTimeout } from "../prompt/prompt.js";
 
 import { sendTelemetryConsentAnalytics } from "./analytics/analytics.js";

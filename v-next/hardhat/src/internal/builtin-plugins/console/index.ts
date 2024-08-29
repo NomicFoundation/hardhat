@@ -1,6 +1,6 @@
-import type { HardhatPlugin } from "@ignored/hardhat-vnext-core/types/plugins";
+import type { HardhatPlugin } from "../../../types/plugins.js";
 
-import { task } from "@ignored/hardhat-vnext-core/config";
+import { task } from "../../core/config.js";
 
 const hardhatPlugin: HardhatPlugin = {
   id: "console",
