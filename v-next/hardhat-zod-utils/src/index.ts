@@ -5,6 +5,20 @@ import type { ZodType, ZodTypeDef, ZodIssue } from "zod";
 import { z } from "zod";
 
 /**
+ * A Zod untagged union type that returns a custom error message if the value
+ * is missing or invalid.
+ */
+export const unionType = (
+  types: Parameters<typeof z.union>[0],
+  errorMessage: string,
+) =>
+  z.union(types, {
+    errorMap: () => ({
+      message: errorMessage,
+    }),
+  });
+
+/**
  * A Zod type to validate Hardhat's ConfigurationVariable objects.
  */
 export const configurationVariableType = z.object({
