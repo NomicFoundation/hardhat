@@ -1,6 +1,6 @@
 import type { HardhatUserConfig } from "@ignored/hardhat-vnext-core/config";
 import type { HardhatUserConfigValidationError } from "@ignored/hardhat-vnext-core/types/hooks";
-import type { ZodType, ZodTypeDef, ZodIssue } from "zod";
+import type { ZodType, ZodTypeDef } from "zod";
 
 import { z } from "zod";
 
@@ -50,38 +50,9 @@ export async function validateUserConfigZodType<
   if (result.success) {
     return [];
   } else {
-    return result.error.errors.map((issue) =>
-      zodIssueToValidationError(config, configType, issue),
-    );
+    return result.error.errors.map((issue) => ({
+      path: issue.path,
+      message: issue.message,
+    }));
   }
-}
-
-function zodIssueToValidationError<
-  Output,
-  Def extends ZodTypeDef = ZodTypeDef,
-  Input = Output,
->(
-  _config: HardhatUserConfig,
-  _configType: ZodType<Output, Def, Input>,
-  zodIssue: ZodIssue,
-): HardhatUserConfigValidationError {
-  // TODO: `invalid_union` errors are too ambiguous. How can we improve them?
-  //  This is just a sketch: not perfect nor tested.
-  if (zodIssue.code === "invalid_union") {
-    return {
-      path: zodIssue.path,
-      message: `Expected ${zodIssue.unionErrors
-        .flatMap((ue) => ue.errors)
-        .map((zi) => {
-          if (zi.code === "invalid_type") {
-            return zi.expected;
-          }
-
-          return "(please see the docs)";
-        })
-        .join(" or ")}`,
-    };
-  }
-
-  return { path: zodIssue.path, message: zodIssue.message };
 }
