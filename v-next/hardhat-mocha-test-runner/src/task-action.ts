@@ -85,7 +85,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   });
 
   if (testFailures > 0) {
-    process.exitCode = testFailures;
+    process.exitCode = 1;
   }
 
   return testFailures;

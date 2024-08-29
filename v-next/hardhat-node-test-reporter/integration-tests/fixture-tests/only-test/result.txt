@@ -1,0 +1,32 @@
+
+  [31m1) top level test[39m
+
+
+[32m0 passing[39m[90m (116ms)[39m[31m[39m
+[31m1 failing[39m
+[34mℹ[39m 'only' and 'runOnly' require the --test-only command-line option.
+
+  1) top level test:
+
+   [31mAssertionError: Expected values to be strictly equal[39m
+   [32m- Expected[39m
+   [31m+ Received[39m
+   
+   [32m- 2[39m
+   [31m+ 1[39m
+   
+   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/only-test/test.ts:6:10)[39m
+   [90m    at Test.runInAsyncScope (node:async_hooks:211:14)[39m
+   [90m    at Test.run (node:internal/test_runner/test:878:25)[39m
+   [90m    at Test.processPendingSubtests (node:internal/test_runner/test:590:18)[39m
+   [90m    at node:internal/test_runner/harness:252:20[39m
+   [90m    at node:internal/process/task_queues:151:7[39m
+   [90m    at AsyncResource.runInAsyncScope (node:async_hooks:211:14)[39m
+   [90m    at AsyncResource.runMicrotask (node:internal/process/task_queues:148:8) {[39m
+   [90m  generatedMessage: true,[39m
+   [90m  code: 'ERR_ASSERTION',[39m
+   [90m  actual: 1,[39m
+   [90m  expected: 2,[39m
+   [90m  operator: 'strictEqual'[39m
+   [90m}[39m
+
