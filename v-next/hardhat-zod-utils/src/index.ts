@@ -35,6 +35,14 @@ export const sensitiveStringType = unionType(
 );
 
 /**
+ * A Zod type to validate Hardhat's SensitiveString values that expect a URL.
+ */
+export const sensitiveUrlType = unionType(
+  [z.string().url(), configurationVariableType],
+  "Expected a URL or a Configuration Variable",
+);
+
+/**
  * A function to validate the user's configuration object against a Zod type.
  */
 export async function validateUserConfigZodType<
