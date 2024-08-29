@@ -4,10 +4,10 @@ import { beforeEach, describe, it } from "node:test";
 import chalk from "chalk";
 
 import { list } from "../../src/tasks/list.js";
-import { MemoryKeystore } from "../helpers/MemoryKeystore.js";
-import { MockInterruptions } from "../helpers/MockInterruptions.js";
-import { MockKeystoreLoader } from "../helpers/MockKeystoreLoader.js";
 import { getFullOutput } from "../helpers/get-full-output.js";
+import { MemoryKeystore } from "../helpers/memory-keystore.js";
+import { MockInterruptions } from "../helpers/mock-interruptions.js";
+import { MockKeystoreLoader } from "../helpers/mock-keystore-loader.js";
 
 const NO_KEYSTORE_SET = `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `;
 

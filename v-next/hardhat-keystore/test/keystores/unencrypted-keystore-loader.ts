@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
 import { UnencryptedKeystoreLoader } from "../../src/keystores/unencrypted-keystore-loader.js";
-import { MockInterruptions } from "../helpers/MockInterruptions.js";
 import { getFullOutput } from "../helpers/get-full-output.js";
+import { MockInterruptions } from "../helpers/mock-interruptions.js";
 
 const TEST_PASSWORD = "TEST-PASSWORD";
 

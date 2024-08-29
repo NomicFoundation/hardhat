@@ -1,4 +1,4 @@
-import type { MemoryKeystore } from "./MemoryKeystore.js";
+import type { MemoryKeystore } from "./memory-keystore.js";
 import type { KeystoreLoader, Keystore } from "../../src/types.js";
 
 export class MockKeystoreLoader implements KeystoreLoader {

@@ -6,9 +6,9 @@ import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-uti
 import chalk from "chalk";
 
 import { get } from "../../src/tasks/get.js";
-import { MemoryKeystore } from "../helpers/MemoryKeystore.js";
-import { MockInterruptions } from "../helpers/MockInterruptions.js";
-import { MockKeystoreLoader } from "../helpers/MockKeystoreLoader.js";
+import { MemoryKeystore } from "../helpers/memory-keystore.js";
+import { MockInterruptions } from "../helpers/mock-interruptions.js";
+import { MockKeystoreLoader } from "../helpers/mock-keystore-loader.js";
 
 const NO_KEYSTORE_SET = `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `;
 

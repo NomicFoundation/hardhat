@@ -6,9 +6,9 @@ import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-uti
 import chalk from "chalk";
 
 import { set } from "../../src/tasks/set.js";
-import { MemoryKeystore } from "../helpers/MemoryKeystore.js";
-import { MockInterruptions } from "../helpers/MockInterruptions.js";
-import { MockKeystoreLoader } from "../helpers/MockKeystoreLoader.js";
+import { MemoryKeystore } from "../helpers/memory-keystore.js";
+import { MockInterruptions } from "../helpers/mock-interruptions.js";
+import { MockKeystoreLoader } from "../helpers/mock-keystore-loader.js";
 
 describe("tasks - set", () => {
   let mockKeystore: MemoryKeystore;
