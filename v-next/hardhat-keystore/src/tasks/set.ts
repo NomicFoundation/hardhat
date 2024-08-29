@@ -5,8 +5,8 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import chalk from "chalk";
 
 import { UnencryptedKeystoreLoader } from "../keystores/unencrypted-keystore-loader.js";
-import { RawInterruptionsImpl } from "../ui/io.js";
 import { isAuthorized } from "../ui/password-manager.js";
+import { RawInterruptionsImpl } from "../ui/raw-interruptions.js";
 import { validateKey } from "../utils/validate-key.js";
 
 interface TaskGetArguments {

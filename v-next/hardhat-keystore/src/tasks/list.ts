@@ -2,7 +2,7 @@ import type { KeystoreLoader, RawInterruptions } from "../types.js";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
 import { UnencryptedKeystoreLoader } from "../keystores/unencrypted-keystore-loader.js";
-import { RawInterruptionsImpl } from "../ui/io.js";
+import { RawInterruptionsImpl } from "../ui/raw-interruptions.js";
 import { showMsgNoKeystoreSet } from "../utils/show-msg-no-keystore-set.js";
 
 export const list = async (
