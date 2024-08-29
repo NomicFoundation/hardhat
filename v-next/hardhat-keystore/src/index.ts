@@ -2,7 +2,7 @@ import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
 
 import { ArgumentType, task } from "@ignored/hardhat-vnext/config";
 
-export const PLUGIN_ID = "hardhat-keystore";
+import { PLUGIN_ID } from "./constants.js";
 
 const hardhatKeystorePlugin: HardhatPlugin = {
   id: PLUGIN_ID,
