@@ -15,7 +15,6 @@ import {
 } from "@ignored/hardhat-vnext-utils/fs";
 
 import { setUpPassword } from "../ui/password-manager.js";
-import { assertFilePath } from "../utils/assert-file-path.js";
 import { getConfigDir } from "../utils/get-config-dir.js";
 
 import { UnencryptedKeystore } from "./unencrypted-keystore.js";
@@ -84,7 +83,6 @@ async function setupKeystore(interruptions: RawInterruptions): Promise<void> {
 
   const keystoreFilePath = await getKeystoreFilePath();
 
-  assertFilePath(keystoreFilePath);
   await writeJsonFile(keystoreFilePath, keystoreCache);
 }
 
