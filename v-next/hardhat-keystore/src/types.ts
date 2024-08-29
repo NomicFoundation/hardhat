@@ -18,8 +18,8 @@ export interface Keystore {
 }
 
 export interface RawInterruptions {
-  info: (message: string) => void;
-  warn: (message: string) => void;
-  error: (message: string) => void;
+  info: (message: string) => Promise<void>;
+  warn: (message: string) => Promise<void>;
+  error: (message: string) => Promise<void>;
   requestSecretInput: (inputDescription: string) => Promise<string>;
 }

@@ -20,13 +20,13 @@ export const list = async (
 
   // No authorization needed, it only shows the keys, not the secret values
   if (keys.length === 0) {
-    interruptions.info("The keystore does not contain any keys.");
+    await interruptions.info("The keystore does not contain any keys.");
     return;
   }
 
-  interruptions.info("Keys:");
+  await interruptions.info("Keys:");
   for (const key of keys) {
-    interruptions.info(key);
+    await interruptions.info(key);
   }
 };
 

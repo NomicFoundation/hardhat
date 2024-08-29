@@ -1,9 +1,9 @@
 import type { RawInterruptions } from "../types.js";
 
-export function validateKey(
+export async function validateKey(
   key: string,
   interruptions: RawInterruptions,
-): boolean {
+): Promise<boolean> {
   const KEY_REGEX = /^[a-zA-Z_]+[a-zA-Z0-9_]*$/;
 
   if (KEY_REGEX.test(key)) {
@@ -11,7 +11,7 @@ export function validateKey(
   }
 
   const errMsg = `Invalid value for key: "${key}". Keys can only have alphanumeric characters and underscores, and they cannot start with a number.`;
-  interruptions.error(errMsg);
+  await interruptions.error(errMsg);
 
   return false;
 }

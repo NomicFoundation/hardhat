@@ -31,7 +31,7 @@ export const set = async (
 
   const keystore = await loader.loadOrInit();
 
-  if (!validateKey(key, interruptions)) {
+  if (!(await validateKey(key, interruptions))) {
     return;
   }
 
@@ -43,7 +43,7 @@ export const set = async (
     const existingValue = await keystore.readValue(key);
 
     if (existingValue !== undefined) {
-      interruptions.warn(
+      await interruptions.warn(
         `The key "${key}" already exists. Use the ${chalk.blue.italic("--force")} flag to overwrite it.`,
       );
 
@@ -56,14 +56,14 @@ export const set = async (
   );
 
   if (secret.length === 0) {
-    interruptions.error("The secret cannot be empty.");
+    await interruptions.error("The secret cannot be empty.");
 
     return;
   }
 
   await keystore.addNewSecret(key, secret);
 
-  interruptions.info(`Key "${key}" set`);
+  await interruptions.info(`Key "${key}" set`);
 };
 
 const taskSet: NewTaskActionFunction<TaskGetArguments> = async (

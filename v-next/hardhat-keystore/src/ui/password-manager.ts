@@ -12,9 +12,9 @@ export async function setUpPassword(
   const passwordRulesMsg =
     "The password must have at least 8 characters, one uppercase letter, one lowercase letter, and one special character.";
 
-  interruptions.info(setupMsg);
-  interruptions.info(passwordRulesMsg);
-  interruptions.info("");
+  await interruptions.info(setupMsg);
+  await interruptions.info(passwordRulesMsg);
+  await interruptions.info("");
 
   let password: string | undefined;
   while (password === undefined) {
@@ -22,7 +22,7 @@ export async function setUpPassword(
 
     if (!PASSWORD_REGEX.test(password)) {
       password = undefined;
-      interruptions.error("Invalid password!");
+      await interruptions.error("Invalid password!");
     }
   }
 
@@ -33,7 +33,7 @@ export async function setUpPassword(
     );
 
     if (password !== confirmPassword) {
-      interruptions.error("Passwords do not match!");
+      await interruptions.error("Passwords do not match!");
       confirmPassword = undefined;
     }
   }

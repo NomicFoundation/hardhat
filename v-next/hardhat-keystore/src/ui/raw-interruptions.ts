@@ -1,20 +1,21 @@
 import type { RawInterruptions } from "../types.js";
+import type { HookContext } from "@ignored/hardhat-vnext/types/hooks";
 
 import { HardhatPluginError } from "@ignored/hardhat-vnext-errors";
 import chalk from "chalk";
 
-import { PLUGIN_ID } from "../index.js";
+import { PLUGIN_ID } from "../constants.js";
 
 export class RawInterruptionsImpl implements RawInterruptions {
-  public info(message: string): void {
+  public async info(message: string): Promise<void> {
     console.log(message);
   }
 
-  public warn(message: string): void {
+  public async warn(message: string): Promise<void> {
     console.info(chalk.yellow(message));
   }
 
-  public error(message: string): void {
+  public async error(message: string): Promise<void> {
     console.error(chalk.red(message));
   }
 

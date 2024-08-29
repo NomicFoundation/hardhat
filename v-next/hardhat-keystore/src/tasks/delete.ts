@@ -30,7 +30,7 @@ export const remove = async (
   const hasKeystore = await loader.hasKeystore();
 
   if (hasKeystore === false) {
-    showMsgNoKeystoreSet(interruptions);
+    await showMsgNoKeystoreSet(interruptions);
 
     return;
   }
@@ -44,14 +44,14 @@ export const remove = async (
   const keys = await keystore.listKeys();
 
   if (!keys.includes(key)) {
-    interruptions.error(`Key "${key}" not found`);
+    await interruptions.error(`Key "${key}" not found`);
 
     return;
   }
 
   await keystore.removeKey(key);
 
-  interruptions.info(`Key "${key}" removed`);
+  await interruptions.info(`Key "${key}" removed`);
 };
 
 const taskDelete: NewTaskActionFunction<TaskDeleteArguments> = async ({

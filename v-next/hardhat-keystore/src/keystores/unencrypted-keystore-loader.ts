@@ -65,7 +65,7 @@ async function getKeystore(): Promise<
 }
 
 async function setupKeystore(interruptions: RawInterruptions): Promise<void> {
-  interruptions.info("\n👷🔐 Hardhat-Keystore 🔐👷\n");
+  await interruptions.info("\n👷🔐 Hardhat-Keystore 🔐👷\n");
 
   await setUpPassword(interruptions);
 

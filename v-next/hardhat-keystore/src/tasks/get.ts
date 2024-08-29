@@ -30,7 +30,7 @@ export const get = async (
   const hasKeystore = await loader.hasKeystore();
 
   if (hasKeystore === false) {
-    showMsgNoKeystoreSet(interruptions);
+    await showMsgNoKeystoreSet(interruptions);
 
     return;
   }
@@ -46,11 +46,11 @@ export const get = async (
   console.log("Read value", key, value);
 
   if (value === undefined) {
-    interruptions.error(`Key "${key}" not found`);
+    await interruptions.error(`Key "${key}" not found`);
     return;
   }
 
-  interruptions.info(value);
+  await interruptions.info(value);
 
   return value;
 };
