@@ -426,7 +426,7 @@ function createConfig(
       files: ["src/**/*.ts"],
       rules: {
         "no-restricted-syntax": [
-          "error",
+          ...config.rules["no-restricted-syntax"],
           {
             // This is a best effor selector that forbids every throw unless it's a `new HardhatError`,
             // or throwing a variable within a catch clause.
