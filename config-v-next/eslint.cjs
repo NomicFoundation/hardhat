@@ -257,6 +257,12 @@ function createConfig(
           message:
             "Don't use assert.doesNotReject. Just await the async-function-call/promise directly, letting the error bubble up if rejected",
         },
+        {
+          selector:
+            "CallExpression[callee.object.name='z'][callee.property.name=union]",
+          message:
+            "Use the unionType helper from the zod utils package instead, as it provides better error messages.",
+        },
       ],
       "@typescript-eslint/restrict-plus-operands": "error",
       "@typescript-eslint/restrict-template-expressions": [
@@ -387,6 +393,12 @@ function createConfig(
                 ),
               ],
               message: "Use node:assert/strict instead.",
+            },
+            {
+              name: "zod",
+              importNames: ["union"],
+              message:
+                "Use the unionType helper from the zod utils package instead, as it provides better error messages.",
             },
           ],
         },
