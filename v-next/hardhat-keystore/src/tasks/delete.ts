@@ -2,7 +2,6 @@ import type { KeystoreLoader, RawInterruptions } from "../types.js";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
 import { isAuthorized } from "../ui/password-manager.js";
-import { showMsgNoKeystoreSet } from "../ui/show-msg-no-keystore-set.js";
 import { checkMissingKeyTaskArgument } from "../utils/check-missing-key-task-argument.js";
 import { setupRawInterruptionsAndKeystoreLoader } from "../utils/setup-raw-interruptions-and-keystore-loader.js";
 
@@ -29,7 +28,7 @@ export const remove = async (
   const keystore = await keystoreLoader.load();
 
   if (keystore === undefined) {
-    await showMsgNoKeystoreSet(interruptions);
+    await interruptions.displayNoKeystoreSetErrorMessage(interruptions);
 
     return;
   }
@@ -41,14 +40,14 @@ export const remove = async (
   const keys = await keystore.listKeys();
 
   if (!keys.includes(key)) {
-    await interruptions.error(`Key "${key}" not found`);
+    await interruptions.displayKeyNotFoundErrorMessage(key);
 
     return;
   }
 
   await keystore.removeKey(key);
 
-  await interruptions.info(`Key "${key}" removed`);
+  await interruptions.displayKeyRemovedInfoMessage(key);
 };
 
 export default taskDelete;

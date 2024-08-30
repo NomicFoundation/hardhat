@@ -5,7 +5,6 @@ import type {
 } from "@ignored/hardhat-vnext/types/hooks";
 
 import { UnencryptedKeystoreLoader } from "../keystores/unencrypted-keystore-loader.js";
-import { get } from "../tasks/get.js";
 import { HookRawInterruptionsImpl } from "../ui/raw-interruptions.js";
 import { getKeystoreFilePath } from "../utils/get-keystore-file-path.js";
 
@@ -23,7 +22,7 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
         return next(context, variable);
       }
 
-      const value = await get({ key: variable.name }, loader, interruptions);
+      const value = await keystore.readValue(variable.name);
 
       return value ?? next(context, variable);
     },

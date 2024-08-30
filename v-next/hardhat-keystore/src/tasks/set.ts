@@ -1,8 +1,6 @@
 import type { KeystoreLoader, RawInterruptions } from "../types.js";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
-import chalk from "chalk";
-
 import { isAuthorized } from "../ui/password-manager.js";
 import { checkMissingKeyTaskArgument } from "../utils/check-missing-key-task-argument.js";
 import { setupRawInterruptionsAndKeystoreLoader } from "../utils/setup-raw-interruptions-and-keystore-loader.js";
@@ -29,13 +27,16 @@ export const set = async (
 ): Promise<void> => {
   checkMissingKeyTaskArgument(key, "keystore set");
 
-  const keystore = await keystoreLoader.create();
-
   if (!(await validateKey(key))) {
-    const errMsg = `Invalid value for key: "${key}". Keys can only have alphanumeric characters and underscores, and they cannot start with a number.`;
-    await interruptions.error(errMsg);
+    await interruptions.displayInvalidKeyErrorMessage(key);
 
     return;
+  }
+
+  let keystore = await keystoreLoader.load();
+
+  if (keystore === undefined) {
+    keystore = await keystoreLoader.create();
   }
 
   if ((await isAuthorized()) === false) {
@@ -46,27 +47,23 @@ export const set = async (
     const existingValue = await keystore.readValue(key);
 
     if (existingValue !== undefined) {
-      await interruptions.warn(
-        `The key "${key}" already exists. Use the ${chalk.blue.italic("--force")} flag to overwrite it.`,
-      );
+      await interruptions.displayKeyAlreadyExistsWarning(key);
 
       return;
     }
   }
 
-  const value = await interruptions.requestSecretInput(
-    "Enter value to store: ",
-  );
+  const secret = await interruptions.requestSecretFromUser();
 
-  if (value.length === 0) {
-    await interruptions.error("The value cannot be empty.");
+  if (secret.length === 0) {
+    await interruptions.displaySecretCannotBeEmptyErrorMessage();
 
     return;
   }
 
-  await keystore.addNewValue(key, value);
+  await keystore.addNewValue(key, secret);
 
-  await interruptions.info(`Key "${key}" set`);
+  await interruptions.displayKeySetInfoMessage(key);
 };
 
 export default taskSet;
