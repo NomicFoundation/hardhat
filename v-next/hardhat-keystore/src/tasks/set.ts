@@ -39,7 +39,10 @@ export const set = async (
 
   const keystore = await keystoreLoader.create();
 
-  if (!(await validateKey(key, interruptions))) {
+  if (!(await validateKey(key))) {
+    const errMsg = `Invalid value for key: "${key}". Keys can only have alphanumeric characters and underscores, and they cannot start with a number.`;
+    await interruptions.error(errMsg);
+
     return;
   }
 
