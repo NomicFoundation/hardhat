@@ -524,5 +524,30 @@ Please check your internet connection and networks config`,
 
 Please make sure your node is running, and check your internet connection and networks config.`,
     },
+    NETWORK_NOT_FOUND: {
+      number: 705,
+      messageTemplate: `The network {networkName} is not defined in your networks config.`,
+      websiteTitle: "Network not found",
+      websiteDescription: `The network you are trying to connect to is not found.
+
+Please double check that the network is correctly defined in your networks config.`,
+    },
+    INVALID_CHAIN_TYPE: {
+      number: 706,
+      messageTemplate:
+        "The provided chain type {chainType} does not match the network's chain type {networkChainType} for network {networkName}.",
+      websiteTitle: "Invalid chain type",
+      websiteDescription: `The chain type does not match the network's chain type.
+
+If you want to use a different chain type, please update your networks config.`,
+    },
+
+    INVALID_CONFIG_OVERRIDE: {
+      number: 707,
+      messageTemplate: `Invalid config override:
+{errors}`,
+      websiteTitle: "Invalid config override",
+      websiteDescription: `The configuration override you provided is invalid.`,
+    },
   },
 } as const;

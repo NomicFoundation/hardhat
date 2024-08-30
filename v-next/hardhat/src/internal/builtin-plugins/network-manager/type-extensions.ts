@@ -43,14 +43,14 @@ declare module "@ignored/hardhat-vnext/types/config" {
   export interface ChainTypeConfig {}
 
   export interface HardhatUserConfig {
-    defaultNetwork?: string;
     defaultChainType?: DefaultChainType;
+    defaultNetwork?: string;
     networks?: Record<string, NetworkUserConfig>;
   }
 
   export interface HardhatConfig {
-    defaultNetwork: string;
     defaultChainType: DefaultChainType;
+    defaultNetwork: string;
     networks: Record<string, NetworkConfig>;
   }
 
@@ -61,12 +61,12 @@ declare module "@ignored/hardhat-vnext/types/config" {
     chainId?: number;
     chainType?: ChainType;
     from?: string;
-    gas?: "auto" | number;
+    gas?: "auto" | number | bigint;
     gasMultiplier?: number;
-    gasPrice?: "auto" | number;
+    gasPrice?: "auto" | number | bigint;
 
     // HTTP network specific
-    url?: string;
+    url: string;
     timeout?: number;
     httpHeaders?: Record<string, string>;
   }
@@ -76,9 +76,9 @@ declare module "@ignored/hardhat-vnext/types/config" {
     chainId: number;
     chainType?: ChainType;
     from?: string;
-    gas: "auto" | number;
+    gas: "auto" | number | bigint;
     gasMultiplier: number;
-    gasPrice: "auto" | number;
+    gasPrice: "auto" | number | bigint;
 
     // EDR network specific
   }
@@ -90,9 +90,9 @@ declare module "@ignored/hardhat-vnext/types/config" {
     chainId: number;
     chainType?: ChainType;
     from?: string;
-    gas: "auto" | number;
+    gas: "auto" | bigint;
     gasMultiplier: number;
-    gasPrice: "auto" | number;
+    gasPrice: "auto" | bigint;
 
     // HTTP network specific
     url: string;
@@ -105,9 +105,9 @@ declare module "@ignored/hardhat-vnext/types/config" {
     chainId: number;
     chainType?: ChainType;
     from: string;
-    gas: "auto" | number;
+    gas: "auto" | bigint;
     gasMultiplier: number;
-    gasPrice: "auto" | number;
+    gasPrice: "auto" | bigint;
 
     // EDR network specific
   }
@@ -158,7 +158,7 @@ declare module "@ignored/hardhat-vnext/types/hooks" {
         nextContext: HookContext,
         nextNetworkConnection: NetworkConnection<ChainTypeT>,
         nextJsonRpcRequest: JsonRpcRequest,
-      ) => Promise<JsonRpcResponse | JsonRpcResponse[]>,
-    ): Promise<JsonRpcResponse | JsonRpcResponse[]>;
+      ) => Promise<JsonRpcResponse>,
+    ): Promise<JsonRpcResponse>;
   }
 }

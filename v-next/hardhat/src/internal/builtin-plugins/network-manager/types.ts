@@ -9,7 +9,7 @@ export interface NetworkManager {
   connect<ChainTypeT extends ChainType | string = DefaultChainType>(
     networkName?: string,
     chainType?: ChainTypeT,
-    networkConfig?: Partial<NetworkConfig>,
+    networkConfigOverride?: Partial<NetworkConfig>,
   ): Promise<NetworkConnection<ChainTypeT>>;
 }
 

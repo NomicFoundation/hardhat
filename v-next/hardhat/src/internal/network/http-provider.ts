@@ -7,6 +7,8 @@ import type {
   EthereumProvider,
   RequestArguments,
 } from "../../types/providers.js";
+import type { NetworkConnection } from "../builtin-plugins/network-manager/types.js";
+import type { HookManager } from "@ignored/hardhat-vnext-core/types/hooks";
 import type {
   Dispatcher,
   RequestOptions,
@@ -46,6 +48,8 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
   readonly #networkName: string;
   readonly #extraHeaders: Record<string, string>;
   readonly #dispatcher: Dispatcher;
+  readonly #hookManager: HookManager;
+  readonly #networkConnection: NetworkConnection<string>; // TODO: should be ChainTypeT
   #nextRequestId = 1;
 
   /**
@@ -56,11 +60,15 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
     networkName,
     extraHeaders = {},
     timeout,
+    hookManager,
+    networkConnection,
   }: {
     url: string;
     networkName: string;
     extraHeaders?: Record<string, string>;
     timeout: number;
+    hookManager: HookManager;
+    networkConnection: NetworkConnection<string>; // TODO: should be ChainTypeT
   }): Promise<HttpProvider> {
     if (!isValidUrl(url)) {
       throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_URL, {
@@ -75,6 +83,8 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
       networkName,
       extraHeaders,
       dispatcher,
+      hookManager,
+      networkConnection,
     );
 
     return httpProvider;
@@ -87,11 +97,14 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
    * Use the static method {@link HttpProvider.create} to create an instance of
    * `HttpProvider`.
    */
+  // TODO: make the constructor private, but we need to fix the tests first
   constructor(
     url: string,
     networkName: string,
     extraHeaders: Record<string, string>,
     dispatcher: Dispatcher,
+    hookManager: HookManager,
+    networkConnection: NetworkConnection<string>, // TODO: should be ChainTypeT
   ) {
     super();
 
@@ -99,6 +112,8 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
     this.#networkName = networkName;
     this.#extraHeaders = extraHeaders;
     this.#dispatcher = dispatcher;
+    this.#hookManager = hookManager;
+    this.#networkConnection = networkConnection;
   }
 
   public async request(
@@ -111,7 +126,14 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
       method,
       params,
     );
-    const jsonRpcResponse = await this.#fetchJsonRpcResponse(jsonRpcRequest);
+
+    const jsonRpcResponse = await this.#hookManager.runHandlerChain(
+      "network",
+      "onRequest",
+      [this.#networkConnection, jsonRpcRequest],
+      async (_context, _connection, request) =>
+        this.#fetchJsonRpcResponse(request),
+    );
 
     if (isFailedJsonRpcResponse(jsonRpcResponse)) {
       const error = new ProviderError(
@@ -183,6 +205,8 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
     util.callbackify(handleJsonRpcRequest)(callback);
   }
 
+  // TODO as we removed sendBatch, I think we can remove all the overloads
+  // that return an array of responses
   async #fetchJsonRpcResponse(
     jsonRpcRequest: JsonRpcRequest,
     retryCount?: number,
