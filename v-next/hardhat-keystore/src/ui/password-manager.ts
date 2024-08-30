@@ -15,6 +15,7 @@ export async function setUpPassword(
   await interruptions.info("");
 
   let password: string | undefined;
+
   while (password === undefined) {
     password = await interruptions.requestSecretInput(`Enter your password: `);
 

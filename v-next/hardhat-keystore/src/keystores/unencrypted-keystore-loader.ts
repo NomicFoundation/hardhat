@@ -7,7 +7,6 @@ import type {
 
 import path from "node:path";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import {
   exists,
   readJsonFile,
@@ -27,60 +26,34 @@ export class UnencryptedKeystoreLoader implements KeystoreLoader {
   }
 
   public async load(): Promise<Keystore | undefined> {
-    const result = await getKeystore();
+    const keystoreFilePath = await getKeystoreFilePath();
 
-    if (result === undefined) {
+    const fileExists = await exists(keystoreFilePath);
+    if (fileExists === false) {
       return undefined;
     }
 
-    return new UnencryptedKeystore(result.keystore, result.keystoreFilePath);
+    const keystore: KeystoreFile = await readJsonFile(keystoreFilePath);
+
+    return new UnencryptedKeystore(keystore, keystoreFilePath);
   }
 
   public async create(): Promise<Keystore> {
-    let result = await getKeystore();
+    await this.#interruptions.info("\n👷🔐 Hardhat-Keystore 🔐👷\n");
 
-    if (result === undefined) {
-      await setupKeystore(this.#interruptions);
-      result = await getKeystore();
+    await setUpPassword(this.#interruptions);
 
-      assertHardhatInvariant(
-        result !== undefined,
-        "Keystore should be defined after setup",
-      );
-    }
+    const keystore = {
+      version: "",
+      keys: {},
+    };
 
-    return new UnencryptedKeystore(result.keystore, result.keystoreFilePath);
+    const keystoreFilePath = await getKeystoreFilePath();
+
+    await writeJsonFile(keystoreFilePath, keystore);
+
+    return new UnencryptedKeystore(keystore, keystoreFilePath);
   }
-}
-
-async function getKeystore(): Promise<
-  { keystore: KeystoreFile; keystoreFilePath: string } | undefined
-> {
-  const keystoreFilePath = await getKeystoreFilePath();
-
-  const fileExists = await exists(keystoreFilePath);
-  if (fileExists === false) {
-    return undefined;
-  }
-
-  const keystore: KeystoreFile = await readJsonFile(keystoreFilePath);
-
-  return { keystore, keystoreFilePath };
-}
-
-async function setupKeystore(interruptions: RawInterruptions): Promise<void> {
-  await interruptions.info("\n👷🔐 Hardhat-Keystore 🔐👷\n");
-
-  await setUpPassword(interruptions);
-
-  const keystoreCache = {
-    version: "",
-    keys: {},
-  };
-
-  const keystoreFilePath = await getKeystoreFilePath();
-
-  await writeJsonFile(keystoreFilePath, keystoreCache);
 }
 
 async function getKeystoreFilePath(): Promise<string> {

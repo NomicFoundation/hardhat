@@ -116,10 +116,5 @@ The password must have at least 8 characters, one uppercase letter, one lowercas
     it("should return the keystore on load", async () => {
       assert.notEqual(await unencryptedKeystoreLoader.load(), undefined);
     });
-
-    it("should load the keystore", async () => {
-      const res = await unencryptedKeystoreLoader.create();
-      assert.equal(res instanceof UnencryptedKeystore, true);
-    });
   });
 });
