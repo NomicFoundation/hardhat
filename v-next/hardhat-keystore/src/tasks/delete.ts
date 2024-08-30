@@ -1,10 +1,9 @@
 import type { KeystoreLoader, RawInterruptions } from "../types.js";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-
 import { isAuthorized } from "../ui/password-manager.js";
 import { showMsgNoKeystoreSet } from "../ui/show-msg-no-keystore-set.js";
+import { checkMissingKeyTaskArgument } from "../utils/check-missing-key-task-argument.js";
 import { setupRawInterruptionsAndKeystoreLoader } from "../utils/setup-raw-interruptions-and-keystore-loader.js";
 
 interface TaskDeleteArguments {
@@ -25,15 +24,7 @@ export const remove = async (
   keystoreLoader: KeystoreLoader,
   interruptions: RawInterruptions,
 ): Promise<void> => {
-  if (key === undefined) {
-    throw new HardhatError(
-      HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
-      {
-        task: "keystore delete",
-        argument: "key",
-      },
-    );
-  }
+  checkMissingKeyTaskArgument(key, "keystore delete");
 
   const keystore = await keystoreLoader.load();
 

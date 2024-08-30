@@ -1,10 +1,10 @@
 import type { KeystoreLoader, RawInterruptions } from "../types.js";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import chalk from "chalk";
 
 import { isAuthorized } from "../ui/password-manager.js";
+import { checkMissingKeyTaskArgument } from "../utils/check-missing-key-task-argument.js";
 import { setupRawInterruptionsAndKeystoreLoader } from "../utils/setup-raw-interruptions-and-keystore-loader.js";
 import { validateKey } from "../utils/validate-key.js";
 
@@ -27,15 +27,7 @@ export const set = async (
   keystoreLoader: KeystoreLoader,
   interruptions: RawInterruptions,
 ): Promise<void> => {
-  if (key === undefined) {
-    throw new HardhatError(
-      HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
-      {
-        task: "keystore set",
-        argument: "key",
-      },
-    );
-  }
+  checkMissingKeyTaskArgument(key, "keystore set");
 
   const keystore = await keystoreLoader.create();
 
