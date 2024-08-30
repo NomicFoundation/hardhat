@@ -43,8 +43,6 @@ export const get = async (
 
   const value = await keystore.readValue(key);
 
-  console.log("Read value", key, value);
-
   if (value === undefined) {
     await interruptions.error(`Key "${key}" not found`);
     return;
