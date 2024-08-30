@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+
 import { AsyncMutex } from "../../../../src/internal/core/async-mutex.js";
 
 describe("AsyncMutex", () => {
