@@ -7,6 +7,7 @@ import type {
 import { UnencryptedKeystoreLoader } from "../keystores/unencrypted-keystore-loader.js";
 import { get } from "../tasks/get.js";
 import { HookRawInterruptionsImpl } from "../ui/raw-interruptions.js";
+import { getKeystoreFilePath } from "../utils/get-keystore-file-path.js";
 
 export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
   const handlers: Partial<ConfigurationVariableHooks> = {
@@ -15,8 +16,12 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
       variable: ConfigurationVariable,
       next,
     ) => {
+      const keystoreFilePath = await getKeystoreFilePath();
       const interruptions = new HookRawInterruptionsImpl(context);
-      const loader = new UnencryptedKeystoreLoader(interruptions);
+      const loader = new UnencryptedKeystoreLoader(
+        keystoreFilePath,
+        interruptions,
+      );
 
       const keystore = await loader.load();
       if (keystore === undefined) {

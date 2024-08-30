@@ -4,6 +4,7 @@ import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 import { UnencryptedKeystoreLoader } from "../keystores/unencrypted-keystore-loader.js";
 import { RawInterruptionsImpl } from "../ui/raw-interruptions.js";
 import { showMsgNoKeystoreSet } from "../ui/show-msg-no-keystore-set.js";
+import { getKeystoreFilePath } from "../utils/get-keystore-file-path.js";
 
 export const list = async (
   loader: KeystoreLoader,
@@ -32,8 +33,9 @@ export const list = async (
 };
 
 const taskList: NewTaskActionFunction = async () => {
+  const keystoreFilePath = await getKeystoreFilePath();
   const interruptions = new RawInterruptionsImpl();
-  const loader = new UnencryptedKeystoreLoader(interruptions);
+  const loader = new UnencryptedKeystoreLoader(keystoreFilePath, interruptions);
 
   await list(loader, interruptions);
 };

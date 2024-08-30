@@ -7,6 +7,7 @@ import { UnencryptedKeystoreLoader } from "../keystores/unencrypted-keystore-loa
 import { isAuthorized } from "../ui/password-manager.js";
 import { RawInterruptionsImpl } from "../ui/raw-interruptions.js";
 import { showMsgNoKeystoreSet } from "../ui/show-msg-no-keystore-set.js";
+import { getKeystoreFilePath } from "../utils/get-keystore-file-path.js";
 
 interface TaskDeleteArguments {
   key: string;
@@ -55,8 +56,9 @@ export const remove = async (
 const taskDelete: NewTaskActionFunction<TaskDeleteArguments> = async ({
   key,
 }) => {
+  const keystoreFilePath = await getKeystoreFilePath();
   const interruptions = new RawInterruptionsImpl();
-  const loader = new UnencryptedKeystoreLoader(interruptions);
+  const loader = new UnencryptedKeystoreLoader(keystoreFilePath, interruptions);
 
   await remove({ key }, loader, interruptions);
 };

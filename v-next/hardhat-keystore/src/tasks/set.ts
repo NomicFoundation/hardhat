@@ -7,6 +7,7 @@ import chalk from "chalk";
 import { UnencryptedKeystoreLoader } from "../keystores/unencrypted-keystore-loader.js";
 import { isAuthorized } from "../ui/password-manager.js";
 import { RawInterruptionsImpl } from "../ui/raw-interruptions.js";
+import { getKeystoreFilePath } from "../utils/get-keystore-file-path.js";
 import { validateKey } from "../utils/validate-key.js";
 
 interface TaskGetArguments {
@@ -69,8 +70,9 @@ export const set = async (
 const taskSet: NewTaskActionFunction<TaskGetArguments> = async (
   setArgs,
 ): Promise<void> => {
+  const keystoreFilePath = await getKeystoreFilePath();
   const interruptions = new RawInterruptionsImpl();
-  const loader = new UnencryptedKeystoreLoader(interruptions);
+  const loader = new UnencryptedKeystoreLoader(keystoreFilePath, interruptions);
 
   await set(setArgs, loader, interruptions);
 };

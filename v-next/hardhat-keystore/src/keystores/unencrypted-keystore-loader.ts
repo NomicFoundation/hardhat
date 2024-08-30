@@ -5,8 +5,6 @@ import type {
   RawInterruptions,
 } from "../types.js";
 
-import path from "node:path";
-
 import {
   exists,
   readJsonFile,
@@ -14,28 +12,27 @@ import {
 } from "@ignored/hardhat-vnext-utils/fs";
 
 import { setUpPassword } from "../ui/password-manager.js";
-import { getConfigDir } from "../utils/get-config-dir.js";
 
 import { UnencryptedKeystore } from "./unencrypted-keystore.js";
 
 export class UnencryptedKeystoreLoader implements KeystoreLoader {
+  readonly #keystoreFilePath: string;
   readonly #interruptions: RawInterruptions;
 
-  constructor(interruptions: RawInterruptions) {
+  constructor(keystoreFilePath: string, interruptions: RawInterruptions) {
+    this.#keystoreFilePath = keystoreFilePath;
     this.#interruptions = interruptions;
   }
 
   public async load(): Promise<Keystore | undefined> {
-    const keystoreFilePath = await getKeystoreFilePath();
-
-    const fileExists = await exists(keystoreFilePath);
+    const fileExists = await exists(this.#keystoreFilePath);
     if (fileExists === false) {
       return undefined;
     }
 
-    const keystore: KeystoreFile = await readJsonFile(keystoreFilePath);
+    const keystore: KeystoreFile = await readJsonFile(this.#keystoreFilePath);
 
-    return new UnencryptedKeystore(keystore, keystoreFilePath);
+    return new UnencryptedKeystore(keystore, this.#keystoreFilePath);
   }
 
   public async create(): Promise<Keystore> {
@@ -48,15 +45,8 @@ export class UnencryptedKeystoreLoader implements KeystoreLoader {
       keys: {},
     };
 
-    const keystoreFilePath = await getKeystoreFilePath();
+    await writeJsonFile(this.#keystoreFilePath, keystore);
 
-    await writeJsonFile(keystoreFilePath, keystore);
-
-    return new UnencryptedKeystore(keystore, keystoreFilePath);
+    return new UnencryptedKeystore(keystore, this.#keystoreFilePath);
   }
-}
-
-async function getKeystoreFilePath(): Promise<string> {
-  const configDirPath = await getConfigDir();
-  return path.join(configDirPath, "keystore.json");
 }

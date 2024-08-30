@@ -1,21 +1,15 @@
 import assert from "node:assert/strict";
-import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
 
 import { remove, writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
 
 import { UnencryptedKeystoreLoader } from "../../src/keystores/unencrypted-keystore-loader.js";
 import { UnencryptedKeystore } from "../../src/keystores/unencrypted-keystore.js";
-import { getConfigDir } from "../../src/utils/get-config-dir.js";
+import { getKeystoreFilePath } from "../../src/utils/get-keystore-file-path.js";
 import { getFullOutput } from "../helpers/get-full-output.js";
 import { MockInterruptions } from "../helpers/mock-interruptions.js";
 
 const TEST_PASSWORD = "Test-password";
-
-async function getKeystoreFilePath(): Promise<string> {
-  const configDirPath = await getConfigDir();
-  return path.join(configDirPath, "keystore.json");
-}
 
 describe("unencrypted keystore loader", () => {
   let unencryptedKeystoreLoader: UnencryptedKeystoreLoader;
@@ -29,7 +23,9 @@ describe("unencrypted keystore loader", () => {
     beforeEach(async () => {
       await remove(await getKeystoreFilePath());
 
+      const keystoreFilePath = await getKeystoreFilePath();
       unencryptedKeystoreLoader = new UnencryptedKeystoreLoader(
+        keystoreFilePath,
         mockInterruptions,
       );
     });
@@ -108,7 +104,9 @@ The password must have at least 8 characters, one uppercase letter, one lowercas
         },
       });
 
+      const keystoreFilePath = await getKeystoreFilePath();
       unencryptedKeystoreLoader = new UnencryptedKeystoreLoader(
+        keystoreFilePath,
         mockInterruptions,
       );
     });
