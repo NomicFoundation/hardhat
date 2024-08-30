@@ -38,7 +38,7 @@ describe("tasks - set", () => {
       `Key "myKey" set`,
     );
 
-    const keystore = await mockKeystoreLoader.loadOrInit();
+    const keystore = await mockKeystoreLoader.create();
     assert.deepEqual(await keystore.readValue("myKey"), "myValue");
   });
 
@@ -99,7 +99,7 @@ describe("tasks - set", () => {
       `The key "key" already exists. Use the ${chalk.blue.italic("--force")} flag to overwrite it.`,
     );
 
-    const keystore = await mockKeystoreLoader.loadOrInit();
+    const keystore = await mockKeystoreLoader.create();
     // It should NOT modify the keystore
     assert.deepEqual(await keystore.readValue("key"), "oldValue");
   });
@@ -124,7 +124,7 @@ describe("tasks - set", () => {
     );
 
     // Assert
-    const keystore = await mockKeystoreLoader.loadOrInit();
+    const keystore = await mockKeystoreLoader.create();
     // It should NOT modify the keystore
     assert.deepEqual(await keystore.readValue("key"), "newValue");
   });
@@ -144,7 +144,7 @@ describe("tasks - set", () => {
     );
 
     // Assert
-    const keystore = await mockKeystoreLoader.loadOrInit();
+    const keystore = await mockKeystoreLoader.create();
     // It should NOT modify the keystore
     assert.deepEqual(await keystore.readValue("key"), undefined);
   });

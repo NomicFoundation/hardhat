@@ -34,14 +34,14 @@ describe("unencrypted keystore loader", () => {
       );
     });
 
-    it("should return false because there is no keystore", async () => {
-      assert.equal(await unencryptedKeystoreLoader.hasKeystore(), false);
+    it("should return `undefined` because there is no keystore", async () => {
+      assert.equal(await unencryptedKeystoreLoader.load(), undefined);
     });
 
     it("should successfully init the keystore", async () => {
       mockInterruptions.requestSecretInput = async () => TEST_PASSWORD;
 
-      const res = await unencryptedKeystoreLoader.loadOrInit();
+      const res = await unencryptedKeystoreLoader.create();
       assert.equal(res instanceof UnencryptedKeystore, true);
 
       assert.equal(
@@ -81,11 +81,11 @@ The password must have at least 8 characters, one uppercase letter, one lowercas
         return msg;
       };
 
-      const res = await unencryptedKeystoreLoader.loadOrInit();
+      const res = await unencryptedKeystoreLoader.create();
 
       // Assert that the keystore is successfully initialized
       assert.equal(res instanceof UnencryptedKeystore, true);
-      assert.equal(await unencryptedKeystoreLoader.hasKeystore(), true);
+      assert.notEqual(await unencryptedKeystoreLoader.load(), undefined);
 
       // Be sure that the error messages are displayed to the user
       assert.equal(
@@ -113,12 +113,12 @@ The password must have at least 8 characters, one uppercase letter, one lowercas
       );
     });
 
-    it("should return true because there is a keystore", async () => {
-      assert.equal(await unencryptedKeystoreLoader.hasKeystore(), true);
+    it("should return the keystore on load", async () => {
+      assert.notEqual(await unencryptedKeystoreLoader.load(), undefined);
     });
 
     it("should load the keystore", async () => {
-      const res = await unencryptedKeystoreLoader.loadOrInit();
+      const res = await unencryptedKeystoreLoader.create();
       assert.equal(res instanceof UnencryptedKeystore, true);
     });
   });

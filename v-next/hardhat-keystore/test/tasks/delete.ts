@@ -39,7 +39,7 @@ describe("tasks - delete", () => {
       `Key "myKey" removed`,
     );
 
-    const keystore = await mockKeystoreLoader.loadOrInit();
+    const keystore = await mockKeystoreLoader.create();
     assert.deepEqual(await keystore.readValue("key"), undefined);
   });
 

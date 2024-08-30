@@ -29,7 +29,7 @@ export const set = async (
     );
   }
 
-  const keystore = await loader.loadOrInit();
+  const keystore = await loader.create();
 
   if (!(await validateKey(key, interruptions))) {
     return;

@@ -9,12 +9,13 @@ export const list = async (
   loader: KeystoreLoader,
   interruptions: RawInterruptions,
 ): Promise<void> => {
-  const hasKeystore = await loader.hasKeystore();
-  if (hasKeystore === false) {
-    return showMsgNoKeystoreSet(interruptions);
-  }
+  const keystore = await loader.load();
 
-  const keystore = await loader.loadOrInit();
+  if (keystore === undefined) {
+    await showMsgNoKeystoreSet(interruptions);
+
+    return;
+  }
 
   const keys = await keystore.listKeys();
 

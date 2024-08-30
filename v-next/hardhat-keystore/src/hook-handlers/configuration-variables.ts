@@ -18,8 +18,8 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
       const interruptions = new HookRawInterruptionsImpl(context);
       const loader = new UnencryptedKeystoreLoader(interruptions);
 
-      const hasKeystore = await loader.hasKeystore();
-      if (!hasKeystore) {
+      const keystore = await loader.load();
+      if (keystore === undefined) {
         return next(context, variable);
       }
 

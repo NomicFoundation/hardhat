@@ -27,15 +27,13 @@ export const get = async (
     );
   }
 
-  const hasKeystore = await loader.hasKeystore();
+  const keystore = await loader.load();
 
-  if (hasKeystore === false) {
+  if (keystore === undefined) {
     await showMsgNoKeystoreSet(interruptions);
 
     return;
   }
-
-  const keystore = await loader.loadOrInit();
 
   if ((await isAuthorized()) === false) {
     return;

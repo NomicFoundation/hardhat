@@ -26,13 +26,17 @@ export class UnencryptedKeystoreLoader implements KeystoreLoader {
     this.#interruptions = interruptions;
   }
 
-  public async hasKeystore(): Promise<boolean> {
-    const keystore = await getKeystore();
+  public async load(): Promise<Keystore | undefined> {
+    const result = await getKeystore();
 
-    return keystore !== undefined;
+    if (result === undefined) {
+      return undefined;
+    }
+
+    return new UnencryptedKeystore(result.keystore, result.keystoreFilePath);
   }
 
-  public async loadOrInit(): Promise<Keystore> {
+  public async create(): Promise<Keystore> {
     let result = await getKeystore();
 
     if (result === undefined) {
