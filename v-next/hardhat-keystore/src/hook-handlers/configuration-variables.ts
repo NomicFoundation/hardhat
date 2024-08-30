@@ -5,7 +5,7 @@ import type {
 } from "@ignored/hardhat-vnext/types/hooks";
 
 import { UnencryptedKeystoreLoader } from "../keystores/unencrypted-keystore-loader.js";
-import get from "../tasks/get.js";
+import { get } from "../tasks/get.js";
 import { HookRawInterruptionsImpl } from "../ui/raw-interruptions.js";
 
 export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
@@ -23,8 +23,7 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
         return next(context, variable);
       }
 
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- this is temporary as part of a refactor
-      const value = await get({ key: variable.name }, null as any);
+      const value = await get({ key: variable.name }, loader, interruptions);
 
       return value ?? next(context, variable);
     },
