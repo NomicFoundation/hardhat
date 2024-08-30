@@ -1,3 +1,5 @@
+import type { GlobalOptions } from "../../../src/types/global-options.js";
+
 import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 
@@ -329,10 +331,13 @@ describe("Global Options", () => {
       setEnvVar("HARDHAT_GLOBAL_OPTION_3", "5n");
 
       const globalOptions = resolveGlobalOptions(
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        This cast is intentional, so that the test doesn't need to extend the
+        GlobalOptions type, poluting the whole codebase. */
         {
           globalOption1: false,
           globalOption2: "user",
-        },
+        } as Partial<GlobalOptions>,
         globalOptionDefinitions,
       );
 
@@ -366,10 +371,13 @@ describe("Global Options", () => {
       setEnvVar("HARDHAT_GLOBAL_OPTION2", "env");
 
       const globalOptions = resolveGlobalOptions(
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        This cast is intentional, so that the test doesn't need to extend the
+        GlobalOptions type, poluting the whole codebase. */
         {
           globalOption1: false,
           globalOption2: "user",
-        },
+        } as Partial<GlobalOptions>,
         globalOptionDefinitions,
       );
 
@@ -397,10 +405,13 @@ describe("Global Options", () => {
       setEnvVar("HARDHAT_GLOBAL_OPTION3", "env");
 
       const globalOptions = resolveGlobalOptions(
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        This cast is intentional, so that the test doesn't need to extend the
+        GlobalOptions type, poluting the whole codebase. */
         {
           globalOption1: false,
           globalOption2: "user",
-        },
+        } as Partial<GlobalOptions>,
         globalOptionDefinitions,
       );
 
