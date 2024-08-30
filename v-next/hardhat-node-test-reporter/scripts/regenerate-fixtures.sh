@@ -33,7 +33,9 @@ for dir in $dirs; do
 
   node --import tsx/esm --test --test-reporter=./dist/src/reporter.js $options $dir/*.ts --color > $dir/result.txt || true # Ignore failures, as they are expected
 
-  sed -i '0,/Node\.js/d' $dir/result.txt;
+  if grep -q '^Node\.js' $dir/result.txt; then
+    sed -i '1,/^Node\.js/d' $dir/result.txt;
+  fi
 
   cat $dir/result.txt | aha --black > $dir/result.html;
 

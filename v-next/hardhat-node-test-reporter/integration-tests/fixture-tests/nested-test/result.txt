@@ -10,6 +10,7 @@
               [90m[32m✔[39m[90m nested test[39m
               [31m3) assertion error in nested test[39m
               [31m4) error with cause in nested test[39m
+              [90m[32m✔[39m[90m unawaited test[39m
 
             [31m5) level 2[39m
 
@@ -18,7 +19,7 @@
         [31m7) level 0[39m
 
 
-[32m2 passing[39m[90m (151ms)[39m[31m[39m
+[32m3 passing[39m[90m (145ms)[39m[31m[39m
 [31m7 failing[39m
 
   1) level 0

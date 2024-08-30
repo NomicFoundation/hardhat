@@ -34,6 +34,10 @@ describe("level 0", () => {
                 cause: new Error("cause"),
               });
             });
+
+            it("unawaited test", async () => {
+              assert.equal(1, 1);
+            });
           });
         });
       });
