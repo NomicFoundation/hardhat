@@ -4,10 +4,8 @@ import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import chalk from "chalk";
 
-import { UnencryptedKeystoreLoader } from "../keystores/unencrypted-keystore-loader.js";
 import { isAuthorized } from "../ui/password-manager.js";
-import { RawInterruptionsImpl } from "../ui/raw-interruptions.js";
-import { getKeystoreFilePath } from "../utils/get-keystore-file-path.js";
+import { setupRawInterruptionsAndKeystoreLoader } from "../utils/setup-raw-interruptions-and-keystore-loader.js";
 import { validateKey } from "../utils/validate-key.js";
 
 interface TaskGetArguments {
@@ -15,9 +13,18 @@ interface TaskGetArguments {
   force: boolean;
 }
 
+const taskSet: NewTaskActionFunction<TaskGetArguments> = async (
+  setArgs,
+): Promise<void> => {
+  const { keystoreLoader, interruptions } =
+    await setupRawInterruptionsAndKeystoreLoader();
+
+  await set(setArgs, keystoreLoader, interruptions);
+};
+
 export const set = async (
   { key, force }: TaskGetArguments,
-  loader: KeystoreLoader,
+  keystoreLoader: KeystoreLoader,
   interruptions: RawInterruptions,
 ): Promise<void> => {
   if (key === undefined) {
@@ -30,7 +37,7 @@ export const set = async (
     );
   }
 
-  const keystore = await loader.create();
+  const keystore = await keystoreLoader.create();
 
   if (!(await validateKey(key, interruptions))) {
     return;
@@ -65,16 +72,6 @@ export const set = async (
   await keystore.addNewValue(key, value);
 
   await interruptions.info(`Key "${key}" set`);
-};
-
-const taskSet: NewTaskActionFunction<TaskGetArguments> = async (
-  setArgs,
-): Promise<void> => {
-  const keystoreFilePath = await getKeystoreFilePath();
-  const interruptions = new RawInterruptionsImpl();
-  const loader = new UnencryptedKeystoreLoader(keystoreFilePath, interruptions);
-
-  await set(setArgs, loader, interruptions);
 };
 
 export default taskSet;

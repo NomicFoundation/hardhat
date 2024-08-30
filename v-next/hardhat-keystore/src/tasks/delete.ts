@@ -3,19 +3,26 @@ import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
-import { UnencryptedKeystoreLoader } from "../keystores/unencrypted-keystore-loader.js";
 import { isAuthorized } from "../ui/password-manager.js";
-import { RawInterruptionsImpl } from "../ui/raw-interruptions.js";
 import { showMsgNoKeystoreSet } from "../ui/show-msg-no-keystore-set.js";
-import { getKeystoreFilePath } from "../utils/get-keystore-file-path.js";
+import { setupRawInterruptionsAndKeystoreLoader } from "../utils/setup-raw-interruptions-and-keystore-loader.js";
 
 interface TaskDeleteArguments {
   key: string;
 }
 
+const taskDelete: NewTaskActionFunction<TaskDeleteArguments> = async ({
+  key,
+}) => {
+  const { keystoreLoader, interruptions } =
+    await setupRawInterruptionsAndKeystoreLoader();
+
+  await remove({ key }, keystoreLoader, interruptions);
+};
+
 export const remove = async (
   { key }: TaskDeleteArguments,
-  loader: KeystoreLoader,
+  keystoreLoader: KeystoreLoader,
   interruptions: RawInterruptions,
 ): Promise<void> => {
   if (key === undefined) {
@@ -28,7 +35,7 @@ export const remove = async (
     );
   }
 
-  const keystore = await loader.load();
+  const keystore = await keystoreLoader.load();
 
   if (keystore === undefined) {
     await showMsgNoKeystoreSet(interruptions);
@@ -51,16 +58,6 @@ export const remove = async (
   await keystore.removeKey(key);
 
   await interruptions.info(`Key "${key}" removed`);
-};
-
-const taskDelete: NewTaskActionFunction<TaskDeleteArguments> = async ({
-  key,
-}) => {
-  const keystoreFilePath = await getKeystoreFilePath();
-  const interruptions = new RawInterruptionsImpl();
-  const loader = new UnencryptedKeystoreLoader(keystoreFilePath, interruptions);
-
-  await remove({ key }, loader, interruptions);
 };
 
 export default taskDelete;

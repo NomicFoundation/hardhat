@@ -1,16 +1,21 @@
 import type { KeystoreLoader, RawInterruptions } from "../types.js";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
-import { UnencryptedKeystoreLoader } from "../keystores/unencrypted-keystore-loader.js";
-import { RawInterruptionsImpl } from "../ui/raw-interruptions.js";
 import { showMsgNoKeystoreSet } from "../ui/show-msg-no-keystore-set.js";
-import { getKeystoreFilePath } from "../utils/get-keystore-file-path.js";
+import { setupRawInterruptionsAndKeystoreLoader } from "../utils/setup-raw-interruptions-and-keystore-loader.js";
+
+const taskList: NewTaskActionFunction = async () => {
+  const { keystoreLoader, interruptions } =
+    await setupRawInterruptionsAndKeystoreLoader();
+
+  await list(keystoreLoader, interruptions);
+};
 
 export const list = async (
-  loader: KeystoreLoader,
+  keystoreLoader: KeystoreLoader,
   interruptions: RawInterruptions,
 ): Promise<void> => {
-  const keystore = await loader.load();
+  const keystore = await keystoreLoader.load();
 
   if (keystore === undefined) {
     await showMsgNoKeystoreSet(interruptions);
@@ -30,14 +35,6 @@ export const list = async (
   for (const key of keys) {
     await interruptions.info(key);
   }
-};
-
-const taskList: NewTaskActionFunction = async () => {
-  const keystoreFilePath = await getKeystoreFilePath();
-  const interruptions = new RawInterruptionsImpl();
-  const loader = new UnencryptedKeystoreLoader(keystoreFilePath, interruptions);
-
-  await list(loader, interruptions);
 };
 
 export default taskList;

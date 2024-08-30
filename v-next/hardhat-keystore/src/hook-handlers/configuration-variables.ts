@@ -16,12 +16,7 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
       variable: ConfigurationVariable,
       next,
     ) => {
-      const keystoreFilePath = await getKeystoreFilePath();
-      const interruptions = new HookRawInterruptionsImpl(context);
-      const loader = new UnencryptedKeystoreLoader(
-        keystoreFilePath,
-        interruptions,
-      );
+      const loader = await _setupHookContextUsingKeystoreLoader(context);
 
       const keystore = await loader.load();
       if (keystore === undefined) {
@@ -36,3 +31,9 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
 
   return handlers;
 };
+
+async function _setupHookContextUsingKeystoreLoader(context: HookContext) {
+  const keystoreFilePath = await getKeystoreFilePath();
+  const interruptions = new HookRawInterruptionsImpl(context);
+  return new UnencryptedKeystoreLoader(keystoreFilePath, interruptions);
+}
