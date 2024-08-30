@@ -86,8 +86,11 @@ export class HookRawInterruptionsImpl implements RawInterruptions {
     throw new HardhatPluginError(PLUGIN_ID, "this should not be called");
   }
 
-  public async error(): Promise<void> {
-    throw new HardhatPluginError(PLUGIN_ID, "this should not be called");
+  public async error(message: string): Promise<void> {
+    await this.#context.interruptions.displayMessage(
+      PLUGIN_ID,
+      chalk.red(message),
+    );
   }
 
   public async requestSecretInput(): Promise<string> {
