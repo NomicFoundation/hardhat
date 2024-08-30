@@ -25,6 +25,9 @@ describe("UserInterruptionManager", () => {
       // breaks we should probably switch to initializing an entire HRE in these
       // tests.
       hookManager.setContext({
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
         config: {
           tasks: [],
           plugins: [],
@@ -34,8 +37,11 @@ describe("UserInterruptionManager", () => {
             artifacts: "",
             tests: "",
           },
-        },
-        globalOptions: {},
+        } as any,
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
+        globalOptions: {} as any,
         hooks: hookManager,
         interruptions: userInterruptionManager,
       });
@@ -72,6 +78,9 @@ describe("UserInterruptionManager", () => {
         hookManager,
       );
       hookManager.setContext({
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
         config: {
           tasks: [],
           plugins: [],
@@ -81,8 +90,11 @@ describe("UserInterruptionManager", () => {
             artifacts: "",
             tests: "",
           },
-        },
-        globalOptions: {},
+        } as any,
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
+        globalOptions: {} as any,
         hooks: hookManager,
         interruptions: userInterruptionManager,
       });
@@ -121,6 +133,9 @@ describe("UserInterruptionManager", () => {
         hookManager,
       );
       hookManager.setContext({
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
         config: {
           tasks: [],
           plugins: [],
@@ -130,8 +145,11 @@ describe("UserInterruptionManager", () => {
             artifacts: "",
             tests: "",
           },
-        },
-        globalOptions: {},
+        } as any,
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
+        globalOptions: {} as any,
         hooks: hookManager,
         interruptions: userInterruptionManager,
       });

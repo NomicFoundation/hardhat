@@ -21,6 +21,9 @@ describe("ResolvedConfigurationVariable", () => {
     );
 
     hookManager.setContext({
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
       config: {
         tasks: [],
         plugins: [],
@@ -30,9 +33,12 @@ describe("ResolvedConfigurationVariable", () => {
           artifacts: "",
           tests: "",
         },
-      },
+      } as any,
       hooks: hookManager,
-      globalOptions: {},
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
+      globalOptions: {} as any,
       interruptions: userInterruptionsManager,
     });
   });

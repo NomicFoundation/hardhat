@@ -2,10 +2,7 @@
 sequential tests require casting - see the `runSequentialHandlers` describe */
 
 import type { HardhatUserConfig } from "../../../src/config.js";
-import type {
-  HardhatConfig,
-  ConfigurationVariable,
-} from "../../../src/types/config.js";
+import type { ConfigurationVariable } from "../../../src/types/config.js";
 import type {
   HookManager,
   ConfigHooks,
@@ -99,6 +96,9 @@ describe("HookManager", () => {
           new UserInterruptionManagerImplementation(hookManager);
 
         manager.setContext({
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
           config: {
             tasks: [],
             plugins: [],
@@ -108,9 +108,12 @@ describe("HookManager", () => {
               artifacts: "",
               tests: "",
             },
-          },
+          } as any,
           hooks: hookManager,
-          globalOptions: {},
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
+          globalOptions: {} as any,
           interruptions: userInterruptionsManager,
         });
 
@@ -170,7 +173,10 @@ describe("HookManager", () => {
       });
 
       it("should use plugins during parallel handlers runs", async () => {
-        const originalConfig: HardhatConfig = {
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR.*/
+        const originalConfig: HardhatUserConfig = {
           plugins: [],
           tasks: [],
           paths: {
@@ -179,7 +185,7 @@ describe("HookManager", () => {
             artifacts: "",
             tests: "",
           },
-        };
+        } as any;
 
         hookManager.registerHandlers("config", {
           validateUserConfig: async (
@@ -226,7 +232,10 @@ describe("HookManager", () => {
           },
         };
 
-        const expectedConfig: HardhatConfig = {
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR. */
+        const expectedConfig: HardhatUserConfig = {
           plugins: [],
           tasks: [],
           paths: {
@@ -235,7 +244,7 @@ describe("HookManager", () => {
             artifacts: "",
             tests: "",
           },
-        };
+        } as any;
 
         const manager = new HookManagerImplementation(projectRoot, [
           examplePlugin,
@@ -332,6 +341,9 @@ describe("HookManager", () => {
           new UserInterruptionManagerImplementation(hookManager);
 
         manager.setContext({
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
           config: {
             tasks: [],
             plugins: [],
@@ -341,9 +353,12 @@ describe("HookManager", () => {
               artifacts: "",
               tests: "",
             },
-          },
+          } as any,
           hooks: hookManager,
-          globalOptions: {},
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
+          globalOptions: {} as any,
           interruptions: userInterruptionsManager,
         });
 
@@ -353,7 +368,10 @@ describe("HookManager", () => {
       it("should return the default implementation if no other handlers are provided", async () => {
         const notExpectedConfig = {};
 
-        const defaultImplementationVersionOfConfig: HardhatConfig = {
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
+        const defaultImplementationVersionOfConfig: HardhatUserConfig = {
           plugins: [],
           tasks: [],
           paths: {
@@ -362,7 +380,7 @@ describe("HookManager", () => {
             artifacts: "",
             tests: "",
           },
-        };
+        } as any;
 
         const resultConfig = await hookManager.runHandlerChain(
           "config",
@@ -440,7 +458,10 @@ describe("HookManager", () => {
       });
 
       it("should pass the parameters directly for config hooks", async () => {
-        const expectedConfig: HardhatConfig = {
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
+        const expectedConfig: HardhatUserConfig = {
           plugins: [],
           tasks: [],
           paths: {
@@ -449,7 +470,7 @@ describe("HookManager", () => {
             artifacts: "",
             tests: "",
           },
-        };
+        } as any;
 
         hookManager.registerHandlers("config", {
           extendUserConfig: async (
@@ -564,6 +585,9 @@ describe("HookManager", () => {
           new UserInterruptionManagerImplementation(hookManager);
 
         manager.setContext({
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
           config: {
             tasks: [],
             plugins: [],
@@ -573,9 +597,12 @@ describe("HookManager", () => {
               artifacts: "",
               tests: "",
             },
-          },
+          } as any,
           hooks: hookManager,
-          globalOptions: {},
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
+          globalOptions: {} as any,
           interruptions: userInterruptionsManager,
         });
 
@@ -659,7 +686,10 @@ describe("HookManager", () => {
       });
 
       it("Should stop config handlers having access to the hook context", async () => {
-        const expectedConfig: HardhatConfig = {
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
+        const expectedConfig: HardhatUserConfig = {
           plugins: [],
           tasks: [],
           paths: {
@@ -668,7 +698,7 @@ describe("HookManager", () => {
             artifacts: "",
             tests: "",
           },
-        };
+        } as any;
 
         hookManager.registerHandlers("config", {
           validateUserConfig: async (
@@ -704,6 +734,9 @@ describe("HookManager", () => {
           new UserInterruptionManagerImplementation(hookManager);
 
         manager.setContext({
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
           config: {
             tasks: [],
             plugins: [],
@@ -713,9 +746,12 @@ describe("HookManager", () => {
               artifacts: "",
               tests: "",
             },
-          },
+          } as any,
           hooks: hookManager,
-          globalOptions: {},
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
+          globalOptions: {} as any,
           interruptions: userInterruptionsManager,
         });
 
@@ -723,7 +759,10 @@ describe("HookManager", () => {
       });
 
       it("Should return an empty result set if no handlers are provided", async () => {
-        const originalConfig: HardhatConfig = {
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
+        const originalConfig: HardhatUserConfig = {
           plugins: [],
           tasks: [],
           paths: {
@@ -732,7 +771,7 @@ describe("HookManager", () => {
             artifacts: "",
             tests: "",
           },
-        };
+        } as any;
 
         const results = await hookManager.runParallelHandlers(
           "config",
@@ -744,7 +783,10 @@ describe("HookManager", () => {
       });
 
       it("Should return a result per handler", async () => {
-        const originalConfig: HardhatConfig = {
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
+        const originalConfig: HardhatUserConfig = {
           plugins: [],
           tasks: [],
           paths: {
@@ -753,7 +795,7 @@ describe("HookManager", () => {
             artifacts: "",
             tests: "",
           },
-        };
+        } as any;
 
         hookManager.registerHandlers("config", {
           validateUserConfig: async (
@@ -830,7 +872,10 @@ describe("HookManager", () => {
       });
 
       it("Should not pass the hook context for config", async () => {
-        const expectedConfig: HardhatConfig = {
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
+        const expectedConfig: HardhatUserConfig = {
           plugins: [],
           tasks: [],
           paths: {
@@ -839,7 +884,7 @@ describe("HookManager", () => {
             artifacts: "",
             tests: "",
           },
-        };
+        } as any;
 
         const validationError = {
           path: [],
@@ -875,6 +920,9 @@ describe("HookManager", () => {
           new UserInterruptionManagerImplementation(hookManager);
 
         manager.setContext({
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
           config: {
             tasks: [],
             plugins: [],
@@ -884,9 +932,12 @@ describe("HookManager", () => {
               artifacts: "",
               tests: "",
             },
-          },
+          } as any,
           hooks: hookManager,
-          globalOptions: {},
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
+          globalOptions: {} as any,
           interruptions: userInterruptionsManager,
         });
 
@@ -1037,6 +1088,9 @@ function buildMockHardhatRuntimeEnvironment(
 
   const mockHre: HardhatRuntimeEnvironment = {
     hooks: hookManager,
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
     config: {
       tasks: [],
       plugins: [],
@@ -1046,9 +1100,12 @@ function buildMockHardhatRuntimeEnvironment(
         artifacts: "",
         tests: "",
       },
-    },
+    } as any,
     tasks: mockTaskManager,
-    globalOptions: {},
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
+        TODO: This is a temporary fix to land a refactor sooner without creating
+        more merge conflicts than needed. It will be fixed in a subsequent PR */
+    globalOptions: {} as any,
     interruptions: mockInteruptionManager,
   };
 
