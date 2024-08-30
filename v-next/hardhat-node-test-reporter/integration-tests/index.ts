@@ -127,8 +127,8 @@ function normalizeOutputs(output: string): string {
         return match.replaceAll(path.sep, "/");
       })
       // Remove lines like `at TestHook.run (node:internal/test_runner/test:1107:18)`
-      .replace(/^.*?at .*? \(node\:.*?:\d+:\d+\).*?$/gm, "")
+      .replace(/^.*?at .*? \(node\:.*?:\d+:\d+\).*?\n/gm, "")
       // Remove lines like `at node:internal/test_runner/test:776:20`
-      .replace(/^.*?at (async )?node\:.*?:\d+:\d+.*?$/gm, "")
+      .replace(/^.*?at (async )?node\:.*?:\d+:\d+.*?\n/gm, "")
   );
 }
