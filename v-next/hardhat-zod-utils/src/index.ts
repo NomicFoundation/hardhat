@@ -1,9 +1,20 @@
-type HardhatUserConfig = any;
-type HardhatUserConfigValidationError = any;
-
-import type { ZodType, ZodTypeDef } from "zod";
+import type { ZodTypeDef, ZodType } from "zod";
 
 import { z } from "zod";
+
+/**
+ * We use `any` here to avoid a circular dependency between the Hardhat and the
+ * Zod utils packages.
+ */
+export type HardhatUserConfigToValidate = any;
+
+/**
+ * For the same reason, we duplicate the type here.
+ */
+export interface HardhatUserConfigValidationError {
+  path: Array<string | number>;
+  message: string;
+}
 
 /**
  * A Zod untagged union type that returns a custom error message if the value
@@ -52,7 +63,7 @@ export async function validateUserConfigZodType<
   Def extends ZodTypeDef = ZodTypeDef,
   Input = Output,
 >(
-  config: HardhatUserConfig,
+  config: HardhatUserConfigToValidate,
   configType: ZodType<Output, Def, Input>,
 ): Promise<HardhatUserConfigValidationError[]> {
   const result = await configType.safeParseAsync(config);
