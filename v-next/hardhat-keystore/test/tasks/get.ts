@@ -23,8 +23,8 @@ describe("tasks - get", () => {
     mockKeystoreLoader = new MockKeystoreLoader(mockKeystore);
   });
 
-  it("should get the secret", async () => {
-    mockKeystore.addNewSecret("myKey", "myValue");
+  it("should get the value", async () => {
+    mockKeystore.addNewValue("myKey", "myValue");
 
     await get(
       {

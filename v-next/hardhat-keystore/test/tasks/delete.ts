@@ -24,7 +24,7 @@ describe("tasks - delete", () => {
   });
 
   it("should delete the key", async () => {
-    mockKeystore.addNewSecret("myKey", "myValue");
+    mockKeystore.addNewValue("myKey", "myValue");
 
     await remove(
       {

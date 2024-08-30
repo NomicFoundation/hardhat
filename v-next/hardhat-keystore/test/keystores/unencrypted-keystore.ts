@@ -47,11 +47,11 @@ describe("UnencryptedKeystore", () => {
     assert.equal(await keystore.readValue("key1"), undefined);
   });
 
-  it("should add a new secret", async () => {
+  it("should add a new value", async () => {
     // Be sure that the key does not exist
     assert.equal(await keystore.readValue("new-key"), undefined);
 
-    await keystore.addNewSecret("new-key", "new-value");
+    await keystore.addNewValue("new-key", "new-value");
 
     // Be sure the key has been added
     assert.equal(await keystore.readValue("new-key"), "new-value");

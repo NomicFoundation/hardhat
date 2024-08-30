@@ -43,8 +43,8 @@ describe("tasks - list", () => {
   });
 
   it("should list the keys", async () => {
-    mockKeystore.addNewSecret("key", "value");
-    mockKeystore.addNewSecret("key2", "value2");
+    mockKeystore.addNewValue("key", "value");
+    mockKeystore.addNewValue("key2", "value2");
 
     await list(mockKeystoreLoader, mockInterruptions);
 

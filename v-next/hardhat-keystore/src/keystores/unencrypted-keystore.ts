@@ -24,8 +24,8 @@ export class UnencryptedKeystore implements Keystore {
     await writeJsonFile(this.#keystoreFilePath, this.#keystoreCache);
   }
 
-  public async addNewSecret(key: string, secret: string): Promise<void> {
-    this.#keystoreCache.keys[key] = secret;
+  public async addNewValue(key: string, value: string): Promise<void> {
+    this.#keystoreCache.keys[key] = value;
     await writeJsonFile(this.#keystoreFilePath, this.#keystoreCache);
   }
 }

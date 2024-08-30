@@ -140,7 +140,7 @@ describe("tasks - set", () => {
 
     assert.equal(
       mockInterruptions.error.mock.calls[0].arguments[0],
-      "The secret cannot be empty.",
+      "The value cannot be empty.",
     );
 
     // Assert

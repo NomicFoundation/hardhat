@@ -12,7 +12,7 @@ export interface KeystoreLoader {
 
 export interface Keystore {
   listKeys(): Promise<string[]>;
-  addNewSecret(key: string, secret: string): Promise<void>;
+  addNewValue(key: string, value: string): Promise<void>;
   removeKey(key: string): Promise<void>;
   readValue(key: string): Promise<string | undefined>;
 }

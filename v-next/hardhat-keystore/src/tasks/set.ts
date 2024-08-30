@@ -51,17 +51,17 @@ export const set = async (
     }
   }
 
-  const secret = await interruptions.requestSecretInput(
-    "Enter secret to store: ",
+  const value = await interruptions.requestSecretInput(
+    "Enter value to store: ",
   );
 
-  if (secret.length === 0) {
-    await interruptions.error("The secret cannot be empty.");
+  if (value.length === 0) {
+    await interruptions.error("The value cannot be empty.");
 
     return;
   }
 
-  await keystore.addNewSecret(key, secret);
+  await keystore.addNewValue(key, value);
 
   await interruptions.info(`Key "${key}" set`);
 };

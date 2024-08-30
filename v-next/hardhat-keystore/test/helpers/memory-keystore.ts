@@ -11,8 +11,8 @@ export class MemoryKeystore implements Keystore {
     return [...this.#keyMap.keys()];
   }
 
-  public async addNewSecret(key: string, secret: string): Promise<void> {
-    this.#keyMap.set(key, secret);
+  public async addNewValue(key: string, value: string): Promise<void> {
+    this.#keyMap.set(key, value);
   }
 
   public async removeKey(key: string): Promise<void> {

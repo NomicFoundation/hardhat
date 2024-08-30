@@ -18,7 +18,7 @@ export const list = async (
 
   const keys = await keystore.listKeys();
 
-  // No authorization needed, it only shows the keys, not the secret values
+  // No authorization needed, it only shows the keys, not the values
   if (keys.length === 0) {
     await interruptions.info("The keystore does not contain any keys.");
     return;
