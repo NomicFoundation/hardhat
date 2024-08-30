@@ -6,7 +6,7 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { UnencryptedKeystoreLoader } from "../keystores/unencrypted-keystore-loader.js";
 import { isAuthorized } from "../ui/password-manager.js";
 import { RawInterruptionsImpl } from "../ui/raw-interruptions.js";
-import { showMsgNoKeystoreSet } from "../utils/show-msg-no-keystore-set.js";
+import { showMsgNoKeystoreSet } from "../ui/show-msg-no-keystore-set.js";
 
 interface TaskGetArguments {
   key: string;
