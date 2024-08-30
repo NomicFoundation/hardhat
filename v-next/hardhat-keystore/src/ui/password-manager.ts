@@ -1,7 +1,5 @@
 import type { RawInterruptions } from "../types.js";
 
-// TODO: singleton for password? TBD
-
 export async function setUpPassword(
   interruptions: RawInterruptions,
 ): Promise<void> {

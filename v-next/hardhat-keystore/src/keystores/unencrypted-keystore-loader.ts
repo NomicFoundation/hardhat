@@ -70,7 +70,6 @@ async function setupKeystore(interruptions: RawInterruptions): Promise<void> {
   await setUpPassword(interruptions);
 
   const keystoreCache = {
-    // TODO: store password hash (with random value) to validate later that password is correct
     version: "",
     keys: {},
   };
