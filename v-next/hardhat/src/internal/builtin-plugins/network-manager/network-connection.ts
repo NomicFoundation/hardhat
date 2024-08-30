@@ -40,7 +40,7 @@ export class NetworkConnectionImplementation<
     return networkConnection;
   }
 
-  private static getNextId(): string {
+  static #getNextId(): string {
     return `network-conn-${NetworkConnectionImplementation.#currentId++}`;
   }
 
@@ -50,7 +50,7 @@ export class NetworkConnectionImplementation<
     networkConfig: NetworkConfig,
     hookManager: HookManager,
   ) {
-    this.id = NetworkConnectionImplementation.getNextId();
+    this.id = NetworkConnectionImplementation.#getNextId();
     this.networkName = networkName;
     this.chainType = chainType;
     this.networkConfig = networkConfig;
@@ -72,7 +72,10 @@ export class NetworkConnectionImplementation<
       "network",
       "closeConnection",
       [this],
-      async (_context, _connection) => {},
+      async (_context, _connection) => {
+        // we should call dispatcher.close() here, see
+        // https://github.com/nodejs/undici/discussions/3522#discussioncomment-10498734
+      },
     );
   }
 }

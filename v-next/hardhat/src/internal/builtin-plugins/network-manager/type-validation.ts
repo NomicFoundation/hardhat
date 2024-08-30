@@ -6,25 +6,33 @@ import type { HardhatUserConfigValidationError } from "@ignored/hardhat-vnext/ty
 
 import {
   sensitiveUrlType,
+  unionType,
   validateUserConfigZodType,
 } from "@ignored/hardhat-vnext-zod-utils";
 import { z } from "zod";
 
-const chainTypeSchema = z.union([
-  z.literal("l1"),
-  z.literal("optimism"),
-  z.literal("unknown"),
-]);
+const chainTypeSchema = unionType(
+  [z.literal("l1"), z.literal("optimism"), z.literal("unknown")],
+  "Expected 'l1', 'optimism', or 'unknown'",
+);
 
 const httpNetworkUserConfigSchema = z.object({
   type: z.literal("http"),
   chainId: z.optional(z.number().int()),
   chainType: z.optional(chainTypeSchema),
   from: z.optional(z.string()),
-  gas: z.optional(z.union([z.literal("auto"), z.number().int(), z.bigint()])),
+  gas: z.optional(
+    unionType(
+      [z.literal("auto"), z.number().int(), z.bigint()],
+      "Expected 'auto', number, or bigint",
+    ),
+  ),
   gasMultiplier: z.optional(z.number()),
   gasPrice: z.optional(
-    z.union([z.literal("auto"), z.number().int(), z.bigint()]),
+    unionType(
+      [z.literal("auto"), z.number().int(), z.bigint()],
+      "Expected 'auto', number, or bigint",
+    ),
   ),
 
   // HTTP network specific
@@ -38,9 +46,15 @@ const edrNetworkUserConfigSchema = z.object({
   chainId: z.number().int(),
   chainType: z.optional(chainTypeSchema),
   from: z.optional(z.string()),
-  gas: z.union([z.literal("auto"), z.number().int(), z.bigint()]),
+  gas: unionType(
+    [z.literal("auto"), z.number().int(), z.bigint()],
+    "Expected 'auto', number, or bigint",
+  ),
   gasMultiplier: z.number(),
-  gasPrice: z.union([z.literal("auto"), z.number().int(), z.bigint()]),
+  gasPrice: unionType(
+    [z.literal("auto"), z.number().int(), z.bigint()],
+    "Expected 'auto', number, or bigint",
+  ),
 });
 
 const networkUserConfigSchema = z.discriminatedUnion("type", [
@@ -59,9 +73,12 @@ const httpNetworkConfigSchema = z.object({
   chainId: z.number().int(),
   chainType: z.optional(chainTypeSchema),
   from: z.optional(z.string()),
-  gas: z.union([z.literal("auto"), z.bigint()]),
+  gas: unionType([z.literal("auto"), z.bigint()], "Expected 'auto' or bigint"),
   gasMultiplier: z.number(),
-  gasPrice: z.union([z.literal("auto"), z.bigint()]),
+  gasPrice: unionType(
+    [z.literal("auto"), z.bigint()],
+    "Expected 'auto' or bigint",
+  ),
 
   // HTTP network specific
   url: sensitiveUrlType,
@@ -74,9 +91,12 @@ const edrNetworkConfigSchema = z.object({
   chainId: z.number().int(),
   chainType: z.optional(chainTypeSchema),
   from: z.string(),
-  gas: z.union([z.literal("auto"), z.bigint()]),
+  gas: unionType([z.literal("auto"), z.bigint()], "Expected 'auto' or bigint"),
   gasMultiplier: z.number(),
-  gasPrice: z.union([z.literal("auto"), z.bigint()]),
+  gasPrice: unionType(
+    [z.literal("auto"), z.bigint()],
+    "Expected 'auto' or bigint",
+  ),
 });
 
 const networkConfigSchema = z.discriminatedUnion("type", [
