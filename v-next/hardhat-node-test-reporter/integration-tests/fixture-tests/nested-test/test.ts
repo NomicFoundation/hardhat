@@ -17,6 +17,30 @@ describe("level 0", () => {
           cause: new Error("cause"),
         });
       });
+
+      it("level 0", async () => {
+        await it("level 1", async () => {
+          await it("level 2", async () => {
+            await it("nested test", async () => {
+              assert.equal(1, 1);
+            });
+
+            await it("assertion error in nested test", async () => {
+              assert.equal(1, 2);
+            });
+
+            await it("error with cause in nested test", async () => {
+              throw new Error("error with cause", {
+                cause: new Error("cause"),
+              });
+            });
+
+            it("unawaited test", async () => {
+              assert.equal(1, 1);
+            });
+          });
+        });
+      });
     });
   });
 });

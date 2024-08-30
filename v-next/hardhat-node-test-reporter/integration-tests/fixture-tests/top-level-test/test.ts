@@ -14,3 +14,11 @@ test("error with cause in top level test", async () => {
     cause: new Error("cause"),
   });
 });
+
+test("error with nested cause in top level test", async () => {
+  throw new Error("error with cause", {
+    cause: new Error("cause", {
+      cause: new Error("nested cause"),
+    }),
+  });
+});

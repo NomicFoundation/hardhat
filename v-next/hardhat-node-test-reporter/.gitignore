@@ -6,3 +6,5 @@
 
 # pnpm deploy output
 /bundle
+
+/integration-tests/fixture-tests/*/result.actual.txt
