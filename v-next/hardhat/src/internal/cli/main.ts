@@ -1,8 +1,4 @@
 import type {
-  OptionDefinition,
-  PositionalArgumentDefinition,
-} from "../../types/arguments.js";
-import type {
   GlobalOptionDefinitions,
   GlobalOptions,
 } from "../../types/global-options.js";
@@ -20,9 +16,13 @@ import debug from "debug";
 
 import { resolveHardhatConfigPath } from "../../config.js";
 import { createHardhatRuntimeEnvironment } from "../../hre.js";
+import {
+  ArgumentType,
+  type OptionDefinition,
+  type PositionalArgumentDefinition,
+} from "../../types/arguments.js";
 import { BUILTIN_GLOBAL_OPTIONS_DEFINITIONS } from "../builtin-global-options.js";
 import { builtinPlugins } from "../builtin-plugins/index.js";
-import { ArgumentType } from "../core/config.js";
 import {
   buildGlobalOptionDefinitions,
   parseArgumentValue,

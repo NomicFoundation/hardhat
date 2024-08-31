@@ -8,16 +8,14 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 
 import { RESERVED_ARGUMENT_NAMES } from "../../../../src/internal/core/arguments.js";
-import {
-  ArgumentType,
-  globalOption,
-} from "../../../../src/internal/core/config.js";
+import { globalOption } from "../../../../src/internal/core/config.js";
 import { createBaseHardhatRuntimeEnvironment } from "../../../../src/internal/core/index.js";
 import {
   EmptyTaskDefinitionBuilderImplementation,
   NewTaskDefinitionBuilderImplementation,
   TaskOverrideDefinitionBuilderImplementation,
 } from "../../../../src/internal/core/tasks/builders.js";
+import { ArgumentType } from "../../../../src/types/arguments.js";
 import { TaskDefinitionType } from "../../../../src/types/tasks.js";
 
 /**

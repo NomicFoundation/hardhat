@@ -20,8 +20,6 @@ import {
 
 export type { HardhatUserConfig } from "../../types/config.js";
 
-export { ArgumentType } from "../../types/arguments.js";
-
 /**
  * Creates a configuration variable, which will be fetched at runtime.
  */
