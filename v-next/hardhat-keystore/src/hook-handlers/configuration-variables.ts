@@ -6,7 +6,8 @@ import type {
 
 import { UnencryptedKeystore } from "../keystores/unencrypted-keystore.js";
 import { KeystoreFileLoader } from "../loaders/keystore-file-loader.js";
-import { HookRawInterruptionsImpl } from "../ui/HookRawInterruptionsImpl.js";
+import { ConsoleWrapperImpl } from "../ui/console-wrapper.js";
+import { RawInterruptionsImpl } from "../ui/raw-interruptions.js";
 import { getKeystoreFilePath } from "../utils/get-keystore-file-path.js";
 
 export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
@@ -16,13 +17,17 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
       variable: ConfigurationVariable,
       next,
     ) => {
-      const loader = await _setupHookContextUsingKeystoreLoader();
+      const loader = await _setupLoaderWithContextBasedInterruptions();
 
       if (!(await loader.exists())) {
         return next(context, variable);
       }
 
       const keystore = await loader.load();
+
+      if (!(await keystore.hasKey(variable.name))) {
+        return next(context, variable);
+      }
 
       const value = await keystore.readValue(variable.name);
 
@@ -33,9 +38,11 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
   return handlers;
 };
 
-async function _setupHookContextUsingKeystoreLoader() {
+async function _setupLoaderWithContextBasedInterruptions() {
   const keystoreFilePath = await getKeystoreFilePath();
-  const interruptions = new HookRawInterruptionsImpl();
+  // TODO: swap in a Interruptions handler based on context
+  const interruptions = new RawInterruptionsImpl(new ConsoleWrapperImpl());
+
   return new KeystoreFileLoader(
     keystoreFilePath,
     () => new UnencryptedKeystore(interruptions),

@@ -14,6 +14,7 @@ export interface KeystoreLoader {
 
 export interface Keystore {
   listKeys(): Promise<string[]>;
+  hasKey(key: string): Promise<boolean>;
   addNewValue(key: string, value: string): Promise<void>;
   removeKey(key: string): Promise<void>;
   readValue(key: string): Promise<string | undefined>;

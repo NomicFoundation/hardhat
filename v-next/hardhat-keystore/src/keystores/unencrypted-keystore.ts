@@ -17,6 +17,12 @@ export class UnencryptedKeystore implements Keystore {
     return Object.keys(this.#keystoreCache.keys);
   }
 
+  public async hasKey(key: string): Promise<boolean> {
+    this.#assertKeystoreInitialized(this.#keystoreCache);
+
+    return Object.keys(this.#keystoreCache.keys).includes(key);
+  }
+
   public async readValue(key: string): Promise<string | undefined> {
     this.#assertKeystoreInitialized(this.#keystoreCache);
 

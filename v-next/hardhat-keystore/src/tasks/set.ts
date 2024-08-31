@@ -1,4 +1,4 @@
-import type { Keystore, KeystoreLoader, RawInterruptions } from "../types.js";
+import type { KeystoreLoader, RawInterruptions } from "../types.js";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
 import { checkMissingKeyTaskArgument } from "../utils/check-missing-key-task-argument.js";
@@ -34,7 +34,7 @@ export const set = async (
     ? await keystoreLoader.load()
     : await keystoreLoader.create();
 
-  if (!force && (await _hasKey(keystore, key))) {
+  if (!force && (await keystore.hasKey(key))) {
     return interruptions.displayKeyAlreadyExistsWarning(key);
   }
 
@@ -50,11 +50,5 @@ export const set = async (
 
   await interruptions.displayKeySetInfoMessage(key);
 };
-
-async function _hasKey(keystore: Keystore, key: string) {
-  const existingValue = await keystore.readValue(key);
-
-  return existingValue !== undefined;
-}
 
 export default taskSet;

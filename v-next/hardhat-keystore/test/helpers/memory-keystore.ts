@@ -11,6 +11,10 @@ export class MemoryKeystore implements Keystore {
     return [...this.#keyMap.keys()];
   }
 
+  public async hasKey(key: string): Promise<boolean> {
+    return this.#keyMap.has(key);
+  }
+
   public async addNewValue(key: string, value: string): Promise<void> {
     this.#keyMap.set(key, value);
   }
