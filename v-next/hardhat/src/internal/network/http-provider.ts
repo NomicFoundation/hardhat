@@ -1,11 +1,9 @@
 import type {
-  JsonRpcResponse,
-  JsonRpcRequest,
-  SuccessfulJsonRpcResponse,
-} from "./utils/json-rpc.js";
-import type {
   EthereumProvider,
+  JsonRpcRequest,
+  JsonRpcResponse,
   RequestArguments,
+  SuccessfulJsonRpcResponse,
 } from "../../types/providers.js";
 import type {
   Dispatcher,

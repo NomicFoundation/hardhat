@@ -1,7 +1,3 @@
-import type {
-  JsonRpcRequest,
-  JsonRpcResponse,
-} from "../internal/network/utils/json-rpc.js";
 import type EventEmitter from "node:events";
 
 export interface RequestArguments {
@@ -92,8 +88,54 @@ export interface EthereumProvider extends EIP1193Provider {
   ): void;
 }
 
-export type {
-  JsonRpcRequest,
-  JsonRpcNotificationRequest,
-  JsonRpcResponse,
-} from "../internal/network/utils/json-rpc.js";
+/**
+ * A JSON-RPC 2.0 request object.
+ *
+ * For typing a JSON-RPC notification request, use `JsonRpcNotificationRequest`.
+ *
+ * Although the `params` field can be an object according to the specification,
+ * we only support arrays. The interface remains unchanged to comply with the
+ * standard, and to be type-compatible JSON-RPC requests not created by us.
+ */
+export interface JsonRpcRequest {
+  jsonrpc: "2.0";
+  id: number | string;
+  method: string;
+  params?: unknown[] | object;
+}
+
+/**
+ * A JSON-RPC 2.0 notification request object.
+ */
+export interface JsonRpcNotificationRequest {
+  jsonrpc: "2.0";
+  method: string;
+  params?: unknown[] | object;
+}
+
+/**
+ * A succesful JSON-RPC 2.0 response object.
+ */
+export interface SuccessfulJsonRpcResponse {
+  jsonrpc: "2.0";
+  id: number | string;
+  result: unknown;
+}
+
+/**
+ * A failed JSON-RPC 2.0 response object.
+ */
+export interface FailedJsonRpcResponse {
+  jsonrpc: "2.0";
+  id: number | string | null;
+  error: {
+    code: number;
+    message: string;
+    data?: unknown;
+  };
+}
+
+/**
+ * A JSON-RPC 2.0 response object.
+ */
+export type JsonRpcResponse = SuccessfulJsonRpcResponse | FailedJsonRpcResponse;
