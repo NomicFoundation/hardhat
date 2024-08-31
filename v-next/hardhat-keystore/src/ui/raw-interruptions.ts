@@ -90,7 +90,7 @@ export class RawInterruptionsImpl implements RawInterruptions {
   }
 
   public async displaySecretCannotBeEmptyErrorMessage(): Promise<void> {
-    this.#console.error("The secret cannot be empty.");
+    this.#console.error("The value cannot be empty.");
   }
 
   public async displayKeySetInfoMessage(key: string): Promise<void> {
