@@ -4,7 +4,8 @@ import type {
   HookContext,
 } from "@ignored/hardhat-vnext/types/hooks";
 
-import { UnencryptedKeystoreLoader } from "../keystores/unencrypted-keystore-loader.js";
+import { UnencryptedKeystore } from "../keystores/unencrypted-keystore.js";
+import { KeystoreFileLoader } from "../loaders/keystore-file-loader.js";
 import { HookRawInterruptionsImpl } from "../ui/HookRawInterruptionsImpl.js";
 import { getKeystoreFilePath } from "../utils/get-keystore-file-path.js";
 
@@ -34,5 +35,8 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
 async function _setupHookContextUsingKeystoreLoader() {
   const keystoreFilePath = await getKeystoreFilePath();
   const interruptions = new HookRawInterruptionsImpl();
-  return new UnencryptedKeystoreLoader(keystoreFilePath, interruptions);
+  return new KeystoreFileLoader(
+    keystoreFilePath,
+    () => new UnencryptedKeystore(interruptions),
+  );
 }

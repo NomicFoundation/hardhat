@@ -17,8 +17,9 @@ export interface Keystore {
   removeKey(key: string): Promise<void>;
   readValue(key: string): Promise<string | undefined>;
 
-  loadFromJson: (json: string) => Promise<void>;
-  saveToJson(): Promise<string>;
+  init(): Promise<void>;
+  loadFromJSON: (json: unknown) => Keystore;
+  toJSON(): any;
 }
 
 export interface ConsoleWrapper {

@@ -23,17 +23,25 @@ export class MemoryKeystore implements Keystore {
     return this.#keyMap.get(key);
   }
 
-  public async loadFromJson(json: string): Promise<void> {
-    const data: KeystoreFile = JSON.parse(json);
+  public async init(): Promise<void> {
+    // Do nothing
+  }
+
+  public loadFromJSON(json: any): Keystore {
+    const data: KeystoreFile = json;
 
     this.#keyMap = new Map<string, string>(Object.entries(data.keys));
 
     for (const [key, value] of Object.entries(data)) {
       this.#keyMap.set(key, value);
     }
+
+    return this;
   }
 
-  public async saveToJson(): Promise<string> {
-    return JSON.stringify(Object.fromEntries(this.#keyMap)) + "\n";
+  public toJSON(): {
+    [k: string]: string;
+  } {
+    return Object.fromEntries(this.#keyMap);
   }
 }

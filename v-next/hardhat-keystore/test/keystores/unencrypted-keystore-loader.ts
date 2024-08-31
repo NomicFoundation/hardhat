@@ -3,8 +3,8 @@ import { beforeEach, describe, it } from "node:test";
 
 import { remove, writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
 
-import { UnencryptedKeystoreLoader } from "../../src/keystores/unencrypted-keystore-loader.js";
 import { UnencryptedKeystore } from "../../src/keystores/unencrypted-keystore.js";
+import { KeystoreFileLoader } from "../../src/loaders/keystore-file-loader.js";
 import { RawInterruptionsImpl } from "../../src/ui/raw-interruptions.js";
 import { getKeystoreFilePath } from "../../src/utils/get-keystore-file-path.js";
 import { getFullOutput } from "../helpers/get-full-output.js";
@@ -13,7 +13,7 @@ import { MockConsoleWrapper } from "../helpers/mock-console-wrapper.js";
 const TEST_PASSWORD = "Test-password";
 
 describe("unencrypted keystore loader", () => {
-  let unencryptedKeystoreLoader: UnencryptedKeystoreLoader;
+  let unencryptedKeystoreLoader: KeystoreFileLoader;
   let interruptions: RawInterruptionsImpl;
   let mockConsoleWrapper: MockConsoleWrapper;
 
@@ -27,9 +27,9 @@ describe("unencrypted keystore loader", () => {
       await remove(await getKeystoreFilePath());
 
       const keystoreFilePath = await getKeystoreFilePath();
-      unencryptedKeystoreLoader = new UnencryptedKeystoreLoader(
+      unencryptedKeystoreLoader = new KeystoreFileLoader(
         keystoreFilePath,
-        interruptions,
+        () => new UnencryptedKeystore(interruptions),
       );
     });
 
@@ -108,9 +108,9 @@ The password must have at least 8 characters, one uppercase letter, one lowercas
       });
 
       const keystoreFilePath = await getKeystoreFilePath();
-      unencryptedKeystoreLoader = new UnencryptedKeystoreLoader(
+      unencryptedKeystoreLoader = new KeystoreFileLoader(
         keystoreFilePath,
-        interruptions,
+        () => new UnencryptedKeystore(interruptions),
       );
     });
 

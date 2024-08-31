@@ -1,6 +1,7 @@
 import type { KeystoreLoader, RawInterruptions } from "../types.js";
 
-import { UnencryptedKeystoreLoader } from "../keystores/unencrypted-keystore-loader.js";
+import { UnencryptedKeystore } from "../keystores/unencrypted-keystore.js";
+import { KeystoreFileLoader } from "../loaders/keystore-file-loader.js";
 import { ConsoleWrapperImpl } from "../ui/console-wrapper.js";
 import { RawInterruptionsImpl } from "../ui/raw-interruptions.js";
 
@@ -12,9 +13,9 @@ export async function setupRawInterruptionsAndKeystoreLoader(): Promise<{
 }> {
   const keystoreFilePath = await getKeystoreFilePath();
   const interruptions = new RawInterruptionsImpl(new ConsoleWrapperImpl());
-  const keystoreLoader = new UnencryptedKeystoreLoader(
+  const keystoreLoader = new KeystoreFileLoader(
     keystoreFilePath,
-    interruptions,
+    () => new UnencryptedKeystore(interruptions),
   );
 
   return { keystoreLoader, interruptions };
