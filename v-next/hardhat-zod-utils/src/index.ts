@@ -57,16 +57,22 @@ export const sensitiveUrlType = unionType(
 
 /**
  * A function to validate the user's configuration object against a Zod type.
+ *
+ * Note: The zod type MUST represent the HardhatUserConfig type, or a subset of
+ * it. You shouldn't use this function to validate their fields individually.
+ * The reason for this is that the paths of the validation errors must start
+ * from the root of the config object, so that they are correctly reported to
+ * the user.
  */
 export async function validateUserConfigZodType<
   Output,
   Def extends ZodTypeDef = ZodTypeDef,
   Input = Output,
 >(
-  config: HardhatUserConfigToValidate,
+  hardhatUserConfig: HardhatUserConfigToValidate,
   configType: ZodType<Output, Def, Input>,
 ): Promise<HardhatUserConfigValidationError[]> {
-  const result = await configType.safeParseAsync(config);
+  const result = await configType.safeParseAsync(hardhatUserConfig);
 
   if (result.success) {
     return [];
