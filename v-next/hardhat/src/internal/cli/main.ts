@@ -1,24 +1,14 @@
 import type {
   OptionDefinition,
   PositionalArgumentDefinition,
-} from "@ignored/hardhat-vnext-core/types/arguments";
+} from "../../types/arguments.js";
 import type {
-  GlobalOptions,
   GlobalOptionDefinitions,
-} from "@ignored/hardhat-vnext-core/types/global-options";
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core/types/hre";
-import type {
-  Task,
-  TaskArguments,
-} from "@ignored/hardhat-vnext-core/types/tasks";
+  GlobalOptions,
+} from "../../types/global-options.js";
+import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
+import type { Task, TaskArguments } from "../../types/tasks.js";
 
-import {
-  buildGlobalOptionDefinitions,
-  parseArgumentValue,
-  resolvePluginList,
-  resolveProjectRoot,
-} from "@ignored/hardhat-vnext-core";
-import { ArgumentType } from "@ignored/hardhat-vnext-core/types/arguments";
 import {
   HardhatError,
   assertHardhatInvariant,
@@ -32,6 +22,13 @@ import { resolveHardhatConfigPath } from "../../config.js";
 import { createHardhatRuntimeEnvironment } from "../../hre.js";
 import { BUILTIN_GLOBAL_OPTIONS_DEFINITIONS } from "../builtin-global-options.js";
 import { builtinPlugins } from "../builtin-plugins/index.js";
+import { ArgumentType } from "../core/config.js";
+import {
+  buildGlobalOptionDefinitions,
+  parseArgumentValue,
+  resolvePluginList,
+  resolveProjectRoot,
+} from "../core/index.js";
 import { setGlobalHardhatRuntimeEnvironment } from "../global-hre-instance.js";
 import { importUserConfig } from "../helpers/config-loading.js";
 

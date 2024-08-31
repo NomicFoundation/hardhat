@@ -1,11 +1,12 @@
-import type { NewTaskActionFunction } from "@ignored/hardhat-vnext-core/types/tasks";
+import type { NewTaskActionFunction } from "../../../types/tasks.js";
 import type { REPLServer } from "node:repl";
 
 import path from "node:path";
 import repl from "node:repl";
 
-import { getCacheDir } from "@ignored/hardhat-vnext-core/global-dir";
 import debug from "debug";
+
+import { getCacheDir } from "../../core/global-dir.js";
 
 const log = debug("hardhat:core:tasks:console");
 

@@ -1,8 +1,20 @@
-import type { HardhatUserConfig } from "@ignored/hardhat-vnext-core/config";
-import type { HardhatUserConfigValidationError } from "@ignored/hardhat-vnext-core/types/hooks";
-import type { ZodType, ZodTypeDef } from "zod";
+import type { ZodTypeDef, ZodType } from "zod";
 
 import { z } from "zod";
+
+/**
+ * We use `unknown` here to avoid a circular dependency between the Hardhat and
+ * the Zod utils packages.
+ */
+export type HardhatUserConfigToValidate = unknown;
+
+/**
+ * For the same reason, we duplicate the type here.
+ */
+export interface HardhatUserConfigValidationError {
+  path: Array<string | number>;
+  message: string;
+}
 
 /**
  * A Zod untagged union type that returns a custom error message if the value
@@ -45,16 +57,22 @@ export const sensitiveUrlType = unionType(
 
 /**
  * A function to validate the user's configuration object against a Zod type.
+ *
+ * Note: The zod type MUST represent the HardhatUserConfig type, or a subset of
+ * it. You shouldn't use this function to validate their fields individually.
+ * The reason for this is that the paths of the validation errors must start
+ * from the root of the config object, so that they are correctly reported to
+ * the user.
  */
 export async function validateUserConfigZodType<
   Output,
   Def extends ZodTypeDef = ZodTypeDef,
   Input = Output,
 >(
-  config: HardhatUserConfig,
+  hardhatUserConfig: HardhatUserConfigToValidate,
   configType: ZodType<Output, Def, Input>,
 ): Promise<HardhatUserConfigValidationError[]> {
-  const result = await configType.safeParseAsync(config);
+  const result = await configType.safeParseAsync(hardhatUserConfig);
 
   if (result.success) {
     return [];

@@ -5,9 +5,6 @@
   },
   "references": [
     {
-      "path": "../core"
-    },
-    {
       "path": "../hardhat-node-test-reporter"
     },
     {

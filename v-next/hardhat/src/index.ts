@@ -5,10 +5,9 @@ import type { HardhatRuntimeEnvironment } from "./types/hre.js";
 import type { TaskManager } from "./types/tasks.js";
 import type { UserInterruptionManager } from "./types/user-interruptions.js";
 
-import { resolveProjectRoot } from "@ignored/hardhat-vnext-core";
-
 import { resolveHardhatConfigPath } from "./config.js";
 import { createHardhatRuntimeEnvironment } from "./hre.js";
+import { resolveProjectRoot } from "./internal/core/index.js";
 import {
   getGlobalHardhatRuntimeEnvironment,
   setGlobalHardhatRuntimeEnvironment,

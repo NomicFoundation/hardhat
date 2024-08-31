@@ -1,7 +1,7 @@
-import type { HardhatUserConfig } from "@ignored/hardhat-vnext/config";
-import type { HardhatPlugin } from "@ignored/hardhat-vnext-core/types/plugins";
+import type { HardhatUserConfig } from "../../../src/types/config.js";
+import type { HardhatPlugin } from "../../../src/types/plugins.js";
 
-import { globalOption } from "@ignored/hardhat-vnext/config";
+import { globalOption } from "../../../src/internal/core/config.js";
 
 export const testPlugin: HardhatPlugin = {
   id: "test-plugin",

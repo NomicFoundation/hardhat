@@ -1,9 +1,7 @@
-import type { Task } from "@ignored/hardhat-vnext-core/types/tasks";
+import type { Task } from "../../../../src/types/tasks.js";
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-
-import { ArgumentType } from "@ignored/hardhat-vnext-core/config";
 
 import {
   parseTasks,
@@ -14,6 +12,7 @@ import {
   getSection,
   getUsageString,
 } from "../../../../src/internal/cli/helpers/utils.js";
+import { ArgumentType } from "../../../../src/types/arguments.js";
 
 describe("utils", function () {
   describe("parseTasks", function () {
