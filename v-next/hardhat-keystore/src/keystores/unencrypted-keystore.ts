@@ -1,14 +1,10 @@
 import type { Keystore, KeystoreFile } from "../types.js";
 
-import { writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
-
 export class UnencryptedKeystore implements Keystore {
-  readonly #keystoreCache: KeystoreFile;
-  readonly #keystoreFilePath: string;
+  #keystoreCache: KeystoreFile;
 
-  constructor(keystoreFile: KeystoreFile, keyStoreFilePath: string) {
+  constructor(keystoreFile: KeystoreFile) {
     this.#keystoreCache = keystoreFile;
-    this.#keystoreFilePath = keyStoreFilePath;
   }
 
   public async listKeys(): Promise<string[]> {
@@ -21,11 +17,19 @@ export class UnencryptedKeystore implements Keystore {
 
   public async removeKey(key: string): Promise<void> {
     delete this.#keystoreCache.keys[key];
-    await writeJsonFile(this.#keystoreFilePath, this.#keystoreCache);
   }
 
   public async addNewValue(key: string, value: string): Promise<void> {
     this.#keystoreCache.keys[key] = value;
-    await writeJsonFile(this.#keystoreFilePath, this.#keystoreCache);
+  }
+
+  public async loadFromJson(json: string): Promise<void> {
+    const keystore: KeystoreFile = JSON.parse(json);
+
+    this.#keystoreCache = keystore;
+  }
+
+  public async saveToJson(): Promise<string> {
+    return JSON.stringify(this.#keystoreCache) + "\n";
   }
 }

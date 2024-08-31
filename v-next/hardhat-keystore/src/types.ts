@@ -8,6 +8,7 @@ export interface KeystoreFile {
 export interface KeystoreLoader {
   create: () => Promise<Keystore>;
   load: () => Promise<Keystore | undefined>;
+  save: (keystore: Keystore) => Promise<void>;
 }
 
 export interface Keystore {
@@ -15,6 +16,9 @@ export interface Keystore {
   addNewValue(key: string, value: string): Promise<void>;
   removeKey(key: string): Promise<void>;
   readValue(key: string): Promise<string | undefined>;
+
+  loadFromJson: (json: string) => Promise<void>;
+  saveToJson(): Promise<string>;
 }
 
 export interface ConsoleWrapper {

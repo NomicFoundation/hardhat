@@ -164,7 +164,7 @@ describe("tasks - set", () => {
     );
 
     assert.ok(
-      mockKeystoreLoader.loadOrInitCalled,
+      mockKeystoreLoader.createCalled,
       "The keystore initialization process should be run",
     );
   });

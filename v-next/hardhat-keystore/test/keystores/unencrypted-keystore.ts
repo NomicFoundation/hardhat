@@ -1,31 +1,19 @@
 import assert from "node:assert/strict";
-import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
 
 import { UnencryptedKeystore } from "../../src/keystores/unencrypted-keystore.js";
-
-const KEYSTORE_FILE_PATH = path.join(
-  `${process.cwd()}`,
-  "test",
-  "fixture-projects",
-  "unencrypted-keystore",
-  "keystore.json",
-);
 
 describe("UnencryptedKeystore", () => {
   let keystore: UnencryptedKeystore;
 
   beforeEach(() => {
-    keystore = new UnencryptedKeystore(
-      {
-        version: "",
-        keys: {
-          key1: "value1",
-          key2: "value2",
-        },
+    keystore = new UnencryptedKeystore({
+      version: "",
+      keys: {
+        key1: "value1",
+        key2: "value2",
       },
-      KEYSTORE_FILE_PATH,
-    );
+    });
   });
 
   it("should list the keys", async () => {

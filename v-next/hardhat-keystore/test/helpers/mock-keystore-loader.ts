@@ -2,8 +2,9 @@ import type { MemoryKeystore } from "./memory-keystore.js";
 import type { KeystoreLoader, Keystore } from "../../src/types.js";
 
 export class MockKeystoreLoader implements KeystoreLoader {
-  public loadIfExistsCalled = false;
-  public loadOrInitCalled = false;
+  public loadCalled = false;
+  public createCalled = false;
+  public saveCalled = false;
 
   readonly #keystore: MemoryKeystore;
   #hasKeystore: boolean;
@@ -18,7 +19,7 @@ export class MockKeystoreLoader implements KeystoreLoader {
   }
 
   public async load(): Promise<Keystore | undefined> {
-    this.loadIfExistsCalled = true;
+    this.loadCalled = true;
 
     if (!this.#hasKeystore) {
       return undefined;
@@ -28,7 +29,12 @@ export class MockKeystoreLoader implements KeystoreLoader {
   }
 
   public async create(): Promise<Keystore> {
-    this.loadOrInitCalled = true;
+    this.createCalled = true;
     return this.#keystore;
+  }
+
+  public async save(_keystore: Keystore): Promise<void> {
+    this.saveCalled = true;
+    return;
   }
 }

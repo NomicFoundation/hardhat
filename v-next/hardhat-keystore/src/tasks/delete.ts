@@ -38,6 +38,8 @@ export const remove = async (
 
   await keystore.removeKey(key);
 
+  await keystoreLoader.save(keystore);
+
   await interruptions.displayKeyRemovedInfoMessage(key);
 };
 

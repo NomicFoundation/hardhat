@@ -30,7 +30,7 @@ export class UnencryptedKeystoreLoader implements KeystoreLoader {
 
     const keystore: KeystoreFile = await readJsonFile(this.#keystoreFilePath);
 
-    return new UnencryptedKeystore(keystore, this.#keystoreFilePath);
+    return new UnencryptedKeystore(keystore);
   }
 
   public async create(): Promise<Keystore> {
@@ -43,6 +43,12 @@ export class UnencryptedKeystoreLoader implements KeystoreLoader {
 
     await writeJsonFile(this.#keystoreFilePath, keystore);
 
-    return new UnencryptedKeystore(keystore, this.#keystoreFilePath);
+    return new UnencryptedKeystore(keystore);
+  }
+
+  public async save(keystore: Keystore): Promise<void> {
+    const json = await keystore.saveToJson();
+
+    await writeJsonFile(this.#keystoreFilePath, json);
   }
 }

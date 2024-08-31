@@ -48,6 +48,8 @@ export const set = async (
 
   await keystore.addNewValue(key, secret);
 
+  await keystoreLoader.save(keystore);
+
   await interruptions.displayKeySetInfoMessage(key);
 };
 

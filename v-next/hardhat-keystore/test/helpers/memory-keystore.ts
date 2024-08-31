@@ -1,7 +1,7 @@
-import type { Keystore } from "../../src/types.js";
+import type { Keystore, KeystoreFile } from "../../src/types.js";
 
 export class MemoryKeystore implements Keystore {
-  readonly #keyMap: Map<string, string>;
+  #keyMap: Map<string, string>;
 
   constructor() {
     this.#keyMap = new Map();
@@ -21,5 +21,19 @@ export class MemoryKeystore implements Keystore {
 
   public async readValue(key: string): Promise<string | undefined> {
     return this.#keyMap.get(key);
+  }
+
+  public async loadFromJson(json: string): Promise<void> {
+    const data: KeystoreFile = JSON.parse(json);
+
+    this.#keyMap = new Map<string, string>(Object.entries(data.keys));
+
+    for (const [key, value] of Object.entries(data)) {
+      this.#keyMap.set(key, value);
+    }
+  }
+
+  public async saveToJson(): Promise<string> {
+    return JSON.stringify(Object.fromEntries(this.#keyMap)) + "\n";
   }
 }
