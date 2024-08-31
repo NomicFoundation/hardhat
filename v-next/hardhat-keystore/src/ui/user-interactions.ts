@@ -1,11 +1,10 @@
-import type { UserInteractions } from "../types.js";
 import type { UserInterruptionManager } from "@ignored/hardhat-vnext/types/user-interruptions";
 
 import chalk from "chalk";
 
 import { PLUGIN_ID } from "../constants.js";
 
-export class UserInteractionsImpl implements UserInteractions {
+export class UserInteractions {
   readonly #userInterruptions: UserInterruptionManager;
 
   constructor(userInterruptions: UserInterruptionManager) {

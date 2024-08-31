@@ -1,4 +1,5 @@
-import type { Keystore, KeystoreFile, UserInteractions } from "../types.js";
+import type { Keystore, KeystoreFile } from "../types.js";
+import type { UserInteractions } from "../ui/user-interactions.js";
 
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 

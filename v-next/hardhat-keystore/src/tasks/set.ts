@@ -1,4 +1,5 @@
-import type { KeystoreLoader, UserInteractions } from "../types.js";
+import type { KeystoreLoader } from "../types.js";
+import type { UserInteractions } from "../ui/user-interactions.js";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
 import { checkMissingKeyTaskArgument } from "../utils/check-missing-key-task-argument.js";

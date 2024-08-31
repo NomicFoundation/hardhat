@@ -6,7 +6,7 @@ import chalk from "chalk";
 
 import { UnencryptedKeystore } from "../../src/keystores/unencrypted-keystore.js";
 import { KeystoreFileLoader } from "../../src/loaders/keystore-file-loader.js";
-import { UserInteractionsImpl } from "../../src/ui/user-interactions.js";
+import { UserInteractions } from "../../src/ui/user-interactions.js";
 import { getKeystoreFilePath } from "../../src/utils/get-keystore-file-path.js";
 import { getFullOutput } from "../helpers/get-full-output.js";
 import { MockConsoleWrapper } from "../helpers/mock-console-wrapper.js";
@@ -15,12 +15,12 @@ const TEST_PASSWORD = "Test-password";
 
 describe("unencrypted keystore loader", () => {
   let unencryptedKeystoreLoader: KeystoreFileLoader;
-  let interruptions: UserInteractionsImpl;
+  let interruptions: UserInteractions;
   let mockConsoleWrapper: MockConsoleWrapper;
 
   beforeEach(() => {
     mockConsoleWrapper = new MockConsoleWrapper();
-    interruptions = new UserInteractionsImpl(mockConsoleWrapper);
+    interruptions = new UserInteractions(mockConsoleWrapper);
   });
 
   describe("the keystore is not initialized", () => {
