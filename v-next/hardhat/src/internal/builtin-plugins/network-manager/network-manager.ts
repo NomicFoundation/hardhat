@@ -130,8 +130,13 @@ export class NetworkManagerImplementation {
           networkName: resolvedNetworkName,
           extraHeaders: resolvedNetworkConfig.httpHeaders,
           timeout: resolvedNetworkConfig.timeout,
-          hookManager: this.#hookManager,
-          networkConnection,
+          jsonRpcRequestWrapper: (request, defaultBehavior) =>
+            this.#hookManager.runHandlerChain(
+              "network",
+              "onRequest",
+              [networkConnection, request],
+              async (_context, _connection, req) => defaultBehavior(req),
+            ),
         });
       } else {
         /* eslint-disable-next-line no-restricted-syntax

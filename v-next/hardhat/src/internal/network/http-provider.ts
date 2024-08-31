@@ -3,12 +3,10 @@ import type {
   JsonRpcRequest,
   SuccessfulJsonRpcResponse,
 } from "./utils/json-rpc.js";
-import type { HookManager } from "../../types/hooks.js";
 import type {
   EthereumProvider,
   RequestArguments,
 } from "../../types/providers.js";
-import type { NetworkConnection } from "../builtin-plugins/network-manager/types.js";
 import type {
   Dispatcher,
   RequestOptions,
@@ -43,13 +41,18 @@ const TOO_MANY_REQUEST_STATUS = 429;
 const MAX_RETRIES = 6;
 const MAX_RETRY_WAIT_TIME_SECONDS = 5;
 
+export type JsonRpcRequestWrapperFunction = (
+  request: JsonRpcRequest,
+  defaultBehavior: (r: JsonRpcRequest) => Promise<JsonRpcResponse>,
+) => Promise<JsonRpcResponse>;
+
 export class HttpProvider extends EventEmitter implements EthereumProvider {
   readonly #url: string;
   readonly #networkName: string;
   readonly #extraHeaders: Record<string, string>;
   readonly #dispatcher: Dispatcher;
-  readonly #hookManager: HookManager;
-  readonly #networkConnection: NetworkConnection<string>; // TODO: should be ChainTypeT
+  readonly #jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
+
   #nextRequestId = 1;
 
   /**
@@ -60,15 +63,13 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
     networkName,
     extraHeaders = {},
     timeout,
-    hookManager,
-    networkConnection,
+    jsonRpcRequestWrapper,
   }: {
     url: string;
     networkName: string;
     extraHeaders?: Record<string, string>;
     timeout: number;
-    hookManager: HookManager;
-    networkConnection: NetworkConnection<string>; // TODO: should be ChainTypeT
+    jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
   }): Promise<HttpProvider> {
     if (!isValidUrl(url)) {
       throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_URL, {
@@ -83,8 +84,7 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
       networkName,
       extraHeaders,
       dispatcher,
-      hookManager,
-      networkConnection,
+      jsonRpcRequestWrapper,
     );
 
     return httpProvider;
@@ -103,8 +103,7 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
     networkName: string,
     extraHeaders: Record<string, string>,
     dispatcher: Dispatcher,
-    hookManager: HookManager,
-    networkConnection: NetworkConnection<string>, // TODO: should be ChainTypeT
+    jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction,
   ) {
     super();
 
@@ -112,8 +111,7 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
     this.#networkName = networkName;
     this.#extraHeaders = extraHeaders;
     this.#dispatcher = dispatcher;
-    this.#hookManager = hookManager;
-    this.#networkConnection = networkConnection;
+    this.#jsonRpcRequestWrapper = jsonRpcRequestWrapper;
   }
 
   public async request(
@@ -127,13 +125,16 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
       params,
     );
 
-    const jsonRpcResponse = await this.#hookManager.runHandlerChain(
-      "network",
-      "onRequest",
-      [this.#networkConnection, jsonRpcRequest],
-      async (_context, _connection, request) =>
-        this.#fetchJsonRpcResponse(request),
-    );
+    let jsonRpcResponse;
+
+    if (this.#jsonRpcRequestWrapper !== undefined) {
+      jsonRpcResponse = await this.#jsonRpcRequestWrapper(
+        jsonRpcRequest,
+        (request) => this.#fetchJsonRpcResponse(request),
+      );
+    } else {
+      jsonRpcResponse = await this.#fetchJsonRpcResponse(jsonRpcRequest);
+    }
 
     if (isFailedJsonRpcResponse(jsonRpcResponse)) {
       const error = new ProviderError(
