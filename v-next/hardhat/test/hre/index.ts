@@ -10,12 +10,12 @@ import {
 
 import { createHardhatRuntimeEnvironment } from "../../src/hre.js";
 import { builtinPlugins } from "../../src/internal/builtin-plugins/index.js";
+import { resolveHardhatConfigPath } from "../../src/internal/config-loading.js";
 import {
   getGlobalHardhatRuntimeEnvironment,
   resetGlobalHardhatRuntimeEnvironment,
   setGlobalHardhatRuntimeEnvironment,
 } from "../../src/internal/global-hre-instance.js";
-import { resolveHardhatConfigPath } from "../../src/internal/helpers/config-loading.js";
 
 describe("HRE", () => {
   afterEach(() => {

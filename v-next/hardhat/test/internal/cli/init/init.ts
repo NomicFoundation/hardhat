@@ -15,7 +15,7 @@ import {
 
 import { initHardhat } from "../../../../src/internal/cli/init/init.js";
 import { EMPTY_HARDHAT_CONFIG } from "../../../../src/internal/cli/init/sample-config-file.js";
-import { findClosestHardhatConfig } from "../../../../src/internal/helpers/config-loading.js";
+import { findClosestHardhatConfig } from "../../../../src/internal/config-loading.js";
 
 async function deleteHardhatConfigFile() {
   await remove(path.join(process.cwd(), "hardhat.config.ts"));

@@ -21,15 +21,15 @@ import {
 } from "../../types/arguments.js";
 import { BUILTIN_GLOBAL_OPTIONS_DEFINITIONS } from "../builtin-global-options.js";
 import { builtinPlugins } from "../builtin-plugins/index.js";
+import {
+  importUserConfig,
+  resolveHardhatConfigPath,
+} from "../config-loading.js";
 import { parseArgumentValue } from "../core/arguments.js";
 import { buildGlobalOptionDefinitions } from "../core/global-options.js";
 import { resolveProjectRoot } from "../core/hre.js";
 import { resolvePluginList } from "../core/plugins/resolve-plugin-list.js";
 import { setGlobalHardhatRuntimeEnvironment } from "../global-hre-instance.js";
-import {
-  importUserConfig,
-  resolveHardhatConfigPath,
-} from "../helpers/config-loading.js";
 
 import { printErrorMessages } from "./error-handler.js";
 import { getGlobalHelpString } from "./helpers/getGlobalHelpString.js";

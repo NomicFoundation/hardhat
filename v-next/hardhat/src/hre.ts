@@ -12,7 +12,7 @@ import {
 } from "./internal/core/hre.js";
 import { resolvePluginList } from "./internal/core/plugins/resolve-plugin-list.js";
 
-export { resolveHardhatConfigPath } from "./internal/helpers/config-loading.js";
+export { resolveHardhatConfigPath } from "./internal/config-loading.js";
 
 /**
  * Creates an instances of the Hardhat Runtime Environment.

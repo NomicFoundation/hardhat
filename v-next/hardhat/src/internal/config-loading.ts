@@ -1,4 +1,4 @@
-import type { HardhatUserConfig } from "../../types/config.js";
+import type { HardhatUserConfig } from "../types/config.js";
 
 import { isAbsolute, resolve } from "node:path";
 import { pathToFileURL } from "node:url";

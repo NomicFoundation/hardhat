@@ -6,15 +6,15 @@ import type { TaskManager } from "./types/tasks.js";
 import type { UserInterruptionManager } from "./types/user-interruptions.js";
 
 import { createHardhatRuntimeEnvironment } from "./hre.js";
+import {
+  importUserConfig,
+  resolveHardhatConfigPath,
+} from "./internal/config-loading.js";
 import { resolveProjectRoot } from "./internal/core/hre.js";
 import {
   getGlobalHardhatRuntimeEnvironment,
   setGlobalHardhatRuntimeEnvironment,
 } from "./internal/global-hre-instance.js";
-import {
-  importUserConfig,
-  resolveHardhatConfigPath,
-} from "./internal/helpers/config-loading.js";
 
 let maybeHre: HardhatRuntimeEnvironment | undefined =
   getGlobalHardhatRuntimeEnvironment();
