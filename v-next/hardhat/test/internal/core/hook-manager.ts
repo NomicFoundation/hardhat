@@ -173,19 +173,7 @@ describe("HookManager", () => {
       });
 
       it("should use plugins during parallel handlers runs", async () => {
-        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR.*/
-        const originalConfig: HardhatUserConfig = {
-          plugins: [],
-          tasks: [],
-          paths: {
-            root: projectRoot,
-            cache: "",
-            artifacts: "",
-            tests: "",
-          },
-        } as any;
+        const originalConfig: HardhatUserConfig = {};
 
         hookManager.registerHandlers("config", {
           validateUserConfig: async (
@@ -232,19 +220,7 @@ describe("HookManager", () => {
           },
         };
 
-        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR. */
-        const expectedConfig: HardhatUserConfig = {
-          plugins: [],
-          tasks: [],
-          paths: {
-            root: projectRoot,
-            cache: "",
-            artifacts: "",
-            tests: "",
-          },
-        } as any;
+        const expectedConfig: HardhatUserConfig = {};
 
         const manager = new HookManagerImplementation(projectRoot, [
           examplePlugin,
@@ -368,19 +344,7 @@ describe("HookManager", () => {
       it("should return the default implementation if no other handlers are provided", async () => {
         const notExpectedConfig = {};
 
-        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-        const defaultImplementationVersionOfConfig: HardhatUserConfig = {
-          plugins: [],
-          tasks: [],
-          paths: {
-            root: projectRoot,
-            cache: "",
-            artifacts: "",
-            tests: "",
-          },
-        } as any;
+        const defaultImplementationVersionOfConfig: HardhatUserConfig = {};
 
         const resultConfig = await hookManager.runHandlerChain(
           "config",
@@ -458,19 +422,7 @@ describe("HookManager", () => {
       });
 
       it("should pass the parameters directly for config hooks", async () => {
-        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-        const expectedConfig: HardhatUserConfig = {
-          plugins: [],
-          tasks: [],
-          paths: {
-            root: projectRoot,
-            cache: "",
-            artifacts: "",
-            tests: "",
-          },
-        } as any;
+        const expectedConfig: HardhatUserConfig = {};
 
         hookManager.registerHandlers("config", {
           extendUserConfig: async (
@@ -686,19 +638,7 @@ describe("HookManager", () => {
       });
 
       it("Should stop config handlers having access to the hook context", async () => {
-        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-        const expectedConfig: HardhatUserConfig = {
-          plugins: [],
-          tasks: [],
-          paths: {
-            root: projectRoot,
-            cache: "",
-            artifacts: "",
-            tests: "",
-          },
-        } as any;
+        const expectedConfig: HardhatUserConfig = {};
 
         hookManager.registerHandlers("config", {
           validateUserConfig: async (
@@ -759,19 +699,7 @@ describe("HookManager", () => {
       });
 
       it("Should return an empty result set if no handlers are provided", async () => {
-        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-        const originalConfig: HardhatUserConfig = {
-          plugins: [],
-          tasks: [],
-          paths: {
-            root: projectRoot,
-            cache: "",
-            artifacts: "",
-            tests: "",
-          },
-        } as any;
+        const originalConfig: HardhatUserConfig = {};
 
         const results = await hookManager.runParallelHandlers(
           "config",
@@ -783,19 +711,7 @@ describe("HookManager", () => {
       });
 
       it("Should return a result per handler", async () => {
-        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-        const originalConfig: HardhatUserConfig = {
-          plugins: [],
-          tasks: [],
-          paths: {
-            root: projectRoot,
-            cache: "",
-            artifacts: "",
-            tests: "",
-          },
-        } as any;
+        const originalConfig: HardhatUserConfig = {};
 
         hookManager.registerHandlers("config", {
           validateUserConfig: async (
@@ -872,19 +788,7 @@ describe("HookManager", () => {
       });
 
       it("Should not pass the hook context for config", async () => {
-        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-        const expectedConfig: HardhatUserConfig = {
-          plugins: [],
-          tasks: [],
-          paths: {
-            root: projectRoot,
-            cache: "",
-            artifacts: "",
-            tests: "",
-          },
-        } as any;
+        const expectedConfig: HardhatUserConfig = {};
 
         const validationError = {
           path: [],
