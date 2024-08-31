@@ -8,7 +8,6 @@ const hardhatPlugin: HardhatPlugin = {
   hookHandlers: {
     config: import.meta.resolve("./hook-handlers/config.js"),
     hre: import.meta.resolve("./hook-handlers/hre.js"),
-    network: import.meta.resolve("./hook-handlers/network.js"),
   },
   globalOptions: [
     globalOption({
