@@ -4,7 +4,6 @@ sequential tests require casting - see the `runSequentialHandlers` describe */
 import type { HardhatUserConfig } from "../../../src/config.js";
 import type { ConfigurationVariable } from "../../../src/types/config.js";
 import type {
-  HookManager,
   ConfigHooks,
   HardhatUserConfigValidationError,
   HookContext,
@@ -13,8 +12,6 @@ import type {
 } from "../../../src/types/hooks.js";
 import type { HardhatRuntimeEnvironment } from "../../../src/types/hre.js";
 import type { HardhatPlugin } from "../../../src/types/plugins.js";
-import type { TaskManager, Task } from "../../../src/types/tasks.js";
-import type { UserInterruptionManager } from "../../../src/types/user-interruptions.js";
 
 import assert from "node:assert/strict";
 import { describe, it, beforeEach, before } from "node:test";
@@ -24,8 +21,10 @@ import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { HookManagerImplementation } from "../../../src/internal/core/hook-manager.js";
-import { resolveProjectRoot } from "../../../src/internal/core/hre.js";
-import { UserInterruptionManagerImplementation } from "../../../src/internal/core/user-interruptions.js";
+import {
+  HardhatRuntimeEnvironmentImplementation,
+  resolveProjectRoot,
+} from "../../../src/internal/core/hre.js";
 
 describe("HookManager", () => {
   let projectRoot: string;
@@ -36,11 +35,13 @@ describe("HookManager", () => {
 
   describe("plugin hooks", () => {
     describe("running", () => {
-      let hookManager: HookManager;
+      let hre: HardhatRuntimeEnvironment;
+      let foceConfigValidationErrorFromPlugin: boolean;
       let sequence: string[];
 
-      beforeEach(() => {
+      beforeEach(async () => {
         sequence = [];
+        foceConfigValidationErrorFromPlugin = false;
 
         const examplePlugin: HardhatPlugin = {
           id: "example",
@@ -50,12 +51,16 @@ describe("HookManager", () => {
                 validateUserConfig: async (
                   _config: HardhatUserConfig,
                 ): Promise<HardhatUserConfigValidationError[]> => {
-                  return [
-                    {
-                      path: [],
-                      message: "FromPlugin",
-                    },
-                  ];
+                  if (foceConfigValidationErrorFromPlugin) {
+                    return [
+                      {
+                        path: [],
+                        message: "FromPlugin",
+                      },
+                    ];
+                  }
+
+                  return [];
                 },
                 extendUserConfig: async (
                   config: HardhatUserConfig,
@@ -88,40 +93,14 @@ describe("HookManager", () => {
           },
         };
 
-        const manager = new HookManagerImplementation(projectRoot, [
-          examplePlugin,
-        ]);
-
-        const userInterruptionsManager =
-          new UserInterruptionManagerImplementation(hookManager);
-
-        manager.setContext({
-          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-          config: {
-            tasks: [],
-            plugins: [],
-            paths: {
-              root: projectRoot,
-              cache: "",
-              artifacts: "",
-              tests: "",
-            },
-          } as any,
-          hooks: hookManager,
-          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-          globalOptions: {} as any,
-          interruptions: userInterruptionsManager,
-        });
-
-        hookManager = manager;
+        hre = await HardhatRuntimeEnvironmentImplementation.create(
+          { plugins: [examplePlugin] },
+          {},
+        );
       });
 
       it("should use plugins during handler runs", async () => {
-        hookManager.registerHandlers("config", {
+        hre.hooks.registerHandlers("config", {
           extendUserConfig: async (
             config: HardhatUserConfig,
             next: (nextConfig: HardhatUserConfig) => Promise<HardhatUserConfig>,
@@ -134,7 +113,11 @@ describe("HookManager", () => {
           },
         });
 
-        await hookManager.runHandlerChain(
+        // We clear the sequense here, as we used the plugin already during the
+        // initialization of the HRE
+        sequence = [];
+
+        await hre.hooks.runHandlerChain(
           "config",
           "extendUserConfig",
           [{}],
@@ -154,7 +137,7 @@ describe("HookManager", () => {
       });
 
       it("Should use plugins during a sequential run", async () => {
-        hookManager.registerHandlers("hre", {
+        hre.hooks.registerHandlers("hre", {
           testExample: async (
             _context: HookContext,
             _input: string,
@@ -163,7 +146,7 @@ describe("HookManager", () => {
           },
         } as Partial<HardhatHooks["hre"]>);
 
-        const result = await hookManager.runSequentialHandlers(
+        const result = await hre.hooks.runSequentialHandlers(
           "hre",
           "testExample" as any,
           ["input"],
@@ -175,7 +158,7 @@ describe("HookManager", () => {
       it("should use plugins during parallel handlers runs", async () => {
         const originalConfig: HardhatUserConfig = {};
 
-        hookManager.registerHandlers("config", {
+        hre.hooks.registerHandlers("config", {
           validateUserConfig: async (
             _config: HardhatUserConfig,
           ): Promise<HardhatUserConfigValidationError[]> => {
@@ -188,7 +171,9 @@ describe("HookManager", () => {
           },
         });
 
-        const results = await hookManager.runParallelHandlers(
+        foceConfigValidationErrorFromPlugin = true;
+
+        const results = await hre.hooks.runParallelHandlers(
           "config",
           "validateUserConfig",
           [originalConfig],
@@ -307,46 +292,19 @@ describe("HookManager", () => {
   });
 
   describe("dynamic hooks", () => {
+    let hre: HardhatRuntimeEnvironment;
+
+    beforeEach(async () => {
+      hre = await HardhatRuntimeEnvironmentImplementation.create({}, {});
+    });
+
     describe("runHandlerChain", () => {
-      let hookManager: HookManager;
-
-      beforeEach(() => {
-        const manager = new HookManagerImplementation(projectRoot, []);
-
-        const userInterruptionsManager =
-          new UserInterruptionManagerImplementation(hookManager);
-
-        manager.setContext({
-          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-          config: {
-            tasks: [],
-            plugins: [],
-            paths: {
-              root: projectRoot,
-              cache: "",
-              artifacts: "",
-              tests: "",
-            },
-          } as any,
-          hooks: hookManager,
-          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-          globalOptions: {} as any,
-          interruptions: userInterruptionsManager,
-        });
-
-        hookManager = manager;
-      });
-
       it("should return the default implementation if no other handlers are provided", async () => {
         const notExpectedConfig = {};
 
         const defaultImplementationVersionOfConfig: HardhatUserConfig = {};
 
-        const resultConfig = await hookManager.runHandlerChain(
+        const resultConfig = await hre.hooks.runHandlerChain(
           "config",
           "extendUserConfig",
           [notExpectedConfig],
@@ -361,7 +319,7 @@ describe("HookManager", () => {
       it("should run the handlers as a chain finishing with the default implementation", async () => {
         const sequence: string[] = [];
 
-        hookManager.registerHandlers("config", {
+        hre.hooks.registerHandlers("config", {
           extendUserConfig: async (
             config: HardhatUserConfig,
             next: (nextConfig: HardhatUserConfig) => Promise<HardhatUserConfig>,
@@ -374,7 +332,7 @@ describe("HookManager", () => {
           },
         });
 
-        hookManager.registerHandlers("config", {
+        hre.hooks.registerHandlers("config", {
           extendUserConfig: async (
             config: HardhatUserConfig,
             next: (nextConfig: HardhatUserConfig) => Promise<HardhatUserConfig>,
@@ -387,7 +345,7 @@ describe("HookManager", () => {
           },
         });
 
-        hookManager.registerHandlers("config", {
+        hre.hooks.registerHandlers("config", {
           extendUserConfig: async (
             config: HardhatUserConfig,
             next: (nextConfig: HardhatUserConfig) => Promise<HardhatUserConfig>,
@@ -400,7 +358,7 @@ describe("HookManager", () => {
           },
         });
 
-        await hookManager.runHandlerChain(
+        await hre.hooks.runHandlerChain(
           "config",
           "extendUserConfig",
           [{}],
@@ -424,7 +382,7 @@ describe("HookManager", () => {
       it("should pass the parameters directly for config hooks", async () => {
         const expectedConfig: HardhatUserConfig = {};
 
-        hookManager.registerHandlers("config", {
+        hre.hooks.registerHandlers("config", {
           extendUserConfig: async (
             config: HardhatUserConfig,
             next: (nextConfig: HardhatUserConfig) => Promise<HardhatUserConfig>,
@@ -441,7 +399,7 @@ describe("HookManager", () => {
           },
         });
 
-        const resultConfig = await hookManager.runHandlerChain(
+        const resultConfig = await hre.hooks.runHandlerChain(
           "config",
           "extendUserConfig",
           [expectedConfig],
@@ -465,7 +423,7 @@ describe("HookManager", () => {
           name: "example",
         };
 
-        hookManager.registerHandlers("configurationVariables", {
+        hre.hooks.registerHandlers("configurationVariables", {
           fetchValue: async (
             context: HookContext,
             variable: ConfigurationVariable,
@@ -491,7 +449,7 @@ describe("HookManager", () => {
           },
         });
 
-        const resultValue = await hookManager.runHandlerChain(
+        const resultValue = await hre.hooks.runHandlerChain(
           "configurationVariables",
           "fetchValue",
           [exampleConfigVar],
@@ -528,56 +486,18 @@ describe("HookManager", () => {
      *  }
      */
     describe("runSequentialHandlers", () => {
-      let hookManager: HookManager;
-
-      beforeEach(() => {
-        const manager = new HookManagerImplementation(projectRoot, []);
-
-        const userInterruptionsManager =
-          new UserInterruptionManagerImplementation(hookManager);
-
-        manager.setContext({
-          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-          config: {
-            tasks: [],
-            plugins: [],
-            paths: {
-              root: projectRoot,
-              cache: "",
-              artifacts: "",
-              tests: "",
-            },
-          } as any,
-          hooks: hookManager,
-          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-          globalOptions: {} as any,
-          interruptions: userInterruptionsManager,
-        });
-
-        hookManager = manager;
-      });
-
       it("Should return the empty set if no handlers are registered", async () => {
-        const mockHre = buildMockHardhatRuntimeEnvironment(
-          projectRoot,
-          hookManager,
-        );
-
-        const resultHre = await hookManager.runSequentialHandlers(
+        const resultHreCreated = await hre.hooks.runSequentialHandlers(
           "hre",
           "created",
-          [mockHre],
+          [hre],
         );
 
-        assert.deepEqual(resultHre, []);
+        assert.deepEqual(resultHreCreated, []);
       });
 
       it("Should return a return entry per handler", async () => {
-        hookManager.registerHandlers("hre", {
+        hre.hooks.registerHandlers("hre", {
           testExample: async (
             _context: HookContext,
             _input: string,
@@ -586,7 +506,7 @@ describe("HookManager", () => {
           },
         } as Partial<HardhatHooks["hre"]>);
 
-        hookManager.registerHandlers("hre", {
+        hre.hooks.registerHandlers("hre", {
           testExample: async (
             _context: HookContext,
             _input: string,
@@ -595,7 +515,7 @@ describe("HookManager", () => {
           },
         } as Partial<HardhatHooks["hre"]>);
 
-        hookManager.registerHandlers("hre", {
+        hre.hooks.registerHandlers("hre", {
           testExample: async (
             _context: HookContext,
             _input: string,
@@ -604,7 +524,7 @@ describe("HookManager", () => {
           },
         } as Partial<HardhatHooks["hre"]>);
 
-        const result = await hookManager.runSequentialHandlers(
+        const result = await hre.hooks.runSequentialHandlers(
           "hre",
           "testExample" as keyof HardhatHooks["hre"],
           ["input"] as any,
@@ -614,7 +534,7 @@ describe("HookManager", () => {
       });
 
       it("Should let handlers access the passed context (for non-config hooks)", async () => {
-        hookManager.registerHandlers("hre", {
+        hre.hooks.registerHandlers("hre", {
           testExample: async (
             context: HookContext,
             input: string,
@@ -628,7 +548,7 @@ describe("HookManager", () => {
           },
         } as Partial<HardhatHooks["hre"]>);
 
-        const result = await hookManager.runSequentialHandlers(
+        const result = await hre.hooks.runSequentialHandlers(
           "hre",
           "testExample" as any,
           ["input"],
@@ -640,7 +560,7 @@ describe("HookManager", () => {
       it("Should stop config handlers having access to the hook context", async () => {
         const expectedConfig: HardhatUserConfig = {};
 
-        hookManager.registerHandlers("config", {
+        hre.hooks.registerHandlers("config", {
           validateUserConfig: async (
             config: HardhatUserConfig,
           ): Promise<HardhatUserConfigValidationError[]> => {
@@ -654,7 +574,7 @@ describe("HookManager", () => {
           },
         });
 
-        const validationResult = await hookManager.runSequentialHandlers(
+        const validationResult = await hre.hooks.runSequentialHandlers(
           "config",
           "validateUserConfig",
           [expectedConfig],
@@ -665,43 +585,10 @@ describe("HookManager", () => {
     });
 
     describe("runParallelHandlers", () => {
-      let hookManager: HookManager;
-
-      beforeEach(() => {
-        const manager = new HookManagerImplementation(projectRoot, []);
-
-        const userInterruptionsManager =
-          new UserInterruptionManagerImplementation(hookManager);
-
-        manager.setContext({
-          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-          config: {
-            tasks: [],
-            plugins: [],
-            paths: {
-              root: projectRoot,
-              cache: "",
-              artifacts: "",
-              tests: "",
-            },
-          } as any,
-          hooks: hookManager,
-          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-          globalOptions: {} as any,
-          interruptions: userInterruptionsManager,
-        });
-
-        hookManager = manager;
-      });
-
       it("Should return an empty result set if no handlers are provided", async () => {
         const originalConfig: HardhatUserConfig = {};
 
-        const results = await hookManager.runParallelHandlers(
+        const results = await hre.hooks.runParallelHandlers(
           "config",
           "validateUserConfig",
           [originalConfig],
@@ -713,7 +600,7 @@ describe("HookManager", () => {
       it("Should return a result per handler", async () => {
         const originalConfig: HardhatUserConfig = {};
 
-        hookManager.registerHandlers("config", {
+        hre.hooks.registerHandlers("config", {
           validateUserConfig: async (
             _config: HardhatUserConfig,
           ): Promise<HardhatUserConfigValidationError[]> => {
@@ -726,7 +613,7 @@ describe("HookManager", () => {
           },
         });
 
-        hookManager.registerHandlers("config", {
+        hre.hooks.registerHandlers("config", {
           validateUserConfig: async (
             _config: HardhatUserConfig,
           ): Promise<HardhatUserConfigValidationError[]> => {
@@ -739,7 +626,7 @@ describe("HookManager", () => {
           },
         });
 
-        const results = await hookManager.runParallelHandlers(
+        const results = await hre.hooks.runParallelHandlers(
           "config",
           "validateUserConfig",
           [originalConfig],
@@ -762,26 +649,21 @@ describe("HookManager", () => {
       });
 
       it("Should pass the context to the handler (for non-config)", async () => {
-        const mockHre = buildMockHardhatRuntimeEnvironment(
-          projectRoot,
-          hookManager,
-        );
-
-        hookManager.registerHandlers("hre", {
+        hre.hooks.registerHandlers("hre", {
           created: async (
             context: HookContext,
-            hre: HardhatRuntimeEnvironment,
+            hreInHandler: HardhatRuntimeEnvironment,
           ): Promise<void> => {
             assert(
               context !== null && typeof context === "object",
               "hook context should be passed",
             );
-            assert.equal(hre, mockHre);
+            assert.equal(hreInHandler, hre);
           },
         });
 
-        const result = await hookManager.runParallelHandlers("hre", "created", [
-          mockHre,
+        const result = await hre.hooks.runParallelHandlers("hre", "created", [
+          hre,
         ]);
 
         assert.deepEqual(result, [undefined]);
@@ -795,7 +677,7 @@ describe("HookManager", () => {
           message: "first",
         };
 
-        hookManager.registerHandlers("config", {
+        hre.hooks.registerHandlers("config", {
           validateUserConfig: async (
             config: HardhatUserConfig,
           ): Promise<HardhatUserConfigValidationError[]> => {
@@ -804,7 +686,7 @@ describe("HookManager", () => {
           },
         });
 
-        const results = await hookManager.runParallelHandlers(
+        const results = await hre.hooks.runParallelHandlers(
           "config",
           "validateUserConfig",
           [expectedConfig],
@@ -815,39 +697,6 @@ describe("HookManager", () => {
     });
 
     describe("unregisterHandlers", () => {
-      let hookManager: HookManager;
-
-      beforeEach(() => {
-        const manager = new HookManagerImplementation(projectRoot, []);
-
-        const userInterruptionsManager =
-          new UserInterruptionManagerImplementation(hookManager);
-
-        manager.setContext({
-          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-          config: {
-            tasks: [],
-            plugins: [],
-            paths: {
-              root: projectRoot,
-              cache: "",
-              artifacts: "",
-              tests: "",
-            },
-          } as any,
-          hooks: hookManager,
-          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-          globalOptions: {} as any,
-          interruptions: userInterruptionsManager,
-        });
-
-        hookManager = manager;
-      });
-
       it("Should unhook a handler", async () => {
         const hookCategory = {
           validateUserConfig: async (
@@ -857,11 +706,11 @@ describe("HookManager", () => {
           },
         };
 
-        hookManager.registerHandlers("config", hookCategory);
+        hre.hooks.registerHandlers("config", hookCategory);
 
-        hookManager.unregisterHandlers("config", hookCategory);
+        hre.hooks.unregisterHandlers("config", hookCategory);
 
-        const results = await hookManager.runParallelHandlers(
+        const results = await hre.hooks.runParallelHandlers(
           "config",
           "validateUserConfig",
           [
@@ -917,14 +766,14 @@ describe("HookManager", () => {
         };
 
         // Arrange
-        hookManager.registerHandlers("config", firstHook);
-        hookManager.registerHandlers("config", secondHook);
-        hookManager.registerHandlers("config", thirdHook);
+        hre.hooks.registerHandlers("config", firstHook);
+        hre.hooks.registerHandlers("config", secondHook);
+        hre.hooks.registerHandlers("config", thirdHook);
 
         // Act
-        hookManager.unregisterHandlers("config", secondHook);
+        hre.hooks.unregisterHandlers("config", secondHook);
 
-        const results = await hookManager.runParallelHandlers(
+        const results = await hre.hooks.runParallelHandlers(
           "config",
           "validateUserConfig",
           [
@@ -961,57 +810,8 @@ describe("HookManager", () => {
           },
         };
 
-        hookManager.unregisterHandlers("config", exampleHook);
+        hre.hooks.unregisterHandlers("config", exampleHook);
       });
     });
   });
 });
-
-function buildMockHardhatRuntimeEnvironment(
-  projectRoot: string,
-  hookManager: HookManager,
-): HardhatRuntimeEnvironment {
-  const mockInteruptionManager: UserInterruptionManager = {
-    displayMessage: async () => {},
-    requestInput: async () => "",
-    requestSecretInput: async () => "",
-    uninterrupted: async <ReturnT>(
-      f: () => ReturnT,
-    ): Promise<Awaited<ReturnT>> => {
-      /* eslint-disable-next-line @typescript-eslint/return-await, @typescript-eslint/await-thenable -- this is following the pattern in the real implementation */
-      return await f();
-    },
-  };
-
-  const mockTaskManager: TaskManager = {
-    getTask: () => {
-      throw new Error("Method not implemented.");
-    },
-    rootTasks: new Map<string, Task>(),
-  };
-
-  const mockHre: HardhatRuntimeEnvironment = {
-    hooks: hookManager,
-    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-    config: {
-      tasks: [],
-      plugins: [],
-      paths: {
-        root: projectRoot,
-        cache: "",
-        artifacts: "",
-        tests: "",
-      },
-    } as any,
-    tasks: mockTaskManager,
-    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-    globalOptions: {} as any,
-    interruptions: mockInteruptionManager,
-  };
-
-  return mockHre;
-}
