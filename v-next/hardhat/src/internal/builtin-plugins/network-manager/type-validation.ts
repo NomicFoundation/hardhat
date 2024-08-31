@@ -1,8 +1,8 @@
 import type {
   HardhatUserConfig,
   NetworkConfig,
-} from "@ignored/hardhat-vnext/types/config";
-import type { HardhatUserConfigValidationError } from "@ignored/hardhat-vnext/types/hooks";
+} from "../../../types/config.js";
+import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
 
 import {
   sensitiveUrlType,

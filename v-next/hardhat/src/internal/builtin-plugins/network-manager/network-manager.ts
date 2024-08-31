@@ -3,9 +3,9 @@ import type {
   ChainType,
   DefaultChainType,
   NetworkConfig,
-} from "@ignored/hardhat-vnext/types/config";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
-import type { HookManager } from "@ignored/hardhat-vnext-core/types/hooks";
+} from "../../../types/config.js";
+import type { HookManager } from "../../../types/hooks.js";
+import type { EthereumProvider } from "../../../types/providers.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 

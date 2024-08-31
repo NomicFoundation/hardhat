@@ -3,12 +3,12 @@ import type {
   JsonRpcRequest,
   SuccessfulJsonRpcResponse,
 } from "./utils/json-rpc.js";
+import type { HookManager } from "../../types/hooks.js";
 import type {
   EthereumProvider,
   RequestArguments,
 } from "../../types/providers.js";
 import type { NetworkConnection } from "../builtin-plugins/network-manager/types.js";
-import type { HookManager } from "@ignored/hardhat-vnext-core/types/hooks";
 import type {
   Dispatcher,
   RequestOptions,

@@ -2,8 +2,8 @@ import type {
   ChainType,
   DefaultChainType,
   NetworkConfig,
-} from "@ignored/hardhat-vnext/types/config";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+} from "../../../types/config.js";
+import type { EthereumProvider } from "../../../types/providers.js";
 
 export interface NetworkManager {
   connect<ChainTypeT extends ChainType | string = DefaultChainType>(

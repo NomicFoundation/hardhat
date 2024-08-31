@@ -1,13 +1,11 @@
 import type { NetworkConnection, NetworkManager } from "./types.js";
-import type * as ConfigTypes from "@ignored/hardhat-vnext/types/config";
-import type { HookContext } from "@ignored/hardhat-vnext/types/hooks";
+import type * as ConfigTypes from "../../../types/config.js";
 import type {
   JsonRpcRequest,
   JsonRpcResponse,
-} from "@ignored/hardhat-vnext/types/providers";
+} from "../../../types/providers.js";
 
-import "@ignored/hardhat-vnext/types/config";
-declare module "@ignored/hardhat-vnext/types/config" {
+declare module "../../../types/config.js" {
   /**
    * Represents the possible chain types for the network. The options are:
    * - `"unknown"`: Represents the most generic type of network.
@@ -113,22 +111,23 @@ declare module "@ignored/hardhat-vnext/types/config" {
   }
 }
 
-import "@ignored/hardhat-vnext/types/hre";
-declare module "@ignored/hardhat-vnext/types/hre" {
+import "../../../types/hre.js";
+declare module "../../../types/hre.js" {
   export interface HardhatRuntimeEnvironment {
     network: NetworkManager;
   }
 }
 
-import "@ignored/hardhat-vnext/types/global-options";
-declare module "@ignored/hardhat-vnext/types/global-options" {
+import "../../../types/global-options.js";
+declare module "../../../types/global-options.js" {
   export interface GlobalOptions {
     network: string;
   }
 }
 
-import "@ignored/hardhat-vnext/types/hooks";
-declare module "@ignored/hardhat-vnext/types/hooks" {
+import "../../../types/hooks.js";
+
+declare module "../../../types/hooks.js" {
   export interface HardhatHooks {
     network: NetworkHooks;
   }

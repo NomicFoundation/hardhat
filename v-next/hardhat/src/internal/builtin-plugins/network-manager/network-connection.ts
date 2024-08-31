@@ -1,10 +1,7 @@
 import type { NetworkConnection } from "./types.js";
-import type {
-  ChainType,
-  NetworkConfig,
-} from "@ignored/hardhat-vnext/types/config";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
-import type { HookManager } from "@ignored/hardhat-vnext-core/types/hooks";
+import type { ChainType, NetworkConfig } from "../../../types/config.js";
+import type { HookManager } from "../../../types/hooks.js";
+import type { EthereumProvider } from "../../../types/providers.js";
 
 export class NetworkConnectionImplementation<
   ChainTypeT extends ChainType | string,

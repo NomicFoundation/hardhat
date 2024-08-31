@@ -1,4 +1,4 @@
-import type { GlobalOptions } from "@ignored/hardhat-vnext/types/global-options";
+import type { GlobalOptions } from "../../src/types/global-options.js";
 
 import { describe, it } from "node:test";
 

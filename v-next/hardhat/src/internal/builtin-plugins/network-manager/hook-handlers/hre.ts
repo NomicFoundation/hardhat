@@ -1,4 +1,4 @@
-import type { HardhatRuntimeEnvironmentHooks } from "@ignored/hardhat-vnext/types/hooks";
+import type { HardhatRuntimeEnvironmentHooks } from "../../../../types/hooks.js";
 
 import { NetworkManagerImplementation } from "../network-manager.js";
 
