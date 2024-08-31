@@ -79,7 +79,7 @@ export class HardhatRuntimeEnvironmentImplementation
       resolvedProjectRoot,
       hooks,
       resolvedPlugins,
-      inputUserConfig,
+      extendedUserConfig,
     );
 
     // We override the plugins and the proejct root, as we want to prevent
