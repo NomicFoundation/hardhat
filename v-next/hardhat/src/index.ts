@@ -5,37 +5,11 @@ import type { HardhatRuntimeEnvironment } from "./types/hre.js";
 import type { TaskManager } from "./types/tasks.js";
 import type { UserInterruptionManager } from "./types/user-interruptions.js";
 
-import { createHardhatRuntimeEnvironment } from "./hre.js";
-import {
-  importUserConfig,
-  resolveHardhatConfigPath,
-} from "./internal/config-loading.js";
-import { resolveProjectRoot } from "./internal/core/hre.js";
-import {
-  getGlobalHardhatRuntimeEnvironment,
-  setGlobalHardhatRuntimeEnvironment,
-} from "./internal/global-hre-instance.js";
+import { getOrCreateGlobalHardhatRuntimeEnvironment } from "./internal/hre-intialization.js";
 
-let maybeHre: HardhatRuntimeEnvironment | undefined =
-  getGlobalHardhatRuntimeEnvironment();
-
-// Note: We import the builtin plugins' types here, so that any type extension
-// they may have gets loaded.
-import "./internal/builtin-plugins/index.js";
-
-if (maybeHre === undefined) {
-  /* eslint-disable no-restricted-syntax -- Allow top-level await here */
-  const configPath = await resolveHardhatConfigPath();
-  const projectRoot = await resolveProjectRoot(configPath);
-  const userConfig = await importUserConfig(configPath);
-
-  maybeHre = await createHardhatRuntimeEnvironment(userConfig, {}, projectRoot);
-  /* eslint-enable no-restricted-syntax */
-
-  setGlobalHardhatRuntimeEnvironment(maybeHre);
-}
-
-const hre: HardhatRuntimeEnvironment = maybeHre;
+const hre: HardhatRuntimeEnvironment =
+  // eslint-disable-next-line no-restricted-syntax -- Allow top-level await here
+  await getOrCreateGlobalHardhatRuntimeEnvironment();
 
 export const config: HardhatConfig = hre.config;
 export const tasks: TaskManager = hre.tasks;

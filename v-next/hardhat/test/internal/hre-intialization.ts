@@ -8,7 +8,6 @@ import {
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 
-import { createHardhatRuntimeEnvironment } from "../../src/hre.js";
 import { builtinPlugins } from "../../src/internal/builtin-plugins/index.js";
 import { resolveHardhatConfigPath } from "../../src/internal/config-loading.js";
 import {
@@ -16,8 +15,12 @@ import {
   resetGlobalHardhatRuntimeEnvironment,
   setGlobalHardhatRuntimeEnvironment,
 } from "../../src/internal/global-hre-instance.js";
+import {
+  createHardhatRuntimeEnvironment,
+  getOrCreateGlobalHardhatRuntimeEnvironment,
+} from "../../src/internal/hre-intialization.js";
 
-describe("HRE", () => {
+describe("HRE intialization", () => {
   afterEach(() => {
     resetGlobalHardhatRuntimeEnvironment();
   });
@@ -162,8 +165,12 @@ describe("HRE", () => {
     describe("programmatic API", () => {
       useFixtureProject("loaded-config");
 
+      afterEach(() => {
+        resetGlobalHardhatRuntimeEnvironment();
+      });
+
       it("should load the plugins from the config file", async () => {
-        const hre = await import("../../src/index.js");
+        const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
         const { testPlugin } = await import(
           "../fixture-projects/loaded-config/hardhat.config.js"
         );
@@ -172,10 +179,12 @@ describe("HRE", () => {
       });
 
       it("should load the global options", async () => {
-        const hre = await import("../../src/index.js");
+        const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
+
+        const configPath = await getRealPath("hardhat.config.ts");
 
         assert.deepEqual(hre.globalOptions, {
-          config: "",
+          config: configPath,
           help: false,
           init: false,
           showStackTraces: false,

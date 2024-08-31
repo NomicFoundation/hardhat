@@ -13,7 +13,6 @@ import { isCi } from "@ignored/hardhat-vnext-utils/ci";
 import { kebabToCamelCase } from "@ignored/hardhat-vnext-utils/string";
 import debug from "debug";
 
-import { createHardhatRuntimeEnvironment } from "../../hre.js";
 import {
   ArgumentType,
   type OptionDefinition,
@@ -30,6 +29,7 @@ import { buildGlobalOptionDefinitions } from "../core/global-options.js";
 import { resolveProjectRoot } from "../core/hre.js";
 import { resolvePluginList } from "../core/plugins/resolve-plugin-list.js";
 import { setGlobalHardhatRuntimeEnvironment } from "../global-hre-instance.js";
+import { createHardhatRuntimeEnvironment } from "../hre-intialization.js";
 
 import { printErrorMessages } from "./error-handler.js";
 import { getGlobalHelpString } from "./helpers/getGlobalHelpString.js";

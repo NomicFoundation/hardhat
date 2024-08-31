@@ -23,7 +23,6 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 import chalk from "chalk";
 
-import { createHardhatRuntimeEnvironment } from "../../../src/hre.js";
 import {
   main,
   parseGlobalOptions,
@@ -37,6 +36,7 @@ import {
   task,
 } from "../../../src/internal/core/config.js";
 import { resetGlobalHardhatRuntimeEnvironment } from "../../../src/internal/global-hre-instance.js";
+import { createHardhatRuntimeEnvironment } from "../../../src/internal/hre-intialization.js";
 import { getHardhatVersion } from "../../../src/internal/utils/package.js";
 import { ArgumentType } from "../../../src/types/arguments.js";
 
