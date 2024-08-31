@@ -7,6 +7,8 @@ import "./internal/builtin-plugins/index.js";
 export type * from "./internal/core/config.js";
 export * from "./internal/core/config.js";
 
+export type { HardhatUserConfig } from "./types/config.js";
+
 /**
  * Attempts to find the nearest Hardhat config file, starting from the current
  * working directory. If no config file is found, an error is thrown.
