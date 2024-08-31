@@ -1,4 +1,4 @@
-import type { RawInterruptions } from "../../src/types.js";
+import type { UserInteractions } from "../../src/types.js";
 
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
@@ -8,7 +8,7 @@ import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-uti
 import chalk from "chalk";
 
 import { set } from "../../src/tasks/set.js";
-import { RawInterruptionsImpl } from "../../src/ui/raw-interruptions.js";
+import { UserInteractionsImpl } from "../../src/ui/user-interactions.js";
 import { MemoryKeystore } from "../helpers/memory-keystore.js";
 import { MockConsoleWrapper } from "../helpers/mock-console-wrapper.js";
 import { MockKeystoreLoader } from "../helpers/mock-keystore-loader.js";
@@ -17,12 +17,12 @@ describe("tasks - set", () => {
   let mockKeystore: MemoryKeystore;
   let mockKeystoreLoader: MockKeystoreLoader;
   let mockConsoleWrapper: MockConsoleWrapper;
-  let mockInterruptions: RawInterruptions;
+  let mockInterruptions: UserInteractions;
 
   beforeEach(() => {
     mockKeystore = new MemoryKeystore();
     mockConsoleWrapper = new MockConsoleWrapper();
-    mockInterruptions = new RawInterruptionsImpl(mockConsoleWrapper);
+    mockInterruptions = new UserInteractionsImpl(mockConsoleWrapper);
     mockKeystoreLoader = new MockKeystoreLoader(mockKeystore);
   });
 

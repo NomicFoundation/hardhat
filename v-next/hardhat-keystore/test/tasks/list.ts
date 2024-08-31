@@ -1,4 +1,4 @@
-import type { RawInterruptions } from "../../src/types.js";
+import type { UserInteractions } from "../../src/types.js";
 
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
@@ -6,7 +6,7 @@ import { beforeEach, describe, it } from "node:test";
 import chalk from "chalk";
 
 import { list } from "../../src/tasks/list.js";
-import { RawInterruptionsImpl } from "../../src/ui/raw-interruptions.js";
+import { UserInteractionsImpl } from "../../src/ui/user-interactions.js";
 import { getFullOutput } from "../helpers/get-full-output.js";
 import { MemoryKeystore } from "../helpers/memory-keystore.js";
 import { MockConsoleWrapper } from "../helpers/mock-console-wrapper.js";
@@ -18,12 +18,12 @@ describe("tasks - list", () => {
   let mockKeystore: MemoryKeystore;
   let mockConsoleWrapper: MockConsoleWrapper;
   let mockKeystoreLoader: MockKeystoreLoader;
-  let mockInterruptions: RawInterruptions;
+  let mockInterruptions: UserInteractions;
 
   beforeEach(() => {
     mockKeystore = new MemoryKeystore();
     mockConsoleWrapper = new MockConsoleWrapper();
-    mockInterruptions = new RawInterruptionsImpl(mockConsoleWrapper);
+    mockInterruptions = new UserInteractionsImpl(mockConsoleWrapper);
     mockKeystoreLoader = new MockKeystoreLoader(mockKeystore);
   });
 

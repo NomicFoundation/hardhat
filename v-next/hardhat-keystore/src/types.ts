@@ -31,8 +31,10 @@ export interface ConsoleWrapper {
   error(message: string): void;
 }
 
-export interface RawInterruptions {
+export interface UserInteractions {
   setUpPassword(): Promise<void>;
+  requestSecretFromUser: () => Promise<string>;
+
   displayNoKeystoreSetErrorMessage: () => Promise<void>;
   displayKeyNotFoundErrorMessage: (key: string) => Promise<void>;
   displayKeyRemovedInfoMessage: (key: string) => Promise<void>;
@@ -43,5 +45,4 @@ export interface RawInterruptions {
   displayKeyAlreadyExistsWarning: (key: string) => Promise<void>;
   displaySecretCannotBeEmptyErrorMessage: () => Promise<void>;
   displayKeySetInfoMessage: (key: string) => Promise<void>;
-  requestSecretFromUser: () => Promise<string>;
 }

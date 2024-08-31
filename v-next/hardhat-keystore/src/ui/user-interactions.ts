@@ -1,8 +1,8 @@
-import type { ConsoleWrapper, RawInterruptions } from "../types.js";
+import type { ConsoleWrapper, UserInteractions } from "../types.js";
 
 import chalk from "chalk";
 
-export class RawInterruptionsImpl implements RawInterruptions {
+export class UserInteractionsImpl implements UserInteractions {
   readonly #console: ConsoleWrapper;
 
   constructor(console: ConsoleWrapper) {

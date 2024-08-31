@@ -4,14 +4,14 @@ import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
 import { UnencryptedKeystore } from "../../src/keystores/unencrypted-keystore.js";
-import { RawInterruptionsImpl } from "../../src/ui/raw-interruptions.js";
+import { UserInteractionsImpl } from "../../src/ui/user-interactions.js";
 import { MockConsoleWrapper } from "../helpers/mock-console-wrapper.js";
 
 describe("UnencryptedKeystore", () => {
   let keystore: Keystore;
 
   beforeEach(() => {
-    const interruptions = new RawInterruptionsImpl(new MockConsoleWrapper());
+    const interruptions = new UserInteractionsImpl(new MockConsoleWrapper());
     keystore = new UnencryptedKeystore(interruptions).loadFromJSON({
       version: "",
       keys: {

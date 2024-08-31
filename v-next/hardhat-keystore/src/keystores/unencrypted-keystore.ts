@@ -1,12 +1,12 @@
-import type { Keystore, KeystoreFile, RawInterruptions } from "../types.js";
+import type { Keystore, KeystoreFile, UserInteractions } from "../types.js";
 
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 
 export class UnencryptedKeystore implements Keystore {
-  readonly #interruptions: RawInterruptions;
+  readonly #interruptions: UserInteractions;
   #keystoreCache: KeystoreFile | null;
 
-  constructor(interruptions: RawInterruptions) {
+  constructor(interruptions: UserInteractions) {
     this.#interruptions = interruptions;
     this.#keystoreCache = null;
   }

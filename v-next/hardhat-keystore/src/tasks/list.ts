@@ -1,4 +1,4 @@
-import type { KeystoreLoader, RawInterruptions } from "../types.js";
+import type { KeystoreLoader, UserInteractions } from "../types.js";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
 import { setupRawInterruptionsAndKeystoreLoader } from "../utils/setup-raw-interruptions-and-keystore-loader.js";
@@ -12,7 +12,7 @@ const taskList: NewTaskActionFunction = async (): Promise<void> => {
 
 export const list = async (
   keystoreLoader: KeystoreLoader,
-  interruptions: RawInterruptions,
+  interruptions: UserInteractions,
 ): Promise<void> => {
   if (!(await keystoreLoader.exists())) {
     return interruptions.displayNoKeystoreSetErrorMessage();

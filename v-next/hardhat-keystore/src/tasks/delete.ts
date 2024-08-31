@@ -1,4 +1,4 @@
-import type { KeystoreLoader, RawInterruptions } from "../types.js";
+import type { KeystoreLoader, UserInteractions } from "../types.js";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
 import { checkMissingKeyTaskArgument } from "../utils/check-missing-key-task-argument.js";
@@ -20,7 +20,7 @@ const taskDelete: NewTaskActionFunction<TaskDeleteArguments> = async ({
 export const remove = async (
   { key }: TaskDeleteArguments,
   keystoreLoader: KeystoreLoader,
-  interruptions: RawInterruptions,
+  interruptions: UserInteractions,
 ): Promise<void> => {
   checkMissingKeyTaskArgument(key, "keystore delete");
 

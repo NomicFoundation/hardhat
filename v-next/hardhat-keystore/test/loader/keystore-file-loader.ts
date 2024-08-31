@@ -5,7 +5,7 @@ import { remove, writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
 
 import { UnencryptedKeystore } from "../../src/keystores/unencrypted-keystore.js";
 import { KeystoreFileLoader } from "../../src/loaders/keystore-file-loader.js";
-import { RawInterruptionsImpl } from "../../src/ui/raw-interruptions.js";
+import { UserInteractionsImpl } from "../../src/ui/user-interactions.js";
 import { getKeystoreFilePath } from "../../src/utils/get-keystore-file-path.js";
 import { getFullOutput } from "../helpers/get-full-output.js";
 import { MockConsoleWrapper } from "../helpers/mock-console-wrapper.js";
@@ -14,12 +14,12 @@ const TEST_PASSWORD = "Test-password";
 
 describe("unencrypted keystore loader", () => {
   let unencryptedKeystoreLoader: KeystoreFileLoader;
-  let interruptions: RawInterruptionsImpl;
+  let interruptions: UserInteractionsImpl;
   let mockConsoleWrapper: MockConsoleWrapper;
 
   beforeEach(() => {
     mockConsoleWrapper = new MockConsoleWrapper();
-    interruptions = new RawInterruptionsImpl(mockConsoleWrapper);
+    interruptions = new UserInteractionsImpl(mockConsoleWrapper);
   });
 
   describe("the keystore is not initialized", () => {

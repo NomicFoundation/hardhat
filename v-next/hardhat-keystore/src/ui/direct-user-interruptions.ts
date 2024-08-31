@@ -5,7 +5,12 @@ import chalk from "chalk";
 
 import { PLUGIN_ID } from "../constants.js";
 
-export class ConsoleWrapperImpl implements ConsoleWrapper {
+/**
+ * A class that handles user interruptions directly on the console
+ * and explicitly does NOT go through the user interruptions
+ * system of the Hook system.
+ */
+export class DirectUserInterruptions implements ConsoleWrapper {
   readonly #console: Console;
 
   constructor(givenConsole?: Console) {
