@@ -11,7 +11,7 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 import { HttpProvider } from "./http-provider.js";
 import { NetworkConnectionImplementation } from "./network-connection.js";
-import { isNetworkConfig } from "./type-validation.js";
+import { isNetworkConfig, validateNetworkConfig } from "./type-validation.js";
 
 export class NetworkManagerImplementation {
   readonly #defaultNetwork: string;
@@ -88,11 +88,16 @@ export class NetworkManagerImplementation {
     };
 
     if (!isNetworkConfig(resolvedNetworkConfig)) {
-      // TODO: how can we get the errors from the validation?
+      const validationErrors = validateNetworkConfig(resolvedNetworkConfig);
+
       throw new HardhatError(
         HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
         {
-          errors: `\t* The network config is invalid.`,
+          errors: `\t${validationErrors
+            .map(
+              (error) => `* Error in ${error.path.join(".")}: ${error.message}`,
+            )
+            .join("\n\t")}`,
         },
       );
     }

@@ -70,7 +70,7 @@ const userConfigSchema = z.object({
 
 const httpNetworkConfigSchema = z.object({
   type: z.literal("http"),
-  chainId: z.number().int(),
+  chainId: z.number().int().optional(),
   chainType: z.optional(chainTypeSchema),
   from: z.optional(z.string()),
   gas: unionType([z.literal("auto"), z.bigint()], "Expected 'auto' or bigint"),
@@ -109,6 +109,13 @@ export function isNetworkConfig(
 ): networkConfig is NetworkConfig {
   const result = networkConfigSchema.safeParse(networkConfig);
   return result.success;
+}
+
+export function validateNetworkConfig(
+  networkConfig: unknown,
+): Array<{ message: string; path: Array<string | number> }> {
+  const result = networkConfigSchema.safeParse(networkConfig);
+  return result.error?.errors ?? [];
 }
 
 export async function validateUserConfig(
