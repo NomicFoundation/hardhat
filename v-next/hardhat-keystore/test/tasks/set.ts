@@ -39,7 +39,7 @@ describe("tasks - set", () => {
     );
 
     assert.equal(
-      mockConsoleWrapper.info.mock.calls[0].arguments[0],
+      mockConsoleWrapper.displayMessage.mock.calls[0].arguments[1],
       `Key "myKey" set`,
     );
 
@@ -74,8 +74,10 @@ describe("tasks - set", () => {
     );
 
     assert.equal(
-      mockConsoleWrapper.error.mock.calls[0].arguments[0],
-      `Invalid value for key: "1key". Keys can only have alphanumeric characters and underscores, and they cannot start with a number.`,
+      mockConsoleWrapper.displayMessage.mock.calls[0].arguments[1],
+      chalk.red(
+        `Invalid value for key: "1key". Keys can only have alphanumeric characters and underscores, and they cannot start with a number.`,
+      ),
     );
   });
 
@@ -100,8 +102,10 @@ describe("tasks - set", () => {
 
     // Assert
     assert.equal(
-      mockConsoleWrapper.warn.mock.calls[0].arguments[0],
-      `The key "key" already exists. Use the ${chalk.blue.italic("--force")} flag to overwrite it.`,
+      mockConsoleWrapper.displayMessage.mock.calls[1].arguments[1],
+      chalk.yellow(
+        `The key "key" already exists. Use the ${chalk.blue.italic("--force")} flag to overwrite it.`,
+      ),
     );
 
     const keystore = await mockKeystoreLoader.create();
@@ -144,8 +148,8 @@ describe("tasks - set", () => {
     );
 
     assert.equal(
-      mockConsoleWrapper.error.mock.calls[0].arguments[0],
-      "The value cannot be empty.",
+      mockConsoleWrapper.displayMessage.mock.calls[0].arguments[1],
+      chalk.red("The value cannot be empty."),
     );
 
     // Assert

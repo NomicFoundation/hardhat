@@ -1,14 +1,34 @@
-import type { ConsoleWrapper } from "../../src/types.js";
+import type { UserInterruptionManager } from "@ignored/hardhat-vnext/types/user-interruptions";
 import type { Mock } from "node:test";
 
 import { mock } from "node:test";
 
-export class MockConsoleWrapper implements ConsoleWrapper {
-  public info: Mock<(message: string) => void> = mock.fn();
-  public error: Mock<(message: string) => void> = mock.fn();
-  public warn: Mock<(message: string) => void> = mock.fn();
+import { HardhatPluginError } from "@ignored/hardhat-vnext-errors";
 
-  public async requestSecretInput(_inputDescription: string): Promise<string> {
+import { PLUGIN_ID } from "../../src/constants.js";
+
+export class MockConsoleWrapper implements UserInterruptionManager {
+  public displayMessage: Mock<
+    (interruptor: string, message: string) => Promise<void>
+  > = mock.fn();
+
+  public async requestSecretInput(
+    _interruptor: string,
+    _inputDescription: string,
+  ): Promise<string> {
     return "fake-password";
+  }
+
+  public async requestInput(
+    _interruptor: string,
+    _inputDescription: string,
+  ): Promise<string> {
+    return "fake-input";
+  }
+
+  public async uninterrupted<ReturnT>(
+    _f: () => ReturnT,
+  ): Promise<Awaited<ReturnT>> {
+    throw new HardhatPluginError(PLUGIN_ID, "Uninterrupted not implemented");
   }
 }

@@ -13,22 +13,15 @@ export interface KeystoreLoader {
 }
 
 export interface Keystore {
+  init(): Promise<void>;
+  loadFromJSON: (json: unknown) => Keystore;
+  toJSON(): any;
+
   listKeys(): Promise<string[]>;
   hasKey(key: string): Promise<boolean>;
   addNewValue(key: string, value: string): Promise<void>;
   removeKey(key: string): Promise<void>;
   readValue(key: string): Promise<string | undefined>;
-
-  init(): Promise<void>;
-  loadFromJSON: (json: unknown) => Keystore;
-  toJSON(): any;
-}
-
-export interface ConsoleWrapper {
-  requestSecretInput: (inputDescription: string) => Promise<string>;
-  info(message: string): void;
-  warn(message: string): void;
-  error(message: string): void;
 }
 
 export interface UserInteractions {

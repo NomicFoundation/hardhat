@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
 import { remove, writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
+import chalk from "chalk";
 
 import { UnencryptedKeystore } from "../../src/keystores/unencrypted-keystore.js";
 import { KeystoreFileLoader } from "../../src/loaders/keystore-file-loader.js";
@@ -44,7 +45,7 @@ describe("unencrypted keystore loader", () => {
 
       assert.equal(res instanceof UnencryptedKeystore, true);
       assert.equal(
-        getFullOutput(mockConsoleWrapper.info, 4),
+        getFullOutput(mockConsoleWrapper.displayMessage, 4),
         `
 👷🔐 Hardhat-Keystore 🔐👷
 
@@ -88,12 +89,12 @@ The password must have at least 8 characters, one uppercase letter, one lowercas
 
       // Be sure that the error messages are displayed to the user
       assert.equal(
-        mockConsoleWrapper.error.mock.calls[0].arguments[0],
-        "Invalid password!",
+        mockConsoleWrapper.displayMessage.mock.calls[4].arguments[1],
+        chalk.red("Invalid password!"),
       );
       assert.equal(
-        mockConsoleWrapper.error.mock.calls[1].arguments[0],
-        "Passwords do not match!",
+        mockConsoleWrapper.displayMessage.mock.calls[5].arguments[1],
+        chalk.red("Passwords do not match!"),
       );
     });
   });

@@ -33,7 +33,7 @@ describe("tasks - list", () => {
     await list(mockKeystoreLoader, mockInterruptions);
 
     assert.equal(
-      mockConsoleWrapper.info.mock.calls[0].arguments[0],
+      mockConsoleWrapper.displayMessage.mock.calls[0].arguments[1],
       NO_KEYSTORE_SET,
     );
   });
@@ -42,7 +42,7 @@ describe("tasks - list", () => {
     await list(mockKeystoreLoader, mockInterruptions);
 
     assert.equal(
-      mockConsoleWrapper.info.mock.calls[0].arguments[0],
+      mockConsoleWrapper.displayMessage.mock.calls[0].arguments[1],
       "The keystore does not contain any keys.",
     );
   });
@@ -54,7 +54,7 @@ describe("tasks - list", () => {
     await list(mockKeystoreLoader, mockInterruptions);
 
     assert.equal(
-      getFullOutput(mockConsoleWrapper.info, 3),
+      getFullOutput(mockConsoleWrapper.displayMessage, 3),
       `Keys:
 key
 key2`,

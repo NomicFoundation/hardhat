@@ -40,7 +40,7 @@ describe("tasks - delete", () => {
     );
 
     assert.equal(
-      mockConsoleWrapper.info.mock.calls[0].arguments[0],
+      mockConsoleWrapper.displayMessage.mock.calls[0].arguments[1],
       `Key "myKey" removed`,
     );
 
@@ -78,7 +78,7 @@ describe("tasks - delete", () => {
     );
 
     assert.equal(
-      mockConsoleWrapper.info.mock.calls[0].arguments[0],
+      mockConsoleWrapper.displayMessage.mock.calls[0].arguments[1],
       NO_KEYSTORE_SET,
     );
   });
@@ -93,8 +93,8 @@ describe("tasks - delete", () => {
     );
 
     assert.equal(
-      mockConsoleWrapper.error.mock.calls[0].arguments[0],
-      `Key "unknown" not found`,
+      mockConsoleWrapper.displayMessage.mock.calls[0].arguments[1],
+      chalk.red(`Key "unknown" not found`),
     );
   });
 });

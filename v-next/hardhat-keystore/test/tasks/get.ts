@@ -39,7 +39,10 @@ describe("tasks - get", () => {
       mockInterruptions,
     );
 
-    assert.equal(mockConsoleWrapper.info.mock.calls[0].arguments[0], "myValue");
+    assert.equal(
+      mockConsoleWrapper.displayMessage.mock.calls[0].arguments[1],
+      "myValue",
+    );
   });
 
   it("should throw because the key is not specified", async () => {
@@ -72,7 +75,7 @@ describe("tasks - get", () => {
     );
 
     assert.equal(
-      mockConsoleWrapper.info.mock.calls[0].arguments[0],
+      mockConsoleWrapper.displayMessage.mock.calls[0].arguments[1],
       NO_KEYSTORE_SET,
     );
   });
@@ -87,8 +90,8 @@ describe("tasks - get", () => {
     );
 
     assert.equal(
-      mockConsoleWrapper.error.mock.calls[0].arguments[0],
-      `Key "unknown" not found`,
+      mockConsoleWrapper.displayMessage.mock.calls[0].arguments[1],
+      chalk.red(`Key "unknown" not found`),
     );
   });
 });

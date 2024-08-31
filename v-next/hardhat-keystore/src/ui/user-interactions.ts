@@ -1,12 +1,15 @@
-import type { ConsoleWrapper, UserInteractions } from "../types.js";
+import type { UserInteractions } from "../types.js";
+import type { UserInterruptionManager } from "@ignored/hardhat-vnext/types/user-interruptions";
 
 import chalk from "chalk";
 
-export class UserInteractionsImpl implements UserInteractions {
-  readonly #console: ConsoleWrapper;
+import { PLUGIN_ID } from "../constants.js";
 
-  constructor(console: ConsoleWrapper) {
-    this.#console = console;
+export class UserInteractionsImpl implements UserInteractions {
+  readonly #userInterruptions: UserInterruptionManager;
+
+  constructor(userInterruptions: UserInterruptionManager) {
+    this.#userInterruptions = userInterruptions;
   }
 
   public async setUpPassword(): Promise<void> {
@@ -17,87 +20,100 @@ export class UserInteractionsImpl implements UserInteractions {
     const passwordRulesMsg =
       "The password must have at least 8 characters, one uppercase letter, one lowercase letter, and one special character.";
 
-    this.#console.info("\n👷🔐 Hardhat-Keystore 🔐👷\n");
-    this.#console.info(setupMsg);
-    this.#console.info(passwordRulesMsg);
-    this.#console.info("");
+    await this.#displayMessage("\n👷🔐 Hardhat-Keystore 🔐👷\n");
+    await this.#displayMessage(setupMsg);
+    await this.#displayMessage(passwordRulesMsg);
+    await this.#displayMessage("");
 
     let password: string | undefined;
 
     while (password === undefined) {
-      password = await this.#console.requestSecretInput(
-        `Enter your password: `,
-      );
+      password = await this.#requestSecretInput(`Enter your password: `);
 
       if (!PASSWORD_REGEX.test(password)) {
         password = undefined;
-        this.#console.error("Invalid password!");
+        await this.#displayMessage(chalk.red("Invalid password!"));
       }
     }
 
     let confirmPassword: string | undefined;
     while (confirmPassword === undefined) {
-      confirmPassword = await this.#console.requestSecretInput(
+      confirmPassword = await this.#requestSecretInput(
         "Please confirm your password: ",
       );
 
       if (password !== confirmPassword) {
-        this.#console.error("Passwords do not match!");
+        await this.#displayMessage(chalk.red("Passwords do not match!"));
         confirmPassword = undefined;
       }
     }
   }
 
   public async displayNoKeystoreSetErrorMessage(): Promise<void> {
-    this.#console.info(
+    await this.#displayMessage(
       `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
     );
   }
 
   public async displayKeyNotFoundErrorMessage(key: string): Promise<void> {
-    this.#console.error(`Key "${key}" not found`);
+    await this.#displayMessage(chalk.red(`Key "${key}" not found`));
   }
 
   public async displayKeyRemovedInfoMessage(key: string): Promise<void> {
-    this.#console.info(`Key "${key}" removed`);
+    await this.#displayMessage(`Key "${key}" removed`);
   }
 
   public async displayValueInfoMessage(value: string): Promise<void> {
-    this.#console.info(value);
+    await this.#displayMessage(value);
   }
 
   public async displayNoKeysInfoMessage(): Promise<void> {
-    this.#console.info("The keystore does not contain any keys.");
+    await this.#displayMessage("The keystore does not contain any keys.");
   }
 
   public async displayKeyListInfoMessage(keys: string[]): Promise<void> {
-    this.#console.info("Keys:");
+    await this.#displayMessage("Keys:");
     for (const key of keys) {
-      this.#console.info(key);
+      await this.#displayMessage(key);
     }
   }
 
   public async displayInvalidKeyErrorMessage(key: string): Promise<void> {
-    this.#console.error(
-      `Invalid value for key: "${key}". Keys can only have alphanumeric characters and underscores, and they cannot start with a number.`,
+    await this.#displayMessage(
+      chalk.red(
+        `Invalid value for key: "${key}". Keys can only have alphanumeric characters and underscores, and they cannot start with a number.`,
+      ),
     );
   }
 
   public async displayKeyAlreadyExistsWarning(key: string): Promise<void> {
-    this.#console.warn(
-      `The key "${key}" already exists. Use the ${chalk.blue.italic("--force")} flag to overwrite it.`,
+    await this.#displayMessage(
+      chalk.yellow(
+        `The key "${key}" already exists. Use the ${chalk.blue.italic("--force")} flag to overwrite it.`,
+      ),
     );
   }
 
   public async displaySecretCannotBeEmptyErrorMessage(): Promise<void> {
-    this.#console.error("The value cannot be empty.");
+    await this.#displayMessage(chalk.red("The value cannot be empty."));
   }
 
   public async displayKeySetInfoMessage(key: string): Promise<void> {
-    this.#console.info(`Key "${key}" set`);
+    await this.#displayMessage(`Key "${key}" set`);
   }
 
   public async requestSecretFromUser(): Promise<string> {
-    return this.#console.requestSecretInput("Enter secret to store: ");
+    return this.#requestSecretInput("Enter secret to store: ");
+  }
+
+  async #displayMessage(message: string): Promise<void> {
+    await this.#userInterruptions.displayMessage(PLUGIN_ID, message);
+  }
+
+  async #requestSecretInput(inputDescription: string): Promise<string> {
+    return this.#userInterruptions.requestSecretInput(
+      PLUGIN_ID,
+      inputDescription,
+    );
   }
 }

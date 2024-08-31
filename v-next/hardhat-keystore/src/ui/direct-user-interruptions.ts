@@ -1,7 +1,6 @@
-import type { ConsoleWrapper } from "../types.js";
+import type { UserInterruptionManager } from "@ignored/hardhat-vnext/types/user-interruptions";
 
 import { HardhatPluginError } from "@ignored/hardhat-vnext/plugins";
-import chalk from "chalk";
 
 import { PLUGIN_ID } from "../constants.js";
 
@@ -10,26 +9,24 @@ import { PLUGIN_ID } from "../constants.js";
  * and explicitly does NOT go through the user interruptions
  * system of the Hook system.
  */
-export class DirectUserInterruptions implements ConsoleWrapper {
+export class DirectUserInterruptions implements UserInterruptionManager {
   readonly #console: Console;
 
   constructor(givenConsole?: Console) {
     this.#console = givenConsole ?? console;
   }
 
-  public async info(message: string): Promise<void> {
+  public async displayMessage(
+    _interruptor: string,
+    message: string,
+  ): Promise<void> {
     this.#console.log(message);
   }
 
-  public async warn(message: string): Promise<void> {
-    this.#console.info(chalk.yellow(message));
-  }
-
-  public async error(message: string): Promise<void> {
-    this.#console.error(chalk.red(message));
-  }
-
-  public async requestSecretInput(inputDescription: string): Promise<string> {
+  public async requestSecretInput(
+    _interruptor: string,
+    inputDescription: string,
+  ): Promise<string> {
     const { createInterface } = await import("node:readline");
 
     const rl = createInterface({
@@ -78,5 +75,18 @@ export class DirectUserInterruptions implements ConsoleWrapper {
         rl.close();
       });
     });
+  }
+
+  public async requestInput(
+    _interruptor: string,
+    _inputDescription: string,
+  ): Promise<string> {
+    throw new HardhatPluginError(PLUGIN_ID, "Uninterrupted not implemented");
+  }
+
+  public async uninterrupted<ReturnT>(
+    _f: () => ReturnT,
+  ): Promise<Awaited<ReturnT>> {
+    throw new HardhatPluginError(PLUGIN_ID, "Uninterrupted not implemented");
   }
 }
