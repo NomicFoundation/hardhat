@@ -1,7 +1,6 @@
 import type { KeystoreLoader, RawInterruptions } from "../types.js";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
-import { isAuthorized } from "../ui/password-manager.js";
 import { checkMissingKeyTaskArgument } from "../utils/check-missing-key-task-argument.js";
 import { setupRawInterruptionsAndKeystoreLoader } from "../utils/setup-raw-interruptions-and-keystore-loader.js";
 import { validateKey } from "../utils/validate-key.js";
@@ -37,10 +36,6 @@ export const set = async (
 
   if (keystore === undefined) {
     keystore = await keystoreLoader.create();
-  }
-
-  if ((await isAuthorized()) === false) {
-    return;
   }
 
   if (!force) {
