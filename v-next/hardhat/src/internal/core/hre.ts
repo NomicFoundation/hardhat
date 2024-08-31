@@ -9,6 +9,7 @@ import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
 import type { HardhatPlugin } from "../../types/plugins.js";
 import type { TaskManager } from "../../types/tasks.js";
 import type { UserInterruptionManager } from "../../types/user-interruptions.js";
+import type { NetworkManager } from "../builtin-plugins/network-manager/types.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { findClosestPackageRoot } from "@ignored/hardhat-vnext-utils/package";
@@ -27,6 +28,11 @@ import { UserInterruptionManagerImplementation } from "./user-interruptions.js";
 export class HardhatRuntimeEnvironmentImplementation
   implements HardhatRuntimeEnvironment
 {
+  // NOTE: This is a small architectural violation, as this shouldn't be needed
+  // here, because it's added by a plugin. But as that plugin is builtin, its
+  // type extensions also affect this module.
+  public network!: NetworkManager;
+
   public static async create(
     inputUserConfig: HardhatUserConfig,
     userProvidedGlobalOptions: Partial<GlobalOptions>,
