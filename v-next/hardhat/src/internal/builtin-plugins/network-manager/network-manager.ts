@@ -56,9 +56,7 @@ export class NetworkManagerImplementation {
     return networkConnection as NetworkConnection<ChainTypeT>;
   }
 
-  async #initializeNetworkConnection<
-    ChainTypeT extends ChainType | string = DefaultChainType,
-  >(
+  async #initializeNetworkConnection<ChainTypeT extends ChainType | string>(
     networkName?: string,
     chainType?: ChainTypeT,
     networkConfigOverride?: Partial<NetworkConfig>,
@@ -103,6 +101,7 @@ export class NetworkManagerImplementation {
     const resolvedChainType = (chainType ??
       resolvedNetworkConfig.chainType ??
       this.#defaultChainType) as ChainTypeT;
+
     /**
      * If resolvedNetworkConfig.chainType is defined, it must match the
      * provided chainType.
