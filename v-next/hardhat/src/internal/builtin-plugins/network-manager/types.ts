@@ -14,7 +14,7 @@ export interface NetworkManager {
 }
 
 export interface NetworkConnection<ChainTypeT extends ChainType | string> {
-  readonly id: string;
+  readonly id: number;
   readonly networkName: string;
   readonly networkConfig: NetworkConfig;
   readonly chainType: ChainTypeT;

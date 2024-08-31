@@ -36,11 +36,24 @@ export interface EIP1193Provider extends EventEmitter {
 }
 
 /**
- * The interface used by the HttpProvider to send JSON-RPC requests.
- * This interface is an extension of the EIP1193Provider interface,
- * adding the `send` and `sendAsync` methods for backwards compatibility.
+ * This interface is an extension of the EIP1193Provider interface with two
+ * additions:
+ *  - It has `send` and `sendAsync` methods for backwards compatibility.
+ *  - It has a `close` method to release any resources associated with the
+ *    provider.
  */
 export interface EthereumProvider extends EIP1193Provider {
+  /**
+   * Releases any resources associated with the provider.
+   *
+   * Most providers don't need to do anything in this method, but they may
+   * opt to use it to release resources such as a connection pool.
+   *
+   * Note that Hardhat doesn't automatically call this method, so a provider
+   * shouldn't rely on it being called.
+   */
+  close(): Promise<void>;
+
   /**
    * @deprecated
    * Sends a JSON-RPC request. This method is present for backwards compatibility

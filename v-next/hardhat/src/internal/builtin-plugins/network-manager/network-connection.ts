@@ -1,35 +1,40 @@
 import type { NetworkConnection } from "./types.js";
 import type { ChainType, NetworkConfig } from "../../../types/config.js";
-import type { HookManager } from "../../../types/hooks.js";
 import type { EthereumProvider } from "../../../types/providers.js";
+
+export type CloseConnectionFunction<ChainTypeT extends ChainType | string> = (
+  networkConnection: NetworkConnectionImplementation<ChainTypeT>,
+) => Promise<void>;
 
 export class NetworkConnectionImplementation<
   ChainTypeT extends ChainType | string,
 > implements NetworkConnection<ChainTypeT>
 {
-  static #currentId = 0;
-
-  public readonly id: string;
+  public readonly id: number;
   public readonly networkName: string;
   public readonly networkConfig: NetworkConfig;
   public readonly chainType: ChainTypeT;
+
   #provider!: EthereumProvider;
-  readonly #hookManager: HookManager;
+
+  readonly #closeConnection: CloseConnectionFunction<ChainTypeT>;
 
   public static async create<ChainTypeT extends ChainType | string>(
+    id: number,
     networkName: string,
     chainType: ChainTypeT,
     networkConfig: NetworkConfig,
-    hookManager: HookManager,
+    closeConnection: CloseConnectionFunction<ChainTypeT>,
     createProvider: (
       networkConnection: NetworkConnectionImplementation<ChainTypeT>,
     ) => Promise<EthereumProvider>,
   ): Promise<NetworkConnectionImplementation<ChainTypeT>> {
     const networkConnection = new NetworkConnectionImplementation(
+      id,
       networkName,
       chainType,
       networkConfig,
-      hookManager,
+      closeConnection,
     );
 
     const provider = await createProvider(networkConnection);
@@ -37,21 +42,18 @@ export class NetworkConnectionImplementation<
     return networkConnection;
   }
 
-  static #getNextId(): string {
-    return `network-conn-${NetworkConnectionImplementation.#currentId++}`;
-  }
-
   private constructor(
+    id: number,
     networkName: string,
     chainType: ChainTypeT,
     networkConfig: NetworkConfig,
-    hookManager: HookManager,
+    closeConnection: CloseConnectionFunction<ChainTypeT>,
   ) {
-    this.id = NetworkConnectionImplementation.#getNextId();
+    this.id = id;
     this.networkName = networkName;
     this.chainType = chainType;
     this.networkConfig = networkConfig;
-    this.#hookManager = hookManager;
+    this.#closeConnection = closeConnection;
 
     this.close = this.close.bind(this);
   }
@@ -65,14 +67,6 @@ export class NetworkConnectionImplementation<
   }
 
   public async close(): Promise<void> {
-    await this.#hookManager.runHandlerChain(
-      "network",
-      "closeConnection",
-      [this],
-      async (_context, _connection) => {
-        // we should call dispatcher.close() here, see
-        // https://github.com/nodejs/undici/discussions/3522#discussioncomment-10498734
-      },
-    );
+    await this.#closeConnection(this);
   }
 }

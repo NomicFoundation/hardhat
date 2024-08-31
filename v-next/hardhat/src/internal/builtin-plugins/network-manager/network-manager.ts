@@ -20,6 +20,8 @@ export class NetworkManagerImplementation {
   readonly #networkConfigs: Record<string, NetworkConfig>;
   readonly #hookManager: HookManager;
 
+  #nextConnectionId = 0;
+
   constructor(
     defaultNetwork: string,
     defaultChainType: DefaultChainType,
@@ -122,35 +124,41 @@ export class NetworkManagerImplementation {
     const createProvider = async (
       networkConnection: NetworkConnectionImplementation<ChainTypeT>,
     ): Promise<EthereumProvider> => {
-      let ethereumProvider: EthereumProvider;
-      if (resolvedNetworkConfig.type === "http") {
-        ethereumProvider = await HttpProvider.create({
-          url: resolvedNetworkConfig.url,
-          networkName: resolvedNetworkName,
-          extraHeaders: resolvedNetworkConfig.httpHeaders,
-          timeout: resolvedNetworkConfig.timeout,
-          jsonRpcRequestWrapper: (request, defaultBehavior) =>
-            this.#hookManager.runHandlerChain(
-              "network",
-              "onRequest",
-              [networkConnection, request],
-              async (_context, _connection, req) => defaultBehavior(req),
-            ),
-        });
-      } else {
-        /* eslint-disable-next-line no-restricted-syntax
-        -- TODO implement EDR provider */
-        throw new Error("EDR network not supported yet");
+      if (resolvedNetworkConfig.type !== "http") {
+        /* eslint-disable-next-line no-restricted-syntax -- TODO implement EDR provider */
+        throw new Error("Only HTTP network is supported for now");
       }
 
-      return ethereumProvider;
+      return HttpProvider.create({
+        url: resolvedNetworkConfig.url,
+        networkName: resolvedNetworkName,
+        extraHeaders: resolvedNetworkConfig.httpHeaders,
+        timeout: resolvedNetworkConfig.timeout,
+        jsonRpcRequestWrapper: (request, defaultBehavior) =>
+          this.#hookManager.runHandlerChain(
+            "network",
+            "onRequest",
+            [networkConnection, request],
+            async (_context, _connection, req) => defaultBehavior(req),
+          ),
+      });
     };
 
     return NetworkConnectionImplementation.create(
+      this.#nextConnectionId++,
       resolvedNetworkName,
       resolvedChainType,
       resolvedNetworkConfig,
-      this.#hookManager,
+      async (connection: NetworkConnectionImplementation<ChainTypeT>) => {
+        await this.#hookManager.runHandlerChain(
+          "network",
+          "closeConnection",
+          [connection],
+          async (_context, conn) => {
+            await conn.provider.close();
+          },
+        );
+      },
       createProvider,
     );
   }
