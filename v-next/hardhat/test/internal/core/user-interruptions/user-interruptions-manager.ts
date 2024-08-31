@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
 import { HookManagerImplementation } from "../../../../src/internal/core/hook-manager.js";
-import { resolveProjectRoot } from "../../../../src/internal/core/index.js";
+import { resolveProjectRoot } from "../../../../src/internal/core/hre.js";
 import { UserInterruptionManagerImplementation } from "../../../../src/internal/core/user-interruptions.js";
 
 describe("UserInterruptionManager", () => {

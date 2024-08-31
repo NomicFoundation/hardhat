@@ -21,12 +21,10 @@ import {
 } from "../../types/arguments.js";
 import { BUILTIN_GLOBAL_OPTIONS_DEFINITIONS } from "../builtin-global-options.js";
 import { builtinPlugins } from "../builtin-plugins/index.js";
-import {
-  buildGlobalOptionDefinitions,
-  parseArgumentValue,
-  resolvePluginList,
-  resolveProjectRoot,
-} from "../core/index.js";
+import { parseArgumentValue } from "../core/arguments.js";
+import { buildGlobalOptionDefinitions } from "../core/global-options.js";
+import { resolveProjectRoot } from "../core/hre.js";
+import { resolvePluginList } from "../core/plugins/resolve-plugin-list.js";
 import { setGlobalHardhatRuntimeEnvironment } from "../global-hre-instance.js";
 import {
   importUserConfig,

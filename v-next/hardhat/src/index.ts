@@ -6,7 +6,7 @@ import type { TaskManager } from "./types/tasks.js";
 import type { UserInterruptionManager } from "./types/user-interruptions.js";
 
 import { createHardhatRuntimeEnvironment } from "./hre.js";
-import { resolveProjectRoot } from "./internal/core/index.js";
+import { resolveProjectRoot } from "./internal/core/hre.js";
 import {
   getGlobalHardhatRuntimeEnvironment,
   setGlobalHardhatRuntimeEnvironment,

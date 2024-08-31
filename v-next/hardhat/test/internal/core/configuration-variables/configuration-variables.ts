@@ -6,7 +6,7 @@ import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-uti
 
 import { ResolvedConfigurationVariableImplementation } from "../../../../src/internal/core/configuration-variables.js";
 import { HookManagerImplementation } from "../../../../src/internal/core/hook-manager.js";
-import { resolveProjectRoot } from "../../../../src/internal/core/index.js";
+import { resolveProjectRoot } from "../../../../src/internal/core/hre.js";
 import { UserInterruptionManagerImplementation } from "../../../../src/internal/core/user-interruptions.js";
 
 describe("ResolvedConfigurationVariable", () => {

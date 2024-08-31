@@ -5,12 +5,12 @@ import type { HardhatRuntimeEnvironment } from "./types/hre.js";
 
 import { BUILTIN_GLOBAL_OPTIONS_DEFINITIONS } from "./internal/builtin-global-options.js";
 import { builtinPlugins } from "./internal/builtin-plugins/index.js";
-import { resolveProjectRoot } from "./internal/core/hre.js";
+import { buildGlobalOptionDefinitions } from "./internal/core/global-options.js";
 import {
-  buildGlobalOptionDefinitions,
-  createBaseHardhatRuntimeEnvironment,
-  resolvePluginList,
-} from "./internal/core/index.js";
+  HardhatRuntimeEnvironmentImplementation,
+  resolveProjectRoot,
+} from "./internal/core/hre.js";
+import { resolvePluginList } from "./internal/core/plugins/resolve-plugin-list.js";
 
 export { resolveHardhatConfigPath } from "./internal/helpers/config-loading.js";
 
@@ -57,7 +57,7 @@ export async function createHardhatRuntimeEnvironment(
     unsafeOptions.globalOptionDefinitions = globalOptionDefinitions;
   }
 
-  return createBaseHardhatRuntimeEnvironment(
+  return HardhatRuntimeEnvironmentImplementation.create(
     config,
     userProvidedGlobalOptions,
     resolvedProjectRoot,
