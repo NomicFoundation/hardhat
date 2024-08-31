@@ -4,8 +4,6 @@ import type { GlobalOptions } from "../types/global-options.js";
 import type { HardhatRuntimeEnvironment } from "../types/hre.js";
 
 import { BUILTIN_GLOBAL_OPTIONS_DEFINITIONS } from "./builtin-global-options.js";
-// NOTE: As we import the builting plugins in this module, which is always used
-// to initialize the HRE, all of the builtin plugins' type-extensions are loaded
 import { builtinPlugins } from "./builtin-plugins/index.js";
 import {
   importUserConfig,
