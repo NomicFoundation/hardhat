@@ -9,7 +9,7 @@ import type { EthereumProvider } from "../../../types/providers.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
-import { HttpProvider } from "../../network/http-provider.js";
+import { HttpProvider } from "./http-provider.js";
 
 import { NetworkConnectionImplementation } from "./network-connection.js";
 import { isNetworkConfig } from "./type-validation.js";

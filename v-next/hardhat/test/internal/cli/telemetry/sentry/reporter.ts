@@ -14,7 +14,7 @@ import {
   _testResetReporter,
   sendErrorTelemetry,
 } from "../../../../../src/internal/cli/telemetry/sentry/reporter.js";
-import { ProviderError } from "../../../../../src/internal/network/provider-errors.js";
+import { ProviderError } from "../../../../../src/internal/builtin-plugins/network-manager/provider-errors.js";
 import { getHardhatVersion } from "../../../../../src/internal/utils/package.js";
 import {
   ERROR,
