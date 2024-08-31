@@ -1,50 +1,14 @@
 import type { UserInterruptionHooks } from "../../../../src/types/hooks.js";
 
 import assert from "node:assert/strict";
-import { before, describe, it } from "node:test";
+import { describe, it } from "node:test";
 
-import { HookManagerImplementation } from "../../../../src/internal/core/hook-manager.js";
-import { resolveProjectRoot } from "../../../../src/internal/core/hre.js";
-import { UserInterruptionManagerImplementation } from "../../../../src/internal/core/user-interruptions.js";
+import { HardhatRuntimeEnvironmentImplementation } from "../../../../src/internal/core/hre.js";
 
 describe("UserInterruptionManager", () => {
-  let projectRoot: string;
-
-  before(async () => {
-    projectRoot = await resolveProjectRoot(process.cwd());
-  });
-
   describe("displayMessage", () => {
     it("Should call a dynamic handler with a given message from an interruptor", async () => {
-      const hookManager = new HookManagerImplementation(projectRoot, []);
-      const userInterruptionManager = new UserInterruptionManagerImplementation(
-        hookManager,
-      );
-
-      // TODO: Setting the context like this is a bit fragile. If this test
-      // breaks we should probably switch to initializing an entire HRE in these
-      // tests.
-      hookManager.setContext({
-        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-        config: {
-          tasks: [],
-          plugins: [],
-          paths: {
-            root: projectRoot,
-            cache: "",
-            artifacts: "",
-            tests: "",
-          },
-        } as any,
-        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-        globalOptions: {} as any,
-        hooks: hookManager,
-        interruptions: userInterruptionManager,
-      });
+      const hre = await HardhatRuntimeEnvironmentImplementation.create({}, {});
 
       let called = false;
       let givenInterruptor: string = "";
@@ -58,9 +22,9 @@ describe("UserInterruptionManager", () => {
         },
       };
 
-      hookManager.registerHandlers("userInterruptions", handlers);
+      hre.hooks.registerHandlers("userInterruptions", handlers);
 
-      await userInterruptionManager.displayMessage(
+      await hre.interruptions.displayMessage(
         "test-interruptor",
         "test-message",
       );
@@ -73,31 +37,7 @@ describe("UserInterruptionManager", () => {
 
   describe("requestInput", () => {
     it("Should call a dynamic handler with a given input description from an interruptor", async () => {
-      const hookManager = new HookManagerImplementation(projectRoot, []);
-      const userInterruptionManager = new UserInterruptionManagerImplementation(
-        hookManager,
-      );
-      hookManager.setContext({
-        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-        config: {
-          tasks: [],
-          plugins: [],
-          paths: {
-            root: projectRoot,
-            cache: "",
-            artifacts: "",
-            tests: "",
-          },
-        } as any,
-        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-        globalOptions: {} as any,
-        hooks: hookManager,
-        interruptions: userInterruptionManager,
-      });
+      const hre = await HardhatRuntimeEnvironmentImplementation.create({}, {});
 
       let called = false;
       let givenInterruptor: string = "";
@@ -112,9 +52,9 @@ describe("UserInterruptionManager", () => {
         },
       };
 
-      hookManager.registerHandlers("userInterruptions", handlers);
+      hre.hooks.registerHandlers("userInterruptions", handlers);
 
-      const input = await userInterruptionManager.requestInput(
+      const input = await hre.interruptions.requestInput(
         "test-interruptor",
         "test-input-description",
       );
@@ -128,31 +68,7 @@ describe("UserInterruptionManager", () => {
 
   describe("requestSecretInput", () => {
     it("Should call a dynamic handler with a given input description from an interruptor", async () => {
-      const hookManager = new HookManagerImplementation(projectRoot, []);
-      const userInterruptionManager = new UserInterruptionManagerImplementation(
-        hookManager,
-      );
-      hookManager.setContext({
-        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-        config: {
-          tasks: [],
-          plugins: [],
-          paths: {
-            root: projectRoot,
-            cache: "",
-            artifacts: "",
-            tests: "",
-          },
-        } as any,
-        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-        globalOptions: {} as any,
-        hooks: hookManager,
-        interruptions: userInterruptionManager,
-      });
+      const hre = await HardhatRuntimeEnvironmentImplementation.create({}, {});
 
       let called = false;
       let givenInterruptor: string = "";
@@ -167,9 +83,9 @@ describe("UserInterruptionManager", () => {
         },
       };
 
-      hookManager.registerHandlers("userInterruptions", handlers);
+      hre.hooks.registerHandlers("userInterruptions", handlers);
 
-      const input = await userInterruptionManager.requestSecretInput(
+      const input = await hre.interruptions.requestSecretInput(
         "test-interruptor",
         "test-input-description",
       );
