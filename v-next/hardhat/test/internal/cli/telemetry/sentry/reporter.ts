@@ -10,11 +10,11 @@ import {
 } from "@ignored/hardhat-vnext-errors";
 import { readJsonFile, remove } from "@ignored/hardhat-vnext-utils/fs";
 
+import { ProviderError } from "../../../../../src/internal/builtin-plugins/network-manager/provider-errors.js";
 import {
   _testResetReporter,
   sendErrorTelemetry,
 } from "../../../../../src/internal/cli/telemetry/sentry/reporter.js";
-import { ProviderError } from "../../../../../src/internal/builtin-plugins/network-manager/provider-errors.js";
 import { getHardhatVersion } from "../../../../../src/internal/utils/package.js";
 import {
   ERROR,
