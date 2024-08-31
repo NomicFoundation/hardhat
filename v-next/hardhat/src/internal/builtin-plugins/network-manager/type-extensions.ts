@@ -85,7 +85,7 @@ declare module "../../../types/config.js" {
 
   export interface HttpNetworkConfig {
     type: "http";
-    chainId: number;
+    chainId?: number;
     chainType?: ChainType;
     from?: string;
     gas: "auto" | bigint;
