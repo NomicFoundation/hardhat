@@ -24,13 +24,11 @@ export const get = async (
 ): Promise<void> => {
   checkMissingKeyTaskArgument(key, "keystore get");
 
-  const keystore = await keystoreLoader.load();
-
-  if (keystore === undefined) {
-    await interruptions.displayNoKeystoreSetErrorMessage();
-
-    return;
+  if (!(await keystoreLoader.exists())) {
+    return interruptions.displayNoKeystoreSetErrorMessage();
   }
+
+  const keystore = await keystoreLoader.load();
 
   const value = await keystore.readValue(key);
 

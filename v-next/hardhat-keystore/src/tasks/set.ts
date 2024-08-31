@@ -30,11 +30,9 @@ export const set = async (
     return interruptions.displayInvalidKeyErrorMessage(key);
   }
 
-  let keystore = await keystoreLoader.load();
-
-  if (keystore === undefined) {
-    keystore = await keystoreLoader.create();
-  }
+  const keystore = (await keystoreLoader.exists())
+    ? await keystoreLoader.load()
+    : await keystoreLoader.create();
 
   if (!force && (await _hasKey(keystore, key))) {
     return interruptions.displayKeyAlreadyExistsWarning(key);

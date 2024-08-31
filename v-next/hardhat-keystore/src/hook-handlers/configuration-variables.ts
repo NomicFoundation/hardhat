@@ -18,10 +18,11 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
     ) => {
       const loader = await _setupHookContextUsingKeystoreLoader();
 
-      const keystore = await loader.load();
-      if (keystore === undefined) {
+      if (!(await loader.exists())) {
         return next(context, variable);
       }
+
+      const keystore = await loader.load();
 
       const value = await keystore.readValue(variable.name);
 

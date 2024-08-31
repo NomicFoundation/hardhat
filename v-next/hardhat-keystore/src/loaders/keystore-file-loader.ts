@@ -16,12 +16,11 @@ export class KeystoreFileLoader implements KeystoreLoader {
     this.#keystoreFactory = keystoreFactory;
   }
 
-  public async load(): Promise<Keystore | undefined> {
-    const fileExists = await exists(this.#keystoreFilePath);
-    if (fileExists === false) {
-      return undefined;
-    }
+  public async exists(): Promise<boolean> {
+    return exists(this.#keystoreFilePath);
+  }
 
+  public async load(): Promise<Keystore> {
     const keystoreFile = await readJsonFile(this.#keystoreFilePath);
 
     const keystore = this.#keystoreFactory().loadFromJSON(keystoreFile);

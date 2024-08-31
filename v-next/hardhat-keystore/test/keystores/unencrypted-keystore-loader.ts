@@ -33,8 +33,8 @@ describe("unencrypted keystore loader", () => {
       );
     });
 
-    it("should return `undefined` because there is no keystore", async () => {
-      assert.equal(await unencryptedKeystoreLoader.load(), undefined);
+    it("should know there is no keystore", async () => {
+      assert.equal(await unencryptedKeystoreLoader.exists(), false);
     });
 
     it("should successfully init the keystore", async () => {
@@ -112,6 +112,10 @@ The password must have at least 8 characters, one uppercase letter, one lowercas
         keystoreFilePath,
         () => new UnencryptedKeystore(interruptions),
       );
+    });
+
+    it("should know there is a keystore", async () => {
+      assert.equal(await unencryptedKeystoreLoader.exists(), true);
     });
 
     it("should return the keystore on load", async () => {

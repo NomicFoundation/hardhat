@@ -24,11 +24,11 @@ export const remove = async (
 ): Promise<void> => {
   checkMissingKeyTaskArgument(key, "keystore delete");
 
-  const keystore = await keystoreLoader.load();
-
-  if (keystore === undefined) {
+  if (!(await keystoreLoader.exists())) {
     return interruptions.displayNoKeystoreSetErrorMessage();
   }
+
+  const keystore = await keystoreLoader.load();
 
   const keys = await keystore.listKeys();
 

@@ -6,8 +6,9 @@ export interface KeystoreFile {
 }
 
 export interface KeystoreLoader {
+  exists: () => Promise<boolean>;
   create: () => Promise<Keystore>;
-  load: () => Promise<Keystore | undefined>;
+  load: () => Promise<Keystore>;
   save: (keystore: Keystore) => Promise<void>;
 }
 
