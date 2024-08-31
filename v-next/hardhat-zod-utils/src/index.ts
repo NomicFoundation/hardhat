@@ -3,10 +3,10 @@ import type { ZodTypeDef, ZodType } from "zod";
 import { z } from "zod";
 
 /**
- * We use `any` here to avoid a circular dependency between the Hardhat and the
- * Zod utils packages.
+ * We use `unknown` here to avoid a circular dependency between the Hardhat and
+ * the Zod utils packages.
  */
-export type HardhatUserConfigToValidate = any;
+export type HardhatUserConfigToValidate = unknown;
 
 /**
  * For the same reason, we duplicate the type here.
