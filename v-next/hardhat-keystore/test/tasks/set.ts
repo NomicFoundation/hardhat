@@ -1,3 +1,5 @@
+import type { RawInterruptions } from "../../src/types.js";
+
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
@@ -6,23 +8,26 @@ import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-uti
 import chalk from "chalk";
 
 import { set } from "../../src/tasks/set.js";
+import { RawInterruptionsImpl } from "../../src/ui/raw-interruptions.js";
 import { MemoryKeystore } from "../helpers/memory-keystore.js";
-import { MockInterruptions } from "../helpers/mock-interruptions.js";
+import { MockConsoleWrapper } from "../helpers/mock-console-wrapper.js";
 import { MockKeystoreLoader } from "../helpers/mock-keystore-loader.js";
 
 describe("tasks - set", () => {
   let mockKeystore: MemoryKeystore;
   let mockKeystoreLoader: MockKeystoreLoader;
-  let mockInterruptions: MockInterruptions;
+  let mockConsoleWrapper: MockConsoleWrapper;
+  let mockInterruptions: RawInterruptions;
 
   beforeEach(() => {
     mockKeystore = new MemoryKeystore();
-    mockInterruptions = new MockInterruptions();
+    mockConsoleWrapper = new MockConsoleWrapper();
+    mockInterruptions = new RawInterruptionsImpl(mockConsoleWrapper);
     mockKeystoreLoader = new MockKeystoreLoader(mockKeystore);
   });
 
   it("should add a new key", async () => {
-    mockInterruptions.requestSecretInput = async () => "myValue";
+    mockConsoleWrapper.requestSecretInput = async () => "myValue";
 
     await set(
       {
@@ -34,7 +39,7 @@ describe("tasks - set", () => {
     );
 
     assert.equal(
-      mockInterruptions.info.mock.calls[0].arguments[0],
+      mockConsoleWrapper.info.mock.calls[0].arguments[0],
       `Key "myKey" set`,
     );
 
@@ -69,14 +74,14 @@ describe("tasks - set", () => {
     );
 
     assert.equal(
-      mockInterruptions.error.mock.calls[0].arguments[0],
+      mockConsoleWrapper.error.mock.calls[0].arguments[0],
       `Invalid value for key: "1key". Keys can only have alphanumeric characters and underscores, and they cannot start with a number.`,
     );
   });
 
   it("should warn that the key already exists", async () => {
     // Arrange
-    mockInterruptions.requestSecretInput = async () => "oldValue";
+    mockConsoleWrapper.requestSecretInput = async () => "oldValue";
 
     await set(
       { key: "key", force: false },
@@ -85,7 +90,7 @@ describe("tasks - set", () => {
     );
 
     // Act
-    mockInterruptions.requestSecretInput = async () => "newValue";
+    mockConsoleWrapper.requestSecretInput = async () => "newValue";
 
     await set(
       { key: "key", force: false },
@@ -95,7 +100,7 @@ describe("tasks - set", () => {
 
     // Assert
     assert.equal(
-      mockInterruptions.warn.mock.calls[0].arguments[0],
+      mockConsoleWrapper.warn.mock.calls[0].arguments[0],
       `The key "key" already exists. Use the ${chalk.blue.italic("--force")} flag to overwrite it.`,
     );
 
@@ -106,7 +111,7 @@ describe("tasks - set", () => {
 
   it("should modify an existing value because the flag --force is passed", async () => {
     // Arrange
-    mockInterruptions.requestSecretInput = async () => "oldValue";
+    mockConsoleWrapper.requestSecretInput = async () => "oldValue";
 
     await set(
       { key: "key", force: false },
@@ -115,7 +120,7 @@ describe("tasks - set", () => {
     );
 
     // Act
-    mockInterruptions.requestSecretInput = async () => "newValue";
+    mockConsoleWrapper.requestSecretInput = async () => "newValue";
 
     await set(
       { key: "key", force: true },
@@ -130,7 +135,7 @@ describe("tasks - set", () => {
   });
 
   it("should indicate that a value cannot be empty", async () => {
-    mockInterruptions.requestSecretInput = async () => "";
+    mockConsoleWrapper.requestSecretInput = async () => "";
 
     await set(
       { key: "key", force: true },
@@ -139,7 +144,7 @@ describe("tasks - set", () => {
     );
 
     assert.equal(
-      mockInterruptions.error.mock.calls[0].arguments[0],
+      mockConsoleWrapper.error.mock.calls[0].arguments[0],
       "The secret cannot be empty.",
     );
 

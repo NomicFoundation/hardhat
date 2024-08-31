@@ -5,18 +5,21 @@ import { remove, writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
 
 import { UnencryptedKeystoreLoader } from "../../src/keystores/unencrypted-keystore-loader.js";
 import { UnencryptedKeystore } from "../../src/keystores/unencrypted-keystore.js";
+import { RawInterruptionsImpl } from "../../src/ui/raw-interruptions.js";
 import { getKeystoreFilePath } from "../../src/utils/get-keystore-file-path.js";
 import { getFullOutput } from "../helpers/get-full-output.js";
-import { MockInterruptions } from "../helpers/mock-interruptions.js";
+import { MockConsoleWrapper } from "../helpers/mock-console-wrapper.js";
 
 const TEST_PASSWORD = "Test-password";
 
 describe("unencrypted keystore loader", () => {
   let unencryptedKeystoreLoader: UnencryptedKeystoreLoader;
-  let mockInterruptions: MockInterruptions;
+  let interruptions: RawInterruptionsImpl;
+  let mockConsoleWrapper: MockConsoleWrapper;
 
   beforeEach(() => {
-    mockInterruptions = new MockInterruptions();
+    mockConsoleWrapper = new MockConsoleWrapper();
+    interruptions = new RawInterruptionsImpl(mockConsoleWrapper);
   });
 
   describe("the keystore is not initialized", () => {
@@ -26,7 +29,7 @@ describe("unencrypted keystore loader", () => {
       const keystoreFilePath = await getKeystoreFilePath();
       unencryptedKeystoreLoader = new UnencryptedKeystoreLoader(
         keystoreFilePath,
-        mockInterruptions,
+        interruptions,
       );
     });
 
@@ -35,13 +38,13 @@ describe("unencrypted keystore loader", () => {
     });
 
     it("should successfully init the keystore", async () => {
-      mockInterruptions.requestSecretInput = async () => TEST_PASSWORD;
+      mockConsoleWrapper.requestSecretInput = async () => TEST_PASSWORD;
 
       const res = await unencryptedKeystoreLoader.create();
-      assert.equal(res instanceof UnencryptedKeystore, true);
 
+      assert.equal(res instanceof UnencryptedKeystore, true);
       assert.equal(
-        getFullOutput(mockInterruptions.info, 4),
+        getFullOutput(mockConsoleWrapper.info, 4),
         `
 👷🔐 Hardhat-Keystore 🔐👷
 
@@ -58,7 +61,7 @@ The password must have at least 8 characters, one uppercase letter, one lowercas
       // The user will eventually correct the password values.
       // The following mock simulate the user's inputs for the password.
       let count = 0;
-      mockInterruptions.requestSecretInput = async () => {
+      mockConsoleWrapper.requestSecretInput = async () => {
         let msg = "";
         if (count === 0) {
           // Step 1: invalid password
@@ -85,11 +88,11 @@ The password must have at least 8 characters, one uppercase letter, one lowercas
 
       // Be sure that the error messages are displayed to the user
       assert.equal(
-        mockInterruptions.error.mock.calls[0].arguments[0],
+        mockConsoleWrapper.error.mock.calls[0].arguments[0],
         "Invalid password!",
       );
       assert.equal(
-        mockInterruptions.error.mock.calls[1].arguments[0],
+        mockConsoleWrapper.error.mock.calls[1].arguments[0],
         "Passwords do not match!",
       );
     });
@@ -107,7 +110,7 @@ The password must have at least 8 characters, one uppercase letter, one lowercas
       const keystoreFilePath = await getKeystoreFilePath();
       unencryptedKeystoreLoader = new UnencryptedKeystoreLoader(
         keystoreFilePath,
-        mockInterruptions,
+        interruptions,
       );
     });
 

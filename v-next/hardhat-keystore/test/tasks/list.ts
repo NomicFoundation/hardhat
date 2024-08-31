@@ -1,24 +1,29 @@
+import type { RawInterruptions } from "../../src/types.js";
+
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
 import chalk from "chalk";
 
 import { list } from "../../src/tasks/list.js";
+import { RawInterruptionsImpl } from "../../src/ui/raw-interruptions.js";
 import { getFullOutput } from "../helpers/get-full-output.js";
 import { MemoryKeystore } from "../helpers/memory-keystore.js";
-import { MockInterruptions } from "../helpers/mock-interruptions.js";
+import { MockConsoleWrapper } from "../helpers/mock-console-wrapper.js";
 import { MockKeystoreLoader } from "../helpers/mock-keystore-loader.js";
 
 const NO_KEYSTORE_SET = `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `;
 
 describe("tasks - list", () => {
   let mockKeystore: MemoryKeystore;
+  let mockConsoleWrapper: MockConsoleWrapper;
   let mockKeystoreLoader: MockKeystoreLoader;
-  let mockInterruptions: MockInterruptions;
+  let mockInterruptions: RawInterruptions;
 
   beforeEach(() => {
     mockKeystore = new MemoryKeystore();
-    mockInterruptions = new MockInterruptions();
+    mockConsoleWrapper = new MockConsoleWrapper();
+    mockInterruptions = new RawInterruptionsImpl(mockConsoleWrapper);
     mockKeystoreLoader = new MockKeystoreLoader(mockKeystore);
   });
 
@@ -28,7 +33,7 @@ describe("tasks - list", () => {
     await list(mockKeystoreLoader, mockInterruptions);
 
     assert.equal(
-      mockInterruptions.info.mock.calls[0].arguments[0],
+      mockConsoleWrapper.info.mock.calls[0].arguments[0],
       NO_KEYSTORE_SET,
     );
   });
@@ -37,7 +42,7 @@ describe("tasks - list", () => {
     await list(mockKeystoreLoader, mockInterruptions);
 
     assert.equal(
-      mockInterruptions.info.mock.calls[0].arguments[0],
+      mockConsoleWrapper.info.mock.calls[0].arguments[0],
       "The keystore does not contain any keys.",
     );
   });
@@ -49,7 +54,7 @@ describe("tasks - list", () => {
     await list(mockKeystoreLoader, mockInterruptions);
 
     assert.equal(
-      getFullOutput(mockInterruptions.info, 3),
+      getFullOutput(mockConsoleWrapper.info, 3),
       `Keys:
 key
 key2`,

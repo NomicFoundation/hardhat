@@ -26,7 +26,7 @@ export const get = async (
   const keystore = await keystoreLoader.load();
 
   if (keystore === undefined) {
-    await interruptions.displayNoKeystoreSetErrorMessage(interruptions);
+    await interruptions.displayNoKeystoreSetErrorMessage();
 
     return;
   }

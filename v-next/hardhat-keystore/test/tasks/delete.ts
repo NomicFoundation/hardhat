@@ -1,3 +1,5 @@
+import type { RawInterruptions } from "../../src/types.js";
+
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
@@ -6,20 +8,23 @@ import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-uti
 import chalk from "chalk";
 
 import { remove } from "../../src/tasks/delete.js";
+import { RawInterruptionsImpl } from "../../src/ui/raw-interruptions.js";
 import { MemoryKeystore } from "../helpers/memory-keystore.js";
-import { MockInterruptions } from "../helpers/mock-interruptions.js";
+import { MockConsoleWrapper } from "../helpers/mock-console-wrapper.js";
 import { MockKeystoreLoader } from "../helpers/mock-keystore-loader.js";
 
 const NO_KEYSTORE_SET = `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `;
 
 describe("tasks - delete", () => {
   let mockKeystore: MemoryKeystore;
+  let mockConsoleWrapper: MockConsoleWrapper;
   let mockKeystoreLoader: MockKeystoreLoader;
-  let mockInterruptions: MockInterruptions;
+  let mockInterruptions: RawInterruptions;
 
   beforeEach(() => {
     mockKeystore = new MemoryKeystore();
-    mockInterruptions = new MockInterruptions();
+    mockConsoleWrapper = new MockConsoleWrapper();
+    mockInterruptions = new RawInterruptionsImpl(mockConsoleWrapper);
     mockKeystoreLoader = new MockKeystoreLoader(mockKeystore);
   });
 
@@ -35,7 +40,7 @@ describe("tasks - delete", () => {
     );
 
     assert.equal(
-      mockInterruptions.info.mock.calls[0].arguments[0],
+      mockConsoleWrapper.info.mock.calls[0].arguments[0],
       `Key "myKey" removed`,
     );
 
@@ -73,7 +78,7 @@ describe("tasks - delete", () => {
     );
 
     assert.equal(
-      mockInterruptions.info.mock.calls[0].arguments[0],
+      mockConsoleWrapper.info.mock.calls[0].arguments[0],
       NO_KEYSTORE_SET,
     );
   });
@@ -88,7 +93,7 @@ describe("tasks - delete", () => {
     );
 
     assert.equal(
-      mockInterruptions.error.mock.calls[0].arguments[0],
+      mockConsoleWrapper.error.mock.calls[0].arguments[0],
       `Key "unknown" not found`,
     );
   });

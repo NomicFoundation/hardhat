@@ -17,15 +17,16 @@ export interface Keystore {
   readValue(key: string): Promise<string | undefined>;
 }
 
-export interface RawInterruptions {
-  info: (message: string) => Promise<void>;
-  warn: (message: string) => Promise<void>;
-  error: (message: string) => Promise<void>;
+export interface ConsoleWrapper {
   requestSecretInput: (inputDescription: string) => Promise<string>;
+  info(message: string): void;
+  warn(message: string): void;
+  error(message: string): void;
+}
 
-  displayNoKeystoreSetErrorMessage: (
-    interruptions: RawInterruptions,
-  ) => Promise<void>;
+export interface RawInterruptions {
+  setUpPassword(): Promise<void>;
+  displayNoKeystoreSetErrorMessage: () => Promise<void>;
   displayKeyNotFoundErrorMessage: (key: string) => Promise<void>;
   displayKeyRemovedInfoMessage: (key: string) => Promise<void>;
   displayValueInfoMessage: (value: string) => Promise<void>;

@@ -11,8 +11,6 @@ import {
   writeJsonFile,
 } from "@ignored/hardhat-vnext-utils/fs";
 
-import { setUpPassword } from "../ui/password-manager.js";
-
 import { UnencryptedKeystore } from "./unencrypted-keystore.js";
 
 export class UnencryptedKeystoreLoader implements KeystoreLoader {
@@ -36,9 +34,7 @@ export class UnencryptedKeystoreLoader implements KeystoreLoader {
   }
 
   public async create(): Promise<Keystore> {
-    await this.#interruptions.info("\n👷🔐 Hardhat-Keystore 🔐👷\n");
-
-    await setUpPassword(this.#interruptions);
+    await this.#interruptions.setUpPassword();
 
     const keystore = {
       version: "",
