@@ -9,18 +9,12 @@ import { PLUGIN_ID } from "../constants.js";
  * and explicitly does NOT go through the user interruptions
  * system of the Hook system.
  */
-export class DirectUserInterruptions implements UserInterruptionManager {
-  readonly #console: Console;
-
-  constructor(givenConsole?: Console) {
-    this.#console = givenConsole ?? console;
-  }
-
+export class DirectUserInterruptionManager implements UserInterruptionManager {
   public async displayMessage(
     _interruptor: string,
     message: string,
   ): Promise<void> {
-    this.#console.log(message);
+    console.log(message);
   }
 
   public async requestSecretInput(

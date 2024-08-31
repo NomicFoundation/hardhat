@@ -6,7 +6,7 @@ import type {
 
 import { UnencryptedKeystore } from "../keystores/unencrypted-keystore.js";
 import { KeystoreFileLoader } from "../loaders/keystore-file-loader.js";
-import { DirectUserInterruptions } from "../ui/direct-user-interruptions.js";
+import { DirectUserInterruptionManager } from "../ui/direct-user-interruption-manager.js";
 import { UserInteractionsImpl } from "../ui/user-interactions.js";
 import { getKeystoreFilePath } from "../utils/get-keystore-file-path.js";
 
@@ -41,7 +41,9 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
 async function _setupLoaderWithContextBasedInterruptions() {
   const keystoreFilePath = await getKeystoreFilePath();
   // TODO: swap in a Interruptions handler based on context
-  const interruptions = new UserInteractionsImpl(new DirectUserInterruptions());
+  const interruptions = new UserInteractionsImpl(
+    new DirectUserInterruptionManager(),
+  );
 
   return new KeystoreFileLoader(
     keystoreFilePath,

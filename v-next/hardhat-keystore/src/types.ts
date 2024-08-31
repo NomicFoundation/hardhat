@@ -28,14 +28,19 @@ export interface UserInteractions {
   setUpPassword(): Promise<void>;
   requestSecretFromUser: () => Promise<string>;
 
-  displayNoKeystoreSetErrorMessage: () => Promise<void>;
-  displayKeyNotFoundErrorMessage: (key: string) => Promise<void>;
-  displayKeyRemovedInfoMessage: (key: string) => Promise<void>;
-  displayValueInfoMessage: (value: string) => Promise<void>;
-  displayNoKeysInfoMessage: () => Promise<void>;
-  displayKeyListInfoMessage: (keys: string[]) => Promise<void>;
+  // Error Messages
   displayInvalidKeyErrorMessage: (key: string) => Promise<void>;
-  displayKeyAlreadyExistsWarning: (key: string) => Promise<void>;
+  displayKeyNotFoundErrorMessage: (key: string) => Promise<void>;
+  displayNoKeystoreSetErrorMessage: () => Promise<void>;
   displaySecretCannotBeEmptyErrorMessage: () => Promise<void>;
+
+  // Warning Messages
+  displayKeyAlreadyExistsWarning: (key: string) => Promise<void>;
+
+  // Information Messages
+  displayKeyListInfoMessage: (keys: string[]) => Promise<void>;
+  displayKeyRemovedInfoMessage: (key: string) => Promise<void>;
   displayKeySetInfoMessage: (key: string) => Promise<void>;
+  displayNoKeysInfoMessage: () => Promise<void>;
+  displayValueInfoMessage: (value: string) => Promise<void>;
 }

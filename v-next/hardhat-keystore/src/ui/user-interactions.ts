@@ -49,33 +49,8 @@ export class UserInteractionsImpl implements UserInteractions {
     }
   }
 
-  public async displayNoKeystoreSetErrorMessage(): Promise<void> {
-    await this.#displayMessage(
-      `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
-    );
-  }
-
-  public async displayKeyNotFoundErrorMessage(key: string): Promise<void> {
-    await this.#displayMessage(chalk.red(`Key "${key}" not found`));
-  }
-
-  public async displayKeyRemovedInfoMessage(key: string): Promise<void> {
-    await this.#displayMessage(`Key "${key}" removed`);
-  }
-
-  public async displayValueInfoMessage(value: string): Promise<void> {
-    await this.#displayMessage(value);
-  }
-
-  public async displayNoKeysInfoMessage(): Promise<void> {
-    await this.#displayMessage("The keystore does not contain any keys.");
-  }
-
-  public async displayKeyListInfoMessage(keys: string[]): Promise<void> {
-    await this.#displayMessage("Keys:");
-    for (const key of keys) {
-      await this.#displayMessage(key);
-    }
+  public async requestSecretFromUser(): Promise<string> {
+    return this.#requestSecretInput("Enter secret to store: ");
   }
 
   public async displayInvalidKeyErrorMessage(key: string): Promise<void> {
@@ -86,6 +61,20 @@ export class UserInteractionsImpl implements UserInteractions {
     );
   }
 
+  public async displayKeyNotFoundErrorMessage(key: string): Promise<void> {
+    await this.#displayMessage(chalk.red(`Key "${key}" not found`));
+  }
+
+  public async displayNoKeystoreSetErrorMessage(): Promise<void> {
+    await this.#displayMessage(
+      `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
+    );
+  }
+
+  public async displaySecretCannotBeEmptyErrorMessage(): Promise<void> {
+    await this.#displayMessage(chalk.red("The value cannot be empty."));
+  }
+
   public async displayKeyAlreadyExistsWarning(key: string): Promise<void> {
     await this.#displayMessage(
       chalk.yellow(
@@ -94,16 +83,27 @@ export class UserInteractionsImpl implements UserInteractions {
     );
   }
 
-  public async displaySecretCannotBeEmptyErrorMessage(): Promise<void> {
-    await this.#displayMessage(chalk.red("The value cannot be empty."));
+  public async displayKeyListInfoMessage(keys: string[]): Promise<void> {
+    await this.#displayMessage("Keys:");
+    for (const key of keys) {
+      await this.#displayMessage(key);
+    }
+  }
+
+  public async displayKeyRemovedInfoMessage(key: string): Promise<void> {
+    await this.#displayMessage(`Key "${key}" removed`);
   }
 
   public async displayKeySetInfoMessage(key: string): Promise<void> {
     await this.#displayMessage(`Key "${key}" set`);
   }
 
-  public async requestSecretFromUser(): Promise<string> {
-    return this.#requestSecretInput("Enter secret to store: ");
+  public async displayNoKeysInfoMessage(): Promise<void> {
+    await this.#displayMessage("The keystore does not contain any keys.");
+  }
+
+  public async displayValueInfoMessage(value: string): Promise<void> {
+    await this.#displayMessage(value);
   }
 
   async #displayMessage(message: string): Promise<void> {
