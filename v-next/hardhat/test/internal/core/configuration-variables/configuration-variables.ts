@@ -1,3 +1,5 @@
+import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
+
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
@@ -5,47 +7,18 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { ResolvedConfigurationVariableImplementation } from "../../../../src/internal/core/configuration-variables.js";
-import { HookManagerImplementation } from "../../../../src/internal/core/hook-manager.js";
-import { resolveProjectRoot } from "../../../../src/internal/core/hre.js";
-import { UserInterruptionManagerImplementation } from "../../../../src/internal/core/user-interruptions.js";
+import { HardhatRuntimeEnvironmentImplementation } from "../../../../src/internal/core/hre.js";
 
 describe("ResolvedConfigurationVariable", () => {
-  let hookManager: HookManagerImplementation;
+  let hre: HardhatRuntimeEnvironment;
 
   before(async () => {
-    const projectRoot = await resolveProjectRoot(process.cwd());
-
-    hookManager = new HookManagerImplementation(projectRoot, []);
-    const userInterruptionsManager = new UserInterruptionManagerImplementation(
-      hookManager,
-    );
-
-    hookManager.setContext({
-      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-      config: {
-        tasks: [],
-        plugins: [],
-        paths: {
-          root: projectRoot,
-          cache: "",
-          artifacts: "",
-          tests: "",
-        },
-      } as any,
-      hooks: hookManager,
-      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
-        TODO: This is a temporary fix to land a refactor sooner without creating
-        more merge conflicts than needed. It will be fixed in a subsequent PR */
-      globalOptions: {} as any,
-      interruptions: userInterruptionsManager,
-    });
+    hre = await HardhatRuntimeEnvironmentImplementation.create({}, {});
   });
 
   it("should return the value of a string variable", async () => {
     const variable = new ResolvedConfigurationVariableImplementation(
-      hookManager,
+      hre.hooks,
       "foo",
     );
 
@@ -54,7 +27,7 @@ describe("ResolvedConfigurationVariable", () => {
 
   it("should return the value of a configuration variable from an environment variable", async () => {
     const variable = new ResolvedConfigurationVariableImplementation(
-      hookManager,
+      hre.hooks,
       { name: "foo", _type: "ConfigurationVariable" },
     );
 
@@ -67,7 +40,7 @@ describe("ResolvedConfigurationVariable", () => {
 
   it("should throw if the environment variable is not found", async () => {
     const variable = new ResolvedConfigurationVariableImplementation(
-      hookManager,
+      hre.hooks,
       { name: "foo", _type: "ConfigurationVariable" },
     );
 
@@ -80,7 +53,7 @@ describe("ResolvedConfigurationVariable", () => {
 
   it("should return the cached value if called multiple times", async () => {
     const variable = new ResolvedConfigurationVariableImplementation(
-      hookManager,
+      hre.hooks,
       { name: "foo", _type: "ConfigurationVariable" },
     );
 
@@ -97,7 +70,7 @@ describe("ResolvedConfigurationVariable", () => {
 
   it("should return the value of a configuration variable as a URL", async () => {
     const variable = new ResolvedConfigurationVariableImplementation(
-      hookManager,
+      hre.hooks,
       { name: "foo", _type: "ConfigurationVariable" },
     );
 
@@ -110,7 +83,7 @@ describe("ResolvedConfigurationVariable", () => {
 
   it("should throw if the configuration variable is not a valid URL", async () => {
     const variable = new ResolvedConfigurationVariableImplementation(
-      hookManager,
+      hre.hooks,
       { name: "foo", _type: "ConfigurationVariable" },
     );
 
@@ -129,7 +102,7 @@ describe("ResolvedConfigurationVariable", () => {
 
   it("should return the value of a configuration variable as a BigInt", async () => {
     const variable = new ResolvedConfigurationVariableImplementation(
-      hookManager,
+      hre.hooks,
       { name: "foo", _type: "ConfigurationVariable" },
     );
 
@@ -142,7 +115,7 @@ describe("ResolvedConfigurationVariable", () => {
 
   it("should throw if the configuration variable is not a valid BigInt", async () => {
     const variable = new ResolvedConfigurationVariableImplementation(
-      hookManager,
+      hre.hooks,
       { name: "foo", _type: "ConfigurationVariable" },
     );
 
