@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, it } from "node:test";
 import { remove, writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
 
 import { isTelemetryAllowed } from "../../../../src/internal/cli/telemetry/telemetry-permissions.js";
-import { getConfigDir } from "../../../../src/internal/core/global-dir.js";
+import { getConfigDir } from "../../../../src/internal/global-dir.js";
 
 async function setTelemetryConsentFile(consent: boolean) {
   const configDir = await getConfigDir();

@@ -9,7 +9,7 @@ import {
 } from "@ignored/hardhat-vnext-utils/fs";
 import debug from "debug";
 
-import { getTelemetryDir } from "../../../core/global-dir.js";
+import { getTelemetryDir } from "../../../global-dir.js";
 
 const log = debug("hardhat:cli:telemetry:analytics:utils");
 

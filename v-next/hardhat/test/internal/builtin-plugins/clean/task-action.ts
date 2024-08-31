@@ -15,7 +15,7 @@ import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import cleanAction from "../../../../src/internal/builtin-plugins/clean/task-action.js";
-import { getCacheDir } from "../../../../src/internal/core/global-dir.js";
+import { getCacheDir } from "../../../../src/internal/global-dir.js";
 
 let hre: HardhatRuntimeEnvironment;
 let globalCacheDir: string;
