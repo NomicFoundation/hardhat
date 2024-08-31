@@ -70,6 +70,8 @@ export default async (): Promise<Partial<ConfigHooks>> => ({
 
     return {
       ...resolvedConfig,
+      defaultNetwork: resolvedConfig.defaultNetwork ?? "localhost",
+      defaultChainType: resolvedConfig.defaultChainType ?? "unknown",
       networks: resolvedNetworks,
     };
   },
