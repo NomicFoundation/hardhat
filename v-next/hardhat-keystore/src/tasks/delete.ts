@@ -10,7 +10,7 @@ interface TaskDeleteArguments {
 
 const taskDelete: NewTaskActionFunction<TaskDeleteArguments> = async ({
   key,
-}) => {
+}): Promise<void> => {
   const { keystoreLoader, interruptions } =
     await setupRawInterruptionsAndKeystoreLoader();
 
@@ -27,17 +27,13 @@ export const remove = async (
   const keystore = await keystoreLoader.load();
 
   if (keystore === undefined) {
-    await interruptions.displayNoKeystoreSetErrorMessage();
-
-    return;
+    return interruptions.displayNoKeystoreSetErrorMessage();
   }
 
   const keys = await keystore.listKeys();
 
   if (!keys.includes(key)) {
-    await interruptions.displayKeyNotFoundErrorMessage(key);
-
-    return;
+    return interruptions.displayKeyNotFoundErrorMessage(key);
   }
 
   await keystore.removeKey(key);

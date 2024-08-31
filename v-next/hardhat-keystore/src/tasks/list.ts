@@ -3,7 +3,7 @@ import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
 import { setupRawInterruptionsAndKeystoreLoader } from "../utils/setup-raw-interruptions-and-keystore-loader.js";
 
-const taskList: NewTaskActionFunction = async () => {
+const taskList: NewTaskActionFunction = async (): Promise<void> => {
   const { keystoreLoader, interruptions } =
     await setupRawInterruptionsAndKeystoreLoader();
 
@@ -17,18 +17,13 @@ export const list = async (
   const keystore = await keystoreLoader.load();
 
   if (keystore === undefined) {
-    await interruptions.displayNoKeystoreSetErrorMessage();
-
-    return;
+    return interruptions.displayNoKeystoreSetErrorMessage();
   }
 
   const keys = await keystore.listKeys();
 
-  // No authorization needed, it only shows the keys, not the values
   if (keys.length === 0) {
-    await interruptions.displayNoKeysInfoMessage();
-
-    return;
+    return interruptions.displayNoKeysInfoMessage();
   }
 
   await interruptions.displayKeyListInfoMessage(keys);

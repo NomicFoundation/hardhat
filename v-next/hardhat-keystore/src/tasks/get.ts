@@ -8,18 +8,20 @@ interface TaskGetArguments {
   key: string;
 }
 
-const taskGet: NewTaskActionFunction<TaskGetArguments> = async ({ key }) => {
+const taskGet: NewTaskActionFunction<TaskGetArguments> = async ({
+  key,
+}): Promise<void> => {
   const { keystoreLoader, interruptions } =
     await setupRawInterruptionsAndKeystoreLoader();
 
-  return get({ key }, keystoreLoader, interruptions);
+  await get({ key }, keystoreLoader, interruptions);
 };
 
 export const get = async (
   { key }: TaskGetArguments,
   keystoreLoader: KeystoreLoader,
   interruptions: RawInterruptions,
-): Promise<string | undefined> => {
+): Promise<void> => {
   checkMissingKeyTaskArgument(key, "keystore get");
 
   const keystore = await keystoreLoader.load();
@@ -33,14 +35,10 @@ export const get = async (
   const value = await keystore.readValue(key);
 
   if (value === undefined) {
-    await interruptions.displayKeyNotFoundErrorMessage(key);
-
-    return;
+    return interruptions.displayKeyNotFoundErrorMessage(key);
   }
 
   await interruptions.displayValueInfoMessage(value);
-
-  return value;
 };
 
 export default taskGet;
