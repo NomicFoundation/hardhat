@@ -12,6 +12,8 @@ import {
   resolvePluginList,
 } from "./internal/core/index.js";
 
+export { resolveHardhatConfigPath } from "./internal/helpers/config-loading.js";
+
 /**
  * Creates an instances of the Hardhat Runtime Environment.
  *

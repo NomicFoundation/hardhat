@@ -2,12 +2,12 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { getRealPath } from "@ignored/hardhat-vnext-utils/fs";
 import {
   assertRejectsWithHardhatError,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 
-import { resolveHardhatConfigPath } from "../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../src/hre.js";
 import { builtinPlugins } from "../../src/internal/builtin-plugins/index.js";
 import {
@@ -15,6 +15,7 @@ import {
   resetGlobalHardhatRuntimeEnvironment,
   setGlobalHardhatRuntimeEnvironment,
 } from "../../src/internal/global-hre-instance.js";
+import { resolveHardhatConfigPath } from "../../src/internal/helpers/config-loading.js";
 
 describe("HRE", () => {
   afterEach(() => {
@@ -58,12 +59,39 @@ describe("HRE", () => {
 
   describe("config loading", () => {
     describe("resolveConfigPath", async () => {
-      it("should return the HARDHAT_CONFIG env variable if it is set", async () => {
-        process.env.HARDHAT_CONFIG = "env.config.js";
+      describe("With custom config path", () => {
+        useFixtureProject("config-custom-path");
 
-        assert.equal(await resolveHardhatConfigPath(), "env.config.js");
+        it("should return the HARDHAT_CONFIG env variable if it is set", async () => {
+          try {
+            // We set the env var to a hardhat config and then clean it up
+            process.env.HARDHAT_CONFIG = "other.config.js";
 
-        delete process.env.HARDHAT_CONFIG;
+            assert.equal(
+              await resolveHardhatConfigPath(),
+              await getRealPath("other.config.js"),
+            );
+          } finally {
+            delete process.env.HARDHAT_CONFIG;
+          }
+        });
+
+        it("should noramlize and return the provided path", async () => {
+          assert.equal(
+            await resolveHardhatConfigPath("other.config.js"),
+            await getRealPath("other.config.js"),
+          );
+        });
+
+        it("should throw if the config file is not found", async () => {
+          await assertRejectsWithHardhatError(
+            resolveHardhatConfigPath("non-existent.config.js"),
+            HardhatError.ERRORS.GENERAL.INVALID_CONFIG_PATH,
+            {
+              configPath: "non-existent.config.js",
+            },
+          );
+        });
       });
 
       it("should throw if the config file is not found", async () => {

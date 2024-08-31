@@ -1,3 +1,4 @@
+import type { HardhatUserConfig } from "../../types/config.js";
 import type {
   HardhatUserConfigValidationError,
   HookManager,
@@ -18,7 +19,6 @@ import {
   TaskDefinitionType,
   type TaskOverrideDefinition,
 } from "../../types/tasks.js";
-import { HardhatUserConfig } from "../../types/config.js";
 
 function isValidEnumValue(
   theEnum: Record<string, string>,

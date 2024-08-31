@@ -5,17 +5,23 @@ import type { HardhatRuntimeEnvironment } from "./types/hre.js";
 import type { TaskManager } from "./types/tasks.js";
 import type { UserInterruptionManager } from "./types/user-interruptions.js";
 
-import { resolveHardhatConfigPath } from "./config.js";
 import { createHardhatRuntimeEnvironment } from "./hre.js";
 import { resolveProjectRoot } from "./internal/core/index.js";
 import {
   getGlobalHardhatRuntimeEnvironment,
   setGlobalHardhatRuntimeEnvironment,
 } from "./internal/global-hre-instance.js";
-import { importUserConfig } from "./internal/helpers/config-loading.js";
+import {
+  importUserConfig,
+  resolveHardhatConfigPath,
+} from "./internal/helpers/config-loading.js";
 
 let maybeHre: HardhatRuntimeEnvironment | undefined =
   getGlobalHardhatRuntimeEnvironment();
+
+// Note: We import the builtin plugins' types here, so that any type extension
+// they may have gets loaded.
+import "./internal/builtin-plugins/index.js";
 
 if (maybeHre === undefined) {
   /* eslint-disable no-restricted-syntax -- Allow top-level await here */
