@@ -7,18 +7,18 @@ import { list } from "../../src/tasks/list.js";
 import { UserInteractions } from "../../src/ui/user-interactions.js";
 import { getFullOutput } from "../helpers/get-full-output.js";
 import { MemoryKeystore } from "../helpers/memory-keystore.js";
-import { MockConsoleWrapper } from "../helpers/mock-console-wrapper.js";
 import { MockKeystoreLoader } from "../helpers/mock-keystore-loader.js";
+import { MockUserInterruptionManager } from "../helpers/mock-user-interruption-manager.js";
 
 describe("tasks - list", () => {
   let mockKeystore: MemoryKeystore;
-  let mockConsoleWrapper: MockConsoleWrapper;
+  let mockConsoleWrapper: MockUserInterruptionManager;
   let mockKeystoreLoader: MockKeystoreLoader;
   let userInteractions: UserInteractions;
 
   beforeEach(() => {
     mockKeystore = new MemoryKeystore();
-    mockConsoleWrapper = new MockConsoleWrapper();
+    mockConsoleWrapper = new MockUserInterruptionManager();
     userInteractions = new UserInteractions(mockConsoleWrapper);
     mockKeystoreLoader = new MockKeystoreLoader(mockKeystore);
   });

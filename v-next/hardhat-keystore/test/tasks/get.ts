@@ -8,18 +8,18 @@ import chalk from "chalk";
 import { get } from "../../src/tasks/get.js";
 import { UserInteractions } from "../../src/ui/user-interactions.js";
 import { MemoryKeystore } from "../helpers/memory-keystore.js";
-import { MockConsoleWrapper } from "../helpers/mock-console-wrapper.js";
 import { MockKeystoreLoader } from "../helpers/mock-keystore-loader.js";
+import { MockUserInterruptionManager } from "../helpers/mock-user-interruption-manager.js";
 
 describe("tasks - get", () => {
   let mockKeystore: MemoryKeystore;
-  let mockConsoleWrapper: MockConsoleWrapper;
+  let mockConsoleWrapper: MockUserInterruptionManager;
   let mockKeystoreLoader: MockKeystoreLoader;
   let mockInterruptions: UserInteractions;
 
   beforeEach(() => {
     mockKeystore = new MemoryKeystore();
-    mockConsoleWrapper = new MockConsoleWrapper();
+    mockConsoleWrapper = new MockUserInterruptionManager();
     mockInterruptions = new UserInteractions(mockConsoleWrapper);
     mockKeystoreLoader = new MockKeystoreLoader(mockKeystore);
   });

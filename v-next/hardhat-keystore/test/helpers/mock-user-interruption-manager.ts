@@ -7,7 +7,7 @@ import { HardhatPluginError } from "@ignored/hardhat-vnext-errors";
 
 import { PLUGIN_ID } from "../../src/constants.js";
 
-export class MockConsoleWrapper implements UserInterruptionManager {
+export class MockUserInterruptionManager implements UserInterruptionManager {
   public displayMessage: Mock<
     (interruptor: string, message: string) => Promise<void>
   > = mock.fn();
@@ -29,6 +29,9 @@ export class MockConsoleWrapper implements UserInterruptionManager {
   public async uninterrupted<ReturnT>(
     _f: () => ReturnT,
   ): Promise<Awaited<ReturnT>> {
-    throw new HardhatPluginError(PLUGIN_ID, "Uninterrupted not implemented");
+    throw new HardhatPluginError(
+      PLUGIN_ID,
+      "Uninterrupted not implemented for mock",
+    );
   }
 }

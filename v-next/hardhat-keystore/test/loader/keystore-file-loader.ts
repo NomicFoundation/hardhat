@@ -9,17 +9,17 @@ import { KeystoreFileLoader } from "../../src/loaders/keystore-file-loader.js";
 import { UserInteractions } from "../../src/ui/user-interactions.js";
 import { getKeystoreFilePath } from "../../src/utils/get-keystore-file-path.js";
 import { getFullOutput } from "../helpers/get-full-output.js";
-import { MockConsoleWrapper } from "../helpers/mock-console-wrapper.js";
+import { MockUserInterruptionManager } from "../helpers/mock-user-interruption-manager.js";
 
 const TEST_PASSWORD = "Test-password";
 
 describe("unencrypted keystore loader", () => {
   let unencryptedKeystoreLoader: KeystoreFileLoader;
   let interruptions: UserInteractions;
-  let mockConsoleWrapper: MockConsoleWrapper;
+  let mockConsoleWrapper: MockUserInterruptionManager;
 
   beforeEach(() => {
-    mockConsoleWrapper = new MockConsoleWrapper();
+    mockConsoleWrapper = new MockUserInterruptionManager();
     interruptions = new UserInteractions(mockConsoleWrapper);
   });
 

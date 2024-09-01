@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 
 import hardhatKeystorePlugin from "../../src/index.js";
-import { setupKeystoreFileLocationOverrideAt } from "../helpers/hardhat-keystore-file-location-override-plugin.js";
+import { setupKeystoreFileLocationOverrideAt } from "../helpers/setup-keystore-file-location-override-at.js";
 
 const existingKeystoreFilePath = path.join(
   fileURLToPath(import.meta.url),
@@ -35,7 +35,6 @@ describe("hook", () => {
     });
 
     it("should invoke the keystore and return the value from it", async () => {
-      // Configure and run the hook
       const configVar: ConfigurationVariable = {
         _type: "ConfigurationVariable",
         name: "key1",

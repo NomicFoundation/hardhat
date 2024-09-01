@@ -5,13 +5,15 @@ import { beforeEach, describe, it } from "node:test";
 
 import { UnencryptedKeystore } from "../../src/keystores/unencrypted-keystore.js";
 import { UserInteractions } from "../../src/ui/user-interactions.js";
-import { MockConsoleWrapper } from "../helpers/mock-console-wrapper.js";
+import { MockUserInterruptionManager } from "../helpers/mock-user-interruption-manager.js";
 
 describe("UnencryptedKeystore", () => {
   let keystore: Keystore;
 
   beforeEach(() => {
-    const interruptions = new UserInteractions(new MockConsoleWrapper());
+    const interruptions = new UserInteractions(
+      new MockUserInterruptionManager(),
+    );
     keystore = new UnencryptedKeystore(interruptions).loadFromJSON({
       version: "",
       keys: {
