@@ -103,6 +103,11 @@ const config: HardhatUserConfig = {
     exampleEmptyTask,
     exampleEmptySubtask,
     greeting,
+    task("config", "Prints the config")
+      .setAction(async ({}, hre) => {
+        console.log(hre.config);
+      })
+      .build(),
   ],
   plugins: [
     pluginExample,
@@ -114,6 +119,12 @@ const config: HardhatUserConfig = {
     tests: "test/mocha",
     // if testing node plugin, use the following line instead
     // tests: "test/node",
+  },
+  networks: {
+    localhost: {
+      type: "http",
+      url: "http://localhost:8545",
+    },
   },
 };
 
