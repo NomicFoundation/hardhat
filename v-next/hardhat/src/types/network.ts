@@ -1,9 +1,5 @@
-import type {
-  ChainType,
-  DefaultChainType,
-  NetworkConfig,
-} from "../../../types/config.js";
-import type { EthereumProvider } from "../../../types/providers.js";
+import type { ChainType, DefaultChainType, NetworkConfig } from "./config.js";
+import type { EthereumProvider } from "./providers.js";
 
 export interface NetworkManager {
   connect<ChainTypeT extends ChainType | string = DefaultChainType>(

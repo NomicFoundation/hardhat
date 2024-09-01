@@ -1,8 +1,8 @@
-import type { NetworkManager } from "./internal/builtin-plugins/network-manager/types.js";
 import type { HardhatConfig } from "./types/config.js";
 import type { GlobalOptions } from "./types/global-options.js";
 import type { HookManager } from "./types/hooks.js";
 import type { HardhatRuntimeEnvironment } from "./types/hre.js";
+import type { NetworkManager } from "./types/network.js";
 import type { TaskManager } from "./types/tasks.js";
 import type { UserInterruptionManager } from "./types/user-interruptions.js";
 

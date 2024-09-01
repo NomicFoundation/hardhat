@@ -6,10 +6,10 @@ import type {
 } from "../../types/global-options.js";
 import type { HookContext, HookManager } from "../../types/hooks.js";
 import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
+import type { NetworkManager } from "../../types/network.js";
 import type { HardhatPlugin } from "../../types/plugins.js";
 import type { TaskManager } from "../../types/tasks.js";
 import type { UserInterruptionManager } from "../../types/user-interruptions.js";
-import type { NetworkManager } from "../builtin-plugins/network-manager/types.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { findClosestPackageRoot } from "@ignored/hardhat-vnext-utils/package";

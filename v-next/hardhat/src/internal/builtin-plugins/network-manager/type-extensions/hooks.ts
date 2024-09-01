@@ -1,9 +1,9 @@
 import type { ChainType } from "../../../../types/config.js";
+import type { NetworkConnection } from "../../../../types/network.js";
 import type {
   JsonRpcRequest,
   JsonRpcResponse,
 } from "../../../../types/providers.js";
-import type { NetworkConnection } from "../types.js";
 
 import "../../../../types/hooks.js";
 declare module "../../../../types/hooks.js" {

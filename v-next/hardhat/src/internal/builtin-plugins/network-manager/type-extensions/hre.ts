@@ -1,4 +1,4 @@
-import type { NetworkManager } from "../types.js";
+import type { NetworkManager } from "../../../../types/network.js";
 
 import "../../../../types/hre.js";
 declare module "../../../../types/hre.js" {
