@@ -1,11 +1,5 @@
-import type { NetworkConnection, NetworkManager } from "./types.js";
-import type * as ConfigTypes from "../../../types/config.js";
-import type {
-  JsonRpcRequest,
-  JsonRpcResponse,
-} from "../../../types/providers.js";
-
-declare module "../../../types/config.js" {
+import "../../../../types/config.js";
+declare module "../../../../types/config.js" {
   /**
    * Represents the possible chain types for the network. The options are:
    * - `"unknown"`: Represents the most generic type of network.
@@ -108,56 +102,5 @@ declare module "../../../types/config.js" {
     gasPrice: "auto" | bigint;
 
     // EDR network specific
-  }
-}
-
-import "../../../types/hre.js";
-declare module "../../../types/hre.js" {
-  export interface HardhatRuntimeEnvironment {
-    network: NetworkManager;
-  }
-}
-
-import "../../../types/global-options.js";
-declare module "../../../types/global-options.js" {
-  export interface GlobalOptions {
-    network: string;
-  }
-}
-
-import "../../../types/hooks.js";
-
-declare module "../../../types/hooks.js" {
-  export interface HardhatHooks {
-    network: NetworkHooks;
-  }
-
-  export interface NetworkHooks {
-    newConnection<ChainTypeT extends ConfigTypes.ChainType | string>(
-      context: HookContext,
-      next: (
-        nextContext: HookContext,
-      ) => Promise<NetworkConnection<ChainTypeT>>,
-    ): Promise<NetworkConnection<ChainTypeT>>;
-
-    closeConnection<ChainTypeT extends ConfigTypes.ChainType | string>(
-      context: HookContext,
-      networkConnection: NetworkConnection<ChainTypeT>,
-      next: (
-        nextContext: HookContext,
-        nextNetworkConnection: NetworkConnection<ChainTypeT>,
-      ) => Promise<void>,
-    ): Promise<void>;
-
-    onRequest<ChainTypeT extends ConfigTypes.ChainType | string>(
-      context: HookContext,
-      networkConnection: NetworkConnection<ChainTypeT>,
-      jsonRpcRequest: JsonRpcRequest,
-      next: (
-        nextContext: HookContext,
-        nextNetworkConnection: NetworkConnection<ChainTypeT>,
-        nextJsonRpcRequest: JsonRpcRequest,
-      ) => Promise<JsonRpcResponse>,
-    ): Promise<JsonRpcResponse>;
   }
 }

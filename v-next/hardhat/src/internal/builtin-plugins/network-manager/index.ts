@@ -1,7 +1,11 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
 
 import { globalOption } from "../../core/config.js";
-import "./type-extensions.js";
+
+import "./type-extensions/config.js";
+import "./type-extensions/global-options.js";
+import "./type-extensions/hooks.js";
+import "./type-extensions/hre.js";
 
 const hardhatPlugin: HardhatPlugin = {
   id: "network-manager",
