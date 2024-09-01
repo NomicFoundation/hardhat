@@ -1,5 +1,6 @@
 import type { KeystoreLoader } from "../types.js";
 import type { UserInteractions } from "../ui/user-interactions.js";
+import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
 import { checkMissingKeyTaskArgument } from "../utils/check-missing-key-task-argument.js";
@@ -9,11 +10,12 @@ interface TaskGetArguments {
   key: string;
 }
 
-const taskGet: NewTaskActionFunction<TaskGetArguments> = async ({
-  key,
-}): Promise<void> => {
+const taskGet: NewTaskActionFunction<TaskGetArguments> = async (
+  { key },
+  hre: HardhatRuntimeEnvironment,
+): Promise<void> => {
   const { keystoreLoader, interruptions } =
-    await setupRawInterruptionsAndKeystoreLoader();
+    await setupRawInterruptionsAndKeystoreLoader(hre);
 
   await get({ key }, keystoreLoader, interruptions);
 };

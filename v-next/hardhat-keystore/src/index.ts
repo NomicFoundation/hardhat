@@ -2,11 +2,14 @@ import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
 
 import { ArgumentType, task } from "@ignored/hardhat-vnext/config";
 
+import "./type-extensions.js";
+
 import { PLUGIN_ID } from "./constants.js";
 
 const hardhatKeystorePlugin: HardhatPlugin = {
   id: PLUGIN_ID,
   hookHandlers: {
+    config: import.meta.resolve("./hook-handlers/config.js"),
     configurationVariables: import.meta.resolve(
       "./hook-handlers/configuration-variables.js",
     ),
