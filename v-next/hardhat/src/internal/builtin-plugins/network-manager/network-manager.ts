@@ -125,6 +125,9 @@ export class NetworkManagerImplementation {
       });
     }
 
+    // We only need to capture the hook manager in the closures below
+    const hookManager = this.#hookManager;
+
     const createProvider = async (
       networkConnection: NetworkConnectionImplementation<ChainTypeT>,
     ): Promise<EthereumProvider> => {
@@ -139,7 +142,7 @@ export class NetworkManagerImplementation {
         extraHeaders: resolvedNetworkConfig.httpHeaders,
         timeout: resolvedNetworkConfig.timeout,
         jsonRpcRequestWrapper: (request, defaultBehavior) =>
-          this.#hookManager.runHandlerChain(
+          hookManager.runHandlerChain(
             "network",
             "onRequest",
             [networkConnection, request],
@@ -154,7 +157,7 @@ export class NetworkManagerImplementation {
       resolvedChainType,
       resolvedNetworkConfig,
       async (connection: NetworkConnectionImplementation<ChainTypeT>) => {
-        await this.#hookManager.runHandlerChain(
+        await hookManager.runHandlerChain(
           "network",
           "closeConnection",
           [connection],
