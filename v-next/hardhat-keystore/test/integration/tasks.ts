@@ -1,4 +1,4 @@
-import type { KeystoreFile } from "../../src/types.js";
+import type { UnencryptedKeystoreFile } from "../../src/types.js";
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
 
 import assert from "node:assert/strict";
@@ -11,6 +11,7 @@ import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import { remove, writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
 
 import hardhatKeystorePlugin from "../../src/index.js";
+import { createUnencryptedKeystoreFile } from "../../src/keystores/unencrypted-keystore-file.js";
 import { setupKeystoreFileLocationOverrideAt } from "../helpers/setup-keystore-file-location-override-at.js";
 
 const keystoreFilePath = path.join(
@@ -22,13 +23,11 @@ describe("integration tests for the keystore tasks", () => {
   let hre: HardhatRuntimeEnvironment;
 
   beforeEach(async () => {
-    const keystoreFile: KeystoreFile = {
-      version: "",
-      keys: {
-        myKey1: "myValue1",
-        myKey2: "myValue2",
-      },
-    };
+    const keystoreFile: UnencryptedKeystoreFile =
+      createUnencryptedKeystoreFile();
+
+    keystoreFile.keys.myKey1 = "myValue1";
+    keystoreFile.keys.myKey2 = "myValue2";
 
     await _overwriteKeystoreFileWith(keystoreFilePath, keystoreFile);
 
@@ -76,7 +75,7 @@ describe("integration tests for the keystore tasks", () => {
 
 async function _overwriteKeystoreFileWith(
   filePath: string,
-  keystoreFile: KeystoreFile,
+  keystoreFile: UnencryptedKeystoreFile,
 ) {
   await remove(filePath);
 

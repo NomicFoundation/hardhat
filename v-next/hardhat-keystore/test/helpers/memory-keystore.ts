@@ -1,4 +1,4 @@
-import type { Keystore, KeystoreFile } from "../../src/types.js";
+import type { Keystore, UnencryptedKeystoreFile } from "../../src/types.js";
 
 export class MemoryKeystore implements Keystore {
   #keyMap: Map<string, string>;
@@ -32,7 +32,7 @@ export class MemoryKeystore implements Keystore {
   }
 
   public loadFromJSON(json: any): Keystore {
-    const data: KeystoreFile = json;
+    const data: UnencryptedKeystoreFile = json;
 
     this.#keyMap = new Map<string, string>(Object.entries(data.keys));
 

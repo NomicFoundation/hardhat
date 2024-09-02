@@ -11,7 +11,7 @@ export class UserInteractions {
     this.#userInterruptions = userInterruptions;
   }
 
-  public async setUpPassword(): Promise<void> {
+  public async setUpPassword(): Promise<string> {
     const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[\W_]).{8,}$/;
 
     const setupMsg =
@@ -46,6 +46,8 @@ export class UserInteractions {
         confirmPassword = undefined;
       }
     }
+
+    return confirmPassword;
   }
 
   public async requestSecretFromUser(): Promise<string> {

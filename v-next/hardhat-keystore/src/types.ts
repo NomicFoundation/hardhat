@@ -17,8 +17,9 @@ export interface KeystoreLoader {
   save: (keystore: Keystore) => Promise<void>;
 }
 
-export interface KeystoreFile {
-  version: string;
+export interface UnencryptedKeystoreFile {
+  _format: "hh-unencrypted-keystore";
+  version: 1;
   keys: {
     [key: string]: string;
   };

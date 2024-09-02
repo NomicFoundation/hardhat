@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { before, beforeEach, describe, it } from "node:test";
+import { beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
@@ -45,7 +45,10 @@ describe("tasks - get", () => {
     });
 
     it("should not save the keystore to file", async () => {
-      assert.ok(!mockKeystoreLoader.saveCalled);
+      assert.ok(
+        !mockKeystoreLoader.saveCalled,
+        "keystore should not have been saved",
+      );
     });
   });
 
@@ -70,7 +73,10 @@ describe("tasks - get", () => {
     });
 
     it("should not attempt to save the keystore", async () => {
-      assert.ok(!mockKeystoreLoader.saveCalled);
+      assert.ok(
+        !mockKeystoreLoader.saveCalled,
+        "keystore should not have been saved",
+      );
     });
   });
 
@@ -93,7 +99,10 @@ describe("tasks - get", () => {
     });
 
     it("should not attempt to save the keystore", async () => {
-      assert.ok(!mockKeystoreLoader.saveCalled);
+      assert.ok(
+        !mockKeystoreLoader.saveCalled,
+        "keystore should not have been saved",
+      );
     });
   });
 

@@ -1,76 +1,76 @@
-import type { Keystore, KeystoreFile } from "../types.js";
+import type { Keystore, UnencryptedKeystoreFile } from "../types.js";
 import type { UserInteractions } from "../ui/user-interactions.js";
 
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 
+import { createUnencryptedKeystoreFile } from "./unencrypted-keystore-file.js";
+
 export class UnencryptedKeystore implements Keystore {
   readonly #interruptions: UserInteractions;
-  #keystoreCache: KeystoreFile | null;
+  #keystoreData: UnencryptedKeystoreFile | null;
 
   constructor(interruptions: UserInteractions) {
     this.#interruptions = interruptions;
-    this.#keystoreCache = null;
+    this.#keystoreData = null;
   }
 
   public async listKeys(): Promise<string[]> {
-    this.#assertKeystoreInitialized(this.#keystoreCache);
+    this.#assertKeystoreInitialized(this.#keystoreData);
 
-    return Object.keys(this.#keystoreCache.keys);
+    return Object.keys(this.#keystoreData.keys);
   }
 
   public async hasKey(key: string): Promise<boolean> {
-    this.#assertKeystoreInitialized(this.#keystoreCache);
+    this.#assertKeystoreInitialized(this.#keystoreData);
 
-    return Object.keys(this.#keystoreCache.keys).includes(key);
+    return Object.keys(this.#keystoreData.keys).includes(key);
   }
 
   public async readValue(key: string): Promise<string | undefined> {
-    this.#assertKeystoreInitialized(this.#keystoreCache);
+    this.#assertKeystoreInitialized(this.#keystoreData);
 
-    return this.#keystoreCache.keys[key];
+    return this.#keystoreData.keys[key];
   }
 
   public async removeKey(key: string): Promise<void> {
-    this.#assertKeystoreInitialized(this.#keystoreCache);
+    this.#assertKeystoreInitialized(this.#keystoreData);
 
-    delete this.#keystoreCache.keys[key];
+    delete this.#keystoreData.keys[key];
   }
 
   public async addNewValue(key: string, value: string): Promise<void> {
-    this.#assertKeystoreInitialized(this.#keystoreCache);
+    this.#assertKeystoreInitialized(this.#keystoreData);
 
-    this.#keystoreCache.keys[key] = value;
+    this.#keystoreData.keys[key] = value;
   }
 
   public async init(): Promise<void> {
     await this.#interruptions.setUpPassword();
 
-    const keystoreFile: KeystoreFile = {
-      version: "",
-      keys: {},
-    };
+    const keystoreFile: UnencryptedKeystoreFile =
+      createUnencryptedKeystoreFile();
 
-    this.#keystoreCache = keystoreFile;
+    this.#keystoreData = keystoreFile;
   }
 
   public loadFromJSON(json: any): Keystore {
     // TODO: add ZOD validation
-    const keystore: KeystoreFile = json;
+    const keystore: UnencryptedKeystoreFile = json;
 
-    this.#keystoreCache = keystore;
+    this.#keystoreData = keystore;
 
     return this;
   }
 
-  public toJSON(): KeystoreFile {
-    this.#assertKeystoreInitialized(this.#keystoreCache);
+  public toJSON(): UnencryptedKeystoreFile {
+    this.#assertKeystoreInitialized(this.#keystoreData);
 
-    return this.#keystoreCache;
+    return this.#keystoreData;
   }
 
   #assertKeystoreInitialized(
-    keystoreFile: KeystoreFile | null,
-  ): asserts keystoreFile is KeystoreFile {
+    keystoreFile: UnencryptedKeystoreFile | null,
+  ): asserts keystoreFile is UnencryptedKeystoreFile {
     assertHardhatInvariant(keystoreFile !== null, "Keystore not initialized");
   }
 }

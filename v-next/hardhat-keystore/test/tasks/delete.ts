@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { before, beforeEach, describe, it } from "node:test";
+import { beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
@@ -49,7 +49,10 @@ describe("tasks - delete", () => {
     });
 
     it("should save the updated keystore to file", async () => {
-      assert.ok(mockKeystoreLoader.saveCalled);
+      assert.ok(
+        mockKeystoreLoader.saveCalled,
+        "keystore should have been saved",
+      );
     });
   });
 
