@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 2.0.10
+
+### Patch Changes
+
+- efa905d: Fix for corrupted Hardhat peer dependency version from pnpm.
+
 ## 2.0.9
 
 ### Patch Changes

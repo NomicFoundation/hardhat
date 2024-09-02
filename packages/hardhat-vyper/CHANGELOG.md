@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-vyper
 
+## 3.0.8
+
+### Patch Changes
+
+- efa905d: Fix for corrupted Hardhat peer dependency version from pnpm.
+
 ## 3.0.7
 
 ### Patch Changes
