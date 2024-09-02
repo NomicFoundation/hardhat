@@ -995,6 +995,14 @@ const communityPlugins: IPlugin[] = [
     description: "Hardhat plugin for the Trezor hardware wallet",
     tags: ["Trezor", "Wallet"],
   },
+  {
+    name: "hardhat-switch-network",
+    author: "0xNeshi",
+    authorUrl: "https://github.com/0xNeshi",
+    description:
+      "Hardhat plugin for enabling on-the-fly network switching within your Hardhat scripts and tasks",
+    tags: ["Tasks", "Scripts", "Testing"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
