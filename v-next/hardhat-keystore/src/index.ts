@@ -1,6 +1,7 @@
 import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
 
-import { ArgumentType, task } from "@ignored/hardhat-vnext/config";
+import { task } from "@ignored/hardhat-vnext/config";
+import { ArgumentType } from "@ignored/hardhat-vnext/types/arguments";
 
 import "./type-extensions.js";
 
