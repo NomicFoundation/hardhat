@@ -36,12 +36,12 @@ describe("HookManager", () => {
   describe("plugin hooks", () => {
     describe("running", () => {
       let hre: HardhatRuntimeEnvironment;
-      let foceConfigValidationErrorFromPlugin: boolean;
+      let forceConfigValidationErrorFromPlugin: boolean;
       let sequence: string[];
 
       beforeEach(async () => {
         sequence = [];
-        foceConfigValidationErrorFromPlugin = false;
+        forceConfigValidationErrorFromPlugin = false;
 
         const examplePlugin: HardhatPlugin = {
           id: "example",
@@ -51,7 +51,7 @@ describe("HookManager", () => {
                 validateUserConfig: async (
                   _config: HardhatUserConfig,
                 ): Promise<HardhatUserConfigValidationError[]> => {
-                  if (foceConfigValidationErrorFromPlugin) {
+                  if (forceConfigValidationErrorFromPlugin) {
                     return [
                       {
                         path: [],
@@ -171,7 +171,7 @@ describe("HookManager", () => {
           },
         });
 
-        foceConfigValidationErrorFromPlugin = true;
+        forceConfigValidationErrorFromPlugin = true;
 
         const results = await hre.hooks.runParallelHandlers(
           "config",
