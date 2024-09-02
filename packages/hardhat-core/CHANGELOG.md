@@ -1,5 +1,12 @@
 # hardhat
 
+## 2.22.10
+
+### Patch Changes
+
+- 409e99f: Fixed `debug` logs in Hardhat Network initialization process.
+- 46cd7a1: Removed the experimentalAddHardhatNetworkMessageTraceHook API
+
 ## 2.22.9
 
 ### Patch Changes

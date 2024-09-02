@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-viem
 
+## 2.0.4
+
+### Patch Changes
+
+- efa905d: Fix for corrupted Hardhat peer dependency version from pnpm.
+
 ## 2.0.3
 
 ### Patch Changes

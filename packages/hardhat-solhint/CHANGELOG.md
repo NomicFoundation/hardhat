@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-solhint
 
+## 4.0.1
+
+### Patch Changes
+
+- efa905d: Fix for corrupted Hardhat peer dependency version from pnpm.
+
 ## 4.0.0
 
 ### Major Changes
