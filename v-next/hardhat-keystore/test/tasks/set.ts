@@ -25,7 +25,7 @@ describe("tasks - set", () => {
   });
 
   it("should add a new key", async () => {
-    mockConsoleWrapper.requestSecretInput = async () => "myValue";
+    mockConsoleWrapper.requestSecretInput = async () => "myValue2";
 
     await set(
       {
@@ -41,8 +41,8 @@ describe("tasks - set", () => {
       `Key "myKey" set`,
     );
 
-    const keystore = await mockKeystoreLoader.create();
-    assert.deepEqual(await keystore.readValue("myKey"), "myValue");
+    const keystore = await mockKeystoreLoader.load();
+    assert.deepEqual(await keystore.readValue("myKey"), "myValue2");
   });
 
   it("should throw because the key is not specified", async () => {
