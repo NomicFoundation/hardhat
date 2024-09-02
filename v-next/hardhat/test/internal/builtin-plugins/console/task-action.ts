@@ -13,8 +13,8 @@ import { exists, remove } from "@ignored/hardhat-vnext-utils/fs";
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import debug from "debug";
 
-import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import consoleAction from "../../../../src/internal/builtin-plugins/console/task-action.js";
+import { createHardhatRuntimeEnvironment } from "../../../../src/internal/hre-intialization.js";
 
 const log = debug("hardhat:test:console:task-action");
 

@@ -7,15 +7,13 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { RESERVED_ARGUMENT_NAMES } from "../../../src/internal/core/arguments.js";
-import {
-  ArgumentType,
-  globalOption,
-} from "../../../src/internal/core/config.js";
+import { globalOption } from "../../../src/internal/core/config.js";
 import {
   buildGlobalOptionDefinition,
   buildGlobalOptionDefinitions,
   resolveGlobalOptions,
 } from "../../../src/internal/core/global-options.js";
+import { ArgumentType } from "../../../src/types/arguments.js";
 
 import { createTestEnvManager } from "./utils.js";
 

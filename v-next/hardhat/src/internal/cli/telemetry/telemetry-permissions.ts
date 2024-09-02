@@ -8,7 +8,7 @@ import {
 } from "@ignored/hardhat-vnext-utils/fs";
 import debug from "debug";
 
-import { getConfigDir } from "../../core/global-dir.js";
+import { getConfigDir } from "../../global-dir.js";
 import { confirmationPromptWithTimeout } from "../prompt/prompt.js";
 
 import { sendTelemetryConsentAnalytics } from "./analytics/analytics.js";

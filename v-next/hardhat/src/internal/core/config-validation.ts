@@ -1,4 +1,4 @@
-import type { HardhatUserConfig } from "./config.js";
+import type { HardhatUserConfig } from "../../types/config.js";
 import type {
   HardhatUserConfigValidationError,
   HookManager,

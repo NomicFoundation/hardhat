@@ -4,13 +4,13 @@ import { after, before, describe, it } from "node:test";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
-import { ArgumentType } from "../../../../src/config.js";
 import { RESERVED_ARGUMENT_NAMES } from "../../../../src/internal/core/arguments.js";
 import {
   EmptyTaskDefinitionBuilderImplementation,
   NewTaskDefinitionBuilderImplementation,
   TaskOverrideDefinitionBuilderImplementation,
 } from "../../../../src/internal/core/tasks/builders.js";
+import { ArgumentType } from "../../../../src/types/arguments.js";
 import { TaskDefinitionType } from "../../../../src/types/tasks.js";
 
 describe("Task builders", () => {

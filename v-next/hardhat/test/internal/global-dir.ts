@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { getConfigDir } from "../../../src/internal/core/global-dir.js";
+import { getConfigDir } from "../../src/internal/global-dir.js";
 
 describe("global-dir", () => {
   describe("getGlobalDir", () => {
