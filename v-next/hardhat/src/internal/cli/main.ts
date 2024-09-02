@@ -1,8 +1,4 @@
 import type {
-  OptionDefinition,
-  PositionalArgumentDefinition,
-} from "../../types/arguments.js";
-import type {
   GlobalOptionDefinitions,
   GlobalOptions,
 } from "../../types/global-options.js";
@@ -14,23 +10,26 @@ import {
   assertHardhatInvariant,
 } from "@ignored/hardhat-vnext-errors";
 import { isCi } from "@ignored/hardhat-vnext-utils/ci";
-import { getRealPath } from "@ignored/hardhat-vnext-utils/fs";
 import { kebabToCamelCase } from "@ignored/hardhat-vnext-utils/string";
 import debug from "debug";
 
-import { resolveHardhatConfigPath } from "../../config.js";
-import { createHardhatRuntimeEnvironment } from "../../hre.js";
+import {
+  ArgumentType,
+  type OptionDefinition,
+  type PositionalArgumentDefinition,
+} from "../../types/arguments.js";
 import { BUILTIN_GLOBAL_OPTIONS_DEFINITIONS } from "../builtin-global-options.js";
 import { builtinPlugins } from "../builtin-plugins/index.js";
-import { ArgumentType } from "../core/config.js";
 import {
-  buildGlobalOptionDefinitions,
-  parseArgumentValue,
-  resolvePluginList,
-  resolveProjectRoot,
-} from "../core/index.js";
+  importUserConfig,
+  resolveHardhatConfigPath,
+} from "../config-loading.js";
+import { parseArgumentValue } from "../core/arguments.js";
+import { buildGlobalOptionDefinitions } from "../core/global-options.js";
+import { resolveProjectRoot } from "../core/hre.js";
+import { resolvePluginList } from "../core/plugins/resolve-plugin-list.js";
 import { setGlobalHardhatRuntimeEnvironment } from "../global-hre-instance.js";
-import { importUserConfig } from "../helpers/config-loading.js";
+import { createHardhatRuntimeEnvironment } from "../hre-intialization.js";
 
 import { printErrorMessages } from "./error-handler.js";
 import { getGlobalHelpString } from "./helpers/getGlobalHelpString.js";
@@ -73,17 +72,13 @@ export async function main(
 
     log("Retrieved telemetry consent");
 
-    if (builtinGlobalOptions.configPath === undefined) {
-      builtinGlobalOptions.configPath = await resolveHardhatConfigPath();
-
-      log("Resolved config path");
-    }
-
-    const projectRoot = await resolveProjectRoot(
-      await getRealPath(builtinGlobalOptions.configPath),
+    const configPath = await resolveHardhatConfigPath(
+      builtinGlobalOptions.configPath,
     );
 
-    const userConfig = await importUserConfig(builtinGlobalOptions.configPath);
+    const projectRoot = await resolveProjectRoot(configPath);
+
+    const userConfig = await importUserConfig(configPath);
 
     log("User config imported");
 
@@ -97,10 +92,12 @@ export async function main(
 
     const pluginGlobalOptionDefinitions =
       buildGlobalOptionDefinitions(resolvedPlugins);
+
     const globalOptionDefinitions = new Map([
       ...BUILTIN_GLOBAL_OPTIONS_DEFINITIONS,
       ...pluginGlobalOptionDefinitions,
     ]);
+
     const userProvidedGlobalOptions = await parseGlobalOptions(
       globalOptionDefinitions,
       cliArguments,
@@ -111,7 +108,11 @@ export async function main(
 
     const hre = await createHardhatRuntimeEnvironment(
       userConfig,
-      { ...builtinGlobalOptions, ...userProvidedGlobalOptions },
+      {
+        ...builtinGlobalOptions,
+        config: configPath,
+        ...userProvidedGlobalOptions,
+      },
       projectRoot,
       { resolvedPlugins, globalOptionDefinitions },
     );

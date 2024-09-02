@@ -112,7 +112,6 @@ const config: HardhatUserConfig = {
     // if testing node plugin, use the following line instead
     // HardhatNodeTestRunner,
   ],
-  privateKey: configVariable("privateKey"),
   paths: {
     tests: "test/mocha",
     // if testing node plugin, use the following line instead

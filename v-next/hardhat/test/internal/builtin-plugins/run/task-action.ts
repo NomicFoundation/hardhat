@@ -8,8 +8,8 @@ import {
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 
-import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import runScriptWithHardhat from "../../../../src/internal/builtin-plugins/run/task-action.js";
+import { createHardhatRuntimeEnvironment } from "../../../../src/internal/hre-intialization.js";
 
 describe("run/task-action", function () {
   let hre: HardhatRuntimeEnvironment;

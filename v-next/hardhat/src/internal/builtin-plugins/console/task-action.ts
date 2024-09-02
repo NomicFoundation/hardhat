@@ -6,7 +6,7 @@ import repl from "node:repl";
 
 import debug from "debug";
 
-import { getCacheDir } from "../../core/global-dir.js";
+import { getCacheDir } from "../../global-dir.js";
 
 const log = debug("hardhat:core:tasks:console");
 

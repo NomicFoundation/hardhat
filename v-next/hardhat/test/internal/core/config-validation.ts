@@ -1,8 +1,4 @@
 import type { HardhatUserConfig } from "../../../src/config.js";
-import type {
-  PositionalArgumentDefinition,
-  OptionDefinition,
-} from "../../../src/types/arguments.js";
 import type { HardhatPlugin } from "../../../src/types/plugins.js";
 import type {
   EmptyTaskDefinition,
@@ -14,7 +10,6 @@ import type {
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { ArgumentType } from "../../../src/config.js";
 import {
   validatePositionalArguments,
   validateOptions,
@@ -25,6 +20,11 @@ import {
   validatePluginsConfig,
   collectValidationErrorsForUserConfig,
 } from "../../../src/internal/core/config-validation.js";
+import {
+  type PositionalArgumentDefinition,
+  type OptionDefinition,
+  ArgumentType,
+} from "../../../src/types/arguments.js";
 import { TaskDefinitionType } from "../../../src/types/tasks.js";
 
 describe("config validation", function () {

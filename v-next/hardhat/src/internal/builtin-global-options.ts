@@ -1,6 +1,7 @@
 import type { GlobalOptionDefinitions } from "../types/global-options.js";
 
-import { globalOption, ArgumentType } from "../config.js";
+import { globalOption } from "../config.js";
+import { ArgumentType } from "../types/arguments.js";
 
 export const BUILTIN_GLOBAL_OPTIONS_DEFINITIONS: GlobalOptionDefinitions =
   new Map([

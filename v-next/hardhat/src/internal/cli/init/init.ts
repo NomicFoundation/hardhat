@@ -1,6 +1,6 @@
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
-import { findClosestHardhatConfig } from "../../helpers/config-loading.js";
+import { findClosestHardhatConfig } from "../../config-loading.js";
 
 import { createProject } from "./project-creation.js";
 

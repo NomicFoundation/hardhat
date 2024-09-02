@@ -1,7 +1,9 @@
-import type { ArgumentTypeToValueType } from "../../../types/arguments.js";
+import type {
+  ArgumentType,
+  ArgumentTypeToValueType,
+} from "../../../types/arguments.js";
 import type { GlobalOptionDefinitions } from "../../../types/global-options.js";
 import type { Task } from "../../../types/tasks.js";
-import type { ArgumentType } from "../../core/config.js";
 
 import { camelToKebabCase } from "@ignored/hardhat-vnext-utils/string";
 
