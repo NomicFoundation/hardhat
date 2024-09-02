@@ -4,10 +4,10 @@ import { beforeEach, describe, it } from "node:test";
 import { remove, writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
 import chalk from "chalk";
 
-import { UnencryptedKeystore } from "../../src/keystores/unencrypted-keystore.js";
-import { KeystoreFileLoader } from "../../src/loaders/keystore-file-loader.js";
-import { UserInteractions } from "../../src/ui/user-interactions.js";
-import { getKeystoreFilePath } from "../../src/utils/get-keystore-file-path.js";
+import { UnencryptedKeystore } from "../../src/internal/keystores/unencrypted-keystore.js";
+import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
+import { UserInteractions } from "../../src/internal/ui/user-interactions.js";
+import { getKeystoreFilePath } from "../../src/internal/utils/get-keystore-file-path.js";
 import { getFullOutput } from "../helpers/get-full-output.js";
 import { MockUserInterruptionManager } from "../helpers/mock-user-interruption-manager.js";
 

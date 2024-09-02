@@ -3,8 +3,8 @@ import { beforeEach, describe, it } from "node:test";
 
 import chalk from "chalk";
 
-import { list } from "../../src/tasks/list.js";
-import { UserInteractions } from "../../src/ui/user-interactions.js";
+import { list } from "../../src/internal/tasks/list.js";
+import { UserInteractions } from "../../src/internal/ui/user-interactions.js";
 import { getFullOutput } from "../helpers/get-full-output.js";
 import { MemoryKeystore } from "../helpers/memory-keystore.js";
 import { MockKeystoreLoader } from "../helpers/mock-keystore-loader.js";

@@ -5,7 +5,7 @@ import { mock } from "node:test";
 
 import { HardhatPluginError } from "@ignored/hardhat-vnext-errors";
 
-import { PLUGIN_ID } from "../../src/constants.js";
+import { PLUGIN_ID } from "../../src/internal/constants.js";
 
 export class MockUserInterruptionManager implements UserInterruptionManager {
   public displayMessage: Mock<

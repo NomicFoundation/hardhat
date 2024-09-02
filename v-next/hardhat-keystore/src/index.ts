@@ -3,16 +3,16 @@ import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
 import { task } from "@ignored/hardhat-vnext/config";
 import { ArgumentType } from "@ignored/hardhat-vnext/types/arguments";
 
-import "./type-extensions.js";
+import "./internal/type-extensions.js";
 
-import { PLUGIN_ID } from "./constants.js";
+import { PLUGIN_ID } from "./internal/constants.js";
 
 const hardhatKeystorePlugin: HardhatPlugin = {
   id: PLUGIN_ID,
   hookHandlers: {
-    config: import.meta.resolve("./hook-handlers/config.js"),
+    config: import.meta.resolve("./internal/hook-handlers/config.js"),
     configurationVariables: import.meta.resolve(
-      "./hook-handlers/configuration-variables.js",
+      "./internal/hook-handlers/configuration-variables.js",
     ),
   },
   tasks: [
@@ -33,7 +33,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         name: "force",
         description: "Forces overwrite if the key already exists.",
       })
-      .setAction(import.meta.resolve("./tasks/set.js"))
+      .setAction(import.meta.resolve("./internal/tasks/set.js"))
       .build(),
 
     task(["keystore", "get"], "Get a value given a key")
@@ -42,11 +42,11 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         type: ArgumentType.STRING,
         description: "Specifies the key to retrieve the value for",
       })
-      .setAction(import.meta.resolve("./tasks/get.js"))
+      .setAction(import.meta.resolve("./internal/tasks/get.js"))
       .build(),
 
     task(["keystore", "list"], "List all keys in the keystore")
-      .setAction(import.meta.resolve("./tasks/list.js"))
+      .setAction(import.meta.resolve("./internal/tasks/list.js"))
       .build(),
 
     task(["keystore", "delete"], "Delete a key from the keystore")
@@ -55,7 +55,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         type: ArgumentType.STRING,
         description: "Specifies the key to delete from the keystore",
       })
-      .setAction(import.meta.resolve("./tasks/delete.js"))
+      .setAction(import.meta.resolve("./internal/tasks/delete.js"))
       .build(),
   ],
 };

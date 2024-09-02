@@ -5,8 +5,8 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import chalk from "chalk";
 
-import { get } from "../../src/tasks/get.js";
-import { UserInteractions } from "../../src/ui/user-interactions.js";
+import { get } from "../../src/internal/tasks/get.js";
+import { UserInteractions } from "../../src/internal/ui/user-interactions.js";
 import { MemoryKeystore } from "../helpers/memory-keystore.js";
 import { MockKeystoreLoader } from "../helpers/mock-keystore-loader.js";
 import { MockUserInterruptionManager } from "../helpers/mock-user-interruption-manager.js";

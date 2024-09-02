@@ -1,4 +1,7 @@
-import type { Keystore, UnencryptedKeystoreFile } from "../../src/types.js";
+import type {
+  Keystore,
+  UnencryptedKeystoreFile,
+} from "../../src/internal/types.js";
 
 export class MemoryKeystore implements Keystore {
   #keyMap: Map<string, string>;

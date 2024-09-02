@@ -1,10 +1,10 @@
-import type { Keystore } from "../../src/types.js";
+import type { Keystore } from "../../src/internal/types.js";
 
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import { UnencryptedKeystore } from "../../src/keystores/unencrypted-keystore.js";
-import { UserInteractions } from "../../src/ui/user-interactions.js";
+import { UnencryptedKeystore } from "../../src/internal/keystores/unencrypted-keystore.js";
+import { UserInteractions } from "../../src/internal/ui/user-interactions.js";
 import { MockUserInterruptionManager } from "../helpers/mock-user-interruption-manager.js";
 
 describe("UnencryptedKeystore", () => {

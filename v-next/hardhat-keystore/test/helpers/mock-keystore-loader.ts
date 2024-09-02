@@ -1,5 +1,5 @@
 import type { MemoryKeystore } from "./memory-keystore.js";
-import type { KeystoreLoader, Keystore } from "../../src/types.js";
+import type { KeystoreLoader, Keystore } from "../../src/internal/types.js";
 
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 

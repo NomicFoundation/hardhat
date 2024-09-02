@@ -5,9 +5,9 @@ import type {
   HookContext,
 } from "@ignored/hardhat-vnext/types/hooks";
 
+import { UserInteractions } from "../../internal/ui/user-interactions.js";
 import { UnencryptedKeystore } from "../keystores/unencrypted-keystore.js";
 import { KeystoreFileLoader } from "../loaders/keystore-file-loader.js";
-import { UserInteractions } from "../ui/user-interactions.js";
 
 export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
   // Use a cache with hooks since they may be called multiple times consecutively.

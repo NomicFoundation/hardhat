@@ -1,4 +1,4 @@
-import type { UnencryptedKeystoreFile } from "../../src/types.js";
+import type { UnencryptedKeystoreFile } from "../../src/internal/types.js";
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
 
 import assert from "node:assert/strict";
@@ -11,7 +11,7 @@ import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import { remove, writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
 
 import hardhatKeystorePlugin from "../../src/index.js";
-import { createUnencryptedKeystoreFile } from "../../src/keystores/unencrypted-keystore-file.js";
+import { createUnencryptedKeystoreFile } from "../../src/internal/keystores/unencrypted-keystore-file.js";
 import { setupKeystoreFileLocationOverrideAt } from "../helpers/setup-keystore-file-location-override-at.js";
 
 const keystoreFilePath = path.join(
