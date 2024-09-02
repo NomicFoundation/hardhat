@@ -16,7 +16,7 @@ const existingKeystoreFilePath = path.join(
   "../../fixture-projects/unencrypted-keystore/existing-keystore.json",
 );
 
-const nonexistantKeystoreFilePath = path.join(
+const nonExistingKeystoreFilePath = path.join(
   fileURLToPath(import.meta.url),
   "../../fixture-projects/unencrypted-keystore/keystore.json",
 );
@@ -69,6 +69,39 @@ describe("hook", () => {
 
       assert.equal(resultValue, "value-from-hardhat-package-not-keystore");
     });
+
+    it("should use the cache and not reload the keystore", async () => {
+      const configVar: ConfigurationVariable = {
+        _type: "ConfigurationVariable",
+        name: "key1",
+      };
+
+      const resultValue = await hre.hooks.runHandlerChain(
+        "configurationVariables",
+        "fetchValue",
+        [configVar],
+        async (_context, _configVar) => {
+          return "unexpected-default-value";
+        },
+      );
+
+      assert.equal(resultValue, "value1");
+
+      // Set a new keystore path.
+      // Without the cache, it should fail to find the key and throw an error because the keystore file does not exist.
+      // However, since the value is cached, it should return the value even if the keystore file path is missing.
+      hre.config.keystore.filePath = nonExistingKeystoreFilePath;
+      const resultValue2 = await hre.hooks.runHandlerChain(
+        "configurationVariables",
+        "fetchValue",
+        [configVar],
+        async (_context, _configVar) => {
+          return "unexpected-default-value";
+        },
+      );
+
+      assert.equal(resultValue2, "value1");
+    });
   });
 
   describe("when the keystore file has not been setup", () => {
@@ -76,7 +109,7 @@ describe("hook", () => {
       hre = await createHardhatRuntimeEnvironment({
         plugins: [
           hardhatKeystorePlugin,
-          setupKeystoreFileLocationOverrideAt(nonexistantKeystoreFilePath),
+          setupKeystoreFileLocationOverrideAt(nonExistingKeystoreFilePath),
         ],
       });
     });
