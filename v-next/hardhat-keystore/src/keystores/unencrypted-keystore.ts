@@ -71,9 +71,6 @@ export class UnencryptedKeystore implements Keystore {
   #assertKeystoreInitialized(
     keystoreFile: KeystoreFile | null,
   ): asserts keystoreFile is KeystoreFile {
-    assertHardhatInvariant(
-      this.#keystoreCache !== null,
-      "Keystore not initialized",
-    );
+    assertHardhatInvariant(keystoreFile !== null, "Keystore not initialized");
   }
 }

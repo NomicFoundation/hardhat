@@ -12,20 +12,20 @@ import { MockKeystoreLoader } from "../helpers/mock-keystore-loader.js";
 import { MockUserInterruptionManager } from "../helpers/mock-user-interruption-manager.js";
 
 describe("tasks - set", () => {
-  let mockKeystore: MemoryKeystore;
+  let memoryKeystore: MemoryKeystore;
   let mockKeystoreLoader: MockKeystoreLoader;
-  let mockConsoleWrapper: MockUserInterruptionManager;
-  let mockInterruptions: UserInteractions;
+  let mockUserInterruptionManager: MockUserInterruptionManager;
+  let userInteractions: UserInteractions;
 
   beforeEach(() => {
-    mockKeystore = new MemoryKeystore();
-    mockConsoleWrapper = new MockUserInterruptionManager();
-    mockInterruptions = new UserInteractions(mockConsoleWrapper);
-    mockKeystoreLoader = new MockKeystoreLoader(mockKeystore);
+    memoryKeystore = new MemoryKeystore();
+    mockUserInterruptionManager = new MockUserInterruptionManager();
+    userInteractions = new UserInteractions(mockUserInterruptionManager);
+    mockKeystoreLoader = new MockKeystoreLoader(memoryKeystore);
   });
 
   it("should add a new key", async () => {
-    mockConsoleWrapper.requestSecretInput = async () => "myValue2";
+    mockUserInterruptionManager.requestSecretInput = async () => "myValue2";
 
     await set(
       {
@@ -33,11 +33,11 @@ describe("tasks - set", () => {
         force: false,
       },
       mockKeystoreLoader,
-      mockInterruptions,
+      userInteractions,
     );
 
     assert.equal(
-      mockConsoleWrapper.displayMessage.mock.calls[0].arguments[1],
+      mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
       `Key "myKey" set`,
     );
 
@@ -54,7 +54,7 @@ describe("tasks - set", () => {
           force: false,
         },
         mockKeystoreLoader,
-        mockInterruptions,
+        userInteractions,
       ),
       HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
       {
@@ -68,11 +68,11 @@ describe("tasks - set", () => {
     await set(
       { key: "1key", force: false },
       mockKeystoreLoader,
-      mockInterruptions,
+      userInteractions,
     );
 
     assert.equal(
-      mockConsoleWrapper.displayMessage.mock.calls[0].arguments[1],
+      mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
       chalk.red(
         `Invalid value for key: "1key". Keys can only have alphanumeric characters and underscores, and they cannot start with a number.`,
       ),
@@ -81,26 +81,26 @@ describe("tasks - set", () => {
 
   it("should warn that the key already exists", async () => {
     // Arrange
-    mockConsoleWrapper.requestSecretInput = async () => "oldValue";
+    mockUserInterruptionManager.requestSecretInput = async () => "oldValue";
 
     await set(
       { key: "key", force: false },
       mockKeystoreLoader,
-      mockInterruptions,
+      userInteractions,
     );
 
     // Act
-    mockConsoleWrapper.requestSecretInput = async () => "newValue";
+    mockUserInterruptionManager.requestSecretInput = async () => "newValue";
 
     await set(
       { key: "key", force: false },
       mockKeystoreLoader,
-      mockInterruptions,
+      userInteractions,
     );
 
     // Assert
     assert.equal(
-      mockConsoleWrapper.displayMessage.mock.calls[1].arguments[1],
+      mockUserInterruptionManager.displayMessage.mock.calls[1].arguments[1],
       chalk.yellow(
         `The key "key" already exists. Use the ${chalk.blue.italic("--force")} flag to overwrite it.`,
       ),
@@ -113,21 +113,21 @@ describe("tasks - set", () => {
 
   it("should modify an existing value because the flag --force is passed", async () => {
     // Arrange
-    mockConsoleWrapper.requestSecretInput = async () => "oldValue";
+    mockUserInterruptionManager.requestSecretInput = async () => "oldValue";
 
     await set(
       { key: "key", force: false },
       mockKeystoreLoader,
-      mockInterruptions,
+      userInteractions,
     );
 
     // Act
-    mockConsoleWrapper.requestSecretInput = async () => "newValue";
+    mockUserInterruptionManager.requestSecretInput = async () => "newValue";
 
     await set(
       { key: "key", force: true },
       mockKeystoreLoader,
-      mockInterruptions,
+      userInteractions,
     );
 
     // Assert
@@ -137,16 +137,16 @@ describe("tasks - set", () => {
   });
 
   it("should indicate that a value cannot be empty", async () => {
-    mockConsoleWrapper.requestSecretInput = async () => "";
+    mockUserInterruptionManager.requestSecretInput = async () => "";
 
     await set(
       { key: "key", force: true },
       mockKeystoreLoader,
-      mockInterruptions,
+      userInteractions,
     );
 
     assert.equal(
-      mockConsoleWrapper.displayMessage.mock.calls[0].arguments[1],
+      mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
       chalk.red("The value cannot be empty."),
     );
 
@@ -162,7 +162,7 @@ describe("tasks - set", () => {
     await set(
       { key: "key", force: false },
       mockKeystoreLoader,
-      mockInterruptions,
+      userInteractions,
     );
 
     assert.ok(

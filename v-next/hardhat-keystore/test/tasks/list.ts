@@ -11,16 +11,16 @@ import { MockKeystoreLoader } from "../helpers/mock-keystore-loader.js";
 import { MockUserInterruptionManager } from "../helpers/mock-user-interruption-manager.js";
 
 describe("tasks - list", () => {
-  let mockKeystore: MemoryKeystore;
-  let mockConsoleWrapper: MockUserInterruptionManager;
+  let memoryKeystore: MemoryKeystore;
+  let mockUserInterruptionManager: MockUserInterruptionManager;
   let mockKeystoreLoader: MockKeystoreLoader;
   let userInteractions: UserInteractions;
 
   beforeEach(() => {
-    mockKeystore = new MemoryKeystore();
-    mockConsoleWrapper = new MockUserInterruptionManager();
-    userInteractions = new UserInteractions(mockConsoleWrapper);
-    mockKeystoreLoader = new MockKeystoreLoader(mockKeystore);
+    memoryKeystore = new MemoryKeystore();
+    mockUserInterruptionManager = new MockUserInterruptionManager();
+    userInteractions = new UserInteractions(mockUserInterruptionManager);
+    mockKeystoreLoader = new MockKeystoreLoader(memoryKeystore);
   });
 
   it("should indicate that the keystore is not set", async () => {
@@ -29,7 +29,7 @@ describe("tasks - list", () => {
     await list(mockKeystoreLoader, userInteractions);
 
     assert.equal(
-      mockConsoleWrapper.displayMessage.mock.calls[0].arguments[1],
+      mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
       `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
     );
   });
@@ -38,19 +38,19 @@ describe("tasks - list", () => {
     await list(mockKeystoreLoader, userInteractions);
 
     assert.equal(
-      mockConsoleWrapper.displayMessage.mock.calls[0].arguments[1],
+      mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
       "The keystore does not contain any keys.",
     );
   });
 
   it("should list the keys", async () => {
-    mockKeystore.addNewValue("key", "value");
-    mockKeystore.addNewValue("key2", "value2");
+    memoryKeystore.addNewValue("key", "value");
+    memoryKeystore.addNewValue("key2", "value2");
 
     await list(mockKeystoreLoader, userInteractions);
 
     assert.equal(
-      getFullOutput(mockConsoleWrapper.displayMessage, 3),
+      getFullOutput(mockUserInterruptionManager.displayMessage, 3),
       `Keys:
 key
 key2`,

@@ -12,31 +12,31 @@ import { MockKeystoreLoader } from "../helpers/mock-keystore-loader.js";
 import { MockUserInterruptionManager } from "../helpers/mock-user-interruption-manager.js";
 
 describe("tasks - get", () => {
-  let mockKeystore: MemoryKeystore;
-  let mockConsoleWrapper: MockUserInterruptionManager;
+  let memoryKeystore: MemoryKeystore;
+  let mockUserInterruptionManager: MockUserInterruptionManager;
   let mockKeystoreLoader: MockKeystoreLoader;
-  let mockInterruptions: UserInteractions;
+  let userInteractions: UserInteractions;
 
   beforeEach(() => {
-    mockKeystore = new MemoryKeystore();
-    mockConsoleWrapper = new MockUserInterruptionManager();
-    mockInterruptions = new UserInteractions(mockConsoleWrapper);
-    mockKeystoreLoader = new MockKeystoreLoader(mockKeystore);
+    memoryKeystore = new MemoryKeystore();
+    mockUserInterruptionManager = new MockUserInterruptionManager();
+    userInteractions = new UserInteractions(mockUserInterruptionManager);
+    mockKeystoreLoader = new MockKeystoreLoader(memoryKeystore);
   });
 
   it("should get the value", async () => {
-    mockKeystore.addNewValue("myKey", "myValue");
+    memoryKeystore.addNewValue("myKey", "myValue");
 
     await get(
       {
         key: "myKey",
       },
       mockKeystoreLoader,
-      mockInterruptions,
+      userInteractions,
     );
 
     assert.equal(
-      mockConsoleWrapper.displayMessage.mock.calls[0].arguments[1],
+      mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
       "myValue",
     );
   });
@@ -49,7 +49,7 @@ describe("tasks - get", () => {
           key: undefined as any,
         },
         mockKeystoreLoader,
-        mockInterruptions,
+        userInteractions,
       ),
       HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
       {
@@ -67,11 +67,11 @@ describe("tasks - get", () => {
         key: "key",
       },
       mockKeystoreLoader,
-      mockInterruptions,
+      userInteractions,
     );
 
     assert.equal(
-      mockConsoleWrapper.displayMessage.mock.calls[0].arguments[1],
+      mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
       `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
     );
   });
@@ -82,11 +82,11 @@ describe("tasks - get", () => {
         key: "unknown",
       },
       mockKeystoreLoader,
-      mockInterruptions,
+      userInteractions,
     );
 
     assert.equal(
-      mockConsoleWrapper.displayMessage.mock.calls[0].arguments[1],
+      mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
       chalk.red(`Key "unknown" not found`),
     );
   });
