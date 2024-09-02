@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { beforeEach, describe, it } from "node:test";
+import { before, beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
@@ -24,70 +24,96 @@ describe("tasks - get", () => {
     mockKeystoreLoader = new MockKeystoreLoader(memoryKeystore);
   });
 
-  it("should get the value", async () => {
-    memoryKeystore.addNewValue("myKey", "myValue");
+  describe("a successful `get` with a known key", () => {
+    beforeEach(async () => {
+      memoryKeystore.addNewValue("myKey", "myValue");
 
-    await get(
-      {
-        key: "myKey",
-      },
-      mockKeystoreLoader,
-      userInteractions,
-    );
-
-    assert.equal(
-      mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
-      "myValue",
-    );
-  });
-
-  it("should throw because the key is not specified", async () => {
-    await assertRejectsWithHardhatError(
-      get(
+      await get(
         {
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing the error case
-          key: undefined as any,
+          key: "myKey",
         },
         mockKeystoreLoader,
         userInteractions,
-      ),
-      HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
-      {
-        argument: "key",
-        task: "keystore get",
-      },
-    );
+      );
+    });
+
+    it("should display the gotten value", async () => {
+      assert.equal(
+        mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
+        "myValue",
+      );
+    });
+
+    it("should not save the keystore to file", async () => {
+      assert.ok(!mockKeystoreLoader.saveCalled);
+    });
   });
 
-  it("should indicate that the keystore is not set", async () => {
-    mockKeystoreLoader.setNoExistingKeystore();
+  describe("a `get` when the keystore file does not exist", () => {
+    beforeEach(async () => {
+      mockKeystoreLoader.setNoExistingKeystore();
 
-    await get(
-      {
-        key: "key",
-      },
-      mockKeystoreLoader,
-      userInteractions,
-    );
+      await get(
+        {
+          key: "key",
+        },
+        mockKeystoreLoader,
+        userInteractions,
+      );
+    });
 
-    assert.equal(
-      mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
-      `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
-    );
+    it("should display a message that the keystore is not set", async () => {
+      assert.equal(
+        mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
+        `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
+      );
+    });
+
+    it("should not attempt to save the keystore", async () => {
+      assert.ok(!mockKeystoreLoader.saveCalled);
+    });
   });
 
-  it("should indicate that the key is not found", async () => {
-    await get(
-      {
-        key: "unknown",
-      },
-      mockKeystoreLoader,
-      userInteractions,
-    );
+  describe("a `get` with a key that is not in the keystore", () => {
+    beforeEach(async () => {
+      await get(
+        {
+          key: "unknown",
+        },
+        mockKeystoreLoader,
+        userInteractions,
+      );
+    });
 
-    assert.equal(
-      mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
-      chalk.red(`Key "unknown" not found`),
-    );
+    it("should display a message that the key is not found", async () => {
+      assert.equal(
+        mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
+        chalk.red(`Key "unknown" not found`),
+      );
+    });
+
+    it("should not attempt to save the keystore", async () => {
+      assert.ok(!mockKeystoreLoader.saveCalled);
+    });
+  });
+
+  describe("a `get` with an unspecified key (programmatic)", async () => {
+    it("should throw a missing task argument Hardhat error if no key provided", async () => {
+      await assertRejectsWithHardhatError(
+        get(
+          {
+            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing the error case
+            key: undefined as any,
+          },
+          mockKeystoreLoader,
+          userInteractions,
+        ),
+        HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
+        {
+          argument: "key",
+          task: "keystore get",
+        },
+      );
+    });
   });
 });

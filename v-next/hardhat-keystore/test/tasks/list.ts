@@ -23,37 +23,53 @@ describe("tasks - list", () => {
     mockKeystoreLoader = new MockKeystoreLoader(memoryKeystore);
   });
 
-  it("should indicate that the keystore is not set", async () => {
-    mockKeystoreLoader.setNoExistingKeystore();
+  describe("a successful `list`", () => {
+    beforeEach(async () => {
+      memoryKeystore.addNewValue("key", "value");
+      memoryKeystore.addNewValue("key2", "value2");
 
-    await list(mockKeystoreLoader, userInteractions);
+      await list(mockKeystoreLoader, userInteractions);
+    });
 
-    assert.equal(
-      mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
-      `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
-    );
-  });
-
-  it("should indicate that the keystore has no keys", async () => {
-    await list(mockKeystoreLoader, userInteractions);
-
-    assert.equal(
-      mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
-      "The keystore does not contain any keys.",
-    );
-  });
-
-  it("should list the keys", async () => {
-    memoryKeystore.addNewValue("key", "value");
-    memoryKeystore.addNewValue("key2", "value2");
-
-    await list(mockKeystoreLoader, userInteractions);
-
-    assert.equal(
-      getFullOutput(mockUserInterruptionManager.displayMessage, 3),
-      `Keys:
+    it("should display the keys as a message", async () => {
+      assert.equal(
+        getFullOutput(mockUserInterruptionManager.displayMessage, 3),
+        `Keys:
 key
 key2`,
-    );
+      );
+    });
+  });
+
+  describe("a `list` when the keystore file does not exist", () => {
+    beforeEach(async () => {
+      mockKeystoreLoader.setNoExistingKeystore();
+
+      await list(mockKeystoreLoader, userInteractions);
+    });
+
+    it("should display a message that the keystore is not set", async () => {
+      assert.equal(
+        mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
+        `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
+      );
+    });
+
+    it("should not attempt to save the keystore", async () => {
+      assert.equal(mockKeystoreLoader.saveCalled, false);
+    });
+  });
+
+  describe("a `list` when the keystore has no keys", () => {
+    beforeEach(async () => {
+      await list(mockKeystoreLoader, userInteractions);
+    });
+
+    it("should display a message that the keystore has no keys", async () => {
+      assert.equal(
+        mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
+        "The keystore does not contain any keys.",
+      );
+    });
   });
 });
