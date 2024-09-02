@@ -1,4 +1,4 @@
-import type { HardhatUserConfig } from "@ignored/hardhat-vnext-core/config";
+import type { HardhatUserConfig } from "../../../../../src/config.js";
 
 const config: HardhatUserConfig = {
   tasks: [],

@@ -1,7 +1,8 @@
-import type { NewTaskActionFunction } from "@ignored/hardhat-vnext-core/types/tasks";
+import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
-import { getCacheDir } from "@ignored/hardhat-vnext-core/global-dir";
 import { emptyDir, remove } from "@ignored/hardhat-vnext-utils/fs";
+
+import { getCacheDir } from "../../core/global-dir.js";
 
 interface CleanActionArguments {
   global: boolean;

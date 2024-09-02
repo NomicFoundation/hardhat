@@ -1,4 +1,4 @@
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core/types/hre";
+import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 import type repl from "node:repl";
 
 import assert from "node:assert/strict";

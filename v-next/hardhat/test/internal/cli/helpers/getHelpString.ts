@@ -1,12 +1,12 @@
-import type { Task } from "@ignored/hardhat-vnext-core/types/tasks";
+import type { Task } from "../../../../src/types/tasks.js";
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { ArgumentType } from "@ignored/hardhat-vnext-core/config";
 import chalk from "chalk";
 
 import { getHelpString } from "../../../../src/internal/cli/helpers/getHelpString.js";
+import { ArgumentType } from "../../../../src/types/arguments.js";
 
 describe("getHelpString", function () {
   describe("when the task is empty", function () {

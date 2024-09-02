@@ -1,6 +1,6 @@
-import "@ignored/hardhat-vnext-core/types/config";
+import "../../../types/config.js";
 
-declare module "@ignored/hardhat-vnext-core/types/config" {
+declare module "../../../types/config.js" {
   interface FooUserConfig {
     bar?: number | number[];
   }

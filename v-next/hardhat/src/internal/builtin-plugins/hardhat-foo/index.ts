@@ -1,7 +1,6 @@
-import type { HardhatPlugin } from "@ignored/hardhat-vnext-core/types/plugins";
+import type { HardhatPlugin } from "../../../types/plugins.js";
 
-import { globalFlag, task } from "@ignored/hardhat-vnext-core/config";
-
+import { task, globalFlag } from "../../core/config.js";
 import "./type-extensions.js";
 
 const hardhatPlugin: HardhatPlugin = {

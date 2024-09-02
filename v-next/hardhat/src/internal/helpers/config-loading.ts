@@ -1,4 +1,4 @@
-import type { HardhatUserConfig } from "@ignored/hardhat-vnext-core/config";
+import type { HardhatUserConfig } from "../../types/config.js";
 
 import { isAbsolute, resolve } from "node:path";
 import { pathToFileURL } from "node:url";

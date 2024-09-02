@@ -1,10 +1,9 @@
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core/types/hre";
+import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 
 import assert from "node:assert/strict";
 import path from "node:path";
 import { before, beforeEach, describe, it } from "node:test";
 
-import { getCacheDir } from "@ignored/hardhat-vnext-core/global-dir";
 import {
   exists,
   mkdir,
@@ -16,6 +15,7 @@ import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import cleanAction from "../../../../src/internal/builtin-plugins/clean/task-action.js";
+import { getCacheDir } from "../../../../src/internal/core/global-dir.js";
 
 let hre: HardhatRuntimeEnvironment;
 let globalCacheDir: string;

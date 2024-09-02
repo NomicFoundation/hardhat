@@ -1,6 +1,6 @@
-import type { HardhatUserConfig } from "@ignored/hardhat-vnext-core/config";
+import type { HardhatUserConfig } from "../../../../../src/config.js";
 
-import { task } from "@ignored/hardhat-vnext-core/config";
+import { task } from "../../../../../src/config.js";
 
 const customTask = task("test", "subtask")
   .setAction(async () => {})

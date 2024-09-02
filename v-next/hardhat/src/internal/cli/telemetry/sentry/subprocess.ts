@@ -1,3 +1,5 @@
+/* eslint-disable no-restricted-syntax -- This is the entry point of a
+subprocess, so we need to allow of top-level await here */
 import type { Event } from "@sentry/node";
 
 import { writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";

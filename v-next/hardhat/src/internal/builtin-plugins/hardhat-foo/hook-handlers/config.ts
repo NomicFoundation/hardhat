@@ -1,13 +1,19 @@
-import type { ConfigHooks } from "@ignored/hardhat-vnext-core/types/hooks";
+import type { ConfigHooks } from "../../../../types/hooks.js";
 
 import {
   sensitiveStringType,
+  unionType,
   validateUserConfigZodType,
 } from "@ignored/hardhat-vnext-zod-utils";
 import { z } from "zod";
 
 const fooUserConfigType = z.object({
-  bar: z.optional(z.union([z.number(), z.array(z.number())])),
+  bar: z.optional(
+    unionType(
+      [z.number(), z.array(z.number())],
+      "Expected a number or an array of numbers",
+    ),
+  ),
 });
 
 const hardhatUserConfig = z.object({

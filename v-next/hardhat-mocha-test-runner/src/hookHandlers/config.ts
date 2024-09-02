@@ -1,6 +1,9 @@
 import type { ConfigHooks } from "@ignored/hardhat-vnext/types/hooks";
 
-import { validateUserConfigZodType } from "@ignored/hardhat-vnext-zod-utils";
+import {
+  unionType,
+  validateUserConfigZodType,
+} from "@ignored/hardhat-vnext-zod-utils";
 import { z } from "zod";
 
 const mochaConfigType = z.object({
@@ -27,23 +30,39 @@ const mochaConfigType = z.object({
   reporterOptions: z.any().optional(),
   retries: z.number().optional(),
   slow: z.number().optional(),
-  timeout: z.union([z.number(), z.string()]).optional(),
-  ui: z
-    .union([
+  timeout: unionType(
+    [z.number(), z.string()],
+    "Expected a number or a string",
+  ).optional(),
+  ui: unionType(
+    [
       z.literal("bdd"),
       z.literal("tdd"),
       z.literal("qunit"),
       z.literal("exports"),
-    ])
-    .optional(),
+    ],
+    'Expected "bdd", "tdd", "qunit" or "exports"',
+  ).optional(),
   parallel: z.boolean().optional(),
   jobs: z.number().optional(),
   rootHooks: z
     .object({
-      afterAll: z.union([z.function(), z.array(z.function())]).optional(),
-      beforeAll: z.union([z.function(), z.array(z.function())]).optional(),
-      afterEach: z.union([z.function(), z.array(z.function())]).optional(),
-      beforeEach: z.union([z.function(), z.array(z.function())]).optional(),
+      afterAll: unionType(
+        [z.function(), z.array(z.function())],
+        "Expected a function or an array of functions",
+      ).optional(),
+      beforeAll: unionType(
+        [z.function(), z.array(z.function())],
+        "Expected a function or an array of functions",
+      ).optional(),
+      afterEach: unionType(
+        [z.function(), z.array(z.function())],
+        "Expected a function or an array of functions",
+      ).optional(),
+      beforeEach: unionType(
+        [z.function(), z.array(z.function())],
+        "Expected a function or an array of functions",
+      ).optional(),
     })
     .optional(),
   require: z.array(z.string()).optional(),

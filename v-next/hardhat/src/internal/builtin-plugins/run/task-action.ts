@@ -1,4 +1,4 @@
-import type { NewTaskActionFunction } from "@ignored/hardhat-vnext-core/types/tasks";
+import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
 import { isAbsolute, resolve } from "node:path";
 import { pathToFileURL } from "node:url";

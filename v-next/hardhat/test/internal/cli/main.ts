@@ -1,25 +1,19 @@
 import type {
   GlobalOptionDefinitions,
   GlobalOptionDefinitionsEntry,
-} from "@ignored/hardhat-vnext-core/types/global-options";
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext-core/types/hre";
+} from "../../../src/types/global-options.js";
+import type { HardhatRuntimeEnvironment } from "../../../src/types/hre.js";
 import type {
-  NewTaskDefinition,
   NewTaskDefinitionBuilder,
+  NewTaskDefinition,
   Task,
   TaskArguments,
-} from "@ignored/hardhat-vnext-core/types/tasks";
+} from "../../../src/types/tasks.js";
 
 import assert from "node:assert/strict";
 import { afterEach, before, describe, it } from "node:test";
 import { pathToFileURL } from "node:url";
 
-import {
-  ArgumentType,
-  globalFlag,
-  globalOption,
-  task,
-} from "@ignored/hardhat-vnext-core/config";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { isCi } from "@ignored/hardhat-vnext-utils/ci";
 import {
@@ -37,8 +31,14 @@ import {
   parseTask,
   parseTaskArguments,
 } from "../../../src/internal/cli/main.js";
+import {
+  globalOption,
+  globalFlag,
+  task,
+} from "../../../src/internal/core/config.js";
 import { resetGlobalHardhatRuntimeEnvironment } from "../../../src/internal/global-hre-instance.js";
 import { getHardhatVersion } from "../../../src/internal/utils/package.js";
+import { ArgumentType } from "../../../src/types/arguments.js";
 
 async function getTasksAndHreEnvironment(
   tasksBuilders: NewTaskDefinitionBuilder[],

@@ -1,14 +1,15 @@
-import type { Task } from "@ignored/hardhat-vnext-core/types/tasks";
+import type { Task } from "../../../../src/types/tasks.js";
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { buildGlobalOptionDefinitions } from "@ignored/hardhat-vnext-core";
-import { globalOption, ArgumentType } from "@ignored/hardhat-vnext-core/config";
 import { readClosestPackageJson } from "@ignored/hardhat-vnext-utils/package";
 
 import { BUILTIN_GLOBAL_OPTIONS_DEFINITIONS } from "../../../../src/internal/builtin-global-options.js";
 import { getGlobalHelpString } from "../../../../src/internal/cli/helpers/getGlobalHelpString.js";
+import { globalOption } from "../../../../src/internal/core/config.js";
+import { buildGlobalOptionDefinitions } from "../../../../src/internal/core/global-options.js";
+import { ArgumentType } from "../../../../src/types/arguments.js";
 
 describe("getGlobalHelpString", async function () {
   const packageJson = await readClosestPackageJson(import.meta.url);
