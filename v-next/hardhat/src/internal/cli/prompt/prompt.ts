@@ -10,6 +10,7 @@ export async function confirmationPromptWithTimeout(
   message: string,
   timeoutMilliseconds: number = 10_000,
 ): Promise<boolean | undefined> {
+  let timeout;
   try {
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- The types in the module "enquirer" are not properly defined
     const { default: enquirer } = (await import("enquirer")) as any;
@@ -20,7 +21,6 @@ export async function confirmationPromptWithTimeout(
 
     // The timeout is a safety measure in case Hardhat is executed in a CI or another non-interactive environment and we do not detect it.
     // Instead of blocking the process indefinitely, we abort the prompt after a while.
-    let timeout;
     const timeoutPromise = new Promise((resolve) => {
       timeout = setTimeout(resolve, timeoutMilliseconds);
     });
@@ -30,11 +30,8 @@ export async function confirmationPromptWithTimeout(
       timeoutPromise,
     ]);
 
-    clearTimeout(timeout);
-
     if (result === undefined) {
       await prompt.cancel();
-      return undefined;
     }
 
     return result;
@@ -45,6 +42,10 @@ export async function confirmationPromptWithTimeout(
     }
 
     throw e;
+  } finally {
+    // We can always clear the timeout, even if not set, this API is safe to
+    // call with invalid values.
+    clearTimeout(timeout);
   }
 }
 
