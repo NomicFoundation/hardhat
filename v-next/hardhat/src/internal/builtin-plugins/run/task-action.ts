@@ -36,6 +36,10 @@ const runScriptWithHardhat: NewTaskActionFunction<RunActionArguments> = async (
   } catch (error) {
     ensureError(error);
 
+    if (HardhatError.isHardhatError(error)) {
+      throw error;
+    }
+
     throw new HardhatError(
       HardhatError.ERRORS.BUILTIN_TASKS.RUN_SCRIPT_ERROR,
       {
