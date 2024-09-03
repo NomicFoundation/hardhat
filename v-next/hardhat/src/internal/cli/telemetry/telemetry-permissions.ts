@@ -8,7 +8,7 @@ import {
 } from "@ignored/hardhat-vnext-utils/fs";
 import debug from "debug";
 
-import { getConfigDir } from "../../global-dir.js";
+import { getTelemetryDir } from "../../global-dir.js";
 import { confirmationPromptWithTimeout } from "../prompt/prompt.js";
 
 import { sendTelemetryConsentAnalytics } from "./analytics/analytics.js";
@@ -117,7 +117,7 @@ async function getTelemetryConsent(telemetryConsentFilePath?: string) {
 }
 
 async function getTelemetryConsentFilePath() {
-  const configDir = await getConfigDir();
+  const configDir = await getTelemetryDir();
   return path.join(configDir, "telemetry-consent.json");
 }
 
