@@ -1,5 +1,7 @@
 import { ensureDir } from "@ignored/hardhat-vnext-utils/fs";
 
+import { HARDHAT_PACKAGE_NAME } from "./constants.js";
+
 /**
  * Returns the path to the hardhat configuration directory.
  *
@@ -27,17 +29,15 @@ export async function getCacheDir(): Promise<string> {
  * If no package name is provided, the default package name "hardhat" is used.
  * Ensures that the directory exists before returning the path.
  *
- * @param packageName - The name of the package to get the telemetry directory for. Defaults to "hardhat".
- *
  * @returns A promise that resolves to the path of the telemetry directory.
  */
-export async function getTelemetryDir(packageName?: string): Promise<string> {
-  const { data } = await generatePaths(packageName);
+export async function getTelemetryDir(): Promise<string> {
+  const { data } = await generatePaths();
   await ensureDir(data);
   return data;
 }
 
-async function generatePaths(packageName = "hardhat") {
+async function generatePaths() {
   const { default: envPaths } = await import("env-paths");
-  return envPaths(packageName);
+  return envPaths(HARDHAT_PACKAGE_NAME);
 }
