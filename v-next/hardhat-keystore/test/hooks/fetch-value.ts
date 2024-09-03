@@ -21,10 +21,15 @@ const nonExistingKeystoreFilePath = path.join(
   "../../fixture-projects/unencrypted-keystore/keystore.json",
 );
 
+const exampleConfigurationVariable: ConfigurationVariable = {
+  _type: "ConfigurationVariable",
+  name: "key1",
+};
+
 describe("hook", () => {
   let hre: HardhatRuntimeEnvironment;
 
-  describe("when the keystore file has been setup", () => {
+  describe("when there is an existing valid keystore file", () => {
     beforeEach(async () => {
       hre = await createHardhatRuntimeEnvironment({
         plugins: [
@@ -34,77 +39,88 @@ describe("hook", () => {
       });
     });
 
-    it("should invoke the keystore and return the value from it", async () => {
-      const configVar: ConfigurationVariable = {
-        _type: "ConfigurationVariable",
-        name: "key1",
-      };
+    describe("successful get on a key in the keystore", () => {
+      let resultValue: string;
 
-      const resultValue = await hre.hooks.runHandlerChain(
-        "configurationVariables",
-        "fetchValue",
-        [configVar],
-        async (_context, _configVar) => {
-          return "unexpected-default-value";
-        },
-      );
+      beforeEach(async () => {
+        resultValue = await hre.hooks.runHandlerChain(
+          "configurationVariables",
+          "fetchValue",
+          [exampleConfigurationVariable],
+          async (_context, _configVar) => {
+            return "unexpected-default-value";
+          },
+        );
+      });
 
-      assert.equal(resultValue, "value1");
+      it("should the value for the key in the keystore", async () => {
+        assert.equal(resultValue, "value1");
+      });
     });
 
-    it("should invoke the next function because the keystore is found but the key is not present", async () => {
-      const configVar: ConfigurationVariable = {
-        _type: "ConfigurationVariable",
-        name: "non-existant-key-in-keystore",
-      };
+    describe("where the key is not in the keystore", () => {
+      let resultValue: string;
+      beforeEach(async () => {
+        resultValue = await hre.hooks.runHandlerChain(
+          "configurationVariables",
+          "fetchValue",
+          [
+            {
+              ...exampleConfigurationVariable,
+              name: "non-existant-key-in-keystore",
+            },
+          ],
+          async (_context, _configVar) => {
+            return "value-from-hardhat-package-not-keystore";
+          },
+        );
+      });
 
-      const resultValue = await hre.hooks.runHandlerChain(
-        "configurationVariables",
-        "fetchValue",
-        [configVar],
-        async (_context, _configVar) => {
-          return "value-from-hardhat-package-not-keystore";
-        },
-      );
-
-      assert.equal(resultValue, "value-from-hardhat-package-not-keystore");
+      it("should invoke the next function because the keystore is found but the key is not present", async () => {
+        assert.equal(resultValue, "value-from-hardhat-package-not-keystore");
+      });
     });
 
-    it("should use the cache and not reload the keystore", async () => {
-      const configVar: ConfigurationVariable = {
-        _type: "ConfigurationVariable",
-        name: "key1",
-      };
+    describe("caching", () => {
+      describe("on a second get against the same hre", () => {
+        let resultValue2: string;
 
-      const resultValue = await hre.hooks.runHandlerChain(
-        "configurationVariables",
-        "fetchValue",
-        [configVar],
-        async (_context, _configVar) => {
-          return "unexpected-default-value";
-        },
-      );
+        beforeEach(async () => {
+          const resultValue = await hre.hooks.runHandlerChain(
+            "configurationVariables",
+            "fetchValue",
+            [{ ...exampleConfigurationVariable, name: "key1" }],
+            async (_context, _configVar) => {
+              return "unexpected-default-value";
+            },
+          );
 
-      assert.equal(resultValue, "value1");
+          assert.equal(resultValue, "value1");
 
-      // Set a new keystore path.
-      // Without the cache, it should fail to find the key and throw an error because the keystore file does not exist.
-      // However, since the value is cached, it should return the value even if the keystore file path is missing.
-      hre.config.keystore.filePath = nonExistingKeystoreFilePath;
-      const resultValue2 = await hre.hooks.runHandlerChain(
-        "configurationVariables",
-        "fetchValue",
-        [configVar],
-        async (_context, _configVar) => {
-          return "unexpected-default-value";
-        },
-      );
+          // Set a new keystore path.
+          // Without the cache, it should fail to find the key and throw an error because the keystore file does not exist.
+          // However, since the value is cached, it should return the value even if the keystore file path is missing.
+          hre.config.keystore.filePath = nonExistingKeystoreFilePath;
+          resultValue2 = await hre.hooks.runHandlerChain(
+            "configurationVariables",
+            "fetchValue",
+            [{ ...exampleConfigurationVariable, name: "key2" }],
+            async (_context, _configVar) => {
+              return "unexpected-default-value";
+            },
+          );
+        });
 
-      assert.equal(resultValue2, "value1");
+        it("should successfully get a key on ", async () => {
+          assert.equal(resultValue2, "value2");
+        });
+      });
     });
   });
 
   describe("when the keystore file has not been setup", () => {
+    let resultValue: string;
+
     beforeEach(async () => {
       hre = await createHardhatRuntimeEnvironment({
         plugins: [
@@ -112,23 +128,18 @@ describe("hook", () => {
           setupKeystoreFileLocationOverrideAt(nonExistingKeystoreFilePath),
         ],
       });
-    });
 
-    it("should invoke the next function because no keystore is found", async () => {
-      const configVar: ConfigurationVariable = {
-        _type: "ConfigurationVariable",
-        name: "key1",
-      };
-
-      const resultValue = await hre.hooks.runHandlerChain(
+      resultValue = await hre.hooks.runHandlerChain(
         "configurationVariables",
         "fetchValue",
-        [configVar],
+        [exampleConfigurationVariable],
         async (_context, _configVar) => {
           return "value-from-hardhat-package";
         },
       );
+    });
 
+    it("should invoke the next function because no keystore is found", async () => {
       assert.equal(resultValue, "value-from-hardhat-package");
     });
   });
