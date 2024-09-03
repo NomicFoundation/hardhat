@@ -95,6 +95,8 @@ export function isTelemetryAllowedInEnvironment(): boolean {
 async function getTelemetryConsent(): Promise<boolean | undefined> {
   const telemetryConsentFilePath = await getTelemetryConsentFilePath();
 
+  log(`Looking for telemetry consent file at ${telemetryConsentFilePath}`);
+
   if (await exists(telemetryConsentFilePath)) {
     // Telemetry consent was already provided, hence return the answer
     return (await readJsonFile<TelemetryConsent>(telemetryConsentFilePath))
@@ -116,8 +118,8 @@ async function requestTelemetryConsent(): Promise<boolean> {
     return false;
   }
 
-  // Store user's consent choice
   log(`Storing telemetry consent with value: ${consent}`);
+
   await writeJsonFile(await getTelemetryConsentFilePath(), { consent });
 
   await sendTelemetryConsentAnalytics(consent);
@@ -126,8 +128,6 @@ async function requestTelemetryConsent(): Promise<boolean> {
 }
 
 async function confirmTelemetryConsent(): Promise<boolean | undefined> {
-  log("Prompting user for telemetry consent");
-
   return confirmationPromptWithTimeout(
     "telemetryConsent",
     "Help us improve Hardhat with anonymous crash reports & basic usage data?",
