@@ -29,6 +29,7 @@
     "@types/node": "^20.14.9",
     "mocha": "^10.0.0",
     "prettier": "3.2.5",
-    "typescript": "~5.5.0"
+    "typescript": "~5.5.0",
+    "viem": "^2.7.6"
   }
 }

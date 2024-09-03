@@ -8,7 +8,7 @@ import {
 } from "@ignored/hardhat-vnext-utils/fs";
 import debug from "debug";
 
-import { getConfigDir } from "../../global-dir.js";
+import { getTelemetryDir } from "../../global-dir.js";
 import { confirmationPromptWithTimeout } from "../prompt/prompt.js";
 
 import { sendTelemetryConsentAnalytics } from "./analytics/analytics.js";
@@ -24,16 +24,20 @@ interface TelemetryConsent {
  * If not, prompts the user to provide it.
  * Consent is only asked in interactive environments.
  *
+ * @param telemetryConsentFilePath - The path to the telemetry consent file,
+ * which should only be provided in tests.
  * @returns True if the user consents to telemetry and if current environment supports telemetry, false otherwise.
  */
-export async function ensureTelemetryConsent(): Promise<boolean> {
+export async function ensureTelemetryConsent(
+  telemetryConsentFilePath?: string,
+): Promise<boolean> {
   log("Ensuring that user has provided telemetry consent");
 
   if (!isTelemetryAllowedInEnvironment()) {
     return false;
   }
 
-  const consent = await getTelemetryConsent();
+  const consent = await getTelemetryConsent(telemetryConsentFilePath);
   if (consent !== undefined) {
     return consent;
   }
@@ -45,9 +49,13 @@ export async function ensureTelemetryConsent(): Promise<boolean> {
 /**
  * Checks whether telemetry is supported in the current environment and whether the user has provided consent.
  *
+ * @param telemetryConsentFilePath - The path to the telemetry consent file,
+ * which should only be provided in tests.
  * @returns True if the user consents to telemetry and if current environment supports telemetry, false otherwise.
  */
-export async function isTelemetryAllowed(): Promise<boolean> {
+export async function isTelemetryAllowed(
+  telemetryConsentFilePath?: string,
+): Promise<boolean> {
   if (!isTelemetryAllowedInEnvironment()) {
     return false;
   }
@@ -59,7 +67,7 @@ export async function isTelemetryAllowed(): Promise<boolean> {
       : false;
   }
 
-  const consent = await getTelemetryConsent();
+  const consent = await getTelemetryConsent(telemetryConsentFilePath);
   log(`Telemetry consent value: ${consent}`);
 
   return consent !== undefined ? consent : false;
@@ -89,11 +97,15 @@ export function isTelemetryAllowedInEnvironment(): boolean {
 /**
  * Retrieves the user's telemetry consent status from the consent file.
  *
+ * @param telemetryConsentFilePath - The path to the telemetry consent file,
+ * which should only be provided in tests.
  * @returns True if the user consents to telemetry, false if they do not consent,
  * and undefined if no consent has been provided.
  */
-async function getTelemetryConsent(): Promise<boolean | undefined> {
-  const telemetryConsentFilePath = await getTelemetryConsentFilePath();
+async function getTelemetryConsent(telemetryConsentFilePath?: string) {
+  telemetryConsentFilePath ??= await getTelemetryConsentFilePath();
+
+  log(`Looking for telemetry consent file at ${telemetryConsentFilePath}`);
 
   if (await exists(telemetryConsentFilePath)) {
     // Telemetry consent was already provided, hence return the answer
@@ -105,7 +117,7 @@ async function getTelemetryConsent(): Promise<boolean | undefined> {
 }
 
 async function getTelemetryConsentFilePath() {
-  const configDir = await getConfigDir();
+  const configDir = await getTelemetryDir();
   return path.join(configDir, "telemetry-consent.json");
 }
 
@@ -116,8 +128,8 @@ async function requestTelemetryConsent(): Promise<boolean> {
     return false;
   }
 
-  // Store user's consent choice
   log(`Storing telemetry consent with value: ${consent}`);
+
   await writeJsonFile(await getTelemetryConsentFilePath(), { consent });
 
   await sendTelemetryConsentAnalytics(consent);
@@ -126,8 +138,6 @@ async function requestTelemetryConsent(): Promise<boolean> {
 }
 
 async function confirmTelemetryConsent(): Promise<boolean | undefined> {
-  log("Prompting user for telemetry consent");
-
   return confirmationPromptWithTimeout(
     "telemetryConsent",
     "Help us improve Hardhat with anonymous crash reports & basic usage data?",

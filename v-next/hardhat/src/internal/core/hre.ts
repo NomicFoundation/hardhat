@@ -6,6 +6,7 @@ import type {
 } from "../../types/global-options.js";
 import type { HookContext, HookManager } from "../../types/hooks.js";
 import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
+import type { NetworkManager } from "../../types/network.js";
 import type { HardhatPlugin } from "../../types/plugins.js";
 import type { TaskManager } from "../../types/tasks.js";
 import type { UserInterruptionManager } from "../../types/user-interruptions.js";
@@ -27,6 +28,11 @@ import { UserInterruptionManagerImplementation } from "./user-interruptions.js";
 export class HardhatRuntimeEnvironmentImplementation
   implements HardhatRuntimeEnvironment
 {
+  // NOTE: This is a small architectural violation, as this shouldn't be needed
+  // here, because it's added by a plugin. But as that plugin is builtin, its
+  // type extensions also affect this module.
+  public network!: NetworkManager;
+
   public static async create(
     inputUserConfig: HardhatUserConfig,
     userProvidedGlobalOptions: Partial<GlobalOptions>,
@@ -73,7 +79,7 @@ export class HardhatRuntimeEnvironmentImplementation
       resolvedProjectRoot,
       hooks,
       resolvedPlugins,
-      inputUserConfig,
+      extendedUserConfig,
     );
 
     // We override the plugins and the proejct root, as we want to prevent

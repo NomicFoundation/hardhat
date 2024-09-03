@@ -1,4 +1,4 @@
-import type { ProviderRpcError } from "../../types/providers.js";
+import type { ProviderRpcError } from "../../../types/providers.js";
 
 import { CustomError } from "@ignored/hardhat-vnext-utils/error";
 import { isObject } from "@ignored/hardhat-vnext-utils/lang";

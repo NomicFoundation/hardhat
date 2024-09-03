@@ -190,6 +190,7 @@ describe("HRE intialization", () => {
           showStackTraces: false,
           version: false,
           myGlobalOption: "default",
+          network: "",
         });
       });
     });

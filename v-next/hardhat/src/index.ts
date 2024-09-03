@@ -2,6 +2,7 @@ import type { HardhatConfig } from "./types/config.js";
 import type { GlobalOptions } from "./types/global-options.js";
 import type { HookManager } from "./types/hooks.js";
 import type { HardhatRuntimeEnvironment } from "./types/hre.js";
+import type { NetworkManager } from "./types/network.js";
 import type { TaskManager } from "./types/tasks.js";
 import type { UserInterruptionManager } from "./types/user-interruptions.js";
 
@@ -20,5 +21,9 @@ export const tasks: TaskManager = hre.tasks;
 export const globalOptions: GlobalOptions = hre.globalOptions;
 export const hooks: HookManager = hre.hooks;
 export const interruptions: UserInterruptionManager = hre.interruptions;
+
+// NOTE: This is a small architectural violation, as the network manager comes
+// from a builtin plugin, and plugins can't add their own exports here.
+export const network: NetworkManager = hre.network;
 
 export default hre;

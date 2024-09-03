@@ -25,7 +25,9 @@
     "./types/global-options": "./dist/src/types/global-options.js",
     "./types/hooks": "./dist/src/types/hooks.js",
     "./types/hre": "./dist/src/types/hre.js",
+    "./types/network": "./dist/src/types/network.js",
     "./types/plugins": "./dist/src/types/plugins.js",
+    "./types/providers": "./dist/src/types/providers.js",
     "./types/tasks": "./dist/src/types/tasks.js",
     "./types/user-interruptions": "./dist/src/types/user-interruptions.js",
     "./types/utils": "./dist/src/types/utils.js"
