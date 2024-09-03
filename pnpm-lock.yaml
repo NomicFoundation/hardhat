@@ -1999,12 +1999,12 @@ importers:
       debug:
         specifier: ^4.1.1
         version: 4.3.6(supports-color@8.1.1)
+      ethereum-cryptography:
+        specifier: ^2.2.1
+        version: 2.2.1
       fast-equals:
         specifier: ^5.0.1
         version: 5.0.1
-      keccak:
-        specifier: ^3.0.4
-        version: 3.0.4
       rfdc:
         specifier: ^1.3.1
         version: 1.4.1
@@ -2024,9 +2024,6 @@ importers:
       '@types/debug':
         specifier: ^4.1.4
         version: 4.1.12
-      '@types/keccak':
-        specifier: ^3.0.4
-        version: 3.0.4
       '@types/node':
         specifier: ^20.14.9
         version: 20.14.14
