@@ -24,16 +24,20 @@ interface TelemetryConsent {
  * If not, prompts the user to provide it.
  * Consent is only asked in interactive environments.
  *
+ * @param telemetryConsentFilePath - The path to the telemetry consent file,
+ * which should only be provided in tests.
  * @returns True if the user consents to telemetry and if current environment supports telemetry, false otherwise.
  */
-export async function ensureTelemetryConsent(): Promise<boolean> {
+export async function ensureTelemetryConsent(
+  telemetryConsentFilePath?: string,
+): Promise<boolean> {
   log("Ensuring that user has provided telemetry consent");
 
   if (!isTelemetryAllowedInEnvironment()) {
     return false;
   }
 
-  const consent = await getTelemetryConsent();
+  const consent = await getTelemetryConsent(telemetryConsentFilePath);
   if (consent !== undefined) {
     return consent;
   }
@@ -45,9 +49,13 @@ export async function ensureTelemetryConsent(): Promise<boolean> {
 /**
  * Checks whether telemetry is supported in the current environment and whether the user has provided consent.
  *
+ * @param telemetryConsentFilePath - The path to the telemetry consent file,
+ * which should only be provided in tests.
  * @returns True if the user consents to telemetry and if current environment supports telemetry, false otherwise.
  */
-export async function isTelemetryAllowed(): Promise<boolean> {
+export async function isTelemetryAllowed(
+  telemetryConsentFilePath?: string,
+): Promise<boolean> {
   if (!isTelemetryAllowedInEnvironment()) {
     return false;
   }
@@ -59,7 +67,7 @@ export async function isTelemetryAllowed(): Promise<boolean> {
       : false;
   }
 
-  const consent = await getTelemetryConsent();
+  const consent = await getTelemetryConsent(telemetryConsentFilePath);
   log(`Telemetry consent value: ${consent}`);
 
   return consent !== undefined ? consent : false;
@@ -89,11 +97,13 @@ export function isTelemetryAllowedInEnvironment(): boolean {
 /**
  * Retrieves the user's telemetry consent status from the consent file.
  *
+ * @param telemetryConsentFilePath - The path to the telemetry consent file,
+ * which should only be provided in tests.
  * @returns True if the user consents to telemetry, false if they do not consent,
  * and undefined if no consent has been provided.
  */
-async function getTelemetryConsent(): Promise<boolean | undefined> {
-  const telemetryConsentFilePath = await getTelemetryConsentFilePath();
+async function getTelemetryConsent(telemetryConsentFilePath?: string) {
+  telemetryConsentFilePath ??= await getTelemetryConsentFilePath();
 
   log(`Looking for telemetry consent file at ${telemetryConsentFilePath}`);
 
