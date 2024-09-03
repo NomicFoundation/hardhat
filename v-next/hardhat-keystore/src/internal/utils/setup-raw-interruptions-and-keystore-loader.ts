@@ -4,6 +4,7 @@ import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre
 import { DirectUserInterruptionManager } from "../../internal/ui/direct-user-interruption-manager.js";
 import { UserInteractions } from "../../internal/ui/user-interactions.js";
 import { UnencryptedKeystore } from "../keystores/unencrypted-keystore.js";
+import { FileManagerImpl } from "../loaders/file-manager.js";
 import { KeystoreFileLoader } from "../loaders/keystore-file-loader.js";
 
 export async function setupRawInterruptionsAndKeystoreLoader(
@@ -13,11 +14,13 @@ export async function setupRawInterruptionsAndKeystoreLoader(
   interruptions: UserInteractions;
 }> {
   const keystoreFilePath = hre.config.keystore.filePath;
+  const fileManager = new FileManagerImpl();
   const interruptions = new UserInteractions(
     new DirectUserInterruptionManager(),
   );
   const keystoreLoader = new KeystoreFileLoader(
     keystoreFilePath,
+    fileManager,
     () => new UnencryptedKeystore(interruptions),
   );
 

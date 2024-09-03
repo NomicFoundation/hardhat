@@ -17,6 +17,15 @@ export interface KeystoreLoader {
   save: (keystore: Keystore) => Promise<void>;
 }
 
+export interface FileManager {
+  fileExists(absolutePath: string): Promise<boolean>;
+  writeJsonFile(
+    absolutePathToFile: string,
+    keystoreFile: UnencryptedKeystoreFile,
+  ): Promise<void>;
+  readJsonFile(absolutePathToFile: string): Promise<UnencryptedKeystoreFile>;
+}
+
 export interface UnencryptedKeystoreFile {
   _format: "hh-unencrypted-keystore";
   version: 1;

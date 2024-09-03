@@ -1,51 +1,54 @@
+import type { UnencryptedKeystoreFile } from "../../src/internal/types.js";
+
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import { remove, writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
 import chalk from "chalk";
 
+import { createUnencryptedKeystoreFile } from "../../src/internal/keystores/unencrypted-keystore-file.js";
 import { UnencryptedKeystore } from "../../src/internal/keystores/unencrypted-keystore.js";
 import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
 import { UserInteractions } from "../../src/internal/ui/user-interactions.js";
-import { getKeystoreFilePath } from "../../src/internal/utils/get-keystore-file-path.js";
 import { getFullOutput } from "../helpers/get-full-output.js";
+import { MockFileManager } from "../helpers/mock-file-manager.js";
 import { MockUserInterruptionManager } from "../helpers/mock-user-interruption-manager.js";
 
 const TEST_PASSWORD = "Test-password";
 
 describe("unencrypted keystore loader", () => {
-  let unencryptedKeystoreLoader: KeystoreFileLoader;
-  let interruptions: UserInteractions;
-  let mockConsoleWrapper: MockUserInterruptionManager;
+  let keystoreFileLoader: KeystoreFileLoader;
+  let userInteractions: UserInteractions;
+  let mockFileManager: MockFileManager;
+  let mockUserInterruptionManager: MockUserInterruptionManager;
 
   beforeEach(() => {
-    mockConsoleWrapper = new MockUserInterruptionManager();
-    interruptions = new UserInteractions(mockConsoleWrapper);
+    mockUserInterruptionManager = new MockUserInterruptionManager();
+    mockFileManager = new MockFileManager();
+    userInteractions = new UserInteractions(mockUserInterruptionManager);
   });
 
   describe("the keystore is not initialized", () => {
     beforeEach(async () => {
-      await remove(await getKeystoreFilePath());
-
-      const keystoreFilePath = await getKeystoreFilePath();
-      unencryptedKeystoreLoader = new KeystoreFileLoader(
-        keystoreFilePath,
-        () => new UnencryptedKeystore(interruptions),
+      keystoreFileLoader = new KeystoreFileLoader(
+        "./example-keystore.json",
+        mockFileManager,
+        () => new UnencryptedKeystore(userInteractions),
       );
     });
 
     it("should know there is no keystore", async () => {
-      assert.equal(await unencryptedKeystoreLoader.exists(), false);
+      assert.equal(await keystoreFileLoader.exists(), false);
     });
 
     it("should successfully init the keystore", async () => {
-      mockConsoleWrapper.requestSecretInput = async () => TEST_PASSWORD;
+      mockUserInterruptionManager.requestSecretInput = async () =>
+        TEST_PASSWORD;
 
-      const res = await unencryptedKeystoreLoader.create();
+      const res = await keystoreFileLoader.create();
 
       assert.equal(res instanceof UnencryptedKeystore, true);
       assert.equal(
-        getFullOutput(mockConsoleWrapper.displayMessage, 4),
+        getFullOutput(mockUserInterruptionManager.displayMessage, 4),
         `
 👷🔐 Hardhat-Keystore 🔐👷
 
@@ -62,7 +65,7 @@ The password must have at least 8 characters, one uppercase letter, one lowercas
       // The user will eventually correct the password values.
       // The following mock simulate the user's inputs for the password.
       let count = 0;
-      mockConsoleWrapper.requestSecretInput = async () => {
+      mockUserInterruptionManager.requestSecretInput = async () => {
         let msg = "";
         if (count === 0) {
           // Step 1: invalid password
@@ -81,46 +84,51 @@ The password must have at least 8 characters, one uppercase letter, one lowercas
         return msg;
       };
 
-      const res = await unencryptedKeystoreLoader.create();
+      const res = await keystoreFileLoader.create();
 
       // Assert that the keystore is successfully initialized
       assert.equal(res instanceof UnencryptedKeystore, true);
-      assert.notEqual(await unencryptedKeystoreLoader.load(), undefined);
+      assert.notEqual(await keystoreFileLoader.load(), undefined);
 
       // Be sure that the error messages are displayed to the user
       assert.equal(
-        mockConsoleWrapper.displayMessage.mock.calls[4].arguments[1],
+        mockUserInterruptionManager.displayMessage.mock.calls[4].arguments[1],
         chalk.red("Invalid password!"),
       );
       assert.equal(
-        mockConsoleWrapper.displayMessage.mock.calls[5].arguments[1],
+        mockUserInterruptionManager.displayMessage.mock.calls[5].arguments[1],
         chalk.red("Passwords do not match!"),
       );
     });
   });
 
   describe("the keystore is initialized", () => {
-    beforeEach(async () => {
-      await writeJsonFile(await getKeystoreFilePath(), {
-        version: "",
-        keys: {
-          key1: "value1",
-        },
-      });
+    let exampleKeystoreFile: UnencryptedKeystoreFile;
 
-      const keystoreFilePath = await getKeystoreFilePath();
-      unencryptedKeystoreLoader = new KeystoreFileLoader(
-        keystoreFilePath,
-        () => new UnencryptedKeystore(interruptions),
+    beforeEach(async () => {
+      exampleKeystoreFile = createUnencryptedKeystoreFile();
+
+      mockFileManager.setKeystoreFile(exampleKeystoreFile);
+
+      keystoreFileLoader = new KeystoreFileLoader(
+        "./example-keystore.json",
+        mockFileManager,
+        () => new UnencryptedKeystore(userInteractions),
       );
     });
 
     it("should know there is a keystore", async () => {
-      assert.equal(await unencryptedKeystoreLoader.exists(), true);
+      assert.equal(await keystoreFileLoader.exists(), true);
     });
 
     it("should return the keystore on load", async () => {
-      assert.notEqual(await unencryptedKeystoreLoader.load(), undefined);
+      const loadedKeystore = await keystoreFileLoader.load();
+
+      assert.deepEqual(
+        loadedKeystore.toJSON(),
+        exampleKeystoreFile,
+        "Keystore on disk and loaded version should be the same",
+      );
     });
   });
 });

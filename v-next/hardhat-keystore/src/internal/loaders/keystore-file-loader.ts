@@ -1,27 +1,28 @@
-import type { Keystore, KeystoreLoader } from "../types.js";
-
-import {
-  exists,
-  readJsonFile,
-  writeJsonFile,
-} from "@ignored/hardhat-vnext-utils/fs";
+import type { FileManager, Keystore, KeystoreLoader } from "../types.js";
 
 export class KeystoreFileLoader implements KeystoreLoader {
   readonly #keystoreFilePath: string;
+  readonly #fileManager: FileManager;
   readonly #keystoreFactory: () => Keystore;
 
-  constructor(keystoreFilePath: string, keystoreFactory: () => Keystore) {
+  constructor(
+    keystoreFilePath: string,
+    fileManger: FileManager,
+    keystoreFactory: () => Keystore,
+  ) {
     this.#keystoreFilePath = keystoreFilePath;
-
+    this.#fileManager = fileManger;
     this.#keystoreFactory = keystoreFactory;
   }
 
   public async exists(): Promise<boolean> {
-    return exists(this.#keystoreFilePath);
+    return this.#fileManager.fileExists(this.#keystoreFilePath);
   }
 
   public async load(): Promise<Keystore> {
-    const keystoreFile = await readJsonFile(this.#keystoreFilePath);
+    const keystoreFile = await this.#fileManager.readJsonFile(
+      this.#keystoreFilePath,
+    );
 
     const keystore = this.#keystoreFactory().loadFromJSON(keystoreFile);
 
@@ -33,12 +34,17 @@ export class KeystoreFileLoader implements KeystoreLoader {
 
     await keystore.init();
 
-    await writeJsonFile(this.#keystoreFilePath, keystore.toJSON());
+    await this.#fileManager.writeJsonFile(
+      this.#keystoreFilePath,
+      keystore.toJSON(),
+    );
 
     return keystore;
   }
 
   public async save(keystore: Keystore): Promise<void> {
-    await writeJsonFile(this.#keystoreFilePath, keystore);
+    const keystoreFile = keystore.toJSON();
+
+    await this.#fileManager.writeJsonFile(this.#keystoreFilePath, keystoreFile);
   }
 }

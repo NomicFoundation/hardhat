@@ -7,6 +7,7 @@ import type {
 
 import { UserInteractions } from "../../internal/ui/user-interactions.js";
 import { UnencryptedKeystore } from "../keystores/unencrypted-keystore.js";
+import { FileManagerImpl } from "../loaders/file-manager.js";
 import { KeystoreFileLoader } from "../loaders/keystore-file-loader.js";
 
 export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
@@ -45,10 +46,12 @@ async function _setupLoaderWithContextBasedUserInterruptions(
   context: HookContext,
 ) {
   const keystoreFilePath = context.config.keystore.filePath;
+  const fileManager = new FileManagerImpl();
   const userInteractions = new UserInteractions(context.interruptions);
 
   return new KeystoreFileLoader(
     keystoreFilePath,
+    fileManager,
     () => new UnencryptedKeystore(userInteractions),
   );
 }
