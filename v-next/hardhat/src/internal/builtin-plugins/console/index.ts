@@ -18,8 +18,8 @@ const hardhatPlugin: HardhatPlugin = {
       })
       .addVariadicArgument({
         name: "commands",
-        description: "Commands to run in the console",
-        defaultValue: [".help"],
+        description: "Commands to run when the console starts",
+        defaultValue: [],
       })
       .build(),
   ],
