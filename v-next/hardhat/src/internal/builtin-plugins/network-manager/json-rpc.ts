@@ -1,45 +1,11 @@
+import type {
+  FailedJsonRpcResponse,
+  JsonRpcRequest,
+  JsonRpcResponse,
+} from "../../../types/providers.js";
+
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { isObject } from "@ignored/hardhat-vnext-utils/lang";
-
-/**
- * The JSON-RPC 2.0 request object.
- *
- * For typing a JSON-RPC notification request, use `JsonRpcNotificationRequest`.
- *
- * Although the `params` field can be an object according to the specification,
- * we only support arrays. The interface remains unchanged to comply with the EIP
- * and to type JSON-RPC requests not created by us.
- */
-export interface JsonRpcRequest {
-  jsonrpc: "2.0";
-  id: number | string;
-  method: string;
-  params?: unknown[] | object;
-}
-
-export interface JsonRpcNotificationRequest {
-  jsonrpc: "2.0";
-  method: string;
-  params?: unknown[] | object;
-}
-
-export interface SuccessfulJsonRpcResponse {
-  jsonrpc: "2.0";
-  id: number | string;
-  result: unknown;
-}
-
-export interface FailedJsonRpcResponse {
-  jsonrpc: "2.0";
-  id: number | string | null;
-  error: {
-    code: number;
-    message: string;
-    data?: unknown;
-  };
-}
-
-export type JsonRpcResponse = SuccessfulJsonRpcResponse | FailedJsonRpcResponse;
 
 /**
  * Gets a JSON-RPC 2.0 request object.

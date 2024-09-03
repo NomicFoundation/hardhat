@@ -54,6 +54,11 @@ const consoleAction: NewTaskActionFunction<ConsoleActionArguments> = async (
     replServer.context.hooks = hre.hooks;
     replServer.context.interruptions = hre.interruptions;
 
+    // NOTE: This is a small architectural violation, as the network manager
+    // comes from a builtin plugin, and plugins can't add their own exports
+    // here. We may consider adding a hook for this in the future.
+    replServer.context.network = hre.network;
+
     // Set up the REPL history file if the historyPath has been set
     if (historyPath !== undefined) {
       await new Promise<void>((resolveSetupHistory) => {

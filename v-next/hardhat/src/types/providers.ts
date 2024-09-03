@@ -1,7 +1,3 @@
-import type {
-  JsonRpcRequest,
-  JsonRpcResponse,
-} from "../internal/network/utils/json-rpc.js";
 import type EventEmitter from "node:events";
 
 export interface RequestArguments {
@@ -36,11 +32,24 @@ export interface EIP1193Provider extends EventEmitter {
 }
 
 /**
- * The interface used by the HttpProvider to send JSON-RPC requests.
- * This interface is an extension of the EIP1193Provider interface,
- * adding the `send` and `sendAsync` methods for backwards compatibility.
+ * This interface is an extension of the EIP1193Provider interface with two
+ * additions:
+ *  - It has `send` and `sendAsync` methods for backwards compatibility.
+ *  - It has a `close` method to release any resources associated with the
+ *    provider.
  */
 export interface EthereumProvider extends EIP1193Provider {
+  /**
+   * Releases any resources associated with the provider.
+   *
+   * Most providers don't need to do anything in this method, but they may
+   * opt to use it to release resources such as a connection pool.
+   *
+   * Note that Hardhat doesn't automatically call this method, so a provider
+   * shouldn't rely on it being called.
+   */
+  close(): Promise<void>;
+
   /**
    * @deprecated
    * Sends a JSON-RPC request. This method is present for backwards compatibility
@@ -78,3 +87,55 @@ export interface EthereumProvider extends EIP1193Provider {
     callback: (error: any, jsonRpcResponse: JsonRpcResponse) => void,
   ): void;
 }
+
+/**
+ * A JSON-RPC 2.0 request object.
+ *
+ * For typing a JSON-RPC notification request, use `JsonRpcNotificationRequest`.
+ *
+ * Although the `params` field can be an object according to the specification,
+ * we only support arrays. The interface remains unchanged to comply with the
+ * standard, and to be type-compatible JSON-RPC requests not created by us.
+ */
+export interface JsonRpcRequest {
+  jsonrpc: "2.0";
+  id: number | string;
+  method: string;
+  params?: unknown[] | object;
+}
+
+/**
+ * A JSON-RPC 2.0 notification request object.
+ */
+export interface JsonRpcNotificationRequest {
+  jsonrpc: "2.0";
+  method: string;
+  params?: unknown[] | object;
+}
+
+/**
+ * A succesful JSON-RPC 2.0 response object.
+ */
+export interface SuccessfulJsonRpcResponse {
+  jsonrpc: "2.0";
+  id: number | string;
+  result: unknown;
+}
+
+/**
+ * A failed JSON-RPC 2.0 response object.
+ */
+export interface FailedJsonRpcResponse {
+  jsonrpc: "2.0";
+  id: number | string | null;
+  error: {
+    code: number;
+    message: string;
+    data?: unknown;
+  };
+}
+
+/**
+ * A JSON-RPC 2.0 response object.
+ */
+export type JsonRpcResponse = SuccessfulJsonRpcResponse | FailedJsonRpcResponse;

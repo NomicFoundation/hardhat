@@ -1,12 +1,10 @@
 import type {
-  JsonRpcResponse,
-  JsonRpcRequest,
-  SuccessfulJsonRpcResponse,
-} from "./utils/json-rpc.js";
-import type {
   EthereumProvider,
+  JsonRpcRequest,
+  JsonRpcResponse,
   RequestArguments,
-} from "../../types/providers.js";
+  SuccessfulJsonRpcResponse,
+} from "../../../types/providers.js";
 import type {
   Dispatcher,
   RequestOptions,
@@ -28,24 +26,31 @@ import {
   ResponseStatusCodeError,
 } from "@ignored/hardhat-vnext-utils/request";
 
-import { getHardhatVersion } from "../utils/package.js";
+import { getHardhatVersion } from "../../utils/package.js";
 
-import { ProviderError, LimitExceededError } from "./provider-errors.js";
 import {
   getJsonRpcRequest,
   isFailedJsonRpcResponse,
   parseJsonRpcResponse,
-} from "./utils/json-rpc.js";
+} from "./json-rpc.js";
+import { ProviderError, LimitExceededError } from "./provider-errors.js";
 
 const TOO_MANY_REQUEST_STATUS = 429;
 const MAX_RETRIES = 6;
 const MAX_RETRY_WAIT_TIME_SECONDS = 5;
+
+export type JsonRpcRequestWrapperFunction = (
+  request: JsonRpcRequest,
+  defaultBehavior: (r: JsonRpcRequest) => Promise<JsonRpcResponse>,
+) => Promise<JsonRpcResponse>;
 
 export class HttpProvider extends EventEmitter implements EthereumProvider {
   readonly #url: string;
   readonly #networkName: string;
   readonly #extraHeaders: Record<string, string>;
   readonly #dispatcher: Dispatcher;
+  readonly #jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
+
   #nextRequestId = 1;
 
   /**
@@ -56,11 +61,13 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
     networkName,
     extraHeaders = {},
     timeout,
+    jsonRpcRequestWrapper,
   }: {
     url: string;
     networkName: string;
     extraHeaders?: Record<string, string>;
     timeout: number;
+    jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
   }): Promise<HttpProvider> {
     if (!isValidUrl(url)) {
       throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_URL, {
@@ -75,6 +82,7 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
       networkName,
       extraHeaders,
       dispatcher,
+      jsonRpcRequestWrapper,
     );
 
     return httpProvider;
@@ -87,11 +95,13 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
    * Use the static method {@link HttpProvider.create} to create an instance of
    * `HttpProvider`.
    */
+  // TODO: make the constructor private, but we need to fix the tests first
   constructor(
     url: string,
     networkName: string,
     extraHeaders: Record<string, string>,
     dispatcher: Dispatcher,
+    jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction,
   ) {
     super();
 
@@ -99,8 +109,10 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
     this.#networkName = networkName;
     this.#extraHeaders = extraHeaders;
     this.#dispatcher = dispatcher;
+    this.#jsonRpcRequestWrapper = jsonRpcRequestWrapper;
   }
 
+  // TODO: We should test that the request is actually wrapped
   public async request(
     requestArguments: RequestArguments,
   ): Promise<SuccessfulJsonRpcResponse["result"]> {
@@ -111,7 +123,17 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
       method,
       params,
     );
-    const jsonRpcResponse = await this.#fetchJsonRpcResponse(jsonRpcRequest);
+
+    let jsonRpcResponse;
+
+    if (this.#jsonRpcRequestWrapper !== undefined) {
+      jsonRpcResponse = await this.#jsonRpcRequestWrapper(
+        jsonRpcRequest,
+        (request) => this.#fetchJsonRpcResponse(request),
+      );
+    } else {
+      jsonRpcResponse = await this.#fetchJsonRpcResponse(jsonRpcRequest);
+    }
 
     if (isFailedJsonRpcResponse(jsonRpcResponse)) {
       const error = new ProviderError(
@@ -127,6 +149,12 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
     // TODO: emit hardhat network events (hardhat_reset, evm_revert)
 
     return jsonRpcResponse.result;
+  }
+
+  // TODO: This should be tested
+  public async close(): Promise<void> {
+    // See https://github.com/nodejs/undici/discussions/3522#discussioncomment-10498734
+    await this.#dispatcher.close();
   }
 
   public send(
@@ -183,6 +211,8 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
     util.callbackify(handleJsonRpcRequest)(callback);
   }
 
+  // TODO as we removed sendBatch, I think we can remove all the overloads
+  // that return an array of responses
   async #fetchJsonRpcResponse(
     jsonRpcRequest: JsonRpcRequest,
     retryCount?: number,

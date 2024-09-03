@@ -10,6 +10,7 @@ import {
 } from "@ignored/hardhat-vnext/config";
 import HardhatNodeTestRunner from "@ignored/hardhat-vnext-node-test-runner";
 import HardhatMochaTestRunner from "@ignored/hardhat-vnext-mocha-test-runner";
+import { viemScketchPlugin } from "./viem-scketch-plugin.js";
 
 const exampleEmptyTask = emptyTask("empty", "An example empty task").build();
 
@@ -66,6 +67,19 @@ const greeting = task("hello", "Prints a greeting")
   })
   .build();
 
+const printConfig = task("config", "Prints the config")
+  .setAction(async ({}, hre) => {
+    console.log(hre.config);
+  })
+  .build();
+
+const printAccounts = task("accounts", "Prints the accounts")
+  .setAction(async ({}, hre) => {
+    const { provider } = await hre.network.connect();
+    console.log(await provider.request({ method: "eth_accounts" }));
+  })
+  .build();
+
 const pluginExample = {
   id: "community-plugin",
   tasks: [
@@ -103,12 +117,15 @@ const config: HardhatUserConfig = {
     exampleEmptyTask,
     exampleEmptySubtask,
     greeting,
+    printConfig,
+    printAccounts,
   ],
   plugins: [
     pluginExample,
     HardhatMochaTestRunner,
     // if testing node plugin, use the following line instead
     // HardhatNodeTestRunner,
+    viemScketchPlugin,
   ],
   paths: {
     tests: "test/mocha",

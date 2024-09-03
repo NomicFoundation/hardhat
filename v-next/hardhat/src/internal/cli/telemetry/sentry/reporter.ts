@@ -4,7 +4,7 @@ import {
 } from "@ignored/hardhat-vnext-errors";
 import debug from "debug";
 
-import { ProviderError } from "../../../network/provider-errors.js";
+import { ProviderError } from "../../../builtin-plugins/network-manager/provider-errors.js";
 import { getHardhatVersion } from "../../../utils/package.js";
 import { isTelemetryAllowed } from "../telemetry-permissions.js";
 

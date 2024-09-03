@@ -7,12 +7,15 @@ import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-uti
 import {
   HttpProvider,
   getHttpDispatcher,
-} from "../../../src/internal/network/http-provider.js";
+} from "../../../../src/internal/builtin-plugins/network-manager/http-provider.js";
 import {
   ProviderError,
   LimitExceededError,
-} from "../../../src/internal/network/provider-errors.js";
-import { createTestEnvManager, initializeTestDispatcher } from "../../utils.js";
+} from "../../../../src/internal/builtin-plugins/network-manager/provider-errors.js";
+import {
+  createTestEnvManager,
+  initializeTestDispatcher,
+} from "../../../utils.js";
 
 describe("http-provider", () => {
   describe("HttpProvider.create", () => {
