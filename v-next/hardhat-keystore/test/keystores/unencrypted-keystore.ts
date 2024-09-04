@@ -3,9 +3,6 @@ import type { Keystore } from "../../src/internal/types.js";
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
-
 import { UnencryptedKeystore } from "../../src/internal/keystores/unencrypted-keystore.js";
 
 describe("UnencryptedKeystore", () => {
@@ -51,18 +48,6 @@ describe("UnencryptedKeystore", () => {
 
       // Be sure the key has been added
       assert.equal(await keystore.readValue("new-key"), "new-value");
-    });
-  });
-
-  describe.skip("when the keystore is invalid", () => {
-    it("should throw an error because the keystore file format is invalid", async () => {
-      await assertRejectsWithHardhatError(
-        async () => {
-          // new KeystoreFileLoader.();
-        },
-        HardhatError.ERRORS.KEYSTORE.INVALID_KEYSTORE_FILE_FORMAT,
-        {},
-      );
     });
   });
 });
