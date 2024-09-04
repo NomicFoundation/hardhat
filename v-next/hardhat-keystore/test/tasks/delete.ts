@@ -1,8 +1,6 @@
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import chalk from "chalk";
 
 import { remove } from "../../src/internal/tasks/delete.js";
@@ -101,26 +99,6 @@ describe("tasks - delete", () => {
 
     it("should not attempt to save the keystore", async () => {
       assert.equal(mockKeystoreLoader.saveCalled, false);
-    });
-  });
-
-  describe("a `delete` with an unspecified key (programmatic)", async () => {
-    it("should throw a missing task argument Hardhat error if no key provided", async () => {
-      await assertRejectsWithHardhatError(
-        remove(
-          {
-            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing the error case
-            key: undefined as any,
-          },
-          mockKeystoreLoader,
-          userInteractions,
-        ),
-        HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
-        {
-          argument: "key",
-          task: "keystore delete",
-        },
-      );
     });
   });
 });

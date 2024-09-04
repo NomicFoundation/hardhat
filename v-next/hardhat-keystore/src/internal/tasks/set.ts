@@ -3,7 +3,6 @@ import type { UserInteractions } from "../ui/user-interactions.js";
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
-import { checkMissingKeyTaskArgument } from "../utils/check-missing-key-task-argument.js";
 import { setupRawInterruptionsAndKeystoreLoader } from "../utils/setup-raw-interruptions-and-keystore-loader.js";
 import { validateKey } from "../utils/validate-key.js";
 
@@ -27,8 +26,6 @@ export const set = async (
   keystoreLoader: KeystoreLoader,
   interruptions: UserInteractions,
 ): Promise<void> => {
-  checkMissingKeyTaskArgument(key, "keystore set");
-
   if (!(await validateKey(key))) {
     return interruptions.displayInvalidKeyErrorMessage(key);
   }

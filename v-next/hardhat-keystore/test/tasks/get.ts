@@ -1,8 +1,6 @@
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import chalk from "chalk";
 
 import { get } from "../../src/internal/tasks/get.js";
@@ -102,26 +100,6 @@ describe("tasks - get", () => {
       assert.ok(
         !mockKeystoreLoader.saveCalled,
         "keystore should not have been saved",
-      );
-    });
-  });
-
-  describe("a `get` with an unspecified key (programmatic)", async () => {
-    it("should throw a missing task argument Hardhat error if no key provided", async () => {
-      await assertRejectsWithHardhatError(
-        get(
-          {
-            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing the error case
-            key: undefined as any,
-          },
-          mockKeystoreLoader,
-          userInteractions,
-        ),
-        HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
-        {
-          argument: "key",
-          task: "keystore get",
-        },
       );
     });
   });

@@ -1,8 +1,6 @@
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import chalk from "chalk";
 
 import { set } from "../../src/internal/tasks/set.js";
@@ -176,27 +174,6 @@ describe("tasks - set", () => {
       assert.ok(
         mockKeystoreLoader.createCalled,
         "The keystore initialization process should be run",
-      );
-    });
-  });
-
-  describe("a `set` with an unspecified key (programmatic)", async () => {
-    it("should throw a missing task argument Hardhat error if no key provided", async () => {
-      await assertRejectsWithHardhatError(
-        set(
-          {
-            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing the error case
-            key: undefined as any,
-            force: false,
-          },
-          mockKeystoreLoader,
-          userInteractions,
-        ),
-        HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
-        {
-          argument: "key",
-          task: "keystore set",
-        },
       );
     });
   });
