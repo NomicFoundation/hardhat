@@ -79,7 +79,7 @@ yarn add --dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network
 :::tab{value="pnpm"}
 
 ```
-pnpm add -D @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomicfoundation/hardhat-ethers @nomicfoundation/hardhat-verify chai@4 ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v6
+pnpm add -D @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers chai@4 ethers
 ```
 
 :::

@@ -51,6 +51,7 @@ yarn init -y
 ```
 pnpm init
 ```
+
 :::
 
 ::::
@@ -90,6 +91,7 @@ yarn add --dev hardhat
 ```
 pnpm add -D hardhat
 ```
+
 :::
 
 ::::

@@ -67,9 +67,11 @@ yarn add --dev @nomicfoundation/hardhat-ignition-ethers @nomicfoundation/hardhat
 :::
 
 :::tab{value="pnpm"}
+
 ```sh
-pnpm add -D @nomicfoundation/hardhat-ignition-ethers @nomicfoundation/hardhat-ethers @nomicfoundation/hardhat-ignition @nomicfoundation/hardhat-verify @nomicfoundation/ignition-core ethers
+pnpm add -D @nomicfoundation/hardhat-ignition-ethers @nomicfoundation/hardhat-ignition ethers
 ```
+
 :::
 
 ::::

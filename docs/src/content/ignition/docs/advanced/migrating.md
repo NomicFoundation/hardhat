@@ -31,7 +31,9 @@ To get started, we’ll uninstall the `hardhat-deploy` plugin and install the Ha
    ```sh
    pnpm remove hardhat-deploy hardhat-deploy-ethers
    ```
+
    :::
+
    ::::
 
 2. Install the Hardhat Ignition package and `hardhat-network-helpers` to provide additional testing support as a replacement for `hardhat-deploy` functionality like EVM snapshots:

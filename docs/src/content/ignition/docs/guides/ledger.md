@@ -23,6 +23,7 @@ yarn add --dev @nomicfoundation/hardhat-ledger
 :::
 
 :::tab{value="pnpm"}
+
 ```sh
 pnpm add -D @nomicfoundation/hardhat-ledger
 ```

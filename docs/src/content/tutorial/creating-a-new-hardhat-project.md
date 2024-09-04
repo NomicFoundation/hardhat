@@ -46,6 +46,7 @@ yarn init
 :::
 
 :::tab{value="pnpm"}
+
 ```
 pnpm init
 ```
@@ -82,8 +83,8 @@ yarn add --dev hardhat
 
 :::
 
-
 :::tab{value="pnpm"}
+
 ```
 pnpm add -D hardhat
 ```
@@ -174,8 +175,9 @@ yarn add --dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-ignitio
 :::tab{value="pnpm"}
 
 ```
-pnpm add -D @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-ignition @nomicfoundation/hardhat-ignition-ethers @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomicfoundation/hardhat-ethers @nomicfoundation/hardhat-verify chai@4 ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v6
+pnpm add -D @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-ignition @nomicfoundation/hardhat-network-helpers chai@4 ethers
 ```
+
 :::
 
 ::::

@@ -44,11 +44,13 @@ yarn add --dev @nomicfoundation/hardhat-chai-matchers
 :::
 
 :::tab{value="pnpm"}
+
 ```
 pnpm add -D @nomicfoundation/hardhat-chai-matchers
 ```
 
 :::
+
 ::::
 
 ## How can I use it?

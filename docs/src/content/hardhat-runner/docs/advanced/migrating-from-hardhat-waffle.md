@@ -79,7 +79,7 @@ Follow these steps to migrate your project to Hardhat Toolbox.
    :::tab{value="pnpm"}
 
    ```
-   pnpm add --D @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-ignition-ethers @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers@1 @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai@4 ethers@5 hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v6
+   pnpm add -D @nomicfoundation/hardhat-toolbox  @nomicfoundation/hardhat-network-helpers ethers chai@4
    ```
 
    :::

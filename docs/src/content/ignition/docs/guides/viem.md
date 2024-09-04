@@ -42,8 +42,9 @@ yarn add --dev @nomicfoundation/hardhat-ignition-viem @nomicfoundation/hardhat-i
 :::
 
 :::tab{value="pnpm"}
+
 ```shell
-pnpm add -D @nomicfoundation/hardhat-ignition-viem @nomicfoundation/hardhat-ignition @nomicfoundation/hardhat-verify @nomicfoundation/hardhat-viem @nomicfoundation/ignition-core typescript viem
+pnpm add -D @nomicfoundation/hardhat-ignition-viem viem typescript
 ```
 
 :::

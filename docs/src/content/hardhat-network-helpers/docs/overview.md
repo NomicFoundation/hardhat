@@ -40,9 +40,11 @@ yarn add --dev @nomicfoundation/hardhat-network-helpers
 :::
 
 :::tab{value="pnpm"}
+
 ```
 pnpm add -D @nomicfoundation/hardhat-network-helpers
 ```
+
 :::
 
 ::::

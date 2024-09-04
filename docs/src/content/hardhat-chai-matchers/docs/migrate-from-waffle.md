@@ -35,6 +35,7 @@ The `@nomicfoundation/hardhat-chai-matchers` plugin is meant to be a drop-in rep
    :::
 
    :::tab{value="pnpm"}
+
    ```
    pnpm remove @nomiclabs/hardhat-waffle ethereum-waffle
    ```

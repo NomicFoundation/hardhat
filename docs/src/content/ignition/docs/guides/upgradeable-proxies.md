@@ -33,9 +33,11 @@ yarn add @openzeppelin/contracts
 :::
 
 :::tab{value="pnpm"}
+
 ```sh
 pnpm add @openzeppelin/contracts
 ```
+
 :::
 
 ::::
