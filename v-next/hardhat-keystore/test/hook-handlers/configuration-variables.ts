@@ -34,7 +34,7 @@ const exampleConfigurationVariable: ConfigurationVariable = {
   name: "key1",
 };
 
-describe("hook-handlers - fetchValue", () => {
+describe("hook-handlers - configuration variables - fetchValue", () => {
   let hre: HardhatRuntimeEnvironment;
 
   describe("when there is an existing valid keystore file", () => {
