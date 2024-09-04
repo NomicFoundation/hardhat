@@ -6,9 +6,11 @@ import type {
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 
 export class MockFileManager implements FileManager {
+  public writeJsonFileCalled: boolean;
   #keystoreFile: UnencryptedKeystoreFile | null;
 
   constructor() {
+    this.writeJsonFileCalled = false;
     this.#keystoreFile = null;
   }
 
@@ -24,6 +26,7 @@ export class MockFileManager implements FileManager {
     _absolutePathToFile: string,
     keystoreFile: UnencryptedKeystoreFile,
   ): Promise<void> {
+    this.writeJsonFileCalled = true;
     this.#keystoreFile = keystoreFile;
   }
 
@@ -36,5 +39,13 @@ export class MockFileManager implements FileManager {
     );
 
     return this.#keystoreFile;
+  }
+
+  /**
+   * Only used in tests to ensure there is no current keystore
+   * file at the path.
+   */
+  public deleteKeystoreFile(): void {
+    this.#keystoreFile = null;
   }
 }

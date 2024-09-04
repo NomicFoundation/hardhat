@@ -21,7 +21,7 @@ export async function setupRawInterruptionsAndKeystoreLoader(
   const keystoreLoader = new KeystoreFileLoader(
     keystoreFilePath,
     fileManager,
-    () => new UnencryptedKeystore(interruptions),
+    () => new UnencryptedKeystore(),
   );
 
   return { keystoreLoader, interruptions };

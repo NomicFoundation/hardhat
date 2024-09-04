@@ -1,4 +1,3 @@
-import type { UserInteractions } from "../../internal/ui/user-interactions.js";
 import type { Keystore, UnencryptedKeystoreFile } from "../types.js";
 
 import {
@@ -11,11 +10,9 @@ import { unencryptedKeystoreFileSchema } from "../types-validation.js";
 import { createUnencryptedKeystoreFile } from "./unencrypted-keystore-file.js";
 
 export class UnencryptedKeystore implements Keystore {
-  readonly #interruptions: UserInteractions;
   #keystoreData: UnencryptedKeystoreFile | null;
 
-  constructor(interruptions: UserInteractions) {
-    this.#interruptions = interruptions;
+  constructor() {
     this.#keystoreData = null;
   }
 
@@ -50,8 +47,6 @@ export class UnencryptedKeystore implements Keystore {
   }
 
   public async init(): Promise<void> {
-    await this.#interruptions.setUpPassword();
-
     const keystoreFile: UnencryptedKeystoreFile =
       createUnencryptedKeystoreFile();
 

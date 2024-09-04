@@ -34,11 +34,6 @@ export class KeystoreFileLoader implements KeystoreLoader {
 
     await keystore.init();
 
-    await this.#fileManager.writeJsonFile(
-      this.#keystoreFilePath,
-      keystore.toJSON(),
-    );
-
     return keystore;
   }
 

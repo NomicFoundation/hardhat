@@ -1,32 +1,50 @@
+import type {
+  FileManager,
+  Keystore,
+  KeystoreLoader,
+} from "../../src/internal/types.js";
+
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
 import chalk from "chalk";
 
+import { createUnencryptedKeystoreFile } from "../../src/internal/keystores/unencrypted-keystore-file.js";
+import { UnencryptedKeystore } from "../../src/internal/keystores/unencrypted-keystore.js";
+import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
 import { list } from "../../src/internal/tasks/list.js";
 import { UserInteractions } from "../../src/internal/ui/user-interactions.js";
 import { getFullOutput } from "../helpers/get-full-output.js";
-import { MemoryKeystore } from "../helpers/memory-keystore.js";
-import { MockKeystoreLoader } from "../helpers/mock-keystore-loader.js";
+import { MockFileManager } from "../helpers/mock-file-manager.js";
 import { MockUserInterruptionManager } from "../helpers/mock-user-interruption-manager.js";
 
+const fakeKeystoreFilePath = "./fake-keystore-path.json";
+
 describe("tasks - list", () => {
-  let memoryKeystore: MemoryKeystore;
+  let memoryKeystore: Keystore;
   let mockUserInterruptionManager: MockUserInterruptionManager;
-  let mockKeystoreLoader: MockKeystoreLoader;
+  let mockFileManager: FileManager;
+  let mockKeystoreLoader: KeystoreLoader;
   let userInteractions: UserInteractions;
 
   beforeEach(() => {
-    memoryKeystore = new MemoryKeystore();
     mockUserInterruptionManager = new MockUserInterruptionManager();
     userInteractions = new UserInteractions(mockUserInterruptionManager);
-    mockKeystoreLoader = new MockKeystoreLoader(memoryKeystore);
+    mockFileManager = new MockFileManager();
+    memoryKeystore = new UnencryptedKeystore();
+    mockKeystoreLoader = new KeystoreFileLoader(
+      fakeKeystoreFilePath,
+      mockFileManager,
+      () => memoryKeystore,
+    );
   });
 
   describe("a successful `list`", () => {
     beforeEach(async () => {
-      memoryKeystore.addNewValue("key", "value");
-      memoryKeystore.addNewValue("key2", "value2");
+      const keystoreFile = createUnencryptedKeystoreFile();
+      keystoreFile.keys.key = "value";
+      keystoreFile.keys.key2 = "value2";
+      await mockFileManager.writeJsonFile(fakeKeystoreFilePath, keystoreFile);
 
       await list(mockKeystoreLoader, userInteractions);
     });
@@ -43,8 +61,6 @@ key2`,
 
   describe("a `list` when the keystore file does not exist", () => {
     beforeEach(async () => {
-      mockKeystoreLoader.setNoExistingKeystore();
-
       await list(mockKeystoreLoader, userInteractions);
     });
 
@@ -56,12 +72,18 @@ key2`,
     });
 
     it("should not attempt to save the keystore", async () => {
-      assert.equal(mockKeystoreLoader.saveCalled, false);
+      assert.ok(
+        !(await mockFileManager.fileExists(fakeKeystoreFilePath)),
+        "keystore should not have been saved",
+      );
     });
   });
 
   describe("a `list` when the keystore has no keys", () => {
     beforeEach(async () => {
+      const keystoreFile = createUnencryptedKeystoreFile();
+      await mockFileManager.writeJsonFile(fakeKeystoreFilePath, keystoreFile);
+
       await list(mockKeystoreLoader, userInteractions);
     });
 

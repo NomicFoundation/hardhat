@@ -6,27 +6,22 @@ import { beforeEach, describe, it } from "node:test";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
+import { createUnencryptedKeystoreFile } from "../../src/internal/keystores/unencrypted-keystore-file.js";
 import { UnencryptedKeystore } from "../../src/internal/keystores/unencrypted-keystore.js";
-import { UserInteractions } from "../../src/internal/ui/user-interactions.js";
-import { MockUserInterruptionManager } from "../helpers/mock-user-interruption-manager.js";
 
 describe("UnencryptedKeystore", () => {
   describe("when the keystore is valid", () => {
     let keystore: Keystore;
 
     beforeEach(() => {
-      const interruptions = new UserInteractions(
-        new MockUserInterruptionManager(),
-      );
+      const keystoreFile = createUnencryptedKeystoreFile();
 
-      keystore = new UnencryptedKeystore(interruptions).loadFromJSON({
-        _format: "hh-unencrypted-keystore",
-        version: 1,
-        keys: {
-          key1: "value1",
-          key2: "value2",
-        },
-      });
+      keystoreFile.keys = {
+        key1: "value1",
+        key2: "value2",
+      };
+
+      keystore = new UnencryptedKeystore().loadFromJSON(keystoreFile);
     });
 
     it("should list the keys", async () => {
@@ -61,13 +56,9 @@ describe("UnencryptedKeystore", () => {
 
   describe("when the keystore is invalid", () => {
     it("should throw an error because the keystore file format is invalid", async () => {
-      const interruptions = new UserInteractions(
-        new MockUserInterruptionManager(),
-      );
-
       await assertRejectsWithHardhatError(
         async () => {
-          new UnencryptedKeystore(interruptions).loadFromJSON({
+          new UnencryptedKeystore().loadFromJSON({
             version: 1,
             keys: {
               key1: "value1",

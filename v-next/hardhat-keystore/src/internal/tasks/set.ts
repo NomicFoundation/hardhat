@@ -30,6 +30,10 @@ export const set = async (
     return interruptions.displayInvalidKeyErrorMessage(key);
   }
 
+  // TODO: Bring in the setup password flow when implementing
+  // the encrypted version.
+  // await interruptions.setUpPassword();
+
   const keystore = (await keystoreLoader.exists())
     ? await keystoreLoader.load()
     : await keystoreLoader.create();
