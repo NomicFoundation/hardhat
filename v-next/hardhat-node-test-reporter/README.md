@@ -79,6 +79,7 @@ It will:
 
 - try to print the error object together with its stack trace;
 - try to print the diff of the expected and actual values of the error object, if they are available;
+- print internal errors of aggregated errors;
 - replace file URLs with relative paths (this should work on Windows, too).
 
 ### Diagnostics

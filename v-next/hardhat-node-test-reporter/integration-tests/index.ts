@@ -48,6 +48,10 @@ const entries = readdirSync("integration-tests/fixture-tests").filter(
   },
 );
 
+// We need to increase the max listeners to the number of tests because
+// each test adds a listener to the process.
+process.setMaxListeners(entries.length);
+
 for (const entry of entries) {
   const entryPath = `integration-tests/fixture-tests/${entry}`;
 

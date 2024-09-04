@@ -66,6 +66,9 @@ export function formatError(error: Error): string {
  * - If the error has a cause, the cause is formatted in the same way,
  *   recursively. Formatting a cause increases the depth by 1. The formatted
  *   cause is printed in grey, indented by 2 spaces.
+ * - If the error is an aggregate, all the errors in the aggregate are formatted
+ *   in the same way, recursively. Then, they are printed in grey, indented by 2
+ *   spaces.
  *
  * @param error - The error to format
  * @param prefix - A prefix to add to the error message
@@ -105,6 +108,15 @@ function formatSingleError(
     formattedError += `\n${chalk.gray(indent(stack, 4))}`;
   }
 
+  if (isAggregateError(error)) {
+    // Only the first aggregate error in a chain survives serialization
+    // This is why we can safely not increase the depth here
+    const formattedErrors = error.errors
+      .map((e) => indent(formatSingleError(e, "inner", depth), 2))
+      .join("\n");
+    return `${formattedError}\n${formattedErrors}`;
+  }
+
   if (error.cause instanceof Error) {
     const formattedCause = indent(
       formatSingleError(error.cause, "cause", depth + 1),
@@ -114,6 +126,10 @@ function formatSingleError(
   }
 
   return formattedError;
+}
+
+function isAggregateError(error: Error): error is Error & { errors: Error[] } {
+  return "errors" in error && Array.isArray(error.errors);
 }
 
 function isDiffableError(
