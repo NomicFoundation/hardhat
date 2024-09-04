@@ -1,6 +1,6 @@
-import type * as KeccakT from "keccak";
-
 import { createHash } from "node:crypto";
+
+import { keccak256 as keccak256Impl } from "ethereum-cryptography/keccak";
 
 /**
  * Computes the Keccak-256 hash of the input bytes.
@@ -9,14 +9,7 @@ import { createHash } from "node:crypto";
  * @returns The Keccak-256 hash of the input bytes.
  */
 export async function keccak256(bytes: Uint8Array): Promise<Uint8Array> {
-  /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- We have to
-  typecast the import because the type definitions for the `keccak` package are
-  incorrect. */
-  const { default: createKeccakHash } = (await import("keccak")) as unknown as {
-    default: (algorithm: KeccakT.KeccakAlgorithm) => KeccakT.Keccak;
-  };
-
-  return createKeccakHash("keccak256").update(Buffer.from(bytes)).digest();
+  return keccak256Impl(bytes);
 }
 
 /**
