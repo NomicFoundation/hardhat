@@ -1,11 +1,10 @@
-import type { Keystore, KeystoreLoader } from "../../src/internal/types.js";
+import type { KeystoreLoader } from "../../src/internal/types.js";
 
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
 import chalk from "chalk";
 
-import { UnencryptedKeystore } from "../../src/internal/keystores/unencrypted-keystore.js";
 import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
 import { get } from "../../src/internal/tasks/get.js";
 import { UserInteractions } from "../../src/internal/ui/user-interactions.js";
@@ -15,21 +14,20 @@ import { MockUserInterruptionManager } from "../helpers/mock-user-interruption-m
 const fakeKeystoreFilePath = "./fake-keystore-path.json";
 
 describe("tasks - get", () => {
-  let keystore: Keystore;
-  let mockUserInterruptionManager: MockUserInterruptionManager;
   let mockFileManager: MockFileManager;
-  let mockKeystoreLoader: KeystoreLoader;
+  let mockUserInterruptionManager: MockUserInterruptionManager;
+
   let userInteractions: UserInteractions;
+  let keystoreLoader: KeystoreLoader;
 
   beforeEach(() => {
-    keystore = new UnencryptedKeystore();
-    mockUserInterruptionManager = new MockUserInterruptionManager();
-    userInteractions = new UserInteractions(mockUserInterruptionManager);
     mockFileManager = new MockFileManager();
-    mockKeystoreLoader = new KeystoreFileLoader(
+    mockUserInterruptionManager = new MockUserInterruptionManager();
+
+    userInteractions = new UserInteractions(mockUserInterruptionManager);
+    keystoreLoader = new KeystoreFileLoader(
       fakeKeystoreFilePath,
       mockFileManager,
-      () => keystore,
     );
   });
 
@@ -43,7 +41,7 @@ describe("tasks - get", () => {
         {
           key: "myKey",
         },
-        mockKeystoreLoader,
+        keystoreLoader,
         userInteractions,
       );
     });
@@ -71,7 +69,7 @@ describe("tasks - get", () => {
         {
           key: "key",
         },
-        mockKeystoreLoader,
+        keystoreLoader,
         userInteractions,
       );
     });
@@ -101,7 +99,7 @@ describe("tasks - get", () => {
         {
           key: "unknown",
         },
-        mockKeystoreLoader,
+        keystoreLoader,
         userInteractions,
       );
     });

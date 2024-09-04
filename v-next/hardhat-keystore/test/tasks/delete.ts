@@ -5,7 +5,6 @@ import { beforeEach, describe, it } from "node:test";
 
 import chalk from "chalk";
 
-import { UnencryptedKeystore } from "../../src/internal/keystores/unencrypted-keystore.js";
 import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
 import { remove } from "../../src/internal/tasks/delete.js";
 import { UserInteractions } from "../../src/internal/ui/user-interactions.js";
@@ -15,21 +14,20 @@ import { MockUserInterruptionManager } from "../helpers/mock-user-interruption-m
 const fakeKeystoreFilePath = "./fake-keystore-path.json";
 
 describe("tasks - delete", () => {
-  let memoryKeystore: UnencryptedKeystore;
-  let mockUserInterruptionManager: MockUserInterruptionManager;
   let mockFileManager: MockFileManager;
-  let mockKeystoreLoader: KeystoreLoader;
+  let mockUserInterruptionManager: MockUserInterruptionManager;
+
   let userInteractions: UserInteractions;
+  let keystoreLoader: KeystoreLoader;
 
   beforeEach(() => {
-    memoryKeystore = new UnencryptedKeystore();
-    mockUserInterruptionManager = new MockUserInterruptionManager();
-    userInteractions = new UserInteractions(mockUserInterruptionManager);
     mockFileManager = new MockFileManager();
-    mockKeystoreLoader = new KeystoreFileLoader(
+    mockUserInterruptionManager = new MockUserInterruptionManager();
+
+    userInteractions = new UserInteractions(mockUserInterruptionManager);
+    keystoreLoader = new KeystoreFileLoader(
       "./fake-keystore-path.json",
       mockFileManager,
-      () => memoryKeystore,
     );
   });
 
@@ -37,13 +35,14 @@ describe("tasks - delete", () => {
     beforeEach(async () => {
       mockFileManager.setupExistingKeystoreFile({
         myKey: "myValue",
+        myOtherKey: "myOtherValue",
       });
 
       await remove(
         {
           key: "myKey",
         },
-        mockKeystoreLoader,
+        keystoreLoader,
         userInteractions,
       );
     });
@@ -55,14 +54,14 @@ describe("tasks - delete", () => {
       );
     });
 
-    it("should remove the key from the keystore", async () => {
-      assert.deepEqual(await memoryKeystore.readValue("key"), undefined);
-    });
+    it("should save the updated keystore with the removed key to file", async () => {
+      const keystoreFile =
+        await mockFileManager.readJsonFile(fakeKeystoreFilePath);
 
-    it("should save the updated keystore to file", async () => {
-      assert.ok(
-        await mockFileManager.fileExists(fakeKeystoreFilePath),
-        "keystore should have been saved",
+      assert.deepEqual(
+        keystoreFile.keys,
+        { myOtherKey: "myOtherValue" },
+        "keystore should have been saved with update",
       );
     });
   });
@@ -75,7 +74,7 @@ describe("tasks - delete", () => {
         {
           key: "key",
         },
-        mockKeystoreLoader,
+        keystoreLoader,
         userInteractions,
       );
     });
@@ -103,7 +102,7 @@ describe("tasks - delete", () => {
         {
           key: "unknown",
         },
-        mockKeystoreLoader,
+        keystoreLoader,
         userInteractions,
       );
     });

@@ -22,8 +22,10 @@ export class UnencryptedKeystore implements Keystore {
     };
   }
 
-  public async init(): Promise<void> {
+  public async init(): Promise<UnencryptedKeystore> {
     this.#keystoreData = UnencryptedKeystore.createUnencryptedKeystoreFile();
+
+    return this;
   }
 
   public loadFromJSON(json: any): Keystore {

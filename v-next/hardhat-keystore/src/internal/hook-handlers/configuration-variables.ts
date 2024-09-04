@@ -5,7 +5,6 @@ import type {
   HookContext,
 } from "@ignored/hardhat-vnext/types/hooks";
 
-import { UnencryptedKeystore } from "../keystores/unencrypted-keystore.js";
 import { FileManagerImpl } from "../loaders/file-manager.js";
 import { KeystoreFileLoader } from "../loaders/keystore-file-loader.js";
 
@@ -47,9 +46,5 @@ async function _setupLoaderWithContextBasedUserInterruptions(
   const keystoreFilePath = context.config.keystore.filePath;
   const fileManager = new FileManagerImpl();
 
-  return new KeystoreFileLoader(
-    keystoreFilePath,
-    fileManager,
-    () => new UnencryptedKeystore(),
-  );
+  return new KeystoreFileLoader(keystoreFilePath, fileManager);
 }

@@ -1,11 +1,10 @@
-import type { Keystore, KeystoreLoader } from "../../src/internal/types.js";
+import type { KeystoreLoader } from "../../src/internal/types.js";
 
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
 import chalk from "chalk";
 
-import { UnencryptedKeystore } from "../../src/internal/keystores/unencrypted-keystore.js";
 import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
 import { set } from "../../src/internal/tasks/set.js";
 import { UserInteractions } from "../../src/internal/ui/user-interactions.js";
@@ -15,23 +14,20 @@ import { MockUserInterruptionManager } from "../helpers/mock-user-interruption-m
 const fakeKeystoreFilePath = "./fake-keystore-path.json";
 
 describe("tasks - set", () => {
-  let keystore: Keystore;
-  let mockUserInterruptionManager: MockUserInterruptionManager;
   let mockFileManager: MockFileManager;
-  let keystoreLoader: KeystoreLoader;
+  let mockUserInterruptionManager: MockUserInterruptionManager;
+
   let userInteractions: UserInteractions;
+  let keystoreLoader: KeystoreLoader;
 
   beforeEach(() => {
     mockFileManager = new MockFileManager();
     mockUserInterruptionManager = new MockUserInterruptionManager();
 
     userInteractions = new UserInteractions(mockUserInterruptionManager);
-    keystore = new UnencryptedKeystore();
-
     keystoreLoader = new KeystoreFileLoader(
       fakeKeystoreFilePath,
       mockFileManager,
-      () => keystore,
     );
   });
 
@@ -54,10 +50,6 @@ describe("tasks - set", () => {
         mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
         `Key "myKey" set`,
       );
-    });
-
-    it("should add a new key to the keystore", async () => {
-      assert.deepEqual(await keystore.readValue("myKey"), "myValue2");
     });
 
     it("should save the updated keystore to file", async () => {
@@ -164,10 +156,6 @@ describe("tasks - set", () => {
         mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
         chalk.red("The value cannot be empty."),
       );
-    });
-
-    it("should not set the key in the keystore", async () => {
-      assert.deepEqual(await keystore.readValue("key"), "oldValue");
     });
 
     it("should not save the keystore to file", async () => {

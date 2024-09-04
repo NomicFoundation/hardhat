@@ -5,7 +5,6 @@ import { beforeEach, describe, it } from "node:test";
 
 import chalk from "chalk";
 
-import { UnencryptedKeystore } from "../../src/internal/keystores/unencrypted-keystore.js";
 import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
 import { list } from "../../src/internal/tasks/list.js";
 import { UserInteractions } from "../../src/internal/ui/user-interactions.js";
@@ -16,21 +15,20 @@ import { MockUserInterruptionManager } from "../helpers/mock-user-interruption-m
 const fakeKeystoreFilePath = "./fake-keystore-path.json";
 
 describe("tasks - list", () => {
-  let mockUserInterruptionManager: MockUserInterruptionManager;
   let mockFileManager: MockFileManager;
-  let mockKeystoreLoader: KeystoreLoader;
+  let mockUserInterruptionManager: MockUserInterruptionManager;
+
   let userInteractions: UserInteractions;
+  let keystoreLoader: KeystoreLoader;
 
   beforeEach(() => {
-    mockUserInterruptionManager = new MockUserInterruptionManager();
     mockFileManager = new MockFileManager();
+    mockUserInterruptionManager = new MockUserInterruptionManager();
 
     userInteractions = new UserInteractions(mockUserInterruptionManager);
-    const keystore = new UnencryptedKeystore();
-    mockKeystoreLoader = new KeystoreFileLoader(
+    keystoreLoader = new KeystoreFileLoader(
       fakeKeystoreFilePath,
       mockFileManager,
-      () => keystore,
     );
   });
 
@@ -41,7 +39,7 @@ describe("tasks - list", () => {
         key2: "value2",
       });
 
-      await list(mockKeystoreLoader, userInteractions);
+      await list(keystoreLoader, userInteractions);
     });
 
     it("should display the keys as a message", async () => {
@@ -63,7 +61,7 @@ key2`,
 
   describe("a `list` when the keystore file does not exist", () => {
     beforeEach(async () => {
-      await list(mockKeystoreLoader, userInteractions);
+      await list(keystoreLoader, userInteractions);
     });
 
     it("should display a message that the keystore is not set", async () => {
@@ -85,7 +83,7 @@ key2`,
     beforeEach(async () => {
       mockFileManager.setupExistingKeystoreFile({});
 
-      await list(mockKeystoreLoader, userInteractions);
+      await list(keystoreLoader, userInteractions);
     });
 
     it("should display a message that the keystore has no keys", async () => {

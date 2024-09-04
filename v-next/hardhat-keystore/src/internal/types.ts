@@ -1,5 +1,5 @@
 export interface Keystore {
-  init(): Promise<void>;
+  init(): Promise<Keystore>;
   loadFromJSON: (json: unknown) => Keystore;
   toJSON(): any;
 

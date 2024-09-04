@@ -1,18 +1,14 @@
 import type { FileManager, Keystore, KeystoreLoader } from "../types.js";
 
+import { UnencryptedKeystore } from "../keystores/unencrypted-keystore.js";
+
 export class KeystoreFileLoader implements KeystoreLoader {
   readonly #keystoreFilePath: string;
   readonly #fileManager: FileManager;
-  readonly #keystoreFactory: () => Keystore;
 
-  constructor(
-    keystoreFilePath: string,
-    fileManger: FileManager,
-    keystoreFactory: () => Keystore,
-  ) {
+  constructor(keystoreFilePath: string, fileManger: FileManager) {
     this.#keystoreFilePath = keystoreFilePath;
     this.#fileManager = fileManger;
-    this.#keystoreFactory = keystoreFactory;
   }
 
   public async exists(): Promise<boolean> {
@@ -24,17 +20,13 @@ export class KeystoreFileLoader implements KeystoreLoader {
       this.#keystoreFilePath,
     );
 
-    const keystore = this.#keystoreFactory().loadFromJSON(keystoreFile);
+    const keystore = new UnencryptedKeystore().loadFromJSON(keystoreFile);
 
     return keystore;
   }
 
   public async create(): Promise<Keystore> {
-    const keystore = this.#keystoreFactory();
-
-    await keystore.init();
-
-    return keystore;
+    return new UnencryptedKeystore().init();
   }
 
   public async save(keystore: Keystore): Promise<void> {
