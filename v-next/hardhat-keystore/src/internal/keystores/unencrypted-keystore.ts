@@ -7,13 +7,39 @@ import {
 
 import { unencryptedKeystoreFileSchema } from "../types-validation.js";
 
-import { createUnencryptedKeystoreFile } from "./unencrypted-keystore-file.js";
-
 export class UnencryptedKeystore implements Keystore {
   #keystoreData: UnencryptedKeystoreFile | null;
 
   constructor() {
     this.#keystoreData = null;
+  }
+
+  public static createUnencryptedKeystoreFile(): UnencryptedKeystoreFile {
+    return {
+      _format: "hh-unencrypted-keystore",
+      version: 1,
+      keys: {},
+    };
+  }
+
+  public async init(): Promise<void> {
+    this.#keystoreData = UnencryptedKeystore.createUnencryptedKeystoreFile();
+  }
+
+  public loadFromJSON(json: any): Keystore {
+    const keystore: UnencryptedKeystoreFile = json;
+
+    this.#throwIfInvalidKeystoreFormat(keystore);
+
+    this.#keystoreData = keystore;
+
+    return this;
+  }
+
+  public toJSON(): UnencryptedKeystoreFile {
+    this.#assertKeystoreInitialized(this.#keystoreData);
+
+    return this.#keystoreData;
   }
 
   public async listKeys(): Promise<string[]> {
@@ -44,29 +70,6 @@ export class UnencryptedKeystore implements Keystore {
     this.#assertKeystoreInitialized(this.#keystoreData);
 
     this.#keystoreData.keys[key] = value;
-  }
-
-  public async init(): Promise<void> {
-    const keystoreFile: UnencryptedKeystoreFile =
-      createUnencryptedKeystoreFile();
-
-    this.#keystoreData = keystoreFile;
-  }
-
-  public loadFromJSON(json: any): Keystore {
-    const keystore: UnencryptedKeystoreFile = json;
-
-    this.#throwIfInvalidKeystoreFormat(keystore);
-
-    this.#keystoreData = keystore;
-
-    return this;
-  }
-
-  public toJSON(): UnencryptedKeystoreFile {
-    this.#assertKeystoreInitialized(this.#keystoreData);
-
-    return this.#keystoreData;
   }
 
   #assertKeystoreInitialized(

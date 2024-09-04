@@ -11,7 +11,7 @@ import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import { remove, writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
 
 import hardhatKeystorePlugin from "../../src/index.js";
-import { createUnencryptedKeystoreFile } from "../../src/internal/keystores/unencrypted-keystore-file.js";
+import { UnencryptedKeystore } from "../../src/internal/keystores/unencrypted-keystore.js";
 import { setupKeystoreFileLocationOverrideAt } from "../helpers/setup-keystore-file-location-override-at.js";
 
 const keystoreFilePath = path.join(
@@ -28,7 +28,7 @@ describe("integration tests for the keystore tasks", () => {
 
   beforeEach(async () => {
     const keystoreFile: UnencryptedKeystoreFile =
-      createUnencryptedKeystoreFile();
+      UnencryptedKeystore.createUnencryptedKeystoreFile();
 
     keystoreFile.keys.myKey1 = "myValue1";
     keystoreFile.keys.myKey2 = "myValue2";

@@ -5,7 +5,7 @@ import type {
 
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 
-import { createUnencryptedKeystoreFile } from "../../src/internal/keystores/unencrypted-keystore-file.js";
+import { UnencryptedKeystore } from "../../src/internal/keystores/unencrypted-keystore.js";
 
 export class MockFileManager implements FileManager {
   public writeJsonFileCalled: boolean;
@@ -27,7 +27,7 @@ export class MockFileManager implements FileManager {
   public setupExistingKeystoreFile(keys: {
     [key: string]: string;
   }): UnencryptedKeystoreFile {
-    const keystoreFile = createUnencryptedKeystoreFile();
+    const keystoreFile = UnencryptedKeystore.createUnencryptedKeystoreFile();
 
     keystoreFile.keys = keys;
 

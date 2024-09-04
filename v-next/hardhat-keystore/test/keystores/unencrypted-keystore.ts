@@ -6,7 +6,6 @@ import { beforeEach, describe, it } from "node:test";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
-import { createUnencryptedKeystoreFile } from "../../src/internal/keystores/unencrypted-keystore-file.js";
 import { UnencryptedKeystore } from "../../src/internal/keystores/unencrypted-keystore.js";
 
 describe("UnencryptedKeystore", () => {
@@ -14,7 +13,7 @@ describe("UnencryptedKeystore", () => {
     let keystore: Keystore;
 
     beforeEach(() => {
-      const keystoreFile = createUnencryptedKeystoreFile();
+      const keystoreFile = UnencryptedKeystore.createUnencryptedKeystoreFile();
 
       keystoreFile.keys = {
         key1: "value1",
@@ -59,6 +58,7 @@ describe("UnencryptedKeystore", () => {
       await assertRejectsWithHardhatError(
         async () => {
           new UnencryptedKeystore().loadFromJSON({
+            _format: "invalid",
             version: 1,
             keys: {
               key1: "value1",
