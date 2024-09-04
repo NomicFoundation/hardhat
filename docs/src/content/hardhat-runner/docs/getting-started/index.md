@@ -325,8 +325,6 @@ By default, Hardhat will spin up a new in-memory instance of Hardhat Network on 
 
 To run Hardhat Network in this way, run `npx hardhat node`:
 
-To run Hardhat Network on specific port and allow traffic from specifid address in this way, run `npx hardhat node --hostname 0.0.0.0 --port 8545`:
-
 ```
 $ npx hardhat node
 Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/
@@ -357,6 +355,9 @@ npx hardhat ignition deploy ./ignition/modules/Lock.js --network localhost
 :::
 
 ::::
+
+To run Hardhat Network on specific port and allow traffic from specific address add hostname in this way, run `npx hardhat node --hostname 127.0.0.1 --port 8545`:
+`--hostname 0.0.0.0` will allow access to rpc from any external ip.
 
 Congrats! You have created a project and compiled, tested and deployed a smart contract.
 
