@@ -3,10 +3,9 @@ import type { Keystore, UnencryptedKeystoreFile } from "../types.js";
 
 import {
   assertHardhatInvariant,
-  HardhatPluginError,
+  HardhatError,
 } from "@ignored/hardhat-vnext-errors";
 
-import { PLUGIN_ID } from "../constants.js";
 import { unencryptedKeystoreFileSchema } from "../types-validation.js";
 
 import { createUnencryptedKeystoreFile } from "./unencrypted-keystore-file.js";
@@ -85,7 +84,9 @@ export class UnencryptedKeystore implements Keystore {
     try {
       unencryptedKeystoreFileSchema.parse(keystore);
     } catch (error) {
-      throw new HardhatPluginError(PLUGIN_ID, "Invalid keystore file format");
+      throw new HardhatError(
+        HardhatError.ERRORS.KEYSTORE.INVALID_KEYSTORE_FILE_FORMAT,
+      );
     }
   }
 }

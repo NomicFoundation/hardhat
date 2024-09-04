@@ -3,9 +3,9 @@ import type { Keystore } from "../../src/internal/types.js";
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import { HardhatPluginError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
-import { PLUGIN_ID } from "../../src/internal/constants.js";
 import { UnencryptedKeystore } from "../../src/internal/keystores/unencrypted-keystore.js";
 import { UserInteractions } from "../../src/internal/ui/user-interactions.js";
 import { MockUserInterruptionManager } from "../helpers/mock-user-interruption-manager.js";
@@ -60,13 +60,13 @@ describe("UnencryptedKeystore", () => {
   });
 
   describe("when the keystore is invalid", () => {
-    it("should throw an error because the keystore file format is invalid", () => {
+    it("should throw an error because the keystore file format is invalid", async () => {
       const interruptions = new UserInteractions(
         new MockUserInterruptionManager(),
       );
 
-      assert.throws(
-        () => {
+      await assertRejectsWithHardhatError(
+        async () => {
           new UnencryptedKeystore(interruptions).loadFromJSON({
             version: 1,
             keys: {
@@ -74,7 +74,8 @@ describe("UnencryptedKeystore", () => {
             },
           });
         },
-        new HardhatPluginError(PLUGIN_ID, "Invalid keystore file format"),
+        HardhatError.ERRORS.KEYSTORE.INVALID_KEYSTORE_FILE_FORMAT,
+        {},
       );
     });
   });

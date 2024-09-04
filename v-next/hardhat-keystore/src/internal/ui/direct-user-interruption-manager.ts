@@ -1,8 +1,6 @@
 import type { UserInterruptionManager } from "@ignored/hardhat-vnext/types/user-interruptions";
 
-import { HardhatPluginError } from "@ignored/hardhat-vnext/plugins";
-
-import { PLUGIN_ID } from "../constants.js";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 /**
  * A class that handles user interruptions directly on the console
@@ -41,9 +39,8 @@ export class DirectUserInterruptionManager implements UserInterruptionManager {
         }
 
         if (rlAsAny.output === undefined) {
-          throw new HardhatPluginError(
-            PLUGIN_ID,
-            "Expected readline output to be defined",
+          throw new HardhatError(
+            HardhatError.ERRORS.KEYSTORE.INVALID_READLINE_OUTPUT,
           );
         }
 
@@ -75,12 +72,16 @@ export class DirectUserInterruptionManager implements UserInterruptionManager {
     _interruptor: string,
     _inputDescription: string,
   ): Promise<string> {
-    throw new HardhatPluginError(PLUGIN_ID, "Uninterrupted not implemented");
+    throw new HardhatError(
+      HardhatError.ERRORS.KEYSTORE.UNINTERRUPTED_NOT_IMPLEMENTED,
+    );
   }
 
   public async uninterrupted<ReturnT>(
     _f: () => ReturnT,
   ): Promise<Awaited<ReturnT>> {
-    throw new HardhatPluginError(PLUGIN_ID, "Uninterrupted not implemented");
+    throw new HardhatError(
+      HardhatError.ERRORS.KEYSTORE.UNINTERRUPTED_NOT_IMPLEMENTED,
+    );
   }
 }

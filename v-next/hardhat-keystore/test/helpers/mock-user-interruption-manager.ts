@@ -3,10 +3,6 @@ import type { Mock } from "node:test";
 
 import { mock } from "node:test";
 
-import { HardhatPluginError } from "@ignored/hardhat-vnext-errors";
-
-import { PLUGIN_ID } from "../../src/internal/constants.js";
-
 export class MockUserInterruptionManager implements UserInterruptionManager {
   public displayMessage: Mock<
     (interruptor: string, message: string) => Promise<void>
@@ -29,9 +25,6 @@ export class MockUserInterruptionManager implements UserInterruptionManager {
   public async uninterrupted<ReturnT>(
     _f: () => ReturnT,
   ): Promise<Awaited<ReturnT>> {
-    throw new HardhatPluginError(
-      PLUGIN_ID,
-      "Uninterrupted not implemented for mock",
-    );
+    throw new Error("Uninterrupted not implemented for mock");
   }
 }
