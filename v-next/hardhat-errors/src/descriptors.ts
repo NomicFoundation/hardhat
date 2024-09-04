@@ -553,19 +553,19 @@ If you want to use a different chain type, please update your networks config.`,
   },
   KEYSTORE: {
     INVALID_KEYSTORE_FILE_FORMAT: {
-      number: 801,
+      number: 800,
       messageTemplate: "Invalid keystore format",
       websiteTitle: "Invalid keystore format",
       websiteDescription: "The provided JSON is not a valid keystore file",
     },
     INVALID_READLINE_OUTPUT: {
-      number: 802,
+      number: 801,
       messageTemplate: "Expected readline output to be defined",
       websiteTitle: "Expected readline output to be defined",
       websiteDescription: "Expected readline output to be defined",
     },
     UNINTERRUPTED_NOT_IMPLEMENTED: {
-      number: 803,
+      number: 802,
       messageTemplate: "Uninterrupted not implemented",
       websiteTitle: "Uninterrupted not implemented",
       websiteDescription: "Uninterrupted not implemented",
