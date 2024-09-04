@@ -5,7 +5,6 @@ import { beforeEach, describe, it } from "node:test";
 
 import chalk from "chalk";
 
-import { createUnencryptedKeystoreFile } from "../../src/internal/keystores/unencrypted-keystore-file.js";
 import { UnencryptedKeystore } from "../../src/internal/keystores/unencrypted-keystore.js";
 import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
 import { get } from "../../src/internal/tasks/get.js";
@@ -36,10 +35,9 @@ describe("tasks - get", () => {
 
   describe("a successful `get` with a known key", () => {
     beforeEach(async () => {
-      const keystoreFile = createUnencryptedKeystoreFile();
-      keystoreFile.keys.myKey = "myValue";
-      await mockFileManager.writeJsonFile(fakeKeystoreFilePath, keystoreFile);
-      mockFileManager.writeJsonFileCalled = false;
+      mockFileManager.setupExistingKeystoreFile({
+        myKey: "myValue",
+      });
 
       await get(
         {
@@ -67,7 +65,7 @@ describe("tasks - get", () => {
 
   describe("a `get` when the keystore file does not exist", () => {
     beforeEach(async () => {
-      mockFileManager.deleteKeystoreFile();
+      mockFileManager.setupNoKeystoreFile();
 
       await get(
         {
@@ -95,10 +93,9 @@ describe("tasks - get", () => {
 
   describe("a `get` with a key that is not in the keystore", () => {
     beforeEach(async () => {
-      const keystoreFile = createUnencryptedKeystoreFile();
-      keystoreFile.keys.known = "value";
-      await mockFileManager.writeJsonFile(fakeKeystoreFilePath, keystoreFile);
-      mockFileManager.writeJsonFileCalled = false;
+      mockFileManager.setupExistingKeystoreFile({
+        known: "value",
+      });
 
       await get(
         {

@@ -5,7 +5,6 @@ import { beforeEach, describe, it } from "node:test";
 
 import chalk from "chalk";
 
-import { createUnencryptedKeystoreFile } from "../../src/internal/keystores/unencrypted-keystore-file.js";
 import { UnencryptedKeystore } from "../../src/internal/keystores/unencrypted-keystore.js";
 import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
 import { set } from "../../src/internal/tasks/set.js";
@@ -65,13 +64,9 @@ describe("tasks - set", () => {
       const keystoreFile =
         await mockFileManager.readJsonFile(fakeKeystoreFilePath);
 
-      const expectedKeystoreFile = createUnencryptedKeystoreFile();
-
-      expectedKeystoreFile.keys.myKey = "myValue2";
-
       assert.deepEqual(
-        keystoreFile,
-        expectedKeystoreFile,
+        keystoreFile.keys,
+        { myKey: "myValue2" },
         "keystore should have been saved with update",
       );
     });
@@ -79,9 +74,7 @@ describe("tasks - set", () => {
 
   describe("an unforced `set` on an existing key", async () => {
     beforeEach(async () => {
-      const keystoreFile = createUnencryptedKeystoreFile();
-      keystoreFile.keys.key = "oldValue";
-      await mockFileManager.writeJsonFile(fakeKeystoreFilePath, keystoreFile);
+      mockFileManager.setupExistingKeystoreFile({ key: "oldValue" });
 
       mockUserInterruptionManager.requestSecretInput = async () => "newValue";
 
@@ -111,9 +104,7 @@ describe("tasks - set", () => {
 
   describe("a forced `set` with a new value", async () => {
     beforeEach(async () => {
-      const keystoreFile = createUnencryptedKeystoreFile();
-      keystoreFile.keys.key = "oldValue";
-      await mockFileManager.writeJsonFile(fakeKeystoreFilePath, keystoreFile);
+      mockFileManager.setupExistingKeystoreFile({ key: "oldValue" });
 
       mockUserInterruptionManager.requestSecretInput = async () => "newValue";
       await set({ key: "key", force: true }, keystoreLoader, userInteractions);
@@ -140,6 +131,8 @@ describe("tasks - set", () => {
 
   describe("`set` with an invalid key", async () => {
     beforeEach(async () => {
+      mockFileManager.setupExistingKeystoreFile({ key: "value" });
+
       await set(
         { key: "1key", force: false },
         keystoreLoader,
@@ -159,6 +152,8 @@ describe("tasks - set", () => {
 
   describe("the user entering an empty value", async () => {
     beforeEach(async () => {
+      mockFileManager.setupExistingKeystoreFile({ key: "oldValue" });
+
       mockUserInterruptionManager.requestSecretInput = async () => "";
 
       await set({ key: "key", force: true }, keystoreLoader, userInteractions);
@@ -172,7 +167,7 @@ describe("tasks - set", () => {
     });
 
     it("should not set the key in the keystore", async () => {
-      assert.deepEqual(await keystore.readValue("key"), undefined);
+      assert.deepEqual(await keystore.readValue("key"), "oldValue");
     });
 
     it("should not save the keystore to file", async () => {
@@ -185,7 +180,7 @@ describe("tasks - set", () => {
 
   describe("a `set` when the keystore file does not exist", () => {
     beforeEach(async () => {
-      mockFileManager.deleteKeystoreFile();
+      mockFileManager.setupNoKeystoreFile();
       userInteractions.requestSecretFromUser = async () => "myValue2";
 
       await set(
@@ -199,13 +194,9 @@ describe("tasks - set", () => {
       const keystoreFile =
         await mockFileManager.readJsonFile(fakeKeystoreFilePath);
 
-      const expectedKeystoreFile = createUnencryptedKeystoreFile();
-
-      expectedKeystoreFile.keys.myKey = "myValue2";
-
       assert.deepEqual(
-        keystoreFile,
-        expectedKeystoreFile,
+        keystoreFile.keys,
+        { myKey: "myValue2" },
         "keystore should have been saved with update",
       );
     });

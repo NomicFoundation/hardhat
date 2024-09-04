@@ -5,7 +5,6 @@ import { beforeEach, describe, it } from "node:test";
 
 import chalk from "chalk";
 
-import { createUnencryptedKeystoreFile } from "../../src/internal/keystores/unencrypted-keystore-file.js";
 import { UnencryptedKeystore } from "../../src/internal/keystores/unencrypted-keystore.js";
 import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
 import { getFullOutput } from "../helpers/get-full-output.js";
@@ -103,9 +102,7 @@ The password must have at least 8 characters, one uppercase letter, one lowercas
     let exampleKeystoreFile: UnencryptedKeystoreFile;
 
     beforeEach(async () => {
-      exampleKeystoreFile = createUnencryptedKeystoreFile();
-
-      mockFileManager.setKeystoreFile(exampleKeystoreFile);
+      exampleKeystoreFile = mockFileManager.setupExistingKeystoreFile({});
 
       keystoreFileLoader = new KeystoreFileLoader(
         "./example-keystore.json",

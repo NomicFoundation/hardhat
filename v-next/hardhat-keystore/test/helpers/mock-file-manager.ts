@@ -5,6 +5,8 @@ import type {
 
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 
+import { createUnencryptedKeystoreFile } from "../../src/internal/keystores/unencrypted-keystore-file.js";
+
 export class MockFileManager implements FileManager {
   public writeJsonFileCalled: boolean;
   #keystoreFile: UnencryptedKeystoreFile | null;
@@ -12,6 +14,27 @@ export class MockFileManager implements FileManager {
   constructor() {
     this.writeJsonFileCalled = false;
     this.#keystoreFile = null;
+  }
+
+  /**
+   * Only used in tests to ensure there is no current keystore
+   * file at the path.
+   */
+  public setupNoKeystoreFile(): void {
+    this.#keystoreFile = null;
+  }
+
+  public setupExistingKeystoreFile(keys: {
+    [key: string]: string;
+  }): UnencryptedKeystoreFile {
+    const keystoreFile = createUnencryptedKeystoreFile();
+
+    keystoreFile.keys = keys;
+
+    this.#keystoreFile = keystoreFile;
+    this.writeJsonFileCalled = false;
+
+    return keystoreFile;
   }
 
   public setKeystoreFile(keystoreFile: UnencryptedKeystoreFile): void {
@@ -39,13 +62,5 @@ export class MockFileManager implements FileManager {
     );
 
     return this.#keystoreFile;
-  }
-
-  /**
-   * Only used in tests to ensure there is no current keystore
-   * file at the path.
-   */
-  public deleteKeystoreFile(): void {
-    this.#keystoreFile = null;
   }
 }
