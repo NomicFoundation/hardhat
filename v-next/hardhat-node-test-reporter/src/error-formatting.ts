@@ -61,7 +61,8 @@ export function formatError(error: Error): string {
  * - If the error is diffable (i.e. it has `actual` and `expected` properties),
  *   the diff is printed.
  * - The error stack is formatted as a series of references (lines starting with
- *   "at"). The location part of the stack is normalized. The stack is printed
+ *   "at"). All the node references and test runner internal references are
+ *   removed. The location part of the stack is normalized. The stack is printed
  *   in grey, indented by 4 spaces.
  * - If the error has a cause, the cause is formatted in the same way,
  *   recursively. Formatting a cause increases the depth by 1. If the depth is
@@ -96,9 +97,26 @@ function formatSingleError(
 
   const diff = getErrorDiff(error);
 
-  const stackReferences: StackReference[] = stackLines
+  let stackReferences: StackReference[] = stackLines
     .map(parseStackLine)
     .filter((reference) => reference !== undefined);
+
+  // Remove all the stack references exposing test runner internals
+  // User code starts after: (Suite|Test|TestHook|...).runInAsyncScope
+  const runInAsyncScopeIndex = stackReferences.findIndex((reference) => {
+    return (
+      reference.context !== undefined &&
+      reference.context.endsWith(".runInAsyncScope")
+    );
+  });
+  if (runInAsyncScopeIndex !== -1) {
+    stackReferences = stackReferences.slice(0, runInAsyncScopeIndex);
+  }
+
+  // Remove all the stack references originating from node
+  stackReferences = stackReferences.filter((reference) => {
+    return !reference.location.startsWith("node:");
+  });
 
   const stack = stackReferences.map(formatStackReference).join("\n");
 
