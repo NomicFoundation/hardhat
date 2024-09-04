@@ -8,7 +8,7 @@
     [31m3) it only[39m
 
 
-[32m0 passing[39m[90m (129ms)[39m[31m[39m
+[32m0 passing[39m[90m (132ms)[39m[31m[39m
 [31m3 failing[39m
 
   1) test only:
@@ -21,14 +21,6 @@
    [31m+ 1[39m
    
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/only-test-with-the-flag/test.ts:10:10)[39m
-   [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
-   [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
-   [90m    at Test.processPendingSubtests (node:internal/test_runner/test:565:18)[39m
-   [90m    at Test.postRun (node:internal/test_runner/test:955:19)[39m
-   [90m    at node:internal/test_runner/test:792:31[39m
-   [90m    at node:internal/process/task_queues:140:7[39m
-   [90m    at AsyncResource.runInAsyncScope (node:async_hooks:206:9)[39m
-   [90m    at AsyncResource.runMicrotask (node:internal/process/task_queues:137:8)[39m
 
   2) describe only
        it:
@@ -41,15 +33,6 @@
    [31m+ 1[39m
    
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/only-test-with-the-flag/test.ts:16:12)[39m
-   [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
-   [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
-   [90m    at Test.start (node:internal/test_runner/test:753:17)[39m
-   [90m    at node:internal/test_runner/test:1215:71[39m
-   [90m    at node:internal/per_context/primordials:488:82[39m
-   [90m    at new Promise (<anonymous>)[39m
-   [90m    at new SafePromise (node:internal/per_context/primordials:456:29)[39m
-   [90m    at node:internal/per_context/primordials:488:9[39m
-   [90m    at Array.map (<anonymous>)[39m
 
   3) describe
        it only:
@@ -62,13 +45,4 @@
    [31m+ 1[39m
    
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/only-test-with-the-flag/test.ts:23:12)[39m
-   [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
-   [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
-   [90m    at Test.start (node:internal/test_runner/test:753:17)[39m
-   [90m    at node:internal/test_runner/test:1215:71[39m
-   [90m    at node:internal/per_context/primordials:488:82[39m
-   [90m    at new Promise (<anonymous>)[39m
-   [90m    at new SafePromise (node:internal/per_context/primordials:456:29)[39m
-   [90m    at node:internal/per_context/primordials:488:9[39m
-   [90m    at Array.map (<anonymous>)[39m
 

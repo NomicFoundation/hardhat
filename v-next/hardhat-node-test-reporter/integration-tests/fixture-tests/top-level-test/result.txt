@@ -8,7 +8,7 @@
   [31m3) error with nested cause in top level test[39m
 
 
-[32m1 passing[39m[90m (134ms)[39m[31m[39m
+[32m1 passing[39m[90m (139ms)[39m[31m[39m
 [31m3 failing[39m
 
   1) assertion error in top level test:
@@ -21,56 +21,20 @@
    [31m+ 1[39m
    
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/top-level-test/test.ts:9:10)[39m
-   [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
-   [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
-   [90m    at Test.processPendingSubtests (node:internal/test_runner/test:565:18)[39m
-   [90m    at Test.postRun (node:internal/test_runner/test:955:19)[39m
-   [90m    at Test.run (node:internal/test_runner/test:898:12)[39m
-   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:565:7)[39m
 
   2) error with cause in top level test:
 
    [31mError: error with cause[39m
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/top-level-test/test.ts:13:9)[39m
-   [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
-   [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
-   [90m    at Test.processPendingSubtests (node:internal/test_runner/test:565:18)[39m
-   [90m    at Test.postRun (node:internal/test_runner/test:955:19)[39m
-   [90m    at Test.run (node:internal/test_runner/test:898:12)[39m
-   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:565:7)[39m
      [90m[cause]: Error: cause[39m
      [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/top-level-test/test.ts:14:12)[39m
-     [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
-     [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
-     [90m    at Test.processPendingSubtests (node:internal/test_runner/test:565:18)[39m
-     [90m    at Test.postRun (node:internal/test_runner/test:955:19)[39m
-     [90m    at Test.run (node:internal/test_runner/test:898:12)[39m
-     [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:565:7)[39m
 
   3) error with nested cause in top level test:
 
    [31mError: error with cause[39m
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/top-level-test/test.ts:19:9)[39m
-   [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
-   [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
-   [90m    at Test.processPendingSubtests (node:internal/test_runner/test:565:18)[39m
-   [90m    at Test.postRun (node:internal/test_runner/test:955:19)[39m
-   [90m    at Test.run (node:internal/test_runner/test:898:12)[39m
-   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:565:7)[39m
      [90m[cause]: Error: cause[39m
      [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/top-level-test/test.ts:20:12)[39m
-     [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
-     [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
-     [90m    at Test.processPendingSubtests (node:internal/test_runner/test:565:18)[39m
-     [90m    at Test.postRun (node:internal/test_runner/test:955:19)[39m
-     [90m    at Test.run (node:internal/test_runner/test:898:12)[39m
-     [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:565:7)[39m
        [90m[cause]: Error: nested cause[39m
        [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/top-level-test/test.ts:21:14)[39m
-       [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
-       [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
-       [90m    at Test.processPendingSubtests (node:internal/test_runner/test:565:18)[39m
-       [90m    at Test.postRun (node:internal/test_runner/test:955:19)[39m
-       [90m    at Test.run (node:internal/test_runner/test:898:12)[39m
-       [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:565:7)[39m
 
