@@ -325,6 +325,8 @@ By default, Hardhat will spin up a new in-memory instance of Hardhat Network on 
 
 To run Hardhat Network in this way, run `npx hardhat node`:
 
+To run Hardhat Network on specific port and allow traffic from specifid address in this way, run `npx hardhat node --hostname 127.0.0.1 --port 8545`:
+
 ```
 $ npx hardhat node
 Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/
