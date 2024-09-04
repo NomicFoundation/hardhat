@@ -13,12 +13,20 @@ import { setupKeystoreFileLocationOverrideAt } from "../helpers/setup-keystore-f
 
 const existingKeystoreFilePath = path.join(
   fileURLToPath(import.meta.url),
-  "../../fixture-projects/unencrypted-keystore/existing-keystore.json",
+  "..",
+  "..",
+  "fixture-projects",
+  "unencrypted-keystore",
+  "existing-keystore.json",
 );
 
 const nonExistingKeystoreFilePath = path.join(
   fileURLToPath(import.meta.url),
-  "../../fixture-projects/unencrypted-keystore/keystore.json",
+  "..",
+  "..",
+  "fixture-projects",
+  "unencrypted-keystore",
+  "keystore.json",
 );
 
 const exampleConfigurationVariable: ConfigurationVariable = {
