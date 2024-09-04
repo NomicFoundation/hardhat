@@ -28,7 +28,7 @@ describe("integration tests for the keystore tasks", () => {
 
   beforeEach(async () => {
     const keystoreFile: UnencryptedKeystoreFile =
-      UnencryptedKeystore.createUnencryptedKeystoreFile();
+      UnencryptedKeystore.createEmptyUnencryptedKeystoreFile();
 
     keystoreFile.keys.myKey1 = "myValue1";
     keystoreFile.keys.myKey2 = "myValue2";

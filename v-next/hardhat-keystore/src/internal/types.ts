@@ -1,13 +1,20 @@
-export interface Keystore {
-  init(): Promise<Keystore>;
-  loadFromJSON: (json: unknown) => Keystore;
-  toJSON(): any;
+export type Format = "hh-unencrypted-keystore";
 
+export interface UnencryptedKeystoreFile {
+  _format: Format;
+  version: number;
+  keys: {
+    [key: string]: string;
+  };
+}
+
+export interface Keystore {
   listKeys(): Promise<string[]>;
   hasKey(key: string): Promise<boolean>;
   addNewValue(key: string, value: string): Promise<void>;
   removeKey(key: string): Promise<void>;
   readValue(key: string): Promise<string | undefined>;
+  toJSON(): UnencryptedKeystoreFile;
 }
 
 export interface KeystoreLoader {
@@ -24,14 +31,4 @@ export interface FileManager {
     keystoreFile: UnencryptedKeystoreFile,
   ): Promise<void>;
   readJsonFile(absolutePathToFile: string): Promise<UnencryptedKeystoreFile>;
-}
-
-export type Format = "hh-unencrypted-keystore";
-
-export interface UnencryptedKeystoreFile {
-  _format: Format;
-  version: number;
-  keys: {
-    [key: string]: string;
-  };
 }

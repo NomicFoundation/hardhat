@@ -3,7 +3,7 @@ import type { UserInteractions } from "../ui/user-interactions.js";
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
-import { setupRawInterruptionsAndKeystoreLoader } from "../utils/setup-raw-interruptions-and-keystore-loader.js";
+import { setupDirectInterruptionsAndKeystoreLoader } from "../utils/setup-direct-interruptions-and-keystore-loader.js";
 import { validateKey } from "../utils/validate-key.js";
 
 interface TaskGetArguments {
@@ -16,7 +16,7 @@ const taskSet: NewTaskActionFunction<TaskGetArguments> = async (
   hre: HardhatRuntimeEnvironment,
 ): Promise<void> => {
   const { keystoreLoader, interruptions } =
-    await setupRawInterruptionsAndKeystoreLoader(hre);
+    await setupDirectInterruptionsAndKeystoreLoader(hre);
 
   await set(setArgs, keystoreLoader, interruptions);
 };

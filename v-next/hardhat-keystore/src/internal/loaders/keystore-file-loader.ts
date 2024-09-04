@@ -1,6 +1,14 @@
-import type { FileManager, Keystore, KeystoreLoader } from "../types.js";
+import type {
+  FileManager,
+  Keystore,
+  KeystoreLoader,
+  UnencryptedKeystoreFile,
+} from "../types.js";
+
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 import { UnencryptedKeystore } from "../keystores/unencrypted-keystore.js";
+import { unencryptedKeystoreFileSchema } from "../types-validation.js";
 
 export class KeystoreFileLoader implements KeystoreLoader {
   readonly #keystoreFilePath: string;
@@ -20,18 +28,31 @@ export class KeystoreFileLoader implements KeystoreLoader {
       this.#keystoreFilePath,
     );
 
-    const keystore = new UnencryptedKeystore().loadFromJSON(keystoreFile);
+    this.#throwIfInvalidKeystoreFormat(keystoreFile);
 
-    return keystore;
+    return new UnencryptedKeystore(keystoreFile);
   }
 
   public async create(): Promise<Keystore> {
-    return new UnencryptedKeystore().init();
+    return new UnencryptedKeystore(
+      UnencryptedKeystore.createEmptyUnencryptedKeystoreFile(),
+    );
   }
 
   public async save(keystore: Keystore): Promise<void> {
     const keystoreFile = keystore.toJSON();
 
     await this.#fileManager.writeJsonFile(this.#keystoreFilePath, keystoreFile);
+  }
+
+  #throwIfInvalidKeystoreFormat(keystore: UnencryptedKeystoreFile): void {
+    try {
+      unencryptedKeystoreFileSchema.parse(keystore);
+    } catch (error) {
+      throw new HardhatError(
+        HardhatError.ERRORS.KEYSTORE.INVALID_KEYSTORE_FILE_FORMAT,
+        error instanceof Error ? error : undefined,
+      );
+    }
   }
 }

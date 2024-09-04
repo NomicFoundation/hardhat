@@ -27,7 +27,8 @@ export class MockFileManager implements FileManager {
   public setupExistingKeystoreFile(keys: {
     [key: string]: string;
   }): UnencryptedKeystoreFile {
-    const keystoreFile = UnencryptedKeystore.createUnencryptedKeystoreFile();
+    const keystoreFile =
+      UnencryptedKeystore.createEmptyUnencryptedKeystoreFile();
 
     keystoreFile.keys = keys;
 
