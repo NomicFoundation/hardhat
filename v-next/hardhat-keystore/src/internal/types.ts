@@ -26,9 +26,11 @@ export interface FileManager {
   readJsonFile(absolutePathToFile: string): Promise<UnencryptedKeystoreFile>;
 }
 
+export type Format = "hh-unencrypted-keystore";
+
 export interface UnencryptedKeystoreFile {
-  _format: "hh-unencrypted-keystore";
-  version: 1;
+  _format: Format;
+  version: number;
   keys: {
     [key: string]: string;
   };

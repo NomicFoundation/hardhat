@@ -1,7 +1,13 @@
 import type { UserInteractions } from "../../internal/ui/user-interactions.js";
 import type { Keystore, UnencryptedKeystoreFile } from "../types.js";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import {
+  assertHardhatInvariant,
+  HardhatPluginError,
+} from "@ignored/hardhat-vnext-errors";
+
+import { PLUGIN_ID } from "../constants.js";
+import { unencryptedKeystoreFileSchema } from "../types-validation.js";
 
 import { createUnencryptedKeystoreFile } from "./unencrypted-keystore-file.js";
 
@@ -54,8 +60,9 @@ export class UnencryptedKeystore implements Keystore {
   }
 
   public loadFromJSON(json: any): Keystore {
-    // TODO: add ZOD validation
     const keystore: UnencryptedKeystoreFile = json;
+
+    this.#throwIfInvalidKeystoreFormat(keystore);
 
     this.#keystoreData = keystore;
 
@@ -72,5 +79,13 @@ export class UnencryptedKeystore implements Keystore {
     keystoreFile: UnencryptedKeystoreFile | null,
   ): asserts keystoreFile is UnencryptedKeystoreFile {
     assertHardhatInvariant(keystoreFile !== null, "Keystore not initialized");
+  }
+
+  #throwIfInvalidKeystoreFormat(keystore: UnencryptedKeystoreFile): void {
+    try {
+      unencryptedKeystoreFileSchema.parse(keystore);
+    } catch (error) {
+      throw new HardhatPluginError(PLUGIN_ID, "Invalid keystore file format");
+    }
   }
 }
