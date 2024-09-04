@@ -64,8 +64,10 @@ export function formatError(error: Error): string {
  *   "at"). The location part of the stack is normalized. The stack is printed
  *   in grey, indented by 4 spaces.
  * - If the error has a cause, the cause is formatted in the same way,
- *   recursively. Formatting a cause increases the depth by 1. The formatted
- *   cause is printed in grey, indented by 2 spaces.
+ *   recursively. Formatting a cause increases the depth by 1. If the depth is
+ *   greater than 3, the cause is replaced by an error indicating that the error
+ *   chain has been truncated. The formatted cause is printed in grey, indented
+ *   by 2 spaces.
  * - If the error is an aggregate, all the errors in the aggregate are formatted
  *   in the same way, recursively. Then, they are printed in grey, indented by 2
  *   spaces.
@@ -118,8 +120,15 @@ function formatSingleError(
   }
 
   if (error.cause instanceof Error) {
+    let cause = error.cause;
+    if (depth + 1 >= 3) {
+      cause = new Error(
+        "The error chain has been truncated because it's too long (limit: 3)",
+      );
+      cause.stack = undefined;
+    }
     const formattedCause = indent(
-      formatSingleError(error.cause, "cause", depth + 1),
+      formatSingleError(cause, "cause", depth + 1),
       2,
     );
     return `${formattedError}\n${formattedCause}`;

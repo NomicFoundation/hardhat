@@ -12,3 +12,9 @@ test("aggregate error in top level test", async () => {
 
   return Promise.any([promise1, promise2]);
 });
+
+test("error with circular cause in top level test", async () => {
+  const error = new Error("circular error");
+  error.cause = error;
+  throw error;
+});
