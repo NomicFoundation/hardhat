@@ -11,7 +11,7 @@
     [90m[32m✔[39m[90m it[39m
 
 
-[32m2 passing[39m[90m (185ms)[39m[31m[39m
+[32m2 passing[39m[90m (130ms)[39m[31m[39m
 [31m3 failing[39m
 [34mℹ[39m 'only' and 'runOnly' require the --test-only command-line option.
 [34mℹ[39m 'only' and 'runOnly' require the --test-only command-line option.
@@ -32,13 +32,7 @@
    [90m    at Test.processPendingSubtests (node:internal/test_runner/test:565:18)[39m
    [90m    at Test.postRun (node:internal/test_runner/test:955:19)[39m
    [90m    at Test.run (node:internal/test_runner/test:898:12)[39m
-   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:565:7) {[39m
-   [90m  generatedMessage: true,[39m
-   [90m  code: 'ERR_ASSERTION',[39m
-   [90m  actual: 1,[39m
-   [90m  expected: 2,[39m
-   [90m  operator: 'strictEqual'[39m
-   [90m}[39m
+   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:565:7)[39m
 
   2) describe only
        it:
@@ -59,13 +53,7 @@
    [90m    at new Promise (<anonymous>)[39m
    [90m    at new SafePromise (node:internal/per_context/primordials:456:29)[39m
    [90m    at node:internal/per_context/primordials:488:9[39m
-   [90m    at Array.map (<anonymous>) {[39m
-   [90m  generatedMessage: true,[39m
-   [90m  code: 'ERR_ASSERTION',[39m
-   [90m  actual: 1,[39m
-   [90m  expected: 2,[39m
-   [90m  operator: 'strictEqual'[39m
-   [90m}[39m
+   [90m    at Array.map (<anonymous>)[39m
 
   3) describe
        it only:
@@ -86,11 +74,5 @@
    [90m    at new Promise (<anonymous>)[39m
    [90m    at new SafePromise (node:internal/per_context/primordials:456:29)[39m
    [90m    at node:internal/per_context/primordials:488:9[39m
-   [90m    at Array.map (<anonymous>) {[39m
-   [90m  generatedMessage: true,[39m
-   [90m  code: 'ERR_ASSERTION',[39m
-   [90m  actual: 1,[39m
-   [90m  expected: 2,[39m
-   [90m  operator: 'strictEqual'[39m
-   [90m}[39m
+   [90m    at Array.map (<anonymous>)[39m
 
