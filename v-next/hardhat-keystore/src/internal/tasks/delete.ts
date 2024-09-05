@@ -7,20 +7,21 @@ import { setupDirectInterruptionsAndKeystoreLoader } from "../utils/setup-direct
 
 interface TaskDeleteArguments {
   key: string;
+  force: boolean;
 }
 
 const taskDelete: NewTaskActionFunction<TaskDeleteArguments> = async (
-  { key },
+  setArgs,
   hre: HardhatRuntimeEnvironment,
 ): Promise<void> => {
   const { keystoreLoader, interruptions } =
     await setupDirectInterruptionsAndKeystoreLoader(hre);
 
-  await remove({ key }, keystoreLoader, interruptions);
+  await remove(setArgs, keystoreLoader, interruptions);
 };
 
 export const remove = async (
-  { key }: TaskDeleteArguments,
+  { key, force }: TaskDeleteArguments,
   keystoreLoader: KeystoreLoader,
   interruptions: UserInteractions,
 ): Promise<void> => {
@@ -33,6 +34,10 @@ export const remove = async (
   const keys = await keystore.listKeys();
 
   if (!keys.includes(key)) {
+    if (force) {
+      return;
+    }
+
     return interruptions.displayKeyNotFoundErrorMessage(key);
   }
 

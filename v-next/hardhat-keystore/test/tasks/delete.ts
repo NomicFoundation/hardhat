@@ -41,6 +41,7 @@ describe("tasks - delete", () => {
       await remove(
         {
           key: "myKey",
+          force: false,
         },
         keystoreLoader,
         userInteractions,
@@ -73,6 +74,7 @@ describe("tasks - delete", () => {
       await remove(
         {
           key: "key",
+          force: false,
         },
         keystoreLoader,
         userInteractions,
@@ -96,13 +98,14 @@ describe("tasks - delete", () => {
     });
   });
 
-  describe("a `delete` with a key that is not in the keystore", () => {
+  describe("a `delete` with a key that is not in the keystore and the force flag is not set", () => {
     beforeEach(async () => {
       mockFileManager.setupExistingKeystoreFile({ key: "value" });
 
       await remove(
         {
           key: "unknown",
+          force: false,
         },
         keystoreLoader,
         userInteractions,
@@ -115,6 +118,39 @@ describe("tasks - delete", () => {
           chalk.red(`Key "unknown" not found`),
         ),
         "the key not found message should have been displayed",
+      );
+    });
+
+    it("should not attempt to save the keystore", async () => {
+      const keystoreFile =
+        await mockFileManager.readJsonFile(fakeKeystoreFilePath);
+
+      assert.deepEqual(
+        keystoreFile.keys,
+        { key: "value" },
+        "keystore should not have been saved",
+      );
+    });
+  });
+
+  describe("a `delete` with a key that is not in the keystore and the force flag is set", () => {
+    beforeEach(async () => {
+      mockFileManager.setupExistingKeystoreFile({ key: "value" });
+
+      await remove(
+        {
+          key: "unknown",
+          force: true,
+        },
+        keystoreLoader,
+        userInteractions,
+      );
+    });
+
+    it("should not display a message that the key is not found", async () => {
+      assert.ok(
+        mockUserInterruptionManager.output === "",
+        "the key not found message should not have been displayed",
       );
     });
 

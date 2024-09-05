@@ -56,6 +56,11 @@ export const hardhatKeystorePlugin: HardhatPlugin = {
         type: ArgumentType.STRING,
         description: "Specifies the key to delete from the keystore",
       })
+      .addFlag({
+        name: "force",
+        description:
+          "Forces to not throw an error if the key does not exist during deletion.",
+      })
       .setAction(import.meta.resolve("./internal/tasks/delete.js"))
       .build(),
   ],
