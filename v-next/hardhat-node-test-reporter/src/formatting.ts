@@ -111,9 +111,11 @@ ${diagnostics.cancelled} cancelled`);
 export function formatUnusedDiagnostics(
   unusedDiagnostics: Array<TestEventData["test:diagnostic"]>,
 ): string {
-  return unusedDiagnostics
-    .map(({ message }) => `${INFO_SYMBOL} ${message}`)
-    .join("\n");
+  const messages = unusedDiagnostics.map(({ message }) => {
+    // We replace node specific --test-only flag with Hardhat's --only flag
+    return `${INFO_SYMBOL} ${message.replace("--test-only", "--only")}`;
+  });
+  return Array.from(new Set(messages)).join("\n");
 }
 
 function formatFailureIndex(index: number): string {
