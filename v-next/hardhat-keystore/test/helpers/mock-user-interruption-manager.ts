@@ -2,6 +2,7 @@ import type { UserInterruptionManager } from "@ignored/hardhat-vnext/types/user-
 
 export class MockUserInterruptionManager implements UserInterruptionManager {
   public output: string;
+
   constructor() {
     this.output = "";
   }
