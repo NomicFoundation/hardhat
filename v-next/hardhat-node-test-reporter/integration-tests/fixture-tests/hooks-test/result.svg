@@ -196,7 +196,7 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
 <text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="78" y="339" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- > (145ms)</text>
+ > (143ms)</text>
 </g>
 
 <g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
@@ -400,7 +400,7 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
 <text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="894" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    This test was cancelled due to an error in its parent suite/it or test/it, or in one of its before/beforeEach</text>
+ >    This test was cancelled due to an error in its parent describe or before hook</text>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
@@ -432,7 +432,7 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
 <text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="984" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    This test was cancelled due to an error in its parent suite/it or test/it, or in one of its before/beforeEach</text>
+ >    This test was cancelled due to an error in its parent describe or before hook</text>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
@@ -494,7 +494,7 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
 <text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1149" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    This test was cancelled due to an error in its parent suite/it or test/it, or in one of its before/beforeEach</text>
+ >    This test was cancelled due to an error in its parent describe or before hook</text>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
@@ -526,7 +526,7 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
 <text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1239" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    This test was cancelled due to an error in its parent suite/it or test/it, or in one of its before/beforeEach</text>
+ >    This test was cancelled due to an error in its parent describe or before hook</text>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"

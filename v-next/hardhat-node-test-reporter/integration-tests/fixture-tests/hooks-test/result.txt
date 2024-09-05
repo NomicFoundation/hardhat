@@ -19,7 +19,7 @@
     [31m10) should pass, too[39m
 
 
-[32m2 passing[39m[90m (145ms)[39m[31m[39m
+[32m2 passing[39m[90m (143ms)[39m[31m[39m
 [31m4 failing[39m[90m[39m
 [90m4 cancelled[39m
 
@@ -56,13 +56,13 @@
        should pass:
 
    [31mTest cancelled by parent error[39m
-   [90m    This test was cancelled due to an error in its parent suite/it or test/it, or in one of its before/beforeEach[39m
+   [90m    This test was cancelled due to an error in its parent describe or before hook[39m
 
   7) before
        should pass, too:
 
    [31mTest cancelled by parent error[39m
-   [90m    This test was cancelled due to an error in its parent suite/it or test/it, or in one of its before/beforeEach[39m
+   [90m    This test was cancelled due to an error in its parent describe or before hook[39m
 
   8) before:
 
@@ -73,13 +73,13 @@
        should pass:
 
    [31mTest cancelled by parent error[39m
-   [90m    This test was cancelled due to an error in its parent suite/it or test/it, or in one of its before/beforeEach[39m
+   [90m    This test was cancelled due to an error in its parent describe or before hook[39m
 
   10) describe
         should pass, too:
 
    [31mTest cancelled by parent error[39m
-   [90m    This test was cancelled due to an error in its parent suite/it or test/it, or in one of its before/beforeEach[39m
+   [90m    This test was cancelled due to an error in its parent describe or before hook[39m
 
   11) describe:
 
