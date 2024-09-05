@@ -4,7 +4,6 @@ import { beforeEach, describe, it } from "node:test";
 import chalk from "chalk";
 
 import { UserInteractions } from "../../src/internal/ui/user-interactions.js";
-import { getFullOutput } from "../helpers/get-full-output.js";
 import { MockUserInterruptionManager } from "../helpers/mock-user-interruption-manager.js";
 
 const VALID_PASSWORD = "MyPassword123!";
@@ -36,12 +35,13 @@ describe("user interactions - requesting a password from a user", () => {
 
     it("should display the password setup message", async () => {
       assert.equal(
-        getFullOutput(mockUserInterruptionManager.displayMessage, 4),
+        mockUserInterruptionManager.output,
         `
 👷🔐 Hardhat-Keystore 🔐👷
 
 This is the first time you are using the keystore, please set a password.
 The password must have at least 8 characters, one uppercase letter, one lowercase letter, and one special character.
+
 `,
       );
     });
@@ -67,9 +67,11 @@ The password must have at least 8 characters, one uppercase letter, one lowercas
     });
 
     it("should display the invalid password message", async () => {
-      assert.equal(
-        mockUserInterruptionManager.displayMessage.mock.calls[4].arguments[1],
-        chalk.red("Invalid password!"),
+      assert.ok(
+        mockUserInterruptionManager.output.includes(
+          chalk.red("Invalid password!"),
+        ),
+        "the password warning should have been displayed",
       );
     });
   });
@@ -93,9 +95,11 @@ The password must have at least 8 characters, one uppercase letter, one lowercas
     });
 
     it("should display the mismatched password message", async () => {
-      assert.equal(
-        mockUserInterruptionManager.displayMessage.mock.calls[4].arguments[1],
-        chalk.red("Passwords do not match!"),
+      assert.ok(
+        mockUserInterruptionManager.output.includes(
+          chalk.red("Passwords do not match!"),
+        ),
+        "the password warning should have been displayed",
       );
     });
   });

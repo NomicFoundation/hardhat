@@ -46,9 +46,9 @@ describe("tasks - set", () => {
     });
 
     it("should display a message that the key was set", async () => {
-      assert.equal(
-        mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
-        `Key "myKey" set`,
+      assert.ok(
+        mockUserInterruptionManager.output.includes(`Key "myKey" set`),
+        "the key set message should have been displayed",
       );
     });
 
@@ -74,11 +74,13 @@ describe("tasks - set", () => {
     });
 
     it("should warn that the key already exists", async () => {
-      assert.equal(
-        mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
-        chalk.yellow(
-          `The key "key" already exists. Use the ${chalk.blue.italic("--force")} flag to overwrite it.`,
+      assert.ok(
+        mockUserInterruptionManager.output.includes(
+          chalk.yellow(
+            `The key "key" already exists. Use the ${chalk.blue.italic("--force")} flag to overwrite it.`,
+          ),
         ),
+        "the key warning message should have been displayed",
       );
     });
 
@@ -103,9 +105,9 @@ describe("tasks - set", () => {
     });
 
     it("should display a message that the key was updated", async () => {
-      assert.equal(
-        mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
-        'Key "key" set',
+      assert.ok(
+        mockUserInterruptionManager.output.includes('Key "key" set'),
+        "the key set message should have been displayed",
       );
     });
 
@@ -133,11 +135,13 @@ describe("tasks - set", () => {
     });
 
     it("should display a message that the key is not valid", async () => {
-      assert.equal(
-        mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
-        chalk.red(
-          `Invalid value for key: "1key". Keys can only have alphanumeric characters and underscores, and they cannot start with a number.`,
+      assert.ok(
+        mockUserInterruptionManager.output.includes(
+          chalk.red(
+            `Invalid value for key: "1key". Keys can only have alphanumeric characters and underscores, and they cannot start with a number.`,
+          ),
         ),
+        "the key warning should have been displayed",
       );
     });
   });
@@ -152,9 +156,11 @@ describe("tasks - set", () => {
     });
 
     it("should display a message that a value cannot be empty", async () => {
-      assert.equal(
-        mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
-        chalk.red("The value cannot be empty."),
+      assert.ok(
+        mockUserInterruptionManager.output.includes(
+          chalk.red("The value cannot be empty."),
+        ),
+        "the value warning should have been displayed",
       );
     });
 

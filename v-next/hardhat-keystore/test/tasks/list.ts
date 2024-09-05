@@ -8,7 +8,6 @@ import chalk from "chalk";
 import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
 import { list } from "../../src/internal/tasks/list.js";
 import { UserInteractions } from "../../src/internal/ui/user-interactions.js";
-import { getFullOutput } from "../helpers/get-full-output.js";
 import { MockFileManager } from "../helpers/mock-file-manager.js";
 import { MockUserInterruptionManager } from "../helpers/mock-user-interruption-manager.js";
 
@@ -44,10 +43,11 @@ describe("tasks - list", () => {
 
     it("should display the keys as a message", async () => {
       assert.equal(
-        getFullOutput(mockUserInterruptionManager.displayMessage, 3),
+        mockUserInterruptionManager.output,
         `Keys:
 key
-key2`,
+key2
+`,
       );
     });
 
@@ -66,9 +66,11 @@ key2`,
     });
 
     it("should display a message that the keystore is not set", async () => {
-      assert.equal(
-        mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
-        `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
+      assert.ok(
+        mockUserInterruptionManager.output.includes(
+          `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")}`,
+        ),
+        "the no keystore found message should have been displayed",
       );
     });
 
@@ -89,9 +91,11 @@ key2`,
     });
 
     it("should display a message that the keystore has no keys", async () => {
-      assert.equal(
-        mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
-        "The keystore does not contain any keys.",
+      assert.ok(
+        mockUserInterruptionManager.output.includes(
+          "The keystore does not contain any keys.",
+        ),
+        "the empty keys message should have been displayed",
       );
     });
   });

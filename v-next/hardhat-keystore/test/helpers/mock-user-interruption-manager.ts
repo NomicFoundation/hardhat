@@ -1,12 +1,17 @@
 import type { UserInterruptionManager } from "@ignored/hardhat-vnext/types/user-interruptions";
-import type { Mock } from "node:test";
-
-import { mock } from "node:test";
 
 export class MockUserInterruptionManager implements UserInterruptionManager {
-  public displayMessage: Mock<
-    (interruptor: string, message: string) => Promise<void>
-  > = mock.fn();
+  public output: string;
+  constructor() {
+    this.output = "";
+  }
+
+  public async displayMessage(
+    _interruptor: string,
+    message: string,
+  ): Promise<void> {
+    this.output += message + "\n";
+  }
 
   public async requestSecretInput(
     _interruptor: string,

@@ -47,9 +47,9 @@ describe("tasks - get", () => {
     });
 
     it("should display the gotten value", async () => {
-      assert.equal(
-        mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
-        "myValue",
+      assert.ok(
+        mockUserInterruptionManager.output.includes("myValue"),
+        "the value should have been displayed",
       );
     });
 
@@ -76,9 +76,11 @@ describe("tasks - get", () => {
     });
 
     it("should display a message that the keystore is not set", async () => {
-      assert.equal(
-        mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
-        `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
+      assert.ok(
+        mockUserInterruptionManager.output.includes(
+          `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
+        ),
+        "the keystore not found message should have been displayed",
       );
     });
 
@@ -107,9 +109,11 @@ describe("tasks - get", () => {
     });
 
     it("should display a message that the key is not found", async () => {
-      assert.equal(
-        mockUserInterruptionManager.displayMessage.mock.calls[0].arguments[1],
-        chalk.red(`Key "unknown" not found`),
+      assert.ok(
+        mockUserInterruptionManager.output.includes(
+          chalk.red(`Key "unknown" not found`),
+        ),
+        "the key not found message should have been displayed",
       );
     });
 

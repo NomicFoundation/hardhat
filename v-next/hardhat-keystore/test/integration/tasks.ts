@@ -23,6 +23,11 @@ const keystoreFilePath = path.join(
   "keystore.json",
 );
 
+/**
+ * These tests are writing to the filesystem within `./test/fixture-projects/unencrypted-keystore`.
+ *
+ * They test the end to end keystore task runs by monkey patching `process.stdin` and `process.stdout`.
+ */
 describe("integration tests for the keystore tasks", () => {
   let hre: HardhatRuntimeEnvironment;
 
