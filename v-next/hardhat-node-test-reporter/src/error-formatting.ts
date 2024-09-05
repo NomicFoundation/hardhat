@@ -29,7 +29,7 @@ export function formatError(error: Error): string {
       "\n" +
       chalk.gray(
         indent(
-          "This test was cancelled due to an error in its parent describe or before hook",
+          "This can happen if a parent describe or before hook fails, or if a nested it is not awaited",
           4,
         ),
       )

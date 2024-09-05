@@ -35,7 +35,12 @@ describe("level 0", () => {
               });
             });
 
-            it("unawaited test", async () => {
+            it("unawaited test 1", async () => {
+              assert.equal(1, 1);
+            });
+
+            it("unawaited test 2", async () => {
+              await new Promise((resolve) => setTimeout(resolve, 0));
               assert.equal(1, 1);
             });
           });

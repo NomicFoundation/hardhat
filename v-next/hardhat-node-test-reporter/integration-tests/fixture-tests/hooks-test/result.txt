@@ -39,7 +39,7 @@
     [31m17) level 1[39m
 
 
-[32m2 passing[39m[90m (144ms)[39m[31m[39m
+[32m2 passing[39m[90m (142ms)[39m[31m[39m
 [31m4 failing[39m[90m[39m
 [90m8 cancelled[39m
 
@@ -76,13 +76,13 @@
        should pass:
 
    [31mTest cancelled by parent error[39m
-   [90m    This test was cancelled due to an error in its parent describe or before hook[39m
+   [90m    This can happen if a parent describe or before hook fails, or if a nested it is not awaited[39m
 
   7) before
        should pass, too:
 
    [31mTest cancelled by parent error[39m
-   [90m    This test was cancelled due to an error in its parent describe or before hook[39m
+   [90m    This can happen if a parent describe or before hook fails, or if a nested it is not awaited[39m
 
   8) before:
 
@@ -94,14 +94,14 @@
          should pass:
 
    [31mTest cancelled by parent error[39m
-   [90m    This test was cancelled due to an error in its parent describe or before hook[39m
+   [90m    This can happen if a parent describe or before hook fails, or if a nested it is not awaited[39m
 
   10) nested before
         level 1
           should pass, too:
 
    [31mTest cancelled by parent error[39m
-   [90m    This test was cancelled due to an error in its parent describe or before hook[39m
+   [90m    This can happen if a parent describe or before hook fails, or if a nested it is not awaited[39m
 
   11) nested before
         level 1:
@@ -113,13 +113,13 @@
         should pass:
 
    [31mTest cancelled by parent error[39m
-   [90m    This test was cancelled due to an error in its parent describe or before hook[39m
+   [90m    This can happen if a parent describe or before hook fails, or if a nested it is not awaited[39m
 
   13) describe
         should pass, too:
 
    [31mTest cancelled by parent error[39m
-   [90m    This test was cancelled due to an error in its parent describe or before hook[39m
+   [90m    This can happen if a parent describe or before hook fails, or if a nested it is not awaited[39m
 
   14) describe:
 
@@ -131,14 +131,14 @@
           should pass:
 
    [31mTest cancelled by parent error[39m
-   [90m    This test was cancelled due to an error in its parent describe or before hook[39m
+   [90m    This can happen if a parent describe or before hook fails, or if a nested it is not awaited[39m
 
   16) nested describe
         level 1
           should pass, too:
 
    [31mTest cancelled by parent error[39m
-   [90m    This test was cancelled due to an error in its parent describe or before hook[39m
+   [90m    This can happen if a parent describe or before hook fails, or if a nested it is not awaited[39m
 
   17) nested describe
         level 1:
