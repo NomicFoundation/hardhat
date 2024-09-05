@@ -2,17 +2,18 @@ import type {
   FileManager,
   UnencryptedKeystoreFile,
 } from "../../src/internal/types.js";
+import type { Mock } from "node:test";
+
+import { mock } from "node:test";
 
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 
 import { UnencryptedKeystore } from "../../src/internal/keystores/unencrypted-keystore.js";
 
 export class MockFileManager implements FileManager {
-  public writeJsonFileCalled: boolean;
   #keystoreFile: UnencryptedKeystoreFile | null;
 
   constructor() {
-    this.writeJsonFileCalled = false;
     this.#keystoreFile = null;
   }
 
@@ -33,7 +34,7 @@ export class MockFileManager implements FileManager {
     keystoreFile.keys = keys;
 
     this.#keystoreFile = keystoreFile;
-    this.writeJsonFileCalled = false;
+    this.writeJsonFile.mock.resetCalls();
 
     return keystoreFile;
   }
@@ -46,13 +47,19 @@ export class MockFileManager implements FileManager {
     return this.#keystoreFile !== null;
   }
 
-  public async writeJsonFile(
-    _absolutePathToFile: string,
-    keystoreFile: UnencryptedKeystoreFile,
-  ): Promise<void> {
-    this.writeJsonFileCalled = true;
-    this.#keystoreFile = keystoreFile;
-  }
+  public writeJsonFile: Mock<
+    (
+      _absolutePathToFile: string,
+      keystoreFile: UnencryptedKeystoreFile,
+    ) => Promise<void>
+  > = mock.fn(
+    async (
+      _absolutePathToFile: string,
+      keystoreFile: UnencryptedKeystoreFile,
+    ): Promise<void> => {
+      this.#keystoreFile = keystoreFile;
+    },
+  );
 
   public async readJsonFile(
     _absolutePathToFile: string,

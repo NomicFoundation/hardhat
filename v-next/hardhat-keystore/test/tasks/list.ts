@@ -52,8 +52,9 @@ key2`,
     });
 
     it("should not attempt to save the keystore", async () => {
-      assert.ok(
-        !mockFileManager.writeJsonFileCalled,
+      assert.equal(
+        mockFileManager.writeJsonFile.mock.calls.length,
+        0,
         "keystore should not have been saved",
       );
     });
@@ -72,8 +73,9 @@ key2`,
     });
 
     it("should not attempt to save the keystore", async () => {
-      assert.ok(
-        !mockFileManager.writeJsonFileCalled,
+      assert.equal(
+        mockFileManager.writeJsonFile.mock.calls.length,
+        0,
         "keystore should not have been saved",
       );
     });

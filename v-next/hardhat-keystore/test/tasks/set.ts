@@ -159,8 +159,9 @@ describe("tasks - set", () => {
     });
 
     it("should not save the keystore to file", async () => {
-      assert.ok(
-        !mockFileManager.writeJsonFileCalled,
+      assert.equal(
+        mockFileManager.writeJsonFile.mock.calls.length,
+        0,
         "keystore should not be saved",
       );
     });
