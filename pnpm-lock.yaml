@@ -1764,6 +1764,9 @@ importers:
       chalk:
         specifier: ^5.3.0
         version: 5.3.0
+      debug:
+        specifier: ^4.1.1
+        version: 4.3.6(supports-color@8.1.1)
       env-paths:
         specifier: ^2.2.0
         version: 2.2.1
@@ -1780,6 +1783,9 @@ importers:
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
+      '@types/debug':
+        specifier: ^4.1.4
+        version: 4.1.12
       '@types/node':
         specifier: ^20.14.9
         version: 20.16.1

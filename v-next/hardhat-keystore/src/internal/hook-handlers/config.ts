@@ -1,6 +1,10 @@
 import type { ConfigHooks } from "@ignored/hardhat-vnext/types/hooks";
 
+import debug from "debug";
+
 import { getKeystoreFilePath } from "../utils/get-keystore-file-path.js";
+
+const log = debug("hardhat:keystore:hooks:config");
 
 export default async (): Promise<Partial<ConfigHooks>> => {
   const handlers: Partial<ConfigHooks> = {
@@ -15,6 +19,8 @@ export default async (): Promise<Partial<ConfigHooks>> => {
       );
 
       const defaultKeystoreFilePath = await getKeystoreFilePath();
+
+      log(`path to keystore file: ${defaultKeystoreFilePath}`);
 
       return {
         ...resolvedConfig,
