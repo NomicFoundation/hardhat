@@ -1,13 +1,14 @@
 import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
 
+import "./internal/type-extensions.js";
+
 import { task } from "@ignored/hardhat-vnext/config";
 import { ArgumentType } from "@ignored/hardhat-vnext/types/arguments";
-
-import "./internal/type-extensions.js";
+import { isCi } from "@ignored/hardhat-vnext-utils/ci";
 
 import { PLUGIN_ID } from "./internal/constants.js";
 
-const hardhatKeystorePlugin: HardhatPlugin = {
+export const hardhatKeystorePlugin: HardhatPlugin = {
   id: PLUGIN_ID,
   hookHandlers: {
     config: import.meta.resolve("./internal/hook-handlers/config.js"),
@@ -60,4 +61,16 @@ const hardhatKeystorePlugin: HardhatPlugin = {
   ],
 };
 
-export default hardhatKeystorePlugin;
+const continuousIntegrationKeystorePlugin: HardhatPlugin = {
+  id: PLUGIN_ID,
+  hookHandlers: {},
+  tasks: [],
+};
+
+// The keystore plugin should be disabled in CI environments
+// We implement this by returning a empty plugin.
+const chosenPlugin: HardhatPlugin = isCi()
+  ? continuousIntegrationKeystorePlugin
+  : hardhatKeystorePlugin;
+
+export default chosenPlugin;

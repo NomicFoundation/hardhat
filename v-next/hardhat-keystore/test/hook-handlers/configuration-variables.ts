@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 
-import hardhatKeystorePlugin from "../../src/index.js";
+import { hardhatKeystorePlugin } from "../../src/index.js";
 import { setupKeystoreFileLocationOverrideAt } from "../helpers/setup-keystore-file-location-override-at.js";
 
 const existingKeystoreFilePath = path.join(
