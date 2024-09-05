@@ -1,19 +1,32 @@
 import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
 
-// Use an array because the value is dynamically changed during the tests
-export const FILE_PATH: string[] = [];
-
 export const setupKeystoreFileLocationOverrideAt = (
-  filePath: string,
+  keystoreFilePath: string,
 ): HardhatPlugin => {
-  FILE_PATH[0] = filePath;
-
   const hardhatKeystoreFileLocationOverridePlugin: HardhatPlugin = {
     id: "hardhat-keystore-file-location-override",
     hookHandlers: {
-      config: import.meta.resolve(
-        "./setup-keystore-file-location-override-at-hook",
-      ),
+      config: async () => {
+        return {
+          resolveUserConfig: async (
+            userConfig,
+            resolveConfigurationVariable,
+            next,
+          ) => {
+            const resolvedConfig = await next(
+              userConfig,
+              resolveConfigurationVariable,
+            );
+
+            return {
+              ...resolvedConfig,
+              keystore: {
+                filePath: keystoreFilePath,
+              },
+            };
+          },
+        };
+      },
     },
   };
 
