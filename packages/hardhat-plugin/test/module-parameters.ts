@@ -21,6 +21,19 @@ describe("module parameters", () => {
       );
     });
 
+    it("should run if provided with a valid module parameters file in JSON5 format", async function () {
+      await this.hre.run(
+        {
+          scope: "ignition",
+          task: "deploy",
+        },
+        {
+          modulePath: "./ignition/modules/Lock.ts",
+          parameters: "./ignition/modules/parameters-json5.json5",
+        }
+      );
+    });
+
     it("should run if provided with a valid module parameters file encoding a bigint as a string", async function () {
       await this.hre.run(
         {

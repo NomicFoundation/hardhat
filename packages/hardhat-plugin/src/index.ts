@@ -16,6 +16,7 @@ import {
 } from "fs-extra";
 import { extendConfig, extendEnvironment, scope } from "hardhat/config";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+import { parse as json5Parse } from "json5";
 import path from "path";
 
 import "./type-extensions";
@@ -244,7 +245,10 @@ ignitionScope
           userModule.id,
           hre.config.paths.ignition
         );
-      } else if (parametersInput.endsWith(".json")) {
+      } else if (
+        parametersInput.endsWith(".json") ||
+        parametersInput.endsWith(".json5")
+      ) {
         parameters = await resolveParametersFromFileName(parametersInput);
       } else {
         parameters = resolveParametersString(parametersInput);
@@ -679,7 +683,7 @@ async function resolveConfigPath(
   try {
     const rawFile = await readFile(filepath);
 
-    return JSON.parse(rawFile.toString(), bigintReviver);
+    return await json5Parse(rawFile.toString(), bigintReviver);
   } catch (e) {
     if (e instanceof NomicLabsHardhatPluginError) {
       throw e;
@@ -699,7 +703,7 @@ async function resolveConfigPath(
 
 function resolveParametersString(paramString: string): DeploymentParameters {
   try {
-    return JSON.parse(paramString, bigintReviver);
+    return json5Parse(paramString, bigintReviver);
   } catch (e) {
     if (e instanceof NomicLabsHardhatPluginError) {
       throw e;
