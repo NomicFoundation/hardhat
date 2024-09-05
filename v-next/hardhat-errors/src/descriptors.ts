@@ -564,11 +564,12 @@ If you want to use a different chain type, please update your networks config.`,
       websiteTitle: "Expected readline output to be defined",
       websiteDescription: "Expected readline output to be defined",
     },
-    UNINTERRUPTED_NOT_IMPLEMENTED: {
+    USERINTERRUPTION_NOT_IMPLEMENTED: {
       number: 802,
-      messageTemplate: "Uninterrupted not implemented",
-      websiteTitle: "Uninterrupted not implemented",
-      websiteDescription: "Uninterrupted not implemented",
+      messageTemplate: "User interruption method not implemented",
+      websiteTitle: "User interruption method not implemented",
+      websiteDescription:
+        "Within the Keystore plugin, some direct user interruptions are not implemented. They are not expected to be invoked.",
     },
   },
 } as const;

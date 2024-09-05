@@ -73,7 +73,7 @@ export class DirectUserInterruptionManager implements UserInterruptionManager {
     _inputDescription: string,
   ): Promise<string> {
     throw new HardhatError(
-      HardhatError.ERRORS.KEYSTORE.UNINTERRUPTED_NOT_IMPLEMENTED,
+      HardhatError.ERRORS.KEYSTORE.USERINTERRUPTION_NOT_IMPLEMENTED,
     );
   }
 
@@ -81,7 +81,7 @@ export class DirectUserInterruptionManager implements UserInterruptionManager {
     _f: () => ReturnT,
   ): Promise<Awaited<ReturnT>> {
     throw new HardhatError(
-      HardhatError.ERRORS.KEYSTORE.UNINTERRUPTED_NOT_IMPLEMENTED,
+      HardhatError.ERRORS.KEYSTORE.USERINTERRUPTION_NOT_IMPLEMENTED,
     );
   }
 }
