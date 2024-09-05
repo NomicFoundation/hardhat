@@ -12,3 +12,17 @@ describe("describe", () => {
 
   throw new Error("describe setup error");
 });
+
+describe("nested describe", () => {
+  describe("level 1", () => {
+    it("should pass", async () => {
+      assert.equal(1, 1);
+    });
+
+    it("should pass, too", async () => {
+      assert.equal(1, 1);
+    });
+
+    throw new Error("describe setup error");
+  });
+});

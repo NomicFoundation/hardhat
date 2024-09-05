@@ -19,6 +19,8 @@
   in describe
     [31m3) foo[39m
 
+  [31m4) in describe[39m
+
   testing before each
     nested
       [90m[32m✔[39m[90m neseted foo[39m
@@ -30,7 +32,7 @@
   [36m- skipped test[39m
 
 
-[32m6 passing[39m[90m (136ms)[39m[31m[39m
+[32m6 passing[39m[90m (133ms)[39m[31m[39m
 [31m2 failing[39m[36m[39m
 [36m1 skipped[39m[34m[39m
 [34m1 todo[39m[90m[39m
@@ -67,7 +69,7 @@
        foo:
 
    [31mTest cancelled by parent error[39m
-   [90m    This test was cancelled due to an error in its parent suite/it or test/it, or in one of its before/beforeEach[39m
+   [90m    This test was cancelled due to an error in its parent describe or before hook[39m
 
   4) in describe:
 

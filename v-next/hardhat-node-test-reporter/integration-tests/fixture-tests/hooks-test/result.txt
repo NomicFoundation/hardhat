@@ -6,6 +6,8 @@
     [90m[32m✔[39m[90m should pass[39m
     [90m[32m✔[39m[90m should pass, too[39m
 
+  [31m3) after[39m
+
   before each
     [31m4) should pass[39m
     [31m5) should pass, too[39m
@@ -14,14 +16,32 @@
     [31m6) should pass[39m
     [31m7) should pass, too[39m
 
+  [31m8) before[39m
+
+  nested before
+    level 1
+      [31m9) should pass[39m
+      [31m10) should pass, too[39m
+
+    [31m11) level 1[39m
+
   describe
-    [31m9) should pass[39m
-    [31m10) should pass, too[39m
+    [31m12) should pass[39m
+    [31m13) should pass, too[39m
+
+  [31m14) describe[39m
+
+  nested describe
+    level 1
+      [31m15) should pass[39m
+      [31m16) should pass, too[39m
+
+    [31m17) level 1[39m
 
 
-[32m2 passing[39m[90m (143ms)[39m[31m[39m
+[32m2 passing[39m[90m (144ms)[39m[31m[39m
 [31m4 failing[39m[90m[39m
-[90m4 cancelled[39m
+[90m8 cancelled[39m
 
   1) after each
        should pass:
@@ -69,20 +89,60 @@
    [31mError: before hook error[39m
    [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/hooks-test/before.ts:6:11)[39m
 
-  9) describe
-       should pass:
+  9) nested before
+       level 1
+         should pass:
 
    [31mTest cancelled by parent error[39m
    [90m    This test was cancelled due to an error in its parent describe or before hook[39m
 
-  10) describe
+  10) nested before
+        level 1
+          should pass, too:
+
+   [31mTest cancelled by parent error[39m
+   [90m    This test was cancelled due to an error in its parent describe or before hook[39m
+
+  11) nested before
+        level 1:
+
+   [31mError: before hook error[39m
+   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/hooks-test/before.ts:21:13)[39m
+
+  12) describe
+        should pass:
+
+   [31mTest cancelled by parent error[39m
+   [90m    This test was cancelled due to an error in its parent describe or before hook[39m
+
+  13) describe
         should pass, too:
 
    [31mTest cancelled by parent error[39m
    [90m    This test was cancelled due to an error in its parent describe or before hook[39m
 
-  11) describe:
+  14) describe:
 
    [31mError: describe setup error[39m
    [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/hooks-test/describe.ts:13:9)[39m
+
+  15) nested describe
+        level 1
+          should pass:
+
+   [31mTest cancelled by parent error[39m
+   [90m    This test was cancelled due to an error in its parent describe or before hook[39m
+
+  16) nested describe
+        level 1
+          should pass, too:
+
+   [31mTest cancelled by parent error[39m
+   [90m    This test was cancelled due to an error in its parent describe or before hook[39m
+
+  17) nested describe
+        level 1:
+
+   [31mError: describe setup error[39m
+   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/hooks-test/describe.ts:26:11)[39m
 
