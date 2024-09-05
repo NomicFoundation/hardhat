@@ -71,6 +71,9 @@ describe("tasks - set", () => {
       mockUserInterruptionManager.requestSecretInput = async () => "newValue";
 
       await set({ key: "key", force: false }, keystoreLoader, userInteractions);
+
+      assert.equal(process.exitCode, 1);
+      process.exitCode = undefined;
     });
 
     it("should warn that the key already exists", async () => {
@@ -132,6 +135,9 @@ describe("tasks - set", () => {
         keystoreLoader,
         userInteractions,
       );
+
+      assert.equal(process.exitCode, 1);
+      process.exitCode = undefined;
     });
 
     it("should display a message that the key is not valid", async () => {
@@ -153,6 +159,9 @@ describe("tasks - set", () => {
       mockUserInterruptionManager.requestSecretInput = async () => "";
 
       await set({ key: "key", force: true }, keystoreLoader, userInteractions);
+
+      assert.equal(process.exitCode, 1);
+      process.exitCode = undefined;
     });
 
     it("should display a message that a value cannot be empty", async () => {

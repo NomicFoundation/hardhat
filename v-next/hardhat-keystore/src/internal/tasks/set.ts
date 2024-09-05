@@ -27,6 +27,7 @@ export const set = async (
   interruptions: UserInteractions,
 ): Promise<void> => {
   if (!(await validateKey(key))) {
+    process.exitCode = 1;
     return interruptions.displayInvalidKeyErrorMessage(key);
   }
 
@@ -39,12 +40,14 @@ export const set = async (
     : await keystoreLoader.create();
 
   if (!force && (await keystore.hasKey(key))) {
+    process.exitCode = 1;
     return interruptions.displayKeyAlreadyExistsWarning(key);
   }
 
   const secret = await interruptions.requestSecretFromUser();
 
   if (secret.length === 0) {
+    process.exitCode = 1;
     return interruptions.displaySecretCannotBeEmptyErrorMessage();
   }
 

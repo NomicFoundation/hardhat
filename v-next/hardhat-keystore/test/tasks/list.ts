@@ -63,6 +63,9 @@ key2
   describe("a `list` when the keystore file does not exist", () => {
     beforeEach(async () => {
       await list(keystoreLoader, userInteractions);
+
+      assert.equal(process.exitCode, 1);
+      process.exitCode = undefined;
     });
 
     it("should display a message that the keystore is not set", async () => {

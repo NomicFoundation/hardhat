@@ -79,6 +79,9 @@ describe("tasks - delete", () => {
         keystoreLoader,
         userInteractions,
       );
+
+      assert.equal(process.exitCode, 1);
+      process.exitCode = undefined;
     });
 
     it("should display a message that the keystore is not set", async () => {
@@ -110,6 +113,9 @@ describe("tasks - delete", () => {
         keystoreLoader,
         userInteractions,
       );
+
+      assert.equal(process.exitCode, 1);
+      process.exitCode = undefined;
     });
 
     it("should display a message that the key is not found", async () => {

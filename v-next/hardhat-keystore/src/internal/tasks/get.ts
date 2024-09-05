@@ -25,6 +25,7 @@ export const get = async (
   interruptions: UserInteractions,
 ): Promise<void> => {
   if (!(await keystoreLoader.exists())) {
+    process.exitCode = 1;
     return interruptions.displayNoKeystoreSetErrorMessage();
   }
 
@@ -33,6 +34,7 @@ export const get = async (
   const value = await keystore.readValue(key);
 
   if (value === undefined) {
+    process.exitCode = 1;
     return interruptions.displayKeyNotFoundErrorMessage(key);
   }
 

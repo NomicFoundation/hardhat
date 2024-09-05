@@ -26,6 +26,7 @@ export const remove = async (
   interruptions: UserInteractions,
 ): Promise<void> => {
   if (!(await keystoreLoader.exists())) {
+    process.exitCode = 1;
     return interruptions.displayNoKeystoreSetErrorMessage();
   }
 
@@ -38,6 +39,7 @@ export const remove = async (
       return;
     }
 
+    process.exitCode = 1;
     return interruptions.displayKeyNotFoundErrorMessage(key);
   }
 
