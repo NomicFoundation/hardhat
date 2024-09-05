@@ -37,10 +37,8 @@ export function formatError(error: Error): string {
   }
 
   if (isTestFileExecutionFailureError(error)) {
-    return (
-      chalk.red(`Test file execution failed (exit code ${error.exitCode}).`) +
-      "\n" +
-      chalk.gray(indent("Did you forget to await a promise?", 4))
+    return chalk.red(
+      `Test file execution failed (exit code ${error.exitCode}).`,
     );
   }
 

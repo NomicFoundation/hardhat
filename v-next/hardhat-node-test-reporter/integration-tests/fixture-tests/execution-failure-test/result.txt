@@ -1,12 +1,11 @@
 
-  [31m1) integration-tests/fixture-tests/execution-failure-test/test.ts[39m [31m[3m(101ms)[23m[39m
+  [31m1) integration-tests/fixture-tests/execution-failure-test/test.ts[39m [31m[3m(95ms)[23m[39m
 
 
-[32m0 passing[39m[90m (131ms)[39m[31m[39m
+[32m0 passing[39m[90m (125ms)[39m[31m[39m
 [31m1 failing[39m
 
   1) integration-tests/fixture-tests/execution-failure-test/test.ts:
 
    [31mTest file execution failed (exit code 1).[39m
-   [90m    Did you forget to await a promise?[39m
 
