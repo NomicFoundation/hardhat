@@ -86,9 +86,21 @@ export default async function* customReporter(
 
   const preFormattedFailureReasons: string[] = [];
 
+  let topLevelFilePassCount = 0;
+
   for await (const event of source) {
     switch (event.type) {
       case "test:diagnostic": {
+        // We need to subtract the number of top-level file passes from the
+        // total number of tests/passes, as we are not printing them.
+        if (
+          event.data.message.startsWith("tests") ||
+          event.data.message.startsWith("pass")
+        ) {
+          const parts = event.data.message.split(" ");
+          const count = parseInt(parts[1], 10) - topLevelFilePassCount;
+          event.data.message = `${parts[0]} ${count}`;
+        }
         diagnostics.push(event.data);
         break;
       }
@@ -98,6 +110,19 @@ export default async function* customReporter(
       }
       case "test:pass":
       case "test:fail": {
+        // We do not want to display top-level file passes, as they are not
+        // interesting. We only want to display top-level file failures.
+        if (
+          event.type === "test:pass" &&
+          event.data.nesting === 0 &&
+          event.data.line === 1 &&
+          event.data.column === 1
+        ) {
+          topLevelFilePassCount++;
+          stack.pop();
+          break;
+        }
+
         if (event.data.details.type === "suite") {
           // If a suite failed for a reason other than a subtest failing, we
           // want to print its failure.

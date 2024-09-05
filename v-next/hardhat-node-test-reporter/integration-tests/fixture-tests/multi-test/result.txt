@@ -1,15 +1,9 @@
-
-  [90m[32m✔[39m[90m integration-tests/fixture-tests/multi-test/fail.ts[39m [31m[3m(176ms)[23m[39m
-
   imported tests
     [90m[32m✔[39m[90m should pass[39m
     [31m1) should fail[39m
 
 
-  [90m[32m✔[39m[90m integration-tests/fixture-tests/multi-test/pass.ts[39m [31m[3m(175ms)[23m[39m
-
-
-[32m3 passing[39m[90m (214ms)[39m[31m[39m
+[32m1 passing[39m[90m (215ms)[39m[31m[39m
 [31m1 failing[39m
 
   1) imported tests
