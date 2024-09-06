@@ -92,7 +92,7 @@ export class UserInteractions {
   }
 
   public async displayKeyRemovedInfoMessage(key: string): Promise<void> {
-    await this.#displayMessage(`Key "${key}" removed`);
+    await this.#displayMessage(`Key "${key}" deleted`);
   }
 
   public async displayKeySetInfoMessage(key: string): Promise<void> {

@@ -69,7 +69,7 @@ describe("integration tests for the keystore tasks", () => {
   it("should display the delete the key on `npx hardhat keystore delete myKey1`", async () => {
     await _assertConsoleOutputMatchesFor(
       () => hre.tasks.getTask(["keystore", "delete"]).run({ key: "myKey1" }),
-      'Key "myKey1" removed\n',
+      'Key "myKey1" deleted\n',
     );
   });
 

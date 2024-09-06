@@ -48,14 +48,14 @@ describe("tasks - delete", () => {
       );
     });
 
-    it("should display the key removed message", async () => {
+    it("should display the key deleted message", async () => {
       assert.ok(
-        mockUserInterruptionManager.output.includes(`Key "myKey" removed`),
+        mockUserInterruptionManager.output.includes(`Key "myKey" deleted`),
         "the key remove message should have been displayed",
       );
     });
 
-    it("should save the updated keystore with the removed key to file", async () => {
+    it("should save the updated keystore with the deleted key to file", async () => {
       const keystoreFile =
         await mockFileManager.readJsonFile(fakeKeystoreFilePath);
 
