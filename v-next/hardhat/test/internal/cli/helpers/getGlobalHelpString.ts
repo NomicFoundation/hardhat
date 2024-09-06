@@ -1,7 +1,8 @@
 import type { Task } from "../../../../src/types/tasks.js";
+import type { PackageJson } from "@ignored/hardhat-vnext-utils/package";
 
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { before, describe, it } from "node:test";
 
 import { readClosestPackageJson } from "@ignored/hardhat-vnext-utils/package";
 
@@ -12,7 +13,11 @@ import { buildGlobalOptionDefinitions } from "../../../../src/internal/core/glob
 import { ArgumentType } from "../../../../src/types/arguments.js";
 
 describe("getGlobalHelpString", async function () {
-  const packageJson = await readClosestPackageJson(import.meta.url);
+  let packageJson: PackageJson;
+
+  before(async function () {
+    packageJson = await readClosestPackageJson(import.meta.url);
+  });
 
   describe("when there are no tasks or global options", function () {
     it("should return the global help string", async function () {
