@@ -18,10 +18,10 @@ export interface Keystore {
 }
 
 export interface KeystoreLoader {
-  exists: () => Promise<boolean>;
-  create: () => Promise<Keystore>;
-  load: () => Promise<Keystore>;
-  save: (keystore: Keystore) => Promise<void>;
+  keystoreFileExists: () => Promise<boolean>;
+  createUnsavedKeystore: () => Promise<Keystore>;
+  loadKeystoreFromFile: () => Promise<Keystore>;
+  saveToKeystoreFile: () => Promise<void>;
 }
 
 export interface FileManager {

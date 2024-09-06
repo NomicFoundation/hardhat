@@ -35,9 +35,9 @@ export const set = async (
   // the encrypted version.
   // await interruptions.setUpPassword();
 
-  const keystore = (await keystoreLoader.exists())
-    ? await keystoreLoader.load()
-    : await keystoreLoader.create();
+  const keystore = (await keystoreLoader.keystoreFileExists())
+    ? await keystoreLoader.loadKeystoreFromFile()
+    : await keystoreLoader.createUnsavedKeystore();
 
   if (!force && (await keystore.hasKey(key))) {
     process.exitCode = 1;
@@ -53,7 +53,7 @@ export const set = async (
 
   await keystore.addNewValue(key, secret);
 
-  await keystoreLoader.save(keystore);
+  await keystoreLoader.saveToKeystoreFile();
 
   await interruptions.displayKeySetInfoMessage(key);
 };

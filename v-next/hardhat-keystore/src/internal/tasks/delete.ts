@@ -25,12 +25,12 @@ export const remove = async (
   keystoreLoader: KeystoreLoader,
   interruptions: UserInteractions,
 ): Promise<void> => {
-  if (!(await keystoreLoader.exists())) {
+  if (!(await keystoreLoader.keystoreFileExists())) {
     process.exitCode = 1;
     return interruptions.displayNoKeystoreSetErrorMessage();
   }
 
-  const keystore = await keystoreLoader.load();
+  const keystore = await keystoreLoader.loadKeystoreFromFile();
 
   const keys = await keystore.listKeys();
 
@@ -45,7 +45,7 @@ export const remove = async (
 
   await keystore.removeKey(key);
 
-  await keystoreLoader.save(keystore);
+  await keystoreLoader.saveToKeystoreFile();
 
   await interruptions.displayKeyRemovedInfoMessage(key);
 };

@@ -62,6 +62,8 @@ key2
 
   describe("a `list` when the keystore file does not exist", () => {
     beforeEach(async () => {
+      mockFileManager.setupNoKeystoreFile();
+
       await list(keystoreLoader, userInteractions);
 
       assert.equal(process.exitCode, 1);

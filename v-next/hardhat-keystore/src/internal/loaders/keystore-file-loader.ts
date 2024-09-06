@@ -5,7 +5,10 @@ import type {
   UnencryptedKeystoreFile,
 } from "../types.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@ignored/hardhat-vnext-errors";
 
 import { UnencryptedKeystore } from "../keystores/unencrypted-keystore.js";
 import { unencryptedKeystoreFileSchema } from "../types-validation.js";
@@ -13,34 +16,61 @@ import { unencryptedKeystoreFileSchema } from "../types-validation.js";
 export class KeystoreFileLoader implements KeystoreLoader {
   readonly #keystoreFilePath: string;
   readonly #fileManager: FileManager;
+  #keystoreCache: UnencryptedKeystore | null;
 
   constructor(keystoreFilePath: string, fileManger: FileManager) {
     this.#keystoreFilePath = keystoreFilePath;
     this.#fileManager = fileManger;
+
+    this.#keystoreCache = null;
   }
 
-  public async exists(): Promise<boolean> {
+  public async keystoreFileExists(): Promise<boolean> {
+    if (this.#keystoreCache !== null) {
+      return true;
+    }
+
     return this.#fileManager.fileExists(this.#keystoreFilePath);
   }
 
-  public async load(): Promise<Keystore> {
+  public async loadKeystoreFromFile(): Promise<Keystore> {
+    if (this.#keystoreCache !== null) {
+      return this.#keystoreCache;
+    }
+
     const keystoreFile = await this.#fileManager.readJsonFile(
       this.#keystoreFilePath,
     );
 
     this.#throwIfInvalidKeystoreFormat(keystoreFile);
 
-    return new UnencryptedKeystore(keystoreFile);
+    const keystore = new UnencryptedKeystore(keystoreFile);
+    this.#keystoreCache = keystore;
+
+    return keystore;
   }
 
-  public async create(): Promise<Keystore> {
-    return new UnencryptedKeystore(
+  public async createUnsavedKeystore(): Promise<Keystore> {
+    assertHardhatInvariant(
+      this.#keystoreCache === null,
+      "Cannot create a new Keystore when one is already loaded",
+    );
+
+    const keystore = new UnencryptedKeystore(
       UnencryptedKeystore.createEmptyUnencryptedKeystoreFile(),
     );
+    this.#keystoreCache = keystore;
+
+    return keystore;
   }
 
-  public async save(keystore: Keystore): Promise<void> {
-    const keystoreFile = keystore.toJSON();
+  public async saveToKeystoreFile(): Promise<void> {
+    assertHardhatInvariant(
+      this.#keystoreCache !== null,
+      "Cannot save a keystore that has not been loaded or created",
+    );
+
+    const keystoreFile = this.#keystoreCache.toJSON();
 
     await this.#fileManager.writeJsonFile(this.#keystoreFilePath, keystoreFile);
   }

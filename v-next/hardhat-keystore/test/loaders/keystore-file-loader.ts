@@ -27,7 +27,7 @@ describe("KeystoreFileLoader", () => {
       });
 
       it("should load the keystore", async () => {
-        const keystore = await keystoreLoader.load();
+        const keystore = await keystoreLoader.loadKeystoreFromFile();
 
         const value = await keystore.readValue("mykey");
 
@@ -58,7 +58,7 @@ describe("KeystoreFileLoader", () => {
 
     it("should throw on attempted load", async () => {
       await assertRejectsWithHardhatError(
-        async () => keystoreLoader.load(),
+        async () => keystoreLoader.loadKeystoreFromFile(),
         HardhatError.ERRORS.KEYSTORE.INVALID_KEYSTORE_FILE_FORMAT,
         {},
       );

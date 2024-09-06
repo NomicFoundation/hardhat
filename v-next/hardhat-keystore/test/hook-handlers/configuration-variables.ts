@@ -1,23 +1,26 @@
+import type { UnencryptedKeystoreFile } from "../../src/internal/types.js";
 import type { ConfigurationVariable } from "@ignored/hardhat-vnext/types/config";
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
 
 import assert from "node:assert/strict";
 import path from "node:path";
-import { beforeEach, describe, it } from "node:test";
+import { afterEach, beforeEach, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
+import { remove, writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
 
 import { hardhatKeystorePlugin } from "../../src/index.js";
+import { UnencryptedKeystore } from "../../src/internal/keystores/unencrypted-keystore.js";
 import { setupKeystoreFileLocationOverrideAt } from "../helpers/setup-keystore-file-location-override-at.js";
 
-const existingKeystoreFilePath = path.join(
+const configurationVariableKeystoreFilePath = path.join(
   fileURLToPath(import.meta.url),
   "..",
   "..",
   "fixture-projects",
   "unencrypted-keystore",
-  "existing-keystore.json",
+  "config-variables-keystore.json",
 );
 
 const nonExistingKeystoreFilePath = path.join(
@@ -26,7 +29,7 @@ const nonExistingKeystoreFilePath = path.join(
   "..",
   "fixture-projects",
   "unencrypted-keystore",
-  "keystore.json",
+  "nonexistant-keystore.json",
 );
 
 const exampleConfigurationVariable: ConfigurationVariable = {
@@ -39,12 +42,28 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
 
   describe("when there is an existing valid keystore file", () => {
     beforeEach(async () => {
+      await remove(configurationVariableKeystoreFilePath);
+
+      const keystoreFile: UnencryptedKeystoreFile =
+        UnencryptedKeystore.createEmptyUnencryptedKeystoreFile();
+
+      keystoreFile.keys.key1 = "value1";
+      keystoreFile.keys.key2 = "value2";
+
+      await writeJsonFile(configurationVariableKeystoreFilePath, keystoreFile);
+
       hre = await createHardhatRuntimeEnvironment({
         plugins: [
           hardhatKeystorePlugin,
-          setupKeystoreFileLocationOverrideAt(existingKeystoreFilePath),
+          setupKeystoreFileLocationOverrideAt(
+            configurationVariableKeystoreFilePath,
+          ),
         ],
       });
+    });
+
+    afterEach(async () => {
+      await remove(configurationVariableKeystoreFilePath);
     });
 
     describe("successful get on a key in the keystore", () => {
@@ -106,10 +125,12 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
 
           assert.equal(resultValue, "value1");
 
-          // Set a new keystore path.
-          // Without the cache, it should fail to find the key because the keystore file does not exist.
-          // However, since the value is cached, it should return the value even if the keystore file path is missing.
-          hre.config.keystore.filePath = nonExistingKeystoreFilePath;
+          // After the inital read, overwrite the keystore file with
+          // emptyr keys to ensure the cache is being used
+          await writeJsonFile(
+            configurationVariableKeystoreFilePath,
+            UnencryptedKeystore.createEmptyUnencryptedKeystoreFile(),
+          );
 
           resultValue2 = await hre.hooks.runHandlerChain(
             "configurationVariables",
@@ -152,43 +173,6 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
 
       it("should invoke the next function and return its value because no keystore is found", async () => {
         assert.equal(resultValue, "value-from-hardhat-package");
-      });
-    });
-
-    describe("caching", () => {
-      describe("on a second `get` against the same hre", () => {
-        let resultValue2: string;
-
-        beforeEach(async () => {
-          const resultValue = await hre.hooks.runHandlerChain(
-            "configurationVariables",
-            "fetchValue",
-            [{ ...exampleConfigurationVariable, name: "key1" }],
-            async (_context, _configVar) => {
-              return "unexpected-default-value";
-            },
-          );
-
-          assert.equal(resultValue, "unexpected-default-value");
-
-          // Set a new keystore path.
-          // Without the cache, it should find the key because the keystore file does exist.
-          // However, since the value is cached, it should return that the value does not exist.
-          hre.config.keystore.filePath = existingKeystoreFilePath;
-
-          resultValue2 = await hre.hooks.runHandlerChain(
-            "configurationVariables",
-            "fetchValue",
-            [{ ...exampleConfigurationVariable, name: "key2" }],
-            async (_context, _configVar) => {
-              return "unexpected-default-value";
-            },
-          );
-        });
-
-        it("should successfully get a key on", async () => {
-          assert.equal(resultValue2, "unexpected-default-value");
-        });
       });
     });
   });
