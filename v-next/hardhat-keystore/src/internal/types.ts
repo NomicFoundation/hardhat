@@ -1,7 +1,5 @@
-export type Format = "hh-unencrypted-keystore";
-
 export interface UnencryptedKeystoreFile {
-  _format: Format;
+  _format: "hh-unencrypted-keystore";
   version: number;
   keys: {
     [key: string]: string;
