@@ -87,7 +87,10 @@ function formatSingleError(
   if (stackLines.length > 0 && stackLines[0].includes(message)) {
     message = stackLines[0];
   }
-  message = message.replace(" [ERR_ASSERTION]", "").replace(/:$/, "");
+  message = message
+    .replace(" [ERR_ASSERTION]", "")
+    .replace(" [ERR_TEST_FAILURE]", "")
+    .replace(/:$/, "");
 
   if (prefix !== "") {
     message = `[${prefix}]: ${message}`;

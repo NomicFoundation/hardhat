@@ -20,7 +20,7 @@
         [31m8) level 0[39m
 
 
-[32m3 passing[39m[90m (136ms)[39m[31m[39m
+[32m3 passing[39m[90m (141ms)[39m[31m[39m
 [31m7 failing[39m[90m[39m
 [90m1 cancelled[39m
 
@@ -96,7 +96,7 @@
              level 1
                level 2:
 
-   [31mError [ERR_TEST_FAILURE]: 3 subtests failed[39m
+   [31mError: 3 subtests failed[39m
    [90m    at async TestContext.<anonymous> (integration-tests/fixture-tests/nested-test/test.ts:1:424)[39m
    [90m    at async TestContext.<anonymous> (integration-tests/fixture-tests/nested-test/test.ts:1:395)[39m
 
@@ -106,7 +106,7 @@
            level 0
              level 1:
 
-   [31mError [ERR_TEST_FAILURE]: 1 subtest failed[39m
+   [31mError: 1 subtest failed[39m
    [90m    at async TestContext.<anonymous> (integration-tests/fixture-tests/nested-test/test.ts:1:395)[39m
 
   8) level 0
@@ -114,5 +114,5 @@
          level 2
            level 0:
 
-   [31mError [ERR_TEST_FAILURE]: 1 subtest failed[39m
+   [31mError: 1 subtest failed[39m
 
