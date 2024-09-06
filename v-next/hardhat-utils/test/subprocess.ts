@@ -35,8 +35,12 @@ async function checkIfSubprocessWasExecuted() {
       counter++;
 
       if (await exists(ABSOLUTE_PATH_TO_TMP_RESULT_SUBPROCESS_FILE)) {
-        clearInterval(intervalId);
-        resolve(true);
+        try {
+          // Wait for the file to be readable. The file could exist but the writing could be in progress.
+          await readJsonFile(ABSOLUTE_PATH_TO_TMP_RESULT_SUBPROCESS_FILE);
+          clearInterval(intervalId);
+          resolve(true);
+        } catch (_err) {}
       } else if (counter > MAX_COUNTER) {
         clearInterval(intervalId);
         reject("Subprocess was not executed in the expected time");
