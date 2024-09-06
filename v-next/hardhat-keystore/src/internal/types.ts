@@ -13,7 +13,7 @@ export interface Keystore {
   hasKey(key: string): Promise<boolean>;
   addNewValue(key: string, value: string): Promise<void>;
   removeKey(key: string): Promise<void>;
-  readValue(key: string): Promise<string | undefined>;
+  readValue(key: string): Promise<string>;
   toJSON(): UnencryptedKeystoreFile;
 }
 

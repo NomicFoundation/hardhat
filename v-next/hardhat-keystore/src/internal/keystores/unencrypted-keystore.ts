@@ -1,5 +1,7 @@
 import type { Keystore, UnencryptedKeystoreFile } from "../types.js";
 
+import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+
 export class UnencryptedKeystore implements Keystore {
   readonly #keystoreData: UnencryptedKeystoreFile;
 
@@ -27,8 +29,15 @@ export class UnencryptedKeystore implements Keystore {
     return Object.keys(this.#keystoreData.keys).includes(key);
   }
 
-  public async readValue(key: string): Promise<string | undefined> {
-    return this.#keystoreData.keys[key];
+  public async readValue(key: string): Promise<string> {
+    const value = this.#keystoreData.keys[key];
+
+    assertHardhatInvariant(
+      value !== undefined,
+      "Unknown key should never be read",
+    );
+
+    return value;
   }
 
   public async removeKey(key: string): Promise<void> {

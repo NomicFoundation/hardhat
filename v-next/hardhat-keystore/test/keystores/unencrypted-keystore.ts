@@ -27,7 +27,6 @@ describe("UnencryptedKeystore", () => {
 
     it("should read a value", async () => {
       assert.equal(await keystore.readValue("key1"), "value1");
-      assert.equal(await keystore.readValue("unknown"), undefined);
     });
 
     it("should remove a key", async () => {
@@ -37,12 +36,15 @@ describe("UnencryptedKeystore", () => {
       await keystore.removeKey("key1");
 
       // Be sure the key has been deleted
-      assert.equal(await keystore.readValue("key1"), undefined);
+      assert.ok(!(await keystore.hasKey("key1")), "The key should not exist");
     });
 
     it("should add a new value", async () => {
       // Be sure that the key does not exist
-      assert.equal(await keystore.readValue("new-key"), undefined);
+      assert.ok(
+        !(await keystore.hasKey("new-key")),
+        "The key should not exist",
+      );
 
       await keystore.addNewValue("new-key", "new-value");
 

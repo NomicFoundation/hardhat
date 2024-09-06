@@ -1,4 +1,4 @@
-import type { Keystore } from "../types.js";
+import type { KeystoreLoader } from "../types.js";
 import type { ConfigurationVariable } from "@ignored/hardhat-vnext/types/config";
 import type {
   ConfigurationVariableHooks,
@@ -12,7 +12,7 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
   // Use a cache with hooks since they may be called multiple times consecutively.
   // Undefined means that the loader has not been initialized yet.
   // Null means that the Keystore has been initialized but the file does not exist, so the loading process is skipped.
-  let keystoreCache: Keystore | undefined | null;
+  let keystoreLoader: KeystoreLoader | undefined;
 
   const handlers: Partial<ConfigurationVariableHooks> = {
     fetchValue: async (
@@ -20,18 +20,22 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
       variable: ConfigurationVariable,
       next,
     ) => {
-      if (keystoreCache === undefined) {
-        const loader =
+      if (keystoreLoader === undefined) {
+        keystoreLoader =
           await _setupLoaderWithContextBasedUserInterruptions(context);
-
-        keystoreCache = (await loader.exists()) ? await loader.load() : null;
       }
 
-      if (keystoreCache === null) {
+      if (!(await keystoreLoader.exists())) {
         return next(context, variable);
       }
 
-      const value = await keystoreCache.readValue(variable.name);
+      const keystore = await keystoreLoader.load();
+
+      if (!(await keystore.hasKey(variable.name))) {
+        return next(context, variable);
+      }
+
+      const value = await keystore.readValue(variable.name);
 
       return value ?? next(context, variable);
     },

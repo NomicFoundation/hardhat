@@ -31,12 +31,12 @@ export const get = async (
 
   const keystore = await keystoreLoader.load();
 
-  const value = await keystore.readValue(key);
-
-  if (value === undefined) {
+  if (!(await keystore.hasKey(key))) {
     process.exitCode = 1;
     return interruptions.displayKeyNotFoundErrorMessage(key);
   }
+
+  const value = await keystore.readValue(key);
 
   await interruptions.displayValueInfoMessage(value);
 };
