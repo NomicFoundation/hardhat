@@ -150,13 +150,13 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
         );
       });
 
-      it("should invoke the next function because no keystore is found", async () => {
+      it("should invoke the next function and return its value because no keystore is found", async () => {
         assert.equal(resultValue, "value-from-hardhat-package");
       });
     });
 
     describe("caching", () => {
-      describe("on a second get against the same hre", () => {
+      describe("on a second `get` against the same hre", () => {
         let resultValue2: string;
 
         beforeEach(async () => {
