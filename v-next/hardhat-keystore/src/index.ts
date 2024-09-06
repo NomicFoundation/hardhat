@@ -73,7 +73,8 @@ const continuousIntegrationKeystorePlugin: HardhatPlugin = {
 };
 
 // The keystore plugin should be disabled in CI environments
-// We implement this by returning a empty plugin.
+// We implement this by returning an Keystore plugin
+// with its functionality turned off (i.e. no hook handlers or tasks)
 const chosenPlugin: HardhatPlugin = isCi()
   ? continuousIntegrationKeystorePlugin
   : hardhatKeystorePlugin;
