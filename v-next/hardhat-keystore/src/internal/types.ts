@@ -19,7 +19,7 @@ export interface KeystoreLoader {
   isKeystoreInitialized: () => Promise<boolean>;
   createUnsavedKeystore: () => Promise<Keystore>;
   loadKeystore: () => Promise<Keystore>;
-  saveToKeystoreFile: () => Promise<void>;
+  saveKeystoreToFile: () => Promise<void>;
 }
 
 export interface FileManager {

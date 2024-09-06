@@ -53,7 +53,7 @@ export const set = async (
 
   await keystore.addNewValue(key, secret);
 
-  await keystoreLoader.saveToKeystoreFile();
+  await keystoreLoader.saveKeystoreToFile();
 
   await interruptions.displayKeySetInfoMessage(key);
 };

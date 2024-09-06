@@ -64,7 +64,7 @@ export class KeystoreFileLoader implements KeystoreLoader {
     return keystore;
   }
 
-  public async saveToKeystoreFile(): Promise<void> {
+  public async saveKeystoreToFile(): Promise<void> {
     assertHardhatInvariant(
       this.#keystoreCache !== null,
       "Cannot save a keystore that has not been loaded or created",

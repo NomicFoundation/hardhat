@@ -45,7 +45,7 @@ export const remove = async (
 
   await keystore.removeKey(key);
 
-  await keystoreLoader.saveToKeystoreFile();
+  await keystoreLoader.saveKeystoreToFile();
 
   await interruptions.displayKeyRemovedInfoMessage(key);
 };
