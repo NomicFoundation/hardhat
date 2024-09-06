@@ -7,7 +7,6 @@ import { diff as getDiff } from "jest-diff";
 import { indent } from "./formatting.js";
 import {
   cleanupTestFailError,
-  isCancelledByParentError,
   isTestFileExecutionFailureError,
 } from "./node-test-error-utils.js";
 
@@ -23,19 +22,6 @@ interface StackReference {
 }
 
 export function formatError(error: Error): string {
-  if (isCancelledByParentError(error)) {
-    return (
-      chalk.red("Test cancelled by parent error") +
-      "\n" +
-      chalk.gray(
-        indent(
-          "This can happen if a parent describe or before hook fails, or if a nested it is not awaited",
-          4,
-        ),
-      )
-    );
-  }
-
   if (isTestFileExecutionFailureError(error)) {
     return chalk.red(
       `Test file execution failed (exit code ${error.exitCode}).`,
