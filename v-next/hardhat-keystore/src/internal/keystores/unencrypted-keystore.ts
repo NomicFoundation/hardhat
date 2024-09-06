@@ -41,6 +41,11 @@ export class UnencryptedKeystore implements Keystore {
   }
 
   public async removeKey(key: string): Promise<void> {
+    assertHardhatInvariant(
+      key in this.#keystoreData.keys,
+      "Unknown key should never be removed",
+    );
+
     delete this.#keystoreData.keys[key];
   }
 
