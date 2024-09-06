@@ -18,7 +18,7 @@ describe("KeystoreFileLoader", () => {
       beforeEach(async () => {
         const mockFileManager = new MockFileManager();
 
-        mockFileManager.setupExistingKeystoreFile({ mykey: "myvalue" });
+        mockFileManager.setupExistingKeystoreFile({ myKey: "myValue" });
 
         keystoreLoader = new KeystoreFileLoader(
           fakeKeystoreFilePath,
@@ -29,9 +29,9 @@ describe("KeystoreFileLoader", () => {
       it("should load the keystore", async () => {
         const keystore = await keystoreLoader.loadKeystore();
 
-        const value = await keystore.readValue("mykey");
+        const value = await keystore.readValue("myKey");
 
-        assert.equal(value, "myvalue");
+        assert.equal(value, "myValue");
       });
     });
 
@@ -73,7 +73,7 @@ describe("KeystoreFileLoader", () => {
       beforeEach(async () => {
         mockFileManager = new MockFileManager();
 
-        mockFileManager.setupExistingKeystoreFile({ mykey: "myvalue" });
+        mockFileManager.setupExistingKeystoreFile({ myKey: "myValue" });
 
         keystoreLoader = new KeystoreFileLoader(
           fakeKeystoreFilePath,
@@ -98,7 +98,7 @@ describe("KeystoreFileLoader", () => {
       beforeEach(async () => {
         mockFileManager = new MockFileManager();
 
-        mockFileManager.setupExistingKeystoreFile({ mykey: "myvalue" });
+        mockFileManager.setupExistingKeystoreFile({ myKey: "myValue" });
 
         keystoreLoader = new KeystoreFileLoader(
           fakeKeystoreFilePath,
@@ -129,7 +129,7 @@ describe("KeystoreFileLoader", () => {
         );
       });
 
-      it("should return the same keystore for subsequent loades", async () => {
+      it("should return the same keystore for subsequent loads", async () => {
         const createdVersion = await keystoreLoader.createUnsavedKeystore();
         const loadedVersion = await keystoreLoader.loadKeystore();
 

@@ -7,7 +7,7 @@ import { DirectUserInterruptionManager } from "../ui/direct-user-interruption-ma
 import { UserInteractions } from "../ui/user-interactions.js";
 
 /**
- * Factory for setting up the injectected dependencies of the tasks:
+ * Factory for setting up the injected dependencies of the tasks:
  * - `KeystoreLoader`
  * - `UserInteractions`
  * It uses the keystore's own direct user interruptions rather than

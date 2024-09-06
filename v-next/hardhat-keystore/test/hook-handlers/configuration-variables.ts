@@ -29,7 +29,7 @@ const nonExistingKeystoreFilePath = path.join(
   "..",
   "fixture-projects",
   "unencrypted-keystore",
-  "nonexistant-keystore.json",
+  "nonexistent-keystore.json",
 );
 
 const exampleConfigurationVariable: ConfigurationVariable = {
@@ -95,7 +95,7 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
           [
             {
               ...exampleConfigurationVariable,
-              name: "non-existant-key-in-keystore",
+              name: "non-existent-key-in-keystore",
             },
           ],
           async (_context, _configVar) => {
@@ -125,8 +125,8 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
 
           assert.equal(resultValue, "value1");
 
-          // After the inital read, overwrite the keystore file with
-          // emptyr keys to ensure the cache is being used
+          // After the initial read, overwrite the keystore file with
+          // empty keys to ensure the cache is being used
           await writeJsonFile(
             configurationVariableKeystoreFilePath,
             UnencryptedKeystore.createEmptyUnencryptedKeystoreFile(),

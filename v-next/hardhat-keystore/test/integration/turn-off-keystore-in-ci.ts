@@ -10,7 +10,7 @@ import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import { isCi } from "@ignored/hardhat-vnext-utils/ci";
 
 // NOTE: we are importing using the default export, running the CI determination
-// code. On CI this will be the reduced pluing, in local development this will
+// code. On CI this will be the reduced plugin, in local development this will
 // be the full plugin.
 import hardhatKeystorePlugin from "../../src/index.js";
 import { setupKeystoreFileLocationOverrideAt } from "../helpers/setup-keystore-file-location-override-at.js";
