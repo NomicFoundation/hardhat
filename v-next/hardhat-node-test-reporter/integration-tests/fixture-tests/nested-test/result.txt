@@ -13,14 +13,14 @@
               [90m[32m✔[39m[90m unawaited test 1[39m
               [31m5) unawaited test 2[39m
 
-            [31m6) level 2[39m
+            [31m5) level 2[39m
 
-          [31m7) level 1[39m
+          [31m6) level 1[39m
 
-        [31m8) level 0[39m
+        [31m7) level 0[39m
 
 
-[32m3 passing[39m[90m (141ms)[39m[31m[39m
+[32m3 passing[39m[90m (138ms)[39m[31m[39m
 [31m7 failing[39m[90m[39m
 [90m1 cancelled[39m
 
@@ -83,24 +83,13 @@
          level 2
            level 0
              level 1
-               level 2
-                 unawaited test 2:
-
-   [31mTest cancelled by parent error[39m
-   [90m    This can happen if a parent describe or before hook fails, or if a nested it is not awaited[39m
-
-  6) level 0
-       level 1
-         level 2
-           level 0
-             level 1
                level 2:
 
    [31mError: 3 subtests failed[39m
    [90m    at async TestContext.<anonymous> (integration-tests/fixture-tests/nested-test/test.ts:1:424)[39m
    [90m    at async TestContext.<anonymous> (integration-tests/fixture-tests/nested-test/test.ts:1:395)[39m
 
-  7) level 0
+  6) level 0
        level 1
          level 2
            level 0
@@ -109,7 +98,7 @@
    [31mError: 1 subtest failed[39m
    [90m    at async TestContext.<anonymous> (integration-tests/fixture-tests/nested-test/test.ts:1:395)[39m
 
-  8) level 0
+  7) level 0
        level 1
          level 2
            level 0:

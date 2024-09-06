@@ -19,7 +19,7 @@
   in describe
     [31m3) foo[39m
 
-  [31m4) in describe[39m
+  [31m3) in describe[39m
 
   testing before each
     nested
@@ -32,7 +32,7 @@
   [36m- skipped test[39m
 
 
-[32m6 passing[39m[90m (135ms)[39m[31m[39m
+[32m6 passing[39m[90m (132ms)[39m[31m[39m
 [31m2 failing[39m[36m[39m
 [36m1 skipped[39m[34m[39m
 [34m1 todo[39m[90m[39m
@@ -65,13 +65,7 @@
      [90m[cause]: Error: cause[39m
      [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:13:16)[39m
 
-  3) in describe
-       foo:
-
-   [31mTest cancelled by parent error[39m
-   [90m    This can happen if a parent describe or before hook fails, or if a nested it is not awaited[39m
-
-  4) in describe:
+  3) in describe:
 
    [31mError: before[39m
    [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:51:11)[39m

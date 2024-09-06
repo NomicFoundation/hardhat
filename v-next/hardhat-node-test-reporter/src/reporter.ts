@@ -18,7 +18,10 @@ import {
   formatSlowTestInfo,
 } from "./formatting.js";
 import { annotatePR } from "./github-actions.js";
-import { isSubtestFailedError } from "./node-test-error-utils.js";
+import {
+  isCancelledByParentError,
+  isSubtestFailedError,
+} from "./node-test-error-utils.js";
 
 export const SLOW_TEST_THRESHOLD = 75;
 
@@ -186,19 +189,33 @@ export default async function* customReporter(
         if (event.type === "test:pass") {
           yield formatTestPass(event.data);
         } else {
-          const failure: Failure = {
-            index: preFormattedFailureReasons.length,
-            testFail: event.data,
-            contextStack: stack,
-          };
+          if (isCancelledByParentError(event.data.details.error)) {
+            // We don't want to display cancelled by parent error details, as
+            // the actionable information will be printed with the parent error
+            const failure: Failure = {
+              // We use the index of the pre-formatted failure reasons, as the
+              // cancelled by parent error should be the next one on the stack
+              index: preFormattedFailureReasons.length,
+              testFail: event.data,
+              contextStack: stack,
+            };
 
-          // We format the failure reason and store it in an array, so that we
-          // can output it at the end.
-          preFormattedFailureReasons.push(formatFailureReason(failure));
+            yield formatTestFailure(failure);
+          } else {
+            const failure: Failure = {
+              index: preFormattedFailureReasons.length,
+              testFail: event.data,
+              contextStack: stack,
+            };
 
-          await annotatePR(event.data);
+            // We format the failure reason and store it in an array, so that we
+            // can output it at the end.
+            preFormattedFailureReasons.push(formatFailureReason(failure));
 
-          yield formatTestFailure(failure);
+            await annotatePR(event.data);
+
+            yield formatTestFailure(failure);
+          }
         }
 
         // If the test was slow, we print a message about it
