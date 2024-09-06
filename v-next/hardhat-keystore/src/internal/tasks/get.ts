@@ -24,12 +24,12 @@ export const get = async (
   keystoreLoader: KeystoreLoader,
   interruptions: UserInteractions,
 ): Promise<void> => {
-  if (!(await keystoreLoader.keystoreFileExists())) {
+  if (!(await keystoreLoader.isKeystoreUninitialized())) {
     process.exitCode = 1;
     return interruptions.displayNoKeystoreSetErrorMessage();
   }
 
-  const keystore = await keystoreLoader.loadKeystoreFromFile();
+  const keystore = await keystoreLoader.loadKeystore();
 
   if (!(await keystore.hasKey(key))) {
     process.exitCode = 1;

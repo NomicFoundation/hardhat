@@ -35,8 +35,8 @@ export const set = async (
   // the encrypted version.
   // await interruptions.setUpPassword();
 
-  const keystore = (await keystoreLoader.keystoreFileExists())
-    ? await keystoreLoader.loadKeystoreFromFile()
+  const keystore = (await keystoreLoader.isKeystoreUninitialized())
+    ? await keystoreLoader.loadKeystore()
     : await keystoreLoader.createUnsavedKeystore();
 
   if (!force && (await keystore.hasKey(key))) {

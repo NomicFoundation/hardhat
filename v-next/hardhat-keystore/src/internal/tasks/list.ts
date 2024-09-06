@@ -19,12 +19,12 @@ export const list = async (
   keystoreLoader: KeystoreLoader,
   interruptions: UserInteractions,
 ): Promise<void> => {
-  if (!(await keystoreLoader.keystoreFileExists())) {
+  if (!(await keystoreLoader.isKeystoreUninitialized())) {
     process.exitCode = 1;
     return interruptions.displayNoKeystoreSetErrorMessage();
   }
 
-  const keystore = await keystoreLoader.loadKeystoreFromFile();
+  const keystore = await keystoreLoader.loadKeystore();
 
   const keys = await keystore.listKeys();
 

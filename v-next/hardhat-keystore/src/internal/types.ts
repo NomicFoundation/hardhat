@@ -18,9 +18,9 @@ export interface Keystore {
 }
 
 export interface KeystoreLoader {
-  keystoreFileExists: () => Promise<boolean>;
+  isKeystoreUninitialized: () => Promise<boolean>;
   createUnsavedKeystore: () => Promise<Keystore>;
-  loadKeystoreFromFile: () => Promise<Keystore>;
+  loadKeystore: () => Promise<Keystore>;
   saveToKeystoreFile: () => Promise<void>;
 }
 

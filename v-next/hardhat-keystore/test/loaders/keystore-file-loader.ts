@@ -27,41 +27,118 @@ describe("KeystoreFileLoader", () => {
       });
 
       it("should load the keystore", async () => {
-        const keystore = await keystoreLoader.loadKeystoreFromFile();
+        const keystore = await keystoreLoader.loadKeystore();
 
         const value = await keystore.readValue("mykey");
 
         assert.equal(value, "myvalue");
       });
     });
+
+    describe("when the keystore file is invalid on disk", () => {
+      let keystoreLoader: KeystoreFileLoader;
+
+      beforeEach(async () => {
+        const mockFileManager = new MockFileManager();
+
+        const invalidKeystore =
+          UnencryptedKeystore.createEmptyUnencryptedKeystoreFile();
+        invalidKeystore._format =
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing invalid format
+          "invalid" as unknown as "hh-unencrypted-keystore";
+
+        mockFileManager.setKeystoreFile(invalidKeystore);
+
+        keystoreLoader = new KeystoreFileLoader(
+          fakeKeystoreFilePath,
+          mockFileManager,
+        );
+      });
+
+      it("should throw on attempted load", async () => {
+        await assertRejectsWithHardhatError(
+          async () => keystoreLoader.loadKeystore(),
+          HardhatError.ERRORS.KEYSTORE.INVALID_KEYSTORE_FILE_FORMAT,
+          {},
+        );
+      });
+    });
   });
 
-  describe("when the keystore file is invalid on disk", () => {
-    let keystoreLoader: KeystoreFileLoader;
+  describe("keystore caching", () => {
+    describe("when the keystore has not been loaded", () => {
+      let keystoreLoader: KeystoreFileLoader;
+      let mockFileManager: MockFileManager;
 
-    beforeEach(async () => {
-      const mockFileManager = new MockFileManager();
+      beforeEach(async () => {
+        mockFileManager = new MockFileManager();
 
-      const invalidKeystore =
-        UnencryptedKeystore.createEmptyUnencryptedKeystoreFile();
-      invalidKeystore._format =
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing invalid format
-        "invalid" as unknown as "hh-unencrypted-keystore";
+        mockFileManager.setupExistingKeystoreFile({ mykey: "myvalue" });
 
-      mockFileManager.setKeystoreFile(invalidKeystore);
+        keystoreLoader = new KeystoreFileLoader(
+          fakeKeystoreFilePath,
+          mockFileManager,
+        );
+      });
 
-      keystoreLoader = new KeystoreFileLoader(
-        fakeKeystoreFilePath,
-        mockFileManager,
-      );
+      it("should determine if the keystore exists based on the file system", async () => {
+        assert.ok(
+          await keystoreLoader.isKeystoreUninitialized(),
+          "keystore should exist",
+        );
+
+        assert.equal(mockFileManager.fileExists.mock.callCount(), 1);
+      });
     });
 
-    it("should throw on attempted load", async () => {
-      await assertRejectsWithHardhatError(
-        async () => keystoreLoader.loadKeystoreFromFile(),
-        HardhatError.ERRORS.KEYSTORE.INVALID_KEYSTORE_FILE_FORMAT,
-        {},
-      );
+    describe("when the keystore has been loaded from file", () => {
+      let keystoreLoader: KeystoreFileLoader;
+      let mockFileManager: MockFileManager;
+
+      beforeEach(async () => {
+        mockFileManager = new MockFileManager();
+
+        mockFileManager.setupExistingKeystoreFile({ mykey: "myvalue" });
+
+        keystoreLoader = new KeystoreFileLoader(
+          fakeKeystoreFilePath,
+          mockFileManager,
+        );
+      });
+
+      it("should return the same keystore no matter how many loads", async () => {
+        const load1 = await keystoreLoader.loadKeystore();
+        const load2 = await keystoreLoader.loadKeystore();
+
+        assert.equal(load1, load2, "keystores should be the same instance");
+      });
+    });
+
+    describe("when the keystore is initialized in memory", () => {
+      let keystoreLoader: KeystoreFileLoader;
+      let mockFileManager: MockFileManager;
+
+      beforeEach(async () => {
+        mockFileManager = new MockFileManager();
+
+        mockFileManager.setupNoKeystoreFile();
+
+        keystoreLoader = new KeystoreFileLoader(
+          fakeKeystoreFilePath,
+          mockFileManager,
+        );
+      });
+
+      it("should return the same keystore for subsequent loades", async () => {
+        const createdVersion = await keystoreLoader.createUnsavedKeystore();
+        const loadedVersion = await keystoreLoader.loadKeystore();
+
+        assert.equal(
+          createdVersion,
+          loadedVersion,
+          "keystores should be the same instance",
+        );
+      });
     });
   });
 });

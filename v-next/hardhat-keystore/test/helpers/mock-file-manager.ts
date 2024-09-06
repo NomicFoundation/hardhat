@@ -43,9 +43,10 @@ export class MockFileManager implements FileManager {
     this.#keystoreFile = keystoreFile;
   }
 
-  public async fileExists(_absolutePath: string): Promise<boolean> {
-    return this.#keystoreFile !== null;
-  }
+  public fileExists: Mock<(_absolutePath: string) => Promise<boolean>> =
+    mock.fn(async (_absolutePath: string): Promise<boolean> => {
+      return this.#keystoreFile !== null;
+    });
 
   public writeJsonFile: Mock<
     (

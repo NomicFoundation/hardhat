@@ -23,11 +23,11 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
           await _setupLoaderWithContextBasedUserInterruptions(context);
       }
 
-      if (!(await keystoreLoader.keystoreFileExists())) {
+      if (!(await keystoreLoader.isKeystoreUninitialized())) {
         return next(context, variable);
       }
 
-      const keystore = await keystoreLoader.loadKeystoreFromFile();
+      const keystore = await keystoreLoader.loadKeystore();
 
       if (!(await keystore.hasKey(variable.name))) {
         return next(context, variable);

@@ -25,7 +25,7 @@ export class KeystoreFileLoader implements KeystoreLoader {
     this.#keystoreCache = null;
   }
 
-  public async keystoreFileExists(): Promise<boolean> {
+  public async isKeystoreUninitialized(): Promise<boolean> {
     if (this.#keystoreCache !== null) {
       return true;
     }
@@ -33,7 +33,7 @@ export class KeystoreFileLoader implements KeystoreLoader {
     return this.#fileManager.fileExists(this.#keystoreFilePath);
   }
 
-  public async loadKeystoreFromFile(): Promise<Keystore> {
+  public async loadKeystore(): Promise<Keystore> {
     if (this.#keystoreCache !== null) {
       return this.#keystoreCache;
     }
