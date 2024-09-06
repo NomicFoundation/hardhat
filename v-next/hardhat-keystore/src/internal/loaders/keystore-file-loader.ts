@@ -25,7 +25,7 @@ export class KeystoreFileLoader implements KeystoreLoader {
     this.#keystoreCache = null;
   }
 
-  public async isKeystoreUninitialized(): Promise<boolean> {
+  public async isKeystoreInitialized(): Promise<boolean> {
     if (this.#keystoreCache !== null) {
       return true;
     }

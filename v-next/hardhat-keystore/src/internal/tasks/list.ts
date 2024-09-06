@@ -19,7 +19,7 @@ export const list = async (
   keystoreLoader: KeystoreLoader,
   interruptions: UserInteractions,
 ): Promise<void> => {
-  if (!(await keystoreLoader.isKeystoreUninitialized())) {
+  if (!(await keystoreLoader.isKeystoreInitialized())) {
     process.exitCode = 1;
     return interruptions.displayNoKeystoreSetErrorMessage();
   }

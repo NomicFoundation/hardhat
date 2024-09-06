@@ -83,7 +83,7 @@ describe("KeystoreFileLoader", () => {
 
       it("should determine if the keystore exists based on the file system", async () => {
         assert.ok(
-          await keystoreLoader.isKeystoreUninitialized(),
+          await keystoreLoader.isKeystoreInitialized(),
           "keystore should exist",
         );
 
