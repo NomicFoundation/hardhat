@@ -2,22 +2,22 @@
   [31m1) should pass 1[39m
 
   nested async describe with promise 1
-    [31m2) should pass 2[39m
+    [90m2) should pass 2[39m
 
   [31m2) nested async describe with promise 1[39m
 
   nested async describe 1
-    [31m3) should pass 3[39m
+    [90m3) should pass 3[39m
 
   [31m3) nested async describe 1[39m
 
   nested describe 1
-    [31m4) should pass 4[39m
+    [90m4) should pass 4[39m
 
   [31m4) nested describe 1[39m
 
 
-[32m0 passing[39m[90m (125ms)[39m[31m[39m
+[32m0 passing[39m[90m (128ms)[39m[31m[39m
 [31m1 failing[39m[90m[39m
 [90m3 cancelled[39m
 
