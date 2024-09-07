@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="361.244mm" height="331.964mm"
+ viewBox="0 0 1024 941"
+ xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"  version="1.2" baseProfile="tiny">
+<title>Qt Svg Document</title>
+<desc>Generated with Qt</desc>
+<defs>
+</defs>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#ffffff" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)"
+font-family="Helvetica" font-size="12" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,941 L0,941 L0,0"/>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,941 L0,941 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)"
+font-family="Helvetica" font-size="12" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,941 L0,941 L0,0"/>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="39" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >  </text>
+</g>
+
+<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="24" y="39" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >1) should pass 1</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="69" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >  nested async describe with promise 1</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="84" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    </text>
+</g>
+
+<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="39" y="84" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >2) should pass 2</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="114" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >  </text>
+</g>
+
+<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="24" y="114" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >3) nested async describe with promise 1</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="144" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >  nested async describe 1</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="159" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    </text>
+</g>
+
+<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="39" y="159" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >4) should pass 3</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="189" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >  </text>
+</g>
+
+<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="24" y="189" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >5) nested async describe 1</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="219" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >  nested describe 1</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="234" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    </text>
+</g>
+
+<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="39" y="234" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >6) should pass 4</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="264" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >  </text>
+</g>
+
+<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="24" y="264" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >7) nested describe 1</text>
+</g>
+
+<g fill="#00ff00" fill-opacity="1" stroke="#00ff00" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#00ff00" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="309" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >0 passing</text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="78" y="309" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ > (128ms)</text>
+</g>
+
+<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="324" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >1 failing</text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="339" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >3 cancelled</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="369" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >  1) should pass 1:</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="399" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="399" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >Error: test could not be started because its parent finished</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="414" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="414" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at SuiteContext.&lt;anonymous&gt; (integration-tests/fixture-tests/async-describe-test/test.ts:1:193)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="444" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >  2) nested async describe with promise 1</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="459" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >       should pass 2:</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="489" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="489" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >Test cancelled by parent error</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="504" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="504" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    This can happen if a parent describe or before hook fails, or if a nested it is not awaited</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="534" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >  3) nested async describe with promise 1:</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="564" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="564" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >Error: test could not be started because its parent finished</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="579" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="579" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at SuiteContext.&lt;anonymous&gt; (integration-tests/fixture-tests/async-describe-test/test.ts:1:244)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="609" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >  4) nested async describe 1</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="624" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >       should pass 3:</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="654" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="654" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >Test cancelled by parent error</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="669" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="669" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    This can happen if a parent describe or before hook fails, or if a nested it is not awaited</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="699" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >  5) nested async describe 1:</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="729" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="729" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >Error: test could not be started because its parent finished</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="744" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="744" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at SuiteContext.&lt;anonymous&gt; (integration-tests/fixture-tests/async-describe-test/test.ts:1:422)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="774" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >  6) nested describe 1</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="789" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >       should pass 4:</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="819" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="819" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >Test cancelled by parent error</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="834" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="834" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    This can happen if a parent describe or before hook fails, or if a nested it is not awaited</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="864" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >  7) nested describe 1:</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="894" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="894" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >Error: test could not be started because its parent finished</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="909" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="909" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at SuiteContext.&lt;anonymous&gt; (integration-tests/fixture-tests/async-describe-test/test.ts:1:520)</text>
+</g>
+</g>
+</svg>

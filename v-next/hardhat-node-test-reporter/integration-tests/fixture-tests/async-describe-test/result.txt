@@ -1,0 +1,61 @@
+
+  [31m1) should pass 1[39m
+
+  nested async describe with promise 1
+    [31m2) should pass 2[39m
+
+  [31m3) nested async describe with promise 1[39m
+
+  nested async describe 1
+    [31m4) should pass 3[39m
+
+  [31m5) nested async describe 1[39m
+
+  nested describe 1
+    [31m6) should pass 4[39m
+
+  [31m7) nested describe 1[39m
+
+
+[32m0 passing[39m[90m (128ms)[39m[31m[39m
+[31m1 failing[39m[90m[39m
+[90m3 cancelled[39m
+
+  1) should pass 1:
+
+   [31mError: test could not be started because its parent finished[39m
+   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/async-describe-test/test.ts:1:193)[39m
+
+  2) nested async describe with promise 1
+       should pass 2:
+
+   [31mTest cancelled by parent error[39m
+   [90m    This can happen if a parent describe or before hook fails, or if a nested it is not awaited[39m
+
+  3) nested async describe with promise 1:
+
+   [31mError: test could not be started because its parent finished[39m
+   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/async-describe-test/test.ts:1:244)[39m
+
+  4) nested async describe 1
+       should pass 3:
+
+   [31mTest cancelled by parent error[39m
+   [90m    This can happen if a parent describe or before hook fails, or if a nested it is not awaited[39m
+
+  5) nested async describe 1:
+
+   [31mError: test could not be started because its parent finished[39m
+   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/async-describe-test/test.ts:1:422)[39m
+
+  6) nested describe 1
+       should pass 4:
+
+   [31mTest cancelled by parent error[39m
+   [90m    This can happen if a parent describe or before hook fails, or if a nested it is not awaited[39m
+
+  7) nested describe 1:
+
+   [31mError: test could not be started because its parent finished[39m
+   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/async-describe-test/test.ts:1:520)[39m
+
