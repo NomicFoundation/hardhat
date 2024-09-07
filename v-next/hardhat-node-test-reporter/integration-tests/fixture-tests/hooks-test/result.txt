@@ -13,33 +13,33 @@
     [31m5) should pass, too[39m
 
   before
-    [31m6) should pass[39m
-    [31m6) should pass, too[39m
+    [90m6) should pass[39m
+    [90m6) should pass, too[39m
 
   [31m6) before[39m
 
   nested before
     level 1
-      [31m7) should pass[39m
-      [31m7) should pass, too[39m
+      [90m7) should pass[39m
+      [90m7) should pass, too[39m
 
     [31m7) level 1[39m
 
   describe
-    [31m8) should pass[39m
-    [31m8) should pass, too[39m
+    [90m8) should pass[39m
+    [90m8) should pass, too[39m
 
   [31m8) describe[39m
 
   nested describe
     level 1
-      [31m9) should pass[39m
-      [31m9) should pass, too[39m
+      [90m9) should pass[39m
+      [90m9) should pass, too[39m
 
     [31m9) level 1[39m
 
 
-[32m2 passing[39m[90m (139ms)[39m[31m[39m
+[32m2 passing[39m[90m (140ms)[39m[31m[39m
 [31m4 failing[39m[90m[39m
 [90m8 cancelled[39m
 

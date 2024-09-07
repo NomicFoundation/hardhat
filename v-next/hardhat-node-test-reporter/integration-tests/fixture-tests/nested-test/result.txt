@@ -11,7 +11,7 @@
               [31m3) assertion error in nested test[39m
               [31m4) error with cause in nested test[39m
               [90m[32m✔[39m[90m unawaited test 1[39m
-              [31m5) unawaited test 2[39m
+              [90m5) unawaited test 2[39m
 
             [31m5) level 2[39m
 
@@ -20,7 +20,7 @@
         [31m7) level 0[39m
 
 
-[32m3 passing[39m[90m (138ms)[39m[31m[39m
+[32m3 passing[39m[90m (136ms)[39m[31m[39m
 [31m7 failing[39m[90m[39m
 [90m1 cancelled[39m
 

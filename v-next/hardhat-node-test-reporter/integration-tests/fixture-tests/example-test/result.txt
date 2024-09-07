@@ -17,7 +17,7 @@
   [90m[32m✔[39m[90m top level test[39m
 
   in describe
-    [31m3) foo[39m
+    [90m3) foo[39m
 
   [31m3) in describe[39m
 
@@ -32,7 +32,7 @@
   [36m- skipped test[39m
 
 
-[32m6 passing[39m[90m (132ms)[39m[31m[39m
+[32m6 passing[39m[90m (139ms)[39m[31m[39m
 [31m2 failing[39m[36m[39m
 [36m1 skipped[39m[34m[39m
 [34m1 todo[39m[90m[39m

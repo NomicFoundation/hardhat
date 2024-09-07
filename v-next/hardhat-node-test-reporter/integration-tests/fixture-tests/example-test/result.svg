@@ -158,10 +158,10 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
  >    </text>
 </g>
 
-<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
-<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="39" y="309" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="39" y="309" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >3) foo</text>
 </g>
 
@@ -264,7 +264,7 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
 <text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="78" y="534" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- > (132ms)</text>
+ > (139ms)</text>
 </g>
 
 <g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"

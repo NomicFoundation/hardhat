@@ -12,6 +12,7 @@ import {
   formatFailureReason,
   formatGlobalDiagnostics,
   formatUnusedDiagnostics,
+  formatTestCancelledByParentFailure,
   formatTestContext,
   formatTestFailure,
   formatTestPass,
@@ -200,7 +201,7 @@ export default async function* customReporter(
               contextStack: stack,
             };
 
-            yield formatTestFailure(failure);
+            yield formatTestCancelledByParentFailure(failure);
           } else {
             const failure: Failure = {
               index: preFormattedFailureReasons.length,
