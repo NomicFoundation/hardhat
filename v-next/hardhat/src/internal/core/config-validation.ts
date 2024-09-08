@@ -4,7 +4,8 @@ import type {
   HookManager,
 } from "../../types/hooks.js";
 import type { HardhatPlugin } from "../../types/plugins.js";
-
+import path from 'path';
+import fs from 'fs';
 import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 
 import {
@@ -81,7 +82,7 @@ export async function validateUserConfig(
 }
 
 export function collectValidationErrorsForUserConfig(
-  config: HardhatUserConfig,
+  config: HardhatUserConfig
 ): HardhatUserConfigValidationError[] {
   const validationErrors: HardhatUserConfigValidationError[] = [];
 
@@ -103,6 +104,38 @@ export function collectValidationErrorsForUserConfig(
       validationErrors.push({
         path: ["plugins"],
         message: "plugins must be an array",
+      });
+    }
+  }
+
+  if (config.paths !== undefined) {
+    if (typeof config.paths === "object" && config.paths !== null) {
+      for (const [key, value] of Object.entries(config.paths)) {
+        if (typeof value !== "string") {
+          validationErrors.push({
+            path: ["paths", key],
+            message: `Path for "${key}" must be a string`,
+          });
+        } else {
+          if (!path.isAbsolute(value)) {
+            validationErrors.push({
+              path: ["paths", key],
+              message: `Path for "${key}" must be absolute`,
+            });
+          }
+
+          if (!fs.existsSync(value)) {
+            validationErrors.push({
+              path: ["paths", key],
+              message: `Path for "${key}" does not exist: ${value}`,
+            });
+          }
+        }
+      }
+    } else {
+      validationErrors.push({
+        path: ["paths"],
+        message: "paths must be an object",
       });
     }
   }
