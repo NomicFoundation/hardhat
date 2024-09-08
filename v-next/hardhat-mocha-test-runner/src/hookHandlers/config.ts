@@ -1,5 +1,7 @@
 import type { ConfigHooks } from "@ignored/hardhat-vnext/types/hooks";
 
+import path from "node:path";
+
 import {
   unionType,
   validateUserConfigZodType,
@@ -71,6 +73,10 @@ const mochaConfigType = z.object({
 
 const userConfigType = z.object({
   mocha: z.optional(mochaConfigType),
+  test: unionType(
+    [z.object({ mocha: z.string().optional() }), z.string()],
+    "Expected a string or an object with an optional 'mocha' property",
+  ).optional(),
 });
 
 export default async (): Promise<Partial<ConfigHooks>> => {
@@ -88,12 +94,28 @@ export default async (): Promise<Partial<ConfigHooks>> => {
         resolveConfigurationVariable,
       );
 
+      let testsPath = userConfig.paths?.tests;
+
+      testsPath = typeof testsPath === "object" ? testsPath.mocha : testsPath;
+      testsPath ??= "test";
+
+      const mochaTestsPath = path.isAbsolute(testsPath)
+        ? testsPath
+        : path.resolve(resolvedConfig.paths.root, testsPath);
+
       return {
         ...resolvedConfig,
         mocha: {
           timeout: 40000,
           ...resolvedConfig.mocha,
           ...userConfig.mocha,
+        },
+        paths: {
+          ...resolvedConfig.paths,
+          tests: {
+            ...resolvedConfig.paths.tests,
+            mocha: mochaTestsPath,
+          },
         },
       };
     },
