@@ -1,5 +1,12 @@
 import type { UnsafeHardhatRuntimeEnvironmentOptions } from "./types.js";
-import type { HardhatUserConfig, HardhatConfig } from "../../types/config.js";
+import type {
+  HardhatUserConfig,
+  HardhatConfig,
+  ProjectPathsUserConfig,
+  ProjectPathsConfig,
+  TestPathsConfig,
+  SourcePathsConfig,
+} from "../../types/config.js";
 import type {
   GlobalOptions,
   GlobalOptionDefinitions,
@@ -10,6 +17,8 @@ import type { NetworkManager } from "../../types/network.js";
 import type { HardhatPlugin } from "../../types/plugins.js";
 import type { TaskManager } from "../../types/tasks.js";
 import type { UserInterruptionManager } from "../../types/user-interruptions.js";
+
+import path from "node:path";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { findClosestPackageRoot } from "@ignored/hardhat-vnext-utils/package";
@@ -77,6 +86,7 @@ export class HardhatRuntimeEnvironmentImplementation
 
     const resolvedConfig = await resolveUserConfig(
       resolvedProjectRoot,
+      userProvidedGlobalOptions.config,
       hooks,
       resolvedPlugins,
       extendedUserConfig,
@@ -174,6 +184,7 @@ async function runUserConfigExtensions(
 
 async function resolveUserConfig(
   projectRoot: string,
+  configPath: string | undefined,
   hooks: HookManager,
   sortedPlugins: HardhatPlugin[],
   config: HardhatUserConfig,
@@ -186,12 +197,7 @@ async function resolveUserConfig(
   const initialResolvedConfig = {
     plugins: sortedPlugins,
     tasks: config.tasks ?? [],
-    paths: {
-      root: projectRoot,
-      cache: config.paths?.cache ?? "", // TODO: resolve cache path
-      artifacts: config.paths?.artifacts ?? "", // TODO: resolve artifacts path
-      tests: config.paths?.tests ?? "test", // TODO: resolve tests path
-    },
+    paths: await resolvePaths(projectRoot, configPath, config.paths ?? {}),
   } as HardhatConfig;
 
   return hooks.runHandlerChain(
@@ -206,4 +212,55 @@ async function resolveUserConfig(
       return initialResolvedConfig;
     },
   );
+}
+
+async function resolvePaths(
+  projectRoot: string,
+  configPath: string | undefined,
+  userProvidedPaths: ProjectPathsUserConfig,
+): Promise<ProjectPathsConfig> {
+  return {
+    root: projectRoot,
+    config:
+      configPath !== undefined
+        ? await resolveUserPathFromProjectRoot(projectRoot, configPath)
+        : undefined,
+    cache: await resolveUserPathFromProjectRoot(
+      projectRoot,
+      userProvidedPaths.cache ?? "cache",
+    ),
+    artifacts: await resolveUserPathFromProjectRoot(
+      projectRoot,
+      userProvidedPaths.artifacts ?? "artifacts",
+    ),
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+    We cast as the builtin plugins' type extensions are also applied here,
+    making an empty object incompatible, but it's the correct value when you
+    ignore the plugins. */
+    tests: {} as TestPathsConfig,
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+    See the comment in tests. */
+    sources: {} as SourcePathsConfig,
+  };
+}
+
+/**
+ * Resolves a user-provided path into an absolute path.
+ *
+ * If the path is already absolute, it is returned as is, otherwise it is
+ * resolved relative to the project root.
+ *
+ * @param projectRoot The root of the Hardhat project.
+ * @param userPath The user-provided path.
+ * @returns An absolute path.
+ */
+async function resolveUserPathFromProjectRoot(
+  projectRoot: string,
+  userPath: string,
+): Promise<string> {
+  if (path.isAbsolute(userPath)) {
+    return userPath;
+  }
+
+  return path.resolve(projectRoot, userPath);
 }
