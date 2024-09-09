@@ -146,8 +146,12 @@ function formatSingleError(
   }
 
   if (isAggregateError(error)) {
-    // Only the first aggregate error in a chain survives serialization
-    // This is why we can safely not increase the depth here
+    // node:test only passes on/serializes top-level aggregate errors
+    // If an aggregate error is nested as the cause of another error, then
+    // node:test will drop it altogether. If an aggregate error is nested
+    // as an inner error of another aggregate error, then node:test will
+    // serialize the nested aggregate error as a single/simple error.
+    // Because of this, we do not need to increase the depth here.
     const formattedErrors = error.errors
       .map((e) =>
         indent(
