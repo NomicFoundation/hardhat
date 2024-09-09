@@ -50,7 +50,7 @@ Tasks in Hardhat are asynchronous JavaScript functions that get access to the [
 
 For our example, we will use the [`@nomicfoundation/hardhat-toolbox`](/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox), which includes the [ethers.js](https://docs.ethers.org/v6/) library to interact with our contracts.
 
-::::tabsgroup{options="npm 7+,npm 6,yarn"}
+::::tabsgroup{options="npm 7+,npm 6,yarn,pnpm"}
 
 :::tab{value="npm 7+"}
 
@@ -72,6 +72,14 @@ npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat
 
 ```
 yarn add --dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomicfoundation/hardhat-ethers @nomicfoundation/hardhat-verify chai@4 ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v6
+```
+
+:::
+
+:::tab{value="pnpm"}
+
+```
+pnpm add -D @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers chai@4 ethers
 ```
 
 :::

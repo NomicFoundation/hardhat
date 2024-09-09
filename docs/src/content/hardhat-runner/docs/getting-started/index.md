@@ -27,7 +27,7 @@ To install it, you need to create an npm project by going to an empty folder, ru
 
 Once your project is ready, you should run
 
-::::tabsgroup{options="npm 7+,npm 6,yarn"}
+::::tabsgroup{options="npm 7+,npm 6,yarn,pnpm"}
 
 :::tab{value="npm 7+"}
 
@@ -49,6 +49,14 @@ npm install --save-dev hardhat
 
 ```
 yarn add --dev hardhat
+```
+
+:::
+
+:::tab{value=pnpm}
+
+```
+pnpm add -D hardhat
 ```
 
 :::
