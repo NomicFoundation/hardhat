@@ -15,6 +15,15 @@ export interface Keystore {
   toJSON(): UnencryptedKeystoreFile;
 }
 
+/**
+ * The KeystoreLoader is responsible for loading and saving the in-memory
+ * keystore from and to the on-disk keystore file.
+ *
+ * As part of those tasks, it has responsilibty for:
+ * - validating that the on-disk keystore file meets the expected structure
+ *   during loading
+ * - caching the in-memory keystore to reduce IO during loads
+ */
 export interface KeystoreLoader {
   isKeystoreInitialized: () => Promise<boolean>;
   createUnsavedKeystore: () => Promise<Keystore>;
