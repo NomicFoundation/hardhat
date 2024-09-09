@@ -6,7 +6,7 @@
 export function isCi(): boolean {
   const env = process.env;
 
-  return (
+  const result =
     env.GITHUB_ACTIONS !== undefined || // GitHub Actions
     env.NOW !== undefined || // Vercel Now
     env.DEPLOYMENT_ID !== undefined || // Vercel Now
@@ -14,6 +14,27 @@ export function isCi(): boolean {
     env.CI !== undefined || // Travis CI, CircleCI, Cirrus CI, GitLab CI, Appveyor, CodeShip, dsari
     env.CONTINUOUS_INTEGRATION !== undefined || // Travis CI, Cirrus CI
     env.BUILD_NUMBER !== undefined || // Jenkins, TeamCity
-    env.RUN_ID !== undefined // TaskCluster, dsari
-  );
+    env.RUN_ID !== undefined; // TaskCluster, dsari
+
+  const {
+    GITHUB_ACTIONS,
+    NOW,
+    CI,
+    DEPLOYMENT_ID,
+    BUILD_NUMBER,
+    RUN_ID,
+    CONTINUOUS_INTEGRATION,
+  } = env;
+
+  console.log("--------------------------> CI env", {
+    GITHUB_ACTIONS,
+    NOW,
+    CI,
+    DEPLOYMENT_ID,
+    BUILD_NUMBER,
+    RUN_ID,
+    CONTINUOUS_INTEGRATION,
+  });
+
+  return result;
 }
