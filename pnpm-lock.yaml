@@ -2090,6 +2090,9 @@ importers:
       debug:
         specifier: ^4.1.1
         version: 4.3.6(supports-color@8.1.1)
+      env-paths:
+        specifier: ^2.2.0
+        version: 2.2.1
       ethereum-cryptography:
         specifier: ^2.2.1
         version: 2.2.1
