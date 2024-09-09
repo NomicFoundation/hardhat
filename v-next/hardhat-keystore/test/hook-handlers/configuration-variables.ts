@@ -53,12 +53,14 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
 
     if (runningInCi) {
       delete process.env.GITHUB_ACTIONS;
+      delete process.env.CI;
     }
   });
 
   after(() => {
     if (runningInCi) {
       process.env.GITHUB_ACTIONS = "true";
+      process.env.CI = "true";
     }
   });
 
