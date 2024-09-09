@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg width="361.244mm" height="517.172mm"
- viewBox="0 0 1024 1466"
+<svg width="361.244mm" height="580.672mm"
+ viewBox="0 0 1024 1646"
  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"  version="1.2" baseProfile="tiny">
 <title>Qt Svg Document</title>
 <desc>Generated with Qt</desc>
@@ -11,14 +11,14 @@
 <g fill="#ffffff" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)"
 font-family="Helvetica" font-size="12" font-weight="400" font-style="normal" 
 >
-<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,1466 L0,1466 L0,0"/>
-<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,1466 L0,1466 L0,0"/>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,1646 L0,1646 L0,0"/>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,1646 L0,1646 L0,0"/>
 </g>
 
 <g fill="#000000" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)"
 font-family="Helvetica" font-size="12" font-weight="400" font-style="normal" 
 >
-<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,1466 L0,1466 L0,0"/>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,1646 L0,1646 L0,0"/>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
@@ -330,7 +330,7 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
 <text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="78" y="639" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- > (140ms)</text>
+ > (145ms)</text>
 </g>
 
 <g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
@@ -600,19 +600,71 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1359" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1359" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at Suite.runInAsyncScope (node:async_hooks:206:9)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1374" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >  9) nested describe</text>
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1374" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at new Suite (node:internal/test_runner/test:1153:26)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1389" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >       level 1:</text>
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1389" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at Test.createSubtest (node:internal/test_runner/test:629:18)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1404" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1404" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at run (node:internal/test_runner/harness:258:28)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1419" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >   </text>
 </g>
 
-<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
-<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1419" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >Error: describe setup error</text>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1419" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at test (node:internal/test_runner/harness:271:12)</text>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
@@ -626,7 +678,123 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
 <text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1434" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at &lt;anonymous&gt; (integration-tests/fixture-tests/hooks-test/describe.ts:4:1)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1464" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >  9) nested describe</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1479" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >       level 1:</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1509" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1509" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >Error: describe setup error</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1524" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1524" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >    at SuiteContext.&lt;anonymous&gt; (integration-tests/fixture-tests/hooks-test/describe.ts:26:11)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1539" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1539" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at Suite.runInAsyncScope (node:async_hooks:206:9)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1554" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1554" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at new Suite (node:internal/test_runner/test:1153:26)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1569" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1569" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at Suite.createSubtest (node:internal/test_runner/test:629:18)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1584" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1584" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at run (node:internal/test_runner/harness:258:28)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1599" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1599" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at test (node:internal/test_runner/harness:271:12)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1614" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1614" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at SuiteContext.&lt;anonymous&gt; (integration-tests/fixture-tests/hooks-test/describe.ts:17:3)</text>
 </g>
 </g>
 </svg>
