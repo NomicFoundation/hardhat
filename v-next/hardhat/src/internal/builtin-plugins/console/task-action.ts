@@ -4,9 +4,8 @@ import type { REPLServer } from "node:repl";
 import path from "node:path";
 import repl from "node:repl";
 
+import { getCacheDir } from "@ignored/hardhat-vnext-utils/global-dir";
 import debug from "debug";
-
-import { getCacheDir } from "../../global-dir.js";
 
 const log = debug("hardhat:core:tasks:console");
 

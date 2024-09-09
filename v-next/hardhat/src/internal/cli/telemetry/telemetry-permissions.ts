@@ -6,9 +6,9 @@ import {
   readJsonFile,
   writeJsonFile,
 } from "@ignored/hardhat-vnext-utils/fs";
+import { getTelemetryDir } from "@ignored/hardhat-vnext-utils/global-dir";
 import debug from "debug";
 
-import { getTelemetryDir } from "../../global-dir.js";
 import { confirmationPromptWithTimeout } from "../prompt/prompt.js";
 
 import { sendTelemetryConsentAnalytics } from "./analytics/analytics.js";

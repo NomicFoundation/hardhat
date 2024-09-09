@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { getConfigDir } from "../../src/internal/global-dir.js";
+import { getConfigDir } from "@ignored/hardhat-vnext-utils/global-dir";
 
 describe("global-dir", () => {
   describe("getGlobalDir", () => {
