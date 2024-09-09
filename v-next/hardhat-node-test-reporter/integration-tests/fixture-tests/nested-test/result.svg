@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg width="361.244mm" height="596.547mm"
- viewBox="0 0 1024 1691"
+<svg width="361.244mm" height="707.672mm"
+ viewBox="0 0 1024 2006"
  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"  version="1.2" baseProfile="tiny">
 <title>Qt Svg Document</title>
 <desc>Generated with Qt</desc>
@@ -11,14 +11,14 @@
 <g fill="#ffffff" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)"
 font-family="Helvetica" font-size="12" font-weight="400" font-style="normal" 
 >
-<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,1691 L0,1691 L0,0"/>
-<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,1691 L0,1691 L0,0"/>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,2006 L0,2006 L0,0"/>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,2006 L0,2006 L0,0"/>
 </g>
 
 <g fill="#000000" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)"
 font-family="Helvetica" font-size="12" font-weight="400" font-style="normal" 
 >
-<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,1691 L0,1691 L0,0"/>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,2006 L0,2006 L0,0"/>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
@@ -205,7 +205,7 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
 <text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="78" y="339" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- > (134ms)</text>
+ > (133ms)</text>
 </g>
 
 <g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
@@ -516,97 +516,197 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1074" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1074" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at Test.runInAsyncScope (node:async_hooks:206:9)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1089" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >  4) level 0</text>
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1089" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at Test.run (node:internal/test_runner/test:856:25)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1104" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >       level 1</text>
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1104" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at Test.start (node:internal/test_runner/test:753:17)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1119" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >         level 2</text>
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1119" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at startSubtest (node:internal/test_runner/harness:252:17)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1134" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >           level 0</text>
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1134" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at run (node:internal/test_runner/harness:260:14)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1149" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >             level 1</text>
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1149" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at test (node:internal/test_runner/harness:271:12)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1164" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >               level 2</text>
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1179" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >                 error with cause in nested test:</text>
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1164" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at TestContext.&lt;anonymous&gt; (integration-tests/fixture-tests/nested-test/test.ts:28:19)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1194" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >  4) level 0</text>
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1209" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >       level 1</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1224" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >         level 2</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1239" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >           level 0</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1254" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >             level 1</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1269" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >               level 2</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1284" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >                 error with cause in nested test:</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1314" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >   </text>
 </g>
 
 <g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
-<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1209" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1314" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >Error: error with cause</text>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1224" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1329" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >   </text>
 </g>
 
 <g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1224" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1329" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >    at TestContext.&lt;anonymous&gt; (integration-tests/fixture-tests/nested-test/test.ts:33:21)</text>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1239" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >     </text>
-</g>
-
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="47" y="1239" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >[cause]: Error: cause</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1254" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >     </text>
-</g>
-
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="47" y="1254" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at TestContext.&lt;anonymous&gt; (integration-tests/fixture-tests/nested-test/test.ts:34:24)</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1284" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >  5) level 0</text>
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1299" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >       level 1</text>
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1314" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >         level 2</text>
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1329" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >           level 0</text>
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1344" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >             level 1</text>
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1344" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at Test.runInAsyncScope (node:async_hooks:206:9)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1359" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >               level 2:</text>
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1359" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at Test.run (node:internal/test_runner/test:856:25)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1374" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1374" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at Test.start (node:internal/test_runner/test:753:17)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1389" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >   </text>
 </g>
 
-<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
-<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1389" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >Error [ERR_TEST_FAILURE]: 2 subtests failed</text>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1389" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at startSubtest (node:internal/test_runner/harness:252:17)</text>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
@@ -620,7 +720,7 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
 <text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1404" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at async TestContext.&lt;anonymous&gt; (integration-tests/fixture-tests/nested-test/test.ts:1:424)</text>
+ >    at run (node:internal/test_runner/harness:260:14)</text>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
@@ -634,66 +734,260 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
 <text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1419" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at async TestContext.&lt;anonymous&gt; (integration-tests/fixture-tests/nested-test/test.ts:1:395)</text>
+ >    at test (node:internal/test_runner/harness:271:12)</text>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1449" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >  6) level 0</text>
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1464" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >       level 1</text>
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1479" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >         level 2</text>
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1494" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >           level 0</text>
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1509" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >             level 1:</text>
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1539" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
-<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1539" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >Error [ERR_TEST_FAILURE]: 1 subtest failed</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1554" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1434" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >   </text>
 </g>
 
 <g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1554" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at async TestContext.&lt;anonymous&gt; (integration-tests/fixture-tests/nested-test/test.ts:1:395)</text>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1434" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at TestContext.&lt;anonymous&gt; (integration-tests/fixture-tests/nested-test/test.ts:32:19)</text>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1584" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >  7) level 0</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1449" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >     </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="47" y="1449" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >[cause]: Error: cause</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1464" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >     </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="47" y="1464" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at TestContext.&lt;anonymous&gt; (integration-tests/fixture-tests/nested-test/test.ts:34:24)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1479" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >     </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="47" y="1479" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at Test.runInAsyncScope (node:async_hooks:206:9)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1494" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >     </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="47" y="1494" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at Test.run (node:internal/test_runner/test:856:25)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1509" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >     </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="47" y="1509" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at Test.start (node:internal/test_runner/test:753:17)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1524" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >     </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="47" y="1524" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at startSubtest (node:internal/test_runner/harness:252:17)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1539" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >     </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="47" y="1539" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at run (node:internal/test_runner/harness:260:14)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1554" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >     </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="47" y="1554" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at test (node:internal/test_runner/harness:271:12)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1569" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >     </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="47" y="1569" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at TestContext.&lt;anonymous&gt; (integration-tests/fixture-tests/nested-test/test.ts:32:19)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1599" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >       level 1</text>
+ >  5) level 0</text>
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1614" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >         level 2</text>
+ >       level 1</text>
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1629" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >           level 0:</text>
+ >         level 2</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1644" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >           level 0</text>
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1659" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >             level 1</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1674" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >               level 2:</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1704" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >   </text>
 </g>
 
 <g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
-<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1659" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1704" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >Error [ERR_TEST_FAILURE]: 2 subtests failed</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1719" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1719" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at async TestContext.&lt;anonymous&gt; (integration-tests/fixture-tests/nested-test/test.ts:1:424)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1734" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1734" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at async TestContext.&lt;anonymous&gt; (integration-tests/fixture-tests/nested-test/test.ts:1:395)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1764" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >  6) level 0</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1779" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >       level 1</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1794" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >         level 2</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1809" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >           level 0</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1824" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >             level 1:</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1854" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1854" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >Error [ERR_TEST_FAILURE]: 1 subtest failed</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1869" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1869" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at async TestContext.&lt;anonymous&gt; (integration-tests/fixture-tests/nested-test/test.ts:1:395)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1899" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >  7) level 0</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1914" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >       level 1</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1929" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >         level 2</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1944" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >           level 0:</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1974" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1974" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >Error [ERR_TEST_FAILURE]: 1 subtest failed</text>
 </g>
 </g>

@@ -19,7 +19,7 @@
     [31m10) should pass, too[39m
 
 
-[32m2 passing[39m[90m (145ms)[39m[31m[39m
+[32m2 passing[39m[90m (137ms)[39m[31m[39m
 [31m4 failing[39m[90m[39m
 [90m4 cancelled[39m
 
@@ -85,4 +85,10 @@
 
    [31mError: describe setup error[39m
    [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/hooks-test/describe.ts:13:9)[39m
+   [90m    at Suite.runInAsyncScope (node:async_hooks:206:9)[39m
+   [90m    at new Suite (node:internal/test_runner/test:1153:26)[39m
+   [90m    at Test.createSubtest (node:internal/test_runner/test:629:18)[39m
+   [90m    at run (node:internal/test_runner/harness:258:28)[39m
+   [90m    at test (node:internal/test_runner/harness:271:12)[39m
+   [90m    at <anonymous> (integration-tests/fixture-tests/hooks-test/describe.ts:4:1)[39m
 

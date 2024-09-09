@@ -109,32 +109,43 @@ function formatSingleError(
 ): string {
   const messageLines = [];
   const stackLines = [];
-
-  let hasStackStarted = false;
+  const nodeLines = [];
 
   for (const line of error.stack?.split("\n") ?? []) {
     const reference = parseStackLine(line);
     if (reference === undefined) {
-      if (!hasStackStarted) {
+      if (stackLines.length === 0 && nodeLines.length === 0) {
         messageLines.push(line);
       } else {
         stackLines.push(line);
       }
     } else {
-      hasStackStarted = true;
-      // Remove all the stack references exposing test runner internals
-      // User code starts after: (Suite|Test|TestHook|...).runInAsyncScope
-      if (
-        reference.context !== undefined &&
-        reference.context.endsWith(".runInAsyncScope")
-      ) {
-        break;
+      const formattedStackReference = formatStackReference(reference);
+      // Put all the node references on a separate stack. If we don't encounter
+      // any non-node references after that, we will discard them
+      if (isNodeLocation(reference.location)) {
+        // Check if the location is strictly a node location if the node stack
+        // is empty. Otherwise, it is OK to accept <anonymous> and index locations
+        if (nodeLines.length > 0 || isNodeLocation(reference.location, true)) {
+          nodeLines.push(formattedStackReference);
+        } else {
+          stackLines.push(formattedStackReference);
+        }
+      } else {
+        // If we encounter a non-node location, we put all the node references
+        // on the main stack because we want to display them to the user
+        while (nodeLines.length > 0) {
+          stackLines.push(nodeLines.shift());
+        }
+        stackLines.push(formattedStackReference);
       }
-      // Remove all the stack references originating from node
-      if (reference.location.startsWith("node:")) {
-        continue;
-      }
-      stackLines.push(formatStackReference(reference));
+    }
+  }
+
+  // If the main stack is empty, we display all the node references to the user
+  if (stackLines.length === 0) {
+    while (nodeLines.length > 0) {
+      stackLines.push(nodeLines.shift());
     }
   }
 
@@ -313,10 +324,7 @@ export function formatLocation(
   sep: string = path.sep,
   windows: boolean = process.platform === "win32",
 ): string {
-  if (location.startsWith("node:")) {
-    return location;
-  }
-  if (location === "<anonymous>") {
+  if (isNodeLocation(location)) {
     return location;
   }
   const locationPath = location.startsWith("file://")
@@ -326,5 +334,19 @@ export function formatLocation(
     return locationPath.slice(cwd.length + 1);
   } else {
     return locationPath;
+  }
+}
+
+function isNodeLocation(location: string, strict: boolean = false): boolean {
+  const startsWithNode =
+    location.startsWith("node:") || location.startsWith("async node:");
+  if (strict) {
+    return startsWithNode;
+  } else {
+    return (
+      startsWithNode ||
+      location === "<anonymous>" ||
+      /^index \d+$/.test(location)
+    );
   }
 }

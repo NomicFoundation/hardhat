@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg width="361.244mm" height="474.839mm"
- viewBox="0 0 1024 1346"
+<svg width="361.244mm" height="506.589mm"
+ viewBox="0 0 1024 1436"
  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"  version="1.2" baseProfile="tiny">
 <title>Qt Svg Document</title>
 <desc>Generated with Qt</desc>
@@ -11,14 +11,14 @@
 <g fill="#ffffff" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)"
 font-family="Helvetica" font-size="12" font-weight="400" font-style="normal" 
 >
-<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,1346 L0,1346 L0,0"/>
-<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,1346 L0,1346 L0,0"/>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,1436 L0,1436 L0,0"/>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,1436 L0,1436 L0,0"/>
 </g>
 
 <g fill="#000000" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)"
 font-family="Helvetica" font-size="12" font-weight="400" font-style="normal" 
 >
-<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,1346 L0,1346 L0,0"/>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,1436 L0,1436 L0,0"/>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
@@ -196,7 +196,7 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
 <text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="78" y="339" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- > (145ms)</text>
+ > (137ms)</text>
 </g>
 
 <g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
@@ -557,6 +557,90 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 >
 <text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1314" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >    at SuiteContext.&lt;anonymous&gt; (integration-tests/fixture-tests/hooks-test/describe.ts:13:9)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1329" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1329" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at Suite.runInAsyncScope (node:async_hooks:206:9)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1344" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1344" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at new Suite (node:internal/test_runner/test:1153:26)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1359" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1359" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at Test.createSubtest (node:internal/test_runner/test:629:18)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1374" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1374" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at run (node:internal/test_runner/harness:258:28)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1389" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1389" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at test (node:internal/test_runner/harness:271:12)</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1404" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1404" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >    at &lt;anonymous&gt; (integration-tests/fixture-tests/hooks-test/describe.ts:4:1)</text>
 </g>
 </g>
 </svg>
