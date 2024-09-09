@@ -44,27 +44,21 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
 
   // The config variables hook handler short circuits if running in CI
   // intentionally. In this integration test we check whether we are running
-  // in _our_ CI, and turn of `process.env.CI` for the duration of this
-  // test suite, then turn it back on again at the end.
+  // in _our_ CI - Github Actions, and turn off `process.env.GITHUB_ACTIONS`
+  // for the duration of this test suite, then turn it back on again at the end.
   before(async () => {
     if (isCi()) {
-      console.log(
-        "---------------------> determined that we are running in CI with before",
-      );
       runningInCi = true;
     }
 
     if (runningInCi) {
-      console.log(
-        "---------------------> removed the CI for duration of test suite",
-      );
-      delete process.env.CI;
+      delete process.env.GITHUB_ACTIONS;
     }
   });
 
   after(() => {
     if (runningInCi) {
-      process.env.CI = "true";
+      process.env.GITHUB_ACTIONS = "true";
     }
   });
 
