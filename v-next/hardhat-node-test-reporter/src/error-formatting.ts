@@ -12,8 +12,19 @@ import {
 } from "./node-test-error-utils.js";
 
 /**
- * This interface represents the result of parsing a single stack trace line,
- * e.g.: at Object.<anonymous> (file:///Users/user/project/test.js:1:1)
+ * Represents the result of parsing a single stack trace line.
+ *
+ * Example of a complete stack trace line:
+ * `at Object.<anonymous> (file:///Users/user/project/test.js:20:34)`
+ *
+ * The `context` field indicates the namespace or function context in which the error occurred, if available.
+ * Example: `Object.<anonymous>`
+ *
+ * The `location` field specifies the URI or path of the file where the error occurred.
+ * Example: `file:///Users/user/project/test.js`
+ *
+ * The `lineNumber` and `columnNumber` fields represent the exact position within the file, if available.
+ * Example: `20` (line number), `34` (column number)
  */
 interface StackReference {
   context: string | undefined;
