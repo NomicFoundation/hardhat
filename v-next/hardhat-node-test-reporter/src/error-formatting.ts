@@ -64,11 +64,11 @@ export function formatError(error: Error): string {
  * This function takes an error and formats it into a human-readable string.
  *
  * The error is formatted as follows:
- * - If the error stack contains the error message, then the error message is
- *   the beginning of the stack up to and including the error message.
- *   Otherwise, the error message is used as is. The error message is prefixed
- *   with the prefix, if provided. The error message is printed in red if it's
- *   the first error in the error chain, otherwise it's printed in grey.
+ * - The error message is the beginning of the error stack up to the first
+ *   line that starts with "at" if it contains the original error message.
+ *   Otherwise, the original error message is used as is. The error message is
+ *   prefixed with the prefix, if provided. The error message is printed in red
+ *   if it's the first error in the error chain, otherwise it's printed in grey.
  *   The following strings are removed from the error message:
  *   - "[ERR_ASSERTION]"
  * - If the error is diffable (i.e. it has `actual` and `expected` properties),
@@ -95,13 +95,26 @@ function formatSingleError(
   prefix: string = "",
   depth: number = 0,
 ): string {
-  let stack = error.stack ?? "";
+  const messageLines = [];
+  const stackLines = [];
 
-  let message = error.message;
+  for (const line of error.stack?.split("\n") ?? []) {
+    const reference = parseStackLine(line);
+    if (reference === undefined) {
+      if (stackLines.length === 0) {
+        messageLines.push(line);
+      } else {
+        stackLines.push(line);
+      }
+    } else {
+      stackLines.push(formatStackReference(reference));
+    }
+  }
 
-  const messageIndex = stack.indexOf(message);
-  if (messageIndex !== -1) {
-    message = stack.substring(0, messageIndex + message.length);
+  let message = messageLines.join("\n");
+
+  if (!message.includes(error.message)) {
+    message = error.message;
   }
   message = message.replace(" [ERR_ASSERTION]", "");
 
@@ -111,12 +124,7 @@ function formatSingleError(
 
   const diff = getErrorDiff(error);
 
-  stack = stack
-    .split("\n")
-    .map(parseStackLine)
-    .filter((reference) => reference !== undefined)
-    .map(formatStackReference)
-    .join("\n");
+  const stack = stackLines.join("\n");
 
   let formattedError = depth === 0 ? chalk.red(message) : chalk.grey(message);
   if (diff !== undefined) {
