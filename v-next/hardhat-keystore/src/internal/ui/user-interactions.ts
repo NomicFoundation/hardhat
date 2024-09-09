@@ -11,45 +11,6 @@ export class UserInteractions {
     this.#userInterruptions = userInterruptions;
   }
 
-  public async setUpPassword(): Promise<string> {
-    const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[\W_]).{8,}$/;
-
-    const setupMsg =
-      "This is the first time you are using the keystore, please set a password.";
-    const passwordRulesMsg =
-      "The password must have at least 8 characters, one uppercase letter, one lowercase letter, and one special character.";
-
-    await this.#displayMessage("\n👷🔐 Hardhat-Keystore 🔐👷\n");
-    await this.#displayMessage(setupMsg);
-    await this.#displayMessage(passwordRulesMsg);
-    await this.#displayMessage("");
-
-    let password: string | undefined;
-
-    while (password === undefined) {
-      password = await this.#requestSecretInput(`Enter your password: `);
-
-      if (!PASSWORD_REGEX.test(password)) {
-        password = undefined;
-        await this.#displayMessage(chalk.red("Invalid password!"));
-      }
-    }
-
-    let confirmPassword: string | undefined;
-    while (confirmPassword === undefined) {
-      confirmPassword = await this.#requestSecretInput(
-        "Please confirm your password: ",
-      );
-
-      if (password !== confirmPassword) {
-        await this.#displayMessage(chalk.red("Passwords do not match!"));
-        confirmPassword = undefined;
-      }
-    }
-
-    return confirmPassword;
-  }
-
   public async requestSecretFromUser(): Promise<string> {
     return this.#requestSecretInput("Enter secret to store: ");
   }
