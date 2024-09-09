@@ -12,6 +12,23 @@ export function isSubtestFailedError(error: Error): boolean {
 }
 
 /**
+ * Returns true if the error represents that a test/suite was cancelled because
+ * the parent already finished.
+ *
+ * This typically happens if you are running in `only` and the parent is async,
+ * as the parent gets cancelled but continues running an async operation, and
+ * try to create a subtests after it.
+ */
+export function isParentAlreadyFinishedError(error: Error): boolean {
+  return (
+    "code" in error &&
+    "failureType" in error &&
+    error.code === "ERR_TEST_FAILURE" &&
+    error.failureType === "parentAlreadyFinished"
+  );
+}
+
+/**
  * Returns true if the error represents that a test was cancelled because its
  * parent failed.
  */

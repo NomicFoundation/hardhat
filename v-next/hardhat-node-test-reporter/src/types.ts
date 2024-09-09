@@ -1,4 +1,7 @@
+import type { run } from "node:test";
 import type { TestEvent } from "node:test/reporters";
+
+export type TestRunOptions = NonNullable<Parameters<typeof run>[0]>;
 
 /**
  * A map from event type to its data type.

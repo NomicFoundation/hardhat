@@ -3,8 +3,12 @@ import { describe, it } from "node:test";
 
 import hre from "@ignored/hardhat-vnext";
 
-describe("Other example test", () => {
+describe("Other example test", async () => {
+  const taskName = await new Promise((resolve) =>
+    setTimeout(resolve, "example"),
+  );
+
   it("should have the example task", () => {
-    assert.ok(hre.tasks.getTask("example"));
+    assert.ok(hre.tasks.getTask(taskName));
   });
 });

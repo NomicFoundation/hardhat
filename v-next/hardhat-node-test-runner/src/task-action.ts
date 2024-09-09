@@ -69,7 +69,9 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
     const testOnlyMessage =
       "'only' and 'runOnly' require the --only command-line option.";
-    const customReporter = hardhatTestReporter({ testOnlyMessage });
+    const customReporter = hardhatTestReporter(nodeTestOptions, {
+      testOnlyMessage,
+    });
 
     const reporterStream = run({ files, only })
       .on("test:fail", (event) => {
