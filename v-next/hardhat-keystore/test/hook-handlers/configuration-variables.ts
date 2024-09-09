@@ -4,10 +4,11 @@ import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre
 
 import assert from "node:assert/strict";
 import path from "node:path";
-import { afterEach, beforeEach, describe, it } from "node:test";
+import { after, afterEach, before, beforeEach, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
+import { isCi } from "@ignored/hardhat-vnext-utils/ci";
 import { remove, writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
 
 import hardhatKeystorePlugin from "../../src/index.js";
@@ -39,6 +40,27 @@ const exampleConfigurationVariable: ConfigurationVariable = {
 
 describe("hook-handlers - configuration variables - fetchValue", () => {
   let hre: HardhatRuntimeEnvironment;
+  let runningInCi: boolean;
+
+  // The config variables hook handler short circuits if running in CI
+  // intentionally. In this integration test we check whether we are running
+  // in _our_ CI, and turn of `process.env.CI` for the duration of this
+  // test suite, then turn it back on again at the end.
+  before(async () => {
+    if (isCi()) {
+      runningInCi = true;
+    }
+
+    if (runningInCi) {
+      delete process.env.CI;
+    }
+  });
+
+  after(() => {
+    if (runningInCi) {
+      process.env.CI = "true";
+    }
+  });
 
   describe("when there is an existing valid keystore file", () => {
     beforeEach(async () => {
