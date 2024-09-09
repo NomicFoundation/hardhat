@@ -29,8 +29,9 @@
     "test:integration": "node --import tsx/esm integration-tests/index.ts --color",
     "posttest": "pnpm test:integration",
     "pretest": "pnpm build",
+    "pretest:only": "pnpm build",
+    "pretest:integration": "pnpm build",
     "build": "tsc --build .",
-    "prepublishOnly": "pnpm build",
     "clean": "rimraf dist"
   },
   "files": [
