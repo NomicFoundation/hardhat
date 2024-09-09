@@ -75,11 +75,13 @@ This reporter will indicate nesting of test suites by indenting the output at 2-
 
 This reporter will format errors in a human readable way.
 
-It will try to use the `inspect` method from the `node:util` module to print the error object together with its stack trace.
+It will:
 
-It will replace file URLs with relative paths. This currently does not work well on Windows.
-
-Finally, it will attempt to show a diff of the expected and actual values of the error object, if they are available.
+- try to print the error object together with its stack trace;
+- try to print the diff of the expected and actual values of the error object, if they are available;
+- print internal errors of aggregated errors;
+- truncate error cause stack traces after 3 levels;
+- replace file URLs with relative paths (this should work on Windows, too).
 
 ### Diagnostics
 
