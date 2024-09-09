@@ -11,6 +11,12 @@ import {
   isTestFileExecutionFailureError,
 } from "./node-test-error-utils.js";
 
+const AGGREGATE_ERROR_INNER_ERROR_INDENT = 2;
+const ERROR_CAUSE_INDENT = 2;
+const ERROR_MESSAGE_SUBTITLE_INDENT = 4;
+const ERROR_STACK_INDENT = 4;
+const MAX_ERROR_CHAIN_LENGTH = 3;
+
 /**
  * Represents the result of parsing a single stack trace line.
  *
@@ -41,7 +47,7 @@ export function formatError(error: Error): string {
       chalk.gray(
         indent(
           "This test was cancelled due to an error in its parent suite/it or test/it, or in one of its before/beforeEach",
-          4,
+          ERROR_MESSAGE_SUBTITLE_INDENT,
         ),
       )
     );
@@ -51,7 +57,12 @@ export function formatError(error: Error): string {
     return (
       chalk.red(`Test file execution failed (exit code ${error.exitCode}).`) +
       "\n" +
-      chalk.gray(indent("Did you forget to await a promise?", 4))
+      chalk.gray(
+        indent(
+          "Did you forget to await a promise?",
+          ERROR_MESSAGE_SUBTITLE_INDENT,
+        ),
+      )
     );
   }
 
@@ -131,29 +142,34 @@ function formatSingleError(
     formattedError += `\n${diff}\n`;
   }
   if (stack !== "") {
-    formattedError += `\n${chalk.gray(indent(stack, 4))}`;
+    formattedError += `\n${chalk.gray(indent(stack, ERROR_STACK_INDENT))}`;
   }
 
   if (isAggregateError(error)) {
     // Only the first aggregate error in a chain survives serialization
     // This is why we can safely not increase the depth here
     const formattedErrors = error.errors
-      .map((e) => indent(formatSingleError(e, "inner", depth), 2))
+      .map((e) =>
+        indent(
+          formatSingleError(e, "inner", depth),
+          AGGREGATE_ERROR_INNER_ERROR_INDENT,
+        ),
+      )
       .join("\n");
     return `${formattedError}\n${formattedErrors}`;
   }
 
   if (error.cause instanceof Error) {
     let cause = error.cause;
-    if (depth + 1 >= 3) {
+    if (depth + 1 >= MAX_ERROR_CHAIN_LENGTH) {
       cause = new Error(
-        "The error chain has been truncated because it's too long (limit: 3)",
+        `The error chain has been truncated because it's too long (limit: ${MAX_ERROR_CHAIN_LENGTH})`,
       );
       cause.stack = undefined;
     }
     const formattedCause = indent(
       formatSingleError(cause, "cause", depth + 1),
-      2,
+      ERROR_CAUSE_INDENT,
     );
     return `${formattedError}\n${formattedCause}`;
   }
