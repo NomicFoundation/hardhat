@@ -7,9 +7,8 @@ import {
   readJsonFile,
   writeJsonFile,
 } from "@ignored/hardhat-vnext-utils/fs";
+import { getTelemetryDir } from "@ignored/hardhat-vnext-utils/global-dir";
 import debug from "debug";
-
-import { getTelemetryDir } from "../../../global-dir.js";
 
 const log = debug("hardhat:cli:telemetry:analytics:utils");
 
