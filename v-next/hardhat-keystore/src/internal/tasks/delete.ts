@@ -3,7 +3,7 @@ import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
 import { UserDisplayMessages } from "../ui/user-display-messages.js";
-import { setupDirectInterruptionsAndKeystoreLoader } from "../utils/setup-direct-interruptions-and-keystore-loader.js";
+import { setupKeystoreLoaderFrom } from "../utils/setup-keystore-loader-from.js";
 
 interface TaskDeleteArguments {
   key: string;
@@ -14,8 +14,7 @@ const taskDelete: NewTaskActionFunction<TaskDeleteArguments> = async (
   setArgs,
   hre: HardhatRuntimeEnvironment,
 ): Promise<void> => {
-  const { keystoreLoader } =
-    await setupDirectInterruptionsAndKeystoreLoader(hre);
+  const keystoreLoader = setupKeystoreLoaderFrom(hre);
 
   await remove(setArgs, keystoreLoader);
 };

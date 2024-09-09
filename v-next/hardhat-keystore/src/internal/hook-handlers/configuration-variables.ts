@@ -7,8 +7,7 @@ import type {
 
 import { isCi } from "@ignored/hardhat-vnext-utils/ci";
 
-import { FileManagerImpl } from "../loaders/file-manager.js";
-import { KeystoreFileLoader } from "../loaders/keystore-file-loader.js";
+import { setupKeystoreLoaderFrom } from "../utils/setup-keystore-loader-from.js";
 
 export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
   // Use a cache with hooks since they may be called multiple times consecutively.
@@ -27,8 +26,7 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
       }
 
       if (keystoreLoader === undefined) {
-        keystoreLoader =
-          await _setupLoaderWithContextBasedUserInterruptions(context);
+        keystoreLoader = setupKeystoreLoaderFrom(context);
       }
 
       if (!(await keystoreLoader.isKeystoreInitialized())) {
@@ -47,12 +45,3 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
 
   return handlers;
 };
-
-async function _setupLoaderWithContextBasedUserInterruptions(
-  context: HookContext,
-) {
-  const keystoreFilePath = context.config.keystore.filePath;
-  const fileManager = new FileManagerImpl();
-
-  return new KeystoreFileLoader(keystoreFilePath, fileManager);
-}

@@ -4,7 +4,7 @@ import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
 import { requestSecretInput } from "../ui/request-secret-input.js";
 import { UserDisplayMessages } from "../ui/user-display-messages.js";
-import { setupDirectInterruptionsAndKeystoreLoader } from "../utils/setup-direct-interruptions-and-keystore-loader.js";
+import { setupKeystoreLoaderFrom } from "../utils/setup-keystore-loader-from.js";
 import { validateKey } from "../utils/validate-key.js";
 
 interface TaskGetArguments {
@@ -16,8 +16,7 @@ const taskSet: NewTaskActionFunction<TaskGetArguments> = async (
   setArgs,
   hre: HardhatRuntimeEnvironment,
 ): Promise<void> => {
-  const { keystoreLoader } =
-    await setupDirectInterruptionsAndKeystoreLoader(hre);
+  const keystoreLoader = setupKeystoreLoaderFrom(hre);
 
   await set(setArgs, keystoreLoader);
 };

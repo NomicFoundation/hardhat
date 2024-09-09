@@ -3,14 +3,13 @@ import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
 import { UserDisplayMessages } from "../ui/user-display-messages.js";
-import { setupDirectInterruptionsAndKeystoreLoader } from "../utils/setup-direct-interruptions-and-keystore-loader.js";
+import { setupKeystoreLoaderFrom } from "../utils/setup-keystore-loader-from.js";
 
 const taskList: NewTaskActionFunction = async (
   _taskArguments,
   hre: HardhatRuntimeEnvironment,
 ): Promise<void> => {
-  const { keystoreLoader } =
-    await setupDirectInterruptionsAndKeystoreLoader(hre);
+  const keystoreLoader = setupKeystoreLoaderFrom(hre);
 
   await list(keystoreLoader);
 };
