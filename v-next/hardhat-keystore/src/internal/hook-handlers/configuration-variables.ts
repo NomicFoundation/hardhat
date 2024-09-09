@@ -23,8 +23,14 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
       // If we are in CI, the keystore should not be used
       // or even initialized
       if (isCi()) {
+        console.log(
+          "---------------------> short circuit fetchValue based on CI",
+          process.env.CI,
+        );
         return next(context, variable);
       }
+
+      console.log("---------------------> reading from keystore in fetchValue");
 
       if (keystoreLoader === undefined) {
         keystoreLoader =

@@ -48,10 +48,16 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
   // test suite, then turn it back on again at the end.
   before(async () => {
     if (isCi()) {
+      console.log(
+        "---------------------> determined that we are running in CI with before",
+      );
       runningInCi = true;
     }
 
     if (runningInCi) {
+      console.log(
+        "---------------------> removed the CI for duration of test suite",
+      );
       delete process.env.CI;
     }
   });
