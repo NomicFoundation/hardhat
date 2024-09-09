@@ -221,7 +221,29 @@ function getErrorDiff(error: Error): string | undefined {
  * @returns
  */
 export function parseStackLine(line: string): StackReference | undefined {
-  const regex = /^at (?:(.+?) \()?(?:([^\(].+?)(?::(\d+))?(?::(\d+))?)\)?$/;
+  const regex = new RegExp(
+    [
+      "^", // Matches the beginning of the line
+      "at ", // Matches the string "at "
+      "(?:", // Opens a non-capturing group
+      "(.+?)", // Lazily captures the context as 1 or more characters
+      " \\(", // Matches the string " ("
+      ")?", // Closes the non-capturing group and makes it optional
+      "(?:", // Opens a non-capturing group
+      "([^\\(].*?)", // Lazily captures the location as 1 or more characters not starting with "("
+      "(?:", // Opens a non-capturing group
+      ":", // Matches the string ":"
+      "(\\d+)", // Lazily captures the line number as 1 or more digits
+      ")?", // Closes the non-capturing group and makes it optional
+      "(?:", // Opens a non-capturing group
+      ":", // Matches the string ":"
+      "(\\d+)", // Lazily captures the column number as 1 or more digits
+      ")?", // Closes the non-capturing group and makes it optional
+      ")", // Closes the non-capturing group
+      "\\)?", // Optionally matches the string ")"
+      "$", // Matches the end of the line
+    ].join(""),
+  );
   const match = line.trim().match(regex);
 
   if (match === null) {
