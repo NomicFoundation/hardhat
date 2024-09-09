@@ -9,6 +9,7 @@ import {
   assertHardhatInvariant,
   HardhatError,
 } from "@ignored/hardhat-vnext-errors";
+import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 
 import { UnencryptedKeystore } from "../keystores/unencrypted-keystore.js";
 import { unencryptedKeystoreFileSchema } from "../types-validation.js";
@@ -79,9 +80,11 @@ export class KeystoreFileLoader implements KeystoreLoader {
     try {
       unencryptedKeystoreFileSchema.parse(keystore);
     } catch (error) {
+      ensureError(error);
+
       throw new HardhatError(
         HardhatError.ERRORS.KEYSTORE.INVALID_KEYSTORE_FILE_FORMAT,
-        error instanceof Error ? error : undefined,
+        error,
       );
     }
   }
