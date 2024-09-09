@@ -20,3 +20,8 @@ export type TestEventSource = AsyncGenerator<TestEvent, void>;
  * The type of the result of the reporter.
  */
 export type TestReporterResult = AsyncGenerator<string, void>;
+
+/**
+ * The type of the reporter.
+ */
+export type TestReporter = (source: TestEventSource) => TestReporterResult;

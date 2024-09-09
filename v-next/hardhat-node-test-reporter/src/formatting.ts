@@ -117,13 +117,21 @@ ${diagnostics.cancelled} cancelled`);
   return result;
 }
 
+function isTestOnlyMessage(message: string): boolean {
+  return message.includes("--test-only");
+}
+
 export function formatUnusedDiagnostics(
   unusedDiagnostics: Array<TestEventData["test:diagnostic"]>,
+  testOnlyMessage?: string,
 ): string {
-  const messages = unusedDiagnostics.map(({ message }) => {
-    // We replace node specific --test-only flag with Hardhat's --only flag
-    return `${INFO_SYMBOL} ${message.replace("--test-only", "--only")}`;
-  });
+  const messages = unusedDiagnostics
+    .map(({ message }) => {
+      if (isTestOnlyMessage(message)) {
+        return testOnlyMessage ?? message;
+      }
+    })
+    .map((message) => `${INFO_SYMBOL} ${message}`);
   return Array.from(new Set(messages)).join("\n");
 }
 
