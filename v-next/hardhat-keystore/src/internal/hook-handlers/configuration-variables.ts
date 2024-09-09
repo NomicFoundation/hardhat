@@ -5,6 +5,8 @@ import type {
   HookContext,
 } from "@ignored/hardhat-vnext/types/hooks";
 
+import { isCi } from "@ignored/hardhat-vnext-utils/ci";
+
 import { FileManagerImpl } from "../loaders/file-manager.js";
 import { KeystoreFileLoader } from "../loaders/keystore-file-loader.js";
 
@@ -18,6 +20,12 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
       variable: ConfigurationVariable,
       next,
     ) => {
+      // If we are in CI, the keystore should not be used
+      // or even initialized
+      if (isCi()) {
+        return next(context, variable);
+      }
+
       if (keystoreLoader === undefined) {
         keystoreLoader =
           await _setupLoaderWithContextBasedUserInterruptions(context);

@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import { remove, writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
 
-import { hardhatKeystorePlugin } from "../../src/index.js";
+import hardhatKeystorePlugin from "../../src/index.js";
 import { UnencryptedKeystore } from "../../src/internal/keystores/unencrypted-keystore.js";
 import { setupKeystoreFileLocationOverrideAt } from "../helpers/setup-keystore-file-location-override-at.js";
 
