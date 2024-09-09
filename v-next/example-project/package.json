@@ -17,7 +17,6 @@
     "lint:fix": "pnpm prettier --write",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "build": "tsc --build .",
-    "prepublishOnly": "pnpm build",
     "clean": "rimraf dist"
   },
   "devDependencies": {

@@ -11,9 +11,26 @@ import {
   isTestFileExecutionFailureError,
 } from "./node-test-error-utils.js";
 
+const AGGREGATE_ERROR_INNER_ERROR_INDENT = 2;
+const ERROR_CAUSE_INDENT = 2;
+const ERROR_MESSAGE_SUBTITLE_INDENT = 4;
+const ERROR_STACK_INDENT = 4;
+const MAX_ERROR_CHAIN_LENGTH = 3;
+
 /**
- * This interface represents the result of parsing a single stack trace line,
- * e.g.: at Object.<anonymous> (file:///Users/user/project/test.js:1:1)
+ * Represents the result of parsing a single stack trace line.
+ *
+ * Example of a complete stack trace line:
+ * `at Object.<anonymous> (file:///Users/user/project/test.js:20:34)`
+ *
+ * The `context` field indicates the namespace or function context in which the error occurred, if available.
+ * Example: `Object.<anonymous>`
+ *
+ * The `location` field specifies the URI or path of the file where the error occurred.
+ * Example: `file:///Users/user/project/test.js`
+ *
+ * The `lineNumber` and `columnNumber` fields represent the exact position within the file, if available.
+ * Example: `20` (line number), `34` (column number)
  */
 interface StackReference {
   context: string | undefined;
@@ -30,7 +47,7 @@ export function formatError(error: Error): string {
       chalk.gray(
         indent(
           "This test was cancelled due to an error in its parent suite/it or test/it, or in one of its before/beforeEach",
-          4,
+          ERROR_MESSAGE_SUBTITLE_INDENT,
         ),
       )
     );
@@ -40,7 +57,12 @@ export function formatError(error: Error): string {
     return (
       chalk.red(`Test file execution failed (exit code ${error.exitCode}).`) +
       "\n" +
-      chalk.gray(indent("Did you forget to await a promise?", 4))
+      chalk.gray(
+        indent(
+          "Did you forget to await a promise?",
+          ERROR_MESSAGE_SUBTITLE_INDENT,
+        ),
+      )
     );
   }
 
@@ -53,11 +75,13 @@ export function formatError(error: Error): string {
  * This function takes an error and formats it into a human-readable string.
  *
  * The error is formatted as follows:
- * - The error message is the first line of the error stack if the stack
- *   contains the first line of the original error message, otherwise it's the
- *   the first line of the original error message. The error message is prefixed
- *   with the prefix, if provided. The error message is printed in red if it's
- *   the first error in the error chain, otherwise it's printed in grey.
+ * - The error message is the beginning of the error stack up to the first
+ *   line that starts with "at" if it contains the original error message.
+ *   Otherwise, the original error message is used as is. The error message is
+ *   prefixed with the prefix, if provided. The error message is printed in red
+ *   if it's the first error in the error chain, otherwise it's printed in grey.
+ *   The following strings are removed from the error message:
+ *   - "[ERR_ASSERTION]"
  * - If the error is diffable (i.e. it has `actual` and `expected` properties),
  *   the diff is printed.
  * - The error stack is formatted as a series of references (lines starting with
@@ -83,13 +107,43 @@ function formatSingleError(
   prefix: string = "",
   depth: number = 0,
 ): string {
-  const stackLines = (error.stack ?? "").split("\n");
+  const messageLines = [];
+  const stackLines = [];
 
-  let message = error.message.split("\n")[0];
-  if (stackLines.length > 0 && stackLines[0].includes(message)) {
-    message = stackLines[0];
+  let hasStackStarted = false;
+
+  for (const line of error.stack?.split("\n") ?? []) {
+    const reference = parseStackLine(line);
+    if (reference === undefined) {
+      if (!hasStackStarted) {
+        messageLines.push(line);
+      } else {
+        stackLines.push(line);
+      }
+    } else {
+      hasStackStarted = true;
+      // Remove all the stack references exposing test runner internals
+      // User code starts after: (Suite|Test|TestHook|...).runInAsyncScope
+      if (
+        reference.context !== undefined &&
+        reference.context.endsWith(".runInAsyncScope")
+      ) {
+        break;
+      }
+      // Remove all the stack references originating from node
+      if (reference.location.startsWith("node:")) {
+        continue;
+      }
+      stackLines.push(formatStackReference(reference));
+    }
   }
-  message = message.replace(" [ERR_ASSERTION]", "").replace(/:$/, "");
+
+  let message = messageLines.join("\n");
+
+  if (!message.includes(error.message)) {
+    message = error.message;
+  }
+  message = message.replace(" [ERR_ASSERTION]", "");
 
   if (prefix !== "") {
     message = `[${prefix}]: ${message}`;
@@ -97,57 +151,45 @@ function formatSingleError(
 
   const diff = getErrorDiff(error);
 
-  let stackReferences: StackReference[] = stackLines
-    .map(parseStackLine)
-    .filter((reference) => reference !== undefined);
-
-  // Remove all the stack references exposing test runner internals
-  // User code starts after: (Suite|Test|TestHook|...).runInAsyncScope
-  const runInAsyncScopeIndex = stackReferences.findIndex((reference) => {
-    return (
-      reference.context !== undefined &&
-      reference.context.endsWith(".runInAsyncScope")
-    );
-  });
-  if (runInAsyncScopeIndex !== -1) {
-    stackReferences = stackReferences.slice(0, runInAsyncScopeIndex);
-  }
-
-  // Remove all the stack references originating from node
-  stackReferences = stackReferences.filter((reference) => {
-    return !reference.location.startsWith("node:");
-  });
-
-  const stack = stackReferences.map(formatStackReference).join("\n");
+  const stack = stackLines.join("\n");
 
   let formattedError = depth === 0 ? chalk.red(message) : chalk.grey(message);
   if (diff !== undefined) {
     formattedError += `\n${diff}\n`;
   }
   if (stack !== "") {
-    formattedError += `\n${chalk.gray(indent(stack, 4))}`;
+    formattedError += `\n${chalk.gray(indent(stack, ERROR_STACK_INDENT))}`;
   }
 
   if (isAggregateError(error)) {
-    // Only the first aggregate error in a chain survives serialization
-    // This is why we can safely not increase the depth here
+    // node:test only passes on/serializes top-level aggregate errors
+    // If an aggregate error is nested as the cause of another error, then
+    // node:test will drop it altogether. If an aggregate error is nested
+    // as an inner error of another aggregate error, then node:test will
+    // serialize the nested aggregate error as a single/simple error.
+    // Because of this, we do not need to increase the depth here.
     const formattedErrors = error.errors
-      .map((e) => indent(formatSingleError(e, "inner", depth), 2))
+      .map((e) =>
+        indent(
+          formatSingleError(e, "inner", depth),
+          AGGREGATE_ERROR_INNER_ERROR_INDENT,
+        ),
+      )
       .join("\n");
     return `${formattedError}\n${formattedErrors}`;
   }
 
   if (error.cause instanceof Error) {
     let cause = error.cause;
-    if (depth + 1 >= 3) {
+    if (depth + 1 >= MAX_ERROR_CHAIN_LENGTH) {
       cause = new Error(
-        "The error chain has been truncated because it's too long (limit: 3)",
+        `The error chain has been truncated because it's too long (limit: ${MAX_ERROR_CHAIN_LENGTH})`,
       );
       cause.stack = undefined;
     }
     const formattedCause = indent(
       formatSingleError(cause, "cause", depth + 1),
-      2,
+      ERROR_CAUSE_INDENT,
     );
     return `${formattedError}\n${formattedCause}`;
   }
@@ -195,7 +237,29 @@ function getErrorDiff(error: Error): string | undefined {
  * @returns
  */
 export function parseStackLine(line: string): StackReference | undefined {
-  const regex = /^at (?:(.+?) \()?(?:([^\(].+?)(?::(\d+))?(?::(\d+))?)\)?$/;
+  const regex = new RegExp(
+    [
+      "^", // Matches the beginning of the line
+      "at ", // Matches the string "at "
+      "(?:", // Opens a non-capturing group
+      "(.+?)", // Lazily captures the context as 1 or more characters
+      " \\(", // Matches the string " ("
+      ")?", // Closes the non-capturing group and makes it optional
+      "(?:", // Opens a non-capturing group
+      "([^\\(].*?)", // Lazily captures the location as 1 or more characters not starting with "("
+      "(?:", // Opens a non-capturing group
+      ":", // Matches the string ":"
+      "(\\d+)", // Lazily captures the line number as 1 or more digits
+      ")?", // Closes the non-capturing group and makes it optional
+      "(?:", // Opens a non-capturing group
+      ":", // Matches the string ":"
+      "(\\d+)", // Lazily captures the column number as 1 or more digits
+      ")?", // Closes the non-capturing group and makes it optional
+      ")", // Closes the non-capturing group
+      "\\)?", // Optionally matches the string ")"
+      "$", // Matches the end of the line
+    ].join(""),
+  );
   const match = line.trim().match(regex);
 
   if (match === null) {
@@ -258,5 +322,9 @@ export function formatLocation(
   const locationPath = location.startsWith("file://")
     ? fileURLToPath(location, { windows })
     : location;
-  return locationPath.replace(`${cwd}${sep}`, "");
+  if (locationPath.startsWith(`${cwd}${sep}`)) {
+    return locationPath.slice(cwd.length + 1);
+  } else {
+    return locationPath;
+  }
 }
