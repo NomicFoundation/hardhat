@@ -12,6 +12,7 @@ const stackLineToReference = [
     line: "",
     reference: undefined,
   },
+  // This is an invalid case, as it doesn't have a context, yet the location is between parens
   {
     line: "at (/home/user/project/index.js:10:7)",
     reference: undefined,
