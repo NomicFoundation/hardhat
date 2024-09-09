@@ -12,7 +12,7 @@ Follow these steps to migrate your project to Hardhat Toolbox.
 
 1. First you'll need to remove some packages from your project.
 
-   ::::tabsgroup{options="npm 7+,npm 6,yarn"}
+   ::::tabsgroup{options="npm 7+,npm 6,yarn,pnpm"}
 
    :::tab{value="npm 7+"}
 
@@ -38,11 +38,19 @@ Follow these steps to migrate your project to Hardhat Toolbox.
 
    :::
 
+   :::tab{value="pnpm"}
+
+   ```
+   pnpm remove @nomiclabs/hardhat-waffle ethereum-waffle
+   ```
+
+   :::
+
    ::::
 
 2. Then you need to install the Toolbox. If you are using yarn or an old version of npm, you'll also have to install some other packages (the peer dependencies of the Toolbox).
 
-   ::::tabsgroup{options="npm 7+,npm 6,yarn"}
+   ::::tabsgroup{options="npm 7+,npm 6,yarn,pnpm"}
 
    :::tab{value="npm 7+"}
 
@@ -64,6 +72,14 @@ Follow these steps to migrate your project to Hardhat Toolbox.
 
    ```
    yarn add --dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-ignition-ethers @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers@1 @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai@4 ethers@5 hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v6
+   ```
+
+   :::
+
+   :::tab{value="pnpm"}
+
+   ```
+   pnpm add -D @nomicfoundation/hardhat-toolbox  @nomicfoundation/hardhat-network-helpers ethers chai@4
    ```
 
    :::

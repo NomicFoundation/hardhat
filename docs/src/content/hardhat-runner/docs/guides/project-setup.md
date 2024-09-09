@@ -10,7 +10,7 @@ Hardhat projects are Node.js projects with the `hardhat` package installed and a
 
 To initialize a Node.js project you can use [npm](https://docs.npmjs.com/cli/v8) or [yarn](https://classic.yarnpkg.com/). We recommend using npm 7 or later:
 
-::::tabsgroup{options="npm 7+,npm 6,yarn"}
+::::tabsgroup{options="npm 7+,npm 6,yarn,pnpm"}
 
 :::tab{value="npm 7+"}
 
@@ -36,11 +36,19 @@ yarn init -y
 
 :::
 
+:::tab{value="pnpm"}
+
+```
+pnpm init
+```
+
+:::
+
 ::::
 
 Then you need to install Hardhat:
 
-::::tabsgroup{options="npm 7+,npm 6,yarn"}
+::::tabsgroup{options="npm 7+,npm 6,yarn,pnpm"}
 
 :::tab{value="npm 7+"}
 
@@ -62,6 +70,14 @@ npm install --save-dev hardhat
 
 ```
 yarn add --dev hardhat
+```
+
+:::
+
+:::tab{value="pnpm"}
+
+```
+pnpm add -D hardhat
 ```
 
 :::
