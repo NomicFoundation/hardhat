@@ -280,13 +280,6 @@ const communityPlugins: IPlugin[] = [
     tags: ["solidity", "storage"],
   },
   {
-    name: "hardhat-change-network",
-    author: "David Mihal",
-    authorUrl: "https://github.com/dmihal",
-    description: "Allows changing the current network in Hardhat.",
-    tags: ["Testing"],
-  },
-  {
     name: "hardhat-packager",
     author: "Paul Razvan Berg",
     authorUrl: "https://github.com/paulrberg",
