@@ -1,21 +1,24 @@
 
-  [90m[32m✔[39m[90m integration-tests/fixture-tests/multi-test/fail.ts[39m [31m[3m(176ms)[23m[39m
+  [90m[32m✔[39m[90m integration-tests/fixture-tests/multi-test/fail.ts[39m [31m[3m(174ms)[23m[39m
 
   imported tests
     [90m[32m✔[39m[90m should pass[39m
     [31m1) should fail[39m
 
 
-  [90m[32m✔[39m[90m integration-tests/fixture-tests/multi-test/pass.ts[39m [31m[3m(174ms)[23m[39m
+  [90m[32m✔[39m[90m integration-tests/fixture-tests/multi-test/pass.ts[39m [31m[3m(171ms)[23m[39m
 
 
-[32m3 passing[39m[90m (214ms)[39m[31m[39m
+[32m3 passing[39m[90m (211ms)[39m[31m[39m
 [31m1 failing[39m
 
   1) imported tests
        should fail:
 
-   [31mAssertionError: Expected values to be strictly equal[39m
+   [31mAssertionError: Expected values to be strictly equal:[39m
+   [31m[39m
+   [31m1 !== 2[39m
+   [31m[39m
    [32m- Expected[39m
    [31m+ Received[39m
    

@@ -93,13 +93,15 @@ function formatSingleError(
   prefix: string = "",
   depth: number = 0,
 ): string {
-  const stackLines = (error.stack ?? "").split("\n");
+  let stack = error.stack ?? "";
 
-  let message = error.message.split("\n")[0];
-  if (stackLines.length > 0 && stackLines[0].includes(message)) {
-    message = stackLines[0];
+  let message = error.message;
+
+  const messageIndex = stack.indexOf(message);
+  if (messageIndex !== -1) {
+    message = stack.substring(0, messageIndex + message.length);
   }
-  message = message.replace(" [ERR_ASSERTION]", "").replace(/:$/, "");
+  message = message.replace(" [ERR_ASSERTION]", "");
 
   if (prefix !== "") {
     message = `[${prefix}]: ${message}`;
@@ -107,11 +109,12 @@ function formatSingleError(
 
   const diff = getErrorDiff(error);
 
-  const stackReferences: StackReference[] = stackLines
+  stack = stack
+    .split("\n")
     .map(parseStackLine)
-    .filter((reference) => reference !== undefined);
-
-  const stack = stackReferences.map(formatStackReference).join("\n");
+    .filter((reference) => reference !== undefined)
+    .map(formatStackReference)
+    .join("\n");
 
   let formattedError = depth === 0 ? chalk.red(message) : chalk.grey(message);
   if (diff !== undefined) {

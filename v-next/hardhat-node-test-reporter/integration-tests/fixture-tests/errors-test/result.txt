@@ -4,7 +4,7 @@
   [31m2) error with circular cause in top level test[39m
 
 
-[32m0 passing[39m[90m (587ms)[39m[31m[39m
+[32m0 passing[39m[90m (518ms)[39m[31m[39m
 [31m2 failing[39m
 
   1) aggregate error in top level test:
@@ -28,7 +28,7 @@
        [90m    at node:internal/process/task_queues:140:7[39m
        [90m    at AsyncResource.runInAsyncScope (node:async_hooks:206:9)[39m
        [90m    at AsyncResource.runMicrotask (node:internal/process/task_queues:137:8)[39m
-         [90m[cause]: AggregateError[39m
+         [90m[cause]: [39m
          [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/errors-test/test.ts:7:16)[39m
          [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
          [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
