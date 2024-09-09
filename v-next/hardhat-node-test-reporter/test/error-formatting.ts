@@ -361,6 +361,13 @@ const locationToFormatted = [
     windows: true,
     formatted: "eval at new Script (vm.js:88:7), <anonymous>",
   },
+  {
+    location: "/a/b/c/d/e/f/g",
+    base: "/b/c/d",
+    sep: "/",
+    windows: false,
+    formatted: "/a/b/c/d/e/f/g",
+  },
 ];
 
 describe("parseStackLine", async () => {

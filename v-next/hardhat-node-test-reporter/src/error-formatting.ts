@@ -306,5 +306,9 @@ export function formatLocation(
   const locationPath = location.startsWith("file://")
     ? fileURLToPath(location, { windows })
     : location;
-  return locationPath.replace(`${cwd}${sep}`, "");
+  if (locationPath.startsWith(`${cwd}${sep}`)) {
+    return locationPath.slice(cwd.length + 1);
+  } else {
+    return locationPath;
+  }
 }
