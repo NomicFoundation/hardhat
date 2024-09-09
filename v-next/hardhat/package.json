@@ -45,8 +45,8 @@
     "test": "node --import tsx/esm --test --test-reporter=@ignored/hardhat-vnext-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
     "test:only": "node --import tsx/esm --test --test-only --test-reporter=@ignored/hardhat-vnext-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
     "pretest": "pnpm build",
+    "pretest:only": "pnpm build",
     "build": "tsc --build .",
-    "prepublishOnly": "pnpm build",
     "clean": "rimraf dist"
   },
   "files": [
