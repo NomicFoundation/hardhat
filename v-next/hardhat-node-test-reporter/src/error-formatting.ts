@@ -64,9 +64,9 @@ export function formatError(error: Error): string {
  * This function takes an error and formats it into a human-readable string.
  *
  * The error is formatted as follows:
- * - The error message is the first line of the error stack if the stack
- *   contains the first line of the original error message, otherwise it's the
- *   the first line of the original error message. The error message is prefixed
+ * - If the error stack contains the error message, then the error message is
+ *   the beginning of the stack up to and including the error message.
+ *   Otherwise, the error message is used as is. The error message is prefixed
  *   with the prefix, if provided. The error message is printed in red if it's
  *   the first error in the error chain, otherwise it's printed in grey.
  * - If the error is diffable (i.e. it has `actual` and `expected` properties),
