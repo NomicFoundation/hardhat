@@ -69,6 +69,8 @@ export function formatError(error: Error): string {
  *   Otherwise, the error message is used as is. The error message is prefixed
  *   with the prefix, if provided. The error message is printed in red if it's
  *   the first error in the error chain, otherwise it's printed in grey.
+ *   The following strings are removed from the error message:
+ *   - "[ERR_ASSERTION]"
  * - If the error is diffable (i.e. it has `actual` and `expected` properties),
  *   the diff is printed.
  * - The error stack is formatted as a series of references (lines starting with
