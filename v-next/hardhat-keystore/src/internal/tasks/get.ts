@@ -1,8 +1,8 @@
 import type { KeystoreLoader } from "../types.js";
-import type { UserInteractions } from "../ui/user-interactions.js";
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
+import { UserDisplayMessages } from "../ui/user-display-messages.js";
 import { setupDirectInterruptionsAndKeystoreLoader } from "../utils/setup-direct-interruptions-and-keystore-loader.js";
 
 interface TaskGetArguments {
@@ -13,32 +13,34 @@ const taskGet: NewTaskActionFunction<TaskGetArguments> = async (
   { key },
   hre: HardhatRuntimeEnvironment,
 ): Promise<void> => {
-  const { keystoreLoader, interruptions } =
+  const { keystoreLoader } =
     await setupDirectInterruptionsAndKeystoreLoader(hre);
 
-  await get({ key }, keystoreLoader, interruptions);
+  await get({ key }, keystoreLoader);
 };
 
 export const get = async (
   { key }: TaskGetArguments,
   keystoreLoader: KeystoreLoader,
-  interruptions: UserInteractions,
+  consoleLog: (text: string) => void = console.log,
 ): Promise<void> => {
   if (!(await keystoreLoader.isKeystoreInitialized())) {
+    consoleLog(UserDisplayMessages.displayNoKeystoreSetErrorMessage());
     process.exitCode = 1;
-    return interruptions.displayNoKeystoreSetErrorMessage();
+    return;
   }
 
   const keystore = await keystoreLoader.loadKeystore();
 
   if (!(await keystore.hasKey(key))) {
+    consoleLog(UserDisplayMessages.displayKeyNotFoundErrorMessage(key));
     process.exitCode = 1;
-    return interruptions.displayKeyNotFoundErrorMessage(key);
+    return;
   }
 
   const value = await keystore.readValue(key);
 
-  await interruptions.displayValueInfoMessage(value);
+  consoleLog(UserDisplayMessages.displayValueInfoMessage(value));
 };
 
 export default taskGet;

@@ -1,8 +1,8 @@
 import type { KeystoreLoader } from "../types.js";
-import type { UserInteractions } from "../ui/user-interactions.js";
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
+import { UserDisplayMessages } from "../ui/user-display-messages.js";
 import { setupDirectInterruptionsAndKeystoreLoader } from "../utils/setup-direct-interruptions-and-keystore-loader.js";
 
 interface TaskDeleteArguments {
@@ -14,20 +14,21 @@ const taskDelete: NewTaskActionFunction<TaskDeleteArguments> = async (
   setArgs,
   hre: HardhatRuntimeEnvironment,
 ): Promise<void> => {
-  const { keystoreLoader, interruptions } =
+  const { keystoreLoader } =
     await setupDirectInterruptionsAndKeystoreLoader(hre);
 
-  await remove(setArgs, keystoreLoader, interruptions);
+  await remove(setArgs, keystoreLoader);
 };
 
 export const remove = async (
   { key, force }: TaskDeleteArguments,
   keystoreLoader: KeystoreLoader,
-  interruptions: UserInteractions,
+  consoleLog: (text: string) => void = console.log,
 ): Promise<void> => {
   if (!(await keystoreLoader.isKeystoreInitialized())) {
+    consoleLog(UserDisplayMessages.displayNoKeystoreSetErrorMessage());
     process.exitCode = 1;
-    return interruptions.displayNoKeystoreSetErrorMessage();
+    return;
   }
 
   const keystore = await keystoreLoader.loadKeystore();
@@ -39,15 +40,16 @@ export const remove = async (
       return;
     }
 
+    consoleLog(UserDisplayMessages.displayKeyNotFoundErrorMessage(key));
     process.exitCode = 1;
-    return interruptions.displayKeyNotFoundErrorMessage(key);
+    return;
   }
 
   await keystore.removeKey(key);
 
   await keystoreLoader.saveKeystoreToFile();
 
-  await interruptions.displayKeyRemovedInfoMessage(key);
+  consoleLog(UserDisplayMessages.displayKeyRemovedInfoMessage(key));
 };
 
 export default taskDelete;

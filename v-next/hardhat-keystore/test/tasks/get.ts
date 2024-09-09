@@ -1,30 +1,28 @@
 import type { KeystoreLoader } from "../../src/internal/types.js";
+import type { Mock } from "node:test";
 
 import assert from "node:assert/strict";
-import { beforeEach, describe, it } from "node:test";
+import { beforeEach, describe, it, mock } from "node:test";
 
 import chalk from "chalk";
 
 import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
 import { get } from "../../src/internal/tasks/get.js";
-import { UserInteractions } from "../../src/internal/ui/user-interactions.js";
+import { assertOutputIncludes } from "../helpers/assert-output-includes.js";
 import { MockFileManager } from "../helpers/mock-file-manager.js";
-import { MockUserInterruptionManager } from "../helpers/mock-user-interruption-manager.js";
 
 const fakeKeystoreFilePath = "./fake-keystore-path.json";
 
 describe("tasks - get", () => {
   let mockFileManager: MockFileManager;
-  let mockUserInterruptionManager: MockUserInterruptionManager;
+  let mockConsoleLog: Mock<(text: string) => void>;
 
-  let userInteractions: UserInteractions;
   let keystoreLoader: KeystoreLoader;
 
   beforeEach(() => {
     mockFileManager = new MockFileManager();
-    mockUserInterruptionManager = new MockUserInterruptionManager();
+    mockConsoleLog = mock.fn();
 
-    userInteractions = new UserInteractions(mockUserInterruptionManager);
     keystoreLoader = new KeystoreFileLoader(
       fakeKeystoreFilePath,
       mockFileManager,
@@ -42,15 +40,12 @@ describe("tasks - get", () => {
           key: "myKey",
         },
         keystoreLoader,
-        userInteractions,
+        mockConsoleLog,
       );
     });
 
     it("should display the gotten value", async () => {
-      assert.ok(
-        mockUserInterruptionManager.output.includes("myValue"),
-        "the value should have been displayed",
-      );
+      assertOutputIncludes(mockConsoleLog, "myValue");
     });
 
     it("should not save the keystore to file", async () => {
@@ -71,7 +66,7 @@ describe("tasks - get", () => {
           key: "key",
         },
         keystoreLoader,
-        userInteractions,
+        mockConsoleLog,
       );
 
       assert.equal(process.exitCode, 1);
@@ -79,11 +74,9 @@ describe("tasks - get", () => {
     });
 
     it("should display a message that the keystore is not set", async () => {
-      assert.ok(
-        mockUserInterruptionManager.output.includes(
-          `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
-        ),
-        "the keystore not found message should have been displayed",
+      assertOutputIncludes(
+        mockConsoleLog,
+        `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
       );
     });
 
@@ -107,7 +100,7 @@ describe("tasks - get", () => {
           key: "unknown",
         },
         keystoreLoader,
-        userInteractions,
+        mockConsoleLog,
       );
 
       assert.equal(process.exitCode, 1);
@@ -115,12 +108,7 @@ describe("tasks - get", () => {
     });
 
     it("should display a message that the key is not found", async () => {
-      assert.ok(
-        mockUserInterruptionManager.output.includes(
-          chalk.red(`Key "unknown" not found`),
-        ),
-        "the key not found message should have been displayed",
-      );
+      assertOutputIncludes(mockConsoleLog, 'Key "unknown" not found');
     });
 
     it("should not attempt to save the keystore", async () => {

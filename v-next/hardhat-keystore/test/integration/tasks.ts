@@ -62,7 +62,7 @@ describe("integration tests for the keystore tasks", () => {
   it("should display the list of keys on `npx hardhat keystore list`", async () => {
     await _assertConsoleOutputMatchesFor(
       () => hre.tasks.getTask(["keystore", "list"]).run({}),
-      "Keys:\nmyKey1\nmyKey2\n",
+      "Keys:\nmyKey1\nmyKey2\n\n",
     );
   });
 

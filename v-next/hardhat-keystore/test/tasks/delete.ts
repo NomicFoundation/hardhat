@@ -1,30 +1,28 @@
 import type { KeystoreLoader } from "../../src/internal/types.js";
+import type { Mock } from "node:test";
 
 import assert from "node:assert/strict";
-import { beforeEach, describe, it } from "node:test";
+import { beforeEach, describe, it, mock } from "node:test";
 
 import chalk from "chalk";
 
 import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
 import { remove } from "../../src/internal/tasks/delete.js";
-import { UserInteractions } from "../../src/internal/ui/user-interactions.js";
+import { assertOutputIncludes } from "../helpers/assert-output-includes.js";
 import { MockFileManager } from "../helpers/mock-file-manager.js";
-import { MockUserInterruptionManager } from "../helpers/mock-user-interruption-manager.js";
 
 const fakeKeystoreFilePath = "./fake-keystore-path.json";
 
 describe("tasks - delete", () => {
   let mockFileManager: MockFileManager;
-  let mockUserInterruptionManager: MockUserInterruptionManager;
+  let mockConsoleLog: Mock<(text: string) => void>;
 
-  let userInteractions: UserInteractions;
   let keystoreLoader: KeystoreLoader;
 
   beforeEach(() => {
     mockFileManager = new MockFileManager();
-    mockUserInterruptionManager = new MockUserInterruptionManager();
+    mockConsoleLog = mock.fn();
 
-    userInteractions = new UserInteractions(mockUserInterruptionManager);
     keystoreLoader = new KeystoreFileLoader(
       "./fake-keystore-path.json",
       mockFileManager,
@@ -44,15 +42,12 @@ describe("tasks - delete", () => {
           force: false,
         },
         keystoreLoader,
-        userInteractions,
+        mockConsoleLog,
       );
     });
 
     it("should display the key deleted message", async () => {
-      assert.ok(
-        mockUserInterruptionManager.output.includes(`Key "myKey" deleted`),
-        "the key remove message should have been displayed",
-      );
+      assertOutputIncludes(mockConsoleLog, `Key "myKey" deleted`);
     });
 
     it("should save the updated keystore with the deleted key to file", async () => {
@@ -77,7 +72,7 @@ describe("tasks - delete", () => {
           force: false,
         },
         keystoreLoader,
-        userInteractions,
+        mockConsoleLog,
       );
 
       assert.equal(process.exitCode, 1);
@@ -85,11 +80,9 @@ describe("tasks - delete", () => {
     });
 
     it("should display a message that the keystore is not set", async () => {
-      assert.ok(
-        mockUserInterruptionManager.output.includes(
-          `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
-        ),
-        "the no keystore found message should have been displayed",
+      assertOutputIncludes(
+        mockConsoleLog,
+        `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
       );
     });
 
@@ -111,7 +104,7 @@ describe("tasks - delete", () => {
           force: false,
         },
         keystoreLoader,
-        userInteractions,
+        mockConsoleLog,
       );
 
       assert.equal(process.exitCode, 1);
@@ -119,11 +112,9 @@ describe("tasks - delete", () => {
     });
 
     it("should display a message that the key is not found", async () => {
-      assert.ok(
-        mockUserInterruptionManager.output.includes(
-          chalk.red(`Key "unknown" not found`),
-        ),
-        "the key not found message should have been displayed",
+      assertOutputIncludes(
+        mockConsoleLog,
+        chalk.red(`Key "unknown" not found`),
       );
     });
 
@@ -149,14 +140,18 @@ describe("tasks - delete", () => {
           force: true,
         },
         keystoreLoader,
-        userInteractions,
+        mockConsoleLog,
       );
     });
 
     it("should not display a message that the key is not found", async () => {
+      const output = mockConsoleLog.mock.calls
+        .map((call) => call.arguments[0])
+        .join("\n");
+
       assert.ok(
-        mockUserInterruptionManager.output === "",
-        "the key not found message should not have been displayed",
+        !output.includes(`Key "unknown" not found`),
+        "should not display a message that the key is not found",
       );
     });
 

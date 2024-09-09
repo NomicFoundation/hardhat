@@ -1,30 +1,28 @@
 import type { KeystoreLoader } from "../../src/internal/types.js";
+import type { Mock } from "node:test";
 
 import assert from "node:assert/strict";
-import { beforeEach, describe, it } from "node:test";
+import { beforeEach, describe, it, mock } from "node:test";
 
 import chalk from "chalk";
 
 import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
 import { list } from "../../src/internal/tasks/list.js";
-import { UserInteractions } from "../../src/internal/ui/user-interactions.js";
+import { assertOutputIncludes } from "../helpers/assert-output-includes.js";
 import { MockFileManager } from "../helpers/mock-file-manager.js";
-import { MockUserInterruptionManager } from "../helpers/mock-user-interruption-manager.js";
 
 const fakeKeystoreFilePath = "./fake-keystore-path.json";
 
 describe("tasks - list", () => {
   let mockFileManager: MockFileManager;
-  let mockUserInterruptionManager: MockUserInterruptionManager;
+  let mockConsoleLog: Mock<(text: string) => void>;
 
-  let userInteractions: UserInteractions;
   let keystoreLoader: KeystoreLoader;
 
   beforeEach(() => {
     mockFileManager = new MockFileManager();
-    mockUserInterruptionManager = new MockUserInterruptionManager();
+    mockConsoleLog = mock.fn();
 
-    userInteractions = new UserInteractions(mockUserInterruptionManager);
     keystoreLoader = new KeystoreFileLoader(
       fakeKeystoreFilePath,
       mockFileManager,
@@ -38,12 +36,12 @@ describe("tasks - list", () => {
         key2: "value2",
       });
 
-      await list(keystoreLoader, userInteractions);
+      await list(keystoreLoader, mockConsoleLog);
     });
 
     it("should display the keys as a message", async () => {
-      assert.equal(
-        mockUserInterruptionManager.output,
+      assertOutputIncludes(
+        mockConsoleLog,
         `Keys:
 key
 key2
@@ -64,18 +62,16 @@ key2
     beforeEach(async () => {
       mockFileManager.setupNoKeystoreFile();
 
-      await list(keystoreLoader, userInteractions);
+      await list(keystoreLoader, mockConsoleLog);
 
       assert.equal(process.exitCode, 1);
       process.exitCode = undefined;
     });
 
     it("should display a message that the keystore is not set", async () => {
-      assert.ok(
-        mockUserInterruptionManager.output.includes(
-          `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")}`,
-        ),
-        "the no keystore found message should have been displayed",
+      assertOutputIncludes(
+        mockConsoleLog,
+        `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")}`,
       );
     });
 
@@ -92,15 +88,13 @@ key2
     beforeEach(async () => {
       mockFileManager.setupExistingKeystoreFile({});
 
-      await list(keystoreLoader, userInteractions);
+      await list(keystoreLoader, mockConsoleLog);
     });
 
     it("should display a message that the keystore has no keys", async () => {
-      assert.ok(
-        mockUserInterruptionManager.output.includes(
-          "The keystore does not contain any keys.",
-        ),
-        "the empty keys message should have been displayed",
+      assertOutputIncludes(
+        mockConsoleLog,
+        "The keystore does not contain any keys.",
       );
     });
   });
