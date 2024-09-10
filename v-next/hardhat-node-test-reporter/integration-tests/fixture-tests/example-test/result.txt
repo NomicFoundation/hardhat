@@ -30,7 +30,7 @@
   [36m- skipped test[39m
 
 
-[32m6 passing[39m[90m (116ms)[39m[31m[39m
+[32m6 passing[39m[90m (133ms)[39m[31m[39m
 [31m2 failing[39m[36m[39m
 [36m1 skipped[39m[34m[39m
 [34m1 todo[39m[90m[39m
@@ -41,20 +41,24 @@
 
    [31mError: withCause[39m
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:7:11)[39m
-   [90m    at Test.runInAsyncScope (node:async_hooks:211:14)[39m
-   [90m    ... 6 lines matching cause stack trace ...[39m
-   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:590:7) {[39m
-   [90m  [cause]: Error: cause[39m
-   [90m      at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:7:43)[39m
-   [90m      at Test.runInAsyncScope (node:async_hooks:211:14)[39m
-   [90m      at Test.run (node:internal/test_runner/test:878:25)[39m
-   [90m      at Suite.processPendingSubtests (node:internal/test_runner/test:590:18)[39m
-   [90m      at Test.postRun (node:internal/test_runner/test:974:19)[39m
-   [90m      at Test.run (node:internal/test_runner/test:917:12)[39m
-   [90m      at async Promise.all (index 0)[39m
-   [90m      at async Suite.run (node:internal/test_runner/test:1239:7)[39m
-   [90m      at async Test.processPendingSubtests (node:internal/test_runner/test:590:7)[39m
-   [90m}[39m
+   [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
+   [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
+   [90m    at Suite.processPendingSubtests (node:internal/test_runner/test:565:18)[39m
+   [90m    at Test.postRun (node:internal/test_runner/test:955:19)[39m
+   [90m    at Test.run (node:internal/test_runner/test:898:12)[39m
+   [90m    at async Promise.all (index 0)[39m
+   [90m    at async Suite.run (node:internal/test_runner/test:1217:7)[39m
+   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:565:7)[39m
+     [90m[cause]: Error: cause[39m
+     [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:7:43)[39m
+     [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
+     [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
+     [90m    at Suite.processPendingSubtests (node:internal/test_runner/test:565:18)[39m
+     [90m    at Test.postRun (node:internal/test_runner/test:955:19)[39m
+     [90m    at Test.run (node:internal/test_runner/test:898:12)[39m
+     [90m    at async Promise.all (index 0)[39m
+     [90m    at async Suite.run (node:internal/test_runner/test:1217:7)[39m
+     [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:565:7)[39m
 
   2) Foooo
        child
@@ -72,21 +76,26 @@
    [2m  ][22m
    
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:12:21)[39m
-   [90m    at Test.runInAsyncScope (node:async_hooks:211:14)[39m
-   [90m    ... 7 lines matching cause stack trace ...[39m
-   [90m    at Array.map (<anonymous>) {[39m
-   [90m  [cause]: Error: cause[39m
-   [90m      at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:13:16)[39m
-   [90m      at Test.runInAsyncScope (node:async_hooks:211:14)[39m
-   [90m      at Test.run (node:internal/test_runner/test:878:25)[39m
-   [90m      at Test.start (node:internal/test_runner/test:778:17)[39m
-   [90m      at node:internal/test_runner/test:1237:71[39m
-   [90m      at node:internal/per_context/primordials:488:82[39m
-   [90m      at new Promise (<anonymous>)[39m
-   [90m      at new SafePromise (node:internal/per_context/primordials:456:29)[39m
-   [90m      at node:internal/per_context/primordials:488:9[39m
-   [90m      at Array.map (<anonymous>)[39m
-   [90m}[39m
+   [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
+   [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
+   [90m    at Test.start (node:internal/test_runner/test:753:17)[39m
+   [90m    at node:internal/test_runner/test:1215:71[39m
+   [90m    at node:internal/per_context/primordials:488:82[39m
+   [90m    at new Promise (<anonymous>)[39m
+   [90m    at new SafePromise (node:internal/per_context/primordials:456:29)[39m
+   [90m    at node:internal/per_context/primordials:488:9[39m
+   [90m    at Array.map (<anonymous>)[39m
+     [90m[cause]: Error: cause[39m
+     [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:13:16)[39m
+     [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
+     [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
+     [90m    at Test.start (node:internal/test_runner/test:753:17)[39m
+     [90m    at node:internal/test_runner/test:1215:71[39m
+     [90m    at node:internal/per_context/primordials:488:82[39m
+     [90m    at new Promise (<anonymous>)[39m
+     [90m    at new SafePromise (node:internal/per_context/primordials:456:29)[39m
+     [90m    at node:internal/per_context/primordials:488:9[39m
+     [90m    at Array.map (<anonymous>)[39m
 
   3) in describe
        foo:
@@ -98,12 +107,12 @@
 
    [31mError: before[39m
    [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:51:11)[39m
-   [90m    at TestHook.runInAsyncScope (node:async_hooks:211:14)[39m
-   [90m    at TestHook.run (node:internal/test_runner/test:878:25)[39m
-   [90m    at TestHook.run (node:internal/test_runner/test:1129:18)[39m
-   [90m    at TestHook.run (node:internal/util:545:20)[39m
-   [90m    at node:internal/test_runner/test:798:20[39m
-   [90m    at async Suite.runHook (node:internal/test_runner/test:796:7)[39m
-   [90m    at async Suite.run (node:internal/test_runner/test:1233:7)[39m
-   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:590:7)[39m
+   [90m    at TestHook.runInAsyncScope (node:async_hooks:206:9)[39m
+   [90m    at TestHook.run (node:internal/test_runner/test:856:25)[39m
+   [90m    at TestHook.run (node:internal/test_runner/test:1107:18)[39m
+   [90m    at TestHook.run (node:internal/util:538:20)[39m
+   [90m    at node:internal/test_runner/test:776:20[39m
+   [90m    at async Suite.runHook (node:internal/test_runner/test:774:7)[39m
+   [90m    at async Suite.run (node:internal/test_runner/test:1211:7)[39m
+   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:565:7)[39m
 

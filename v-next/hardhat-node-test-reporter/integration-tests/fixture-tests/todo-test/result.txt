@@ -4,12 +4,15 @@
   [34m+ todo without a callback[39m
 
 
-[32m0 passing[39m[90m (143ms)[39m[34m[39m
+[32m0 passing[39m[90m (138ms)[39m[34m[39m
 [34m2 todo[39m
 
   1) todo with a callback:
 
-   [31mAssertionError: Expected values to be strictly equal[39m
+   [31mAssertionError: Expected values to be strictly equal:[39m
+   [31m[39m
+   [31m1 !== 2[39m
+   [31m[39m
    [32m- Expected[39m
    [31m+ Received[39m
    
@@ -23,11 +26,5 @@
    [90m    at node:internal/test_runner/harness:248:12[39m
    [90m    at node:internal/process/task_queues:140:7[39m
    [90m    at AsyncResource.runInAsyncScope (node:async_hooks:206:9)[39m
-   [90m    at AsyncResource.runMicrotask (node:internal/process/task_queues:137:8) {[39m
-   [90m  generatedMessage: true,[39m
-   [90m  code: 'ERR_ASSERTION',[39m
-   [90m  actual: 1,[39m
-   [90m  expected: 2,[39m
-   [90m  operator: 'strictEqual'[39m
-   [90m}[39m
+   [90m    at AsyncResource.runMicrotask (node:internal/process/task_queues:137:8)[39m
 
