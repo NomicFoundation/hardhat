@@ -1,7 +1,6 @@
 import type { ConfigHooks } from "@ignored/hardhat-vnext/types/hooks";
 
-import path from "node:path";
-
+import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 import {
   unionType,
   validateUserConfigZodType,
@@ -100,10 +99,6 @@ export default async (): Promise<Partial<ConfigHooks>> => {
       testsPath = typeof testsPath === "object" ? testsPath.mocha : testsPath;
       testsPath ??= "test";
 
-      const mochaTestsPath = path.isAbsolute(testsPath)
-        ? testsPath
-        : path.resolve(resolvedConfig.paths.root, testsPath);
-
       return {
         ...resolvedConfig,
         mocha: {
@@ -115,7 +110,7 @@ export default async (): Promise<Partial<ConfigHooks>> => {
           ...resolvedConfig.paths,
           tests: {
             ...resolvedConfig.paths.tests,
-            mocha: mochaTestsPath,
+            mocha: resolveFromRoot(resolvedConfig.paths.root, testsPath),
           },
         },
       };

@@ -1,7 +1,6 @@
 import type { ConfigHooks } from "../../../../types/hooks.js";
 
-import path from "node:path";
-
+import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 import {
   unionType,
   validateUserConfigZodType,
@@ -50,7 +49,7 @@ export default async (): Promise<Partial<ConfigHooks>> => {
         : [sourcesPaths];
 
       const resolvedPaths = sourcesPaths.map((p) =>
-        path.isAbsolute(p) ? p : path.resolve(resolvedConfig.paths.root, p),
+        resolveFromRoot(resolvedConfig.paths.root, p),
       );
 
       return {

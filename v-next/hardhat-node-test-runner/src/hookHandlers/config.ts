@@ -1,7 +1,6 @@
 import type { ConfigHooks } from "@ignored/hardhat-vnext/types/hooks";
 
-import path from "node:path";
-
+import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 import {
   unionType,
   validateUserConfigZodType,
@@ -37,17 +36,13 @@ export default async (): Promise<Partial<ConfigHooks>> => {
         typeof testsPath === "object" ? testsPath.nodeTest : testsPath;
       testsPath ??= "test";
 
-      const mochaTestsPath = path.isAbsolute(testsPath)
-        ? testsPath
-        : path.resolve(resolvedConfig.paths.root, testsPath);
-
       return {
         ...resolvedConfig,
         paths: {
           ...resolvedConfig.paths,
           tests: {
             ...resolvedConfig.paths.tests,
-            nodeTest: mochaTestsPath,
+            nodeTest: resolveFromRoot(resolvedConfig.paths.root, testsPath),
           },
         },
       };

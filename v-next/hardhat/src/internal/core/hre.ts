@@ -18,10 +18,9 @@ import type { HardhatPlugin } from "../../types/plugins.js";
 import type { TaskManager } from "../../types/tasks.js";
 import type { UserInterruptionManager } from "../../types/user-interruptions.js";
 
-import path from "node:path";
-
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { findClosestPackageRoot } from "@ignored/hardhat-vnext-utils/package";
+import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 
 import { validateUserConfig } from "./config-validation.js";
 import { ResolvedConfigurationVariableImplementation } from "./configuration-variables.js";
@@ -197,7 +196,7 @@ async function resolveUserConfig(
   const initialResolvedConfig = {
     plugins: sortedPlugins,
     tasks: config.tasks ?? [],
-    paths: await resolvePaths(projectRoot, configPath, config.paths),
+    paths: resolvePaths(projectRoot, configPath, config.paths),
   } as HardhatConfig;
 
   return hooks.runHandlerChain(
@@ -214,22 +213,19 @@ async function resolveUserConfig(
   );
 }
 
-async function resolvePaths(
+function resolvePaths(
   projectRoot: string,
   configPath: string | undefined,
   userProvidedPaths: ProjectPathsUserConfig = {},
-): Promise<ProjectPathsConfig> {
+): ProjectPathsConfig {
   return {
     root: projectRoot,
     config:
       configPath !== undefined
-        ? await resolveUserPathFromProjectRoot(projectRoot, configPath)
+        ? resolveFromRoot(projectRoot, configPath)
         : undefined,
-    cache: await resolveUserPathFromProjectRoot(
-      projectRoot,
-      userProvidedPaths.cache ?? "cache",
-    ),
-    artifacts: await resolveUserPathFromProjectRoot(
+    cache: resolveFromRoot(projectRoot, userProvidedPaths.cache ?? "cache"),
+    artifacts: resolveFromRoot(
       projectRoot,
       userProvidedPaths.artifacts ?? "artifacts",
     ),
@@ -242,25 +238,4 @@ async function resolvePaths(
     See the comment in tests. */
     sources: {} as SourcePathsConfig,
   };
-}
-
-/**
- * Resolves a user-provided path into an absolute path.
- *
- * If the path is already absolute, it is returned as is, otherwise it is
- * resolved relative to the project root.
- *
- * @param projectRoot The root of the Hardhat project.
- * @param userPath The user-provided path.
- * @returns An absolute path.
- */
-async function resolveUserPathFromProjectRoot(
-  projectRoot: string,
-  userPath: string,
-): Promise<string> {
-  if (path.isAbsolute(userPath)) {
-    return userPath;
-  }
-
-  return path.resolve(projectRoot, userPath);
 }
