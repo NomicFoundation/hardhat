@@ -23,7 +23,6 @@ import {
 import { annotatePR } from "./github-actions.js";
 import {
   isCancelledByParentError,
-  isParentAlreadyFinishedError,
   isSubtestFailedError,
 } from "./node-test-error-utils.js";
 
@@ -109,7 +108,6 @@ export function hardhatTestReporter(
     const preFormattedFailureReasons: string[] = [];
 
     let topLevelFilePassCount = 0;
-    let parentAlreadyFinishedFailureCount = 0;
 
     for await (const event of source) {
       switch (event.type) {
@@ -118,21 +116,12 @@ export function hardhatTestReporter(
           // display from the summary
           if (event.data.message.startsWith("tests")) {
             const parts = event.data.message.split(" ");
-            const count =
-              parseInt(parts[1], 10) -
-              topLevelFilePassCount -
-              parentAlreadyFinishedFailureCount;
+            const count = parseInt(parts[1], 10) - topLevelFilePassCount;
             event.data.message = `${parts[0]} ${count}`;
           }
           if (event.data.message.startsWith("pass")) {
             const parts = event.data.message.split(" ");
             const count = parseInt(parts[1], 10) - topLevelFilePassCount;
-            event.data.message = `${parts[0]} ${count}`;
-          }
-          if (event.data.message.startsWith("fail")) {
-            const parts = event.data.message.split(" ");
-            const count =
-              parseInt(parts[1], 10) - parentAlreadyFinishedFailureCount;
             event.data.message = `${parts[0]} ${count}`;
           }
           diagnostics.push(event.data);
@@ -153,22 +142,6 @@ export function hardhatTestReporter(
             event.data.column === 1
           ) {
             topLevelFilePassCount++;
-            stack.pop();
-            break;
-          }
-
-          // We do not want to display failures caused by the parent already
-          // having finished when running with the --test-only flag because
-          // they are false negatives.
-          // We still display the failed suites, because failures for the nested
-          // tests (cancelled by parent errors) were already displayed.
-          if (
-            options.only === true &&
-            event.data.details.type !== "suite" &&
-            event.type === "test:fail" &&
-            isParentAlreadyFinishedError(event.data.details.error)
-          ) {
-            parentAlreadyFinishedFailureCount++;
             stack.pop();
             break;
           }
