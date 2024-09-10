@@ -374,7 +374,7 @@ const locationToFormatted = [
 describe("parseStackLine", async () => {
   stackLineToReference.forEach(({ line, reference }) => {
     it(`should parse "${line}"`, async () => {
-      assert.deepEqual(parseStackLine(line), reference);
+      assert.deepEqual(parseStackLine(line), { line, reference });
     });
   });
 });
