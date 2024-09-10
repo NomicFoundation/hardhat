@@ -73,7 +73,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
       testOnlyMessage,
     });
 
-    const reporterStream = run({ files, only })
+    const reporterStream = run(nodeTestOptions)
       .on("test:fail", (event) => {
         if (event.details.type === "suite") {
           // If a suite failed only because a subtest failed, we don't want to
