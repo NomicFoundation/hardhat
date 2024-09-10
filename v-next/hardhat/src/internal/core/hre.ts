@@ -1,5 +1,12 @@
 import type { UnsafeHardhatRuntimeEnvironmentOptions } from "./types.js";
-import type { HardhatUserConfig, HardhatConfig } from "../../types/config.js";
+import type {
+  HardhatUserConfig,
+  HardhatConfig,
+  ProjectPathsUserConfig,
+  ProjectPathsConfig,
+  TestPathsConfig,
+  SourcePathsConfig,
+} from "../../types/config.js";
 import type {
   GlobalOptions,
   GlobalOptionDefinitions,
@@ -13,6 +20,7 @@ import type { UserInterruptionManager } from "../../types/user-interruptions.js"
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { findClosestPackageRoot } from "@ignored/hardhat-vnext-utils/package";
+import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 
 import { validateUserConfig } from "./config-validation.js";
 import { ResolvedConfigurationVariableImplementation } from "./configuration-variables.js";
@@ -77,6 +85,7 @@ export class HardhatRuntimeEnvironmentImplementation
 
     const resolvedConfig = await resolveUserConfig(
       resolvedProjectRoot,
+      userProvidedGlobalOptions.config,
       hooks,
       resolvedPlugins,
       extendedUserConfig,
@@ -174,6 +183,7 @@ async function runUserConfigExtensions(
 
 async function resolveUserConfig(
   projectRoot: string,
+  configPath: string | undefined,
   hooks: HookManager,
   sortedPlugins: HardhatPlugin[],
   config: HardhatUserConfig,
@@ -186,12 +196,7 @@ async function resolveUserConfig(
   const initialResolvedConfig = {
     plugins: sortedPlugins,
     tasks: config.tasks ?? [],
-    paths: {
-      root: projectRoot,
-      cache: config.paths?.cache ?? "", // TODO: resolve cache path
-      artifacts: config.paths?.artifacts ?? "", // TODO: resolve artifacts path
-      tests: config.paths?.tests ?? "test", // TODO: resolve tests path
-    },
+    paths: resolvePaths(projectRoot, configPath, config.paths),
   } as HardhatConfig;
 
   return hooks.runHandlerChain(
@@ -206,4 +211,31 @@ async function resolveUserConfig(
       return initialResolvedConfig;
     },
   );
+}
+
+function resolvePaths(
+  projectRoot: string,
+  configPath: string | undefined,
+  userProvidedPaths: ProjectPathsUserConfig = {},
+): ProjectPathsConfig {
+  return {
+    root: projectRoot,
+    config:
+      configPath !== undefined
+        ? resolveFromRoot(projectRoot, configPath)
+        : undefined,
+    cache: resolveFromRoot(projectRoot, userProvidedPaths.cache ?? "cache"),
+    artifacts: resolveFromRoot(
+      projectRoot,
+      userProvidedPaths.artifacts ?? "artifacts",
+    ),
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+    We cast as the builtin plugins' type extensions are also applied here,
+    making an empty object incompatible, but it's the correct value when you
+    ignore the plugins. */
+    tests: {} as TestPathsConfig,
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+    See the comment in tests. */
+    sources: {} as SourcePathsConfig,
+  };
 }

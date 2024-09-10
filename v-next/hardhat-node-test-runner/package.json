@@ -60,6 +60,8 @@
     "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.2",
     "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.2",
     "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.2",
-    "tsx": "^4.11.0"
+    "@ignored/hardhat-vnext-zod-utils": "workspace:^3.0.0-next.2",
+    "tsx": "^4.11.0",
+    "zod": "^3.23.8"
   }
 }

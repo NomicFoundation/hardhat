@@ -1,11 +1,11 @@
 import type { HardhatUserConfig } from "../types/config.js";
 
-import { isAbsolute, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { exists, findUp } from "@ignored/hardhat-vnext-utils/fs";
 import { isObject } from "@ignored/hardhat-vnext-utils/lang";
+import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 import debug from "debug";
 
 const log = debug("hardhat:core:config-loading");
@@ -99,9 +99,7 @@ export async function importUserConfig(
  * @throws HardhatError if the path doesn't exist.
  */
 async function normalizeConfigPath(configPath: string): Promise<string> {
-  const normalizedPath = isAbsolute(configPath)
-    ? configPath
-    : resolve(process.cwd(), configPath);
+  const normalizedPath = resolveFromRoot(process.cwd(), configPath);
 
   if (!(await exists(normalizedPath))) {
     throw new HardhatError(HardhatError.ERRORS.GENERAL.INVALID_CONFIG_PATH, {

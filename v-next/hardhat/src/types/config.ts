@@ -53,11 +53,25 @@ export interface HardhatUserConfig {
  * The different paths that conform a Hardhat project.
  */
 export interface ProjectPathsUserConfig {
-  root?: string;
   cache?: string;
   artifacts?: string;
-  tests?: string;
+  tests?: string | TestPathsUserConfig;
+  sources?: string | string[] | SourcePathsUserConfig;
 }
+
+/**
+ * The different paths were the Hardhat project's tests are located.
+ */
+/* eslint-disable-next-line @typescript-eslint/no-empty-interface -- This is
+intended to be used through module augmentation. */
+export interface TestPathsUserConfig {}
+
+/**
+ * The different paths were the Hardhat project's sources are located.
+ */
+/* eslint-disable-next-line @typescript-eslint/no-empty-interface -- This is
+intended to be used through module augmentation. */
+export interface SourcePathsUserConfig {}
 
 /**
  * The resolved Hardhat configuration.
@@ -66,9 +80,37 @@ export interface HardhatConfig {
   paths: ProjectPathsConfig;
 }
 
+/**
+ * The resolved Hardhat project paths configuration.
+ *
+ * All of the paths in this object are absolute.
+ */
 export interface ProjectPathsConfig {
   root: string;
+
+  /**
+   * An absolute path to the config file, if a config file was loaded.
+   *
+   * This is only undefined when a HardhatRuntimeEnvironment is created
+   * programmatically.
+   */
+  config?: string;
   cache: string;
   artifacts: string;
-  tests: string;
+  tests: TestPathsConfig;
+  sources: SourcePathsConfig;
 }
+
+/**
+ * The resolved paths were the Hardhat project's tests are located.
+ */
+/* eslint-disable-next-line @typescript-eslint/no-empty-interface -- This is
+intended to be used through module augmentation. */
+export interface TestPathsConfig {}
+
+/**
+ * The resolved paths were the Hardhat project's sources are located.
+ */
+/* eslint-disable-next-line @typescript-eslint/no-empty-interface -- This is
+intended to be used through module augmentation. */
+export interface SourcePathsConfig {}
