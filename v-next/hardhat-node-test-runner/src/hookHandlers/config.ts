@@ -32,6 +32,7 @@ export default async (): Promise<Partial<ConfigHooks>> => {
 
       let testsPath = userConfig.paths?.tests;
 
+      // TODO: use isObject when the type narrowing issue is fixed
       testsPath =
         typeof testsPath === "object" ? testsPath.nodeTest : testsPath;
       testsPath ??= "test";

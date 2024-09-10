@@ -37,6 +37,7 @@ export default async (): Promise<Partial<ConfigHooks>> => {
 
       let sourcesPaths = userConfig.paths?.sources;
 
+      // TODO: use isObject when the type narrowing issue is fixed
       sourcesPaths =
         typeof sourcesPaths === "object" && !Array.isArray(sourcesPaths)
           ? sourcesPaths.solidity
