@@ -1,34 +1,119 @@
-  nested async describe with promise 1
-    [90m1) should pass 2[39m
 
-  [31m1) nested async describe with promise 1[39m
+  [31m1) describe.async.it[39m
 
-  nested async describe 1
-    [90m2) should pass 3[39m
+  [31m2) describe.async.it.only[39m
 
-  [31m2) nested async describe 1[39m
+  describe.async.describe.async
+    [90m3) describe.async.describe.async.it[39m
+    [90m3) describe.async.describe.async.it.only[39m
 
-  nested describe 1
-    [90m3) should pass 4[39m
+  [31m3) describe.async.describe.async[39m
 
-  [31m3) nested describe 1[39m
+  describe.async.describe.only.async
+    [90m4) describe.describe.only.async.it[39m
+    [90m4) describe.async.describe.only.async.it.only[39m
+
+  [31m4) describe.async.describe.only.async[39m
+
+  describe.async.describe
+    [90m5) describe.async.describe.it[39m
+    [90m5) describe.async.describe.it.only[39m
+
+  [31m5) describe.async.describe[39m
+
+  describe.only.async
+    [90m[32m✔[39m[90m describe.only.async.it.only[39m
+    describe.only.async.describe.only.async
+      [90m[32m✔[39m[90m describe.only.async.describe.only.async.it.only[39m
+    describe.only.async.describe
+      [90m[32m✔[39m[90m describe.only.async.describe.it.only[39m
 
 
-[32m0 passing[39m[90m (131ms)[39m[90m[39m
-[90m3 cancelled[39m
+  [31m6) describe.only.async.describe.async.it[39m
 
-  1) nested async describe with promise 1:
+  [31m7) describe.only.async.describe.async.it.only[39m
+
+  describe.only
+    [90m[32m✔[39m[90m describe.only.it.only[39m
+    describe.only.describe.only.async
+      [90m[32m✔[39m[90m describe.only.describe.only.async.it.only[39m
+    describe.only.describe
+      [90m[32m✔[39m[90m describe.only.describe.it.only[39m
+
+
+  [31m8) describe.only.describe.async.it[39m
+
+  [31m9) describe.only.describe.async.it.only[39m
+
+  describe.
+    [90m[32m✔[39m[90m describe.it.only[39m
+    describe.describe.only.async
+      [90m[32m✔[39m[90m describe.describe.only.async.it.only[39m
+    describe.describe
+      [90m[32m✔[39m[90m describe.describe.it.only[39m
+
+
+  [31m10) describe.describe.async.it[39m
+
+  [31m11) describe.describe.async.it.only[39m
+
+
+[32m9 passing[39m[90m (139ms)[39m[31m[39m
+[31m8 failing[39m[90m[39m
+[90m6 cancelled[39m
+
+  1) describe.async.it:
 
    [31mError: test could not be started because its parent finished[39m
-   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/async-describe-test/test.ts:1:244)[39m
+   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/async-describe-test/describe-async.ts:1:178)[39m
 
-  2) nested async describe 1:
-
-   [31mError: test could not be started because its parent finished[39m
-   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/async-describe-test/test.ts:1:422)[39m
-
-  3) nested describe 1:
+  2) describe.async.it.only:
 
    [31mError: test could not be started because its parent finished[39m
-   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/async-describe-test/test.ts:1:520)[39m
+   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/async-describe-test/describe-async.ts:1:236)[39m
+
+  3) describe.async.describe.async:
+
+   [31mError: test could not be started because its parent finished[39m
+   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/async-describe-test/describe-async.ts:1:298)[39m
+
+  4) describe.async.describe.only.async:
+
+   [31mError: test could not be started because its parent finished[39m
+   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/async-describe-test/describe-async.ts:1:577)[39m
+
+  5) describe.async.describe:
+
+   [31mError: test could not be started because its parent finished[39m
+   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/async-describe-test/describe-async.ts:1:858)[39m
+
+  6) describe.only.async.describe.async.it:
+
+   [31mError: test could not be started because its parent finished[39m
+   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/async-describe-test/describe-only-async.ts:1:441)[39m
+
+  7) describe.only.async.describe.async.it.only:
+
+   [31mError: test could not be started because its parent finished[39m
+   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/async-describe-test/describe-only-async.ts:1:519)[39m
+
+  8) describe.only.describe.async.it:
+
+   [31mError: test could not be started because its parent finished[39m
+   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/async-describe-test/describe.only.ts:1:357)[39m
+
+  9) describe.only.describe.async.it.only:
+
+   [31mError: test could not be started because its parent finished[39m
+   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/async-describe-test/describe.only.ts:1:429)[39m
+
+  10) describe.describe.async.it:
+
+   [31mError: test could not be started because its parent finished[39m
+   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/async-describe-test/describe.ts:1:333)[39m
+
+  11) describe.describe.async.it.only:
+
+   [31mError: test could not be started because its parent finished[39m
+   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/async-describe-test/describe.ts:1:400)[39m
 
