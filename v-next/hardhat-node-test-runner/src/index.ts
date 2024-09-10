@@ -2,6 +2,8 @@ import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
 
 import { task } from "@ignored/hardhat-vnext/config";
 
+import "./type-extensions.js";
+
 const hardhatPlugin: HardhatPlugin = {
   id: "test",
   tasks: [
@@ -23,6 +25,9 @@ const hardhatPlugin: HardhatPlugin = {
       .setAction(import.meta.resolve("./task-action.js"))
       .build(),
   ],
+  hookHandlers: {
+    config: import.meta.resolve("./hookHandlers/config.js"),
+  },
 };
 
 export default hardhatPlugin;

@@ -1,11 +1,11 @@
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
-import { isAbsolute, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import { exists } from "@ignored/hardhat-vnext-utils/fs";
+import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 
 interface RunActionArguments {
   script: string;
@@ -16,9 +16,7 @@ const runScriptWithHardhat: NewTaskActionFunction<RunActionArguments> = async (
   { script, noCompile },
   _hre,
 ) => {
-  const normalizedPath = isAbsolute(script)
-    ? script
-    : resolve(process.cwd(), script);
+  const normalizedPath = resolveFromRoot(process.cwd(), script);
 
   if (!(await exists(normalizedPath))) {
     throw new HardhatError(

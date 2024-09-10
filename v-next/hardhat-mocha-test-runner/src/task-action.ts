@@ -35,7 +35,7 @@ async function getTestFiles(
   }
 
   return getAllFilesMatching(
-    config.paths.tests,
+    config.paths.tests.mocha,
     (f) => isJavascriptFile(f) || isTypescriptFile(f),
   );
 }

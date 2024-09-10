@@ -84,7 +84,6 @@
     "chalk": "^5.3.0",
     "debug": "^4.1.1",
     "enquirer": "^2.3.0",
-    "env-paths": "^2.2.0",
     "ethereum-cryptography": "^2.2.1",
     "semver": "^7.6.3",
     "tsx": "^4.11.0",
