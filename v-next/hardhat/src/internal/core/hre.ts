@@ -197,7 +197,7 @@ async function resolveUserConfig(
   const initialResolvedConfig = {
     plugins: sortedPlugins,
     tasks: config.tasks ?? [],
-    paths: await resolvePaths(projectRoot, configPath, config.paths ?? {}),
+    paths: await resolvePaths(projectRoot, configPath, config.paths),
   } as HardhatConfig;
 
   return hooks.runHandlerChain(
@@ -217,7 +217,7 @@ async function resolveUserConfig(
 async function resolvePaths(
   projectRoot: string,
   configPath: string | undefined,
-  userProvidedPaths: ProjectPathsUserConfig,
+  userProvidedPaths: ProjectPathsUserConfig = {},
 ): Promise<ProjectPathsConfig> {
   return {
     root: projectRoot,
