@@ -67,6 +67,7 @@ export const ERROR_CATEGORIES: {
   ARGUMENTS: { min: 500, max: 599, websiteTitle: "Arguments related errors" },
   BUILTIN_TASKS: { min: 600, max: 699, websiteTitle: "Built-in tasks errors" },
   NETWORK: { min: 700, max: 799, websiteTitle: "Network errors" },
+  KEYSTORE: { min: 800, max: 899, websiteTitle: "Keystore errors" },
 };
 
 export const ERRORS = {
@@ -548,6 +549,27 @@ If you want to use a different chain type, please update your networks config.`,
 {errors}`,
       websiteTitle: "Invalid config override",
       websiteDescription: `The configuration override you provided is invalid.`,
+    },
+  },
+  KEYSTORE: {
+    INVALID_KEYSTORE_FILE_FORMAT: {
+      number: 800,
+      messageTemplate: "Invalid keystore format",
+      websiteTitle: "Invalid keystore format",
+      websiteDescription: "The provided JSON is not a valid keystore file",
+    },
+    INVALID_READLINE_OUTPUT: {
+      number: 801,
+      messageTemplate: "Expected readline output to be defined",
+      websiteTitle: "Expected readline output to be defined",
+      websiteDescription: "Expected readline output to be defined",
+    },
+    USERINTERRUPTION_NOT_IMPLEMENTED: {
+      number: 802,
+      messageTemplate: "User interruption method not implemented",
+      websiteTitle: "User interruption method not implemented",
+      websiteDescription:
+        "Within the Keystore plugin, some direct user interruptions are not implemented. They are not expected to be invoked.",
     },
   },
 } as const;

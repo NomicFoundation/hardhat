@@ -5,6 +5,6 @@ import hre from "@ignored/hardhat-vnext";
 
 describe("Other mocha test", () => {
   it("should have the example task", () => {
-    assert.ok(hre.tasks.getTask("example"));
+    assert.ok(hre.tasks.getTask("empty"));
   });
 });

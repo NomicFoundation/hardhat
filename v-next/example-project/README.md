@@ -9,3 +9,13 @@ pnpm install
 pnpm build
 pnpm hardhat
 ```
+
+You can set and read configuration variables in a local keystore with:
+
+```sh
+# Set a value for reading in Hardhat.config.{js,ts}
+pnpm hardhat keystore set mykey
+
+# Print a value from the keystore
+pnpm hardhat keystore get mykey
+```
