@@ -30,7 +30,6 @@ import { getCompilerVersions, resolveLibraries } from "../utilities";
 // parsed verification args
 interface VerificationArgs {
   address: string;
-  // constructorArgs: string[];
   libraries: LibraryToAddress;
   contractFQN?: string;
   force: boolean;
@@ -51,8 +50,8 @@ interface AttemptVerificationArgs {
  */
 subtask(TASK_VERIFY_BLOCKSCOUT)
   .addParam("address")
-  .addOptionalParam("contract")
   .addOptionalParam("libraries", undefined, undefined, types.any)
+  .addOptionalParam("contract")
   .addFlag("force")
   .setAction(
     async (
@@ -160,8 +159,8 @@ This means that unrelated contracts may be displayed on Blockscout...
 
 subtask(TASK_VERIFY_BLOCKSCOUT_RESOLVE_ARGUMENTS)
   .addOptionalParam("address")
-  .addOptionalParam("contract")
   .addOptionalParam("libraries", undefined, undefined, types.any)
+  .addOptionalParam("contract")
   .addFlag("force")
   .setAction(
     async ({
