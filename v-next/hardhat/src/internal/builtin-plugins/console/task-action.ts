@@ -1,12 +1,11 @@
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 import type { REPLServer } from "node:repl";
 
-import path from "node:path";
 import repl from "node:repl";
 
+import { getCacheDir } from "@ignored/hardhat-vnext-utils/global-dir";
+import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 import debug from "debug";
-
-import { getCacheDir } from "../../global-dir.js";
 
 const log = debug("hardhat:core:tasks:console");
 
@@ -27,9 +26,7 @@ const consoleAction: NewTaskActionFunction<ConsoleActionArguments> = async (
   if (history !== "") {
     // TODO(#5599): Replace with hre.config.paths.cache once it is available
     const cacheDir = await getCacheDir();
-    historyPath = path.isAbsolute(history)
-      ? history
-      : path.resolve(cacheDir, history);
+    historyPath = resolveFromRoot(cacheDir, history);
   }
 
   // If noCompile is false, run the compile task first

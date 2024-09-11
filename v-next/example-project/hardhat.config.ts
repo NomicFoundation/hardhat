@@ -2,14 +2,11 @@ import type { HardhatUserConfig } from "@ignored/hardhat-vnext/types/config";
 
 import { HardhatPluginError } from "@ignored/hardhat-vnext/plugins";
 
-import {
-  task,
-  emptyTask,
-  configVariable,
-  globalOption,
-} from "@ignored/hardhat-vnext/config";
+import util from "node:util";
+import { task, emptyTask, globalOption } from "@ignored/hardhat-vnext/config";
 import HardhatNodeTestRunner from "@ignored/hardhat-vnext-node-test-runner";
 import HardhatMochaTestRunner from "@ignored/hardhat-vnext-mocha-test-runner";
+import HardhatKeystore from "@ignored/hardhat-vnext-keystore";
 import { viemScketchPlugin } from "./viem-scketch-plugin.js";
 
 const exampleEmptyTask = emptyTask("empty", "An example empty task").build();
@@ -69,7 +66,7 @@ const greeting = task("hello", "Prints a greeting")
 
 const printConfig = task("config", "Prints the config")
   .setAction(async ({}, hre) => {
-    console.log(hre.config);
+    console.log(util.inspect(hre.config, { colors: true, depth: null }));
   })
   .build();
 
@@ -122,15 +119,17 @@ const config: HardhatUserConfig = {
   ],
   plugins: [
     pluginExample,
-    HardhatMochaTestRunner,
+    HardhatKeystore,
+    // HardhatMochaTestRunner,
     // if testing node plugin, use the following line instead
-    // HardhatNodeTestRunner,
+    HardhatNodeTestRunner,
     viemScketchPlugin,
   ],
   paths: {
-    tests: "test/mocha",
-    // if testing node plugin, use the following line instead
-    // tests: "test/node",
+    tests: {
+      mocha: "test/mocha",
+      nodeTest: "test/node",
+    },
   },
 };
 
