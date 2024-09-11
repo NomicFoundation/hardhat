@@ -25,6 +25,10 @@ import {
   isCancelledByParentError,
   isSubtestFailedError,
 } from "./node-test-error-utils.js";
+import {
+  getTestRunOptions,
+  isTopLevelFilePassEvent,
+} from "./node-test-utils.js";
 
 export const SLOW_TEST_THRESHOLD = 75;
 
@@ -50,11 +54,6 @@ export interface HardhatTestReporterConfig {
 
 const customReporter: TestReporter = hardhatTestReporter(getTestRunOptions());
 export default customReporter;
-
-function getTestRunOptions(): TestRunOptions {
-  const only = process.execArgv.includes("--test-only");
-  return { only };
-}
 
 export function hardhatTestReporter(
   options: TestRunOptions,
@@ -123,12 +122,7 @@ export function hardhatTestReporter(
         case "test:fail": {
           // We do not want to display top-level file passes, as they are not
           // interesting. We only want to display top-level file failures.
-          if (
-            event.type === "test:pass" &&
-            event.data.nesting === 0 &&
-            event.data.line === 1 &&
-            event.data.column === 1
-          ) {
+          if (isTopLevelFilePassEvent(event)) {
             topLevelFilePassCount++;
             stack.pop();
             break;
