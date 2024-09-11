@@ -112,18 +112,6 @@ export function hardhatTestReporter(
     for await (const event of source) {
       switch (event.type) {
         case "test:diagnostic": {
-          // We need to subtract the number of tests/suites that we chose not to
-          // display from the summary
-          if (event.data.message.startsWith("tests")) {
-            const parts = event.data.message.split(" ");
-            const count = parseInt(parts[1], 10) - topLevelFilePassCount;
-            event.data.message = `${parts[0]} ${count}`;
-          }
-          if (event.data.message.startsWith("pass")) {
-            const parts = event.data.message.split(" ");
-            const count = parseInt(parts[1], 10) - topLevelFilePassCount;
-            event.data.message = `${parts[0]} ${count}`;
-          }
           diagnostics.push(event.data);
           break;
         }
@@ -301,6 +289,11 @@ export function hardhatTestReporter(
 
     const { globalDiagnostics, unusedDiagnostics } =
       processGlobalDiagnostics(diagnostics);
+
+    // We need to subtract the number of tests/suites that we chose not to
+    // display from the summary
+    globalDiagnostics.tests -= topLevelFilePassCount;
+    globalDiagnostics.pass -= topLevelFilePassCount;
 
     yield "\n";
     yield formatGlobalDiagnostics(globalDiagnostics);
