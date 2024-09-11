@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg width="361.244mm" height="469.547mm"
- viewBox="0 0 1024 1331"
+<svg width="361.244mm" height="342.547mm"
+ viewBox="0 0 1024 971"
  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"  version="1.2" baseProfile="tiny">
 <title>Qt Svg Document</title>
 <desc>Generated with Qt</desc>
@@ -11,14 +11,14 @@
 <g fill="#ffffff" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)"
 font-family="Helvetica" font-size="12" font-weight="400" font-style="normal" 
 >
-<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,1331 L0,1331 L0,0"/>
-<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,1331 L0,1331 L0,0"/>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,971 L0,971 L0,0"/>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,971 L0,971 L0,0"/>
 </g>
 
 <g fill="#000000" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)"
 font-family="Helvetica" font-size="12" font-weight="400" font-style="normal" 
 >
-<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,1331 L0,1331 L0,0"/>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1024,0 L1024,971 L0,971 L0,0"/>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
@@ -120,7 +120,7 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
 <text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="78" y="219" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- > (134ms)</text>
+ > (128ms)</text>
 </g>
 
 <g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
@@ -278,71 +278,19 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="504" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="504" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at Test.runInAsyncScope (node:async_hooks:206:9)</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="519" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="519" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at Test.run (node:internal/test_runner/test:856:25)</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
+ >  2) describe only</text>
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="534" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="534" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at Test.processPendingSubtests (node:internal/test_runner/test:565:18)</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="549" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="549" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at Test.postRun (node:internal/test_runner/test:955:19)</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
+ >       it:</text>
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="564" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >   </text>
 </g>
 
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="564" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at Test.run (node:internal/test_runner/test:898:12)</text>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="564" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >AssertionError: Expected values to be strictly equal:</text>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
@@ -350,38 +298,66 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 >
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="579" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >   </text>
-</g>
-
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="579" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at async Test.processPendingSubtests (node:internal/test_runner/test:565:7)</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="609" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >  2) describe only</text>
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="624" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >       it:</text>
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="654" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="594" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >   </text>
 </g>
 
 <g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
-<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="654" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >AssertionError: Expected values to be strictly equal:</text>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="594" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >1 !== 2</text>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="609" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="624" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#00ff00" fill-opacity="1" stroke="#00ff00" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#00ff00" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="624" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >- Expected</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="639" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="639" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >+ Received</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="654" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="669" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >   </text>
+</g>
+
+<g fill="#00ff00" fill-opacity="1" stroke="#00ff00" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#00ff00" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="669" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >- 2</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="684" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >   </text>
 </g>
@@ -390,7 +366,7 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
 <text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="684" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >1 !== 2</text>
+ >+ 1</text>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
@@ -402,85 +378,45 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
  >   </text>
 </g>
 
-<g fill="#00ff00" fill-opacity="1" stroke="#00ff00" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#00ff00" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="714" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >- Expected</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="729" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
-<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="729" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >+ Received</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="744" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="759" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
-<g fill="#00ff00" fill-opacity="1" stroke="#00ff00" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#00ff00" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="759" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >- 2</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="774" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
-<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="774" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >+ 1</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="789" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="804" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
 <g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="804" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="714" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >    at TestContext.&lt;anonymous&gt; (integration-tests/fixture-tests/only-test-without-the-flag/test.ts:16:12)</text>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="744" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >  3) describe</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="759" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >       it only:</text>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="789" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
+</g>
+
+<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="789" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >AssertionError: Expected values to be strictly equal:</text>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+>
+<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="804" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >   </text>
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="819" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >   </text>
 </g>
 
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="819" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at Test.runInAsyncScope (node:async_hooks:206:9)</text>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="819" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >1 !== 2</text>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
@@ -488,27 +424,15 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 >
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="834" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >   </text>
-</g>
-
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="834" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at Test.run (node:internal/test_runner/test:856:25)</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="849" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >   </text>
 </g>
 
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+<g fill="#00ff00" fill-opacity="1" stroke="#00ff00" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="849" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at Test.start (node:internal/test_runner/test:753:17)</text>
+<text fill="#00ff00" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="849" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >- Expected</text>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
@@ -518,11 +442,11 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
  >   </text>
 </g>
 
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="864" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at node:internal/test_runner/test:1215:71</text>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="864" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >+ Received</text>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
@@ -530,27 +454,15 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 >
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="879" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >   </text>
-</g>
-
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="879" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at node:internal/per_context/primordials:488:82</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="894" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >   </text>
 </g>
 
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+<g fill="#00ff00" fill-opacity="1" stroke="#00ff00" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="894" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at new Promise (&lt;anonymous&gt;)</text>
+<text fill="#00ff00" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="894" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >- 2</text>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
@@ -560,11 +472,11 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
  >   </text>
 </g>
 
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
+<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="909" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at new SafePromise (node:internal/per_context/primordials:456:29)</text>
+<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="909" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
+ >+ 1</text>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
@@ -572,18 +484,6 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 >
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="924" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >   </text>
-</g>
-
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="924" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at node:internal/per_context/primordials:488:9</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="939" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >   </text>
 </g>
@@ -592,243 +492,7 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
 <text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="939" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at Array.map (&lt;anonymous&gt;)</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="969" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >  3) describe</text>
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="984" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >       it only:</text>
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1014" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
-<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1014" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >AssertionError: Expected values to be strictly equal:</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1029" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1044" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
-<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1044" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >1 !== 2</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1059" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1074" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
-<g fill="#00ff00" fill-opacity="1" stroke="#00ff00" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#00ff00" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1074" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >- Expected</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1089" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
-<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1089" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >+ Received</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1104" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1119" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
-<g fill="#00ff00" fill-opacity="1" stroke="#00ff00" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#00ff00" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1119" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >- 2</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1134" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
-<g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ff0000" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1134" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >+ 1</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1149" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1164" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1164" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >    at TestContext.&lt;anonymous&gt; (integration-tests/fixture-tests/only-test-without-the-flag/test.ts:23:12)</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1179" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1179" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at Test.runInAsyncScope (node:async_hooks:206:9)</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1194" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1194" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at Test.run (node:internal/test_runner/test:856:25)</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1209" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1209" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at Test.start (node:internal/test_runner/test:753:17)</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1224" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1224" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at node:internal/test_runner/test:1215:71</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1239" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1239" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at node:internal/per_context/primordials:488:82</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1254" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1254" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at new Promise (&lt;anonymous&gt;)</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1269" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1269" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at new SafePromise (node:internal/per_context/primordials:456:29)</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1284" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1284" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at node:internal/per_context/primordials:488:9</text>
-</g>
-
-<g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="1299" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >   </text>
-</g>
-
-<g fill="#696969" fill-opacity="1" stroke="#696969" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
-font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
->
-<text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1299" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at Array.map (&lt;anonymous&gt;)</text>
 </g>
 </g>
 </svg>

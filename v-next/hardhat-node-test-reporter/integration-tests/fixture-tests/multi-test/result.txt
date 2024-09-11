@@ -6,10 +6,10 @@
     [31m1) should fail[39m
 
 
-  [90m[32m✔[39m[90m integration-tests/fixture-tests/multi-test/pass.ts[39m [31m[3m(171ms)[23m[39m
+  [90m[32m✔[39m[90m integration-tests/fixture-tests/multi-test/pass.ts[39m [31m[3m(173ms)[23m[39m
 
 
-[32m3 passing[39m[90m (211ms)[39m[31m[39m
+[32m3 passing[39m[90m (213ms)[39m[31m[39m
 [31m1 failing[39m
 
   1) imported tests
@@ -27,12 +27,4 @@
    
    [90m    at fail (integration-tests/fixture-tests/multi-test/fail.ts:9:10)[39m
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/multi-test/import.ts:12:5)[39m
-   [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
-   [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
-   [90m    at Suite.processPendingSubtests (node:internal/test_runner/test:565:18)[39m
-   [90m    at Test.postRun (node:internal/test_runner/test:955:19)[39m
-   [90m    at Test.run (node:internal/test_runner/test:898:12)[39m
-   [90m    at async Promise.all (index 0)[39m
-   [90m    at async Suite.run (node:internal/test_runner/test:1217:7)[39m
-   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:565:7)[39m
 

@@ -18,7 +18,7 @@ const ERROR_STACK_INDENT = 4;
 const MAX_ERROR_CHAIN_LENGTH = 3;
 
 /**
- * Represents the result of parsing a single stack trace line.
+ * Represents the result of successful parsing of a stack trace line.
  *
  * Example of a complete stack trace line:
  * `at Object.<anonymous> (file:///Users/user/project/test.js:20:34)`
@@ -37,6 +37,15 @@ interface StackReference {
   location: string;
   lineNumber: string | undefined;
   columnNumber: string | undefined;
+}
+
+/**
+ * Represents the result of attempting to parse a stack trace line. It consists
+ * of the original stack trace line and the parsed stack reference, if successful.
+ */
+interface StackLine {
+  line: string;
+  reference: StackReference | undefined;
 }
 
 export function formatError(error: Error): string {
@@ -85,7 +94,8 @@ export function formatError(error: Error): string {
  * - If the error is diffable (i.e. it has `actual` and `expected` properties),
  *   the diff is printed.
  * - The error stack is formatted as a series of references (lines starting with
- *   "at"). The location part of the stack is normalized. The stack is printed
+ *   "at"). All the node references and test runner internal references are
+ *   removed. The location part of the stack is normalized. The stack is printed
  *   in grey, indented by 4 spaces.
  * - If the error has a cause, the cause is formatted in the same way,
  *   recursively. Formatting a cause increases the depth by 1. If the depth is
@@ -106,24 +116,31 @@ function formatSingleError(
   prefix: string = "",
   depth: number = 0,
 ): string {
-  const messageLines = [];
-  const stackLines = [];
+  const parsedStackLines = (error.stack?.split("\n") ?? []).map(parseStackLine);
 
-  for (const line of error.stack?.split("\n") ?? []) {
-    const reference = parseStackLine(line);
-    if (reference === undefined) {
-      if (stackLines.length === 0) {
-        messageLines.push(line);
-      } else {
-        stackLines.push(line);
-      }
-    } else {
-      stackLines.push(formatStackReference(reference));
-    }
+  // Finds the first line which has a stack reference
+  const firstLineWithReferenceIndex = parsedStackLines.findIndex(
+    (line) => line.reference !== undefined,
+  );
+
+  // Finds the last line which does not have a node stack reference
+  const lastNonNodeLineIndex = parsedStackLines.findLastIndex(
+    (line) => !isNodeLine(line),
+  );
+
+  // This is a subset of parsed stack lines that belong to the message
+  let messageLines: StackLine[];
+  if (firstLineWithReferenceIndex === -1) {
+    // If none of the lines have a reference, then they all belong to the message
+    messageLines = parsedStackLines;
+  } else {
+    // Otherwise, the message consists of the lines before the first line with a reference
+    messageLines = parsedStackLines.slice(0, firstLineWithReferenceIndex);
   }
+  let message = messageLines.map(formatStackLine).join("\n");
 
-  let message = messageLines.join("\n");
-
+  // If the message from the stack does not contain the original error message,
+  // we use the original error message instead
   if (!message.includes(error.message)) {
     message = error.message;
   }
@@ -135,7 +152,25 @@ function formatSingleError(
 
   const diff = getErrorDiff(error);
 
-  const stack = stackLines.join("\n");
+  // This is a subset of parsed stack lines that belong to the stack
+  let stackLines: StackLine[];
+  if (firstLineWithReferenceIndex === -1) {
+    // No lines have a stack reference, the stack is empty
+    stackLines = [];
+  } else {
+    // Otherwise, the stack starts with the first line with a stack reference
+    if (lastNonNodeLineIndex + 1 === firstLineWithReferenceIndex) {
+      // All the lines after the start have a node stack reference, we show the whole stack
+      stackLines = parsedStackLines.slice(firstLineWithReferenceIndex);
+    } else {
+      // Otherwise, the stack ends with the last line without a node stack reference
+      stackLines = parsedStackLines.slice(
+        firstLineWithReferenceIndex,
+        lastNonNodeLineIndex + 1,
+      );
+    }
+  }
+  const stack = stackLines.map(formatStackLine).join("\n");
 
   let formattedError = depth === 0 ? chalk.red(message) : chalk.grey(message);
   if (diff !== undefined) {
@@ -206,21 +241,18 @@ function getErrorDiff(error: Error): string | undefined {
 }
 
 /**
- * This function parses a single stack trace line and returns the parsed
- * reference or undefined.
+ * This function parses a single stack trace line. It attempts to extract a
+ * stack reference from the line, and returns a parsed StackLine.
  *
- * Parsable stack trace lines are of the form:
+ * Stack trace lines from which a reference can be extracted are of the form:
  * - at <context> (<location>:<lineNumber>:<columnNumber>)
  * - at <context> (<location>:<lineNumber>)
  * - at <context> (<location>)
  * - at <location>:<lineNumber>:<columnNumber>
  * - at <location>:<lineNumber>
  * - at <location>
- *
- * @param line
- * @returns
  */
-export function parseStackLine(line: string): StackReference | undefined {
+export function parseStackLine(line: string): StackLine {
   const regex = new RegExp(
     [
       "^", // Matches the beginning of the line
@@ -246,16 +278,21 @@ export function parseStackLine(line: string): StackReference | undefined {
   );
   const match = line.trim().match(regex);
 
-  if (match === null) {
-    return undefined;
+  let reference: StackReference | undefined;
+
+  if (match !== null) {
+    const [_, context, location, lineNumber, columnNumber] = match;
+    reference = { context, location, lineNumber, columnNumber };
   }
 
-  const [_, context, location, lineNumber, columnNumber] = match;
-
-  return { context, location, lineNumber, columnNumber };
+  return { line, reference };
 }
 
-export function formatStackReference(reference: StackReference): string {
+export function formatStackLine({ line, reference }: StackLine): string {
+  if (reference === undefined) {
+    return line;
+  }
+
   let result = "at ";
 
   if (reference.context !== undefined) {
@@ -297,12 +334,6 @@ export function formatLocation(
   sep: string = path.sep,
   windows: boolean = process.platform === "win32",
 ): string {
-  if (location.startsWith("node:")) {
-    return location;
-  }
-  if (location === "<anonymous>") {
-    return location;
-  }
   const locationPath = location.startsWith("file://")
     ? fileURLToPath(location, { windows })
     : location;
@@ -311,4 +342,48 @@ export function formatLocation(
   } else {
     return locationPath;
   }
+}
+
+/**
+ * Returns true if the stack line is a node line.
+ *
+ * A node line is a line that has a node stack reference, i.e. its' location
+ * starts with "node:" or "async node:", or its context is for a node type.
+ */
+function isNodeLine({ reference }: StackLine): boolean {
+  if (reference === undefined) {
+    return false;
+  }
+
+  return hasNodeLocation(reference) || hasNodeContext(reference);
+}
+
+function hasNodeLocation({ location }: StackReference): boolean {
+  return location.startsWith("node:") || location.startsWith("async node:");
+}
+
+function hasNodeContext({ context }: StackReference): boolean {
+  if (context === undefined) {
+    return false;
+  }
+
+  // This is a list of types that we consider to be node types for the purpose
+  // of detecting node stack references. It should be expanded as needed.
+  const nodeTypes = ["Array", "Promise", "SafePromise"];
+
+  const regex = new RegExp(
+    "^" + // Matches the beginning of the line
+      "(?:" + // Opens a non-capturing group
+      "(.+?)" + // Lazily captures the modifier as 1 or more characters
+      " " + // Matches the string " "
+      ")?" + // Closes the non-capturing group and makes it optional
+      `(${nodeTypes.join("|")})` + // Matches the string that is one of the node types
+      "(?:" + // Opens a non-capturing group
+      "\\." + // Matches the string "."
+      "(.+?)" + // Lazily captures a method as 1 or more characters
+      ")*" + // Closes the non-capturing group; it can match 0 or more times
+      "$", // Matches the end of the line
+  );
+
+  return regex.test(context);
 }

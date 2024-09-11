@@ -81,6 +81,7 @@ It will:
 - try to print the diff of the expected and actual values of the error object, if they are available;
 - print internal errors of aggregated errors;
 - truncate error cause stack traces after 3 levels;
+- hide node internals (including test runner internals) from the stack trace;
 - replace file URLs with relative paths (this should work on Windows, too).
 
 ### Diagnostics

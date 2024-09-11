@@ -4,7 +4,7 @@
   [34m+ todo without a callback[39m
 
 
-[32m0 passing[39m[90m (138ms)[39m[34m[39m
+[32m0 passing[39m[90m (123ms)[39m[34m[39m
 [34m2 todo[39m
 
   1) todo with a callback:
@@ -20,11 +20,4 @@
    [31m+ 1[39m
    
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/todo-test/test.ts:5:10)[39m
-   [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
-   [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
-   [90m    at Test.processPendingSubtests (node:internal/test_runner/test:565:18)[39m
-   [90m    at node:internal/test_runner/harness:248:12[39m
-   [90m    at node:internal/process/task_queues:140:7[39m
-   [90m    at AsyncResource.runInAsyncScope (node:async_hooks:206:9)[39m
-   [90m    at AsyncResource.runMicrotask (node:internal/process/task_queues:137:8)[39m
 

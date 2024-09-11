@@ -4,7 +4,7 @@
   [31m2) error with circular cause in top level test[39m
 
 
-[32m0 passing[39m[90m (520ms)[39m[31m[39m
+[32m0 passing[39m[90m (524ms)[39m[31m[39m
 [31m2 failing[39m
 
   1) aggregate error in top level test:
@@ -12,66 +12,20 @@
    [31mAggregateError: All promises were rejected[39m
      [31m[inner]: Error: Promise 1 failed[39m
      [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/errors-test/test.ts:5:5)[39m
-     [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
-     [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
-     [90m    at Test.processPendingSubtests (node:internal/test_runner/test:565:18)[39m
-     [90m    at node:internal/test_runner/harness:248:12[39m
-     [90m    at node:internal/process/task_queues:140:7[39m
-     [90m    at AsyncResource.runInAsyncScope (node:async_hooks:206:9)[39m
-     [90m    at AsyncResource.runMicrotask (node:internal/process/task_queues:137:8)[39m
        [90m[cause]: Error: Promise 1 cause[39m
        [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/errors-test/test.ts:6:14)[39m
-       [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
-       [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
-       [90m    at Test.processPendingSubtests (node:internal/test_runner/test:565:18)[39m
-       [90m    at node:internal/test_runner/harness:248:12[39m
-       [90m    at node:internal/process/task_queues:140:7[39m
-       [90m    at AsyncResource.runInAsyncScope (node:async_hooks:206:9)[39m
-       [90m    at AsyncResource.runMicrotask (node:internal/process/task_queues:137:8)[39m
          [90m[cause]: AggregateError[39m
          [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/errors-test/test.ts:7:16)[39m
-         [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
-         [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
-         [90m    at Test.processPendingSubtests (node:internal/test_runner/test:565:18)[39m
-         [90m    at node:internal/test_runner/harness:248:12[39m
-         [90m    at node:internal/process/task_queues:140:7[39m
-         [90m    at AsyncResource.runInAsyncScope (node:async_hooks:206:9)[39m
-         [90m    at AsyncResource.runMicrotask (node:internal/process/task_queues:137:8)[39m
      [31m[inner]: Error: Promise 2 failed[39m
      [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/errors-test/test.ts:11:35)[39m
-     [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
-     [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
-     [90m    at Test.processPendingSubtests (node:internal/test_runner/test:565:18)[39m
-     [90m    at node:internal/test_runner/harness:248:12[39m
-     [90m    at node:internal/process/task_queues:140:7[39m
-     [90m    at AsyncResource.runInAsyncScope (node:async_hooks:206:9)[39m
-     [90m    at AsyncResource.runMicrotask (node:internal/process/task_queues:137:8)[39m
 
   2) error with circular cause in top level test:
 
    [31mError: circular error[39m
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/errors-test/test.ts:17:17)[39m
-   [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
-   [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
-   [90m    at Test.processPendingSubtests (node:internal/test_runner/test:565:18)[39m
-   [90m    at Test.postRun (node:internal/test_runner/test:955:19)[39m
-   [90m    at Test.run (node:internal/test_runner/test:898:12)[39m
-   [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:565:7)[39m
      [90m[cause]: Error: circular error[39m
      [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/errors-test/test.ts:17:17)[39m
-     [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
-     [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
-     [90m    at Test.processPendingSubtests (node:internal/test_runner/test:565:18)[39m
-     [90m    at Test.postRun (node:internal/test_runner/test:955:19)[39m
-     [90m    at Test.run (node:internal/test_runner/test:898:12)[39m
-     [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:565:7)[39m
        [90m[cause]: Error: circular error[39m
        [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/errors-test/test.ts:17:17)[39m
-       [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
-       [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
-       [90m    at Test.processPendingSubtests (node:internal/test_runner/test:565:18)[39m
-       [90m    at Test.postRun (node:internal/test_runner/test:955:19)[39m
-       [90m    at Test.run (node:internal/test_runner/test:898:12)[39m
-       [90m    at async Test.processPendingSubtests (node:internal/test_runner/test:565:7)[39m
          [90m[cause]: The error chain has been truncated because it's too long (limit: 3)[39m
 
