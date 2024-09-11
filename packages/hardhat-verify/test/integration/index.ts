@@ -802,7 +802,8 @@ describe("verify task Sourcify's integration tests", () => {
       assert.equal(logStub.callCount, 1);
       (expect(logStub.getCall(0)).to.be as any)
         .calledWith(`Successfully verified contract SimpleContract on Sourcify.
-https://repo.sourcify.dev/contracts/full_match/31337/${simpleContractAddress}/`);
+https://repo.sourcify.dev/contracts/full_match/31337/${simpleContractAddress}/
+`);
       logStub.restore();
       assert.isUndefined(taskResponse);
     });
