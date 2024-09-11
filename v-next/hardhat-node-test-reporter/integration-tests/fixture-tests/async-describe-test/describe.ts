@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-describe("describe.", () => {
+describe("describe", () => {
   const one = 1;
 
   it("describe.it", async () => {

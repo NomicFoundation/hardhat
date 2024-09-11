@@ -316,7 +316,7 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="564" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >  describe.</text>
+ >  describe</text>
 <text fill="#ffffff" fill-opacity="1" stroke="none" xml:space="preserve" x="8" y="579" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
  >    </text>
 </g>
@@ -420,7 +420,7 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
 <text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="86" y="759" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- > (136ms)</text>
+ > (133ms)</text>
 </g>
 
 <g fill="#ff0000" fill-opacity="1" stroke="#ff0000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
@@ -637,7 +637,7 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
 <text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1299" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at SuiteContext.&lt;anonymous&gt; (integration-tests/fixture-tests/async-describe-test/describe.ts:1:333)</text>
+ >    at SuiteContext.&lt;anonymous&gt; (integration-tests/fixture-tests/async-describe-test/describe.ts:1:332)</text>
 </g>
 
 <g fill="#ffffff" fill-opacity="1" stroke="#ffffff" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)"
@@ -667,7 +667,7 @@ font-family="Courier New" font-size="13" font-weight="400" font-style="normal"
 font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
 >
 <text fill="#696969" fill-opacity="1" stroke="none" xml:space="preserve" x="31" y="1374" font-family="Courier New" font-size="13" font-weight="400" font-style="normal" 
- >    at SuiteContext.&lt;anonymous&gt; (integration-tests/fixture-tests/async-describe-test/describe.ts:1:400)</text>
+ >    at SuiteContext.&lt;anonymous&gt; (integration-tests/fixture-tests/async-describe-test/describe.ts:1:399)</text>
 </g>
 </g>
 </svg>
