@@ -5,7 +5,6 @@ import { createRequire } from "node:module";
 import path from "node:path";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import semver from "semver";
 
 /**
  * Validate that a plugin is installed and that its peer dependencies are
@@ -66,7 +65,9 @@ export async function detectPluginNpmDependencyProblems(
 
     const installedVersion = dependencyPackageJsonResult.packageJson.version;
 
-    if (!semver.satisfies(installedVersion, versionSpec)) {
+    const { satisfies } = await import("semver");
+
+    if (!satisfies(installedVersion, versionSpec)) {
       throw new HardhatError(
         HardhatError.ERRORS.PLUGINS.DEPENDENCY_VERSION_MISMATCH,
         {
