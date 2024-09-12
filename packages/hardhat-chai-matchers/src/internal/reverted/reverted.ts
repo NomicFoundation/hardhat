@@ -42,7 +42,7 @@ export function supportReverted(
 
         if (receipt === null) {
           // If the receipt is null, maybe the string is a bytes32 string
-          if (isByte32String(hash)) {
+          if (isBytes32String(hash)) {
             assert(false, "Expected transaction to be reverted");
             return;
           }
@@ -147,7 +147,7 @@ function isValidTransactionHash(x: string): boolean {
   return /0x[0-9a-fA-F]{64}/.test(x);
 }
 
-function isByte32String(v: string): boolean {
+function isBytes32String(v: string): boolean {
   try {
     parseBytes32String(v);
     return true;
