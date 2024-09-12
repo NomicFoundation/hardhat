@@ -2,4 +2,4 @@
 "@nomicfoundation/hardhat-chai-matchers": patch
 ---
 
-Enhanced byte32 string in `reverted` matcher check
+Enhanced the `reverted` matcher to correctly handle `bytes32` strings (thanks @iosh!)
