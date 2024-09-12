@@ -42,6 +42,7 @@ import { printVersionMessage } from "./version.js";
 export async function main(
   cliArguments: string[],
   print: (message: string) => void = console.log,
+  registerTsx = false,
 ): Promise<void> {
   const log = debug("hardhat:core:cli:main");
 
@@ -80,7 +81,10 @@ export async function main(
     const projectRoot = await resolveProjectRoot(configPath);
 
     // Register tsx
-    const _unregister = register();
+    if (registerTsx) {
+      register();
+    }
+
     const userConfig = await importUserConfig(configPath);
 
     log("User config imported");
