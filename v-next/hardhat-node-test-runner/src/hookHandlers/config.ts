@@ -1,17 +1,25 @@
 import type { ConfigHooks } from "@ignored/hardhat-vnext/types/hooks";
 
+import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 import {
-  unionType,
+  conditionalUnionType,
   validateUserConfigZodType,
 } from "@ignored/hardhat-vnext-zod-utils";
 import { z } from "zod";
 
 const userConfigType = z.object({
-  test: unionType(
-    [z.object({ nodeTest: z.string().optional() }), z.string()],
-    "Expected a string or an object with an optional 'nodeTest' property",
-  ).optional(),
+  paths: z
+    .object({
+      test: conditionalUnionType(
+        [
+          [isObject, z.object({ nodeTest: z.string().optional() })],
+          [(data) => typeof data === "string", z.string()],
+        ],
+        "Expected a string or an object with an optional 'nodeTest' property",
+      ).optional(),
+    })
+    .optional(),
 });
 
 export default async (): Promise<Partial<ConfigHooks>> => {
