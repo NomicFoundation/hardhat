@@ -2,20 +2,19 @@ import { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
 import { ChainType } from "@ignored/hardhat-vnext/types/config";
 import { HookContext } from "@ignored/hardhat-vnext/types/hooks";
 
-import { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
+import type { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
 
 import "@ignored/hardhat-vnext/types/network";
 
-import {
+import type {
   Client,
-  createPublicClient,
-  custom,
   CustomTransport,
   PublicActions,
   PublicClient,
   PublicRpcSchema,
 } from "viem";
-import { PublicActionsL2, publicActionsL2 } from "viem/op-stack";
+
+import type { PublicActionsL2 } from "viem/op-stack";
 
 export type ViemPublicClient<ChainTypeT extends ChainType | string> =
   ChainTypeT extends "optimism"
@@ -47,6 +46,8 @@ export const viemScketchPlugin: HardhatPlugin = {
           nextContext: HookContext,
         ) => Promise<NetworkConnection<ChainTypeT>>,
       ) {
+        const { createPublicClient, custom } = await import("viem");
+        const { publicActionsL2 } = await import("viem/op-stack");
         const connection: NetworkConnection<ChainTypeT> = await next(context);
 
         const transport = custom(connection.provider);
