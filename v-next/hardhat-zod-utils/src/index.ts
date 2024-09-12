@@ -20,8 +20,13 @@ export interface HardhatUserConfigValidationError {
  * A Zod untagged union type that returns a custom error message if the value
  * is missing or invalid.
  *
- * In most cases you should prefer using {@link conditionalUnionType} instead.
- * Especially if one or more of the types in the union are objects.
+ * WARNING: In most cases you should use {@link conditionalUnionType} instead.
+ *
+ * This union type is valid for simple cases, where the union is made of
+ * primitive or simple types.
+ *
+ * If you have a type that's complex, like an object or array, you must use
+ * {@link conditionalUnionType}.
  */
 export const unionType = (
   types: Parameters<typeof z.union>[0],
