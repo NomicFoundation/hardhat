@@ -103,10 +103,23 @@ export const conditionalUnionType = (
  *
  * @example
  * ```ts
- * const type = z.object({
+ * const typeWithFoo = z.object({
  *   foo: z.string(),
  *   bar: unexpectedFieldType("This field is incompatible with `foo`"),
  * });
+ *
+ * const typeWithBar = z.object({
+ *   bar: z.string(),
+ *   foo: unexpectedFieldType("This field is incompatible with `bar`"),
+ * });
+ *
+ * const union = conditionalUnionType(
+ *   [
+ *     [(data) => isObject(data) && "foo" in data, typeWithFoo],
+ *     [(data) => isObject(data) && "bar" in data, typeWithBar],
+ *   ],
+ *   "Expected an object with either a `foo` or a `bar` field",
+ * );
  * ```
  *
  * @param errorMessage The error message to display if the field is present.

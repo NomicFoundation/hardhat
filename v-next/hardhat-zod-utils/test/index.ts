@@ -3,7 +3,11 @@ import { describe, it } from "node:test";
 
 import { z } from "zod";
 
-import { unionType, conditionalUnionType } from "../src/index.js";
+import {
+  unionType,
+  conditionalUnionType,
+  incompatibleFieldType,
+} from "../src/index.js";
 
 function assertParseResult(
   result: z.SafeParseReturnType<any, any>,
@@ -154,5 +158,29 @@ describe("conditionalUnionType", () => {
         ["bar", 0],
       );
     });
+  });
+});
+
+describe("incompatibleFieldType", () => {
+  it("should return an error if the field is present", async () => {
+    const type = z.object({
+      bar: incompatibleFieldType("Expected error"),
+    });
+
+    assertParseResult(type.safeParse({ bar: "asd" }), "Expected error", [
+      "bar",
+    ]);
+
+    assertParseResult(type.safeParse({ bar: null }), "Expected error", ["bar"]);
+  });
+
+  it("should not return an error if the field is not present", async () => {
+    const type = z.object({
+      bar: incompatibleFieldType("Expected error"),
+    });
+
+    assert.equal(type.safeParse({}).success, true);
+    assert.equal(type.safeParse({ foo: 123 }).success, true);
+    assert.equal(type.safeParse({ bar: undefined }).success, true);
   });
 });
