@@ -12,6 +12,7 @@ import {
 import { isCi } from "@ignored/hardhat-vnext-utils/ci";
 import { kebabToCamelCase } from "@ignored/hardhat-vnext-utils/string";
 import debug from "debug";
+import { register } from "tsx/esm/api";
 
 import {
   ArgumentType,
@@ -78,6 +79,8 @@ export async function main(
 
     const projectRoot = await resolveProjectRoot(configPath);
 
+    // Register tsx
+    const _unregister = register();
     const userConfig = await importUserConfig(configPath);
 
     log("User config imported");
