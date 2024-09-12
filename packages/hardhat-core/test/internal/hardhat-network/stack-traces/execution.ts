@@ -31,7 +31,7 @@ export async function instantiateProvider(
   tracingConfig: TracingConfig
 ): Promise<EdrProviderWrapper> {
   const config = {
-    hardfork: "shanghai",
+    hardfork: "cancun",
     chainId: 1,
     networkId: 1,
     blockGasLimit: 10_000_000,
