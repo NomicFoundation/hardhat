@@ -10,7 +10,7 @@ import { run } from "node:test";
 
 import { diff } from "jest-diff";
 
-import reporter from "../src/reporter.js";
+import { hardhatTestReporter } from "../src/reporter.js";
 
 let SHOW_OUTPUT = false;
 const testOnly: string[] = [];
@@ -72,13 +72,14 @@ for (const entry of entries) {
       options = JSON.parse(readFileSync(optionsPath, "utf8"));
     }
 
+    options = { ...options, files: testFiles };
+
+    const reporter = hardhatTestReporter(options);
+
     // We disable github actions annotations, as they are misleading on PRs
     // otherwise.
     process.env.NO_GITHUB_ACTIONS_ANNOTATIONS = "true";
-    const reporterStream = run({
-      ...options,
-      files: testFiles,
-    }).compose(reporter);
+    const reporterStream = run(options).compose(reporter);
 
     for await (const chunk of reporterStream) {
       outputChunks.push(chunk);

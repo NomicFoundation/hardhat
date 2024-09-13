@@ -5,7 +5,7 @@ test("test", async () => {
   assert.equal(1, 1);
 });
 
-/* eslint-disable-next-line no-only-tests/no-only-tests -- testing test.only explicitly */
+// eslint-disable-next-line no-only-tests/no-only-tests -- testing test.only explicitly
 test.only("test only", async () => {
   assert.equal(1, 2);
 });

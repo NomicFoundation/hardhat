@@ -57,6 +57,15 @@ export function formatTestPass(passData: TestEventData["test:pass"]): string {
   return indent(msg, nestingToIndentationLength(passData.nesting));
 }
 
+export function formatTestCancelledByParentFailure(failure: Failure): string {
+  return indent(
+    chalk.grey(
+      `${formatFailureIndex(failure.index)}) ${failure.testFail.name}`,
+    ),
+    nestingToIndentationLength(failure.testFail.nesting),
+  );
+}
+
 export function formatTestFailure(failure: Failure): string {
   return indent(
     chalk.red(`${formatFailureIndex(failure.index)}) ${failure.testFail.name}`),
@@ -108,12 +117,22 @@ ${diagnostics.cancelled} cancelled`);
   return result;
 }
 
+function isTestOnlyMessage(message: string): boolean {
+  return message.includes("--test-only");
+}
+
 export function formatUnusedDiagnostics(
   unusedDiagnostics: Array<TestEventData["test:diagnostic"]>,
+  testOnlyMessage?: string,
 ): string {
-  return unusedDiagnostics
-    .map(({ message }) => `${INFO_SYMBOL} ${message}`)
-    .join("\n");
+  const messages = unusedDiagnostics
+    .map(({ message }) => {
+      if (isTestOnlyMessage(message)) {
+        return testOnlyMessage ?? message;
+      }
+    })
+    .map((message) => `${INFO_SYMBOL} ${message}`);
+  return Array.from(new Set(messages)).join("\n");
 }
 
 function formatFailureIndex(index: number): string {

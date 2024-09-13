@@ -7,13 +7,11 @@ import { diff as getDiff } from "jest-diff";
 import { indent } from "./formatting.js";
 import {
   cleanupTestFailError,
-  isCancelledByParentError,
   isTestFileExecutionFailureError,
 } from "./node-test-error-utils.js";
 
 const AGGREGATE_ERROR_INNER_ERROR_INDENT = 2;
 const ERROR_CAUSE_INDENT = 2;
-const ERROR_MESSAGE_SUBTITLE_INDENT = 4;
 const ERROR_STACK_INDENT = 4;
 const MAX_ERROR_CHAIN_LENGTH = 3;
 
@@ -49,29 +47,9 @@ interface StackLine {
 }
 
 export function formatError(error: Error): string {
-  if (isCancelledByParentError(error)) {
-    return (
-      chalk.red("Test cancelled by parent error") +
-      "\n" +
-      chalk.gray(
-        indent(
-          "This test was cancelled due to an error in its parent suite/it or test/it, or in one of its before/beforeEach",
-          ERROR_MESSAGE_SUBTITLE_INDENT,
-        ),
-      )
-    );
-  }
-
   if (isTestFileExecutionFailureError(error)) {
-    return (
-      chalk.red(`Test file execution failed (exit code ${error.exitCode}).`) +
-      "\n" +
-      chalk.gray(
-        indent(
-          "Did you forget to await a promise?",
-          ERROR_MESSAGE_SUBTITLE_INDENT,
-        ),
-      )
+    return chalk.red(
+      `Test file execution failed (exit code ${error.exitCode}).`,
     );
   }
 
@@ -91,6 +69,7 @@ export function formatError(error: Error): string {
  *   if it's the first error in the error chain, otherwise it's printed in grey.
  *   The following strings are removed from the error message:
  *   - "[ERR_ASSERTION]"
+ *   - "[ERR_TEST_FAILURE]"
  * - If the error is diffable (i.e. it has `actual` and `expected` properties),
  *   the diff is printed.
  * - The error stack is formatted as a series of references (lines starting with
@@ -144,7 +123,9 @@ function formatSingleError(
   if (!message.includes(error.message)) {
     message = error.message;
   }
-  message = message.replace(" [ERR_ASSERTION]", "");
+  message = message
+    .replace(" [ERR_ASSERTION]", "")
+    .replace(" [ERR_TEST_FAILURE]", "");
 
   if (prefix !== "") {
     message = `[${prefix}]: ${message}`;
