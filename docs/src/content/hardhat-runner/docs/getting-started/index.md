@@ -356,8 +356,7 @@ npx hardhat ignition deploy ./ignition/modules/Lock.js --network localhost
 
 ::::
 
-To run Hardhat Network on specific port and allow traffic from specific address add hostname in this way, run `npx hardhat node --hostname 127.0.0.1 --port 8545`:<br /><br />
-`--hostname 0.0.0.0` will allow access to rpc from any external ip.
+To run Hardhat Network on specific port and allow traffic from specific address add hostname in this way, run `npx hardhat node --hostname 127.0.0.1 --port 8545`:<br /><br /> `--hostname 0.0.0.0` will allow access to rpc from any external ip.
 
 Congrats! You have created a project and compiled, tested and deployed a smart contract.
 
