@@ -22,7 +22,7 @@ on:
       test-all-solc-versions:
         description: Test all solc versions
         required: false
-        default: 'false'
+        default: "false"
 
 defaults:
   run:
