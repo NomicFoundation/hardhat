@@ -261,7 +261,7 @@ function createConfig(
           selector:
             "CallExpression[callee.object.name='z'][callee.property.name=union]",
           message:
-            "Use the unionType helper from the zod utils package instead, as it provides better error messages.",
+            "Use the conditionalUnionType or unionType helpers from the zod utils package instead, as it provides better error messages.",
         },
       ],
       "@typescript-eslint/restrict-plus-operands": "error",
@@ -398,7 +398,7 @@ function createConfig(
               name: "zod",
               importNames: ["union"],
               message:
-                "Use the unionType helper from the zod utils package instead, as it provides better error messages.",
+                "Use the conditionalUnionType or unionType helpers from the zod utils package instead, as it provides better error messages.",
             },
           ],
         },
