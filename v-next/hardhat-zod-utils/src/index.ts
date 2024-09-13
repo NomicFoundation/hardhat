@@ -1,5 +1,6 @@
 import type { ZodTypeDef, ZodType } from "zod";
 
+import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 import { z } from "zod";
 
 /**
@@ -148,7 +149,7 @@ export const configurationVariableType = z.object({
 export const sensitiveStringType = conditionalUnionType(
   [
     [(data) => typeof data === "string", z.string()],
-    [(data) => typeof data === "object", configurationVariableType],
+    [isObject, configurationVariableType],
   ],
   "Expected a string or a Configuration Variable",
 );
@@ -159,7 +160,7 @@ export const sensitiveStringType = conditionalUnionType(
 export const sensitiveUrlType = conditionalUnionType(
   [
     [(data) => typeof data === "string", z.string().url()],
-    [(data) => typeof data === "object", configurationVariableType],
+    [isObject, configurationVariableType],
   ],
   "Expected a URL or a Configuration Variable",
 );

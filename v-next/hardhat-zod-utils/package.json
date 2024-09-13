@@ -59,6 +59,9 @@
     "typescript-eslint": "7.7.1",
     "zod": "^3.23.8"
   },
+  "dependencies": {
+    "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.2"
+  },
   "peerDependencies": {
     "zod": "^3.23.8"
   }

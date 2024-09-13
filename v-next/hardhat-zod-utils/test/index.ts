@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 import { z } from "zod";
 
 import {
@@ -97,7 +98,7 @@ describe("conditionalUnionType", () => {
     it("Should have the path to the nested error if a condition matches", () => {
       const shouldUseString = conditionalUnionType(
         [
-          [(data) => typeof data === "object", z.object({ foo: z.string() })],
+          [isObject, z.object({ foo: z.string() })],
           [(data) => typeof data === "string", z.string().url()],
         ],
         "No match",
@@ -115,17 +116,15 @@ describe("conditionalUnionType", () => {
         [
           [(data) => typeof data === "string", z.string()],
           [
-            (data) => typeof data === "object",
+            isObject,
             conditionalUnionType(
               [
                 [
-                  (data) =>
-                    typeof data === "object" && data !== null && "foo" in data,
+                  (data) => isObject(data) && "foo" in data,
                   z.object({ foo: z.string().url() }),
                 ],
                 [
-                  (data) =>
-                    typeof data === "object" && data !== null && "bar" in data,
+                  (data) => isObject(data) && "bar" in data,
                   z.object({ bar: z.array(z.number()) }),
                 ],
               ],
