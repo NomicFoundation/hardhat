@@ -77,7 +77,7 @@ describe("conditionalUnionType", () => {
         "No match",
       );
 
-      // Both conditions match, but we only use the first one
+      // No condition matches, so we return the provided error message
       assertParseResult(shouldUseString.safeParse(123), "No match");
     });
   });
