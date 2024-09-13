@@ -56,7 +56,7 @@ There are two other directories under `test-files`. One is `version-independent`
 
 ## How tests are executed
 
-The `compilers-list.ts` module has a list of solc versions that can be used by these tests. By default, only the ones that have `latestSolcVersion: true` are run, but we have a [CI workflow](https://github.com/NomicFoundation/hardhat/actions/workflows/hardhat-network-tracing-all-solc-versions.yml) that runs once per day and executes these tests using all the available compilers.
+The `compilers-list.ts` module has a list of solc versions that can be used by these tests. By default, only the ones that have `latestSolcVersion: true` are run, but we have a [CI workflow](https://github.com/NomicFoundation/hardhat/actions/workflows/hardhat-core-ci.yml) that you can trigger manually with the `test-all-solc-versions` input set to `true` to executes the tests using all the available compilers.
 
 These compilers are grouped by minor version (that is, a group with all the 0.5.x compilers, a group all the 0.6.x compilers and so on) and each group is used to run the tests in the corresponding directory (`test-files/0_5`, `test-files/0_6`, and so on).
 
