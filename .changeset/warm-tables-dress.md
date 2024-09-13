@@ -1,0 +1,5 @@
+---
+"hardhat": patch
+---
+
+Upgrade chokidar
