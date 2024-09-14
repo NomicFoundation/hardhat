@@ -364,6 +364,10 @@ npx hardhat ignition deploy ./ignition/modules/Lock.js --network localhost
 
 ::::
 
+To run Hardhat Network on specific port and allow incoming requests from a specific network interface or hostname, run `npx hardhat node --hostname 127.0.0.1 --port 8545`.
+
+If you want to allow incoming requests from anywhere, including external ips, use `--hostname 0.0.0.0`.
+
 Congrats! You have created a project and compiled, tested and deployed a smart contract.
 
 Show us some love by starring [our repository on GitHub!](https://github.com/NomicFoundation/hardhat)️
