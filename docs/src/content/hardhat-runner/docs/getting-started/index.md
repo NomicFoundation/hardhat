@@ -117,7 +117,7 @@ GLOBAL OPTIONS:
 
 AVAILABLE TASKS:
 
-  check                 Check whatever you need
+  check                 Runs a user-defined check
   clean                 Clears the cache and deletes all artifacts
   compile               Compiles the entire project, building all artifacts
   console               Opens a hardhat console

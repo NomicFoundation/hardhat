@@ -25,6 +25,14 @@ Now you should be able to run it:
 ```
 npx hardhat accounts
 ```
+For tasks that support network parameters, you can specify the network like this:
+
+
+```
+npx hardhat compile --network localhost
+```
+This will run the task on the specified network (in this case, localhost).
+
 
 We are using the `task` function to define our new task. Its first argument is the name of the task, and it's what we use in the command line to run it. The second argument is the description of the task, which is printed when you use `npx hardhat help`.
 
