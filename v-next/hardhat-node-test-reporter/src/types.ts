@@ -1,4 +1,7 @@
+import type { run } from "node:test";
 import type { TestEvent } from "node:test/reporters";
+
+export type TestRunOptions = NonNullable<Parameters<typeof run>[0]>;
 
 /**
  * A map from event type to its data type.
@@ -20,3 +23,8 @@ export type TestEventSource = AsyncGenerator<TestEvent, void>;
  * The type of the result of the reporter.
  */
 export type TestReporterResult = AsyncGenerator<string, void>;
+
+/**
+ * The type of the reporter.
+ */
+export type TestReporter = (source: TestEventSource) => TestReporterResult;

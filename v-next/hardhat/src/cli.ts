@@ -1,15 +1,10 @@
-import { register } from "tsx/esm/api";
-
 // We enable the sourcemaps before loading main, so that everything except this
 // small file is loaded with sourcemaps enabled.
 process.setSourceMapsEnabled(true);
 
-// Register tsx
-const _unregister = register();
-
 // eslint-disable-next-line no-restricted-syntax -- Allow top-level await here
 const { main } = await import("./internal/cli/main.js");
 
-main(process.argv.slice(2)).catch(() => {
+main(process.argv.slice(2), undefined, true).catch(() => {
   process.exitCode = 1;
 });

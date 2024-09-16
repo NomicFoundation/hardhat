@@ -6,7 +6,7 @@ import { finished } from "node:stream/promises";
 import { run } from "node:test";
 import { fileURLToPath } from "node:url";
 
-import hardhatTestReporter from "@ignored/hardhat-vnext-node-test-reporter";
+import { hardhatTestReporter } from "@ignored/hardhat-vnext-node-test-reporter";
 import { getAllFilesMatching } from "@ignored/hardhat-vnext-utils/fs";
 
 interface TestActionArguments {
@@ -67,7 +67,13 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
       nodeTestOptions.testNamePatterns = grep;
     }
 
-    const reporterStream = run({ files, only })
+    const testOnlyMessage =
+      "'only' and 'runOnly' require the --only command-line option.";
+    const customReporter = hardhatTestReporter(nodeTestOptions, {
+      testOnlyMessage,
+    });
+
+    const reporterStream = run(nodeTestOptions)
       .on("test:fail", (event) => {
         if (event.details.type === "suite") {
           // If a suite failed only because a subtest failed, we don't want to
@@ -79,7 +85,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
         failures++;
       })
-      .compose(hardhatTestReporter);
+      .compose(customReporter);
 
     reporterStream.pipe(process.stdout);
 
