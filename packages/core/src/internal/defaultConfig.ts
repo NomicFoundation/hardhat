@@ -8,6 +8,7 @@ export const defaultConfig: DeployConfig = {
   timeBeforeBumpingFees: 3 * 60 * 1_000,
   maxFeeBumps: 4,
   requiredConfirmations: 5,
+  disableFeeBumping: false,
 };
 
 /**

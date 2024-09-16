@@ -9,6 +9,8 @@ module.exports = {
       ignition: {
         maxFeePerGasLimit: 2n,
         maxPriorityFeePerGas: 3n,
+        gasPrice: 1n,
+        disableFeeBumping: false,
       },
     },
   },
@@ -22,5 +24,6 @@ module.exports = {
         salt: "custom-salt",
       },
     },
+    disableFeeBumping: true,
   },
 };

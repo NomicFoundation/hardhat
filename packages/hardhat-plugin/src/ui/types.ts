@@ -64,6 +64,7 @@ export interface UiState {
   isResumed: boolean | null;
   maxFeeBumps: number;
   gasBumps: Record<string, number>;
+  disableFeeBumping: boolean | null;
   strategy: string | null;
   ledger: boolean;
   ledgerMessage: string;

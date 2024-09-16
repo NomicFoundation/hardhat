@@ -49,7 +49,8 @@ export class FutureProcessor {
     private readonly _maxFeeBumps: number,
     private readonly _accounts: string[],
     private readonly _deploymentParameters: DeploymentParameters,
-    private readonly _defaultSender: string
+    private readonly _defaultSender: string,
+    private readonly _disableFeeBumping: boolean
   ) {}
 
   /**
@@ -209,7 +210,9 @@ export class FutureProcessor {
           this._transactionTrackingTimer,
           this._requiredConfirmations,
           this._millisecondBeforeBumpingFees,
-          this._maxFeeBumps
+          this._maxFeeBumps,
+          undefined,
+          this._disableFeeBumping
         );
     }
   }

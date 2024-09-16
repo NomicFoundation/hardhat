@@ -17,6 +17,8 @@ declare module "hardhat/types/config" {
     ignition?: {
       maxFeePerGasLimit?: bigint;
       maxPriorityFeePerGas?: bigint;
+      gasPrice?: bigint;
+      disableFeeBumping?: boolean;
     };
   }
 
@@ -24,6 +26,8 @@ declare module "hardhat/types/config" {
     ignition: {
       maxFeePerGasLimit?: bigint;
       maxPriorityFeePerGas?: bigint;
+      gasPrice?: bigint;
+      disableFeeBumping?: boolean;
     };
   }
 
@@ -31,6 +35,8 @@ declare module "hardhat/types/config" {
     ignition?: {
       maxFeePerGasLimit?: bigint;
       maxPriorityFeePerGas?: bigint;
+      gasPrice?: bigint;
+      disableFeeBumping?: boolean;
     };
   }
 
@@ -38,6 +44,8 @@ declare module "hardhat/types/config" {
     ignition: {
       maxFeePerGasLimit?: bigint;
       maxPriorityFeePerGas?: bigint;
+      gasPrice?: bigint;
+      disableFeeBumping?: boolean;
     };
   }
 

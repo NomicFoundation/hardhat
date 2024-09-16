@@ -19,6 +19,7 @@ describe("ui - calculate starting message display", () => {
     warnings: [],
     isResumed: null,
     maxFeeBumps: 0,
+    disableFeeBumping: false,
     gasBumps: {},
     strategy: "basic",
     ledger: false,

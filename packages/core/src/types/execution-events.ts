@@ -83,6 +83,7 @@ export interface DeploymentStartEvent {
   deploymentDir: string | undefined;
   isResumed: boolean;
   maxFeeBumps: number;
+  disableFeeBumping: boolean;
 }
 
 /**

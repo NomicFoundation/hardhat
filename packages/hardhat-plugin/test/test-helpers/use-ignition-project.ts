@@ -25,6 +25,7 @@ const defaultTestConfig: DeployConfig = {
   timeBeforeBumpingFees: 3 * 60 * 1000,
   blockPollingInterval: 200,
   requiredConfirmations: 1,
+  disableFeeBumping: false,
 };
 
 export function useEphemeralIgnitionProject(fixtureProjectName: string) {

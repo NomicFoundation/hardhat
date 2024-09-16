@@ -83,7 +83,8 @@ export class Deployer {
       ignitionModule.id,
       this._deploymentDir,
       isResumed,
-      this._config.maxFeeBumps
+      this._config.maxFeeBumps,
+      this._config.disableFeeBumping
     );
 
     const contracts =
@@ -188,7 +189,8 @@ export class Deployer {
         this._config.requiredConfirmations,
         this._config.timeBeforeBumpingFees,
         this._config.maxFeeBumps,
-        this._config.blockPollingInterval
+        this._config.blockPollingInterval,
+        this._config.disableFeeBumping
       );
 
       deploymentState = await executionEngine.executeModule(
@@ -270,7 +272,8 @@ export class Deployer {
     moduleId: string,
     deploymentDir: string | undefined,
     isResumed: boolean,
-    maxFeeBumps: number
+    maxFeeBumps: number,
+    disableFeeBumping: boolean
   ): void {
     if (this._executionEventListener === undefined) {
       return;
@@ -282,6 +285,7 @@ export class Deployer {
       deploymentDir: deploymentDir ?? undefined,
       isResumed,
       maxFeeBumps,
+      disableFeeBumping,
     });
   }
 

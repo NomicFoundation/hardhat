@@ -42,7 +42,8 @@ export class ExecutionEngine {
     private readonly _requiredConfirmations: number,
     private readonly _millisecondBeforeBumpingFees: number,
     private readonly _maxFeeBumps: number,
-    private readonly _blockPollingInterval: number
+    private readonly _blockPollingInterval: number,
+    private readonly _disableFeeBumping: boolean
   ) {}
 
   /**
@@ -98,7 +99,8 @@ export class ExecutionEngine {
       this._maxFeeBumps,
       accounts,
       deploymentParameters,
-      defaultSender
+      defaultSender,
+      this._disableFeeBumping
     );
 
     const futures = getFuturesFromModule(module);

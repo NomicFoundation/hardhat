@@ -66,6 +66,7 @@ export class PrettyEventHandler implements ExecutionEventListener {
     warnings: [],
     isResumed: null,
     maxFeeBumps: 0,
+    disableFeeBumping: null,
     gasBumps: {},
     strategy: null,
     ledger: false,
@@ -94,6 +95,7 @@ export class PrettyEventHandler implements ExecutionEventListener {
       deploymentDir: event.deploymentDir,
       isResumed: event.isResumed,
       maxFeeBumps: event.maxFeeBumps,
+      disableFeeBumping: event.disableFeeBumping,
     };
 
     process.stdout.write(calculateStartingMessage(this.state));

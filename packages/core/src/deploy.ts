@@ -53,6 +53,8 @@ export async function deploy<
   strategyConfig,
   maxFeePerGasLimit,
   maxPriorityFeePerGas,
+  gasPrice,
+  disableFeeBumping,
 }: {
   config?: Partial<DeployConfig>;
   artifactResolver: ArtifactResolver;
@@ -71,6 +73,8 @@ export async function deploy<
   strategyConfig?: StrategyConfig[StrategyT];
   maxFeePerGasLimit?: bigint;
   maxPriorityFeePerGas?: bigint;
+  gasPrice?: bigint;
+  disableFeeBumping?: boolean;
 }): Promise<DeploymentResult> {
   const executionStrategy: ExecutionStrategy = resolveStrategy(
     strategy,
@@ -117,6 +121,7 @@ export async function deploy<
   const jsonRpcClient = new EIP1193JsonRpcClient(provider, {
     maxFeePerGasLimit,
     maxPriorityFeePerGas,
+    gasPrice,
   });
 
   const isAutominedNetwork = await checkAutominedNetwork(provider);
@@ -126,6 +131,7 @@ export async function deploy<
     requiredConfirmations: isAutominedNetwork
       ? DEFAULT_AUTOMINE_REQUIRED_CONFIRMATIONS
       : config.requiredConfirmations ?? defaultConfig.requiredConfirmations,
+    disableFeeBumping: disableFeeBumping ?? defaultConfig.disableFeeBumping,
     ...config,
   };
 

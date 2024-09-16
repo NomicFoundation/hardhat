@@ -28,6 +28,11 @@ export interface DeployConfig {
    * a transaction to be confirmed during Ignition execution.
    */
   requiredConfirmations: number;
+
+  /**
+   * Disables fee bumping for all transactions.
+   */
+  disableFeeBumping: boolean;
 }
 
 /**

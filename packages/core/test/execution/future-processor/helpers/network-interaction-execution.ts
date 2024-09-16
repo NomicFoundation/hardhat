@@ -242,7 +242,8 @@ describe("Network interactions", () => {
         requiredConfirmations,
         millisecondBeforeBumpingFees,
         maxFeeBumps,
-        testGetTransactionRetryConfig
+        testGetTransactionRetryConfig,
+        false
       );
 
       if (message === undefined) {
@@ -286,7 +287,8 @@ describe("Network interactions", () => {
           requiredConfirmations,
           millisecondBeforeBumpingFees,
           maxFeeBumps,
-          testGetTransactionRetryConfig
+          testGetTransactionRetryConfig,
+          false
         ),
         /IGN401: Error while executing test: all the transactions of its network interaction 1 were dropped\. Please try rerunning Hardhat Ignition\./
       );

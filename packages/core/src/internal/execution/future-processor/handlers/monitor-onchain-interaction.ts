@@ -52,6 +52,8 @@ export interface GetTransactionRetryConfig {
  *  of a transaction.
  * @param maxFeeBumps The maximum number of times we can bump the fees of a transaction
  *  before considering the onchain interaction timed out.
+ * @param getTransactionRetryConfig This is really only a parameter to help with testing this function
+ * @param disableFeeBumping Disables fee bumping for all transactions.
  * @returns A message indicating the result of checking the transactions of the latest
  *  network interaction.
  */
@@ -68,7 +70,8 @@ export async function monitorOnchainInteraction(
   getTransactionRetryConfig: GetTransactionRetryConfig = {
     maxRetries: 10,
     retryInterval: 1000,
-  }
+  },
+  disableFeeBumping: boolean
 ): Promise<
   | TransactionConfirmMessage
   | OnchainInteractionBumpFeesMessage
@@ -143,7 +146,10 @@ export async function monitorOnchainInteraction(
     return undefined;
   }
 
-  if (lastNetworkInteraction.transactions.length > maxFeeBumps) {
+  if (
+    disableFeeBumping ||
+    lastNetworkInteraction.transactions.length > maxFeeBumps
+  ) {
     return {
       type: JournalMessageType.ONCHAIN_INTERACTION_TIMEOUT,
       futureId: exState.id,

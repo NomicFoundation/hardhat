@@ -39,6 +39,10 @@ describe("config", () => {
       });
     });
 
+    it("should apply disableFeeBumping at the top level", async function () {
+      assert.equal(loadedOptions.disableFeeBumping, true);
+    });
+
     it("should apply maxFeePerGasLimit", async function () {
       assert.equal(
         this.hre.config.networks.hardhat.ignition.maxFeePerGasLimit,
@@ -53,9 +57,21 @@ describe("config", () => {
       );
     });
 
+    it("should apply gasPrice", async function () {
+      assert.equal(this.hre.config.networks.hardhat.ignition.gasPrice, 1n);
+    });
+
+    it("should apply disableFeeBumping at the network level", async function () {
+      assert.equal(
+        this.hre.config.networks.hardhat.ignition.disableFeeBumping,
+        false
+      );
+    });
+
     it("should only have known config", () => {
       const configOptions: KeyListOf<HardhatConfig["ignition"]> = [
         "blockPollingInterval",
+        "disableFeeBumping",
         "maxFeeBumps",
         "requiredConfirmations",
         "strategyConfig",

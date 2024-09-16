@@ -21,6 +21,7 @@ const exampleState: UiState = {
   warnings: [],
   isResumed: false,
   maxFeeBumps: 0,
+  disableFeeBumping: false,
   gasBumps: {},
   strategy: null,
   ledger: false,
