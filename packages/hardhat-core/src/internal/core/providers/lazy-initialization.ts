@@ -40,6 +40,19 @@ export class LazyInitializationProviderAdapter implements EthereumProvider {
         this._initializingPromise = this._providerFactory();
       }
       this.provider = await this._initializingPromise;
+
+      // Copy any event emitter events before initialization over to the provider
+      const recordedEvents = this._emitter.eventNames();
+
+      this.provider.setMaxListeners(this._emitter.getMaxListeners());
+
+      for (const event of recordedEvents) {
+        const listeners = this._emitter.rawListeners(event) as Listener[];
+        for (const listener of listeners) {
+          this.provider.on(event, listener);
+          this._emitter.removeListener(event, listener);
+        }
+      }
     }
     return this.provider;
   }
@@ -158,19 +171,6 @@ export class LazyInitializationProviderAdapter implements EthereumProvider {
 
     if (this.provider === undefined) {
       this.provider = await this.init();
-
-      // Copy any event emitter events before initialization over to the provider
-      const recordedEvents = this._emitter.eventNames();
-
-      for (const event of recordedEvents) {
-        const listeners = this._emitter.rawListeners(event) as Listener[];
-        for (const listener of listeners) {
-          this.provider.on(event, listener);
-          this._emitter.removeListener(event, listener);
-        }
-      }
-
-      this.provider.setMaxListeners(this._emitter.getMaxListeners());
     }
 
     return this.provider;

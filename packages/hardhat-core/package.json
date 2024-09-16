@@ -115,7 +115,7 @@
     "ansi-escapes": "^4.3.0",
     "boxen": "^5.1.2",
     "chalk": "^2.4.2",
-    "chokidar": "^3.4.0",
+    "chokidar": "^4.0.0",
     "ci-info": "^2.0.0",
     "debug": "^4.1.1",
     "enquirer": "^2.3.0",
