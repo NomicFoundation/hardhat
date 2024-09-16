@@ -23,6 +23,7 @@ const testFiles = [
   "./test/time/latest.ts",
   "./test/time/latest-block.ts",
   "./test/time/set-next-block-timestamp.ts",
+  "./test/index.ts",
 ];
 
 // Function to run the tests synchronously
