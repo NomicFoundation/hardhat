@@ -48,14 +48,16 @@ declare module "../../../../types/config.js" {
 
   export type NetworkUserConfig = HttpNetworkUserConfig | EdrNetworkUserConfig;
 
+  export type GasUserConfig = "auto" | number | bigint;
+
   export interface HttpNetworkUserConfig {
     type: "http";
     chainId?: number;
     chainType?: ChainType;
     from?: string;
-    gas?: "auto" | number | bigint;
+    gas?: GasUserConfig;
     gasMultiplier?: number;
-    gasPrice?: "auto" | number | bigint;
+    gasPrice?: GasUserConfig;
 
     // HTTP network specific
     url: string;
@@ -68,23 +70,25 @@ declare module "../../../../types/config.js" {
     chainId: number;
     chainType?: ChainType;
     from?: string;
-    gas: "auto" | number | bigint;
+    gas: GasUserConfig;
     gasMultiplier: number;
-    gasPrice: "auto" | number | bigint;
+    gasPrice: GasUserConfig;
 
     // EDR network specific
   }
 
   export type NetworkConfig = HttpNetworkConfig | EdrNetworkConfig;
 
+  export type GasConfig = "auto" | bigint;
+
   export interface HttpNetworkConfig {
     type: "http";
     chainId?: number;
     chainType?: ChainType;
     from?: string;
-    gas: "auto" | bigint;
+    gas: GasConfig;
     gasMultiplier: number;
-    gasPrice: "auto" | bigint;
+    gasPrice: GasConfig;
 
     // HTTP network specific
     url: string;
@@ -97,9 +101,9 @@ declare module "../../../../types/config.js" {
     chainId: number;
     chainType?: ChainType;
     from: string;
-    gas: "auto" | bigint;
+    gas: GasConfig;
     gasMultiplier: number;
-    gasPrice: "auto" | bigint;
+    gasPrice: GasConfig;
 
     // EDR network specific
   }
