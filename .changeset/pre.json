@@ -24,6 +24,7 @@
     "@ignored/hardhat-vnext-build-system": "2.0.0",
     "@ignored/hardhat-vnext-errors": "2.0.0",
     "@ignored/hardhat-vnext-keystore": "2.0.0",
+    "@ignored/hardhat-vnext-network-helpers": "2.0.0",
     "@ignored/hardhat-vnext-node-test-reporter": "2.0.0",
     "@ignored/hardhat-vnext-utils": "2.0.0",
     "@ignored/hardhat-vnext-zod-utils": "2.0.0",
