@@ -57,25 +57,6 @@ export class HookManagerImplementation implements HookManager {
     this.#context = context;
   }
 
-  public async getHandlers<
-    HookCategoryNameT extends keyof HardhatHooks,
-    HookNameT extends keyof HardhatHooks[HookCategoryNameT],
-  >(
-    hookCategoryName: HookCategoryNameT,
-    hookName: HookNameT,
-  ): Promise<Array<HardhatHooks[HookCategoryNameT][HookNameT]>> {
-    const pluginHooks = await this.#getPluginHooks(hookCategoryName, hookName);
-
-    const dynamicHooks = await this.#getDynamicHooks(
-      hookCategoryName,
-      hookName,
-    );
-
-    const r = [...dynamicHooks, ...pluginHooks];
-
-    return r;
-  }
-
   public registerHandlers<HookCategoryNameT extends keyof HardhatHooks>(
     hookCategoryName: HookCategoryNameT,
     hookHandlerCategory: Partial<HardhatHooks[HookCategoryNameT]>,
@@ -114,7 +95,10 @@ export class HookManagerImplementation implements HookManager {
     params: InitialChainedHookParams<HookCategoryNameT, HookT>,
     defaultImplementation: LastParameter<HookT>,
   ): Promise<Awaited<Return<HardhatHooks[HookCategoryNameT][HookNameT]>>> {
-    const handlers = await this.getHandlers(hookCategoryName, hookName);
+    const handlers = await this.#getHandlersInChainedRunningOrder(
+      hookCategoryName,
+      hookName,
+    );
 
     let handlerParams: Parameters<typeof defaultImplementation>;
     if (hookCategoryName !== "config") {
@@ -153,7 +137,10 @@ export class HookManagerImplementation implements HookManager {
   ): Promise<
     Array<Awaited<Return<HardhatHooks[HookCategoryNameT][HookNameT]>>>
   > {
-    const handlers = await this.getHandlers(hookCategoryName, hookName);
+    const handlers = await this.#getHandlersInSequentialRunningOrder(
+      hookCategoryName,
+      hookName,
+    );
 
     let handlerParams: any;
     if (hookCategoryName !== "config") {
@@ -186,7 +173,11 @@ export class HookManagerImplementation implements HookManager {
   ): Promise<
     Array<Awaited<Return<HardhatHooks[HookCategoryNameT][HookNameT]>>>
   > {
-    const handlers = await this.getHandlers(hookCategoryName, hookName);
+    // The ordering of handlers is unimportant here, as they are run in parallel
+    const handlers = await this.#getHandlersInChainedRunningOrder(
+      hookCategoryName,
+      hookName,
+    );
 
     let handlerParams: any;
     if (hookCategoryName !== "config") {
@@ -203,6 +194,42 @@ export class HookManagerImplementation implements HookManager {
     return Promise.all(
       handlers.map((handler) => (handler as any)(...handlerParams)),
     );
+  }
+
+  async #getHandlersInChainedRunningOrder<
+    HookCategoryNameT extends keyof HardhatHooks,
+    HookNameT extends keyof HardhatHooks[HookCategoryNameT],
+  >(
+    hookCategoryName: HookCategoryNameT,
+    hookName: HookNameT,
+  ): Promise<Array<HardhatHooks[HookCategoryNameT][HookNameT]>> {
+    const pluginHooks = await this.#getPluginHooks(hookCategoryName, hookName);
+
+    const dynamicHooks = await this.#getDynamicHooks(
+      hookCategoryName,
+      hookName,
+    );
+
+    return [...dynamicHooks, ...pluginHooks];
+  }
+
+  async #getHandlersInSequentialRunningOrder<
+    HookCategoryNameT extends keyof HardhatHooks,
+    HookNameT extends keyof HardhatHooks[HookCategoryNameT],
+  >(
+    hookCategoryName: HookCategoryNameT,
+    hookName: HookNameT,
+  ): Promise<Array<HardhatHooks[HookCategoryNameT][HookNameT]>> {
+    const reversedPluginHooks = (
+      await this.#getPluginHooks(hookCategoryName, hookName)
+    ).reverse();
+
+    const dynamicHooks = await this.#getDynamicHooks(
+      hookCategoryName,
+      hookName,
+    );
+
+    return [...dynamicHooks, ...reversedPluginHooks];
   }
 
   async #getDynamicHooks<
