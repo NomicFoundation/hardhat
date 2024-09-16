@@ -169,6 +169,8 @@ The third and fourth parameters are both optional. They represent the amount of 
 
 ### Deploying a library
 
+[ definition of "library".... I literally have no idea what this means. Library is an extremely abstract word in english ]
+
 To deploy a library you can use `m.library`:
 
 ```js
@@ -306,6 +308,8 @@ const token = m.contract("Token", ["My Token", "TKN2", 18], { from: account1 });
 ```
 
 ## Using existing artifacts
+
+> definition of "artifact" - an ABI? or... does this refer to the exact format of a hardhat artifact? link to a definitions? This documentation is excellent, and can be clearly understood. Artifact is a super abstract word in normal english.
 
 If you need to deploy or interact with a contract that isn't part of your Hardhat project, you can provide your own artifacts.
 
