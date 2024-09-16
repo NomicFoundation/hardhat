@@ -253,23 +253,6 @@ export interface HardhatRuntimeEnvironmentHooks {
  */
 export interface HookManager {
   /**
-   * Returns an array with the existing handlers for a hook, in priority order.
-   *
-   * The priority is defined like this:
-   *  - Dynamically registered handlers come first, in the reverse order they
-   *   were registered.
-   *  - Plugin handlers come last, in the same reverse of the resolved plugins
-   *  list, as seen in `HardhatConfig#plugins`.
-   */
-  getHandlers<
-    HookCategoryNameT extends keyof HardhatHooks,
-    HookNameT extends keyof HardhatHooks[HookCategoryNameT],
-  >(
-    hookCategoryName: HookCategoryNameT,
-    hookName: HookNameT,
-  ): Promise<Array<HardhatHooks[HookCategoryNameT][HookNameT]>>;
-
-  /**
    * Registers handlers for a category of hooks.
    */
   registerHandlers<HookCategoryNameT extends keyof HardhatHooks>(
@@ -288,8 +271,12 @@ export interface HookManager {
   /**
    * Runs the existing handlers of a hook in a chained fashion.
    *
-   * This chain has the same order than the one returned by `getHooks`, plus the
-   * default handler which is added at the end.
+   * This chain has the following priority order:
+   *  - Dynamically registered handlers come first, in the reverse order they
+   *   were registered.
+   *  - Plugin handlers come last, in the same reverse of the resolved plugins
+   *  list, as seen in `HardhatConfig#plugins`.
+   *  - The default handler is called last.
    *
    * The first handler is called with `initialParams`, and then it can call
    * `next` to call the next handler in the chain.
@@ -321,8 +308,11 @@ export interface HookManager {
   ): Promise<Awaited<Return<HookT>>>;
 
   /**
-   * Runs all the handlers for a hook in the same order that `getHandlers`
-   * returns them.
+   * Runs all the handlers for a hook in the following priority order:
+   *  - Plugin handlers come first, in the resolved order of the plugins
+   *  list, hence if B has a dependency on A, the order will be A then B.
+   *  - Dynamically registered handlers come last, in the order they
+   *  were registered.
    *
    * @param hookCategoryName The name of the category of the hook whose
    *  handlers should be run.
