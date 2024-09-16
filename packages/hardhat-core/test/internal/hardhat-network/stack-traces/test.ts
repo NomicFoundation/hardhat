@@ -544,8 +544,6 @@ async function runTest(
       );
     }
 
-    compareConsoleLogs(logger.lines, tx.consoleLogs);
-
     const vmTraceDecoder = (provider as any)._vmTraceDecoder as VmTraceDecoder;
     const decodedTrace = vmTraceDecoder.tryToDecodeMessageTrace(trace);
 
@@ -553,7 +551,7 @@ async function runTest(
       if (tx.stackTrace === undefined) {
         assert.isFalse(
           trace.exit.isError(),
-          `Transaction ${txIndex} shouldn't have failed`
+          `Transaction ${txIndex} shouldn't have failed (${trace.exit.getReason()})`
         );
       } else {
         assert.isDefined(
@@ -588,6 +586,8 @@ async function runTest(
         throw err;
       }
     }
+
+    compareConsoleLogs(logger.lines, tx.consoleLogs);
   }
 }
 
