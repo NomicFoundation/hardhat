@@ -228,10 +228,10 @@ describe("HookManager", () => {
             );
 
             assert.deepEqual(result, [
-              "FromHandler2",
-              "FromHandler1",
               "FromExamplePlugin1",
               "FromExamplePlugin2",
+              "FromHandler1",
+              "FromHandler2",
             ]);
           });
         });
@@ -723,7 +723,7 @@ describe("HookManager", () => {
           ["input"] as any,
         );
 
-        assert.deepEqual(result, ["third", "second", "first"]);
+        assert.deepEqual(result, ["first", "second", "third"]);
       });
 
       it("Should let handlers access the passed context (for non-config hooks)", async () => {

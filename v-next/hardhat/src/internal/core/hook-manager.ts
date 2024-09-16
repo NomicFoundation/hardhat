@@ -220,16 +220,12 @@ export class HookManagerImplementation implements HookManager {
     hookCategoryName: HookCategoryNameT,
     hookName: HookNameT,
   ): Promise<Array<HardhatHooks[HookCategoryNameT][HookNameT]>> {
-    const reversedPluginHooks = (
-      await this.#getPluginHooks(hookCategoryName, hookName)
-    ).reverse();
-
-    const dynamicHooks = await this.#getDynamicHooks(
+    const handlersInChainedOrder = await this.#getHandlersInChainedRunningOrder(
       hookCategoryName,
       hookName,
     );
 
-    return [...dynamicHooks, ...reversedPluginHooks];
+    return handlersInChainedOrder.reverse();
   }
 
   async #getDynamicHooks<

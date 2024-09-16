@@ -309,10 +309,10 @@ export interface HookManager {
 
   /**
    * Runs all the handlers for a hook in the following priority order:
-   *  - Dynamically registered handlers come first, in the reverse order they
-   *   were registered.
-   *  - Plugin handlers come last, in the resolved order of the plugins
+   *  - Plugin handlers come first, in the resolved order of the plugins
    *  list, hence if B has a dependency on A, the order will be A then B.
+   *  - Dynamically registered handlers come last, in the order they
+   *  were registered.
    *
    * @param hookCategoryName The name of the category of the hook whose
    *  handlers should be run.
