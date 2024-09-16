@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/consistent-type-assertions -- the 
+/* eslint-disable @typescript-eslint/consistent-type-assertions -- the
 sequential tests require casting - see the `runSequentialHandlers` describe */
 
 import type { HardhatUserConfig } from "../../../src/config.js";
@@ -36,163 +36,206 @@ describe("HookManager", () => {
   describe("plugin hooks", () => {
     describe("running", () => {
       let hre: HardhatRuntimeEnvironment;
-      let forceConfigValidationErrorFromPlugin: boolean;
-      let sequence: string[];
 
-      beforeEach(async () => {
-        sequence = [];
-        forceConfigValidationErrorFromPlugin = false;
+      describe("runHandlerChain", () => {
+        let sequence: string[];
 
-        const examplePlugin: HardhatPlugin = {
-          id: "example",
-          hookHandlers: {
-            config: async () => {
-              const handlers: Partial<ConfigHooks> = {
-                validateUserConfig: async (
-                  _config: HardhatUserConfig,
-                ): Promise<HardhatUserConfigValidationError[]> => {
-                  if (forceConfigValidationErrorFromPlugin) {
-                    return [
-                      {
-                        path: [],
-                        message: "FromPlugin",
-                      },
-                    ];
-                  }
+        beforeEach(async () => {
+          sequence = [];
 
-                  return [];
-                },
-                extendUserConfig: async (
-                  config: HardhatUserConfig,
-                  next: (
-                    nextConfig: HardhatUserConfig,
-                  ) => Promise<HardhatUserConfig>,
-                ) => {
-                  sequence.push("FromPlugin:before");
-                  const newConfig = await next(config);
-                  sequence.push("FromPlugin:after");
+          const examplePlugin: HardhatPlugin = {
+            id: "example",
+            hookHandlers: {
+              config: async () => {
+                const handlers: Partial<ConfigHooks> = {
+                  extendUserConfig: async (
+                    config: HardhatUserConfig,
+                    next: (
+                      nextConfig: HardhatUserConfig,
+                    ) => Promise<HardhatUserConfig>,
+                  ) => {
+                    sequence.push("FromPlugin:before");
+                    const newConfig = await next(config);
+                    sequence.push("FromPlugin:after");
 
-                  return newConfig;
-                },
-              };
+                    return newConfig;
+                  },
+                };
 
-              return handlers;
+                return handlers;
+              },
             },
-            hre: async () => {
-              const handlers = {
-                testExample: async (
-                  _context: HookContext,
-                  _input: string,
-                ): Promise<string> => {
-                  return "FromPlugin";
-                },
-              } as Partial<HardhatRuntimeEnvironmentHooks>;
+          };
 
-              return handlers;
-            },
-          },
-        };
-
-        hre = await HardhatRuntimeEnvironmentImplementation.create(
-          { plugins: [examplePlugin] },
-          {},
-        );
-      });
-
-      it("should use plugins during handler runs", async () => {
-        hre.hooks.registerHandlers("config", {
-          extendUserConfig: async (
-            config: HardhatUserConfig,
-            next: (nextConfig: HardhatUserConfig) => Promise<HardhatUserConfig>,
-          ) => {
-            sequence.push("FromHandler:before");
-            const newConfig = await next(config);
-            sequence.push("FromHandler:after");
-
-            return newConfig;
-          },
+          hre = await HardhatRuntimeEnvironmentImplementation.create(
+            { plugins: [examplePlugin] },
+            {},
+          );
         });
 
-        // We clear the sequense here, as we used the plugin already during the
-        // initialization of the HRE
-        sequence = [];
+        it("should use plugins during handler runs", async () => {
+          hre.hooks.registerHandlers("config", {
+            extendUserConfig: async (
+              config: HardhatUserConfig,
+              next: (
+                nextConfig: HardhatUserConfig,
+              ) => Promise<HardhatUserConfig>,
+            ) => {
+              sequence.push("FromHandler:before");
+              const newConfig = await next(config);
+              sequence.push("FromHandler:after");
 
-        await hre.hooks.runHandlerChain(
-          "config",
-          "extendUserConfig",
-          [{}],
-          async () => {
-            sequence.push("default");
-            return {};
-          },
-        );
+              return newConfig;
+            },
+          });
 
-        assert.deepEqual(sequence, [
-          "FromHandler:before",
-          "FromPlugin:before",
-          "default",
-          "FromPlugin:after",
-          "FromHandler:after",
-        ]);
+          // We clear the sequense here, as we used the plugin already during the
+          // initialization of the HRE
+          sequence = [];
+
+          await hre.hooks.runHandlerChain(
+            "config",
+            "extendUserConfig",
+            [{}],
+            async () => {
+              sequence.push("default");
+              return {};
+            },
+          );
+
+          assert.deepEqual(sequence, [
+            "FromHandler:before",
+            "FromPlugin:before",
+            "default",
+            "FromPlugin:after",
+            "FromHandler:after",
+          ]);
+        });
       });
 
-      it("Should use plugins during a sequential run", async () => {
-        hre.hooks.registerHandlers("hre", {
-          testExample: async (
-            _context: HookContext,
-            _input: string,
-          ): Promise<string> => {
-            return "FromHandler";
-          },
-        } as Partial<HardhatHooks["hre"]>);
+      describe("runSequentialHandlers", () => {
+        beforeEach(async () => {
+          const examplePlugin: HardhatPlugin = {
+            id: "example",
+            hookHandlers: {
+              hre: async () => {
+                const handlers = {
+                  testExample: async (
+                    _context: HookContext,
+                    _input: string,
+                  ): Promise<string> => {
+                    return "FromPlugin";
+                  },
+                } as Partial<HardhatRuntimeEnvironmentHooks>;
 
-        const result = await hre.hooks.runSequentialHandlers(
-          "hre",
-          "testExample" as any,
-          ["input"],
-        );
+                return handlers;
+              },
+            },
+          };
 
-        assert.deepEqual(result, ["FromHandler", "FromPlugin"]);
+          hre = await HardhatRuntimeEnvironmentImplementation.create(
+            { plugins: [examplePlugin] },
+            {},
+          );
+        });
+
+        it("Should use plugins during a sequential run", async () => {
+          hre.hooks.registerHandlers("hre", {
+            testExample: async (
+              _context: HookContext,
+              _input: string,
+            ): Promise<string> => {
+              return "FromHandler";
+            },
+          } as Partial<HardhatHooks["hre"]>);
+
+          const result = await hre.hooks.runSequentialHandlers(
+            "hre",
+            "testExample" as any,
+            ["input"],
+          );
+
+          assert.deepEqual(result, ["FromHandler", "FromPlugin"]);
+        });
       });
 
-      it("should use plugins during parallel handlers runs", async () => {
-        const originalConfig: HardhatUserConfig = {};
+      describe("runParallelHandlers", () => {
+        let forceConfigValidationErrorFromPlugin: boolean;
 
-        hre.hooks.registerHandlers("config", {
-          validateUserConfig: async (
-            _config: HardhatUserConfig,
-          ): Promise<HardhatUserConfigValidationError[]> => {
-            return [
+        beforeEach(async () => {
+          forceConfigValidationErrorFromPlugin = false;
+
+          const examplePlugin: HardhatPlugin = {
+            id: "example",
+            hookHandlers: {
+              config: async () => {
+                const handlers: Partial<ConfigHooks> = {
+                  validateUserConfig: async (
+                    _config: HardhatUserConfig,
+                  ): Promise<HardhatUserConfigValidationError[]> => {
+                    if (forceConfigValidationErrorFromPlugin) {
+                      return [
+                        {
+                          path: [],
+                          message: "FromPlugin",
+                        },
+                      ];
+                    }
+
+                    return [];
+                  },
+                };
+
+                return handlers;
+              },
+            },
+          };
+
+          hre = await HardhatRuntimeEnvironmentImplementation.create(
+            { plugins: [examplePlugin] },
+            {},
+          );
+        });
+
+        it("should use plugins during parallel handlers runs", async () => {
+          const originalConfig: HardhatUserConfig = {};
+
+          hre.hooks.registerHandlers("config", {
+            validateUserConfig: async (
+              _config: HardhatUserConfig,
+            ): Promise<HardhatUserConfigValidationError[]> => {
+              return [
+                {
+                  path: [],
+                  message: "FromRegisteredHandler",
+                },
+              ];
+            },
+          });
+
+          forceConfigValidationErrorFromPlugin = true;
+
+          const results = await hre.hooks.runParallelHandlers(
+            "config",
+            "validateUserConfig",
+            [originalConfig],
+          );
+
+          assert.deepEqual(results, [
+            [
               {
                 path: [],
                 message: "FromRegisteredHandler",
               },
-            ];
-          },
+            ],
+            [
+              {
+                path: [],
+                message: "FromPlugin",
+              },
+            ],
+          ]);
         });
-
-        forceConfigValidationErrorFromPlugin = true;
-
-        const results = await hre.hooks.runParallelHandlers(
-          "config",
-          "validateUserConfig",
-          [originalConfig],
-        );
-
-        assert.deepEqual(results, [
-          [
-            {
-              path: [],
-              message: "FromRegisteredHandler",
-            },
-          ],
-          [
-            {
-              path: [],
-              message: "FromPlugin",
-            },
-          ],
-        ]);
       });
     });
 
