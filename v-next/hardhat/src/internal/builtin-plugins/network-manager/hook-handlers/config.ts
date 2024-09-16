@@ -1,4 +1,6 @@
 import type {
+  GasConfig,
+  GasUserConfig,
   HttpNetworkConfig,
   NetworkConfig,
   NetworkUserConfig,
@@ -6,17 +8,6 @@ import type {
 import type { ConfigHooks } from "../../../../types/hooks.js";
 
 import { validateUserConfig } from "../type-validation.js";
-
-function resolveBigIntOrAuto(
-  value: number | bigint | "auto" | undefined,
-): bigint | "auto" {
-  if (value === undefined || value === "auto") {
-    return "auto";
-  }
-
-  // TODO: Validate that it's a valid BigInt
-  return BigInt(value);
-}
 
 export default async (): Promise<Partial<ConfigHooks>> => ({
   extendUserConfig: async (config, next) => {
@@ -57,9 +48,9 @@ export default async (): Promise<Partial<ConfigHooks>> => ({
         chainId: networkConfig.chainId,
         chainType: networkConfig.chainType,
         from: networkConfig.from,
-        gas: resolveBigIntOrAuto(networkConfig.gas),
+        gas: resolveGasConfig(networkConfig.gas),
         gasMultiplier: networkConfig.gasMultiplier ?? 1,
-        gasPrice: resolveBigIntOrAuto(networkConfig.gasPrice),
+        gasPrice: resolveGasConfig(networkConfig.gasPrice),
         url: networkConfig.url,
         timeout: networkConfig.timeout ?? 20_000,
         httpHeaders: networkConfig.httpHeaders ?? {},
@@ -76,3 +67,7 @@ export default async (): Promise<Partial<ConfigHooks>> => ({
     };
   },
 });
+
+function resolveGasConfig(value: GasUserConfig = "auto"): GasConfig {
+  return value === "auto" ? value : BigInt(value);
+}
