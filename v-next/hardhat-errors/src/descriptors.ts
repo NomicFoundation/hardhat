@@ -209,6 +209,15 @@ Please add the property "type" with the value "module" in your package.json to e
 Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
     },
+    NOT_IMPLEMENTED_ERROR: {
+      number: 101,
+      messageTemplate: "Not implemented: {message}",
+      websiteTitle: "Not implemented",
+      websiteDescription: `A code path that has not been implemented was unexpectedly triggered.
+
+Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
+      shouldBeReported: true,
+    },
   },
   PLUGINS: {
     PLUGIN_NOT_INSTALLED: {

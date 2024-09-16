@@ -6,7 +6,10 @@ import type {
   CompilerOutput,
 } from "../../src/types/artifacts.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@ignored/hardhat-vnext-errors";
 
 export class MockArtifactsManager implements ArtifactsManager {
   readonly #artifacts: Map<string, Artifact>;
@@ -20,13 +23,11 @@ export class MockArtifactsManager implements ArtifactsManager {
   ): Promise<Artifact> {
     const artifact = this.#artifacts.get(contractNameOrFullyQualifiedName);
 
-    if (artifact === undefined) {
-      throw new HardhatError(HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR, {
-        message:
-          "Unable to find the artifact during mock readArtifact " +
-          contractNameOrFullyQualifiedName,
-      });
-    }
+    assertHardhatInvariant(
+      artifact !== undefined,
+      "Unable to find the artifact during mock readArtifact " +
+        contractNameOrFullyQualifiedName,
+    );
 
     return artifact;
   }
@@ -34,13 +35,13 @@ export class MockArtifactsManager implements ArtifactsManager {
   public artifactExists(
     _contractNameOrFullyQualifiedName: string,
   ): Promise<boolean> {
-    throw new HardhatError(HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR, {
+    throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
       message: "Not implemented in MockArtifactsManager",
     });
   }
 
   public getAllFullyQualifiedNames(): Promise<string[]> {
-    throw new HardhatError(HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR, {
+    throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
       message: "Not implemented in MockArtifactsManager",
     });
   }
@@ -48,25 +49,25 @@ export class MockArtifactsManager implements ArtifactsManager {
   public getBuildInfo(
     _fullyQualifiedName: string,
   ): Promise<BuildInfo | undefined> {
-    throw new HardhatError(HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR, {
+    throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
       message: "Not implemented in MockArtifactsManager",
     });
   }
 
   public getArtifactPaths(): Promise<string[]> {
-    throw new HardhatError(HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR, {
+    throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
       message: "Not implemented in MockArtifactsManager",
     });
   }
 
   public getDebugFilePaths(): Promise<string[]> {
-    throw new HardhatError(HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR, {
+    throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
       message: "Not implemented in MockArtifactsManager",
     });
   }
 
   public getBuildInfoPaths(): Promise<string[]> {
-    throw new HardhatError(HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR, {
+    throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
       message: "Not implemented in MockArtifactsManager",
     });
   }
@@ -81,7 +82,7 @@ export class MockArtifactsManager implements ArtifactsManager {
     _input: CompilerInput,
     _output: CompilerOutput,
   ): Promise<string> {
-    throw new HardhatError(HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR, {
+    throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
       message: "Not implemented in MockArtifactsManager",
     });
   }
@@ -89,7 +90,7 @@ export class MockArtifactsManager implements ArtifactsManager {
   public formArtifactPathFromFullyQualifiedName(
     _fullyQualifiedName: string,
   ): string {
-    throw new HardhatError(HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR, {
+    throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
       message: "Not implemented in MockArtifactsManager",
     });
   }
@@ -97,7 +98,7 @@ export class MockArtifactsManager implements ArtifactsManager {
   public getArtifactPath(
     _contractNameOrFullyQualifiedName: string,
   ): Promise<string> {
-    throw new HardhatError(HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR, {
+    throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
       message: "Not implemented in MockArtifactsManager",
     });
   }
