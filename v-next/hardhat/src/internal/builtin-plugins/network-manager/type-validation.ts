@@ -23,15 +23,15 @@ const httpNetworkUserConfigSchema = z.object({
   from: z.optional(z.string()),
   gas: z.optional(
     unionType(
-      [z.literal("auto"), z.number().int(), z.bigint()],
-      "Expected 'auto', number, or bigint",
+      [z.literal("auto"), z.number().int().safe(), z.bigint()],
+      "Expected 'auto', a safe int, or bigint",
     ),
   ),
   gasMultiplier: z.optional(z.number()),
   gasPrice: z.optional(
     unionType(
-      [z.literal("auto"), z.number().int(), z.bigint()],
-      "Expected 'auto', number, or bigint",
+      [z.literal("auto"), z.number().int().safe(), z.bigint()],
+      "Expected 'auto', a safe int, or bigint",
     ),
   ),
 
@@ -47,13 +47,13 @@ const edrNetworkUserConfigSchema = z.object({
   chainType: z.optional(chainTypeSchema),
   from: z.optional(z.string()),
   gas: unionType(
-    [z.literal("auto"), z.number().int(), z.bigint()],
-    "Expected 'auto', number, or bigint",
+    [z.literal("auto"), z.number().int().safe(), z.bigint()],
+    "Expected 'auto', a safe int, or bigint",
   ),
   gasMultiplier: z.number(),
   gasPrice: unionType(
-    [z.literal("auto"), z.number().int(), z.bigint()],
-    "Expected 'auto', number, or bigint",
+    [z.literal("auto"), z.number().int().safe(), z.bigint()],
+    "Expected 'auto', a safe int, or bigint",
   ),
 });
 
