@@ -82,6 +82,7 @@ export class ConsoleLogger {
     return util.format(...args);
   }
 
+  /** Decodes a calldata buffer into string arguments for a console log. */
   private static _maybeConsoleLog(
     calldata: Buffer
   ): ConsoleLogArgs | undefined {
@@ -118,7 +119,7 @@ export class ConsoleLogger {
     return decodedArgs;
   }
 
-  /** Decodes parameters from `data` according to `types` into their string representation. */
+  /** Decodes calldata parameters from `data` according to `types` into their string representation. */
   private static _decode(data: Buffer, types: string[]): string[] {
     return types.map((type, i) => {
       const position: number = i * 32;
