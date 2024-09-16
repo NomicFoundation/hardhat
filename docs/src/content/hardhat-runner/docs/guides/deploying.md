@@ -1,8 +1,10 @@
 # Deploying your contracts
 
-To deploy your contracts, you can use [Hardhat Ignition](/ignition), our declarative deployment system. You can deploy the `Lock` contract from the sample project by using its accompanying Ignition module. An Ignition module is a TypeScript or JavaScript file that allows you to specify what needs to be deployed.
+To deploy your contracts, we recommend using [Hardhat Ignition](/ignition), our declarative deployment system. Hardhat Ignition is now the preferred method for deploying contracts in Hardhat v3.
 
-In the sample project, the Ignition module `LockModule` which deploys the `Lock` contract, is under the `./ignition/modules` directory and looks like this:
+In the sample project, you'll find an Ignition module for deploying the `Lock` contract. An Ignition module is a TypeScript or JavaScript file that specifies what needs to be deployed.
+
+The `LockModule` which deploys the `Lock` contract is located in the `./ignition/modules` directory and looks like this:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
@@ -59,5 +61,12 @@ npx hardhat ignition deploy ./ignition/modules/Lock.js --network <your-network>
 If no network is specified, Hardhat Ignition will run against an in-memory instance of Hardhat Network.
 
 In the sample `LockModule` above, two module parameters are used: `unlockTime` which will default to the 1st of Jan 2030 and `lockedAmount` which will default to one Gwei. You can learn more about overriding these values by providing your own module parameters during deployment in our [Deploying a module](/ignition/docs/guides/deploy#defining-parameters-during-deployment) guide.
+
+Hardhat Ignition, introduced in Hardhat v3, brings several improvements to the deployment process:
+
+1. Declarative deployments: Define your entire deployment pipeline in a single, easy-to-understand module.
+2. Built-in error handling and recovery: Automatically resume deployments from where they left off if interrupted.
+3. Improved testability: Easily integrate deployments into your test suite.
+4. Enhanced modularity: Create reusable deployment modules for different parts of your project.
 
 Read more about Hardhat Ignition generally in the [Hardhat Ignition documentation](/ignition).

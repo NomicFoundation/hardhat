@@ -239,6 +239,24 @@ Compiled 2 Solidity files successfully
 
 ### Deploying your contracts
 
+In Hardhat v3, we use Hardhat Ignition for deploying contracts. Hardhat Ignition is a new declarative deployment system that offers several improvements:
+
+1. Declarative deployments
+2. Built-in error handling and recovery
+3. Improved testability
+4. Enhanced modularity
+
+To deploy the `Lock` contract, use the following command:
+
+```
+npx hardhat ignition deploy ./ignition/modules/Lock.js
+```
+
+
+This will deploy the Ignition module located in `./ignition/modules/Lock.js`.
+
+For more details on Hardhat Ignition and its features in Hardhat v3, refer to the [Hardhat Ignition documentation](/ignition).
+
 Next, to deploy the contract we will use a Hardhat Ignition module.
 
 Inside the `ignition/modules` folder you will find a file with the following code:
