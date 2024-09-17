@@ -4,7 +4,7 @@ import "./type-extensions.js";
 const hardhatPlugin: HardhatPlugin = {
   id: "artifacts",
   hookHandlers: {
-    hre: import.meta.resolve("./hookHandlers/hre.js"),
+    hre: import.meta.resolve("./hook-handlers/hre.js"),
   },
 };
 

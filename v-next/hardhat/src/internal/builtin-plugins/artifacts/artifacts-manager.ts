@@ -4,7 +4,7 @@ import type {
   BuildInfo,
   CompilerInput,
   CompilerOutput,
-} from "../../types/artifacts.js";
+} from "../../../types/artifacts.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
