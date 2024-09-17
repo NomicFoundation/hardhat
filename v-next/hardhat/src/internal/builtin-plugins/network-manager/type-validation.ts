@@ -70,7 +70,7 @@ const userConfigSchema = z.object({
 
 const httpNetworkConfigSchema = z.object({
   type: z.literal("http"),
-  chainId: z.number().int().optional(),
+  chainId: z.optional(z.number().int()),
   chainType: z.optional(chainTypeSchema),
   from: z.optional(z.string()),
   gas: unionType([z.literal("auto"), z.bigint()], "Expected 'auto' or bigint"),
