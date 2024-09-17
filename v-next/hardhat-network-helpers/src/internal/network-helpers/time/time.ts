@@ -1,12 +1,14 @@
-import type { NetworkHelpers } from "./network-helpers.js";
-import type { NumberLike } from "../../types.js";
+import type { NumberLike } from "../../../types.js";
+import type { NetworkHelpers } from "../network-helpers.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { Duration } from "../duration/duration.js";
 
-import { toBigInt, toRpcQuantity } from "../conversion.js";
-
-import { Duration } from "./duration.js";
+import { increaseTo } from "./helpers/increase-to.js";
+import { increase } from "./helpers/increase.js";
+import { latestBlock } from "./helpers/latest-block.js";
+import { latest } from "./helpers/latest.js";
+import { setNextBlockTimestamp } from "./helpers/set-next-block-timestamp.js";
 
 export class Time {
   readonly #networkHelpers: NetworkHelpers;
@@ -32,20 +34,7 @@ export class Time {
    * await networkHelpers.time.increase(12);
    */
   public async increase(amountInSeconds: NumberLike): Promise<number> {
-    const normalizedAmount = await toBigInt(amountInSeconds);
-
-    const latestTimestamp = await toBigInt(await this.latest());
-
-    const targetTimestamp = latestTimestamp + normalizedAmount;
-
-    await this.#provider.request({
-      method: "evm_setNextBlockTimestamp",
-      params: [toRpcQuantity(targetTimestamp)],
-    });
-
-    await this.#networkHelpers.mine();
-
-    return this.latest();
+    return increase(this.#provider, this.#networkHelpers, amountInSeconds);
   }
 
   /**
@@ -59,18 +48,12 @@ export class Time {
    * networkHelpers.time.increaseTo(1700000000);
    */
   public async increaseTo(timestamp: NumberLike | Date): Promise<void> {
-    const normalizedTimestamp = await toBigInt(
-      timestamp instanceof Date
-        ? this.duration.millis(timestamp.valueOf())
-        : timestamp,
+    return increaseTo(
+      this.#provider,
+      this.#networkHelpers,
+      timestamp,
+      this.duration,
     );
-
-    await this.#provider.request({
-      method: "evm_setNextBlockTimestamp",
-      params: [toRpcQuantity(normalizedTimestamp)],
-    });
-
-    await this.#networkHelpers.mine();
   }
 
   /**
@@ -83,20 +66,7 @@ export class Time {
    * const timestamp = await networkHelpers.time.latest();
    */
   public async latest(): Promise<number> {
-    const latestBlock = await this.#provider.request({
-      method: "eth_getBlockByNumber",
-      params: ["latest", false],
-    });
-
-    assertHardhatInvariant(
-      typeof latestBlock === "object" &&
-        latestBlock !== null &&
-        "timestamp" in latestBlock &&
-        typeof latestBlock.timestamp === "string",
-      "latestBlock should have a timestamp",
-    );
-
-    return parseInt(latestBlock.timestamp, 16);
+    return latest(this.#provider);
   }
 
   /**
@@ -109,17 +79,7 @@ export class Time {
    * const blockNumber = await networkHelpers.time.latestBlock();
    */
   public async latestBlock(): Promise<number> {
-    const height = await this.#provider.request({
-      method: "eth_blockNumber",
-      params: [],
-    });
-
-    assertHardhatInvariant(
-      typeof height === "string",
-      "height should be a string",
-    );
-
-    return parseInt(height, 16);
+    return latestBlock(this.#provider);
   }
 
   /**
@@ -134,15 +94,6 @@ export class Time {
   public async setNextBlockTimestamp(
     timestamp: NumberLike | Date,
   ): Promise<void> {
-    const timestampRpc = toRpcQuantity(
-      timestamp instanceof Date
-        ? this.duration.millis(timestamp.valueOf())
-        : timestamp,
-    );
-
-    await this.#provider.request({
-      method: "evm_setNextBlockTimestamp",
-      params: [timestampRpc],
-    });
+    return setNextBlockTimestamp(this.#provider, timestamp, this.duration);
   }
 }

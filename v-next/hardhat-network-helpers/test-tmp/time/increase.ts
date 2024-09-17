@@ -1,4 +1,4 @@
-import type { Time } from "../../src/internal/network-helpers/time.js";
+import type { Time } from "../../src/internal/network-helpers/time/time.js";
 import type { NumberLike } from "../../src/types.js";
 
 import assert from "node:assert/strict";

@@ -1,31 +1,31 @@
 import type { BlockTag, NumberLike, SnapshotRestorer } from "../../types.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 
-import {
-  assertHardhatInvariant,
-  HardhatError,
-} from "@ignored/hardhat-vnext-errors";
-
-import { clearSnapshots } from "../../load-fixture.js";
-import {
-  assertHexString,
-  assertLargerThan,
-  assertTxHash,
-  assertValidAddress,
-} from "../assertions.js";
-import { toBigInt, toNumber, toRpcQuantity } from "../conversion.js";
-import { toPaddedRpcQuantity } from "../padding.js";
-
-import { Time } from "./time.js";
+// Import all helper functions
+import { dropTransaction } from "./helpers/drop-transaction.js";
+import { getStorageAt } from "./helpers/get-storage-at.js";
+import { impersonateAccount } from "./helpers/impersonate-account.js";
+import { mineUpTo } from "./helpers/mine-up-to.js";
+import { mine } from "./helpers/mine.js";
+import { reset } from "./helpers/reset.js";
+import { setBalance } from "./helpers/set-balance.js";
+import { setBlockGasLimit } from "./helpers/set-block-gas-limit.js";
+import { setCode } from "./helpers/set-code.js";
+import { setCoinbase } from "./helpers/set-coinbase.js";
+import { setNextBlockBaseFeePerGas } from "./helpers/set-next-block-base-fee-per-gas.js";
+import { setNonce } from "./helpers/set-nonce.js";
+import { setPrevRandao } from "./helpers/set-prev-randao.js";
+import { setStorageAt } from "./helpers/set-storage-at.js";
+import { stopImpersonatingAccount } from "./helpers/stop-impersonating-account.js";
+import { takeSnapshot } from "./helpers/take-snapshot.js";
+import { Time } from "./time/time.js";
 
 export class NetworkHelpers {
   readonly #provider: EthereumProvider;
-
   public time: Time;
 
   constructor(provider: EthereumProvider) {
     this.#provider = provider;
-
     this.time = new Time(this, provider);
   }
 
@@ -39,20 +39,8 @@ export class NetworkHelpers {
    * const { networkHelpers } = await hre.network.connect();
    * const success = await networkHelpers.dropTransaction('0x123...');
    */
-  public async dropTransaction(txHash: string): Promise<boolean> {
-    assertTxHash(txHash);
-
-    const success = await this.#provider.request({
-      method: "hardhat_dropTransaction",
-      params: [txHash],
-    });
-
-    assertHardhatInvariant(
-      success === true || success === false,
-      "The value should be either true or false",
-    );
-
-    return success;
+  public dropTransaction(txHash: string): Promise<boolean> {
+    return dropTransaction(this.#provider, txHash);
   }
 
   /**
@@ -67,31 +55,12 @@ export class NetworkHelpers {
    * const { networkHelpers } = await hre.network.connect();
    * const storageData = await networkHelpers.getStorageAt("0x123...", 0);
    */
-  public async getStorageAt(
+  public getStorageAt(
     address: string,
     index: NumberLike,
     block: NumberLike | BlockTag = "latest",
   ): Promise<string> {
-    await assertValidAddress(address);
-
-    const indexParam = toPaddedRpcQuantity(index, 32);
-
-    const blockParam =
-      block === "latest" || block === "earliest" || block === "pending"
-        ? block
-        : toRpcQuantity(block);
-
-    const data = await this.#provider.request({
-      method: "eth_getStorageAt",
-      params: [address, indexParam, blockParam],
-    });
-
-    assertHardhatInvariant(
-      typeof data === "string",
-      "Storage data should be a string",
-    );
-
-    return data;
+    return getStorageAt(this.#provider, address, index, block);
   }
 
   /**
@@ -104,13 +73,8 @@ export class NetworkHelpers {
    * const { networkHelpers } = await hre.network.connect();
    * await networkHelpers.impersonateAccount("0x123...");
    */
-  public async impersonateAccount(address: string): Promise<void> {
-    await assertValidAddress(address);
-
-    await this.#provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [address],
-    });
+  public impersonateAccount(address: string): Promise<void> {
+    return impersonateAccount(this.#provider, address);
   }
 
   /**
@@ -130,19 +94,11 @@ export class NetworkHelpers {
    * const { networkHelpers } = await hre.network.connect();
    * await networkHelpers.mine(10, { interval: 60 });
    */
-  public async mine(
+  public mine(
     blocks: NumberLike = 1,
     options: { interval?: NumberLike } = { interval: 1 },
   ): Promise<void> {
-    const interval = options.interval ?? 1;
-
-    const blocksHex = toRpcQuantity(blocks);
-    const intervalHex = toRpcQuantity(interval);
-
-    await this.#provider.request({
-      method: "hardhat_mine",
-      params: [blocksHex, intervalHex],
-    });
+    return mine(this.#provider, blocks, options);
   }
 
   /**
@@ -155,18 +111,8 @@ export class NetworkHelpers {
    * const { networkHelpers } = await hre.network.connect();
    * await networkHelpers.mineUpTo(150); // Mines until block with block number 150
    */
-  public async mineUpTo(blockNumber: NumberLike): Promise<void> {
-    const normalizedBlockNumber = await toBigInt(blockNumber);
-    const latestHeight = await toBigInt(await this.time.latestBlock());
-
-    assertLargerThan(normalizedBlockNumber, latestHeight);
-
-    const blockParam = normalizedBlockNumber - latestHeight;
-
-    await this.#provider.request({
-      method: "hardhat_mine",
-      params: [toRpcQuantity(blockParam)],
-    });
+  public mineUpTo(blockNumber: NumberLike): Promise<void> {
+    return mineUpTo(this.#provider, blockNumber, this.time);
   }
 
   /**
@@ -181,36 +127,8 @@ export class NetworkHelpers {
    * await networkHelpers.reset(); // Resets the network
    * await networkHelpers.reset("https://mainnet.infura.io", 123456); // Resets and forks from a specific block
    */
-  public async reset(url?: string, blockNumber?: NumberLike): Promise<void> {
-    clearSnapshots();
-
-    if (url === undefined) {
-      await this.#provider.request({
-        method: "hardhat_reset",
-        params: [],
-      });
-    } else if (blockNumber === undefined) {
-      await this.#provider.request({
-        method: "hardhat_reset",
-        params: [
-          {
-            forking: { jsonRpcUrl: url },
-          },
-        ],
-      });
-    } else {
-      await this.#provider.request({
-        method: "hardhat_reset",
-        params: [
-          {
-            forking: {
-              jsonRpcUrl: url,
-              blockNumber: toNumber(blockNumber),
-            },
-          },
-        ],
-      });
-    }
+  public reset(url?: string, blockNumber?: NumberLike): Promise<void> {
+    return reset(this.#provider, url, blockNumber);
   }
 
   /**
@@ -224,15 +142,8 @@ export class NetworkHelpers {
    * const { networkHelpers } = await hre.network.connect();
    * await networkHelpers.setBalance("0x123...", 1000000000000000000n); // Sets 1 ETH
    */
-  public async setBalance(address: string, balance: NumberLike): Promise<void> {
-    await assertValidAddress(address);
-
-    const balanceHex = toRpcQuantity(balance);
-
-    await this.#provider.request({
-      method: "hardhat_setBalance",
-      params: [address, balanceHex],
-    });
+  public setBalance(address: string, balance: NumberLike): Promise<void> {
+    return setBalance(this.#provider, address, balance);
   }
 
   /**
@@ -245,13 +156,8 @@ export class NetworkHelpers {
    * const { networkHelpers } = await hre.network.connect();
    * await networkHelpers.setBlockGasLimit(1000000); // Set block gas limit to 1,000,000
    */
-  public async setBlockGasLimit(blockGasLimit: NumberLike): Promise<void> {
-    const blockGasLimitHex = toRpcQuantity(blockGasLimit);
-
-    await this.#provider.request({
-      method: "evm_setBlockGasLimit",
-      params: [blockGasLimitHex],
-    });
+  public setBlockGasLimit(blockGasLimit: NumberLike): Promise<void> {
+    return setBlockGasLimit(this.#provider, blockGasLimit);
   }
 
   /**
@@ -265,14 +171,8 @@ export class NetworkHelpers {
    * const { networkHelpers } = await hre.network.connect();
    * await networkHelpers.setCode("0x123...", "0x6001600101...");
    */
-  public async setCode(address: string, code: string): Promise<void> {
-    await assertValidAddress(address);
-    assertHexString(code);
-
-    await this.#provider.request({
-      method: "hardhat_setCode",
-      params: [address, code],
-    });
+  public setCode(address: string, code: string): Promise<void> {
+    return setCode(this.#provider, address, code);
   }
 
   /**
@@ -285,13 +185,8 @@ export class NetworkHelpers {
    * const { networkHelpers } = await hre.network.connect();
    * await networkHelpers.setCoinbase("0x123...");
    */
-  public async setCoinbase(address: string): Promise<void> {
-    await assertValidAddress(address);
-
-    await this.#provider.request({
-      method: "hardhat_setCoinbase",
-      params: [address],
-    });
+  public setCoinbase(address: string): Promise<void> {
+    return setCoinbase(this.#provider, address);
   }
 
   /**
@@ -304,15 +199,8 @@ export class NetworkHelpers {
    * const { networkHelpers } = await hre.network.connect();
    * await networkHelpers.setNextBlockBaseFeePerGas(1000000); // Set base fee to 1,000,000
    */
-  public async setNextBlockBaseFeePerGas(
-    baseFeePerGas: NumberLike,
-  ): Promise<void> {
-    const baseFeePerGasHex = toRpcQuantity(baseFeePerGas);
-
-    await this.#provider.request({
-      method: "hardhat_setNextBlockBaseFeePerGas",
-      params: [baseFeePerGasHex],
-    });
+  public setNextBlockBaseFeePerGas(baseFeePerGas: NumberLike): Promise<void> {
+    return setNextBlockBaseFeePerGas(this.#provider, baseFeePerGas);
   }
 
   /**
@@ -326,14 +214,8 @@ export class NetworkHelpers {
    * const { networkHelpers } = await hre.network.connect();
    * await networkHelpers.setNonce("0x123...", 10); // Set the nonce of the account to 10
    */
-  public async setNonce(address: string, nonce: NumberLike): Promise<void> {
-    await assertValidAddress(address);
-    const nonceHex = toRpcQuantity(nonce);
-
-    await this.#provider.request({
-      method: "hardhat_setNonce",
-      params: [address, nonceHex],
-    });
+  public setNonce(address: string, nonce: NumberLike): Promise<void> {
+    return setNonce(this.#provider, address, nonce);
   }
 
   /**
@@ -346,13 +228,8 @@ export class NetworkHelpers {
    * const { networkHelpers } = await hre.network.connect();
    * await networkHelpers.setPrevRandao(123456789); // Set the PREVRANDAO value
    */
-  public async setPrevRandao(prevRandao: NumberLike): Promise<void> {
-    const paddedPrevRandao = toPaddedRpcQuantity(prevRandao, 32);
-
-    await this.#provider.request({
-      method: "hardhat_setPrevRandao",
-      params: [paddedPrevRandao],
-    });
+  public setPrevRandao(prevRandao: NumberLike): Promise<void> {
+    return setPrevRandao(this.#provider, prevRandao);
   }
 
   /**
@@ -367,20 +244,12 @@ export class NetworkHelpers {
    * const { networkHelpers } = await hre.network.connect();
    * await networkHelpers.setStorageAt("0x123...", 0, 0x0000...);
    */
-  public async setStorageAt(
+  public setStorageAt(
     address: string,
     index: NumberLike,
     value: NumberLike,
   ): Promise<void> {
-    await assertValidAddress(address);
-
-    const indexParam = toRpcQuantity(index);
-    const codeParam = toPaddedRpcQuantity(value, 32);
-
-    await this.#provider.request({
-      method: "hardhat_setStorageAt",
-      params: [address, indexParam, codeParam],
-    });
+    return setStorageAt(this.#provider, address, index, value);
   }
 
   /**
@@ -393,13 +262,8 @@ export class NetworkHelpers {
    * const { networkHelpers } = await hre.network.connect();
    * await networkHelpers.stopImpersonatingAccount("0x123...");
    */
-  public async stopImpersonatingAccount(address: string): Promise<void> {
-    await assertValidAddress(address);
-
-    await this.#provider.request({
-      method: "hardhat_stopImpersonatingAccount",
-      params: [address],
-    });
+  public stopImpersonatingAccount(address: string): Promise<void> {
+    return stopImpersonatingAccount(this.#provider, address);
   }
 
   /**
@@ -411,42 +275,7 @@ export class NetworkHelpers {
    * const snapshot = await networkHelpers.takeSnapshot();
    * await snapshot.restore(); // Restores the blockchain state
    */
-  public async takeSnapshot(): Promise<SnapshotRestorer> {
-    let snapshotId = await this.#provider.request({
-      method: "evm_snapshot",
-    });
-
-    if (typeof snapshotId !== "string") {
-      throw new HardhatError(
-        HardhatError.ERRORS.NETWORK_HELPERS.EVM_SNAPSHOT_VALUE_NOT_A_STRING,
-      );
-    }
-
-    return {
-      restore: async () => {
-        const reverted = await this.#provider.request({
-          method: "evm_revert",
-          params: [snapshotId],
-        });
-
-        if (typeof reverted !== "boolean") {
-          throw new HardhatError(
-            HardhatError.ERRORS.NETWORK_HELPERS.EVM_REVERT_VALUE_NOT_A_BOOLEAN,
-          );
-        }
-
-        if (!reverted) {
-          throw new HardhatError(
-            HardhatError.ERRORS.NETWORK_HELPERS.INVALID_SNAPSHOT,
-          );
-        }
-
-        // Re-take the snapshot so that `restore` can be called again
-        snapshotId = await this.#provider.request({
-          method: "evm_snapshot",
-        });
-      },
-      snapshotId,
-    };
+  public takeSnapshot(): Promise<SnapshotRestorer> {
+    return takeSnapshot(this.#provider);
   }
 }

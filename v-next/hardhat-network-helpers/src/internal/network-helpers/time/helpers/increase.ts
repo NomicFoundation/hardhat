@@ -1,0 +1,24 @@
+import type { NumberLike } from "../../../../types.js";
+import type { NetworkHelpers } from "../../network-helpers.js";
+import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+
+import { toBigInt, toRpcQuantity } from "../../../conversion.js";
+
+export async function increase(
+  provider: EthereumProvider,
+  networkHelpers: NetworkHelpers,
+  amountInSeconds: NumberLike,
+): Promise<number> {
+  const normalizedAmount = await toBigInt(amountInSeconds);
+  const latestTimestamp = await toBigInt(await networkHelpers.time.latest());
+  const targetTimestamp = latestTimestamp + normalizedAmount;
+
+  await provider.request({
+    method: "evm_setNextBlockTimestamp",
+    params: [toRpcQuantity(targetTimestamp)],
+  });
+
+  await networkHelpers.mine();
+
+  return networkHelpers.time.latest();
+}

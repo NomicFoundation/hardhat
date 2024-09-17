@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { Duration } from "../../src/internal/network-helpers/duration.js";
+import { Duration } from "../../src/internal/network-helpers/duration/duration.js";
 
 const duration = new Duration();
 

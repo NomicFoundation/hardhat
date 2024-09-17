@@ -1,4 +1,4 @@
-import type { Time } from "../../src/internal/network-helpers/time.js";
+import type { Time } from "../../src/internal/network-helpers/time/time.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
