@@ -37,5 +37,15 @@ export function equalsBytes(x: Uint8Array, y: Uint8Array): boolean {
   return x.length === y.length && x.every((xVal, i) => xVal === y[i]);
 }
 
+/**
+ * Converts a UTF-8 encoded string into a byte array.
+ *
+ * @param utf8String The UTF-8 encoded string to convert to bytes.
+ * @returns A Uint8Array representing the byte sequence of the input UTF-8 string.
+ */
+export function utf8StringToBytes(utf8String: string): Uint8Array {
+  return new TextEncoder().encode(utf8String);
+}
+
 export { bytesToBigInt as bytesToNumber, numberToBytes } from "./number.js";
 export { bytesToHexString, hexStringToBytes } from "./hex.js";

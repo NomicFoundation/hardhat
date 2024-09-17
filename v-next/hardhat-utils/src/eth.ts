@@ -1,7 +1,11 @@
 import type { PrefixedHexString } from "./hex.js";
 
 import { bytesToHexString, numberToHexString, setLengthLeft } from "./hex.js";
-import { getAddressGenerator, getHashGenerator } from "./internal/eth.js";
+import {
+  getAddressGenerator,
+  getHashGenerator,
+  isValidChecksum,
+} from "./internal/eth.js";
 
 /**
  * Checks if a value is an Ethereum address.
@@ -11,6 +15,18 @@ import { getAddressGenerator, getHashGenerator } from "./internal/eth.js";
  */
 export function isAddress(value: unknown): boolean {
   return typeof value === "string" && /^0x[0-9a-f]{40}$/i.test(value);
+}
+
+/**
+ * Checks if a value is an Ethereum address and if the checksum is valid.
+ *
+ * @param value The value to check.
+ * @returns True if the value is an Ethereum address with a valid checksum, false otherwise.
+ */
+export async function isValidChecksumAddress(value: unknown): Promise<boolean> {
+  return (
+    typeof value === "string" && isAddress(value) && isValidChecksum(value)
+  );
 }
 
 /**

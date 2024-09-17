@@ -1,5 +1,8 @@
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { isAddress } from "@ignored/hardhat-vnext-utils/eth";
+import {
+  isAddress,
+  isValidChecksumAddress,
+} from "@ignored/hardhat-vnext-utils/eth";
 
 export function assertHexString(hexString: string): void {
   if (typeof hexString !== "string" || !/^0x[0-9a-fA-F]+$/.test(hexString)) {
@@ -26,8 +29,6 @@ export function assertTxHash(hexString: string): void {
 }
 
 export async function assertValidAddress(address: string): Promise<void> {
-  const { isValidChecksumAddress } = await import("ethereumjs-util");
-
   if (!isAddress(address)) {
     throw new HardhatError(
       HardhatError.ERRORS.NETWORK_HELPERS.INVALID_ADDRESS,
@@ -39,7 +40,7 @@ export async function assertValidAddress(address: string): Promise<void> {
 
   const hasChecksum = address !== address.toLowerCase();
 
-  if (hasChecksum && !isValidChecksumAddress(address)) {
+  if (hasChecksum && !(await isValidChecksumAddress(address))) {
     throw new HardhatError(
       HardhatError.ERRORS.NETWORK_HELPERS.INVALID_CHECKSUM_ADDRESS,
       {

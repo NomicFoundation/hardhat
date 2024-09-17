@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { isBytes, setLengthLeft, equalsBytes } from "../src/bytes.js";
+import {
+  isBytes,
+  setLengthLeft,
+  equalsBytes,
+  utf8StringToBytes,
+} from "../src/bytes.js";
 
 describe("bytes", () => {
   describe("isBytes", () => {
@@ -75,6 +80,41 @@ describe("bytes", () => {
         !equalsBytes(bytes1, buffer),
         `${bytes1.toString()} should not equal ${buffer.toString()}`,
       );
+    });
+  });
+
+  describe("utf8StringToBytes", () => {
+    it("should convert a simple string to a byte array", () => {
+      const input = "hello";
+      const expected = new Uint8Array([104, 101, 108, 108, 111]);
+      const result = utf8StringToBytes(input);
+      assert.deepEqual(result, expected);
+    });
+
+    it("should convert a string with special characters to a byte array", () => {
+      const input = "こんにちは";
+      const expected = new Uint8Array([
+        227, 129, 147, 227, 130, 147, 227, 129, 171, 227, 129, 161, 227, 129,
+        175,
+      ]);
+      const result = utf8StringToBytes(input);
+      assert.deepEqual(result, expected);
+    });
+
+    it("should convert a hex-like string to its byte array representation", () => {
+      const input = "68656c6c6f";
+      const expected = new Uint8Array([
+        54, 56, 54, 53, 54, 99, 54, 99, 54, 102,
+      ]);
+      const result = utf8StringToBytes(input);
+      assert.deepEqual(result, expected);
+    });
+
+    it("should return an empty byte array for an empty string", () => {
+      const input = "";
+      const expected = new Uint8Array([]);
+      const result = utf8StringToBytes(input);
+      assert.deepEqual(result, expected);
     });
   });
 });
