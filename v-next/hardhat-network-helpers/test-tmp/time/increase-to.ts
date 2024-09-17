@@ -4,9 +4,8 @@ import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
-import { BN } from "ethereumjs-util";
-import { getBigInt } from "ethers";
 
+import { toBigInt } from "../../src/internal/conversion.js";
 import { initializeTime } from "../helpers/helpers.js";
 
 describe("time - increaseTo", () => {
@@ -57,33 +56,11 @@ describe("time - increaseTo", () => {
       assert.equal(endTimestamp - initialTimestamp, 3600);
     });
 
-    it("should accept an argument of type ethers's bignumber", async () => {
-      const initialTimestamp = await time.latest();
-      const newTimestamp = initialTimestamp + 3600;
-
-      await time.increaseTo(getBigInt(newTimestamp));
-      const endTimestamp = await time.latest();
-
-      assert.equal(newTimestamp, endTimestamp);
-      assert.equal(endTimestamp - initialTimestamp, 3600);
-    });
-
     it("should accept an argument of type hex string", async () => {
       const initialTimestamp = await time.latest();
       const newTimestamp = initialTimestamp + 3600;
 
-      await time.increaseTo(numberToHexString(getBigInt(newTimestamp)));
-      const endTimestamp = await time.latest();
-
-      assert.equal(newTimestamp, endTimestamp);
-      assert.equal(endTimestamp - initialTimestamp, 3600);
-    });
-
-    it("should accept an argument of type bn.js", async () => {
-      const initialTimestamp = await time.latest();
-      const newTimestamp = initialTimestamp + 3600;
-
-      await time.increaseTo(new BN(newTimestamp));
+      await time.increaseTo(numberToHexString(await toBigInt(newTimestamp)));
       const endTimestamp = await time.latest();
 
       assert.equal(newTimestamp, endTimestamp);

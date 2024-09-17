@@ -32,9 +32,9 @@ export class Time {
    * await networkHelpers.time.increase(12);
    */
   public async increase(amountInSeconds: NumberLike): Promise<number> {
-    const normalizedAmount = toBigInt(amountInSeconds);
+    const normalizedAmount = await toBigInt(amountInSeconds);
 
-    const latestTimestamp = BigInt(await this.latest());
+    const latestTimestamp = await toBigInt(await this.latest());
 
     const targetTimestamp = latestTimestamp + normalizedAmount;
 
@@ -59,7 +59,7 @@ export class Time {
    * networkHelpers.time.increaseTo(1700000000);
    */
   public async increaseTo(timestamp: NumberLike | Date): Promise<void> {
-    const normalizedTimestamp = toBigInt(
+    const normalizedTimestamp = await toBigInt(
       timestamp instanceof Date
         ? this.duration.millis(timestamp.valueOf())
         : timestamp,

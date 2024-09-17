@@ -10,8 +10,6 @@ import {
   HardhatError,
 } from "@ignored/hardhat-vnext-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
-import { BN } from "ethereumjs-util";
-import { getBigInt } from "ethers";
 
 import { initializeNetwork, rpcQuantityToNumber } from "../helpers/helpers.js";
 
@@ -91,8 +89,6 @@ describe("network-helpers - mine", () => {
       ["bigint with n notation", 100n, 100],
       ["hex encoded", "0x64", 100],
       ["hex encoded with leading zeros", "0x0A", 10],
-      ["ethers's bigint instance", getBigInt(100), 100],
-      ["bn.js instances", new BN(100), 100],
     ];
 
     for (const [type, value, expectedMinedBlocks] of blocksExamples) {
@@ -122,8 +118,6 @@ describe("network-helpers - mine", () => {
       ["bigint with n notation", 60n, 60],
       ["hex encoded", "0x3c", 60],
       ["hex encoded with leading zeros", "0x0A", 10],
-      ["ethers's bignumber instance", getBigInt(60), 60],
-      ["bn.js instances", new BN(60), 60],
     ];
 
     for (const [type, value, expectedInterval] of intervalExamples) {

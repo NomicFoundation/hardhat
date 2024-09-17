@@ -6,8 +6,6 @@ import { before, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
-import { BN } from "ethereumjs-util";
-import { getBigInt } from "ethers";
 
 import { initializeNetwork } from "../helpers/helpers.js";
 
@@ -34,8 +32,6 @@ describe("network-helpers - setStorageAt", () => {
       ["hex encoded", "0x1", 1],
       ["hex encoded with leading zeros", "0x01", 1],
       ["hex encoded with several leading zeros", "0x001", 1],
-      ["ethers's bigint instance", getBigInt(1), 1],
-      ["bn.js instance", new BN(1), 1],
     ];
 
     for (const [type, value, expectedIndex] of indexExamples) {

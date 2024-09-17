@@ -6,8 +6,6 @@ import { before, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
-import { BN } from "ethereumjs-util";
-import { getBigInt } from "ethers";
 
 import { getBalance, initializeNetwork } from "../helpers/helpers.js";
 
@@ -33,8 +31,6 @@ describe("network-helpers - setBalance", () => {
       ["bigint", BigInt(2000002), 2000002],
       ["hex encoded", "0x1e8483", 2000003],
       ["hex encoded with leading zeros", "0x01e240", 123456],
-      ["ethers's bigint instance", getBigInt(2000004), 2000004],
-      ["bn.js instances", new BN(2000005), 2000005],
     ];
 
     for (const [type, value, expectedBalance] of balanceExamples) {

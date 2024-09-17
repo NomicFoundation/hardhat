@@ -10,8 +10,6 @@ import {
   HardhatError,
 } from "@ignored/hardhat-vnext-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
-import { BN } from "ethereumjs-util";
-import { getBigInt } from "ethers";
 
 import { initializeNetwork } from "../helpers/helpers.js";
 
@@ -53,8 +51,6 @@ describe("network-helpers - setPrevRandao", () => {
       ["bigint", BigInt(2000002), 2000002n],
       ["hex encoded", "0x1e8483", 2000003n],
       ["hex encoded with leading zeros", "0x01e240", 123456n],
-      ["ethers's bigint instance", getBigInt(2000004), 2000004n],
-      ["bn.js instance", new BN(2000005), 2000005n],
     ];
 
     for (const [type, value, expectedPrevRandao] of prevRandaoExamples) {

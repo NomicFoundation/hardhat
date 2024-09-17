@@ -6,8 +6,6 @@ import { before, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
-import { BN } from "ethereumjs-util";
-import { getBigInt } from "ethers";
 
 import { initializeTime } from "../helpers/helpers.js";
 
@@ -55,8 +53,6 @@ describe("time - increase", () => {
       ["number", 100],
       ["bigint", BigInt(100)],
       ["hex encoded", "0x64"],
-      ["ethers's bignumber instance", getBigInt(100)],
-      ["bn.js instance", new BN(100)],
     ];
 
     for (const [type, value] of nonceExamples) {

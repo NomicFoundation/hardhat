@@ -6,8 +6,6 @@ import { before, describe, it } from "node:test";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
-import { BN } from "ethereumjs-util";
-import { getBigInt } from "ethers";
 
 import { toBigInt } from "../../src/internal/conversion.js";
 import { initializeNetwork } from "../helpers/helpers.js";
@@ -36,8 +34,8 @@ describe("network-helpers - mineUpTo", () => {
       async () => networkHelpers.mineUpTo(initialHeight),
       HardhatError.ERRORS.NETWORK_HELPERS.BLOCK_NUMBER_SMALLER_THAN_CURRENT,
       {
-        newValue: toBigInt(initialHeight),
-        currentValue: toBigInt(initialHeight),
+        newValue: await toBigInt(initialHeight),
+        currentValue: await toBigInt(initialHeight),
       },
     );
   });
@@ -56,7 +54,7 @@ describe("network-helpers - mineUpTo", () => {
     it("should accept an argument of type ethers's bignumber", async () => {
       const initialHeight = await networkHelpers.time.latestBlock();
 
-      await networkHelpers.mineUpTo(getBigInt(initialHeight) + 3n);
+      await networkHelpers.mineUpTo((await toBigInt(initialHeight)) + 3n);
 
       const endHeight = await networkHelpers.time.latestBlock();
 
@@ -65,19 +63,9 @@ describe("network-helpers - mineUpTo", () => {
 
     it("should accept an argument of type hex string", async () => {
       const initialHeight = await networkHelpers.time.latestBlock();
-      const targetHeight = getBigInt(initialHeight) + 3n;
+      const targetHeight = (await toBigInt(initialHeight)) + 3n;
 
       await networkHelpers.mineUpTo(numberToHexString(targetHeight));
-
-      const endHeight = await networkHelpers.time.latestBlock();
-
-      assert.equal(initialHeight + 3, endHeight);
-    });
-
-    it("should accept an argument of type bn.js", async () => {
-      const initialHeight = await networkHelpers.time.latestBlock();
-
-      await networkHelpers.mineUpTo(new BN(initialHeight).addn(3));
 
       const endHeight = await networkHelpers.time.latestBlock();
 

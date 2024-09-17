@@ -1,13 +1,14 @@
 import type { NumberLike } from "../types.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { toBigInt as toBigIntUtil } from "@ignored/hardhat-vnext-utils/bigint";
 
 export function toNumber(x: NumberLike): number {
   return Number(toRpcQuantity(x));
 }
 
-export function toBigInt(x: NumberLike): bigint {
-  return BigInt(toRpcQuantity(x));
+export async function toBigInt(x: NumberLike): Promise<bigint> {
+  return toBigIntUtil(toRpcQuantity(x));
 }
 
 export function toRpcQuantity(x: NumberLike): string {
@@ -31,10 +32,6 @@ export function toRpcQuantity(x: NumberLike): string {
       );
     }
     hex = x;
-  } else if ("toHexString" in x) {
-    hex = x.toHexString();
-  } else if ("toString" in x) {
-    hex = x.toString(16);
   } else {
     throw new HardhatError(
       HardhatError.ERRORS.NETWORK_HELPERS.CANNOT_CONVERT_TO_RPC_QUANTITY,

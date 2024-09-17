@@ -1916,9 +1916,6 @@ importers:
       '@ignored/hardhat-vnext-utils':
         specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-utils
-      ethereumjs-util:
-        specifier: ^7.1.4
-        version: 7.1.5
     devDependencies:
       '@eslint-community/eslint-plugin-eslint-comments':
         specifier: ^4.3.0
@@ -1959,9 +1956,6 @@ importers:
       eslint-plugin-no-only-tests:
         specifier: 3.1.0
         version: 3.1.0
-      ethers:
-        specifier: ^6.13.2
-        version: 6.13.2
       expect-type:
         specifier: ^0.19.0
         version: 0.19.0

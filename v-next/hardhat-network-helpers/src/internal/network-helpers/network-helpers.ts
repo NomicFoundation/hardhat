@@ -156,8 +156,8 @@ export class NetworkHelpers {
    * await networkHelpers.mineUpTo(150); // Mines until block with block number 150
    */
   public async mineUpTo(blockNumber: NumberLike): Promise<void> {
-    const normalizedBlockNumber = toBigInt(blockNumber);
-    const latestHeight = toBigInt(await this.time.latestBlock());
+    const normalizedBlockNumber = await toBigInt(blockNumber);
+    const latestHeight = await toBigInt(await this.time.latestBlock());
 
     assertLargerThan(normalizedBlockNumber, latestHeight);
 

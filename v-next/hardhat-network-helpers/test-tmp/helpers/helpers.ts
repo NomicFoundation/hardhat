@@ -3,7 +3,6 @@ import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
-import { BN, toBuffer } from "ethereumjs-util";
 
 import { NetworkHelpers } from "../../src/internal/network-helpers/network-helpers.js";
 
@@ -29,8 +28,7 @@ export async function initializeTime(): Promise<Time> {
 }
 
 export function rpcQuantityToNumber(quantity: string): number {
-  const buffer = toBuffer(quantity);
-  return new BN(buffer).toNumber();
+  return parseInt(quantity, 16);
 }
 
 export async function getBalance(
