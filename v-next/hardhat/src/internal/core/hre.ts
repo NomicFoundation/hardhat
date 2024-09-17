@@ -1,4 +1,5 @@
 import type { UnsafeHardhatRuntimeEnvironmentOptions } from "./types.js";
+import type { ArtifactsManager } from "../../types/artifacts.js";
 import type {
   HardhatUserConfig,
   HardhatConfig,
@@ -40,6 +41,7 @@ export class HardhatRuntimeEnvironmentImplementation
   // here, because it's added by a plugin. But as that plugin is builtin, its
   // type extensions also affect this module.
   public network!: NetworkManager;
+  public artifacts!: ArtifactsManager;
 
   public static async create(
     inputUserConfig: HardhatUserConfig,
