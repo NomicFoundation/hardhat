@@ -37,6 +37,7 @@ library console {
     function log() internal pure {
         _sendLogPayload(abi.encodeWithSignature("log()"));
     }
+
     function logInt(int256 p0) internal pure {
         _sendLogPayload(abi.encodeWithSignature("log(int256)", p0));
     }
@@ -1548,5 +1549,4 @@ library console {
     function log(address p0, address p1, address p2, address p3) internal pure {
         _sendLogPayload(abi.encodeWithSignature("log(address,address,address,address)", p0, p1, p2, p3));
     }
-
 }
