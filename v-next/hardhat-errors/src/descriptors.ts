@@ -68,6 +68,11 @@ export const ERROR_CATEGORIES: {
   BUILTIN_TASKS: { min: 600, max: 699, websiteTitle: "Built-in tasks errors" },
   NETWORK: { min: 700, max: 799, websiteTitle: "Network errors" },
   KEYSTORE: { min: 800, max: 899, websiteTitle: "Keystore errors" },
+  NETWORK_HELPERS: {
+    min: 900,
+    max: 999,
+    websiteTitle: "Network-helpers errors",
+  },
 };
 
 export const ERRORS = {
@@ -579,6 +584,105 @@ If you want to use a different chain type, please update your networks config.`,
       websiteTitle: "User interruption method not implemented",
       websiteDescription:
         "Within the Keystore plugin, some direct user interruptions are not implemented. They are not expected to be invoked.",
+    },
+  },
+  NETWORK_HELPERS: {
+    ONLY_ALLOW_0X_PREFIXED_STRINGS: {
+      number: 900,
+      messageTemplate: `Only hex-encoded strings prefixed with "0x" are accepted`,
+      websiteTitle: `Only hex-encoded strings prefixed with "0x" are accepted`,
+      websiteDescription: `Only hex-encoded strings prefixed with "0x" are accepted`,
+    },
+    CANNOT_CONVERT_TO_RPC_QUANTITY: {
+      number: 901,
+      messageTemplate: `The value "{value}" cannot be converted into an RPC quantity`,
+      websiteTitle: "Cannot converted into an RPC quantity",
+      websiteDescription: "The value cannot be converted into an RPC quantity",
+    },
+    INVALID_HEX_STRING: {
+      number: 902,
+      messageTemplate: `"{value}" is not a valid hex string`,
+      websiteTitle: "Invalid hex string",
+      websiteDescription: "The value is not a valid hex string",
+    },
+    INVALID_TX_HASH: {
+      number: 903,
+      messageTemplate: `"{value}" is not a valid transaction hash`,
+      websiteTitle: "Invalid transaction hash",
+      websiteDescription: "The value is not a valid transaction hash",
+    },
+    INVALID_ADDRESS: {
+      number: 904,
+      messageTemplate: `"{value}" is not a valid address`,
+      websiteTitle: "Invalid address",
+      websiteDescription: "The value is not a valid address",
+    },
+    INVALID_CHECKSUM_ADDRESS: {
+      number: 905,
+      messageTemplate: `Address "{value}" has an invalid checksum`,
+      websiteTitle: "Invalid checksum address",
+      websiteDescription: "The address has an invalid checksum",
+    },
+    BLOCK_NUMBER_SMALLER_THAN_CURRENT: {
+      number: 906,
+      messageTemplate: `The block number "{newValue}" is smaller than the current block number "{currentValue}"`,
+      websiteTitle: "Block number smaller than the current block number",
+      websiteDescription:
+        "The block number is smaller than the current block number",
+    },
+    EVM_SNAPSHOT_VALUE_NOT_A_STRING: {
+      number: 907,
+      messageTemplate: `The value returned by evm_snapshot should be a string`,
+      websiteTitle: "The evm_snapshot value should be a string",
+      websiteDescription:
+        "The value returned by evm_snapshot should be a string",
+    },
+    EVM_REVERT_VALUE_NOT_A_BOOLEAN: {
+      number: 908,
+      messageTemplate: `The value returned by evm_revert should be a boolean`,
+      websiteTitle: "The evm_revert value should be a boolean",
+      websiteDescription:
+        "The value returned by evm_revert should be a boolean",
+    },
+    INVALID_SNAPSHOT: {
+      number: 909,
+      messageTemplate: `Trying to restore an invalid snapshot.`,
+      websiteTitle: "Trying to restore an invalid snapshot.",
+      websiteDescription: "Trying to restore an invalid snapshot.",
+    },
+    EXPECTED_NON_NEGATIVE_NUMBER: {
+      number: 910,
+      messageTemplate: `Invalid input: expected a non-negative number but "{value}" was given.`,
+      websiteTitle: "Invalid input, expected a non-negative number",
+      websiteDescription: "Invalid input, expected a non-negative number",
+    },
+    CANNOT_CONVERT_NEGATIVE_NUMBER_TO_RPC_QUANTITY: {
+      number: 911,
+      messageTemplate: `Cannot convert negative number "{value}" to RPC quantity`,
+      websiteTitle: "Cannot convert negative number to RPC quantity",
+      websiteDescription: "Cannot convert negative number to RPC quantity",
+    },
+    FIXTURE_ANONYMOUS_FUNCTION_ERROR: {
+      number: 912,
+      messageTemplate: `Anonymous functions cannot be used as fixtures.
+
+You probably did something like this:
+
+    loadFixture(async () => ... );
+
+Instead, define a fixture function and refer to that same function in each call to loadFixture.
+
+Learn more at (https://hardhat.org/hardhat-network-helpers/docs/reference#fixtures)`,
+      websiteTitle: "Anonymous functions cannot be used as fixtures",
+      websiteDescription: "Anonymous functions cannot be used as fixtures",
+    },
+    FIXTURE_SNAPSHOT_ERROR: {
+      number: 913,
+      messageTemplate: `There was an error reverting the snapshot of the fixture.
+
+This might be caused by using hardhat_reset and loadFixture calls in a testcase.`,
+      websiteTitle: "Error while reverting snapshot",
+      websiteDescription: "Error while reverting snapshot",
     },
   },
 } as const;
