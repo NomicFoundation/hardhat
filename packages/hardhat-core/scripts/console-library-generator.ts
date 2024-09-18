@@ -184,15 +184,15 @@ const loggerFile = `\
 // scripts/console-library-generator.ts
 // ------------------------------------
 
-${Array.from(SINGLE_TYPES.map((t) => capitalize(t.type)))
-  .map((t) => `export const ${t}Ty = "${t}";`)
+${Array.from(SINGLE_TYPES.map((param) => capitalize(param.type)))
+  .map((type) => `export const ${type}Ty = "${type}";`)
   .join("\n")}
 
 /** Maps from a 4-byte function selector to a signature (argument types) */
 export const CONSOLE_LOG_SIGNATURES: Record<number, string[]> = {
 ${Array.from(CONSOLE_LOG_SIGNATURES)
   .map(([sig, types]) => {
-    const typeNames = types.map((t) => `${capitalize(t)}Ty`).join(", ");
+    const typeNames = types.map((type) => `${capitalize(type)}Ty`).join(", ");
     return `  ${sig}: [${typeNames}],`;
   })
   .join("\n")}
