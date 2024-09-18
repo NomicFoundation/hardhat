@@ -1,5 +1,4 @@
-import type { NetworkHelpers } from "../src/internal/network-helpers/network-helpers.js";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { NetworkHelpers } from "../../src/internal/network-helpers/network-helpers.js";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
@@ -10,16 +9,13 @@ import {
 } from "@ignored/hardhat-vnext-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
-import { loadFixture } from "../src/load-fixture.js";
+import { initializeNetwork } from "../../test-tmp/helpers/helpers.js";
 
-import { initializeNetwork } from "./helpers/helpers.js";
-
-describe("loadFixture", function () {
+describe("network-helpers - loadFixture", () => {
   let networkHelpers: NetworkHelpers;
-  let provider: EthereumProvider;
 
-  before(async function () {
-    ({ provider, networkHelpers } = await initializeNetwork());
+  before(async () => {
+    ({ networkHelpers } = await initializeNetwork());
   });
 
   it("calls the fixture the first time it's used", async function () {
@@ -32,7 +28,7 @@ describe("loadFixture", function () {
 
     const blockNumberBefore = await networkHelpers.time.latestBlock();
 
-    await loadFixture(mineBlockFixture, provider);
+    await networkHelpers.loadFixture(mineBlockFixture);
 
     const blockNumberAfter = await networkHelpers.time.latestBlock();
 
@@ -50,7 +46,7 @@ describe("loadFixture", function () {
 
     const blockNumberBefore = await networkHelpers.time.latestBlock();
 
-    await loadFixture(mineBlockFixture, provider);
+    await networkHelpers.loadFixture(mineBlockFixture);
     assert.equal(calledCount, 1);
     assert.equal(
       await networkHelpers.time.latestBlock(),
@@ -64,7 +60,7 @@ describe("loadFixture", function () {
       blockNumberBefore + 3,
     );
 
-    await loadFixture(mineBlockFixture, provider);
+    await networkHelpers.loadFixture(mineBlockFixture);
     assert.equal(calledCount, 1);
     assert.equal(
       await networkHelpers.time.latestBlock(),
@@ -79,8 +75,8 @@ describe("loadFixture", function () {
       return 123;
     }
 
-    assert.equal(await loadFixture(mineBlockFixture, provider), 123);
-    assert.equal(await loadFixture(mineBlockFixture, provider), 123);
+    assert.equal(await networkHelpers.loadFixture(mineBlockFixture), 123);
+    assert.equal(await networkHelpers.loadFixture(mineBlockFixture), 123);
   });
 
   it("should take snapshot again when trying to revert to future state", async function () {
@@ -94,10 +90,10 @@ describe("loadFixture", function () {
       await networkHelpers.mine();
     }
 
-    await loadFixture(mineBlockFixture, provider);
-    await loadFixture(mineTwoBlocksFixture, provider);
-    await loadFixture(mineBlockFixture, provider);
-    await loadFixture(mineTwoBlocksFixture, provider);
+    await networkHelpers.loadFixture(mineBlockFixture);
+    await networkHelpers.loadFixture(mineTwoBlocksFixture);
+    await networkHelpers.loadFixture(mineBlockFixture);
+    await networkHelpers.loadFixture(mineTwoBlocksFixture);
     assert.equal(calledCount, 2);
   });
 
@@ -122,7 +118,7 @@ describe("loadFixture", function () {
 
     // run all fixtures and check they were called once
     for (const fixtureFunction of fixturesFunctions) {
-      await loadFixture(fixtureFunction, provider);
+      await networkHelpers.loadFixture(fixtureFunction);
     }
     for (let i = 0; i < fixturesFunctions.length; i++) {
       assert.equal(calledCount.get(i), 1);
@@ -130,21 +126,21 @@ describe("loadFixture", function () {
 
     // we run the second fixture again, this should remove all the ones that
     // are after it
-    await loadFixture(fixturesFunctions[1], provider);
+    await networkHelpers.loadFixture(fixturesFunctions[1]);
     assert.equal(calledCount.get(1), 1);
 
     // the last fixture should be run again
-    await loadFixture(fixturesFunctions[15], provider);
+    await networkHelpers.loadFixture(fixturesFunctions[15]);
     assert.equal(calledCount.get(15), 2);
 
     // the first one shouldn't be removed
-    await loadFixture(fixturesFunctions[0], provider);
+    await networkHelpers.loadFixture(fixturesFunctions[0]);
     assert.equal(calledCount.get(0), 1);
   });
 
   it("should throw when an anonymous regular function is used", async function () {
     await assertRejectsWithHardhatError(
-      async () => loadFixture(async function () {}, provider),
+      async () => networkHelpers.loadFixture(async function () {}),
       HardhatError.ERRORS.NETWORK_HELPERS.FIXTURE_ANONYMOUS_FUNCTION_ERROR,
       {},
     );
@@ -152,7 +148,7 @@ describe("loadFixture", function () {
 
   it("should throw when an anonymous arrow function is used", async function () {
     await assertRejectsWithHardhatError(
-      async () => loadFixture(async () => {}, provider),
+      async () => networkHelpers.loadFixture(async () => {}),
       HardhatError.ERRORS.NETWORK_HELPERS.FIXTURE_ANONYMOUS_FUNCTION_ERROR,
       {},
     );

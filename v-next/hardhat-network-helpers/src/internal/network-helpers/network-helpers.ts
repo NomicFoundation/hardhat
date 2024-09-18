@@ -1,10 +1,16 @@
-import type { BlockTag, NumberLike, SnapshotRestorer } from "../../types.js";
+import type {
+  BlockTag,
+  Fixture,
+  NumberLike,
+  SnapshotRestorer,
+} from "../../types.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 
 // Import all helper functions
 import { dropTransaction } from "./helpers/drop-transaction.js";
 import { getStorageAt } from "./helpers/get-storage-at.js";
 import { impersonateAccount } from "./helpers/impersonate-account.js";
+import { clearSnapshots, loadFixture } from "./helpers/load-fixture.js";
 import { mineUpTo } from "./helpers/mine-up-to.js";
 import { mine } from "./helpers/mine.js";
 import { reset } from "./helpers/reset.js";
@@ -27,6 +33,17 @@ export class NetworkHelpers {
   constructor(provider: EthereumProvider) {
     this.#provider = provider;
     this.time = new Time(this, provider);
+  }
+
+  /**
+   * Clears every existing snapshot.
+   *
+   * @example
+   * // Clear all saved snapshots
+   * clearSnapshots();
+   */
+  public clearSnapshots(): void {
+    clearSnapshots();
   }
 
   /**
@@ -75,6 +92,32 @@ export class NetworkHelpers {
    */
   public impersonateAccount(address: string): Promise<void> {
     return impersonateAccount(this.#provider, address);
+  }
+
+  /**
+   * Loads a fixture and restores the blockchain to a snapshot state for repeated tests.
+   *
+   * The `loadFixture` function is useful in tests where you need to set up the blockchain to a desired state
+   * (like deploying contracts, minting tokens, etc.) and then run multiple tests based on that state.
+   *
+   * It executes the given fixture function, which should set up the blockchain state, and takes a snapshot of the blockchain.
+   * On subsequent calls to `loadFixture` with the same fixture function, the blockchain is restored to that snapshot
+   * rather than executing the fixture function again.
+   *
+   * ### Important:
+   * **Do not pass anonymous functions** as the fixture function. Passing an anonymous function like
+   * `loadFixture(async () => { ... })` will bypass the snapshot mechanism and result in the fixture being executed
+   * each time. Instead, always pass a named function, like `loadFixture(deployTokens)`.
+   *
+   * @param fixture A named asynchronous function that sets up the desired blockchain state and returns the fixture's data.
+   * @returns A promise that resolves to the data returned by the fixture, either from execution or a restored snapshot.
+   *
+   * @example
+   * async function setupContracts() { ... }
+   * const fixtureData = await loadFixture(setupContracts);
+   */
+  public loadFixture<T>(fixture: Fixture<T>): Promise<T> {
+    return loadFixture(this, fixture);
   }
 
   /**
@@ -128,7 +171,7 @@ export class NetworkHelpers {
    * await networkHelpers.reset("https://mainnet.infura.io", 123456); // Resets and forks from a specific block
    */
   public reset(url?: string, blockNumber?: NumberLike): Promise<void> {
-    return reset(this.#provider, url, blockNumber);
+    return reset(this, this.#provider, url, blockNumber);
   }
 
   /**
