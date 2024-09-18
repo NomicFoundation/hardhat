@@ -74,13 +74,13 @@ const CONSOLE_LOG_FUNCTIONS =
     // backwards-compatibility, e.g. logInt, logUint, logString, etc.
     .concat(
       SINGLE_TYPES.map((single) => {
-        const param = { ...single, name: "p0" } as const;
+        const param = { ...single, name: "p0" };
         const nameSuffix = capitalize(param.type.replace("int256", "int"));
 
         return {
           name: `log${nameSuffix}`,
           params: [param],
-        } as const;
+        };
       })
     )
     // Also generate the function definitions for `log` for permutations of
