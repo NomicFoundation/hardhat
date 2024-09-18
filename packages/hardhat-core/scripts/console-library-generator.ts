@@ -1,5 +1,4 @@
 import fs from "fs";
-import { bytesToInt } from "@nomicfoundation/ethereumjs-util";
 
 import { keccak256 } from "../src/internal/util/keccak";
 
@@ -42,6 +41,10 @@ type FnParam = TypeName & { name: string };
 function selector({ name = "log", params = [] as TypeName[] }) {
   const sig = params.map((p) => p.type).join(",");
   return keccak256(Buffer.from(`${name}(${sig})`)).slice(0, 4);
+}
+
+function toHex(value: Uint8Array) {
+  return "0x" + Buffer.from(value).toString("hex");
 }
 
 /** The types for which we generate `logUint`, `logString`, etc. */
@@ -136,10 +139,10 @@ logger +=
   "export const CONSOLE_LOG_SIGNATURES: Record<number, string[]> = {\n";
 
 /** Maps from a 4-byte function selector to a signature (argument types) */
-const CONSOLE_LOG_SIGNATURES: Map<number, string[]> = new Map();
+const CONSOLE_LOG_SIGNATURES: Map<string, string[]> = new Map();
 
 // Add the empty log() first
-const sigInt = bytesToInt(selector({ name: "log", params: [] }));
+const sigInt = toHex(selector({ name: "log", params: [] }));
 CONSOLE_LOG_SIGNATURES.set(sigInt, []);
 
 // Generate single parameter functions that are type-suffixed for
@@ -150,14 +153,14 @@ for (let i = 0; i < SINGLE_TYPES.length; i++) {
   const typeAliased = param.type.replace("int256", "int");
   const nameSuffix = capitalize(typeAliased);
 
-  const signature = bytesToInt(selector({ name: "log", params: [param] }));
+  const signature = toHex(selector({ name: "log", params: [param] }));
   CONSOLE_LOG_SIGNATURES.set(signature, [param.type]);
 
   // For full backwards compatibility, also support the (invalid) selectors of
   // `log(int)` and `log(uint)`. The selector encoding specifies that one has to
   // use the canonical type name but it seems that we supported it in the past.
   if (["uint256", "int256"].includes(param.type)) {
-    const signature = bytesToInt(
+    const signature = toHex(
       selector({ name: "log", params: [{ type: typeAliased }] })
     );
     CONSOLE_LOG_SIGNATURES.set(signature, [param.type]);
@@ -181,7 +184,7 @@ for (let paramCount = 0; paramCount < MAX_NUMBER_OF_PARAMETERS; paramCount++) {
     consoleSolFile += renderLogFunction({ params });
 
     const types = params.map((p) => p.type);
-    const signature = bytesToInt(selector({ name: "log", params }));
+    const signature = toHex(selector({ name: "log", params }));
     CONSOLE_LOG_SIGNATURES.set(signature, types);
 
     // Again, for full backwards compatibility, also support the (invalid)
@@ -192,7 +195,7 @@ for (let paramCount = 0; paramCount < MAX_NUMBER_OF_PARAMETERS; paramCount++) {
         type: p.type.replace("int256", "int"),
       }));
 
-      const signature = bytesToInt(selector({ name: "log", params: aliased }));
+      const signature = toHex(selector({ name: "log", params: aliased }));
       CONSOLE_LOG_SIGNATURES.set(signature, types);
     }
   }
