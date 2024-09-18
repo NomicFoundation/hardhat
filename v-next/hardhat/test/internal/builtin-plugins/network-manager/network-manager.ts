@@ -209,4 +209,57 @@ describe("NetworkManagerImplementation", () => {
       });
     });
   });
+
+  describe("network -> closeConnection hook", () => {
+    it("should call the closeConnection hook when closing a connection", async () => {
+      let hookCalled = false;
+      const networkHooks: Partial<NetworkHooks> = {
+        closeConnection: async () => {
+          hookCalled = true;
+        },
+      };
+
+      hre.hooks.registerHandlers("network", networkHooks);
+
+      const networkConnection = await networkManager.connect();
+      await networkConnection.close();
+
+      hre.hooks.unregisterHandlers("network", networkHooks);
+
+      assert.ok(hookCalled, "The closeConnection hook was not called");
+    });
+  });
+
+  describe("network -> onRequest hook", async () => {
+    it("should call the onRequest hook when making a request", async () => {
+      let hookCalled = false;
+      const onRequest: NetworkHooks["onRequest"] = async (
+        context,
+        networkConnection,
+        jsonRpcRequest,
+        next,
+      ) => {
+        hookCalled = true;
+        return next(context, networkConnection, jsonRpcRequest);
+      };
+      const networkHooks: Partial<NetworkHooks> = {
+        onRequest,
+      };
+
+      hre.hooks.registerHandlers("network", networkHooks);
+
+      const connection = await networkManager.connect();
+      // This will fail because we don't have a local node running
+      // but we don't care about the result, we just want to trigger the hook
+      try {
+        await connection.provider.request({
+          method: "eth_chainId",
+        });
+      } catch (error) {}
+
+      hre.hooks.unregisterHandlers("network", networkHooks);
+
+      assert.ok(hookCalled, "The onRequest hook was not called");
+    });
+  });
 });
