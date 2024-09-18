@@ -329,6 +329,7 @@ ignitionScope
               .maxPriorityFeePerGas,
           gasPrice: hre.config.networks[hre.network.name]?.ignition.gasPrice,
           disableFeeBumping:
+            hre.config.ignition.disableFeeBumping ??
             hre.config.networks[hre.network.name]?.ignition.disableFeeBumping,
         });
 
