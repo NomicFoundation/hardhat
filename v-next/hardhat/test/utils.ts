@@ -52,6 +52,7 @@ export const initializeTestDispatcher = async (
 
   after(() => {
     mockAgent.enableNetConnect();
+    mockAgent.close();
   });
 
   return interceptor;

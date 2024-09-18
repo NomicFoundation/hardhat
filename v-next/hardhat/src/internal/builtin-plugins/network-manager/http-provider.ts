@@ -112,7 +112,6 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
     this.#jsonRpcRequestWrapper = jsonRpcRequestWrapper;
   }
 
-  // TODO: We should test that the request is actually wrapped
   public async request(
     requestArguments: RequestArguments,
   ): Promise<SuccessfulJsonRpcResponse["result"]> {
