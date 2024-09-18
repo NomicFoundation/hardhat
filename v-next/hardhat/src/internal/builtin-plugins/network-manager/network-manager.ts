@@ -71,6 +71,7 @@ export class NetworkManagerImplementation {
 
     if (
       networkConfigOverride !== undefined &&
+      "type" in networkConfigOverride &&
       networkConfigOverride.type !==
         this.#networkConfigs[resolvedNetworkName].type
     ) {
