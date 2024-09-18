@@ -150,7 +150,6 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
     return jsonRpcResponse.result;
   }
 
-  // TODO: This should be tested
   public async close(): Promise<void> {
     // See https://github.com/nodejs/undici/discussions/3522#discussioncomment-10498734
     await this.#dispatcher.close();
