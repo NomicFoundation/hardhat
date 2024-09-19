@@ -1,5 +1,15 @@
 # hardhat
 
+## 2.22.11
+
+### Patch Changes
+
+- 601d543: Fixed a problem with provider events when `provider.init` was explicitly called before the first request.
+- 224159e: Added support for solc versions 0.8.25, 0.8.26, and 0.8.27
+- b43ed78: Added link to Ignition docs in sample projects
+- 07e0a9c: Hardhat node can now handle large response objects by streaming them.
+- 12d1980: Upgrade chokidar
+
 ## 2.22.10
 
 ### Patch Changes

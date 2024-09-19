@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 2.0.11
+
+### Patch Changes
+
+- 913b5a1: Added Blockscout as a verification provider
+
 ## 2.0.10
 
 ### Patch Changes
