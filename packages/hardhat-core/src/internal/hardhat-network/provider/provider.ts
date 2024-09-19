@@ -68,16 +68,17 @@ let _globalEdrContext: EdrContext | undefined;
 
 // Lazy initialize the global EDR context.
 export async function getGlobalEdrContext(): Promise<EdrContext> {
-  const { EdrContext, L1_CHAIN_TYPE, l1ProviderFactory } = requireNapiRsModule(
-    "@nomicfoundation/edr"
-  ) as typeof import("@nomicfoundation/edr");
+  const { EdrContext, GENERIC_CHAIN_TYPE, genericChainProviderFactory } =
+    requireNapiRsModule(
+      "@nomicfoundation/edr"
+    ) as typeof import("@nomicfoundation/edr");
 
   if (_globalEdrContext === undefined) {
     // Only one is allowed to exist
     _globalEdrContext = new EdrContext();
     await _globalEdrContext.registerProviderFactory(
-      L1_CHAIN_TYPE,
-      l1ProviderFactory()
+      GENERIC_CHAIN_TYPE,
+      genericChainProviderFactory()
     );
   }
 
@@ -171,7 +172,7 @@ export class EdrProviderWrapper
     loggerConfig: LoggerConfig,
     tracingConfig?: TracingConfig
   ): Promise<EdrProviderWrapper> {
-    const { L1_CHAIN_TYPE } = requireNapiRsModule(
+    const { GENERIC_CHAIN_TYPE } = requireNapiRsModule(
       "@nomicfoundation/edr"
     ) as typeof import("@nomicfoundation/edr");
 
@@ -219,7 +220,7 @@ export class EdrProviderWrapper
 
     const context = await getGlobalEdrContext();
     const provider = await context.createProvider(
-      L1_CHAIN_TYPE,
+      GENERIC_CHAIN_TYPE,
       {
         allowBlocksWithSameTimestamp:
           config.allowBlocksWithSameTimestamp ?? false,
