@@ -108,18 +108,6 @@ const CONSOLE_LOG_SIGNATURES: Map<string, string[]> =
     const types = params.map((p) => p.type);
     acc.set(signature, types);
 
-    // For backwards compatibility, we additionally support the (invalid)
-    // selectors that contain the `int`/`uint` aliases in the selector calculation.
-    if (params.some((p) => ["uint256", "int256"].includes(p.type))) {
-      const aliased = params.map((p) => ({
-        ...p,
-        type: p.type.replace("int256", "int"),
-      }));
-
-      const signature = toHex(selector({ name: "log", params: aliased }));
-      acc.set(signature, types);
-    }
-
     return acc;
   }, new Map());
 
