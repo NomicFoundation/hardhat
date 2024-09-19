@@ -101,15 +101,15 @@ const CONSOLE_LOG_FUNCTIONS =
     );
 
 /** Maps from a 4-byte function selector to a signature (argument types) */
-const CONSOLE_LOG_SIGNATURES: Map<string, string[]> =
-  CONSOLE_LOG_FUNCTIONS.reduce((acc, { params }) => {
-    // We always use `log` for the selector, even if it's logUint, for example.
+const CONSOLE_LOG_SIGNATURES = Object.fromEntries(
+  CONSOLE_LOG_FUNCTIONS.map(({ params }) => {
+    // We always use "log" for the selector, even if it's logUint, for example.
     const signature = toHex(selector({ name: "log", params }));
     const types = params.map((p) => p.type);
-    acc.set(signature, types);
 
-    return acc;
-  }, new Map());
+    return [signature, types];
+  })
+);
 
 // Finally, render and save the console.sol and logger.ts files
 const consoleSolFile = `\
@@ -178,7 +178,7 @@ ${Array.from(SINGLE_TYPES.map((param) => capitalize(param.type)))
 
 /** Maps from a 4-byte function selector to a signature (argument types) */
 export const CONSOLE_LOG_SIGNATURES: Record<number, string[]> = {
-${Array.from(CONSOLE_LOG_SIGNATURES)
+${Object.entries(CONSOLE_LOG_SIGNATURES)
   .map(([sig, types]) => {
     const typeNames = types.map((type) => `${capitalize(type)}Ty`).join(", ");
     return `  ${sig}: [${typeNames}],`;
