@@ -125,7 +125,7 @@ describe("init", function () {
 
     it("should fail because there is already a hardhat.config.ts file", async function () {
       await assertRejectsWithHardhatError(
-        async () => initHardhat(),
+        async () => createProject(),
         HardhatError.ERRORS.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,
         {
           hardhatProjectRootPath: await findClosestHardhatConfig(),

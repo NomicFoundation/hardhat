@@ -15,6 +15,7 @@ import { getHardhatVersion } from "../../utils/package.js";
 
 import { HARDHAT_NAME, HARDHAT_PACKAGE_NAME } from "./constants.js";
 import { EMPTY_HARDHAT_CONFIG } from "./sample-config-file.js";
+import { findClosestHardhatConfig } from "../../config-loading.js";
 
 export enum Action {
   CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG = "Create an empty hardhat.config.ts",
@@ -22,6 +23,7 @@ export enum Action {
 }
 
 export interface CreateProjectOptions {
+  workspace?: string;
   action?: string;
 }
 
@@ -32,24 +34,29 @@ export async function createProject(
 
   await printWelcomeMessage();
 
+  const workspace = await getWorkspace(options?.workspace);
+  await throwIfWorkspaceAlreadyInsideProject(workspace);
+
   const action = await getAction(options?.action);
 
   if (action === Action.QUIT) {
     return;
   }
 
-  const packageJson = await getProjectPackageJson();
+  const packageJson = await getProjectPackageJson(workspace);
   if (packageJson === undefined) {
-    await createPackageJson();
+    await createPackageJson(workspace);
   }
 
   if (action === Action.CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG) {
-    return createEmptyTypescriptHardhatConfig();
+    return createEmptyTypescriptHardhatConfig(workspace);
   }
 }
 
-async function getProjectPackageJson(): Promise<PackageJson | undefined> {
-  const pathToPackageJson = path.join(process.cwd(), "package.json");
+async function getProjectPackageJson(
+  workspace: string,
+): Promise<PackageJson | undefined> {
+  const pathToPackageJson = path.join(workspace, "package.json");
 
   if (!(await exists(pathToPackageJson))) {
     return undefined;
@@ -64,15 +71,15 @@ async function getProjectPackageJson(): Promise<PackageJson | undefined> {
   return pkg;
 }
 
-async function createEmptyTypescriptHardhatConfig() {
-  await writeEmptyHardhatConfig();
+async function createEmptyTypescriptHardhatConfig(workspace: string) {
+  await writeEmptyHardhatConfig(workspace);
 
   console.log(`✨ ${chalk.cyan(`Config file created`)} ✨`);
 
-  if (!(await isInstalled(HARDHAT_PACKAGE_NAME))) {
+  if (!(await isInstalled(workspace, HARDHAT_PACKAGE_NAME))) {
     console.log("");
     console.log(`You need to install hardhat locally to use it. Please run:`);
-    const cmd = await getRecommendedDependenciesInstallationCommand({
+    const cmd = await getRecommendedDependenciesInstallationCommand(workspace, {
       [HARDHAT_PACKAGE_NAME]: `^${await getHardhatVersion()}`,
     });
 
@@ -110,6 +117,38 @@ async function printWelcomeMessage() {
       `👷 Welcome to ${HARDHAT_NAME} v${await getHardhatVersion()} 👷\n`,
     ),
   );
+}
+
+async function getWorkspace(workspace?: string): Promise<string> {
+  if (workspace === undefined) {
+    return process.cwd();
+  }
+
+  return path.resolve(workspace);
+}
+
+async function throwIfWorkspaceAlreadyInsideProject(workspace: string) {
+  try {
+    const configFilePath = await findClosestHardhatConfig(workspace);
+
+    throw new HardhatError(
+      HardhatError.ERRORS.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,
+      {
+        hardhatProjectRootPath: configFilePath,
+      },
+    );
+  } catch (err) {
+    if (
+      HardhatError.isHardhatError(err) &&
+      err.number === HardhatError.ERRORS.GENERAL.NO_CONFIG_FILE_FOUND.number
+    ) {
+      // If a configuration file is not found, it is possible to initialize a new project,
+      // hence continuing code execution
+      return;
+    }
+
+    throw err;
+  }
 }
 
 async function getAction(action?: string): Promise<Action> {
@@ -156,8 +195,10 @@ async function getAction(action?: string): Promise<Action> {
   });
 }
 
-async function createPackageJson() {
-  await writeJsonFile("package.json", {
+async function createPackageJson(workspace: string) {
+  const pathToPackageJson = path.join(workspace, "package.json");
+
+  await writeJsonFile(pathToPackageJson, {
     name: "hardhat-project",
     type: "module",
   });
@@ -171,13 +212,16 @@ function showStarOnGitHubMessage() {
   console.log(chalk.cyan("     https://github.com/NomicFoundation/hardhat"));
 }
 
-async function writeEmptyHardhatConfig() {
+async function writeEmptyHardhatConfig(workspace: string) {
   const hardhatConfigFilename = "hardhat.config.ts";
-  return writeUtf8File(hardhatConfigFilename, EMPTY_HARDHAT_CONFIG);
+  const pathToHardhatConfig = path.join(workspace, hardhatConfigFilename);
+
+  return writeUtf8File(pathToHardhatConfig, EMPTY_HARDHAT_CONFIG);
 }
 
-async function isInstalled(dep: string) {
-  const packageJson: PackageJson = await readJsonFile("package.json");
+async function isInstalled(workspace: string, dep: string) {
+  const pathToPackageJson = path.join(workspace, "package.json");
+  const packageJson: PackageJson = await readJsonFile(pathToPackageJson);
 
   const allDependencies = {
     ...packageJson.dependencies,
@@ -188,28 +232,33 @@ async function isInstalled(dep: string) {
   return dep in allDependencies;
 }
 
-async function getRecommendedDependenciesInstallationCommand(dependencies: {
-  [name: string]: string;
-}): Promise<string[]> {
+async function getRecommendedDependenciesInstallationCommand(
+  workspace: string,
+  dependencies: {
+    [name: string]: string;
+  },
+): Promise<string[]> {
   const deps = Object.entries(dependencies).map(
     ([name, version]) => `"${name}@${version}"`,
   );
 
-  if (await isYarnProject()) {
+  if (await isYarnProject(workspace)) {
     return ["yarn", "add", "--dev", ...deps];
   }
 
-  if (await isPnpmProject()) {
+  if (await isPnpmProject(workspace)) {
     return ["pnpm", "add", "-D", ...deps];
   }
 
   return ["npm", "install", "--save-dev", ...deps];
 }
 
-async function isYarnProject() {
-  return exists("yarn.lock");
+async function isYarnProject(workspace: string) {
+  const pathToYarnLock = path.join(workspace, "yarn.lock");
+  return exists(pathToYarnLock);
 }
 
-async function isPnpmProject() {
-  return exists("pnpm-lock.yaml");
+async function isPnpmProject(workspace: string) {
+  const pathToPnpmLock = path.join(workspace, "pnpm-lock.yaml");
+  return exists(pathToPnpmLock);
 }
