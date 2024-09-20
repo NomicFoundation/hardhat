@@ -2,37 +2,31 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 import { findClosestHardhatConfig } from "../../config-loading.js";
 
-import { createProject } from "./project-creation.js";
+import { createProject, CreateProjectOptions } from "./project-creation.js";
 
 export interface InitHardhatOptions {
-  createEmptyTypescriptHardhatConfig?: boolean;
+  project?: CreateProjectOptions;
 }
 
 export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
   await throwIfCwdAlreadyInsideProject();
 
-  if (
-    process.stdout.isTTY === true ||
-    options?.createEmptyTypescriptHardhatConfig === true
-  ) {
-    await createProject({
-      createEmptyTypescriptHardhatConfig:
-        options?.createEmptyTypescriptHardhatConfig,
-    });
-    return;
-  }
-
-  // Many terminal emulators in windows fail to run the createProject()
-  // workflow, and don't present themselves as TTYs. If we are in this
-  // situation we throw a special error instructing the user to use WSL or
-  // powershell to initialize the project.
-  if (process.platform === "win32") {
+  // Project initialization in a non-interactive shell is currently not supported
+  if (process.stdout.isTTY !== true) {
+    // Many terminal emulators in windows don't present themselves as TTYs.
+    // If we are in this situation we throw a special error instructing the user
+    // to use WSL or powershell to initialize the project.
+    if (process.platform === "win32") {
+      throw new HardhatError(
+        HardhatError.ERRORS.GENERAL.NOT_INSIDE_PROJECT_ON_WINDOWS,
+      );
+    }
     throw new HardhatError(
-      HardhatError.ERRORS.GENERAL.NOT_INSIDE_PROJECT_ON_WINDOWS,
+      HardhatError.ERRORS.GENERAL.NOT_IN_INTERACTIVE_SHELL,
     );
   }
 
-  throw new HardhatError(HardhatError.ERRORS.GENERAL.NOT_IN_INTERACTIVE_SHELL);
+  await createProject(options?.project);
 }
 
 async function throwIfCwdAlreadyInsideProject() {

@@ -16,6 +16,10 @@ import {
 import { initHardhat } from "../../../../src/internal/cli/init/init.js";
 import { EMPTY_HARDHAT_CONFIG } from "../../../../src/internal/cli/init/sample-config-file.js";
 import { findClosestHardhatConfig } from "../../../../src/internal/config-loading.js";
+import {
+  Action,
+  createProject,
+} from "../../../../src/internal/cli/init/project-creation.js";
 
 async function deleteHardhatConfigFile() {
   await remove(path.join(process.cwd(), "hardhat.config.ts"));
@@ -45,8 +49,8 @@ describe("init", function () {
     useFixtureProject("cli/init/empty-folder");
 
     it("should create a package.json file and a hardhat.config.ts file", async function () {
-      await initHardhat({
-        createEmptyTypescriptHardhatConfig: true,
+      await createProject({
+        action: Action.CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG,
       });
 
       assert.deepEqual(await readJsonFile("package.json"), {
@@ -69,8 +73,8 @@ describe("init", function () {
     useFixtureProject("cli/init/valid-project-config");
 
     it("should create a hardhat.config.ts file", async function () {
-      await initHardhat({
-        createEmptyTypescriptHardhatConfig: true,
+      await createProject({
+        action: Action.CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG,
       });
 
       assert.deepEqual(await readJsonFile("package.json"), {
@@ -91,8 +95,8 @@ describe("init", function () {
       it("should throw an error because the project is not of type esm", async function () {
         await assertRejectsWithHardhatError(
           async () =>
-            initHardhat({
-              createEmptyTypescriptHardhatConfig: true,
+            createProject({
+              action: Action.CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG,
             }),
           HardhatError.ERRORS.GENERAL.ONLY_ESM_SUPPORTED,
           {},
@@ -106,8 +110,8 @@ describe("init", function () {
       it("should throw an error because the project is not of type esm", async function () {
         await assertRejectsWithHardhatError(
           async () =>
-            initHardhat({
-              createEmptyTypescriptHardhatConfig: true,
+            createProject({
+              action: Action.CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG,
             }),
           HardhatError.ERRORS.GENERAL.ONLY_ESM_SUPPORTED,
           {},

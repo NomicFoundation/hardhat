@@ -16,13 +16,13 @@ import { getHardhatVersion } from "../../utils/package.js";
 import { HARDHAT_NAME, HARDHAT_PACKAGE_NAME } from "./constants.js";
 import { EMPTY_HARDHAT_CONFIG } from "./sample-config-file.js";
 
-enum Action {
+export enum Action {
   CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG = "Create an empty hardhat.config.ts",
   QUIT = "Quit",
 }
 
-interface CreateProjectOptions {
-  createEmptyTypescriptHardhatConfig?: boolean;
+export interface CreateProjectOptions {
+  action?: string;
 }
 
 export async function createProject(
@@ -32,12 +32,7 @@ export async function createProject(
 
   await printWelcomeMessage();
 
-  let action;
-  if (options?.createEmptyTypescriptHardhatConfig === true) {
-    action = Action.CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG;
-  } else {
-    action = await getAction();
-  }
+  const action = await getAction(options?.action);
 
   if (action === Action.QUIT) {
     return;
@@ -117,44 +112,48 @@ async function printWelcomeMessage() {
   );
 }
 
-async function getAction(): Promise<Action> {
-  try {
-    const { default: enquirer } = await import("enquirer");
+async function getAction(action?: string): Promise<Action> {
+  if (action === undefined) {
+    try {
+      const { default: enquirer } = await import("enquirer");
 
-    const actionResponse = await enquirer.prompt<{ action: string }>([
-      {
-        name: "action",
-        type: "select",
-        message: "What do you want to do?",
-        initial: 0,
-        choices: Object.values(Action).map((a: Action) => {
-          return {
-            name: a,
-            message: a,
-            value: a,
-          };
-        }),
-      },
-    ]);
+      const actionResponse = await enquirer.prompt<{ action: string }>([
+        {
+          name: "action",
+          type: "select",
+          message: "What do you want to do?",
+          initial: 0,
+          choices: Object.values(Action).map((a: Action) => {
+            return {
+              name: a,
+              message: a,
+              value: a,
+            };
+          }),
+        },
+      ]);
 
-    const actions: Action[] = Object.values(Action);
-    for (const a of actions) {
-      if (a === actionResponse.action) {
-        return a;
+      action = actionResponse.action;
+    } catch (e) {
+      if (e === "") {
+        // If the user cancels the prompt, we quit
+        return Action.QUIT;
       }
-    }
 
-    throw new HardhatError(HardhatError.ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
-      operation: `Responding with "${actionResponse.action}" to the project initialization wizard`,
-    });
-  } catch (e) {
-    if (e === "") {
-      // If the user cancels the prompt, we quit
-      return Action.QUIT;
+      throw e;
     }
-
-    throw e;
   }
+
+  const actions: Action[] = Object.values(Action);
+  for (const a of actions) {
+    if (a === action) {
+      return a;
+    }
+  }
+
+  throw new HardhatError(HardhatError.ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
+    operation: `Responding with "${action}" to the project initialization wizard`,
+  });
 }
 
 async function createPackageJson() {
