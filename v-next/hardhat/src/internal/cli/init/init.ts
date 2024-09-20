@@ -4,14 +4,21 @@ import { findClosestHardhatConfig } from "../../config-loading.js";
 
 import { createProject } from "./project-creation.js";
 
-export async function initHardhat(): Promise<void> {
+export interface InitHardhatOptions {
+  createEmptyTypescriptHardhatConfig?: boolean;
+}
+
+export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
   await throwIfCwdAlreadyInsideProject();
 
   if (
     process.stdout.isTTY === true ||
-    process.env.HARDHAT_CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG !== undefined
+    options?.createEmptyTypescriptHardhatConfig === true
   ) {
-    await createProject();
+    await createProject({
+      createEmptyTypescriptHardhatConfig:
+        options?.createEmptyTypescriptHardhatConfig,
+    });
     return;
   }
 

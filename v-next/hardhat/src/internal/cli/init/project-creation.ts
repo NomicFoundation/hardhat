@@ -21,12 +21,24 @@ enum Action {
   QUIT = "Quit",
 }
 
-export async function createProject(): Promise<void> {
+interface CreateProjectOptions {
+  createEmptyTypescriptHardhatConfig?: boolean;
+}
+
+export async function createProject(
+  options?: CreateProjectOptions,
+): Promise<void> {
   printAsciiLogo();
 
   await printWelcomeMessage();
 
-  const action = await getAction();
+  let action;
+  if (options?.createEmptyTypescriptHardhatConfig === true) {
+    action = Action.CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG;
+  } else {
+    action = await getAction();
+  }
+
   if (action === Action.QUIT) {
     return;
   }
@@ -106,14 +118,6 @@ async function printWelcomeMessage() {
 }
 
 async function getAction(): Promise<Action> {
-  // If a matching ENV variable is passed, we do not prompt the user
-  if (
-    process.env.HARDHAT_CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG !== undefined
-  ) {
-    return Action.CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG;
-  }
-
-  // No ENV variable is passed, we prompt the user
   try {
     const { default: enquirer } = await import("enquirer");
 

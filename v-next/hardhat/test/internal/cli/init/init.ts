@@ -45,9 +45,9 @@ describe("init", function () {
     useFixtureProject("cli/init/empty-folder");
 
     it("should create a package.json file and a hardhat.config.ts file", async function () {
-      process.env.HARDHAT_CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG = "true";
-
-      await initHardhat();
+      await initHardhat({
+        createEmptyTypescriptHardhatConfig: true,
+      });
 
       assert.deepEqual(await readJsonFile("package.json"), {
         name: "hardhat-project",
@@ -69,9 +69,9 @@ describe("init", function () {
     useFixtureProject("cli/init/valid-project-config");
 
     it("should create a hardhat.config.ts file", async function () {
-      process.env.HARDHAT_CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG = "true";
-
-      await initHardhat();
+      await initHardhat({
+        createEmptyTypescriptHardhatConfig: true,
+      });
 
       assert.deepEqual(await readJsonFile("package.json"), {
         type: "module",
@@ -89,10 +89,11 @@ describe("init", function () {
       useFixtureProject("cli/init/not-esm-project/missing-package-type");
 
       it("should throw an error because the project is not of type esm", async function () {
-        process.env.HARDHAT_CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG = "true";
-
         await assertRejectsWithHardhatError(
-          async () => initHardhat(),
+          async () =>
+            initHardhat({
+              createEmptyTypescriptHardhatConfig: true,
+            }),
           HardhatError.ERRORS.GENERAL.ONLY_ESM_SUPPORTED,
           {},
         );
@@ -103,10 +104,11 @@ describe("init", function () {
       useFixtureProject("cli/init/not-esm-project/not-esm-type");
 
       it("should throw an error because the project is not of type esm", async function () {
-        process.env.HARDHAT_CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG = "true";
-
         await assertRejectsWithHardhatError(
-          async () => initHardhat(),
+          async () =>
+            initHardhat({
+              createEmptyTypescriptHardhatConfig: true,
+            }),
           HardhatError.ERRORS.GENERAL.ONLY_ESM_SUPPORTED,
           {},
         );
