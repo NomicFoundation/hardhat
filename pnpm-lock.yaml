@@ -1461,6 +1461,9 @@ importers:
 
   v-next/hardhat:
     dependencies:
+      '@ignored/edr':
+        specifier: 0.6.2-alpha.0
+        version: 0.6.2-alpha.0
       '@ignored/hardhat-vnext-build-system':
         specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-build-system
@@ -2799,6 +2802,38 @@ packages:
   '@humanwhocodes/object-schema@2.0.3':
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
     deprecated: Use @eslint/object-schema instead
+
+  '@ignored/edr-darwin-arm64@0.6.2-alpha.0':
+    resolution: {integrity: sha512-n4JNpWOuI522lzCi04qyOG9SExgR/AsrSWmfv5LmU+c6yjaQtSbzblSu3PjnEjvHDtXUZ9AJKtrMKuOQ9Ljvdw==}
+    engines: {node: '>= 18'}
+
+  '@ignored/edr-darwin-x64@0.6.2-alpha.0':
+    resolution: {integrity: sha512-5qmLwStOyB66r08n92ncOxKGT7y72ociOeRp1HN9nRT9/5i5TBySQwvFRo4RrLQw41OZasRAb2iSZIAHAfpgew==}
+    engines: {node: '>= 18'}
+
+  '@ignored/edr-linux-arm64-gnu@0.6.2-alpha.0':
+    resolution: {integrity: sha512-q9fR23ulwQ8sTbmW+b3cni7HNxAhP3S5JdcTUNP8846YXV4utdbJjqBZOUP0RHoJdi8iA5w7RKYSpB9MZ6nHkQ==}
+    engines: {node: '>= 18'}
+
+  '@ignored/edr-linux-arm64-musl@0.6.2-alpha.0':
+    resolution: {integrity: sha512-yU4nOQ0rMK3aShC0qwyz2xXo+caIvgQmoaai9s99Wct3im3EUgcZMO0eXC7wRyHbPUoX1PdbJaZ3C9f/xk7OQg==}
+    engines: {node: '>= 18'}
+
+  '@ignored/edr-linux-x64-gnu@0.6.2-alpha.0':
+    resolution: {integrity: sha512-FPE39nAiTSnbAuM7pYdECeXIkiQvNl/mzpCCAASipYmmd4L6ny+UZ+crRdrT2z7Z19buax/jU3vvRlrIRKV1rQ==}
+    engines: {node: '>= 18'}
+
+  '@ignored/edr-linux-x64-musl@0.6.2-alpha.0':
+    resolution: {integrity: sha512-2xdeo7OqXNYCRCLncJ85G5N6dcpKxlrLc+LBnOvotJe20IDIOngkKr5g5IvdvFTFPQEMXbk4TRV6KaRCcBAfvw==}
+    engines: {node: '>= 18'}
+
+  '@ignored/edr-win32-x64-msvc@0.6.2-alpha.0':
+    resolution: {integrity: sha512-DB8TqWBY+P+FOqeY0Ro1EmTVjN7qg/XUiHU+xWpXRI5NJCzo1s6jN3aW/qN+B5Y6CJOh6wWlDBI8dIGKipZ/8A==}
+    engines: {node: '>= 18'}
+
+  '@ignored/edr@0.6.2-alpha.0':
+    resolution: {integrity: sha512-+11Ko0C1dEh3eObH2ju10HoptUmzIQzJhwluuPrvRyypGUbYVzNYJyMQorRlT5SEKqmR9S/FcptUHD5AITl58A==}
+    engines: {node: '>= 18'}
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -7378,6 +7413,37 @@ snapshots:
   '@humanwhocodes/module-importer@1.0.1': {}
 
   '@humanwhocodes/object-schema@2.0.3': {}
+
+  '@ignored/edr-darwin-arm64@0.6.2-alpha.0':
+    optional: true
+
+  '@ignored/edr-darwin-x64@0.6.2-alpha.0':
+    optional: true
+
+  '@ignored/edr-linux-arm64-gnu@0.6.2-alpha.0':
+    optional: true
+
+  '@ignored/edr-linux-arm64-musl@0.6.2-alpha.0':
+    optional: true
+
+  '@ignored/edr-linux-x64-gnu@0.6.2-alpha.0':
+    optional: true
+
+  '@ignored/edr-linux-x64-musl@0.6.2-alpha.0':
+    optional: true
+
+  '@ignored/edr-win32-x64-msvc@0.6.2-alpha.0':
+    optional: true
+
+  '@ignored/edr@0.6.2-alpha.0':
+    optionalDependencies:
+      '@ignored/edr-darwin-arm64': 0.6.2-alpha.0
+      '@ignored/edr-darwin-x64': 0.6.2-alpha.0
+      '@ignored/edr-linux-arm64-gnu': 0.6.2-alpha.0
+      '@ignored/edr-linux-arm64-musl': 0.6.2-alpha.0
+      '@ignored/edr-linux-x64-gnu': 0.6.2-alpha.0
+      '@ignored/edr-linux-x64-musl': 0.6.2-alpha.0
+      '@ignored/edr-win32-x64-msvc': 0.6.2-alpha.0
 
   '@isaacs/cliui@8.0.2':
     dependencies:
