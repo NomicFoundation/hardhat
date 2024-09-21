@@ -447,9 +447,6 @@ importers:
       debug:
         specifier: ^4.1.1
         version: 4.3.4(supports-color@8.1.1)
-      lodash.isequal:
-        specifier: ^4.5.0
-        version: 4.5.0
       picocolors:
         specifier: ^1.1.0
         version: 1.1.0
@@ -469,9 +466,6 @@ importers:
       '@types/debug':
         specifier: ^4.1.4
         version: 4.1.12
-      '@types/lodash.isequal':
-        specifier: ^4.5.6
-        version: 4.5.8
       '@types/mocha':
         specifier: '>=9.1.0'
         version: 10.0.6
@@ -2744,9 +2738,6 @@ packages:
 
   '@types/lodash.clonedeep@4.5.9':
     resolution: {integrity: sha512-19429mWC+FyaAhOLzsS8kZUsI+/GmBAQ0HFiCPsKGU+7pBXOQWhyrY6xNNDwUSX8SMZMJvuFVMF9O5dQOlQK9Q==}
-
-  '@types/lodash.isequal@4.5.8':
-    resolution: {integrity: sha512-uput6pg4E/tj2LGxCZo9+y27JNyB2OZuuI/T5F+ylVDYuqICLG2/ktjxx0v6GvVntAf8TvEzeQLcV0ffRirXuA==}
 
   '@types/lodash.memoize@4.1.9':
     resolution: {integrity: sha512-glY1nQuoqX4Ft8Uk+KfJudOD7DQbbEDF6k9XpGncaohW3RW4eSWBlx6AA0fZCrh40tZcQNH4jS/Oc59J6Eq+aw==}
@@ -5163,9 +5154,6 @@ packages:
 
   lodash.get@4.4.2:
     resolution: {integrity: sha512-z+Uw/vLuy6gQe8cfaFWD7p0wVv8fJl3mbzXh33RS+0oW2wvUqiRXiQ69gLWSLpgB5/6sU+r6BlQR0MBILadqTQ==}
-
-  lodash.isequal@4.5.0:
-    resolution: {integrity: sha512-pDo3lu8Jhfjqls6GkMgpahsF9kCyayhgykjyLMNFTKWrpVdAQtYyB4muAMWozBB4ig/dtWAmsMxLEI8wuz+DYQ==}
 
   lodash.memoize@4.1.2:
     resolution: {integrity: sha512-t7j+NzmgnQzTAYXcsHYLgimltOV1MXHtlOWf6GjL9Kj8GK5FInw5JotxvbOs+IvV1/Dzo04/fCGfLVs7aXb4Ag==}
@@ -8719,10 +8707,6 @@ snapshots:
     dependencies:
       '@types/lodash': 4.17.4
 
-  '@types/lodash.isequal@4.5.8':
-    dependencies:
-      '@types/lodash': 4.17.4
-
   '@types/lodash.memoize@4.1.9':
     dependencies:
       '@types/lodash': 4.17.4
@@ -11516,8 +11500,6 @@ snapshots:
   lodash.flattendeep@4.4.0: {}
 
   lodash.get@4.4.2: {}
-
-  lodash.isequal@4.5.0: {}
 
   lodash.memoize@4.1.2: {}
 
