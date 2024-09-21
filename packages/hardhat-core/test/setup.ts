@@ -1,6 +1,6 @@
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-import chalk from "chalk";
+import chalk from "picocolors";
 
 chai.use(chaiAsPromised);
 

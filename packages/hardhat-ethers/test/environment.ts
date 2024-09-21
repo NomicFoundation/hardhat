@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import chalk from "picocolors";
 import fs from "fs";
 import { HardhatRuntimeEnvironment, HardhatUserConfig } from "hardhat/types";
 import { resetHardhatContext } from "hardhat/plugins-testing";

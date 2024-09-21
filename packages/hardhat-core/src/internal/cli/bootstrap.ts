@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import chalk from "chalk";
+import chalk from "picocolors";
 
 import { isNodeVersionToWarnOn } from "./is-node-version-to-warn-on";
 

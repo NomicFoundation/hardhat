@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import chalk from "picocolors";
 import { subtask, task, types } from "../internal/core/config/config-env";
 import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";

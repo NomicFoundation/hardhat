@@ -1,5 +1,5 @@
 import type { VmTraceDecoder as VmTraceDecoderT } from "@nomicfoundation/edr";
-import chalk from "chalk";
+import chalk from "picocolors";
 import debug from "debug";
 import { Reporter } from "../../sentry/reporter";
 import { TracingConfig } from "../provider/node-types";

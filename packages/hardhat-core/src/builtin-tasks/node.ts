@@ -1,6 +1,6 @@
 import type EthereumjsUtilT from "@nomicfoundation/ethereumjs-util";
 
-import chalk from "chalk";
+import chalk from "picocolors";
 import debug from "debug";
 import fsExtra from "fs-extra";
 

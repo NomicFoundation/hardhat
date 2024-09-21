@@ -19,7 +19,7 @@ import type {
   HttpHeader,
 } from "@nomicfoundation/edr";
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import chalk from "chalk";
+import chalk from "picocolors";
 import debug from "debug";
 import { EventEmitter } from "events";
 import fsExtra from "fs-extra";

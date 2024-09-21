@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import chalk from "picocolors";
 import debug from "debug";
 import "source-map-support/register";
 

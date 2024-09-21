@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import chalk from "picocolors";
 import { FSWatcher } from "chokidar";
 import debug from "debug";
 import fsExtra from "fs-extra";

@@ -5,7 +5,7 @@ import fs from "fs-extra";
 import * as os from "os";
 import sinon, { SinonSandbox } from "sinon";
 import { assert, expect } from "chai";
-import chalk from "chalk";
+import chalk from "picocolors";
 import enquirer from "enquirer";
 import { HardhatContext } from "../../../../src/internal/context";
 import { handleVars } from "../../../../src/internal/cli/vars";

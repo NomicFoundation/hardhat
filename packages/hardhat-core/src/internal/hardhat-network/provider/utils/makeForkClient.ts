@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import chalk from "picocolors";
 
 import { HARDHAT_NETWORK_NAME } from "../../../constants";
 import { assertHardhatInvariant } from "../../../core/errors";

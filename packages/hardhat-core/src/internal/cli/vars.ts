@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import chalk from "picocolors";
 import debug from "debug";
 import { HardhatError, assertHardhatInvariant } from "../core/errors";
 import { ERRORS } from "../core/errors-list";

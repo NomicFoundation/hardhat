@@ -2,7 +2,7 @@ import { assert } from "chai";
 import fs from "fs";
 
 import sinon, { SinonSpy } from "sinon";
-import chalk from "chalk";
+import chalk from "picocolors";
 import {
   TASK_FLATTEN,
   TASK_FLATTEN_GET_FLATTENED_SOURCE,

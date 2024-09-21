@@ -6,7 +6,7 @@ import type {
   BlockscoutConfig,
 } from "../types";
 
-import chalk from "chalk";
+import chalk from "picocolors";
 
 export function etherscanConfigExtender(
   config: HardhatConfig,

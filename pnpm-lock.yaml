@@ -236,9 +236,6 @@ importers:
       boxen:
         specifier: ^5.1.2
         version: 5.1.2
-      chalk:
-        specifier: ^2.4.2
-        version: 2.4.2
       chokidar:
         specifier: ^4.0.0
         version: 4.0.1
@@ -293,6 +290,9 @@ importers:
       p-map:
         specifier: ^4.0.0
         version: 4.0.0
+      picocolors:
+        specifier: ^1.1.0
+        version: 1.1.0
       raw-body:
         specifier: ^2.4.1
         version: 2.5.2
@@ -450,6 +450,9 @@ importers:
       lodash.isequal:
         specifier: ^4.5.0
         version: 4.5.0
+      picocolors:
+        specifier: ^1.1.0
+        version: 1.1.0
     devDependencies:
       '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
         specifier: workspace:^
@@ -490,9 +493,6 @@ importers:
       chai-as-promised:
         specifier: ^7.1.1
         version: 7.1.2(chai@4.5.0)
-      chalk:
-        specifier: ^2.4.2
-        version: 2.4.2
       eslint:
         specifier: ^8.44.0
         version: 8.57.1
@@ -535,9 +535,9 @@ importers:
 
   packages/hardhat-foundry:
     dependencies:
-      chalk:
-        specifier: ^2.4.2
-        version: 2.4.2
+      picocolors:
+        specifier: ^1.1.0
+        version: 1.1.0
     devDependencies:
       '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
         specifier: workspace:^
@@ -1366,15 +1366,15 @@ importers:
       cbor:
         specifier: ^8.1.0
         version: 8.1.0
-      chalk:
-        specifier: ^2.4.2
-        version: 2.4.2
       debug:
         specifier: ^4.1.1
         version: 4.3.7(supports-color@8.1.1)
       lodash.clonedeep:
         specifier: ^4.5.0
         version: 4.5.0
+      picocolors:
+        specifier: ^1.1.0
+        version: 1.1.0
       semver:
         specifier: ^6.3.0
         version: 6.3.1
@@ -5670,6 +5670,9 @@ packages:
 
   performance-now@2.1.0:
     resolution: {integrity: sha512-7EAHlyLHI56VEIdK57uwHdHKIaAGbnXPiw0yWbarQZOKaKpvUIgW0jWRVLiatnM+XXlSwsanIBH/hzGMJulMow==}
+
+  picocolors@1.1.0:
+    resolution: {integrity: sha512-TQ92mBOW0l3LeMeyLV6mzy/kWr8lkd/hp3mTg7wYK7zJhuBStmGMBG0BdeDZS/dZx1IukaX6Bk11zcln25o1Aw==}
 
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
@@ -11925,6 +11928,8 @@ snapshots:
       sha.js: 2.4.11
 
   performance-now@2.1.0: {}
+
+  picocolors@1.1.0: {}
 
   picocolors@1.1.1: {}
 
