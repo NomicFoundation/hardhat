@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import chalk from "picocolors";
 import { exec as execCallback, execSync } from "child_process";
 import { NomicLabsHardhatPluginError } from "hardhat/internal/core/errors";
 import { promisify } from "util";

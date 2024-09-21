@@ -2,7 +2,7 @@ import type { JsonFragment } from "@ethersproject/abi";
 import type { SolidityConfig } from "hardhat/types";
 import type { ChainConfig } from "../types";
 
-import chalk from "chalk";
+import chalk from "picocolors";
 import path from "path";
 import { builtinChains } from "./chain-config";
 import {

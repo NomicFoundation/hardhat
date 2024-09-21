@@ -5,7 +5,7 @@ import type {
 } from "./internal/solc/artifacts";
 import type { Bytecode } from "./internal/solc/bytecode";
 
-import chalk from "chalk";
+import chalk from "picocolors";
 import { extendConfig, subtask, task, types } from "hardhat/config";
 
 import {

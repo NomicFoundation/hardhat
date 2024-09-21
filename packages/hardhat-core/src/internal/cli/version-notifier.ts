@@ -1,5 +1,5 @@
 import boxen from "boxen";
-import chalk from "chalk";
+import chalk from "picocolors";
 import fsExtra from "fs-extra";
 import { join } from "node:path";
 import { mkdir, readFile, writeFile } from "node:fs/promises";

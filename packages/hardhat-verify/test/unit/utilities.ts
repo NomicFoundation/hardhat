@@ -5,7 +5,7 @@ import type { ChainConfig } from "../../src/types";
 import path from "path";
 import { assert, expect } from "chai";
 import sinon from "sinon";
-import chalk from "chalk";
+import chalk from "picocolors";
 
 import {
   encodeArguments,

@@ -1,5 +1,5 @@
 import os from "os";
-import chalk from "chalk";
+import chalk from "picocolors";
 import debug from "debug";
 import fsExtra from "fs-extra";
 import semver from "semver";
@@ -800,11 +800,11 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
           getFormattedInternalCompilerErrorMessage(error) ??
           error.formattedMessage;
 
-        console.error(errorMessage.replace(/^\w+:/, (t) => chalk.red.bold(t)));
+        console.error(errorMessage.replace(/^\w+:/, (t) => chalk.bold(chalk.red(t))));
       } else {
         console.warn(
           (error.formattedMessage as string).replace(/^\w+:/, (t) =>
-            chalk.yellow.bold(t)
+            chalk.bold(chalk.yellow(t))
           )
         );
       }
