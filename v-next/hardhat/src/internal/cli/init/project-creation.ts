@@ -1,20 +1,26 @@
-import type { PackageJson } from "@ignored/hardhat-vnext-utils/package";
+import {
+  findClosestPackageRoot,
+  PackageJsonNotFoundError,
+  type PackageJson,
+} from "@ignored/hardhat-vnext-utils/package";
 
 import path from "node:path";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import {
+  copy,
+  ensureDir,
   exists,
+  getAllFilesMatching,
+  isDirectory,
   readJsonFile,
   writeJsonFile,
-  writeUtf8File,
 } from "@ignored/hardhat-vnext-utils/fs";
 import chalk from "chalk";
 
 import { getHardhatVersion } from "../../utils/package.js";
 
-import { HARDHAT_NAME, HARDHAT_PACKAGE_NAME } from "./constants.js";
-import { EMPTY_HARDHAT_CONFIG } from "./sample-config-file.js";
+import { HARDHAT_NAME } from "./constants.js";
 import { findClosestHardhatConfig } from "../../config-loading.js";
 
 export enum Action {
@@ -72,23 +78,129 @@ async function getProjectPackageJson(
 }
 
 async function createEmptyTypescriptHardhatConfig(workspace: string) {
-  await writeEmptyHardhatConfig(workspace);
+  const template = "empty-typescript";
+
+  const packageRoot = await findClosestPackageRoot(import.meta.url);
+  const pathToTemplate = path.join(packageRoot, "templates", template);
+
+  if (!(await exists(pathToTemplate)) || !(await isDirectory(pathToTemplate))) {
+    throw new HardhatError(HardhatError.ERRORS.GENERAL.TEMPLATE_NOT_FOUND, {
+      template,
+    });
+  }
+
+  const pathToTemplatePackageJson = path.join(pathToTemplate, "package.json");
+  const pathToWorkspacePackageJson = path.join(workspace, "package.json");
+
+  if (!(await exists(pathToTemplatePackageJson))) {
+    throw new PackageJsonNotFoundError(pathToTemplatePackageJson);
+  }
+  if (!(await exists(pathToWorkspacePackageJson))) {
+    throw new PackageJsonNotFoundError(pathToWorkspacePackageJson);
+  }
+
+  const templateFiles = await getAllFilesMatching(pathToTemplate).then(
+    (files) =>
+      files
+        .map((f) => path.relative(pathToTemplate, f))
+        .filter((f) => f !== "package.json"),
+  );
+  const workspaceFiles = await (
+    await getAllFilesMatching(workspace)
+  ).map((f) => path.relative(workspace, f));
+
+  for (const file of templateFiles) {
+    if (workspaceFiles.includes(file)) {
+      console.log(
+        `Skipping ${file} because it already exists in the workspace`,
+      );
+      continue;
+    }
+    const pathToTemplateFile = path.join(pathToTemplate, file);
+    const pathToWorkspaceFile = path.join(workspace, file);
+
+    await ensureDir(path.dirname(pathToWorkspaceFile));
+    await copy(pathToTemplateFile, pathToWorkspaceFile);
+  }
 
   console.log(`✨ ${chalk.cyan(`Config file created`)} ✨`);
 
-  if (!(await isInstalled(workspace, HARDHAT_PACKAGE_NAME))) {
-    console.log("");
-    console.log(`You need to install hardhat locally to use it. Please run:`);
-    const cmd = await getRecommendedDependenciesInstallationCommand(workspace, {
-      [HARDHAT_PACKAGE_NAME]: `^${await getHardhatVersion()}`,
-    });
+  const templatePkg: PackageJson = await readJsonFile(
+    pathToTemplatePackageJson,
+  );
+  const workspacePkg: PackageJson = await readJsonFile(
+    pathToWorkspacePackageJson,
+  );
+
+  const dependencies = getDependenciesDiff(
+    templatePkg.dependencies ?? {},
+    workspacePkg.dependencies ?? {},
+  );
+  const devDependencies = getDependenciesDiff(
+    templatePkg.devDependencies ?? {},
+    workspacePkg.devDependencies ?? {},
+  );
+  const peerDependencies = getDependenciesDiff(
+    templatePkg.peerDependencies ?? {},
+    workspacePkg.peerDependencies ?? {},
+  );
+  const optionalDependencies = getDependenciesDiff(
+    templatePkg.optionalDependencies ?? {},
+    workspacePkg.optionalDependencies ?? {},
+  );
+
+  if (
+    hasAnyDependencies(dependencies) ||
+    hasAnyDependencies(devDependencies) ||
+    hasAnyDependencies(peerDependencies) ||
+    hasAnyDependencies(optionalDependencies)
+  ) {
+    const commands = [];
+    if (hasAnyDependencies(dependencies)) {
+      commands.push(
+        await getDependenciesInstallationCommand(
+          workspace,
+          dependencies,
+          "dependencies",
+        ),
+      );
+    }
+    if (hasAnyDependencies(devDependencies)) {
+      commands.push(
+        await getDependenciesInstallationCommand(
+          workspace,
+          devDependencies,
+          "devDependencies",
+        ),
+      );
+    }
+    if (hasAnyDependencies(peerDependencies)) {
+      commands.push(
+        await getDependenciesInstallationCommand(
+          workspace,
+          peerDependencies,
+          "peerDependencies",
+        ),
+      );
+    }
+    if (hasAnyDependencies(optionalDependencies)) {
+      commands.push(
+        await getDependenciesInstallationCommand(
+          workspace,
+          optionalDependencies,
+          "optionalDependencies",
+        ),
+      );
+    }
 
     console.log("");
-    console.log(cmd.join(" "));
+    console.log(`You need to install hardhat locally to use it. Please run:`);
+    console.log("");
+    console.log(commands.map((c) => c.join(" ")).join("\n"));
     console.log("");
   }
 
-  console.log();
+  console.log("");
 
   showStarOnGitHubMessage();
 
@@ -212,45 +324,84 @@ function showStarOnGitHubMessage() {
   console.log(chalk.cyan("     https://github.com/NomicFoundation/hardhat"));
 }
 
-async function writeEmptyHardhatConfig(workspace: string) {
-  const hardhatConfigFilename = "hardhat.config.ts";
-  const pathToHardhatConfig = path.join(workspace, hardhatConfigFilename);
-
-  return writeUtf8File(pathToHardhatConfig, EMPTY_HARDHAT_CONFIG);
+function hasAnyDependencies(dependencies: Record<string, string>): boolean {
+  return Object.keys(dependencies).length > 0;
 }
 
-async function isInstalled(workspace: string, dep: string) {
-  const pathToPackageJson = path.join(workspace, "package.json");
-  const packageJson: PackageJson = await readJsonFile(pathToPackageJson);
-
-  const allDependencies = {
-    ...packageJson.dependencies,
-    ...packageJson.devDependencies,
-    ...packageJson.optionalDependencies,
-  };
-
-  return dep in allDependencies;
-}
-
-async function getRecommendedDependenciesInstallationCommand(
-  workspace: string,
-  dependencies: {
-    [name: string]: string;
-  },
-): Promise<string[]> {
-  const deps = Object.entries(dependencies).map(
-    ([name, version]) => `"${name}@${version}"`,
+function getDependenciesDiff(
+  a: Record<string, string>,
+  b: Record<string, string>,
+): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(a).filter(([k]) => b[k] === undefined),
   );
+}
+
+async function getDependenciesInstallationCommand(
+  workspace: string,
+  dependencies: Record<string, string>,
+  type: string,
+): Promise<string[]> {
+  const hardhatVersion = await getHardhatVersion();
+
+  const deps = Object.entries(dependencies).map(([name, version]) => {
+    if (version.startsWith("workspace:")) {
+      return `"${name}@${hardhatVersion}"`;
+    }
+    return `"${name}@${version}"`;
+  });
 
   if (await isYarnProject(workspace)) {
-    return ["yarn", "add", "--dev", ...deps];
+    const command = ["yarn", "add"];
+
+    if (type === "devDependencies") {
+      command.push("--dev");
+    }
+    if (type === "peerDependencies") {
+      command.push("--peer");
+    }
+    if (type === "optionalDependencies") {
+      command.push("--optional");
+    }
+
+    command.push(...deps);
+
+    return command;
   }
 
   if (await isPnpmProject(workspace)) {
-    return ["pnpm", "add", "-D", ...deps];
+    const command = ["pnpm", "add"];
+
+    if (type === "devDependencies") {
+      command.push("-D");
+    }
+    if (type === "peerDependencies") {
+      command.push("-P");
+    }
+    if (type === "optionalDependencies") {
+      command.push("-O");
+    }
+
+    command.push(...deps);
+
+    return command;
   }
 
-  return ["npm", "install", "--save-dev", ...deps];
+  const command = ["npm", "install"];
+
+  if (type === "devDependencies") {
+    command.push("--save-dev");
+  }
+  if (type === "peerDependencies") {
+    command.push("--save-peer");
+  }
+  if (type === "optionalDependencies") {
+    command.push("--save-optional");
+  }
+
+  command.push(...deps);
+
+  return command;
 }
 
 async function isYarnProject(workspace: string) {

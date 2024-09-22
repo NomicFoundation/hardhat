@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import path from "node:path";
-import { after, afterEach, beforeEach, describe, it } from "node:test";
+import { after, afterEach, before, beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import {
@@ -14,12 +14,12 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 
 import { initHardhat } from "../../../../src/internal/cli/init/init.js";
-import { EMPTY_HARDHAT_CONFIG } from "../../../../src/internal/cli/init/sample-config-file.js";
 import { findClosestHardhatConfig } from "../../../../src/internal/config-loading.js";
 import {
   Action,
   createProject,
 } from "../../../../src/internal/cli/init/project-creation.js";
+import { findClosestPackageRoot } from "@ignored/hardhat-vnext-utils/package";
 
 async function deleteHardhatConfigFile() {
   await remove(path.join(process.cwd(), "hardhat.config.ts"));
@@ -32,6 +32,20 @@ async function deletePackageJson() {
 const ORIGINAL_ENV = process.env;
 
 describe("init", function () {
+  let emptyHardhatConfig: string;
+
+  before(async () => {
+    const packageRoot = await findClosestPackageRoot(import.meta.url);
+    const pathToEmptyTypescriptTemplate = path.join(
+      packageRoot,
+      "templates",
+      "empty-typescript",
+    );
+    emptyHardhatConfig = await readUtf8File(
+      path.join(pathToEmptyTypescriptTemplate, "hardhat.config.ts"),
+    );
+  });
+
   beforeEach(function () {
     process.env = {};
   });
@@ -60,7 +74,7 @@ describe("init", function () {
 
       assert.deepEqual(
         await readUtf8File("hardhat.config.ts"),
-        EMPTY_HARDHAT_CONFIG,
+        emptyHardhatConfig,
       );
     });
   });
@@ -83,7 +97,7 @@ describe("init", function () {
 
       assert.deepEqual(
         await readUtf8File("hardhat.config.ts"),
-        EMPTY_HARDHAT_CONFIG,
+        emptyHardhatConfig,
       );
     });
   });

@@ -203,6 +203,12 @@ Please add the property "type" with the value "module" in your package.json to e
       websiteTitle: "Invalid config",
       websiteDescription: `The configuration you provided is invalid. Please check the documentation to learn how to configure Hardhat correctly.`,
     },
+    TEMPLATE_NOT_FOUND: {
+      number: 17,
+      messageTemplate: `Template {template} not found`,
+      websiteTitle: "Template not found",
+      websiteDescription: `The template you provided is not found. Please check the documentation to learn which templates are available.`,
+    },
   },
   INTERNAL: {
     ASSERTION_ERROR: {
