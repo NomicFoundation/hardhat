@@ -38,21 +38,30 @@ interface Template {
 export async function createProject(
   options?: CreateProjectOptions,
 ): Promise<void> {
-  printAsciiLogo();
+  try {
+    printAsciiLogo();
 
-  await printWelcomeMessage();
+    await printWelcomeMessage();
 
-  const workspace = await getWorkspace(options?.workspace);
-  await throwIfWorkspaceAlreadyInsideProject(workspace);
+    const workspace = await getWorkspace(options?.workspace);
+    await throwIfWorkspaceAlreadyInsideProject(workspace);
 
-  const template = await getTemplate(options?.template);
-  
-  const packageJson = await getProjectPackageJson(workspace);
-  if (packageJson === undefined) {
-    await createPackageJson(workspace);
+    const template = await getTemplate(options?.template);
+
+    const packageJson = await getProjectPackageJson(workspace);
+    if (packageJson === undefined) {
+      await createPackageJson(workspace);
+    }
+
+    return createProjectFromTemplate(workspace, template);
+  } catch (e) {
+    if (e === "") {
+      // If the user cancels any prompt, we quit silently
+      return;
+    }
+
+    throw e;
   }
-
-  return createProjectFromTemplate(workspace, template);
 }
 
 async function getProjectPackageJson(
