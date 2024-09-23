@@ -65,6 +65,7 @@ describe("init", function () {
     it("should create a package.json file and a hardhat.config.ts file", async function () {
       await createProject({
         action: Action.CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG,
+        workspace: process.cwd(),
       });
 
       assert.deepEqual(await readJsonFile("package.json"), {
@@ -89,6 +90,7 @@ describe("init", function () {
     it("should create a hardhat.config.ts file", async function () {
       await createProject({
         action: Action.CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG,
+        workspace: process.cwd(),
       });
 
       assert.deepEqual(await readJsonFile("package.json"), {
@@ -111,6 +113,7 @@ describe("init", function () {
           async () =>
             createProject({
               action: Action.CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG,
+              workspace: process.cwd(),
             }),
           HardhatError.ERRORS.GENERAL.ONLY_ESM_SUPPORTED,
           {},
@@ -126,6 +129,7 @@ describe("init", function () {
           async () =>
             createProject({
               action: Action.CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG,
+              workspace: process.cwd(),
             }),
           HardhatError.ERRORS.GENERAL.ONLY_ESM_SUPPORTED,
           {},
@@ -139,7 +143,11 @@ describe("init", function () {
 
     it("should fail because there is already a hardhat.config.ts file", async function () {
       await assertRejectsWithHardhatError(
-        async () => createProject(),
+        async () =>
+          createProject({
+            action: Action.CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG,
+            workspace: process.cwd(),
+          }),
         HardhatError.ERRORS.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,
         {
           hardhatProjectRootPath: await findClosestHardhatConfig(),

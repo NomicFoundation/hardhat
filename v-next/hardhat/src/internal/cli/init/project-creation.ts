@@ -233,7 +233,18 @@ async function printWelcomeMessage() {
 
 async function getWorkspace(workspace?: string): Promise<string> {
   if (workspace === undefined) {
-    return process.cwd();
+    const { default: enquirer } = await import("enquirer");
+
+    const workspaceResponse = await enquirer.prompt<{ workspace: string }>([
+      {
+        name: "workspace",
+        type: "input",
+        message: "Where would you like to initialize the project?",
+        initial: process.cwd(),
+      },
+    ]);
+
+    workspace = workspaceResponse.workspace;
   }
 
   return path.resolve(workspace);
