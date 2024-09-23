@@ -14,7 +14,6 @@
     "clean": "rimraf dist tsconfig.tsbuildinfo",
     "prepack": "pnpm build"
   },
-  "dependencies": {},
   "devDependencies": {
     "@fontsource/roboto": "^5.0.8",
     "@nomicfoundation/ignition-core": "workspace:^",
@@ -32,6 +31,7 @@
     "react-router-dom": "6.11.0",
     "react-tooltip": "^5.21.4",
     "styled-components": "5.3.10",
+    "svg-pan-zoom": "^3.6.1",
     "vite": "^5.0.0",
     "vite-plugin-singlefile": "^2.0.1"
   }

@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo } from "react";
 import styled from "styled-components";
+import svgPanZoom from "svg-pan-zoom";
 
 import {
   IgnitionModule,
   IgnitionModuleResult,
 } from "@nomicfoundation/ignition-core/ui-helpers";
 import mermaid from "mermaid";
+
 import { toMermaid } from "../utils/to-mermaid";
 
 export const Mermaid: React.FC<{
@@ -23,12 +25,27 @@ export const Mermaid: React.FC<{
 
   useEffect(() => {
     mermaid.initialize({
+      maxTextSize: 500000,
       flowchart: {
         padding: 50,
       },
     });
 
     mermaid.contentLoaded();
+  });
+
+  // requestAnimationFrame is used to ensure that the svgPanZoom is called after the svg is rendered
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        svgPanZoom(".mermaid > svg", {
+          zoomEnabled: true,
+          controlIconsEnabled: true,
+          fit: true,
+          center: true,
+        });
+      }, 0);
+    });
   });
 
   return (
