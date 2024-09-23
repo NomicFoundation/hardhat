@@ -800,7 +800,9 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
           getFormattedInternalCompilerErrorMessage(error) ??
           error.formattedMessage;
 
-        console.error(errorMessage.replace(/^\w+:/, (t) => chalk.bold(chalk.red(t))));
+        console.error(
+          errorMessage.replace(/^\w+:/, (t) => chalk.bold(chalk.red(t)))
+        );
       } else {
         console.warn(
           (error.formattedMessage as string).replace(/^\w+:/, (t) =>

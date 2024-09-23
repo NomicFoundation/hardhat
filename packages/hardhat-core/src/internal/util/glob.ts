@@ -14,7 +14,7 @@ export async function glob(
   pattern: string,
   options: GlobOptions = {}
 ): Promise<string[]> {
-  const files = await (await import('tinyglobby')).glob([pattern], options);
+  const files = await (await import("tinyglobby")).glob([pattern], options);
   return files.map(path.normalize);
 }
 
@@ -23,6 +23,9 @@ export async function glob(
  * @see glob
  */
 export function globSync(pattern: string, options: GlobOptions = {}): string[] {
-  const files = (require('tinyglobby') as typeof import('tinyglobby')).globSync([pattern], options);
+  const files = (require("tinyglobby") as typeof import("tinyglobby")).globSync(
+    [pattern],
+    options
+  );
   return files.map(path.normalize);
 }
