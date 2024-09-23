@@ -55,12 +55,11 @@ export async function createProject(
       await createPackageJson(workspace);
     }
 
-    return createProjectFromTemplate(
-      workspace,
-      template,
-      options?.force,
-      options?.install,
-    );
+    await copyProjectFiles(workspace, template, options?.force);
+
+    await installProjectDependencies(workspace, template, options?.install);
+
+    showStarOnGitHubMessage();
   } catch (e) {
     if (e === "") {
       // If the user cancels any prompt, we quit silently
@@ -89,27 +88,16 @@ async function getProjectPackageJson(
   return pkg;
 }
 
-async function createProjectFromTemplate(
+async function copyProjectFiles(
   workspace: string,
   template: Template,
   force?: boolean,
-  install?: boolean,
 ) {
-  const pathToWorkspacePackageJson = path.join(workspace, "package.json");
+  const matchingFiles = await getAllFilesMatching(workspace, (file) =>
+    template.files.includes(path.relative(workspace, file)),
+  ).then((files) => files.map((f) => path.relative(workspace, f)));
 
-  if (!(await exists(pathToWorkspacePackageJson))) {
-    throw new PackageJsonNotFoundError(pathToWorkspacePackageJson);
-  }
-
-  const workspaceFiles = await getAllFilesMatching(workspace).then((files) =>
-    files.map((f) => path.relative(workspace, f)),
-  );
-
-  const existingFiles = template.files.filter((f) =>
-    workspaceFiles.includes(f),
-  );
-
-  if (existingFiles.length !== 0) {
+  if (matchingFiles.length !== 0) {
     if (force === undefined) {
       const { default: enquirer } = await import("enquirer");
 
@@ -117,7 +105,7 @@ async function createProjectFromTemplate(
         {
           name: "force",
           type: "confirm",
-          message: `The following files already exist in the workspace:\n${existingFiles.map((f) => `- ${f}`).join("\n")}\n\nDo you want to overwrite them?`,
+          message: `The following files already exist in the workspace:\n${matchingFiles.map((f) => `- ${f}`).join("\n")}\n\nDo you want to overwrite them?`,
           initial: false,
         },
       ]);
@@ -127,7 +115,7 @@ async function createProjectFromTemplate(
   }
 
   for (const file of template.files) {
-    if (!force && workspaceFiles.includes(file)) {
+    if (!force && matchingFiles.includes(file)) {
       continue;
     }
     const pathToTemplateFile = path.join(template.path, file);
@@ -137,7 +125,15 @@ async function createProjectFromTemplate(
     await copy(pathToTemplateFile, pathToWorkspaceFile);
   }
 
-  console.log(`✨ ${chalk.cyan(`Config file created`)} ✨`);
+  console.log(`✨ ${chalk.cyan(`Template files copied`)} ✨`);
+}
+
+async function installProjectDependencies(
+  workspace: string,
+  template: Template,
+  install?: boolean,
+) {
+  const pathToWorkspacePackageJson = path.join(workspace, "package.json");
 
   const workspacePkg: PackageJson = await readJsonFile(
     pathToWorkspacePackageJson,
@@ -241,10 +237,10 @@ async function createProjectFromTemplate(
           });
         });
       }
+
+      console.log(`✨ ${chalk.cyan(`Dependencies installed`)} ✨`);
     }
   }
-
-  showStarOnGitHubMessage();
 }
 
 // generated with the "colossal" font
