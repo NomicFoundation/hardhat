@@ -64,6 +64,7 @@ describe("init", function () {
         template: "empty-typescript",
         workspace: process.cwd(),
         force: false,
+        install: false,
       });
 
       assert.deepEqual(await readJsonFile("package.json"), {
@@ -90,6 +91,7 @@ describe("init", function () {
         template: "empty-typescript",
         workspace: process.cwd(),
         force: false,
+        install: false,
       });
 
       assert.deepEqual(await readJsonFile("package.json"), {
@@ -114,6 +116,7 @@ describe("init", function () {
               template: "empty-typescript",
               workspace: process.cwd(),
               force: false,
+              install: false,
             }),
           HardhatError.ERRORS.GENERAL.ONLY_ESM_SUPPORTED,
           {},
@@ -131,6 +134,7 @@ describe("init", function () {
               template: "empty-typescript",
               workspace: process.cwd(),
               force: false,
+              install: false,
             }),
           HardhatError.ERRORS.GENERAL.ONLY_ESM_SUPPORTED,
           {},
@@ -149,6 +153,7 @@ describe("init", function () {
             template: "empty-typescript",
             workspace: process.cwd(),
             force: false,
+            install: false,
           }),
         HardhatError.ERRORS.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,
         {

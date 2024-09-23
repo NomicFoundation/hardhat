@@ -27,6 +27,7 @@ export interface CreateProjectOptions {
   workspace?: string;
   template?: string;
   force?: boolean;
+  install?: boolean;
 }
 
 interface Template {
@@ -54,7 +55,12 @@ export async function createProject(
       await createPackageJson(workspace);
     }
 
-    return createProjectFromTemplate(workspace, template, options?.force);
+    return createProjectFromTemplate(
+      workspace,
+      template,
+      options?.force,
+      options?.install,
+    );
   } catch (e) {
     if (e === "") {
       // If the user cancels any prompt, we quit silently
@@ -87,6 +93,7 @@ async function createProjectFromTemplate(
   workspace: string,
   template: Template,
   force?: boolean,
+  install?: boolean,
 ) {
   const pathToWorkspacePackageJson = path.join(workspace, "package.json");
 
@@ -98,11 +105,14 @@ async function createProjectFromTemplate(
     files.map((f) => path.relative(workspace, f)),
   );
 
-  const existingFiles = template.files.filter((f) => workspaceFiles.includes(f));
+  const existingFiles = template.files.filter((f) =>
+    workspaceFiles.includes(f),
+  );
 
   if (existingFiles.length !== 0) {
     if (force === undefined) {
-      const enquirer = await import("enquirer");
+      const { default: enquirer } = await import("enquirer");
+
       const forceResponse = await enquirer.prompt<{ force: boolean }>([
         {
           name: "force",
@@ -118,9 +128,6 @@ async function createProjectFromTemplate(
 
   for (const file of template.files) {
     if (!force && workspaceFiles.includes(file)) {
-      console.log(
-        `Skipping ${file} because it already exists in the workspace`,
-      );
       continue;
     }
     const pathToTemplateFile = path.join(template.path, file);
@@ -197,18 +204,47 @@ async function createProjectFromTemplate(
       );
     }
 
-    console.log("");
-    console.log(`You need to install hardhat locally to use it. Please run:`);
-    console.log("");
-    console.log(commands.map((c) => c.join(" ")).join("\n"));
-    console.log("");
+    if (install === undefined) {
+      const { default: enquirer } = await import("enquirer");
+
+      const installResponse = await enquirer.prompt<{ install: boolean }>([
+        {
+          name: "install",
+          type: "confirm",
+          message: `You need to install the project dependencies using the following command${commands.length === 1 ? "" : "s"}:\n${commands.map((c) => c.join(" ")).join("\n")}\n\nDo you want to run them now?`,
+          initial: false,
+        },
+      ]);
+
+      install = installResponse.install;
+    }
+
+    if (install) {
+      const { spawn } = await import("child_process");
+      for (const command of commands) {
+        console.log(command.join(" "));
+        const child = spawn(command[0], command.slice(1), {
+          cwd: workspace,
+          shell: true,
+          stdio: "inherit",
+        });
+        await new Promise<void>((resolve, reject) => {
+          child.on("close", (code) => {
+            if (code !== 0) {
+              reject(
+                new Error(
+                  `Command "${command.join(" ")}" exited with code ${code}`,
+                ),
+              );
+            }
+            resolve();
+          });
+        });
+      }
+    }
   }
 
-  console.log("");
-
   showStarOnGitHubMessage();
-
-  return;
 }
 
 // generated with the "colossal" font
