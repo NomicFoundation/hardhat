@@ -280,13 +280,6 @@ const communityPlugins: IPlugin[] = [
     tags: ["solidity", "storage"],
   },
   {
-    name: "hardhat-change-network",
-    author: "David Mihal",
-    authorUrl: "https://github.com/dmihal",
-    description: "Allows changing the current network in Hardhat.",
-    tags: ["Testing"],
-  },
-  {
     name: "hardhat-packager",
     author: "Paul Razvan Berg",
     authorUrl: "https://github.com/paulrberg",
@@ -994,6 +987,14 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://yankeguo.com",
     description: "Hardhat plugin for the Trezor hardware wallet",
     tags: ["Trezor", "Wallet"],
+  },
+  {
+    name: "hardhat-switch-network",
+    author: "0xNeshi",
+    authorUrl: "https://github.com/0xNeshi",
+    description:
+      "Hardhat plugin for enabling on-the-fly network switching within your Hardhat scripts and tasks",
+    tags: ["Tasks", "Scripts", "Testing"],
   },
 ];
 

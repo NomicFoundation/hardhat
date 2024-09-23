@@ -83,7 +83,8 @@ subtask(TASK_VERIFY_SOURCIFY)
     if (status !== false) {
       const contractURL = sourcify.getContractUrl(address, status);
       console.log(`The contract ${address} has already been verified on Sourcify.
-${contractURL}`);
+${contractURL}
+`);
       return;
     }
 
@@ -210,7 +211,8 @@ subtask(TASK_VERIFY_SOURCIFY_ATTEMPT_VERIFICATION)
           response.status
         );
         console.log(`Successfully verified contract ${contractName} on Sourcify.
-${contractURL}`);
+${contractURL}
+`);
       }
 
       return {

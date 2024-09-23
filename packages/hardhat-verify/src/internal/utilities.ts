@@ -91,6 +91,7 @@ To learn how to add custom networks, follow these instructions: https://hardhat.
  * const errors: Record<string, HardhatVerifyError> = {
  *   verify:etherscan: { message: 'Error message for Etherscan' },
  *   verify:sourcify: { message: 'Error message for Sourcify' },
+ *   verify:blockscout: { message: 'Error message for Blockscout' },
  *   // Add more errors here...
  * };
  * printVerificationErrors(errors);
@@ -102,6 +103,9 @@ To learn how to add custom networks, follow these instructions: https://hardhat.
  * //
  * // Sourcify:
  * // Error message for Sourcify
+ * //
+ * // Blockscout:
+ * // Error message for Blockscout
  * //
  * // ... (more errors if present)
  */

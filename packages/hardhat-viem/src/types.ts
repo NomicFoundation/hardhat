@@ -83,4 +83,23 @@ export declare function getContractAt<CN extends string>(
   config?: GetContractAtConfig
 ): Promise<GetContractReturnType>;
 
+export interface HardhatViemHelpers {
+  getPublicClient(
+    publicClientConfig?: Partial<viemT.PublicClientConfig>
+  ): Promise<PublicClient>;
+  getWalletClients(
+    walletClientConfig?: Partial<viemT.WalletClientConfig>
+  ): Promise<WalletClient[]>;
+  getWalletClient(
+    address: viemT.Address,
+    walletClientConfig?: Partial<viemT.WalletClientConfig>
+  ): Promise<WalletClient>;
+  getTestClient(
+    testClientConfig?: Partial<viemT.TestClientConfig>
+  ): Promise<TestClient>;
+  deployContract: typeof deployContract;
+  sendDeploymentTransaction: typeof sendDeploymentTransaction;
+  getContractAt: typeof getContractAt;
+}
+
 export type { AbiParameterToPrimitiveType } from "abitype";

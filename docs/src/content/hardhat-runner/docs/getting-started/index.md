@@ -27,7 +27,7 @@ To install it, you need to create an npm project by going to an empty folder, ru
 
 Once your project is ready, you should run
 
-::::tabsgroup{options="npm 7+,npm 6,yarn"}
+::::tabsgroup{options="npm 7+,npm 6,yarn,pnpm"}
 
 :::tab{value="npm 7+"}
 
@@ -49,6 +49,14 @@ npm install --save-dev hardhat
 
 ```
 yarn add --dev hardhat
+```
+
+:::
+
+:::tab{value=pnpm}
+
+```
+pnpm add -D hardhat
 ```
 
 :::
@@ -355,6 +363,10 @@ npx hardhat ignition deploy ./ignition/modules/Lock.js --network localhost
 :::
 
 ::::
+
+To run Hardhat Network on specific port and allow incoming requests from a specific network interface or hostname, run `npx hardhat node --hostname 127.0.0.1 --port 8545`.
+
+If you want to allow incoming requests from anywhere, including external ips, use `--hostname 0.0.0.0`.
 
 Congrats! You have created a project and compiled, tested and deployed a smart contract.
 

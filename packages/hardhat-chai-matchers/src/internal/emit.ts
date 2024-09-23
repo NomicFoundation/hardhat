@@ -68,9 +68,12 @@ export function supportEmit(
 
         let eventFragment: EventFragment | null = null;
         try {
-          eventFragment = contract.interface.getEvent(eventName);
-        } catch (e) {
-          // ignore error
+          eventFragment = contract.interface.getEvent(eventName, []);
+        } catch (e: unknown) {
+          if (e instanceof TypeError) {
+            const errorMessage = e.message.split(" (argument=")[0];
+            throw new AssertionError(errorMessage);
+          }
         }
 
         if (eventFragment === null) {

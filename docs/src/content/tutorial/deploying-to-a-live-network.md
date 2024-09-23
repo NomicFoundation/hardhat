@@ -139,6 +139,7 @@ To deploy on Sepolia you need to send some Sepolia ether to the address that's g
 - [Coinbase Sepolia Faucet](https://coinbase.com/faucets/ethereum-sepolia-faucet) (only works if you are using the Coinbase Wallet)
 - [Infura Sepolia Faucet](https://www.infura.io/faucet/sepolia)
 - [Chainstack Sepolia Faucet](https://faucet.chainstack.com/sepolia-faucet)
+- [QuickNode Sepolia Faucet](https://faucet.quicknode.com/ethereum/sepolia)
 
 You'll have to change your wallet's network to Sepolia before transacting.
 

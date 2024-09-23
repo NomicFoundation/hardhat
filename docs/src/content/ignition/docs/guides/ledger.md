@@ -4,7 +4,7 @@ Hardhat Ignition supports deploying contracts using a Ledger hardware wallet via
 
 The first step is to install the `hardhat-ledger` plugin:
 
-::::tabsgroup{options="npm,yarn"}
+::::tabsgroup{options="npm,yarn,pnpm"}
 
 :::tab{value="npm"}
 
@@ -18,6 +18,14 @@ npm install --save-dev @nomicfoundation/hardhat-ledger
 
 ```sh
 yarn add --dev @nomicfoundation/hardhat-ledger
+```
+
+:::
+
+:::tab{value="pnpm"}
+
+```sh
+pnpm add -D @nomicfoundation/hardhat-ledger
 ```
 
 :::
@@ -91,6 +99,7 @@ module.exports = {
 To deploy on Sepolia you need to send some Sepolia ether to the address that's going to be making the deployment. You can get testnet ether from a faucet, a service that distributes testing-ETH for free. Here is one for Sepolia:
 
 - [Alchemy Sepolia Faucet](https://sepoliafaucet.com/)
+- [QuickNode Sepolia Faucet](https://faucet.quicknode.com/ethereum/sepolia)
 
 :::tip
 

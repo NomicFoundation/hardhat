@@ -14,7 +14,7 @@ The finished code for this guide can be found in the [Hardhat Ignition monorepo]
 
 Before we get started, make sure you have the OpenZeppelin Contracts library installed in your project. You can install it using npm or yarn:
 
-::::tabsgroup{options="npm,yarn"}
+::::tabsgroup{options="npm,yarn,pnpm"}
 
 :::tab{value="npm"}
 
@@ -28,6 +28,14 @@ npm install @openzeppelin/contracts
 
 ```sh
 yarn add @openzeppelin/contracts
+```
+
+:::
+
+:::tab{value="pnpm"}
+
+```sh
+pnpm add @openzeppelin/contracts
 ```
 
 :::
