@@ -26,6 +26,7 @@ import { findClosestHardhatConfig } from "../../config-loading.js";
 export interface CreateProjectOptions {
   workspace?: string;
   template?: string;
+  force?: boolean;
 }
 
 interface Template {
@@ -53,7 +54,7 @@ export async function createProject(
       await createPackageJson(workspace);
     }
 
-    return createProjectFromTemplate(workspace, template);
+    return createProjectFromTemplate(workspace, template, options?.force);
   } catch (e) {
     if (e === "") {
       // If the user cancels any prompt, we quit silently
@@ -85,6 +86,7 @@ async function getProjectPackageJson(
 async function createProjectFromTemplate(
   workspace: string,
   template: Template,
+  force?: boolean,
 ) {
   const pathToWorkspacePackageJson = path.join(workspace, "package.json");
 
@@ -96,8 +98,26 @@ async function createProjectFromTemplate(
     files.map((f) => path.relative(workspace, f)),
   );
 
+  const existingFiles = template.files.filter((f) => workspaceFiles.includes(f));
+
+  if (existingFiles.length !== 0) {
+    if (force === undefined) {
+      const enquirer = await import("enquirer");
+      const forceResponse = await enquirer.prompt<{ force: boolean }>([
+        {
+          name: "force",
+          type: "confirm",
+          message: `The following files already exist in the workspace:\n${existingFiles.map((f) => `- ${f}`).join("\n")}\n\nDo you want to overwrite them?`,
+          initial: false,
+        },
+      ]);
+
+      force = forceResponse.force;
+    }
+  }
+
   for (const file of template.files) {
-    if (workspaceFiles.includes(file)) {
+    if (!force && workspaceFiles.includes(file)) {
       console.log(
         `Skipping ${file} because it already exists in the workspace`,
       );
