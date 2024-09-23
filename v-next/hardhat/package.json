@@ -52,6 +52,7 @@
   "files": [
     "dist/src/",
     "src/",
+    "templates/",
     "CHANGELOG.md",
     "LICENSE",
     "README.md"
