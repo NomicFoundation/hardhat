@@ -15,10 +15,7 @@ import {
 
 import { initHardhat } from "../../../../src/internal/cli/init/init.js";
 import { findClosestHardhatConfig } from "../../../../src/internal/config-loading.js";
-import {
-  Action,
-  createProject,
-} from "../../../../src/internal/cli/init/project-creation.js";
+import { createProject } from "../../../../src/internal/cli/init/project-creation.js";
 import { findClosestPackageRoot } from "@ignored/hardhat-vnext-utils/package";
 
 async function deleteHardhatConfigFile() {
@@ -64,7 +61,7 @@ describe("init", function () {
 
     it("should create a package.json file and a hardhat.config.ts file", async function () {
       await createProject({
-        action: Action.CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG,
+        template: "empty-typescript",
         workspace: process.cwd(),
       });
 
@@ -89,7 +86,7 @@ describe("init", function () {
 
     it("should create a hardhat.config.ts file", async function () {
       await createProject({
-        action: Action.CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG,
+        template: "empty-typescript",
         workspace: process.cwd(),
       });
 
@@ -112,7 +109,7 @@ describe("init", function () {
         await assertRejectsWithHardhatError(
           async () =>
             createProject({
-              action: Action.CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG,
+              template: "empty-typescript",
               workspace: process.cwd(),
             }),
           HardhatError.ERRORS.GENERAL.ONLY_ESM_SUPPORTED,
@@ -128,7 +125,7 @@ describe("init", function () {
         await assertRejectsWithHardhatError(
           async () =>
             createProject({
-              action: Action.CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG,
+              template: "empty-typescript",
               workspace: process.cwd(),
             }),
           HardhatError.ERRORS.GENERAL.ONLY_ESM_SUPPORTED,
@@ -145,7 +142,7 @@ describe("init", function () {
       await assertRejectsWithHardhatError(
         async () =>
           createProject({
-            action: Action.CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG,
+            template: "empty-typescript",
             workspace: process.cwd(),
           }),
         HardhatError.ERRORS.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,

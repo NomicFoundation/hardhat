@@ -15,6 +15,7 @@ import { getFilePath } from "./internal/package.js";
 export interface PackageJson {
   name: string;
   version: string;
+  description?: string;
   type?: "commonjs" | "module";
   engines?: {
     node: string;

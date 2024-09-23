@@ -12,7 +12,7 @@ import {
   ensureDir,
   exists,
   getAllFilesMatching,
-  isDirectory,
+  readdir,
   readJsonFile,
   writeJsonFile,
 } from "@ignored/hardhat-vnext-utils/fs";
@@ -23,14 +23,16 @@ import { getHardhatVersion } from "../../utils/package.js";
 import { HARDHAT_NAME } from "./constants.js";
 import { findClosestHardhatConfig } from "../../config-loading.js";
 
-export enum Action {
-  CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG = "Create an empty hardhat.config.ts",
-  QUIT = "Quit",
-}
-
 export interface CreateProjectOptions {
   workspace?: string;
-  action?: string;
+  template?: string;
+}
+
+interface Template {
+  name: string;
+  packageJson: PackageJson;
+  path: string;
+  files: string[];
 }
 
 export async function createProject(
@@ -43,20 +45,14 @@ export async function createProject(
   const workspace = await getWorkspace(options?.workspace);
   await throwIfWorkspaceAlreadyInsideProject(workspace);
 
-  const action = await getAction(options?.action);
-
-  if (action === Action.QUIT) {
-    return;
-  }
-
+  const template = await getTemplate(options?.template);
+  
   const packageJson = await getProjectPackageJson(workspace);
   if (packageJson === undefined) {
     await createPackageJson(workspace);
   }
 
-  if (action === Action.CREATE_EMPTY_TYPESCRIPT_HARDHAT_CONFIG) {
-    return createEmptyTypescriptHardhatConfig(workspace);
-  }
+  return createProjectFromTemplate(workspace, template);
 }
 
 async function getProjectPackageJson(
@@ -77,46 +73,28 @@ async function getProjectPackageJson(
   return pkg;
 }
 
-async function createEmptyTypescriptHardhatConfig(workspace: string) {
-  const template = "empty-typescript";
-
-  const packageRoot = await findClosestPackageRoot(import.meta.url);
-  const pathToTemplate = path.join(packageRoot, "templates", template);
-
-  if (!(await exists(pathToTemplate)) || !(await isDirectory(pathToTemplate))) {
-    throw new HardhatError(HardhatError.ERRORS.GENERAL.TEMPLATE_NOT_FOUND, {
-      template,
-    });
-  }
-
-  const pathToTemplatePackageJson = path.join(pathToTemplate, "package.json");
+async function createProjectFromTemplate(
+  workspace: string,
+  template: Template,
+) {
   const pathToWorkspacePackageJson = path.join(workspace, "package.json");
 
-  if (!(await exists(pathToTemplatePackageJson))) {
-    throw new PackageJsonNotFoundError(pathToTemplatePackageJson);
-  }
   if (!(await exists(pathToWorkspacePackageJson))) {
     throw new PackageJsonNotFoundError(pathToWorkspacePackageJson);
   }
 
-  const templateFiles = await getAllFilesMatching(pathToTemplate).then(
-    (files) =>
-      files
-        .map((f) => path.relative(pathToTemplate, f))
-        .filter((f) => f !== "package.json"),
+  const workspaceFiles = await getAllFilesMatching(workspace).then((files) =>
+    files.map((f) => path.relative(workspace, f)),
   );
-  const workspaceFiles = await (
-    await getAllFilesMatching(workspace)
-  ).map((f) => path.relative(workspace, f));
 
-  for (const file of templateFiles) {
+  for (const file of template.files) {
     if (workspaceFiles.includes(file)) {
       console.log(
         `Skipping ${file} because it already exists in the workspace`,
       );
       continue;
     }
-    const pathToTemplateFile = path.join(pathToTemplate, file);
+    const pathToTemplateFile = path.join(template.path, file);
     const pathToWorkspaceFile = path.join(workspace, file);
 
     await ensureDir(path.dirname(pathToWorkspaceFile));
@@ -125,27 +103,24 @@ async function createEmptyTypescriptHardhatConfig(workspace: string) {
 
   console.log(`✨ ${chalk.cyan(`Config file created`)} ✨`);
 
-  const templatePkg: PackageJson = await readJsonFile(
-    pathToTemplatePackageJson,
-  );
   const workspacePkg: PackageJson = await readJsonFile(
     pathToWorkspacePackageJson,
   );
 
   const dependencies = getDependenciesDiff(
-    templatePkg.dependencies ?? {},
+    template.packageJson.dependencies ?? {},
     workspacePkg.dependencies ?? {},
   );
   const devDependencies = getDependenciesDiff(
-    templatePkg.devDependencies ?? {},
+    template.packageJson.devDependencies ?? {},
     workspacePkg.devDependencies ?? {},
   );
   const peerDependencies = getDependenciesDiff(
-    templatePkg.peerDependencies ?? {},
+    template.packageJson.peerDependencies ?? {},
     workspacePkg.peerDependencies ?? {},
   );
   const optionalDependencies = getDependenciesDiff(
-    templatePkg.optionalDependencies ?? {},
+    template.packageJson.optionalDependencies ?? {},
     workspacePkg.optionalDependencies ?? {},
   );
 
@@ -274,47 +249,85 @@ async function throwIfWorkspaceAlreadyInsideProject(workspace: string) {
   }
 }
 
-async function getAction(action?: string): Promise<Action> {
-  if (action === undefined) {
-    try {
-      const { default: enquirer } = await import("enquirer");
+async function getTemplates(): Promise<Template[]> {
+  const packageRoot = await findClosestPackageRoot(import.meta.url);
+  const pathToTemplates = path.join(packageRoot, "templates");
 
-      const actionResponse = await enquirer.prompt<{ action: string }>([
-        {
-          name: "action",
-          type: "select",
-          message: "What do you want to do?",
-          initial: 0,
-          choices: Object.values(Action).map((a: Action) => {
-            return {
-              name: a,
-              message: a,
-              value: a,
-            };
-          }),
-        },
-      ]);
-
-      action = actionResponse.action;
-    } catch (e) {
-      if (e === "") {
-        // If the user cancels the prompt, we quit
-        return Action.QUIT;
-      }
-
-      throw e;
-    }
+  if (!(await exists(pathToTemplates))) {
+    return [];
   }
 
-  const actions: Action[] = Object.values(Action);
-  for (const a of actions) {
-    if (a === action) {
-      return a;
+  const pathsToTemplates = await readdir(pathToTemplates);
+
+  return await Promise.all(
+    pathsToTemplates.map(async (name) => {
+      const pathToTemplate = path.join(pathToTemplates, name);
+      const pathToPackageJson = path.join(pathToTemplate, "package.json");
+
+      if (!(await exists(pathToPackageJson))) {
+        throw new PackageJsonNotFoundError(pathToPackageJson);
+      }
+
+      const packageJson: PackageJson =
+        await readJsonFile<PackageJson>(pathToPackageJson);
+      const files = await getAllFilesMatching(pathToTemplate, (f) => {
+        // Ignore the package.json file because it is handled separately
+        if (f === pathToPackageJson) {
+          return false;
+        }
+        // We should ignore all the files according to the .gitignore rules
+        // However, for simplicity, we just ignore the node_modules folder
+        // If we needed to implement a more complex ignore logic, we could
+        // use recently introduced glob from node:fs/promises
+        if (
+          path.relative(pathToTemplate, f).split(path.sep)[0] === "node_modules"
+        ) {
+          return false;
+        }
+        return true;
+      }).then((files) => files.map((f) => path.relative(pathToTemplate, f)));
+
+      return {
+        name,
+        packageJson,
+        path: pathToTemplate,
+        files,
+      };
+    }),
+  );
+}
+
+async function getTemplate(template?: string): Promise<Template> {
+  const templates = await getTemplates();
+
+  if (template === undefined) {
+    const { default: enquirer } = await import("enquirer");
+
+    const templateResponse = await enquirer.prompt<{ template: string }>([
+      {
+        name: "template",
+        type: "select",
+        message: "What type of project would you like to initialize?",
+        initial: 0,
+        choices: templates.map((template) => ({
+          name: template.name,
+          message: template.packageJson.description,
+          value: template.name,
+        })),
+      },
+    ]);
+
+    template = templateResponse.template;
+  }
+
+  for (const t of templates) {
+    if (t.name === template) {
+      return t;
     }
   }
 
   throw new HardhatError(HardhatError.ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
-    operation: `Responding with "${action}" to the project initialization wizard`,
+    operation: `Responding with "${template}" to the project initialization wizard`,
   });
 }
 
