@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import path from "node:path";
-import { after, afterEach, before, beforeEach, describe, it } from "node:test";
+import { after, before, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import {
@@ -26,8 +26,6 @@ async function deletePackageJson() {
   await remove(path.join(process.cwd(), "package.json"));
 }
 
-const ORIGINAL_ENV = process.env;
-
 describe("init", function () {
   let emptyHardhatConfig: string;
 
@@ -41,14 +39,6 @@ describe("init", function () {
     emptyHardhatConfig = await readUtf8File(
       path.join(pathToEmptyTypescriptTemplate, "hardhat.config.ts"),
     );
-  });
-
-  beforeEach(function () {
-    process.env = {};
-  });
-
-  afterEach(function () {
-    process.env = ORIGINAL_ENV;
   });
 
   describe("init Hardhat in an empty folder", function () {
