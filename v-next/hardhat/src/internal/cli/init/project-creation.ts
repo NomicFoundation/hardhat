@@ -213,6 +213,8 @@ async function getWorkspace(workspace?: string): Promise<string> {
 }
 
 async function promptForWorkspace(): Promise<string> {
+  ensureTTY();
+
   const { default: enquirer } = await import("enquirer");
 
   const workspaceResponse = await enquirer.prompt<{ workspace: string }>([
@@ -312,6 +314,8 @@ async function getTemplates(): Promise<Template[]> {
 }
 
 async function promptForTemplate(templates: Template[]): Promise<string> {
+  ensureTTY();
+
   const { default: enquirer } = await import("enquirer");
 
   const templateResponse = await enquirer.prompt<{ template: string }>([
@@ -401,6 +405,8 @@ async function copyProjectFiles(
 }
 
 async function promptForForce(files: string[]): Promise<boolean> {
+  ensureTTY();
+
   const { default: enquirer } = await import("enquirer");
 
   const forceResponse = await enquirer.prompt<{ force: boolean }>([
@@ -502,6 +508,8 @@ async function getPackageManager(workspace: string): Promise<PackageManager> {
 }
 
 async function promptForInstall(commands: string[][]): Promise<boolean> {
+  ensureTTY();
+
   const { default: enquirer } = await import("enquirer");
 
   const installResponse = await enquirer.prompt<{ install: boolean }>([
@@ -542,4 +550,24 @@ function showStarOnGitHubMessage() {
   );
   console.log();
   console.log(chalk.cyan("     https://github.com/NomicFoundation/hardhat"));
+}
+
+/**
+ * ensureTTY checks if the process is running in a TTY (i.e. a terminal).
+ * If it is not, it throws and error.
+ */
+function ensureTTY(): void {
+  if (process.stdout.isTTY !== true) {
+    // Many terminal emulators in windows don't present themselves as TTYs.
+    // If we are in this situation we throw a special error instructing the user
+    // to use WSL or powershell to initialize the project.
+    if (process.platform === "win32") {
+      throw new HardhatError(
+        HardhatError.ERRORS.GENERAL.NOT_INSIDE_PROJECT_ON_WINDOWS,
+      );
+    }
+    throw new HardhatError(
+      HardhatError.ERRORS.GENERAL.NOT_IN_INTERACTIVE_SHELL,
+    );
+  }
 }
