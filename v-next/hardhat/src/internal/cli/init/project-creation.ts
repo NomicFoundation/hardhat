@@ -123,18 +123,7 @@ async function copyProjectFiles(
 
   if (matchingFiles.length !== 0) {
     if (force === undefined) {
-      const { default: enquirer } = await import("enquirer");
-
-      const forceResponse = await enquirer.prompt<{ force: boolean }>([
-        {
-          name: "force",
-          type: "confirm",
-          message: `The following files already exist in the workspace:\n${matchingFiles.map((f) => `- ${f}`).join("\n")}\n\nDo you want to overwrite them?`,
-          initial: false,
-        },
-      ]);
-
-      force = forceResponse.force;
+      force = await promptForForce(matchingFiles);
     }
   }
 
@@ -150,6 +139,21 @@ async function copyProjectFiles(
   }
 
   console.log(`✨ ${chalk.cyan(`Template files copied`)} ✨`);
+}
+
+async function promptForForce(files: string[]): Promise<boolean> {
+  const { default: enquirer } = await import("enquirer");
+
+  const forceResponse = await enquirer.prompt<{ force: boolean }>([
+    {
+      name: "force",
+      type: "confirm",
+      message: `The following files already exist in the workspace:\n${files.map((f) => `- ${f}`).join("\n")}\n\nDo you want to overwrite them?`,
+      initial: false,
+    },
+  ]);
+
+  return forceResponse.force;
 }
 
 async function installProjectDependencies(
@@ -191,18 +195,7 @@ async function installProjectDependencies(
 
   if (commands.length !== 0) {
     if (install === undefined) {
-      const { default: enquirer } = await import("enquirer");
-
-      const installResponse = await enquirer.prompt<{ install: boolean }>([
-        {
-          name: "install",
-          type: "confirm",
-          message: `You need to install the project dependencies using the following command${commands.length === 1 ? "" : "s"}:\n${commands.map((c) => c.join(" ")).join("\n")}\n\nDo you want to run them now?`,
-          initial: false,
-        },
-      ]);
-
-      install = installResponse.install;
+      install = await promptForInstall(commands);
     }
 
     if (install) {
@@ -233,6 +226,21 @@ async function installProjectDependencies(
   }
 }
 
+async function promptForInstall(commands: string[][]): Promise<boolean> {
+  const { default: enquirer } = await import("enquirer");
+
+  const installResponse = await enquirer.prompt<{ install: boolean }>([
+    {
+      name: "install",
+      type: "confirm",
+      message: `You need to install the project dependencies using the following command${commands.length === 1 ? "" : "s"}:\n${commands.map((c) => c.join(" ")).join("\n")}\n\nDo you want to run them now?`,
+      initial: false,
+    },
+  ]);
+
+  return installResponse.install;
+}
+
 // generated with the "colossal" font
 function printAsciiLogo() {
   const logoLines = `
@@ -259,18 +267,7 @@ async function printWelcomeMessage() {
 
 async function getWorkspace(workspace?: string): Promise<string> {
   if (workspace === undefined) {
-    const { default: enquirer } = await import("enquirer");
-
-    const workspaceResponse = await enquirer.prompt<{ workspace: string }>([
-      {
-        name: "workspace",
-        type: "input",
-        message: "Where would you like to initialize the project?",
-        initial: process.cwd(),
-      },
-    ]);
-
-    workspace = workspaceResponse.workspace;
+    workspace = await promptForWorkspace();
   }
 
   workspace = path.resolve(workspace);
@@ -296,6 +293,21 @@ async function getWorkspace(workspace?: string): Promise<string> {
 
     throw err;
   }
+}
+
+async function promptForWorkspace(): Promise<string> {
+  const { default: enquirer } = await import("enquirer");
+
+  const workspaceResponse = await enquirer.prompt<{ workspace: string }>([
+    {
+      name: "workspace",
+      type: "input",
+      message: "Where would you like to initialize the project?",
+      initial: process.cwd(),
+    },
+  ]);
+
+  return workspaceResponse.workspace;
 }
 
 async function getTemplates(): Promise<Template[]> {
@@ -350,23 +362,7 @@ async function getTemplate(template?: string): Promise<Template> {
   const templates = await getTemplates();
 
   if (template === undefined) {
-    const { default: enquirer } = await import("enquirer");
-
-    const templateResponse = await enquirer.prompt<{ template: string }>([
-      {
-        name: "template",
-        type: "select",
-        message: "What type of project would you like to initialize?",
-        initial: 0,
-        choices: templates.map((template) => ({
-          name: template.name,
-          message: template.packageJson.description,
-          value: template.name,
-        })),
-      },
-    ]);
-
-    template = templateResponse.template;
+    template = await promptForTemplate(templates);
   }
 
   for (const t of templates) {
@@ -378,6 +374,26 @@ async function getTemplate(template?: string): Promise<Template> {
   throw new HardhatError(HardhatError.ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
     operation: `Responding with "${template}" to the project initialization wizard`,
   });
+}
+
+async function promptForTemplate(templates: Template[]): Promise<string> {
+  const { default: enquirer } = await import("enquirer");
+
+  const templateResponse = await enquirer.prompt<{ template: string }>([
+    {
+      name: "template",
+      type: "select",
+      message: "What type of project would you like to initialize?",
+      initial: 0,
+      choices: templates.map((template) => ({
+        name: template.name,
+        message: template.packageJson.description,
+        value: template.name,
+      })),
+    },
+  ]);
+
+  return templateResponse.template;
 }
 
 function showStarOnGitHubMessage() {
