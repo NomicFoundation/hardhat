@@ -95,6 +95,161 @@ export async function createProject(
   }
 }
 
+// generated with the "colossal" font
+function printAsciiLogo() {
+  const logoLines = `
+888    888                      888 888               888
+888    888                      888 888               888
+888    888                      888 888               888
+8888888888  8888b.  888d888 .d88888 88888b.   8888b.  888888
+888    888     "88b 888P"  d88" 888 888 "88b     "88b 888
+888    888 .d888888 888    888  888 888  888 .d888888 888
+888    888 888  888 888    Y88b 888 888  888 888  888 Y88b.
+888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888
+`.trim();
+
+  console.log(chalk.blue(logoLines));
+}
+
+async function printWelcomeMessage() {
+  console.log(
+    chalk.cyan(
+      `👷 Welcome to ${HARDHAT_NAME} v${await getHardhatVersion()} 👷\n`,
+    ),
+  );
+}
+
+async function getWorkspace(workspace?: string): Promise<string> {
+  if (workspace === undefined) {
+    workspace = await promptForWorkspace();
+  }
+
+  workspace = path.resolve(workspace);
+
+  try {
+    const configFilePath = await findClosestHardhatConfig(workspace);
+
+    throw new HardhatError(
+      HardhatError.ERRORS.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,
+      {
+        hardhatProjectRootPath: configFilePath,
+      },
+    );
+  } catch (err) {
+    if (
+      HardhatError.isHardhatError(err) &&
+      err.number === HardhatError.ERRORS.GENERAL.NO_CONFIG_FILE_FOUND.number
+    ) {
+      // If a configuration file is not found, it is possible to initialize a new project,
+      // hence continuing code execution
+      return workspace;
+    }
+
+    throw err;
+  }
+}
+
+async function promptForWorkspace(): Promise<string> {
+  const { default: enquirer } = await import("enquirer");
+
+  const workspaceResponse = await enquirer.prompt<{ workspace: string }>([
+    {
+      name: "workspace",
+      type: "input",
+      message: "Where would you like to initialize the project?",
+      initial: process.cwd(),
+    },
+  ]);
+
+  return workspaceResponse.workspace;
+}
+
+async function getTemplate(template?: string): Promise<Template> {
+  const templates = await getTemplates();
+
+  if (template === undefined) {
+    template = await promptForTemplate(templates);
+  }
+
+  for (const t of templates) {
+    if (t.name === template) {
+      return t;
+    }
+  }
+
+  throw new HardhatError(HardhatError.ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
+    operation: `Responding with "${template}" to the project initialization wizard`,
+  });
+}
+
+async function getTemplates(): Promise<Template[]> {
+  const packageRoot = await findClosestPackageRoot(import.meta.url);
+  const pathToTemplates = path.join(packageRoot, "templates");
+
+  if (!(await exists(pathToTemplates))) {
+    return [];
+  }
+
+  const pathsToTemplates = await readdir(pathToTemplates);
+
+  return await Promise.all(
+    pathsToTemplates.map(async (name) => {
+      const pathToTemplate = path.join(pathToTemplates, name);
+      const pathToPackageJson = path.join(pathToTemplate, "package.json");
+
+      if (!(await exists(pathToPackageJson))) {
+        throw new PackageJsonNotFoundError(pathToPackageJson);
+      }
+
+      const packageJson: PackageJson =
+        await readJsonFile<PackageJson>(pathToPackageJson);
+      const files = await getAllFilesMatching(pathToTemplate, (f) => {
+        // Ignore the package.json file because it is handled separately
+        if (f === pathToPackageJson) {
+          return false;
+        }
+        // We should ignore all the files according to the .gitignore rules
+        // However, for simplicity, we just ignore the node_modules folder
+        // If we needed to implement a more complex ignore logic, we could
+        // use recently introduced glob from node:fs/promises
+        if (
+          path.relative(pathToTemplate, f).split(path.sep)[0] === "node_modules"
+        ) {
+          return false;
+        }
+        return true;
+      }).then((files) => files.map((f) => path.relative(pathToTemplate, f)));
+
+      return {
+        name,
+        packageJson,
+        path: pathToTemplate,
+        files,
+      };
+    }),
+  );
+}
+
+async function promptForTemplate(templates: Template[]): Promise<string> {
+  const { default: enquirer } = await import("enquirer");
+
+  const templateResponse = await enquirer.prompt<{ template: string }>([
+    {
+      name: "template",
+      type: "select",
+      message: "What type of project would you like to initialize?",
+      initial: 0,
+      choices: templates.map((template) => ({
+        name: template.name,
+        message: template.packageJson.description,
+        value: template.name,
+      })),
+    },
+  ]);
+
+  return templateResponse.template;
+}
+
 async function ensureProjectPackageJson(workspace: string): Promise<void> {
   const pathToPackageJson = path.join(workspace, "package.json");
 
@@ -226,6 +381,19 @@ async function installProjectDependencies(
   }
 }
 
+async function getPackageManager(workspace: string): Promise<PackageManager> {
+  const pathToYarnLock = path.join(workspace, "yarn.lock");
+  const pathToPnpmLock = path.join(workspace, "pnpm-lock.yaml");
+
+  if (await exists(pathToYarnLock)) {
+    return "yarn";
+  }
+  if (await exists(pathToPnpmLock)) {
+    return "pnpm";
+  }
+  return "npm";
+}
+
 async function promptForInstall(commands: string[][]): Promise<boolean> {
   const { default: enquirer } = await import("enquirer");
 
@@ -241,185 +409,10 @@ async function promptForInstall(commands: string[][]): Promise<boolean> {
   return installResponse.install;
 }
 
-// generated with the "colossal" font
-function printAsciiLogo() {
-  const logoLines = `
-888    888                      888 888               888
-888    888                      888 888               888
-888    888                      888 888               888
-8888888888  8888b.  888d888 .d88888 88888b.   8888b.  888888
-888    888     "88b 888P"  d88" 888 888 "88b     "88b 888
-888    888 .d888888 888    888  888 888  888 .d888888 888
-888    888 888  888 888    Y88b 888 888  888 888  888 Y88b.
-888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888
-`.trim();
-
-  console.log(chalk.blue(logoLines));
-}
-
-async function printWelcomeMessage() {
-  console.log(
-    chalk.cyan(
-      `👷 Welcome to ${HARDHAT_NAME} v${await getHardhatVersion()} 👷\n`,
-    ),
-  );
-}
-
-async function getWorkspace(workspace?: string): Promise<string> {
-  if (workspace === undefined) {
-    workspace = await promptForWorkspace();
-  }
-
-  workspace = path.resolve(workspace);
-
-  try {
-    const configFilePath = await findClosestHardhatConfig(workspace);
-
-    throw new HardhatError(
-      HardhatError.ERRORS.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,
-      {
-        hardhatProjectRootPath: configFilePath,
-      },
-    );
-  } catch (err) {
-    if (
-      HardhatError.isHardhatError(err) &&
-      err.number === HardhatError.ERRORS.GENERAL.NO_CONFIG_FILE_FOUND.number
-    ) {
-      // If a configuration file is not found, it is possible to initialize a new project,
-      // hence continuing code execution
-      return workspace;
-    }
-
-    throw err;
-  }
-}
-
-async function promptForWorkspace(): Promise<string> {
-  const { default: enquirer } = await import("enquirer");
-
-  const workspaceResponse = await enquirer.prompt<{ workspace: string }>([
-    {
-      name: "workspace",
-      type: "input",
-      message: "Where would you like to initialize the project?",
-      initial: process.cwd(),
-    },
-  ]);
-
-  return workspaceResponse.workspace;
-}
-
-async function getTemplates(): Promise<Template[]> {
-  const packageRoot = await findClosestPackageRoot(import.meta.url);
-  const pathToTemplates = path.join(packageRoot, "templates");
-
-  if (!(await exists(pathToTemplates))) {
-    return [];
-  }
-
-  const pathsToTemplates = await readdir(pathToTemplates);
-
-  return await Promise.all(
-    pathsToTemplates.map(async (name) => {
-      const pathToTemplate = path.join(pathToTemplates, name);
-      const pathToPackageJson = path.join(pathToTemplate, "package.json");
-
-      if (!(await exists(pathToPackageJson))) {
-        throw new PackageJsonNotFoundError(pathToPackageJson);
-      }
-
-      const packageJson: PackageJson =
-        await readJsonFile<PackageJson>(pathToPackageJson);
-      const files = await getAllFilesMatching(pathToTemplate, (f) => {
-        // Ignore the package.json file because it is handled separately
-        if (f === pathToPackageJson) {
-          return false;
-        }
-        // We should ignore all the files according to the .gitignore rules
-        // However, for simplicity, we just ignore the node_modules folder
-        // If we needed to implement a more complex ignore logic, we could
-        // use recently introduced glob from node:fs/promises
-        if (
-          path.relative(pathToTemplate, f).split(path.sep)[0] === "node_modules"
-        ) {
-          return false;
-        }
-        return true;
-      }).then((files) => files.map((f) => path.relative(pathToTemplate, f)));
-
-      return {
-        name,
-        packageJson,
-        path: pathToTemplate,
-        files,
-      };
-    }),
-  );
-}
-
-async function getTemplate(template?: string): Promise<Template> {
-  const templates = await getTemplates();
-
-  if (template === undefined) {
-    template = await promptForTemplate(templates);
-  }
-
-  for (const t of templates) {
-    if (t.name === template) {
-      return t;
-    }
-  }
-
-  throw new HardhatError(HardhatError.ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
-    operation: `Responding with "${template}" to the project initialization wizard`,
-  });
-}
-
-async function promptForTemplate(templates: Template[]): Promise<string> {
-  const { default: enquirer } = await import("enquirer");
-
-  const templateResponse = await enquirer.prompt<{ template: string }>([
-    {
-      name: "template",
-      type: "select",
-      message: "What type of project would you like to initialize?",
-      initial: 0,
-      choices: templates.map((template) => ({
-        name: template.name,
-        message: template.packageJson.description,
-        value: template.name,
-      })),
-    },
-  ]);
-
-  return templateResponse.template;
-}
-
 function showStarOnGitHubMessage() {
   console.log(
     chalk.cyan("Give Hardhat a star on Github if you're enjoying it! ⭐️✨"),
   );
   console.log();
   console.log(chalk.cyan("     https://github.com/NomicFoundation/hardhat"));
-}
-
-async function getPackageManager(workspace: string): Promise<PackageManager> {
-  if (await isYarnProject(workspace)) {
-    return "yarn";
-  }
-  if (await isPnpmProject(workspace)) {
-    return "pnpm";
-  }
-  return "npm";
-}
-
-async function isYarnProject(workspace: string) {
-  const pathToYarnLock = path.join(workspace, "yarn.lock");
-  return exists(pathToYarnLock);
-}
-
-async function isPnpmProject(workspace: string) {
-  const pathToPnpmLock = path.join(workspace, "pnpm-lock.yaml");
-  return exists(pathToPnpmLock);
 }
