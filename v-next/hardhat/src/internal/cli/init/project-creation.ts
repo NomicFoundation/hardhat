@@ -18,7 +18,10 @@ import {
 } from "@ignored/hardhat-vnext-utils/fs";
 import chalk from "chalk";
 
-import { getHardhatVersion } from "../../utils/package.js";
+import {
+  getHardhatVersion,
+  getLatestHardhatVersion,
+} from "../../utils/package.js";
 
 import { HARDHAT_NAME } from "./constants.js";
 import { findClosestHardhatConfig } from "../../config-loading.js";
@@ -112,11 +115,20 @@ function printAsciiLogo() {
 }
 
 async function printWelcomeMessage() {
+  const hardhatVersion = await getHardhatVersion();
+  const latestHardhatVersion = await getLatestHardhatVersion();
+
   console.log(
-    chalk.cyan(
-      `👷 Welcome to ${HARDHAT_NAME} v${await getHardhatVersion()} 👷\n`,
-    ),
+    chalk.cyan(`👷 Welcome to ${HARDHAT_NAME} v${hardhatVersion} 👷\n`),
   );
+
+  if (hardhatVersion !== latestHardhatVersion) {
+    console.warn(
+      chalk.yellow.bold(
+        `⚠️ You are using an outdated version of Hardhat. The latest version is v${latestHardhatVersion}. Please consider upgrading to the latest version before continuing with the project initialization. ⚠️\n`,
+      ),
+    );
+  }
 }
 
 async function getWorkspace(workspace?: string): Promise<string> {
