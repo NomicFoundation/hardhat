@@ -8,14 +8,14 @@ import {
   readUtf8File,
   remove,
 } from "@ignored/hardhat-vnext-utils/fs";
+import { findClosestPackageRoot } from "@ignored/hardhat-vnext-utils/package";
 import {
   assertRejectsWithHardhatError,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 
-import { findClosestHardhatConfig } from "../../../../src/internal/config-loading.js";
-import { findClosestPackageRoot } from "@ignored/hardhat-vnext-utils/package";
 import { initHardhat } from "../../../../src/internal/cli/init/init.js";
+import { findClosestHardhatConfig } from "../../../../src/internal/config-loading.js";
 
 async function deleteHardhatConfigFile() {
   await remove(path.join(process.cwd(), "hardhat.config.ts"));

@@ -1,3 +1,4 @@
+import type { Template } from "./template.js";
 import type { PackageJson } from "@ignored/hardhat-vnext-utils/package";
 
 import path from "node:path";
@@ -13,22 +14,22 @@ import {
 } from "@ignored/hardhat-vnext-utils/fs";
 import chalk from "chalk";
 
+import { findClosestHardhatConfig } from "../../config-loading.js";
 import {
   getHardhatVersion,
   getLatestHardhatVersion,
 } from "../../utils/package.js";
 
 import { HARDHAT_NAME } from "./constants.js";
-import { findClosestHardhatConfig } from "../../config-loading.js";
+import { getPackageManager } from "./package-manager.js";
 import {
   promptForForce,
   promptForInstall,
   promptForTemplate,
   promptForWorkspace,
 } from "./prompt.js";
-import { getTemplates, Template } from "./template.js";
-import { getPackageManager } from "./package-manager.js";
 import { spawn } from "./subprocess.js";
+import { getTemplates } from "./template.js";
 
 export interface InitHardhatOptions {
   workspace?: string;
@@ -263,7 +264,7 @@ async function copyProjectFiles(
 
   // Copy the template files to the workspace
   for (const file of template.files) {
-    if (!force && matchingFiles.includes(file)) {
+    if (force === false && matchingFiles.includes(file)) {
       continue;
     }
     const pathToTemplateFile = path.join(template.path, file);

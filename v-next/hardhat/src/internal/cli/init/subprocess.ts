@@ -1,4 +1,5 @@
-import { LastParameter } from "../../../types/utils.js";
+import type { LastParameter } from "../../../types/utils.js";
+
 import { spawn as nodeSpawn } from "node:child_process";
 
 export async function spawn(

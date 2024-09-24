@@ -30,9 +30,13 @@ export async function getLatestHardhatVersion(): Promise<string> {
 
   const packageName = packageJson.name;
 
-  const latestHardhat = (await fetch(
+  const latestHardhat = await fetch(
     `https://registry.npmjs.org/${packageName}/latest`,
-  ).then((res) => res.json())) as { version: string };
+  ).then((body) => {
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    -- Cast to PackageJson because that's what we expect from the registry */
+    return body.json() as Promise<PackageJson>;
+  });
 
   cachedLatestHardhatVersion = latestHardhat.version;
 

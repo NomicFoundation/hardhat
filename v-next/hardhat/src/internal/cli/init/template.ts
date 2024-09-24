@@ -1,8 +1,3 @@
-import {
-  findClosestPackageRoot,
-  PackageJsonNotFoundError,
-  type PackageJson,
-} from "@ignored/hardhat-vnext-utils/package";
 import path from "node:path";
 
 import {
@@ -11,6 +6,11 @@ import {
   readdir,
   readJsonFile,
 } from "@ignored/hardhat-vnext-utils/fs";
+import {
+  findClosestPackageRoot,
+  PackageJsonNotFoundError,
+  type PackageJson,
+} from "@ignored/hardhat-vnext-utils/package";
 
 export interface Template {
   name: string;
@@ -35,13 +35,14 @@ export async function getTemplates(): Promise<Template[]> {
 
   const pathsToTemplates = await readdir(pathToTemplates);
 
-  return await Promise.all(
+  return Promise.all(
     pathsToTemplates.map(async (name) => {
       const pathToTemplate = path.join(pathToTemplates, name);
       const pathToPackageJson = path.join(pathToTemplate, "package.json");
 
       // Validate that the the template has a package.json file
       if (!(await exists(pathToPackageJson))) {
+        // eslint-disable-next-line no-restricted-syntax -- this is a valid usecase for the PackageJsonNotFoundError
         throw new PackageJsonNotFoundError(pathToPackageJson);
       }
 
@@ -62,7 +63,7 @@ export async function getTemplates(): Promise<Template[]> {
           return false;
         }
         return true;
-      }).then((files) => files.map((f) => path.relative(pathToTemplate, f)));
+      }).then((fs) => fs.map((f) => path.relative(pathToTemplate, f)));
 
       return {
         name,

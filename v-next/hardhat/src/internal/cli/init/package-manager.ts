@@ -1,5 +1,6 @@
-import { exists } from "@ignored/hardhat-vnext-utils/fs";
 import path from "node:path";
+
+import { exists } from "@ignored/hardhat-vnext-utils/fs";
 
 type PackageManager = "npm" | "yarn" | "pnpm";
 

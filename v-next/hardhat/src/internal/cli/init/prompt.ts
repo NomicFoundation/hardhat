@@ -1,5 +1,6 @@
+import type { Template } from "./template.js";
+
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { Template } from "./template.js";
 
 export async function promptForWorkspace(): Promise<string> {
   ensureTTY();
