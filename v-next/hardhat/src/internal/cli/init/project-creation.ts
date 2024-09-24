@@ -69,6 +69,35 @@ const packageManagerDependencyInstallationCommands = {
   },
 };
 
+/**
+ * createProject implements the project initialization wizard flow.
+ *
+ * It can be called with the following options:
+ * - workspace: The path to the workspace to initialize the project in.
+ *   If not provided, the user will be prompted to select the workspace.
+ * - template: The name of the template to use for the project initialization.
+ *   If not provided, the user will be prompted to select the template.
+ * - force: Whether to overwrite existing files in the workspace.
+ *   If not provided and there are files that would be overwritten,
+ *   the user will be prompted to confirm.
+ * - install: Whether to install the project dependencies.
+ *   If not provided and there are dependencies that should be installed,
+ *   the user will be prompted to confirm.
+ *
+ * The flow is as follows:
+ * 1. Print the ascii logo.
+ * 2. Print the welcome message.
+ * 3. Optionally, ask the user for the workspace to initialize the project in.
+ * 4. Optionally, ask the user for the template to use for the project initialization.
+ * 5. Create the package.json file if it does not exist.
+ * 6. Validate that the package.json file is an esm package.
+ * 7. Optionally, ask the user if files should be overwritten.
+ * 8. Copy the template files to the workspace.
+ * 10. Print the commands to install the project dependencies.
+ * 11. Optionally, ask the user if the project dependencies should be installed.
+ * 12. Optionally, run the commands to install the project dependencies.
+ * 13. Print a message to star the project on GitHub.
+ */
 export async function createProject(
   options?: CreateProjectOptions,
 ): Promise<void> {
@@ -77,14 +106,24 @@ export async function createProject(
 
     await printWelcomeMessage();
 
+    // Ask the user for the workspace to initialize the project in
+    // if it was not provided, and validate that it is not already initialized
     const workspace = await getWorkspace(options?.workspace);
 
+    // Ask the user for the template to use for the project initialization
+    // if it was not provided, and validate that it exists
     const template = await getTemplate(options?.template);
 
+    // Create the package.json file if it does not exist
+    // and validate that it is an esm package
     await ensureProjectPackageJson(workspace);
 
+    // Copy the template files to the workspace
+    // Overwrite existing files only if the user opts-in to it
     await copyProjectFiles(workspace, template, options?.force);
 
+    // Print the commands to install the project dependencies
+    // Run them only if the user opts-in to it
     await installProjectDependencies(workspace, template, options?.install);
 
     showStarOnGitHubMessage();
@@ -122,6 +161,7 @@ async function printWelcomeMessage() {
     chalk.cyan(`👷 Welcome to ${HARDHAT_NAME} v${hardhatVersion} 👷\n`),
   );
 
+  // Warn the user if they are using an outdated version of Hardhat
   if (hardhatVersion !== latestHardhatVersion) {
     console.warn(
       chalk.yellow.bold(
@@ -131,13 +171,24 @@ async function printWelcomeMessage() {
   }
 }
 
+/**
+ * getWorkspace asks the user for the workspace to initialize the project in
+ * if the input workspace is undefined.
+ *
+ * It also validates that the workspace is not already initialized.
+ *
+ * @param workspace The path to the workspace to initialize the project in.
+ * @returns The path to the workspace.
+ */
 async function getWorkspace(workspace?: string): Promise<string> {
+  // Ask the user for the workspace to initialize the project in if it was not provided
   if (workspace === undefined) {
     workspace = await promptForWorkspace();
   }
 
   workspace = path.resolve(workspace);
 
+  // Validate that the workspace is not already initialized
   try {
     const configFilePath = await findClosestHardhatConfig(workspace);
 
@@ -176,13 +227,24 @@ async function promptForWorkspace(): Promise<string> {
   return workspaceResponse.workspace;
 }
 
+/**
+ * getTemplate asks the user for the template to use for the project initialization
+ * if the input template is undefined.
+ *
+ * It also validates that the template exists.
+ *
+ * @param template The name of the template to use for the project initialization.
+ * @returns
+ */
 async function getTemplate(template?: string): Promise<Template> {
   const templates = await getTemplates();
 
+  // Ask the user for the template to use for the project initialization if it was not provided
   if (template === undefined) {
     template = await promptForTemplate(templates);
   }
 
+  // Validate that the template exists
   for (const t of templates) {
     if (t.name === template) {
       return t;
@@ -194,6 +256,12 @@ async function getTemplate(template?: string): Promise<Template> {
   });
 }
 
+/**
+ * getTemplates returns the list of available templates. It retrieves them from
+ * the "templates" folder in the package root.
+ *
+ * @returns The list of available templates.
+ */
 async function getTemplates(): Promise<Template[]> {
   const packageRoot = await findClosestPackageRoot(import.meta.url);
   const pathToTemplates = path.join(packageRoot, "templates");
@@ -209,6 +277,7 @@ async function getTemplates(): Promise<Template[]> {
       const pathToTemplate = path.join(pathToTemplates, name);
       const pathToPackageJson = path.join(pathToTemplate, "package.json");
 
+      // Validate that the the template has a package.json file
       if (!(await exists(pathToPackageJson))) {
         throw new PackageJsonNotFoundError(pathToPackageJson);
       }
@@ -262,9 +331,18 @@ async function promptForTemplate(templates: Template[]): Promise<string> {
   return templateResponse.template;
 }
 
+/**
+ * ensureProjectPackageJson creates the package.json file if it does not exist
+ * in the workspace.
+ *
+ * It also validates that the package.json file is an esm package.
+ *
+ * @param workspace The path to the workspace to initialize the project in.
+ */
 async function ensureProjectPackageJson(workspace: string): Promise<void> {
   const pathToPackageJson = path.join(workspace, "package.json");
 
+  // Create the package.json file if it does not exist
   if (!(await exists(pathToPackageJson))) {
     await writeJsonFile(pathToPackageJson, {
       name: "hardhat-project",
@@ -274,26 +352,40 @@ async function ensureProjectPackageJson(workspace: string): Promise<void> {
 
   const pkg: PackageJson = await readJsonFile(pathToPackageJson);
 
+  // Validate that the package.json file is an esm package
   if (pkg.type === undefined || pkg.type !== "module") {
     throw new HardhatError(HardhatError.ERRORS.GENERAL.ONLY_ESM_SUPPORTED);
   }
 }
 
+/**
+ * copyProjectFiles copies the template files to the workspace.
+ *
+ * If there are clashing files in the workspace, they will be overwritten only
+ * if the force option is true or if the user opts-in to it.
+ *
+ * @param workspace The path to the workspace to initialize the project in.
+ * @param template The template to use for the project initialization.
+ * @param force Whether to overwrite existing files in the workspace.
+ */
 async function copyProjectFiles(
   workspace: string,
   template: Template,
   force?: boolean,
 ) {
+  // Find all the files in the workspace that would have been overwritten by the template files
   const matchingFiles = await getAllFilesMatching(workspace, (file) =>
     template.files.includes(path.relative(workspace, file)),
   ).then((files) => files.map((f) => path.relative(workspace, f)));
 
+  // Ask the user for permission to overwrite existing files if needed
   if (matchingFiles.length !== 0) {
     if (force === undefined) {
       force = await promptForForce(matchingFiles);
     }
   }
 
+  // Copy the template files to the workspace
   for (const file of template.files) {
     if (!force && matchingFiles.includes(file)) {
       continue;
@@ -323,6 +415,14 @@ async function promptForForce(files: string[]): Promise<boolean> {
   return forceResponse.force;
 }
 
+/**
+ * installProjectDependencies prints the commands to install the project dependencies
+ * and runs them if the install option is true or if the user opts-in to it.
+ *
+ * @param workspace The path to the workspace to initialize the project in.
+ * @param template The template to use for the project initialization.
+ * @param install Whether to install the project dependencies.
+ */
 async function installProjectDependencies(
   workspace: string,
   template: Template,
@@ -339,6 +439,8 @@ async function installProjectDependencies(
   const hardhatVersion = await getHardhatVersion();
   const packageManager = await getPackageManager(workspace);
 
+  // Iterate over the package.json dependency keys to find the dependencies
+  // that need to be installed
   for (const key of packageJsonDependencyKeys) {
     const templateDependencies = template.packageJson[key] ?? {};
     const workspaceDependencies = workspacePkg[key] ?? {};
@@ -346,12 +448,15 @@ async function installProjectDependencies(
     const dependenciesToInstall = Object.entries(templateDependencies)
       .filter(([name]) => workspaceDependencies[name] === undefined)
       .map(([name, version]) => {
+        // If the version is workspace:, replace it with the current version of Hardhat
         if (version.startsWith("workspace:")) {
           return `"${name}@${hardhatVersion}"`;
         }
         return `"${name}@${version}"`;
       });
 
+    // If there are dependencies to install, add the package manager specific
+    // installation commands to the commands array
     if (Object.keys(dependenciesToInstall).length !== 0) {
       const command =
         packageManagerDependencyInstallationCommands[packageManager][key];
@@ -360,32 +465,15 @@ async function installProjectDependencies(
     }
   }
 
+  // Ask the user for permission to install the project dependencies and install them if needed
   if (commands.length !== 0) {
     if (install === undefined) {
       install = await promptForInstall(commands);
     }
 
     if (install) {
-      const { spawn } = await import("child_process");
       for (const command of commands) {
-        console.log(command.join(" "));
-        const child = spawn(command[0], command.slice(1), {
-          cwd: workspace,
-          shell: true,
-          stdio: "inherit",
-        });
-        await new Promise<void>((resolve, reject) => {
-          child.on("close", (code) => {
-            if (code !== 0) {
-              reject(
-                new Error(
-                  `Command "${command.join(" ")}" exited with code ${code}`,
-                ),
-              );
-            }
-            resolve();
-          });
-        });
+        await runCommand(workspace, command);
       }
 
       console.log(`✨ ${chalk.cyan(`Dependencies installed`)} ✨`);
@@ -393,6 +481,13 @@ async function installProjectDependencies(
   }
 }
 
+/**
+ * getPackageManager returns the name of the package manager used in the workspace.
+ * It determines this by checking the presence of package manager specific lock files.
+ *
+ * @param workspace The path to the workspace to initialize the project in.
+ * @returns The name of the package manager used in the workspace.
+ */
 async function getPackageManager(workspace: string): Promise<PackageManager> {
   const pathToYarnLock = path.join(workspace, "yarn.lock");
   const pathToPnpmLock = path.join(workspace, "pnpm-lock.yaml");
@@ -419,6 +514,26 @@ async function promptForInstall(commands: string[][]): Promise<boolean> {
   ]);
 
   return installResponse.install;
+}
+
+async function runCommand(cwd: string, command: string[]): Promise<void> {
+  const { spawn } = await import("child_process");
+  console.log(command.join(" "));
+  const child = spawn(command[0], command.slice(1), {
+    cwd,
+    shell: true,
+    stdio: "inherit",
+  });
+  await new Promise<void>((resolve, reject) => {
+    child.on("close", (code) => {
+      if (code !== 0) {
+        reject(
+          new Error(`Command "${command.join(" ")}" exited with code ${code}`),
+        );
+      }
+      resolve();
+    });
+  });
 }
 
 function showStarOnGitHubMessage() {
