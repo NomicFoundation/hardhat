@@ -13,10 +13,9 @@ import {
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 
-import { initHardhat } from "../../../../src/internal/cli/init/init.js";
 import { findClosestHardhatConfig } from "../../../../src/internal/config-loading.js";
-import { createProject } from "../../../../src/internal/cli/init/project-creation.js";
 import { findClosestPackageRoot } from "@ignored/hardhat-vnext-utils/package";
+import { initHardhat } from "../../../../src/internal/cli/init/init.js";
 
 async function deleteHardhatConfigFile() {
   await remove(path.join(process.cwd(), "hardhat.config.ts"));
@@ -50,7 +49,7 @@ describe("init", function () {
     useFixtureProject("cli/init/empty-folder");
 
     it("should create a package.json file and a hardhat.config.ts file", async function () {
-      await createProject({
+      await initHardhat({
         template: "empty-typescript",
         workspace: process.cwd(),
         force: false,
@@ -77,7 +76,7 @@ describe("init", function () {
     useFixtureProject("cli/init/valid-project-config");
 
     it("should create a hardhat.config.ts file", async function () {
-      await createProject({
+      await initHardhat({
         template: "empty-typescript",
         workspace: process.cwd(),
         force: false,
@@ -102,7 +101,7 @@ describe("init", function () {
       it("should throw an error because the project is not of type esm", async function () {
         await assertRejectsWithHardhatError(
           async () =>
-            createProject({
+            initHardhat({
               template: "empty-typescript",
               workspace: process.cwd(),
               force: false,
@@ -120,7 +119,7 @@ describe("init", function () {
       it("should throw an error because the project is not of type esm", async function () {
         await assertRejectsWithHardhatError(
           async () =>
-            createProject({
+            initHardhat({
               template: "empty-typescript",
               workspace: process.cwd(),
               force: false,
@@ -139,7 +138,7 @@ describe("init", function () {
     it("should fail because there is already a hardhat.config.ts file", async function () {
       await assertRejectsWithHardhatError(
         async () =>
-          createProject({
+          initHardhat({
             template: "empty-typescript",
             workspace: process.cwd(),
             force: false,
