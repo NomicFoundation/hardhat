@@ -1,8 +1,4 @@
-import {
-  findClosestPackageRoot,
-  PackageJsonNotFoundError,
-  type PackageJson,
-} from "@ignored/hardhat-vnext-utils/package";
+import type { PackageJson } from "@ignored/hardhat-vnext-utils/package";
 
 import path from "node:path";
 
@@ -12,7 +8,6 @@ import {
   ensureDir,
   exists,
   getAllFilesMatching,
-  readdir,
   readJsonFile,
   writeJsonFile,
 } from "@ignored/hardhat-vnext-utils/fs";
@@ -25,6 +20,15 @@ import {
 
 import { HARDHAT_NAME } from "./constants.js";
 import { findClosestHardhatConfig } from "../../config-loading.js";
+import {
+  promptForForce,
+  promptForInstall,
+  promptForTemplate,
+  promptForWorkspace,
+} from "./prompt.js";
+import { getTemplates, Template } from "./template.js";
+import { getPackageManager } from "./package-manager.js";
+import { spawn } from "./subprocess.js";
 
 export interface InitHardhatOptions {
   workspace?: string;
@@ -32,15 +36,6 @@ export interface InitHardhatOptions {
   force?: boolean;
   install?: boolean;
 }
-
-interface Template {
-  name: string;
-  packageJson: PackageJson;
-  path: string;
-  files: string[];
-}
-
-type PackageManager = "npm" | "yarn" | "pnpm";
 
 /**
  * initHardhat implements the project initialization wizard flow.
@@ -183,23 +178,6 @@ async function getWorkspace(workspace?: string): Promise<string> {
   }
 }
 
-async function promptForWorkspace(): Promise<string> {
-  ensureTTY();
-
-  const { default: enquirer } = await import("enquirer");
-
-  const workspaceResponse = await enquirer.prompt<{ workspace: string }>([
-    {
-      name: "workspace",
-      type: "input",
-      message: "Where would you like to initialize the project?",
-      initial: process.cwd(),
-    },
-  ]);
-
-  return workspaceResponse.workspace;
-}
-
 /**
  * getTemplate asks the user for the template to use for the project initialization
  * if the input template is undefined.
@@ -227,83 +205,6 @@ async function getTemplate(template?: string): Promise<Template> {
   throw new HardhatError(HardhatError.ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
     operation: `Responding with "${template}" to the project initialization wizard`,
   });
-}
-
-/**
- * getTemplates returns the list of available templates. It retrieves them from
- * the "templates" folder in the package root.
- *
- * @returns The list of available templates.
- */
-async function getTemplates(): Promise<Template[]> {
-  const packageRoot = await findClosestPackageRoot(import.meta.url);
-  const pathToTemplates = path.join(packageRoot, "templates");
-
-  if (!(await exists(pathToTemplates))) {
-    return [];
-  }
-
-  const pathsToTemplates = await readdir(pathToTemplates);
-
-  return await Promise.all(
-    pathsToTemplates.map(async (name) => {
-      const pathToTemplate = path.join(pathToTemplates, name);
-      const pathToPackageJson = path.join(pathToTemplate, "package.json");
-
-      // Validate that the the template has a package.json file
-      if (!(await exists(pathToPackageJson))) {
-        throw new PackageJsonNotFoundError(pathToPackageJson);
-      }
-
-      const packageJson: PackageJson =
-        await readJsonFile<PackageJson>(pathToPackageJson);
-      const files = await getAllFilesMatching(pathToTemplate, (f) => {
-        // Ignore the package.json file because it is handled separately
-        if (f === pathToPackageJson) {
-          return false;
-        }
-        // We should ignore all the files according to the .gitignore rules
-        // However, for simplicity, we just ignore the node_modules folder
-        // If we needed to implement a more complex ignore logic, we could
-        // use recently introduced glob from node:fs/promises
-        if (
-          path.relative(pathToTemplate, f).split(path.sep)[0] === "node_modules"
-        ) {
-          return false;
-        }
-        return true;
-      }).then((files) => files.map((f) => path.relative(pathToTemplate, f)));
-
-      return {
-        name,
-        packageJson,
-        path: pathToTemplate,
-        files,
-      };
-    }),
-  );
-}
-
-async function promptForTemplate(templates: Template[]): Promise<string> {
-  ensureTTY();
-
-  const { default: enquirer } = await import("enquirer");
-
-  const templateResponse = await enquirer.prompt<{ template: string }>([
-    {
-      name: "template",
-      type: "select",
-      message: "What type of project would you like to initialize?",
-      initial: 0,
-      choices: templates.map((template) => ({
-        name: template.name,
-        message: template.packageJson.description,
-        value: template.name,
-      })),
-    },
-  ]);
-
-  return templateResponse.template;
 }
 
 /**
@@ -373,23 +274,6 @@ async function copyProjectFiles(
   }
 
   console.log(`✨ ${chalk.cyan(`Template files copied`)} ✨`);
-}
-
-async function promptForForce(files: string[]): Promise<boolean> {
-  ensureTTY();
-
-  const { default: enquirer } = await import("enquirer");
-
-  const forceResponse = await enquirer.prompt<{ force: boolean }>([
-    {
-      name: "force",
-      type: "confirm",
-      message: `The following files already exist in the workspace:\n${files.map((f) => `- ${f}`).join("\n")}\n\nDo you want to overwrite them?`,
-      initial: false,
-    },
-  ]);
-
-  return forceResponse.force;
 }
 
 /**
@@ -477,69 +361,16 @@ async function installProjectDependencies(
 
     if (install) {
       for (const command of commands) {
-        await runCommand(workspace, command);
+        await spawn(command[0], command.slice(1), {
+          cwd: workspace,
+          shell: true,
+          stdio: "inherit",
+        });
       }
 
       console.log(`✨ ${chalk.cyan(`Dependencies installed`)} ✨`);
     }
   }
-}
-
-/**
- * getPackageManager returns the name of the package manager used in the workspace.
- * It determines this by checking the presence of package manager specific lock files.
- *
- * @param workspace The path to the workspace to initialize the project in.
- * @returns The name of the package manager used in the workspace.
- */
-async function getPackageManager(workspace: string): Promise<PackageManager> {
-  const pathToYarnLock = path.join(workspace, "yarn.lock");
-  const pathToPnpmLock = path.join(workspace, "pnpm-lock.yaml");
-
-  if (await exists(pathToYarnLock)) {
-    return "yarn";
-  }
-  if (await exists(pathToPnpmLock)) {
-    return "pnpm";
-  }
-  return "npm";
-}
-
-async function promptForInstall(commands: string[][]): Promise<boolean> {
-  ensureTTY();
-
-  const { default: enquirer } = await import("enquirer");
-
-  const installResponse = await enquirer.prompt<{ install: boolean }>([
-    {
-      name: "install",
-      type: "confirm",
-      message: `You need to install the project dependencies using the following command${commands.length === 1 ? "" : "s"}:\n${commands.map((c) => c.join(" ")).join("\n")}\n\nDo you want to run them now?`,
-      initial: false,
-    },
-  ]);
-
-  return installResponse.install;
-}
-
-async function runCommand(cwd: string, command: string[]): Promise<void> {
-  const { spawn } = await import("child_process");
-  console.log(command.join(" "));
-  const child = spawn(command[0], command.slice(1), {
-    cwd,
-    shell: true,
-    stdio: "inherit",
-  });
-  await new Promise<void>((resolve, reject) => {
-    child.on("close", (code) => {
-      if (code !== 0) {
-        reject(
-          new Error(`Command "${command.join(" ")}" exited with code ${code}`),
-        );
-      }
-      resolve();
-    });
-  });
 }
 
 function showStarOnGitHubMessage() {
@@ -548,24 +379,4 @@ function showStarOnGitHubMessage() {
   );
   console.log();
   console.log(chalk.cyan("     https://github.com/NomicFoundation/hardhat"));
-}
-
-/**
- * ensureTTY checks if the process is running in a TTY (i.e. a terminal).
- * If it is not, it throws and error.
- */
-function ensureTTY(): void {
-  if (process.stdout.isTTY !== true) {
-    // Many terminal emulators in windows don't present themselves as TTYs.
-    // If we are in this situation we throw a special error instructing the user
-    // to use WSL or powershell to initialize the project.
-    if (process.platform === "win32") {
-      throw new HardhatError(
-        HardhatError.ERRORS.GENERAL.NOT_INSIDE_PROJECT_ON_WINDOWS,
-      );
-    }
-    throw new HardhatError(
-      HardhatError.ERRORS.GENERAL.NOT_IN_INTERACTIVE_SHELL,
-    );
-  }
 }
