@@ -98,6 +98,10 @@ ignitionScope
   .addOptionalParam("strategy", "Set the deployment strategy to use", "basic")
   .addFlag("reset", "Wipes the existing deployment state before deploying")
   .addFlag("verify", "Verify the deployment on Etherscan")
+  .addFlag(
+    "writeLocalhostDeployment",
+    "Write deployment information to disk even when running for in-memory networks"
+  )
   .setDescription("Deploy a module to the specified network")
   .setAction(
     async (
@@ -109,6 +113,7 @@ ignitionScope
         reset,
         verify,
         strategy: strategyName,
+        writeLocalhostDeployment,
       }: {
         modulePath: string;
         parameters?: string;
@@ -117,6 +122,7 @@ ignitionScope
         reset: boolean;
         verify: boolean;
         strategy: string;
+        writeLocalhostDeployment: boolean;
       },
       hre
     ) => {
@@ -152,7 +158,7 @@ ignitionScope
       const deploymentId = resolveDeploymentId(givenDeploymentId, chainId);
 
       const deploymentDir =
-        hre.network.name === "hardhat"
+        hre.network.name === "hardhat" && !writeLocalhostDeployment
           ? undefined
           : path.join(hre.config.paths.ignition, "deployments", deploymentId);
 
