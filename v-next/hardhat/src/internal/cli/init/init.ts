@@ -42,33 +42,6 @@ interface Template {
 
 type PackageManager = "npm" | "yarn" | "pnpm";
 
-const packageJsonDependencyKeys = [
-  "dependencies",
-  "devDependencies",
-  "peerDependencies",
-  "optionalDependencies",
-] as const;
-const packageManagerDependencyInstallationCommands = {
-  npm: {
-    dependencies: ["npm", "install"],
-    devDependencies: ["npm", "install", "--save-dev"],
-    peerDependencies: ["npm", "install", "--save-peer"],
-    optionalDependencies: ["npm", "install", "--save-optional"],
-  },
-  yarn: {
-    dependencies: ["yarn", "add"],
-    devDependencies: ["yarn", "add", "--dev"],
-    peerDependencies: ["yarn", "add", "--peer"],
-    optionalDependencies: ["yarn", "add", "--optional"],
-  },
-  pnpm: {
-    dependencies: ["pnpm", "add"],
-    devDependencies: ["pnpm", "add", "--save-dev"],
-    peerDependencies: ["pnpm", "add", "--save-peer"],
-    optionalDependencies: ["pnpm", "add", "--save-optional"],
-  },
-};
-
 /**
  * initHardhat implements the project initialization wizard flow.
  *
@@ -442,6 +415,33 @@ async function installProjectDependencies(
 
   const hardhatVersion = await getHardhatVersion();
   const packageManager = await getPackageManager(workspace);
+
+  const packageJsonDependencyKeys = [
+    "dependencies",
+    "devDependencies",
+    "peerDependencies",
+    "optionalDependencies",
+  ] as const;
+  const packageManagerDependencyInstallationCommands = {
+    npm: {
+      dependencies: ["npm", "install"],
+      devDependencies: ["npm", "install", "--save-dev"],
+      peerDependencies: ["npm", "install", "--save-peer"],
+      optionalDependencies: ["npm", "install", "--save-optional"],
+    },
+    yarn: {
+      dependencies: ["yarn", "add"],
+      devDependencies: ["yarn", "add", "--dev"],
+      peerDependencies: ["yarn", "add", "--peer"],
+      optionalDependencies: ["yarn", "add", "--optional"],
+    },
+    pnpm: {
+      dependencies: ["pnpm", "add"],
+      devDependencies: ["pnpm", "add", "--save-dev"],
+      peerDependencies: ["pnpm", "add", "--save-peer"],
+      optionalDependencies: ["pnpm", "add", "--save-optional"],
+    },
+  };
 
   // Iterate over the package.json dependency keys to find the dependencies
   // that need to be installed
