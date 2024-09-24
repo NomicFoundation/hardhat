@@ -122,8 +122,9 @@ for (const entry of entries) {
 function normalizeOutputs(output: string): string {
   return (
     output
-      // Normalize the time it took to run the test
-      .replace(/\(\d+ms\)/g, "(Xms)")
+      // Remove the time it took to run the test because it was a source of flakiness
+      // This means we're not, in fact, testing how slow tests are displayed
+      .replace(/\s*\(\d+ms\)/g, "")
       // Normalize windows new lines
       .replaceAll("\r\n", "\n")
       // Normalize path separators to `/` within the (file:line:column)
