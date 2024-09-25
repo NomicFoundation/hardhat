@@ -100,7 +100,7 @@ ignitionScope
   .addFlag("verify", "Verify the deployment on Etherscan")
   .addFlag(
     "writeLocalhostDeployment",
-    "Write deployment information to disk even when running for in-memory networks"
+    "Write deployment information to disk when deploying to the in-memory network"
   )
   .setDescription("Deploy a module to the specified network")
   .setAction(
@@ -161,7 +161,6 @@ ignitionScope
         hre.network.name === "hardhat" && !writeLocalhostDeployment
           ? undefined
           : path.join(hre.config.paths.ignition, "deployments", deploymentId);
-
       if (chainId !== 31337) {
         if (process.env.HARDHAT_IGNITION_CONFIRM_DEPLOYMENT === undefined) {
           const prompt = await Prompt({
