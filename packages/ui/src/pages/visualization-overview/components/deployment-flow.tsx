@@ -90,6 +90,7 @@ const SingleFutureNotice = styled.div`
 const VisualizeDiv = styled.div`
   font-weight: 700;
   padding: 1.5rem;
+  width: 100%;
 `;
 
 const FlowTooltip: React.FC = () => (
@@ -165,6 +166,11 @@ const SectionHeader = styled.div`
 const BatchBtnSection = styled.div`
   margin-bottom: 40px;
   text-align: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  row-gap: 1rem;
+  width: 100%;
 `;
 
 const BatchBtn = styled.span<{ isCurrentlyHovered: boolean }>`
@@ -177,6 +183,7 @@ const BatchBtn = styled.span<{ isCurrentlyHovered: boolean }>`
   background: #ffffff;
   border: 1px solid #edcf00;
   cursor: pointer;
+  white-space: nowrap;
 
   ${(props) =>
     props.isCurrentlyHovered &&

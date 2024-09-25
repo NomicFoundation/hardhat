@@ -25,7 +25,7 @@ export const Mermaid: React.FC<{
 
   useEffect(() => {
     mermaid.initialize({
-      maxTextSize: 500000,
+      maxTextSize: 5000000,
       flowchart: {
         padding: 50,
       },
