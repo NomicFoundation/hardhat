@@ -4,9 +4,7 @@ import type {
   HardhatUserConfig,
   ResolvedConfigurationVariable,
 } from "./config.js";
-import type { GlobalOptions } from "./global-options.js";
 import type { HardhatRuntimeEnvironment } from "./hre.js";
-import type { UserInterruptionManager } from "./user-interruptions.js";
 import type {
   LastParameter,
   ParametersExceptFirst,
@@ -32,12 +30,7 @@ declare module "./hre.js" {
  * The `HookContext` offers a subset of the functionality that the
  * `HardhatRuntimeEnvironment` does.
  */
-export interface HookContext {
-  readonly config: HardhatConfig;
-  readonly globalOptions: GlobalOptions;
-  readonly interruptions: UserInterruptionManager;
-  readonly hooks: HookManager;
-}
+export type HookContext = Omit<HardhatRuntimeEnvironment, "tasks">;
 
 /**
  * The different hooks that a plugin can define handlers for.
