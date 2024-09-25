@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-viem
 
+## 2.0.5
+
+### Patch Changes
+
+- 6010386: Moved types to `HardhatViemHelpers` and initialized `ContractTypesMap` as empty for better extensibility. Improved performance by disabling retries in dev nets (thanks @TateB!)
+
 ## 2.0.4
 
 ### Patch Changes
@@ -11,11 +17,6 @@
 ### Patch Changes
 
 - a8a6038: Added `ContractTypesMap` to simplify contract type imports (thanks @beepidibop!)
-- Updated dependencies [cdf0160]
-- Updated dependencies [3c66da2]
-- Updated dependencies [9fadc22]
-- Updated dependencies [095faa4]
-  - hardhat@2.22.6
 
 ## 2.0.2
 
