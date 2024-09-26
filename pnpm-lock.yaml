@@ -1758,6 +1758,12 @@ importers:
       '@ignored/hardhat-vnext-utils':
         specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-utils
+      debug:
+        specifier: ^4.1.1
+        version: 4.3.6(supports-color@8.1.1)
+      ethers:
+        specifier: ^6.13.2
+        version: 6.13.2
     devDependencies:
       '@eslint-community/eslint-plugin-eslint-comments':
         specifier: ^4.3.0

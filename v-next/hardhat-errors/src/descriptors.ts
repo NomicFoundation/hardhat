@@ -73,6 +73,11 @@ export const ERROR_CATEGORIES: {
     max: 999,
     websiteTitle: "Network-helpers errors",
   },
+  ETHERS: {
+    min: 1000,
+    max: 1099,
+    websiteTitle: "Ethers errors",
+  },
 };
 
 export const ERRORS = {
@@ -683,6 +688,93 @@ Learn more at (https://hardhat.org/hardhat-network-helpers/docs/reference#fixtur
 This might be caused by using hardhat_reset and loadFixture calls in a testcase.`,
       websiteTitle: "Error while reverting snapshot",
       websiteDescription: "Error while reverting snapshot",
+    },
+  },
+  ETHERS: {
+    METHOD_NOT_IMPLEMENTED: {
+      number: 1000,
+      messageTemplate: `Method "{method}" is not implemented`,
+      websiteTitle: "Method not implemented",
+      websiteDescription: "Method not implemented",
+    },
+    EVENT_NOT_SUPPORTED: {
+      number: 1001,
+      messageTemplate: `Event "{event}" is not supported`,
+      websiteTitle: "Event not supported",
+      websiteDescription: "Event not supported",
+    },
+    ACCOUNT_INDEX_OUT_OF_RANGE: {
+      number: 1002,
+      messageTemplate: `Tried to get account with index {accountIndex} but there are only {accountsLength} accounts`,
+      websiteTitle: "Account index out of range",
+      websiteDescription: "Account index out of range",
+    },
+    BROADCASTED_TX_DIFFERENT_HASH: {
+      number: 1003,
+      messageTemplate: `Expected broadcasted transaction to have hash "{txHash}", but got "{broadcastedTxHash}" `,
+      websiteTitle: "Broadcasted tx different hash",
+      websiteDescription: "Broadcasted tx different hash",
+    },
+    CANNOT_GET_ACCOUNT: {
+      number: 1004,
+      messageTemplate: `Cannot get account with address"{address}"`,
+      websiteTitle: "Cannot get account",
+      websiteDescription: "Cannot get account",
+    },
+    INVALID_BLOCK_TAG: {
+      number: 1005,
+      messageTemplate: `Invalid block tag "{blockTag}"`,
+      websiteTitle: "Invalid block tag",
+      websiteDescription: "Invalid block tag",
+    },
+    INVALID_ARTIFACT: {
+      number: 1006,
+      messageTemplate:
+        "You are trying to create a contract factory from an artifact, but you have not passed a valid artifact parameter.",
+      websiteTitle: "Invalid artifact",
+      websiteDescription: "Invalid artifact",
+    },
+    INVALID_ABSTRACT_CONTRACT_FOR_FACTORY: {
+      number: 1007,
+      messageTemplate: `You are trying to create a contract factory for the contract "{contractName}", which is abstract and can't be deployed. If you want to call a contract using "{contractName}" as its interface use the "getContractAt" function instead.`,
+      websiteTitle: "Invalid abstract contract",
+      websiteDescription: "Invalid abstract contract",
+    },
+    INVALID_ADDRESS_TO_LINK_CONTRACT_TO_LIBRARY: {
+      number: 1008,
+      messageTemplate: `You tried to link the contract "{contractName}" with the library "{linkedLibraryName}", but you provided this invalid address: "{resolvedAddress}"`,
+      websiteTitle: "Invalid address to link contract",
+      websiteDescription: "Invalid address to link contract",
+    },
+    LIBRARY_NOT_AMONG_CONTRACT_LIBRARIES: {
+      number: 1009,
+      messageTemplate: `You tried to link the contract "{contractName}" with the library "{linkedLibraryName}", which is not one of its libraries. Detailed message: {detailedMessage}`,
+      websiteTitle: "Library is not one of the contract libraries",
+      websiteDescription: "Library is not one of the contract libraries",
+    },
+    AMBIGUOUS_LIBRARY_NAME: {
+      number: 1010,
+      messageTemplate: `The library name "{linkedLibraryName}" is ambiguous for the contract "{contractName}". It may resolve to one of the following libraries: "{matchingNeededLibrariesFQNs}". To fix this, choose one of these fully qualified library names and replace where appropriate.`,
+      websiteTitle: "Ambiguous library name",
+      websiteDescription: "Ambiguous library name",
+    },
+    REFERENCE_TO_SAME_LIBRARY: {
+      number: 1011,
+      messageTemplate: `The library names "{linkedLibraryName1}" and "{linkedLibraryName2}" refer to the same library and were given as two separate library links. Remove one of them and review your library links before proceeding.`,
+      websiteTitle: "Reference to same library",
+      websiteDescription: "Reference to same library",
+    },
+    MISSING_LINK_FOR_LIBRARY: {
+      number: 1012,
+      messageTemplate: `The contract "{contractName}" is missing links for the following libraries: "{missingLibraries}". Learn more about linking contracts at (https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-ethers#library-linking).`,
+      websiteTitle: "Missing link for library",
+      websiteDescription: "Missing link for library",
+    },
+    UNSUPPORTED_TYPE_FOR_DEEP_COPY: {
+      number: 1013,
+      messageTemplate: `The value "{value}" with type "{type}" is not supported by the deepCopy function.`,
+      websiteTitle: "Unsupported type for deep copy",
+      websiteDescription: "Unsupported type for deep copy",
     },
   },
 } as const;
