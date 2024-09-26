@@ -107,7 +107,7 @@ export class HardhatHelpers {
 
       return this.getContractFactoryFromArtifact<A, I>(
         artifact,
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- bytecodeOrFactoryOptions can be safely cast because it overlaps with one of the following types
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- bytecodeOrFactoryOptions overlaps with one of the following types
         bytecodeOrFactoryOptions as EthersT.Signer | FactoryOptions | undefined,
       );
     }

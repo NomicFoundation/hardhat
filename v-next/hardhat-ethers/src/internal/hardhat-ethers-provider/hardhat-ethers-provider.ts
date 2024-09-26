@@ -363,7 +363,7 @@ export class HardhatEthersProvider implements ethers.Provider {
       );
     }
 
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- 'tx' can be safely cast because it overlaps with the type exported by ethers
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- 'tx' overlaps with the type exported by ethers
     return this.#wrapTransactionResponse(tx as any).replaceableTransaction(
       blockNumber,
     );
@@ -414,7 +414,7 @@ export class HardhatEthersProvider implements ethers.Provider {
       return null;
     }
 
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- 'receipt' can be safely cast because it overlaps with the type exported by ethers
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- 'receipt' overlaps with the type exported by ethers
     return this.#wrapTransactionReceipt(receipt as TransactionReceiptParams);
   }
 
@@ -736,7 +736,7 @@ export class HardhatEthersProvider implements ethers.Provider {
   #getTransactionRequest(
     _request: TransactionRequest,
   ): PerformActionTransaction | Promise<PerformActionTransaction> {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- ethers.PreparedTransactionRequest can be safely cast because it overlaps with PerformActionTransaction
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- ethers.PreparedTransactionRequest overlaps with PerformActionTransaction
     const request = copyRequest(_request) as PerformActionTransaction;
 
     const requestKeys: Array<keyof PerformActionTransaction> = ["to", "from"];

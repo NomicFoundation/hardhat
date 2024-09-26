@@ -29,7 +29,7 @@ export function getRpcTransaction(
       dstKey = "gas";
     }
 
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- variable 'result' is supposed to have the same keys as the one used for the variable 'tx', except "gasLimit"
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- variable 'result' has the same keys as the one used for the variable 'tx', except "gasLimit"
     (result as any)[dstKey] = toQuantity(getBigInt(tx[key], `tx.${key}`));
   });
 
@@ -41,7 +41,7 @@ export function getRpcTransaction(
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- variable 'result' is supposed to have the same keys as the one used for the variable 'tx', except "gasLimit"
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- variable 'result' has the same keys as the one used for the variable 'tx', except "gasLimit"
     (result as any)[key] = hexlify(tx[key]);
   });
 
