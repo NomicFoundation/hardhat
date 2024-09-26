@@ -317,7 +317,7 @@ describe("network-manager/hook-handlers/config", () => {
       );
       assert.equal(
         validationErrors[0].message,
-        "Expected 'auto', a safe int, or bigint",
+        `Invalid literal value, expected "auto"`,
       );
 
       const configWithNonSafeIntGas = {
@@ -340,10 +340,36 @@ describe("network-manager/hook-handlers/config", () => {
         validationErrors.length > 0,
         "validation errors should be present",
       );
-      // TODO: the error message should be "Expected 'auto', a safe int, or bigint"
+
       assert.equal(
         validationErrors[0].message,
         "Number must be less than or equal to 9007199254740991",
+      );
+
+      const configWithNegativeGas = {
+        networks: {
+          localhost: {
+            type: "http",
+            url: "http://localhost:8545",
+            gas: -100,
+          },
+        },
+      };
+
+      validationErrors = await validateUserConfig(
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        -- testing invalid network type for js users */
+        configWithNegativeGas as any,
+      );
+
+      assert.ok(
+        validationErrors.length > 0,
+        "validation errors should be present",
+      );
+
+      assert.equal(
+        validationErrors[0].message,
+        "Number must be greater than 0",
       );
     });
 
@@ -395,7 +421,7 @@ describe("network-manager/hook-handlers/config", () => {
       );
       assert.equal(
         validationErrors[0].message,
-        "Expected 'auto', a safe int, or bigint",
+        `Invalid literal value, expected "auto"`,
       );
 
       const configWithNonSafeIntGasPrice = {
@@ -419,10 +445,35 @@ describe("network-manager/hook-handlers/config", () => {
         "validation errors should be present",
       );
 
-      // TODO: the error message should be "Expected 'auto', a safe int, or bigint"
       assert.equal(
         validationErrors[0].message,
         "Number must be less than or equal to 9007199254740991",
+      );
+
+      const configWithNegativeGasPrice = {
+        networks: {
+          localhost: {
+            type: "http",
+            url: "http://localhost:8545",
+            gasPrice: -100,
+          },
+        },
+      };
+
+      validationErrors = await validateUserConfig(
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        -- testing invalid network type for js users */
+        configWithNegativeGasPrice as any,
+      );
+
+      assert.ok(
+        validationErrors.length > 0,
+        "validation errors should be present",
+      );
+
+      assert.equal(
+        validationErrors[0].message,
+        "Number must be greater than 0",
       );
     });
 
