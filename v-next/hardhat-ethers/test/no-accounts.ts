@@ -42,10 +42,10 @@ describe("hardhat-ethers plugin", () => {
       const signerAddress = "0x1010101010101010101010101010101010101010";
 
       beforeEach(async () => {
-        await ethereumProvider.send("hardhat_setBalance", [
-          signerAddress,
-          "0x1000000000000000000",
-        ]);
+        await ethereumProvider.request({
+          method: "hardhat_setBalance",
+          params: [signerAddress, "0x1000000000000000000"],
+        });
       });
 
       describe("with the name and address", () => {

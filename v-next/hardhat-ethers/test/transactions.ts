@@ -52,7 +52,11 @@ describe("transactions", () => {
     const [signer] = await ethers.getSigners();
 
     // send a transaction with automining disabled
-    await ethereumProvider.send("evm_setAutomine", [false]);
+    await ethereumProvider.request({
+      method: "evm_setAutomine",
+      params: [false],
+    });
+
     const tx = await signer.sendTransaction({ to: signer });
 
     let transactionIsMined = false;
