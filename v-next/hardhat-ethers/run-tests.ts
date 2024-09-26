@@ -10,6 +10,7 @@ const testFiles = [
   "./test/hardhat-ethers-signer.ts",
   "./test/index.ts",
   "./test/no-accounts.ts",
+  "./test/plugin-functionalities.ts",
   "./test/provider-events.ts",
   "./test/transactions.ts",
 ];
