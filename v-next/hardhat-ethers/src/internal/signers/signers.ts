@@ -12,7 +12,7 @@ import {
   TypedDataEncoder,
 } from "ethers";
 
-import { getRpcTransaction } from "../ethers-utils/transactions/rpc-transaction.js";
+import { getRpcTransaction } from "../ethers-utils/ethers-utils.js";
 
 import { deepCopy } from "./deep-copy.js";
 import { populate } from "./populate.js";

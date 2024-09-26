@@ -2,8 +2,10 @@ import type { TransactionRequest, ethers, TransactionLike } from "ethers";
 
 import { assertArgument, resolveAddress } from "ethers";
 
-import { resolveProperties } from "../ethers-utils/resolve-properties.js";
-import { copyRequest } from "../ethers-utils/transactions/copy-request.js";
+import {
+  copyRequest,
+  resolveProperties,
+} from "../ethers-utils/ethers-utils.js";
 
 export async function populate(
   signer: ethers.Signer,

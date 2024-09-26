@@ -41,12 +41,14 @@ import {
 } from "ethers";
 
 import { assertCanConvertToBigInt } from "../assertion.js";
-import { formatBlock } from "../ethers-utils/formatters/block-formatter.js";
-import { formatLog } from "../ethers-utils/formatters/log-formatter.js";
-import { formatTransactionReceipt } from "../ethers-utils/formatters/receipt-formatter.js";
-import { formatTransactionResponse } from "../ethers-utils/formatters/transaction-formatter.js";
-import { copyRequest } from "../ethers-utils/transactions/copy-request.js";
-import { getRpcTransaction } from "../ethers-utils/transactions/rpc-transaction.js";
+import {
+  copyRequest,
+  formatBlock,
+  formatLog,
+  formatTransactionReceipt,
+  formatTransactionResponse,
+  getRpcTransaction,
+} from "../ethers-utils/ethers-utils.js";
 import { HardhatEthersSigner } from "../signers/signers.js";
 
 const log = debug("hardhat:hardhat-ethers:provider");
