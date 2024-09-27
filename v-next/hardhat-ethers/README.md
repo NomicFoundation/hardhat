@@ -1,20 +1,20 @@
-# Hardhat Network Helpers
+# hardhat-ethers
 
-Hardhat Network Helpers is a library that provides a set of utility functions to interact with the [Hardhat Network](https://hardhat.org/hardhat-network/docs).
+[Hardhat](https://hardhat.org) plugin for integration with [ethers.js](https://github.com/ethers-io/ethers.js/).
 
 ### Usage
 
-```javascript
-const { networkHelpers } = await hre.network.connect();
+```ts
+const { ethers } = await hre.network.connect();
 
-// Network helpers methods exposed via `networkHelpers`
-await networkHelpers.mine();
+// ethers functionalities
+ethers.isAddress("0x1234567890123456789012345678901234567890");
 
-// Time methods exposed via `time`
-await networkHelpers.time.increase(1);
+// ethers.Provider
+await ethers.provider.getBlockNumber();
 
-// Duration methods exposed via `duration`
-networkHelpers.time.duration.days(1);
+// Hardhat helper methods
+await ethers.getSigners();
 ```
 
 ### Tests
