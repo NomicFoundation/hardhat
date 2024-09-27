@@ -1,34 +1,40 @@
-// import type { NetworkHelpers } from "../src/internal/network-helpers/network-helpers.js";
+import type { HardhatEthers } from "../src/types.js";
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
 
 import { beforeEach, describe, it } from "node:test";
 
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 
-import hardhatNetworkHelpersPlugin from "../src/index.js";
+import hardhatEthersPlugin from "../src/index.js";
 
-describe("hardhat-network-helpers plugin initialization", () => {
+describe("hardhat-ethers plugin initialization", () => {
   // Check that the plugin is correctly initialized
-  // let hre: HardhatRuntimeEnvironment;
-  // let networkHelpers: NetworkHelpers;
-  // beforeEach(async () => {
-  //   hre = await createHardhatRuntimeEnvironment({
-  //     plugins: [hardhatNetworkHelpersPlugin],
-  //   });
-  //   ({ networkHelpers } = await hre.network.connect());
-  // });
-  // describe("network-helpers class and its sub classes", () => {
-  //   it("should correctly set up the network-helpers class", async () => {
-  //     // Test a method from the network-helpers class to be sure that it is correctly set up
-  //     await networkHelpers.takeSnapshot();
-  //   });
-  //   it("should correctly set up the time class", async () => {
-  //     // Test a method from the time class to be sure that it is correctly set up
-  //     await networkHelpers.time.latest();
-  //   });
-  //   it("should correctly set up the duration class", async () => {
-  //     // Test a method from the duration class to be sure that it is correctly set up
-  //     networkHelpers.time.duration.days(1);
-  //   });
-  // });
+
+  let hre: HardhatRuntimeEnvironment;
+  let ethers: HardhatEthers;
+
+  beforeEach(async () => {
+    hre = await createHardhatRuntimeEnvironment({
+      plugins: [hardhatEthersPlugin],
+    });
+
+    ({ ethers } = await hre.network.connect());
+  });
+
+  describe("network-helpers class and its sub classes", () => {
+    it("should correctly set up ethers functionalities", async () => {
+      // Test a method from ethers to be sure that it is correctly set up
+      ethers.isAddress("0x1234567890123456789012345678901234567890");
+    });
+
+    it("should correctly set up the HardhatEthersProvider functionalities", async () => {
+      // Test a method from the ethers provider to be sure that it is correctly set up
+      await ethers.provider.getBlockNumber();
+    });
+
+    it("should correctly set up the HardhatHelpers functionalities", async () => {
+      // Test a method from the additional hardhat helpers to be sure that they are correctly set up
+      await ethers.getSigners();
+    });
+  });
 });

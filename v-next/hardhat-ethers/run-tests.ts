@@ -2,17 +2,17 @@ import { execSync } from "node:child_process";
 
 // Array of test file paths
 const testFiles = [
-  "./test/contracts.ts",
-  "./test/error-messages.ts",
-  "./test/gas-config.ts",
-  "./test/gas-price.ts",
-  "./test/hardhat-ethers-provider.ts",
-  "./test/hardhat-ethers-signer.ts",
-  "./test/index.ts",
-  "./test/no-accounts.ts",
-  "./test/plugin-functionalities.ts",
-  "./test/provider-events.ts",
-  "./test/transactions.ts",
+  "./test-tmp/contracts.ts",
+  "./test-tmp/error-messages.ts",
+  "./test-tmp/gas-config.ts",
+  "./test-tmp/gas-price.ts",
+  "./test-tmp/hardhat-ethers-provider.ts",
+  "./test-tmp/hardhat-ethers-signer.ts",
+  "./test-tmp/index.ts",
+  "./test-tmp/no-accounts.ts",
+  "./test-tmp/plugin-functionalities.ts",
+  "./test-tmp/provider-events.ts",
+  "./test-tmp/transactions.ts",
 ];
 
 // Function to run the tests synchronously
