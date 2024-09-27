@@ -124,7 +124,8 @@ function printAsciiLogo() {
   console.log(chalk.blue(logoLines));
 }
 
-async function printWelcomeMessage() {
+// NOTE: This function is exported for testing purposes
+export async function printWelcomeMessage(): Promise<void> {
   const hardhatVersion = await getHardhatVersion();
 
   console.log(
@@ -156,10 +157,12 @@ async function printWelcomeMessage() {
  *
  * It also validates that the workspace is not already initialized.
  *
+ * NOTE: This function is exported for testing purposes
+ *
  * @param workspace The path to the workspace to initialize the project in.
  * @returns The path to the workspace.
  */
-async function getWorkspace(workspace?: string): Promise<string> {
+export async function getWorkspace(workspace?: string): Promise<string> {
   // Ask the user for the workspace to initialize the project in if it was not provided
   if (workspace === undefined) {
     workspace = await promptForWorkspace();
@@ -197,10 +200,12 @@ async function getWorkspace(workspace?: string): Promise<string> {
  *
  * It also validates that the template exists.
  *
+ * NOTE: This function is exported for testing purposes
+ *
  * @param template The name of the template to use for the project initialization.
  * @returns
  */
-async function getTemplate(template?: string): Promise<Template> {
+export async function getTemplate(template?: string): Promise<Template> {
   const templates = await getTemplates();
 
   // Ask the user for the template to use for the project initialization if it was not provided
@@ -226,9 +231,13 @@ async function getTemplate(template?: string): Promise<Template> {
  *
  * It also validates that the package.json file is an esm package.
  *
+ * NOTE: This function is exported for testing purposes
+ *
  * @param workspace The path to the workspace to initialize the project in.
  */
-async function ensureProjectPackageJson(workspace: string): Promise<void> {
+export async function ensureProjectPackageJson(
+  workspace: string,
+): Promise<void> {
   const pathToPackageJson = path.join(workspace, "package.json");
 
   // Create the package.json file if it does not exist
@@ -253,6 +262,8 @@ async function ensureProjectPackageJson(workspace: string): Promise<void> {
  * If there are clashing files in the workspace, they will be overwritten only
  * if the force option is true or if the user opts-in to it.
  *
+ * NOTE: This function is exported for testing purposes
+ *
  * @param workspace The path to the workspace to initialize the project in.
  * @param template The template to use for the project initialization.
  * @param force Whether to overwrite existing files in the workspace.
@@ -261,7 +272,7 @@ async function copyProjectFiles(
   workspace: string,
   template: Template,
   force?: boolean,
-) {
+): Promise<void> {
   // Find all the files in the workspace that would have been overwritten by the template files
   const matchingFiles = await getAllFilesMatching(workspace, (file) =>
     template.files.includes(path.relative(workspace, file)),
@@ -293,15 +304,17 @@ async function copyProjectFiles(
  * installProjectDependencies prints the commands to install the project dependencies
  * and runs them if the install option is true or if the user opts-in to it.
  *
+ * NOTE: This function is exported for testing purposes
+ *
  * @param workspace The path to the workspace to initialize the project in.
  * @param template The template to use for the project initialization.
  * @param install Whether to install the project dependencies.
  */
-async function installProjectDependencies(
+export async function installProjectDependencies(
   workspace: string,
   template: Template,
   install?: boolean,
-) {
+): Promise<void> {
   const pathToWorkspacePackageJson = path.join(workspace, "package.json");
 
   const workspacePkg: PackageJson = await readJsonFile(
