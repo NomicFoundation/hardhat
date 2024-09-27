@@ -2,8 +2,6 @@ import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 import type repl from "node:repl";
 
 import assert from "node:assert/strict";
-import fsPromises from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import { PassThrough } from "node:stream";
 import { afterEach, before, beforeEach, describe, it } from "node:test";

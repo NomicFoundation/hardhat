@@ -170,6 +170,12 @@ export async function getWorkspace(workspace?: string): Promise<string> {
 
   workspace = path.resolve(workspace);
 
+  if (!(await exists(workspace))) {
+    throw new HardhatError(HardhatError.ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
+      operation: `Initializing a project in a non-existent directory (${workspace})`,
+    });
+  }
+
   // Validate that the workspace is not already initialized
   try {
     const configFilePath = await findClosestHardhatConfig(workspace);
@@ -268,7 +274,7 @@ export async function ensureProjectPackageJson(
  * @param template The template to use for the project initialization.
  * @param force Whether to overwrite existing files in the workspace.
  */
-async function copyProjectFiles(
+export async function copyProjectFiles(
   workspace: string,
   template: Template,
   force?: boolean,

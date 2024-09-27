@@ -50,17 +50,30 @@ export function getDevDependenciesInstallationCommand(
   return command;
 }
 
+/**
+ * installsPeerDependenciesByDefault returns true if the package manager
+ * installs peer dependencies by default.
+ *
+ * @param workspace The path to the workspace to initialize the project in.
+ * @param packageManager The package manager to use.
+ * @param version The version of the package manager to use. This parameter is used only for testing.
+ * @param config The configuration of the package manager to use. This parameter is used only for testing.
+ * @returns True if the package manager installs peer dependencies by default, false otherwise.
+ */
 export async function installsPeerDependenciesByDefault(
   workspace: string,
   packageManager: PackageManager,
+  version?: string,
+  config?: Record<string, string>,
 ): Promise<boolean> {
   switch (packageManager) {
     case "npm":
-      const npmVersion = await getVersion(workspace, "npm");
+      const npmVersion = await getVersion(workspace, "npm", version);
       const legacyPeerDeps = await getFromConfig(
         workspace,
         "npm",
         "legacy-peer-deps",
+        config,
       );
       // If we couldn't retrieve the npm version, we assume it is higher than 7
       if (npmVersion === undefined || npmVersion.major >= 7) {
@@ -76,11 +89,12 @@ export async function installsPeerDependenciesByDefault(
       return false;
     case "pnpm":
       // https://github.com/pnpm/pnpm/releases/tag/v8.0.0
-      const pnpmVersion = await getVersion(workspace, "pnpm");
+      const pnpmVersion = await getVersion(workspace, "pnpm", version);
       const autoInstallPeers = await getFromConfig(
         workspace,
         "pnpm",
         "auto-install-peers",
+        config,
       );
       // If we couldn't retrieve the pnpm version, we assume it is higher than 8
       if (pnpmVersion === undefined || pnpmVersion.major >= 8) {
@@ -103,7 +117,11 @@ export async function installsPeerDependenciesByDefault(
 async function getVersion(
   workspace: string,
   packageManager: PackageManager,
+  version?: string,
 ): Promise<semver.SemVer | undefined> {
+  if (version !== undefined) {
+    return semver.parse(version) ?? undefined;
+  }
   try {
     const versionString = execSync(`${packageManager} --version`, {
       cwd: workspace,
@@ -119,7 +137,11 @@ async function getFromConfig(
   workspace: string,
   packageManager: PackageManager,
   key: string,
+  config?: Record<string, string>,
 ): Promise<string | undefined> {
+  if (config !== undefined) {
+    return config[key];
+  }
   try {
     return execSync(`${packageManager} config get ${key}`, {
       cwd: workspace,
