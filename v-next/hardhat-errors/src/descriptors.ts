@@ -712,12 +712,12 @@ This might be caused by using hardhat_reset and loadFixture calls in a testcase.
     BROADCASTED_TX_DIFFERENT_HASH: {
       number: 1003,
       messageTemplate: `Expected broadcasted transaction to have hash "{txHash}", but got "{broadcastedTxHash}" `,
-      websiteTitle: "Broadcasted tx different hash",
-      websiteDescription: "Broadcasted tx different hash",
+      websiteTitle: "Broadcasted transaction hash mismatch",
+      websiteDescription: "Broadcasted transaction hash mismatch",
     },
     CANNOT_GET_ACCOUNT: {
       number: 1004,
-      messageTemplate: `Cannot get account with address"{address}"`,
+      messageTemplate: `Cannot get account with address "{address}"`,
       websiteTitle: "Cannot get account",
       websiteDescription: "Cannot get account",
     },
@@ -742,7 +742,7 @@ This might be caused by using hardhat_reset and loadFixture calls in a testcase.
     },
     INVALID_ADDRESS_TO_LINK_CONTRACT_TO_LIBRARY: {
       number: 1008,
-      messageTemplate: `You tried to link the contract "{contractName}" with the library "{linkedLibraryName}", but you provided this invalid address: "{resolvedAddress}"`,
+      messageTemplate: `You tried to link the contract "{contractName}" with the library "{linkedLibraryName}", but you provided this invalid address: {resolvedAddress}`,
       websiteTitle: "Invalid address to link contract",
       websiteDescription: "Invalid address to link contract",
     },
@@ -767,8 +767,8 @@ This might be caused by using hardhat_reset and loadFixture calls in a testcase.
     MISSING_LINK_FOR_LIBRARY: {
       number: 1012,
       messageTemplate: `The contract "{contractName}" is missing links for the following libraries: "{missingLibraries}". Learn more about linking contracts at (https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-ethers#library-linking).`,
-      websiteTitle: "Missing link for library",
-      websiteDescription: "Missing link for library",
+      websiteTitle: "Missing links for library",
+      websiteDescription: "Missing links for library",
     },
     UNSUPPORTED_TYPE_FOR_DEEP_COPY: {
       number: 1013,
