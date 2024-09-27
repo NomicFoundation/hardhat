@@ -21,20 +21,18 @@ describe("hardhat-ethers plugin initialization", () => {
     ({ ethers } = await hre.network.connect());
   });
 
-  describe("network-helpers class and its sub classes", () => {
-    it("should correctly set up ethers functionalities", async () => {
-      // Test a method from ethers to be sure that it is correctly set up
-      ethers.isAddress("0x1234567890123456789012345678901234567890");
-    });
+  it("should correctly set up ethers functionalities", async () => {
+    // Test a method from ethers to be sure that it is correctly set up
+    ethers.isAddress("0x1234567890123456789012345678901234567890");
+  });
 
-    it("should correctly set up the HardhatEthersProvider functionalities", async () => {
-      // Test a method from the ethers provider to be sure that it is correctly set up
-      await ethers.provider.getBlockNumber();
-    });
+  it("should correctly set up the HardhatEthersProvider functionalities", async () => {
+    // Test a method from the ethers provider to be sure that it is correctly set up
+    await ethers.provider.getBlockNumber();
+  });
 
-    it("should correctly set up the HardhatHelpers functionalities", async () => {
-      // Test a method from the additional hardhat helpers to be sure that they are correctly set up
-      await ethers.getSigners();
-    });
+  it("should correctly set up the HardhatHelpers functionalities", async () => {
+    // Test a method from the additional hardhat helpers to be sure that they are correctly set up
+    await ethers.getSigners();
   });
 });
