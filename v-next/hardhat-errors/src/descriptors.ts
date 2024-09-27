@@ -145,6 +145,8 @@ Please double check whether you have multiple versions of the same plugin instal
       websiteTitle: "Hardhat project already created",
       websiteDescription: `Cannot create a new Hardhat project, the current folder is already associated with a project.`,
     },
+    // TODO: This error is no longer relevant, is it OK to remove it?
+    // Should we update the following error numbers afterwards?
     NOT_INSIDE_PROJECT_ON_WINDOWS: {
       number: 11,
       messageTemplate: `You are not inside a project and Hardhat failed to initialize a new one.
