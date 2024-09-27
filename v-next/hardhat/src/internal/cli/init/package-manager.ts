@@ -1,6 +1,8 @@
+import { execSync } from "node:child_process";
 import path from "node:path";
 
 import { exists } from "@ignored/hardhat-vnext-utils/fs";
+import semver from "semver";
 
 type PackageManager = "npm" | "yarn" | "pnpm";
 
@@ -46,4 +48,84 @@ export function getDevDependenciesInstallationCommand(
   const command = packageManagerToCommand[packageManager];
   command.push(...dependencies);
   return command;
+}
+
+export async function installsPeerDependenciesByDefault(
+  workspace: string,
+  packageManager: PackageManager,
+): Promise<boolean> {
+  switch (packageManager) {
+    case "npm":
+      const npmVersion = await getVersion(workspace, "npm");
+      const legacyPeerDeps = await getFromConfig(
+        workspace,
+        "npm",
+        "legacy-peer-deps",
+      );
+      // If we couldn't retrieve the npm version, we assume it is higher than 7
+      if (npmVersion === undefined || npmVersion.major >= 7) {
+        // If legacy-peer-deps hasn't been explicitly set to true,
+        // peer dependencies are installed by default
+        if (legacyPeerDeps !== "true") {
+          return true;
+        }
+      }
+      return false;
+    case "yarn":
+      // https://github.com/yarnpkg/yarn/issues/1503
+      return false;
+    case "pnpm":
+      // https://github.com/pnpm/pnpm/releases/tag/v8.0.0
+      const pnpmVersion = await getVersion(workspace, "pnpm");
+      const autoInstallPeers = await getFromConfig(
+        workspace,
+        "pnpm",
+        "auto-install-peers",
+      );
+      // If we couldn't retrieve the pnpm version, we assume it is higher than 8
+      if (pnpmVersion === undefined || pnpmVersion.major >= 8) {
+        // If auto-install-peers hasn't been explicitly set to false,
+        // peer dependencies are installed by default
+        if (autoInstallPeers !== "false") {
+          return true;
+        }
+      } else {
+        // If auto-install-peers has been explicitly set to true,
+        // peer dependencies are installed
+        if (autoInstallPeers === "true") {
+          return true;
+        }
+      }
+      return false;
+  }
+}
+
+async function getVersion(
+  workspace: string,
+  packageManager: PackageManager,
+): Promise<semver.SemVer | undefined> {
+  try {
+    const versionString = execSync(`${packageManager} --version`, {
+      cwd: workspace,
+      encoding: "utf8",
+    });
+    return semver.parse(versionString) ?? undefined;
+  } catch (e) {
+    return undefined;
+  }
+}
+
+async function getFromConfig(
+  workspace: string,
+  packageManager: PackageManager,
+  key: string,
+): Promise<string | undefined> {
+  try {
+    return execSync(`${packageManager} config get ${key}`, {
+      cwd: workspace,
+      encoding: "utf8",
+    });
+  } catch (e) {
+    return undefined;
+  }
 }

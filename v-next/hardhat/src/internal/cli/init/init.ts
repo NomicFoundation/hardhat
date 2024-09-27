@@ -24,6 +24,7 @@ import { HARDHAT_NAME } from "./constants.js";
 import {
   getDevDependenciesInstallationCommand,
   getPackageManager,
+  installsPeerDependenciesByDefault,
 } from "./package-manager.js";
 import {
   promptForForce,
@@ -304,6 +305,15 @@ async function installProjectDependencies(
 
   // Find the template dev dependencies that are not already installed
   const templateDependencies = template.packageJson.devDependencies ?? {};
+  // If the package manager doesn't install peer dependencies by default,
+  // we need to add them to the template dependencies
+  if (!(await installsPeerDependenciesByDefault(workspace, packageManager))) {
+    const templatePeerDependencies =
+      template.packageJson.peerDependencies ?? {};
+    for (const [name, version] of Object.entries(templatePeerDependencies)) {
+      templateDependencies[name] = version;
+    }
+  }
   const workspaceDependencies = workspacePkg.devDependencies ?? {};
   const dependenciesToInstall = Object.entries(templateDependencies)
     .filter(([name]) => workspaceDependencies[name] === undefined)
