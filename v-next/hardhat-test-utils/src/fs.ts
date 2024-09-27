@@ -10,8 +10,23 @@ import {
 } from "@ignored/hardhat-vnext-utils/fs";
 
 /**
+ * Create a tmp directory.
+ * @param nameHint - A hint to use as part of the name of the tmp directory.
+ */
+export async function getTmpDir(nameHint: string = "tmp-dir"): Promise<string> {
+  const tmpDirContainer = await getRealPath(tmpdir());
+
+  const tmpDir = path.join(tmpDirContainer, `hardhat-tests-${nameHint}`);
+  // TODO(#5601): Consider adding mkdtemp to hardhat-utils and using it here
+  await ensureDir(tmpDir);
+  await emptyDir(tmpDir);
+
+  return tmpDir;
+}
+
+/**
  * Creates a tmp directory before each test, and removes it after each test.
- * @param nameHint - A hint to use as part of  name of the tmp directory.
+ * @param nameHint - A hint to use as part of the name of the tmp directory.
  */
 export function useTmpDir(nameHint: string = "tmp-dir"): void {
   let previousWorkingDir: string;
@@ -20,11 +35,7 @@ export function useTmpDir(nameHint: string = "tmp-dir"): void {
   beforeEach(async function () {
     previousWorkingDir = process.cwd();
 
-    const tmpDirContainer = await getRealPath(tmpdir());
-
-    tmpDir = path.join(tmpDirContainer, `hardhat-tests-${nameHint}`);
-    await ensureDir(tmpDir);
-    await emptyDir(tmpDir);
+    tmpDir = await getTmpDir(nameHint);
 
     process.chdir(tmpDir);
   });
