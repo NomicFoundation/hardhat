@@ -14,6 +14,7 @@ module.exports = {
     timeBeforeBumpingFees: 3 * 60 * 1_000,
     maxFeeBumps: 4,
     requiredConfirmations: 5,
+    disableFeeBumping: false,
   },
 };
 ```
@@ -44,6 +45,12 @@ The number of confirmations Hardhat Ignition waits before considering a transact
 
 Default value: 5
 
+### `disableFeeBumping`
+
+If set to `true`, Hardhat Ignition will not bump the fee for unconfirmed transactions. Overrides the `disableFeeBumping` option in the network configuration.
+
+Default value: false
+
 ## Network configuration options
 
 You can use the `ignition` field under specific network configurations to customize deployments on a per-network basis:
@@ -57,6 +64,8 @@ module.exports = {
       ignition: {
         maxFeePerGasLimit: 50_000_000_000n, // 50 gwei
         maxPriorityFeePerGas: 2_000_000_000n, // 2 gwei
+        gasPrice: 50_000_000_000n, // 50 gwei
+        disableFeeBumping: false,
       },
       // ...
     },
@@ -77,3 +86,15 @@ Default value: undefined
 The maximum priority fee per gas, in wei, that Hardhat Ignition will use for gas fee calculations when sending transactions. If not set then Hardhat Ignition will try to use `eth_maxPriorityFeePerGas` if available, or default to 1 gwei.
 
 Default value: undefined
+
+### `gasPrice`
+
+The gas price, in wei, that Hardhat Ignition will use for gas fee calculations when sending transactions. **This field only applies to deployments on the Polygon network. It will not be used on other networks even if set.**
+
+Default value: undefined
+
+### `disableFeeBumping`
+
+If set to `true`, Hardhat Ignition will not bump the fee for unconfirmed transactions on this network. Is overridden by the top-level `disableFeeBumping` option.
+
+Default value: false
