@@ -66,7 +66,7 @@ export class HardhatEthersSigner implements ethers.Signer {
           if (isHardhatNetwork) {
             // WARNING: this assumes that the hardhat node is being run in the
             // same project which might be wrong
-            // TODO: enable when V3 node is ready
+            // TODO: enable when V3 is ready: blockGasLimit currently missing in networkConfig
             // gasLimit = networkConfig.blockGasLimit;
           }
         }

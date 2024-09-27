@@ -8,7 +8,7 @@ import { initializeTestEthers } from "./helpers/helpers.js";
 describe("error messages", () => {
   let ethers: HardhatEthers;
 
-  // TODO: enable when V3 node is ready
+  // TODO: enable when V3 is ready: V3 node required
   // describe("in-process hardhat network", async () => {
   //   ({ ethers } = await initializeTestEthers([
   //     { artifactName: "Contract", fileName: "error-messages" },

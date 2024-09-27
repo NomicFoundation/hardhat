@@ -9,7 +9,7 @@ import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 import { initializeTestEthers } from "./helpers/helpers.js";
 
 describe("gas price overrides", () => {
-  // // TODO: enable when V3 node is ready
+  // // TODO: enable when V3 is ready: V3 node required
   // describe("in-process hardhat network", async ()=>{
   //   const { ethers, provider: ethereumProvider } = await initializeTestEthers();
 

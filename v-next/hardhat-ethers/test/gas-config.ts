@@ -22,19 +22,19 @@ function generateCombinations(): Combination[] {
   const result: Combination[] = [];
 
   const hardhatGasLimitValues: GasLimitValue[] = [
-    // TODO: enable when V3 node is ready - when blockGasLimit is implemented
+    // TODO: enable when V3 is ready: when blockGasLimit is implemented
     // "default",
     "auto",
     1_000_000n,
   ];
   const localhostGasLimitValues: GasLimitValue[] = [
-    // TODO: enable when V3 node is ready - when blockGasLimit is implemented
+    // TODO: enable when V3 is ready: when blockGasLimit is implemented
     // "default",
     "auto",
     1_000_000n,
   ];
 
-  // TODO: enable when V3 node is ready - add hardhat network -> ["hardhat", "localhost"];
+  // TODO: enable when V3 is ready: V3 node required - add hardhat network -> ["hardhat", "localhost"];
   const connectedNetworkValues: ConnectedNetwork[] = ["localhost"];
 
   for (const hardhatGasLimit of hardhatGasLimitValues) {

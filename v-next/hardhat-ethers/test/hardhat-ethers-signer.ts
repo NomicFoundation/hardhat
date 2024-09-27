@@ -208,7 +208,7 @@ describe("hardhat ethers signer", () => {
     });
 
     describe("default gas limit", () => {
-      // TODO: enable when V3 node is ready
+      // TODO: enable when V3 is ready: when blockGasLimit is implemented
       // it("should use the block gas limit for the in-process hardhat network", async ()=>{
       //   const signer = await ethers.provider.getSigner(0);
       //   const tx = await signer.sendTransaction({ to: signer });
