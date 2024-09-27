@@ -45,7 +45,6 @@ describe("Ethers plugin", () => {
         artifactName: "TestNonUniqueLib",
         fileName: "test-non-unique-lib",
       },
-
       {
         artifactName: "contracts/AmbiguousLibrary.sol:AmbiguousLibrary",
         fileName: "ambiguous-library",
@@ -54,7 +53,6 @@ describe("Ethers plugin", () => {
         artifactName: "contracts/AmbiguousLibrary2.sol:AmbiguousLibrary",
         fileName: "ambiguous-library",
       },
-
       {
         artifactName: "TestAmbiguousLib",
         fileName: "test-ambiguous-library",
