@@ -1,7 +1,10 @@
 import type { ExampleContract } from "./helpers/example-contracts.js";
 import type { HardhatEthers } from "../src/types.js";
 import type { NetworkConfig } from "@ignored/hardhat-vnext/types/config";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type {
+  EthereumProvider,
+  RequestArguments,
+} from "@ignored/hardhat-vnext/types/providers";
 
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
@@ -129,7 +132,7 @@ describe("hardhat ethers provider", () => {
     assert.equal(latestBlockNumber, 0);
   });
 
-  // TODO: enable when V3 node is ready
+  // TODO: enable when V3 is ready: V3 node required
   // it("should return the network", async ()=>{
   //   const network = await ethers.provider.getNetwork();
 
@@ -150,21 +153,15 @@ describe("hardhat ethers provider", () => {
     // altering the default Hardhat node's reported results.
     function overrideSendOn(
       provider: EthereumProvider,
-      sendOveride: (method: string, params?: any[] | undefined) => Promise<any>,
+      sendOverride: (requestArguments: RequestArguments) => Promise<any>,
     ) {
       return new Proxy(provider, {
         get: (target: EthereumProvider, prop: keyof EthereumProvider) => {
-          if (prop === "send") {
-            return async (method: string, params?: any[] | undefined) => {
-              const result = await sendOveride(method, params);
+          if (prop === "request") {
+            return async (requestArguments: RequestArguments) => {
+              const result = await sendOverride(requestArguments);
 
-              return (
-                result ??
-                target.request({
-                  method,
-                  params,
-                })
-              );
+              return result ?? target.request(requestArguments);
             };
           }
 
@@ -176,8 +173,8 @@ describe("hardhat ethers provider", () => {
     it("should default maxPriorityFeePerGas to 1 gwei (if eth_maxPriorityFeePerGas not supported)", async () => {
       const proxiedProvider = overrideSendOn(
         ethereumProvider,
-        async (method) => {
-          if (method !== "eth_maxPriorityFeePerGas") {
+        async (requestArguments: RequestArguments) => {
+          if (requestArguments.method !== "eth_maxPriorityFeePerGas") {
             // rely on default send implementation
             return undefined;
           }
@@ -202,8 +199,8 @@ describe("hardhat ethers provider", () => {
 
       const overriddenEthereumProvider = overrideSendOn(
         ethereumProvider,
-        async (method) => {
-          if (method !== "eth_maxPriorityFeePerGas") {
+        async (requestArguments: RequestArguments) => {
+          if (requestArguments.method !== "eth_maxPriorityFeePerGas") {
             // rely on default send implementation
             return undefined;
           }

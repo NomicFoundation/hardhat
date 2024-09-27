@@ -196,9 +196,9 @@ export class HardhatEthersProvider implements ethers.Provider {
     const baseFeePerGas = latestBlock?.baseFeePerGas;
     if (baseFeePerGas !== undefined && baseFeePerGas !== null) {
       try {
-        const value = await this.#hardhatProvider.send(
-          "eth_maxPriorityFeePerGas",
-        );
+        const value = await this.#hardhatProvider.request({
+          method: "eth_maxPriorityFeePerGas",
+        });
 
         assertCanConvertToBigInt(value, "value");
 
@@ -805,10 +805,10 @@ export class HardhatEthersProvider implements ethers.Provider {
       blockTag = await blockTag;
     }
 
-    return this.#hardhatProvider.send("eth_getBlockByNumber", [
-      blockTag,
-      includeTransactions,
-    ]);
+    return this.#hardhatProvider.request({
+      method: "eth_getBlockByNumber",
+      params: [blockTag, includeTransactions],
+    });
   }
 
   #wrapBlock(value: BlockParams): Block {
