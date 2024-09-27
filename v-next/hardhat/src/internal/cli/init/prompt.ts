@@ -60,7 +60,7 @@ export async function promptForForce(files: string[]): Promise<boolean> {
   return forceResponse.force;
 }
 
-export async function promptForInstall(commands: string[][]): Promise<boolean> {
+export async function promptForInstall(command: string[]): Promise<boolean> {
   ensureTTY();
 
   const { default: enquirer } = await import("enquirer");
@@ -69,7 +69,7 @@ export async function promptForInstall(commands: string[][]): Promise<boolean> {
     {
       name: "install",
       type: "confirm",
-      message: `You need to install the project dependencies using the following command${commands.length === 1 ? "" : "s"}:\n${commands.map((c) => c.join(" ")).join("\n")}\n\nDo you want to run them now?`,
+      message: `You need to install the project dependencies using the following command:\n${command.join(" ")}\n\nDo you want to run it now?`,
       initial: false,
     },
   ]);

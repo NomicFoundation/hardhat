@@ -25,3 +25,25 @@ export async function getPackageManager(
   }
   return "npm";
 }
+
+/**
+ * getDevDependenciesInstallationCommand returns the command to install the given dependencies
+ * as dev dependencies using the given package manager.
+ *
+ * @param packageManager The package manager to use.
+ * @param dependencies The dependencies to install.
+ * @returns The installation command.
+ */
+export function getDevDependenciesInstallationCommand(
+  packageManager: PackageManager,
+  dependencies: string[],
+): string[] {
+  const packageManagerToCommand: Record<PackageManager, string[]> = {
+    npm: ["npm", "install", "--save-dev"],
+    yarn: ["yarn", "add", "--dev"],
+    pnpm: ["pnpm", "add", "--save-dev"],
+  };
+  const command = packageManagerToCommand[packageManager];
+  command.push(...dependencies);
+  return command;
+}

@@ -21,7 +21,10 @@ import {
 } from "../../utils/package.js";
 
 import { HARDHAT_NAME } from "./constants.js";
-import { getPackageManager } from "./package-manager.js";
+import {
+  getDevDependenciesInstallationCommand,
+  getPackageManager,
+} from "./package-manager.js";
 import {
   promptForForce,
   promptForInstall,
@@ -296,78 +299,42 @@ async function installProjectDependencies(
     pathToWorkspacePackageJson,
   );
 
-  const commands = [];
-
   const hardhatVersion = await getHardhatVersion();
   const packageManager = await getPackageManager(workspace);
 
-  const packageJsonDependencyKeys = [
-    "dependencies",
-    "devDependencies",
-    "peerDependencies",
-    "optionalDependencies",
-  ] as const;
-  const packageManagerDependencyInstallationCommands = {
-    npm: {
-      dependencies: ["npm", "install"],
-      devDependencies: ["npm", "install", "--save-dev"],
-      peerDependencies: ["npm", "install", "--save-peer"],
-      optionalDependencies: ["npm", "install", "--save-optional"],
-    },
-    yarn: {
-      dependencies: ["yarn", "add"],
-      devDependencies: ["yarn", "add", "--dev"],
-      peerDependencies: ["yarn", "add", "--peer"],
-      optionalDependencies: ["yarn", "add", "--optional"],
-    },
-    pnpm: {
-      dependencies: ["pnpm", "add"],
-      devDependencies: ["pnpm", "add", "--save-dev"],
-      peerDependencies: ["pnpm", "add", "--save-peer"],
-      optionalDependencies: ["pnpm", "add", "--save-optional"],
-    },
-  };
-
-  // Iterate over the package.json dependency keys to find the dependencies
-  // that need to be installed
-  for (const key of packageJsonDependencyKeys) {
-    const templateDependencies = template.packageJson[key] ?? {};
-    const workspaceDependencies = workspacePkg[key] ?? {};
-
-    const dependenciesToInstall = Object.entries(templateDependencies)
-      .filter(([name]) => workspaceDependencies[name] === undefined)
-      .map(([name, version]) => {
-        // If the version is workspace:, replace it with the current version of Hardhat
-        if (version.startsWith("workspace:")) {
-          return `"${name}@${hardhatVersion}"`;
-        }
-        return `"${name}@${version}"`;
-      });
-
-    // If there are dependencies to install, add the package manager specific
-    // installation commands to the commands array
-    if (Object.keys(dependenciesToInstall).length !== 0) {
-      const command =
-        packageManagerDependencyInstallationCommands[packageManager][key];
-      command.push(...dependenciesToInstall);
-      commands.push(command);
-    }
-  }
-
-  // Ask the user for permission to install the project dependencies and install them if needed
-  if (commands.length !== 0) {
-    if (install === undefined) {
-      install = await promptForInstall(commands);
-    }
-
-    if (install) {
-      for (const command of commands) {
-        await spawn(command[0], command.slice(1), {
-          cwd: workspace,
-          shell: true,
-          stdio: "inherit",
-        });
+  // Find the template dev dependencies that are not already installed
+  const templateDependencies = template.packageJson.devDependencies ?? {};
+  const workspaceDependencies = workspacePkg.devDependencies ?? {};
+  const dependenciesToInstall = Object.entries(templateDependencies)
+    .filter(([name]) => workspaceDependencies[name] === undefined)
+    .map(([name, version]) => {
+      // If the version is workspace:, replace it with the current version of Hardhat
+      if (version.startsWith("workspace:")) {
+        return `"${name}@${hardhatVersion}"`;
       }
+      return `"${name}@${version}"`;
+    });
+
+  // Try to install the missing dependencies if there are any
+  if (Object.keys(dependenciesToInstall).length !== 0) {
+    // Retrieve the package manager specific installation command
+    const command = getDevDependenciesInstallationCommand(
+      packageManager,
+      dependenciesToInstall,
+    );
+
+    // Ask the user for permission to install the project dependencies and install them if needed
+    if (install === undefined) {
+      install = await promptForInstall(command);
+    }
+
+    // If the user grants permission to install the dependencies, run the installation command
+    if (install) {
+      await spawn(command[0], command.slice(1), {
+        cwd: workspace,
+        shell: true,
+        stdio: "inherit",
+      });
 
       console.log(`✨ ${chalk.cyan(`Dependencies installed`)} ✨`);
     }
