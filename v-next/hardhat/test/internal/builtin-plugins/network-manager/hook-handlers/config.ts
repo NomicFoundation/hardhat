@@ -519,8 +519,10 @@ describe("network-manager/hook-handlers/config", () => {
           validationErrors.length > 0,
           "validation errors should be present",
         );
-        // TODO: the error message should be "Expected a URL or a Configuration Variable"
-        assert.equal(validationErrors[0].message, "Invalid url");
+        assert.equal(
+          validationErrors[0].message,
+          "Expected a URL or a Configuration Variable",
+        );
       });
 
       it("should throw if the timeout is invalid", async () => {

@@ -6,7 +6,7 @@ import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
 
 import {
   conditionalUnionType,
-  sensitiveUrlType,
+  sensitiveUrlSchema,
   unionType,
   validateUserConfigZodType,
 } from "@ignored/hardhat-vnext-zod-utils";
@@ -36,7 +36,7 @@ const httpNetworkUserConfigSchema = z.object({
   gasPrice: z.optional(userGasSchema),
 
   // HTTP network specific
-  url: sensitiveUrlType,
+  url: sensitiveUrlSchema,
   timeout: z.optional(z.number()),
   httpHeaders: z.optional(z.record(z.string())),
 });
@@ -80,7 +80,7 @@ const httpNetworkConfigSchema = z.object({
   gasPrice: gasSchema,
 
   // HTTP network specific
-  url: sensitiveUrlType,
+  url: sensitiveUrlSchema,
   timeout: z.number(),
   httpHeaders: z.record(z.string()),
 });
