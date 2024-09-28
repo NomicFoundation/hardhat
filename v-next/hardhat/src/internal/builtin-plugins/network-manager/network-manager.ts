@@ -1,10 +1,10 @@
+import type { NetworkConfig } from "../../../types/config.js";
+import type { HookManager } from "../../../types/hooks.js";
 import type {
   ChainType,
   DefaultChainType,
-  NetworkConfig,
-} from "../../../types/config.js";
-import type { HookManager } from "../../../types/hooks.js";
-import type { NetworkConnection } from "../../../types/network.js";
+  NetworkConnection,
+} from "../../../types/network.js";
 import type { EthereumProvider } from "../../../types/providers.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
