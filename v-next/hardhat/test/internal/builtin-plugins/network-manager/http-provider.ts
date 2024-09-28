@@ -1,7 +1,11 @@
+import type { JsonRpcRequestWrapperFunction } from "../../../../src/internal/builtin-plugins/network-manager/http-provider.js";
+
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import {
@@ -382,6 +386,83 @@ describe("http-provider", () => {
       }
       assert.fail("Function did not throw any error");
     });
+
+    it("should wrap the request in the jsonRpcRequestWrapper if it is set", async () => {
+      const jsonRpcChainIdRequest = {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "eth_chainId",
+        params: [],
+      };
+      const jsonRpcChainIdResponse = {
+        jsonrpc: "2.0",
+        id: 1,
+        result: "0x1",
+      };
+      const jsonRpcBlockNumberRequest = {
+        jsonrpc: "2.0",
+        id: 2,
+        method: "eth_blockNumber",
+        params: [],
+      };
+      const jsonRpcBlockNumberResponse = {
+        jsonrpc: "2.0",
+        id: 2,
+        result: "0x2",
+      };
+
+      interceptor
+        .intercept({
+          ...baseInterceptorOptions,
+          body: JSON.stringify(jsonRpcChainIdRequest),
+        })
+        .reply(200, jsonRpcChainIdResponse);
+      const expectedChainId = numberToHexString(31337);
+
+      const jsonRpcRequestWrapper: JsonRpcRequestWrapperFunction = async (
+        request,
+        fetch,
+      ) => {
+        if (request.method === "eth_chainId") {
+          return {
+            jsonrpc: "2.0",
+            id: request.id,
+            result: expectedChainId,
+          };
+        } else {
+          return fetch(request);
+        }
+      };
+
+      const provider = new HttpProvider(
+        "http://localhost",
+        "exampleNetwork",
+        {},
+        interceptor,
+        jsonRpcRequestWrapper,
+      );
+
+      // eth_chainId is handled by the wrapper and returns the hardhat chain ID
+      // instead of jsonRpcChainIdResponse.result
+      const chainIdResult = await provider.request({
+        method: "eth_chainId",
+      });
+      assert.equal(chainIdResult, expectedChainId);
+
+      interceptor
+        .intercept({
+          ...baseInterceptorOptions,
+          body: JSON.stringify(jsonRpcBlockNumberRequest),
+        })
+        .reply(200, jsonRpcBlockNumberResponse);
+
+      // eth_blockNumber is not handled by the wrapper and returns the actual
+      // response
+      const blockNumberResult = await provider.request({
+        method: "eth_blockNumber",
+      });
+      assert.equal(blockNumberResult, jsonRpcBlockNumberResponse.result);
+    });
   });
 
   describe("getHttpDispatcher", () => {
@@ -406,6 +487,37 @@ describe("http-provider", () => {
       const dispatcher = await getHttpDispatcher("http://example.com");
 
       assert.equal(dispatcher.constructor.name, "ProxyAgent");
+    });
+  });
+
+  describe("HttpProvider#close", () => {
+    it("should not allow to make requests after closing", async () => {
+      const provider = await HttpProvider.create({
+        url: "http://localhost",
+        networkName: "exampleNetwork",
+        timeout: 20_000,
+      });
+
+      await provider.close();
+      try {
+        await provider.request({
+          method: "eth_chainId",
+        });
+      } catch (error) {
+        ensureError(error);
+
+        assert.ok(
+          error.cause !== undefined && error.cause instanceof Error,
+          "Error does not have a cause",
+        );
+
+        // If the client is still open, the error will be a connection error
+        if (error.cause.message === "getaddrinfo ENOTFOUND loocalhost") {
+          assert.fail("Client is still open");
+        }
+
+        assert.equal(error.cause.message, "The client is destroyed");
+      }
     });
   });
 });
