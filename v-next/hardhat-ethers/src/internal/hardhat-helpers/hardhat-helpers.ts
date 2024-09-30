@@ -136,7 +136,9 @@ export class HardhatHelpers {
     let signer: EthersT.Signer | undefined;
 
     if (!this.#isArtifact(artifact)) {
-      throw new HardhatError(HardhatError.ERRORS.ETHERS.INVALID_ARTIFACT);
+      throw new HardhatError(
+        HardhatError.ERRORS.ETHERS.INVALID_ARTIFACT_FOR_FACTORY,
+      );
     }
 
     if (this.#isFactoryOptions(signerOrOptions)) {
@@ -206,7 +208,9 @@ export class HardhatHelpers {
     const ethers = await import("ethers");
 
     if (!this.#isArtifact(artifact)) {
-      throw new HardhatError(HardhatError.ERRORS.ETHERS.INVALID_ARTIFACT);
+      throw new HardhatError(
+        HardhatError.ERRORS.ETHERS.INVALID_ARTIFACT_FOR_FACTORY,
+      );
     }
 
     if (signer === undefined) {

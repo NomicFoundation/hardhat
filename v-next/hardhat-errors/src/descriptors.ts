@@ -711,7 +711,7 @@ This might be caused by using hardhat_reset and loadFixture calls in a testcase.
     },
     BROADCASTED_TX_DIFFERENT_HASH: {
       number: 1003,
-      messageTemplate: `Expected broadcasted transaction to have hash "{txHash}", but got "{broadcastedTxHash}" `,
+      messageTemplate: `Expected broadcasted transaction to have hash "{txHash}", but got "{broadcastedTxHash}"`,
       websiteTitle: "Broadcasted transaction hash mismatch",
       websiteDescription: "Broadcasted transaction hash mismatch",
     },
@@ -727,18 +727,19 @@ This might be caused by using hardhat_reset and loadFixture calls in a testcase.
       websiteTitle: "Invalid block tag",
       websiteDescription: "Invalid block tag",
     },
-    INVALID_ARTIFACT: {
+    INVALID_ARTIFACT_FOR_FACTORY: {
       number: 1006,
       messageTemplate:
         "You are trying to create a contract factory from an artifact, but you have not passed a valid artifact parameter.",
-      websiteTitle: "Invalid artifact",
-      websiteDescription: "Invalid artifact",
+      websiteTitle: "Invalid artifact for contract factory creation",
+      websiteDescription: "Invalid artifact for contract factory creation",
     },
     INVALID_ABSTRACT_CONTRACT_FOR_FACTORY: {
       number: 1007,
       messageTemplate: `You are trying to create a contract factory for the contract "{contractName}", which is abstract and can't be deployed. If you want to call a contract using "{contractName}" as its interface use the "getContractAt" function instead.`,
-      websiteTitle: "Invalid abstract contract",
-      websiteDescription: "Invalid abstract contract",
+      websiteTitle: "Invalid abstract contract for contract factory creation",
+      websiteDescription:
+        "Invalid abstract contract for contract factory creation",
     },
     INVALID_ADDRESS_TO_LINK_CONTRACT_TO_LIBRARY: {
       number: 1008,
