@@ -1,4 +1,4 @@
-import findUp from "find-up";
+import findUp from "empathic/find.mjs";
 import fsExtra from "fs-extra";
 import path from "path";
 
@@ -14,31 +14,31 @@ const CTS_CONFIG_FILENAME = "hardhat.config.cts";
 
 export function isCwdInsideProject() {
   return (
-    findUp.sync(TS_CONFIG_FILENAME) !== null ||
-    findUp.sync(CTS_CONFIG_FILENAME) !== null ||
-    findUp.sync(CJS_CONFIG_FILENAME) !== null ||
-    findUp.sync(JS_CONFIG_FILENAME) !== null
+    findUp.up(TS_CONFIG_FILENAME) !== undefined ||
+    findUp.up(CTS_CONFIG_FILENAME) !== undefined ||
+    findUp.up(CJS_CONFIG_FILENAME) !== undefined ||
+    findUp.up(JS_CONFIG_FILENAME) !== undefined
   );
 }
 
 export function getUserConfigPath() {
-  const tsConfigPath = findUp.sync(TS_CONFIG_FILENAME);
-  if (tsConfigPath !== null) {
+  const tsConfigPath = findUp.up(TS_CONFIG_FILENAME);
+  if (tsConfigPath !== undefined) {
     return tsConfigPath;
   }
 
-  const ctsConfigPath = findUp.sync(CTS_CONFIG_FILENAME);
-  if (ctsConfigPath !== null) {
+  const ctsConfigPath = findUp.up(CTS_CONFIG_FILENAME);
+  if (ctsConfigPath !== undefined) {
     return ctsConfigPath;
   }
 
-  const cjsConfigPath = findUp.sync(CJS_CONFIG_FILENAME);
-  if (cjsConfigPath !== null) {
+  const cjsConfigPath = findUp.up(CJS_CONFIG_FILENAME);
+  if (cjsConfigPath !== undefined) {
     return cjsConfigPath;
   }
 
-  const pathToConfigFile = findUp.sync(JS_CONFIG_FILENAME);
-  if (pathToConfigFile === null) {
+  const pathToConfigFile = findUp.up(JS_CONFIG_FILENAME);
+  if (pathToConfigFile === undefined) {
     throw new HardhatError(ERRORS.GENERAL.NOT_INSIDE_PROJECT);
   }
 

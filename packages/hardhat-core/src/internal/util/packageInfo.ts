@@ -1,4 +1,4 @@
-import findup from "find-up";
+import findup from "empathic/find.mjs";
 import fsExtra from "fs-extra";
 import path from "path";
 
@@ -23,13 +23,13 @@ export interface PackageJson {
   };
 }
 
-export function findClosestPackageJson(file: string): string | null {
-  return findup.sync("package.json", { cwd: path.dirname(file) });
+export function findClosestPackageJson(file: string): string | undefined {
+  return findup.up("package.json", { cwd: path.dirname(file) });
 }
 
 export async function getPackageName(file: string): Promise<string> {
   const packageJsonPath = findClosestPackageJson(file);
-  if (packageJsonPath !== null && packageJsonPath !== "") {
+  if (packageJsonPath !== undefined && packageJsonPath !== "") {
     const packageJson: PackageJson = await fsExtra.readJSON(packageJsonPath);
     return packageJson.name;
   }
@@ -45,7 +45,7 @@ export function getHardhatVersion(): string {
   const packageJsonPath = findClosestPackageJson(__filename);
 
   assertHardhatInvariant(
-    packageJsonPath !== null,
+    packageJsonPath !== undefined,
     "There should be a package.json in hardhat-core's root directory"
   );
 
@@ -57,10 +57,10 @@ export function getHardhatVersion(): string {
  * Return the contents of the package.json in the user's project
  */
 export function getProjectPackageJson(): Promise<any> {
-  const packageJsonPath = findup.sync("package.json");
+  const packageJsonPath = findup.up("package.json");
 
   assertHardhatInvariant(
-    packageJsonPath !== null,
+    packageJsonPath !== undefined,
     "Expected a package.json file in the current directory or in an ancestor directory"
   );
 

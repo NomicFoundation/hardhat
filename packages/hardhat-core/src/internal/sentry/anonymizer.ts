@@ -1,5 +1,5 @@
 import { Event, Exception, StackFrame, Stacktrace } from "@sentry/node";
-import findup from "find-up";
+import findup from "empathic/find.mjs";
 import { either } from "fp-ts";
 import * as path from "path";
 
@@ -59,7 +59,7 @@ export class Anonymizer {
     if (filename === this._configPath) {
       const packageJsonPath = this._getFilePackageJsonPath(filename);
 
-      if (packageJsonPath === null) {
+      if (packageJsonPath === undefined) {
         // if we can't find a package.json, we just return the basename
         return {
           anonymizedFilename: path.basename(filename),
@@ -163,8 +163,8 @@ export class Anonymizer {
     return false;
   }
 
-  protected _getFilePackageJsonPath(filename: string): string | null {
-    return findup.sync("package.json", {
+  protected _getFilePackageJsonPath(filename: string): string | undefined {
+    return findup.up("package.json", {
       cwd: path.dirname(filename),
     });
   }
