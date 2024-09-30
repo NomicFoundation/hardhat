@@ -1,6 +1,5 @@
 import type { ZodTypeDef, ZodType } from "zod";
 
-import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 import { z } from "zod";
 
 /**
@@ -138,7 +137,7 @@ export const incompatibleFieldType = (errorMessage = "Unexpected field") =>
 /**
  * A Zod type to validate Hardhat's ConfigurationVariable objects.
  */
-export const configurationVariableType = z.object({
+export const configurationVariableSchema = z.object({
   _type: z.literal("ConfigurationVariable"),
   name: z.string(),
 });
@@ -146,21 +145,24 @@ export const configurationVariableType = z.object({
 /**
  * A Zod type to validate Hardhat's SensitiveString values.
  */
-export const sensitiveStringType = conditionalUnionType(
-  [
-    [(data) => typeof data === "string", z.string()],
-    [isObject, configurationVariableType],
-  ],
+export const sensitiveStringSchema = unionType(
+  [z.string(), configurationVariableSchema],
   "Expected a string or a Configuration Variable",
 );
 
 /**
  * A Zod type to validate Hardhat's SensitiveString values that expect a URL.
+ *
+ * TODO: The custom error message in the unionType function doesn't work
+ * correctly when using string().url() for validation, see:
+ * https://github.com/colinhacks/zod/issues/2940
+ * As a workaround, we provide the error message directly in the url() call.
+ * We should remove this when the issue is fixed.
  */
-export const sensitiveUrlType = conditionalUnionType(
+export const sensitiveUrlSchema = unionType(
   [
-    [(data) => typeof data === "string", z.string().url()],
-    [isObject, configurationVariableType],
+    z.string().url("Expected a URL or a Configuration Variable"),
+    configurationVariableSchema,
   ],
   "Expected a URL or a Configuration Variable",
 );
