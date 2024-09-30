@@ -996,6 +996,14 @@ const communityPlugins: IPlugin[] = [
       "Hardhat plugin for enabling on-the-fly network switching within your Hardhat scripts and tasks",
     tags: ["Tasks", "Scripts", "Testing"],
   },
+  {
+    name: "@medga/hardhat-clone",
+    author: "The MEDGA Team",
+    authorUrl: "https://medga.org",
+    description:
+      "Clone an on-chain contract and integrate into your Hardhat project",
+    tags: ["etherscan", "clone", "verified contract"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
