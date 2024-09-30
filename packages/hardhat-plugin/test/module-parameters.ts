@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "./test-helpers/use-ignition-project";
@@ -92,6 +92,41 @@ describe("module parameters", () => {
         ),
         /Parameter "unlockTime" exceeds maximum safe integer size. Encode the value as a string using bigint notation: `\${value}n`/
       );
+    });
+
+    it("should use a global parameter", async function () {
+      const ignitionModule = buildModule("Test", (m) => {
+        const unlockTime = m.getParameter("unlockTime", 100);
+
+        const lock = m.contract("Lock", [unlockTime]);
+
+        return { lock };
+      });
+
+      const result = await this.hre.ignition.deploy(ignitionModule, {
+        parameters: { $global: { unlockTime: 1893499200000 } },
+      });
+
+      assert.equal(await result.lock.read.unlockTime(), 1893499200000);
+    });
+
+    it("should use a module parameter instead of a global parameter if both are present", async function () {
+      const ignitionModule = buildModule("Test", (m) => {
+        const unlockTime = m.getParameter("unlockTime", 100);
+
+        const lock = m.contract("Lock", [unlockTime]);
+
+        return { lock };
+      });
+
+      const result = await this.hre.ignition.deploy(ignitionModule, {
+        parameters: {
+          $global: { unlockTime: 1893499200000 },
+          Test: { unlockTime: 9876543210000 },
+        },
+      });
+
+      assert.equal(await result.lock.read.unlockTime(), 9876543210000);
     });
   });
 });

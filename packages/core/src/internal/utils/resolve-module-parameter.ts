@@ -23,7 +23,8 @@ export function resolveModuleParameter(
   }
 
   const moduleParameters =
-    context.deploymentParameters[moduleParamRuntimeValue.moduleId];
+    context.deploymentParameters[moduleParamRuntimeValue.moduleId] ??
+    context.deploymentParameters.$global;
 
   if (moduleParameters === undefined) {
     assertIgnitionInvariant(
