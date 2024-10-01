@@ -3,6 +3,7 @@ import path from "node:path";
 import {
   exists,
   getAllFilesMatching,
+  isDirectory,
   readdir,
   readJsonFile,
 } from "@ignored/hardhat-vnext-utils/fs";
@@ -35,10 +36,14 @@ export async function getTemplates(): Promise<Template[]> {
 
   const pathsToTemplates = await readdir(pathToTemplates);
 
-  return Promise.all(
+  const templates = await Promise.all(
     pathsToTemplates.map(async (name) => {
       const pathToTemplate = path.join(pathToTemplates, name);
       const pathToPackageJson = path.join(pathToTemplate, "package.json");
+
+      if (!(await isDirectory(pathToTemplate))) {
+        return;
+      }
 
       // Validate that the the template has a package.json file
       if (!(await exists(pathToPackageJson))) {
@@ -73,4 +78,6 @@ export async function getTemplates(): Promise<Template[]> {
       };
     }),
   );
+
+  return templates.filter((t) => t !== undefined);
 }
