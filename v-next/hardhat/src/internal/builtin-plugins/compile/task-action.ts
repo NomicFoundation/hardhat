@@ -43,6 +43,9 @@ async function _resolveCompilationConfigFrom(hre: HardhatRuntimeEnvironment) {
     solidity: {
       compilers: [
         {
+          // WARNING: The version of the compiler has been hardcoded here,
+          // attempts to test with different versions will not work,
+          // and will have to await the new build system.
           version: "0.8.25",
           settings: {
             optimizer: {
