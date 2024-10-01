@@ -10,7 +10,7 @@ type PackageManager = "npm" | "yarn" | "pnpm";
  * getPackageManager returns the name of the package manager used in the workspace.
  * It determines this by checking the presence of package manager specific lock files.
  *
- * @param workspace The path to the workspace to initialize the project in.
+ * @param workspace The path to the workspace where the package manager should be checked.
  * @returns The name of the package manager used in the workspace.
  */
 export async function getPackageManager(
@@ -54,7 +54,7 @@ export function getDevDependenciesInstallationCommand(
  * installsPeerDependenciesByDefault returns true if the package manager
  * installs peer dependencies by default.
  *
- * @param workspace The path to the workspace to initialize the project in.
+ * @param workspace The path to the workspace where the package manager will operate.
  * @param packageManager The package manager to use.
  * @param version The version of the package manager to use. This parameter is used only for testing.
  * @param config The configuration of the package manager to use. This parameter is used only for testing.
