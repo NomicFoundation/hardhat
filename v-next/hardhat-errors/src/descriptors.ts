@@ -73,6 +73,11 @@ export const ERROR_CATEGORIES: {
     max: 999,
     websiteTitle: "Network-helpers errors",
   },
+  SOLIDITY_TESTS: {
+    min: 1000,
+    max: 1099,
+    websiteTitle: "Solidity tests errors",
+  },
 };
 
 export const ERRORS = {
@@ -691,6 +696,14 @@ Learn more at (https://hardhat.org/hardhat-network-helpers/docs/reference#fixtur
 This might be caused by using hardhat_reset and loadFixture calls in a testcase.`,
       websiteTitle: "Error while reverting snapshot",
       websiteDescription: "Error while reverting snapshot",
+    },
+  },
+  SOLIDITY_TESTS: {
+    BUILD_INFO_NOT_FOUND_FOR_CONTRACT: {
+      number: 1000,
+      messageTemplate: `Build info not found for contract {fqn}`,
+      websiteTitle: `Build info not found for contract`,
+      websiteDescription: `Build info not found for contract while compiling Solidity test contracts.`,
     },
   },
 } as const;
