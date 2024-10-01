@@ -12,6 +12,12 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 /**
  * Run all the given solidity tests and returns the whole results after finishing.
+ *
+ * This function is a direct port of the example v2 integration in the
+ * EDR repo (see  https://github.com/NomicFoundation/edr/blob/feat/solidity-tests/js/helpers/src/index.ts).
+ * The signature of the function should be considered a draft and may change in the future.
+ *
+ * TODO: Reconsider the signature and feedback to EDR team.
  */
 export async function runAllSolidityTests(
   artifacts: Artifact[],
