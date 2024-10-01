@@ -21,6 +21,16 @@ import {
 
 export const BUILD_INFO_DIR_NAME = "build-info";
 
+/**
+ * This class is a temporary shim implementation of the ArtifactsManager.
+ * It has pulled across Hardhat v2 code to ease some development tasks.
+ * It will be replaced in its entirety by the new ArtifactsManager with
+ * the completion of the new build system.
+ *
+ * Code within it should be kept as self-contained as possible.
+ *
+ * TODO: Replace this class with the new ArtifactsManager in Hardhat v3.
+ */
 export class ArtifactsManagerImplementation implements ArtifactsManager {
   readonly #artifactsPath: string;
 
@@ -45,11 +55,6 @@ export class ArtifactsManagerImplementation implements ArtifactsManager {
    * If the name is fully qualified, the path is computed from it.  If not, an
    * artifact that matches the given name is searched in the existing artifacts.
    * If there is an ambiguity, an error is thrown.
-   *
-   * @throws {HardhatError} with descriptor:
-   * - {@link ERRORS.ARTIFACTS.WRONG_CASING} if the path case doesn't match the one in the filesystem.
-   * - {@link ERRORS.ARTIFACTS.MULTIPLE_FOUND} if there are multiple artifacts matching the given contract name.
-   * - {@link ERRORS.ARTIFACTS.NOT_FOUND} if the artifact is not found.
    */
   async #getArtifactPath(name: string): Promise<string> {
     let result: string;
