@@ -1,5 +1,7 @@
-import type { ChainType } from "../../../../types/config.js";
-import type { NetworkConnection } from "../../../../types/network.js";
+import type {
+  ChainType,
+  NetworkConnection,
+} from "../../../../types/network.js";
 import type {
   JsonRpcRequest,
   JsonRpcResponse,

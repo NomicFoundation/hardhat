@@ -1,8 +1,10 @@
 import { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
-import { ChainType } from "@ignored/hardhat-vnext/types/config";
 import { HookContext } from "@ignored/hardhat-vnext/types/hooks";
 
-import type { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
+import type {
+  ChainType,
+  NetworkConnection,
+} from "@ignored/hardhat-vnext/types/network";
 
 import "@ignored/hardhat-vnext/types/network";
 
