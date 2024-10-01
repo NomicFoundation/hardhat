@@ -482,6 +482,77 @@ describe("HookManager", () => {
         );
       });
     });
+
+    describe("HookContext and HRE extensions interactions", () => {
+      it("Should not make the task manager available to the handlers", async () => {
+        const assertionPlugin: HardhatPlugin = {
+          id: "assertion",
+          hookHandlers: {
+            hre: async () => ({
+              created: async (context, _): Promise<void> => {
+                assert.equal((context as any).tasks, undefined);
+              },
+            }),
+          },
+        };
+
+        await HardhatRuntimeEnvironmentImplementation.create(
+          { plugins: [assertionPlugin] },
+          {},
+        );
+      });
+
+      it("Should make the core fields of the HRE available to the handlers", async () => {
+        const assertionPlugin: HardhatPlugin = {
+          id: "assertion",
+          hookHandlers: {
+            hre: async () => ({
+              created: async (context, hre): Promise<void> => {
+                for (const field in Object.keys(hre)) {
+                  if (field !== "tasks") {
+                    assert.equal((context as any)[field], (hre as any)[field]);
+                  }
+                }
+              },
+            }),
+          },
+        };
+
+        await HardhatRuntimeEnvironmentImplementation.create(
+          { plugins: [assertionPlugin] },
+          {},
+        );
+      });
+
+      it("should make any extention to the HRE available to all the handlers as part of the HookContext", async () => {
+        const extensionPlugin: HardhatPlugin = {
+          id: "extension",
+          hookHandlers: {
+            hre: async () => ({
+              created: async (_, hre): Promise<void> => {
+                (hre as any).myExtension = "myExtension";
+              },
+            }),
+          },
+        };
+
+        const assertionPlugin: HardhatPlugin = {
+          id: "assertion",
+          hookHandlers: {
+            hre: async () => ({
+              created: async (context, _): Promise<void> => {
+                assert.equal((context as any).myExtension, "myExtension");
+              },
+            }),
+          },
+        };
+
+        await HardhatRuntimeEnvironmentImplementation.create(
+          { plugins: [extensionPlugin, assertionPlugin] },
+          {},
+        );
+      });
+    });
   });
 
   describe("dynamic hooks", () => {

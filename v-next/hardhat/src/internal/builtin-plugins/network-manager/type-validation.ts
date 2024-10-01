@@ -5,7 +5,8 @@ import type {
 import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
 
 import {
-  sensitiveUrlType,
+  conditionalUnionType,
+  sensitiveUrlSchema,
   unionType,
   validateUserConfigZodType,
 } from "@ignored/hardhat-vnext-zod-utils";
@@ -16,27 +17,26 @@ const chainTypeSchema = unionType(
   "Expected 'l1', 'optimism', or 'unknown'",
 );
 
+const userGasSchema = conditionalUnionType(
+  [
+    [(data) => typeof data === "string", z.literal("auto")],
+    [(data) => typeof data === "number", z.number().int().positive().safe()],
+    [(data) => typeof data === "bigint", z.bigint().positive()],
+  ],
+  "Expected 'auto', a safe int, or bigint",
+);
+
 const httpNetworkUserConfigSchema = z.object({
   type: z.literal("http"),
   chainId: z.optional(z.number().int()),
   chainType: z.optional(chainTypeSchema),
   from: z.optional(z.string()),
-  gas: z.optional(
-    unionType(
-      [z.literal("auto"), z.number().int(), z.bigint()],
-      "Expected 'auto', number, or bigint",
-    ),
-  ),
+  gas: z.optional(userGasSchema),
   gasMultiplier: z.optional(z.number()),
-  gasPrice: z.optional(
-    unionType(
-      [z.literal("auto"), z.number().int(), z.bigint()],
-      "Expected 'auto', number, or bigint",
-    ),
-  ),
+  gasPrice: z.optional(userGasSchema),
 
   // HTTP network specific
-  url: sensitiveUrlType,
+  url: sensitiveUrlSchema,
   timeout: z.optional(z.number()),
   httpHeaders: z.optional(z.record(z.string())),
 });
@@ -46,15 +46,9 @@ const edrNetworkUserConfigSchema = z.object({
   chainId: z.number().int(),
   chainType: z.optional(chainTypeSchema),
   from: z.optional(z.string()),
-  gas: unionType(
-    [z.literal("auto"), z.number().int(), z.bigint()],
-    "Expected 'auto', number, or bigint",
-  ),
+  gas: userGasSchema,
   gasMultiplier: z.number(),
-  gasPrice: unionType(
-    [z.literal("auto"), z.number().int(), z.bigint()],
-    "Expected 'auto', number, or bigint",
-  ),
+  gasPrice: userGasSchema,
 });
 
 const networkUserConfigSchema = z.discriminatedUnion("type", [
@@ -68,20 +62,25 @@ const userConfigSchema = z.object({
   networks: z.optional(z.record(networkUserConfigSchema)),
 });
 
+const gasSchema = conditionalUnionType(
+  [
+    [(data) => typeof data === "string", z.literal("auto")],
+    [(data) => typeof data === "bigint", z.bigint().positive()],
+  ],
+  "Expected 'auto' or bigint",
+);
+
 const httpNetworkConfigSchema = z.object({
   type: z.literal("http"),
-  chainId: z.number().int().optional(),
+  chainId: z.optional(z.number().int()),
   chainType: z.optional(chainTypeSchema),
   from: z.optional(z.string()),
-  gas: unionType([z.literal("auto"), z.bigint()], "Expected 'auto' or bigint"),
+  gas: gasSchema,
   gasMultiplier: z.number(),
-  gasPrice: unionType(
-    [z.literal("auto"), z.bigint()],
-    "Expected 'auto' or bigint",
-  ),
+  gasPrice: gasSchema,
 
   // HTTP network specific
-  url: sensitiveUrlType,
+  url: sensitiveUrlSchema,
   timeout: z.number(),
   httpHeaders: z.record(z.string()),
 });
@@ -91,12 +90,9 @@ const edrNetworkConfigSchema = z.object({
   chainId: z.number().int(),
   chainType: z.optional(chainTypeSchema),
   from: z.string(),
-  gas: unionType([z.literal("auto"), z.bigint()], "Expected 'auto' or bigint"),
+  gas: gasSchema,
   gasMultiplier: z.number(),
-  gasPrice: unionType(
-    [z.literal("auto"), z.bigint()],
-    "Expected 'auto' or bigint",
-  ),
+  gasPrice: gasSchema,
 });
 
 const networkConfigSchema = z.discriminatedUnion("type", [

@@ -1,5 +1,5 @@
-import type { ChainType, NetworkConfig } from "../../../types/config.js";
-import type { NetworkConnection } from "../../../types/network.js";
+import type { NetworkConfig } from "../../../types/config.js";
+import type { ChainType, NetworkConnection } from "../../../types/network.js";
 import type { EthereumProvider } from "../../../types/providers.js";
 
 export type CloseConnectionFunction<ChainTypeT extends ChainType | string> = (
