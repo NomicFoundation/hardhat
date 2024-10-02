@@ -1,5 +1,6 @@
 import path from "node:path";
 
+import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import {
   exists,
   getAllFilesMatching,
@@ -9,7 +10,6 @@ import {
 } from "@ignored/hardhat-vnext-utils/fs";
 import {
   findClosestPackageRoot,
-  PackageJsonNotFoundError,
   type PackageJson,
 } from "@ignored/hardhat-vnext-utils/package";
 
@@ -46,10 +46,10 @@ export async function getTemplates(): Promise<Template[]> {
       }
 
       // Validate that the the template has a package.json file
-      if (!(await exists(pathToPackageJson))) {
-        // eslint-disable-next-line no-restricted-syntax -- this is a valid usecase for the PackageJsonNotFoundError
-        throw new PackageJsonNotFoundError(pathToPackageJson);
-      }
+      assertHardhatInvariant(
+        await exists(pathToPackageJson),
+        `package.json for template ${name} is missing`,
+      );
 
       const packageJson: PackageJson =
         await readJsonFile<PackageJson>(pathToPackageJson);
