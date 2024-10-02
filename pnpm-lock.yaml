@@ -1766,7 +1766,7 @@ importers:
         version: link:../hardhat-utils
       debug:
         specifier: ^4.1.1
-        version: 4.3.6(supports-color@8.1.1)
+        version: 4.3.7(supports-color@8.1.1)
       ethers:
         specifier: ^6.13.2
         version: 6.13.2
