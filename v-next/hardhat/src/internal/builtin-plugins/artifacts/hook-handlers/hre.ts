@@ -7,7 +7,9 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => {
         "../artifacts-manager.js"
       );
 
-      hre.artifacts = new ArtifactsManagerImplementation();
+      hre.artifacts = new ArtifactsManagerImplementation(
+        hre.config.paths.artifacts,
+      );
     },
   };
 
