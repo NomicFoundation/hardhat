@@ -1,5 +1,6 @@
 {
   "name": "empty-typescript",
+  "private": true,
   "version": "0.0.1",
   "description": "An empty TypeScrpit Hardhat project",
   "type": "module",
