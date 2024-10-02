@@ -32,16 +32,17 @@ export async function initializeEthers(
 
     provider,
 
-    getSigner: (address: string) => hardhatHelpers.getSigner(address),
-    getSigners: () => hardhatHelpers.getSigners(),
-    getImpersonatedSigner: (address: string) =>
-      hardhatHelpers.getImpersonatedSigner(address),
+    // The bind is necessary because otherwise in the function the "this" that refers to the HardhatHelpers class will be overwritten
+    getSigner: hardhatHelpers.getSigner.bind(hardhatHelpers),
+    getSigners: hardhatHelpers.getSigners.bind(hardhatHelpers),
+    getImpersonatedSigner:
+      hardhatHelpers.getImpersonatedSigner.bind(hardhatHelpers),
     getContractFactory: hardhatHelpers.getContractFactory.bind(hardhatHelpers),
-    getContractFactoryFromArtifact: (...args) =>
-      hardhatHelpers.getContractFactoryFromArtifact(...args),
-    getContractAt: (...args) => hardhatHelpers.getContractAt(...args),
-    getContractAtFromArtifact: (...args) =>
-      hardhatHelpers.getContractAtFromArtifact(...args),
+    getContractFactoryFromArtifact:
+      hardhatHelpers.getContractFactoryFromArtifact.bind(hardhatHelpers),
+    getContractAt: hardhatHelpers.getContractAt.bind(hardhatHelpers),
+    getContractAtFromArtifact:
+      hardhatHelpers.getContractAtFromArtifact.bind(hardhatHelpers),
     deployContract: hardhatHelpers.deployContract.bind(hardhatHelpers),
   };
 }
