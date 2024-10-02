@@ -28,14 +28,14 @@
     "@ignored/hardhat-vnext-node-test-reporter": "2.0.0",
     "@ignored/hardhat-vnext-utils": "2.0.0",
     "@ignored/hardhat-vnext-zod-utils": "2.0.0",
+    "@ignored/hardhat-vnext-mocha-test-runner": "2.0.0",
+    "@ignored/hardhat-vnext-node-test-runner": "2.0.0",
+    "@nomicfoundation/hardhat-test-utils": "3.0.0",
     "@nomicfoundation/template-package": "3.0.0",
     "template-empty-javascript": "0.0.1",
     "template-empty-typescript": "0.0.1",
     "template-javascript-with-examples": "0.0.1",
-    "template-typescript-with-examples": "0.0.1",
-    "@ignored/hardhat-vnext-mocha-test-runner": "3.0.0-next.2",
-    "@ignored/hardhat-vnext-node-test-runner": "3.0.0-next.2",
-    "@nomicfoundation/hardhat-test-utils": "3.0.0"
+    "template-typescript-with-examples": "0.0.1"
   },
   "changesets": [
     "big-points-try",
