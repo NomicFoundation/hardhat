@@ -1,6 +1,5 @@
 {
   "name": "@ignored/hardhat-vnext-build-system",
-  "private": true,
   "version": "3.0.0-next.2",
   "description": "Build and Solidity compilation system for Hardhat",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/v-next/hardhat-build-system",
