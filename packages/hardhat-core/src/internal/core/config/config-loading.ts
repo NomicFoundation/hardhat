@@ -198,7 +198,7 @@ export function analyzeModuleNotFoundError(error: any, configPath: string) {
 
   const packageJsonPath = findClosestPackageJson(throwingFile);
 
-  if (packageJsonPath === null) {
+  if (!packageJsonPath) {
     return;
   }
 

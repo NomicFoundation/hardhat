@@ -122,7 +122,7 @@
     "env-paths": "^2.2.0",
     "ethereum-cryptography": "^1.0.3",
     "ethereumjs-abi": "^0.6.8",
-    "find-up": "^2.1.0",
+    "find-up": "^5.0.0",
     "fp-ts": "1.19.3",
     "fs-extra": "^7.0.1",
     "glob": "7.2.0",
