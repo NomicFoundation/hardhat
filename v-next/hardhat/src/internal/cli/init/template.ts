@@ -13,6 +13,14 @@ import {
   type PackageJson,
 } from "@ignored/hardhat-vnext-utils/package";
 
+/**
+ * This type describes a hardhat project template. It consists of:
+ * - name: The name of the template;
+ * - packageJson: The parsed package.json file of the template;
+ * - path: The absolute path to the template directory;
+ * - files: The relative paths to template files within the template directory,
+ *   excluding the package.json file.
+ */
 export interface Template {
   name: string;
   packageJson: PackageJson;
