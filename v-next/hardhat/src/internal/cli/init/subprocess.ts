@@ -7,7 +7,6 @@ export async function spawn(
   args: string[],
   options: LastParameter<typeof nodeSpawn>,
 ): Promise<void> {
-  console.log(command, args.join(" "));
   const child = nodeSpawn(command, args, options);
   await new Promise<void>((resolve, reject) => {
     child.on("close", (code) => {

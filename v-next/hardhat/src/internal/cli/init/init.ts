@@ -367,6 +367,7 @@ export async function installProjectDependencies(
 
     // If the user grants permission to install the dependencies, run the installation command
     if (install) {
+      console.log(command.join(" "));
       await spawn(command[0], command.slice(1), {
         cwd: workspace,
         shell: true,
