@@ -12,7 +12,8 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./dist/src/index.js"
+    ".": "./dist/src/index.js",
+    "./types": "./dist/src/types.js"
   },
   "keywords": [
     "ethereum",
