@@ -20,6 +20,8 @@ export async function getHardhatVersion(): Promise<string> {
 }
 
 export async function getLatestHardhatVersion(): Promise<string> {
+  const { getRequest } = await import("@ignored/hardhat-vnext-utils/request");
+
   if (cachedLatestHardhatVersion !== undefined) {
     return cachedLatestHardhatVersion;
   }
@@ -30,9 +32,9 @@ export async function getLatestHardhatVersion(): Promise<string> {
 
   const packageName = packageJson.name;
 
-  const latestHardhat = await fetch(
+  const latestHardhat = await getRequest(
     `https://registry.npmjs.org/${packageName}/latest`,
-  ).then((body) => {
+  ).then(({ body }) => {
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     -- Cast to PackageJson because that's what we expect from the registry */
     return body.json() as Promise<PackageJson>;
