@@ -18,7 +18,6 @@
     "@nomicfoundation/hardhat-viem": "2.0.2",
     "@nomiclabs/hardhat-vyper": "3.0.6",
     "@nomicfoundation/hardhat-web3-v4": "1.0.0",
-    "@ignored/hardhat-vnext-core": "2.0.0",
     "@nomicfoundation/example-project": "3.0.0",
     "@ignored/hardhat-vnext": "2.0.0",
     "@ignored/hardhat-vnext-build-system": "2.0.0",
