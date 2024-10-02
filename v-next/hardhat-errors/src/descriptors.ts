@@ -150,24 +150,8 @@ Please double check whether you have multiple versions of the same plugin instal
       websiteTitle: "Hardhat project already created",
       websiteDescription: `Cannot create a new Hardhat project, the current folder is already associated with a project.`,
     },
-    // TODO: This error is no longer relevant, is it OK to remove it?
-    // Should we update the following error numbers afterwards?
-    NOT_INSIDE_PROJECT_ON_WINDOWS: {
-      number: 11,
-      messageTemplate: `You are not inside a project and Hardhat failed to initialize a new one.
-
-If you were trying to create a new project, please try again using Windows Subsystem for Linux (WSL) or PowerShell.
-`,
-      websiteTitle:
-        "You are not inside a Hardhat project and Hardhat failed to initialize a new one",
-      websiteDescription: `You are trying to run Hardhat outside of a Hardhat project, and we couldn't initialize one.
-
-If you were trying to create a new project, please try again using Windows Subsystem for Linux (WSL) or PowerShell.
-
-You can learn how to use Hardhat by reading the [Getting Started guide](/hardhat-runner/docs/getting-started).`,
-    },
     NOT_IN_INTERACTIVE_SHELL: {
-      number: 12,
+      number: 11,
       messageTemplate:
         "You are trying to initialize a project but you are not in an interactive shell.",
       websiteTitle: "Not inside an interactive shell",
@@ -176,7 +160,7 @@ You can learn how to use Hardhat by reading the [Getting Started guide](/hardhat
 Please re-run the command inside an interactive shell.`,
     },
     UNSUPPORTED_OPERATION: {
-      number: 13,
+      number: 12,
       messageTemplate: "{operation} is not supported in Hardhat.",
       websiteTitle: "Unsupported operation",
       websiteDescription: `You are trying to perform an unsupported operation.
@@ -186,7 +170,7 @@ Unless you are creating a task or plugin, this is probably a bug.
 Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
     },
     ONLY_ESM_SUPPORTED: {
-      number: 14,
+      number: 13,
       messageTemplate: `Hardhat only supports ESM projects. Please be sure to specify "'type': 'module'" in your package.json`,
       websiteTitle: "Only ESM projects are supported",
       websiteDescription: `You are trying to initialize a new Hardhat project, but your package.json does not have the property "type" set to "module".
@@ -196,7 +180,7 @@ Currently, Hardhat only supports ESM projects.
 Please add the property "type" with the value "module" in your package.json to ensure that your project is recognized as an ESM project.`,
     },
     GLOBAL_OPTION_ALREADY_DEFINED: {
-      number: 15,
+      number: 14,
       messageTemplate:
         "Plugin {plugin} is trying to define the global option {globalOption} but it is already defined by plugin {definedByPlugin}",
       websiteTitle: "Global option already defined",
@@ -204,14 +188,14 @@ Please add the property "type" with the value "module" in your package.json to e
         "The global option is already defined by another plugin. Please ensure that global options are uniquely named to avoid conflicts.",
     },
     INVALID_CONFIG: {
-      number: 16,
+      number: 15,
       messageTemplate: `Invalid config:
 {errors}`,
       websiteTitle: "Invalid config",
       websiteDescription: `The configuration you provided is invalid. Please check the documentation to learn how to configure Hardhat correctly.`,
     },
     TEMPLATE_NOT_FOUND: {
-      number: 17,
+      number: 16,
       messageTemplate: `Template {template} not found`,
       websiteTitle: "Template not found",
       websiteDescription: `The template you provided is not found. Please check the documentation to learn which templates are available.`,
