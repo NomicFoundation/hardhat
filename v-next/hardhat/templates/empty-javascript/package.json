@@ -1,5 +1,6 @@
 {
   "name": "empty-javascript",
+  "version": "0.0.1",
   "description": "An empty JavaScript Hardhat project",
   "type": "module",
   "devDependencies": {

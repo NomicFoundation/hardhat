@@ -1,5 +1,6 @@
 {
   "name": "javascript-with-examples",
+  "version": "0.0.1",
   "description": "A JavaScript Hardhat project with examples",
   "type": "module",
   "devDependencies": {
