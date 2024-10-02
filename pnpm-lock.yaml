@@ -2301,14 +2301,14 @@ importers:
   v-next/hardhat/templates/empty-javascript:
     devDependencies:
       '@ignored/hardhat-vnext':
-        specifier: 2.0.0
-        version: 2.0.0
+        specifier: workspace:^3.0.0-next.3
+        version: link:../..
 
   v-next/hardhat/templates/empty-typescript:
     devDependencies:
       '@ignored/hardhat-vnext':
-        specifier: 2.0.0
-        version: 2.0.0
+        specifier: workspace:^3.0.0-next.3
+        version: link:../..
       typescript:
         specifier: ~5.5.0
         version: 5.5.4
@@ -2870,25 +2870,6 @@ packages:
   '@ignored/edr@0.6.2-alpha.0':
     resolution: {integrity: sha512-+11Ko0C1dEh3eObH2ju10HoptUmzIQzJhwluuPrvRyypGUbYVzNYJyMQorRlT5SEKqmR9S/FcptUHD5AITl58A==}
     engines: {node: '>= 18'}
-
-  '@ignored/hardhat-vnext-core@2.0.0':
-    resolution: {integrity: sha512-tHYblEtO8k3h7oROe+Agt04d7B8GFtSF8mo826a4YSGaj/iYwXmkD3wRSAu2tB7MS8pBcgMbtxgY3zGkV4KEDw==}
-
-  '@ignored/hardhat-vnext-errors@2.0.0':
-    resolution: {integrity: sha512-CdHsWYbCI6lyqI11euHF2BMrb48thOZYvtxkpr/j9Qg/XlwthFqTqwnE44XibRfVCvXASwl+D7D+kRyOLIPGGw==}
-
-  '@ignored/hardhat-vnext-utils@2.0.0':
-    resolution: {integrity: sha512-RxYpcpCDHG/ir+OmDy1KMmzTQViRH0MZZNE4dwCTjriid0lnw7xfzqcxfTO38GLc7iJ02QRKaHXSWrMAeB7CrA==}
-
-  '@ignored/hardhat-vnext-zod-utils@2.0.0':
-    resolution: {integrity: sha512-QsFUIfBIlo6RZj3cLjX+zONQpktoo3SmIqcRR3/slnHnypHKp9S/7D17SHVC3/aNCqvyd9H8uRctf9mldsYGYg==}
-    peerDependencies:
-      '@ignored/hardhat-vnext-core': ^2.0.02.0.0
-      zod: ^3.23.8
-
-  '@ignored/hardhat-vnext@2.0.0':
-    resolution: {integrity: sha512-GaeeaOm0Qxpjp/SJUQGg6tyqX1hKRD+sSGeNWqc+kQsmMhc3omd6ObHbb3L57mRPv84GjYfnmIAGN2wtEPKsZg==}
-    hasBin: true
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -7499,39 +7480,6 @@ snapshots:
       '@ignored/edr-linux-x64-gnu': 0.6.2-alpha.0
       '@ignored/edr-linux-x64-musl': 0.6.2-alpha.0
       '@ignored/edr-win32-x64-msvc': 0.6.2-alpha.0
-
-  '@ignored/hardhat-vnext-core@2.0.0':
-    dependencies:
-      '@ignored/hardhat-vnext-errors': 2.0.0
-      '@ignored/hardhat-vnext-utils': 2.0.0
-      chalk: 5.3.0
-      semver: 7.6.3
-
-  '@ignored/hardhat-vnext-errors@2.0.0':
-    dependencies:
-      '@ignored/hardhat-vnext-utils': 2.0.0
-
-  '@ignored/hardhat-vnext-utils@2.0.0':
-    dependencies:
-      fast-equals: 5.0.1
-      keccak: 3.0.4
-      rfdc: 1.4.1
-      undici: 6.19.8
-
-  '@ignored/hardhat-vnext-zod-utils@2.0.0(@ignored/hardhat-vnext-core@2.0.0)(zod@3.23.8)':
-    dependencies:
-      '@ignored/hardhat-vnext-core': 2.0.0
-      zod: 3.23.8
-
-  '@ignored/hardhat-vnext@2.0.0':
-    dependencies:
-      '@ignored/hardhat-vnext-core': 2.0.0
-      '@ignored/hardhat-vnext-errors': 2.0.0
-      '@ignored/hardhat-vnext-utils': 2.0.0
-      '@ignored/hardhat-vnext-zod-utils': 2.0.0(@ignored/hardhat-vnext-core@2.0.0)(zod@3.23.8)
-      chalk: 5.3.0
-      tsx: 4.18.0
-      zod: 3.23.8
 
   '@isaacs/cliui@8.0.2':
     dependencies:
