@@ -12,7 +12,9 @@ const PRIMITIVE = [
 
 export async function deepCopy<T = any>(value: T): Promise<T> {
   // The function 'deepClone' from 'hardhat-utils' cannot be used to replace this function, it won't properly clone
-  // the value.
+  // the value. The reason is that 'deepClone' doesn't handle certain custom cases,
+  // such as skipping objects with a getAddress method and treating primitive types explicitly.
+  // These custom checks are necessary for correct behavior in our use case.
 
   if (
     value === null ||
