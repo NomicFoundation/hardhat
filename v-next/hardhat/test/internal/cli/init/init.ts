@@ -11,7 +11,6 @@ import {
 } from "@ignored/hardhat-vnext-utils/fs";
 import {
   assertRejectsWithHardhatError,
-  doNotUseFetch,
   useTmpDir,
 } from "@nomicfoundation/hardhat-test-utils";
 
@@ -26,9 +25,8 @@ import {
 } from "../../../../src/internal/cli/init/init.js";
 import { getTemplates } from "../../../../src/internal/cli/init/template.js";
 
+// NOTE: This uses network to access the npm registry
 describe("printWelcomeMessage", () => {
-  doNotUseFetch();
-
   it("should not throw if latest version of hardhat cannot be retrieved from the registry", async () => {
     await printWelcomeMessage();
   });
@@ -168,9 +166,9 @@ describe("installProjectDependencies", () => {
   });
 });
 
+// NOTE: This uses network to access the npm registry
 describe("initHardhat", async () => {
   useTmpDir("initHardhat");
-  doNotUseFetch();
 
   const templates = await getTemplates();
 
