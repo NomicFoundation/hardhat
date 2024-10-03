@@ -110,14 +110,17 @@ describe("copyProjectFiles", () => {
   useTmpDir("copyProjectFiles");
 
   describe("when force is true", () => {
-    it("should copy the template files to the workspace while overwriting existing files", async () => {
+    it("should copy the template files to the workspace and overwrite existing files", async () => {
       const template = await getTemplate("empty-typescript");
+      // Create template files with "some content" in the workspace
       for (const file of template.files) {
         const pathToFile = path.join(process.cwd(), file);
         ensureDir(path.dirname(pathToFile));
         await writeUtf8File(pathToFile, "some content");
       }
+      // Copy the template files to the workspace
       await copyProjectFiles(process.cwd(), template, true);
+      // Check that the template files in the workspace have been overwritten
       for (const file of template.files) {
         const pathToFile = path.join(process.cwd(), file);
         assert.notEqual(await readUtf8File(pathToFile), "some content");
@@ -125,14 +128,17 @@ describe("copyProjectFiles", () => {
     });
   });
   describe("when force is false", () => {
-    it("should copy the template files to the workspace while skipping existing files", async () => {
+    it("should copy the template files to the workspace and NOT overwrite existing files", async () => {
       const template = await getTemplate("empty-typescript");
+      // Create template files with "some content" in the workspace
       for (const file of template.files) {
         const pathToFile = path.join(process.cwd(), file);
         ensureDir(path.dirname(pathToFile));
         await writeUtf8File(pathToFile, "some content");
       }
+      // Copy the template files to the workspace
       await copyProjectFiles(process.cwd(), template, false);
+      // Check that the template files in the workspace have not been overwritten
       for (const file of template.files) {
         const pathToFile = path.join(process.cwd(), file);
         assert.equal(await readUtf8File(pathToFile), "some content");
