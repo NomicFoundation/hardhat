@@ -328,7 +328,6 @@ export async function installProjectDependencies(
     pathToWorkspacePackageJson,
   );
 
-  const hardhatVersion = await getHardhatVersion();
   const packageManager = await getPackageManager(workspace);
 
   // Find the template dev dependencies that are not already installed
@@ -346,11 +345,8 @@ export async function installProjectDependencies(
   const dependenciesToInstall = Object.entries(templateDependencies)
     .filter(([name]) => workspaceDependencies[name] === undefined)
     .map(([name, version]) => {
-      // If the version is workspace:, replace it with the current version of Hardhat
-      if (version.startsWith("workspace:")) {
-        return `"${name}@${hardhatVersion}"`;
-      }
-      return `"${name}@${version}"`;
+      // Strip the workspace: prefix from the version
+      return `${name}@${version.replace(/^workspace:/, "")}`;
     });
 
   // Try to install the missing dependencies if there are any

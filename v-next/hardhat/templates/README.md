@@ -10,4 +10,6 @@ The `package.json` file contains the template's metadata. The following fields a
 - `devDependencies`: The list of dependencies that should be installed in the project.
 - `peerDependencies`: The list of dependencies that should also be installed in the project as dev dependencies if the used package manager does not install peer dependencies by default.
 
+Note that the `workspace:` prefix is stripped from the version of the template dependencies during project initialization.
+
 The other template files are copied to the project during project initialization.
