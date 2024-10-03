@@ -16,6 +16,7 @@ export async function spawn(
             `Command "${command} ${args.join(" ")}" exited with code ${code}`,
           ),
         );
+        return;
       }
       resolve();
     });
