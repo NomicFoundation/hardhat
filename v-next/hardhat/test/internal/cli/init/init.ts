@@ -39,9 +39,9 @@ describe("getWorkspace", () => {
     // TODO: We shouldn't be testing the exact error message
     await assertRejectsWithHardhatError(
       async () => getWorkspace("non-existent-workspace"),
-      HardhatError.ERRORS.GENERAL.UNSUPPORTED_OPERATION,
+      HardhatError.ERRORS.GENERAL.WORKSPACE_NOT_FOUND,
       {
-        operation: `Initializing a project in a non-existent directory (${path.resolve("non-existent-workspace")})`,
+        workspace: path.resolve("non-existent-workspace"),
       },
     );
   });
@@ -63,9 +63,9 @@ describe("getTemplate", () => {
   it("should throw if the provided template does not exist", async () => {
     await assertRejectsWithHardhatError(
       async () => getTemplate("non-existent-template"),
-      HardhatError.ERRORS.GENERAL.UNSUPPORTED_OPERATION,
+      HardhatError.ERRORS.GENERAL.TEMPLATE_NOT_FOUND,
       {
-        operation: `Responding with "non-existent-template" to the project initialization wizard`,
+        template: "non-existent-template",
       },
     );
   });

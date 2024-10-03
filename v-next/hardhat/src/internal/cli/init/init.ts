@@ -9,6 +9,7 @@ import {
   ensureDir,
   exists,
   getAllFilesMatching,
+  isDirectory,
   readJsonFile,
   writeJsonFile,
 } from "@ignored/hardhat-vnext-utils/fs";
@@ -170,9 +171,9 @@ export async function getWorkspace(workspace?: string): Promise<string> {
 
   workspace = path.resolve(workspace);
 
-  if (!(await exists(workspace))) {
-    throw new HardhatError(HardhatError.ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
-      operation: `Initializing a project in a non-existent directory (${workspace})`,
+  if (!(await exists(workspace)) || !(await isDirectory(workspace))) {
+    throw new HardhatError(HardhatError.ERRORS.GENERAL.WORKSPACE_NOT_FOUND, {
+      workspace,
     });
   }
 
@@ -226,8 +227,8 @@ export async function getTemplate(template?: string): Promise<Template> {
     }
   }
 
-  throw new HardhatError(HardhatError.ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
-    operation: `Responding with "${template}" to the project initialization wizard`,
+  throw new HardhatError(HardhatError.ERRORS.GENERAL.TEMPLATE_NOT_FOUND, {
+    template,
   });
 }
 

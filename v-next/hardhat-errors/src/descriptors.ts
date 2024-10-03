@@ -200,6 +200,12 @@ Please add the property "type" with the value "module" in your package.json to e
       websiteTitle: "Template not found",
       websiteDescription: `The template you provided is not found. Please check the documentation to learn which templates are available.`,
     },
+    WORKSPACE_NOT_FOUND: {
+      number: 17,
+      messageTemplate: `Workspace {workspace} not found`,
+      websiteTitle: "Workspace not found",
+      websiteDescription: `The workspace you provided does not exist. Please ensure that the workspace exists and try again.`,
+    },
   },
   INTERNAL: {
     ASSERTION_ERROR: {
