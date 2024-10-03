@@ -13,6 +13,7 @@ import {
   readJsonFile,
   writeJsonFile,
 } from "@ignored/hardhat-vnext-utils/fs";
+import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 import chalk from "chalk";
 
 import { findClosestHardhatConfig } from "../../config-loading.js";
@@ -169,7 +170,7 @@ export async function getWorkspace(workspace?: string): Promise<string> {
     workspace = await promptForWorkspace();
   }
 
-  workspace = path.resolve(workspace);
+  workspace = resolveFromRoot(process.cwd(), workspace);
 
   if (!(await exists(workspace)) || !(await isDirectory(workspace))) {
     throw new HardhatError(HardhatError.ERRORS.GENERAL.WORKSPACE_NOT_FOUND, {

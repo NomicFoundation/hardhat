@@ -11,8 +11,8 @@ export async function promptForWorkspace(): Promise<string> {
     {
       name: "workspace",
       type: "input",
-      message: "Where would you like to initialize the project?",
-      initial: process.cwd(),
+      message: `Where would you like to initialize the project?\n\nPlease provide either a path relative to ${process.cwd()} or an absolute path:`,
+      initial: ".",
     },
   ]);
 
