@@ -35,7 +35,6 @@ import { createHardhatRuntimeEnvironment } from "../hre-intialization.js";
 import { printErrorMessages } from "./error-handler.js";
 import { getGlobalHelpString } from "./helpers/getGlobalHelpString.js";
 import { getHelpString } from "./helpers/getHelpString.js";
-import { initHardhat } from "./init/init.js";
 import { ensureTelemetryConsent } from "./telemetry/telemetry-permissions.js";
 import { printVersionMessage } from "./version.js";
 
@@ -67,6 +66,7 @@ export async function main(
     }
 
     if (builtinGlobalOptions.init) {
+      const { initHardhat } = await import("./init/init.js");
       return await initHardhat();
     }
 
