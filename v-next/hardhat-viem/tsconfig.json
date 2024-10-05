@@ -2,6 +2,9 @@
   "extends": "../../config-v-next/tsconfig.json",
   "references": [
     {
+      "path": "../hardhat"
+    },
+    {
       "path": "../hardhat-node-test-reporter"
     },
     {
