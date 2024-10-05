@@ -211,6 +211,21 @@ Please add the property "type" with the value "module" in your package.json to e
       websiteTitle: "Workspace not found",
       websiteDescription: `The workspace you provided does not exist. Please ensure that the workspace exists and try again.`,
     },
+    CORRUPTED_LOCKFILE: {
+      number: 18,
+      messageTemplate: `You installed Hardhat with a corrupted lockfile due to the NPM bug #4828.
+
+      Please delete your node_modules, package-lock.json, reinstall your project, and try again.`,
+      websiteTitle: "Corrupted lockfile",
+      websiteDescription: `Some versions of NPM are affected [by a bug](https://github.com/npm/cli/issues/4828) that leads to corrupt lockfiles being generated.
+
+      This bug can only affect you if you, or someone at your team, installed the project without a lockfile, but with an existing node_modules.
+
+      To avoid it, please delete both your node_modules and package-lock.json, and reinstall your project.
+
+      Note that you don't need to do this every time you install a new dependency, but please make sure to delete your node_modules every time you delete your package-lock.json.`,
+      shouldBeReported: true,
+    },
   },
   INTERNAL: {
     ASSERTION_ERROR: {
