@@ -1072,7 +1072,7 @@ describe("network-manager/hook-handlers/config", () => {
       );
 
       assert.equal(resolvedConfig.defaultChainType, "unknown");
-      assert.equal(resolvedConfig.defaultNetwork, "localhost");
+      assert.equal(resolvedConfig.defaultNetwork, "hardhat");
       assert.deepEqual(resolvedConfig.networks, {
         localhost: {
           type: "http",
