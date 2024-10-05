@@ -1,3 +1,4 @@
+import type { SolidityStackTrace } from "./stack-traces/solidity-stack-trace.js";
 import type { HardhatNetworkChainsConfig } from "./types/config.js";
 import type { LoggerConfig } from "./types/logger.js";
 import type {
@@ -6,27 +7,61 @@ import type {
   NodeConfig,
   TracingConfig,
 } from "./types/node-types.js";
+import type { MinimalEthereumJsVm } from "./utils/vm.js";
+import type {
+  CompilerInput,
+  CompilerOutput,
+} from "../../../../types/artifacts.js";
 import type {
   EthereumProvider,
+  FailedJsonRpcResponse,
   JsonRpcRequest,
   JsonRpcResponse,
   RequestArguments,
 } from "../../../../types/providers.js";
 import type {
+  RawTrace,
   EdrContext,
   ForkConfig,
   SubscriptionEvent,
+  Provider as EdrProviderT,
+  Response,
+  VmTraceDecoder,
+  VMTracer as VMTracerT,
 } from "@nomicfoundation/edr";
+import type { Common } from "@nomicfoundation/ethereumjs-common";
 
 import EventEmitter from "node:events";
 import util from "node:util";
 
 import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+import {
+  createModelsAndDecodeBytecodes,
+  initializeVmTraceDecoder,
+  SolidityTracer,
+  VmTracer,
+} from "@nomicfoundation/edr";
+import chalk from "chalk";
+import debug from "debug";
 
+import {
+  HARDHAT_NETWORK_RESET_EVENT,
+  HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
+} from "../../../constants.js";
 import { requireNapiRsModule } from "../utils/require-napi-rs-module.js";
 
+import {
+  InvalidArgumentsError,
+  InvalidInputError,
+  ProviderError,
+} from "./errors.js";
+import { clientVersion } from "./utils/client-version.js";
 import { ConsoleLogger } from "./utils/console-logger.js";
 import {
+  edrRpcDebugTraceToHardhat,
+  edrTracingMessageResultToMinimalEVMResult,
+  edrTracingMessageToMinimalMessage,
+  edrTracingStepToMinimalInterpreterStep,
   ethereumjsIntervalMiningConfigToEdr,
   ethereumjsMempoolOrderToEdrMineOrdering,
   ethereumsjsHardforkToEdrSpecId,
@@ -34,6 +69,7 @@ import {
 import { getHardforkName } from "./utils/hardfork.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
 import { makeCommon } from "./utils/make-common.js";
+import { encodeSolidityStackTrace } from "./utils/stack-trace-solidity-errors.js";
 import { createVmTraceDecoder } from "./utils/stack-traces.js";
 import { getMinimalEthereumJsVm } from "./utils/vm.js";
 
@@ -63,6 +99,8 @@ interface HardhatNetworkProviderConfig {
   enableTransientStorage: boolean;
   enableRip7212: boolean;
 }
+
+const log = debug("hardhat:core:hardhat-network:provider");
 
 export const DEFAULT_COINBASE = "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e";
 let _globalEdrContext: EdrContext | undefined;
@@ -110,9 +148,22 @@ export function getNodeConfig(
 class EdrProviderEventAdapter extends EventEmitter {}
 
 export class EdrProvider extends EventEmitter implements EthereumProvider {
+  public readonly common: Common;
+  readonly #provider: EdrProviderT;
+  readonly #node: {
+    _vm: MinimalEthereumJsVm;
+  };
+  readonly #vmTraceDecoder: VmTraceDecoder;
+
+  #failedStackTraces: number = 0;
+
+  /** Used for internal stack trace tests. */
+  #vmTracer?: VMTracerT;
+
   public static async create(
     config: HardhatNetworkProviderConfig,
     loggerConfig: LoggerConfig,
+    tracingConfig?: TracingConfig,
   ): Promise<EdrProvider> {
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- hack
     const { Provider } = requireNapiRsModule(
@@ -219,21 +270,198 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
 
     const common = makeCommon(getNodeConfig(config));
 
-    console.log(common, minimalEthereumJsNode);
-    const edrProvider = new EdrProvider();
+    const edrProvider = new EdrProvider(
+      provider,
+      minimalEthereumJsNode,
+      vmTraceDecoder,
+      common,
+      tracingConfig,
+    );
 
     return edrProvider;
   }
 
-  constructor() {
+  constructor(
+    provider: EdrProviderT,
+    // we add this for backwards-compatibility with plugins like solidity-coverage
+    node: {
+      _vm: MinimalEthereumJsVm;
+    },
+    vmTraceDecoder: VmTraceDecoder,
+    // The common configuration for EthereumJS VM is not used by EDR, but tests expect it as part of the provider.
+    common: Common,
+    tracingConfig?: TracingConfig,
+  ) {
     super();
+
+    this.#provider = provider;
+    this.#node = node;
+    this.#vmTraceDecoder = vmTraceDecoder;
+    this.common = common;
+
+    if (tracingConfig !== undefined) {
+      initializeVmTraceDecoder(this.#vmTraceDecoder, tracingConfig);
+    }
   }
 
-  public async request(_requestArguments: RequestArguments): Promise<unknown> {
-    return null;
+  /**
+   * Sets a `VMTracer` that observes EVM throughout requests.
+   *
+   * Used for internal stack traces integration tests.
+   */
+  public setVmTracer(vmTracer?: VMTracerT): void {
+    this.#vmTracer = vmTracer;
   }
 
-  public async close(): Promise<void> {}
+  public async request(args: RequestArguments): Promise<unknown> {
+    if (args.params !== undefined && !Array.isArray(args.params)) {
+      // eslint-disable-next-line no-restricted-syntax -- TODO: review whether this should be a HH error
+      throw new InvalidInputError(
+        "Hardhat Network doesn't support JSON-RPC params sent as an object",
+      );
+    }
+
+    const params = args.params ?? [];
+
+    if (args.method === "hardhat_addCompilationResult") {
+      return this.#addCompilationResultAction(
+        ...this.#addCompilationResultParams(params),
+      );
+    } else if (args.method === "hardhat_getStackTraceFailuresCount") {
+      return this.#getStackTraceFailuresCountAction(
+        ...this.#getStackTraceFailuresCountParams(params),
+      );
+    }
+
+    const stringifiedArgs = JSON.stringify({
+      method: args.method,
+      params,
+    });
+
+    const responseObject: Response =
+      await this.#provider.handleRequest(stringifiedArgs);
+
+    let response;
+    if (typeof responseObject.data === "string") {
+      response = JSON.parse(responseObject.data);
+    } else {
+      response = responseObject.data;
+    }
+
+    const needsTraces =
+      this.#node._vm.evm.events.eventNames().length > 0 ||
+      this.#node._vm.events.eventNames().length > 0 ||
+      this.#vmTracer !== undefined;
+
+    if (needsTraces) {
+      const rawTraces = responseObject.traces;
+      for (const rawTrace of rawTraces) {
+        this.#vmTracer?.observe(rawTrace);
+
+        // For other consumers in JS we need to marshall the entire trace over FFI
+        const trace = rawTrace.trace();
+
+        // beforeTx event
+        if (this.#node._vm.events.listenerCount("beforeTx") > 0) {
+          this.#node._vm.events.emit("beforeTx");
+        }
+
+        for (const traceItem of trace) {
+          // step event
+          if ("pc" in traceItem) {
+            if (this.#node._vm.evm.events.listenerCount("step") > 0) {
+              this.#node._vm.evm.events.emit(
+                "step",
+                edrTracingStepToMinimalInterpreterStep(traceItem),
+              );
+            }
+          }
+          // afterMessage event
+          else if ("executionResult" in traceItem) {
+            if (this.#node._vm.evm.events.listenerCount("afterMessage") > 0) {
+              this.#node._vm.evm.events.emit(
+                "afterMessage",
+                edrTracingMessageResultToMinimalEVMResult(traceItem),
+              );
+            }
+          }
+          // beforeMessage event
+          else {
+            if (this.#node._vm.evm.events.listenerCount("beforeMessage") > 0) {
+              this.#node._vm.evm.events.emit(
+                "beforeMessage",
+                edrTracingMessageToMinimalMessage(traceItem),
+              );
+            }
+          }
+        }
+
+        // afterTx event
+        if (this.#node._vm.events.listenerCount("afterTx") > 0) {
+          this.#node._vm.events.emit("afterTx");
+        }
+      }
+    }
+
+    if (this.#isErrorResponse(response)) {
+      let error;
+
+      const solidityTrace = responseObject.solidityTrace;
+      let stackTrace: SolidityStackTrace | undefined;
+      if (solidityTrace !== null) {
+        stackTrace = await this.#rawTraceToSolidityStackTrace(solidityTrace);
+      }
+
+      if (stackTrace !== undefined) {
+        error = encodeSolidityStackTrace(response.error.message, stackTrace);
+
+        // Pass data and transaction hash from the original error
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO: can we improve this `any
+        (error as any).data = (response as any).error.data?.data ?? undefined;
+
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO: can we improve this `any`
+        (error as any).transactionHash =
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO: this really needs fixed
+          (response as any).error.data?.transactionHash ?? undefined;
+      } else {
+        if (response.error.code === InvalidArgumentsError.CODE) {
+          error = new InvalidArgumentsError(response.error.message);
+        } else {
+          error = new ProviderError(
+            response.error.message,
+            response.error.code,
+          );
+        }
+        error.data = response.error.data;
+      }
+
+      // eslint-disable-next-line no-restricted-syntax -- TODO: can we cover this case in the eslint rule?
+      throw error;
+    }
+
+    if (args.method === "hardhat_reset") {
+      this.emit(HARDHAT_NETWORK_RESET_EVENT);
+    } else if (args.method === "evm_revert") {
+      this.emit(HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT);
+    }
+
+    // Override EDR version string with Hardhat version string with EDR backend,
+    // e.g. `HardhatNetwork/2.19.0/@nomicfoundation/edr/0.2.0-dev`
+    if (args.method === "web3_clientVersion") {
+      return clientVersion(response.result);
+    } else if (
+      args.method === "debug_traceTransaction" ||
+      args.method === "debug_traceCall"
+    ) {
+      return edrRpcDebugTraceToHardhat(response.result);
+    } else {
+      return response.result;
+    }
+  }
+
+  public async close(): Promise<void> {
+    // TODO: what needs cleaned up?
+  }
 
   public async send(method: string, params?: unknown[]): Promise<unknown> {
     return this.request({ method, params });
@@ -313,5 +541,90 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
     }
 
     return edrChains;
+  }
+
+  #isErrorResponse(response: any): response is FailedJsonRpcResponse {
+    return typeof response.error !== "undefined";
+  }
+
+  #getStackTraceFailuresCountAction(): number {
+    return this.#failedStackTraces;
+  }
+
+  #getStackTraceFailuresCountParams(_params: any[]): [] {
+    // TODO: bring back validation
+    // return validateParams(params);
+    return [];
+  }
+
+  #addCompilationResultParams(
+    params: any[],
+  ): [string, CompilerInput, CompilerOutput] {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO: find replacement for validate params or is this already done in the HTTP Provider?
+    return params as [string, CompilerInput, CompilerOutput];
+  }
+
+  async #addCompilationResultAction(
+    solcVersion: string,
+    compilerInput: CompilerInput,
+    compilerOutput: CompilerOutput,
+  ): Promise<boolean> {
+    let bytecodes;
+    try {
+      bytecodes = createModelsAndDecodeBytecodes(
+        solcVersion,
+        compilerInput,
+        compilerOutput,
+      );
+    } catch (error) {
+      console.warn(
+        chalk.yellow(
+          "The Hardhat Network tracing engine could not be updated. Run Hardhat with --verbose to learn more.",
+        ),
+      );
+
+      log(
+        "VmTraceDecoder failed to be updated. Please report this to help us improve Hardhat.\n",
+        error,
+      );
+
+      return false;
+    }
+
+    for (const bytecode of bytecodes) {
+      this.#vmTraceDecoder.addBytecode(bytecode);
+    }
+
+    return true;
+  }
+
+  async #rawTraceToSolidityStackTrace(
+    rawTrace: RawTrace,
+  ): Promise<SolidityStackTrace | undefined> {
+    const vmTracer = new VmTracer();
+    vmTracer.observe(rawTrace);
+
+    let vmTrace = vmTracer.getLastTopLevelMessageTrace();
+    const vmTracerError = vmTracer.getLastError();
+
+    if (vmTrace !== undefined) {
+      vmTrace = this.#vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
+    }
+
+    try {
+      if (vmTrace === undefined || vmTracerError !== undefined) {
+        // eslint-disable-next-line no-restricted-syntax -- TODO: look again at this error throw
+        throw vmTracerError;
+      }
+
+      const solidityTracer = new SolidityTracer();
+      return solidityTracer.getStackTrace(vmTrace);
+    } catch (err) {
+      this.#failedStackTraces += 1;
+      log(
+        "Could not generate stack trace. Please report this to help us improve Hardhat.\n",
+        err,
+      );
+    }
   }
 }
