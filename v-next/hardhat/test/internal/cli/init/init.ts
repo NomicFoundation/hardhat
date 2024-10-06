@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import path from "node:path";
-import { describe, it } from "node:test";
+import { after, before, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import {
@@ -25,8 +25,22 @@ import {
 } from "../../../../src/internal/cli/init/init.js";
 import { getTemplates } from "../../../../src/internal/cli/init/template.js";
 
+function disableConsoleLog() {
+  const originalLog = console.log;
+
+  before(() => {
+    console.log = () => {};
+  });
+
+  after(() => {
+    console.log = originalLog;
+  });
+}
+
 // NOTE: This uses network to access the npm registry
 describe("printWelcomeMessage", () => {
+  disableConsoleLog();
+
   it("should not throw if latest version of hardhat cannot be retrieved from the registry", async () => {
     await printWelcomeMessage();
   });
@@ -150,6 +164,8 @@ describe("copyProjectFiles", () => {
 describe("installProjectDependencies", () => {
   useTmpDir("installProjectDependencies");
 
+  disableConsoleLog();
+
   describe("when install is true", () => {
     // This test is skipped because installing dependencies over the network is slow
     it.skip("should install the project dependencies", async () => {
@@ -175,6 +191,8 @@ describe("installProjectDependencies", () => {
 // NOTE: This uses network to access the npm registry
 describe("initHardhat", async () => {
   useTmpDir("initHardhat");
+
+  disableConsoleLog();
 
   const templates = await getTemplates();
 
