@@ -5,6 +5,9 @@
       "path": "../hardhat"
     },
     {
+      "path": "../hardhat-errors"
+    },
+    {
       "path": "../hardhat-node-test-reporter"
     },
     {

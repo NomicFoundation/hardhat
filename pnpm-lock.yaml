@@ -2336,6 +2336,9 @@ importers:
       '@ignored/hardhat-vnext':
         specifier: workspace:^3.0.0-next.2
         version: link:../hardhat
+      '@ignored/hardhat-vnext-errors':
+        specifier: workspace:^3.0.0-next.2
+        version: link:../hardhat-errors
     devDependencies:
       '@eslint-community/eslint-plugin-eslint-comments':
         specifier: ^4.3.0
