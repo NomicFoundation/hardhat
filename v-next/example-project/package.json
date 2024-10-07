@@ -32,5 +32,8 @@
     "prettier": "3.2.5",
     "typescript": "~5.5.0",
     "viem": "^2.7.6"
+  },
+  "dependencies": {
+    "forge-std": "https://github.com/foundry-rs/forge-std/tarball/v1.9.2"
   }
 }
