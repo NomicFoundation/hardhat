@@ -1,10 +1,12 @@
 import type { ContractArtifacts } from "@ignored/hardhat-vnext/types/artifacts";
 import type { ChainType } from "@ignored/hardhat-vnext/types/network";
 import type * as viemT from "viem";
+import type * as viemOpStackT from "viem/op-stack";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO
 export interface HardhatViemHelpers<ChainTypeT extends ChainType | string> {
-  getPublicClient: typeof getPublicClient;
+  getPublicClient: (
+    publicClientConfig?: Partial<viemT.PublicClientConfig>,
+  ) => Promise<GetPublicClientReturnType<ChainTypeT>>;
   getWalletClients: typeof getWalletClients;
   getWalletClient: typeof getWalletClient;
   getTestClient: typeof getTestClient;
@@ -13,9 +15,8 @@ export interface HardhatViemHelpers<ChainTypeT extends ChainType | string> {
   getContractAt: typeof getContractAt;
 }
 
-export declare function getPublicClient(
-  publicClientConfig?: Partial<viemT.PublicClientConfig>,
-): Promise<PublicClient>;
+export type GetPublicClientReturnType<ChainTypeT extends ChainType | string> =
+  ChainTypeT extends "optimism" ? OpPublicClient : PublicClient;
 
 export declare function getWalletClients(
   walletClientConfig?: Partial<viemT.WalletClientConfig>,
@@ -52,6 +53,14 @@ export declare function getContractAt<ContractName extends string>(
 ): Promise<ContractReturnType<ContractName>>;
 
 export type PublicClient = viemT.PublicClient<viemT.Transport, viemT.Chain>;
+
+export type OpPublicClient = viemT.Client<
+  viemT.Transport,
+  viemT.Chain,
+  viemT.Account,
+  viemT.RpcSchema,
+  viemOpStackT.PublicActionsL2
+>;
 
 export type WalletClient = viemT.WalletClient<
   viemT.Transport,
