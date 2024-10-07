@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.19 <0.9.0;
 
-import { E, MAX_SD59x18, MAX_WHOLE_SD59x18, MIN_SD59x18, MIN_WHOLE_SD59x18, PI } from "src/sd59x18/Constants.sol";
-import { convert } from "src/sd59x18/Conversions.sol";
+import { E, MAX_SD59x18, MAX_WHOLE_SD59x18, MIN_SD59x18, MIN_WHOLE_SD59x18, PI } from "@prb/math/src/sd59x18/Constants.sol";
+import { convert } from "@prb/math/src/sd59x18/Conversions.sol";
 
 import { SD59x18_Unit_Test } from "../../SD59x18.t.sol";
 

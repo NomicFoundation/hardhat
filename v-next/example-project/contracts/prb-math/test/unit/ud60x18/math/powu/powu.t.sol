@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.19 <0.9.0;
 
-import { ud } from "src/ud60x18/Casting.sol";
-import { PRBMath_MulDiv18_Overflow } from "src/Common.sol";
-import { E, MAX_UD60x18, MAX_WHOLE_UD60x18, PI, ZERO } from "src/ud60x18/Constants.sol";
-import { powu } from "src/ud60x18/Math.sol";
-import { UD60x18 } from "src/ud60x18/ValueType.sol";
+import { ud } from "@prb/math/src/ud60x18/Casting.sol";
+import { PRBMath_MulDiv18_Overflow } from "@prb/math/src/Common.sol";
+import { E, MAX_UD60x18, MAX_WHOLE_UD60x18, PI, ZERO } from "@prb/math/src/ud60x18/Constants.sol";
+import { powu } from "@prb/math/src/ud60x18/Math.sol";
+import { UD60x18 } from "@prb/math/src/ud60x18/ValueType.sol";
 
 import { UD60x18_Unit_Test } from "../../UD60x18.t.sol";
 

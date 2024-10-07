@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.19 <0.9.0;
 
-import { uMAX_SD1x18, uMIN_SD1x18 } from "src/sd1x18/Constants.sol";
-import { SD1x18 } from "src/sd1x18/ValueType.sol";
-import { sd, sd59x18, wrap } from "src/sd59x18/Casting.sol";
-import { MAX_SD59x18, MIN_SD59x18 } from "src/sd59x18/Constants.sol";
+import { uMAX_SD1x18, uMIN_SD1x18 } from "@prb/math/src/sd1x18/Constants.sol";
+import { SD1x18 } from "@prb/math/src/sd1x18/ValueType.sol";
+import { sd, sd59x18, wrap } from "@prb/math/src/sd59x18/Casting.sol";
+import { MAX_SD59x18, MIN_SD59x18 } from "@prb/math/src/sd59x18/Constants.sol";
 import {
     PRBMath_SD59x18_IntoSD1x18_Overflow,
     PRBMath_SD59x18_IntoSD1x18_Underflow,
@@ -16,11 +16,11 @@ import {
     PRBMath_SD59x18_IntoUint128_Underflow,
     PRBMath_SD59x18_IntoUint40_Overflow,
     PRBMath_SD59x18_IntoUint40_Underflow
-} from "src/sd59x18/Errors.sol";
-import { SD59x18 } from "src/sd59x18/ValueType.sol";
-import { uMAX_UD2x18 } from "src/ud2x18/Constants.sol";
-import { UD2x18 } from "src/ud2x18/ValueType.sol";
-import { UD60x18 } from "src/ud60x18/ValueType.sol";
+} from "@prb/math/src/sd59x18/Errors.sol";
+import { SD59x18 } from "@prb/math/src/sd59x18/ValueType.sol";
+import { uMAX_UD2x18 } from "@prb/math/src/ud2x18/Constants.sol";
+import { UD2x18 } from "@prb/math/src/ud2x18/ValueType.sol";
+import { UD60x18 } from "@prb/math/src/ud60x18/ValueType.sol";
 
 import { Base_Test } from "../../../Base.t.sol";
 

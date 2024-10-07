@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.19 <0.9.0;
 
-import { PRBMathCastingUint40 as CastingUint40 } from "src/casting/Uint40.sol";
-import { SD1x18 } from "src/sd1x18/ValueType.sol";
-import { SD59x18 } from "src/sd59x18/ValueType.sol";
-import { UD2x18 } from "src/ud2x18/ValueType.sol";
-import { UD60x18 } from "src/ud60x18/ValueType.sol";
+import { PRBMathCastingUint40 as CastingUint40 } from "@prb/math/src/casting/Uint40.sol";
+import { SD1x18 } from "@prb/math/src/sd1x18/ValueType.sol";
+import { SD59x18 } from "@prb/math/src/sd59x18/ValueType.sol";
+import { UD2x18 } from "@prb/math/src/ud2x18/ValueType.sol";
+import { UD60x18 } from "@prb/math/src/ud60x18/ValueType.sol";
 
 import { Base_Test } from "../../Base.t.sol";
 

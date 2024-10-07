@@ -1,22 +1,22 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.19 <0.9.0;
 
-import { uMAX_SD1x18 } from "src/sd1x18/Constants.sol";
-import { SD1x18 } from "src/sd1x18/ValueType.sol";
-import { uMAX_SD59x18 } from "src/sd59x18/Constants.sol";
-import { SD59x18 } from "src/sd59x18/ValueType.sol";
-import { uMAX_UD2x18 } from "src/ud2x18/Constants.sol";
-import { UD2x18 } from "src/ud2x18/ValueType.sol";
-import { ud, ud60x18, wrap } from "src/ud60x18/Casting.sol";
-import { MAX_UD60x18 } from "src/ud60x18/Constants.sol";
+import { uMAX_SD1x18 } from "@prb/math/src/sd1x18/Constants.sol";
+import { SD1x18 } from "@prb/math/src/sd1x18/ValueType.sol";
+import { uMAX_SD59x18 } from "@prb/math/src/sd59x18/Constants.sol";
+import { SD59x18 } from "@prb/math/src/sd59x18/ValueType.sol";
+import { uMAX_UD2x18 } from "@prb/math/src/ud2x18/Constants.sol";
+import { UD2x18 } from "@prb/math/src/ud2x18/ValueType.sol";
+import { ud, ud60x18, wrap } from "@prb/math/src/ud60x18/Casting.sol";
+import { MAX_UD60x18 } from "@prb/math/src/ud60x18/Constants.sol";
 import {
     PRBMath_UD60x18_IntoSD1x18_Overflow,
     PRBMath_UD60x18_IntoSD59x18_Overflow,
     PRBMath_UD60x18_IntoUD2x18_Overflow,
     PRBMath_UD60x18_IntoUint128_Overflow,
     PRBMath_UD60x18_IntoUint40_Overflow
-} from "src/ud60x18/Errors.sol";
-import { UD60x18 } from "src/ud60x18/ValueType.sol";
+} from "@prb/math/src/ud60x18/Errors.sol";
+import { UD60x18 } from "@prb/math/src/ud60x18/ValueType.sol";
 
 import { Base_Test } from "../../../Base.t.sol";
 

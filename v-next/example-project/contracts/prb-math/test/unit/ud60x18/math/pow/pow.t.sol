@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.19 <0.9.0;
 
-import { E, PI, UNIT, ZERO } from "src/ud60x18/Constants.sol";
-import { pow } from "src/ud60x18/Math.sol";
-import { UD60x18 } from "src/ud60x18/ValueType.sol";
+import { E, PI, UNIT, ZERO } from "@prb/math/src/ud60x18/Constants.sol";
+import { pow } from "@prb/math/src/ud60x18/Math.sol";
+import { UD60x18 } from "@prb/math/src/ud60x18/ValueType.sol";
 
 import { UD60x18_Unit_Test } from "../../UD60x18.t.sol";
 

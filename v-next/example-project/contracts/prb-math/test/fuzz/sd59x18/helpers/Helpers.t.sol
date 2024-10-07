@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.19 <0.9.0;
 
-import { sd } from "src/sd59x18/Casting.sol";
+import { sd } from "@prb/math/src/sd59x18/Casting.sol";
 import {
     add,
     and,
@@ -22,8 +22,8 @@ import {
     uncheckedSub,
     xor,
     not
-} from "src/sd59x18/Helpers.sol";
-import { SD59x18 } from "src/sd59x18/ValueType.sol";
+} from "@prb/math/src/sd59x18/Helpers.sol";
+import { SD59x18 } from "@prb/math/src/sd59x18/ValueType.sol";
 
 import { Base_Test } from "../../../Base.t.sol";
 

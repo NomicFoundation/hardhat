@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.19 <0.9.0;
 
-import { sd } from "src/sd59x18/Casting.sol";
-import { E, MAX_SD59x18, MAX_WHOLE_SD59x18, MIN_SD59x18, MIN_WHOLE_SD59x18, PI } from "src/sd59x18/Constants.sol";
-import { PRBMath_SD59x18_Gm_Overflow, PRBMath_SD59x18_Gm_NegativeProduct } from "src/sd59x18/Errors.sol";
-import { gm } from "src/sd59x18/Math.sol";
-import { SD59x18 } from "src/sd59x18/ValueType.sol";
+import { sd } from "@prb/math/src/sd59x18/Casting.sol";
+import { E, MAX_SD59x18, MAX_WHOLE_SD59x18, MIN_SD59x18, MIN_WHOLE_SD59x18, PI } from "@prb/math/src/sd59x18/Constants.sol";
+import { PRBMath_SD59x18_Gm_Overflow, PRBMath_SD59x18_Gm_NegativeProduct } from "@prb/math/src/sd59x18/Errors.sol";
+import { gm } from "@prb/math/src/sd59x18/Math.sol";
+import { SD59x18 } from "@prb/math/src/sd59x18/ValueType.sol";
 
 import { SD59x18_Unit_Test } from "../../SD59x18.t.sol";
 

@@ -6,14 +6,14 @@ import {
     PRBMath_IntoSD1x18_Overflow,
     PRBMath_IntoSD59x18_Overflow,
     PRBMath_IntoUD2x18_Overflow
-} from "src/casting/Uint256.sol";
-import { uMAX_SD1x18 } from "src/sd1x18/Constants.sol";
-import { SD1x18 } from "src/sd1x18/ValueType.sol";
-import { uMAX_SD59x18 } from "src/sd59x18/Constants.sol";
-import { SD59x18 } from "src/sd59x18/ValueType.sol";
-import { uMAX_UD2x18 } from "src/ud2x18/Constants.sol";
-import { UD2x18 } from "src/ud2x18/ValueType.sol";
-import { UD60x18 } from "src/ud60x18/ValueType.sol";
+} from "@prb/math/src/casting/Uint256.sol";
+import { uMAX_SD1x18 } from "@prb/math/src/sd1x18/Constants.sol";
+import { SD1x18 } from "@prb/math/src/sd1x18/ValueType.sol";
+import { uMAX_SD59x18 } from "@prb/math/src/sd59x18/Constants.sol";
+import { SD59x18 } from "@prb/math/src/sd59x18/ValueType.sol";
+import { uMAX_UD2x18 } from "@prb/math/src/ud2x18/Constants.sol";
+import { UD2x18 } from "@prb/math/src/ud2x18/ValueType.sol";
+import { UD60x18 } from "@prb/math/src/ud60x18/ValueType.sol";
 
 import { Base_Test } from "../../Base.t.sol";
 

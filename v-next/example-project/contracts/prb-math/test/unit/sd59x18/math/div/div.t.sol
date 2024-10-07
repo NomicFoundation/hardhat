@@ -3,11 +3,11 @@ pragma solidity >=0.8.19 <0.9.0;
 
 import { stdError } from "forge-std/src/StdError.sol";
 
-import { sd } from "src/sd59x18/Casting.sol";
-import { MAX_SD59x18, MAX_WHOLE_SD59x18, MIN_SD59x18, MIN_WHOLE_SD59x18, PI, ZERO } from "src/sd59x18/Constants.sol";
-import { PRBMath_SD59x18_Div_InputTooSmall, PRBMath_SD59x18_Div_Overflow } from "src/sd59x18/Errors.sol";
-import { div } from "src/sd59x18/Math.sol";
-import { SD59x18 } from "src/sd59x18/ValueType.sol";
+import { sd } from "@prb/math/src/sd59x18/Casting.sol";
+import { MAX_SD59x18, MAX_WHOLE_SD59x18, MIN_SD59x18, MIN_WHOLE_SD59x18, PI, ZERO } from "@prb/math/src/sd59x18/Constants.sol";
+import { PRBMath_SD59x18_Div_InputTooSmall, PRBMath_SD59x18_Div_Overflow } from "@prb/math/src/sd59x18/Errors.sol";
+import { div } from "@prb/math/src/sd59x18/Math.sol";
+import { SD59x18 } from "@prb/math/src/sd59x18/ValueType.sol";
 
 import { SD59x18_Unit_Test } from "../../SD59x18.t.sol";
 
