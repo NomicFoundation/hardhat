@@ -34,6 +34,7 @@
     "viem": "^2.7.6"
   },
   "dependencies": {
+    "@prb/math": "https://github.com/PaulRBerg/prb-math/tarball/v4.0.3",
     "forge-std": "https://github.com/foundry-rs/forge-std/tarball/v1.9.2"
   }
 }
