@@ -11,6 +11,7 @@ import {
 } from "@ignored/hardhat-vnext-utils/fs";
 import {
   assertRejectsWithHardhatError,
+  disableConsole,
   useTmpDir,
 } from "@nomicfoundation/hardhat-test-utils";
 
@@ -27,6 +28,8 @@ import { getTemplates } from "../../../../src/internal/cli/init/template.js";
 
 // NOTE: This uses network to access the npm registry
 describe("printWelcomeMessage", () => {
+  disableConsole();
+
   it("should not throw if latest version of hardhat cannot be retrieved from the registry", async () => {
     await printWelcomeMessage();
   });
@@ -109,6 +112,8 @@ describe("ensureProjectPackageJson", () => {
 describe("copyProjectFiles", () => {
   useTmpDir("copyProjectFiles");
 
+  disableConsole();
+
   describe("when force is true", () => {
     it("should copy the template files to the workspace and overwrite existing files", async () => {
       const template = await getTemplate("empty-typescript");
@@ -150,6 +155,8 @@ describe("copyProjectFiles", () => {
 describe("installProjectDependencies", () => {
   useTmpDir("installProjectDependencies");
 
+  disableConsole();
+
   describe("when install is true", () => {
     // This test is skipped because installing dependencies over the network is slow
     it.skip("should install the project dependencies", async () => {
@@ -175,6 +182,8 @@ describe("installProjectDependencies", () => {
 // NOTE: This uses network to access the npm registry
 describe("initHardhat", async () => {
   useTmpDir("initHardhat");
+
+  disableConsole();
 
   const templates = await getTemplates();
 
