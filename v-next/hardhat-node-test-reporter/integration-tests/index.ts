@@ -10,6 +10,7 @@ import { run } from "node:test";
 
 import { diff } from "jest-diff";
 
+import { formatSlowTestInfo } from "../src/formatting.js";
 import { hardhatTestReporter } from "../src/reporter.js";
 
 let SHOW_OUTPUT = false;
@@ -95,8 +96,8 @@ for (const entry of entries) {
     writeFileSync(entryPath + "/result.actual.txt", output);
     const expectedOutput = readFileSync(entryPath + "/result.txt", "utf8");
 
-    const normalizedOutput = normalizeOutputs(output);
-    const normalizedExpectedOutput = normalizeOutputs(expectedOutput);
+    const normalizedOutput = normalizeOutput(entry, output);
+    const normalizedExpectedOutput = normalizeOutput(entry, expectedOutput);
 
     if (normalizedOutput !== normalizedExpectedOutput) {
       console.log("Normalized outputs differ:");
@@ -119,12 +120,22 @@ for (const entry of entries) {
   }
 }
 
-function normalizeOutputs(output: string): string {
+function normalizeOutput(name: string, output: string): string {
+  let normalizedOutput = output;
+
+  if (name !== "slow-test") {
+    // Remove slow test info from the output
+    const slowTestInfo = formatSlowTestInfo(0)
+      .replace(/[/\-\\^$*+?.()|[\]{}]/g, "\\$&")
+      .replace("0", "\\d+");
+    const slowTestRegex = new RegExp(slowTestInfo, "g");
+    normalizedOutput = normalizedOutput.replace(slowTestRegex, "");
+  }
+
   return (
-    output
-      // Remove the time it took to run the test because it was a source of flakiness
-      // This means we're not, in fact, testing how slow tests are displayed
-      .replace(/\s*\(\d+ms\)/g, "")
+    normalizedOutput
+      // Normalize the time it took to run the test
+      .replace(/\(\d+ms\)/g, "(Xms)")
       // Normalize windows new lines
       .replaceAll("\r\n", "\n")
       // Normalize path separators to `/` within the (file:line:column)
