@@ -38,7 +38,7 @@ Install it, run `npx hardhat compile` and solc will compile the solpp generated 
 
 ## Configuration
 
-This plugin can by configured by setting a `solpp` entry in `hardhat.config.js`. Its options are:
+This plugin can be configured by setting a `solpp` entry in `hardhat.config.js`. Its options are:
 
 - `defs`: is an object where each property is the symbol's name and its value is the actual definition. Definitions can be numbers, string, expressions, lists, or functions. For more detail about symbols you can check [solpp README](https://github.com/merklejerk/solpp).
 - `cwd: string`: directory where the contracts are located, it will be used for flattening purposes, by default it will be the project's source directory.
