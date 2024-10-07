@@ -32,7 +32,7 @@ describe("chain-id-validator", () => {
     );
   });
 
-  it("Should call the provider only once", async function () {
+  it("should call the provider only once", async function () {
     mockedProvider.setReturnValue("eth_chainId", () => "0x1");
 
     const chainIdValidatorProvider = new ChainIdValidatorProvider(
@@ -46,7 +46,7 @@ describe("chain-id-validator", () => {
     assert.equal(mockedProvider.getTotalNumberOfCalls(), 1);
   });
 
-  it("Should use eth_chainId if supported", async function () {
+  it("should use eth_chainId if supported", async function () {
     mockedProvider.setReturnValue("eth_chainId", "0x1");
     mockedProvider.setReturnValue("net_version", "0x2");
 
@@ -60,7 +60,7 @@ describe("chain-id-validator", () => {
     // It should not fail because the chain id is the same as the one returned by eth_chainId
   });
 
-  it("Should use net_version if eth_chainId is not supported", async function () {
+  it("should use net_version if eth_chainId is not supported", async function () {
     mockedProvider.setReturnValue("eth_chainId", () => {
       throw new Error("Unsupported method");
     });
@@ -76,7 +76,7 @@ describe("chain-id-validator", () => {
     // It should not fail because the chain id is the same as the one returned by net_version
   });
 
-  it("Should throw if both eth_chainId and net_version fail", async function () {
+  it("should throw if both eth_chainId and net_version fail", async function () {
     mockedProvider.setReturnValue("eth_chainId", () => {
       throw new Error("Unsupported method");
     });
