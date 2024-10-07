@@ -118,15 +118,6 @@ export class HardhatRuntimeEnvironmentImplementation
 
     const interruptions = new UserInterruptionManagerImplementation(hooks);
 
-    const hookContext: HookContext = {
-      hooks,
-      config,
-      globalOptions,
-      interruptions,
-    };
-
-    hooks.setContext(hookContext);
-
     const hre = new HardhatRuntimeEnvironmentImplementation(
       extendedUserConfig,
       config,
@@ -135,6 +126,19 @@ export class HardhatRuntimeEnvironmentImplementation
       globalOptions,
       globalOptionDefinitions,
     );
+
+    // We create an object with the HRE as its prototype, and overwrite the
+    // tasks property with undefined, so that hooks don't have access to the
+    // task runner.
+    //
+    // The reason we do this with a prototype instead of a shallow copy is that
+    // the handlers hooked into hre/created may assign new properties to the
+    // HRE and we want those to be accessible to all the handlers.
+    const hookContext: HookContext = Object.create(hre, {
+      tasks: { value: undefined },
+    });
+
+    hooks.setContext(hookContext);
 
     await hooks.runSequentialHandlers("hre", "created", [hre]);
 

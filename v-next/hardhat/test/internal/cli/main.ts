@@ -223,9 +223,11 @@ Usage: hardhat [GLOBAL OPTIONS] <TASK> [SUBTASK] [TASK OPTIONS] [--] [TASK ARGUM
 AVAILABLE TASKS:
 
   clean                    Clears the cache and deletes all artifacts
+  compile                  Compiles the entire project, building all artifacts
   console                  Opens a hardhat console
   run                      Runs a user-defined script after compiling the project
   task                     A task that uses arg1
+  test:solidity            Run the Solidity tests
 
 GLOBAL OPTIONS:
 

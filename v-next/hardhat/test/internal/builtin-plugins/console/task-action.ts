@@ -2,15 +2,16 @@ import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 import type repl from "node:repl";
 
 import assert from "node:assert/strict";
-import fsPromises from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import { PassThrough } from "node:stream";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
 
 import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import { exists, remove } from "@ignored/hardhat-vnext-utils/fs";
-import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import {
+  getTmpDir,
+  useFixtureProject,
+} from "@nomicfoundation/hardhat-test-utils";
 import debug from "debug";
 
 import consoleAction from "../../../../src/internal/builtin-plugins/console/task-action.js";
@@ -145,12 +146,9 @@ describe("console/task-action", function () {
     let history: string;
 
     beforeEach(async function () {
-      // TODO(#5601): Use the mkdtemp from hardhat-utils once it's available
       // We use a temporary cache dir to avoid conflicts with other tests
       // and global user settings.
-      cacheDir = await fsPromises.mkdtemp(
-        path.resolve(os.tmpdir(), "console-action-test-"),
-      );
+      cacheDir = await getTmpDir("console-action-test");
       history = path.resolve(cacheDir, "console-history.txt");
     });
 

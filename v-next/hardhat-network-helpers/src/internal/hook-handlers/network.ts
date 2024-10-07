@@ -1,9 +1,11 @@
-import type { ChainType } from "@ignored/hardhat-vnext/types/config";
 import type {
   HookContext,
   NetworkHooks,
 } from "@ignored/hardhat-vnext/types/hooks";
-import type { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
+import type {
+  ChainType,
+  NetworkConnection,
+} from "@ignored/hardhat-vnext/types/network";
 
 import { NetworkHelpers } from "../network-helpers/network-helpers.js";
 

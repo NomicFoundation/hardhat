@@ -45,14 +45,14 @@ export async function resolveHardhatConfigPath(
  * @returns The absolute path to the closest Hardhat config file.
  * @throw HardhatError if no Hardhat config file can be found.
  */
-export async function findClosestHardhatConfig(): Promise<string> {
-  let hardhatConfigPath = await findUp("hardhat.config.ts");
+export async function findClosestHardhatConfig(from?: string): Promise<string> {
+  let hardhatConfigPath = await findUp("hardhat.config.ts", from);
 
   if (hardhatConfigPath !== undefined) {
     return hardhatConfigPath;
   }
 
-  hardhatConfigPath = await findUp("hardhat.config.js");
+  hardhatConfigPath = await findUp("hardhat.config.js", from);
 
   if (hardhatConfigPath !== undefined) {
     return hardhatConfigPath;

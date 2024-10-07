@@ -9,6 +9,7 @@ import HardhatMochaTestRunner from "@ignored/hardhat-vnext-mocha-test-runner";
 import HardhatKeystore from "@ignored/hardhat-vnext-keystore";
 import { viemScketchPlugin } from "./viem-scketch-plugin.js";
 import hardhatNetworkHelpersPlugin from "@ignored/hardhat-vnext-network-helpers";
+import hardhatEthersPlugin from "@ignored/hardhat-vnext-ethers";
 
 const exampleEmptyTask = emptyTask("empty", "An example empty task").build();
 
@@ -120,6 +121,7 @@ const config: HardhatUserConfig = {
   ],
   plugins: [
     pluginExample,
+    hardhatEthersPlugin,
     HardhatKeystore,
     // HardhatMochaTestRunner,
     // if testing node plugin, use the following line instead

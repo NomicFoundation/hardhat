@@ -73,6 +73,16 @@ export const ERROR_CATEGORIES: {
     max: 999,
     websiteTitle: "Network-helpers errors",
   },
+  SOLIDITY_TESTS: {
+    min: 1000,
+    max: 1099,
+    websiteTitle: "Solidity tests errors",
+  },
+  ETHERS: {
+    min: 1100,
+    max: 1199,
+    websiteTitle: "Ethers errors",
+  },
 };
 
 export const ERRORS = {
@@ -145,22 +155,8 @@ Please double check whether you have multiple versions of the same plugin instal
       websiteTitle: "Hardhat project already created",
       websiteDescription: `Cannot create a new Hardhat project, the current folder is already associated with a project.`,
     },
-    NOT_INSIDE_PROJECT_ON_WINDOWS: {
-      number: 11,
-      messageTemplate: `You are not inside a project and Hardhat failed to initialize a new one.
-
-If you were trying to create a new project, please try again using Windows Subsystem for Linux (WSL) or PowerShell.
-`,
-      websiteTitle:
-        "You are not inside a Hardhat project and Hardhat failed to initialize a new one",
-      websiteDescription: `You are trying to run Hardhat outside of a Hardhat project, and we couldn't initialize one.
-
-If you were trying to create a new project, please try again using Windows Subsystem for Linux (WSL) or PowerShell.
-
-You can learn how to use Hardhat by reading the [Getting Started guide](/hardhat-runner/docs/getting-started).`,
-    },
     NOT_IN_INTERACTIVE_SHELL: {
-      number: 12,
+      number: 11,
       messageTemplate:
         "You are trying to initialize a project but you are not in an interactive shell.",
       websiteTitle: "Not inside an interactive shell",
@@ -169,7 +165,7 @@ You can learn how to use Hardhat by reading the [Getting Started guide](/hardhat
 Please re-run the command inside an interactive shell.`,
     },
     UNSUPPORTED_OPERATION: {
-      number: 13,
+      number: 12,
       messageTemplate: "{operation} is not supported in Hardhat.",
       websiteTitle: "Unsupported operation",
       websiteDescription: `You are trying to perform an unsupported operation.
@@ -179,7 +175,7 @@ Unless you are creating a task or plugin, this is probably a bug.
 Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
     },
     ONLY_ESM_SUPPORTED: {
-      number: 14,
+      number: 13,
       messageTemplate: `Hardhat only supports ESM projects. Please be sure to specify "'type': 'module'" in your package.json`,
       websiteTitle: "Only ESM projects are supported",
       websiteDescription: `You are trying to initialize a new Hardhat project, but your package.json does not have the property "type" set to "module".
@@ -189,7 +185,7 @@ Currently, Hardhat only supports ESM projects.
 Please add the property "type" with the value "module" in your package.json to ensure that your project is recognized as an ESM project.`,
     },
     GLOBAL_OPTION_ALREADY_DEFINED: {
-      number: 15,
+      number: 14,
       messageTemplate:
         "Plugin {plugin} is trying to define the global option {globalOption} but it is already defined by plugin {definedByPlugin}",
       websiteTitle: "Global option already defined",
@@ -197,11 +193,23 @@ Please add the property "type" with the value "module" in your package.json to e
         "The global option is already defined by another plugin. Please ensure that global options are uniquely named to avoid conflicts.",
     },
     INVALID_CONFIG: {
-      number: 16,
+      number: 15,
       messageTemplate: `Invalid config:
 {errors}`,
       websiteTitle: "Invalid config",
       websiteDescription: `The configuration you provided is invalid. Please check the documentation to learn how to configure Hardhat correctly.`,
+    },
+    TEMPLATE_NOT_FOUND: {
+      number: 16,
+      messageTemplate: `Template {template} not found`,
+      websiteTitle: "Template not found",
+      websiteDescription: `The template you provided is not found. Please check the documentation to learn which templates are available.`,
+    },
+    WORKSPACE_NOT_FOUND: {
+      number: 17,
+      messageTemplate: `Workspace {workspace} not found`,
+      websiteTitle: "Workspace not found",
+      websiteDescription: `The workspace you provided does not exist. Please ensure that the workspace exists and try again.`,
     },
   },
   INTERNAL: {
@@ -683,6 +691,102 @@ Learn more at (https://hardhat.org/hardhat-network-helpers/docs/reference#fixtur
 This might be caused by using hardhat_reset and loadFixture calls in a testcase.`,
       websiteTitle: "Error while reverting snapshot",
       websiteDescription: "Error while reverting snapshot",
+    },
+  },
+  SOLIDITY_TESTS: {
+    BUILD_INFO_NOT_FOUND_FOR_CONTRACT: {
+      number: 1000,
+      messageTemplate: `Build info not found for contract {fqn}`,
+      websiteTitle: `Build info not found for contract`,
+      websiteDescription: `Build info not found for contract while compiling Solidity test contracts.`,
+    },
+  },
+  ETHERS: {
+    METHOD_NOT_IMPLEMENTED: {
+      number: 1100,
+      messageTemplate: `Method "{method}" is not implemented`,
+      websiteTitle: "Method not implemented",
+      websiteDescription: "Method not implemented",
+    },
+    EVENT_NOT_SUPPORTED: {
+      number: 1101,
+      messageTemplate: `Event "{event}" is not supported`,
+      websiteTitle: "Event not supported",
+      websiteDescription: "Event not supported",
+    },
+    ACCOUNT_INDEX_OUT_OF_RANGE: {
+      number: 1102,
+      messageTemplate: `Tried to get account with index {accountIndex} but there are only {accountsLength} accounts`,
+      websiteTitle: "Account index out of range",
+      websiteDescription: "Account index out of range",
+    },
+    BROADCASTED_TX_DIFFERENT_HASH: {
+      number: 1103,
+      messageTemplate: `Expected broadcasted transaction to have hash "{txHash}", but got "{broadcastedTxHash}"`,
+      websiteTitle: "Broadcasted transaction hash mismatch",
+      websiteDescription: "Broadcasted transaction hash mismatch",
+    },
+    CANNOT_GET_ACCOUNT: {
+      number: 1104,
+      messageTemplate: `Cannot get account with address "{address}"`,
+      websiteTitle: "Cannot get account",
+      websiteDescription: "Cannot get account",
+    },
+    INVALID_BLOCK_TAG: {
+      number: 1105,
+      messageTemplate: `Invalid block tag "{blockTag}"`,
+      websiteTitle: "Invalid block tag",
+      websiteDescription: "Invalid block tag",
+    },
+    INVALID_ARTIFACT_FOR_FACTORY: {
+      number: 1106,
+      messageTemplate:
+        "You are trying to create a contract factory from an artifact, but you have not passed a valid artifact parameter.",
+      websiteTitle: "Invalid artifact for contract factory creation",
+      websiteDescription: "Invalid artifact for contract factory creation",
+    },
+    INVALID_ABSTRACT_CONTRACT_FOR_FACTORY: {
+      number: 1107,
+      messageTemplate: `You are trying to create a contract factory for the contract "{contractName}", which is abstract and can't be deployed. If you want to call a contract using "{contractName}" as its interface use the "getContractAt" function instead.`,
+      websiteTitle: "Invalid abstract contract for contract factory creation",
+      websiteDescription:
+        "Invalid abstract contract for contract factory creation",
+    },
+    INVALID_ADDRESS_TO_LINK_CONTRACT_TO_LIBRARY: {
+      number: 1108,
+      messageTemplate: `You tried to link the contract "{contractName}" with the library "{linkedLibraryName}", but you provided this invalid address: {resolvedAddress}`,
+      websiteTitle: "Invalid address to link contract",
+      websiteDescription: "Invalid address to link contract",
+    },
+    LIBRARY_NOT_AMONG_CONTRACT_LIBRARIES: {
+      number: 1109,
+      messageTemplate: `You tried to link the contract "{contractName}" with the library "{linkedLibraryName}", which is not one of its libraries. Detailed message: {detailedMessage}`,
+      websiteTitle: "Library is not one of the contract libraries",
+      websiteDescription: "Library is not one of the contract libraries",
+    },
+    AMBIGUOUS_LIBRARY_NAME: {
+      number: 1110,
+      messageTemplate: `The library name "{linkedLibraryName}" is ambiguous for the contract "{contractName}". It may resolve to one of the following libraries: "{matchingNeededLibrariesFQNs}". To fix this, choose one of these fully qualified library names and replace where appropriate.`,
+      websiteTitle: "Ambiguous library name",
+      websiteDescription: "Ambiguous library name",
+    },
+    REFERENCE_TO_SAME_LIBRARY: {
+      number: 1111,
+      messageTemplate: `The library names "{linkedLibraryName1}" and "{linkedLibraryName2}" refer to the same library and were given as two separate library links. Remove one of them and review your library links before proceeding.`,
+      websiteTitle: "Reference to same library",
+      websiteDescription: "Reference to same library",
+    },
+    MISSING_LINK_FOR_LIBRARY: {
+      number: 1112,
+      messageTemplate: `The contract "{contractName}" is missing links for the following libraries: "{missingLibraries}". Learn more about linking contracts at (https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-ethers#library-linking).`,
+      websiteTitle: "Missing links for library",
+      websiteDescription: "Missing links for library",
+    },
+    UNSUPPORTED_TYPE_FOR_DEEP_COPY: {
+      number: 1113,
+      messageTemplate: `The value "{value}" with type "{type}" is not supported by the deepCopy function.`,
+      websiteTitle: "Unsupported type for deep copy",
+      websiteDescription: "Unsupported type for deep copy",
     },
   },
 } as const;
