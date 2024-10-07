@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // We enable the sourcemaps before loading main, so that everything except this
 // small file is loaded with sourcemaps enabled.
 process.setSourceMapsEnabled(true);

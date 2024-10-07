@@ -4,7 +4,6 @@
 "@ignored/hardhat-vnext-errors": patch
 "@ignored/hardhat-vnext-utils": patch
 "@ignored/hardhat-vnext": patch
-"@ignored/hardhat-vnext-core": patch
 ---
 
 Update the git urls
