@@ -14,7 +14,9 @@ export interface HardhatViemHelpers<ChainTypeT extends ChainType | string> {
     address: viemT.Address,
     walletClientConfig?: Partial<viemT.WalletClientConfig>,
   ) => Promise<GetWalletClientReturnType<ChainTypeT>>;
-  getTestClient: typeof getTestClient;
+  getTestClient: (
+    testClientConfig?: Partial<viemT.TestClientConfig>,
+  ) => Promise<TestClient>;
   deployContract: typeof deployContract;
   sendDeploymentTransaction: typeof sendDeploymentTransaction;
   getContractAt: typeof getContractAt;
@@ -25,10 +27,6 @@ export type GetPublicClientReturnType<ChainTypeT extends ChainType | string> =
 
 export type GetWalletClientReturnType<ChainTypeT extends ChainType | string> =
   ChainTypeT extends "optimism" ? OpWalletClient : WalletClient;
-
-export declare function getTestClient(
-  testClientConfig?: Partial<viemT.TestClientConfig>,
-): Promise<TestClient>;
 
 export declare function deployContract<ContractName extends string>(
   contractName: ContractName,

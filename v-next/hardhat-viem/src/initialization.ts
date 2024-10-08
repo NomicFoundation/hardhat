@@ -31,7 +31,7 @@ export function initializeViem<ChainTypeT extends ChainType | string>(
       getWalletClient(provider, chainType, address, walletClientConfig),
 
     getTestClient: (testClientConfig) =>
-      getTestClient(provider, chainType, testClientConfig),
+      getTestClient(provider, testClientConfig),
 
     deployContract: (contractName, constructorArgs, config) =>
       deployContract(

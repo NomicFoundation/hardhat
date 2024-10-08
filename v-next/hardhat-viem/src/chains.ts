@@ -1,3 +1,4 @@
+import type { TestClientMode } from "./types.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type * as viemT from "viem";
 
@@ -46,10 +47,7 @@ export async function getChain(
     // If the chain is a development network but we couldn't detect which one
     // we throw an error
     throw new HardhatError(
-      HardhatError.ERRORS.VIEM.UNKNOWN_DEVELOPMENT_NETWORK,
-      {
-        chainId,
-      },
+      HardhatError.ERRORS.VIEM.UNSUPPORTED_DEVELOPMENT_NETWORK,
     );
   }
 
@@ -115,6 +113,20 @@ export async function isAnvilNetwork(
   isAnvilNetworkCache.set(provider, isAnvil);
 
   return isAnvil;
+}
+
+export async function getMode(
+  provider: EthereumProvider,
+): Promise<TestClientMode> {
+  if (await isHardhatNetwork(provider)) {
+    return "hardhat";
+  }
+  if (await isAnvilNetwork(provider)) {
+    return "anvil";
+  }
+  throw new HardhatError(
+    HardhatError.ERRORS.VIEM.UNSUPPORTED_DEVELOPMENT_NETWORK,
+  );
 }
 
 async function isMethodSupported(provider: EthereumProvider, method: string) {

@@ -2,7 +2,6 @@ import type {
   GetPublicClientReturnType,
   GetWalletClientReturnType,
   TestClient,
-  WalletClient,
 } from "./types.js";
 import type { ChainType } from "@ignored/hardhat-vnext/types/network";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
@@ -11,12 +10,13 @@ import type * as viemT from "viem";
 import {
   createPublicClient,
   createWalletClient,
+  createTestClient,
   custom as customTransport,
 } from "viem";
 import { publicActionsL2, walletActionsL2 } from "viem/op-stack";
 
 import { getAccounts } from "./accounts.js";
-import { getChain, isDevelopmentNetwork } from "./chains.js";
+import { getChain, getMode, isDevelopmentNetwork } from "./chains.js";
 
 export async function getPublicClient<ChainTypeT extends ChainType | string>(
   provider: EthereumProvider,
@@ -24,10 +24,10 @@ export async function getPublicClient<ChainTypeT extends ChainType | string>(
   publicClientConfig?: Partial<viemT.PublicClientConfig>,
 ): Promise<GetPublicClientReturnType<ChainTypeT>> {
   const chain = publicClientConfig?.chain ?? (await getChain(provider));
-  const defaultParameters = isDevelopmentNetwork(chain.id)
-    ? { pollingInterval: 50, cacheTime: 0 }
-    : {};
-  const parameters = { ...defaultParameters, ...publicClientConfig };
+  const parameters = {
+    ...getDefaultClientParameters(chain.id),
+    ...publicClientConfig,
+  };
 
   const publicClient = createPublicClient({
     chain,
@@ -51,10 +51,10 @@ export async function getWalletClients<ChainTypeT extends ChainType | string>(
 ): Promise<Array<GetWalletClientReturnType<ChainTypeT>>> {
   const chain = walletClientConfig?.chain ?? (await getChain(provider));
   const accounts = await getAccounts(provider);
-  const defaultParameters = isDevelopmentNetwork(chain.id)
-    ? { pollingInterval: 50, cacheTime: 0 }
-    : {};
-  const parameters = { ...defaultParameters, ...walletClientConfig };
+  const parameters = {
+    ...getDefaultClientParameters(chain.id),
+    ...walletClientConfig,
+  };
 
   const walletClients = accounts.map((account) =>
     createWalletClient({
@@ -81,10 +81,10 @@ export async function getWalletClient<ChainTypeT extends ChainType | string>(
   walletClientConfig?: Partial<viemT.WalletClientConfig>,
 ): Promise<GetWalletClientReturnType<ChainTypeT>> {
   const chain = walletClientConfig?.chain ?? (await getChain(provider));
-  const defaultParameters = isDevelopmentNetwork(chain.id)
-    ? { pollingInterval: 50, cacheTime: 0 }
-    : {};
-  const parameters = { ...defaultParameters, ...walletClientConfig };
+  const parameters = {
+    ...getDefaultClientParameters(chain.id),
+    ...walletClientConfig,
+  };
 
   const walletClient = createWalletClient({
     chain,
@@ -102,10 +102,26 @@ export async function getWalletClient<ChainTypeT extends ChainType | string>(
   return walletClient as GetWalletClientReturnType<ChainTypeT>;
 }
 
-export async function getTestClient<ChainTypeT extends ChainType | string>(
+export async function getTestClient(
   provider: EthereumProvider,
-  chainType: ChainTypeT,
   testClientConfig?: Partial<viemT.TestClientConfig>,
 ): Promise<TestClient> {
-  // ...
+  const chain = testClientConfig?.chain ?? (await getChain(provider));
+  const mode = await getMode(provider);
+  const parameters = { ...DEFAULT_CLIENT_PARAMETERS, ...testClientConfig };
+
+  const testClient = createTestClient({
+    chain,
+    mode,
+    transport: customTransport(provider),
+    ...parameters,
+  });
+
+  return testClient;
+}
+
+const DEFAULT_CLIENT_PARAMETERS = { pollingInterval: 50, cacheTime: 0 };
+
+function getDefaultClientParameters(chainId: number) {
+  return isDevelopmentNetwork(chainId) ? DEFAULT_CLIENT_PARAMETERS : {};
 }

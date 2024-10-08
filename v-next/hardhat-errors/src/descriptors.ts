@@ -1085,12 +1085,14 @@ const client = await hre.viem.getPublicClient({
 
 You can find a list of supported networks here: https://github.com/wevm/viem/blob/main/src/chains/index.ts`,
     },
-    UNKNOWN_DEVELOPMENT_NETWORK: {
+    UNSUPPORTED_DEVELOPMENT_NETWORK: {
       number: 1301,
-      messageTemplate: `Unknown development network: {chainId}.`,
-      websiteTitle: "Unknown development network",
-      websiteDescription: `The chain id corresponds to a development network but we couldn't detect which one.
-Please report this issue if you're using Hardhat or Foundry.`,
+      messageTemplate:
+        "Unsupported development network detected. Hardhat and Anvil are the only supported networks.",
+      websiteTitle: "Unsupported Development Network",
+      websiteDescription: `The chain ID corresponds to a development network, but we were unable to identify it as either Hardhat or Anvil.
+
+Please ensure you're using one of the supported networks.`,
     },
   },
 } as const;
