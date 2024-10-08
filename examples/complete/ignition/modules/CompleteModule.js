@@ -5,7 +5,9 @@ const withLibArtifact = require("../../libArtifacts/ContractWithLibrary.json");
 const libArtifact = require("../../libArtifacts/BasicLibrary.json");
 
 module.exports = buildModule("CompleteModule", (m) => {
-  const basic = m.contract("BasicContract");
+  const acct2 = m.getAccount(2);
+
+  const basic = m.contract("BasicContract", [acct2]);
   const library = m.library("BasicLibrary");
   const libFromArtifact = m.library("BasicLibrary", libArtifact, {
     id: "BasicLibrary2",

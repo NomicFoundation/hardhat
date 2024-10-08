@@ -6,8 +6,13 @@ pragma solidity ^0.8.9;
 
 contract BasicContract {
   uint public savedArg;
+  address public sender;
 
   event BasicEvent(uint eventArg);
+
+  constructor(address _sender) {
+    sender = _sender;
+  }
 
   receive() external payable {}
 

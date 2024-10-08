@@ -73,6 +73,11 @@ export const ERROR_RANGES: {
     max: 1199,
     title: "Strategy errors",
   },
+  LIST_TRANSACTIONS: {
+    min: 1200,
+    max: 1299,
+    title: "List transactions errors",
+  },
 };
 
 /**
@@ -398,6 +403,13 @@ export const ERRORS = {
       number: 1102,
       message:
         "Strategy configuration parameter '%paramName%' for the strategy '%strategyName%' is invalid: %reason%",
+    },
+  },
+  LIST_TRANSACTIONS: {
+    UNINITIALIZED_DEPLOYMENT: {
+      number: 1200,
+      message:
+        "Cannot list transactions for nonexistant deployment at %deploymentDir%",
     },
   },
 };

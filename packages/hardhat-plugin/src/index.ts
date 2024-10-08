@@ -3,6 +3,7 @@ import { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
 import {
   DeploymentParameters,
   IgnitionError,
+  ListTransactionsResult,
   StatusResult,
 } from "@nomicfoundation/ignition-core";
 import debug from "debug";
@@ -667,6 +668,50 @@ ignitionScope
       }
     }
   );
+
+ignitionScope
+  .task("transactions")
+  .addPositionalParam(
+    "deploymentId",
+    "The id of the deployment to show transactions for"
+  )
+  .setDescription("Show all transactions for a given deployment")
+  .setAction(async ({ deploymentId }: { deploymentId: string }, hre) => {
+    const { listTransactions } = await import("@nomicfoundation/ignition-core");
+
+    const { HardhatArtifactResolver } = await import(
+      "./hardhat-artifact-resolver"
+    );
+    const { calculateListTransactionsDisplay } = await import(
+      "./ui/helpers/calculate-list-transactions-display"
+    );
+
+    const deploymentDir = path.join(
+      hre.config.paths.ignition,
+      "deployments",
+      deploymentId
+    );
+
+    const artifactResolver = new HardhatArtifactResolver(hre);
+
+    let listTransactionsResult: ListTransactionsResult;
+    try {
+      listTransactionsResult = await listTransactions(
+        deploymentDir,
+        artifactResolver
+      );
+    } catch (e) {
+      if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
+        throw new NomicLabsHardhatPluginError("hardhat-ignition", e.message, e);
+      }
+
+      throw e;
+    }
+
+    console.log(
+      calculateListTransactionsDisplay(deploymentId, listTransactionsResult)
+    );
+  });
 
 async function resolveParametersFromModuleName(
   moduleName: string,
