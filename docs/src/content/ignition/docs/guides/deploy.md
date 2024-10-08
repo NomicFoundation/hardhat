@@ -40,6 +40,12 @@ An example file could be called `./ignition/parameters.json` and contain the fol
 }
 ```
 
+:::tip
+
+`JSON5` format is also supported for parameter files!
+
+:::
+
 This makes the `name` parameter for the `Apollo` module be `"Saturn V"`.
 
 To execute a deployment using parameters, you need to use the `--parameters` argument, like this:
@@ -73,6 +79,21 @@ To pass a `bigint` as a Module parameter, you can encode it as a string. Any str
   }
 }
 ```
+
+You can also define global parameters that will be available to all modules. To do this, define a `$global` key in the parameters file:
+
+```json
+{
+  "$global": {
+    "shouldBeAllowed": true
+  },
+  "MyModule": {
+    "shouldBeAllowed": false
+  }
+}
+```
+
+In this example, the `shouldBeAllowed` parameter will be `true` for all modules except `MyModule`, where it will be `false`. Global parameters can be accessed in the same way as module parameters.
 
 ## Inspecting an existing deployment
 
