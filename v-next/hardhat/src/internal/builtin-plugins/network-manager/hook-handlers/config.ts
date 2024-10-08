@@ -1,5 +1,7 @@
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import type {
   ConfigurationVariable,
+  EdrNetworkConfig,
   GasConfig,
   GasUserConfig,
   HardhatConfig,
@@ -12,6 +14,7 @@ import type {
 import type { ConfigHooks } from "../../../../types/hooks.js";
 
 import { validateUserConfig } from "../type-validation.js";
+import { network } from "../../../../index.js";
 
 export default async (): Promise<Partial<ConfigHooks>> => ({
   extendUserConfig,
@@ -60,25 +63,46 @@ export async function resolveUserConfig(
   const resolvedNetworks: Record<string, NetworkConfig> = {};
 
   for (const [networkName, networkConfig] of Object.entries(networks)) {
-    if (networkConfig.type !== "http") {
-      // eslint-disable-next-line no-restricted-syntax -- TODO
-      throw new Error("Only HTTP network is supported for now");
+    if (networkConfig.type !== "http" && networkConfig.type !== "edr") {
+      throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_NETWORK_TYPE, {
+        networkName,
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO: is there a better pattern for this?
+        networkType: (networkConfig as any).type,
+      });
     }
 
-    const resolvedNetworkConfig: HttpNetworkConfig = {
-      type: "http",
-      chainId: networkConfig.chainId,
-      chainType: networkConfig.chainType,
-      from: networkConfig.from,
-      gas: resolveGasConfig(networkConfig.gas),
-      gasMultiplier: networkConfig.gasMultiplier ?? 1,
-      gasPrice: resolveGasConfig(networkConfig.gasPrice),
-      url: networkConfig.url,
-      timeout: networkConfig.timeout ?? 20_000,
-      httpHeaders: networkConfig.httpHeaders ?? {},
-    };
+    if (networkConfig.type === "http") {
+      const resolvedNetworkConfig: HttpNetworkConfig = {
+        type: "http",
+        chainId: networkConfig.chainId,
+        chainType: networkConfig.chainType,
+        from: networkConfig.from,
+        gas: resolveGasConfig(networkConfig.gas),
+        gasMultiplier: networkConfig.gasMultiplier ?? 1,
+        gasPrice: resolveGasConfig(networkConfig.gasPrice),
+        url: networkConfig.url,
+        timeout: networkConfig.timeout ?? 20_000,
+        httpHeaders: networkConfig.httpHeaders ?? {},
+      };
 
-    resolvedNetworks[networkName] = resolvedNetworkConfig;
+      resolvedNetworks[networkName] = resolvedNetworkConfig;
+    }
+
+    if (networkConfig.type === "edr") {
+      const resolvedNetworkConfig: EdrNetworkConfig = {
+        type: "edr",
+        chainId: networkConfig.chainId,
+        // TODO: what is the default chain type?
+        chainType: networkConfig.chainType ?? "l1",
+        // TODO: where do we get the accounts from?
+        from: networkConfig.from ?? "0x12345",
+        gas: resolveGasConfig(networkConfig.gas),
+        gasMultiplier: networkConfig.gasMultiplier ?? 1,
+        gasPrice: resolveGasConfig(networkConfig.gasPrice),
+      };
+
+      resolvedNetworks[networkName] = resolvedNetworkConfig;
+    }
   }
 
   return {

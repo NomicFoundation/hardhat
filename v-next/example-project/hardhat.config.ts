@@ -135,6 +135,16 @@ const config: HardhatUserConfig = {
       nodeTest: "test/node",
     },
   },
+  networks: {
+    myEdrNetwork: {
+      type: "edr",
+      chainType: "l1",
+      chainId: 31337,
+      gas: 123,
+      gasMultiplier: 1.5,
+      gasPrice: 123,
+    },
+  },
 };
 
 export default config;

@@ -587,6 +587,13 @@ If you want to use a different chain type, please update your networks config.`,
       websiteTitle: "Invalid config override",
       websiteDescription: `The configuration override you provided is invalid.`,
     },
+    INVALID_NETWORK_TYPE: {
+      number: 708,
+      messageTemplate:
+        "The provided network type {networkType} for network {networkName} is not recognized, only `http` and `edr` are supported.",
+      websiteTitle: "Invalid network type",
+      websiteDescription: `The network manager only supports the network types 'http' and 'edr'.`,
+    },
   },
   KEYSTORE: {
     INVALID_KEYSTORE_FILE_FORMAT: {
