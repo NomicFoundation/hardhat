@@ -1,10 +1,10 @@
-import type { EthereumProvider } from "../../../../../../src/types/providers.js";
+import type { EthereumProvider } from "../../../../../types/providers.js";
 
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
-import { rpcQuantityToNumber } from "../../../../../../src/internal/builtin-plugins/network-manager/providers/utils.js";
+import { rpcQuantityToNumber } from "../utils.js";
 
 export abstract class MultipliedGasEstimationProvider {
   readonly #provider: EthereumProvider;
