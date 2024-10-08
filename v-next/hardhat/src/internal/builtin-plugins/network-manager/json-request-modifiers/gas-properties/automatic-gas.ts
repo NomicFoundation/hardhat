@@ -3,12 +3,13 @@ import type {
   RequestArguments,
 } from "../../../../../types/providers.js";
 
-import { MultipliedGasEstimationProvider } from "../../../../../../test/internal/builtin-plugins/network-manager/providers/gas-provider/multiplied-gas-estimation-provider.js";
 import { getParams } from "../utils.js";
+
+import { MultipliedGasEstimation } from "./multiplied-gas-estimation.js";
 
 export const DEFAULT_GAS_MULTIPLIER = 1;
 
-export class AutomaticGasProvider extends MultipliedGasEstimationProvider {
+export class AutomaticGas extends MultipliedGasEstimation {
   constructor(
     provider: EthereumProvider,
     gasMultiplier: number = DEFAULT_GAS_MULTIPLIER,

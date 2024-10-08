@@ -6,7 +6,7 @@ import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import { rpcQuantityToNumber } from "../utils.js";
 
-export abstract class MultipliedGasEstimationProvider {
+export abstract class MultipliedGasEstimation {
   readonly #provider: EthereumProvider;
   readonly #gasMultiplier: number;
 

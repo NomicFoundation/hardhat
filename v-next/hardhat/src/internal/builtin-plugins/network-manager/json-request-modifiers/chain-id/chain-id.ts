@@ -7,7 +7,7 @@ import {
 
 import { rpcQuantityToNumber } from "../utils.js";
 
-export class ChainIdValidatorProvider {
+export class ChainIdValidator {
   readonly #provider: EthereumProvider;
   readonly #expectedChainId: number;
 

@@ -11,7 +11,7 @@ import {
 
 import { getParams } from "../utils.js";
 
-export class AutomaticGasPriceProvider {
+export class AutomaticGasPrice {
   readonly #provider: EthereumProvider;
 
   // We pay the max base fee that can be required if the next
@@ -142,7 +142,7 @@ export class AutomaticGasPriceProvider {
         params: [
           "0x1",
           "latest",
-          [AutomaticGasPriceProvider.EIP1559_REWARD_PERCENTILE],
+          [AutomaticGasPrice.EIP1559_REWARD_PERCENTILE],
         ],
       });
 
@@ -195,10 +195,10 @@ export class AutomaticGasPriceProvider {
         maxFeePerGas:
           (hexStringToBigInt(response.baseFeePerGas[1]) *
             9n **
-              (AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE -
+              (AutomaticGasPrice.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE -
                 1n)) /
           8n **
-            (AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE -
+            (AutomaticGasPrice.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE -
               1n),
 
         maxPriorityFeePerGas,

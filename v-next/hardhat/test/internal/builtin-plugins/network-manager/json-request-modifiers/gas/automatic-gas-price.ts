@@ -4,12 +4,12 @@ import { beforeEach, describe, it } from "node:test";
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
-import { AutomaticGasPriceProvider } from "../../../../../../src/internal/builtin-plugins/network-manager/providers/gas-providers/automatic-gas-price-provider.js";
+import { AutomaticGasPrice } from "../../../../../../src/internal/builtin-plugins/network-manager/json-request-modifiers/gas-properties/automatic-gas-price.js";
+import { EthereumMockedProvider } from "../ethereum-mocked-provider.js";
 import { createJsonRpcRequest } from "../helpers.js";
-import { EthereumMockedProvider } from "../mocked-provider.js";
 
-describe("AutomaticGasPriceProvider", () => {
-  let automaticGasPriceProvider: AutomaticGasPriceProvider;
+describe("AutomaticGasPrice", () => {
+  let automaticGasPriceProvider: AutomaticGasPrice;
   let mockedProvider: EthereumMockedProvider;
 
   const FIXED_GAS_PRICE = 1232;
@@ -22,10 +22,10 @@ describe("AutomaticGasPriceProvider", () => {
       numberToHexString(FIXED_GAS_PRICE),
     );
 
-    automaticGasPriceProvider = new AutomaticGasPriceProvider(mockedProvider);
+    automaticGasPriceProvider = new AutomaticGasPrice(mockedProvider);
   });
 
-  describe("when the fee price values are provided", function () {
+  describe("when the fee price values are provided", () => {
     it("shouldn't replace the provided gasPrice", async () => {
       const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
         {
@@ -69,11 +69,11 @@ describe("AutomaticGasPriceProvider", () => {
     });
   });
 
-  describe("Default fee price values", function () {
-    describe("When eth_feeHistory is available and EIP1559 is supported", function () {
+  describe("Default fee price values", () => {
+    describe("When eth_feeHistory is available and EIP1559 is supported", () => {
       const latestBaseFeeInMockedProvider = 80;
 
-      beforeEach(function () {
+      beforeEach(() => {
         mockedProvider.setReturnValue("eth_feeHistory", {
           baseFeePerGas: [
             numberToHexString(latestBaseFeeInMockedProvider),
@@ -89,7 +89,7 @@ describe("AutomaticGasPriceProvider", () => {
         });
       });
 
-      it("should use the reward return value as default maxPriorityFeePerGas", async function () {
+      it("should use the reward return value as default maxPriorityFeePerGas", async () => {
         const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
           {
             from: "0x0000000000000000000000000000000000000011",
@@ -110,7 +110,7 @@ describe("AutomaticGasPriceProvider", () => {
         assert.equal(jsonRpcRequest.params[0].maxFeePerGas, "0x99");
       });
 
-      it("should add the reward to the maxFeePerGas if not big enough", async function () {
+      it("should add the reward to the maxFeePerGas if not big enough", async () => {
         const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
           {
             from: "0x0000000000000000000000000000000000000011",
@@ -131,7 +131,7 @@ describe("AutomaticGasPriceProvider", () => {
         assert.equal(jsonRpcRequest.params[0].maxFeePerGas, "0x5");
       });
 
-      it("should use the expected max base fee of N blocks in the future if maxFeePerGas is missing", async function () {
+      it("should use the expected max base fee of N blocks in the future if maxFeePerGas is missing", async () => {
         const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
           {
             from: "0x0000000000000000000000000000000000000011",
@@ -145,7 +145,7 @@ describe("AutomaticGasPriceProvider", () => {
           latestBaseFeeInMockedProvider *
             (9 / 8) **
               Number(
-                AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE,
+                AutomaticGasPrice.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE,
               ),
         );
 
@@ -164,10 +164,10 @@ describe("AutomaticGasPriceProvider", () => {
       });
     });
 
-    describe("when the eth_feeHistory result causes maxPriorityFeePerGas to be 0 and eth_maxPriorityFeePerGas doesn't exist", function () {
+    describe("when the eth_feeHistory result causes maxPriorityFeePerGas to be 0 and eth_maxPriorityFeePerGas doesn't exist", () => {
       const latestBaseFeeInMockedProvider = 80;
 
-      beforeEach(function () {
+      beforeEach(() => {
         mockedProvider.setReturnValue("eth_feeHistory", {
           baseFeePerGas: [
             numberToHexString(latestBaseFeeInMockedProvider),
@@ -183,7 +183,7 @@ describe("AutomaticGasPriceProvider", () => {
         });
       });
 
-      it("should use a non-zero maxPriorityFeePerGas", async function () {
+      it("should use a non-zero maxPriorityFeePerGas", async () => {
         const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
           {
             from: "0x0000000000000000000000000000000000000011",
@@ -196,7 +196,7 @@ describe("AutomaticGasPriceProvider", () => {
           latestBaseFeeInMockedProvider *
             (9 / 8) **
               Number(
-                AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE,
+                AutomaticGasPrice.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE,
               ),
         );
 
@@ -215,10 +215,10 @@ describe("AutomaticGasPriceProvider", () => {
       });
     });
 
-    describe("when the eth_feeHistory result causes maxPriorityFeePerGas to be 0 and eth_maxPriorityFeePerGas exists", function () {
+    describe("when the eth_feeHistory result causes maxPriorityFeePerGas to be 0 and eth_maxPriorityFeePerGas exists", () => {
       const latestBaseFeeInMockedProvider = 80;
 
-      beforeEach(function () {
+      beforeEach(() => {
         mockedProvider.setReturnValue("eth_feeHistory", {
           baseFeePerGas: [
             numberToHexString(latestBaseFeeInMockedProvider),
@@ -236,7 +236,7 @@ describe("AutomaticGasPriceProvider", () => {
         mockedProvider.setReturnValue("eth_maxPriorityFeePerGas", "0x12");
       });
 
-      it("should use the result of eth_maxPriorityFeePerGas as maxPriorityFeePerGas", async function () {
+      it("should use the result of eth_maxPriorityFeePerGas as maxPriorityFeePerGas", async () => {
         const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
           {
             from: "0x0000000000000000000000000000000000000011",
@@ -249,7 +249,7 @@ describe("AutomaticGasPriceProvider", () => {
           latestBaseFeeInMockedProvider *
             (9 / 8) **
               Number(
-                AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE,
+                AutomaticGasPrice.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE,
               ),
         );
 
@@ -268,10 +268,10 @@ describe("AutomaticGasPriceProvider", () => {
       });
     });
 
-    describe("when eth_feeHistory is available and EIP1559 is not supported", function () {
+    describe("when eth_feeHistory is available and EIP1559 is not supported", () => {
       const latestBaseFeeInMockedProvider = 80;
 
-      beforeEach(function () {
+      beforeEach(() => {
         mockedProvider.setReturnValue("eth_feeHistory", {
           baseFeePerGas: [
             numberToHexString(latestBaseFeeInMockedProvider),
@@ -288,8 +288,8 @@ describe("AutomaticGasPriceProvider", () => {
       runTestUseLegacyGasPrice();
     });
 
-    describe("when eth_feeHistory is not available", function () {
-      beforeEach(function () {
+    describe("when eth_feeHistory is not available", () => {
+      beforeEach(() => {
         mockedProvider.setReturnValue("eth_getBlockByNumber", {});
       });
 
@@ -300,7 +300,7 @@ describe("AutomaticGasPriceProvider", () => {
      * Group of tests that expect gasPrice to be used instead of EIP1559 fields
      */
     function runTestUseLegacyGasPrice() {
-      it("should use gasPrice when nothing is provided", async function () {
+      it("should use gasPrice when nothing is provided", async () => {
         const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
           {
             from: "0x0000000000000000000000000000000000000011",
@@ -322,7 +322,7 @@ describe("AutomaticGasPriceProvider", () => {
         );
       });
 
-      it("should use gasPrice as default maxPriorityFeePerGas, adding it to maxFeePerGas if necessary", async function () {
+      it("should use gasPrice as default maxPriorityFeePerGas, adding it to maxFeePerGas if necessary", async () => {
         const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
           {
             from: "0x0000000000000000000000000000000000000011",
@@ -349,7 +349,7 @@ describe("AutomaticGasPriceProvider", () => {
         );
       });
 
-      it("should use gasPrice as default maxFeePerGas, fixing maxPriorityFee to it if necessary", async function () {
+      it("should use gasPrice as default maxFeePerGas, fixing maxPriorityFee to it if necessary", async () => {
         const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
           {
             from: "0x0000000000000000000000000000000000000011",

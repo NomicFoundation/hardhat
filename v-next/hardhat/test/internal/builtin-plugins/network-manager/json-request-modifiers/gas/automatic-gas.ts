@@ -5,14 +5,14 @@ import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import {
-  AutomaticGasProvider,
+  AutomaticGas,
   DEFAULT_GAS_MULTIPLIER,
-} from "../../../../../../src/internal/builtin-plugins/network-manager/providers/gas-providers/automatic-gas-provider.js";
+} from "../../../../../../src/internal/builtin-plugins/network-manager/json-request-modifiers/gas-properties/automatic-gas.js";
+import { EthereumMockedProvider } from "../ethereum-mocked-provider.js";
 import { createJsonRpcRequest } from "../helpers.js";
-import { EthereumMockedProvider } from "../mocked-provider.js";
 
-describe("AutomaticGasProvider", () => {
-  let automaticGasProvider: AutomaticGasProvider;
+describe("AutomaticGas", () => {
+  let automaticGasProvider: AutomaticGas;
   let mockedProvider: EthereumMockedProvider;
 
   const FIXED_GAS_LIMIT = 1231;
@@ -30,10 +30,7 @@ describe("AutomaticGasProvider", () => {
       numberToHexString(FIXED_GAS_LIMIT),
     );
 
-    automaticGasProvider = new AutomaticGasProvider(
-      mockedProvider,
-      GAS_MULTIPLIER,
-    );
+    automaticGasProvider = new AutomaticGas(mockedProvider, GAS_MULTIPLIER);
   });
 
   it("should estimate gas automatically if not present", async () => {
@@ -69,10 +66,7 @@ describe("AutomaticGasProvider", () => {
       },
     ]);
 
-    automaticGasProvider = new AutomaticGasProvider(
-      mockedProvider,
-      GAS_MULTIPLIER2,
-    );
+    automaticGasProvider = new AutomaticGas(mockedProvider, GAS_MULTIPLIER2);
 
     await automaticGasProvider.modifyRequest(jsonRpcRequest);
 
@@ -96,7 +90,7 @@ describe("AutomaticGasProvider", () => {
       },
     ]);
 
-    automaticGasProvider = new AutomaticGasProvider(mockedProvider);
+    automaticGasProvider = new AutomaticGas(mockedProvider);
 
     await automaticGasProvider.modifyRequest(jsonRpcRequest);
 
@@ -111,7 +105,7 @@ describe("AutomaticGasProvider", () => {
     );
   });
 
-  it("Shouldn't replace the provided gas", async () => {
+  it("shouldn't replace the provided gas", async () => {
     const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
       {
         from: "0x0000000000000000000000000000000000000011",

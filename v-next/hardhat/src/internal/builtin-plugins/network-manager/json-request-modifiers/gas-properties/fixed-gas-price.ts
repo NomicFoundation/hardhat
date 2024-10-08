@@ -1,4 +1,4 @@
-import type { JsonRpcRequest } from "../../../../../types/providers.js";
+import type { RequestArguments } from "../../../../../types/providers.js";
 import type { NetworkConfig } from "@ignored/hardhat-vnext/types/config";
 
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
@@ -6,16 +6,16 @@ import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import { getParams } from "../utils.js";
 
-export class FixedGasPriceProvider {
+export class FixedGasPrice {
   readonly #networkConfig: NetworkConfig;
 
   constructor(networkConfig: NetworkConfig) {
     this.#networkConfig = networkConfig;
   }
 
-  public modifyRequest(jsonRpcRequest: JsonRpcRequest): void {
-    if (jsonRpcRequest.method === "eth_sendTransaction") {
-      const params = getParams(jsonRpcRequest);
+  public modifyRequest(args: RequestArguments): void {
+    if (args.method === "eth_sendTransaction") {
+      const params = getParams(args);
 
       // TODO: Should we validate this type?
       const tx = params[0];
@@ -27,7 +27,7 @@ export class FixedGasPriceProvider {
         tx.maxFeePerGas === undefined &&
         tx.maxPriorityFeePerGas === undefined
       ) {
-        // networkConfig.gasPrice = "auto" is not allowed here, it is handled in AutomaticGasPriceProvider
+        // networkConfig.gasPrice = "auto" is not allowed here, it is handled in AutomaticGasPrice
 
         assertHardhatInvariant(
           typeof this.#networkConfig.gasPrice === "number" ||
