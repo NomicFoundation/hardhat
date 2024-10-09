@@ -99,6 +99,25 @@ export async function resolveUserConfig(
         gas: resolveGasConfig(networkConfig.gas),
         gasMultiplier: networkConfig.gasMultiplier ?? 1,
         gasPrice: resolveGasConfig(networkConfig.gasPrice),
+
+        hardfork: networkConfig.hardfork ?? "cancun",
+        networkId: networkConfig.networkId ?? networkConfig.chainId,
+        blockGasLimit: networkConfig.blockGasLimit ?? 12_500_000,
+        minGasPrice: BigInt(networkConfig.minGasPrice ?? 0),
+        automine: networkConfig.automine ?? true,
+        intervalMining: networkConfig.intervalMining ?? 0,
+        mempoolOrder: networkConfig.mempoolOrder ?? "fifo",
+        chains: networkConfig.chains ?? new Map(),
+        genesisAccounts: networkConfig.genesisAccounts ?? [],
+        allowUnlimitedContractSize:
+          networkConfig.allowUnlimitedContractSize ?? false,
+        throwOnTransactionFailures:
+          networkConfig.throwOnTransactionFailures ?? true,
+        throwOnCallFailures: networkConfig.throwOnCallFailures ?? true,
+        allowBlocksWithSameTimestamp:
+          networkConfig.allowBlocksWithSameTimestamp ?? false,
+        enableTransientStorage: networkConfig.enableTransientStorage ?? false,
+        enableRip7212: networkConfig.enableRip7212 ?? false,
       };
 
       resolvedNetworks[networkName] = resolvedNetworkConfig;
