@@ -652,7 +652,6 @@ describe("network-manager/hook-handlers/config", () => {
           gas: "auto",
           gasMultiplier: 1,
           gasPrice: "auto",
-          accounts: "remote",
           url: "http://localhost:8545",
           timeout: 20_000,
           httpHeaders: {},
@@ -680,7 +679,6 @@ describe("network-manager/hook-handlers/config", () => {
             httpHeaders: {
               "Content-Type": "application/json",
             },
-            accounts: ["0x000006d4548a3ac17d72b372ae1e416bf65b8ead"],
           },
         },
       };
@@ -713,7 +711,6 @@ describe("network-manager/hook-handlers/config", () => {
           gasMultiplier: 1.5,
           gasPrice: 100n,
           url: "http://node.myNetwork.com",
-          accounts: ["0x000006d4548a3ac17d72b372ae1e416bf65b8ead"],
           timeout: 10_000,
           httpHeaders: {
             "Content-Type": "application/json",
