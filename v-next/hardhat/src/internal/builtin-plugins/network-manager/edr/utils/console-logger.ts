@@ -1,12 +1,11 @@
 import util from "node:util";
 
+import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import {
-  bytesToHex as bufferToHex,
-  bytesToInt,
-  fromSigned,
-} from "@nomicfoundation/ethereumjs-util";
-
-import { bytesToBigInt } from "@ignored/hardhat-vnext-utils";
+  bytesToHexString as bufferToHex,
+  bytesToHexString,
+} from "@ignored/hardhat-vnext-utils/bytes";
+import { hexStringToBigInt } from "@ignored/hardhat-vnext-utils/hex";
 
 import {
   AddressTy,
@@ -49,6 +48,39 @@ import {
   Uint256Ty,
   CONSOLE_LOG_SIGNATURES,
 } from "./console-log-signatures.js";
+
+
+/**
+ * TODO: This is pulled from v-next utils. I don't understand why it returns a `number | bigint`
+ */
+function bytesToBigInt(bytes: Uint8Array): bigint {
+  return hexStringToBigInt(bytesToHexString(bytes));
+}
+
+/**
+ * TODO: replace in utils. Taken from `@nomicfoundation/ethereumjs-util`
+ *
+ * Converts a {@link Uint8Array} to a {@link number}.
+ * @param {Uint8Array} bytes the bytes to convert
+ * @return  {number}
+ * @throws If the input number exceeds 53 bits.
+ */
+const bytesToInt = (bytes: Uint8Array): number => {
+  const res = Number(bytesToBigInt(bytes));
+
+  assertHardhatInvariant(Number.isSafeInteger(res), "Number exceeds 53 bits");
+
+  return res;
+};
+
+/**
+ * Interprets a `Uint8Array` as a signed integer and returns a `BigInt`. Assumes 256-bit numbers.
+ * @param {Uint8Array} num Signed integer value
+ * @returns {bigint}
+ */
+const fromSigned = (num: Uint8Array): bigint => {
+  return BigInt.asIntN(256, bytesToBigInt(num));
+};
 
 const REGISTER_SIZE = 32;
 
