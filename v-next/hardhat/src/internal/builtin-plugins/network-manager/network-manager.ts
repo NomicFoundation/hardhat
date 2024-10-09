@@ -147,22 +147,38 @@ export class NetworkManagerImplementation {
         return EdrProvider.create(
           {
             hardfork: "cancun",
-            chainId: resolvedNetworkConfig.chainId,
-            networkId: resolvedNetworkConfig.networkId,
-            blockGasLimit: resolvedNetworkConfig.blockGasLimit,
-            minGasPrice: resolvedNetworkConfig.minGasPrice,
-            automine: resolvedNetworkConfig.automine,
-            intervalMining: resolvedNetworkConfig.intervalMining,
-            mempoolOrder: resolvedNetworkConfig.mempoolOrder,
-            chains: resolvedNetworkConfig.chains,
-            genesisAccounts: resolvedNetworkConfig.genesisAccounts,
-            allowUnlimitedContractSize:
-              resolvedNetworkConfig.allowUnlimitedContractSize,
-            throwOnTransactionFailures:
-              resolvedNetworkConfig.throwOnTransactionFailures,
-            throwOnCallFailures: resolvedNetworkConfig.throwOnCallFailures,
-            allowBlocksWithSameTimestamp:
-              resolvedNetworkConfig.allowBlocksWithSameTimestamp,
+            chainId: 31337,
+            networkId: 1,
+            blockGasLimit: 12500000,
+            minGasPrice: BigInt(0),
+            automine: true,
+            intervalMining: 0,
+            mempoolOrder: "fifo",
+            chains: new Map(),
+            genesisAccounts: [],
+            allowUnlimitedContractSize: false,
+            throwOnTransactionFailures: true,
+            throwOnCallFailures: true,
+            allowBlocksWithSameTimestamp: false,
+            enableTransientStorage: false,
+            enableRip7212: false,
+
+            // chainId: resolvedNetworkConfig.chainId,
+            // networkId: resolvedNetworkConfig.networkId,
+            // blockGasLimit: resolvedNetworkConfig.blockGasLimit,
+            // minGasPrice: resolvedNetworkConfig.minGasPrice,
+            // automine: resolvedNetworkConfig.automine,
+            // intervalMining: resolvedNetworkConfig.intervalMining,
+            // mempoolOrder: resolvedNetworkConfig.mempoolOrder,
+            // chains: resolvedNetworkConfig.chains,
+            // genesisAccounts: resolvedNetworkConfig.genesisAccounts,
+            // allowUnlimitedContractSize:
+            //   resolvedNetworkConfig.allowUnlimitedContractSize,
+            // throwOnTransactionFailures:
+            //   resolvedNetworkConfig.throwOnTransactionFailures,
+            // throwOnCallFailures: resolvedNetworkConfig.throwOnCallFailures,
+            // allowBlocksWithSameTimestamp:
+            //   resolvedNetworkConfig.allowBlocksWithSameTimestamp,
           },
           { enabled: false },
         );
