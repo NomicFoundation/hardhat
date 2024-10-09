@@ -1,11 +1,12 @@
 import util from "node:util";
 
 import {
-  bytesToBigInt,
   bytesToHex as bufferToHex,
   bytesToInt,
   fromSigned,
 } from "@nomicfoundation/ethereumjs-util";
+
+import { bytesToBigInt } from "@ignored/hardhat-vnext-utils";
 
 import {
   AddressTy,
