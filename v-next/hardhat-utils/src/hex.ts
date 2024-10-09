@@ -179,7 +179,7 @@ export function getUnprefixedHexString(hexString: string): string {
  * @param hexString The hexadecimal string.
  * @returns The hexadecimal string with the "0x" prefix.
  */
-export function getPrefixedHexString(hexString: string): string {
+export function getPrefixedHexString(hexString: string): PrefixedHexString {
   return isPrefixedHexString(hexString) ? hexString : `0x${hexString}`;
 }
 
