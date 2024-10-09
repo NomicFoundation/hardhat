@@ -52,6 +52,8 @@ import {
   InvalidInputError,
   ProviderError,
 } from "./errors.js";
+import { encodeSolidityStackTrace } from "./stack-traces/stack-trace-solidity-errors.js";
+import { createVmTraceDecoder } from "./stack-traces/stack-traces.js";
 import { clientVersion } from "./utils/client-version.js";
 import { ConsoleLogger } from "./utils/console-logger.js";
 import {
@@ -62,8 +64,6 @@ import {
 } from "./utils/convert-to-edr.js";
 import { getHardforkName } from "./utils/hardfork.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
-import { encodeSolidityStackTrace } from "./utils/stack-trace-solidity-errors.js";
-import { createVmTraceDecoder } from "./utils/stack-traces.js";
 
 export type IntervalMiningConfig = number | [number, number];
 

@@ -2,12 +2,12 @@ import type {
   SolidityStackTrace,
   SolidityStackTraceEntry,
   SourceReference,
-} from "../stack-traces/solidity-stack-trace.js";
+} from "./solidity-stack-trace.js";
 
 import { bytesToHexString as bufferToHex } from "@ignored/hardhat-vnext-utils/bytes";
 import { ReturnData } from "@nomicfoundation/edr";
 
-import { panicErrorCodeToMessage } from "../stack-traces/panic-errors.js";
+import { panicErrorCodeToMessage } from "./panic-errors.js";
 import {
   CONSTRUCTOR_FUNCTION_NAME,
   PRECOMPILE_FUNCTION_NAME,
@@ -15,7 +15,7 @@ import {
   UNKNOWN_FUNCTION_NAME,
   UNRECOGNIZED_CONTRACT_NAME,
   UNRECOGNIZED_FUNCTION_NAME,
-} from "../stack-traces/solidity-stack-trace.js";
+} from "./solidity-stack-trace.js";
 
 export function encodeSolidityStackTrace(
   fallbackMessage: string,
