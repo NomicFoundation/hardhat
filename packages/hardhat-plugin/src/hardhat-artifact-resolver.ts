@@ -14,6 +14,17 @@ export class HardhatArtifactResolver implements ArtifactResolver {
   public async getBuildInfo(
     contractName: string
   ): Promise<BuildInfo | undefined> {
+    // If a fully qualified name is used, we can can
+    // leverage the artifact manager directly to load the build
+    // info.
+    if (this._isFullyQualifiedName(contractName)) {
+      return this._hre.artifacts.getBuildInfo(contractName);
+    }
+
+    // Otherwise we have only the contract name, and need to
+    // resolve the artifact for the contract ourselves.
+    // We can build on the assumption that the contract name
+    // is unique based on Module validation.
     const artifactPath = await this._resolvePath(contractName);
 
     if (artifactPath === undefined) {
@@ -50,5 +61,15 @@ export class HardhatArtifactResolver implements ArtifactResolver {
 
   public loadArtifact(contractName: string): Promise<Artifact> {
     return this._hre.artifacts.readArtifact(contractName);
+  }
+
+  /**
+   * Returns true if a name is fully qualified, and not just a bare contract name.
+   *
+   * This is based on Hardhat's own test for fully qualified names, taken
+   * from `contract-names.ts` in `hardhat-core` utils.
+   */
+  private _isFullyQualifiedName(contractName: string): boolean {
+    return contractName.includes(":");
   }
 }
