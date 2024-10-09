@@ -12,6 +12,9 @@
     },
     {
       "path": "../hardhat-test-utils"
+    },
+    {
+      "path": "../hardhat-utils"
     }
   ]
 }
