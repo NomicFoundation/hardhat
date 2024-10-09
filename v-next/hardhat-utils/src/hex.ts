@@ -218,7 +218,10 @@ export function unpadHexString(hexString: string): string {
  * @param length The desired length of the hexadecimal string.
  * @returns The padded hexadecimal string.
  */
-export function setLengthLeft(hexString: string, length: number): string {
+export function setLengthLeft(
+  hexString: string,
+  length: number,
+): PrefixedHexString {
   const unprefixedHexString = getUnprefixedHexString(hexString);
 
   // if the string is longer than the desired length, truncate it
