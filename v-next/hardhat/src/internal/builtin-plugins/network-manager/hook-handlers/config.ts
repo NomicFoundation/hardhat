@@ -1,7 +1,7 @@
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import type {
   ConfigurationVariable,
   EdrNetworkConfig,
+  EdrNetworkUserConfig,
   GasConfig,
   GasUserConfig,
   HardhatConfig,
@@ -13,8 +13,9 @@ import type {
 } from "../../../../types/config.js";
 import type { ConfigHooks } from "../../../../types/hooks.js";
 
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
+
 import { validateUserConfig } from "../type-validation.js";
-import { network } from "../../../../index.js";
 
 export default async (): Promise<Partial<ConfigHooks>> => ({
   extendUserConfig,
@@ -31,18 +32,28 @@ export async function extendUserConfig(
   const networks: Record<string, NetworkUserConfig> =
     extendedConfig.networks ?? {};
 
+  const defaultLocalhostNetwork: EdrNetworkUserConfig = {
+    type: "edr",
+    chainId: 31337,
+    chainType: "l1",
+    gas: "auto",
+    gasMultiplier: 1,
+    gasPrice: "auto",
+  };
+
+  const localhost: EdrNetworkUserConfig =
+    networks.localhost !== undefined && networks.localhost.type === "edr"
+      ? {
+          ...defaultLocalhostNetwork,
+          ...networks.localhost,
+        }
+      : defaultLocalhostNetwork;
+
   return {
     ...extendedConfig,
     networks: {
       ...networks,
-      localhost: networks.localhost ?? {
-        type: "edr",
-        chainId: 31337,
-        chainType: "l1",
-        gas: "auto",
-        gasMultiplier: 1,
-        gasPrice: "auto",
-      },
+      localhost,
     },
   };
 }

@@ -38,9 +38,10 @@ declare module "../../../../types/config.js" {
     chainId: number;
     chainType?: ChainType;
     from?: string;
-    gas: GasUserConfig;
-    gasMultiplier: number;
-    gasPrice: GasUserConfig;
+    // TODO: confirm these should be made optional
+    gas?: GasUserConfig;
+    gasMultiplier?: number;
+    gasPrice?: GasUserConfig;
 
     // EDR network specific
     hardfork?: string;
@@ -98,10 +99,10 @@ declare module "../../../../types/config.js" {
     HardhatNetworkChainConfig
   >;
 
-  export type GenesisAccount = {
+  export interface GenesisAccount {
     privateKey: string;
     balance: string | number | bigint;
-  };
+  }
 
   export interface EdrNetworkConfig {
     type: "edr";

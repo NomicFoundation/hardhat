@@ -1,5 +1,6 @@
 import type { HardhatRuntimeEnvironment } from "../../../../../src/types/hre.js";
 import type {
+  EdrNetworkUserConfig,
   HardhatConfig,
   HardhatUserConfig,
 } from "@ignored/hardhat-vnext/types/config";
@@ -17,6 +18,15 @@ import { ResolvedConfigurationVariableImplementation } from "../../../../../src/
 
 describe("network-manager/hook-handlers/config", () => {
   describe("extendUserConfig", () => {
+    const expectedLocalhostNetwork: EdrNetworkUserConfig = {
+      type: "edr",
+      chainId: 31337,
+      chainType: "l1",
+      gas: "auto",
+      gasMultiplier: 1,
+      gasPrice: "auto",
+    };
+
     it("should extend the user config with the localhost network", async () => {
       const config: HardhatUserConfig = {};
       const next = async (nextConfig: HardhatUserConfig) => nextConfig;
@@ -26,19 +36,18 @@ describe("network-manager/hook-handlers/config", () => {
         extendedConfig.networks?.localhost !== undefined,
         "localhost network should be defined",
       );
-      assert.deepEqual(extendedConfig.networks?.localhost, {
-        url: "http://localhost:8545",
-        type: "http",
-      });
+      assert.deepEqual(
+        extendedConfig.networks?.localhost,
+        expectedLocalhostNetwork,
+      );
     });
 
     it("should allow setting other properties of the localhost network", async () => {
       const config: HardhatUserConfig = {
         networks: {
           localhost: {
-            url: "http://localhost:8545",
-            type: "http",
-            timeout: 10_000,
+            type: "edr",
+            chainId: 1234,
           },
         },
       };
@@ -46,27 +55,8 @@ describe("network-manager/hook-handlers/config", () => {
 
       const extendedConfig = await extendUserConfig(config, next);
       assert.deepEqual(extendedConfig.networks?.localhost, {
-        url: "http://localhost:8545",
-        type: "http",
-        timeout: 10_000,
-      });
-    });
-
-    it("should allow overriding the url of the localhost network", async () => {
-      const config: HardhatUserConfig = {
-        networks: {
-          localhost: {
-            url: "http://localhost:1234",
-            type: "http",
-          },
-        },
-      };
-      const next = async (nextConfig: HardhatUserConfig) => nextConfig;
-
-      const extendedConfig = await extendUserConfig(config, next);
-      assert.deepEqual(extendedConfig.networks?.localhost, {
-        url: "http://localhost:1234",
-        type: "http",
+        ...expectedLocalhostNetwork,
+        chainId: 1234,
       });
     });
 
@@ -84,8 +74,8 @@ describe("network-manager/hook-handlers/config", () => {
       -- testing invalid network type for js users */
       const extendedConfig = await extendUserConfig(config as any, next);
       assert.deepEqual(extendedConfig.networks?.localhost, {
-        url: "http://localhost:8545",
-        type: "http",
+        ...expectedLocalhostNetwork,
+        type: "edr",
       });
     });
   });

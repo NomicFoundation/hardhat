@@ -47,7 +47,6 @@ import {
   HARDHAT_NETWORK_RESET_EVENT,
   HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
 } from "../../../constants.js";
-import { requireNapiRsModule } from "../utils/require-napi-rs-module.js";
 
 import {
   InvalidArgumentsError,
@@ -58,9 +57,6 @@ import { clientVersion } from "./utils/client-version.js";
 import { ConsoleLogger } from "./utils/console-logger.js";
 import {
   edrRpcDebugTraceToHardhat,
-  edrTracingMessageResultToMinimalEVMResult,
-  edrTracingMessageToMinimalMessage,
-  edrTracingStepToMinimalInterpreterStep,
   ethereumjsIntervalMiningConfigToEdr,
   ethereumjsMempoolOrderToEdrMineOrdering,
   ethereumsjsHardforkToEdrSpecId,

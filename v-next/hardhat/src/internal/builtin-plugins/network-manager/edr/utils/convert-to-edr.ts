@@ -5,21 +5,11 @@ import type {
 } from "../types/node-types.js";
 import type { RpcDebugTraceOutput, RpcStructLog } from "../types/output.js";
 import type {
-  MinimalEVMResult,
-  MinimalInterpreterStep,
-  MinimalMessage,
-} from "../types/vm.js";
-import type {
   SpecId,
   MineOrdering,
   IntervalRange,
   DebugTraceResult,
-  TracingMessage,
-  TracingMessageResult,
-  TracingStep,
 } from "@nomicfoundation/edr";
-
-import { Address } from "@nomicfoundation/ethereumjs-util";
 
 import { HardforkName } from "../types/hardfork.js";
 
@@ -204,76 +194,5 @@ export function edrRpcDebugTraceToHardhat(
     gas: Number(rpcDebugTrace.gasUsed),
     returnValue,
     structLogs,
-  };
-}
-
-export function edrTracingStepToMinimalInterpreterStep(
-  step: TracingStep,
-): MinimalInterpreterStep {
-  const minimalInterpreterStep: MinimalInterpreterStep = {
-    pc: Number(step.pc),
-    depth: step.depth,
-    opcode: {
-      name: step.opcode,
-    },
-    stack: step.stack,
-  };
-
-  if (step.memory !== undefined) {
-    minimalInterpreterStep.memory = step.memory;
-  }
-
-  return minimalInterpreterStep;
-}
-
-export function edrTracingMessageResultToMinimalEVMResult(
-  tracingMessageResult: TracingMessageResult,
-): MinimalEVMResult {
-  const { result, contractAddress } = tracingMessageResult.executionResult;
-
-  // only SuccessResult has logs
-  const success = "logs" in result;
-
-  const minimalEVMResult: MinimalEVMResult = {
-    execResult: {
-      executionGasUsed: result.gasUsed,
-      success,
-    },
-  };
-
-  // only success and exceptional halt have reason
-  if ("reason" in result) {
-    minimalEVMResult.execResult.reason = result.reason;
-  }
-  if ("output" in result) {
-    const { output } = result;
-    if (Buffer.isBuffer(output)) {
-      minimalEVMResult.execResult.output = output;
-    } else {
-      minimalEVMResult.execResult.output = output.returnValue;
-    }
-  }
-
-  if (contractAddress !== undefined) {
-    minimalEVMResult.execResult.contractAddress = new Address(contractAddress);
-  }
-
-  return minimalEVMResult;
-}
-
-export function edrTracingMessageToMinimalMessage(
-  message: TracingMessage,
-): MinimalMessage {
-  return {
-    to: message.to !== undefined ? new Address(message.to) : undefined,
-    codeAddress:
-      message.codeAddress !== undefined
-        ? new Address(message.codeAddress)
-        : undefined,
-    data: message.data,
-    value: message.value,
-    caller: new Address(message.caller),
-    gasLimit: message.gasLimit,
-    isStaticCall: message.isStaticCall,
   };
 }
