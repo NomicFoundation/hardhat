@@ -1,6 +1,13 @@
 import type { PrefixedHexString } from "./hex.js";
 
-import { bytesToHexString, numberToHexString, setLengthLeft } from "./hex.js";
+import { LinkReferenceError } from "./errors/eth.js";
+import {
+  bytesToHexString,
+  getPrefixedHexString,
+  getUnprefixedHexString,
+  numberToHexString,
+  setLengthLeft,
+} from "./hex.js";
 import {
   getAddressGenerator,
   getHashGenerator,
@@ -24,6 +31,23 @@ export type Address = PrefixedHexString;
  * If you need to validate the hash, you can use the `isHash` function.
  */
 export type Hash = PrefixedHexString;
+
+/**
+ * A map of library names to their addresses. The keys can be contract names or
+ * fully qualified names in the form `sourceName:contractName`.
+ */
+export interface LibraryAddresses {
+  [contractName: string]: Address;
+}
+
+/**
+ * Represents a library reference.
+ */
+export interface Library {
+  sourceName: string;
+  contractName: string;
+  address: Address;
+}
 
 /**
  * Checks if a value is an Ethereum address.
@@ -106,4 +130,53 @@ export async function generateAddressBytes(): Promise<Uint8Array> {
 export async function randomAddress(): Promise<Address> {
   const addressBytes = await generateAddressBytes();
   return bytesToHexString(addressBytes);
+}
+
+interface Artifact {
+  bytecode: string;
+  linkReferences: {
+    [sourceName: string]: {
+      [libraryName: string]: Array<{ start: number; length: number }>;
+    };
+  };
+}
+
+/**
+ * Links the bytecode of a contract with the provided library addresses.
+ *
+ * This function replaces placeholders in the bytecode with the actual
+ * addresses of the libraries. It throws an error if the link references
+ * for a library are undefined.
+ *
+ * @param artifact The artifact containing the bytecode and link references.
+ * @param libraries An array of libraries with their source names, contract
+ * names, and addresses.
+ * @returns The linked bytecode as a prefixed hexadecimal string.
+ * @throws LinkReferenceError If the link references for a library are undefined.
+ */
+export function linkBytecode(
+  artifact: Artifact,
+  libraries: Library[],
+): PrefixedHexString {
+  const { bytecode, linkReferences } = artifact;
+  let linkedBytecode = bytecode;
+
+  for (const { sourceName, contractName, address } of libraries) {
+    const contractLinkReferences = linkReferences[sourceName]?.[contractName];
+
+    if (contractLinkReferences === undefined) {
+      throw new LinkReferenceError(sourceName, contractName);
+    }
+
+    const unprefixedAddress = getUnprefixedHexString(address);
+
+    for (const { start, length } of contractLinkReferences) {
+      linkedBytecode =
+        linkedBytecode.substring(0, 2 + start * 2) +
+        unprefixedAddress +
+        linkedBytecode.substring(2 + (start + length) * 2);
+    }
+  }
+
+  return getPrefixedHexString(linkedBytecode);
 }
