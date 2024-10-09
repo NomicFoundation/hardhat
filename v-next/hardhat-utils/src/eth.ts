@@ -8,12 +8,30 @@ import {
 } from "./internal/eth.js";
 
 /**
+ * Represents an Ethereum address.
+ *
+ * Note: TypeScript does not have a way to represent strings with a fixed
+ * length, so we use an alias to represent addresses starting with "0x".
+ * If you need to validate the address, you can use the `isAddress` function.
+ */
+export type Address = PrefixedHexString;
+
+/**
+ * Represents a hash value.
+ *
+ * Note: TypeScript does not have a way to represent strings with a fixed
+ * length, so we use an alias to represent hashes starting with "0x".
+ * If you need to validate the hash, you can use the `isHash` function.
+ */
+export type Hash = PrefixedHexString;
+
+/**
  * Checks if a value is an Ethereum address.
  *
  * @param value The value to check.
  * @returns True if the value is an Ethereum address, false otherwise.
  */
-export function isAddress(value: unknown): boolean {
+export function isAddress(value: unknown): value is Address {
   return typeof value === "string" && /^0x[0-9a-f]{40}$/i.test(value);
 }
 
@@ -24,9 +42,7 @@ export function isAddress(value: unknown): boolean {
  * @returns True if the value is an Ethereum address with a valid checksum, false otherwise.
  */
 export async function isValidChecksumAddress(value: unknown): Promise<boolean> {
-  return (
-    typeof value === "string" && isAddress(value) && isValidChecksum(value)
-  );
+  return isAddress(value) && isValidChecksum(value);
 }
 
 /**
@@ -35,7 +51,7 @@ export async function isValidChecksumAddress(value: unknown): Promise<boolean> {
  * @param value The value to check.
  * @returns True if the value is an Ethereum hash, false otherwise.
  */
-export function isHash(value: unknown): boolean {
+export function isHash(value: unknown): value is Hash {
   return typeof value === "string" && /^0x[0-9a-f]{64}$/i.test(value);
 }
 
@@ -46,7 +62,7 @@ export function isHash(value: unknown): boolean {
  * @returns The hexadecimal representation of the number padded to 32 bytes.
  * @throws InvalidParameterError If the input is not a safe integer or is negative.
  */
-export function toEvmWord(value: bigint | number): string {
+export function toEvmWord(value: bigint | number): Hash {
   return setLengthLeft(numberToHexString(value), 64);
 }
 
@@ -65,7 +81,7 @@ export async function generateHashBytes(): Promise<Uint8Array> {
  *
  * @returns A pseudo-random hash.
  */
-export async function randomHash(): Promise<PrefixedHexString> {
+export async function randomHash(): Promise<Hash> {
   const hashBytes = await generateHashBytes();
   return bytesToHexString(hashBytes);
 }
@@ -87,7 +103,7 @@ export async function generateAddressBytes(): Promise<Uint8Array> {
  *
  * @returns A pseudo-random address.
  */
-export async function randomAddress(): Promise<PrefixedHexString> {
+export async function randomAddress(): Promise<Address> {
   const addressBytes = await generateAddressBytes();
   return bytesToHexString(addressBytes);
 }
