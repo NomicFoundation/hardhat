@@ -105,7 +105,7 @@ export function normalizeHexString(hexString: string): PrefixedHexString {
     );
   }
 
-  return isHexStringPrefixed(normalizedHexString)
+  return isPrefixedHexString(normalizedHexString)
     ? normalizedHexString
     : `0x${normalizedHexString}`;
 }
@@ -117,7 +117,7 @@ export function normalizeHexString(hexString: string): PrefixedHexString {
  * @param hexString The string to check.
  * @returns True if the string starts with "0x", false otherwise.
  */
-export function isHexStringPrefixed(
+export function isPrefixedHexString(
   hexString: string,
 ): hexString is PrefixedHexString {
   return hexString.toLowerCase().startsWith("0x");
@@ -132,7 +132,7 @@ export function isHexStringPrefixed(
  * @returns The hexadecimal string without the "0x" prefix.
  */
 export function getUnprefixedHexString(hexString: string): string {
-  return isHexStringPrefixed(hexString) ? hexString.substring(2) : hexString;
+  return isPrefixedHexString(hexString) ? hexString.substring(2) : hexString;
 }
 
 /**
@@ -144,7 +144,7 @@ export function getUnprefixedHexString(hexString: string): string {
  * @returns The hexadecimal string with the "0x" prefix.
  */
 export function getPrefixedHexString(hexString: string): string {
-  return isHexStringPrefixed(hexString) ? hexString : `0x${hexString}`;
+  return isPrefixedHexString(hexString) ? hexString : `0x${hexString}`;
 }
 
 /**
