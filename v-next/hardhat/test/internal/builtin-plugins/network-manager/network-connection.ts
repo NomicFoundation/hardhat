@@ -19,6 +19,7 @@ describe("NetworkConnectionImplementation", () => {
     url: "http://localhost:8545",
     timeout: 20_000,
     httpHeaders: {},
+    accounts: [],
   };
 
   describe("NetworkConnectionImplementation.create", () => {

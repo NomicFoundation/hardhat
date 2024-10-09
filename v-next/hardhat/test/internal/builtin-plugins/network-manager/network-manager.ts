@@ -31,6 +31,7 @@ describe("NetworkManagerImplementation", () => {
       url: "http://localhost:8545",
       timeout: 20_000,
       httpHeaders: {},
+      accounts: [],
     },
     customNetwork: {
       type: "http",
@@ -43,6 +44,7 @@ describe("NetworkManagerImplementation", () => {
       url: "http://node.customNetwork.com",
       timeout: 20_000,
       httpHeaders: {},
+      accounts: [],
     },
     myNetwork: {
       type: "http",
@@ -55,6 +57,7 @@ describe("NetworkManagerImplementation", () => {
       url: "http://node.myNetwork.com",
       timeout: 20_000,
       httpHeaders: {},
+      accounts: [],
     },
   };
 
