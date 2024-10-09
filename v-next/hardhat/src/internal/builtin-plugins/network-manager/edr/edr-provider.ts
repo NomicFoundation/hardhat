@@ -7,7 +7,6 @@ import type {
   NodeConfig,
   TracingConfig,
 } from "./types/node-types.js";
-import type { MinimalEthereumJsVm } from "./utils/vm.js";
 import type {
   CompilerInput,
   CompilerOutput,
@@ -71,7 +70,6 @@ import { printLine, replaceLastLine } from "./utils/logger.js";
 import { makeCommon } from "./utils/make-common.js";
 import { encodeSolidityStackTrace } from "./utils/stack-trace-solidity-errors.js";
 import { createVmTraceDecoder } from "./utils/stack-traces.js";
-import { getMinimalEthereumJsVm } from "./utils/vm.js";
 
 export type IntervalMiningConfig = number | [number, number];
 
@@ -150,9 +148,6 @@ class EdrProviderEventAdapter extends EventEmitter {}
 export class EdrProvider extends EventEmitter implements EthereumProvider {
   public readonly common: Common;
   readonly #provider: EdrProviderT;
-  readonly #node: {
-    _vm: MinimalEthereumJsVm;
-  };
   readonly #vmTraceDecoder: VmTraceDecoder;
 
   #failedStackTraces: number = 0;
@@ -165,11 +160,8 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
     loggerConfig: LoggerConfig,
     tracingConfig?: TracingConfig,
   ): Promise<EdrProvider> {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- hack
-    const { Provider } = requireNapiRsModule(
-      "@nomicfoundation/edr",
-      // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- hack
-    ) as typeof import("@nomicfoundation/edr");
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- hack, was a wrapped require
+    const { Provider } = await import("@nomicfoundation/edr");
 
     const coinbase = config.coinbase ?? DEFAULT_COINBASE;
 
@@ -264,15 +256,10 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
       },
     );
 
-    const minimalEthereumJsNode = {
-      _vm: getMinimalEthereumJsVm(provider),
-    };
-
     const common = makeCommon(getNodeConfig(config));
 
     const edrProvider = new EdrProvider(
       provider,
-      minimalEthereumJsNode,
       vmTraceDecoder,
       common,
       tracingConfig,
@@ -283,10 +270,6 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
 
   constructor(
     provider: EdrProviderT,
-    // we add this for backwards-compatibility with plugins like solidity-coverage
-    node: {
-      _vm: MinimalEthereumJsVm;
-    },
     vmTraceDecoder: VmTraceDecoder,
     // The common configuration for EthereumJS VM is not used by EDR, but tests expect it as part of the provider.
     common: Common,
@@ -295,7 +278,6 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
     super();
 
     this.#provider = provider;
-    this.#node = node;
     this.#vmTraceDecoder = vmTraceDecoder;
     this.common = common;
 
@@ -348,58 +330,13 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
       response = responseObject.data;
     }
 
-    const needsTraces =
-      this.#node._vm.evm.events.eventNames().length > 0 ||
-      this.#node._vm.events.eventNames().length > 0 ||
-      this.#vmTracer !== undefined;
+    const needsTraces = this.#vmTracer !== undefined;
 
     if (needsTraces) {
       const rawTraces = responseObject.traces;
+
       for (const rawTrace of rawTraces) {
         this.#vmTracer?.observe(rawTrace);
-
-        // For other consumers in JS we need to marshall the entire trace over FFI
-        const trace = rawTrace.trace();
-
-        // beforeTx event
-        if (this.#node._vm.events.listenerCount("beforeTx") > 0) {
-          this.#node._vm.events.emit("beforeTx");
-        }
-
-        for (const traceItem of trace) {
-          // step event
-          if ("pc" in traceItem) {
-            if (this.#node._vm.evm.events.listenerCount("step") > 0) {
-              this.#node._vm.evm.events.emit(
-                "step",
-                edrTracingStepToMinimalInterpreterStep(traceItem),
-              );
-            }
-          }
-          // afterMessage event
-          else if ("executionResult" in traceItem) {
-            if (this.#node._vm.evm.events.listenerCount("afterMessage") > 0) {
-              this.#node._vm.evm.events.emit(
-                "afterMessage",
-                edrTracingMessageResultToMinimalEVMResult(traceItem),
-              );
-            }
-          }
-          // beforeMessage event
-          else {
-            if (this.#node._vm.evm.events.listenerCount("beforeMessage") > 0) {
-              this.#node._vm.evm.events.emit(
-                "beforeMessage",
-                edrTracingMessageToMinimalMessage(traceItem),
-              );
-            }
-          }
-        }
-
-        // afterTx event
-        if (this.#node._vm.events.listenerCount("afterTx") > 0) {
-          this.#node._vm.events.emit("afterTx");
-        }
       }
     }
 
