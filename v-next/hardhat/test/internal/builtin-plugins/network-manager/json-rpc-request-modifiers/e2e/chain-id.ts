@@ -31,7 +31,7 @@ describe("e2e - ChainIdValidator", () => {
       });
     });
 
-    it("should fail because the chain id is the same as the one returned by eth_chainId", async () => {
+    it("should fail because the chain id is different from the one returned by eth_chainId", async () => {
       connection.networkConfig.chainId = 2;
 
       await assertRejectsWithHardhatError(
@@ -58,7 +58,7 @@ describe("e2e - ChainIdValidator", () => {
       connection = await hre.network.connect();
     });
 
-    it("should not fail because the chain id is the same as the one returned by eth_chainId", async () => {
+    it("should not fail because the chain id is the same as the one returned by net_version", async () => {
       connection.networkConfig.chainId = 1;
 
       await connection.provider.request({
@@ -67,7 +67,7 @@ describe("e2e - ChainIdValidator", () => {
       });
     });
 
-    it("should fail because the chain id is the same as the one returned by eth_chainId", async () => {
+    it("should fail because the chain id is different from the one returned by net_version", async () => {
       connection.networkConfig.chainId = 2;
 
       await assertRejectsWithHardhatError(

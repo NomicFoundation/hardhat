@@ -17,12 +17,8 @@ const LATEST_BASE_FEE_IN_MOCKED_PROVIDER = 80;
 describe("e2e - AutomaticGasPrice", () => {
   let connection: NetworkConnection<"unknown">;
 
-  const FIXED_GAS_PRICE = 1232;
-
   beforeEach(async () => {
     const hre = await createMockedNetworkHre({
-      eth_gasPrice: numberToHexString(FIXED_GAS_PRICE),
-
       eth_feeHistory: {
         baseFeePerGas: [
           numberToHexString(LATEST_BASE_FEE_IN_MOCKED_PROVIDER),

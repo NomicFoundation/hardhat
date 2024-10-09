@@ -25,7 +25,7 @@ describe("e2e - FixedGasPrice", () => {
     connection.networkConfig.gasPrice = FIXED_GAS_PRICE;
   });
 
-  it("should set the fixed gas if not present", async () => {
+  it("should set the fixed gas price if not present", async () => {
     const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
       {
         from: "0x0000000000000000000000000000000000000011",
