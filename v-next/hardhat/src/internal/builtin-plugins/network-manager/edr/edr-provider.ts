@@ -28,7 +28,6 @@ import type {
   VmTraceDecoder,
   VMTracer as VMTracerT,
 } from "@nomicfoundation/edr";
-import type { Common } from "@nomicfoundation/ethereumjs-common";
 
 import EventEmitter from "node:events";
 import util from "node:util";
@@ -63,7 +62,6 @@ import {
 } from "./utils/convert-to-edr.js";
 import { getHardforkName } from "./utils/hardfork.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
-import { makeCommon } from "./utils/make-common.js";
 import { encodeSolidityStackTrace } from "./utils/stack-trace-solidity-errors.js";
 import { createVmTraceDecoder } from "./utils/stack-traces.js";
 
@@ -142,7 +140,6 @@ export function getNodeConfig(
 class EdrProviderEventAdapter extends EventEmitter {}
 
 export class EdrProvider extends EventEmitter implements EthereumProvider {
-  public readonly common: Common;
   readonly #provider: EdrProviderT;
   readonly #vmTraceDecoder: VmTraceDecoder;
 
@@ -252,12 +249,9 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
       },
     );
 
-    const common = makeCommon(getNodeConfig(config));
-
     const edrProvider = new EdrProvider(
       provider,
       vmTraceDecoder,
-      common,
       tracingConfig,
     );
 
@@ -267,15 +261,12 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
   constructor(
     provider: EdrProviderT,
     vmTraceDecoder: VmTraceDecoder,
-    // The common configuration for EthereumJS VM is not used by EDR, but tests expect it as part of the provider.
-    common: Common,
     tracingConfig?: TracingConfig,
   ) {
     super();
 
     this.#provider = provider;
     this.#vmTraceDecoder = vmTraceDecoder;
-    this.common = common;
 
     if (tracingConfig !== undefined) {
       initializeVmTraceDecoder(this.#vmTraceDecoder, tracingConfig);
