@@ -4,7 +4,7 @@ import hre from "@ignored/hardhat-vnext";
 
 describe("Example test", () => {
   it("should work get the block number from the EDR Network", async () => {
-    const connection = await hre.network.connect("myEdrNetwork", "l1", {});
+    const connection = await hre.network.connect();
 
     const blockNumberAtStart = await connection.provider.request({
       method: "eth_blockNumber",
