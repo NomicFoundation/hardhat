@@ -1485,9 +1485,6 @@ importers:
       '@nomicfoundation/ethereumjs-common':
         specifier: 4.0.4
         version: 4.0.4
-      '@nomicfoundation/ethereumjs-util':
-        specifier: 9.0.4
-        version: 9.0.4
       '@sentry/node':
         specifier: ^5.18.1
         version: 5.30.0

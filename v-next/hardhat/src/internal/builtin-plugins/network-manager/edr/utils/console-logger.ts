@@ -49,7 +49,6 @@ import {
   CONSOLE_LOG_SIGNATURES,
 } from "./console-log-signatures.js";
 
-
 /**
  * TODO: This is pulled from v-next utils. I don't understand why it returns a `number | bigint`
  */

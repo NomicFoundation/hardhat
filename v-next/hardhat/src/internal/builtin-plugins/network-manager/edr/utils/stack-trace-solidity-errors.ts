@@ -4,8 +4,8 @@ import type {
   SourceReference,
 } from "../stack-traces/solidity-stack-trace.js";
 
+import { bytesToHexString as bufferToHex } from "@ignored/hardhat-vnext-utils/bytes";
 import { ReturnData } from "@nomicfoundation/edr";
-import { bytesToHex as bufferToHex } from "@nomicfoundation/ethereumjs-util";
 
 import { panicErrorCodeToMessage } from "../stack-traces/panic-errors.js";
 import {
