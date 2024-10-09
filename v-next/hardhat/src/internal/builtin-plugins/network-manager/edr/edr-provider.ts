@@ -4,7 +4,6 @@ import type { LoggerConfig } from "./types/logger.js";
 import type {
   GenesisAccount,
   MempoolOrder,
-  NodeConfig,
   TracingConfig,
 } from "./types/node-types.js";
 import type {
@@ -107,33 +106,6 @@ export async function getGlobalEdrContext(): Promise<EdrContext> {
   }
 
   return _globalEdrContext;
-}
-
-export function getNodeConfig(
-  config: HardhatNetworkProviderConfig,
-  tracingConfig?: TracingConfig,
-): NodeConfig {
-  return {
-    automine: config.automine,
-    blockGasLimit: config.blockGasLimit,
-    minGasPrice: config.minGasPrice,
-    genesisAccounts: config.genesisAccounts,
-    allowUnlimitedContractSize: config.allowUnlimitedContractSize,
-    tracingConfig,
-    initialBaseFeePerGas: config.initialBaseFeePerGas,
-    mempoolOrder: config.mempoolOrder,
-    hardfork: config.hardfork,
-    chainId: config.chainId,
-    networkId: config.networkId,
-    initialDate: config.initialDate,
-    forkConfig: config.forkConfig,
-    forkCachePath:
-      config.forkConfig !== undefined ? config.forkCachePath : undefined,
-    coinbase: config.coinbase ?? DEFAULT_COINBASE,
-    chains: config.chains,
-    allowBlocksWithSameTimestamp: config.allowBlocksWithSameTimestamp,
-    enableTransientStorage: config.enableTransientStorage,
-  };
 }
 
 // TODO: can this just be an event emitter?
