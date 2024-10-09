@@ -33,6 +33,36 @@ declare module "../../../../types/config.js" {
     httpHeaders?: Record<string, string>;
   }
 
+  // TODO: should these types be re-exported from EDR?
+  export type IntervalMiningConfig = number | [number, number];
+
+  export type MempoolOrder = "fifo" | "priority";
+
+  export type HardforkHistoryConfig = Map<
+    /* hardforkName */ string,
+    /* blockNumber */ number
+  >;
+
+  export interface HardhatNetworkChainConfig {
+    hardforkHistory: HardforkHistoryConfig;
+  }
+
+  export type HardhatNetworkChainsConfig = Map<
+    /* chainId */ number,
+    HardhatNetworkChainConfig
+  >;
+
+  export interface GenesisAccount {
+    privateKey: string;
+    balance: string | number | bigint;
+  }
+
+  export interface ForkConfig {
+    jsonRpcUrl: string;
+    blockNumber?: bigint;
+    httpHeaders?: Record<string, string>;
+  }
+
   export interface EdrNetworkUserConfig {
     type: "edr";
     chainId: number;
@@ -59,6 +89,12 @@ declare module "../../../../types/config.js" {
     allowBlocksWithSameTimestamp?: boolean;
     enableTransientStorage?: boolean;
     enableRip7212?: boolean;
+
+    initialBaseFeePerGas?: number;
+    initialDate?: Date;
+    coinbase?: string;
+    forkConfig?: ForkConfig;
+    forkCachePath?: string;
   }
 
   export type NetworkConfig = HttpNetworkConfig | EdrNetworkConfig;
@@ -78,30 +114,6 @@ declare module "../../../../types/config.js" {
     url: string;
     timeout: number;
     httpHeaders: Record<string, string>;
-  }
-
-  // TODO: should these types be re-exported from EDR?
-  export type IntervalMiningConfig = number | [number, number];
-
-  export type MempoolOrder = "fifo" | "priority";
-
-  export type HardforkHistoryConfig = Map<
-    /* hardforkName */ string,
-    /* blockNumber */ number
-  >;
-
-  export interface HardhatNetworkChainConfig {
-    hardforkHistory: HardforkHistoryConfig;
-  }
-
-  export type HardhatNetworkChainsConfig = Map<
-    /* chainId */ number,
-    HardhatNetworkChainConfig
-  >;
-
-  export interface GenesisAccount {
-    privateKey: string;
-    balance: string | number | bigint;
   }
 
   export interface EdrNetworkConfig {
@@ -130,5 +142,11 @@ declare module "../../../../types/config.js" {
     allowBlocksWithSameTimestamp: boolean;
     enableTransientStorage: boolean;
     enableRip7212: boolean;
+
+    initialBaseFeePerGas?: number;
+    initialDate?: Date;
+    coinbase?: string;
+    forkConfig?: ForkConfig;
+    forkCachePath?: string;
   }
 }

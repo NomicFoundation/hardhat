@@ -1,8 +1,6 @@
 /* eslint-disable no-restricted-syntax -- hack */
-import type {
-  IntervalMiningConfig,
-  MempoolOrder,
-} from "../types/node-types.js";
+import type { IntervalMiningConfig } from "../../../../../types/config.js";
+import type { MempoolOrder } from "../types/node-types.js";
 import type { RpcDebugTraceOutput, RpcStructLog } from "../types/output.js";
 import type {
   SpecId,

@@ -6,11 +6,4 @@ export interface TracingConfig {
   ignoreContracts?: boolean;
 }
 
-export type IntervalMiningConfig = number | [number, number];
-
 export type MempoolOrder = (typeof HARDHAT_MEMPOOL_SUPPORTED_ORDERS)[number];
-
-export interface GenesisAccount {
-  privateKey: string;
-  balance: string | number | bigint;
-}

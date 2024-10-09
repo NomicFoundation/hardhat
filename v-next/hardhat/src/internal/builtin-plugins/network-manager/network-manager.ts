@@ -143,32 +143,7 @@ export class NetworkManagerImplementation {
       );
 
       if (resolvedNetworkConfig.type === "edr") {
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- placeholder
-        return EdrProvider.create(
-          {
-            hardfork: resolvedNetworkConfig.hardfork,
-            chainId: resolvedNetworkConfig.chainId,
-            networkId: resolvedNetworkConfig.networkId,
-            blockGasLimit: resolvedNetworkConfig.blockGasLimit,
-            minGasPrice: resolvedNetworkConfig.minGasPrice,
-            automine: resolvedNetworkConfig.automine,
-            intervalMining: resolvedNetworkConfig.intervalMining,
-            mempoolOrder: resolvedNetworkConfig.mempoolOrder,
-            chains: resolvedNetworkConfig.chains,
-            genesisAccounts: resolvedNetworkConfig.genesisAccounts,
-            allowUnlimitedContractSize:
-              resolvedNetworkConfig.allowUnlimitedContractSize,
-            throwOnTransactionFailures:
-              resolvedNetworkConfig.throwOnTransactionFailures,
-            throwOnCallFailures: resolvedNetworkConfig.throwOnCallFailures,
-            allowBlocksWithSameTimestamp:
-              resolvedNetworkConfig.allowBlocksWithSameTimestamp,
-            enableTransientStorage:
-              resolvedNetworkConfig.enableTransientStorage,
-            enableRip7212: resolvedNetworkConfig.enableRip7212,
-          },
-          { enabled: false },
-        );
+        return EdrProvider.create(resolvedNetworkConfig, { enabled: false });
       }
 
       return HttpProvider.create({

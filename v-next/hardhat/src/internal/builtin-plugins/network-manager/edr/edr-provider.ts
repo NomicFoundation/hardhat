@@ -1,15 +1,12 @@
 import type { SolidityStackTrace } from "./stack-traces/solidity-stack-trace.js";
 import type { HardhatNetworkChainsConfig } from "./types/config.js";
 import type { LoggerConfig } from "./types/logger.js";
-import type {
-  GenesisAccount,
-  MempoolOrder,
-  TracingConfig,
-} from "./types/node-types.js";
+import type { TracingConfig } from "./types/node-types.js";
 import type {
   CompilerInput,
   CompilerOutput,
 } from "../../../../types/artifacts.js";
+import type { EdrNetworkConfig } from "../../../../types/config.js";
 import type {
   EthereumProvider,
   FailedJsonRpcResponse,
@@ -20,7 +17,6 @@ import type {
 import type {
   RawTrace,
   EdrContext,
-  ForkConfig,
   SubscriptionEvent,
   Provider as EdrProviderT,
   Response,
@@ -64,33 +60,6 @@ import {
 import { getHardforkName } from "./utils/hardfork.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
 
-export type IntervalMiningConfig = number | [number, number];
-
-interface HardhatNetworkProviderConfig {
-  hardfork: string;
-  chainId: number;
-  networkId: number;
-  blockGasLimit: number;
-  minGasPrice: bigint;
-  automine: boolean;
-  intervalMining: IntervalMiningConfig;
-  mempoolOrder: MempoolOrder;
-  chains: HardhatNetworkChainsConfig;
-  genesisAccounts: GenesisAccount[];
-  allowUnlimitedContractSize: boolean;
-  throwOnTransactionFailures: boolean;
-  throwOnCallFailures: boolean;
-  allowBlocksWithSameTimestamp: boolean;
-
-  initialBaseFeePerGas?: number;
-  initialDate?: Date;
-  coinbase?: string;
-  forkConfig?: ForkConfig;
-  forkCachePath?: string;
-  enableTransientStorage: boolean;
-  enableRip7212: boolean;
-}
-
 const log = debug("hardhat:core:hardhat-network:provider");
 
 export const DEFAULT_COINBASE = "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e";
@@ -121,7 +90,7 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
   #vmTracer?: VMTracerT;
 
   public static async create(
-    config: HardhatNetworkProviderConfig,
+    config: EdrNetworkConfig,
     loggerConfig: LoggerConfig,
     tracingConfig?: TracingConfig,
   ): Promise<EdrProvider> {
