@@ -35,10 +35,13 @@ export async function extendUserConfig(
     ...extendedConfig,
     networks: {
       ...networks,
-      localhost: {
-        url: "http://localhost:8545",
-        ...networks.localhost,
-        type: "http",
+      localhost: networks.localhost ?? {
+        type: "edr",
+        chainId: 31337,
+        chainType: "l1",
+        gas: "auto",
+        gasMultiplier: 1,
+        gasPrice: "auto",
       },
     },
   };
