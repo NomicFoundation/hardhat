@@ -21,7 +21,7 @@ export class AutomaticGas extends MultipliedGasEstimation {
     if (args.method === "eth_sendTransaction") {
       const params = getParams(args);
 
-      // TODO: Should we validate this type?
+      // TODO: from V2 - Should we validate this type?
       const tx = params[0];
       if (tx !== undefined && tx.gas === undefined) {
         tx.gas = await this.getMultipliedGasEstimation(params);

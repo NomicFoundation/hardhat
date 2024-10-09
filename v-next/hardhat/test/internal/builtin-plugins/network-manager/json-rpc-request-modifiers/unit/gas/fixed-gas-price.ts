@@ -1,11 +1,10 @@
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
-import { FixedGasPrice } from "../../../../../../src/internal/builtin-plugins/network-manager/json-request-modifiers/gas-properties/fixed-gas-price.js";
-import { createJsonRpcRequest, createNetworkConfig } from "../helpers.js";
+import { FixedGasPrice } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc-request-modifiers/gas-properties/fixed-gas-price.js";
+import { createJsonRpcRequest, getParams } from "../../helpers.js";
 
 describe("FixedGasPrice", () => {
   let fixedGasPriceProvider: FixedGasPrice;
@@ -13,9 +12,7 @@ describe("FixedGasPrice", () => {
   const FIXED_GAS_PRICE = 1234n;
 
   beforeEach(() => {
-    const networkConfig = createNetworkConfig({ gasPrice: FIXED_GAS_PRICE });
-
-    fixedGasPriceProvider = new FixedGasPrice(networkConfig);
+    fixedGasPriceProvider = new FixedGasPrice(FIXED_GAS_PRICE);
   });
 
   it("should set the fixed gasPrice if not present", async () => {
@@ -29,13 +26,8 @@ describe("FixedGasPrice", () => {
 
     fixedGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-    assertHardhatInvariant(
-      Array.isArray(jsonRpcRequest.params),
-      "params should be an array",
-    );
-
     assert.equal(
-      jsonRpcRequest.params[0].gasPrice,
+      getParams(jsonRpcRequest)[0].gasPrice,
       numberToHexString(FIXED_GAS_PRICE),
     );
   });
@@ -52,12 +44,7 @@ describe("FixedGasPrice", () => {
 
     fixedGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-    assertHardhatInvariant(
-      Array.isArray(jsonRpcRequest.params),
-      "params should be an array",
-    );
-
-    assert.equal(jsonRpcRequest.params[0].gasPrice, 14567);
+    assert.equal(getParams(jsonRpcRequest)[0].gasPrice, 14567);
   });
 
   it("should forward the other calls and not modify the gasPrice", async () => {
@@ -71,11 +58,6 @@ describe("FixedGasPrice", () => {
 
     fixedGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-    assertHardhatInvariant(
-      Array.isArray(jsonRpcRequest.params),
-      "params should be an array",
-    );
-
-    assert.equal(jsonRpcRequest.params[0].gas, undefined);
+    assert.equal(getParams(jsonRpcRequest)[0].gas, undefined);
   });
 });

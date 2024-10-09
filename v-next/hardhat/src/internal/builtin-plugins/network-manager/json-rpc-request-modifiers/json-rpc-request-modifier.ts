@@ -10,19 +10,16 @@ import type { NetworkConfig } from "@ignored/hardhat-vnext/types/config";
 
 import { deepClone } from "@ignored/hardhat-vnext-utils/lang";
 
-import { ChainIdValidator } from "./chain-id/chain-id.js";
+import { ChainIdValidator } from "./chain-id/chain-id-validator.js";
 import { AutomaticGasPrice } from "./gas-properties/automatic-gas-price.js";
 import { AutomaticGas } from "./gas-properties/automatic-gas.js";
 import { FixedGasPrice } from "./gas-properties/fixed-gas-price.js";
 import { FixedGas } from "./gas-properties/fixed-gas.js";
 import { isResolvedHttpNetworkConfig } from "./utils.js";
 
-export class JsonRequestModifier {
+export class JsonRpcRequestModifier {
   readonly #provider: EthereumProvider;
   readonly #networkConfig: NetworkConfig;
-
-  // accounts
-  // #accounts TODO
 
   // chainId
   #chainIdValidator: ChainIdValidator | undefined;
@@ -44,11 +41,9 @@ export class JsonRequestModifier {
     jsonRpcRequest: JsonRpcRequest,
   ): Promise<JsonRpcRequest> {
     // We clone the request to avoid interfering with other hook handlers that
-    // might be using the original request
+    // might be using the original request.
+    // The "newJsonRpcRequest" inside this class is modified by reference.
     const newJsonRpcRequest = await deepClone(jsonRpcRequest);
-
-    // TODO
-    // await this.#modifyAccountsIfNeeded(newJsonRpcRequest);
 
     await this.#modifyGasAndGasPriceIfNeeded(newJsonRpcRequest);
 
@@ -60,7 +55,6 @@ export class JsonRequestModifier {
   async #modifyGasAndGasPriceIfNeeded(
     jsonRpcRequest: JsonRpcRequest,
   ): Promise<void> {
-    // gas
     if (
       this.#networkConfig.gas === undefined ||
       this.#networkConfig.gas === "auto"
@@ -75,19 +69,16 @@ export class JsonRequestModifier {
       await this.#automaticGas.modifyRequest(jsonRpcRequest);
     } else {
       if (this.#fixedGas === undefined) {
-        this.#fixedGas = new FixedGas(this.#networkConfig);
+        this.#fixedGas = new FixedGas(this.#networkConfig.gas);
       }
 
       this.#fixedGas.modifyRequest(jsonRpcRequest);
     }
 
-    // gasPrice
     if (
       this.#networkConfig.gasPrice === undefined ||
       this.#networkConfig.gasPrice === "auto"
     ) {
-      // TODO: modify comment
-
       // If you use a LocalAccountsProvider or HDWalletProvider, your transactions
       // are signed locally. This requires having all of their fields available,
       // including the gasPrice / maxFeePerGas & maxPriorityFeePerGas.
@@ -109,7 +100,7 @@ export class JsonRequestModifier {
       }
     } else {
       if (this.#fixedGasPrice === undefined) {
-        this.#fixedGasPrice = new FixedGasPrice(this.#networkConfig);
+        this.#fixedGasPrice = new FixedGasPrice(this.#networkConfig.gasPrice);
       }
 
       this.#fixedGasPrice.modifyRequest(jsonRpcRequest);

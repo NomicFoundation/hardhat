@@ -4,6 +4,7 @@ import type {
   NetworkConfig,
 } from "@ignored/hardhat-vnext/types/config";
 
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { hexStringToBigInt } from "@ignored/hardhat-vnext-utils/hex";
 
 export function isResolvedHttpNetworkConfig(
@@ -26,12 +27,9 @@ export function getParams<ParamsT extends any[] = any[]>(
   }
 
   if (!Array.isArray(params)) {
-    // eslint-disable-next-line no-restricted-syntax -- TODO: do we need to support this?
-    throw new Error(
-      "Hardhat Network doesn't support JSON-RPC params sent as an object",
-    );
+    throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_REQUEST_PARAMS);
   }
 
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- ensures `params` is typed as `ParamsT` to match the function's return type
   return params as ParamsT;
 }

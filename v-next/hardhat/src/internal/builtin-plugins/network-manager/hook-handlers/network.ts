@@ -11,10 +11,14 @@ import type {
   NetworkConnection,
 } from "@ignored/hardhat-vnext/types/network";
 
-import { JsonRequestModifier } from "../json-request-modifiers/json-request-modifier.js";
+import { JsonRpcRequestModifier } from "../json-rpc-request-modifiers/json-rpc-request-modifier.js";
 
 export default async (): Promise<Partial<NetworkHooks>> => {
-  const jsonRequestModifiers: Map<number, JsonRequestModifier> = new Map();
+  // This map is necessary because Hardhat V3 supports multiple networks, requiring us to track them
+  // to apply the appropriate modifiers to each request.
+  // When a connection is closed, it is removed from the map. Refer to "closeConnection" at the end of the file.
+  const jsonRpcRequestModifiers: Map<number, JsonRpcRequestModifier> =
+    new Map();
 
   const handlers: Partial<NetworkHooks> = {
     async onRequest<ChainTypeT extends ChainType | string>(
@@ -27,15 +31,23 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         nextJsonRpcRequest: JsonRpcRequest,
       ) => Promise<JsonRpcResponse>,
     ) {
-      let jsonRequestModifier = jsonRequestModifiers.get(networkConnection.id);
+      let jsonRpcRequestModifier = jsonRpcRequestModifiers.get(
+        networkConnection.id,
+      );
 
-      if (jsonRequestModifier === undefined) {
-        jsonRequestModifier = new JsonRequestModifier(networkConnection);
-        jsonRequestModifiers.set(networkConnection.id, jsonRequestModifier);
+      if (jsonRpcRequestModifier === undefined) {
+        jsonRpcRequestModifier = new JsonRpcRequestModifier(networkConnection);
+
+        jsonRpcRequestModifiers.set(
+          networkConnection.id,
+          jsonRpcRequestModifier,
+        );
       }
 
       const newJsonRpcRequest =
-        await jsonRequestModifier.createModifiedJsonRpcRequest(jsonRpcRequest);
+        await jsonRpcRequestModifier.createModifiedJsonRpcRequest(
+          jsonRpcRequest,
+        );
 
       return next(context, networkConnection, newJsonRpcRequest);
     },
@@ -48,8 +60,8 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         nextNetworkConnection: NetworkConnection<ChainTypeT>,
       ) => Promise<void>,
     ): Promise<void> {
-      if (jsonRequestModifiers.has(networkConnection.id) === true) {
-        jsonRequestModifiers.delete(networkConnection.id);
+      if (jsonRpcRequestModifiers.has(networkConnection.id) === true) {
+        jsonRpcRequestModifiers.delete(networkConnection.id);
       }
 
       return next(context, networkConnection);

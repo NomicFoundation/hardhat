@@ -4,8 +4,8 @@ import { beforeEach, describe, it } from "node:test";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
-import { ChainIdValidator } from "../../../../../../src/internal/builtin-plugins/network-manager/json-request-modifiers/chain-id/chain-id.js";
-import { EthereumMockedProvider } from "../ethereum-mocked-provider.js";
+import { ChainIdValidator } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc-request-modifiers/chain-id/chain-id-validator.js";
+import { EthereumMockedProvider } from "../../ethereum-mocked-provider.js";
 
 describe("ChainIdValidator", () => {
   let mockedProvider: EthereumMockedProvider;

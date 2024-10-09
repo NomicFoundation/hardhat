@@ -1,12 +1,11 @@
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
-import { AutomaticGasPrice } from "../../../../../../src/internal/builtin-plugins/network-manager/json-request-modifiers/gas-properties/automatic-gas-price.js";
-import { EthereumMockedProvider } from "../ethereum-mocked-provider.js";
-import { createJsonRpcRequest } from "../helpers.js";
+import { AutomaticGasPrice } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc-request-modifiers/gas-properties/automatic-gas-price.js";
+import { EthereumMockedProvider } from "../../ethereum-mocked-provider.js";
+import { createJsonRpcRequest, getParams } from "../../helpers.js";
 
 describe("AutomaticGasPrice", () => {
   let automaticGasPriceProvider: AutomaticGasPrice;
@@ -38,12 +37,7 @@ describe("AutomaticGasPrice", () => {
 
       automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-      assertHardhatInvariant(
-        Array.isArray(jsonRpcRequest.params),
-        "params should be an array",
-      );
-
-      assert.equal(jsonRpcRequest.params[0].gasPrice, 456);
+      assert.equal(getParams(jsonRpcRequest)[0].gasPrice, 456);
     });
 
     it("shouldn't replace the provided maxFeePerGas and maxPriorityFeePerGas values", async () => {
@@ -59,13 +53,8 @@ describe("AutomaticGasPrice", () => {
 
       automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-      assertHardhatInvariant(
-        Array.isArray(jsonRpcRequest.params),
-        "params should be an array",
-      );
-
-      assert.equal(jsonRpcRequest.params[0].maxFeePerGas, 456);
-      assert.equal(jsonRpcRequest.params[0].maxPriorityFeePerGas, 789);
+      assert.equal(getParams(jsonRpcRequest)[0].maxFeePerGas, 456);
+      assert.equal(getParams(jsonRpcRequest)[0].maxPriorityFeePerGas, 789);
     });
   });
 
@@ -101,13 +90,8 @@ describe("AutomaticGasPrice", () => {
 
         await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-        assertHardhatInvariant(
-          Array.isArray(jsonRpcRequest.params),
-          "params should be an array",
-        );
-
-        assert.equal(jsonRpcRequest.params[0].maxPriorityFeePerGas, "0x4");
-        assert.equal(jsonRpcRequest.params[0].maxFeePerGas, "0x99");
+        assert.equal(getParams(jsonRpcRequest)[0].maxPriorityFeePerGas, "0x4");
+        assert.equal(getParams(jsonRpcRequest)[0].maxFeePerGas, "0x99");
       });
 
       it("should add the reward to the maxFeePerGas if not big enough", async () => {
@@ -122,13 +106,8 @@ describe("AutomaticGasPrice", () => {
 
         await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-        assertHardhatInvariant(
-          Array.isArray(jsonRpcRequest.params),
-          "params should be an array",
-        );
-
-        assert.equal(jsonRpcRequest.params[0].maxPriorityFeePerGas, "0x4");
-        assert.equal(jsonRpcRequest.params[0].maxFeePerGas, "0x5");
+        assert.equal(getParams(jsonRpcRequest)[0].maxPriorityFeePerGas, "0x4");
+        assert.equal(getParams(jsonRpcRequest)[0].maxFeePerGas, "0x5");
       });
 
       it("should use the expected max base fee of N blocks in the future if maxFeePerGas is missing", async () => {
@@ -151,14 +130,9 @@ describe("AutomaticGasPrice", () => {
 
         await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-        assertHardhatInvariant(
-          Array.isArray(jsonRpcRequest.params),
-          "params should be an array",
-        );
-
-        assert.equal(jsonRpcRequest.params[0].maxPriorityFeePerGas, "0x1");
+        assert.equal(getParams(jsonRpcRequest)[0].maxPriorityFeePerGas, "0x1");
         assert.equal(
-          jsonRpcRequest.params[0].maxFeePerGas,
+          getParams(jsonRpcRequest)[0].maxFeePerGas,
           numberToHexString(expectedBaseFee),
         );
       });
@@ -202,14 +176,9 @@ describe("AutomaticGasPrice", () => {
 
         await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-        assertHardhatInvariant(
-          Array.isArray(jsonRpcRequest.params),
-          "params should be an array",
-        );
-
-        assert.equal(jsonRpcRequest.params[0].maxPriorityFeePerGas, "0x1");
+        assert.equal(getParams(jsonRpcRequest)[0].maxPriorityFeePerGas, "0x1");
         assert.equal(
-          jsonRpcRequest.params[0].maxFeePerGas,
+          getParams(jsonRpcRequest)[0].maxFeePerGas,
           numberToHexString(expectedBaseFee),
         );
       });
@@ -255,14 +224,9 @@ describe("AutomaticGasPrice", () => {
 
         await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-        assertHardhatInvariant(
-          Array.isArray(jsonRpcRequest.params),
-          "params should be an array",
-        );
-
-        assert.equal(jsonRpcRequest.params[0].maxPriorityFeePerGas, "0x12");
+        assert.equal(getParams(jsonRpcRequest)[0].maxPriorityFeePerGas, "0x12");
         assert.equal(
-          jsonRpcRequest.params[0].maxFeePerGas,
+          getParams(jsonRpcRequest)[0].maxFeePerGas,
           numberToHexString(expectedBaseFee),
         );
       });
@@ -311,13 +275,8 @@ describe("AutomaticGasPrice", () => {
 
         await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-        assertHardhatInvariant(
-          Array.isArray(jsonRpcRequest.params),
-          "params should be an array",
-        );
-
         assert.equal(
-          jsonRpcRequest.params[0].gasPrice,
+          getParams(jsonRpcRequest)[0].gasPrice,
           numberToHexString(FIXED_GAS_PRICE),
         );
       });
@@ -334,17 +293,12 @@ describe("AutomaticGasPrice", () => {
 
         await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-        assertHardhatInvariant(
-          Array.isArray(jsonRpcRequest.params),
-          "params should be an array",
-        );
-
         assert.equal(
-          jsonRpcRequest.params[0].maxPriorityFeePerGas,
+          getParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
           numberToHexString(FIXED_GAS_PRICE),
         );
         assert.equal(
-          jsonRpcRequest.params[0].maxFeePerGas,
+          getParams(jsonRpcRequest)[0].maxFeePerGas,
           numberToHexString(FIXED_GAS_PRICE + 1),
         );
       });
@@ -361,17 +315,12 @@ describe("AutomaticGasPrice", () => {
 
         await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-        assertHardhatInvariant(
-          Array.isArray(jsonRpcRequest.params),
-          "params should be an array",
-        );
-
         assert.equal(
-          jsonRpcRequest.params[0].maxPriorityFeePerGas,
+          getParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
           numberToHexString(FIXED_GAS_PRICE + 2),
         );
         assert.equal(
-          jsonRpcRequest.params[0].maxFeePerGas,
+          getParams(jsonRpcRequest)[0].maxFeePerGas,
           numberToHexString(FIXED_GAS_PRICE * 2 + 2),
         );
       });
@@ -385,11 +334,6 @@ describe("AutomaticGasPrice", () => {
     );
 
     await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
-
-    assertHardhatInvariant(
-      Array.isArray(jsonRpcRequest.params),
-      "params should be an array",
-    );
 
     assert.deepEqual(jsonRpcRequest.params, [1, 2, 3, 4]);
   });

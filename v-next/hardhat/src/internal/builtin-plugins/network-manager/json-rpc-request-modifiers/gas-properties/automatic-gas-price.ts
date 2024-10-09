@@ -36,7 +36,7 @@ export class AutomaticGasPrice {
 
     const params = getParams(args);
 
-    // TODO: Should we validate this type?
+    // TODO: from V2 - Should we validate this type?
     const tx = params[0];
 
     if (tx === undefined) {

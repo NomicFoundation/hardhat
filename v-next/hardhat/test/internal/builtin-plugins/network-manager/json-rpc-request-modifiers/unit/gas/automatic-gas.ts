@@ -1,18 +1,17 @@
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import {
   AutomaticGas,
   DEFAULT_GAS_MULTIPLIER,
-} from "../../../../../../src/internal/builtin-plugins/network-manager/json-request-modifiers/gas-properties/automatic-gas.js";
-import { EthereumMockedProvider } from "../ethereum-mocked-provider.js";
-import { createJsonRpcRequest } from "../helpers.js";
+} from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc-request-modifiers/gas-properties/automatic-gas.js";
+import { EthereumMockedProvider } from "../../ethereum-mocked-provider.js";
+import { createJsonRpcRequest, getParams } from "../../helpers.js";
 
 describe("AutomaticGas", () => {
-  let automaticGasProvider: AutomaticGas;
+  let automaticGas: AutomaticGas;
   let mockedProvider: EthereumMockedProvider;
 
   const FIXED_GAS_LIMIT = 1231;
@@ -30,7 +29,7 @@ describe("AutomaticGas", () => {
       numberToHexString(FIXED_GAS_LIMIT),
     );
 
-    automaticGasProvider = new AutomaticGas(mockedProvider, GAS_MULTIPLIER);
+    automaticGas = new AutomaticGas(mockedProvider, GAS_MULTIPLIER);
   });
 
   it("should estimate gas automatically if not present", async () => {
@@ -42,15 +41,10 @@ describe("AutomaticGas", () => {
       },
     ]);
 
-    await automaticGasProvider.modifyRequest(jsonRpcRequest);
-
-    assertHardhatInvariant(
-      Array.isArray(jsonRpcRequest.params),
-      "params should be an array",
-    );
+    await automaticGas.modifyRequest(jsonRpcRequest);
 
     assert.equal(
-      jsonRpcRequest.params[0].gas,
+      getParams(jsonRpcRequest)[0].gas,
       numberToHexString(Math.floor(FIXED_GAS_LIMIT * GAS_MULTIPLIER)),
     );
   });
@@ -66,17 +60,12 @@ describe("AutomaticGas", () => {
       },
     ]);
 
-    automaticGasProvider = new AutomaticGas(mockedProvider, GAS_MULTIPLIER2);
+    automaticGas = new AutomaticGas(mockedProvider, GAS_MULTIPLIER2);
 
-    await automaticGasProvider.modifyRequest(jsonRpcRequest);
-
-    assertHardhatInvariant(
-      Array.isArray(jsonRpcRequest.params),
-      "params should be an array",
-    );
+    await automaticGas.modifyRequest(jsonRpcRequest);
 
     assert.equal(
-      jsonRpcRequest.params[0].gas,
+      getParams(jsonRpcRequest)[0].gas,
       numberToHexString(Math.floor(FIXED_GAS_LIMIT * GAS_MULTIPLIER2)),
     );
   });
@@ -90,17 +79,12 @@ describe("AutomaticGas", () => {
       },
     ]);
 
-    automaticGasProvider = new AutomaticGas(mockedProvider);
+    automaticGas = new AutomaticGas(mockedProvider);
 
-    await automaticGasProvider.modifyRequest(jsonRpcRequest);
-
-    assertHardhatInvariant(
-      Array.isArray(jsonRpcRequest.params),
-      "params should be an array",
-    );
+    await automaticGas.modifyRequest(jsonRpcRequest);
 
     assert.equal(
-      jsonRpcRequest.params[0].gas,
+      getParams(jsonRpcRequest)[0].gas,
       numberToHexString(Math.floor(FIXED_GAS_LIMIT * DEFAULT_GAS_MULTIPLIER)),
     );
   });
@@ -115,14 +99,9 @@ describe("AutomaticGas", () => {
       },
     ]);
 
-    await automaticGasProvider.modifyRequest(jsonRpcRequest);
+    await automaticGas.modifyRequest(jsonRpcRequest);
 
-    assertHardhatInvariant(
-      Array.isArray(jsonRpcRequest.params),
-      "params should be an array",
-    );
-
-    assert.equal(jsonRpcRequest.params[0].gas, 567);
+    assert.equal(getParams(jsonRpcRequest)[0].gas, 567);
   });
 
   it("should forward the other calls", async () => {
@@ -134,13 +113,8 @@ describe("AutomaticGas", () => {
       },
     ]);
 
-    await automaticGasProvider.modifyRequest(jsonRpcRequest);
+    await automaticGas.modifyRequest(jsonRpcRequest);
 
-    assertHardhatInvariant(
-      Array.isArray(jsonRpcRequest.params),
-      "params should be an array",
-    );
-
-    assert.equal(jsonRpcRequest.params[0].gas, undefined);
+    assert.equal(getParams(jsonRpcRequest)[0].gas, undefined);
   });
 });

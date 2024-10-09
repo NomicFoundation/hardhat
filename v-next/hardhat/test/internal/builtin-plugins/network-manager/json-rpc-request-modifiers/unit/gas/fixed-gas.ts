@@ -1,21 +1,18 @@
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
-import { FixedGas } from "../../../../../../src/internal/builtin-plugins/network-manager/json-request-modifiers/gas-properties/fixed-gas.js";
-import { createJsonRpcRequest, createNetworkConfig } from "../helpers.js";
+import { FixedGas } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc-request-modifiers/gas-properties/fixed-gas.js";
+import { createJsonRpcRequest, getParams } from "../../helpers.js";
 
 describe("FixedGas", () => {
-  let fixedGasProvider: FixedGas;
+  let fixedGas: FixedGas;
 
   const FIXED_GAS_LIMIT = 1233n;
 
   beforeEach(() => {
-    const networkConfig = createNetworkConfig({ gas: FIXED_GAS_LIMIT });
-
-    fixedGasProvider = new FixedGas(networkConfig);
+    fixedGas = new FixedGas(FIXED_GAS_LIMIT);
   });
 
   it("should set the fixed gas if not present", async () => {
@@ -27,15 +24,10 @@ describe("FixedGas", () => {
       },
     ]);
 
-    fixedGasProvider.modifyRequest(jsonRpcRequest);
-
-    assertHardhatInvariant(
-      Array.isArray(jsonRpcRequest.params),
-      "params should be an array",
-    );
+    fixedGas.modifyRequest(jsonRpcRequest);
 
     assert.equal(
-      jsonRpcRequest.params[0].gas,
+      getParams(jsonRpcRequest)[0].gas,
       numberToHexString(FIXED_GAS_LIMIT),
     );
   });
@@ -50,14 +42,9 @@ describe("FixedGas", () => {
       },
     ]);
 
-    fixedGasProvider.modifyRequest(jsonRpcRequest);
+    fixedGas.modifyRequest(jsonRpcRequest);
 
-    assertHardhatInvariant(
-      Array.isArray(jsonRpcRequest.params),
-      "params should be an array",
-    );
-
-    assert.equal(jsonRpcRequest.params[0].gas, 1456);
+    assert.equal(getParams(jsonRpcRequest)[0].gas, 1456);
   });
 
   it("should forward the other calls and not modify the gas", async () => {
@@ -69,13 +56,8 @@ describe("FixedGas", () => {
       },
     ]);
 
-    fixedGasProvider.modifyRequest(jsonRpcRequest);
+    fixedGas.modifyRequest(jsonRpcRequest);
 
-    assertHardhatInvariant(
-      Array.isArray(jsonRpcRequest.params),
-      "params should be an array",
-    );
-
-    assert.equal(jsonRpcRequest.params[0].gas, undefined);
+    assert.equal(getParams(jsonRpcRequest)[0].gas, undefined);
   });
 });
