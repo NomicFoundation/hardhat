@@ -725,10 +725,6 @@ describe("network-manager/hook-handlers/config", () => {
     describe("accounts", () => {
       it("should normalize the accounts' private keys", async () => {
         const userConfig: HardhatUserConfig = {
-          // To change the defaultChainType, we need to augment the Hardhat types.
-          // Since this can't be done for a single test, we'll leave this untested.
-          defaultChainType: "unknown",
-          defaultNetwork: "myNetwork",
           networks: {
             myNetwork: {
               type: "http",
@@ -784,6 +780,71 @@ describe("network-manager/hook-handlers/config", () => {
               "0x000006d4548a3ac17d72b372ae1e416bf65b8ccc",
               "0x000006d4548a3ac17d72b372ae1e416bf65b8ddd",
             ],
+            url: "http://node.myNetwork.com",
+            timeout: 10_000,
+            httpHeaders: {
+              "Content-Type": "application/json",
+            },
+          },
+        });
+      });
+
+      it("should accept a valid partial HD account config", async () => {
+        const userConfig: HardhatUserConfig = {
+          networks: {
+            myNetwork: {
+              type: "http",
+              chainId: 1234,
+              chainType: "l1",
+              from: "0x123",
+              gas: "auto",
+              gasMultiplier: 1.5,
+              gasPrice: 100n,
+              accounts: {
+                mnemonic: "asd asd asd",
+                passphrase: "passphrase",
+              },
+              url: "http://node.myNetwork.com",
+              timeout: 10_000,
+              httpHeaders: {
+                "Content-Type": "application/json",
+              },
+            },
+          },
+        };
+        const resolveConfigurationVariable = () =>
+          new ResolvedConfigurationVariableImplementation(hre.hooks, {
+            name: "foo",
+            _type: "ConfigurationVariable",
+          });
+        const next = async (
+          nextUserConfig: HardhatUserConfig,
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+          -- Cast for simplicity as we won't test this */
+        ) => nextUserConfig as HardhatConfig;
+
+        const resolvedConfig = await resolveUserConfig(
+          userConfig,
+          resolveConfigurationVariable,
+          next,
+        );
+
+        assert.deepEqual(resolvedConfig.networks, {
+          myNetwork: {
+            type: "http",
+            chainId: 1234,
+            chainType: "l1",
+            from: "0x123",
+            gas: "auto",
+            gasMultiplier: 1.5,
+            gasPrice: 100n,
+            accounts: {
+              mnemonic: "asd asd asd",
+              initialIndex: 0,
+              count: 20,
+              path: "m/44'/60'/0'/0",
+              passphrase: "passphrase",
+            },
             url: "http://node.myNetwork.com",
             timeout: 10_000,
             httpHeaders: {
