@@ -9,7 +9,7 @@ import type { UserInterruptionManager } from "./types/user-interruptions.js";
 import { getOrCreateGlobalHardhatRuntimeEnvironment } from "./internal/hre-intialization.js";
 
 // NOTE: We import the builtin plugins in this module, so that their
-// type-extensions are loaded then the user imports `hardhat`.
+// type-extensions are loaded when the user imports `hardhat`.
 import "./internal/builtin-plugins/index.js";
 
 const hre: HardhatRuntimeEnvironment =
