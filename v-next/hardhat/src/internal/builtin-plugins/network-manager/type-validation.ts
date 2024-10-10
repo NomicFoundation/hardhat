@@ -196,7 +196,5 @@ export function validateNetworkConfig(
 export async function validateUserConfig(
   userConfig: HardhatUserConfig,
 ): Promise<HardhatUserConfigValidationError[]> {
-  // console.log("======================");
-  // console.log(JSON.stringify(userConfig, null, 2));
   return validateUserConfigZodType(userConfig, userConfigSchema);
 }
