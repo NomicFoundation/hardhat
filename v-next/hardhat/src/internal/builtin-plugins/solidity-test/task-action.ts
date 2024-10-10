@@ -1,20 +1,16 @@
+import type { TestEvent } from "./types.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
-import { spec } from "node:test/reporters";
+import { finished } from "node:stream/promises";
 
-import { buildSolidityTestsInput, runAllSolidityTests } from "./helpers.js";
+import { buildSolidityTestsInput } from "./helpers.js";
+import { testReporter } from "./reporter.js";
+import { run } from "./runner.js";
 
 const runSolidityTests: NewTaskActionFunction = async (_arguments, hre) => {
   await hre.tasks.getTask("compile").run({ quiet: false });
 
   console.log("\nRunning Solidity tests...\n");
-
-  const specReporter = new spec();
-
-  specReporter.pipe(process.stdout);
-
-  let totalTests = 0;
-  let failedTests = 0;
 
   const { artifacts, testSuiteIds } = await buildSolidityTestsInput(
     hre.artifacts,
@@ -34,35 +30,26 @@ const runSolidityTests: NewTaskActionFunction = async (_arguments, hre) => {
     projectRoot: hre.config.paths.root,
   };
 
-  await runAllSolidityTests(
-    artifacts,
-    testSuiteIds,
-    config,
-    (suiteResult, testResult) => {
-      let name = suiteResult.id.name + " | " + testResult.name;
-      if ("runs" in testResult?.kind) {
-        name += ` (${testResult.kind.runs} runs)`;
+  let includesFailures = false;
+
+  const reporterStream = run(artifacts, testSuiteIds, config)
+    .on("data", (event: TestEvent) => {
+      if (event.type === "suite:result") {
+        if (event.data.testResults.some(({ status }) => status === "Failure")) {
+          includesFailures = true;
+        }
       }
+    })
+    .compose(testReporter);
 
-      totalTests++;
+  reporterStream.pipe(process.stdout);
 
-      const failed = testResult.status === "Failure";
-      if (failed) {
-        failedTests++;
-      }
+  // NOTE: If the stream does not end (e.g. if EDR does not report on all the
+  // test suites), this promise is never resolved but the process will happily
+  // exit with a zero exit code without continuing past this point 😕
+  await finished(reporterStream);
 
-      specReporter.write({
-        type: failed ? "test:fail" : "test:pass",
-        data: {
-          name,
-        },
-      });
-    },
-  );
-
-  console.log(`\n${totalTests} tests found, ${failedTests} failed`);
-
-  if (failedTests > 0) {
+  if (includesFailures) {
     process.exitCode = 1;
     return;
   }
