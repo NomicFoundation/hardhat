@@ -14,7 +14,7 @@ import type {
 import { JsonRpcRequestModifier } from "../json-rpc-request-modifiers/json-rpc-request-modifier.js";
 
 export default async (): Promise<Partial<NetworkHooks>> => {
-  // This map is necessary because Hardhat V3 supports multiple networks, requiring us to track them
+  // This map is necessary because Hardhat V3 supports multiple network connections, requiring us to track them
   // to apply the appropriate modifiers to each request.
   // When a connection is closed, it is removed from the map. Refer to "closeConnection" at the end of the file.
   const jsonRpcRequestModifiers: Map<number, JsonRpcRequestModifier> =
