@@ -73,11 +73,16 @@ export interface TasksOverrides {
  */
 export async function taskCompileSolidityGetSourcePaths(
   config: BuildConfig,
-  sourcePath: string | undefined,
+  sourcePath: string | string[] | undefined,
 ): Promise<string[]> {
-  return getAllFilesMatching(sourcePath ?? config.paths.sources, (f) =>
-    f.endsWith(".sol"),
+  let sources = sourcePath ?? config.paths.sources;
+  if (!Array.isArray(sources)) {
+    sources = [sources];
+  }
+  const files = await Promise.all(
+    sources.map((s) => getAllFilesMatching(s, (f) => f.endsWith(".sol"))),
   );
+  return files.flat();
 }
 
 // TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES
@@ -1061,12 +1066,17 @@ export async function taskCompileSolidityCompileJobs(
   artifactsEmittedPerJob: ArtifactsEmittedPerJob;
 }> {
   if (compilationJobs.length === 0) {
-    log(`No compilation jobs to compile`);
+    console.log(`No compilation jobs to compile`);
     await taskCompileSolidityLogNothingToCompile(quiet);
     return { artifactsEmittedPerJob: [] };
   }
 
-  log(`Compiling ${compilationJobs.length} jobs`);
+  const filesCount = compilationJobs.reduce(
+    (acc, job) => acc + job.getResolvedFiles().length,
+    0,
+  );
+
+  console.log(`Compiling ${compilationJobs.length} jobs (${filesCount} files)`);
 
   for (const job of compilationJobs) {
     const solcVersion = job.getSolcConfig().version;
@@ -1283,10 +1293,12 @@ export async function taskCompileSolidity(
       solidityFilesCache,
     );
 
+  const resolvedFiles = dependencyGraph.getResolvedFiles();
+
   solidityFilesCache = await invalidateCacheMissingArtifacts(
     solidityFilesCache,
     artifacts,
-    dependencyGraph.getResolvedFiles(),
+    resolvedFiles,
   );
 
   const compilationJobsCreationResult: taskTypes.CompilationJobsCreationResult =

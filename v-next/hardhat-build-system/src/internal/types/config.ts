@@ -9,7 +9,7 @@ export interface ProjectPathsConfig {
   root: string;
   cache: string;
   artifacts: string;
-  sources: string;
+  sources: string | string[];
 }
 
 export interface SolidityConfig {

@@ -16,11 +16,7 @@ const runSolidityTests: NewTaskActionFunction = async (_arguments, hre) => {
     hre.artifacts,
     (artifact) => {
       const sourceName = artifact.id.source;
-      const isTestArtifact =
-        sourceName.endsWith(".t.sol") &&
-        sourceName.startsWith("contracts/") &&
-        !sourceName.startsWith("contracts/forge-std/") &&
-        !sourceName.startsWith("contracts/ds-test/");
+      const isTestArtifact = sourceName.endsWith(".t.sol");
 
       return isTestArtifact;
     },

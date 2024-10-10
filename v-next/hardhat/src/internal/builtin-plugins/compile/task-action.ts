@@ -1,8 +1,6 @@
 import type { HardhatRuntimeEnvironment } from "../../../types/hre.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
-import path from "node:path";
-
 import { BuildSystem } from "@ignored/hardhat-vnext-build-system";
 import { getCacheDir } from "@ignored/hardhat-vnext-utils/global-dir";
 
@@ -30,8 +28,8 @@ async function _resolveCompilationConfigFrom(hre: HardhatRuntimeEnvironment) {
       : // TODO(#5599): Replace with hre.config.paths.cache once it is available
         await getCacheDir();
 
-  const artifacts = path.join(root, "artifacts");
-  const sources = path.join(root, "contracts");
+  const artifacts = hre.config.paths.artifacts;
+  const sources = hre.config.paths.sources.solidity;
 
   const compilationConfig = {
     paths: {
