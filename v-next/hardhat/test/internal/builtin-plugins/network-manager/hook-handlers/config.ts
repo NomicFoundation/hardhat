@@ -721,5 +721,77 @@ describe("network-manager/hook-handlers/config", () => {
         },
       });
     });
+
+    describe("accounts", () => {
+      it("should normalize the accounts' private keys", async () => {
+        const userConfig: HardhatUserConfig = {
+          // To change the defaultChainType, we need to augment the Hardhat types.
+          // Since this can't be done for a single test, we'll leave this untested.
+          defaultChainType: "unknown",
+          defaultNetwork: "myNetwork",
+          networks: {
+            myNetwork: {
+              type: "http",
+              chainId: 1234,
+              chainType: "l1",
+              from: "0x123",
+              gas: "auto",
+              gasMultiplier: 1.5,
+              gasPrice: 100n,
+              accounts: [
+                "0x000006d4548a3ac17d72b372ae1e416bf65b8AAA", // convert to lower case
+                " 0x000006d4548a3ac17d72b372ae1e416bf65b8bbb", // remove space at the beginning
+                "0x000006d4548a3ac17d72b372ae1e416bf65b8ccc  ", // remove space at the end
+                "000006d4548a3ac17d72b372ae1e416bf65b8ddd", // add "0x" at the beginning
+              ],
+              url: "http://node.myNetwork.com",
+              timeout: 10_000,
+              httpHeaders: {
+                "Content-Type": "application/json",
+              },
+            },
+          },
+        };
+        const resolveConfigurationVariable = () =>
+          new ResolvedConfigurationVariableImplementation(hre.hooks, {
+            name: "foo",
+            _type: "ConfigurationVariable",
+          });
+        const next = async (
+          nextUserConfig: HardhatUserConfig,
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+          -- Cast for simplicity as we won't test this */
+        ) => nextUserConfig as HardhatConfig;
+
+        const resolvedConfig = await resolveUserConfig(
+          userConfig,
+          resolveConfigurationVariable,
+          next,
+        );
+
+        assert.deepEqual(resolvedConfig.networks, {
+          myNetwork: {
+            type: "http",
+            chainId: 1234,
+            chainType: "l1",
+            from: "0x123",
+            gas: "auto",
+            gasMultiplier: 1.5,
+            gasPrice: 100n,
+            accounts: [
+              "0x000006d4548a3ac17d72b372ae1e416bf65b8aaa",
+              "0x000006d4548a3ac17d72b372ae1e416bf65b8bbb",
+              "0x000006d4548a3ac17d72b372ae1e416bf65b8ccc",
+              "0x000006d4548a3ac17d72b372ae1e416bf65b8ddd",
+            ],
+            url: "http://node.myNetwork.com",
+            timeout: 10_000,
+            httpHeaders: {
+              "Content-Type": "application/json",
+            },
+          },
+        });
+      });
+    });
   });
 });
