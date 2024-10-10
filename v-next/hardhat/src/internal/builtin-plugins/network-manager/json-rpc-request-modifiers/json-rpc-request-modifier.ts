@@ -10,6 +10,8 @@ import type { NetworkConfig } from "@ignored/hardhat-vnext/types/config";
 
 import { deepClone } from "@ignored/hardhat-vnext-utils/lang";
 
+import { AutomaticSender } from "./accounts/automatic-sender-provider.js";
+import { FixedSender } from "./accounts/fixed-sender-provider.js";
 import { ChainIdValidator } from "./chain-id/chain-id-validator.js";
 import { AutomaticGasPrice } from "./gas-properties/automatic-gas-price.js";
 import { AutomaticGas } from "./gas-properties/automatic-gas.js";
@@ -20,6 +22,10 @@ import { isResolvedHttpNetworkConfig } from "./utils.js";
 export class JsonRpcRequestModifier {
   readonly #provider: EthereumProvider;
   readonly #networkConfig: NetworkConfig;
+
+  // accounts
+  #automaticSender: AutomaticSender | undefined;
+  #fixedSender: FixedSender | undefined;
 
   // chainId
   #chainIdValidator: ChainIdValidator | undefined;
@@ -45,11 +51,32 @@ export class JsonRpcRequestModifier {
     // The "newJsonRpcRequest" inside this class is modified by reference.
     const newJsonRpcRequest = await deepClone(jsonRpcRequest);
 
+    await this.#modifyAccountsIfNeeded(newJsonRpcRequest);
+
     await this.#modifyGasAndGasPriceIfNeeded(newJsonRpcRequest);
 
     await this.#validateChainIdIfNeeded(newJsonRpcRequest);
 
     return newJsonRpcRequest;
+  }
+
+  async #modifyAccountsIfNeeded(jsonRpcRequest: JsonRpcRequest): Promise<void> {
+    if (this.#networkConfig.from !== undefined) {
+      if (this.#fixedSender === undefined) {
+        this.#fixedSender = new FixedSender(
+          this.#provider,
+          this.#networkConfig.from,
+        );
+      }
+
+      await this.#fixedSender.modifyRequest(jsonRpcRequest);
+    } else {
+      if (this.#automaticSender === undefined) {
+        this.#automaticSender = new AutomaticSender(this.#provider);
+      }
+
+      await this.#automaticSender.modifyRequest(jsonRpcRequest);
+    }
   }
 
   async #modifyGasAndGasPriceIfNeeded(
