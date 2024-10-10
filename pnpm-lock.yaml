@@ -1424,6 +1424,13 @@ importers:
         version: 4.12.1(typescript@5.0.4)(zod@3.23.8)
 
   v-next/example-project:
+    dependencies:
+      '@prb/math':
+        specifier: https://github.com/PaulRBerg/prb-math/tarball/v4.0.3
+        version: https://github.com/PaulRBerg/prb-math/tarball/v4.0.3
+      forge-std:
+        specifier: https://github.com/foundry-rs/forge-std/tarball/v1.9.2
+        version: https://github.com/foundry-rs/forge-std/tarball/v1.9.2
     devDependencies:
       '@ignored/hardhat-vnext':
         specifier: workspace:^3.0.0-next.4
@@ -3205,6 +3212,10 @@ packages:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
 
+  '@prb/math@https://github.com/PaulRBerg/prb-math/tarball/v4.0.3':
+    resolution: {tarball: https://github.com/PaulRBerg/prb-math/tarball/v4.0.3}
+    version: 4.0.3
+
   '@scure/base@1.1.8':
     resolution: {integrity: sha512-6CyAclxj3Nb0XT7GHK6K4zK6k2xJm6E4Ft0Ohjt4WgegiFUHEtFb2CGzmPmGBwoIhrLsqNLYfLr04Y1GePrzZg==}
 
@@ -4748,6 +4759,10 @@ packages:
   foreground-child@3.3.0:
     resolution: {integrity: sha512-Ld2g8rrAyMYFXBhEqMz8ZAHBi4J4uS1i/CxGMDnjyFWddMXLVcDp051DZfu+t7+ab7Wv6SMqpWmyFIj5UbfFvg==}
     engines: {node: '>=14'}
+
+  forge-std@https://github.com/foundry-rs/forge-std/tarball/v1.9.2:
+    resolution: {tarball: https://github.com/foundry-rs/forge-std/tarball/v1.9.2}
+    version: 1.9.2
 
   form-data@2.5.1:
     resolution: {integrity: sha512-m21N3WOmEEURgk6B9GLOE4RuWOFf28Lhh9qGYeNlGq4VDXUlJy2th2slBNU8Gp8EzloYZOibZJ7t5ecIrFSjVA==}
@@ -7894,6 +7909,8 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
+  '@prb/math@https://github.com/PaulRBerg/prb-math/tarball/v4.0.3': {}
+
   '@scure/base@1.1.8': {}
 
   '@scure/bip32@1.1.5':
@@ -9817,6 +9834,8 @@ snapshots:
     dependencies:
       cross-spawn: 7.0.3
       signal-exit: 4.1.0
+
+  forge-std@https://github.com/foundry-rs/forge-std/tarball/v1.9.2: {}
 
   form-data@2.5.1:
     dependencies:
