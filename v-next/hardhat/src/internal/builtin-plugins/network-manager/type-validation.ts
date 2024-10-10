@@ -4,6 +4,7 @@ import type {
 } from "../../../types/config.js";
 import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
 
+import { isPrivateKey } from "@ignored/hardhat-vnext-utils/eth";
 import {
   conditionalUnionType,
   sensitiveUrlSchema,
@@ -26,6 +27,25 @@ const userGasSchema = conditionalUnionType(
   "Expected 'auto', a safe int, or bigint",
 );
 
+const privateKeySchema = z.string().refine((val) => isPrivateKey(val), {
+  message: "The private key must be a valid private key",
+});
+
+const httpNetworkUserConfigAccountsSchema = unionType(
+  [
+    z.literal("remote"),
+    z.array(privateKeySchema),
+    z.object({
+      mnemonic: z.string(),
+      initialIndex: z.optional(z.number().int()),
+      count: z.optional(z.number().int().positive()),
+      path: z.optional(z.string()),
+      passphrase: z.optional(z.string()),
+    }),
+  ],
+  "Expected 'remote', an array of strings, or an object with optional mnemonic and account details",
+);
+
 const httpNetworkUserConfigSchema = z.object({
   type: z.literal("http"),
   chainId: z.optional(z.number().int()),
@@ -34,12 +54,33 @@ const httpNetworkUserConfigSchema = z.object({
   gas: z.optional(userGasSchema),
   gasMultiplier: z.optional(z.number()),
   gasPrice: z.optional(userGasSchema),
+  accounts: z.optional(httpNetworkUserConfigAccountsSchema),
 
   // HTTP network specific
   url: sensitiveUrlSchema,
   timeout: z.optional(z.number()),
   httpHeaders: z.optional(z.record(z.string())),
 });
+
+const edrNetworkUserConfigAccountsSchema = unionType(
+  [
+    z.array(
+      z.object({
+        privateKey: z.array(privateKeySchema),
+        balance: z.string(),
+      }),
+    ),
+    z.object({
+      mnemonic: z.optional(z.string()),
+      initialIndex: z.optional(z.number().int()),
+      count: z.optional(z.number().int().positive()),
+      path: z.optional(z.string()),
+      accountsBalance: z.optional(z.string()),
+      passphrase: z.optional(z.string()),
+    }),
+  ],
+  "Expected an array of objects with 'privateKey' and 'balance', or an object with optional mnemonic and account details",
+);
 
 const edrNetworkUserConfigSchema = z.object({
   type: z.literal("edr"),
@@ -49,6 +90,7 @@ const edrNetworkUserConfigSchema = z.object({
   gas: userGasSchema,
   gasMultiplier: z.number(),
   gasPrice: userGasSchema,
+  accounts: z.optional(edrNetworkUserConfigAccountsSchema),
 });
 
 const networkUserConfigSchema = z.discriminatedUnion("type", [
@@ -70,6 +112,21 @@ const gasSchema = conditionalUnionType(
   "Expected 'auto' or bigint",
 );
 
+const httpNetworkAccountsSchema = unionType(
+  [
+    z.literal("remote"),
+    z.array(privateKeySchema),
+    z.object({
+      mnemonic: z.string(),
+      initialIndex: z.number().int(),
+      count: z.number().int().positive(),
+      path: z.string(),
+      passphrase: z.string(),
+    }),
+  ],
+  "Expected 'remote', an array of strings, or an object with account details",
+);
+
 const httpNetworkConfigSchema = z.object({
   type: z.literal("http"),
   chainId: z.optional(z.number().int()),
@@ -78,12 +135,33 @@ const httpNetworkConfigSchema = z.object({
   gas: gasSchema,
   gasMultiplier: z.number(),
   gasPrice: gasSchema,
+  accounts: httpNetworkAccountsSchema,
 
   // HTTP network specific
   url: sensitiveUrlSchema,
   timeout: z.number(),
   httpHeaders: z.record(z.string()),
 });
+
+const edrNetworkAccountsSchema = unionType(
+  [
+    z.array(
+      z.object({
+        privateKey: privateKeySchema,
+        balance: z.string(),
+      }),
+    ),
+    z.object({
+      mnemonic: z.string(),
+      initialIndex: z.number().int(),
+      count: z.number().int().positive(),
+      path: z.string(),
+      accountsBalance: z.string(),
+      passphrase: z.string(),
+    }),
+  ],
+  "Expected an array of objects with 'privateKey' and 'balance', or an object with mnemonic and account details",
+);
 
 const edrNetworkConfigSchema = z.object({
   type: z.literal("edr"),
@@ -93,6 +171,7 @@ const edrNetworkConfigSchema = z.object({
   gas: gasSchema,
   gasMultiplier: z.number(),
   gasPrice: gasSchema,
+  accounts: edrNetworkAccountsSchema,
 });
 
 const networkConfigSchema = z.discriminatedUnion("type", [
