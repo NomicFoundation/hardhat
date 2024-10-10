@@ -1,5 +1,7 @@
 import type {
   ConfigurationVariable,
+  EdrNetworkConfig,
+  EdrNetworkUserConfig,
   GasConfig,
   GasUserConfig,
   HardhatConfig,
@@ -10,6 +12,8 @@ import type {
   ResolvedConfigurationVariable,
 } from "../../../../types/config.js";
 import type { ConfigHooks } from "../../../../types/hooks.js";
+
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 import { validateUserConfig } from "../type-validation.js";
 
@@ -28,15 +32,28 @@ export async function extendUserConfig(
   const networks: Record<string, NetworkUserConfig> =
     extendedConfig.networks ?? {};
 
+  const defaultLocalhostNetwork: EdrNetworkUserConfig = {
+    type: "edr",
+    chainId: 31337,
+    chainType: "l1",
+    gas: "auto",
+    gasMultiplier: 1,
+    gasPrice: "auto",
+  };
+
+  const localhost: EdrNetworkUserConfig =
+    networks.localhost !== undefined && networks.localhost.type === "edr"
+      ? {
+          ...defaultLocalhostNetwork,
+          ...networks.localhost,
+        }
+      : defaultLocalhostNetwork;
+
   return {
     ...extendedConfig,
     networks: {
       ...networks,
-      localhost: {
-        url: "http://localhost:8545",
-        ...networks.localhost,
-        type: "http",
-      },
+      localhost,
     },
   };
 }
@@ -60,25 +77,65 @@ export async function resolveUserConfig(
   const resolvedNetworks: Record<string, NetworkConfig> = {};
 
   for (const [networkName, networkConfig] of Object.entries(networks)) {
-    if (networkConfig.type !== "http") {
-      // eslint-disable-next-line no-restricted-syntax -- TODO
-      throw new Error("Only HTTP network is supported for now");
+    if (networkConfig.type !== "http" && networkConfig.type !== "edr") {
+      throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_NETWORK_TYPE, {
+        networkName,
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO: is there a better pattern for this?
+        networkType: (networkConfig as any).type,
+      });
     }
 
-    const resolvedNetworkConfig: HttpNetworkConfig = {
-      type: "http",
-      chainId: networkConfig.chainId,
-      chainType: networkConfig.chainType,
-      from: networkConfig.from,
-      gas: resolveGasConfig(networkConfig.gas),
-      gasMultiplier: networkConfig.gasMultiplier ?? 1,
-      gasPrice: resolveGasConfig(networkConfig.gasPrice),
-      url: networkConfig.url,
-      timeout: networkConfig.timeout ?? 20_000,
-      httpHeaders: networkConfig.httpHeaders ?? {},
-    };
+    if (networkConfig.type === "http") {
+      const resolvedNetworkConfig: HttpNetworkConfig = {
+        type: "http",
+        chainId: networkConfig.chainId,
+        chainType: networkConfig.chainType,
+        from: networkConfig.from,
+        gas: resolveGasConfig(networkConfig.gas),
+        gasMultiplier: networkConfig.gasMultiplier ?? 1,
+        gasPrice: resolveGasConfig(networkConfig.gasPrice),
+        url: networkConfig.url,
+        timeout: networkConfig.timeout ?? 20_000,
+        httpHeaders: networkConfig.httpHeaders ?? {},
+      };
 
-    resolvedNetworks[networkName] = resolvedNetworkConfig;
+      resolvedNetworks[networkName] = resolvedNetworkConfig;
+    }
+
+    if (networkConfig.type === "edr") {
+      const resolvedNetworkConfig: EdrNetworkConfig = {
+        type: "edr",
+        chainId: networkConfig.chainId,
+        // TODO: what is the default chain type?
+        chainType: networkConfig.chainType ?? "l1",
+        // TODO: where do we get the accounts from?
+        from: networkConfig.from ?? "0x12345",
+        gas: resolveGasConfig(networkConfig.gas),
+        gasMultiplier: networkConfig.gasMultiplier ?? 1,
+        gasPrice: resolveGasConfig(networkConfig.gasPrice),
+
+        hardfork: networkConfig.hardfork ?? "cancun",
+        networkId: networkConfig.networkId ?? networkConfig.chainId,
+        blockGasLimit: networkConfig.blockGasLimit ?? 12_500_000,
+        minGasPrice: BigInt(networkConfig.minGasPrice ?? 0),
+        automine: networkConfig.automine ?? true,
+        intervalMining: networkConfig.intervalMining ?? 0,
+        mempoolOrder: networkConfig.mempoolOrder ?? "fifo",
+        chains: networkConfig.chains ?? new Map(),
+        genesisAccounts: networkConfig.genesisAccounts ?? [],
+        allowUnlimitedContractSize:
+          networkConfig.allowUnlimitedContractSize ?? false,
+        throwOnTransactionFailures:
+          networkConfig.throwOnTransactionFailures ?? true,
+        throwOnCallFailures: networkConfig.throwOnCallFailures ?? true,
+        allowBlocksWithSameTimestamp:
+          networkConfig.allowBlocksWithSameTimestamp ?? false,
+        enableTransientStorage: networkConfig.enableTransientStorage ?? false,
+        enableRip7212: networkConfig.enableRip7212 ?? false,
+      };
+
+      resolvedNetworks[networkName] = resolvedNetworkConfig;
+    }
   }
 
   return {
