@@ -66,7 +66,7 @@ const edrNetworkUserConfigAccountsSchema = unionType(
   [
     z.array(
       z.object({
-        privateKey: z.array(privateKeySchema),
+        privateKey: privateKeySchema,
         balance: z.string(),
       }),
     ),
@@ -196,5 +196,7 @@ export function validateNetworkConfig(
 export async function validateUserConfig(
   userConfig: HardhatUserConfig,
 ): Promise<HardhatUserConfigValidationError[]> {
+  // console.log("======================");
+  // console.log(JSON.stringify(userConfig, null, 2));
   return validateUserConfigZodType(userConfig, userConfigSchema);
 }

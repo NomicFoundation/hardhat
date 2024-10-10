@@ -604,6 +604,399 @@ describe("network-manager/hook-handlers/config", () => {
         );
       });
     });
+
+    describe("accounts", () => {
+      describe("http config", async () => {
+        let hardhatUserConfig: any; // Use any to allow assigning also wrong values
+
+        before(() => {
+          hardhatUserConfig = {
+            networks: {
+              localhost: {
+                type: "http",
+                accounts: "", // Modified in the tests
+                url: "http://localhost:8545",
+              },
+            },
+          };
+        });
+
+        describe("allowed values", () => {
+          it("should allow the value 'remote'", async () => {
+            hardhatUserConfig.networks.localhost.accounts = "remote";
+
+            const validationErrors =
+              await validateUserConfig(hardhatUserConfig);
+
+            console.log(validationErrors);
+
+            assert.equal(validationErrors.length, 0);
+          });
+
+          it("should allow an array of valid private keys", async () => {
+            hardhatUserConfig.networks.localhost.accounts = [
+              "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            ];
+
+            const validationErrors =
+              await validateUserConfig(hardhatUserConfig);
+
+            assert.equal(validationErrors.length, 0);
+          });
+
+          it("should allow an account with a valid HttpNetworkHDAccountsConfig", async () => {
+            hardhatUserConfig.networks.localhost.accounts = {
+              mnemonic: "asd asd asd",
+              initialIndex: 0,
+              count: 123,
+              path: "m/123",
+              passphrase: "passphrase",
+            };
+
+            const validationErrors =
+              await validateUserConfig(hardhatUserConfig);
+
+            assert.equal(validationErrors.length, 0);
+          });
+
+          // TODO: still valid?
+          // it("should allow valid private keys with missing hex prefix", async () => {
+          //   hardhatUserConfig.networks.localhost.accounts = [
+          //     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          //   ];
+          //   const validationErrors =
+          //     await validateUserConfig(hardhatUserConfig);
+          //   assert.equal(validationErrors.length, 0);
+          // });
+        });
+
+        describe("not allowed values", () => {
+          describe("wrong private key formats", () => {
+            it("should not allow hex literals", async () => {
+              hardhatUserConfig.networks.localhost.accounts = [
+                0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,
+              ];
+
+              const validationErrors =
+                await validateUserConfig(hardhatUserConfig);
+
+              assert.notEqual(validationErrors.length, 0);
+              assert.equal(
+                validationErrors[0].message,
+                "Expected 'remote', an array of strings, or an object with optional mnemonic and account details",
+              );
+            });
+
+            it("should not allow private keys of incorrect length", async () => {
+              hardhatUserConfig.networks.localhost.accounts = ["0xaaaa"];
+
+              let validationErrors =
+                await validateUserConfig(hardhatUserConfig);
+
+              assert.notEqual(validationErrors.length, 0);
+              assert.equal(
+                validationErrors[0].message,
+                "The private key must be a valid private key",
+              );
+              hardhatUserConfig.networks.localhost.accounts = [
+                "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabb",
+              ];
+
+              validationErrors = await validateUserConfig(hardhatUserConfig);
+
+              assert.notEqual(validationErrors.length, 0);
+              assert.equal(
+                validationErrors[0].message,
+                "The private key must be a valid private key",
+              );
+            });
+
+            it("should not allow invalid private keys", async () => {
+              hardhatUserConfig.networks.localhost.accounts = [
+                "0xgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
+              ];
+
+              const validationErrors =
+                await validateUserConfig(hardhatUserConfig);
+
+              assert.notEqual(validationErrors.length, 0);
+              assert.equal(
+                validationErrors[0].message,
+                "The private key must be a valid private key",
+              );
+            });
+          });
+        });
+
+        it("should fail with invalid types", async () => {
+          const accountsValuesToTest = [123, [{}], { asd: 123 }];
+
+          for (const accounts of accountsValuesToTest) {
+            hardhatUserConfig.networks.localhost.accounts = accounts;
+
+            const validationErrors =
+              await validateUserConfig(hardhatUserConfig);
+
+            assert.notEqual(validationErrors.length, 0);
+            assert.equal(
+              validationErrors[0].message,
+              "Expected 'remote', an array of strings, or an object with optional mnemonic and account details",
+            );
+          }
+        });
+
+        it("should fail with invalid HttpNetworkHDAccountsConfig", async () => {
+          const accountsValuesToTest = [
+            { mnemonic: 123 },
+            { initialIndex: "asd" },
+            { count: "asd" },
+            { path: 123 },
+            { type: 123 },
+            {
+              initialIndex: 1,
+            },
+          ];
+
+          for (const accounts of accountsValuesToTest) {
+            hardhatUserConfig.networks.localhost.accounts = accounts;
+
+            const validationErrors =
+              await validateUserConfig(hardhatUserConfig);
+
+            assert.notEqual(validationErrors.length, 0);
+            assert.equal(
+              validationErrors[0].message,
+              "Expected 'remote', an array of strings, or an object with optional mnemonic and account details",
+            );
+          }
+        });
+      });
+
+      describe("edr config", async () => {
+        let hardhatUserConfig: any; // Use any to allow assigning also wrong values
+
+        before(() => {
+          hardhatUserConfig = {
+            networks: {
+              localhost: {
+                chainId: 1,
+                gas: "auto",
+                gasMultiplier: 1,
+                gasPrice: "auto",
+                type: "edr",
+                accounts: "", // Modified in the tests
+                url: "http://localhost:8545",
+              },
+            },
+          };
+        });
+
+        describe("allowed values", () => {
+          it("should allow an array of account objects with valid private keys", async () => {
+            hardhatUserConfig.networks.localhost.accounts = [
+              {
+                balance: "123",
+                privateKey:
+                  "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              },
+              {
+                balance: "123",
+                privateKey:
+                  "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              },
+              {
+                balance: "123",
+                privateKey:
+                  "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              },
+            ];
+
+            const validationErrors =
+              await validateUserConfig(hardhatUserConfig);
+
+            console.log(validationErrors);
+
+            assert.equal(validationErrors.length, 0);
+          });
+
+          it("should allow an account with a valid EdrNetworkHDAccountsConfig", async () => {
+            hardhatUserConfig.networks.localhost.accounts = {
+              mnemonic: "asd asd asd",
+              initialIndex: 0,
+              count: 123,
+              path: "m/1/2",
+              accountsBalance: "123",
+              passphrase: "passphrase",
+            };
+
+            const validationErrors =
+              await validateUserConfig(hardhatUserConfig);
+
+            assert.equal(validationErrors.length, 0);
+          });
+
+          // TODO: still valid?
+          // it("should allow valid private keys with missing hex prefix", async () =>{
+          //   hardhatUserConfig.networks.localhost.accounts = [
+          //     {
+          //       balance: "123",
+          //       privateKey:
+          //         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          //     },
+          //   ];
+          //   const validationErrors = await validateUserConfig(hardhatUserConfig);
+          //   assert.equal(validationErrors.length, 0);
+          // });
+        });
+
+        describe("not allowed values", () => {
+          describe("wrong private key formats", () => {
+            it("should not allow hex literals", async () => {
+              hardhatUserConfig.networks.localhost.accounts = [
+                {
+                  balance: "123",
+                  privateKey: 0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,
+                },
+              ];
+
+              const validationErrors =
+                await validateUserConfig(hardhatUserConfig);
+
+              assert.notEqual(validationErrors.length, 0);
+              assert.equal(
+                validationErrors[0].message,
+                "Expected an array of objects with 'privateKey' and 'balance', or an object with optional mnemonic and account details",
+              );
+            });
+
+            it("should not allow private keys of incorrect length", async () => {
+              hardhatUserConfig.networks.localhost.accounts = [
+                {
+                  balance: "123",
+                  privateKey: "0xaaaa",
+                },
+              ];
+
+              let validationErrors =
+                await validateUserConfig(hardhatUserConfig);
+
+              assert.notEqual(validationErrors.length, 0);
+              assert.equal(
+                validationErrors[0].message,
+                "The private key must be a valid private key",
+              );
+
+              hardhatUserConfig.networks.localhost.accounts = [
+                {
+                  balance: "123",
+                  privateKey:
+                    "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbb",
+                },
+              ];
+
+              validationErrors = await validateUserConfig(hardhatUserConfig);
+
+              assert.notEqual(validationErrors.length, 0);
+              assert.equal(
+                validationErrors[0].message,
+                "The private key must be a valid private key",
+              );
+            });
+
+            it("should not allow invalid private keys", async () => {
+              hardhatUserConfig.networks.localhost.accounts = [
+                {
+                  balance: "123",
+                  privateKey:
+                    "0xgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
+                },
+              ];
+              const validationErrors =
+                await validateUserConfig(hardhatUserConfig);
+              assert.notEqual(validationErrors.length, 0);
+              assert.equal(
+                validationErrors[0].message,
+                "The private key must be a valid private key",
+              );
+            });
+          });
+
+          it("should not allow an array that contains a value that is not an object", async () => {
+            hardhatUserConfig.networks.localhost.accounts = [
+              {
+                balance: "123",
+                privateKey:
+                  "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              },
+              "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              {
+                balance: "123",
+                privateKey:
+                  "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              },
+            ];
+
+            const validationErrors =
+              await validateUserConfig(hardhatUserConfig);
+
+            assert.notEqual(validationErrors.length, 0);
+            assert.equal(
+              validationErrors[0].message,
+              "Expected an array of objects with 'privateKey' and 'balance', or an object with optional mnemonic and account details",
+            );
+          });
+
+          it("should fail with invalid types", async () => {
+            const accountsValuesToTest = [
+              123,
+              [{}],
+              [{ privateKey: "" }],
+              [{ balance: "" }],
+              [{ balance: 213 }],
+              [{ privateKey: 123 }],
+              [{ privateKey: "0xxxxx", balance: 213 }],
+            ];
+
+            for (const accounts of accountsValuesToTest) {
+              hardhatUserConfig.networks.localhost.accounts = accounts;
+
+              const validationErrors =
+                await validateUserConfig(hardhatUserConfig);
+
+              assert.notEqual(validationErrors.length, 0);
+              assert.equal(
+                validationErrors[0].message,
+                "Expected an array of objects with 'privateKey' and 'balance', or an object with optional mnemonic and account details",
+              );
+            }
+          });
+
+          it("should fail with invalid HttpNetworkHDAccountsConfig", async () => {
+            const accountsValuesToTest = [
+              { mnemonic: 123 },
+              { initialIndex: "asd" },
+              { count: "asd" },
+              { path: 123 },
+            ];
+
+            for (const accounts of accountsValuesToTest) {
+              hardhatUserConfig.networks.localhost.accounts = accounts;
+
+              const validationErrors =
+                await validateUserConfig(hardhatUserConfig);
+
+              assert.notEqual(validationErrors.length, 0);
+              assert.equal(
+                validationErrors[0].message,
+                "Expected an array of objects with 'privateKey' and 'balance', or an object with optional mnemonic and account details",
+              );
+            }
+          });
+        });
+      });
+    });
   });
 
   describe("resolveUserConfig", () => {
