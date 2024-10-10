@@ -1,5 +1,4 @@
 import type { JsonRpcTransactionData } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc-request-modifiers/accounts/types.js";
-import type { EthereumProvider } from "../../../../../../../src/types/providers.js";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
@@ -7,18 +6,19 @@ import { before, describe, it } from "node:test";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import { FixedSender } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc-request-modifiers/accounts/fixed-sender-provider.js";
+import { EthereumMockedProvider } from "../../ethereum-mocked-provider.js";
 import { createJsonRpcRequest, getParams } from "../../helpers.js";
 
 describe("FixedSender", function () {
   let fixedSender: FixedSender;
+  let mockedProvider: EthereumMockedProvider;
   let tx: JsonRpcTransactionData;
 
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- |TODO
-  const provider = {} as EthereumProvider;
-
   before(() => {
+    mockedProvider = new EthereumMockedProvider();
+
     fixedSender = new FixedSender(
-      provider,
+      mockedProvider,
       "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d",
     );
 
