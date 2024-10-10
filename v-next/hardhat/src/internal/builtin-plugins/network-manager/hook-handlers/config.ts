@@ -35,7 +35,7 @@ export async function extendUserConfig(
     extendedConfig.networks ?? {};
 
   const localhostConfig: Omit<HttpNetworkUserConfig, "url"> = {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- currently only http network is supported
     ...(networks.localhost as HttpNetworkUserConfig),
   };
 
