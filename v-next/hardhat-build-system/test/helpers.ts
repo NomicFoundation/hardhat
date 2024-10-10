@@ -50,6 +50,7 @@ const defaultSolcOutputSelection = {
     "": ["ast"],
   },
 };
+
 export function cleanFixtureProjectDir(fixtureProjectName: string): void {
   const folderPath = path.join(
     _dirname,

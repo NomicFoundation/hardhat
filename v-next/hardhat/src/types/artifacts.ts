@@ -1,10 +1,23 @@
+import type { SolidityBuildInfo } from "./solidity/solidity-artifacts.js";
+
 /**
- * WARNING: This is a placholder, while the build system is being implemented.
- * This ArtifactsManager will be replaced, but the capabilities are similar
- * enough to aid development.
- *
- * TODO: Replace this with the real ArtifactsManager.
- *
+ * A map of bare contract names and fully qualified contract names to their
+ * artifacts that will be completed by Hardhat's build system using module
+ * augmentation.
+ */
+/* eslint-disable-next-line @typescript-eslint/no-empty-interface -- This will
+be populated by module augmentation */
+export interface ArtifactMap {}
+
+/**
+ * Returns the artifact type for the bare or fully qualified contract name.
+ */
+export type GetAtifactByName<ContractNameT extends string> =
+  ContractNameT extends keyof ArtifactMap
+    ? ArtifactMap[ContractNameT]
+    : Artifact;
+
+/**
  * The ArtifactsManager is responsible for reading and writing artifacts from
  * the Hardhat build system.
  */
@@ -20,7 +33,9 @@ export interface ArtifactsManager {
    * @throws Throws an error if a non-unique contract name is used,
    *   indicating which fully qualified names can be used instead.
    */
-  readArtifact(contractNameOrFullyQualifiedName: string): Promise<Artifact>;
+  readArtifact<ContractNameT extends string>(
+    contractNameOrFullyQualifiedName: ContractNameT,
+  ): Promise<GetAtifactByName<ContractNameT>>;
 
   /**
    * Returns true if an artifact exists.
@@ -41,8 +56,8 @@ export interface ArtifactsManager {
    * Returns the BuildInfo associated with the solc run that compiled a
    * contract.
    *
-   * Note that if your contract hasn't been compiled with solc this method
-   * can return undefined.
+   * Note that if your contract hasn't been compiled with Hardhat's build system
+   * this method can return undefined.
    */
   getBuildInfo(fullyQualifiedName: string): Promise<BuildInfo | undefined>;
 
@@ -62,176 +77,128 @@ export interface ArtifactsManager {
   getBuildInfoPaths(): Promise<string[]>;
 
   /**
-   * Saves a contract's artifact and debug file.
-   *
-   * @param artifact The artifact object.
-   */
-  saveArtifact(artifact: Artifact): Promise<void>;
-
-  /**
-   * Saves the build info associated to a solc run.
-   *
-   * @param solcVersion The semver-compatible version number.
-   * @param solcLongVersion The full solc version.
-   * @param input The compiler input.
-   * @param output The compiler output.
-   */
-  saveBuildInfo(
-    solcVersion: string,
-    solcLongVersion: string,
-    input: CompilerInput,
-    output: CompilerOutput,
-  ): Promise<string>;
-
-  /**
    * Returns the absolute path to the given artifact.
    *
-   * @param fullyQualifiedName The FQN of the artifact.
+   * @param contractNameOrFullyQualifiedName The name or fully qualified name
+   * of the contract.
    */
   getArtifactPath(contractNameOrFullyQualifiedName: string): Promise<string>;
 }
 
 /**
- * WARNING: This is a placholder, while the build system is being implemented.
+ * TODO: This type could be improved to better represent the ABI.
  */
-export type Abi = readonly any[] | any[];
+export type Abi = readonly any[];
 
 /**
- * WARNING: This is a placholder, while the build system is being implemented.
- *
- * An artifact representing the compilation output of a contract.
+ * An Artifact represents the compilation output of a single contract.
  *
  * This file has just enough information to deploy the contract and interact
  * with an already deployed instance of it.
- *
- * For debugging information and other extra information, you should look for
- * its companion DebugFile, which should be stored right next to it.
- *
- * Note that DebugFiles are only generated for Solidity contracts.
  */
 export interface Artifact<AbiT extends Abi = Abi> {
-  _format: string;
-  contractName: string;
-  sourceName: string;
-  abi: AbiT;
-  bytecode: string; // "0x"-prefixed hex string
-  deployedBytecode: string; // "0x"-prefixed hex string
-  linkReferences: LinkReferences;
-  deployedLinkReferences: LinkReferences;
+  /**
+   * The version identifier of this format.
+   */
+  readonly _format: "hh3-artifact-1";
+
+  /**
+   * The bare name of the contract (i.e. without the source name).
+   */
+  readonly contractName: string;
+
+  /**
+   * The name of the file where the contract is defined.
+   *
+   * When Hardhat generates artifacts, it uses the following logic to determine
+   * the source name:
+   *   - The relative path from the root of the project, if the contract is
+   *     defined in a file in the project.
+   *   - The npm module identifier (i.e. `<package>/<file>`) if the contract
+   *     is defined in a file in a npm package.
+   *   - This may or may not be the same as the source name used by `solc`.
+   *     For that information, see `inputSourceName`.
+   *
+   * This source name is used to determine the path to the artifact, and to
+   * generate its fully qualified name.
+   */
+  readonly sourceName: string;
+
+  /**
+   * The ABI of the contract.
+   */
+  readonly abi: AbiT;
+
+  /**
+   * The bytecode used to deploy the contract.
+   */
+  readonly bytecode: string; // "0x"-prefixed hex string
+
+  /**
+   * The link references of the deployment bytecode.
+   */
+  readonly linkReferences: LinkReferences;
+
+  /**
+   * The deployed or runtime bytecode of the contract.
+   */
+  readonly deployedBytecode: string; // "0x"-prefixed hex string
+
+  /**
+   * The link references of the deployed bytecode.
+   */
+  readonly deployedLinkReferences: LinkReferences;
+
+  /**
+   * The references to the immutable variables that get embedded in the deployed
+   * bytecode.
+   */
+  readonly immutableReferences?: ImmutableReferences;
+
+  /**
+   * The id of the build info that was used to generate this artifact.
+   *
+   * This may not be present if the artifact wasn't generated by Hardhat's build
+   * system.
+   */
+  readonly buildInfoId?: string;
+
+  /**
+   * The source name of the file in the build info's source map that has this
+   * contract's code.
+   *
+   * This can be different from the source name of the artifact, when the file
+   * comes from an npm package.
+   */
+  readonly inputSourceName?: string;
 }
 
 /**
- * WARNING: This is a placholder, while the build system is being implemented.
- *
- * A BuildInfo is a file that contains all the information of a solc run. It
- * includes all the necessary information to recreate that exact same run, and
- * all of its output.
- */
-export interface BuildInfo {
-  _format: string;
-  id: string;
-  solcVersion: string;
-  solcLongVersion: string;
-  input: CompilerInput;
-  output: CompilerOutput;
-}
-
-/**
- * WARNING: This is a placholder, while the build system is being implemented.
+ * The link references of a contract, which need to be resolved before using it.
  */
 export interface LinkReferences {
-  [libraryFileName: string]: {
+  [librarySourceName: string]: {
     [libraryName: string]: Array<{ length: number; start: number }>;
   };
 }
 
 /**
- * WARNING: This is a placholder, while the build system is being implemented.
+ * The references to the immutable variables that get embedded in the deployed
+ * bytecode.
+ *
+ * Each immutable variable is represented by an id, which in the case of solc
+ * is the id of the AST node that represents the variable.
  */
-export interface CompilerInput {
-  language: string;
-  sources: { [sourceName: string]: { content: string } };
-  settings: {
-    viaIR?: boolean;
-    optimizer: {
-      runs?: number;
-      enabled?: boolean;
-      details?: {
-        yulDetails: {
-          optimizerSteps: string;
-        };
-      };
-    };
-    metadata?: { useLiteralContent: boolean };
-    outputSelection: {
-      [sourceName: string]: {
-        [contractName: string]: string[];
-      };
-    };
-    evmVersion?: string;
-    libraries?: {
-      [libraryFileName: string]: {
-        [libraryName: string]: string;
-      };
-    };
-    remappings?: string[];
-  };
+export interface ImmutableReferences {
+  [immuatableId: string]: Array<{ start: number; length: number }>;
 }
 
 /**
- * WARNING: This is a placholder, while the build system is being implemented.
+ * A BuildInfo is a file containing all the information to reproduce a build.
+ *
+ * Note that currently, BuildInfos are only generated for Solidity contracts,
+ * and this will change once we add support for Vyper, so if you are using this,
+ * keep in mind that you will need to update your code to support or ignore
+ * Vyper's artifacts.
  */
-export interface CompilerOutputContract {
-  abi: any;
-  evm: {
-    bytecode: CompilerOutputBytecode;
-    deployedBytecode: CompilerOutputBytecode;
-    methodIdentifiers: {
-      [methodSignature: string]: string;
-    };
-  };
-}
-
-/**
- * WARNING: This is a placholder, while the build system is being implemented.
- */
-export interface CompilerOutput {
-  sources: CompilerOutputSources;
-  contracts: {
-    [sourceName: string]: {
-      [contractName: string]: CompilerOutputContract;
-    };
-  };
-}
-
-/**
- * WARNING: This is a placholder, while the build system is being implemented.
- */
-export interface CompilerOutputSource {
-  id: number;
-  ast: any;
-}
-
-/**
- * WARNING: This is a placholder, while the build system is being implemented.
- */
-export interface CompilerOutputSources {
-  [sourceName: string]: CompilerOutputSource;
-}
-
-/**
- * WARNING: This is a placholder, while the build system is being implemented.
- */
-export interface CompilerOutputBytecode {
-  object: string;
-  opcodes: string;
-  sourceMap: string;
-  linkReferences: {
-    [sourceName: string]: {
-      [libraryName: string]: Array<{ start: number; length: 20 }>;
-    };
-  };
-  immutableReferences?: {
-    [key: string]: Array<{ start: number; length: number }>;
-  };
-}
+export type BuildInfo = SolidityBuildInfo;

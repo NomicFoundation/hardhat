@@ -14,7 +14,7 @@ describe("createMockHardhatRuntimeEnvironment", () => {
   it("should allow plugins that leverage the artifact hre object", async () => {
     // arrange
     const exampleArtifact: Artifact = {
-      _format: "hh-sol-artifact-1",
+      _format: "hh3-artifact-1",
       contractName: "MyContract",
       sourceName: "source.sol",
       abi: [],
@@ -22,6 +22,7 @@ describe("createMockHardhatRuntimeEnvironment", () => {
       linkReferences: {},
       deployedBytecode: "0x",
       deployedLinkReferences: {},
+      immutableReferences: {},
     };
 
     const myPlugin: HardhatPlugin = {
