@@ -572,6 +572,21 @@ If you want to use a different chain type, please update your networks config.`,
       websiteTitle: "Invalid config override",
       websiteDescription: `The configuration override you provided is invalid.`,
     },
+    INVALID_GLOBAL_CHAIN_ID: {
+      number: 708,
+      messageTemplate:
+        "Hardhat was set to use chain id {configChainId}, but connected to a chain with id {connectionChainId}.",
+      websiteTitle: "Invalid global chain id",
+      websiteDescription: `Hardhat was set to use a chain id but connected to a chain with a different id`,
+    },
+    NO_REMOTE_ACCOUNT_AVAILABLE: {
+      number: 709,
+      messageTemplate:
+        "No local account was set and there are accounts in the remote node.",
+      websiteTitle: "No remote account available",
+      websiteDescription:
+        "No local account was set and there are accounts in the remote node",
+    },
   },
   KEYSTORE: {
     INVALID_KEYSTORE_FILE_FORMAT: {
