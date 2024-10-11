@@ -573,6 +573,13 @@ If you want to use a different chain type, please update your networks config.`,
       websiteTitle: "Invalid config override",
       websiteDescription: `The configuration override you provided is invalid.`,
     },
+    INVALID_NETWORK_TYPE: {
+      number: 708,
+      messageTemplate:
+        "The provided network type {networkType} for network {networkName} is not recognized, only `http` and `edr` are supported.",
+      websiteTitle: "Invalid network type",
+      websiteDescription: `The network manager only supports the network types 'http' and 'edr'.`,
+    },
   },
   KEYSTORE: {
     INVALID_KEYSTORE_FILE_FORMAT: {
@@ -855,7 +862,7 @@ This error is thrown when you import a file with the wrong casing under a case i
         'The remapping "{remapping}" has a context starting with "npm/", which is forbidden. Hardhat doesn\'t allow changing the behaviour of npm package\'s imports.',
       websiteTitle: "Remapping imports in npm packages is not allowed",
       websiteDescription: `This error happened because you are trying to change how the imports within an npm package, which is not allowed.
-      
+
 While Hardhat supports user-defined remappings, it doesn't support remapping the behavior of npm packages to ensure that everything what's imported via npm uses the same npm resolution logic.`,
     },
     REMAPPING_WITH_INVALID_SYNTAX: {
@@ -863,7 +870,7 @@ While Hardhat supports user-defined remappings, it doesn't support remapping the
       messageTemplate: `The remapping "{remapping}" is invalid.`,
       websiteTitle: "Invalid remapping",
       websiteDescription: `You are trying to set a user remapping, but it's syntax is invalid.
-      
+
 Please double check your remmpaings' syntax.`,
     },
     REMAPPING_TO_UNINSTALLED_PACKAGE: {
@@ -871,7 +878,7 @@ Please double check your remmpaings' syntax.`,
       messageTemplate: `The remapping "{remapping}" is trying to use the npm package "{package}", which is not installed`,
       websiteTitle: "Remapping into an uninstaleld npm package",
       websiteDescription: `You are trying to set a user remapping that uses an npm pacakge as target, but it's not installed.
-      
+
 Please make sure to install the package or fix the remapping.`,
     },
     REMAPPING_TO_PACKAGE_USING_EXPORTS: {
@@ -893,7 +900,7 @@ Please make sure to install the package or fix the remapping.`,
       messageTemplate: `The remapping "{remapping}" is trying to set the npm package "{package}" as target, but that's the project is the Hardhat project, so it shouldn't be remapped through npm/, but as internal project remappings.`,
       websiteTitle: `Remapping into the project using npm`,
       websiteDescription: `You are trying to set a remapping whose target uses the npm/ syntax, but is within your Hardhat project.
-      
+
 Please don't use npm/... as target, but use normal internal project remapping istead.`,
     },
     REMAPPING_INCORRECT_VERSION: {
@@ -901,7 +908,7 @@ Please don't use npm/... as target, but use normal internal project remapping is
       messageTemplate: `The remapping "{remapping}" is trying to set the npm package "{package}" version "{expectedVersion}" as target, but found version "{actualVersion}" instead.`,
       websiteTitle: `Remapping into incorrect npm package version`,
       websiteDescription: `You are trying to set a remapping into an npm package, but the version that you are using is not the currently installed one.
-      
+
 Please change your remapping to match the installed version, or installed the correct one.`,
     },
     INVALID_NPM_IMPORT: {
@@ -926,8 +933,8 @@ Please change your remapping to match the installed version, or installed the co
       number: 1218,
       messageTemplate: `Applying the remapping "{remapping}" to the import "{importPath}" from "{from}" results in an invalid import "{remappedDirectImport}", as it's not a local file. If you are trying to remap into an npm module use the npm/ syntax instead.`,
       websiteTitle: `Illegal project import after remapping`,
-      websiteDescription: `One of your Solidity files has an import which after applying a user remapping becomes an illegal import, as it tries to import a file outside of the project. This is disabled for security reasons. 
-      
+      websiteDescription: `One of your Solidity files has an import which after applying a user remapping becomes an illegal import, as it tries to import a file outside of the project. This is disabled for security reasons.
+
 If you are trying to remap into an npm module use the npm/ syntax instead.`,
     },
     IMPORT_PATH_WITH_WINDOWS_SEPARATOR: {
@@ -949,11 +956,11 @@ If you are certain it has been released, run \`npx hardhat clean --global\` and 
     RESOLVE_NPM_FILE_WITH_INVALID_FORMAT: {
       number: 1221,
       messageTemplate: `Couldn't resolve the npm file "{module}" because it has an invalid format.
-      
+
 Make sure that you are providing valid npm file paths (e.g. package/File.sol) in your config and programatically.`,
       websiteTitle: "Resolving invalid npm file",
       websiteDescription: `Tried to resolve an npm file directly (i.e. not imported by another file) but its format is invalid.
-      
+
 This can happen if you setting npm files to be compiled as local files, with invalid file paths, or by misusing the solidity build system.`,
     },
     RESOLVE_NPM_FILE_CLASHES_WITH_LOCAL_FILES: {
