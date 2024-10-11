@@ -2,11 +2,14 @@ import type {
   Artifact,
   ArtifactsManager,
   BuildInfo,
-  CompilerInput,
-  CompilerOutput,
+  GetAtifactByName,
 } from "@ignored/hardhat-vnext/types/artifacts";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import {
+  CompilerInput,
+  CompilerOutput,
+} from "../../../hardhat/src/types/solidity/compiler-io.js";
 
 export class MockArtifactsManager implements ArtifactsManager {
   readonly #artifacts: Map<string, Artifact>;
@@ -27,9 +30,9 @@ export class MockArtifactsManager implements ArtifactsManager {
     }
   }
 
-  public async readArtifact(
-    contractNameOrFullyQualifiedName: string,
-  ): Promise<Artifact> {
+  public async readArtifact<ContractNameT extends string>(
+    contractNameOrFullyQualifiedName: ContractNameT,
+  ): Promise<GetAtifactByName<ContractNameT>> {
     const artifactFileName = this.#artifactsPaths.get(
       contractNameOrFullyQualifiedName,
     );

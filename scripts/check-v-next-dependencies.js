@@ -2,6 +2,8 @@
 const fs = require("fs");
 const path = require("path");
 
+const IGNORED_PACKAGE_FOLDERS = new Set(["hardhat-build-system"]);
+
 /**
  * @typedef {Object} Package
  * @property {string} name
@@ -56,9 +58,9 @@ function main() {
 function getAllPackageJsonPaths() {
   const packageNames = fs.readdirSync(path.join(__dirname, "..", "v-next"));
 
-  const packageJsons = packageNames.map((p) =>
-    path.join(__dirname, "..", "v-next", p, "package.json")
-  );
+  const packageJsons = packageNames
+    .filter((p) => !IGNORED_PACKAGE_FOLDERS.has(p))
+    .map((p) => path.join(__dirname, "..", "v-next", p, "package.json"));
 
   return packageJsons;
 }
