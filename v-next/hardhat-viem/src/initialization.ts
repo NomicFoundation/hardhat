@@ -33,25 +33,35 @@ export function initializeViem<ChainTypeT extends ChainType | string>(
     getTestClient: (testClientConfig) =>
       getTestClient(provider, testClientConfig),
 
-    deployContract: (contractName, constructorArgs, config) =>
+    deployContract: (contractName, constructorArgs, deployContractConfig) =>
       deployContract(
         provider,
         artifactManager,
         contractName,
         constructorArgs,
-        config,
+        deployContractConfig,
       ),
 
-    sendDeploymentTransaction: (contractName, constructorArgs, config) =>
+    sendDeploymentTransaction: (
+      contractName,
+      constructorArgs,
+      sendDeploymentTransactionConfig,
+    ) =>
       sendDeploymentTransaction(
         provider,
         artifactManager,
         contractName,
         constructorArgs,
-        config,
+        sendDeploymentTransactionConfig,
       ),
 
-    getContractAt: (contractName, address, config) =>
-      getContractAt(provider, artifactManager, contractName, address, config),
+    getContractAt: (contractName, address, getContractAtConfig) =>
+      getContractAt(
+        provider,
+        artifactManager,
+        contractName,
+        address,
+        getContractAtConfig,
+      ),
   };
 }
