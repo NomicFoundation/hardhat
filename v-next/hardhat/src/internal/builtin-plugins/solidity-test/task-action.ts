@@ -2,7 +2,11 @@ import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
 import { spec } from "node:test/reporters";
 
-import { buildSolidityTestsInput, runAllSolidityTests } from "./helpers.js";
+import {
+  getArtifacts,
+  isTestArtifact,
+  runAllSolidityTests,
+} from "./helpers.js";
 
 const runSolidityTests: NewTaskActionFunction = async (_arguments, hre) => {
   await hre.tasks.getTask("compile").run({ quiet: false });
@@ -16,19 +20,16 @@ const runSolidityTests: NewTaskActionFunction = async (_arguments, hre) => {
   let totalTests = 0;
   let failedTests = 0;
 
-  const { artifacts, testSuiteIds } = await buildSolidityTestsInput(
-    hre.artifacts,
-    (artifact) => {
-      const sourceName = artifact.id.source;
-      const isTestArtifact =
-        sourceName.endsWith(".t.sol") &&
-        sourceName.startsWith("contracts/") &&
-        !sourceName.startsWith("contracts/forge-std/") &&
-        !sourceName.startsWith("contracts/ds-test/");
-
-      return isTestArtifact;
-    },
-  );
+  const artifacts = await getArtifacts(hre.artifacts);
+  const testSuiteIds = (
+    await Promise.all(
+      artifacts.map(async (artifact) => {
+        if (await isTestArtifact(hre.config.paths.root, artifact)) {
+          return artifact.id;
+        }
+      }),
+    )
+  ).filter((artifact) => artifact !== undefined);
 
   const config = {
     projectRoot: hre.config.paths.root,
