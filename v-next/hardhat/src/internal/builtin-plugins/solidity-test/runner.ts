@@ -8,8 +8,18 @@ import type {
 import { Readable } from "node:stream";
 
 import { runSolidityTests } from "@ignored/edr";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 import { formatArtifactId } from "./formatters.js";
+
+export interface RunOptions {
+  /**
+   * The maximum time in milliseconds to wait for all the test suites to finish.
+   *
+   * If not provided, the default is 1 hour.
+   */
+  timeout?: number;
+}
 
 /**
  * Run all the given solidity tests and returns the stream of results.
@@ -31,6 +41,7 @@ export function run(
   artifacts: Artifact[],
   testSuiteIds: ArtifactId[],
   configArgs: SolidityTestRunnerConfigArgs,
+  options?: RunOptions,
 ): TestsStream {
   const stream = new ReadableStream<TestEvent>({
     start(controller) {
@@ -40,6 +51,19 @@ export function run(
       }
 
       const remainingSuites = new Set(testSuiteIds.map(formatArtifactId));
+
+      // NOTE: The timeout prevents the situation in which the stream is never
+      // closed. This can happen if we receive fewer suite results than the
+      // number of test suites. The timeout is set to 1 hour.
+      const duration = options?.timeout ?? 60 * 60 * 1000;
+      const timeout = setTimeout(() => {
+        controller.error(
+          new HardhatError(HardhatError.ERRORS.SOLIDITY_TESTS.RUNNER_TIMEOUT, {
+            duration,
+            suites: Array.from(remainingSuites).join(", "),
+          }),
+        );
+      }, duration);
 
       runSolidityTests(
         artifacts,
@@ -52,10 +76,12 @@ export function run(
           });
           remainingSuites.delete(formatArtifactId(suiteResult.id));
           if (remainingSuites.size === 0) {
+            clearTimeout(timeout);
             controller.close();
           }
         },
         (error) => {
+          clearTimeout(timeout);
           controller.error(error);
         },
       );

@@ -1,3 +1,4 @@
+import type { RunOptions } from "./runner.js";
 import type { TestEvent } from "./types.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
@@ -7,7 +8,7 @@ import { buildSolidityTestsInput } from "./helpers.js";
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
 
-const runSolidityTests: NewTaskActionFunction = async (_arguments, hre) => {
+const runSolidityTests: NewTaskActionFunction = async ({ timeout }, hre) => {
   await hre.tasks.getTask("compile").run({ quiet: false });
 
   console.log("\nRunning Solidity tests...\n");
@@ -33,7 +34,9 @@ const runSolidityTests: NewTaskActionFunction = async (_arguments, hre) => {
   let includesFailures = false;
   let includesErrors = false;
 
-  const runStream = run(artifacts, testSuiteIds, config);
+  const options: RunOptions = { timeout };
+
+  const runStream = run(artifacts, testSuiteIds, config, options);
 
   runStream
     .on("data", (event: TestEvent) => {
