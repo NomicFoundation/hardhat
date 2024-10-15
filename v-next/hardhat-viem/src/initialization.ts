@@ -37,7 +37,6 @@ export function initializeViem<ChainTypeT extends ChainType | string>(
       deployContract(
         provider,
         artifactManager,
-        chainType,
         contractName,
         constructorArgs,
         config,
@@ -47,20 +46,12 @@ export function initializeViem<ChainTypeT extends ChainType | string>(
       sendDeploymentTransaction(
         provider,
         artifactManager,
-        chainType,
         contractName,
         constructorArgs,
         config,
       ),
 
     getContractAt: (contractName, address, config) =>
-      getContractAt(
-        provider,
-        artifactManager,
-        chainType,
-        contractName,
-        address,
-        config,
-      ),
+      getContractAt(provider, artifactManager, contractName, address, config),
   };
 }

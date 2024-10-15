@@ -3,33 +3,107 @@ import type {
   DeployContractConfig,
   GetContractAtConfig,
   GetTransactionReturnType,
+  Libraries,
+  PublicClient,
   SendDeploymentTransactionConfig,
+  WalletClient,
 } from "./types.js";
 import type { ArtifactsManager } from "@ignored/hardhat-vnext/types/artifacts";
-import type { ChainType } from "@ignored/hardhat-vnext/types/network";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { PrefixedHexString } from "@ignored/hardhat-vnext-utils/hex";
+import type * as viemT from "viem";
 
-export async function deployContract<
-  ChainTypeT extends ChainType | string,
-  ContractName extends string,
->(
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { toBigInt } from "@ignored/hardhat-vnext-utils/bigint";
+import { resolveLinkedBytecode } from "@ignored/hardhat-vnext-utils/bytecode";
+import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+import { getContractAddress, getContract } from "viem";
+
+import { getDefaultWalletClient, getPublicClient } from "./clients.js";
+
+export async function deployContract<ContractName extends string>(
   provider: EthereumProvider,
   artifactManager: ArtifactsManager,
-  chainType: ChainTypeT,
   contractName: ContractName,
   constructorArgs: unknown[] = [],
   deployContractConfig: DeployContractConfig = {},
 ): Promise<ContractReturnType<ContractName>> {
-  // ...
+  const {
+    client,
+    confirmations = 1,
+    libraries = {},
+    ...deployContractParameters
+  } = deployContractConfig;
+
+  if (confirmations < 0) {
+    throw new HardhatError(HardhatError.ERRORS.VIEM.INVALID_CONFIRMATIONS, {
+      error: "Confirmations must be greather than 0.",
+    });
+  }
+  if (confirmations === 0) {
+    throw new HardhatError(HardhatError.ERRORS.VIEM.INVALID_CONFIRMATIONS, {
+      error:
+        "deployContract does not support 0 confirmations. Use sendDeploymentTransaction if you want to handle the deployment transaction yourself.",
+    });
+  }
+
+  const [publicClient, walletClient, { abi, bytecode }] = await Promise.all([
+    client?.public ?? getPublicClient(provider, "l1"),
+    client?.wallet ?? getDefaultWalletClient(provider, "l1"),
+    getContractAbiAndBytecode(artifactManager, contractName, libraries),
+  ]);
+
+  let deploymentTxHash: PrefixedHexString;
+  // If gasPrice is defined, then maxFeePerGas and maxPriorityFeePerGas
+  // must be undefined because it's a legaxy tx.
+  if (deployContractParameters.gasPrice !== undefined) {
+    deploymentTxHash = await walletClient.deployContract({
+      abi,
+      bytecode,
+      args: constructorArgs,
+      ...deployContractParameters,
+      maxFeePerGas: undefined,
+      maxPriorityFeePerGas: undefined,
+    });
+  } else {
+    deploymentTxHash = await walletClient.deployContract({
+      abi,
+      bytecode,
+      args: constructorArgs,
+      ...deployContractParameters,
+      gasPrice: undefined,
+    });
+  }
+
+  const { contractAddress } = await publicClient.waitForTransactionReceipt({
+    hash: deploymentTxHash,
+    confirmations,
+  });
+
+  if (contractAddress === null || contractAddress === undefined) {
+    const transaction = await publicClient.getTransaction({
+      hash: deploymentTxHash,
+    });
+    throw new HardhatError(HardhatError.ERRORS.VIEM.DEPLOY_CONTRACT_ERROR, {
+      txHash: deploymentTxHash,
+      blockNumber: transaction.blockNumber,
+    });
+  }
+
+  const contract = createContractInstance(
+    contractName,
+    publicClient,
+    walletClient,
+    abi,
+    contractAddress,
+  );
+
+  return contract;
 }
 
-export async function sendDeploymentTransaction<
-  ChainTypeT extends ChainType | string,
-  ContractName extends string,
->(
+export async function sendDeploymentTransaction<ContractName extends string>(
   provider: EthereumProvider,
   artifactManager: ArtifactsManager,
-  chainType: ChainTypeT,
   contractName: ContractName,
   constructorArgs: unknown[] = [],
   sendDeploymentTransactionConfig: SendDeploymentTransactionConfig = {},
@@ -37,19 +111,123 @@ export async function sendDeploymentTransaction<
   contract: ContractReturnType<ContractName>;
   deploymentTransaction: GetTransactionReturnType;
 }> {
-  // ...
+  const {
+    client,
+    libraries = {},
+    ...deployContractParameters
+  } = sendDeploymentTransactionConfig;
+  const [publicClient, walletClient, { abi, bytecode }] = await Promise.all([
+    client?.public ?? getPublicClient(provider, "l1"),
+    client?.wallet ?? getDefaultWalletClient(provider, "l1"),
+    getContractAbiAndBytecode(artifactManager, contractName, libraries),
+  ]);
+
+  let deploymentTxHash: PrefixedHexString;
+  // If gasPrice is defined, then maxFeePerGas and maxPriorityFeePerGas
+  // must be undefined because it's a legaxy tx.
+  if (deployContractParameters.gasPrice !== undefined) {
+    deploymentTxHash = await walletClient.deployContract({
+      abi,
+      bytecode,
+      args: constructorArgs,
+      ...deployContractParameters,
+      maxFeePerGas: undefined,
+      maxPriorityFeePerGas: undefined,
+    });
+  } else {
+    deploymentTxHash = await walletClient.deployContract({
+      abi,
+      bytecode,
+      args: constructorArgs,
+      ...deployContractParameters,
+      gasPrice: undefined,
+    });
+  }
+
+  const deploymentTx = await publicClient.getTransaction({
+    hash: deploymentTxHash,
+  });
+
+  const contractAddress = getContractAddress({
+    from: walletClient.account.address,
+    nonce: toBigInt(deploymentTx.nonce),
+  });
+
+  const contract = createContractInstance(
+    contractName,
+    publicClient,
+    walletClient,
+    abi,
+    contractAddress,
+  );
+
+  return { contract, deploymentTransaction: deploymentTx };
 }
 
-export async function getContractAt<
-  ChainTypeT extends ChainType | string,
-  ContractName extends string,
->(
+export async function getContractAt<ContractName extends string>(
   provider: EthereumProvider,
   artifactManager: ArtifactsManager,
-  chainType: ChainTypeT,
   contractName: ContractName,
-  address: string,
+  address: viemT.Address,
   getContractAtConfig: GetContractAtConfig = {},
 ): Promise<ContractReturnType<ContractName>> {
-  // ...
+  const [publicClient, walletClient, artifact] = await Promise.all([
+    getContractAtConfig.client?.public ?? getPublicClient(provider, "l1"),
+    getContractAtConfig.client?.wallet ??
+      getDefaultWalletClient(provider, "l1"),
+    artifactManager.readArtifact(contractName),
+  ]);
+
+  return createContractInstance(
+    contractName,
+    publicClient,
+    walletClient,
+    artifact.abi,
+    address,
+  );
+}
+
+function createContractInstance<ContractName extends string>(
+  _contractName: ContractName,
+  publicClient: PublicClient,
+  walletClient: WalletClient,
+  abi: viemT.Abi,
+  address: viemT.Address,
+): ContractReturnType<ContractName> {
+  const contract = getContract({
+    address,
+    client: {
+      public: publicClient,
+      wallet: walletClient,
+    },
+    abi,
+  });
+
+  /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  -- Cast it as TS can't infer the type of the contract */
+  return contract as ContractReturnType<ContractName>;
+}
+
+async function getContractAbiAndBytecode(
+  artifacts: ArtifactsManager,
+  contractName: string,
+  libraries: Libraries,
+) {
+  const artifact = await artifacts.readArtifact(contractName);
+  let bytecode;
+  try {
+    bytecode = resolveLinkedBytecode(artifact, libraries);
+  } catch (error) {
+    ensureError(error);
+
+    throw new HardhatError(HardhatError.ERRORS.VIEM.LINKING_CONTRACT_ERROR, {
+      contractName,
+      error: error.message,
+    });
+  }
+
+  return {
+    abi: artifact.abi,
+    bytecode,
+  };
 }

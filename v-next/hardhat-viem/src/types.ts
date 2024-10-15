@@ -1,4 +1,4 @@
-import type { ContractArtifacts } from "@ignored/hardhat-vnext/types/artifacts";
+import type { ArtifactMap } from "@ignored/hardhat-vnext/types/artifacts";
 import type { ChainType } from "@ignored/hardhat-vnext/types/network";
 import type * as viemT from "viem";
 import type * as viemOpStackT from "viem/op-stack";
@@ -17,9 +17,24 @@ export interface HardhatViemHelpers<ChainTypeT extends ChainType | string> {
   getTestClient: (
     testClientConfig?: Partial<viemT.TestClientConfig>,
   ) => Promise<TestClient>;
-  deployContract: typeof deployContract;
-  sendDeploymentTransaction: typeof sendDeploymentTransaction;
-  getContractAt: typeof getContractAt;
+  deployContract: <ContractName extends string>(
+    contractName: ContractName,
+    constructorArgs?: ConstructorArgs<ContractName>,
+    config?: DeployContractConfig,
+  ) => Promise<ContractReturnType<ContractName>>;
+  sendDeploymentTransaction: <ContractName extends string>(
+    contractName: ContractName,
+    constructorArgs?: ConstructorArgs<ContractName>,
+    config?: SendDeploymentTransactionConfig,
+  ) => Promise<{
+    contract: ContractReturnType<ContractName>;
+    deploymentTransaction: GetTransactionReturnType;
+  }>;
+  getContractAt: <ContractName extends string>(
+    contractName: ContractName,
+    address: viemT.Address,
+    config?: GetContractAtConfig,
+  ) => Promise<ContractReturnType<ContractName>>;
 }
 
 export type GetPublicClientReturnType<ChainTypeT extends ChainType | string> =
@@ -27,27 +42,6 @@ export type GetPublicClientReturnType<ChainTypeT extends ChainType | string> =
 
 export type GetWalletClientReturnType<ChainTypeT extends ChainType | string> =
   ChainTypeT extends "optimism" ? OpWalletClient : WalletClient;
-
-export declare function deployContract<ContractName extends string>(
-  contractName: ContractName,
-  constructorArgs?: ConstructorArgs<ContractName>,
-  config?: DeployContractConfig,
-): Promise<ContractReturnType<ContractName>>;
-
-export declare function sendDeploymentTransaction<ContractName extends string>(
-  contractName: ContractName,
-  constructorArgs?: ConstructorArgs<ContractName>,
-  config?: SendDeploymentTransactionConfig,
-): Promise<{
-  contract: ContractReturnType<ContractName>;
-  deploymentTransaction: GetTransactionReturnType;
-}>;
-
-export declare function getContractAt<ContractName extends string>(
-  contractName: ContractName,
-  address: viemT.Address,
-  config?: GetContractAtConfig,
-): Promise<ContractReturnType<ContractName>>;
 
 export type PublicClient = viemT.PublicClient<viemT.Transport, viemT.Chain>;
 
@@ -129,9 +123,9 @@ export type GetTransactionReturnType = viemT.GetTransactionReturnType<
 >;
 
 export type ContractAbis = {
-  [ContractName in keyof ContractArtifacts]: ContractArtifacts[ContractName] extends never
+  [ContractName in keyof ArtifactMap]: ArtifactMap[ContractName] extends never
     ? never
-    : ContractArtifacts[ContractName]["abi"];
+    : ArtifactMap[ContractName]["abi"];
 };
 
 export type ConstructorArgs<ContractName> =

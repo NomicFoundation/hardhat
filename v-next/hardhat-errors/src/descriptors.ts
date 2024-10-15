@@ -1094,5 +1094,44 @@ You can find a list of supported networks here: https://github.com/wevm/viem/blo
 
 Please ensure you're using one of the supported networks.`,
     },
+    DEFAULT_WALLET_CLIENT_NOT_FOUND: {
+      number: 1302,
+      messageTemplate: `No default wallet client found for chain id {chainId}.`,
+      websiteTitle: "Default Wallet Client Not Found",
+      websiteDescription: `A default wallet client could not be found for the specified chain ID. This issue may occur if no accounts were configured for the selected network.
+
+To resolve this, make sure to add an account to the specified network in the Hardhat config. Alternatively, you can set a custom wallet client by passing it as a parameter in the relevant function:
+
+const networkConnection = await hre.network.connect(...);
+const walletClient = await networkConnection.viem.getWalletClient(address);
+
+await networkConnection.viem.deployContract(contractName, constructorArgs, { walletClient });
+await networkConnection.viem.sendDeploymentTransaction(contractName, constructorArgs, { walletClient });
+await networkConnection.viem.getContractAt(contractName, address, { walletClient });`,
+    },
+    LINKING_CONTRACT_ERROR: {
+      number: 1303,
+      messageTemplate: `Error linking the contract {contractName}:
+
+{error}`,
+      websiteTitle: "Error Linking Contract",
+      websiteDescription: `An error occurred while linking the contract libraries.
+
+Please check Hardhat's output for more details.`,
+    },
+    INVALID_CONFIRMATIONS: {
+      number: 1304,
+      messageTemplate: `Invalid confirmations value. {error}`,
+      websiteTitle: "Invalid Confirmations Value",
+      websiteDescription: `Invalid confirmations value. The confirmations value provided is invalid.`,
+    },
+    DEPLOY_CONTRACT_ERROR: {
+      number: 1305,
+      messageTemplate:
+        "The deployment transaction {txHash} was mined in block {blockNumber} but its receipt doesn't contain a contract address",
+      websiteTitle: "Deployment Transaction Error",
+      websiteDescription:
+        "The deployment transaction was mined but its receipt doesn't contain a contract address.",
+    },
   },
 } as const;

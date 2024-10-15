@@ -7,6 +7,7 @@ import type { ChainType } from "@ignored/hardhat-vnext/types/network";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type * as viemT from "viem";
 
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import {
   createPublicClient,
   createWalletClient,
@@ -100,6 +101,33 @@ export async function getWalletClient<ChainTypeT extends ChainType | string>(
   /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
   We need to assert the type because TS gets confused with the conditional type */
   return walletClient as GetWalletClientReturnType<ChainTypeT>;
+}
+
+export async function getDefaultWalletClient<
+  ChainTypeT extends ChainType | string,
+>(
+  provider: EthereumProvider,
+  chainType: ChainTypeT,
+  walletClientConfig?: Partial<viemT.WalletClientConfig>,
+): Promise<GetWalletClientReturnType<ChainTypeT>> {
+  const chain = walletClientConfig?.chain ?? (await getChain(provider));
+  const [defaultAccount] = await getAccounts(provider);
+
+  if (defaultAccount === undefined) {
+    throw new HardhatError(
+      HardhatError.ERRORS.VIEM.DEFAULT_WALLET_CLIENT_NOT_FOUND,
+      {
+        chainId: chain,
+      },
+    );
+  }
+
+  return getWalletClient(
+    provider,
+    chainType,
+    defaultAccount.address,
+    walletClientConfig,
+  );
 }
 
 export async function getTestClient(
