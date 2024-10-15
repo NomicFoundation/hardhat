@@ -10,7 +10,8 @@ export interface HardhatRuntimeEnvironment {
   readonly config: HardhatConfig;
   readonly globalOptions: GlobalOptions;
   readonly interruptions: UserInterruptionManager;
-  // These fields are defined using module agumentation in this same package:
+  // These fields are defined using module agumentation despite being part of
+  // Hardhat's core:
   // readonly hooks: HookManager;
   // readonly tasks: TaskManager;
 }

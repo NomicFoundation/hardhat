@@ -1,9 +1,7 @@
 import type {
-  Artifact,
   ArtifactsManager,
+  GetAtifactByName,
   BuildInfo,
-  CompilerInput,
-  CompilerOutput,
 } from "../../../types/artifacts.js";
 
 import path from "node:path";
@@ -38,9 +36,9 @@ export class ArtifactsManagerImplementation implements ArtifactsManager {
     this.#artifactsPath = artifactsPath;
   }
 
-  public async readArtifact(
-    contractNameOrFullyQualifiedName: string,
-  ): Promise<Artifact> {
+  public async readArtifact<ContractNameT extends string>(
+    contractNameOrFullyQualifiedName: ContractNameT,
+  ): Promise<GetAtifactByName<ContractNameT>> {
     const artifactPath = await this.#getArtifactPath(
       contractNameOrFullyQualifiedName,
     );
@@ -240,15 +238,19 @@ export class ArtifactsManagerImplementation implements ArtifactsManager {
   public async getBuildInfo(
     fullyQualifiedName: string,
   ): Promise<BuildInfo | undefined> {
-    const artifactPath =
-      this.#formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
+    const artifact = await this.readArtifact(fullyQualifiedName);
 
-    const debugFilePath = this.#getDebugFilePath(artifactPath);
-    const buildInfoPath = await this.#getBuildInfoFromDebugFile(debugFilePath);
+    const buildInfoId = artifact.buildInfoId;
 
-    if (buildInfoPath === undefined) {
+    if (buildInfoId === undefined) {
       return undefined;
     }
+
+    const buildInfoPath = path.join(
+      this.#artifactsPath,
+      `build-info`,
+      `${buildInfoId}.json`,
+    );
 
     return readJsonFile(buildInfoPath);
   }
@@ -303,23 +305,6 @@ export class ArtifactsManagerImplementation implements ArtifactsManager {
   }
 
   public getBuildInfoPaths(): Promise<string[]> {
-    throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
-      message: "Not implemented in fake artifacts manager",
-    });
-  }
-
-  public saveArtifact(_artifact: Artifact): Promise<void> {
-    throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
-      message: "Not implemented in fake artifacts manager",
-    });
-  }
-
-  public saveBuildInfo(
-    _solcVersion: string,
-    _solcLongVersion: string,
-    _input: CompilerInput,
-    _output: CompilerOutput,
-  ): Promise<string> {
     throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
       message: "Not implemented in fake artifacts manager",
     });

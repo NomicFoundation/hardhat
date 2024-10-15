@@ -16,6 +16,7 @@ import type { HookContext, HookManager } from "../../types/hooks.js";
 import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
 import type { NetworkManager } from "../../types/network.js";
 import type { HardhatPlugin } from "../../types/plugins.js";
+import type { SolidityBuildSystem } from "../../types/solidity/build-system.js";
 import type { TaskManager } from "../../types/tasks.js";
 import type { UserInterruptionManager } from "../../types/user-interruptions.js";
 
@@ -37,11 +38,12 @@ import { UserInterruptionManagerImplementation } from "./user-interruptions.js";
 export class HardhatRuntimeEnvironmentImplementation
   implements HardhatRuntimeEnvironment
 {
-  // NOTE: This is a small architectural violation, as this shouldn't be needed
-  // here, because it's added by a plugin. But as that plugin is builtin, its
-  // type extensions also affect this module.
+  // NOTE: This is a small architectural violation, as these shouldn't be needed
+  // here, because they are added by plugins. But as those plugins are builtin,
+  // their type extensions also affect this module.
   public network!: NetworkManager;
   public artifacts!: ArtifactsManager;
+  public solidity!: SolidityBuildSystem;
 
   public static async create(
     inputUserConfig: HardhatUserConfig,
