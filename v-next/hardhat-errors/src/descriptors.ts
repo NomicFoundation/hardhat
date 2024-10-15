@@ -701,6 +701,14 @@ This might be caused by using hardhat_reset and loadFixture calls in a testcase.
       websiteTitle: `Build info not found for contract`,
       websiteDescription: `Build info not found for contract while compiling Solidity test contracts.`,
     },
+    RUNNER_TIMEOUT: {
+      number: 1001,
+      messageTemplate: `Runner timed out after {duration} ms.
+
+Remaining test suites: {suites}`,
+      websiteTitle: `Runner timed out`,
+      websiteDescription: `Runner timed out while running Solidity tests.`,
+    },
   },
   ETHERS: {
     METHOD_NOT_IMPLEMENTED: {
