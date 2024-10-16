@@ -36,7 +36,10 @@ export async function isValidChecksumAddress(value: unknown): Promise<boolean> {
  * @returns True if the value is a valid Ethereum private key, false otherwise.
  */
 export function isPrivateKey(value: unknown): boolean {
-  return typeof value === "string" && /^0x[0-9a-f]{64}$/i.test(value);
+  return (
+    typeof value === "string" &&
+    (/^0x[0-9a-f]{64}$/i.test(value) || /^[0-9a-f]{64}$/i.test(value))
+  );
 }
 
 /**
