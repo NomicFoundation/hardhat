@@ -6,7 +6,7 @@ This plugin makes it easier to use Hardhat and [Foundry](https://getfoundry.sh/)
 
 When this plugin is enabled, Hardhat will use the same contracts directory that is used by Foundry, and it will be able to use dependencies installed with `forge install`.
 
-If you have a pure Hardhat project, your can use the `init-foundry` task to create a `foundry.toml` file. The file will be created using the proper values to make Foundry work well with your Hardhat project.
+If you have a pure Hardhat project, you can use the `init-foundry` task to create a `foundry.toml` file. The file will be created using the proper values to make Foundry work well with your Hardhat project.
 
 Read [our guide](https://hardhat.org/hardhat-runner/docs/advanced/hardhat-and-foundry) to learn more.
 
