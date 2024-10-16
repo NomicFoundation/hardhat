@@ -661,15 +661,14 @@ describe("network-manager/hook-handlers/config", () => {
             assert.equal(validationErrors.length, 0);
           });
 
-          // TODO: still valid?
-          // it("should allow valid private keys with missing hex prefix", async () => {
-          //   hardhatUserConfig.networks.localhost.accounts = [
-          //     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          //   ];
-          //   const validationErrors =
-          //     await validateUserConfig(hardhatUserConfig);
-          //   assert.equal(validationErrors.length, 0);
-          // });
+          it("should allow valid private keys with missing hex prefix", async () => {
+            hardhatUserConfig.networks.localhost.accounts = [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            ];
+            const validationErrors =
+              await validateUserConfig(hardhatUserConfig);
+            assert.equal(validationErrors.length, 0);
+          });
         });
 
         describe("not allowed values", () => {
@@ -837,18 +836,18 @@ describe("network-manager/hook-handlers/config", () => {
             assert.equal(validationErrors.length, 0);
           });
 
-          // TODO: still valid?
-          // it("should allow valid private keys with missing hex prefix", async () =>{
-          //   hardhatUserConfig.networks.localhost.accounts = [
-          //     {
-          //       balance: "123",
-          //       privateKey:
-          //         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          //     },
-          //   ];
-          //   const validationErrors = await validateUserConfig(hardhatUserConfig);
-          //   assert.equal(validationErrors.length, 0);
-          // });
+          it("should allow valid private keys with missing hex prefix", async () => {
+            hardhatUserConfig.networks.localhost.accounts = [
+              {
+                balance: "123",
+                privateKey:
+                  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              },
+            ];
+            const validationErrors =
+              await validateUserConfig(hardhatUserConfig);
+            assert.equal(validationErrors.length, 0);
+          });
         });
 
         describe("not allowed values", () => {
