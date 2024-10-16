@@ -1,5 +1,7 @@
 import type { ArtifactId } from "@ignored/edr";
 
+import chalk from "chalk";
+
 export function formatArtifactId(artifactId: ArtifactId): string {
-  return `${artifactId.source}:${artifactId.name} (v${artifactId.solcVersion})`;
+  return `${chalk.bold(`${artifactId.source}:${artifactId.name}`)} (v${artifactId.solcVersion})`;
 }
