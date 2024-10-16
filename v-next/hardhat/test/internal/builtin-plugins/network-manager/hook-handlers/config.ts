@@ -685,7 +685,7 @@ describe("network-manager/hook-handlers/config", () => {
               assert.notEqual(validationErrors.length, 0);
               assert.equal(
                 validationErrors[0].message,
-                "Expected 'remote', an array of strings, or an object with optional mnemonic and account details",
+                "Expected 'remote', an array of private keys, or an object with a mnemonic value and optional account details",
               );
             });
 
@@ -742,7 +742,7 @@ describe("network-manager/hook-handlers/config", () => {
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
               validationErrors[0].message,
-              "Expected 'remote', an array of strings, or an object with optional mnemonic and account details",
+              "Expected 'remote', an array of private keys, or an object with a mnemonic value and optional account details",
             );
           }
         });
@@ -768,7 +768,7 @@ describe("network-manager/hook-handlers/config", () => {
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
               validationErrors[0].message,
-              "Expected 'remote', an array of strings, or an object with optional mnemonic and account details",
+              "Expected 'remote', an array of private keys, or an object with a mnemonic value and optional account details",
             );
           }
         });
@@ -867,7 +867,7 @@ describe("network-manager/hook-handlers/config", () => {
               assert.notEqual(validationErrors.length, 0);
               assert.equal(
                 validationErrors[0].message,
-                "Expected an array of objects with 'privateKey' and 'balance', or an object with optional mnemonic and account details",
+                "Expected an array of objects with 'privateKey' and 'balance', or an object with optional account details",
               );
             });
 
@@ -944,7 +944,7 @@ describe("network-manager/hook-handlers/config", () => {
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
               validationErrors[0].message,
-              "Expected an array of objects with 'privateKey' and 'balance', or an object with optional mnemonic and account details",
+              "Expected an array of objects with 'privateKey' and 'balance', or an object with optional account details",
             );
           });
 
@@ -968,7 +968,7 @@ describe("network-manager/hook-handlers/config", () => {
               assert.notEqual(validationErrors.length, 0);
               assert.equal(
                 validationErrors[0].message,
-                "Expected an array of objects with 'privateKey' and 'balance', or an object with optional mnemonic and account details",
+                "Expected an array of objects with 'privateKey' and 'balance', or an object with optional account details",
               );
             }
           });
@@ -990,7 +990,7 @@ describe("network-manager/hook-handlers/config", () => {
               assert.notEqual(validationErrors.length, 0);
               assert.equal(
                 validationErrors[0].message,
-                "Expected an array of objects with 'privateKey' and 'balance', or an object with optional mnemonic and account details",
+                "Expected an array of objects with 'privateKey' and 'balance', or an object with optional account details",
               );
             }
           });

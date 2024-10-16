@@ -43,7 +43,7 @@ const httpNetworkUserConfigAccountsSchema = unionType(
       passphrase: z.optional(z.string()),
     }),
   ],
-  "Expected 'remote', an array of strings, or an object with optional mnemonic and account details",
+  "Expected 'remote', an array of private keys, or an object with a mnemonic value and optional account details",
 );
 
 const httpNetworkUserConfigSchema = z.object({
@@ -79,7 +79,7 @@ const edrNetworkUserConfigAccountsSchema = unionType(
       passphrase: z.optional(z.string()),
     }),
   ],
-  "Expected an array of objects with 'privateKey' and 'balance', or an object with optional mnemonic and account details",
+  "Expected an array of objects with 'privateKey' and 'balance', or an object with optional account details",
 );
 
 const edrNetworkUserConfigSchema = z.object({
@@ -124,7 +124,7 @@ const httpNetworkAccountsSchema = unionType(
       passphrase: z.string(),
     }),
   ],
-  "Expected 'remote', an array of strings, or an object with account details",
+  "Expected 'remote', an array of private keys, or an object with account details",
 );
 
 const httpNetworkConfigSchema = z.object({
@@ -160,7 +160,7 @@ const edrNetworkAccountsSchema = unionType(
       passphrase: z.string(),
     }),
   ],
-  "Expected an array of objects with 'privateKey' and 'balance', or an object with mnemonic and account details",
+  "Expected an array of objects with 'privateKey' and 'balance', or an object with account details",
 );
 
 const edrNetworkConfigSchema = z.object({
