@@ -1,6 +1,6 @@
 import type { MochaOptions } from "mocha";
 
-import chalk from "chalk";
+import chalk from "picocolors";
 import path from "path";
 
 import { HARDHAT_NETWORK_NAME } from "../internal/constants";

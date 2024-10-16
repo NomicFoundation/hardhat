@@ -14,7 +14,7 @@ import type {
   PerformActionFilter,
   EventFilter,
 } from "ethers";
-import type LodashIsEqualT from "lodash.isequal";
+import { deepEqual } from "assert/strict";
 
 import debug from "debug";
 import {
@@ -484,8 +484,6 @@ export class HardhatEthersProvider implements ethers.Provider {
           ?.map(({ listener }) => listener) ?? []
       );
     } else if (event.kind === "event") {
-      const isEqual = require("lodash.isequal") as typeof LodashIsEqualT;
-
       const eventListener = this._eventListeners.find((item) =>
         isEqual(item.event, event)
       );
@@ -1113,7 +1111,7 @@ export class HardhatEthersProvider implements ethers.Provider {
     listener: Listener,
     blockListener: Listener
   ) {
-    const isEqual = require("lodash.isequal") as typeof LodashIsEqualT;
+    const isEqual = deepEqual;
 
     const eventListener = this._eventListeners.find((item) =>
       isEqual(item.event, event)
@@ -1129,7 +1127,7 @@ export class HardhatEthersProvider implements ethers.Provider {
   }
 
   private async _clearEventListeners(event?: EventFilter) {
-    const isEqual = require("lodash.isequal") as typeof LodashIsEqualT;
+    const isEqual = deepEqual;
 
     const blockListenersToRemove: Listener[] = [];
 
@@ -1160,7 +1158,7 @@ export class HardhatEthersProvider implements ethers.Provider {
   }
 
   private async _removeEventListener(event: EventFilter, listener: Listener) {
-    const isEqual = require("lodash.isequal") as typeof LodashIsEqualT;
+    const isEqual = deepEqual;
 
     const index = this._eventListeners.findIndex((item) =>
       isEqual(item.event, event)

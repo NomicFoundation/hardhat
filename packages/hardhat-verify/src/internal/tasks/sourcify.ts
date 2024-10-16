@@ -4,7 +4,7 @@ import type {
   LibraryToAddress,
 } from "../solc/artifacts";
 
-import chalk from "chalk";
+import chalk from "picocolors";
 import { subtask, types } from "hardhat/config";
 import { isFullyQualifiedName } from "hardhat/utils/contract-names";
 import { HARDHAT_NETWORK_NAME } from "hardhat/plugins";
