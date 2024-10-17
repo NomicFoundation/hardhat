@@ -16,6 +16,7 @@ describe("NetworkConnectionImplementation", () => {
     gas: "auto",
     gasMultiplier: 1,
     gasPrice: "auto",
+    accounts: [],
     url: "http://localhost:8545",
     timeout: 20_000,
     httpHeaders: {},
