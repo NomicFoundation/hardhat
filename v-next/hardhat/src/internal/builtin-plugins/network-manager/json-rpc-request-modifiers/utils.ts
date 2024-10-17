@@ -3,7 +3,7 @@ import type {
   NetworkConfig,
 } from "@ignored/hardhat-vnext/types/config";
 
-export function isResolvedHttpNetworkConfig(
+export function isHttpNetworkConfig(
   netConfig: Partial<NetworkConfig>,
 ): netConfig is HttpNetworkConfig {
   return netConfig.type === "http";

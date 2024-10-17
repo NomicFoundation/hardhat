@@ -16,7 +16,7 @@ import { AutomaticGasPrice } from "./gas-properties/automatic-gas-price.js";
 import { AutomaticGas } from "./gas-properties/automatic-gas.js";
 import { FixedGasPrice } from "./gas-properties/fixed-gas-price.js";
 import { FixedGas } from "./gas-properties/fixed-gas.js";
-import { isResolvedHttpNetworkConfig } from "./utils.js";
+import { isHttpNetworkConfig } from "./utils.js";
 
 /**
  * This class modifies JSON-RPC requests for transactions based on network configurations.
@@ -99,7 +99,7 @@ export class JsonRpcRequestModifier {
       // the AutomaticGasPrice for it unless there are provider extenders.
       // The reason for this is that some extenders (like hardhat-ledger's) might
       // do the signing themselves, and that needs the gas price to be set.
-      if (isResolvedHttpNetworkConfig(this.#networkConfig)) {
+      if (isHttpNetworkConfig(this.#networkConfig)) {
         if (this.#automaticGasPrice === undefined) {
           this.#automaticGasPrice = new AutomaticGasPrice(this.#provider);
         }
@@ -130,7 +130,7 @@ export class JsonRpcRequestModifier {
     }
 
     if (
-      isResolvedHttpNetworkConfig(this.#networkConfig) &&
+      isHttpNetworkConfig(this.#networkConfig) &&
       this.#networkConfig.chainId !== undefined
     ) {
       if (this.#chainIdValidator === undefined) {
