@@ -8,6 +8,12 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 import { getRequestParams } from "../../json-rpc.js";
 
+/**
+ * This code defines an abstract class that modifies JSON-RPC requests.
+ * It checks if the request is related to transactions and ensures that the "from" field is populated with a sender account if it's missing.
+ * If no account is available for sending transactions, it throws an error.
+ * The class also provides a mechanism to retrieve the sender account, which must be implemented by subclasses.
+ */
 export abstract class Sender {
   readonly #provider: EthereumProvider;
 
