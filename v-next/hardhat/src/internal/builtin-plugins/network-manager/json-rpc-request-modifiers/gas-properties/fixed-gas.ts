@@ -4,6 +4,10 @@ import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import { getParams } from "../utils.js";
 
+/**
+ * This class ensures that a fixed gas is applied to transaction requests.
+ * For `eth_sendTransaction` requests, it sets the gas field with the value provided via the class constructor, if it hasn't been specified already.
+ */
 export class FixedGas {
   readonly #gas: bigint | number;
 

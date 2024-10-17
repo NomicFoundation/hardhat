@@ -12,6 +12,10 @@ import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 
 import { getParams } from "../utils.js";
 
+/**
+ * This class automatically adjusts transaction requests to include appropriately estimated gas prices.
+ * It ensures that gas prices are set correctly.
+ */
 export class AutomaticGasPrice {
   readonly #provider: EthereumProvider;
 

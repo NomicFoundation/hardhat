@@ -4,6 +4,12 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 import { ChainId } from "./chain-id.js";
 
+/**
+ * This class extends `ChainId` to validate that the current provider's chain ID matches
+ * an expected value. If the actual chain ID differs from the expected one, it throws a
+ * HardhatError to signal a network configuration mismatch. Once validated, further checks
+ * are skipped to avoid redundant validations.
+ */
 export class ChainIdValidator extends ChainId {
   readonly #expectedChainId: number;
 

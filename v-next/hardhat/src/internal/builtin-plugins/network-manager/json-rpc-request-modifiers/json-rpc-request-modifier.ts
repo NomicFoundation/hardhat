@@ -17,6 +17,11 @@ import { FixedGasPrice } from "./gas-properties/fixed-gas-price.js";
 import { FixedGas } from "./gas-properties/fixed-gas.js";
 import { isResolvedHttpNetworkConfig } from "./utils.js";
 
+/**
+ * This class modifies JSON-RPC requests for transactions based on network configurations.
+ * It handles gas, gas price, chain ID validation, and account management to ensure correct transaction parameters.
+ * The request is cloned to avoid interfering with other handlers.
+ */
 export class JsonRpcRequestModifier {
   readonly #provider: EthereumProvider;
   readonly #networkConfig: NetworkConfig;
