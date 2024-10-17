@@ -7,7 +7,7 @@ import {
   bytesToHexString,
   hexStringToBytes,
   normalizeHexString,
-  isHexStringPrefixed,
+  isPrefixedHexString,
   isHexString,
   getUnprefixedHexString,
   getPrefixedHexString,
@@ -255,12 +255,12 @@ describe("hex", () => {
     });
   });
 
-  describe("isHexStringPrefixed", () => {
+  describe("isPrefixedHexString", () => {
     it("Should check if a string is prefixed with '0x'", () => {
-      assert.equal(isHexStringPrefixed("0x0"), true);
-      assert.equal(isHexStringPrefixed("ffff"), false);
-      assert.equal(isHexStringPrefixed("0X100000000"), true);
-      assert.equal(isHexStringPrefixed("20000000000000"), false);
+      assert.equal(isPrefixedHexString("0x0"), true);
+      assert.equal(isPrefixedHexString("ffff"), false);
+      assert.equal(isPrefixedHexString("0X100000000"), true);
+      assert.equal(isPrefixedHexString("20000000000000"), false);
     });
   });
 

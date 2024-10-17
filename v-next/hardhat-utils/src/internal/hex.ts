@@ -1,11 +1,11 @@
 import {
   getPrefixedHexString,
   getUnprefixedHexString,
-  isHexStringPrefixed,
+  isPrefixedHexString,
 } from "../hex.js";
 
 export function padToEven(value: string): string {
-  const isPrefixed = isHexStringPrefixed(value);
+  const isPrefixed = isPrefixedHexString(value);
   const unprefixed = getUnprefixedHexString(value);
 
   let padded;
