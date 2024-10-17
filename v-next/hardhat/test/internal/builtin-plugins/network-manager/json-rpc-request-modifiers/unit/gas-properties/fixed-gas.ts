@@ -4,8 +4,10 @@ import { beforeEach, describe, it } from "node:test";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import { FixedGas } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc-request-modifiers/gas-properties/fixed-gas.js";
-import { getParams } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc-request-modifiers/utils.js";
-import { getJsonRpcRequest } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
+import {
+  getJsonRpcRequest,
+  getRequestParams,
+} from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
 
 describe("FixedGas", () => {
   let fixedGas: FixedGas;
@@ -28,7 +30,7 @@ describe("FixedGas", () => {
     fixedGas.modifyRequest(jsonRpcRequest);
 
     assert.equal(
-      getParams(jsonRpcRequest)[0].gas,
+      getRequestParams(jsonRpcRequest)[0].gas,
       numberToHexString(FIXED_GAS_LIMIT),
     );
   });
@@ -45,7 +47,7 @@ describe("FixedGas", () => {
 
     fixedGas.modifyRequest(jsonRpcRequest);
 
-    assert.equal(getParams(jsonRpcRequest)[0].gas, 1456);
+    assert.equal(getRequestParams(jsonRpcRequest)[0].gas, 1456);
   });
 
   it("should forward the other calls and not modify the gas", async () => {
@@ -59,6 +61,6 @@ describe("FixedGas", () => {
 
     fixedGas.modifyRequest(jsonRpcRequest);
 
-    assert.equal(getParams(jsonRpcRequest)[0].gas, undefined);
+    assert.equal(getRequestParams(jsonRpcRequest)[0].gas, undefined);
   });
 });

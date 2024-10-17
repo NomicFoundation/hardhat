@@ -4,8 +4,10 @@ import { beforeEach, describe, it } from "node:test";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import { AutomaticGasPrice } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc-request-modifiers/gas-properties/automatic-gas-price.js";
-import { getParams } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc-request-modifiers/utils.js";
-import { getJsonRpcRequest } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
+import {
+  getJsonRpcRequest,
+  getRequestParams,
+} from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
 import { EthereumMockedProvider } from "../../ethereum-mocked-provider.js";
 
 describe("AutomaticGasPrice", () => {
@@ -38,7 +40,7 @@ describe("AutomaticGasPrice", () => {
 
       automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-      assert.equal(getParams(jsonRpcRequest)[0].gasPrice, 456);
+      assert.equal(getRequestParams(jsonRpcRequest)[0].gasPrice, 456);
     });
 
     it("shouldn't replace the provided maxFeePerGas and maxPriorityFeePerGas values", async () => {
@@ -54,8 +56,11 @@ describe("AutomaticGasPrice", () => {
 
       automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-      assert.equal(getParams(jsonRpcRequest)[0].maxFeePerGas, 456);
-      assert.equal(getParams(jsonRpcRequest)[0].maxPriorityFeePerGas, 789);
+      assert.equal(getRequestParams(jsonRpcRequest)[0].maxFeePerGas, 456);
+      assert.equal(
+        getRequestParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
+        789,
+      );
     });
   });
 
@@ -91,8 +96,11 @@ describe("AutomaticGasPrice", () => {
 
         await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-        assert.equal(getParams(jsonRpcRequest)[0].maxPriorityFeePerGas, "0x4");
-        assert.equal(getParams(jsonRpcRequest)[0].maxFeePerGas, "0x99");
+        assert.equal(
+          getRequestParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
+          "0x4",
+        );
+        assert.equal(getRequestParams(jsonRpcRequest)[0].maxFeePerGas, "0x99");
       });
 
       it("should add the reward to the maxFeePerGas if not big enough", async () => {
@@ -107,8 +115,11 @@ describe("AutomaticGasPrice", () => {
 
         await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-        assert.equal(getParams(jsonRpcRequest)[0].maxPriorityFeePerGas, "0x4");
-        assert.equal(getParams(jsonRpcRequest)[0].maxFeePerGas, "0x5");
+        assert.equal(
+          getRequestParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
+          "0x4",
+        );
+        assert.equal(getRequestParams(jsonRpcRequest)[0].maxFeePerGas, "0x5");
       });
 
       it("should use the expected max base fee of N blocks in the future if maxFeePerGas is missing", async () => {
@@ -131,9 +142,12 @@ describe("AutomaticGasPrice", () => {
 
         await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-        assert.equal(getParams(jsonRpcRequest)[0].maxPriorityFeePerGas, "0x1");
         assert.equal(
-          getParams(jsonRpcRequest)[0].maxFeePerGas,
+          getRequestParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
+          "0x1",
+        );
+        assert.equal(
+          getRequestParams(jsonRpcRequest)[0].maxFeePerGas,
           numberToHexString(expectedBaseFee),
         );
       });
@@ -177,9 +191,12 @@ describe("AutomaticGasPrice", () => {
 
         await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-        assert.equal(getParams(jsonRpcRequest)[0].maxPriorityFeePerGas, "0x1");
         assert.equal(
-          getParams(jsonRpcRequest)[0].maxFeePerGas,
+          getRequestParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
+          "0x1",
+        );
+        assert.equal(
+          getRequestParams(jsonRpcRequest)[0].maxFeePerGas,
           numberToHexString(expectedBaseFee),
         );
       });
@@ -225,9 +242,12 @@ describe("AutomaticGasPrice", () => {
 
         await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-        assert.equal(getParams(jsonRpcRequest)[0].maxPriorityFeePerGas, "0x12");
         assert.equal(
-          getParams(jsonRpcRequest)[0].maxFeePerGas,
+          getRequestParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
+          "0x12",
+        );
+        assert.equal(
+          getRequestParams(jsonRpcRequest)[0].maxFeePerGas,
           numberToHexString(expectedBaseFee),
         );
       });
@@ -277,7 +297,7 @@ describe("AutomaticGasPrice", () => {
         await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
         assert.equal(
-          getParams(jsonRpcRequest)[0].gasPrice,
+          getRequestParams(jsonRpcRequest)[0].gasPrice,
           numberToHexString(FIXED_GAS_PRICE),
         );
       });
@@ -295,11 +315,11 @@ describe("AutomaticGasPrice", () => {
         await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
         assert.equal(
-          getParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
+          getRequestParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
           numberToHexString(FIXED_GAS_PRICE),
         );
         assert.equal(
-          getParams(jsonRpcRequest)[0].maxFeePerGas,
+          getRequestParams(jsonRpcRequest)[0].maxFeePerGas,
           numberToHexString(FIXED_GAS_PRICE + 1),
         );
       });
@@ -317,11 +337,11 @@ describe("AutomaticGasPrice", () => {
         await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
         assert.equal(
-          getParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
+          getRequestParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
           numberToHexString(FIXED_GAS_PRICE + 2),
         );
         assert.equal(
-          getParams(jsonRpcRequest)[0].maxFeePerGas,
+          getRequestParams(jsonRpcRequest)[0].maxFeePerGas,
           numberToHexString(FIXED_GAS_PRICE * 2 + 2),
         );
       });

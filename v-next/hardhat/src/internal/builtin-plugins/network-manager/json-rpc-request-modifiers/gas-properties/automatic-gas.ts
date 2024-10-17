@@ -3,7 +3,7 @@ import type {
   RequestArguments,
 } from "../../../../../types/providers.js";
 
-import { getParams } from "../utils.js";
+import { getRequestParams } from "../../json-rpc.js";
 
 import { MultipliedGasEstimation } from "./multiplied-gas-estimation.js";
 
@@ -25,7 +25,7 @@ export class AutomaticGas extends MultipliedGasEstimation {
 
   public async modifyRequest(args: RequestArguments): Promise<void> {
     if (args.method === "eth_sendTransaction") {
-      const params = getParams(args);
+      const params = getRequestParams(args);
 
       // TODO: from V2 - Should we validate this type?
       const tx = params[0];

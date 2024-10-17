@@ -4,8 +4,10 @@ import { beforeEach, describe, it } from "node:test";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import { FixedGasPrice } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc-request-modifiers/gas-properties/fixed-gas-price.js";
-import { getParams } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc-request-modifiers/utils.js";
-import { getJsonRpcRequest } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
+import {
+  getJsonRpcRequest,
+  getRequestParams,
+} from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
 
 describe("FixedGasPrice", () => {
   let fixedGasPriceProvider: FixedGasPrice;
@@ -30,7 +32,7 @@ describe("FixedGasPrice", () => {
     fixedGasPriceProvider.modifyRequest(jsonRpcRequest);
 
     assert.equal(
-      getParams(jsonRpcRequest)[0].gasPrice,
+      getRequestParams(jsonRpcRequest)[0].gasPrice,
       numberToHexString(FIXED_GAS_PRICE),
     );
   });
@@ -47,7 +49,7 @@ describe("FixedGasPrice", () => {
 
     fixedGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-    assert.equal(getParams(jsonRpcRequest)[0].gasPrice, 14567);
+    assert.equal(getRequestParams(jsonRpcRequest)[0].gasPrice, 14567);
   });
 
   it("should forward the other calls and not modify the gasPrice", async () => {
@@ -61,6 +63,6 @@ describe("FixedGasPrice", () => {
 
     fixedGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-    assert.equal(getParams(jsonRpcRequest)[0].gas, undefined);
+    assert.equal(getRequestParams(jsonRpcRequest)[0].gas, undefined);
   });
 });

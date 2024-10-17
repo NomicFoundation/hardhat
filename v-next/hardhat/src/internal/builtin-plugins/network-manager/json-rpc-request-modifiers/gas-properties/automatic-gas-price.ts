@@ -10,7 +10,7 @@ import {
 } from "@ignored/hardhat-vnext-utils/hex";
 import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 
-import { getParams } from "../utils.js";
+import { getRequestParams } from "../../json-rpc.js";
 
 /**
  * This class automatically adjusts transaction requests to include appropriately estimated gas prices.
@@ -39,7 +39,7 @@ export class AutomaticGasPrice {
       return;
     }
 
-    const params = getParams(args);
+    const params = getRequestParams(args);
 
     // TODO: from V2 - Should we validate this type?
     const tx = params[0];

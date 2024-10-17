@@ -7,8 +7,10 @@ import {
   AutomaticGas,
   DEFAULT_GAS_MULTIPLIER,
 } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc-request-modifiers/gas-properties/automatic-gas.js";
-import { getParams } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc-request-modifiers/utils.js";
-import { getJsonRpcRequest } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
+import {
+  getJsonRpcRequest,
+  getRequestParams,
+} from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
 import { EthereumMockedProvider } from "../../ethereum-mocked-provider.js";
 
 describe("AutomaticGas", () => {
@@ -45,7 +47,7 @@ describe("AutomaticGas", () => {
     await automaticGas.modifyRequest(jsonRpcRequest);
 
     assert.equal(
-      getParams(jsonRpcRequest)[0].gas,
+      getRequestParams(jsonRpcRequest)[0].gas,
       numberToHexString(Math.floor(FIXED_GAS_LIMIT * GAS_MULTIPLIER)),
     );
   });
@@ -66,7 +68,7 @@ describe("AutomaticGas", () => {
     await automaticGas.modifyRequest(jsonRpcRequest);
 
     assert.equal(
-      getParams(jsonRpcRequest)[0].gas,
+      getRequestParams(jsonRpcRequest)[0].gas,
       numberToHexString(Math.floor(FIXED_GAS_LIMIT * GAS_MULTIPLIER2)),
     );
   });
@@ -85,7 +87,7 @@ describe("AutomaticGas", () => {
     await automaticGas.modifyRequest(jsonRpcRequest);
 
     assert.equal(
-      getParams(jsonRpcRequest)[0].gas,
+      getRequestParams(jsonRpcRequest)[0].gas,
       numberToHexString(Math.floor(FIXED_GAS_LIMIT * DEFAULT_GAS_MULTIPLIER)),
     );
   });
@@ -102,7 +104,7 @@ describe("AutomaticGas", () => {
 
     await automaticGas.modifyRequest(jsonRpcRequest);
 
-    assert.equal(getParams(jsonRpcRequest)[0].gas, 567);
+    assert.equal(getRequestParams(jsonRpcRequest)[0].gas, 567);
   });
 
   it("should forward the other calls", async () => {
@@ -116,6 +118,6 @@ describe("AutomaticGas", () => {
 
     await automaticGas.modifyRequest(jsonRpcRequest);
 
-    assert.equal(getParams(jsonRpcRequest)[0].gas, undefined);
+    assert.equal(getRequestParams(jsonRpcRequest)[0].gas, undefined);
   });
 });
