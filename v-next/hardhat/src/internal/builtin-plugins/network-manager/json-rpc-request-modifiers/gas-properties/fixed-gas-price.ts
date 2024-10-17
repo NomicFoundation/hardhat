@@ -1,6 +1,5 @@
 import type { RequestArguments } from "../../../../../types/providers.js";
-
-import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
+import type { PrefixedHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import { getParams } from "../utils.js";
 
@@ -9,9 +8,9 @@ import { getParams } from "../utils.js";
  * For `eth_sendTransaction` requests, it sets the gasPrice field with the value provided via the class constructor, if it hasn't been specified already.
  */
 export class FixedGasPrice {
-  readonly #gasPrice: number | bigint;
+  readonly #gasPrice: PrefixedHexString;
 
-  constructor(gasPrice: number | bigint) {
+  constructor(gasPrice: PrefixedHexString) {
     this.#gasPrice = gasPrice;
   }
 
@@ -29,7 +28,7 @@ export class FixedGasPrice {
         tx.maxFeePerGas === undefined &&
         tx.maxPriorityFeePerGas === undefined
       ) {
-        tx.gasPrice = numberToHexString(this.#gasPrice);
+        tx.gasPrice = this.#gasPrice;
       }
     }
   }

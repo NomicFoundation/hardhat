@@ -8,6 +8,7 @@ import type {
 } from "../../../../types/providers.js";
 import type { NetworkConfig } from "@ignored/hardhat-vnext/types/config";
 
+import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 import { deepClone } from "@ignored/hardhat-vnext-utils/lang";
 
 import { ChainIdValidator } from "./chain-id/chain-id-validator.js";
@@ -74,7 +75,9 @@ export class JsonRpcRequestModifier {
       await this.#automaticGas.modifyRequest(jsonRpcRequest);
     } else {
       if (this.#fixedGas === undefined) {
-        this.#fixedGas = new FixedGas(this.#networkConfig.gas);
+        this.#fixedGas = new FixedGas(
+          numberToHexString(this.#networkConfig.gas),
+        );
       }
 
       this.#fixedGas.modifyRequest(jsonRpcRequest);
@@ -105,7 +108,9 @@ export class JsonRpcRequestModifier {
       }
     } else {
       if (this.#fixedGasPrice === undefined) {
-        this.#fixedGasPrice = new FixedGasPrice(this.#networkConfig.gasPrice);
+        this.#fixedGasPrice = new FixedGasPrice(
+          numberToHexString(this.#networkConfig.gasPrice),
+        );
       }
 
       this.#fixedGasPrice.modifyRequest(jsonRpcRequest);

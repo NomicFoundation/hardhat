@@ -13,7 +13,7 @@ describe("FixedGas", () => {
   const FIXED_GAS_LIMIT = 1233n;
 
   beforeEach(() => {
-    fixedGas = new FixedGas(FIXED_GAS_LIMIT);
+    fixedGas = new FixedGas(numberToHexString(FIXED_GAS_LIMIT));
   });
 
   it("should set the fixed gas if not present", async () => {

@@ -13,7 +13,9 @@ describe("FixedGasPrice", () => {
   const FIXED_GAS_PRICE = 1234n;
 
   beforeEach(() => {
-    fixedGasPriceProvider = new FixedGasPrice(FIXED_GAS_PRICE);
+    fixedGasPriceProvider = new FixedGasPrice(
+      numberToHexString(FIXED_GAS_PRICE),
+    );
   });
 
   it("should set the fixed gasPrice if not present", async () => {
