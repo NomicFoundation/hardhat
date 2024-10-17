@@ -5,16 +5,11 @@ import type {
 } from "@ignored/hardhat-vnext/types/config";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { hexStringToBigInt } from "@ignored/hardhat-vnext-utils/hex";
 
 export function isResolvedHttpNetworkConfig(
   netConfig: Partial<NetworkConfig>,
 ): netConfig is HttpNetworkConfig {
   return netConfig.type === "http";
-}
-
-export function rpcQuantityToNumber(quantity: string): number {
-  return Number(hexStringToBigInt(quantity));
 }
 
 export function getParams<ParamsT extends any[] = any[]>(

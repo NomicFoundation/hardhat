@@ -1,8 +1,10 @@
 import type { EthereumProvider } from "../../../../../types/providers.js";
 
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
-
-import { rpcQuantityToNumber } from "../utils.js";
+import {
+  hexStringToNumber,
+  isHexStringPrefixed,
+} from "@ignored/hardhat-vnext-utils/hex";
 
 export abstract class ChainId {
   protected readonly provider: EthereumProvider;
@@ -33,7 +35,7 @@ export abstract class ChainId {
 
     assertHardhatInvariant(typeof id === "string", "id should be a string");
 
-    return rpcQuantityToNumber(id);
+    return hexStringToNumber(id);
   }
 
   async #getChainIdFromEthNetVersion(): Promise<number> {
@@ -45,6 +47,6 @@ export abstract class ChainId {
 
     // There's a node returning this as decimal instead of QUANTITY.
     // TODO: from V2 - Document here which node does that
-    return id.startsWith("0x") ? rpcQuantityToNumber(id) : parseInt(id, 10);
+    return isHexStringPrefixed(id) ? hexStringToNumber(id) : parseInt(id, 10);
   }
 }

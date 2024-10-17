@@ -2,9 +2,10 @@ import type { EthereumProvider } from "../../../../../types/providers.js";
 
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import { ensureError } from "@ignored/hardhat-vnext-utils/error";
-import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
-
-import { rpcQuantityToNumber } from "../utils.js";
+import {
+  hexStringToNumber,
+  numberToHexString,
+} from "@ignored/hardhat-vnext-utils/hex";
 
 export abstract class MultipliedGasEstimation {
   readonly #provider: EthereumProvider;
@@ -33,7 +34,7 @@ export abstract class MultipliedGasEstimation {
         return realEstimation;
       }
 
-      const normalGas = rpcQuantityToNumber(realEstimation);
+      const normalGas = hexStringToNumber(realEstimation);
 
       const gasLimit = await this.#getBlockGasLimit();
 
@@ -69,7 +70,7 @@ export abstract class MultipliedGasEstimation {
         "latestBlock should have a gasLimit",
       );
 
-      const fetchedGasLimit = rpcQuantityToNumber(latestBlock.gasLimit);
+      const fetchedGasLimit = hexStringToNumber(latestBlock.gasLimit);
 
       // We store a lower value in case the gas limit varies slightly
       this.#blockGasLimit = Math.floor(fetchedGasLimit * 0.95);
