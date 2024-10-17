@@ -6,7 +6,7 @@ import { beforeEach, describe, it } from "node:test";
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
-import { createJsonRpcRequest } from "../../helpers.js";
+import { getJsonRpcRequest } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
 import { createMockedNetworkHre } from "../../hooks-mock.js";
 
 // Test that the request and its additional sub-request (when present)
@@ -33,7 +33,7 @@ describe("e2e - FixedSender", () => {
       value: numberToHexString(1),
     };
 
-    const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [tx]);
+    const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
 
     const res = await connection.provider.request(jsonRpcRequest);
 

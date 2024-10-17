@@ -6,8 +6,11 @@ import { before, describe, it } from "node:test";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import { AutomaticSender } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc-request-modifiers/accounts/automatic-sender-provider.js";
+import {
+  getJsonRpcRequest,
+  getRequestParams,
+} from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
 import { EthereumMockedProvider } from "../../ethereum-mocked-provider.js";
-import { createJsonRpcRequest, getParams } from "../../helpers.js";
 
 describe("AutomaticSender", function () {
   let automaticSender: AutomaticSender;
@@ -33,12 +36,12 @@ describe("AutomaticSender", function () {
   });
 
   it("should set the from value into the transaction", async () => {
-    const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [tx]);
+    const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
 
     await automaticSender.modifyRequest(jsonRpcRequest);
 
     assert.equal(
-      getParams(jsonRpcRequest)[0].from,
+      getRequestParams(jsonRpcRequest)[0].from,
       "0x123006d4548a3ac17d72b372ae1e416bf65b8eaf",
     );
   });
@@ -46,10 +49,10 @@ describe("AutomaticSender", function () {
   it("should not replace transaction's from", async () => {
     tx.from = "0x000006d4548a3ac17d72b372ae1e416bf65b8ead";
 
-    const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [tx]);
+    const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
 
     assert.equal(
-      getParams(jsonRpcRequest)[0].from,
+      getRequestParams(jsonRpcRequest)[0].from,
       "0x000006d4548a3ac17d72b372ae1e416bf65b8ead",
     );
   });
@@ -59,10 +62,10 @@ describe("AutomaticSender", function () {
 
     tx.value = "asd";
 
-    const jsonRpcRequest = createJsonRpcRequest("eth_call", [tx]);
+    const jsonRpcRequest = getJsonRpcRequest(1, "eth_call", [tx]);
 
     await automaticSender.modifyRequest(jsonRpcRequest);
 
-    assert.equal(getParams(jsonRpcRequest)[0].value, "asd");
+    assert.equal(getRequestParams(jsonRpcRequest)[0].value, "asd");
   });
 });

@@ -6,7 +6,7 @@ import type {
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
-import { getParams } from "../utils.js";
+import { getRequestParams } from "../../json-rpc.js";
 
 export abstract class Sender {
   readonly #provider: EthereumProvider;
@@ -17,7 +17,7 @@ export abstract class Sender {
 
   public async modifyRequest(jsonRpcRequest: JsonRpcRequest): Promise<void> {
     const method = jsonRpcRequest.method;
-    const params = getParams(jsonRpcRequest);
+    const params = getRequestParams(jsonRpcRequest);
 
     if (
       method === "eth_sendTransaction" ||

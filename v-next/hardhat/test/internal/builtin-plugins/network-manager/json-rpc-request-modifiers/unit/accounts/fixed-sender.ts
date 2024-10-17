@@ -6,8 +6,11 @@ import { before, describe, it } from "node:test";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import { FixedSender } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc-request-modifiers/accounts/fixed-sender-provider.js";
+import {
+  getJsonRpcRequest,
+  getRequestParams,
+} from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
 import { EthereumMockedProvider } from "../../ethereum-mocked-provider.js";
-import { createJsonRpcRequest, getParams } from "../../helpers.js";
 
 describe("FixedSender", function () {
   let fixedSender: FixedSender;
@@ -32,12 +35,12 @@ describe("FixedSender", function () {
   });
 
   it("should set the from value into the transaction", async () => {
-    const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [tx]);
+    const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
 
     await fixedSender.modifyRequest(jsonRpcRequest);
 
     assert.equal(
-      getParams(jsonRpcRequest)[0].from,
+      getRequestParams(jsonRpcRequest)[0].from,
       "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d",
     );
   });
@@ -45,12 +48,12 @@ describe("FixedSender", function () {
   it("should not replace transaction's from", async () => {
     tx.from = "0x000006d4548a3ac17d72b372ae1e416bf65b8ead";
 
-    const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [tx]);
+    const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
 
     await fixedSender.modifyRequest(jsonRpcRequest);
 
     assert.equal(
-      getParams(jsonRpcRequest)[0].from,
+      getRequestParams(jsonRpcRequest)[0].from,
       "0x000006d4548a3ac17d72b372ae1e416bf65b8ead",
     );
   });
