@@ -6,7 +6,7 @@ import { beforeEach, describe, it } from "node:test";
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
-import { createJsonRpcRequest } from "../../helpers.js";
+import { getJsonRpcRequest } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
 import { createMockedNetworkHre } from "../../hooks-mock.js";
 
 const LATEST_BASE_FEE_IN_MOCKED_PROVIDER = 80;
@@ -38,7 +38,7 @@ describe("e2e - AutomaticGasPrice", () => {
   });
 
   it("should use the reward return value as default maxPriorityFeePerGas", async () => {
-    const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+    const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
       {
         from: "0x0000000000000000000000000000000000000011",
         to: "0x0000000000000000000000000000000000000011",

@@ -7,8 +7,11 @@ import {
   AutomaticGas,
   DEFAULT_GAS_MULTIPLIER,
 } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc-request-modifiers/gas-properties/automatic-gas.js";
+import {
+  getJsonRpcRequest,
+  getRequestParams,
+} from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
 import { EthereumMockedProvider } from "../../ethereum-mocked-provider.js";
-import { createJsonRpcRequest, getParams } from "../../helpers.js";
 
 describe("AutomaticGas", () => {
   let automaticGas: AutomaticGas;
@@ -33,7 +36,7 @@ describe("AutomaticGas", () => {
   });
 
   it("should estimate gas automatically if not present", async () => {
-    const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+    const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
       {
         from: "0x0000000000000000000000000000000000000011",
         to: "0x0000000000000000000000000000000000000011",
@@ -44,7 +47,7 @@ describe("AutomaticGas", () => {
     await automaticGas.modifyRequest(jsonRpcRequest);
 
     assert.equal(
-      getParams(jsonRpcRequest)[0].gas,
+      getRequestParams(jsonRpcRequest)[0].gas,
       numberToHexString(Math.floor(FIXED_GAS_LIMIT * GAS_MULTIPLIER)),
     );
   });
@@ -52,7 +55,7 @@ describe("AutomaticGas", () => {
   it("should support different gas multipliers", async () => {
     const GAS_MULTIPLIER2 = 123;
 
-    const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+    const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
       {
         from: "0x0000000000000000000000000000000000000011",
         to: "0x0000000000000000000000000000000000000011",
@@ -65,13 +68,13 @@ describe("AutomaticGas", () => {
     await automaticGas.modifyRequest(jsonRpcRequest);
 
     assert.equal(
-      getParams(jsonRpcRequest)[0].gas,
+      getRequestParams(jsonRpcRequest)[0].gas,
       numberToHexString(Math.floor(FIXED_GAS_LIMIT * GAS_MULTIPLIER2)),
     );
   });
 
   it("should have a default multiplier", async () => {
-    const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+    const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
       {
         from: "0x0000000000000000000000000000000000000011",
         to: "0x0000000000000000000000000000000000000011",
@@ -84,13 +87,13 @@ describe("AutomaticGas", () => {
     await automaticGas.modifyRequest(jsonRpcRequest);
 
     assert.equal(
-      getParams(jsonRpcRequest)[0].gas,
+      getRequestParams(jsonRpcRequest)[0].gas,
       numberToHexString(Math.floor(FIXED_GAS_LIMIT * DEFAULT_GAS_MULTIPLIER)),
     );
   });
 
   it("shouldn't replace the provided gas", async () => {
-    const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+    const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
       {
         from: "0x0000000000000000000000000000000000000011",
         to: "0x0000000000000000000000000000000000000011",
@@ -101,11 +104,11 @@ describe("AutomaticGas", () => {
 
     await automaticGas.modifyRequest(jsonRpcRequest);
 
-    assert.equal(getParams(jsonRpcRequest)[0].gas, 567);
+    assert.equal(getRequestParams(jsonRpcRequest)[0].gas, 567);
   });
 
   it("should forward the other calls", async () => {
-    const jsonRpcRequest = createJsonRpcRequest("eth_randomMethod", [
+    const jsonRpcRequest = getJsonRpcRequest(1, "eth_randomMethod", [
       {
         from: "0x0000000000000000000000000000000000000011",
         to: "0x0000000000000000000000000000000000000011",
@@ -115,6 +118,6 @@ describe("AutomaticGas", () => {
 
     await automaticGas.modifyRequest(jsonRpcRequest);
 
-    assert.equal(getParams(jsonRpcRequest)[0].gas, undefined);
+    assert.equal(getRequestParams(jsonRpcRequest)[0].gas, undefined);
   });
 });

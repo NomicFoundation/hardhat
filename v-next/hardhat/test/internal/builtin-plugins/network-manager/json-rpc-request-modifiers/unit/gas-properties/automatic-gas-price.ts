@@ -4,8 +4,11 @@ import { beforeEach, describe, it } from "node:test";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import { AutomaticGasPrice } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc-request-modifiers/gas-properties/automatic-gas-price.js";
+import {
+  getJsonRpcRequest,
+  getRequestParams,
+} from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
 import { EthereumMockedProvider } from "../../ethereum-mocked-provider.js";
-import { createJsonRpcRequest, getParams } from "../../helpers.js";
 
 describe("AutomaticGasPrice", () => {
   let automaticGasPriceProvider: AutomaticGasPrice;
@@ -26,7 +29,7 @@ describe("AutomaticGasPrice", () => {
 
   describe("when the fee price values are provided", () => {
     it("shouldn't replace the provided gasPrice", async () => {
-      const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+      const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
         {
           from: "0x0000000000000000000000000000000000000011",
           to: "0x0000000000000000000000000000000000000011",
@@ -37,11 +40,11 @@ describe("AutomaticGasPrice", () => {
 
       automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-      assert.equal(getParams(jsonRpcRequest)[0].gasPrice, 456);
+      assert.equal(getRequestParams(jsonRpcRequest)[0].gasPrice, 456);
     });
 
     it("shouldn't replace the provided maxFeePerGas and maxPriorityFeePerGas values", async () => {
-      const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+      const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
         {
           from: "0x0000000000000000000000000000000000000011",
           to: "0x0000000000000000000000000000000000000011",
@@ -53,8 +56,11 @@ describe("AutomaticGasPrice", () => {
 
       automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-      assert.equal(getParams(jsonRpcRequest)[0].maxFeePerGas, 456);
-      assert.equal(getParams(jsonRpcRequest)[0].maxPriorityFeePerGas, 789);
+      assert.equal(getRequestParams(jsonRpcRequest)[0].maxFeePerGas, 456);
+      assert.equal(
+        getRequestParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
+        789,
+      );
     });
   });
 
@@ -79,7 +85,7 @@ describe("AutomaticGasPrice", () => {
       });
 
       it("should use the reward return value as default maxPriorityFeePerGas", async () => {
-        const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+        const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
           {
             from: "0x0000000000000000000000000000000000000011",
             to: "0x0000000000000000000000000000000000000011",
@@ -90,12 +96,15 @@ describe("AutomaticGasPrice", () => {
 
         await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-        assert.equal(getParams(jsonRpcRequest)[0].maxPriorityFeePerGas, "0x4");
-        assert.equal(getParams(jsonRpcRequest)[0].maxFeePerGas, "0x99");
+        assert.equal(
+          getRequestParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
+          "0x4",
+        );
+        assert.equal(getRequestParams(jsonRpcRequest)[0].maxFeePerGas, "0x99");
       });
 
       it("should add the reward to the maxFeePerGas if not big enough", async () => {
-        const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+        const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
           {
             from: "0x0000000000000000000000000000000000000011",
             to: "0x0000000000000000000000000000000000000011",
@@ -106,12 +115,15 @@ describe("AutomaticGasPrice", () => {
 
         await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-        assert.equal(getParams(jsonRpcRequest)[0].maxPriorityFeePerGas, "0x4");
-        assert.equal(getParams(jsonRpcRequest)[0].maxFeePerGas, "0x5");
+        assert.equal(
+          getRequestParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
+          "0x4",
+        );
+        assert.equal(getRequestParams(jsonRpcRequest)[0].maxFeePerGas, "0x5");
       });
 
       it("should use the expected max base fee of N blocks in the future if maxFeePerGas is missing", async () => {
-        const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+        const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
           {
             from: "0x0000000000000000000000000000000000000011",
             to: "0x0000000000000000000000000000000000000011",
@@ -130,9 +142,12 @@ describe("AutomaticGasPrice", () => {
 
         await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-        assert.equal(getParams(jsonRpcRequest)[0].maxPriorityFeePerGas, "0x1");
         assert.equal(
-          getParams(jsonRpcRequest)[0].maxFeePerGas,
+          getRequestParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
+          "0x1",
+        );
+        assert.equal(
+          getRequestParams(jsonRpcRequest)[0].maxFeePerGas,
           numberToHexString(expectedBaseFee),
         );
       });
@@ -158,7 +173,7 @@ describe("AutomaticGasPrice", () => {
       });
 
       it("should use a non-zero maxPriorityFeePerGas", async () => {
-        const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+        const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
           {
             from: "0x0000000000000000000000000000000000000011",
             to: "0x0000000000000000000000000000000000000011",
@@ -176,9 +191,12 @@ describe("AutomaticGasPrice", () => {
 
         await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-        assert.equal(getParams(jsonRpcRequest)[0].maxPriorityFeePerGas, "0x1");
         assert.equal(
-          getParams(jsonRpcRequest)[0].maxFeePerGas,
+          getRequestParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
+          "0x1",
+        );
+        assert.equal(
+          getRequestParams(jsonRpcRequest)[0].maxFeePerGas,
           numberToHexString(expectedBaseFee),
         );
       });
@@ -206,7 +224,7 @@ describe("AutomaticGasPrice", () => {
       });
 
       it("should use the result of eth_maxPriorityFeePerGas as maxPriorityFeePerGas", async () => {
-        const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+        const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
           {
             from: "0x0000000000000000000000000000000000000011",
             to: "0x0000000000000000000000000000000000000011",
@@ -224,9 +242,12 @@ describe("AutomaticGasPrice", () => {
 
         await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
-        assert.equal(getParams(jsonRpcRequest)[0].maxPriorityFeePerGas, "0x12");
         assert.equal(
-          getParams(jsonRpcRequest)[0].maxFeePerGas,
+          getRequestParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
+          "0x12",
+        );
+        assert.equal(
+          getRequestParams(jsonRpcRequest)[0].maxFeePerGas,
           numberToHexString(expectedBaseFee),
         );
       });
@@ -265,7 +286,7 @@ describe("AutomaticGasPrice", () => {
      */
     function runTestUseLegacyGasPrice() {
       it("should use gasPrice when nothing is provided", async () => {
-        const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+        const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
           {
             from: "0x0000000000000000000000000000000000000011",
             to: "0x0000000000000000000000000000000000000011",
@@ -276,13 +297,13 @@ describe("AutomaticGasPrice", () => {
         await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
         assert.equal(
-          getParams(jsonRpcRequest)[0].gasPrice,
+          getRequestParams(jsonRpcRequest)[0].gasPrice,
           numberToHexString(FIXED_GAS_PRICE),
         );
       });
 
       it("should use gasPrice as default maxPriorityFeePerGas, adding it to maxFeePerGas if necessary", async () => {
-        const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+        const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
           {
             from: "0x0000000000000000000000000000000000000011",
             to: "0x0000000000000000000000000000000000000011",
@@ -294,17 +315,17 @@ describe("AutomaticGasPrice", () => {
         await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
         assert.equal(
-          getParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
+          getRequestParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
           numberToHexString(FIXED_GAS_PRICE),
         );
         assert.equal(
-          getParams(jsonRpcRequest)[0].maxFeePerGas,
+          getRequestParams(jsonRpcRequest)[0].maxFeePerGas,
           numberToHexString(FIXED_GAS_PRICE + 1),
         );
       });
 
       it("should use gasPrice as default maxFeePerGas, fixing maxPriorityFee to it if necessary", async () => {
-        const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+        const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
           {
             from: "0x0000000000000000000000000000000000000011",
             to: "0x0000000000000000000000000000000000000011",
@@ -316,11 +337,11 @@ describe("AutomaticGasPrice", () => {
         await automaticGasPriceProvider.modifyRequest(jsonRpcRequest);
 
         assert.equal(
-          getParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
+          getRequestParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
           numberToHexString(FIXED_GAS_PRICE + 2),
         );
         assert.equal(
-          getParams(jsonRpcRequest)[0].maxFeePerGas,
+          getRequestParams(jsonRpcRequest)[0].maxFeePerGas,
           numberToHexString(FIXED_GAS_PRICE * 2 + 2),
         );
       });
@@ -328,7 +349,8 @@ describe("AutomaticGasPrice", () => {
   });
 
   it("should forward the other calls", async () => {
-    const jsonRpcRequest = createJsonRpcRequest(
+    const jsonRpcRequest = getJsonRpcRequest(
+      1,
       "eth_getBlockByNumber",
       [1, 2, 3, 4],
     );

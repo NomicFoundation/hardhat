@@ -2,6 +2,7 @@ import type {
   FailedJsonRpcResponse,
   JsonRpcRequest,
   JsonRpcResponse,
+  RequestArguments,
 } from "../../../types/providers.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
@@ -22,12 +23,7 @@ export function getJsonRpcRequest(
     method,
   };
 
-  if (isObject(params)) {
-    throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_REQUEST_PARAMS);
-  }
-
-  // We default it as an empty array to be conservative
-  requestObject.params = params ?? [];
+  requestObject.params = getRequestParams({ method, params });
 
   if (id !== undefined) {
     requestObject.id = id;
@@ -104,4 +100,16 @@ export function isFailedJsonRpcResponse(
   payload: JsonRpcResponse,
 ): payload is FailedJsonRpcResponse {
   return "error" in payload && payload.error !== undefined;
+}
+
+export function getRequestParams(requestArguments: RequestArguments): any[] {
+  if (requestArguments.params === undefined) {
+    return [];
+  }
+
+  if (Array.isArray(requestArguments.params)) {
+    return requestArguments.params;
+  }
+
+  throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_REQUEST_PARAMS);
 }

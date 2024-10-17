@@ -2,10 +2,17 @@ import type { EthereumProvider } from "../../../../../types/providers.js";
 
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import { ensureError } from "@ignored/hardhat-vnext-utils/error";
-import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
+import {
+  hexStringToNumber,
+  numberToHexString,
+} from "@ignored/hardhat-vnext-utils/hex";
 
-import { rpcQuantityToNumber } from "../utils.js";
-
+/**
+ * This class handles gas estimation for transactions by applying a multiplier to the estimated gas value.
+ * It requests a gas estimation from the provider and multiplies it by a predefined gas multiplier, ensuring the gas does not exceed the block's gas limit.
+ * If an execution error occurs, the method returns the block's gas limit instead.
+ * The block gas limit is cached after the first retrieval to optimize performance.
+ */
 export abstract class MultipliedGasEstimation {
   readonly #provider: EthereumProvider;
   readonly #gasMultiplier: number;
@@ -33,7 +40,7 @@ export abstract class MultipliedGasEstimation {
         return realEstimation;
       }
 
-      const normalGas = rpcQuantityToNumber(realEstimation);
+      const normalGas = hexStringToNumber(realEstimation);
 
       const gasLimit = await this.#getBlockGasLimit();
 
@@ -69,7 +76,7 @@ export abstract class MultipliedGasEstimation {
         "latestBlock should have a gasLimit",
       );
 
-      const fetchedGasLimit = rpcQuantityToNumber(latestBlock.gasLimit);
+      const fetchedGasLimit = hexStringToNumber(latestBlock.gasLimit);
 
       // We store a lower value in case the gas limit varies slightly
       this.#blockGasLimit = Math.floor(fetchedGasLimit * 0.95);

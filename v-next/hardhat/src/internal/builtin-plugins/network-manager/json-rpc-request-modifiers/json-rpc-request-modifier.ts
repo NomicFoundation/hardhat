@@ -8,6 +8,7 @@ import type {
 } from "../../../../types/providers.js";
 import type { NetworkConfig } from "@ignored/hardhat-vnext/types/config";
 
+import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 import { deepClone } from "@ignored/hardhat-vnext-utils/lang";
 
 import { AutomaticSender } from "./accounts/automatic-sender-provider.js";
@@ -17,8 +18,13 @@ import { AutomaticGasPrice } from "./gas-properties/automatic-gas-price.js";
 import { AutomaticGas } from "./gas-properties/automatic-gas.js";
 import { FixedGasPrice } from "./gas-properties/fixed-gas-price.js";
 import { FixedGas } from "./gas-properties/fixed-gas.js";
-import { isResolvedHttpNetworkConfig } from "./utils.js";
+import { isHttpNetworkConfig } from "./utils.js";
 
+/**
+ * This class modifies JSON-RPC requests for transactions based on network configurations.
+ * It handles gas, gas price, chain ID validation, and account management to ensure correct transaction parameters.
+ * The request is cloned to avoid interfering with other handlers.
+ */
 export class JsonRpcRequestModifier {
   readonly #provider: EthereumProvider;
   readonly #networkConfig: NetworkConfig;
@@ -96,7 +102,9 @@ export class JsonRpcRequestModifier {
       await this.#automaticGas.modifyRequest(jsonRpcRequest);
     } else {
       if (this.#fixedGas === undefined) {
-        this.#fixedGas = new FixedGas(this.#networkConfig.gas);
+        this.#fixedGas = new FixedGas(
+          numberToHexString(this.#networkConfig.gas),
+        );
       }
 
       this.#fixedGas.modifyRequest(jsonRpcRequest);
@@ -118,7 +126,7 @@ export class JsonRpcRequestModifier {
       // the AutomaticGasPrice for it unless there are provider extenders.
       // The reason for this is that some extenders (like hardhat-ledger's) might
       // do the signing themselves, and that needs the gas price to be set.
-      if (isResolvedHttpNetworkConfig(this.#networkConfig)) {
+      if (isHttpNetworkConfig(this.#networkConfig)) {
         if (this.#automaticGasPrice === undefined) {
           this.#automaticGasPrice = new AutomaticGasPrice(this.#provider);
         }
@@ -127,7 +135,9 @@ export class JsonRpcRequestModifier {
       }
     } else {
       if (this.#fixedGasPrice === undefined) {
-        this.#fixedGasPrice = new FixedGasPrice(this.#networkConfig.gasPrice);
+        this.#fixedGasPrice = new FixedGasPrice(
+          numberToHexString(this.#networkConfig.gasPrice),
+        );
       }
 
       this.#fixedGasPrice.modifyRequest(jsonRpcRequest);
@@ -147,7 +157,7 @@ export class JsonRpcRequestModifier {
     }
 
     if (
-      isResolvedHttpNetworkConfig(this.#networkConfig) &&
+      isHttpNetworkConfig(this.#networkConfig) &&
       this.#networkConfig.chainId !== undefined
     ) {
       if (this.#chainIdValidator === undefined) {

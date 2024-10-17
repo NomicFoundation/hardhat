@@ -8,9 +8,14 @@ import {
   hexStringToBigInt,
   numberToHexString,
 } from "@ignored/hardhat-vnext-utils/hex";
+import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 
-import { getParams } from "../utils.js";
+import { getRequestParams } from "../../json-rpc.js";
 
+/**
+ * This class automatically adjusts transaction requests to include appropriately estimated gas prices.
+ * It ensures that gas prices are set correctly.
+ */
 export class AutomaticGasPrice {
   readonly #provider: EthereumProvider;
 
@@ -34,7 +39,7 @@ export class AutomaticGasPrice {
       return;
     }
 
-    const params = getParams(args);
+    const params = getRequestParams(args);
 
     // TODO: from V2 - Should we validate this type?
     const tx = params[0];
@@ -121,7 +126,7 @@ export class AutomaticGasPrice {
       });
 
       assertHardhatInvariant(
-        typeof block === "object" && block !== null,
+        isObject(block),
         "block should be a non null object",
       );
 

@@ -6,7 +6,7 @@ import { beforeEach, describe, it } from "node:test";
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
-import { createJsonRpcRequest } from "../../helpers.js";
+import { getJsonRpcRequest } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
 import { createMockedNetworkHre } from "../../hooks-mock.js";
 
 const FIXED_GAS_LIMIT = 1231;
@@ -33,7 +33,7 @@ describe("e2e - AutomaticGas", () => {
     connection.networkConfig.gas = "auto";
     connection.networkConfig.gasMultiplier = GAS_MULTIPLIER;
 
-    const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+    const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
       {
         from: "0x0000000000000000000000000000000000000011",
         to: "0x0000000000000000000000000000000000000011",
