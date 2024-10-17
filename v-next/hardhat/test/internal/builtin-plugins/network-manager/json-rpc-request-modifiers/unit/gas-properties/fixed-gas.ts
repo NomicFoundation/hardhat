@@ -4,7 +4,8 @@ import { beforeEach, describe, it } from "node:test";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import { FixedGas } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc-request-modifiers/gas-properties/fixed-gas.js";
-import { createJsonRpcRequest, getParams } from "../../helpers.js";
+import { getParams } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc-request-modifiers/utils.js";
+import { getJsonRpcRequest } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
 
 describe("FixedGas", () => {
   let fixedGas: FixedGas;
@@ -16,7 +17,7 @@ describe("FixedGas", () => {
   });
 
   it("should set the fixed gas if not present", async () => {
-    const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+    const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
       {
         from: "0x0000000000000000000000000000000000000011",
         to: "0x0000000000000000000000000000000000000011",
@@ -33,7 +34,7 @@ describe("FixedGas", () => {
   });
 
   it("shouldn't replace the provided gas", async () => {
-    const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+    const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
       {
         from: "0x0000000000000000000000000000000000000011",
         to: "0x0000000000000000000000000000000000000011",
@@ -48,7 +49,7 @@ describe("FixedGas", () => {
   });
 
   it("should forward the other calls and not modify the gas", async () => {
-    const jsonRpcRequest = createJsonRpcRequest("eth_estimateGas", [
+    const jsonRpcRequest = getJsonRpcRequest(1, "eth_estimateGas", [
       {
         from: "0x0000000000000000000000000000000000000011",
         to: "0x0000000000000000000000000000000000000011",

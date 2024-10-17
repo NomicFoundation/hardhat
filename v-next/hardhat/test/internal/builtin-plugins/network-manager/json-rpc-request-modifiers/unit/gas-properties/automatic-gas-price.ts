@@ -4,8 +4,9 @@ import { beforeEach, describe, it } from "node:test";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import { AutomaticGasPrice } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc-request-modifiers/gas-properties/automatic-gas-price.js";
+import { getParams } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc-request-modifiers/utils.js";
+import { getJsonRpcRequest } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
 import { EthereumMockedProvider } from "../../ethereum-mocked-provider.js";
-import { createJsonRpcRequest, getParams } from "../../helpers.js";
 
 describe("AutomaticGasPrice", () => {
   let automaticGasPriceProvider: AutomaticGasPrice;
@@ -26,7 +27,7 @@ describe("AutomaticGasPrice", () => {
 
   describe("when the fee price values are provided", () => {
     it("shouldn't replace the provided gasPrice", async () => {
-      const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+      const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
         {
           from: "0x0000000000000000000000000000000000000011",
           to: "0x0000000000000000000000000000000000000011",
@@ -41,7 +42,7 @@ describe("AutomaticGasPrice", () => {
     });
 
     it("shouldn't replace the provided maxFeePerGas and maxPriorityFeePerGas values", async () => {
-      const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+      const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
         {
           from: "0x0000000000000000000000000000000000000011",
           to: "0x0000000000000000000000000000000000000011",
@@ -79,7 +80,7 @@ describe("AutomaticGasPrice", () => {
       });
 
       it("should use the reward return value as default maxPriorityFeePerGas", async () => {
-        const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+        const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
           {
             from: "0x0000000000000000000000000000000000000011",
             to: "0x0000000000000000000000000000000000000011",
@@ -95,7 +96,7 @@ describe("AutomaticGasPrice", () => {
       });
 
       it("should add the reward to the maxFeePerGas if not big enough", async () => {
-        const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+        const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
           {
             from: "0x0000000000000000000000000000000000000011",
             to: "0x0000000000000000000000000000000000000011",
@@ -111,7 +112,7 @@ describe("AutomaticGasPrice", () => {
       });
 
       it("should use the expected max base fee of N blocks in the future if maxFeePerGas is missing", async () => {
-        const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+        const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
           {
             from: "0x0000000000000000000000000000000000000011",
             to: "0x0000000000000000000000000000000000000011",
@@ -158,7 +159,7 @@ describe("AutomaticGasPrice", () => {
       });
 
       it("should use a non-zero maxPriorityFeePerGas", async () => {
-        const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+        const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
           {
             from: "0x0000000000000000000000000000000000000011",
             to: "0x0000000000000000000000000000000000000011",
@@ -206,7 +207,7 @@ describe("AutomaticGasPrice", () => {
       });
 
       it("should use the result of eth_maxPriorityFeePerGas as maxPriorityFeePerGas", async () => {
-        const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+        const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
           {
             from: "0x0000000000000000000000000000000000000011",
             to: "0x0000000000000000000000000000000000000011",
@@ -265,7 +266,7 @@ describe("AutomaticGasPrice", () => {
      */
     function runTestUseLegacyGasPrice() {
       it("should use gasPrice when nothing is provided", async () => {
-        const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+        const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
           {
             from: "0x0000000000000000000000000000000000000011",
             to: "0x0000000000000000000000000000000000000011",
@@ -282,7 +283,7 @@ describe("AutomaticGasPrice", () => {
       });
 
       it("should use gasPrice as default maxPriorityFeePerGas, adding it to maxFeePerGas if necessary", async () => {
-        const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+        const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
           {
             from: "0x0000000000000000000000000000000000000011",
             to: "0x0000000000000000000000000000000000000011",
@@ -304,7 +305,7 @@ describe("AutomaticGasPrice", () => {
       });
 
       it("should use gasPrice as default maxFeePerGas, fixing maxPriorityFee to it if necessary", async () => {
-        const jsonRpcRequest = createJsonRpcRequest("eth_sendTransaction", [
+        const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
           {
             from: "0x0000000000000000000000000000000000000011",
             to: "0x0000000000000000000000000000000000000011",
@@ -328,7 +329,8 @@ describe("AutomaticGasPrice", () => {
   });
 
   it("should forward the other calls", async () => {
-    const jsonRpcRequest = createJsonRpcRequest(
+    const jsonRpcRequest = getJsonRpcRequest(
+      1,
       "eth_getBlockByNumber",
       [1, 2, 3, 4],
     );
