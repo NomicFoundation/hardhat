@@ -8,6 +8,7 @@ import {
   hexStringToBigInt,
   numberToHexString,
 } from "@ignored/hardhat-vnext-utils/hex";
+import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 
 import { getParams } from "../utils.js";
 
@@ -121,7 +122,7 @@ export class AutomaticGasPrice {
       });
 
       assertHardhatInvariant(
-        typeof block === "object" && block !== null,
+        isObject(block),
         "block should be a non null object",
       );
 
