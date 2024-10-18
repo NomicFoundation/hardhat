@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.22.14
+
+### Patch Changes
+
+- 09ead48: Fixed error due to remote nodes not returning total difficulty by adding fallback value
+
 ## 2.22.13
 
 ### Patch Changes
