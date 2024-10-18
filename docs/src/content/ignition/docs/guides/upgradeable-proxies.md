@@ -227,6 +227,9 @@ module.exports = demoModule;
 Next it's time to upgrade our proxy to a new version. To do this, we'll create a new file within our `ignition/modules` directory called `UpgradeModule.js` (or `UpgradeModule.ts` if you're using TypeScript). Inside this file, we'll again break up our module into two parts. To start, we'll write our `UpgradeModule`:
 
 ```js
+const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
+const proxyModule = require("./ProxyModule");
+
 const upgradeModule = buildModule("UpgradeModule", (m) => {
   const proxyAdminOwner = m.getAccount(0);
 
