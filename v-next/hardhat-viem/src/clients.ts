@@ -117,7 +117,7 @@ export async function getDefaultWalletClient<
     throw new HardhatError(
       HardhatError.ERRORS.VIEM.DEFAULT_WALLET_CLIENT_NOT_FOUND,
       {
-        chainId: chain,
+        chainId: chain.id,
       },
     );
   }
@@ -125,7 +125,7 @@ export async function getDefaultWalletClient<
   return getWalletClient(
     provider,
     chainType,
-    defaultAccount.address,
+    defaultAccount,
     walletClientConfig,
   );
 }
