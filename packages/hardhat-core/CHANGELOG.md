@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.22.14
+
+### Patch Changes
+
+- 09ead48: Fixed error when remote nodes are not returning total difficulty from the eth.getBlock RPC API, by adding fallback value
+
 ## 2.22.13
 
 ### Patch Changes
