@@ -30,14 +30,14 @@ export async function getPublicClient<ChainTypeT extends ChainType | string>(
     ...publicClientConfig,
   };
 
-  const publicClient = createPublicClient({
+  let publicClient = createPublicClient({
     chain,
     transport: customTransport(provider),
     ...parameters,
   });
 
   if (chainType === "optimism") {
-    publicClient.extend(publicActionsL2());
+    publicClient = publicClient.extend(publicActionsL2());
   }
 
   /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
@@ -57,7 +57,7 @@ export async function getWalletClients<ChainTypeT extends ChainType | string>(
     ...walletClientConfig,
   };
 
-  const walletClients = accounts.map((account) =>
+  let walletClients = accounts.map((account) =>
     createWalletClient({
       chain,
       account,
@@ -67,7 +67,9 @@ export async function getWalletClients<ChainTypeT extends ChainType | string>(
   );
 
   if (chainType === "optimism") {
-    walletClients.map((walletClient) => walletClient.extend(walletActionsL2()));
+    walletClients = walletClients.map((walletClient) =>
+      walletClient.extend(walletActionsL2()),
+    );
   }
 
   /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
@@ -87,7 +89,7 @@ export async function getWalletClient<ChainTypeT extends ChainType | string>(
     ...walletClientConfig,
   };
 
-  const walletClient = createWalletClient({
+  let walletClient = createWalletClient({
     chain,
     account: address,
     transport: customTransport(provider),
@@ -95,7 +97,7 @@ export async function getWalletClient<ChainTypeT extends ChainType | string>(
   });
 
   if (chainType === "optimism") {
-    walletClient.extend(walletActionsL2());
+    walletClient = walletClient.extend(walletActionsL2());
   }
 
   /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --

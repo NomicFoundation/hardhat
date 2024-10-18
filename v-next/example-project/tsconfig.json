@@ -18,6 +18,9 @@
     },
     {
       "path": "../hardhat-ethers"
+    },
+    {
+      "path": "../hardhat-viem"
     }
   ]
 }

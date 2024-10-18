@@ -83,7 +83,7 @@ const hash = await fromWalletClient.sendTransaction({
 import hre from "hardhat";
 
 const walletClient = await hre.viem.getWalletClient(
-  "0xA0Cf798816D4b9b9866b5330EEa46a18382f251e"
+  "0xA0Cf798816D4b9b9866b5330EEa46a18382f251e",
 );
 
 const signature = await walletClient.signMessage({
@@ -171,7 +171,7 @@ import hre from "hardhat";
 
 const contract = await hre.viem.getContractAt(
   "contractName",
-  "0x1234567890123456789012345678901234567890"
+  "0x1234567890123456789012345678901234567890",
 );
 ```
 
@@ -185,7 +185,7 @@ const [_, secondWalletClient] = await hre.viem.getWalletClients();
 const contract = await hre.viem.getContractAt(
   "contractName",
   "0x1234567890123456789012345678901234567890",
-  { client: { wallet: secondWalletClient } }
+  { client: { wallet: secondWalletClient } },
 );
 ```
 
@@ -213,7 +213,7 @@ const { contract: contractName, deploymentTransaction } =
       client: { wallet: secondWalletClient },
       gas: 1000000,
       value: parseEther("0.0001"),
-    }
+    },
   );
 ```
 
@@ -240,7 +240,7 @@ const contractA = await hre.viem.deployContract(
     libraries: {
       ExampleLib: "0x...",
     },
-  }
+  },
 );
 ```
 
