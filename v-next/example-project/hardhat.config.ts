@@ -7,7 +7,7 @@ import { task, emptyTask, globalOption } from "@ignored/hardhat-vnext/config";
 import HardhatNodeTestRunner from "@ignored/hardhat-vnext-node-test-runner";
 import HardhatMochaTestRunner from "@ignored/hardhat-vnext-mocha-test-runner";
 import HardhatKeystore from "@ignored/hardhat-vnext-keystore";
-import { viemScketchPlugin } from "./viem-scketch-plugin.js";
+import HardhatViem from "@ignored/hardhat-vnext-viem";
 import hardhatNetworkHelpersPlugin from "@ignored/hardhat-vnext-network-helpers";
 import hardhatEthersPlugin from "@ignored/hardhat-vnext-ethers";
 
@@ -129,7 +129,7 @@ const config: HardhatUserConfig = {
     // if testing node plugin, use the following line instead
     hardhatNetworkHelpersPlugin,
     HardhatNodeTestRunner,
-    viemScketchPlugin,
+    HardhatViem,
   ],
   paths: {
     tests: {
@@ -162,7 +162,7 @@ const config: HardhatUserConfig = {
       },
     },
     dependenciesToCompile: ["@openzeppelin/contracts/token/ERC20/ERC20.sol"],
-    remappings: ["remapped/=npm/@openzeppelin/contracts@5.0.2/access/"],
+    remappings: ["remapped/=npm/@openzeppelin/contracts@5.1.0/access/"],
   },
 };
 
