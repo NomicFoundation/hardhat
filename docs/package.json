@@ -32,7 +32,8 @@
     "remark-unwrap-images": "^3.0.1",
     "ts-node": "^10.8.0",
     "undici": "^5.28.4",
-    "unist-util-visit": "^4.1.0"
+    "unist-util-visit": "^4.1.0",
+    "sanitize-html": "^2.13.1"
   },
   "devDependencies": {
     "@babel/core": "^7.17.5",

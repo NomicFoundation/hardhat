@@ -13,7 +13,7 @@ import remarkGfm from "remark-gfm";
 import remarkUnwrapImages from "remark-unwrap-images";
 import rehypePrism from "rehype-prism";
 import remarkPrism from "remark-prism";
-
+import sanitizeHtml from "sanitize-html";
 import { DOCS_PATH, REPO_URL, TEMP_PATH } from "../config";
 import { ITabsState } from "../global-tabs";
 
@@ -100,7 +100,9 @@ export const withInsertedCodeFromLinks = (content: string) => {
 };
 
 export const withoutComments = (content: string) => {
-  return content.replace(/<!--[\s\S]*?-->/gm, "");
+  return sanitizeHtml(content, {
+    allowedTags: sanitizeHtml.defaults.allowedTags.filter(tag => tag !== '!--')
+  });
 };
 
 export const replacePlaceholders = (content: string) => {
