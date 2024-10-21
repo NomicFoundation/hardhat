@@ -3,7 +3,7 @@ import type { EthereumProvider } from "../../../../../types/providers.js";
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import {
   hexStringToNumber,
-  isHexStringPrefixed,
+  isPrefixedHexString,
 } from "@ignored/hardhat-vnext-utils/hex";
 
 /**
@@ -53,6 +53,6 @@ export abstract class ChainId {
 
     // There's a node returning this as decimal instead of QUANTITY.
     // TODO: from V2 - Document here which node does that
-    return isHexStringPrefixed(id) ? hexStringToNumber(id) : parseInt(id, 10);
+    return isPrefixedHexString(id) ? hexStringToNumber(id) : parseInt(id, 10);
   }
 }
