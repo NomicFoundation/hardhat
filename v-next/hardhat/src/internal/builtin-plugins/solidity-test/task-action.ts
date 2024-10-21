@@ -1,6 +1,7 @@
 import type { RunOptions } from "./runner.js";
 import type { TestEvent } from "./types.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
+import type { SolidityTestRunnerConfigArgs } from "@ignored/edr";
 
 import { finished } from "node:stream/promises";
 
@@ -24,10 +25,6 @@ const runSolidityTests: NewTaskActionFunction = async (_taskArguments, hre) => {
     )
   ).filter((artifact) => artifact !== undefined);
 
-  const config = {
-    projectRoot: hre.config.paths.root,
-  };
-
   let includesFailures = false;
   let includesErrors = false;
 
@@ -35,7 +32,12 @@ const runSolidityTests: NewTaskActionFunction = async (_taskArguments, hre) => {
   const profile = hre.config.solidity.profiles[profileName];
   const testOptions = profile.test;
 
-  const options: RunOptions = { timeout: testOptions.timeout };
+  const config: SolidityTestRunnerConfigArgs = {
+    projectRoot: hre.config.paths.root,
+    ...testOptions,
+  };
+
+  const options: RunOptions = testOptions;
 
   const runStream = run(artifacts, testSuiteIds, config, options);
 
