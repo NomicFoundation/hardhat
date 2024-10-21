@@ -51,7 +51,7 @@ describe("listTransactions", () => {
         txHash:
           "0xb7b49d16087ab6351e26b2358ae211e5dac335441f323a28c6c26f0bc0c3a0a3",
         status: TransactionStatus.SUCCESS,
-        name: "basicFunction",
+        name: "BasicContract#basicFunction",
         to: "0x74e720c9B362ae3A65fF356ad62866511486BBBc",
         params: [40],
         value: 0n,

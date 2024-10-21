@@ -9,6 +9,7 @@ export enum TransactionStatus {
   SUCCESS = "SUCCESS",
   FAILURE = "FAILURE",
   DROPPED = "DROPPED",
+  PENDING = "PENDING",
 }
 
 /**

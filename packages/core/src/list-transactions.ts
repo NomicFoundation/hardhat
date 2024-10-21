@@ -64,14 +64,20 @@ export async function listTransactions(
         "Expected network interaction to be an onchain interaction"
       );
 
-      for (const transaction of networkInteraction.transactions) {
+      for (const [
+        index,
+        transaction,
+      ] of networkInteraction.transactions.entries()) {
         switch (exState.type) {
           case ExecutionSateType.DEPLOYMENT_EXECUTION_STATE: {
             transactions.push({
               type: exState.type,
               from: exState.from,
               txHash: transaction.hash,
-              status: getTransactionStatus(transaction),
+              status: getTransactionStatus(
+                transaction,
+                index === networkInteraction.transactions.length - 1
+              ),
               name: exState.contractName,
               address:
                 transaction.receipt?.status === TransactionReceiptStatus.SUCCESS
@@ -86,12 +92,19 @@ export async function listTransactions(
             break;
           }
           case ExecutionSateType.CALL_EXECUTION_STATE: {
+            const artifact = await deploymentLoader.loadArtifact(
+              exState.artifactId
+            );
+
             transactions.push({
               type: exState.type,
               from: exState.from,
               txHash: transaction.hash,
-              status: getTransactionStatus(transaction),
-              name: exState.functionName,
+              status: getTransactionStatus(
+                transaction,
+                index === networkInteraction.transactions.length - 1
+              ),
+              name: `${artifact.contractName}#${exState.functionName}`,
               to: networkInteraction.to,
               params: exState.args,
               value: networkInteraction.value,
@@ -104,7 +117,10 @@ export async function listTransactions(
               type: exState.type,
               from: exState.from,
               txHash: transaction.hash,
-              status: getTransactionStatus(transaction),
+              status: getTransactionStatus(
+                transaction,
+                index === networkInteraction.transactions.length - 1
+              ),
               to: networkInteraction.to,
               value: networkInteraction.value,
             });
@@ -132,13 +148,21 @@ function doesSendTransactions(
   );
 }
 
-function getTransactionStatus(transaction: Transaction): TransactionStatus {
-  const status =
-    transaction.receipt === undefined
-      ? TransactionStatus.DROPPED
-      : transaction.receipt.status === TransactionReceiptStatus.SUCCESS
-      ? TransactionStatus.SUCCESS
-      : TransactionStatus.FAILURE;
+function getTransactionStatus(
+  transaction: Transaction,
+  isFinalTransaction: boolean
+): TransactionStatus {
+  if (transaction.receipt === undefined) {
+    if (isFinalTransaction) {
+      return TransactionStatus.PENDING;
+    }
 
-  return status;
+    return TransactionStatus.DROPPED;
+  }
+
+  if (transaction.receipt.status === TransactionReceiptStatus.SUCCESS) {
+    return TransactionStatus.SUCCESS;
+  }
+
+  return TransactionStatus.FAILURE;
 }
