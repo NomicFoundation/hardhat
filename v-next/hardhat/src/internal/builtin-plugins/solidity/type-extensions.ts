@@ -13,7 +13,8 @@ declare module "../../../types/config.js" {
     settings?: any;
   }
 
-  export type SolidityTestUserConfig = RunOptions;
+  export type SolidityTestUserConfig = RunOptions &
+    Omit<SolidityTestRunnerConfigArgs, "projectRoot">;
 
   export interface SingleVersionSolcUserConfig extends SolcUserConfig {
     test?: SolidityTestUserConfig;
@@ -55,7 +56,8 @@ declare module "../../../types/config.js" {
     settings: any;
   }
 
-  export type SolidityTestConfig = RunOptions;
+  export type SolidityTestConfig = RunOptions &
+    Omit<SolidityTestRunnerConfigArgs, "projectRoot">;
 
   export interface SolidityBuildProfileConfig {
     compilers: SolcConfig[];
@@ -85,6 +87,7 @@ declare module "../../../types/config.js" {
 import "../../../types/hre.js";
 import type { SolidityBuildSystem } from "../../../types/solidity/build-system.js";
 import type { RunOptions } from "../solidity-test/types.js";
+import type { SolidityTestRunnerConfigArgs } from "@ignored/edr";
 
 declare module "../../../types/hre.js" {
   export interface HardhatRuntimeEnvironment {
