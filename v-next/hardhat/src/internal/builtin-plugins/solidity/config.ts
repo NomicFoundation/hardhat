@@ -34,22 +34,38 @@ const solcUserConfigType = z.object({
   profiles: incompatibleFieldType("This field is incompatible with `version`"),
 });
 
+const solidityTestUserConfigType = z.object({
+  timeout: z.number().optional(),
+});
+
+const singleVersionSolcUserConfigType = solcUserConfigType.extend({
+  test: solidityTestUserConfigType.optional(),
+});
+
 const multiVersionSolcUserConfigType = z.object({
   compilers: z.array(solcUserConfigType).nonempty(),
   overrides: z.record(z.string(), solcUserConfigType).optional(),
+  test: solidityTestUserConfigType.optional(),
   version: incompatibleFieldType("This field is incompatible with `compilers`"),
   settings: incompatibleFieldType(
     "This field is incompatible with `compilers`",
   ),
 });
 
-const singleVersionSolidityUserConfigType = solcUserConfigType.extend({
-  dependenciesToCompile: z.array(z.string()).optional(),
-  remappings: z.array(z.string()).optional(),
-  compilers: incompatibleFieldType("This field is incompatible with `version`"),
-  overrides: incompatibleFieldType("This field is incompatible with `version`"),
-  profiles: incompatibleFieldType("This field is incompatible with `version`"),
-});
+const singleVersionSolidityUserConfigType =
+  singleVersionSolcUserConfigType.extend({
+    dependenciesToCompile: z.array(z.string()).optional(),
+    remappings: z.array(z.string()).optional(),
+    compilers: incompatibleFieldType(
+      "This field is incompatible with `version`",
+    ),
+    overrides: incompatibleFieldType(
+      "This field is incompatible with `version`",
+    ),
+    profiles: incompatibleFieldType(
+      "This field is incompatible with `version`",
+    ),
+  });
 
 const multiVersionSolidityUserConfigType =
   multiVersionSolcUserConfigType.extend({
@@ -68,7 +84,10 @@ const buildProfilesSolidityUserConfigType = z.object({
     z.string(),
     conditionalUnionType(
       [
-        [(data) => isObject(data) && "version" in data, solcUserConfigType],
+        [
+          (data) => isObject(data) && "version" in data,
+          singleVersionSolcUserConfigType,
+        ],
         [
           (data) => isObject(data) && "compilers" in data,
           multiVersionSolcUserConfigType,
@@ -196,6 +215,7 @@ function resolveSolidityConfig(
             settings: {},
           })),
           overrides: {},
+          test: {},
         },
       },
       dependenciesToCompile: [],
@@ -214,6 +234,7 @@ function resolveSolidityConfig(
             },
           ],
           overrides: {},
+          test: solidityConfig.test ?? {},
         },
       },
       dependenciesToCompile: solidityConfig.dependenciesToCompile ?? [],
@@ -242,6 +263,7 @@ function resolveSolidityConfig(
               },
             ),
           ),
+          test: solidityConfig.test ?? {},
         },
       },
       dependenciesToCompile: solidityConfig.dependenciesToCompile ?? [],
@@ -264,6 +286,7 @@ function resolveSolidityConfig(
           },
         ],
         overrides: {},
+        test: {},
       };
       continue;
     }
@@ -286,6 +309,7 @@ function resolveSolidityConfig(
           },
         ),
       ),
+      test: profile.test ?? {},
     };
   }
 

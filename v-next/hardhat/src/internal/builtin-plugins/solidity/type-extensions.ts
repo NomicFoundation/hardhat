@@ -13,12 +13,21 @@ declare module "../../../types/config.js" {
     settings?: any;
   }
 
+  export type SolidityTestUserConfig = RunOptions &
+    Omit<SolidityTestRunnerConfigArgs, "projectRoot">;
+
+  export interface SingleVersionSolcUserConfig extends SolcUserConfig {
+    test?: SolidityTestUserConfig;
+  }
+
   export interface MultiVersionSolcUserConfig {
     compilers: SolcUserConfig[];
     overrides?: Record<string, SolcUserConfig>;
+    test?: SolidityTestUserConfig;
   }
 
-  export interface SingleVersionSolidityUserConfig extends SolcUserConfig {
+  export interface SingleVersionSolidityUserConfig
+    extends SingleVersionSolcUserConfig {
     dependenciesToCompile?: string[];
     remappings?: string[];
   }
@@ -30,7 +39,10 @@ declare module "../../../types/config.js" {
   }
 
   export interface BuildProfilesSolidityUserConfig {
-    profiles: Record<string, SolcUserConfig | MultiVersionSolcUserConfig>;
+    profiles: Record<
+      string,
+      SingleVersionSolcUserConfig | MultiVersionSolcUserConfig
+    >;
     dependenciesToCompile?: string[];
     remappings?: string[];
   }
@@ -44,9 +56,13 @@ declare module "../../../types/config.js" {
     settings: any;
   }
 
+  export type SolidityTestConfig = RunOptions &
+    Omit<SolidityTestRunnerConfigArgs, "projectRoot">;
+
   export interface SolidityBuildProfileConfig {
     compilers: SolcConfig[];
     overrides: Record<string, SolcConfig>;
+    test: SolidityTestConfig;
   }
 
   export interface SolidityConfig {
@@ -70,6 +86,8 @@ declare module "../../../types/config.js" {
 
 import "../../../types/hre.js";
 import type { SolidityBuildSystem } from "../../../types/solidity/build-system.js";
+import type { RunOptions } from "../solidity-test/types.js";
+import type { SolidityTestRunnerConfigArgs } from "@ignored/edr";
 
 declare module "../../../types/hre.js" {
   export interface HardhatRuntimeEnvironment {

@@ -1,68 +1,66 @@
+import type { RunOptions, TestEvent } from "./types.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
+import type { SolidityTestRunnerConfigArgs } from "@ignored/edr";
 
-import { spec } from "node:test/reporters";
+import { finished } from "node:stream/promises";
 
-import { buildSolidityTestsInput, runAllSolidityTests } from "./helpers.js";
+import { getArtifacts, isTestArtifact } from "./helpers.js";
+import { testReporter } from "./reporter.js";
+import { run } from "./runner.js";
 
-const runSolidityTests: NewTaskActionFunction = async (_arguments, hre) => {
+const runSolidityTests: NewTaskActionFunction = async (_taskArguments, hre) => {
   await hre.tasks.getTask("compile").run({ quiet: false });
 
   console.log("\nRunning Solidity tests...\n");
 
-  const specReporter = new spec();
+  const artifacts = await getArtifacts(hre.artifacts);
+  const testSuiteIds = (
+    await Promise.all(
+      artifacts.map(async (artifact) => {
+        if (await isTestArtifact(hre.config.paths.root, artifact)) {
+          return artifact.id;
+        }
+      }),
+    )
+  ).filter((artifact) => artifact !== undefined);
 
-  specReporter.pipe(process.stdout);
+  let includesFailures = false;
+  let includesErrors = false;
 
-  let totalTests = 0;
-  let failedTests = 0;
+  const profileName = hre.globalOptions.buildProfile;
+  const profile = hre.config.solidity.profiles[profileName];
+  const testOptions = profile.test;
 
-  const { artifacts, testSuiteIds } = await buildSolidityTestsInput(
-    hre.artifacts,
-    (artifact) => {
-      const sourceName = artifact.id.source;
-      const isTestArtifact =
-        sourceName.endsWith(".t.sol") &&
-        sourceName.startsWith("contracts/") &&
-        !sourceName.startsWith("contracts/forge-std/") &&
-        !sourceName.startsWith("contracts/ds-test/");
-
-      return isTestArtifact;
-    },
-  );
-
-  const config = {
+  const config: SolidityTestRunnerConfigArgs = {
     projectRoot: hre.config.paths.root,
+    ...testOptions,
   };
 
-  await runAllSolidityTests(
-    artifacts,
-    testSuiteIds,
-    config,
-    (suiteResult, testResult) => {
-      let name = suiteResult.id.name + " | " + testResult.name;
-      if ("runs" in testResult?.kind) {
-        name += ` (${testResult.kind.runs} runs)`;
+  const options: RunOptions = testOptions;
+
+  const runStream = run(artifacts, testSuiteIds, config, options);
+
+  runStream
+    .on("data", (event: TestEvent) => {
+      if (event.type === "suite:result") {
+        if (event.data.testResults.some(({ status }) => status === "Failure")) {
+          includesFailures = true;
+        }
       }
+    })
+    .compose(testReporter)
+    .pipe(process.stdout);
 
-      totalTests++;
+  // NOTE: We're awaiting the original run stream to finish instead of the
+  // composed reporter stream to catch any errors produced by the runner.
+  try {
+    await finished(runStream);
+  } catch (error) {
+    console.error(error);
+    includesErrors = true;
+  }
 
-      const failed = testResult.status === "Failure";
-      if (failed) {
-        failedTests++;
-      }
-
-      specReporter.write({
-        type: failed ? "test:fail" : "test:pass",
-        data: {
-          name,
-        },
-      });
-    },
-  );
-
-  console.log(`\n${totalTests} tests found, ${failedTests} failed`);
-
-  if (failedTests > 0) {
+  if (includesFailures || includesErrors) {
     process.exitCode = 1;
     return;
   }

@@ -1479,6 +1479,9 @@ importers:
       '@ignored/hardhat-vnext-zod-utils':
         specifier: workspace:^3.0.0-next.3
         version: link:../hardhat-zod-utils
+      '@nomicfoundation/slang':
+        specifier: ^0.18.2
+        version: 0.18.2
       '@nomicfoundation/solidity-analyzer':
         specifier: ^0.1.0
         version: 0.1.2
@@ -2578,6 +2581,9 @@ packages:
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
+  '@bytecodealliance/preview2-shim@0.17.0':
+    resolution: {integrity: sha512-JorcEwe4ud0x5BS/Ar2aQWOQoFzjq/7jcnxYXCvSMh0oRm0dQXzOA+hqLDBnOMks1LLBA7dmiLLsEBl09Yd6iQ==}
+
   '@changesets/apply-release-plan@7.0.5':
     resolution: {integrity: sha512-1cWCk+ZshEkSVEZrm2fSj1Gz8sYvxgUL4Q78+1ZZqeqfuevPTPk033/yUZ3df8BKMohkqqHfzj0HOOrG0KtXTw==}
 
@@ -3183,6 +3189,9 @@ packages:
 
   '@nomicfoundation/ignition-ui@0.15.5':
     resolution: {integrity: sha512-ZcE4rIn10qKahR4OqS8rl8NM2Fbg2QYiBXgMgj74ZI0++LlCcZgB5HyaBbX+lsnKHjTXtjYD3b+2mtg7jFbAMQ==}
+
+  '@nomicfoundation/slang@0.18.2':
+    resolution: {integrity: sha512-xcas+KrKP5O2YM/Stn+ifco2ztZ/ZUu5fMMbyH/0miEyT+1wQVGVgfy/Y7u++JSJCQM7ZGqbGcajjAOCs9gALQ==}
 
   '@nomicfoundation/solidity-analyzer-darwin-arm64@0.1.2':
     resolution: {integrity: sha512-JaqcWPDZENCvm++lFFGjrDd8mxtf+CtLd2MiXvMNTBD33dContTZ9TWETwNFwg7JTJT5Q9HEecH7FA+HTSsIUw==}
@@ -6991,6 +7000,8 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
+  '@bytecodealliance/preview2-shim@0.17.0': {}
+
   '@changesets/apply-release-plan@7.0.5':
     dependencies:
       '@changesets/config': 3.0.3
@@ -7867,6 +7878,10 @@ snapshots:
       - utf-8-validate
 
   '@nomicfoundation/ignition-ui@0.15.5': {}
+
+  '@nomicfoundation/slang@0.18.2':
+    dependencies:
+      '@bytecodealliance/preview2-shim': 0.17.0
 
   '@nomicfoundation/solidity-analyzer-darwin-arm64@0.1.2':
     optional: true
