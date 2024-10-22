@@ -34,6 +34,7 @@ export async function extendUserConfig(
   const networks: Record<string, NetworkUserConfig> =
     extendedConfig.networks ?? {};
 
+  // TODO: we should address this casting when edr is implemented
   const localhostConfig: Omit<HttpNetworkUserConfig, "url"> = {
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- currently only http network is supported
     ...(networks.localhost as HttpNetworkUserConfig),
