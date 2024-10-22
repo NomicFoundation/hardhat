@@ -24,7 +24,7 @@ import type {
   ContractTooLargeErrorStackTraceEntry,
   InternalFunctionCallStackEntry,
   ContractCallRunOutOfGasError,
-} from "@nomicfoundation/edr";
+} from "@ignored/edr-optimism";
 
 import { requireNapiRsModule } from "../../../common/napi-rs";
 
@@ -39,8 +39,8 @@ const {
   PRECOMPILE_FUNCTION_NAME,
   UNRECOGNIZED_CONTRACT_NAME,
 } = requireNapiRsModule(
-  "@nomicfoundation/edr"
-) as typeof import("@nomicfoundation/edr");
+  "@ignored/edr-optimism"
+) as typeof import("@ignored/edr-optimism");
 
 export {
   SourceReference,

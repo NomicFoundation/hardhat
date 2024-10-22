@@ -2,7 +2,7 @@ import type {
   PrecompileMessageTrace,
   CreateMessageTrace,
   CallMessageTrace,
-} from "@nomicfoundation/edr";
+} from "@ignored/edr-optimism";
 
 export type { PrecompileMessageTrace, CreateMessageTrace, CallMessageTrace };
 

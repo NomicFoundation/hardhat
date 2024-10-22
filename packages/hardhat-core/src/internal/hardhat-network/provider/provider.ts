@@ -16,7 +16,7 @@ import type {
   RawTrace,
   Response,
   SubscriptionEvent,
-} from "@nomicfoundation/edr";
+} from "@ignored/edr-optimism";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import chalk from "chalk";
 import debug from "debug";
@@ -85,10 +85,15 @@ let _globalEdrContext: EdrContext | undefined;
 
 // Lazy initialize the global EDR context.
 export async function getGlobalEdrContext(): Promise<EdrContext> {
-  const { EdrContext, GENERIC_CHAIN_TYPE, genericChainProviderFactory } =
-    requireNapiRsModule(
-      "@nomicfoundation/edr"
-    ) as typeof import("@nomicfoundation/edr");
+  const {
+    EdrContext,
+    GENERIC_CHAIN_TYPE,
+    OPTIMISM_CHAIN_TYPE,
+    genericChainProviderFactory,
+    optimismProviderFactory,
+  } = requireNapiRsModule(
+    "@ignored/edr-optimism"
+  ) as typeof import("@ignored/edr-optimism");
 
   if (_globalEdrContext === undefined) {
     // Only one is allowed to exist
@@ -96,6 +101,10 @@ export async function getGlobalEdrContext(): Promise<EdrContext> {
     await _globalEdrContext.registerProviderFactory(
       GENERIC_CHAIN_TYPE,
       genericChainProviderFactory()
+    );
+    await _globalEdrContext.registerProviderFactory(
+      OPTIMISM_CHAIN_TYPE,
+      optimismProviderFactory()
     );
   }
 
@@ -199,8 +208,8 @@ export class EdrProviderWrapper
     tracingConfig?: TracingConfig
   ): Promise<EdrProviderWrapper> {
     const { GENERIC_CHAIN_TYPE } = requireNapiRsModule(
-      "@nomicfoundation/edr"
-    ) as typeof import("@nomicfoundation/edr");
+      "@ignored/edr-optimism"
+    ) as typeof import("@ignored/edr-optimism");
 
     const coinbase = config.coinbase ?? DEFAULT_COINBASE;
 
@@ -614,7 +623,7 @@ export class EdrProviderWrapper
 async function clientVersion(edrClientVersion: string): Promise<string> {
   const hardhatPackage = await getPackageJson();
   const edrVersion = edrClientVersion.split("/")[1];
-  return `HardhatNetwork/${hardhatPackage.version}/@nomicfoundation/edr/${edrVersion}`;
+  return `HardhatNetwork/${hardhatPackage.version}/@ignored/edr-optimism/${edrVersion}`;
 }
 
 export async function createHardhatNetworkProvider(

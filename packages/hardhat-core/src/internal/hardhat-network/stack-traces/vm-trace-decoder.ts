@@ -1,4 +1,4 @@
-import type { VmTraceDecoder as VmTraceDecoderT } from "@nomicfoundation/edr";
+import type { VmTraceDecoder as VmTraceDecoderT } from "@ignored/edr-optimism";
 import chalk from "chalk";
 import debug from "debug";
 import { Reporter } from "../../sentry/reporter";
@@ -8,8 +8,8 @@ import { requireNapiRsModule } from "../../../common/napi-rs";
 const log = debug("hardhat:core:hardhat-network:node");
 
 const { VmTraceDecoder, initializeVmTraceDecoder } = requireNapiRsModule(
-  "@nomicfoundation/edr"
-) as typeof import("@nomicfoundation/edr");
+  "@ignored/edr-optimism"
+) as typeof import("@ignored/edr-optimism");
 
 function initializeVmTraceDecoderWrapper(
   vmTraceDecoder: VmTraceDecoderT,

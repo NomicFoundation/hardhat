@@ -23,7 +23,7 @@ import {
   MERGE,
   SHANGHAI,
   CANCUN,
-} from "@nomicfoundation/edr";
+} from "@ignored/edr-optimism";
 import { Address } from "@nomicfoundation/ethereumjs-util";
 
 import { requireNapiRsModule } from "../../../../common/napi-rs";
@@ -84,8 +84,8 @@ export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): string {
 
 export function edrSpecIdToEthereumHardfork(specId: SpecId): HardforkName {
   const { SpecId } = requireNapiRsModule(
-    "@nomicfoundation/edr"
-  ) as typeof import("@nomicfoundation/edr");
+    "@ignored/edr-optimism"
+  ) as typeof import("@ignored/edr-optimism");
 
   switch (specId) {
     case SpecId.Frontier:
@@ -151,8 +151,8 @@ export function ethereumjsMempoolOrderToEdrMineOrdering(
   mempoolOrder: MempoolOrder
 ): MineOrdering {
   const { MineOrdering } = requireNapiRsModule(
-    "@nomicfoundation/edr"
-  ) as typeof import("@nomicfoundation/edr");
+    "@ignored/edr-optimism"
+  ) as typeof import("@ignored/edr-optimism");
 
   switch (mempoolOrder) {
     case "fifo":
