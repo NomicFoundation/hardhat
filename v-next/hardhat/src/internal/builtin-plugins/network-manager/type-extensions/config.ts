@@ -35,7 +35,7 @@ declare module "../../../../types/config.js" {
   }
 
   export type HttpNetworkAccountsUserConfig =
-    | "remote"
+    | REMOTE
     | string[]
     | HDAccountsUserConfig;
 
