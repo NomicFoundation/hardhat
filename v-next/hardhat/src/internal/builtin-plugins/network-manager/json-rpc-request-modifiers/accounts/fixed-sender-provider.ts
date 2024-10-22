@@ -15,7 +15,7 @@ export class FixedSender extends Sender {
     this.#sender = sender;
   }
 
-  protected async getSender(): Promise<string | undefined> {
+  protected async getSender(): Promise<string> {
     return this.#sender;
   }
 }

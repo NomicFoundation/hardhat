@@ -10,7 +10,7 @@ import { Sender } from "./sender.js";
 export class AutomaticSender extends Sender {
   #firstAccount: string | undefined;
 
-  protected async getSender(): Promise<string | undefined> {
+  protected async getSender(): Promise<string> {
     if (this.#firstAccount === undefined) {
       const accounts = await this.provider.request({
         method: "eth_accounts",

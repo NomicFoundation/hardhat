@@ -47,5 +47,5 @@ export abstract class Sender {
     }
   }
 
-  protected abstract getSender(): Promise<string | undefined>;
+  protected abstract getSender(): Promise<string>;
 }
