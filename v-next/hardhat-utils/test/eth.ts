@@ -12,7 +12,6 @@ import {
   generateAddressBytes,
   randomAddress,
   isValidChecksumAddress,
-  isPrivateKey,
 } from "../src/eth.js";
 
 describe("eth", () => {
@@ -102,49 +101,6 @@ describe("eth", () => {
         ),
         false,
       );
-    });
-  });
-
-  describe("isPrivateKey", () => {
-    const validKeys = [
-      "0x0000000000000000000000000000000000000000000000000000000000000001",
-      "0x0000000000000000000000000000000000000000000000000000000000aaff19",
-    ];
-
-    const invalidKeys = [
-      "0x00000000000000000000000000000000000000000000000000000000000000010", // key too long
-      "000000000000000000000000000000000000000000000000000000000000000z", // invalid char
-      "0x00000000000", // key too short
-    ];
-
-    describe("when the key starts with 0x", () => {
-      it("should return true for valid keys", () => {
-        for (const key of validKeys) {
-          assert.equal(isPrivateKey(key), true);
-        }
-      });
-
-      it("should return false for invalid keys", () => {
-        for (const key of invalidKeys) {
-          assert.equal(isPrivateKey(key), false);
-        }
-      });
-    });
-
-    describe("when the key starts without 0x", () => {
-      it("should return true for valid keys", () => {
-        for (let key of validKeys) {
-          key = key.replace("0x", "");
-          assert.equal(isPrivateKey(key), true);
-        }
-      });
-
-      it("should return false for invalid keys", () => {
-        for (let key of invalidKeys) {
-          key = key.replace("0x", "");
-          assert.equal(isPrivateKey(key), false);
-        }
-      });
     });
   });
 
