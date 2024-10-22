@@ -22,7 +22,7 @@ export class AutomaticSender extends Sender {
 
       assertHardhatInvariant(
         Array.isArray(accounts) && typeof accounts[0] === "string",
-        "accounts should be an array and accounts[0] should be a sting",
+        "accounts should be an array and accounts[0] should be a string",
       );
 
       this.#firstAccount = accounts[0];
