@@ -6,7 +6,26 @@ import type {
   TracingMessage,
   TracingMessageResult,
   TracingStep,
-} from "@nomicfoundation/edr";
+} from "@ignored/edr-optimism";
+import {
+  FRONTIER,
+  HOMESTEAD,
+  DAO_FORK,
+  TANGERINE,
+  SPURIOUS_DRAGON,
+  BYZANTIUM,
+  CONSTANTINOPLE,
+  PETERSBURG,
+  ISTANBUL,
+  MUIR_GLACIER,
+  BERLIN,
+  LONDON,
+  ARROW_GLACIER,
+  GRAY_GLACIER,
+  MERGE,
+  SHANGHAI,
+  CANCUN,
+} from "@ignored/edr-optimism";
 import { Address } from "@nomicfoundation/ethereumjs-util";
 
 import { requireNapiRsModule } from "../../../../common/napi-rs";
@@ -21,46 +40,42 @@ import {
 
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
-export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): SpecId {
-  const { SpecId } = requireNapiRsModule(
-    "@nomicfoundation/edr"
-  ) as typeof import("@nomicfoundation/edr");
-
+export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): string {
   switch (hardfork) {
     case HardforkName.FRONTIER:
-      return SpecId.Frontier;
+      return FRONTIER;
     case HardforkName.HOMESTEAD:
-      return SpecId.Homestead;
+      return HOMESTEAD;
     case HardforkName.DAO:
-      return SpecId.DaoFork;
+      return DAO_FORK;
     case HardforkName.TANGERINE_WHISTLE:
-      return SpecId.Tangerine;
+      return TANGERINE;
     case HardforkName.SPURIOUS_DRAGON:
-      return SpecId.SpuriousDragon;
+      return SPURIOUS_DRAGON;
     case HardforkName.BYZANTIUM:
-      return SpecId.Byzantium;
+      return BYZANTIUM;
     case HardforkName.CONSTANTINOPLE:
-      return SpecId.Constantinople;
+      return CONSTANTINOPLE;
     case HardforkName.PETERSBURG:
-      return SpecId.Petersburg;
+      return PETERSBURG;
     case HardforkName.ISTANBUL:
-      return SpecId.Istanbul;
+      return ISTANBUL;
     case HardforkName.MUIR_GLACIER:
-      return SpecId.MuirGlacier;
+      return MUIR_GLACIER;
     case HardforkName.BERLIN:
-      return SpecId.Berlin;
+      return BERLIN;
     case HardforkName.LONDON:
-      return SpecId.London;
+      return LONDON;
     case HardforkName.ARROW_GLACIER:
-      return SpecId.ArrowGlacier;
+      return ARROW_GLACIER;
     case HardforkName.GRAY_GLACIER:
-      return SpecId.GrayGlacier;
+      return GRAY_GLACIER;
     case HardforkName.MERGE:
-      return SpecId.Merge;
+      return MERGE;
     case HardforkName.SHANGHAI:
-      return SpecId.Shanghai;
+      return SHANGHAI;
     case HardforkName.CANCUN:
-      return SpecId.Cancun;
+      return CANCUN;
     default:
       const _exhaustiveCheck: never = hardfork;
       throw new Error(
@@ -71,8 +86,8 @@ export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): SpecId {
 
 export function edrSpecIdToEthereumHardfork(specId: SpecId): HardforkName {
   const { SpecId } = requireNapiRsModule(
-    "@nomicfoundation/edr"
-  ) as typeof import("@nomicfoundation/edr");
+    "@ignored/edr-optimism"
+  ) as typeof import("@ignored/edr-optimism");
 
   switch (specId) {
     case SpecId.Frontier:
@@ -138,8 +153,8 @@ export function ethereumjsMempoolOrderToEdrMineOrdering(
   mempoolOrder: MempoolOrder
 ): MineOrdering {
   const { MineOrdering } = requireNapiRsModule(
-    "@nomicfoundation/edr"
-  ) as typeof import("@nomicfoundation/edr");
+    "@ignored/edr-optimism"
+  ) as typeof import("@ignored/edr-optimism");
 
   switch (mempoolOrder) {
     case "fifo":

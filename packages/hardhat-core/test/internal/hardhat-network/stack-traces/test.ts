@@ -59,8 +59,8 @@ import {
 } from "./execution";
 
 const { stackTraceEntryTypeToString } = requireNapiRsModule(
-  "@nomicfoundation/edr"
-) as typeof import("@nomicfoundation/edr");
+  "@ignored/edr-optimism"
+) as typeof import("@ignored/edr-optimism");
 
 interface StackFrameDescription {
   type: string;

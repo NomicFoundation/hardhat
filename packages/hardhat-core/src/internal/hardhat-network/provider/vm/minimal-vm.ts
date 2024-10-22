@@ -1,4 +1,4 @@
-import type { Provider as EdrProviderT } from "@nomicfoundation/edr";
+import type { Provider as EdrProviderT } from "@ignored/edr-optimism";
 import type { Address } from "@nomicfoundation/ethereumjs-util";
 import type {
   MinimalEVMResult,

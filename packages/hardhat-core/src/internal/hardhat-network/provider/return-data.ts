@@ -1,7 +1,7 @@
 import { requireNapiRsModule } from "../../../common/napi-rs";
 
 const { ReturnData } = requireNapiRsModule(
-  "@nomicfoundation/edr"
-) as typeof import("@nomicfoundation/edr");
+  "@ignored/edr-optimism"
+) as typeof import("@ignored/edr-optimism");
 
 export { ReturnData };
