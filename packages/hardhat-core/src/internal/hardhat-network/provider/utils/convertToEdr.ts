@@ -1,11 +1,13 @@
+import type {
+  SpecId,
+  MineOrdering,
+  IntervalRange,
+  DebugTraceResult,
+  TracingMessage,
+  TracingMessageResult,
+  TracingStep,
+} from "@ignored/edr-optimism";
 import {
-  type SpecId,
-  type MineOrdering,
-  type IntervalRange,
-  type DebugTraceResult,
-  type TracingMessage,
-  type TracingMessageResult,
-  type TracingStep,
   FRONTIER,
   HOMESTEAD,
   DAO_FORK,
