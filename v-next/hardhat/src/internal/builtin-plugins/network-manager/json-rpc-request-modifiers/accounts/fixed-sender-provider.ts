@@ -15,9 +15,7 @@ export class FixedSender extends Sender {
     this.#sender = sender;
   }
 
-  protected async getSender(
-    _provider: EthereumProvider,
-  ): Promise<string | undefined> {
+  protected async getSender(): Promise<string | undefined> {
     return this.#sender;
   }
 }

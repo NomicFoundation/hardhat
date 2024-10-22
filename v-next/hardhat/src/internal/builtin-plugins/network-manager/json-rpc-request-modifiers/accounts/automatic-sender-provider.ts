@@ -1,5 +1,3 @@
-import type { EthereumProvider } from "../../../../../types/providers.js";
-
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 
 import { Sender } from "./sender.js";
@@ -12,11 +10,9 @@ import { Sender } from "./sender.js";
 export class AutomaticSender extends Sender {
   #firstAccount: string | undefined;
 
-  protected async getSender(
-    provider: EthereumProvider,
-  ): Promise<string | undefined> {
+  protected async getSender(): Promise<string | undefined> {
     if (this.#firstAccount === undefined) {
-      const accounts = await provider.request({
+      const accounts = await this.provider.request({
         method: "eth_accounts",
       });
 

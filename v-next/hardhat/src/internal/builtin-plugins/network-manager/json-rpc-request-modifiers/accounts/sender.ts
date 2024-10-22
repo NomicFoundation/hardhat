@@ -15,10 +15,10 @@ import { getRequestParams } from "../../json-rpc.js";
  * The class also provides a mechanism to retrieve the sender account, which must be implemented by subclasses.
  */
 export abstract class Sender {
-  readonly #provider: EthereumProvider;
+  protected readonly provider: EthereumProvider;
 
   constructor(provider: EthereumProvider) {
-    this.#provider = provider;
+    this.provider = provider;
   }
 
   public async modifyRequest(jsonRpcRequest: JsonRpcRequest): Promise<void> {
@@ -34,7 +34,7 @@ export abstract class Sender {
       const tx: JsonRpcTransactionData = params[0];
 
       if (tx !== undefined && tx.from === undefined) {
-        const senderAccount = await this.getSender(this.#provider);
+        const senderAccount = await this.getSender();
 
         if (senderAccount !== undefined) {
           tx.from = senderAccount;
@@ -47,7 +47,5 @@ export abstract class Sender {
     }
   }
 
-  protected abstract getSender(
-    provider: EthereumProvider,
-  ): Promise<string | undefined>;
+  protected abstract getSender(): Promise<string | undefined>;
 }
