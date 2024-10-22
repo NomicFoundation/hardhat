@@ -1,4 +1,4 @@
-import findup from "find-up";
+import findup from "empathic/find.mjs";
 import * as fs from "fs-extra";
 import * as path from "path";
 
@@ -305,9 +305,9 @@ function getTaskFromTaskDefinition(taskDef: TaskDefinition): Task {
 }
 
 function getProjectId(): string | undefined {
-  const packageJsonPath = findup.sync("package.json");
+  const packageJsonPath = findup.up("package.json");
 
-  if (packageJsonPath === null) {
+  if (packageJsonPath === undefined) {
     return undefined;
   }
 

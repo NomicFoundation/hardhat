@@ -7,7 +7,7 @@ import {
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { existsSync, writeFileSync } from "fs";
 import path from "path";
-import chalk from "chalk";
+import chalk from "picocolors";
 import {
   getForgeConfig,
   getRemappings,

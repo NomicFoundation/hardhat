@@ -1,6 +1,6 @@
 import type StackTraceParserT from "stacktrace-parser";
 
-import chalk from "chalk";
+import chalk from "picocolors";
 import debug from "debug";
 import fsExtra from "fs-extra";
 import path from "path";
@@ -198,7 +198,7 @@ export function analyzeModuleNotFoundError(error: any, configPath: string) {
 
   const packageJsonPath = findClosestPackageJson(throwingFile);
 
-  if (packageJsonPath === null) {
+  if (packageJsonPath === undefined) {
     return;
   }
 

@@ -1,8 +1,8 @@
-import findup from "find-up";
+import findup from "empathic/find.mjs";
 import path from "path";
 
-function findClosestPackageJson(file: string): string | null {
-  return findup.sync("package.json", { cwd: path.dirname(file) });
+function findClosestPackageJson(file: string): string | undefined {
+  return findup.up("package.json", { cwd: path.dirname(file) });
 }
 
 /**
@@ -35,7 +35,7 @@ export function getClosestCallerPackage(): string | undefined {
         continue;
       }
 
-      if (callerPackage === null) {
+      if (callerPackage === undefined) {
         return undefined;
       }
 

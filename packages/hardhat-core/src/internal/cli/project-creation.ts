@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import chalk from "picocolors";
 import fsExtra from "fs-extra";
 import path from "path";
 
