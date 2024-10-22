@@ -609,6 +609,8 @@ describe("network-manager/hook-handlers/config", () => {
       describe("http config", async () => {
         let hardhatUserConfig: any; // Use any to allow assigning also wrong values
 
+        const validationErrorMsg = `The "accounts" property in the configuration should be set to one of the following values: "remote", an array of private keys, or an object containing a mnemonic value and optional account details such as initialIndex, count, path, and passphrase`;
+
         before(() => {
           hardhatUserConfig = {
             networks: {
@@ -628,8 +630,6 @@ describe("network-manager/hook-handlers/config", () => {
             const validationErrors =
               await validateUserConfig(hardhatUserConfig);
 
-            console.log(validationErrors);
-
             assert.equal(validationErrors.length, 0);
           });
 
@@ -642,7 +642,6 @@ describe("network-manager/hook-handlers/config", () => {
 
             const validationErrors =
               await validateUserConfig(hardhatUserConfig);
-
             assert.equal(validationErrors.length, 0);
           });
 
@@ -665,8 +664,10 @@ describe("network-manager/hook-handlers/config", () => {
             hardhatUserConfig.networks.localhost.accounts = [
               "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             ];
+
             const validationErrors =
               await validateUserConfig(hardhatUserConfig);
+
             assert.equal(validationErrors.length, 0);
           });
         });
@@ -682,10 +683,7 @@ describe("network-manager/hook-handlers/config", () => {
                 await validateUserConfig(hardhatUserConfig);
 
               assert.notEqual(validationErrors.length, 0);
-              assert.equal(
-                validationErrors[0].message,
-                "Expected 'remote', an array of private keys, or an object with a mnemonic value and optional account details",
-              );
+              assert.equal(validationErrors[0].message, validationErrorMsg);
             });
 
             it("should not allow private keys of incorrect length", async () => {
@@ -697,8 +695,9 @@ describe("network-manager/hook-handlers/config", () => {
               assert.notEqual(validationErrors.length, 0);
               assert.equal(
                 validationErrors[0].message,
-                "The private key must be a valid private key",
+                "The private key must be exactly 32 bytes long",
               );
+
               hardhatUserConfig.networks.localhost.accounts = [
                 "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabb",
               ];
@@ -708,7 +707,7 @@ describe("network-manager/hook-handlers/config", () => {
               assert.notEqual(validationErrors.length, 0);
               assert.equal(
                 validationErrors[0].message,
-                "The private key must be a valid private key",
+                "The private key must be exactly 32 bytes long",
               );
             });
 
@@ -723,7 +722,7 @@ describe("network-manager/hook-handlers/config", () => {
               assert.notEqual(validationErrors.length, 0);
               assert.equal(
                 validationErrors[0].message,
-                "The private key must be a valid private key",
+                "The private key must contain only valid hexadecimal characters",
               );
             });
           });
@@ -739,10 +738,7 @@ describe("network-manager/hook-handlers/config", () => {
               await validateUserConfig(hardhatUserConfig);
 
             assert.notEqual(validationErrors.length, 0);
-            assert.equal(
-              validationErrors[0].message,
-              "Expected 'remote', an array of private keys, or an object with a mnemonic value and optional account details",
-            );
+            assert.equal(validationErrors[0].message, validationErrorMsg);
           }
         });
 
@@ -765,16 +761,15 @@ describe("network-manager/hook-handlers/config", () => {
               await validateUserConfig(hardhatUserConfig);
 
             assert.notEqual(validationErrors.length, 0);
-            assert.equal(
-              validationErrors[0].message,
-              "Expected 'remote', an array of private keys, or an object with a mnemonic value and optional account details",
-            );
+            assert.equal(validationErrors[0].message, validationErrorMsg);
           }
         });
       });
 
       describe("edr config", async () => {
         let hardhatUserConfig: any; // Use any to allow assigning also wrong values
+
+        const validationErrorMsg = `The "accounts" property in the configuration should be set to one of the following values: an array of objects with 'privateKey' and 'balance', or an object containing optional account details such as mnemonic, initialIndex, count, path, accountsBalance, and passphrase`;
 
         before(() => {
           hardhatUserConfig = {
@@ -815,8 +810,6 @@ describe("network-manager/hook-handlers/config", () => {
             const validationErrors =
               await validateUserConfig(hardhatUserConfig);
 
-            console.log(validationErrors);
-
             assert.equal(validationErrors.length, 0);
           });
 
@@ -844,12 +837,13 @@ describe("network-manager/hook-handlers/config", () => {
                   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
               },
             ];
+
             const validationErrors =
               await validateUserConfig(hardhatUserConfig);
+
             assert.equal(validationErrors.length, 0);
           });
         });
-
         describe("not allowed values", () => {
           describe("wrong private key formats", () => {
             it("should not allow hex literals", async () => {
@@ -864,10 +858,7 @@ describe("network-manager/hook-handlers/config", () => {
                 await validateUserConfig(hardhatUserConfig);
 
               assert.notEqual(validationErrors.length, 0);
-              assert.equal(
-                validationErrors[0].message,
-                "Expected an array of objects with 'privateKey' and 'balance', or an object with optional account details",
-              );
+              assert.equal(validationErrors[0].message, validationErrorMsg);
             });
 
             it("should not allow private keys of incorrect length", async () => {
@@ -884,7 +875,7 @@ describe("network-manager/hook-handlers/config", () => {
               assert.notEqual(validationErrors.length, 0);
               assert.equal(
                 validationErrors[0].message,
-                "The private key must be a valid private key",
+                "The private key must be exactly 32 bytes long",
               );
 
               hardhatUserConfig.networks.localhost.accounts = [
@@ -900,7 +891,7 @@ describe("network-manager/hook-handlers/config", () => {
               assert.notEqual(validationErrors.length, 0);
               assert.equal(
                 validationErrors[0].message,
-                "The private key must be a valid private key",
+                "The private key must be exactly 32 bytes long",
               );
             });
 
@@ -912,12 +903,14 @@ describe("network-manager/hook-handlers/config", () => {
                     "0xgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
                 },
               ];
+
               const validationErrors =
                 await validateUserConfig(hardhatUserConfig);
+
               assert.notEqual(validationErrors.length, 0);
               assert.equal(
                 validationErrors[0].message,
-                "The private key must be a valid private key",
+                "The private key must contain only valid hexadecimal characters",
               );
             });
           });
@@ -941,10 +934,7 @@ describe("network-manager/hook-handlers/config", () => {
               await validateUserConfig(hardhatUserConfig);
 
             assert.notEqual(validationErrors.length, 0);
-            assert.equal(
-              validationErrors[0].message,
-              "Expected an array of objects with 'privateKey' and 'balance', or an object with optional account details",
-            );
+            assert.equal(validationErrors[0].message, validationErrorMsg);
           });
 
           it("should fail with invalid types", async () => {
@@ -957,7 +947,6 @@ describe("network-manager/hook-handlers/config", () => {
               [{ privateKey: 123 }],
               [{ privateKey: "0xxxxx", balance: 213 }],
             ];
-
             for (const accounts of accountsValuesToTest) {
               hardhatUserConfig.networks.localhost.accounts = accounts;
 
@@ -965,10 +954,7 @@ describe("network-manager/hook-handlers/config", () => {
                 await validateUserConfig(hardhatUserConfig);
 
               assert.notEqual(validationErrors.length, 0);
-              assert.equal(
-                validationErrors[0].message,
-                "Expected an array of objects with 'privateKey' and 'balance', or an object with optional account details",
-              );
+              assert.equal(validationErrors[0].message, validationErrorMsg);
             }
           });
 
@@ -987,10 +973,7 @@ describe("network-manager/hook-handlers/config", () => {
                 await validateUserConfig(hardhatUserConfig);
 
               assert.notEqual(validationErrors.length, 0);
-              assert.equal(
-                validationErrors[0].message,
-                "Expected an array of objects with 'privateKey' and 'balance', or an object with optional account details",
-              );
+              assert.equal(validationErrors[0].message, validationErrorMsg);
             }
           });
         });

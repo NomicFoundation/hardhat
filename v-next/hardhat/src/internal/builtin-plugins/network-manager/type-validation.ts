@@ -4,7 +4,6 @@ import type {
 } from "../../../types/config.js";
 import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
 
-import { isPrivateKey } from "@ignored/hardhat-vnext-utils/eth";
 import {
   conditionalUnionType,
   sensitiveUrlSchema,
@@ -27,23 +26,55 @@ const userGasSchema = conditionalUnionType(
   "Expected 'auto', a safe int, or bigint",
 );
 
-const privateKeySchema = z.string().refine((val) => isPrivateKey(val), {
-  message: "The private key must be a valid private key",
-});
+const privateKeySchema = z
+  .string({ message: "The private key should be a string" })
+  .refine((val) => val.replace("0x", "").length === 64, {
+    message: "The private key must be exactly 32 bytes long",
+  })
+  .refine((val) => /^[0-9a-fA-F]+$/.test(val.replace("0x", "")), {
+    message: "The private key must contain only valid hexadecimal characters",
+  });
 
-const httpNetworkUserConfigAccountsSchema = unionType(
+const isValidPrivateKey = (val: string) => {
+  if (typeof val !== "string") {
+    // triggers the default error message of the validator invoking this function
+    return false;
+  }
+
+  // if the key is not valid, it will trigger the key error message
+  return privateKeySchema.safeParse(val);
+};
+
+const isValidHDAccountsUserConfig = (data: any) =>
+  typeof data === "object" &&
+  data !== null &&
+  "mnemonic" in data &&
+  typeof data.mnemonic === "string" &&
+  (!("initialIndex" in data) || typeof data.initialIndex === "number") &&
+  (!("count" in data) || (typeof data.count === "number" && data.count > 0)) &&
+  (!("path" in data) || typeof data.path === "string") &&
+  (!("passphrase" in data) || typeof data.passphrase === "string");
+
+const httpNetworkUserConfigAccountsSchema = conditionalUnionType(
   [
-    z.literal("remote"),
-    z.array(privateKeySchema),
-    z.object({
-      mnemonic: z.string(),
-      initialIndex: z.optional(z.number().int()),
-      count: z.optional(z.number().int().positive()),
-      path: z.optional(z.string()),
-      passphrase: z.optional(z.string()),
-    }),
+    [(data) => data === "remote", z.literal("remote")],
+    [
+      (data) =>
+        Array.isArray(data) && data.every((item) => isValidPrivateKey(item)),
+      z.array(privateKeySchema),
+    ],
+    [
+      isValidHDAccountsUserConfig,
+      z.object({
+        mnemonic: z.string(),
+        initialIndex: z.optional(z.number().int()),
+        count: z.optional(z.number().int().positive()),
+        path: z.optional(z.string()),
+        passphrase: z.optional(z.string()),
+      }),
+    ],
   ],
-  "Expected 'remote', an array of private keys, or an object with a mnemonic value and optional account details",
+  `The "accounts" property in the configuration should be set to one of the following values: "remote", an array of private keys, or an object containing a mnemonic value and optional account details such as initialIndex, count, path, and passphrase`,
 );
 
 const httpNetworkUserConfigSchema = z.object({
@@ -62,24 +93,59 @@ const httpNetworkUserConfigSchema = z.object({
   httpHeaders: z.optional(z.record(z.string())),
 });
 
-const edrNetworkUserConfigAccountsSchema = unionType(
+const isValidEdrKeyAndBalance = (data: any) =>
+  Array.isArray(data) &&
+  data.every((item) => {
+    if (
+      typeof item !== "object" ||
+      item === null ||
+      !("privateKey" in item) ||
+      !("balance" in item) ||
+      typeof item.balance !== "string"
+    ) {
+      // triggers the default error message of the validator invoking this function
+      return false;
+    }
+
+    // if the key is not valid, it will trigger the key error message
+    return isValidPrivateKey(item.privateKey);
+  });
+
+const isValidEdrNetworkHDAccountsUserConfig = (data: any) =>
+  !Array.isArray(data) &&
+  typeof data === "object" &&
+  data !== null &&
+  (!("mnemonic" in data) || typeof data.mnemonic === "string") &&
+  (!("initialIndex" in data) || typeof data.initialIndex === "number") &&
+  (!("count" in data) || (typeof data.count === "number" && data.count > 0)) &&
+  (!("path" in data) || typeof data.path === "string") &&
+  (!("accountsBalance" in data) || typeof data.accountsBalance === "string") &&
+  (!("passphrase" in data) || typeof data.passphrase === "string");
+
+const edrNetworkUserConfigAccountsSchema = conditionalUnionType(
   [
-    z.array(
+    [
+      isValidEdrKeyAndBalance,
+      z.array(
+        z.object({
+          privateKey: privateKeySchema,
+          balance: z.string(),
+        }),
+      ),
+    ],
+    [
+      isValidEdrNetworkHDAccountsUserConfig,
       z.object({
-        privateKey: privateKeySchema,
-        balance: z.string(),
+        mnemonic: z.optional(z.string()),
+        initialIndex: z.optional(z.number().int()),
+        count: z.optional(z.number().int().positive()),
+        path: z.optional(z.string()),
+        accountsBalance: z.optional(z.string()),
+        passphrase: z.optional(z.string()),
       }),
-    ),
-    z.object({
-      mnemonic: z.optional(z.string()),
-      initialIndex: z.optional(z.number().int()),
-      count: z.optional(z.number().int().positive()),
-      path: z.optional(z.string()),
-      accountsBalance: z.optional(z.string()),
-      passphrase: z.optional(z.string()),
-    }),
+    ],
   ],
-  "Expected an array of objects with 'privateKey' and 'balance', or an object with optional account details",
+  `The "accounts" property in the configuration should be set to one of the following values: an array of objects with 'privateKey' and 'balance', or an object containing optional account details such as mnemonic, initialIndex, count, path, accountsBalance, and passphrase`,
 );
 
 const edrNetworkUserConfigSchema = z.object({
@@ -112,19 +178,47 @@ const gasSchema = conditionalUnionType(
   "Expected 'auto' or bigint",
 );
 
-const httpNetworkAccountsSchema = unionType(
+const isValidHttpNetworkHDAccountsConfig = (data: any) =>
+  typeof data === "object" &&
+  data !== null &&
+  "mnemonic" in data &&
+  typeof data.mnemonic === "string" &&
+  "initialIndex" in data &&
+  typeof data.initialIndex === "number" &&
+  "count" in data &&
+  typeof data.count === "number" &&
+  data.count > 0 &&
+  "path" in data &&
+  typeof data.path === "string" &&
+  "passphrase" in data &&
+  typeof data.passphrase === "string";
+
+const httpNetworkAccountsSchema = conditionalUnionType(
   [
-    z.literal("remote"),
-    z.array(privateKeySchema),
-    z.object({
-      mnemonic: z.string(),
-      initialIndex: z.number().int(),
-      count: z.number().int().positive(),
-      path: z.string(),
-      passphrase: z.string(),
-    }),
+    [(data) => data === "remote", z.literal("remote")],
+    [
+      (data) =>
+        Array.isArray(data) &&
+        data.every((item) => {
+          if (typeof item !== "string") {
+            return false;
+          }
+          return privateKeySchema.safeParse(item);
+        }),
+      z.array(privateKeySchema),
+    ],
+    [
+      isValidHttpNetworkHDAccountsConfig,
+      z.object({
+        mnemonic: z.string(),
+        initialIndex: z.number().int(),
+        count: z.number().int().positive(),
+        path: z.string(),
+        passphrase: z.string(),
+      }),
+    ],
   ],
-  "Expected 'remote', an array of private keys, or an object with account details",
+  `The "accounts" property in the configuration should be set to one of the following values: "remote", an array of private keys, or an object containing account details such as mnemonic, initialIndex, count, path, and passphrase`,
 );
 
 const httpNetworkConfigSchema = z.object({
@@ -143,24 +237,48 @@ const httpNetworkConfigSchema = z.object({
   httpHeaders: z.record(z.string()),
 });
 
-const edrNetworkAccountsSchema = unionType(
+const isValidEdrNetworkHDAccountsConfig = (data: any) =>
+  !Array.isArray(data) &&
+  typeof data === "object" &&
+  data !== null &&
+  "mnemonic" in data &&
+  typeof data.mnemonic === "string" &&
+  "initialIndex" in data &&
+  typeof data.initialIndex === "number" &&
+  "count" in data &&
+  typeof data.count === "number" &&
+  data.count > 0 &&
+  "path" in data &&
+  typeof data.path === "string" &&
+  "accountsBalance" in data &&
+  typeof data.accountsBalance === "string" &&
+  "passphrase" in data &&
+  typeof data.passphrase === "string";
+
+const edrNetworkAccountsSchema = conditionalUnionType(
   [
-    z.array(
+    [
+      isValidEdrKeyAndBalance,
+      z.array(
+        z.object({
+          privateKey: privateKeySchema,
+          balance: z.string(),
+        }),
+      ),
+    ],
+    [
+      isValidEdrNetworkHDAccountsConfig,
       z.object({
-        privateKey: privateKeySchema,
-        balance: z.string(),
+        mnemonic: z.string(),
+        initialIndex: z.number().int(),
+        count: z.number().int().positive(),
+        path: z.string(),
+        accountsBalance: z.string(),
+        passphrase: z.string(),
       }),
-    ),
-    z.object({
-      mnemonic: z.string(),
-      initialIndex: z.number().int(),
-      count: z.number().int().positive(),
-      path: z.string(),
-      accountsBalance: z.string(),
-      passphrase: z.string(),
-    }),
+    ],
   ],
-  "Expected an array of objects with 'privateKey' and 'balance', or an object with account details",
+  `The "accounts" property in the configuration should be set to one of the following values: an array of objects with 'privateKey' and 'balance', or an object containing account details such as mnemonic, initialIndex, count, path, accountsBalance, and passphrase`,
 );
 
 const edrNetworkConfigSchema = z.object({
