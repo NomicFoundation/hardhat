@@ -9,10 +9,8 @@ import type {
 
 import { runSolidityTests } from "@ignored/edr";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { exists, readUtf8File } from "@ignored/hardhat-vnext-utils/fs";
+import { exists } from "@ignored/hardhat-vnext-utils/fs";
 import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
-import { NonterminalKind, TerminalKind } from "@nomicfoundation/slang/cst";
-import { Parser } from "@nomicfoundation/slang/parser";
 
 /**
  * Run all the given solidity tests and returns the whole results after finishing.
@@ -96,12 +94,14 @@ export async function isTestArtifact(
   root: string,
   artifact: Artifact,
 ): Promise<boolean> {
-  const { name, source, solcVersion } = artifact.id;
+  const { source } = artifact.id;
 
   if (!source.endsWith(".t.sol")) {
     return false;
   }
 
+  // NOTE: We also check whether the file exists in the workspace to filter out
+  // the artifacts from node modules.
   const sourcePath = resolveFromRoot(root, source);
   const sourceExists = await exists(sourcePath);
 
@@ -109,61 +109,5 @@ export async function isTestArtifact(
     return false;
   }
 
-  const content = await readUtf8File(sourcePath);
-  const parser = Parser.create(solcVersion);
-  const cursor = parser
-    .parse(NonterminalKind.SourceUnit, content)
-    .createTreeCursor();
-
-  while (
-    cursor.goToNextNonterminalWithKind(NonterminalKind.ContractDefinition)
-  ) {
-    const nameCursor = cursor.spawn();
-    if (!nameCursor.goToNextTerminalWithKind(TerminalKind.Identifier)) {
-      continue;
-    }
-    if (nameCursor.node.unparse() !== name) {
-      continue;
-    }
-
-    const abstractCursor = cursor.spawn();
-    if (abstractCursor.goToNextTerminalWithKind(TerminalKind.AbstractKeyword)) {
-      return false;
-    }
-
-    const functionCursor = cursor.spawn();
-
-    while (
-      functionCursor.goToNextNonterminalWithKind(
-        NonterminalKind.FunctionDefinition,
-      )
-    ) {
-      const functionNameCursor = functionCursor.spawn();
-      if (
-        !functionNameCursor.goToNextTerminalWithKind(TerminalKind.Identifier)
-      ) {
-        continue;
-      }
-
-      const functionName = functionNameCursor.node.unparse();
-      if (
-        functionName.startsWith("test") ||
-        functionName.startsWith("invariant")
-      ) {
-        const publicCursor = functionCursor.spawn();
-        if (publicCursor.goToNextTerminalWithKind(TerminalKind.PublicKeyword)) {
-          return true;
-        }
-
-        const externalCursor = functionCursor.spawn();
-        if (
-          externalCursor.goToNextTerminalWithKind(TerminalKind.ExternalKeyword)
-        ) {
-          return true;
-        }
-      }
-    }
-  }
-
-  return false;
+  return true;
 }
