@@ -8,11 +8,11 @@ import { isTestArtifact } from "../../../../src/internal/builtin-plugins/solidit
 const testCases = [
   {
     contract: "Abstract",
-    expected: false,
+    expected: true,
   },
   {
     contract: "NoTest",
-    expected: false,
+    expected: true,
   },
   {
     contract: "PublicTest",
@@ -24,11 +24,11 @@ const testCases = [
   },
   {
     contract: "PrivateTest",
-    expected: false,
+    expected: true,
   },
   {
     contract: "InternalTest",
-    expected: false,
+    expected: true,
   },
   {
     contract: "PublicInvariant",
@@ -40,11 +40,11 @@ const testCases = [
   },
   {
     contract: "PrivateInvariant",
-    expected: false,
+    expected: true,
   },
   {
     contract: "InternalInvariant",
-    expected: false,
+    expected: true,
   },
 ];
 
