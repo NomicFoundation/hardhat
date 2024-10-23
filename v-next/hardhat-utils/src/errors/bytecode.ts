@@ -23,7 +23,7 @@ export class UnnecessaryLibraryError extends CustomError {
     super(`The following libraries are not referenced by the contract:
 ${formattedLibraries}
 
-Please provide only the libraries that are actually needed.`);
+Please provide only the libraries that are needed.`);
   }
 }
 
