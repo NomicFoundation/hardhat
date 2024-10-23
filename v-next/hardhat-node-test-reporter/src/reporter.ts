@@ -268,6 +268,13 @@ export function hardhatTestReporter(
           yield chalk.red("\nTest coverage not supported by this reporter\n");
           break;
         }
+        // @ts-expect-error -- A new event type was added in https://github.com/nodejs/node/pull/54851
+        // but @types/node doesn't know about it yet. Once it does, the dependency should be updated
+        // and this comment removed.
+        case "test:summary": {
+          // Do nothing
+          break;
+        }
         /* eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check --
         We have this extra check here becase we know the @types/node type is
         unreliable */

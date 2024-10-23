@@ -39,39 +39,39 @@ describe("bigint", () => {
   });
 
   describe("toBigInt", () => {
-    it("Should convert a number to a BigInt", async () => {
+    it("Should convert a number to a BigInt", () => {
       assert.equal(toBigInt(0), 0n);
       assert.equal(toBigInt(1), 1n);
       assert.equal(toBigInt(-1), -1n);
     });
 
-    it("Should convert a BigInt to a BigInt", async () => {
+    it("Should convert a BigInt to a BigInt", () => {
       assert.equal(toBigInt(0n), 0n);
       assert.equal(toBigInt(1n), 1n);
       assert.equal(toBigInt(-1n), -1n);
     });
 
-    it("Should convert a string to a BigInt", async () => {
+    it("Should convert a string to a BigInt", () => {
       assert.equal(toBigInt("0"), 0n);
       assert.equal(toBigInt("1"), 1n);
       assert.equal(toBigInt("-1"), -1n);
     });
 
-    it("Should throw on non-integer numbers", async () => {
+    it("Should throw on non-integer numbers", () => {
       assert.throws(() => toBigInt(0.5), {
         name: "InvalidParameterError",
         message: "0.5 is not an integer",
       });
     });
 
-    it("Should throw on unsafe integers", async () => {
+    it("Should throw on unsafe integers", () => {
       assert.throws(() => toBigInt(Number.MAX_SAFE_INTEGER + 1), {
         name: "InvalidParameterError",
         message: `Integer ${Number.MAX_SAFE_INTEGER + 1} is unsafe. Consider using ${Number.MAX_SAFE_INTEGER + 1}n instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`,
       });
     });
 
-    it("Should throw on unsupported types", async () => {
+    it("Should throw on unsupported types", () => {
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Intentionally testing an type mismatch
       assert.throws(() => toBigInt(true as any), {
         name: "InvalidParameterError",

@@ -53,6 +53,42 @@ export function hexStringToBigInt(hexString: string): bigint {
 }
 
 /**
+ * Converts a hexadecimal string to a number. The string must be a valid
+ * hexadecimal string. The string may be prefixed with "0x" or not. The
+ * empty string is considered a valid hexadecimal string, so is the string
+ * "0x" and will be converted to 0.
+ *
+ * @param hexString The hexadecimal string to convert. It must be a valid
+ * hexadecimal string.
+ * @returns The number representation of the hexadecimal string.
+ * @throws InvalidParameterError If the input is not a hexadecimal string or the value exceeds the Number.MAX_SAFE_INTEGER limit.
+ */
+export function hexStringToNumber(hexString: string): number {
+  if (!isHexString(hexString)) {
+    throw new InvalidParameterError(
+      `Expected a valid hexadecimal string. Received: ${hexString}`,
+    );
+  }
+
+  // Prefix the string as it is required to make parseInt interpret it as a
+  // hexadecimal number.
+  let prefixedHexString = getPrefixedHexString(hexString);
+
+  // Handle the special case where the string is "0x".
+  prefixedHexString = prefixedHexString === "0x" ? "0x0" : prefixedHexString;
+
+  const numberValue = parseInt(prefixedHexString, 16);
+
+  if (numberValue > Number.MAX_SAFE_INTEGER) {
+    throw new InvalidParameterError(
+      `Value exceeds the safe integer limit. Received: ${hexString}`,
+    );
+  }
+
+  return numberValue;
+}
+
+/**
  * Converts a Uint8Array to a hexadecimal string.
  *
  * @param bytes The bytes to convert.
