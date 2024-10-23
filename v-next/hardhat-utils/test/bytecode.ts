@@ -1,4 +1,4 @@
-import type { PrefixedHexString } from "../src/hex.js";
+import type { Artifact, LibraryAddresses } from "../src/internal/bytecode.js";
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
@@ -6,15 +6,11 @@ import { describe, it } from "node:test";
 import { resolveLinkedBytecode, linkBytecode } from "../src/bytecode.js";
 import { getUnprefixedHexString } from "../src/hex.js";
 
-interface LibraryAddresses {
-  [contractName: string]: PrefixedHexString;
-}
-
 describe("bytecode", () => {
   describe("resolveLinkedBytecode", () => {
     describe("validation", () => {
       it("should throw InvalidLibraryAddressError if a library address is invalid", () => {
-        const artifact = {
+        const artifact: Artifact = {
           bytecode:
             "0xbytecodebytecodebytecode__$placeholderplaceholderplaceholderp$__bytecode",
           linkReferences: {
@@ -38,7 +34,7 @@ Please provide valid Ethereum addresses for these libraries.`,
       });
 
       it("should throw AmbiguousLibraryNameError if a library name matches multiple needed libraries", () => {
-        const artifact = {
+        const artifact: Artifact = {
           bytecode:
             "0xbytecodebytecodebytecode__$placeholderplaceholderplaceholderp$__bytecode__$placeholderplaceholderplaceholderp$__",
           linkReferences: {
@@ -67,7 +63,7 @@ Please provide the fully qualified name for these libraries.`,
       });
 
       it("should throw UnnecessaryLibraryError if an unnecessary library is provided", () => {
-        const artifact = {
+        const artifact: Artifact = {
           bytecode: "0xbytecodebytecodebytecode",
           linkReferences: {},
         };
@@ -86,7 +82,7 @@ Please provide only the libraries that are needed.`,
       });
 
       it("should throw OverlappingLibrariesError if a library is provided more than once", () => {
-        const artifact = {
+        const artifact: Artifact = {
           bytecode:
             "0xbytecodebytecodebytecode__$placeholderplaceholderplaceholderp$__bytecode",
           linkReferences: {
@@ -112,7 +108,7 @@ Please ensure that each library is provided only once, either by its name or its
       });
 
       it("should throw MissingLibrariesError if a needed library is missing", () => {
-        const artifact = {
+        const artifact: Artifact = {
           bytecode:
             "0xbytecodebytecodebytecode__$placeholderplaceholderplaceholderp$__bytecode",
           linkReferences: {
@@ -134,7 +130,7 @@ Please provide all the required libraries.`,
 
     describe("linking", () => {
       it("should link a contract with a library", () => {
-        const artifact = {
+        const artifact: Artifact = {
           bytecode:
             "0xbytecodebytecodebytecode__$placeholderplaceholderplaceholderp$__bytecode",
           linkReferences: {
@@ -158,7 +154,7 @@ Please provide all the required libraries.`,
       });
 
       it("should link a contract with multiple libraries", () => {
-        const artifact = {
+        const artifact: Artifact = {
           bytecode:
             "0xbytecodebytecodebytecode__$placeholderplaceholderplaceholderp$__bytecode__$placeholderplaceholderplaceholderp$__bytecodebytecodebytecode__$placeholderplaceholderplaceholderp$____$placeholderplaceholderplaceholderp$__",
           linkReferences: {
@@ -192,7 +188,7 @@ Please provide all the required libraries.`,
       });
 
       it("should allow library names without source names if they are unique", () => {
-        const artifact = {
+        const artifact: Artifact = {
           bytecode:
             "0xbytecodebytecodebytecode__$placeholderplaceholderplaceholderp$__bytecode__$placeholderplaceholderplaceholderp$__bytecodebytecodebytecode__$placeholderplaceholderplaceholderp$____$placeholderplaceholderplaceholderp$__",
           linkReferences: {
@@ -226,7 +222,7 @@ Please provide all the required libraries.`,
 
   describe("linkBytecode", () => {
     it("should link a contract with a library", () => {
-      const artifact = {
+      const artifact: Artifact = {
         bytecode:
           "0xbytecodebytecodebytecode__$placeholderplaceholderplaceholderp$__bytecode",
         linkReferences: {
@@ -251,7 +247,7 @@ Please provide all the required libraries.`,
     });
 
     it("should link a contract with multiple libraries", () => {
-      const artifact = {
+      const artifact: Artifact = {
         bytecode:
           "0xbytecodebytecodebytecode__$placeholderplaceholderplaceholderp$__bytecode__$placeholderplaceholderplaceholderp$__bytecodebytecodebytecode__$placeholderplaceholderplaceholderp$____$placeholderplaceholderplaceholderp$__",
         linkReferences: {
@@ -295,7 +291,7 @@ Please provide all the required libraries.`,
     });
 
     it("should return the same bytecode if no libraries are provided", () => {
-      const artifact = {
+      const artifact: Artifact = {
         bytecode:
           "0xbytecodebytecodebytecode__$placeholderplaceholderplaceholderp$__bytecode",
         linkReferences: {
@@ -309,7 +305,7 @@ Please provide all the required libraries.`,
     });
 
     it("should return the same bytecode if there are no libraries to link", () => {
-      const artifact = {
+      const artifact: Artifact = {
         bytecode: "0xbytecodebytecodebytecode",
         linkReferences: {},
       };
