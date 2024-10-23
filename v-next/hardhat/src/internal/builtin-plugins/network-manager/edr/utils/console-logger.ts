@@ -1,11 +1,10 @@
 import util from "node:util";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { bytesToHexString as bufferToHex } from "@ignored/hardhat-vnext-utils/bytes";
 import {
-  bytesToHexString as bufferToHex,
-  bytesToHexString,
-} from "@ignored/hardhat-vnext-utils/bytes";
-import { hexStringToBigInt } from "@ignored/hardhat-vnext-utils/hex";
+  bytesToBigInt,
+  bytesToNumber,
+} from "@ignored/hardhat-vnext-utils/number";
 
 import {
   AddressTy,
@@ -48,27 +47,6 @@ import {
   Uint256Ty,
   CONSOLE_LOG_SIGNATURES,
 } from "./console-log-signatures.js";
-
-/**
- * TODO: Replace with hh-utils version once it's return type is fixed as `bigint`
- */
-function bytesToBigInt(bytes: Uint8Array): bigint {
-  return hexStringToBigInt(bytesToHexString(bytes));
-}
-
-/**
- * Converts a {@link Uint8Array} to a {@link number}.
- * @param {Uint8Array} bytes the bytes to convert
- * @return  {number}
- * @throws If the input number exceeds 53 bits.
- */
-const bytesToInt = (bytes: Uint8Array): number => {
-  const res = Number(bytesToBigInt(bytes));
-
-  assertHardhatInvariant(Number.isSafeInteger(res), "Number exceeds 53 bits");
-
-  return res;
-};
 
 /**
  * Interprets a `Uint8Array` as a signed integer and returns a `BigInt`. Assumes 256-bit numbers.
@@ -115,7 +93,7 @@ export class ConsoleLogger {
 
   /** Decodes a calldata buffer into string arguments for a console log. */
   static #maybeConsoleLog(calldata: Buffer): ConsoleLogArgs | undefined {
-    const selector = bytesToInt(calldata.slice(0, 4));
+    const selector = bytesToNumber(calldata.slice(0, 4));
     const parameters = calldata.slice(4);
 
     const argTypes = CONSOLE_LOG_SIGNATURES[selector];
@@ -170,10 +148,12 @@ export class ConsoleLogger {
           return "false";
 
         case StringTy:
-          const sStart = bytesToInt(
+          const sStart = bytesToNumber(
             data.slice(position, position + REGISTER_SIZE),
           );
-          const sLen = bytesToInt(data.slice(sStart, sStart + REGISTER_SIZE));
+          const sLen = bytesToNumber(
+            data.slice(sStart, sStart + REGISTER_SIZE),
+          );
           return data
             .slice(sStart + REGISTER_SIZE, sStart + REGISTER_SIZE + sLen)
             .toString();
@@ -184,10 +164,12 @@ export class ConsoleLogger {
           );
 
         case BytesTy:
-          const bStart = bytesToInt(
+          const bStart = bytesToNumber(
             data.slice(position, position + REGISTER_SIZE),
           );
-          const bLen = bytesToInt(data.slice(bStart, bStart + REGISTER_SIZE));
+          const bLen = bytesToNumber(
+            data.slice(bStart, bStart + REGISTER_SIZE),
+          );
           return bufferToHex(
             data.slice(bStart + REGISTER_SIZE, bStart + REGISTER_SIZE + bLen),
           );
