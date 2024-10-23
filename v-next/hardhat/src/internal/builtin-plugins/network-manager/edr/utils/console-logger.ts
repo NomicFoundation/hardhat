@@ -93,8 +93,8 @@ export class ConsoleLogger {
 
   /** Decodes a calldata buffer into string arguments for a console log. */
   static #maybeConsoleLog(calldata: Buffer): ConsoleLogArgs | undefined {
-    const selector = bytesToNumber(calldata.slice(0, 4));
-    const parameters = calldata.slice(4);
+    const selector = bytesToNumber(calldata.subarray(0, 4));
+    const parameters = calldata.subarray(4);
 
     const argTypes = CONSOLE_LOG_SIGNATURES[selector];
     if (argTypes === undefined) {
@@ -133,12 +133,12 @@ export class ConsoleLogger {
       switch (types[i]) {
         case Uint256Ty:
           return bytesToBigInt(
-            data.slice(position, position + REGISTER_SIZE),
+            data.subarray(position, position + REGISTER_SIZE),
           ).toString(10);
 
         case Int256Ty:
           return fromSigned(
-            data.slice(position, position + REGISTER_SIZE),
+            data.subarray(position, position + REGISTER_SIZE),
           ).toString();
 
         case BoolTy:
@@ -149,95 +149,98 @@ export class ConsoleLogger {
 
         case StringTy:
           const sStart = bytesToNumber(
-            data.slice(position, position + REGISTER_SIZE),
+            data.subarray(position, position + REGISTER_SIZE),
           );
           const sLen = bytesToNumber(
-            data.slice(sStart, sStart + REGISTER_SIZE),
+            data.subarray(sStart, sStart + REGISTER_SIZE),
           );
           return data
-            .slice(sStart + REGISTER_SIZE, sStart + REGISTER_SIZE + sLen)
+            .subarray(sStart + REGISTER_SIZE, sStart + REGISTER_SIZE + sLen)
             .toString();
 
         case AddressTy:
           return bytesToHexString(
-            data.slice(position + 12, position + REGISTER_SIZE),
+            data.subarray(position + 12, position + REGISTER_SIZE),
           );
 
         case BytesTy:
           const bStart = bytesToNumber(
-            data.slice(position, position + REGISTER_SIZE),
+            data.subarray(position, position + REGISTER_SIZE),
           );
           const bLen = bytesToNumber(
-            data.slice(bStart, bStart + REGISTER_SIZE),
+            data.subarray(bStart, bStart + REGISTER_SIZE),
           );
           return bytesToHexString(
-            data.slice(bStart + REGISTER_SIZE, bStart + REGISTER_SIZE + bLen),
+            data.subarray(
+              bStart + REGISTER_SIZE,
+              bStart + REGISTER_SIZE + bLen,
+            ),
           );
 
         case Bytes1Ty:
-          return bytesToHexString(data.slice(position, position + 1));
+          return bytesToHexString(data.subarray(position, position + 1));
         case Bytes2Ty:
-          return bytesToHexString(data.slice(position, position + 2));
+          return bytesToHexString(data.subarray(position, position + 2));
         case Bytes3Ty:
-          return bytesToHexString(data.slice(position, position + 3));
+          return bytesToHexString(data.subarray(position, position + 3));
         case Bytes4Ty:
-          return bytesToHexString(data.slice(position, position + 4));
+          return bytesToHexString(data.subarray(position, position + 4));
         case Bytes5Ty:
-          return bytesToHexString(data.slice(position, position + 5));
+          return bytesToHexString(data.subarray(position, position + 5));
         case Bytes6Ty:
-          return bytesToHexString(data.slice(position, position + 6));
+          return bytesToHexString(data.subarray(position, position + 6));
         case Bytes7Ty:
-          return bytesToHexString(data.slice(position, position + 7));
+          return bytesToHexString(data.subarray(position, position + 7));
         case Bytes8Ty:
-          return bytesToHexString(data.slice(position, position + 8));
+          return bytesToHexString(data.subarray(position, position + 8));
         case Bytes9Ty:
-          return bytesToHexString(data.slice(position, position + 9));
+          return bytesToHexString(data.subarray(position, position + 9));
         case Bytes10Ty:
-          return bytesToHexString(data.slice(position, position + 10));
+          return bytesToHexString(data.subarray(position, position + 10));
         case Bytes11Ty:
-          return bytesToHexString(data.slice(position, position + 11));
+          return bytesToHexString(data.subarray(position, position + 11));
         case Bytes12Ty:
-          return bytesToHexString(data.slice(position, position + 12));
+          return bytesToHexString(data.subarray(position, position + 12));
         case Bytes13Ty:
-          return bytesToHexString(data.slice(position, position + 13));
+          return bytesToHexString(data.subarray(position, position + 13));
         case Bytes14Ty:
-          return bytesToHexString(data.slice(position, position + 14));
+          return bytesToHexString(data.subarray(position, position + 14));
         case Bytes15Ty:
-          return bytesToHexString(data.slice(position, position + 15));
+          return bytesToHexString(data.subarray(position, position + 15));
         case Bytes16Ty:
-          return bytesToHexString(data.slice(position, position + 16));
+          return bytesToHexString(data.subarray(position, position + 16));
         case Bytes17Ty:
-          return bytesToHexString(data.slice(position, position + 17));
+          return bytesToHexString(data.subarray(position, position + 17));
         case Bytes18Ty:
-          return bytesToHexString(data.slice(position, position + 18));
+          return bytesToHexString(data.subarray(position, position + 18));
         case Bytes19Ty:
-          return bytesToHexString(data.slice(position, position + 19));
+          return bytesToHexString(data.subarray(position, position + 19));
         case Bytes20Ty:
-          return bytesToHexString(data.slice(position, position + 20));
+          return bytesToHexString(data.subarray(position, position + 20));
         case Bytes21Ty:
-          return bytesToHexString(data.slice(position, position + 21));
+          return bytesToHexString(data.subarray(position, position + 21));
         case Bytes22Ty:
-          return bytesToHexString(data.slice(position, position + 22));
+          return bytesToHexString(data.subarray(position, position + 22));
         case Bytes23Ty:
-          return bytesToHexString(data.slice(position, position + 23));
+          return bytesToHexString(data.subarray(position, position + 23));
         case Bytes24Ty:
-          return bytesToHexString(data.slice(position, position + 24));
+          return bytesToHexString(data.subarray(position, position + 24));
         case Bytes25Ty:
-          return bytesToHexString(data.slice(position, position + 25));
+          return bytesToHexString(data.subarray(position, position + 25));
         case Bytes26Ty:
-          return bytesToHexString(data.slice(position, position + 26));
+          return bytesToHexString(data.subarray(position, position + 26));
         case Bytes27Ty:
-          return bytesToHexString(data.slice(position, position + 27));
+          return bytesToHexString(data.subarray(position, position + 27));
         case Bytes28Ty:
-          return bytesToHexString(data.slice(position, position + 28));
+          return bytesToHexString(data.subarray(position, position + 28));
         case Bytes29Ty:
-          return bytesToHexString(data.slice(position, position + 29));
+          return bytesToHexString(data.subarray(position, position + 29));
         case Bytes30Ty:
-          return bytesToHexString(data.slice(position, position + 30));
+          return bytesToHexString(data.subarray(position, position + 30));
         case Bytes31Ty:
-          return bytesToHexString(data.slice(position, position + 31));
+          return bytesToHexString(data.subarray(position, position + 31));
         case Bytes32Ty:
-          return bytesToHexString(data.slice(position, position + 32));
+          return bytesToHexString(data.subarray(position, position + 32));
 
         default:
           return "";
