@@ -1,6 +1,9 @@
 import type { TracingConfig } from "../types/node-types.js";
 
-import { VmTraceDecoder, initializeVmTraceDecoder } from "@nomicfoundation/edr";
+import {
+  VmTraceDecoder,
+  initializeVmTraceDecoder,
+} from "@ignored/edr-optimism";
 import chalk from "chalk";
 import debug from "debug";
 
