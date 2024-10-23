@@ -89,20 +89,3 @@ export function shouldBeJournaled(message: JournalMessage): boolean {
 
   return true;
 }
-
-/**
- * Reads the journal and returns an array of future IDs in the order they were executed.
- */
-export async function getExecutionOrder(
-  deploymentLoader: DeploymentLoader
-): Promise<string[]> {
-  const futureIds: string[] = [];
-
-  for await (const message of deploymentLoader.readFromJournal()) {
-    if ("futureId" in message && !futureIds.includes(message.futureId)) {
-      futureIds.push(message.futureId);
-    }
-  }
-
-  return futureIds;
-}

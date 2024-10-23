@@ -1,12 +1,11 @@
 import type { ArtifactResolver } from "./types/artifact";
 
+import findLastIndex from "lodash/findLastIndex";
+
 import { IgnitionError } from "./errors";
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader";
 import { ERRORS } from "./internal/errors-list";
-import {
-  getExecutionOrder,
-  loadDeploymentState,
-} from "./internal/execution/deployment-state-helpers";
+import { loadDeploymentState } from "./internal/execution/deployment-state-helpers";
 import { ExecutionResultType } from "./internal/execution/types/execution-result";
 import {
   ExecutionSateType,
@@ -19,6 +18,7 @@ import {
   type Transaction,
   TransactionReceiptStatus,
 } from "./internal/execution/types/jsonrpc";
+import { JournalMessageType } from "./internal/execution/types/messages";
 import { assertIgnitionInvariant } from "./internal/utils/assertions";
 import {
   type ListTransactionsResult,
@@ -48,86 +48,94 @@ export async function listTransactions(
     });
   }
 
-  const executionOrder = await getExecutionOrder(deploymentLoader);
   const transactions: ListTransactionsResult = [];
 
-  for (const futureId of executionOrder) {
-    const exState = deploymentState.executionStates[futureId];
-
-    if (!doesSendTransactions(exState)) {
+  for await (const message of deploymentLoader.readFromJournal()) {
+    if (message.type !== JournalMessageType.TRANSACTION_SEND) {
       continue;
     }
 
-    for (const networkInteraction of exState.networkInteractions) {
-      assertIgnitionInvariant(
-        networkInteraction.type === "ONCHAIN_INTERACTION",
-        "Expected network interaction to be an onchain interaction"
-      );
+    const exState = deploymentState.executionStates[message.futureId];
 
-      for (const [
-        index,
-        transaction,
-      ] of networkInteraction.transactions.entries()) {
-        switch (exState.type) {
-          case ExecutionSateType.DEPLOYMENT_EXECUTION_STATE: {
-            transactions.push({
-              type: exState.type,
-              from: exState.from,
-              txHash: transaction.hash,
-              status: getTransactionStatus(
-                transaction,
-                index === networkInteraction.transactions.length - 1
-              ),
-              name: exState.contractName,
-              address:
-                transaction.receipt?.status === TransactionReceiptStatus.SUCCESS
-                  ? exState.result?.type === ExecutionResultType.SUCCESS
-                    ? exState.result.address
-                    : undefined
-                  : undefined,
-              params: exState.constructorArgs,
-              value: networkInteraction.value,
-            });
+    assertIgnitionInvariant(
+      doesSendTransactions(exState),
+      "Expected execution state to be a type that sends transactions"
+    );
 
-            break;
-          }
-          case ExecutionSateType.CALL_EXECUTION_STATE: {
-            const artifact = await deploymentLoader.loadArtifact(
-              exState.artifactId
-            );
+    const networkInteraction =
+      exState.networkInteractions[message.networkInteractionId - 1];
 
-            transactions.push({
-              type: exState.type,
-              from: exState.from,
-              txHash: transaction.hash,
-              status: getTransactionStatus(
-                transaction,
-                index === networkInteraction.transactions.length - 1
-              ),
-              name: `${artifact.contractName}#${exState.functionName}`,
-              to: networkInteraction.to,
-              params: exState.args,
-              value: networkInteraction.value,
-            });
+    assertIgnitionInvariant(
+      networkInteraction.type === "ONCHAIN_INTERACTION",
+      "Expected network interaction to be an onchain interaction"
+    );
 
-            break;
-          }
-          case ExecutionSateType.SEND_DATA_EXECUTION_STATE: {
-            transactions.push({
-              type: exState.type,
-              from: exState.from,
-              txHash: transaction.hash,
-              status: getTransactionStatus(
-                transaction,
-                index === networkInteraction.transactions.length - 1
-              ),
-              to: networkInteraction.to,
-              value: networkInteraction.value,
-            });
+    // this seems redundant, but we use it later to determine pending vs dropped status
+    const lastTxIndex = findLastIndex(
+      networkInteraction.transactions,
+      (tx) => tx.hash === message.transaction.hash
+    );
 
-            break;
-          }
-        }
+    const transaction = networkInteraction.transactions[lastTxIndex];
+
+    switch (exState.type) {
+      case ExecutionSateType.DEPLOYMENT_EXECUTION_STATE: {
+        transactions.push({
+          type: exState.type,
+          from: exState.from,
+          txHash: transaction.hash,
+          status: getTransactionStatus(
+            transaction,
+            lastTxIndex === networkInteraction.transactions.length - 1
+          ),
+          name: exState.contractName,
+          address:
+            transaction.receipt?.status === TransactionReceiptStatus.SUCCESS
+              ? exState.result?.type === ExecutionResultType.SUCCESS
+                ? exState.result.address
+                : undefined
+              : undefined,
+          params: exState.constructorArgs,
+          value: networkInteraction.value,
+        });
+
+        break;
+      }
+      case ExecutionSateType.CALL_EXECUTION_STATE: {
+        const artifact = await deploymentLoader.loadArtifact(
+          exState.artifactId
+        );
+
+        transactions.push({
+          type: exState.type,
+          from: exState.from,
+          txHash: transaction.hash,
+          status: getTransactionStatus(
+            transaction,
+            lastTxIndex === networkInteraction.transactions.length - 1
+          ),
+          name: `${artifact.contractName}#${exState.functionName}`,
+          to: networkInteraction.to,
+          params: exState.args,
+          value: networkInteraction.value,
+        });
+
+        break;
+      }
+      case ExecutionSateType.SEND_DATA_EXECUTION_STATE: {
+        transactions.push({
+          type: exState.type,
+          from: exState.from,
+          txHash: transaction.hash,
+          status: getTransactionStatus(
+            transaction,
+            lastTxIndex === networkInteraction.transactions.length - 1
+          ),
+          to: networkInteraction.to,
+          value: networkInteraction.value,
+        });
+
+        break;
       }
     }
   }
