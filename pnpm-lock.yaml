@@ -1465,7 +1465,7 @@ importers:
         specifier: ~5.5.0
         version: 5.5.4
       viem:
-        specifier: ^2.7.6
+        specifier: ^2.21.17
         version: 2.21.25(typescript@5.5.4)
 
   v-next/hardhat:
