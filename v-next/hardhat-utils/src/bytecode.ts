@@ -15,7 +15,7 @@ import {
 
 /**
  * Resolves the linked bytecode for a given contract artifact by substituting
- * the required library placeholders within the bytecode with the provided 
+ * the required library placeholders within the bytecode with the provided
  * library addresses.
  *
  * @param artifact The contract artifact containing the bytecode and link references.
