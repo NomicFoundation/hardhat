@@ -36,19 +36,18 @@ export interface LibraryAddresses {
 export function checkProvidedLibraryAddresses(
   providedLibraries: LibraryAddresses,
 ): void {
-  const librariesWithInvalidAddresses = Object.entries(
-    providedLibraries,
-  ).filter(([, address]) => !isAddress(address));
+  const librariesWithInvalidAddresses: LibraryAddresses = {};
+  for (const [name, address] of Object.entries(providedLibraries)) {
+    if (!isAddress(address)) {
+      librariesWithInvalidAddresses[name] = address;
+    }
+  }
 
-  if (librariesWithInvalidAddresses.length === 0) {
+  if (Object.keys(librariesWithInvalidAddresses).length === 0) {
     return;
   }
 
-  const formattedLibraries = librariesWithInvalidAddresses
-    .map(([libraryName, address]) => `\t* "${libraryName}": "${address}"`)
-    .join("\n");
-
-  throw new InvalidLibraryAddressError(formattedLibraries);
+  throw new InvalidLibraryAddressError(librariesWithInvalidAddresses);
 }
 
 /**
@@ -60,10 +59,7 @@ export function checkAmbiguousOrUnnecessaryLinks(
   providedLibraries: LibraryAddresses,
   neededLibraries: LibraryLink[],
 ): void {
-  const ambiguousLibraries: Array<{
-    providedLibraryName: string;
-    matchingLibraries: LibraryLink[];
-  }> = [];
+  const ambiguousLibraries: Record<string, LibraryLink[]> = {};
   const unnecessaryLibraries: string[] = [];
 
   for (const providedLibraryName of Object.keys(providedLibraries)) {
@@ -74,34 +70,18 @@ export function checkAmbiguousOrUnnecessaryLinks(
     );
 
     if (matchingLibraries.length > 1) {
-      ambiguousLibraries.push({
-        providedLibraryName,
-        matchingLibraries,
-      });
+      ambiguousLibraries[providedLibraryName] = matchingLibraries;
     } else if (matchingLibraries.length === 0) {
       unnecessaryLibraries.push(providedLibraryName);
     }
   }
 
-  if (ambiguousLibraries.length > 0) {
-    const formattedLibraries = ambiguousLibraries
-      .map(
-        ({ providedLibraryName, matchingLibraries }) =>
-          `\t* "${providedLibraryName}":\n${matchingLibraries
-            .map(({ libraryFqn }) => `\t\t* "${libraryFqn}"`)
-            .join("\n")}`,
-      )
-      .join("\n");
-
-    throw new AmbiguousLibraryNameError(formattedLibraries);
+  if (Object.keys(ambiguousLibraries).length > 0) {
+    throw new AmbiguousLibraryNameError(ambiguousLibraries);
   }
 
   if (unnecessaryLibraries.length > 0) {
-    const formattedLibraries = unnecessaryLibraries
-      .map((libraryName) => `\t* "${libraryName}"`)
-      .join("\n");
-
-    throw new UnnecessaryLibraryError(formattedLibraries);
+    throw new UnnecessaryLibraryError(unnecessaryLibraries);
   }
 }
 
@@ -114,21 +94,19 @@ export function checkOverlappingLibraryNames(
   providedLibraries: LibraryAddresses,
   neededLibraries: LibraryLink[],
 ): void {
-  const overlappingLibraries = neededLibraries.filter(
-    ({ libraryName, libraryFqn }) =>
-      providedLibraries[libraryFqn] !== undefined &&
-      providedLibraries[libraryName] !== undefined,
-  );
+  const overlappingLibraries = neededLibraries
+    .filter(
+      ({ libraryName, libraryFqn }) =>
+        providedLibraries[libraryFqn] !== undefined &&
+        providedLibraries[libraryName] !== undefined,
+    )
+    .map(({ libraryFqn }) => libraryFqn);
 
   if (overlappingLibraries.length === 0) {
     return;
   }
 
-  const formattedLibraries = overlappingLibraries
-    .map(({ libraryFqn }) => `\t* "${libraryFqn}"`)
-    .join("\n");
-
-  throw new OverlappingLibrariesError(formattedLibraries);
+  throw new OverlappingLibrariesError(overlappingLibraries);
 }
 
 /**
@@ -139,17 +117,13 @@ export function checkOverlappingLibraryNames(
 export function checkMissingLibraryAddresses(
   neededLibraries: LibraryLink[],
 ): void {
-  const missingLibraries = neededLibraries.filter(
-    ({ address }) => address === undefined,
-  );
+  const missingLibraries = neededLibraries
+    .filter(({ address }) => address === undefined)
+    .map(({ libraryFqn }) => libraryFqn);
 
   if (missingLibraries.length === 0) {
     return;
   }
 
-  const formattedLibraries = missingLibraries
-    .map(({ libraryFqn }) => `\t* "${libraryFqn}"`)
-    .join("\n");
-
-  throw new MissingLibrariesError(formattedLibraries);
+  throw new MissingLibrariesError(missingLibraries);
 }
