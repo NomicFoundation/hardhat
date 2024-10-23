@@ -47,5 +47,5 @@ export function utf8StringToBytes(utf8String: string): Uint8Array {
   return new TextEncoder().encode(utf8String);
 }
 
-export { bytesToBigInt as bytesToNumber, numberToBytes } from "./number.js";
+export { bytesToBigInt, bytesToNumber, numberToBytes } from "./number.js";
 export { bytesToHexString, hexStringToBytes } from "./hex.js";
