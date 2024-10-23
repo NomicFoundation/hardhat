@@ -84,6 +84,7 @@ export const ERROR_CATEGORIES: {
     websiteTitle: "Ethers errors",
   },
   SOLIDITY: { min: 1200, max: 1299, websiteTitle: "Solidity errors" },
+  VIEM: { min: 1300, max: 1399, websiteTitle: "Hardhat-viem errors" },
 };
 
 export const ERRORS = {
