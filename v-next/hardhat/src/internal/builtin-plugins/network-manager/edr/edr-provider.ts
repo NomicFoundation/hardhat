@@ -20,20 +20,24 @@ import type {
   Response,
   VmTraceDecoder,
   VMTracer as VMTracerT,
-} from "@nomicfoundation/edr";
+  Provider,
+} from "@ignored/edr-optimism";
 
 import EventEmitter from "node:events";
 import util from "node:util";
 
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import {
-  Provider,
   EdrContext,
   createModelsAndDecodeBytecodes,
   initializeVmTraceDecoder,
   SolidityTracer,
   VmTracer,
-} from "@nomicfoundation/edr";
+  GENERIC_CHAIN_TYPE,
+  OPTIMISM_CHAIN_TYPE,
+  genericChainProviderFactory,
+  optimismProviderFactory,
+} from "@ignored/edr-optimism";
+import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import chalk from "chalk";
 import debug from "debug";
 
@@ -70,6 +74,14 @@ export async function getGlobalEdrContext(): Promise<EdrContext> {
   if (_globalEdrContext === undefined) {
     // Only one is allowed to exist
     _globalEdrContext = new EdrContext();
+    await _globalEdrContext.registerProviderFactory(
+      GENERIC_CHAIN_TYPE,
+      genericChainProviderFactory(),
+    );
+    await _globalEdrContext.registerProviderFactory(
+      OPTIMISM_CHAIN_TYPE,
+      optimismProviderFactory(),
+    );
   }
 
   return _globalEdrContext;
@@ -120,8 +132,9 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
 
     const hardforkName = getHardforkName(config.hardfork);
 
-    const provider = await Provider.withConfig(
-      await getGlobalEdrContext(),
+    const context = await getGlobalEdrContext();
+    const provider = await context.createProvider(
+      GENERIC_CHAIN_TYPE,
       {
         allowBlocksWithSameTimestamp:
           config.allowBlocksWithSameTimestamp ?? false,
@@ -177,8 +190,10 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
           }
         },
       },
-      (event: SubscriptionEvent) => {
-        eventAdapter.emit("ethEvent", event);
+      {
+        subscriptionCallback: (event: SubscriptionEvent) => {
+          eventAdapter.emit("ethEvent", event);
+        },
       },
     );
 
@@ -303,7 +318,7 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
     }
 
     // Override EDR version string with Hardhat version string with EDR backend,
-    // e.g. `HardhatNetwork/2.19.0/@nomicfoundation/edr/0.2.0-dev`
+    // e.g. `HardhatNetwork/2.19.0/@ignored/edr-optimism/0.2.0-dev`
     if (args.method === "web3_clientVersion") {
       return clientVersion(response.result);
     } else if (

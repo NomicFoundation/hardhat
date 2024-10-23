@@ -5,7 +5,7 @@
     "declaration": true,
     "declarationMap": true,
     "forceConsistentCasingInFileNames": true,
-    "isolatedModules": false,
+    "isolatedModules": true,
     "isolatedDeclarations": true,
     "noEmitOnError": true,
     "noImplicitOverride": true,

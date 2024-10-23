@@ -24,7 +24,7 @@ import type {
   ContractTooLargeErrorStackTraceEntry,
   InternalFunctionCallStackEntry,
   ContractCallRunOutOfGasError,
-} from "@nomicfoundation/edr";
+} from "@ignored/edr-optimism";
 
 import {
   StackTraceEntryType,
@@ -36,7 +36,7 @@ import {
   UNKNOWN_FUNCTION_NAME,
   PRECOMPILE_FUNCTION_NAME,
   UNRECOGNIZED_CONTRACT_NAME,
-} from "@nomicfoundation/edr";
+} from "@ignored/edr-optimism";
 
 export {
   SourceReference,

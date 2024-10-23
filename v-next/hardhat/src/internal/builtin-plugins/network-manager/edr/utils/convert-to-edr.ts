@@ -2,48 +2,70 @@
 import type { IntervalMiningConfig } from "../../../../../types/config.js";
 import type { MempoolOrder } from "../types/node-types.js";
 import type { RpcDebugTraceOutput, RpcStructLog } from "../types/output.js";
-import type { IntervalRange, DebugTraceResult } from "@nomicfoundation/edr";
+import type {
+  IntervalRange,
+  DebugTraceResult,
+  MineOrdering,
+} from "@ignored/edr-optimism";
 
-import { MineOrdering, SpecId } from "@nomicfoundation/edr";
+import {
+  FRONTIER,
+  HOMESTEAD,
+  DAO_FORK,
+  TANGERINE,
+  SPURIOUS_DRAGON,
+  BYZANTIUM,
+  CONSTANTINOPLE,
+  PETERSBURG,
+  ISTANBUL,
+  MUIR_GLACIER,
+  BERLIN,
+  LONDON,
+  ARROW_GLACIER,
+  GRAY_GLACIER,
+  MERGE,
+  SHANGHAI,
+  CANCUN,
+} from "@ignored/edr-optimism";
 
 import { HardforkName } from "../types/hardfork.js";
 
-export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): SpecId {
+export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): string {
   switch (hardfork) {
     case HardforkName.FRONTIER:
-      return SpecId.Frontier;
+      return FRONTIER;
     case HardforkName.HOMESTEAD:
-      return SpecId.Homestead;
+      return HOMESTEAD;
     case HardforkName.DAO:
-      return SpecId.DaoFork;
+      return DAO_FORK;
     case HardforkName.TANGERINE_WHISTLE:
-      return SpecId.Tangerine;
+      return TANGERINE;
     case HardforkName.SPURIOUS_DRAGON:
-      return SpecId.SpuriousDragon;
+      return SPURIOUS_DRAGON;
     case HardforkName.BYZANTIUM:
-      return SpecId.Byzantium;
+      return BYZANTIUM;
     case HardforkName.CONSTANTINOPLE:
-      return SpecId.Constantinople;
+      return CONSTANTINOPLE;
     case HardforkName.PETERSBURG:
-      return SpecId.Petersburg;
+      return PETERSBURG;
     case HardforkName.ISTANBUL:
-      return SpecId.Istanbul;
+      return ISTANBUL;
     case HardforkName.MUIR_GLACIER:
-      return SpecId.MuirGlacier;
+      return MUIR_GLACIER;
     case HardforkName.BERLIN:
-      return SpecId.Berlin;
+      return BERLIN;
     case HardforkName.LONDON:
-      return SpecId.London;
+      return LONDON;
     case HardforkName.ARROW_GLACIER:
-      return SpecId.ArrowGlacier;
+      return ARROW_GLACIER;
     case HardforkName.GRAY_GLACIER:
-      return SpecId.GrayGlacier;
+      return GRAY_GLACIER;
     case HardforkName.MERGE:
-      return SpecId.Merge;
+      return MERGE;
     case HardforkName.SHANGHAI:
-      return SpecId.Shanghai;
+      return SHANGHAI;
     case HardforkName.CANCUN:
-      return SpecId.Cancun;
+      return CANCUN;
     // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- trust but verify
     default:
       const _exhaustiveCheck: never = hardfork;
@@ -54,42 +76,42 @@ export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): SpecId {
   }
 }
 
-export function edrSpecIdToEthereumHardfork(specId: SpecId): HardforkName {
+export function edrSpecIdToEthereumHardfork(specId: string): HardforkName {
   switch (specId) {
-    case SpecId.Frontier:
+    case FRONTIER:
       return HardforkName.FRONTIER;
-    case SpecId.Homestead:
+    case HOMESTEAD:
       return HardforkName.HOMESTEAD;
-    case SpecId.DaoFork:
+    case DAO_FORK:
       return HardforkName.DAO;
-    case SpecId.Tangerine:
+    case TANGERINE:
       return HardforkName.TANGERINE_WHISTLE;
-    case SpecId.SpuriousDragon:
+    case SPURIOUS_DRAGON:
       return HardforkName.SPURIOUS_DRAGON;
-    case SpecId.Byzantium:
+    case BYZANTIUM:
       return HardforkName.BYZANTIUM;
-    case SpecId.Constantinople:
+    case CONSTANTINOPLE:
       return HardforkName.CONSTANTINOPLE;
-    case SpecId.Petersburg:
+    case PETERSBURG:
       return HardforkName.PETERSBURG;
-    case SpecId.Istanbul:
+    case ISTANBUL:
       return HardforkName.ISTANBUL;
-    case SpecId.MuirGlacier:
+    case MUIR_GLACIER:
       return HardforkName.MUIR_GLACIER;
-    case SpecId.Berlin:
+    case BERLIN:
       return HardforkName.BERLIN;
-    case SpecId.London:
+    case LONDON:
       return HardforkName.LONDON;
-    case SpecId.ArrowGlacier:
+    case ARROW_GLACIER:
       return HardforkName.ARROW_GLACIER;
-    case SpecId.GrayGlacier:
+    case GRAY_GLACIER:
       return HardforkName.GRAY_GLACIER;
-    case SpecId.Merge:
+    case MERGE:
       return HardforkName.MERGE;
-    case SpecId.Shanghai:
+    case SHANGHAI:
       return HardforkName.SHANGHAI;
     // HACK: EthereumJS doesn't support Cancun, so report Shanghai
-    case SpecId.Cancun:
+    case CANCUN:
       return HardforkName.SHANGHAI;
 
     default:
@@ -115,14 +137,22 @@ export function ethereumjsIntervalMiningConfigToEdr(
   }
 }
 
+// TODO: returning literals casted to the type is a hack to workaround
+// "Cannot access ambient const enums when 'isolatedModules' is enabled."
+// error. We should fix this properly by exporting the values as constants
+// from the EDR package.
 export function ethereumjsMempoolOrderToEdrMineOrdering(
   mempoolOrder: MempoolOrder,
 ): MineOrdering {
   switch (mempoolOrder) {
     case "fifo":
-      return MineOrdering.Fifo;
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- Casting is required here as we are returning a literal */
+      return "Fifo" as MineOrdering.Fifo;
     case "priority":
-      return MineOrdering.Priority;
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- Casting is required here as we are returning a literal */
+      return "Priority" as MineOrdering.Priority;
   }
 }
 
