@@ -14,8 +14,9 @@ import {
 } from "./internal/bytecode.js";
 
 /**
- * Resolves the linked bytecode for a given contract artifact by ensuring all
- * required libraries are correctly linked.
+ * Resolves the linked bytecode for a given contract artifact by substituting
+ * the required library placeholders within the bytecode with the provided 
+ * library addresses.
  *
  * @param artifact The contract artifact containing the bytecode and link references.
  * @param providedLibraries An object containing library names as keys and their addresses as values.
