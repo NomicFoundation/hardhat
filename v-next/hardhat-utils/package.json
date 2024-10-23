@@ -13,6 +13,7 @@
   "type": "module",
   "exports": {
     "./bigint": "./dist/src/bigint.js",
+    "./bytecode": "./dist/src/bytecode.js",
     "./bytes": "./dist/src/bytes.js",
     "./ci": "./dist/src/ci.js",
     "./common-errors": "./dist/src/common-errors.js",
