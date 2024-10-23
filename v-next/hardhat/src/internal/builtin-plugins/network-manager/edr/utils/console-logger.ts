@@ -1,6 +1,6 @@
 import util from "node:util";
 
-import { bytesToHexString as bufferToHex } from "@ignored/hardhat-vnext-utils/bytes";
+import { bytesToHexString } from "@ignored/hardhat-vnext-utils/bytes";
 import {
   bytesToBigInt,
   bytesToNumber,
@@ -159,7 +159,7 @@ export class ConsoleLogger {
             .toString();
 
         case AddressTy:
-          return bufferToHex(
+          return bytesToHexString(
             data.slice(position + 12, position + REGISTER_SIZE),
           );
 
@@ -170,74 +170,74 @@ export class ConsoleLogger {
           const bLen = bytesToNumber(
             data.slice(bStart, bStart + REGISTER_SIZE),
           );
-          return bufferToHex(
+          return bytesToHexString(
             data.slice(bStart + REGISTER_SIZE, bStart + REGISTER_SIZE + bLen),
           );
 
         case Bytes1Ty:
-          return bufferToHex(data.slice(position, position + 1));
+          return bytesToHexString(data.slice(position, position + 1));
         case Bytes2Ty:
-          return bufferToHex(data.slice(position, position + 2));
+          return bytesToHexString(data.slice(position, position + 2));
         case Bytes3Ty:
-          return bufferToHex(data.slice(position, position + 3));
+          return bytesToHexString(data.slice(position, position + 3));
         case Bytes4Ty:
-          return bufferToHex(data.slice(position, position + 4));
+          return bytesToHexString(data.slice(position, position + 4));
         case Bytes5Ty:
-          return bufferToHex(data.slice(position, position + 5));
+          return bytesToHexString(data.slice(position, position + 5));
         case Bytes6Ty:
-          return bufferToHex(data.slice(position, position + 6));
+          return bytesToHexString(data.slice(position, position + 6));
         case Bytes7Ty:
-          return bufferToHex(data.slice(position, position + 7));
+          return bytesToHexString(data.slice(position, position + 7));
         case Bytes8Ty:
-          return bufferToHex(data.slice(position, position + 8));
+          return bytesToHexString(data.slice(position, position + 8));
         case Bytes9Ty:
-          return bufferToHex(data.slice(position, position + 9));
+          return bytesToHexString(data.slice(position, position + 9));
         case Bytes10Ty:
-          return bufferToHex(data.slice(position, position + 10));
+          return bytesToHexString(data.slice(position, position + 10));
         case Bytes11Ty:
-          return bufferToHex(data.slice(position, position + 11));
+          return bytesToHexString(data.slice(position, position + 11));
         case Bytes12Ty:
-          return bufferToHex(data.slice(position, position + 12));
+          return bytesToHexString(data.slice(position, position + 12));
         case Bytes13Ty:
-          return bufferToHex(data.slice(position, position + 13));
+          return bytesToHexString(data.slice(position, position + 13));
         case Bytes14Ty:
-          return bufferToHex(data.slice(position, position + 14));
+          return bytesToHexString(data.slice(position, position + 14));
         case Bytes15Ty:
-          return bufferToHex(data.slice(position, position + 15));
+          return bytesToHexString(data.slice(position, position + 15));
         case Bytes16Ty:
-          return bufferToHex(data.slice(position, position + 16));
+          return bytesToHexString(data.slice(position, position + 16));
         case Bytes17Ty:
-          return bufferToHex(data.slice(position, position + 17));
+          return bytesToHexString(data.slice(position, position + 17));
         case Bytes18Ty:
-          return bufferToHex(data.slice(position, position + 18));
+          return bytesToHexString(data.slice(position, position + 18));
         case Bytes19Ty:
-          return bufferToHex(data.slice(position, position + 19));
+          return bytesToHexString(data.slice(position, position + 19));
         case Bytes20Ty:
-          return bufferToHex(data.slice(position, position + 20));
+          return bytesToHexString(data.slice(position, position + 20));
         case Bytes21Ty:
-          return bufferToHex(data.slice(position, position + 21));
+          return bytesToHexString(data.slice(position, position + 21));
         case Bytes22Ty:
-          return bufferToHex(data.slice(position, position + 22));
+          return bytesToHexString(data.slice(position, position + 22));
         case Bytes23Ty:
-          return bufferToHex(data.slice(position, position + 23));
+          return bytesToHexString(data.slice(position, position + 23));
         case Bytes24Ty:
-          return bufferToHex(data.slice(position, position + 24));
+          return bytesToHexString(data.slice(position, position + 24));
         case Bytes25Ty:
-          return bufferToHex(data.slice(position, position + 25));
+          return bytesToHexString(data.slice(position, position + 25));
         case Bytes26Ty:
-          return bufferToHex(data.slice(position, position + 26));
+          return bytesToHexString(data.slice(position, position + 26));
         case Bytes27Ty:
-          return bufferToHex(data.slice(position, position + 27));
+          return bytesToHexString(data.slice(position, position + 27));
         case Bytes28Ty:
-          return bufferToHex(data.slice(position, position + 28));
+          return bytesToHexString(data.slice(position, position + 28));
         case Bytes29Ty:
-          return bufferToHex(data.slice(position, position + 29));
+          return bytesToHexString(data.slice(position, position + 29));
         case Bytes30Ty:
-          return bufferToHex(data.slice(position, position + 30));
+          return bytesToHexString(data.slice(position, position + 30));
         case Bytes31Ty:
-          return bufferToHex(data.slice(position, position + 31));
+          return bytesToHexString(data.slice(position, position + 31));
         case Bytes32Ty:
-          return bufferToHex(data.slice(position, position + 32));
+          return bytesToHexString(data.slice(position, position + 32));
 
         default:
           return "";

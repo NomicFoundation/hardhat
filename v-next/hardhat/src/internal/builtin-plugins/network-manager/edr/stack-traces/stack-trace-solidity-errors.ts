@@ -9,7 +9,7 @@ import type {
 } from "./solidity-stack-trace.js";
 
 import { ReturnData } from "@ignored/edr-optimism";
-import { bytesToHexString as bufferToHex } from "@ignored/hardhat-vnext-utils/bytes";
+import { bytesToHexString } from "@ignored/hardhat-vnext-utils/bytes";
 
 import { panicErrorCodeToMessage } from "./panic-errors.js";
 import {
@@ -107,7 +107,7 @@ function encodeStackTraceEntry(
 
     case 2 as StackTraceEntryType.UNRECOGNIZED_CONTRACT_CALLSTACK_ENTRY:
       return new SolidityCallSite(
-        bufferToHex(stackTraceEntry.address),
+        bytesToHexString(stackTraceEntry.address),
         UNRECOGNIZED_CONTRACT_NAME,
         UNKNOWN_FUNCTION_NAME,
         undefined,
@@ -131,7 +131,7 @@ function encodeStackTraceEntry(
 
     case 18 as StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR:
       return new SolidityCallSite(
-        bufferToHex(stackTraceEntry.address),
+        bytesToHexString(stackTraceEntry.address),
         UNRECOGNIZED_CONTRACT_NAME,
         UNKNOWN_FUNCTION_NAME,
         undefined,
