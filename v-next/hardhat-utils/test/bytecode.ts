@@ -81,7 +81,7 @@ Please provide the fully qualified name for these libraries.`,
           message: `The following libraries are not referenced by the contract:
 \t* "Library"
 
-Please provide only the libraries that are actually needed.`,
+Please provide only the libraries that are needed.`,
         });
       });
 
