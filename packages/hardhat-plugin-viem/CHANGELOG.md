@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.15.7 - 2024-10-24
+
+### Added
+
+- New CLI command `ignition transactions` to list all transactions sent for a given deployment ID, @zoeyTM ([#821](https://github.com/NomicFoundation/hardhat-ignition/pull/821))
+- Module parameters can now be set at the global level using `$global`, @zoeyTM ([#819](https://github.com/NomicFoundation/hardhat-ignition/pull/819))
+
+### Fixed
+
+- Gas fields are now properly set for Optimistic BNB, @zoeyTM ([#826](https://github.com/NomicFoundation/hardhat-ignition/pull/826))
+- Corrected resolution of artifacts when using fully qualified names in deployment modules, @kanej ([#822](https://github.com/NomicFoundation/hardhat-ignition/pull/822))
+
 ## 0.15.6 - 2024-09-25
 
 ### Added
