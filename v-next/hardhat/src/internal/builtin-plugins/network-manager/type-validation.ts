@@ -4,6 +4,8 @@ import type {
 } from "../../../types/config.js";
 import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
 
+import { getUnprefixedHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 import {
   conditionalUnionType,
   sensitiveUrlSchema,
@@ -39,19 +41,19 @@ const accountsPrivateKeySchema = z
   .string({
     message: `${ACCOUNTS_ERROR} the private key must be a string`,
   })
-  .refine((val) => val.replace("0x", "").length === 64, {
+  .refine((val) => getUnprefixedHexString(val).length === 64, {
     message: `${ACCOUNTS_ERROR} the private key must be exactly 32 bytes long`,
   })
-  .refine((val) => /^[0-9a-fA-F]+$/.test(val.replace("0x", "")), {
+  .refine((val) => /^[0-9a-fA-F]+$/.test(getUnprefixedHexString(val)), {
     message: `${ACCOUNTS_ERROR} the private key must contain only valid hexadecimal characters`,
   });
 
-const canBeValidatedAsPrivateKey = (val: any) => {
+const canBeValidatedAsPrivateKey = (val: unknown) => {
   // Allow numbers (hex literals) even if unsupported, to provide a more detailed error message about the private key
   return typeof val === "string" || typeof val === "number";
 };
 
-const canBeValidatedAsHdAccount = (val: any) => {
+const canBeValidatedAsHdAccount = (val: unknown) => {
   const allowedProperties = [
     "mnemonic",
     "initialIndex",
@@ -62,8 +64,7 @@ const canBeValidatedAsHdAccount = (val: any) => {
   ];
 
   return (
-    typeof val === "object" &&
-    val !== null &&
+    isObject(val) &&
     Object.keys(val).every((key) => allowedProperties.includes(key))
   );
 };
@@ -132,13 +133,8 @@ const keyBalanceObject = z.object({
   balance: z.string({ message: `${ACCOUNTS_ERROR} balance must be a string` }),
 });
 
-const canBeValidatedAsEdrKeyAndBalance = (item: any) => {
-  return (
-    typeof item === "object" &&
-    item !== null &&
-    "privateKey" in item &&
-    "balance" in item
-  );
+const canBeValidatedAsEdrKeyAndBalance = (item: unknown) => {
+  return isObject(item) && "privateKey" in item && "balance" in item;
 };
 
 const edrNetworkHDAccountsUserConfig = z.object({
