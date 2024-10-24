@@ -268,6 +268,13 @@ describe("NetworkManagerImplementation", () => {
   });
 
   describe("accounts", () => {
+    const ACCOUNTS_ERROR = `Error in the "accounts" property in configuration:`;
+
+    const HD_ACCOUNT_MNEMONIC_MSG = `${ACCOUNTS_ERROR} the "mnemonic" property of the HD account must be a string`;
+    const HD_ACCOUNT_INITIAL_INDEX_MSG = `${ACCOUNTS_ERROR} the "initialIndex" property of the HD account must be an integer number`;
+    const HD_ACCOUNT_COUNT_MSG = `${ACCOUNTS_ERROR} the "count" property of the HD account must be a positive integer number`;
+    const HD_ACCOUNT_PATH_MSG = `${ACCOUNTS_ERROR} the "path" property of the HD account must be a string`;
+
     describe("http config", async () => {
       let networkConfig: any; // Use any to allow assigning also wrong values
 
@@ -303,7 +310,6 @@ describe("NetworkManagerImplementation", () => {
           ];
 
           const validationErrors = validateNetworkConfig(networkConfig);
-
           assert.equal(validationErrors.length, 0);
         });
 
@@ -342,7 +348,10 @@ describe("NetworkManagerImplementation", () => {
             const validationErrors = validateNetworkConfig(networkConfig);
 
             assert.notEqual(validationErrors.length, 0);
-            assert.equal(validationErrors[0].message, validationErrorMsg);
+            assert.equal(
+              validationErrors[0].message,
+              `${ACCOUNTS_ERROR} the private key must be a string`,
+            );
           });
 
           it("should not allow private keys of incorrect length", async () => {
@@ -353,19 +362,18 @@ describe("NetworkManagerImplementation", () => {
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
               validationErrors[0].message,
-              "The private key must be exactly 32 bytes long",
+              `${ACCOUNTS_ERROR} the private key must be exactly 32 bytes long`,
             );
 
             networkConfig.accounts = [
               "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabb",
             ];
-
             validationErrors = validateNetworkConfig(networkConfig);
 
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
               validationErrors[0].message,
-              "The private key must be exactly 32 bytes long",
+              `${ACCOUNTS_ERROR} the private key must be exactly 32 bytes long`,
             );
           });
 
@@ -379,7 +387,7 @@ describe("NetworkManagerImplementation", () => {
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
               validationErrors[0].message,
-              "The private key must contain only valid hexadecimal characters",
+              `${ACCOUNTS_ERROR} the private key must contain only valid hexadecimal characters`,
             );
           });
         });
@@ -400,23 +408,35 @@ describe("NetworkManagerImplementation", () => {
 
       it("should fail with invalid HttpNetworkHDAccountsConfig", async () => {
         const accountsValuesToTest = [
-          { mnemonic: 123 },
-          { initialIndex: "asd" },
-          { count: "asd" },
-          { path: 123 },
-          { type: 123 },
-          {
-            initialIndex: 1,
-          },
+          [{ mnemonic: 123 }, HD_ACCOUNT_MNEMONIC_MSG],
+          [
+            { mnemonic: "valid", initialIndex: "asd" },
+            HD_ACCOUNT_INITIAL_INDEX_MSG,
+          ],
+          [
+            { mnemonic: "valid", initialIndex: 1, count: "asd" },
+            HD_ACCOUNT_COUNT_MSG,
+          ],
+          [
+            { mnemonic: "valid", initialIndex: 1, count: 1, path: 123 },
+            HD_ACCOUNT_PATH_MSG,
+          ],
+          [{ type: 123 }, validationErrorMsg],
+          [
+            {
+              initialIndex: 1,
+            },
+            HD_ACCOUNT_MNEMONIC_MSG,
+          ],
         ];
 
-        for (const accounts of accountsValuesToTest) {
+        for (const [accounts, error] of accountsValuesToTest) {
           networkConfig.accounts = accounts;
 
           const validationErrors = validateNetworkConfig(networkConfig);
 
           assert.notEqual(validationErrors.length, 0);
-          assert.equal(validationErrors[0].message, validationErrorMsg);
+          assert.equal(validationErrors[0].message, error);
         }
       });
     });
@@ -477,6 +497,7 @@ describe("NetworkManagerImplementation", () => {
 
           assert.equal(validationErrors.length, 0);
         });
+
         it("should allow valid private keys with missing hex prefix", async () => {
           networkConfig.accounts = [
             {
@@ -505,7 +526,10 @@ describe("NetworkManagerImplementation", () => {
             const validationErrors = validateNetworkConfig(networkConfig);
 
             assert.notEqual(validationErrors.length, 0);
-            assert.equal(validationErrors[0].message, validationErrorMsg);
+            assert.equal(
+              validationErrors[0].message,
+              `${ACCOUNTS_ERROR} the private key must be a string`,
+            );
           });
 
           it("should not allow private keys of incorrect length", async () => {
@@ -521,7 +545,7 @@ describe("NetworkManagerImplementation", () => {
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
               validationErrors[0].message,
-              "The private key must be exactly 32 bytes long",
+              `${ACCOUNTS_ERROR} the private key must be exactly 32 bytes long`,
             );
 
             networkConfig.accounts = [
@@ -537,7 +561,7 @@ describe("NetworkManagerImplementation", () => {
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
               validationErrors[0].message,
-              "The private key must be exactly 32 bytes long",
+              `${ACCOUNTS_ERROR} the private key must be exactly 32 bytes long`,
             );
           });
 
@@ -555,7 +579,7 @@ describe("NetworkManagerImplementation", () => {
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
               validationErrors[0].message,
-              "The private key must contain only valid hexadecimal characters",
+              `${ACCOUNTS_ERROR} the private key must contain only valid hexadecimal characters`,
             );
           });
         });
@@ -585,11 +609,15 @@ describe("NetworkManagerImplementation", () => {
           const accountsValuesToTest = [
             123,
             [{}],
-            [{ privateKey: "" }],
+            [
+              {
+                privateKey:
+                  "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              },
+            ],
             [{ balance: "" }],
             [{ balance: 213 }],
             [{ privateKey: 123 }],
-            [{ privateKey: "0xxxxx", balance: 213 }],
           ];
 
           for (const accounts of accountsValuesToTest) {
@@ -602,21 +630,43 @@ describe("NetworkManagerImplementation", () => {
           }
         });
 
-        it("should fail with invalid HttpNetworkHDAccountsConfig", async () => {
+        it("should fail when the array of objects contains an invalid private key", async () => {
+          networkConfig.accounts = [{ privateKey: "0xxxxx", balance: 213 }];
+
+          const validationErrors = validateNetworkConfig(networkConfig);
+
+          assert.notEqual(validationErrors.length, 0);
+          assert.equal(
+            validationErrors[0].message,
+            `${ACCOUNTS_ERROR} the private key must be exactly 32 bytes long`,
+          );
+        });
+
+        it("should fail with invalid HD accounts", async () => {
           const accountsValuesToTest = [
-            { mnemonic: 123 },
-            { initialIndex: "asd" },
-            { count: "asd" },
-            { path: 123 },
+            [{ mnemonic: 123 }, HD_ACCOUNT_MNEMONIC_MSG],
+            [
+              { mnemonic: "valid", initialIndex: "asd" },
+              HD_ACCOUNT_INITIAL_INDEX_MSG,
+            ],
+            [
+              { mnemonic: "valid", initialIndex: 1, count: "asd" },
+              HD_ACCOUNT_COUNT_MSG,
+            ],
+            [
+              { mnemonic: "valid", initialIndex: 1, count: 1, path: 123 },
+              HD_ACCOUNT_PATH_MSG,
+            ],
+            [{ type: 123 }, validationErrorMsg],
           ];
 
-          for (const accounts of accountsValuesToTest) {
+          for (const [accounts, error] of accountsValuesToTest) {
             networkConfig.accounts = accounts;
 
             const validationErrors = validateNetworkConfig(networkConfig);
 
             assert.notEqual(validationErrors.length, 0);
-            assert.equal(validationErrors[0].message, validationErrorMsg);
+            assert.equal(validationErrors[0].message, error);
           }
         });
       });

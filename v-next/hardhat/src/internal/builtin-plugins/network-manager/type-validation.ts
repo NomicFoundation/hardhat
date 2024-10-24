@@ -12,6 +12,15 @@ import {
 } from "@ignored/hardhat-vnext-zod-utils";
 import { z } from "zod";
 
+const ACCOUNTS_ERROR = `Error in the "accounts" property in configuration:`;
+
+const HD_ACCOUNT_MNEMONIC_MSG = `${ACCOUNTS_ERROR} the "mnemonic" property of the HD account must be a string`;
+const HD_ACCOUNT_INITIAL_INDEX_MSG = `${ACCOUNTS_ERROR} the "initialIndex" property of the HD account must be an integer number`;
+const HD_ACCOUNT_COUNT_MSG = `${ACCOUNTS_ERROR} the "count" property of the HD account must be a positive integer number`;
+const HD_ACCOUNT_PATH_MSG = `${ACCOUNTS_ERROR} the "path" property of the HD account must be a string`;
+const HD_ACCOUNT_PASSPHRASE_MSG = `${ACCOUNTS_ERROR} the "passphrase" property of the HD account must be a string`;
+const HD_ACCOUNT_BALANCE_MSG = `${ACCOUNTS_ERROR} the "balance" property of the HD account must be a string`;
+
 const chainTypeSchema = unionType(
   [z.literal("l1"), z.literal("optimism"), z.literal("unknown")],
   "Expected 'l1', 'optimism', or 'unknown'",
@@ -26,53 +35,78 @@ const userGasSchema = conditionalUnionType(
   "Expected 'auto', a safe int, or bigint",
 );
 
-const privateKeySchema = z
-  .string({ message: "The private key should be a string" })
+const accountsPrivateKeySchema = z
+  .string({
+    message: `${ACCOUNTS_ERROR} the private key must be a string`,
+  })
   .refine((val) => val.replace("0x", "").length === 64, {
-    message: "The private key must be exactly 32 bytes long",
+    message: `${ACCOUNTS_ERROR} the private key must be exactly 32 bytes long`,
   })
   .refine((val) => /^[0-9a-fA-F]+$/.test(val.replace("0x", "")), {
-    message: "The private key must contain only valid hexadecimal characters",
+    message: `${ACCOUNTS_ERROR} the private key must contain only valid hexadecimal characters`,
   });
 
-const isValidPrivateKey = (val: string) => {
-  if (typeof val !== "string") {
-    // triggers the default error message of the validator invoking this function
-    return false;
-  }
-
-  // if the key is not valid, it will trigger the key error message
-  return privateKeySchema.safeParse(val);
+const canBeValidatedAsPrivateKey = (val: any) => {
+  // Allow numbers (hex literals) even if unsupported, to provide a more detailed error message about the private key
+  return typeof val === "string" || typeof val === "number";
 };
 
-const isValidHDAccountsUserConfig = (data: any) =>
-  typeof data === "object" &&
-  data !== null &&
-  "mnemonic" in data &&
-  typeof data.mnemonic === "string" &&
-  (!("initialIndex" in data) || typeof data.initialIndex === "number") &&
-  (!("count" in data) || (typeof data.count === "number" && data.count > 0)) &&
-  (!("path" in data) || typeof data.path === "string") &&
-  (!("passphrase" in data) || typeof data.passphrase === "string");
+const canBeValidatedAsHdAccount = (val: any) => {
+  const allowedProperties = [
+    "mnemonic",
+    "initialIndex",
+    "count",
+    "path",
+    "passphrase",
+    "accountsBalance",
+  ];
+
+  return (
+    typeof val === "object" &&
+    val !== null &&
+    Object.keys(val).every((key) => allowedProperties.includes(key))
+  );
+};
+
+const httpNetworkHDAccountsUserConfig = z.object({
+  mnemonic: z.string({
+    message: HD_ACCOUNT_MNEMONIC_MSG,
+  }),
+  initialIndex: z.optional(
+    z
+      .number({
+        message: HD_ACCOUNT_INITIAL_INDEX_MSG,
+      })
+      .int(),
+  ),
+  count: z.optional(
+    z
+      .number({
+        message: HD_ACCOUNT_COUNT_MSG,
+      })
+      .int({ message: HD_ACCOUNT_COUNT_MSG })
+      .positive({ message: HD_ACCOUNT_COUNT_MSG }),
+  ),
+  path: z.optional(
+    z.string({
+      message: HD_ACCOUNT_PATH_MSG,
+    }),
+  ),
+  passphrase: z.optional(
+    z.string({
+      message: HD_ACCOUNT_PASSPHRASE_MSG,
+    }),
+  ),
+});
 
 const httpNetworkUserConfigAccountsSchema = conditionalUnionType(
   [
     [(data) => data === "remote", z.literal("remote")],
     [
-      (data) =>
-        Array.isArray(data) && data.every((item) => isValidPrivateKey(item)),
-      z.array(privateKeySchema),
+      (data) => Array.isArray(data) && data.every(canBeValidatedAsPrivateKey),
+      z.array(accountsPrivateKeySchema),
     ],
-    [
-      isValidHDAccountsUserConfig,
-      z.object({
-        mnemonic: z.string(),
-        initialIndex: z.optional(z.number().int()),
-        count: z.optional(z.number().int().positive()),
-        path: z.optional(z.string()),
-        passphrase: z.optional(z.string()),
-      }),
-    ],
+    [canBeValidatedAsHdAccount, httpNetworkHDAccountsUserConfig],
   ],
   `The "accounts" property in the configuration should be set to one of the following values: "remote", an array of private keys, or an object containing a mnemonic value and optional account details such as initialIndex, count, path, and passphrase`,
 );
@@ -93,57 +127,70 @@ const httpNetworkUserConfigSchema = z.object({
   httpHeaders: z.optional(z.record(z.string())),
 });
 
-const isValidEdrKeyAndBalance = (data: any) =>
-  Array.isArray(data) &&
-  data.every((item) => {
-    if (
-      typeof item !== "object" ||
-      item === null ||
-      !("privateKey" in item) ||
-      !("balance" in item) ||
-      typeof item.balance !== "string"
-    ) {
-      // triggers the default error message of the validator invoking this function
-      return false;
-    }
+const keyBalanceObject = z.object({
+  privateKey: accountsPrivateKeySchema,
+  balance: z.string({ message: `${ACCOUNTS_ERROR} balance must be a string` }),
+});
 
-    // if the key is not valid, it will trigger the key error message
-    return isValidPrivateKey(item.privateKey);
-  });
+const canBeValidatedAsEdrKeyAndBalance = (item: any) => {
+  return (
+    typeof item === "object" &&
+    item !== null &&
+    "privateKey" in item &&
+    "balance" in item
+  );
+};
 
-const isValidEdrNetworkHDAccountsUserConfig = (data: any) =>
-  !Array.isArray(data) &&
-  typeof data === "object" &&
-  data !== null &&
-  (!("mnemonic" in data) || typeof data.mnemonic === "string") &&
-  (!("initialIndex" in data) || typeof data.initialIndex === "number") &&
-  (!("count" in data) || (typeof data.count === "number" && data.count > 0)) &&
-  (!("path" in data) || typeof data.path === "string") &&
-  (!("accountsBalance" in data) || typeof data.accountsBalance === "string") &&
-  (!("passphrase" in data) || typeof data.passphrase === "string");
+const edrNetworkHDAccountsUserConfig = z.object({
+  mnemonic: z.optional(
+    z.string({
+      message: HD_ACCOUNT_MNEMONIC_MSG,
+    }),
+  ),
+  initialIndex: z.optional(
+    z
+      .number({
+        message: HD_ACCOUNT_INITIAL_INDEX_MSG,
+      })
+      .int({ message: HD_ACCOUNT_INITIAL_INDEX_MSG }),
+  ),
+  count: z.optional(
+    z
+      .number({
+        message: HD_ACCOUNT_COUNT_MSG,
+      })
+      .int({
+        message: HD_ACCOUNT_COUNT_MSG,
+      })
+      .positive({
+        message: HD_ACCOUNT_COUNT_MSG,
+      }),
+  ),
+  path: z.optional(
+    z.string({
+      message: HD_ACCOUNT_PATH_MSG,
+    }),
+  ),
+  accountsBalance: z.optional(
+    z.string({
+      message: HD_ACCOUNT_BALANCE_MSG,
+    }),
+  ),
+  passphrase: z.optional(
+    z.string({
+      message: HD_ACCOUNT_PASSPHRASE_MSG,
+    }),
+  ),
+});
 
 const edrNetworkUserConfigAccountsSchema = conditionalUnionType(
   [
     [
-      isValidEdrKeyAndBalance,
-      z.array(
-        z.object({
-          privateKey: privateKeySchema,
-          balance: z.string(),
-        }),
-      ),
+      (data) =>
+        Array.isArray(data) && data.every(canBeValidatedAsEdrKeyAndBalance),
+      z.array(keyBalanceObject),
     ],
-    [
-      isValidEdrNetworkHDAccountsUserConfig,
-      z.object({
-        mnemonic: z.optional(z.string()),
-        initialIndex: z.optional(z.number().int()),
-        count: z.optional(z.number().int().positive()),
-        path: z.optional(z.string()),
-        accountsBalance: z.optional(z.string()),
-        passphrase: z.optional(z.string()),
-      }),
-    ],
+    [canBeValidatedAsHdAccount, edrNetworkHDAccountsUserConfig],
   ],
   `The "accounts" property in the configuration should be set to one of the following values: an array of objects with 'privateKey' and 'balance', or an object containing optional account details such as mnemonic, initialIndex, count, path, accountsBalance, and passphrase`,
 );
@@ -178,45 +225,27 @@ const gasSchema = conditionalUnionType(
   "Expected 'auto' or bigint",
 );
 
-const isValidHttpNetworkHDAccountsConfig = (data: any) =>
-  typeof data === "object" &&
-  data !== null &&
-  "mnemonic" in data &&
-  typeof data.mnemonic === "string" &&
-  "initialIndex" in data &&
-  typeof data.initialIndex === "number" &&
-  "count" in data &&
-  typeof data.count === "number" &&
-  data.count > 0 &&
-  "path" in data &&
-  typeof data.path === "string" &&
-  "passphrase" in data &&
-  typeof data.passphrase === "string";
+const httpNetworkHDAccountsConfig = z.object({
+  mnemonic: z.string({ message: HD_ACCOUNT_MNEMONIC_MSG }),
+  initialIndex: z
+    .number({ message: HD_ACCOUNT_INITIAL_INDEX_MSG })
+    .int({ message: HD_ACCOUNT_INITIAL_INDEX_MSG }),
+  count: z
+    .number({ message: HD_ACCOUNT_COUNT_MSG })
+    .int({ message: HD_ACCOUNT_COUNT_MSG })
+    .positive({ message: HD_ACCOUNT_COUNT_MSG }),
+  path: z.string({ message: HD_ACCOUNT_PATH_MSG }),
+  passphrase: z.string({ message: HD_ACCOUNT_PASSPHRASE_MSG }),
+});
 
 const httpNetworkAccountsSchema = conditionalUnionType(
   [
     [(data) => data === "remote", z.literal("remote")],
     [
-      (data) =>
-        Array.isArray(data) &&
-        data.every((item) => {
-          if (typeof item !== "string") {
-            return false;
-          }
-          return privateKeySchema.safeParse(item);
-        }),
-      z.array(privateKeySchema),
+      (data) => Array.isArray(data) && data.every(canBeValidatedAsPrivateKey),
+      z.array(accountsPrivateKeySchema),
     ],
-    [
-      isValidHttpNetworkHDAccountsConfig,
-      z.object({
-        mnemonic: z.string(),
-        initialIndex: z.number().int(),
-        count: z.number().int().positive(),
-        path: z.string(),
-        passphrase: z.string(),
-      }),
-    ],
+    [canBeValidatedAsHdAccount, httpNetworkHDAccountsConfig],
   ],
   `The "accounts" property in the configuration should be set to one of the following values: "remote", an array of private keys, or an object containing account details such as mnemonic, initialIndex, count, path, and passphrase`,
 );
@@ -237,46 +266,28 @@ const httpNetworkConfigSchema = z.object({
   httpHeaders: z.record(z.string()),
 });
 
-const isValidEdrNetworkHDAccountsConfig = (data: any) =>
-  !Array.isArray(data) &&
-  typeof data === "object" &&
-  data !== null &&
-  "mnemonic" in data &&
-  typeof data.mnemonic === "string" &&
-  "initialIndex" in data &&
-  typeof data.initialIndex === "number" &&
-  "count" in data &&
-  typeof data.count === "number" &&
-  data.count > 0 &&
-  "path" in data &&
-  typeof data.path === "string" &&
-  "accountsBalance" in data &&
-  typeof data.accountsBalance === "string" &&
-  "passphrase" in data &&
-  typeof data.passphrase === "string";
+const edrNetworkHDAccountsConfig = z.object({
+  mnemonic: z.string({ message: HD_ACCOUNT_MNEMONIC_MSG }),
+  initialIndex: z
+    .number({ message: HD_ACCOUNT_INITIAL_INDEX_MSG })
+    .int({ message: HD_ACCOUNT_INITIAL_INDEX_MSG }),
+  count: z
+    .number({ message: HD_ACCOUNT_COUNT_MSG })
+    .int({ message: HD_ACCOUNT_COUNT_MSG })
+    .positive({ message: HD_ACCOUNT_COUNT_MSG }),
+  path: z.string({ message: HD_ACCOUNT_PATH_MSG }),
+  accountsBalance: z.string({ message: HD_ACCOUNT_BALANCE_MSG }),
+  passphrase: z.string({ message: HD_ACCOUNT_PASSPHRASE_MSG }),
+});
 
 const edrNetworkAccountsSchema = conditionalUnionType(
   [
     [
-      isValidEdrKeyAndBalance,
-      z.array(
-        z.object({
-          privateKey: privateKeySchema,
-          balance: z.string(),
-        }),
-      ),
+      (data) =>
+        Array.isArray(data) && data.every(canBeValidatedAsEdrKeyAndBalance),
+      z.array(keyBalanceObject),
     ],
-    [
-      isValidEdrNetworkHDAccountsConfig,
-      z.object({
-        mnemonic: z.string(),
-        initialIndex: z.number().int(),
-        count: z.number().int().positive(),
-        path: z.string(),
-        accountsBalance: z.string(),
-        passphrase: z.string(),
-      }),
-    ],
+    [canBeValidatedAsHdAccount, edrNetworkHDAccountsConfig],
   ],
   `The "accounts" property in the configuration should be set to one of the following values: an array of objects with 'privateKey' and 'balance', or an object containing account details such as mnemonic, initialIndex, count, path, accountsBalance, and passphrase`,
 );

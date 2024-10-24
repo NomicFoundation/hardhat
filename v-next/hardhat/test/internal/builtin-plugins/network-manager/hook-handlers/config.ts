@@ -606,6 +606,13 @@ describe("network-manager/hook-handlers/config", () => {
     });
 
     describe("accounts", () => {
+      const ACCOUNTS_ERROR = `Error in the "accounts" property in configuration:`;
+
+      const HD_ACCOUNT_MNEMONIC_MSG = `${ACCOUNTS_ERROR} the "mnemonic" property of the HD account must be a string`;
+      const HD_ACCOUNT_INITIAL_INDEX_MSG = `${ACCOUNTS_ERROR} the "initialIndex" property of the HD account must be an integer number`;
+      const HD_ACCOUNT_COUNT_MSG = `${ACCOUNTS_ERROR} the "count" property of the HD account must be a positive integer number`;
+      const HD_ACCOUNT_PATH_MSG = `${ACCOUNTS_ERROR} the "path" property of the HD account must be a string`;
+
       describe("http config", async () => {
         let hardhatUserConfig: any; // Use any to allow assigning also wrong values
 
@@ -683,7 +690,10 @@ describe("network-manager/hook-handlers/config", () => {
                 await validateUserConfig(hardhatUserConfig);
 
               assert.notEqual(validationErrors.length, 0);
-              assert.equal(validationErrors[0].message, validationErrorMsg);
+              assert.equal(
+                validationErrors[0].message,
+                `${ACCOUNTS_ERROR} the private key must be a string`,
+              );
             });
 
             it("should not allow private keys of incorrect length", async () => {
@@ -695,19 +705,18 @@ describe("network-manager/hook-handlers/config", () => {
               assert.notEqual(validationErrors.length, 0);
               assert.equal(
                 validationErrors[0].message,
-                "The private key must be exactly 32 bytes long",
+                `${ACCOUNTS_ERROR} the private key must be exactly 32 bytes long`,
               );
 
               hardhatUserConfig.networks.localhost.accounts = [
                 "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabb",
               ];
-
               validationErrors = await validateUserConfig(hardhatUserConfig);
 
               assert.notEqual(validationErrors.length, 0);
               assert.equal(
                 validationErrors[0].message,
-                "The private key must be exactly 32 bytes long",
+                `${ACCOUNTS_ERROR} the private key must be exactly 32 bytes long`,
               );
             });
 
@@ -722,7 +731,7 @@ describe("network-manager/hook-handlers/config", () => {
               assert.notEqual(validationErrors.length, 0);
               assert.equal(
                 validationErrors[0].message,
-                "The private key must contain only valid hexadecimal characters",
+                `${ACCOUNTS_ERROR} the private key must contain only valid hexadecimal characters`,
               );
             });
           });
@@ -744,24 +753,36 @@ describe("network-manager/hook-handlers/config", () => {
 
         it("should fail with invalid HttpNetworkHDAccountsConfig", async () => {
           const accountsValuesToTest = [
-            { mnemonic: 123 },
-            { initialIndex: "asd" },
-            { count: "asd" },
-            { path: 123 },
-            { type: 123 },
-            {
-              initialIndex: 1,
-            },
+            [{ mnemonic: 123 }, HD_ACCOUNT_MNEMONIC_MSG],
+            [
+              { mnemonic: "valid", initialIndex: "asd" },
+              HD_ACCOUNT_INITIAL_INDEX_MSG,
+            ],
+            [
+              { mnemonic: "valid", initialIndex: 1, count: "asd" },
+              HD_ACCOUNT_COUNT_MSG,
+            ],
+            [
+              { mnemonic: "valid", initialIndex: 1, count: 1, path: 123 },
+              HD_ACCOUNT_PATH_MSG,
+            ],
+            [{ type: 123 }, validationErrorMsg],
+            [
+              {
+                initialIndex: 1,
+              },
+              HD_ACCOUNT_MNEMONIC_MSG,
+            ],
           ];
 
-          for (const accounts of accountsValuesToTest) {
+          for (const [accounts, error] of accountsValuesToTest) {
             hardhatUserConfig.networks.localhost.accounts = accounts;
 
             const validationErrors =
               await validateUserConfig(hardhatUserConfig);
 
             assert.notEqual(validationErrors.length, 0);
-            assert.equal(validationErrors[0].message, validationErrorMsg);
+            assert.equal(validationErrors[0].message, error);
           }
         });
       });
@@ -844,6 +865,7 @@ describe("network-manager/hook-handlers/config", () => {
             assert.equal(validationErrors.length, 0);
           });
         });
+
         describe("not allowed values", () => {
           describe("wrong private key formats", () => {
             it("should not allow hex literals", async () => {
@@ -858,7 +880,10 @@ describe("network-manager/hook-handlers/config", () => {
                 await validateUserConfig(hardhatUserConfig);
 
               assert.notEqual(validationErrors.length, 0);
-              assert.equal(validationErrors[0].message, validationErrorMsg);
+              assert.equal(
+                validationErrors[0].message,
+                `${ACCOUNTS_ERROR} the private key must be a string`,
+              );
             });
 
             it("should not allow private keys of incorrect length", async () => {
@@ -875,7 +900,7 @@ describe("network-manager/hook-handlers/config", () => {
               assert.notEqual(validationErrors.length, 0);
               assert.equal(
                 validationErrors[0].message,
-                "The private key must be exactly 32 bytes long",
+                `${ACCOUNTS_ERROR} the private key must be exactly 32 bytes long`,
               );
 
               hardhatUserConfig.networks.localhost.accounts = [
@@ -891,7 +916,7 @@ describe("network-manager/hook-handlers/config", () => {
               assert.notEqual(validationErrors.length, 0);
               assert.equal(
                 validationErrors[0].message,
-                "The private key must be exactly 32 bytes long",
+                `${ACCOUNTS_ERROR} the private key must be exactly 32 bytes long`,
               );
             });
 
@@ -910,7 +935,7 @@ describe("network-manager/hook-handlers/config", () => {
               assert.notEqual(validationErrors.length, 0);
               assert.equal(
                 validationErrors[0].message,
-                "The private key must contain only valid hexadecimal characters",
+                `${ACCOUNTS_ERROR} the private key must contain only valid hexadecimal characters`,
               );
             });
           });
@@ -941,12 +966,17 @@ describe("network-manager/hook-handlers/config", () => {
             const accountsValuesToTest = [
               123,
               [{}],
-              [{ privateKey: "" }],
+              [
+                {
+                  privateKey:
+                    "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                },
+              ],
               [{ balance: "" }],
               [{ balance: 213 }],
               [{ privateKey: 123 }],
-              [{ privateKey: "0xxxxx", balance: 213 }],
             ];
+
             for (const accounts of accountsValuesToTest) {
               hardhatUserConfig.networks.localhost.accounts = accounts;
 
@@ -958,22 +988,47 @@ describe("network-manager/hook-handlers/config", () => {
             }
           });
 
-          it("should fail with invalid HttpNetworkHDAccountsConfig", async () => {
-            const accountsValuesToTest = [
-              { mnemonic: 123 },
-              { initialIndex: "asd" },
-              { count: "asd" },
-              { path: 123 },
+          it("should fail when the array of objects contains an invalid private key", async () => {
+            hardhatUserConfig.networks.localhost.accounts = [
+              { privateKey: "0xxxxx", balance: 213 },
             ];
 
-            for (const accounts of accountsValuesToTest) {
+            const validationErrors =
+              await validateUserConfig(hardhatUserConfig);
+
+            assert.notEqual(validationErrors.length, 0);
+            assert.equal(
+              validationErrors[0].message,
+              `${ACCOUNTS_ERROR} the private key must be exactly 32 bytes long`,
+            );
+          });
+
+          it("should fail with invalid HD accounts", async () => {
+            const accountsValuesToTest = [
+              [{ mnemonic: 123 }, HD_ACCOUNT_MNEMONIC_MSG],
+              [
+                { mnemonic: "valid", initialIndex: "asd" },
+                HD_ACCOUNT_INITIAL_INDEX_MSG,
+              ],
+              [
+                { mnemonic: "valid", initialIndex: 1, count: "asd" },
+                HD_ACCOUNT_COUNT_MSG,
+              ],
+              [
+                { mnemonic: "valid", initialIndex: 1, count: 1, path: 123 },
+                HD_ACCOUNT_PATH_MSG,
+              ],
+              [{ type: 123 }, validationErrorMsg],
+            ];
+
+            for (const [accounts, error] of accountsValuesToTest) {
               hardhatUserConfig.networks.localhost.accounts = accounts;
 
               const validationErrors =
                 await validateUserConfig(hardhatUserConfig);
 
               assert.notEqual(validationErrors.length, 0);
-              assert.equal(validationErrors[0].message, validationErrorMsg);
+              assert.equal(validationErrors[0].message, error);
             }
           });
         });
