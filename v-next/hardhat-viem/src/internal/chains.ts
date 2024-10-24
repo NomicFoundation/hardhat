@@ -1,6 +1,6 @@
 import type { TestClientMode } from "../types.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
-import type * as viemT from "viem";
+import type { Chain as ViemChain } from "viem";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { extractChain } from "viem";
@@ -9,11 +9,9 @@ import { hardhat, anvil } from "viem/chains";
 
 /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 -- TODO: this assertion should not be necessary */
-const chains = Object.values(chainsModule) as viemT.Chain[];
+const chains = Object.values(chainsModule) as ViemChain[];
 
-export async function getChain(
-  provider: EthereumProvider,
-): Promise<viemT.Chain> {
+export async function getChain(provider: EthereumProvider): Promise<ViemChain> {
   const chainId = await getChainId(provider);
 
   const chain = extractChain({

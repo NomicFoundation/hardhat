@@ -1,7 +1,28 @@
 import type { ArtifactMap } from "@ignored/hardhat-vnext/types/artifacts";
 import type { ChainType } from "@ignored/hardhat-vnext/types/network";
-import type * as viemT from "viem";
-import type * as viemOpStackT from "viem/op-stack";
+import type {
+  Abi as ViemAbi,
+  Account as ViemAccount,
+  Address as ViemAddress,
+  Chain as ViemChain,
+  Client as ViemClient,
+  ContractConstructorArgs as ViemContractConstructorArgs,
+  createTestClient as ViemCreateTestClient,
+  GetContractReturnType as ViemGetContractReturnType,
+  GetTransactionReturnType as ViemGetTransactionReturnType,
+  PublicClient as ViemPublicClient,
+  PublicClientConfig as ViemPublicClientConfig,
+  RpcSchema as ViemRpcSchema,
+  TestClient as ViemTestClient,
+  TestClientConfig as ViemTestClientConfig,
+  Transport as ViemTransport,
+  WalletClient as ViemWalletClient,
+  WalletClientConfig as ViemWalletClientConfig,
+} from "viem";
+import type {
+  PublicActionsL2 as ViemOpStackPublicActionsL2,
+  WalletActionsL2 as ViemOpStackWalletActionsL2,
+} from "viem/op-stack";
 
 export interface HardhatViemHelpers<ChainTypeT extends ChainType | string> {
   /**
@@ -13,7 +34,7 @@ export interface HardhatViemHelpers<ChainTypeT extends ChainType | string> {
    * "optimism", the client will be extended with L2 actions.
    */
   getPublicClient: (
-    publicClientConfig?: Partial<viemT.PublicClientConfig>,
+    publicClientConfig?: Partial<ViemPublicClientConfig>,
   ) => Promise<GetPublicClientReturnType<ChainTypeT>>;
   /**
    * Creates a wallet client configured with the provided settings for each
@@ -25,7 +46,7 @@ export interface HardhatViemHelpers<ChainTypeT extends ChainType | string> {
    * chainType is "optimism", the clients will be extended with L2 actions.
    */
   getWalletClients: (
-    walletClientConfig?: Partial<viemT.WalletClientConfig>,
+    walletClientConfig?: Partial<ViemWalletClientConfig>,
   ) => Promise<Array<GetWalletClientReturnType<ChainTypeT>>>;
   /**
    * Creates a wallet client configured with the provided settings for the
@@ -39,8 +60,8 @@ export interface HardhatViemHelpers<ChainTypeT extends ChainType | string> {
    * actions.
    */
   getWalletClient: (
-    address: viemT.Address,
-    walletClientConfig?: Partial<viemT.WalletClientConfig>,
+    address: ViemAddress,
+    walletClientConfig?: Partial<ViemWalletClientConfig>,
   ) => Promise<GetWalletClientReturnType<ChainTypeT>>;
   /**
    * Creates a test client configured with the provided settings.
@@ -50,7 +71,7 @@ export interface HardhatViemHelpers<ChainTypeT extends ChainType | string> {
    * @returns The configured test client.
    */
   getTestClient: (
-    testClientConfig?: Partial<viemT.TestClientConfig>,
+    testClientConfig?: Partial<ViemTestClientConfig>,
   ) => Promise<TestClient>;
   /**
    * Deploys a contract with the provided name and constructor arguments and
@@ -102,7 +123,7 @@ export interface HardhatViemHelpers<ChainTypeT extends ChainType | string> {
    */
   getContractAt: <ContractName extends string>(
     contractName: ContractName,
-    address: viemT.Address,
+    address: ViemAddress,
     getContractAtConfig?: GetContractAtConfig,
   ) => Promise<ContractReturnType<ContractName>>;
 }
@@ -113,39 +134,37 @@ export type GetPublicClientReturnType<ChainTypeT extends ChainType | string> =
 export type GetWalletClientReturnType<ChainTypeT extends ChainType | string> =
   ChainTypeT extends "optimism" ? OpWalletClient : WalletClient;
 
-export type PublicClient = viemT.PublicClient<viemT.Transport, viemT.Chain>;
+export type PublicClient = ViemPublicClient<ViemTransport, ViemChain>;
 
-export type OpPublicClient = viemT.Client<
-  viemT.Transport,
-  viemT.Chain,
-  viemT.Account,
-  viemT.RpcSchema,
-  viemOpStackT.PublicActionsL2
+export type OpPublicClient = ViemClient<
+  ViemTransport,
+  ViemChain,
+  ViemAccount,
+  ViemRpcSchema,
+  ViemOpStackPublicActionsL2
 >;
 
-export type WalletClient = viemT.WalletClient<
-  viemT.Transport,
-  viemT.Chain,
-  viemT.Account
+export type WalletClient = ViemWalletClient<
+  ViemTransport,
+  ViemChain,
+  ViemAccount
 >;
 
-export type OpWalletClient = viemT.Client<
-  viemT.Transport,
-  viemT.Chain,
-  viemT.Account,
-  viemT.RpcSchema,
-  viemOpStackT.WalletActionsL2
+export type OpWalletClient = ViemClient<
+  ViemTransport,
+  ViemChain,
+  ViemAccount,
+  ViemRpcSchema,
+  ViemOpStackWalletActionsL2
 >;
 
-export type TestClient = viemT.TestClient<
+export type TestClient = ViemTestClient<
   TestClientMode,
-  viemT.Transport,
-  viemT.Chain
+  ViemTransport,
+  ViemChain
 >;
 
-export type TestClientMode = Parameters<
-  typeof viemT.createTestClient
->[0]["mode"];
+export type TestClientMode = Parameters<typeof ViemCreateTestClient>[0]["mode"];
 
 /**
  * Configuration options for sending a transaction.
@@ -180,7 +199,7 @@ export type KeyedClient =
     };
 
 export interface Libraries {
-  [libraryName: string]: viemT.Address;
+  [libraryName: string]: ViemAddress;
 }
 
 /**
@@ -220,11 +239,11 @@ export interface GetContractAtConfig {
 }
 
 export type GetContractReturnType<
-  TAbi extends viemT.Abi | readonly unknown[] = viemT.Abi,
-> = viemT.GetContractReturnType<TAbi, Required<KeyedClient>, viemT.Address>;
+  TAbi extends ViemAbi | readonly unknown[] = ViemAbi,
+> = ViemGetContractReturnType<TAbi, Required<KeyedClient>, ViemAddress>;
 
-export type GetTransactionReturnType = viemT.GetTransactionReturnType<
-  viemT.Chain,
+export type GetTransactionReturnType = ViemGetTransactionReturnType<
+  ViemChain,
   "latest"
 >;
 
@@ -236,7 +255,7 @@ export type ContractAbis = {
 
 export type ConstructorArgs<ContractName> =
   ContractName extends keyof ContractAbis
-    ? viemT.ContractConstructorArgs<ContractAbis[ContractName]>
+    ? ViemContractConstructorArgs<ContractAbis[ContractName]>
     : unknown[];
 
 export type ContractReturnType<ContractName> =

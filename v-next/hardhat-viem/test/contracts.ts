@@ -1,6 +1,6 @@
 import type { NetworkHooks } from "@ignored/hardhat-vnext/types/hooks";
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
-import type * as viemT from "viem";
+import type { TransactionReceipt as ViemTransactionReceipt } from "viem";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
@@ -194,7 +194,7 @@ describe("contracts", () => {
               -- The receipt is incomplete, but we only care about having a null contract */
               ({
                 contractAddress: null,
-              }) as unknown as viemT.TransactionReceipt,
+              }) as unknown as ViemTransactionReceipt,
           );
 
         const deployContractSpy = t.mock.method(walletClient, "deployContract");
