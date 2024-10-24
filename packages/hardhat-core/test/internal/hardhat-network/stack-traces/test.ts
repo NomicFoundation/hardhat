@@ -720,7 +720,7 @@ async function runCallTransactionTest(
 }
 
 const onlyLatestSolcVersions =
-  process.env.HARDHAT_TESTS_ALL_SOLC_VERSIONS === undefined;
+  process.env.HARDHAT_TESTS_ALL_SOLC_VERSIONS !== "true";
 
 const filterSolcVersionBy =
   (versionRange: string) =>
