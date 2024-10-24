@@ -15,6 +15,9 @@ const chainIdCache = new WeakMap<EthereumProvider, number>();
 const isHardhatNetworkCache = new WeakMap<EthereumProvider, boolean>();
 const isAnvilNetworkCache = new WeakMap<EthereumProvider, boolean>();
 
+const HARDHAT_METADATA_METHOD = "hardhat_metadata";
+const ANVIL_NODE_INFO_METHOD = "anvil_nodeInfo";
+
 export async function getChain(provider: EthereumProvider): Promise<ViemChain> {
   const chainId = await getChainId(provider);
 
@@ -72,11 +75,6 @@ export function isDevelopmentNetwork(chainId: number): boolean {
   return chainId === 31337;
 }
 
-enum NetworkMethod {
-  HARDHAT_METADATA = "hardhat_metadata",
-  ANVIL_NODE_INFO = "anvil_nodeInfo",
-}
-
 export async function isHardhatNetwork(
   provider: EthereumProvider,
 ): Promise<boolean> {
@@ -85,10 +83,7 @@ export async function isHardhatNetwork(
     return cachedIsHardhat;
   }
 
-  const isHardhat = await isMethodSupported(
-    provider,
-    NetworkMethod.HARDHAT_METADATA,
-  );
+  const isHardhat = await isMethodSupported(provider, HARDHAT_METADATA_METHOD);
   isHardhatNetworkCache.set(provider, isHardhat);
 
   return isHardhat;
@@ -102,10 +97,7 @@ export async function isAnvilNetwork(
     return cachedIsAnvil;
   }
 
-  const isAnvil = await isMethodSupported(
-    provider,
-    NetworkMethod.ANVIL_NODE_INFO,
-  );
+  const isAnvil = await isMethodSupported(provider, ANVIL_NODE_INFO_METHOD);
   isAnvilNetworkCache.set(provider, isAnvil);
 
   return isAnvil;
