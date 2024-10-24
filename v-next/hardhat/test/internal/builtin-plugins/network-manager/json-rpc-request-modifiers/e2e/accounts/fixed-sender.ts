@@ -8,36 +8,36 @@ import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 import { getJsonRpcRequest } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
 import { createMockedNetworkHre } from "../../hooks-mock.js";
 
-const FIXED_GAS_LIMIT = 1231n;
-
 // Test that the request and its additional sub-request (when present)
 // are correctly modified in the "onRequest" hook handler.
 // These tests simulate a real scenario where the user calls "await connection.provider.request(jsonRpcRequest)".
-describe("e2e - FixedGas", () => {
+describe("e2e - FixedSender", () => {
   let connection: NetworkConnection<"unknown">;
 
   beforeEach(async () => {
-    const hre = await createMockedNetworkHre({});
+    const hre = await createMockedNetworkHre();
 
     connection = await hre.network.connect();
 
-    connection.networkConfig.gas = FIXED_GAS_LIMIT;
+    connection.networkConfig.from =
+      "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d";
   });
 
-  it("should set the fixed gas if not present", async () => {
-    const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
-      {
-        from: "0x0000000000000000000000000000000000000011",
-        to: "0x0000000000000000000000000000000000000011",
-        value: 1,
-        gasPrice: 1,
-      },
-    ]);
+  it("should set the from value into the transaction", async () => {
+    const tx = {
+      to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+      gas: numberToHexString(21000),
+      gasPrice: numberToHexString(678912),
+      nonce: numberToHexString(0),
+      value: numberToHexString(1),
+    };
+
+    const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
 
     const res = await connection.provider.request(jsonRpcRequest);
 
     assert.ok(Array.isArray(res), "res should be an array");
 
-    assert.equal(res[0].gas, numberToHexString(FIXED_GAS_LIMIT));
+    assert.equal(res[0].from, "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d");
   });
 });
