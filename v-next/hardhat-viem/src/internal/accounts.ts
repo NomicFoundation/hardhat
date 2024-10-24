@@ -1,7 +1,7 @@
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type { Address as ViemAddress } from "viem";
 
-const accountsCache = new Map<EthereumProvider, ViemAddress[]>();
+const accountsCache = new WeakMap<EthereumProvider, ViemAddress[]>();
 
 export async function getAccounts(
   provider: EthereumProvider,

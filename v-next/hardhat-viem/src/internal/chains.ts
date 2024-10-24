@@ -11,6 +11,10 @@ import { hardhat, anvil } from "viem/chains";
 -- TODO: this assertion should not be necessary */
 const chains = Object.values(chainsModule) as ViemChain[];
 
+const chainIdCache = new WeakMap<EthereumProvider, number>();
+const isHardhatNetworkCache = new WeakMap<EthereumProvider, boolean>();
+const isAnvilNetworkCache = new WeakMap<EthereumProvider, boolean>();
+
 export async function getChain(provider: EthereumProvider): Promise<ViemChain> {
   const chainId = await getChainId(provider);
 
@@ -52,8 +56,6 @@ export async function getChain(provider: EthereumProvider): Promise<ViemChain> {
   return chain;
 }
 
-const chainIdCache = new Map<EthereumProvider, number>();
-
 export async function getChainId(provider: EthereumProvider): Promise<number> {
   const cachedChainId = chainIdCache.get(provider);
   if (cachedChainId !== undefined) {
@@ -75,8 +77,6 @@ enum NetworkMethod {
   ANVIL_NODE_INFO = "anvil_nodeInfo",
 }
 
-const isHardhatNetworkCache = new Map<EthereumProvider, boolean>();
-
 export async function isHardhatNetwork(
   provider: EthereumProvider,
 ): Promise<boolean> {
@@ -93,8 +93,6 @@ export async function isHardhatNetwork(
 
   return isHardhat;
 }
-
-const isAnvilNetworkCache = new Map<EthereumProvider, boolean>();
 
 export async function isAnvilNetwork(
   provider: EthereumProvider,
