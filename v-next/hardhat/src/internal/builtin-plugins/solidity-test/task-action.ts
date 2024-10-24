@@ -5,7 +5,12 @@ import type { SolidityTestRunnerConfigArgs } from "@ignored/edr";
 
 import { finished } from "node:stream/promises";
 
-import { getArtifacts, isTestArtifact } from "./helpers.js";
+import {
+  getArtifacts,
+  isTestArtifact,
+  solidityTestUserConfigToRunOptions,
+  solidityTestUserConfigToSolidityTestRunnerConfigArgs,
+} from "./helpers.js";
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
 
@@ -32,12 +37,12 @@ const runSolidityTests: NewTaskActionFunction = async (_taskArguments, hre) => {
   const profile = hre.config.solidity.profiles[profileName];
   const testOptions = profile.test;
 
-  const config: SolidityTestRunnerConfigArgs = {
-    projectRoot: hre.config.paths.root,
-    ...testOptions,
-  };
-
-  const options: RunOptions = testOptions;
+  const config: SolidityTestRunnerConfigArgs =
+    solidityTestUserConfigToSolidityTestRunnerConfigArgs(
+      hre.config.paths.root,
+      testOptions,
+    );
+  const options: RunOptions = solidityTestUserConfigToRunOptions(testOptions);
 
   const runStream = run(artifacts, testSuiteIds, config, options);
 

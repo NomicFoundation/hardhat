@@ -36,67 +36,83 @@ const solcUserConfigType = z.object({
 });
 
 const solidityTestUserConfigType = z.object({
-  // RunOptions
   timeout: z.number().optional(),
-  // Omit<SolidityTestRunnerConfigArgs, "projectRoot">
-  fsPermissions: z.array(z.object({
-    access: z.enum(["ReadWrite", "Read", "Write"]),
-    path: z.string(),
-  })).optional(),
+  fsPermissions: z
+    .object({
+      readWrite: z.array(z.string()).optional(),
+      read: z.array(z.string()).optional(),
+      write: z.array(z.string()).optional(),
+    })
+    .optional(),
   trace: z.boolean().optional(),
   testFail: z.boolean().optional(),
-  labels: z.array(z.object({
-    address: z.instanceof(Buffer),
-    label: z.string(),
-  })).optional(),
+  labels: z
+    .array(
+      z.object({
+        address: z.string().startsWith("0x"),
+        label: z.string(),
+      }),
+    )
+    .optional(),
   isolate: z.boolean().optional(),
   ffi: z.boolean().optional(),
-  sender: z.instanceof(Buffer).optional(),
-  txOrigin: z.instanceof(Buffer).optional(),
+  sender: z.string().startsWith("0x").optional(),
+  txOrigin: z.string().startsWith("0x").optional(),
   initialBalance: z.bigint().optional(),
   blockBaseFeePerGas: z.bigint().optional(),
-  blockCoinbase: z.instanceof(Buffer).optional(),
+  blockCoinbase: z.string().startsWith("0x").optional(),
   blockTimestamp: z.bigint().optional(),
   blockDifficulty: z.bigint().optional(),
   blockGasLimit: z.bigint().optional(),
   disableBlockGasLimit: z.boolean().optional(),
   memoryLimit: z.bigint().optional(),
   ethRpcUrl: z.string().optional(),
-  forkBlockNumber: z.number().optional(),
+  forkBlockNumber: z.bigint().optional(),
   rpcEndpoints: z.record(z.string()).optional(),
   rpcCachePath: z.string().optional(),
-  rpcStorageCaching: z.object({
-    chains: unionType([
-      z.array(z.string()),
-      z.enum(["All", "None"]),
-    ], ""),
-    endpoints: unionType([
-      z.string(),
-      z.enum(["All", "Remote"]),
-    ], ""),
-  }).optional(),
+  rpcStorageCaching: z
+    .object({
+      chains: unionType(
+        [z.enum(["All", "None"]), z.array(z.string())],
+        "Expected `All`, `None` or a list of chain names to cache",
+      ),
+      endpoints: unionType(
+        [
+          z.enum(["All", "Remote"]),
+          z.object({
+            source: z.string(),
+          }),
+        ],
+        "Expected `All`, `Remote` or a RegExp object matching endpoints to cacche",
+      ),
+    })
+    .optional(),
   promptTimeout: z.number().optional(),
-  fuzz: z.object({
-    failurePersistDir: z.string().optional(),
-    failurePersistFile: z.string().optional(),
-    runs: z.number().optional(),
-    maxTestRejects: z.number().optional(),
-    seed: z.string().optional(),
-    dictionaryWeight: z.number().optional(),
-    includeStorage: z.boolean().optional(),
-    includePushBytes: z.boolean().optional(),
-  }).optional(),
-  invariant: z.object({
-    failurePersistDir: z.string().optional(),
-    runs: z.number().optional(),
-    depth: z.number().optional(),
-    failOnRevert: z.boolean().optional(),
-    callOverride: z.boolean().optional(),
-    dictionaryWeight: z.number().optional(),
-    includeStorage: z.boolean().optional(),
-    includePushBytes: z.boolean().optional(),
-    shrinkRunLimit: z.number().optional(),
-  }).optional(),
+  fuzz: z
+    .object({
+      failurePersistDir: z.string().optional(),
+      failurePersistFile: z.string().optional(),
+      runs: z.number().optional(),
+      maxTestRejects: z.number().optional(),
+      seed: z.string().optional(),
+      dictionaryWeight: z.number().optional(),
+      includeStorage: z.boolean().optional(),
+      includePushBytes: z.boolean().optional(),
+    })
+    .optional(),
+  invariant: z
+    .object({
+      failurePersistDir: z.string().optional(),
+      runs: z.number().optional(),
+      depth: z.number().optional(),
+      failOnRevert: z.boolean().optional(),
+      callOverride: z.boolean().optional(),
+      dictionaryWeight: z.number().optional(),
+      includeStorage: z.boolean().optional(),
+      includePushBytes: z.boolean().optional(),
+      shrinkRunLimit: z.number().optional(),
+    })
+    .optional(),
 });
 
 const singleVersionSolcUserConfigType = solcUserConfigType.extend({
