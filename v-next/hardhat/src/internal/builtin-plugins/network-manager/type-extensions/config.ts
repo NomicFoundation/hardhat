@@ -33,16 +33,66 @@ declare module "../../../../types/config.js" {
     httpHeaders?: Record<string, string>;
   }
 
+  export type IntervalMiningConfig = number | [number, number];
+
+  export type MempoolOrder = "fifo" | "priority";
+
+  export type HardforkHistoryConfig = Map<
+    /* hardforkName */ string,
+    /* blockNumber */ number
+  >;
+
+  export interface HardhatNetworkChainConfig {
+    hardforkHistory: HardforkHistoryConfig;
+  }
+
+  export type HardhatNetworkChainsConfig = Map<
+    /* chainId */ number,
+    HardhatNetworkChainConfig
+  >;
+
+  export interface GenesisAccount {
+    privateKey: string;
+    balance: string | number | bigint;
+  }
+
+  export interface ForkConfig {
+    jsonRpcUrl: string;
+    blockNumber?: bigint;
+    httpHeaders?: Record<string, string>;
+  }
+
   export interface EdrNetworkUserConfig {
     type: "edr";
     chainId: number;
     chainType?: ChainType;
     from?: string;
-    gas: GasUserConfig;
-    gasMultiplier: number;
-    gasPrice: GasUserConfig;
+    gas?: GasUserConfig;
+    gasMultiplier?: number;
+    gasPrice?: GasUserConfig;
 
     // EDR network specific
+    hardfork?: string;
+    networkId?: number;
+    blockGasLimit?: number;
+    minGasPrice?: bigint;
+    automine?: boolean;
+    intervalMining?: IntervalMiningConfig;
+    mempoolOrder?: MempoolOrder;
+    chains?: HardhatNetworkChainsConfig;
+    genesisAccounts?: GenesisAccount[];
+    allowUnlimitedContractSize?: boolean;
+    throwOnTransactionFailures?: boolean;
+    throwOnCallFailures?: boolean;
+    allowBlocksWithSameTimestamp?: boolean;
+    enableTransientStorage?: boolean;
+    enableRip7212?: boolean;
+
+    initialBaseFeePerGas?: number;
+    initialDate?: Date;
+    coinbase?: string;
+    forkConfig?: ForkConfig;
+    forkCachePath?: string;
   }
 
   export type NetworkConfig = HttpNetworkConfig | EdrNetworkConfig;
@@ -74,5 +124,26 @@ declare module "../../../../types/config.js" {
     gasPrice: GasConfig;
 
     // EDR network specific
+    hardfork: string;
+    networkId: number;
+    blockGasLimit: number;
+    minGasPrice: bigint;
+    automine: boolean;
+    intervalMining: IntervalMiningConfig;
+    mempoolOrder: MempoolOrder;
+    chains: HardhatNetworkChainsConfig;
+    genesisAccounts: GenesisAccount[];
+    allowUnlimitedContractSize: boolean;
+    throwOnTransactionFailures: boolean;
+    throwOnCallFailures: boolean;
+    allowBlocksWithSameTimestamp: boolean;
+    enableTransientStorage: boolean;
+    enableRip7212: boolean;
+
+    initialBaseFeePerGas?: number;
+    initialDate?: Date;
+    coinbase?: string;
+    forkConfig?: ForkConfig;
+    forkCachePath?: string;
   }
 }

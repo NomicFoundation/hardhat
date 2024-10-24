@@ -7,8 +7,12 @@ import type {
 } from "../../../types/network.js";
 import type { EthereumProvider } from "../../../types/providers.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@ignored/hardhat-vnext-errors";
 
+import { EdrProvider } from "./edr/edr-provider.js";
 import { HttpProvider } from "./http-provider.js";
 import { NetworkConnectionImplementation } from "./network-connection.js";
 import { isNetworkConfig, validateNetworkConfig } from "./type-validation.js";
@@ -132,9 +136,14 @@ export class NetworkManagerImplementation {
     const createProvider = async (
       networkConnection: NetworkConnectionImplementation<ChainTypeT>,
     ): Promise<EthereumProvider> => {
-      if (resolvedNetworkConfig.type !== "http") {
-        /* eslint-disable-next-line no-restricted-syntax -- TODO implement EDR provider */
-        throw new Error("Only HTTP network is supported for now");
+      assertHardhatInvariant(
+        resolvedNetworkConfig.type === "edr" ||
+          resolvedNetworkConfig.type === "http",
+        `Invalid network type ${resolvedNetworkConfig.type}`,
+      );
+
+      if (resolvedNetworkConfig.type === "edr") {
+        return EdrProvider.create(resolvedNetworkConfig, { enabled: false });
       }
 
       return HttpProvider.create({

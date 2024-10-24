@@ -3,6 +3,7 @@ import {
   hexStringToBytes,
   hexStringToBigInt,
   numberToHexString,
+  hexStringToNumber,
 } from "./hex.js";
 
 /**
@@ -13,6 +14,16 @@ import {
  */
 export function bytesToBigInt(bytes: Uint8Array): bigint {
   return hexStringToBigInt(bytesToHexString(bytes));
+}
+
+/**
+ * Converts a Uint8Array to a number.
+ *
+ * @param bytes The Uint8Array to convert.
+ * @returns The converted number.
+ */
+export function bytesToNumber(bytes: Uint8Array): number {
+  return hexStringToNumber(bytesToHexString(bytes));
 }
 
 /**
