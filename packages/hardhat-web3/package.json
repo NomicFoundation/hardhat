@@ -60,7 +60,5 @@
     "hardhat": "workspace:^2.0.0",
     "web3": "^1.0.0-beta.36"
   },
-  "dependencies": {
-    "@types/bignumber.js": "^5.0.0"
-  }
+  "dependencies": {}
 }
