@@ -11,7 +11,7 @@ import {
  * @param bytes The Uint8Array to convert.
  * @returns The converted bigint.
  */
-export function bytesToBigInt(bytes: Uint8Array): number | bigint {
+export function bytesToBigInt(bytes: Uint8Array): bigint {
   return hexStringToBigInt(bytesToHexString(bytes));
 }
 
