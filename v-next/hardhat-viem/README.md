@@ -42,7 +42,11 @@ This plugin creates no additional tasks.
 
 ## Environment extensions
 
-This plugins adds a `viem` object to the Hardhat Runtime Environment which provides a minimal set of capabilities for interacting with the blockchain.
+This plugin adds a `viem` object to each Hardhat network connection, providing a minimal set of capabilities for interacting with the blockchain.
+
+```typescript
+const { viem } = await hre.network.connect();
+```
 
 ### Clients
 
@@ -55,7 +59,9 @@ A Public Client is an interface to "public" JSON-RPC API methods such as retriev
 ```typescript
 import hre from "hardhat";
 
-const publicClient = await hre.viem.getPublicClient();
+const networkConnection = await hre.network.connect();
+
+const publicClient = await networkConnection.viem.getPublicClient();
 
 const blockNumber = await publicClient.getBlockNumber();
 
@@ -71,7 +77,10 @@ A Wallet Client is an interface to interact with Ethereum Accounts and provides 
 ```typescript
 import hre from "hardhat";
 
-const [fromWalletClient, toWalletClient] = await hre.viem.getWalletClients();
+const networkConnection = await hre.network.connect();
+
+const [fromWalletClient, toWalletClient] =
+  await networkConnection.viem.getWalletClients();
 
 const hash = await fromWalletClient.sendTransaction({
   to: toWalletClient.account.address,
@@ -82,7 +91,9 @@ const hash = await fromWalletClient.sendTransaction({
 ```typescript
 import hre from "hardhat";
 
-const walletClient = await hre.viem.getWalletClient(
+const networkConnection = await hre.network.connect();
+
+const walletClient = await networkConnection.viem.getWalletClient(
   "0xA0Cf798816D4b9b9866b5330EEa46a18382f251e",
 );
 
@@ -99,7 +110,9 @@ A Test Client is an interface to "test" JSON-RPC API methods such as mining bloc
 ```typescript
 import hre from "hardhat";
 
-const testClient = await hre.viem.getTestClient();
+const networkConnection = await hre.network.connect();
+
+const testClient = await networkConnection.viem.getTestClient();
 
 await testClient.mine({
   blocks: 1000000,
@@ -113,7 +126,9 @@ You can pass options to the `getPublicClient`, `getWalletClient`, and `getTestCl
 ```typescript
 import hre from "hardhat";
 
-const publicClient = await hre.viem.getPublicClient({
+const networkConnection = await hre.network.connect();
+
+const publicClient = await networkConnection.viem.getPublicClient({
   pollingInterval: 1000,
   cacheTime: 2000,
 });
@@ -124,6 +139,23 @@ For a complete list of options, see:
 - [Public client parameters](https://viem.sh/docs/clients/public.html#parameters)
 - [Wallet client parameters](https://viem.sh/docs/clients/wallet.html#parameters)
 - [Test client parameters](https://viem.sh/docs/clients/test.html#parameters)
+
+#### Optimism specific clients
+
+When the chain type is set to "optimism", the `viem` object extends the public and wallet clients with L2 actions. This allows you to interact with Optimism-specific features directly through the `viem` clients.
+
+```typescript
+import hre from "hardhat";
+
+const networkConnection = await hre.network.connect("localhost", "optimism");
+
+const opPublicClient = await networkConnection.viem.getPublicClient();
+
+// This method is only available if the client has been extended with L2 actions
+const l1BaseFee = await opPublicClient.getL1BaseFee();
+```
+
+For more information on L2 actions and the Optimism stack, refer to the [Viem documentation](https://viem.sh/op-stack).
 
 ### Contracts
 
@@ -136,21 +168,25 @@ To deploy a contract to the blockchain, use the `deployContract` method:
 ```typescript
 import hre from "hardhat";
 
-const contract = await hre.viem.deployContract("contractName", [
+const networkConnection = await hre.network.connect();
+
+const contract = await networkConnection.viem.deployContract("contractName", [
   "arg1",
   50,
   "arg3",
 ]);
 ```
 
-By default, the first wallet client retrieved by `hre.viem.getWalletClients()` is used to deploy the contract. You can also specify a different wallet client by passing a third parameter, along with other properties, such as `gas` and `value`:
+By default, the first wallet client retrieved by `getWalletClients` is used to deploy the contract. You can also specify a different wallet client by passing a third parameter, along with other properties, such as `gas` and `value`:
 
 ```typescript
 import hre from "hardhat";
 
-const [_, secondWalletClient] = await hre.viem.getWalletClients();
+const networkConnection = await hre.network.connect();
 
-const contractA = await hre.viem.deployContract(
+const [_, secondWalletClient] = await networkConnection.viem.getWalletClients();
+
+const contractA = await networkConnection.viem.deployContract(
   "contractName",
   ["arg1", 50, "arg3"],
   {
@@ -169,20 +205,24 @@ If the contract is already deployed, you can retrieve an instance of it using th
 ```typescript
 import hre from "hardhat";
 
-const contract = await hre.viem.getContractAt(
+const networkConnection = await hre.network.connect();
+
+const contract = await networkConnection.viem.getContractAt(
   "contractName",
   "0x1234567890123456789012345678901234567890",
 );
 ```
 
-By default, the first wallet client retrieved by `hre.viem.getWalletClients()` will be used for interacting with the contract. If you want to specify a different wallet client, you can do so by passing it as a third parameter, just like when deploying a contract:
+By default, the first wallet client retrieved by `getWalletClients` will be used for interacting with the contract. If you want to specify a different wallet client, you can do so by passing it as a third parameter, just like when deploying a contract:
 
 ```typescript
 import hre from "hardhat";
 
-const [_, secondWalletClient] = await hre.viem.getWalletClients();
+const networkConnection = await hre.network.connect();
 
-const contract = await hre.viem.getContractAt(
+const [_, secondWalletClient] = await networkConnection.viem.getWalletClients();
+
+const contract = await networkConnection.viem.getContractAt(
   "contractName",
   "0x1234567890123456789012345678901234567890",
   { client: { wallet: secondWalletClient } },
@@ -205,8 +245,10 @@ By default, the `deployContract` method sends a deployment transaction to the bl
 ```typescript
 import hre from "hardhat";
 
+const networkConnection = await hre.network.connect();
+
 const { contract: contractName, deploymentTransaction } =
-  await hre.viem.sendDeploymentTransaction(
+  await networkConnection.viem.sendDeploymentTransaction(
     "contractName",
     ["arg1", 50, "arg3"],
     {
@@ -222,7 +264,9 @@ Then, if you want to wait for the transaction to be mined, you can do:
 ```typescript
 import hre from "hardhat";
 
-const publicClient = await hre.viem.getPublicClient();
+const networkConnection = await hre.network.connect();
+
+const publicClient = await networkConnection.viem.getPublicClient();
 const { contractAddress } = await publicClient.waitForTransactionReceipt({
   hash: deploymentTransaction.hash,
 });
@@ -233,7 +277,11 @@ const { contractAddress } = await publicClient.waitForTransactionReceipt({
 Some contracts need to be linked with libraries before they are deployed. You can pass the addresses of their libraries to the `deployContract` and `sendDeploymentTransaction` functions with an object like this:
 
 ```typescript
-const contractA = await hre.viem.deployContract(
+import hre from "hardhat";
+
+const networkConnection = await hre.network.connect();
+
+const contractA = await networkConnection.viem.deployContract(
   "contractName",
   ["arg1", 50, "arg3"],
   {
@@ -248,17 +296,15 @@ This allows you to deploy a contract linked to the `ExampleLib` library at the a
 
 To deploy a contract, all libraries must be linked. An error will be thrown if any libraries are missing.
 
-#### Using `ContractTypesMap` for easier contract type imports
+#### Using `ContractReturnType` for easier contract type imports
 
-To simplify importing contract types in `hardhat-viem`, you can use the `ContractTypesMap`. This map contains the contract types of all contracts in your project, indexed by their names.
+To simplify importing contract types in `hardhat-viem`, you can use the `ContractReturnType` type function. This type function returns the contract type for a given contract name, making your code cleaner and easier to manage.
 
 ```typescript
-import { ContractTypesMap } from "hardhat/types/artifacts";
+import { ContractReturnType } from "hardhat/types/artifacts";
 
-const contract: ContractTypesMap["ContractName"];
+const contract: ContractReturnType<"ContractName">;
 ```
-
-This reduces the need for multiple imports and makes your code cleaner and easier to manage.
 
 ## Usage
 
