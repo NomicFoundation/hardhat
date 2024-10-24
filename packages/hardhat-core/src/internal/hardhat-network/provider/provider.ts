@@ -16,6 +16,7 @@ import type {
   RawTrace,
   Response,
   SubscriptionEvent,
+  HttpHeader,
 } from "@nomicfoundation/edr";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import chalk from "chalk";
@@ -201,12 +202,27 @@ export class EdrProviderWrapper
 
     let fork;
     if (config.forkConfig !== undefined) {
+      let httpHeaders: HttpHeader[] | undefined;
+      if (config.forkConfig.httpHeaders !== undefined) {
+        httpHeaders = [];
+
+        for (const [name, value] of Object.entries(
+          config.forkConfig.httpHeaders
+        )) {
+          httpHeaders.push({
+            name,
+            value,
+          });
+        }
+      }
+
       fork = {
         jsonRpcUrl: config.forkConfig.jsonRpcUrl,
         blockNumber:
           config.forkConfig.blockNumber !== undefined
             ? BigInt(config.forkConfig.blockNumber)
             : undefined,
+        httpHeaders,
       };
     }
 
