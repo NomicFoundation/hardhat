@@ -5,8 +5,7 @@ import type {
 } from "./types.js";
 import type { TestResult } from "@ignored/edr";
 
-import { inspect } from "node:util";
-
+import { bufferToHexString } from "@ignored/hardhat-vnext-utils/hex";
 import chalk from "chalk";
 
 import { formatArtifactId } from "./formatters.js";
@@ -59,7 +58,10 @@ export async function* testReporter(
             ["duration", `${testResult.durationMs} ms`],
             ...Object.entries(testResult.kind),
           ]
-            .map(([key, value]) => `${key}: ${value}`)
+            .map(
+              ([key, value]) =>
+                `${key}: ${Buffer.isBuffer(value) ? bufferToHexString(value) : value}`,
+            )
             .join(", ");
 
           switch (status) {
@@ -129,7 +131,13 @@ export async function* testReporter(
           : [failure.counterexample];
 
         for (const counterexample of counterexamples) {
-          yield `Counterexample${chalk.grey(`: ${inspect(counterexample)}\n`)}`;
+          const details = `{\n${Object.entries(counterexample)
+            .map(
+              ([key, value]) =>
+                `  ${key}: ${Buffer.isBuffer(value) ? bufferToHexString(value) : value}`,
+            )
+            .join(",\n")}\n}`;
+          yield `Counterexample${chalk.grey(`: ${details}\n`)}`;
         }
       }
     }

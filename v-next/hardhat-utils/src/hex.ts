@@ -95,7 +95,17 @@ export function hexStringToNumber(hexString: string): number {
  * @returns PrefixedHexString The hexadecimal representation of the bytes.
  */
 export function bytesToHexString(bytes: Uint8Array): PrefixedHexString {
-  return `0x${Buffer.from(bytes).toString("hex")}`;
+  return bufferToHexString(Buffer.from(bytes));
+}
+
+/**
+ * Converts a Buffer to a hexadecimal string.
+ *
+ * @param buffer The buffer to convert.
+ * @returns PrefixedHexString The hexadecimal representation of the buffer.
+ */
+export function bufferToHexString(buffer: Buffer): PrefixedHexString {
+  return `0x${buffer.toString("hex")}`;
 }
 
 /**
