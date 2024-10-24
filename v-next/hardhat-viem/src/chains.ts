@@ -44,8 +44,8 @@ export async function getChain(
       });
     }
 
-    // If the chain is a development network but we couldn't detect which one
-    // we throw an error
+    // If the chain is a development network but not one of our supported
+    // development networks (e.g. Hardhat, Anvil) then throw
     throw new HardhatError(
       HardhatError.ERRORS.VIEM.UNSUPPORTED_DEVELOPMENT_NETWORK,
     );
