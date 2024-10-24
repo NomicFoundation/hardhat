@@ -5,6 +5,21 @@ import { task } from "../../core/config.js";
 
 const hardhatPlugin: HardhatPlugin = {
   id: "builtin:solidity-tests",
+  dependencies: [
+    async () => {
+      const { default: artifactsPlugin } = await import(
+        "../artifacts/index.js"
+      );
+      return artifactsPlugin;
+    },
+    async () => {
+      const { default: solidityPlugin } = await import("../solidity/index.js");
+      return solidityPlugin;
+    },
+  ],
+  hookHandlers: {
+    config: import.meta.resolve("./hook-handlers/config.js"),
+  },
   tasks: [
     task(["test", "solidity"], "Run the Solidity tests")
       .setAction(import.meta.resolve("./task-action.js"))
