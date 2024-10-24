@@ -12,7 +12,7 @@ import {
   isHardhatNetwork,
   isAnvilNetwork,
   getMode,
-} from "../src/chains.js";
+} from "../src/internal/chains.js";
 
 import { MockEthereumProvider } from "./utils.js";
 

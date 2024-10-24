@@ -1,4 +1,4 @@
-import type { HardhatViemHelpers } from "./types.js";
+import type { HardhatViemHelpers } from "../types.js";
 import type { ArtifactsManager } from "@ignored/hardhat-vnext/types/artifacts";
 import type { ChainType } from "@ignored/hardhat-vnext/types/network";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";

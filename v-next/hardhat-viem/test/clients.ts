@@ -15,14 +15,14 @@ import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-uti
 import { expectTypeOf } from "expect-type";
 import { parseEther } from "viem";
 
+import HardhatViem from "../src/index.js";
 import {
   getPublicClient,
   getWalletClients,
   getWalletClient,
   getDefaultWalletClient,
   getTestClient,
-} from "../src/clients.js";
-import HardhatViem from "../src/index.js";
+} from "../src/internal/clients.js";
 
 import { MockEthereumProvider } from "./utils.js";
 

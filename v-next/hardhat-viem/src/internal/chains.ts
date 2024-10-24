@@ -1,4 +1,4 @@
-import type { TestClientMode } from "./types.js";
+import type { TestClientMode } from "../types.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type * as viemT from "viem";
 
