@@ -192,6 +192,94 @@ importers:
         specifier: ~5.0.0
         version: 5.0.4
 
+  packages/hardhat-chai-matchers-viem:
+    dependencies:
+      '@types/chai-as-promised':
+        specifier: ^7.1.3
+        version: 7.1.8
+      chai-as-promised:
+        specifier: ^7.1.1
+        version: 7.1.1(chai@4.4.1)
+      deep-eql:
+        specifier: ^4.0.1
+        version: 4.1.3
+      ordinal:
+        specifier: ^1.0.3
+        version: 1.0.3
+    devDependencies:
+      '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
+        specifier: workspace:^
+        version: link:../eslint-plugin-hardhat-internal-rules
+      '@nomicfoundation/eslint-plugin-slow-imports':
+        specifier: workspace:^
+        version: link:../eslint-plugin-slow-imports
+      '@nomicfoundation/hardhat-chai-matchers-viem':
+        specifier: workspace:*
+        version: 'link:'
+      '@nomicfoundation/hardhat-viem':
+        specifier: workspace:^2.0.0
+        version: link:../hardhat-viem
+      '@types/chai':
+        specifier: ^4.2.0
+        version: 4.3.16
+      '@types/mocha':
+        specifier: '>=9.1.0'
+        version: 10.0.6
+      '@types/node':
+        specifier: ^18.0.0
+        version: 18.19.33
+      '@typescript-eslint/eslint-plugin':
+        specifier: 5.61.0
+        version: 5.61.0(@typescript-eslint/parser@5.61.0)(eslint@8.57.0)(typescript@5.0.4)
+      '@typescript-eslint/parser':
+        specifier: 5.61.0
+        version: 5.61.0(eslint@8.57.0)(typescript@5.0.4)
+      chai:
+        specifier: ^4.2.0
+        version: 4.4.1
+      eslint:
+        specifier: ^8.44.0
+        version: 8.57.0
+      eslint-config-prettier:
+        specifier: 8.3.0
+        version: 8.3.0(eslint@8.57.0)
+      eslint-plugin-import:
+        specifier: 2.27.5
+        version: 2.27.5(@typescript-eslint/parser@5.61.0)(eslint@8.57.0)
+      eslint-plugin-mocha:
+        specifier: 10.4.1
+        version: 10.4.1(eslint@8.57.0)
+      eslint-plugin-prettier:
+        specifier: 3.4.0
+        version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.57.0)(prettier@2.4.1)
+      ethers:
+        specifier: ^6.1.0
+        version: 6.12.1
+      get-port:
+        specifier: ^5.1.1
+        version: 5.1.1
+      hardhat:
+        specifier: workspace:^2.9.4
+        version: link:../hardhat-core
+      mocha:
+        specifier: ^10.0.0
+        version: 10.4.0
+      prettier:
+        specifier: 2.4.1
+        version: 2.4.1
+      rimraf:
+        specifier: ^3.0.2
+        version: 3.0.2
+      ts-node:
+        specifier: ^10.8.0
+        version: 10.9.2(@types/node@18.19.33)(typescript@5.0.4)
+      typescript:
+        specifier: ~5.0.0
+        version: 5.0.4
+      viem:
+        specifier: ^2.7.6
+        version: 2.10.3(typescript@5.0.4)
+
   packages/hardhat-core:
     dependencies:
       '@ethersproject/abi':
@@ -8426,7 +8514,7 @@ snapshots:
   '@scure/bip32@1.3.2':
     dependencies:
       '@noble/curves': 1.2.0
-      '@noble/hashes': 1.3.2
+      '@noble/hashes': 1.3.3
       '@scure/base': 1.1.6
 
   '@scure/bip32@1.3.3':
@@ -8442,7 +8530,7 @@ snapshots:
 
   '@scure/bip39@1.2.1':
     dependencies:
-      '@noble/hashes': 1.3.2
+      '@noble/hashes': 1.3.3
       '@scure/base': 1.1.6
 
   '@scure/bip39@1.2.2':
