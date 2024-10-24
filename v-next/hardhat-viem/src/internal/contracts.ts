@@ -7,7 +7,7 @@ import type {
   PublicClient,
   SendDeploymentTransactionConfig,
   WalletClient,
-} from "./types.js";
+} from "../types.js";
 import type { ArtifactsManager } from "@ignored/hardhat-vnext/types/artifacts";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type { PrefixedHexString } from "@ignored/hardhat-vnext-utils/hex";

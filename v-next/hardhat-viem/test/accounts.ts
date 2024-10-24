@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { getAccounts } from "../src/accounts.js";
+import { getAccounts } from "../src/internal/accounts.js";
 
 import { MockEthereumProvider } from "./utils.js";
 

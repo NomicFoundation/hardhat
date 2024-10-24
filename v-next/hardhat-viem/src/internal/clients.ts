@@ -2,7 +2,7 @@ import type {
   GetPublicClientReturnType,
   GetWalletClientReturnType,
   TestClient,
-} from "./types.js";
+} from "../types.js";
 import type { ChainType } from "@ignored/hardhat-vnext/types/network";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type * as viemT from "viem";
