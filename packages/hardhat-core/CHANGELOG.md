@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.22.15
+
+### Patch Changes
+
+- ede1cde: Fixed custom HTTP headers for forked configurations
+
 ## 2.22.14
 
 ### Patch Changes
