@@ -1,11 +1,11 @@
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
-import type * as viemT from "viem";
+import type { Address as ViemAddress } from "viem";
 
-const accountsCache = new Map<EthereumProvider, viemT.Address[]>();
+const accountsCache = new Map<EthereumProvider, ViemAddress[]>();
 
 export async function getAccounts(
   provider: EthereumProvider,
-): Promise<viemT.Address[]> {
+): Promise<ViemAddress[]> {
   const cachedAccounts = accountsCache.get(provider);
   if (cachedAccounts !== undefined) {
     return cachedAccounts;
@@ -15,7 +15,7 @@ export async function getAccounts(
   -- We know that the provider is going to return an array of accounts */
   const accounts = (await provider.request({
     method: "eth_accounts",
-  })) as viemT.Address[];
+  })) as ViemAddress[];
   accountsCache.set(provider, accounts);
 
   return accounts;

@@ -11,7 +11,7 @@ import type {
 import type { ArtifactsManager } from "@ignored/hardhat-vnext/types/artifacts";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type { PrefixedHexString } from "@ignored/hardhat-vnext-utils/hex";
-import type * as viemT from "viem";
+import type { Abi as ViemAbi, Address as ViemAddress } from "viem";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { toBigInt } from "@ignored/hardhat-vnext-utils/bigint";
@@ -168,7 +168,7 @@ export async function getContractAt<ContractName extends string>(
   provider: EthereumProvider,
   artifactManager: ArtifactsManager,
   contractName: ContractName,
-  address: viemT.Address,
+  address: ViemAddress,
   getContractAtConfig: GetContractAtConfig = {},
 ): Promise<ContractReturnType<ContractName>> {
   const [publicClient, walletClient, artifact] = await Promise.all([
@@ -191,8 +191,8 @@ function createContractInstance<ContractName extends string>(
   _contractName: ContractName,
   publicClient: PublicClient,
   walletClient: WalletClient,
-  abi: viemT.Abi,
-  address: viemT.Address,
+  abi: ViemAbi,
+  address: ViemAddress,
 ): ContractReturnType<ContractName> {
   const contract = getContract({
     address,

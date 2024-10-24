@@ -5,7 +5,12 @@ import type {
 } from "../types.js";
 import type { ChainType } from "@ignored/hardhat-vnext/types/network";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
-import type * as viemT from "viem";
+import type {
+  Address as ViemAddress,
+  PublicClientConfig as ViemPublicClientConfig,
+  TestClientConfig as ViemTestClientConfig,
+  WalletClientConfig as ViemWalletClientConfig,
+} from "viem";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import {
@@ -22,7 +27,7 @@ import { getChain, getMode, isDevelopmentNetwork } from "./chains.js";
 export async function getPublicClient<ChainTypeT extends ChainType | string>(
   provider: EthereumProvider,
   chainType: ChainTypeT,
-  publicClientConfig?: Partial<viemT.PublicClientConfig>,
+  publicClientConfig?: Partial<ViemPublicClientConfig>,
 ): Promise<GetPublicClientReturnType<ChainTypeT>> {
   const chain = publicClientConfig?.chain ?? (await getChain(provider));
   const parameters = {
@@ -48,7 +53,7 @@ export async function getPublicClient<ChainTypeT extends ChainType | string>(
 export async function getWalletClients<ChainTypeT extends ChainType | string>(
   provider: EthereumProvider,
   chainType: ChainTypeT,
-  walletClientConfig?: Partial<viemT.WalletClientConfig>,
+  walletClientConfig?: Partial<ViemWalletClientConfig>,
 ): Promise<Array<GetWalletClientReturnType<ChainTypeT>>> {
   const chain = walletClientConfig?.chain ?? (await getChain(provider));
   const accounts = await getAccounts(provider);
@@ -80,8 +85,8 @@ export async function getWalletClients<ChainTypeT extends ChainType | string>(
 export async function getWalletClient<ChainTypeT extends ChainType | string>(
   provider: EthereumProvider,
   chainType: ChainTypeT,
-  address: viemT.Address,
-  walletClientConfig?: Partial<viemT.WalletClientConfig>,
+  address: ViemAddress,
+  walletClientConfig?: Partial<ViemWalletClientConfig>,
 ): Promise<GetWalletClientReturnType<ChainTypeT>> {
   const chain = walletClientConfig?.chain ?? (await getChain(provider));
   const parameters = {
@@ -110,7 +115,7 @@ export async function getDefaultWalletClient<
 >(
   provider: EthereumProvider,
   chainType: ChainTypeT,
-  walletClientConfig?: Partial<viemT.WalletClientConfig>,
+  walletClientConfig?: Partial<ViemWalletClientConfig>,
 ): Promise<GetWalletClientReturnType<ChainTypeT>> {
   const chain = walletClientConfig?.chain ?? (await getChain(provider));
   const [defaultAccount] = await getAccounts(provider);
@@ -134,7 +139,7 @@ export async function getDefaultWalletClient<
 
 export async function getTestClient(
   provider: EthereumProvider,
-  testClientConfig?: Partial<viemT.TestClientConfig>,
+  testClientConfig?: Partial<ViemTestClientConfig>,
 ): Promise<TestClient> {
   const chain = testClientConfig?.chain ?? (await getChain(provider));
   const mode = await getMode(provider);
