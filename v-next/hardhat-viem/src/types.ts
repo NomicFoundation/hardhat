@@ -214,7 +214,7 @@ export interface Libraries {
  *
  * This interface extends {@link SendTransactionConfig}, which includes
  * additional properties such as `client`, `gas`, `gasPrice`, `maxFeePerGas`,
- * `maxPriorityFeePerGas`, and `value`.
+ * `maxPriorityFeePerGas` and `value`.
  */
 export interface DeployContractConfig extends SendTransactionConfig {
   confirmations?: number;
