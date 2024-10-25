@@ -134,7 +134,9 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
 
     const context = await getGlobalEdrContext();
     const provider = await context.createProvider(
-      GENERIC_CHAIN_TYPE,
+      config.chainType === "optimism"
+        ? OPTIMISM_CHAIN_TYPE
+        : GENERIC_CHAIN_TYPE,
       {
         allowBlocksWithSameTimestamp:
           config.allowBlocksWithSameTimestamp ?? false,
