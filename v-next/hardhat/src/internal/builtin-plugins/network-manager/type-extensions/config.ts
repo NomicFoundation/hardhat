@@ -26,11 +26,25 @@ declare module "../../../../types/config.js" {
     gas?: GasUserConfig;
     gasMultiplier?: number;
     gasPrice?: GasUserConfig;
+    accounts?: HttpNetworkAccountsUserConfig;
 
     // HTTP network specific
     url: string;
     timeout?: number;
     httpHeaders?: Record<string, string>;
+  }
+
+  export type HttpNetworkAccountsUserConfig =
+    | REMOTE
+    | string[]
+    | HDAccountsUserConfig;
+
+  export interface HDAccountsUserConfig {
+    mnemonic: string;
+    initialIndex?: number;
+    count?: number;
+    path?: string;
+    passphrase?: string;
   }
 
   export interface EdrNetworkUserConfig {
@@ -41,8 +55,27 @@ declare module "../../../../types/config.js" {
     gas: GasUserConfig;
     gasMultiplier: number;
     gasPrice: GasUserConfig;
+    accounts?: EdrNetworkAccountsUserConfig;
 
     // EDR network specific
+  }
+
+  export type EdrNetworkAccountsUserConfig =
+    | EdrNetworkAccountUserConfig[]
+    | EdrNetworkHDAccountsUserConfig;
+
+  export interface EdrNetworkAccountUserConfig {
+    privateKey: string;
+    balance: string;
+  }
+
+  export interface EdrNetworkHDAccountsUserConfig {
+    mnemonic?: string;
+    initialIndex?: number;
+    count?: number;
+    path?: string;
+    accountsBalance?: string;
+    passphrase?: string;
   }
 
   export type NetworkConfig = HttpNetworkConfig | EdrNetworkConfig;
@@ -57,11 +90,27 @@ declare module "../../../../types/config.js" {
     gas: GasConfig;
     gasMultiplier: number;
     gasPrice: GasConfig;
+    accounts: HttpNetworkAccountsConfig;
 
     // HTTP network specific
     url: string;
     timeout: number;
     httpHeaders: Record<string, string>;
+  }
+
+  export type REMOTE = "remote";
+
+  export type HttpNetworkAccountsConfig =
+    | REMOTE
+    | string[]
+    | HttpNetworkHDAccountsConfig;
+
+  export interface HttpNetworkHDAccountsConfig {
+    mnemonic: string;
+    initialIndex: number;
+    count: number;
+    path: string;
+    passphrase: string;
   }
 
   export interface EdrNetworkConfig {
@@ -72,7 +121,26 @@ declare module "../../../../types/config.js" {
     gas: GasConfig;
     gasMultiplier: number;
     gasPrice: GasConfig;
+    accounts: EdrNetworkAccountsConfig;
 
     // EDR network specific
+  }
+
+  export type EdrNetworkAccountsConfig =
+    | EdrNetworkHDAccountsConfig
+    | EdrNetworkAccountConfig[];
+
+  export interface EdrNetworkAccountConfig {
+    privateKey: string;
+    balance: string;
+  }
+
+  export interface EdrNetworkHDAccountsConfig {
+    mnemonic: string;
+    initialIndex: number;
+    count: number;
+    path: string;
+    accountsBalance: string;
+    passphrase: string;
   }
 }
