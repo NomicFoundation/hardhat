@@ -5,6 +5,7 @@ import type { TracingConfig } from "./types/node-types.js";
 import type { EdrNetworkConfig } from "../../../../types/config.js";
 import type {
   EthereumProvider,
+  EthSubscription,
   FailedJsonRpcResponse,
   JsonRpcRequest,
   JsonRpcResponse,
@@ -91,8 +92,6 @@ export async function getGlobalEdrContext(): Promise<EdrContext> {
   return _globalEdrContext;
 }
 
-class EdrProviderEventAdapter extends EventEmitter {}
-
 export type JsonRpcRequestWrapperFunction = (
   request: JsonRpcRequest,
   defaultBehavior: (r: JsonRpcRequest) => Promise<JsonRpcResponse>,
@@ -147,10 +146,6 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
       config.initialDate !== undefined
         ? BigInt(Math.floor(config.initialDate.getTime() / 1000))
         : undefined;
-
-    // To accomodate construction ordering, we need an adapter to forward events
-    // from the EdrProvider callback to the wrapper's listener
-    const eventAdapter = new EdrProviderEventAdapter();
 
     const printLineFn = loggerConfig.printLineFn ?? printLine;
     const replaceLastLineFn = loggerConfig.replaceLastLineFn ?? replaceLastLine;
@@ -221,7 +216,7 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
       },
       {
         subscriptionCallback: (event: SubscriptionEvent) => {
-          eventAdapter.emit("ethEvent", event);
+          edrProvider.onSubscriptionEvent(event);
         },
       },
     );
@@ -577,5 +572,33 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
     }
 
     return jsonRpcResponse;
+  }
+
+  public onSubscriptionEvent(event: SubscriptionEvent): void {
+    const subscription = `0x${event.filterId.toString(16)}`;
+    const results = Array.isArray(event.result) ? event.result : [event.result];
+    for (const result of results) {
+      this.#emitLegacySubscriptionEvent(subscription, result);
+      this.#emitEip1193SubscriptionEvent(subscription, result);
+    }
+  }
+
+  #emitLegacySubscriptionEvent(subscription: string, result: any) {
+    this.emit("notification", {
+      subscription,
+      result,
+    });
+  }
+
+  #emitEip1193SubscriptionEvent(subscription: string, result: unknown) {
+    const message: EthSubscription = {
+      type: "eth_subscription",
+      data: {
+        subscription,
+        result,
+      },
+    };
+
+    this.emit("message", message);
   }
 }
