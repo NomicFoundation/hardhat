@@ -220,10 +220,14 @@ async function getContractAbiAndBytecode(
   } catch (error) {
     ensureError(error);
 
-    throw new HardhatError(HardhatError.ERRORS.VIEM.LINKING_CONTRACT_ERROR, {
-      contractName,
-      error: error.message,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.VIEM.LINKING_CONTRACT_ERROR,
+      {
+        contractName,
+        error: error.message,
+      },
+      error,
+    );
   }
 
   return {
