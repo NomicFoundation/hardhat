@@ -171,8 +171,8 @@ declare module "../../../../types/config.js" {
     gas: GasConfig;
     gasMultiplier: number;
     gasPrice: GasConfig;
-    // TODO: re-enable this
-    // accounts: EdrNetworkAccountsConfig;
+    // TODO: make this required and resolve the accounts in the config hook handler
+    accounts?: EdrNetworkAccountsConfig;
 
     // EDR network specific
     hardfork: string;

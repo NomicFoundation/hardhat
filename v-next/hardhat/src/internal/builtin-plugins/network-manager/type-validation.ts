@@ -292,11 +292,12 @@ const edrNetworkConfigSchema = z.object({
   type: z.literal("edr"),
   chainId: z.number().int(),
   chainType: z.optional(chainTypeSchema),
-  from: z.string(),
+  from: z.optional(z.string()),
   gas: gasSchema,
   gasMultiplier: z.number(),
   gasPrice: gasSchema,
-  accounts: edrNetworkAccountsSchema,
+  // TODO: make this required and resolve the accounts in the config hook handler
+  accounts: z.optional(edrNetworkAccountsSchema),
 });
 
 const networkConfigSchema = z.discriminatedUnion("type", [
