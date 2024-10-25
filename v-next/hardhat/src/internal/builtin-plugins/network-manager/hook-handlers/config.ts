@@ -113,7 +113,7 @@ export async function resolveUserConfig(
         type: "edr",
         chainId: networkConfig.chainId,
         chainType: networkConfig.chainType ?? "l1",
-        from: resolveFrom(networkConfig.from),
+        from: networkConfig.from,
         gas: resolveGasConfig(networkConfig.gas),
         gasMultiplier: networkConfig.gasMultiplier ?? 1,
         gasPrice: resolveGasConfig(networkConfig.gasPrice),
@@ -180,13 +180,4 @@ function isHdAccountsConfig(
   accounts: HttpNetworkAccountsUserConfig,
 ): accounts is HDAccountsUserConfig {
   return typeof accounts === "object" && !Array.isArray(accounts);
-}
-
-function resolveFrom(from: string | undefined): string {
-  if (from === undefined) {
-    // TODO: I assume the default should be pulled from the accounts?
-    return "0x12345 - should come from account";
-  }
-
-  return from;
 }

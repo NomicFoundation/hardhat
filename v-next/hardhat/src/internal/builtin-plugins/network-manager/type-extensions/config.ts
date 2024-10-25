@@ -167,7 +167,7 @@ declare module "../../../../types/config.js" {
     type: "edr";
     chainId: number;
     chainType?: ChainType;
-    from: string;
+    from?: string;
     gas: GasConfig;
     gasMultiplier: number;
     gasPrice: GasConfig;
