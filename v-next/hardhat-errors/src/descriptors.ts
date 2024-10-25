@@ -84,6 +84,7 @@ export const ERROR_CATEGORIES: {
     websiteTitle: "Ethers errors",
   },
   SOLIDITY: { min: 1200, max: 1299, websiteTitle: "Solidity errors" },
+  VIEM: { min: 1300, max: 1399, websiteTitle: "Hardhat-viem errors" },
 };
 
 export const ERRORS = {
@@ -878,7 +879,7 @@ This error is thrown when you import a file with the wrong casing under a case i
         'The remapping "{remapping}" has a context starting with "npm/", which is forbidden. Hardhat doesn\'t allow changing the behaviour of npm package\'s imports.',
       websiteTitle: "Remapping imports in npm packages is not allowed",
       websiteDescription: `This error happened because you are trying to change how the imports within an npm package, which is not allowed.
-      
+
 While Hardhat supports user-defined remappings, it doesn't support remapping the behavior of npm packages to ensure that everything what's imported via npm uses the same npm resolution logic.`,
     },
     REMAPPING_WITH_INVALID_SYNTAX: {
@@ -886,7 +887,7 @@ While Hardhat supports user-defined remappings, it doesn't support remapping the
       messageTemplate: `The remapping "{remapping}" is invalid.`,
       websiteTitle: "Invalid remapping",
       websiteDescription: `You are trying to set a user remapping, but it's syntax is invalid.
-      
+
 Please double check your remmpaings' syntax.`,
     },
     REMAPPING_TO_UNINSTALLED_PACKAGE: {
@@ -894,7 +895,7 @@ Please double check your remmpaings' syntax.`,
       messageTemplate: `The remapping "{remapping}" is trying to use the npm package "{package}", which is not installed`,
       websiteTitle: "Remapping into an uninstaleld npm package",
       websiteDescription: `You are trying to set a user remapping that uses an npm pacakge as target, but it's not installed.
-      
+
 Please make sure to install the package or fix the remapping.`,
     },
     REMAPPING_TO_PACKAGE_USING_EXPORTS: {
@@ -916,7 +917,7 @@ Please make sure to install the package or fix the remapping.`,
       messageTemplate: `The remapping "{remapping}" is trying to set the npm package "{package}" as target, but that's the project is the Hardhat project, so it shouldn't be remapped through npm/, but as internal project remappings.`,
       websiteTitle: `Remapping into the project using npm`,
       websiteDescription: `You are trying to set a remapping whose target uses the npm/ syntax, but is within your Hardhat project.
-      
+
 Please don't use npm/... as target, but use normal internal project remapping istead.`,
     },
     REMAPPING_INCORRECT_VERSION: {
@@ -924,7 +925,7 @@ Please don't use npm/... as target, but use normal internal project remapping is
       messageTemplate: `The remapping "{remapping}" is trying to set the npm package "{package}" version "{expectedVersion}" as target, but found version "{actualVersion}" instead.`,
       websiteTitle: `Remapping into incorrect npm package version`,
       websiteDescription: `You are trying to set a remapping into an npm package, but the version that you are using is not the currently installed one.
-      
+
 Please change your remapping to match the installed version, or installed the correct one.`,
     },
     INVALID_NPM_IMPORT: {
@@ -949,8 +950,8 @@ Please change your remapping to match the installed version, or installed the co
       number: 1218,
       messageTemplate: `Applying the remapping "{remapping}" to the import "{importPath}" from "{from}" results in an invalid import "{remappedDirectImport}", as it's not a local file. If you are trying to remap into an npm module use the npm/ syntax instead.`,
       websiteTitle: `Illegal project import after remapping`,
-      websiteDescription: `One of your Solidity files has an import which after applying a user remapping becomes an illegal import, as it tries to import a file outside of the project. This is disabled for security reasons. 
-      
+      websiteDescription: `One of your Solidity files has an import which after applying a user remapping becomes an illegal import, as it tries to import a file outside of the project. This is disabled for security reasons.
+
 If you are trying to remap into an npm module use the npm/ syntax instead.`,
     },
     IMPORT_PATH_WITH_WINDOWS_SEPARATOR: {
@@ -972,11 +973,11 @@ If you are certain it has been released, run \`npx hardhat clean --global\` and 
     RESOLVE_NPM_FILE_WITH_INVALID_FORMAT: {
       number: 1221,
       messageTemplate: `Couldn't resolve the npm file "{module}" because it has an invalid format.
-      
+
 Make sure that you are providing valid npm file paths (e.g. package/File.sol) in your config and programatically.`,
       websiteTitle: "Resolving invalid npm file",
       websiteDescription: `Tried to resolve an npm file directly (i.e. not imported by another file) but its format is invalid.
-      
+
 This can happen if you setting npm files to be compiled as local files, with invalid file paths, or by misusing the solidity build system.`,
     },
     RESOLVE_NPM_FILE_CLASHES_WITH_LOCAL_FILES: {
@@ -1068,6 +1069,70 @@ This happens when your files require incompatible versions of solc or you haven'
       websiteDescription: `Your smart contracts failed to compile.
 
 Please check Hardhat's output for more details.`,
+    },
+  },
+  VIEM: {
+    NETWORK_NOT_FOUND: {
+      number: 1300,
+      messageTemplate: `No network with chain id {chainId} found.`,
+      websiteTitle: "Network not found",
+      websiteDescription: `No network with the specified chain id was found. You can override the chain by passing it as a parameter to the client getter:
+
+import { someChain } from "viem/chains";
+const client = await hre.viem.getPublicClient({
+  chain: someChain,
+  ...
+});
+
+You can find a list of supported networks here: https://github.com/wevm/viem/blob/main/src/chains/index.ts`,
+    },
+    UNSUPPORTED_DEVELOPMENT_NETWORK: {
+      number: 1301,
+      messageTemplate:
+        "Unsupported development network detected. Hardhat and Anvil are the only supported networks.",
+      websiteTitle: "Unsupported Development Network",
+      websiteDescription: `The chain ID corresponds to a development network, but we were unable to identify it as either Hardhat or Anvil.
+
+Please ensure you're using one of the supported networks.`,
+    },
+    DEFAULT_WALLET_CLIENT_NOT_FOUND: {
+      number: 1302,
+      messageTemplate: `No default wallet client found for chain id {chainId}.`,
+      websiteTitle: "Default Wallet Client Not Found",
+      websiteDescription: `A default wallet client could not be found for the specified chain ID. This issue may occur if no accounts were configured for the selected network.
+
+To resolve this, make sure to add an account to the specified network in the Hardhat config. Alternatively, you can set a custom wallet client by passing it as a parameter in the relevant function:
+
+const networkConnection = await hre.network.connect(...);
+const walletClient = await networkConnection.viem.getWalletClient(address);
+
+await networkConnection.viem.deployContract(contractName, constructorArgs, { walletClient });
+await networkConnection.viem.sendDeploymentTransaction(contractName, constructorArgs, { walletClient });
+await networkConnection.viem.getContractAt(contractName, address, { walletClient });`,
+    },
+    LINKING_CONTRACT_ERROR: {
+      number: 1303,
+      messageTemplate: `Error linking the contract {contractName}:
+
+{error}`,
+      websiteTitle: "Error Linking Contract",
+      websiteDescription: `An error occurred while linking the contract libraries.
+
+Please check Hardhat's output for more details.`,
+    },
+    INVALID_CONFIRMATIONS: {
+      number: 1304,
+      messageTemplate: `Invalid confirmations value. {error}`,
+      websiteTitle: "Invalid Confirmations Value",
+      websiteDescription: `Invalid confirmations value. The confirmations value provided is invalid.`,
+    },
+    DEPLOY_CONTRACT_ERROR: {
+      number: 1305,
+      messageTemplate:
+        "The deployment transaction {txHash} was mined in block {blockNumber} but its receipt doesn't contain a contract address",
+      websiteTitle: "Deployment Transaction Error",
+      websiteDescription:
+        "The deployment transaction was mined but its receipt doesn't contain a contract address.",
     },
   },
 } as const;
