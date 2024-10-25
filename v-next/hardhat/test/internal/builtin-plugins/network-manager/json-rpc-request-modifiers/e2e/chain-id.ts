@@ -19,7 +19,9 @@ describe("e2e - ChainIdValidator", () => {
         eth_chainId: "0x1",
       });
 
-      connection = await hre.network.connect();
+      // Use the localhost network for these tests because the modifier is only
+      // applicable to HTTP networks. EDR networks do not require this modifier.
+      connection = await hre.network.connect("localhost");
     });
 
     it("should not fail because the chain id is the same as the one returned by eth_chainId", async () => {
@@ -55,7 +57,9 @@ describe("e2e - ChainIdValidator", () => {
         net_version: "0x1",
       });
 
-      connection = await hre.network.connect();
+      // Use the localhost network for these tests because the modifier is only
+      // applicable to HTTP networks. EDR networks do not require this modifier.
+      connection = await hre.network.connect("localhost");
     });
 
     it("should not fail because the chain id is the same as the one returned by net_version", async () => {
