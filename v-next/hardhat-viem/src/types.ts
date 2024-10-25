@@ -209,8 +209,8 @@ export interface Libraries {
  * transaction. Default is 1.
  *
  * - `libraries`: An object with the contract's library names as keys and their
- * addresses as values. This is required if the contract uses libraries to be
- * able to link them.
+ * addresses as values. This is required if the contract uses libraries,
+ * to enable linking.
  *
  * This interface extends {@link SendTransactionConfig}, which includes
  * additional properties such as `client`, `gas`, `gasPrice`, `maxFeePerGas`,
