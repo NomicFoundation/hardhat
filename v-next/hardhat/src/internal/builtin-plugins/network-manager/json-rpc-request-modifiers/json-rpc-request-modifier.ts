@@ -114,18 +114,16 @@ export class JsonRpcRequestModifier {
       this.#networkConfig.gasPrice === undefined ||
       this.#networkConfig.gasPrice === "auto"
     ) {
-      // If you use a LocalAccountsProvider or HDWalletProvider, your transactions
-      // are signed locally. This requires having all of their fields available,
-      // including the gasPrice / maxFeePerGas & maxPriorityFeePerGas.
+      // If you use a hook handler that signs locally, you are required to
+      // have all the transaction fields available, including the
+      // gasPrice / maxFeePerGas & maxPriorityFeePerGas.
       //
-      // We never use those providers when using Hardhat Network, but sign within
-      // Hardhat Network itself. This means that we don't need to provide all the
+      // We never use those when using EDR Network, as we sign within the
+      // EDR Network itself. This means that we don't need to provide all the
       // fields, as the missing ones will be resolved there.
       //
-      // Hardhat Network handles this in a more performant way, so we don't use
-      // the AutomaticGasPrice for it unless there are provider extenders.
-      // The reason for this is that some extenders (like hardhat-ledger's) might
-      // do the signing themselves, and that needs the gas price to be set.
+      // EDR Network handles this in a more performant way, so we don't use
+      // the AutomaticGasPrice for it.
       if (isHttpNetworkConfig(this.#networkConfig)) {
         if (this.#automaticGasPrice === undefined) {
           this.#automaticGasPrice = new AutomaticGasPrice(this.#provider);

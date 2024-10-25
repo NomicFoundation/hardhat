@@ -143,7 +143,19 @@ export class NetworkManagerImplementation {
       );
 
       if (resolvedNetworkConfig.type === "edr") {
-        return EdrProvider.create(resolvedNetworkConfig, { enabled: false });
+        return EdrProvider.create(
+          resolvedNetworkConfig,
+          { enabled: false },
+          {},
+          (request, defaultBehavior) => {
+            return hookManager.runHandlerChain(
+              "network",
+              "onRequest",
+              [networkConnection, request],
+              async (_context, _connection, req) => defaultBehavior(req),
+            );
+          },
+        );
       }
 
       return HttpProvider.create({

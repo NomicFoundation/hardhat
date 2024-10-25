@@ -9,6 +9,7 @@ import type {
   JsonRpcRequest,
   JsonRpcResponse,
   RequestArguments,
+  SuccessfulJsonRpcResponse,
 } from "../../../../types/providers.js";
 import type {
   CompilerInput,
@@ -22,6 +23,7 @@ import type {
   VMTracer as VMTracerT,
   Provider,
   HttpHeader,
+  DebugTraceResult,
 } from "@ignored/edr-optimism";
 
 import EventEmitter from "node:events";
@@ -46,6 +48,7 @@ import {
   HARDHAT_NETWORK_RESET_EVENT,
   HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
 } from "../../../constants.js";
+import { getJsonRpcRequest, isFailedJsonRpcResponse } from "../json-rpc.js";
 
 import {
   InvalidArgumentsError,
@@ -90,19 +93,27 @@ export async function getGlobalEdrContext(): Promise<EdrContext> {
 
 class EdrProviderEventAdapter extends EventEmitter {}
 
+export type JsonRpcRequestWrapperFunction = (
+  request: JsonRpcRequest,
+  defaultBehavior: (r: JsonRpcRequest) => Promise<JsonRpcResponse>,
+) => Promise<JsonRpcResponse>;
+
 export class EdrProvider extends EventEmitter implements EthereumProvider {
   readonly #provider: Provider;
   readonly #vmTraceDecoder: VmTraceDecoder;
+  readonly #jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
 
   #failedStackTraces: number = 0;
-
   /** Used for internal stack trace tests. */
   #vmTracer?: VMTracerT;
+  #nextRequestId = 1;
 
+  // TODO: should take an object with all the config like the HTTP provider
   public static async create(
     config: EdrNetworkConfig,
     loggerConfig: LoggerConfig,
     tracingConfig?: TracingConfig,
+    jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction,
   ): Promise<EdrProvider> {
     const coinbase = config.coinbase ?? DEFAULT_COINBASE;
 
@@ -219,15 +230,17 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
       provider,
       vmTraceDecoder,
       tracingConfig,
+      jsonRpcRequestWrapper,
     );
 
     return edrProvider;
   }
 
-  constructor(
+  private constructor(
     provider: Provider,
     vmTraceDecoder: VmTraceDecoder,
     tracingConfig?: TracingConfig,
+    jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction,
   ) {
     super();
 
@@ -237,6 +250,8 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
     if (tracingConfig !== undefined) {
       initializeVmTraceDecoder(this.#vmTraceDecoder, tracingConfig);
     }
+
+    this.#jsonRpcRequestWrapper = jsonRpcRequestWrapper;
   }
 
   /**
@@ -268,65 +283,29 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
       );
     }
 
-    const stringifiedArgs = JSON.stringify({
-      method: args.method,
+    const jsonRpcRequest = getJsonRpcRequest(
+      this.#nextRequestId++,
+      args.method,
       params,
-    });
+    );
 
-    const responseObject: Response =
-      await this.#provider.handleRequest(stringifiedArgs);
+    let jsonRpcResponse: JsonRpcResponse;
+    if (this.#jsonRpcRequestWrapper !== undefined) {
+      jsonRpcResponse = await this.#jsonRpcRequestWrapper(
+        jsonRpcRequest,
+        async (request) => {
+          const stringifiedArgs = JSON.stringify(request);
+          const edrResponse =
+            await this.#provider.handleRequest(stringifiedArgs);
 
-    let response;
-    if (typeof responseObject.data === "string") {
-      response = JSON.parse(responseObject.data);
+          return this.#handleEdrResponse(edrResponse);
+        },
+      );
     } else {
-      response = responseObject.data;
-    }
+      const stringifiedArgs = JSON.stringify(jsonRpcRequest);
+      const edrResponse = await this.#provider.handleRequest(stringifiedArgs);
 
-    const needsTraces = this.#vmTracer !== undefined;
-
-    if (needsTraces) {
-      const rawTraces = responseObject.traces;
-
-      for (const rawTrace of rawTraces) {
-        this.#vmTracer?.observe(rawTrace);
-      }
-    }
-
-    if (this.#isErrorResponse(response)) {
-      let error;
-
-      const solidityTrace = responseObject.solidityTrace;
-      let stackTrace: SolidityStackTrace | undefined;
-      if (solidityTrace !== null) {
-        stackTrace = await this.#rawTraceToSolidityStackTrace(solidityTrace);
-      }
-
-      if (stackTrace !== undefined) {
-        error = encodeSolidityStackTrace(response.error.message, stackTrace);
-
-        // Pass data and transaction hash from the original error
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO: can we improve this `any
-        (error as any).data = (response as any).error.data?.data ?? undefined;
-
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO: can we improve this `any`
-        (error as any).transactionHash =
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO: this really needs fixed
-          (response as any).error.data?.transactionHash ?? undefined;
-      } else {
-        if (response.error.code === InvalidArgumentsError.CODE) {
-          error = new InvalidArgumentsError(response.error.message);
-        } else {
-          error = new ProviderError(
-            response.error.message,
-            response.error.code,
-          );
-        }
-        error.data = response.error.data;
-      }
-
-      // eslint-disable-next-line no-restricted-syntax -- we may throw non-Hardaht errors inside of an EthereumProvider
-      throw error;
+      jsonRpcResponse = await this.#handleEdrResponse(edrResponse);
     }
 
     if (args.method === "hardhat_reset") {
@@ -335,17 +314,34 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
       this.emit(HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT);
     }
 
+    // this can only happen if a wrapper doesn't call the default
+    // behavior as the default throws on FailedJsonRpcResponse
+    if (isFailedJsonRpcResponse(jsonRpcResponse)) {
+      const error = new ProviderError(
+        jsonRpcResponse.error.message,
+        jsonRpcResponse.error.code,
+      );
+      error.data = jsonRpcResponse.error.data;
+
+      // eslint-disable-next-line no-restricted-syntax -- allow throwing ProviderError
+      throw error;
+    }
+
     // Override EDR version string with Hardhat version string with EDR backend,
     // e.g. `HardhatNetwork/2.19.0/@ignored/edr-optimism/0.2.0-dev`
     if (args.method === "web3_clientVersion") {
-      return clientVersion(response.result);
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO
+      return clientVersion(jsonRpcResponse.result as string);
     } else if (
       args.method === "debug_traceTransaction" ||
       args.method === "debug_traceCall"
     ) {
-      return edrRpcDebugTraceToHardhat(response.result);
+      return edrRpcDebugTraceToHardhat(
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO
+        jsonRpcResponse.result as DebugTraceResult,
+      );
     } else {
-      return response.result;
+      return jsonRpcResponse.result;
     }
   }
 
@@ -516,5 +512,70 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
         err,
       );
     }
+  }
+
+  async #handleEdrResponse(
+    edrResponse: Response,
+  ): Promise<SuccessfulJsonRpcResponse> {
+    let jsonRpcResponse: JsonRpcResponse;
+
+    if (typeof edrResponse.data === "string") {
+      jsonRpcResponse = JSON.parse(edrResponse.data);
+    } else {
+      jsonRpcResponse = edrResponse.data;
+    }
+
+    const needsTraces = this.#vmTracer !== undefined;
+
+    if (needsTraces) {
+      const rawTraces = edrResponse.traces;
+
+      for (const rawTrace of rawTraces) {
+        this.#vmTracer?.observe(rawTrace);
+      }
+    }
+
+    if (this.#isErrorResponse(jsonRpcResponse)) {
+      let error;
+
+      const solidityTrace = edrResponse.solidityTrace;
+      let stackTrace: SolidityStackTrace | undefined;
+      if (solidityTrace !== null) {
+        stackTrace = await this.#rawTraceToSolidityStackTrace(solidityTrace);
+      }
+
+      if (stackTrace !== undefined) {
+        error = encodeSolidityStackTrace(
+          jsonRpcResponse.error.message,
+          stackTrace,
+        );
+
+        // Pass data and transaction hash from the original error
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO: can we improve this `any
+        (error as any).data =
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO: can we improve this `any
+          (jsonRpcResponse as any).error.data?.data ?? undefined;
+
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO: can we improve this `any`
+        (error as any).transactionHash =
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO: this really needs fixed
+          (jsonRpcResponse as any).error.data?.transactionHash ?? undefined;
+      } else {
+        if (jsonRpcResponse.error.code === InvalidArgumentsError.CODE) {
+          error = new InvalidArgumentsError(jsonRpcResponse.error.message);
+        } else {
+          error = new ProviderError(
+            jsonRpcResponse.error.message,
+            jsonRpcResponse.error.code,
+          );
+        }
+        error.data = jsonRpcResponse.error.data;
+      }
+
+      // eslint-disable-next-line no-restricted-syntax -- we may throw non-Hardaht errors inside of an EthereumProvider
+      throw error;
+    }
+
+    return jsonRpcResponse;
   }
 }
