@@ -5,7 +5,7 @@ import type {
 } from "./types.js";
 import type { TestResult } from "@ignored/edr";
 
-import { bufferToHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { bytesToHexString } from "@ignored/hardhat-vnext-utils/hex";
 import chalk from "chalk";
 
 import { formatArtifactId } from "./formatters.js";
@@ -60,7 +60,7 @@ export async function* testReporter(
           ]
             .map(
               ([key, value]) =>
-                `${key}: ${Buffer.isBuffer(value) ? bufferToHexString(value) : value}`,
+                `${key}: ${Buffer.isBuffer(value) ? bytesToHexString(value) : value}`,
             )
             .join(", ");
 
@@ -134,7 +134,7 @@ export async function* testReporter(
           const details = `{\n${Object.entries(counterexample)
             .map(
               ([key, value]) =>
-                `  ${key}: ${Buffer.isBuffer(value) ? bufferToHexString(value) : value}`,
+                `  ${key}: ${Buffer.isBuffer(value) ? bytesToHexString(value) : value}`,
             )
             .join(",\n")}\n}`;
           yield `Counterexample${chalk.grey(`: ${details}\n`)}`;
