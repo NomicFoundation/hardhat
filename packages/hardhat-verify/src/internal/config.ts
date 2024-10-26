@@ -6,7 +6,7 @@ import type {
   BlockscoutConfig,
 } from "../types";
 
-import chalk from "chalk";
+import picocolors from "picocolors";
 
 export function etherscanConfigExtender(
   config: HardhatConfig,
@@ -28,7 +28,7 @@ export function etherscanConfigExtender(
     config.networks?.etherscan !== undefined
   ) {
     console.warn(
-      chalk.yellow(
+      picocolors.yellow(
         "WARNING: you have an 'etherscan' entry in your networks configuration. This is likely a mistake. The etherscan configuration should be at the root of the configuration, not within the networks object."
       )
     );

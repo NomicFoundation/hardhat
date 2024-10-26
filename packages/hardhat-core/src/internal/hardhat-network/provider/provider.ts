@@ -19,7 +19,7 @@ import type {
   HttpHeader,
 } from "@nomicfoundation/edr";
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import chalk from "chalk";
+import picocolors from "picocolors";
 import debug from "debug";
 import { EventEmitter } from "events";
 import fsExtra from "fs-extra";
@@ -559,7 +559,7 @@ export class EdrProviderWrapper
       );
     } catch (error) {
       console.warn(
-        chalk.yellow(
+        picocolors.yellow(
           "The Hardhat Network tracing engine could not be updated. Run Hardhat with --verbose to learn more."
         )
       );
@@ -662,7 +662,7 @@ async function makeTracingConfig(
       };
     } catch (error) {
       console.warn(
-        chalk.yellow(
+        picocolors.yellow(
           "Stack traces engine could not be initialized. Run Hardhat with --verbose to learn more."
         )
       );

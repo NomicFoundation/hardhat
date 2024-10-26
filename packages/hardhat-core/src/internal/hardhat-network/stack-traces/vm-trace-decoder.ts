@@ -1,5 +1,5 @@
 import type { VmTraceDecoder as VmTraceDecoderT } from "@nomicfoundation/edr";
-import chalk from "chalk";
+import picocolors from "picocolors";
 import debug from "debug";
 import { Reporter } from "../../sentry/reporter";
 import { TracingConfig } from "../provider/node-types";
@@ -19,7 +19,7 @@ function initializeVmTraceDecoderWrapper(
     initializeVmTraceDecoder(vmTraceDecoder, tracingConfig);
   } catch (error) {
     console.warn(
-      chalk.yellow(
+      picocolors.yellow(
         "The Hardhat Network tracing engine could not be initialized. Run Hardhat with --verbose to learn more."
       )
     );

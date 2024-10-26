@@ -1,7 +1,5 @@
-import type { IOptions as GlobOptions } from "glob";
-
+import type { GlobOptions } from "tinyglobby";
 import * as path from "path";
-import util from "util";
 
 /**
  * DO NOT USE THIS FUNCTION. It's SLOW and its semantics are optimized for
@@ -16,8 +14,7 @@ export async function glob(
   pattern: string,
   options: GlobOptions = {}
 ): Promise<string[]> {
-  const { default: globModule } = await import("glob");
-  const files = await util.promisify(globModule)(pattern, options);
+  const files = await (await import("tinyglobby")).glob([pattern], options);
   return files.map(path.normalize);
 }
 
@@ -26,6 +23,9 @@ export async function glob(
  * @see glob
  */
 export function globSync(pattern: string, options: GlobOptions = {}): string[] {
-  const files = require("glob").sync(pattern, options);
+  const files = (require("tinyglobby") as typeof import("tinyglobby")).globSync(
+    [pattern],
+    options
+  );
   return files.map(path.normalize);
 }

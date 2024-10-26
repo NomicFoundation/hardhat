@@ -5,7 +5,7 @@ import type { ChainConfig } from "../../src/types";
 import path from "path";
 import { assert, expect } from "chai";
 import sinon from "sinon";
-import chalk from "chalk";
+import picocolors from "picocolors";
 
 import {
   encodeArguments,
@@ -65,7 +65,7 @@ describe("Utilities", () => {
       const errorMessage = errorStub.getCall(0).args[0];
       assert.equal(
         errorMessage,
-        chalk.red(
+        picocolors.red(
           `hardhat-verify found one or more errors during the verification process:
 
 Etherscan:

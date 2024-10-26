@@ -1,6 +1,6 @@
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-import chalk from "chalk";
+import picocolors from "picocolors";
 
 chai.use(chaiAsPromised);
 
@@ -20,7 +20,7 @@ export const ALCHEMY_URL = getEnv("ALCHEMY_URL");
 
 function printForkingLogicNotBeingTestedWarning(varName: string) {
   console.warn(
-    chalk.yellow(
+    picocolors.yellow(
       `TEST RUN INCOMPLETE: You need to define the env variable ${varName}`
     )
   );
