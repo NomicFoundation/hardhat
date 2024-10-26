@@ -1,4 +1,4 @@
-import chalk from "picocolors";
+import picocolors from "picocolors";
 import { subtask, task, types } from "../internal/core/config/config-env";
 import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
@@ -313,7 +313,7 @@ task(
 
     if (metadata.filesWithoutLicenses.length > 0) {
       console.warn(
-        chalk.yellow(
+        picocolors.yellow(
           `\nThe following file(s) do NOT specify SPDX licenses: ${metadata.filesWithoutLicenses.join(
             ", "
           )}`
@@ -326,7 +326,7 @@ task(
       metadata.filesWithoutPragmaDirectives.length > 0
     ) {
       console.warn(
-        chalk.yellow(
+        picocolors.yellow(
           `\nPragma abicoder directives are defined in some files, but they are not defined in the following ones: ${metadata.filesWithoutPragmaDirectives.join(
             ", "
           )}`
@@ -336,7 +336,7 @@ task(
 
     if (metadata.filesWithDifferentPragmaDirectives.length > 0) {
       console.warn(
-        chalk.yellow(
+        picocolors.yellow(
           `\nThe flattened file is using the pragma abicoder directive '${
             metadata.pragmaDirective
           }' but these files have a different pragma abicoder directive: ${metadata.filesWithDifferentPragmaDirectives.join(

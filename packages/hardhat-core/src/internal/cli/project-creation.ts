@@ -1,4 +1,4 @@
-import chalk from "picocolors";
+import picocolors from "picocolors";
 import fsExtra from "fs-extra";
 import path from "path";
 
@@ -97,28 +97,34 @@ const TYPESCRIPT_VIEM_PEER_DEPENDENCIES: Dependencies = {
 // generated with the "colossal" font
 function printAsciiLogo() {
   console.log(
-    chalk.blue("888    888                      888 888               888")
+    picocolors.blue("888    888                      888 888               888")
   );
   console.log(
-    chalk.blue("888    888                      888 888               888")
+    picocolors.blue("888    888                      888 888               888")
   );
   console.log(
-    chalk.blue("888    888                      888 888               888")
+    picocolors.blue("888    888                      888 888               888")
   );
   console.log(
-    chalk.blue("8888888888  8888b.  888d888 .d88888 88888b.   8888b.  888888")
+    picocolors.blue(
+      "8888888888  8888b.  888d888 .d88888 88888b.   8888b.  888888"
+    )
   );
   console.log(
-    chalk.blue('888    888     "88b 888P"  d88" 888 888 "88b     "88b 888')
+    picocolors.blue('888    888     "88b 888P"  d88" 888 888 "88b     "88b 888')
   );
   console.log(
-    chalk.blue("888    888 .d888888 888    888  888 888  888 .d888888 888")
+    picocolors.blue("888    888 .d888888 888    888  888 888  888 .d888888 888")
   );
   console.log(
-    chalk.blue("888    888 888  888 888    Y88b 888 888  888 888  888 Y88b.")
+    picocolors.blue(
+      "888    888 888  888 888    Y88b 888 888  888 888  888 Y88b."
+    )
   );
   console.log(
-    chalk.blue('888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888')
+    picocolors.blue(
+      '888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888'
+    )
   );
   console.log("");
 }
@@ -127,7 +133,7 @@ async function printWelcomeMessage() {
   const packageJson = await getPackageJson();
 
   console.log(
-    chalk.cyan(
+    picocolors.cyan(
       `${emoji("👷 ")}Welcome to ${HARDHAT_NAME} v${packageJson.version}${emoji(
         " 👷‍"
       )}\n`
@@ -200,7 +206,7 @@ Please delete or rename ${pluralize(
       "it",
       "them"
     )} and try again.`;
-    console.log(chalk.red(errorMsg));
+    console.log(picocolors.red(errorMsg));
     process.exit(1);
   }
 
@@ -356,11 +362,13 @@ async function createPackageJson() {
 
 function showStarOnGitHubMessage() {
   console.log(
-    chalk.cyan("Give Hardhat a star on Github if you're enjoying it!") +
+    picocolors.cyan("Give Hardhat a star on Github if you're enjoying it!") +
       emoji(" ⭐️✨")
   );
   console.log();
-  console.log(chalk.cyan("     https://github.com/NomicFoundation/hardhat"));
+  console.log(
+    picocolors.cyan("     https://github.com/NomicFoundation/hardhat")
+  );
 }
 
 export function showSoliditySurveyMessage() {
@@ -371,7 +379,7 @@ export function showSoliditySurveyMessage() {
 
   console.log();
   console.log(
-    chalk.cyan(
+    picocolors.cyan(
       "Please take a moment to complete the 2023 Solidity Survey: https://hardhat.org/solidity-survey-2023"
     )
   );
@@ -405,7 +413,7 @@ export async function createProject() {
   if (action === Action.CREATE_EMPTY_HARDHAT_CONFIG_ACTION) {
     await writeEmptyHardhatConfig(isEsm);
     console.log(
-      `${emoji("✨ ")}${chalk.cyan(`Config file created`)}${emoji(" ✨")}`
+      `${emoji("✨ ")}${picocolors.cyan(`Config file created`)}${emoji(" ✨")}`
     );
 
     if (!isInstalled(HARDHAT_PACKAGE_NAME)) {
@@ -504,7 +512,9 @@ export async function createProject() {
 
         if (!installed) {
           console.warn(
-            chalk.red("Failed to install the sample project's dependencies")
+            picocolors.red(
+              "Failed to install the sample project's dependencies"
+            )
           );
         }
 
@@ -519,7 +529,7 @@ export async function createProject() {
   }
 
   console.log(
-    `\n${emoji("✨ ")}${chalk.cyan("Project created")}${emoji(" ✨")}`
+    `\n${emoji("✨ ")}${picocolors.cyan("Project created")}${emoji(" ✨")}`
   );
   console.log();
   console.log("See the README.md file for some example tasks you can run");

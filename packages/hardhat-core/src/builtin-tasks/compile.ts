@@ -1,5 +1,5 @@
 import os from "os";
-import chalk from "picocolors";
+import picocolors from "picocolors";
 import debug from "debug";
 import fsExtra from "fs-extra";
 import semver from "semver";
@@ -801,12 +801,14 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
           error.formattedMessage;
 
         console.error(
-          errorMessage.replace(/^\w+:/, (t) => chalk.bold(chalk.red(t)))
+          errorMessage.replace(/^\w+:/, (t) =>
+            picocolors.bold(picocolors.red(t))
+          )
         );
       } else {
         console.warn(
           (error.formattedMessage as string).replace(/^\w+:/, (t) =>
-            chalk.bold(chalk.yellow(t))
+            picocolors.bold(picocolors.yellow(t))
           )
         );
       }
@@ -815,7 +817,7 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
     const hasConsoleErrors: boolean = output.errors.some(isConsoleLogError);
     if (hasConsoleErrors) {
       console.error(
-        chalk.red(
+        picocolors.red(
           `The console.log call you made isn’t supported. See https://hardhat.org/console-log for the list of supported methods.`
         )
       );

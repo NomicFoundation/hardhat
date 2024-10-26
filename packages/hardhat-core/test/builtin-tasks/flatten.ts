@@ -2,7 +2,7 @@ import { assert } from "chai";
 import fs from "fs";
 
 import sinon, { SinonSpy } from "sinon";
-import chalk from "picocolors";
+import picocolors from "picocolors";
 import {
   TASK_FLATTEN,
   TASK_FLATTEN_GET_FLATTENED_SOURCE,
@@ -381,7 +381,7 @@ describe("Flatten task", () => {
 
       assert(
         spyFunctionConsoleWarn.calledWith(
-          chalk.yellow(
+          picocolors.yellow(
             `\nThe following file(s) do NOT specify SPDX licenses: contracts/A.sol, contracts/B.sol, contracts/C.sol`
           )
         )
@@ -389,7 +389,7 @@ describe("Flatten task", () => {
 
       assert(
         spyFunctionConsoleWarn.calledWith(
-          chalk.yellow(
+          picocolors.yellow(
             `\nPragma abicoder directives are defined in some files, but they are not defined in the following ones: contracts/A.sol, contracts/B.sol`
           )
         )
@@ -397,7 +397,7 @@ describe("Flatten task", () => {
 
       assert(
         spyFunctionConsoleWarn.calledWith(
-          chalk.yellow(
+          picocolors.yellow(
             `\nThe flattened file is using the pragma abicoder directive 'pragma abicoder v2' but these files have a different pragma abicoder directive: contracts/C.sol`
           )
         )
