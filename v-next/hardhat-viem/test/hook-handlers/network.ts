@@ -1,4 +1,7 @@
-import type { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
+import type {
+  GenericChainType,
+  NetworkConnection,
+} from "@ignored/hardhat-vnext/types/network";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
@@ -10,7 +13,7 @@ import HardhatViem from "../../src/index.js";
 
 describe("hook-handlers/network", () => {
   describe("newConnection", () => {
-    let connection: NetworkConnection<"unknown">;
+    let connection: NetworkConnection<GenericChainType>;
 
     before(async () => {
       const hre = await createHardhatRuntimeEnvironment({

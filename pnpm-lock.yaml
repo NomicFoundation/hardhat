@@ -3372,6 +3372,9 @@ packages:
   '@types/node@18.19.59':
     resolution: {integrity: sha512-vizm2EqwV/7Zay+A6J3tGl9Lhr7CjZe2HmWS988sefiEmsyP9CeXEleho6i4hJk/8UtZAo0bWN4QPZZr83RxvQ==}
 
+  '@types/node@20.16.11':
+    resolution: {integrity: sha512-y+cTCACu92FyA5fgQSAI8A1H429g7aSK2HsO7K4XYUWc4dY5IUz55JSDIYT6/VsOLfGy8vmvQYC2hfb0iF16Uw==}
+
   '@types/node@20.17.1':
     resolution: {integrity: sha512-j2VlPv1NnwPJbaCNv69FO/1z4lId0QmGvpT41YxitRtWlg96g/j8qcv2RKsLKe2F6OJgyXhupN1Xo17b2m139Q==}
 
@@ -8022,7 +8025,7 @@ snapshots:
 
   '@types/bn.js@4.11.6':
     dependencies:
-      '@types/node': 18.19.59
+      '@types/node': 20.16.11
 
   '@types/bn.js@5.1.6':
     dependencies:
@@ -8038,7 +8041,7 @@ snapshots:
 
   '@types/concat-stream@1.6.1':
     dependencies:
-      '@types/node': 18.19.59
+      '@types/node': 20.16.11
 
   '@types/debug@4.1.12':
     dependencies:
@@ -8050,7 +8053,7 @@ snapshots:
 
   '@types/form-data@0.0.33':
     dependencies:
-      '@types/node': 18.19.59
+      '@types/node': 20.16.11
 
   '@types/fs-extra@5.1.0':
     dependencies:
@@ -8100,6 +8103,10 @@ snapshots:
   '@types/node@18.19.59':
     dependencies:
       undici-types: 5.26.5
+
+  '@types/node@20.16.11':
+    dependencies:
+      undici-types: 6.19.8
 
   '@types/node@20.17.1':
     dependencies:
@@ -8155,7 +8162,7 @@ snapshots:
 
   '@types/ws@8.5.3':
     dependencies:
-      '@types/node': 18.19.59
+      '@types/node': 20.16.11
 
   '@typescript-eslint/eslint-plugin@5.61.0(@typescript-eslint/parser@5.61.0(eslint@8.57.0)(typescript@5.0.4))(eslint@8.57.0)(typescript@5.0.4)':
     dependencies:

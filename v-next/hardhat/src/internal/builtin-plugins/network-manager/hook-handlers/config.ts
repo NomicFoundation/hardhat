@@ -144,7 +144,7 @@ export async function resolveUserConfig(
 
   return {
     ...resolvedConfig,
-    defaultChainType: resolvedConfig.defaultChainType ?? "unknown",
+    defaultChainType: resolvedConfig.defaultChainType ?? "generic",
     defaultNetwork: resolvedConfig.defaultNetwork ?? "hardhat",
     networks: resolvedNetworks,
   };
