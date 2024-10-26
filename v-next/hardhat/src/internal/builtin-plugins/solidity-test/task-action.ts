@@ -1,12 +1,25 @@
 import type { RunOptions } from "./runner.js";
 import type { TestEvent } from "./types.js";
+import type { BuildOptions } from "../../../types/solidity/build-system.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
 import { finished } from "node:stream/promises";
 
+import {
+  getAllFilesMatching,
+  isDirectory,
+} from "@ignored/hardhat-vnext-utils/fs";
+import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 import { createNonClosingWriter } from "@ignored/hardhat-vnext-utils/stream";
 
-import { getArtifacts, isTestArtifact } from "./helpers.js";
+
+import { shouldMergeCompilationJobs } from "../solidity/build-profiles.js";
+
+import {
+  getArtifacts,
+  getTestSuiteIds,
+  throwIfSolidityBuildFailed,
+} from "./helpers.js";
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
 
@@ -19,25 +32,44 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   { timeout, noCompile },
   hre,
 ) => {
-  if (!noCompile) {
-    await hre.tasks.getTask("compile").run({});
-    console.log();
-  }
-
-  const artifacts = await getArtifacts(hre.artifacts);
-  const testSuiteIds = (
+  const rootFilePaths = (
     await Promise.all(
-      artifacts.map(async (artifact) => {
-        if (await isTestArtifact(hre.config.paths.root, artifact)) {
-          return artifact.id;
-        }
-      }),
+      hre.config.paths.tests.solidity
+        .map((p) => resolveFromRoot(hre.config.paths.root, p))
+        .map(async (p) => {
+          if (await isDirectory(p)) {
+            return getAllFilesMatching(p, (f) => f.endsWith(".sol"));
+          } else if (p.endsWith(".sol") === true) {
+            return [p];
+          } else {
+            return [];
+          }
+        }),
     )
-  ).filter((artifact) => artifact !== undefined);
+  ).flat(1);
 
-  if (testSuiteIds.length === 0) {
-    return;
-  }
+  const buildOptions: BuildOptions = {
+    // NOTE: The uncached sources will still be compiled event if `noCompile`
+    // is true. We could consider adding a `cacheOnly` option to support true
+    // `noCompile` behavior.
+    force: !noCompile,
+    buildProfile: hre.globalOptions.buildProfile,
+    mergeCompilationJobs: shouldMergeCompilationJobs(
+      hre.globalOptions.buildProfile,
+    ),
+    quiet: false,
+  };
+
+  const results = await hre.solidity.build(rootFilePaths, buildOptions);
+
+  throwIfSolidityBuildFailed(results);
+
+  const artifacts = await getArtifacts(results, hre.config.paths.artifacts);
+  const testSuiteIds = await getTestSuiteIds(
+    artifacts,
+    rootFilePaths,
+    hre.config.paths.root,
+  );
 
   console.log("Running Solidity tests");
   console.log();

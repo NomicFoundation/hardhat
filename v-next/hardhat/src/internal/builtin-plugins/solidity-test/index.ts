@@ -3,20 +3,10 @@ import type { HardhatPlugin } from "../../../types/plugins.js";
 import { ArgumentType } from "../../../types/arguments.js";
 import { task } from "../../core/config.js";
 
+import "./type-extensions.js";
+
 const hardhatPlugin: HardhatPlugin = {
   id: "builtin:solidity-tests",
-  dependencies: [
-    async () => {
-      const { default: artifactsPlugin } = await import(
-        "../artifacts/index.js"
-      );
-      return artifactsPlugin;
-    },
-    async () => {
-      const { default: solidityPlugin } = await import("../solidity/index.js");
-      return solidityPlugin;
-    },
-  ],
   hookHandlers: {
     config: import.meta.resolve("./hook-handlers/config.js"),
   },
