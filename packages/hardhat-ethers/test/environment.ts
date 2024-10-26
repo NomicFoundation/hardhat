@@ -39,7 +39,10 @@ export function useEnvironment(
 
   afterEach(function () {
     if (this.currentTest?.state === "failed") {
-      console.log(chalk.red("Failed in fixture project", fixtureProjectPath));
+      console.log(
+        chalk.red("Failed in fixture project"),
+        chalk.red(fixtureProjectPath)
+      );
     }
   });
 }
@@ -70,7 +73,10 @@ export function usePersistentEnvironment(
 
   afterEach(function () {
     if (this.currentTest?.state === "failed") {
-      console.log(chalk.red("Failed in fixture project", fixtureProjectPath));
+      console.log(
+        chalk.red("Failed in fixture project"),
+        chalk.red(fixtureProjectPath)
+      );
     }
   });
 }
@@ -159,7 +165,10 @@ contract Example {
 
   afterEach(function () {
     if (this.currentTest?.state === "failed") {
-      console.log(chalk.red("Failed in fixture project", fixtureProjectPath));
+      console.log(
+        chalk.red("Failed in fixture project"),
+        chalk.red(fixtureProjectPath)
+      );
     }
   });
 }

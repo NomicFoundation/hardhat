@@ -170,14 +170,16 @@ async function main() {
 
         // Warning for Hardhat V3 deprecation
         console.warn(
-          chalk.yellow.bold("\n\nDEPRECATION WARNING\n\n"),
+          chalk.yellow(chalk.bold("\n\nDEPRECATION WARNING\n\n")),
           chalk.yellow(
-            `Initializing a project with ${chalk.white.italic(
-              "npx hardhat"
+            `Initializing a project with ${chalk.white(
+              chalk.italic("npx hardhat")
             )} is deprecated and will be removed in the future.\n`
           ),
           chalk.yellow(
-            `Please use ${chalk.white.italic("npx hardhat init")} instead.\n\n`
+            `Please use ${chalk.white(
+              chalk.italic("npx hardhat init")
+            )} instead.\n\n`
           )
         );
 
@@ -387,13 +389,13 @@ async function main() {
     if (HardhatError.isHardhatError(error)) {
       isHardhatError = true;
       console.error(
-        chalk.red.bold("Error"),
-        error.message.replace(/^\w+:/, (t) => chalk.red.bold(t))
+        chalk.red(chalk.bold("Error")),
+        error.message.replace(/^\w+:/, (t) => chalk.red(chalk.bold(t)))
       );
     } else if (HardhatPluginError.isHardhatPluginError(error)) {
       isHardhatError = true;
       console.error(
-        chalk.red.bold(`Error in plugin ${error.pluginName}:`),
+        chalk.red(chalk.bold(`Error in plugin ${error.pluginName}:`)),
         error.message
       );
     } else if (error instanceof Error) {
