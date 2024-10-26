@@ -23,13 +23,13 @@ export interface PackageJson {
   };
 }
 
-export function findClosestPackageJson(file: string): string | null {
+export function findClosestPackageJson(file: string): string | undefined {
   return findup.sync("package.json", { cwd: path.dirname(file) });
 }
 
 export async function getPackageName(file: string): Promise<string> {
   const packageJsonPath = findClosestPackageJson(file);
-  if (packageJsonPath !== null && packageJsonPath !== "") {
+  if (packageJsonPath !== undefined && packageJsonPath !== "") {
     const packageJson: PackageJson = await fsExtra.readJSON(packageJsonPath);
     return packageJson.name;
   }
@@ -45,7 +45,7 @@ export function getHardhatVersion(): string {
   const packageJsonPath = findClosestPackageJson(__filename);
 
   assertHardhatInvariant(
-    packageJsonPath !== null,
+    packageJsonPath !== undefined,
     "There should be a package.json in hardhat-core's root directory"
   );
 
@@ -60,7 +60,7 @@ export function getProjectPackageJson(): Promise<any> {
   const packageJsonPath = findup.sync("package.json");
 
   assertHardhatInvariant(
-    packageJsonPath !== null,
+    packageJsonPath !== undefined,
     "Expected a package.json file in the current directory or in an ancestor directory"
   );
 
