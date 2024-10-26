@@ -4,7 +4,7 @@ import type {
   LibraryToAddress,
 } from "../solc/artifacts";
 
-import chalk from "picocolors";
+import picocolors from "picocolors";
 import { subtask, types } from "hardhat/config";
 import { isFullyQualifiedName } from "hardhat/utils/contract-names";
 import { HARDHAT_NETWORK_NAME } from "hardhat/plugins";
@@ -224,7 +224,7 @@ ${contractURL}
 
 subtask(TASK_VERIFY_SOURCIFY_DISABLED_WARNING, async () => {
   console.info(
-    chalk.cyan(
+    picocolors.cyan(
       `[INFO] Sourcify Verification Skipped: Sourcify verification is currently disabled. To enable it, add the following entry to your Hardhat configuration:
 
 sourcify: {

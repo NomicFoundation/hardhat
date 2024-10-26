@@ -5,7 +5,7 @@ import type {
 } from "./internal/solc/artifacts";
 import type { Bytecode } from "./internal/solc/bytecode";
 
-import chalk from "picocolors";
+import picocolors from "picocolors";
 import { extendConfig, subtask, task, types } from "hardhat/config";
 
 import {
@@ -197,7 +197,7 @@ subtask(
       !config.blockscout.enabled
     ) {
       console.warn(
-        chalk.yellow(
+        picocolors.yellow(
           `[WARNING] No verification services are enabled. Please enable at least one verification service in your configuration.`
         )
       );
