@@ -447,9 +447,6 @@ importers:
       lodash.isequal:
         specifier: ^4.5.0
         version: 4.5.0
-      picocolors:
-        specifier: ^1.1.0
-        version: 1.1.0
     devDependencies:
       '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
         specifier: workspace:^
@@ -514,6 +511,9 @@ importers:
       mocha:
         specifier: ^10.0.0
         version: 10.7.3
+      picocolors:
+        specifier: ^1.1.0
+        version: 1.1.0
       prettier:
         specifier: 2.4.1
         version: 2.4.1
