@@ -18,6 +18,7 @@ import {
 } from "@ignored/hardhat-vnext-errors";
 import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 
+import { SHOULD_WARN_ABOUT_INLINE_TASK_ACTIONS_AND_HOOK_HANDLERS } from "../inline-functions-warning.js";
 import { detectPluginNpmDependencyProblems } from "../plugins/detect-plugin-npm-dependency-problems.js";
 
 import { formatTaskId } from "./utils.js";
@@ -140,6 +141,18 @@ export class ResolvedTask implements Task {
     ): Promise<any> => {
       // The first action may be empty if the task was originally an empty task
       const currentAction = this.actions[currentIndex].action ?? (() => {});
+      const pluginId = this.actions[currentIndex].pluginId;
+
+      if (
+        typeof currentAction === "string" &&
+        pluginId !== undefined &&
+        SHOULD_WARN_ABOUT_INLINE_TASK_ACTIONS_AND_HOOK_HANDLERS
+      ) {
+        console.warn(
+          `WARNING: Inline task action found in plugin "${pluginId}" for task "${formatTaskId(this.id)}". Use file:// URLs in production.`,
+        );
+      }
+
       const actionFn =
         typeof currentAction === "function"
           ? currentAction
