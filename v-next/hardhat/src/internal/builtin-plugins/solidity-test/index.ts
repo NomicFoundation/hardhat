@@ -17,6 +17,18 @@ const hardhatPlugin: HardhatPlugin = {
       })
       .build(),
   ],
+  dependencies: [
+    async () => {
+      const { default: solidityBuiltinPlugin } = await import(
+        "../solidity/index.js"
+      );
+      return solidityBuiltinPlugin;
+    },
+    async () => {
+      const { default: testBuiltinPlugin } = await import("../test/index.js");
+      return testBuiltinPlugin;
+    },
+  ],
 };
 
 export default hardhatPlugin;
