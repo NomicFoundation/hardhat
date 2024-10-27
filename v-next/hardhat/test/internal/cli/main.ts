@@ -227,7 +227,11 @@ AVAILABLE TASKS:
   console                  Opens a hardhat console
   run                      Runs a user-defined script after compiling the project
   task                     A task that uses arg1
-  test:solidity            Run the Solidity tests
+  test                     Runs all your tests
+
+AVAILABLE SUBTASKS:
+
+  test solidity            Run the Solidity tests
 
 GLOBAL OPTIONS:
 
@@ -274,16 +278,16 @@ Usage: hardhat [GLOBAL OPTIONS] empty-task <SUBTASK> [SUBTASK OPTIONS] [--] [SUB
         it("should print the default values for the task's subtask", async function () {
           let lines: string = "";
 
-          const command = "npx hardhat test subtask --help";
+          const command = "npx hardhat test-task --help";
           const cliArguments = command.split(" ").slice(2);
 
           await main(cliArguments, (msg) => {
             lines = msg;
           });
 
-          const expected = `${chalk.bold("subtask")}
+          const expected = `${chalk.bold("description")}
 
-Usage: hardhat [GLOBAL OPTIONS] test [--opt <STRING>] [--] pos1 [pos2] [var1]
+Usage: hardhat [GLOBAL OPTIONS] test-task [--opt <STRING>] [--] pos1 [pos2] [var1]
 
 OPTIONS:
 
