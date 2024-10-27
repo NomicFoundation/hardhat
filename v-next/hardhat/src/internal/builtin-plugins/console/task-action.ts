@@ -29,9 +29,8 @@ const consoleAction: NewTaskActionFunction<ConsoleActionArguments> = async (
     historyPath = resolveFromRoot(cacheDir, history);
   }
 
-  // If noCompile is false, run the compile task first
   if (!noCompile) {
-    // TODO(#5600): run compile task
+    await hre.tasks.getTask("compile").run({ quiet: true });
   }
 
   return new Promise<REPLServer>(async (resolve) => {

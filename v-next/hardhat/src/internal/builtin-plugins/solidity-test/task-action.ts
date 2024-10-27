@@ -8,10 +8,18 @@ import { getArtifacts, isTestArtifact } from "./helpers.js";
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
 
-const runSolidityTests: NewTaskActionFunction = async ({ timeout }, hre) => {
-  await hre.tasks.getTask("compile").run({ quiet: false });
+interface TestActionArguments {
+  timeout: number;
+  noCompile: boolean;
+}
 
-  console.log("\nRunning Solidity tests...\n");
+const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
+  { timeout, noCompile },
+  hre,
+) => {
+  if (!noCompile) {
+    await hre.tasks.getTask("compile").run({ quiet: true });
+  }
 
   const artifacts = await getArtifacts(hre.artifacts);
   const testSuiteIds = (

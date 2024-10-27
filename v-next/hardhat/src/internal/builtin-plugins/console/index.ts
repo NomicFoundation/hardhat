@@ -14,7 +14,7 @@ const hardhatPlugin: HardhatPlugin = {
       })
       .addFlag({
         name: "noCompile",
-        description: "Don't compile before running this task",
+        description: "Don't compile the project before starting the console",
       })
       .addVariadicArgument({
         name: "commands",

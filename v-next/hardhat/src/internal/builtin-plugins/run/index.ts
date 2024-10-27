@@ -12,7 +12,7 @@ const hardhatPlugin: HardhatPlugin = {
       })
       .addFlag({
         name: "noCompile",
-        description: "Don't compile before running this task",
+        description: "Don't compile the project before running the script",
       })
       .setAction(import.meta.resolve("./task-action.js"))
       .build(),

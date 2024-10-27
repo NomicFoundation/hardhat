@@ -22,6 +22,10 @@ const hardhatPlugin: HardhatPlugin = {
         description: "Only run tests matching the given string or regexp",
         defaultValue: "",
       })
+      .addFlag({
+        name: "noCompile",
+        description: "Don't compile the project before running the test",
+      })
       .setAction(import.meta.resolve("./task-action.js"))
       .build(),
   ],

@@ -15,6 +15,10 @@ const hardhatPlugin: HardhatPlugin = {
         type: ArgumentType.INT,
         defaultValue: 60 * 60 * 1000,
       })
+      .addFlag({
+        name: "noCompile",
+        description: "Don't compile the project before running the tests",
+      })
       .build(),
   ],
   dependencies: [
