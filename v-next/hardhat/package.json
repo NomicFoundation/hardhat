@@ -93,6 +93,8 @@
     "debug": "^4.1.1",
     "enquirer": "^2.3.0",
     "ethereum-cryptography": "^2.2.1",
+    "io-ts": "1.10.4",
+    "micro-eth-signer": "^0.12.0",
     "p-map": "^7.0.2",
     "semver": "^7.6.3",
     "solc": "^0.8.27",

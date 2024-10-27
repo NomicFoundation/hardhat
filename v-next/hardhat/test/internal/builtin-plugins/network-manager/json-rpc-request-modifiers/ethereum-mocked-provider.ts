@@ -15,11 +15,25 @@ export class EthereumMockedProvider
   // Record<methodName, value>
   readonly #returnValues: Record<string, any> = {};
 
+  readonly #latestParams: Record<string, RequestArguments["params"]> = {};
+
   readonly #numberOfCalls: { [method: string]: number } = {};
 
   // If a lambda is passed as value, it's return value is used.
   public setReturnValue(method: string, value: any): void {
     this.#returnValues[method] = value;
+  }
+
+  public getNumberOfCalls(method: string): number {
+    if (this.#numberOfCalls[method] === undefined) {
+      return 0;
+    }
+
+    return this.#numberOfCalls[method];
+  }
+
+  public getLatestParams(method: string): any {
+    return this.#latestParams[method];
   }
 
   public getTotalNumberOfCalls(): number {
@@ -32,6 +46,8 @@ export class EthereumMockedProvider
   }: RequestArguments): Promise<any> {
     // stringify the params to make sure they are serializable
     JSON.stringify(params);
+
+    this.#latestParams[method] = params;
 
     if (this.#numberOfCalls[method] === undefined) {
       this.#numberOfCalls[method] = 1;

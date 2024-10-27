@@ -1512,6 +1512,12 @@ importers:
       ethereum-cryptography:
         specifier: ^2.2.1
         version: 2.2.1
+      io-ts:
+        specifier: 1.10.4
+        version: 1.10.4
+      micro-eth-signer:
+        specifier: ^0.12.0
+        version: 0.12.0
       p-map:
         specifier: ^7.0.2
         version: 7.0.2
@@ -5467,8 +5473,14 @@ packages:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
     engines: {node: '>= 8'}
 
+  micro-eth-signer@0.12.0:
+    resolution: {integrity: sha512-zHKuqXthGRvPjs0lQRSBnDN8E1Ndi09vqAdr7pJctE6wFkkkoHwjqp8RpD/dED2CDN8MoL3g5L/UopXZBNEbBw==}
+
   micro-ftch@0.3.1:
     resolution: {integrity: sha512-/0LLxhzP0tfiR5hcQebtudP56gUurs2CLkGarnCiB/OqEyUFQ6U3paQi/tgLv0hBJYt2rnr9MNpxz4fiiugstg==}
+
+  micro-packed@0.6.3:
+    resolution: {integrity: sha512-VmVkyc7lIzAq/XCPFuLc/CwQ7Ehs5XDK3IwqsZHiBIDttAI9Gs7go6Lv4lNRuAIKrGKcRTtthFKUNyHS0S4wJQ==}
 
   micromatch@4.0.8:
     resolution: {integrity: sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==}
@@ -8071,7 +8083,7 @@ snapshots:
 
   '@types/bn.js@4.11.6':
     dependencies:
-      '@types/node': 18.19.59
+      '@types/node': 20.17.1
 
   '@types/bn.js@5.1.6':
     dependencies:
@@ -8166,7 +8178,7 @@ snapshots:
 
   '@types/pbkdf2@3.1.2':
     dependencies:
-      '@types/node': 18.19.59
+      '@types/node': 20.17.1
 
   '@types/prettier@2.7.3': {}
 
@@ -8181,7 +8193,7 @@ snapshots:
 
   '@types/secp256k1@4.0.6':
     dependencies:
-      '@types/node': 18.19.59
+      '@types/node': 20.17.1
 
   '@types/semver@6.2.7': {}
 
@@ -10570,7 +10582,17 @@ snapshots:
 
   merge2@1.4.1: {}
 
+  micro-eth-signer@0.12.0:
+    dependencies:
+      '@noble/curves': 1.6.0
+      '@noble/hashes': 1.5.0
+      micro-packed: 0.6.3
+
   micro-ftch@0.3.1: {}
+
+  micro-packed@0.6.3:
+    dependencies:
+      '@scure/base': 1.1.9
 
   micromatch@4.0.8:
     dependencies:
