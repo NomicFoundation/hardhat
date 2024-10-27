@@ -68,7 +68,9 @@ export interface Resolver {
    * `<package-name>/<file-path>`.
    * @returns The resolved file.
    */
-  resolveNpmDependencyFile(npmModule: string): Promise<NpmPackageResolvedFile>;
+  resolveNpmDependencyFileAsRoot(
+    npmModule: string,
+  ): Promise<NpmPackageResolvedFile>;
 
   /**
    * Resolves an import.

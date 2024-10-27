@@ -246,7 +246,7 @@ export class ResolverImplementation implements Resolver {
     });
   }
 
-  public async resolveNpmDependencyFile(
+  public async resolveNpmDependencyFileAsRoot(
     npmModule: string,
   ): Promise<NpmPackageResolvedFile> {
     return this.#mutex.exclusiveRun(async () => {
