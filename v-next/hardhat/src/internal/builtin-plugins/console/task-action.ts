@@ -3,7 +3,6 @@ import type { REPLServer } from "node:repl";
 
 import repl from "node:repl";
 
-import { getCacheDir } from "@ignored/hardhat-vnext-utils/global-dir";
 import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 import debug from "debug";
 
@@ -24,8 +23,7 @@ const consoleAction: NewTaskActionFunction<ConsoleActionArguments> = async (
   // Resolve the history path if it is not empty
   let historyPath: string | undefined;
   if (history !== "") {
-    // TODO(#5599): Replace with hre.config.paths.cache once it is available
-    const cacheDir = await getCacheDir();
+    const cacheDir = hre.config.paths.cache;
     historyPath = resolveFromRoot(cacheDir, history);
   }
 
