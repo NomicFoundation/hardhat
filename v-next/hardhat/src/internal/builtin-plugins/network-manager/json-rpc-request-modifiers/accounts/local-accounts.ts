@@ -1,6 +1,6 @@
 import type {
   EthereumProvider,
-  RequestArguments,
+  JsonRpcRequest,
 } from "../../../../../types/providers.js";
 
 import {
@@ -40,17 +40,19 @@ export class LocalAccounts extends ChainId {
     this.#initializePrivateKeys(localAccountsHexPrivateKeys);
   }
 
-  public async resolveRequest(args: RequestArguments): Promise<unknown> {
+  public async resolveRequest(
+    jsonRpcRequest: JsonRpcRequest,
+  ): Promise<unknown> {
     if (
-      args.method === "eth_accounts" ||
-      args.method === "eth_requestAccounts"
+      jsonRpcRequest.method === "eth_accounts" ||
+      jsonRpcRequest.method === "eth_requestAccounts"
     ) {
       return [...this.#addressToPrivateKey.keys()];
     }
 
-    const params = getRequestParams(args);
+    const params = getRequestParams(jsonRpcRequest);
 
-    if (args.method === "eth_sign") {
+    if (jsonRpcRequest.method === "eth_sign") {
       if (params.length > 0) {
         const [address, data] = validateParams(params, rpcAddress, rpcData);
 
@@ -67,7 +69,7 @@ export class LocalAccounts extends ChainId {
       }
     }
 
-    if (args.method === "personal_sign") {
+    if (jsonRpcRequest.method === "personal_sign") {
       if (params.length > 0) {
         const [data, address] = validateParams(params, rpcData, rpcAddress);
 
@@ -84,7 +86,7 @@ export class LocalAccounts extends ChainId {
       }
     }
 
-    if (args.method === "eth_signTypedData_v4") {
+    if (jsonRpcRequest.method === "eth_signTypedData_v4") {
       const [address, data] = validateParams(params, rpcAddress, t.any);
 
       if (data === undefined) {
@@ -114,12 +116,10 @@ export class LocalAccounts extends ChainId {
     return null;
   }
 
-  public async getModifiedRequest(
-    args: RequestArguments,
-  ): Promise<RequestArguments> {
-    const params = getRequestParams(args);
+  public async modifyRequest(jsonRpcRequest: JsonRpcRequest): Promise<void> {
+    const params = getRequestParams(jsonRpcRequest);
 
-    if (args.method === "eth_sendTransaction" && params.length > 0) {
+    if (jsonRpcRequest.method === "eth_sendTransaction" && params.length > 0) {
       const [txRequest] = validateParams(params, rpcTransactionRequest);
 
       if (txRequest.gas === undefined) {
@@ -181,13 +181,9 @@ export class LocalAccounts extends ChainId {
         privateKey,
       );
 
-      return {
-        method: "eth_sendRawTransaction",
-        params: [bytesToHexString(rawTransaction)],
-      };
+      jsonRpcRequest.method = "eth_sendRawTransaction";
+      jsonRpcRequest.params = [bytesToHexString(rawTransaction)];
     }
-
-    return args;
   }
 
   #initializePrivateKeys(localAccountsHexPrivateKeys: string[]) {

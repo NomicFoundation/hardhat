@@ -444,20 +444,20 @@ describe("LocalAccounts", () => {
   // --------------------------------------------------------------------------------
   // --------------------------------------------------------------------------------
 
-  describe("getModifiedRequest", () => {
+  describe("modifyRequest", () => {
     it("Should, given two identical tx, return the same raw transaction", async () => {
-      const modifiedReq = await localAccounts.getModifiedRequest(
-        getJsonRpcRequest(1, "eth_sendTransaction", [
-          {
-            from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-            to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-            gas: numberToHexString(21000),
-            gasPrice: numberToHexString(678912),
-            nonce: numberToHexString(0),
-            value: numberToHexString(1),
-          },
-        ]),
-      );
+      const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
+        {
+          from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+          to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+          gas: numberToHexString(21000),
+          gasPrice: numberToHexString(678912),
+          nonce: numberToHexString(0),
+          value: numberToHexString(1),
+        },
+      ]);
+
+      await localAccounts.modifyRequest(jsonRpcRequest);
 
       // This transaction was submitted to a blockchain and accepted, so the signature must be valid
       const expectedRaw =
@@ -466,7 +466,9 @@ describe("LocalAccounts", () => {
         "adc1a53a3ebe8c4d1f0aa06aebf2fbbe82703e5075965c65c776a9caeeff4b637f203" +
         "d65383e1ed2e22654";
 
-      assert.deepEqual(modifiedReq, {
+      assert.deepEqual(jsonRpcRequest, {
+        jsonrpc: "2.0",
+        id: 1,
         method: "eth_sendRawTransaction",
         params: [expectedRaw],
       });
@@ -486,12 +488,14 @@ describe("LocalAccounts", () => {
 
       const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
 
-      const modifiedReq =
-        await localAccounts.getModifiedRequest(jsonRpcRequest);
+      await localAccounts.modifyRequest(jsonRpcRequest);
 
-      assert.ok(Array.isArray(modifiedReq.params), "params should be an array");
+      assert.ok(
+        Array.isArray(jsonRpcRequest.params),
+        "params should be an array",
+      );
 
-      const rawTransaction = hexStringToBytes(modifiedReq.params[0]);
+      const rawTransaction = hexStringToBytes(jsonRpcRequest.params[0]);
 
       // The tx type is encoded in the first byte, and it must be the EIP-1559 one
       assert.equal(rawTransaction[0], 2);
@@ -518,12 +522,14 @@ describe("LocalAccounts", () => {
 
       const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
 
-      const modifiedReq =
-        await localAccounts.getModifiedRequest(jsonRpcRequest);
+      await localAccounts.modifyRequest(jsonRpcRequest);
 
-      assert.ok(Array.isArray(modifiedReq.params), "params should be an array");
+      assert.ok(
+        Array.isArray(jsonRpcRequest.params),
+        "params should be an array",
+      );
 
-      const rawTransaction = modifiedReq.params[0];
+      const rawTransaction = jsonRpcRequest.params[0];
 
       assert.equal(rawTransaction, EXPECTED_RAW_TX);
 
@@ -550,12 +556,14 @@ describe("LocalAccounts", () => {
 
       const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
 
-      const modifiedReq =
-        await localAccounts.getModifiedRequest(jsonRpcRequest);
+      await localAccounts.modifyRequest(jsonRpcRequest);
 
-      assert.ok(Array.isArray(modifiedReq.params), "params should be an array");
+      assert.ok(
+        Array.isArray(jsonRpcRequest.params),
+        "params should be an array",
+      );
 
-      const rawTransaction = modifiedReq.params[0];
+      const rawTransaction = jsonRpcRequest.params[0];
 
       assert.equal(rawTransaction, EXPECTED_RAW_TX);
 
@@ -573,7 +581,7 @@ describe("LocalAccounts", () => {
         },
       ]);
 
-      await localAccounts.getModifiedRequest(jsonRpcRequest);
+      await localAccounts.modifyRequest(jsonRpcRequest);
 
       assert.equal(
         mockedProvider.getNumberOfCalls("eth_getTransactionCount"),
@@ -592,7 +600,7 @@ describe("LocalAccounts", () => {
       ]);
 
       await assertRejectsWithHardhatError(
-        () => localAccounts.getModifiedRequest(jsonRpcRequest),
+        () => localAccounts.modifyRequest(jsonRpcRequest),
         HardhatError.ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
         { param: "gas" },
       );
@@ -609,7 +617,7 @@ describe("LocalAccounts", () => {
       ]);
 
       await assertRejectsWithHardhatError(
-        () => localAccounts.getModifiedRequest(jsonRpcRequest),
+        () => localAccounts.modifyRequest(jsonRpcRequest),
         HardhatError.ERRORS.NETWORK.MISSING_FEE_PRICE_FIELDS,
         {},
       );
@@ -639,13 +647,13 @@ describe("LocalAccounts", () => {
       ]);
 
       await assertRejectsWithHardhatError(
-        () => localAccounts.getModifiedRequest(jsonRpcRequest1),
+        () => localAccounts.modifyRequest(jsonRpcRequest1),
         HardhatError.ERRORS.NETWORK.INCOMPATIBLE_FEE_PRICE_FIELDS,
         {},
       );
 
       await assertRejectsWithHardhatError(
-        () => localAccounts.getModifiedRequest(jsonRpcRequest2),
+        () => localAccounts.modifyRequest(jsonRpcRequest2),
         HardhatError.ERRORS.NETWORK.INCOMPATIBLE_FEE_PRICE_FIELDS,
         {},
       );
@@ -673,13 +681,13 @@ describe("LocalAccounts", () => {
       ]);
 
       await assertRejectsWithHardhatError(
-        () => localAccounts.getModifiedRequest(jsonRpcRequest1),
+        () => localAccounts.modifyRequest(jsonRpcRequest1),
         HardhatError.ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
         { param: "maxPriorityFeePerGas" },
       );
 
       await assertRejectsWithHardhatError(
-        () => localAccounts.getModifiedRequest(jsonRpcRequest2),
+        () => localAccounts.modifyRequest(jsonRpcRequest2),
         HardhatError.ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
         { param: "maxFeePerGas" },
       );
@@ -698,7 +706,7 @@ describe("LocalAccounts", () => {
       ]);
 
       await assertRejectsWithHardhatError(
-        () => localAccounts.getModifiedRequest(jsonRpcRequest),
+        () => localAccounts.modifyRequest(jsonRpcRequest),
         HardhatError.ERRORS.NETWORK.NOT_LOCAL_ACCOUNT,
         { account: "0x000006d4548a3ac17d72b372ae1e416bf65b8ead" },
       );
