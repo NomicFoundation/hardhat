@@ -7,7 +7,7 @@ import "./type-extensions.js";
 const hardhatPlugin: HardhatPlugin = {
   id: "hardhat-mocha",
   tasks: [
-    task("test", "Runs tests using the Mocha test runner")
+    task(["test", "mocha"], "Runs tests using the Mocha test runner")
       .addVariadicArgument({
         name: "testFiles",
         description: "An optional list of files to test",
