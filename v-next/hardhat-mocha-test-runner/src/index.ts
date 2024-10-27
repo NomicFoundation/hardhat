@@ -5,7 +5,7 @@ import { task } from "@ignored/hardhat-vnext/config";
 import "./type-extensions.js";
 
 const hardhatPlugin: HardhatPlugin = {
-  id: "test",
+  id: "hardhat-mocha",
   tasks: [
     task("test", "Runs tests using the Mocha test runner")
       .addVariadicArgument({

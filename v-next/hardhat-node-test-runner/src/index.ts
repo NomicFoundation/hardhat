@@ -5,7 +5,7 @@ import { task } from "@ignored/hardhat-vnext/config";
 import "./type-extensions.js";
 
 const hardhatPlugin: HardhatPlugin = {
-  id: "test",
+  id: "hardhat-node-test-runner",
   tasks: [
     task("test", "Runs tests using the NodeJS test runner")
       .addVariadicArgument({
