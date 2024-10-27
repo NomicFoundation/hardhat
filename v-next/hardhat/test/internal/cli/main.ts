@@ -135,11 +135,10 @@ describe("main", function () {
     describe("one of the hardhat default task with global flags and arguments", async function () {
       useFixtureProject("cli/parsing/base-project");
 
-      // TODO: update with a real task as soon as they are implemented
-      it.todo("should run one of the hardhat default task", async function () {
+      it("should run one of the hardhat default task", async function () {
         const lines: string[] = [];
 
-        const command = "npx hardhat --show-stack-traces example";
+        const command = "npx hardhat --show-stack-traces clean";
         const cliArguments = command.split(" ").slice(2);
 
         await main(cliArguments, (msg) => {
