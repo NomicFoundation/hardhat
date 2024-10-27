@@ -8,20 +8,23 @@ import { Sender } from "./sender.js";
  * ensuring dynamic selection of the sender for all JSON-RPC requests without requiring manual input.
  */
 export class AutomaticSender extends Sender {
+  #alreadyFetchedAccounts = false;
   #firstAccount: string | undefined;
 
-  protected async getSender(): Promise<string> {
-    if (this.#firstAccount === undefined) {
+  protected async getSender(): Promise<string | undefined> {
+    if (this.#alreadyFetchedAccounts === false) {
       const accounts = await this.provider.request({
         method: "eth_accounts",
       });
 
+      // TODO: This shouldn't be an exception but a failed JSON response!
       assertHardhatInvariant(
-        Array.isArray(accounts) && typeof accounts[0] === "string",
-        "accounts should be an array and accounts[0] should be a string",
+        Array.isArray(accounts),
+        "eth_accounts response should be an array",
       );
 
       this.#firstAccount = accounts[0];
+      this.#alreadyFetchedAccounts = true;
     }
 
     return this.#firstAccount;
