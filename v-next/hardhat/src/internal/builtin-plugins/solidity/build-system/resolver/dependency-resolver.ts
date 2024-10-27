@@ -440,6 +440,24 @@ export class ResolverImplementation implements Resolver {
               ? ""
               : dependency.rootSourceName;
 
+          // If a dependency is being remapped by the user using the same
+          // prefix, we don't want to override it, as it can cause problems
+          // when a file from that dependency is also treated as a root.
+          //
+          // For example, if the user sets this remapping
+          // "forge-std/=npm/forge-std@1.9.4/src/" and for some reason also
+          // compiles "forge-std/src/Test.sol" as a root.
+          //
+          // Without this check, we would have two remappings in the solc input:
+          //    "forge-std/=npm/forge-std@1.9.4/src/"
+          //    "forge-std/=npm/forge-std@1.9.4/"
+          // and the latter would win, leading to a compilation error.
+          if (thePackage === PROJECT_ROOT_SENTINEL) {
+            if (this.#userRemappings.some((r) => r.prefix === prefix)) {
+              continue;
+            }
+          }
+
           remappings.push({ context, prefix, target });
         }
       }
