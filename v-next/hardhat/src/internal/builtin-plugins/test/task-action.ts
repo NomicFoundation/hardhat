@@ -19,7 +19,7 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
     console.log();
   }
 
-  if (process.exitCode !== 0) {
+  if (process.exitCode !== undefined && process.exitCode !== 0) {
     console.error("Test run failed");
   }
 };
