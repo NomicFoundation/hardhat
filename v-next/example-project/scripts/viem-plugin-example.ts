@@ -78,7 +78,7 @@ async function testContracts() {
 
   // this does not work, as dec is not part of the abi
   try {
-    // @ts-error
+    // @ts-ignore
     await counter.write.dec();
   } catch (e) {
     console.error(e);
@@ -86,7 +86,7 @@ async function testContracts() {
 
   // this does not work, as rocket expects a string instead
   // of a number as the first constructor argument
-  // @ts-error
+  // @ts-ignore
   const rocket1 = await networkConnection.viem.deployContract("Rocket", [1n]);
   console.log("Rocket launched at", rocket1.address);
   const rocket1name = await rocket1.read.name();

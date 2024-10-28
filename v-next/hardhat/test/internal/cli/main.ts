@@ -84,6 +84,21 @@ async function getTasksAndSubtaskResults(
   ).tasksResults;
 }
 
+async function runMain(command: string): Promise<string[]> {
+  const lines: string[] = [];
+
+  const cliArguments = command.split(" ").slice(2);
+
+  await main(cliArguments, {
+    print: (message) => {
+      lines.push(message);
+    },
+    rethrowErrors: true,
+  });
+
+  return lines;
+}
+
 describe("main", function () {
   describe("main", function () {
     afterEach(function () {
@@ -94,14 +109,8 @@ describe("main", function () {
       useFixtureProject("cli/parsing/base-project");
 
       it("should print the version and instantly return", async function () {
-        const lines: string[] = [];
-
         const command = "npx hardhat --version";
-        const cliArguments = command.split(" ").slice(2);
-
-        await main(cliArguments, (msg) => {
-          lines.push(msg);
-        });
+        const lines = await runMain(command);
 
         // Get the expected package version
         const expectedVersion = await getHardhatVersion();
@@ -121,9 +130,7 @@ describe("main", function () {
       it("should load the hardhat configuration file from a custom path (--config)", async function () {
         const command =
           "npx hardhat --config ./user-hardhat.config.ts user-task";
-        const cliArguments = command.split(" ").slice(2);
-
-        await main(cliArguments);
+        await runMain(command);
 
         const tasksResults = await getTasksAndSubtaskResults(
           "user-hardhat.config.ts",
@@ -135,16 +142,9 @@ describe("main", function () {
     describe("one of the hardhat default task with global flags and arguments", async function () {
       useFixtureProject("cli/parsing/base-project");
 
-      // TODO: update with a real task as soon as they are implemented
-      it.todo("should run one of the hardhat default task", async function () {
-        const lines: string[] = [];
-
-        const command = "npx hardhat --show-stack-traces example";
-        const cliArguments = command.split(" ").slice(2);
-
-        await main(cliArguments, (msg) => {
-          lines.push(msg);
-        });
+      it("should run one of the hardhat default task", async function () {
+        const command = "npx hardhat --show-stack-traces clean";
+        await runMain(command);
       });
     });
 
@@ -154,9 +154,8 @@ describe("main", function () {
       it("should run the task with global flags and arguments", async function () {
         const command =
           "npx hardhat --show-stack-traces task --arg1 <value1> <value2> <value3>";
-        const cliArguments = command.split(" ").slice(2);
 
-        await main(cliArguments);
+        await runMain(command);
 
         const tasksResults = await getTasksAndSubtaskResults();
         assert.deepEqual(tasksResults.wasArg1Used, true);
@@ -166,9 +165,7 @@ describe("main", function () {
 
       it("should run the task with the default value", async function () {
         const command = "npx hardhat task-default --show-stack-traces";
-        const cliArguments = command.split(" ").slice(2);
-
-        await main(cliArguments);
+        await runMain(command);
 
         const tasksResults = await getTasksAndSubtaskResults();
         assert.deepEqual(tasksResults.wasArg1Used, true);
@@ -179,9 +176,7 @@ describe("main", function () {
       it("should run the subtask with global flags and arguments", async function () {
         const command =
           "npx hardhat task subtask --arg1 <value1> --show-stack-traces <value2> <value3>";
-        const cliArguments = command.split(" ").slice(2);
-
-        await main(cliArguments);
+        await runMain(command);
 
         const tasksResults = await getTasksAndSubtaskResults();
         assert.deepEqual(tasksResults.wasArg1Used, true);
@@ -192,9 +187,7 @@ describe("main", function () {
       it("should run the subtask with the default value", async function () {
         const command =
           "npx hardhat task-default --show-stack-traces subtask-default";
-        const cliArguments = command.split(" ").slice(2);
-
-        await main(cliArguments);
+        await runMain(command);
 
         const tasksResults = await getTasksAndSubtaskResults();
         assert.deepEqual(tasksResults.wasArg1Used, true);
@@ -207,14 +200,8 @@ describe("main", function () {
       useFixtureProject("cli/parsing/base-project");
 
       it("should print the global help", async function () {
-        let lines: string = "";
-
         const command = "npx hardhat";
-        const cliArguments = command.split(" ").slice(2);
-
-        await main(cliArguments, (msg) => {
-          lines = msg;
-        });
+        const lines = await runMain(command);
 
         const expected = `Hardhat version ${await getHardhatVersion()}
 
@@ -227,7 +214,11 @@ AVAILABLE TASKS:
   console                  Opens a hardhat console
   run                      Runs a user-defined script after compiling the project
   task                     A task that uses arg1
-  test:solidity            Run the Solidity tests
+  test                     Runs all your tests
+
+AVAILABLE SUBTASKS:
+
+  test solidity            Run the Solidity tests
 
 GLOBAL OPTIONS:
 
@@ -241,7 +232,7 @@ GLOBAL OPTIONS:
 
 To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
 
-        assert.equal(lines, expected);
+        assert.equal(lines.join(""), expected);
       });
     });
 
@@ -250,21 +241,15 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
         useFixtureProject("cli/parsing/subtask-help");
 
         it("should print an help message for the task's subtask", async function () {
-          let lines: string = "";
-
           const command = "npx hardhat empty-task --help";
-          const cliArguments = command.split(" ").slice(2);
-
-          await main(cliArguments, (msg) => {
-            lines = msg;
-          });
+          const lines = await runMain(command);
 
           const expected = `${chalk.bold("empty task description")}
 
 Usage: hardhat [GLOBAL OPTIONS] empty-task <SUBTASK> [SUBTASK OPTIONS] [--] [SUBTASK POSITIONAL ARGUMENTS]
 `;
 
-          assert.equal(lines, expected);
+          assert.equal(lines.join(""), expected);
         });
       });
 
@@ -272,18 +257,12 @@ Usage: hardhat [GLOBAL OPTIONS] empty-task <SUBTASK> [SUBTASK OPTIONS] [--] [SUB
         useFixtureProject("cli/parsing/default-values");
 
         it("should print the default values for the task's subtask", async function () {
-          let lines: string = "";
+          const command = "npx hardhat test-task --help";
+          const lines = await runMain(command);
 
-          const command = "npx hardhat test subtask --help";
-          const cliArguments = command.split(" ").slice(2);
+          const expected = `${chalk.bold("description")}
 
-          await main(cliArguments, (msg) => {
-            lines = msg;
-          });
-
-          const expected = `${chalk.bold("subtask")}
-
-Usage: hardhat [GLOBAL OPTIONS] test [--opt <STRING>] [--] pos1 [pos2] [var1]
+Usage: hardhat [GLOBAL OPTIONS] test-task [--opt <STRING>] [--] pos1 [pos2] [var1]
 
 OPTIONS:
 
@@ -297,7 +276,7 @@ POSITIONAL ARGUMENTS:
 
 For global options help run: hardhat --help`;
 
-          assert.equal(lines, expected);
+          assert.equal(lines.join(""), expected);
         });
       });
     });
@@ -306,14 +285,8 @@ For global options help run: hardhat --help`;
       useFixtureProject("cli/parsing/base-project");
 
       it("should print an help message for the task", async function () {
-        let lines: string = "";
-
         const command = "npx hardhat task --help";
-        const cliArguments = command.split(" ").slice(2);
-
-        await main(cliArguments, (msg) => {
-          lines = msg;
-        });
+        const lines = await runMain(command);
 
         const expected = `${chalk.bold("A task that uses arg1")}
 
@@ -321,7 +294,7 @@ Usage: hardhat [GLOBAL OPTIONS] task
 
 For global options help run: hardhat --help`;
 
-        assert.equal(lines, expected);
+        assert.equal(lines.join(""), expected);
       });
     });
   });
