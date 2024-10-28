@@ -196,7 +196,7 @@ declare module "../../../../types/config.js" {
     initialDate?: Date;
     coinbase?: string;
     forkConfig?: ForkConfig;
-    forkCachePath?: string;
+    forkCachePath: string;
   }
 
   export type EdrNetworkAccountsConfig =
