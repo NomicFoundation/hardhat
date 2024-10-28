@@ -1,15 +1,15 @@
 import type { ArtifactsManager } from "../../../types/artifacts.js";
-import type { ArtifactId, Artifact } from "@ignored/edr";
+import type { Artifact } from "@ignored/edr";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { exists } from "@ignored/hardhat-vnext-utils/fs";
+import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 
-export async function buildSolidityTestsInput(
+export async function getArtifacts(
   hardhatArtifacts: ArtifactsManager,
-  isTestArtifact: (artifact: Artifact) => boolean = () => true,
-): Promise<{ artifacts: Artifact[]; testSuiteIds: ArtifactId[] }> {
+): Promise<Artifact[]> {
   const fqns = await hardhatArtifacts.getAllFullyQualifiedNames();
   const artifacts: Artifact[] = [];
-  const testSuiteIds: ArtifactId[] = [];
 
   for (const fqn of fqns) {
     const hardhatArtifact = await hardhatArtifacts.readArtifact(fqn);
@@ -38,10 +38,29 @@ export async function buildSolidityTestsInput(
 
     const artifact = { id, contract };
     artifacts.push(artifact);
-    if (isTestArtifact(artifact)) {
-      testSuiteIds.push(artifact.id);
-    }
   }
 
-  return { artifacts, testSuiteIds };
+  return artifacts;
+}
+
+export async function isTestArtifact(
+  root: string,
+  artifact: Artifact,
+): Promise<boolean> {
+  const { source } = artifact.id;
+
+  if (!source.endsWith(".t.sol")) {
+    return false;
+  }
+
+  // NOTE: We also check whether the file exists in the workspace to filter out
+  // the artifacts from node modules.
+  const sourcePath = resolveFromRoot(root, source);
+  const sourceExists = await exists(sourcePath);
+
+  if (!sourceExists) {
+    return false;
+  }
+
+  return true;
 }
