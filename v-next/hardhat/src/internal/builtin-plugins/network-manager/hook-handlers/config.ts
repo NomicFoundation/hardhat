@@ -17,8 +17,11 @@ import type {
 } from "../../../../types/config.js";
 import type { ConfigHooks } from "../../../../types/hooks.js";
 
+import path from "node:path";
+
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { normalizeHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 
 import { validateUserConfig } from "../type-validation.js";
 
@@ -228,6 +231,13 @@ export async function resolveUserConfig(
         gasPrice: resolveGasConfig(networkConfig.gasPrice),
         // TODO: This isn't how it's called in v2
         forkConfig: networkConfig.forkConfig,
+        forkCachePath:
+          networkConfig.forkCachePath !== undefined
+            ? resolveFromRoot(
+                resolvedConfig.paths.root,
+                networkConfig.forkCachePath,
+              )
+            : path.join(resolvedConfig.paths.cache, "edr-cache"),
         hardfork: networkConfig.hardfork ?? "cancun",
         networkId: networkConfig.networkId ?? networkConfig.chainId ?? 31337,
         blockGasLimit: networkConfig.blockGasLimit ?? 12_500_000,
