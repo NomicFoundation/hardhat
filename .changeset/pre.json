@@ -35,6 +35,7 @@
     "template-empty-javascript": "0.0.1",
     "template-empty-typescript": "0.0.1",
     "template-javascript-with-examples": "0.0.1",
+    "template-mocha-ethers": "0.0.1",
     "template-typescript-with-examples": "0.0.1"
   },
   "changesets": [
