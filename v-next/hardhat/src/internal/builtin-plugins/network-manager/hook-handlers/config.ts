@@ -1,6 +1,7 @@
 import type {
   ConfigurationVariable,
   EdrNetworkConfig,
+  EdrNetworkUserConfig,
   GasConfig,
   GasUserConfig,
   HardhatConfig,
@@ -38,8 +39,13 @@ export async function extendUserConfig(
 
   // TODO: we should address this casting when edr is implemented
   const localhostConfig: Omit<HttpNetworkUserConfig, "url"> = {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- currently only http network is supported
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- This is always http
     ...(networks.localhost as HttpNetworkUserConfig),
+  };
+
+  const hardhatConfig: Partial<EdrNetworkUserConfig> = {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- This is always edr
+    ...(networks.hardhat as EdrNetworkUserConfig),
   };
 
   return {
@@ -52,12 +58,12 @@ export async function extendUserConfig(
         type: "http",
       },
       hardhat: {
-        type: "edr",
         chainId: 31337,
-        chainType: "l1",
         gas: "auto",
         gasMultiplier: 1,
         gasPrice: "auto",
+        ...hardhatConfig,
+        type: "edr",
       },
     },
   };
