@@ -1,10 +1,7 @@
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import {
-  assertHardhatInvariant,
-  HardhatError,
-} from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import {
   hexStringToBytes,
   numberToHexString,
@@ -95,10 +92,18 @@ describe("LocalAccounts", () => {
 
       const res = await localAccounts.resolveRequest(jsonRpcRequest);
 
-      assertHardhatInvariant(Array.isArray(res), "res should be an array");
+      assert.ok(res !== null, "res should not be null");
+      assert.ok("result" in res, "res should have the property 'result'");
+      assert.ok(Array.isArray(res.result), "res.result should be an array");
 
-      assert.equal(res[0], addr.fromPrivateKey(accounts[0]).toLowerCase());
-      assert.equal(res[1], addr.fromPrivateKey(accounts[1]).toLowerCase());
+      assert.equal(
+        res.result[0],
+        addr.fromPrivateKey(accounts[0]).toLowerCase(),
+      );
+      assert.equal(
+        res.result[1],
+        addr.fromPrivateKey(accounts[1]).toLowerCase(),
+      );
     });
 
     it("Should return the account addresses in eth_requestAccounts", async () => {
@@ -106,20 +111,28 @@ describe("LocalAccounts", () => {
 
       const res = await localAccounts.resolveRequest(jsonRpcRequest);
 
-      assertHardhatInvariant(Array.isArray(res), "res should be an array");
+      assert.ok(res !== null, "res should not be null");
+      assert.ok("result" in res, "res should have the property 'result'");
+      assert.ok(Array.isArray(res.result), "res.result should be an array");
 
-      assert.equal(res[0], addr.fromPrivateKey(accounts[0]).toLowerCase());
-      assert.equal(res[1], addr.fromPrivateKey(accounts[1]).toLowerCase());
+      assert.equal(
+        res.result[0],
+        addr.fromPrivateKey(accounts[0]).toLowerCase(),
+      );
+      assert.equal(
+        res.result[1],
+        addr.fromPrivateKey(accounts[1]).toLowerCase(),
+      );
     });
 
-    // it("Should forward other methods", async () => {
-    //   const input = [1, 2];
-    //   const jsonRpcRequest = getJsonRpcRequest(1, "eth_sarasa", input);
+    it("Should forward other methods", async () => {
+      const input = [1, 2];
+      const jsonRpcRequest = getJsonRpcRequest(1, "eth_sarasa", input);
 
-    //   await localAccounts.resolveRequest(jsonRpcRequest);
+      const res = await localAccounts.resolveRequest(jsonRpcRequest);
 
-    //   assert.deepEqual(mockedProvider.getLatestParams("eth_sarasa"), input);
-    // });
+      assert.deepEqual(res, null);
+    });
 
     describe("eth_sign", () => {
       it("Should be compatible with parity's implementation", async () => {
@@ -136,13 +149,11 @@ describe("LocalAccounts", () => {
 
         const res = await localAccounts.resolveRequest(jsonRpcRequest);
 
-        assertHardhatInvariant(
-          typeof res === "string",
-          "res should be a string",
-        );
+        assert.ok(res !== null, "res should not be null");
+        assert.ok("result" in res, "res should have the property 'result'");
 
         assert.equal(
-          res,
+          res.result,
           "0x25c349f668c90a890c84aa79a78cf6c74e96483b43ec3ed06aa8aec835477c034aa096e883cc9871aa4ffdffd9f21f6ee4aa4b70f478ad56a18971e4ec2c753e1b",
         );
       });
@@ -160,15 +171,17 @@ describe("LocalAccounts", () => {
 
         const res = await localAccounts.resolveRequest(jsonRpcRequest);
 
-        assertHardhatInvariant(
-          typeof res === "string",
-          "res should be a string",
+        assert.ok(res !== null, "res should not be null");
+        assert.ok("result" in res, "res should have the property 'result'");
+        assert.ok(
+          typeof res.result === "string",
+          "res.result should be a string",
         );
 
         // This test is weird because ganache encodes the v param of the signature
         // differently than the rest. It subtracts 27 from it before serializing.
         assert.equal(
-          res.slice(0, -2),
+          res.result.slice(0, -2),
           "0x84d993fc1b54926db1b6b81544aada29f0f36850a83dc979e8bacfa87e7c7cb11689b2f4ca64697842c42bb7e0cb02dff1851b42e25e62858f27f57bd00ff74b00".slice(
             0,
             -2,
@@ -189,13 +202,11 @@ describe("LocalAccounts", () => {
 
         const res = await localAccounts.resolveRequest(jsonRpcRequest);
 
-        assertHardhatInvariant(
-          typeof res === "string",
-          "res should be a string",
-        );
+        assert.ok(res !== null, "res should not be null");
+        assert.ok("result" in res, "res should have the property 'result'");
 
         assert.equal(
-          res,
+          res.result,
           "0x88c6ac158d40e84f519fbb48b6a1355a31202b684163f637fe5c92cc1109acbe5c79a2dd95a8aecff45756c6fc3b4fc8aef345179605bcead2916dd533fb22651b",
         );
       });
@@ -223,11 +234,14 @@ describe("LocalAccounts", () => {
           },
         );
       });
-      // it("Should just forward if no address is given", async () => {
-      //   const jsonRpcRequest = getJsonRpcRequest(1, "eth_sign");
-      //   await localAccounts.resolveRequest(jsonRpcRequest);
-      //   assert.deepEqual(mockedProvider.getLatestParams("eth_sign"), []);
-      // });
+
+      it("Should just forward if no address is given", async () => {
+        const jsonRpcRequest = getJsonRpcRequest(1, "eth_sign");
+
+        const res = await localAccounts.resolveRequest(jsonRpcRequest);
+
+        assert.deepEqual(res, null);
+      });
     });
 
     describe("eth_signTypedData_v4", () => {
@@ -283,13 +297,11 @@ describe("LocalAccounts", () => {
 
         const res = await localAccounts.resolveRequest(jsonRpcRequest);
 
-        assertHardhatInvariant(
-          typeof res === "string",
-          "res should be a string",
-        );
+        assert.ok(res !== null, "res should not be null");
+        assert.ok("result" in res, "res should have the property 'result'");
 
         assert.equal(
-          res,
+          res.result,
           "0x4355c47d63924e8a72e509b65029052eb6c299d53a04e167c5775fd466751c9d07299936d304c153f6443dfa05f40ff007d72911b6f72307f996231605b915621c",
         );
       });
@@ -343,13 +355,11 @@ describe("LocalAccounts", () => {
 
         const res = await localAccounts.resolveRequest(jsonRpcRequest);
 
-        assertHardhatInvariant(
-          typeof res === "string",
-          "res should be a string",
-        );
+        assert.ok(res !== null, "res should not be null");
+        assert.ok("result" in res, "res should have the property 'result'");
 
         assert.equal(
-          res,
+          res.result,
           "0x4355c47d63924e8a72e509b65029052eb6c299d53a04e167c5775fd466751c9d07299936d304c153f6443dfa05f40ff007d72911b6f72307f996231605b915621c",
         );
       });
@@ -379,17 +389,16 @@ describe("LocalAccounts", () => {
         );
       });
 
-      // it("Should just forward if the address isn't one of the local ones", async () => {
-      //   const jsonRpcRequest = getJsonRpcRequest(1, "eth_signTypedData_v4", [
-      //     "0x000006d4548a3ac17d72b372ae1e416bf65b8ead",
-      //     {},
-      //   ]);
-      //   await localAccounts.resolveRequest(jsonRpcRequest);
-      //   assert.deepEqual(mockedProvider.getLatestParams("eth_signTypedData_v4"), [
-      //     "0x000006d4548a3ac17d72b372ae1e416bf65b8ead",
-      //     {},
-      //   ]);
-      // });
+      it("Should just forward if the address isn't one of the local ones", async () => {
+        const jsonRpcRequest = getJsonRpcRequest(1, "eth_signTypedData_v4", [
+          "0x000006d4548a3ac17d72b372ae1e416bf65b8ead",
+          {},
+        ]);
+
+        const res = await localAccounts.resolveRequest(jsonRpcRequest);
+
+        assert.deepEqual(res, null);
+      });
     });
 
     describe("personal_sign", () => {
@@ -405,13 +414,12 @@ describe("LocalAccounts", () => {
         ]);
 
         const res = await localAccounts.resolveRequest(jsonRpcRequest);
-        assertHardhatInvariant(
-          typeof res === "string",
-          "res should be a string",
-        );
+
+        assert.ok(res !== null, "res should not be null");
+        assert.ok("result" in res, "res should have the property 'result'");
 
         assert.equal(
-          res,
+          res.result,
           "0x9c73dd4937a37eecab3abb54b74b6ec8e500080431d36afedb1726624587ee6710296e10c1194dded7376f13ff03ef6c9e797eb86bae16c20c57776fc69344271c",
         );
       });
@@ -428,21 +436,17 @@ describe("LocalAccounts", () => {
         ]);
 
         const res = await localAccounts.resolveRequest(jsonRpcRequest);
-        assertHardhatInvariant(
-          typeof res === "string",
-          "res should be a string",
-        );
+
+        assert.ok(res !== null, "res should not be null");
+        assert.ok("result" in res, "res should have the property 'result'");
 
         assert.equal(
-          res,
+          res.result,
           "0x2875e4206c9fe3b229291c81f95cc4f421e2f4d3e023f5b4041daa56ab4000977010b47a3c01036ec8a6a0872aec2ab285150f003d01b0d8da60c1cceb9154181c",
         );
       });
     });
   });
-
-  // --------------------------------------------------------------------------------
-  // --------------------------------------------------------------------------------
 
   describe("modifyRequest", () => {
     it("Should, given two identical tx, return the same raw transaction", async () => {
@@ -710,6 +714,41 @@ describe("LocalAccounts", () => {
         HardhatError.ERRORS.NETWORK.NOT_LOCAL_ACCOUNT,
         { account: "0x000006d4548a3ac17d72b372ae1e416bf65b8ead" },
       );
+    });
+
+    it("Should not modify the json rpc request other methods", async () => {
+      const input = [1, 2];
+      const originalJsonRpcRequest = getJsonRpcRequest(1, "eth_sarasa", input);
+
+      const jsonRpcRequest = { ...originalJsonRpcRequest };
+
+      await localAccounts.modifyRequest(jsonRpcRequest);
+
+      assert.deepEqual(jsonRpcRequest, originalJsonRpcRequest);
+    });
+
+    it("Should not modify the json rpc request if no address is given", async () => {
+      const originalJsonRpcRequest = getJsonRpcRequest(1, "eth_sign");
+
+      const jsonRpcRequest = { ...originalJsonRpcRequest };
+
+      await localAccounts.modifyRequest(jsonRpcRequest);
+
+      assert.deepEqual(jsonRpcRequest, originalJsonRpcRequest);
+    });
+
+    it("Should not modify the json rpc request if the address isn't one of the local ones", async () => {
+      const originalJsonRpcRequest = getJsonRpcRequest(
+        1,
+        "eth_signTypedData_v4",
+        ["0x000006d4548a3ac17d72b372ae1e416bf65b8ead", {}],
+      );
+
+      const jsonRpcRequest = { ...originalJsonRpcRequest };
+
+      await localAccounts.modifyRequest(jsonRpcRequest);
+
+      assert.deepEqual(jsonRpcRequest, originalJsonRpcRequest);
     });
   });
 });

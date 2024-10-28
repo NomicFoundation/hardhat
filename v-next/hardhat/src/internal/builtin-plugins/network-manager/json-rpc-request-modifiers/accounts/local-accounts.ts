@@ -1,6 +1,7 @@
 import type {
   EthereumProvider,
   JsonRpcRequest,
+  JsonRpcResponse,
 } from "../../../../../types/providers.js";
 
 import {
@@ -42,12 +43,14 @@ export class LocalAccounts extends ChainId {
 
   public async resolveRequest(
     jsonRpcRequest: JsonRpcRequest,
-  ): Promise<unknown> {
+  ): Promise<JsonRpcResponse | null> {
     if (
       jsonRpcRequest.method === "eth_accounts" ||
       jsonRpcRequest.method === "eth_requestAccounts"
     ) {
-      return [...this.#addressToPrivateKey.keys()];
+      return this.#createJsonRpcResponse(jsonRpcRequest.id, [
+        ...this.#addressToPrivateKey.keys(),
+      ]);
     }
 
     const params = getRequestParams(jsonRpcRequest);
@@ -64,7 +67,10 @@ export class LocalAccounts extends ChainId {
           }
 
           const privateKey = this.#getPrivateKeyForAddress(address);
-          return typed.personal.sign(data, privateKey);
+          return this.#createJsonRpcResponse(
+            jsonRpcRequest.id,
+            typed.personal.sign(data, privateKey),
+          );
         }
       }
     }
@@ -81,7 +87,10 @@ export class LocalAccounts extends ChainId {
           }
 
           const privateKey = this.#getPrivateKeyForAddress(address);
-          return typed.personal.sign(data, privateKey);
+          return this.#createJsonRpcResponse(
+            jsonRpcRequest.id,
+            typed.personal.sign(data, privateKey),
+          );
         }
       }
     }
@@ -109,7 +118,10 @@ export class LocalAccounts extends ChainId {
       // if we don't manage the address, the method is forwarded
       const privateKey = this.#getPrivateKeyForAddressOrNull(address);
       if (privateKey !== null) {
-        return signTyped(typedMessage, privateKey);
+        return this.#createJsonRpcResponse(
+          jsonRpcRequest.id,
+          signTyped(typedMessage, privateKey),
+        );
       }
     }
 
@@ -299,5 +311,16 @@ export class LocalAccounts extends ChainId {
     const signedTransaction = transaction.signBy(privateKey);
 
     return signedTransaction.toRawBytes();
+  }
+
+  #createJsonRpcResponse(
+    id: number | string,
+    result: unknown,
+  ): JsonRpcResponse {
+    return {
+      jsonrpc: "2.0",
+      id,
+      result,
+    };
   }
 }

@@ -1,15 +1,22 @@
+import type { JsonRpcResponse } from "../../../../../../../src/types/providers.js";
+
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import {
-  assertHardhatInvariant,
-  HardhatError,
-} from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { HDWallet } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc-request-modifiers/accounts/hd-wallet.js";
 import { getJsonRpcRequest } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
 import { EthereumMockedProvider } from "../../ethereum-mocked-provider.js";
+
+function getResult(res: JsonRpcResponse | null): string[] {
+  assert.ok(res !== null, "res should not be null");
+  assert.ok("result" in res, "res should have the property 'result'");
+  assert.ok(Array.isArray(res.result), "res.result should be an array");
+
+  return res.result;
+}
 
 describe("HDWallet", () => {
   let hdWallet: HDWallet;
@@ -30,9 +37,9 @@ describe("HDWallet", () => {
 
     const res = await hdWallet.resolveRequest(jsonRpcRequest);
 
-    assertHardhatInvariant(Array.isArray(res), "res should be an array");
+    const result = getResult(res);
 
-    assert.equal(res[0], "0x4f3e91d2cacd82fffd1f33a0d26d4078401986e9");
+    assert.equal(result[0], "0x4f3e91d2cacd82fffd1f33a0d26d4078401986e9");
   });
 
   it("should generate a valid address with passphrase", async () => {
@@ -51,9 +58,9 @@ describe("HDWallet", () => {
 
     const res = await hdWallet.resolveRequest(jsonRpcRequest);
 
-    assertHardhatInvariant(Array.isArray(res), "res should be an array");
+    const result = getResult(res);
 
-    assert.equal(res[0], "0x6955b833d195e49c07fc56fbf0ec387325facb87");
+    assert.equal(result[0], "0x6955b833d195e49c07fc56fbf0ec387325facb87");
   });
 
   it("should generate a valid address when given a different index", async () => {
@@ -63,9 +70,9 @@ describe("HDWallet", () => {
 
     const res = await hdWallet.resolveRequest(jsonRpcRequest);
 
-    assertHardhatInvariant(Array.isArray(res), "res should be an array");
+    const result = getResult(res);
 
-    assert.equal(res[0], "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d");
+    assert.equal(result[0], "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d");
   });
 
   it("should generate 2 accounts", async () => {
@@ -75,9 +82,9 @@ describe("HDWallet", () => {
 
     const res = await hdWallet.resolveRequest(jsonRpcRequest);
 
-    assertHardhatInvariant(Array.isArray(res), "res should be an array");
+    const result = getResult(res);
 
-    assert.deepEqual(res, [
+    assert.deepEqual(result, [
       "0x4f3e91d2cacd82fffd1f33a0d26d4078401986e9",
       "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d",
     ]);
@@ -91,9 +98,9 @@ describe("HDWallet", () => {
 
       const res = await hdWallet.resolveRequest(jsonRpcRequest);
 
-      assertHardhatInvariant(Array.isArray(res), "res should be an array");
+      const result = getResult(res);
 
-      assert.equal(res[0], "0x4f3e91d2cacd82fffd1f33a0d26d4078401986e9");
+      assert.equal(result[0], "0x4f3e91d2cacd82fffd1f33a0d26d4078401986e9");
     });
 
     it("Should throw if the path is invalid", () => {
