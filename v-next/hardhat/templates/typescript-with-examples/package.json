@@ -2,7 +2,7 @@
   "name": "template-typescript-with-examples",
   "private": true,
   "version": "0.0.1",
-  "description": "A TypeScrpit Hardhat project with examples",
+  "description": "A TypeScript Hardhat project with examples",
   "type": "module",
   "devDependencies": {
     "@ignored/hardhat-vnext": "workspace:^3.0.0-next.5",
