@@ -32,6 +32,7 @@
     "./request": "./dist/src/request.js",
     "./resolve": "./dist/src/resolve.js",
     "./string": "./dist/src/string.js",
+    "./stream": "./dist/src/stream.js",
     "./subprocess": "./dist/src/subprocess.js"
   },
   "keywords": [

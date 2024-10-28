@@ -4,6 +4,8 @@ import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
 import { finished } from "node:stream/promises";
 
+import { createNonClosingWriter } from "@ignored/hardhat-vnext-utils/stream";
+
 import { getArtifacts, isTestArtifact } from "./helpers.js";
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
@@ -53,19 +55,18 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     })
     .compose(testReporter);
 
-  testReporterStream.pipe(process.stdout);
+  const outputStream = testReporterStream.pipe(
+    createNonClosingWriter(process.stdout),
+  );
 
   try {
     // NOTE: We're awaiting the original run stream to finish to catch any
     // errors produced by the runner.
     await finished(runStream);
 
-    // We also await the test reporter stream to finish to catch any error, and
+    // We also await the output stream to finish, as we want to wait for it
     // to avoid returning before the whole output was generated.
-    //
-    // NOTE: We don't await the restult of piping it to stdout, as that is
-    // ignored.
-    await finished(testReporterStream);
+    await finished(outputStream);
   } catch (error) {
     console.error(error);
     includesErrors = true;
