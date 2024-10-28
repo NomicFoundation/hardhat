@@ -1,4 +1,4 @@
-import type { HardhatUserConfig } from "@ignored/hardhat-vnext/types/config";
+import type { HardhatUserConfig } from "@ignored/hardhat-vnext/config";
 
 import { HardhatPluginError } from "@ignored/hardhat-vnext/plugins";
 

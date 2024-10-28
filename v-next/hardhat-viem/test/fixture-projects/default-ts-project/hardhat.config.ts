@@ -1,4 +1,4 @@
-import type { HardhatUserConfig } from "@ignored/hardhat-vnext/types/config";
+import type { HardhatUserConfig } from "@ignored/hardhat-vnext/config";
 
 import HardhatViem from "../../../src/index.js";
 
