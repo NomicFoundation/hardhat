@@ -4,7 +4,7 @@ import { ArgumentType } from "../../../types/arguments.js";
 import { task } from "../../core/config.js";
 
 const hardhatPlugin: HardhatPlugin = {
-  id: "builtin:solidity-test",
+  id: "builtin:solidity-tests",
   tasks: [
     task(["test:solidity"], "Run the Solidity tests")
       .setAction(import.meta.resolve("./task-action.js"))

@@ -3,7 +3,7 @@ import type { HardhatPlugin } from "../../../types/plugins.js";
 import { task } from "../../core/config.js";
 
 const hardhatPlugin: HardhatPlugin = {
-  id: "console",
+  id: "builtin:console",
   tasks: [
     task("console", "Opens a hardhat console")
       .setAction(import.meta.resolve("./task-action.js"))

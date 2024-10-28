@@ -8,7 +8,7 @@ import "./type-extensions/hooks.js";
 import "./type-extensions/hre.js";
 
 const hardhatPlugin: HardhatPlugin = {
-  id: "network-manager",
+  id: "builtin:network-manager",
   hookHandlers: {
     config: import.meta.resolve("./hook-handlers/config.js"),
     hre: import.meta.resolve("./hook-handlers/hre.js"),

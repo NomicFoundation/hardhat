@@ -3,7 +3,7 @@ import type { HardhatPlugin } from "../../../types/plugins.js";
 import { task } from "../../core/config.js";
 
 const hardhatPlugin: HardhatPlugin = {
-  id: "run",
+  id: "builtin:run",
   tasks: [
     task("run", "Runs a user-defined script after compiling the project")
       .addPositionalArgument({
