@@ -2,12 +2,13 @@ import type { RunOptions } from "./runner.js";
 import type { TestEvent } from "./types.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
-import { finished, pipeline } from "node:stream/promises";
+import { finished } from "node:stream/promises";
+
+import { createNonClosingWriter } from "@ignored/hardhat-vnext-utils/stream";
 
 import { getArtifacts, isTestArtifact } from "./helpers.js";
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
-import { createNonClosingWriter } from "@ignored/hardhat-vnext-utils/stream";
 
 interface TestActionArguments {
   timeout: number;
