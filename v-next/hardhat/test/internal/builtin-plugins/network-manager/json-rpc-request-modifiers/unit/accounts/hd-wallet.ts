@@ -91,7 +91,7 @@ describe("HDWallet", () => {
   });
 
   describe("HDPath formatting", () => {
-    it("Should work if it doesn't end in a /", async () => {
+    it("should work if it doesn't end in a /", async () => {
       hdWallet = new HDWallet(mockedProvider, mnemonic, "m/44'/60'/0'/0");
 
       const jsonRpcRequest = getJsonRpcRequest(1, "eth_accounts");
@@ -103,7 +103,7 @@ describe("HDWallet", () => {
       assert.equal(result[0], "0x4f3e91d2cacd82fffd1f33a0d26d4078401986e9");
     });
 
-    it("Should throw if the path is invalid", () => {
+    it("should throw if the path is invalid", () => {
       assertThrowsHardhatError(
         () => new HDWallet(mockedProvider, mnemonic, ""),
         HardhatError.ERRORS.NETWORK.INVALID_HD_PATH,

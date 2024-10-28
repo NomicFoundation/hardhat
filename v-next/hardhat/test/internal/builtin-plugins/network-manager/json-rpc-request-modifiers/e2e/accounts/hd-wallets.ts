@@ -46,7 +46,7 @@ describe("e2e - HDWallet", () => {
     ]);
   });
 
-  it("Should throw if the path is invalid", async () => {
+  it("should throw if the path is invalid", async () => {
     connection.networkConfig.accounts = {
       ...HD_ACCOUNT,
       path: "m/",

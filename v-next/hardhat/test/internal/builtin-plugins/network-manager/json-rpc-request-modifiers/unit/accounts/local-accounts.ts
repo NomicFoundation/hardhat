@@ -87,7 +87,7 @@ describe("LocalAccounts", () => {
   });
 
   describe("resolveRequest", () => {
-    it("Should return the account addresses in eth_accounts", async () => {
+    it("should return the account addresses in eth_accounts", async () => {
       const jsonRpcRequest = getJsonRpcRequest(1, "eth_accounts");
 
       const res = await localAccounts.resolveRequest(jsonRpcRequest);
@@ -106,7 +106,7 @@ describe("LocalAccounts", () => {
       );
     });
 
-    it("Should return the account addresses in eth_requestAccounts", async () => {
+    it("should return the account addresses in eth_requestAccounts", async () => {
       const jsonRpcRequest = getJsonRpcRequest(1, "eth_requestAccounts");
 
       const res = await localAccounts.resolveRequest(jsonRpcRequest);
@@ -125,7 +125,7 @@ describe("LocalAccounts", () => {
       );
     });
 
-    it("Should forward other methods", async () => {
+    it("should forward other methods", async () => {
       const input = [1, 2];
       const jsonRpcRequest = getJsonRpcRequest(1, "eth_sarasa", input);
 
@@ -135,7 +135,7 @@ describe("LocalAccounts", () => {
     });
 
     describe("eth_sign", () => {
-      it("Should be compatible with parity's implementation", async () => {
+      it("should be compatible with parity's implementation", async () => {
         // This test was created by using Parity Ethereum
         // v2.2.5-beta-7fbcdfeed-20181213 and calling eth_sign
         localAccounts = new LocalAccounts(mockedProvider, [
@@ -158,7 +158,7 @@ describe("LocalAccounts", () => {
         );
       });
 
-      it("Should be compatible with ganache-cli's implementation", async () => {
+      it("should be compatible with ganache-cli's implementation", async () => {
         // This test was created by using Ganache CLI v6.1.6 (ganache-core: 2.1.5)
         localAccounts = new LocalAccounts(mockedProvider, [
           "0xf159c85082f4dd4ee472583a37a1b5683c727ec99708f3d94ff05faa7a7a70ce",
@@ -189,7 +189,7 @@ describe("LocalAccounts", () => {
         );
       });
 
-      it("Should be compatible with geth's implementation", async () => {
+      it("should be compatible with geth's implementation", async () => {
         // This test was created by using Geth 1.8.20-stable
         localAccounts = new LocalAccounts(mockedProvider, [
           "0xf2d19e944851ea0faa9440e24a22ddab850210cae46b306a3fde4c98b22a0dcb",
@@ -211,7 +211,7 @@ describe("LocalAccounts", () => {
         );
       });
 
-      it("Should throw if no data is given", async () => {
+      it("should throw if no data is given", async () => {
         const jsonRpcRequest = getJsonRpcRequest(1, "eth_sign", [
           addr.fromPrivateKey(accounts[0]),
         ]);
@@ -220,7 +220,7 @@ describe("LocalAccounts", () => {
         await assert.rejects(localAccounts.resolveRequest(jsonRpcRequest));
       });
 
-      it("Should throw if the address isn't one of the local ones", async () => {
+      it("should throw if the address isn't one of the local ones", async () => {
         const jsonRpcRequest = getJsonRpcRequest(1, "eth_sign", [
           "0x000006d4548a3ac17d72b372ae1e416bf65b8ead",
           "0x00",
@@ -235,7 +235,7 @@ describe("LocalAccounts", () => {
         );
       });
 
-      it("Should just forward if no address is given", async () => {
+      it("should just forward if no address is given", async () => {
         const jsonRpcRequest = getJsonRpcRequest(1, "eth_sign");
 
         const res = await localAccounts.resolveRequest(jsonRpcRequest);
@@ -245,7 +245,7 @@ describe("LocalAccounts", () => {
     });
 
     describe("eth_signTypedData_v4", () => {
-      it("Should be compatible with EIP-712 example", async () => {
+      it("should be compatible with EIP-712 example", async () => {
         // This test was taken from the `eth_signTypedData` example from the
         // EIP-712 specification.
         // <https://eips.ethereum.org/EIPS/eip-712#eth_signtypeddata>
@@ -306,7 +306,7 @@ describe("LocalAccounts", () => {
         );
       });
 
-      it("Should be compatible with stringified JSON input", async () => {
+      it("should be compatible with stringified JSON input", async () => {
         localAccounts = new LocalAccounts(mockedProvider, [
           // keccak256("cow")
           "0xc85ef7d79691fe79573b1a7064c19c1a9819ebdbd1faaab1a8ec92344438aaf4",
@@ -364,7 +364,7 @@ describe("LocalAccounts", () => {
         );
       });
 
-      it("Should throw if data string input is not JSON", async () => {
+      it("should throw if data string input is not JSON", async () => {
         const jsonRpcRequest = getJsonRpcRequest(1, "eth_signTypedData_v4", [
           "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
           "}thisisnotvalidjson{",
@@ -377,7 +377,7 @@ describe("LocalAccounts", () => {
         );
       });
 
-      it("Should throw if no data is given", async () => {
+      it("should throw if no data is given", async () => {
         const jsonRpcRequest = getJsonRpcRequest(1, "eth_signTypedData_v4", [
           addr.fromPrivateKey(accounts[0]),
         ]);
@@ -389,7 +389,7 @@ describe("LocalAccounts", () => {
         );
       });
 
-      it("Should just forward if the address isn't one of the local ones", async () => {
+      it("should just forward if the address isn't one of the local ones", async () => {
         const jsonRpcRequest = getJsonRpcRequest(1, "eth_signTypedData_v4", [
           "0x000006d4548a3ac17d72b372ae1e416bf65b8ead",
           {},
@@ -402,7 +402,7 @@ describe("LocalAccounts", () => {
     });
 
     describe("personal_sign", () => {
-      it("Should be compatible with geth's implementation", async () => {
+      it("should be compatible with geth's implementation", async () => {
         // This test was created by using Geth 1.10.12-unstable and calling personal_sign
         localAccounts = new LocalAccounts(mockedProvider, [
           "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
@@ -424,7 +424,7 @@ describe("LocalAccounts", () => {
         );
       });
 
-      it("Should be compatible with metamask's implementation", async () => {
+      it("should be compatible with metamask's implementation", async () => {
         // This test was created by using Metamask 10.3.0
         localAccounts = new LocalAccounts(mockedProvider, [
           "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
@@ -449,7 +449,7 @@ describe("LocalAccounts", () => {
   });
 
   describe("modifyRequest", () => {
-    it("Should, given two identical tx, return the same raw transaction", async () => {
+    it("should, given two identical tx, return the same raw transaction", async () => {
       const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
         {
           from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
@@ -574,7 +574,7 @@ describe("LocalAccounts", () => {
       validateRawEIP2930Transaction(tx);
     });
 
-    it("Should get the nonce if not provided", async () => {
+    it("should get the nonce if not provided", async () => {
       const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
         {
           from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
@@ -593,7 +593,7 @@ describe("LocalAccounts", () => {
       );
     });
 
-    it("Should throw when calling sendTransaction without gas", async () => {
+    it("should throw when calling sendTransaction without gas", async () => {
       const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
         {
           from: addr.fromPrivateKey(accounts[0]),
@@ -610,7 +610,7 @@ describe("LocalAccounts", () => {
       );
     });
 
-    it("Should throw when calling sendTransaction without gasPrice, maxFeePerGas and maxPriorityFeePerGas", async () => {
+    it("should throw when calling sendTransaction without gasPrice, maxFeePerGas and maxPriorityFeePerGas", async () => {
       const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
         {
           from: addr.fromPrivateKey(accounts[0]),
@@ -627,7 +627,7 @@ describe("LocalAccounts", () => {
       );
     });
 
-    it("Should throw when calling sendTransaction with gasPrice and EIP1559 fields", async function () {
+    it("should throw when calling sendTransaction with gasPrice and EIP1559 fields", async () => {
       const jsonRpcRequest1 = getJsonRpcRequest(1, "eth_sendTransaction", [
         {
           from: addr.fromPrivateKey(accounts[0]),
@@ -663,7 +663,7 @@ describe("LocalAccounts", () => {
       );
     });
 
-    it("Should throw when only one EIP1559 field is provided", async function () {
+    it("should throw when only one EIP1559 field is provided", async () => {
       const jsonRpcRequest1 = getJsonRpcRequest(1, "eth_sendTransaction", [
         {
           from: addr.fromPrivateKey(accounts[0]),
@@ -697,7 +697,7 @@ describe("LocalAccounts", () => {
       );
     });
 
-    it("Should throw if trying to send from an account that isn't local", async () => {
+    it("should throw if trying to send from an account that isn't local", async () => {
       const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
         {
           from: "0x000006d4548a3ac17d72b372ae1e416bf65b8ead",
@@ -716,7 +716,7 @@ describe("LocalAccounts", () => {
       );
     });
 
-    it("Should not modify the json rpc request other methods", async () => {
+    it("should not modify the json rpc request for other methods", async () => {
       const input = [1, 2];
       const originalJsonRpcRequest = getJsonRpcRequest(1, "eth_sarasa", input);
 
@@ -727,7 +727,7 @@ describe("LocalAccounts", () => {
       assert.deepEqual(jsonRpcRequest, originalJsonRpcRequest);
     });
 
-    it("Should not modify the json rpc request if no address is given", async () => {
+    it("should not modify the json rpc request if no address is given", async () => {
       const originalJsonRpcRequest = getJsonRpcRequest(1, "eth_sign");
 
       const jsonRpcRequest = { ...originalJsonRpcRequest };
@@ -737,7 +737,7 @@ describe("LocalAccounts", () => {
       assert.deepEqual(jsonRpcRequest, originalJsonRpcRequest);
     });
 
-    it("Should not modify the json rpc request if the address isn't one of the local ones", async () => {
+    it("should not modify the json rpc request if the address isn't one of the local ones", async () => {
       const originalJsonRpcRequest = getJsonRpcRequest(
         1,
         "eth_signTypedData_v4",
