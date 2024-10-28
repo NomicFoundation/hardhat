@@ -5,6 +5,6 @@
   "description": "An empty JavaScript Hardhat project",
   "type": "module",
   "devDependencies": {
-    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.4"
+    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.5"
   }
 }
