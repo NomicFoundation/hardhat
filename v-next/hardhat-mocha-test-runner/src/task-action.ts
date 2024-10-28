@@ -52,6 +52,10 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
   const files = await getTestFiles(testFiles, hre.config);
 
+  if (files.length === 0) {
+    return;
+  }
+
   const tsx = fileURLToPath(import.meta.resolve("tsx/esm"));
   process.env.NODE_OPTIONS = `--import ${tsx}`;
 
@@ -80,6 +84,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     );
   }
   testsAlreadyRun = true;
+
+  console.log("Running Mocha tests");
 
   // This instructs Mocha to use the more verbose file loading infrastructure
   // which supports both ESM and CJS

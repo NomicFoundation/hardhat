@@ -1,9 +1,5 @@
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
-import chalk from "chalk";
-
-import { formatTaskId } from "../../core/tasks/utils.js";
-
 interface TestActionArguments {
   noCompile: boolean;
 }
@@ -19,9 +15,6 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   for (const subtask of thisTask.subtasks.values()) {
-    console.log(
-      chalk.bold(`Running the subtask "${formatTaskId(subtask.id)}"`),
-    );
     await subtask.run({ noCompile: true });
     console.log();
   }
