@@ -2,7 +2,6 @@
 "@ignored/hardhat-vnext-errors": patch
 "@ignored/hardhat-vnext-utils": patch
 "@ignored/hardhat-vnext": patch
-"@ignored/hardhat-vnext-build-system": major
 "@ignored/hardhat-vnext-ethers": major
 "@ignored/hardhat-vnext-keystore": major
 "@ignored/hardhat-vnext-mocha-test-runner": major
