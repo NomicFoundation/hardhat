@@ -5,7 +5,7 @@
   "description": "A JavaScript Hardhat project with examples",
   "type": "module",
   "devDependencies": {
-    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.5",
-    "@ignored/hardhat-vnext-node-test-runner": "workspace:^3.0.0-next.1"
+    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.6",
+    "@ignored/hardhat-vnext-node-test-runner": "workspace:^3.0.0-next.2"
   }
 }
