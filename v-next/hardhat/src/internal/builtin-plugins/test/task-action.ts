@@ -8,7 +8,7 @@ interface TestActionArguments {
   noCompile: boolean;
 }
 
-const runScriptWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
+const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
   { noCompile },
   hre,
 ) => {
@@ -31,4 +31,4 @@ const runScriptWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   }
 };
 
-export default runScriptWithHardhat;
+export default runAllTests;
