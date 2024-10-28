@@ -1447,7 +1447,7 @@ importers:
         specifier: workspace:^3.0.0-next.0
         version: link:../hardhat-viem
       '@openzeppelin/contracts':
-        specifier: ^5.1.0
+        specifier: 5.1.0
         version: 5.1.0
       '@types/mocha':
         specifier: '>=9.1.0'
@@ -1455,12 +1455,18 @@ importers:
       '@types/node':
         specifier: ^20.14.9
         version: 20.17.1
+      forge-std:
+        specifier: foundry-rs/forge-std#v1.9.4
+        version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       mocha:
         specifier: ^10.0.0
         version: 10.7.3
       prettier:
         specifier: 3.2.5
         version: 3.2.5
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.10
       typescript:
         specifier: ~5.5.0
         version: 5.5.4
@@ -4736,6 +4742,10 @@ packages:
   foreground-child@3.3.0:
     resolution: {integrity: sha512-Ld2g8rrAyMYFXBhEqMz8ZAHBi4J4uS1i/CxGMDnjyFWddMXLVcDp051DZfu+t7+ab7Wv6SMqpWmyFIj5UbfFvg==}
     engines: {node: '>=14'}
+
+  forge-std@https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262:
+    resolution: {tarball: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262}
+    version: 1.9.4
 
   form-data@2.5.2:
     resolution: {integrity: sha512-GgwY0PS7DbXqajuGf4OYlsrIu3zgxD6Vvql43IBhm6MahqA5SK/7mwhtNj2AdH2z35YR34ujJ7BN+3fFC3jP5Q==}
@@ -9816,6 +9826,8 @@ snapshots:
     dependencies:
       cross-spawn: 7.0.3
       signal-exit: 4.1.0
+
+  forge-std@https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262: {}
 
   form-data@2.5.2:
     dependencies:

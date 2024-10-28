@@ -51,12 +51,6 @@ const exampleTaskOverride = task("example2")
   })
   .build();
 
-const testSolidityTask = task(["test", "solidity"], "Runs Solidity tests")
-  .setAction(async () => {
-    console.log("Running Solidity tests");
-  })
-  .build();
-
 const greeting = task("hello", "Prints a greeting")
   .addOption({
     name: "greeting",
@@ -114,7 +108,6 @@ const pluginExample = {
 const config: HardhatUserConfig = {
   tasks: [
     exampleTaskOverride,
-    testSolidityTask,
     exampleEmptyTask,
     exampleEmptySubtask,
     greeting,
@@ -125,8 +118,7 @@ const config: HardhatUserConfig = {
     pluginExample,
     hardhatEthersPlugin,
     HardhatKeystore,
-    // HardhatMochaTestRunner,
-    // if testing node plugin, use the following line instead
+    HardhatMochaTestRunner,
     hardhatNetworkHelpersPlugin,
     HardhatNodeTestRunner,
     HardhatViem,
@@ -162,7 +154,11 @@ const config: HardhatUserConfig = {
       },
     },
     dependenciesToCompile: ["@openzeppelin/contracts/token/ERC20/ERC20.sol"],
-    remappings: ["remapped/=npm/@openzeppelin/contracts@5.1.0/access/"],
+    remappings: [
+      "remapped/=npm/@openzeppelin/contracts@5.1.0/access/",
+      // This is necessary because most people import forge-std/Test.sol, and not forge-std/src/Test.sol
+      "forge-std/=npm/forge-std@1.9.4/src/",
+    ],
   },
 };
 

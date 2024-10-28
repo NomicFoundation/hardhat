@@ -14,7 +14,7 @@ interface RunActionArguments {
 
 const runScriptWithHardhat: NewTaskActionFunction<RunActionArguments> = async (
   { script, noCompile },
-  _hre,
+  hre,
 ) => {
   const normalizedPath = resolveFromRoot(process.cwd(), script);
 
@@ -26,7 +26,7 @@ const runScriptWithHardhat: NewTaskActionFunction<RunActionArguments> = async (
   }
 
   if (!noCompile) {
-    // TODO(#5600): run compile task
+    await hre.tasks.getTask("compile").run({ quiet: true });
   }
 
   try {
