@@ -78,7 +78,7 @@ declare module "../../../../types/config.js" {
 
   export interface EdrNetworkUserConfig {
     type: "edr";
-    chainId: number;
+    chainId?: number;
     chainType?: ChainType;
     from?: string;
     gas?: GasUserConfig;

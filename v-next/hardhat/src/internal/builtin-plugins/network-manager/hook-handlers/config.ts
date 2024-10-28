@@ -220,7 +220,7 @@ export async function resolveUserConfig(
     if (networkConfig.type === "edr") {
       const resolvedNetworkConfig: EdrNetworkConfig = {
         type: "edr",
-        chainId: networkConfig.chainId,
+        chainId: networkConfig.chainId ?? 31337,
         chainType: networkConfig.chainType,
         from: networkConfig.from,
         gas: resolveGasConfig(networkConfig.gas),
@@ -229,7 +229,7 @@ export async function resolveUserConfig(
         // TODO: This isn't how it's called in v2
         forkConfig: networkConfig.forkConfig,
         hardfork: networkConfig.hardfork ?? "cancun",
-        networkId: networkConfig.networkId ?? networkConfig.chainId,
+        networkId: networkConfig.networkId ?? networkConfig.chainId ?? 31337,
         blockGasLimit: networkConfig.blockGasLimit ?? 12_500_000,
         minGasPrice: BigInt(networkConfig.minGasPrice ?? 0),
         automine: networkConfig.automine ?? true,
