@@ -2,12 +2,13 @@ import type { HardhatConfig } from "@ignored/hardhat-vnext/types/config";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 import type { LastParameter } from "@ignored/hardhat-vnext/types/utils";
 
-import { finished } from "node:stream/promises";
+import { pipeline } from "node:stream/promises";
 import { run } from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { hardhatTestReporter } from "@ignored/hardhat-vnext-node-test-reporter";
 import { getAllFilesMatching } from "@ignored/hardhat-vnext-utils/fs";
+import { createNonClosingWriter } from "@ignored/hardhat-vnext-utils/stream";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -92,9 +93,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
       })
       .compose(customReporter);
 
-    reporterStream.pipe(process.stdout);
-
-    await finished(reporterStream);
+    await pipeline(reporterStream, createNonClosingWriter(process.stdout));
 
     return failures;
   }
