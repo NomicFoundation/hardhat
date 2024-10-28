@@ -35,6 +35,10 @@ describe("clients", () => {
       assert.equal(client.type, "publicClient");
       assert.equal(client.chain.id, 1);
       expectTypeOf(client).toEqualTypeOf<PublicClient>();
+      // L2 actions should not be available
+      expectTypeOf(client).not.toHaveProperty("buildDepositTransaction");
+      // default actions should be available
+      expectTypeOf(client).toHaveProperty("getBalance");
     });
 
     it("should return a public client extended with L2 actions for Optimism", async () => {
@@ -44,6 +48,10 @@ describe("clients", () => {
       assert.equal(client.type, "publicClient");
       assert.equal(client.chain.id, 10);
       expectTypeOf(client).toEqualTypeOf<OpPublicClient>();
+      // L2 actions should be available
+      expectTypeOf(client).toHaveProperty("buildDepositTransaction");
+      // default actions should be available
+      expectTypeOf(client).toHaveProperty("getBalance");
     });
 
     it("should return a public client with custom parameters", async () => {
@@ -96,6 +104,10 @@ describe("clients", () => {
         assert.equal(client.type, "walletClient");
         assert.equal(client.chain.id, 1);
         expectTypeOf(client).toEqualTypeOf<WalletClient>();
+        // L2 actions should not be available
+        expectTypeOf(client).not.toHaveProperty("initiateWithdrawal");
+        // default actions should be available
+        expectTypeOf(client).toHaveProperty("sendTransaction");
       });
       assert.equal(clients[0].account.address, "0x123");
       assert.equal(clients[1].account.address, "0x456");
@@ -118,6 +130,10 @@ describe("clients", () => {
         assert.equal(client.type, "walletClient");
         assert.equal(client.chain.id, 10);
         expectTypeOf(client).toEqualTypeOf<OpWalletClient>();
+        // L2 actions should be available
+        expectTypeOf(client).toHaveProperty("initiateWithdrawal");
+        // default actions should be available
+        expectTypeOf(client).toHaveProperty("sendTransaction");
       });
       assert.equal(clients[0].account.address, "0x123");
       assert.equal(clients[1].account.address, "0x456");
@@ -210,6 +226,10 @@ describe("clients", () => {
       assert.equal(client.chain.id, 1);
       assert.equal(client.account.address, "0x123");
       expectTypeOf(client).toEqualTypeOf<WalletClient>();
+      // L2 actions should not be available
+      expectTypeOf(client).not.toHaveProperty("initiateWithdrawal");
+      // default actions should be available
+      expectTypeOf(client).toHaveProperty("sendTransaction");
     });
 
     it("should return a wallet client extended with L2 actions for Optimism", async () => {
@@ -222,6 +242,10 @@ describe("clients", () => {
       assert.equal(client.chain.id, 10);
       assert.equal(client.account.address, "0x123");
       expectTypeOf(client).toEqualTypeOf<OpWalletClient>();
+      // L2 actions should be available
+      expectTypeOf(client).toHaveProperty("initiateWithdrawal");
+      // default actions should be available
+      expectTypeOf(client).toHaveProperty("sendTransaction");
     });
 
     it("should return a wallet client with custom parameters", async () => {
