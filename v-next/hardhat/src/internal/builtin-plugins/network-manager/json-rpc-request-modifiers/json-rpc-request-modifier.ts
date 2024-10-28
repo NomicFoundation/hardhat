@@ -5,14 +5,21 @@ import type {
 import type {
   EthereumProvider,
   JsonRpcRequest,
+  JsonRpcResponse,
 } from "../../../../types/providers.js";
-import type { NetworkConfig } from "@ignored/hardhat-vnext/types/config";
+import type {
+  HDAccountsUserConfig,
+  HttpNetworkAccountsUserConfig,
+  NetworkConfig,
+} from "@ignored/hardhat-vnext/types/config";
 
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 import { deepClone } from "@ignored/hardhat-vnext-utils/lang";
 
 import { AutomaticSender } from "./accounts/automatic-sender-provider.js";
 import { FixedSender } from "./accounts/fixed-sender-provider.js";
+import { HDWallet } from "./accounts/hd-wallet.js";
+import { LocalAccounts } from "./accounts/local-accounts.js";
 import { ChainIdValidator } from "./chain-id/chain-id-validator.js";
 import { AutomaticGasPrice } from "./gas-properties/automatic-gas-price.js";
 import { AutomaticGas } from "./gas-properties/automatic-gas.js";
@@ -20,16 +27,22 @@ import { FixedGasPrice } from "./gas-properties/fixed-gas-price.js";
 import { FixedGas } from "./gas-properties/fixed-gas.js";
 import { isHttpNetworkConfig } from "./utils.js";
 
+// TODO:update docs for 'resolve' logic
+
 /**
  * This class modifies JSON-RPC requests for transactions based on network configurations.
  * It handles gas, gas price, chain ID validation, and account management to ensure correct transaction parameters.
  * The request is cloned to avoid interfering with other handlers.
  */
+
+// TODO: rename
 export class JsonRpcRequestModifier {
   readonly #provider: EthereumProvider;
   readonly #networkConfig: NetworkConfig;
 
   // accounts
+  #localAccounts: LocalAccounts | undefined;
+  #hdWallet: HDWallet | undefined;
   #automaticSender: AutomaticSender | undefined;
   #fixedSender: FixedSender | undefined;
 
@@ -47,6 +60,39 @@ export class JsonRpcRequestModifier {
   constructor(nextNetworkConnection: NetworkConnection<ChainType | string>) {
     this.#provider = nextNetworkConnection.provider;
     this.#networkConfig = nextNetworkConnection.networkConfig;
+  }
+
+  // TODO: docs
+  public async getResponse(
+    jsonRpcRequest: JsonRpcRequest,
+  ): Promise<JsonRpcResponse | null> {
+    if (isHttpNetworkConfig(this.#networkConfig)) {
+      const accounts = this.#networkConfig.accounts;
+
+      if (Array.isArray(accounts)) {
+        if (this.#localAccounts === undefined) {
+          this.#localAccounts = new LocalAccounts(this.#provider, accounts);
+        }
+
+        return this.#localAccounts.resolveRequest(jsonRpcRequest);
+      } else if (this.#isHDAccountsConfig(accounts)) {
+        if (this.#hdWallet === undefined) {
+          this.#hdWallet = new HDWallet(
+            this.#provider,
+            accounts.mnemonic,
+            accounts.path,
+            accounts.initialIndex,
+            accounts.count,
+            accounts.passphrase,
+          );
+        }
+
+        // TODO: does it modify? check
+        return this.#hdWallet.resolveRequest(jsonRpcRequest);
+      }
+    }
+
+    return null;
   }
 
   public async createModifiedJsonRpcRequest(
@@ -67,6 +113,34 @@ export class JsonRpcRequestModifier {
   }
 
   async #modifyAccountsIfNeeded(jsonRpcRequest: JsonRpcRequest): Promise<void> {
+    if (isHttpNetworkConfig(this.#networkConfig)) {
+      const accounts = this.#networkConfig.accounts;
+
+      if (Array.isArray(accounts)) {
+        if (this.#localAccounts === undefined) {
+          this.#localAccounts = new LocalAccounts(this.#provider, accounts);
+        }
+
+        await this.#localAccounts.modifyRequest(jsonRpcRequest);
+      } else if (this.#isHDAccountsConfig(accounts)) {
+        if (this.#hdWallet === undefined) {
+          this.#hdWallet = new HDWallet(
+            this.#provider,
+            accounts.mnemonic,
+            accounts.path,
+            accounts.initialIndex,
+            accounts.count,
+            accounts.passphrase,
+          );
+        }
+
+        // TODO: does it modify? check
+        await this.#hdWallet.modifyRequest(jsonRpcRequest);
+      }
+
+      // TODO: Add some extension mechanism for account plugins here
+    }
+
     if (this.#networkConfig.from !== undefined) {
       if (this.#fixedSender === undefined) {
         this.#fixedSender = new FixedSender(
@@ -167,5 +241,11 @@ export class JsonRpcRequestModifier {
 
       await this.#chainIdValidator.validate();
     }
+  }
+
+  #isHDAccountsConfig(
+    accounts?: HttpNetworkAccountsUserConfig,
+  ): accounts is HDAccountsUserConfig {
+    return accounts !== undefined && Object.keys(accounts).includes("mnemonic");
   }
 }
