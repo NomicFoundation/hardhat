@@ -24,8 +24,8 @@ const HD_ACCOUNT_PASSPHRASE_MSG = `${ACCOUNTS_ERROR} the "passphrase" property o
 const HD_ACCOUNT_BALANCE_MSG = `${ACCOUNTS_ERROR} the "balance" property of the HD account must be a string`;
 
 const chainTypeSchema = unionType(
-  [z.literal("l1"), z.literal("optimism"), z.literal("unknown")],
-  "Expected 'l1', 'optimism', or 'unknown'",
+  [z.literal("l1"), z.literal("optimism"), z.literal("generic")],
+  "Expected 'l1', 'optimism', or 'generic'",
 );
 
 const userGasSchema = conditionalUnionType(

@@ -1,6 +1,7 @@
 import type { NetworkHooks } from "../../../../src/types/hooks.js";
 import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 import type {
+  GenericChainType,
   NetworkConnection,
   NetworkManager,
 } from "../../../../src/types/network.js";
@@ -66,7 +67,7 @@ describe("NetworkManagerImplementation", () => {
     hre = await createHardhatRuntimeEnvironment({});
     networkManager = new NetworkManagerImplementation(
       "localhost",
-      "unknown",
+      "generic",
       networks,
       hre.hooks,
     );
@@ -76,14 +77,14 @@ describe("NetworkManagerImplementation", () => {
     it("should connect to the default network and chain type if none are provided", async () => {
       const networkConnection = await networkManager.connect();
       assert.equal(networkConnection.networkName, "localhost");
-      assert.equal(networkConnection.chainType, "unknown");
+      assert.equal(networkConnection.chainType, "generic");
       assert.deepEqual(networkConnection.networkConfig, networks.localhost);
     });
 
     it("should connect to the specified network and default chain type if none are provided and the network doesn't have a chain type", async () => {
       const networkConnection = await networkManager.connect("customNetwork");
       assert.equal(networkConnection.networkName, "customNetwork");
-      assert.equal(networkConnection.chainType, "unknown");
+      assert.equal(networkConnection.chainType, "generic");
       assert.deepEqual(networkConnection.networkConfig, networks.customNetwork);
     });
 
@@ -198,7 +199,7 @@ describe("NetworkManagerImplementation", () => {
       it("should create a NetworkConnection with the default chain type when no chain type is provided", async () => {
         const networkConnection = await networkManager.connect("localhost");
         expectTypeOf(networkConnection).toEqualTypeOf<
-          NetworkConnection<"unknown">
+          NetworkConnection<GenericChainType>
         >();
       });
 

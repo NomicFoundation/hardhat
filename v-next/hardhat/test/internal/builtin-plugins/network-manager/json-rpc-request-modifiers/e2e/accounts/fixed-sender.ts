@@ -1,4 +1,7 @@
-import type { NetworkConnection } from "../../../../../../../src/types/network.js";
+import type {
+  GenericChainType,
+  NetworkConnection,
+} from "../../../../../../../src/types/network.js";
 
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
@@ -12,7 +15,7 @@ import { createMockedNetworkHre } from "../../hooks-mock.js";
 // are correctly modified in the "onRequest" hook handler.
 // These tests simulate a real scenario where the user calls "await connection.provider.request(jsonRpcRequest)".
 describe("e2e - FixedSender", () => {
-  let connection: NetworkConnection<"unknown">;
+  let connection: NetworkConnection<GenericChainType>;
 
   beforeEach(async () => {
     const hre = await createMockedNetworkHre();

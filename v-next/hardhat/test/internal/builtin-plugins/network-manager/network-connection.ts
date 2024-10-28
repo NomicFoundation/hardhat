@@ -42,7 +42,7 @@ describe("NetworkConnectionImplementation", () => {
       const networkConnection = await NetworkConnectionImplementation.create(
         1,
         "localhost",
-        "unknown",
+        "generic",
         localhostNetworkConfig,
         closeConnection,
         createProvider,
@@ -50,7 +50,7 @@ describe("NetworkConnectionImplementation", () => {
 
       assert.equal(networkConnection.id, 1);
       assert.equal(networkConnection.networkName, "localhost");
-      assert.equal(networkConnection.chainType, "unknown");
+      assert.equal(networkConnection.chainType, "generic");
       assert.deepEqual(networkConnection.networkConfig, localhostNetworkConfig);
       assert.deepEqual(networkConnection.provider, expectedProvider);
     });

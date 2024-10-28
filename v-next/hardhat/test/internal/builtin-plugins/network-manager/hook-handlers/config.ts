@@ -93,7 +93,7 @@ describe("network-manager/hook-handlers/config", () => {
   describe("validateUserConfig", () => {
     it("should pass if the config is valid", async () => {
       const config: HardhatUserConfig = {
-        defaultChainType: "unknown",
+        defaultChainType: "generic",
         defaultNetwork: "localhost",
         networks: {
           localhost: {
@@ -133,7 +133,7 @@ describe("network-manager/hook-handlers/config", () => {
       );
       assert.equal(
         validationErrors[0].message,
-        "Expected 'l1', 'optimism', or 'unknown'",
+        "Expected 'l1', 'optimism', or 'generic'",
       );
     });
 
@@ -265,7 +265,7 @@ describe("network-manager/hook-handlers/config", () => {
       );
       assert.equal(
         validationErrors[0].message,
-        "Expected 'l1', 'optimism', or 'unknown'",
+        "Expected 'l1', 'optimism', or 'generic'",
       );
     });
 
@@ -1071,7 +1071,7 @@ describe("network-manager/hook-handlers/config", () => {
         next,
       );
 
-      assert.equal(resolvedConfig.defaultChainType, "unknown");
+      assert.equal(resolvedConfig.defaultChainType, "generic");
       assert.equal(resolvedConfig.defaultNetwork, "hardhat");
       assert.deepEqual(resolvedConfig.networks, {
         localhost: {
@@ -1094,7 +1094,7 @@ describe("network-manager/hook-handlers/config", () => {
       const userConfig: HardhatUserConfig = {
         // To change the defaultChainType, we need to augment the Hardhat types.
         // Since this can't be done for a single test, we'll leave this untested.
-        defaultChainType: "unknown",
+        defaultChainType: "generic",
         defaultNetwork: "myNetwork",
         networks: {
           myNetwork: {
@@ -1131,7 +1131,7 @@ describe("network-manager/hook-handlers/config", () => {
         next,
       );
 
-      assert.equal(resolvedConfig.defaultChainType, "unknown");
+      assert.equal(resolvedConfig.defaultChainType, "generic");
       assert.equal(resolvedConfig.defaultNetwork, "myNetwork");
       assert.deepEqual(resolvedConfig.networks, {
         myNetwork: {
