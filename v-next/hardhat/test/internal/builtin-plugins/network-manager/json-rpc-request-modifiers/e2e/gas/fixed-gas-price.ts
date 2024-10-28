@@ -3,7 +3,6 @@ import type { NetworkConnection } from "../../../../../../../src/types/network.j
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import { getJsonRpcRequest } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
@@ -37,7 +36,7 @@ describe("e2e - FixedGasPrice", () => {
 
     const res = await connection.provider.request(jsonRpcRequest);
 
-    assertHardhatInvariant(Array.isArray(res), "res should be an array");
+    assert.ok(Array.isArray(res), "res should be an array");
 
     assert.equal(res[0].gasPrice, numberToHexString(FIXED_GAS_PRICE));
   });

@@ -11,6 +11,8 @@ import type { NetworkConfig } from "@ignored/hardhat-vnext/types/config";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 import { deepClone } from "@ignored/hardhat-vnext-utils/lang";
 
+import { AutomaticSender } from "./accounts/automatic-sender-provider.js";
+import { FixedSender } from "./accounts/fixed-sender-provider.js";
 import { ChainIdValidator } from "./chain-id/chain-id-validator.js";
 import { AutomaticGasPrice } from "./gas-properties/automatic-gas-price.js";
 import { AutomaticGas } from "./gas-properties/automatic-gas.js";
@@ -26,6 +28,10 @@ import { isHttpNetworkConfig } from "./utils.js";
 export class JsonRpcRequestModifier {
   readonly #provider: EthereumProvider;
   readonly #networkConfig: NetworkConfig;
+
+  // accounts
+  #automaticSender: AutomaticSender | undefined;
+  #fixedSender: FixedSender | undefined;
 
   // chainId
   #chainIdValidator: ChainIdValidator | undefined;
@@ -51,11 +57,32 @@ export class JsonRpcRequestModifier {
     // The "newJsonRpcRequest" inside this class is modified by reference.
     const newJsonRpcRequest = await deepClone(jsonRpcRequest);
 
+    await this.#modifyAccountsIfNeeded(newJsonRpcRequest);
+
     await this.#modifyGasAndGasPriceIfNeeded(newJsonRpcRequest);
 
     await this.#validateChainIdIfNeeded(newJsonRpcRequest);
 
     return newJsonRpcRequest;
+  }
+
+  async #modifyAccountsIfNeeded(jsonRpcRequest: JsonRpcRequest): Promise<void> {
+    if (this.#networkConfig.from !== undefined) {
+      if (this.#fixedSender === undefined) {
+        this.#fixedSender = new FixedSender(
+          this.#provider,
+          this.#networkConfig.from,
+        );
+      }
+
+      await this.#fixedSender.modifyRequest(jsonRpcRequest);
+    } else {
+      if (this.#automaticSender === undefined) {
+        this.#automaticSender = new AutomaticSender(this.#provider);
+      }
+
+      await this.#automaticSender.modifyRequest(jsonRpcRequest);
+    }
   }
 
   async #modifyGasAndGasPriceIfNeeded(
@@ -87,18 +114,16 @@ export class JsonRpcRequestModifier {
       this.#networkConfig.gasPrice === undefined ||
       this.#networkConfig.gasPrice === "auto"
     ) {
-      // If you use a LocalAccountsProvider or HDWalletProvider, your transactions
-      // are signed locally. This requires having all of their fields available,
-      // including the gasPrice / maxFeePerGas & maxPriorityFeePerGas.
+      // If you use a hook handler that signs locally, you are required to
+      // have all the transaction fields available, including the
+      // gasPrice / maxFeePerGas & maxPriorityFeePerGas.
       //
-      // We never use those providers when using Hardhat Network, but sign within
-      // Hardhat Network itself. This means that we don't need to provide all the
+      // We never use those when using EDR Network, as we sign within the
+      // EDR Network itself. This means that we don't need to provide all the
       // fields, as the missing ones will be resolved there.
       //
-      // Hardhat Network handles this in a more performant way, so we don't use
-      // the AutomaticGasPrice for it unless there are provider extenders.
-      // The reason for this is that some extenders (like hardhat-ledger's) might
-      // do the signing themselves, and that needs the gas price to be set.
+      // EDR Network handles this in a more performant way, so we don't use
+      // the AutomaticGasPrice for it.
       if (isHttpNetworkConfig(this.#networkConfig)) {
         if (this.#automaticGasPrice === undefined) {
           this.#automaticGasPrice = new AutomaticGasPrice(this.#provider);
