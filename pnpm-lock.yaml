@@ -1512,9 +1512,6 @@ importers:
       ethereum-cryptography:
         specifier: ^2.2.1
         version: 2.2.1
-      io-ts:
-        specifier: 1.10.4
-        version: 1.10.4
       micro-eth-signer:
         specifier: ^0.12.0
         version: 0.12.0
