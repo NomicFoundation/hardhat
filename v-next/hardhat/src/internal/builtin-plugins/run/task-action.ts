@@ -3,7 +3,6 @@ import type { NewTaskActionFunction } from "../../../types/tasks.js";
 import { pathToFileURL } from "node:url";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import { exists } from "@ignored/hardhat-vnext-utils/fs";
 import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 
