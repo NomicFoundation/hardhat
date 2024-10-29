@@ -27,15 +27,12 @@ import { FixedGasPrice } from "./gas-properties/fixed-gas-price.js";
 import { FixedGas } from "./gas-properties/fixed-gas.js";
 import { isHttpNetworkConfig } from "./utils.js";
 
-// TODO:update docs for 'resolve' logic
-
 /**
  * This class modifies JSON-RPC requests for transactions based on network configurations.
- * It handles gas, gas price, chain ID validation, and account management to ensure correct transaction parameters.
- * The request is cloned to avoid interfering with other handlers.
+ * It manages parameters such as gas, gas price, chain ID validation, and account details to ensure accurate transaction settings.
+ * Additionally, for certain "accounts" scenarios, it can return a response directly.
+ * Requests are cloned to prevent interference with other handlers.
  */
-
-// TODO: rename
 export class JsonRpcRequestModifier {
   readonly #provider: EthereumProvider;
   readonly #networkConfig: NetworkConfig;
@@ -62,7 +59,13 @@ export class JsonRpcRequestModifier {
     this.#networkConfig = nextNetworkConnection.networkConfig;
   }
 
-  // TODO: docs
+  /**
+   * Processes a JSON-RPC request and conditionally returns a JSON-RPC response if the request matches
+   * specific conditions.
+   *
+   * @param {JsonRpcRequest} jsonRpcRequest - The JSON-RPC request to be processed.
+   * @returns {Promise<JsonRpcResponse | null>} - Returns a JSON-RPC response if the conditions are met, or null otherwise.
+   */
   public async getResponse(
     jsonRpcRequest: JsonRpcRequest,
   ): Promise<JsonRpcResponse | null> {
@@ -87,7 +90,6 @@ export class JsonRpcRequestModifier {
           );
         }
 
-        // TODO: does it modify? check
         return this.#hdWallet.resolveRequest(jsonRpcRequest);
       }
     }
@@ -95,6 +97,14 @@ export class JsonRpcRequestModifier {
     return null;
   }
 
+  /**
+   * Creates a modified copy of a JSON-RPC request by cloning the original and applying changes
+   * based on account, gas, gas price, and chain ID configurations if the request matches
+   * specific conditions.
+   *
+   * @param {JsonRpcRequest} jsonRpcRequest - The JSON-RPC request to be cloned and modified.
+   * @returns {Promise<JsonRpcRequest>} - A modified JSON-RPC request based on the current configurations.
+   */
   public async createModifiedJsonRpcRequest(
     jsonRpcRequest: JsonRpcRequest,
   ): Promise<JsonRpcRequest> {
@@ -134,11 +144,8 @@ export class JsonRpcRequestModifier {
           );
         }
 
-        // TODO: does it modify? check
         await this.#hdWallet.modifyRequest(jsonRpcRequest);
       }
-
-      // TODO: Add some extension mechanism for account plugins here
     }
 
     if (this.#networkConfig.from !== undefined) {

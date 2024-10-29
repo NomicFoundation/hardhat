@@ -57,6 +57,6 @@ export function validateParams<TypesT extends ReadonlyArray<ZodType<any>>>(
     decoded.push(res);
   }
 
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TypeScript can't infer the complex return type
   return decoded as any;
 }
