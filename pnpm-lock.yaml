@@ -2353,7 +2353,7 @@ importers:
         specifier: ^8.0.1
         version: 8.0.1
       '@types/mocha':
-        specifier: '>=9.1.0'
+        specifier: ^10.0.0
         version: 10.0.9
       chai:
         specifier: ^4.4.1
