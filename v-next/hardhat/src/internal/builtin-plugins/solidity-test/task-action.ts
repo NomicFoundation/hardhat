@@ -81,8 +81,9 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   if (includesFailures || includesErrors) {
     process.exitCode = 1;
-    return;
   }
+
+  console.log();
 };
 
 export default runSolidityTests;

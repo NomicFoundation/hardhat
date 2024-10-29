@@ -111,6 +111,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     process.exitCode = 1;
   }
 
+  console.log();
+
   return testFailures;
 };
 
