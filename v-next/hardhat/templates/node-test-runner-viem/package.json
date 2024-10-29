@@ -1,0 +1,15 @@
+{
+  "name": "template-node-test-runner-viem",
+  "private": true,
+  "version": "0.0.1",
+  "description": "A Typescript Hardhat project using Node Test Runner and Viem",
+  "type": "module",
+  "devDependencies": {
+    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.6",
+    "@ignored/hardhat-vnext-viem": "workspace:^3.0.0-next.1",
+    "@ignored/hardhat-vnext-node-test-runner": "workspace:^3.0.0-next.2",
+    "@ignored/hardhat-vnext-network-helpers": "workspace:^3.0.0-next.2",
+    "typescript": "~5.5.0",
+    "viem": "^2.21.17"
+  }
+}

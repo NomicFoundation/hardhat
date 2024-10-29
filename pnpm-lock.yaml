@@ -2359,16 +2359,16 @@ importers:
   v-next/hardhat/templates/mocha-ethers:
     devDependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.5
+        specifier: workspace:^3.0.0-next.6
         version: link:../..
       '@ignored/hardhat-vnext-ethers':
-        specifier: workspace:^3.0.0-next.1
+        specifier: workspace:^3.0.0-next.2
         version: link:../../../hardhat-ethers
       '@ignored/hardhat-vnext-mocha-test-runner':
-        specifier: workspace:^3.0.0-next.1
+        specifier: workspace:^3.0.0-next.2
         version: link:../../../hardhat-mocha-test-runner
       '@ignored/hardhat-vnext-network-helpers':
-        specifier: workspace:^3.0.0-next.1
+        specifier: workspace:^3.0.0-next.2
         version: link:../../../hardhat-network-helpers
       '@types/chai':
         specifier: ^4.2.0
@@ -2391,6 +2391,27 @@ importers:
       typescript:
         specifier: ~5.5.0
         version: 5.5.4
+
+  v-next/hardhat/templates/node-test-runner-viem:
+    devDependencies:
+      '@ignored/hardhat-vnext':
+        specifier: workspace:^3.0.0-next.6
+        version: link:../..
+      '@ignored/hardhat-vnext-network-helpers':
+        specifier: workspace:^3.0.0-next.2
+        version: link:../../../hardhat-network-helpers
+      '@ignored/hardhat-vnext-node-test-runner':
+        specifier: workspace:^3.0.0-next.2
+        version: link:../../../hardhat-node-test-runner
+      '@ignored/hardhat-vnext-viem':
+        specifier: workspace:^3.0.0-next.1
+        version: link:../../../hardhat-viem
+      typescript:
+        specifier: ~5.5.0
+        version: 5.5.4
+      viem:
+        specifier: ^2.21.17
+        version: 2.21.35(typescript@5.5.4)(zod@3.23.8)
 
   v-next/hardhat/templates/typescript-with-examples:
     devDependencies:
