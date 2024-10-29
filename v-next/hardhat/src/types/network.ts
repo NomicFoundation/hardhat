@@ -48,7 +48,9 @@ export interface NetworkManager {
   ): Promise<NetworkConnection<ChainTypeT>>;
 }
 
-export interface NetworkConnection<ChainTypeT extends ChainType | string> {
+export interface NetworkConnection<
+  ChainTypeT extends ChainType | string = DefaultChainType,
+> {
   readonly id: number;
   readonly networkName: string;
   readonly networkConfig: NetworkConfig;
