@@ -2332,30 +2332,6 @@ importers:
         specifier: ^3.23.8
         version: 3.23.8
 
-  v-next/hardhat/templates/empty-javascript:
-    devDependencies:
-      '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.6
-        version: link:../..
-
-  v-next/hardhat/templates/empty-typescript:
-    devDependencies:
-      '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.6
-        version: link:../..
-      typescript:
-        specifier: ~5.5.0
-        version: 5.5.4
-
-  v-next/hardhat/templates/javascript-with-examples:
-    devDependencies:
-      '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.6
-        version: link:../..
-      '@ignored/hardhat-vnext-node-test-runner':
-        specifier: workspace:^3.0.0-next.2
-        version: link:../../../hardhat-node-test-runner
-
   v-next/hardhat/templates/mocha-ethers:
     devDependencies:
       '@ignored/hardhat-vnext':
@@ -2418,18 +2394,6 @@ importers:
       viem:
         specifier: ^2.21.17
         version: 2.21.35(typescript@5.5.4)(zod@3.23.8)
-
-  v-next/hardhat/templates/typescript-with-examples:
-    devDependencies:
-      '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.6
-        version: link:../..
-      '@ignored/hardhat-vnext-node-test-runner':
-        specifier: workspace:^3.0.0-next.2
-        version: link:../../../hardhat-node-test-runner
-      typescript:
-        specifier: ~5.5.0
-        version: 5.5.4
 
   v-next/template-package:
     devDependencies:
