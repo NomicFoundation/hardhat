@@ -12,8 +12,7 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./dist/src/index.js",
-    "./load-fixture": "./dist/src/load-fixture.js"
+    ".": "./dist/src/index.js"
   },
   "keywords": [
     "ethereum",
