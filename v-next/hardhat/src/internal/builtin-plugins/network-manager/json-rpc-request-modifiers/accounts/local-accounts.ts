@@ -3,6 +3,7 @@ import type {
   JsonRpcRequest,
   JsonRpcResponse,
 } from "../../../../../types/providers.js";
+import type { RpcTransactionRequest } from "../../rpc/types/tx-request.js";
 
 import {
   assertHardhatInvariant,
@@ -14,20 +15,17 @@ import {
   hexStringToBigInt,
   hexStringToBytes,
 } from "@ignored/hardhat-vnext-utils/hex";
-import * as t from "io-ts";
 import { addr, Transaction } from "micro-eth-signer";
 import * as typed from "micro-eth-signer/typed-data";
 import { signTyped } from "micro-eth-signer/typed-data";
 
 import { getRequestParams } from "../../json-rpc.js";
+import { rpcAddress } from "../../rpc/types/address.js";
+import { rpcAny } from "../../rpc/types/any.js";
+import { rpcData } from "../../rpc/types/data.js";
+import { rpcTransactionRequest } from "../../rpc/types/tx-request.js";
+import { validateParams } from "../../rpc/validate-params.js";
 import { ChainId } from "../chain-id/chain-id.js";
-
-import { rpcAddress, rpcData } from "./rpc.js";
-import {
-  rpcTransactionRequest,
-  type RpcTransactionRequest,
-} from "./tx-request.js";
-import { validateParams } from "./validate.js";
 
 export class LocalAccounts extends ChainId {
   readonly #addressToPrivateKey: Map<string, Uint8Array> = new Map();
@@ -96,7 +94,7 @@ export class LocalAccounts extends ChainId {
     }
 
     if (jsonRpcRequest.method === "eth_signTypedData_v4") {
-      const [address, data] = validateParams(params, rpcAddress, t.any);
+      const [address, data] = validateParams(params, rpcAddress, rpcAny);
 
       if (data === undefined) {
         throw new HardhatError(
@@ -254,14 +252,18 @@ export class LocalAccounts extends ChainId {
 
     const accessList = txData.accessList?.map(({ address, storageKeys }) => {
       return {
-        address: addr.addChecksum(address.toString("hex")),
+        address: addr.addChecksum(bytesToHexString(address)),
         storageKeys:
-          storageKeys !== null ? storageKeys.map((k) => k.toString("hex")) : [],
+          storageKeys !== null
+            ? storageKeys.map((k) => bytesToHexString(k))
+            : [],
       };
     });
 
     const checksummedAddress = addr.addChecksum(
-      txData.to !== undefined ? txData.to.toString("hex").toLowerCase() : "0x0",
+      txData.to !== undefined
+        ? bytesToHexString(txData.to).toLowerCase()
+        : "0x0",
     );
 
     assertHardhatInvariant(
@@ -277,7 +279,7 @@ export class LocalAccounts extends ChainId {
         nonce: txData.nonce,
         chainId: txData.chainId ?? toBigInt(chainId),
         value: txData.value !== undefined ? txData.value : 0n,
-        data: txData.data !== undefined ? txData.data.toString("hex") : "",
+        data: txData.data !== undefined ? bytesToHexString(txData.data) : "",
         gasLimit: txData.gasLimit,
         maxFeePerGas: txData.maxFeePerGas,
         maxPriorityFeePerGas: txData.maxPriorityFeePerGas,
@@ -290,7 +292,7 @@ export class LocalAccounts extends ChainId {
         nonce: txData.nonce,
         chainId: txData.chainId ?? toBigInt(chainId),
         value: txData.value !== undefined ? txData.value : 0n,
-        data: txData.data !== undefined ? txData.data.toString("hex") : "",
+        data: txData.data !== undefined ? bytesToHexString(txData.data) : "",
         gasPrice: txData.gasPrice ?? 0n,
         gasLimit: txData.gasLimit,
         accessList,
@@ -302,7 +304,7 @@ export class LocalAccounts extends ChainId {
         nonce: txData.nonce,
         chainId: txData.chainId ?? toBigInt(chainId),
         value: txData.value !== undefined ? txData.value : 0n,
-        data: txData.data !== undefined ? txData.data.toString("hex") : "",
+        data: txData.data !== undefined ? bytesToHexString(txData.data) : "",
         gasPrice: txData.gasPrice ?? 0n,
         gasLimit: txData.gasLimit,
       });

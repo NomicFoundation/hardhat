@@ -20,7 +20,7 @@ const MOCK_PROVIDER_CHAIN_ID = 31337;
 // are correctly modified or resolved in the "onRequest" hook handler.
 // These tests simulate a real scenario where the user calls "await connection.provider.request(jsonRpcRequest)".
 describe("e2e - LocalAccounts", () => {
-  let connection: NetworkConnection<"unknown">;
+  let connection: NetworkConnection;
 
   const accounts = [
     "0xb2e31025a2474b37e4c2d2931929a00b5752b98a3af45e3fd9a62ddc3cdf370e",

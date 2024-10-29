@@ -655,8 +655,16 @@ Read the [documentation](https://hardhat.org/hardhat-runner/docs/config#hd-walle
 
 Try using another mnemonic or deriving less keys.`,
     },
-    INVALID_NETWORK_TYPE: {
+    WRONG_VALIDATION_PARAMS: {
       number: 719,
+      messageTemplate:
+        "Validation of parameters against the schemas failed for the following reason: {reason}",
+      websiteTitle: "Invalid validation parameters",
+      websiteDescription:
+        "The validation of parameters against the schemas failed.",
+    },
+    INVALID_NETWORK_TYPE: {
+      number: 720,
       messageTemplate:
         "The provided network type {networkType} for network {networkName} is not recognized, only `http` and `edr` are supported.",
       websiteTitle: "Invalid network type",

@@ -23,7 +23,7 @@ const HD_ACCOUNT: HttpNetworkHDAccountsConfig = {
 // are correctly modified or resolved in the "onRequest" hook handler.
 // These tests simulate a real scenario where the user calls "await connection.provider.request(jsonRpcRequest)".
 describe("e2e - HDWallet", () => {
-  let connection: NetworkConnection<"unknown">;
+  let connection: NetworkConnection;
 
   beforeEach(async () => {
     const hre = await createMockedNetworkHre({});
