@@ -1,4 +1,7 @@
-import type { HardhatUserConfig } from "@ignored/hardhat-vnext/config";
+import {
+  HardhatUserConfig,
+  configVariable,
+} from "@ignored/hardhat-vnext/config";
 
 import HardhatMochaTestRunner from "@ignored/hardhat-vnext-mocha-test-runner";
 import HardhatEthers from "@ignored/hardhat-vnext-ethers";
@@ -15,13 +18,13 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
-    "local-base": {
-      chainId: 8453,
+    edrOp: {
       type: "edr",
+      chainId: 10,
       chainType: "optimism",
-      gas: "auto",
-      gasPrice: "auto",
-      gasMultiplier: 1,
+      forkConfig: {
+        jsonRpcUrl: "https://mainnet.optimism.io",
+      },
     },
   },
 };

@@ -1,16 +1,19 @@
-import hre from "@ignored/hardhat-vnext";
-import { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
-import { describe, it, before } from "mocha";
+import { network } from "@ignored/hardhat-vnext";
+import { expect } from "chai";
 
-// TODO: Chai as promised support needs to be added either directly
-// or through the updated `chai-matchers` package.
-import * as chai from "chai";
-import chaiAsPromised from "chai-as-promised";
-chai.use(chaiAsPromised);
-const { expect } = chai;
+import "./setup.js";
+
+import { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
 
 describe("Lock", function () {
-  let networkConnection: NetworkConnection<"l1">;
+  let networkHelpers: any; // TODO: We need to export this type in @ignored/hardhat-vnext-network-helpers
+  let ethers: HardhatEthers;
+
+  before(async function () {
+    const connection = await network.connect();
+    ethers = connection.ethers;
+    networkHelpers = connection.networkHelpers;
+  });
 
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
@@ -21,56 +24,49 @@ describe("Lock", function () {
 
     const lockedAmount = ONE_GWEI;
 
-    const unlockTime =
-      (await networkConnection.networkHelpers.time.latest()) + ONE_YEAR_IN_SECS;
+    const latestTime = await networkHelpers.time.latest();
+    const unlockTime = latestTime + ONE_YEAR_IN_SECS;
 
     // Contracts are deployed using the first signer/account by default
-    const [owner, otherAccount] = await networkConnection.ethers.getSigners();
+    const [owner, otherAccount] = await ethers.getSigners();
 
-    const Lock = await networkConnection.ethers.getContractFactory("Lock");
+    const Lock = await ethers.getContractFactory("Lock");
     const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
 
     return { lock, unlockTime, lockedAmount, owner, otherAccount };
   }
 
-  before(async function () {
-    networkConnection = await hre.network.connect();
-  });
-
   describe("Deployment", function () {
     it("Should set the right unlockTime", async function () {
-      const { lock, unlockTime } =
-        await networkConnection.networkHelpers.loadFixture(
-          deployOneYearLockFixture,
-        );
+      const { lock, unlockTime } = await networkHelpers.loadFixture(
+        deployOneYearLockFixture,
+      );
 
       expect(await lock.unlockTime()).to.equal(BigInt(unlockTime));
     });
 
     it("Should set the right owner", async function () {
-      const { lock, owner } =
-        await networkConnection.networkHelpers.loadFixture(
-          deployOneYearLockFixture,
-        );
+      const { lock, owner } = await networkHelpers.loadFixture(
+        deployOneYearLockFixture,
+      );
 
       expect(await lock.owner()).to.equal(owner.address);
     });
 
     it("Should receive and store the funds to lock", async function () {
-      const { lock, lockedAmount } =
-        await networkConnection.networkHelpers.loadFixture(
-          deployOneYearLockFixture,
-        );
+      const { lock, lockedAmount } = await networkHelpers.loadFixture(
+        deployOneYearLockFixture,
+      );
 
-      expect(
-        await networkConnection.ethers.provider.getBalance(lock.target),
-      ).to.equal(BigInt(lockedAmount));
+      expect(await ethers.provider.getBalance(lock.target)).to.equal(
+        BigInt(lockedAmount),
+      );
     });
 
     it("Should fail if the unlockTime is not in the future", async function () {
       // We don't use the fixture here because we want a different deployment
-      const latestTime = await networkConnection.networkHelpers.time.latest();
-      const Lock = await networkConnection.ethers.getContractFactory("Lock");
+      const latestTime = await networkHelpers.time.latest();
+      const Lock = await ethers.getContractFactory("Lock");
 
       // TODO: bring back the original test assertion `hardhat-chai-matchers`
       // is available with `revertedWith`.
@@ -83,7 +79,7 @@ describe("Lock", function () {
   describe("Withdrawals", function () {
     describe("Validations", function () {
       it("Should revert with the right error if called too soon", async function () {
-        const { lock } = await networkConnection.networkHelpers.loadFixture(
+        const { lock } = await networkHelpers.loadFixture(
           deployOneYearLockFixture,
         );
 
@@ -94,12 +90,10 @@ describe("Lock", function () {
 
       it("Should revert with the right error if called from another account", async function () {
         const { lock, unlockTime, otherAccount } =
-          await networkConnection.networkHelpers.loadFixture(
-            deployOneYearLockFixture,
-          );
+          await networkHelpers.loadFixture(deployOneYearLockFixture);
 
         // We can increase the time in Hardhat Network
-        await networkConnection.networkHelpers.time.increaseTo(unlockTime);
+        await networkHelpers.time.increaseTo(unlockTime);
 
         // We use lock.connect() to send a transaction from another account
         await expect(
@@ -108,13 +102,12 @@ describe("Lock", function () {
       });
 
       it("Shouldn't fail if the unlockTime has arrived and the owner calls it", async function () {
-        const { lock, unlockTime } =
-          await networkConnection.networkHelpers.loadFixture(
-            deployOneYearLockFixture,
-          );
+        const { lock, unlockTime } = await networkHelpers.loadFixture(
+          deployOneYearLockFixture,
+        );
 
         // Transactions are sent using the first signer by default
-        await networkConnection.networkHelpers.time.increaseTo(unlockTime);
+        await networkHelpers.time.increaseTo(unlockTime);
 
         await expect(lock.withdraw()).to.eventually.be.fulfilled;
       });
@@ -125,11 +118,9 @@ describe("Lock", function () {
       // is available for asserting on events.
       it("Should emit an event on withdrawals", async function () {
         const { lock, unlockTime, lockedAmount } =
-          await networkConnection.networkHelpers.loadFixture(
-            deployOneYearLockFixture,
-          );
+          await networkHelpers.loadFixture(deployOneYearLockFixture);
 
-        await networkConnection.networkHelpers.time.increaseTo(unlockTime);
+        await networkHelpers.time.increaseTo(unlockTime);
 
         const withdrawResult = await lock.withdraw();
 
@@ -147,17 +138,15 @@ describe("Lock", function () {
       // TODO: bring back the original Transfers test once
       // `hardhat-chai-matchers` has been ported.
       it("Should transfer the funds out of the timelock", async function () {
-        const { lock, unlockTime } =
-          await networkConnection.networkHelpers.loadFixture(
-            deployOneYearLockFixture,
-          );
+        const { lock, unlockTime } = await networkHelpers.loadFixture(
+          deployOneYearLockFixture,
+        );
 
-        await networkConnection.networkHelpers.time.increaseTo(unlockTime);
+        await networkHelpers.time.increaseTo(unlockTime);
 
         await lock.withdraw();
 
-        const afterLockedBalance =
-          await networkConnection.ethers.provider.getBalance(lock);
+        const afterLockedBalance = await ethers.provider.getBalance(lock);
 
         expect(afterLockedBalance).to.equal(0n);
       });
