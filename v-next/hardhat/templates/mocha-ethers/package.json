@@ -5,15 +5,16 @@
   "description": "A Typescript Hardhat project using Mocha and Ethers.js",
   "type": "module",
   "devDependencies": {
-    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.5",
-    "@ignored/hardhat-vnext-ethers": "workspace:^3.0.0-next.1",
-    "@ignored/hardhat-vnext-mocha-test-runner": "workspace:^3.0.0-next.1",
-    "@ignored/hardhat-vnext-network-helpers": "workspace:^3.0.0-next.1",
+    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.6",
+    "@ignored/hardhat-vnext-ethers": "workspace:^3.0.0-next.2",
+    "@ignored/hardhat-vnext-mocha-test-runner": "workspace:^3.0.0-next.2",
+    "@ignored/hardhat-vnext-network-helpers": "workspace:^3.0.0-next.2",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^8.0.1",
     "@types/mocha": ">=9.1.0",
     "chai": "^4.4.1",
     "chai-as-promised": "^8.0.0",
+    "forge-std": "foundry-rs/forge-std#v1.9.4",
     "mocha": "^10.0.0",
     "typescript": "~5.5.0"
   }
