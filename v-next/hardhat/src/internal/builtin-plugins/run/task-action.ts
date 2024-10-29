@@ -25,7 +25,8 @@ const runScriptWithHardhat: NewTaskActionFunction<RunActionArguments> = async (
   }
 
   if (!noCompile) {
-    await hre.tasks.getTask("compile").run({ quiet: true });
+    await hre.tasks.getTask("compile").run({});
+    console.log();
   }
 
   await import(pathToFileURL(normalizedPath).href);
