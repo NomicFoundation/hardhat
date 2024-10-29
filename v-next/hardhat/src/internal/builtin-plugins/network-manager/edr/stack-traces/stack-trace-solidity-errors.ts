@@ -25,11 +25,6 @@ export function encodeSolidityStackTrace(
   stackTrace: SolidityStackTrace,
   previousStack?: NodeJS.CallSite[],
 ): SolidityError {
-  if (Error.prepareStackTrace === undefined) {
-    // Node 12 doesn't have a default Error.prepareStackTrace
-    require("source-map-support/register");
-  }
-
   const previousPrepareStackTrace = Error.prepareStackTrace;
   Error.prepareStackTrace = (error, stack) => {
     if (previousStack !== undefined) {
