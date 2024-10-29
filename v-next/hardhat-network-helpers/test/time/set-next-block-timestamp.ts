@@ -4,7 +4,7 @@ import type { Time } from "../../src/internal/network-helpers/time/time.js";
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { initializeNetwork, initializeTime } from "../helpers/helpers.js";
+import { initializeNetwork } from "../helpers/helpers.js";
 
 describe("time - setNextBlockTimestamp", () => {
   let time: Time;
@@ -12,7 +12,7 @@ describe("time - setNextBlockTimestamp", () => {
 
   before(async () => {
     ({ networkHelpers } = await initializeNetwork());
-    time = await initializeTime();
+    time = networkHelpers.time;
   });
 
   it("should not mine a new block", async () => {

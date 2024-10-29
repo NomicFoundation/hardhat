@@ -1,4 +1,3 @@
-import type { Time } from "../../src/internal/network-helpers/time/time.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
@@ -6,7 +5,6 @@ import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 
 import { NetworkHelpers } from "../../src/internal/network-helpers/network-helpers.js";
 
-// TODO: revisit as soon as the V3 node is ready
 export async function initializeNetwork(): Promise<{
   provider: EthereumProvider;
   networkHelpers: NetworkHelpers;
@@ -17,14 +15,7 @@ export async function initializeNetwork(): Promise<{
 
   const networkHelpers = new NetworkHelpers(provider);
 
-  await networkHelpers.reset();
-
   return { provider, networkHelpers };
-}
-
-export async function initializeTime(): Promise<Time> {
-  const { networkHelpers } = await initializeNetwork();
-  return networkHelpers.time;
 }
 
 export function rpcQuantityToNumber(quantity: string): number {

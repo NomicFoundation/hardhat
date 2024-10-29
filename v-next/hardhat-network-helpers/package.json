@@ -12,8 +12,7 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./dist/src/index.js",
-    "./load-fixture": "./dist/src/load-fixture.js"
+    ".": "./dist/src/index.js"
   },
   "keywords": [
     "ethereum",
@@ -27,7 +26,6 @@
     "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "test": "node --import tsx/esm --test --test-reporter=@ignored/hardhat-vnext-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
-    "test:tmp": "node --import tsx/esm --test --test-reporter=@ignored/hardhat-vnext-node-test-reporter \"test-tmp/*.ts\" \"test-tmp/duration/*.ts\" && node --import tsx/esm ./run-tests.ts",
     "test:only": "node --import tsx/esm --test --test-only --test-reporter=@ignored/hardhat-vnext-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
     "test:coverage": "c8 --reporter html --reporter text --all --exclude test --exclude src/internal/types.ts --exclude src/internal/ui/direct-user-interruption-manager.ts --src src node --import tsx/esm --test --test-reporter=@ignored/hardhat-vnext-node-test-reporter \"test/!(fixture-projects|helpers)/**/*.ts\"",
     "pretest": "pnpm build",

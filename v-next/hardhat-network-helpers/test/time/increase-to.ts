@@ -6,13 +6,14 @@ import { before, describe, it } from "node:test";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import { toBigInt } from "../../src/internal/conversion.js";
-import { initializeTime } from "../helpers/helpers.js";
+import { initializeNetwork } from "../helpers/helpers.js";
 
 describe("time - increaseTo", () => {
   let time: Time;
 
   before(async () => {
-    time = await initializeTime();
+    const { networkHelpers } = await initializeNetwork();
+    time = networkHelpers.time;
   });
 
   it("should mine a new block with the given timestamp", async () => {

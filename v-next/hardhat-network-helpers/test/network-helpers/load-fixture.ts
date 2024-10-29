@@ -9,7 +9,7 @@ import {
 } from "@ignored/hardhat-vnext-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
-import { initializeNetwork } from "../../test-tmp/helpers/helpers.js";
+import { initializeNetwork } from "../helpers/helpers.js";
 
 describe("network-helpers - loadFixture", () => {
   let networkHelpers: NetworkHelpers;

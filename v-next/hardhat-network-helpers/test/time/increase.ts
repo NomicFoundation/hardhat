@@ -7,13 +7,14 @@ import { before, describe, it } from "node:test";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
-import { initializeTime } from "../helpers/helpers.js";
+import { initializeNetwork } from "../helpers/helpers.js";
 
 describe("time - increase", () => {
   let time: Time;
 
   before(async () => {
-    time = await initializeTime();
+    const { networkHelpers } = await initializeNetwork();
+    time = networkHelpers.time;
   });
 
   it("should mine a new block with the timestamp increased by a given number of seconds", async () => {
