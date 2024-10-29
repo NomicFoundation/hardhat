@@ -56,7 +56,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   hre,
 ) => {
   if (!noCompile) {
-    await hre.tasks.getTask("compile").run({ quiet: true });
+    await hre.tasks.getTask("compile").run({});
+    console.log();
   }
 
   const files = await getTestFiles(testFiles, hre.config);
@@ -110,6 +111,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   if (testFailures > 0) {
     process.exitCode = 1;
   }
+
+  console.log();
 
   return testFailures;
 };

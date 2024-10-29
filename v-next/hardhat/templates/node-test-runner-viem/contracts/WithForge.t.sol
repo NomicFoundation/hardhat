@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.24;
+
 import "forge-std/Test.sol";
 
 contract TestContract is Test {
@@ -14,7 +17,7 @@ contract TestContract is Test {
 }
 
 contract ErrorsTest {
-  function arithmeticError(uint256 a) public {
-    uint256 a = a - 100;
+  function arithmeticError(uint256 a) public pure returns (uint256) {
+    return a - 100;
   }
 }

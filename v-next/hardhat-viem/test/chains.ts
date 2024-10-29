@@ -81,7 +81,7 @@ describe("chains", () => {
       assert.equal(chainId, chains.wanchainTestnet);
     });
 
-    it("should return a hardhat chain with the custom chainId", async function () {
+    it("should return a hardhat chain with the custom chainId", async () => {
       const provider = new MockEthereumProvider({
         eth_chainId: "0x3039", // 12345 in hex
         hardhat_metadata: {},
@@ -95,7 +95,7 @@ describe("chains", () => {
       });
     });
 
-    it("should return an anvil chain with the custom chainId", async function () {
+    it("should return an anvil chain with the custom chainId", async () => {
       const provider = new MockEthereumProvider({
         eth_chainId: "0x3039", // 12345 in hex
         anvil_nodeInfo: {},

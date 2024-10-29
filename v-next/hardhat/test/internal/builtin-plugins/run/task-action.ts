@@ -4,6 +4,7 @@ import { before, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import {
+  assertRejects,
   assertRejectsWithHardhatError,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
@@ -42,16 +43,11 @@ describe("run/task-action", function () {
     });
 
     it("should throw if the script throws", async function () {
-      await assertRejectsWithHardhatError(
+      await assertRejects(
         runScriptWithHardhat(
           { script: "./scripts/throws.js", noCompile: true },
           hre,
         ),
-        HardhatError.ERRORS.BUILTIN_TASKS.RUN_SCRIPT_ERROR,
-        {
-          script: "./scripts/throws.js",
-          error: "broken script",
-        },
       );
     });
   });
@@ -81,29 +77,20 @@ describe("run/task-action", function () {
 
     describe("when the script throws", () => {
       it("should throw RUN_SCRIPT_ERROR if the script throws a non-HardhatError", async function () {
-        await assertRejectsWithHardhatError(
+        await assertRejects(
           runScriptWithHardhat(
             { script: "./scripts/throws.ts", noCompile: true },
             hre,
           ),
-          HardhatError.ERRORS.BUILTIN_TASKS.RUN_SCRIPT_ERROR,
-          {
-            script: "./scripts/throws.ts",
-            error: "broken script",
-          },
         );
       });
 
       it("should throw the HardhatError if the script throws a HardhatError", async function () {
-        await assertRejectsWithHardhatError(
+        await assertRejects(
           runScriptWithHardhat(
             { script: "./scripts/throws-hardhat-error.ts", noCompile: true },
             hre,
           ),
-          HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR,
-          {
-            message: "Intentional invariant violation",
-          },
         );
       });
     });

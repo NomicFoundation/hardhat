@@ -406,13 +406,10 @@ describe("clients", () => {
     });
   });
 
-  // TODO: enable once the hardhat in-memory memory network is implemented
-  // Manual testing can be done by running a hardhat v2 node in the background
-  // TODO2: we should consider adding a test that uses the L2 public actions
-  describe.skip("e2e", () => {
+  describe("e2e", () => {
     let hre: HardhatRuntimeEnvironment;
 
-    before(async function () {
+    before(async () => {
       hre = await createHardhatRuntimeEnvironment({
         plugins: [HardhatViem],
       });
@@ -467,7 +464,7 @@ describe("clients", () => {
       assert.equal(toBalanceAfter, toBalanceBefore + etherAmount);
     });
 
-    it("should be able to query the blockchain using the test client", async function () {
+    it("should be able to query the blockchain using the test client", async () => {
       const networkConnection = await hre.network.connect();
       const publicClient = await networkConnection.viem.getPublicClient();
       const testClient = await networkConnection.viem.getTestClient();
@@ -476,8 +473,41 @@ describe("clients", () => {
         blocks: 1000000,
       });
       const blockNumber = await publicClient.getBlockNumber();
-      // TODO: change to 1000000n once the ephimeral network is implemented
-      assert.equal(blockNumber, 1000001n);
+      assert.equal(blockNumber, 1000000n);
+    });
+
+    // TODO: this test is skipped because it forks optimism mainnet, which is slow
+    it.skip("should be able to query the blockchain with the extended L2 actions", async () => {
+      hre = await createHardhatRuntimeEnvironment({
+        plugins: [HardhatViem],
+        networks: {
+          edrOptimism: {
+            type: "edr",
+            chainId: 10,
+            chainType: "optimism",
+            forkConfig: {
+              jsonRpcUrl: "https://mainnet.optimism.io",
+            },
+            gas: "auto",
+            gasMultiplier: 1,
+            gasPrice: "auto",
+          },
+        },
+      });
+
+      const networkConnection = await hre.network.connect(
+        "edrOptimism",
+        "optimism",
+      );
+      const publicClient = await networkConnection.viem.getPublicClient();
+      const l1BaseFee = await publicClient.getL1BaseFee();
+      const latestBlock = await publicClient.getBlock(); // should still have access to L1 actions
+
+      assert.ok(l1BaseFee > 0n, "L1 base fee should be greater than 0");
+      assert.ok(
+        latestBlock.number > 0n,
+        "Latest block number should be greater than 0",
+      );
     });
   });
 });

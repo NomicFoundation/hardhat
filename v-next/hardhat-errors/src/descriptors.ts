@@ -490,16 +490,8 @@ Please double check your arguments.`,
 
 Please double check your script's path.`,
     },
-    RUN_SCRIPT_ERROR: {
-      number: 601,
-      messageTemplate: `Error running script {script}: {error}`,
-      websiteTitle: "Error running script",
-      websiteDescription: `Running a script resulted in an error.
-
-Please check Hardhat's output for more details.`,
-    },
     TEST_TASK_ESM_TESTS_RUN_TWICE: {
-      number: 602,
+      number: 601,
       messageTemplate: `Your project uses ESM and you've programmatically run your tests twice. This is not supported yet.`,
       websiteTitle: "Running tests twice in an ESM project",
       websiteDescription:

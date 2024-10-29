@@ -11,12 +11,12 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
   const thisTask = hre.tasks.getTask("test");
 
   if (!noCompile) {
-    await hre.tasks.getTask("compile").run({ quiet: true });
+    await hre.tasks.getTask("compile").run({});
+    console.log();
   }
 
   for (const subtask of thisTask.subtasks.values()) {
     await subtask.run({ noCompile: true });
-    console.log();
   }
 
   if (process.exitCode !== undefined && process.exitCode !== 0) {
