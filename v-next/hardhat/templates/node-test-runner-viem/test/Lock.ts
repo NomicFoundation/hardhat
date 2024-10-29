@@ -1,19 +1,10 @@
-import { describe, it, before } from "node:test";
+import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { network } from "@ignored/hardhat-vnext";
 import { getAddress, parseGwei } from "viem";
-import { DefaultChainType } from "@ignored/hardhat-vnext/types/network";
-import { HardhatViemHelpers } from "@ignored/hardhat-vnext-viem/types";
 
-describe("Lock", function () {
-  let viem: HardhatViemHelpers<DefaultChainType>;
-  let networkHelpers: any; // TODO: We need to export this type in @ignored/hardhat-vnext-network-helpers
-
-  before(async function () {
-    const connection = await network.connect();
-    viem = connection.viem;
-    networkHelpers = connection.networkHelpers;
-  });
+describe("Lock", async function () {
+  const { viem, networkHelpers } = await network.connect();
 
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
