@@ -358,14 +358,24 @@ export async function installProjectDependencies(
       dependenciesToInstall,
     );
 
+    // We format the command to avoid any shell issue if the user copy-pastes it
+    const formattedCommand = [
+      command[0],
+      command[1],
+      command[2],
+      ...command.slice(3).map((arg) => `"${arg}"`),
+    ].join(" ");
+
     // Ask the user for permission to install the project dependencies and install them if needed
     if (install === undefined) {
-      install = await promptForInstall(command);
+      install = await promptForInstall(formattedCommand);
     }
 
     // If the user grants permission to install the dependencies, run the installation command
     if (install) {
-      console.log(command.join(" "));
+      console.log();
+      console.log(formattedCommand);
+
       await spawn(command[0], command.slice(1), {
         cwd: workspace,
         shell: true,
