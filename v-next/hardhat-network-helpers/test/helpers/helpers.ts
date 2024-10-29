@@ -5,7 +5,6 @@ import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 
 import { NetworkHelpers } from "../../src/internal/network-helpers/network-helpers.js";
 
-// TODO: revisit as soon as the V3 node is ready
 export async function initializeNetwork(): Promise<{
   provider: EthereumProvider;
   networkHelpers: NetworkHelpers;
