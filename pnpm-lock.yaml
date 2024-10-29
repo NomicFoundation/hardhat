@@ -2385,6 +2385,9 @@ importers:
       chai-as-promised:
         specifier: ^8.0.0
         version: 8.0.0(chai@4.5.0)
+      forge-std:
+        specifier: foundry-rs/forge-std#v1.9.4
+        version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       mocha:
         specifier: ^10.0.0
         version: 10.7.3
@@ -2406,6 +2409,9 @@ importers:
       '@ignored/hardhat-vnext-viem':
         specifier: workspace:^3.0.0-next.1
         version: link:../../../hardhat-viem
+      forge-std:
+        specifier: foundry-rs/forge-std#v1.9.4
+        version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       typescript:
         specifier: ~5.5.0
         version: 5.5.4
