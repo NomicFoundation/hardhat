@@ -20,7 +20,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   hre,
 ) => {
   if (!noCompile) {
-    await hre.tasks.getTask("compile").run({ quiet: true });
+    await hre.tasks.getTask("compile").run({});
   }
 
   const artifacts = await getArtifacts(hre.artifacts);
