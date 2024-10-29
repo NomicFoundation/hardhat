@@ -20,7 +20,8 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   hre,
 ) => {
   if (!noCompile) {
-    await hre.tasks.getTask("compile").run({ quiet: true });
+    await hre.tasks.getTask("compile").run({});
+    console.log();
   }
 
   const artifacts = await getArtifacts(hre.artifacts);
@@ -81,8 +82,9 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   if (includesFailures || includesErrors) {
     process.exitCode = 1;
-    return;
   }
+
+  console.log();
 };
 
 export default runSolidityTests;

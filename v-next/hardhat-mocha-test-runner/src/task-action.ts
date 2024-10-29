@@ -47,7 +47,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   hre,
 ) => {
   if (!noCompile) {
-    await hre.tasks.getTask("compile").run({ quiet: true });
+    await hre.tasks.getTask("compile").run({});
+    console.log();
   }
 
   const files = await getTestFiles(testFiles, hre.config);
@@ -85,7 +86,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   }
   testsAlreadyRun = true;
 
-  console.log("Running Mocha tests");
+  // We write instead of console.log because Mocha already prints some newlines
+  process.stdout.write("Running Mocha tests");
 
   // This instructs Mocha to use the more verbose file loading infrastructure
   // which supports both ESM and CJS
@@ -98,6 +100,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   if (testFailures > 0) {
     process.exitCode = 1;
   }
+
+  console.log();
 
   return testFailures;
 };

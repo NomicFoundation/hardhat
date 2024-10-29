@@ -144,7 +144,7 @@ export class ResolvedTask implements Task {
       const pluginId = this.actions[currentIndex].pluginId;
 
       if (
-        typeof currentAction === "string" &&
+        typeof currentAction === "function" &&
         pluginId !== undefined &&
         SHOULD_WARN_ABOUT_INLINE_TASK_ACTIONS_AND_HOOK_HANDLERS
       ) {
