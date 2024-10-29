@@ -21,6 +21,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 ) => {
   if (!noCompile) {
     await hre.tasks.getTask("compile").run({});
+    console.log();
   }
 
   const artifacts = await getArtifacts(hre.artifacts);

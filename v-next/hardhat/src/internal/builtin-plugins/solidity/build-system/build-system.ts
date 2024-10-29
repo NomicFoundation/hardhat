@@ -205,8 +205,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       if (isSuccessfulBuild) {
         this.#printCompilationResult(compilationJobs);
       }
-
-      console.log();
     }
 
     return resultsMap;

@@ -48,6 +48,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 ) => {
   if (!noCompile) {
     await hre.tasks.getTask("compile").run({});
+    console.log();
   }
 
   const files = await getTestFiles(testFiles, hre.config);

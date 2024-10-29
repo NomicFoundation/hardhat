@@ -12,6 +12,7 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
 
   if (!noCompile) {
     await hre.tasks.getTask("compile").run({});
+    console.log();
   }
 
   for (const subtask of thisTask.subtasks.values()) {
