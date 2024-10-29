@@ -83,11 +83,13 @@ describe("Lock", function () {
       const latestTime = BigInt(
         await networkConnection.networkHelpers.time.latest(),
       );
-      // await expect(
-      //   networkConnection.viem.deployContract("Lock", [latestTime], {
-      //     value: 1n,
-      //   }),
-      // ).to.be.rejectedWith("Unlock time should be in the future");
+      await assert.rejects(
+        networkConnection.viem.deployContract("Lock", [latestTime], {
+          value: 1n,
+        }),
+        (error: Error) =>
+          error.message.includes("Unlock time should be in the future"),
+      );
     });
   });
 
@@ -98,9 +100,9 @@ describe("Lock", function () {
           deployOneYearLockFixture,
         );
 
-        // await expect(lock.write.withdraw()).to.be.rejectedWith(
-        //   "You can't withdraw yet",
-        // );
+        await assert.rejects(lock.write.withdraw(), (error: Error) =>
+          error.message.includes("You can't withdraw yet"),
+        );
       });
 
       it("Should revert with the right error if called from another account", async function () {
@@ -118,9 +120,10 @@ describe("Lock", function () {
           lock.address,
           { client: { wallet: otherAccount } },
         );
-        // await expect(lockAsOtherAccount.write.withdraw()).to.be.rejectedWith(
-        //   "You aren't the owner",
-        // );
+        await assert.rejects(
+          lockAsOtherAccount.write.withdraw(),
+          (error: Error) => error.message.includes("You aren't the owner"),
+        );
       });
 
       it("Shouldn't fail if the unlockTime has arrived and the owner calls it", async function () {
@@ -132,7 +135,7 @@ describe("Lock", function () {
         // Transactions are sent using the first signer by default
         await networkConnection.networkHelpers.time.increaseTo(unlockTime);
 
-        // await expect(lock.write.withdraw()).to.be.fulfilled;
+        await assert.doesNotReject(lock.write.withdraw());
       });
     });
 
@@ -150,8 +153,8 @@ describe("Lock", function () {
 
         // get the withdrawal events in the latest block
         const withdrawalEvents = await lock.getEvents.Withdrawal();
-        // expect(withdrawalEvents).to.have.lengthOf(1);
-        // expect(withdrawalEvents[0].args.amount).to.equal(lockedAmount);
+        assert.equal(withdrawalEvents.length, 1);
+        assert.equal(withdrawalEvents[0].args.amount, lockedAmount);
       });
     });
   });
