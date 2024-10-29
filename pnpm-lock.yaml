@@ -2332,43 +2332,19 @@ importers:
         specifier: ^3.23.8
         version: 3.23.8
 
-  v-next/hardhat/templates/empty-javascript:
-    devDependencies:
-      '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.6
-        version: link:../..
-
-  v-next/hardhat/templates/empty-typescript:
-    devDependencies:
-      '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.6
-        version: link:../..
-      typescript:
-        specifier: ~5.5.0
-        version: 5.5.4
-
-  v-next/hardhat/templates/javascript-with-examples:
-    devDependencies:
-      '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.6
-        version: link:../..
-      '@ignored/hardhat-vnext-node-test-runner':
-        specifier: workspace:^3.0.0-next.2
-        version: link:../../../hardhat-node-test-runner
-
   v-next/hardhat/templates/mocha-ethers:
     devDependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.5
+        specifier: workspace:^3.0.0-next.6
         version: link:../..
       '@ignored/hardhat-vnext-ethers':
-        specifier: workspace:^3.0.0-next.1
+        specifier: workspace:^3.0.0-next.2
         version: link:../../../hardhat-ethers
       '@ignored/hardhat-vnext-mocha-test-runner':
-        specifier: workspace:^3.0.0-next.1
+        specifier: workspace:^3.0.0-next.2
         version: link:../../../hardhat-mocha-test-runner
       '@ignored/hardhat-vnext-network-helpers':
-        specifier: workspace:^3.0.0-next.1
+        specifier: workspace:^3.0.0-next.2
         version: link:../../../hardhat-network-helpers
       '@types/chai':
         specifier: ^4.2.0
@@ -2385,6 +2361,9 @@ importers:
       chai-as-promised:
         specifier: ^8.0.0
         version: 8.0.0(chai@4.5.0)
+      forge-std:
+        specifier: foundry-rs/forge-std#v1.9.4
+        version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       mocha:
         specifier: ^10.0.0
         version: 10.7.3
@@ -2392,17 +2371,29 @@ importers:
         specifier: ~5.5.0
         version: 5.5.4
 
-  v-next/hardhat/templates/typescript-with-examples:
+  v-next/hardhat/templates/node-test-runner-viem:
     devDependencies:
       '@ignored/hardhat-vnext':
         specifier: workspace:^3.0.0-next.6
         version: link:../..
+      '@ignored/hardhat-vnext-network-helpers':
+        specifier: workspace:^3.0.0-next.2
+        version: link:../../../hardhat-network-helpers
       '@ignored/hardhat-vnext-node-test-runner':
         specifier: workspace:^3.0.0-next.2
         version: link:../../../hardhat-node-test-runner
+      '@ignored/hardhat-vnext-viem':
+        specifier: workspace:^3.0.0-next.1
+        version: link:../../../hardhat-viem
+      forge-std:
+        specifier: foundry-rs/forge-std#v1.9.4
+        version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       typescript:
         specifier: ~5.5.0
         version: 5.5.4
+      viem:
+        specifier: ^2.21.17
+        version: 2.21.35(typescript@5.5.4)(zod@3.23.8)
 
   v-next/template-package:
     devDependencies:
