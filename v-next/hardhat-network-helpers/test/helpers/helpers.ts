@@ -15,8 +15,6 @@ export async function initializeNetwork(): Promise<{
 
   const networkHelpers = new NetworkHelpers(provider);
 
-  await networkHelpers.reset();
-
   return { provider, networkHelpers };
 }
 
