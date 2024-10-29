@@ -378,7 +378,8 @@ export async function installProjectDependencies(
 
       await spawn(command[0], command.slice(1), {
         cwd: workspace,
-        shell: true,
+        // We don't want the arguments to be treated as shell expressions
+        shell: false,
         stdio: "inherit",
       });
 
