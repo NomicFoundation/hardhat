@@ -72,7 +72,7 @@ export async function promptForInstall(
       name: "install",
       type: "confirm",
       message: `You need to install the project dependencies using the following command:\n${safelyFormattedCommand}\n\nDo you want to run it now?`,
-      initial: false,
+      initial: true,
     },
   ]);
 
