@@ -34,6 +34,13 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     )
   ).filter((artifact) => artifact !== undefined);
 
+  if (testSuiteIds.length === 0) {
+    return;
+  }
+
+  console.log("Running Solidity tests");
+  console.log();
+
   const config = {
     projectRoot: hre.config.paths.root,
   };

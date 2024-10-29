@@ -61,6 +61,10 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
   const files = await getTestFiles(testFiles, hre.config);
 
+  if (files.length === 0) {
+    return 0;
+  }
+
   const tsx = fileURLToPath(import.meta.resolve("tsx/esm"));
   process.env.NODE_OPTIONS = `--import ${tsx}`;
 
@@ -78,6 +82,9 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     const customReporter = hardhatTestReporter(nodeTestOptions, {
       testOnlyMessage,
     });
+
+    console.log("Running node:test tests");
+    console.log();
 
     const reporterStream = run(nodeTestOptions)
       .on("test:fail", (event) => {
