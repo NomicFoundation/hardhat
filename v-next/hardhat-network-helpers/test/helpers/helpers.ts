@@ -1,4 +1,3 @@
-import type { Time } from "../../src/internal/network-helpers/time/time.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
@@ -20,11 +19,6 @@ export async function initializeNetwork(): Promise<{
   await networkHelpers.reset();
 
   return { provider, networkHelpers };
-}
-
-export async function initializeTime(): Promise<Time> {
-  const { networkHelpers } = await initializeNetwork();
-  return networkHelpers.time;
 }
 
 export function rpcQuantityToNumber(quantity: string): number {
