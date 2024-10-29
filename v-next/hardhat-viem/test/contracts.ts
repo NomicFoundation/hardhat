@@ -7,8 +7,10 @@ import { before, describe, it } from "node:test";
 
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import { sleep } from "@ignored/hardhat-vnext-utils/lang";
 import {
+  assertIsHardhatError,
   assertRejectsWithHardhatError,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
@@ -17,9 +19,7 @@ import { getAddress, parseEther } from "viem";
 import HardhatViem from "../src/index.js";
 
 describe("contracts", () => {
-  // TODO: enable once the hardhat in-memory memory network is implemented
-  // Manual testing can be done by running a hardhat v2 node in the background
-  describe.skip("e2e", () => {
+  describe("e2e", () => {
     useFixtureProject("default-ts-project");
 
     let hre: HardhatRuntimeEnvironment;
@@ -178,10 +178,39 @@ describe("contracts", () => {
         assert.equal(number2, 10n);
       });
 
-      // TODO: This test is not working, but I'm unable to debug it because the test
-      // runner hangs after the test is done and does not show the diff. The hanging
-      // issue should be resolved once we're using the hardhat in-memory network.
-      it.skip("should throw an error if the contract address can't be retrieved", async (t) => {
+      // TODO: this test is skipped because it forks optimism mainnet, which is slow
+      it.skip("should be able to deploy a contract to an optimistic network", async () => {
+        hre = await createHardhatRuntimeEnvironment({
+          plugins: [HardhatViem],
+          networks: {
+            edrOptimism: {
+              type: "edr",
+              chainId: 10,
+              chainType: "optimism",
+              forkConfig: {
+                jsonRpcUrl: "https://mainnet.optimism.io",
+              },
+              gas: "auto",
+              gasMultiplier: 1,
+              gasPrice: "auto",
+            },
+          },
+        });
+
+        const networkConnection = await hre.network.connect(
+          "edrOptimism",
+          "optimism",
+        );
+        const contract = await networkConnection.viem.deployContract(
+          "WithoutConstructorArgs",
+        );
+
+        await contract.write.setData([50n]);
+        const data = await contract.read.getData();
+        assert.equal(data, 50n);
+      });
+
+      it("should throw an error if the contract address can't be retrieved", async (t) => {
         const networkConnection = await hre.network.connect();
         const publicClient = await networkConnection.viem.getPublicClient();
         const [walletClient] = await networkConnection.viem.getWalletClients();
@@ -200,19 +229,28 @@ describe("contracts", () => {
         const deployContractSpy = t.mock.method(walletClient, "deployContract");
         const prevBlockNumber = await publicClient.getBlockNumber();
 
-        await assertRejectsWithHardhatError(
-          networkConnection.viem.deployContract("WithoutConstructorArgs", [], {
-            // passing the clients to use the mocked ones
-            client: { public: publicClient, wallet: walletClient },
-          }),
-          HardhatError.ERRORS.VIEM.DEPLOY_CONTRACT_ERROR,
-          {
-            txHash: deployContractSpy.mock.calls[0].result, // this is probably wrong, as the value is passed before the tx is sent
-            blockNumber: prevBlockNumber + 1n,
-          },
-        ).finally(() => {
-          t.mock.reset();
-        });
+        try {
+          await networkConnection.viem.deployContract(
+            "WithoutConstructorArgs",
+            [],
+            {
+              // passing the clients to use the mocked ones
+              client: { public: publicClient, wallet: walletClient },
+            },
+          );
+
+          assert.fail("Function did not throw any error");
+        } catch (error) {
+          ensureError(error);
+          assertIsHardhatError(
+            error,
+            HardhatError.ERRORS.VIEM.DEPLOY_CONTRACT_ERROR,
+            {
+              txHash: await deployContractSpy.mock.calls[0].result,
+              blockNumber: prevBlockNumber + 1n,
+            },
+          );
+        }
       });
 
       it("should throw an error if no accounts are configured for the network", async () => {
@@ -257,12 +295,7 @@ describe("contracts", () => {
       // as blocks not being mined or the contract not being deployed correctly.
       // This specific timeout helps avoid hitting the much higher global timeout
       // for tests.
-      // TODO: This test is not working, but I'm unable to debug it because the test
-      // runner hangs after the test is done and does not show the diff. The hanging
-      // issue should be resolved once we're using the hardhat in-memory network.
-      // I suspect the issue with the test itself has to do with the test client
-      // not being able to control the network properly.
-      it.skip("should wait for confirmations", { timeout: 500 }, async () => {
+      it("should wait for confirmations", { timeout: 500 }, async () => {
         const networkConnection = await hre.network.connect();
         const publicClient = await networkConnection.viem.getPublicClient();
         const testClient = await networkConnection.viem.getTestClient();
@@ -338,10 +371,7 @@ describe("contracts", () => {
         );
       });
 
-      // TODO: This test is not working, but I'm unable to debug it because the test
-      // runner hangs after the test is done and does not show the diff. The hanging
-      // issue should be resolved once we're using the hardhat in-memory network.
-      it.skip("should throw if there are any missing libraries", async () => {
+      it("should throw if there are any missing libraries", async () => {
         const networkConnection = await hre.network.connect();
 
         await assertRejectsWithHardhatError(
@@ -351,17 +381,14 @@ describe("contracts", () => {
             contractName: "OnlyNormalLib",
             error:
               "The following libraries are missing:\n" +
-              '\t* "test/fixture-projects/default-ts-project/contracts/WithLibs.sol:NormalLib"\n' +
+              '\t* "contracts/WithLibs.sol:NormalLib"\n' +
               "\n" +
               "Please provide all the required libraries.",
           },
         );
       });
 
-      // TODO: This test is not working, but I'm unable to debug it because the test
-      // runner hangs after the test is done and does not show the diff. The hanging
-      // issue should be resolved once we're using the hardhat in-memory network.
-      it.skip("should throw if there are libraries that are not needed", async () => {
+      it("should throw if there are libraries that are not needed", async () => {
         const networkConnection = await hre.network.connect();
         const constructorLibContract =
           await networkConnection.viem.deployContract(
@@ -379,9 +406,9 @@ describe("contracts", () => {
             contractName: "NormalLib",
             error:
               "The following libraries are not referenced by the contract:\n" +
-              '\t* "test/fixture-projects/default-ts-project/contracts/WithLibs.sol:ConstructorLib"\n' +
+              '\t* "ConstructorLib"\n' +
               "\n" +
-              "Please provide only the libraries that are actually needed.",
+              "Please provide only the libraries that are needed.",
           },
         );
 
@@ -400,17 +427,14 @@ describe("contracts", () => {
             contractName: "OnlyConstructorLib",
             error:
               "The following libraries are not referenced by the contract:\n" +
-              '\t* "test/fixture-projects/default-ts-project/contracts/WithLibs.sol:NormalLib"\n' +
+              '\t* "NormalLib"\n' +
               "\n" +
-              "Please provide only the libraries that are actually needed.",
+              "Please provide only the libraries that are needed.",
           },
         );
       });
 
-      // TODO: This test is not working, but I'm unable to debug it because the test
-      // runner hangs after the test is done and does not show the diff. The hanging
-      // issue should be resolved once we're using the hardhat in-memory network.
-      it.skip("should throw if the provided library names are ambiguous", async () => {
+      it("should throw if the provided library names are ambiguous", async () => {
         const networkConnection = await hre.network.connect();
         const constructorLibConstructorLibContract =
           await networkConnection.viem.deployContract(
@@ -434,9 +458,9 @@ describe("contracts", () => {
             contractName: "BothConstructorLibs",
             error:
               "The following libraries may resolve to multiple libraries:\n" +
-              '\t* "ConstructorLib:"\n' +
-              '\t\t* "test/fixture-projects/default-ts-project/contracts/ConstructorLib.sol:ConstructorLib"' +
-              '\t\t* "test/fixture-projects/default-ts-project/contracts/WithLibs.sol:ConstructorLib"' +
+              '\t* "ConstructorLib":\n' +
+              '\t\t* "contracts/ConstructorLib.sol:ConstructorLib"\n' +
+              '\t\t* "contracts/WithLibs.sol:ConstructorLib"\n' +
               "\n" +
               "Please provide the fully qualified name for these libraries.",
           },
@@ -457,9 +481,9 @@ describe("contracts", () => {
             contractName: "BothConstructorLibs",
             error:
               "The following libraries may resolve to multiple libraries:\n" +
-              '\t* "ConstructorLib:"\n' +
-              '\t\t* "test/fixture-projects/default-ts-project/contracts/ConstructorLib.sol:ConstructorLib"' +
-              '\t\t* "test/fixture-projects/default-ts-project/contracts/WithLibs.sol:ConstructorLib"' +
+              '\t* "ConstructorLib":\n' +
+              '\t\t* "contracts/ConstructorLib.sol:ConstructorLib"\n' +
+              '\t\t* "contracts/WithLibs.sol:ConstructorLib"\n' +
               "\n" +
               "Please provide the fully qualified name for these libraries.",
           },
@@ -481,17 +505,14 @@ describe("contracts", () => {
         );
 
         const number = await contract.read.getNumber();
-        assert.equal(number, 8n);
+        assert.equal(number, 64n);
       });
 
-      // TODO: This test is not working, but I'm unable to debug it because the test
-      // runner hangs after the test is done and does not show the diff. The hanging
-      // issue should be resolved once we're using the hardhat in-memory network.
-      it.skip("should throw if the provided library names are overlapping", async () => {
+      it("should throw if the provided library names are overlapping", async () => {
         const networkConnection = await hre.network.connect();
         const constructorLibContract =
           await networkConnection.viem.deployContract(
-            "contracts/ConstructorLib.sol:ConstructorLib",
+            "contracts/WithLibs.sol:ConstructorLib",
           );
 
         // The contract needs the ConstructorLib library, but it was provided
@@ -500,7 +521,7 @@ describe("contracts", () => {
           networkConnection.viem.deployContract("OnlyConstructorLib", [1n], {
             libraries: {
               ConstructorLib: constructorLibContract.address,
-              "contracts/ConstructorLib.sol:ConstructorLib":
+              "contracts/WithLibs.sol:ConstructorLib":
                 constructorLibContract.address,
             },
           }),
@@ -509,7 +530,7 @@ describe("contracts", () => {
             contractName: "OnlyConstructorLib",
             error:
               "The following libraries are provided more than once:\n" +
-              '\t* "contracts/ConstructorLib.sol:ConstructorLib"\n' +
+              '\t* "contracts/WithLibs.sol:ConstructorLib"\n' +
               "\n" +
               "Please ensure that each library is provided only once, either by its name or its fully qualified name.",
           },
