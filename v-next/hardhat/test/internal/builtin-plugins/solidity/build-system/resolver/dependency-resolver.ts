@@ -11,6 +11,7 @@ import path from "node:path";
 import { after, before, beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { getRealPath } from "@ignored/hardhat-vnext-utils/fs";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import {
@@ -338,22 +339,21 @@ describe("Resolver", () => {
         });
 
         describe("Imports of npm files", () => {
-          it("Should always treat hardhat/console.sol as an npm file even if other hardhat/ files are local", async () => {
+          it("Should always treat hardhat/console.sol as resolved from the hh package itself even if other hardhat/ files are local", async () => {
             const consoleSol = await resolver.resolveImport(
               contractsFileSol,
               "hardhat/console.sol",
             );
 
-            assertNpmPackageResolvedFile(
-              consoleSol,
-              {
-                name: "hardhat",
-                version: "3.0.0",
-                rootSourceName: "npm/hardhat@3.0.0/",
-              },
-              "monorepo/node_modules/hardhat",
-              "console.sol",
-            );
+            assert.deepEqual(consoleSol.type, ResolvedFileType.NPM_PACKGE_FILE);
+            assert.deepEqual(consoleSol.package, {
+              name: "@ignored/hardhat-vnext",
+              version: "local", // The test considers it part of the monorepo, because it's the same package
+              rootSourceName: "npm/@ignored/hardhat-vnext@local/",
+              rootFsPath: await getRealPath(
+                path.join(import.meta.dirname, "../../../../../.."),
+              ),
+            });
 
             const hardhatFile = await resolver.resolveImport(
               contractsFileSol,
@@ -366,7 +366,7 @@ describe("Resolver", () => {
               {
                 context: "",
                 prefix: "hardhat/console.sol",
-                target: "npm/hardhat@3.0.0/console.sol",
+                target: "npm/@ignored/hardhat-vnext@local/console.sol",
               },
             ]);
           });
