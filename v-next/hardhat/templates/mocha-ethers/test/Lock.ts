@@ -4,9 +4,10 @@ import { expect } from "chai";
 import "./setup.js";
 
 import { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
+import { NetworkHelpers } from "@ignored/hardhat-vnext-network-helpers/types";
 
 describe("Lock", function () {
-  let networkHelpers: any; // TODO: We need to export this type in @ignored/hardhat-vnext-network-helpers
+  let networkHelpers: NetworkHelpers;
   let ethers: HardhatEthers;
 
   before(async function () {
