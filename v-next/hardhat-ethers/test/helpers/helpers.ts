@@ -12,7 +12,6 @@ import { initializeEthers } from "../../src/internal/initialization.js";
 
 import { MockArtifactsManager } from "./artifact-manager-mock.js";
 
-// TODO: revisit as soon as the V3 node is ready -handle possibility to switch between hardhat node and localhost
 export async function initializeTestEthers(
   mockedArtifacts?: Array<{ artifactName: string; fileName: string }>,
 ): Promise<{
@@ -31,8 +30,6 @@ export async function initializeTestEthers(
   const networkConfig = connection.networkConfig;
 
   const artifactsManager = new MockArtifactsManager(mockedArtifacts);
-
-  await provider.request({ method: "hardhat_reset", params: [] });
 
   const ethers = await initializeEthers(
     provider,

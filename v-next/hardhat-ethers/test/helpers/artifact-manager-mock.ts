@@ -4,12 +4,12 @@ import type {
   BuildInfo,
   GetAtifactByName,
 } from "@ignored/hardhat-vnext/types/artifacts";
-
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import {
+import type {
   CompilerInput,
   CompilerOutput,
-} from "../../../hardhat/src/types/solidity/compiler-io.js";
+} from "@ignored/hardhat-vnext/types/solidity";
+
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 export class MockArtifactsManager implements ArtifactsManager {
   readonly #artifacts: Map<string, Artifact>;
