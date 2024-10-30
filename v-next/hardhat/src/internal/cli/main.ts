@@ -35,9 +35,9 @@ import { createHardhatRuntimeEnvironment } from "../hre-intialization.js";
 import { printErrorMessages } from "./error-handler.js";
 import { getGlobalHelpString } from "./helpers/getGlobalHelpString.js";
 import { getHelpString } from "./helpers/getHelpString.js";
+import { printNodeJsVersionWarningIfNecessary } from "./node-version.js";
 import { ensureTelemetryConsent } from "./telemetry/telemetry-permissions.js";
 import { printVersionMessage } from "./version.js";
-import { printNodeJsVersionWarningIfNecessary } from "./node-version.js";
 
 export interface MainOptions {
   print?: (message: string) => void;
@@ -179,6 +179,8 @@ export async function main(
     if (options.rethrowErrors) {
       throw error;
     }
+
+    process.exitCode = 1;
   }
 }
 
