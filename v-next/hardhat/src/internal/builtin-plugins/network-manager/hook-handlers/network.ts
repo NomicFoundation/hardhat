@@ -49,6 +49,12 @@ export default async (): Promise<Partial<NetworkHooks>> => {
           jsonRpcRequest,
         );
 
+      const res = await jsonRpcRequestModifier.getResponse(jsonRpcRequest);
+
+      if (res !== null) {
+        return res;
+      }
+
       return next(context, networkConnection, newJsonRpcRequest);
     },
 
