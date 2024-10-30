@@ -1,5 +1,4 @@
 import type {
-  Duration as DurationI,
   NetworkHelpers,
   NumberLike,
   Time as TimeI,
@@ -18,7 +17,7 @@ export class Time implements TimeI {
   readonly #networkHelpers: NetworkHelpers;
   readonly #provider: EthereumProvider;
 
-  public readonly duration: DurationI;
+  public readonly duration: Duration;
 
   constructor(networkHelpers: NetworkHelpers, provider: EthereumProvider) {
     this.#networkHelpers = networkHelpers;

@@ -4,7 +4,6 @@ import type {
   NetworkHelpers as NetworkHelpersI,
   NumberLike,
   SnapshotRestorer,
-  Time as TimeI,
 } from "../../types.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 
@@ -30,7 +29,7 @@ import { Time } from "./time/time.js";
 
 export class NetworkHelpers implements NetworkHelpersI {
   readonly #provider: EthereumProvider;
-  public time: TimeI;
+  public time: Time;
 
   constructor(provider: EthereumProvider) {
     this.#provider = provider;
