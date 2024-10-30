@@ -44,16 +44,16 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         );
       }
 
+      const newJsonRpcRequest =
+        await jsonRpcRequestModifier.createModifiedJsonRpcRequest(
+          jsonRpcRequest,
+        );
+
       const res = await jsonRpcRequestModifier.getResponse(jsonRpcRequest);
 
       if (res !== null) {
         return res;
       }
-
-      const newJsonRpcRequest =
-        await jsonRpcRequestModifier.createModifiedJsonRpcRequest(
-          jsonRpcRequest,
-        );
 
       return next(context, networkConnection, newJsonRpcRequest);
     },
