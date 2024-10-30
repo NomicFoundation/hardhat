@@ -26,7 +26,9 @@ describe("e2e - HDWallet", () => {
   let connection: NetworkConnection;
 
   beforeEach(async () => {
-    const hre = await createMockedNetworkHre({});
+    const hre = await createMockedNetworkHre({
+      eth_chainId: "0x7a69",
+    });
 
     connection = await hre.network.connect();
     connection.networkConfig.type = "http";
