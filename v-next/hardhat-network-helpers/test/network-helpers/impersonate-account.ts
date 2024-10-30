@@ -1,4 +1,4 @@
-import type { NetworkHelpers } from "../../src/internal/network-helpers/network-helpers.js";
+import type { NetworkHelpers } from "../../src/types.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 
 import assert from "node:assert/strict";
