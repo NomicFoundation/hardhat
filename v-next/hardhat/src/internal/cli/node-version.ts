@@ -3,32 +3,30 @@
 
 import chalk from "chalk";
 
-const SEMVER_REV_REGEX = /^(\d+)\.(\d+)\.(\d)+$/;
-
 const MIN_SUPPORTED_NODE_VERSION = [22, 10, 0];
 
 function isNodeVersionSupported(): boolean {
-  const nodeVersion = process.versions.node;
-  const semverMatch = SEMVER_REV_REGEX.exec(nodeVersion);
+  try {
+    const [majorStr, minorStr, patchStr] = process.versions.node.split(".");
 
-  if (semverMatch === null) {
-    return false;
-  }
+    const major = parseInt(majorStr, 10);
+    const minor = parseInt(minorStr, 10);
+    const patch = parseInt(patchStr, 10);
 
-  const major = parseInt(semverMatch[1], 10);
-  const minor = parseInt(semverMatch[2], 10);
-  const patch = parseInt(semverMatch[3], 10);
+    if (major < MIN_SUPPORTED_NODE_VERSION[0]) {
+      return false;
+    }
 
-  if (major < MIN_SUPPORTED_NODE_VERSION[0]) {
-    return false;
-  }
+    if (minor < MIN_SUPPORTED_NODE_VERSION[1]) {
+      return false;
+    }
 
-  if (minor < MIN_SUPPORTED_NODE_VERSION[1]) {
-    return false;
-  }
-
-  if (patch < MIN_SUPPORTED_NODE_VERSION[2]) {
-    return false;
+    if (patch < MIN_SUPPORTED_NODE_VERSION[2]) {
+      return false;
+    }
+  } catch {
+    // If our parsing of the version fails we assume it's supported.
+    return true;
   }
 
   return true;
