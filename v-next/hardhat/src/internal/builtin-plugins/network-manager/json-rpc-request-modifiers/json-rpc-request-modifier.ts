@@ -113,11 +113,11 @@ export class JsonRpcRequestModifier {
     // The "newJsonRpcRequest" inside this class is modified by reference.
     const newJsonRpcRequest = await deepClone(jsonRpcRequest);
 
-    await this.#modifyAccountsIfNeeded(newJsonRpcRequest);
+    await this.#validateChainIdIfNeeded(newJsonRpcRequest);
 
     await this.#modifyGasAndGasPriceIfNeeded(newJsonRpcRequest);
 
-    await this.#validateChainIdIfNeeded(newJsonRpcRequest);
+    await this.#modifyAccountsIfNeeded(newJsonRpcRequest);
 
     return newJsonRpcRequest;
   }
