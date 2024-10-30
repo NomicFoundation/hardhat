@@ -11,8 +11,10 @@
   "author": "Nomic Foundation",
   "license": "MIT",
   "type": "module",
+  "types": "dist/src/index.d.ts",
   "exports": {
-    ".": "./dist/src/index.js"
+    ".": "./dist/src/index.js",
+    "./types": "./dist/src/types.js"
   },
   "keywords": [
     "ethereum",
