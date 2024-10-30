@@ -55,6 +55,7 @@
     "dist/src/",
     "src/",
     "templates/",
+    "console.sol",
     "CHANGELOG.md",
     "LICENSE",
     "README.md"

@@ -20,6 +20,7 @@ import {
   getFileTrueCase,
   readJsonFile,
   readUtf8File,
+  getRealPath,
 } from "@ignored/hardhat-vnext-utils/fs";
 import { shortenPath } from "@ignored/hardhat-vnext-utils/path";
 import { ResolutionError, resolve } from "@ignored/hardhat-vnext-utils/resolve";
@@ -422,11 +423,21 @@ export class ResolverImplementation implements Resolver {
         // As `hardhat/console.sol` is resolved through npm, even if the
         // `hardhat/` folder exists in the root of the package/project, we
         // only remap that file.
+        //
         // We should revisit this if we exported more solidity files in the
         // hardhat package in the future.
+        //
+        // Also note that we are using the importedPackageName here, and not
+        // the dependency's name, and that's because we always resolve 'hardhat'
+        // as the hh package itself. If someone installs another package as
+        // "hardhat", it may break.
+        //
+        // If we support package#exports, we may treat hardhat as a normal
+        // package, with the exception of `hardhat/console.sol` always being
+        // resolved through npm.
         if (
           dependency !== PROJECT_ROOT_SENTINEL &&
-          dependency.name === "hardhat"
+          importedPackage === "hardhat"
         ) {
           const prefix = importedPackage + "/console.sol";
           const target = dependency.rootSourceName + "console.sol";
@@ -1065,10 +1076,23 @@ export class ResolverImplementation implements Resolver {
     const baseResolutionDirectory =
       from === PROJECT_ROOT_SENTINEL ? this.#projectRoot : from.rootFsPath;
 
-    const packageJsonResolution = resolve(
-      packageName + "/package.json",
-      baseResolutionDirectory,
-    );
+    // TODO: This is a quick fix for Hardhat's own package.json, for the alpha
+    // release. We should find a better way to handle this.
+    // We also need to figure out a way to test this inside the monorepo,
+    // without the package `hardhat` in the top-level `node_modules` folder
+    // interfering with the resolution.
+    const packageJsonResolution =
+      packageName === "hardhat"
+        ? ({
+            success: true,
+            absolutePath: await getRealPath(
+              path.resolve(
+                import.meta.dirname,
+                "../../../../../../package.json",
+              ),
+            ),
+          } as const)
+        : resolve(packageName + "/package.json", baseResolutionDirectory);
 
     if (packageJsonResolution.success === false) {
       if (packageJsonResolution.error === ResolutionError.MODULE_NOT_FOUND) {
