@@ -18,6 +18,8 @@ import type {
   Transport as ViemTransport,
   WalletClient as ViemWalletClient,
   WalletClientConfig as ViemWalletClientConfig,
+  PublicActions as ViemPublicActions,
+  WalletActions as ViemWalletActions,
 } from "viem";
 import type {
   PublicActionsL2 as ViemOpStackPublicActionsL2,
@@ -141,7 +143,7 @@ export type OpPublicClient = ViemClient<
   ViemChain,
   ViemAccount,
   ViemRpcSchema,
-  ViemOpStackPublicActionsL2
+  ViemPublicActions & ViemOpStackPublicActionsL2
 >;
 
 export type WalletClient = ViemWalletClient<
@@ -155,7 +157,7 @@ export type OpWalletClient = ViemClient<
   ViemChain,
   ViemAccount,
   ViemRpcSchema,
-  ViemOpStackWalletActionsL2
+  ViemWalletActions & ViemOpStackWalletActionsL2
 >;
 
 export type TestClient = ViemTestClient<

@@ -35,6 +35,10 @@ describe("clients", () => {
       assert.equal(client.type, "publicClient");
       assert.equal(client.chain.id, 1);
       expectTypeOf(client).toEqualTypeOf<PublicClient>();
+      // L2 actions should not be available
+      expectTypeOf(client).not.toHaveProperty("buildDepositTransaction");
+      // default actions should be available
+      expectTypeOf(client).toHaveProperty("getBalance");
     });
 
     it("should return a public client extended with L2 actions for Optimism", async () => {
@@ -44,6 +48,10 @@ describe("clients", () => {
       assert.equal(client.type, "publicClient");
       assert.equal(client.chain.id, 10);
       expectTypeOf(client).toEqualTypeOf<OpPublicClient>();
+      // L2 actions should be available
+      expectTypeOf(client).toHaveProperty("buildDepositTransaction");
+      // default actions should be available
+      expectTypeOf(client).toHaveProperty("getBalance");
     });
 
     it("should return a public client with custom parameters", async () => {
@@ -96,6 +104,10 @@ describe("clients", () => {
         assert.equal(client.type, "walletClient");
         assert.equal(client.chain.id, 1);
         expectTypeOf(client).toEqualTypeOf<WalletClient>();
+        // L2 actions should not be available
+        expectTypeOf(client).not.toHaveProperty("initiateWithdrawal");
+        // default actions should be available
+        expectTypeOf(client).toHaveProperty("sendTransaction");
       });
       assert.equal(clients[0].account.address, "0x123");
       assert.equal(clients[1].account.address, "0x456");
@@ -118,6 +130,10 @@ describe("clients", () => {
         assert.equal(client.type, "walletClient");
         assert.equal(client.chain.id, 10);
         expectTypeOf(client).toEqualTypeOf<OpWalletClient>();
+        // L2 actions should be available
+        expectTypeOf(client).toHaveProperty("initiateWithdrawal");
+        // default actions should be available
+        expectTypeOf(client).toHaveProperty("sendTransaction");
       });
       assert.equal(clients[0].account.address, "0x123");
       assert.equal(clients[1].account.address, "0x456");
@@ -210,6 +226,10 @@ describe("clients", () => {
       assert.equal(client.chain.id, 1);
       assert.equal(client.account.address, "0x123");
       expectTypeOf(client).toEqualTypeOf<WalletClient>();
+      // L2 actions should not be available
+      expectTypeOf(client).not.toHaveProperty("initiateWithdrawal");
+      // default actions should be available
+      expectTypeOf(client).toHaveProperty("sendTransaction");
     });
 
     it("should return a wallet client extended with L2 actions for Optimism", async () => {
@@ -222,6 +242,10 @@ describe("clients", () => {
       assert.equal(client.chain.id, 10);
       assert.equal(client.account.address, "0x123");
       expectTypeOf(client).toEqualTypeOf<OpWalletClient>();
+      // L2 actions should be available
+      expectTypeOf(client).toHaveProperty("initiateWithdrawal");
+      // default actions should be available
+      expectTypeOf(client).toHaveProperty("sendTransaction");
     });
 
     it("should return a wallet client with custom parameters", async () => {
@@ -382,13 +406,10 @@ describe("clients", () => {
     });
   });
 
-  // TODO: enable once the hardhat in-memory memory network is implemented
-  // Manual testing can be done by running a hardhat v2 node in the background
-  // TODO2: we should consider adding a test that uses the L2 public actions
-  describe.skip("e2e", () => {
+  describe("e2e", () => {
     let hre: HardhatRuntimeEnvironment;
 
-    before(async function () {
+    before(async () => {
       hre = await createHardhatRuntimeEnvironment({
         plugins: [HardhatViem],
       });
@@ -443,7 +464,7 @@ describe("clients", () => {
       assert.equal(toBalanceAfter, toBalanceBefore + etherAmount);
     });
 
-    it("should be able to query the blockchain using the test client", async function () {
+    it("should be able to query the blockchain using the test client", async () => {
       const networkConnection = await hre.network.connect();
       const publicClient = await networkConnection.viem.getPublicClient();
       const testClient = await networkConnection.viem.getTestClient();
@@ -452,8 +473,41 @@ describe("clients", () => {
         blocks: 1000000,
       });
       const blockNumber = await publicClient.getBlockNumber();
-      // TODO: change to 1000000n once the ephimeral network is implemented
-      assert.equal(blockNumber, 1000001n);
+      assert.equal(blockNumber, 1000000n);
+    });
+
+    // TODO: this test is skipped because it forks optimism mainnet, which is slow
+    it.skip("should be able to query the blockchain with the extended L2 actions", async () => {
+      hre = await createHardhatRuntimeEnvironment({
+        plugins: [HardhatViem],
+        networks: {
+          edrOptimism: {
+            type: "edr",
+            chainId: 10,
+            chainType: "optimism",
+            forkConfig: {
+              jsonRpcUrl: "https://mainnet.optimism.io",
+            },
+            gas: "auto",
+            gasMultiplier: 1,
+            gasPrice: "auto",
+          },
+        },
+      });
+
+      const networkConnection = await hre.network.connect(
+        "edrOptimism",
+        "optimism",
+      );
+      const publicClient = await networkConnection.viem.getPublicClient();
+      const l1BaseFee = await publicClient.getL1BaseFee();
+      const latestBlock = await publicClient.getBlock(); // should still have access to L1 actions
+
+      assert.ok(l1BaseFee > 0n, "L1 base fee should be greater than 0");
+      assert.ok(
+        latestBlock.number > 0n,
+        "Latest block number should be greater than 0",
+      );
     });
   });
 });

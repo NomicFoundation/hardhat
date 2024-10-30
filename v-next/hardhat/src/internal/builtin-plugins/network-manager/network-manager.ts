@@ -143,8 +143,26 @@ export class NetworkManagerImplementation {
       );
 
       if (resolvedNetworkConfig.type === "edr") {
+        if (
+          resolvedChainType !== "optimism" &&
+          resolvedChainType !== "generic" &&
+          resolvedChainType !== "l1"
+        ) {
+          throw new HardhatError(
+            HardhatError.ERRORS.GENERAL.UNSUPPORTED_OPERATION,
+            { operation: `Simulating chain type ${resolvedChainType}` },
+          );
+        }
+
         return EdrProvider.create(
-          resolvedNetworkConfig,
+          // The resolvedNetworkConfig can have its chainType set to `undefined`
+          // so we default to the default chain type here.
+          {
+            ...resolvedNetworkConfig,
+            /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+            This case is safe because we have a check above */
+            chainType: resolvedChainType as ChainType,
+          },
           { enabled: false },
           {},
           (request, defaultBehavior) => {

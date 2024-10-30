@@ -275,6 +275,8 @@ jobs:
       - name: Build
         run: pnpm build
       - name: Run tests
+        env:
+          __DO_NOT_USE_IS_HARDHAT_CI: true
         run: pnpm run test
 
   ci-aggregate:

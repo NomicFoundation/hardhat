@@ -35,14 +35,19 @@
     "template-empty-javascript": "0.0.1",
     "template-empty-typescript": "0.0.1",
     "template-javascript-with-examples": "0.0.1",
-    "template-typescript-with-examples": "0.0.1"
+    "template-mocha-ethers": "0.0.1",
+    "template-typescript-with-examples": "0.0.1",
+    "template-node-test-runner-viem": "0.0.1"
   },
   "changesets": [
     "big-points-try",
+    "calm-ligers-explain",
     "curly-wombats-wink",
     "dull-squids-brake",
     "fuzzy-dolls-flash",
+    "gold-panthers-kneel",
     "mean-chefs-learn",
-    "quick-islands-appear"
+    "quick-islands-appear",
+    "strange-ads-sing"
   ]
 }

@@ -78,7 +78,7 @@ declare module "../../../../types/config.js" {
 
   export interface EdrNetworkUserConfig {
     type: "edr";
-    chainId: number;
+    chainId?: number;
     chainType?: ChainType;
     from?: string;
     gas?: GasUserConfig;
@@ -102,11 +102,12 @@ declare module "../../../../types/config.js" {
     allowBlocksWithSameTimestamp?: boolean;
     enableTransientStorage?: boolean;
     enableRip7212?: boolean;
-
     initialBaseFeePerGas?: number;
     initialDate?: Date;
     coinbase?: string;
+    // TODO: This isn't how it's called in v2
     forkConfig?: ForkConfig;
+    // TODO: This isn't configurable in v2
     forkCachePath?: string;
   }
 
@@ -195,7 +196,7 @@ declare module "../../../../types/config.js" {
     initialDate?: Date;
     coinbase?: string;
     forkConfig?: ForkConfig;
-    forkCachePath?: string;
+    forkCachePath: string;
   }
 
   export type EdrNetworkAccountsConfig =

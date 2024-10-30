@@ -95,6 +95,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     rootFilePaths: string[],
     options?: BuildOptions,
   ): Promise<CompilationJobCreationError | Map<string, FileBuildResult>> {
+    if (options?.quiet !== true) {
+      console.log("Compiling your Solidity contracts");
+    }
+
     await this.#downloadConfiguredCompilers(options?.quiet);
 
     const compilationJobsPerFile = await this.getCompilationJobs(
@@ -170,9 +174,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         ),
       );
 
-      if (options?.quiet !== true) {
-        this.#printSolcErrorsAndWarnings(errors);
-      }
+      this.#printSolcErrorsAndWarnings(errors);
 
       const successfulResult = !this.#hasCompilationErrors(result);
 
@@ -572,6 +574,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   }
 
   async #downloadConfiguredCompilers(quiet = false): Promise<void> {
+    // TODO: For the alpha release, we always print this message
+    quiet = false;
     if (this.#downloadedCompilers) {
       return;
     }

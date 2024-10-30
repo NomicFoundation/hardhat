@@ -193,12 +193,12 @@ const edrNetworkUserConfigAccountsSchema = conditionalUnionType(
 
 const edrNetworkUserConfigSchema = z.object({
   type: z.literal("edr"),
-  chainId: z.number().int(),
+  chainId: z.number().int().optional(),
   chainType: z.optional(chainTypeSchema),
-  from: z.optional(z.string()),
-  gas: userGasSchema,
-  gasMultiplier: z.number(),
-  gasPrice: userGasSchema,
+  from: z.optional(z.string()).optional(),
+  gas: userGasSchema.optional(),
+  gasMultiplier: z.number().optional(),
+  gasPrice: userGasSchema.optional(),
   accounts: z.optional(edrNetworkUserConfigAccountsSchema),
 });
 

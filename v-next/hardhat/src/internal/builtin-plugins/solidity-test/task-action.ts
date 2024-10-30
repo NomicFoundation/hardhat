@@ -5,6 +5,8 @@ import type { SolidityTestRunnerConfigArgs } from "@ignored/edr";
 
 import { finished } from "node:stream/promises";
 
+import { createNonClosingWriter } from "@ignored/hardhat-vnext-utils/stream";
+
 import {
   getArtifacts,
   isTestArtifact,
@@ -14,10 +16,18 @@ import {
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
 
-const runSolidityTests: NewTaskActionFunction = async (_taskArguments, hre) => {
-  await hre.tasks.getTask("compile").run({ quiet: false });
+interface TestActionArguments {
+  noCompile: boolean;
+}
 
-  console.log("\nRunning Solidity tests...\n");
+const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
+  { noCompile },
+  hre,
+) => {
+  if (!noCompile) {
+    await hre.tasks.getTask("compile").run({});
+    console.log();
+  }
 
   const artifacts = await getArtifacts(hre.artifacts);
   const testSuiteIds = (
@@ -29,6 +39,13 @@ const runSolidityTests: NewTaskActionFunction = async (_taskArguments, hre) => {
       }),
     )
   ).filter((artifact) => artifact !== undefined);
+
+  if (testSuiteIds.length === 0) {
+    return;
+  }
+
+  console.log("Running Solidity tests");
+  console.log();
 
   let includesFailures = false;
   let includesErrors = false;
@@ -46,7 +63,7 @@ const runSolidityTests: NewTaskActionFunction = async (_taskArguments, hre) => {
 
   const runStream = run(artifacts, testSuiteIds, config, options);
 
-  runStream
+  const testReporterStream = runStream
     .on("data", (event: TestEvent) => {
       if (event.type === "suite:result") {
         if (event.data.testResults.some(({ status }) => status === "Failure")) {
@@ -54,13 +71,20 @@ const runSolidityTests: NewTaskActionFunction = async (_taskArguments, hre) => {
         }
       }
     })
-    .compose(testReporter)
-    .pipe(process.stdout);
+    .compose(testReporter);
 
-  // NOTE: We're awaiting the original run stream to finish instead of the
-  // composed reporter stream to catch any errors produced by the runner.
+  const outputStream = testReporterStream.pipe(
+    createNonClosingWriter(process.stdout),
+  );
+
   try {
+    // NOTE: We're awaiting the original run stream to finish to catch any
+    // errors produced by the runner.
     await finished(runStream);
+
+    // We also await the output stream to finish, as we want to wait for it
+    // to avoid returning before the whole output was generated.
+    await finished(outputStream);
   } catch (error) {
     console.error(error);
     includesErrors = true;
@@ -68,8 +92,9 @@ const runSolidityTests: NewTaskActionFunction = async (_taskArguments, hre) => {
 
   if (includesFailures || includesErrors) {
     process.exitCode = 1;
-    return;
   }
+
+  console.log();
 };
 
 export default runSolidityTests;

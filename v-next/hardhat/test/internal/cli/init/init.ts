@@ -73,8 +73,8 @@ describe("getTemplate", () => {
     );
   });
   it("should return the provided template", async () => {
-    const template = await getTemplate("empty-typescript");
-    assert.equal(template.name, "empty-typescript");
+    const template = await getTemplate("mocha-ethers");
+    assert.equal(template.name, "mocha-ethers");
   });
 });
 
@@ -116,7 +116,7 @@ describe("copyProjectFiles", () => {
 
   describe("when force is true", () => {
     it("should copy the template files to the workspace and overwrite existing files", async () => {
-      const template = await getTemplate("empty-typescript");
+      const template = await getTemplate("mocha-ethers");
       // Create template files with "some content" in the workspace
       for (const file of template.files) {
         const pathToFile = path.join(process.cwd(), file);
@@ -134,7 +134,7 @@ describe("copyProjectFiles", () => {
   });
   describe("when force is false", () => {
     it("should copy the template files to the workspace and NOT overwrite existing files", async () => {
-      const template = await getTemplate("empty-typescript");
+      const template = await getTemplate("mocha-ethers");
       // Create template files with "some content" in the workspace
       for (const file of template.files) {
         const pathToFile = path.join(process.cwd(), file);
@@ -168,7 +168,7 @@ describe("installProjectDependencies", () => {
   });
   describe("when install is false", () => {
     it("should not install the project dependencies", async () => {
-      const template = await getTemplate("empty-typescript");
+      const template = await getTemplate("mocha-ethers");
       await writeUtf8File("package.json", JSON.stringify({ type: "module" }));
       await installProjectDependencies(process.cwd(), template, false);
       assert.ok(

@@ -27,7 +27,9 @@ export async function buildDependencyGraph(
 
     const rootPath = parseRootPath(file);
     if (isNpmParsedRootPath(rootPath)) {
-      resolvedFile = await resolver.resolveNpmDependencyFile(rootPath.npmPath);
+      resolvedFile = await resolver.resolveNpmDependencyFileAsRoot(
+        rootPath.npmPath,
+      );
       dependencyGraph.addRootFile(rootPath.npmPath, resolvedFile);
     } else {
       resolvedFile = await resolver.resolveProjectFile(rootPath.fsPath);

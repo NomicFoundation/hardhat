@@ -1,6 +1,6 @@
 {
   "name": "@ignored/hardhat-vnext-utils",
-  "version": "3.0.0-next.4",
+  "version": "3.0.0-next.7",
   "description": "Utilities for Hardhat and its plugins",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-utils",
   "repository": {
@@ -32,6 +32,7 @@
     "./request": "./dist/src/request.js",
     "./resolve": "./dist/src/resolve.js",
     "./string": "./dist/src/string.js",
+    "./stream": "./dist/src/stream.js",
     "./subprocess": "./dist/src/subprocess.js"
   },
   "keywords": [
@@ -60,7 +61,7 @@
   ],
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
-    "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.4",
+    "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.7",
     "@types/bn.js": "^5.1.5",
     "@types/debug": "^4.1.4",
     "@types/node": "^20.14.9",
