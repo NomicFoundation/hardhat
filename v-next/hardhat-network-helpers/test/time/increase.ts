@@ -1,5 +1,4 @@
-import type { Time } from "../../src/internal/network-helpers/time/time.js";
-import type { NumberLike } from "../../src/types.js";
+import type { Time, NumberLike } from "../../src/types.js";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
