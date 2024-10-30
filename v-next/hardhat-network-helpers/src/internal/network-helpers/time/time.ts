@@ -1,5 +1,9 @@
-import type { NumberLike, Time as TimeI } from "../../../types.js";
-import type { NetworkHelpers } from "../network-helpers.js";
+import type {
+  Duration as DurationI,
+  NetworkHelpers,
+  NumberLike,
+  Time as TimeI,
+} from "../../../types.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 
 import { Duration } from "../duration/duration.js";
@@ -14,7 +18,7 @@ export class Time implements TimeI {
   readonly #networkHelpers: NetworkHelpers;
   readonly #provider: EthereumProvider;
 
-  public readonly duration: Duration;
+  public readonly duration: DurationI;
 
   constructor(networkHelpers: NetworkHelpers, provider: EthereumProvider) {
     this.#networkHelpers = networkHelpers;
