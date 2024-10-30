@@ -35,6 +35,7 @@ import { createHardhatRuntimeEnvironment } from "../hre-intialization.js";
 import { printErrorMessages } from "./error-handler.js";
 import { getGlobalHelpString } from "./helpers/getGlobalHelpString.js";
 import { getHelpString } from "./helpers/getHelpString.js";
+import { printNodeJsVersionWarningIfNecessary } from "./node-version.js";
 import { ensureTelemetryConsent } from "./telemetry/telemetry-permissions.js";
 import { printVersionMessage } from "./version.js";
 
@@ -49,6 +50,8 @@ export async function main(
   options: MainOptions = {},
 ): Promise<void> {
   const print = options.print ?? console.log;
+
+  printNodeJsVersionWarningIfNecessary(print);
 
   const log = debug("hardhat:core:cli:main");
 
@@ -176,6 +179,8 @@ export async function main(
     if (options.rethrowErrors) {
       throw error;
     }
+
+    process.exitCode = 1;
   }
 }
 
