@@ -1,6 +1,5 @@
 import "@ignored/hardhat-vnext/types/network";
-
-import type { NetworkHelpers } from "./internal/network-helpers/network-helpers.js";
+import type { NetworkHelpers } from "./types.js";
 
 declare module "@ignored/hardhat-vnext/types/network" {
   interface NetworkConnection<

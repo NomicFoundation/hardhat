@@ -1,4 +1,4 @@
-import type { NetworkHelpers } from "../../src/internal/network-helpers/network-helpers.js";
+import type { NetworkHelpers } from "../../src/types.js";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
