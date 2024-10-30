@@ -1,3 +1,4 @@
+import type { HardhatEthersSigner as HardhatEthersSignerI } from "../../types.js";
 import type { HardhatEthersProvider } from "../hardhat-ethers-provider/hardhat-ethers-provider.js";
 import type { NetworkConfig } from "@ignored/hardhat-vnext/types/config";
 import type { BlockTag, TransactionRequest, ethers } from "ethers";
@@ -17,7 +18,7 @@ import { getRpcTransaction } from "../ethers-utils/ethers-utils.js";
 import { deepCopy } from "./deep-copy.js";
 import { populate } from "./populate.js";
 
-export class HardhatEthersSigner implements ethers.Signer {
+export class HardhatEthersSigner implements HardhatEthersSignerI {
   readonly #gasLimit: bigint | undefined;
 
   public readonly address: string;

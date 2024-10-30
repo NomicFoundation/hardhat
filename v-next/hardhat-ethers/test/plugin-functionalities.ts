@@ -2,8 +2,7 @@ import type {
   GreeterContract,
   TestContractLib,
 } from "./helpers/example-contracts.js";
-import type { HardhatEthersSigner } from "../src/internal/signers/signers.js";
-import type { HardhatEthers } from "../src/types.js";
+import type { HardhatEthers, HardhatEthersSigner } from "../src/types.js";
 import type {
   Artifact,
   ArtifactsManager,
