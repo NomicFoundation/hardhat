@@ -17,10 +17,7 @@ import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 import chalk from "chalk";
 
 import { findClosestHardhatConfig } from "../../config-loading.js";
-import {
-  getHardhatVersion,
-  getLatestHardhatVersion,
-} from "../../utils/package.js";
+import { getHardhatVersion } from "../../utils/package.js";
 
 import { HARDHAT_NAME } from "./constants.js";
 import {
@@ -134,23 +131,24 @@ export async function printWelcomeMessage(): Promise<void> {
     chalk.cyan(`👷 Welcome to ${HARDHAT_NAME} v${hardhatVersion} 👷\n`),
   );
 
-  // Warn the user if they are using an outdated version of Hardhat
-  try {
-    const latestHardhatVersion = await getLatestHardhatVersion();
-    if (hardhatVersion !== latestHardhatVersion) {
-      console.warn(
-        chalk.yellow.bold(
-          `⚠️ You are using an outdated version of Hardhat. The latest version is v${latestHardhatVersion}. Please consider upgrading to the latest version before continuing with the project initialization. ⚠️\n`,
-        ),
-      );
-    }
-  } catch (e) {
-    console.warn(
-      chalk.yellow.bold(
-        `⚠️ We couldn't check if you are using the latest version of Hardhat. Please consider upgrading to the latest version if you are not using it yet. ⚠️\n`,
-      ),
-    );
-  }
+  // TODO: Disabled this until the first release of v3
+  // // Warn the user if they are using an outdated version of Hardhat
+  // try {
+  //   const latestHardhatVersion = await getLatestHardhatVersion();
+  //   if (hardhatVersion !== latestHardhatVersion) {
+  //     console.warn(
+  //       chalk.yellow.bold(
+  //         `⚠️ You are using an outdated version of Hardhat. The latest version is v${latestHardhatVersion}. Please consider upgrading to the latest version before continuing with the project initialization. ⚠️\n`,
+  //       ),
+  //     );
+  //   }
+  // } catch (e) {
+  //   console.warn(
+  //     chalk.yellow.bold(
+  //       `⚠️ We couldn't check if you are using the latest version of Hardhat. Please consider upgrading to the latest version if you are not using it yet. ⚠️\n`,
+  //     ),
+  //   );
+  // }
 }
 
 /**
