@@ -37,6 +37,7 @@ import { getGlobalHelpString } from "./helpers/getGlobalHelpString.js";
 import { getHelpString } from "./helpers/getHelpString.js";
 import { ensureTelemetryConsent } from "./telemetry/telemetry-permissions.js";
 import { printVersionMessage } from "./version.js";
+import { printNodeJsVersionWarningIfNecessary } from "./node-version.js";
 
 export interface MainOptions {
   print?: (message: string) => void;
@@ -49,6 +50,8 @@ export async function main(
   options: MainOptions = {},
 ): Promise<void> {
   const print = options.print ?? console.log;
+
+  printNodeJsVersionWarningIfNecessary(print);
 
   const log = debug("hardhat:core:cli:main");
 
