@@ -7,11 +7,11 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
 
     hre.network = {
       async connect(networkName, chainType, networkConfigOverride) {
-        if (networkManager === undefined) {
-          const { NetworkManagerImplementation } = await import(
-            "../network-manager.js"
-          );
+        const { NetworkManagerImplementation } = await import(
+          "../network-manager.js"
+        );
 
+        if (networkManager === undefined) {
           networkManager = new NetworkManagerImplementation(
             hre.globalOptions.network !== ""
               ? hre.globalOptions.network
