@@ -2358,6 +2358,9 @@ importers:
       '@types/mocha':
         specifier: ^10.0.0
         version: 10.0.9
+      '@types/node':
+        specifier: ^22.8.5
+        version: 22.8.5
       chai:
         specifier: ^4.4.1
         version: 4.5.0
@@ -2388,6 +2391,9 @@ importers:
       '@ignored/hardhat-vnext-viem':
         specifier: workspace:^3.0.0-next.5
         version: link:../../../hardhat-viem
+      '@types/node':
+        specifier: ^22.8.5
+        version: 22.8.5
       forge-std:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
@@ -3411,14 +3417,14 @@ packages:
   '@types/node@18.19.59':
     resolution: {integrity: sha512-vizm2EqwV/7Zay+A6J3tGl9Lhr7CjZe2HmWS988sefiEmsyP9CeXEleho6i4hJk/8UtZAo0bWN4QPZZr83RxvQ==}
 
-  '@types/node@20.16.11':
-    resolution: {integrity: sha512-y+cTCACu92FyA5fgQSAI8A1H429g7aSK2HsO7K4XYUWc4dY5IUz55JSDIYT6/VsOLfGy8vmvQYC2hfb0iF16Uw==}
-
   '@types/node@20.17.1':
     resolution: {integrity: sha512-j2VlPv1NnwPJbaCNv69FO/1z4lId0QmGvpT41YxitRtWlg96g/j8qcv2RKsLKe2F6OJgyXhupN1Xo17b2m139Q==}
 
   '@types/node@22.7.5':
     resolution: {integrity: sha512-jML7s2NAzMWc//QSJ1a3prpk78cOPchGvXJsC3C6R6PSMoooztvRVQEz89gmBTBY1SPMaqo5teB4uNHPdetShQ==}
+
+  '@types/node@22.8.5':
+    resolution: {integrity: sha512-5iYk6AMPtsMbkZqCO1UGF9W5L38twq11S2pYWkybGHH2ogPUvXWNlQqJBzuEZWKj/WRH+QTeiv6ySWqJtvIEgA==}
 
   '@types/node@8.10.66':
     resolution: {integrity: sha512-tktOkFUA4kXx2hhhrB8bIFb5TbwzS4uOhKEmwiD+NoiL0qtP2OQ9mFldbgD4dV1djrlBYP6eBuQZiWjuHUpqFw==}
@@ -8103,7 +8109,7 @@ snapshots:
 
   '@types/concat-stream@1.6.1':
     dependencies:
-      '@types/node': 20.16.11
+      '@types/node': 20.17.1
 
   '@types/debug@4.1.12':
     dependencies:
@@ -8115,7 +8121,7 @@ snapshots:
 
   '@types/form-data@0.0.33':
     dependencies:
-      '@types/node': 20.16.11
+      '@types/node': 20.17.1
 
   '@types/fs-extra@5.1.0':
     dependencies:
@@ -8166,15 +8172,15 @@ snapshots:
     dependencies:
       undici-types: 5.26.5
 
-  '@types/node@20.16.11':
-    dependencies:
-      undici-types: 6.19.8
-
   '@types/node@20.17.1':
     dependencies:
       undici-types: 6.19.8
 
   '@types/node@22.7.5':
+    dependencies:
+      undici-types: 6.19.8
+
+  '@types/node@22.8.5':
     dependencies:
       undici-types: 6.19.8
 
@@ -8190,7 +8196,7 @@ snapshots:
 
   '@types/readable-stream@2.3.15':
     dependencies:
-      '@types/node': 20.16.11
+      '@types/node': 20.17.1
       safe-buffer: 5.1.2
 
   '@types/resolve@1.20.6': {}
@@ -8224,7 +8230,7 @@ snapshots:
 
   '@types/ws@8.5.3':
     dependencies:
-      '@types/node': 20.16.11
+      '@types/node': 20.17.1
 
   '@typescript-eslint/eslint-plugin@5.61.0(@typescript-eslint/parser@5.61.0(eslint@8.57.0)(typescript@5.0.4))(eslint@8.57.0)(typescript@5.0.4)':
     dependencies:
