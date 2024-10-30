@@ -1,11 +1,8 @@
-import hre from "@ignored/hardhat-vnext";
+import { network } from "@ignored/hardhat-vnext";
 
-async function deployCounterContract() {
-  const optimism = await hre.network.connect("local-base", "optimism");
+console.log("Deploying a contract into a local fork of Optimism");
+const { ethers } = await network.connect("edrOp", "optimism");
 
-  const contract = await optimism.ethers.deployContract("Counter");
+const counter = await ethers.deployContract("Counter");
 
-  console.log("Counter contract address:", await contract.getAddress());
-}
-
-deployCounterContract();
+console.log("Counter contract address:", await counter.getAddress());

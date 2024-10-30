@@ -18,11 +18,7 @@ contract CounterTest {
     for (uint8 i = 0; i < x; i++) {
       counter.inc();
     }
+
     require(counter.x() == x, "Value after calling inc x times should be x");
   }
-
-  function invariant() public pure {
-    assert(true);
-  }
 }
-

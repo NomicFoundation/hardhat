@@ -15,13 +15,13 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
-    "local-base": {
-      chainId: 8453,
+    edrOp: {
       type: "edr",
+      chainId: 10,
       chainType: "optimism",
-      gas: "auto",
-      gasPrice: "auto",
-      gasMultiplier: 1,
+      forkConfig: {
+        jsonRpcUrl: "https://mainnet.optimism.io",
+      },
     },
   },
 };
