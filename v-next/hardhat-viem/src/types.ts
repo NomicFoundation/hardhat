@@ -148,7 +148,8 @@ export type OpPublicClient = ViemClient<
   ViemChain,
   ViemAccount,
   ViemRpcSchema,
-  ViemPublicActions & ViemOpStackPublicActionsL2
+  ViemPublicActions<ViemTransport, ViemChain, ViemAccount> &
+    ViemOpStackPublicActionsL2<ViemChain, ViemAccount>
 >;
 
 export type WalletClient = ViemWalletClient<
@@ -162,7 +163,8 @@ export type OpWalletClient = ViemClient<
   ViemChain,
   ViemAccount,
   ViemRpcSchema,
-  ViemWalletActions & ViemOpStackWalletActionsL2
+  ViemWalletActions<ViemChain, ViemAccount> &
+    ViemOpStackWalletActionsL2<ViemChain, ViemAccount>
 >;
 
 export type TestClient = ViemTestClient<
