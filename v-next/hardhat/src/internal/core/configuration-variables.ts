@@ -29,11 +29,11 @@ abstract class BaseResolvedConfigurationVariable
 
   #cachedValue?: string;
 
-  protected abstract getRawValue(): Promise<string>;
+  protected abstract _getRawValue(): Promise<string>;
 
   public async get(): Promise<string> {
     if (this.#cachedValue === undefined) {
-      this.#cachedValue = await this.getRawValue();
+      this.#cachedValue = await this._getRawValue();
     }
 
     return this.#cachedValue;
@@ -91,7 +91,7 @@ export class LazyResolvedConfigurationVariable extends BaseResolvedConfiguration
     this.#variable = variable;
   }
 
-  protected async getRawValue(): Promise<string> {
+  protected async _getRawValue(): Promise<string> {
     return this.#hooks.runHandlerChain(
       "configurationVariables",
       "fetchValue",
@@ -120,7 +120,7 @@ export class FixedValueConfigurationVariable extends BaseResolvedConfigurationVa
     this.#value = value;
   }
 
-  protected async getRawValue(): Promise<string> {
+  protected async _getRawValue(): Promise<string> {
     return this.#value;
   }
 }
