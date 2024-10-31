@@ -6,10 +6,20 @@ import type { HookManager } from "../../types/hooks.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import {
-  hexStringToBytes,
   isHexString,
   normalizeHexString,
 } from "@ignored/hardhat-vnext-utils/hex";
+
+export function resolveConfigurationVariable(
+  hooks: HookManager,
+  variable: ConfigurationVariable | string,
+): ResolvedConfigurationVariable {
+  if (typeof variable === "string") {
+    return new FixedValueConfigurationVariable(variable);
+  }
+
+  return new LazyResolvedConfigurationVariable(hooks, variable);
+}
 
 abstract class BaseResolvedConfigurationVariable
   implements ResolvedConfigurationVariable
