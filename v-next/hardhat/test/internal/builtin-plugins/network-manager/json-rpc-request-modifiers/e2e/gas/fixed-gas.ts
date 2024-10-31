@@ -20,11 +20,20 @@ describe("e2e - FixedGas", () => {
   let connection: NetworkConnection<GenericChainType>;
 
   beforeEach(async () => {
-    const hre = await createMockedNetworkHre({});
+    const hre = await createMockedNetworkHre(
+      {
+        networks: {
+          localhost: {
+            type: "http",
+            url: "http://localhost:8545",
+            gas: FIXED_GAS_LIMIT,
+          },
+        },
+      },
+      {},
+    );
 
-    connection = await hre.network.connect();
-
-    connection.networkConfig.gas = FIXED_GAS_LIMIT;
+    connection = await hre.network.connect("localhost");
   });
 
   it("should set the fixed gas if not present", async () => {

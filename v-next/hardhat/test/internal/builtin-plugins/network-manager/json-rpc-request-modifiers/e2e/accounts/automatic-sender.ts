@@ -18,9 +18,12 @@ describe("e2e - AutomaticSender", () => {
   let connection: NetworkConnection<GenericChainType>;
 
   beforeEach(async () => {
-    const hre = await createMockedNetworkHre({
-      eth_accounts: ["0x123006d4548a3ac17d72b372ae1e416bf65b8eaf"],
-    });
+    const hre = await createMockedNetworkHre(
+      {},
+      {
+        eth_accounts: ["0x123006d4548a3ac17d72b372ae1e416bf65b8eaf"],
+      },
+    );
 
     connection = await hre.network.connect();
   });
