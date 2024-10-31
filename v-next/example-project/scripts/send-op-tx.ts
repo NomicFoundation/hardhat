@@ -1,6 +1,6 @@
 import { network } from "@ignored/hardhat-vnext";
 
-const { provider } = await network.connect("opSepolia", "optimism");
+const { provider } = await network.connect("op", "optimism");
 
 const accounts = (await provider.request({
   method: "eth_accounts",
