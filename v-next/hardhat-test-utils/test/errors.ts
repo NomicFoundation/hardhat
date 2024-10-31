@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 
 import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 
-import { assertRejects } from "../src/errors.js";
+import { assertRejects, assertThrows } from "../src/errors.js";
 
 describe("errors", () => {
   describe("assertRejects", () => {
@@ -81,6 +81,73 @@ describe("errors", () => {
       }
 
       throw new Error("Function did not throw any error");
+    });
+  });
+
+  describe("assertThrows", () => {
+    it("Should pass if the function throws an error", async () => {
+      assertThrows(() => {
+        throw new Error("foo");
+      });
+    });
+
+    it("Should pass if the condition is met", async () => {
+      assertThrows(
+        () => {
+          throw new Error("foo");
+        },
+        (error) => error.message === "foo",
+      );
+    });
+
+    it("Should fail if the condition is not met", async () => {
+      try {
+        assertThrows(
+          () => {
+            throw new Error("foo");
+          },
+          (error) => error.message === "bar",
+        );
+      } catch (error) {
+        return;
+      }
+
+      assert.fail("Function did not throw any error");
+    });
+
+    it("Should use the correct error message if provided", async () => {
+      try {
+        assertThrows(
+          () => {
+            throw new Error("foo");
+          },
+          (error) => error.message === "bar",
+          "Custom error message",
+        );
+      } catch (error) {
+        ensureError(error);
+        assert.equal(
+          error.message,
+          "Custom error message",
+          "Custom error message should be used",
+        );
+        return;
+      }
+
+      assert.fail("Function did not throw any error");
+    });
+
+    it("Should fail if the value thrown is not an error", async () => {
+      try {
+        assertThrows(() => {
+          // eslint-disable-next-line no-throw-literal -- Intentional for the test
+          throw "foo";
+        });
+      } catch (error) {
+        return;
+      }
+
+      assert.fail("Function did not throw any error");
     });
   });
 });

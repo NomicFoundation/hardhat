@@ -36,7 +36,7 @@ declare module "../../../../types/config.js" {
 
   export type HttpNetworkAccountsUserConfig =
     | REMOTE
-    | string[]
+    | SensitiveString[]
     | HDAccountsUserConfig;
 
   export interface HDAccountsUserConfig {
@@ -153,7 +153,7 @@ declare module "../../../../types/config.js" {
 
   export type HttpNetworkAccountsConfig =
     | REMOTE
-    | string[]
+    | ResolvedConfigurationVariable[]
     | HttpNetworkHDAccountsConfig;
 
   export interface HttpNetworkHDAccountsConfig {

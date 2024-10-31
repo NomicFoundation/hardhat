@@ -1,10 +1,5 @@
-import type {
-  GenericChainType,
-  NetworkConnection,
-} from "../../../../../../../src/types/network.js";
-
 import assert from "node:assert/strict";
-import { beforeEach, describe, it } from "node:test";
+import { describe, it } from "node:test";
 
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
@@ -18,22 +13,26 @@ const GAS_MULTIPLIER = 1.337;
 // are correctly modified in the "onRequest" hook handler.
 // These tests simulate a real scenario where the user calls "await connection.provider.request(jsonRpcRequest)".
 describe("e2e - AutomaticGas", () => {
-  let connection: NetworkConnection<GenericChainType>;
-
-  beforeEach(async () => {
-    const hre = await createMockedNetworkHre({
-      eth_getBlockByNumber: {
-        gasLimit: numberToHexString(FIXED_GAS_LIMIT * 1000),
-      },
-      eth_estimateGas: numberToHexString(FIXED_GAS_LIMIT),
-    });
-
-    connection = await hre.network.connect();
-  });
-
   it("should estimate gas automatically if not present", async () => {
-    connection.networkConfig.gas = "auto";
-    connection.networkConfig.gasMultiplier = GAS_MULTIPLIER;
+    const hre = await createMockedNetworkHre(
+      {
+        networks: {
+          hardhat: {
+            type: "edr",
+            gas: "auto",
+            gasMultiplier: GAS_MULTIPLIER,
+          },
+        },
+      },
+      {
+        eth_getBlockByNumber: {
+          gasLimit: numberToHexString(FIXED_GAS_LIMIT * 1000),
+        },
+        eth_estimateGas: numberToHexString(FIXED_GAS_LIMIT),
+      },
+    );
+
+    const connection = await hre.network.connect();
 
     const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
       {

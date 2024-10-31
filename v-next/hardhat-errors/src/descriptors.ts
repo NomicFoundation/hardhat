@@ -134,7 +134,9 @@ Please double check whether you have multiple versions of the same plugin instal
     },
     ENV_VAR_NOT_FOUND: {
       number: 7,
-      messageTemplate: "Configuration variable not found as an env variable",
+      messageTemplate: `Configuration Variable '{name}' not found.
+     
+You can define it using a plugin like hardhat-keystore, or set it as an environment variable.`,
       websiteTitle: "Configuration variable not found",
       websiteDescription: `A configuration variable was expected to be set as an environment variable, but it wasn't.`,
     },
@@ -212,6 +214,12 @@ Please add the property "type" with the value "module" in your package.json to e
       messageTemplate: `Workspace {workspace} not found`,
       websiteTitle: "Workspace not found",
       websiteDescription: `The workspace you provided does not exist. Please ensure that the workspace exists and try again.`,
+    },
+    INVALID_HEX_STRING: {
+      number: 18,
+      messageTemplate: `Invalid hex string "{value}"`,
+      websiteTitle: "Invalid hex string",
+      websiteDescription: `Given value was not a valid hex string.`,
     },
   },
   INTERNAL: {

@@ -36,3 +36,32 @@ export async function assertRejects(
 
   throw new Error("Function did not throw any error");
 }
+
+/**
+ * Asserts that a function throws an error.
+ *
+ * @param f The function to call.
+ * @param condition An optional condition that the error must satisfy.
+ * @param conditionDescription An optional description of the condition.
+ */
+export function assertThrows(
+  f: () => any,
+  condition?: (error: Error) => boolean,
+  conditionDescription: string = "Condition for error not met",
+): void {
+  try {
+    f();
+  } catch (error) {
+    ensureError(error);
+
+    if (condition === undefined) {
+      return;
+    }
+
+    assert.ok(condition(error), conditionDescription);
+
+    return;
+  }
+
+  throw new Error("Function did not throw any error");
+}

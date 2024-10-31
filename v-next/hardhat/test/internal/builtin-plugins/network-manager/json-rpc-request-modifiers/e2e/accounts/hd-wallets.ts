@@ -1,8 +1,7 @@
 import type { HttpNetworkHDAccountsConfig } from "../../../../../../../src/types/config.js";
-import type { NetworkConnection } from "../../../../../../../src/types/network.js";
 
 import assert from "node:assert/strict";
-import { beforeEach, describe, it } from "node:test";
+import { describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
@@ -23,19 +22,24 @@ const HD_ACCOUNT: HttpNetworkHDAccountsConfig = {
 // are correctly modified or resolved in the "onRequest" hook handler.
 // These tests simulate a real scenario where the user calls "await connection.provider.request(jsonRpcRequest)".
 describe("e2e - HDWallet", () => {
-  let connection: NetworkConnection;
-
-  beforeEach(async () => {
-    const hre = await createMockedNetworkHre({
-      eth_chainId: "0x7a69",
-    });
-
-    connection = await hre.network.connect();
-    connection.networkConfig.type = "http";
-    connection.networkConfig.accounts = HD_ACCOUNT;
-  });
-
   it("should generate 2 accounts", async () => {
+    const hre = await createMockedNetworkHre(
+      {
+        networks: {
+          localhost: {
+            type: "http",
+            url: "http://localhost:8545",
+            accounts: HD_ACCOUNT,
+          },
+        },
+      },
+      {
+        eth_chainId: "0x7a69",
+      },
+    );
+
+    const connection = await hre.network.connect("localhost");
+
     const jsonRpcRequest = getJsonRpcRequest(1, "eth_accounts");
 
     const res = await connection.provider.request(jsonRpcRequest);
@@ -49,10 +53,22 @@ describe("e2e - HDWallet", () => {
   });
 
   it("should throw if the path is invalid", async () => {
-    connection.networkConfig.accounts = {
-      ...HD_ACCOUNT,
-      path: "m/",
-    };
+    const hre = await createMockedNetworkHre(
+      {
+        networks: {
+          localhost: {
+            type: "http",
+            url: "http://localhost:8545",
+            accounts: { ...HD_ACCOUNT, path: "m/" },
+          },
+        },
+      },
+      {
+        eth_chainId: "0x7a69",
+      },
+    );
+
+    const connection = await hre.network.connect("localhost");
 
     const jsonRpcRequest = getJsonRpcRequest(1, "eth_accounts");
 

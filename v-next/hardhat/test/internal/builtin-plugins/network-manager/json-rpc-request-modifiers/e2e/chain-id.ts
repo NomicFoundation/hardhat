@@ -1,8 +1,3 @@
-import type {
-  GenericChainType,
-  NetworkConnection,
-} from "../../../../../../src/types/network.js";
-
 import { beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
@@ -14,21 +9,26 @@ import { createMockedNetworkHre } from "../hooks-mock.js";
 // are correctly modified in the "onRequest" hook handler.
 // These tests simulate a real scenario where the user calls "await connection.provider.request(jsonRpcRequest)".
 describe("e2e - ChainIdValidator", () => {
-  let connection: NetworkConnection<GenericChainType>;
-
   describe("eth_chainId", () => {
-    beforeEach(async () => {
-      const hre = await createMockedNetworkHre({
-        eth_chainId: "0x1",
-      });
+    it("should not fail because the chain id is the same as the one returned by eth_chainId", async () => {
+      const hre = await createMockedNetworkHre(
+        {
+          networks: {
+            localhost: {
+              type: "http",
+              url: "http://localhost:8545",
+              chainId: 1,
+            },
+          },
+        },
+        {
+          eth_chainId: "0x1",
+        },
+      );
 
       // Use the localhost network for these tests because the modifier is only
       // applicable to HTTP networks. EDR networks do not require this modifier.
-      connection = await hre.network.connect("localhost");
-    });
-
-    it("should not fail because the chain id is the same as the one returned by eth_chainId", async () => {
-      connection.networkConfig.chainId = 1;
+      const connection = await hre.network.connect("localhost");
 
       await connection.provider.request({
         method: "eth_sendTransaction",
@@ -37,7 +37,22 @@ describe("e2e - ChainIdValidator", () => {
     });
 
     it("should fail because the chain id is different from the one returned by eth_chainId", async () => {
-      connection.networkConfig.chainId = 2;
+      const hre = await createMockedNetworkHre(
+        {
+          networks: {
+            localhost: {
+              type: "http",
+              url: "http://localhost:8545",
+              chainId: 2,
+            },
+          },
+        },
+        {
+          eth_chainId: "0x1",
+        },
+      );
+
+      const connection = await hre.network.connect("localhost");
 
       await assertRejectsWithHardhatError(
         connection.provider.request({
@@ -54,19 +69,28 @@ describe("e2e - ChainIdValidator", () => {
   });
 
   describe("net_version", () => {
-    beforeEach(async () => {
-      const hre = await createMockedNetworkHre({
-        eth_chainId: undefined, // simulate an error for the method eth_chainId
-        net_version: "0x1",
-      });
+    beforeEach(async () => {});
+
+    it("should not fail because the chain id is the same as the one returned by net_version", async () => {
+      const hre = await createMockedNetworkHre(
+        {
+          networks: {
+            localhost: {
+              type: "http",
+              url: "http://localhost:8545",
+              chainId: 1,
+            },
+          },
+        },
+        {
+          eth_chainId: undefined, // simulate an error for the method eth_chainId
+          net_version: "0x1",
+        },
+      );
 
       // Use the localhost network for these tests because the modifier is only
       // applicable to HTTP networks. EDR networks do not require this modifier.
-      connection = await hre.network.connect("localhost");
-    });
-
-    it("should not fail because the chain id is the same as the one returned by net_version", async () => {
-      connection.networkConfig.chainId = 1;
+      const connection = await hre.network.connect("localhost");
 
       await connection.provider.request({
         method: "eth_sendTransaction",
@@ -75,7 +99,23 @@ describe("e2e - ChainIdValidator", () => {
     });
 
     it("should fail because the chain id is different from the one returned by net_version", async () => {
-      connection.networkConfig.chainId = 2;
+      const hre = await createMockedNetworkHre(
+        {
+          networks: {
+            localhost: {
+              type: "http",
+              url: "http://localhost:8545",
+              chainId: 2,
+            },
+          },
+        },
+        {
+          eth_chainId: undefined, // simulate an error for the method eth_chainId
+          net_version: "0x1",
+        },
+      );
+
+      const connection = await hre.network.connect("localhost");
 
       await assertRejectsWithHardhatError(
         connection.provider.request({

@@ -151,6 +151,17 @@ export const configurationVariableSchema = z.object({
 });
 
 /**
+ * A Zod type to validate Hardhat's ResolvedConfigurationVariable objects.
+ */
+export const resolvedConfigurationVariableSchema = z.object({
+  _type: z.literal("ResolvedConfigurationVariable"),
+  get: z.function(),
+  getUrl: z.function(),
+  getBigInt: z.function(),
+  getHexString: z.function(),
+});
+
+/**
  * A Zod type to validate Hardhat's SensitiveString values.
  */
 export const sensitiveStringSchema = unionType(

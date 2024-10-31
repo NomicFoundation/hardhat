@@ -13,21 +13,24 @@ const LATEST_BASE_FEE_IN_MOCKED_PROVIDER = 80;
 // These tests simulate a real scenario where the user calls "await connection.provider.request(jsonRpcRequest)".
 describe("e2e - AutomaticGasPrice", () => {
   it("should use the reward return value as default maxPriorityFeePerGas", async () => {
-    const hre = await createMockedNetworkHre({
-      eth_feeHistory: {
-        baseFeePerGas: [
-          numberToHexString(LATEST_BASE_FEE_IN_MOCKED_PROVIDER),
-          numberToHexString(
-            Math.floor((LATEST_BASE_FEE_IN_MOCKED_PROVIDER * 9) / 8),
-          ),
-        ],
-        reward: [["0x4"]],
-      },
+    const hre = await createMockedNetworkHre(
+      {},
+      {
+        eth_feeHistory: {
+          baseFeePerGas: [
+            numberToHexString(LATEST_BASE_FEE_IN_MOCKED_PROVIDER),
+            numberToHexString(
+              Math.floor((LATEST_BASE_FEE_IN_MOCKED_PROVIDER * 9) / 8),
+            ),
+          ],
+          reward: [["0x4"]],
+        },
 
-      eth_getBlockByNumber: {
-        baseFeePerGas: "0x1",
+        eth_getBlockByNumber: {
+          baseFeePerGas: "0x1",
+        },
       },
-    });
+    );
     // Use the localhost network for this test because the modifier is only
     // applicable to HTTP networks. EDR networks do not require this modifier.
     const connection = await hre.network.connect("localhost");

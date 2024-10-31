@@ -30,15 +30,24 @@ describe("e2e - LocalAccounts", () => {
   ];
 
   beforeEach(async () => {
-    const hre = await createMockedNetworkHre({
-      net_version: numberToHexString(MOCK_PROVIDER_CHAIN_ID),
-      eth_getTransactionCount: numberToHexString(0x8),
-      eth_accounts: [],
-    });
+    const hre = await createMockedNetworkHre(
+      {
+        networks: {
+          localhost: {
+            type: "http",
+            url: "http://localhost:8545",
+            accounts,
+          },
+        },
+      },
+      {
+        net_version: numberToHexString(MOCK_PROVIDER_CHAIN_ID),
+        eth_getTransactionCount: numberToHexString(0x8),
+        eth_accounts: [],
+      },
+    );
 
-    connection = await hre.network.connect();
-    connection.networkConfig.type = "http";
-    connection.networkConfig.accounts = accounts;
+    connection = await hre.network.connect("localhost");
   });
 
   it("should return the account addresses in eth_accounts", async () => {
