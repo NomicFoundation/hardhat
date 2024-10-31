@@ -11,6 +11,6 @@
     "@ignored/hardhat-vnext-network-helpers": "workspace:^3.0.0-next.6",
     "forge-std": "foundry-rs/forge-std#v1.9.4",
     "typescript": "~5.5.0",
-    "viem": "^2.21.17"
+    "viem": "^2.21.37"
   }
 }
