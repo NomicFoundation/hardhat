@@ -21,53 +21,53 @@ describe("chains", () => {
     it("should return the chain corresponding to the chain id", async () => {
       const provider = new MockEthereumProvider({ eth_chainId: "0x1" }); // mainnet chain id
 
-      const chain = await getChain(provider);
+      const chain = await getChain(provider, "generic");
 
       assert.deepEqual(chain, chains.mainnet);
       assert.equal(provider.callCount, 1);
     });
 
-    it("should return the hardhat chain if the chain id is 31337 and the network is hardhat", async () => {
+    it("should return the hardhat chain if the network is hardhat and chaintype is optimisim", async () => {
+      const provider = new MockEthereumProvider({
+        eth_chainId: "0xa", // Op mainnet: 10
+        hardhat_metadata: {},
+      });
+
+      const chain = await getChain(provider, "optimism");
+
+      assert.deepEqual(chain, chains.optimism);
+      assert.equal(provider.callCount, 2);
+    });
+
+    it("should return the hardhat chain if the network is hardhat and chaintype is generic", async () => {
       const provider = new MockEthereumProvider({
         eth_chainId: "0x7a69", // 31337 in hex
         hardhat_metadata: {},
       });
 
-      const chain = await getChain(provider);
+      const chain = await getChain(provider, "generic");
 
       assert.deepEqual(chain, chains.hardhat);
       assert.equal(provider.callCount, 2);
     });
 
-    it("should return the foundry chain if the chain id is 31337 and the network is anvil", async () => {
+    it("should return the foundry chain if the network is anvil", async () => {
       const provider = new MockEthereumProvider({
         eth_chainId: "0x7a69", // 31337 in hex
         anvil_nodeInfo: {},
       });
 
-      const chain = await getChain(provider);
+      const chain = await getChain(provider, "generic");
 
       assert.deepEqual(chain, chains.anvil);
       assert.equal(provider.callCount, 2);
     });
 
-    it("should throw if the chain id is 31337 and the network is neither hardhat nor anvil", async () => {
-      const provider = new MockEthereumProvider({
-        eth_chainId: "0x7a69", // 31337 in hex
-      });
-
-      await assertRejectsWithHardhatError(
-        getChain(provider),
-        HardhatError.ERRORS.VIEM.UNSUPPORTED_DEVELOPMENT_NETWORK,
-        {},
-      );
-    });
-
-    it("should throw if the chain id is not 31337 and there is no chain with that id", async () => {
+    it("should throw if it's not a dev network and there is no chain with that id", async () => {
       const provider = new MockEthereumProvider({ eth_chainId: "0x0" }); // fake chain id 0
 
       await assertRejectsWithHardhatError(
-        getChain(provider),
+        getChain(provider, "generic"),
         HardhatError.ERRORS.VIEM.NETWORK_NOT_FOUND,
         { chainId: 0 },
       );
@@ -77,7 +77,7 @@ describe("chains", () => {
       // chain id 999 corresponds to wanchainTestnet but also zoraTestnet
       const provider = new MockEthereumProvider({ eth_chainId: "0x3e7" }); // 999 in hex
 
-      const chainId = await getChain(provider);
+      const chainId = await getChain(provider, "generic");
       assert.equal(chainId, chains.wanchainTestnet);
     });
 
@@ -87,7 +87,7 @@ describe("chains", () => {
         hardhat_metadata: {},
       });
 
-      const chain = await getChain(provider);
+      const chain = await getChain(provider, "generic");
 
       assert.deepEqual(chain, {
         ...chains.hardhat,
@@ -101,7 +101,7 @@ describe("chains", () => {
         anvil_nodeInfo: {},
       });
 
-      const chain = await getChain(provider);
+      const chain = await getChain(provider, "generic");
 
       assert.deepEqual(chain, {
         ...chains.anvil,
@@ -169,16 +169,25 @@ describe("chains", () => {
   });
 
   describe("isDevelopmentNetwork", () => {
-    it("should return true if the chain id is 31337", () => {
+    it("should return true for Hardhat and Anvil nodes", async () => {
       assert.ok(
-        isDevelopmentNetwork(31337),
-        "chain id 31337 should be a development network",
+        await isDevelopmentNetwork(
+          new MockEthereumProvider({ hardhat_metadata: {} }),
+        ),
+        "Hardhat nodes should be considered development networks",
+      );
+
+      assert.ok(
+        await isDevelopmentNetwork(
+          new MockEthereumProvider({ anvil_nodeInfo: {} }),
+        ),
+        "Anvil nodes should be considered development networks",
       );
     });
 
-    it("should return false if the chain id is not 31337", () => {
+    it("should return false for other nodes", async () => {
       assert.ok(
-        !isDevelopmentNetwork(1),
+        !(await isDevelopmentNetwork(new MockEthereumProvider({}))),
         "chain id 1 should not be a development network",
       );
     });
