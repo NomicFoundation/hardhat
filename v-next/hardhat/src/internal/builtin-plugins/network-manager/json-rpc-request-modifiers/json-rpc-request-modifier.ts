@@ -74,7 +74,14 @@ export class JsonRpcRequestModifier {
 
       if (Array.isArray(accounts)) {
         if (this.#localAccounts === undefined) {
-          this.#localAccounts = new LocalAccounts(this.#provider, accounts);
+          // TODO: Maybe we can avoid resolving all of them here.
+          const resolvedAccounts = await Promise.all(
+            accounts.map((acc) => acc.getHexString()),
+          );
+          this.#localAccounts = new LocalAccounts(
+            this.#provider,
+            resolvedAccounts,
+          );
         }
 
         return this.#localAccounts.resolveRequest(jsonRpcRequest);
@@ -128,7 +135,14 @@ export class JsonRpcRequestModifier {
 
       if (Array.isArray(accounts)) {
         if (this.#localAccounts === undefined) {
-          this.#localAccounts = new LocalAccounts(this.#provider, accounts);
+          const resolvedAccounts = await Promise.all(
+            accounts.map((acc) => acc.getHexString()),
+          );
+
+          this.#localAccounts = new LocalAccounts(
+            this.#provider,
+            resolvedAccounts,
+          );
         }
 
         await this.#localAccounts.modifyRequest(jsonRpcRequest);
