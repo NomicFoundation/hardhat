@@ -112,11 +112,19 @@ const pluginExample = {
 
 const config: HardhatUserConfig = {
   networks: {
-    opSepolia: {
+    op: {
       type: "http",
       chainType: "optimism",
-      url: "https://sepolia.optimism.io",
-      accounts: [configVariable("OP_SEPOLIA_SENDER")],
+      url: "https://mainnet.optimism.io/",
+      accounts: [configVariable("OP_SENDER")],
+    },
+    edrOp: {
+      type: "edr",
+      chainType: "optimism",
+      chainId: 10,
+      forkConfig: {
+        jsonRpcUrl: "https://mainnet.optimism.io",
+      },
     },
   },
   tasks: [

@@ -1471,8 +1471,8 @@ importers:
         specifier: ~5.5.0
         version: 5.5.4
       viem:
-        specifier: ^2.21.17
-        version: 2.21.35(typescript@5.5.4)(zod@3.23.8)
+        specifier: ^2.21.37
+        version: 2.21.37(typescript@5.5.4)(zod@3.23.8)
 
   v-next/hardhat:
     dependencies:
@@ -2271,8 +2271,8 @@ importers:
         specifier: 7.7.1
         version: 7.7.1(eslint@8.57.0)(typescript@5.5.4)
       viem:
-        specifier: ^2.21.17
-        version: 2.21.35(typescript@5.5.4)(zod@3.23.8)
+        specifier: ^2.21.37
+        version: 2.21.37(typescript@5.5.4)(zod@3.23.8)
 
   v-next/hardhat-zod-utils:
     dependencies:
@@ -2401,8 +2401,8 @@ importers:
         specifier: ~5.5.0
         version: 5.5.4
       viem:
-        specifier: ^2.21.17
-        version: 2.21.35(typescript@5.5.4)(zod@3.23.8)
+        specifier: ^2.21.37
+        version: 2.21.37(typescript@5.5.4)(zod@3.23.8)
 
   v-next/template-package:
     devDependencies:
@@ -6627,6 +6627,14 @@ packages:
 
   viem@2.21.35:
     resolution: {integrity: sha512-f3EFc5JILeA9veuNymUN8HG/nKP9ykC0NCgwFrZWuxcCc822GaP0IEnkRBsHGqmjwbz//FxJFmvtx7TBcdVs0A==}
+    peerDependencies:
+      typescript: '>=5.0.4'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
+  viem@2.21.37:
+    resolution: {integrity: sha512-JupwyttT4aJNnP9+kD7E8jorMS5VmgpC3hm3rl5zXsO8WNBTsP3JJqZUSg4AG6s2lTrmmpzS/qpmXMZu5gJw5Q==}
     peerDependencies:
       typescript: '>=5.0.4'
     peerDependenciesMeta:
@@ -11871,7 +11879,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  viem@2.21.35(typescript@5.5.4)(zod@3.23.8):
+  viem@2.21.37(typescript@5.5.4)(zod@3.23.8):
     dependencies:
       '@adraffy/ens-normalize': 1.11.0
       '@noble/curves': 1.6.0
