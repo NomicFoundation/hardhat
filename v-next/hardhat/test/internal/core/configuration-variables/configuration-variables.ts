@@ -47,7 +47,7 @@ describe("ResolvedConfigurationVariable", () => {
     await assertRejectsWithHardhatError(
       variable.get(),
       HardhatError.ERRORS.GENERAL.ENV_VAR_NOT_FOUND,
-      {},
+      { name: variable.name },
     );
   });
 

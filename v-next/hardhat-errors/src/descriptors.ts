@@ -134,7 +134,9 @@ Please double check whether you have multiple versions of the same plugin instal
     },
     ENV_VAR_NOT_FOUND: {
       number: 7,
-      messageTemplate: "Configuration variable not found as an env variable",
+      messageTemplate: `Configuration Variable '{name}' not found.
+     
+You can defined it using a plugin like hardhat-keystore, or set it as an environment variable.`,
       websiteTitle: "Configuration variable not found",
       websiteDescription: `A configuration variable was expected to be set as an environment variable, but it wasn't.`,
     },

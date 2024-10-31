@@ -100,7 +100,10 @@ export class LazyResolvedConfigurationVariable extends BaseResolvedConfiguration
         const value = process.env[v.name];
 
         if (typeof value !== "string") {
-          throw new HardhatError(HardhatError.ERRORS.GENERAL.ENV_VAR_NOT_FOUND);
+          throw new HardhatError(
+            HardhatError.ERRORS.GENERAL.ENV_VAR_NOT_FOUND,
+            { name: v.name },
+          );
         }
 
         return value;
