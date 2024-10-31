@@ -1,11 +1,15 @@
 import type { TestClientMode } from "../types.js";
+import type { ChainType } from "@ignored/hardhat-vnext/types/network";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type { Chain as ViemChain } from "viem";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@ignored/hardhat-vnext-errors";
 import { extractChain } from "viem";
 import * as chainsModule from "viem/chains";
-import { hardhat, anvil } from "viem/chains";
+import { hardhat, anvil, optimism } from "viem/chains";
 
 /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 -- TODO: this assertion should not be necessary */
@@ -18,7 +22,10 @@ const isAnvilNetworkCache = new WeakMap<EthereumProvider, boolean>();
 const HARDHAT_METADATA_METHOD = "hardhat_metadata";
 const ANVIL_NODE_INFO_METHOD = "anvil_nodeInfo";
 
-export async function getChain(provider: EthereumProvider): Promise<ViemChain> {
+export async function getChain(
+  provider: EthereumProvider,
+  chainType: ChainType | string,
+): Promise<ViemChain> {
   const chainId = await getChainId(provider);
 
   const chain = extractChain({
@@ -26,8 +33,13 @@ export async function getChain(provider: EthereumProvider): Promise<ViemChain> {
     id: chainId,
   });
 
-  if (isDevelopmentNetwork(chainId) || chain === undefined) {
+  if ((await isDevelopmentNetwork(provider)) || chain === undefined) {
     if (await isHardhatNetwork(provider)) {
+      if (chainType === "optimism") {
+        // TODO: We may need a better way to merge this info.
+        return { ...optimism, id: chainId };
+      }
+
       return {
         ...hardhat,
         id: chainId,
@@ -49,10 +61,9 @@ export async function getChain(provider: EthereumProvider): Promise<ViemChain> {
       });
     }
 
-    // If the chain is a development network but not one of our supported
-    // development networks (e.g. Hardhat, Anvil) then throw
-    throw new HardhatError(
-      HardhatError.ERRORS.VIEM.UNSUPPORTED_DEVELOPMENT_NETWORK,
+    assertHardhatInvariant(
+      false,
+      "This should not happen, as we check in isDevelopmentNetwork that it's either hardhat or anvil",
     );
   }
 
@@ -71,8 +82,18 @@ export async function getChainId(provider: EthereumProvider): Promise<number> {
   return chainId;
 }
 
-export function isDevelopmentNetwork(chainId: number): boolean {
-  return chainId === 31337;
+export async function isDevelopmentNetwork(
+  provider: EthereumProvider,
+): Promise<boolean> {
+  if (await isHardhatNetwork(provider)) {
+    return true;
+  }
+
+  if (await isAnvilNetwork(provider)) {
+    return true;
+  }
+
+  return false;
 }
 
 export async function isHardhatNetwork(

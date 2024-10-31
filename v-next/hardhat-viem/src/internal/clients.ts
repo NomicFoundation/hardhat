@@ -29,9 +29,10 @@ export async function getPublicClient<ChainTypeT extends ChainType | string>(
   chainType: ChainTypeT,
   publicClientConfig?: Partial<ViemPublicClientConfig>,
 ): Promise<GetPublicClientReturnType<ChainTypeT>> {
-  const chain = publicClientConfig?.chain ?? (await getChain(provider));
+  const chain =
+    publicClientConfig?.chain ?? (await getChain(provider, chainType));
   const parameters = {
-    ...getDefaultClientParameters(chain.id),
+    ...(await getDefaultClientParameters(provider)),
     ...publicClientConfig,
   };
 
@@ -55,10 +56,11 @@ export async function getWalletClients<ChainTypeT extends ChainType | string>(
   chainType: ChainTypeT,
   walletClientConfig?: Partial<ViemWalletClientConfig>,
 ): Promise<Array<GetWalletClientReturnType<ChainTypeT>>> {
-  const chain = walletClientConfig?.chain ?? (await getChain(provider));
+  const chain =
+    walletClientConfig?.chain ?? (await getChain(provider, chainType));
   const accounts = await getAccounts(provider);
   const parameters = {
-    ...getDefaultClientParameters(chain.id),
+    ...(await getDefaultClientParameters(provider)),
     ...walletClientConfig,
   };
 
@@ -88,9 +90,10 @@ export async function getWalletClient<ChainTypeT extends ChainType | string>(
   address: ViemAddress,
   walletClientConfig?: Partial<ViemWalletClientConfig>,
 ): Promise<GetWalletClientReturnType<ChainTypeT>> {
-  const chain = walletClientConfig?.chain ?? (await getChain(provider));
+  const chain =
+    walletClientConfig?.chain ?? (await getChain(provider, chainType));
   const parameters = {
-    ...getDefaultClientParameters(chain.id),
+    ...(await getDefaultClientParameters(provider)),
     ...walletClientConfig,
   };
 
@@ -117,7 +120,8 @@ export async function getDefaultWalletClient<
   chainType: ChainTypeT,
   walletClientConfig?: Partial<ViemWalletClientConfig>,
 ): Promise<GetWalletClientReturnType<ChainTypeT>> {
-  const chain = walletClientConfig?.chain ?? (await getChain(provider));
+  const chain =
+    walletClientConfig?.chain ?? (await getChain(provider, chainType));
   const [defaultAccount] = await getAccounts(provider);
 
   if (defaultAccount === undefined) {
@@ -137,11 +141,13 @@ export async function getDefaultWalletClient<
   );
 }
 
-export async function getTestClient(
+export async function getTestClient<ChainTypeT extends ChainType | string>(
   provider: EthereumProvider,
+  chainType: ChainTypeT,
   testClientConfig?: Partial<ViemTestClientConfig>,
 ): Promise<TestClient> {
-  const chain = testClientConfig?.chain ?? (await getChain(provider));
+  const chain =
+    testClientConfig?.chain ?? (await getChain(provider, chainType));
   const mode = await getMode(provider);
   const parameters = { ...DEFAULT_CLIENT_PARAMETERS, ...testClientConfig };
 
@@ -157,6 +163,8 @@ export async function getTestClient(
 
 const DEFAULT_CLIENT_PARAMETERS = { pollingInterval: 50, cacheTime: 0 };
 
-function getDefaultClientParameters(chainId: number) {
-  return isDevelopmentNetwork(chainId) ? DEFAULT_CLIENT_PARAMETERS : {};
+async function getDefaultClientParameters(provider: EthereumProvider) {
+  return (await isDevelopmentNetwork(provider))
+    ? DEFAULT_CLIENT_PARAMETERS
+    : {};
 }
