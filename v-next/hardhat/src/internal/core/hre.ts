@@ -25,7 +25,10 @@ import { findClosestPackageRoot } from "@ignored/hardhat-vnext-utils/package";
 import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 
 import { validateUserConfig } from "./config-validation.js";
-import { ResolvedConfigurationVariableImplementation } from "./configuration-variables.js";
+import {
+  FixedValueConfigurationVariable,
+  LazyResolvedConfigurationVariable,
+} from "./configuration-variables.js";
 import {
   buildGlobalOptionDefinitions,
   resolveGlobalOptions,
@@ -212,8 +215,13 @@ async function resolveUserConfig(
     "resolveUserConfig",
     [
       config,
-      (variable) =>
-        new ResolvedConfigurationVariableImplementation(hooks, variable),
+      (variable) => {
+        if (typeof variable === "string") {
+          return new FixedValueConfigurationVariable(variable);
+        }
+
+        return new LazyResolvedConfigurationVariable(hooks, variable);
+      },
     ],
     async (_, __) => {
       return initialResolvedConfig;

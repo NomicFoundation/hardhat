@@ -213,6 +213,12 @@ Please add the property "type" with the value "module" in your package.json to e
       websiteTitle: "Workspace not found",
       websiteDescription: `The workspace you provided does not exist. Please ensure that the workspace exists and try again.`,
     },
+    INVALID_HEX_STRING: {
+      number: 18,
+      messageTemplate: `Invalid hex string "{value}"`,
+      websiteTitle: "Invalid hex string",
+      websiteDescription: `Given value was not a valid hex string.`,
+    },
   },
   INTERNAL: {
     ASSERTION_ERROR: {
