@@ -157,7 +157,7 @@ export async function main(
 
     const task = taskOrId;
 
-    if (builtinGlobalOptions.help) {
+    if (builtinGlobalOptions.help || task.isEmpty) {
       const taskHelp = await getHelpString(task);
 
       print(taskHelp);
