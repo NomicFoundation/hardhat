@@ -8,6 +8,8 @@ import { getUnprefixedHexString } from "@ignored/hardhat-vnext-utils/hex";
 import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 import {
   conditionalUnionType,
+  configurationVariableSchema,
+  resolvedConfigurationVariableSchema,
   sensitiveUrlSchema,
   unionType,
   validateUserConfigZodType,
@@ -37,16 +39,22 @@ const userGasSchema = conditionalUnionType(
   "Expected 'auto', a safe int, or bigint",
 );
 
-const accountsPrivateKeySchema = z
-  .string({
-    message: `${ACCOUNTS_ERROR} the private key must be a string`,
-  })
-  .refine((val) => getUnprefixedHexString(val).length === 64, {
-    message: `${ACCOUNTS_ERROR} the private key must be exactly 32 bytes long`,
-  })
-  .refine((val) => /^[0-9a-fA-F]+$/.test(getUnprefixedHexString(val)), {
-    message: `${ACCOUNTS_ERROR} the private key must contain only valid hexadecimal characters`,
-  });
+const accountsPrivateKeySchema = unionType(
+  [
+    configurationVariableSchema,
+    z
+      .string({
+        message: `${ACCOUNTS_ERROR} the private key must be a string`,
+      })
+      .refine((val) => getUnprefixedHexString(val).length === 64, {
+        message: `${ACCOUNTS_ERROR} the private key must be exactly 32 bytes long`,
+      })
+      .refine((val) => /^[0-9a-fA-F]+$/.test(getUnprefixedHexString(val)), {
+        message: `${ACCOUNTS_ERROR} the private key must contain only valid hexadecimal characters`,
+      }),
+  ],
+  `Expected a hex-encoded private key or a Configuration Variable`,
+);
 
 const canBeValidatedAsPrivateKey = (val: unknown) => {
   // Allow numbers (hex literals) even if unsupported, to provide a more detailed error message about the private key
@@ -103,10 +111,7 @@ const httpNetworkHDAccountsUserConfig = z.object({
 const httpNetworkUserConfigAccountsSchema = conditionalUnionType(
   [
     [(data) => data === "remote", z.literal("remote")],
-    [
-      (data) => Array.isArray(data) && data.every(canBeValidatedAsPrivateKey),
-      z.array(accountsPrivateKeySchema),
-    ],
+    [(data) => Array.isArray(data), z.array(accountsPrivateKeySchema)],
     [canBeValidatedAsHdAccount, httpNetworkHDAccountsUserConfig],
   ],
   `The "accounts" property in the configuration should be set to one of the following values: "remote", an array of private keys, or an object containing a mnemonic value and optional account details such as initialIndex, count, path, and passphrase`,
@@ -238,8 +243,8 @@ const httpNetworkAccountsSchema = conditionalUnionType(
   [
     [(data) => data === "remote", z.literal("remote")],
     [
-      (data) => Array.isArray(data) && data.every(canBeValidatedAsPrivateKey),
-      z.array(accountsPrivateKeySchema),
+      (data) => Array.isArray(data),
+      z.array(resolvedConfigurationVariableSchema),
     ],
     [canBeValidatedAsHdAccount, httpNetworkHDAccountsConfig],
   ],
