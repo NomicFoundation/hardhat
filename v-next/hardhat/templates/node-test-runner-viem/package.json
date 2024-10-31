@@ -6,9 +6,10 @@
   "type": "module",
   "devDependencies": {
     "@ignored/hardhat-vnext": "workspace:^3.0.0-next.10",
-    "@ignored/hardhat-vnext-viem": "workspace:^3.0.0-next.5",
     "@ignored/hardhat-vnext-node-test-runner": "workspace:^3.0.0-next.6",
     "@ignored/hardhat-vnext-network-helpers": "workspace:^3.0.0-next.6",
+    "@ignored/hardhat-vnext-viem": "workspace:^3.0.0-next.5",
+    "@types/node": "^22.8.5",
     "forge-std": "foundry-rs/forge-std#v1.9.4",
     "typescript": "~5.5.0",
     "viem": "^2.21.17"

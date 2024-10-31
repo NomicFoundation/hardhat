@@ -942,7 +942,7 @@ This error is thrown when you import a file with the wrong casing under a case i
     IMPORTED_NPM_DEPENDENCY_NOT_INSTALLED: {
       number: 1206,
       messageTemplate:
-        'The import "{importPath}" from "{from}" is trying to use an uinstalled npm dependency.',
+        'The import "{importPath}" from "{from}" is trying to use an uninstalled npm dependency.',
       websiteTitle: "Uninstalled npm solidity dependency",
       websiteDescription: `One of your files is traying to import a dependency using npm, but it hasn't been installed`,
     },
