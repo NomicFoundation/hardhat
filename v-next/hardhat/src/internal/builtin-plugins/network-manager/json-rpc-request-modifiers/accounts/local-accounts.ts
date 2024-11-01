@@ -260,10 +260,14 @@ export class LocalAccounts extends ChainId {
       };
     });
 
+    // TODO: Fix after the alpha release
+    assertHardhatInvariant(
+      txData.to !== undefined,
+      "The alpha version doesn't support deploying contracts with local accounts yet",
+    );
+
     const checksummedAddress = addr.addChecksum(
-      txData.to !== undefined
-        ? bytesToHexString(txData.to).toLowerCase()
-        : "0x0",
+      bytesToHexString(txData.to).toLowerCase(),
     );
 
     assertHardhatInvariant(
