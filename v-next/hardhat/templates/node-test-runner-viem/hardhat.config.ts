@@ -1,4 +1,7 @@
-import type { HardhatUserConfig } from "@ignored/hardhat-vnext/config";
+import {
+  configVariable,
+  type HardhatUserConfig,
+} from "@ignored/hardhat-vnext/config";
 
 import HardhatNodeTestRunner from "@ignored/hardhat-vnext-node-test-runner";
 import HardhatViem from "@ignored/hardhat-vnext-viem";
@@ -21,6 +24,12 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
+    op: {
+      type: "http",
+      chainType: "optimism",
+      url: "https://mainnet.optimism.io/",
+      accounts: [configVariable("OPTIMISM_PRIVATE_KEY")],
+    },
     edrOp: {
       type: "edr",
       chainId: 10,
