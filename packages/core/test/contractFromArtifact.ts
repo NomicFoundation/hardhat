@@ -70,10 +70,15 @@ describe("contractFromArtifact", () => {
   });
 
   it("should be able to pass an after dependency", () => {
+    const otherModule = buildModule("Module2", (m) => {
+      const example = m.contract("Example");
+      return { example };
+    });
+
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
       const example = m.contract("Example");
       const another = m.contract("Another", fakeArtifact, [], {
-        after: [example],
+        after: [example, otherModule],
       });
 
       return { example, another };
@@ -84,8 +89,9 @@ describe("contractFromArtifact", () => {
     const exampleFuture = moduleWithDependentContracts.results.example;
     const anotherFuture = moduleWithDependentContracts.results.another;
 
-    assert.equal(anotherFuture.dependencies.size, 1);
+    assert.equal(anotherFuture.dependencies.size, 2);
     assert(anotherFuture.dependencies.has(exampleFuture!));
+    assert(anotherFuture.dependencies.has(otherModule));
   });
 
   it("should be able to pass a library as a dependency of a contract", () => {

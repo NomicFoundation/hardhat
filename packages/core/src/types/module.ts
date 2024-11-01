@@ -134,7 +134,7 @@ export interface NamedArtifactContractDeploymentFuture<
   type: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT;
   id: string;
   module: IgnitionModule;
-  dependencies: Set<Future>;
+  dependencies: Set<Future | IgnitionModule>;
   contractName: ContractNameT;
   constructorArgs: ArgumentType[];
   libraries: Record<string, ContractFuture<string>>;
@@ -156,7 +156,7 @@ export interface ContractDeploymentFuture<AbiT extends Abi = Abi> {
   type: FutureType.CONTRACT_DEPLOYMENT;
   id: string;
   module: IgnitionModule;
-  dependencies: Set<Future>;
+  dependencies: Set<Future | IgnitionModule>;
   contractName: string;
   artifact: Artifact<AbiT>;
   constructorArgs: ArgumentType[];
@@ -180,7 +180,7 @@ export interface NamedArtifactLibraryDeploymentFuture<
   type: FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT;
   id: string;
   module: IgnitionModule;
-  dependencies: Set<Future>;
+  dependencies: Set<Future | IgnitionModule>;
   contractName: LibraryNameT;
   libraries: Record<string, ContractFuture<string>>;
   from: string | AccountRuntimeValue | undefined;
@@ -196,7 +196,7 @@ export interface LibraryDeploymentFuture<AbiT extends Abi = Abi> {
   type: FutureType.LIBRARY_DEPLOYMENT;
   id: string;
   module: IgnitionModule;
-  dependencies: Set<Future>;
+  dependencies: Set<Future | IgnitionModule>;
   contractName: string;
   artifact: Artifact<AbiT>;
   libraries: Record<string, ContractFuture<string>>;
@@ -215,7 +215,7 @@ export interface ContractCallFuture<
   type: FutureType.CONTRACT_CALL;
   id: string;
   module: IgnitionModule;
-  dependencies: Set<Future>;
+  dependencies: Set<Future | IgnitionModule>;
   contract: ContractFuture<ContractNameT>;
   functionName: FunctionNameT;
   args: ArgumentType[];
@@ -239,7 +239,7 @@ export interface StaticCallFuture<
   type: FutureType.STATIC_CALL;
   id: string;
   module: IgnitionModule;
-  dependencies: Set<Future>;
+  dependencies: Set<Future | IgnitionModule>;
   contract: ContractFuture<ContractNameT>;
   functionName: FunctionNameT;
   nameOrIndex: string | number;
@@ -259,7 +259,7 @@ export interface EncodeFunctionCallFuture<
   type: FutureType.ENCODE_FUNCTION_CALL;
   id: string;
   module: IgnitionModule;
-  dependencies: Set<Future>;
+  dependencies: Set<Future | IgnitionModule>;
   contract: ContractFuture<ContractNameT>;
   functionName: FunctionNameT;
   args: ArgumentType[];
@@ -274,7 +274,7 @@ export interface NamedArtifactContractAtFuture<ContractNameT extends string> {
   type: FutureType.NAMED_ARTIFACT_CONTRACT_AT;
   id: string;
   module: IgnitionModule;
-  dependencies: Set<Future>;
+  dependencies: Set<Future | IgnitionModule>;
   contractName: ContractNameT;
   address:
     | string
@@ -292,7 +292,7 @@ export interface ContractAtFuture<AbiT extends Abi = Abi> {
   type: FutureType.CONTRACT_AT;
   id: string;
   module: IgnitionModule;
-  dependencies: Set<Future>;
+  dependencies: Set<Future | IgnitionModule>;
   contractName: string;
   address:
     | string
@@ -311,7 +311,7 @@ export interface ReadEventArgumentFuture {
   type: FutureType.READ_EVENT_ARGUMENT;
   id: string;
   module: IgnitionModule;
-  dependencies: Set<Future>;
+  dependencies: Set<Future | IgnitionModule>;
   futureToReadFrom:
     | NamedArtifactContractDeploymentFuture<string>
     | ContractDeploymentFuture
@@ -332,7 +332,7 @@ export interface SendDataFuture {
   type: FutureType.SEND_DATA;
   id: string;
   module: IgnitionModule;
-  dependencies: Set<Future>;
+  dependencies: Set<Future | IgnitionModule>;
   to:
     | string
     | AddressResolvableFuture

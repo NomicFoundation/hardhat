@@ -40,9 +40,14 @@ describe("batcher", () => {
   });
 
   it("should batch through dependencies", () => {
+    const otherModule = buildModule("Module2", (m) => {
+      const example = m.contract("Example");
+      return { example };
+    });
+
     const ignitionModule = buildModule("Module1", (m) => {
       const contract1 = m.contract("Contract1");
-      const contract2 = m.contract("Contract2");
+      const contract2 = m.contract("Contract2", [], { after: [otherModule] });
 
       const contract3 = m.contract("Contract3", [contract1, contract2]);
 
@@ -58,7 +63,8 @@ describe("batcher", () => {
     });
 
     assertBatching({ ignitionModule }, [
-      ["Module1#Contract1", "Module1#Contract2"],
+      ["Module1#Contract1", "Module2#Example"],
+      ["Module1#Contract2"],
       ["Module1#Contract3"],
       ["Module1#Contract4", "Module1#Contract5"],
     ]);

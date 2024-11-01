@@ -47,10 +47,15 @@ describe("contractAt", () => {
   });
 
   it("should be able to pass an after dependency", () => {
+    const otherModule = buildModule("Module2", (m) => {
+      const example = m.contract("Example");
+      return { example };
+    });
+
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
       const example = m.contract("Example");
       const another = m.contractAt("Another", exampleAddress, {
-        after: [example],
+        after: [example, otherModule],
       });
 
       return { example, another };
@@ -61,8 +66,9 @@ describe("contractAt", () => {
     const exampleFuture = moduleWithDependentContracts.results.example;
     const anotherFuture = moduleWithDependentContracts.results.another;
 
-    assert.equal(anotherFuture.dependencies.size, 1);
+    assert.equal(anotherFuture.dependencies.size, 2);
     assert(anotherFuture.dependencies.has(exampleFuture!));
+    assert(anotherFuture.dependencies.has(otherModule));
   });
 
   it("should be able to pass a static call future as the address", () => {

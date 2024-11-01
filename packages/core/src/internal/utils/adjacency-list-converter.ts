@@ -1,3 +1,4 @@
+import { isFuture } from "../../type-guards";
 import { Future } from "../../types/module";
 
 import { AdjacencyList } from "./adjacency-list";
@@ -12,11 +13,13 @@ export class AdjacencyListConverter {
       for (const dependency of future.dependencies) {
         dependencyGraph.addDependency({ from: future.id, to: dependency.id });
 
-        this._optionallyAddDependenciesSubmoduleSiblings(
-          dependencyGraph,
-          future,
-          dependency
-        );
+        if (isFuture(dependency)) {
+          this._optionallyAddDependenciesSubmoduleSiblings(
+            dependencyGraph,
+            future,
+            dependency
+          );
+        }
       }
     }
 

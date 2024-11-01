@@ -43,6 +43,12 @@ body {
   max-width: 391px !important;
 }
 
+span.future-to-module-arrow {
+  font-weight: 900 !important;
+  font-size: medium !important;
+  letter-spacing: -2px;
+}
+
 /* mermaid styles */
 
 .mermaid {

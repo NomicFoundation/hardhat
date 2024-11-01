@@ -35,9 +35,9 @@ export interface ContractOptions {
   id?: string;
 
   /**
-   * The futures to execute before this one.
+   * The futures or Ignition modules to execute before this one.
    */
-  after?: Future[];
+  after?: Array<Future | IgnitionModule>;
 
   /**
    * The libraries to link to the contract.
@@ -71,9 +71,9 @@ export interface LibraryOptions {
   id?: string;
 
   /**
-   * The futures to execute before this one.
+   * The futures or Ignition modules to execute before this one.
    */
-  after?: Future[];
+  after?: Array<Future | IgnitionModule>;
 
   /**
    * The libraries to link to the contract.
@@ -98,9 +98,9 @@ export interface CallOptions {
   id?: string;
 
   /**
-   * The futures to execute before this one.
+   * The futures or Ignition modules to execute before this one.
    */
-  after?: Future[];
+  after?: Array<Future | IgnitionModule>;
 
   /**
    * The value in wei to send with the transaction.
@@ -129,9 +129,9 @@ export interface StaticCallOptions {
   id?: string;
 
   /**
-   * The futures to execute before this one.
+   * The futures or Ignition modules to execute before this one.
    */
-  after?: Future[];
+  after?: Array<Future | IgnitionModule>;
 
   /**
    * The account to send the transaction from.
@@ -151,9 +151,9 @@ export interface EncodeFunctionCallOptions {
   id?: string;
 
   /**
-   * The futures to execute before this one.
+   * The futures or Ignition modules to execute before this one.
    */
-  after?: Future[];
+  after?: Array<Future | IgnitionModule>;
 }
 
 /**
@@ -168,9 +168,9 @@ export interface ContractAtOptions {
   id?: string;
 
   /**
-   * The futures to execute before this one.
+   * The futures or Ignition modules to execute before this one.
    */
-  after?: Future[];
+  after?: Array<Future | IgnitionModule>;
 }
 
 /**
@@ -204,9 +204,9 @@ export interface ReadEventArgumentOptions {
  */
 export interface SendDataOptions {
   /**
-   * The futures to execute before this one.
+   * The futures or Ignition modules to execute before this one.
    */
-  after?: Future[];
+  after?: Array<Future | IgnitionModule>;
 
   /**
    * The account to send the transaction from.

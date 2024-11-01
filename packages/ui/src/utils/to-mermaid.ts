@@ -22,12 +22,15 @@ export function toMermaid(
     ...new Set(
       getAllFuturesForModule(ignitionModule)
         .flatMap((f) =>
-          Array.from(f.dependencies).map((d) => [
+          Array.from(f.dependencies).map<[string, string, boolean]>((d) => [
             toEscapedId(f.id),
             toEscapedId(d.id),
+            /#/.test(d.id),
           ])
         )
-        .map(([from, to]) => `${from} --> ${to}`)
+        .map(
+          ([from, to, isFuture]) => `${from} ${isFuture ? "-->" : "==>"} ${to}`
+        )
     ),
   ].join("\n");
 

@@ -64,7 +64,7 @@ export interface ModuleToken {
 export interface BaseSerializedFuture {
   id: string;
   type: FutureType;
-  dependencies: FutureToken[];
+  dependencies: Array<FutureToken | ModuleToken>;
   moduleId: string;
 }
 

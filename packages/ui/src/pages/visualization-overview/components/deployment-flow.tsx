@@ -100,12 +100,19 @@ const FlowTooltip: React.FC = () => (
     </a>
     <Tooltip className="styled-tooltip flow-tooltip" id="flow-tooltip">
       <div>Diagram reference</div>
-      <span style={{ fontWeight: 400 }}>Future to future dependency</span>
+      <span>Future to future dependency</span>
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      <span>---&gt;</span>
+      <span style={{ marginLeft: "-7px", letterSpacing: "-2px" }}>
+        -----------&gt;
+      </span>
+      <br />
+      <span>Future to module dependency</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      <span style={{ marginLeft: "-4px" }} className="future-to-module-arrow">
+        ----&gt;
+      </span>
       <br />
       <span>Module to module dependency</span>&nbsp;&nbsp;&nbsp;&nbsp;
-      <span>- - -&gt;</span>
+      <span style={{ marginLeft: "-3px" }}>- - -&gt;</span>
     </Tooltip>
   </span>
 );

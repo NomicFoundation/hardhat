@@ -45,9 +45,14 @@ describe("library", () => {
   });
 
   it("should be able to pass one library as an after dependency of another", () => {
+    const otherModule = buildModule("Module2", (m) => {
+      const example = m.contract("Example");
+      return { example };
+    });
+
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
       const example = m.library("Example");
-      const another = m.library("Another", { after: [example] });
+      const another = m.library("Another", { after: [example, otherModule] });
 
       return { example, another };
     });
@@ -68,8 +73,9 @@ describe("library", () => {
       assert.fail("Not a named library deployment");
     }
 
-    assert.equal(anotherFuture.dependencies.size, 1);
+    assert.equal(anotherFuture.dependencies.size, 2);
     assert(anotherFuture.dependencies.has(exampleFuture!));
+    assert(anotherFuture.dependencies.has(otherModule!));
   });
 
   it("should be able to pass a library as a dependency of a library", () => {

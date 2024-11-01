@@ -79,9 +79,16 @@ describe("send", () => {
   });
 
   it("should be able to pass one contract as an after dependency of a send", () => {
+    const otherModule = buildModule("Module2", (m) => {
+      const example = m.contract("Example");
+      return { example };
+    });
+
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
       const example = m.contract("Example");
-      m.send("test_send", exampleAddress, 0n, "", { after: [example] });
+      m.send("test_send", exampleAddress, 0n, "", {
+        after: [example, otherModule],
+      });
 
       return { example };
     });
@@ -100,8 +107,9 @@ describe("send", () => {
       assert.fail("Not a send data future");
     }
 
-    assert.equal(sendFuture.dependencies.size, 1);
+    assert.equal(sendFuture.dependencies.size, 2);
     assert(sendFuture.dependencies.has(exampleFuture!));
+    assert(sendFuture.dependencies.has(otherModule!));
   });
 
   it("should be able to pass a value", () => {

@@ -2,8 +2,18 @@ import { buildModule } from "@nomicfoundation/ignition-core";
 
 const fakeArtifact = ["fake artifact"];
 
+const fakeModuleDependency = buildModule("FakeModule", (m) => {
+  const contract = m.contract("FakeContract", [1, 2, 3]);
+
+  m.call(contract, "initialize", [4, 5, 6]);
+
+  return {};
+});
+
 const uniswap = buildModule("Uniswap", (m) => {
-  const router = m.contract("UniswapRouter", [1, 2, 3]);
+  const router = m.contract("UniswapRouter", [1, 2, 3], {
+    after: [fakeModuleDependency],
+  });
 
   m.call(router, "configure", [3, 4, 5]);
 

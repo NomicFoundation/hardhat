@@ -17,7 +17,7 @@ interface BaseFuture {
   id: string;
   type: FutureType;
   module: IgnitionModule;
-  dependencies: Set<Future>;
+  dependencies: Set<Future | IgnitionModule>;
 }
 
 interface BaseRuntimeValue {

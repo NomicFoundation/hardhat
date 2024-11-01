@@ -136,7 +136,9 @@ export class IgnitionModuleSerializer {
             moduleId: future.module.id,
             type: future.type,
             dependencies: Array.from(future.dependencies).map((d) =>
-              this._convertFutureToFutureToken(d)
+              isFuture(d)
+                ? this._convertFutureToFutureToken(d)
+                : this._convertModuleToModuleToken(d)
             ),
             contractName: future.contractName,
             constructorArgs: future.constructorArgs.map((arg) =>
@@ -161,7 +163,9 @@ export class IgnitionModuleSerializer {
             moduleId: future.module.id,
             type: future.type,
             dependencies: Array.from(future.dependencies).map((d) =>
-              this._convertFutureToFutureToken(d)
+              isFuture(d)
+                ? this._convertFutureToFutureToken(d)
+                : this._convertModuleToModuleToken(d)
             ),
             contractName: future.contractName,
             artifact: future.artifact,
@@ -187,7 +191,9 @@ export class IgnitionModuleSerializer {
             moduleId: future.module.id,
             type: future.type,
             dependencies: Array.from(future.dependencies).map((d) =>
-              this._convertFutureToFutureToken(d)
+              isFuture(d)
+                ? this._convertFutureToFutureToken(d)
+                : this._convertModuleToModuleToken(d)
             ),
             contractName: future.contractName,
             from: isRuntimeValue(future.from)
@@ -204,7 +210,9 @@ export class IgnitionModuleSerializer {
             moduleId: future.module.id,
             type: future.type,
             dependencies: Array.from(future.dependencies).map((d) =>
-              this._convertFutureToFutureToken(d)
+              isFuture(d)
+                ? this._convertFutureToFutureToken(d)
+                : this._convertModuleToModuleToken(d)
             ),
             contractName: future.contractName,
             artifact: future.artifact,
@@ -222,7 +230,9 @@ export class IgnitionModuleSerializer {
             moduleId: future.module.id,
             type: future.type,
             dependencies: Array.from(future.dependencies).map((d) =>
-              this._convertFutureToFutureToken(d)
+              isFuture(d)
+                ? this._convertFutureToFutureToken(d)
+                : this._convertModuleToModuleToken(d)
             ),
             contract: this._convertFutureToFutureToken(future.contract),
             functionName: future.functionName,
@@ -245,7 +255,9 @@ export class IgnitionModuleSerializer {
             moduleId: future.module.id,
             type: future.type,
             dependencies: Array.from(future.dependencies).map((d) =>
-              this._convertFutureToFutureToken(d)
+              isFuture(d)
+                ? this._convertFutureToFutureToken(d)
+                : this._convertModuleToModuleToken(d)
             ),
             contract: this._convertFutureToFutureToken(future.contract),
             functionName: future.functionName,
@@ -264,7 +276,9 @@ export class IgnitionModuleSerializer {
             moduleId: future.module.id,
             type: future.type,
             dependencies: Array.from(future.dependencies).map((d) =>
-              this._convertFutureToFutureToken(d)
+              isFuture(d)
+                ? this._convertFutureToFutureToken(d)
+                : this._convertModuleToModuleToken(d)
             ),
             contract: this._convertFutureToFutureToken(future.contract),
             functionName: future.functionName,
@@ -279,7 +293,9 @@ export class IgnitionModuleSerializer {
             moduleId: future.module.id,
             type: future.type,
             dependencies: Array.from(future.dependencies).map((d) =>
-              this._convertFutureToFutureToken(d)
+              isFuture(d)
+                ? this._convertFutureToFutureToken(d)
+                : this._convertModuleToModuleToken(d)
             ),
             contractName: future.contractName,
             address: isFuture(future.address)
@@ -298,7 +314,9 @@ export class IgnitionModuleSerializer {
             moduleId: future.module.id,
             type: future.type,
             dependencies: Array.from(future.dependencies).map((d) =>
-              this._convertFutureToFutureToken(d)
+              isFuture(d)
+                ? this._convertFutureToFutureToken(d)
+                : this._convertModuleToModuleToken(d)
             ),
             contractName: future.contractName,
             artifact: future.artifact,
@@ -318,7 +336,9 @@ export class IgnitionModuleSerializer {
             moduleId: future.module.id,
             type: future.type,
             dependencies: Array.from(future.dependencies).map((d) =>
-              this._convertFutureToFutureToken(d)
+              isFuture(d)
+                ? this._convertFutureToFutureToken(d)
+                : this._convertModuleToModuleToken(d)
             ),
             futureToReadFrom: this._convertFutureToFutureToken(
               future.futureToReadFrom
@@ -336,7 +356,9 @@ export class IgnitionModuleSerializer {
           moduleId: future.module.id,
           type: future.type,
           dependencies: Array.from(future.dependencies).map((d) =>
-            this._convertFutureToFutureToken(d)
+            isFuture(d)
+              ? this._convertFutureToFutureToken(d)
+              : this._convertModuleToModuleToken(d)
           ),
           to: isFuture(future.to)
             ? this._convertFutureToFutureToken(future.to)
@@ -475,7 +497,14 @@ export class IgnitionModuleDeserializer {
       );
 
       for (const dependencyId of serializedFuture.dependencies) {
-        const dependency = this._lookup(futuresLookup, dependencyId.futureId);
+        let dependency: Future | IgnitionModule;
+
+        if (dependencyId._kind === "FutureToken") {
+          dependency = this._lookup(futuresLookup, dependencyId.futureId);
+        } else {
+          dependency = this._lookup(modulesLookup, dependencyId.moduleId);
+        }
+
         future.dependencies.add(dependency);
       }
 
@@ -548,8 +577,10 @@ export class IgnitionModuleDeserializer {
 
     for (const serializedFuture of serializedFutures) {
       for (const dependencyToken of serializedFuture.dependencies) {
-        const dependency = serializedFuturesMap[dependencyToken.futureId];
-        graph.get(dependency)!.add(serializedFuture);
+        if (dependencyToken._kind === "FutureToken") {
+          const dependency = serializedFuturesMap[dependencyToken.futureId];
+          graph.get(dependency)!.add(serializedFuture);
+        }
       }
     }
 

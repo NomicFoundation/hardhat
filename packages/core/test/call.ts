@@ -87,11 +87,16 @@ describe("call", () => {
   });
 
   it("should be able to pass one contract as an after dependency of a call", () => {
+    const otherModule = buildModule("Module2", (m) => {
+      const example = m.contract("Example");
+      return { example };
+    });
+
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
       const example = m.contract("Example");
       const another = m.contract("Another");
 
-      m.call(example, "test", [], { after: [another] });
+      m.call(example, "test", [], { after: [another, otherModule] });
 
       return { example, another };
     });
@@ -114,9 +119,10 @@ describe("call", () => {
       assert.fail("Not a named contract deployment");
     }
 
-    assert.equal(callFuture.dependencies.size, 2);
+    assert.equal(callFuture.dependencies.size, 3);
     assert(callFuture.dependencies.has(exampleFuture!));
     assert(callFuture.dependencies.has(anotherFuture!));
+    assert(callFuture.dependencies.has(otherModule!));
   });
 
   it("should be able to pass value as an option", () => {

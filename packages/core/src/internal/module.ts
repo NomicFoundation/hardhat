@@ -27,7 +27,7 @@ import {
 const customInspectSymbol = Symbol.for("util.inspect.custom");
 
 abstract class BaseFutureImplementation<FutureTypeT extends FutureType> {
-  public readonly dependencies: Set<Future> = new Set();
+  public readonly dependencies: Set<Future | IgnitionModule> = new Set();
 
   constructor(
     public readonly id: string,

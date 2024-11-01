@@ -299,6 +299,10 @@ class IgnitionModuleBuilderImplementation<
 
     for (const afterFuture of options.after ?? []) {
       future.dependencies.add(afterFuture);
+
+      if (!isFuture(afterFuture)) {
+        this._module.submodules.add(afterFuture);
+      }
     }
 
     for (const libraryFuture of Object.values(options.libraries)) {
@@ -356,6 +360,10 @@ class IgnitionModuleBuilderImplementation<
 
     for (const afterFuture of options.after ?? []) {
       future.dependencies.add(afterFuture);
+
+      if (!isFuture(afterFuture)) {
+        this._module.submodules.add(afterFuture);
+      }
     }
 
     for (const libraryFuture of Object.values(options.libraries)) {
@@ -426,6 +434,10 @@ class IgnitionModuleBuilderImplementation<
 
     for (const afterFuture of options.after ?? []) {
       future.dependencies.add(afterFuture);
+
+      if (!isFuture(afterFuture)) {
+        this._module.submodules.add(afterFuture);
+      }
     }
 
     for (const libraryFuture of Object.values(options.libraries)) {
@@ -470,6 +482,10 @@ class IgnitionModuleBuilderImplementation<
 
     for (const afterFuture of options.after ?? []) {
       future.dependencies.add(afterFuture);
+
+      if (!isFuture(afterFuture)) {
+        this._module.submodules.add(afterFuture);
+      }
     }
 
     for (const libraryFuture of Object.values(options.libraries)) {
@@ -543,6 +559,10 @@ class IgnitionModuleBuilderImplementation<
 
     for (const afterFuture of options.after ?? []) {
       future.dependencies.add(afterFuture);
+
+      if (!isFuture(afterFuture)) {
+        this._module.submodules.add(afterFuture);
+      }
     }
 
     this._module.futures.add(future);
@@ -607,6 +627,10 @@ class IgnitionModuleBuilderImplementation<
 
     for (const afterFuture of options.after ?? []) {
       future.dependencies.add(afterFuture);
+
+      if (!isFuture(afterFuture)) {
+        this._module.submodules.add(afterFuture);
+      }
     }
 
     this._module.futures.add(future);
@@ -669,6 +693,10 @@ class IgnitionModuleBuilderImplementation<
 
     for (const afterFuture of options.after ?? []) {
       future.dependencies.add(afterFuture);
+
+      if (!isFuture(afterFuture)) {
+        this._module.submodules.add(afterFuture);
+      }
     }
 
     this._module.futures.add(future);
@@ -774,6 +802,10 @@ class IgnitionModuleBuilderImplementation<
 
     for (const afterFuture of options.after ?? []) {
       future.dependencies.add(afterFuture);
+
+      if (!isFuture(afterFuture)) {
+        this._module.submodules.add(afterFuture);
+      }
     }
 
     if (isFuture(address)) {
@@ -819,6 +851,10 @@ class IgnitionModuleBuilderImplementation<
 
     for (const afterFuture of options.after ?? []) {
       future.dependencies.add(afterFuture);
+
+      if (!isFuture(afterFuture)) {
+        this._module.submodules.add(afterFuture);
+      }
     }
 
     if (isFuture(address)) {
@@ -953,6 +989,10 @@ class IgnitionModuleBuilderImplementation<
 
     for (const afterFuture of options.after ?? []) {
       future.dependencies.add(afterFuture);
+
+      if (!isFuture(afterFuture)) {
+        this._module.submodules.add(afterFuture);
+      }
     }
 
     this._module.futures.add(future);
