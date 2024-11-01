@@ -3,9 +3,15 @@ import type { HardhatUserConfig } from "@ignored/hardhat-vnext/config";
 import HardhatNodeTestRunner from "@ignored/hardhat-vnext-node-test-runner";
 import HardhatViem from "@ignored/hardhat-vnext-viem";
 import HardhatNetworkHelpers from "@ignored/hardhat-vnext-network-helpers";
+import HardhatKeystore from "@ignored/hardhat-vnext-keystore";
 
 const config: HardhatUserConfig = {
-  plugins: [HardhatNodeTestRunner, HardhatViem, HardhatNetworkHelpers],
+  plugins: [
+    HardhatNodeTestRunner,
+    HardhatViem,
+    HardhatNetworkHelpers,
+    HardhatKeystore,
+  ],
   solidity: {
     version: "0.8.24",
     remappings: [
