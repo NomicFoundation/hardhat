@@ -351,18 +351,21 @@ export async function installProjectDependencies(
   // Try to install the missing dependencies if there are any
   if (Object.keys(dependenciesToInstall).length !== 0) {
     // Retrieve the package manager specific installation command
-    const command = getDevDependenciesInstallationCommand(
+    let command = getDevDependenciesInstallationCommand(
       packageManager,
       dependenciesToInstall,
     );
 
-    // We format the command to avoid any shell issue if the user copy-pastes it
-    const formattedCommand = [
+    // We quote all the dependency identifiers to that it can be run on a shell
+    // without semver symbols interfering with the command
+    command = [
       command[0],
       command[1],
       command[2],
       ...command.slice(3).map((arg) => `"${arg}"`),
-    ].join(" ");
+    ];
+
+    const formattedCommand = command.join(" ");
 
     // Ask the user for permission to install the project dependencies and install them if needed
     if (install === undefined) {
@@ -376,8 +379,10 @@ export async function installProjectDependencies(
 
       await spawn(command[0], command.slice(1), {
         cwd: workspace,
-        // We don't want the arguments to be treated as shell expressions
-        shell: false,
+        // We need to run with `shell: true` for this to work on powershell, but
+        // we already enclosed every dependency identifier in quotes, so this
+        // is safe.
+        shell: true,
         stdio: "inherit",
       });
 
