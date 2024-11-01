@@ -1,4 +1,7 @@
 /node_modules
 /dist
-CHANGELOG.md
+/CHANGELOG.md
 /templates/*/artifacts
+/templates/*/cache
+/fixture-projects/*/artifacts
+/fixture-projects/*/cache
