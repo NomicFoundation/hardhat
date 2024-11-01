@@ -27,8 +27,37 @@ npx hardhat3 test
 
 ### Multi-chain support
 
-To deploy a contract to an in-memory Hardhat node simulating Base (an Optimism l2 chain), run:
+Hardhat network now supports simulating Optimism L2 chains. You can see an example of a local Hardhat network configured
+to run as an Optimism L2 in the `./hardhat.config.ts` file for the `edrOp` network:
+
+```js
+edrOp: {
+  type: "edr",
+  chainId: 10,
+  chainType: "optimism",
+  forkConfig: {
+    jsonRpcUrl: "https://mainnet.optimism.io",
+  },
+},
+```
+
+A script demonstrating the sending of an L2 transaction is included as `./scripts/send-op-tx.ts`, to run it against the local `edrOp` Optimism network, run:
 
 ```shell
-npx hardhat3 run scripts/deploy-counter-contract.ts
+npx hardhat3 run scripts/send-op-tx.ts --network edrOp
+```
+
+To run the same script against the Optimism mainnet, first set the `OPTIMISM_PRIVATE_KEY` config variable, with the private key of the account you want to use to send the transaction:
+
+> WARNING: the private key is stored unencrypted to file. Full encryption will be included in a future release.
+
+```shell
+npx hardhat3 keystore set OPTIMISM_PRIVATE_KEY
+# Enter secret to store: ****************************************************************
+```
+
+Run the script with the Optimism mainnet network:
+
+```shell
+npx hardhat3 run scripts/send-op-tx.ts --network op
 ```
