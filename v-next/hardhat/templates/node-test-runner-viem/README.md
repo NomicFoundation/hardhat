@@ -27,8 +27,7 @@ npx hardhat3 test
 
 ### Multi-chain support
 
-Hardhat network now supports simulating Optimism L2 chains. You can see an example of a local Hardhat network configured
-to run as an Optimism L2 in the `./hardhat.config.ts` file for the `edrOp` network:
+Hardhat network now supports simulating Optimism L2 chains. You can see an example of a local Hardhat network configured to run as an Optimism L2 in the `./hardhat.config.ts` file for the `edrOp` network:
 
 ```js
 edrOp: {
