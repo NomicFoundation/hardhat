@@ -2343,6 +2343,9 @@ importers:
       '@ignored/hardhat-vnext-ethers':
         specifier: workspace:^3.0.0-next.8
         version: link:../../../hardhat-ethers
+      '@ignored/hardhat-vnext-keystore':
+        specifier: workspace:^3.0.0-next.8
+        version: link:../../../hardhat-keystore
       '@ignored/hardhat-vnext-mocha-test-runner':
         specifier: workspace:^3.0.0-next.8
         version: link:../../../hardhat-mocha-test-runner
@@ -2382,6 +2385,9 @@ importers:
       '@ignored/hardhat-vnext':
         specifier: workspace:^3.0.0-next.12
         version: link:../..
+      '@ignored/hardhat-vnext-keystore':
+        specifier: workspace:^3.0.0-next.8
+        version: link:../../../hardhat-keystore
       '@ignored/hardhat-vnext-network-helpers':
         specifier: workspace:^3.0.0-next.8
         version: link:../../../hardhat-network-helpers
