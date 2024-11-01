@@ -20,8 +20,8 @@ import {
   getFileTrueCase,
   readJsonFile,
   readUtf8File,
-  getRealPath,
 } from "@ignored/hardhat-vnext-utils/fs";
+import { findClosestPackageJson } from "@ignored/hardhat-vnext-utils/package";
 import { shortenPath } from "@ignored/hardhat-vnext-utils/path";
 import { ResolutionError, resolve } from "@ignored/hardhat-vnext-utils/resolve";
 import { analyze } from "@nomicfoundation/solidity-analyzer";
@@ -1085,12 +1085,7 @@ export class ResolverImplementation implements Resolver {
       packageName === "hardhat"
         ? ({
             success: true,
-            absolutePath: await getRealPath(
-              path.resolve(
-                import.meta.dirname,
-                "../../../../../../package.json",
-              ),
-            ),
+            absolutePath: await findClosestPackageJson(import.meta.dirname),
           } as const)
         : resolve(packageName + "/package.json", baseResolutionDirectory);
 
