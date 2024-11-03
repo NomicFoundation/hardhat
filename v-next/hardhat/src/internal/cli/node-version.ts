@@ -32,17 +32,15 @@ function isNodeVersionSupported(): boolean {
   return true;
 }
 
-export function printNodeJsVersionWarningIfNecessary(
-  print: (message: string) => void,
-): void {
+export function printNodeJsVersionWarningIfNecessary(): void {
   if (isNodeVersionSupported()) {
     return;
   }
 
-  print("");
-  print(
+  console.log("");
+  console.log(
     chalk.bold(`${chalk.yellow("WARNING:")} You are using Node.js ${process.versions.node} which is not supported by Hardhat.
 Please upgrade to ${MIN_SUPPORTED_NODE_VERSION.join(".")} or a later version.`),
   );
-  print("");
+  console.log("");
 }
