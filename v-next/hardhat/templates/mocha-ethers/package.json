@@ -16,6 +16,7 @@
     "@types/node": "^22.8.5",
     "chai": "^4.4.1",
     "chai-as-promised": "^8.0.0",
+    "ethers": "^6.13.4",
     "forge-std": "foundry-rs/forge-std#v1.9.4",
     "mocha": "^10.0.0",
     "typescript": "~5.5.0"
