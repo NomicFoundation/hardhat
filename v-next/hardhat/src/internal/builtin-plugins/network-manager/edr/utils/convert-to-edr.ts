@@ -2,13 +2,10 @@
 import type { IntervalMiningConfig } from "../../../../../types/config.js";
 import type { MempoolOrder } from "../types/node-types.js";
 import type { RpcDebugTraceOutput, RpcStructLog } from "../types/output.js";
-import type {
-  IntervalRange,
-  DebugTraceResult,
-  MineOrdering,
-} from "@ignored/edr-optimism";
+import type { IntervalRange, DebugTraceResult } from "@ignored/edr-optimism";
 
 import {
+  MineOrdering,
   FRONTIER,
   HOMESTEAD,
   DAO_FORK,
@@ -137,22 +134,14 @@ export function ethereumjsIntervalMiningConfigToEdr(
   }
 }
 
-// TODO: returning literals casted to the type is a hack to workaround
-// "Cannot access ambient const enums when 'isolatedModules' is enabled."
-// error. We should fix this properly by exporting the values as constants
-// from the EDR package.
 export function ethereumjsMempoolOrderToEdrMineOrdering(
   mempoolOrder: MempoolOrder,
 ): MineOrdering {
   switch (mempoolOrder) {
     case "fifo":
-      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      -- Casting is required here as we are returning a literal */
-      return "Fifo" as MineOrdering.Fifo;
+      return MineOrdering.Fifo;
     case "priority":
-      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      -- Casting is required here as we are returning a literal */
-      return "Priority" as MineOrdering.Priority;
+      return MineOrdering.Priority;
   }
 }
 
