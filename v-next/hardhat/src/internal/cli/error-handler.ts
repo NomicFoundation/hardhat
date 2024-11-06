@@ -71,12 +71,6 @@ export function printErrorMessages(
   shouldShowStackTraces: boolean = false,
   print: (message: string) => void = console.error,
 ): void {
-  // If Hardhat is running on CJS mode we print a special message
-  if (isRequireESMError(error)) {
-    printEsmOnlyErrorMessage(print);
-    return;
-  }
-
   const showStackTraces =
     shouldShowStackTraces ||
     getErrorWithCategory(error).category === ErrorCategory.OTHER;
@@ -156,19 +150,4 @@ function getErrorMessages(error: unknown): ErrorMessages {
         postErrorStackTraceMessage: `If you think this is a bug in Hardhat, please report it here: ${HARDHAT_WEBSITE_URL}report-bug`,
       };
   }
-}
-
-function isRequireESMError(error: unknown): boolean {
-  return (
-    error instanceof Error &&
-    "code" in error &&
-    error.code === "ERR_REQUIRE_CYCLE_MODULE" &&
-    error.message.includes("Cannot require() ES Module")
-  );
-}
-
-function printEsmOnlyErrorMessage(print: (message: string) => void) {
-  print(`Hardhat only supports ESM projects.
-
-Please make sure you have \`"type": "module"\` in your package.json`);
 }
