@@ -1,12 +1,26 @@
 import { network } from "@ignored/hardhat-vnext";
 import { expect } from "chai";
 
+// We haven't ported `hardhat-chai-matchers` yet, so we use a simple `chai`
+// setup script, and `expect` without any Ethereum-specific functionality.
 import "./setup.js";
 
 import { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
 import { NetworkHelpers } from "@ignored/hardhat-vnext-network-helpers/types";
 
 describe("Lock", function () {
+  /*
+   * In Hardhat 3, there isn't a single global connection to a network. Instead,
+   * you have a `network` object that allows you to connect to different
+   * networks.
+   *
+   * You can create multiple network connections using `network.connect`.
+   * It takes two optional parameters and returns a `NetworkConnection` object.
+   *
+   * For a better understanding of how this works, and the new features it
+   * brings, we recommend taking a look at the other example project, which
+   * uses `node:test` and `viem`.
+   */
   let networkHelpers: NetworkHelpers;
   let ethers: HardhatEthers;
 
@@ -69,8 +83,6 @@ describe("Lock", function () {
       const latestTime = await networkHelpers.time.latest();
       const Lock = await ethers.getContractFactory("Lock");
 
-      // TODO: bring back the original test assertion `hardhat-chai-matchers`
-      // is available with `revertedWith`.
       await expect(
         Lock.deploy(latestTime, { value: 1 }),
       ).to.eventually.be.rejectedWith("Unlock time should be in the future");
@@ -115,11 +127,10 @@ describe("Lock", function () {
     });
 
     describe("Events", function () {
-      // TODO: bring back the original test once `hardhat-chai-matchers`
-      // is available for asserting on events.
       it("Should emit an event on withdrawals", async function () {
-        const { lock, unlockTime, lockedAmount } =
-          await networkHelpers.loadFixture(deployOneYearLockFixture);
+        const { lock, unlockTime } = await networkHelpers.loadFixture(
+          deployOneYearLockFixture,
+        );
 
         await networkHelpers.time.increaseTo(unlockTime);
 
@@ -136,8 +147,6 @@ describe("Lock", function () {
     });
 
     describe("Transfers", function () {
-      // TODO: bring back the original Transfers test once
-      // `hardhat-chai-matchers` has been ported.
       it("Should transfer the funds out of the timelock", async function () {
         const { lock, unlockTime } = await networkHelpers.loadFixture(
           deployOneYearLockFixture,
