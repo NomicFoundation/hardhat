@@ -2,7 +2,7 @@
 
 > **WARNING**: This example project uses Hardhat 3, which is still in development. Hardhat 3 is not yet intended for production use.
 
-Welcome to the Hardhat 3 alpha testing effort! This project showcases some of the changes and new features coming in Hardhat 3.
+Welcome to the Hardhat 3 alpha version! This project showcases some of the changes and new features coming in Hardhat 3.
 
 To learn more about the Hardhat 3 alpha, please visit the [Hardhat 3 alpha: Docs Hub](https://www.notion.so/nomicfoundation/Hardhat-3-alpha-Docs-Hub-131578cdeaf580e89e8dca57b0d036c3).
 
