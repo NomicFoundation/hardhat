@@ -4,20 +4,20 @@ pragma solidity ^0.8.24;
 import "forge-std/Test.sol";
 
 contract TestContract is Test {
-  ErrorsTest test;
+  BrokenContract test;
 
   function setUp() public {
-    test = new ErrorsTest();
+    test = new BrokenContract();
   }
 
-  function testExpectArithmetic() public {
+  function test_ExpectArithmeticError() public {
     vm.expectRevert(stdError.arithmeticError);
-    test.arithmeticError(10);
+    test.forceArithmeticError(10);
   }
 }
 
-contract ErrorsTest {
-  function arithmeticError(uint256 a) public pure returns (uint256) {
+contract BrokenContract {
+  function forceArithmeticError(uint256 a) public pure returns (uint256) {
     return a - 100;
   }
 }
