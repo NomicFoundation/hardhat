@@ -585,7 +585,12 @@ async function printEsmErrorMessageIfNecessary(
   if (packageJson.type !== "module") {
     print(`Hardhat only supports ESM projects.
 
-Please make sure you have \`"type": "module"\` in your package.json`);
+Please make sure you have \`"type": "module"\` in your package.json.
+
+You can set it automatically by running:
+
+npm pkg set type="module"
+`);
 
     return true;
   }
