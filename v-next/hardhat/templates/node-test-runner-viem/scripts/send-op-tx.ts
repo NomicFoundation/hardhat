@@ -53,6 +53,6 @@ console.log(
 
 if (networkName === "opSepolia") {
   console.log(
-    `You can check your trasaction on https://sepolia-optimism.etherscan.io/tx/${tx}`,
+    `You can check your transaction on https://sepolia-optimism.etherscan.io/tx/${tx}`,
   );
 }
