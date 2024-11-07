@@ -60,7 +60,7 @@
     "tsx": "^4.11.0",
     "typescript": "~5.5.0",
     "typescript-eslint": "7.7.1",
-    "viem": "^2.21.37"
+    "viem": "^2.21.42"
   },
   "dependencies": {
     "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.14",
@@ -68,6 +68,6 @@
   },
   "peerDependencies": {
     "@ignored/hardhat-vnext": "workspace:^3.0.0-next.15",
-    "viem": "^2.21.37"
+    "viem": "^2.21.42"
   }
 }
