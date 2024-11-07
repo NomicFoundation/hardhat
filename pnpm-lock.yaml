@@ -1477,11 +1477,11 @@ importers:
   v-next/hardhat:
     dependencies:
       '@ignored/edr':
-        specifier: 0.6.4-alpha.1
-        version: 0.6.4-alpha.1
+        specifier: 0.6.4-alpha.2
+        version: 0.6.4-alpha.2
       '@ignored/edr-optimism':
-        specifier: ^0.6.4
-        version: 0.6.4
+        specifier: 0.6.5-alpha.0
+        version: 0.6.5-alpha.0
       '@ignored/hardhat-vnext-errors':
         specifier: workspace:^3.0.0-next.14
         version: link:../hardhat-errors
@@ -2916,68 +2916,68 @@ packages:
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
     deprecated: Use @eslint/object-schema instead
 
-  '@ignored/edr-darwin-arm64@0.6.4-alpha.1':
-    resolution: {integrity: sha512-k+esPQ4hajOI7X/GqQ+d87s6pwOQoVHDW3EVNVOZOA8/7xFLjUMHtm18G64hpJjM2ap5FLgNu/F/SOdj9QojCw==}
+  '@ignored/edr-darwin-arm64@0.6.4-alpha.2':
+    resolution: {integrity: sha512-pL3+BUBXCzZmJtE613BzGrVFc8zzjCSPx30aekBJDusWfzXziaNn+ShfORN9VuZbYkWd8G8YxCfvjPgsZIjxRg==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-darwin-x64@0.6.4-alpha.1':
-    resolution: {integrity: sha512-PakfiVkuawU4EgFWTzpdizJPp68y7m8hrWze/Z34wsQpDrIWE9cU6K8WZeK8bdOtmty3JBZ+uFFXX7CJsO6xNA==}
+  '@ignored/edr-darwin-x64@0.6.4-alpha.2':
+    resolution: {integrity: sha512-Ny4GqQVS7VGSDj5rGP1uVb7qWRJrTdiW3mDlFQekxzxvz4ms8R79vmA8RfIEbrBmwuETpnx26EwyYa6krkcbmg==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-linux-arm64-gnu@0.6.4-alpha.1':
-    resolution: {integrity: sha512-lQSrtWicyrsxhY2a0hF5MEY951FY4joCtrwK+rp+i4QnjkloCggrtW0W/Q1WX2V7zt07+wplGYHq1Wpd+RBj+g==}
+  '@ignored/edr-linux-arm64-gnu@0.6.4-alpha.2':
+    resolution: {integrity: sha512-V0hf3i09fXxbszHrjqIcoNjMiU9gi/6nrhmB+o7kKwdi0IVuAwiBEbjfcyDlTDfAX2jDFGnxYfEhiSYermpvWA==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-linux-arm64-musl@0.6.4-alpha.1':
-    resolution: {integrity: sha512-hdURs7nUUMNwMiy+b9lg0gBzjVgPHJmEnxitd4ZudIgDkLHnOT6IQ4nhV9B97Ae1I5EyHmOq72vEC7OnqLoZ3g==}
+  '@ignored/edr-linux-arm64-musl@0.6.4-alpha.2':
+    resolution: {integrity: sha512-1yKOaj3nZK7hQs3AhNlTp8NeUGZa6S0P6Fnlu5GUvTNh/wpjuubiPd8aNKpDxraVkywBisjfU9W2xRijvGdwXA==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-linux-x64-gnu@0.6.4-alpha.1':
-    resolution: {integrity: sha512-pZnVaybdBgLAgftLgOsPJuKfQRlRw7fZ54E7bVCSMklWHFFLZg6sjCUAByPVx0p3b3V/t0YiYZ9BwLKTvdEiEA==}
+  '@ignored/edr-linux-x64-gnu@0.6.4-alpha.2':
+    resolution: {integrity: sha512-iceOX3VIgSuyzR92tY8qXhqn8EV4EZqcC2Qls6Zu4cFeOSJCYVdrsZ7qJo4Vb/k0d+JTw8vcJwHKea8rTJksvg==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-linux-x64-musl@0.6.4-alpha.1':
-    resolution: {integrity: sha512-Mw/HC1nBfRXJAUZVKHwQrYffuWI6nVQtpR6cX1zxTSrBc87aKCR2oSiPQCLxqLlxcjOqRkSVWWwhBPhWdIt8Bw==}
+  '@ignored/edr-linux-x64-musl@0.6.4-alpha.2':
+    resolution: {integrity: sha512-GIHda/5xosqWELyse+wZGTWwwOWxKl1fWh5M5oykTla84TSmM++7VJPvM4Hnt+T+jj9OL2lW1zybvrwwFzxLAQ==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism-darwin-arm64@0.6.4':
-    resolution: {integrity: sha512-c/GAqX9sCp+5o+GLlCbE6Hx2k69Z9DXXej2t6LUuYmcRXu8agVWIbqaUy3uSbI1ALThIZEBZtxAH8rBr4vNqhg==}
+  '@ignored/edr-optimism-darwin-arm64@0.6.5-alpha.0':
+    resolution: {integrity: sha512-umEVWWr8M3g5uMwmAufkbYWEz0i2cm50ddm3Y2V4yi8qg2W4x4KPkklEILqkYEgeG7HTfODD9gk/ekz71nUR4Q==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism-darwin-x64@0.6.4':
-    resolution: {integrity: sha512-1FuhbDY2mNCbMKp6LQ1Tfg56u88x05fgTkXvV+8WyCaELoA0NJ/WDZxliq4J8cWOQJP5LfYtb8afRysT8XidHQ==}
+  '@ignored/edr-optimism-darwin-x64@0.6.5-alpha.0':
+    resolution: {integrity: sha512-Vrd0Nt5KT4PrBhb+7FKcyoMQT1YV6nSqoREjHP60gL5KO11IjNFCbVMv3InBeHwNm46wFJjENdCMAcw+Pj+JvA==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism-linux-arm64-gnu@0.6.4':
-    resolution: {integrity: sha512-XNpx36xtWYDddJhUkTEMUq22I/II8IB0SIZdyMlDkjNq5c9lFJIkrIRy1RXW8QQcDLcA5cwZIdwmGQ0U/xHPTQ==}
+  '@ignored/edr-optimism-linux-arm64-gnu@0.6.5-alpha.0':
+    resolution: {integrity: sha512-lvMFt6K/gN+a9Yu4vc55VPXP6qVRQyj+/Gsz6yjTLNkbzwP6hD32T9oliWJJ1aRzOjTwz7/1HBYIwLtuPg6/VA==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism-linux-arm64-musl@0.6.4':
-    resolution: {integrity: sha512-LTdQfmZg7XJOzj3RYXpKa5ui4J7pjGdeend8ia0PHra/YEsfdA8S07RM2X3YFZJSngbs7m3xvrRfAbDjX0ep3g==}
+  '@ignored/edr-optimism-linux-arm64-musl@0.6.5-alpha.0':
+    resolution: {integrity: sha512-3mA+Tl59nt7J3+K79vlpGy1evbtr7q2LfUE2bd2gDegb5JfneeuJGQVPH/zd/3sIZnk624xKkTUTf6psW+r9iw==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism-linux-x64-gnu@0.6.4':
-    resolution: {integrity: sha512-3CK5K21a0mVLDhdAjfhANcnGyDo9yWBYv07d3cxJ9R/e1h148pzPecjSkJxDJD0ARovhroLCiS16MlDlrKgjAw==}
+  '@ignored/edr-optimism-linux-x64-gnu@0.6.5-alpha.0':
+    resolution: {integrity: sha512-lFsTGtDY2N24L6hgL+wCLCH0uXVaaYUyT32qGajNGt3FHNEtEGCuHYnCqQcDTcOXzXBVocIUkNihLVb/9MpgqA==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism-linux-x64-musl@0.6.4':
-    resolution: {integrity: sha512-/lwndCOJ0rrsHG9CCQPL0lIem2oAuI8ToQ1CFHTkoZwuvlsa0cFfEvCCY/TxdZlrQGds0tU1OEbgEK+5e6A2rg==}
+  '@ignored/edr-optimism-linux-x64-musl@0.6.5-alpha.0':
+    resolution: {integrity: sha512-6lXLOW3e/Bw1z8l/nQmaG7S1Ady1MMxb21fJ9rf6/nod30cBfF4PgefhF2o8D0xGVqfW4FcHhqWtpGj/oV9xZg==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism-win32-x64-msvc@0.6.4':
-    resolution: {integrity: sha512-bHLDhiFVpK6q/yPbRLMGY6ZuAaF/tzkQpPVodtVsJ4t5W/xgYkNEMEZBTBCw3Zk3Qh63ic11En63yR+kpf8tpQ==}
+  '@ignored/edr-optimism-win32-x64-msvc@0.6.5-alpha.0':
+    resolution: {integrity: sha512-gz29UrSw+3Bj/sWa9JGewHcD9CIj5xi9Zjn9POmwmUUOF/q48SkAJ01XA+BOhpdsR0bx91wWd8lGrAPZghGmIg==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism@0.6.4':
-    resolution: {integrity: sha512-62hm/8tdbDtvkLUwLecGDK4lOma0XC2Zp9WmrVJ9RkeLU4C/sK25a+5rCdm40+7whpXkF8nEHTn7rgBmtTEhfw==}
+  '@ignored/edr-optimism@0.6.5-alpha.0':
+    resolution: {integrity: sha512-RTMiCC6Y5tOW+q+V+ARpUw3ErmkvBVMYWj+5drq8MEZYOEcrLKXlavm3BM1QqkwWaeO2j+zTrIuI4lRCePj9oQ==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-win32-x64-msvc@0.6.4-alpha.1':
-    resolution: {integrity: sha512-N4IIy2KZGMIwMiYGl1erEGoA5nT0k0KAvnSccopR6kQo04COHa46L50U1wAu0Ice+h1tybn+qfcVM6EBJE77NQ==}
+  '@ignored/edr-win32-x64-msvc@0.6.4-alpha.2':
+    resolution: {integrity: sha512-QZxYQRMTeYCFKa7/3jbkYkGgtwAI2X9JXIxFbWgOOYQSTsWJsw+igcyW+WAeMUHAvXEAWO1Ex/hrcra4tOqlqQ==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr@0.6.4-alpha.1':
-    resolution: {integrity: sha512-NXJvV1SaK5sbO4j5IbA2wPD6Fkm1bPotUrmL/w1XuCPDm9wZbuaE012ZWon3vY2Zt+OrDGWLHsmxY37wmH86rg==}
+  '@ignored/edr@0.6.4-alpha.2':
+    resolution: {integrity: sha512-gp5v/wCKO0W2S00diHT2cV+lCRxRTh2TyP+Xxg/zWZLE+5KcSAlOV0VElVMAiH37sv/7cHhE2AXGcnMnPHW/DA==}
     engines: {node: '>= 18'}
 
   '@isaacs/cliui@8.0.2':
@@ -7572,60 +7572,60 @@ snapshots:
 
   '@humanwhocodes/object-schema@2.0.3': {}
 
-  '@ignored/edr-darwin-arm64@0.6.4-alpha.1':
+  '@ignored/edr-darwin-arm64@0.6.4-alpha.2':
     optional: true
 
-  '@ignored/edr-darwin-x64@0.6.4-alpha.1':
+  '@ignored/edr-darwin-x64@0.6.4-alpha.2':
     optional: true
 
-  '@ignored/edr-linux-arm64-gnu@0.6.4-alpha.1':
+  '@ignored/edr-linux-arm64-gnu@0.6.4-alpha.2':
     optional: true
 
-  '@ignored/edr-linux-arm64-musl@0.6.4-alpha.1':
+  '@ignored/edr-linux-arm64-musl@0.6.4-alpha.2':
     optional: true
 
-  '@ignored/edr-linux-x64-gnu@0.6.4-alpha.1':
+  '@ignored/edr-linux-x64-gnu@0.6.4-alpha.2':
     optional: true
 
-  '@ignored/edr-linux-x64-musl@0.6.4-alpha.1':
+  '@ignored/edr-linux-x64-musl@0.6.4-alpha.2':
     optional: true
 
-  '@ignored/edr-optimism-darwin-arm64@0.6.4': {}
+  '@ignored/edr-optimism-darwin-arm64@0.6.5-alpha.0': {}
 
-  '@ignored/edr-optimism-darwin-x64@0.6.4': {}
+  '@ignored/edr-optimism-darwin-x64@0.6.5-alpha.0': {}
 
-  '@ignored/edr-optimism-linux-arm64-gnu@0.6.4': {}
+  '@ignored/edr-optimism-linux-arm64-gnu@0.6.5-alpha.0': {}
 
-  '@ignored/edr-optimism-linux-arm64-musl@0.6.4': {}
+  '@ignored/edr-optimism-linux-arm64-musl@0.6.5-alpha.0': {}
 
-  '@ignored/edr-optimism-linux-x64-gnu@0.6.4': {}
+  '@ignored/edr-optimism-linux-x64-gnu@0.6.5-alpha.0': {}
 
-  '@ignored/edr-optimism-linux-x64-musl@0.6.4': {}
+  '@ignored/edr-optimism-linux-x64-musl@0.6.5-alpha.0': {}
 
-  '@ignored/edr-optimism-win32-x64-msvc@0.6.4': {}
+  '@ignored/edr-optimism-win32-x64-msvc@0.6.5-alpha.0': {}
 
-  '@ignored/edr-optimism@0.6.4':
+  '@ignored/edr-optimism@0.6.5-alpha.0':
     dependencies:
-      '@ignored/edr-optimism-darwin-arm64': 0.6.4
-      '@ignored/edr-optimism-darwin-x64': 0.6.4
-      '@ignored/edr-optimism-linux-arm64-gnu': 0.6.4
-      '@ignored/edr-optimism-linux-arm64-musl': 0.6.4
-      '@ignored/edr-optimism-linux-x64-gnu': 0.6.4
-      '@ignored/edr-optimism-linux-x64-musl': 0.6.4
-      '@ignored/edr-optimism-win32-x64-msvc': 0.6.4
+      '@ignored/edr-optimism-darwin-arm64': 0.6.5-alpha.0
+      '@ignored/edr-optimism-darwin-x64': 0.6.5-alpha.0
+      '@ignored/edr-optimism-linux-arm64-gnu': 0.6.5-alpha.0
+      '@ignored/edr-optimism-linux-arm64-musl': 0.6.5-alpha.0
+      '@ignored/edr-optimism-linux-x64-gnu': 0.6.5-alpha.0
+      '@ignored/edr-optimism-linux-x64-musl': 0.6.5-alpha.0
+      '@ignored/edr-optimism-win32-x64-msvc': 0.6.5-alpha.0
 
-  '@ignored/edr-win32-x64-msvc@0.6.4-alpha.1':
+  '@ignored/edr-win32-x64-msvc@0.6.4-alpha.2':
     optional: true
 
-  '@ignored/edr@0.6.4-alpha.1':
+  '@ignored/edr@0.6.4-alpha.2':
     optionalDependencies:
-      '@ignored/edr-darwin-arm64': 0.6.4-alpha.1
-      '@ignored/edr-darwin-x64': 0.6.4-alpha.1
-      '@ignored/edr-linux-arm64-gnu': 0.6.4-alpha.1
-      '@ignored/edr-linux-arm64-musl': 0.6.4-alpha.1
-      '@ignored/edr-linux-x64-gnu': 0.6.4-alpha.1
-      '@ignored/edr-linux-x64-musl': 0.6.4-alpha.1
-      '@ignored/edr-win32-x64-msvc': 0.6.4-alpha.1
+      '@ignored/edr-darwin-arm64': 0.6.4-alpha.2
+      '@ignored/edr-darwin-x64': 0.6.4-alpha.2
+      '@ignored/edr-linux-arm64-gnu': 0.6.4-alpha.2
+      '@ignored/edr-linux-arm64-musl': 0.6.4-alpha.2
+      '@ignored/edr-linux-x64-gnu': 0.6.4-alpha.2
+      '@ignored/edr-linux-x64-musl': 0.6.4-alpha.2
+      '@ignored/edr-win32-x64-msvc': 0.6.4-alpha.2
 
   '@isaacs/cliui@8.0.2':
     dependencies:

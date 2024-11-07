@@ -46,8 +46,8 @@ async function sendL2Transaction(networkConfigName: string) {
   console.log("Transaction receipt:", receipt);
 }
 
-await sendL2Transaction("op");
+await sendL2Transaction("opSepolia");
 console.log("");
 console.log("");
 console.log("");
-await sendL2Transaction("edrOp");
+await sendL2Transaction("edrOpSepolia");
