@@ -11,10 +11,10 @@ To learn more about the Hardhat 3 alpha, please visit the [Hardhat 3 alpha: Docs
 This example project includes:
 
 - A simple Hardhat configuration file
-- TypeScript integration tests using [`node:test`](nodejs.org/api/test.html), the new Node.js native test runner
+- TypeScript integration tests using [`node:test`](nodejs.org/api/test.html), the new Node.js native test runner, and `viem`
 - Foundry-compatible Solidity tests, including the usage of `forge-std`
 - Examples demonstrating how to connect to different types of networks, including simulating an Optimism network
-- A script that deploys a contract to Optimism Sepolia using Hardhat's new keystore capabilities
+- A script that sends a transaction to Optimism Sepolia using Hardhat's new keystore capabilities
 
 ## Navigating the Project
 
