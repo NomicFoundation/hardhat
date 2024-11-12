@@ -3,7 +3,7 @@ import { supportAddressable } from "./addressable.js";
 // import { supportEmit } from "./emit";
 import { supportHexEqual } from "./hexEqual.js";
 import { supportProperAddress } from "./properAddress.js";
-// import { supportProperHex } from "./properHex";
+import { supportProperHex } from "./properHex.js";
 // import { supportProperPrivateKey } from "./properPrivateKey";
 // import { supportChangeEtherBalance } from "./changeEtherBalance";
 // import { supportChangeEtherBalances } from "./changeEtherBalances";
@@ -24,7 +24,7 @@ export function hardhatChaiMatchers(
   // supportEmit(chai.Assertion, chaiUtils);
   supportHexEqual(chai.Assertion);
   supportProperAddress(chai.Assertion);
-  // supportProperHex(chai.Assertion);
+  supportProperHex(chai.Assertion);
   // supportProperPrivateKey(chai.Assertion);
   // supportChangeEtherBalance(chai.Assertion, chaiUtils);
   // supportChangeEtherBalances(chai.Assertion, chaiUtils);
