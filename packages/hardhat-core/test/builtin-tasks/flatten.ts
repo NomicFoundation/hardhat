@@ -4,8 +4,7 @@ import fs, { readFileSync } from "fs";
 import sinon, { SinonSpy } from "sinon";
 import picocolors from "picocolors";
 import { removeSync } from "fs-extra";
-import { readSync } from "node:fs";
-import { readFile } from "node:fs/promises";
+import { tmpdir } from "os";
 import {
   TASK_FLATTEN,
   TASK_FLATTEN_GET_FLATTENED_SOURCE,
@@ -416,7 +415,7 @@ describe("Flatten task", () => {
     });
 
     it("should write to an output file when the parameter output is specified", async function () {
-      const outputFile = "flatten.sol";
+      const outputFile = `${tmpdir()}/flatten.sol`;
       await this.env.run(TASK_FLATTEN, {
         files: ["contracts/A.sol", "contracts/D.sol"],
         output: outputFile,
