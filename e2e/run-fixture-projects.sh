@@ -45,8 +45,8 @@ for dir in ${FIXTURE_PROJECTS_DIR}/*; do
     cd "$dir"
 
     echo "[e2e] Installing modules in $dir"
-    npm add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null
-    npm install >/dev/null # install moduled specified in the package.json
+    npm add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE
+    npm install # install moduled specified in the package.json
     echo "[e2e] All modules have been installed in $dir"
 
     echo "[e2e] Starting test in $dir"
