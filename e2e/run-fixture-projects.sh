@@ -13,6 +13,7 @@ echo "[e2e] Building and packing hardhat-core"
 cd ../packages/hardhat-core
 pnpm install
 pnpm build
+pnpm pack
 HARDHAT_TGZ_FILE=$(pnpm pack)
 echo "[e2e] No really -> $HARDHAT_TGZ_FILE"
 echo "[e2e] Built $HARDHAT_TGZ_FILE"
