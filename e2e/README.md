@@ -1,4 +1,4 @@
-### Hardhat initialization tests
+### Hardhat initialization tests this is a test
 
 To run the "hardhat init" tests, use the command:
 
