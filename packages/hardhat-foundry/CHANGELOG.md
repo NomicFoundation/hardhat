@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-foundry
 
+## 1.1.3
+
+### Patch Changes
+
+- 7a383c9: Replace chalk with picocolor
+
 ## 1.1.2
 
 ### Patch Changes
