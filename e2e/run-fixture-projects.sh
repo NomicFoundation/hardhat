@@ -14,6 +14,7 @@ cd ../packages/hardhat-core
 pnpm install
 pnpm build
 HARDHAT_TGZ_FILE=$(pnpm pack)
+echo "[e2e] No really -> $HARDHAT_TGZ_FILE"
 echo "[e2e] Built $HARDHAT_TGZ_FILE"
 cd - >/dev/null
 
