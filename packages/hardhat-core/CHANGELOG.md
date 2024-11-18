@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.22.16
+
+### Patch Changes
+
+- fcece65: Replaced `chalk` with `picocolors`, `glob` with `tinyglob`, and upgraded `find-up`
+
 ## 2.22.15
 
 ### Patch Changes

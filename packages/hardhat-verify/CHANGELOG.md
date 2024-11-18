@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 2.0.12
+
+### Patch Changes
+
+- f571670: Replace chalk with picocolors
+
 ## 2.0.11
 
 ### Patch Changes
