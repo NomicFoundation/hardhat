@@ -65,14 +65,14 @@ describe("UNIT: hexEqual", () => {
     );
   });
 
-  it("correct error when strings are not equal", async function () {
+  it("correct error when strings are not equal", async () => {
     expect(() => expect("0xa").to.hexEqual("0xb")).to.throw(
       AssertionError,
       'Expected "0xa" to be a hex string equal to "0xb"',
     );
   });
 
-  it("correct error when strings are equal but expected not to", async function () {
+  it("correct error when strings are equal but expected not to", async () => {
     expect(() => expect("0xa").not.to.hexEqual("0xa")).to.throw(
       AssertionError,
       'Expected "0xa" NOT to be a hex string equal to "0xa", but it was',

@@ -85,6 +85,11 @@ export const ERROR_CATEGORIES: {
   },
   SOLIDITY: { min: 1200, max: 1299, websiteTitle: "Solidity errors" },
   VIEM: { min: 1300, max: 1399, websiteTitle: "Hardhat-viem errors" },
+  CHAI_MATCHERS: {
+    min: 1400,
+    max: 1499,
+    websiteTitle: "Hardhat-chai-matchers errors",
+  },
 };
 
 export const ERRORS = {
@@ -135,7 +140,7 @@ Please double check whether you have multiple versions of the same plugin instal
     ENV_VAR_NOT_FOUND: {
       number: 7,
       messageTemplate: `Configuration Variable '{name}' not found.
-     
+
 You can define it using a plugin like hardhat-keystore, or set it as an environment variable.`,
       websiteTitle: "Configuration variable not found",
       websiteDescription: `A configuration variable was expected to be set as an environment variable, but it wasn't.`,
@@ -220,6 +225,14 @@ Please add the property "type" with the value "module" in your package.json to e
       messageTemplate: `Invalid hex string "{value}"`,
       websiteTitle: "Invalid hex string",
       websiteDescription: `Given value was not a valid hex string.`,
+    },
+    INVALID_BIG_NUMBER: {
+      number: 19,
+      messageTemplate:
+        "The input value cannot be normalized to a bigint: {message}",
+      websiteTitle: "Invalid big number",
+      websiteDescription:
+        "Hardhat attempted to convert the input value to a bigint, but no known conversion method was applicable to the given value.",
     },
   },
   INTERNAL: {
@@ -1223,5 +1236,183 @@ Please check Hardhat's output for more details.`,
       websiteDescription:
         "The deployment transaction was mined but its receipt doesn't contain a contract address.",
     },
+  },
+  CHAI_MATCHERS: {
+    UNKNOWN_COMPARISON_OPERATION: {
+      number: 1400,
+      messageTemplate: `Unknown comparison operation "{method}"`,
+      websiteTitle: "Unknown comparison operation",
+      websiteDescription: "Unknown comparison operation",
+    },
+    EXPECTED_STRING_OR_ADDRESSABLE: {
+      number: 1401,
+      messageTemplate: `Expected string or addressable, but got {account}`,
+      websiteTitle: "Expected string or addressable",
+      websiteDescription: "Expected string or addressable",
+    },
+    ASSERTION_WITHOUT_ERROR_MESSAGE: {
+      number: 1402,
+      messageTemplate: `Assertion doesn't have an error message. Please open an issue to report this.`,
+      websiteTitle: "Assertion doesn't have an error message",
+      websiteDescription: `Assertion doesn't have an error message. Please open an issue to report this.`,
+      shouldBeReported: true,
+    },
+    MATCHER_CANNOT_BE_CHAINED_AFTER: {
+      number: 1403,
+      messageTemplate: `The matcher "{matcher}" cannot be chained after "{previousMatcher}". For more information, please refer to the documentation at: (https://hardhat.org/chaining-async-matchers).`,
+      websiteTitle: "Matcher cannot be chained after",
+      websiteDescription: `The matcher cannot be chained after another matcher. Please open an issue to report this.`,
+    },
+    DECODING_ERROR: {
+      number: 1404,
+      messageTemplate: `There was an error decoding "{encodedData}" as a "{type}. Reason: {reason}"`,
+      websiteTitle: "Error while decoding data",
+      websiteDescription: `There was an error decoding data`,
+    },
+    EXPECTED_VALID_TRANSACTION_HASH: {
+      number: 1405,
+      messageTemplate: `Expected a valid transaction hash, but got "{hash}"`,
+      websiteTitle: "Expected a valid transaction hash",
+      websiteDescription: `Expected a valid transaction hash`,
+    },
+    EXPECT_STRING_OR_REGEX_AS_REVERT_REASON: {
+      number: 1406,
+      messageTemplate:
+        "Expected the revert reason to be a string or a regular expression",
+      websiteTitle:
+        "Expected the revert reason to be a string or a regular expression",
+      websiteDescription:
+        "Expected the revert reason to be a string or a regular expression",
+    },
+    FIRST_ARGUMENT_MUST_BE_A_CONTRACT: {
+      number: 1407,
+      messageTemplate:
+        "The first argument of .revertedWithCustomError must be the contract that defines the custom error",
+      websiteTitle: "First argument must be a contract",
+      websiteDescription: "First argument must be a contract",
+    },
+    STRING_EXPECTED_AS_CUSTOM_ERROR_NAME: {
+      number: 1408,
+      messageTemplate: "Expected the custom error name to be a string",
+      websiteTitle: "Expected the custom error name to be a string",
+      websiteDescription: "Expected the custom error name to be a string",
+    },
+    CONTRACT_DOES_NOT_HAVE_CUSTOM_ERROR: {
+      number: 1409,
+      messageTemplate: `The given contract doesn't have a custom error named "{customErrorName}"`,
+      websiteTitle:
+        "Contract doesn't have a custom error with the specified name",
+      websiteDescription:
+        "Contract doesn't have a custom error with the specified name",
+    },
+    REVERT_INVALID_ARGUMENTS_LENGTH: {
+      number: 1410,
+      messageTemplate:
+        "The .revertedWithCustomError matcher expects two arguments: the contract and the custom error name. Arguments should be asserted with the .withArgs helper.",
+      websiteTitle:
+        "Invalid arguments length for the  .revertedWithCustomError matcher",
+      websiteDescription:
+        "Invalid arguments length for the  .revertedWithCustomError matcher",
+    },
+    WITH_ARGS_FORBIDDEN: {
+      number: 1411,
+      messageTemplate:
+        "[.withArgs] should never happen, please submit an issue to the Hardhat repository",
+      websiteTitle:
+        "[.withArgs] should never happen, please submit an issue to the Hardhat repository",
+      websiteDescription:
+        "[.withArgs] should never happen, please submit an issue to the Hardhat repository",
+    },
+    INDEXED_EVENT_FORBIDDEN: {
+      number: 1412,
+      messageTemplate:
+        "Should not get an indexed event when the assertion type is not event. Please open an issue about this.",
+      websiteTitle:
+        "Should not get an indexed event when the assertion type is not event",
+      websiteDescription:
+        "Should not get an indexed event when the assertion type is not event",
+    },
+    PANIC_CODE_EXPECTED: {
+      number: 1413,
+      messageTemplate: `Expected the given panic code to be a number-like value, but got "{panicCode}"`,
+      websiteTitle: "Expected the given panic code to be a number-like value",
+      websiteDescription:
+        "Expected the given panic code to be a number-like value",
+    },
+    ACCOUNTS_NUMBER_DIFFERENT_FROM_BALANCE_CHANGES: {
+      number: 1414,
+      messageTemplate: `The number of accounts ({accounts}) is different than the number of expected balance changes ({balanceChanges})`,
+      websiteTitle:
+        "The number of accounts is different than the number of expected balance changes",
+      websiteDescription:
+        "The number of accounts is different than the number of expected balance changes",
+    },
+    FIRST_ARGUMENT_MUST_BE_A_CONTRACT_INSTANCE: {
+      number: 1415,
+      messageTemplate: `The first argument of "{method}" must be the contract instance of the token`,
+      websiteTitle: "First argument must be a contract instance",
+      websiteDescription: "First argument must be a contract instance",
+    },
+    CONTRACT_IS_NOT_AN_ERC20_TOKEN: {
+      number: 1416,
+      messageTemplate: `The given contract instance is not an ERC20 token`,
+      websiteTitle: "Given contract instance is not an ERC20 token",
+      websiteDescription: "Given contract instance is not an ERC20 token",
+    },
+    INVALID_TRANSACTION: {
+      number: 1417,
+      messageTemplate: "{transaction} is not a valid transaction",
+      websiteTitle: "Invalid transaction",
+      websiteDescription: "Invalid transaction",
+    },
+    CONTRACT_TARGET_MUST_BE_A_STRING: {
+      number: 1418,
+      messageTemplate: "The contract target should be a string",
+      websiteTitle: "Contract target must be a string",
+      websiteDescription: "Contract target must be a string",
+    },
+    EMIT_EXPECTS_TWO_ARGUMENTS: {
+      number: 1419,
+      messageTemplate:
+        "The .emit matcher expects two arguments: the contract and the event name. Arguments should be asserted with the .withArgs helper.",
+      websiteTitle: "Invalid arguments length for the .emit matcher",
+      websiteDescription: "Invalid arguments length for the .emit matcher",
+    },
+    CONTRACT_RUNNER_PROVIDER_NOT_NULL: {
+      number: 1420,
+      messageTemplate: "contract.runner.provider shouldn't be null",
+      websiteTitle: "Contract runner's provider shouldn't be null",
+      websiteDescription: "Contract runner's provider shouldn't be null",
+    },
+    WITH_ARGS_CANNOT_BE_COMBINED_WITH_NOT: {
+      number: 1421,
+      messageTemplate: "Do not combine .not. with .withArgs()",
+      websiteTitle: "Do not combine .not. with .withArgs()",
+      websiteDescription: "Do not combine .not. with .withArgs()",
+    },
+    WITH_ARGS_WRONG_COMBINATION: {
+      number: 1422,
+      messageTemplate:
+        "withArgs can only be used in combination with a previous .emit or .revertedWithCustomError assertion",
+      websiteTitle:
+        "withArgs can only be used in combination with a previous .emit or .revertedWithCustomError assertion",
+      websiteDescription:
+        "withArgs can only be used in combination with a previous .emit or .revertedWithCustomError assertion",
+    },
+    WITH_ARGS_COMBINED_WITH_INCOMPATIBLE_ASSERTIONS: {
+      number: 1423,
+      messageTemplate:
+        "withArgs called with both .emit and .revertedWithCustomError, but these assertions cannot be combined",
+      websiteTitle:
+        "withArgs called with both .emit and .revertedWithCustomError, but these assertions cannot be combined",
+      websiteDescription:
+        "withArgs called with both .emit and .revertedWithCustomError, but these assertions cannot be combined",
+    },
+    // ANY_UINT_ARGUMENT_NOT_AN_UNSIGNED_INTEGER: {
+    //   number: 1421,
+    //   messageTemplate: `anyUint expected its argument to be an unsigned integer, but it was negative, with value "{value}"`,
+    //   websiteTitle: "anyUint should be an unsigned integer",
+    //   websiteDescription: "anyUint should be an unsigned integer",
+    // },
   },
 } as const;
