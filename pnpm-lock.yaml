@@ -1621,12 +1621,6 @@ importers:
       ethers:
         specifier: ^6.13.4
         version: 6.13.4
-      hardhat:
-        specifier: ^2.22.15
-        version: 2.22.15(ts-node@10.9.2(@types/node@20.17.1)(typescript@5.5.4))(typescript@5.5.4)
-      ordinal:
-        specifier: ^1.0.3
-        version: 1.0.3
     devDependencies:
       '@eslint-community/eslint-plugin-eslint-comments':
         specifier: ^4.3.0

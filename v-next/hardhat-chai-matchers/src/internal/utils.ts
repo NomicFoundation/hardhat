@@ -7,9 +7,9 @@ import {
 import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import { keccak256 } from "ethers/crypto";
 import { getBytes, hexlify, isHexString, toUtf8Bytes } from "ethers/utils";
-import ordinal from "ordinal";
 
 import { PREVIOUS_MATCHER_NAME } from "./constants.js";
+import { ordinal } from "./ordinal.js";
 
 export function assertIsNotNull<T>(
   value: T,

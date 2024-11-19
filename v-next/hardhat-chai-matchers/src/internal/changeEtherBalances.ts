@@ -1,16 +1,17 @@
 import type { BalanceChangeOptions } from "./misc/balance.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
-import type { Addressable, BigNumberish, TransactionResponse } from "ethers";
+import type { Addressable } from "ethers/address";
+import type { TransactionResponse } from "ethers/providers";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { toBigInt } from "ethers/utils";
-import ordinal from "ordinal";
 
 import { buildAssert } from "../utils.js";
 
 import { CHANGE_ETHER_BALANCES_MATCHER } from "./constants.js";
 import { getAddressOf } from "./misc/account.js";
 import { getAddresses, getBalances } from "./misc/balance.js";
+import { ordinal } from "./ordinal.js";
 import { assertIsNotNull, preventAsyncMatcherChaining } from "./utils.js";
 
 export function supportChangeEtherBalances(
@@ -23,7 +24,7 @@ export function supportChangeEtherBalances(
       this: any,
       provider: EthereumProvider,
       accounts: Array<Addressable | string>,
-      balanceChanges: BigNumberish[] | ((changes: bigint[]) => boolean),
+      balanceChanges: bigint[] | ((changes: bigint[]) => boolean),
       options?: BalanceChangeOptions,
     ) {
       // capture negated flag before async code executes; see buildAssert's jsdoc
