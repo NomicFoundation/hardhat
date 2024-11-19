@@ -172,6 +172,19 @@ describe("installProjectDependencies", async () => {
         await writeUtf8File("package.json", JSON.stringify({ type: "module" }));
         await installProjectDependencies(process.cwd(), template, true, false);
         assert.ok(await exists("node_modules"), "node_modules should exist");
+        const dependencies = Object.keys(
+          template.packageJson.devDependencies ?? {},
+        );
+        for (const dependency of dependencies) {
+          const nodeModulesPath = path.join(
+            "node_modules",
+            ...dependency.split("/"),
+          );
+          assert.ok(
+            await exists(nodeModulesPath),
+            `${nodeModulesPath} should exist`,
+          );
+        }
       },
     );
   }
@@ -199,6 +212,26 @@ describe("installProjectDependencies", async () => {
       );
       await installProjectDependencies(process.cwd(), template, false, true);
       assert.ok(await exists("node_modules"), "node_modules should exist");
+      const dependencies = Object.keys(
+        template.packageJson.devDependencies ?? {},
+      );
+      for (const dependency of dependencies) {
+        const nodeModulesPath = path.join(
+          "node_modules",
+          ...dependency.split("/"),
+        );
+        if (dependency === "@ignored/hardhat-vnext") {
+          assert.ok(
+            await exists(nodeModulesPath),
+            `${nodeModulesPath} should exist`,
+          );
+        } else {
+          assert.ok(
+            !(await exists(nodeModulesPath)),
+            `${nodeModulesPath} should not exist`,
+          );
+        }
+      }
     },
   );
 });
