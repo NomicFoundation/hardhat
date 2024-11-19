@@ -1,8 +1,9 @@
 import util from "node:util";
 
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { AssertionError } from "chai";
-import deepEqual from "deep-eql";
 
+import { deepEqual } from "./deep-equal.js";
 import { isBigNumber, normalizeToBigInt } from "./utils.js";
 
 export function supportBigNumber(
@@ -75,7 +76,7 @@ function createLengthOverride(
       return function (this: any) {
         _super.apply(this, arguments);
       };
-    } as any,
+    },
   ];
 }
 
@@ -118,13 +119,12 @@ function overwriteBigNumberFunction(
       } else if (method === "lte") {
         return lhs <= rhs;
       } else {
-        throw new Error(`Unknown comparison operation ${method as any}`);
-        // throw new HardhatError(
-        //   HardhatError.ERRORS.CHAI_MATCHERS.UNKNOWN_COMPARISON_OPERATION,
-        //   {
-        //     method,
-        //   },
-        // );
+        throw new HardhatError(
+          HardhatError.ERRORS.CHAI_MATCHERS.UNKNOWN_COMPARISON_OPERATION,
+          {
+            method,
+          },
+        );
       }
     }
 
@@ -153,19 +153,6 @@ function overwriteBigNumberFunction(
         actual,
       );
     } else if (functionName === "eq" && Boolean(chaiUtils.flag(this, "deep"))) {
-      // this is close enough to what chai itself does, except we compare
-      // numbers after normalizing them
-      const comparator = (a: any, b: any): boolean | null => {
-        try {
-          const normalizedA = normalizeToBigInt(a);
-          const normalizedB = normalizeToBigInt(b);
-          return normalizedA === normalizedB;
-        } catch (e) {
-          // use default comparator
-          return null;
-        }
-      };
-
       // "ssfi" stands for "start stack function indicator", it's a chai concept
       // used to control which frames are included in the stack trace
       // this pattern here was taken from chai's implementation of .deep.equal
@@ -174,7 +161,7 @@ function overwriteBigNumberFunction(
       chaiUtils.flag(this, "lockSsfi", true);
 
       this.assert(
-        deepEqual(actualArg, expectedFlag, { comparator }),
+        deepEqual(actualArg, expectedFlag),
         `expected ${util.inspect(expectedFlag)} to deeply equal ${util.inspect(
           actualArg,
         )}`,
