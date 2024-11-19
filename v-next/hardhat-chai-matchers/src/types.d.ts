@@ -1,37 +1,53 @@
-// eslint-disable-next-line @typescript-eslint/no-namespace, @typescript-eslint/no-unused-vars --  the namespace must be re-declared but it is not used in this file
 declare namespace Chai {
   interface Assertion
     extends LanguageChains,
       NumericComparison,
       TypeComparison {
-    emit(contract: any, eventName: string): EmitAssertion;
-    reverted: AsyncAssertion;
-    revertedWith(reason: string | RegExp): AsyncAssertion;
-    revertedWithoutReason(): AsyncAssertion;
+    // TODO: is additional meant to be here?
+    emit(contract: any, eventName: string, additional?: number): EmitAssertion;
+    // TODO: this needs a refined type
+    reverted(ethers: any): AsyncAssertion;
+    // TODO: check that number is meant here
+    revertedWith(reason: string | RegExp | number): AsyncAssertion;
+    // TODO: refine this type
+    revertedWithoutReason(ethers: any): AsyncAssertion;
     revertedWithPanic(code?: any): AsyncAssertion;
+    // TODO: is extraArgument meant to be here? Is contract really optional?
     revertedWithCustomError(
-      contract: { interface: any },
-      customErrorName: string,
+      contract?: { interface: any } | string,
+      customErrorName?: string,
+      extraArgument?: string,
     ): CustomErrorAssertion;
     hexEqual(other: string): void;
     properPrivateKey: void;
     properAddress: void;
     properHex(length: number): void;
+    // TODO: give provider proper type
     changeEtherBalance(
+      provider: any,
       account: any,
       balance: any,
       options?: any,
     ): AsyncAssertion;
+    // TODO: give provider proper type
     changeEtherBalances(
+      provider: any,
       accounts: any[],
       balances: any[] | ((changes: bigint[]) => boolean),
       options?: any,
     ): AsyncAssertion;
-    changeTokenBalance(token: any, account: any, balance: any): AsyncAssertion;
+    changeTokenBalance(
+      provider: any,
+      token: any,
+      account: any,
+      balance?: any,
+    ): AsyncAssertion;
+    // TODO: is balance optional?
     changeTokenBalances(
+      provider: any,
       token: any,
       account: any[],
-      balance: any[] | ((changes: bigint[]) => boolean),
+      balance?: any[] | ((changes: bigint[]) => boolean),
     ): AsyncAssertion;
   }
 
