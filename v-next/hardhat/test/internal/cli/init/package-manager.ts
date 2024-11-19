@@ -137,14 +137,14 @@ describe("installsPeerDependenciesByDefault", () => {
 describe("getDevDependenciesInstallationCommand", () => {
   it("should return the correct command for pnpm", async () => {
     const command = getDevDependenciesInstallationCommand("pnpm", ["a", "b"]);
-    assert.equal(command.join(" "), "pnpm add --save-dev a b");
+    assert.equal(command.join(" "), 'pnpm add --save-dev "a" "b"');
   });
   it("should return the correct command for npm", async () => {
     const command = getDevDependenciesInstallationCommand("npm", ["a", "b"]);
-    assert.equal(command.join(" "), "npm install --save-dev a b");
+    assert.equal(command.join(" "), 'npm install --save-dev "a" "b"');
   });
   it("should return the correct command for yarn", async () => {
     const command = getDevDependenciesInstallationCommand("yarn", ["a", "b"]);
-    assert.equal(command.join(" "), "yarn add --dev a b");
+    assert.equal(command.join(" "), 'yarn add --dev "a" "b"');
   });
 });

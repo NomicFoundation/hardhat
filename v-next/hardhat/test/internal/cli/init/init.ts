@@ -170,7 +170,7 @@ describe("installProjectDependencies", async () => {
       },
       async () => {
         await writeUtf8File("package.json", JSON.stringify({ type: "module" }));
-        await installProjectDependencies(process.cwd(), template, true);
+        await installProjectDependencies(process.cwd(), template, true, false);
         assert.ok(await exists("node_modules"), "node_modules should exist");
       },
     );
@@ -179,9 +179,28 @@ describe("installProjectDependencies", async () => {
   it("should not install any template dependencies if the user opts-out of the installation", async () => {
     const template = await getTemplate("mocha-ethers");
     await writeUtf8File("package.json", JSON.stringify({ type: "module" }));
-    await installProjectDependencies(process.cwd(), template, false);
+    await installProjectDependencies(process.cwd(), template, false, false);
     assert.ok(!(await exists("node_modules")), "node_modules should not exist");
   });
+
+  it(
+    "should install any existing template dependencies that are out of date if the user opts-in to the update",
+    {
+      skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
+    },
+    async () => {
+      const template = await getTemplate("mocha-ethers");
+      await writeUtf8File(
+        "package.json",
+        JSON.stringify({
+          type: "module",
+          devDependencies: { "@ignored/hardhat-vnext": "0.0.0" },
+        }),
+      );
+      await installProjectDependencies(process.cwd(), template, false, true);
+      assert.ok(await exists("node_modules"), "node_modules should exist");
+    },
+  );
 });
 
 describe("initHardhat", async () => {

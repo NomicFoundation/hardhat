@@ -1,6 +1,7 @@
 import type { Template } from "./template.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import chalk from "chalk";
 
 export async function promptForWorkspace(): Promise<string> {
   ensureTTY();
@@ -71,12 +72,31 @@ export async function promptForInstall(
     {
       name: "install",
       type: "confirm",
-      message: `You need to install the project dependencies using the following command:\n${safelyFormattedCommand}\n\nDo you want to run it now?`,
+      message: `You need to install the following dependencies using the following command:\n${chalk.italic(safelyFormattedCommand)}\n\nDo you want to run it now?`,
       initial: true,
     },
   ]);
 
   return installResponse.install;
+}
+
+export async function promptForUpdate(
+  safelyFormattedCommand: string,
+): Promise<boolean> {
+  ensureTTY();
+
+  const { default: enquirer } = await import("enquirer");
+
+  const updateResponse = await enquirer.prompt<{ update: boolean }>([
+    {
+      name: "update",
+      type: "confirm",
+      message: `You need to update the following dependencies using the following command:\n${chalk.italic(safelyFormattedCommand)}\n\nDo you want to run it now?`,
+      initial: true,
+    },
+  ]);
+
+  return updateResponse.update;
 }
 
 /**
