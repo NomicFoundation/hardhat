@@ -18,6 +18,7 @@ import chalk from "chalk";
 
 import { findClosestHardhatConfig } from "../../config-loading.js";
 import { getHardhatVersion } from "../../utils/package.js";
+import { ensureTelemetryConsent } from "../telemetry/telemetry-permissions.js";
 
 import { HARDHAT_NAME } from "./constants.js";
 import {
@@ -59,22 +60,28 @@ export interface InitHardhatOptions {
  * The flow is as follows:
  * 1. Print the ascii logo.
  * 2. Print the welcome message.
- * 3. Optionally, ask the user for the workspace to initialize the project in.
- * 4. Optionally, ask the user for the template to use for the project initialization.
- * 5. Create the package.json file if it does not exist.
- * 6. Validate that the package.json file is an esm package.
- * 7. Optionally, ask the user if files should be overwritten.
- * 8. Copy the template files to the workspace.
+ * 3. Ensure telemetry consent.
+ * 4. Optionally, ask the user for the workspace to initialize the project in.
+ * 5. Optionally, ask the user for the template to use for the project initialization.
+ * 6. Create the package.json file if it does not exist.
+ * 7. Validate that the package.json file is an esm package.
+ * 8. Optionally, ask the user if files should be overwritten.
+ * 9. Copy the template files to the workspace.
  * 10. Print the commands to install the project dependencies.
  * 11. Optionally, ask the user if the project dependencies should be installed.
  * 12. Optionally, run the commands to install the project dependencies.
- * 13. Print a message to star the project on GitHub.
+ * 13. Ensure telemetry consent.
+ * 14. Print a message to star the project on GitHub.
  */
 export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
   try {
     printAsciiLogo();
 
     await printWelcomeMessage();
+
+    // Ensure telemetry consent first so that we are allowed to also track
+    // the unfinished init flows
+    await ensureTelemetryConsent();
 
     // Ask the user for the workspace to initialize the project in
     // if it was not provided, and validate that it is not already initialized
