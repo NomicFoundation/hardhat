@@ -1,5 +1,3 @@
-// TODO: check if all are used
-
 export const ASSERTION_ABORTED = "hh-chai-matchers-assertion-aborted";
 export const PREVIOUS_MATCHER_NAME = "previousMatcherName";
 

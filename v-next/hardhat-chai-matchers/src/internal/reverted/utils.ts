@@ -21,6 +21,7 @@ const PANIC_CODE_PREFIX = "0x4e487b71";
  */
 export function getReturnDataFromError(error: any): string {
   if (!(error instanceof Error)) {
+    // eslint-disable-next-line no-restricted-syntax -- keep the original chai error structure
     throw new AssertionError("Expected an Error object");
   }
 

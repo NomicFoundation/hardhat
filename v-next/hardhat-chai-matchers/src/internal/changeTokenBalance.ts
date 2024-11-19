@@ -214,7 +214,14 @@ function checkToken(token: unknown, method: string) {
         method,
       },
     );
-  } else if ((token as any).interface.getFunction("balanceOf") === null) {
+  } else if (
+    isObject(token) &&
+    "interface" in token &&
+    isObject(token.interface) &&
+    "getFunction" in token.interface &&
+    typeof token.interface.getFunction === "function" &&
+    token.interface.getFunction("balanceOf") === null
+  ) {
     throw new HardhatError(
       HardhatError.ERRORS.CHAI_MATCHERS.CONTRACT_IS_NOT_AN_ERC20_TOKEN,
     );
