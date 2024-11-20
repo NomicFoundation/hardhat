@@ -1,5 +1,4 @@
 import type { MatchersContract } from "../contracts.js";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
 
 import path from "node:path";
@@ -31,7 +30,6 @@ describe("INTEGRATION: Reverted without reason", () => {
     // deploy Matchers contract before each test
     let matchers: MatchersContract;
 
-    let provider: EthereumProvider;
     let ethers: HardhatEthers;
 
     beforeEach(async () => {
@@ -42,7 +40,7 @@ describe("INTEGRATION: Reverted without reason", () => {
         plugins: [hardhatEthersPlugin],
       });
 
-      ({ ethers, provider } = await hre.network.connect());
+      ({ ethers } = await hre.network.connect());
 
       const Matchers = await ethers.getContractFactory<[], MatchersContract>(
         "Matchers",
@@ -72,9 +70,7 @@ describe("INTEGRATION: Reverted without reason", () => {
       });
     });
 
-    // depends on a bug being fixed on ethers.js
-    // see https://github.com/NomicFoundation/hardhat/issues/3446
-    describe.skip("calling a method that reverts without a reason", () => {
+    describe("calling a method that reverts without a reason", () => {
       it("successful asserts", async () => {
         await runSuccessfulAsserts({
           matchers,
@@ -176,6 +172,8 @@ describe("INTEGRATION: Reverted without reason", () => {
           "0xc5c587cc6e48e9692aee0bf07474118e6d830c11905f7ec7ff32c09c99eba5f9";
 
         const signer = new ethers.Wallet(randomPrivateKey, ethers.provider);
+
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- the contract is of type MatchersContract
         const matchersFromSenderWithoutFunds = matchers.connect(
           signer,
         ) as MatchersContract;
@@ -201,7 +199,7 @@ describe("INTEGRATION: Reverted without reason", () => {
           await expect(
             matchers.revertsWithoutReason(),
           ).to.not.be.revertedWithoutReason(ethers);
-        } catch (e: any) {
+        } catch (e) {
           const errorString = util.inspect(e);
           expect(errorString).to.include(
             "Expected transaction NOT to be reverted without a reason, but it was",

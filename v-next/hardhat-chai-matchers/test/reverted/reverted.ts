@@ -323,9 +323,7 @@ describe("INTEGRATION: Reverted", () => {
     });
 
     describe("calling a method that reverts without a reason", () => {
-      // depends on a bug being fixed on ethers.js
-      // see https://github.com/NomicFoundation/hardhat/issues/3446
-      it.skip("successful asserts", async () => {
+      it("successful asserts", async () => {
         await runSuccessfulAsserts({
           matchers,
           method: "revertsWithoutReason",
@@ -334,9 +332,7 @@ describe("INTEGRATION: Reverted", () => {
         });
       });
 
-      // depends on a bug being fixed on ethers.js
-      // see https://github.com/NomicFoundation/hardhat/issues/3446
-      it.skip("failed asserts", async () => {
+      it("failed asserts", async () => {
         await runFailedAsserts({
           matchers,
           method: "revertsWithoutReason",
@@ -426,6 +422,7 @@ describe("INTEGRATION: Reverted", () => {
           "0xc5c587cc6e48e9692aee0bf07474118e6d830c11905f7ec7ff32c09c99eba5f9";
         const signer = new ethers.Wallet(randomPrivateKey, ethers.provider);
 
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- the contract is of type MatchersContract
         const matchersFromSenderWithoutFunds = matchers.connect(
           signer,
         ) as MatchersContract;
@@ -449,7 +446,7 @@ describe("INTEGRATION: Reverted", () => {
       it("includes test file", async () => {
         try {
           await expect(matchers.succeeds()).to.be.reverted(ethers);
-        } catch (e: any) {
+        } catch (e) {
           const errorString = util.inspect(e);
           expect(errorString).to.include("Expected transaction to be reverted");
           expect(errorString).to.include(

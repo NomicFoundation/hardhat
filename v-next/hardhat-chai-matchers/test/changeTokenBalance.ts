@@ -897,7 +897,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", () 
             await expect(
               mockToken.transfer(receiver.address, 50),
             ).to.changeTokenBalance(provider, mockToken, sender, -100);
-          } catch (e: any) {
+          } catch (e) {
             hasProperStackTrace = util
               .inspect(e)
               .includes(path.join("test", "changeTokenBalance.ts"));
@@ -917,7 +917,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", () 
               [sender, receiver],
               [-100, 100],
             );
-          } catch (e: any) {
+          } catch (e) {
             expect(util.inspect(e)).to.include(
               path.join("test", "changeTokenBalance.ts"),
             );
@@ -931,7 +931,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", () 
 });
 
 function zip<T, U>(a: T[], b: U[]): Array<[T, U]> {
-  assert(a.length === b.length);
+  assert(a.length === b.length, "lengths should match");
 
   return a.map((x, i) => [x, b[i]]);
 }

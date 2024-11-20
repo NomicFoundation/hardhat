@@ -269,7 +269,7 @@ describe("BigNumber matchers", () => {
     ];
     describe("positive, successful assertions chained off of length", () => {
       for (const { obj, operator, len } of positiveSuccessCasesWithOperator) {
-        describe(`with object ${obj} and operator "${operator}"`, () => {
+        describe(`with object ${JSON.stringify(obj)} and operator "${operator}"`, () => {
           for (const convert of [
             (n: number) => n,
             ...numberToBigNumberConversions,
@@ -423,7 +423,7 @@ describe("BigNumber matchers", () => {
     ];
     describe("negative, successful assertions chained off of length", () => {
       for (const { obj, operator, len } of negativeSuccessCasesWithOperator) {
-        describe(`with object ${obj} and operator "${operator}"`, () => {
+        describe(`with object ${JSON.stringify(obj)} and operator "${operator}"`, () => {
           for (const convert of [
             (n: number) => n,
             ...numberToBigNumberConversions,
@@ -526,7 +526,7 @@ describe("BigNumber matchers", () => {
         len,
         msg,
       } of positiveFailureCasesWithOperator) {
-        describe(`with object ${obj} and operator "${operator}"`, () => {
+        describe(`with object ${JSON.stringify(obj)} and operator "${operator}"`, () => {
           for (const convert of [
             (n: number) => n,
             ...numberToBigNumberConversions,

@@ -308,6 +308,8 @@ describe("INTEGRATION: Reverted with panic", () => {
         const randomPrivateKey =
           "0xc5c587cc6e48e9692aee0bf07474118e6d830c11905f7ec7ff32c09c99eba5f9";
         const signer = new ethers.Wallet(randomPrivateKey, ethers.provider);
+
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- the contract is of type MatchersContract
         const matchersFromSenderWithoutFunds = matchers.connect(
           signer,
         ) as MatchersContract;
@@ -331,7 +333,7 @@ describe("INTEGRATION: Reverted with panic", () => {
       it("includes test file", async () => {
         try {
           await expect(matchers.panicAssert()).to.not.be.revertedWithPanic();
-        } catch (e: any) {
+        } catch (e) {
           const errorString = util.inspect(e);
           expect(errorString).to.include(
             "Expected transaction NOT to be reverted with some panic code, but it reverted with panic code 0x01 (Assertion error)",

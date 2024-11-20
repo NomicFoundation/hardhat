@@ -1,9 +1,10 @@
-import { expect, AssertionError } from "chai";
-
 import "../src/internal/add-chai-matchers";
+
 import { describe, it } from "node:test";
 
-/* eslint-disable @typescript-eslint/no-unused-expressions */
+import { expect, AssertionError } from "chai";
+
+/* eslint-disable @typescript-eslint/no-unused-expressions -- allow all the expressions */
 
 describe("Proper private key", () => {
   it("Expect to be proper private key", async () => {

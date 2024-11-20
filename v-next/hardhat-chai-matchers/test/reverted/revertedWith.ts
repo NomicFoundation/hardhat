@@ -89,9 +89,7 @@ describe("INTEGRATION: Reverted with", () => {
         });
       });
 
-      // depends on a bug being fixed on ethers.js
-      // see https://github.com/NomicFoundation/hardhat/issues/3446
-      it.skip("failed asserts", async () => {
+      it("failed asserts", async () => {
         await runFailedAsserts({
           matchers,
           method: "revertsWithoutReason",
@@ -237,6 +235,8 @@ describe("INTEGRATION: Reverted with", () => {
         const randomPrivateKey =
           "0xc5c587cc6e48e9692aee0bf07474118e6d830c11905f7ec7ff32c09c99eba5f9";
         const signer = new ethers.Wallet(randomPrivateKey, ethers.provider);
+
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- the contract is of type MatchersContract
         const matchersFromSenderWithoutFunds = matchers.connect(
           signer,
         ) as MatchersContract;
@@ -260,7 +260,7 @@ describe("INTEGRATION: Reverted with", () => {
       it("includes test file", async () => {
         try {
           await expect(matchers.revertsWith("bar")).to.be.revertedWith("foo");
-        } catch (e: any) {
+        } catch (e) {
           const errorString = util.inspect(e);
           expect(errorString).to.include(
             "Expected transaction to be reverted with reason 'foo', but it reverted with reason 'bar'",

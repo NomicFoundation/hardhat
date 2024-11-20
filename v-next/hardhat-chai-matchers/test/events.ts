@@ -5,7 +5,6 @@ import type {
   OverrideEventContract,
 } from "./contracts.js";
 import "../src/internal/add-chai-matchers";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
 
 import { beforeEach, describe, it } from "node:test";
@@ -39,7 +38,6 @@ describe(".to.emit (contract events)", () => {
   // });
 
   function runTests() {
-    let provider: EthereumProvider;
     let ethers: HardhatEthers;
 
     beforeEach(async () => {
@@ -50,7 +48,7 @@ describe(".to.emit (contract events)", () => {
         plugins: [hardhatEthersPlugin],
       });
 
-      ({ ethers, provider } = await hre.network.connect());
+      ({ ethers } = await hre.network.connect());
 
       otherContract = await ethers.deployContract("AnotherContract");
 
@@ -139,7 +137,7 @@ describe(".to.emit (contract events)", () => {
       it("should fail if withArgs is called on its own", async () => {
         expect(() =>
           expect(contract.emitUint(1))
-            // @ts-expect-error
+            // @ts-expect-error -- force "withArgs" to be called on its own
             .withArgs(1),
         ).to.throw(
           Error,

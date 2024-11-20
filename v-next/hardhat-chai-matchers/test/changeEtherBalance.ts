@@ -1,5 +1,4 @@
 import type { ChangeEtherBalance } from "./contracts.js";
-import type { Token } from "../src/internal/changeTokenBalance.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type {
   HardhatEthers,
@@ -34,7 +33,7 @@ describe("INTEGRATION: changeEtherBalance matcher", () => {
     let receiver: HardhatEthersSigner;
     let contract: ChangeEtherBalance;
     let txGasFees: number;
-    let mockToken: Token;
+    // let mockToken: Token;
 
     let provider: EthereumProvider;
     let ethers: HardhatEthers;
@@ -68,8 +67,8 @@ describe("INTEGRATION: changeEtherBalance matcher", () => {
         params: ["0x0"],
       });
 
-      const MockToken = await ethers.getContractFactory<[], Token>("MockToken");
-      mockToken = await MockToken.deploy();
+      // const MockToken = await ethers.getContractFactory<[], Token>("MockToken");
+      // mockToken = await MockToken.deploy();
     });
 
     describe("Transaction Callback (legacy tx)", () => {
@@ -655,7 +654,7 @@ describe("INTEGRATION: changeEtherBalance matcher", () => {
               value: 200,
             }),
           ).to.changeEtherBalance(provider, sender, -100);
-        } catch (e: any) {
+        } catch (e) {
           expect(util.inspect(e)).to.include(
             path.join("test", "changeEtherBalance.ts"),
           );

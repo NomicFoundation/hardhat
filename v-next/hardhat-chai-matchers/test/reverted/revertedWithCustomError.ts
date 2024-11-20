@@ -101,9 +101,7 @@ describe("INTEGRATION: Reverted with custom error", () => {
         });
       });
 
-      // depends on a bug being fixed on ethers.js
-      // see https://github.com/NomicFoundation/hardhat/issues/3446
-      it.skip("failed asserts", async () => {
+      it("failed asserts", async () => {
         await runFailedAsserts({
           matchers,
           method: "revertsWithoutReason",
@@ -402,24 +400,26 @@ describe("INTEGRATION: Reverted with custom error", () => {
 
       it("should fail if withArgs is called on its own", async () => {
         expect(() =>
-          expect(matchers.revertWithCustomErrorWithUint(1))
-            // @ts-expect-error
-            .withArgs(1),
+          // @ts-expect-error -- force "withArgs" to be called on its own
+          expect(matchers.revertWithCustomErrorWithUint(1)).withArgs(1),
         ).to.throw(
           Error,
           "withArgs can only be used in combination with a previous .emit or .revertedWithCustomError assertion",
         );
       });
 
-      // it("should fail if both emit and revertedWithCustomError are called", async ()=>{
-      //   expect(() =>
-      //     expect(matchers.revertWithSomeCustomError())
-      //       .to.emit(matchers, "SomeEvent")
-      //       .and.to.be.revertedWithCustomError(matchers, "SomeCustomError")
-      //       .withArgs(1),
-      //   ).to.throw(
-      //     Error,
-      //     "The matcher 'revertedWithCustomError' cannot be chained after 'emit'.",
+      // it("should fail if both emit and revertedWithCustomError are called", async () => {
+      //   await assertRejectsWithHardhatError(
+      //     () =>
+      //       expect(matchers.revertWithSomeCustomError())
+      //         .to.emit(matchers, "SomeEvent")
+      //         .and.to.be.revertedWithCustomError(matchers, "SomeCustomError")
+      //         .withArgs(1),
+      //     HardhatError.ERRORS.CHAI_MATCHERS.MATCHER_CANNOT_BE_CHAINED_AFTER,
+      //     {
+      //       matcher: "revertedWithCustomError",
+      //       previousMatcher: "emit",
+      //     },
       //   );
       // });
 
@@ -505,6 +505,8 @@ describe("INTEGRATION: Reverted with custom error", () => {
         const randomPrivateKey =
           "0xc5c587cc6e48e9692aee0bf07474118e6d830c11905f7ec7ff32c09c99eba5f9";
         const signer = new ethers.Wallet(randomPrivateKey, ethers.provider);
+
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- the contract is of type MatchersContract
         const matchersFromSenderWithoutFunds = matchers.connect(
           signer,
         ) as MatchersContract;
@@ -545,7 +547,7 @@ describe("INTEGRATION: Reverted with custom error", () => {
           await expect(
             matchers.revertsWith("some reason"),
           ).to.be.revertedWithCustomError(matchers, "SomeCustomError");
-        } catch (e: any) {
+        } catch (e) {
           const errorString = util.inspect(e);
           expect(errorString).to.include(
             "Expected transaction to be reverted with custom error 'SomeCustomError', but it reverted with reason 'some reason'",
