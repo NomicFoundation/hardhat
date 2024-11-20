@@ -1,4 +1,8 @@
-import type { MatchersContract } from "./contracts.js";
+import type {
+  AnotherContract,
+  EventsContract,
+  MatchersContract,
+} from "./contracts.js";
 import type { Token } from "../src/internal/changeTokenBalance.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type {
@@ -49,6 +53,8 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", () 
     let receiver: HardhatEthersSigner;
     let mockToken: Token;
     let matchers: MatchersContract;
+    let otherContract: AnotherContract;
+    let contract: EventsContract;
 
     let provider: EthereumProvider;
     let ethers: HardhatEthers;
@@ -76,6 +82,11 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", () 
         "Matchers",
       );
       matchers = await Matchers.deploy();
+
+      otherContract = await ethers.deployContract("AnotherContract");
+      contract = await (
+        await ethers.getContractFactory<[string], EventsContract>("Events")
+      ).deploy(await otherContract.getAddress());
     });
 
     describe("transaction that doesn't move tokens", () => {
@@ -647,30 +658,38 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", () 
           );
         });
 
-        // it("changeTokenBalance: Should throw if chained to another non-chainable method", () => {
-        //   expect(() =>
-        //     expect(mockToken.transfer(receiver.address, 50))
-        //       .to.emit(mockToken, "SomeEvent")
-        //       .and.to.changeTokenBalance(mockToken, receiver, 50),
-        //   ).to.throw(
-        //     /The matcher 'changeTokenBalance' cannot be chained after 'emit'./,
-        //   );
-        // });
+        it("changeTokenBalance: Should throw if chained to another non-chainable method", () => {
+          assertThrowsHardhatError(
+            () =>
+              expect(contract.emitWithoutArgs())
+                .to.emit(contract, "WithoutArgs")
+                .and.to.changeTokenBalance(provider, mockToken, receiver, 0),
+            HardhatError.ERRORS.CHAI_MATCHERS.MATCHER_CANNOT_BE_CHAINED_AFTER,
+            {
+              matcher: "changeTokenBalance",
+              previousMatcher: "emit",
+            },
+          );
+        });
 
-        // it("changeTokenBalances: should throw if chained to another non-chainable method", () => {
-        //   expect(() =>
-        //     expect(mockToken.transfer(provider, receiver.address, 50))
-        //       .to.be.reverted(ethers)
-        //       .and.to.changeTokenBalances(
-        //         provider,
-        //         mockToken,
-        //         [sender, receiver],
-        //         [-50, 100],
-        //       ),
-        //   ).to.throw(
-        //     /The matcher 'changeTokenBalances' cannot be chained after 'reverted'./,
-        //   );
-        // });
+        it("changeTokenBalances: should throw if chained to another non-chainable method", () => {
+          assertThrowsHardhatError(
+            () =>
+              expect(matchers.revertWithCustomErrorWithInt(1))
+                .to.be.reverted(ethers)
+                .and.to.changeTokenBalances(
+                  provider,
+                  mockToken,
+                  [sender, receiver],
+                  [-50, 100],
+                ),
+            HardhatError.ERRORS.CHAI_MATCHERS.MATCHER_CANNOT_BE_CHAINED_AFTER,
+            {
+              matcher: "changeTokenBalances",
+              previousMatcher: "reverted",
+            },
+          );
+        });
       });
     });
 

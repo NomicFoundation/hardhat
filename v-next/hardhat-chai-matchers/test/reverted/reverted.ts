@@ -11,6 +11,7 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import hardhatEthersPlugin from "@ignored/hardhat-vnext-ethers";
 import {
   assertRejectsWithHardhatError,
+  assertThrowsHardhatError,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { AssertionError, expect } from "chai";
@@ -196,63 +197,82 @@ describe("INTEGRATION: Reverted", () => {
         );
       });
 
-      // it("reverted: should throw if chained to another non-chainable method", ()=>{
-      //   const txPromise = mineRevertedTransaction(provider, ethers, matchers);
+      it("reverted: should throw if chained to another non-chainable method", () => {
+        assertThrowsHardhatError(
+          () =>
+            expect(matchers.revertsWith("bar"))
+              .to.be.revertedWith("bar")
+              .and.to.be.reverted(ethers),
+          HardhatError.ERRORS.CHAI_MATCHERS.MATCHER_CANNOT_BE_CHAINED_AFTER,
+          {
+            matcher: "reverted",
+            previousMatcher: "revertedWith",
+          },
+        );
+      });
 
-      //   expect(() =>
-      //     expect(txPromise)
-      //       .to.be.revertedWith("an error message")
-      //       .and.to.be.reverted(ethers),
-      //   ).to.throw(
-      //     /The matcher 'reverted' cannot be chained after 'revertedWith'./,
-      //   );
-      // });
+      it("revertedWith: should throw if chained to another non-chainable method", () => {
+        assertThrowsHardhatError(
+          () =>
+            expect(matchers.revertWithCustomErrorWithInt(1))
+              .to.be.revertedWithCustomError(matchers, "CustomErrorWithInt")
+              .and.to.be.revertedWith("an error message"),
+          HardhatError.ERRORS.CHAI_MATCHERS.MATCHER_CANNOT_BE_CHAINED_AFTER,
+          {
+            matcher: "revertedWith",
+            previousMatcher: "revertedWithCustomError",
+          },
+        );
+      });
 
-      // it("revertedWith: should throw if chained to another non-chainable method", ()=>{
-      //   const txPromise = mineRevertedTransaction(provider, ethers, matchers);
+      it("revertedWithCustomError: should throw if chained to another non-chainable method", () => {
+        assertThrowsHardhatError(
+          () =>
+            expect(matchers.revertsWithoutReason())
+              .to.be.revertedWithoutReason(ethers)
+              .and.to.be.revertedWithCustomError(matchers, "SomeCustomError"),
+          HardhatError.ERRORS.CHAI_MATCHERS.MATCHER_CANNOT_BE_CHAINED_AFTER,
+          {
+            matcher: "revertedWithCustomError",
+            previousMatcher: "revertedWithoutReason",
+          },
+        );
+      });
 
-      //   expect(() =>
-      //     expect(txPromise)
-      //       .to.be.revertedWithCustomError(matchers, "SomeCustomError")
-      //       .and.to.be.revertedWith("an error message"),
-      //   ).to.throw(
-      //     /The matcher 'revertedWith' cannot be chained after 'revertedWithCustomError'./,
-      //   );
-      // });
+      it("revertedWithoutReason: should throw if chained to another non-chainable method", () => {
+        assertThrowsHardhatError(
+          () =>
+            expect(matchers.panicAssert())
+              .to.be.revertedWithPanic()
+              .and.to.be.revertedWithoutReason(ethers),
+          HardhatError.ERRORS.CHAI_MATCHERS.MATCHER_CANNOT_BE_CHAINED_AFTER,
+          {
+            matcher: "revertedWithoutReason",
+            previousMatcher: "revertedWithPanic",
+          },
+        );
+      });
 
-      // it("revertedWithCustomError: should throw if chained to another non-chainable method", ()=>{
-      //   const txPromise = mineRevertedTransaction(provider, ethers, matchers);
-      //   expect(() =>
-      //     expect(txPromise)
-      //       .to.be.revertedWithoutReason()
-      //       .and.to.be.revertedWithCustomError(matchers, "SomeCustomError"),
-      //   ).to.throw(
-      //     /The matcher 'revertedWithCustomError' cannot be chained after 'revertedWithoutReason'./,
-      //   );
-      // });
+      it("revertedWithPanic: should throw if chained to another non-chainable method", async () => {
+        const [sender, receiver] = await ethers.getSigners();
 
-      // it("revertedWithoutReason: should throw if chained to another non-chainable method", ()=>{
-      //   const txPromise = mineRevertedTransaction(provider, ethers, matchers);
-      //   expect(() =>
-      //     expect(txPromise)
-      //       .to.be.revertedWithPanic()
-      //       .and.to.be.revertedWithoutReason(),
-      //   ).to.throw(
-      //     /The matcher 'revertedWithoutReason' cannot be chained after 'revertedWithPanic'./,
-      //   );
-      // });
-
-      // it("revertedWithPanic: should throw if chained to another non-chainable method", async ()=>{
-      //   const [sender] = await ethers.getSigners();
-      //   const txPromise = mineRevertedTransaction(provider, ethers, matchers);
-      //   expect(() =>
-      //     expect(txPromise)
-      //       .to.changeEtherBalance(sender, "-200")
-      //       .and.to.be.revertedWithPanic(),
-      //   ).to.throw(
-      //     /The matcher 'revertedWithPanic' cannot be chained after 'changeEtherBalance'./,
-      //   );
-      // });
+        assertThrowsHardhatError(
+          () =>
+            expect(() =>
+              sender.sendTransaction({
+                to: receiver,
+                value: 200,
+              }),
+            )
+              .to.changeEtherBalance(provider, sender, "-200")
+              .and.to.be.revertedWithPanic(),
+          HardhatError.ERRORS.CHAI_MATCHERS.MATCHER_CANNOT_BE_CHAINED_AFTER,
+          {
+            matcher: "revertedWithPanic",
+            previousMatcher: "changeEtherBalance",
+          },
+        );
+      });
     });
 
     describe("with a TxReceipt as its subject", () => {

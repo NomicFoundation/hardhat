@@ -408,18 +408,16 @@ describe("INTEGRATION: Reverted with custom error", () => {
         );
       });
 
-      // it("should fail if both emit and revertedWithCustomError are called", async () => {
-      //   await assertRejectsWithHardhatError(
-      //     () =>
-      //       expect(matchers.revertWithSomeCustomError())
-      //         .to.emit(matchers, "SomeEvent")
-      //         .and.to.be.revertedWithCustomError(matchers, "SomeCustomError")
-      //         .withArgs(1),
-      //     HardhatError.ERRORS.CHAI_MATCHERS.MATCHER_CANNOT_BE_CHAINED_AFTER,
-      //     {
-      //       matcher: "revertedWithCustomError",
-      //       previousMatcher: "emit",
-      //     },
+      // See https://github.com/NomicFoundation/hardhat/issues/4235
+      // it.skip("should fail if both emit and revertedWithCustomError are called", async () => {
+      //   expect(() =>
+      //     expect(matchers.revertWithSomeCustomError())
+      //       .to.emit(matchers, "SomeEvent")
+      //       .and.to.be.revertedWithCustomError(matchers, "SomeCustomError")
+      //       .withArgs(1),
+      //   ).to.throw(
+      //     Error,
+      //     "withArgs called with both .emit and .revertedWithCustomError, but these assertions cannot be combined",
       //   );
       // });
 

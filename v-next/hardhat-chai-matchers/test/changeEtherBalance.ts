@@ -1,4 +1,5 @@
 import type { ChangeEtherBalance } from "./contracts.js";
+import type { Token } from "../src/internal/changeTokenBalance.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type {
   HardhatEthers,
@@ -10,8 +11,12 @@ import { before, beforeEach, describe, it } from "node:test";
 import util from "node:util";
 
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import hardhatEthersPlugin from "@ignored/hardhat-vnext-ethers";
-import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import {
+  assertThrowsHardhatError,
+  useFixtureProject,
+} from "@nomicfoundation/hardhat-test-utils";
 import { expect, AssertionError } from "chai";
 
 import "../src/internal/add-chai-matchers";
@@ -33,7 +38,7 @@ describe("INTEGRATION: changeEtherBalance matcher", () => {
     let receiver: HardhatEthersSigner;
     let contract: ChangeEtherBalance;
     let txGasFees: number;
-    // let mockToken: Token;
+    let mockToken: Token;
 
     let provider: EthereumProvider;
     let ethers: HardhatEthers;
@@ -67,8 +72,8 @@ describe("INTEGRATION: changeEtherBalance matcher", () => {
         params: ["0x0"],
       });
 
-      // const MockToken = await ethers.getContractFactory<[], Token>("MockToken");
-      // mockToken = await MockToken.deploy();
+      const MockToken = await ethers.getContractFactory<[], Token>("MockToken");
+      mockToken = await MockToken.deploy();
     });
 
     describe("Transaction Callback (legacy tx)", () => {
@@ -627,20 +632,24 @@ describe("INTEGRATION: changeEtherBalance matcher", () => {
           );
         });
 
-        // it("should throw if chained to another non-chainable method", () => {
-        //   expect(() =>
-        //     expect(
-        //       sender.sendTransaction({
-        //         to: receiver.address,
-        //         value: 200,
-        //       }),
-        //     )
-        //       .to.changeTokenBalance(provider, mockToken, receiver, 50)
-        //       .and.to.changeEtherBalance(provider, sender, "-200"),
-        //   ).to.throw(
-        //     /The matcher 'changeEtherBalance' cannot be chained after 'changeTokenBalance'./,
-        //   );
-        // });
+        it("should throw if chained to another non-chainable method", () => {
+          assertThrowsHardhatError(
+            () =>
+              expect(
+                sender.sendTransaction({
+                  to: receiver.address,
+                  value: 200,
+                }),
+              )
+                .to.changeTokenBalance(provider, mockToken, receiver, 0)
+                .and.to.changeEtherBalance(provider, sender, "-200"),
+            HardhatError.ERRORS.CHAI_MATCHERS.MATCHER_CANNOT_BE_CHAINED_AFTER,
+            {
+              matcher: "changeEtherBalance",
+              previousMatcher: "changeTokenBalance",
+            },
+          );
+        });
       });
     });
 
