@@ -95,8 +95,10 @@ export async function listTransactions(
                 ? exState.result.address
                 : undefined
               : undefined,
-          params: exState.constructorArgs,
-          value: networkInteraction.value,
+          params: exState.constructorArgs.map((arg) =>
+            typeof arg === "bigint" ? arg.toString() : arg
+          ),
+          value: networkInteraction.value.toString(),
         });
 
         break;
@@ -116,8 +118,10 @@ export async function listTransactions(
           ),
           name: `${artifact.contractName}#${exState.functionName}`,
           to: networkInteraction.to,
-          params: exState.args,
-          value: networkInteraction.value,
+          params: exState.args.map((arg) =>
+            typeof arg === "bigint" ? arg.toString() : arg
+          ),
+          value: networkInteraction.value.toString(),
         });
 
         break;
@@ -132,7 +136,7 @@ export async function listTransactions(
             lastTxIndex === networkInteraction.transactions.length - 1
           ),
           to: networkInteraction.to,
-          value: networkInteraction.value,
+          value: networkInteraction.value.toString(),
         });
 
         break;

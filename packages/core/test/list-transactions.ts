@@ -21,7 +21,7 @@ describe("listTransactions", () => {
         name: "BasicContract",
         address: "0x74e720c9B362ae3A65fF356ad62866511486BBBc",
         params: ["0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"],
-        value: 0n,
+        value: "0",
       },
       {
         type: "DEPLOYMENT_EXECUTION_STATE",
@@ -32,7 +32,7 @@ describe("listTransactions", () => {
         name: "BasicLibrary",
         address: "0x1c947344BA932fC7f3D622600dA0199520A67EFd",
         params: [],
-        value: 0n,
+        value: "0",
       },
       {
         type: "DEPLOYMENT_EXECUTION_STATE",
@@ -43,7 +43,7 @@ describe("listTransactions", () => {
         name: "BasicLibrary",
         address: "0xBdAce15b3211019E272418B8014971c1cefbC8f0",
         params: [],
-        value: 0n,
+        value: "0",
       },
       {
         type: "CALL_EXECUTION_STATE",
@@ -54,7 +54,7 @@ describe("listTransactions", () => {
         name: "BasicContract#basicFunction",
         to: "0x74e720c9B362ae3A65fF356ad62866511486BBBc",
         params: [40],
-        value: 0n,
+        value: "0",
       },
       {
         type: "DEPLOYMENT_EXECUTION_STATE",
@@ -65,7 +65,7 @@ describe("listTransactions", () => {
         name: "ContractWithLibrary",
         address: "0xD369D9aB22D85C2A12bEabc0B581a419789E3755",
         params: [],
-        value: 0n,
+        value: "0",
       },
       {
         type: "SEND_DATA_EXECUTION_STATE",
@@ -74,7 +74,7 @@ describe("listTransactions", () => {
           "0x2870c7d9f84122caba3739be0dc2246343a87d1b216b57002654b3bd413fe8e2",
         status: TransactionStatus.SUCCESS,
         to: "0x74e720c9B362ae3A65fF356ad62866511486BBBc",
-        value: 123n,
+        value: "123",
       },
     ];
 
