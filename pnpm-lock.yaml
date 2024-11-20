@@ -1600,6 +1600,9 @@ importers:
       '@ignored/hardhat-vnext-ethers':
         specifier: workspace:^3.0.0-next.12
         version: link:../hardhat-ethers
+      '@ignored/hardhat-vnext-mocha-test-runner':
+        specifier: workspace:^3.0.0-next.12
+        version: link:../hardhat-mocha-test-runner
       '@ignored/hardhat-vnext-utils':
         specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-utils
