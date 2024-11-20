@@ -93,6 +93,13 @@ const VisualizeDiv = styled.div`
   width: 100%;
 `;
 
+// TODO: when we added the future-to-module dependency, we created a non-ideal situation where
+// a module-to-module dependency arrow still gets added to the mermaid graph, even if the dependant module
+// is only used as a future-to-module dependency. This is because the dependant module has to get added to the
+// parent module as a submodule, and we currently don't have a way of distinguishing at this point in the code between
+// a submodule that is exclusively used as a future-to-module dependency (i.e. in { after: [...] })
+// and a submodule that is used as a module-to-module dependency (i.e. in m.useModule(...)).
+// This is a known issue that we have decided to revisit at a later point in time because the solution is not trivial.
 const FlowTooltip: React.FC = () => (
   <span style={{ paddingLeft: "0.5rem", cursor: "pointer" }}>
     <a data-tooltip-id="flow-tooltip">

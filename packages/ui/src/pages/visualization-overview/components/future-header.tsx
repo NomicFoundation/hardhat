@@ -8,15 +8,6 @@ export const FutureHeader: React.FC<{
   setCurrentlyHovered: (id: string) => void;
   future: Future;
 }> = ({ isLibrary, toggled, displayText, setCurrentlyHovered, future }) => {
-  if (isLibrary) {
-    return (
-      <ToggleNameWrap>
-        <div />
-        <Text>{displayText}</Text>
-      </ToggleNameWrap>
-    );
-  }
-
   return (
     <ToggleNameWrap>
       {isLibrary ? <div /> : <ToggleBtn toggled={toggled} />}
