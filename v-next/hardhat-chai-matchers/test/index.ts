@@ -5,11 +5,11 @@ import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 
 describe("hardhat-chai-matchers plugin correctly initialized", () => {
-  useFixtureProject("test-project");
+  useFixtureProject("hook-initialization");
 
   it("should load the plugin via hook and use the functionalities in a mocha test", async () => {
     const hardhatConfig = await import(
-      "./fixture-projects/test-project/hardhat.config.js"
+      "./fixture-projects/hook-initialization/hardhat.config.js"
     );
 
     const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
