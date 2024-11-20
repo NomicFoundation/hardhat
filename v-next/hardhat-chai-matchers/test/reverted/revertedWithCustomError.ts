@@ -471,6 +471,7 @@ describe("INTEGRATION: Reverted with custom error", () => {
         const { hash } = await mineSuccessfulTransaction(provider, ethers);
 
         assertThrowsHardhatError(
+          // @ts-expect-error -- force error scenario: reason should be a string or a regular expression
           () => expect(hash).to.be.revertedWith(10),
           HardhatError.ERRORS.CHAI_MATCHERS
             .EXPECT_STRING_OR_REGEX_AS_REVERT_REASON,
@@ -483,6 +484,7 @@ describe("INTEGRATION: Reverted with custom error", () => {
           () =>
             expect(
               matchers.revertWithSomeCustomError(),
+              // @ts-expect-error -- force error scenario: contract should be specified
             ).to.be.revertedWithCustomError("SomeCustomError"),
           HardhatError.ERRORS.CHAI_MATCHERS.FIRST_ARGUMENT_MUST_BE_A_CONTRACT,
           {},
@@ -532,6 +534,7 @@ describe("INTEGRATION: Reverted with custom error", () => {
             ).to.be.revertedWithCustomError(
               matchers,
               "SomeCustomError",
+              // @ts-expect-error -- force error scenario: extra arguments should not be specified
               "extraArgument",
             ),
           HardhatError.ERRORS.CHAI_MATCHERS.REVERT_INVALID_ARGUMENTS_LENGTH,

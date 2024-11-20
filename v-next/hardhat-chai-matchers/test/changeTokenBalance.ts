@@ -681,6 +681,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", () 
             () =>
               expect(
                 mockToken.transfer(receiver.address, 50),
+                // @ts-expect-error -- force error scenario: token should be specified
               ).to.changeTokenBalance(provider, receiver, 50),
             HardhatError.ERRORS.CHAI_MATCHERS
               .FIRST_ARGUMENT_MUST_BE_A_CONTRACT_INSTANCE,
@@ -694,6 +695,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", () 
             () =>
               expect(
                 mockToken.transfer(receiver.address, 50),
+                // @ts-expect-error -- force error scenario: token should be specified
               ).to.changeTokenBalance(provider, receiver.address, 50),
             HardhatError.ERRORS.CHAI_MATCHERS
               .FIRST_ARGUMENT_MUST_BE_A_CONTRACT_INSTANCE,
@@ -759,6 +761,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", () 
             () =>
               expect(
                 mockToken.transfer(receiver.address, 50),
+                // @ts-expect-error -- force error scenario: token should be specified
               ).to.changeTokenBalances(provider, [sender, receiver], [-50, 50]),
             HardhatError.ERRORS.CHAI_MATCHERS
               .FIRST_ARGUMENT_MUST_BE_A_CONTRACT_INSTANCE,

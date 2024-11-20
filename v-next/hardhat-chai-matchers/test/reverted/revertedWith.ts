@@ -212,6 +212,7 @@ describe("INTEGRATION: Reverted with", () => {
         const { hash } = await mineSuccessfulTransaction(provider, ethers);
 
         assertThrowsHardhatError(
+          // @ts-expect-error -- force error scenario: reason should be a string or a regular expression
           () => expect(hash).to.be.revertedWith(10),
           HardhatError.ERRORS.CHAI_MATCHERS
             .EXPECT_STRING_OR_REGEX_AS_REVERT_REASON,
@@ -223,6 +224,7 @@ describe("INTEGRATION: Reverted with", () => {
         const tx = matchers.revertsWithoutReason();
 
         assertThrowsHardhatError(
+          // @ts-expect-error -- force error scenario: reason should be a string or a regular expression
           () => expect(tx).to.be.revertedWith(10),
           HardhatError.ERRORS.CHAI_MATCHERS
             .EXPECT_STRING_OR_REGEX_AS_REVERT_REASON,

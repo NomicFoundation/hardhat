@@ -3,51 +3,42 @@ declare namespace Chai {
     extends LanguageChains,
       NumericComparison,
       TypeComparison {
-    // TODO: is additional meant to be here?
-    emit(contract: any, eventName: string, additional?: number): EmitAssertion;
-    // TODO: this needs a refined type
-    reverted(ethers: any): AsyncAssertion;
-    // TODO: check that number is meant here
-    revertedWith(reason: string | RegExp | number): AsyncAssertion;
-    // TODO: refine this type
-    revertedWithoutReason(ethers: any): AsyncAssertion;
+    emit(contract: any, eventName: string): EmitAssertion;
+    reverted(ethers: HardhatEthers): AsyncAssertion;
+    revertedWith(reason: string | RegExp): AsyncAssertion;
+    revertedWithoutReason(ethers: HardhatEthers): AsyncAssertion;
     revertedWithPanic(code?: any): AsyncAssertion;
-    // TODO: is extraArgument meant to be here? Is contract really optional?
     revertedWithCustomError(
-      contract?: { interface: any } | string,
-      customErrorName?: string,
-      extraArgument?: string,
+      contract: { interface: any },
+      customErrorName: string,
     ): CustomErrorAssertion;
     hexEqual(other: string): void;
     properPrivateKey: void;
     properAddress: void;
     properHex(length: number): void;
-    // TODO: give provider proper type
     changeEtherBalance(
-      provider: any,
+      provider: EthereumProvider,
       account: any,
       balance: any,
       options?: any,
     ): AsyncAssertion;
-    // TODO: give provider proper type
     changeEtherBalances(
-      provider: any,
+      provider: EthereumProvider,
       accounts: any[],
       balances: any[] | ((changes: bigint[]) => boolean),
       options?: any,
     ): AsyncAssertion;
     changeTokenBalance(
-      provider: any,
+      provider: EthereumProvider,
       token: any,
       account: any,
-      balance?: any,
+      balance: any,
     ): AsyncAssertion;
-    // TODO: is balance optional?
     changeTokenBalances(
-      provider: any,
+      provider: EthereumProvider,
       token: any,
       account: any[],
-      balance?: any[] | ((changes: bigint[]) => boolean),
+      balance: any[] | ((changes: bigint[]) => boolean),
     ): AsyncAssertion;
   }
 
