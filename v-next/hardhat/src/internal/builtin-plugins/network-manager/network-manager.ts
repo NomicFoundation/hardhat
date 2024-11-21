@@ -174,8 +174,6 @@ export class NetworkManagerImplementation {
             This case is safe because we have a check above */
             chainType: resolvedChainType as ChainType,
           },
-          loggerConfig: { enabled: false },
-          tracingConfig: {},
           jsonRpcRequestWrapper,
         });
       }

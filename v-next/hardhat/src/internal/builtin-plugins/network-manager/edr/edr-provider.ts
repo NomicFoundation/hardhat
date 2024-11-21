@@ -95,7 +95,7 @@ export async function getGlobalEdrContext(): Promise<EdrContext> {
 
 interface EdrProviderConfig {
   networkConfig: EdrNetworkConfig;
-  loggerConfig: LoggerConfig;
+  loggerConfig?: LoggerConfig;
   tracingConfig?: TracingConfig;
   jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
 }
@@ -112,8 +112,8 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
 
   public static async create({
     networkConfig,
-    loggerConfig,
-    tracingConfig,
+    loggerConfig = { enabled: false },
+    tracingConfig = {},
     jsonRpcRequestWrapper,
   }: EdrProviderConfig): Promise<EdrProvider> {
     const coinbase = networkConfig.coinbase ?? DEFAULT_COINBASE;
