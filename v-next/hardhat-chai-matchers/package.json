@@ -14,7 +14,8 @@
   "types": "dist/src/index.d.ts",
   "exports": {
     ".": "./dist/src/index.js",
-    "./types": "./dist/src/types.js"
+    "./panic": "./dist/src/panic.js",
+    "./withArgs": "./dist/src/withArgs.js"
   },
   "keywords": [
     "ethereum",
@@ -32,7 +33,7 @@
     "test:coverage": "c8 --reporter html --reporter text --all --exclude test --exclude src/internal/types.ts --exclude src/internal/ui/direct-user-interruption-manager.ts --src src node --import tsx/esm --test --test-reporter=@ignored/hardhat-vnext-node-test-reporter \"test/!(fixture-projects|helpers)/**/*.ts\"",
     "pretest": "pnpm build",
     "pretest:only": "pnpm build",
-    "build": "tsc --build .",
+    "build": "tsc --build . && cp src/type-extensions.d.ts dist/src/type-extensions.d.ts",
     "prepublishOnly": "pnpm build",
     "clean": "rimraf dist"
   },

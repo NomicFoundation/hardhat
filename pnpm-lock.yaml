@@ -1428,6 +1428,9 @@ importers:
       '@ignored/hardhat-vnext':
         specifier: workspace:^3.0.0-next.16
         version: link:../hardhat
+      '@ignored/hardhat-vnext-chai-matchers':
+        specifier: workspace:^3.0.0-next.12
+        version: link:../hardhat-chai-matchers
       '@ignored/hardhat-vnext-ethers':
         specifier: workspace:^3.0.0-next.12
         version: link:../hardhat-ethers
@@ -1449,12 +1452,18 @@ importers:
       '@openzeppelin/contracts':
         specifier: 5.1.0
         version: 5.1.0
+      '@types/chai':
+        specifier: ^4.2.0
+        version: 4.3.20
       '@types/mocha':
         specifier: '>=9.1.0'
         version: 10.0.9
       '@types/node':
         specifier: ^20.14.9
         version: 20.17.1
+      chai:
+        specifier: ^5.1.2
+        version: 5.1.2
       forge-std:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
