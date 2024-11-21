@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.24;
 
 contract Events {
   AnotherContract anotherContract;
@@ -25,7 +25,7 @@ contract Events {
   event WithUintArray(uint[2] a);
   event WithBytes32Array(bytes32[2] a);
 
-  constructor (AnotherContract c) {
+  constructor(AnotherContract c) {
     anotherContract = c;
   }
 
@@ -85,7 +85,12 @@ contract Events {
     emit WithUintArg(u);
   }
 
-  function emitTwoUintsAndTwoStrings(uint u, uint v, string memory s, string memory t) public {
+  function emitTwoUintsAndTwoStrings(
+    uint u,
+    uint v,
+    string memory s,
+    string memory t
+  ) public {
     emit WithTwoUintArgs(u, v);
     emit WithTwoStringArgs(s, t);
   }

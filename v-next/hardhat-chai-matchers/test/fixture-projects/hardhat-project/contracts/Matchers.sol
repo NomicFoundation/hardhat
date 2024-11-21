@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.24;
 
 contract Matchers {
   uint x;
@@ -9,16 +9,21 @@ contract Matchers {
 
   AnotherMatchersContract anotherContract;
 
-  struct Pair { uint a; uint b; }
+  struct Pair {
+    uint a;
+    uint b;
+  }
 
   error SomeCustomError();
   error AnotherCustomError();
   error CustomErrorWithInt(int);
-  error CustomErrorWithUint(uint nameToForceEthersToUseAnArrayLikeWithNamedProperties);
+  error CustomErrorWithUint(
+    uint nameToForceEthersToUseAnArrayLikeWithNamedProperties
+  );
   error CustomErrorWithUintAndString(uint, string);
   error CustomErrorWithPair(Pair);
 
-  constructor () {
+  constructor() {
     anotherContract = new AnotherMatchersContract();
   }
 
@@ -102,12 +107,18 @@ contract Matchers {
     revert CustomErrorWithInt(i);
   }
 
-  function revertWithCustomErrorWithUintAndString(uint n, string memory s) public {
+  function revertWithCustomErrorWithUintAndString(
+    uint n,
+    string memory s
+  ) public {
     x++;
     revert CustomErrorWithUintAndString(n, s);
   }
 
-  function revertWithCustomErrorWithUintAndStringView(uint n, string memory s) public pure {
+  function revertWithCustomErrorWithUintAndStringView(
+    uint n,
+    string memory s
+  ) public pure {
     revert CustomErrorWithUintAndString(n, s);
   }
 

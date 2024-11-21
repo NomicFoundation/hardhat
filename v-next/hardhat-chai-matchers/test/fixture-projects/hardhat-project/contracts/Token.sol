@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.24;
 
 contract TokenWithoutNameNorSymbol {
   uint public decimals = 1;
@@ -8,7 +8,7 @@ contract TokenWithoutNameNorSymbol {
   mapping(address => uint) public balanceOf;
   mapping(address => mapping(address => uint)) allowances;
 
-  constructor () {
+  constructor() {
     totalSupply = 1_000_000_000;
     balanceOf[msg.sender] = totalSupply;
   }
@@ -22,16 +22,26 @@ contract TokenWithoutNameNorSymbol {
     return true;
   }
 
-  function allowance(address owner, address spender) public view returns (uint256 remaining) {
+  function allowance(
+    address owner,
+    address spender
+  ) public view returns (uint256 remaining) {
     return allowances[owner][spender];
   }
 
-  function approve(address spender, uint256 value) public returns (bool success) {
+  function approve(
+    address spender,
+    uint256 value
+  ) public returns (bool success) {
     allowances[msg.sender][spender] = value;
     return true;
   }
 
-  function transferFrom(address from, address to, uint256 value) public returns (bool) {
+  function transferFrom(
+    address from,
+    address to,
+    uint256 value
+  ) public returns (bool) {
     require(allowance(from, msg.sender) >= value, "Insufficient allowance");
 
     allowances[from][msg.sender] -= value;
