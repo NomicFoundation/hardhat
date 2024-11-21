@@ -854,7 +854,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/AxelLoupias",
     description:
       "Display different signatures that have the methods, events and errors of your contracts by console",
-    tags: ["functions", "errors", "events", "tooling", "selectorss"],
+    tags: ["functions", "errors", "events", "tooling", "selectors"],
   },
   {
     name: "@dgma/hardhat-sol-bundler",
@@ -1003,6 +1003,15 @@ const communityPlugins: IPlugin[] = [
     description:
       "Clone an on-chain contract and integrate into your Hardhat project",
     tags: ["etherscan", "clone", "verified contract"],
+  },
+  {
+    name: "hardhat-tx-decoder",
+    author: "Axel Loupias",
+    npmPackage: "hardhat-tx-decoder",
+    authorUrl: "https://github.com/AxelLoupias",
+    description:
+      "Simplifies the debugging process by extracting transaction details, decoding contract events, and identifying revert reasons",
+    tags: ["functions", "errors", "events", "tooling","decoder","transaction"],
   },
 ];
 
