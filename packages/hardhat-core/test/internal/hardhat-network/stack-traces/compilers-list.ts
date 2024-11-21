@@ -295,6 +295,20 @@ export const solidityCompilers: SolidityCompiler[] = [
     },
     latestSolcVersion: true,
   },
+  {
+    solidityVersion: "0.8.28",
+    compilerPath: "soljson-v0.8.28+commit.7893614a.js",
+    latestSolcVersion: true,
+  },
+  {
+    solidityVersion: "0.8.28",
+    compilerPath: "soljson-v0.8.28+commit.7893614a.js",
+    optimizer: {
+      runs: 200,
+      viaIR: true,
+    },
+    latestSolcVersion: true,
+  },
 ];
 
 export const getLatestSupportedVersion = () =>
