@@ -68,13 +68,13 @@
   },
   "dependencies": {
     "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.15",
+    "@ignored/hardhat-vnext-ethers": "workspace:^3.0.0-next.12",
     "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.15",
     "@types/chai-as-promised": "^8.0.1",
     "chai-as-promised": "^8.0.0"
   },
   "peerDependencies": {
     "@ignored/hardhat-vnext": "workspace:^3.0.0-next.16",
-    "@ignored/hardhat-vnext-ethers": "workspace:^3.0.0-next.12",
     "@ignored/hardhat-vnext-mocha-test-runner": "workspace:^3.0.0-next.12",
     "chai": "^5.1.2",
     "ethers": "^6.13.2"
