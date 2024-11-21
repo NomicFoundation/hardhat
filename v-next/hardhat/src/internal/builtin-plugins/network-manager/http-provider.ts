@@ -46,6 +46,7 @@ interface HttpProviderConfig {
   extraHeaders?: Record<string, string>;
   timeout: number;
   jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
+  testDispatcher?: Dispatcher;
 }
 
 export class HttpProvider extends EventEmitter implements EthereumProvider {
@@ -66,6 +67,7 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
     extraHeaders = {},
     timeout,
     jsonRpcRequestWrapper,
+    testDispatcher,
   }: HttpProviderConfig): Promise<HttpProvider> {
     if (!isValidUrl(url)) {
       throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_URL, {
@@ -73,7 +75,8 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
       });
     }
 
-    const dispatcher = await getHttpDispatcher(url, timeout);
+    const dispatcher =
+      testDispatcher ?? (await getHttpDispatcher(url, timeout));
 
     const httpProvider = new HttpProvider(
       url,
@@ -93,8 +96,7 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
    * Use the static method {@link HttpProvider.create} to create an instance of
    * `HttpProvider`.
    */
-  // TODO: make the constructor private, but we need to fix the tests first
-  constructor(
+  private constructor(
     url: string,
     networkName: string,
     extraHeaders: Record<string, string>,

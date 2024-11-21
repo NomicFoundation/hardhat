@@ -110,6 +110,9 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
   #vmTracer?: VMTracerT;
   #nextRequestId = 1;
 
+  /**
+   * Creates a new instance of `EdrProvider`.
+   */
   public static async create({
     networkConfig,
     loggerConfig = { enabled: false },
@@ -237,6 +240,13 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
     return edrProvider;
   }
 
+  /**
+   * @private
+   *
+   * This constructor is intended for internal use only.
+   * Use the static method {@link EdrProvider.create} to create an instance of
+   * `EdrProvider`.
+   */
   private constructor(
     provider: Provider,
     vmTraceDecoder: VmTraceDecoder,
