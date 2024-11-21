@@ -1,4 +1,4 @@
-import type { AssertWithSsfi, Ssfi } from "../utils.js";
+import type { AssertWithSsfi, Ssfi } from "../../utils.js";
 import type { EventFragment } from "ethers/abi";
 import type { Contract } from "ethers/contract";
 import type { Provider, TransactionReceipt } from "ethers/providers";
@@ -9,14 +9,10 @@ import util from "node:util";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { AssertionError } from "chai";
 
-import { buildAssert } from "../utils.js";
-
-import { ASSERTION_ABORTED, EMIT_MATCHER } from "./constants.js";
-import {
-  assertArgsArraysEqual,
-  assertIsNotNull,
-  preventAsyncMatcherChaining,
-} from "./utils.js";
+import { buildAssert } from "../../utils.js";
+import { ASSERTION_ABORTED, EMIT_MATCHER } from "../constants.js";
+import { assertArgsArraysEqual, assertIsNotNull } from "../utils/asserts.js";
+import { preventAsyncMatcherChaining } from "../utils/prevent-chaining.js";
 
 export const EMIT_CALLED = "emitAssertionCalled";
 

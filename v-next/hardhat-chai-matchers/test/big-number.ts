@@ -1,14 +1,15 @@
 import { describe, it } from "node:test";
 
-import "../src/internal/add-chai-matchers";
-
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { InvalidParameterError } from "@ignored/hardhat-vnext-utils/common-errors";
 import { AssertionError, expect } from "chai";
+
+import { addChaiMatchers } from "../src/internal/add-chai-matchers.js";
 
 type SupportedNumber = number | bigint;
 
 const numberToBigNumberConversions = [(n: number) => BigInt(n)];
+
+addChaiMatchers();
 
 describe("BigNumber matchers", () => {
   function typestr(n: string | SupportedNumber): string {
@@ -779,48 +780,36 @@ describe("BigNumber matchers", () => {
           it(`with .to.${operator} comparing float vs ${typestr(
             converted,
           )}`, () => {
-            assertThrowsHardhatError(
-              () => expect(1.1).to[operator](converted),
-              HardhatError.ERRORS.GENERAL.INVALID_BIG_NUMBER,
-              {
-                message: msg,
-              },
+            expect(() => expect(1.1).to[operator](converted)).to.throw(
+              InvalidParameterError,
+              msg,
             );
           });
 
           it(`with .to.${operator} comparing ${typestr(
             converted,
           )} vs float`, () => {
-            assertThrowsHardhatError(
-              () => expect(converted).to[operator](1.1),
-              HardhatError.ERRORS.GENERAL.INVALID_BIG_NUMBER,
-              {
-                message: msg,
-              },
+            expect(() => expect(converted).to[operator](1.1)).to.throw(
+              InvalidParameterError,
+              msg,
             );
           });
 
           it(`with .not.to.${operator} comparing float vs ${typestr(
             converted,
           )}`, () => {
-            assertThrowsHardhatError(
-              () => expect(1.1).not.to[operator](converted),
-              HardhatError.ERRORS.GENERAL.INVALID_BIG_NUMBER,
-              {
-                message: msg,
-              },
+            expect(() => expect(1.1).not.to[operator](converted)).to.throw(
+              InvalidParameterError,
+              msg,
             );
           });
 
           it(`with .not.to.${operator} comparing ${typestr(
             converted,
           )} vs float`, () => {
-            assertThrowsHardhatError(
-              () => expect(converted).not.to[operator](1.1),
-              HardhatError.ERRORS.GENERAL.INVALID_BIG_NUMBER,
-              {
-                message: msg,
-              },
+            expect(() => expect(converted).not.to[operator](1.1)).to.throw(
+              InvalidParameterError,
+              msg,
             );
           });
         }
@@ -832,43 +821,31 @@ describe("BigNumber matchers", () => {
 
         describe(`when using .to.${operator}`, () => {
           it("with an unsafe int as the first param", () => {
-            assertThrowsHardhatError(
-              () => expect(unsafeInt).to[operator](1n),
-              HardhatError.ERRORS.GENERAL.INVALID_BIG_NUMBER,
-              {
-                message: msg,
-              },
+            expect(() => expect(unsafeInt).to[operator](1n)).to.throw(
+              InvalidParameterError,
+              msg,
             );
           });
           it("with an unsafe int as the second param", () => {
-            assertThrowsHardhatError(
-              () => expect(1n).to[operator](unsafeInt),
-              HardhatError.ERRORS.GENERAL.INVALID_BIG_NUMBER,
-              {
-                message: msg,
-              },
+            expect(() => expect(1n).to[operator](unsafeInt)).to.throw(
+              InvalidParameterError,
+              msg,
             );
           });
         });
 
         describe(`when using .not.to.${operator}`, () => {
           it("with an unsafe int as the first param", () => {
-            assertThrowsHardhatError(
-              () => expect(unsafeInt).not.to[operator](1n),
-              HardhatError.ERRORS.GENERAL.INVALID_BIG_NUMBER,
-              {
-                message: msg,
-              },
+            expect(() => expect(unsafeInt).not.to[operator](1n)).to.throw(
+              InvalidParameterError,
+              msg,
             );
           });
 
           it("with an unsafe int as the second param", () => {
-            assertThrowsHardhatError(
-              () => expect(1n).not.to[operator](unsafeInt),
-              HardhatError.ERRORS.GENERAL.INVALID_BIG_NUMBER,
-              {
-                message: msg,
-              },
+            expect(() => expect(1n).not.to[operator](unsafeInt)).to.throw(
+              InvalidParameterError,
+              msg,
             );
           });
         });
@@ -1117,64 +1094,46 @@ describe("BigNumber matchers", () => {
 
             describe(`with .to.${operator}`, () => {
               it(`with float, ${typestr(a)}, ${typestr(a)}`, () => {
-                assertThrowsHardhatError(
-                  () => expect(1.1).to[operator](a, b),
-                  HardhatError.ERRORS.GENERAL.INVALID_BIG_NUMBER,
-                  {
-                    message: msg,
-                  },
+                expect(() => expect(1.1).to[operator](a, b)).to.throw(
+                  InvalidParameterError,
+                  msg,
                 );
               });
 
               it(`with ${typestr(a)}, float, ${typestr(b)}`, () => {
-                assertThrowsHardhatError(
-                  () => expect(a).to[operator](1.1, b),
-                  HardhatError.ERRORS.GENERAL.INVALID_BIG_NUMBER,
-                  {
-                    message: msg,
-                  },
+                expect(() => expect(a).to[operator](1.1, b)).to.throw(
+                  InvalidParameterError,
+                  msg,
                 );
               });
 
               it(`with ${typestr(a)}, ${typestr(b)}, float`, () => {
-                assertThrowsHardhatError(
-                  () => expect(a).to[operator](b, 1.1),
-                  HardhatError.ERRORS.GENERAL.INVALID_BIG_NUMBER,
-                  {
-                    message: msg,
-                  },
+                expect(() => expect(a).to[operator](b, 1.1)).to.throw(
+                  InvalidParameterError,
+                  msg,
                 );
               });
             });
 
             describe(`with not.to.${operator}`, () => {
               it(`with float, ${typestr(a)}, ${typestr(a)}`, () => {
-                assertThrowsHardhatError(
-                  () => expect(1.1).not.to[operator](a, b),
-                  HardhatError.ERRORS.GENERAL.INVALID_BIG_NUMBER,
-                  {
-                    message: msg,
-                  },
+                expect(() => expect(1.1).not.to[operator](a, b)).to.throw(
+                  InvalidParameterError,
+                  msg,
                 );
               });
 
               it(`with ${typestr(a)}, float, ${typestr(b)}`, () => {
-                assertThrowsHardhatError(
-                  () => expect(a).not.to[operator](1.1, b),
-                  HardhatError.ERRORS.GENERAL.INVALID_BIG_NUMBER,
-                  {
-                    message: msg,
-                  },
+                expect(() => expect(a).not.to[operator](1.1, b)).to.throw(
+                  InvalidParameterError,
+                  msg,
                 );
               });
 
               it(`with ${typestr(a)}, ${typestr(b)}, float`, () => {
-                assertThrowsHardhatError(
-                  () => expect(a).not.to[operator](b, 1.1),
-                  HardhatError.ERRORS.GENERAL.INVALID_BIG_NUMBER,
-                  {
-                    message: msg,
-                  },
+                expect(() => expect(a).not.to[operator](b, 1.1)).to.throw(
+                  InvalidParameterError,
+                  msg,
                 );
               });
             });
@@ -1188,64 +1147,46 @@ describe("BigNumber matchers", () => {
 
         describe(`when using .to.${operator}`, () => {
           it("with an unsafe int as the first param", () => {
-            assertThrowsHardhatError(
-              () => expect(unsafeInt).to[operator](1n, 1n),
-              HardhatError.ERRORS.GENERAL.INVALID_BIG_NUMBER,
-              {
-                message: msg,
-              },
+            expect(() => expect(unsafeInt).to[operator](1n, 1n)).to.throw(
+              InvalidParameterError,
+              msg,
             );
           });
 
           it("with an unsafe int as the second param", () => {
-            assertThrowsHardhatError(
-              () => expect(1n).to[operator](unsafeInt, 1n),
-              HardhatError.ERRORS.GENERAL.INVALID_BIG_NUMBER,
-              {
-                message: msg,
-              },
+            expect(() => expect(1n).to[operator](unsafeInt, 1n)).to.throw(
+              InvalidParameterError,
+              msg,
             );
           });
 
           it("with an unsafe int as the third param", () => {
-            assertThrowsHardhatError(
-              () => expect(1n).to[operator](1n, unsafeInt),
-              HardhatError.ERRORS.GENERAL.INVALID_BIG_NUMBER,
-              {
-                message: msg,
-              },
+            expect(() => expect(1n).to[operator](1n, unsafeInt)).to.throw(
+              InvalidParameterError,
+              msg,
             );
           });
         });
 
         describe(`when using not.to.${operator}`, () => {
           it("with an unsafe int as the first param", () => {
-            assertThrowsHardhatError(
-              () => expect(unsafeInt).not.to[operator](1n, 1n),
-              HardhatError.ERRORS.GENERAL.INVALID_BIG_NUMBER,
-              {
-                message: msg,
-              },
+            expect(() => expect(unsafeInt).not.to[operator](1n, 1n)).to.throw(
+              InvalidParameterError,
+              msg,
             );
           });
 
           it("with an unsafe int as the second param", () => {
-            assertThrowsHardhatError(
-              () => expect(1n).not.to[operator](unsafeInt, 1n),
-              HardhatError.ERRORS.GENERAL.INVALID_BIG_NUMBER,
-              {
-                message: msg,
-              },
+            expect(() => expect(1n).not.to[operator](unsafeInt, 1n)).to.throw(
+              InvalidParameterError,
+              msg,
             );
           });
 
           it("with an unsafe int as the third param", () => {
-            assertThrowsHardhatError(
-              () => expect(1n).not.to[operator](1n, unsafeInt),
-              HardhatError.ERRORS.GENERAL.INVALID_BIG_NUMBER,
-              {
-                message: msg,
-              },
+            expect(() => expect(1n).not.to[operator](1n, unsafeInt)).to.throw(
+              InvalidParameterError,
+              msg,
             );
           });
         });

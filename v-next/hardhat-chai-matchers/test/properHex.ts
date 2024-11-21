@@ -2,7 +2,9 @@ import { describe, it } from "node:test";
 
 import { AssertionError, expect } from "chai";
 
-import "../src/internal/add-chai-matchers";
+import { addChaiMatchers } from "../src/internal/add-chai-matchers.js";
+
+addChaiMatchers();
 
 describe("properHex", () => {
   it("should handle a successful positive case", () => {

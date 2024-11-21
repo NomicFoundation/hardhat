@@ -1,1 +1,1 @@
-export { PANIC_CODES } from "./internal/reverted/panic.js";
+export { PANIC_CODES } from "./internal/matchers/reverted/panic.js";

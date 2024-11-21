@@ -1,14 +1,16 @@
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { toBigInt } from "@ignored/hardhat-vnext-utils/bigint";
 import { AssertionError } from "chai";
 import { isAddressable } from "ethers/address";
 
-import { ASSERTION_ABORTED } from "./constants.js";
+import { ASSERTION_ABORTED } from "../constants.js";
+import { isBigInt } from "../utils/bigint.js";
+
 import { emitWithArgs, EMIT_CALLED } from "./emit.js";
 import {
   revertedWithCustomErrorWithArgs,
   REVERTED_WITH_CUSTOM_ERROR_CALLED,
 } from "./reverted/revertedWithCustomError.js";
-import { isBigNumber, normalizeToBigInt } from "./utils.js";
 
 /**
  * A predicate for use with .withArgs(...), to induce chai to accept any value
@@ -36,8 +38,8 @@ export function anyUint(i: any): boolean {
     }
 
     return true;
-  } else if (isBigNumber(i)) {
-    const bigInt = normalizeToBigInt(i);
+  } else if (isBigInt(i)) {
+    const bigInt = toBigInt(i);
 
     if (bigInt < 0) {
       // eslint-disable-next-line no-restricted-syntax -- keep the original chai error structure

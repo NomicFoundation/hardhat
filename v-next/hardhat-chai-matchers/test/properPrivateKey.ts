@@ -1,10 +1,12 @@
-import "../src/internal/add-chai-matchers";
-
 import { describe, it } from "node:test";
 
 import { expect, AssertionError } from "chai";
 
+import { addChaiMatchers } from "../src/internal/add-chai-matchers.js";
+
 /* eslint-disable @typescript-eslint/no-unused-expressions -- allow all the expressions */
+
+addChaiMatchers();
 
 describe("Proper private key", () => {
   it("Expect to be proper private key", async () => {

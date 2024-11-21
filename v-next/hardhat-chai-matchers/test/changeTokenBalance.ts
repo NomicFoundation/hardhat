@@ -3,7 +3,7 @@ import type {
   EventsContract,
   MatchersContract,
 } from "./contracts.js";
-import type { Token } from "../src/internal/changeTokenBalance.js";
+import type { Token } from "../src/internal/matchers/changeTokenBalance.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type {
   HardhatEthers,
@@ -25,12 +25,14 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 import { AssertionError, expect } from "chai";
 
-import "../src/internal/add-chai-matchers";
-import { clearTokenDescriptionsCache } from "../src/internal/changeTokenBalance.js";
+import { addChaiMatchers } from "../src/internal/add-chai-matchers.js";
 import {
   CHANGE_TOKEN_BALANCE_MATCHER,
   CHANGE_TOKEN_BALANCES_MATCHER,
 } from "../src/internal/constants.js";
+import { clearTokenDescriptionsCache } from "../src/internal/matchers/changeTokenBalance.js";
+
+addChaiMatchers();
 
 describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", () => {
   describe("with the in-process hardhat network", () => {

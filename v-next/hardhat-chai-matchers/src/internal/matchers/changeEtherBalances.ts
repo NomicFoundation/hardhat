@@ -1,4 +1,4 @@
-import type { BalanceChangeOptions } from "./misc/balance.js";
+import type { BalanceChangeOptions } from "../utils/balance.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type { Addressable } from "ethers/address";
 import type { TransactionResponse } from "ethers/providers";
@@ -6,13 +6,13 @@ import type { TransactionResponse } from "ethers/providers";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { toBigInt } from "ethers/utils";
 
-import { buildAssert } from "../utils.js";
-
-import { CHANGE_ETHER_BALANCES_MATCHER } from "./constants.js";
-import { getAddressOf } from "./misc/account.js";
-import { getAddresses, getBalances } from "./misc/balance.js";
-import { ordinal } from "./ordinal.js";
-import { assertIsNotNull, preventAsyncMatcherChaining } from "./utils.js";
+import { buildAssert } from "../../utils.js";
+import { CHANGE_ETHER_BALANCES_MATCHER } from "../constants.js";
+import { getAddressOf } from "../utils/account.js";
+import { assertIsNotNull } from "../utils/asserts.js";
+import { getAddresses, getBalances } from "../utils/balance.js";
+import { ordinal } from "../utils/ordinal.js";
+import { preventAsyncMatcherChaining } from "../utils/prevent-chaining.js";
 
 export function supportChangeEtherBalances(
   Assertion: Chai.AssertionStatic,

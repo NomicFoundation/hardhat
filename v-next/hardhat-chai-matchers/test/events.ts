@@ -4,7 +4,6 @@ import type {
   MatchersContract,
   OverrideEventContract,
 } from "./contracts.js";
-import "../src/internal/add-chai-matchers";
 import type { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
 
 import { beforeEach, describe, it } from "node:test";
@@ -18,7 +17,10 @@ import { id } from "ethers/hash";
 import { hexlify, toUtf8Bytes, zeroPadValue } from "ethers/utils";
 import { Wallet } from "ethers/wallet";
 
+import { addChaiMatchers } from "../src/internal/add-chai-matchers.js";
 import { anyUint, anyValue } from "../src/withArgs.js";
+
+addChaiMatchers();
 
 describe(".to.emit (contract events)", () => {
   let contract: EventsContract;

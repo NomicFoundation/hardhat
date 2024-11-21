@@ -4,9 +4,8 @@ import type { Addressable } from "ethers";
 import { toBigInt } from "@ignored/hardhat-vnext-utils/bigint";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
-import { assertCanBeConvertedToBigint } from "../utils.js";
-
 import { getAddressOf } from "./account.js";
+import { assertCanBeConvertedToBigint } from "./asserts.js";
 
 export interface BalanceChangeOptions {
   includeFee?: boolean;

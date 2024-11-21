@@ -4,7 +4,9 @@ import { describe, it } from "node:test";
 
 import { expect, AssertionError } from "chai";
 
-import "../src/internal/add-chai-matchers";
+import { addChaiMatchers } from "../src/internal/add-chai-matchers.js";
+
+addChaiMatchers();
 
 describe("Proper address", () => {
   it("Expect to be proper address", async () => {

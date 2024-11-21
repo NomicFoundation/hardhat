@@ -1,4 +1,4 @@
-import type { AssertWithSsfi, Ssfi } from "../utils.js";
+import type { AssertWithSsfi, Ssfi } from "../../utils.js";
 
 import {
   assertHardhatInvariant,
@@ -8,7 +8,6 @@ import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import { keccak256 } from "ethers/crypto";
 import { getBytes, hexlify, isHexString, toUtf8Bytes } from "ethers/utils";
 
-import { PREVIOUS_MATCHER_NAME } from "./constants.js";
 import { ordinal } from "./ordinal.js";
 
 export function assertIsNotNull<T>(
@@ -16,36 +15,6 @@ export function assertIsNotNull<T>(
   valueName: string,
 ): asserts value is Exclude<T, null> {
   assertHardhatInvariant(value !== null, `${valueName} should not be null`);
-}
-
-export function preventAsyncMatcherChaining(
-  context: object,
-  matcherName: string,
-  chaiUtils: Chai.ChaiUtils,
-  allowSelfChaining: boolean = false,
-): void {
-  const previousMatcherName: string | undefined = chaiUtils.flag(
-    context,
-    PREVIOUS_MATCHER_NAME,
-  );
-
-  if (previousMatcherName === undefined) {
-    chaiUtils.flag(context, PREVIOUS_MATCHER_NAME, matcherName);
-
-    return;
-  }
-
-  if (previousMatcherName === matcherName && allowSelfChaining) {
-    return;
-  }
-
-  throw new HardhatError(
-    HardhatError.ERRORS.CHAI_MATCHERS.MATCHER_CANNOT_BE_CHAINED_AFTER,
-    {
-      matcher: matcherName,
-      previousMatcher: previousMatcherName,
-    },
-  );
 }
 
 export function assertArgsArraysEqual(
@@ -184,32 +153,4 @@ export function assertCanBeConvertedToBigint(
       typeof value === "bigint",
     "value should be of type string, number or bigint",
   );
-}
-
-export function isBigNumber(source: any): boolean {
-  return typeof source === "bigint";
-}
-
-export function normalizeToBigInt(source: number | bigint | string): bigint {
-  switch (typeof source) {
-    case "number":
-      if (!Number.isInteger(source)) {
-        throw new HardhatError(HardhatError.ERRORS.GENERAL.INVALID_BIG_NUMBER, {
-          message: `${source} is not an integer`,
-        });
-      }
-      if (!Number.isSafeInteger(source)) {
-        throw new HardhatError(HardhatError.ERRORS.GENERAL.INVALID_BIG_NUMBER, {
-          message: `Integer ${source} is unsafe. Consider using ${source}n instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`,
-        });
-      }
-    // `break;` intentionally omitted. fallthrough desired.
-    case "string":
-    case "bigint":
-      return BigInt(source);
-    default:
-      throw new HardhatError(HardhatError.ERRORS.GENERAL.INVALID_BIG_NUMBER, {
-        message: `Unsupported type ${typeof source}`,
-      });
-  }
 }

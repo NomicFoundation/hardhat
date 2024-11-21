@@ -3,10 +3,7 @@ import type {
   MochaHooks,
 } from "@ignored/hardhat-vnext/types/hooks";
 
-import { use } from "chai";
-import chaiAsPromised from "chai-as-promised";
-
-import { hardhatChaiMatchers } from "../hardhatChaiMatchers.js";
+import { addChaiMatchers } from "../add-chai-matchers.js";
 
 export default async (): Promise<Partial<MochaHooks>> => {
   const handlers: Partial<MochaHooks> = {
@@ -14,8 +11,7 @@ export default async (): Promise<Partial<MochaHooks>> => {
       _context: HookContext,
       _next: (context: HookContext) => Promise<void>,
     ): Promise<void> {
-      use(hardhatChaiMatchers);
-      use(chaiAsPromised);
+      addChaiMatchers();
 
       return Promise.resolve();
     },

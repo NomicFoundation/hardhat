@@ -6,7 +6,7 @@ import { toBigInt } from "ethers";
 import {
   PANIC_CODES,
   panicErrorCodeToReason,
-} from "../src/internal/reverted/panic.js";
+} from "../src/internal/matchers/reverted/panic.js";
 
 describe("panic codes", () => {
   it("all exported panic codes should have a description", async () => {

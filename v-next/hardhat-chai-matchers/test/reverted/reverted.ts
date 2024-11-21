@@ -16,13 +16,15 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 import { AssertionError, expect } from "chai";
 
-import "../../src/internal/add-chai-matchers";
+import { addChaiMatchers } from "../../src/internal/add-chai-matchers.js";
 import {
   runSuccessfulAsserts,
   runFailedAsserts,
   mineSuccessfulTransaction,
   mineRevertedTransaction,
 } from "../helpers.js";
+
+addChaiMatchers();
 
 describe("INTEGRATION: Reverted", () => {
   describe("with the in-process hardhat network", () => {

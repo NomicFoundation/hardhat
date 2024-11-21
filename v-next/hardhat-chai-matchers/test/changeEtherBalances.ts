@@ -1,5 +1,5 @@
 import type { ChangeEtherBalance } from "./contracts.js";
-import type { Token } from "../src/internal/changeTokenBalance.js";
+import type { Token } from "../src/internal/matchers/changeTokenBalance.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type {
   HardhatEthers,
@@ -19,7 +19,9 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 import { expect, AssertionError } from "chai";
 
-import "../src/internal/add-chai-matchers";
+import { addChaiMatchers } from "../src/internal/add-chai-matchers.js";
+
+addChaiMatchers();
 
 describe("INTEGRATION: changeEtherBalances matcher", () => {
   describe("with the in-process hardhat network", () => {

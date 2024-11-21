@@ -1,7 +1,7 @@
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import { isAddress, isAddressable } from "ethers";
 
-import { tryDereference } from "./typed.js";
+import { tryDereference } from "../utils/typed.js";
 
 export function supportAddressable(
   Assertion: Chai.AssertionStatic,

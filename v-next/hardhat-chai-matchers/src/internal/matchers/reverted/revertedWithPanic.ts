@@ -2,9 +2,9 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { toBigInt } from "@ignored/hardhat-vnext-utils/bigint";
 import { toBeHex } from "ethers/utils";
 
-import { buildAssert } from "../../utils.js";
-import { REVERTED_WITH_PANIC_MATCHER } from "../constants.js";
-import { preventAsyncMatcherChaining } from "../utils.js";
+import { buildAssert } from "../../../utils.js";
+import { REVERTED_WITH_PANIC_MATCHER } from "../../constants.js";
+import { preventAsyncMatcherChaining } from "../../utils/prevent-chaining.js";
 
 import { panicErrorCodeToReason } from "./panic.js";
 import { decodeReturnData, getReturnDataFromError } from "./utils.js";

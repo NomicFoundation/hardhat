@@ -1,10 +1,11 @@
 import util from "node:util";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { toBigInt } from "@ignored/hardhat-vnext-utils/bigint";
 import { AssertionError } from "chai";
 
-import { deepEqual } from "./deep-equal.js";
-import { isBigNumber, normalizeToBigInt } from "./utils.js";
+import { isBigInt } from "../utils/bigint.js";
+import { deepEqual } from "../utils/deep-equal.js";
 
 export function supportBigNumber(
   Assertion: Chai.AssertionStatic,
@@ -53,12 +54,12 @@ function createLengthOverride(
       return function (this: Chai.AssertionPrototype, value: any) {
         const actual = this._obj;
 
-        if (isBigNumber(value)) {
+        if (isBigInt(value)) {
           const sizeOrLength =
             actual instanceof Map || actual instanceof Set ? "size" : "length";
 
-          const actualLength = normalizeToBigInt(actual[sizeOrLength]);
-          const expectedLength = normalizeToBigInt(value);
+          const actualLength = toBigInt(actual[sizeOrLength]);
+          const expectedLength = toBigInt(value);
 
           this.assert(
             actualLength === expectedLength,
@@ -128,7 +129,7 @@ function overwriteBigNumberFunction(
       }
     }
 
-    if (Boolean(chaiUtils.flag(this, "doLength")) && isBigNumber(actualArg)) {
+    if (Boolean(chaiUtils.flag(this, "doLength")) && isBigInt(actualArg)) {
       const sizeOrLength =
         expectedFlag instanceof Map || expectedFlag instanceof Set
           ? "size"
@@ -139,8 +140,8 @@ function overwriteBigNumberFunction(
         return;
       }
 
-      const expected = normalizeToBigInt(expectedFlag[sizeOrLength]);
-      const actual = normalizeToBigInt(actualArg);
+      const expected = toBigInt(expectedFlag[sizeOrLength]);
+      const actual = toBigInt(actualArg);
 
       this.assert(
         compare(functionName, expected, actual),
@@ -172,9 +173,9 @@ function overwriteBigNumberFunction(
       );
 
       chaiUtils.flag(this, "lockSsfi", prevLockSsfi);
-    } else if (isBigNumber(expectedFlag) || isBigNumber(actualArg)) {
-      const expected = normalizeToBigInt(expectedFlag);
-      const actual = normalizeToBigInt(actualArg);
+    } else if (isBigInt(expectedFlag) || isBigInt(actualArg)) {
+      const expected = toBigInt(expectedFlag);
+      const actual = toBigInt(actualArg);
 
       this.assert(
         compare(functionName, expected, actual),
@@ -202,14 +203,10 @@ function overwriteBigNumberWithin(
     const [startArg, finishArg] = args;
     const expectedFlag = chaiUtils.flag(this, "object");
 
-    if (
-      isBigNumber(expectedFlag) ||
-      isBigNumber(startArg) ||
-      isBigNumber(finishArg)
-    ) {
-      const expected = normalizeToBigInt(expectedFlag);
-      const start = normalizeToBigInt(startArg);
-      const finish = normalizeToBigInt(finishArg);
+    if (isBigInt(expectedFlag) || isBigInt(startArg) || isBigInt(finishArg)) {
+      const expected = toBigInt(expectedFlag);
+      const start = toBigInt(startArg);
+      const finish = toBigInt(finishArg);
       this.assert(
         start <= expected && expected <= finish,
         `expected ${expected} to be within ${start}..${finish}`,
@@ -237,11 +234,10 @@ function overwriteBigNumberCloseTo(
     const expectedFlag = chaiUtils.flag(this, "object");
 
     if (
-      isBigNumber(expectedFlag) ||
-      typeof expectedFlag === "number" || // TODO
-      isBigNumber(actualArg) ||
-      typeof actualArg === "number" ||
-      isBigNumber(deltaArg)
+      isBigInt(expectedFlag) ||
+      isBigInt(actualArg) ||
+      isBigInt(deltaArg) ||
+      typeof actualArg === "number"
     ) {
       if (deltaArg === undefined) {
         // eslint-disable-next-line no-restricted-syntax -- keep the original chai error structure
@@ -250,9 +246,9 @@ function overwriteBigNumberCloseTo(
         );
       }
 
-      const expected = normalizeToBigInt(expectedFlag);
-      const actual = normalizeToBigInt(actualArg);
-      const delta = normalizeToBigInt(deltaArg);
+      const expected = toBigInt(expectedFlag);
+      const actual = toBigInt(actualArg);
+      const delta = toBigInt(deltaArg);
 
       function abs(i: bigint): bigint {
         return i < 0 ? BigInt(-1) * i : i;

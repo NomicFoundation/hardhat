@@ -10,9 +10,10 @@ import hardhatEthersPlugin from "@ignored/hardhat-vnext-ethers";
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import { AssertionError, expect } from "chai";
 
+import { addChaiMatchers } from "../../src/internal/add-chai-matchers.js";
 import { runSuccessfulAsserts, runFailedAsserts } from "../helpers.js";
 
-import "../../src/internal/add-chai-matchers";
+addChaiMatchers();
 
 describe("INTEGRATION: Reverted without reason", () => {
   describe("with the in-process hardhat network", () => {

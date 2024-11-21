@@ -1,9 +1,9 @@
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { toBeHex } from "ethers/utils";
 
-import { buildAssert } from "../../utils.js";
-import { REVERTED_WITH_MATCHER } from "../constants.js";
-import { preventAsyncMatcherChaining } from "../utils.js";
+import { buildAssert } from "../../../utils.js";
+import { REVERTED_WITH_MATCHER } from "../../constants.js";
+import { preventAsyncMatcherChaining } from "../../utils/prevent-chaining.js";
 
 import { decodeReturnData, getReturnDataFromError } from "./utils.js";
 

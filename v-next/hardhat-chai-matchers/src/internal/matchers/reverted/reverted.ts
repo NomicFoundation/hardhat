@@ -3,9 +3,10 @@ import type { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { toBeHex } from "ethers/utils";
 
-import { buildAssert } from "../../utils.js";
-import { REVERTED_MATCHER } from "../constants.js";
-import { assertIsNotNull, preventAsyncMatcherChaining } from "../utils.js";
+import { buildAssert } from "../../../utils.js";
+import { REVERTED_MATCHER } from "../../constants.js";
+import { assertIsNotNull } from "../../utils/asserts.js";
+import { preventAsyncMatcherChaining } from "../../utils/prevent-chaining.js";
 
 import {
   decodeReturnData,

@@ -15,6 +15,7 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 import { AssertionError, expect } from "chai";
 
+import { addChaiMatchers } from "../../src/internal/add-chai-matchers.js";
 import { anyUint, anyValue } from "../../src/withArgs.js";
 import {
   runSuccessfulAsserts,
@@ -22,7 +23,7 @@ import {
   mineSuccessfulTransaction,
 } from "../helpers.js";
 
-import "../../src/internal/add-chai-matchers";
+addChaiMatchers();
 
 describe("INTEGRATION: Reverted with custom error", () => {
   describe("with the in-process hardhat network", () => {
