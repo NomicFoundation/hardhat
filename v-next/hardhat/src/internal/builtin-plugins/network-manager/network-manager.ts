@@ -5,7 +5,11 @@ import type {
   DefaultChainType,
   NetworkConnection,
 } from "../../../types/network.js";
-import type { EthereumProvider } from "../../../types/providers.js";
+import type {
+  EthereumProvider,
+  JsonRpcRequest,
+  JsonRpcResponse,
+} from "../../../types/providers.js";
 
 import {
   assertHardhatInvariant,
@@ -16,6 +20,11 @@ import { EdrProvider } from "./edr/edr-provider.js";
 import { HttpProvider } from "./http-provider.js";
 import { NetworkConnectionImplementation } from "./network-connection.js";
 import { isNetworkConfig, validateNetworkConfig } from "./type-validation.js";
+
+export type JsonRpcRequestWrapperFunction = (
+  request: JsonRpcRequest,
+  defaultBehavior: (r: JsonRpcRequest) => Promise<JsonRpcResponse>,
+) => Promise<JsonRpcResponse>;
 
 export class NetworkManagerImplementation {
   readonly #defaultNetwork: string;
@@ -142,6 +151,17 @@ export class NetworkManagerImplementation {
         `Invalid network type ${resolvedNetworkConfig.type}`,
       );
 
+      const jsonRpcRequestWrapper: JsonRpcRequestWrapperFunction = (
+        request,
+        defaultBehavior,
+      ) =>
+        hookManager.runHandlerChain(
+          "network",
+          "onRequest",
+          [networkConnection, request],
+          async (_context, _connection, req) => defaultBehavior(req),
+        );
+
       if (resolvedNetworkConfig.type === "edr") {
         if (
           resolvedChainType !== "optimism" &&
@@ -165,13 +185,7 @@ export class NetworkManagerImplementation {
           },
           loggerConfig: { enabled: false },
           tracingConfig: {},
-          jsonRpcRequestWrapper: (request, defaultBehavior) =>
-            hookManager.runHandlerChain(
-              "network",
-              "onRequest",
-              [networkConnection, request],
-              async (_context, _connection, req) => defaultBehavior(req),
-            ),
+          jsonRpcRequestWrapper,
         });
       }
 
@@ -180,13 +194,7 @@ export class NetworkManagerImplementation {
         networkName: resolvedNetworkName,
         extraHeaders: resolvedNetworkConfig.httpHeaders,
         timeout: resolvedNetworkConfig.timeout,
-        jsonRpcRequestWrapper: (request, defaultBehavior) =>
-          hookManager.runHandlerChain(
-            "network",
-            "onRequest",
-            [networkConnection, request],
-            async (_context, _connection, req) => defaultBehavior(req),
-          ),
+        jsonRpcRequestWrapper,
       });
     };
 

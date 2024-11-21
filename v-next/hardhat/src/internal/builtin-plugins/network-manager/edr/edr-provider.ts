@@ -16,6 +16,7 @@ import type {
   CompilerInput,
   CompilerOutput,
 } from "../../../../types/solidity/compiler-io.js";
+import type { JsonRpcRequestWrapperFunction } from "../network-manager.js";
 import type {
   RawTrace,
   SubscriptionEvent,
@@ -91,11 +92,6 @@ export async function getGlobalEdrContext(): Promise<EdrContext> {
 
   return _globalEdrContext;
 }
-
-export type JsonRpcRequestWrapperFunction = (
-  request: JsonRpcRequest,
-  defaultBehavior: (r: JsonRpcRequest) => Promise<JsonRpcResponse>,
-) => Promise<JsonRpcResponse>;
 
 interface EdrProviderConfig {
   networkConfig: EdrNetworkConfig;

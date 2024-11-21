@@ -1,4 +1,4 @@
-import type { JsonRpcRequestWrapperFunction } from "../../../../src/internal/builtin-plugins/network-manager/http-provider.js";
+import type { JsonRpcRequestWrapperFunction } from "../../../../src/internal/builtin-plugins/network-manager/network-manager.js";
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";

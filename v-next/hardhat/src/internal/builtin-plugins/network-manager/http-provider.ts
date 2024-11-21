@@ -1,3 +1,4 @@
+import type { JsonRpcRequestWrapperFunction } from "./network-manager.js";
 import type {
   EthereumProvider,
   JsonRpcRequest,
@@ -38,11 +39,6 @@ import { ProviderError, LimitExceededError } from "./provider-errors.js";
 const TOO_MANY_REQUEST_STATUS = 429;
 const MAX_RETRIES = 6;
 const MAX_RETRY_WAIT_TIME_SECONDS = 5;
-
-export type JsonRpcRequestWrapperFunction = (
-  request: JsonRpcRequest,
-  defaultBehavior: (r: JsonRpcRequest) => Promise<JsonRpcResponse>,
-) => Promise<JsonRpcResponse>;
 
 interface HttpProviderConfig {
   url: string;
