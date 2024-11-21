@@ -11,10 +11,7 @@ import type {
   JsonRpcResponse,
 } from "../../../types/providers.js";
 
-import {
-  assertHardhatInvariant,
-  HardhatError,
-} from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 import { EdrProvider } from "./edr/edr-provider.js";
 import { HttpProvider } from "./http-provider.js";
@@ -145,12 +142,6 @@ export class NetworkManagerImplementation {
     const createProvider = async (
       networkConnection: NetworkConnectionImplementation<ChainTypeT>,
     ): Promise<EthereumProvider> => {
-      assertHardhatInvariant(
-        resolvedNetworkConfig.type === "edr" ||
-          resolvedNetworkConfig.type === "http",
-        `Invalid network type ${resolvedNetworkConfig.type}`,
-      );
-
       const jsonRpcRequestWrapper: JsonRpcRequestWrapperFunction = (
         request,
         defaultBehavior,
