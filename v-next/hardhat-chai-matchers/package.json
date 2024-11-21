@@ -77,6 +77,6 @@
     "@ignored/hardhat-vnext-ethers": "workspace:^3.0.0-next.12",
     "@ignored/hardhat-vnext-mocha-test-runner": "workspace:^3.0.0-next.12",
     "chai": "^5.1.2",
-    "ethers": "^6.13.4"
+    "ethers": "^6.13.2"
   }
 }

@@ -1464,6 +1464,9 @@ importers:
       chai:
         specifier: ^5.1.2
         version: 5.1.2
+      ethers:
+        specifier: ^6.13.2
+        version: 6.13.4
       forge-std:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
@@ -1625,7 +1628,7 @@ importers:
         specifier: ^8.0.0
         version: 8.0.0(chai@5.1.2)
       ethers:
-        specifier: ^6.13.4
+        specifier: ^6.13.2
         version: 6.13.4
     devDependencies:
       '@eslint-community/eslint-plugin-eslint-comments':
