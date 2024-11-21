@@ -11,7 +11,7 @@ import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import { AssertionError, expect } from "chai";
 
 import { addChaiMatchers } from "../../src/internal/add-chai-matchers.js";
-import { runSuccessfulAsserts, runFailedAsserts } from "../helpers.js";
+import { runSuccessfulAsserts, runFailedAsserts } from "../helpers/helpers.js";
 
 addChaiMatchers();
 

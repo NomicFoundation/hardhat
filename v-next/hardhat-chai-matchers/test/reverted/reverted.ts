@@ -22,7 +22,7 @@ import {
   runFailedAsserts,
   mineSuccessfulTransaction,
   mineRevertedTransaction,
-} from "../helpers.js";
+} from "../helpers/helpers.js";
 
 addChaiMatchers();
 
