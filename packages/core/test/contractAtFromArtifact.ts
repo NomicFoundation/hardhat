@@ -256,16 +256,44 @@ m.contractAt(..., { id: "MyUniqueId"})`
         (v) => v.type === FutureType.CONTRACT_AT
       );
 
-      await assert.isFulfilled(
-        validateArtifactContractAt(
-          future as any,
-          setupMockArtifactResolver({
-            Another: fakeArtifact,
-          }),
-          {},
-          []
-        )
+      const result = await validateArtifactContractAt(
+        future as any,
+        setupMockArtifactResolver({
+          Another: fakeArtifact,
+        }),
+        {},
+        []
       );
+
+      assert.deepStrictEqual(result, []);
+    });
+
+    it("should validate a missing module parameter if a global parameter is present", async () => {
+      const module = buildModule("Module1", (m) => {
+        const p = m.getParameter("p");
+        const another = m.contractAt("Another", fakeArtifact, p);
+
+        return { another };
+      });
+
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.CONTRACT_AT
+      );
+
+      const result = await validateArtifactContractAt(
+        future as any,
+        setupMockArtifactResolver({
+          Another: fakeArtifact,
+        }),
+        {
+          $global: {
+            p: "0x1234",
+          },
+        },
+        []
+      );
+
+      assert.deepStrictEqual(result, []);
     });
 
     it("should not validate a module parameter of the wrong type", async () => {

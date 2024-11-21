@@ -7,7 +7,10 @@ import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deploy";
 import { SendDataFuture } from "../../../types/module";
 import { ERRORS } from "../../errors-list";
-import { validateAccountRuntimeValue } from "../utils";
+import {
+  resolvePotentialModuleParameterValueFrom,
+  validateAccountRuntimeValue,
+} from "../utils";
 
 export async function validateSendData(
   future: SendDataFuture,
@@ -31,9 +34,11 @@ export async function validateSendData(
   );
 
   if (isModuleParameterRuntimeValue(future.to)) {
-    const param =
-      deploymentParameters[future.to.moduleId]?.[future.to.name] ??
-      future.to.defaultValue;
+    const param = resolvePotentialModuleParameterValueFrom(
+      deploymentParameters,
+      future.to
+    );
+
     if (param === undefined) {
       errors.push(
         new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
@@ -52,9 +57,11 @@ export async function validateSendData(
   }
 
   if (isModuleParameterRuntimeValue(future.value)) {
-    const param =
-      deploymentParameters[future.value.moduleId]?.[future.value.name] ??
-      future.value.defaultValue;
+    const param = resolvePotentialModuleParameterValueFrom(
+      deploymentParameters,
+      future.value
+    );
+
     if (param === undefined) {
       errors.push(
         new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {

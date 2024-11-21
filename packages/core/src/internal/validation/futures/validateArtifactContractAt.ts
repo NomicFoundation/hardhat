@@ -4,6 +4,7 @@ import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deploy";
 import { ContractAtFuture } from "../../../types/module";
 import { ERRORS } from "../../errors-list";
+import { resolvePotentialModuleParameterValueFrom } from "../utils";
 
 export async function validateArtifactContractAt(
   future: ContractAtFuture,
@@ -16,9 +17,11 @@ export async function validateArtifactContractAt(
   /* stage two */
 
   if (isModuleParameterRuntimeValue(future.address)) {
-    const param =
-      deploymentParameters[future.address.moduleId]?.[future.address.name] ??
-      future.address.defaultValue;
+    const param = resolvePotentialModuleParameterValueFrom(
+      deploymentParameters,
+      future.address
+    );
+
     if (param === undefined) {
       errors.push(
         new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {

@@ -820,7 +820,13 @@ m.staticCall(..., { id: "MyUniqueId"})`
               },
             ],
             name: "test",
-            outputs: [],
+            outputs: [
+              {
+                internalType: "bool",
+                name: "result",
+                type: "bool",
+              },
+            ],
             stateMutability: "view",
             type: "function",
           },
@@ -839,14 +845,66 @@ m.staticCall(..., { id: "MyUniqueId"})`
         (v) => v.type === FutureType.STATIC_CALL
       );
 
-      await assert.isFulfilled(
-        validateNamedStaticCall(
-          future as any,
-          setupMockArtifactResolver({ Another: fakerArtifact }),
-          {},
-          []
-        )
+      const result = await validateNamedStaticCall(
+        future as any,
+        setupMockArtifactResolver({ Another: fakerArtifact }),
+        {},
+        []
       );
+
+      assert.deepEqual(result, []);
+    });
+
+    it("should validate a missing module parameter if a global parameter is present", async () => {
+      const fakerArtifact: Artifact = {
+        ...fakeArtifact,
+        abi: [
+          {
+            inputs: [
+              {
+                internalType: "bool",
+                name: "b",
+                type: "bool",
+              },
+            ],
+            name: "test",
+            outputs: [
+              {
+                internalType: "bool",
+                name: "result",
+                type: "bool",
+              },
+            ],
+            stateMutability: "view",
+            type: "function",
+          },
+        ],
+      };
+
+      const module = buildModule("Module1", (m) => {
+        const another = m.contract("Another", []);
+        const p = m.getParameter("p");
+        m.staticCall(another, "test", [p]);
+
+        return { another };
+      });
+
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.STATIC_CALL
+      );
+
+      const result = await validateNamedStaticCall(
+        future as any,
+        setupMockArtifactResolver({ Another: fakerArtifact }),
+        {
+          $global: {
+            p: "0x1234",
+          },
+        },
+        []
+      );
+
+      assert.deepEqual(result, []);
     });
 
     it("should not validate a missing module parameter (deeply nested)", async () => {

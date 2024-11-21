@@ -4,12 +4,37 @@ import {
   isFuture,
   isRuntimeValue,
 } from "../../type-guards";
+import { DeploymentParameters } from "../../types/deploy";
 import {
   AccountRuntimeValue,
   ArgumentType,
+  ModuleParameterRuntimeValue,
   RuntimeValue,
+  SolidityParameterType,
 } from "../../types/module";
 import { ERRORS } from "../errors-list";
+
+/**
+ * Given the deployment parameters and a ModuleParameterRuntimeValue,
+ * resolve the value for the ModuleParameterRuntimeValue.
+ *
+ * The logic runs, use the specific module parameter if available,
+ * fall back to a globally defined parameter, then finally use
+ * the default value. It is possible that the ModuleParameterRuntimeValue
+ * has no default value, in which case this function will return undefined.
+ */
+export function resolvePotentialModuleParameterValueFrom(
+  deploymentParameters: DeploymentParameters,
+  moduleRuntimeValue: ModuleParameterRuntimeValue<any>
+): SolidityParameterType | undefined {
+  return (
+    deploymentParameters[moduleRuntimeValue.moduleId]?.[
+      moduleRuntimeValue.name
+    ] ??
+    deploymentParameters.$global?.[moduleRuntimeValue.name] ??
+    moduleRuntimeValue.defaultValue
+  );
+}
 
 export function validateAccountRuntimeValue(
   arv: AccountRuntimeValue,

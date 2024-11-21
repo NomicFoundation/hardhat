@@ -762,14 +762,61 @@ m.call(..., { id: "MyUniqueId"})`
         (v) => v.type === FutureType.CONTRACT_CALL
       );
 
-      await assert.isFulfilled(
-        validateNamedContractCall(
-          future as any,
-          setupMockArtifactResolver({ Another: fakeArtifact }),
-          {},
-          []
-        )
+      const result = await validateNamedContractCall(
+        future as any,
+        setupMockArtifactResolver({ Another: fakeArtifact }),
+        {},
+        []
       );
+
+      assert.deepEqual(result, []);
+    });
+
+    it("should validate a missing module parameter if a global parameter is present", async () => {
+      const fakerArtifact: Artifact = {
+        ...fakeArtifact,
+        abi: [
+          {
+            inputs: [
+              {
+                internalType: "bool",
+                name: "b",
+                type: "bool",
+              },
+            ],
+            name: "test",
+            outputs: [],
+            stateMutability: "nonpayable",
+            type: "function",
+          },
+        ],
+      };
+
+      const module = buildModule("Module1", (m) => {
+        const p = m.getParameter("p");
+
+        const another = m.contract("Another", fakerArtifact, []);
+        m.call(another, "test", [p]);
+
+        return { another };
+      });
+
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.CONTRACT_CALL
+      );
+
+      const result = await validateNamedContractCall(
+        future as any,
+        setupMockArtifactResolver({ Another: fakeArtifact }),
+        {
+          $global: {
+            p: true,
+          },
+        },
+        []
+      );
+
+      assert.deepEqual(result, []);
     });
 
     it("should not validate a missing module parameter (deeply nested)", async () => {

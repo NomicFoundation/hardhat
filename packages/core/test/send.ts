@@ -435,9 +435,40 @@ describe("send", () => {
         (v) => v.type === FutureType.SEND_DATA
       );
 
-      await assert.isFulfilled(
-        validateSendData(future as any, setupMockArtifactResolver(), {}, [])
+      const result = await validateSendData(
+        future as any,
+        setupMockArtifactResolver(),
+        {},
+        []
       );
+
+      assert.deepStrictEqual(result, []);
+    });
+
+    it("should validate a missing module parameter if a global parameter is present", async () => {
+      const module = buildModule("Module1", (m) => {
+        const p = m.getParameter("p");
+        m.send("id", p, 0n, "");
+
+        return {};
+      });
+
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.SEND_DATA
+      );
+
+      const result = await validateSendData(
+        future as any,
+        setupMockArtifactResolver(),
+        {
+          $global: {
+            p: "0x123",
+          },
+        },
+        []
+      );
+
+      assert.deepStrictEqual(result, []);
     });
 
     it("should not validate a module parameter of the wrong type for value", async () => {
@@ -475,9 +506,14 @@ describe("send", () => {
         (v) => v.type === FutureType.SEND_DATA
       );
 
-      await assert.isFulfilled(
-        validateSendData(future as any, setupMockArtifactResolver(), {}, [])
+      const result = await validateSendData(
+        future as any,
+        setupMockArtifactResolver(),
+        {},
+        []
       );
+
+      assert.deepStrictEqual(result, []);
     });
 
     it("should not validate a negative account index", async () => {

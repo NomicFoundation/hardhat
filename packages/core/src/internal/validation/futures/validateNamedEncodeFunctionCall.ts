@@ -10,6 +10,7 @@ import { ERRORS } from "../../errors-list";
 import { validateArtifactFunction } from "../../execution/abi";
 import {
   filterToAccountRuntimeValues,
+  resolvePotentialModuleParameterValueFrom,
   retrieveNestedRuntimeValues,
   validateAccountRuntimeValue,
 } from "../utils";
@@ -61,8 +62,8 @@ export async function validateNamedEncodeFunctionCall(
 
   const missingParams = moduleParams.filter(
     (param) =>
-      deploymentParameters[param.moduleId]?.[param.name] === undefined &&
-      param.defaultValue === undefined
+      resolvePotentialModuleParameterValueFrom(deploymentParameters, param) ===
+      undefined
   );
 
   if (missingParams.length > 0) {

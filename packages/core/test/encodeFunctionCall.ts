@@ -582,14 +582,61 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
         (v) => v.type === FutureType.ENCODE_FUNCTION_CALL
       );
 
-      await assert.isFulfilled(
-        validateNamedEncodeFunctionCall(
-          future as any,
-          setupMockArtifactResolver({ Another: fakeArtifact }),
-          {},
-          []
-        )
+      const result = await validateNamedEncodeFunctionCall(
+        future as any,
+        setupMockArtifactResolver({ Another: fakeArtifact }),
+        {},
+        []
       );
+
+      assert.deepStrictEqual(result, []);
+    });
+
+    it("should validate a missing module parameter if a global parameter is present", async () => {
+      const fakerArtifact: Artifact = {
+        ...fakeArtifact,
+        abi: [
+          {
+            inputs: [
+              {
+                internalType: "bool",
+                name: "b",
+                type: "bool",
+              },
+            ],
+            name: "test",
+            outputs: [],
+            stateMutability: "nonpayable",
+            type: "function",
+          },
+        ],
+      };
+
+      const module = buildModule("Module1", (m) => {
+        const p = m.getParameter("p");
+
+        const another = m.contract("Another", fakerArtifact, []);
+        m.encodeFunctionCall(another, "test", [p]);
+
+        return { another };
+      });
+
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.ENCODE_FUNCTION_CALL
+      );
+
+      const result = await validateNamedEncodeFunctionCall(
+        future as any,
+        setupMockArtifactResolver({ Another: fakeArtifact }),
+        {
+          $global: {
+            p: true,
+          },
+        },
+        []
+      );
+
+      assert.deepStrictEqual(result, []);
     });
 
     it("should not validate a missing module parameter (deeply nested)", async () => {

@@ -13,35 +13,28 @@ export function resolveModuleParameter(
   moduleParamRuntimeValue: ModuleParameterRuntimeValue<ModuleParameterType>,
   context: { deploymentParameters: DeploymentParameters; accounts: string[] }
 ): SolidityParameterType {
-  if (context.deploymentParameters === undefined) {
-    assertIgnitionInvariant(
-      moduleParamRuntimeValue.defaultValue !== undefined,
-      `No default value provided for module parameter ${moduleParamRuntimeValue.moduleId}/${moduleParamRuntimeValue.name}`
-    );
+  const potentialParamAtModuleLevel =
+    context.deploymentParameters?.[moduleParamRuntimeValue.moduleId]?.[
+      moduleParamRuntimeValue.name
+    ];
 
-    return _resolveDefaultValue(moduleParamRuntimeValue, context.accounts);
+  if (potentialParamAtModuleLevel !== undefined) {
+    return potentialParamAtModuleLevel;
   }
 
-  const moduleParameters =
-    context.deploymentParameters[moduleParamRuntimeValue.moduleId] ??
-    context.deploymentParameters.$global;
+  const potentialParamAtGlobalLevel =
+    context.deploymentParameters?.$global?.[moduleParamRuntimeValue.name];
 
-  if (moduleParameters === undefined) {
-    assertIgnitionInvariant(
-      moduleParamRuntimeValue.defaultValue !== undefined,
-      `No default value provided for module parameter ${moduleParamRuntimeValue.moduleId}/${moduleParamRuntimeValue.name}`
-    );
-
-    return _resolveDefaultValue(moduleParamRuntimeValue, context.accounts);
+  if (potentialParamAtGlobalLevel !== undefined) {
+    return potentialParamAtGlobalLevel;
   }
 
-  const moduleParamValue = moduleParameters[moduleParamRuntimeValue.name];
+  assertIgnitionInvariant(
+    moduleParamRuntimeValue.defaultValue !== undefined,
+    `No default value provided for module parameter ${moduleParamRuntimeValue.moduleId}/${moduleParamRuntimeValue.name}`
+  );
 
-  if (moduleParamValue === undefined) {
-    return _resolveDefaultValue(moduleParamRuntimeValue, context.accounts);
-  }
-
-  return moduleParamValue;
+  return _resolveDefaultValue(moduleParamRuntimeValue, context.accounts);
 }
 
 function _resolveDefaultValue(

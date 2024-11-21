@@ -555,6 +555,64 @@ describe("buildInitializeMessageFor", () => {
       });
     });
 
+    describe("resolves value when module parameter is a global parameter", () => {
+      beforeEach(async () => {
+        namedContractDeployment.value =
+          new ModuleParameterRuntimeValueImplementation<bigint>(
+            "MyModule",
+            "passedValue",
+            undefined
+          );
+
+        message = (await buildInitializeMessageFor(
+          namedContractDeployment,
+          exampleDeploymentState,
+          basicStrategy,
+          {
+            $global: {
+              passedValue: BigInt(99),
+            },
+          },
+          mockDeploymentLoader,
+          exampleAccounts,
+          getDefaultSender(exampleAccounts)
+        )) as DeploymentExecutionStateInitializeMessage;
+      });
+
+      it("should record the value", async () => {
+        assert.deepStrictEqual(message.value, BigInt(99));
+      });
+    });
+
+    describe("resolves to default value for module parameter when no deployment parameters have been given", () => {
+      const expectedDefaultValue = BigInt(100);
+
+      beforeEach(async () => {
+        namedContractDeployment.value =
+          new ModuleParameterRuntimeValueImplementation<bigint>(
+            "MyModule",
+            "passedValue",
+            expectedDefaultValue
+          );
+
+        const deploymentParameters = undefined as any;
+
+        message = (await buildInitializeMessageFor(
+          namedContractDeployment,
+          exampleDeploymentState,
+          basicStrategy,
+          deploymentParameters,
+          mockDeploymentLoader,
+          exampleAccounts,
+          getDefaultSender(exampleAccounts)
+        )) as DeploymentExecutionStateInitializeMessage;
+      });
+
+      it("should record the default value", async () => {
+        assert.deepStrictEqual(message.value, expectedDefaultValue);
+      });
+    });
+
     describe("resolves from when runtime account used", () => {
       beforeEach(async () => {
         namedContractDeployment.from = new AccountRuntimeValueImplementation(1);
