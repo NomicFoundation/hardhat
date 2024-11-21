@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { AssertionError, expect } from "chai";
 import { ethers } from "ethers";
 
-import { addChaiMatchers } from "../src/internal/add-chai-matchers.js";
+import { addChaiMatchers } from "../../src/internal/add-chai-matchers.js";
 
 addChaiMatchers();
 

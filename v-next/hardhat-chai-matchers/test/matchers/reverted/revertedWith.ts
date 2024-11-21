@@ -1,4 +1,4 @@
-import type { MatchersContract } from "../helpers/contracts.js";
+import type { MatchersContract } from "../../helpers/contracts.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
 
@@ -15,12 +15,12 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 import { AssertionError, expect } from "chai";
 
-import { addChaiMatchers } from "../../src/internal/add-chai-matchers.js";
+import { addChaiMatchers } from "../../../src/internal/add-chai-matchers.js";
 import {
   runSuccessfulAsserts,
   runFailedAsserts,
   mineSuccessfulTransaction,
-} from "../helpers/helpers.js";
+} from "../../helpers/helpers.js";
 
 addChaiMatchers();
 
@@ -269,7 +269,7 @@ describe("INTEGRATION: Reverted with", () => {
             "Expected transaction to be reverted with reason 'foo', but it reverted with reason 'bar'",
           );
           expect(errorString).to.include(
-            path.join("test", "reverted", "revertedWith.ts"),
+            path.join("test", "matchers", "reverted", "revertedWith.ts"),
           );
           return;
         }

@@ -1,4 +1,4 @@
-import type { MatchersContract } from "../helpers/contracts.js";
+import type { MatchersContract } from "../../helpers/contracts.js";
 import type { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
 
 import path from "node:path";
@@ -10,8 +10,11 @@ import hardhatEthersPlugin from "@ignored/hardhat-vnext-ethers";
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import { AssertionError, expect } from "chai";
 
-import { addChaiMatchers } from "../../src/internal/add-chai-matchers.js";
-import { runSuccessfulAsserts, runFailedAsserts } from "../helpers/helpers.js";
+import { addChaiMatchers } from "../../../src/internal/add-chai-matchers.js";
+import {
+  runSuccessfulAsserts,
+  runFailedAsserts,
+} from "../../helpers/helpers.js";
 
 addChaiMatchers();
 
@@ -206,7 +209,12 @@ describe("INTEGRATION: Reverted without reason", () => {
             "Expected transaction NOT to be reverted without a reason, but it was",
           );
           expect(errorString).to.include(
-            path.join("test", "reverted", "revertedWithoutReason.ts"),
+            path.join(
+              "test",
+              "matchers",
+              "reverted",
+              "revertedWithoutReason.ts",
+            ),
           );
           return;
         }

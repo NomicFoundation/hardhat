@@ -1,9 +1,9 @@
+import type { Token } from "../../src/internal/matchers/changeTokenBalance.js";
 import type {
   AnotherContract,
   EventsContract,
   MatchersContract,
-} from "./helpers/contracts.js";
-import type { Token } from "../src/internal/matchers/changeTokenBalance.js";
+} from "../helpers/contracts.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type {
   HardhatEthers,
@@ -25,12 +25,12 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 import { AssertionError, expect } from "chai";
 
-import { addChaiMatchers } from "../src/internal/add-chai-matchers.js";
+import { addChaiMatchers } from "../../src/internal/add-chai-matchers.js";
 import {
   CHANGE_TOKEN_BALANCE_MATCHER,
   CHANGE_TOKEN_BALANCES_MATCHER,
-} from "../src/internal/constants.js";
-import { clearTokenDescriptionsCache } from "../src/internal/matchers/changeTokenBalance.js";
+} from "../../src/internal/constants.js";
+import { clearTokenDescriptionsCache } from "../../src/internal/matchers/changeTokenBalance.js";
 
 addChaiMatchers();
 
@@ -924,7 +924,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", () 
           } catch (e) {
             hasProperStackTrace = util
               .inspect(e)
-              .includes(path.join("test", "changeTokenBalance.ts"));
+              .includes(path.join("test", "matchers", "changeTokenBalance.ts"));
           }
           expect(hasProperStackTrace).to.equal(true);
         });
@@ -943,7 +943,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", () 
             );
           } catch (e) {
             expect(util.inspect(e)).to.include(
-              path.join("test", "changeTokenBalance.ts"),
+              path.join("test", "matchers", "changeTokenBalance.ts"),
             );
             return;
           }

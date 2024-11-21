@@ -3,7 +3,7 @@ import type {
   EventsContract,
   MatchersContract,
   OverrideEventContract,
-} from "./helpers/contracts.js";
+} from "../helpers/contracts.js";
 import type { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
 
 import { beforeEach, describe, it } from "node:test";
@@ -17,8 +17,8 @@ import { id } from "ethers/hash";
 import { hexlify, toUtf8Bytes, zeroPadValue } from "ethers/utils";
 import { Wallet } from "ethers/wallet";
 
-import { addChaiMatchers } from "../src/internal/add-chai-matchers.js";
-import { anyUint, anyValue } from "../src/withArgs.js";
+import { addChaiMatchers } from "../../src/internal/add-chai-matchers.js";
+import { anyUint, anyValue } from "../../src/withArgs.js";
 
 addChaiMatchers();
 
