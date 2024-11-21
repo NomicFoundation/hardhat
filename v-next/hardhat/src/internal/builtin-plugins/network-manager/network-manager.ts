@@ -154,26 +154,25 @@ export class NetworkManagerImplementation {
           );
         }
 
-        return EdrProvider.create(
+        return EdrProvider.create({
           // The resolvedNetworkConfig can have its chainType set to `undefined`
           // so we default to the default chain type here.
-          {
+          networkConfig: {
             ...resolvedNetworkConfig,
             /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
             This case is safe because we have a check above */
             chainType: resolvedChainType as ChainType,
           },
-          { enabled: false },
-          {},
-          (request, defaultBehavior) => {
-            return hookManager.runHandlerChain(
+          loggerConfig: { enabled: false },
+          tracingConfig: {},
+          jsonRpcRequestWrapper: (request, defaultBehavior) =>
+            hookManager.runHandlerChain(
               "network",
               "onRequest",
               [networkConnection, request],
               async (_context, _connection, req) => defaultBehavior(req),
-            );
-          },
-        );
+            ),
+        });
       }
 
       return HttpProvider.create({
