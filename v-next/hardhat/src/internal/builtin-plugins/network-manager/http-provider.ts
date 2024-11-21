@@ -44,6 +44,14 @@ export type JsonRpcRequestWrapperFunction = (
   defaultBehavior: (r: JsonRpcRequest) => Promise<JsonRpcResponse>,
 ) => Promise<JsonRpcResponse>;
 
+interface HttpProviderConfig {
+  url: string;
+  networkName: string;
+  extraHeaders?: Record<string, string>;
+  timeout: number;
+  jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
+}
+
 export class HttpProvider extends EventEmitter implements EthereumProvider {
   readonly #url: string;
   readonly #networkName: string;
@@ -62,13 +70,7 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
     extraHeaders = {},
     timeout,
     jsonRpcRequestWrapper,
-  }: {
-    url: string;
-    networkName: string;
-    extraHeaders?: Record<string, string>;
-    timeout: number;
-    jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
-  }): Promise<HttpProvider> {
+  }: HttpProviderConfig): Promise<HttpProvider> {
     if (!isValidUrl(url)) {
       throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_URL, {
         value: url,
