@@ -84,7 +84,7 @@ contract DemoV2 {
 
 In addition to updating the version string, this contract also adds a `name` state variable and a `setName` function that allows us to set the value of `name`. We'll use this function later when we upgrade our proxy.
 
-Finally, we'll create a file called `Proxies.sol` to import our proxy contracts. This file will look a little different than the others:
+Finally, we'll create a file called `Proxies.sol` to import our proxy contracts. This file will look a little different from the others:
 
 ```solidity
 // SPDX-License-Identifier: UNLICENSED
