@@ -8,6 +8,13 @@
       "path": "../hardhat-errors"
     },
     {
+      "path": "../hardhat-ethers"
+    },
+
+    {
+      "path": "../hardhat-mocha-test-runner"
+    },
+    {
       "path": "../hardhat-node-test-reporter"
     },
     {
