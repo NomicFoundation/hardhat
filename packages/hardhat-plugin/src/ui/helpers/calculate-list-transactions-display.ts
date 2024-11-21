@@ -1,5 +1,6 @@
 import { ListTransactionsResult } from "@nomicfoundation/ignition-core";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+import { stringify } from "json5";
 
 export function calculateListTransactionsDisplay(
   deploymentId: string,
@@ -27,10 +28,9 @@ export function calculateListTransactionsDisplay(
     }
 
     if (transaction.params !== undefined) {
-      text += `  - Params: ${JSON.stringify(
-        transaction.params.map((v) =>
-          typeof v === "bigint" ? v.toString() : v
-        )
+      text += `  - Params: ${stringify(
+        transaction.params,
+        transactionDisplaySerializeReplacer
       )}\n`;
     }
 
@@ -58,4 +58,15 @@ function transactionTypeToDisplayType(type: string): string {
         `Unknown transaction type: ${type}`
       );
   }
+}
+
+export function transactionDisplaySerializeReplacer(
+  _key: string,
+  value: unknown
+) {
+  if (typeof value === "bigint") {
+    return `${value}n`;
+  }
+
+  return value;
 }
