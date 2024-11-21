@@ -27,7 +27,11 @@ export function calculateListTransactionsDisplay(
     }
 
     if (transaction.params !== undefined) {
-      text += `  - Params: ${JSON.stringify(transaction.params)}\n`;
+      text += `  - Params: ${JSON.stringify(
+        transaction.params.map((v) =>
+          typeof v === "bigint" ? v.toString() : v
+        )
+      )}\n`;
     }
 
     if (transaction.value !== undefined) {

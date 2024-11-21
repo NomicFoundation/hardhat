@@ -26,7 +26,7 @@ export interface TransactionInfo {
   name?: string; // can be contract name, function name, or undefined, depending on the type
   address?: string;
   params?: SolidityParameterType[];
-  value?: string;
+  value?: bigint;
 }
 
 /**
