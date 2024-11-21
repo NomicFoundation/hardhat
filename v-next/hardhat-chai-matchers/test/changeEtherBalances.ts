@@ -1,4 +1,4 @@
-import type { ChangeEtherBalance } from "./contracts.js";
+import type { ChangeEtherBalance } from "./helpers/contracts.js";
 import type { Token } from "../src/internal/matchers/changeTokenBalance.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type {

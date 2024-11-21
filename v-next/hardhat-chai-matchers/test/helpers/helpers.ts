@@ -1,4 +1,4 @@
-import type { MatchersContract } from "../contracts.js";
+import type { MatchersContract } from "./contracts.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
 import type { ContractTransactionResponse } from "ethers/contract";

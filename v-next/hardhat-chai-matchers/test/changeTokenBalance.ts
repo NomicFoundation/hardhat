@@ -2,7 +2,7 @@ import type {
   AnotherContract,
   EventsContract,
   MatchersContract,
-} from "./contracts.js";
+} from "./helpers/contracts.js";
 import type { Token } from "../src/internal/matchers/changeTokenBalance.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type {

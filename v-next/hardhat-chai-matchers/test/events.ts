@@ -3,7 +3,7 @@ import type {
   EventsContract,
   MatchersContract,
   OverrideEventContract,
-} from "./contracts.js";
+} from "./helpers/contracts.js";
 import type { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
 
 import { beforeEach, describe, it } from "node:test";
