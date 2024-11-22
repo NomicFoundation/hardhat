@@ -11,7 +11,7 @@ Oracles provide a bridge between the real-world and on-chain smart contracts by 
 
 Oracles play a critical role in facilitating the full potential of smart contract utility. Without a reliable connection to real-world data, smart contracts cannot effectively serve the real-world.
 
-<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/ZJfkNzyO7-U" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/ZJfkNzyO7-U" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## Why are they needed?
 
@@ -94,7 +94,7 @@ Usually, you will create and manage your subscriptions on the [VRF Subscription 
 
 You will need to install it by typing:
 
-::::tabsgroup{options="npm 7+,npm 6,yarn"}
+::::tabsgroup{options="npm 7+,npm 6,yarn,pnpm"}
 
 :::tab{value="npm 7+"}
 
@@ -116,6 +116,14 @@ npm install --save-dev @chainlink/hardhat-chainlink
 
 ```
 yarn add --dev @chainlink/hardhat-chainlink
+```
+
+:::
+
+:::tab{value="pnpm"}
+
+```
+pnpm add -D @chainlink/hardhat-chainlink
 ```
 
 :::
@@ -215,6 +223,8 @@ There are multiple oracle applications you can integrate into your dapp:
 - [Chainlink](https://chain.link/) - _Chainlink decentralized oracle networks provide tamper-proof inputs, outputs, and computations to support advanced smart contracts on any blockchain._
 
 - [Witnet](https://witnet.io/) - _Witnet is a permissionless, decentralized, and censorship-resistant oracle helping smart contracts to react to real world events with strong crypto-economic guarantees._
+
+- [Kleros Oracle](https://kleros.io/oracle) - _Crowd-sourced on-chain smart contract oracle in collaboration with the Reality.eth cryptoeconomic mechanism for verifying real-world events on-chain, a subjective oracle solution able to answer any question with a publicly verifiable answer._
 
 - [UMA Oracle](https://umaproject.org/products/optimistic-oracle) - _UMA's optimistic oracle allows smart contracts to quickly and receive any kind of data for different applications, including insurance, financial derivatives, and prediction market._
 

@@ -1,5 +1,62 @@
 # @nomicfoundation/hardhat-verify
 
+## 2.0.12
+
+### Patch Changes
+
+- f571670: Replace chalk with picocolors
+
+## 2.0.11
+
+### Patch Changes
+
+- 913b5a1: Added Blockscout as a verification provider
+
+## 2.0.10
+
+### Patch Changes
+
+- efa905d: Fix for corrupted Hardhat peer dependency version from pnpm.
+
+## 2.0.9
+
+### Patch Changes
+
+- 88e57fa: Make the `--force` flag override the check of any existing verification, even in the presence of errors.
+
+## 2.0.8
+
+### Patch Changes
+
+- 73d5bea: Improved validation of contructor arguments (thanks @fwx5618177!)
+
+## 2.0.7
+
+### Patch Changes
+
+- f186e1a: Improved error handling and messaging for errors from the block explorer
+- e7b12df: Added Polygon Amoy testnet (thanks @FournyP!)
+- b9aada0: Added `--force` flag to allow verification of partially verified contracts (thanks @rimrakhimov!)
+
+## 2.0.6
+
+### Patch Changes
+
+- 62d24cd: Added baseSepolia (thanks @hironate)
+
+## 2.0.5
+
+### Patch Changes
+
+- 91d035e: Updated polygonZkEVMTestnet to point to cardona testnet
+
+## 2.0.4
+
+### Patch Changes
+
+- fb673f2be: Added holesky and arbitrumSepolia, and removed arbitrumTestnet and arbitrumGoerli from hardhat-verify chains.
+- 11043e96a: Added support for programmatic verification in Sourcify
+
 ## 2.0.3
 
 ### Patch Changes

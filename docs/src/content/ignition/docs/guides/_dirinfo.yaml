@@ -9,3 +9,7 @@ order:
   - /tests
   - /verify
   - /viem
+  - /create2
+  - /upgradeable-proxies
+  - /ledger
+  - /scripts

@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import picocolors from "picocolors";
 import fsExtra from "fs-extra";
 import path from "path";
 
@@ -10,7 +10,7 @@ function getAlreadyShownFilePath(forkCachePath: string) {
 
 function displayBanner() {
   console.warn(
-    chalk.yellow(
+    picocolors.yellow(
       `You're running a network fork starting from the latest block.
 Performance may degrade due to fetching data from the network with each run.
 If connecting to an archival node (e.g. Alchemy), we strongly recommend setting

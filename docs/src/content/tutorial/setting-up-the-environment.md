@@ -10,7 +10,7 @@ Most Ethereum libraries and tools are written in JavaScript, and so is Hardhat. 
 
 ## Installing Node.js
 
-You can [skip](./creating-a-new-hardhat-project.md) this section if you already have a working Node.js `>=16.0` installation. If not, here's how to install it on Ubuntu, MacOS and Windows.
+You can [skip](./creating-a-new-hardhat-project.md) this section if you already have a working Node.js `>=18.0` installation. If not, here's how to install it on Ubuntu, MacOS and Windows.
 
 ### Linux
 
@@ -21,7 +21,7 @@ Copy and paste these commands in a terminal:
 ```
 sudo apt update
 sudo apt install curl git
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
@@ -33,9 +33,9 @@ There are multiple ways of installing Node.js on MacOS. We will be using [Node V
 
 ```
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
-nvm install 20
-nvm use 20
-nvm alias default 20
+nvm install 22
+nvm use 22
+nvm alias default 22
 npm install npm --global # Upgrade npm to the latest version
 ```
 
@@ -61,12 +61,12 @@ If your version of Node.js is older and [not supported by Hardhat](../hardhat-ru
 
 ### MacOS
 
-You can change your Node.js version using [nvm](http://github.com/creationix/nvm). To upgrade to Node.js `20.x` run these in a terminal:
+You can change your Node.js version using [nvm](http://github.com/creationix/nvm). To upgrade to Node.js `22.x` run these in a terminal:
 
 ```
-nvm install 20
-nvm use 20
-nvm alias default 20
+nvm install 22
+nvm use 22
+nvm alias default 22
 npm install npm --global # Upgrade npm to the latest version
 ```
 

@@ -5,7 +5,7 @@ import fs from "fs-extra";
 import * as os from "os";
 import sinon, { SinonSandbox } from "sinon";
 import { assert, expect } from "chai";
-import chalk from "chalk";
+import picocolors from "picocolors";
 import enquirer from "enquirer";
 import { HardhatContext } from "../../../../src/internal/context";
 import { handleVars } from "../../../../src/internal/cli/vars";
@@ -149,7 +149,7 @@ describe("vars", () => {
 
         assert(
           spyConsoleWarn.calledWith(
-            chalk.yellow(
+            picocolors.yellow(
               `The configuration variable 'nonExistingKey' is not set in ${TMP_FILE_PATH}`
             )
           )
@@ -194,7 +194,7 @@ describe("vars", () => {
         if (process.stdout.isTTY) {
           assert(
             spyConsoleWarn.calledWith(
-              chalk.yellow(
+              picocolors.yellow(
                 `There are no configuration variables stored in ${TMP_FILE_PATH}`
               )
             )
@@ -227,7 +227,7 @@ describe("vars", () => {
         );
         assert(
           spyConsoleWarn.calledWith(
-            chalk.yellow(
+            picocolors.yellow(
               `There is no configuration variable 'nonExistingKey' to delete from ${TMP_FILE_PATH}`
             )
           )
@@ -373,7 +373,7 @@ describe("vars", () => {
 
             assert(
               spyConsoleError.calledWith(
-                chalk.red(
+                picocolors.red(
                   "There is an error in your Hardhat configuration file. Please double check it.\n"
                 )
               )

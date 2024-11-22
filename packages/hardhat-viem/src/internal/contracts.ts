@@ -13,6 +13,7 @@ import type {
   WalletClient,
 } from "../types";
 
+import { Libraries, resolveBytecodeWithLinkedLibraries } from "./bytecode";
 import { getPublicClient, getWalletClients } from "./clients";
 import {
   DefaultWalletClientNotFoundError,
@@ -21,6 +22,23 @@ import {
   InvalidConfirmationsError,
 } from "./errors";
 
+async function getContractAbiAndBytecode(
+  artifacts: HardhatRuntimeEnvironment["artifacts"],
+  contractName: string,
+  libraries: Libraries<Address>
+) {
+  const artifact = await artifacts.readArtifact(contractName);
+  const bytecode = await resolveBytecodeWithLinkedLibraries(
+    artifact,
+    libraries
+  );
+
+  return {
+    abi: artifact.abi,
+    bytecode,
+  };
+}
+
 export async function deployContract(
   { artifacts, network }: HardhatRuntimeEnvironment,
   contractName: string,
@@ -28,23 +46,22 @@ export async function deployContract(
   config: DeployContractConfig = {}
 ): Promise<GetContractReturnType> {
   const {
-    walletClient: configWalletClient,
-    publicClient: configPublicClient,
+    client,
     confirmations,
+    libraries = {},
     ...deployContractParameters
   } = config;
-  const [publicClient, walletClient, contractArtifact] = await Promise.all([
-    configPublicClient ?? getPublicClient(network.provider),
-    configWalletClient ??
-      getDefaultWalletClient(network.provider, network.name),
-    artifacts.readArtifact(contractName),
+  const [publicClient, walletClient, { abi, bytecode }] = await Promise.all([
+    client?.public ?? getPublicClient(network.provider),
+    client?.wallet ?? getDefaultWalletClient(network.provider, network.name),
+    getContractAbiAndBytecode(artifacts, contractName, libraries),
   ]);
 
   return innerDeployContract(
     publicClient,
     walletClient,
-    contractArtifact.abi,
-    contractArtifact.bytecode as Hex,
+    abi,
+    bytecode,
     constructorArgs,
     deployContractParameters,
     confirmations
@@ -94,7 +111,7 @@ export async function innerDeployContract(
     confirmations,
   });
 
-  if (contractAddress === null) {
+  if (contractAddress === null || contractAddress === undefined) {
     const transaction = await publicClient.getTransaction({
       hash: deploymentTxHash,
     });
@@ -120,23 +137,18 @@ export async function sendDeploymentTransaction(
   contract: GetContractReturnType;
   deploymentTransaction: GetTransactionReturnType;
 }> {
-  const {
-    walletClient: configWalletClient,
-    publicClient: configPublicClient,
-    ...deployContractParameters
-  } = config;
-  const [publicClient, walletClient, contractArtifact] = await Promise.all([
-    configPublicClient ?? getPublicClient(network.provider),
-    configWalletClient ??
-      getDefaultWalletClient(network.provider, network.name),
-    artifacts.readArtifact(contractName),
+  const { client, libraries = {}, ...deployContractParameters } = config;
+  const [publicClient, walletClient, { abi, bytecode }] = await Promise.all([
+    client?.public ?? getPublicClient(network.provider),
+    client?.wallet ?? getDefaultWalletClient(network.provider, network.name),
+    getContractAbiAndBytecode(artifacts, contractName, libraries),
   ]);
 
   return innerSendDeploymentTransaction(
     publicClient,
     walletClient,
-    contractArtifact.abi,
-    contractArtifact.bytecode as Hex,
+    abi,
+    bytecode,
     constructorArgs,
     deployContractParameters
   );
@@ -202,8 +214,8 @@ export async function getContractAt(
   config: GetContractAtConfig = {}
 ): Promise<GetContractReturnType> {
   const [publicClient, walletClient, contractArtifact] = await Promise.all([
-    config.publicClient ?? getPublicClient(network.provider),
-    config.walletClient ??
+    config.client?.public ?? getPublicClient(network.provider),
+    config.client?.wallet ??
       getDefaultWalletClient(network.provider, network.name),
     artifacts.readArtifact(contractName),
   ]);
@@ -225,8 +237,10 @@ async function innerGetContractAt(
   const viem = await import("viem");
   const contract = viem.getContract({
     address,
-    publicClient,
-    walletClient,
+    client: {
+      public: publicClient,
+      wallet: walletClient,
+    },
     abi: contractAbi,
   });
 

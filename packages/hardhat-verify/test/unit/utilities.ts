@@ -5,7 +5,7 @@ import type { ChainConfig } from "../../src/types";
 import path from "path";
 import { assert, expect } from "chai";
 import sinon from "sinon";
-import chalk from "chalk";
+import picocolors from "picocolors";
 
 import {
   encodeArguments,
@@ -65,7 +65,7 @@ describe("Utilities", () => {
       const errorMessage = errorStub.getCall(0).args[0];
       assert.equal(
         errorMessage,
-        chalk.red(
+        picocolors.red(
           `hardhat-verify found one or more errors during the verification process:
 
 Etherscan:
@@ -534,6 +534,39 @@ but 2 arguments were provided instead.`);
         encodeArguments(abi, sourceName, contractName, constructorArguments)
       ).to.be.rejectedWith(
         /Value 0x752c8191e6b1db38b41a752C8191E6b1Db38B41A8c8921F7a703F2969d18 cannot be encoded for the parameter amount./
+      );
+    });
+
+    it("should throw if a parameter type does not match its expected type: number instead of string", async () => {
+      const abi: JsonFragment[] = [
+        {
+          inputs: [
+            {
+              name: "amount",
+              type: "uint256",
+            },
+            {
+              name: "amount",
+              type: "string",
+            },
+            {
+              name: "amount",
+              type: "address",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+      ];
+      const constructorArguments: any[] = [
+        50,
+        50, // Invalid string
+        "0x752C8191E6b1Db38B41A8c8921F7a703F2969d18",
+      ];
+      await expect(
+        encodeArguments(abi, sourceName, contractName, constructorArguments)
+      ).to.be.rejectedWith(
+        /Value 50 cannot be encoded for the parameter amount./
       );
     });
 

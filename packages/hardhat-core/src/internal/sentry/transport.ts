@@ -1,4 +1,4 @@
-import { Event, Response } from "@sentry/node";
+import type { Event, Response } from "@sentry/node";
 import { spawn } from "child_process";
 import * as path from "path";
 

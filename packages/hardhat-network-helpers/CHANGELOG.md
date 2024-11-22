@@ -1,5 +1,17 @@
 # @nomicfoundation/hardhat-network-helpers
 
+## 1.0.12
+
+### Patch Changes
+
+- 8fa15e7: Add support for ZKsync's development mode
+
+## 1.0.11
+
+### Patch Changes
+
+- 8be0c2c: Improve an error message and add a utility to clear all the existing snaphosts.
+
 ## 1.0.10
 
 ### Patch Changes

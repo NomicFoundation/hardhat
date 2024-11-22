@@ -1,26 +1,42 @@
-import { ContractsIdentifier } from "./contracts-identifier";
-import { isEvmStep, isPrecompileTrace, MessageTrace } from "./message-trace";
-import { Bytecode } from "./model";
+import type { VmTraceDecoder as VmTraceDecoderT } from "@nomicfoundation/edr";
+import picocolors from "picocolors";
+import debug from "debug";
+import { Reporter } from "../../sentry/reporter";
+import { TracingConfig } from "../provider/node-types";
+import { requireNapiRsModule } from "../../../common/napi-rs";
 
-export class VmTraceDecoder {
-  constructor(private readonly _contractsIdentifier: ContractsIdentifier) {}
+const log = debug("hardhat:core:hardhat-network:node");
 
-  public tryToDecodeMessageTrace(messageTrace: MessageTrace): MessageTrace {
-    if (isPrecompileTrace(messageTrace)) {
-      return messageTrace;
+const { VmTraceDecoder, initializeVmTraceDecoder } = requireNapiRsModule(
+  "@nomicfoundation/edr"
+) as typeof import("@nomicfoundation/edr");
+
+function initializeVmTraceDecoderWrapper(
+  vmTraceDecoder: VmTraceDecoderT,
+  tracingConfig: TracingConfig
+) {
+  try {
+    initializeVmTraceDecoder(vmTraceDecoder, tracingConfig);
+  } catch (error) {
+    console.warn(
+      picocolors.yellow(
+        "The Hardhat Network tracing engine could not be initialized. Run Hardhat with --verbose to learn more."
+      )
+    );
+
+    log(
+      "Hardhat Network tracing disabled: VmTraceDecoder failed to be initialized. Please report this to help us improve Hardhat.\n",
+      error
+    );
+
+    if (error instanceof Error) {
+      Reporter.reportError(error);
     }
-
-    return {
-      ...messageTrace,
-      bytecode:
-        this._contractsIdentifier.getBytecodeFromMessageTrace(messageTrace),
-      steps: messageTrace.steps.map((s) =>
-        isEvmStep(s) ? s : this.tryToDecodeMessageTrace(s)
-      ),
-    };
-  }
-
-  public addBytecode(bytecode: Bytecode) {
-    this._contractsIdentifier.addBytecode(bytecode);
   }
 }
+
+export {
+  VmTraceDecoder,
+  VmTraceDecoderT,
+  initializeVmTraceDecoderWrapper as initializeVmTraceDecoder,
+};

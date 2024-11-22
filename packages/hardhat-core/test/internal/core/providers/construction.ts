@@ -8,10 +8,7 @@ import {
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { BackwardsCompatibilityProviderAdapter } from "../../../../src/internal/core/providers/backwards-compatibility";
-import {
-  BoundExperimentalHardhatNetworkMessageTraceHook,
-  HardhatConfig,
-} from "../../../../src/types";
+import { HardhatConfig } from "../../../../src/types";
 import {
   applyProviderWrappers,
   createProvider,
@@ -21,7 +18,7 @@ import { expectHardhatErrorAsync } from "../../../helpers/errors";
 
 import { MockedProvider } from "./mocks";
 
-describe("Network config typeguards", async () => {
+describe("Network config typeguards", () => {
   it("Should recognize HDAccountsConfig", () => {
     assert.isTrue(isHDAccountsConfig({ mnemonic: "asdads" } as any));
     assert.isFalse(isHDAccountsConfig({ initialIndex: 1 } as any));
@@ -46,7 +43,6 @@ describe("Base provider creation", () => {
 
   it("Should extend the base provider by calling each supplied extender", async () => {
     const artifacts = undefined;
-    const hooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = [];
 
     const identity = (obj: any) => obj;
     const extenders = [sinon.spy(identity), sinon.spy(identity)];
@@ -60,13 +56,7 @@ describe("Base provider creation", () => {
       },
       paths: undefined,
     } as unknown as HardhatConfig;
-    const provider = await createProvider(
-      config,
-      "net",
-      artifacts,
-      hooks,
-      extenders
-    );
+    const provider = await createProvider(config, "net", artifacts, extenders);
 
     assert.instanceOf(provider, BackwardsCompatibilityProviderAdapter);
     for (const extender of extenders) {

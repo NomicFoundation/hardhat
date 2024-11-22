@@ -15,7 +15,7 @@ You can also follow [Hardhat's Viem Quick Start](../../../hardhat-runner/docs/ad
 
 From the root directory of your Hardhat project run:
 
-::::tabsgroup{options="npm 7+,npm 6,yarn"}
+::::tabsgroup{options="npm 7+,npm 6,yarn,pnpm"}
 
 :::tab{value="npm 7+"}
 
@@ -37,6 +37,14 @@ npm install --save-dev @nomicfoundation/hardhat-ignition-viem @nomicfoundation/h
 
 ```shell
 yarn add --dev @nomicfoundation/hardhat-ignition-viem @nomicfoundation/hardhat-ignition @nomicfoundation/hardhat-verify @nomicfoundation/hardhat-viem @nomicfoundation/ignition-core typescript viem
+```
+
+:::
+
+:::tab{value="pnpm"}
+
+```shell
+pnpm add -D @nomicfoundation/hardhat-ignition-viem viem typescript
 ```
 
 :::

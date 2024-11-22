@@ -1,6 +1,6 @@
 import type EthereumjsUtilT from "@nomicfoundation/ethereumjs-util";
 
-import chalk from "chalk";
+import picocolors from "picocolors";
 import debug from "debug";
 import fsExtra from "fs-extra";
 
@@ -35,12 +35,12 @@ const log = debug("hardhat:core:tasks:node");
 
 function printDefaultConfigWarning() {
   console.log(
-    chalk.bold(
+    picocolors.bold(
       "WARNING: These accounts, and their private keys, are publicly known."
     )
   );
   console.log(
-    chalk.bold(
+    picocolors.bold(
       "Any funds sent to them on Mainnet or any other live network WILL BE LOST."
     )
   );
@@ -51,8 +51,12 @@ function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
     !Array.isArray(networkConfig.accounts) &&
     networkConfig.accounts.mnemonic === HARDHAT_NETWORK_MNEMONIC;
 
-  const { bufferToHex, privateToAddress, toBuffer, toChecksumAddress } =
-    require("@nomicfoundation/ethereumjs-util") as typeof EthereumjsUtilT;
+  const {
+    bytesToHex: bufferToHex,
+    privateToAddress,
+    toBytes,
+    toChecksumAddress,
+  } = require("@nomicfoundation/ethereumjs-util") as typeof EthereumjsUtilT;
 
   console.log("Accounts");
   console.log("========");
@@ -69,7 +73,7 @@ function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
 
   for (const [index, account] of accounts.entries()) {
     const address = toChecksumAddress(
-      bufferToHex(privateToAddress(toBuffer(account.privateKey)))
+      bufferToHex(privateToAddress(toBytes(account.privateKey)))
     );
 
     const balance = (BigInt(account.balance) / 10n ** 18n).toString(10);
@@ -77,7 +81,7 @@ function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
     let entry = `Account #${index}: ${address} (${balance} ETH)`;
 
     if (isDefaultConfig) {
-      const privateKey = bufferToHex(toBuffer(account.privateKey));
+      const privateKey = bufferToHex(toBytes(account.privateKey));
       entry += `
 Private Key: ${privateKey}`;
     }
@@ -233,7 +237,7 @@ subtask(TASK_NODE_SERVER_READY)
       { config }
     ) => {
       console.log(
-        chalk.green(
+        picocolors.green(
           `Started HTTP and WebSocket JSON-RPC server at http://${address}:${port}/`
         )
       );
@@ -335,7 +339,7 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
           watcher = await watchCompilerOutput(provider, config.paths);
         } catch (error) {
           console.warn(
-            chalk.yellow(
+            picocolors.yellow(
               "There was a problem watching the compiler output, changes in the contracts won't be reflected in the Hardhat Network. Run Hardhat with --verbose to learn more."
             )
           );

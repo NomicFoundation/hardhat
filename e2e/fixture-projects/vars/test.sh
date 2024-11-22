@@ -4,7 +4,7 @@
 set -e
 
 # import helpers functions
-. ../../helpers.sh
+. ../helpers.sh
 
 echo "Running tests: $(basename "$(pwd)")"
 

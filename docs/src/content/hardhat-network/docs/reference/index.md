@@ -13,6 +13,7 @@
 - grayGlacier
 - merge
 - shanghai
+- cancun
 
 ## Config
 
@@ -65,7 +66,7 @@ The block gas limit to use in Hardhat Network's blockchain. Default value: `30_0
 
 #### `hardfork`
 
-This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul"`, `"muirGlacier"`, `"berlin"`, `"london"`, `"arrowGlacier"`, `"grayGlacier"`, `"merge"` and `"shanghai"`. Default value: `"shanghai"`
+This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul"`, `"muirGlacier"`, `"berlin"`, `"london"`, `"arrowGlacier"`, `"grayGlacier"`, `"merge"`, `"shanghai"` and `"cancun"`. Default value: `"cancun"`
 
 #### `throwOnTransactionFailures`
 
@@ -120,6 +121,10 @@ The `baseFeePerGas` of the first block. Note that when forking a remote network,
 #### `coinbase`
 
 The address used as coinbase in new blocks. Default value: `"0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e"`.
+
+#### `enableRip7212`
+
+A flag indicating whether to enable [RIP-7212 (Precompile for secp256r1 Curve Support)](https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md). Default value: `false`.
 
 ### Mining modes
 

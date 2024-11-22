@@ -1,24 +1,20 @@
 # Deploying your contracts
 
-:::tip
+To deploy your contracts, you can use [Hardhat Ignition](/ignition), our declarative deployment system. You can deploy the `Lock` contract from the sample project by using its accompanying Ignition module. An Ignition module is a TypeScript or JavaScript file that allows you to specify what needs to be deployed.
 
-Try [Hardhat Ignition](/ignition) for your deployments! Our new declarative system for deploying smart contracts without getting caught up in execution details.
-
-:::
-
-When it comes to deploying, you can use a deployment system like [Hardhat Ignition](/ignition) or you can deploy your smart contracts using scripts. You can deploy the `Lock` contract from the sample project with a deployment script like this:
+In the sample project, the Ignition module `LockModule` which deploys the `Lock` contract, is under the `./ignition/modules` directory and looks like this:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
 :::tab{value="TypeScript"}
 
-<<< @/../packages/hardhat-core/sample-projects/typescript/scripts/deploy.ts
+<<< @/../packages/hardhat-core/sample-projects/typescript/ignition/modules/Lock.ts
 
 :::
 
 :::tab{value="JavaScript"}
 
-<<< @/../packages/hardhat-core/sample-projects/javascript/scripts/deploy.js
+<<< @/../packages/hardhat-core/sample-projects/javascript/ignition/modules/Lock.js
 
 :::
 
@@ -32,14 +28,14 @@ You can deploy in the `localhost` network following these steps:
    npx hardhat node
    ```
 
-2. Open a new terminal and deploy the smart contract in the `localhost` network
+2. Open a new terminal and deploy the Hardhat Ignition module in the `localhost` network
 
    ::::tabsgroup{options="TypeScript,JavaScript"}
 
    :::tab{value="TypeScript"}
 
    ```
-   npx hardhat run --network localhost scripts/deploy.ts
+   npx hardhat ignition deploy ./ignition/modules/Lock.ts --network localhost
    ```
 
    :::
@@ -47,7 +43,7 @@ You can deploy in the `localhost` network following these steps:
    :::tab{value="JavaScript"}
 
    ```
-   npx hardhat run --network localhost scripts/deploy.js
+   npx hardhat ignition deploy ./ignition/modules/Lock.js --network localhost
    ```
 
    :::
@@ -57,5 +53,11 @@ You can deploy in the `localhost` network following these steps:
 As general rule, you can target any network from your Hardhat config using:
 
 ```
-npx hardhat run --network <your-network> scripts/deploy.js
+npx hardhat ignition deploy ./ignition/modules/Lock.js --network <your-network>
 ```
+
+If no network is specified, Hardhat Ignition will run against an in-memory instance of Hardhat Network.
+
+In the sample `LockModule` above, two module parameters are used: `unlockTime` which will default to the 1st of Jan 2030 and `lockedAmount` which will default to one Gwei. You can learn more about overriding these values by providing your own module parameters during deployment in our [Deploying a module](/ignition/docs/guides/deploy#defining-parameters-during-deployment) guide.
+
+Read more about Hardhat Ignition generally in the [Hardhat Ignition documentation](/ignition).

@@ -64,10 +64,10 @@ describe("Integration tests", function () {
         const fromAddress = fromWalletClient.account.address;
         const toAddress = toWalletClient.account.address;
 
-        const fromBalanceBefore: bigint = await publicClient.getBalance({
+        const fromBalanceBefore = await publicClient.getBalance({
           address: fromAddress,
         });
-        const toBalanceBefore: bigint = await publicClient.getBalance({
+        const toBalanceBefore = await publicClient.getBalance({
           address: toAddress,
         });
 
@@ -79,10 +79,10 @@ describe("Integration tests", function () {
         const receipt = await publicClient.waitForTransactionReceipt({ hash });
         const transactionFee = receipt.gasUsed * receipt.effectiveGasPrice;
 
-        const fromBalanceAfter: bigint = await publicClient.getBalance({
+        const fromBalanceAfter = await publicClient.getBalance({
           address: fromAddress,
         });
-        const toBalanceAfter: bigint = await publicClient.getBalance({
+        const toBalanceAfter = await publicClient.getBalance({
           address: toAddress,
         });
 
@@ -141,7 +141,7 @@ describe("Integration tests", function () {
         const contract = await this.hre.viem.deployContract(
           "WithoutConstructorArgs",
           [],
-          { walletClient: secondWalletClient }
+          { client: { wallet: secondWalletClient } }
         );
 
         const owner = await contract.read.getOwner();
@@ -179,6 +179,59 @@ describe("Integration tests", function () {
           ownerBalanceAfter,
           ownerBalanceBefore - etherAmount - transactionFee
         );
+      });
+
+      it("should be able to deploy a contract with normal library linked", async function () {
+        const normalLibContract = await this.hre.viem.deployContract(
+          "NormalLib"
+        );
+
+        const contract = await this.hre.viem.deployContract(
+          "OnlyNormalLib",
+          [],
+          {
+            libraries: {
+              NormalLib: normalLibContract.address,
+            },
+          }
+        );
+
+        await expect(contract.read.getNumber([2n])).to.eventually.equal(4n);
+      });
+
+      it("should be able to deploy a contract with constructor library linked", async function () {
+        const ctorLibContract = await this.hre.viem.deployContract(
+          "contracts/WithLibs.sol:ConstructorLib"
+        );
+
+        const contract = await this.hre.viem.deployContract(
+          "OnlyConstructorLib",
+          [2n],
+          {
+            libraries: {
+              ConstructorLib: ctorLibContract.address,
+            },
+          }
+        );
+
+        await expect(contract.read.getNumber([])).to.eventually.equal(8n);
+      });
+
+      it("should be able to deploy a contract with both normal and constructor libraries linked", async function () {
+        const [ctorLibContract, normalLibContract] = await Promise.all([
+          this.hre.viem.deployContract("contracts/WithLibs.sol:ConstructorLib"),
+          this.hre.viem.deployContract("NormalLib"),
+        ]);
+
+        const contract = await this.hre.viem.deployContract("BothLibs", [3n], {
+          libraries: {
+            ConstructorLib: ctorLibContract.address,
+            NormalLib: normalLibContract.address,
+          },
+        });
+
+        await expect(contract.read.getNumber([])).to.eventually.equal(12n);
+        await expect(contract.read.getNumber([5n])).to.eventually.equal(10n);
       });
 
       it("should throw an error if the contract address can't be retrieved", async function () {
@@ -278,6 +331,101 @@ describe("Integration tests", function () {
           "deployContract does not support 0 confirmations. Use sendDeploymentTransaction if you want to handle the deployment transaction yourself."
         );
       });
+
+      it("should throw if there are any missing libraries", async function () {
+        await expect(
+          this.hre.viem.deployContract("OnlyNormalLib", [], {})
+        ).to.be.rejectedWith(
+          `The libraries needed are:\n\t* "contracts/WithLibs.sol:NormalLib"\nPlease deploy them first and link them while deploying "OnlyNormalLib"`
+        );
+      });
+
+      it("should throw if there are libraries that are not needed", async function () {
+        const ctorLibContract = await this.hre.viem.deployContract(
+          "contracts/WithLibs.sol:ConstructorLib"
+        );
+
+        await expect(
+          this.hre.viem.deployContract("NormalLib", [], {
+            libraries: {
+              ConstructorLib: ctorLibContract.address,
+            },
+          })
+        ).to.be.rejectedWith(
+          `The library name "ConstructorLib" was linked but it's not referenced by the "NormalLib" contract.`
+        );
+
+        const numberLibContract = await this.hre.viem.deployContract(
+          "NormalLib"
+        );
+
+        await expect(
+          this.hre.viem.deployContract("OnlyConstructorLib", [], {
+            libraries: {
+              ConstructorLib: ctorLibContract.address,
+              NormalLib: numberLibContract.address,
+            },
+          })
+        ).to.be.rejectedWith(
+          `The library name "NormalLib" was linked but it's not referenced by the "OnlyConstructorLib" contract.`
+        );
+      });
+
+      it("should throw if there are too ambiguous libraries linked", async function () {
+        const externalCtorLibContract = await this.hre.viem.deployContract(
+          "contracts/ConstructorLib.sol:ConstructorLib"
+        );
+        const ctorLibContract = await this.hre.viem.deployContract(
+          "contracts/WithLibs.sol:ConstructorLib"
+        );
+
+        await expect(
+          this.hre.viem.deployContract("BothConstructorLibs", [1n], {
+            libraries: {
+              ConstructorLib: ctorLibContract.address,
+            },
+          })
+        ).to.be.rejectedWith(
+          `The library name "ConstructorLib" is ambiguous for the contract "BothConstructorLibs".
+It may resolve to one of the following libraries:
+
+\t* contracts/ConstructorLib.sol:ConstructorLib,
+\t* contracts/WithLibs.sol:ConstructorLib
+
+To fix this, choose one of these fully qualified library names and replace where appropriate.`
+        );
+
+        await expect(
+          this.hre.viem.deployContract("BothConstructorLibs", [1n], {
+            libraries: {
+              "contracts/ConstructorLib.sol:ConstructorLib":
+                externalCtorLibContract.address,
+              ConstructorLib: ctorLibContract.address,
+            },
+          })
+        ).to.be
+          .rejectedWith(`The library name "ConstructorLib" is ambiguous for the contract "BothConstructorLibs".
+It may resolve to one of the following libraries:
+
+\t* contracts/ConstructorLib.sol:ConstructorLib,
+\t* contracts/WithLibs.sol:ConstructorLib
+
+To fix this, choose one of these fully qualified library names and replace where appropriate.`);
+
+        const contract = await this.hre.viem.deployContract(
+          "BothConstructorLibs",
+          [2n],
+          {
+            libraries: {
+              "contracts/ConstructorLib.sol:ConstructorLib":
+                externalCtorLibContract.address,
+              "contracts/WithLibs.sol:ConstructorLib": ctorLibContract.address,
+            },
+          }
+        );
+
+        await expect(contract.read.getNumber([])).to.eventually.equal(64n);
+      });
     });
 
     describe("sendDeploymentTransaction", function () {
@@ -300,6 +448,38 @@ describe("Integration tests", function () {
         const data = await contract.read.getData();
         assert.equal(data, 50n);
       });
+    });
+
+    it("should return the contract with linked libraries and the deployment transaction", async function () {
+      const publicClient = await this.hre.viem.getPublicClient();
+      const normalLib = await this.hre.viem.sendDeploymentTransaction(
+        "NormalLib",
+        []
+      );
+
+      const { contractAddress: libContractAddress } =
+        await publicClient.waitForTransactionReceipt({
+          hash: normalLib.deploymentTransaction.hash,
+        });
+
+      assert.isNotNull(
+        libContractAddress,
+        "library contract should be deployed"
+      );
+
+      const { contract, deploymentTransaction } =
+        await this.hre.viem.sendDeploymentTransaction("OnlyNormalLib", [], {
+          libraries: { NormalLib: libContractAddress! },
+        });
+      assert.exists(contract);
+      assert.exists(deploymentTransaction);
+
+      const { contractAddress } = await publicClient.waitForTransactionReceipt({
+        hash: deploymentTransaction.hash,
+      });
+      assert.equal(contract.address, getAddress(contractAddress!));
+
+      await expect(contract.read.getNumber([50n])).to.eventually.equal(100n);
     });
   });
 

@@ -1,6 +1,6 @@
 export const PANIC_CODES = {
   ASSERTION_ERROR: 0x1,
-  ARITHMETIC_UNDER_OR_OVERFLOW: 0x11,
+  ARITHMETIC_OVERFLOW: 0x11,
   DIVISION_BY_ZERO: 0x12,
   ENUM_CONVERSION_OUT_OF_BOUNDS: 0x21,
   INCORRECTLY_ENCODED_STORAGE_BYTE_ARRAY: 0x22,
@@ -16,7 +16,7 @@ export function panicErrorCodeToReason(errorCode: bigint): string | undefined {
     case 0x1n:
       return "Assertion error";
     case 0x11n:
-      return "Arithmetic operation underflowed or overflowed outside of an unchecked block";
+      return "Arithmetic operation overflowed outside of an unchecked block";
     case 0x12n:
       return "Division or modulo division by zero";
     case 0x21n:

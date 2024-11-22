@@ -1,5 +1,5 @@
 import os from "os";
-import chalk from "chalk";
+import picocolors from "picocolors";
 import debug from "debug";
 import fsExtra from "fs-extra";
 import semver from "semver";
@@ -345,7 +345,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS)
  * Receives a list of compilation jobs and returns a new list where some of
  * the compilation jobs might've been removed.
  *
- * This task can be overriden to change the way the cache is used, or to use
+ * This task can be overridden to change the way the cache is used, or to use
  * a different approach to filtering out compilation jobs.
  */
 subtask(TASK_COMPILE_SOLIDITY_FILTER_COMPILATION_JOBS)
@@ -674,9 +674,26 @@ subtask(TASK_COMPILE_SOLIDITY_RUN_SOLCJS)
 subtask(TASK_COMPILE_SOLIDITY_RUN_SOLC)
   .addParam("input", undefined, undefined, types.any)
   .addParam("solcPath", undefined, undefined, types.string)
+  .addOptionalParam("solcVersion", undefined, undefined, types.string)
   .setAction(
-    async ({ input, solcPath }: { input: CompilerInput; solcPath: string }) => {
-      const compiler = new NativeCompiler(solcPath);
+    async ({
+      input,
+      solcPath,
+      solcVersion,
+    }: {
+      input: CompilerInput;
+      solcPath: string;
+      solcVersion?: string;
+    }) => {
+      if (solcVersion !== undefined && semver.valid(solcVersion) === null) {
+        throw new HardhatError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+          value: solcVersion,
+          name: "solcVersion",
+          type: "string",
+        });
+      }
+
+      const compiler = new NativeCompiler(solcPath, solcVersion);
 
       return compiler.compile(input);
     }
@@ -740,6 +757,7 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_SOLC)
         output = await run(TASK_COMPILE_SOLIDITY_RUN_SOLC, {
           input,
           solcPath: solcBuild.compilerPath,
+          solcVersion,
         });
       }
 
@@ -782,11 +800,15 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
           getFormattedInternalCompilerErrorMessage(error) ??
           error.formattedMessage;
 
-        console.error(errorMessage.replace(/^\w+:/, (t) => chalk.red.bold(t)));
+        console.error(
+          errorMessage.replace(/^\w+:/, (t) =>
+            picocolors.bold(picocolors.red(t))
+          )
+        );
       } else {
         console.warn(
           (error.formattedMessage as string).replace(/^\w+:/, (t) =>
-            chalk.yellow.bold(t)
+            picocolors.bold(picocolors.yellow(t))
           )
         );
       }
@@ -795,7 +817,7 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
     const hasConsoleErrors: boolean = output.errors.some(isConsoleLogError);
     if (hasConsoleErrors) {
       console.error(
-        chalk.red(
+        picocolors.red(
           `The console.log call you made isn’t supported. See https://hardhat.org/console-log for the list of supported methods.`
         )
       );
@@ -1134,7 +1156,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
           const { versionPragmas } = error.file.content;
           const versionsRange = versionPragmas.join(" ");
 
-          log(`File ${sourceName} has an incompatible overriden compiler`);
+          log(`File ${sourceName} has an incompatible overridden compiler`);
 
           errorMessage += `  * ${sourceName} (${versionsRange})\n`;
         }

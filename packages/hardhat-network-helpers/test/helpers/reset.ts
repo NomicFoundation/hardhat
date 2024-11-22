@@ -1,9 +1,7 @@
 import { assert } from "chai";
-
 import * as hh from "../../src";
 import { INFURA_URL } from "../setup";
 import { useEnvironment } from "../test-utils";
-
 describe("resetWithoutFork", function () {
   useEnvironment("simple");
 
@@ -26,12 +24,12 @@ describe("resetWithoutFork", function () {
 
     const mainnetBlockNumber = await hh.time.latestBlock();
 
-    // fork goerli
-    await hh.reset(INFURA_URL.replace("mainnet", "goerli"));
+    // fork sepolia
+    await hh.reset(INFURA_URL.replace("mainnet", "sepolia"));
 
-    const goerliBlockNumber = await hh.time.latestBlock();
+    const sepoliaBlockNumber = await hh.time.latestBlock();
 
-    const blockNumberDelta = Math.abs(mainnetBlockNumber - goerliBlockNumber);
+    const blockNumberDelta = Math.abs(mainnetBlockNumber - sepoliaBlockNumber);
 
     // check that there is a significative difference between the latest
     // block numbers of each chain
@@ -54,5 +52,15 @@ describe("resetWithoutFork", function () {
     await hh.reset(INFURA_URL, mainnetBlockNumber - 1000);
     const olderMainnetBlockNumber = await hh.time.latestBlock();
     assert.equal(olderMainnetBlockNumber, mainnetBlockNumber - 1000);
+  });
+});
+
+describe("should clear snapshot upon reset", function () {
+  useEnvironment("simple");
+  it("checks if the snapshot is cleared upon hardhat_reset", async function () {
+    const snapshotBeforeReset = await hh.takeSnapshot();
+    await hh.reset();
+    const snapshotAfterReset = await hh.takeSnapshot();
+    assert.equal(snapshotBeforeReset.snapshotId, snapshotAfterReset.snapshotId);
   });
 });

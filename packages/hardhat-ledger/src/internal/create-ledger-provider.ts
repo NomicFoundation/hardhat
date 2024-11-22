@@ -8,8 +8,12 @@ export function createLedgerProvider(
   networkConfig: NetworkConfig
 ): LedgerProvider {
   const accounts = networkConfig.ledgerAccounts;
+  const derivationFunction = networkConfig.ledgerOptions?.derivationFunction;
 
-  const ledgerProvider = new LedgerProvider({ accounts }, provider);
+  const ledgerProvider = new LedgerProvider(
+    { accounts, derivationFunction },
+    provider
+  );
 
   return withSpinners(ledgerProvider);
 }

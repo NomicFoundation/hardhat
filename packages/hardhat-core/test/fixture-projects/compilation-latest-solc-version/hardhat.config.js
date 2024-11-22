@@ -1,3 +1,3 @@
 module.exports = {
-  solidity: "0.8.23",
+  solidity: "0.8.28",
 };

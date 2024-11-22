@@ -73,18 +73,37 @@ describe("Ethers plugin", function () {
             "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
           );
         });
+
+        it("should return an empty array of signers if `eth_accounts` is deprecated", async function () {
+          const originalSend = this.env.ethers.provider.send;
+
+          this.env.ethers.provider.send = async function (
+            method: string,
+            params: any
+          ) {
+            if (method === "eth_accounts") {
+              throw new Error("the method has been deprecated: eth_accounts");
+            }
+
+            return originalSend.call(this, method, params);
+          };
+
+          const sigs = await this.env.ethers.getSigners();
+
+          assert.deepStrictEqual(sigs, []);
+        });
       });
 
       describe("getImpersonatedSigner", function () {
         it("should return the working impersonated signer", async function () {
           const [signer] = await this.env.ethers.getSigners();
-          const address = `0x${"ff".repeat(20)}`;
+          const randomAddress = `0xe7d45f52130a5634f19346a3e5d32994ad821750`;
           const impersonatedSigner =
-            await this.env.ethers.getImpersonatedSigner(address);
+            await this.env.ethers.getImpersonatedSigner(randomAddress);
 
           assert.strictEqual(
-            impersonatedSigner.address,
-            "0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF"
+            impersonatedSigner.address.toLowerCase(),
+            randomAddress
           );
 
           // fund impersonated account

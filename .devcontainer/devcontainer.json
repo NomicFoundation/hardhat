@@ -1,15 +1,22 @@
 {
-  "name": "Hardhat + EDR",
+  "name": "Hardhat",
   "image": "mcr.microsoft.com/devcontainers/base:bullseye",
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
-      "version": "16" /* Keep in sync with the oldest version of Node.js that Hardhat supports */
-    },
-    "ghcr.io/devcontainers/features/rust:1": {
-      "version": "1.70" /* Keep in sync with rust-toolchain */,
-      "profile": "default"
+      "version": "18"
     }
   },
-  /* libudev-dev is required by hardhat-ledger. pkg-config is required by EDR to use OpenSSL */
-  "postCreateCommand": "sudo apt update && sudo apt install -y libudev-dev pkg-config"
+  "postCreateCommand": "scripts/setup.sh",
+  "containerEnv": {
+    "ALCHEMY_URL": "${localEnv:ALCHEMY_URL}",
+    "INFURA_URL": "${localEnv:INFURA_URL}"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "esbenp.prettier-vscode",
+        "NomicFoundation.hardhat-solidity"
+      ]
+    }
+  }
 }

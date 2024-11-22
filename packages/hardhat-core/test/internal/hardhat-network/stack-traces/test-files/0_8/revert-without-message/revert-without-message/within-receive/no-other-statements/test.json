@@ -14,7 +14,7 @@
             "contract": "C",
             "file": "c.sol",
             "function": "<receive>",
-            "line": 8
+            "line": 10
           }
         }
       ]

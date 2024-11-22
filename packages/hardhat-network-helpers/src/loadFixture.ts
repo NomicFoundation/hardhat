@@ -68,3 +68,10 @@ export async function loadFixture<T>(fixture: Fixture<T>): Promise<T> {
     return data;
   }
 }
+
+/**
+ * Clears every existing snapshot.
+ */
+export async function clearSnapshots() {
+  snapshots = [];
+}

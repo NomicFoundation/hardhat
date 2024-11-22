@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import picocolors from "picocolors";
 import debug from "debug";
 import { HardhatError, assertHardhatInvariant } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
@@ -35,7 +35,7 @@ export async function handleVars(
     case "setup":
       return setup(configPath);
     default:
-      console.error(chalk.red(`Invalid task '${taskDefinition.name}'`));
+      console.error(picocolors.red(`Invalid task '${taskDefinition.name}'`));
       return 1; // Error code
   }
 }
@@ -65,7 +65,7 @@ function get(key: string): number {
   }
 
   console.warn(
-    chalk.yellow(
+    picocolors.yellow(
       `The configuration variable '${key}' is not set in ${HardhatContext.getHardhatContext().varsManager.getStoragePath()}`
     )
   );
@@ -88,7 +88,7 @@ function list(): number {
   } else {
     if (process.stdout.isTTY) {
       console.warn(
-        chalk.yellow(
+        picocolors.yellow(
           `There are no configuration variables stored in ${varsStoragePath}`
         )
       );
@@ -112,7 +112,7 @@ function del(key: string): number {
   }
 
   console.warn(
-    chalk.yellow(
+    picocolors.yellow(
       `There is no configuration variable '${key}' to delete from ${varsStoragePath}`
     )
   );
@@ -137,7 +137,7 @@ function setup(configPath: string | undefined) {
     loadConfigFile(configPath);
   } catch (err: any) {
     console.error(
-      chalk.red(
+      picocolors.red(
         "There is an error in your Hardhat configuration file. Please double check it.\n"
       )
     );
@@ -187,7 +187,7 @@ function listVarsToSetup(varsManagerSetup: VarsManagerSetup) {
 
   if (requiredKeysToSet.length === 0 && optionalKeysToSet.length === 0) {
     console.log(
-      chalk.green(
+      picocolors.green(
         "There are no configuration variables that need to be set for this project"
       )
     );
@@ -198,7 +198,7 @@ function listVarsToSetup(varsManagerSetup: VarsManagerSetup) {
 
   if (requiredKeysToSet.length > 0) {
     console.log(
-      chalk.bold(
+      picocolors.bold(
         `${emoji("❗ ")}The following configuration variables need to be set:\n`
       )
     );
@@ -210,7 +210,7 @@ function listVarsToSetup(varsManagerSetup: VarsManagerSetup) {
 
   if (optionalKeysToSet.length > 0) {
     console.log(
-      chalk.bold(
+      picocolors.bold(
         `${emoji("💡 ")}The following configuration variables are optional:\n`
       )
     );
@@ -237,7 +237,7 @@ function printAlreadySetKeys(varsManagerSetup: VarsManagerSetup) {
   }
 
   console.log(
-    `${chalk.bold(`${emoji("✔️  ")}Configuration variables already set:`)}`
+    `${picocolors.bold(`${emoji("✔️  ")}Configuration variables already set:`)}`
   );
   console.log();
 

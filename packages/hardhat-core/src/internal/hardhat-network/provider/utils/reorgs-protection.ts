@@ -8,22 +8,22 @@
 export function getLargestPossibleReorg(networkId: number): bigint | undefined {
   // mainnet
   if (networkId === 1) {
-    return 5n;
+    return 32n;
   }
 
   // Kovan
   if (networkId === 42) {
-    return 5n;
+    return 32n;
   }
 
   // Goerli
   if (networkId === 5) {
-    return 5n;
+    return 32n;
   }
 
   // Rinkeby
   if (networkId === 4) {
-    return 5n;
+    return 32n;
   }
 
   // Ropsten
@@ -37,4 +37,4 @@ export function getLargestPossibleReorg(networkId: number): bigint | undefined {
   }
 }
 
-export const FALLBACK_MAX_REORG = 30n;
+export const FALLBACK_MAX_REORG = 128n;

@@ -4,6 +4,7 @@
 // eslint-disable
 
 import "hardhat/types/artifacts";
+import type { GetContractReturnType } from "@nomicfoundation/hardhat-viem/types";
 
 import { B$Type } from "./B";
 import { C$Type } from "./C";
@@ -14,5 +15,12 @@ declare module "hardhat/types/artifacts" {
     ["C"]: C$Type;
     ["contracts/C.sol:B"]: B$Type;
     ["contracts/C.sol:C"]: C$Type;
+  }
+
+  interface ContractTypesMap {
+    ["B"]: GetContractReturnType<B$Type["abi"]>;
+    ["C"]: GetContractReturnType<C$Type["abi"]>;
+    ["contracts/C.sol:B"]: GetContractReturnType<B$Type["abi"]>;
+    ["contracts/C.sol:C"]: GetContractReturnType<C$Type["abi"]>;
   }
 }

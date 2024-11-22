@@ -8,6 +8,7 @@ import {
 import {
   Compiler,
   CompilerDownloader,
+  CompilerPlatform,
 } from "../../../../src/internal/solidity/compiler/downloader";
 import { getCompilersDir } from "../../../../src/internal/util/global-dir";
 
@@ -163,24 +164,34 @@ async function getCompilerForVersion(
   solidityVersion: string
 ): Promise<Compiler> {
   const compilersCache = await getCompilersDir();
-  const compilerPlatform = CompilerDownloader.getCompilerPlatform();
   const downloader = CompilerDownloader.getConcurrencySafeDownloader(
-    compilerPlatform,
+    CompilerDownloader.getCompilerPlatform(),
     compilersCache
   );
+
   const compiler = await downloader.getCompiler(solidityVersion);
-  if (compiler === undefined) {
+  if (compiler !== undefined) {
+    return compiler;
+  }
+
+  const wasmDownloader = CompilerDownloader.getConcurrencySafeDownloader(
+    CompilerPlatform.WASM,
+    compilersCache
+  );
+
+  const wasmCompiler = await wasmDownloader.getCompiler(solidityVersion);
+
+  if (wasmCompiler === undefined) {
     throw new Error("Expected compiler to be downloaded");
   }
 
-  return compiler;
+  return wasmCompiler;
 }
 
-export async function downloadCompiler(solidityVersion: string) {
+export async function downloadCompiler(solidityVersion: string): Promise<void> {
   const compilersCache = await getCompilersDir();
-  const compilerPlatform = CompilerDownloader.getCompilerPlatform();
   const downloader = CompilerDownloader.getConcurrencySafeDownloader(
-    compilerPlatform,
+    CompilerDownloader.getCompilerPlatform(),
     compilersCache
   );
 
@@ -191,6 +202,30 @@ export async function downloadCompiler(solidityVersion: string) {
   if (!isCompilerDownloaded) {
     console.log("Downloading solc", solidityVersion);
     await downloader.downloadCompiler(
+      solidityVersion,
+      async () => {},
+      async () => {}
+    );
+  }
+
+  const compiler = await downloader.getCompiler(solidityVersion);
+
+  if (compiler !== undefined) {
+    return;
+  }
+
+  const wasmDownloader = CompilerDownloader.getConcurrencySafeDownloader(
+    CompilerPlatform.WASM,
+    compilersCache
+  );
+
+  const isWasmCompilerDownloaded = await downloader.isCompilerDownloaded(
+    solidityVersion
+  );
+
+  if (!isWasmCompilerDownloaded) {
+    console.log("Downloading solcjs", solidityVersion);
+    await wasmDownloader.downloadCompiler(
       solidityVersion,
       async () => {},
       async () => {}

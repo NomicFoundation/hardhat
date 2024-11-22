@@ -112,10 +112,10 @@ The first argument is the `Future` object for the contract you want to call, the
 
 In this example, the `m.call` returns a `Future` which we aren't assigning to any variable. This isn't a problem. Hardhat Ignition will execute every `Future` within a module, regardless of whether we store it or not.
 
-If you need to send ETH while calling a function, you can pass an object with options as the third argument to `m.contract`, and put in how much you want to send in the `value` field:
+If you need to send ETH while calling a function, you can pass an object with options as the fourth argument to `m.contract`, and put in how much you want to send in the `value` field:
 
 ```js
-m.call(myContract, "receivesEth" [], {
+m.call(myContract, "receivesEth", [], {
   value: 1_000_000_000n, // 1gwei
 });
 ```
@@ -203,7 +203,7 @@ You also have the option to set explicit dependencies between `Future` objects. 
 const token = m.contract("Token", ["My Token", "TKN", 18]);
 
 const receiver = m.contract("Receiver", [], {
-  after: token, // `receiver` is deployed after `token`
+  after: [token], // `receiver` is deployed after `token`
 });
 ```
 

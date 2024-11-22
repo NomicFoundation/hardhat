@@ -19,7 +19,7 @@ Use the tabs in the snippets to select your preferred package manager. We recomm
 
 ::::
 
-::::tabsgroup{options="npm 7+,npm 6,yarn"}
+::::tabsgroup{options="npm 7+,npm 6,yarn,pnpm"}
 
 :::tab{value="npm 7+"}
 
@@ -45,11 +45,19 @@ yarn init
 
 :::
 
+:::tab{value="pnpm"}
+
+```
+pnpm init
+```
+
+:::
+
 ::::
 
 Now we can install Hardhat:
 
-::::tabsgroup{options="npm 7+,npm 6,yarn"}
+::::tabsgroup{options="npm 7+,npm 6,yarn,pnpm"}
 
 :::tab{value="npm 7+"}
 
@@ -75,6 +83,14 @@ yarn add --dev hardhat
 
 :::
 
+:::tab{value="pnpm"}
+
+```
+pnpm add -D hardhat
+```
+
+:::
+
 ::::
 
 In the same directory where you installed Hardhat run:
@@ -85,7 +101,7 @@ npx hardhat init
 
 Select `Create an empty hardhat.config.js` with your keyboard and hit enter.
 
-```markup{16}
+```markup{17}
 $ npx hardhat init
 888    888                      888 888               888
 888    888                      888 888               888
@@ -101,7 +117,7 @@ $ npx hardhat init
 ? What do you want to do? …
   Create a JavaScript project
   Create a TypeScript project
-   Create a TypeScript project (with Viem)
+  Create a TypeScript project (with Viem)
 ❯ Create an empty hardhat.config.js
   Quit
 ```
@@ -130,7 +146,7 @@ In this tutorial we are going to use our recommended plugin, [`@nomicfoundation/
 
 To install it, run this in your project directory:
 
-::::tabsgroup{options="npm 7+,npm 6,yarn"}
+::::tabsgroup{options="npm 7+,npm 6,yarn,pnpm"}
 
 :::tab{value="npm 7+"}
 
@@ -143,7 +159,7 @@ npm install --save-dev @nomicfoundation/hardhat-toolbox
 :::tab{value="npm 6"}
 
 ```
-npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomicfoundation/hardhat-ethers @nomicfoundation/hardhat-verify chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v6
+npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-ignition @nomicfoundation/hardhat-ignition-ethers @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomicfoundation/hardhat-ethers @nomicfoundation/hardhat-verify chai@4 ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v6
 ```
 
 :::
@@ -151,7 +167,15 @@ npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat
 :::tab{value=yarn}
 
 ```
-yarn add --dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomicfoundation/hardhat-ethers @nomicfoundation/hardhat-verify chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v6
+yarn add --dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-ignition @nomicfoundation/hardhat-ignition-ethers @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomicfoundation/hardhat-ethers @nomicfoundation/hardhat-verify chai@4 ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v6
+```
+
+:::
+
+:::tab{value="pnpm"}
+
+```
+pnpm add -D @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-ignition @nomicfoundation/hardhat-network-helpers chai@4 ethers
 ```
 
 :::

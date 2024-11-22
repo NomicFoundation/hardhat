@@ -250,6 +250,11 @@ const customRedirects = [
     destination: "/hardhat-runner/docs/guides/command-line-completion",
     permanent: false,
   },
+  {
+    source: "/hardhat-runner/docs/guides/tasks-and-scripts",
+    destination: "/hardhat-runner/docs/guides/tasks",
+    permanent: false,
+  },
   // guides redirects, exceptions go first
   {
     source:
@@ -307,6 +312,12 @@ const customRedirects = [
   {
     source: "/hardhat-runner/plugins/nomiclabs-hardhat-ethers",
     destination: "/hardhat-runner/plugins/nomicfoundation-hardhat-ethers",
+    permanent: false,
+  },
+  {
+    source: "/release/:version",
+    destination:
+      "https://github.com/NomicFoundation/hardhat/releases/tag/hardhat%40:version",
     permanent: false,
   },
   ...loadErrorRedirects(),

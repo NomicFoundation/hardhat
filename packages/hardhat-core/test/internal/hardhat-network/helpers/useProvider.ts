@@ -6,8 +6,9 @@ import {
   ForkConfig,
   MempoolOrder,
 } from "../../../../src/internal/hardhat-network/provider/node-types";
-import { HardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";
+import { createHardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";
 import {
+  EIP1193Provider,
   EthereumProvider,
   HardhatNetworkMempoolConfig,
   HardhatNetworkMiningConfig,
@@ -25,12 +26,14 @@ import {
   DEFAULT_MEMPOOL_CONFIG,
   DEFAULT_USE_JSON_RPC,
 } from "./providers";
+import { isEdrProvider } from "./isEdrProvider";
 
 declare module "mocha" {
   interface Context {
     logger: FakeModulesLogger;
     provider: EthereumProvider;
-    hardhatNetworkProvider: HardhatNetworkProvider;
+    hardhatNetworkProvider: EIP1193Provider;
+    isEdr: boolean;
     server?: JsonRpcServer;
     serverInfo?: { address: string; port: number };
   }
@@ -73,8 +76,9 @@ export function useProvider({
   chains = defaultHardhatNetworkParams.chains,
 }: UseProviderOptions = {}) {
   beforeEach("Initialize provider", async function () {
-    this.logger = new FakeModulesLogger(loggerEnabled);
-    this.hardhatNetworkProvider = new HardhatNetworkProvider(
+    this.logger = new FakeModulesLogger();
+
+    this.hardhatNetworkProvider = await createHardhatNetworkProvider(
       {
         hardfork,
         chainId,
@@ -97,12 +101,19 @@ export function useProvider({
         coinbase,
         allowBlocksWithSameTimestamp,
         enableTransientStorage: false,
+        enableRip7212: false,
       },
-      this.logger
+      {
+        enabled: loggerEnabled,
+        printLineFn: this.logger.printLineFn(),
+        replaceLastLineFn: this.logger.replaceLastLineFn(),
+      }
     );
-    this.provider = new BackwardsCompatibilityProviderAdapter(
+
+    const provider = new BackwardsCompatibilityProviderAdapter(
       this.hardhatNetworkProvider
     );
+    this.provider = provider;
 
     if (useJsonRpc) {
       this.server = new JsonRpcServer({
@@ -116,6 +127,8 @@ export function useProvider({
         this.server.getProvider()
       );
     }
+
+    this.isEdr = isEdrProvider(provider);
   });
 
   afterEach("Remove provider", async function () {

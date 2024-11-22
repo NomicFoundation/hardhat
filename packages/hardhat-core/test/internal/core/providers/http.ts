@@ -1,8 +1,11 @@
-import { assert } from "chai";
+import { assert, expect } from "chai";
 import { MockAgent, MockPool } from "undici";
 
 import { HttpProvider } from "../../../../src/internal/core/providers/http";
+import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { SuccessfulJsonRpcResponse } from "../../../../src/internal/util/jsonrpc";
+import { expectHardhatError } from "../../../helpers/errors";
+import { ProviderError } from "../../../../src/internal/core/providers/errors";
 
 const TOO_MANY_REQUEST_STATUS = 429;
 
@@ -26,6 +29,20 @@ describe("HttpProvider", function () {
     id: 1,
     result: "whatever",
   };
+
+  describe("constructor()", function () {
+    it("should throw an error if network or forking URL is an empty string", async function () {
+      expectHardhatError(() => {
+        const emptyURL = "";
+        new HttpProvider(emptyURL, networkName, {}, 20000);
+      }, ERRORS.NETWORK.EMPTY_URL);
+
+      expectHardhatError(() => {
+        const emptyURLwithWhitespace = " ";
+        new HttpProvider(emptyURLwithWhitespace, networkName, {}, 20000);
+      }, ERRORS.NETWORK.EMPTY_URL);
+    });
+  });
 
   describe("request()", function () {
     it("should call mock pool's request()", async function () {
@@ -76,6 +93,20 @@ describe("HttpProvider", function () {
       const result = await provider.request({ method: "net_version" });
       assert.equal(result, successResponse.result);
       assert(tooManyRequestsReturned);
+    });
+
+    it("should throw an error if it receives hardhat_setLedgerOutputEnabled as a method", async function () {
+      const mockPool = makeMockPool(url);
+      mockPool
+        .intercept({ method: "POST", path: "/" })
+        .reply(200, successResponse);
+      const provider = new HttpProvider(url, networkName, {}, 20000, mockPool);
+      await expect(
+        provider.request({ method: "hardhat_setLedgerOutputEnabled" })
+      ).to.be.eventually.rejectedWith(
+        ProviderError,
+        "hardhat_setLedgerOutputEnabled - Method not supported"
+      );
     });
   });
 });

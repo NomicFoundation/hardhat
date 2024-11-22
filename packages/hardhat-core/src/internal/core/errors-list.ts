@@ -251,7 +251,7 @@ This bug can only affect you if you, or someone at your team, installed the proj
 To avoid it, please delete both your node_modules and package-lock.json, and reinstall your project.
 
 Note that you don't need to do this every time you install a new dependency, but please make sure to delete your node_modules every time you delete your package-lock.json.`,
-      shouldBeReported: false,
+      shouldBeReported: true,
     },
     ESM_PROJECT_WITHOUT_CJS_CONFIG: {
       number: 19,
@@ -475,6 +475,17 @@ Please double check your transactions' parameters.`,
 Please check that you are sending an \`address\` parameter.`,
       shouldBeReported: false,
     },
+    EMPTY_URL: {
+      number: 117,
+      message:
+        "Empty string `%value%` for network or forking URL - Expected a non-empty string.",
+      title:
+        "Empty string `%value%` for network or forking URL - Expected a non-empty string.",
+      description: `You are trying to connect to a network with an empty network or forking URL.
+
+Please check that you are sending a non-empty string for network or forking \`URL\` parameter.`,
+      shouldBeReported: false,
+    },
   },
   TASK_DEFINITIONS: {
     PARAM_AFTER_VARIADIC: {
@@ -541,7 +552,7 @@ Please use \`runSuper.isDefined\` to make sure that you can call it.`,
     DEFAULT_VALUE_WRONG_TYPE: {
       number: 206,
       message:
-        "Default value for param %paramName% of task %taskName% doesn't match the default one, try specifying it.",
+        "Default value for param %paramName% of task %taskName% doesn't match its expected type.",
       title: "Default value has incorrect type",
       description: `One of your tasks has a parameter whose default value doesn't match the expected type.
 
@@ -1018,6 +1029,13 @@ If this error persists, run "npx hardhat clean --global".`,
 If you are running MacOS, try installing Apple Rosetta.
 
 If this error persists, run "npx hardhat clean --global".`,
+      shouldBeReported: false,
+    },
+    SOLCJS_ERROR: {
+      number: 506,
+      message: "Error running solcjs: %error%",
+      title: "Error running solcjs",
+      description: `There was an error while running the solcjs compiler.`,
       shouldBeReported: false,
     },
   },

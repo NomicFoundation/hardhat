@@ -36,7 +36,7 @@ export const defaultHardhatNetworkParams: Omit<
   HardhatNetworkConfig,
   "gas" | "initialDate"
 > = {
-  hardfork: HardforkName.SHANGHAI,
+  hardfork: HardforkName.CANCUN,
   blockGasLimit: 30_000_000,
   gasPrice: HARDHAT_NETWORK_DEFAULT_GAS_PRICE,
   chainId: 31337,
@@ -76,6 +76,7 @@ export const defaultHardhatNetworkParams: Omit<
           [HardforkName.GRAY_GLACIER, 15_050_000],
           [HardforkName.MERGE, 15_537_394],
           [HardforkName.SHANGHAI, 17_034_870],
+          [HardforkName.CANCUN, 19_426_589],
         ]),
       },
     ],
@@ -127,6 +128,43 @@ export const defaultHardhatNetworkParams: Omit<
           [HardforkName.BERLIN, 24770900],
           [HardforkName.LONDON, 26741100],
         ]),
+      },
+    ],
+    [
+      11155111, // sepolia
+      {
+        hardforkHistory: new Map([
+          [HardforkName.GRAY_GLACIER, 0],
+          [HardforkName.MERGE, 1_450_409],
+          [HardforkName.SHANGHAI, 2_990_908],
+          [HardforkName.CANCUN, 5_187_023],
+        ]),
+      },
+    ],
+    // TODO: the rest of this config is a temporary workaround,
+    // see https://github.com/NomicFoundation/edr/issues/522
+    [
+      10, // optimism mainnet
+      {
+        hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]),
+      },
+    ],
+    [
+      11155420, // optimism sepolia
+      {
+        hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]),
+      },
+    ],
+    [
+      42161, // arbitrum one
+      {
+        hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]),
+      },
+    ],
+    [
+      421614, // arbitrum sepolia
+      {
+        hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]),
       },
     ],
   ]),

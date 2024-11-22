@@ -1,4 +1,4 @@
-# !/usr/bin/env bash
+#!/usr/bin/env bash
 # fail if any commands fails
 set -e
 
@@ -21,20 +21,33 @@ create_package_json() {
 EOF
 }
 
+assert_no_empty_files() {
+  for file in $(find . -maxdepth 1 -type f); do
+    if [ ! -s $file ]; then
+      echo "File $file is empty, this should not happen"
+      exit 1
+    fi
+  done
+}
+
 # build hardhat-core
 echo "[e2e] Building and packing hardhat-core"
 cd ../packages/hardhat-core
 pnpm install
 pnpm build
-HARDHAT_TGZ_FILE=$(pnpm pack)
+HARDHAT_TGZ_FILE=$(pnpm pack | grep "hardhat-*.*.*.tgz")
 echo "[e2e] Built $HARDHAT_TGZ_FILE"
 cd - >/dev/null
 
 # create a temporary directory to run the tests
-TESTS_DIR=projects-initialization-tests-$(date +%Y-%m-%d-%H-%M-%S)
+TMP_DIR=$(mktemp -d)
+TESTS_DIR="${TMP_DIR}/projects-initialization-tests-$(date +%Y-%m-%d-%H-%M-%S)"
 mkdir $TESTS_DIR
 
-echo "[e2e] Starting e2e initialization tests in $TESTS_DIR\n\n"
+# store the path to hardhat-core so it can be used in the tmp folder
+HARDHAT_CORE_FOLDER_PATH="$(pwd)/../packages/hardhat-core"
+
+printf "[e2e] Starting e2e initialization tests in $TESTS_DIR\n\n"
 
 pkg_managers="npm pnpm yarn"
 
@@ -45,17 +58,30 @@ for pkg_manager in $pkg_managers; do
 done
 
 for pkg_manager in $pkg_managers; do
-  echo "\n\n[e2e] Running tests with package manager: $pkg_manager"
+  pkg_runner=$pkg_manager
+  if [ "$pkg_manager" = "npm" ]; then
+    pkg_runner="npx"
+  fi
+
+  if [ "$pkg_manager" = "pnpm" ] && [ "$IS_WINDOWS" = "true" ]; then
+    # TODO: There is a bug with pnpm on Windows; the HH initialization runs twice. Skip pnpm on Windows for the moment.
+    continue
+  fi
+
+  printf "\n\n[e2e] Running tests with package manager '$pkg_manager' and package runner '$pkg_runner'\n"
 
   # pkg_manager, javascript, cjs
   echo "[e2e] Testing: $pkg_manager, javascript, cjs"
   mkdir ${TESTS_DIR}/${pkg_manager}-javascript-cjs
   cd ${TESTS_DIR}/${pkg_manager}-javascript-cjs
   create_package_json
-  $pkg_manager add ../../../packages/hardhat-core/$HARDHAT_TGZ_FILE >/dev/null 2>&1
-  HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS=true npx hardhat init
-  npx hardhat compile
-  npx hardhat test
+  $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
+  HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS=true $pkg_runner hardhat init
+  assert_no_empty_files
+  $pkg_runner hardhat compile
+  $pkg_runner hardhat test
+  $pkg_runner hardhat coverage
+  REPORT_GAS=true $pkg_runner hardhat test
   cd -
 
   # pkg_manager, javascript, esm
@@ -65,10 +91,13 @@ for pkg_manager in $pkg_managers; do
   create_package_json
   jq '. += {"type": "module"}' package.json >esm-package.json
   mv esm-package.json package.json
-  $pkg_manager add ../../../packages/hardhat-core/$HARDHAT_TGZ_FILE >/dev/null 2>&1
-  HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS=true npx hardhat init
-  npx hardhat compile
-  npx hardhat test
+  $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
+  HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS=true $pkg_runner hardhat init
+  assert_no_empty_files
+  $pkg_runner hardhat compile
+  $pkg_runner hardhat test
+  $pkg_runner hardhat coverage
+  REPORT_GAS=true $pkg_runner hardhat test
   cd -
 
   # pkg_manager, typescript, cjs
@@ -76,10 +105,13 @@ for pkg_manager in $pkg_managers; do
   mkdir ${TESTS_DIR}/${pkg_manager}-typescript-cjs
   cd ${TESTS_DIR}/${pkg_manager}-typescript-cjs
   create_package_json
-  $pkg_manager add ../../../packages/hardhat-core/$HARDHAT_TGZ_FILE >/dev/null 2>&1
-  HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS=true npx hardhat init
-  npx hardhat compile
-  npx hardhat test
+  $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
+  HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS=true $pkg_runner hardhat init
+  assert_no_empty_files
+  $pkg_runner hardhat compile
+  $pkg_runner hardhat test
+  $pkg_runner hardhat coverage
+  REPORT_GAS=true $pkg_runner hardhat test
   cd -
 
   # pkg_manager, typescript, esm
@@ -89,8 +121,8 @@ for pkg_manager in $pkg_managers; do
   create_package_json
   jq '. += {"type": "module"}' package.json >esm-package.json
   mv esm-package.json package.json
-  $pkg_manager add ../../../packages/hardhat-core/$HARDHAT_TGZ_FILE >/dev/null 2>&1
-  if HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS=true npx hardhat init; then
+  $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
+  if HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS=true $pkg_runner hardhat init; then
     echo "[e2e] Initialization should have failed"
     exit 1
   else
@@ -103,10 +135,13 @@ for pkg_manager in $pkg_managers; do
   mkdir ${TESTS_DIR}/${pkg_manager}-typescript-viem-cjs
   cd ${TESTS_DIR}/${pkg_manager}-typescript-viem-cjs
   create_package_json
-  $pkg_manager add ../../../packages/hardhat-core/$HARDHAT_TGZ_FILE >/dev/null 2>&1
-  HARDHAT_CREATE_TYPESCRIPT_VIEM_PROJECT_WITH_DEFAULTS=true npx hardhat init
-  npx hardhat compile
-  npx hardhat test
+  $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
+  HARDHAT_CREATE_TYPESCRIPT_VIEM_PROJECT_WITH_DEFAULTS=true $pkg_runner hardhat init
+  assert_no_empty_files
+  $pkg_runner hardhat compile
+  $pkg_runner hardhat test
+  SOLIDITY_COVERAGE=true $pkg_runner hardhat coverage
+  REPORT_GAS=true $pkg_runner hardhat test
   cd -
 
   # pkg_manager, typescript-viem, esm
@@ -116,8 +151,8 @@ for pkg_manager in $pkg_managers; do
   create_package_json
   jq '. += {"type": "module"}' package.json >esm-package.json
   mv esm-package.json package.json
-  $pkg_manager add ../../../packages/hardhat-core/$HARDHAT_TGZ_FILE >/dev/null 2>&1
-  if HARDHAT_CREATE_TYPESCRIPT_VIEM_PROJECT_WITH_DEFAULTS=true npx hardhat init; then
+  $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
+  if HARDHAT_CREATE_TYPESCRIPT_VIEM_PROJECT_WITH_DEFAULTS=true $pkg_runner hardhat init; then
     echo "[e2e] Initialization should have failed"
     exit 1
   else
@@ -127,7 +162,7 @@ for pkg_manager in $pkg_managers; do
 
 done
 
-echo "\n[e2e] All tests passed\n"
+printf "\n[e2e] All tests passed\n"
 
 # remove the temporary directory
 rm -fr $TESTS_DIR

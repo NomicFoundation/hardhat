@@ -1,5 +1,37 @@
 # @nomicfoundation/hardhat-chai-matchers
 
+## 2.0.8
+
+### Patch Changes
+
+- 1a0e1e3: Enhanced error message in `.emit` matcher for overloaded events (thanks @iosh!)
+- 7964bf0: Enhanced the `reverted` matcher to correctly handle `bytes32` strings (thanks @iosh!)
+
+## 2.0.7
+
+### Patch Changes
+
+- ac55f40: Accept predicate functions in the `changeEtherBalance`, `changeEthersBalances`, `changeTokenBalance` and `changeTokenBalances` matchers (thanks @SevenSwen and @k06a!)
+
+## 2.0.6
+
+### Patch Changes
+
+- 69fc3a4: Improved error messages of the `.withArgs` matcher (thanks @RenanSouza2!)
+
+## 2.0.5
+
+### Patch Changes
+
+- 72bf9f6: Added support for Typed objects (thanks @RenanSouza2!)
+- 82bc59d: Improved how `.revertedWithCustomError` handles wrong number of arguments (thanks @RenanSouza2!)
+
+## 2.0.4
+
+### Patch Changes
+
+- ffb301f14: Improved loading performance
+
 ## 2.0.3
 
 ### Patch Changes

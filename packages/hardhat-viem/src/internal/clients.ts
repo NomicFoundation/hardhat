@@ -13,8 +13,25 @@ import type {
   WalletClient,
 } from "../types";
 
-import { getChain, getMode, isDevelopmentNetwork } from "./chains";
-import { getAccounts } from "./accounts";
+async function getParameters<TConfig extends {} | undefined>(
+  chain: Chain,
+  config: TConfig
+) {
+  const { isDevelopmentNetwork } = await import("./chains");
+
+  const defaultParameters = isDevelopmentNetwork(chain.id)
+    ? { pollingInterval: 50, cacheTime: 0 }
+    : {};
+
+  const transportParameters = isDevelopmentNetwork(chain.id)
+    ? { retryCount: 0 }
+    : {};
+
+  return {
+    clientParameters: { ...defaultParameters, ...config },
+    transportParameters,
+  };
+}
 
 /**
  * Get a PublicClient instance. This is a read-only client that can be used to
@@ -28,6 +45,7 @@ export async function getPublicClient(
   provider: EthereumProvider,
   publicClientConfig?: Partial<PublicClientConfig>
 ): Promise<PublicClient> {
+  const { getChain } = await import("./chains");
   const chain = publicClientConfig?.chain ?? (await getChain(provider));
   return innerGetPublicClient(provider, chain, publicClientConfig);
 }
@@ -38,15 +56,15 @@ export async function innerGetPublicClient(
   publicClientConfig?: Partial<PublicClientConfig>
 ): Promise<PublicClient> {
   const viem = await import("viem");
-  const defaultParameters = isDevelopmentNetwork(chain.id)
-    ? { pollingInterval: 50, cacheTime: 0 }
-    : {};
-  const parameters = { ...defaultParameters, ...publicClientConfig };
+  const { clientParameters, transportParameters } = await getParameters(
+    chain,
+    publicClientConfig
+  );
 
   const publicClient = viem.createPublicClient({
     chain,
-    transport: viem.custom(provider),
-    ...parameters,
+    transport: viem.custom(provider, transportParameters),
+    ...clientParameters,
   });
 
   return publicClient;
@@ -55,7 +73,7 @@ export async function innerGetPublicClient(
 /**
  * Get a list of WalletClient instances. These are read-write clients that can
  * be used to send transactions to the blockchain. Each client is associated
- * with a an account obtained from the provider using `eth_accounts`.
+ * with an account obtained from the provider using `eth_accounts`.
  *
  * @param provider The Ethereum provider used to connect to the blockchain.
  * @param walletClientConfig Optional configuration for the WalletClient instances. See the viem documentation for more information.
@@ -65,6 +83,8 @@ export async function getWalletClients(
   provider: EthereumProvider,
   walletClientConfig?: Partial<WalletClientConfig>
 ): Promise<WalletClient[]> {
+  const { getAccounts } = await import("./accounts");
+  const { getChain } = await import("./chains");
   const chain = walletClientConfig?.chain ?? (await getChain(provider));
   const accounts = await getAccounts(provider);
   return innerGetWalletClients(provider, chain, accounts, walletClientConfig);
@@ -77,17 +97,17 @@ export async function innerGetWalletClients(
   walletClientConfig?: Partial<WalletClientConfig>
 ): Promise<WalletClient[]> {
   const viem = await import("viem");
-  const defaultParameters = isDevelopmentNetwork(chain.id)
-    ? { pollingInterval: 50, cacheTime: 0 }
-    : {};
-  const parameters = { ...defaultParameters, ...walletClientConfig };
+  const { clientParameters, transportParameters } = await getParameters(
+    chain,
+    walletClientConfig
+  );
 
   const walletClients = accounts.map((account) =>
     viem.createWalletClient({
       chain,
       account,
-      transport: viem.custom(provider),
-      ...parameters,
+      transport: viem.custom(provider, transportParameters),
+      ...clientParameters,
     })
   );
 
@@ -108,6 +128,7 @@ export async function getWalletClient(
   address: Address,
   walletClientConfig?: Partial<WalletClientConfig>
 ): Promise<WalletClient> {
+  const { getChain } = await import("./chains");
   const chain = walletClientConfig?.chain ?? (await getChain(provider));
   return (
     await innerGetWalletClients(provider, chain, [address], walletClientConfig)
@@ -126,6 +147,7 @@ export async function getTestClient(
   provider: EthereumProvider,
   testClientConfig?: Partial<TestClientConfig>
 ): Promise<TestClient> {
+  const { getChain, getMode } = await import("./chains");
   const chain = testClientConfig?.chain ?? (await getChain(provider));
   const mode = await getMode(provider);
   return innerGetTestClient(provider, chain, mode, testClientConfig);
@@ -138,14 +160,16 @@ export async function innerGetTestClient(
   testClientConfig?: Partial<TestClientConfig>
 ): Promise<TestClient> {
   const viem = await import("viem");
-  const defaultParameters = { pollingInterval: 50, cacheTime: 0 };
-  const parameters = { ...defaultParameters, ...testClientConfig };
+  const { clientParameters, transportParameters } = await getParameters(
+    chain,
+    testClientConfig
+  );
 
   const testClient = viem.createTestClient({
     mode,
     chain,
-    transport: viem.custom(provider),
-    ...parameters,
+    transport: viem.custom(provider, transportParameters),
+    ...clientParameters,
   });
 
   return testClient;

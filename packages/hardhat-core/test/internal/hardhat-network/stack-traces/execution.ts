@@ -1,34 +1,68 @@
-import { Common } from "@nomicfoundation/ethereumjs-common";
-import { Transaction, TxData } from "@nomicfoundation/ethereumjs-tx";
 import {
-  Account,
-  Address,
+  bigIntToHex,
+  bytesToHex,
   privateToAddress,
-  bigIntToBuffer,
+  toBytes,
 } from "@nomicfoundation/ethereumjs-util";
-import { VM } from "@nomicfoundation/ethereumjs-vm";
 
 import { MessageTrace } from "../../../../src/internal/hardhat-network/stack-traces/message-trace";
+import { defaultHardhatNetworkParams } from "../../../../src/internal/core/config/default-config";
+import {
+  MempoolOrder,
+  TracingConfig,
+} from "../../../../src/internal/hardhat-network/provider/node-types";
+import { EdrProviderWrapper } from "../../../../src/internal/hardhat-network/provider/provider";
 import { VMTracer } from "../../../../src/internal/hardhat-network/stack-traces/vm-tracer";
+import { LoggerConfig } from "../../../../src/internal/hardhat-network/provider/modules/logger";
+
+function toBuffer(x: Parameters<typeof toBytes>[0]) {
+  return Buffer.from(toBytes(x));
+}
 
 const abi = require("ethereumjs-abi");
 
-const senderPrivateKey = Buffer.from(
-  "e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109",
-  "hex"
-);
-const senderAddress = privateToAddress(senderPrivateKey);
+const senderPrivateKey =
+  "0xe331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109";
 
-export async function instantiateVm(): Promise<VM> {
-  const account = Account.fromAccountData({ balance: 1e15 });
+const senderAddress = bytesToHex(privateToAddress(toBuffer(senderPrivateKey)));
 
-  const common = new Common({ chain: "mainnet", hardfork: "shanghai" });
+export async function instantiateProvider(
+  loggerConfig: LoggerConfig,
+  tracingConfig: TracingConfig
+): Promise<EdrProviderWrapper> {
+  const config = {
+    hardfork: "cancun",
+    chainId: 1,
+    networkId: 1,
+    blockGasLimit: 10_000_000,
+    minGasPrice: 0n,
+    automine: true,
+    intervalMining: 0,
+    mempoolOrder: "priority" as MempoolOrder,
+    chains: defaultHardhatNetworkParams.chains,
+    genesisAccounts: [
+      {
+        privateKey: senderPrivateKey,
+        balance: 1e15,
+      },
+    ],
+    allowUnlimitedContractSize: false,
+    throwOnTransactionFailures: false,
+    throwOnCallFailures: false,
+    allowBlocksWithSameTimestamp: false,
+    coinbase: "0x0000000000000000000000000000000000000000",
+    initialBaseFeePerGas: 0,
+    enableTransientStorage: false,
+    enableRip7212: false,
+  };
 
-  const vm = await VM.create({ activatePrecompiles: true, common });
+  const provider = await EdrProviderWrapper.create(
+    config,
+    loggerConfig,
+    tracingConfig
+  );
 
-  await vm.stateManager.putAccount(new Address(senderAddress), account);
-
-  return vm;
+  return provider;
 }
 
 export function encodeConstructorParams(
@@ -61,41 +95,43 @@ export function encodeCall(
   return Buffer.concat([methodId, abi.rawEncode(types, params)]);
 }
 
-export async function traceTransaction(
-  vm: VM,
-  txData: TxData
-): Promise<MessageTrace> {
-  const tx = new Transaction({
-    value: 0,
-    gasPrice: 10,
-    nonce: await getNextPendingNonce(vm),
-    ...txData,
-    // If the test didn't define a gasLimit, we assume 4M is enough
-    gasLimit: txData.gasLimit ?? 4000000,
-  });
-
-  const signedTx = tx.sign(senderPrivateKey);
-
-  const getContractCode = vm.stateManager.getContractCode.bind(vm.stateManager);
-
-  const vmTracer = new VMTracer(vm, getContractCode);
-  vmTracer.enableTracing();
-
-  try {
-    await vm.runTx({ tx: signedTx });
-
-    const messageTrace = vmTracer.getLastTopLevelMessageTrace();
-    if (messageTrace === undefined) {
-      const lastError = vmTracer.getLastError();
-      throw lastError ?? new Error("Cannot get last top level message trace");
-    }
-    return messageTrace;
-  } finally {
-    vmTracer.disableTracing();
-  }
+export interface TxData {
+  data: Buffer;
+  to?: Buffer;
+  value?: bigint;
+  gas?: bigint;
 }
 
-async function getNextPendingNonce(vm: VM): Promise<Buffer> {
-  const acc = await vm.stateManager.getAccount(new Address(senderAddress));
-  return bigIntToBuffer(acc.nonce);
+export async function traceTransaction(
+  provider: EdrProviderWrapper,
+  txData: TxData
+): Promise<MessageTrace> {
+  const vmTracer = new VMTracer();
+  provider.setVmTracer(vmTracer);
+
+  try {
+    await provider.request({
+      method: "eth_sendTransaction",
+      params: [
+        {
+          from: senderAddress,
+          data: bytesToHex(txData.data),
+          to: txData.to !== undefined ? bytesToHex(txData.to) : undefined,
+          value: bigIntToHex(txData.value ?? 0n),
+          // If the test didn't define a gasLimit, we assume 4M is enough
+          gas: bigIntToHex(txData.gas ?? 4000000n),
+          gasPrice: bigIntToHex(10n),
+        },
+      ],
+    });
+
+    const trace = vmTracer.getLastTopLevelMessageTrace();
+    if (trace === undefined) {
+      const error = vmTracer.getLastError();
+      throw error ?? new Error("Cannot get last top level message trace");
+    }
+    return trace;
+  } finally {
+    provider.setVmTracer(undefined);
+  }
 }

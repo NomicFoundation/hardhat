@@ -154,7 +154,7 @@ const contractA = await hre.viem.deployContract(
   "contractName",
   ["arg1", 50, "arg3"],
   {
-    walletClient: secondWalletClient,
+    client: { wallet: secondWalletClient }
     gas: 1000000,
     value: parseEther("0.0001"),
     confirmations: 5, // 1 by default
@@ -185,7 +185,7 @@ const [_, secondWalletClient] = await hre.viem.getWalletClients();
 const contract = await hre.viem.getContractAt(
   "contractName",
   "0x1234567890123456789012345678901234567890",
-  { walletClient: secondWalletClient }
+  { client: { wallet: secondWalletClient } }
 );
 ```
 
@@ -210,7 +210,7 @@ const { contract: contractName, deploymentTransaction } =
     "contractName",
     ["arg1", 50, "arg3"],
     {
-      walletClient: secondWalletClient,
+      client: { wallet: secondWalletClient },
       gas: 1000000,
       value: parseEther("0.0001"),
     }
@@ -227,6 +227,38 @@ const { contractAddress } = await publicClient.waitForTransactionReceipt({
   hash: deploymentTransaction.hash,
 });
 ```
+
+##### Library linking
+
+Some contracts need to be linked with libraries before they are deployed. You can pass the addresses of their libraries to the `deployContract` and `sendDeploymentTransaction` functions with an object like this:
+
+```typescript
+const contractA = await hre.viem.deployContract(
+  "contractName",
+  ["arg1", 50, "arg3"],
+  {
+    libraries: {
+      ExampleLib: "0x...",
+    },
+  }
+);
+```
+
+This allows you to deploy a contract linked to the `ExampleLib` library at the address `"0x..."`.
+
+To deploy a contract, all libraries must be linked. An error will be thrown if any libraries are missing.
+
+#### Using `ContractTypesMap` for easier contract type imports
+
+To simplify importing contract types in `hardhat-viem`, you can use the `ContractTypesMap`. This map contains the contract types of all contracts in your project, indexed by their names.
+
+```typescript
+import { ContractTypesMap } from "hardhat/types/artifacts";
+
+const contract: ContractTypesMap["ContractName"];
+```
+
+This reduces the need for multiple imports and makes your code cleaner and easier to manage.
 
 ## Usage
 

@@ -36,11 +36,50 @@ describe("Solhint plugin", function () {
       );
     });
 
-    it("should run the check task without throwing an error", async function () {
+    it("should run the check task and set the exit code to 1", async function () {
       const consoleLogStub = sinon.stub(console, "log");
       await this.env.run("check");
       assert.isTrue(consoleLogStub.calledOnce);
+      assert.strictEqual(process.exitCode, 1);
       consoleLogStub.restore();
+      process.exitCode = undefined;
+    });
+  });
+
+  describe("Project with no errors", function () {
+    useEnvironment("no-errors-project");
+
+    it("should run the check task and not set the exit code", async function () {
+      const consoleLogStub = sinon.stub(console, "log");
+      await this.env.run("check");
+      assert.isTrue(consoleLogStub.calledOnce);
+      assert.strictEqual(process.exitCode, undefined);
+    });
+  });
+
+  describe("Project with .solhintignore file", function () {
+    useEnvironment("solhintignore-project");
+
+    it("should not return a report for the ignored files", async function () {
+      const reports = await this.env.run("hardhat-solhint:run-solhint");
+      // Greeter.sol is not ignored, Solhint should return a report
+      assert.isTrue(
+        reports.some((report: any) =>
+          report.file.includes("contracts/Greeter.sol")
+        )
+      );
+      // Greeter2.sol is ignored in the .solhintignore file, Solhint should not return a report
+      assert.isFalse(
+        reports.some((report: any) =>
+          report.file.includes("contracts/Greeter2.sol")
+        )
+      );
+      // Greeter3.sol is ignored in the .solhint.json file, Solhint should not return a report
+      assert.isFalse(
+        reports.some((report: any) =>
+          report.file.includes("contracts/Greeter2.sol")
+        )
+      );
     });
   });
 

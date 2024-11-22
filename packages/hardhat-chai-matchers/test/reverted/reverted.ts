@@ -112,6 +112,14 @@ describe("INTEGRATION: Reverted", function () {
           "Expected a valid transaction hash, but got '0x123'"
         );
       });
+
+      it("promise of an byte32 string", async function () {
+        await expect(
+          Promise.resolve(
+            "0x3230323400000000000000000000000000000000000000000000000000000000"
+          )
+        ).not.to.be.reverted;
+      });
     });
 
     describe("with a TxResponse as its subject", function () {
@@ -403,7 +411,7 @@ describe("INTEGRATION: Reverted", function () {
           ).to.not.be.reverted
         ).to.be.eventually.rejectedWith(
           ProviderError,
-          "sender doesn't have enough funds to send tx"
+          "Sender doesn't have enough funds to send tx"
         );
       });
     });

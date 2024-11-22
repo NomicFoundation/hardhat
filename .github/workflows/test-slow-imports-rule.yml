@@ -21,18 +21,12 @@ jobs:
     name: Check that the slow-imports rule works correctly
     runs-on: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@v2
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8
-      - uses: actions/setup-node@v2
-        with:
-          node-version: 16
-          cache: "pnpm"
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-env
       - name: Install
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Add slow import
-        run: echo 'import "lodash";' >> src/internal/constants.ts
+        run: echo 'import "lodash";' >> src/internal/core/config/config-resolution.ts
       - name: Build
         run: pnpm build
       - name: Run eslint

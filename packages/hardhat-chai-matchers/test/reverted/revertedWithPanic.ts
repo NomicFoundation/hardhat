@@ -190,11 +190,9 @@ describe("INTEGRATION: Reverted with panic", function () {
           matchers,
           method: "panicAssert",
           failedAssert: (x) =>
-            expect(x).to.be.revertedWithPanic(
-              PANIC_CODES.ARITHMETIC_UNDER_OR_OVERFLOW
-            ),
+            expect(x).to.be.revertedWithPanic(PANIC_CODES.ARITHMETIC_OVERFLOW),
           failedAssertReason:
-            "Expected transaction to be reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block), but it reverted with panic code 0x01 (Assertion error)",
+            "Expected transaction to be reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block), but it reverted with panic code 0x01 (Assertion error)",
         });
       });
     });
@@ -248,8 +246,7 @@ describe("INTEGRATION: Reverted with panic", function () {
         await runSuccessfulAsserts({
           matchers,
           method: "succeeds",
-          successfulAssert: (x) =>
-            expect(x).not.to.be.revertedWithPanic(BigInt(1)),
+          successfulAssert: (x) => expect(x).not.to.be.revertedWithPanic(1n),
         });
       });
 
@@ -309,7 +306,7 @@ describe("INTEGRATION: Reverted with panic", function () {
           ).to.not.be.revertedWithPanic()
         ).to.be.eventually.rejectedWith(
           ProviderError,
-          "sender doesn't have enough funds to send tx"
+          "Sender doesn't have enough funds to send tx"
         );
       });
     });

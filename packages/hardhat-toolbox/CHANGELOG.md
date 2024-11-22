@@ -1,5 +1,15 @@
 # @nomicfoundation/hardhat-toolbox
 
+## 5.0.0
+
+### Major Changes
+
+- 92d140f: Include Hardhat Ignition in the toolboxes.
+
+### Patch Changes
+
+- Updated dependencies [92d140f]
+
 ## 4.0.0
 
 ### Major Changes

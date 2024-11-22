@@ -91,8 +91,9 @@ describe("verify task integration tests", () => {
       });
 
       expect(logStub).to.be.calledOnceWith(
-        `The contract ${address} has already been verified on Etherscan.
-https://hardhat.etherscan.io/address/${address}#code`
+        `The contract ${address} has already been verified on the block explorer. If you're trying to verify a partially verified contract, please use the --force flag.
+https://hardhat.etherscan.io/address/${address}#code
+`
       );
       logStub.restore();
       assert.isUndefined(taskResponse);
@@ -308,7 +309,7 @@ This can occur if the library is only called in the contract constructor. The mi
           constructorArgsParams: [],
         })
       ).to.be.rejectedWith(
-        /An unexpected error occurred during the verification process\.\nPlease report this issue to the Hardhat team\.\nError Details: getaddrinfo ENOTFOUND api-hardhat\.etherscan\.io/
+        /A network request failed\. This is an error from the block explorer, not Hardhat\. Error: getaddrinfo ENOTFOUND api-hardhat\.etherscan\.io/
       );
     });
 
@@ -331,16 +332,20 @@ This can occur if the library is only called in the contract constructor. The mi
         result: "Unable to locate ContractCode at 0x...",
       });
 
-      await expect(
-        this.hre.run(TASK_VERIFY_ETHERSCAN, {
+      try {
+        await this.hre.run(TASK_VERIFY_ETHERSCAN, {
           address: simpleContractAddress,
           constructorArgsParams: [],
-        })
-      ).to.be.rejectedWith(
-        new RegExp(
-          `The Etherscan API responded that the address ${simpleContractAddress} does not have bytecode.`
-        )
-      );
+        });
+        assert.fail("Expected error was not thrown");
+      } catch (e: any) {
+        assert.match(
+          e.message,
+          new RegExp(
+            `The Etherscan API responded that the address ${simpleContractAddress} does not have bytecode.`
+          )
+        );
+      }
     });
 
     it("should throw if the verification response status is not ok", async function () {
@@ -371,7 +376,7 @@ This can occur if the library is only called in the contract constructor. The mi
           constructorArgsParams: [],
         })
       ).to.be.rejectedWith(
-        /An unexpected error occurred during the verification process\.\nPlease report this issue to the Hardhat team\.\nError Details: getaddrinfo ENOTFOUND api-hardhat\.etherscan\.io/
+        /A network request failed\. This is an error from the block explorer, not Hardhat\. Error: getaddrinfo ENOTFOUND api-hardhat\.etherscan\.io/
       );
 
       expect(logStub).to.be
@@ -629,6 +634,132 @@ https://hardhat.etherscan.io/address/${bothLibsContractAddress}#code\n`);
       await this.hre.run(TASK_CLEAN);
     });
   });
+
+  describe("with a verified contract and '--force' flag", () => {
+    let simpleContractAddress: string;
+    before(async function () {
+      await this.hre.run(TASK_COMPILE, { force: true, quiet: true });
+      simpleContractAddress = await deployContract(
+        "SimpleContract",
+        [],
+        this.hre
+      );
+    });
+
+    beforeEach(() => {
+      interceptIsVerified({ message: "OK", result: [{ SourceCode: "code" }] });
+    });
+
+    it("should validate a partially verified contract", async function () {
+      interceptVerify({
+        status: 1,
+        result: "ezq878u486pzijkvvmerl6a9mzwhv6sefgvqi5tkwceejc7tvn",
+      });
+      interceptGetStatus(() => {
+        return {
+          status: 1,
+          result: "Pass - Verified",
+        };
+      });
+      const logStub = sinon.stub(console, "log");
+
+      const taskResponse = await this.hre.run(TASK_VERIFY, {
+        address: simpleContractAddress,
+        constructorArgsParams: [],
+        force: true,
+      });
+
+      assert.equal(logStub.callCount, 2);
+      expect(logStub.getCall(0)).to.be
+        .calledWith(`Successfully submitted source code for contract
+contracts/SimpleContract.sol:SimpleContract at ${simpleContractAddress}
+for verification on the block explorer. Waiting for verification result...
+`);
+      expect(logStub.getCall(1)).to.be
+        .calledWith(`Successfully verified contract SimpleContract on the block explorer.
+https://hardhat.etherscan.io/address/${simpleContractAddress}#code\n`);
+      logStub.restore();
+      assert.isUndefined(taskResponse);
+    });
+
+    it("should throw if the verification response status is 'already verified' (blockscout full matched)", async function () {
+      interceptVerify({
+        status: 0,
+        result: "Smart-contract already verified.",
+      });
+
+      await expect(
+        this.hre.run(TASK_VERIFY_ETHERSCAN, {
+          address: simpleContractAddress,
+          constructorArgsParams: [],
+          force: true,
+        })
+      ).to.be.rejectedWith(
+        new RegExp(
+          `The block explorer's API responded that the contract contracts/SimpleContract.sol:SimpleContract at ${simpleContractAddress} is already verified.`
+        )
+      );
+    });
+
+    // If contract was actually verified, Etherscan returns an error on the verification request.
+    it("should throw if the verification response status is 'already verified' (etherscan manually verified)", async function () {
+      interceptVerify({
+        status: 0,
+        result: "Contract source code already verified",
+      });
+
+      await expect(
+        this.hre.run(TASK_VERIFY_ETHERSCAN, {
+          address: simpleContractAddress,
+          constructorArgsParams: [],
+          force: true,
+        })
+      ).to.be.rejectedWith(
+        new RegExp(
+          `The block explorer's API responded that the contract contracts/SimpleContract.sol:SimpleContract at ${simpleContractAddress} is already verified.`
+        )
+      );
+    });
+
+    // If contract was verified via matching a deployed bytecode of another contract,
+    // Etherscan returns an error only on ve get verification status response.
+    it("should throw if the get verification status is 'already verified' (etherscan automatically verified)", async function () {
+      interceptVerify({
+        status: 1,
+        result: "ezq878u486pzijkvvmerl6a9mzwhv6sefgvqi5tkwceejc7tvn",
+      });
+      interceptGetStatus(() => {
+        return {
+          status: 0,
+          result: "Already Verified",
+        };
+      });
+      const logStub = sinon.stub(console, "log");
+
+      await expect(
+        this.hre.run(TASK_VERIFY_ETHERSCAN, {
+          address: simpleContractAddress,
+          constructorArgsParams: [],
+          force: true,
+        })
+      ).to.be.rejectedWith(
+        new RegExp(
+          `The block explorer's API responded that the contract contracts/SimpleContract.sol:SimpleContract at ${simpleContractAddress} is already verified.`
+        )
+      );
+
+      expect(logStub).to.be
+        .calledOnceWith(`Successfully submitted source code for contract
+contracts/SimpleContract.sol:SimpleContract at ${simpleContractAddress}
+for verification on the block explorer. Waiting for verification result...
+`);
+      logStub.restore();
+    });
+
+    after(async function () {
+      await this.hre.run(TASK_CLEAN);
+    });
+  });
 });
 
 describe("verify task Sourcify's integration tests", () => {
@@ -671,7 +802,8 @@ describe("verify task Sourcify's integration tests", () => {
       assert.equal(logStub.callCount, 1);
       (expect(logStub.getCall(0)).to.be as any)
         .calledWith(`Successfully verified contract SimpleContract on Sourcify.
-https://repo.sourcify.dev/contracts/full_match/31337/${simpleContractAddress}/`);
+https://repo.sourcify.dev/contracts/full_match/31337/${simpleContractAddress}/
+`);
       logStub.restore();
       assert.isUndefined(taskResponse);
     });

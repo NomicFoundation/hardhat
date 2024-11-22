@@ -1,7 +1,7 @@
 import type { Artifacts as ArtifactsImpl } from "hardhat/internal/artifacts";
 import type { Artifacts } from "hardhat/types/artifacts";
 import type { VyperFilesCache as VyperFilesCacheT } from "./cache";
-import type { VyperOutput, VyperBuild } from "./types";
+import type { VyperOutput, VyperBuild, VyperSettings } from "./types";
 import type { ResolvedFile } from "./resolver";
 
 import * as os from "os";
@@ -23,7 +23,10 @@ import {
   TASK_COMPILE_VYPER_LOG_DOWNLOAD_COMPILER_END,
   TASK_COMPILE_VYPER_LOG_COMPILATION_RESULT,
 } from "./task-names";
-import { DEFAULT_VYPER_VERSION } from "./constants";
+import {
+  DEFAULT_VYPER_VERSION,
+  OUTPUT_BREAKABLE_VYPER_VERSION,
+} from "./constants";
 import { Compiler } from "./compiler";
 import { CompilerDownloader } from "./downloader";
 import {
@@ -188,13 +191,21 @@ subtask(TASK_COMPILE_VYPER_RUN_BINARY)
     async ({
       inputPaths,
       vyperPath,
+      vyperVersion,
+      settings,
     }: {
       inputPaths: string[];
       vyperPath: string;
+      vyperVersion?: string;
+      settings?: VyperSettings;
     }): Promise<VyperOutput> => {
       const compiler = new Compiler(vyperPath);
 
-      const { version, ...contracts } = await compiler.compile(inputPaths);
+      const { version, ...contracts } = await compiler.compile(
+        inputPaths,
+        vyperVersion,
+        settings
+      );
 
       return {
         version,
@@ -249,36 +260,53 @@ subtask(TASK_COMPILE_VYPER)
         ({ version }) => version
       );
 
-      const versionGroups: Record<string, ResolvedFile[]> = {};
+      const versionsToSettings = Object.fromEntries(
+        config.vyper.compilers.map(({ version, settings }) => [
+          version,
+          settings,
+        ])
+      );
+
+      const versionGroups: Record<
+        string,
+        { files: ResolvedFile[]; settings: VyperSettings }
+      > = {};
       const unmatchedFiles: ResolvedFile[] = [];
 
       for (const file of resolvedFiles) {
-        const hasChanged = vyperFilesCache.hasFileChanged(
-          file.absolutePath,
-          file.contentHash,
-          { version: file.content.versionPragma }
-        );
-
-        if (!hasChanged) continue;
-
         const maxSatisfyingVersion = semver.maxSatisfying(
           configuredVersions,
           file.content.versionPragma
         );
 
-        // check if there are files that don't match any configured compiler
-        // version
+        // check if there are files that don't match any configured compiler version
         if (maxSatisfyingVersion === null) {
           unmatchedFiles.push(file);
           continue;
         }
 
+        const settings = versionsToSettings[maxSatisfyingVersion] ?? {};
+
+        const hasChanged = vyperFilesCache.hasFileChanged(
+          file.absolutePath,
+          file.contentHash,
+          {
+            version: maxSatisfyingVersion,
+            settings,
+          }
+        );
+
+        if (!hasChanged) continue;
+
         if (versionGroups[maxSatisfyingVersion] === undefined) {
-          versionGroups[maxSatisfyingVersion] = [file];
+          versionGroups[maxSatisfyingVersion] = {
+            files: [file],
+            settings,
+          };
           continue;
         }
 
-        versionGroups[maxSatisfyingVersion].push(file);
+        versionGroups[maxSatisfyingVersion].files.push(file);
       }
 
       if (unmatchedFiles.length > 0) {
@@ -297,7 +325,9 @@ ${list}`
         );
       }
 
-      for (const [vyperVersion, files] of Object.entries(versionGroups)) {
+      for (const [vyperVersion, { files, settings }] of Object.entries(
+        versionGroups
+      )) {
         const vyperBuild: VyperBuild = await run(TASK_COMPILE_VYPER_GET_BUILD, {
           quiet,
           vyperVersion,
@@ -312,13 +342,29 @@ ${list}`
           {
             inputPaths: files.map(({ absolutePath }) => absolutePath),
             vyperPath: vyperBuild.compilerPath,
+            vyperVersion,
+            settings,
           }
         );
 
-        for (const [sourceName, output] of Object.entries(contracts)) {
+        const { localPathToSourceName } = await import(
+          "hardhat/utils/source-names"
+        );
+
+        for (const [contractSourceIdentifier, output] of Object.entries(
+          contracts
+        )) {
+          const sourceName = semver.gte(
+            vyperVersion,
+            OUTPUT_BREAKABLE_VYPER_VERSION
+          )
+            ? await localPathToSourceName(
+                config.paths.root,
+                contractSourceIdentifier
+              )
+            : contractSourceIdentifier;
           const artifact = getArtifactFromVyperOutput(sourceName, output);
           await artifacts.saveArtifactAndDebugFile(artifact);
-
           const file = files.find((f) => f.sourceName === sourceName);
           assertPluginInvariant(
             file !== undefined,
@@ -329,7 +375,10 @@ ${list}`
             lastModificationDate: file.lastModificationDate.valueOf(),
             contentHash: file.contentHash,
             sourceName: file.sourceName,
-            vyperConfig: { version },
+            vyperConfig: {
+              version,
+              settings,
+            },
             versionPragma: file.content.versionPragma,
             artifacts: [artifact.contractName],
           });

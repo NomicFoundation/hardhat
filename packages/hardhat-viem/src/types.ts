@@ -1,5 +1,6 @@
 import type * as viemT from "viem";
 import type { ArtifactsMap } from "hardhat/types/artifacts";
+import type { Libraries } from "./internal/bytecode";
 
 export type PublicClient = viemT.PublicClient<viemT.Transport, viemT.Chain>;
 export type WalletClient = viemT.WalletClient<
@@ -13,13 +14,22 @@ export type TestClient = viemT.TestClient<
   viemT.Chain
 >;
 
+export type KeyedClient =
+  | {
+      public?: PublicClient;
+      wallet: WalletClient;
+    }
+  | {
+      public: PublicClient;
+      wallet?: WalletClient;
+    };
+
 export type TestClientMode = Parameters<
   typeof viemT.createTestClient
 >[0]["mode"];
 
 export interface SendTransactionConfig {
-  walletClient?: WalletClient;
-  publicClient?: PublicClient;
+  client?: KeyedClient;
   gas?: bigint;
   gasPrice?: bigint;
   maxFeePerGas?: bigint;
@@ -29,23 +39,20 @@ export interface SendTransactionConfig {
 
 export interface DeployContractConfig extends SendTransactionConfig {
   confirmations?: number;
+  libraries?: Libraries<viemT.Address>;
 }
 
-export type SendDeploymentTransactionConfig = SendTransactionConfig;
+export interface SendDeploymentTransactionConfig extends SendTransactionConfig {
+  libraries?: Libraries<viemT.Address>;
+}
 
 export interface GetContractAtConfig {
-  walletClient?: WalletClient;
-  publicClient?: PublicClient;
+  client?: KeyedClient;
 }
 
 export type GetContractReturnType<
   TAbi extends viemT.Abi | readonly unknown[] = viemT.Abi
-> = viemT.GetContractReturnType<
-  TAbi,
-  PublicClient,
-  WalletClient,
-  viemT.Address
->;
+> = viemT.GetContractReturnType<TAbi, Required<KeyedClient>, viemT.Address>;
 
 export type GetTransactionReturnType = viemT.GetTransactionReturnType<
   viemT.Chain,
@@ -75,5 +82,24 @@ export declare function getContractAt<CN extends string>(
   address: viemT.Address,
   config?: GetContractAtConfig
 ): Promise<GetContractReturnType>;
+
+export interface HardhatViemHelpers {
+  getPublicClient(
+    publicClientConfig?: Partial<viemT.PublicClientConfig>
+  ): Promise<PublicClient>;
+  getWalletClients(
+    walletClientConfig?: Partial<viemT.WalletClientConfig>
+  ): Promise<WalletClient[]>;
+  getWalletClient(
+    address: viemT.Address,
+    walletClientConfig?: Partial<viemT.WalletClientConfig>
+  ): Promise<WalletClient>;
+  getTestClient(
+    testClientConfig?: Partial<viemT.TestClientConfig>
+  ): Promise<TestClient>;
+  deployContract: typeof deployContract;
+  sendDeploymentTransaction: typeof sendDeploymentTransaction;
+  getContractAt: typeof getContractAt;
+}
 
 export type { AbiParameterToPrimitiveType } from "abitype";

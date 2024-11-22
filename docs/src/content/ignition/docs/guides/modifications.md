@@ -97,3 +97,17 @@ We can see two new batches that execute the new parts of the module, while keepi
 ## Incompatible modifications
 
 There are certain modifications one can make to a `Future` definition that would make the new version incompatible with the previous one _if_ the previous one has already been partially or completely executed. This would lead to Hardhat Ignition being unable to continue your deployment from where it was left off. Read the [Reconciliation](../advanced/reconciliation.md) guide to learn more about this.
+
+## Clearing an existing deployment with reset
+
+In the above case, or if you simply want to start over, you can use the `--reset` option to clear the previous deployment and start from scratch:
+
+```sh
+npx hardhat ignition deploy ignition/modules/Apollo.ts --network localhost --reset
+```
+
+:::tip
+
+When using `--reset` on a network other than Hardhat Network (i.e. mainnet, testnets, etc.), Hardhat Ignition will ask you to confirm that you want to clear the previous deployment before proceeding.
+
+:::

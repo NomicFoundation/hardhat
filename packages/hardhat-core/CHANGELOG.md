@@ -1,5 +1,168 @@
 # hardhat
 
+## 2.22.16
+
+### Patch Changes
+
+- fcece65: Replaced `chalk` with `picocolors`, `glob` with `tinyglob`, and upgraded `find-up`
+
+## 2.22.15
+
+### Patch Changes
+
+- ede1cde: Fixed custom HTTP headers for forked configurations
+
+## 2.22.14
+
+### Patch Changes
+
+- 09ead48: Fixed error when remote nodes are not returning total difficulty from the eth.getBlock RPC API, by adding fallback value
+
+## 2.22.13
+
+### Patch Changes
+
+- bf92f4c: Fixed more bugs in the newly ported Solidity tracing logic
+- 3df95d3: Remove support for `console.log` selectors that wrongly use "(u)int" type aliases in the selector calculation
+- 4c1bcfc: Fixed minor bugs in the newly ported Solidity tracing logic
+
+## 2.22.12
+
+### Patch Changes
+
+- 5fb3095: Adapted Hardhat to trace Solidity logic on EDR. This resulted in a 10% performance improvement for most workloads.
+
+## 2.22.11
+
+### Patch Changes
+
+- 601d543: Fixed a problem with provider events when `provider.init` was explicitly called before the first request.
+- 224159e: Added support for solc versions 0.8.25, 0.8.26, and 0.8.27
+- b43ed78: Added link to Ignition docs in sample projects
+- 07e0a9c: Hardhat node can now handle large response objects by streaming them.
+- 12d1980: Upgrade chokidar
+
+## 2.22.10
+
+### Patch Changes
+
+- 409e99f: Fixed `debug` logs in Hardhat Network initialization process.
+- 46cd7a1: Removed the experimentalAddHardhatNetworkMessageTraceHook API
+
+## 2.22.9
+
+### Patch Changes
+
+- 6771f00: Do not send `http_setLedgerOutputEnabled` messages beyond the HTTP Provider to prevent unwanted warnings in the logs of the local hardhat node
+
+## 2.22.8
+
+### Patch Changes
+
+- f5d5d15: Fixed an issue with `debug_traceTransaction` when large responses were generated
+- 31d9d77: Upgraded EDR to v0.5.2
+
+## 2.22.7
+
+### Patch Changes
+
+- f944cd5: Added an `enableRip7212` optional flag to the Hardhat Network config that enables [RIP-7212 (Precompile for secp256r1 Curve Support)](https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md).
+- f6ddc92: Add `debug` logs to Hardhat Network initialization process.
+- 6c943bb: Fix message for error HH206
+- f944cd5: Bumped EDR to [v0.5.0](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.5.0).
+
+## 2.22.6
+
+### Patch Changes
+
+- cdf0160: Upgrade bundled solcjs
+- 3c66da2: Add support for Node v22
+- 9fadc22: Bump EDR to [v0.4.1](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.4.1).
+- 095faa4: Added hardfork histories for Optimim and Arbitrum chains
+
+## 2.22.5
+
+### Patch Changes
+
+- f65dc7c: Improved the validation of network and forking URLs (thanks @kshyun28!)
+- 5d46baa: Internal changes to allow `hardhat-tracer` to be re-enabled with Hardhat after the EDR upgrade
+- 6e36f3f: Bump EDR to v0.4.0. This adds support for `eth_maxPriorityFeePerGas`, limited support for blob transactions, improves performance and fixes some bugs. Check out the [v0.4.0 EDR release](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.4.0) and [v0.3.8 EDR release](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.3.8) for more details.
+
+## 2.22.4
+
+### Patch Changes
+
+- 22bcbf5: Added BigInt task argument type
+- 2c533f0: Bumped EDR dependency to 0.3.7
+- 3203639: Fixed an issue in the solidity source map decoding module
+- 5d7a604: Fixed an issue with solc version selection
+- 3c6de8f: Now solcjs is run in a subprocess, which leads to better error reporting and allows it to run multiple compilation jobs at the same time
+- 6447e80: Improved performance by reducing back-and-forth with EDR when it's not necessary
+
+## 2.22.3
+
+### Patch Changes
+
+- 6466e3a: A proper error is now thrown when requiring EDR fails
+- ae62841: Upgrade EDR to version [0.3.5](https://github.com/NomicFoundation/hardhat/blob/3b36d76a88915de6bb5efd0eb110cc1782c461ca/crates/edr_napi/CHANGELOG.md#035)
+- 679d8a5: Report [HH18](https://hardhat.org/hardhat-runner/docs/errors#HH18) to Sentry.
+
+## 2.22.2
+
+### Patch Changes
+
+- 7876104: Initialize the Hardhat Runtime Environment before passing the command line arguments.
+
+## 2.22.1
+
+### Patch Changes
+
+- 92d140f: Include Hardhat Ignition in the toolboxes of the starter projects
+- cfec932: Upgraded hardhat-toolbox-viem to support viem@2 in the viem sample project
+
+## 2.22.0
+
+### Minor Changes
+
+- bcce371: Set cancun as the default hardfork in Hardhat network
+
+## 2.21.0
+
+### Minor Changes
+
+- 837350e: Dropped support for node v16
+- 3df5d29: Refactored Hardhat Network to use EDR instead of ethereumjs
+
+### Patch Changes
+
+- 6b6f447: Fixes a bug in Hardhat where Post-Cancun genesis blocks did not use the mandated 0x0 parent beacon block root (https://eips.ethereum.org/EIPS/eip-4788)
+
+## 2.20.1
+
+### Patch Changes
+
+- b519239: Fixed a bug when `hardhat_setStorageAt` was used in untouched addresses
+
+## 2.20.0
+
+### Minor Changes
+
+- 6ff0b20: Add support for the Cancun hardfork
+
+### Patch Changes
+
+- 4250635: Added support for solc 0.8.24
+
+## 2.19.5
+
+### Patch Changes
+
+- 125cbad3d: Added a notification when a new Hardhat version is available
+- ffb301f14: Improved loading performance
+- 1c6373a5b: Fixed a bug during project initialization when using yarn or pnpm
+- 15a0d2e6c: Fixed a race condition that occurred when multiple Hardhat processes ran a compilation at the same time.
+- 8f677ea9f: Added a fix to prevent submitting transactions with 0 priority fee (thanks @itsdevbear!)
+
 ## 2.19.4
 
 ### Patch Changes

@@ -9,9 +9,15 @@ description: Hardhat Chai Matchers is a Hardhat plugin that builds on top of Cha
 
 Among other things, you can assert that a contract fired certain events, or that it exhibited a specific revert, or that a transaction resulted in specific changes to a wallet's Ether or token balance.
 
+:::warning
+
+The `hardhat-chai-matchers` plugin is designed to work with `hardhat-ethers`. Attempting to use it in conjunction with `hardhat-viem` results in compatibility issues.
+
+:::
+
 ## Installation
 
-::::tabsgroup{options="npm 7+,npm 6,yarn"}
+::::tabsgroup{options="npm 7+,npm 6,yarn,pnpm"}
 
 :::tab{value="npm 7+"}
 
@@ -33,6 +39,14 @@ npm install --save-dev @nomicfoundation/hardhat-chai-matchers
 
 ```
 yarn add --dev @nomicfoundation/hardhat-chai-matchers
+```
+
+:::
+
+:::tab{value="pnpm"}
+
+```
+pnpm add -D @nomicfoundation/hardhat-chai-matchers
 ```
 
 :::

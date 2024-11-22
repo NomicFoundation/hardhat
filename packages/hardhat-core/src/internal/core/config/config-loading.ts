@@ -1,6 +1,6 @@
 import type StackTraceParserT from "stacktrace-parser";
 
-import chalk from "chalk";
+import picocolors from "picocolors";
 import debug from "debug";
 import fsExtra from "fs-extra";
 import path from "path";
@@ -20,7 +20,6 @@ import { getUserConfigPath } from "../project-structure";
 
 import { SUPPORTED_SOLIDITY_VERSION_RANGE } from "../../hardhat-network/stack-traces/constants";
 import { resolveConfig } from "./config-resolution";
-import { validateConfig, validateResolvedConfig } from "./config-validation";
 import { DEFAULT_SOLC_VERSION } from "./default-config";
 
 const log = debug("hardhat:core:config");
@@ -68,6 +67,8 @@ export function loadConfigAndTasks(
     showSolidityConfigWarnings: false,
   }
 ): { resolvedConfig: HardhatConfig; userConfig: HardhatUserConfig } {
+  const { validateConfig, validateResolvedConfig } =
+    require("./config-validation") as typeof import("./config-validation");
   let configPath =
     hardhatArguments !== undefined ? hardhatArguments.config : undefined;
 
@@ -197,7 +198,7 @@ export function analyzeModuleNotFoundError(error: any, configPath: string) {
 
   const packageJsonPath = findClosestPackageJson(throwingFile);
 
-  if (packageJsonPath === null) {
+  if (packageJsonPath === undefined) {
     return;
   }
 
@@ -280,14 +281,14 @@ function checkEmptyConfig(
       warning += `\nLearn more about configuring Hardhat at https://hardhat.org/config\n`;
     }
 
-    console.warn(chalk.yellow(warning));
+    console.warn(picocolors.yellow(warning));
   }
 }
 
 function checkMissingSolidityConfig(userConfig: any) {
   if (userConfig.solidity === undefined) {
     console.warn(
-      chalk.yellow(
+      picocolors.yellow(
         `Solidity compiler is not configured. Version ${DEFAULT_SOLC_VERSION} will be used by default. Add a 'solidity' entry to your configuration to suppress this warning.
 
 Learn more about compiler configuration at https://hardhat.org/config
@@ -313,7 +314,7 @@ function checkUnsupportedSolidityConfig(resolvedConfig: HardhatConfig) {
 
   if (unsupportedVersions.length > 0) {
     console.warn(
-      chalk.yellow(
+      picocolors.yellow(
         `Solidity ${unsupportedVersions.join(", ")} ${
           unsupportedVersions.length === 1 ? "is" : "are"
         } not fully supported yet. You can still use Hardhat, but some features, like stack traces, might not work correctly.
@@ -336,7 +337,7 @@ function checkUnsupportedRemappings({ solidity }: HardhatConfig) {
 
   if (remappings.length > 0) {
     console.warn(
-      chalk.yellow(
+      picocolors.yellow(
         `Solidity remappings are not currently supported; you may experience unexpected compilation results. Remove any 'remappings' fields from your configuration to suppress this warning.
 
 Learn more about compiler configuration at https://hardhat.org/config
