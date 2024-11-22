@@ -49,7 +49,7 @@ yarn add --dev @nomicfoundation/hardhat-foundry
 :::tab{value=pnpm}
 
 ```
-pnpm add -D @nomicfoundation/hardhat-foundry
+pnpm add --save-dev @nomicfoundation/hardhat-foundry
 ```
 
 ::::
@@ -91,7 +91,7 @@ Then install Hardhat, the [Hardhat Toolbox](/hardhat-runner/plugins/nomicfoundat
 :::tab{value="npm 7+"}
 
 ```
-npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-foundry
+npm install --save-dev hardhat @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-foundry
 ```
 
 :::
@@ -99,7 +99,7 @@ npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat
 :::tab{value="npm 6"}
 
 ```
-npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-foundry
+npm install --save-dev hardhat @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-foundry
 ```
 
 :::
@@ -115,7 +115,7 @@ yarn add --dev hardhat @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat
 :::tab{value=pnpm}
 
 ```
-pnpm add -D hardhat @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-foundry
+pnpm add --save-dev hardhat @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-foundry
 ```
 
 :::
