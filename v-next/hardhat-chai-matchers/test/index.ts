@@ -8,9 +8,10 @@ describe("hardhat-chai-matchers plugin correctly initialized", () => {
   useFixtureProject("hook-initialization");
 
   it("should load the plugin via hook and use the functionalities in a mocha test", async () => {
-    const configPath =
-      "./fixture-projects/hook-initialization/hardhat.config.ts";
-    const hardhatConfig = await import(configPath);
+    const hardhatConfig = await import(
+      // eslint-disable-next-line import/no-relative-packages -- allow for fixture projects
+      "./fixture-projects/hook-initialization/hardhat.config.js"
+    );
 
     const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
 
