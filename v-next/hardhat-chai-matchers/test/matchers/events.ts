@@ -9,7 +9,10 @@ import type { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
 import { before, beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import {
+  assertRejectsWithHardhatError,
+  useFixtureProject,
+} from "@nomicfoundation/hardhat-test-utils";
 import { expect, AssertionError } from "chai";
 import { id } from "ethers/hash";
 import { hexlify, toUtf8Bytes, zeroPadValue } from "ethers/utils";
@@ -28,7 +31,7 @@ describe(".to.emit (contract events)", { timeout: 60000 }, () => {
   let matchers: MatchersContract;
 
   describe("with the in-process hardhat network", () => {
-    process.chdir(process.cwd() + "/test/fixture-projects/hardhat-project");
+    useFixtureProject("hardhat-project");
     runTests();
   });
 
