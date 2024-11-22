@@ -29,7 +29,7 @@ Transaction 1:
   - Name: BasicContract
   - Address: 0x74e720c9B362ae3A65fF356ad62866511486BBBc
   - Params: ['42n']
-  - Value: 10
+  - Value: '10n'
 
 `;
 
@@ -68,7 +68,7 @@ Transaction 1:
   - Name: BasicContract
   - Address: 0x74e720c9B362ae3A65fF356ad62866511486BBBc
   - Params: [1,2,'A','B',['42n','43n'],{sub:{a:'44n'}}]
-  - Value: 10
+  - Value: '10n'
 
 `;
 

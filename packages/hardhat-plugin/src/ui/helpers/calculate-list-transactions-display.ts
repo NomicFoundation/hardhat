@@ -35,7 +35,7 @@ export function calculateListTransactionsDisplay(
     }
 
     if (transaction.value !== undefined) {
-      text += `  - Value: ${transaction.value}\n`;
+      text += `  - Value: '${transaction.value}n'\n`;
     }
 
     text += "\n";
