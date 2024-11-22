@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.15.8 - 2024-11-22
+
+### Fixed
+
+- `transactions` command now properly serializes `bigint` values, @zoeyTM ([#837](https://github.com/NomicFoundation/hardhat-ignition/pull/837))
+- Additional validations added for global parameters, @kanej ([#832](https://github.com/NomicFoundation/hardhat-ignition/pull/832))
+
 ## 0.15.7 - 2024-10-24
 
 ### Added
