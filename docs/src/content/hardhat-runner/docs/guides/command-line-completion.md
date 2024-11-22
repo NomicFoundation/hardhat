@@ -64,7 +64,7 @@ If you are using bash, try this:
 
 ### Windows user
 
-`hardhat-shothand` doesn't work well by default on Windows. Please read this to learn why and how to improve it.
+`hardhat-shorthand` doesn't work well by default on Windows. Please read this to learn why and how to improve it.
 
 On Windows, the default `hh` command is associated with the HTML Help executable program (hh.exe). To use `hardhat-shorthand`, you can simply run `npx hh` instead of `hh`, but that won't work well with its autocompletion.
 
@@ -72,6 +72,6 @@ If you want to use `hh` on Windows, you can follow these steps:
 
 1. Run `npm config get prefix` to get the npm global packages installation location.
 
-2. Add the npm location to the `Path` environment variable. For more information, refer to the [Microsoft document](https://learn.microsoft.com/en-us/previous-versions/office/developer/sharepoint-2010/ee537574(v=office.14))
+2. Add the npm location to the `Path` environment variable.
 
 3. Make sure to add the npm location to `Path` before `%SystemRoot%` because default `hh.exe` is in `%SystemRoot%`, and it will take precedence over `hh-shorthand` otherwise.
