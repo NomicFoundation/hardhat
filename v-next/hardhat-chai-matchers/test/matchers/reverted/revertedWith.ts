@@ -3,12 +3,10 @@ import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
 
 import path from "node:path";
-import { beforeEach, describe, it } from "node:test";
+import { before, beforeEach, describe, it } from "node:test";
 import util from "node:util";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import hardhatEthersPlugin from "@ignored/hardhat-vnext-ethers";
 import {
   assertThrowsHardhatError,
   useFixtureProject,
@@ -20,6 +18,7 @@ import {
   runSuccessfulAsserts,
   runFailedAsserts,
   mineSuccessfulTransaction,
+  initEnvironment,
 } from "../../helpers/helpers.js";
 
 addChaiMatchers();
@@ -43,16 +42,11 @@ describe("INTEGRATION: Reverted with", () => {
     let provider: EthereumProvider;
     let ethers: HardhatEthers;
 
+    before(async () => {
+      ({ ethers, provider } = await initEnvironment("reverted-with"));
+    });
+
     beforeEach(async () => {
-      const hre = await createHardhatRuntimeEnvironment({
-        paths: {
-          artifacts: `${process.cwd()}/artifacts`,
-        },
-        plugins: [hardhatEthersPlugin],
-      });
-
-      ({ ethers, provider } = await hre.network.connect());
-
       const Matchers = await ethers.getContractFactory<[], MatchersContract>(
         "Matchers",
       );
@@ -253,7 +247,7 @@ describe("INTEGRATION: Reverted with", () => {
             }),
           ).to.not.be.revertedWith("some reason"),
         ).to.be.eventually.rejectedWith(
-          "Sender doesn't have enough funds to send tx. The max upfront cost is: 2750000000000000 and the sender's balance is: 0.",
+          "Sender doesn't have enough funds to send tx. The max upfront cost is: 1218222876000000 and the sender's balance is: 0.",
         );
       });
     });

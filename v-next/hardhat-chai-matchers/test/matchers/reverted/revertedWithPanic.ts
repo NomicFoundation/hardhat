@@ -3,12 +3,10 @@ import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
 
 import path from "node:path";
-import { beforeEach, describe, it } from "node:test";
+import { before, beforeEach, describe, it } from "node:test";
 import util from "node:util";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import hardhatEthersPlugin from "@ignored/hardhat-vnext-ethers";
 import {
   assertThrowsHardhatError,
   useFixtureProject,
@@ -21,6 +19,7 @@ import {
   runSuccessfulAsserts,
   runFailedAsserts,
   mineSuccessfulTransaction,
+  initEnvironment,
 } from "../../helpers/helpers.js";
 
 addChaiMatchers();
@@ -44,16 +43,11 @@ describe("INTEGRATION: Reverted with panic", () => {
     let provider: EthereumProvider;
     let ethers: HardhatEthers;
 
+    before(async () => {
+      ({ ethers, provider } = await initEnvironment("reverted-with-panic"));
+    });
+
     beforeEach(async () => {
-      const hre = await createHardhatRuntimeEnvironment({
-        paths: {
-          artifacts: `${process.cwd()}/artifacts`,
-        },
-        plugins: [hardhatEthersPlugin],
-      });
-
-      ({ ethers, provider } = await hre.network.connect());
-
       const Matchers = await ethers.getContractFactory<[], MatchersContract>(
         "Matchers",
       );

@@ -10,9 +10,7 @@ import path from "node:path";
 import { before, beforeEach, describe, it } from "node:test";
 import util from "node:util";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import hardhatEthersPlugin from "@ignored/hardhat-vnext-ethers";
 import {
   assertThrowsHardhatError,
   useFixtureProject,
@@ -20,6 +18,7 @@ import {
 import { expect, AssertionError } from "chai";
 
 import { addChaiMatchers } from "../../src/internal/add-chai-matchers.js";
+import { initEnvironment } from "../helpers/helpers.js";
 
 addChaiMatchers();
 
@@ -46,14 +45,7 @@ describe("INTEGRATION: changeEtherBalance matcher", () => {
     let ethers: HardhatEthers;
 
     before(async () => {
-      const hre = await createHardhatRuntimeEnvironment({
-        paths: {
-          artifacts: `${process.cwd()}/artifacts`,
-        },
-        plugins: [hardhatEthersPlugin],
-      });
-
-      ({ ethers, provider } = await hre.network.connect());
+      ({ ethers, provider } = await initEnvironment("change-ether-balance"));
     });
 
     beforeEach(async () => {

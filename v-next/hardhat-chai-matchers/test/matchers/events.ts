@@ -6,11 +6,9 @@ import type {
 } from "../helpers/contracts.js";
 import type { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
 
-import { beforeEach, describe, it } from "node:test";
+import { before, beforeEach, describe, it } from "node:test";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import hardhatEthersPlugin from "@ignored/hardhat-vnext-ethers";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { expect, AssertionError } from "chai";
 import { id } from "ethers/hash";
@@ -19,6 +17,7 @@ import { Wallet } from "ethers/wallet";
 
 import { addChaiMatchers } from "../../src/internal/add-chai-matchers.js";
 import { anyUint, anyValue } from "../../src/withArgs.js";
+import { initEnvironment } from "../helpers/helpers.js";
 
 addChaiMatchers();
 
@@ -42,16 +41,11 @@ describe(".to.emit (contract events)", () => {
   function runTests() {
     let ethers: HardhatEthers;
 
+    before(async () => {
+      ({ ethers } = await initEnvironment("events"));
+    });
+
     beforeEach(async () => {
-      const hre = await createHardhatRuntimeEnvironment({
-        paths: {
-          artifacts: `${process.cwd()}/artifacts`,
-        },
-        plugins: [hardhatEthersPlugin],
-      });
-
-      ({ ethers } = await hre.network.connect());
-
       otherContract = await ethers.deployContract("AnotherContract");
 
       contract = await (

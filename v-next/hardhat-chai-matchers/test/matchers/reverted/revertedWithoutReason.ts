@@ -2,11 +2,9 @@ import type { MatchersContract } from "../../helpers/contracts.js";
 import type { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
 
 import path from "node:path";
-import { beforeEach, describe, it } from "node:test";
+import { before, beforeEach, describe, it } from "node:test";
 import util from "node:util";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
-import hardhatEthersPlugin from "@ignored/hardhat-vnext-ethers";
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import { AssertionError, expect } from "chai";
 
@@ -14,6 +12,7 @@ import { addChaiMatchers } from "../../../src/internal/add-chai-matchers.js";
 import {
   runSuccessfulAsserts,
   runFailedAsserts,
+  initEnvironment,
 } from "../../helpers/helpers.js";
 
 addChaiMatchers();
@@ -36,16 +35,11 @@ describe("INTEGRATION: Reverted without reason", () => {
 
     let ethers: HardhatEthers;
 
+    before(async () => {
+      ({ ethers } = await initEnvironment("reverted-without-reason"));
+    });
+
     beforeEach(async () => {
-      const hre = await createHardhatRuntimeEnvironment({
-        paths: {
-          artifacts: `${process.cwd()}/artifacts`,
-        },
-        plugins: [hardhatEthersPlugin],
-      });
-
-      ({ ethers } = await hre.network.connect());
-
       const Matchers = await ethers.getContractFactory<[], MatchersContract>(
         "Matchers",
       );

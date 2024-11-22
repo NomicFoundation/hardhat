@@ -16,9 +16,7 @@ import path from "node:path";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
 import util from "node:util";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import hardhatEthersPlugin from "@ignored/hardhat-vnext-ethers";
 import {
   assertThrowsHardhatError,
   useFixtureProject,
@@ -31,6 +29,7 @@ import {
   CHANGE_TOKEN_BALANCES_MATCHER,
 } from "../../src/internal/constants.js";
 import { clearTokenDescriptionsCache } from "../../src/internal/matchers/changeTokenBalance.js";
+import { initEnvironment } from "../helpers/helpers.js";
 
 addChaiMatchers();
 
@@ -62,14 +61,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", () 
     let ethers: HardhatEthers;
 
     before(async () => {
-      const hre = await createHardhatRuntimeEnvironment({
-        paths: {
-          artifacts: `${process.cwd()}/artifacts`,
-        },
-        plugins: [hardhatEthersPlugin],
-      });
-
-      ({ ethers, provider } = await hre.network.connect());
+      ({ ethers, provider } = await initEnvironment("change-token-balance"));
     });
 
     beforeEach(async () => {

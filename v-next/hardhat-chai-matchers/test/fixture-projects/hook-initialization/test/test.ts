@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-extraneous-dependencies -- allow in fixture projects
 import { AssertionError, expect } from "chai";
 
 describe("chai-matcher-test", () => {
