@@ -3,6 +3,8 @@ import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
 import type { ContractTransactionResponse } from "ethers/contract";
 
+import { pathToFileURL } from "node:url";
+
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import { AssertionError, expect } from "chai";
 
@@ -10,7 +12,10 @@ export async function initEnvironment(_artifactsPath: string): Promise<{
   provider: EthereumProvider;
   ethers: HardhatEthers;
 }> {
-  const config = (await import(`${process.cwd()}/hardhat.config.ts`)).default;
+  const configPath = pathToFileURL(
+    `${process.cwd()}/hardhat.config.ts`,
+  ).toString();
+  const config = (await import(configPath)).default;
 
   // TODO: remove this when compilation in V3 is executed only when files are not compiled already (when cache is available)
   // config.paths.artifacts = path.join(".", "artifacts", artifactsPath);
