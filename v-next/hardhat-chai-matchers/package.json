@@ -33,9 +33,10 @@
     "test:coverage": "c8 --reporter html --reporter text --all --exclude test --exclude src/internal/types.ts --exclude src/internal/ui/direct-user-interruption-manager.ts --src src node --import tsx/esm --test --test-reporter=@ignored/hardhat-vnext-node-test-reporter \"test/!(fixture-projects|helpers)/**/*.ts\"",
     "pretest": "pnpm build",
     "pretest:only": "pnpm build",
-    "build": "tsc --build . && cp src/type-extensions.d.ts dist/src/type-extensions.d.ts",
+    "build": "tsc --build .",
     "prepublishOnly": "pnpm build",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "postbuild": "cp src/type-extensions.d.ts dist/src/type-extensions.d.ts"
   },
   "files": [
     "dist/src/",

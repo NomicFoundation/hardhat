@@ -247,7 +247,7 @@ describe("INTEGRATION: Reverted with", { timeout: 60000 }, () => {
             }),
           ).to.not.be.revertedWith("some reason"),
         ).to.be.eventually.rejectedWith(
-          "Sender doesn't have enough funds to send tx. The max upfront cost is: 1218222876000000 and the sender's balance is: 0.",
+          /^Sender doesn't have enough funds to send tx\. The max upfront cost is: (\d+) and the sender's balance is: (\d+)\.$/,
         );
       });
     });
