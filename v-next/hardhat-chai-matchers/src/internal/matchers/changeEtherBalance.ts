@@ -5,6 +5,7 @@ import type { TransactionResponse } from "ethers/providers";
 import type { BigNumberish } from "ethers/utils";
 
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 import { toBigInt } from "ethers/utils";
 
@@ -111,12 +112,12 @@ export async function getBalanceChange(
 
   const balanceAfterHex = await provider.request({
     method: "eth_getBalance",
-    params: [address, `0x${txBlockNumber.toString(16)}`],
+    params: [address, numberToHexString(txBlockNumber)],
   });
 
   const balanceBeforeHex = await provider.request({
     method: "eth_getBalance",
-    params: [address, `0x${(txBlockNumber - 1).toString(16)}`],
+    params: [address, numberToHexString(txBlockNumber - 1)],
   });
 
   assertCanBeConvertedToBigint(balanceAfterHex);
