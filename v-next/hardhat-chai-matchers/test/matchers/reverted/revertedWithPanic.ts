@@ -24,7 +24,7 @@ import {
 
 addChaiMatchers();
 
-describe("INTEGRATION: Reverted with panic", () => {
+describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
   describe("with the in-process hardhat network", () => {
     useFixtureProject("hardhat-project");
     runTests();

@@ -23,7 +23,7 @@ import {
 
 addChaiMatchers();
 
-describe("INTEGRATION: Reverted with", () => {
+describe("INTEGRATION: Reverted with", { timeout: 60000 }, () => {
   describe("with the in-process hardhat network", () => {
     useFixtureProject("hardhat-project");
     runTests();

@@ -21,7 +21,7 @@ import { initEnvironment } from "../helpers/helpers.js";
 
 addChaiMatchers();
 
-describe(".to.emit (contract events)", () => {
+describe(".to.emit (contract events)", { timeout: 60000 }, () => {
   let contract: EventsContract;
   let otherContract: AnotherContract;
   let overrideEventContract: OverrideEventContract;

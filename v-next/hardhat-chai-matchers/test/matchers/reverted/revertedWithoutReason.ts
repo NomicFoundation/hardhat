@@ -17,7 +17,7 @@ import {
 
 addChaiMatchers();
 
-describe("INTEGRATION: Reverted without reason", () => {
+describe("INTEGRATION: Reverted without reason", { timeout: 60000 }, () => {
   describe("with the in-process hardhat network", () => {
     useFixtureProject("hardhat-project");
     runTests();

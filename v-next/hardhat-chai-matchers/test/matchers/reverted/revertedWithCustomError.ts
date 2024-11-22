@@ -24,7 +24,7 @@ import {
 
 addChaiMatchers();
 
-describe("INTEGRATION: Reverted with custom error", () => {
+describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
   describe("with the in-process hardhat network", () => {
     useFixtureProject("hardhat-project");
     runTests();

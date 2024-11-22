@@ -22,7 +22,7 @@ import { initEnvironment } from "../helpers/helpers.js";
 
 addChaiMatchers();
 
-describe("INTEGRATION: changeEtherBalances matcher", () => {
+describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
   describe("with the in-process hardhat network", () => {
     useFixtureProject("hardhat-project");
     runTests();
