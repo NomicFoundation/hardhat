@@ -256,7 +256,6 @@ export const solidityCompilers: SolidityCompiler[] = [
   {
     solidityVersion: "0.8.25",
     compilerPath: "soljson-v0.8.25+commit.b61c2a91.js",
-    latestSolcVersion: true,
   },
   {
     solidityVersion: "0.8.25",
@@ -265,7 +264,6 @@ export const solidityCompilers: SolidityCompiler[] = [
       runs: 200,
       viaIR: true,
     },
-    latestSolcVersion: true,
   },
   {
     solidityVersion: "0.8.26",
@@ -289,6 +287,20 @@ export const solidityCompilers: SolidityCompiler[] = [
   {
     solidityVersion: "0.8.27",
     compilerPath: "soljson-v0.8.27+commit.40a35a09.js",
+    optimizer: {
+      runs: 200,
+      viaIR: true,
+    },
+    latestSolcVersion: true,
+  },
+  {
+    solidityVersion: "0.8.28",
+    compilerPath: "soljson-v0.8.28+commit.7893614a.js",
+    latestSolcVersion: true,
+  },
+  {
+    solidityVersion: "0.8.28",
+    compilerPath: "soljson-v0.8.28+commit.7893614a.js",
     optimizer: {
       runs: 200,
       viaIR: true,

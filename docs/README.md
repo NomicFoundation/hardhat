@@ -186,7 +186,7 @@ Execution of `getStaticPaths` and `getStaticProps` is handled by NextJS on a bui
 
 ## Styling
 
-We utilize [Linaria](https://github.com/callstack/linaria) for styling components. It has the "Styled Components" syntax but generates css without runtime with works fine with SSG sites.
+We utilize [Linaria](https://github.com/callstack/linaria) for styling components. It has the "Styled Components" syntax but generates css without runtime which works fine with SSG sites.
 
 ## Theming
 
@@ -200,7 +200,7 @@ Landing pages don't support themes.
 
 ## Creating new landings
 
-Landing pages contains special "blocks" see src/components/landingBlocks. To create a new landing page start from copying `/pages/index.tsx` and `src/content/home.ts`. You can create another page by reordering existing blocks and passing another content to them. If necessary create new landing blocks.
+Landing pages contain special "blocks" see src/components/landingBlocks. To create a new landing page start from copying `/pages/index.tsx` and `src/content/home.ts`. You can create another page by reordering existing blocks and passing another content to them. If necessary create new landing blocks.
 
 ## CI/CD
 
