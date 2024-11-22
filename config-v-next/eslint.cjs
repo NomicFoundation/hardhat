@@ -263,6 +263,20 @@ function createConfig(
           message:
             "Use the conditionalUnionType or unionType helpers from the zod utils package instead, as it provides better error messages.",
         },
+        {
+          // This rule ensures that non-primitive readonly properties are typed
+          // as Readonly<T>. This prevents their properties from being modified.
+          selector:
+            // Target properties on both classes/objects and interfaces
+            ":matches(PropertyDefinition, TSPropertySignature)"
+            // Include only properties tagged as readonly
+            + "[readonly=true]"
+            // Exclude properties already using the Readonly utility type
+            + ":not(:has(TSTypeReference[typeName.name='Readonly']))"
+            // Exclude properties with primitive types
+            + ":not(:has(TSTypeAnnotation > TSKeywordType))",
+          message: "Use Readonly<T> instead of T for non-primitive readonly properties",
+        },
       ],
       "@typescript-eslint/restrict-plus-operands": "error",
       "@typescript-eslint/restrict-template-expressions": [
