@@ -74,4 +74,4 @@ If you want to use `hh` on Windows, you can follow these steps:
 
 2. Add the npm location to the `Path` environment variable. For more information, refer to the [Microsoft document](https://learn.microsoft.com/en-us/previous-versions/office/developer/sharepoint-2010/ee537574(v=office.14))
 
-3. Make sure to add the npm location to `Path` before `%SustemRoot%` because default `hh.exe` is in `%SystemRoot%`, and it will take precedence over `hh-shorthand` otherwise.
+3. Make sure to add the npm location to `Path` before `%SystemRoot%` because default `hh.exe` is in `%SystemRoot%`, and it will take precedence over `hh-shorthand` otherwise.
