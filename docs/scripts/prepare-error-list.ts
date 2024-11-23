@@ -36,7 +36,7 @@ ${errorDescriptor.description}
 
     const shortLink = errorCode;
     // TODO: Fix anchor generation
-    const anchor = shortLink;
+    const anchor = shortLink.toLowerCase().replace(/[^a-z0-9-]/g, "-");
 
     errorRedirects.push({
       source: `/${shortLink}`,
