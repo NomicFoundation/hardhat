@@ -8,7 +8,7 @@ prev: false
 If you are using MetaMask with Hardhat Network, you might get an error like this when you send a transaction:
 
 ```
-Incompatible EIP155-based V 2710 and chain id 31337. See the second parameter of the Transaction constructor to set the chain id.
+Incompatible EIP155-based v2710 and chain id 31337. See the second parameter of the Transaction constructor to set the chain id.
 ```
 
 This is because MetaMask mistakenly assumes all networks in `http://127.0.0.1:8545` to have a chain id of `1337`, but Hardhat uses a different number by default. **Please upvote [the MetaMask issue about it](https://github.com/MetaMask/metamask-extension/issues/10290) if you want this fixed.**
