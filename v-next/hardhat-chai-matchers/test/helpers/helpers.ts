@@ -17,10 +17,7 @@ export async function initEnvironment(_artifactsPath: string): Promise<{
   ).toString();
   const config = (await import(configPath)).default;
 
-  // TODO: remove this when compilation in V3 is executed only when files are not compiled already (when cache is available)
-  // config.paths.artifacts = path.join(".", "artifacts", artifactsPath);
   const hre = await createHardhatRuntimeEnvironment(config);
-  // await hre.tasks.getTask("compile").run({});
 
   const { ethers, provider } = await hre.network.connect();
 
