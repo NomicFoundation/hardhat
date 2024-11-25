@@ -398,7 +398,7 @@ describe("INTEGRATION: Reverted", { timeout: 60000 }, () => {
           args: [],
           failedAssert: (x) => expect(x).not.to.be.reverted(ethers),
           failedAssertReason:
-            "Expected transaction NOT to be reverted, but it reverted with panic code 0x01 (Assertion error)",
+            "Expected transaction NOT to be reverted, but it reverted with panic code 0x1 (Assertion error)",
         });
       });
     });

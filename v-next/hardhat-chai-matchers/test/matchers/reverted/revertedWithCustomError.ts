@@ -166,7 +166,7 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
               "SomeCustomError",
             ),
           failedAssertReason:
-            "Expected transaction to be reverted with custom error 'SomeCustomError', but it reverted with panic code 0x01 (Assertion error)",
+            "Expected transaction to be reverted with custom error 'SomeCustomError', but it reverted with panic code 0x1 (Assertion error)",
         });
       });
     });

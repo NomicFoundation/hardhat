@@ -83,7 +83,7 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
           failedAssert: (x) =>
             expect(x).to.be.revertedWithPanic(PANIC_CODES.ASSERTION_ERROR),
           failedAssertReason:
-            "Expected transaction to be reverted with panic code 0x01 (Assertion error), but it didn't revert",
+            "Expected transaction to be reverted with panic code 0x1 (Assertion error), but it didn't revert",
         });
       });
     });
@@ -119,7 +119,7 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
           failedAssert: (x) =>
             expect(x).to.be.revertedWithPanic(PANIC_CODES.ASSERTION_ERROR),
           failedAssertReason:
-            "Expected transaction to be reverted with panic code 0x01 (Assertion error), but it reverted without a reason",
+            "Expected transaction to be reverted with panic code 0x1 (Assertion error), but it reverted without a reason",
         });
       });
     });
@@ -157,7 +157,7 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
           failedAssert: (x) =>
             expect(x).to.be.revertedWithPanic(PANIC_CODES.ASSERTION_ERROR),
           failedAssertReason:
-            "Expected transaction to be reverted with panic code 0x01 (Assertion error), but it reverted with reason 'some reason'",
+            "Expected transaction to be reverted with panic code 0x1 (Assertion error), but it reverted with reason 'some reason'",
         });
       });
     });
@@ -183,7 +183,7 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
           method: "panicAssert",
           failedAssert: (x) => expect(x).to.not.be.revertedWithPanic(),
           failedAssertReason:
-            "Expected transaction NOT to be reverted with some panic code, but it reverted with panic code 0x01 (Assertion error)",
+            "Expected transaction NOT to be reverted with some panic code, but it reverted with panic code 0x1 (Assertion error)",
         });
 
         await runFailedAsserts({
@@ -192,7 +192,7 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
           failedAssert: (x) =>
             expect(x).to.not.be.revertedWithPanic(PANIC_CODES.ASSERTION_ERROR),
           failedAssertReason:
-            "Expected transaction NOT to be reverted with panic code 0x01 (Assertion error), but it was",
+            "Expected transaction NOT to be reverted with panic code 0x1 (Assertion error), but it was",
         });
 
         await runFailedAsserts({
@@ -201,7 +201,7 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
           failedAssert: (x) =>
             expect(x).to.be.revertedWithPanic(PANIC_CODES.ARITHMETIC_OVERFLOW),
           failedAssertReason:
-            "Expected transaction to be reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block), but it reverted with panic code 0x01 (Assertion error)",
+            "Expected transaction to be reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block), but it reverted with panic code 0x1 (Assertion error)",
         });
       });
     });
@@ -237,7 +237,7 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
           failedAssert: (x) =>
             expect(x).to.be.revertedWithPanic(PANIC_CODES.ASSERTION_ERROR),
           failedAssertReason:
-            "Expected transaction to be reverted with panic code 0x01 (Assertion error), but it reverted with a custom error",
+            "Expected transaction to be reverted with panic code 0x1 (Assertion error), but it reverted with a custom error",
         });
       });
     });
@@ -332,7 +332,7 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
         } catch (e) {
           const errorString = util.inspect(e);
           expect(errorString).to.include(
-            "Expected transaction NOT to be reverted with some panic code, but it reverted with panic code 0x01 (Assertion error)",
+            "Expected transaction NOT to be reverted with some panic code, but it reverted with panic code 0x1 (Assertion error)",
           );
           expect(errorString).to.include(
             path.join("test", "matchers", "reverted", "revertedWithPanic.ts"),

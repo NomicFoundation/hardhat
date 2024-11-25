@@ -1,7 +1,7 @@
 import type { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { toBeHex } from "ethers/utils";
+import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import { buildAssert } from "../../../utils.js";
 import { REVERTED_MATCHER } from "../../constants.js";
@@ -105,7 +105,7 @@ export function supportReverted(
           assert(
             true,
             undefined,
-            `Expected transaction NOT to be reverted, but it reverted with panic code ${toBeHex(
+            `Expected transaction NOT to be reverted, but it reverted with panic code ${numberToHexString(
               decodedReturnData.code,
             )} (${decodedReturnData.description})`,
           );

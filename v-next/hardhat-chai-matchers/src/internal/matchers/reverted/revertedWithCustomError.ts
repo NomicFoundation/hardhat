@@ -3,7 +3,7 @@ import type { ErrorFragment, Interface } from "ethers/abi";
 import type { BaseContract } from "ethers/contract";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { toBeHex } from "ethers/utils";
+import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import { buildAssert } from "../../../utils.js";
 import {
@@ -91,7 +91,7 @@ export function supportRevertedWithCustomError(
         } else if (decodedReturnData.kind === "Panic") {
           assert(
             false,
-            `Expected transaction to be reverted with custom error '${expectedCustomErrorName}', but it reverted with panic code ${toBeHex(
+            `Expected transaction to be reverted with custom error '${expectedCustomErrorName}', but it reverted with panic code ${numberToHexString(
               decodedReturnData.code,
             )} (${decodedReturnData.description})`,
           );

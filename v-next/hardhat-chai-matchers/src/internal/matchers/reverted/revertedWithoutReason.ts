@@ -1,4 +1,4 @@
-import { toBeHex } from "ethers/utils";
+import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import { buildAssert } from "../../../utils.js";
 import { REVERTED_WITHOUT_REASON_MATCHER } from "../../constants.js";
@@ -49,7 +49,7 @@ export function supportRevertedWithoutReason(
       } else if (decodedReturnData.kind === "Panic") {
         assert(
           false,
-          `Expected transaction to be reverted without a reason, but it reverted with panic code ${toBeHex(
+          `Expected transaction to be reverted without a reason, but it reverted with panic code ${numberToHexString(
             decodedReturnData.code,
           )} (${decodedReturnData.description})`,
         );

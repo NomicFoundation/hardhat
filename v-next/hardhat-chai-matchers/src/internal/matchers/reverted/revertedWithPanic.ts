@@ -1,6 +1,6 @@
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { toBigInt } from "@ignored/hardhat-vnext-utils/bigint";
-import { toBeHex } from "ethers/utils";
+import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import { buildAssert } from "../../../utils.js";
 import { REVERTED_WITH_PANIC_MATCHER } from "../../constants.js";
@@ -46,7 +46,7 @@ export function supportRevertedWithPanic(
       } else {
         const codeBN = toBigInt(code);
         description = panicErrorCodeToReason(codeBN) ?? "unknown panic code";
-        formattedPanicCode = `panic code ${toBeHex(codeBN)} (${description})`;
+        formattedPanicCode = `panic code ${numberToHexString(codeBN)} (${description})`;
       }
 
       preventAsyncMatcherChaining(this, REVERTED_WITH_PANIC_MATCHER, chaiUtils);
@@ -80,7 +80,7 @@ export function supportRevertedWithPanic(
           if (code !== undefined) {
             assert(
               decodedReturnData.code === code,
-              `Expected transaction to be reverted with ${formattedPanicCode}, but it reverted with panic code ${toBeHex(
+              `Expected transaction to be reverted with ${formattedPanicCode}, but it reverted with panic code ${numberToHexString(
                 decodedReturnData.code,
               )} (${decodedReturnData.description})`,
               `Expected transaction NOT to be reverted with ${formattedPanicCode}, but it was`,
@@ -89,7 +89,7 @@ export function supportRevertedWithPanic(
             assert(
               true,
               undefined,
-              `Expected transaction NOT to be reverted with ${formattedPanicCode}, but it reverted with panic code ${toBeHex(
+              `Expected transaction NOT to be reverted with ${formattedPanicCode}, but it reverted with panic code ${numberToHexString(
                 decodedReturnData.code,
               )} (${decodedReturnData.description})`,
             );

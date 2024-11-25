@@ -131,7 +131,7 @@ describe("INTEGRATION: Reverted without reason", { timeout: 60000 }, () => {
           method: "panicAssert",
           failedAssert: (x) => expect(x).to.be.revertedWithoutReason(ethers),
           failedAssertReason:
-            "Expected transaction to be reverted without a reason, but it reverted with panic code 0x01 (Assertion error)",
+            "Expected transaction to be reverted without a reason, but it reverted with panic code 0x1 (Assertion error)",
         });
       });
     });
