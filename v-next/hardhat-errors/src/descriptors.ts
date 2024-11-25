@@ -226,14 +226,6 @@ Please add the property "type" with the value "module" in your package.json to e
       websiteTitle: "Invalid hex string",
       websiteDescription: `Given value was not a valid hex string.`,
     },
-    INVALID_BIG_NUMBER: {
-      number: 19,
-      messageTemplate:
-        "The input value cannot be normalized to a bigint: {message}",
-      websiteTitle: "Invalid big number",
-      websiteDescription:
-        "Hardhat attempted to convert the input value to a bigint, but no known conversion method was applicable to the given value.",
-    },
   },
   INTERNAL: {
     ASSERTION_ERROR: {
