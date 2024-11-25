@@ -1400,11 +1400,5 @@ Please check Hardhat's output for more details.`,
       websiteDescription:
         "withArgs called with both .emit and .revertedWithCustomError, but these assertions cannot be combined",
     },
-    // ANY_UINT_ARGUMENT_NOT_AN_UNSIGNED_INTEGER: {
-    //   number: 1421,
-    //   messageTemplate: `anyUint expected its argument to be an unsigned integer, but it was negative, with value "{value}"`,
-    //   websiteTitle: "anyUint should be an unsigned integer",
-    //   websiteDescription: "anyUint should be an unsigned integer",
-    // },
   },
 } as const;
