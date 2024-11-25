@@ -20,7 +20,7 @@ First, run `forge --version` to make sure that you have Foundry installed. If yo
 
 After that, install the [`@nomicfoundation/hardhat-foundry`](/hardhat-runner/plugins/nomicfoundation-hardhat-foundry) plugin:
 
-::::tabsgroup{options="npm 7+,npm 6,yarn"}
+::::tabsgroup{options="npm 7+,npm 6,yarn,pnpm"}
 
 :::tab{value="npm 7+"}
 
@@ -45,6 +45,12 @@ yarn add --dev @nomicfoundation/hardhat-foundry
 ```
 
 :::
+
+:::tab{value=pnpm}
+
+```
+pnpm add --save-dev @nomicfoundation/hardhat-foundry
+```
 
 ::::
 
@@ -80,12 +86,12 @@ First, if you don't have a `package.json` already in your project, create one wi
 
 Then install Hardhat, the [Hardhat Toolbox](/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox), and the [`@nomicfoundation/hardhat-foundry`](/hardhat-runner/plugins/nomicfoundation-hardhat-foundry) plugin:
 
-::::tabsgroup{options="npm 7+,npm 6,yarn"}
+::::tabsgroup{options="npm 7+,npm 6,yarn,pnpm"}
 
 :::tab{value="npm 7+"}
 
 ```
-npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-foundry
+npm install --save-dev hardhat @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-foundry
 ```
 
 :::
@@ -93,7 +99,7 @@ npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat
 :::tab{value="npm 6"}
 
 ```
-npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-foundry
+npm install --save-dev hardhat @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-foundry
 ```
 
 :::
@@ -102,6 +108,14 @@ npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat
 
 ```
 yarn add --dev hardhat @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-foundry
+```
+
+:::
+
+:::tab{value=pnpm}
+
+```
+pnpm add --save-dev hardhat @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-foundry
 ```
 
 :::
