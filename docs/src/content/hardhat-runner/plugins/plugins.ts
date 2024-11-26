@@ -1011,7 +1011,14 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/AxelLoupias",
     description:
       "Simplifies the debugging process by extracting transaction details, decoding contract events, and identifying revert reasons",
-    tags: ["functions", "errors", "events", "tooling","decoder","transaction"],
+    tags: [
+      "functions",
+      "errors",
+      "events",
+      "tooling",
+      "decoder",
+      "transaction",
+    ],
   },
 ];
 
