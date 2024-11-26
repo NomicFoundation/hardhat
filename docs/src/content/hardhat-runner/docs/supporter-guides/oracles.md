@@ -210,7 +210,7 @@ main().catch((error) => {
 });
 ```
 
-Finnaly, run the deployment script by typing:
+Finally, run the deployment script by typing:
 
 ```sh
 npx hardhat run scripts/deploy.ts --network goerli
