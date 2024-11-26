@@ -259,7 +259,7 @@ expect("0x1234").to.be.properHex(4);
 
 ### `.hexEqual`
 
-Assert that the given strings hexadecimal strings correspond to the same numerical value:
+Assert that the given hexadecimal strings correspond to the same numerical value:
 
 ```ts
 expect("0x00012AB").to.hexEqual("0x12ab");
