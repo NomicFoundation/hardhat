@@ -10,15 +10,17 @@ import { createMockedNetworkHre } from "./hooks-mock.js";
 // These tests simulate a real scenario where the user calls "await connection.provider.request(jsonRpcRequest)".
 describe("request-handlers - e2e", () => {
   it("should successfully executes all the handlers setting fixed values", async () => {
-    // should use the handlers: ChainIdValidatorHandler, FixedGasHandler
+    // should use the handlers in this order: ChainIdValidatorHandler, FixedGasHandler, FixedGasPriceHandler
 
     const FIXED_GAS_LIMIT = 1231n;
+    const FIXED_GAS_PRICE = 1232n;
 
     const hre = await createMockedNetworkHre(
       {
         networks: {
           localhost: {
             gas: FIXED_GAS_LIMIT,
+            gasPrice: FIXED_GAS_PRICE,
             type: "http",
             url: "http://localhost:8545",
             chainId: 1,
@@ -47,13 +49,15 @@ describe("request-handlers - e2e", () => {
     assert.ok(Array.isArray(res), "res should be an array");
 
     assert.equal(res[0].gas, numberToHexString(FIXED_GAS_LIMIT));
+    assert.equal(res[0].gasPrice, numberToHexString(FIXED_GAS_PRICE));
   });
 
   it("should successfully executes all the handlers setting automatic values", async () => {
-    // should use the handlers: ChainIdValidatorHandler, AutomaticGasHandler
+    // should use the handlers in this order: ChainIdValidatorHandler, AutomaticGasHandler, AutomaticGasPriceHandler
 
     const FIXED_GAS_LIMIT = 1231;
     const GAS_MULTIPLIER = 1.337;
+    const LATEST_BASE_FEE_IN_MOCKED_PROVIDER = 80;
 
     const hre = await createMockedNetworkHre(
       {
@@ -70,9 +74,19 @@ describe("request-handlers - e2e", () => {
       {
         eth_chainId: "0x1",
         eth_getBlockByNumber: {
+          baseFeePerGas: "0x1",
           gasLimit: numberToHexString(FIXED_GAS_LIMIT * 1000),
         },
         eth_estimateGas: numberToHexString(FIXED_GAS_LIMIT),
+        eth_feeHistory: {
+          baseFeePerGas: [
+            numberToHexString(LATEST_BASE_FEE_IN_MOCKED_PROVIDER),
+            numberToHexString(
+              Math.floor((LATEST_BASE_FEE_IN_MOCKED_PROVIDER * 9) / 8),
+            ),
+          ],
+          reward: [["0x4"]],
+        },
       },
     );
 
@@ -86,6 +100,7 @@ describe("request-handlers - e2e", () => {
         {
           from: "0x0000000000000000000000000000000000000011",
           to: "0x0000000000000000000000000000000000000012",
+          maxFeePerGas: "0x99",
         },
       ],
     });
@@ -96,5 +111,8 @@ describe("request-handlers - e2e", () => {
       res[0].gas,
       numberToHexString(Math.floor(FIXED_GAS_LIMIT * GAS_MULTIPLIER)),
     );
+
+    assert.equal(res[0].maxPriorityFeePerGas, "0x4");
+    assert.equal(res[0].maxFeePerGas, "0x99");
   });
 });
