@@ -2,6 +2,7 @@ import type { GetContractReturnType } from "@nomicfoundation/hardhat-viem/types"
 
 import {
   HardhatArtifactResolver,
+  PrettyEventHandler,
   errorDeploymentResultToExceptionMessage,
   resolveDeploymentId,
 } from "@nomicfoundation/hardhat-ignition/helpers";
@@ -124,10 +125,13 @@ export class ViemIgnitionHelper {
             deploymentId
           );
 
+    const executionEventListener = new PrettyEventHandler();
+
     const result = await deploy({
       config: resolvedConfig,
       provider: this._provider,
       deploymentDir,
+      executionEventListener,
       artifactResolver,
       ignitionModule,
       deploymentParameters: parameters,

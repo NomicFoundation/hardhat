@@ -1,5 +1,6 @@
 import {
   HardhatArtifactResolver,
+  PrettyEventHandler,
   errorDeploymentResultToExceptionMessage,
   resolveDeploymentId,
 } from "@nomicfoundation/hardhat-ignition/helpers";
@@ -134,10 +135,13 @@ export class EthersIgnitionHelper {
             deploymentId
           );
 
+    const executionEventListener = new PrettyEventHandler();
+
     const result = await deploy({
       config: resolvedConfig,
       provider: this._provider,
       deploymentDir,
+      executionEventListener,
       artifactResolver,
       ignitionModule,
       deploymentParameters: parameters,
