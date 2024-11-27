@@ -8,7 +8,7 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 
 import { getJsonRpcRequest } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
-import { ChainIdValidatorHandler } from "../../../../../../../src/internal/builtin-plugins/network-manager/request-handlers/handlers/chain-id/handler.js";
+import { ChainIdValidatorHandler } from "../../../../../../../src/internal/builtin-plugins/network-manager/request-handlers/handlers/chain-id/chain-id-handler.js";
 import { EthereumMockedProvider } from "../../ethereum-mocked-provider.js";
 
 describe("ChainIdValidatorHandler", () => {
