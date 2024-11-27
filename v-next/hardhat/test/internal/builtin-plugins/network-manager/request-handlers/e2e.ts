@@ -9,8 +9,8 @@ import { createMockedNetworkHre } from "./hooks-mock.js";
 // are correctly modified in the "onRequest" hook handler.
 // These tests simulate a real scenario where the user calls "await connection.provider.request(jsonRpcRequest)".
 describe("request-handlers - e2e", () => {
-  it("should successfully executes all the handlers setting fixed values", async () => {
-    // should use the handlers in this order: ChainIdValidatorHandler, FixedGasHandler, FixedGasPriceHandler
+  it("should successfully executes all the handlers that set fixed values", async () => {
+    // should use the handlers in this order: ChainIdValidatorHandler, FixedGasHandler, FixedGasPriceHandler, FixedSenderHandler
 
     const FIXED_GAS_LIMIT = 1231n;
     const FIXED_GAS_PRICE = 1232n;
@@ -21,12 +21,14 @@ describe("request-handlers - e2e", () => {
           localhost: {
             gas: FIXED_GAS_LIMIT,
             gasPrice: FIXED_GAS_PRICE,
+            from: "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d",
             type: "http",
             url: "http://localhost:8545",
             chainId: 1,
           },
         },
       },
+      // List of methods that the handlers will call; we mock the responses
       {
         eth_chainId: "0x1",
       },
@@ -40,7 +42,6 @@ describe("request-handlers - e2e", () => {
       method: "eth_sendTransaction",
       params: [
         {
-          from: "0x0000000000000000000000000000000000000011",
           to: "0x0000000000000000000000000000000000000012",
         },
       ],
@@ -48,12 +49,16 @@ describe("request-handlers - e2e", () => {
 
     assert.ok(Array.isArray(res), "res should be an array");
 
+    // gas
     assert.equal(res[0].gas, numberToHexString(FIXED_GAS_LIMIT));
+    // gasPrice
     assert.equal(res[0].gasPrice, numberToHexString(FIXED_GAS_PRICE));
+    // sender
+    assert.equal(res[0].from, "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d");
   });
 
-  it("should successfully executes all the handlers setting automatic values", async () => {
-    // should use the handlers in this order: ChainIdValidatorHandler, AutomaticGasHandler, AutomaticGasPriceHandler
+  it("should successfully executes all the handlers that set automatic values", async () => {
+    // should use the handlers in this order: ChainIdValidatorHandler, AutomaticGasHandler, AutomaticGasPriceHandler, AutomaticSenderHandler
 
     const FIXED_GAS_LIMIT = 1231;
     const GAS_MULTIPLIER = 1.337;
@@ -72,6 +77,7 @@ describe("request-handlers - e2e", () => {
         },
       },
       {
+        // List of methods that the handlers will call; we mock the responses
         eth_chainId: "0x1",
         eth_getBlockByNumber: {
           baseFeePerGas: "0x1",
@@ -87,6 +93,7 @@ describe("request-handlers - e2e", () => {
           ],
           reward: [["0x4"]],
         },
+        eth_accounts: ["0x123006d4548a3ac17d72b372ae1e416bf65b8eaf"],
       },
     );
 
@@ -98,7 +105,6 @@ describe("request-handlers - e2e", () => {
       method: "eth_sendTransaction",
       params: [
         {
-          from: "0x0000000000000000000000000000000000000011",
           to: "0x0000000000000000000000000000000000000012",
           maxFeePerGas: "0x99",
         },
@@ -107,12 +113,15 @@ describe("request-handlers - e2e", () => {
 
     assert.ok(Array.isArray(res), "res should be an array");
 
+    // gas
     assert.equal(
       res[0].gas,
       numberToHexString(Math.floor(FIXED_GAS_LIMIT * GAS_MULTIPLIER)),
     );
-
+    // gas price
     assert.equal(res[0].maxPriorityFeePerGas, "0x4");
     assert.equal(res[0].maxFeePerGas, "0x99");
+    // sender
+    assert.equal(res[0].from, "0x123006d4548a3ac17d72b372ae1e416bf65b8eaf");
   });
 });
