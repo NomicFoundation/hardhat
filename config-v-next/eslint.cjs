@@ -42,8 +42,11 @@ function createConfig(
       "no-only-tests",
       "@typescript-eslint",
       "@eslint-community/eslint-comments",
+      "@galargh/immutable-readonly",
     ],
     rules: {
+      "@galargh/immutable-readonly/no-type-annotation": "error",
+      "@galargh/immutable-readonly/no-readonly-wrapper": "error",
       "@eslint-community/eslint-comments/require-description": [
         "error",
         { ignore: ["eslint-enable"] },
