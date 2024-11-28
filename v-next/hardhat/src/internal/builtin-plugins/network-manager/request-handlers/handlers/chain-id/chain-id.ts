@@ -21,7 +21,7 @@ export class ChainId {
     this.provider = provider;
   }
 
-  public async getChainId(): Promise<number> {
+  protected async getChainId(): Promise<number> {
     if (this.#chainId === undefined) {
       try {
         this.#chainId = await this.#getChainIdFromEthChainId();

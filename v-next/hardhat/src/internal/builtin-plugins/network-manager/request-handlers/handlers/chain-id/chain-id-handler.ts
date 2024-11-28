@@ -15,13 +15,13 @@ import { ChainId } from "./chain-id.js";
  * HardhatError to signal a network configuration mismatch. Once validated, further checks
  * are skipped to avoid redundant validations.
  */
-export class ChainIdValidatorHandler implements RequestHandler {
-  readonly #chainId: ChainId;
+export class ChainIdValidatorHandler extends ChainId implements RequestHandler {
   readonly #expectedChainId: number;
   #alreadyValidated = false;
 
   constructor(provider: EthereumProvider, expectedChainId: number) {
-    this.#chainId = new ChainId(provider);
+    super(provider);
+
     this.#expectedChainId = expectedChainId;
   }
 
@@ -39,7 +39,7 @@ export class ChainIdValidatorHandler implements RequestHandler {
       return jsonRpcRequest;
     }
 
-    const actualChainId = await this.#chainId.getChainId();
+    const actualChainId = await this.getChainId();
 
     if (actualChainId !== this.#expectedChainId) {
       throw new HardhatError(
