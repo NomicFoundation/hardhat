@@ -98,9 +98,9 @@ export type JsonRpcRequestWrapperFunction = (
 ) => Promise<JsonRpcResponse>;
 
 export class EdrProvider extends EventEmitter implements EthereumProvider {
-  readonly #provider: Provider;
-  readonly #vmTraceDecoder: VmTraceDecoder;
-  readonly #jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
+  readonly #provider: Readonly<Provider>;
+  readonly #vmTraceDecoder: Readonly<VmTraceDecoder>;
+  readonly #jsonRpcRequestWrapper?: Readonly<JsonRpcRequestWrapperFunction>;
 
   #failedStackTraces: number = 0;
   /** Used for internal stack trace tests. */

@@ -8,7 +8,7 @@ import { getRequestParams } from "../../json-rpc.js";
  * For `eth_sendTransaction` requests, it sets the gasPrice field with the value provided via the class constructor, if it hasn't been specified already.
  */
 export class FixedGasPrice {
-  readonly #gasPrice: PrefixedHexString;
+  readonly #gasPrice: Readonly<PrefixedHexString>;
 
   constructor(gasPrice: PrefixedHexString) {
     this.#gasPrice = gasPrice;

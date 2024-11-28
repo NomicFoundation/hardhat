@@ -28,7 +28,8 @@ import { validateParams } from "../../rpc/validate-params.js";
 import { ChainId } from "../chain-id/chain-id.js";
 
 export class LocalAccounts extends ChainId {
-  readonly #addressToPrivateKey: Map<string, Uint8Array> = new Map();
+  readonly #addressToPrivateKey: Readonly<Map<string, Readonly<Uint8Array>>> =
+    new Map();
 
   constructor(
     provider: EthereumProvider,

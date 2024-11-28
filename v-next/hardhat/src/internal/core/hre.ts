@@ -147,7 +147,7 @@ export class HardhatRuntimeEnvironmentImplementation
     return hre;
   }
 
-  public readonly tasks: TaskManager;
+  public readonly tasks: Readonly<TaskManager>;
 
   private constructor(
     public readonly userConfig: HardhatUserConfig,

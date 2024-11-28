@@ -26,8 +26,11 @@ import {
 } from "./validations.js";
 
 export class TaskManagerImplementation implements TaskManager {
-  readonly #hre: HardhatRuntimeEnvironment;
-  readonly #rootTasks = new Map<string, Task>();
+  readonly #hre: Readonly<HardhatRuntimeEnvironment>;
+  readonly #rootTasks: Readonly<Map<string, Readonly<Task>>> = new Map<
+    string,
+    Task
+  >();
 
   constructor(
     hre: HardhatRuntimeEnvironment,

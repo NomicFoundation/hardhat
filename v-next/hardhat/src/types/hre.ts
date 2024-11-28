@@ -7,9 +7,9 @@ import type { HardhatConfig } from "../types/config.js";
  * all the functionality available through Hardhat.
  */
 export interface HardhatRuntimeEnvironment {
-  readonly config: HardhatConfig;
-  readonly globalOptions: GlobalOptions;
-  readonly interruptions: UserInterruptionManager;
+  readonly config: Readonly<HardhatConfig>;
+  readonly globalOptions: Readonly<GlobalOptions>;
+  readonly interruptions: Readonly<UserInterruptionManager>;
   // These fields are defined using module agumentation despite being part of
   // Hardhat's core:
   // readonly hooks: HookManager;

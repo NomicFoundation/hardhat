@@ -17,7 +17,7 @@ import { getRequestParams } from "../../json-rpc.js";
  * It ensures that gas prices are set correctly.
  */
 export class AutomaticGasPrice {
-  readonly #provider: EthereumProvider;
+  readonly #provider: Readonly<EthereumProvider>;
 
   // We pay the max base fee that can be required if the next
   // EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE are full.
@@ -25,7 +25,7 @@ export class AutomaticGasPrice {
     3n;
 
   // See eth_feeHistory for an explanation of what this means
-  public static readonly EIP1559_REWARD_PERCENTILE = 50;
+  public static readonly EIP1559_REWARD_PERCENTILE: number = 50;
 
   constructor(provider: EthereumProvider) {
     this.#provider = provider;

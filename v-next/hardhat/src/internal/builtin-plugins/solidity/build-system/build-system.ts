@@ -58,7 +58,7 @@ import { SolcConfigSelector } from "./solc-config-selection.js";
 const log = debug("hardhat:core:solidity:build-system");
 
 export interface SolidityBuildSystemOptions {
-  readonly solidityConfig: SolidityConfig;
+  readonly solidityConfig: Readonly<SolidityConfig>;
   readonly projectRoot: string;
   readonly soliditySourcesPaths: string[];
   readonly artifactsPath: string;
@@ -66,8 +66,8 @@ export interface SolidityBuildSystemOptions {
 }
 
 export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
-  readonly #options: SolidityBuildSystemOptions;
-  readonly #defaultConcurrenty = Math.max(os.cpus().length - 1, 1);
+  readonly #options: Readonly<SolidityBuildSystemOptions>;
+  readonly #defaultConcurrenty: number = Math.max(os.cpus().length - 1, 1);
   #downloadedCompilers = false;
 
   constructor(options: SolidityBuildSystemOptions) {

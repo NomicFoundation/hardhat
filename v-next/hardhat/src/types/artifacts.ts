@@ -127,7 +127,7 @@ export interface Artifact<AbiT extends Abi = Abi> {
   /**
    * The ABI of the contract.
    */
-  readonly abi: AbiT;
+  readonly abi: Readonly<AbiT>;
 
   /**
    * The bytecode used to deploy the contract.
@@ -137,7 +137,7 @@ export interface Artifact<AbiT extends Abi = Abi> {
   /**
    * The link references of the deployment bytecode.
    */
-  readonly linkReferences: LinkReferences;
+  readonly linkReferences: Readonly<LinkReferences>;
 
   /**
    * The deployed or runtime bytecode of the contract.
@@ -147,13 +147,13 @@ export interface Artifact<AbiT extends Abi = Abi> {
   /**
    * The link references of the deployed bytecode.
    */
-  readonly deployedLinkReferences: LinkReferences;
+  readonly deployedLinkReferences: Readonly<LinkReferences>;
 
   /**
    * The references to the immutable variables that get embedded in the deployed
    * bytecode.
    */
-  readonly immutableReferences?: ImmutableReferences;
+  readonly immutableReferences?: Readonly<ImmutableReferences>;
 
   /**
    * The id of the build info that was used to generate this artifact.

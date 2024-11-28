@@ -15,7 +15,7 @@ import { getRequestParams } from "../../json-rpc.js";
  * The class also provides a mechanism to retrieve the sender account, which must be implemented by subclasses.
  */
 export abstract class Sender {
-  protected readonly provider: EthereumProvider;
+  protected readonly provider: Readonly<EthereumProvider>;
 
   constructor(provider: EthereumProvider) {
     this.provider = provider;

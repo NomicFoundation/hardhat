@@ -19,7 +19,7 @@ import type {
 // hre.ts -> hooks.ts -> hre.ts
 declare module "./hre.js" {
   export interface HardhatRuntimeEnvironment {
-    readonly hooks: HookManager;
+    readonly hooks: Readonly<HookManager>;
   }
 }
 

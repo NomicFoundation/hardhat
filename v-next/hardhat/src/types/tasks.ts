@@ -11,7 +11,7 @@ import type { HardhatRuntimeEnvironment } from "./hre.js";
 // hre.ts -> tasks.ts -> hre.ts
 declare module "./hre.js" {
   export interface HardhatRuntimeEnvironment {
-    readonly tasks: TaskManager;
+    readonly tasks: Readonly<TaskManager>;
   }
 }
 

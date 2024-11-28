@@ -53,9 +53,9 @@ export interface NetworkConnection<
 > {
   readonly id: number;
   readonly networkName: string;
-  readonly networkConfig: NetworkConfig;
-  readonly chainType: ChainTypeT;
-  readonly provider: EthereumProvider;
+  readonly networkConfig: Readonly<NetworkConfig>;
+  readonly chainType: Readonly<ChainTypeT>;
+  readonly provider: Readonly<EthereumProvider>;
 
   close(): Promise<void>;
 }

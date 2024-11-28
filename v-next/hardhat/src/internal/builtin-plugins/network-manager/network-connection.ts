@@ -12,12 +12,14 @@ export class NetworkConnectionImplementation<
 {
   public readonly id: number;
   public readonly networkName: string;
-  public readonly networkConfig: NetworkConfig;
-  public readonly chainType: ChainTypeT;
+  public readonly networkConfig: Readonly<NetworkConfig>;
+  public readonly chainType: Readonly<ChainTypeT>;
 
   #provider!: EthereumProvider;
 
-  readonly #closeConnection: CloseConnectionFunction<ChainTypeT>;
+  readonly #closeConnection: Readonly<
+    CloseConnectionFunction<Readonly<ChainTypeT>>
+  >;
 
   public static async create<ChainTypeT extends ChainType | string>(
     id: number,

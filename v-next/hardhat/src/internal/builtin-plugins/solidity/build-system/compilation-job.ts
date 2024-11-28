@@ -12,8 +12,8 @@ import { formatRemapping } from "./resolver/remappings.js";
 import { getEvmVersionFromSolcVersion } from "./solc-info.js";
 
 export class CompilationJobImplementation implements CompilationJob {
-  public readonly dependencyGraph: DependencyGraph;
-  public readonly solcConfig: SolcConfig;
+  public readonly dependencyGraph: Readonly<DependencyGraph>;
+  public readonly solcConfig: Readonly<SolcConfig>;
   public readonly solcLongVersion: string;
 
   readonly #remappings: Remapping[];

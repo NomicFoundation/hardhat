@@ -6,7 +6,7 @@
  */
 export class AsyncMutex {
   #acquired = false;
-  readonly #queue: Array<() => void> = [];
+  readonly #queue: Readonly<Array<() => void>> = [];
 
   /**
    * Aquires the mutex, running the provided function exclusively,

@@ -133,7 +133,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
     }
   }
 
-  readonly #platform: CompilerPlatform;
+  readonly #platform: Readonly<CompilerPlatform>;
   readonly #compilersDir: string;
   readonly #downloadFunction: typeof download;
 

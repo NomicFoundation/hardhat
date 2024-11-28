@@ -13,9 +13,10 @@ export class EthereumMockedProvider
   implements EIP1193Provider
 {
   // Record<methodName, value>
-  readonly #returnValues: Record<string, any> = {};
+  readonly #returnValues: Readonly<Record<string, any>> = {};
 
-  readonly #latestParams: Record<string, RequestArguments["params"]> = {};
+  readonly #latestParams: Readonly<Record<string, RequestArguments["params"]>> =
+    {};
 
   readonly #numberOfCalls: { [method: string]: number } = {};
 

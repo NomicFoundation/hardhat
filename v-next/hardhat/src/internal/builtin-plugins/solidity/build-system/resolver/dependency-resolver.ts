@@ -92,7 +92,7 @@ export class ResolverImplementation implements Resolver {
    * fields of this class. We do this by using the mutex in the public methods,
    * which don't call each other.
    */
-  readonly #mutex = new AsyncMutex();
+  readonly #mutex: Readonly<AsyncMutex> = new AsyncMutex();
 
   /**
    * A map of all the npm dependencies used in the project, and their
@@ -107,11 +107,15 @@ export class ResolverImplementation implements Resolver {
    *     the package is installed as the "installation name".
    *   - Imports from monorepo packages into the Hardhat project.
    */
-  readonly #dependencyMaps: Map<
-    ResolvedNpmPackage | typeof PROJECT_ROOT_SENTINEL,
+  readonly #dependencyMaps: Readonly<
     Map<
-      string, // The installation-name of the package that is being imported
-      ResolvedNpmPackage | typeof PROJECT_ROOT_SENTINEL // The package imported with that name
+      Readonly<ResolvedNpmPackage> | typeof PROJECT_ROOT_SENTINEL,
+      Readonly<
+        Map<
+          string, // The installation-name of the package that is being imported
+          Readonly<ResolvedNpmPackage> | typeof PROJECT_ROOT_SENTINEL // The package imported with that name
+        >
+      >
     >
   > = new Map();
 
@@ -125,13 +129,16 @@ export class ResolverImplementation implements Resolver {
    * To avoid this situation we set all the prefixes that `foo` needs unaffected
    * by the user remapping, with a higher presedence than user remappings.
    */
-  readonly #localPrefixesByPackage: Map<ResolvedNpmPackage, Set<string>> =
-    new Map();
+  readonly #localPrefixesByPackage: Readonly<
+    Map<Readonly<ResolvedNpmPackage>, Readonly<Set<string>>>
+  > = new Map();
 
   /**
    * We use this map to ensure that we only resolve each file once.
    **/
-  readonly #resolvedFileBySourceName: Map<string, ResolvedFile> = new Map();
+  readonly #resolvedFileBySourceName: Readonly<
+    Map<string, Readonly<ResolvedFile>>
+  > = new Map();
 
   /**
    * Creates a new Resolver.

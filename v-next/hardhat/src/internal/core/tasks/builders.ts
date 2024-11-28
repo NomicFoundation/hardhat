@@ -62,9 +62,9 @@ export class NewTaskDefinitionBuilderImplementation<
 > implements NewTaskDefinitionBuilder<TaskArgumentsT>
 {
   readonly #id: string[];
-  readonly #usedNames: Set<string> = new Set();
+  readonly #usedNames: Readonly<Set<string>> = new Set();
 
-  readonly #options: Record<string, OptionDefinition> = {};
+  readonly #options: Readonly<Record<string, Readonly<OptionDefinition>>> = {};
   readonly #positionalArgs: PositionalArgumentDefinition[] = [];
 
   #description: string;
@@ -243,7 +243,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
 {
   readonly #id: string[];
 
-  readonly #options: Record<string, OptionDefinition> = {};
+  readonly #options: Readonly<Record<string, Readonly<OptionDefinition>>> = {};
 
   #description?: string;
 

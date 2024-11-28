@@ -4,9 +4,14 @@ import type { ResolvedFile } from "../../../../types/solidity/resolved-file.js";
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 
 export class DependencyGraphImplementation implements DependencyGraph {
-  readonly #fileBySourceName = new Map<string, ResolvedFile>();
-  readonly #rootByPublicSourceName = new Map<string, ResolvedFile>();
-  readonly #dependencies = new Map<ResolvedFile, Set<ResolvedFile>>();
+  readonly #fileBySourceName: Readonly<Map<string, Readonly<ResolvedFile>>> =
+    new Map<string, ResolvedFile>();
+  readonly #rootByPublicSourceName: Readonly<
+    Map<string, Readonly<ResolvedFile>>
+  > = new Map<string, ResolvedFile>();
+  readonly #dependencies: Readonly<
+    Map<Readonly<ResolvedFile>, Readonly<Set<Readonly<ResolvedFile>>>>
+  > = new Map<ResolvedFile, Set<ResolvedFile>>();
 
   /**
    * Adds a root file to the graph. All the roots of the dependency graph must

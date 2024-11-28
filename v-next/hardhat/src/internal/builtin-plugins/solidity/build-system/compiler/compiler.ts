@@ -28,7 +28,7 @@ export interface Compiler {
 const COMPILATION_SUBPROCESS_IO_BUFFER_SIZE = 1024 * 1024 * 500;
 
 export class SolcJsCompiler implements Compiler {
-  public readonly isSolcJs = true;
+  public readonly isSolcJs: boolean = true;
 
   constructor(
     public readonly version: string,
@@ -83,7 +83,7 @@ export class SolcJsCompiler implements Compiler {
 }
 
 export class NativeCompiler implements Compiler {
-  public readonly isSolcJs = false;
+  public readonly isSolcJs: boolean = false;
 
   constructor(
     public readonly version: string,

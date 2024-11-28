@@ -19,9 +19,9 @@ import { isNetworkConfig, validateNetworkConfig } from "./type-validation.js";
 
 export class NetworkManagerImplementation {
   readonly #defaultNetwork: string;
-  readonly #defaultChainType: DefaultChainType;
-  readonly #networkConfigs: Record<string, NetworkConfig>;
-  readonly #hookManager: HookManager;
+  readonly #defaultChainType: Readonly<DefaultChainType>;
+  readonly #networkConfigs: Readonly<Record<string, Readonly<NetworkConfig>>>;
+  readonly #hookManager: Readonly<HookManager>;
 
   #nextConnectionId = 0;
 

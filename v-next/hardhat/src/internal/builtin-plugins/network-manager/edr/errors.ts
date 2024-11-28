@@ -36,8 +36,8 @@ export class ProviderError extends CustomError implements ProviderRpcError {
   public code: number;
   public data?: unknown;
 
-  public readonly _parent?: Error;
-  readonly #isProviderError;
+  public readonly _parent?: Readonly<Error>;
+  readonly #isProviderError: boolean;
 
   constructor(message: string, code: number, parent?: Error) {
     super(message, parent);
@@ -49,7 +49,7 @@ export class ProviderError extends CustomError implements ProviderRpcError {
 }
 
 export class InvalidJsonInputError extends ProviderError {
-  public static readonly CODE = -32700;
+  public static readonly CODE: number = -32700;
 
   constructor(message: string, parent?: Error) {
     super(message, InvalidJsonInputError.CODE, parent);
@@ -57,7 +57,7 @@ export class InvalidJsonInputError extends ProviderError {
 }
 
 export class InvalidRequestError extends ProviderError {
-  public static readonly CODE = -32600;
+  public static readonly CODE: number = -32600;
 
   constructor(message: string, parent?: Error) {
     super(message, InvalidRequestError.CODE, parent);
@@ -65,7 +65,7 @@ export class InvalidRequestError extends ProviderError {
 }
 
 export class MethodNotFoundError extends ProviderError {
-  public static readonly CODE = -32601;
+  public static readonly CODE: number = -32601;
 
   constructor(message: string, parent?: Error) {
     super(message, MethodNotFoundError.CODE, parent);
@@ -73,7 +73,7 @@ export class MethodNotFoundError extends ProviderError {
 }
 
 export class InvalidArgumentsError extends ProviderError {
-  public static readonly CODE = -32602;
+  public static readonly CODE: number = -32602;
 
   constructor(message: string, parent?: Error) {
     super(message, InvalidArgumentsError.CODE, parent);
@@ -81,7 +81,7 @@ export class InvalidArgumentsError extends ProviderError {
 }
 
 export class InternalError extends ProviderError {
-  public static readonly CODE = -32603;
+  public static readonly CODE: number = -32603;
 
   constructor(message: string, parent?: Error) {
     super(message, InternalError.CODE, parent);
@@ -89,7 +89,7 @@ export class InternalError extends ProviderError {
 }
 
 export class InvalidInputError extends ProviderError {
-  public static readonly CODE = -32000;
+  public static readonly CODE: number = -32000;
 
   constructor(message: string, parent?: Error) {
     super(message, InvalidInputError.CODE, parent);
@@ -97,7 +97,7 @@ export class InvalidInputError extends ProviderError {
 }
 
 export class TransactionExecutionError extends ProviderError {
-  public static readonly CODE = -32003;
+  public static readonly CODE: number = -32003;
 
   // TODO: This should have the transaction id
   // TODO: Normalize this constructor
@@ -111,7 +111,7 @@ export class TransactionExecutionError extends ProviderError {
 }
 
 export class MethodNotSupportedError extends ProviderError {
-  public static readonly CODE = -32004;
+  public static readonly CODE: number = -32004;
 
   constructor(method: string, parent?: Error) {
     super(
@@ -123,7 +123,7 @@ export class MethodNotSupportedError extends ProviderError {
 }
 
 export class InvalidResponseError extends ProviderError {
-  public static readonly CODE = -32999;
+  public static readonly CODE: number = -32999;
 
   constructor(message: string, parent?: Error) {
     super(message, InvalidResponseError.CODE, parent);

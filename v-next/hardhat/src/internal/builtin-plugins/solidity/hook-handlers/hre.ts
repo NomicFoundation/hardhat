@@ -17,7 +17,7 @@ import type { SolidityBuildInfo } from "../../../../types/solidity.js";
 import type { SolidityBuildSystemOptions } from "../build-system/build-system.js";
 
 class LazySolidityBuildSystem implements SolidityBuildSystem {
-  readonly #options: SolidityBuildSystemOptions;
+  readonly #options: Readonly<SolidityBuildSystemOptions>;
 
   #buildSystem: SolidityBuildSystem | undefined;
 

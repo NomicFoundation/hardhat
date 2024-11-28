@@ -25,7 +25,7 @@ import { formatTaskId } from "./utils.js";
 import { validateTaskArgumentValue } from "./validations.js";
 
 export class ResolvedTask implements Task {
-  readonly #hre: HardhatRuntimeEnvironment;
+  readonly #hre: Readonly<HardhatRuntimeEnvironment>;
 
   public static createEmptyTask(
     hre: HardhatRuntimeEnvironment,

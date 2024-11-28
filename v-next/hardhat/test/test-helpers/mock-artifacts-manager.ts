@@ -11,7 +11,7 @@ import {
 } from "@ignored/hardhat-vnext-errors";
 
 export class MockArtifactsManager implements ArtifactsManager {
-  readonly #artifacts: Map<string, Artifact>;
+  readonly #artifacts: Readonly<Map<string, Readonly<Artifact>>>;
 
   constructor() {
     this.#artifacts = new Map();

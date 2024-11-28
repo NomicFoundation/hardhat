@@ -8,7 +8,7 @@ import { getRequestParams } from "../../json-rpc.js";
  * For `eth_sendTransaction` requests, it sets the gas field with the value provided via the class constructor, if it hasn't been specified already.
  */
 export class FixedGas {
-  readonly #gas: PrefixedHexString;
+  readonly #gas: Readonly<PrefixedHexString>;
 
   constructor(gas: PrefixedHexString) {
     this.#gas = gas;

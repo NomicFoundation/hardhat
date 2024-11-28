@@ -34,9 +34,16 @@ export class HookManagerImplementation implements HookManager {
   /**
    * The intialized handler categories for each plugin.
    */
-  readonly #staticHookHandlerCategories: Map<
-    string,
-    Map<keyof HardhatHooks, Partial<HardhatHooks[keyof HardhatHooks]>>
+  readonly #staticHookHandlerCategories: Readonly<
+    Map<
+      string,
+      Readonly<
+        Map<
+          keyof HardhatHooks,
+          Readonly<Partial<HardhatHooks[keyof HardhatHooks]>>
+        >
+      >
+    >
   > = new Map();
 
   /**
@@ -44,9 +51,11 @@ export class HookManagerImplementation implements HookManager {
    *
    * Each array is a list of categories, in reverse order of registration.
    */
-  readonly #dynamicHookHandlerCategories: Map<
-    keyof HardhatHooks,
-    Array<Partial<HardhatHooks[keyof HardhatHooks]>>
+  readonly #dynamicHookHandlerCategories: Readonly<
+    Map<
+      keyof HardhatHooks,
+      Readonly<Array<Readonly<Partial<HardhatHooks[keyof HardhatHooks]>>>>
+    >
   > = new Map();
 
   constructor(projectRoot: string, plugins: HardhatPlugin[]) {

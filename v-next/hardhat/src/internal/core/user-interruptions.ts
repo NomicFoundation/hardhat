@@ -8,8 +8,8 @@ import { AsyncMutex } from "./async-mutex.js";
 export class UserInterruptionManagerImplementation
   implements UserInterruptionManager
 {
-  readonly #hooks;
-  readonly #mutex = new AsyncMutex();
+  readonly #hooks: Readonly<HookManager>;
+  readonly #mutex: Readonly<AsyncMutex> = new AsyncMutex();
 
   constructor(hooks: HookManager) {
     this.#hooks = hooks;

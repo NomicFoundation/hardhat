@@ -13,7 +13,7 @@ import {
  * after being retrieved to avoid redundant requests.
  */
 export abstract class ChainId {
-  protected readonly provider: EthereumProvider;
+  protected readonly provider: Readonly<EthereumProvider>;
 
   #chainId: number | undefined;
 

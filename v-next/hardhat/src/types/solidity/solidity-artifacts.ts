@@ -33,12 +33,12 @@ export interface SolidityBuildInfo {
    *
    * @see import("../artifacts.js").Artifact.inputSourceName
    */
-  readonly publicSourceNameMap: Record<string, string>;
+  readonly publicSourceNameMap: Readonly<Record<string, string>>;
 
   /**
    * The compiler input, as provided to solc.
    */
-  readonly input: CompilerInput;
+  readonly input: Readonly<CompilerInput>;
 }
 
 /**
@@ -58,5 +58,5 @@ export interface SolidityBuildInfoOutput {
   /**
    * The `solc` output, verbatim (i.e. as returned by `solc`).
    */
-  readonly output: CompilerOutput;
+  readonly output: Readonly<CompilerOutput>;
 }

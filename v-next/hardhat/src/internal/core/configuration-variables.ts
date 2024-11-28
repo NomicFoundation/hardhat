@@ -79,8 +79,8 @@ abstract class BaseResolvedConfigurationVariable
 }
 
 export class LazyResolvedConfigurationVariable extends BaseResolvedConfigurationVariable {
-  readonly #hooks: HookManager;
-  readonly #variable: ConfigurationVariable;
+  readonly #hooks: Readonly<HookManager>;
+  readonly #variable: Readonly<ConfigurationVariable>;
 
   public readonly name: string;
 

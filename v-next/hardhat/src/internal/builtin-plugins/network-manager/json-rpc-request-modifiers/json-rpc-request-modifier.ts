@@ -34,8 +34,8 @@ import { isHttpNetworkConfig } from "./utils.js";
  * Requests are cloned to prevent interference with other handlers.
  */
 export class JsonRpcRequestModifier {
-  readonly #provider: EthereumProvider;
-  readonly #networkConfig: NetworkConfig;
+  readonly #provider: Readonly<EthereumProvider>;
+  readonly #networkConfig: Readonly<NetworkConfig>;
 
   // accounts
   #localAccounts: LocalAccounts | undefined;

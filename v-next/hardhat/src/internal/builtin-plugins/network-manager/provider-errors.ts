@@ -39,7 +39,7 @@ export class ProviderError extends CustomError implements ProviderRpcError {
 }
 
 export class LimitExceededError extends ProviderError {
-  public static readonly CODE = -32005;
+  public static readonly CODE: number = -32005;
 
   constructor(parent?: Error) {
     super("Request exceeds defined limit", LimitExceededError.CODE, parent);

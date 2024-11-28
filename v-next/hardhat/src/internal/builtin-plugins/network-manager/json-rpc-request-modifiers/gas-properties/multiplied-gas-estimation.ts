@@ -14,7 +14,7 @@ import {
  * The block gas limit is cached after the first retrieval to optimize performance.
  */
 export abstract class MultipliedGasEstimation {
-  readonly #provider: EthereumProvider;
+  readonly #provider: Readonly<EthereumProvider>;
   readonly #gasMultiplier: number;
 
   #blockGasLimit: number | undefined;

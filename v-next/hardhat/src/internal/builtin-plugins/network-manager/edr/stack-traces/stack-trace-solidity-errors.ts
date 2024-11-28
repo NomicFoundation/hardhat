@@ -290,7 +290,7 @@ function getMessageFromLastStackTraceEntry(
 //   use the code property to detect if they are dealing with a JSON-RPC error,
 //   and take control of errors.
 export class SolidityError extends Error {
-  public readonly stackTrace: SolidityStackTrace;
+  public readonly stackTrace: Readonly<SolidityStackTrace>;
 
   constructor(message: string, stackTrace: SolidityStackTrace) {
     super(message);

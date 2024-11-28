@@ -14,7 +14,7 @@ import { CompilationJobCreationErrorReason } from "../../../../types/solidity/bu
 
 export class SolcConfigSelector {
   readonly #buildProfileName: string;
-  readonly #buildProfile: SolidityBuildProfileConfig;
+  readonly #buildProfile: Readonly<SolidityBuildProfileConfig>;
 
   /**
    * Creates a new SolcConfigSelector that can be used to select the best solc
