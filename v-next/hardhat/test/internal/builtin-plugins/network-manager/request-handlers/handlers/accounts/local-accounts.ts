@@ -6,7 +6,10 @@ import {
   hexStringToBytes,
   numberToHexString,
 } from "@ignored/hardhat-vnext-utils/hex";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import {
+  assertRejects,
+  assertRejectsWithHardhatError,
+} from "@nomicfoundation/hardhat-test-utils";
 import { addr } from "micro-eth-signer";
 
 import { getJsonRpcRequest } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
@@ -216,8 +219,7 @@ describe("LocalAccountsHandler", () => {
           addr.fromPrivateKey(accounts[0]),
         ]);
 
-        // eslint-disable-next-line no-restricted-syntax -- not a Hardhat error
-        await assert.rejects(localAccountsHandler.handle(jsonRpcRequest));
+        assertRejects(localAccountsHandler.handle(jsonRpcRequest));
       });
 
       it("should throw if the address isn't one of the local ones", async () => {
