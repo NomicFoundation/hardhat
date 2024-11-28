@@ -13,12 +13,12 @@ import {
  * after being retrieved to avoid redundant requests.
  */
 export class ChainId {
-  readonly #provider: EthereumProvider;
+  protected readonly provider: EthereumProvider;
 
   #chainId: number | undefined;
 
   constructor(provider: EthereumProvider) {
-    this.#provider = provider;
+    this.provider = provider;
   }
 
   public async getChainId(): Promise<number> {
@@ -35,7 +35,7 @@ export class ChainId {
   }
 
   async #getChainIdFromEthChainId(): Promise<number> {
-    const id = await this.#provider.request({
+    const id = await this.provider.request({
       method: "eth_chainId",
     });
 
@@ -45,7 +45,7 @@ export class ChainId {
   }
 
   async #getChainIdFromEthNetVersion(): Promise<number> {
-    const id = await this.#provider.request({
+    const id = await this.provider.request({
       method: "net_version",
     });
 

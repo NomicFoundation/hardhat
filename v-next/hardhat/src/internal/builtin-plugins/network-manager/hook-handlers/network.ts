@@ -41,7 +41,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
       );
 
       if (requestHandlers === undefined) {
-        requestHandlers = createHandlersArray(networkConnection);
+        requestHandlers = await createHandlersArray(networkConnection);
         requestHandlersPerConnection.set(networkConnection.id, requestHandlers);
       }
 
