@@ -20,12 +20,10 @@ import { AutomaticGasPriceHandler } from "./handlers/gas/automatic-gas-price-han
 import { FixedGasHandler } from "./handlers/gas/fixed-gas-handler.js";
 import { FixedGasPriceHandler } from "./handlers/gas/fixed-gas-price-handler.js";
 
-// TODO: finish docs
 /**
- *
- * This function returns an handlers array based on the values in the networkConfig and....
+ * This function returns an handlers array based on the values in the NetworkConnection and NetworkConfig.
  * The order of the handlers, if all are present, is: chain handler, gas handlers (gasPrice first, then gas), sender handler and accounts handler.
- * The order is important to get a correct result when the handler are executed
+ * The order is important to get a correct result when the handlers are executed.
  */
 export async function createHandlersArray<
   ChainTypeT extends ChainType | string,
