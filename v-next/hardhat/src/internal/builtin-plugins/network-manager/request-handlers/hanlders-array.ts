@@ -32,15 +32,13 @@ export async function createHandlersArray<
 
   const networkConfig = networkConnection.networkConfig;
 
-  if (networkConfig.type === "http") {
-    if (networkConfig.chainId !== undefined) {
-      requestHandlers.push(
-        new ChainIdValidatorHandler(
-          networkConnection.provider,
-          networkConfig.chainId,
-        ),
-      );
-    }
+  if (networkConfig.type === "http" && networkConfig.chainId !== undefined) {
+    requestHandlers.push(
+      new ChainIdValidatorHandler(
+        networkConnection.provider,
+        networkConfig.chainId,
+      ),
+    );
   }
 
   if (
