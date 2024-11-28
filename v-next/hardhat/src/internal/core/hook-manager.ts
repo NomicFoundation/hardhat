@@ -54,7 +54,8 @@ export class HookManagerImplementation implements HookManager {
   readonly #dynamicHookHandlerCategories: Readonly<
     Map<
       keyof HardhatHooks,
-      Readonly<Array<Readonly<Partial<HardhatHooks[keyof HardhatHooks]>>>>
+      // eslint-disable-next-line @galargh/immutable-readonly/no-readonly-wrapper -- We modify the values of the dynamicHookHandlerCategories map in the registerHandlers method
+      Array<Readonly<Partial<HardhatHooks[keyof HardhatHooks]>>>
     >
   > = new Map();
 

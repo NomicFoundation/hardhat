@@ -64,7 +64,8 @@ export class NewTaskDefinitionBuilderImplementation<
   readonly #id: string[];
   readonly #usedNames: Readonly<Set<string>> = new Set();
 
-  readonly #options: Readonly<Record<string, Readonly<OptionDefinition>>> = {};
+  // eslint-disable-next-line @galargh/immutable-readonly/no-readonly-wrapper -- We modify the options map in the addOption method
+  readonly #options: Record<string, Readonly<OptionDefinition>> = {};
   readonly #positionalArgs: PositionalArgumentDefinition[] = [];
 
   #description: string;
@@ -243,7 +244,8 @@ export class TaskOverrideDefinitionBuilderImplementation<
 {
   readonly #id: string[];
 
-  readonly #options: Readonly<Record<string, Readonly<OptionDefinition>>> = {};
+  // eslint-disable-next-line @galargh/immutable-readonly/no-readonly-wrapper -- We modify the options map in the addOption method
+  readonly #options: Record<string, Readonly<OptionDefinition>> = {};
 
   #description?: string;
 

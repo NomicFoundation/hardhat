@@ -100,7 +100,8 @@ export type JsonRpcRequestWrapperFunction = (
 export class EdrProvider extends EventEmitter implements EthereumProvider {
   readonly #provider: Readonly<Provider>;
   readonly #vmTraceDecoder: Readonly<VmTraceDecoder>;
-  readonly #jsonRpcRequestWrapper?: Readonly<JsonRpcRequestWrapperFunction>;
+  // eslint-disable-next-line @galargh/immutable-readonly/no-readonly-wrapper -- We shouldn't wrap the function type in a readonly wrapper
+  readonly #jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
 
   #failedStackTraces: number = 0;
   /** Used for internal stack trace tests. */

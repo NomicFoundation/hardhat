@@ -49,7 +49,8 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
   readonly #networkName: string;
   readonly #extraHeaders: Readonly<Record<string, string>>;
   readonly #dispatcher: Readonly<Dispatcher>;
-  readonly #jsonRpcRequestWrapper?: Readonly<JsonRpcRequestWrapperFunction>;
+  // eslint-disable-next-line @galargh/immutable-readonly/no-readonly-wrapper -- We shouldn't wrap the function type in a readonly wrapper
+  readonly #jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
 
   #nextRequestId = 1;
 

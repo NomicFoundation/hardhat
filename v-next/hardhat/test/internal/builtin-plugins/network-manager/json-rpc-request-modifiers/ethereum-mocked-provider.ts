@@ -13,10 +13,11 @@ export class EthereumMockedProvider
   implements EIP1193Provider
 {
   // Record<methodName, value>
-  readonly #returnValues: Readonly<Record<string, any>> = {};
+  // eslint-disable-next-line @galargh/immutable-readonly/no-readonly-wrapper -- We modify the returnValues map in the setReturnValue method
+  readonly #returnValues: Record<string, any> = {};
 
-  readonly #latestParams: Readonly<Record<string, RequestArguments["params"]>> =
-    {};
+  // eslint-disable-next-line @galargh/immutable-readonly/no-readonly-wrapper -- We modify the latestParams map in the request method
+  readonly #latestParams: Record<string, RequestArguments["params"]> = {};
 
   readonly #numberOfCalls: { [method: string]: number } = {};
 

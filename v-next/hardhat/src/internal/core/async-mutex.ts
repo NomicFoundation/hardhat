@@ -6,7 +6,8 @@
  */
 export class AsyncMutex {
   #acquired = false;
-  readonly #queue: Readonly<Array<() => void>> = [];
+  // eslint-disable-next-line @galargh/immutable-readonly/no-readonly-wrapper -- We modify the queue in the #acquire method
+  readonly #queue: Array<() => void> = [];
 
   /**
    * Aquires the mutex, running the provided function exclusively,

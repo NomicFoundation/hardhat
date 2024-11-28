@@ -54,7 +54,8 @@ export interface NetworkConnection<
   readonly id: number;
   readonly networkName: string;
   readonly networkConfig: Readonly<NetworkConfig>;
-  readonly chainType: Readonly<ChainTypeT>;
+  // eslint-disable-next-line @galargh/immutable-readonly/no-readonly-wrapper -- We shouldn't wrap the string type in a readonly wrapper
+  readonly chainType: ChainTypeT;
   readonly provider: Readonly<EthereumProvider>;
 
   close(): Promise<void>;

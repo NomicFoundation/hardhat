@@ -13,13 +13,13 @@ export class NetworkConnectionImplementation<
   public readonly id: number;
   public readonly networkName: string;
   public readonly networkConfig: Readonly<NetworkConfig>;
-  public readonly chainType: Readonly<ChainTypeT>;
+  // eslint-disable-next-line @galargh/immutable-readonly/no-readonly-wrapper -- We shouldn't wrap the string type in a readonly wrapper
+  public readonly chainType: ChainTypeT;
 
   #provider!: EthereumProvider;
 
-  readonly #closeConnection: Readonly<
-    CloseConnectionFunction<Readonly<ChainTypeT>>
-  >;
+  // eslint-disable-next-line @galargh/immutable-readonly/no-readonly-wrapper -- We shouldn't wrap the function type in a readonly wrapper (nor the string type)
+  readonly #closeConnection: CloseConnectionFunction<ChainTypeT>;
 
   public static async create<ChainTypeT extends ChainType | string>(
     id: number,
