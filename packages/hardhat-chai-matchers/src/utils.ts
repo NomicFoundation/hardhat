@@ -19,36 +19,47 @@ export type Ssfi = (...args: any[]) => any;
  * the best way to use this value, so this needs some trial-and-error. Use the
  * existing matchers for a reference of something that works well enough.
  */
-export function buildAssert(negated: boolean, ssfi: Ssfi) {
+
+type Message = string | (() => string);
+
+function evalMessage(message?: Message): string {
+  if (message === undefined) {
+    throw new Error(
+      "Assertion doesn't have an error message. Please open an issue to report this."
+    );
+  }
+
+  return typeof message === "function" ? message() : message;
+}
+
+function buildNegated(ssfi: Ssfi) {
   return function (
     condition: boolean,
-    messageFalse?: string | (() => string),
-    messageTrue?: string | (() => string)
+    _messageFalse?: Message,
+    messageTrue?: Message
   ) {
-    if (!negated && !condition) {
-      if (messageFalse === undefined) {
-        throw new Error(
-          "Assertion doesn't have an error message. Please open an issue to report this."
-        );
-      }
-
-      const message =
-        typeof messageFalse === "function" ? messageFalse() : messageFalse;
-      throw new AssertionError(message, undefined, ssfi);
-    }
-
-    if (negated && condition) {
-      if (messageTrue === undefined) {
-        throw new Error(
-          "Assertion doesn't have an error message. Please open an issue to report this."
-        );
-      }
-
-      const message =
-        typeof messageTrue === "function" ? messageTrue() : messageTrue;
+    if (condition) {
+      const message = evalMessage(messageTrue);
       throw new AssertionError(message, undefined, ssfi);
     }
   };
+}
+
+function buildNormal(ssfi: Ssfi) {
+  return function (
+    condition: boolean,
+    messageFalse?: Message,
+    _messageTrue?: Message
+  ) {
+    if (!condition) {
+      const message = evalMessage(messageFalse);
+      throw new AssertionError(message, undefined, ssfi);
+    }
+  };
+}
+
+export function buildAssert(negated: boolean, ssfi: Ssfi) {
+  return negated ? buildNegated(ssfi) : buildNormal(ssfi);
 }
 
 export type AssertWithSsfi = ReturnType<typeof buildAssert>;
