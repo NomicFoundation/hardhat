@@ -378,7 +378,7 @@ The Hardhat Toolbox also includes the [`hardhat-gas-reporter`](https://github.co
 REPORT_GAS=true npx hardhat test
 ```
 
-For Windows users, set the environment variable using PowerShell with `$env:REPORT_GAS="true"`
+For Windows users, set the environment variable for the PowerShell session with `$env:REPORT_GAS="true"`:
 
 ```
 $env:REPORT_GAS="true"; npx hardhat test
