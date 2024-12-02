@@ -807,7 +807,7 @@ This might be caused by using hardhat_reset and loadFixture calls in a testcase.
         "Hardhat network helpers can only be used with the Hardhat Network",
     },
     CAN_ONLY_BE_USED_WITH_HARDHAT_NETWORK_VERSIONED: {
-      number: 914,
+      number: 915,
       messageTemplate: `This helper can only be used with the Hardhat Network. You are connected to "{networkName}", whose identifier is "{version}".`,
       websiteTitle:
         "Hardhat network helpers can only be used with the Hardhat Network",
