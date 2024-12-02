@@ -19,7 +19,10 @@ export default async (): Promise<Partial<NetworkHooks>> => {
     ) {
       const connection: NetworkConnection<ChainTypeT> = await next(context);
 
-      connection.networkHelpers = new NetworkHelpers(connection.provider);
+      connection.networkHelpers = new NetworkHelpers(
+        connection.provider,
+        connection.networkName,
+      );
 
       return connection;
     },
