@@ -66,7 +66,7 @@ extendConfig((config, userConfig) => {
     config.paths.root,
     foundryConfig.cache_path
   );
-  if (config.paths.cache === foundryCachePath) {
+  if (config.paths.cache !== foundryCachePath) {
     config.paths.cache = "cache_hardhat";
   }
 
