@@ -1,5 +1,14 @@
 # hardhat
 
+## 2.22.17
+
+### Patch Changes
+
+- c6efe1d: fix: don't panic when a precompile errors
+- 56d127b: Make totalDifficulty field optional, as spec has changed.
+- e47b495: Added support for solc versions 0.8.28
+- 9ad82f5: Added an optional `--output` param to the flatten task
+
 ## 2.22.16
 
 ### Patch Changes
