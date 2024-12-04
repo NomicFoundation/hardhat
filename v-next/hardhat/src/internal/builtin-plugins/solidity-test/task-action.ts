@@ -12,7 +12,6 @@ import {
 import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 import { createNonClosingWriter } from "@ignored/hardhat-vnext-utils/stream";
 
-
 import { shouldMergeCompilationJobs } from "../solidity/build-profiles.js";
 
 import {
