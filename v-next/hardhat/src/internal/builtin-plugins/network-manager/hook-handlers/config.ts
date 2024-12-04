@@ -211,7 +211,10 @@ export async function resolveUserConfig(
         gas: resolveGasConfig(networkConfig.gas),
         gasMultiplier: networkConfig.gasMultiplier ?? 1,
         gasPrice: resolveGasConfig(networkConfig.gasPrice),
-        accounts: resolveAccounts(networkConfig.accounts),
+        accounts: resolveAccounts(
+          networkConfig.accounts,
+          resolveConfigurationVariable,
+        ),
         url: networkConfig.url,
         timeout: networkConfig.timeout ?? 20_000,
         httpHeaders: networkConfig.httpHeaders ?? {},
@@ -278,6 +281,9 @@ function resolveGasConfig(value: GasUserConfig = "auto"): GasConfig {
 
 function resolveAccounts(
   accounts: HttpNetworkAccountsUserConfig | undefined,
+  resolveConfigurationVariable: (
+    variableOrString: ConfigurationVariable | string,
+  ) => ResolvedConfigurationVariable,
 ): HttpNetworkAccountsConfig {
   const defaultHdAccountsConfigParams = {
     initialIndex: 0,
@@ -294,7 +300,13 @@ function resolveAccounts(
           ...accounts,
         }
       : Array.isArray(accounts)
-        ? accounts.map(normalizeHexString)
+        ? accounts.map((acc) => {
+            if (typeof acc === "string") {
+              acc = normalizeHexString(acc);
+            }
+
+            return resolveConfigurationVariable(acc);
+          })
         : "remote";
 }
 

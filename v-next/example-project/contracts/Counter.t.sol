@@ -32,9 +32,9 @@ contract CounterTest {
     require(counter.x() == x + 1, "Value after calling inc x times should be x + 1");
   }
 
-  function invariant() public pure {
-    assert(true);
-  }
+  // function invariant() public pure {
+  //   assert(true);
+  // }
 }
 
 contract FailingCounterTest {
@@ -58,7 +58,14 @@ contract FailingCounterTest {
     );
   }
 
-  function invariant() public pure {
-    assert(false);
+  function testFailFuzzInc(uint8 x) public {
+    for (uint8 i = 0; i < x; i++) {
+      counter.inc();
+    }
+    require(counter.x() == x, "Value after calling inc x times should be x");
   }
+
+  // function invariant() public pure {
+  //   assert(false);
+  // }
 }

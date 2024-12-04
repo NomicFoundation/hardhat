@@ -1,4 +1,4 @@
-import type { NetworkHelpers } from "../src/internal/network-helpers/network-helpers.js";
+import type { NetworkHelpers } from "../src/types.js";
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
 
 import { beforeEach, describe, it } from "node:test";

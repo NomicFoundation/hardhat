@@ -1,5 +1,8 @@
 import type { ArtifactMap } from "@ignored/hardhat-vnext/types/artifacts";
-import type { ChainType } from "@ignored/hardhat-vnext/types/network";
+import type {
+  ChainType,
+  DefaultChainType,
+} from "@ignored/hardhat-vnext/types/network";
 import type {
   Abi as ViemAbi,
   Account as ViemAccount,
@@ -26,7 +29,9 @@ import type {
   WalletActionsL2 as ViemOpStackWalletActionsL2,
 } from "viem/op-stack";
 
-export interface HardhatViemHelpers<ChainTypeT extends ChainType | string> {
+export interface HardhatViemHelpers<
+  ChainTypeT extends ChainType | string = DefaultChainType,
+> {
   /**
    * Creates a public client configured with the provided settings.
    *
@@ -143,7 +148,8 @@ export type OpPublicClient = ViemClient<
   ViemChain,
   ViemAccount,
   ViemRpcSchema,
-  ViemPublicActions & ViemOpStackPublicActionsL2
+  ViemPublicActions<ViemTransport, ViemChain, ViemAccount> &
+    ViemOpStackPublicActionsL2<ViemChain, ViemAccount>
 >;
 
 export type WalletClient = ViemWalletClient<
@@ -157,7 +163,8 @@ export type OpWalletClient = ViemClient<
   ViemChain,
   ViemAccount,
   ViemRpcSchema,
-  ViemWalletActions & ViemOpStackWalletActionsL2
+  ViemWalletActions<ViemChain, ViemAccount> &
+    ViemOpStackWalletActionsL2<ViemChain, ViemAccount>
 >;
 
 export type TestClient = ViemTestClient<

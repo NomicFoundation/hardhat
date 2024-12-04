@@ -1,10 +1,5 @@
-import type {
-  GenericChainType,
-  NetworkConnection,
-} from "../../../../../../../src/types/network.js";
-
 import assert from "node:assert/strict";
-import { beforeEach, describe, it } from "node:test";
+import { describe, it } from "node:test";
 
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
@@ -15,19 +10,23 @@ import { createMockedNetworkHre } from "../../hooks-mock.js";
 // are correctly modified in the "onRequest" hook handler.
 // These tests simulate a real scenario where the user calls "await connection.provider.request(jsonRpcRequest)".
 describe("e2e - FixedGasPrice", () => {
-  let connection: NetworkConnection<GenericChainType>;
-
   const FIXED_GAS_PRICE = 1232n;
 
-  beforeEach(async () => {
-    const hre = await createMockedNetworkHre({});
-
-    connection = await hre.network.connect();
-
-    connection.networkConfig.gasPrice = FIXED_GAS_PRICE;
-  });
-
   it("should set the fixed gas price if not present", async () => {
+    const hre = await createMockedNetworkHre(
+      {
+        networks: {
+          hardhat: {
+            type: "edr",
+            gasPrice: FIXED_GAS_PRICE,
+          },
+        },
+      },
+      {},
+    );
+
+    const connection = await hre.network.connect();
+
     const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
       {
         from: "0x0000000000000000000000000000000000000011",

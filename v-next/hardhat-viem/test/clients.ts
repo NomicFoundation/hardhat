@@ -367,7 +367,7 @@ describe("clients", () => {
         eth_chainId: "0x7a69", // 31337 in hex
         hardhat_metadata: {}, // hardhat network
       });
-      const client = await getTestClient(provider);
+      const client = await getTestClient(provider, "generic");
 
       assert.equal(client.type, "testClient");
       assert.equal(client.chain.id, 31337);
@@ -381,7 +381,7 @@ describe("clients", () => {
         eth_chainId: "0x7a69", // 31337 in hex
         anvil_nodeInfo: {}, // anvil network
       });
-      const client = await getTestClient(provider);
+      const client = await getTestClient(provider, "generic");
 
       assert.equal(client.type, "testClient");
       assert.equal(client.chain.id, 31337);
@@ -396,7 +396,7 @@ describe("clients", () => {
         hardhat_metadata: {}, // hardhat network
       });
 
-      const client = await getTestClient(provider, {
+      const client = await getTestClient(provider, "generic", {
         pollingInterval: 1000,
         cacheTime: 2000,
       });

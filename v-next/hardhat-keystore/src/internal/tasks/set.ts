@@ -2,6 +2,8 @@ import type { KeystoreLoader } from "../types.js";
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
+import chalk from "chalk";
+
 import { requestSecretInput } from "../ui/request-secret-input.js";
 import { UserDisplayMessages } from "../ui/user-display-messages.js";
 import { setupKeystoreLoaderFrom } from "../utils/setup-keystore-loader-from.js";
@@ -20,6 +22,8 @@ const taskSet: NewTaskActionFunction<TaskGetArguments> = async (
 
   await set(setArgs, keystoreLoader);
 };
+
+export const PRINT_UNENCRYPTED_KEYSTORE_FILE_MESSAGE = true;
 
 export const set = async (
   { key, force }: TaskGetArguments,
@@ -43,6 +47,16 @@ export const set = async (
     consoleLog(UserDisplayMessages.displayKeyAlreadyExistsWarning(key));
     process.exitCode = 1;
     return;
+  }
+
+  if (PRINT_UNENCRYPTED_KEYSTORE_FILE_MESSAGE) {
+    consoleLog(
+      chalk.red.bold(`***WARNING*** 
+  
+  During the alpha of Hardhat v3 this plugin doesn't encrypt the keystore file.
+  
+  DO NO STORE SENSITIVE INFORMATION OR PRIVATE KEYS`),
+    );
   }
 
   const secret = await requestSecretFromUser(

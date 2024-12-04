@@ -1,6 +1,6 @@
 {
   "name": "@ignored/hardhat-vnext",
-  "version": "3.0.0-next.8",
+  "version": "3.0.0-next.16",
   "description": "Hardhat is an extensible developer tool that helps smart contract developers increase productivity by reliably bringing together the tools they want.",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat",
   "repository": {
@@ -55,13 +55,14 @@
     "dist/src/",
     "src/",
     "templates/",
+    "console.sol",
     "CHANGELOG.md",
     "LICENSE",
     "README.md"
   ],
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
-    "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.7",
+    "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.15",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/adm-zip": "^0.5.5",
     "@types/debug": "^4.1.4",
@@ -81,11 +82,11 @@
     "typescript-eslint": "7.7.1"
   },
   "dependencies": {
-    "@ignored/edr": "0.6.4-alpha.0",
-    "@ignored/edr-optimism": "^0.6.4",
-    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.7",
-    "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.7",
-    "@ignored/hardhat-vnext-zod-utils": "workspace:^3.0.0-next.7",
+    "@ignored/edr": "0.6.4-alpha.2",
+    "@ignored/edr-optimism": "0.6.5-alpha.0",
+    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.15",
+    "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.15",
+    "@ignored/hardhat-vnext-zod-utils": "workspace:^3.0.0-next.15",
     "@nomicfoundation/solidity-analyzer": "^0.1.0",
     "@sentry/node": "^5.18.1",
     "adm-zip": "^0.4.16",
@@ -93,6 +94,7 @@
     "debug": "^4.1.1",
     "enquirer": "^2.3.0",
     "ethereum-cryptography": "^2.2.1",
+    "micro-eth-signer": "^0.12.0",
     "p-map": "^7.0.2",
     "semver": "^7.6.3",
     "solc": "^0.8.27",

@@ -1,5 +1,3 @@
-import type { HardhatEthersProvider } from "./internal/hardhat-ethers-provider/hardhat-ethers-provider.js";
-import type { HardhatEthersSigner } from "./internal/signers/signers.js";
 import type { Abi, Artifact } from "@ignored/hardhat-vnext/types/artifacts";
 import type * as ethers from "ethers";
 
@@ -50,6 +48,15 @@ export declare function getContractFactoryFromArtifact<
   artifact: Artifact<Abi>,
   signerOrOptions?: ethers.Signer | FactoryOptions,
 ): Promise<ethers.ContractFactory<A, I>>;
+
+export type HardhatEthersProvider = ethers.Provider & {
+  getSigner(address?: number | string): Promise<HardhatEthersSigner>;
+  send(method: string, params?: any[]): Promise<any>;
+};
+
+export type HardhatEthersSigner = ethers.Signer & {
+  address: string;
+};
 
 export interface HardhatEthersHelpers {
   provider: HardhatEthersProvider;

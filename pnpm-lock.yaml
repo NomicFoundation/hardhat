@@ -1426,25 +1426,25 @@ importers:
   v-next/example-project:
     devDependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.8
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat
       '@ignored/hardhat-vnext-ethers':
-        specifier: workspace:^3.0.0-next.4
+        specifier: workspace:^3.0.0-next.12
         version: link:../hardhat-ethers
       '@ignored/hardhat-vnext-keystore':
-        specifier: workspace:^3.0.0-next.4
+        specifier: workspace:^3.0.0-next.12
         version: link:../hardhat-keystore
       '@ignored/hardhat-vnext-mocha-test-runner':
-        specifier: workspace:^3.0.0-next.4
+        specifier: workspace:^3.0.0-next.12
         version: link:../hardhat-mocha-test-runner
       '@ignored/hardhat-vnext-network-helpers':
-        specifier: workspace:^3.0.0-next.4
+        specifier: workspace:^3.0.0-next.12
         version: link:../hardhat-network-helpers
       '@ignored/hardhat-vnext-node-test-runner':
-        specifier: workspace:^3.0.0-next.4
+        specifier: workspace:^3.0.0-next.12
         version: link:../hardhat-node-test-runner
       '@ignored/hardhat-vnext-viem':
-        specifier: workspace:^3.0.0-next.3
+        specifier: workspace:^3.0.0-next.11
         version: link:../hardhat-viem
       '@openzeppelin/contracts':
         specifier: 5.1.0
@@ -1471,25 +1471,25 @@ importers:
         specifier: ~5.5.0
         version: 5.5.4
       viem:
-        specifier: ^2.21.17
-        version: 2.21.35(typescript@5.5.4)(zod@3.23.8)
+        specifier: ^2.21.42
+        version: 2.21.42(typescript@5.5.4)(zod@3.23.8)
 
   v-next/hardhat:
     dependencies:
       '@ignored/edr':
-        specifier: 0.6.4-alpha.0
-        version: 0.6.4-alpha.0
+        specifier: 0.6.4-alpha.2
+        version: 0.6.4-alpha.2
       '@ignored/edr-optimism':
-        specifier: ^0.6.4
-        version: 0.6.4
+        specifier: 0.6.5-alpha.0
+        version: 0.6.5-alpha.0
       '@ignored/hardhat-vnext-errors':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-errors
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-utils
       '@ignored/hardhat-vnext-zod-utils':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-zod-utils
       '@nomicfoundation/solidity-analyzer':
         specifier: ^0.1.0
@@ -1512,6 +1512,9 @@ importers:
       ethereum-cryptography:
         specifier: ^2.2.1
         version: 2.2.1
+      micro-eth-signer:
+        specifier: ^0.12.0
+        version: 0.12.0
       p-map:
         specifier: ^7.0.2
         version: 7.0.2
@@ -1532,7 +1535,7 @@ importers:
         specifier: ^4.3.0
         version: 4.4.1(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -1589,14 +1592,14 @@ importers:
   v-next/hardhat-errors:
     dependencies:
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-utils
     devDependencies:
       '@eslint-community/eslint-plugin-eslint-comments':
         specifier: ^4.3.0
         version: 4.4.1(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-node-test-reporter
       '@types/node':
         specifier: ^20.14.9
@@ -1644,13 +1647,13 @@ importers:
   v-next/hardhat-ethers:
     dependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.8
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat
       '@ignored/hardhat-vnext-errors':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-errors
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-utils
       debug:
         specifier: ^4.1.1
@@ -1663,7 +1666,7 @@ importers:
         specifier: ^4.3.0
         version: 4.4.1(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -1720,16 +1723,16 @@ importers:
   v-next/hardhat-keystore:
     dependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.8
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat
       '@ignored/hardhat-vnext-errors':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-errors
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-utils
       '@ignored/hardhat-vnext-zod-utils':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-zod-utils
       chalk:
         specifier: ^5.3.0
@@ -1745,7 +1748,7 @@ importers:
         specifier: ^4.3.0
         version: 4.4.1(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -1802,16 +1805,16 @@ importers:
   v-next/hardhat-mocha-test-runner:
     dependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.8
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat
       '@ignored/hardhat-vnext-errors':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-errors
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-utils
       '@ignored/hardhat-vnext-zod-utils':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-zod-utils
       mocha:
         specifier: ^10.0.0
@@ -1827,7 +1830,7 @@ importers:
         specifier: ^4.3.0
         version: 4.4.1(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -1878,20 +1881,20 @@ importers:
   v-next/hardhat-network-helpers:
     dependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.8
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat
       '@ignored/hardhat-vnext-errors':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-errors
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-utils
     devDependencies:
       '@eslint-community/eslint-plugin-eslint-comments':
         specifier: ^4.3.0
         version: 4.4.1(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -2003,19 +2006,19 @@ importers:
   v-next/hardhat-node-test-runner:
     dependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.8
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat
       '@ignored/hardhat-vnext-errors':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-errors
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-node-test-reporter
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-utils
       '@ignored/hardhat-vnext-zod-utils':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-zod-utils
       tsx:
         specifier: ^4.11.0
@@ -2153,7 +2156,7 @@ importers:
         specifier: ^4.3.0
         version: 4.4.1(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-node-test-reporter
       '@types/bn.js':
         specifier: ^5.1.5
@@ -2207,20 +2210,20 @@ importers:
   v-next/hardhat-viem:
     dependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.8
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat
       '@ignored/hardhat-vnext-errors':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-errors
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-utils
     devDependencies:
       '@eslint-community/eslint-plugin-eslint-comments':
         specifier: ^4.3.0
         version: 4.4.1(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -2268,20 +2271,20 @@ importers:
         specifier: 7.7.1
         version: 7.7.1(eslint@8.57.0)(typescript@5.5.4)
       viem:
-        specifier: ^2.21.17
-        version: 2.21.35(typescript@5.5.4)(zod@3.23.8)
+        specifier: ^2.21.42
+        version: 2.21.42(typescript@5.5.4)(zod@3.23.8)
 
   v-next/hardhat-zod-utils:
     dependencies:
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-utils
     devDependencies:
       '@eslint-community/eslint-plugin-eslint-comments':
         specifier: ^4.3.0
         version: 4.4.1(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -2335,16 +2338,19 @@ importers:
   v-next/hardhat/templates/mocha-ethers:
     devDependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.8
+        specifier: workspace:^3.0.0-next.16
         version: link:../..
       '@ignored/hardhat-vnext-ethers':
-        specifier: workspace:^3.0.0-next.4
+        specifier: workspace:^3.0.0-next.12
         version: link:../../../hardhat-ethers
+      '@ignored/hardhat-vnext-keystore':
+        specifier: workspace:^3.0.0-next.12
+        version: link:../../../hardhat-keystore
       '@ignored/hardhat-vnext-mocha-test-runner':
-        specifier: workspace:^3.0.0-next.4
+        specifier: workspace:^3.0.0-next.12
         version: link:../../../hardhat-mocha-test-runner
       '@ignored/hardhat-vnext-network-helpers':
-        specifier: workspace:^3.0.0-next.4
+        specifier: workspace:^3.0.0-next.12
         version: link:../../../hardhat-network-helpers
       '@types/chai':
         specifier: ^4.2.0
@@ -2355,12 +2361,18 @@ importers:
       '@types/mocha':
         specifier: ^10.0.0
         version: 10.0.9
+      '@types/node':
+        specifier: ^22.8.5
+        version: 22.8.5
       chai:
         specifier: ^4.4.1
         version: 4.5.0
       chai-as-promised:
         specifier: ^8.0.0
         version: 8.0.0(chai@4.5.0)
+      ethers:
+        specifier: ^6.13.4
+        version: 6.13.4
       forge-std:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
@@ -2374,17 +2386,23 @@ importers:
   v-next/hardhat/templates/node-test-runner-viem:
     devDependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.8
+        specifier: workspace:^3.0.0-next.16
         version: link:../..
+      '@ignored/hardhat-vnext-keystore':
+        specifier: workspace:^3.0.0-next.12
+        version: link:../../../hardhat-keystore
       '@ignored/hardhat-vnext-network-helpers':
-        specifier: workspace:^3.0.0-next.4
+        specifier: workspace:^3.0.0-next.12
         version: link:../../../hardhat-network-helpers
       '@ignored/hardhat-vnext-node-test-runner':
-        specifier: workspace:^3.0.0-next.4
+        specifier: workspace:^3.0.0-next.12
         version: link:../../../hardhat-node-test-runner
       '@ignored/hardhat-vnext-viem':
-        specifier: workspace:^3.0.0-next.3
+        specifier: workspace:^3.0.0-next.11
         version: link:../../../hardhat-viem
+      '@types/node':
+        specifier: ^22.8.5
+        version: 22.8.5
       forge-std:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
@@ -2392,8 +2410,8 @@ importers:
         specifier: ~5.5.0
         version: 5.5.4
       viem:
-        specifier: ^2.21.17
-        version: 2.21.35(typescript@5.5.4)(zod@3.23.8)
+        specifier: ^2.21.42
+        version: 2.21.42(typescript@5.5.4)(zod@3.23.8)
 
   v-next/template-package:
     devDependencies:
@@ -2401,7 +2419,7 @@ importers:
         specifier: ^4.3.0
         version: 4.4.1(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -2898,68 +2916,68 @@ packages:
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
     deprecated: Use @eslint/object-schema instead
 
-  '@ignored/edr-darwin-arm64@0.6.4-alpha.0':
-    resolution: {integrity: sha512-NgV+aIf68c0bO0nurJSnoEXDBuugEVg1qCsUOAv64QA6mAAaxamlAg4xKEp4cp9Ql0qyun12KHzcSWg8dFkkpA==}
+  '@ignored/edr-darwin-arm64@0.6.4-alpha.2':
+    resolution: {integrity: sha512-pL3+BUBXCzZmJtE613BzGrVFc8zzjCSPx30aekBJDusWfzXziaNn+ShfORN9VuZbYkWd8G8YxCfvjPgsZIjxRg==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-darwin-x64@0.6.4-alpha.0':
-    resolution: {integrity: sha512-Jz6G+9+2KIE2bXnDcoeYgQgYoDnqv37tRDqbSDthBB18WrnQe+3Zyt2ckepTFzY+xoC1/kJWeOA+U0hJLB0EwQ==}
+  '@ignored/edr-darwin-x64@0.6.4-alpha.2':
+    resolution: {integrity: sha512-Ny4GqQVS7VGSDj5rGP1uVb7qWRJrTdiW3mDlFQekxzxvz4ms8R79vmA8RfIEbrBmwuETpnx26EwyYa6krkcbmg==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-linux-arm64-gnu@0.6.4-alpha.0':
-    resolution: {integrity: sha512-YQrR1qF6ytI9ivQDyREPddE4ux0i7DfQNlGrBHWMoeHo7yw9b/i4yos4rWqjPo5razdTjDS8yLSgzFrISp3CFg==}
+  '@ignored/edr-linux-arm64-gnu@0.6.4-alpha.2':
+    resolution: {integrity: sha512-V0hf3i09fXxbszHrjqIcoNjMiU9gi/6nrhmB+o7kKwdi0IVuAwiBEbjfcyDlTDfAX2jDFGnxYfEhiSYermpvWA==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-linux-arm64-musl@0.6.4-alpha.0':
-    resolution: {integrity: sha512-BbO9EhRDumnYSZPtKvaSBtFjnaKfMF9c7wHcnMv2q8WAzj5KOrGN3Gzenr0HMoZvYMj6ZRlFknhcTP8g5MBPuw==}
+  '@ignored/edr-linux-arm64-musl@0.6.4-alpha.2':
+    resolution: {integrity: sha512-1yKOaj3nZK7hQs3AhNlTp8NeUGZa6S0P6Fnlu5GUvTNh/wpjuubiPd8aNKpDxraVkywBisjfU9W2xRijvGdwXA==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-linux-x64-gnu@0.6.4-alpha.0':
-    resolution: {integrity: sha512-BGn9HiMsW74wanixkE8DnrLud8MYHsIWqvSYwKAoL3IaKBwbiwFOt//h6U2RA3bqhQZT8yCGFn4AGLtDxxYhLQ==}
+  '@ignored/edr-linux-x64-gnu@0.6.4-alpha.2':
+    resolution: {integrity: sha512-iceOX3VIgSuyzR92tY8qXhqn8EV4EZqcC2Qls6Zu4cFeOSJCYVdrsZ7qJo4Vb/k0d+JTw8vcJwHKea8rTJksvg==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-linux-x64-musl@0.6.4-alpha.0':
-    resolution: {integrity: sha512-z+SNuEBOLaWD6qwZf3x5poVmN9NzuTyrpkBiFzomhi0U6MPhtziE/olYUrk7TDlROubc2Uy5/1l/u60AwlpXCA==}
+  '@ignored/edr-linux-x64-musl@0.6.4-alpha.2':
+    resolution: {integrity: sha512-GIHda/5xosqWELyse+wZGTWwwOWxKl1fWh5M5oykTla84TSmM++7VJPvM4Hnt+T+jj9OL2lW1zybvrwwFzxLAQ==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism-darwin-arm64@0.6.4':
-    resolution: {integrity: sha512-c/GAqX9sCp+5o+GLlCbE6Hx2k69Z9DXXej2t6LUuYmcRXu8agVWIbqaUy3uSbI1ALThIZEBZtxAH8rBr4vNqhg==}
+  '@ignored/edr-optimism-darwin-arm64@0.6.5-alpha.0':
+    resolution: {integrity: sha512-umEVWWr8M3g5uMwmAufkbYWEz0i2cm50ddm3Y2V4yi8qg2W4x4KPkklEILqkYEgeG7HTfODD9gk/ekz71nUR4Q==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism-darwin-x64@0.6.4':
-    resolution: {integrity: sha512-1FuhbDY2mNCbMKp6LQ1Tfg56u88x05fgTkXvV+8WyCaELoA0NJ/WDZxliq4J8cWOQJP5LfYtb8afRysT8XidHQ==}
+  '@ignored/edr-optimism-darwin-x64@0.6.5-alpha.0':
+    resolution: {integrity: sha512-Vrd0Nt5KT4PrBhb+7FKcyoMQT1YV6nSqoREjHP60gL5KO11IjNFCbVMv3InBeHwNm46wFJjENdCMAcw+Pj+JvA==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism-linux-arm64-gnu@0.6.4':
-    resolution: {integrity: sha512-XNpx36xtWYDddJhUkTEMUq22I/II8IB0SIZdyMlDkjNq5c9lFJIkrIRy1RXW8QQcDLcA5cwZIdwmGQ0U/xHPTQ==}
+  '@ignored/edr-optimism-linux-arm64-gnu@0.6.5-alpha.0':
+    resolution: {integrity: sha512-lvMFt6K/gN+a9Yu4vc55VPXP6qVRQyj+/Gsz6yjTLNkbzwP6hD32T9oliWJJ1aRzOjTwz7/1HBYIwLtuPg6/VA==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism-linux-arm64-musl@0.6.4':
-    resolution: {integrity: sha512-LTdQfmZg7XJOzj3RYXpKa5ui4J7pjGdeend8ia0PHra/YEsfdA8S07RM2X3YFZJSngbs7m3xvrRfAbDjX0ep3g==}
+  '@ignored/edr-optimism-linux-arm64-musl@0.6.5-alpha.0':
+    resolution: {integrity: sha512-3mA+Tl59nt7J3+K79vlpGy1evbtr7q2LfUE2bd2gDegb5JfneeuJGQVPH/zd/3sIZnk624xKkTUTf6psW+r9iw==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism-linux-x64-gnu@0.6.4':
-    resolution: {integrity: sha512-3CK5K21a0mVLDhdAjfhANcnGyDo9yWBYv07d3cxJ9R/e1h148pzPecjSkJxDJD0ARovhroLCiS16MlDlrKgjAw==}
+  '@ignored/edr-optimism-linux-x64-gnu@0.6.5-alpha.0':
+    resolution: {integrity: sha512-lFsTGtDY2N24L6hgL+wCLCH0uXVaaYUyT32qGajNGt3FHNEtEGCuHYnCqQcDTcOXzXBVocIUkNihLVb/9MpgqA==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism-linux-x64-musl@0.6.4':
-    resolution: {integrity: sha512-/lwndCOJ0rrsHG9CCQPL0lIem2oAuI8ToQ1CFHTkoZwuvlsa0cFfEvCCY/TxdZlrQGds0tU1OEbgEK+5e6A2rg==}
+  '@ignored/edr-optimism-linux-x64-musl@0.6.5-alpha.0':
+    resolution: {integrity: sha512-6lXLOW3e/Bw1z8l/nQmaG7S1Ady1MMxb21fJ9rf6/nod30cBfF4PgefhF2o8D0xGVqfW4FcHhqWtpGj/oV9xZg==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism-win32-x64-msvc@0.6.4':
-    resolution: {integrity: sha512-bHLDhiFVpK6q/yPbRLMGY6ZuAaF/tzkQpPVodtVsJ4t5W/xgYkNEMEZBTBCw3Zk3Qh63ic11En63yR+kpf8tpQ==}
+  '@ignored/edr-optimism-win32-x64-msvc@0.6.5-alpha.0':
+    resolution: {integrity: sha512-gz29UrSw+3Bj/sWa9JGewHcD9CIj5xi9Zjn9POmwmUUOF/q48SkAJ01XA+BOhpdsR0bx91wWd8lGrAPZghGmIg==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism@0.6.4':
-    resolution: {integrity: sha512-62hm/8tdbDtvkLUwLecGDK4lOma0XC2Zp9WmrVJ9RkeLU4C/sK25a+5rCdm40+7whpXkF8nEHTn7rgBmtTEhfw==}
+  '@ignored/edr-optimism@0.6.5-alpha.0':
+    resolution: {integrity: sha512-RTMiCC6Y5tOW+q+V+ARpUw3ErmkvBVMYWj+5drq8MEZYOEcrLKXlavm3BM1QqkwWaeO2j+zTrIuI4lRCePj9oQ==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-win32-x64-msvc@0.6.4-alpha.0':
-    resolution: {integrity: sha512-cJNTzIH+F4HHjIA6o5OCHN1Dt6f/h4DB8Tzc1rqR/ihvCdrZJcnR6RKy6ykLylTphSIeiVttTMq6H7dhdhAVQg==}
+  '@ignored/edr-win32-x64-msvc@0.6.4-alpha.2':
+    resolution: {integrity: sha512-QZxYQRMTeYCFKa7/3jbkYkGgtwAI2X9JXIxFbWgOOYQSTsWJsw+igcyW+WAeMUHAvXEAWO1Ex/hrcra4tOqlqQ==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr@0.6.4-alpha.0':
-    resolution: {integrity: sha512-VTMK5h61xFjAvFxww3+2ajMYRLgZfpMwVDazcKZX/LAwfQxM8KaH5i6jP6JM8srCGJtm2wf3pFgI3Ass2moQvg==}
+  '@ignored/edr@0.6.4-alpha.2':
+    resolution: {integrity: sha512-gp5v/wCKO0W2S00diHT2cV+lCRxRTh2TyP+Xxg/zWZLE+5KcSAlOV0VElVMAiH37sv/7cHhE2AXGcnMnPHW/DA==}
     engines: {node: '>= 18'}
 
   '@isaacs/cliui@8.0.2':
@@ -3413,6 +3431,9 @@ packages:
 
   '@types/node@22.7.5':
     resolution: {integrity: sha512-jML7s2NAzMWc//QSJ1a3prpk78cOPchGvXJsC3C6R6PSMoooztvRVQEz89gmBTBY1SPMaqo5teB4uNHPdetShQ==}
+
+  '@types/node@22.8.5':
+    resolution: {integrity: sha512-5iYk6AMPtsMbkZqCO1UGF9W5L38twq11S2pYWkybGHH2ogPUvXWNlQqJBzuEZWKj/WRH+QTeiv6ySWqJtvIEgA==}
 
   '@types/node@8.10.66':
     resolution: {integrity: sha512-tktOkFUA4kXx2hhhrB8bIFb5TbwzS4uOhKEmwiD+NoiL0qtP2OQ9mFldbgD4dV1djrlBYP6eBuQZiWjuHUpqFw==}
@@ -5467,8 +5488,14 @@ packages:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
     engines: {node: '>= 8'}
 
+  micro-eth-signer@0.12.0:
+    resolution: {integrity: sha512-zHKuqXthGRvPjs0lQRSBnDN8E1Ndi09vqAdr7pJctE6wFkkkoHwjqp8RpD/dED2CDN8MoL3g5L/UopXZBNEbBw==}
+
   micro-ftch@0.3.1:
     resolution: {integrity: sha512-/0LLxhzP0tfiR5hcQebtudP56gUurs2CLkGarnCiB/OqEyUFQ6U3paQi/tgLv0hBJYt2rnr9MNpxz4fiiugstg==}
+
+  micro-packed@0.6.3:
+    resolution: {integrity: sha512-VmVkyc7lIzAq/XCPFuLc/CwQ7Ehs5XDK3IwqsZHiBIDttAI9Gs7go6Lv4lNRuAIKrGKcRTtthFKUNyHS0S4wJQ==}
 
   micromatch@4.0.8:
     resolution: {integrity: sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==}
@@ -6615,6 +6642,14 @@ packages:
       typescript:
         optional: true
 
+  viem@2.21.42:
+    resolution: {integrity: sha512-PWBb3iaVFAzLWUaNrYLweOGwHPTQid5J4HfERh/WjJgixbAFwb4ZEc1leRfygvgJPtqUGdYNapvw9b2k2FoCAg==}
+    peerDependencies:
+      typescript: '>=5.0.4'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
   wcwidth@1.0.1:
     resolution: {integrity: sha512-XHPEwS0q6TaxcvG85+8EYkbiCux2XtWG2mkc47Ng2A77BQu9+DqIOJldST4HgPkuea7dvKSj5VgX3P1d4rW8Tg==}
 
@@ -7537,60 +7572,60 @@ snapshots:
 
   '@humanwhocodes/object-schema@2.0.3': {}
 
-  '@ignored/edr-darwin-arm64@0.6.4-alpha.0':
+  '@ignored/edr-darwin-arm64@0.6.4-alpha.2':
     optional: true
 
-  '@ignored/edr-darwin-x64@0.6.4-alpha.0':
+  '@ignored/edr-darwin-x64@0.6.4-alpha.2':
     optional: true
 
-  '@ignored/edr-linux-arm64-gnu@0.6.4-alpha.0':
+  '@ignored/edr-linux-arm64-gnu@0.6.4-alpha.2':
     optional: true
 
-  '@ignored/edr-linux-arm64-musl@0.6.4-alpha.0':
+  '@ignored/edr-linux-arm64-musl@0.6.4-alpha.2':
     optional: true
 
-  '@ignored/edr-linux-x64-gnu@0.6.4-alpha.0':
+  '@ignored/edr-linux-x64-gnu@0.6.4-alpha.2':
     optional: true
 
-  '@ignored/edr-linux-x64-musl@0.6.4-alpha.0':
+  '@ignored/edr-linux-x64-musl@0.6.4-alpha.2':
     optional: true
 
-  '@ignored/edr-optimism-darwin-arm64@0.6.4': {}
+  '@ignored/edr-optimism-darwin-arm64@0.6.5-alpha.0': {}
 
-  '@ignored/edr-optimism-darwin-x64@0.6.4': {}
+  '@ignored/edr-optimism-darwin-x64@0.6.5-alpha.0': {}
 
-  '@ignored/edr-optimism-linux-arm64-gnu@0.6.4': {}
+  '@ignored/edr-optimism-linux-arm64-gnu@0.6.5-alpha.0': {}
 
-  '@ignored/edr-optimism-linux-arm64-musl@0.6.4': {}
+  '@ignored/edr-optimism-linux-arm64-musl@0.6.5-alpha.0': {}
 
-  '@ignored/edr-optimism-linux-x64-gnu@0.6.4': {}
+  '@ignored/edr-optimism-linux-x64-gnu@0.6.5-alpha.0': {}
 
-  '@ignored/edr-optimism-linux-x64-musl@0.6.4': {}
+  '@ignored/edr-optimism-linux-x64-musl@0.6.5-alpha.0': {}
 
-  '@ignored/edr-optimism-win32-x64-msvc@0.6.4': {}
+  '@ignored/edr-optimism-win32-x64-msvc@0.6.5-alpha.0': {}
 
-  '@ignored/edr-optimism@0.6.4':
+  '@ignored/edr-optimism@0.6.5-alpha.0':
     dependencies:
-      '@ignored/edr-optimism-darwin-arm64': 0.6.4
-      '@ignored/edr-optimism-darwin-x64': 0.6.4
-      '@ignored/edr-optimism-linux-arm64-gnu': 0.6.4
-      '@ignored/edr-optimism-linux-arm64-musl': 0.6.4
-      '@ignored/edr-optimism-linux-x64-gnu': 0.6.4
-      '@ignored/edr-optimism-linux-x64-musl': 0.6.4
-      '@ignored/edr-optimism-win32-x64-msvc': 0.6.4
+      '@ignored/edr-optimism-darwin-arm64': 0.6.5-alpha.0
+      '@ignored/edr-optimism-darwin-x64': 0.6.5-alpha.0
+      '@ignored/edr-optimism-linux-arm64-gnu': 0.6.5-alpha.0
+      '@ignored/edr-optimism-linux-arm64-musl': 0.6.5-alpha.0
+      '@ignored/edr-optimism-linux-x64-gnu': 0.6.5-alpha.0
+      '@ignored/edr-optimism-linux-x64-musl': 0.6.5-alpha.0
+      '@ignored/edr-optimism-win32-x64-msvc': 0.6.5-alpha.0
 
-  '@ignored/edr-win32-x64-msvc@0.6.4-alpha.0':
+  '@ignored/edr-win32-x64-msvc@0.6.4-alpha.2':
     optional: true
 
-  '@ignored/edr@0.6.4-alpha.0':
+  '@ignored/edr@0.6.4-alpha.2':
     optionalDependencies:
-      '@ignored/edr-darwin-arm64': 0.6.4-alpha.0
-      '@ignored/edr-darwin-x64': 0.6.4-alpha.0
-      '@ignored/edr-linux-arm64-gnu': 0.6.4-alpha.0
-      '@ignored/edr-linux-arm64-musl': 0.6.4-alpha.0
-      '@ignored/edr-linux-x64-gnu': 0.6.4-alpha.0
-      '@ignored/edr-linux-x64-musl': 0.6.4-alpha.0
-      '@ignored/edr-win32-x64-msvc': 0.6.4-alpha.0
+      '@ignored/edr-darwin-arm64': 0.6.4-alpha.2
+      '@ignored/edr-darwin-x64': 0.6.4-alpha.2
+      '@ignored/edr-linux-arm64-gnu': 0.6.4-alpha.2
+      '@ignored/edr-linux-arm64-musl': 0.6.4-alpha.2
+      '@ignored/edr-linux-x64-gnu': 0.6.4-alpha.2
+      '@ignored/edr-linux-x64-musl': 0.6.4-alpha.2
+      '@ignored/edr-win32-x64-msvc': 0.6.4-alpha.2
 
   '@isaacs/cliui@8.0.2':
     dependencies:
@@ -8071,7 +8106,7 @@ snapshots:
 
   '@types/bn.js@4.11.6':
     dependencies:
-      '@types/node': 18.19.59
+      '@types/node': 20.17.1
 
   '@types/bn.js@5.1.6':
     dependencies:
@@ -8091,7 +8126,7 @@ snapshots:
 
   '@types/concat-stream@1.6.1':
     dependencies:
-      '@types/node': 18.19.59
+      '@types/node': 20.17.1
 
   '@types/debug@4.1.12':
     dependencies:
@@ -8103,7 +8138,7 @@ snapshots:
 
   '@types/form-data@0.0.33':
     dependencies:
-      '@types/node': 18.19.59
+      '@types/node': 20.17.1
 
   '@types/fs-extra@5.1.0':
     dependencies:
@@ -8162,11 +8197,15 @@ snapshots:
     dependencies:
       undici-types: 6.19.8
 
+  '@types/node@22.8.5':
+    dependencies:
+      undici-types: 6.19.8
+
   '@types/node@8.10.66': {}
 
   '@types/pbkdf2@3.1.2':
     dependencies:
-      '@types/node': 18.19.59
+      '@types/node': 20.17.1
 
   '@types/prettier@2.7.3': {}
 
@@ -8174,14 +8213,14 @@ snapshots:
 
   '@types/readable-stream@2.3.15':
     dependencies:
-      '@types/node': 18.19.59
+      '@types/node': 20.17.1
       safe-buffer: 5.1.2
 
   '@types/resolve@1.20.6': {}
 
   '@types/secp256k1@4.0.6':
     dependencies:
-      '@types/node': 18.19.59
+      '@types/node': 20.17.1
 
   '@types/semver@6.2.7': {}
 
@@ -8208,7 +8247,7 @@ snapshots:
 
   '@types/ws@8.5.3':
     dependencies:
-      '@types/node': 18.19.59
+      '@types/node': 20.17.1
 
   '@typescript-eslint/eslint-plugin@5.61.0(@typescript-eslint/parser@5.61.0(eslint@8.57.0)(typescript@5.0.4))(eslint@8.57.0)(typescript@5.0.4)':
     dependencies:
@@ -10570,7 +10609,17 @@ snapshots:
 
   merge2@1.4.1: {}
 
+  micro-eth-signer@0.12.0:
+    dependencies:
+      '@noble/curves': 1.6.0
+      '@noble/hashes': 1.5.0
+      micro-packed: 0.6.3
+
   micro-ftch@0.3.1: {}
+
+  micro-packed@0.6.3:
+    dependencies:
+      '@scure/base': 1.1.9
 
   micromatch@4.0.8:
     dependencies:
@@ -11839,7 +11888,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  viem@2.21.35(typescript@5.5.4)(zod@3.23.8):
+  viem@2.21.42(typescript@5.5.4)(zod@3.23.8):
     dependencies:
       '@adraffy/ens-normalize': 1.11.0
       '@noble/curves': 1.6.0

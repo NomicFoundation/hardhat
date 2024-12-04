@@ -21,7 +21,7 @@ export type GenericChainType = "generic";
  * `ChainTypeConfig` interface with a valid `ChainType` value.
  * For example:
  * ```ts
- * declare module "@ignored/hardhat-vnext/types/config" {
+ * declare module "@ignored/hardhat-vnext/types/network" {
  *   export interface ChainTypeConfig {
  *     defaultChainType: "l1";
  *   }
@@ -48,10 +48,12 @@ export interface NetworkManager {
   ): Promise<NetworkConnection<ChainTypeT>>;
 }
 
-export interface NetworkConnection<ChainTypeT extends ChainType | string> {
+export interface NetworkConnection<
+  ChainTypeT extends ChainType | string = DefaultChainType,
+> {
   readonly id: number;
   readonly networkName: string;
-  readonly networkConfig: NetworkConfig;
+  readonly networkConfig: Readonly<NetworkConfig>;
   readonly chainType: ChainTypeT;
   readonly provider: EthereumProvider;
 

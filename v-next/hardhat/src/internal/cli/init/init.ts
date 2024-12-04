@@ -17,10 +17,7 @@ import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 import chalk from "chalk";
 
 import { findClosestHardhatConfig } from "../../config-loading.js";
-import {
-  getHardhatVersion,
-  getLatestHardhatVersion,
-} from "../../utils/package.js";
+import { getHardhatVersion } from "../../utils/package.js";
 
 import { HARDHAT_NAME } from "./constants.js";
 import {
@@ -134,23 +131,24 @@ export async function printWelcomeMessage(): Promise<void> {
     chalk.cyan(`👷 Welcome to ${HARDHAT_NAME} v${hardhatVersion} 👷\n`),
   );
 
-  // Warn the user if they are using an outdated version of Hardhat
-  try {
-    const latestHardhatVersion = await getLatestHardhatVersion();
-    if (hardhatVersion !== latestHardhatVersion) {
-      console.warn(
-        chalk.yellow.bold(
-          `⚠️ You are using an outdated version of Hardhat. The latest version is v${latestHardhatVersion}. Please consider upgrading to the latest version before continuing with the project initialization. ⚠️\n`,
-        ),
-      );
-    }
-  } catch (e) {
-    console.warn(
-      chalk.yellow.bold(
-        `⚠️ We couldn't check if you are using the latest version of Hardhat. Please consider upgrading to the latest version if you are not using it yet. ⚠️\n`,
-      ),
-    );
-  }
+  // TODO: Disabled this until the first release of v3
+  // // Warn the user if they are using an outdated version of Hardhat
+  // try {
+  //   const latestHardhatVersion = await getLatestHardhatVersion();
+  //   if (hardhatVersion !== latestHardhatVersion) {
+  //     console.warn(
+  //       chalk.yellow.bold(
+  //         `⚠️ You are using an outdated version of Hardhat. The latest version is v${latestHardhatVersion}. Please consider upgrading to the latest version before continuing with the project initialization. ⚠️\n`,
+  //       ),
+  //     );
+  //   }
+  // } catch (e) {
+  //   console.warn(
+  //     chalk.yellow.bold(
+  //       `⚠️ We couldn't check if you are using the latest version of Hardhat. Please consider upgrading to the latest version if you are not using it yet. ⚠️\n`,
+  //     ),
+  //   );
+  // }
 }
 
 /**
@@ -265,6 +263,32 @@ export async function ensureProjectPackageJson(
 }
 
 /**
+ * The following two functions are used to convert between relative workspace
+ * and template paths. To begin with, they are used to handle the special case
+ * of .gitignore.
+ *
+ * The reason for this is that npm ignores .gitignore files
+ * during npm pack (see https://github.com/npm/npm/issues/3763). That's why when
+ * we encounter a gitignore file in the template, we assume that it should be
+ * called .gitignore in the workspace (and vice versa).
+ *
+ * They are exported for testing purposes only.
+ */
+
+export function relativeWorkspaceToTemplatePath(file: string): string {
+  if (path.basename(file) === ".gitignore") {
+    return path.join(path.dirname(file), "gitignore");
+  }
+  return file;
+}
+export function relativeTemplateToWorkspacePath(file: string): string {
+  if (path.basename(file) === "gitignore") {
+    return path.join(path.dirname(file), ".gitignore");
+  }
+  return file;
+}
+
+/**
  * copyProjectFiles copies the template files to the workspace.
  *
  * If there are clashing files in the workspace, they will be overwritten only
@@ -282,27 +306,41 @@ export async function copyProjectFiles(
   force?: boolean,
 ): Promise<void> {
   // Find all the files in the workspace that would have been overwritten by the template files
-  const matchingFiles = await getAllFilesMatching(workspace, (file) =>
-    template.files.includes(path.relative(workspace, file)),
+  const matchingRelativeWorkspacePaths = await getAllFilesMatching(
+    workspace,
+    (file) => {
+      const relativeWorkspacePath = path.relative(workspace, file);
+      const relativeTemplatePath = relativeWorkspaceToTemplatePath(
+        relativeWorkspacePath,
+      );
+      return template.files.includes(relativeTemplatePath);
+    },
   ).then((files) => files.map((f) => path.relative(workspace, f)));
 
   // Ask the user for permission to overwrite existing files if needed
-  if (matchingFiles.length !== 0) {
+  if (matchingRelativeWorkspacePaths.length !== 0) {
     if (force === undefined) {
-      force = await promptForForce(matchingFiles);
+      force = await promptForForce(matchingRelativeWorkspacePaths);
     }
   }
 
   // Copy the template files to the workspace
-  for (const file of template.files) {
-    if (force === false && matchingFiles.includes(file)) {
+  for (const relativeTemplatePath of template.files) {
+    const relativeWorkspacePath =
+      relativeTemplateToWorkspacePath(relativeTemplatePath);
+
+    if (
+      force === false &&
+      matchingRelativeWorkspacePaths.includes(relativeWorkspacePath)
+    ) {
       continue;
     }
-    const pathToTemplateFile = path.join(template.path, file);
-    const pathToWorkspaceFile = path.join(workspace, file);
 
-    await ensureDir(path.dirname(pathToWorkspaceFile));
-    await copy(pathToTemplateFile, pathToWorkspaceFile);
+    const absoluteTemplatePath = path.join(template.path, relativeTemplatePath);
+    const absoluteWorkspacePath = path.join(workspace, relativeWorkspacePath);
+
+    await ensureDir(path.dirname(absoluteWorkspacePath));
+    await copy(absoluteTemplatePath, absoluteWorkspacePath);
   }
 
   console.log(`✨ ${chalk.cyan(`Template files copied`)} ✨`);
@@ -353,18 +391,21 @@ export async function installProjectDependencies(
   // Try to install the missing dependencies if there are any
   if (Object.keys(dependenciesToInstall).length !== 0) {
     // Retrieve the package manager specific installation command
-    const command = getDevDependenciesInstallationCommand(
+    let command = getDevDependenciesInstallationCommand(
       packageManager,
       dependenciesToInstall,
     );
 
-    // We format the command to avoid any shell issue if the user copy-pastes it
-    const formattedCommand = [
+    // We quote all the dependency identifiers to that it can be run on a shell
+    // without semver symbols interfering with the command
+    command = [
       command[0],
       command[1],
       command[2],
       ...command.slice(3).map((arg) => `"${arg}"`),
-    ].join(" ");
+    ];
+
+    const formattedCommand = command.join(" ");
 
     // Ask the user for permission to install the project dependencies and install them if needed
     if (install === undefined) {
@@ -378,8 +419,10 @@ export async function installProjectDependencies(
 
       await spawn(command[0], command.slice(1), {
         cwd: workspace,
-        // We don't want the arguments to be treated as shell expressions
-        shell: false,
+        // We need to run with `shell: true` for this to work on powershell, but
+        // we already enclosed every dependency identifier in quotes, so this
+        // is safe.
+        shell: true,
         stdio: "inherit",
       });
 

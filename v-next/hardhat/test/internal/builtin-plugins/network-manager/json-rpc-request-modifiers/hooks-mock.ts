@@ -1,3 +1,4 @@
+import type { HardhatUserConfig } from "../../../../../src/config.js";
 import type { HookContext } from "../../../../../src/types/hooks.js";
 import type { HardhatRuntimeEnvironment } from "../../../../../src/types/hre.js";
 import type {
@@ -20,6 +21,7 @@ import { createHardhatRuntimeEnvironment } from "../../../../../src/hre.js";
 //
 // In this way, the function "next" in the first handler will call the mock.
 export async function createMockedNetworkHre(
+  hardhatUserConfig: HardhatUserConfig,
   returnValues: Record<string, any> = {},
 ): Promise<HardhatRuntimeEnvironment> {
   const mockedResponse: JsonRpcResponse = {
@@ -28,7 +30,7 @@ export async function createMockedNetworkHre(
     result: [],
   };
 
-  const hre = await createHardhatRuntimeEnvironment({});
+  const hre = await createHardhatRuntimeEnvironment(hardhatUserConfig);
 
   hre.hooks.registerHandlers("network", {
     onRequest: async <ChainTypeT extends ChainType | string>(

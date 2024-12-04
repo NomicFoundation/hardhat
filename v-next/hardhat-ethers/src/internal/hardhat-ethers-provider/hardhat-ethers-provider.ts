@@ -1,3 +1,4 @@
+import type { HardhatEthersProvider as HardhatEthersProviderI } from "../../types.js";
 import type { NetworkConfig } from "@ignored/hardhat-vnext/types/config";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type {
@@ -79,12 +80,12 @@ type HardhatEthersProviderEvent =
       eventFilter: EventFilter;
     };
 
-export class HardhatEthersProvider implements ethers.Provider {
+export class HardhatEthersProvider implements HardhatEthersProviderI {
   #isHardhatNetworkCached: boolean | undefined;
 
   readonly #hardhatProvider: EthereumProvider;
   readonly #networkName: string;
-  readonly #networkConfig: NetworkConfig;
+  readonly #networkConfig: Readonly<NetworkConfig>;
 
   // event-emitter related fields
   #latestBlockNumberPolled: number | undefined;
@@ -671,7 +672,7 @@ export class HardhatEthersProvider implements ethers.Provider {
 
   async #findEventListener(event: EventFilter) {
     for (const item of this.#eventListeners) {
-      if (await deepEqual(item.event, event)) {
+      if ((await deepEqual(item.event, event)) === true) {
         return item;
       }
     }
@@ -680,7 +681,7 @@ export class HardhatEthersProvider implements ethers.Provider {
 
   async #findEventListenerIndex(event: EventFilter): Promise<number> {
     for (let i = 0; i < this.#eventListeners.length; i++) {
-      if (await deepEqual(this.#eventListeners[i].event, event)) {
+      if ((await deepEqual(this.#eventListeners[i].event, event)) === true) {
         return i;
       }
     }

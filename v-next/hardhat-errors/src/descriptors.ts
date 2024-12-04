@@ -134,7 +134,9 @@ Please double check whether you have multiple versions of the same plugin instal
     },
     ENV_VAR_NOT_FOUND: {
       number: 7,
-      messageTemplate: "Configuration variable not found as an env variable",
+      messageTemplate: `Configuration Variable '{name}' not found.
+     
+You can define it using a plugin like hardhat-keystore, or set it as an environment variable.`,
       websiteTitle: "Configuration variable not found",
       websiteDescription: `A configuration variable was expected to be set as an environment variable, but it wasn't.`,
     },
@@ -212,6 +214,12 @@ Please add the property "type" with the value "module" in your package.json to e
       messageTemplate: `Workspace {workspace} not found`,
       websiteTitle: "Workspace not found",
       websiteDescription: `The workspace you provided does not exist. Please ensure that the workspace exists and try again.`,
+    },
+    INVALID_HEX_STRING: {
+      number: 18,
+      messageTemplate: `Invalid hex string "{value}"`,
+      websiteTitle: "Invalid hex string",
+      websiteDescription: `Given value was not a valid hex string.`,
     },
   },
   INTERNAL: {
@@ -581,8 +589,90 @@ If you want to use a different chain type, please update your networks config.`,
       websiteDescription:
         "No local account was set and there are accounts in the remote node",
     },
-    INVALID_NETWORK_TYPE: {
+    ETHSIGN_MISSING_DATA_PARAM: {
       number: 710,
+      messageTemplate: `Missing "data" param when calling eth_sign.`,
+      websiteTitle: `Missing "data" param when calling eth_sign`,
+      websiteDescription: `You called "eth_sign" with incorrect parameters.
+
+Please check that you are sending a "data" parameter.`,
+    },
+    PERSONALSIGN_MISSING_ADDRESS_PARAM: {
+      number: 711,
+      messageTemplate: `Missing "address" param when calling personal_sign.`,
+      websiteTitle: `Missing "address" param when calling personal_sign`,
+      websiteDescription: `You called "personal_sign" with incorrect parameters.
+
+Please check that you are sending an "address" parameter.`,
+    },
+    ETHSIGN_TYPED_DATA_V4_INVALID_DATA_PARAM: {
+      number: 712,
+      messageTemplate: `Invalid "data" param when calling eth_signTypedData_v4.`,
+      websiteTitle: `Invalid "data" param when calling eth_signTypedData_v4`,
+      websiteDescription: `You called "eth_signTypedData_v4" with incorrect parameters.
+
+Please check that you are sending a "data" parameter with a JSON string or object conforming to EIP712 TypedData schema.`,
+    },
+    MISSING_TX_PARAM_TO_SIGN_LOCALLY: {
+      number: 713,
+      messageTemplate: `Missing param "{param}" from a tx being signed locally.`,
+      websiteTitle: "Missing transaction parameter",
+      websiteDescription: `You are trying to send a transaction with a locally managed account, and some parameters are missing.
+
+Please double check your transactions' parameters.`,
+    },
+    MISSING_FEE_PRICE_FIELDS: {
+      number: 714,
+      messageTemplate:
+        "Tried to sign a transaction locally, but gasPrice, maxFeePerGas, and maxPriorityFeePerGas were missing.",
+      websiteTitle: "Missing fee price parameters",
+      websiteDescription: `You are trying to send a transaction with a locally managed account, and no fee price parameters were provided. You need to send gasPrice, or maxFeePerGas and maxPriorityFeePerGas.
+
+Please double check your transactions' parameters.`,
+    },
+    INCOMPATIBLE_FEE_PRICE_FIELDS: {
+      number: 715,
+      messageTemplate:
+        "An incompatible transaction with gasPrice and EIP-1559 fee price fields.",
+      websiteTitle: "Incompatible fee price parameters",
+      websiteDescription: `You are trying to send a transaction with a locally managed account, and its parameters are incompatible. You sent both gasPrice, and maxFeePerGas or maxPriorityFeePerGas.
+
+Please double check your transactions' parameters.`,
+    },
+    NOT_LOCAL_ACCOUNT: {
+      number: 716,
+      messageTemplate: `Account "{account}" is not managed by the node you are connected to.`,
+      websiteTitle: "Unrecognized account",
+      websiteDescription: `You are trying to send a transaction or sign some data with an account not managed by your Ethereum node nor Hardhat.
+
+Please double check your accounts and the "from" parameter in your RPC calls.`,
+    },
+    INVALID_HD_PATH: {
+      number: 717,
+      messageTemplate: `HD path "{path}" is invalid. Read about BIP32 to know about the valid forms.`,
+      websiteTitle: "Invalid HD path",
+      websiteDescription: `An invalid HD/BIP32 derivation path was provided in your config.
+
+Read the [documentation](https://hardhat.org/hardhat-runner/docs/config#hd-wallet-config) to learn how to define HD accounts correctly.`,
+    },
+    CANT_DERIVE_KEY: {
+      number: 718,
+      messageTemplate: `Cannot derive key "{path}" from mnemonic "{mnemonic}". Try using another mnemonic or deriving fewer keys.`,
+      websiteTitle: "Could not derive an HD key",
+      websiteDescription: `One of your HD keys could not be derived.
+
+Try using another mnemonic or deriving less keys.`,
+    },
+    WRONG_VALIDATION_PARAMS: {
+      number: 719,
+      messageTemplate:
+        "Validation of parameters against the schemas failed for the following reason: {reason}",
+      websiteTitle: "Invalid validation parameters",
+      websiteDescription:
+        "The validation of parameters against the schemas failed.",
+    },
+    INVALID_NETWORK_TYPE: {
+      number: 720,
       messageTemplate:
         "The provided network type {networkType} for network {networkName} is not recognized, only `http` and `edr` are supported.",
       websiteTitle: "Invalid network type",
@@ -860,7 +950,7 @@ This error is thrown when you import a file with the wrong casing under a case i
     IMPORTED_NPM_DEPENDENCY_NOT_INSTALLED: {
       number: 1206,
       messageTemplate:
-        'The import "{importPath}" from "{from}" is trying to use an uinstalled npm dependency.',
+        'The import "{importPath}" from "{from}" is trying to use an uninstalled npm dependency.',
       websiteTitle: "Uninstalled npm solidity dependency",
       websiteDescription: `One of your files is traying to import a dependency using npm, but it hasn't been installed`,
     },

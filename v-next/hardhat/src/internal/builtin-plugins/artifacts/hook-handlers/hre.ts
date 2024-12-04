@@ -58,11 +58,11 @@ class LazyArtifactsManager implements ArtifactsManager {
   }
 
   async #getArtifactsManager(): Promise<ArtifactsManager> {
-    if (this.#artifactsManager === undefined) {
-      const { ArtifactsManagerImplementation } = await import(
-        "../artifacts-manager.js"
-      );
+    const { ArtifactsManagerImplementation } = await import(
+      "../artifacts-manager.js"
+    );
 
+    if (this.#artifactsManager === undefined) {
       this.#artifactsManager = new ArtifactsManagerImplementation(
         this.#artifactsPath,
       );

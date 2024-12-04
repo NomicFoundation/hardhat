@@ -3,7 +3,12 @@ import type { HardhatUserConfig } from "@ignored/hardhat-vnext/config";
 import { HardhatPluginError } from "@ignored/hardhat-vnext/plugins";
 
 import util from "node:util";
-import { task, emptyTask, globalOption } from "@ignored/hardhat-vnext/config";
+import {
+  task,
+  emptyTask,
+  globalOption,
+  configVariable,
+} from "@ignored/hardhat-vnext/config";
 import HardhatNodeTestRunner from "@ignored/hardhat-vnext-node-test-runner";
 import HardhatMochaTestRunner from "@ignored/hardhat-vnext-mocha-test-runner";
 import HardhatKeystore from "@ignored/hardhat-vnext-keystore";
@@ -106,6 +111,35 @@ const pluginExample = {
 };
 
 const config: HardhatUserConfig = {
+  networks: {
+    op: {
+      type: "http",
+      chainType: "optimism",
+      url: "https://mainnet.optimism.io/",
+      accounts: [configVariable("OP_SENDER")],
+    },
+    edrOp: {
+      type: "edr",
+      chainType: "optimism",
+      chainId: 10,
+      forkConfig: {
+        jsonRpcUrl: "https://mainnet.optimism.io",
+      },
+    },
+    opSepolia: {
+      type: "http",
+      chainType: "optimism",
+      url: "https://sepolia.optimism.io",
+      accounts: [configVariable("OP_SEPOLIA_SENDER")],
+    },
+    edrOpSepolia: {
+      type: "edr",
+      chainType: "optimism",
+      forkConfig: {
+        jsonRpcUrl: "https://sepolia.optimism.io",
+      },
+    },
+  },
   tasks: [
     exampleTaskOverride,
     exampleEmptyTask,

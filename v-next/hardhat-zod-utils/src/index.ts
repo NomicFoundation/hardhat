@@ -32,11 +32,19 @@ export const unionType = (
   types: Parameters<typeof z.union>[0],
   errorMessage: string,
 ) =>
-  // eslint-disable-next-line no-restricted-syntax -- This is the only place we allow z.union
-  z.union(types, {
-    errorMap: () => ({
+  // NOTE: The reason we use `z.any().superRefine` instead of `z.union` is that
+  // we found a bug with the `z.union` method that causes it to return a
+  // "deeper" validation error, when we expecte the `errorMessage`.
+  // See: https://github.com/colinhacks/zod/issues/2940#issuecomment-2380836931
+  z.any().superRefine((val, ctx) => {
+    if (types.some((t) => t.safeParse(val).success)) {
+      return;
+    }
+
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
       message: errorMessage,
-    }),
+    });
   });
 
 /**
@@ -140,6 +148,17 @@ export const incompatibleFieldType = (errorMessage = "Unexpected field") =>
 export const configurationVariableSchema = z.object({
   _type: z.literal("ConfigurationVariable"),
   name: z.string(),
+});
+
+/**
+ * A Zod type to validate Hardhat's ResolvedConfigurationVariable objects.
+ */
+export const resolvedConfigurationVariableSchema = z.object({
+  _type: z.literal("ResolvedConfigurationVariable"),
+  get: z.function(),
+  getUrl: z.function(),
+  getBigInt: z.function(),
+  getHexString: z.function(),
 });
 
 /**

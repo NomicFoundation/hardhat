@@ -4,7 +4,7 @@ import type { LastParameter } from "@ignored/hardhat-vnext/types/utils";
 
 import { pipeline } from "node:stream/promises";
 import { run } from "node:test";
-import { fileURLToPath } from "node:url";
+import { URL } from "node:url";
 
 import { hardhatTestReporter } from "@ignored/hardhat-vnext-node-test-reporter";
 import { getAllFilesMatching } from "@ignored/hardhat-vnext-utils/fs";
@@ -66,8 +66,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     return 0;
   }
 
-  const tsx = fileURLToPath(import.meta.resolve("tsx/esm"));
-  process.env.NODE_OPTIONS = `--import ${tsx}`;
+  const tsx = new URL(import.meta.resolve("tsx/esm"));
+  process.env.NODE_OPTIONS = `--import "${tsx.href}"`;
 
   async function runTests(): Promise<number> {
     let failures = 0;
