@@ -37,6 +37,8 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       hre.config.paths.tests.solidity
         .map((p) => resolveFromRoot(hre.config.paths.root, p))
         .map(async (p) => {
+          // NOTE: The paths specified in the `paths.tests.solidity` array
+          // can be either directories or files.
           if (await isDirectory(p)) {
             return getAllFilesMatching(p, (f) => f.endsWith(".sol"));
           } else if (p.endsWith(".sol") === true) {

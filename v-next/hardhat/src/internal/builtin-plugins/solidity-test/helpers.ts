@@ -27,6 +27,11 @@ type SuccessfulSolidityBuildResults = Map<
   Exclude<FileBuildResult, FailedFileBuildResult>
 >;
 
+/**
+ * This function asserts that the given Solidity build results are successful.
+ * It throws a HardhatError if the build results indicate that the compilation
+ * job failed.
+ */
 export function throwIfSolidityBuildFailed(
   results: SolidityBuildResults,
 ): asserts results is SuccessfulSolidityBuildResults {
@@ -52,6 +57,11 @@ export function throwIfSolidityBuildFailed(
   }
 }
 
+/**
+ * This function returns the artifacts generated during the compilation associated
+ * with the given Solidity build results. It relies on the fact that each successful
+ * build result has a corresponding artifact generated property.
+ */
 export async function getArtifacts(
   results: SuccessfulSolidityBuildResults,
   artifactsRootPath: string,
@@ -87,6 +97,11 @@ export async function getArtifacts(
   return artifacts;
 }
 
+/**
+ * This function returns the test suite ids associated with the given artifacts.
+ * The test suite ID is the relative path of the test file, relative to the
+ * project root.
+ */
 export async function getTestSuiteIds(
   artifacts: EdrArtifact[],
   rootFilePaths: string[],
