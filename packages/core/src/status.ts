@@ -4,7 +4,7 @@ import { ERRORS } from "./internal/errors-list";
 import { loadDeploymentState } from "./internal/execution/deployment-state-helpers";
 import { findDeployedContracts } from "./internal/views/find-deployed-contracts";
 import { findStatus } from "./internal/views/find-status";
-import { ArtifactResolver } from "./types/artifact";
+import { Abi, Artifact, ArtifactResolver } from "./types/artifact";
 import { StatusResult } from "./types/status";
 
 /**
@@ -38,9 +38,19 @@ export async function status(
   for (const [futureId, deployedContract] of Object.entries(
     deployedContracts
   )) {
-    const artifact = await artifactResolver.loadArtifact(
-      deployedContract.contractName
-    );
+    let artifact: Artifact<Abi>;
+
+    try {
+      artifact = await artifactResolver.loadArtifact(
+        deployedContract.contractName
+      );
+    } catch (e) {
+      if (e instanceof Error && /HH700/g.test(e.message)) {
+        artifact = await deploymentLoader.loadArtifact(deployedContract.id);
+      } else {
+        throw e;
+      }
+    }
 
     contracts[futureId] = {
       ...deployedContract,
