@@ -126,6 +126,19 @@ const config: HardhatUserConfig = {
         jsonRpcUrl: "https://mainnet.optimism.io",
       },
     },
+    opSepolia: {
+      type: "http",
+      chainType: "optimism",
+      url: "https://sepolia.optimism.io",
+      accounts: [configVariable("OP_SEPOLIA_SENDER")],
+    },
+    edrOpSepolia: {
+      type: "edr",
+      chainType: "optimism",
+      forkConfig: {
+        jsonRpcUrl: "https://sepolia.optimism.io",
+      },
+    },
   },
   tasks: [
     exampleTaskOverride,

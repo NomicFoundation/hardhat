@@ -10,6 +10,7 @@ import {
   assertHardhatInvariant,
 } from "@ignored/hardhat-vnext-errors";
 import { isCi } from "@ignored/hardhat-vnext-utils/ci";
+import { readClosestPackageJson } from "@ignored/hardhat-vnext-utils/package";
 import { kebabToCamelCase } from "@ignored/hardhat-vnext-utils/string";
 import debug from "debug";
 import { register } from "tsx/esm/api";
@@ -86,6 +87,16 @@ export async function main(
     );
 
     const projectRoot = await resolveProjectRoot(configPath);
+
+    const esmErrorPrinted = await printEsmErrorMessageIfNecessary(
+      projectRoot,
+      print,
+    );
+
+    if (esmErrorPrinted) {
+      process.exitCode = 1;
+      return;
+    }
 
     if (options.registerTsx) {
       register();
@@ -559,4 +570,30 @@ function validateRequiredArguments(
     HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
     { argument: missingRequiredArgument.name },
   );
+}
+
+/**
+ * Prints an error message if the user is running Hardhat on CJS mode, returning
+ * `true` if the message was printed.
+ */
+async function printEsmErrorMessageIfNecessary(
+  projectRoot: string,
+  print: (message: string) => void,
+): Promise<boolean> {
+  const packageJson = await readClosestPackageJson(projectRoot);
+
+  if (packageJson.type !== "module") {
+    print(`Hardhat only supports ESM projects.
+
+Please make sure you have \`"type": "module"\` in your package.json.
+
+You can set it automatically by running:
+
+npm pkg set type="module"
+`);
+
+    return true;
+  }
+
+  return false;
 }

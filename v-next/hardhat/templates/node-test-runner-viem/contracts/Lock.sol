@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.24;
 
+// This is the same example of Hardhat 2. We use it here to
+// demostrate the TypeScript test cabapbilities and compatibility
+// with Hardhat 2.
+
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 

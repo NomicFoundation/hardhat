@@ -7,10 +7,20 @@ import type {
 
 import { Readable } from "node:stream";
 
-import { runSolidityTests } from "@ignored/edr";
+import { runSolidityTests, EdrContext } from "@ignored/edr";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 import { formatArtifactId } from "./formatters.js";
+
+let edrContext: EdrContext | undefined;
+
+function getEdrContext(): EdrContext {
+  if (edrContext === undefined) {
+    edrContext = new EdrContext();
+  }
+
+  return edrContext;
+}
 
 export interface RunOptions {
   /**
@@ -64,6 +74,10 @@ export function run(
           }),
         );
       }, duration);
+
+      // TODO: Just getting the context here to get it initialized, but this
+      // is not currently tied to the `runSolidityTests` function.
+      getEdrContext();
 
       runSolidityTests(
         artifacts,

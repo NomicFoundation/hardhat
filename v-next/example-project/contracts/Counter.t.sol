@@ -21,9 +21,9 @@ contract CounterTest {
     require(counter.x() == x, "Value after calling inc x times should be x");
   }
 
-  function invariant() public pure {
-    assert(true);
-  }
+  // function invariant() public pure {
+  //   assert(true);
+  // }
 }
 
 contract FailingCounterTest {
@@ -47,7 +47,7 @@ contract FailingCounterTest {
     );
   }
 
-  function invariant() public pure {
-    assert(false);
-  }
+  // function invariant() public pure {
+  //   assert(false);
+  // }
 }

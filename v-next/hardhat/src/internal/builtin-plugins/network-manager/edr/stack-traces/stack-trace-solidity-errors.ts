@@ -5,7 +5,6 @@ import type {
   SolidityStackTrace,
   SolidityStackTraceEntry,
   SourceReference,
-  StackTraceEntryType,
 } from "./solidity-stack-trace.js";
 
 import { ReturnData } from "@ignored/edr-optimism";
@@ -13,6 +12,7 @@ import { bytesToHexString } from "@ignored/hardhat-vnext-utils/bytes";
 
 import { panicErrorCodeToMessage } from "./panic-errors.js";
 import {
+  StackTraceEntryType,
   CONSTRUCTOR_FUNCTION_NAME,
   PRECOMPILE_FUNCTION_NAME,
   UNKNOWN_FUNCTION_NAME,
@@ -64,35 +64,31 @@ export function encodeSolidityStackTrace(
   return solidityError;
 }
 
-// TODO: using numbers casted to the enum types is a hack to workaround
-// "Cannot access ambient const enums when 'isolatedModules' is enabled."
-// error. We should fix this properly by exporting the values as constants
-// from the EDR package.
 function encodeStackTraceEntry(
   stackTraceEntry: SolidityStackTraceEntry,
 ): SolidityCallSite {
   switch (stackTraceEntry.type) {
-    case 11 as StackTraceEntryType.UNRECOGNIZED_FUNCTION_WITHOUT_FALLBACK_ERROR:
-    case 12 as StackTraceEntryType.MISSING_FALLBACK_OR_RECEIVE_ERROR:
+    case StackTraceEntryType.UNRECOGNIZED_FUNCTION_WITHOUT_FALLBACK_ERROR:
+    case StackTraceEntryType.MISSING_FALLBACK_OR_RECEIVE_ERROR:
       return sourceReferenceToSolidityCallsite({
         ...stackTraceEntry.sourceReference,
         function: UNRECOGNIZED_FUNCTION_NAME,
       });
 
-    case 0 as StackTraceEntryType.CALLSTACK_ENTRY:
-    case 4 as StackTraceEntryType.REVERT_ERROR:
-    case 6 as StackTraceEntryType.CUSTOM_ERROR:
-    case 7 as StackTraceEntryType.FUNCTION_NOT_PAYABLE_ERROR:
-    case 8 as StackTraceEntryType.INVALID_PARAMS_ERROR:
-    case 9 as StackTraceEntryType.FALLBACK_NOT_PAYABLE_ERROR:
-    case 10 as StackTraceEntryType.FALLBACK_NOT_PAYABLE_AND_NO_RECEIVE_ERROR:
-    case 13 as StackTraceEntryType.RETURNDATA_SIZE_ERROR:
-    case 14 as StackTraceEntryType.NONCONTRACT_ACCOUNT_CALLED_ERROR:
-    case 15 as StackTraceEntryType.CALL_FAILED_ERROR:
-    case 16 as StackTraceEntryType.DIRECT_LIBRARY_CALL_ERROR:
+    case StackTraceEntryType.CALLSTACK_ENTRY:
+    case StackTraceEntryType.REVERT_ERROR:
+    case StackTraceEntryType.CUSTOM_ERROR:
+    case StackTraceEntryType.FUNCTION_NOT_PAYABLE_ERROR:
+    case StackTraceEntryType.INVALID_PARAMS_ERROR:
+    case StackTraceEntryType.FALLBACK_NOT_PAYABLE_ERROR:
+    case StackTraceEntryType.FALLBACK_NOT_PAYABLE_AND_NO_RECEIVE_ERROR:
+    case StackTraceEntryType.RETURNDATA_SIZE_ERROR:
+    case StackTraceEntryType.NONCONTRACT_ACCOUNT_CALLED_ERROR:
+    case StackTraceEntryType.CALL_FAILED_ERROR:
+    case StackTraceEntryType.DIRECT_LIBRARY_CALL_ERROR:
       return sourceReferenceToSolidityCallsite(stackTraceEntry.sourceReference);
 
-    case 1 as StackTraceEntryType.UNRECOGNIZED_CREATE_CALLSTACK_ENTRY:
+    case StackTraceEntryType.UNRECOGNIZED_CREATE_CALLSTACK_ENTRY:
       return new SolidityCallSite(
         undefined,
         UNRECOGNIZED_CONTRACT_NAME,
@@ -100,7 +96,7 @@ function encodeStackTraceEntry(
         undefined,
       );
 
-    case 2 as StackTraceEntryType.UNRECOGNIZED_CONTRACT_CALLSTACK_ENTRY:
+    case StackTraceEntryType.UNRECOGNIZED_CONTRACT_CALLSTACK_ENTRY:
       return new SolidityCallSite(
         bytesToHexString(stackTraceEntry.address),
         UNRECOGNIZED_CONTRACT_NAME,
@@ -108,7 +104,7 @@ function encodeStackTraceEntry(
         undefined,
       );
 
-    case 3 as StackTraceEntryType.PRECOMPILE_ERROR:
+    case StackTraceEntryType.PRECOMPILE_ERROR:
       return new SolidityCallSite(
         undefined,
         `<PrecompileContract ${stackTraceEntry.precompile}>`,
@@ -116,7 +112,7 @@ function encodeStackTraceEntry(
         undefined,
       );
 
-    case 17 as StackTraceEntryType.UNRECOGNIZED_CREATE_ERROR:
+    case StackTraceEntryType.UNRECOGNIZED_CREATE_ERROR:
       return new SolidityCallSite(
         undefined,
         UNRECOGNIZED_CONTRACT_NAME,
@@ -124,7 +120,7 @@ function encodeStackTraceEntry(
         undefined,
       );
 
-    case 18 as StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR:
+    case StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR:
       return new SolidityCallSite(
         bytesToHexString(stackTraceEntry.address),
         UNRECOGNIZED_CONTRACT_NAME,
@@ -132,14 +128,14 @@ function encodeStackTraceEntry(
         undefined,
       );
 
-    case 22 as StackTraceEntryType.INTERNAL_FUNCTION_CALLSTACK_ENTRY:
+    case StackTraceEntryType.INTERNAL_FUNCTION_CALLSTACK_ENTRY:
       return new SolidityCallSite(
         stackTraceEntry.sourceReference.sourceName,
         stackTraceEntry.sourceReference.contract,
         `internal@${stackTraceEntry.pc}`,
         undefined,
       );
-    case 23 as StackTraceEntryType.CONTRACT_CALL_RUN_OUT_OF_GAS_ERROR:
+    case StackTraceEntryType.CONTRACT_CALL_RUN_OUT_OF_GAS_ERROR:
       if (stackTraceEntry.sourceReference !== undefined) {
         return sourceReferenceToSolidityCallsite(
           stackTraceEntry.sourceReference,
@@ -153,10 +149,10 @@ function encodeStackTraceEntry(
         undefined,
       );
 
-    case 19 as StackTraceEntryType.OTHER_EXECUTION_ERROR:
-    case 21 as StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR:
-    case 5 as StackTraceEntryType.PANIC_ERROR:
-    case 20 as StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR:
+    case StackTraceEntryType.OTHER_EXECUTION_ERROR:
+    case StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR:
+    case StackTraceEntryType.PANIC_ERROR:
+    case StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR:
       if (stackTraceEntry.sourceReference === undefined) {
         return new SolidityCallSite(
           undefined,
@@ -183,56 +179,52 @@ function sourceReferenceToSolidityCallsite(
   );
 }
 
-// TODO: using numbers casted to the enum types is a hack to workaround
-// "Cannot access ambient const enums when 'isolatedModules' is enabled."
-// error. We should fix this properly by exporting the values as constants
-// from the EDR package.
 function getMessageFromLastStackTraceEntry(
   stackTraceEntry: SolidityStackTraceEntry,
 ): string | undefined {
   // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- TODO: We should cover all cases
   switch (stackTraceEntry.type) {
-    case 3 as StackTraceEntryType.PRECOMPILE_ERROR:
+    case StackTraceEntryType.PRECOMPILE_ERROR:
       return `Transaction reverted: call to precompile ${stackTraceEntry.precompile} failed`;
 
-    case 7 as StackTraceEntryType.FUNCTION_NOT_PAYABLE_ERROR:
+    case StackTraceEntryType.FUNCTION_NOT_PAYABLE_ERROR:
       return `Transaction reverted: non-payable function was called with value ${stackTraceEntry.value.toString(
         10,
       )}`;
 
-    case 8 as StackTraceEntryType.INVALID_PARAMS_ERROR:
+    case StackTraceEntryType.INVALID_PARAMS_ERROR:
       return `Transaction reverted: function was called with incorrect parameters`;
 
-    case 9 as StackTraceEntryType.FALLBACK_NOT_PAYABLE_ERROR:
+    case StackTraceEntryType.FALLBACK_NOT_PAYABLE_ERROR:
       return `Transaction reverted: fallback function is not payable and was called with value ${stackTraceEntry.value.toString(
         10,
       )}`;
 
-    case 10 as StackTraceEntryType.FALLBACK_NOT_PAYABLE_AND_NO_RECEIVE_ERROR:
+    case StackTraceEntryType.FALLBACK_NOT_PAYABLE_AND_NO_RECEIVE_ERROR:
       return `Transaction reverted: there's no receive function, fallback function is not payable and was called with value ${stackTraceEntry.value.toString(
         10,
       )}`;
 
-    case 11 as StackTraceEntryType.UNRECOGNIZED_FUNCTION_WITHOUT_FALLBACK_ERROR:
+    case StackTraceEntryType.UNRECOGNIZED_FUNCTION_WITHOUT_FALLBACK_ERROR:
       return `Transaction reverted: function selector was not recognized and there's no fallback function`;
 
-    case 12 as StackTraceEntryType.MISSING_FALLBACK_OR_RECEIVE_ERROR:
+    case StackTraceEntryType.MISSING_FALLBACK_OR_RECEIVE_ERROR:
       return `Transaction reverted: function selector was not recognized and there's no fallback nor receive function`;
 
-    case 13 as StackTraceEntryType.RETURNDATA_SIZE_ERROR:
+    case StackTraceEntryType.RETURNDATA_SIZE_ERROR:
       return `Transaction reverted: function returned an unexpected amount of data`;
 
-    case 14 as StackTraceEntryType.NONCONTRACT_ACCOUNT_CALLED_ERROR:
+    case StackTraceEntryType.NONCONTRACT_ACCOUNT_CALLED_ERROR:
       return `Transaction reverted: function call to a non-contract account`;
 
-    case 15 as StackTraceEntryType.CALL_FAILED_ERROR:
+    case StackTraceEntryType.CALL_FAILED_ERROR:
       return `Transaction reverted: function call failed to execute`;
 
-    case 16 as StackTraceEntryType.DIRECT_LIBRARY_CALL_ERROR:
+    case StackTraceEntryType.DIRECT_LIBRARY_CALL_ERROR:
       return `Transaction reverted: library was called directly`;
 
-    case 17 as StackTraceEntryType.UNRECOGNIZED_CREATE_ERROR:
-    case 18 as StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR: {
+    case StackTraceEntryType.UNRECOGNIZED_CREATE_ERROR:
+    case StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR: {
       const returnData = new ReturnData(stackTraceEntry.returnData);
       if (returnData.isErrorReturnData()) {
         return `VM Exception while processing transaction: reverted with reason string '${returnData.decodeError()}'`;
@@ -256,7 +248,7 @@ function getMessageFromLastStackTraceEntry(
       return "Transaction reverted without a reason string";
     }
 
-    case 4 as StackTraceEntryType.REVERT_ERROR: {
+    case StackTraceEntryType.REVERT_ERROR: {
       const returnData = new ReturnData(stackTraceEntry.returnData);
       if (returnData.isErrorReturnData()) {
         return `VM Exception while processing transaction: reverted with reason string '${returnData.decodeError()}'`;
@@ -269,24 +261,24 @@ function getMessageFromLastStackTraceEntry(
       return "Transaction reverted without a reason string";
     }
 
-    case 5 as StackTraceEntryType.PANIC_ERROR:
+    case StackTraceEntryType.PANIC_ERROR:
       const panicMessage = panicErrorCodeToMessage(stackTraceEntry.errorCode);
       return `VM Exception while processing transaction: ${panicMessage}`;
 
-    case 6 as StackTraceEntryType.CUSTOM_ERROR:
+    case StackTraceEntryType.CUSTOM_ERROR:
       return `VM Exception while processing transaction: ${stackTraceEntry.message}`;
 
-    case 19 as StackTraceEntryType.OTHER_EXECUTION_ERROR:
+    case StackTraceEntryType.OTHER_EXECUTION_ERROR:
       // TODO: What if there was returnData?
       return `Transaction reverted and Hardhat couldn't infer the reason.`;
 
-    case 20 as StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR:
+    case StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR:
       return "Transaction reverted without a reason string and without a valid sourcemap provided by the compiler. Some line numbers may be off. We strongly recommend upgrading solc and always using revert reasons.";
 
-    case 21 as StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR:
+    case StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR:
       return "Transaction reverted: trying to deploy a contract whose code is too large";
 
-    case 23 as StackTraceEntryType.CONTRACT_CALL_RUN_OUT_OF_GAS_ERROR:
+    case StackTraceEntryType.CONTRACT_CALL_RUN_OUT_OF_GAS_ERROR:
       return "Transaction reverted: contract call run out of gas and made the transaction revert";
   }
 }
