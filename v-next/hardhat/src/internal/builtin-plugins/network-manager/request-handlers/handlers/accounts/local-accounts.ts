@@ -276,16 +276,19 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       };
     });
 
-    if (txData.to === undefined && txData.data === undefined) {
+    if (
+      (txData.to === undefined || txData.to === null) &&
+      txData.data === undefined
+    ) {
       throw new HardhatError(
         HardhatError.ERRORS.NETWORK.DATA_FIELD_CANNOT_BE_NULL_WITH_NULL_ADDRESS,
       );
     }
 
     let checksummedAddress;
-    if (txData.to === undefined) {
+    if (txData.to === undefined || txData.to === null) {
       // This scenario arises during contract deployment. The npm package "micro-eth-signer" does not support
-      // undefined addresses. Therefore, these values must be converted to "0x", the expected format.
+      // null or undefined addresses. Therefore, these values must be converted to "0x", the expected format.
       checksummedAddress = "0x";
     } else {
       checksummedAddress = addr.addChecksum(

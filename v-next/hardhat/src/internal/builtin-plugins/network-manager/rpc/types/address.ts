@@ -14,6 +14,7 @@ export const rpcAddress: ZodType<Uint8Array> = conditionalUnionType(
       z.instanceof(Uint8Array),
     ],
     [isAddress, z.string()],
+    [(data) => data === null, z.null()],
   ],
   "Expected a Buffer with correct length or a valid RPC address string",
 ).transform((v) => (typeof v === "string" ? hexStringToBytes(v) : v));
