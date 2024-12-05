@@ -285,7 +285,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
     let checksummedAddress;
     if (txData.to === undefined) {
       // This scenario arises during contract deployment. The npm package "micro-eth-signer" does not support
-      // null or undefined addresses. Therefore, these values must be converted to "0x", the expected format.
+      // undefined addresses. Therefore, these values must be converted to "0x", the expected format.
       checksummedAddress = "0x";
     } else {
       checksummedAddress = addr.addChecksum(
