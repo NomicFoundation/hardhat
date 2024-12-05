@@ -31,6 +31,8 @@ import { stopImpersonatingAccount } from "./helpers/stop-impersonating-account.j
 import { takeSnapshot } from "./helpers/take-snapshot.js";
 import { Time } from "./time/time.js";
 
+const SUPPORTED_TEST_NETWORKS = ["hardhat", "zksync", "anvil"];
+
 export class NetworkHelpers implements NetworkHelpersI {
   readonly #provider: EthereumProvider;
   readonly #networkName: string;
@@ -163,10 +165,9 @@ export class NetworkHelpers implements NetworkHelpersI {
 
         this.#version = version;
 
-        this.#isDevelopmentNetwork =
-          this.#version.toLowerCase().startsWith("hardhat") ||
-          this.#version.toLowerCase().startsWith("zksync") ||
-          this.#version.toLowerCase().startsWith("anvil");
+        this.#isDevelopmentNetwork = SUPPORTED_TEST_NETWORKS.some((network) =>
+          this.#version?.toLowerCase().startsWith(network),
+        );
       } catch (e) {
         this.#isDevelopmentNetwork = false;
       }
