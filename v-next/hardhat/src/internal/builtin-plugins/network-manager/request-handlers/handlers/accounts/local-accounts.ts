@@ -276,15 +276,22 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       };
     });
 
-    // TODO: Fix after the alpha release
-    assertHardhatInvariant(
-      txData.to !== undefined,
-      "The alpha version doesn't support deploying contracts with local accounts yet",
-    );
+    if (txData.to === undefined && txData.data === undefined) {
+      throw new HardhatError(
+        HardhatError.ERRORS.NETWORK.DATA_FIELD_CANNOT_BE_NULL_WITH_NULL_ADDRESS,
+      );
+    }
 
-    const checksummedAddress = addr.addChecksum(
-      bytesToHexString(txData.to).toLowerCase(),
-    );
+    let checksummedAddress;
+    if (txData.to === undefined) {
+      // This scenario arises during contract deployment. The npm package "micro-eth-signer" does not support
+      // null or undefined addresses. Therefore, these values must be converted to "0x", the expected format.
+      checksummedAddress = "0x";
+    } else {
+      checksummedAddress = addr.addChecksum(
+        bytesToHexString(txData.to).toLowerCase(),
+      );
+    }
 
     assertHardhatInvariant(
       txData.nonce !== undefined,

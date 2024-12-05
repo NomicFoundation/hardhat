@@ -135,7 +135,7 @@ Please double check whether you have multiple versions of the same plugin instal
     ENV_VAR_NOT_FOUND: {
       number: 7,
       messageTemplate: `Configuration Variable '{name}' not found.
-     
+
 You can define it using a plugin like hardhat-keystore, or set it as an environment variable.`,
       websiteTitle: "Configuration variable not found",
       websiteDescription: `A configuration variable was expected to be set as an environment variable, but it wasn't.`,
@@ -677,6 +677,13 @@ Try using another mnemonic or deriving less keys.`,
         "The provided network type {networkType} for network {networkName} is not recognized, only `http` and `edr` are supported.",
       websiteTitle: "Invalid network type",
       websiteDescription: `The network manager only supports the network types 'http' and 'edr'.`,
+    },
+    DATA_FIELD_CANNOT_BE_NULL_WITH_NULL_ADDRESS: {
+      number: 721,
+      messageTemplate: `The "to" field is undefined, and the "data" field is also undefined; however, a transaction to the null address cannot have an undefined "data" field.`,
+      websiteTitle: "Transaction to null address cannot have undefined data",
+      websiteDescription:
+        "The transaction to the null address cannot have undefined data",
     },
   },
   KEYSTORE: {
