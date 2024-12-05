@@ -54,9 +54,11 @@ describe("hardhat-network-helpers plugin initialization", () => {
           {
             // This test plugin is used to return a mocked test value for the "web3_clientVersion" method,
             // enabling the simulation of a non-test network.
-            id: "mocked-plugin",
+            id: "mocked-web3-client-version",
             hookHandlers: {
-              network: import.meta.resolve("./helpers/mocked-rpc-method.js"),
+              network: import.meta.resolve(
+                "./helpers/mocked-web3-client-version.js",
+              ),
             },
           },
         ],
