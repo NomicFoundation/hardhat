@@ -153,24 +153,20 @@ export class NetworkHelpers implements NetworkHelpersI {
 
   public async throwIfNotDevelopmentNetwork(): Promise<void> {
     if (this.#isDevelopmentNetwork === undefined) {
-      try {
-        const version = await this.#provider.request({
-          method: "web3_clientVersion",
-        });
+      const version = await this.#provider.request({
+        method: "web3_clientVersion",
+      });
 
-        assertHardhatInvariant(
-          typeof version === "string",
-          `"version" should be a string`,
-        );
+      assertHardhatInvariant(
+        typeof version === "string",
+        `"version" should be a string`,
+      );
 
-        this.#version = version;
+      this.#version = version;
 
-        this.#isDevelopmentNetwork = SUPPORTED_TEST_NETWORKS.some((network) =>
-          this.#version?.toLowerCase().startsWith(network),
-        );
-      } catch (e) {
-        this.#isDevelopmentNetwork = false;
-      }
+      this.#isDevelopmentNetwork = SUPPORTED_TEST_NETWORKS.some((network) =>
+        this.#version?.toLowerCase().startsWith(network),
+      );
     }
 
     if (!this.#isDevelopmentNetwork) {
