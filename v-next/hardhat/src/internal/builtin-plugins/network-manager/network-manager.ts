@@ -4,6 +4,7 @@ import type {
   ChainType,
   DefaultChainType,
   NetworkConnection,
+  NetworkManager,
 } from "../../../types/network.js";
 import type {
   EthereumProvider,
@@ -23,7 +24,7 @@ export type JsonRpcRequestWrapperFunction = (
   defaultBehavior: (r: JsonRpcRequest) => Promise<JsonRpcResponse>,
 ) => Promise<JsonRpcResponse>;
 
-export class NetworkManagerImplementation {
+export class NetworkManagerImplementation implements NetworkManager {
   readonly #defaultNetwork: string;
   readonly #defaultChainType: DefaultChainType;
   readonly #networkConfigs: Record<string, NetworkConfig>;
