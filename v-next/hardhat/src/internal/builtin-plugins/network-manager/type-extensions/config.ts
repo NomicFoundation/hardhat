@@ -95,10 +95,10 @@ declare module "../../../../types/config.js" {
   >;
 
   export interface EdrNetworkChainUserConfig {
-    hardforkHistory?: HardforkHistoryConfig;
+    hardforkHistory?: HardforkHistoryUserConfig;
   }
 
-  export type HardforkHistoryConfig = Map<
+  export type HardforkHistoryUserConfig = Map<
     string /* hardforkName */,
     number /* blockNumber */
   >;
@@ -215,6 +215,11 @@ declare module "../../../../types/config.js" {
   export interface EdrNetworkChainConfig {
     hardforkHistory: HardforkHistoryConfig;
   }
+
+  export type HardforkHistoryConfig = Map<
+    string /* hardforkName */,
+    number /* blockNumber */
+  >;
 
   export interface EdrNetworkForkingConfig {
     enabled: boolean;
