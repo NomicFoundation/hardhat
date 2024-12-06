@@ -38,7 +38,7 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
     // depending on the config, we set a fixed gas limit for all transactions
     let gasLimit: bigint | undefined;
 
-    if (networkName === "hardhat") {
+    if (networkConfig.type !== "http") {
       // If we are connected to the in-process hardhat network and the config
       // has a fixed number as the gas config, we use that.
       // Hardhat core already sets this value to the block gas limit when the
