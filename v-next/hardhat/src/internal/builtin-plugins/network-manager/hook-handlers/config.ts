@@ -1,6 +1,7 @@
 import type {
   ConfigurationVariable,
   EdrNetworkConfig,
+  EdrNetworkForkingUserConfig,
   EdrNetworkUserConfig,
   GasConfig,
   GasUserConfig,
@@ -231,8 +232,7 @@ export async function resolveUserConfig(
         gas: resolveGasConfig(networkConfig.gas),
         gasMultiplier: networkConfig.gasMultiplier ?? 1,
         gasPrice: resolveGasConfig(networkConfig.gasPrice),
-        // TODO: This isn't how it's called in v2
-        forkConfig: networkConfig.forkConfig,
+        forking: resolveForkingConfig(networkConfig.forking),
         forkCachePath:
           networkConfig.forkCachePath !== undefined
             ? resolveFromRoot(
@@ -313,4 +313,15 @@ function isHdAccountsConfig(
   accounts: HttpNetworkAccountsUserConfig,
 ): accounts is HttpNetworkHDAccountsUserConfig {
   return typeof accounts === "object" && !Array.isArray(accounts);
+}
+
+function resolveForkingConfig(forkingUserConfig?: EdrNetworkForkingUserConfig) {
+  return forkingUserConfig !== undefined
+    ? {
+        enabled: forkingUserConfig.enabled ?? true,
+        url: forkingUserConfig.url,
+        blockNumber: forkingUserConfig.blockNumber,
+        httpHeaders: forkingUserConfig.httpHeaders ?? {},
+      }
+    : undefined;
 }
