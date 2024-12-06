@@ -57,17 +57,17 @@ declare module "../../../../types/config.js" {
     allowBlocksWithSameTimestamp?: boolean;
     allowUnlimitedContractSize?: boolean;
     blockGasLimit?: number;
-    chains?: HardhatNetworkChainsUserConfig;
+    chains?: EdrNetworkChainsUserConfig;
     coinbase?: string;
     enableRip7212?: boolean;
     enableTransientStorage?: boolean;
-    forking?: HardhatNetworkForkingUserConfig;
+    forking?: EdrNetworkForkingUserConfig;
     hardfork?: string;
     initialBaseFeePerGas?: number;
     initialDate?: string | Date;
     loggingEnabled?: boolean;
     minGasPrice?: number | bigint;
-    mining?: HardhatNetworkMiningUserConfig;
+    mining?: EdrNetworkMiningUserConfig;
     networkId?: number;
     throwOnCallFailures?: boolean;
     throwOnTransactionFailures?: boolean;
@@ -91,12 +91,12 @@ declare module "../../../../types/config.js" {
     path?: string;
   }
 
-  export type HardhatNetworkChainsUserConfig = Map<
+  export type EdrNetworkChainsUserConfig = Map<
     number /* chainId */,
-    HardhatNetworkChainUserConfig
+    EdrNetworkChainUserConfig
   >;
 
-  export interface HardhatNetworkChainUserConfig {
+  export interface EdrNetworkChainUserConfig {
     hardforkHistory: HardforkHistoryConfig;
   }
 
@@ -105,20 +105,20 @@ declare module "../../../../types/config.js" {
     number /* blockNumber */
   >;
 
-  export interface HardhatNetworkForkingUserConfig {
+  export interface EdrNetworkForkingUserConfig {
     enabled?: boolean;
     url: string;
     blockNumber?: number;
     httpHeaders?: Record<string, string>;
   }
 
-  export interface HardhatNetworkMiningUserConfig {
+  export interface EdrNetworkMiningUserConfig {
     auto?: boolean;
     interval?: number | [number, number];
-    mempool?: HardhatNetworkMempoolUserConfig;
+    mempool?: EdrNetworkMempoolUserConfig;
   }
 
-  export interface HardhatNetworkMempoolUserConfig {
+  export interface EdrNetworkMempoolUserConfig {
     order?: "fifo" | "priority";
   }
 
@@ -176,17 +176,17 @@ declare module "../../../../types/config.js" {
     allowBlocksWithSameTimestamp: boolean;
     allowUnlimitedContractSize: boolean;
     blockGasLimit: number;
-    chains: HardhatNetworkChainsConfig;
+    chains: EdrNetworkChainsConfig;
     coinbase?: string;
     enableRip7212: boolean;
     enableTransientStorage: boolean;
-    forking?: HardhatNetworkForkingConfig;
+    forking?: EdrNetworkForkingConfig;
     hardfork: string;
     initialBaseFeePerGas?: number;
     initialDate: Date;
     loggingEnabled: boolean;
     minGasPrice: bigint;
-    mining: HardhatNetworkMiningConfig;
+    mining: EdrNetworkMiningConfig;
     networkId: number;
     throwOnCallFailures: boolean;
     throwOnTransactionFailures: boolean;
@@ -210,29 +210,29 @@ declare module "../../../../types/config.js" {
     path: string;
   }
 
-  export type HardhatNetworkChainsConfig = Map<
+  export type EdrNetworkChainsConfig = Map<
     number /* chainId */,
-    HardhatNetworkChainConfig
+    EdrNetworkChainConfig
   >;
 
-  export interface HardhatNetworkChainConfig {
+  export interface EdrNetworkChainConfig {
     hardforkHistory: HardforkHistoryConfig;
   }
 
-  export interface HardhatNetworkForkingConfig {
+  export interface EdrNetworkForkingConfig {
     enabled: boolean;
     url: string;
     blockNumber?: number;
     httpHeaders?: Record<string, string>;
   }
 
-  export interface HardhatNetworkMiningConfig {
+  export interface EdrNetworkMiningConfig {
     auto: boolean;
     interval: number | [number, number];
-    mempool: HardhatNetworkMempoolConfig;
+    mempool: EdrNetworkMempoolConfig;
   }
 
-  export interface HardhatNetworkMempoolConfig {
+  export interface EdrNetworkMempoolConfig {
     order: "fifo" | "priority";
   }
 }
