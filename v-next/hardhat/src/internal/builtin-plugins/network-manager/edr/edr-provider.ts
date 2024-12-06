@@ -26,6 +26,7 @@ import type {
   Provider,
   HttpHeader,
   DebugTraceResult,
+  ForkConfig,
 } from "@ignored/edr-optimism";
 
 import EventEmitter from "node:events";
@@ -121,14 +122,14 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
   }: EdrProviderConfig): Promise<EdrProvider> {
     const coinbase = networkConfig.coinbase ?? DEFAULT_COINBASE;
 
-    let fork;
-    if (networkConfig.forkConfig !== undefined) {
+    let fork: ForkConfig | undefined;
+    if (networkConfig.forking !== undefined) {
       let httpHeaders: HttpHeader[] | undefined;
-      if (networkConfig.forkConfig.httpHeaders !== undefined) {
+      if (networkConfig.forking.httpHeaders !== undefined) {
         httpHeaders = [];
 
         for (const [name, value] of Object.entries(
-          networkConfig.forkConfig.httpHeaders,
+          networkConfig.forking.httpHeaders,
         )) {
           httpHeaders.push({
             name,
@@ -138,10 +139,10 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
       }
 
       fork = {
-        jsonRpcUrl: networkConfig.forkConfig.jsonRpcUrl,
+        jsonRpcUrl: networkConfig.forking.url,
         blockNumber:
-          networkConfig.forkConfig.blockNumber !== undefined
-            ? BigInt(networkConfig.forkConfig.blockNumber)
+          networkConfig.forking.blockNumber !== undefined
+            ? BigInt(networkConfig.forking.blockNumber)
             : undefined,
         httpHeaders,
       };
