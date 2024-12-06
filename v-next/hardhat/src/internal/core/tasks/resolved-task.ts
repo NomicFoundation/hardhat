@@ -93,7 +93,7 @@ export class ResolvedTask implements Task {
    * @throws HardhatError if the task is empty, a required argument is missing,
    * a argument has an invalid type, or the file actions can't be resolved.
    */
-  public async run(taskArguments: TaskArguments): Promise<any> {
+  public async run(taskArguments: TaskArguments = {}): Promise<any> {
     if (this.isEmpty) {
       throw new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK, {
         task: formatTaskId(this.id),
