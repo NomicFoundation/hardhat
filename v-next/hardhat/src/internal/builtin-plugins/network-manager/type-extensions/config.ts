@@ -1,4 +1,5 @@
 import type { ChainType, DefaultChainType } from "../../../../types/network.js";
+import type { HttpHeader } from "@ignored/edr-optimism";
 
 import "../../../../types/config.js";
 declare module "../../../../types/config.js" {
@@ -224,8 +225,8 @@ declare module "../../../../types/config.js" {
   export interface EdrNetworkForkingConfig {
     enabled: boolean;
     url: string;
-    blockNumber?: number;
-    httpHeaders?: Record<string, string>;
+    blockNumber?: bigint;
+    httpHeaders?: HttpHeader[];
   }
 
   export interface EdrNetworkMiningConfig {

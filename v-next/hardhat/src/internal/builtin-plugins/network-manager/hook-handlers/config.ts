@@ -1,6 +1,7 @@
 import type {
   ConfigurationVariable,
   EdrNetworkConfig,
+  EdrNetworkForkingConfig,
   EdrNetworkForkingUserConfig,
   EdrNetworkUserConfig,
   GasConfig,
@@ -315,13 +316,28 @@ function isHdAccountsConfig(
   return typeof accounts === "object" && !Array.isArray(accounts);
 }
 
-function resolveForkingConfig(forkingUserConfig?: EdrNetworkForkingUserConfig) {
-  return forkingUserConfig !== undefined
-    ? {
-        enabled: forkingUserConfig.enabled ?? true,
-        url: forkingUserConfig.url,
-        blockNumber: forkingUserConfig.blockNumber,
-        httpHeaders: forkingUserConfig.httpHeaders ?? {},
-      }
-    : undefined;
+function resolveForkingConfig(
+  forkingUserConfig?: EdrNetworkForkingUserConfig,
+): EdrNetworkForkingConfig | undefined {
+  if (forkingUserConfig === undefined) {
+    return undefined;
+  }
+
+  const httpHeaders =
+    forkingUserConfig.httpHeaders !== undefined
+      ? Object.entries(forkingUserConfig.httpHeaders).map(([name, value]) => ({
+          name,
+          value,
+        }))
+      : undefined;
+
+  return {
+    enabled: forkingUserConfig.enabled ?? true,
+    url: forkingUserConfig.url,
+    blockNumber:
+      forkingUserConfig.blockNumber !== undefined
+        ? BigInt(forkingUserConfig.blockNumber)
+        : undefined,
+    httpHeaders,
+  };
 }
