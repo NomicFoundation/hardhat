@@ -6,10 +6,10 @@ import type {
   GasUserConfig,
   HardhatConfig,
   HardhatUserConfig,
-  HDAccountsUserConfig,
   HttpNetworkAccountsConfig,
   HttpNetworkAccountsUserConfig,
   HttpNetworkConfig,
+  HttpNetworkHDAccountsUserConfig,
   HttpNetworkUserConfig,
   NetworkConfig,
   NetworkUserConfig,
@@ -311,6 +311,6 @@ function resolveAccounts(
 
 function isHdAccountsConfig(
   accounts: HttpNetworkAccountsUserConfig,
-): accounts is HDAccountsUserConfig {
+): accounts is HttpNetworkHDAccountsUserConfig {
   return typeof accounts === "object" && !Array.isArray(accounts);
 }

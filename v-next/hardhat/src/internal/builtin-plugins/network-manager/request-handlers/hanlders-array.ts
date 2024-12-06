@@ -1,6 +1,6 @@
 import type { RequestHandler } from "./types.js";
 import type {
-  HDAccountsUserConfig,
+  HttpNetworkHDAccountsUserConfig,
   HttpNetworkAccountsUserConfig,
 } from "../../../../types/config.js";
 import type {
@@ -117,6 +117,6 @@ export async function createHandlersArray<
 
 function isHDAccountsConfig(
   accounts?: HttpNetworkAccountsUserConfig,
-): accounts is HDAccountsUserConfig {
+): accounts is HttpNetworkHDAccountsUserConfig {
   return accounts !== undefined && Object.keys(accounts).includes("mnemonic");
 }
