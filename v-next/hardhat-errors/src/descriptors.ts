@@ -85,6 +85,7 @@ export const ERROR_CATEGORIES: {
   },
   SOLIDITY: { min: 1200, max: 1299, websiteTitle: "Solidity errors" },
   VIEM: { min: 1300, max: 1399, websiteTitle: "Hardhat-viem errors" },
+  NODE: { min: 1400, max: 1499, websiteTitle: "Hardhat node errors" },
 };
 
 export const ERRORS = {
@@ -135,7 +136,7 @@ Please double check whether you have multiple versions of the same plugin instal
     ENV_VAR_NOT_FOUND: {
       number: 7,
       messageTemplate: `Configuration Variable '{name}' not found.
-     
+
 You can define it using a plugin like hardhat-keystore, or set it as an environment variable.`,
       websiteTitle: "Configuration variable not found",
       websiteDescription: `A configuration variable was expected to be set as an environment variable, but it wasn't.`,
@@ -1222,6 +1223,15 @@ Please check Hardhat's output for more details.`,
       websiteTitle: "Deployment Transaction Error",
       websiteDescription:
         "The deployment transaction was mined but its receipt doesn't contain a contract address.",
+    },
+  },
+  NODE: {
+    INVALID_NETWORK_TYPE: {
+      number: 1400,
+      messageTemplate:
+        "The provided node network type {networkType} for network {networkName} is not recognized, only `edr` is supported.",
+      websiteTitle: "Invalid node network type",
+      websiteDescription: `The node only supports the 'edr' network type.`,
     },
   },
 } as const;
