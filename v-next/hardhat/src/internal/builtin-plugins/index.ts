@@ -4,6 +4,7 @@ import artifacts from "./artifacts/index.js";
 import clean from "./clean/index.js";
 import console from "./console/index.js";
 import networkManager from "./network-manager/index.js";
+import node from "./node/index.js";
 import run from "./run/index.js";
 import solidity from "./solidity/index.js";
 import solidityTest from "./solidity-test/index.js";
@@ -19,6 +20,7 @@ export type * from "./network-manager/index.js";
 export type * from "./clean/index.js";
 export type * from "./console/index.js";
 export type * from "./run/index.js";
+export type * from "./node/index.js";
 
 // This array should be kept in order, respecting the dependencies between the
 // plugins.
@@ -31,4 +33,5 @@ export const builtinPlugins: HardhatPlugin[] = [
   clean,
   console,
   run,
+  node,
 ];

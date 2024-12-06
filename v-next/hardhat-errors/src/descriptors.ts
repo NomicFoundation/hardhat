@@ -85,6 +85,7 @@ export const ERROR_CATEGORIES: {
   },
   SOLIDITY: { min: 1200, max: 1299, websiteTitle: "Solidity errors" },
   VIEM: { min: 1300, max: 1399, websiteTitle: "Hardhat-viem errors" },
+  NODE: { min: 1400, max: 1499, websiteTitle: "Hardhat node errors" },
 };
 
 export const ERRORS = {
@@ -1245,6 +1246,15 @@ Please check Hardhat's output for more details.`,
       websiteTitle: "Deployment Transaction Error",
       websiteDescription:
         "The deployment transaction was mined but its receipt doesn't contain a contract address.",
+    },
+  },
+  NODE: {
+    INVALID_NETWORK_TYPE: {
+      number: 1400,
+      messageTemplate:
+        "The provided node network type {networkType} for network {networkName} is not recognized, only `edr` is supported.",
+      websiteTitle: "Invalid node network type",
+      websiteDescription: `The node only supports the 'edr' network type.`,
     },
   },
 } as const;
