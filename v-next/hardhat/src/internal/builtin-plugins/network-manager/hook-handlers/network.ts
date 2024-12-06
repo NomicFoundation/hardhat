@@ -23,7 +23,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
   // and associate it with the corresponding handlers array.
   // When a connection is closed, its associated handlers array is removed from the map.
   // See the "closeConnection" function at the end of the file for more details.
-  const requestHandlersPerConnection: Map<number, RequestHandler[]> = new Map();
+  const requestHandlersPerConnection: WeakMap<NetworkConnection, RequestHandler[]> = new Map();
 
   const handlers: Partial<NetworkHooks> = {
     async onRequest<ChainTypeT extends ChainType | string>(
