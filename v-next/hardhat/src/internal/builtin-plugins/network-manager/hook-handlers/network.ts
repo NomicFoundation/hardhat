@@ -23,7 +23,10 @@ export default async (): Promise<Partial<NetworkHooks>> => {
   // and associate it with the corresponding handlers array.
   // When a connection is closed, its associated handlers array is removed from the map.
   // See the "closeConnection" function at the end of the file for more details.
-  const requestHandlersPerConnection: WeakMap<NetworkConnection, RequestHandler[]> = new Map();
+  const requestHandlersPerConnection: WeakMap<
+    NetworkConnection<ChainType | string>,
+    RequestHandler[]
+  > = new Map();
 
   const handlers: Partial<NetworkHooks> = {
     async onRequest<ChainTypeT extends ChainType | string>(
@@ -36,13 +39,11 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         nextJsonRpcRequest: JsonRpcRequest,
       ) => Promise<JsonRpcResponse>,
     ) {
-      let requestHandlers = requestHandlersPerConnection.get(
-        networkConnection.id,
-      );
+      let requestHandlers = requestHandlersPerConnection.get(networkConnection);
 
       if (requestHandlers === undefined) {
         requestHandlers = await createHandlersArray(networkConnection);
-        requestHandlersPerConnection.set(networkConnection.id, requestHandlers);
+        requestHandlersPerConnection.set(networkConnection, requestHandlers);
       }
 
       // We clone the request to avoid interfering with other hook handlers that
@@ -70,8 +71,8 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         nextNetworkConnection: NetworkConnection<ChainTypeT>,
       ) => Promise<void>,
     ): Promise<void> {
-      if (requestHandlersPerConnection.has(networkConnection.id) === true) {
-        requestHandlersPerConnection.delete(networkConnection.id);
+      if (requestHandlersPerConnection.has(networkConnection) === true) {
+        requestHandlersPerConnection.delete(networkConnection);
       }
 
       return next(context, networkConnection);
