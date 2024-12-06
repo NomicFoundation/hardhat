@@ -24,7 +24,6 @@ import type {
   VmTraceDecoder,
   VMTracer as VMTracerT,
   Provider,
-  HttpHeader,
   DebugTraceResult,
   ForkConfig,
 } from "@ignored/edr-optimism";
@@ -123,28 +122,11 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
     const coinbase = networkConfig.coinbase ?? DEFAULT_COINBASE;
 
     let fork: ForkConfig | undefined;
-    if (networkConfig.forking !== undefined) {
-      let httpHeaders: HttpHeader[] | undefined;
-      if (networkConfig.forking.httpHeaders !== undefined) {
-        httpHeaders = [];
-
-        for (const [name, value] of Object.entries(
-          networkConfig.forking.httpHeaders,
-        )) {
-          httpHeaders.push({
-            name,
-            value,
-          });
-        }
-      }
-
+    if (networkConfig.forking !== undefined && networkConfig.forking.enabled === true) {
       fork = {
         jsonRpcUrl: networkConfig.forking.url,
-        blockNumber:
-          networkConfig.forking.blockNumber !== undefined
-            ? BigInt(networkConfig.forking.blockNumber)
-            : undefined,
-        httpHeaders,
+        blockNumber: networkConfig.forking.blockNumber,
+        httpHeaders: networkConfig.forking.httpHeaders,
       };
     }
 
