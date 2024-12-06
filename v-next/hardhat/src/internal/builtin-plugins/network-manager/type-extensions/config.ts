@@ -27,11 +27,9 @@ declare module "../../../../types/config.js" {
   }
 
   export type HttpNetworkAccountsUserConfig =
-    | REMOTE
+    | "remote"
     | SensitiveString[]
     | HDAccountsUserConfig;
-
-  export type REMOTE = "remote";
 
   export interface HDAccountsUserConfig {
     mnemonic: string;
@@ -147,7 +145,7 @@ declare module "../../../../types/config.js" {
   }
 
   export type HttpNetworkAccountsConfig =
-    | REMOTE
+    | "remote"
     | ResolvedConfigurationVariable[]
     | HttpNetworkHDAccountsConfig;
 
