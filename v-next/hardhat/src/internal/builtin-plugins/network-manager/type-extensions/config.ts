@@ -47,9 +47,24 @@ declare module "../../../../types/config.js" {
     passphrase?: string;
   }
 
-  export type IntervalMiningConfig = number | [number, number];
+  export interface HardhatNetworkMiningUserConfig {
+    auto?: boolean;
+    interval?: number | [number, number];
+    mempool?: HardhatNetworkMempoolUserConfig;
+  }
 
-  export type MempoolOrder = "fifo" | "priority";
+  export interface HardhatNetworkMempoolUserConfig {
+    order?: "fifo" | "priority";
+  }
+
+  export type HardhatNetworkChainsUserConfig = Map<
+    /* chainId */ number,
+    HardhatNetworkChainUserConfig
+  >;
+
+  export interface HardhatNetworkChainUserConfig {
+    hardforkHistory: HardforkHistoryConfig;
+  }
 
   export type HardforkHistoryConfig = Map<
     /* hardforkName */ string,
@@ -65,15 +80,11 @@ declare module "../../../../types/config.js" {
     HardhatNetworkChainConfig
   >;
 
-  export interface GenesisAccount {
-    privateKey: string;
-    balance: string | number | bigint;
-  }
-
-  export interface ForkConfig {
-    jsonRpcUrl: string;
-    blockNumber?: bigint;
-    httpHeaders?: Record<string, string>;
+  export interface HardhatNetworkForkingUserConfig {
+    enabled?: boolean;
+    url: string;
+    blockNumber?: number;
+    httpHeaders?: { [name: string]: string };
   }
 
   export interface EdrNetworkUserConfig {
@@ -90,12 +101,9 @@ declare module "../../../../types/config.js" {
     hardfork?: string;
     networkId?: number;
     blockGasLimit?: number;
-    minGasPrice?: bigint;
-    automine?: boolean;
-    intervalMining?: IntervalMiningConfig;
-    mempoolOrder?: MempoolOrder;
-    chains?: HardhatNetworkChainsConfig;
-    genesisAccounts?: GenesisAccount[];
+    minGasPrice?: number | bigint;
+    mining?: HardhatNetworkMiningUserConfig;
+    chains?: HardhatNetworkChainsUserConfig;
     allowUnlimitedContractSize?: boolean;
     throwOnTransactionFailures?: boolean;
     throwOnCallFailures?: boolean;
@@ -103,12 +111,10 @@ declare module "../../../../types/config.js" {
     enableTransientStorage?: boolean;
     enableRip7212?: boolean;
     initialBaseFeePerGas?: number;
-    initialDate?: Date;
+    initialDate?: string | Date;
     coinbase?: string;
-    // TODO: This isn't how it's called in v2
-    forkConfig?: ForkConfig;
-    // TODO: This isn't configurable in v2
-    forkCachePath?: string;
+    forking?: HardhatNetworkForkingUserConfig;
+    loggingEnabled?: boolean;
   }
 
   export type EdrNetworkAccountsUserConfig =
@@ -164,6 +170,23 @@ declare module "../../../../types/config.js" {
     passphrase: string;
   }
 
+  export interface HardhatNetworkMiningConfig {
+    auto: boolean;
+    interval: number | [number, number];
+    mempool: HardhatNetworkMempoolConfig;
+  }
+
+  export interface HardhatNetworkMempoolConfig {
+    order: "fifo" | "priority";
+  }
+
+  export interface HardhatNetworkForkingConfig {
+    enabled: boolean;
+    url: string;
+    blockNumber?: number;
+    httpHeaders?: { [name: string]: string };
+  }
+
   export interface EdrNetworkConfig {
     type: "edr";
     chainId: number;
@@ -180,11 +203,8 @@ declare module "../../../../types/config.js" {
     networkId: number;
     blockGasLimit: number;
     minGasPrice: bigint;
-    automine: boolean;
-    intervalMining: IntervalMiningConfig;
-    mempoolOrder: MempoolOrder;
+    mining: HardhatNetworkMiningConfig;
     chains: HardhatNetworkChainsConfig;
-    genesisAccounts: GenesisAccount[];
     allowUnlimitedContractSize: boolean;
     throwOnTransactionFailures: boolean;
     throwOnCallFailures: boolean;
@@ -193,10 +213,10 @@ declare module "../../../../types/config.js" {
     enableRip7212: boolean;
 
     initialBaseFeePerGas?: number;
-    initialDate?: Date;
+    initialDate: Date;
     coinbase?: string;
-    forkConfig?: ForkConfig;
-    forkCachePath: string;
+    forking?: HardhatNetworkForkingConfig;
+    loggingEnabled: boolean;
   }
 
   export type EdrNetworkAccountsConfig =
