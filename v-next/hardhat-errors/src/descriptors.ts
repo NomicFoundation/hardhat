@@ -135,7 +135,7 @@ Please double check whether you have multiple versions of the same plugin instal
     ENV_VAR_NOT_FOUND: {
       number: 7,
       messageTemplate: `Configuration Variable '{name}' not found.
-     
+
 You can define it using a plugin like hardhat-keystore, or set it as an environment variable.`,
       websiteTitle: "Configuration variable not found",
       websiteDescription: `A configuration variable was expected to be set as an environment variable, but it wasn't.`,
@@ -797,6 +797,22 @@ Learn more at (https://hardhat.org/hardhat-network-helpers/docs/reference#fixtur
 This might be caused by using hardhat_reset and loadFixture calls in a testcase.`,
       websiteTitle: "Error while reverting snapshot",
       websiteDescription: "Error while reverting snapshot",
+    },
+    CAN_ONLY_BE_USED_WITH_HARDHAT_NETWORK: {
+      number: 914,
+      messageTemplate: `This helper can only be used with the Hardhat Network. You are connected to "{networkName}".`,
+      websiteTitle:
+        "Hardhat network helpers can only be used with the Hardhat Network",
+      websiteDescription:
+        "Hardhat network helpers can only be used with the Hardhat Network",
+    },
+    CAN_ONLY_BE_USED_WITH_HARDHAT_NETWORK_VERSIONED: {
+      number: 915,
+      messageTemplate: `This helper can only be used with the Hardhat Network. You are connected to "{networkName}", whose identifier is "{version}".`,
+      websiteTitle:
+        "Hardhat network helpers can only be used with the Hardhat Network - version info",
+      websiteDescription:
+        "Hardhat network helpers can only be used with the Hardhat Network",
     },
   },
   SOLIDITY_TESTS: {
