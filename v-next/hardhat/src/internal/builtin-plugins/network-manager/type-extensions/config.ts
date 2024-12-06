@@ -95,7 +95,7 @@ declare module "../../../../types/config.js" {
   >;
 
   export interface EdrNetworkChainUserConfig {
-    hardforkHistory: HardforkHistoryConfig;
+    hardforkHistory?: HardforkHistoryConfig;
   }
 
   export type HardforkHistoryConfig = Map<
@@ -161,8 +161,7 @@ declare module "../../../../types/config.js" {
 
   export interface EdrNetworkConfig {
     type: "edr";
-    // TODO: make this required and resolve the accounts in the config hook handler
-    accounts?: EdrNetworkAccountsConfig;
+    accounts: EdrNetworkAccountsConfig;
     chainId: number;
     chainType?: ChainType;
     from?: string;
