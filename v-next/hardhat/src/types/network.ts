@@ -53,7 +53,7 @@ export interface NetworkConnection<
 > {
   readonly id: number;
   readonly networkName: string;
-  readonly networkConfig: NetworkConfig;
+  readonly networkConfig: Readonly<NetworkConfig>;
   readonly chainType: ChainTypeT;
   readonly provider: EthereumProvider;
 
