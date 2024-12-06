@@ -55,11 +55,9 @@ export async function createHandlersArray<
     //
     // EDR Network handles this in a more performant way, so we don't use
     // the AutomaticGasPrice for it.
-    if (networkConfig.type === "http") {
-      requestHandlers.push(
-        new AutomaticGasPriceHandler(networkConnection.provider),
-      );
-    }
+    requestHandlers.push(
+      new AutomaticGasPriceHandler(networkConnection.provider),
+    );
   } else {
     requestHandlers.push(
       new FixedGasPriceHandler(numberToHexString(networkConfig.gasPrice)),

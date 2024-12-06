@@ -41,8 +41,6 @@ describe("request-handlers - e2e", () => {
       },
     );
 
-    // Use the localhost network for these tests because the modifier is only
-    // applicable to HTTP networks. EDR networks do not require this modifier.
     const connection = await hre.network.connect("localhost");
 
     const res = await connection.provider.request({
@@ -104,8 +102,6 @@ describe("request-handlers - e2e", () => {
       },
     );
 
-    // Use the localhost network for these tests because the modifier is only
-    // applicable to HTTP networks. EDR networks do not require this modifier.
     const connection = await hre.network.connect("localhost");
 
     const res = await connection.provider.request({
@@ -177,8 +173,6 @@ describe("request-handlers - e2e", () => {
         },
       );
 
-      // Use the localhost network for these tests because the modifier is only
-      // applicable to HTTP networks. EDR networks do not require this modifier.
       const connection = await hre.network.connect("localhost");
 
       const tx = {
@@ -247,8 +241,6 @@ describe("request-handlers - e2e", () => {
         },
       );
 
-      // Use the localhost network for these tests because the modifier is only
-      // applicable to HTTP networks. EDR networks do not require this modifier.
       const connection = await hre.network.connect("localhost");
 
       const tx = {
