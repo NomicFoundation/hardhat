@@ -37,7 +37,7 @@ To preview content locally, launch the app with `pnpm dev` and open http://127.0
 All content is organized by hierarchy levels and the top-level entries are layouts. The layout represents a set of folders and provides navigation within them. Currently, a folder should belong to one of the layouts. In terms of UI, the layout is equivalent to a sidebar navigation menu with two-level items. Layout settings can be found in the `src/content/layouts.yaml` file. It contains all layouts (currently "documentation" and "tutorial"). Each layout can have the following settings:
 
 - title (optional)
-- folders - the list of folders should be included in this layout
+- folders - the list of folders that should be included in this layout
 
 ### Folders
 
@@ -190,7 +190,7 @@ We utilize [Linaria](https://github.com/callstack/linaria) for styling component
 
 ## Theming
 
-The documentation section is Themable. A user can switch between light, dark and high contrast themes for their convenience. There is also an "Auto" setting when theme is selected based on a user system settings.
+The documentation section is Themeable. A user can switch between light, dark and high contrast themes for their convenience. There is also an "Auto" setting when theme is selected based on a user system settings.
 
 Theming solution provides abilities to switch themes, keep the selected value in user's local storage, seamlessly keep selected page on navigating and page refreshing.
 
