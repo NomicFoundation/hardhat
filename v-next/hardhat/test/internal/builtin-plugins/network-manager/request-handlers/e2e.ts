@@ -41,8 +41,6 @@ describe("request-handlers - e2e", () => {
       },
     );
 
-    // Use the localhost network for these tests because the modifier is only
-    // applicable to HTTP networks. EDR networks do not require this modifier.
     const connection = await hre.network.connect("localhost");
 
     const res = await connection.provider.request({
@@ -104,8 +102,6 @@ describe("request-handlers - e2e", () => {
       },
     );
 
-    // Use the localhost network for these tests because the modifier is only
-    // applicable to HTTP networks. EDR networks do not require this modifier.
     const connection = await hre.network.connect("localhost");
 
     const res = await connection.provider.request({
@@ -113,7 +109,6 @@ describe("request-handlers - e2e", () => {
       params: [
         {
           to: "0x0000000000000000000000000000000000000012",
-          maxFeePerGas: "0x99",
         },
       ],
     });
@@ -127,7 +122,6 @@ describe("request-handlers - e2e", () => {
     );
     // gas price
     assert.equal(res[0].maxPriorityFeePerGas, "0x4");
-    assert.equal(res[0].maxFeePerGas, "0x99");
     // sender
     assert.equal(res[0].from, "0x123006d4548a3ac17d72b372ae1e416bf65b8eaf");
   });
@@ -177,8 +171,6 @@ describe("request-handlers - e2e", () => {
         },
       );
 
-      // Use the localhost network for these tests because the modifier is only
-      // applicable to HTTP networks. EDR networks do not require this modifier.
       const connection = await hre.network.connect("localhost");
 
       const tx = {
@@ -247,8 +239,6 @@ describe("request-handlers - e2e", () => {
         },
       );
 
-      // Use the localhost network for these tests because the modifier is only
-      // applicable to HTTP networks. EDR networks do not require this modifier.
       const connection = await hre.network.connect("localhost");
 
       const tx = {
