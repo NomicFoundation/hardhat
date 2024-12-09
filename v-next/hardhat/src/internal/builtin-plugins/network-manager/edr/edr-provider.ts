@@ -24,8 +24,8 @@ import type {
   VmTraceDecoder,
   VMTracer as VMTracerT,
   Provider,
-  HttpHeader,
   DebugTraceResult,
+  ForkConfig,
 } from "@ignored/edr-optimism";
 
 import EventEmitter from "node:events";
@@ -121,36 +121,14 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
   }: EdrProviderConfig): Promise<EdrProvider> {
     const coinbase = networkConfig.coinbase ?? DEFAULT_COINBASE;
 
-    let fork;
-    if (networkConfig.forkConfig !== undefined) {
-      let httpHeaders: HttpHeader[] | undefined;
-      if (networkConfig.forkConfig.httpHeaders !== undefined) {
-        httpHeaders = [];
-
-        for (const [name, value] of Object.entries(
-          networkConfig.forkConfig.httpHeaders,
-        )) {
-          httpHeaders.push({
-            name,
-            value,
-          });
-        }
-      }
-
+    let fork: ForkConfig | undefined;
+    if (networkConfig.forking !== undefined && networkConfig.forking.enabled === true) {
       fork = {
-        jsonRpcUrl: networkConfig.forkConfig.jsonRpcUrl,
-        blockNumber:
-          networkConfig.forkConfig.blockNumber !== undefined
-            ? BigInt(networkConfig.forkConfig.blockNumber)
-            : undefined,
-        httpHeaders,
+        jsonRpcUrl: networkConfig.forking.url,
+        blockNumber: networkConfig.forking.blockNumber,
+        httpHeaders: networkConfig.forking.httpHeaders,
       };
     }
-
-    const initialDate =
-      networkConfig.initialDate !== undefined
-        ? BigInt(Math.floor(networkConfig.initialDate.getTime() / 1000))
-        : undefined;
 
     const printLineFn = loggerConfig.printLineFn ?? printLine;
     const replaceLastLineFn = loggerConfig.replaceLastLineFn ?? replaceLastLine;
@@ -171,9 +149,9 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
         bailOnCallFailure: networkConfig.throwOnCallFailures,
         bailOnTransactionFailure: networkConfig.throwOnTransactionFailures,
         blockGasLimit: BigInt(networkConfig.blockGasLimit),
+        cacheDir: networkConfig.forking?.cacheDir,
         chainId: BigInt(networkConfig.chainId),
         chains: this.#convertToEdrChains(networkConfig.chains),
-        cacheDir: networkConfig.forkCachePath,
         coinbase: Buffer.from(coinbase.slice(2), "hex"),
         enableRip7212: networkConfig.enableRip7212,
         fork,
@@ -184,7 +162,7 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
             balance: BigInt(account.balance),
           };
         }),
-        initialDate,
+        initialDate: networkConfig.initialDate,
         initialBaseFeePerGas:
           networkConfig.initialBaseFeePerGas !== undefined
             ? BigInt(networkConfig.initialBaseFeePerGas)

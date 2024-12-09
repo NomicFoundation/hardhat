@@ -1,15 +1,17 @@
 import type {
   ConfigurationVariable,
   EdrNetworkConfig,
+  EdrNetworkForkingConfig,
+  EdrNetworkForkingUserConfig,
   EdrNetworkUserConfig,
   GasConfig,
   GasUserConfig,
   HardhatConfig,
   HardhatUserConfig,
-  HDAccountsUserConfig,
   HttpNetworkAccountsConfig,
   HttpNetworkAccountsUserConfig,
   HttpNetworkConfig,
+  HttpNetworkHDAccountsUserConfig,
   HttpNetworkUserConfig,
   NetworkConfig,
   NetworkUserConfig,
@@ -20,8 +22,8 @@ import type { ConfigHooks } from "../../../../types/hooks.js";
 import path from "node:path";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { toSeconds } from "@ignored/hardhat-vnext-utils/date";
 import { normalizeHexString } from "@ignored/hardhat-vnext-utils/hex";
-import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 
 import { validateUserConfig } from "../type-validation.js";
 
@@ -231,15 +233,10 @@ export async function resolveUserConfig(
         gas: resolveGasConfig(networkConfig.gas),
         gasMultiplier: networkConfig.gasMultiplier ?? 1,
         gasPrice: resolveGasConfig(networkConfig.gasPrice),
-        // TODO: This isn't how it's called in v2
-        forkConfig: networkConfig.forkConfig,
-        forkCachePath:
-          networkConfig.forkCachePath !== undefined
-            ? resolveFromRoot(
-                resolvedConfig.paths.root,
-                networkConfig.forkCachePath,
-              )
-            : path.join(resolvedConfig.paths.cache, "edr-cache"),
+        forking: resolveForkingConfig(
+          resolvedConfig.paths.cache,
+          networkConfig.forking,
+        ),
         hardfork: networkConfig.hardfork ?? "cancun",
         networkId: networkConfig.networkId ?? networkConfig.chainId ?? 31337,
         blockGasLimit: networkConfig.blockGasLimit ?? 12_500_000,
@@ -260,6 +257,7 @@ export async function resolveUserConfig(
           networkConfig.allowBlocksWithSameTimestamp ?? false,
         enableTransientStorage: networkConfig.enableTransientStorage ?? false,
         enableRip7212: networkConfig.enableRip7212 ?? false,
+        initialDate: resolveInitialDate(networkConfig.initialDate),
       };
 
       resolvedNetworks[networkName] = resolvedNetworkConfig;
@@ -311,6 +309,44 @@ function resolveAccounts(
 
 function isHdAccountsConfig(
   accounts: HttpNetworkAccountsUserConfig,
-): accounts is HDAccountsUserConfig {
+): accounts is HttpNetworkHDAccountsUserConfig {
   return typeof accounts === "object" && !Array.isArray(accounts);
+}
+
+function resolveForkingConfig(
+  cacheDir: string,
+  forkingUserConfig?: EdrNetworkForkingUserConfig,
+): EdrNetworkForkingConfig | undefined {
+  if (forkingUserConfig === undefined) {
+    return undefined;
+  }
+
+  const httpHeaders =
+    forkingUserConfig.httpHeaders !== undefined
+      ? Object.entries(forkingUserConfig.httpHeaders).map(([name, value]) => ({
+          name,
+          value,
+        }))
+      : undefined;
+
+  return {
+    enabled: forkingUserConfig.enabled ?? true,
+    url: forkingUserConfig.url,
+    cacheDir: path.join(cacheDir, "edr-fork-cache"),
+    blockNumber:
+      forkingUserConfig.blockNumber !== undefined
+        ? BigInt(forkingUserConfig.blockNumber)
+        : undefined,
+    httpHeaders,
+  };
+}
+
+function resolveInitialDate(
+  initialDateUserConfig?: string | Date,
+): bigint | undefined {
+  if (initialDateUserConfig === undefined) {
+    return undefined;
+  }
+
+  return BigInt(toSeconds(initialDateUserConfig))
 }
