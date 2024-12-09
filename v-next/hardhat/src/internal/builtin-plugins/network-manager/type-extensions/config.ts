@@ -225,6 +225,7 @@ declare module "../../../../types/config.js" {
   export interface EdrNetworkForkingConfig {
     enabled: boolean;
     url: string;
+    cacheDir: string;
     blockNumber?: bigint;
     httpHeaders?: HttpHeader[];
   }
