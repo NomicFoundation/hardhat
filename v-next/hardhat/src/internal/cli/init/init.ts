@@ -17,9 +17,9 @@ import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 import chalk from "chalk";
 
 import { findClosestHardhatConfig } from "../../config-loading.js";
+import { HARDHAT_NAME } from "../../constants.js";
 import { getHardhatVersion } from "../../utils/package.js";
 
-import { HARDHAT_NAME } from "./constants.js";
 import {
   getDevDependenciesInstallationCommand,
   getPackageManager,

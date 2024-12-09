@@ -5,7 +5,7 @@ import { describe, it } from "node:test";
 
 import chalk from "chalk";
 
-import { getHelpString } from "../../../../src/internal/cli/helpers/getHelpString.js";
+import { getHelpString } from "../../../../src/internal/cli/help/get-help-string.js";
 import { ArgumentType } from "../../../../src/types/arguments.js";
 
 describe("getHelpString", function () {
