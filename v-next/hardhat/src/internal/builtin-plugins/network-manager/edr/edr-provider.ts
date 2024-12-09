@@ -16,6 +16,7 @@ import type {
   CompilerInput,
   CompilerOutput,
 } from "../../../../types/solidity/compiler-io.js";
+import type { JsonRpcRequestWrapperFunction } from "../network-manager.js";
 import type {
   RawTrace,
   SubscriptionEvent,
@@ -92,10 +93,12 @@ export async function getGlobalEdrContext(): Promise<EdrContext> {
   return _globalEdrContext;
 }
 
-export type JsonRpcRequestWrapperFunction = (
-  request: JsonRpcRequest,
-  defaultBehavior: (r: JsonRpcRequest) => Promise<JsonRpcResponse>,
-) => Promise<JsonRpcResponse>;
+interface EdrProviderConfig {
+  networkConfig: EdrNetworkConfig;
+  loggerConfig?: LoggerConfig;
+  tracingConfig?: TracingConfig;
+  jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
+}
 
 export class EdrProvider extends EventEmitter implements EthereumProvider {
   readonly #provider: Provider;
@@ -107,23 +110,25 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
   #vmTracer?: VMTracerT;
   #nextRequestId = 1;
 
-  // TODO: should take an object with all the config like the HTTP provider
-  public static async create(
-    config: EdrNetworkConfig,
-    loggerConfig: LoggerConfig,
-    tracingConfig?: TracingConfig,
-    jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction,
-  ): Promise<EdrProvider> {
-    const coinbase = config.coinbase ?? DEFAULT_COINBASE;
+  /**
+   * Creates a new instance of `EdrProvider`.
+   */
+  public static async create({
+    networkConfig,
+    loggerConfig = { enabled: false },
+    tracingConfig = {},
+    jsonRpcRequestWrapper,
+  }: EdrProviderConfig): Promise<EdrProvider> {
+    const coinbase = networkConfig.coinbase ?? DEFAULT_COINBASE;
 
     let fork;
-    if (config.forkConfig !== undefined) {
+    if (networkConfig.forkConfig !== undefined) {
       let httpHeaders: HttpHeader[] | undefined;
-      if (config.forkConfig.httpHeaders !== undefined) {
+      if (networkConfig.forkConfig.httpHeaders !== undefined) {
         httpHeaders = [];
 
         for (const [name, value] of Object.entries(
-          config.forkConfig.httpHeaders,
+          networkConfig.forkConfig.httpHeaders,
         )) {
           httpHeaders.push({
             name,
@@ -133,18 +138,18 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
       }
 
       fork = {
-        jsonRpcUrl: config.forkConfig.jsonRpcUrl,
+        jsonRpcUrl: networkConfig.forkConfig.jsonRpcUrl,
         blockNumber:
-          config.forkConfig.blockNumber !== undefined
-            ? BigInt(config.forkConfig.blockNumber)
+          networkConfig.forkConfig.blockNumber !== undefined
+            ? BigInt(networkConfig.forkConfig.blockNumber)
             : undefined,
         httpHeaders,
       };
     }
 
     const initialDate =
-      config.initialDate !== undefined
-        ? BigInt(Math.floor(config.initialDate.getTime() / 1000))
+      networkConfig.initialDate !== undefined
+        ? BigInt(Math.floor(networkConfig.initialDate.getTime() / 1000))
         : undefined;
 
     const printLineFn = loggerConfig.printLineFn ?? printLine;
@@ -152,28 +157,28 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
 
     const vmTraceDecoder = await createVmTraceDecoder();
 
-    const hardforkName = getHardforkName(config.hardfork);
+    const hardforkName = getHardforkName(networkConfig.hardfork);
 
     const context = await getGlobalEdrContext();
     const provider = await context.createProvider(
-      config.chainType === "optimism"
+      networkConfig.chainType === "optimism"
         ? OPTIMISM_CHAIN_TYPE
         : GENERIC_CHAIN_TYPE, // TODO: l1 is missing here
       {
         allowBlocksWithSameTimestamp:
-          config.allowBlocksWithSameTimestamp ?? false,
-        allowUnlimitedContractSize: config.allowUnlimitedContractSize,
-        bailOnCallFailure: config.throwOnCallFailures,
-        bailOnTransactionFailure: config.throwOnTransactionFailures,
-        blockGasLimit: BigInt(config.blockGasLimit),
-        chainId: BigInt(config.chainId),
-        chains: this.#convertToEdrChains(config.chains),
-        cacheDir: config.forkCachePath,
+          networkConfig.allowBlocksWithSameTimestamp ?? false,
+        allowUnlimitedContractSize: networkConfig.allowUnlimitedContractSize,
+        bailOnCallFailure: networkConfig.throwOnCallFailures,
+        bailOnTransactionFailure: networkConfig.throwOnTransactionFailures,
+        blockGasLimit: BigInt(networkConfig.blockGasLimit),
+        chainId: BigInt(networkConfig.chainId),
+        chains: this.#convertToEdrChains(networkConfig.chains),
+        cacheDir: networkConfig.forkCachePath,
         coinbase: Buffer.from(coinbase.slice(2), "hex"),
-        enableRip7212: config.enableRip7212,
+        enableRip7212: networkConfig.enableRip7212,
         fork,
         hardfork: ethereumsjsHardforkToEdrSpecId(hardforkName),
-        genesisAccounts: config.genesisAccounts.map((account) => {
+        genesisAccounts: networkConfig.genesisAccounts.map((account) => {
           return {
             secretKey: account.privateKey,
             balance: BigInt(account.balance),
@@ -181,18 +186,22 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
         }),
         initialDate,
         initialBaseFeePerGas:
-          config.initialBaseFeePerGas !== undefined
-            ? BigInt(config.initialBaseFeePerGas)
+          networkConfig.initialBaseFeePerGas !== undefined
+            ? BigInt(networkConfig.initialBaseFeePerGas)
             : undefined,
-        minGasPrice: config.minGasPrice,
+        minGasPrice: networkConfig.minGasPrice,
         mining: {
-          autoMine: config.automine,
-          interval: ethereumjsIntervalMiningConfigToEdr(config.intervalMining),
+          autoMine: networkConfig.automine,
+          interval: ethereumjsIntervalMiningConfigToEdr(
+            networkConfig.intervalMining,
+          ),
           memPool: {
-            order: ethereumjsMempoolOrderToEdrMineOrdering(config.mempoolOrder),
+            order: ethereumjsMempoolOrderToEdrMineOrdering(
+              networkConfig.mempoolOrder,
+            ),
           },
         },
-        networkId: BigInt(config.networkId),
+        networkId: BigInt(networkConfig.networkId),
       },
       {
         enable: loggerConfig.enabled,
@@ -231,6 +240,13 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
     return edrProvider;
   }
 
+  /**
+   * @private
+   *
+   * This constructor is intended for internal use only.
+   * Use the static method {@link EdrProvider.create} to create an instance of
+   * `EdrProvider`.
+   */
   private constructor(
     provider: Provider,
     vmTraceDecoder: VmTraceDecoder,

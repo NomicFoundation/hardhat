@@ -1,4 +1,4 @@
-import type { JsonRpcRequestWrapperFunction } from "../../../../src/internal/builtin-plugins/network-manager/http-provider.js";
+import type { JsonRpcRequestWrapperFunction } from "../../../../src/internal/builtin-plugins/network-manager/network-manager.js";
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
@@ -48,8 +48,7 @@ describe("http-provider", () => {
 
   /**
    * To test the HttpProvider#request method, we need to use an interceptor to
-   * mock the network requests. As the HttpProvider.create does not allow to
-   * pass a custom dispatcher, we use the constructor directly.
+   * mock the network requests.
    */
   describe("HttpProvider#request", async () => {
     const interceptor = await initializeTestDispatcher();
@@ -78,12 +77,12 @@ describe("http-provider", () => {
         })
         .reply(200, jsonRpcResponse);
 
-      const provider = new HttpProvider(
-        "http://localhost",
-        "exampleNetwork",
-        {},
-        interceptor,
-      );
+      const provider = await HttpProvider.create({
+        url: "http://localhost",
+        networkName: "exampleNetwork",
+        timeout: 20_000,
+        testDispatcher: interceptor,
+      });
 
       const result = await provider.request({
         method: "eth_chainId",
@@ -94,12 +93,12 @@ describe("http-provider", () => {
     });
 
     it("should throw if the params are an object", async () => {
-      const provider = new HttpProvider(
-        "http://localhost",
-        "exampleNetwork",
-        {},
-        interceptor,
-      );
+      const provider = await HttpProvider.create({
+        url: "http://localhost",
+        networkName: "exampleNetwork",
+        timeout: 20_000,
+        testDispatcher: interceptor,
+      });
 
       await assertRejectsWithHardhatError(
         provider.request({
@@ -161,12 +160,12 @@ describe("http-provider", () => {
         })
         .reply(200, jsonRpcResponse);
 
-      const provider = new HttpProvider(
-        "http://localhost",
-        "exampleNetwork",
-        {},
-        interceptor,
-      );
+      const provider = await HttpProvider.create({
+        url: "http://localhost",
+        networkName: "exampleNetwork",
+        timeout: 20_000,
+        testDispatcher: interceptor,
+      });
 
       const result = await provider.request({
         method: "eth_chainId",
@@ -202,12 +201,12 @@ describe("http-provider", () => {
         })
         .reply(200, jsonRpcResponse);
 
-      const provider = new HttpProvider(
-        "http://localhost",
-        "exampleNetwork",
-        {},
-        interceptor,
-      );
+      const provider = await HttpProvider.create({
+        url: "http://localhost",
+        networkName: "exampleNetwork",
+        timeout: 20_000,
+        testDispatcher: interceptor,
+      });
 
       const result = await provider.request({
         method: "eth_chainId",
@@ -238,12 +237,12 @@ describe("http-provider", () => {
           .reply(429);
       }
 
-      const provider = new HttpProvider(
-        "http://localhost",
-        "exampleNetwork",
-        {},
-        interceptor,
-      );
+      const provider = await HttpProvider.create({
+        url: "http://localhost",
+        networkName: "exampleNetwork",
+        timeout: 20_000,
+        testDispatcher: interceptor,
+      });
 
       try {
         await provider.request({
@@ -276,12 +275,12 @@ describe("http-provider", () => {
         .defaultReplyHeaders({ "retry-after": "6" })
         .reply(429);
 
-      const provider = new HttpProvider(
-        "http://localhost",
-        "exampleNetwork",
-        {},
-        interceptor,
-      );
+      const provider = await HttpProvider.create({
+        url: "http://localhost",
+        networkName: "exampleNetwork",
+        timeout: 20_000,
+        testDispatcher: interceptor,
+      });
 
       try {
         await provider.request({
@@ -316,12 +315,12 @@ describe("http-provider", () => {
         })
         .reply(200, invalidResponse);
 
-      const provider = new HttpProvider(
-        "http://localhost",
-        "exampleNetwork",
-        {},
-        interceptor,
-      );
+      const provider = await HttpProvider.create({
+        url: "http://localhost",
+        networkName: "exampleNetwork",
+        timeout: 20_000,
+        testDispatcher: interceptor,
+      });
 
       await assertRejectsWithHardhatError(
         provider.request({
@@ -361,12 +360,12 @@ describe("http-provider", () => {
         })
         .reply(200, jsonRpcResponse);
 
-      const provider = new HttpProvider(
-        "http://localhost",
-        "exampleNetwork",
-        {},
-        interceptor,
-      );
+      const provider = await HttpProvider.create({
+        url: "http://localhost",
+        networkName: "exampleNetwork",
+        timeout: 20_000,
+        testDispatcher: interceptor,
+      });
 
       try {
         await provider.request({
@@ -434,13 +433,13 @@ describe("http-provider", () => {
         }
       };
 
-      const provider = new HttpProvider(
-        "http://localhost",
-        "exampleNetwork",
-        {},
-        interceptor,
+      const provider = await HttpProvider.create({
+        url: "http://localhost",
+        networkName: "exampleNetwork",
+        timeout: 20_000,
         jsonRpcRequestWrapper,
-      );
+        testDispatcher: interceptor,
+      });
 
       // eth_chainId is handled by the wrapper and returns the hardhat chain ID
       // instead of jsonRpcChainIdResponse.result
