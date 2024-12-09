@@ -55,7 +55,7 @@ declare module "../../../../types/config.js" {
     // EDR network specific
     allowBlocksWithSameTimestamp?: boolean;
     allowUnlimitedContractSize?: boolean;
-    blockGasLimit?: number;
+    blockGasLimit?: number | bigint;
     chains?: EdrNetworkChainsUserConfig;
     coinbase?: string;
     enableRip7212?: boolean;
@@ -173,7 +173,7 @@ declare module "../../../../types/config.js" {
     // EDR network specific
     allowBlocksWithSameTimestamp: boolean;
     allowUnlimitedContractSize: boolean;
-    blockGasLimit: number;
+    blockGasLimit: bigint;
     chains: EdrNetworkChainsConfig;
     coinbase?: string;
     enableRip7212: boolean;

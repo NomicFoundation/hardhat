@@ -149,7 +149,7 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
         allowUnlimitedContractSize: networkConfig.allowUnlimitedContractSize,
         bailOnCallFailure: networkConfig.throwOnCallFailures,
         bailOnTransactionFailure: networkConfig.throwOnTransactionFailures,
-        blockGasLimit: BigInt(networkConfig.blockGasLimit),
+        blockGasLimit: networkConfig.blockGasLimit,
         cacheDir: networkConfig.forking?.cacheDir,
         chainId: BigInt(networkConfig.chainId),
         chains: this.#convertToEdrChains(networkConfig.chains),
