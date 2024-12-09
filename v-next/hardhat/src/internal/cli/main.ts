@@ -259,6 +259,12 @@ export async function parseBuiltinGlobalOptions(
       version = true;
       continue;
     }
+
+    if (arg === "--verbose") {
+      usedCliArguments[i] = true;
+      debug.enable("hardhat*");
+      continue;
+    }
   }
 
   if (init && configPath !== undefined) {
