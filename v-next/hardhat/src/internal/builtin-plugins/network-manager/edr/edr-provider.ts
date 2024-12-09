@@ -145,7 +145,7 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
         : GENERIC_CHAIN_TYPE, // TODO: l1 is missing here
       {
         allowBlocksWithSameTimestamp:
-          networkConfig.allowBlocksWithSameTimestamp ?? false,
+          networkConfig.allowBlocksWithSameTimestamp,
         allowUnlimitedContractSize: networkConfig.allowUnlimitedContractSize,
         bailOnCallFailure: networkConfig.throwOnCallFailures,
         bailOnTransactionFailure: networkConfig.throwOnTransactionFailures,
