@@ -678,6 +678,13 @@ Try using another mnemonic or deriving less keys.`,
       websiteTitle: "Invalid network type",
       websiteDescription: `The network manager only supports the network types 'http' and 'edr'.`,
     },
+    DATA_FIELD_CANNOT_BE_NULL_WITH_NULL_ADDRESS: {
+      number: 721,
+      messageTemplate: `The "to" field is undefined, and the "data" field is also undefined; however, a transaction to the null address cannot have an undefined "data" field.`,
+      websiteTitle: "Transaction to null address cannot have undefined data",
+      websiteDescription:
+        "The transaction to the null address cannot have undefined data",
+    },
   },
   KEYSTORE: {
     INVALID_KEYSTORE_FILE_FORMAT: {
