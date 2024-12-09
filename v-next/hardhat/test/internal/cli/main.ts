@@ -228,6 +228,7 @@ GLOBAL OPTIONS:
   --init                   Initializes a Hardhat project.
   --network                The network to connect to
   --show-stack-traces      Show stack traces (always enabled on CI servers).
+  --verbose                Enables Hardhat verbose logging.
   --version                Shows hardhat's version.
 
 To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
