@@ -1,7 +1,7 @@
 {
   "name": "@nomicfoundation/example-project",
   "private": true,
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Example project using Hardhat v3",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/example-project",
   "repository": {
@@ -17,7 +17,9 @@
     "lint:fix": "pnpm prettier --write",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "build": "tsc --build .",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "pretest": "pnpm build && pnpm install",
+    "test": "hardhat3 test node && hardhat3 test mocha"
   },
   "devDependencies": {
     "@ignored/hardhat-vnext": "workspace:^3.0.0-next.16",
