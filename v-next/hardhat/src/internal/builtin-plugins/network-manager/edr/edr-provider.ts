@@ -130,11 +130,6 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
       };
     }
 
-    const initialDate =
-      networkConfig.initialDate !== undefined
-        ? BigInt(Math.floor(networkConfig.initialDate.getTime() / 1000))
-        : undefined;
-
     const printLineFn = loggerConfig.printLineFn ?? printLine;
     const replaceLastLineFn = loggerConfig.replaceLastLineFn ?? replaceLastLine;
 
@@ -167,7 +162,7 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
             balance: BigInt(account.balance),
           };
         }),
-        initialDate,
+        initialDate: networkConfig.initialDate,
         initialBaseFeePerGas:
           networkConfig.initialBaseFeePerGas !== undefined
             ? BigInt(networkConfig.initialBaseFeePerGas)

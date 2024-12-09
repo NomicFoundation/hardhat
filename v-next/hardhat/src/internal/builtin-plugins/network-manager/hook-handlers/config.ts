@@ -22,6 +22,7 @@ import type { ConfigHooks } from "../../../../types/hooks.js";
 import path from "node:path";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { toSeconds } from "@ignored/hardhat-vnext-utils/date";
 import { normalizeHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import { validateUserConfig } from "../type-validation.js";
@@ -256,6 +257,7 @@ export async function resolveUserConfig(
           networkConfig.allowBlocksWithSameTimestamp ?? false,
         enableTransientStorage: networkConfig.enableTransientStorage ?? false,
         enableRip7212: networkConfig.enableRip7212 ?? false,
+        initialDate: resolveInitialDate(networkConfig.initialDate),
       };
 
       resolvedNetworks[networkName] = resolvedNetworkConfig;
@@ -337,4 +339,14 @@ function resolveForkingConfig(
         : undefined,
     httpHeaders,
   };
+}
+
+function resolveInitialDate(
+  initialDateUserConfig?: string | Date,
+): bigint | undefined {
+  if (initialDateUserConfig === undefined) {
+    return undefined;
+  }
+
+  return BigInt(toSeconds(initialDateUserConfig))
 }
