@@ -451,6 +451,66 @@ describe("LocalAccountsHandler", () => {
   });
 
   describe("modifyRequest", () => {
+    describe("sending transactions to the null address", () => {
+      const testCases = [null, undefined];
+
+      for (const testCase of testCases) {
+        it(`should succeed when the data field is not empty and the "to" field is ${testCase}`, async () => {
+          const tx = {
+            to: testCase,
+            from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+            gas: numberToHexString(30000),
+            nonce: numberToHexString(0),
+            value: numberToHexString(1),
+            chainId: numberToHexString(MOCK_PROVIDER_CHAIN_ID),
+            maxFeePerGas: numberToHexString(12),
+            maxPriorityFeePerGas: numberToHexString(2),
+            data: "0x01",
+          };
+
+          const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
+            tx,
+          ]);
+
+          await localAccountsHandler.handle(jsonRpcRequest);
+
+          assert.ok(
+            Array.isArray(jsonRpcRequest.params),
+            "params should be an array",
+          );
+
+          const rawTransaction = hexStringToBytes(jsonRpcRequest.params[0]);
+          // The tx type is encoded in the first byte, and it must be the EIP-1559 one
+          assert.equal(rawTransaction[0], 2);
+        });
+
+        it(`should throw when the data field is undefined and the "to" field is ${testCase}`, async () => {
+          const tx = {
+            to: testCase,
+            // In this test scenario, the "data" field is omitted
+            from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+            gas: numberToHexString(30000),
+            nonce: numberToHexString(0),
+            value: numberToHexString(1),
+            chainId: numberToHexString(MOCK_PROVIDER_CHAIN_ID),
+            maxFeePerGas: numberToHexString(12),
+            maxPriorityFeePerGas: numberToHexString(2),
+          };
+
+          const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
+            tx,
+          ]);
+
+          assertRejectsWithHardhatError(
+            () => localAccountsHandler.handle(jsonRpcRequest),
+            HardhatError.ERRORS.NETWORK
+              .DATA_FIELD_CANNOT_BE_NULL_WITH_NULL_ADDRESS,
+            {},
+          );
+        });
+      }
+    });
+
     it("should, given two identical tx, return the same raw transaction", async () => {
       const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
         {
