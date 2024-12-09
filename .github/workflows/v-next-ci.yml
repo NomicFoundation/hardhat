@@ -77,7 +77,6 @@ jobs:
             [
               ".",
               "packages/",
-              "v-next/example-project",
               "v-next/hardhat/templates/"
             ]
           COMMON_FILTERS: |
