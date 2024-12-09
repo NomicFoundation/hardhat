@@ -256,6 +256,7 @@ export async function resolveUserConfig(
           networkConfig.allowBlocksWithSameTimestamp ?? false,
         enableTransientStorage: networkConfig.enableTransientStorage ?? false,
         enableRip7212: networkConfig.enableRip7212 ?? false,
+        initialDate: networkConfig.initialDate ?? new Date(),
       };
 
       resolvedNetworks[networkName] = resolvedNetworkConfig;

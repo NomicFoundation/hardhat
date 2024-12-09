@@ -42,6 +42,7 @@ import {
   genericChainProviderFactory,
   optimismProviderFactory,
 } from "@ignored/edr-optimism";
+import { toSeconds } from "@ignored/hardhat-vnext-utils/date";
 import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import chalk from "chalk";
 import debug from "debug";
@@ -130,11 +131,6 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
       };
     }
 
-    const initialDate =
-      networkConfig.initialDate !== undefined
-        ? BigInt(Math.floor(networkConfig.initialDate.getTime() / 1000))
-        : undefined;
-
     const printLineFn = loggerConfig.printLineFn ?? printLine;
     const replaceLastLineFn = loggerConfig.replaceLastLineFn ?? replaceLastLine;
 
@@ -167,7 +163,7 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
             balance: BigInt(account.balance),
           };
         }),
-        initialDate,
+        initialDate: BigInt(toSeconds(networkConfig.initialDate)),
         initialBaseFeePerGas:
           networkConfig.initialBaseFeePerGas !== undefined
             ? BigInt(networkConfig.initialBaseFeePerGas)

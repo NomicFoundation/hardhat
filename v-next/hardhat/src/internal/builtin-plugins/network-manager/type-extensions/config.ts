@@ -181,7 +181,7 @@ declare module "../../../../types/config.js" {
     forking?: EdrNetworkForkingConfig;
     hardfork: string;
     initialBaseFeePerGas?: number;
-    initialDate: Date;
+    initialDate: string | Date;
     loggingEnabled: boolean;
     minGasPrice: bigint;
     mining: EdrNetworkMiningConfig;
