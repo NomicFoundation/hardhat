@@ -31,7 +31,7 @@ npm install --save-dev @nomicfoundation/hardhat-network-helpers
 
 :::
 
-:::tab{value=yarn}
+:::tab{value="yarn"}
 
 ```
 yarn add --dev @nomicfoundation/hardhat-network-helpers
