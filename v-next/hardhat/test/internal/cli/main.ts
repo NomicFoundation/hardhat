@@ -11,7 +11,7 @@ import type {
 } from "../../../src/types/tasks.js";
 
 import assert from "node:assert/strict";
-import { afterEach, before, describe, it } from "node:test";
+import { afterEach, before, describe, it, mock } from "node:test";
 import { pathToFileURL } from "node:url";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
@@ -22,6 +22,7 @@ import {
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import chalk from "chalk";
+import debug from "debug";
 
 import {
   main,
@@ -103,6 +104,19 @@ describe("main", function () {
   describe("main", function () {
     afterEach(function () {
       resetGlobalHardhatRuntimeEnvironment();
+    });
+
+    describe("verbose", function () {
+      useFixtureProject("cli/parsing/base-project");
+
+      it("should enable the debug logs", async function () {
+        const spy = mock.method(debug, "enable");
+
+        const command = "npx hardhat --verbose";
+        await runMain(command);
+
+        assert.equal(spy.mock.calls.length, 1);
+      });
     });
 
     describe("version", function () {
