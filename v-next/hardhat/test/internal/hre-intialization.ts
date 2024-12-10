@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import path from "node:path";
 import { afterEach, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
@@ -26,6 +27,52 @@ describe("HRE intialization", () => {
   });
 
   describe("createHardhatRuntimeEnvironment", () => {
+    describe("project root", () => {
+      describe("no path param is passed", () => {
+        it("should use the CWD as the default path", async () => {
+          const hre = await createHardhatRuntimeEnvironment({});
+
+          // It should resolve to the first package.json file found, which is the one located at the CWD
+          assert.equal(hre.config.paths.root, process.cwd());
+        });
+
+        describe("when a fixture is used", () => {
+          const expectedPath = process.cwd();
+
+          useFixtureProject("resolve-project-root/no-path-param");
+
+          it("should use the fixture-project CWD as the default path", async () => {
+            const hre = await createHardhatRuntimeEnvironment({});
+
+            // It should resolve to the first package.json file found, which is the one located at the root of the "hardhat" packages
+            assert.equal(hre.config.paths.root, expectedPath);
+          });
+        });
+      });
+
+      describe("the path param is passed", () => {
+        it("should use the CWD as the default path", async () => {
+          console.log(process.cwd());
+          const projectPath = path.join(
+            process.cwd(),
+            "test",
+            "fixture-projects",
+            "resolve-project-root",
+            "with-path-param",
+          );
+
+          const hre = await createHardhatRuntimeEnvironment(
+            {},
+            {},
+            projectPath,
+          );
+
+          // It should resolve to the first package.json file found, which is the one located at the path passed as a param
+          assert.equal(hre.config.paths.root, projectPath);
+        });
+      });
+    });
+
     it("should include the built-in plugins", async () => {
       const hre = await createHardhatRuntimeEnvironment({});
 
